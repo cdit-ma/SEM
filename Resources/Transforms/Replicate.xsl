@@ -128,12 +128,21 @@
 				<xsl:with-param name="defaultId" select="$nodeYKey" />
 			</xsl:call-template>	
 		</xsl:variable>
+
+		<xsl:variable name="transformNodeSortOrderKey">
+			<xsl:call-template name="findNodeKey">
+				<xsl:with-param name="attrName" select="'sortOrder'" />
+				<xsl:with-param name="defaultId" select="$nodeSortOrderKey" />
+			</xsl:call-template>	
+		</xsl:variable>
 		
 	    <xsl:apply-templates select="gml:graph">
-		    <xsl:with-param name="graphId" select="'G'" />
+		    <xsl:with-param name="graphID" select="'G'" />
+		    <xsl:with-param name="replicateID" select="''" />
 			<xsl:with-param name="transformNodeReplicateCountKey" select="$transformNodeReplicateCountKey" />
 			<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
 			<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+			<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey" />
 			<xsl:with-param name="transformNodeXKey" select="$transformNodeXKey" />
 			<xsl:with-param name="transformNodeYKey" select="$transformNodeYKey" />
 		</xsl:apply-templates>
@@ -141,19 +150,23 @@
 
 	<!-- select global graph for this file -->
 	<xsl:template match="gml:graph">
-	    <xsl:param name="graphId" />
+	    <xsl:param name="graphID" />
+	    <xsl:param name="replicateID" />
 		<xsl:param name="transformNodeReplicateCountKey" />
 		<xsl:param name="transformNodeKindKey" />
 		<xsl:param name="transformNodeLabelKey" />
+		<xsl:param name="transformNodeSortOrderKey" />
 		<xsl:param name="transformNodeXKey" />
 		<xsl:param name="transformNodeYKey" />
 		
-		<graph edgedefault="directed" id="{$graphId}">
+		<graph edgedefault="directed" id="{$graphID}">
 		
 		<xsl:apply-templates select="gml:node">
+			<xsl:with-param name="replicateID" select="$replicateID" />
 			<xsl:with-param name="transformNodeReplicateCountKey" select="$transformNodeReplicateCountKey" />
 			<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
 			<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+			<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey" />
 			<xsl:with-param name="transformNodeXKey" select="$transformNodeXKey" />
 			<xsl:with-param name="transformNodeYKey" select="$transformNodeYKey" />
 		</xsl:apply-templates>
@@ -168,14 +181,16 @@
 	
    	<!-- select nodes in graph -->
 	<xsl:template match="gml:node">
+		<xsl:param name="replicateID" />
 		<xsl:param name="transformNodeReplicateCountKey" />
 		<xsl:param name="transformNodeKindKey" />
 		<xsl:param name="transformNodeLabelKey" />
+		<xsl:param name="transformNodeSortOrderKey" />
 		<xsl:param name="transformNodeXKey" />
 		<xsl:param name="transformNodeYKey" />
 		
 		<xsl:variable name="node" select="." />		
-	    <xsl:variable name="nodeID" select="$node/@id" />
+	    <xsl:variable name="nodeID" select="concat($node/@id, $replicateID)" />
 		<xsl:variable name="replicateCount">
 			<xsl:choose>
 				<xsl:when test="($node/gml:data[@key=$transformNodeKindKey]/text() = 'ComponentAssembly')">
@@ -188,25 +203,7 @@
 			</xsl:choose>
 		</xsl:variable>
 
-		<!-- found a ComponentAssembly to replicate -->
-		<xsl:if test="$replicateCount &gt; 0" >
-			<xsl:variable name="assemblyDefs" select="/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'AssemblyDefinitions']/.." />
-
-			<!-- what to do ??? -->
-
-			<!-- recurse until replicateCount = 1 -->
-			<xsl:call-template name="replicate">
-				<xsl:with-param name="assemblyDefs" select="$assemblyDefs"/>
-				<xsl:with-param name="node" select="$node"/>
-				<xsl:with-param name="count" select="$replicateCount" />
-				<xsl:with-param name="transformNodeReplicateCountKey" select="$transformNodeReplicateCountKey"/>
-				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
-				<xsl:with-param name="transformNodeXKey" select="$transformNodeXKey" />
-				<xsl:with-param name="transformNodeYKey" select="$transformNodeYKey" />
-			</xsl:call-template>
-		</xsl:if>
-
-		<!-- now output the original ComponentAssembly -->
+		<!-- output the original ComponentAssembly -->
 	    <node id="{$nodeID}"> 
 			<xsl:choose>
 				<xsl:when test="$replicateCount &gt; 0">
@@ -235,22 +232,242 @@
 			</xsl:choose>
 			
 			<xsl:apply-templates select="$node/gml:graph">
-				<xsl:with-param name="graphId" select="concat($nodeID,':')" />
+				<xsl:with-param name="graphID" select="concat($nodeID,':')" />
+				<xsl:with-param name="replicateID" select="$replicateID" />
 				<xsl:with-param name="transformNodeReplicateCountKey" select="$transformNodeReplicateCountKey" />
 				<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
 				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+				<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey" />
 				<xsl:with-param name="transformNodeXKey" select="$transformNodeXKey" />
 				<xsl:with-param name="transformNodeYKey" select="$transformNodeYKey" />
 			</xsl:apply-templates>
         </node>
 		
+		<!-- found a ComponentAssembly to replicate -->
+		<xsl:if test="$replicateCount &gt; 0" >
+			<xsl:variable name="assemblyDefs" select="/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'AssemblyDefinitions']/.." />
 
+			<!-- find sibling count, add replicates at end of list of siblings -->
+			<xsl:variable name="siblingCount" select="count($node/../gml:node)" />
+
+			<!-- recurse until replicateCount -->
+			<xsl:call-template name="replicate">
+				<xsl:with-param name="replicateID" select="$replicateID" />
+				<xsl:with-param name="assemblyDefs" select="$assemblyDefs"/>
+				<xsl:with-param name="node" select="$node"/>
+				<xsl:with-param name="count" select="'1'" />
+				<xsl:with-param name="replicateCount" select="$replicateCount" />
+				<xsl:with-param name="startSortOrder" select="$siblingCount" />
+				<xsl:with-param name="transformNodeReplicateCountKey" select="$transformNodeReplicateCountKey"/>
+				<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
+				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+				<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey" />
+				<xsl:with-param name="transformNodeXKey" select="$transformNodeXKey" />
+				<xsl:with-param name="transformNodeYKey" select="$transformNodeYKey" />
+			</xsl:call-template>
+		</xsl:if>
 		
     </xsl:template>
 	
+	<!-- Recurse until replicate count is exhausted -->
+	 <xsl:template name="replicate">
+		<xsl:param name="replicateID" />
+		<xsl:param name="assemblyDefs" />
+		<xsl:param name="node" />
+		<xsl:param name="count" />
+		<xsl:param name="replicateCount" />
+		<xsl:param name="startSortOrder" />
+		<xsl:param name="transformNodeReplicateCountKey" />
+		<xsl:param name="transformNodeKindKey" />
+		<xsl:param name="transformNodeLabelKey" />
+		<xsl:param name="transformNodeSortOrderKey" />
+		<xsl:param name="transformNodeXKey" />
+		<xsl:param name="transformNodeYKey" />
+		
+		<!-- create nodeID with this replicate postpend -->
+		<xsl:variable name="thisReplicateID" select="concat($replicateID, '_R', ($count + 1))" />
+		<xsl:variable name="nodeID" select="concat($node/@id, $thisReplicateID)" />
+		<xsl:if test="$count &lt; $replicateCount" >
+			<node id="{$nodeID}"> 
+				<xsl:for-each select="$node/gml:data">
+					<xsl:choose>
+						<xsl:when test="./@key = $transformNodeReplicateCountKey" >
+							<!-- overwriten as below -->
+						</xsl:when>
+						<xsl:when test="./@key = $transformNodeLabelKey" >
+							<data key="{$transformNodeLabelKey}">
+								<xsl:value-of select="concat(./text(), $thisReplicateID)" />
+							</data>
+						</xsl:when>
+						<xsl:when test="./@key = $transformNodeXKey" >
+							<data key="{$transformNodeXKey}">
+								<xsl:value-of select="number(./text()) + ($count * 5)" />
+							</data>
+						</xsl:when>
+						<xsl:when test="./@key = $transformNodeYKey" >
+							<data key="{$transformNodeYKey}">
+								<xsl:value-of select="number(./text()) + ($count * 5)" />
+							</data>
+						</xsl:when>
+						<xsl:when test="./@key = $transformNodeSortOrderKey" >
+							<data key="{$transformNodeSortOrderKey}">
+								<xsl:value-of select="$startSortOrder + $count - 1" />
+							</data>
+						</xsl:when>
+						<xsl:otherwise>
+							<xsl:apply-templates select="." mode="copy" />
+						</xsl:otherwise>
+					</xsl:choose>
+				</xsl:for-each>			
+				<data key="{$transformNodeReplicateCountKey}">
+					<xsl:value-of select="'1'" />
+				</data>
+				
+				<!-- replicate all child nodes -->
+				<xsl:apply-templates select="$node/gml:graph">
+					<xsl:with-param name="graphID" select="concat($nodeID,':')" />
+					<xsl:with-param name="replicateID" select="$thisReplicateID" />
+					<xsl:with-param name="transformNodeReplicateCountKey" select="$transformNodeReplicateCountKey" />
+					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
+					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+					<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey" />
+					<xsl:with-param name="transformNodeXKey" select="$transformNodeXKey" />
+					<xsl:with-param name="transformNodeYKey" select="$transformNodeYKey" />
+				</xsl:apply-templates>
+			</node>
+
+			<!-- replicate edges for this and all descendant nodes -->
+			<xsl:variable name="replicaDescendants" select="$node/descendant-or-self::node()" />
+			<xsl:for-each select="$replicaDescendants">
+				<xsl:call-template name="replicaEdges">
+					<xsl:with-param name="node" select="." />
+					<xsl:with-param name="origNode" select="$node" />
+					<xsl:with-param name="replicateID" select="$thisReplicateID" />
+					<xsl:with-param name="transformNodeReplicateCountKey" select="$transformNodeReplicateCountKey"/>
+					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
+				</xsl:call-template> 
+			</xsl:for-each>
+			
+			<!-- Recurse for the number of replica's required -->			
+			<xsl:call-template name="replicate">
+				<xsl:with-param name="replicateID" select="$replicateID" />
+				<xsl:with-param name="assemblyDefs" select="$assemblyDefs"/>
+				<xsl:with-param name="node" select="$node"/>
+				<xsl:with-param name="count" select="$count + 1" />
+				<xsl:with-param name="replicateCount" select="$replicateCount" />
+				<xsl:with-param name="startSortOrder" select="$startSortOrder" />
+				<xsl:with-param name="transformNodeReplicateCountKey" select="$transformNodeReplicateCountKey"/>
+				<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
+				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+				<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey" />
+				<xsl:with-param name="transformNodeXKey" select="$transformNodeXKey" />
+				<xsl:with-param name="transformNodeYKey" select="$transformNodeYKey" />
+			</xsl:call-template> 
+		</xsl:if>
+	</xsl:template>
+
+	<!-- Replicate edges for a replicated node -->
+	<xsl:template name="replicaEdges">
+		<xsl:param name="node" />
+		<xsl:param name="origNode" />
+		<xsl:param name="replicateID" />
+		<xsl:param name="transformNodeReplicateCountKey" />
+		<xsl:param name="transformNodeKindKey" />
+		
+		<!-- replicate edges to given node -->
+		<xsl:variable name="nodeID" select="concat($node/@id, $replicateID)" />
+		<xsl:variable name="nodeSourceEdges" select="/descendant::*/gml:edge[@source=$node/@id]" />
+		<xsl:for-each select="$nodeSourceEdges">
+			<xsl:variable name="edge" select="." />
+			<xsl:variable name="edgeID" select="concat($edge/@id, $replicateID)" />
+			<xsl:variable name="targetNode" select="/descendant::*/gml:node[@id=$edge/@target]" />
+			<xsl:variable name="targetReplicate" select="$targetNode/ancestor-or-self::node()/gml:data[@key=$transformNodeKindKey][text() = 'ComponentAssembly'][1]/.." />
+			<xsl:variable name="targetReplicateCount">
+				<xsl:choose>
+					<xsl:when test="number($targetReplicate/gml:data[@key=$transformNodeReplicateCountKey]/text()) &gt; 1">
+						<!-- found a ComponentAssembly ancestor that is replicate -->
+						<xsl:value-of select="$targetReplicate/gml:data[@key=$transformNodeReplicateCountKey]/text()" />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="'0'" />
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
+			<xsl:variable name="targetID">
+				<xsl:choose> 
+				<!-- edge to node of replicate -->
+				<xsl:when test="$targetNode/ancestor-or-self::node()[@id=$origNode/@id]">
+					<xsl:value-of select="concat($targetNode/@id, $replicateID)" />
+				</xsl:when>
+				<!-- edge to node one level up in replication -->
+				<xsl:when test="$targetReplicateCount &gt; 1">
+					<xsl:variable name="parentReplicateID">
+						<xsl:call-template name="substring-before-last">
+						  <xsl:with-param name="string1" select="$replicateID" />
+						  <xsl:with-param name="string2" select="'_'" />
+						</xsl:call-template>
+					</xsl:variable>
+					<xsl:value-of select="concat($targetNode/@id, $parentReplicateID)" />
+				</xsl:when>
+				<!-- edge to node outside replicate -->
+				<xsl:otherwise>
+					<xsl:value-of select="$targetNode/@id" />
+				</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
+			<edge id="{$edgeID}" source="{$nodeID}" target="{$targetID}">
+				<xsl:for-each select="$edge/gml:data">
+					<xsl:apply-templates select="." mode="copy" />
+				</xsl:for-each>			
+			</edge>
+		</xsl:for-each>
+
+		<xsl:variable name="nodeTargetEdges" select="/descendant::*/gml:edge[@target=$node/@id]" />
+		<xsl:for-each select="$nodeTargetEdges">
+			<xsl:variable name="edge" select="." />
+			<xsl:variable name="edgeID" select="concat($edge/@id, $replicateID)" />
+			<xsl:variable name="sourceNode" select="/descendant::*/gml:node[@id=$edge/@source]" />
+			<xsl:variable name="sourceReplicate" select="$sourceNode/ancestor-or-self::node()/gml:data[@key=$transformNodeKindKey][text() = 'ComponentAssembly'][1]/.." />
+			<xsl:variable name="sourceReplicateCount">
+				<xsl:choose>
+					<xsl:when test="number($sourceReplicate/gml:data[@key=$transformNodeReplicateCountKey]/text()) &gt; 1">
+						<!-- found a ComponentAssembly ancestor that is replicate -->
+						<xsl:value-of select="$sourceReplicate/gml:data[@key=$transformNodeReplicateCountKey]/text()" />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="'0'" />
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
+
+			<xsl:choose> 
+			<!-- edge from node of replicate, edge already created from nodeSourceEdges above -->
+			<xsl:when test="$sourceNode/ancestor-or-self::node()[@id=$origNode/@id]">
+			</xsl:when>
+			<!-- edge from node one level up in replication -->
+			<xsl:when test="$sourceReplicateCount &gt; 1">
+				<xsl:variable name="parentReplicateID">
+					<xsl:call-template name="substring-before-last">
+					  <xsl:with-param name="string1" select="$replicateID" />
+					  <xsl:with-param name="string2" select="'_'" />
+					</xsl:call-template>
+				</xsl:variable>
+				<xsl:value-of select="concat($sourceNode/@id, $parentReplicateID)" />
+			</xsl:when>
+			<!-- edge from node outside replicate -->
+			<xsl:otherwise>
+				<edge id="{$edgeID}" source="{$sourceNode/@id}" target="{$nodeID}">
+					<xsl:for-each select="$edge/gml:data">
+						<xsl:apply-templates select="." mode="copy" />
+					</xsl:for-each>			
+				</edge>
+			</xsl:otherwise>
+			</xsl:choose>
+		</xsl:for-each>		
+	</xsl:template>	
+	
 	<!-- copy all existing node data -->
     <xsl:template match="gml:data" mode="copy">
-
 		<xsl:element name="{local-name(.)}" >
 			<xsl:apply-templates select="@*|node()" mode="copy" />
 		</xsl:element>
@@ -258,80 +475,16 @@
 	
    	<!-- copy edges in graph -->
    	<xsl:template match="gml:edge" mode="copy" >
-		
 		<xsl:element name="{local-name(.)}" >
 			<xsl:apply-templates select="@*|node()" mode="copy" />
-			<!-- <xsl:apply-templates select="./gml:data" mode="copy" /> -->
 		</xsl:element>
 	</xsl:template> 
 	
 	<xsl:template match="@*|text()|comment()" mode="copy">
 		<xsl:copy/>
-	</xsl:template>
-
-	<!-- Recurse copy until replicate count is exhausted -->
-	 <xsl:template name="replicate">
-		<xsl:param name="assemblyDefs" />
-		<xsl:param name="node" />
-		<xsl:param name="count" />
-		<xsl:param name="transformNodeReplicateCountKey" />
-		<xsl:param name="transformNodeLabelKey" />
-		<xsl:param name="transformNodeXKey" />
-		<xsl:param name="transformNodeYKey" />
-		
-		<!-- create nodeID with this replicate postpend -->
-		<xsl:variable name="nodeID" select="concat($node/@id, '_R', $count)" />
-		<xsl:choose>
-			<xsl:when test="$count &gt; 1" >
-				<node id="{$nodeID}"> 
-					<xsl:for-each select="$node/gml:data">
-						<xsl:choose>
-							<xsl:when test="./@key = $transformNodeReplicateCountKey" >
-								<!-- overwriten as below -->
-							</xsl:when>
-							<xsl:when test="./@key = $transformNodeLabelKey" >
-								<data key="{$transformNodeLabelKey}">
-									<xsl:value-of select="concat(./text(), '_R', $count)" />
-								</data>
-							</xsl:when>
-							<xsl:when test="./@key = $transformNodeXKey" >
-								<data key="{$transformNodeXKey}">
-									<xsl:value-of select="number(./text()) + ($count * 5)" />
-								</data>
-							</xsl:when>
-							<xsl:when test="./@key = $transformNodeYKey" >
-								<data key="{$transformNodeYKey}">
-									<xsl:value-of select="number(./text()) + ($count * 5)" />
-								</data>
-							</xsl:when>
-							<xsl:otherwise>
-								<xsl:apply-templates select="." mode="copy" />
-							</xsl:otherwise>
-						</xsl:choose>
-					</xsl:for-each>			
-					<data key="{$transformNodeReplicateCountKey}">
-						<xsl:value-of select="'1'" />
-					</data>
-				</node>
-				
-				<xsl:call-template name="replicate">
-					<xsl:with-param name="assemblyDefs" select="$assemblyDefs"/>
-					<xsl:with-param name="node" select="$node"/>
-					<xsl:with-param name="count" select="$count - 1" />
-					<xsl:with-param name="transformNodeReplicateCountKey" select="$transformNodeReplicateCountKey"/>
-					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
-					<xsl:with-param name="transformNodeXKey" select="$transformNodeXKey" />
-					<xsl:with-param name="transformNodeYKey" select="$transformNodeYKey" />
-				</xsl:call-template> 
-			</xsl:when>
-			<xsl:otherwise>
-			</xsl:otherwise>
-		</xsl:choose>
-
-	</xsl:template>
+	</xsl:template>	
 	
-	
-	<!-- find the key for specific attribute,  -->
+	<!-- find the key for specific attribute -->
 	<xsl:template name="findNodeKey">
 		<xsl:param name="attrName" />
 		<xsl:param name="defaultId" />
@@ -347,4 +500,22 @@
 		</xsl:choose>
     </xsl:template>	
 	
+	<xsl:template name="substring-before-last">
+		<xsl:param name="string1" select="''" />
+		<xsl:param name="string2" select="''" />
+
+		<xsl:if test="$string1 != '' and $string2 != ''">
+			<xsl:variable name="head" select="substring-before($string1, $string2)" />
+			<xsl:variable name="tail" select="substring-after($string1, $string2)" />
+			<xsl:value-of select="$head" />
+			<xsl:if test="contains($tail, $string2)">
+				<xsl:value-of select="$string2" />
+				<xsl:call-template name="substring-before-last">
+				<xsl:with-param name="string1" select="$tail" />
+				<xsl:with-param name="string2" select="$string2" />
+				</xsl:call-template>
+			</xsl:if>
+		</xsl:if>
+	</xsl:template>
+
 </xsl:stylesheet>
