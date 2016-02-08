@@ -272,11 +272,11 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
     sourceSelectedItemID = getCurrentNodeID();
 
     // close the sender dock then open this dock
-    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
-    dock->setDockOpen(false);
+    //DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+    //dock->setDockOpen(false);
 
-    //getParentButton()->pressed();
-    setDockOpen();
+    //setDockOpen();
+    getParentButton()->pressed();
     filterDock(srcKind);
 }
 
@@ -355,6 +355,10 @@ void DefinitionsDockScrollArea::dockClosed()
     /*if (isDockEnabled()) {
         setDockEnabled(false);
     }*/
+
+    if (isDockEnabled()) {
+        setDockEnabled(false);
+    }
 
     sourceDockItemKind = "";
     sourceSelectedItemID = -1;

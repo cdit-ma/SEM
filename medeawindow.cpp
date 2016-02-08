@@ -927,8 +927,8 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     definitionsButton = new DockToggleButton(DEFINITIONS_DOCK, this);
     functionsButton = new DockToggleButton(FUNCTIONS_DOCK, this);
 
-    definitionsButton->hide();
-    functionsButton->hide();
+    //definitionsButton->hide();
+    //functionsButton->hide();
 
     partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
     definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, definitionsButton);
@@ -936,7 +936,8 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     functionsDock = new FunctionsDockScrollArea("Functions", nodeView, functionsButton);
 
     // width of the containers are fixed
-    boxWidth = (partsButton->getWidth()*2) + 10; // + 19;
+    boxWidth = (partsButton->getWidth()*4) + 19;
+    //boxWidth = (partsButton->getWidth()*2) + 10; // + 19;
 
     // set buttonBox's size and get rid of its border
     QSize buttonsBoxSize(boxWidth + 1, 48);

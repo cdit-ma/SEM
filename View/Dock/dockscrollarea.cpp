@@ -8,10 +8,11 @@
 #include <QDebug>
 #include <qmath.h>
 
-#define DOCK_PADDING 5
+//#define DOCK_PADDING 5
+#define DOCK_PADDING 10
 #define MAX_LABEL_LENGTH 12
-#define BUTTON_WIDTH 81
-//#define BUTTON_WIDTH 131
+#define BUTTON_WIDTH 131
+//#define BUTTON_WIDTH 81
 
 
 /**
@@ -262,7 +263,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
         if (addToLayout) {
             if (insertIndex == -1) {
                 layout->addWidget(dockItem);
-                qDebug() << "Added dockitem: " << dockItem->getLabel() << "to layout";
+                //qDebug() << "Added dockitem: " << dockItem->getLabel() << "to layout";
             } else {
                 layout->insertWidget(insertIndex, dockItem);
             }
@@ -271,7 +272,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
         dockNodeIDs.append(dockItemID.toInt());
         dockNodeItems[dockItemID] = dockItem;
         connect(dockItem, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
-        qDebug() << "Added dock item - " << dockItem->getLabel();
+        //qDebug() << "Added dock item - " << dockItem->getLabel();
 
     } else {
         qWarning() << "DockScrollArea::addDockNodeItem - Item is null.";
