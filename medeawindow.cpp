@@ -927,20 +927,17 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     definitionsButton = new DockToggleButton(DEFINITIONS_DOCK, this);
     functionsButton = new DockToggleButton(FUNCTIONS_DOCK, this);
 
-    definitionsButton->hide();
-    functionsButton->hide();
-
     partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
     definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, definitionsButton);
     hardwareDock = new HardwareDockScrollArea("Nodes", nodeView, hardwareNodesButton);
     functionsDock = new FunctionsDockScrollArea("Functions", nodeView, functionsButton);
 
     // width of the containers are fixed
-    //boxWidth = (partsButton->getWidth()*4) + 19;
-    boxWidth = (partsButton->getWidth()*2) + 10;
+    int dockPadding = 5;
+    boxWidth = (partsButton->getWidth() - dockPadding) * 2 + 19;
 
     // set buttonBox's size and get rid of its border
-    QSize buttonsBoxSize(boxWidth + 1, 48);
+    QSize buttonsBoxSize(boxWidth + 1, partsButton->getHeight() + dockPadding);
     dockButtonsBox->setStyleSheet("margin: 0px; border: 0px; padding: 0px;");
     dockButtonsBox->setFixedSize(buttonsBoxSize);
 
@@ -979,7 +976,18 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockButtonsHlayout->addWidget(hardwareNodesButton);
     dockButtonsBox->setLayout(dockButtonsHlayout);
 
+    definitionsButton->hide();
+    functionsButton->hide();
+
+    openedDockLabel = new QLabel("Parts", this);
+    openedDockLabel->setFixedWidth(boxWidth);
+    openedDockLabel->setStyleSheet("border: none; background-color: rgba(250,250,250,240); padding: 5px;");
+    openedDockLabel->hide();
+
+    // TODO - instead of updating the dock label's text, construct a label for each dock and add it into a groupbox with the dock
+
     dockLayout->addWidget(dockButtonsBox);
+    dockLayout->addWidget(openedDockLabel);
     dockLayout->addWidget(partsDock);
     dockLayout->addWidget(definitionsDock);
     dockLayout->addWidget(functionsDock);
@@ -1659,6 +1667,11 @@ void MedeaWindow::makeConnections()
     connect(partsDock, SIGNAL(dock_forceOpenDock()), functionsDock, SLOT(forceOpenDock()));
     connect(definitionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
     connect(functionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
+
+    connect(partsDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
+    connect(definitionsDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
+    connect(functionsDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
+    connect(hardwareDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
 
@@ -3000,42 +3013,33 @@ void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
 void MedeaWindow::dockButtonPressed()
 {
     DockToggleButton* button = qobject_cast<DockToggleButton*>(QObject::sender());
+
     if (button) {
+
         updateWidgetMask(docksArea, dockButtonsBox);
         emit window_dockButtonPressed(button->getDockType());
+
+        // if a dock is opened, clear the mask then update the displayed dock label
         if (button->isSelected()) {
             docksArea->clearMask();
         }
+
+        // show/hide dock label depending on whether a dock is opened or not
+        //openedDockLabel->setVisible(button->isSelected());
     }
 }
 
 
 /**
- * @brief MedeaWindow::forceOpenDock
- * @param type
- * @param srcKind
+ * @brief MedeaWindow::upddateDockLabel
  */
-/*
-void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
+void MedeaWindow::updateDockLabel()
 {
-    switch (type) {
-    case PARTS_DOCK:
-        partsDock->forceOpenDock();
-        break;
-    case DEFINITIONS_DOCK:
-        definitionsDock->forceOpenDock(srcKind);
-        break;
-    case FUNCTIONS_DOCK:
-        functionsDock->forceOpenDock();
-        break;
-    case HARDWARE_DOCK:
-        //hardwareDock->forceOpenDock();
-        break;
-    default:
-        break;
+    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+    if (dock) {
+        openedDockLabel->setText(GET_DOCK_LABEL(dock->getDockType()));
     }
 }
-*/
 
 
 /**

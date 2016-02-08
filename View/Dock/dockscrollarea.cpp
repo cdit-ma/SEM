@@ -8,8 +8,8 @@
 #include <QDebug>
 #include <qmath.h>
 
-//#define DOCK_PADDING 10
-#define DOCK_PADDING 5
+//#define DOCK_PADDING 5
+#define DOCK_PADDING 10
 #define MAX_LABEL_LENGTH 12
 #define BUTTON_WIDTH 81
 //#define BUTTON_WIDTH 131
@@ -484,12 +484,11 @@ void DockScrollArea::setupLayout()
     setInfoText(defaultInfoText);
 
     QGroupBox* groupBox = new QGroupBox(0);
-    groupBox->setTitle(label);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     groupBox->setStyleSheet("QGroupBox {"
-                            "background-color: rgba(255,255,255,0);"
+                            "background-color: rgba(0,255,255,0);"
                             "border: 0px;"
-                            "padding:" + QString::number(DOCK_PADDING) + "px;"
+                            "padding: 0px " + QString::number(DOCK_PADDING) + "px;"
                             "}");
 
     layout = new QVBoxLayout(this);
@@ -500,14 +499,12 @@ void DockScrollArea::setupLayout()
     groupBox->setLayout(layout);
 
     setWidget(groupBox);
-    setVisible(false);
     setWidgetResizable(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setStyleSheet("QScrollArea {"
-                  "padding:" + QString::number(DOCK_PADDING) + "px 0px;"
-                  "background-color: rgba(250,250,250,240);"
-                  "border: 0px;"
-                  //"border-radius: 10px;"
+                  "padding: 0px;"
+                  "background: rgba(250,250,250,240);"
+                  "border: 1px solid rgb(125,125,125);"
                   "}");
 }
 

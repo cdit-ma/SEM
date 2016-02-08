@@ -71,7 +71,7 @@ private:
     void updateTextLabel();
     void updateStyleSheet();
 
-    void setDockItemExpanded();
+    void toggleDockItemExpanded();
     bool hasVisibleChildren();
 
     DockScrollArea* parentDock;

@@ -30,6 +30,8 @@ public:
     void hideDock();
 
     int getWidth();
+    int getHeight();
+
     DOCK_TYPE getDockType();
     MedeaWindow* getParentWindow();
 

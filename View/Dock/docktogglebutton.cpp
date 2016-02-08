@@ -9,8 +9,8 @@
 
 
 //#define BUTTON_WIDTH 40
-#define BUTTON_WIDTH 60
-#define BUTTON_HEIGHT 40
+#define BUTTON_WIDTH 65
+#define BUTTON_HEIGHT 42
 
 #define DEFAULT 0
 #define SELECTED 1
@@ -59,12 +59,9 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
         break;
     }
 
-    fixedStyleSheet = "QPushButton:hover {"
-                      "background-color: white;"
-                      "}"
-                      "QPushButton:disabled {"
+    fixedStyleSheet = "QPushButton:disabled {"
                       "border: 1px solid rgb(140,140,140);"
-                      "background-color: rgb(150,150,150);"
+                      "background: rgb(150,150,150);"
                       "}"
                       "QToolTip{ background: white; }";
 
@@ -118,10 +115,10 @@ void DockToggleButton::setSelected(bool b)
  */
 void DockToggleButton::hideDock()
 {
-    // if the groupbox is still visible, force press this button to hide it
-    if (selected) {
-        emit pressed();
+    if (dock) {
+        dock->setDockOpen(false);
     }
+    setSelected(false);
 }
 
 
@@ -148,7 +145,6 @@ void DockToggleButton::setDock(DockScrollArea* dock)
     if (parentWindow && dock) {
         connect(parentWindow, SIGNAL(window_clearDocks()), dock, SLOT(clear()));
         connect(parentWindow, SIGNAL(window_clearDocksSelection()), dock, SLOT(clearSelected()));
-        //connect(dock, SIGNAL(dock_forceOpenDock(DOCK_TYPE,QString)), parentWindow, SLOT(forceOpenDock(DOCK_TYPE,QString)));
     }
 }
 
@@ -161,6 +157,17 @@ void DockToggleButton::setDock(DockScrollArea* dock)
 int DockToggleButton::getWidth()
 {
     return BUTTON_WIDTH;
+}
+
+
+/**
+ * @brief DockToggleButton::getHeight
+ * Returns the height of this button.
+ * @return
+ */
+int DockToggleButton::getHeight()
+{
+   return BUTTON_HEIGHT;
 }
 
 
@@ -210,9 +217,10 @@ void DockToggleButton::dockButtonPressed(DOCK_TYPE type)
         } else {
             updateStyleSheet(DEFAULT);
         }
-        // show/hide the attached dock
-        getDock()->setDockOpen(selected);
     }
+
+    // show/hide the attached dock
+    getDock()->setDockOpen(selected);
 }
 
 
@@ -227,12 +235,12 @@ void DockToggleButton::updateStyleSheet(int state)
 
     switch (state) {
     case DEFAULT:
-        borderStyleSheet = "border: 1px solid rgb(100,100,100);";
-        backgroundStyleSheet = "background-color: rgb(235,235,235);";
+        borderStyleSheet = "border: 1px solid rgb(125,125,125);";
+        backgroundStyleSheet = "background: rgb(235,235,235);";
         break;
     case SELECTED:
         borderStyleSheet = "border: 2px solid rgb(50,50,250);";
-        backgroundStyleSheet = "background-color: rgb(240,240,240);";
+        backgroundStyleSheet = "background: rgb(250,250,250);";
         break;
     default:
         return;
@@ -240,7 +248,6 @@ void DockToggleButton::updateStyleSheet(int state)
 
     setStyleSheet("QPushButton {"
                   "padding: 0px;"
-                  //"border-radius: 22px;"
                   + borderStyleSheet
                   + backgroundStyleSheet +
                   "}" + fixedStyleSheet);
@@ -250,9 +257,8 @@ void DockToggleButton::updateStyleSheet(int state)
 /**
  * @brief DockToggleButton::setEnabled
  * This enables/disables this dock toggle button, updating its selected and enabled state and its colour.
- * If this button was previously selected, it makes sure that the dock attched to it is closed.
+ * If this button was previously selected, it makes sure that the dock attached to it is closed.
  * @param enable
- * @param repaint
  */
 void DockToggleButton::setEnabled(bool enable)
 {

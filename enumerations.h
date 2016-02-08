@@ -89,6 +89,7 @@ extern QStringList GET_ASPECT_NAMES();
 extern QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect);
 extern QColor GET_VIEW_COLOR(VIEW_THEME theme);
 extern QColor GET_INVERT_COLOR(VIEW_THEME theme);
+extern QString GET_DOCK_LABEL(DOCK_TYPE type);
 
 
 #endif // ENUMERATIONS_H

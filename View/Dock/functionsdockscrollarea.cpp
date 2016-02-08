@@ -20,7 +20,7 @@ FunctionsDockScrollArea::FunctionsDockScrollArea(QString label, NodeView *view, 
     mainLayout->addStretch();
     getLayout()->addLayout(mainLayout);
 
-    setDockEnabled(false);
+    setDockOpen(false);
 
     connectToView();
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
@@ -94,11 +94,7 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
         getNodeView()->constructWorkerProcessNode(parentItem->getKind(), dockItem->getKind(), 0);
     }
 
-    // close this dock after an item has been clicked
-    //setDockEnabled(false);
-    setDockEnabled(false);
-
-    // then re-open the parts dock
+    // this closes this dock and then re-opens the parts dock
     emit dock_forceOpenDock();
 }
 
@@ -110,7 +106,9 @@ void FunctionsDockScrollArea::updateDock()
 {
     NodeItem* selectedItem = getCurrentNodeItem();
     if (!selectedItem || !functions_allowedKinds.contains(selectedItem->getNodeKind())) {
-        setDockEnabled(false);
+        if (isDockOpen()) {
+            emit dock_forceOpenDock();
+        }
     }
 }
 
@@ -229,7 +227,7 @@ void FunctionsDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
 void FunctionsDockScrollArea::dockClosed()
 {
     // for now, the moment this dock is closed, it is also disabled
-    setDockEnabled(false);
+    //setDockEnabled(false);
 }
 
 
@@ -241,14 +239,6 @@ void FunctionsDockScrollArea::forceOpenDock()
     if (isDockOpen()) {
         return;
     }
-    if (!isDockEnabled()) {
-        setDockEnabled(true);
-    }
-    /*
-    if (getParentButton()) {
-        getParentButton()->pressed();
-    }
-    */
 
     // close the sender dock then open this dock
     DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());

@@ -205,3 +205,20 @@ QList<VIEW_ASPECT> GET_VIEW_ASPECTS()
     list << VA_INTERFACES << VA_BEHAVIOUR << VA_ASSEMBLIES << VA_HARDWARE;
     return list;
 }
+
+
+QString GET_DOCK_LABEL(DOCK_TYPE type)
+{
+    switch (type) {
+    case PARTS_DOCK:
+        return "Parts";
+    case DEFINITIONS_DOCK:
+        return "Definitions";
+    case FUNCTIONS_DOCK:
+        return "Functions";
+    case HARDWARE_DOCK:
+        return "Nodes";
+    default:
+        return "Unknown";
+    }
+}
