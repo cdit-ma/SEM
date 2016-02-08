@@ -8,8 +8,8 @@
 #include <QBrush>
 
 
-//#define BUTTON_WIDTH 60
-#define BUTTON_WIDTH 40
+//#define BUTTON_WIDTH 40
+#define BUTTON_WIDTH 60
 #define BUTTON_HEIGHT 40
 
 #define DEFAULT 0

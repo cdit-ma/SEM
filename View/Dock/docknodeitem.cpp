@@ -5,12 +5,13 @@
 #include <QLabel>
 #include <QDebug>
 
-#define MAX_LABEL_LENGTH 15
-#define ICON_RATIO 0.85
+//#define MAX_LABEL_LENGTH 15
+//#define MAX_LABEL_LENGTH 12
+#define ICON_RATIO 0.75
 #define IMAGE_PADDING 5
 
-//#define BUTTON_WIDTH 101
-#define BUTTON_WIDTH 141
+//#define BUTTON_WIDTH 141
+#define BUTTON_WIDTH 101
 #define BUTTON_HEIGHT 100
 #define LABEL_BUTTON_HEIGHT 28
 
@@ -412,6 +413,9 @@ void DockNodeItem::setupLayout()
         textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     }
 
+    int maxCharWidth = textLabel->fontMetrics().width('W');
+    MAX_LABEL_LENGTH = BUTTON_WIDTH / maxCharWidth + 2;
+
     textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
 
@@ -438,20 +442,20 @@ void DockNodeItem::setupLayout()
                                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
             QLabel* dockArrowLabel = new QLabel(this);
-            dockArrowLabel->setFixedWidth(ARROW_WIDTH);
+            dockArrowLabel->setFixedSize(ARROW_WIDTH, IMAGE_SIZE);
             dockArrowLabel->setPixmap(arrowPixmap);
             dockArrowLabel->setStyleSheet("padding-top:" + QString::number(arrowPixmap.height()/2 - IMAGE_PADDING) + "px;");
 
             QHBoxLayout* imageLayout = new QHBoxLayout();
             imageLayout->addStretch(1);
             imageLayout->addWidget(imageLabel, 2);
-            imageLayout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+            imageLayout->setAlignment(imageLabel, Qt::AlignHCenter);
             imageLayout->addWidget(dockArrowLabel, 1);
             layout->addLayout(imageLayout);
 
         } else {
             layout->addWidget(imageLabel);
-            layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+            layout->setAlignment(imageLabel, Qt::AlignHCenter);
         }
     }
 

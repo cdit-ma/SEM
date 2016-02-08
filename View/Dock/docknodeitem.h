@@ -97,6 +97,7 @@ private:
     bool forceHidden;
 
     int state;
+    int MAX_LABEL_LENGTH;
 };
 
 #endif // DOCKNODEITEM_H

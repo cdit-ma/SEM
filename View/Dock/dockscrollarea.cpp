@@ -8,11 +8,11 @@
 #include <QDebug>
 #include <qmath.h>
 
-//#define DOCK_PADDING 5
-#define DOCK_PADDING 10
+//#define DOCK_PADDING 10
+#define DOCK_PADDING 5
 #define MAX_LABEL_LENGTH 12
-#define BUTTON_WIDTH 131
-//#define BUTTON_WIDTH 81
+#define BUTTON_WIDTH 81
+//#define BUTTON_WIDTH 131
 
 
 /**

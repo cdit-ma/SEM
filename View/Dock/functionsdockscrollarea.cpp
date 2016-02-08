@@ -244,16 +244,14 @@ void FunctionsDockScrollArea::forceOpenDock()
     if (!isDockEnabled()) {
         setDockEnabled(true);
     }
-    //*
+    /*
     if (getParentButton()) {
         getParentButton()->pressed();
     }
-    //*/
+    */
 
-    /*
     // close the sender dock then open this dock
     DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
     dock->setDockOpen(false);
     setDockOpen();
-    */
 }
