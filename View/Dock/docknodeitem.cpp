@@ -5,6 +5,8 @@
 #include <QLabel>
 #include <QDebug>
 
+// Test Commit
+
 //#define MAX_LABEL_LENGTH 15
 //#define MAX_LABEL_LENGTH 12
 #define ICON_RATIO 0.75
