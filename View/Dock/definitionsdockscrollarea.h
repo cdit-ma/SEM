@@ -27,6 +27,7 @@ public slots:
     void sortDockLabelItems(DockNodeItem* dockItem);
 
     void dockClosed();
+    void dockToggled(bool opened);
     void forceOpenDock(QString srcKind);
 
 private:

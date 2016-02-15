@@ -23,6 +23,9 @@ FunctionsDockScrollArea::FunctionsDockScrollArea(QString label, NodeView *view, 
     setDockOpen(false);
 
     connectToView();
+
+    connect(this, SIGNAL(dock_opened(bool)), this, SLOT(dockToggled(bool)));
+    connect(this, SIGNAL(dock_closed(bool)), this, SLOT(dockToggled(bool)));
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
 }
 
@@ -228,6 +231,20 @@ void FunctionsDockScrollArea::dockClosed()
 {
     // for now, the moment this dock is closed, it is also disabled
     //setDockEnabled(false);
+}
+
+
+/**
+ * @brief FunctionsDockScrollArea::dockToggled
+ * @param opened
+ */
+void FunctionsDockScrollArea::dockToggled(bool opened)
+{
+    QString action = "";
+    if (opened) {
+        action = "Select a function to construct a Process";
+    }
+    emit dock_toggled(opened, action);
 }
 
 

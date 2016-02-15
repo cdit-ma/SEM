@@ -38,6 +38,7 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
 
     switch (type) {
     case PARTS_DOCK:
+        //pixmap = QPixmap::fromImage(QImage(":/Actions/Backward.png"));
         pixmap = QPixmap::fromImage(QImage(":/Actions/Parts.png"));
         setToolTip("Parts Dock");
         break;
@@ -56,11 +57,12 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
         setToolTip("Hardware Dock");
         break;
     default:
+        qWarning() << "DockToggleButton::DockToggleButton - Unknown dock type.";
         break;
     }
 
     fixedStyleSheet = "QPushButton:disabled {"
-                      "border: 1px solid rgb(140,140,140);"
+                      //"border: 1px solid rgb(140,140,140);"
                       "background: rgb(150,150,150);"
                       "}"
                       "QToolTip{ background: white; }";

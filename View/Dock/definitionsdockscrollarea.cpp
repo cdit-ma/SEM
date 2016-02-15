@@ -38,6 +38,9 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     setDockOpen(false);
 
     connectToView();
+
+    connect(this, SIGNAL(dock_opened(bool)), this, SLOT(dockToggled(bool)));
+    connect(this, SIGNAL(dock_closed(bool)), this, SLOT(dockToggled(bool)));
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
 }
 
@@ -347,6 +350,20 @@ void DefinitionsDockScrollArea::dockClosed()
     // reset previous source kind and ID that were used to filter this dock
     sourceDockItemKind = "";
     sourceSelectedItemID = -1;
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::dockToggled
+ * @param opened
+ */
+void DefinitionsDockScrollArea::dockToggled(bool opened)
+{
+    QString action = "";
+    if (opened) {
+        action = "Describe action here";
+    }
+    emit dock_toggled(opened, action);
 }
 
 

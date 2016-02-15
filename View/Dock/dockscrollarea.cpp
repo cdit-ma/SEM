@@ -46,6 +46,16 @@ DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* 
 
     setParentButton(parent);
     setupLayout();
+
+    switch (getDockType()) {
+    case PARTS_DOCK:
+    case HARDWARE_DOCK:
+        connect(this, SIGNAL(dock_opened(bool)), this, SIGNAL(dock_toggled(bool)));
+        connect(this, SIGNAL(dock_closed(bool)), this, SIGNAL(dock_toggled(bool)));
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -194,7 +204,7 @@ void DockScrollArea::setInfoText(QString text)
     if (!text.isEmpty()) {
 
         QStringList textList = text.split(" ");
-        int lineWidth=0;
+        int lineWidth = 0;
         text = "";
 
         foreach (QString s, textList) {
@@ -479,20 +489,24 @@ void DockScrollArea::setupLayout()
     infoLabel = new QLabel(this);
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
-    infoLabel->setFixedWidth(BUTTON_WIDTH + 10);
+    infoLabel->setFixedWidth(BUTTON_WIDTH + DOCK_PADDING);
     infoLabel->setStyleSheet("padding:" + QString::number(DOCK_PADDING) + "px; font-style: italic;");
     setInfoText(defaultInfoText);
 
     QGroupBox* groupBox = new QGroupBox(0);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     groupBox->setStyleSheet("QGroupBox {"
-                            "background-color: rgba(0,255,255,0);"
+                            "background-color: rgba(0,0,0,0);"
+                            "margin: 0px 18px;"
                             "border: 0px;"
-                            "padding: 0px " + QString::number(DOCK_PADDING) + "px;"
+                            //"padding: 0px " + QString::number(DOCK_PADDING) + "px;"
+                            "padding: 0px;"
                             "}");
 
     layout = new QVBoxLayout(this);
-    layout->setSpacing(2);
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    //layout->setSpacing(2);
     layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSizeConstraint(QLayout::SetMinimumSize);
     layout->addWidget(infoLabel);
@@ -504,7 +518,10 @@ void DockScrollArea::setupLayout()
     setStyleSheet("QScrollArea {"
                   "padding: 0px;"
                   "background: rgba(250,250,250,240);"
-                  "border: 1px solid rgb(125,125,125);"
+                  "border-left: 1px solid rgb(125,125,125);"
+                  "border-right: 1px solid rgb(125,125,125);"
+                  "border-top: none;"
+                  "border-bottom: none;"
                   "}");
 }
 
@@ -574,6 +591,9 @@ void DockScrollArea::updateInfoLabel()
     if (showLabel != infoLabelVisible) {
         infoLabel->setVisible(showLabel);
         infoLabelVisible = showLabel;
+        if (infoLabelVisible && infoLabel->text().isEmpty()) {
+            infoLabel->setText("Info label text is empty");
+        }
     }
 }
 
