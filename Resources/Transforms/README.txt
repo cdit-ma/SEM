@@ -48,6 +48,8 @@ If the Windows environment is set, use the org.apache.xalan.xslt.Process with ja
 
 For localhost deployment with no Hardware node defined in the model;
 Use the following command line transforms for HelloWorld SEM 
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -xsl %MEDEA_ROOT%\Resources\Transforms\Replicate.xsl -OUT HelloWorld.graphml
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -xsl %MEDEA_ROOT%\Resources\Transforms\Deploy.xsl -PARAM Algorithm "1" -OUT HelloWorld.graphml
 > java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2cdd.xsl -PARAM MainNode "1" -OUT HelloWorld.cdd
 > java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2cdp.xsl -PARAM MainNode "1" -OUT HelloWorld.cdp
 > java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2testconfig.xsl -PARAM MainNode "1" -OUT test.config
