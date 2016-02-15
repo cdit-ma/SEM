@@ -400,7 +400,6 @@ void DockNodeItem::setupLayout()
     layout->setMargin(0);
 
     textLabel = new QLabel(label, this);
-    labelPadding = textLabel->fontMetrics().width("__");
 
     // setup dock item size and text alignment
     if (isDockItemLabel()) {
@@ -413,6 +412,7 @@ void DockNodeItem::setupLayout()
 
     int maxCharWidth = textLabel->fontMetrics().width('W');
     MAX_LABEL_LENGTH = BUTTON_WIDTH / maxCharWidth + 2;
+    labelPadding = textLabel->fontMetrics().width("__");
 
     textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
@@ -520,9 +520,6 @@ void DockNodeItem::setImageLabelPixmap()
 void DockNodeItem::updateTextLabel()
 {
     QString newLabel = label;
-
-    //Test Change
-    /*
     int maxLength = MAX_LABEL_LENGTH;
 
     // file labels have a bigger font and can therefore fit less chars
@@ -532,30 +529,13 @@ void DockNodeItem::updateTextLabel()
 
     if (label.length() >= maxLength) {
 
-        QFontMetrics fm(textLabel->fontMetrics());
-        int textWidth = fm.width(newLabel + "__");
+        int maxTextWidth = BUTTON_WIDTH - labelPadding;
+        int textWidth = textLabel->fontMetrics().width(newLabel);
 
-        if (textWidth > this->width()) {
-            newLabel.truncate(maxLength - 1);
+        if (textWidth > maxTextWidth) {
+            newLabel.truncate(maxLength);
             newLabel += "..";
         }
-    }
-    */
-
-    int maxTextWidth = BUTTON_WIDTH - labelPadding;
-    int textWidth = textLabel->fontMetrics().width(newLabel);
-
-    if (textWidth > maxTextWidth) {
-/*
-        int numChars = maxTextWidth / textLabel->fontMetrics().averageCharWidth();
-        int currentWidth = 0;
-        while ((currentWidth = textLabel->fontMetrics().width(newLabel.truncate(numChars))) > maxTextWidth) {
-            numChars--;
-        }
-
-        newLabel.truncate(2);
-        newLabel += "..";
-        */
     }
 
     textLabel->setText(newLabel);

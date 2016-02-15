@@ -484,7 +484,6 @@ void MedeaWindow::initialiseGUI()
 
     // initialise variables
     controller = 0;
-    prevPressedButton = 0;
     controllerThread = 0;
 
     nodeView = new NodeView();
@@ -979,6 +978,12 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     definitionsButton->hide();
     functionsButton->hide();
 
+    /*
+    dockGroupBox = new QGroupBox(this);
+    dockActionLabel = new QLabel("Describe action here", this);
+    backButton = new QPushButton("Back", this);
+    */
+
     openedDockLabel = new QLabel("Parts", this);
     openedDockLabel->setFixedWidth(boxWidth);
     openedDockLabel->setStyleSheet("border: none; background-color: rgba(250,250,250,240); padding: 5px;");
@@ -1419,8 +1424,6 @@ void MedeaWindow::resetGUI()
     if (nodeView && !nodeView->hasModel()) {
         modelDisconnected();
     }
-
-    prevPressedButton = 0;
 
     // reset timer
     notificationTimer->stop();

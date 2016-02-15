@@ -356,14 +356,16 @@ private:
     DockToggleButton* hardwareNodesButton;
     DockToggleButton* definitionsButton;
     DockToggleButton* functionsButton;
-    DockToggleButton* prevPressedButton;
 
     PartsDockScrollArea* partsDock;
     HardwareDockScrollArea* hardwareDock;
     DefinitionsDockScrollArea* definitionsDock;
     FunctionsDockScrollArea* functionsDock;
 
+    QGroupBox* dockGroupBox;
     QLabel* openedDockLabel;
+    QLabel* dockActionLabel;
+    QPushButton* backButton;
 
     QDialog* dockStandAloneDialog;
     QGroupBox* docksArea;
