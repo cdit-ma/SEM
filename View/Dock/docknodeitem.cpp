@@ -400,6 +400,7 @@ void DockNodeItem::setupLayout()
     layout->setMargin(0);
 
     textLabel = new QLabel(label, this);
+    labelPadding = textLabel->fontMetrics().width("__");
 
     // setup dock item size and text alignment
     if (isDockItemLabel()) {
@@ -520,6 +521,7 @@ void DockNodeItem::updateTextLabel()
 {
     QString newLabel = label;
 
+    //Test Change
     /*
     int maxLength = MAX_LABEL_LENGTH;
 
@@ -540,12 +542,20 @@ void DockNodeItem::updateTextLabel()
     }
     */
 
-    QFontMetrics fm(textLabel->fontMetrics());
-    int textWidth = fm.width(newLabel + "__");
+    int maxTextWidth = BUTTON_WIDTH - labelPadding;
+    int textWidth = textLabel->fontMetrics().width(newLabel);
 
-    if (textWidth > BUTTON_WIDTH) {
-        newLabel.truncate(newLabel.length() - IMAGE_PADDING);
+    if (textWidth > maxTextWidth) {
+/*
+        int numChars = maxTextWidth / textLabel->fontMetrics().averageCharWidth();
+        int currentWidth = 0;
+        while ((currentWidth = textLabel->fontMetrics().width(newLabel.truncate(numChars))) > maxTextWidth) {
+            numChars--;
+        }
+
+        newLabel.truncate(2);
         newLabel += "..";
+        */
     }
 
     textLabel->setText(newLabel);
