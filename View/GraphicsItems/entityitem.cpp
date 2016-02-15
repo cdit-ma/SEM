@@ -242,8 +242,6 @@ EntityItem::MOUSEOVER_TYPE EntityItem::getMouseOverType(QPointF scenePos)
             return MO_HARDWAREMENU;
         }if(mouseOverDeploymentIcon(itemPos) && state > RS_REDUCED){
             return MO_DEPLOYMENTWARNING;
-        }if(mouseOverErrorIcon(itemPos) && state > RS_REDUCED){
-            return MO_ERROR;
         }if(mouseOverIcon(itemPos)){
             return MO_ICON;
         }if(mouseOverTopBar(itemPos)){
@@ -840,15 +838,6 @@ bool EntityItem::mouseOverDeploymentIcon(QPointF mousePosition)
         return iconRect_TopRight().contains(mousePosition);
     }
     return false;
-}
-
-bool EntityItem::mouseOverErrorIcon(QPointF mousePosition)
-{
-    if(getErrorType() != ET_OKAY){
-        return iconRect_TopMid().contains(mousePosition);
-    }
-    return false;
-
 }
 
 bool EntityItem::mouseOverDefinition(QPointF mousePosition)
@@ -1466,10 +1455,6 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         cursor = Qt::WhatsThisCursor;
         tooltip = "Not all children entities are deployed to the same Hardware entity.";
         break;
-    case MO_ERROR:
-        cursor = Qt::WhatsThisCursor;
-        tooltip = getErrorTooltip();
-        break;
     case MO_RESIZE:
         if(isSelected()){
             tooltip = "Click and drag to change size.\nDouble click to auto set size.";
@@ -1515,13 +1500,11 @@ void EntityItem::updateErrorState()
         BehaviourNodeAdapter* bA = (BehaviourNodeAdapter*)node;
 
         if(bA->needsLeftEdge()){
-            setErrorType(ET_CRITICAL, "Entity requires workload edge.");
-            notificationItem->setErrorType(ET_CRITICAL);
+            notificationItem->setErrorType(ET_CRITICAL, "Entity requires workload edge.");
         }else{
-            notificationItem->setErrorType(ET_WARNING);
-            clearError();
+            //Clear the notification.
+            notificationItem->setErrorType(ET_OKAY);
         }
-
         setNodeConnectable(bA->needsConnection());
     }
 }

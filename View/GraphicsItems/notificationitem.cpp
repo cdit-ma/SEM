@@ -13,7 +13,7 @@ NotificationItem::NotificationItem(GraphMLItem *item):QGraphicsObject(item)
     setErrorType(ET_OKAY);
 }
 
-void NotificationItem::setErrorType(ERROR_TYPE errorType)
+void NotificationItem::setErrorType(ERROR_TYPE errorType, QString tooltip)
 {
     this->errorType = errorType;
     switch(errorType){
@@ -29,6 +29,7 @@ void NotificationItem::setErrorType(ERROR_TYPE errorType)
         setBackgroundColor(QColor(255,140,0));
         break;
     }
+    setToolTip(tooltip);
     update();
 }
 
@@ -76,11 +77,7 @@ void NotificationItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     imageRect.moveCenter(QPointF(RADIUS, RADIUS));
 
     QPixmap imageData;
-    if(errorType == ET_CRITICAL){
-        imageData = item->getNodeView()->getImage("Actions", "Critical");
-    }else if(errorType == ET_WARNING){
-        imageData = item->getNodeView()->getImage("Actions", "Exclamation");
-    }
+    imageData = item->getNodeView()->getImage("Actions", "Exclamation");
 
     painter->drawPixmap(imageRect.toAlignedRect(), imageData);
 }

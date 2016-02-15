@@ -35,7 +35,7 @@ class EntityItem : public NodeItem
 {
     Q_OBJECT
 public:
-    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_TOP_LABEL, MO_BOT_LABEL_ICON, MO_BOT_LABEL, MO_EXPANDLABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_ERROR, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODEL_CIRCLE, MO_MODEL_TR, MO_MODEL_BR, MO_MODEL_BL, MO_MODEL_TL, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
+    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_TOP_LABEL, MO_BOT_LABEL_ICON, MO_BOT_LABEL, MO_EXPANDLABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODEL_CIRCLE, MO_MODEL_TR, MO_MODEL_BR, MO_MODEL_BL, MO_MODEL_TL, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
 
 
 
@@ -118,7 +118,6 @@ public:
     bool mouseOverBotInputIcon(QPointF mousePosition);
     bool mouseOverBotInput(QPointF mousePosition);
     bool mouseOverDeploymentIcon(QPointF mousePosition);
-    bool mouseOverErrorIcon(QPointF mousePosition);
     bool mouseOverDefinition(QPointF mousePosition);
     bool mouseOverIcon(QPointF mousePosition);
     bool mouseOverTopBar(QPointF mousePosition);

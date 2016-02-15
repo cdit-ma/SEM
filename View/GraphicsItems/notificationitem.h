@@ -8,7 +8,7 @@ class NotificationItem : public QGraphicsObject
 public:
     NotificationItem(GraphMLItem* parent);
 
-    void setErrorType(ERROR_TYPE errorType);
+    void setErrorType(ERROR_TYPE errorType, QString tooltip="");
 
     void setBackgroundColor(QColor color);
     // QGraphicsItem interface

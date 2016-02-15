@@ -132,32 +132,6 @@ void GraphMLItem::setRenderState(GraphMLItem::RENDER_STATE renderState)
     }
 }
 
-void GraphMLItem::setErrorType(ERROR_TYPE type, QString tooltip)
-{
-    if(type > errorType){
-        errorType = type;
-        errorTooltip[type] = tooltip;
-        update();
-    }
-}
-
-void GraphMLItem::clearError()
-{
-    errorType = ET_OKAY;
-    errorTooltip.clear();
-}
-
-ERROR_TYPE GraphMLItem::getErrorType()
-{
-    return errorType;
-}
-
-QString GraphMLItem::getErrorTooltip()
-{
-    return errorTooltip[errorType];
-}
-
-
 /**
  * @brief GraphMLItem::firstChildAdded
  * @param item

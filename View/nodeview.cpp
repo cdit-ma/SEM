@@ -3110,7 +3110,7 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
             QColor tint = QColor(60, 60, 60, 255);
 
             QStringList redImages;
-            redImages << "Critical" ;
+            //redImages << "Critical" ;
             QStringList orangeImages;
             orangeImages << "Warning";
             QStringList whiteImages;

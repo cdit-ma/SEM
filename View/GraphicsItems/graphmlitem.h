@@ -28,10 +28,6 @@ public:
     VIEW_STATE getViewState() const;
     void setRenderState(RENDER_STATE renderState);
 
-    void setErrorType(ERROR_TYPE type, QString tooltip);
-    void clearError();
-    ERROR_TYPE getErrorType();
-    QString getErrorTooltip();
 
     virtual void firstChildAdded(GraphMLItem* child);
     virtual void lastChildRemoved();
@@ -151,7 +147,6 @@ private:
     qreal selectedPenWidth;
 
     ERROR_TYPE errorType;
-    QHash<ERROR_TYPE, QString> errorTooltip;
 
 
 protected:
