@@ -461,6 +461,10 @@ private:
     QHash<int, int> readOnlyLookup;
     QHash<int, int> reverseReadOnlyLookup;
 
+    QHash<ReadOnlyState, int> readOnlyStateLookup;
+    QHash<ReadOnlyState, int> readOnlyStateLookup;
+
+
     QHash<QString, int> treeLookup;
     QHash<int, QString> reverseTreeLookup;
 
