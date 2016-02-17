@@ -489,7 +489,7 @@ void DockScrollArea::setupLayout()
     infoLabel = new QLabel(this);
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
-    infoLabel->setFixedWidth(BUTTON_WIDTH + DOCK_PADDING);
+    infoLabel->setFixedWidth(BUTTON_WIDTH + DOCK_PADDING*2);
     infoLabel->setStyleSheet("padding:" + QString::number(DOCK_PADDING) + "px; font-style: italic;");
     setInfoText(defaultInfoText);
 
@@ -516,7 +516,7 @@ void DockScrollArea::setupLayout()
     setWidgetResizable(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setStyleSheet("QScrollArea {"
-                  "padding: 0px;"
+                  "padding: 0px 0px 10px 0px;"
                   "background: rgba(250,250,250,240);"
                   "border-left: 1px solid rgb(125,125,125);"
                   "border-right: 1px solid rgb(125,125,125);"

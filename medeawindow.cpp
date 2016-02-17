@@ -1002,6 +1002,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     QPushButton* dockBackButton = new QPushButton(QIcon(":/Actions/Backward.png"), "", this);
     //dockBackButton->setFixedSize(45, 45);
     dockBackButton->setFixedSize(45, 35);
+    dockBackButton->setToolTip("Go back to the Parts list");
     dockBackButton->setStyleSheet("QPushButton{"
                                   //"border-radius: 20px;"
                                   "border-radius: 17px;"
@@ -1023,16 +1024,16 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     QVBoxLayout* dockBackButtonLayout = new QVBoxLayout();
     dockBackButtonLayout->setMargin(0);
     dockBackButtonLayout->setSpacing(0);
-    dockBackButtonLayout->addSpacerItem(new QSpacerItem(0, 5));
     dockBackButtonLayout->addWidget(dockBackButton, 0, Qt::AlignCenter);
+    dockBackButtonLayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     dockBackButtonBox->setLayout(dockBackButtonLayout);
 
     QVBoxLayout* dockHeaderLayout = new QVBoxLayout();
     dockHeaderLayout->setMargin(0);
     dockHeaderLayout->setSpacing(0);
     dockHeaderLayout->addWidget(openedDockLabel);
-    dockHeaderLayout->addWidget(dockBackButtonBox);
     dockHeaderLayout->addWidget(dockActionLabel);
+    dockHeaderLayout->addWidget(dockBackButtonBox);
     dockHeaderBox->setLayout(dockHeaderLayout);
 
     QVBoxLayout* innerDockLayout = new QVBoxLayout();
@@ -2254,12 +2255,7 @@ void MedeaWindow::toggleAndTriggerAction(QAction *action, bool value)
  * updated after the window has been changed.
  */
 void MedeaWindow::updateWidgetsOnWindowChanged()
-{
-    // update widget sizes, containers and and masks
-    boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height();
-    docksArea->setFixedHeight((boxHeight*2) - dockHeaderBox->height() - (SPACER_SIZE*3));
-    dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_SIZE/2);
-
+{   
     QRect canvasRect;
     canvasRect.setHeight(height()-1);
     canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
@@ -2285,8 +2281,26 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
 
 
     updateWidgetMask(docksArea, dockButtonsBox, true);
+    updateDock();
     updateToolbar();
     updateDataTable();
+}
+
+
+/**
+ * @brief MedeaWindow::updateDock
+ * This recalculates the size of the area that's available for the dock.
+ */
+void MedeaWindow::updateDock()
+{
+    // update widget sizes, containers and and masks
+    boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height();
+    int prevHeight = docksArea->height();
+    int newHeight = (boxHeight*2) - dockHeaderBox->height() - (SPACER_SIZE*3);
+    if (newHeight != prevHeight) {
+        docksArea->setFixedHeight((boxHeight*2) - dockHeaderBox->height() - (SPACER_SIZE*3));
+    }
+    //dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_SIZE/2);
 }
 
 
@@ -3147,12 +3161,14 @@ void MedeaWindow::dockToggled(bool opened, QString dockAction)
         }
 
         dockHeaderBox->show();
+        updateDock();
 
     } else {
         if (!partsDock->isDockOpen() && !definitionsDock->isDockOpen() && !functionsDock->isDockOpen() && !hardwareDock->isDockOpen()) {
             dockHeaderBox->hide();
         }
     }
+
 }
 
 

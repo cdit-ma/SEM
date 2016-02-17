@@ -272,6 +272,7 @@ private:
     void setupMultiLineBox();
 
     void updateWidgetsOnWindowChanged();
+    void updateDock();
     void updateToolbar();
     void updateDataTable();
 

@@ -361,7 +361,7 @@ void DefinitionsDockScrollArea::dockToggled(bool opened)
 {
     QString action = "";
     if (opened) {
-        action = "Describe action here";
+        action = "Select to construct a " + sourceDockItemKind;
     }
     emit dock_toggled(opened, action);
 }

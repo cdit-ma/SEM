@@ -242,7 +242,7 @@ void FunctionsDockScrollArea::dockToggled(bool opened)
 {
     QString action = "";
     if (opened) {
-        action = "Select a function to construct a Process";
+        action = "Select to construct a Process";
     }
     emit dock_toggled(opened, action);
 }
