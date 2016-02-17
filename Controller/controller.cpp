@@ -1248,6 +1248,7 @@ bool NewController::_importSnippet(QList<int> IDs, QString fileName, QString fil
  */
 QString NewController::_exportSnippet(QList<int> IDs)
 {
+
     QString snippetData;
     if(canExportSnippet(IDs)){
         CUT_USED = false;
@@ -1273,13 +1274,19 @@ QString NewController::_exportSnippet(QList<int> IDs)
         QString graphmlRepresentation;
 
 
+
+
         if(readOnly){
             QString exportTimeStamp = getTimeStamp();
+            long long machineID = getMACAddress();
 
             //Construct the Keys to attach to the nodes to export.
             Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_NODE);
             Key* IDKey = constructKey("originalID", QVariant::Int, Entity::EK_NODE);
-            Key* dateKey = constructKey("exportDateTime", QVariant::String, Entity::EK_NODE);
+
+            Key* dateKey = constructKey("exportTime", QVariant::String, Entity::EK_NODE);
+            Key* machineIDKey = constructKey("machineID", QVariant::Int, Entity::EK_NODE);
+
             Key* annotationKey = constructKey("annotation", QVariant::String, Entity::EK_NODE);
 
             QList<Node*> nodeList;
@@ -1294,10 +1301,12 @@ QString NewController::_exportSnippet(QList<int> IDs)
                         //Add exported Data.
                         Data* dateData = new Data(dateKey);
                         Data* annotationData = new Data(annotationKey);
+                        Data* machineData = new Data(machineIDKey,machineID);
                         dateData->setValue(exportTimeStamp);
                         annotationData->setValue("Exported from MEDEA!");
                         node->addData(dateData);
                         node->addData(annotationData);
+                        node->addData(machineData);
                     }
 
                     foreach(Node* child, node->getChildren()){
@@ -1355,6 +1364,30 @@ QString NewController::_exportSnippet(QList<int> IDs)
     }
     return snippetData;
 }
+
+long long NewController::getMACAddress()
+{
+    long long returnAddress = -1;
+    QString macAddress;
+    foreach(QNetworkInterface netInterface, QNetworkInterface::allInterfaces()){
+        // Return only the first non-loopback MAC Address
+        if (!(netInterface.flags() & QNetworkInterface::IsLoopBack)){
+            macAddress = netInterface.hardwareAddress();
+            break;
+        }
+    }
+
+    if(!macAddress.isEmpty()){
+        bool okay = false;
+        macAddress = macAddress.replace(":", "");
+        long long addr = macAddress.toLongLong(&okay, 16);
+        if(okay){
+            returnAddress = addr;
+        }
+    }
+    return returnAddress;
+}
+
 
 /**
  * @brief NewController::getAdoptableNodeKinds Gets the list of NodeKinds that the node (From ID) can adopt.

@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QPointF>
 #include <QXmlStreamReader>
+#include <QNetworkInterface>
 
 #include "../Model/Edges/definitionedge.h"
 #include "../Model/Edges/workflowedge.h"
@@ -37,6 +38,11 @@ struct ViewSignal{
     bool constructSignal;
 };
 
+struct ReadOnlyState{
+    long long hardwareID;
+    long long timestamp;
+    int originalID;
+};
 
 struct EventAction{
     struct _Action{
@@ -249,6 +255,8 @@ private:
     bool _importProjects(QStringList xmlDataList, bool addAction = true);
     bool _importSnippet(QList<int> IDs, QString fileName, QString fileData, bool addAction = true);
     QString _exportSnippet(QList<int> IDs);
+
+    long long getMACAddress();
 
 
 private:
