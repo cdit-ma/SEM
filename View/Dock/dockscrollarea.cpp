@@ -47,6 +47,7 @@ DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* 
     setParentButton(parent);
     setupLayout();
 
+    // the definitions and functions dock have their own signal related to this
     switch (getDockType()) {
     case PARTS_DOCK:
     case HARDWARE_DOCK:

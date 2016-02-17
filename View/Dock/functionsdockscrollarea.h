@@ -21,7 +21,6 @@ public slots:
 
     void insertDockNodeItem(DockNodeItem* dockItem);
 
-    void dockClosed();
     void dockToggled(bool opened);
     void forceOpenDock();
 
@@ -30,7 +29,6 @@ private:
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;
 
-    QStringList functions_allowedKinds;
 };
 
 #endif // FUNCTIONSDOCKSCROLLAREA_H

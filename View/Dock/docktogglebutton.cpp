@@ -62,7 +62,7 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
     }
 
     fixedStyleSheet = "QPushButton:disabled {"
-                      //"border: 1px solid rgb(140,140,140);"
+                      "border: 1px solid rgb(125,125,125);"
                       "background: rgb(150,150,150);"
                       "}"
                       "QToolTip{ background: white; }";

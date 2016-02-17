@@ -42,8 +42,6 @@ private:
     void constructDockLabelItem(EntityItem* item);
     void constructDockItem(EntityItem* item);
 
-    QStringList definitions_notAllowedKinds;
-    QStringList definitions_allowedKinds;
     QStringList definitionKinds;
 
     QHash<QString, QVBoxLayout*> idlLayoutItems;

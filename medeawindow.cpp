@@ -1001,11 +1001,11 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 
     QPushButton* dockBackButton = new QPushButton(QIcon(":/Actions/Backward.png"), "", this);
     //dockBackButton->setFixedSize(45, 45);
-    dockBackButton->setFixedSize(45, 35);
+    dockBackButton->setFixedSize(boxWidth, 35);
     dockBackButton->setToolTip("Go back to the Parts list");
     dockBackButton->setStyleSheet("QPushButton{"
                                   //"border-radius: 20px;"
-                                  "border-radius: 17px;"
+                                  //"border-radius: 17px;"
                                   "background-color: rgba(130,130,130,100);"
                                   "}"
                                   "QPushButton:hover{"
@@ -1914,9 +1914,6 @@ bool MedeaWindow::saveProject(bool saveAs)
 
 void MedeaWindow::populateDocks()
 {
-    //Clear docks first.
-    emit window_clearDocks();
-
     // TODO - The following setup only needs to happen once the whole time the application is open
     // It doesn't need to be redone every time new project is called
     QStringList allKinds = nodeView->getAllNodeKinds();
@@ -1938,7 +1935,6 @@ void MedeaWindow::populateDocks()
         action->setDefaultWidget(checkBox);
         nodeKindsMenu->addAction(action);
     }
-
 }
 
 void MedeaWindow::_getCPPForComponent(QString filePath)

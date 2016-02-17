@@ -14,11 +14,6 @@
 DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* view, DockToggleButton* parent) :
     DockScrollArea(label, view, parent, "No entity of the following kinds has been constructed: <br/>Aggregate, BlackBox, Component and Vector")
 {
-    // populate list of not allowed kinds
-    if (view) {
-        definitions_notAllowedKinds = view->getAllNodeKinds();
-    }
-
     // this is the list of entity kinds that this dock constructs items for
     definitionKinds.append("IDL");
     definitionKinds.append("Component");
@@ -34,9 +29,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     mainLayout->addStretch();
     getLayout()->addLayout(mainLayout);
 
-    setNotAllowedKinds(definitions_notAllowedKinds);
     setDockOpen(false);
-
     connectToView();
 
     connect(this, SIGNAL(dock_opened(bool)), this, SLOT(dockToggled(bool)));
@@ -199,7 +192,7 @@ void DefinitionsDockScrollArea::updateDock()
         return;
     }
 
-    // if there is no selected item, disable the dock
+    // if there is no selected item, close the dock
     if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
         setDockOpen(false);
         return;
@@ -210,6 +203,7 @@ void DefinitionsDockScrollArea::updateDock()
         filterDock();
     } else {
         if (isDockOpen()) {
+            // this closes this dock and then opens the parts dock
             emit dock_forceOpenDock();
         }
     }
@@ -270,7 +264,9 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
 
     // close the sender dock then open this dock
     DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
-    dock->setDockOpen(false);
+    if (dock) {
+        dock->setDockOpen(false);
+    }
 
     setDockOpen();
     filterDock(srcKind);
