@@ -17,6 +17,10 @@
 #include "../Model/Edges/aggregateedge.h"
 #include "../Model/data.h"
 
+#define DANCE_EXECUTION_MANAGER "DANCE_EXECUTION_MANAGER"
+#define DANCE_PLAN_LAUNCHER "DANCE_PLAN_LAUNCHER"
+#define QPID_BROKER "QPID_BROKER"
+#define DDS_LOGGING_SERVER "DDS_LOGGING_SERVER"
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 enum MESSAGE_TYPE{CRITICAL, WARNING, MESSAGE, MODEL};
@@ -321,7 +325,7 @@ private:
 
 
     //Constructs a Vector of basic Data entities required for creating a Node.
-    QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1));
+    QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1), QString nodeType="", QString nodeLabel="");
     QList<Data*> constructPositionDataVector(QPointF point);
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);

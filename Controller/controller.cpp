@@ -2100,7 +2100,7 @@ Node *NewController::cloneNode(Node *original, Node *parent, bool ignoreVisuals)
 }
 
 
-QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relativePosition)
+QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relativePosition, QString nodeType, QString nodeLabel)
 {
     Key* kindKey = constructKey("kind", QVariant::String, Entity::EK_NODE);
     Key* labelKey = constructKey("label", QVariant::String, Entity::EK_NODE);
@@ -2114,16 +2114,24 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
 
     data.append(constructPositionDataVector(relativePosition));
 
+
     QString labelString = nodeKind;
+    if(nodeLabel != ""){
+        labelString = nodeLabel;
+    }
     if(nodeKind.endsWith("Parameter")){
         labelString = "";
     }
+
     data.append(new Data(kindKey, nodeKind));
     data.append(new Data(widthKey, -1));
     data.append(new Data(heightKey, -1));
 
+    QStringList protectedLabels;
+    protectedLabels << "Parameter" << "ManagementComponent";
 
-    bool protectLabel = nodeKind.endsWith("Parameter");
+
+    bool protectLabel = protectedLabels.contains(nodeKind);
 
     if(!nodeKind.endsWith("Definitions")){
         Data* labelData = new Data(labelKey);
@@ -2143,8 +2151,25 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     }
 
     if(nodeKind == "ManagementComponent"){
-        data.append(new Data(typeKey));
+        Data* typeData = new Data(typeKey, nodeType);
+        typeData->setProtected(true);
+        data.append(typeData);
+        if(nodeType == DDS_LOGGING_SERVER){
+            Key* frequencyKey = constructKey("frequency", QVariant::Double, Entity::EK_NODE);
+            Key* localLoggingKey = constructKey("localLogging", QVariant::Bool, Entity::EK_NODE);
+            Key* topicKey = constructKey("topicName", QVariant::String, Entity::EK_NODE);
+            Key* domainKey = constructKey("domain", QVariant::Int, Entity::EK_NODE);
 
+            Data* freqData = new Data(frequencyKey, 1);
+            Data* localData = new Data(localLoggingKey, false);
+            Data* topicData = new Data(topicKey, "DIGSystemMonitor");
+            Data* domainData = new Data(domainKey, 9);
+
+            data.append(freqData);
+            data.append(localData);
+            data.append(topicData);
+            data.append(domainData);
+        }
     }
     if(nodeKind == "Model"){
         Key* middlewareKey = constructKey("middleware", QVariant::String, Entity::EK_NODE);
@@ -3976,11 +4001,12 @@ void NewController::constructEdgeGUI(Edge *edge)
 void NewController::setupManagementComponents()
 {
     //EXECUTION MANAGER
-    QList<Data*> executionManagerData = constructDataVector("ManagementComponent") ;
-    QList<Data*> dancePlanLauncherData = constructDataVector("ManagementComponent") ;
-    QList<Data*> ddsLoggingServerData = constructDataVector("ManagementComponent") ;
-    QList<Data*> qpidBrokerData = constructDataVector("ManagementComponent") ;
+    QList<Data*> executionManagerData = constructDataVector("ManagementComponent", QPointF(-1, -1), DANCE_EXECUTION_MANAGER, DANCE_EXECUTION_MANAGER);
+    QList<Data*> dancePlanLauncherData = constructDataVector("ManagementComponent", QPointF(-1, -1), DANCE_PLAN_LAUNCHER, DANCE_PLAN_LAUNCHER);
+    QList<Data*> ddsLoggingServerData = constructDataVector("ManagementComponent", QPointF(-1, -1), DDS_LOGGING_SERVER, DDS_LOGGING_SERVER);
+    QList<Data*> qpidBrokerData = constructDataVector("ManagementComponent", QPointF(-1, -1), QPID_BROKER, QPID_BROKER);
 
+    /*
     foreach(Data* data, executionManagerData){
         if(data->getKeyName() == "type" || data->getKeyName() == "label"){
             data->setValue("DANCE_EXECUTION_MANAGER");
@@ -3994,6 +4020,8 @@ void NewController::setupManagementComponents()
         }
     }
 
+
+
     foreach(Data* data, ddsLoggingServerData){
         if(data->getKeyName() == "type" || data->getKeyName() == "label"){
             data->setValue("DDS_LOGGING_SERVER");
@@ -4006,7 +4034,7 @@ void NewController::setupManagementComponents()
             data->setValue("QPID_BROKER");
             data->setProtected(true);
         }
-    }
+    }*/
 
     protectedNodes << constructChildNode(assemblyDefinitions, executionManagerData);
     protectedNodes << constructChildNode(assemblyDefinitions, dancePlanLauncherData);
