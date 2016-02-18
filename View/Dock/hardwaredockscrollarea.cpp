@@ -176,9 +176,7 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem* nodeItem)
 
     EntityItem* entityItem = (EntityItem*)nodeItem;
 
-    qCritical() << "ENTITY";
     if (entityItem->isHardwareCluster() || entityItem->isHardwareNode()) {
-        qCritical() << "ENTITY" << nodeItem;
 
         DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
         insertDockNodeItem(dockItem);

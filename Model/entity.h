@@ -43,6 +43,7 @@ public:
     void setDataValue(QString keyName, QVariant value);
 
 
+    bool removeData(Key* key);
     bool removeData(Data* data);
     bool removeData(QString keyName);
 

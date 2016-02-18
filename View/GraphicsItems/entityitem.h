@@ -98,6 +98,7 @@ public:
 
     bool isHardwareHighlighted();
     bool isNodeReadOnly();
+    bool isNodeReadOnlyDefinition();
     void setHardwareHighlighting(bool highlighted);
 
 
@@ -491,6 +492,7 @@ private:
     bool nodeMemberIsKey;
 
     bool IS_READ_ONLY;
+    bool IS_READ_ONLY_DEF;
 
     bool isInputParameter;
     bool isReturnParameter;

@@ -41,10 +41,29 @@ struct ViewSignal{
 };
 
 struct ReadOnlyState{
-    long long hardwareID;
-    long long timestamp;
-    int originalID;
+    long long snippetMAC;
+    long snippetTime;
+    int snippetID;
+
+    bool operator==(const ReadOnlyState &other) const{
+        return (snippetID == other.snippetID) && (snippetTime == other.snippetTime) && (snippetMAC == other.snippetMAC);
+    }
+    bool isValid(){
+        return (snippetMAC > 0) && (snippetTime > 0) && (snippetID > 0);
+    }
 };
+
+
+inline uint qHash(const ReadOnlyState& key)
+{
+    uint hash = (uint(key.snippetMAC ^ (key.snippetMAC >> 32))) ^ key.snippetTime ^ key.snippetID;
+    return hash;
+}
+
+
+
+
+
 
 struct EventAction{
     struct _Action{
@@ -449,6 +468,8 @@ private:
     QStack<EventAction> redoActionStack;
 
     QString getTimeStamp();
+    long getTimeStampEpoch();
+
     QString getDataValueFromKeyName(QList<Data*> dataList, QString keyName);
     void setDataValueFromKeyName(QList<Data*> dataList, QString keyName, QString value);
 
@@ -465,6 +486,8 @@ private:
 
     QHash<int, int> readOnlyLookup;
     QHash<int, int> reverseReadOnlyLookup;
+
+    DoubleHash<ReadOnlyState, int> readOnlyHash;
 
     //QHash<ReadOnlyState, int> readOnlyStateLookup;
     //QHash<ReadOnlyState, int> readOnlyStateLookup;

@@ -81,6 +81,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     }
 
     IS_READ_ONLY = false;
+    IS_READ_ONLY_DEF = false;
 
     isInputParameter = false;
     isReturnParameter = false;
@@ -567,6 +568,11 @@ bool EntityItem::isNodeReadOnly()
     return IS_READ_ONLY;
 }
 
+bool EntityItem::isNodeReadOnlyDefinition()
+{
+    return IS_READ_ONLY_DEF;
+}
+
 void EntityItem::setHardwareHighlighting(bool highlighted)
 {
     hasHardwareWarning = highlighted;
@@ -627,7 +633,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         QBrush headBrush = this->headerBrush;
         QBrush bodyBrush = this->bodyBrush;
 
-        if(IS_READ_ONLY){
+        if(IS_READ_ONLY || IS_READ_ONLY_DEF){
             bodyBrush = this->readOnlyBodyBrush;
             headBrush = this->readOnlyHeaderBrush;
         }
@@ -745,6 +751,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, IP_TOPLEFT, "Actions", "MenuCluster");
         }else if(IS_READ_ONLY){
             paintPixmap(painter, IP_TOPLEFT, "Actions", "Lock_Closed");
+        }else if(IS_READ_ONLY_DEF){
+            paintPixmap(painter, IP_TOPLEFT, "Actions", "Definition");
         }
 
         if(isInputParameter){
@@ -1138,6 +1146,9 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
             handleExpandState(data.toBool());
         }else if(keyName == "readOnly"){
             IS_READ_ONLY = data.toBool();
+            update();
+        }else if(keyName == "readOnlyDefinition"){
+            IS_READ_ONLY_DEF = data.toBool();
             update();
         }else if(keyName == "description"){
             //Use as tooltip.
@@ -2204,6 +2215,9 @@ void EntityItem::setupDataConnections()
     listenForData("isExpanded");
 
     listenForData("readOnly");
+    listenForData("readOnlyDefinition");
+
+
     listenForData("description");
 
     if(nodeKind == "HardwareNode"){

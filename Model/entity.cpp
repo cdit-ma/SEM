@@ -226,6 +226,11 @@ void Entity::setDataValue(QString keyName, QVariant value)
      }
 }
 
+bool Entity::removeData(Key *key)
+{
+    return removeData(getData(key));
+}
+
 QString Entity::getEntityName()
 {
     return getEntityKindName(entityKind);

@@ -23,6 +23,7 @@ NewController::NewController()
     qRegisterMetaType<GraphML::GRAPHML_KIND>("GraphML::GRAPHML_KIND");
     qRegisterMetaType<Edge::EDGE_CLASS>("Edge::EDGE_CLASS");
     qRegisterMetaType<QList<int> >("QList<int>");
+    qRegisterMetaType<ReadOnlyState>("ReadOnlyState");
 
     Model::resetID();
 
@@ -912,7 +913,7 @@ void NewController::remove(QList<int> IDs)
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
 {
-    QString exportTimeStamp = getTimeStamp();
+    long exportTimeStamp = getTimeStampEpoch();
 
     Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_ALL);
 
@@ -1248,21 +1249,16 @@ bool NewController::_importSnippet(QList<int> IDs, QString fileName, QString fil
  */
 QString NewController::_exportSnippet(QList<int> IDs)
 {
-
     QString snippetData;
     if(canExportSnippet(IDs)){
         CUT_USED = false;
 
         QString parentNodeKind = "";
 
-        foreach(int ID, IDs){
-            Node* node = getNodeFromID(ID);
-            if(node){
-                parentNodeKind = node->getParentNode()->getNodeKind();
-                break;
-            }
+        Node* node = getFirstNodeFromList(IDs);
+        if(node && node->getParentNode()){
+            parentNodeKind = node->getParentNode()->getNodeKind();
         }
-
 
         bool readOnly = false;
 
@@ -1271,44 +1267,55 @@ QString NewController::_exportSnippet(QList<int> IDs)
             readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
         }
 
-        QString graphmlRepresentation;
-
-
-
+        //Construct the Keys to attach to the nodes to export.
+        QList<Node*> nodeList;
 
         if(readOnly){
-            QString exportTimeStamp = getTimeStamp();
+            //Get the information about this machine/time
+            long exportTimeStamp = getTimeStampEpoch();
             long long machineID = getMACAddress();
 
-            //Construct the Keys to attach to the nodes to export.
+            //Construct the Keys for the data we need to attach.
+            Key* readOnlyDefinitionKey = constructKey("readOnlyDefinition", QVariant::Bool, Entity::EK_NODE);
             Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_NODE);
-            Key* IDKey = constructKey("originalID", QVariant::Int, Entity::EK_NODE);
+            Key* IDKey = constructKey("snippetID", QVariant::Int, Entity::EK_NODE);
+            Key* timeKey = constructKey("snippetTime", QVariant::Int, Entity::EK_NODE);
+            Key* macKey = constructKey("snippetMAC", QVariant::LongLong, Entity::EK_NODE);
+            Key* exportTimeKey = constructKey("exportTime", QVariant::Int, Entity::EK_NODE);
 
-            Key* dateKey = constructKey("exportTime", QVariant::String, Entity::EK_NODE);
-            Key* machineIDKey = constructKey("machineID", QVariant::Int, Entity::EK_NODE);
-
-            Key* annotationKey = constructKey("annotation", QVariant::String, Entity::EK_NODE);
-
-            QList<Node*> nodeList;
 
             //Construct a list of Nodes to be snippeted
             foreach(int ID, IDs){
                 Node* node = getNodeFromID(ID);
-                if(node){
-                    if(!nodeList.contains(node)){
-                        nodeList += node;
+                if(node && !nodeList.contains(node)){
+                    nodeList += node;
 
-                        //Add exported Data.
-                        Data* dateData = new Data(dateKey);
-                        Data* annotationData = new Data(annotationKey);
-                        Data* machineData = new Data(machineIDKey,machineID);
-                        dateData->setValue(exportTimeStamp);
-                        annotationData->setValue("Exported from MEDEA!");
-                        node->addData(dateData);
-                        node->addData(annotationData);
-                        node->addData(machineData);
+                    //Get existing snippetTime data, if not create one.
+                    Data* timeData = node->getData(timeKey);
+                    if(!timeData){
+                        timeData = new Data(timeKey, exportTimeStamp);
+                        node->addData(timeData);
                     }
 
+                    //Get rid of the readonlyDefinition data.
+                    node->removeData(readOnlyDefinitionKey);
+
+                    //Get existing snippetMac data, if not create one.
+                    Data* macData = node->getData(macKey);
+                    if(!macData){
+                        macData = new Data(macKey, machineID);
+                        node->addData(macData);
+                    }
+
+                    //Get existing exportTime data, if not create one.
+                    Data* exportTimeData = node->getData(exportTimeKey);
+                    if(!exportTimeData){
+                        exportTimeData = new Data(exportTimeKey);
+                        node->addData(exportTimeData);
+                    }
+                    exportTimeData->setValue(exportTimeStamp);
+
+                    //Add all the children (recursively) to the list of nodes to set as read-only
                     foreach(Node* child, node->getChildren()){
                         if(!nodeList.contains(child)){
                             nodeList += child;
@@ -1317,50 +1324,54 @@ QString NewController::_exportSnippet(QList<int> IDs)
                 }
             }
 
-            //Attach read Only Data to the top.
-
-            //Attach read only Data.
+            //Attach read only Data to all nodes in list.
             foreach(Node* node, nodeList){
-                Data* readOnlyData = new Data(readOnlyKey);
+                Data* readOnlyData = node->getData(readOnlyKey);
+                Data* idData = node->getData(IDKey);
+
+                //Set node as read only.
+                if(!readOnlyData){
+                    readOnlyData = new Data(readOnlyKey);
+                    node->addData(readOnlyData);
+                }
                 readOnlyData->setValue(true);
-                //Attach data as private data
-                node->addData(readOnlyData);
 
-                if(!node->getData(IDKey)){
-                    Data* idData = new Data(IDKey);
-                    idData->setValue(node->getID());
+                //Set node's original ID as it's current ID
+                if(!idData){
+                    idData = new Data(IDKey);
                     node->addData(idData);
-
+                    idData->setValue(node->getID());
                 }
             }
-            //Export the GraphML for those Nodes.
-            graphmlRepresentation = _exportGraphMLDocument(IDs, false, false);
+        }
+
+        //Export the GraphML for those Nodes.
+        snippetData = _exportGraphMLDocument(IDs, false, false);
+
+        if(readOnly){
+            Key* readOnlyDefinitionKey = constructKey("readOnlyDefinition", QVariant::Bool, Entity::EK_NODE);
+            Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_NODE);
 
             //Remove attached Data.
             foreach(Node* node, nodeList){
-                Data* readOnlyData = node->getData(readOnlyKey);
-                Data* dateData = node->getData(dateKey);
-                Data* annotationData = node->getData(annotationKey);
+                node->removeData(readOnlyKey);
+            }
 
-                if(readOnlyData){
-                    node->removeData(readOnlyData);
-                    delete readOnlyData;
-                }
-                if(dateData){
-                    node->removeData(dateData);
-                    delete dateData;
-                }
-                if(annotationData){
-                    node->removeData(annotationData);
-                    delete annotationData;
+            //Set the top level containers as readOnlyDefinitions.
+            foreach(int ID, IDs){
+                Node* node = getNodeFromID(ID);
+                if(node){
+                    //Get existing readOnlyDefinition data, if not create one.
+                    Data* readOnlyDefData = node->getData(readOnlyDefinitionKey);
+                    if(!readOnlyDefData){
+                        readOnlyDefData = new Data(readOnlyDefinitionKey);
+                        node->addData(readOnlyDefData);
+                    }
+                    readOnlyDefData->setValue(true);
                 }
             }
-        }else{
-            graphmlRepresentation = _exportGraphMLDocument(IDs, false, false);
         }
 
-
-        snippetData = graphmlRepresentation;
     }
     return snippetData;
 }
@@ -1979,6 +1990,9 @@ void NewController::removeGraphMLFromHash(int ID)
 
         if(treeHash.containsValue(ID)){
             treeHash.removeValue(ID);
+        }
+        if(readOnlyHash.containsValue(ID)){
+            readOnlyHash.removeValue(ID);
         }
 
         if(reverseReadOnlyLookup.contains(ID)){
@@ -4230,6 +4244,11 @@ QString NewController::getTimeStamp()
     return currentTime.toString("yyyy-MM-dd hh:mm:ss");
 }
 
+long NewController::getTimeStampEpoch()
+{
+    return QDateTime::currentDateTime().toTime_t();
+}
+
 Model *NewController::getModel()
 {
     return model;
@@ -4519,6 +4538,13 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
     bool readOnlyTag = false;
     int originalID = -1;
+
+    ReadOnlyState readOnlyState;
+    readOnlyState.snippetID = -1;
+    readOnlyState.snippetMAC = -1;
+    readOnlyState.snippetTime = -1;
+    int exportTime = -1;
+
     int currentROID = -1;
 
 
@@ -4618,6 +4644,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     continue;
                 }
 
+                //HANDLE READ-ONLY SECTION
+
                 if(dataKey->getName() == "originalID"){
                     //Cast as int
                     bool okay = false;
@@ -4625,6 +4653,45 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     int value = dataValue.toInt(&okay);
                     if(okay){
                         originalID = value;
+                    }
+                }
+
+                if(dataKey->getName() == "snippetID"){
+                    //Cast as int
+                    bool okay = false;
+
+                    int value = dataValue.toInt(&okay);
+                    if(okay){
+                        readOnlyState.snippetID = value;
+                    }
+                }
+
+                if(dataKey->getName() == "snippetTime"){
+                    //Cast as int
+                    bool okay = false;
+
+                    int value = dataValue.toInt(&okay);
+                    if(okay){
+                        readOnlyState.snippetTime = value;
+                    }
+                }
+
+                if(dataKey->getName() == "snippetMAC"){
+                    //Cast as int
+                    bool okay = false;
+
+                    long long value = dataValue.toLongLong(&okay);
+                    if(okay){
+                        readOnlyState.snippetMAC = value;
+                    }
+                }
+
+                if(dataKey->getName() == "exportTime"){
+                    //Cast as int
+                    bool okay = false;
+                    int value = dataValue.toInt(&okay);
+                    if(okay){
+                        exportTime = value;
                     }
                 }
 
@@ -4719,24 +4786,19 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                 //If we have a read only tag, we should look for the originalID provided.
                 //To see if we can find the original Node.
-                if(readOnlyTag){
-                    if(readOnlyLookup.contains(originalID)){
-                        //Get the ID of the version we have of the originalID
-                        int nodeID = readOnlyLookup[originalID];
+                if(readOnlyTag && readOnlyState.isValid()){
+                    if(readOnlyHash.containsKey(readOnlyState)){
+                        int nodeID = readOnlyHash.value(readOnlyState);
                         node = getNodeFromID(nodeID);
+                        qCritical() << "FOUND NODE: " << node->toString();
 
+                        int currentTime = node->getDataValue("exportTime").toInt();
+                        int newTime = exportTime;
 
-                        //Compare timestamp
-                        QString newTimeStamp  = getDataValueFromKeyName(currentNodeData, "exportDateTime");
-                        QString currentTimeStamp = node->getDataValue("exportDateTime").toString();
-
-
-                        //If the date is older.
-                        if(newTimeStamp < currentTimeStamp){
+                        if(currentTime > newTime){
                             resetIgnoreParentID = node->getParentNodeID();
                             ignoreReadOnly = !askQuestion(CRITICAL, "Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", node->getID());
                         }
-
 
                         storeMD5 = !ignoreReadOnly;
 
@@ -4757,7 +4819,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 if(!node){
                     Node* newNode = 0;
 
-                    //Don't use
+                    //Don't use values for Model to overwrite Model settings if anything other than open was used.
                     if(!OPENING_PROJECT){
                         QString nodeKind = getDataValueFromKeyName(currentNodeData, "kind");
                         if(nodeKind == "Model"){
@@ -4769,8 +4831,13 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     }
 
                     if(!newNode){
+                        if(parent->getNodeKind() == "IDL"){
+                            qCritical() << currentNodeData;
+                        }
                         //Construct the specialised Node
                         newNode = constructChildNode(parent, currentNodeData);
+
+                        qCritical() << newNode->toString();
 
                         if(!newNode){
                             qCritical() << "Parent: " << parent->toString() << " Cannot Adopt: " << getDataValueFromKeyName(currentNodeData, "kind");
@@ -4809,10 +4876,15 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     //Add the new Node to the lookup table.
                     nodeLookup[nodeID] = node;
 
-                    if(readOnlyTag && originalID != -1){
-                        readOnlyLookup[originalID] = node->getID();
-                        reverseReadOnlyLookup[node->getID()] = originalID;
-                        originalID = -1;
+
+                    if(readOnlyTag && readOnlyState.snippetID > 0){
+                        //Store in the hash.
+                        if(readOnlyState.isValid()){
+                            readOnlyHash.insert(readOnlyState, node->getID());
+                        }
+                        readOnlyState.snippetID=-1;
+                        readOnlyState.snippetMAC=-1;
+                        readOnlyState.snippetTime=-1;
 
                         if(storeMD5){
                             //If the parent of this item isn't read only, we need to add this item to the list of readOnlyIDs
@@ -4820,7 +4892,6 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                                 currentROID = node->getID();
                                 readOnlyIDs.append(currentROID);
                             }
-
                             readOnlyIDHashNeeded[currentROID].append(node->toMD5Hash());
                         }
 
