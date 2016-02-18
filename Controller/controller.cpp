@@ -1577,7 +1577,7 @@ int NewController::getSharedParent(int ID1, int ID2)
             treeString.chop(1);
         }
 
-        return treeLookup[treeString];
+        return treeHash.value(treeString);
     }
     return -1;
 }
@@ -1860,8 +1860,7 @@ void NewController::storeGraphMLInHash(Entity* item)
             reverseKindLookup[ID] = nodeKind;
             QString treeIndexStr = ((Node*)item)->getTreeIndexString();
 
-            treeLookup[treeIndexStr] = ID;
-            reverseTreeLookup[ID] = treeIndexStr;
+            treeHash.insert(treeIndexStr, ID);
 
             nodeIDs.append(ID);
 
@@ -1977,10 +1976,9 @@ void NewController::removeGraphMLFromHash(int ID)
             }
         }
 
-        if(reverseTreeLookup.contains(ID)){
-            QString treeStr = reverseTreeLookup[ID];
-            reverseTreeLookup.remove(ID);
-            treeLookup.remove(treeStr);
+
+        if(treeHash.containsValue(ID)){
+            treeHash.removeValue(ID);
         }
 
         if(reverseReadOnlyLookup.contains(ID)){

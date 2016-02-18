@@ -154,7 +154,8 @@ HEADERS += \
     Controller/nodeadapter.h \
     Controller/edgeadapter.h \
     Controller/behaviournodeadapter.h \
-    View/GraphicsItems/notificationitem.h
+    View/GraphicsItems/notificationitem.h \
+    doublehash.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -273,7 +274,8 @@ SOURCES += \
     Controller/nodeadapter.cpp \
     Controller/edgeadapter.cpp \
     Controller/behaviournodeadapter.cpp \
-    View/GraphicsItems/notificationitem.cpp
+    View/GraphicsItems/notificationitem.cpp \
+    doublehash.cpp
 
 FORMS +=
 

@@ -19,6 +19,8 @@
 #include "../Model/Edges/aggregateedge.h"
 #include "../Model/data.h"
 
+#include "../doublehash.h"
+
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 enum MESSAGE_TYPE{CRITICAL, WARNING, MESSAGE, MODEL};
@@ -454,6 +456,9 @@ private:
     QHash<int, int> IDLookupHash;
     QHash<int, Entity*> IDLookupGraphMLHash;
     QHash<int, EntityAdapter*> ID2AdapterHash;
+
+
+
     QHash<int, QString> reverseKindLookup;
 
     QHash<QString, QList<int> > kindLookup;
@@ -461,13 +466,13 @@ private:
     QHash<int, int> readOnlyLookup;
     QHash<int, int> reverseReadOnlyLookup;
 
-    QHash<ReadOnlyState, int> readOnlyStateLookup;
-    QHash<ReadOnlyState, int> readOnlyStateLookup;
+    //QHash<ReadOnlyState, int> readOnlyStateLookup;
+    //QHash<ReadOnlyState, int> readOnlyStateLookup;
 
+    DoubleHash<QString, int> treeHash;
 
-    QHash<QString, int> treeLookup;
-    QHash<int, QString> reverseTreeLookup;
-
+    //QHash<QString, int> treeLookup;
+    //QHash<int, QString> reverseTreeLookup;
 
     QString getProcessName(Process* process);
 

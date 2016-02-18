@@ -257,6 +257,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
             return;
         }
 
+
         if (addToLayout) {
             if (insertIndex == -1) {
                 layout->addWidget(dockItem);
@@ -264,6 +265,8 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
                 layout->insertWidget(insertIndex, dockItem);
             }
         }
+
+
 
         dockNodeIDs.append(dockItemID.toInt());
         dockNodeItems[dockItemID] = dockItem;
