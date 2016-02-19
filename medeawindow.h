@@ -187,7 +187,8 @@ private slots:
     void menuActionTriggered();
 
     void dockButtonPressed();
-    void updateDockLabel();
+    void dockToggled(bool opened, QString dockAction = "");
+    void dockBackButtonTriggered();
 
     void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);
@@ -271,6 +272,7 @@ private:
     void setupMultiLineBox();
 
     void updateWidgetsOnWindowChanged();
+    void updateDock();
     void updateToolbar();
     void updateDataTable();
 
@@ -356,14 +358,17 @@ private:
     DockToggleButton* hardwareNodesButton;
     DockToggleButton* definitionsButton;
     DockToggleButton* functionsButton;
-    DockToggleButton* prevPressedButton;
 
     PartsDockScrollArea* partsDock;
     HardwareDockScrollArea* hardwareDock;
     DefinitionsDockScrollArea* definitionsDock;
     FunctionsDockScrollArea* functionsDock;
 
+    QGroupBox* dockGroupBox;
+    QGroupBox* dockHeaderBox;
+    QGroupBox* dockBackButtonBox;
     QLabel* openedDockLabel;
+    QLabel* dockActionLabel;
 
     QDialog* dockStandAloneDialog;
     QGroupBox* docksArea;

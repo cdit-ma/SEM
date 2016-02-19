@@ -41,14 +41,17 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     dockItemVisible = true;
     dockItemLabel = isLabel;
 
+    textLabel = 0;
+    imageLabel = 0;
+
     state = DEFAULT;
 
     if (nodeItem) {
 
         this->kind = nodeItem->getNodeKind();
-        label = nodeItem->getDataValue("label").toString();
         strID = QString::number(nodeItem->getID());
         highlightColor = "rgba(90,150,200,210);";
+        setLabel(nodeItem->getDataValue("label").toString());
 
         if (nodeItem->getNodeAdapter()) {
             connect(nodeItem->getNodeAdapter(), SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
@@ -62,8 +65,8 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         // if there is no node item, it means that this item belongs
         // to the parts dock and it uses its kind as its label and ID
         this->kind = kind;
-        label = kind;
         strID = kind;
+        setLabel(kind);
     }
 
     if (imageName.isEmpty()) {
@@ -129,6 +132,7 @@ void DockNodeItem::setLabel(QString newLabel)
 {
     label = newLabel;
     updateTextLabel();
+    setToolTip(label);
 }
 
 
@@ -412,6 +416,7 @@ void DockNodeItem::setupLayout()
 
     int maxCharWidth = textLabel->fontMetrics().width('W');
     MAX_LABEL_LENGTH = BUTTON_WIDTH / maxCharWidth + 2;
+    labelPadding = textLabel->fontMetrics().width("__");
 
     textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
@@ -518,37 +523,29 @@ void DockNodeItem::setImageLabelPixmap()
  */
 void DockNodeItem::updateTextLabel()
 {
-    QString newLabel = label;
+    if (textLabel) {
 
-    /*
-    int maxLength = MAX_LABEL_LENGTH;
+        QString newLabel = label;
+        int maxLength = MAX_LABEL_LENGTH;
 
-    // file labels have a bigger font and can therefore fit less chars
-    if (isDockItemLabel()) {
-        maxLength -= 2;
-    }
-
-    if (label.length() >= maxLength) {
-
-        QFontMetrics fm(textLabel->fontMetrics());
-        int textWidth = fm.width(newLabel + "__");
-
-        if (textWidth > this->width()) {
-            newLabel.truncate(maxLength - 1);
-            newLabel += "..";
+        // file labels have a bigger font and can therefore fit less chars
+        if (isDockItemLabel()) {
+            maxLength -= 2;
         }
+
+        if (label.length() >= maxLength) {
+
+            int maxTextWidth = BUTTON_WIDTH - labelPadding;
+            int textWidth = textLabel->fontMetrics().width(newLabel);
+
+            if (textWidth > maxTextWidth) {
+                newLabel.truncate(maxLength);
+                newLabel += "..";
+            }
+        }
+
+        textLabel->setText(newLabel);
     }
-    */
-
-    QFontMetrics fm(textLabel->fontMetrics());
-    int textWidth = fm.width(newLabel + "__");
-
-    if (textWidth > BUTTON_WIDTH) {
-        newLabel.truncate(newLabel.length() - IMAGE_PADDING);
-        newLabel += "..";
-    }
-
-    textLabel->setText(newLabel);
 }
 
 

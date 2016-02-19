@@ -97,6 +97,7 @@ private:
     bool forceHidden;
 
     int state;
+    int labelPadding;
     int MAX_LABEL_LENGTH;
 };
 

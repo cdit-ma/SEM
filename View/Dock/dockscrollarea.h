@@ -60,6 +60,7 @@ public:
 signals:
     void dock_opened(bool open = true);
     void dock_closed(bool open = false);
+    void dock_toggled(bool open, QString action = "");
     void dock_forceOpenDock(QString filterForKind);
     void dock_forceOpenDock();
 

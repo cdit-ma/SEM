@@ -187,7 +187,7 @@ void NewController::connectView(NodeView *view)
         connect(view, SIGNAL(view_Paste(int,QString)), this, SLOT(paste(int,QString)));
 
         //Node Slots
-        connect(view, SIGNAL(view_ConstructEdge(int,int, bool)), this, SLOT(constructEdge(int, int, bool)));
+        connect(view, SIGNAL(view_ConstructEdge(int,int, bool)), this, SLOT(constructEdge(int, int)));
         connect(view, SIGNAL(view_ConstructNode(int,QString,QPointF)), this, SLOT(constructNode(int,QString,QPointF)));
 
 

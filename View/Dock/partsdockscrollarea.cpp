@@ -104,7 +104,9 @@ void PartsDockScrollArea::forceOpenDock()
 
     // close the sender dock then open this dock
     DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
-    dock->setDockOpen(false);
+    if (dock) {
+        dock->setDockOpen(false);
+    }
     setDockOpen();
     updateDock();
 }

@@ -21,9 +21,10 @@ FunctionsDockScrollArea::FunctionsDockScrollArea(QString label, NodeView *view, 
     getLayout()->addLayout(mainLayout);
 
     setDockOpen(false);
-
     connectToView();
-    connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
+
+    connect(this, SIGNAL(dock_opened(bool)), this, SLOT(dockToggled(bool)));
+    connect(this, SIGNAL(dock_closed(bool)), this, SLOT(dockToggled(bool)));
 }
 
 
@@ -104,11 +105,8 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
  */
 void FunctionsDockScrollArea::updateDock()
 {
-    NodeItem* selectedItem = getCurrentNodeItem();
-    if (!selectedItem || !functions_allowedKinds.contains(selectedItem->getNodeKind())) {
-        if (isDockOpen()) {
-            emit dock_forceOpenDock();
-        }
+    if (isDockOpen()) {
+        emit dock_forceOpenDock();
     }
 }
 
@@ -222,12 +220,16 @@ void FunctionsDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
 
 
 /**
- * @brief FunctionsDockScrollArea::dockClosed
+ * @brief FunctionsDockScrollArea::dockToggled
+ * @param opened
  */
-void FunctionsDockScrollArea::dockClosed()
+void FunctionsDockScrollArea::dockToggled(bool opened)
 {
-    // for now, the moment this dock is closed, it is also disabled
-    //setDockEnabled(false);
+    QString action = "";
+    if (opened) {
+        action = "Select to construct a Process";
+    }
+    emit dock_toggled(opened, action);
 }
 
 
@@ -242,6 +244,8 @@ void FunctionsDockScrollArea::forceOpenDock()
 
     // close the sender dock then open this dock
     DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
-    dock->setDockOpen(false);
+    if (dock) {
+        dock->setDockOpen(false);
+    }
     setDockOpen();
 }
