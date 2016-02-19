@@ -333,6 +333,7 @@ private:
 
     //Constructs a Node using the attached Data elements. Attachs the node to the parentNode provided.
     Node* constructChildNode(Node* parentNode, QList<Data*> dataToAttach);
+    bool attachChildNode(Node* parentNode, Node* childNode);
 
     Node* constructNode(QList<Data*> data);
 

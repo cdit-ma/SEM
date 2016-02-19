@@ -2023,16 +2023,28 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
         return 0;
     }
 
-    bool inModel = _isInModel(node);
+
 
     //If we have no parentNode, attempt to attach it to the Model.
     if(!parentNode){
         parentNode = model;
     }
 
+    bool attached = attachChildNode(parentNode, node);
+
+    if(!attached){
+        destructNode(node);
+        node = 0;
+    }
+    return node;
+}
+
+bool NewController::attachChildNode(Node *parentNode, Node *node)
+{
+    bool inModel = _isInModel(node);
+
     if(!inModel){
-        if(parentNode->canAdoptChild(node) || (parentNode->isReadOnly() && node->isReadOnly())){
-            //If we are doing a read only load, we have to force load the node...
+        if(parentNode->canAdoptChild(node)){
             //Attach new node to parent.
             parentNode->addChild(node);
 
@@ -2047,9 +2059,11 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
 
             constructNodeGUI(node);
         }else{
-            destructNode(node);
-            return 0;
+            return false;
+
         }
+    }else{
+        return node->getParentNode() == parentNode;
     }
 
     if(isUserAction()){
@@ -2059,7 +2073,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
         }
     }
 
-    return node;
+    return true;
 }
 
 Node *NewController::constructNode(QList<Data *> nodeData)
@@ -4511,6 +4525,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     QHash<int, QStringList> readOnlyIDHashNeeded;
 
     QStack<QPair<Node*, Node*> > toAttachNodes;
+	QHash<int, Node*> id2Node;
+    QHash<Node*, Node*> parentNodes;
 
 
 
@@ -4835,17 +4851,21 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                         if(parent->getNodeKind() == "IDL"){
                             qCritical() << currentNodeData;
                         }
-                        //Construct the specialised Node
-                        newNode = constructChildNode(parent, currentNodeData);
-                        currentNodeData.clear();
 
+                        //Construct the node with the data.
+                        newNode = constructNode(currentNodeData);
                         if(!newNode){
-                            qCritical() << "Parent: " << parent->toString() << " Cannot Adopt: " << getDataValueFromKeyName(currentNodeData, "kind");
-                            //qCritical() << parent;
-                            //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
-                            qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
                             emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
                         }
+                        currentNodeData.clear();
+
+                        QPair<Node*, Node*> parentPair;
+                        parentPair.first = newNode;
+                        parentPair.second = parent;
+                        toAttachNodes.append(parentPair);
+
+                        parentNodes[newNode] = parent;
+                        id2Node[newNode->getID()] = newNode;
                     }
                     node = newNode;
                     storeMD5 = true;
@@ -4861,7 +4881,16 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                 //Navigate back to the correct parent.
                 while(parent && parentDepth > 0){
-                    parent = parent->getParentNode();
+                    Node* parentN = parent->getParentNode();
+                    if(parentN){
+                        parent = parentN;
+                    }else{
+                        //Check for parent of parent in hash.
+                        if(parentNodes.contains(parent)){
+                            parent = parentNodes[parent];
+                        }
+                    }
+
                     parentDepth --;
                 }
 
@@ -4888,8 +4917,14 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                         readOnlyState.snippetTime=-1;
 
                         if(storeMD5){
+                            Node* parentNode = node->getParentNode();
+
+                            if(!parentNode){
+                                parentNode = parentNodes[node];
+                            }
+
                             //If the parent of this item isn't read only, we need to add this item to the list of readOnlyIDs
-                            if(!node->getParentNode()->isReadOnly()){
+                            if(parentNode && !parentNode->isReadOnly()){
                                 currentROID = node->getID();
                                 readOnlyIDs.append(currentROID);
                             }
@@ -4927,6 +4962,9 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     //Foreach read only items we have imported.
     foreach(int ID, readOnlyIDs){
         Node* node = getNodeFromID(ID);
+        if(!node){
+            node = id2Node[ID];
+        }
         QList<Node*> allChildren = node->getChildren();
 
         QStringList neededHashs = readOnlyIDHashNeeded[ID];
@@ -4948,6 +4986,20 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
         //Remove the items we don't need anymore
         _remove(toDeleteIDs, false);
+    }
+
+    //ATTACH SHIT
+
+    while(!toAttachNodes.isEmpty()){
+        QPair<Node*, Node*> pair = toAttachNodes.takeFirst();
+        Node* node = pair.first;
+        Node* parent = pair.second;
+
+
+        if(node && parent){
+            bool success = attachChildNode(parent, node);
+            qCritical() << "SUCCESS: " << success;
+        }
     }
 
 
