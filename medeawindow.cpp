@@ -997,29 +997,23 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 
     dockActionLabel = new QLabel("Describe action here", this);
     dockActionLabel->setAlignment(Qt::AlignCenter);
-    dockActionLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 10px 5px; font-style: italic;");
-
+    dockActionLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 10px 5px;");
     QPushButton* dockBackButton = new QPushButton(QIcon(":/Actions/Backward.png"), "", this);
-    //dockBackButton->setFixedSize(45, 45);
     dockBackButton->setFixedSize(boxWidth, 35);
     dockBackButton->setToolTip("Go back to the Parts list");
     dockBackButton->setStyleSheet("QPushButton{"
-                                  //"border-radius: 20px;"
-                                  //"border-radius: 17px;"
-                                  "background-color: rgba(130,130,130,100);"
+                                  "background-color: rgba(130,130,130,120);"
                                   "}"
                                   "QPushButton:hover{"
-                                  "background-color: rgba(188,177,114,120);"
+                                  "background-color: rgba(180,180,180,150);"
                                   "}");
     connect(dockBackButton, SIGNAL(clicked(bool)), this, SLOT(dockBackButtonTriggered()));
 
     openedDockLabel = new QLabel("Parts", this);
     openedDockLabel->setFixedWidth(boxWidth);
+    //openedDockLabel->setAlignment(Qt::AlignCenter);
+    openedDockLabel->setFont(QFont("Helvetica", 11));
     openedDockLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 0px 8px 5px 8px;");
-
-    //openedDockLabel->hide();
-    //dockActionLabel->hide();
-    //dockBackButton->hide();
 
     QVBoxLayout* dockBackButtonLayout = new QVBoxLayout();
     dockBackButtonLayout->setMargin(0);
@@ -1051,17 +1045,6 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 
     dockLayout->addWidget(dockButtonsBox);
     dockLayout->addWidget(dockGroupBox);
-
-    // TODO - instead of updating the dock label's text, construct a label for each dock and add it into a groupbox with the dock
-    /*
-    dockLayout->addWidget(dockButtonsBox);
-    dockLayout->addWidget(openedDockLabel);
-    dockLayout->addWidget(partsDock);
-    dockLayout->addWidget(definitionsDock);
-    dockLayout->addWidget(functionsDock);
-    dockLayout->addWidget(hardwareDock);
-    dockLayout->addStretch();
-    */
 
     dockAreaLayout->addLayout(dockLayout);
     docksArea->setLayout(dockAreaLayout);

@@ -46,14 +46,13 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     if (nodeItem) {
 
         this->kind = nodeItem->getNodeKind();
-        label = nodeItem->getDataValue("label").toString();
         strID = QString::number(nodeItem->getID());
         highlightColor = "rgba(90,150,200,210);";
+        setLabel(nodeItem->getDataValue("label").toString());
 
         if (nodeItem->getNodeAdapter()) {
             connect(nodeItem->getNodeAdapter(), SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
         }
-
         if (nodeItem->isEntityItem()) {
             connect((EntityItem*)nodeItem, SIGNAL(entityItem_iconChanged()), this, SLOT(iconChanged()));
         }
@@ -62,8 +61,8 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         // if there is no node item, it means that this item belongs
         // to the parts dock and it uses its kind as its label and ID
         this->kind = kind;
-        label = kind;
         strID = kind;
+        setLabel(kind);
     }
 
     if (imageName.isEmpty()) {
@@ -129,6 +128,7 @@ void DockNodeItem::setLabel(QString newLabel)
 {
     label = newLabel;
     updateTextLabel();
+    setToolTip(label);
 }
 
 
