@@ -41,6 +41,9 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     dockItemVisible = true;
     dockItemLabel = isLabel;
 
+    textLabel = 0;
+    imageLabel = 0;
+
     state = DEFAULT;
 
     if (nodeItem) {
@@ -53,6 +56,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         if (nodeItem->getNodeAdapter()) {
             connect(nodeItem->getNodeAdapter(), SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
         }
+
         if (nodeItem->isEntityItem()) {
             connect((EntityItem*)nodeItem, SIGNAL(entityItem_iconChanged()), this, SLOT(iconChanged()));
         }
@@ -519,26 +523,29 @@ void DockNodeItem::setImageLabelPixmap()
  */
 void DockNodeItem::updateTextLabel()
 {
-    QString newLabel = label;
-    int maxLength = MAX_LABEL_LENGTH;
+    if (textLabel) {
 
-    // file labels have a bigger font and can therefore fit less chars
-    if (isDockItemLabel()) {
-        maxLength -= 2;
-    }
+        QString newLabel = label;
+        int maxLength = MAX_LABEL_LENGTH;
 
-    if (label.length() >= maxLength) {
-
-        int maxTextWidth = BUTTON_WIDTH - labelPadding;
-        int textWidth = textLabel->fontMetrics().width(newLabel);
-
-        if (textWidth > maxTextWidth) {
-            newLabel.truncate(maxLength);
-            newLabel += "..";
+        // file labels have a bigger font and can therefore fit less chars
+        if (isDockItemLabel()) {
+            maxLength -= 2;
         }
-    }
 
-    textLabel->setText(newLabel);
+        if (label.length() >= maxLength) {
+
+            int maxTextWidth = BUTTON_WIDTH - labelPadding;
+            int textWidth = textLabel->fontMetrics().width(newLabel);
+
+            if (textWidth > maxTextWidth) {
+                newLabel.truncate(maxLength);
+                newLabel += "..";
+            }
+        }
+
+        textLabel->setText(newLabel);
+    }
 }
 
 
