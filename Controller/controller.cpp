@@ -11,6 +11,7 @@
 
 #include "edgeadapter.h"
 #include "nodeadapter.h"
+#include "../Model/tempentity.h"
 
 bool UNDO = true;
 bool REDO = false;
@@ -256,7 +257,8 @@ void NewController::loadWorkerDefinitions()
                 QPair<bool, QString> data = readFile(importFileName);
                 //If the file was read.
                 if(data.first){
-                    bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
+                    bool success = _newImportGraphML(data.second, workerDefinition);
+                    //bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
                     if(!success){
                         emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + importFileName +"'!");
                     }else{
@@ -1184,7 +1186,7 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
         }
 
         foreach(QString xmlData, xmlDataList){            
-            bool result = _importGraphMLXML(xmlData, getModel());
+            bool result = _newImportGraphML(xmlData, getModel());
             if(!result){
                 controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
                 success = false;
@@ -1235,7 +1237,7 @@ bool NewController::_importSnippet(QList<int> IDs, QString fileName, QString fil
                 emit controller_ActionProgressChanged(0,"Importing Snippets");
             }
             IMPORTING_SNIPPET = true;
-            success = _importGraphMLXML(fileData, parent, false, false);
+            success = _newImportGraphML(fileData, parent);//, false, false);
             if(!success){
 
             }
@@ -5125,6 +5127,167 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     }
 
     return true;
+}
+
+bool NewController::_newImportGraphML(QString document, Node *parent)
+{
+    //Lookup for key's ID to Key* object
+    QHash <QString, Key*> keyHash;
+
+    //Double Lookup for Node's ID to Node* object
+    DoubleHash<QString, Node*> nodeHash;
+
+    //Lookup for Node* object's ID to parent node.
+    DoubleHash<int, Node*> nodeParentHash;
+
+    QStack<QString> entityIDStack;
+
+    QHash <QString, TempEntity*> entityHash;
+
+    if(!parent){
+        //Set parent as Model item.
+        parent = getModel();
+    }
+
+    if(!parent){
+        //If we still don't have a parent. Return
+        return false;
+    }
+
+    if(parent->isInstance() || parent->isImpl()){
+        if(!(UNDOING || REDOING)){
+            emit controller_DisplayMessage(WARNING, "Error", "Cannot import or paste into an Instance/Implementation.", parent->getID());
+            return false;
+        }
+    }
+
+    if(!isGraphMLValid(document)){
+        emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import; invalid GraphML document.", parent->getID());
+        return false;
+    }
+
+    //Now we know we have no errors, so read Stream again.
+    QXmlStreamReader xml(document);
+
+    //Get the number of lines in the input GraphML XML String.
+    float lineCount = document.count("\n");
+
+
+
+    TempEntity* topEntity = new TempEntity(Entity::EK_NODE);
+    topEntity->setActualID(parent->getID());
+
+
+
+
+    TempEntity* currentEntity = topEntity;
+
+    while(!xml.atEnd()){
+        xml.readNext();
+
+         //Get the tagName
+        QStringRef tagName = xml.name();
+
+        //Process the Tags
+        GraphML::GRAPHML_KIND currentKind = GraphML::GK_NONE;
+        Entity::ENTITY_KIND currentEntityKind = Entity::EK_NONE;
+
+        if(tagName == "edge"){
+            currentKind = GraphML::GK_ENTITY;
+            currentEntityKind =  Entity::EK_EDGE;
+        }else if(tagName == "node"){
+            currentKind = GraphML::GK_ENTITY;
+            currentEntityKind = Entity::EK_NODE;
+        }else if(tagName == "data"){
+            currentKind = GraphML::GK_DATA;
+        }else if(tagName == "key"){
+            currentKind = GraphML::GK_KEY;
+        }else if(tagName == "default"){
+            //TODO handle import of default.
+        }
+
+        if(xml.isStartElement()){
+            //For Nodes/Edges.
+            if(currentEntityKind != Entity::EK_NONE){
+                QString ID = getXMLAttribute(xml, "id");
+                TempEntity* entity = new TempEntity(currentEntityKind, currentEntity);
+                //Set the ID
+                entity->setID(ID);
+                //Set the line number
+                entity->setLineNumber(xml.lineNumber());
+
+
+                if(currentEntityKind == Entity::EK_EDGE){
+                    entity->setSrcID(getXMLAttribute(xml, "source"));
+                    entity->setDstID(getXMLAttribute(xml, "target"));
+                }
+
+                //Insert into the hash.
+                entityHash.insert(ID, entity);
+                //Add to the stack.
+                entityIDStack.append(ID);
+                currentEntity = entity;
+            }
+
+            if(currentKind == GraphML::GK_KEY){
+                QString ID = getXMLAttribute(xml, "id");
+
+                QString keyName = getXMLAttribute(xml, "attr.name");
+                QString keyTypeStr = getXMLAttribute(xml, "attr.type");
+                QString keyForStr = getXMLAttribute(xml, "for");
+
+                QVariant::Type keyType = Key::getTypeFromGraphML(keyTypeStr);
+                Entity::ENTITY_KIND keyFor = Entity::getEntityKind(keyForStr);
+
+                Key* key = constructKey(keyName, keyType, keyFor);
+                keyHash.insert(ID,key);
+            }
+            if(currentKind == GraphML::GK_DATA){
+                QString keyID = getXMLAttribute(xml, "key");
+                Key* key = keyHash[keyID];
+
+                if(key && currentEntity){
+                    //Attach the data to the current entity.
+                    QString dataValue = xml.readElementText();
+                    Data* data = new Data(key, dataValue);
+                    currentEntity->addData(data);
+                }
+            }
+        }
+
+        if(xml.isEndElement()){
+            //For Nodes/Edges.
+            if(currentEntityKind != Entity::EK_NONE){
+                currentEntity = currentEntity->getParentEntity();
+            }
+        }
+     }
+
+    while(!entityIDStack.isEmpty()){
+        QString ID = entityIDStack.takeFirst();
+
+        TempEntity *entity = entityHash[ID];
+        qCritical() << entity->gotReadOnlyState();
+        if(entity){
+            QList<Data*> dataList = entity->getData();
+
+            if(entity->isNode()){
+                TempEntity* parentEntity = entity->getParentEntity();
+                if(parentEntity->gotActualID()){
+                    //Attach to this.
+                    Node* parentNode = getNodeFromID(parentEntity->getActualID());
+                    Node* newNode = constructNode(dataList);
+                    bool success = attachChildNode(parentNode, newNode);
+                    if(success){
+                        //Update the entity.
+                        entity->setActualID(newNode->getID());
+                    }
+                }
+            }
+        }
+    }
+
+
 }
 
 EventAction NewController::getEventAction()

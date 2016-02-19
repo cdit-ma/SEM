@@ -296,6 +296,8 @@ private:
 
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
+    bool _newImportGraphML(QString document, Node* parent = 0);
+
 
     EventAction getEventAction();
 

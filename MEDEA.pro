@@ -155,7 +155,8 @@ HEADERS += \
     Controller/edgeadapter.h \
     Controller/behaviournodeadapter.h \
     View/GraphicsItems/notificationitem.h \
-    doublehash.h
+    doublehash.h \
+    Model/tempentity.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -275,7 +276,8 @@ SOURCES += \
     Controller/edgeadapter.cpp \
     Controller/behaviournodeadapter.cpp \
     View/GraphicsItems/notificationitem.cpp \
-    doublehash.cpp
+    doublehash.cpp \
+    Model/tempentity.cpp
 
 FORMS +=
 
