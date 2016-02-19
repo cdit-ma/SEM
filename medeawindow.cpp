@@ -501,9 +501,7 @@ void MedeaWindow::initialiseGUI()
 
     menuTitleBox = new QGroupBox(this);
     projectName = new QPushButton("");
-    closeProjectButton = new QPushButton();
-    closeProjectButton->setToolTip("Close the current Project.");
-    closeProjectButton->setIcon(nodeView->getImage("Actions", "Close"));
+    closeProjectButton = new QPushButton(getIcon("Actions", "Close"), "");
 
     loadingBox = new QGroupBox(this);
     loadingLabel = new QLabel("Loading...", this);
@@ -548,10 +546,12 @@ void MedeaWindow::initialiseGUI()
                               "QPushButton::menu-indicator{ image: none; }");
 
     projectName->setFlat(true);
-    projectName->setStyleSheet("color: black; font-weight: bold; font-size: 16px; text-align: left;");
+    projectName->setStyleSheet("QPushButton{ color: black; font-weight: bold; font-size: 16px; text-align: left; }"
+                               "QTooltip{ background: white; color: black; }");
 
+    closeProjectButton->setToolTip("Close Current Project");
     closeProjectButton->setFixedSize(menuButton->height()/2, menuButton->height()/2);
-    closeProjectButton->setStyleSheet("QPushButton{ background: rgb(220,220,220); border-radius: 2px; }"
+    closeProjectButton->setStyleSheet("QPushButton{ background: rgb(200,200,200); border-radius: 2px; }"
                                       "QPushButton:hover{ background: rgb(240,240,240); }"
                                       "QPushButton:pressed{ background: white; }");
 
@@ -3948,5 +3948,6 @@ void MedeaWindow::themeChanged(VIEW_THEME theme)
     default:
         return;
     }
-    projectName->setStyleSheet("color:" + projectNameColor + "font-size: 16px; text-align: left;");
+    projectName->setStyleSheet("QPushButton{ color:" + projectNameColor + "font-size: 16px; text-align: left; }"
+                               "QTooltip{ background: white; color: black; }");
 }
