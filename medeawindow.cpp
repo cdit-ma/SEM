@@ -548,12 +548,12 @@ void MedeaWindow::initialiseGUI()
                               "QPushButton::menu-indicator{ image: none; }");
 
     projectName->setFlat(true);
-    projectName->setStyleSheet("color: black; font-size: 16px; text-align: left;");// /*padding: 8px;*/");
-    projectName->setFixedWidth(200);
+    projectName->setStyleSheet("color: white; font-weight: bold; font-size: 16px; text-align: left;");// /*padding: 8px;*/");
 
-    closeProjectButton->setFlat(true);
-    closeProjectButton->setFixedWidth(menuButton->height()/2);
-    closeProjectButton->setFixedHeight(menuButton->height()/2);
+    closeProjectButton->setFixedSize(menuButton->height()/2, menuButton->height()/2);
+    closeProjectButton->setStyleSheet("QPushButton{ background: rgba(255,255,255,150); border-radius: 2px; }"
+                                      "QPushButton:hover{ background: rgba(255,255,255,200); }"
+                                      "QPushButton:pressed{ background:white; }");
 
     definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
@@ -654,15 +654,15 @@ void MedeaWindow::initialiseGUI()
     titleLayout->setSpacing(0);
     titleLayout->addWidget(menuButton);
     titleLayout->addSpacerItem(new QSpacerItem(SPACER_SIZE, 0));
-    titleLayout->addWidget(projectName);
-    titleLayout->addSpacerItem(new QSpacerItem(SPACER_SIZE, 0));
     titleLayout->addWidget(closeProjectButton);
+    //titleLayout->addSpacerItem(new QSpacerItem(SPACER_SIZE, 0));
+    titleLayout->addWidget(projectName);
     titleLayout->addStretch();
 
     menuTitleBox->setLayout(titleLayout);
     menuTitleBox->setFixedHeight(menuButton->height() + SPACER_SIZE*3);
     menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
-                                  menuButton->width() + SPACER_SIZE + projectName->width() + SPACER_SIZE + closeProjectButton->width(), menuButton->height(),
+                                  menuButton->width() + SPACER_SIZE + projectName->width() + closeProjectButton->width(), menuButton->height(),
                                   QRegion::Rectangle));
 
     topHLayout->setMargin(0);
@@ -2056,9 +2056,10 @@ void MedeaWindow::projectFileChanged(QString name)
 
 void MedeaWindow::projectNameChanged(QString name)
 {
-    if(projectName){
+    if (projectName) {
         projectName->setText(name);
-        //projectName->setFixedWidth(projectName->fontMetrics().width(name) + 10);
+        projectName->setToolTip(name);
+        projectName->setFixedWidth(projectName->fontMetrics().width(name) + 10);
     }
 }
 
