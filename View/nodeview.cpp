@@ -1799,7 +1799,7 @@ void NodeView::settingChanged(QString, QString keyName, QVariant value)
     }else if(keyName == SHOW_LOCAL_NODE){
         showLocalNode(boolValue);
     }else if(keyName == DARK_THEME_ON) {
-        if(boolValue){
+        if (boolValue){
             setupTheme(VT_DARK_THEME);
         }else{
             setupTheme(VT_NORMAL_THEME);

@@ -221,6 +221,8 @@ private slots:
 
     QStringList fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple=true, QString fileName = "");
 
+    void themeChanged(VIEW_THEME theme);
+
 protected:
     void closeEvent(QCloseEvent*);
     void resizeEvent(QResizeEvent* event);

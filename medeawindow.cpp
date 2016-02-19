@@ -548,12 +548,12 @@ void MedeaWindow::initialiseGUI()
                               "QPushButton::menu-indicator{ image: none; }");
 
     projectName->setFlat(true);
-    projectName->setStyleSheet("color: white; font-weight: bold; font-size: 16px; text-align: left;");// /*padding: 8px;*/");
+    projectName->setStyleSheet("color: black; font-weight: bold; font-size: 16px; text-align: left;");
 
     closeProjectButton->setFixedSize(menuButton->height()/2, menuButton->height()/2);
-    closeProjectButton->setStyleSheet("QPushButton{ background: rgba(255,255,255,150); border-radius: 2px; }"
-                                      "QPushButton:hover{ background: rgba(255,255,255,200); }"
-                                      "QPushButton:pressed{ background:white; }");
+    closeProjectButton->setStyleSheet("QPushButton{ background: rgb(220,220,220); border-radius: 2px; }"
+                                      "QPushButton:hover{ background: rgb(240,240,240); }"
+                                      "QPushButton:pressed{ background: white; }");
 
     definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
@@ -1561,6 +1561,8 @@ void MedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_LoadSettings()), this, SLOT(loadSettingsFromINI()));
 
+    connect(nodeView, SIGNAL(view_themeChanged(VIEW_THEME)), this, SLOT(themeChanged(VIEW_THEME)));
+
     connect(this, SIGNAL(window_ProjectSaved(bool,QString)), nodeView, SIGNAL(view_ProjectSaved(bool, QString)));
 
     connect(nodeView, SIGNAL(view_ProjectFileChanged(QString)), this, SLOT(projectFileChanged(QString)));
@@ -1581,13 +1583,9 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_SavedProject(QString,QString)), this, SLOT(gotSaveData(QString, QString)));
 
 
-
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
     connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
-
-
-
 
 
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
@@ -1606,10 +1604,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_ExportSnippet(QString)), this, SLOT(exportSnippet(QString)));
 
 
-
-
     connect(file_importXME, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XME_triggered()));
-
 
 
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
@@ -3933,4 +3928,25 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString
 
 
     return files;
+}
+
+
+/**
+ * @brief MedeaWindow::themeChanged
+ * @param theme
+ */
+void MedeaWindow::themeChanged(VIEW_THEME theme)
+{
+    QString projectNameColor;
+    switch (theme) {
+    case VT_NORMAL_THEME:
+        projectNameColor = "black;";
+        break;
+    case VT_DARK_THEME:
+        projectNameColor = "white;";
+        break;
+    default:
+        return;
+    }
+    projectName->setStyleSheet("color:" + projectNameColor + "font-size: 16px; text-align: left;");
 }
