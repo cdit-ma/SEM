@@ -20,6 +20,7 @@ public:
     ~Node();
 
     QString toGraphML(int indentDepth);
+    QString toGraphMLNoVisualData(int indentDepth);
     virtual QString toString();
 
     QList<int> getTreeIndex();
@@ -111,6 +112,8 @@ signals:
     void node_EdgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
 private:
     void setParentNode(Node* parent, int index);
+
+    QString _toGraphML(int indentDepth, bool ignoreVisuals=false);
 
     void addEdge(Edge *edge);
     void removeEdge(Edge *edge);

@@ -285,7 +285,7 @@ void NewController::loadWorkerDefinitions()
     //Once we have loaded in workers, we should keep a dictionary lookup for them.
 }
 
-QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges, bool GUI_USED)
+QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges, bool GUI_USED, bool ignoreVisuals)
 {
     bool exportAllEdges = allEdges;
 
@@ -379,8 +379,11 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
 
         }
         //Export the XML for this node
-        nodeXML += node->toGraphML(2);
-
+        if(ignoreVisuals){
+            nodeXML += node->toGraphML(2);
+        }else{
+            nodeXML += node->toGraphMLNoVisualData(2);
+        }
     }
 
     QString returnable = QString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -1290,31 +1293,6 @@ QString NewController::_exportSnippet(QList<int> IDs)
                 if(node && !nodeList.contains(node)){
                     nodeList += node;
 
-                    //Get existing snippetTime data, if not create one.
-                    Data* timeData = node->getData(timeKey);
-                    if(!timeData){
-                        timeData = new Data(timeKey, exportTimeStamp);
-                        node->addData(timeData);
-                    }
-
-                    //Get rid of the readonlyDefinition data.
-                    node->removeData(readOnlyDefinitionKey);
-
-                    //Get existing snippetMac data, if not create one.
-                    Data* macData = node->getData(macKey);
-                    if(!macData){
-                        macData = new Data(macKey, machineID);
-                        node->addData(macData);
-                    }
-
-                    //Get existing exportTime data, if not create one.
-                    Data* exportTimeData = node->getData(exportTimeKey);
-                    if(!exportTimeData){
-                        exportTimeData = new Data(exportTimeKey);
-                        node->addData(exportTimeData);
-                    }
-                    exportTimeData->setValue(exportTimeStamp);
-
                     //Add all the children (recursively) to the list of nodes to set as read-only
                     foreach(Node* child, node->getChildren()){
                         if(!nodeList.contains(child)){
@@ -1328,15 +1306,40 @@ QString NewController::_exportSnippet(QList<int> IDs)
             foreach(Node* node, nodeList){
                 Data* readOnlyData = node->getData(readOnlyKey);
                 Data* idData = node->getData(IDKey);
+                Data* timeData = node->getData(timeKey);
+                Data* macData = node->getData(macKey);
+                Data* exportTimeData = node->getData(exportTimeKey);
 
-                //Set node as read only.
+
+                //If node doesn't have snippetTime data, create and set one.
+                if(!timeData){
+                    timeData = new Data(timeKey, exportTimeStamp);
+                    node->addData(timeData);
+                }
+
+                //If node doesn't have snippetMAC data, create and set one.
+                if(!macData){
+                    macData = new Data(macKey, machineID);
+                    node->addData(macData);
+                }
+
+                //If node doesn't have snippetMAC data, create one.
+                if(!exportTimeData){
+                    exportTimeData = new Data(exportTimeKey);
+                    node->addData(exportTimeData);
+                }
+                //Update exportTime so that the snippet loaded can be differentiated.
+                exportTimeData->setValue(exportTimeStamp);
+
+                 //If node doesn't have readOnly data, create one.
                 if(!readOnlyData){
                     readOnlyData = new Data(readOnlyKey);
                     node->addData(readOnlyData);
                 }
+                //Set Node as Read Only.
                 readOnlyData->setValue(true);
 
-                //Set node's original ID as it's current ID
+                //If node doesn't have snippetID data, create and set one.
                 if(!idData){
                     idData = new Data(IDKey);
                     node->addData(idData);
@@ -1346,7 +1349,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
         }
 
         //Export the GraphML for those Nodes.
-        snippetData = _exportGraphMLDocument(IDs, false, false);
+        snippetData = _exportGraphMLDocument(IDs, false, false, true);
 
         if(readOnly){
             Key* readOnlyDefinitionKey = constructKey("readOnlyDefinition", QVariant::Bool, Entity::EK_NODE);
@@ -1354,24 +1357,18 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
             //Remove attached Data.
             foreach(Node* node, nodeList){
+                //Remove the read-only data
                 node->removeData(readOnlyKey);
-            }
 
-            //Set the top level containers as readOnlyDefinitions.
-            foreach(int ID, IDs){
-                Node* node = getNodeFromID(ID);
-                if(node){
-                    //Get existing readOnlyDefinition data, if not create one.
-                    Data* readOnlyDefData = node->getData(readOnlyDefinitionKey);
-                    if(!readOnlyDefData){
-                        readOnlyDefData = new Data(readOnlyDefinitionKey);
-                        node->addData(readOnlyDefData);
-                    }
-                    readOnlyDefData->setValue(true);
+                //Get existing readOnlyDefinition data, if not create one.
+                Data* readOnlyDefData = node->getData(readOnlyDefinitionKey);
+                if(!readOnlyDefData){
+                    readOnlyDefData = new Data(readOnlyDefinitionKey);
+                    node->addData(readOnlyDefData);
                 }
+                readOnlyDefData->setValue(true);
             }
         }
-
     }
     return snippetData;
 }
@@ -2034,7 +2031,8 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
     }
 
     if(!inModel){
-        if(parentNode->canAdoptChild(node)){           
+        if(parentNode->canAdoptChild(node) || (parentNode->isReadOnly() && node->isReadOnly())){
+            //If we are doing a read only load, we have to force load the node...
             //Attach new node to parent.
             parentNode->addChild(node);
 
@@ -4484,7 +4482,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     QMap<QString , Key*> keyLookup;
 
     //Node lookup provides a way for the original edge source/target ID's to be linked with the internal object Node
-    QMap<QString, Node *> nodeLookup;
+    //QMap<QString, Node *> nodeLookup;
+    DoubleHash<QString, Node*> nodeLookup;
 
     //A list for storing the current Parse <data> tags owned by a <node>
     QList<Data*> currentNodeData;
@@ -4510,6 +4509,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
     QList<int> readOnlyIDs;
     QHash<int, QStringList> readOnlyIDHashNeeded;
+
+    QStack<QPair<Node*, Node*> > toAttachNodes;
 
 
 
@@ -4836,8 +4837,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                         }
                         //Construct the specialised Node
                         newNode = constructChildNode(parent, currentNodeData);
-
-                        qCritical() << newNode->toString();
+                        currentNodeData.clear();
 
                         if(!newNode){
                             qCritical() << "Parent: " << parent->toString() << " Cannot Adopt: " << getDataValueFromKeyName(currentNodeData, "kind");
@@ -4874,7 +4874,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                 if(node){
                     //Add the new Node to the lookup table.
-                    nodeLookup[nodeID] = node;
+                    qCritical() << "Setting Node: " << node->toString() << " in hash as: " << nodeID;
+                    nodeLookup.insert(nodeID, node);
 
 
                     if(readOnlyTag && readOnlyState.snippetID > 0){
@@ -4940,6 +4941,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 neededHashs.removeOne(childMD5);
             }else{
                 toDeleteIDs.append(child->getID());
+                //If the node is gone we should remove it from the hash.
+                nodeLookup.removeValue(child);
             }
         }
 
@@ -4959,18 +4962,22 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     QList<EdgeTemp> otherEdges;
     bool poppedup = false;
     foreach(EdgeTemp edge, currentEdges){
-        Node* s = nodeLookup[edge.source];
-        Node* d = nodeLookup[edge.target];
+
+        Node* s = nodeLookup.value(edge.source);
+        Node* d = nodeLookup.value(edge.target);
 
         if(!s){
+            qCritical() << " NO S";
             s = getNodeFromID(getIntFromQString(edge.source));
         }
         if(!d){
+            qCritical() << " NO D";
             d = getNodeFromID(getIntFromQString(edge.target));
         }
 
         if(!(s && d)){
             if(!poppedup){
+                qCritical() << "EDGE BETWEEN: " << edge.source << " <-> " <<  edge.target << " L#: " << edge.lineNumber;
                 emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot find all end points of imported edge!");
                 poppedup = true;
             }
@@ -5012,9 +5019,9 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
 
         EdgeTemp edge = sortedEdges.first();
+        Node* s = nodeLookup.value(edge.source);
+        Node* d = nodeLookup.value(edge.target);
 
-        Node* s = nodeLookup[edge.source];
-        Node* d = nodeLookup[edge.target];
 
         if(!s){
             s = getNodeFromID(getIntFromQString(edge.source));
@@ -5033,6 +5040,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
             }
             retry = false;
         }
+
 
 
 
