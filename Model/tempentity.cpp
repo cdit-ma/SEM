@@ -12,6 +12,7 @@ TempEntity::TempEntity(Entity::ENTITY_KIND entityKind, TempEntity *parent)
     readOnlyState.snippetTime = -1;
     isReadOnly = false;
 
+    retryCount = 0;
     this->entityKind = entityKind;
 }
 
@@ -23,6 +24,16 @@ void TempEntity::setLineNumber(int lineNumber)
 bool TempEntity::isTop()
 {
     return parent == 0;
+}
+
+int TempEntity::getRetryCount()
+{
+    return retryCount;
+}
+
+void TempEntity::incrementRetryCount()
+{
+    retryCount ++ ;
 }
 
 void TempEntity::setID(QString ID)
@@ -101,6 +112,25 @@ void TempEntity::addData(Data *data)
 QList<Data *> TempEntity::getData()
 {
     return dataList;
+}
+
+QList<Data *> TempEntity::takeDataList()
+{
+    QList<Data*> data = dataList;
+    dataList.clear();
+    return data;
+}
+
+void TempEntity::clearData()
+{
+    while(!dataList.isEmpty()){
+        Data* data = dataList.takeFirst();
+        if(data){
+            if(!data->getParent()){
+                delete data;
+            }
+        }
+    }
 }
 
 QString TempEntity::getOriginalID()

@@ -257,7 +257,7 @@ void NewController::loadWorkerDefinitions()
                 QPair<bool, QString> data = readFile(importFileName);
                 //If the file was read.
                 if(data.first){
-                    bool success = _newImportGraphML(data.second, workerDefinition);
+                    bool success = _importGraphMLXML(data.second, workerDefinition);
                     //bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
                     if(!success){
                         emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + importFileName +"'!");
@@ -265,7 +265,7 @@ void NewController::loadWorkerDefinitions()
                         qCritical() << "Loaded Worker Definition: " << importFileName;
                     }
                 }else{
-                     emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + importFileName +"'!");
+                    emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + importFileName +"'!");
                 }
             }
         }
@@ -620,7 +620,7 @@ void NewController::setViewSignalsEnabled(bool enabled, bool sendQueuedSignals)
                         emit controller_GraphMLConstructed(item);
                     }
                 }else{
-                   emit controller_GraphMLDestructed(signal.id, signal.kind);
+                    emit controller_GraphMLDestructed(signal.id, signal.kind);
                 }
             }
         }
@@ -870,7 +870,11 @@ void NewController::openProject(QString filePath, QString xmlData)
 {
     OPENING_PROJECT = true;
 
-    bool result = _importGraphMLXML(xmlData, getModel());
+
+    QTime newTimer;
+    newTimer.start();
+    bool result = _newImportGraphML(xmlData, getModel());
+    qCritical() << "TIME: " << newTimer.elapsed();
     if(!result){
         emit controller_ActionProgressChanged(100);
         controller_DisplayMessage(CRITICAL, "Open Error", "Cannot fully open document.", getModel()->getID());
@@ -1185,7 +1189,7 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
             emit controller_ActionProgressChanged(0, "Importing GraphML files");
         }
 
-        foreach(QString xmlData, xmlDataList){            
+        foreach(QString xmlData, xmlDataList){
             bool result = _newImportGraphML(xmlData, getModel());
             if(!result){
                 controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
@@ -1304,6 +1308,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
                 }
             }
 
+            long historicSnippetTime = exportTimeStamp;
             //Attach read only Data to all nodes in list.
             foreach(Node* node, nodeList){
                 Data* readOnlyData = node->getData(readOnlyKey);
@@ -1315,8 +1320,13 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
                 //If node doesn't have snippetTime data, create and set one.
                 if(!timeData){
-                    timeData = new Data(timeKey, exportTimeStamp);
+                    timeData = new Data(timeKey, historicSnippetTime);
                     node->addData(timeData);
+                }else{
+                    //If we have a timestamp value which is different to the export time stamp, update.
+                    if(historicSnippetTime == exportTimeStamp){
+                        historicSnippetTime = timeData->getValue().toInt();
+                    }
                 }
 
                 //If node doesn't have snippetMAC data, create and set one.
@@ -1333,7 +1343,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
                 //Update exportTime so that the snippet loaded can be differentiated.
                 exportTimeData->setValue(exportTimeStamp);
 
-                 //If node doesn't have readOnly data, create one.
+                //If node doesn't have readOnly data, create one.
                 if(!readOnlyData){
                     readOnlyData = new Data(readOnlyKey);
                     node->addData(readOnlyData);
@@ -1954,7 +1964,7 @@ void NewController::removeGraphMLFromHash(int ID)
                     managementComponents.remove(nodeLabel);
                 }else if(nodeKind == "Process"){
                     if(_isInWorkerDefinitions(node)){
-                    //If we are removing a Process contained in the WorkerDefinitions section.
+                        //If we are removing a Process contained in the WorkerDefinitions section.
                         QString processName = getProcessName((Process*)node);
                         if(processName != ""){
                             workerProcesses.remove(processName);
@@ -2069,10 +2079,29 @@ bool NewController::attachChildNode(Node *parentNode, Node *node)
     }
 
     if(isUserAction()){
+
+        ReadOnlyState nodeState = getReadOnlyState(node);
+
         //If the node is a definition, construct an instance/Implementation in each Instance/Implementation of the parentNode.
         foreach(Node* dependant, parentNode->getDependants()){
+            ReadOnlyState dependantState = getReadOnlyState(dependant);
+            if(nodeState.isValid() && dependantState.isValid()){
+                if(nodeState.snippetMAC == dependantState.snippetMAC && nodeState.snippetTime == dependantState.snippetTime){
+                    qCritical() << "DON'T CONSTRUCT";
+                    //If we have to construct into a read-only node which shares the same MAC and Time, assume the read only snippet contains an item in document, so don't autoconstruct.
+                    continue;
+                }else{
+                    qCritical() << "DIFFERENT?!?";
+                    qCritical() << nodeState.snippetMAC << " VS " << dependantState.snippetMAC;
+                    qCritical() << nodeState.snippetTime << " VS " << dependantState.snippetTime;
+                    qCritical() << "\n";
+                }
+            }else{
+                qCritical() << "NOT VALID";
+            }
             constructDependantRelative(dependant, node);
         }
+    }else{
     }
 
     return true;
@@ -2703,10 +2732,10 @@ bool NewController::destructEdge(Edge *edge)
     Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
 
     switch(edgeClass){
-        case Edge::EC_DEFINITION:{
-            teardownDependantRelationship(dst, src);
-            break;
-        }
+    case Edge::EC_DEFINITION:{
+        teardownDependantRelationship(dst, src);
+        break;
+    }
     case Edge::EC_AGGREGATE:{
         Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
         if(aggregate){
@@ -3745,11 +3774,11 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     }
 
     if(definitionData && valueData){
-//        if(setup){
-//            valueData->setParentData(definitionData);
-//        }else{
-//            valueData->unsetParentData();
-//        }
+        //        if(setup){
+        //            valueData->setParentData(definitionData);
+        //        }else{
+        //            valueData->unsetParentData();
+        //        }
     }else{
         //return false;
     }
@@ -3953,7 +3982,7 @@ void NewController::constructEdgeGUI(Edge *edge)
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
-     //Add Action to the Undo/Redo Stack
+    //Add Action to the Undo/Redo Stack
     addActionToStack(action);
 
     if(!src || !dst){
@@ -3963,11 +3992,11 @@ void NewController::constructEdgeGUI(Edge *edge)
     Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
 
     switch(edgeClass){
-        case Edge::EC_DEFINITION:{
-            //DefinitionEdge is either an Instance or an Impl
-            setupDependantRelationship(dst, src);
-            break;
-        }
+    case Edge::EC_DEFINITION:{
+        //DefinitionEdge is either an Instance or an Impl
+        setupDependantRelationship(dst, src);
+        break;
+    }
     case Edge::EC_AGGREGATE:{
         Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
         if(aggregate){
@@ -4223,7 +4252,7 @@ QString NewController::getSysOS()
 {
     QString os = "undefined";
 
-//QTv5.5 introduced QSysInfo changes.
+    //QTv5.5 introduced QSysInfo changes.
 #if QT_VERSION >= 0x050500
     os = QSysInfo::productType();
 #endif
@@ -4234,7 +4263,7 @@ QString NewController::getSysArch()
 {
     QString arch = "undefined";
 
-//QTv5.5 introduced QSysInfo changes.
+    //QTv5.5 introduced QSysInfo changes.
 #if QT_VERSION >= 0x050500
     arch = QSysInfo::currentCpuArchitecture();
 #endif
@@ -4245,7 +4274,7 @@ QString NewController::getSysOSVersion()
 {
     QString osv = "undefined";
 
-//QTv5.5 introduced QSysInfo changes.
+    //QTv5.5 introduced QSysInfo changes.
 #if QT_VERSION >= 0x050500
     osv = QSysInfo::productVersion();
 #endif
@@ -4527,7 +4556,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     QHash<int, QStringList> readOnlyIDHashNeeded;
 
     QStack<QPair<Node*, Node*> > toAttachNodes;
-	QHash<int, Node*> id2Node;
+    QHash<int, Node*> id2Node;
     QHash<Node*, Node*> parentNodes;
 
 
@@ -4648,7 +4677,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 QString dataValue = xml.readElementText();
 
                 //Construct a Data object out of the xml, using the key found in keyLookup
-                Data *data = new Data(dataKey);            
+                Data *data = new Data(dataKey);
                 data->setValue(dataValue);
 
 
@@ -5006,7 +5035,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
 
     if(!(UNDOING || REDOING || INITIALIZING)){
-       controller_ActionProgressChanged(0, "Constructing Edges.");
+        controller_ActionProgressChanged(0, "Constructing Edges.");
     }
 
     //Sort the edges into types.
@@ -5114,8 +5143,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         }
 
         if(!(UNDOING || REDOING || INITIALIZING)){
-              emit controller_ActionProgressChanged((100 * totalEdges)/edgesMade);
-          }
+            emit controller_ActionProgressChanged((100 * totalEdges)/edgesMade);
+        }
     }
 
 
@@ -5140,7 +5169,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     //Lookup for Node* object's ID to parent node.
     DoubleHash<int, Node*> nodeParentHash;
 
-    QStack<QString> entityIDStack;
+    QList<QString> nodeIDStack;
+    QList<QString> edgeIDStack;
 
     QHash <QString, TempEntity*> entityHash;
 
@@ -5185,7 +5215,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     while(!xml.atEnd()){
         xml.readNext();
 
-         //Get the tagName
+        //Get the tagName
         QStringRef tagName = xml.name();
 
         //Process the Tags
@@ -5224,8 +5254,14 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                 //Insert into the hash.
                 entityHash.insert(ID, entity);
-                //Add to the stack.
-                entityIDStack.append(ID);
+
+                //Add to the correct stack.
+                if(currentEntityKind == Entity::EK_NODE){
+                    nodeIDStack.append(ID);
+                }else if(currentEntityKind == Entity::EK_EDGE){
+                    edgeIDStack.append(ID);
+                }
+
                 currentEntity = entity;
             }
 
@@ -5261,33 +5297,230 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 currentEntity = currentEntity->getParentEntity();
             }
         }
-     }
+    }
 
-    while(!entityIDStack.isEmpty()){
-        QString ID = entityIDStack.takeFirst();
 
+
+
+
+    //Stores a list of all read only node states which are in the imported documents.
+    QList<ReadOnlyState> toImportReadOnlyStates;
+
+    //Stores a list of Nodes which are Read-Only.
+    QList<int> existingReadOnlyIDs;
+
+    //Deal with read only objects first.
+    foreach(QString ID, nodeIDStack){
         TempEntity *entity = entityHash[ID];
-        qCritical() << entity->gotReadOnlyState();
-        if(entity){
-            QList<Data*> dataList = entity->getData();
+        if(entity && entity->gotReadOnlyState()){
+            ReadOnlyState state = entity->getReadOnlyState();
+            toImportReadOnlyStates.append(state);
 
-            if(entity->isNode()){
-                TempEntity* parentEntity = entity->getParentEntity();
-                if(parentEntity->gotActualID()){
-                    //Attach to this.
-                    Node* parentNode = getNodeFromID(parentEntity->getActualID());
-                    Node* newNode = constructNode(dataList);
-                    bool success = attachChildNode(parentNode, newNode);
-                    if(success){
-                        //Update the entity.
-                        entity->setActualID(newNode->getID());
+            //Check for existance of old read only items.
+            if(readOnlyHash.containsKey(state)){
+                existingReadOnlyIDs << readOnlyHash.value(state);
+            }
+        }
+    }
+
+
+    QList<int> nodeIDsToRemove;
+
+    //Go through each existing read-only nodes and remove the nodes which aren't in the list of toImportReadOnlyStates
+    foreach(int ID, existingReadOnlyIDs){
+        Node* node = getNodeFromID(ID);
+        if(node){
+            Node* parentNode = node->getParentNode();
+            //If the parent Node is a read-only node, go through its children.
+            if(parentNode && parentNode->isReadOnly()){
+                foreach(Node* child, parentNode->getChildren()){
+                    ReadOnlyState state = getReadOnlyState(child);
+
+                    //If we don't have to import this read-only state, we should remove it.
+                    if(!toImportReadOnlyStates.contains(state)){
+                        int childID = child->getID();
+                        nodeIDsToRemove.append(childID);
                     }
                 }
             }
         }
     }
 
+    //Remove the items we don't need anymore
+    _remove(nodeIDsToRemove, false);
 
+
+    float totalEntities = entityHash.size();
+    float entitiesMade = 0;
+
+    //Now construct all Nodes.
+    while(!nodeIDStack.isEmpty()){
+        //Get the String ID of the node.
+        QString ID = nodeIDStack.takeFirst();
+        TempEntity *entity = entityHash[ID];
+
+        emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing Nodes");
+        entitiesMade ++;
+
+        if(entity && entity->isNode()){
+            //Check the read only state.
+            ReadOnlyState readOnlyState = entity->getReadOnlyState();
+
+            int nodeID = -1;
+
+            //If we have a read-only node, and we have already got a copy of the read-only state
+            if(readOnlyState.isValid() && readOnlyHash.containsKey(readOnlyState)){
+                //Update the actual ID of the item.
+                nodeID = readOnlyHash.value(readOnlyState);
+
+                //Update the data of the node to match what was imported.
+                Node* node = getNodeFromID(nodeID);
+                if(node){
+                    //Update Data.
+                    _attachData(node, entity->takeDataList());
+                }else{
+                    qCritical() << "CANT FIND NODE";
+                }
+            }
+
+            //If we haven't seen this node, we need to construct it.
+            if(nodeID == -1){
+                TempEntity* parentEntity = entity->getParentEntity();
+
+                //If we have a parentEntity and it represents a preconstructed Node
+                if(parentEntity && parentEntity->gotActualID()){
+                    //Get the parentNode
+                    Node* parentNode = getNodeFromID(parentEntity->getActualID());
+
+                    //Construct the new node with the data.
+                    Node* newNode = constructNode(entity->takeDataList());
+
+
+                    bool attached = false;
+
+                    if(isInModel(newNode->getID())){
+                        attached = true;
+                    }else{
+                        //Attach the node to the parentNode
+                        attached = attachChildNode(parentNode, newNode);
+
+                    }
+                    if(attached){
+                        nodeID = newNode->getID();
+                    }
+                }
+            }
+
+            //If we have a valid
+            if(readOnlyState.isValid()){
+                //Add a lookup into the readOnlyHash for this item.
+                if(!readOnlyHash.containsKey(readOnlyState)){
+                    readOnlyHash.insert(readOnlyState, nodeID);
+                }
+            }
+
+            //if we have an ID which isn't yet attached to entity, update the Entity so children nodes can attach to this newly constructed node.
+            if(!entity->gotActualID() && nodeID > 0){
+                entity->setActualID(nodeID);
+            }
+        }
+    }
+
+
+    QMap<Edge::EDGE_CLASS, TempEntity*> edgesMap;
+    //Order Edges into map.
+    while(!edgeIDStack.isEmpty()){
+        //Get the String ID of the node.
+        QString ID = edgeIDStack.takeFirst();
+        TempEntity *entity = entityHash[ID];
+
+        if(entity && entity->isEdge()){
+            QString srcID = entity->getSrcID();
+            QString dstID = entity->getDstID();
+
+            TempEntity* srcEntity = entityHash[srcID];
+            TempEntity* dstEntity = entityHash[dstID];
+            if(srcEntity->gotActualID() && dstEntity->gotActualID()){
+                Node* src = getNodeFromID(srcEntity->getActualID());
+                Node* dst = getNodeFromID(dstEntity->getActualID());
+                if(src && dst){
+                    bool inMap = false;
+                    if(dst->isDefinition()){
+                        if(src->isInstance() || src->isImpl()){
+                            edgesMap.insertMulti(Edge::EC_DEFINITION, entity);
+                            inMap = true;
+                        }else if(dst->getNodeKind() == "Aggregate"){
+                            edgesMap.insertMulti(Edge::EC_AGGREGATE, entity);
+                            inMap = true;
+                        }
+                    }
+                    if(!inMap){
+                        edgesMap.insertMulti(Edge::EC_NONE, entity);
+                    }
+                }
+            }
+        }
+    }
+
+    QList<Edge::EDGE_CLASS> edgeOrder;
+    edgeOrder << Edge::EC_DEFINITION << Edge::EC_AGGREGATE << Edge::EC_NONE;
+
+    foreach(Edge::EDGE_CLASS edgeClass, edgeOrder){
+        QList<TempEntity*> entityList = edgesMap.values(edgeClass);
+
+        while(!entityList.isEmpty()){
+            TempEntity* entity = entityList.takeFirst();
+            QString srcID = entity->getSrcID();
+            QString dstID = entity->getDstID();
+
+            TempEntity* srcEntity = entityHash[srcID];
+            TempEntity* dstEntity = entityHash[dstID];
+            if(srcEntity->gotActualID() && dstEntity->gotActualID()){
+                Node* src = getNodeFromID(srcEntity->getActualID());
+                Node* dst = getNodeFromID(dstEntity->getActualID());
+                if(src && dst){
+                    Edge* edge = src->getEdgeTo(dst);
+                    if(edge){
+                        _attachData(edge, entity->takeDataList());
+                    }else{
+                        edge = constructEdgeWithData(src, dst, entity->takeDataList());
+                    }
+                    if(!edge && entity->getRetryCount() < 3){
+                        entity->incrementRetryCount();
+                        entityList.append(entity);
+                    }else{
+                        emit controller_ActionProgressChanged((entitiesMade * 100) / totalEntities, "Constructing Edges");
+                        entitiesMade ++;
+                    }
+                }
+            }
+        }
+    }
+    emit controller_ActionProgressChanged(100);
+}
+
+ReadOnlyState NewController::getReadOnlyState(Node *node)
+{
+    ReadOnlyState state;
+
+    state.snippetID = -1;
+    state.snippetMAC = -1;
+    state.snippetTime = -1;
+    if(node){
+        Data* snippetID = node->getData("snippetID");
+        Data* snippetMAC = node->getData("snippetMAC");
+        Data* snippetTime = node->getData("snippetTime");
+        if(snippetID){
+            state.snippetID = snippetID->getValue().toInt();
+        }
+        if(snippetMAC){
+            state.snippetMAC = snippetMAC->getValue().toLongLong();
+        }
+        if(snippetTime){
+            state.snippetTime = snippetTime->getValue().toInt();
+        }
+    }
+    return state;
 }
 
 EventAction NewController::getEventAction()

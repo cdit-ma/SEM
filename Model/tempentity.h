@@ -14,6 +14,9 @@ public:
 
     bool isTop();
 
+    int getRetryCount();
+    void incrementRetryCount();
+
 
     void setID(QString ID);
     void setActualID(int ID);
@@ -35,6 +38,8 @@ public:
 
     void addData(Data* data);
     QList<Data*> getData();
+    QList<Data*> takeDataList();
+    void clearData();
 
     QString getOriginalID();
     int getActualID();
@@ -59,6 +64,7 @@ private:
     QString parentID;
     QString srcID;
     QString dstID;
+    int retryCount;
 
     bool isReadOnly;
     QList<Data*> dataList;

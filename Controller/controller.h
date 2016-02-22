@@ -299,6 +299,8 @@ private:
     bool _newImportGraphML(QString document, Node* parent = 0);
 
 
+    ReadOnlyState getReadOnlyState(Node* node);
+
     EventAction getEventAction();
 
     void setProjectDirty(bool dirty);
