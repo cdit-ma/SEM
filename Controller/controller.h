@@ -482,7 +482,7 @@ private:
     QStack<EventAction> redoActionStack;
 
     QString getTimeStamp();
-    long getTimeStampEpoch();
+    uint getTimeStampEpoch();
 
     QString getDataValueFromKeyName(QList<Data*> dataList, QString keyName);
     void setDataValueFromKeyName(QList<Data*> dataList, QString keyName, QString value);

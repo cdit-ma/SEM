@@ -44,7 +44,7 @@ void DoubleHash<Key,Value>::insert(const Key &key, const Value &value)
 template<class Key, class Value>
 void DoubleHash<Key,Value>::removeKey(const Key &key)
 {
-    Value value = forwardHash[Key];
+    Value value = forwardHash[key];
     forwardHash.remove(key);
     backwardHash.remove(value);
 }

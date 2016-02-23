@@ -1189,7 +1189,8 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
         }
 
         foreach(QString xmlData, xmlDataList){
-            bool result = _newImportGraphML(xmlData, getModel());
+            bool result = _importGraphMLXML(xmlData, getModel());
+            //bool result = _newImportGraphML(xmlData, getModel());
             if(!result){
                 controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
                 success = false;
@@ -1280,16 +1281,16 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
         if(readOnly){
             //Get the information about this machine/time
-            long exportTimeStamp = getTimeStampEpoch();
+            uint exportTimeStamp = getTimeStampEpoch();
             long long machineID = getMACAddress();
 
             //Construct the Keys for the data we need to attach.
             Key* readOnlyDefinitionKey = constructKey("readOnlyDefinition", QVariant::Bool, Entity::EK_NODE);
             Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_NODE);
             Key* IDKey = constructKey("snippetID", QVariant::Int, Entity::EK_NODE);
-            Key* timeKey = constructKey("snippetTime", QVariant::Int, Entity::EK_NODE);
+            Key* timeKey = constructKey("snippetTime", QVariant::UInt, Entity::EK_NODE);
             Key* macKey = constructKey("snippetMAC", QVariant::LongLong, Entity::EK_NODE);
-            Key* exportTimeKey = constructKey("exportTime", QVariant::Int, Entity::EK_NODE);
+            Key* exportTimeKey = constructKey("exportTime", QVariant::UInt, Entity::EK_NODE);
 
 
             //Construct a list of Nodes to be snippeted
@@ -1307,7 +1308,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
                 }
             }
 
-            long historicSnippetTime = exportTimeStamp;
+            uint historicSnippetTime = exportTimeStamp;
             //Attach read only Data to all nodes in list.
             foreach(Node* node, nodeList){
                 Data* readOnlyData = node->getData(readOnlyKey);
@@ -1324,7 +1325,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
                 }else{
                     //If we have a timestamp value which is different to the export time stamp, update.
                     if(historicSnippetTime == exportTimeStamp){
-                        historicSnippetTime = timeData->getValue().toInt();
+                        historicSnippetTime = timeData->getValue().toUInt();
                     }
                 }
 
@@ -4277,7 +4278,7 @@ QString NewController::getTimeStamp()
     return currentTime.toString("yyyy-MM-dd hh:mm:ss");
 }
 
-long NewController::getTimeStampEpoch()
+uint NewController::getTimeStampEpoch()
 {
     return QDateTime::currentDateTime().toTime_t();
 }
@@ -5369,6 +5370,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 Node* node = getNodeFromID(nodeID);
                 if(node){
                     //Update Data.
+                    //TODO Check to see if all datas were added, if not delete them.
                     _attachData(node, entity->takeDataList());
                 }else{
                     qCritical() << "CANT FIND NODE";

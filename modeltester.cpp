@@ -23,7 +23,9 @@ ModelTester::ModelTester()
     float postInitializeMemory = getMemoryUsage();
     qCritical() << "Memory Usage after Initialize: " << postInitializeMemory << "KB.";
 
-    QFile file("E:/MCMS.graphML");
+    QFile file("/home/dig/Desktop/MCMS.graphml");
+
+    qCritical() << "FILE";
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";
@@ -32,21 +34,22 @@ ModelTester::ModelTester()
     QTextStream in(&file);
     QString xmlText = in.readAll();
     file.close();
-
-    int repeatCount = 5;
+ qCritical() << "FILE";
+    int repeatCount = 1;
     int loadCount = 1;
     QTime  time;
     time.start();
+ qCritical() << "FILE";
+    //sleep(5);
+    //float priorMemory = getMemoryUsage();
+    //sleep(5);
 
-    sleep(5);
-    float priorMemory = getMemoryUsage();
-    sleep(5);
-
+     qCritical() << "FILE";
     for(int j = 0 ; j < repeatCount; j++){
         float beforeLoad = getMemoryUsage();
-        if(beforeLoad > priorMemory){
-            qCritical() << "Delta Memory: " << beforeLoad - priorMemory << "KB.";
-        }
+        //if(beforeLoad > priorMemory){
+        //    qCritical() << "Delta Memory: " << beforeLoad - priorMemory << "KB.";
+        //}
 
         for(int i = 0 ; i < loadCount; i++){
             QStringList list;
@@ -54,17 +57,16 @@ ModelTester::ModelTester()
             emit importProjects(list);
 
         }
-        sleep(10);
-        qCritical() << time.elapsed();
-        float afterLoad = getMemoryUsage();
-        qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
+        //sleep(10);
+        //qCritical() << time.elapsed();
+        //float afterLoad = getMemoryUsage();
+        //qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
     }
 
+    qCritical() << "LOADED FILE:";
+
     delete controller;
-    sleep(10);
-    float afterDelete = getMemoryUsage();
-    qCritical() << "Memory Usage After Delete: " << afterDelete << "KB.";
-    qCritical() << "Total Memory Growth: " << afterDelete-initialMemory << "KB.";
+    qCritical() << " DELETED YO:";
 }
 
 void ModelTester::sleep(int ms){

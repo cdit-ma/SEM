@@ -38,5 +38,6 @@ int main(int argc, char *argv[])
     //a.setActiveWindow(w);
     ModelTester *t = new ModelTester();
 
-    return a.exec();
+    return 0;
+    //return a.exec();
 }
