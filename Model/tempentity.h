@@ -23,6 +23,9 @@ public:
 
 
     void setID(QString ID);
+    void setPrevID(int ID);
+    bool hasPrevID();
+    int getPrevID();
     void setActualID(int ID);
 
 
@@ -67,6 +70,7 @@ private:
     QString ID;
     QString nodeKind;
     int actualID;
+    int oldID;
     int actualParentID;
     QString parentID;
     QString srcID;

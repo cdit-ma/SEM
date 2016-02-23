@@ -31,6 +31,7 @@ public:
 
     void addListener(QObject* object);
     void removeListener(QObject* object);
+    bool hasListeners();
 
 signals:
     void dataAdded(QString keyName, QVariant data);

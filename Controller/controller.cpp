@@ -223,9 +223,9 @@ NewController::~NewController()
     destructNode(model);
     destructNode(workerDefinitions);
 
-    //while(!keys.isEmpty()){
-    //    //delete keys.takeFirst();
-    //}
+    while(!keys.isEmpty()){
+        delete keys.takeFirst();
+    }
 }
 
 void NewController::setExternalWorkerDefinitionPath(QString path)
@@ -1039,7 +1039,7 @@ bool NewController::_paste(int ID, QString xmlData, bool addAction)
             }
 
             //Paste it into the current Selected Node,
-            success = _importGraphMLXML(xmlData, parentNode, CUT_USED, true);
+            success = _newImportGraphML(xmlData, parentNode);
             CUT_USED = false;
             PASTE_USED = false;
         }
@@ -1943,10 +1943,18 @@ void NewController::removeGraphMLFromHash(int ID)
         EntityAdapter* entityAdapter = ID2AdapterHash[ID];
 
         if(entityAdapter){
+
+            bool canDelete = entityAdapter->hasListeners();
+
             entityAdapter->invalidate();
+
             emit controller_EntityDestructed(entityAdapter);
 
             ID2AdapterHash.remove(ID);
+            if(canDelete){
+                //Otherwise when the last item in the view is done it will delete.
+                delete entityAdapter;
+            }
         }
 
 
@@ -2807,7 +2815,7 @@ bool NewController::reverseAction(EventAction action)
         }else if(action.Action.type == DESTRUCTED){
             Node* parentNode = getNodeFromID(action.parentID);
             if(parentNode){
-                success = _importGraphMLXML(action.Entity.XML, parentNode, true);
+                success = _newImportGraphML(action.Entity.XML, parentNode);
 
                 if(!success){
                     //qCritical() << action.Entity.XML;
@@ -5191,6 +5199,12 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     //Now we know we have no errors, so read Stream again.
     QXmlStreamReader xml(document);
 
+    bool linkPreviousID = false;
+
+    if((UNDOING || REDOING) || CUT_USED){
+        linkPreviousID = true;
+    }
+
 
     //Construct a top level Entity
     TempEntity* topEntity = new TempEntity(Entity::EK_NODE);
@@ -5227,9 +5241,12 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         if(xml.isStartElement()){
             if(currentEntityKind != Entity::EK_NONE){
                 QString ID = getXMLAttribute(xml, "id");
+                int prevID = getIntFromQString(ID);
 
                 TempEntity* entity = new TempEntity(currentEntityKind, currentEntity);
                 entity->setID(ID);
+                entity->setPrevID(prevID);
+
                 entity->setLineNumber(xml.lineNumber());
 
 
@@ -5430,6 +5447,11 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }else{
                         qCritical() << "YES";
                     }
+
+                    if(linkPreviousID && entity->hasPrevID()){
+                        //Link the old ID
+                        linkOldIDToID(entity->getPrevID(), nodeID);
+                    }
                 }
             }
 
@@ -5511,12 +5533,18 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }else{
                         edge = constructEdgeWithData(src, dst, entity->takeDataList());
                     }
+
                     if(!edge && entity->getRetryCount() < 3){
                         entity->incrementRetryCount();
                         entityList.append(entity);
                     }else{
                         emit controller_ActionProgressChanged((entitiesMade * 100) / totalEntities, "Constructing Edges");
                         entitiesMade ++;
+
+                        if(linkPreviousID && entity->hasPrevID()){
+                            //Link the old ID
+                            linkOldIDToID(entity->getPrevID(), edge->getID());
+                        }
                     }
                 }
             }
@@ -5528,6 +5556,9 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         delete entity;
     }
     entityHash.clear();
+
+    //Clear the topEntity
+    delete topEntity;
 
     emit controller_ActionProgressChanged(100);
 }

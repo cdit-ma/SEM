@@ -12,6 +12,9 @@ public:
     float getMemoryUsage();
 signals:
     void importProjects(QStringList);
+    void undo();
+    void redo();
+    void triggerAction(QString);
 };
 
 #endif // MODELTESTER_H

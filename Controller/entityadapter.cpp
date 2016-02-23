@@ -156,6 +156,11 @@ void EntityAdapter::removeListener(QObject *object)
 
 }
 
+bool EntityAdapter::hasListeners()
+{
+    return _listeners.isEmpty();
+}
+
 void EntityAdapter::invalidate()
 {
     _isValid = false;

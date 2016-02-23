@@ -4,6 +4,7 @@ TempEntity::TempEntity(Entity::ENTITY_KIND entityKind, TempEntity *parent)
 {
     lineNumber = -1;
     actualID = -1;
+    oldID = -1;
     actualParentID = -1;
     ignoreConstruction = false;
     nodeKind = "";
@@ -67,6 +68,21 @@ void TempEntity::incrementRetryCount()
 void TempEntity::setID(QString ID)
 {
     this->ID = ID;
+}
+
+void TempEntity::setPrevID(int ID)
+{
+    oldID = ID;
+}
+
+bool TempEntity::hasPrevID()
+{
+    return oldID > 0;
+}
+
+int TempEntity::getPrevID()
+{
+    return oldID;
 }
 
 void TempEntity::setActualID(int ID)

@@ -15,7 +15,7 @@ ModelTester::ModelTester()
 {
 
     qCritical() << "Starting in 10 seconds";
-    sleep(1000);
+    //sleep(1000);
 
     float initialMemory = getMemoryUsage();
     qCritical() << "Memory Usage on Load: " << initialMemory << "KB.";
@@ -23,11 +23,14 @@ ModelTester::ModelTester()
     NewController* controller = new NewController();
     controller->initializeModel();
     connect(this, SIGNAL(importProjects(QStringList)), controller, SLOT(importProjects(QStringList)));
+    connect(this, SIGNAL(undo()), controller, SLOT(undo()));
+    connect(this, SIGNAL(redo()), controller, SLOT(redo()));
+    connect(this, SIGNAL(triggerAction(QString)), controller, SLOT(triggerAction(QString)));
 
     float postInitializeMemory = getMemoryUsage();
     qCritical() << "Memory Usage after Initialize: " << postInitializeMemory << "KB.";
 
-    QFile file("e:/MCMS.graphml");
+    QFile file("/home/dig/Desktop/MCMS.graphml");
 
     qCritical() << "FILE";
 
@@ -38,12 +41,13 @@ ModelTester::ModelTester()
     QTextStream in(&file);
     QString xmlText = in.readAll();
     file.close();
- qCritical() << "FILE";
+
+    emit triggerAction("LOADING FILE");
+
     int repeatCount = 1;
     int loadCount = 1;
     QTime  time;
     time.start();
- qCritical() << "FILE";
     //sleep(5);
     //float priorMemory = getMemoryUsage();
     //sleep(5);
@@ -67,8 +71,15 @@ ModelTester::ModelTester()
         //qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
     }
 
-    qCritical() << "LOADED FILE:";
+    //UNDO LOAD.
+    qCritical() << "UNDOING";
+    emit undo();
 
+    qCritical() << "REDOING";
+    emit redo();
+    //controller->undo();
+
+    //THEN DELETE.
     delete controller;
     qCritical() << " DELETED YO:";
 }
