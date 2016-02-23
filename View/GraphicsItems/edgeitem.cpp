@@ -58,8 +58,8 @@ EdgeItem::EdgeItem(EdgeAdapter *edge, NodeItem *parent, EntityItem* s, EntityIte
     connect(destination, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(updateLine()));
 
     //Add the Edge Item to the source/destination.
-    source->addEdgeItem(this);
-    destination->addEdgeItem(this);
+    source->addEdge(this);
+    destination->addEdge(this);
 
     setupBrushes();
 
@@ -109,11 +109,11 @@ EdgeItem::~EdgeItem()
     if(getNodeView() && !getNodeView()->isTerminating()){
         if(source){
             source->removeVisibleParentForEdgeItem(getID());
-            source->removeEdgeItem(this);
+            source->removeEdge(getID());
         }
         if(destination){
             destination->removeVisibleParentForEdgeItem(getID());
-            destination->removeEdgeItem(this);
+            destination->removeEdge(getID());
         }
 
         if(visibleSource){
@@ -310,9 +310,16 @@ void EdgeItem::updateVisibleParents()
                 visibleDestination = dst;
             }
 
+            bool hide = false;
+            if(getEdgeAdapter()->getEdgeClass() == Edge::EC_DATA){
+                if(visibleSource != source || visibleDestination != destination){
+                    hide = true;
+                }
+            }
+
 
             updateLine();
-            setVisible(true);
+            setVisible(!hide);
             return;
         }
     }
@@ -588,6 +595,9 @@ void EdgeItem::updateLines()
     if(!(visibleSource && visibleDestination)){
         return;
     }
+
+
+
 
     QRectF sRect = visibleSource->minimumRect();
     QRectF dRect = visibleDestination->minimumRect();

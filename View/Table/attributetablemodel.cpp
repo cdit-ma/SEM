@@ -47,7 +47,6 @@ void AttributeTableModel::updatedData(QString keyName)
 
 void AttributeTableModel::removedData(QString keyName)
 {
-    qCritical() << "REMOVED DATA";
     //Get the Index of the data to be removed.
     int index = getIndex(keyName);
     if(index != -1){
@@ -100,7 +99,6 @@ bool AttributeTableModel::hasData() const
 
 void AttributeTableModel::clearData()
 {
-    qCritical() << "CLEAR DATA";
     beginRemoveRows(QModelIndex(),0, dataOrder.size());
     dataOrder.clear();
     keys.clear();
@@ -285,7 +283,9 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 
     if(index.isValid()){
         if(index.column() == 1){
-            if(!isDataProtected(index.row())){
+            bool isIndexProtected = isDataProtected(index.row());
+            if(!isIndexProtected){
+                //Set it editable.
                 return QAbstractTableModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsEnabled;
             }
         }

@@ -22,6 +22,7 @@
 #include "nodeitem.h"
 #include "inputitem.h"
 #include "statusitem.h"
+#include "notificationitem.h"
 
 #include "../../Model/node.h"
 #include "../../Model/data.h"
@@ -39,7 +40,7 @@ public:
 
 
 
-    enum IMAGE_POS{IP_TOPLEFT, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
+    enum IMAGE_POS{IP_TOPLEFT, IP_TOPMID, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
 
     EntityItem(NodeAdapter* node, NodeItem *parent);
     ~EntityItem();
@@ -81,8 +82,6 @@ public:
     QRectF expandedBoundingRect() const;
     QRectF expandedLabelRect() const;
 
-    int getEdgeItemIndex(EdgeItem* item = 0);
-    int getEdgeItemCount();
 
     QRectF gridRect() const;
 
@@ -99,6 +98,7 @@ public:
 
     bool isHardwareHighlighted();
     bool isNodeReadOnly();
+    bool isNodeReadOnlyDefinition();
     void setHardwareHighlighting(bool highlighted);
 
 
@@ -137,9 +137,7 @@ public:
     void setHidden(bool hidden);
 
 
-    void addEdgeItem(EdgeItem* line);
     void updateDefinition();
-    void removeEdgeItem(EdgeItem* line);
 
 
     void setCenterPos(QPointF pos);
@@ -231,6 +229,9 @@ signals:
 
 
 public slots:
+    void edgeAdded(int ID, Edge::EDGE_CLASS edgeClass);
+    void edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
+
     void labelEditModeRequest();
     void dataChanged(QString dataValue);
     void labelUpdated(QString newLabel);
@@ -284,7 +285,10 @@ protected:
 
 
 private:
+    void updateErrorState();
     void updateTextVisibility();
+
+    void setWarning(bool warning, QString warningTooltip);
 
     void updateDisplayedChildren(int viewMode);
 
@@ -295,6 +299,11 @@ private:
     QRectF textRect_Top() const;
     QRectF textRect_Right() const;
     QRectF textRect_Bot() const;
+
+
+    QRectF statusRect_Left() const;
+    QRectF iconRect_TopMid() const;
+    //QRectF iconRect_MidRight() const;
 
     QRectF iconRect_TopLeft() const;
     QRectF iconRect_TopRight() const;
@@ -418,7 +427,6 @@ private:
     QPointF previousScenePosition;
 
     //USED TO DETERMINE THE NUMBER OF EDGES.
-    QList<EdgeItem*> connections;
 
     QList<int> currentLeftEdgeIDs;
     QList<int> currentRightEdgeIDs;
@@ -447,6 +455,9 @@ private:
     QBrush readOnlyBodyBrush;
     QBrush readOnlyHeaderBrush;
 
+
+    QBrush errorHeaderBrush;
+
     QPen pen;
     QPen selectedPen;
     bool updatedAlready;
@@ -473,6 +484,7 @@ private:
     InputItem* rightLabelInputItem;
 
     StatusItem* statusItem;
+    NotificationItem* notificationItem;
 
     QString descriptionValue;
     QString nodeHardwareOS;
@@ -481,6 +493,7 @@ private:
     bool nodeMemberIsKey;
 
     bool IS_READ_ONLY;
+    bool IS_READ_ONLY_DEF;
 
     bool isInputParameter;
     bool isReturnParameter;
@@ -493,6 +506,9 @@ private:
     QString statusModeDataKey;
     bool hasEditData;
     bool editableDataDropDown;
+
+    bool hasWarning;
+    QString warningTooltip;
     // GraphMLItem interface
 public slots:
     bool canHover();

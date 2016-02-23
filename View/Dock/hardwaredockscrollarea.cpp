@@ -222,6 +222,7 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
             DockNodeItem* currentItem = dynamic_cast<DockNodeItem*>(getLayout()->itemAt(i)->widget());
             if (currentItem){
                 QString longName = currentItem->getKind() + currentItem->getLabel();
+                qCritical() << longName;
                 int compare = dockItemLongName.compare(longName, Qt::CaseInsensitive);
                 if (compare <= 0) {
                     addDockNodeItem(dockItem, i);

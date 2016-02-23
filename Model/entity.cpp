@@ -39,6 +39,19 @@ Entity::ENTITY_KIND Entity::getEntityKind(const QString entityString)
 Entity::Entity(Entity::ENTITY_KIND kind):GraphML(GraphML::GK_ENTITY)
 {
     entityKind = kind;
+    //Connect to self.
+    connect(this, SIGNAL(dataAdded(QString,QVariant)), this, SLOT(thisDataChanged(QString)));
+    connect(this, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(thisDataChanged(QString)));
+    connect(this, SIGNAL(dataRemoved(QString)), this, SLOT(thisDataChanged(QString)));
+}
+
+Entity::~Entity()
+{
+    //Clear data.
+    QList<Data*> data = getData();
+    while(!data.isEmpty()){
+        delete data.takeFirst();
+    }
 }
 
 /**
@@ -218,8 +231,13 @@ void Entity::setDataValue(QString keyName, QVariant value)
 {
      Data* data = getData(keyName);
      if(data){
-         data->setValue(value);
+        data->setValue(value);
      }
+}
+
+bool Entity::removeData(Key *key)
+{
+    return removeData(getData(key));
 }
 
 QString Entity::getEntityName()
@@ -306,6 +324,13 @@ bool Entity::removeData(QString keyName)
 void Entity::dataChanged(int, QString keyName, QVariant data)
 {
     emit dataChanged(keyName, data);
+}
+
+void Entity::thisDataChanged(QString keyName)
+{
+    if(keyName == "readOnly"){
+        emit readOnlySet(getID(), isReadOnly());
+    }
 }
 
 /**

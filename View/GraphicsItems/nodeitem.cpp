@@ -251,6 +251,11 @@ QList<EdgeItem *> NodeItem::getEdges()
     return connectedEdges.values();
 }
 
+int NodeItem::getEdgeCount()
+{
+    return connectedEdges.size();
+}
+
 void NodeItem::resizeToOptimumSize(NodeItem::RESIZE_TYPE rt)
 {
     QRectF rect = childrenBoundingRect();

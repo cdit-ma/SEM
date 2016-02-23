@@ -23,7 +23,7 @@ TARGET = MEDEA
 TEMPLATE = app
 
 win32{
-    #Used for Icon in windows
+    #Used for Icon in windows.
     RC_ICONS = Resources/Images/MedeaIcon.ico
     LIBS += -lpsapi
 }
@@ -153,6 +153,10 @@ HEADERS += \
     Controller/entityadapter.h \
     Controller/nodeadapter.h \
     Controller/edgeadapter.h \
+    Controller/behaviournodeadapter.h \
+    View/GraphicsItems/notificationitem.h \
+    doublehash.h \
+    Model/tempentity.h \
     View/medeasplash.h
 
 SOURCES += \
@@ -271,10 +275,13 @@ SOURCES += \
     Controller/entityadapter.cpp \
     Controller/nodeadapter.cpp \
     Controller/edgeadapter.cpp \
+    Controller/behaviournodeadapter.cpp \
+    View/GraphicsItems/notificationitem.cpp \
+    doublehash.cpp \
+    Model/tempentity.cpp \
     View/medeasplash.cpp \
     enumerations.cpp
 
-FORMS +=
 
 RESOURCES += \
     resources.qrc

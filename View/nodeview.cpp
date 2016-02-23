@@ -72,6 +72,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     IS_SUB_VIEW = subView;
 
+    setSceneRect(QRectF(0,0,10000,10000));
 
 
 
@@ -1097,7 +1098,7 @@ void NodeView::constructNewView(int viewKind)
 
 
     QList<GraphMLItem*> constructList;
-    GraphMLItem* parent = centeredNode;
+    GraphMLItem* parent = centeredNode->getParent();
 
     while(parent){
         constructList.insert(0, parent);
@@ -1110,9 +1111,7 @@ void NodeView::constructNewView(int viewKind)
         newView->constructEntityItem(item->getEntityAdapter());
     }
 
-
-    constructList = centeredNode->getChildren();
-
+    constructList.append(centeredNode);
 
     while(!constructList.isEmpty()){
         GraphMLItem* item = constructList.takeFirst();
@@ -1121,14 +1120,15 @@ void NodeView::constructNewView(int viewKind)
         foreach(GraphMLItem* child, item->getChildren()){
             constructList.insert(0, child);
         }
+
+        if(item->isNodeItem()){
+            NodeItem* nodeItem = (NodeItem*) item;
+
+            foreach(GraphMLItem* edge, nodeItem->getEdges()){
+                constructList.append(edge);
+            }
+        }
     }
-
-    /*foreach(GraphMLItem* children, centeredNode->getChildren()){
-        EntityAdapter* entity = children->getEntityAdapter();
-        newView->constructEntityItem(entity);
-    }*/
-
-
 
     connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
     subWindow->show();
@@ -1227,7 +1227,6 @@ void NodeView::actionFinished()
     updateActionsEnabledStates();
 
     viewMutex.unlock();
-    //update();
 }
 
 QPointF NodeView::getCenterOfScreenScenePos(QPoint mousePosition)
@@ -1419,6 +1418,14 @@ void NodeView::request_ExportSnippet()
         if(parentItem){
             emit view_ExportSnippet(parentItem->getNodeKind());
         }
+    }
+}
+
+void NodeView::entitySetReadOnly(int ID, bool isReadOnly)
+{
+    if(selectedIDs.contains(ID)){
+        //Only refresh dock if we have this item in selection.
+        emit view_RefreshDock();
     }
 }
 
@@ -1816,7 +1823,7 @@ void NodeView::modelReady()
     }
 
 
-    setSceneRect(QRectF(0,0,10000,10000));
+
 
     emit view_LoadSettings();
 
@@ -2381,6 +2388,17 @@ QPair<QString, bool> NodeView::getStatusDataKeyName(GraphMLItem *node)
 bool NodeView::isNodeVisuallyConnectable(NodeAdapter *node)
 {
     if(node){
+        if(node->isBehaviourAdapter()){
+            BehaviourNodeAdapter* bna = (BehaviourNodeAdapter*) node;
+            return bna->needsConnection();
+        }else{
+            QString nodeKind = node->getDataValue("kind").toString();
+            if(nodeKind.contains("EventPort")){
+                if(nodeKind.endsWith("Delegate")  || nodeKind.endsWith("Instance")){
+                    return true;
+                }
+            }
+        }
     }
     return false;
 }
@@ -3085,22 +3103,38 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
         QPixmap imageData = QPixmap::fromImage(image);
 
         if(alias == "Actions" || alias == "Data" || alias == "Functions"){
-            QColor tint;
+            QColor tint = QColor(60, 60, 60, 255);
 
             QStringList redImages;
-            redImages << "Warning" << "replicate_count";
+            //redImages << "Critical" ;
+            QStringList orangeImages;
+            orangeImages << "Warning";
+            QStringList whiteImages;
+            whiteImages << "Exclamation" << "Cross";
 
-            if(!tint.isValid()){
-                tint = QColor(60, 60, 60, 255);
-                if(redImages.contains(imageName)){
-                    tint = QColor(255, 0, 0, 255);
-                }
+
+            bool gotMatch = false;
+            if(redImages.contains(imageName)){
+                gotMatch = true;
+                tint = QColor(255,0,0);
+            }else if(orangeImages.contains(imageName)){
+                gotMatch = true;
+                tint = QColor(232,188,0);
+            }else if(whiteImages.contains(imageName)){
+                gotMatch = true;
+                tint = QColor(255,255,255);
             }
 
-            if(image.size() == QSize(96,96)){
-                // morph it into a grayscale image
-                image = image.alphaChannel();
+            if(!gotMatch){
+                //Should be Grey only if Android ICon.
+                if(image.size() == QSize(96,96)){
+                    gotMatch = true;
+                }
 
+            }
+
+            if(gotMatch){
+                image = image.alphaChannel();
 
                 // now replace the colors in the image
                 for(int i = 0; i < image.colorCount(); ++i) {
@@ -3236,6 +3270,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     }
 
     if(isMainView()){
+        connect(item->getEntityAdapter(), SIGNAL(readOnlySet(int,bool)), this, SLOT(entitySetReadOnly(int,bool)));
+
         connect(item, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
         connect(item, SIGNAL(GraphMLItem_TriggerAction(QString)),  this, SLOT(triggerAction(QString)));
 
@@ -4490,6 +4526,11 @@ void NodeView::constructEntityItem(EntityAdapter *item)
     }
 
     if(controller && controller->isInModel(item->getID())){
+        if(getGraphMLItemFromID(item->getID())){
+            //Only construct each item once.
+            return;
+        }
+
         if(item->isNodeAdapter()){
             constructNodeItem((NodeAdapter*) item);
         }else if(item->isEdgeAdapter()){
@@ -5001,7 +5042,7 @@ void NodeView::constructEdgeItem(EdgeAdapter *edge)
 
         NodeItem* parentNodeItem = (NodeItem*) parent;
 
-        //Construct a new GUI Element for this edge.
+        //Construct a new GUI Element for this edge.icastepney.com.au
         EdgeItem* nodeEdge = new EdgeItem(edge, parentNodeItem, srcGUI, dstGUI);
 
 

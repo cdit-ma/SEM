@@ -46,6 +46,17 @@ QRectF StatusItem::botRect() const
     return rect;
 }
 
+QPointF StatusItem::getCircleCenter()
+{
+    return topRight;
+}
+
+void StatusItem::setBackgroundColor(QColor color)
+{
+    backgroundColor = color;
+    update();
+}
+
 void StatusItem::incrementDecrementNumber(bool inc)
 {
     QString value = getValue();
@@ -116,7 +127,7 @@ void StatusItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWid
         rect = boundingRect();
     }
     painter->setPen(Qt::NoPen);
-    painter->setBrush(QColor(0,150,150));
+    painter->setBrush(backgroundColor);
     painter->drawRoundedRect(rect,getHeight()/2,getHeight()/2);
 
     if(editMode){

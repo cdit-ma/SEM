@@ -77,6 +77,7 @@ GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem:
     IS_HOVERED = false;
     IS_HIGHLIGHTED = false;
     IN_SUBVIEW = false;
+    errorType = ET_OKAY;
 
     ID = -1;
 
@@ -129,7 +130,6 @@ void GraphMLItem::setRenderState(GraphMLItem::RENDER_STATE renderState)
         this->renderState = renderState;
     }
 }
-
 
 /**
  * @brief GraphMLItem::firstChildAdded

@@ -24,6 +24,7 @@
 #include "GUI/shortcutdialog.h"
 #include <QToolButton>
 #include <QToolBar>
+#include <QDesktopServices>
 #include "View/medeasplash.h"
 
 #define THREADING true
@@ -54,6 +55,7 @@
 #define GME_FILE_EXT "GME Documents (*.xme)"
 #define GME_FILE_SUFFIX ".xme"
 
+#define GITHUB_URL "https://github.com/cdit-ma/MEDEA/issues"
 // USER SETTINGS
 //Some change
 
@@ -150,14 +152,13 @@ MedeaWindow::~MedeaWindow()
 {
     if (appSettings) {
         saveSettings();
-        appSettings->deleteLater();
+        delete appSettings;
     }
 
-    if (controller) {
-        controller->deleteLater();
-    }
+    teardownProject();
+
     if (nodeView) {
-        nodeView->deleteLater();
+        delete nodeView;
     }
 
     if(splashScreen){
@@ -165,12 +166,8 @@ MedeaWindow::~MedeaWindow()
     }
 
     if(jenkinsManager){
-        jenkinsManager->deleteLater();
+        delete jenkinsManager;
     }
-    // REMOVED TO STOP UBUNTU CRASH LOGGING
-    //if(controllerThread){
-    //    controllerThread->deleteLater();
-    //}
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
@@ -832,8 +829,9 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     help_Shortcuts = help_menu->addAction(getIcon("Actions", "Keyboard"), "App Shortcuts");
     help_Shortcuts->setShortcut(QKeySequence(Qt::Key_F1));
-    help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
+    help_ReportBug = help_menu->addAction(getIcon("Actions", "BugReport"), "Report Bug");
     help_menu->addSeparator();
+    help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
     help_AboutQt = help_menu->addAction(QIcon(":/Qt.ico"), "About Qt");
 
     if(!jenkinsManager){
@@ -1429,9 +1427,6 @@ void MedeaWindow::teardownProject()
     if (controller) {
         delete controller;
         controller = 0;
-    }
-    if (controllerThread) {
-        controllerThread->terminate();
         controllerThread = 0;
     }
 }
@@ -1447,6 +1442,8 @@ void MedeaWindow::setupProject()
             controllerThread = new QThread();
             controllerThread->start();
             controller->moveToThread(controllerThread);
+
+            connect(controller, SIGNAL(destroyed(QObject*)), controllerThread, SIGNAL(finished()));
         }
 
         connect(this, SIGNAL(window_ConnectViewAndSetupModel(NodeView*)), controller, SLOT(connectViewAndSetupModel(NodeView*)));
@@ -1577,6 +1574,8 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), assemblyToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), hardwareToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
 
+    connect(nodeView, SIGNAL(view_RefreshDock()), partsDock, SLOT(updateCurrentNodeItem()));
+
     connect(nodeView, SIGNAL(view_ProjectRequiresSaving(bool)), this, SLOT(projectRequiresSaving(bool)));
     connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
 
@@ -1638,6 +1637,7 @@ void MedeaWindow::makeConnections()
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(help_AboutMedea, SIGNAL(triggered()), this, SLOT(aboutMedea()));
     connect(help_AboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    connect(help_ReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(help_Shortcuts, SIGNAL(triggered()), this, SLOT(showShortcutList()));
 
     connect(this, SIGNAL(window_OpenProject(QString,QString)), nodeView, SIGNAL(view_OpenProject(QString,QString)));
@@ -2177,6 +2177,11 @@ void MedeaWindow::aboutMedea()
 void MedeaWindow::aboutQt()
 {
     QMessageBox::aboutQt(this);
+}
+
+void MedeaWindow::reportBug()
+{
+    QDesktopServices::openUrl(QUrl(GITHUB_URL));
 }
 
 

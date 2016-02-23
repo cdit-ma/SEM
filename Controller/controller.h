@@ -3,12 +3,14 @@
 #include "../Model/model.h"
 #include "../Model/workerdefinitions.h"
 #include "entityadapter.h"
+#include "behaviournodeadapter.h"
 
 
 #include <QStack>
 #include <QFile>
 #include <QPointF>
 #include <QXmlStreamReader>
+#include <QNetworkInterface>
 
 #include "../Model/Edges/definitionedge.h"
 #include "../Model/Edges/workflowedge.h"
@@ -16,6 +18,8 @@
 #include "../Model/Edges/assemblyedge.h"
 #include "../Model/Edges/aggregateedge.h"
 #include "../Model/data.h"
+
+#include "../doublehash.h"
 
 #define DANCE_EXECUTION_MANAGER "DANCE_EXECUTION_MANAGER"
 #define DANCE_PLAN_LAUNCHER "DANCE_PLAN_LAUNCHER"
@@ -39,6 +43,39 @@ struct ViewSignal{
     GraphML::GRAPHML_KIND kind;
     bool constructSignal;
 };
+
+struct ReadOnlyState{
+    long long snippetMAC;
+    long snippetTime;
+    long exportTime;
+    int snippetID;
+
+    bool operator==(const ReadOnlyState &other) const{
+        return (snippetID == other.snippetID) && (snippetTime == other.snippetTime) && (snippetMAC == other.snippetMAC);
+    }
+    bool isValid(){
+        return (snippetMAC > 0) && (snippetTime > 0) && (snippetID > 0);
+    }
+    bool isOlder(const ReadOnlyState &other) const{
+        if(this->operator ==(other)){
+            if(exportTime < other.exportTime){
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+
+inline uint qHash(const ReadOnlyState& key)
+{
+    uint hash = (uint(key.snippetMAC ^ (key.snippetMAC >> 32))) ^ key.snippetTime ^ key.snippetID;
+    return hash;
+}
+
+
+
+
 
 
 struct EventAction{
@@ -253,6 +290,8 @@ private:
     bool _importSnippet(QList<int> IDs, QString fileName, QString fileData, bool addAction = true);
     QString _exportSnippet(QList<int> IDs);
 
+    long long getMACAddress();
+
 
 private:
     void attachData(Entity* parent, Data* data, bool addAction = true);
@@ -270,6 +309,10 @@ private:
 
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
+    bool _newImportGraphML(QString document, Node* parent = 0);
+
+
+    ReadOnlyState getReadOnlyState(Node* node);
 
     EventAction getEventAction();
 
@@ -281,7 +324,7 @@ private:
 
 
     //Exports a Selection of Containers to export into GraphML
-    QString _exportGraphMLDocument(QList<int> nodeIDs, bool allEdges = false, bool GUI_USED=false);
+    QString _exportGraphMLDocument(QList<int> nodeIDs, bool allEdges = false, bool GUI_USED=false, bool ignoreVisuals=false);
     QString _exportGraphMLDocument(Node* node, bool allEdges = false, bool GUI_USED=false);
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
@@ -307,8 +350,11 @@ private:
 
     //Constructs a Node using the attached Data elements. Attachs the node to the parentNode provided.
     Node* constructChildNode(Node* parentNode, QList<Data*> dataToAttach);
+    bool attachChildNode(Node* parentNode, Node* childNode);
 
     Node* constructNode(QList<Data*> data);
+
+    bool updateProgressNotification();
 
 
 
@@ -400,6 +446,7 @@ private:
     //bool _attachData(Entity* item, QList<QStringList> dataList, bool addAction = true);
     bool _attachData(Entity* item, QList<Data*> dataList, bool addAction = true);
     bool _attachData(Entity *item, QString keyName, QVariant value, bool addAction = true);
+
     
 
 
@@ -441,6 +488,8 @@ private:
     QStack<EventAction> redoActionStack;
 
     QString getTimeStamp();
+    uint getTimeStampEpoch();
+
     QString getDataValueFromKeyName(QList<Data*> dataList, QString keyName);
     void setDataValueFromKeyName(QList<Data*> dataList, QString keyName, QString value);
 
@@ -448,6 +497,9 @@ private:
     QHash<int, int> IDLookupHash;
     QHash<int, Entity*> IDLookupGraphMLHash;
     QHash<int, EntityAdapter*> ID2AdapterHash;
+
+
+
     QHash<int, QString> reverseKindLookup;
 
     QHash<QString, QList<int> > kindLookup;
@@ -455,9 +507,15 @@ private:
     QHash<int, int> readOnlyLookup;
     QHash<int, int> reverseReadOnlyLookup;
 
-    QHash<QString, int> treeLookup;
-    QHash<int, QString> reverseTreeLookup;
+    DoubleHash<ReadOnlyState, int> readOnlyHash;
 
+    //QHash<ReadOnlyState, int> readOnlyStateLookup;
+    //QHash<ReadOnlyState, int> readOnlyStateLookup;
+
+    DoubleHash<QString, int> treeHash;
+
+    //QHash<QString, int> treeLookup;
+    //QHash<int, QString> reverseTreeLookup;
 
 
     QString getProcessName(Process* process);
@@ -513,7 +571,6 @@ private:
     //QList<int> connectedLinkedIDs;
 
     bool isUserAction();
-    bool updateProgressNotification();
 
     bool CUT_USED;
     bool OPENING_PROJECT;

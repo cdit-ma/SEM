@@ -9,6 +9,7 @@
 #include <QPixmap>
 #include <QBitmap>
 
+#include "../../Controller/behaviournodeadapter.h"
 #include <QInputDialog>
 #include <QTextBlockFormat>
 
@@ -80,6 +81,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     }
 
     IS_READ_ONLY = false;
+    IS_READ_ONLY_DEF = false;
 
     isInputParameter = false;
     isReturnParameter = false;
@@ -97,6 +99,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
 
     sortTriggerAction = true;
     eventFromMenu = true;
+    hasWarning = false;
 
 
     showDeploymentWarningIcon = false;
@@ -187,6 +190,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     }
 
     updateTextLabel();
+    updateErrorState();
 
     //Force a zoom change.
     zoomChanged(getZoomFactor());
@@ -445,11 +449,6 @@ EntityItem *EntityItem::getParentEntityItem()
 }
 
 
-QList<EdgeItem *> EntityItem::getEdgeItems()
-{
-    return this->connections;
-}
-
 
 QRectF EntityItem::boundingRect() const
 {
@@ -505,20 +504,6 @@ QRectF EntityItem::expandedLabelRect() const
 }
 
 
-
-int EntityItem::getEdgeItemIndex(EdgeItem *item)
-{
-    return connections.indexOf(item);
-
-}
-
-int EntityItem::getEdgeItemCount()
-{
-    return connections.size();
-
-
-}
-
 /**
  * @brief EntityItem::gridRect Returns a QRectF which contains the local coordinates of where the Grid lines are to be drawn.
  * @return The grid rectangle
@@ -548,8 +533,9 @@ QRectF EntityItem::gridRect() const
 QRectF EntityItem::headerRect()
 {
     qreal itemMargin = 2 * getItemMargin();
-    return QRectF(QPointF(0, 0), QPointF(getWidth() + itemMargin, contractedHeight + itemMargin));
+    return QRectF(QPointF(0, 0), QPointF(getCurrentWidth() + itemMargin, contractedHeight + itemMargin));
 }
+
 
 QRectF EntityItem::bodyRect()
 {
@@ -579,6 +565,11 @@ bool EntityItem::isHardwareHighlighted()
 bool EntityItem::isNodeReadOnly()
 {
     return IS_READ_ONLY;
+}
+
+bool EntityItem::isNodeReadOnlyDefinition()
+{
+    return IS_READ_ONLY_DEF;
 }
 
 void EntityItem::setHardwareHighlighting(bool highlighted)
@@ -641,7 +632,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         QBrush headBrush = this->headerBrush;
         QBrush bodyBrush = this->bodyBrush;
 
-        if(IS_READ_ONLY){
+        if(IS_READ_ONLY || IS_READ_ONLY_DEF){
             bodyBrush = this->readOnlyBodyBrush;
             headBrush = this->readOnlyHeaderBrush;
         }
@@ -669,17 +660,19 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             headBrush.setColor(selectedPen.color());
         }
 
-        //Paint Header
-        painter->setPen(Qt::NoPen);
+
+
         painter->setBrush(headBrush);
         painter->drawRect(headerRect());
+
+
 
 
         //Draw the boundary.
         if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
             if(renderState != RS_BLOCK){
                 //Setup the Pen
-                QPen pen = this->pen;
+                QPen  pen = this->pen;
 
                 if(isSelected()){
                     pen = this->selectedPen;
@@ -757,6 +750,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, IP_TOPLEFT, "Actions", "MenuCluster");
         }else if(IS_READ_ONLY){
             paintPixmap(painter, IP_TOPLEFT, "Actions", "Lock_Closed");
+        }else if(IS_READ_ONLY_DEF){
+            paintPixmap(painter, IP_TOPLEFT, "Actions", "Definition");
         }
 
         if(isInputParameter){
@@ -991,17 +986,6 @@ void EntityItem::updateDefinition(){
     }
 }
 
-void EntityItem::addEdgeItem(EdgeItem *line)
-{
-    connections.append(line);
-}
-
-
-void EntityItem::removeEdgeItem(EdgeItem *line)
-{
-    connections.removeAll(line);
-}
-
 
 void EntityItem::setCenterPos(QPointF pos)
 {
@@ -1165,6 +1149,9 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
             handleExpandState(data.toBool());
         }else if(keyName == "readOnly"){
             IS_READ_ONLY = data.toBool();
+            update();
+        }else if(keyName == "readOnlyDefinition"){
+            IS_READ_ONLY_DEF = data.toBool();
             update();
         }else if(keyName == "description"){
             //Use as tooltip.
@@ -1528,6 +1515,22 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     GraphMLItem::hoverMoveEvent(event);
 }
 
+void EntityItem::updateErrorState()
+{
+    NodeAdapter* node = getNodeAdapter();
+    if(node->isBehaviourAdapter()){
+        BehaviourNodeAdapter* bA = (BehaviourNodeAdapter*)node;
+
+        if(bA->needsLeftEdge()){
+            notificationItem->setErrorType(ET_CRITICAL, "Entity requires workload edge.");
+        }else{
+            //Clear the notification.
+            notificationItem->setErrorType(ET_OKAY);
+        }
+        setNodeConnectable(bA->needsConnection());
+    }
+}
+
 
 /*void EntityItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
@@ -1561,6 +1564,12 @@ void EntityItem::updateTextVisibility()
 
         bottomInputItem->setVisible(showBottomLabel);
     }
+}
+
+void EntityItem::setWarning(bool warning, QString warningTooltip)
+{
+    hasWarning = warning;
+    this->warningTooltip = warningTooltip;
 }
 
 
@@ -1645,7 +1654,7 @@ QRectF EntityItem::smallIconRect() const
 QRectF EntityItem::iconRect() const
 {
     qreal iconSize = ICON_RATIO * contractedWidth;
-    if(getRenderState() <= RS_REDUCED){
+    if(getRenderState() <= RS_MINIMAL){
         iconSize = contractedWidth;
     }
 
@@ -1691,6 +1700,31 @@ QRectF EntityItem::textRect_Bot() const
     rect.moveBottomLeft(iconRect_BottomLeft().bottomRight());
     return rect;
 }
+
+QRectF EntityItem::statusRect_Left() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    qreal rWidth = SMALL_ICON_RATIO * contractedWidth;
+
+    QRectF headRect = minimumRect();
+    headRect.setWidth(rWidth);
+
+    return headRect;
+}
+
+QRectF EntityItem::iconRect_TopMid() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF iconRect = smallIconRect();
+
+    //Translate to move the icon to its position
+    qreal itemMargin = getItemMargin();
+    iconRect.moveTopLeft(QPointF(itemMargin + (getCurrentWidth()/2) - (iconRect.width() /2), itemMargin));
+
+    return iconRect;
+
+}
+
 
 
 /**
@@ -1751,6 +1785,8 @@ QRectF EntityItem::getImageRect(EntityItem::IMAGE_POS pos) const
         return iconRect_BottomLeft();
     case IP_TOPRIGHT:
         return iconRect_TopRight();
+    case IP_TOPMID:
+        return iconRect();
     case IP_TOPLEFT:
         return iconRect_TopLeft();
     case IP_BOT_RIGHT:
@@ -1914,7 +1950,7 @@ void EntityItem::updateTextLabel(QString newLabel)
 
     bottomInputItem->updatePosSize(textRect_Bot());
 
-    statusItem->setCircleCenter(boundingRect().topRight() + QPointF(-getItemMargin(), getItemMargin()));
+    statusItem->setCircleCenter(boundingRect().topRight());
 
     updateTextVisibility();
 }
@@ -1987,6 +2023,14 @@ void EntityItem::setupBrushes()
 
     readOnlyHeaderBrush = QBrush(bColor);
 
+    blendColor = Qt::red;
+    blendFactor = .6;
+    bColor = headerBrush.color();
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
+    bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
+
+    errorHeaderBrush = QBrush(bColor);
 }
 
 
@@ -2096,6 +2140,9 @@ void EntityItem::setupLabel()
     topLabelInputItem = new InputItem(this,"", false);
     rightLabelInputItem = new InputItem(this, "", false);
     statusItem = new StatusItem(this);
+    statusItem->setBackgroundColor(QColor(0,150,150));
+    notificationItem = new NotificationItem(this);
+    notificationItem->setBackgroundColor(QColor(255,204,51));
 
     //Setup external Label
     topLabelInputItem->setAcceptHoverEvents(true);
@@ -2105,6 +2152,9 @@ void EntityItem::setupLabel()
     //Setup external statusItem
     statusItem->setAcceptHoverEvents(true);
     statusItem->setToolTipString("Click to edit field.");
+
+    notificationItem->setAcceptHoverEvents(true);
+
 
 
 
@@ -2147,11 +2197,14 @@ void EntityItem::setupLabel()
     QPointF bottomLabelPos = iconRect_BottomLeft().topRight();
     QPointF expandedLabelPos = expandedLabelRect().topLeft() - QPointF(0, rightLabelInputItem->boundingRect().height() /2);
     QPointF statusIconPos = boundingRect().topRight() - statusItem->boundingRect().center();
+    QPointF notificationIconPos =  - (2*notificationItem->boundingRect().bottomRight());
 
     rightLabelInputItem->setPos(expandedLabelPos);
     bottomInputItem->setPos(bottomLabelPos);
     topLabelInputItem->setPos(bottomLabelPos - QPointF(0 , bottomInputItem->boundingRect().height()));
     statusItem->setPos(statusIconPos);
+    notificationItem->setPos(statusIconPos);
+
 
 
 }
@@ -2173,6 +2226,9 @@ void EntityItem::setupDataConnections()
     listenForData("isExpanded");
 
     listenForData("readOnly");
+    listenForData("readOnlyDefinition");
+
+
     listenForData("description");
 
     if(nodeKind == "HardwareNode"){
@@ -2184,6 +2240,12 @@ void EntityItem::setupDataConnections()
     }else if(nodeKind == "Process"){
         listenForData("worker");
         listenForData("operation");
+    }
+
+    NodeAdapter* node = getNodeAdapter();
+    if(node){
+        connect(node, SIGNAL(edgeAdded(int,Edge::EDGE_CLASS)), this, SLOT(edgeAdded(int,Edge::EDGE_CLASS)));
+        connect(node, SIGNAL(edgeRemoved(int,Edge::EDGE_CLASS)), this, SLOT(edgeRemoved(int,Edge::EDGE_CLASS)));
     }
 }
 
@@ -2496,6 +2558,16 @@ void EntityItem::forceExpandParentItem()
         EntityItem* pi = parentItems.at(i);
         emit GraphMLItem_SetData(pi->getID(), "isExpanded", true);
     }
+}
+
+void EntityItem::edgeAdded(int ID, Edge::EDGE_CLASS edgeClass)
+{
+    updateErrorState();
+}
+
+void EntityItem::edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass)
+{
+    updateErrorState();
 }
 
 

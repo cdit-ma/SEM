@@ -20,6 +20,7 @@ public:
     ~Node();
 
     QString toGraphML(int indentDepth);
+    QString toGraphMLNoVisualData(int indentDepth);
     virtual QString toString();
 
     QList<int> getTreeIndex();
@@ -43,6 +44,8 @@ public:
     bool containsChild(Node* child);
     QList<Node *> getChildren(int depth =-1);
     QList<Node *> getChildrenOfKind(QString kind, int depth =-1);
+
+    QList<int> getEdgeIDs(Edge::EDGE_CLASS edgeClass = Edge::EC_NONE);
     Node* getFirstChild();
     Edge* getFirstEdge();
 
@@ -104,8 +107,13 @@ public:
     bool compareData(Node* node, QString keyName);
     bool compareData(Node* node, QStringList keys);
 
+signals:
+    void node_EdgeAdded(int ID, Edge::EDGE_CLASS edgeClass);
+    void node_EdgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
 private:
     void setParentNode(Node* parent, int index);
+
+    QString _toGraphML(int indentDepth, bool ignoreVisuals=false);
 
     void addEdge(Edge *edge);
     void removeEdge(Edge *edge);

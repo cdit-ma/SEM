@@ -28,6 +28,7 @@ public:
     VIEW_STATE getViewState() const;
     void setRenderState(RENDER_STATE renderState);
 
+
     virtual void firstChildAdded(GraphMLItem* child);
     virtual void lastChildRemoved();
 
@@ -144,6 +145,9 @@ private:
     QPen currentPen;
 
     qreal selectedPenWidth;
+
+    ERROR_TYPE errorType;
+
 
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);

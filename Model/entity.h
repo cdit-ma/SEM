@@ -17,6 +17,7 @@ public:
 
 
     Entity(ENTITY_KIND kind);
+    ~Entity();
     ENTITY_KIND getEntityKind() const;
 
     bool addData(Data* data);
@@ -43,6 +44,7 @@ public:
     void setDataValue(QString keyName, QVariant value);
 
 
+    bool removeData(Key* key);
     bool removeData(Data* data);
     bool removeData(QString keyName);
 
@@ -52,8 +54,10 @@ signals:
     void dataAdded(QString keyName, QVariant data);
     void dataChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);
+    void readOnlySet(int, bool isReadOnly);
 private slots:
     void dataChanged(int ID, QString keyName, QVariant data);
+    void thisDataChanged(QString keyName);
 private:
     int getDataIDFromKeyName(QString keyName);
     int getKeyIDFromKeyName(QString keyName);

@@ -333,6 +333,8 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
     qCritical() << "processGraphml " << graphmlPath << " " << outputPath;
     //Run preprocess generation on the graphml, this will be used as the input to all transforms.
     QString processedGraphmlPath = preProcessIDL(graphmlPath, outputPath);
+    //Run Replication transform on the graphml, this will be used as the input to all transforms.
+    processedGraphmlPath = replicateTransformGraphML(processedGraphmlPath, outputPath);
 
 
     if(!isFileReadable(processedGraphmlPath)){
@@ -542,6 +544,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
         qCritical() << "Clearing Queue";
         queue.clear();
     }
+
 
     queueComponentGeneration(processedGraphmlPath, deployedComponents, outputPath);
     queueComponentInstanceGeneration(processedGraphmlPath, deployedComponentInstances, outputPath);
@@ -927,6 +930,16 @@ void CUTSManager::queueHardwareGeneration(QString graphmlPath, QStringList hardw
 
 QString CUTSManager::preProcessIDL(QString inputFilePath, QString outputPath)
 {
+    return executeBlockedTransform(inputFilePath, "PreprocessIDL", outputPath);
+}
+
+QString CUTSManager::replicateTransformGraphML(QString inputFilePath, QString outputPath)
+{
+    return executeBlockedTransform(inputFilePath, "Replicate", outputPath);
+}
+
+QString CUTSManager::executeBlockedTransform(QString inputFilePath, QString transformName, QString outputPath)
+{
     //Start a QProcess for this program
     QProcess* process = new QProcess();
     process->setWorkingDirectory(XSLTransformPath);
@@ -937,7 +950,7 @@ QString CUTSManager::preProcessIDL(QString inputFilePath, QString outputPath)
     QStringList arguments;
     arguments << "-jar" << xalanJPath + "xalan.jar";
     arguments << "-in" << inputFilePath;
-    arguments << "-xsl" << XSLTransformPath + "PreprocessIDL.xsl";
+    arguments << "-xsl" << XSLTransformPath + transformName + ".xsl";
     arguments << "-out" << outFileName;
 
     //Construct a wait loop to make sure this transform happens first.

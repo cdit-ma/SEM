@@ -149,6 +149,7 @@ private slots:
     void toggleGridLines();
     void aboutMedea();
     void aboutQt();
+    void reportBug();
     void showShortcutList();
     void invalidJenkinsSettings(QString message);
     void jenkinsNodesLoaded();
@@ -340,6 +341,7 @@ private:
     QAction* help_AboutMedea;
     QAction* help_AboutQt;
     QAction* help_Shortcuts;
+    QAction* help_ReportBug;
 
     QAction* jenkins_ImportNodes;
     QAction* jenkins_ExecuteJob;
@@ -402,6 +404,7 @@ private:
     QAction* midRightSpacer;
     QAction* rightMidSpacer;
     QAction* rightMostSpacer;
+
 
     AspectToggleWidget* definitionsToggle;
     AspectToggleWidget* workloadToggle;
