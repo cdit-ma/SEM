@@ -4797,6 +4797,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                     long long value = dataValue.toLongLong(&okay);
                     if(okay){
+
                         readOnlyState.snippetMAC = value;
                     }
                 }

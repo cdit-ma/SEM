@@ -25,7 +25,7 @@ QVariant::Type Key::getTypeFromGraphML(const QString typeString)
         return QVariant::Bool;
     }else if(typeString == "int"){
         return QVariant::Int;
-    }else if(typeString == "long"){
+    }else if(typeString == "long" || typeString == "longlong"){
         return QVariant::LongLong;
     }else if(typeString == "float" || typeString == "double"){
         return QVariant::Double;
