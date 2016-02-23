@@ -28,13 +28,13 @@
 
 #define THREADING true
 
-#define MIN_WIDTH 1000
-#define MIN_HEIGHT (480 + SPACER_HEIGHT * 3)
-//#define MIN_WIDTH 1280
-//#define MIN_HEIGHT (720 + SPACER_HEIGHT*3)
-
 #define RIGHT_PANEL_WIDTH 230.0
-#define SPACER_HEIGHT 10
+#define SPACER_SIZE 10
+
+#define MIN_WIDTH 1000
+#define MIN_HEIGHT (480 + SPACER_SIZE * 3)
+//#define MIN_WIDTH 1280
+//#define MIN_HEIGHT (720 + SPACER_SIZE*3)
 
 #define TOOLBAR_BUTTON_WIDTH 46
 #define TOOLBAR_BUTTON_HEIGHT 40
@@ -484,7 +484,6 @@ void MedeaWindow::initialiseGUI()
 
     // initialise variables
     controller = 0;
-    prevPressedButton = 0;
     controllerThread = 0;
 
     nodeView = new NodeView();
@@ -502,9 +501,7 @@ void MedeaWindow::initialiseGUI()
 
     menuTitleBox = new QGroupBox(this);
     projectName = new QPushButton("");
-    closeProjectButton = new QPushButton();
-    closeProjectButton->setToolTip("Close the current Project.");
-    closeProjectButton->setIcon(nodeView->getImage("Actions", "Close"));
+    closeProjectButton = new QPushButton(getIcon("Actions", "Close"), "");
 
     loadingBox = new QGroupBox(this);
     loadingLabel = new QLabel("Loading...", this);
@@ -549,12 +546,14 @@ void MedeaWindow::initialiseGUI()
                               "QPushButton::menu-indicator{ image: none; }");
 
     projectName->setFlat(true);
-    projectName->setStyleSheet("color: black; font-size: 16px; text-align: left;");// /*padding: 8px;*/");
-    projectName->setFixedWidth(200);
+    projectName->setStyleSheet("QPushButton{ color: black; font-weight: bold; font-size: 16px; text-align: left; }"
+                               "QTooltip{ background: white; color: black; }");
 
-    closeProjectButton->setFlat(true);
-    closeProjectButton->setFixedWidth(menuButton->height()/2);
-    closeProjectButton->setFixedHeight(menuButton->height()/2);
+    closeProjectButton->setToolTip("Close Current Project");
+    closeProjectButton->setFixedSize(menuButton->height()/2, menuButton->height()/2);
+    closeProjectButton->setStyleSheet("QPushButton{ background: rgb(200,200,200); border-radius: 2px; }"
+                                      "QPushButton:hover{ background: rgb(240,240,240); }"
+                                      "QPushButton:pressed{ background: white; }");
 
     definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
@@ -654,16 +653,16 @@ void MedeaWindow::initialiseGUI()
     titleLayout->setMargin(0);
     titleLayout->setSpacing(0);
     titleLayout->addWidget(menuButton);
-    titleLayout->addSpacerItem(new QSpacerItem(10, 0));
-    titleLayout->addWidget(projectName);
-    titleLayout->addSpacerItem(new QSpacerItem(10, 0));
+    titleLayout->addSpacerItem(new QSpacerItem(SPACER_SIZE, 0));
     titleLayout->addWidget(closeProjectButton);
+    //titleLayout->addSpacerItem(new QSpacerItem(SPACER_SIZE, 0));
+    titleLayout->addWidget(projectName);
     titleLayout->addStretch();
 
     menuTitleBox->setLayout(titleLayout);
-    menuTitleBox->setFixedHeight(menuButton->height() + 30);
+    menuTitleBox->setFixedHeight(menuButton->height() + SPACER_SIZE*3);
     menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
-                                  menuButton->width() + 10 + projectName->width() + 10 + closeProjectButton->width(), menuButton->height(),
+                                  menuButton->width() + SPACER_SIZE + projectName->width() + closeProjectButton->width(), menuButton->height(),
                                   QRegion::Rectangle));
 
     topHLayout->setMargin(0);
@@ -674,7 +673,7 @@ void MedeaWindow::initialiseGUI()
     leftVlayout->setMargin(0);
     leftVlayout->setSpacing(0);
     leftVlayout->addLayout(topHLayout);
-    leftVlayout->addSpacerItem(new QSpacerItem(20, 10));
+    leftVlayout->addSpacerItem(new QSpacerItem(SPACER_SIZE*2, SPACER_SIZE));
     leftVlayout->addLayout(bodyLayout);
     leftVlayout->addStretch();
 
@@ -688,11 +687,11 @@ void MedeaWindow::initialiseGUI()
     viewButtonsGrid->addWidget(hardwareToggle, hardwareToggle->getToggleGridPos().x(), hardwareToggle->getToggleGridPos().y());
 
     rightVlayout->setMargin(0);
-    rightVlayout->setContentsMargins(0, 10, 0, 0);
+    rightVlayout->setContentsMargins(0, SPACER_SIZE, 0, 0);
     rightVlayout->addLayout(searchLayout);
-    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_HEIGHT));
+    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     rightVlayout->addLayout(viewButtonsGrid);
-    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_HEIGHT));
+    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     rightVlayout->addWidget(dataTableBox);
     rightVlayout->addStretch();
     rightVlayout->addLayout(minimapLayout);
@@ -979,25 +978,77 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     definitionsButton->hide();
     functionsButton->hide();
 
+    dockBackButtonBox = new QGroupBox(this);
+    dockBackButtonBox->setStyleSheet("QGroupBox {"
+                                     "background-color: rgba(0,0,0,0);"
+                                     "border: 0px;"
+                                     "margin: 0px;"
+                                     "padding: 0px;"
+                                     "}");
+
+    dockHeaderBox = new QGroupBox(this);
+    dockHeaderBox->setStyleSheet("QGroupBox {"
+                                 "border-left: 1px solid rgb(125,125,125);"
+                                 "border-right: 1px solid rgb(125,125,125);"
+                                 "border-top: none;"
+                                 "border-bottom: none;"
+                                 "background-color: rgba(250,250,250,240);"
+                                 "padding: 10px 0px 0px 0px; }");
+
+    dockActionLabel = new QLabel("Describe action here", this);
+    dockActionLabel->setAlignment(Qt::AlignCenter);
+    dockActionLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 10px 5px;");
+    QPushButton* dockBackButton = new QPushButton(QIcon(":/Actions/Backward.png"), "", this);
+    dockBackButton->setFixedSize(boxWidth, 35);
+    dockBackButton->setToolTip("Go back to the Parts list");
+    dockBackButton->setStyleSheet("QPushButton{"
+                                  "background-color: rgba(130,130,130,120);"
+                                  "}"
+                                  "QPushButton:hover{"
+                                  "background-color: rgba(180,180,180,150);"
+                                  "}");
+    connect(dockBackButton, SIGNAL(clicked(bool)), this, SLOT(dockBackButtonTriggered()));
+
     openedDockLabel = new QLabel("Parts", this);
     openedDockLabel->setFixedWidth(boxWidth);
-    openedDockLabel->setStyleSheet("border: none; background-color: rgba(250,250,250,240); padding: 5px;");
-    openedDockLabel->hide();
+    //openedDockLabel->setAlignment(Qt::AlignCenter);
+    openedDockLabel->setFont(QFont("Helvetica", 11));
+    openedDockLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 0px 8px 5px 8px;");
 
-    // TODO - instead of updating the dock label's text, construct a label for each dock and add it into a groupbox with the dock
+    QVBoxLayout* dockBackButtonLayout = new QVBoxLayout();
+    dockBackButtonLayout->setMargin(0);
+    dockBackButtonLayout->setSpacing(0);
+    dockBackButtonLayout->addWidget(dockBackButton, 0, Qt::AlignCenter);
+    dockBackButtonLayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
+    dockBackButtonBox->setLayout(dockBackButtonLayout);
+
+    QVBoxLayout* dockHeaderLayout = new QVBoxLayout();
+    dockHeaderLayout->setMargin(0);
+    dockHeaderLayout->setSpacing(0);
+    dockHeaderLayout->addWidget(openedDockLabel);
+    dockHeaderLayout->addWidget(dockActionLabel);
+    dockHeaderLayout->addWidget(dockBackButtonBox);
+    dockHeaderBox->setLayout(dockHeaderLayout);
+
+    QVBoxLayout* innerDockLayout = new QVBoxLayout();
+    innerDockLayout->setMargin(0);
+    innerDockLayout->setSpacing(0);
+    innerDockLayout->addWidget(dockHeaderBox);
+    innerDockLayout->addWidget(partsDock);
+    innerDockLayout->addWidget(definitionsDock);
+    innerDockLayout->addWidget(functionsDock);
+    innerDockLayout->addWidget(hardwareDock);
+    innerDockLayout->addStretch();
+
+    dockGroupBox = new QGroupBox(this);
+    dockGroupBox->setLayout(innerDockLayout);
 
     dockLayout->addWidget(dockButtonsBox);
-    dockLayout->addWidget(openedDockLabel);
-    dockLayout->addWidget(partsDock);
-    dockLayout->addWidget(definitionsDock);
-    dockLayout->addWidget(functionsDock);
-    dockLayout->addWidget(hardwareDock);
-    dockLayout->addStretch();
+    dockLayout->addWidget(dockGroupBox);
 
     dockAreaLayout->addLayout(dockLayout);
     docksArea->setLayout(dockAreaLayout);
     docksArea->setFixedWidth(boxWidth);
-    docksArea->setStyleSheet("border: none; padding: 0px; margin: 0px; background-color: rgba(0,0,0,0);");
     docksArea->setMask(QRegion(0, 0, boxWidth, dockButtonsBox->height(), QRegion::Rectangle));
     docksArea->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     layout->addWidget(docksArea, 1);
@@ -1420,8 +1471,6 @@ void MedeaWindow::resetGUI()
         modelDisconnected();
     }
 
-    prevPressedButton = 0;
-
     // reset timer
     notificationTimer->stop();
     leftOverTime = 0;
@@ -1512,6 +1561,8 @@ void MedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_LoadSettings()), this, SLOT(loadSettingsFromINI()));
 
+    connect(nodeView, SIGNAL(view_themeChanged(VIEW_THEME)), this, SLOT(themeChanged(VIEW_THEME)));
+
     connect(this, SIGNAL(window_ProjectSaved(bool,QString)), nodeView, SIGNAL(view_ProjectSaved(bool, QString)));
 
     connect(nodeView, SIGNAL(view_ProjectFileChanged(QString)), this, SLOT(projectFileChanged(QString)));
@@ -1532,13 +1583,9 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_SavedProject(QString,QString)), this, SLOT(gotSaveData(QString, QString)));
 
 
-
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
     connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
-
-
-
 
 
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
@@ -1557,10 +1604,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_ExportSnippet(QString)), this, SLOT(exportSnippet(QString)));
 
 
-
-
     connect(file_importXME, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XME_triggered()));
-
 
 
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
@@ -1668,10 +1712,10 @@ void MedeaWindow::makeConnections()
     connect(definitionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
     connect(functionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
 
-    connect(partsDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
-    connect(definitionsDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
-    connect(functionsDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
-    connect(hardwareDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
+    connect(partsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    connect(definitionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    connect(functionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    connect(hardwareDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
 
@@ -1848,9 +1892,6 @@ bool MedeaWindow::saveProject(bool saveAs)
 
 void MedeaWindow::populateDocks()
 {
-    //Clear docks first.
-    emit window_clearDocks();
-
     // TODO - The following setup only needs to happen once the whole time the application is open
     // It doesn't need to be redone every time new project is called
     QStringList allKinds = nodeView->getAllNodeKinds();
@@ -1872,7 +1913,6 @@ void MedeaWindow::populateDocks()
         action->setDefaultWidget(checkBox);
         nodeKindsMenu->addAction(action);
     }
-
 }
 
 void MedeaWindow::_getCPPForComponent(QString filePath)
@@ -2011,9 +2051,10 @@ void MedeaWindow::projectFileChanged(QString name)
 
 void MedeaWindow::projectNameChanged(QString name)
 {
-    if(projectName){
+    if (projectName) {
         projectName->setText(name);
-        //projectName->setFixedWidth(projectName->fontMetrics().width(name) + 10);
+        projectName->setToolTip(name);
+        projectName->setFixedWidth(projectName->fontMetrics().width(name) + 10);
     }
 }
 
@@ -2189,12 +2230,7 @@ void MedeaWindow::toggleAndTriggerAction(QAction *action, bool value)
  * updated after the window has been changed.
  */
 void MedeaWindow::updateWidgetsOnWindowChanged()
-{
-    // update widget sizes, containers and and masks
-    boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height() - SPACER_HEIGHT;
-    docksArea->setFixedHeight(boxHeight*2);
-    dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_HEIGHT/2);
-
+{   
     QRect canvasRect;
     canvasRect.setHeight(height()-1);
     canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
@@ -2212,7 +2248,6 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
 
     // update the stored view center point and re-center the view
     if (nodeView) {
-        //qCritical() << "UPDATE YO";
         nodeView->visibleViewRectChanged(getCanvasRect());
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
@@ -2221,8 +2256,26 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
 
 
     updateWidgetMask(docksArea, dockButtonsBox, true);
+    updateDock();
     updateToolbar();
     updateDataTable();
+}
+
+
+/**
+ * @brief MedeaWindow::updateDock
+ * This recalculates the size of the area that's available for the dock.
+ */
+void MedeaWindow::updateDock()
+{
+    // update widget sizes, containers and and masks
+    boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height();
+    int prevHeight = docksArea->height();
+    int newHeight = (boxHeight*2) - dockHeaderBox->height() - (SPACER_SIZE*3);
+    if (newHeight != prevHeight) {
+        docksArea->setFixedHeight((boxHeight*2) - dockHeaderBox->height() - (SPACER_SIZE*3));
+    }
+    //dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_SIZE/2);
 }
 
 
@@ -3031,14 +3084,80 @@ void MedeaWindow::dockButtonPressed()
 
 
 /**
- * @brief MedeaWindow::upddateDockLabel
+ * @brief MedeaWindow::dockToggled
+ * This is called whenever a dock is opened/closed.
+ * If a dock is opened, update the dock header widgets.
+ * Otherwise, hide them.
+ * @param dockAction
  */
-void MedeaWindow::updateDockLabel()
+void MedeaWindow::dockToggled(bool opened, QString dockAction)
 {
-    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
-    if (dock) {
-        openedDockLabel->setText(GET_DOCK_LABEL(dock->getDockType()));
+    if (opened) {
+
+        DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+        DOCK_TYPE dockType = dock->getDockType();
+
+        switch (dockType) {
+        case PARTS_DOCK:
+        case HARDWARE_DOCK:
+            openedDockLabel->setText(GET_DOCK_LABEL(dockType));
+            openedDockLabel->show();
+            dockBackButtonBox->hide();
+            dockActionLabel->hide();
+            break;
+        case DEFINITIONS_DOCK:
+        case FUNCTIONS_DOCK:
+            // make sure the action description fits inside the dock
+            if (!dockAction.isEmpty()) {
+                QStringList textList = dockAction.split(" ");
+                int lineWidth = 0;
+                dockAction = "";
+                foreach (QString s, textList) {
+                    int sWidth = dockActionLabel->fontMetrics().width(s + " ");
+                    if ((lineWidth + sWidth) < dockActionLabel->width()) {
+                        dockAction += s + " ";
+                        lineWidth += sWidth;
+                    } else {
+                        dockAction += "<br/>" + s + " ";
+                        lineWidth = sWidth;
+                    }
+                }
+                dockAction.truncate(dockAction.length() - 1);
+                dockActionLabel->setText(dockAction);
+                dockActionLabel->show();
+            } else {
+                dockActionLabel->hide();
+            }
+            dockBackButtonBox->show();
+            openedDockLabel->hide();
+            break;
+        default:
+            break;
+        }
+
+        dockHeaderBox->show();
+        updateDock();
+
+    } else {
+        if (!partsDock->isDockOpen() && !definitionsDock->isDockOpen() && !functionsDock->isDockOpen() && !hardwareDock->isDockOpen()) {
+            dockHeaderBox->hide();
+        }
     }
+
+}
+
+
+/**
+ * @brief MedeaWindow::dockBackButtonTriggered
+ */
+void MedeaWindow::dockBackButtonTriggered()
+{
+    if (definitionsDock->isDockOpen()) {
+        definitionsDock->setDockOpen(false);
+    } else if (functionsDock->isDockOpen()) {
+        functionsDock->setDockOpen(false);
+    }
+    partsDock->forceOpenDock();
 }
 
 
@@ -3423,7 +3542,7 @@ void MedeaWindow::updateDataTable()
 
     // calculate the required height
     int newHeight = 0;
-    int maxHeight = dataTableBox->height() - SPACER_HEIGHT;
+    int maxHeight = dataTableBox->height() - SPACER_SIZE;
 
     for (int i = 0; i < tableModel->rowCount(); i++) {
         newHeight += dataTable->rowHeight(i);
@@ -3809,4 +3928,26 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString
 
 
     return files;
+}
+
+
+/**
+ * @brief MedeaWindow::themeChanged
+ * @param theme
+ */
+void MedeaWindow::themeChanged(VIEW_THEME theme)
+{
+    QString projectNameColor;
+    switch (theme) {
+    case VT_NORMAL_THEME:
+        projectNameColor = "black;";
+        break;
+    case VT_DARK_THEME:
+        projectNameColor = "white;";
+        break;
+    default:
+        return;
+    }
+    projectName->setStyleSheet("QPushButton{ color:" + projectNameColor + "font-size: 16px; text-align: left; }"
+                               "QTooltip{ background: white; color: black; }");
 }

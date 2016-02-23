@@ -187,7 +187,7 @@ void NewController::connectView(NodeView *view)
         connect(view, SIGNAL(view_Paste(int,QString)), this, SLOT(paste(int,QString)));
 
         //Node Slots
-        connect(view, SIGNAL(view_ConstructEdge(int,int, bool)), this, SLOT(constructEdge(int, int, bool)));
+        connect(view, SIGNAL(view_ConstructEdge(int,int, bool)), this, SLOT(constructEdge(int, int)));
         connect(view, SIGNAL(view_ConstructNode(int,QString,QPointF)), this, SLOT(constructNode(int,QString,QPointF)));
 
 
@@ -909,12 +909,15 @@ void NewController::copy(QList<int> IDs)
 void NewController::remove(QList<int> IDs)
 {
     if(canDelete(IDs)){
-        if(!_remove(IDs)){
+        bool success = _remove(IDs);
+        if (!success) {
             controller_DisplayMessage(WARNING, "Delete Error", "Cannot delete all selected entities.");
-            emit controller_ActionProgressChanged(100);
         }
+        emit controller_ActionProgressChanged(100);
+        emit controller_ActionFinished(success);
+    } else {
+        emit controller_ActionFinished();
     }
-    emit controller_ActionFinished();
 }
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
@@ -965,10 +968,9 @@ void NewController::setReadOnly(QList<int> IDs, bool readOnly)
  */
 void NewController::clear()
 {
-    if(!_clear()){
-        emit controller_ActionProgressChanged(100);
-    }
-    emit controller_ActionFinished();
+    bool success = _clear();
+    emit controller_ActionProgressChanged(100);
+    emit controller_ActionFinished(success);
 }
 
 /**
@@ -977,10 +979,9 @@ void NewController::clear()
  */
 void NewController::replicate(QList<int> IDs)
 {
-    if(!_replicate(IDs)){
-        emit controller_ActionProgressChanged(100);
-    }
-    emit controller_ActionFinished();
+    bool success = _replicate(IDs);
+    emit controller_ActionProgressChanged(100);
+    emit controller_ActionFinished(success);
 }
 
 /**
@@ -989,10 +990,9 @@ void NewController::replicate(QList<int> IDs)
  */
 void NewController::cut(QList<int> IDs)
 {
-    if(!_cut(IDs)){
-        emit controller_ActionProgressChanged(100);
-    }
-    emit controller_ActionFinished();
+    bool success = _cut(IDs);
+    emit controller_ActionProgressChanged(100);
+    emit controller_ActionFinished(success);
 }
 
 
@@ -1004,11 +1004,9 @@ void NewController::cut(QList<int> IDs)
  */
 void NewController::paste(int ID, QString xmlData)
 {
-    if(!_paste(ID, xmlData)){
-        emit controller_ActionProgressChanged(100);
-    }
-
-    emit controller_ActionFinished();
+    bool success = _paste(ID, xmlData);
+    emit controller_ActionProgressChanged(100);
+    emit controller_ActionFinished(success);
 }
 
 /**
@@ -1166,6 +1164,7 @@ bool NewController::_replicate(QList<int> IDs, bool addAction)
 
                 success = _paste(node->getParentNodeID(),graphml, false);
             }
+            emit controller_ActionProgressChanged(100);
         }
     }
     return success;
@@ -4405,11 +4404,11 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
 void NewController::importProjects(QStringList xmlDataList)
 {
     IMPORTING_PROJECT = true;
-    if(!_importProjects(xmlDataList)){
-        emit controller_ActionProgressChanged(100);
-    }
+    bool success = _importProjects(xmlDataList);
     IMPORTING_PROJECT = false;
-    emit controller_ActionFinished();
+
+    emit controller_ActionProgressChanged(100);
+    emit controller_ActionFinished(success);
 }
 
 
@@ -4421,10 +4420,9 @@ void NewController::importProjects(QStringList xmlDataList)
  */
 void NewController::importSnippet(QList<int> IDs, QString fileName, QString fileData)
 {
-    if(!_importSnippet(IDs, fileName, fileData)){
-        emit controller_ActionProgressChanged(100);
-    }
-    emit controller_ActionFinished();
+    bool success = _importSnippet(IDs, fileName, fileData);
+    emit controller_ActionProgressChanged(100);
+    emit controller_ActionFinished(success);
 }
 
 /**
