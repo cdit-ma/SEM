@@ -222,6 +222,10 @@ NewController::~NewController()
 
     destructNode(model);
     destructNode(workerDefinitions);
+
+    //while(!keys.isEmpty()){
+    //    //delete keys.takeFirst();
+    //}
 }
 
 void NewController::setExternalWorkerDefinitionPath(QString path)
@@ -1189,8 +1193,8 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
         }
 
         foreach(QString xmlData, xmlDataList){
-            bool result = _importGraphMLXML(xmlData, getModel());
-            //bool result = _newImportGraphML(xmlData, getModel());
+            //bool result = _importGraphMLXML(xmlData, getModel());
+            bool result = _newImportGraphML(xmlData, getModel());
             if(!result){
                 controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
                 success = false;
@@ -2020,8 +2024,7 @@ void NewController::removeGraphMLFromHash(int ID)
         if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
             qCritical() << "Hash Map Inconsistency detected!";
         }
-
-
+        delete item;
     }
 }
 
@@ -2125,6 +2128,7 @@ Node *NewController::constructNode(QList<Data *> nodeData)
         Data* data = requiredData.takeFirst();
 
         if(!node || data->getParent() != node){
+            qCritical() << "Deleted Data: " << data->toString();
             delete data;
         }
     }
@@ -2134,6 +2138,7 @@ Node *NewController::constructNode(QList<Data *> nodeData)
         Data* data = nodeData.takeFirst();
 
         if(!node || data->getParent() != node){
+            qCritical() << "Deleted Data: " << data->toString();
             delete data;
         }
     }
@@ -5394,10 +5399,18 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                         //Ignore the construction.
                         entity->setIgnoreConstruction();
                     }else{
-                        newNode = constructNode(entity->takeDataList());
+                        QList<Data*> dataList = entity->takeDataList();
+
+                        newNode = constructNode(dataList);
+
+
+                        if(!newNode){
+                            qCritical() << "NO NODE";
+                        }
                     }
 
                     if(!newNode){
+                        qCritical() << "DIDN'T CONSTRUCT NEW NODE";
                         emit controller_DisplayMessage(WARNING, "Import Error", "Cannot Create Node from document at line#" + QString::number(entity->getLineNumber()));
                         entity->setIgnoreConstruction();
                         continue;
@@ -5406,6 +5419,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     bool attached = false;
 
                     if(isInModel(newNode->getID())){
+                        qCritical() << " IN MODEL ALREADY: " << newNode->toString();
                         attached = true;
                     }else{
                         //Attach the node to the parentNode
@@ -5414,6 +5428,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                     if(attached){
                         nodeID = newNode->getID();
+                    }else{
+                        qCritical() << "YES";
                     }
                 }
             }

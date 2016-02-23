@@ -5041,7 +5041,7 @@ void NodeView::constructEdgeItem(EdgeAdapter *edge)
 
         NodeItem* parentNodeItem = (NodeItem*) parent;
 
-        //Construct a new GUI Element for this edge.
+        //Construct a new GUI Element for this edge.icastepney.com.au
         EdgeItem* nodeEdge = new EdgeItem(edge, parentNodeItem, srcGUI, dstGUI);
 
 

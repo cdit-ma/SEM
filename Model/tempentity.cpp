@@ -21,9 +21,9 @@ TempEntity::TempEntity(Entity::ENTITY_KIND entityKind, TempEntity *parent)
 
 TempEntity::~TempEntity()
 {
-    if(ignoreConstruction){
-        while(!dataList.isEmpty()){
-            Data* data = dataList.takeFirst();
+    while(!dataList.isEmpty()){
+        Data* data = dataList.takeFirst();
+        if(!data->getParent()){
             delete data;
         }
     }

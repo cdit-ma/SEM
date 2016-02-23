@@ -17,6 +17,7 @@ public:
 
 
     Entity(ENTITY_KIND kind);
+    ~Entity();
     ENTITY_KIND getEntityKind() const;
 
     bool addData(Data* data);

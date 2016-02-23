@@ -45,6 +45,15 @@ Entity::Entity(Entity::ENTITY_KIND kind):GraphML(GraphML::GK_ENTITY)
     connect(this, SIGNAL(dataRemoved(QString)), this, SLOT(thisDataChanged(QString)));
 }
 
+Entity::~Entity()
+{
+    //Clear data.
+    QList<Data*> data = getData();
+    while(!data.isEmpty()){
+        delete data.takeFirst();
+    }
+}
+
 /**
  * @brief Entity::getEntityKind
  * Get the Kind of the Entity. Useful for down casting.
