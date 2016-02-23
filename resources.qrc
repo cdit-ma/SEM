@@ -188,6 +188,7 @@
         <file alias="Critical.png">Resources/Images/Actions/Critical.png</file>
         <file alias="Cross.png">Resources/Images/Actions/Cross.png</file>
         <file alias="Exclamation.png">Resources/Images/Actions/Exclamation.png</file>
+        <file alias="BugReport.png">Resources/Images/Actions/BugReport.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>

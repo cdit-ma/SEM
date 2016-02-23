@@ -874,7 +874,6 @@ void NewController::openProject(QString filePath, QString xmlData)
     QTime newTimer;
     newTimer.start();
     bool result = _newImportGraphML(xmlData, getModel());
-    qCritical() << "TIME: " << newTimer.elapsed();
     if(!result){
         emit controller_ActionProgressChanged(100);
         controller_DisplayMessage(CRITICAL, "Open Error", "Cannot fully open document.", getModel()->getID());
