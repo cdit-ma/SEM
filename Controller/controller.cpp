@@ -2078,7 +2078,6 @@ bool NewController::attachChildNode(Node *parentNode, Node *node)
     }
 
     if(isUserAction()){
-
         ReadOnlyState nodeState = getReadOnlyState(node);
 
         //If the node is a definition, construct an instance/Implementation in each Instance/Implementation of the parentNode.
@@ -2086,21 +2085,12 @@ bool NewController::attachChildNode(Node *parentNode, Node *node)
             ReadOnlyState dependantState = getReadOnlyState(dependant);
             if(nodeState.isValid() && dependantState.isValid()){
                 if(nodeState.snippetMAC == dependantState.snippetMAC && nodeState.snippetTime == dependantState.snippetTime){
-                    qCritical() << "DON'T CONSTRUCT";
                     //If we have to construct into a read-only node which shares the same MAC and Time, assume the read only snippet contains an item in document, so don't autoconstruct.
                     continue;
-                }else{
-                    qCritical() << "DIFFERENT?!?";
-                    qCritical() << nodeState.snippetMAC << " VS " << dependantState.snippetMAC;
-                    qCritical() << nodeState.snippetTime << " VS " << dependantState.snippetTime;
-                    qCritical() << "\n";
                 }
-            }else{
-                qCritical() << "NOT VALID";
             }
             constructDependantRelative(dependant, node);
         }
-    }else{
     }
 
     return true;
@@ -3330,8 +3320,9 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
     }else if(nodeKind == "ReturnParameter"){
         return new ReturnParameter();
     }else{
+        emit
         qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
-        return new BlankNode();
+        //return new BlankNode();
     }
 
     return 0;
@@ -5162,17 +5153,14 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     //Lookup for key's ID to Key* object
     QHash <QString, Key*> keyHash;
 
-    //Double Lookup for Node's ID to Node* object
-    DoubleHash<QString, Node*> nodeHash;
-
-    //Lookup for Node* object's ID to parent node.
-    DoubleHash<int, Node*> nodeParentHash;
-
+    //Stacks to store the NodeIDs and EdgeIDs from the document.
     QList<QString> nodeIDStack;
     QList<QString> edgeIDStack;
 
+    //Hash to store the TempEntities constructed from the document.
     QHash <QString, TempEntity*> entityHash;
 
+    //Use the Model as the parent if none provided.
     if(!parent){
         //Set parent as Model item.
         parent = getModel();
@@ -5198,20 +5186,16 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     //Now we know we have no errors, so read Stream again.
     QXmlStreamReader xml(document);
 
-    //Get the number of lines in the input GraphML XML String.
-    float lineCount = document.count("\n");
 
-
-
+    //Construct a top level Entity
     TempEntity* topEntity = new TempEntity(Entity::EK_NODE);
     topEntity->setActualID(parent->getID());
-
-
 
 
     TempEntity* currentEntity = topEntity;
 
     while(!xml.atEnd()){
+        //Read each line of the xml document.
         xml.readNext();
 
         //Get the tagName
@@ -5236,17 +5220,16 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         }
 
         if(xml.isStartElement()){
-            //For Nodes/Edges.
             if(currentEntityKind != Entity::EK_NONE){
                 QString ID = getXMLAttribute(xml, "id");
+
                 TempEntity* entity = new TempEntity(currentEntityKind, currentEntity);
-                //Set the ID
                 entity->setID(ID);
-                //Set the line number
                 entity->setLineNumber(xml.lineNumber());
 
 
                 if(currentEntityKind == Entity::EK_EDGE){
+                    //Handle Source/Target for edges.
                     entity->setSrcID(getXMLAttribute(xml, "source"));
                     entity->setDstID(getXMLAttribute(xml, "target"));
                 }
@@ -5261,10 +5244,9 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     edgeIDStack.append(ID);
                 }
 
+                //Set the Item as the current Entity.
                 currentEntity = entity;
-            }
-
-            if(currentKind == GraphML::GK_KEY){
+            }else if(currentKind == GraphML::GK_KEY){
                 QString ID = getXMLAttribute(xml, "id");
 
                 QString keyName = getXMLAttribute(xml, "attr.name");
@@ -5276,11 +5258,11 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                 Key* key = constructKey(keyName, keyType, keyFor);
                 keyHash.insert(ID,key);
-            }
-            if(currentKind == GraphML::GK_DATA){
+            }else if(currentKind == GraphML::GK_DATA){
                 QString keyID = getXMLAttribute(xml, "key");
                 Key* key = keyHash[keyID];
 
+                //If we have a key and a current Entity
                 if(key && currentEntity){
                     //Attach the data to the current entity.
                     QString dataValue = xml.readElementText();
@@ -5291,7 +5273,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         }
 
         if(xml.isEndElement()){
-            //For Nodes/Edges.
+            //For Nodes/Edges, step up a parent.
             if(currentEntityKind != Entity::EK_NONE){
                 currentEntity = currentEntity->getParentEntity();
             }
@@ -5299,13 +5281,10 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     }
 
 
-
-
-
     //Stores a list of all read only node states which are in the imported documents.
     QList<ReadOnlyState> toImportReadOnlyStates;
 
-    //Stores a list of Nodes which are Read-Only.
+    //Stores a list of Node IDs which are Read-Only.
     QList<int> existingReadOnlyIDs;
 
     //Deal with read only objects first.
@@ -5313,12 +5292,27 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         TempEntity *entity = entityHash[ID];
         if(entity && entity->gotReadOnlyState()){
             ReadOnlyState state = entity->getReadOnlyState();
-            toImportReadOnlyStates.append(state);
 
-            //Check for existance of old read only items.
+            //Check for existance of the read only items.
             if(readOnlyHash.containsKey(state)){
+                int nodeID = readOnlyHash.value(state);
+                Node* node = getNodeFromID(nodeID);
+                if(node){
+                    ReadOnlyState oldState = getReadOnlyState(node);
+                    //If the current state is newer than the historic document, ask the user.
+                    if(state.isOlder(oldState)){
+                        bool importOlder = askQuestion(CRITICAL, "Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", nodeID);
+                        if(!importOlder){
+                            //Ignore construction.
+                            entity->setIgnoreConstruction(true);
+                            entityHash.remove(ID);
+                            continue;
+                        }
+                    }
+                }
                 existingReadOnlyIDs << readOnlyHash.value(state);
             }
+            toImportReadOnlyStates.append(state);
         }
     }
 
@@ -5348,7 +5342,6 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     //Remove the items we don't need anymore
     _remove(nodeIDsToRemove, false);
 
-
     float totalEntities = entityHash.size();
     float entitiesMade = 0;
 
@@ -5361,7 +5354,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing Nodes");
         entitiesMade ++;
 
-        if(entity && entity->isNode()){
+        if(entity && entity->isNode() && entity->shouldConstruct()){
             //Check the read only state.
             ReadOnlyState readOnlyState = entity->getReadOnlyState();
 
@@ -5391,9 +5384,22 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     //Get the parentNode
                     Node* parentNode = getNodeFromID(parentEntity->getActualID());
 
-                    //Construct the new node with the data.
-                    Node* newNode = constructNode(entity->takeDataList());
+                    Node* newNode = 0;
 
+                        //Don't attach model information for anything but Open
+                    if(!OPENING_PROJECT && entity->getNodeKind() == "Model"){
+                        newNode = getModel();
+                        //Ignore the construction.
+                        entity->setIgnoreConstruction();
+                    }else{
+                        newNode = constructNode(entity->takeDataList());
+                    }
+
+                    if(!newNode){
+                        emit controller_DisplayMessage(WARNING, "Import Error", "Cannot Create Node from document at line#" + QString::number(entity->getLineNumber()));
+                        entity->setIgnoreConstruction();
+                        continue;
+                    }
 
                     bool attached = false;
 
@@ -5402,8 +5408,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }else{
                         //Attach the node to the parentNode
                         attached = attachChildNode(parentNode, newNode);
-
                     }
+
                     if(attached){
                         nodeID = newNode->getID();
                     }
@@ -5439,7 +5445,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
             TempEntity* srcEntity = entityHash[srcID];
             TempEntity* dstEntity = entityHash[dstID];
-            if(srcEntity->gotActualID() && dstEntity->gotActualID()){
+			if(srcEntity && dstEntity && srcEntity->gotActualID() && dstEntity->gotActualID()){
                 Node* src = getNodeFromID(srcEntity->getActualID());
                 Node* dst = getNodeFromID(dstEntity->getActualID());
                 if(src && dst){
@@ -5457,7 +5463,11 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                         edgesMap.insertMulti(Edge::EC_NONE, entity);
                     }
                 }
-            }
+            }else{
+                //Don't construct if we have an error.
+				entity->setIgnoreConstruction();
+                emit  controller_DisplayMessage(WARNING, "Import Error", "Cannot Create Edge from document at line#" + QString::number(entity->getLineNumber()));
+			}
         }
     }
 
@@ -5495,6 +5505,13 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
             }
         }
     }
+
+    //Clean up
+    foreach(TempEntity* entity, entityHash.values()){
+        delete entity;
+    }
+    entityHash.clear();
+
     emit controller_ActionProgressChanged(100);
 }
 
@@ -5505,10 +5522,12 @@ ReadOnlyState NewController::getReadOnlyState(Node *node)
     state.snippetID = -1;
     state.snippetMAC = -1;
     state.snippetTime = -1;
+    state.exportTime = -1;
     if(node){
         Data* snippetID = node->getData("snippetID");
         Data* snippetMAC = node->getData("snippetMAC");
         Data* snippetTime = node->getData("snippetTime");
+        Data* exportTime = node->getData("exportTime");
         if(snippetID){
             state.snippetID = snippetID->getValue().toInt();
         }
@@ -5517,6 +5536,9 @@ ReadOnlyState NewController::getReadOnlyState(Node *node)
         }
         if(snippetTime){
             state.snippetTime = snippetTime->getValue().toInt();
+        }
+        if(exportTime){
+            state.exportTime = exportTime->getValue().toInt();
         }
     }
     return state;

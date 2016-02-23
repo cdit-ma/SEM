@@ -5,20 +5,48 @@ TempEntity::TempEntity(Entity::ENTITY_KIND entityKind, TempEntity *parent)
     lineNumber = -1;
     actualID = -1;
     actualParentID = -1;
+    ignoreConstruction = false;
+    nodeKind = "";
     this->parent = parent;
 
     readOnlyState.snippetID = -1;
     readOnlyState.snippetMAC = -1;
     readOnlyState.snippetTime = -1;
+    readOnlyState.exportTime = -1;
     isReadOnly = false;
 
     retryCount = 0;
     this->entityKind = entityKind;
 }
 
+TempEntity::~TempEntity()
+{
+    if(ignoreConstruction){
+        while(!dataList.isEmpty()){
+            Data* data = dataList.takeFirst();
+            delete data;
+        }
+    }
+}
+
 void TempEntity::setLineNumber(int lineNumber)
 {
     this->lineNumber = lineNumber;
+}
+
+bool TempEntity::shouldConstruct()
+{
+    return !ignoreConstruction;
+}
+
+bool TempEntity::ignoreConstruct()
+{
+    return ignoreConstruction;
+}
+
+void TempEntity::setIgnoreConstruction(bool ignore)
+{
+    ignoreConstruction = ignore;
 }
 
 bool TempEntity::isTop()
@@ -62,6 +90,11 @@ void TempEntity::setActualParentID(int ID)
     actualParentID = ID;
 }
 
+QString TempEntity::getNodeKind()
+{
+    return nodeKind;
+}
+
 QString TempEntity::getParentID()
 {
     return parentID;
@@ -92,11 +125,18 @@ bool TempEntity::gotReadOnlyState()
     return readOnlyState.isValid();
 }
 
+int TempEntity::getLineNumber()
+{
+    return lineNumber;
+}
+
 void TempEntity::addData(Data *data)
 {
     if(data){
         QString keyName = data->getKeyName();
-        if(keyName == "readOnly"){
+        if(keyName == "kind"){
+            nodeKind = data->getValue().toString();
+        }else if(keyName == "readOnly"){
             isReadOnly = data->getValue().toBool();
         }else if(keyName == "snippetID"){
             readOnlyState.snippetID = data->getValue().toInt();
@@ -104,6 +144,8 @@ void TempEntity::addData(Data *data)
             readOnlyState.snippetTime = data->getValue().toInt();
         }else if(keyName == "snippetMAC"){
             readOnlyState.snippetMAC = data->getValue().toLongLong();
+        }else if(keyName == "exportTime"){
+            readOnlyState.exportTime = data->getValue().toInt();
         }
         dataList.append(data);
     }

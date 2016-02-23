@@ -10,8 +10,12 @@ class TempEntity
 {
 public:
     TempEntity(Entity::ENTITY_KIND entityKind, TempEntity* parent=0);
+    ~TempEntity();
     void setLineNumber(int lineNumber);
 
+    bool shouldConstruct();
+    bool ignoreConstruct();
+    void setIgnoreConstruction(bool ignore=true);
     bool isTop();
 
     int getRetryCount();
@@ -25,6 +29,7 @@ public:
     TempEntity* getParentEntity();
     void setParentID(QString ID);
     void setActualParentID(int ID);
+    QString getNodeKind();
 
     QString getParentID();
     int getActualParentID();
@@ -36,6 +41,7 @@ public:
 
 
 
+    int getLineNumber();
     void addData(Data* data);
     QList<Data*> getData();
     QList<Data*> takeDataList();
@@ -59,12 +65,14 @@ private:
     int lineNumber;
     TempEntity* parent;
     QString ID;
+    QString nodeKind;
     int actualID;
     int actualParentID;
     QString parentID;
     QString srcID;
     QString dstID;
     int retryCount;
+    bool ignoreConstruction;
 
     bool isReadOnly;
     QList<Data*> dataList;

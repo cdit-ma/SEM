@@ -43,6 +43,7 @@ struct ViewSignal{
 struct ReadOnlyState{
     long long snippetMAC;
     long snippetTime;
+    long exportTime;
     int snippetID;
 
     bool operator==(const ReadOnlyState &other) const{
@@ -50,6 +51,14 @@ struct ReadOnlyState{
     }
     bool isValid(){
         return (snippetMAC > 0) && (snippetTime > 0) && (snippetID > 0);
+    }
+    bool isOlder(const ReadOnlyState &other) const{
+        if(this->operator ==(other)){
+            if(exportTime < other.exportTime){
+                return true;
+            }
+        }
+        return false;
     }
 };
 
