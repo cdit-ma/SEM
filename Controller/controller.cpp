@@ -2024,7 +2024,6 @@ void NewController::removeGraphMLFromHash(int ID)
         if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
             qCritical() << "Hash Map Inconsistency detected!";
         }
-        delete item;
     }
 }
 

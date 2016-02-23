@@ -13,6 +13,10 @@
 
 ModelTester::ModelTester()
 {
+
+    qCritical() << "Starting in 10 seconds";
+    sleep(1000);
+
     float initialMemory = getMemoryUsage();
     qCritical() << "Memory Usage on Load: " << initialMemory << "KB.";
 
@@ -23,7 +27,7 @@ ModelTester::ModelTester()
     float postInitializeMemory = getMemoryUsage();
     qCritical() << "Memory Usage after Initialize: " << postInitializeMemory << "KB.";
 
-    QFile file("/home/dig/Desktop/MCMS.graphml");
+    QFile file("e:/MCMS.graphml");
 
     qCritical() << "FILE";
 
