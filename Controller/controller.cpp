@@ -257,7 +257,7 @@ void NewController::loadWorkerDefinitions()
                 QPair<bool, QString> data = readFile(importFileName);
                 //If the file was read.
                 if(data.first){
-                    bool success = _importGraphMLXML(data.second, workerDefinition);
+                    bool success = _newImportGraphML(data.second, workerDefinition);
                     //bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
                     if(!success){
                         emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + importFileName +"'!");

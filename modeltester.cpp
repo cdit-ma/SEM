@@ -32,9 +32,8 @@ ModelTester::ModelTester()
     QTextStream in(&file);
     QString xmlText = in.readAll();
     file.close();
-    qCritical() << xmlText.length();
 
-    int repeatCount = 1;
+    int repeatCount = 5;
     int loadCount = 1;
     QTime  time;
     time.start();
@@ -49,38 +48,23 @@ ModelTester::ModelTester()
             qCritical() << "Delta Memory: " << beforeLoad - priorMemory << "KB.";
         }
 
-        //controller->view_TriggerAction("Loading GraphML");
-
         for(int i = 0 ; i < loadCount; i++){
             QStringList list;
             list << xmlText;
             emit importProjects(list);
 
         }
+        sleep(10);
         qCritical() << time.elapsed();
         float afterLoad = getMemoryUsage();
         qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
-
-        //controller->view_Undo();
-
-        //controller->clearModel();
-        sleep(20);
-        float afterClear = getMemoryUsage();
-
-        qCritical() << "Memory Usage After Clear: " << afterClear << "KB.";
     }
 
-
-    xmlText = "";
-
-    //qCritical() << controller->getModel()->getChildren();
-
-    //delete controller;
-    //sleep(10);
-    //float afterDelete = getMemoryUsage();
-    //qCritical() << "Memory Usage After Delete: " << afterDelete << "KB.";
-   // qCritical() << "Total Memory Growth: " << afterDelete-initialMemory << "KB.";
-
+    delete controller;
+    sleep(10);
+    float afterDelete = getMemoryUsage();
+    qCritical() << "Memory Usage After Delete: " << afterDelete << "KB.";
+    qCritical() << "Total Memory Growth: " << afterDelete-initialMemory << "KB.";
 }
 
 void ModelTester::sleep(int ms){

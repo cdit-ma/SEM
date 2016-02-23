@@ -34,8 +34,9 @@ int main(int argc, char *argv[])
         graphmlFilePath = QString(argv[1]);
     }
 
-    MedeaWindow *w = new MedeaWindow(graphmlFilePath);
-    a.setActiveWindow(w);
+    //MedeaWindow *w = new MedeaWindow(graphmlFilePath);
+    //a.setActiveWindow(w);
+    ModelTester *t = new ModelTester();
 
     return a.exec();
 }
