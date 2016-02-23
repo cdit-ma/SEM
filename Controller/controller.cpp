@@ -2135,7 +2135,6 @@ Node *NewController::constructNode(QList<Data *> nodeData)
         Data* data = requiredData.takeFirst();
 
         if(!node || data->getParent() != node){
-            qCritical() << "Deleted Data: " << data->toString();
             delete data;
         }
     }
@@ -2145,11 +2144,18 @@ Node *NewController::constructNode(QList<Data *> nodeData)
         Data* data = nodeData.takeFirst();
 
         if(!node || data->getParent() != node){
-            qCritical() << "Deleted Data: " << data->toString();
             delete data;
         }
     }
     return node;
+}
+
+bool NewController::updateProgressNotification()
+{
+    if(OPENING_PROJECT || IMPORTING_PROJECT){
+           return true;
+   }
+   return false;
 }
 
 
@@ -5373,7 +5379,10 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         QString ID = nodeIDStack.takeFirst();
         TempEntity *entity = entityHash[ID];
 
-        emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing Nodes");
+        if(updateProgressNotification()){
+            emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing Nodes");
+        }
+
         entitiesMade ++;
 
         if(entity && entity->isNode() && entity->shouldConstruct()){
@@ -5418,11 +5427,6 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                         QList<Data*> dataList = entity->takeDataList();
 
                         newNode = constructNode(dataList);
-
-
-                        if(!newNode){
-                            qCritical() << "NO NODE";
-                        }
                     }
 
                     if(!newNode){
@@ -5435,7 +5439,6 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     bool attached = false;
 
                     if(isInModel(newNode->getID())){
-                        qCritical() << " IN MODEL ALREADY: " << newNode->toString();
                         attached = true;
                     }else{
                         //Attach the node to the parentNode
@@ -5444,8 +5447,6 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                     if(attached){
                         nodeID = newNode->getID();
-                    }else{
-                        qCritical() << "YES";
                     }
 
                     if(linkPreviousID && entity->hasPrevID()){
@@ -5538,7 +5539,9 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                         entity->incrementRetryCount();
                         entityList.append(entity);
                     }else{
-                        emit controller_ActionProgressChanged((entitiesMade * 100) / totalEntities, "Constructing Edges");
+                        if(updateProgressNotification()){
+                            emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing Edges");
+                        }
                         entitiesMade ++;
 
                         if(linkPreviousID && entity->hasPrevID()){
@@ -5560,7 +5563,9 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     //Clear the topEntity
     delete topEntity;
 
-    emit controller_ActionProgressChanged(100);
+    if(updateProgressNotification()){
+        emit controller_ActionProgressChanged(100);
+    }
 }
 
 ReadOnlyState NewController::getReadOnlyState(Node *node)

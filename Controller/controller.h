@@ -350,6 +350,8 @@ private:
 
     Node* constructNode(QList<Data*> data);
 
+    bool updateProgressNotification();
+
 
 
 

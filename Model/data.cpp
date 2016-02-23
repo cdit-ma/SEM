@@ -39,6 +39,8 @@ void Data::setParent(Entity *parent)
 {
     if(parent){
         connect(this, SIGNAL(dataChanged(int,QString,QVariant)), parent, SLOT(dataChanged(int, QString,QVariant)));
+        //Set the ID
+        setID();
     }
     _parent = parent;
 }

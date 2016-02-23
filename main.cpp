@@ -27,17 +27,18 @@
 int main(int argc, char *argv[])
 {
     //Construct a QApplication
-    //QApplication a(argc, argv);
+    QApplication a(argc, argv);
 
-    //QString graphmlFilePath = "";
-    //if (argc == 2) {
-    //    graphmlFilePath = QString(argv[1]);
-    //}
+    QString graphmlFilePath = "";
+    if (argc == 2) {
+        graphmlFilePath = QString(argv[1]);
+    }
 
-    //MedeaWindow *w = new MedeaWindow(graphmlFilePath);
-    //a.setActiveWindow(w);
-    ModelTester *t = new ModelTester();
+    MedeaWindow *w = new MedeaWindow(graphmlFilePath);
+    a.setActiveWindow(w);
 
-    return 0;
-    //return a.exec();
+    //ModelTester *t = new ModelTester();
+    //return 0;
+
+    return a.exec();
 }

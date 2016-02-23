@@ -30,7 +30,7 @@ ModelTester::ModelTester()
     float postInitializeMemory = getMemoryUsage();
     qCritical() << "Memory Usage after Initialize: " << postInitializeMemory << "KB.";
 
-    QFile file("/home/dig/Desktop/MCMS.graphml");
+    QFile file("E:/MCMS.graphml");
 
     qCritical() << "FILE";
 
@@ -73,10 +73,10 @@ ModelTester::ModelTester()
 
     //UNDO LOAD.
     qCritical() << "UNDOING";
-    emit undo();
+   //emit undo();
 
     qCritical() << "REDOING";
-    emit redo();
+    //emit redo();
     //controller->undo();
 
     //THEN DELETE.
