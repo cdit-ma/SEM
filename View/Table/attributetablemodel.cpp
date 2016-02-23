@@ -327,7 +327,7 @@ void AttributeTableModel::setupDataBinding()
  */
 bool AttributeTableModel::popupMultiLine(const QModelIndex &index) const
 {
-    if(index.column() == 2) {
+    if(index.column() == 1) {
         QString keyName = getKeyName(index.row());
         //Check types
         if(multiLineKeyNames.contains(keyName)) {

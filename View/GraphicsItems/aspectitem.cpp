@@ -1,26 +1,12 @@
 #include "aspectitem.h"
 #include "../nodeview.h"
-#define ASPECT_ROW_COUNT 6
-#define ASPECT_COL_COUNT 4
 
 #define MODEL_WIDTH 72
 #define MODEL_HEIGHT 72
 
-//#define MARGIN_RATIO 0.10 //NORMAL
+#define WATERMARK_LABEL_RATIO (1.0 / 6.0)
+
 #define MARGIN_RATIO (1.0 / 18.0) //NORMAL
-//#define ICON_RATIO 0.80 //LARGE
-
-
-#define ICON_RATIO (4.5 / 6.0) //LARGE
-//#define ICON_RATIO (5.0 / 6.0) //LARGE
-//#define ICON_RATIO (3.0 / 4.0) //LARGE
-#define SMALL_ICON_RATIO ((1.0 / 6.0))
-#define TOP_LABEL_RATIO (1.0 / 6.0)
-#define RIGHT_LABEL_RATIO (1.5 / 6.0)
-#define BOTTOM_LABEL_RATIO (1.0 / 9.0)
-#define LABEL_RATIO (1 - ICON_RATIO)
-
-
 
 #define SELECTED_LINE_WIDTH 3
 #define ITEM_SIZE 72
@@ -62,11 +48,12 @@ AspectItem::AspectItem(NodeAdapter *node, GraphMLItem *parent, VIEW_ASPECT aspec
 
     width = GRID_SIZE * GRID_COUNT * ASPECT_COL_COUNT;
     height = GRID_SIZE * GRID_COUNT * ASPECT_ROW_COUNT;
+
     minimumWidth = width;
     minimumHeight = height;
 
     textFont.setBold(true);
-    textFont.setPointSize(minimumHeight * (LABEL_RATIO /2));
+    textFont.setPixelSize(minimumHeight * WATERMARK_LABEL_RATIO);
 
     mouseOverResize = NO_RESIZE;
 
@@ -91,7 +78,7 @@ QRectF AspectItem::boundingRect() const
     return rect;
 }
 
-void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
     /*
     if (getViewAspect() == VA_BEHAVIOUR) {
@@ -163,7 +150,7 @@ qreal AspectItem::getHeight() const
     return height;
 }
 
-void AspectItem::setPos(const QPointF pos)
+void AspectItem::setPos(const QPointF)
 {
     forcePos(getAspectPos());
 }

@@ -8,8 +8,11 @@
 #include <QDebug>
 #include <qmath.h>
 
+//#define DOCK_PADDING 5
+#define DOCK_PADDING 10
 #define MAX_LABEL_LENGTH 12
-#define BUTTON_WIDTH 131
+#define BUTTON_WIDTH 81
+//#define BUTTON_WIDTH 131
 
 
 /**
@@ -191,7 +194,7 @@ void DockScrollArea::setInfoText(QString text)
     if (!text.isEmpty()) {
 
         QStringList textList = text.split(" ");
-        int lineWidth;
+        int lineWidth=0;
         text = "";
 
         foreach (QString s, textList) {
@@ -261,6 +264,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
         if (addToLayout) {
             if (insertIndex == -1) {
                 layout->addWidget(dockItem);
+                //qDebug() << "Added dockitem: " << dockItem->getLabel() << "to layout";
             } else {
                 layout->insertWidget(insertIndex, dockItem);
             }
@@ -271,6 +275,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
         dockNodeIDs.append(dockItemID.toInt());
         dockNodeItems[dockItemID] = dockItem;
         connect(dockItem, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
+        //qDebug() << "Added dock item - " << dockItem->getLabel();
 
     } else {
         qWarning() << "DockScrollArea::addDockNodeItem - Item is null.";
@@ -281,7 +286,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
 
 
 /**
- * @brief DockScrollArea::removeDockNodeItemFromList
+ * @brief DockScrollArea::removeDockNodeItem
  * This method removes the provided dock item from this dock's list and layout.
  * @param dockItem
  */
@@ -478,16 +483,15 @@ void DockScrollArea::setupLayout()
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
     infoLabel->setFixedWidth(BUTTON_WIDTH + 10);
-    infoLabel->setStyleSheet("padding: 10px; font-style: italic;");
+    infoLabel->setStyleSheet("padding:" + QString::number(DOCK_PADDING) + "px; font-style: italic;");
     setInfoText(defaultInfoText);
 
     QGroupBox* groupBox = new QGroupBox(0);
-    groupBox->setTitle(label);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     groupBox->setStyleSheet("QGroupBox {"
-                            "background-color: rgba(255,255,255,0);"
+                            "background-color: rgba(0,255,255,0);"
                             "border: 0px;"
-                            "padding: 10px;"
+                            "padding: 0px " + QString::number(DOCK_PADDING) + "px;"
                             "}");
 
     layout = new QVBoxLayout(this);
@@ -498,14 +502,12 @@ void DockScrollArea::setupLayout()
     groupBox->setLayout(layout);
 
     setWidget(groupBox);
-    setVisible(false);
     setWidgetResizable(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setStyleSheet("QScrollArea {"
-                  "padding: 10px 0px;"
-                  "background-color: rgba(250,250,250,240);"
-                  "border: 0px;"
-                  //"border-radius: 10px;"
+                  "padding: 0px;"
+                  "background: rgba(250,250,250,240);"
+                  "border: 1px solid rgb(125,125,125);"
                   "}");
 }
 

@@ -189,6 +189,9 @@
         <file alias="Cross.png">Resources/Images/Actions/Cross.png</file>
         <file alias="Exclamation.png">Resources/Images/Actions/Exclamation.png</file>
         <file alias="BugReport.png">Resources/Images/Actions/BugReport.png</file>
+        <file alias="Loading.gif">Resources/Images/Actions/Loading.gif</file>
+        <file alias="DisconnectAggregate.png">Resources/Images/Actions/DisconnectAggregate.png</file>
+        <file alias="DisconnectHardwareNode.png">Resources/Images/Actions/DisconnectHardwareNode.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>
@@ -222,6 +225,7 @@
         <file alias="complexityFunction.png">Resources/Images/Data/complexityFunction.png</file>
         <file alias="WE_UTE_VariableArguments.png">Resources/Images/Data/WE_UTE_VariableArguments.png</file>
         <file alias="replicate_count.png">Resources/Images/Data/replicate_count.png</file>
+        <file alias="kilobytes.png">Resources/Images/Data/kilobytes.png</file>
     </qresource>
     <qresource prefix="/Functions">
         <file alias="WE_GPU.png">Resources/Images/Functions/WE_GPU.png</file>
@@ -232,6 +236,28 @@
         <file alias="WE_RAM.png">Resources/Images/Functions/WE_RAM.png</file>
         <file alias="WE_UTE.png">Resources/Images/Functions/WE_UTE.png</file>
         <file alias="VariableOperation.png">Resources/Images/Functions/VariableOperation.png</file>
+        <file alias="cppCode.png">Resources/Images/Functions/cppCode.png</file>
+        <file alias="debugMessage.png">Resources/Images/Functions/debugMessage.png</file>
+        <file alias="cppHeader.png">Resources/Images/Functions/cppHeader.png</file>
+        <file alias="evaluateComplexity.png">Resources/Images/Functions/evaluateComplexity.png</file>
+        <file alias="connect.png">Resources/Images/Functions/connect.png</file>
+        <file alias="disconnect.png">Resources/Images/Functions/disconnect.png</file>
+        <file alias="log.png">Resources/Images/Functions/log.png</file>
+        <file alias="switch_topic.png">Resources/Images/Functions/switch_topic.png</file>
+        <file alias="allocate.png">Resources/Images/Functions/allocate.png</file>
+        <file alias="bufferData.png">Resources/Images/Functions/bufferData.png</file>
+        <file alias="deallocate.png">Resources/Images/Functions/deallocate.png</file>
+        <file alias="FFT.png">Resources/Images/Functions/FFT.png</file>
+        <file alias="matrixMult.png">Resources/Images/Functions/matrixMult.png</file>
+        <file alias="releaseData.png">Resources/Images/Functions/releaseData.png</file>
+        <file alias="runParallel.png">Resources/Images/Functions/runParallel.png</file>
+        <file alias="setKernelComplexity.png">Resources/Images/Functions/setKernelComplexity.png</file>
+        <file alias="clear.png">Resources/Images/Functions/clear.png</file>
+        <file alias="counter.png">Resources/Images/Functions/counter.png</file>
+        <file alias="get.png">Resources/Images/Functions/get.png</file>
+        <file alias="length.png">Resources/Images/Functions/length.png</file>
+        <file alias="remove.png">Resources/Images/Functions/remove.png</file>
+        <file alias="set.png">Resources/Images/Functions/set.png</file>
     </qresource>
     <qresource prefix="/WorkerDefinitions">
         <file alias="CUTS_Client_Logger.worker.graphml">Resources/WorkerDefinitions/CUTS_Client_Logger.worker.graphml</file>
@@ -245,5 +271,8 @@
     </qresource>
     <qresource prefix="/Sounds">
         <file alias="click.wav">Resources/Sounds/click.wav</file>
+    </qresource>
+    <qresource prefix="/Gifs">
+        <file alias="Loading.gif">Resources/Gifs/Loading.gif</file>
     </qresource>
 </RCC>

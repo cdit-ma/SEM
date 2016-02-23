@@ -7,6 +7,7 @@
 #include <QComboBox>
 #include <QTime>
 #include <QListWidget>
+#include <QStyleOptionGraphicsItem>
 
 class GraphMLItem;
 

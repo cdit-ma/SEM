@@ -3,7 +3,7 @@
 #include "GUI/codeeditor.h"
 #include "CUTS/GUI/cutsexecutionwidget.h"
 
-//Testing a new Include
+//Testing a new Include..
 #include <QDebug>
 
 #include <QFileDialog>
@@ -18,12 +18,14 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QTemporaryFile>
+#include <QSplashScreen>
 #include <QPicture>
 #include "GUI/actionbutton.h"
 #include "GUI/shortcutdialog.h"
 #include <QToolButton>
 #include <QToolBar>
 #include <QDesktopServices>
+#include "View/medeasplash.h"
 
 #define THREADING true
 
@@ -49,11 +51,13 @@
 #define SEARCH_DATA_KEYS 2
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
+#define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
+#define GME_FILE_SUFFIX ".xme"
 
 #define GITHUB_URL "https://github.com/cdit-ma/MEDEA/issues"
 // USER SETTINGS
-
+//Some change
 
 
 /**
@@ -65,12 +69,22 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
     setupApplication();
+
+    QString version = "v";
+    version += APP_VERSION;
+    splashScreen = new MedeaSplash("MEDEA", version, QPixmap(":/Actions/MEDEA.png"));
+    splashScreen->showMessage("Loading Settings");
+
+
+    splashScreen->show();
+    //Timeout for 2 seconds before hiding.
+    QTimer::singleShot(2000, splashScreen, SLOT(close()));
+
     setAcceptDrops(true);
 
     controllerThread = 0;
     controller = 0;
     nodeView = 0;
-
 
     WINDOW_MAXIMIZED = false;
     WINDOW_FULLSCREEN = false;
@@ -108,6 +122,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseCUTSManager();
 
     initialiseGUI();
+
     makeConnections();
 
     resetGUI();
@@ -115,7 +130,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     resetView();
 
     // load the initial settings
+    //splashScreen->showMessage("Setting Up View");
     setupInitialSettings();
+    splashScreen->raise();
 
     //Load initial model.
     if(loadLaunchedFile){
@@ -123,6 +140,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     }
 
     initialSettingsLoaded = true;
+
+    newProject();
 }
 
 
@@ -140,6 +159,10 @@ MedeaWindow::~MedeaWindow()
 
     if (nodeView) {
         delete nodeView;
+    }
+
+    if(splashScreen){
+        splashScreen->deleteLater();
     }
 
     if(jenkinsManager){
@@ -304,9 +327,13 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     int intValue = value.toInt(&isInt);
 
     if(keyName == WINDOW_X && isInt){
-        move(intValue, pos().y());
+        if(intValue >= 0){
+            move(intValue, pos().y());
+        }
     }else if(keyName == WINDOW_Y && isInt){
-        move(pos().x(), intValue);
+        if(intValue >= 0){
+            move(pos().x(), intValue);
+        }
     }else if(keyName == WINDOW_W && isInt){
         resize(intValue, size().height());
     }else if(keyName == WINDOW_H && isInt){
@@ -323,6 +350,8 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         }
     }else if(keyName == WINDOW_FULL_SCREEN){
         setFullscreenMode(boolValue);
+    }else if(keyName == WINDOW_STORE_SETTINGS){
+        SAVE_WINDOW_SETTINGS = boolValue;
     }else if(keyName == CUTS_CONFIGURE_PATH){
         if(cutsManager){
             cutsManager->setCUTSConfigScriptPath(strValue);
@@ -447,7 +476,8 @@ void MedeaWindow::initialiseGUI()
                   );
 
     // set all gui widget fonts to this
-    guiFont = QFont("Verdana", 8.5);
+    double fontSize = 8.5;
+    guiFont = QFont("Verdana", fontSize);
 
     // initialise variables
     controller = 0;
@@ -456,7 +486,6 @@ void MedeaWindow::initialiseGUI()
 
     nodeView = new NodeView();
     nodeView->setApplicationDirectory(applicationDirectory);
-
 
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
@@ -473,6 +502,31 @@ void MedeaWindow::initialiseGUI()
     closeProjectButton = new QPushButton();
     closeProjectButton->setToolTip("Close the current Project.");
     closeProjectButton->setIcon(nodeView->getImage("Actions", "Close"));
+
+    loadingBox = new QGroupBox(this);
+    loadingLabel = new QLabel("Loading...", this);
+    loadingMovieLabel = new QLabel(this);
+    QMovie* loadingMovie = new QMovie(":/Actions/Loading.gif");
+
+    loadingLabel->setStyleSheet(/*"font-weight: bold;*/ "font: 14px; color: black;");
+    loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+    loadingMovie->setBackgroundColor(Qt::white);
+    loadingMovie->setScaledSize(QSize(TOOLBAR_BUTTON_WIDTH*1.25, TOOLBAR_BUTTON_HEIGHT*1.25));
+    loadingMovie->start();
+    loadingMovieLabel->setMovie(loadingMovie);
+
+    QHBoxLayout* loadingLayout = new QHBoxLayout();
+    loadingLayout->setMargin(0);
+    loadingLayout->setSpacing(0);
+    loadingLayout->addStretch();
+    loadingLayout->addWidget(loadingMovieLabel);
+    loadingLayout->addWidget(loadingLabel);
+    loadingLayout->addStretch();
+
+    //loadingBox->setStyleSheet("QGroupBox{ background: rgba(250,250,250,220); border-radius: 10px; }");
+    loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT);
+    loadingBox->setLayout(loadingLayout);
 
     // set central widget and window size
     setCentralWidget(nodeView);
@@ -498,8 +552,6 @@ void MedeaWindow::initialiseGUI()
     closeProjectButton->setFlat(true);
     closeProjectButton->setFixedWidth(menuButton->height()/2);
     closeProjectButton->setFixedHeight(menuButton->height()/2);
-
-
 
     definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
@@ -534,9 +586,12 @@ void MedeaWindow::initialiseGUI()
     progressLayout->addStretch(3);
     progressLayout->addWidget(progressLabel);
     progressLayout->addWidget(progressBar);
+    //progressLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
     progressLayout->addStretch(4);
+    //progressLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
     progressLayout->addWidget(notificationsBar);
     progressLayout->setAlignment(notificationsBar, Qt::AlignCenter);
+    progressLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setItemDelegateForColumn(1, delegate);
@@ -595,11 +650,11 @@ void MedeaWindow::initialiseGUI()
     // setup layouts for widgets
     titleLayout->setMargin(0);
     titleLayout->setSpacing(0);
-    titleLayout->addWidget(menuButton, 1);
+    titleLayout->addWidget(menuButton);
     titleLayout->addSpacerItem(new QSpacerItem(10, 0));
-    titleLayout->addWidget(projectName, 1);
+    titleLayout->addWidget(projectName);
     titleLayout->addSpacerItem(new QSpacerItem(10, 0));
-    titleLayout->addWidget(closeProjectButton, 1);
+    titleLayout->addWidget(closeProjectButton);
     titleLayout->addStretch();
 
     menuTitleBox->setLayout(titleLayout);
@@ -654,9 +709,9 @@ void MedeaWindow::initialiseGUI()
     setupMultiLineBox();
 
     // add progress bar layout to the body layout after the dock has been set up
-    bodyLayout->addStretch(4);
+    bodyLayout->addStretch();
     bodyLayout->addLayout(progressLayout);
-    bodyLayout->addStretch(3);
+    bodyLayout->addStretch();
 }
 
 
@@ -876,10 +931,11 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     functionsDock = new FunctionsDockScrollArea("Functions", nodeView, functionsButton);
 
     // width of the containers are fixed
-    boxWidth = (partsButton->getWidth()*4) + 19;
+    int dockPadding = 5;
+    boxWidth = (partsButton->getWidth() - dockPadding) * 2 + 19;
 
     // set buttonBox's size and get rid of its border
-    QSize buttonsBoxSize(boxWidth + 1, 48);
+    QSize buttonsBoxSize(boxWidth + 1, partsButton->getHeight() + dockPadding);
     dockButtonsBox->setStyleSheet("margin: 0px; border: 0px; padding: 0px;");
     dockButtonsBox->setFixedSize(buttonsBoxSize);
 
@@ -918,7 +974,18 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockButtonsHlayout->addWidget(hardwareNodesButton);
     dockButtonsBox->setLayout(dockButtonsHlayout);
 
+    definitionsButton->hide();
+    functionsButton->hide();
+
+    openedDockLabel = new QLabel("Parts", this);
+    openedDockLabel->setFixedWidth(boxWidth);
+    openedDockLabel->setStyleSheet("border: none; background-color: rgba(250,250,250,240); padding: 5px;");
+    openedDockLabel->hide();
+
+    // TODO - instead of updating the dock label's text, construct a label for each dock and add it into a groupbox with the dock
+
     dockLayout->addWidget(dockButtonsBox);
+    dockLayout->addWidget(openedDockLabel);
     dockLayout->addWidget(partsDock);
     dockLayout->addWidget(definitionsDock);
     dockLayout->addWidget(functionsDock);
@@ -1346,10 +1413,9 @@ void MedeaWindow::resetGUI()
 {
     updateWidgetsOnWindowChanged();
 
-    if(nodeView && !nodeView->hasModel()){
+    if (nodeView && !nodeView->hasModel()) {
         modelDisconnected();
     }
-
 
     prevPressedButton = 0;
 
@@ -1359,8 +1425,9 @@ void MedeaWindow::resetGUI()
 
     // initially hide these
     notificationsBar->hide();
-    //progressBar->hide();
     dataTableBox->hide();
+    progressBar->hide();
+    loadingBox->hide();
 
     // clear and reset search bar and search results
     searchBar->clear();
@@ -1596,6 +1663,15 @@ void MedeaWindow::makeConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
+    connect(partsDock, SIGNAL(dock_forceOpenDock(QString)), definitionsDock, SLOT(forceOpenDock(QString)));
+    connect(partsDock, SIGNAL(dock_forceOpenDock()), functionsDock, SLOT(forceOpenDock()));
+    connect(definitionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
+    connect(functionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
+
+    connect(partsDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
+    connect(definitionsDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
+    connect(functionsDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
+    connect(hardwareDock, SIGNAL(dock_opened()), this, SLOT(updateDockLabel()));
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
 
@@ -1724,8 +1800,8 @@ bool MedeaWindow::closeProject()
     if(nodeView->projectRequiresSaving()){
         //Ask User to confirm save?
         QMessageBox::StandardButton saveProjectButton = QMessageBox::question(this,
-                                                                        "Close Project", "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
-                                                                        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
+                                                                              "Close Project", "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
+                                                                              QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
         if(saveProjectButton == QMessageBox::Yes){
             bool saveSuccess = saveProject();
             // if failed to save, do nothing
@@ -1752,7 +1828,7 @@ bool MedeaWindow::saveProject(bool saveAs)
         }
 
         if(saveAs){
-            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, false, false, filePath);
+            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, false, false, filePath);
 
             if(files.size() != 1){
                 return false;
@@ -1975,6 +2051,7 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
 
 void MedeaWindow::gotXMETransform(bool success, QString errorString, QString path)
 {
+    displayLoadingStatus(false);
     setEnabled(true);
     updateProgressStatus(0,"");
     if(!success){
@@ -2224,6 +2301,7 @@ void MedeaWindow::executeJenkinsDeployment()
 
 void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
 {
+    displayLoadingStatus(false);
     if(success){
         QFile xmlFile(reportPath);
 
@@ -2271,8 +2349,9 @@ void MedeaWindow::executeProjectValidation()
         return;
     }
 
-    QString reportPath = getTempFileName("_report.xml");
+    displayLoadingStatus(true, "Validating Model");
 
+    QString reportPath = getTempFileName("_report.xml");
     emit window_ExecuteXSLValidation(exportFile, reportPath);
 }
 
@@ -2304,7 +2383,7 @@ void MedeaWindow::executeLocalNodeDeployment()
 void MedeaWindow::saveSettings()
 {
     //Write Settings on Quit.
-    if(appSettings){
+    if(appSettings && SAVE_WINDOW_SETTINGS){
         appSettings->setSetting(TOOLBAR_EXPANDED, toolbarButton->isChecked());
 
         appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
@@ -2339,6 +2418,7 @@ void MedeaWindow::search()
  */
 void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
 {
+    displayLoadingStatus(false);
     if(jenkinsXML != ""){
         // import Jenkins
         emit window_ImportJenkinsNodes(jenkinsXML);
@@ -2368,6 +2448,7 @@ void MedeaWindow::on_actionImportJenkinsNode()
     progressAction = "Importing Jenkins";
 
     if(jenkinsManager){
+        displayLoadingStatus(true, "Import Jenkins Nodes");
         QString groovyScript = applicationDirectory + "Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy";
 
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
@@ -2391,11 +2472,11 @@ void MedeaWindow::on_actionImportJenkinsNode()
 void MedeaWindow::on_actionNew_Project_triggered()
 {
     // ask user if they want to save current project before closing it
-   bool closed = closeProject();
+    bool closed = closeProject();
 
-   if(closed){
-       newProject();
-   }
+    if(closed){
+        newProject();
+    }
 }
 
 void MedeaWindow::on_actionCloseProject_triggered()
@@ -2412,7 +2493,7 @@ void MedeaWindow::on_actionOpenProject_triggered()
     if(nodeView){
         filePath = nodeView->getProjectFileName();
     }
-    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false, filePath);
+    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, true, false, filePath);
 
     if(fileNames.size() == 1){
         openProject(fileNames.first());
@@ -2438,15 +2519,16 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
 {
     progressAction = "Importing GraphML";
 
-    importProjects(fileSelector("Select one or more files to import.", GRAPHML_FILE_EXT, true));
+    importProjects(fileSelector("Select one or more files to import.", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, true));
 }
 
 void MedeaWindow::on_actionImport_XME_triggered()
 {
     progressAction = "Importing XME";
 
-    QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, true, false);
+    QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, GME_FILE_SUFFIX, true, false);
     if(files.size() == 1){
+        displayLoadingStatus(true, "Transforming XME for import");
         importXMEProject(files.first());
     }
 }
@@ -2548,7 +2630,7 @@ void MedeaWindow::importSnippet(QString snippetType)
         return;
     }
 
-    QStringList files = fileSelector("Import " + snippetType + ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", true, false);
+    QStringList files = fileSelector("Import " + snippetType + ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", "."+snippetType+".snippet", true, false);
 
     if(files.size() != 1){
         return;
@@ -2556,7 +2638,8 @@ void MedeaWindow::importSnippet(QString snippetType)
 
     QString snippetFileName = files.first();
 
-    if(snippetFileName.isNull()){
+    if (snippetFileName == "" || !snippetFileName.endsWith(snippetType + ".snippet")){
+        displayNotification("Snippet file selected doesn't match the required file format: " + snippetType);
         return;
     }
 
@@ -2578,20 +2661,24 @@ void MedeaWindow::exportSnippet(QString snippetType)
         return;
     }
 
-    QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", false);
+    QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)","."+snippetType+".snippet", false);
 
     if(files.size() != 1){
+        displayNotification("Only 1 file can be selected to export Snippet!");
         return;
     }
     QString snippetName = files.first();
 
     if (snippetName == "" || !snippetName.endsWith(snippetType + ".snippet")){
+        displayNotification("Snippet file selected doesn't match the required file format: " + snippetType);
         return;
     }
 
     QString grapmlData = nodeView->getSelectionAsGraphMLSnippet();
     if(grapmlData != ""){
         writeFile(snippetName, grapmlData);
+    }else{
+        displayNotification("Cannot export Snippet!");
     }
 }
 
@@ -2931,38 +3018,55 @@ void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
 void MedeaWindow::dockButtonPressed()
 {
     DockToggleButton* button = qobject_cast<DockToggleButton*>(QObject::sender());
+
     if (button) {
+
         updateWidgetMask(docksArea, dockButtonsBox);
         emit window_dockButtonPressed(button->getDockType());
+
+        // if a dock is opened, clear the mask then update the displayed dock label
         if (button->isSelected()) {
             docksArea->clearMask();
         }
+
+        // show/hide dock label depending on whether a dock is opened or not
+        //openedDockLabel->setVisible(button->isSelected());
     }
 }
 
 
 /**
- * @brief MedeaWindow::forceOpenDock
- * @param type
- * @param srcKind
+ * @brief MedeaWindow::upddateDockLabel
  */
-void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
+void MedeaWindow::updateDockLabel()
 {
-    switch (type) {
-    case PARTS_DOCK:
-        partsDock->forceOpenDock();
-        break;
-    case DEFINITIONS_DOCK:
-        definitionsDock->forceOpenDock(srcKind);
-        break;
-    case FUNCTIONS_DOCK:
-        functionsDock->forceOpenDock();
-        break;
-    case HARDWARE_DOCK:
-        //hardwareDock->forceOpenDock();
-        break;
-    default:
-        break;
+    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+    if (dock) {
+        openedDockLabel->setText(GET_DOCK_LABEL(dock->getDockType()));
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::displayLoadingStatus
+ * @param show
+ * @param displayText
+ */
+void MedeaWindow::displayLoadingStatus(bool show, QString displayText)
+{
+    if (loadingBox) {
+        if (show != loadingBox->isVisible()) {
+            loadingBox->setVisible(show);
+        }
+        if (show && !displayText.isEmpty()) {
+            displayText += "...";
+            if (loadingLabel->text() != displayText) {
+                loadingLabel->setText(displayText);
+                loadingLabel->setFixedWidth(loadingLabel->fontMetrics().width(loadingLabel->text()) + 20);
+                loadingBox->setFixedWidth(loadingMovieLabel->width() + loadingLabel->width());
+                //loadingBox->move((width() - loadingBox->width()) / 2, height() - loadingBox->height());
+            }
+        }
     }
 }
 
@@ -2973,10 +3077,14 @@ void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
-    // hide the notification bar and pause the timer before showing the progress bar
+    // hide the notification bar
+    if (notificationsBar->isVisible()) {
+        notificationsBar->hide();
+    }
+
+    // pause the notification timer before showing the progress bar
     if (notificationTimer->isActive()) {
         leftOverTime = notificationTimer->remainingTime();
-        notificationsBar->hide();
         notificationTimer->stop();
     }
 
@@ -2990,17 +3098,24 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
         progressLabel->setText(status + "...");
     }
 
-    if(value == -1){
+    if (value == -1) {
         progressBar->setMaximum(0);
         value = 0;
-    }else{
+    } else {
         progressBar->setMaximum(100);
         value = qMax(value, 0);
     }
     progressBar->setValue(value);
 
+    bool stillLoading = value != progressBar->maximum();
+    if (stillLoading && notificationsBar->isVisible()) {
+        notificationsBar->hide();
+    }
+
+    //displayLoadingStatus(stillLoading, status);
+
     // reset the progress bar and re-display the notification bar if it was previously displayed
-    if (value == 100) {
+    if (!stillLoading) {
         progressLabel->hide();
         progressBar->hide();
         progressBar->reset();
@@ -3334,7 +3449,7 @@ void MedeaWindow::updateDataTable()
 
     // align the contents of the datatable
     if(dataTable->horizontalHeader()->count() == 2){
-        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
         dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     }
 }
@@ -3640,7 +3755,7 @@ void MedeaWindow::dialogRejected()
     popupMultiLine->close();
 }
 
-QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool open, bool allowMultiple, QString fileName)
+QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple, QString fileName)
 {
     QStringList files;
 
@@ -3657,6 +3772,8 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool op
         fileDialog->setWindowTitle(title);
         fileDialog->setNameFilter(fileString);
         fileDialog->setDirectory(DEFAULT_PATH);
+        //fileDialog->setDefaultSuffix();
+
 
         if(open){
             fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
@@ -3694,5 +3811,7 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool op
             }
         }
     }
+
+
     return files;
 }

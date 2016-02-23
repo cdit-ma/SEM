@@ -33,7 +33,7 @@ public:
     virtual QList<DockNodeItem*> getDockNodeItems();
 
     bool isDockOpen();
-    void setDockOpen(bool open);
+    void setDockOpen(bool open = true);
 
     bool isDockEnabled();
     void setDockEnabled(bool enabled);
@@ -60,7 +60,8 @@ public:
 signals:
     void dock_opened(bool open = true);
     void dock_closed(bool open = false);
-    void dock_forceOpenDock(DOCK_TYPE type, QString filterForKind = "");
+    void dock_forceOpenDock(QString filterForKind);
+    void dock_forceOpenDock();
 
 public slots:
     virtual void dockNodeItemClicked() = 0;

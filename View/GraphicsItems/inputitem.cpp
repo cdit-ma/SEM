@@ -219,7 +219,7 @@ void InputItem::updateTextSize()
     textItem->setPos(TEXT_PADDING, moveHeight);
 }
 
-void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     qreal actualSize = lod * height;

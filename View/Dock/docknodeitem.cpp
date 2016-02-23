@@ -5,11 +5,10 @@
 #include <QLabel>
 #include <QDebug>
 
-#define MAX_LABEL_LENGTH 15
-#define ICON_RATIO 0.85
+#define ICON_RATIO 0.75
 #define IMAGE_PADDING 5
 
-#define BUTTON_WIDTH 141
+#define BUTTON_WIDTH 101
 #define BUTTON_HEIGHT 100
 #define LABEL_BUTTON_HEIGHT 28
 
@@ -49,7 +48,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         this->kind = nodeItem->getNodeKind();
         label = nodeItem->getDataValue("label").toString();
         strID = QString::number(nodeItem->getID());
-        highlightColor = "rgba(90,150,200,210)";
+        highlightColor = "rgba(90,150,200,210);";
 
         if (nodeItem->getNodeAdapter()) {
             connect(nodeItem->getNodeAdapter(), SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
@@ -82,8 +81,10 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         connect(this, SIGNAL(dockItem_hiddenStateChanged()), parentDock, SLOT(updateInfoLabel()));
     }
 
-    // initially contract labels
-    setDockItemExpanded();
+    // this initially contract the labels in the functions dock
+    if (parentDock && parentDock->getDockType() == FUNCTIONS_DOCK) {
+        toggleDockItemExpanded();
+    }
 }
 
 
@@ -409,6 +410,9 @@ void DockNodeItem::setupLayout()
         textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     }
 
+    int maxCharWidth = textLabel->fontMetrics().width('W');
+    MAX_LABEL_LENGTH = BUTTON_WIDTH / maxCharWidth + 2;
+
     textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
 
@@ -435,20 +439,20 @@ void DockNodeItem::setupLayout()
                                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
             QLabel* dockArrowLabel = new QLabel(this);
-            dockArrowLabel->setFixedWidth(ARROW_WIDTH);
+            dockArrowLabel->setFixedSize(ARROW_WIDTH, IMAGE_SIZE);
             dockArrowLabel->setPixmap(arrowPixmap);
             dockArrowLabel->setStyleSheet("padding-top:" + QString::number(arrowPixmap.height()/2 - IMAGE_PADDING) + "px;");
 
             QHBoxLayout* imageLayout = new QHBoxLayout();
             imageLayout->addStretch(1);
             imageLayout->addWidget(imageLabel, 2);
-            imageLayout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+            imageLayout->setAlignment(imageLabel, Qt::AlignHCenter);
             imageLayout->addWidget(dockArrowLabel, 1);
             layout->addLayout(imageLayout);
 
         } else {
             layout->addWidget(imageLabel);
-            layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+            layout->setAlignment(imageLabel, Qt::AlignHCenter);
         }
     }
 
@@ -515,6 +519,8 @@ void DockNodeItem::setImageLabelPixmap()
 void DockNodeItem::updateTextLabel()
 {
     QString newLabel = label;
+
+    /*
     int maxLength = MAX_LABEL_LENGTH;
 
     // file labels have a bigger font and can therefore fit less chars
@@ -531,6 +537,15 @@ void DockNodeItem::updateTextLabel()
             newLabel.truncate(maxLength - 1);
             newLabel += "..";
         }
+    }
+    */
+
+    QFontMetrics fm(textLabel->fontMetrics());
+    int textWidth = fm.width(newLabel + "__");
+
+    if (textWidth > BUTTON_WIDTH) {
+        newLabel.truncate(newLabel.length() - IMAGE_PADDING);
+        newLabel += "..";
     }
 
     textLabel->setText(newLabel);
@@ -562,11 +577,11 @@ void DockNodeItem::updateStyleSheet()
         switch (state) {
         case HIGHLIGHTED:
             backgroundColor = highlightColor;
-            hoverBorder = "none";
+            hoverBorder = "none;";
             break;
         case READONLY:
-            //backgroundColor = "rgba(200,200,200,0.8)";
-            hoverBorder = "none";
+            //backgroundColor = "rgba(200,200,200,0.8);";
+            hoverBorder = "none;";
             break;
         default:
             break;
@@ -595,7 +610,7 @@ void DockNodeItem::clicked()
         return;
     }
     if (isDockItemLabel()) {
-        setDockItemExpanded();
+        toggleDockItemExpanded();
     } else {
         emit dockItem_clicked();
     }
@@ -671,9 +686,9 @@ void DockNodeItem::changeVectorHiddenState()
 
 
 /**
- * @brief DockNodeItem::setDockItemExpanded
+ * @brief DockNodeItem::toggleDockItemExpanded
  */
-void DockNodeItem::setDockItemExpanded()
+void DockNodeItem::toggleDockItemExpanded()
 {
     if (isDockItemLabel()) {
         if (expanded) {

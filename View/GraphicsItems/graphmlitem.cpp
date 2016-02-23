@@ -25,7 +25,6 @@
 #define TOP_LABEL_RATIO (1.0 / 6.0)
 #define RIGHT_LABEL_RATIO (1.5 / 6.0)
 #define BOTTOM_LABEL_RATIO (1.0 / 9.0)
-#define LABEL_RATIO (1 - ICON_RATIO)
 
 
 
@@ -136,7 +135,7 @@ void GraphMLItem::setRenderState(GraphMLItem::RENDER_STATE renderState)
  * @brief GraphMLItem::firstChildAdded
  * @param item
  */
-void GraphMLItem::firstChildAdded(GraphMLItem* child)
+void GraphMLItem::firstChildAdded(GraphMLItem*)
 {
     // Do nothing
 }
@@ -508,18 +507,18 @@ void GraphMLItem::updateCurrentPen(bool zoomChanged)
     }
 }
 
-void GraphMLItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void GraphMLItem::hoverEnterEvent(QGraphicsSceneHoverEvent *)
 {
     handleHover(true);
 }
 
-void GraphMLItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void GraphMLItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *)
 {
     handleHover(false);
     unsetCursor();
 }
 
-void GraphMLItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void GraphMLItem::hoverMoveEvent(QGraphicsSceneHoverEvent *)
 {
     handleHover(true);
 }

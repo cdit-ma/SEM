@@ -35,7 +35,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     getLayout()->addLayout(mainLayout);
 
     setNotAllowedKinds(definitions_notAllowedKinds);
-    setDockEnabled(false);
+    setDockOpen(false);
 
     connectToView();
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
@@ -67,7 +67,7 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
  * @param nodeKind
  * @return
  */
-QList<DockNodeItem *> DefinitionsDockScrollArea::getDockItemsOfKind(QString nodeKind)
+QList<DockNodeItem*> DefinitionsDockScrollArea::getDockItemsOfKind(QString nodeKind)
 {
     QList<DockNodeItem*> itemsOfKind;
 
@@ -171,7 +171,7 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     DockNodeItem* dockNodeItem = qobject_cast<DockNodeItem*>(QObject::sender());
 
     if (!selectedNodeItem || !dockNodeItem || dockNodeItem->isDockItemLabel()) {
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 
@@ -179,11 +179,8 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     int dockNodeID = dockNodeItem->getID().toInt();
     getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, sourceDockItemKind, 0);
 
-    // disable this dock after an item has been clicked
-    dockClosed();
-
-    // then re-open the parts dock
-    emit dock_forceOpenDock(PARTS_DOCK);
+    // this closes this dock and then re-opens the parts dock
+    emit dock_forceOpenDock();
 }
 
 
@@ -201,7 +198,7 @@ void DefinitionsDockScrollArea::updateDock()
 
     // if there is no selected item, disable the dock
     if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 
@@ -209,7 +206,9 @@ void DefinitionsDockScrollArea::updateDock()
     if (getCurrentNodeID() == sourceSelectedItemID) {
         filterDock();
     } else {
-        setDockEnabled(false);
+        if (isDockOpen()) {
+            emit dock_forceOpenDock();
+        }
     }
 }
 
@@ -263,14 +262,14 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
         return;
     }
 
-    if (!isDockEnabled()) {
-        setDockEnabled(true);
-    }
-
     sourceDockItemKind = srcKind;
     sourceSelectedItemID = getCurrentNodeID();
 
-    getParentButton()->pressed();
+    // close the sender dock then open this dock
+    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+    dock->setDockOpen(false);
+
+    setDockOpen();
     filterDock(srcKind);
 }
 
@@ -301,10 +300,9 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
             }
             infoLabelText = "There are no IDL files containing " + kind + " entities.";
         }
-    } else if (nodeKind.endsWith("Delegate")) {
+    } else if (nodeKind.endsWith("Port") || nodeKind.endsWith("Delegate")) {
         kind = "Aggregate";
         infoLabelText = "There are no IDL files containing Aggregate entities.";
-
     } else if (nodeKind.endsWith("Impl")) {
         kind = nodeKind.remove("Impl");
         if (kind == "Component") {
@@ -317,7 +315,7 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
         }
     } else {
         qWarning() << "DefinitionsDockScrollArea::filterDock - Node kind is not handled.";
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 
@@ -342,15 +340,11 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
 /**
  * @brief DefinitionsDockScrollArea::dockClosed
  * This is called everytime the dock is closed.
- * It is either when the parent toggle button or an item in this dock has been clicked.
+ * It is either when the selection has changed or an item in this dock has been clicked.
  */
 void DefinitionsDockScrollArea::dockClosed()
 {
-    // the moment this dock is closed, it is also disabled
-    if (isDockEnabled()) {
-        setDockEnabled(false);
-    }
-
+    // reset previous source kind and ID that were used to filter this dock
     sourceDockItemKind = "";
     sourceSelectedItemID = -1;
 }
@@ -366,7 +360,7 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
 {
     // disable the dock
     if (nodeKind.isEmpty()) {
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 
@@ -435,14 +429,14 @@ void DefinitionsDockScrollArea::showChildrenOutEventPorts()
     NodeItem* selectedItem = getCurrentNodeItem();
     if (getCurrentNodeID() == -1 || !selectedItem || !selectedItem->getNodeAdapter()) {
         qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - The selected entity is invalid.";
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 
     int definitionID = selectedItem->getNodeAdapter()->getDefinitionID();
     if (definitionID == -1) {
         qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - The selected entity doesn't have a definition.";
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 

@@ -17,6 +17,8 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
     kindsRequiringDefinition.append("ComponentImpl");
     kindsRequiringDefinition.append("AggregateInstance");
     kindsRequiringDefinition.append("VectorInstance");
+    kindsRequiringDefinition.append("InEventPort");
+    kindsRequiringDefinition.append("OutEventPort");
     kindsRequiringDefinition.append("InEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortImpl");
@@ -99,10 +101,12 @@ void PartsDockScrollArea::forceOpenDock()
     if (!isDockEnabled()) {
         setDockEnabled(true);
     }
-    if (getParentButton()) {
-        getParentButton()->pressed();
-        updateDock();
-    }
+
+    // close the sender dock then open this dock
+    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+    dock->setDockOpen(false);
+    setDockOpen();
+    updateDock();
 }
 
 
@@ -162,9 +166,9 @@ void PartsDockScrollArea::dockNodeItemClicked()
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
     QString nodeKind = sender->getKind();
     if (kindsRequiringDefinition.contains(nodeKind)) {
-        emit dock_forceOpenDock(DEFINITIONS_DOCK, nodeKind);
+        emit dock_forceOpenDock(nodeKind);
     } else if (kindsRequiringFunction.contains(nodeKind)) {
-        emit dock_forceOpenDock(FUNCTIONS_DOCK);
+        emit dock_forceOpenDock();
     } else {
         getNodeView()->constructNode(nodeKind, 0);
     }

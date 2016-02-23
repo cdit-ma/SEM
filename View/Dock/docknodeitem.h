@@ -71,7 +71,7 @@ private:
     void updateTextLabel();
     void updateStyleSheet();
 
-    void setDockItemExpanded();
+    void toggleDockItemExpanded();
     bool hasVisibleChildren();
 
     DockScrollArea* parentDock;
@@ -97,6 +97,7 @@ private:
     bool forceHidden;
 
     int state;
+    int MAX_LABEL_LENGTH;
 };
 
 #endif // DOCKNODEITEM_H

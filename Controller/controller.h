@@ -21,6 +21,10 @@
 
 #include "../doublehash.h"
 
+#define DANCE_EXECUTION_MANAGER "DANCE_EXECUTION_MANAGER"
+#define DANCE_PLAN_LAUNCHER "DANCE_PLAN_LAUNCHER"
+#define QPID_BROKER "QPID_BROKER"
+#define DDS_LOGGING_SERVER "DDS_LOGGING_SERVER"
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 enum MESSAGE_TYPE{CRITICAL, WARNING, MESSAGE, MODEL};
@@ -249,7 +253,7 @@ private slots:
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
     void constructWorkerProcessNode(int parentID,QString workerName, QString operationName, QPointF position);
-    void constructEdge(int srcID, int dstID, bool reverseOkay = false);
+    void constructEdge(int srcID, int dstID);
     void destructEdge(int srcID, int dstID);
     void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);
     void setData(int parentID, QString keyName, QVariant dataValue);
@@ -367,7 +371,7 @@ private:
 
 
     //Constructs a Vector of basic Data entities required for creating a Node.
-    QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1));
+    QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1), QString nodeType="", QString nodeLabel="");
     QList<Data*> constructPositionDataVector(QPointF point);
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
@@ -512,6 +516,7 @@ private:
 
     //QHash<QString, int> treeLookup;
     //QHash<int, QString> reverseTreeLookup;
+
 
     QString getProcessName(Process* process);
 

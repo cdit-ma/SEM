@@ -27,6 +27,11 @@
 #include <QProgressDialog>
 #include <QTemporaryFile>
 
+#include <QGuiApplication>
+#include <QScreen>
+#include <QDebug>
+
+
 #include <QXmlQuery>
 #include <QXmlResultItems>
 
@@ -49,6 +54,7 @@
 #include "View/Dock/functionsdockscrollarea.h"
 
 #include "View/Validate/validatedialog.h"
+#include "View/medeasplash.h"
 
 #include "CUTS/cutsmanager.h"
 
@@ -182,8 +188,9 @@ private slots:
     void menuActionTriggered();
 
     void dockButtonPressed();
-    void forceOpenDock(DOCK_TYPE type, QString srcKind = "");
+    void updateDockLabel();
 
+    void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);
     void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
@@ -212,7 +219,8 @@ private slots:
 
     void dialogRejected();
 
-    QStringList fileSelector(QString title, QString fileString, bool open, bool allowMultiple=true, QString fileName = "");
+    QStringList fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple=true, QString fileName = "");
+
 protected:
     void closeEvent(QCloseEvent*);
     void resizeEvent(QResizeEvent* event);
@@ -357,6 +365,8 @@ private:
     DefinitionsDockScrollArea* definitionsDock;
     FunctionsDockScrollArea* functionsDock;
 
+    QLabel* openedDockLabel;
+
     QDialog* dockStandAloneDialog;
     QGroupBox* docksArea;
     QGroupBox* dockButtonsBox;
@@ -399,8 +409,9 @@ private:
     QLabel* progressLabel;
     QString progressAction;
 
+    QGroupBox* loadingBox;
     QLabel* loadingLabel;
-    QMovie* loadingMovie;
+    QLabel* loadingMovieLabel;
 
     QLabel* notificationsBar;
     QTimer* notificationTimer;
@@ -482,6 +493,9 @@ private:
     bool initialSettingsLoaded;
     bool maximizedSettingInitiallyChanged;
 
+
+    bool SAVE_WINDOW_SETTINGS;
+
     bool WINDOW_MAXIMIZED;
     bool WINDOW_FULLSCREEN;
 
@@ -504,6 +518,8 @@ private:
     bool validate_TempExport;
     QString validation_report_path;
     QString componentName_CPPExport;
+
+    MedeaSplash* splashScreen;
 
     // QWidget interface
 protected:
