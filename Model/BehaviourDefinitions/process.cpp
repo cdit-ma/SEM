@@ -15,5 +15,13 @@ bool Process::canAdoptChild(Node* node)
     if(!parameter){
         return false;
     }
+
+    foreach(Node* c, getChildren(0)){
+        Parameter* child = dynamic_cast<Parameter*>(c);
+        if(child->isReturnParameter() && parameter->isReturnParameter()){
+            return false;
+        }
+    }
+
     return BehaviourNode::canAdoptChild(node);
 }

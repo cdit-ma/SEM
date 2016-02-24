@@ -240,7 +240,6 @@ void NewController::setExternalWorkerDefinitionPath(QString path)
  */
 void NewController::loadWorkerDefinitions()
 {
-    controller_ActionProgressChanged(0, "Loading Worker Definitions");
     //We will be importing into the workerDefinitions aspect.
     Node* workerDefinition = getWorkerDefinitions();
     if(workerDefinition){
@@ -268,7 +267,6 @@ void NewController::loadWorkerDefinitions()
         }
 
         IMPORTING_WORKERDEFINITIONS = true;
-        float loadCount = 0;
         foreach(QString file, filesToLoad){
             QPair<bool, QString> data = readFile(file);
             //If the file was read.
@@ -282,9 +280,6 @@ void NewController::loadWorkerDefinitions()
             }else{
                  emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + file +"'!");
             }
-            loadCount++;
-
-            controller_ActionProgressChanged((loadCount / filesToLoad.size()) * 100);
         }
 
 
@@ -681,7 +676,7 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
         if(kind == "InputParameter"){
             Node* matchingParameter = 0;
 
-            QList<Node*> inputParameters = parentNode->getChildrenOfKind("InputParamter", 0);
+            QList<Node*> inputParameters = parentNode->getChildrenOfKind("InputParameter", 0);
 
 
             //Look for matching variables.
@@ -704,9 +699,6 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
                     }
                 }
             }else{
-                if(inputParameters.isEmpty()){
-
-                }
                 //If we don't have a matching parameter.
                 ignore = true;
             }
