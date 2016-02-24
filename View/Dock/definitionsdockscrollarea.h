@@ -8,7 +8,7 @@ class DefinitionsDockScrollArea : public DockScrollArea
     Q_OBJECT
 
 public:    
-    explicit DefinitionsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent = 0);
+    explicit DefinitionsDockScrollArea(DOCK_TYPE type, NodeView *view, DockToggleButton *parent = 0);
 
     QList<DockNodeItem*> getDockNodeItems();
     QList<DockNodeItem*> getDockItemsOfKind(QString nodeKind);

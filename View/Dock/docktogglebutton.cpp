@@ -38,7 +38,6 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
 
     switch (type) {
     case PARTS_DOCK:
-        //pixmap = QPixmap::fromImage(QImage(":/Actions/Backward.png"));
         pixmap = QPixmap::fromImage(QImage(":/Actions/Parts.png"));
         setToolTip("Parts Dock");
         break;

@@ -188,11 +188,13 @@ private slots:
     void menuActionTriggered();
 
     void dockButtonPressed();
-    void dockToggled(bool opened, QString dockAction = "");
+    void dockToggled(bool opened, QString kindToConstruct = "");
     void dockBackButtonTriggered();
 
     void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);
+    void closeProgressDialog();
+
     void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
     void updateSearchLineEdits();
@@ -217,7 +219,6 @@ private slots:
     //multi-line popup for QTableView (SLOTS)
     void dataTableDoubleClicked(QModelIndex);
     void dialogAccepted();
-
     void dialogRejected();
 
     QStringList fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple=true, QString fileName = "");
@@ -264,16 +265,21 @@ private:
 
     void teardownProject();
     void setupProject();
-    void setupMenu(QPushButton* button);
-    void setupDocks(QHBoxLayout* layout);
+
+    void setupMenu();
+    void setWindowStyleSheet();
     void setupSearchTools();
+    void setupDocks(QHBoxLayout* layout);
+    void setupInfoWidgets(QHBoxLayout* layout);
 
     void setupToolbar();
     bool constructToolbarButton(QToolBar* toolbar, QAction* action, QString actionName);
 
     void setupMultiLineBox();
 
-    void updateWidgetsOnWindowChanged();
+    void updateWidgetsOnWindowChange();
+    void updateWidgetsOnProjectChange(bool projectActive = true);
+
     void updateDock();
     void updateToolbar();
     void updateDataTable();
@@ -294,6 +300,7 @@ private:
     QPushButton *closeProjectButton;
     QGroupBox* menuTitleBox;
 
+    QPushButton* menuButton;
     QMenu* menu;
     QMenu* file_menu;
     QMenu* edit_menu;
@@ -359,8 +366,6 @@ private:
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
-    DockToggleButton* definitionsButton;
-    DockToggleButton* functionsButton;
 
     PartsDockScrollArea* partsDock;
     HardwareDockScrollArea* hardwareDock;
@@ -411,12 +416,13 @@ private:
     AspectToggleWidget* hardwareToggle;
     QList<AspectToggleWidget*> aspectToggles;
 
-
+	QDialog* progressDialog;
     QMovie* loadingMovie;
 
     QProgressBar* progressBar;
     QLabel* progressLabel;
     QString progressAction;
+    bool progressDialogVisible;
 
     QGroupBox* loadingBox;
     QLabel* loadingLabel;
@@ -501,7 +507,6 @@ private:
     bool settingsLoading;
     bool initialSettingsLoaded;
     bool maximizedSettingInitiallyChanged;
-
 
     bool SAVE_WINDOW_SETTINGS;
 

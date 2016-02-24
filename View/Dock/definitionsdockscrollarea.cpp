@@ -7,12 +7,12 @@
 
 /**
  * @brief DefinitionsDockScrollArea::DefinitionsDockScrollArea
- * @param label
+ * @param type
  * @param view
  * @param parent
  */
-DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* view, DockToggleButton* parent) :
-    DockScrollArea(label, view, parent, "No entity of the following kinds has been constructed: <br/>Aggregate, BlackBox, Component and Vector")
+DefinitionsDockScrollArea::DefinitionsDockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton* parent) :
+    DockScrollArea(type, view, parent, "No entity of the following kinds has been constructed: <br/>Aggregate, BlackBox, Component and Vector")
 {
     // this is the list of entity kinds that this dock constructs items for
     definitionKinds.append("IDL");
@@ -255,7 +255,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
  */
 void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
 {
-    if (isDockOpen() || !getParentButton() || !getCurrentNodeItem() || (getCurrentNodeID() == -1)) {
+    if (isDockOpen() || !getCurrentNodeItem() || (getCurrentNodeID() == -1)) {
         return;
     }
 
@@ -357,7 +357,8 @@ void DefinitionsDockScrollArea::dockToggled(bool opened)
 {
     QString action = "";
     if (opened) {
-        action = "Select to construct a " + sourceDockItemKind;
+        //action = "Select to construct a " + sourceDockItemKind;
+        action = sourceDockItemKind;
     }
     emit dock_toggled(opened, action);
 }

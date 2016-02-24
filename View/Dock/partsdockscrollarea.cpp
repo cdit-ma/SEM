@@ -5,12 +5,13 @@
 
 /**
  * @brief PartsDockScrollArea::PartsDockScrollArea
- * @param label
+ * @param type
  * @param view
  * @param parent
  */
-PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent) :
-    DockScrollArea(label, view, parent, "Selected entity cannot adopt any other entity.")
+
+PartsDockScrollArea::PartsDockScrollArea(DOCK_TYPE type, NodeView *view, DockToggleButton *parent) :
+    DockScrollArea(type, view, parent, "Selected entity cannot adopt any other entity.")
 {
     kindsRequiringDefinition.append("BlackBoxInstance");
     kindsRequiringDefinition.append("ComponentInstance");
@@ -146,6 +147,10 @@ bool PartsDockScrollArea::kindRequiresDockSwitching(QString dockItemKind)
     return kindsRequiringDefinition.contains(dockItemKind) || kindsRequiringFunction.contains(dockItemKind);
 }
 
+
+/**
+ * @brief PartsDockScrollArea::connectToView
+ */
 void PartsDockScrollArea::connectToView()
 {
     NodeView* view = getNodeView();
@@ -168,8 +173,10 @@ void PartsDockScrollArea::dockNodeItemClicked()
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
     QString nodeKind = sender->getKind();
     if (kindsRequiringDefinition.contains(nodeKind)) {
+        //qDebug() << "Open Definitions Dock";
         emit dock_forceOpenDock(nodeKind);
     } else if (kindsRequiringFunction.contains(nodeKind)) {
+        //qDebug() << "Open Functions Dock";
         emit dock_forceOpenDock();
     } else {
         getNodeView()->constructNode(nodeKind, 0);

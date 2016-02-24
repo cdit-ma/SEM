@@ -8,7 +8,7 @@ class PartsDockScrollArea : public DockScrollArea
     Q_OBJECT
 
 public:
-    explicit PartsDockScrollArea(QString label, NodeView* view, DockToggleButton *parent);
+    explicit PartsDockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton *parent);
 
     void addDockNodeItems(QStringList nodeKinds);
     bool kindRequiresDockSwitching(QString dockItemKind);

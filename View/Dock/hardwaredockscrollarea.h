@@ -8,7 +8,7 @@ class HardwareDockScrollArea : public DockScrollArea
     Q_OBJECT
     
 public:
-    explicit HardwareDockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
+    explicit HardwareDockScrollArea(DOCK_TYPE type, NodeView *view, DockToggleButton *parent);
 
     void connectToView();
     

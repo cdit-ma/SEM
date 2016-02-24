@@ -9,7 +9,7 @@ class FunctionsDockScrollArea : public DockScrollArea
     Q_OBJECT
 
 public:
-    explicit FunctionsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent = 0);
+    explicit FunctionsDockScrollArea(DOCK_TYPE type, NodeView *view, DockToggleButton *parent = 0);
 
     void addDockNodeItems(QList<QPair<QString, QString> > functionKinds);
     void connectToView();

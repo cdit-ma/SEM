@@ -6,12 +6,12 @@
 
 /**
  * @brief FunctionsDockScrollArea::FunctionsDockScrollArea
- * @param label
+ * @param type
  * @param view
  * @param parent
  */
-FunctionsDockScrollArea::FunctionsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent) :
-    DockScrollArea(label, view, parent, "No worker definition has been imported.")
+FunctionsDockScrollArea::FunctionsDockScrollArea(DOCK_TYPE type, NodeView *view, DockToggleButton *parent) :
+    DockScrollArea(type, view, parent, "No worker definition has been imported.")
 {
     // setup definitions-dock specific layout
     mainLayout = new QVBoxLayout();
@@ -227,7 +227,8 @@ void FunctionsDockScrollArea::dockToggled(bool opened)
 {
     QString action = "";
     if (opened) {
-        action = "Select to construct a Process";
+        //action = "Select to construct a Process";
+        action = "Process";
     }
     emit dock_toggled(opened, action);
 }
@@ -238,14 +239,12 @@ void FunctionsDockScrollArea::dockToggled(bool opened)
  */
 void FunctionsDockScrollArea::forceOpenDock()
 {
-    if (isDockOpen()) {
-        return;
+    if (!isDockOpen()) {
+        // close the sender dock then open this dock
+        DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+        if (dock) {
+            dock->setDockOpen(false);
+        }
+        setDockOpen();
     }
-
-    // close the sender dock then open this dock
-    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
-    if (dock) {
-        dock->setDockOpen(false);
-    }
-    setDockOpen();
 }
