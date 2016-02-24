@@ -129,8 +129,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     resetView();
 
+    show();
     // load the initial settings
-    //splashScreen->showMessage("Setting Up View");
+    splashScreen->showMessage("Setting Up View");
     setupInitialSettings();
     splashScreen->raise();
 
@@ -150,6 +151,10 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
  */
 MedeaWindow::~MedeaWindow()
 {
+    if(loadingMovie){
+        delete loadingMovie;
+    }
+
     if (appSettings) {
         saveSettings();
         delete appSettings;
@@ -168,6 +173,8 @@ MedeaWindow::~MedeaWindow()
     if(jenkinsManager){
         delete jenkinsManager;
     }
+
+
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
@@ -503,7 +510,7 @@ void MedeaWindow::initialiseGUI()
     loadingBox = new QGroupBox(this);
     loadingLabel = new QLabel("Loading...", this);
     loadingMovieLabel = new QLabel(this);
-    QMovie* loadingMovie = new QMovie(":/Actions/Loading.gif");
+    loadingMovie = new QMovie(":/Actions/Loading.gif");
 
     loadingLabel->setStyleSheet(/*"font-weight: bold;*/ "font: 14px; color: black;");
     loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);

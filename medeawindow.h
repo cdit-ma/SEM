@@ -411,6 +411,9 @@ private:
     AspectToggleWidget* hardwareToggle;
     QList<AspectToggleWidget*> aspectToggles;
 
+
+    QMovie* loadingMovie;
+
     QProgressBar* progressBar;
     QLabel* progressLabel;
     QString progressAction;

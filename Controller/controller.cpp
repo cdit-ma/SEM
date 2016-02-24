@@ -273,6 +273,7 @@ void NewController::loadWorkerDefinitions()
             //If the file was read.
             if(data.first){
                 bool success = _newImportGraphML(data.second, workerDefinition);
+
                 if(!success){
                     emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + file +"'!");
                 }else{
@@ -5720,6 +5721,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     if(updateProgressNotification()){
         emit controller_ActionProgressChanged(100);
     }
+    return true;
 }
 
 ReadOnlyState NewController::getReadOnlyState(Node *node)
