@@ -141,7 +141,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     initialSettingsLoaded = true;
 
-    newProject();
+    //newProject();
 }
 
 

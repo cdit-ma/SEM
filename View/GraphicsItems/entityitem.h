@@ -455,6 +455,8 @@ private:
     QBrush readOnlyBodyBrush;
     QBrush readOnlyHeaderBrush;
 
+    QBrush readOnlyDefBodyBrush;
+    QBrush readOnlyDefHeaderBrush;
 
     QBrush errorHeaderBrush;
 

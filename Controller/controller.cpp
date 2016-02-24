@@ -63,6 +63,7 @@ NewController::NewController()
     viewAspects << "Assembly" << "Workload" << "Definitions" << "Hardware";
     protectedKeyNames << "kind";
     protectedKeyNames << "worker" << "operation" << "workerID" << "description";
+    protectedKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime" << "readOnlyDefinition";
 
     visualKeyNames << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
 
@@ -5430,6 +5431,9 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     //Stores a list of Node IDs which are Read-Only.
     QList<int> existingReadOnlyIDs;
 
+    //Store a list of readOnlyStates which have been asked about.
+    QList<ReadOnlyState> olderSnippetsImported;
+
     //Deal with read only objects first.
     foreach(QString ID, nodeIDStack){
         TempEntity *entity = entityHash[ID];
@@ -5444,7 +5448,23 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     ReadOnlyState oldState = getReadOnlyState(node);
                     //If the current state is newer than the historic document, ask the user.
                     if(state.isOlder(oldState)){
-                        bool importOlder = askQuestion(CRITICAL, "Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", nodeID);
+                        bool askQ = true;
+                        bool importOlder = true;
+
+                        //Check to see if we have asked the question before.
+                        foreach(ReadOnlyState oState, olderSnippetsImported){
+                            if(state.isSimilar(oState)){
+                                askQ = false;
+                                importOlder = oState.imported;
+                                break;
+                            }
+                        }
+
+                        if(askQ){
+                            importOlder = askQuestion(CRITICAL, "Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", nodeID);
+                            state.imported = importOlder;
+                            olderSnippetsImported << state;
+                        }
                         if(!importOlder){
                             //Ignore construction.
                             entity->setIgnoreConstruction(true);
@@ -5517,8 +5537,6 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     //Update Data.
                     //TODO Check to see if all datas were added, if not delete them.
                     _attachData(node, entity->takeDataList());
-                }else{
-                    qCritical() << "CANT FIND NODE";
                 }
             }
 

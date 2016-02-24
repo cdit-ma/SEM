@@ -50,6 +50,8 @@ struct ReadOnlyState{
     long exportTime;
     int snippetID;
 
+    bool imported;
+
     bool operator==(const ReadOnlyState &other) const{
         return (snippetID == other.snippetID) && (snippetTime == other.snippetTime) && (snippetMAC == other.snippetMAC);
     }
@@ -61,6 +63,12 @@ struct ReadOnlyState{
             if(exportTime < other.exportTime){
                 return true;
             }
+        }
+        return false;
+    }
+    bool isSimilar(const ReadOnlyState &other) const{
+        if((snippetMAC == other.snippetMAC) && (snippetTime == other.snippetTime)){
+            return true;
         }
         return false;
     }

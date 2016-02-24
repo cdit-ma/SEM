@@ -632,9 +632,13 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         QBrush headBrush = this->headerBrush;
         QBrush bodyBrush = this->bodyBrush;
 
-        if(IS_READ_ONLY || IS_READ_ONLY_DEF){
+        if(IS_READ_ONLY){
             bodyBrush = this->readOnlyBodyBrush;
             headBrush = this->readOnlyHeaderBrush;
+        }else if(IS_READ_ONLY_DEF){
+            bodyBrush = readOnlyDefBodyBrush;
+            headBrush = readOnlyDefHeaderBrush;
+
         }
 
         //Make the background transparent
@@ -2031,6 +2035,26 @@ void EntityItem::setupBrushes()
     bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
 
     errorHeaderBrush = QBrush(bColor);
+
+
+    blendColor = Qt::magenta;
+    blendFactor = .2;
+    bColor = bodyBrush.color();
+
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
+    bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
+
+
+    readOnlyDefBodyBrush = QBrush(bColor);
+
+    bColor = headerBrush.color();
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
+    bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
+
+    readOnlyDefHeaderBrush = QBrush(bColor);
+
 }
 
 
