@@ -243,7 +243,6 @@ private:
     QString writeProjectToTempFile();
 
     void populateDocks();
-    void _getCPPForComponent(QString filePath);
     bool canFilesBeDragImported(const QList<QUrl> files);
     void setupApplication();
     void initialiseJenkinsManager();

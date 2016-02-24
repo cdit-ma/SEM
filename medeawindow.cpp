@@ -1915,10 +1915,6 @@ void MedeaWindow::populateDocks()
     }
 }
 
-void MedeaWindow::_getCPPForComponent(QString filePath)
-{
-    emit window_GetCPPForComponent(filePath, componentName_CPPExport);
-}
 
 bool MedeaWindow::canFilesBeDragImported(QList<QUrl> files)
 {
@@ -2108,7 +2104,7 @@ void MedeaWindow::gotXMETransform(bool success, QString errorString, QString pat
 void MedeaWindow::gotCPPForComponent(bool success, QString errorString, QString componentName, QString code)
 {
     setEnabled(true);
-    updateProgressStatus(100, "");
+    displayLoadingStatus(false);
     if(!success){
         QMessageBox::critical(this, "XSL Transformation for CPP Error", errorString, QMessageBox::Ok);
     }else{
@@ -2385,6 +2381,7 @@ void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
 
 void MedeaWindow::generateCPPForComponent(QString componentName)
 {
+    displayLoadingStatus(true, "Getting CPP for Component Impl");
     QString exportFile = writeProjectToTempFile();
     if(exportFile.isEmpty()){
         return;

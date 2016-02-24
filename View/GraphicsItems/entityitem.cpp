@@ -754,8 +754,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, IP_TOPLEFT, "Actions", "MenuCluster");
         }else if(IS_READ_ONLY){
             paintPixmap(painter, IP_TOPLEFT, "Actions", "Lock_Closed");
-        }else if(IS_READ_ONLY_DEF){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Definition");
         }
 
         if(isInputParameter){
