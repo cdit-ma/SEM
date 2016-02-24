@@ -36,6 +36,7 @@ NewController::NewController()
     USE_LOGGING = false;
     UNDOING = false;
     OPENING_PROJECT = false;
+    IMPORTING_WORKERDEFINITIONS = false;
     INITIALIZING = true;
     viewSignalsEnabled = true;
     REDOING = false;
@@ -266,6 +267,7 @@ void NewController::loadWorkerDefinitions()
             }
         }
 
+        IMPORTING_WORKERDEFINITIONS = true;
         float loadCount = 0;
         foreach(QString file, filesToLoad){
             QPair<bool, QString> data = readFile(file);
@@ -297,6 +299,7 @@ void NewController::loadWorkerDefinitions()
                 }
             }
         }
+        IMPORTING_WORKERDEFINITIONS = false;
     }
     //Once we have loaded in workers, we should keep a dictionary lookup for them.
 }
@@ -394,7 +397,7 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
 
         }
         //Export the XML for this node
-        if(ignoreVisuals){
+        if(!ignoreVisuals){
             nodeXML += node->toGraphML(2);
         }else{
             nodeXML += node->toGraphMLNoVisualData(2);
@@ -5309,11 +5312,15 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     QXmlStreamReader xml(document);
 
     bool linkPreviousID = false;
+    bool resetPosition = false;
 
     if((UNDOING || REDOING) || CUT_USED){
         linkPreviousID = true;
     }
 
+    if(PASTE_USED || IMPORTING_WORKERDEFINITIONS){
+        resetPosition = true;
+    }
 
     //Construct a top level Entity
     TempEntity* topEntity = new TempEntity(Entity::EK_NODE);
@@ -5352,6 +5359,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 QString ID = getXMLAttribute(xml, "id");
                 int prevID = getIntFromQString(ID);
 
+
                 TempEntity* entity = new TempEntity(currentEntityKind, currentEntity);
                 entity->setID(ID);
                 entity->setPrevID(prevID);
@@ -5361,8 +5369,14 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                 if(currentEntityKind == Entity::EK_EDGE){
                     //Handle Source/Target for edges.
-                    entity->setSrcID(getXMLAttribute(xml, "source"));
-                    entity->setDstID(getXMLAttribute(xml, "target"));
+                    QString srcID = getXMLAttribute(xml, "source");
+                    QString dstID = getXMLAttribute(xml, "target");
+
+                    entity->setSrcID(srcID);
+                    entity->setDstID(dstID);
+
+                    entity->setActualSrcID(getIntFromQString(srcID));
+                    entity->setActualDstID(getIntFromQString(dstID));
                 }
 
                 //Insert into the hash.
@@ -5377,6 +5391,12 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                 //Set the Item as the current Entity.
                 currentEntity = entity;
+
+                if(resetPosition && currentEntity){
+                    //Reset the position of the first item, then clear reset position.
+                    currentEntity->setResetPosition();
+                    resetPosition = false;
+                }
             }else if(currentKind == GraphML::GK_KEY){
                 QString ID = getXMLAttribute(xml, "id");
 
@@ -5533,7 +5553,6 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }
 
                     if(!newNode){
-                        qCritical() << "DIDN'T CONSTRUCT NEW NODE";
                         emit controller_DisplayMessage(WARNING, "Import Error", "Cannot Create Node from document at line#" + QString::number(entity->getLineNumber()));
                         entity->setIgnoreConstruction();
                         continue;
@@ -5583,28 +5602,37 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         TempEntity *entity = entityHash[ID];
 
         if(entity && entity->isEdge()){
-            QString srcID = entity->getSrcID();
-            QString dstID = entity->getDstID();
+            TempEntity* srcEntity = entityHash[entity->getSrcID()];
+            TempEntity* dstEntity = entityHash[entity->getDstID()];
 
-            TempEntity* srcEntity = entityHash[srcID];
-            TempEntity* dstEntity = entityHash[dstID];
-			if(srcEntity && dstEntity && srcEntity->gotActualID() && dstEntity->gotActualID()){
-                Node* src = getNodeFromID(srcEntity->getActualID());
-                Node* dst = getNodeFromID(dstEntity->getActualID());
-                if(src && dst){
-                    bool inMap = false;
-                    if(dst->isDefinition()){
-                        if(src->isInstance() || src->isImpl()){
-                            edgesMap.insertMulti(Edge::EC_DEFINITION, entity);
-                            inMap = true;
-                        }else if(dst->getNodeKind() == "Aggregate"){
-                            edgesMap.insertMulti(Edge::EC_AGGREGATE, entity);
-                            inMap = true;
-                        }
+            Node* src = 0;
+            Node* dst = 0;
+
+            if(srcEntity && srcEntity->gotActualID()){
+                src = getNodeFromID(srcEntity->getActualID());
+            }else if(entity->getActualSrcID() > 0){
+                src = getNodeFromID(entity->getActualSrcID());
+            }
+
+            if(dstEntity && dstEntity->gotActualID()){
+                dst = getNodeFromID(dstEntity->getActualID());
+            }else if(entity->getActualDstID() > 0){
+                dst = getNodeFromID(entity->getActualDstID());
+            }
+
+            if(src && dst){
+                bool inMap = false;
+                if(dst->isDefinition()){
+                    if(src->isInstance() || src->isImpl()){
+                        edgesMap.insertMulti(Edge::EC_DEFINITION, entity);
+                        inMap = true;
+                    }else if(dst->getNodeKind() == "Aggregate"){
+                        edgesMap.insertMulti(Edge::EC_AGGREGATE, entity);
+                        inMap = true;
                     }
-                    if(!inMap){
-                        edgesMap.insertMulti(Edge::EC_NONE, entity);
-                    }
+                }
+                if(!inMap){
+                    edgesMap.insertMulti(Edge::EC_NONE, entity);
                 }
             }else{
                 //Don't construct if we have an error.
@@ -5622,14 +5650,25 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
         while(!entityList.isEmpty()){
             TempEntity* entity = entityList.takeFirst();
-            QString srcID = entity->getSrcID();
-            QString dstID = entity->getDstID();
+            if(entity){
+                TempEntity* srcEntity = entityHash[entity->getSrcID()];
+                TempEntity* dstEntity = entityHash[entity->getDstID()];
 
-            TempEntity* srcEntity = entityHash[srcID];
-            TempEntity* dstEntity = entityHash[dstID];
-            if(srcEntity->gotActualID() && dstEntity->gotActualID()){
-                Node* src = getNodeFromID(srcEntity->getActualID());
-                Node* dst = getNodeFromID(dstEntity->getActualID());
+                Node* src = 0;
+                Node* dst = 0;
+
+                if(srcEntity && srcEntity->gotActualID()){
+                    src = getNodeFromID(srcEntity->getActualID());
+                }else if(entity->getActualSrcID() > 0){
+                    src = getNodeFromID(entity->getActualSrcID());
+                }
+
+                if(dstEntity && dstEntity->gotActualID()){
+                    dst = getNodeFromID(dstEntity->getActualID());
+                }else if(entity->getActualDstID() > 0){
+                    dst = getNodeFromID(entity->getActualDstID());
+                }
+
                 if(src && dst){
                     Edge* edge = src->getEdgeTo(dst);
                     if(edge){
@@ -5638,10 +5677,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                         edge = constructEdgeWithData(src, dst, entity->takeDataList());
                     }
 
-                    if(!edge && entity->getRetryCount() < 3){
-                        entity->incrementRetryCount();
-                        entityList.append(entity);
-                    }else{
+                    if(edge){
                         if(updateProgressNotification()){
                             emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing Edges");
                         }
@@ -5650,6 +5686,11 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                         if(linkPreviousID && entity->hasPrevID()){
                             //Link the old ID
                             linkOldIDToID(entity->getPrevID(), edge->getID());
+                        }
+                    }else{
+                        if(entity->getRetryCount() < 3){
+                            entity->incrementRetryCount();
+                            entityList.append(entity);
                         }
                     }
                 }

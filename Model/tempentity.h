@@ -13,6 +13,7 @@ public:
     ~TempEntity();
     void setLineNumber(int lineNumber);
 
+    void setResetPosition();
     bool shouldConstruct();
     bool ignoreConstruct();
     void setIgnoreConstruction(bool ignore=true);
@@ -59,8 +60,13 @@ public:
 
     void setSrcID(QString ID);
     void setDstID(QString ID);
+    void setActualSrcID(int ID);
+    void setActualDstID(int ID);
     QString getSrcID();
     QString getDstID();
+
+    int getActualSrcID();
+    int getActualDstID();
 
 
 private:
@@ -75,9 +81,13 @@ private:
     QString parentID;
     QString srcID;
     QString dstID;
+    int actualSrcID;
+    int actualDstID;
+
     int retryCount;
     bool ignoreConstruction;
 
+    bool _resetPosition;
     bool isReadOnly;
     QList<Data*> dataList;
     Entity::ENTITY_KIND entityKind;

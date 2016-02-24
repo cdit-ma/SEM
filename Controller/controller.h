@@ -576,6 +576,7 @@ private:
     bool OPENING_PROJECT;
     bool IMPORTING_PROJECT;
     bool PASTE_USED;
+    bool IMPORTING_WORKERDEFINITIONS;
 
     int actionCount;
     QString currentAction;

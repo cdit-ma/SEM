@@ -5,8 +5,12 @@ TempEntity::TempEntity(Entity::ENTITY_KIND entityKind, TempEntity *parent)
     lineNumber = -1;
     actualID = -1;
     oldID = -1;
+    actualSrcID = -1;
+    actualDstID = -1;
+
     actualParentID = -1;
     ignoreConstruction = false;
+    _resetPosition = false;
     nodeKind = "";
     this->parent = parent;
 
@@ -33,6 +37,11 @@ TempEntity::~TempEntity()
 void TempEntity::setLineNumber(int lineNumber)
 {
     this->lineNumber = lineNumber;
+}
+
+void TempEntity::setResetPosition()
+{
+    _resetPosition = true;
 }
 
 bool TempEntity::shouldConstruct()
@@ -162,6 +171,8 @@ void TempEntity::addData(Data *data)
             readOnlyState.snippetMAC = data->getValue().toLongLong();
         }else if(keyName == "exportTime"){
             readOnlyState.exportTime = data->getValue().toInt();
+        }else if(_resetPosition && (keyName == "x" || keyName == "y")){
+            data->setValue(-1);
         }
         dataList.append(data);
     }
@@ -221,6 +232,16 @@ void TempEntity::setDstID(QString ID)
     dstID = ID;
 }
 
+void TempEntity::setActualSrcID(int ID)
+{
+    actualSrcID = ID;
+}
+
+void TempEntity::setActualDstID(int ID)
+{
+    actualDstID = ID;
+}
+
 QString TempEntity::getSrcID()
 {
     return srcID;
@@ -229,4 +250,14 @@ QString TempEntity::getSrcID()
 QString TempEntity::getDstID()
 {
     return dstID;
+}
+
+int TempEntity::getActualSrcID()
+{
+    return actualSrcID;
+}
+
+int TempEntity::getActualDstID()
+{
+    return actualDstID;
 }
