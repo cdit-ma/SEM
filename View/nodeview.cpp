@@ -1688,7 +1688,7 @@ void NodeView::sortSelection(bool recurse)
 {
     if(viewMutex.tryLock()){
         triggerAction("View: Sorting Selection");
-        emit view_updateProgressStatus(-1, "Sorting Selected Entities");
+        emit view_updateProgressStatus(-1, "Sorting selected entities");
 
         QList<GraphMLItem*> nodesToSort;
 
@@ -1725,14 +1725,13 @@ void NodeView::sortSelection(bool recurse)
         actionFinished();
     }
 
-
 }
 
 void NodeView::expandSelection(bool expand)
 {
     if(viewMutex.tryLock()){
         triggerAction("View: Expanding/Contracting Selection");
-        emit view_updateProgressStatus(-1, "Expanding/Contracting Selected Entities");
+        emit view_updateProgressStatus(-1, "Expanding/contracting selected entities");
 
         QList<GraphMLItem*> nodesToSort;
 
@@ -3089,7 +3088,7 @@ void NodeView::viewDeploymentAspect()
     emit view_toggleAspect(VA_ASSEMBLIES, true);
     emit view_toggleAspect(VA_HARDWARE, true);
     // only show a notification if there has been a change in view aspects
-    emit view_displayNotification("Turned on Deployment view aspects.",  notificationNumber, numberOfNotifications);
+    emit view_displayNotification("Turned on deployment view aspects.",  notificationNumber, numberOfNotifications);
 }
 
 QPixmap NodeView::getImage(QString alias, QString imageName)

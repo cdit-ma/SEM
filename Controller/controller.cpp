@@ -275,12 +275,12 @@ void NewController::loadWorkerDefinitions()
                 bool success = _newImportGraphML(data.second, workerDefinition);
 
                 if(!success){
-                    emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + file +"'!");
+                    emit controller_DisplayMessage(WARNING, "Cannot Import Worker Definition", "MEDEA cannot import worker definition '" + file +"'!");
                 }else{
                     qCritical() << "Loaded Worker Definition: " << file;
                 }
             }else{
-                 emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + file +"'!");
+                 emit controller_DisplayMessage(WARNING, "Cannot Read Worker Definition", "MEDEA cannot read worker definition '" + file + "'!");
             }
         }
 
@@ -444,7 +444,7 @@ bool NewController::_clear()
     if(reply){
         triggerAction("Clearing Model");
 
-        emit controller_ActionProgressChanged(0,"Clearing Model");
+        emit controller_ActionProgressChanged(0,"Clearing model");
         QList<Node*> childNodes = interfaceDefinitions->getChildren(0);
         // while(!childNodes.isEmpty())
         for(int i=0; i < childNodes.size(); i++){
@@ -885,7 +885,7 @@ void NewController::openProject(QString filePath, QString xmlData)
 
 
     if(updateProgressNotification()){
-        controller_ActionProgressChanged(0, "Opening Document: " + filePath);
+        controller_ActionProgressChanged(0, "Opening document: " + filePath);
     }
     bool result = _newImportGraphML(xmlData, getModel());
 
@@ -1038,14 +1038,14 @@ bool NewController::_paste(int ID, QString xmlData, bool addAction)
 
     Node* parentNode = getNodeFromID(ID);
     if(!parentNode){
-        controller_DisplayMessage(WARNING, "Paste" ,"Please select an entity to paste into.");
+        controller_DisplayMessage(WARNING, "Paste Error" ,"Please select an entity to paste into.");
         success = false;
     }else{
         if(isGraphMLValid(xmlData) && xmlData != ""){
             PASTE_USED = true;
             if(addAction){
                 triggerAction("Pasting Selection.");
-                emit controller_ActionProgressChanged(0, "Pasting Selection");
+                emit controller_ActionProgressChanged(0, "Pasting selection");
             }
 
             //Paste it into the current Selected Node,
@@ -1071,7 +1071,7 @@ bool NewController::_cut(QList<int> IDs, bool addAction)
     if(_copy(IDs)){
         if(addAction){
             triggerAction("Cutting Selected IDs");
-            emit controller_ActionProgressChanged(0, "Cutting Selection");
+            emit controller_ActionProgressChanged(0, "Cutting selection");
         }
         CUT_USED = true;
         _remove(IDs, false);
@@ -1123,7 +1123,7 @@ bool NewController::_remove(QList<int> IDs, bool addAction)
 
         if(addAction){
             triggerAction("Removing Selection");
-            emit controller_ActionProgressChanged(0,"Removing Selection");
+            emit controller_ActionProgressChanged(0,"Removing selection");
         }
 
         int deleted=0;
@@ -1169,7 +1169,7 @@ bool NewController::_replicate(QList<int> IDs, bool addAction)
 
         Node* node = getFirstNodeFromList(IDs);
         if(node && node->getParentNode()){
-            emit controller_ActionProgressChanged(0,"Replicating Selection");
+            emit controller_ActionProgressChanged(0,"Replicating selection");
             //Export the GraphML
             QString graphml = _exportGraphMLDocument(IDs, false, true);
             if(addAction){
@@ -1253,7 +1253,7 @@ bool NewController::_importSnippet(QList<int> IDs, QString fileName, QString fil
 
             if(addAction){
                 triggerAction("Importing Snippet: " + userFileName);
-                emit controller_ActionProgressChanged(0,"Importing Snippets");
+                emit controller_ActionProgressChanged(0,"Importing snippets");
             }
             IMPORTING_SNIPPET = true;
             success = _newImportGraphML(fileData, parent);//, false, false);
@@ -2571,7 +2571,7 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
 
         if(newNumber > 0){
             QString questionLabel = newLabel + "_" + QString::number(newNumber);
-            emit controller_DisplayMessage(WARNING, "Label isn't unique", "Found sibling entity with Label: '" + newLabel + "'. Setting '" + questionLabel + "' instead.",node->getID());
+            emit controller_DisplayMessage(WARNING, "Label Error", "Found sibling entity with label: '" + newLabel + "'. Setting '" + questionLabel + "' instead.",node->getID());
             newLabel = questionLabel;
         }
 
@@ -4395,7 +4395,7 @@ void NewController::enableDebugLogging(bool logMode, QString applicationPath)
         logFile = new QFile(filePath);
 
         if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
-            emit controller_DisplayMessage(WARNING, "Cannot open Log File to write", "MEDEA Cannot open log file: " + filePath + ". Logging Disabled");
+            emit controller_DisplayMessage(WARNING, "Log File Error", "MEDEA Cannot open log file: " + filePath + ". Logging disabled.");
             USE_LOGGING = false;
         }else{
             USE_LOGGING = true;
@@ -4495,7 +4495,7 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
                 constructEdgeWithData(dst, src);
             }
             if(!src || !src->gotEdgeTo(dst)){
-                emit controller_DisplayMessage(WARNING, "Deployment Failed", "Cannot Connect Entity: " + src->toString() + " to Hardware Entity: " + dst->toString(), srcID);
+                emit controller_DisplayMessage(WARNING, "Deployment Failed", "Cannot connect entity: " + src->toString() + " to hardware entity: " + dst->toString() + ".", srcID);
             }
         }
     }
@@ -5130,10 +5130,10 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 /*
 <<<<<<< HEAD
     if(!(UNDOING || REDOING || INITIALIZING)){
-        controller_ActionProgressChanged(0, "Constructing Edges.");
+        controller_ActionProgressChanged(0, "Constructing edges");
 =======
     if(updateProgressNotification()){
-        controller_ActionProgressChanged(0, "Constructing Edges");
+        controller_ActionProgressChanged(0, "Constructing edges");
 >>>>>>> develop
     }
 */
@@ -5516,7 +5516,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         TempEntity *entity = entityHash[ID];
 
         if(updateProgressNotification()){
-            emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing Nodes");
+            emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing nodes");
         }
 
         entitiesMade ++;
@@ -5564,7 +5564,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }
 
                     if(!newNode){
-                        emit controller_DisplayMessage(WARNING, "Import Error", "Cannot Create Node from document at line#" + QString::number(entity->getLineNumber()));
+                        emit controller_DisplayMessage(WARNING, "Import Error", "Cannot create node from document at line #" + QString::number(entity->getLineNumber()) + ".");
                         entity->setIgnoreConstruction();
                         continue;
                     }
@@ -5648,7 +5648,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
-                emit  controller_DisplayMessage(WARNING, "Import Error", "Cannot Create Edge from document at line#" + QString::number(entity->getLineNumber()));
+                emit  controller_DisplayMessage(WARNING, "Import Error", "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".");
 			}
         }
     }
@@ -5690,7 +5690,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                     if(edge){
                         if(updateProgressNotification()){
-                            emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing Edges");
+                            emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing edges");
                         }
                         entitiesMade ++;
 

@@ -44,7 +44,8 @@
 #define SEARCH_DIALOG_MIN_WIDTH ((MIN_WIDTH * 2.0) / 3.0)
 #define SEARCH_DIALOG_MIN_HEIGHT ((MIN_HEIGHT * 2.0) / 3.0)
 
-#define NOTIFICATION_TIME 2000
+//#define NOTIFICATION_TIME 2000
+#define NOTIFICATION_TIME 500
 
 #define SEARCH_VIEW_ASPECTS 0
 #define SEARCH_NODE_KINDS 1
@@ -122,14 +123,13 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseCUTSManager();
 
     initialiseGUI();
-
     makeConnections();
 
     resetGUI();
-
     resetView();
 
     show();
+
     // load the initial settings
     splashScreen->showMessage("Setting Up View");
     setupInitialSettings();
@@ -615,8 +615,7 @@ void MedeaWindow::initialiseGUI()
  */
 void MedeaWindow::setWindowStyleSheet()
 {
-    setStyleSheet("QToolbar{background:red;}"
-                  "QToolBar::separator { border:10px;background-color: rgba(0,0,0,0); }"
+    setStyleSheet("QToolBar::separator { border:10px;background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 10px;"
@@ -1227,6 +1226,8 @@ void MedeaWindow::setupSearchTools()
  */
 void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 {
+    QFont biggerFont = QFont(guiFont.family(), 11);
+
     // setup progress bar
     progressBar = new QProgressBar(this);
     progressBar->setFixedHeight(20);
@@ -1239,30 +1240,27 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     // setup progress label
     progressLabel = new QLabel(this);
     progressLabel->setAlignment(Qt::AlignCenter);
-    progressLabel->setStyleSheet("padding: 0px; color: black; font: 12px; background: rgba(0,0,0,0);");
     progressLabel->setFixedHeight(30);
+    progressLabel->setFont(biggerFont);
+    progressLabel->setStyleSheet("background: rgba(0,0,0,0); padding: 0px; color: black;");
 
     QVBoxLayout* progressLayout = new QVBoxLayout();
-    //progressLayout->setMargin(0);
-    //progressLayout->setSpacing(0);
     progressLayout->addWidget(progressLabel);
     progressLayout->addWidget(progressBar);
 
     QWidget* progressWidget = new QWidget(this);
     progressWidget->setLayout(progressLayout);
-    progressWidget->setStyleSheet("QWidget{ padding: 0px; border-radius: 10px; }");
     progressWidget->setFixedSize(RIGHT_PANEL_WIDTH*2, progressBar->height() + progressLabel->height() + SPACER_SIZE*3);
+    progressWidget->setStyleSheet("QWidget{ padding: 0px; border-radius: 5px; }");
 
     // setup progress dialog
-
     progressDialog = new QDialog();
-
-    progressDialog->setWindowTitle("Please Wait...");
     progressDialog->setModal(true);
     progressDialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     progressDialog->setAttribute(Qt::WA_NoSystemBackground, true);
     progressDialog->setAttribute(Qt::WA_TranslucentBackground, true);
-    progressDialog->setStyleSheet("background: rgba(160,160,160,230);");
+    //progressDialog->setStyleSheet("background: rgba(160,160,160,230);");
+    progressDialog->setStyleSheet("background-color: rgba(250,250,250,0.85);");
     progressDialogVisible = false;
 
     QVBoxLayout* innerLayout = new QVBoxLayout();
@@ -1275,16 +1273,16 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     notificationTimer = new QTimer(this);
     notificationsBar = new QLabel("", this);
     notificationsBar->setFixedHeight(40);
+    notificationsBar->setFont(biggerFont);
     notificationsBar->setAlignment(Qt::AlignCenter);
     notificationsBar->setStyleSheet("background-color: rgba(250,250,250,0.85);"
                                     "color: rgb(30,30,30);"
-                                    "border-radius: 10px;"
-                                    "padding: 0px 15px;"
-                                    "font: 14px;");
+                                    "border-radius: 5px;"
+                                    "padding: 0px 15px;");
 
     // setup loading gif and widgets
     loadingLabel = new QLabel("Loading...", this);
-    loadingLabel->setStyleSheet("font: 16px; color: black;");
+    loadingLabel->setFont(biggerFont);
     loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     loadingMovie = new QMovie(":/Actions/Loading.gif");
@@ -1327,7 +1325,6 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 void MedeaWindow::setupToolbar()
 {
     toolbar = new QToolBar(this);
-
     toolbarLayout = new QVBoxLayout();
 
     toolbarButton = new QToolButton(this);
@@ -1572,7 +1569,7 @@ void MedeaWindow::newProject()
     progressAction = "Setting up New Project";
 
 	//TODO
-    //resetGUI();
+    resetGUI();
     setupProject();
 }
 
@@ -2405,7 +2402,7 @@ void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
         QFile xmlFile(reportPath);
 
         if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
-            displayNotification("XSL Validation failed to produce a report.");
+            displayNotification("XSL validation failed to produce a report.");
             return;
         }
 
@@ -2419,19 +2416,19 @@ void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
         xmlFile.close();
 
         if(!result){
-            displayNotification("Cannot run QXmlQuery on Validation Report.");
+            displayNotification("Cannot run QXmlQuery on validation report.");
         }else{
             validateResults.setupItemsTable(messagesResult);
             validateResults.show();
         }
     }else{
-        displayNotification("XSL Validation failed!");
+        displayNotification("XSL validation failed!");
     }
 }
 
 void MedeaWindow::generateCPPForComponent(QString componentName)
 {
-    displayLoadingStatus(true, "Getting CPP for Component Impl");
+    displayLoadingStatus(true, "Getting CPP for ComponentImpl");
     QString exportFile = writeProjectToTempFile();
     if(exportFile.isEmpty()){
         return;
@@ -2764,7 +2761,7 @@ void MedeaWindow::exportSnippet(QString snippetType)
     QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)","."+snippetType+".snippet", false);
 
     if(files.size() != 1){
-        displayNotification("Only 1 file can be selected to export Snippet!");
+        displayNotification("Only 1 file can be selected to export snippet!");
         return;
     }
     QString snippetName = files.first();
@@ -2778,7 +2775,7 @@ void MedeaWindow::exportSnippet(QString snippetType)
     if(grapmlData != ""){
         writeFile(snippetName, grapmlData);
     }else{
-        displayNotification("Cannot export Snippet!");
+        displayNotification("Cannot export snippet!");
     }
 }
 
@@ -3227,12 +3224,11 @@ void MedeaWindow::displayLoadingStatus(bool show, QString displayText)
             loadingBox->setVisible(show);
         }
         if (show && !displayText.isEmpty()) {
-            displayText += "...";
+            //displayText += "...";
             if (loadingLabel->text() != displayText) {
                 loadingLabel->setText(displayText);
                 loadingLabel->setFixedWidth(loadingLabel->fontMetrics().width(loadingLabel->text()) + 20);
                 loadingBox->setFixedWidth(loadingMovieLabel->width() + loadingLabel->width());
-                //loadingBox->move((width() - loadingBox->width()) / 2, height() - loadingBox->height());
             }
         }
     }
@@ -3263,7 +3259,7 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
 
     // update progress text
     if (!status.isEmpty()) {
-        progressLabel->setText(status); // + "...");
+        progressLabel->setText(status + ". Please wait...");
     }
 
     if (value == -1) {
@@ -3277,9 +3273,8 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
     // update progress value
     progressBar->setValue(value);
 
-    bool finishedLoading = value == progressBar->maximum();
-
     // close the progress dialog and re-display the notification bar if it was previously displayed
+    bool finishedLoading = value == progressBar->maximum();
     if (finishedLoading) {
         closeProgressDialog();
     }
@@ -3504,6 +3499,7 @@ void MedeaWindow::displayNotification(QString notification, int seqNum, int tota
 void MedeaWindow::checkNotificationsQueue()
 {
     notificationTimer->stop();
+    //notificationsBar->hide();
 
     // if there are still notifications waiting to be displayed, display them in order
     if (notificationsQueue.count() > 0) {
@@ -3792,7 +3788,7 @@ bool MedeaWindow::writeFile(QString filePath, QString fileData, bool notify)
     }
 
     if(notify){
-        displayNotification("File: '" + filePath + "'' Written!");
+        displayNotification("File: '" + filePath + "'' written!");
     }
     return true;
 }
