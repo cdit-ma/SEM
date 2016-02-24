@@ -1558,8 +1558,16 @@
 				<xsl:value-of select="'WE_UTE_Vector'" />
 			</xsl:if>
 			<xsl:value-of select="concat('(', $param)" />
-			<xsl:if test="$paramType = 'WE_UTE_Vector' and not( starts-with($param, 'ev-&gt;') )" >
-				<xsl:value-of select="'.in()'" />
+			
+			<!-- need to add .in () function for variables of _var type, ie strings and vectors. -->
+			<xsl:variable name="behaviourDefs" select="/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'BehaviourDefinitions']/.." />
+			<xsl:variable name="sourceDataId" select="/descendant::*/gml:edge[@target=$inputParameter/@id]/@source" />
+			<xsl:variable name="sourceDataNode" select="$behaviourDefs/descendant::*/gml:node[@id=$sourceDataId]/." />
+			<xsl:variable name="sourceDataNodeType" select="$sourceDataNode/gml:data[@key=$transformNodeTypeKey]/text()" />
+			
+			<xsl:if test="($paramType = 'WE_UTE_Vector' or $sourceDataNodeType = 'String' or $sourceDataNodeType = 'WideString')
+							and not( starts-with($param, 'ev-&gt;') )" >
+				<xsl:value-of select="'.in ()'" />
 			</xsl:if>
 			<xsl:value-of select="' )'" />
 		</xsl:for-each>	
@@ -1752,7 +1760,7 @@
 				<xsl:value-of select="concat($varName, '-&gt;', $vectorName, ' (') " />
 				<xsl:value-of select="$eventParam" />
 				<xsl:if test="not( starts-with($eventParam, 'ev-&gt;') )" >
-					<xsl:value-of select="'.in()'" />
+					<xsl:value-of select="'.in ()'" />
 				</xsl:if>	
 				<xsl:value-of select="');&#xA;'" />	
 			</xsl:when>
