@@ -280,8 +280,6 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
             }
         }
 
-
-
         dockNodeIDs.append(dockItemID.toInt());
         dockNodeItems[dockItemID] = dockItem;
         connect(dockItem, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
@@ -356,12 +354,6 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
  */
 bool DockScrollArea::isDockEnabled()
 {
-    /*
-    if (getParentButton()) {
-        return getParentButton()->isEnabled();
-    }
-    return true;
-    */
     return ENABLED;
 }
 
@@ -505,14 +497,12 @@ void DockScrollArea::setupLayout()
                             "background-color: rgba(0,0,0,0);"
                             "margin: 0px 18px;"
                             "border: 0px;"
-                            //"padding: 0px " + QString::number(DOCK_PADDING) + "px;"
                             "padding: 0px;"
                             "}");
 
     layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->setSpacing(0);
-    //layout->setSpacing(2);
     layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSizeConstraint(QLayout::SetMinimumSize);
     layout->addWidget(infoLabel);
