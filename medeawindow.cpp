@@ -143,6 +143,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialSettingsLoaded = true;
 
     //newProject();
+    toggleWelcomeScreen(true);
 }
 
 
@@ -209,6 +210,17 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
         }
         updateToolbar();
     }
+
+    // TODO - Need to check if newly show button should be enabled or disabled
+    /*
+    if (boolValue) {
+        NodeItem* selectedItem = nodeView->getSelectedNodeItem();
+        nodeView->clearSelection();
+        if (selectedItem) {
+            nodeView->appendToSelection(selectedItem);
+        }
+    }
+    */
 }
 
 
@@ -247,7 +259,10 @@ void MedeaWindow::setApplicationEnabled(bool enable)
  */
 void MedeaWindow::setViewWidgetsEnabled(bool enable)
 {
+    // TODO - Can't seem to hide the minimap!
     minimap->setEnabled(enable);
+    //minimap->setVisible(false);
+    //minimap->hide();
 
     // project title widgets
     projectName->setVisible(enable);
@@ -264,10 +279,10 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
     hardwareNodesButton->setVisible(enable);
 
     // aspect toggle buttons
-    //emit window_SetViewVisible(enable);
-    foreach(AspectToggleWidget* aspect, aspectToggles){
+    emit window_SetViewVisible(enable);
+    /*foreach(AspectToggleWidget* aspect, aspectToggles){
         aspect->enableToggleButton(enable);
-    }
+    }*/
 
     // actions that alter the model
     foreach(QAction* action, modelActions){
@@ -386,6 +401,7 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     }else if(keyName == TOOLBAR_VISIBLE){
         setToolbarVisibility(!boolValue);
         settingChanged(groupName,TOOLBAR_EXPANDED, appSettings->getSetting(TOOLBAR_EXPANDED));
+        SHOW_TOOLBAR = !boolValue;
     }else if(keyName == TOOLBAR_EXPANDED){
         if(appSettings->getSetting(TOOLBAR_VISIBLE) != "true"){
             toolbarButton->setChecked(boolValue);
@@ -462,7 +478,7 @@ void MedeaWindow::initialiseGUI()
     dataTableBox = new QGroupBox(this);
     dataTableBox->setFixedWidth(RIGHT_PANEL_WIDTH + 10);
     dataTableBox->setContentsMargins(0,0,0,0);
-  
+
     dataTable = new QTableView(dataTableBox);
     dataTable->setItemDelegateForColumn(1, delegate);
     dataTable->setFixedWidth(RIGHT_PANEL_WIDTH + 5);
@@ -585,13 +601,18 @@ void MedeaWindow::initialiseGUI()
     rightVlayout->addStretch();
     rightVlayout->addLayout(minimapLayout);
 
-    QHBoxLayout* mainHLayout = new QHBoxLayout();
-    mainHLayout->setMargin(0);
-    mainHLayout->setSpacing(0);
-    mainHLayout->addLayout(leftVlayout, 4);
-    mainHLayout->addLayout(rightVlayout, 1);
-    mainHLayout->setContentsMargins(15, 0, 5, 5);
-    nodeView->setLayout(mainHLayout);
+    viewLayout = new QHBoxLayout();
+    viewLayout->setMargin(0);
+    viewLayout->setSpacing(0);
+    viewLayout->addLayout(leftVlayout, 4);
+    viewLayout->addLayout(rightVlayout, 1);
+    viewLayout->setContentsMargins(15, 0, 5, 5);
+
+    viewHolderLayout = new QVBoxLayout();
+    viewHolderLayout->setMargin(0);
+    viewHolderLayout->setSpacing(0);
+    viewHolderLayout->addLayout(viewLayout);
+    nodeView->setLayout(viewHolderLayout);
 
     // set central widget, window size and generic stylesheets
     setCentralWidget(nodeView);
@@ -605,6 +626,8 @@ void MedeaWindow::initialiseGUI()
     setupDocks(bodyLayout);
     setupInfoWidgets(bodyLayout);
     setupMultiLineBox();
+    setupWelcomeScreen();
+
 }
 
 
@@ -641,18 +664,18 @@ void MedeaWindow::setWindowStyleSheet()
                   "QCheckBox:checked { color: green; font-weight: bold; }"
 
                   /*
-                  "QProgressBar {"
-                  "border: 2px solid gray;"
-                  "border-radius: 10px;"
-                  "background: rgb(240,240,240);"
-                  "text-align: center;"
-                  "color: black;"
-                  "}"
-                  "QProgressBar::chunk {"
-                  "border-radius: 7px;"
-                  "background: rgb(0,204,0);"
-                  "}"
-                  */
+                                                                                        "QProgressBar {"
+                                                                                        "border: 2px solid gray;"
+                                                                                        "border-radius: 10px;"
+                                                                                        "background: rgb(240,240,240);"
+                                                                                        "text-align: center;"
+                                                                                        "color: black;"
+                                                                                        "}"
+                                                                                        "QProgressBar::chunk {"
+                                                                                        "border-radius: 7px;"
+                                                                                        "background: rgb(0,204,0);"
+                                                                                        "}"
+                                                                                        */
 
                   "QGroupBox {"
                   "background-color: rgba(0,0,0,0);"
@@ -1449,6 +1472,74 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
 }
 
 
+/**
+ * @brief MedeaWindow::setupWelcomeScreen
+ */
+void MedeaWindow::setupWelcomeScreen()
+{
+    QPushButton* newProjectButton = new QPushButton("New Project", this);
+    QPushButton* openProjectButton = new QPushButton("Open Project", this);
+    newProjectButton->setStyleSheet("QPushButton {"
+                                    "background: rgb(240,240,240);"
+                                    "border: 1px solid white;"
+                                    "border-radius: 5px;"
+                                    "}"
+                                    "QPushButton:hover {"
+                                    "border: 2px solid rgb(140,140,140);"
+                                    "background: white;"
+                                    "}");
+    openProjectButton->setStyleSheet("QPushButton {"
+                                    "background: rgb(240,240,240);"
+                                    "border: 1px solid white;"
+                                    "border-radius: 5px;"
+                                    "}"
+                                    "QPushButton:hover {"
+                                    "border: 2px solid rgb(140,140,140);"
+                                    "background: white;"
+                                    "}");
+
+    QLabel* medeaLabel = new QLabel(this);
+    medeaLabel->setFixedSize(150, 150);
+
+    QPixmap pixMap(":/Actions/MEDEA.png");
+    pixMap = pixMap.scaled(medeaLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    medeaLabel->setPixmap(pixMap);
+
+    QSize buttonSize(250, 40);
+    newProjectButton->setFixedSize(buttonSize);
+    openProjectButton->setFixedSize(buttonSize);
+
+    QFont bigFont = QFont(guiFont.family(), 12);
+    newProjectButton->setFont(bigFont);
+    openProjectButton->setFont(bigFont);
+
+    QHBoxLayout* innerLayout = new QHBoxLayout();
+    innerLayout->addWidget(newProjectButton, 1, Qt::AlignRight);
+    innerLayout->addSpacerItem(new QSpacerItem(100, 0));
+    innerLayout->addWidget(medeaLabel);
+    innerLayout->addSpacerItem(new QSpacerItem(100, 0));
+    innerLayout->addWidget(openProjectButton, 1, Qt::AlignLeft);
+
+    welcomeLayout = new QVBoxLayout();
+    welcomeLayout->addSpacerItem(new QSpacerItem(0, 50));
+    welcomeLayout->addLayout(innerLayout);
+    welcomeLayout->addStretch();
+
+    holderLayout = new QVBoxLayout();
+    holderLayout->addLayout(welcomeLayout);
+
+    QWidget* holderWidget = new QWidget(this);
+    holderWidget->setLayout(holderLayout);
+    holderWidget->setMinimumSize(holderLayout->sizeHint());
+    holderWidget->hide();
+
+    welcomeScreenOn = false;
+
+    connect(newProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionNew_Project_triggered()));
+    connect(openProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionOpenProject_triggered()));
+}
+
+
 void MedeaWindow::teardownProject()
 {
     if (controller) {
@@ -1570,7 +1661,9 @@ void MedeaWindow::newProject()
 {
     progressAction = "Setting up New Project";
 
-	//TODO
+    toggleWelcomeScreen(false);
+
+    //TODO
     resetGUI();
     setupProject();
 }
@@ -1653,7 +1746,6 @@ void MedeaWindow::makeConnections()
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(selectModel()));
     connect(closeProjectButton, SIGNAL(clicked()), this, SLOT(on_actionCloseProject_triggered()));
-
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_closeProject, SIGNAL(triggered()), this, SLOT(on_actionCloseProject_triggered()));
@@ -1888,6 +1980,9 @@ bool MedeaWindow::closeProject()
         }
     }
     teardownProject();
+
+    toggleWelcomeScreen(true);
+
     return true;
 }
 
@@ -2244,6 +2339,43 @@ void MedeaWindow::jenkinsNodesLoaded()
     // if the hardware dock isn't already open, open it
     if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->isSelected()) {
         hardwareNodesButton->pressed();
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::toggleWelcomeScreen
+ * @param show
+ */
+void MedeaWindow::toggleWelcomeScreen(bool show)
+{
+    if (welcomeScreenOn == show) {
+        return;
+    }
+
+    QVBoxLayout* fromLayout;
+    QVBoxLayout* toLayout;
+
+    if (show) {
+        fromLayout = holderLayout;
+        toLayout = viewHolderLayout;
+    } else {
+        fromLayout = viewHolderLayout;
+        toLayout = holderLayout;
+    }
+
+    fromLayout->removeItem(welcomeLayout);
+    toLayout->addLayout(welcomeLayout);
+
+    toLayout->removeItem(viewLayout);
+    fromLayout->addLayout(viewLayout);
+
+    welcomeScreenOn = show;
+
+    if (show) {
+        setToolbarVisibility(false);
+    } else {
+        setToolbarVisibility(SHOW_TOOLBAR);
     }
 }
 
@@ -2892,8 +3024,7 @@ void MedeaWindow::showWindowToolbar(bool checked)
         appSettings->setSetting(TOOLBAR_EXPANDED, checked);
     }
 
-    toolbar->setVisible(checked);
-    return;
+    //toolbar->setVisible(checked);
 }
 
 
@@ -3752,6 +3883,7 @@ QTemporaryFile* MedeaWindow::writeTemporaryFile(QString data)
 
     return tempFile;
 }
+
 
 QString MedeaWindow::readFile(QString fileName)
 {
