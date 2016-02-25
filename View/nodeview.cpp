@@ -377,24 +377,25 @@ void NodeView::destroySubViews()
 
 QImage NodeView::produceScreenshot(bool currentViewPort)
 {
-    QRectF size;
-    if(!currentViewPort){
-        size = viewport()->rect();
+    QRectF capturedSceneRect;
+
+    QSizeF imageSize;
+    qreal imageScale = 2;
+    if(currentViewPort){
+        capturedSceneRect = getVisibleRect();
+        imageSize = capturedSceneRect.size() * imageScale;
     }else{
-        size = getModelItem()->sceneBoundingRect();
+        imageSize = scene()->itemsBoundingRect().size() * imageScale;
     }
-    qCritical() << size;
-    QImage image(1920,1080, QImage::Format_ARGB32_Premultiplied);
 
-
+    QImage image(imageSize.width(),imageSize.height(), QImage::Format_ARGB32_Premultiplied);
 
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
-    //painter.setWorldMatrixEnabled(false);
-    scene()->render(&painter);
+
+    scene()->render(&painter, image.rect(), capturedSceneRect);
     painter.end();
     image.save("c:/Test.png");
-    qCritical() << image.isNull();
     return image;
 }
 

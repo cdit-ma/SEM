@@ -2405,7 +2405,7 @@ void MedeaWindow::executeJenkinsDeployment()
 void MedeaWindow::printScreen()
 {
     //DO THINGS.
-    nodeView->produceScreenshot();
+    nodeView->produceScreenshot(true);
 }
 
 void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
