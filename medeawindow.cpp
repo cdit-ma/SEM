@@ -44,7 +44,8 @@
 #define SEARCH_DIALOG_MIN_WIDTH ((MIN_WIDTH * 2.0) / 3.0)
 #define SEARCH_DIALOG_MIN_HEIGHT ((MIN_HEIGHT * 2.0) / 3.0)
 
-#define NOTIFICATION_TIME 2000
+//#define NOTIFICATION_TIME 2000
+#define NOTIFICATION_TIME 500
 
 #define SEARCH_VIEW_ASPECTS 0
 #define SEARCH_NODE_KINDS 1
@@ -122,14 +123,13 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseCUTSManager();
 
     initialiseGUI();
-
     makeConnections();
 
     resetGUI();
-
     resetView();
 
     show();
+
     // load the initial settings
     splashScreen->showMessage("Setting Up View");
     setupInitialSettings();
@@ -452,15 +452,12 @@ void MedeaWindow::initialiseGUI()
     controllerThread = 0;
 
     nodeView = new NodeView();
-    setCentralWidget(nodeView);
-
     nodeView->setApplicationDirectory(applicationDirectory);
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
 
     delegate = new ComboBoxTableDelegate(0);
 
-    //<<<<<<< HEAD
     // setup and add dataTable/dataTableBox widget/layout
     dataTableBox = new QGroupBox(this);
     dataTableBox->setFixedWidth(RIGHT_PANEL_WIDTH + 10);
@@ -596,6 +593,11 @@ void MedeaWindow::initialiseGUI()
     mainHLayout->setContentsMargins(15, 0, 5, 5);
     nodeView->setLayout(mainHLayout);
 
+    // set central widget, window size and generic stylesheets
+    setCentralWidget(nodeView);
+    setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
+    setWindowStyleSheet();
+
     // setup the menu, dock, search tools, toolbar and information display widgets
     setupMenu();
     setupSearchTools();
@@ -603,10 +605,6 @@ void MedeaWindow::initialiseGUI()
     setupDocks(bodyLayout);
     setupInfoWidgets(bodyLayout);
     setupMultiLineBox();
-
-    // set central widget and window size
-    setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
-    setWindowStyleSheet();
 }
 
 
@@ -615,8 +613,7 @@ void MedeaWindow::initialiseGUI()
  */
 void MedeaWindow::setWindowStyleSheet()
 {
-    setStyleSheet("QToolbar{background:red;}"
-                  "QToolBar::separator { border:10px;background-color: rgba(0,0,0,0); }"
+    setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 10px;"
@@ -1229,6 +1226,8 @@ void MedeaWindow::setupSearchTools()
  */
 void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 {
+    QFont biggerFont = QFont(guiFont.family(), 11);
+
     // setup progress bar
     progressBar = new QProgressBar(this);
     progressBar->setFixedHeight(20);
@@ -1241,30 +1240,27 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     // setup progress label
     progressLabel = new QLabel(this);
     progressLabel->setAlignment(Qt::AlignCenter);
-    progressLabel->setStyleSheet("padding: 0px; color: black; font: 12px; background: rgba(0,0,0,0);");
     progressLabel->setFixedHeight(30);
+    progressLabel->setFont(biggerFont);
+    progressLabel->setStyleSheet("background: rgba(0,0,0,0); padding: 0px; color: white;");
 
     QVBoxLayout* progressLayout = new QVBoxLayout();
-    //progressLayout->setMargin(0);
-    //progressLayout->setSpacing(0);
     progressLayout->addWidget(progressLabel);
     progressLayout->addWidget(progressBar);
 
     QWidget* progressWidget = new QWidget(this);
     progressWidget->setLayout(progressLayout);
-    progressWidget->setStyleSheet("QWidget{ padding: 0px; border-radius: 10px; }");
     progressWidget->setFixedSize(RIGHT_PANEL_WIDTH*2, progressBar->height() + progressLabel->height() + SPACER_SIZE*3);
+    progressWidget->setStyleSheet("QWidget{ padding: 0px; border-radius: 5px; }");
 
     // setup progress dialog
-
     progressDialog = new QDialog();
-
-    progressDialog->setWindowTitle("Please Wait...");
     progressDialog->setModal(true);
     progressDialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     progressDialog->setAttribute(Qt::WA_NoSystemBackground, true);
     progressDialog->setAttribute(Qt::WA_TranslucentBackground, true);
-    progressDialog->setStyleSheet("background: rgba(160,160,160,230);");
+    //progressDialog->setStyleSheet("background-color: rgba(250,250,250,0.85);");
+    progressDialog->setStyleSheet("background-color: rgba(50,50,50,0.85);");
     progressDialogVisible = false;
 
     QVBoxLayout* innerLayout = new QVBoxLayout();
@@ -1277,16 +1273,16 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     notificationTimer = new QTimer(this);
     notificationsBar = new QLabel("", this);
     notificationsBar->setFixedHeight(40);
+    notificationsBar->setFont(biggerFont);
     notificationsBar->setAlignment(Qt::AlignCenter);
     notificationsBar->setStyleSheet("background-color: rgba(250,250,250,0.85);"
                                     "color: rgb(30,30,30);"
-                                    "border-radius: 10px;"
-                                    "padding: 0px 15px;"
-                                    "font: 14px;");
+                                    "border-radius: 5px;"
+                                    "padding: 0px 15px;");
 
     // setup loading gif and widgets
     loadingLabel = new QLabel("Loading...", this);
-    loadingLabel->setStyleSheet("font: 16px; color: black;");
+    loadingLabel->setFont(biggerFont);
     loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     loadingMovie = new QMovie(":/Actions/Loading.gif");
@@ -1328,8 +1324,8 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
  */
 void MedeaWindow::setupToolbar()
 {
+    // TODO - Group separators with tool buttons; hide them accordingly
     toolbar = new QToolBar(this);
-
     toolbarLayout = new QVBoxLayout();
 
     toolbarButton = new QToolButton(this);
@@ -1373,13 +1369,14 @@ void MedeaWindow::setupToolbar()
     constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
     constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);
 
-    toolbar->addSeparator();
+    //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
     constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
 
     //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionAlignVertically, TOOLBAR_VERT_ALIGN);
     constructToolbarButton(toolbar, actionAlignHorizontally, TOOLBAR_HORIZ_ALIGN);
+
     //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionBack, TOOLBAR_BACK);
     constructToolbarButton(toolbar, actionForward, TOOLBAR_FORWARD);
@@ -1574,7 +1571,7 @@ void MedeaWindow::newProject()
     progressAction = "Setting up New Project";
 
 	//TODO
-    //resetGUI();
+    resetGUI();
     setupProject();
 }
 
@@ -2326,7 +2323,7 @@ void MedeaWindow::updateWidgetsOnProjectChange(bool projectActive)
  */
 void MedeaWindow::updateDock()
 {
-    // update widget sizes, containers and masks
+    // update widget sizes and mask
     boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height();
     int prevHeight = docksArea->height();
     int newHeight = (boxHeight*2) - dockHeaderBox->height() - (SPACER_SIZE*3);
@@ -2346,14 +2343,19 @@ void MedeaWindow::updateToolbar()
 {
     int totalWidth = 0;
     foreach (QAction* action, toolbar->actions()) {
-        if (!action->isSeparator() && action->isVisible()) {
+        if (action->isVisible()) {
             QString actionName = toolbarActionLookup.key(action);
-            totalWidth += toolbarButtonLookup[actionName]->width();
+            if (!actionName.isEmpty()) {
+                totalWidth += toolbarButtonLookup[actionName]->width();
+            } else {
+                // if actionName is empty, it means that it's a sepator - 8 is the width of the separator
+                totalWidth += 8;
+            }
         }
     }
 
     QSize toolbarSize = QSize(totalWidth, TOOLBAR_BUTTON_HEIGHT);
-    toolbar->setFixedSize(toolbarSize + QSize(28, TOOLBAR_GAP));
+    toolbar->setFixedSize(toolbarSize + QSize(5, TOOLBAR_GAP));
 
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();
@@ -2415,7 +2417,7 @@ void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
         QFile xmlFile(reportPath);
 
         if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
-            displayNotification("XSL Validation failed to produce a report.");
+            displayNotification("XSL validation failed to produce a report.");
             return;
         }
 
@@ -2429,19 +2431,19 @@ void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
         xmlFile.close();
 
         if(!result){
-            displayNotification("Cannot run QXmlQuery on Validation Report.");
+            displayNotification("Cannot run QXmlQuery on validation report.");
         }else{
             validateResults.setupItemsTable(messagesResult);
             validateResults.show();
         }
     }else{
-        displayNotification("XSL Validation failed!");
+        displayNotification("XSL validation failed!");
     }
 }
 
 void MedeaWindow::generateCPPForComponent(QString componentName)
 {
-    displayLoadingStatus(true, "Getting CPP for Component Impl");
+    displayLoadingStatus(true, "Getting CPP for ComponentImpl");
     QString exportFile = writeProjectToTempFile();
     if(exportFile.isEmpty()){
         return;
@@ -2774,7 +2776,7 @@ void MedeaWindow::exportSnippet(QString snippetType)
     QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)","."+snippetType+".snippet", false);
 
     if(files.size() != 1){
-        displayNotification("Only 1 file can be selected to export Snippet!");
+        displayNotification("Only 1 file can be selected to export snippet!");
         return;
     }
     QString snippetName = files.first();
@@ -2788,7 +2790,7 @@ void MedeaWindow::exportSnippet(QString snippetType)
     if(grapmlData != ""){
         writeFile(snippetName, grapmlData);
     }else{
-        displayNotification("Cannot export Snippet!");
+        displayNotification("Cannot export snippet!");
     }
 }
 
@@ -3125,24 +3127,12 @@ void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
  * @brief MedeaWindow::dockButtonPressed
  * This slot is called whenever a dock toggle button is pressed.
  * It toggles the dock button and shows/hides the attached dock accordingly.
- * It also updates the dock area's mask depending on whether a dock is opened
  */
 void MedeaWindow::dockButtonPressed()
 {
     DockToggleButton* button = qobject_cast<DockToggleButton*>(QObject::sender());
-
     if (button) {
-
-        updateWidgetMask(docksArea, dockButtonsBox);
         emit window_dockButtonPressed(button->getDockType());
-
-        // if a dock is opened, clear the mask then update the displayed dock label
-        if (button->isSelected()) {
-            docksArea->clearMask();
-        }
-
-        // show/hide dock label depending on whether a dock is opened or not
-        //openedDockLabel->setVisible(button->isSelected());
     }
 }
 
@@ -3150,8 +3140,8 @@ void MedeaWindow::dockButtonPressed()
 /**
  * @brief MedeaWindow::dockToggled
  * This is called whenever a dock is opened/closed.
- * If a dock is opened, update the dock header widgets.
- * Otherwise, hide them.
+ * If a dock is opened, update the dock header widgets. Otherwise, hide them.
+ * It also updates the dock area's mask depending on whether there's an opened dock.
  * @param dockAction
  */
 void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
@@ -3160,6 +3150,9 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
     bool backButtonVisible = false;
     bool actionLabelVisible = false;
     bool headerBoxVisible = false;
+
+    // clear the dock are's mask; this makes sure that the whole area is visible
+    docksArea->clearMask();
 
     if (opened) {
 
@@ -3189,7 +3182,11 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
 
     } else {
         if (partsDock->isDockOpen() || definitionsDock->isDockOpen() || functionsDock->isDockOpen() || hardwareDock->isDockOpen()) {
+            // if any of the docks are open, show the dock header widgets
             headerBoxVisible = true;
+        } else {
+            // if no docks are open, update the dock area's mask - allow mouse events to pass through it
+            updateWidgetMask(docksArea, dockButtonsBox);
         }
     }
 
@@ -3237,12 +3234,11 @@ void MedeaWindow::displayLoadingStatus(bool show, QString displayText)
             loadingBox->setVisible(show);
         }
         if (show && !displayText.isEmpty()) {
-            displayText += "...";
+            //displayText += "...";
             if (loadingLabel->text() != displayText) {
                 loadingLabel->setText(displayText);
                 loadingLabel->setFixedWidth(loadingLabel->fontMetrics().width(loadingLabel->text()) + 20);
                 loadingBox->setFixedWidth(loadingMovieLabel->width() + loadingLabel->width());
-                //loadingBox->move((width() - loadingBox->width()) / 2, height() - loadingBox->height());
             }
         }
     }
@@ -3273,7 +3269,7 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
 
     // update progress text
     if (!status.isEmpty()) {
-        progressLabel->setText(status); // + "...");
+        progressLabel->setText(status + ". Please wait...");
     }
 
     if (value == -1) {
@@ -3287,9 +3283,8 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
     // update progress value
     progressBar->setValue(value);
 
-    bool finishedLoading = value == progressBar->maximum();
-
     // close the progress dialog and re-display the notification bar if it was previously displayed
+    bool finishedLoading = value == progressBar->maximum();
     if (finishedLoading) {
         closeProgressDialog();
     }
@@ -3514,6 +3509,7 @@ void MedeaWindow::displayNotification(QString notification, int seqNum, int tota
 void MedeaWindow::checkNotificationsQueue()
 {
     notificationTimer->stop();
+    //notificationsBar->hide();
 
     // if there are still notifications waiting to be displayed, display them in order
     if (notificationsQueue.count() > 0) {
@@ -3802,7 +3798,7 @@ bool MedeaWindow::writeFile(QString filePath, QString fileData, bool notify)
     }
 
     if(notify){
-        displayNotification("File: '" + filePath + "'' Written!");
+        displayNotification("File: '" + filePath + "'' written!");
     }
     return true;
 }

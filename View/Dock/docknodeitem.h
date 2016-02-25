@@ -14,7 +14,7 @@ class DockNodeItem : public QPushButton
 public:
     explicit DockNodeItem(QString kind = "", EntityItem* item = 0, QWidget* parent = 0, bool isLabel = false, QString imageName = "");
 
-    EntityItem* getNodeItem();
+    EntityItem* getEntityItem();
     QString getKind();
 
     void setID(QString strID);
@@ -51,6 +51,8 @@ signals:
     void dockItem_fileClicked(bool show);
     void dockItem_relabelled(DockNodeItem* dockItem);
     void dockItem_hiddenStateChanged();
+    void dockItem_hoverEnter(int ID);
+    void dockItem_hoverLeave(int ID = -1);
 
 public slots:
     void dataChanged(QString keyName, QVariant data);
@@ -63,6 +65,10 @@ public slots:
 
     void changeVectorHiddenState();
     void highlightDockItem(NodeItem* nodeItem);
+
+protected:
+    void enterEvent(QEvent* event);
+    void leaveEvent(QEvent* event);
 
 private:
     void setupLayout();
@@ -99,6 +105,7 @@ private:
     int state;
     int labelPadding;
     int MAX_LABEL_LENGTH;
+
 };
 
 #endif // DOCKNODEITEM_H

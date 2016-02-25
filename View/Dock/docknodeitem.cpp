@@ -92,11 +92,11 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
 
 
 /**
- * @brief DockNodeItem::getNodeItem
- * Returns the NodeItem this dock item is conneted to.
+ * @brief DockNodeItem::getEntityItem
+ * Returns the EntityItem this dock item is conneted to.
  * @return nodeItem
  */
-EntityItem* DockNodeItem::getNodeItem()
+EntityItem* DockNodeItem::getEntityItem()
 {
     return nodeItem;
 }
@@ -631,7 +631,7 @@ void DockNodeItem::parentDockItemClicked(bool show)
  */
 void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
 {
-    if (nodeItem == getNodeItem()) {
+    if (nodeItem == getEntityItem()) {
         switch (state) {
         case DEFAULT:
             state = HIGHLIGHTED;
@@ -649,6 +649,32 @@ void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
         }
     }
     updateStyleSheet();
+}
+
+
+/**
+ * @brief DockNodeItem::enterEvent
+ * @param event
+ */
+void DockNodeItem::enterEvent(QEvent* event)
+{
+    if (nodeItem) {
+        emit dockItem_hoverEnter(nodeItem->getID());
+    }
+    QPushButton::enterEvent(event);
+}
+
+
+/**
+ * @brief DockNodeItem::leaveEvent
+ * @param event
+ */
+void DockNodeItem::leaveEvent(QEvent* event)
+{
+    if (nodeItem) {
+        emit dockItem_hoverLeave();
+    }
+    QPushButton::leaveEvent(event);
 }
 
 
@@ -671,7 +697,7 @@ void DockNodeItem::childVisibilityChanged()
  */
 void DockNodeItem::changeVectorHiddenState()
 {
-    NodeItem* item = getNodeItem();
+    NodeItem* item = getEntityItem();
     if (item) {
         if (item->hasChildren()) {
             setForceHidden(false);

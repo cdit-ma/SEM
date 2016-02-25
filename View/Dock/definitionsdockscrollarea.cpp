@@ -243,6 +243,12 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
         }
         updateDock();
     }
+
+    DockNodeItem* newDockItem = getDockNodeItem(QString::number(entityItem->getID()));
+    if (newDockItem && getNodeView()) {
+        connect(newDockItem, SIGNAL(dockItem_hoverEnter(int)), getNodeView(), SLOT(highlightOnHover(int)));
+        connect(newDockItem, SIGNAL(dockItem_hoverLeave(int)), getNodeView(), SLOT(highlightOnHover(int)));
+    }
 }
 
 

@@ -26,7 +26,7 @@ DockScrollArea::DockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton*
     QScrollArea(parent)
 {
     if (!view) {
-        qWarning() << "DockScrollArea::DockScrollArea - NodeView is null.";
+        qWarning() << "DockScrollArea::DockScrollArea - NodeView is null for dock: " << GET_DOCK_LABEL(type);
         return;
     }
 
@@ -271,7 +271,6 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
             return;
         }
 
-
         if (addToLayout) {
             if (insertIndex == -1) {
                 layout->addWidget(dockItem);
@@ -279,8 +278,6 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
                 layout->insertWidget(insertIndex, dockItem);
             }
         }
-
-
 
         dockNodeIDs.append(dockItemID.toInt());
         dockNodeItems[dockItemID] = dockItem;
@@ -356,12 +353,6 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
  */
 bool DockScrollArea::isDockEnabled()
 {
-    /*
-    if (getParentButton()) {
-        return getParentButton()->isEnabled();
-    }
-    return true;
-    */
     return ENABLED;
 }
 
@@ -497,7 +488,7 @@ void DockScrollArea::setupLayout()
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
     infoLabel->setFixedWidth(BUTTON_WIDTH + DOCK_PADDING*2);
-    infoLabel->setStyleSheet("padding:" + QString::number(DOCK_PADDING) + "px; font-style: italic;");
+    infoLabel->setStyleSheet("padding:" + QString::number(DOCK_PADDING/2) + "px; font-style: italic;");
 
     QGroupBox* groupBox = new QGroupBox(0);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -505,14 +496,12 @@ void DockScrollArea::setupLayout()
                             "background-color: rgba(0,0,0,0);"
                             "margin: 0px 18px;"
                             "border: 0px;"
-                            //"padding: 0px " + QString::number(DOCK_PADDING) + "px;"
                             "padding: 0px;"
                             "}");
 
     layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->setSpacing(0);
-    //layout->setSpacing(2);
     layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSizeConstraint(QLayout::SetMinimumSize);
     layout->addWidget(infoLabel);
@@ -527,8 +516,9 @@ void DockScrollArea::setupLayout()
                   "background: rgba(250,250,250,240);"
                   "border-left: 1px solid rgb(125,125,125);"
                   "border-right: 1px solid rgb(125,125,125);"
+                  "border-bottom: 1px solid rgb(125,125,125);;"
+                  //"border-bottom: none;"
                   "border-top: none;"
-                  "border-bottom: none;"
                   "}");
 }
 
