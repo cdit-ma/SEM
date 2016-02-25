@@ -751,6 +751,8 @@ void MedeaWindow::setupMenu()
     view_fullScreenMode = view_menu->addAction(getIcon("Actions", "Fullscreen"), "Start Fullscreen Mode");
     view_fullScreenMode->setShortcut(QKeySequence(Qt::Key_F11));
     view_fullScreenMode->setCheckable(true);
+    view_printScreen = view_menu->addAction(getIcon("Actions", "PrintScreen"), "Print Screen");
+    view_printScreen->setShortcut(QKeySequence(Qt::Key_F12));
 
     model_clearModel = model_menu->addAction(getIcon("Actions", "Clear"), "Clear Model");
     model_menu->addSeparator();
@@ -1689,6 +1691,8 @@ void MedeaWindow::makeConnections()
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(centerDefinition()));
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
     connect(view_fullScreenMode, SIGNAL(triggered(bool)), this, SLOT(setFullscreenMode(bool)));
+    connect(view_printScreen, SIGNAL(triggered()), this, SLOT(printScreen()));
+
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
 
@@ -2396,6 +2400,12 @@ void MedeaWindow::executeJenkinsDeployment()
         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
         jenkinsSJ->requestJob(jobName, exportFile);
     }
+}
+
+void MedeaWindow::printScreen()
+{
+    //DO THINGS.
+    nodeView->produceScreenshot();
 }
 
 void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)

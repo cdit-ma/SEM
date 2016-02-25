@@ -1656,9 +1656,9 @@ QRectF EntityItem::smallIconRect() const
 QRectF EntityItem::iconRect() const
 {
     qreal iconSize = ICON_RATIO * contractedWidth;
-    if(getRenderState() <= RS_MINIMAL){
-        iconSize = contractedWidth;
-    }
+    //if(getRenderState() <= RS_MINIMAL){
+    //    iconSize = contractedWidth;
+    //}
 
     //Construct a Rectangle to represent the icon size at the origin
     QRectF icon = QRectF(0, 0, iconSize, iconSize);

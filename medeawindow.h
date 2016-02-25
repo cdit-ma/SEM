@@ -137,6 +137,7 @@ public slots:
 
 
 private slots:
+    void printScreen();
     void XSLValidationCompleted(bool success, QString reportPath);
     void projectFileChanged(QString name="");
     void projectNameChanged(QString name="");
@@ -337,6 +338,7 @@ private:
     QAction* view_goToImplementation;
     QAction* view_showConnectedNodes;
     QAction* view_fullScreenMode;
+    QAction* view_printScreen;
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_ExecuteLocalJob;
@@ -408,6 +410,8 @@ private:
     QAction* midRightSpacer;
     QAction* rightMidSpacer;
     QAction* rightMostSpacer;
+
+
 
 
     AspectToggleWidget* definitionsToggle;

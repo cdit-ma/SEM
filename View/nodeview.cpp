@@ -375,6 +375,29 @@ void NodeView::destroySubViews()
     }
 }
 
+QImage NodeView::produceScreenshot(bool currentViewPort)
+{
+    QRectF size;
+    if(!currentViewPort){
+        size = viewport()->rect();
+    }else{
+        size = getModelItem()->sceneBoundingRect();
+    }
+    qCritical() << size;
+    QImage image(1920,1080, QImage::Format_ARGB32_Premultiplied);
+
+
+
+    QPainter painter(&image);
+    painter.setRenderHint(QPainter::Antialiasing);
+    //painter.setWorldMatrixEnabled(false);
+    scene()->render(&painter);
+    painter.end();
+    image.save("c:/Test.png");
+    qCritical() << image.isNull();
+    return image;
+}
+
 
 /**
  * @brief NodeView::getVisibleRect
