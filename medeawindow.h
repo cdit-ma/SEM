@@ -535,6 +535,9 @@ private:
 
     MedeaSplash* splashScreen;
 
+    QWidget* welcomeWidget;
+    QVBoxLayout* welcomeLayout;
+
     // QWidget interface
 protected:
     void dropEvent(QDropEvent *);
