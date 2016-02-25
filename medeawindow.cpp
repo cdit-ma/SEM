@@ -1233,7 +1233,6 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
                                "border-radius: 5px;"
                                "background: rgb(240,240,240);"
                                "text-align: center;"
-                               "font-weight: bold;"
                                "color: black;");
 
     // setup progress label
