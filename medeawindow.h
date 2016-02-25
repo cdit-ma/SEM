@@ -266,8 +266,8 @@ private:
     void teardownProject();
     void setupProject();
 
-    void setupMenu();
     void setWindowStyleSheet();
+    void setupMenu();
     void setupSearchTools();
     void setupDocks(QHBoxLayout* layout);
     void setupInfoWidgets(QHBoxLayout* layout);

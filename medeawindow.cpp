@@ -452,15 +452,12 @@ void MedeaWindow::initialiseGUI()
     controllerThread = 0;
 
     nodeView = new NodeView();
-    setCentralWidget(nodeView);
-
     nodeView->setApplicationDirectory(applicationDirectory);
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
 
     delegate = new ComboBoxTableDelegate(0);
 
-    //<<<<<<< HEAD
     // setup and add dataTable/dataTableBox widget/layout
     dataTableBox = new QGroupBox(this);
     dataTableBox->setFixedWidth(RIGHT_PANEL_WIDTH + 10);
@@ -596,6 +593,11 @@ void MedeaWindow::initialiseGUI()
     mainHLayout->setContentsMargins(15, 0, 5, 5);
     nodeView->setLayout(mainHLayout);
 
+    // set central widget, window size and generic stylesheets
+    setCentralWidget(nodeView);
+    setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
+    setWindowStyleSheet();
+
     // setup the menu, dock, search tools, toolbar and information display widgets
     setupMenu();
     setupSearchTools();
@@ -603,10 +605,6 @@ void MedeaWindow::initialiseGUI()
     setupDocks(bodyLayout);
     setupInfoWidgets(bodyLayout);
     setupMultiLineBox();
-
-    // set central widget and window size
-    setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
-    setWindowStyleSheet();
 }
 
 
@@ -615,7 +613,7 @@ void MedeaWindow::initialiseGUI()
  */
 void MedeaWindow::setWindowStyleSheet()
 {
-    setStyleSheet("QToolBar::separator { border:10px;background-color: rgba(0,0,0,0); }"
+    setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 10px;"
@@ -1325,6 +1323,7 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
  */
 void MedeaWindow::setupToolbar()
 {
+    // TODO - Group separators with tool buttons; hide them accordingly
     toolbar = new QToolBar(this);
     toolbarLayout = new QVBoxLayout();
 
@@ -1369,13 +1368,14 @@ void MedeaWindow::setupToolbar()
     constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
     constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);
 
-    toolbar->addSeparator();
+    //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
     constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
 
     //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionAlignVertically, TOOLBAR_VERT_ALIGN);
     constructToolbarButton(toolbar, actionAlignHorizontally, TOOLBAR_HORIZ_ALIGN);
+
     //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionBack, TOOLBAR_BACK);
     constructToolbarButton(toolbar, actionForward, TOOLBAR_FORWARD);
@@ -2340,14 +2340,19 @@ void MedeaWindow::updateToolbar()
 {
     int totalWidth = 0;
     foreach (QAction* action, toolbar->actions()) {
-        if (!action->isSeparator() && action->isVisible()) {
+        if (action->isVisible()) {
             QString actionName = toolbarActionLookup.key(action);
-            totalWidth += toolbarButtonLookup[actionName]->width();
+            if (!actionName.isEmpty()) {
+                totalWidth += toolbarButtonLookup[actionName]->width();
+            } else {
+                // if actionName is empty, it means that it's a sepator - 8 is the width of the separator
+                totalWidth += 8;
+            }
         }
     }
 
     QSize toolbarSize = QSize(totalWidth, TOOLBAR_BUTTON_HEIGHT);
-    toolbar->setFixedSize(toolbarSize + QSize(28, TOOLBAR_GAP));
+    toolbar->setFixedSize(toolbarSize + QSize(5, TOOLBAR_GAP));
 
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();
