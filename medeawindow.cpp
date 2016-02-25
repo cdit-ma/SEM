@@ -1235,6 +1235,7 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
                                "border-radius: 5px;"
                                "background: rgb(240,240,240);"
                                "text-align: center;"
+                               "font-weight: bold;"
                                "color: black;");
 
     // setup progress label
@@ -1242,7 +1243,7 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     progressLabel->setAlignment(Qt::AlignCenter);
     progressLabel->setFixedHeight(30);
     progressLabel->setFont(biggerFont);
-    progressLabel->setStyleSheet("background: rgba(0,0,0,0); padding: 0px; color: black;");
+    progressLabel->setStyleSheet("background: rgba(0,0,0,0); padding: 0px; color: white;");
 
     QVBoxLayout* progressLayout = new QVBoxLayout();
     progressLayout->addWidget(progressLabel);
@@ -1259,8 +1260,8 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     progressDialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     progressDialog->setAttribute(Qt::WA_NoSystemBackground, true);
     progressDialog->setAttribute(Qt::WA_TranslucentBackground, true);
-    //progressDialog->setStyleSheet("background: rgba(160,160,160,230);");
-    progressDialog->setStyleSheet("background-color: rgba(250,250,250,0.85);");
+    //progressDialog->setStyleSheet("background-color: rgba(250,250,250,0.85);");
+    progressDialog->setStyleSheet("background-color: rgba(50,50,50,0.85);");
     progressDialogVisible = false;
 
     QVBoxLayout* innerLayout = new QVBoxLayout();
@@ -2319,7 +2320,7 @@ void MedeaWindow::updateWidgetsOnProjectChange(bool projectActive)
  */
 void MedeaWindow::updateDock()
 {
-    // update widget sizes, containers and masks
+    // update widget sizes and mask
     boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height();
     int prevHeight = docksArea->height();
     int newHeight = (boxHeight*2) - dockHeaderBox->height() - (SPACER_SIZE*3);
@@ -3112,24 +3113,12 @@ void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
  * @brief MedeaWindow::dockButtonPressed
  * This slot is called whenever a dock toggle button is pressed.
  * It toggles the dock button and shows/hides the attached dock accordingly.
- * It also updates the dock area's mask depending on whether a dock is opened
  */
 void MedeaWindow::dockButtonPressed()
 {
     DockToggleButton* button = qobject_cast<DockToggleButton*>(QObject::sender());
-
     if (button) {
-
-        updateWidgetMask(docksArea, dockButtonsBox);
         emit window_dockButtonPressed(button->getDockType());
-
-        // if a dock is opened, clear the mask then update the displayed dock label
-        if (button->isSelected()) {
-            docksArea->clearMask();
-        }
-
-        // show/hide dock label depending on whether a dock is opened or not
-        //openedDockLabel->setVisible(button->isSelected());
     }
 }
 
@@ -3137,8 +3126,8 @@ void MedeaWindow::dockButtonPressed()
 /**
  * @brief MedeaWindow::dockToggled
  * This is called whenever a dock is opened/closed.
- * If a dock is opened, update the dock header widgets.
- * Otherwise, hide them.
+ * If a dock is opened, update the dock header widgets. Otherwise, hide them.
+ * It also updates the dock area's mask depending on whether there's an opened dock.
  * @param dockAction
  */
 void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
@@ -3147,6 +3136,9 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
     bool backButtonVisible = false;
     bool actionLabelVisible = false;
     bool headerBoxVisible = false;
+
+    // clear the dock are's mask; this makes sure that the whole area is visible
+    docksArea->clearMask();
 
     if (opened) {
 
@@ -3176,7 +3168,11 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
 
     } else {
         if (partsDock->isDockOpen() || definitionsDock->isDockOpen() || functionsDock->isDockOpen() || hardwareDock->isDockOpen()) {
+            // if any of the docks are open, show the dock header widgets
             headerBoxVisible = true;
+        } else {
+            // if no docks are open, update the dock area's mask - allow mouse events to pass through it
+            updateWidgetMask(docksArea, dockButtonsBox);
         }
     }
 

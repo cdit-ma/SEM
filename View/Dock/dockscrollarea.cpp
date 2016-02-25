@@ -26,7 +26,7 @@ DockScrollArea::DockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton*
     QScrollArea(parent)
 {
     if (!view) {
-        qWarning() << "DockScrollArea::DockScrollArea - NodeView is null.";
+        qWarning() << "DockScrollArea::DockScrollArea - NodeView is null for dock: " << GET_DOCK_LABEL(type);
         return;
     }
 
@@ -270,7 +270,6 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
         if (getDockNodeItem(dockItemID)) {
             return;
         }
-
 
         if (addToLayout) {
             if (insertIndex == -1) {
@@ -517,8 +516,9 @@ void DockScrollArea::setupLayout()
                   "background: rgba(250,250,250,240);"
                   "border-left: 1px solid rgb(125,125,125);"
                   "border-right: 1px solid rgb(125,125,125);"
+                  "border-bottom: 1px solid rgb(125,125,125);;"
+                  //"border-bottom: none;"
                   "border-top: none;"
-                  "border-bottom: none;"
                   "}");
 }
 
