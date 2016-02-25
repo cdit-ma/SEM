@@ -535,8 +535,17 @@ private:
 
     MedeaSplash* splashScreen;
 
-    QWidget* welcomeWidget;
+
+    QVBoxLayout* holderLayout;
+    QVBoxLayout* viewHolderLayout;
     QVBoxLayout* welcomeLayout;
+    QHBoxLayout* viewLayout;
+    bool welcomeScreenOn;
+
+    void setupWelcomeScreen();
+    void toggleWelcomeScreen(bool show);
+
+
 
     // QWidget interface
 protected:

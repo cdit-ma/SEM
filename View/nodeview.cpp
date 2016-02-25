@@ -523,6 +523,8 @@ QPointF NodeView::getModelScenePos()
 
 void NodeView::setNoModelTextVisible(bool visible)
 {
+    visible = false;
+
     if(!backgroundText){
         backgroundText = new QGraphicsTextItem("NO PROJECT");
         QFont textFont = font();

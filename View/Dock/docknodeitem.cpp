@@ -218,7 +218,7 @@ void DockNodeItem::setImage(QString prefix, QString image)
         NodeView* nodeView = parentDock->getNodeView();
         if(imageLabel && textLabel  && nodeView){
             QPixmap pixMap = nodeView->getImage(prefix, image);
-            QPixmap scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
+            QPixmap scaledPixmap = pixMap.scaled(width()*ICON_RATIO,
                                                   (height()-textLabel->height())*ICON_RATIO,
                                                   Qt::KeepAspectRatio,
                                                   Qt::SmoothTransformation);
