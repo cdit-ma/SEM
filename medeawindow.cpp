@@ -143,7 +143,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialSettingsLoaded = true;
 
     //newProject();
-
+    toggleWelcomeScreen(true);
 }
 
 
@@ -210,6 +210,17 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
         }
         updateToolbar();
     }
+
+    // TODO - Need to check if newly show button should be enabled or disabled
+    /*
+    if (boolValue) {
+        NodeItem* selectedItem = nodeView->getSelectedNodeItem();
+        nodeView->clearSelection();
+        if (selectedItem) {
+            nodeView->appendToSelection(selectedItem);
+        }
+    }
+    */
 }
 
 
@@ -390,6 +401,7 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     }else if(keyName == TOOLBAR_VISIBLE){
         setToolbarVisibility(!boolValue);
         settingChanged(groupName,TOOLBAR_EXPANDED, appSettings->getSetting(TOOLBAR_EXPANDED));
+        SHOW_TOOLBAR = !boolValue;
     }else if(keyName == TOOLBAR_EXPANDED){
         if(appSettings->getSetting(TOOLBAR_VISIBLE) != "true"){
             toolbarButton->setChecked(boolValue);
@@ -616,7 +628,6 @@ void MedeaWindow::initialiseGUI()
     setupMultiLineBox();
     setupWelcomeScreen();
 
-    toggleWelcomeScreen(true);
 }
 
 
@@ -1459,6 +1470,74 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
 }
 
 
+/**
+ * @brief MedeaWindow::setupWelcomeScreen
+ */
+void MedeaWindow::setupWelcomeScreen()
+{
+    QPushButton* newProjectButton = new QPushButton("New Project", this);
+    QPushButton* openProjectButton = new QPushButton("Open Project", this);
+    newProjectButton->setStyleSheet("QPushButton {"
+                                    "background: rgb(240,240,240);"
+                                    "border: 1px solid white;"
+                                    "border-radius: 5px;"
+                                    "}"
+                                    "QPushButton:hover {"
+                                    "border: 2px solid rgb(140,140,140);"
+                                    "background: white;"
+                                    "}");
+    openProjectButton->setStyleSheet("QPushButton {"
+                                    "background: rgb(240,240,240);"
+                                    "border: 1px solid white;"
+                                    "border-radius: 5px;"
+                                    "}"
+                                    "QPushButton:hover {"
+                                    "border: 2px solid rgb(140,140,140);"
+                                    "background: white;"
+                                    "}");
+
+    QLabel* medeaLabel = new QLabel(this);
+    medeaLabel->setFixedSize(150, 150);
+
+    QPixmap pixMap(":/Actions/MEDEA.png");
+    pixMap = pixMap.scaled(medeaLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    medeaLabel->setPixmap(pixMap);
+
+    QSize buttonSize(250, 40);
+    newProjectButton->setFixedSize(buttonSize);
+    openProjectButton->setFixedSize(buttonSize);
+
+    QFont bigFont = QFont(guiFont.family(), 12);
+    newProjectButton->setFont(bigFont);
+    openProjectButton->setFont(bigFont);
+
+    QHBoxLayout* innerLayout = new QHBoxLayout();
+    innerLayout->addWidget(newProjectButton, 1, Qt::AlignRight);
+    innerLayout->addSpacerItem(new QSpacerItem(100, 0));
+    innerLayout->addWidget(medeaLabel);
+    innerLayout->addSpacerItem(new QSpacerItem(100, 0));
+    innerLayout->addWidget(openProjectButton, 1, Qt::AlignLeft);
+
+    welcomeLayout = new QVBoxLayout();
+    welcomeLayout->addSpacerItem(new QSpacerItem(0, 50));
+    welcomeLayout->addLayout(innerLayout);
+    welcomeLayout->addStretch();
+
+    holderLayout = new QVBoxLayout();
+    holderLayout->addLayout(welcomeLayout);
+
+    QWidget* holderWidget = new QWidget(this);
+    holderWidget->setLayout(holderLayout);
+    holderWidget->setMinimumSize(holderLayout->sizeHint());
+    holderWidget->hide();
+
+    welcomeScreenOn = false;
+
+    connect(newProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionNew_Project_triggered()));
+    connect(openProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionOpenProject_triggered()));
+}
+
+
 void MedeaWindow::teardownProject()
 {
     if (controller) {
@@ -2261,6 +2340,43 @@ void MedeaWindow::jenkinsNodesLoaded()
 
 
 /**
+ * @brief MedeaWindow::toggleWelcomeScreen
+ * @param show
+ */
+void MedeaWindow::toggleWelcomeScreen(bool show)
+{
+    if (welcomeScreenOn == show) {
+        return;
+    }
+
+    QVBoxLayout* fromLayout;
+    QVBoxLayout* toLayout;
+
+    if (show) {
+        fromLayout = holderLayout;
+        toLayout = viewHolderLayout;
+    } else {
+        fromLayout = viewHolderLayout;
+        toLayout = holderLayout;
+    }
+
+    fromLayout->removeItem(welcomeLayout);
+    toLayout->addLayout(welcomeLayout);
+
+    toLayout->removeItem(viewLayout);
+    fromLayout->addLayout(viewLayout);
+
+    welcomeScreenOn = show;
+
+    if (show) {
+        setToolbarVisibility(false);
+    } else {
+        setToolbarVisibility(SHOW_TOOLBAR);
+    }
+}
+
+
+/**
  * @brief MedeaWindow::toggleAndTriggerAction
  * @param action
  * @param value
@@ -2912,11 +3028,8 @@ void MedeaWindow::setToolbarVisibility(bool visible)
         toolbarButton->setVisible(visible);
     }
     if (toolbar) {
-        //toolbar->setVisible(visible);
+        toolbar->setVisible(visible);
     }
-
-    toolbar->hide();
-    toolbarButton->hide();
 }
 
 
@@ -3759,105 +3872,6 @@ QTemporaryFile* MedeaWindow::writeTemporaryFile(QString data)
     tempFile->close();
 
     return tempFile;
-}
-
-
-/**
- * @brief MedeaWindow::setupWelcomeScreen
- */
-void MedeaWindow::setupWelcomeScreen()
-{
-    QPushButton* newProjectButton = new QPushButton("New Project", this);
-    QPushButton* openProjectButton = new QPushButton("Open Project", this);
-    newProjectButton->setStyleSheet("QPushButton {"
-                                    "background: rgb(240,240,240);"
-                                    "border: 1px solid white;"
-                                    "border-radius: 5px;"
-                                    "}"
-                                    "QPushButton:hover {"
-                                    "border: 2px solid rgb(140,140,140);"
-                                    "background: white;"
-                                    "}");
-    openProjectButton->setStyleSheet("QPushButton {"
-                                    "background: rgb(240,240,240);"
-                                    "border: 1px solid white;"
-                                    "border-radius: 5px;"
-                                    "}"
-                                    "QPushButton:hover {"
-                                    "border: 2px solid rgb(140,140,140);"
-                                    "background: white;"
-                                    "}");
-
-    QLabel* medeaLabel = new QLabel(this);
-    medeaLabel->setFixedSize(150, 150);
-
-    QPixmap pixMap(":/Actions/MEDEA.png");
-    pixMap = pixMap.scaled(medeaLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    medeaLabel->setPixmap(pixMap);
-
-    QSize buttonSize(250, 40);
-    newProjectButton->setFixedSize(buttonSize);
-    openProjectButton->setFixedSize(buttonSize);
-
-    QFont bigFont = QFont(guiFont.family(), 12);
-    newProjectButton->setFont(bigFont);
-    openProjectButton->setFont(bigFont);
-
-    QHBoxLayout* innerLayout = new QHBoxLayout();
-    innerLayout->addWidget(newProjectButton, 1, Qt::AlignRight);
-    innerLayout->addSpacerItem(new QSpacerItem(100, 0));
-    innerLayout->addWidget(medeaLabel);
-    innerLayout->addSpacerItem(new QSpacerItem(100, 0));
-    innerLayout->addWidget(openProjectButton, 1, Qt::AlignLeft);
-
-    welcomeLayout = new QVBoxLayout();
-    welcomeLayout->addSpacerItem(new QSpacerItem(0, 50));
-    welcomeLayout->addLayout(innerLayout);
-    welcomeLayout->addStretch();
-
-    holderLayout = new QVBoxLayout();
-    holderLayout->addLayout(welcomeLayout);
-
-    QWidget* holderWidget = new QWidget(this);
-    holderWidget->setLayout(holderLayout);
-    holderWidget->setMinimumSize(holderLayout->sizeHint());
-    holderWidget->hide();
-
-    welcomeScreenOn = false;
-
-    connect(newProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionNew_Project_triggered()));
-    connect(openProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionOpenProject_triggered()));
-}
-
-
-/**
- * @brief MedeaWindow::toggleWelcomeScreen
- * @param show
- */
-void MedeaWindow::toggleWelcomeScreen(bool show)
-{
-    if (welcomeScreenOn == show) {
-        return;
-    }
-
-    QVBoxLayout* fromLayout;
-    QVBoxLayout* toLayout;
-
-    if (show) {
-        fromLayout = holderLayout;
-        toLayout = viewHolderLayout;
-    } else {
-        fromLayout = viewHolderLayout;
-        toLayout = holderLayout;
-    }
-
-    toLayout->removeItem(viewLayout);
-    fromLayout->addLayout(viewLayout);
-
-    fromLayout->removeItem(welcomeLayout);
-    toLayout->addLayout(welcomeLayout);
-
-    welcomeScreenOn = show;
 }
 
 
