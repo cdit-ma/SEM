@@ -21,6 +21,8 @@ enum NODE_CLASS{NC_NONE, NC_DEPLOYMENT_DEFINITIONS, NC_WORKER_DEFINITIONS};
 #define THREAD_LIMIT "00-02-Thread_Limit"
 #define CUTS_CONFIGURE_PATH "00-03-CUTS_Configure_Script_Path"
 #define DEFAULT_DIR_PATH "00-04-Default_Open_Path"
+#define SCREENSHOT_PATH "00-05-Default_Screenshot_Path"
+#define SCREENSHOT_QUALITY "00-06-Screenshot_Quality"
 
 #define WINDOW_SETTINGS "01-Window_Settings"
 #define WINDOW_X "01-01-Position_X"

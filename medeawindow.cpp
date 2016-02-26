@@ -27,6 +27,7 @@
 #include <QDesktopServices>
 #include "View/medeasplash.h"
 
+
 #define THREADING true
 
 #define RIGHT_PANEL_WIDTH 230.0
@@ -45,7 +46,7 @@
 #define SEARCH_DIALOG_MIN_HEIGHT ((MIN_HEIGHT * 2.0) / 3.0)
 
 //#define NOTIFICATION_TIME 2000
-#define NOTIFICATION_TIME 500
+#define NOTIFICATION_TIME 2000
 
 #define SEARCH_VIEW_ASPECTS 0
 #define SEARCH_NODE_KINDS 1
@@ -1688,7 +1689,7 @@ void MedeaWindow::makeConnections()
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(centerDefinition()));
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
     connect(view_fullScreenMode, SIGNAL(triggered(bool)), this, SLOT(setFullscreenMode(bool)));
-    connect(view_printScreen, SIGNAL(triggered()), this, SLOT(printScreen()));
+    connect(view_printScreen, SIGNAL(triggered()), this, SLOT(screenshot()));
 
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
@@ -1824,6 +1825,11 @@ void MedeaWindow::changeEvent(QEvent *event)
     }
 }
 
+QPixmap MedeaWindow::getDialogPixmap(QString alias, QString image, QSize size)
+{
+    return getIcon(alias, image).pixmap(size);
+}
+
 bool MedeaWindow::openProject(QString fileName)
 {
     bool closed = closeProject();
@@ -1865,23 +1871,35 @@ QString MedeaWindow::getTempFileName(QString suffix)
         suffix = ".graphml";
     }
     //Get Timestamp
-    return QDir::tempPath() + "/" + getTimestamp() + "-" + projectName->text() + suffix;
+    return QDir::tempPath() + "/" + getTempTimeName() + suffix;
+}
+
+QString MedeaWindow::getTempTimeName()
+{
+    return getTimestamp() + "-" + projectName->text();
 }
 
 bool MedeaWindow::closeProject()
 {
     if(nodeView->projectRequiresSaving()){
         //Ask User to confirm save?
-        QMessageBox::StandardButton saveProjectButton = QMessageBox::question(this,
-                                                                              "Close Project", "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
-                                                                              QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
-        if(saveProjectButton == QMessageBox::Yes){
+        QMessageBox msgBox(QMessageBox::Question, "Save Changes",
+                    "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
+                    QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+
+        msgBox.setIconPixmap(getDialogPixmap("Actions", "Save"));
+        msgBox.setButtonText(QMessageBox::Yes, "Save");
+        msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
+
+        int buttonPressed = msgBox.exec();
+
+        if(buttonPressed == QMessageBox::Yes){
             bool saveSuccess = saveProject();
             // if failed to save, do nothing
             if(!saveSuccess){
                 return false;
             }
-        }else if(saveProjectButton == QMessageBox::No){
+        }else if(buttonPressed == QMessageBox::No){
             //Do Nothing
         }else{
             return false;
@@ -2404,10 +2422,46 @@ void MedeaWindow::executeJenkinsDeployment()
     }
 }
 
-void MedeaWindow::printScreen()
+void MedeaWindow::screenshot()
 {
-    //DO THINGS.
-    nodeView->produceScreenshot(true);
+    if(appSettings){
+        QString screenshotPath = appSettings->getSetting(SCREENSHOT_PATH).toString();
+        int screenshotQuality = appSettings->getSetting(SCREENSHOT_QUALITY).toInt();
+
+        QMessageBox msgBox(
+                    QMessageBox::Question,"MEDEA",
+                    "Please select which type of screenshot to save.",
+                    QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+
+        msgBox.setIconPixmap(getDialogPixmap("Actions", "PrintScreen"));
+        msgBox.setButtonText(QMessageBox::Yes, "Entire Model");
+        msgBox.setButtonText(QMessageBox::No, "Current Viewport");
+
+        displayLoadingStatus(true, "Rendering screenshot");
+
+        int buttonPressed = msgBox.exec();
+        //Hide!
+        msgBox.hide();
+
+        if(buttonPressed == QMessageBox::Cancel){
+            return;
+        }
+        bool currentViewPort = buttonPressed == QMessageBox::No;
+
+
+
+
+        QImage image = nodeView->renderScreenshot(currentViewPort, screenshotQuality);
+        if(!image.isNull()){
+            if(!screenshotPath.endsWith("/")){
+                screenshotPath += "/";
+            }
+            qCritical() << screenshotPath;
+            QString fileName = screenshotPath + getTempTimeName() + ".png";
+            writeQImage(fileName, image, true);
+        }
+        displayLoadingStatus(false);
+    }
 }
 
 void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
@@ -3775,23 +3829,66 @@ QString MedeaWindow::readFile(QString fileName)
     return fileData;
 }
 
+
+bool MedeaWindow::writeQImage(QString filePath, QImage image, bool notify)
+{
+    try {
+        if(ensureDirectory(filePath)){
+            QFile file(filePath);
+
+            if(image.save(filePath, "PNG")){
+                //SUCCESS
+            }else{
+                QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
+                return false;
+            }
+        }
+    }catch (...) {
+        QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
+        return false;
+    }
+
+    if(notify){
+        displayNotification("Image: '" + filePath + "'' written!");
+    }
+    return true;
+
+}
+
+bool MedeaWindow::ensureDirectory(QString filePath)
+{
+    QFile file(filePath);
+    QFileInfo fileInfo(file);
+    QDir dir = fileInfo.dir();
+    if (!dir.exists()) {
+        if(dir.mkpath(".")){
+             displayNotification("Dir: '" + dir.absolutePath() + "'' Constructed!");
+        }else{
+            QMessageBox::critical(this, "File Error", "Unable to make path: '" + dir.absolutePath() + "'! Check permissions and try again.", QMessageBox::Ok);
+            return false;
+        }
+    }
+    return true;
+}
+
 bool MedeaWindow::writeFile(QString filePath, QString fileData, bool notify)
 {
     try {
-        QFile file(filePath);
+        if(ensureDirectory(filePath)){
+            QFile file(filePath);
 
-        bool fileOpened = file.open(QFile::WriteOnly | QFile::Text);
+            bool fileOpened = file.open(QFile::WriteOnly | QFile::Text);
 
-        if (!fileOpened) {
-            QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
-            return false;
+            if (!fileOpened) {
+                QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
+                return false;
+            }
+
+            //Create stream to write the data.
+            QTextStream out(&file);
+            out << fileData;
+            file.close();
         }
-
-        //Create stream to write the data.
-        QTextStream out(&file);
-        out << fileData;
-        file.close();
-
     }catch (...) {
         QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
         return false;

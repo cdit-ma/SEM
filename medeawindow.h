@@ -137,7 +137,7 @@ public slots:
 
 
 private slots:
-    void printScreen();
+    void screenshot();
     void XSLValidationCompleted(bool success, QString reportPath);
     void projectFileChanged(QString name="");
     void projectNameChanged(QString name="");
@@ -232,15 +232,20 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    QPixmap getDialogPixmap(QString alias, QString image, QSize size = QSize(50,50));
     bool openProject(QString fileName);
     QRect getCanvasRect();
     QString getTimestamp();
     QString getTempFileName(QString prefix="");
+    QString getTempTimeName();
     bool closeProject();
     bool saveProject(bool saveAs=false);
 
     QString readFile(QString fileName);
     bool writeFile(QString filePath, QString fileData, bool notify=true);
+    bool writeQImage(QString filePath, QImage image, bool notify=true);
+
+    bool ensureDirectory(QString filePath);
     QString writeTempFile(QString fileData);
     QString writeProjectToTempFile();
 

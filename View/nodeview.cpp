@@ -375,27 +375,30 @@ void NodeView::destroySubViews()
     }
 }
 
-QImage NodeView::produceScreenshot(bool currentViewPort)
+QImage NodeView::renderScreenshot(bool currentViewPort, int quality)
 {
+    if(quality <=0){
+        quality = 1;
+    }else if(quality >= 10){
+        quality = 10;
+    }
+    //Store the rect of what we are to print.
     QRectF capturedSceneRect;
 
-    QSizeF imageSize;
-    qreal imageScale = 2;
     if(currentViewPort){
         capturedSceneRect = getVisibleRect();
-        imageSize = capturedSceneRect.size() * imageScale;
     }else{
-        imageSize = scene()->itemsBoundingRect().size() * imageScale;
+        capturedSceneRect = scene()->itemsBoundingRect();
     }
 
-    QImage image(imageSize.width(),imageSize.height(), QImage::Format_ARGB32_Premultiplied);
+    QSizeF imageSize = capturedSceneRect.size() * quality;
+
+    QImage image(imageSize.width(), imageSize.height(), QImage::Format_ARGB32_Premultiplied);
 
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
-
     scene()->render(&painter, image.rect(), capturedSceneRect);
     painter.end();
-    image.save("c:/Test.png");
     return image;
 }
 
@@ -1478,7 +1481,11 @@ void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, i
             centerItem(item);
         }
     }
-    int reply = QMessageBox::question(this, title, message, QMessageBox::Yes | QMessageBox::No);
+
+    QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No);
+
+    msgBox.setIconPixmap(getImage("Actions", "Help").scaled(50,50));
+    int reply = msgBox.exec();
     bool yes = reply == QMessageBox::Yes;
     emit view_QuestionAnswered(yes);
 }

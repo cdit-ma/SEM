@@ -51,7 +51,7 @@ public:
     void destroySubViews();
 
 
-    QImage produceScreenshot(bool currentViewPort = true);
+    QImage renderScreenshot(bool currentViewPort = true, int quality=1);
     //Set Controller
 
     void setController(NewController* controller);
