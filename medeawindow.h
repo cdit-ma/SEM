@@ -248,6 +248,7 @@ private:
     bool ensureDirectory(QString filePath);
     QString writeTempFile(QString fileData);
     QString writeProjectToTempFile();
+    QTemporaryFile* writeTemporaryFile(QString data);
 
     void populateDocks();
     bool canFilesBeDragImported(const QList<QUrl> files);
@@ -255,14 +256,21 @@ private:
     void initialiseJenkinsManager();
     void initialiseCUTSManager();
     void importXMEProject(QString fileName);
+    void importProjects(QStringList files);
 
     void toolbarSettingChanged(QString keyName, QVariant value);
+    void jenkins_JobName_Changed(QString jobName);
     void enableTempExport(bool enable);
+
+    EventAction getEventAction();    
+    QStringList getCheckedItems(int menu);
 
     void setApplicationEnabled(bool enable);
     void setViewWidgetsEnabled(bool enable);
 
-    EventAction getEventAction();
+    void toggleWelcomeScreen(bool show);
+    void toggleAndTriggerAction(QAction* action, bool value);
+
     void resetGUI();
     void resetView();
     void newProject();
@@ -281,6 +289,7 @@ private:
     void setupToolbar();
     bool constructToolbarButton(QToolBar* toolbar, QAction* action, QString actionName);
 
+    void setupWelcomeScreen();
     void setupMultiLineBox();
 
     void updateWidgetsOnWindowChange();
@@ -289,15 +298,6 @@ private:
     void updateDock();
     void updateToolbar();
     void updateDataTable();
-
-    void importProjects(QStringList files);
-
-    void jenkins_JobName_Changed(QString jobName);
-
-    void toggleAndTriggerAction(QAction* action, bool value);
-
-    QStringList getCheckedItems(int menu);
-    QTemporaryFile* writeTemporaryFile(QString data);
 
 
     QString applicationDirectory;
@@ -405,6 +405,7 @@ private:
     QAction* rightSpacerAction;
 
     QToolButton* toolbarButton;
+    bool SHOW_TOOLBAR;
 
     QHash<QString, QAction*> toolbarActionLookup;
     QHash<QString, ActionButton*> toolbarButtonLookup;
@@ -415,9 +416,6 @@ private:
     QAction* midRightSpacer;
     QAction* rightMidSpacer;
     QAction* rightMostSpacer;
-
-
-
 
     AspectToggleWidget* definitionsToggle;
     AspectToggleWidget* workloadToggle;
@@ -543,6 +541,12 @@ private:
     QString componentName_CPPExport;
 
     MedeaSplash* splashScreen;
+
+    QVBoxLayout* viewHolderLayout;
+    QHBoxLayout* viewLayout;
+    QVBoxLayout* holderLayout;
+    QVBoxLayout* welcomeLayout;
+    bool welcomeScreenOn;
 
     // QWidget interface
 protected:
