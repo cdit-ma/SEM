@@ -1498,6 +1498,7 @@ void MedeaWindow::setupWelcomeScreen()
     settingsButton->setFlat(true);
     settingsButton->setStyleSheet("QPushButton{ color: white; font-size: 16px; text-align: left; }"
                                "QTooltip{ background: white; color: black; }");
+
     openProjectButton->setStyleSheet(settingsButton->styleSheet());
     openProjectButton->setFlat(true);
     newProjectButton->setStyleSheet(settingsButton->styleSheet());
@@ -1545,6 +1546,7 @@ void MedeaWindow::setupWelcomeScreen()
     leftButtonLayout->setAlignment(topLayout, Qt::AlignHCenter);
     leftButtonLayout->addSpacerItem(new QSpacerItem(0,10));
     leftButtonLayout->addWidget(newProjectButton,1);
+
     leftButtonLayout->addSpacerItem(new QSpacerItem(0,5));
     leftButtonLayout->addWidget(openProjectButton,1);
     leftButtonLayout->addSpacerItem(new QSpacerItem(0,5));
@@ -1558,8 +1560,7 @@ void MedeaWindow::setupWelcomeScreen()
 
 
     recentProjectsList = new QListWidget(this);
-    //recentProjectsList->setFixedHeight(120);
-    connect(recentProjectsList, SIGNAL(currentTextChanged(QString)), this, SLOT(loadRecentProject(QString)));
+    connect(recentProjectsList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 
     recentProjectsList->setStyleSheet("background-color:black;color: white; font-size: 16px; text-align: left;");
 
@@ -1589,8 +1590,9 @@ void MedeaWindow::setupWelcomeScreen()
     welcomeScreenOn = false;
 
 
-    connect(newProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionNew_Project_triggered()));
-    connect(openProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionOpenProject_triggered()));
+    connect(newProjectButton, SIGNAL(clicked(bool)), file_newProject, SIGNAL(triggered(bool)));
+    connect(openProjectButton, SIGNAL(clicked(bool)), file_openProject, SIGNAL(triggered(bool)));
+    connect(settingsButton, SIGNAL(clicked(bool)), settings_changeAppSettings, SIGNAL(triggered(bool)));
 }
 
 
@@ -1899,6 +1901,7 @@ void MedeaWindow::makeConnections()
     //For mac
     addAction(exit);
     addAction(file_newProject);
+    addAction(file_openProject);
     addAction(file_importGraphML);
 
     addAction(edit_undo);
@@ -2605,6 +2608,13 @@ void MedeaWindow::executeJenkinsDeployment()
     if(jenkinsManager){
         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
         jenkinsSJ->requestJob(jobName, exportFile);
+    }
+}
+
+void MedeaWindow::itemDoubleClicked(QListWidgetItem *item)
+{
+    if(item){
+        openProject(item->text());
     }
 }
 
@@ -3929,7 +3939,7 @@ void MedeaWindow::updateRecentProjectsStack(QString fileName)
         QListWidgetItem* item = new QListWidgetItem(recentProjectsList);
         item->setIcon(getIcon("Actions", "New"));
         item->setText(fileName);
-        QAction* fileAction = file_recentProjectsMenu->addAction(getIcon("Actions", "Open"), fileName);
+        QAction* fileAction = file_recentProjectsMenu->addAction(getIcon("Actions", "New"), fileName);
         recentProjectsList->addItem(item);
         connect(fileAction, SIGNAL(triggered(bool)), this, SLOT(loadRecentProject()));
     }

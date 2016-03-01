@@ -138,6 +138,7 @@ public slots:
 
 
 private slots:
+    void itemDoubleClicked(QListWidgetItem* item);
     void loadRecentProject(QString fileName = "");
     void screenshot();
     void XSLValidationCompleted(bool success, QString reportPath);
