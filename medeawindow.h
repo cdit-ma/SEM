@@ -138,7 +138,7 @@ public slots:
 
 
 private slots:
-    void loadRecentProject();
+    void loadRecentProject(QString fileName = "");
     void screenshot();
     void XSLValidationCompleted(bool success, QString reportPath);
     void projectFileChanged(QString name="");
@@ -550,8 +550,11 @@ private:
     QVBoxLayout* viewHolderLayout;
     QHBoxLayout* viewLayout;
     QVBoxLayout* holderLayout;
-    QVBoxLayout* welcomeLayout;
+    QHBoxLayout* welcomeLayout;
     bool welcomeScreenOn;
+
+
+    QListWidget* recentProjectsList;
 
     QStack<QString> recentProjectsStack;
 

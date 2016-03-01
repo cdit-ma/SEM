@@ -699,6 +699,8 @@ void MedeaWindow::setWindowStyleSheet()
 void MedeaWindow::setupMenu()
 {
     menu = new QMenu();
+
+
     file_menu = menu->addMenu(getIcon("Actions", "Menu"), "File");
     edit_menu = menu->addMenu(getIcon("Actions", "Edit"), "Edit");
 
@@ -1482,53 +1484,99 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
  */
 void MedeaWindow::setupWelcomeScreen()
 {
+
+    QWidget *containerWidget = new QWidget();
+    containerWidget->setFixedHeight(400);
+    containerWidget->setFixedWidth(500);
+    QVBoxLayout* containerLayout = new QVBoxLayout(containerWidget);
+
     QPushButton* newProjectButton = new QPushButton("New Project", this);
     QPushButton* openProjectButton = new QPushButton("Open Project", this);
-    newProjectButton->setStyleSheet("QPushButton {"
-                                    "background: rgb(240,240,240);"
-                                    "border: 1px solid white;"
-                                    "border-radius: 5px;"
-                                    "}"
-                                    "QPushButton:hover {"
-                                    "border: 2px solid rgb(140,140,140);"
-                                    "background: white;"
-                                    "}");
-    openProjectButton->setStyleSheet("QPushButton {"
-                                    "background: rgb(240,240,240);"
-                                    "border: 1px solid white;"
-                                    "border-radius: 5px;"
-                                    "}"
-                                    "QPushButton:hover {"
-                                    "border: 2px solid rgb(140,140,140);"
-                                    "background: white;"
-                                    "}");
+    QPushButton* settingsButton = new QPushButton("Settings", this);
+    QPushButton* recentProjectButton = new QPushButton("Recent Projects", this);
 
-    QLabel* medeaLabel = new QLabel(this);
-    medeaLabel->setFixedSize(150, 150);
+    settingsButton->setFlat(true);
+    settingsButton->setStyleSheet("QPushButton{ color: white; font-size: 16px; text-align: left; }"
+                               "QTooltip{ background: white; color: black; }");
+    openProjectButton->setStyleSheet(settingsButton->styleSheet());
+    openProjectButton->setFlat(true);
+    newProjectButton->setStyleSheet(settingsButton->styleSheet());
+    newProjectButton->setFlat(true);
+    recentProjectButton->setFlat(true);
+    recentProjectButton->setStyleSheet(settingsButton->styleSheet());
+
+
+    QLabel* medeaIcon = new QLabel(this);
+    medeaIcon->setFixedSize(150, 150);
+
+    QLabel* medeaLabel = new QLabel("MEDEA");
+    medeaLabel->setStyleSheet("font-size:32pt;color:white; text-align:center;");
+    QLabel* medeaVersionLabel = new QLabel("Version " + MEDEA_VERSION);
+    medeaVersionLabel->setStyleSheet("font-size:12pt;color:gray; text-align:center;");
 
     QPixmap pixMap(":/Actions/MEDEA.png");
-    pixMap = pixMap.scaled(medeaLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    medeaLabel->setPixmap(pixMap);
+    pixMap = pixMap.scaled(medeaIcon->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    medeaIcon->setPixmap(pixMap);
 
-    QSize buttonSize(250, 40);
-    newProjectButton->setFixedSize(buttonSize);
-    openProjectButton->setFixedSize(buttonSize);
 
-    QFont bigFont = QFont(guiFont.family(), 12);
-    newProjectButton->setFont(bigFont);
-    openProjectButton->setFont(bigFont);
+    newProjectButton->setIcon(getIcon("Actions", "New"));
+    openProjectButton->setIcon(getIcon("Actions","Import"));
+    settingsButton->setIcon(getIcon("Actions", "Settings"));
+    recentProjectButton->setIcon(getIcon("Actions", "Timer"));
 
-    QHBoxLayout* innerLayout = new QHBoxLayout();
-    innerLayout->addWidget(newProjectButton, 1, Qt::AlignRight);
-    innerLayout->addSpacerItem(new QSpacerItem(100, 0));
-    innerLayout->addWidget(medeaLabel);
-    innerLayout->addSpacerItem(new QSpacerItem(100, 0));
-    innerLayout->addWidget(openProjectButton, 1, Qt::AlignLeft);
 
-    welcomeLayout = new QVBoxLayout();
-    welcomeLayout->addSpacerItem(new QSpacerItem(0, 50));
-    welcomeLayout->addLayout(innerLayout);
-    welcomeLayout->addStretch();
+
+    QVBoxLayout* topLayout = new QVBoxLayout();
+    topLayout->addWidget(medeaIcon, 0, Qt::AlignHCenter);
+    topLayout->addWidget(medeaLabel, 0, Qt::AlignHCenter);
+    topLayout->addWidget(medeaVersionLabel, 0, Qt::AlignHCenter);
+
+
+    QVBoxLayout* mainLayout = new QVBoxLayout();
+    mainLayout->addStretch();
+
+
+    QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    QVBoxLayout* leftButtonLayout = new QVBoxLayout();
+    QVBoxLayout* rightButtonLayout = new QVBoxLayout();
+
+
+    leftButtonLayout->addLayout(topLayout);
+    leftButtonLayout->setAlignment(topLayout, Qt::AlignHCenter);
+    leftButtonLayout->addSpacerItem(new QSpacerItem(0,10));
+    leftButtonLayout->addWidget(newProjectButton,1);
+    leftButtonLayout->addSpacerItem(new QSpacerItem(0,5));
+    leftButtonLayout->addWidget(openProjectButton,1);
+    leftButtonLayout->addSpacerItem(new QSpacerItem(0,5));
+    leftButtonLayout->addWidget(settingsButton,1);
+    leftButtonLayout->addStretch();
+
+    buttonsLayout->addLayout(leftButtonLayout,1);
+    buttonsLayout->addSpacerItem(new QSpacerItem(5,0));
+    buttonsLayout->addLayout(rightButtonLayout,1);
+
+
+
+    recentProjectsList = new QListWidget(this);
+    //recentProjectsList->setFixedHeight(120);
+    connect(recentProjectsList, SIGNAL(currentTextChanged(QString)), this, SLOT(loadRecentProject(QString)));
+
+    recentProjectsList->setStyleSheet("background-color:black;color: white; font-size: 16px; text-align: left;");
+
+    recentProjectButton->setEnabled(false);
+    rightButtonLayout->addWidget(recentProjectButton, 0);
+    rightButtonLayout->addWidget(recentProjectsList, 1);
+
+
+    mainLayout->addLayout(buttonsLayout);
+    mainLayout->setAlignment(buttonsLayout, Qt::AlignHCenter);
+    mainLayout->addStretch();
+
+
+    containerLayout->addLayout(mainLayout);
+
+    welcomeLayout = new QHBoxLayout();
+    welcomeLayout->addWidget(containerWidget);
 
     holderLayout = new QVBoxLayout();
     holderLayout->addLayout(welcomeLayout);
@@ -1539,6 +1587,7 @@ void MedeaWindow::setupWelcomeScreen()
     holderWidget->hide();
 
     welcomeScreenOn = false;
+
 
     connect(newProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionNew_Project_triggered()));
     connect(openProjectButton, SIGNAL(clicked(bool)), this, SLOT(on_actionOpenProject_triggered()));
@@ -2559,16 +2608,17 @@ void MedeaWindow::executeJenkinsDeployment()
     }
 }
 
-void MedeaWindow::loadRecentProject()
+void MedeaWindow::loadRecentProject(QString fileName)
 {
     QObject* sender = QObject::sender();
 
     QAction* action = dynamic_cast<QAction*>(sender);
     if(action){
-        QString fileName = action->text();
-        if(!fileName.isEmpty()){
-            openProject(fileName);
-        }
+        fileName = action->text();
+    }
+
+    if(!fileName.isEmpty()){
+        openProject(fileName);
     }
 }
 
@@ -3871,18 +3921,18 @@ void MedeaWindow::updateRecentProjectsStack(QString fileName)
         delete recentProjects.takeFirst();
     }
 
-    qCritical() << recentProjectsStack;
+
+    //Clear the project list.
+    recentProjectsList->clear();
 
     foreach(QString fileName, recentProjectsStack){
+        QListWidgetItem* item = new QListWidgetItem(recentProjectsList);
+        item->setIcon(getIcon("Actions", "New"));
+        item->setText(fileName);
         QAction* fileAction = file_recentProjectsMenu->addAction(getIcon("Actions", "Open"), fileName);
+        recentProjectsList->addItem(item);
         connect(fileAction, SIGNAL(triggered(bool)), this, SLOT(loadRecentProject()));
-
     }
-
-
-
-    //UPDATE GUI
-    qCritical() << recentProjectsStack;
 }
 
 
@@ -4312,4 +4362,13 @@ void MedeaWindow::themeChanged(VIEW_THEME theme)
     projectName->setStyleSheet("QPushButton{ color:" + textColor + "font-size: 16px; text-align: left; }"
                                                                    "QTooltip{ background: white; color: black; }");
     loadingLabel->setStyleSheet("QLabel{ color:" + textColor + "}");
+
+
+
+//    QPalette palette;
+//    palette.setColor(menu->backgroundRole(), GET_VIEW_COLOR(theme));
+//    palette.setColor(menu->foregroundRole(), GET_INVERT_COLOR(theme));
+
+//    menu->setStyleSheet("color:"+textColor+";");
+//    menu->setPalette(palette);
 }

@@ -3139,9 +3139,17 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
             QStringList redImages;
             //redImages << "Critical" ;
             QStringList orangeImages;
-            orangeImages << "Warning";
+            orangeImages << "Warning" << "New" ;
             QStringList whiteImages;
             whiteImages << "Exclamation" << "Cross";
+            QStringList blueImages;
+            blueImages << "Import"<< "Timer" ;
+            QStringList pinkImages;
+            pinkImages << "Save";
+            QStringList greyImages;
+            greyImages << "Settings" ;
+
+
 
 
             bool gotMatch = false;
@@ -3154,6 +3162,15 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
             }else if(whiteImages.contains(imageName)){
                 gotMatch = true;
                 tint = QColor(255,255,255);
+            }else if(blueImages.contains(imageName)){
+                gotMatch = true;
+                tint = QColor(78,150,186);
+            }else if(pinkImages.contains(imageName)){
+                gotMatch = true;
+                tint = QColor(177,12,67);
+            }else if(greyImages.contains(imageName)){
+                gotMatch = true;
+                tint = QColor(177,177,177);
             }
 
             if(!gotMatch){
