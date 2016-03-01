@@ -193,6 +193,7 @@
         <file alias="DisconnectAggregate.png">Resources/Images/Actions/DisconnectAggregate.png</file>
         <file alias="DisconnectHardwareNode.png">Resources/Images/Actions/DisconnectHardwareNode.png</file>
         <file alias="PrintScreen.png">Resources/Images/Actions/PrintScreen.png</file>
+        <file alias="Timer.png">Resources/Images/Actions/Timer.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>

@@ -68,6 +68,7 @@
 #include <QAbstractMessageHandler>
 
 
+
 class SearchDialog;
 
 class MedeaWindow : public QMainWindow
@@ -137,6 +138,7 @@ public slots:
 
 
 private slots:
+    void loadRecentProject();
     void screenshot();
     void XSLValidationCompleted(bool success, QString reportPath);
     void projectFileChanged(QString name="");
@@ -299,6 +301,8 @@ private:
     void updateToolbar();
     void updateDataTable();
 
+    void updateRecentProjectsStack(QString fileNameOpened="");
+
 
     QString applicationDirectory;
 
@@ -309,6 +313,7 @@ private:
     QPushButton* menuButton;
     QMenu* menu;
     QMenu* file_menu;
+    QMenu *file_recentProjectsMenu;
     QMenu* edit_menu;
     QMenu* view_menu;
     QMenu* model_menu;
@@ -547,6 +552,8 @@ private:
     QVBoxLayout* holderLayout;
     QVBoxLayout* welcomeLayout;
     bool welcomeScreenOn;
+
+    QStack<QString> recentProjectsStack;
 
     // QWidget interface
 protected:

@@ -42,6 +42,8 @@
 #define TOOLBAR_BUTTON_HEIGHT 40
 #define TOOLBAR_GAP 5
 
+#define RECENT_PROJECT_SIZE 5
+
 #define SEARCH_DIALOG_MIN_WIDTH ((MIN_WIDTH * 2.0) / 3.0)
 #define SEARCH_DIALOG_MIN_HEIGHT ((MIN_HEIGHT * 2.0) / 3.0)
 
@@ -720,6 +722,7 @@ void MedeaWindow::setupMenu()
     file_openProject = file_menu->addAction(getIcon("Actions", "Import"), "Open Project");
     file_openProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 
+    file_recentProjectsMenu = file_menu->addMenu(getIcon("Actions", "Timer"), "Recent Projects");
     file_menu->addSeparator();
 
     file_saveProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project");
@@ -735,6 +738,7 @@ void MedeaWindow::setupMenu()
     file_importGraphML = file_menu->addAction(getIcon("Actions", "Import"), "Import");
     file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
+
 
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_menu->addSeparator();
@@ -1935,6 +1939,7 @@ bool MedeaWindow::openProject(QString fileName)
     QString fileData = readFile(fileName);
     if(!fileData.isEmpty()){
         nodeView->openProject(fileName, fileData);
+        updateRecentProjectsStack(fileName);
     }else{
         return false;
     }
@@ -2554,6 +2559,19 @@ void MedeaWindow::executeJenkinsDeployment()
     }
 }
 
+void MedeaWindow::loadRecentProject()
+{
+    QObject* sender = QObject::sender();
+
+    QAction* action = dynamic_cast<QAction*>(sender);
+    if(action){
+        QString fileName = action->text();
+        if(!fileName.isEmpty()){
+            openProject(fileName);
+        }
+    }
+}
+
 void MedeaWindow::screenshot()
 {
     if(appSettings){
@@ -2576,6 +2594,7 @@ void MedeaWindow::screenshot()
         msgBox.hide();
 
         if(buttonPressed == QMessageBox::Cancel){
+            displayLoadingStatus(false);
             return;
         }
         bool currentViewPort = buttonPressed == QMessageBox::No;
@@ -3823,6 +3842,47 @@ void MedeaWindow::updateDataTable()
         dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
         dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     }
+}
+
+void MedeaWindow::updateRecentProjectsStack(QString fileName)
+{
+    if(!fileName.isEmpty()){
+        //Get the index of the filename opened (if it exists)
+        int index = recentProjectsStack.indexOf(fileName);
+        if(index >= 0){
+            //Remove it.
+            recentProjectsStack.remove(index);
+        }
+        recentProjectsStack.prepend(fileName);
+
+    }
+
+    //Update the Menu.
+    while(recentProjectsStack.size() > RECENT_PROJECT_SIZE){
+        //Update the Menu.
+        recentProjectsStack.removeLast();
+    }
+
+    //REMOVE ALL PREVIOUS ACTIONS FROM PROEJCTS
+
+    QList<QAction*> recentProjects = file_recentProjectsMenu->actions();
+
+    while(recentProjects.size() > 0){
+        delete recentProjects.takeFirst();
+    }
+
+    qCritical() << recentProjectsStack;
+
+    foreach(QString fileName, recentProjectsStack){
+        QAction* fileAction = file_recentProjectsMenu->addAction(getIcon("Actions", "Open"), fileName);
+        connect(fileAction, SIGNAL(triggered(bool)), this, SLOT(loadRecentProject()));
+
+    }
+
+
+
+    //UPDATE GUI
+    qCritical() << recentProjectsStack;
 }
 
 
