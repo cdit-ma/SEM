@@ -38,6 +38,7 @@ public slots:
     void constructNewView();
     void getCPPForComponent();
     void setReadOnlyMode();
+    void launchWiki();
 
     void setupAdoptableNodesList();
     void setupLegalNodesList();
@@ -136,6 +137,7 @@ private:
 
     QToolButton* expandButton;
     QToolButton* contractButton;
+    QToolButton* wikiButton;
 
     ToolbarMenu* addMenu;
     ToolbarMenu* connectMenu;
@@ -179,6 +181,8 @@ private:
     bool showExportSnippetToolButton;
     bool showDefinitionToolButton;
     bool showImplementationToolButton;
+
+    bool showWikiButton;
     bool showShowCPPToolButton;
     bool showSetReadyOnlyToolButton;
     bool showUnsetReadyOnlyToolButton;

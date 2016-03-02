@@ -30,7 +30,7 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     showDefinitionToolButton = false;
     showImplementationToolButton = false;
     showShowCPPToolButton = false;
-
+    showWikiButton = false;
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
 
@@ -66,6 +66,7 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
     exportSnippetButton->setVisible(showExportSnippetToolButton);
     importSnippetButton->setVisible(showImportSnippetToolButton);
     getCPPButton->setVisible(showShowCPPToolButton);
+    wikiButton->setVisible(showWikiButton);
     setReadOnlyButton->setVisible(showSetReadyOnlyToolButton);
     unsetReadOnlyButton->setVisible(showUnsetReadyOnlyToolButton);
 
@@ -166,6 +167,8 @@ void ToolbarWidget::updateActionEnabledState(QString actionName, bool enabled)
         showSetReadyOnlyToolButton = enabled;
     } else if (actionName == "unsetReadOnly") {
         showUnsetReadyOnlyToolButton = enabled;
+    } else if(actionName == "wiki"){
+        showWikiButton = enabled;
     }
 }
 
@@ -391,6 +394,14 @@ void ToolbarWidget::setReadOnlyMode()
         return;
     }
     nodeView->setReadOnlyMode(readOnly);
+}
+
+void ToolbarWidget::launchWiki()
+{
+    if (nodeItem) {
+        QString nodeKind = nodeItem->getNodeKind();
+        emit nodeView->view_LaunchWiki(nodeKind);
+    }
 }
 
 
@@ -866,6 +877,8 @@ void ToolbarWidget::setupToolBar()
     setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Read Only");
     unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Read Only");
 
+    wikiButton = constructToolButton(buttonSize, 0.6, "Help", "Wiki page for Entity");
+
     goToFrame = constructFrameSeparator();
     definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Definition");
     implementationButton = constructToolButton(buttonSize, 0.6, "Implementation", "View Implementation");
@@ -970,6 +983,7 @@ void ToolbarWidget::makeConnections()
     connect(alignVerticallyButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(expandButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(wikiButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(contractButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(popupNewWindow, SIGNAL(clicked()), this, SLOT(hide()));
     connect(connectionsButton, SIGNAL(clicked()), this, SLOT(hide()));
@@ -983,6 +997,7 @@ void ToolbarWidget::makeConnections()
     connect(getCPPButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
     connect(setReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
     connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
+    connect(wikiButton, SIGNAL(clicked(bool)), this, SLOT(launchWiki()));
 
     connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(setStateConnect()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
@@ -1250,6 +1265,7 @@ void ToolbarWidget::hideButtons()
     contractButton->hide();
     exportSnippetButton->hide();
     getCPPButton->hide();
+    wikiButton->hide();
     setReadOnlyButton->hide();
     unsetReadOnlyButton->hide();
 

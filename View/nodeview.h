@@ -172,6 +172,7 @@ private slots:
     void actionFinished();
 
 signals:
+    void view_LaunchWiki(QString entityKind);
     void view_ProjectFileChanged(QString);
     void view_ProjectNameChanged(QString);
 

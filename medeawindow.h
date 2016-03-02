@@ -138,8 +138,10 @@ public slots:
 
 
 private slots:
-    void itemDoubleClicked(QListWidgetItem* item);
-    void loadRecentProject(QString fileName = "");
+    void recentProjectItemClicked(QListWidgetItem* item);
+    void recentProjectMenuActionClicked();
+    void clearRecentProjectsList();
+
     void screenshot();
     void XSLValidationCompleted(bool success, QString reportPath);
     void projectFileChanged(QString name="");
@@ -215,6 +217,8 @@ private slots:
     void detachDocks(bool checked);
     void detachedDockClosed();
 
+
+
     void showWindowToolbar(bool checked);
     void setToolbarVisibility(bool visible);
     void detachWindowToolbar(bool checked);
@@ -236,6 +240,8 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    void updateRecentProjectsWidgets(QString topFileName="");
+
     QPixmap getDialogPixmap(QString alias, QString image, QSize size = QSize(50,50));
     bool openProject(QString fileName);
     QRect getCanvasRect();
@@ -303,7 +309,7 @@ private:
     void updateToolbar();
     void updateDataTable();
 
-    void updateRecentProjectsStack(QString fileNameOpened="");
+
 
 
     QString applicationDirectory;
@@ -326,6 +332,8 @@ private:
     QAction* file_newProject;
     QAction* file_importGraphML;
     QAction* file_importXME;
+
+    QAction* file_recentProjects_clearHistory;
 
     QAction* file_openProject;
     QAction* file_saveProject;
@@ -557,9 +565,12 @@ private:
     bool welcomeScreenOn;
 
 
-    QListWidget* recentProjectsList;
+    QSettings* persistantSettings;
 
-    QStack<QString> recentProjectsStack;
+
+
+    QStack<QString> recentProjectsList;
+    QListWidget* recentProjectsListWidget;
 
     // QWidget interface
 protected:

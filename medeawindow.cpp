@@ -72,6 +72,7 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+
     setupApplication();
 
     QString version = "v";
@@ -97,9 +98,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     modelCleared = false;
 
-    // this needs to happen before the menu is set up and connected
-    applicationDirectory = QApplication::applicationDirPath() + "/";
-    MEDEA_VERSION = QApplication::applicationVersion();
 
     appSettings = new AppSettings(this, applicationDirectory);
     appSettings->setModal(true);
@@ -631,6 +629,7 @@ void MedeaWindow::initialiseGUI()
     setupMultiLineBox();
     setupWelcomeScreen();
 
+    updateRecentProjectsWidgets();
 }
 
 
@@ -725,6 +724,9 @@ void MedeaWindow::setupMenu()
     file_openProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 
     file_recentProjectsMenu = file_menu->addMenu(getIcon("Actions", "Timer"), "Recent Projects");
+
+
+    file_recentProjects_clearHistory = file_recentProjectsMenu->addAction(getIcon("Actions", "Clear"), "Clear History");
     file_menu->addSeparator();
 
     file_saveProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project");
@@ -1571,14 +1573,14 @@ void MedeaWindow::setupWelcomeScreen()
 
 
 
-    recentProjectsList = new QListWidget(this);
-    connect(recentProjectsList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
+    recentProjectsListWidget = new QListWidget(this);
+    connect(recentProjectsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(recentProjectItemClicked(QListWidgetItem*)));
 
-    recentProjectsList->setStyleSheet("background-color:black;color: white; font-size: 16px; text-align: left;");
+    recentProjectsListWidget->setStyleSheet("background-color:black;color: white; font-size: 16px; text-align: left;");
 
     recentProjectButton->setEnabled(false);
     rightButtonLayout->addWidget(recentProjectButton, 0);
-    rightButtonLayout->addWidget(recentProjectsList, 1);
+    rightButtonLayout->addWidget(recentProjectsListWidget, 1);
 
 
     mainLayout->addLayout(buttonsLayout);
@@ -1762,6 +1764,7 @@ void MedeaWindow::makeConnections()
 
     connect(this, SIGNAL(window_ProjectSaved(bool,QString)), nodeView, SIGNAL(view_ProjectSaved(bool, QString)));
 
+    connect(nodeView, SIGNAL(view_LaunchWiki(QString)), this, SLOT(showWiki(QString)));
     connect(nodeView, SIGNAL(view_ProjectFileChanged(QString)), this, SLOT(projectFileChanged(QString)));
     connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(projectNameChanged(QString)));
 
@@ -1828,6 +1831,7 @@ void MedeaWindow::makeConnections()
     connect(file_openProject, SIGNAL(triggered()), this, SLOT(on_actionOpenProject_triggered()));
     connect(file_saveProject, SIGNAL(triggered(bool)), this, SLOT(on_actionSaveProject_triggered()));
     connect(file_saveAsProject, SIGNAL(triggered()), this, SLOT(on_actionSaveProjectAs_triggered()));
+    connect(file_recentProjects_clearHistory, SIGNAL(triggered()), this, SLOT(clearRecentProjectsList()));
 
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(help_AboutMedea, SIGNAL(triggered()), this, SLOT(aboutMedea()));
@@ -2012,7 +2016,7 @@ bool MedeaWindow::openProject(QString fileName)
     QString fileData = readFile(fileName);
     if(!fileData.isEmpty()){
         nodeView->openProject(fileName, fileData);
-        updateRecentProjectsStack(fileName);
+        updateRecentProjectsWidgets(fileName);
     }else{
         return false;
     }
@@ -2104,6 +2108,11 @@ bool MedeaWindow::saveProject(bool saveAs)
         QString fileData = nodeView->getProjectAsGraphML();
 
         bool saveSuccess = writeFile(filePath, fileData);
+
+        if(saveSuccess){
+            updateRecentProjectsWidgets(filePath);
+        }
+
         emit window_ProjectSaved(saveSuccess, filePath);
         return saveSuccess;
     }
@@ -2160,6 +2169,28 @@ void MedeaWindow::setupApplication()
     QApplication::setOrganizationName("Defence Information Group");
     QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
     QApplication::setWindowIcon(QIcon(":/Actions/MEDEA.png"));
+
+    // this needs to happen before the menu is set up and connected
+    applicationDirectory = QApplication::applicationDirPath() + "/";
+    MEDEA_VERSION = QApplication::applicationVersion();
+
+
+    //load the persistantSettings from the state.ini file to load in the history.
+    persistantSettings = new QSettings(applicationDirectory + "/Resources/state.ini", QSettings::IniFormat);
+    QVariant projectHistory = persistantSettings->value("projectHistory");
+
+    if(!projectHistory.isNull()){
+        QStringList history = projectHistory.toStringList();
+        while(!history.isEmpty()){
+            QString fileName = history.takeLast();
+            if(!fileName.isEmpty()){
+                //update the stack.
+                recentProjectsList.push(fileName);
+            }
+        }
+    }
+
+
     projectFileChanged();
 
     //Set Font.
@@ -2388,7 +2419,9 @@ void MedeaWindow::aboutMedea()
     aboutString += "<li>Marianne Rieckmann</li>";
     aboutString += "<li>Matthew Hart</li>";
     aboutString += "</ul>";
-
+    aboutString += "<a href=\"";
+    aboutString += GITHUB_URL;
+    aboutString += "\">MEDEA GitHub</a>";
     QMessageBox::about(this, "About MEDEA", aboutString);
 }
 
@@ -2644,24 +2677,22 @@ void MedeaWindow::executeJenkinsDeployment()
     }
 }
 
-void MedeaWindow::itemDoubleClicked(QListWidgetItem *item)
+void MedeaWindow::recentProjectItemClicked(QListWidgetItem *item)
 {
     if(item){
+        //Open the project with the text from the item.
         openProject(item->text());
     }
 }
 
-void MedeaWindow::loadRecentProject(QString fileName)
+void MedeaWindow::recentProjectMenuActionClicked()
 {
-    QObject* sender = QObject::sender();
-
-    QAction* action = dynamic_cast<QAction*>(sender);
+    QAction* action = dynamic_cast<QAction*>(QObject::sender());
     if(action){
-        fileName = action->text();
-    }
-
-    if(!fileName.isEmpty()){
-        openProject(fileName);
+        QString fileName = action->text();
+        if(!fileName.isEmpty()){
+            openProject(fileName);
+        }
     }
 }
 
@@ -2806,6 +2837,17 @@ void MedeaWindow::saveSettings()
             appSettings->setSetting(WINDOW_Y, pos().y());
         }
         appSettings->setSetting(DEFAULT_DIR_PATH, DEFAULT_PATH);
+    }
+
+    if(persistantSettings){
+        QStringList historicList;
+
+        while(!recentProjectsList.isEmpty()){
+            historicList.append(recentProjectsList.takeLast());
+        }
+        //Write the projectHistory to disk
+        persistantSettings->setValue("projectHistory", historicList);
+        delete persistantSettings;
     }
 }
 
@@ -3886,6 +3928,14 @@ void MedeaWindow::detachedDockClosed()
     //settings_displayDocks->triggered(false);
 }
 
+void MedeaWindow::clearRecentProjectsList()
+{
+    //Clear the list.
+    recentProjectsList.clear();
+    //Update the widgets.
+    updateRecentProjectsWidgets();
+}
+
 
 /**
  * @brief MedeaWindow::updateDataTable
@@ -3937,44 +3987,58 @@ void MedeaWindow::updateDataTable()
     }
 }
 
-void MedeaWindow::updateRecentProjectsStack(QString fileName)
+void MedeaWindow::updateRecentProjectsWidgets(QString topFileName)
 {
-    if(!fileName.isEmpty()){
+    if(!topFileName.isEmpty()){
         //Get the index of the filename opened (if it exists)
-        int index = recentProjectsStack.indexOf(fileName);
-        if(index >= 0){
+        int index = recentProjectsList.indexOf(topFileName);
+        if(index > 0){
             //Remove it.
-            recentProjectsStack.remove(index);
+            recentProjectsList.remove(index);
+        }else if(index == 0){
+            return;
         }
-        recentProjectsStack.prepend(fileName);
-
+        recentProjectsList.prepend(topFileName);
     }
 
-    //Update the Menu.
-    while(recentProjectsStack.size() > RECENT_PROJECT_SIZE){
-        //Update the Menu.
-        recentProjectsStack.removeLast();
+    //Keep the list short.
+    while(recentProjectsList.size() > RECENT_PROJECT_SIZE){
+        recentProjectsList.removeLast();
     }
 
-    //REMOVE ALL PREVIOUS ACTIONS FROM PROEJCTS
-
-    QList<QAction*> recentProjects = file_recentProjectsMenu->actions();
-
-    while(recentProjects.size() > 0){
-        delete recentProjects.takeFirst();
+    //Get all of the previous QActions for the projects, except for the clear list button.
+    QList<QAction*> actionsToRemove;
+    foreach(QAction* action, file_recentProjectsMenu->actions()){
+        if(action != file_recentProjects_clearHistory){
+            actionsToRemove << action;
+        }
     }
 
+    //Delete the old actions.
+    while(!actionsToRemove.isEmpty()){
+        delete actionsToRemove.takeFirst();
+    }
 
-    //Clear the project list.
-    recentProjectsList->clear();
+    //Clear the Welcome screen widget.
+    recentProjectsListWidget->clear();
 
-    foreach(QString fileName, recentProjectsStack){
-        QListWidgetItem* item = new QListWidgetItem(recentProjectsList);
+    //Construct a new item for the List Widget and Menu.
+    foreach(QString fileName, recentProjectsList){
+        QListWidgetItem* item = new QListWidgetItem(recentProjectsListWidget);
         item->setIcon(getIcon("Actions", "New"));
         item->setText(fileName);
-        QAction* fileAction = file_recentProjectsMenu->addAction(getIcon("Actions", "New"), fileName);
-        recentProjectsList->addItem(item);
-        connect(fileAction, SIGNAL(triggered(bool)), this, SLOT(loadRecentProject()));
+        recentProjectsListWidget->addItem(item);
+
+        QAction* fileAction = new QAction(file_recentProjectsMenu);
+        fileAction->setIcon(getIcon("Actions", "New"));
+        fileAction->setText(fileName);
+        file_recentProjectsMenu->insertAction(file_recentProjects_clearHistory, fileAction);
+
+        //Connect the menu item to the loadRecentProject.
+        connect(fileAction, SIGNAL(triggered(bool)), this, SLOT(recentProjectMenuActionClicked()));
+    }
+    if(recentProjectsList.size() > 0){
+        file_recentProjectsMenu->insertSeparator(file_recentProjects_clearHistory);
     }
 }
 

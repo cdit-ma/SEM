@@ -2628,6 +2628,7 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("subView",  getSelectedID() != -1);
 
         emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
+        emit view_updateMenuActionEnabled("wiki", getSelectedNodeIDs().size() == 1);
 
         emit view_updateMenuActionEnabled("singleSelection", selectedID != -1);
         emit view_updateMenuActionEnabled("multipleSelection", !getSelectedNodeIDs().isEmpty());
