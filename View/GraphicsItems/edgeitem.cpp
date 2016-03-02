@@ -545,11 +545,11 @@ void EdgeItem::setupBrushes()
             edgeClass = getEdgeAdapter()->getEdgeClass();
         }
         if(edgeClass == Edge::EC_DATA){
-            pen.setColor(Qt::red);
+            pen.setColor(QColor(205,133,63));
         }else if(edgeClass == Edge::EC_WORKFLOW){
-            pen.setColor(Qt::yellow);
+            pen.setColor(Qt::black);
         }else if(edgeClass == Edge::EC_ASSEMBLY){
-            pen.setColor(Qt::green);
+            pen.setColor(Qt::black);
         }
     }
 

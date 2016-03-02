@@ -40,7 +40,7 @@ public:
 
 
 
-    enum IMAGE_POS{IP_TOPLEFT, IP_TOPMID, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
+    enum IMAGE_POS{IP_TOPLEFT, IP_TOPMID, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER, IP_CENTER_SMALL};
 
     EntityItem(NodeAdapter* node, NodeItem *parent);
     ~EntityItem();

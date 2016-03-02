@@ -350,6 +350,10 @@ QJsonDocument JenkinsRequest::getJobConfiguration(QString jobName, int buildNumb
     }
 
     //Check if the JenkinsManager has an old Job Configuration for this jobName.
+	if(!manager){
+		return QJsonDocument();
+	}
+
     QJsonDocument configuration = manager->getJobConfiguration(jobName);
 
     //If the configuration is NULL or we are to re-request the information. Get the configuration.

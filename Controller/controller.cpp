@@ -157,7 +157,7 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_ActionProgressChanged(int,QString)), view, SIGNAL(view_updateProgressStatus(int,QString)));
 
         //Signals to the View.
-        connect(this, SIGNAL(controller_DisplayMessage(MESSAGE_TYPE, QString, QString, int)), view, SLOT(showMessage(MESSAGE_TYPE,QString,QString,int)));
+        connect(this, SIGNAL(controller_DisplayMessage(MESSAGE_TYPE, QString, QString, int,bool)), view, SLOT(showMessage(MESSAGE_TYPE,QString,QString,int, bool)));
 
         // Re-added this for now
 
@@ -940,8 +940,6 @@ void NewController::remove(QList<int> IDs)
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
 {
-    long exportTimeStamp = getTimeStampEpoch();
-
     Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_ALL);
 
 
@@ -962,8 +960,16 @@ void NewController::setReadOnly(QList<int> IDs, bool readOnly)
     }
     //Attach read Only Data to the top.
 
+    bool displayWarning = true;
     //Attach read only Data.
     foreach(Node* node, nodeList){
+        if(node->isSnippetReadOnly()){
+            if(displayWarning){
+                displayWarning = false;
+                emit controller_DisplayMessage(WARNING, "Cannot Modify Read-Only Snippet", "Entity in selection is a read-only snippet. Cannot modify read-only state.", node->getID(), true);
+            }
+            continue;
+        }
         Data* readOnlyData = node->getData(readOnlyKey);
 
         if(!readOnlyData){
@@ -5981,9 +5987,11 @@ bool NewController::canSetReadOnly(QList<int> IDs)
     bool gotAnyNonReadOnly=false;
     foreach(int ID, IDs){
         Entity* entity = getGraphMLFromID(ID);
-        if(entity && !entity->isReadOnly()){
-            gotAnyNonReadOnly = true;
-            break;
+        if(entity){
+            if(!entity->isReadOnly()){
+                gotAnyNonReadOnly = true;
+                break;
+            }
         }
     }
     return gotAnyNonReadOnly;
@@ -5994,9 +6002,11 @@ bool NewController::canUnsetReadOnly(QList<int> IDs)
     bool gotAnyReadOnly=false;
     foreach(int ID, IDs){
         Entity* entity = getGraphMLFromID(ID);
-        if(entity && entity->isReadOnly()){
-            gotAnyReadOnly = true;
-            break;
+        if(entity){
+            if(entity->isReadOnly()){
+                gotAnyReadOnly = true;
+                break;
+            }
         }
     }
     return gotAnyReadOnly;

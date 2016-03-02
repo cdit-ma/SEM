@@ -666,6 +666,9 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
 
+        if(IS_READ_ONLY || IS_READ_ONLY_DEF){
+           // headBrush.setStyle(Qt::Dense6Pattern);
+        }
         painter->setBrush(headBrush);
         painter->drawRect(headerRect());
 
@@ -745,6 +748,9 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     }
 
 
+    if(IS_READ_ONLY){
+        paintPixmap(painter, IP_TOPLEFT, "Actions", "Lock_Closed");
+    }
 
     if(renderState == RS_FULL){
         //If a Node has a Definition, paint a definition icon
@@ -2007,7 +2013,7 @@ void EntityItem::setupBrushes()
 
     //Set up ReadOnly Bruhs
 
-    QColor blendColor = Qt::blue;
+    QColor blendColor = QColor(100,149,237);
     qreal blendFactor = .2;
     QColor bColor = bodyBrush.color();
 
@@ -2017,15 +2023,17 @@ void EntityItem::setupBrushes()
 
 
     readOnlyBodyBrush = QBrush(bColor);
+    blendFactor = .6;
 
     bColor = headerBrush.color();
     bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
     bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
     bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
-
     readOnlyHeaderBrush = QBrush(bColor);
 
-    blendColor = Qt::red;
+
+
+    blendColor = QColor(222,184,135);
     blendFactor = .6;
     bColor = headerBrush.color();
     bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
@@ -2035,16 +2043,17 @@ void EntityItem::setupBrushes()
     errorHeaderBrush = QBrush(bColor);
 
 
-    blendColor = Qt::magenta;
+     blendColor = QColor(222,184,135);
     blendFactor = .2;
     bColor = bodyBrush.color();
 
-    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+   bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
     bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
     bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
 
 
     readOnlyDefBodyBrush = QBrush(bColor);
+     blendFactor = .6;
 
     bColor = headerBrush.color();
     bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());

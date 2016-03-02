@@ -62,7 +62,6 @@ QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     /*
      * THESE ARE THE ORIGINAL COLOURS
      */
-    //*
     switch(aspect){
     case VA_INTERFACES:
         return QColor(110,210,210);
@@ -75,7 +74,6 @@ QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     default:
         return Qt::white;
     }
-    //*/
     /*
     switch(aspect){
     case VA_INTERFACES:
@@ -154,15 +152,14 @@ QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     case VA_INTERFACES:
         return QColor(24,148,184);
     case VA_BEHAVIOUR:
-        return QColor(110,110,110);
+        return QColor(245,222,179);//;(106,90,205);//QColor(110,110,110);
     case VA_ASSEMBLIES:
         return QColor(175,175,175);
     case VA_HARDWARE:
         return QColor(207,107,100);
     default:
         return Qt::white;
-    }
-    */
+    }*/
 }
 
 

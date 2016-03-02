@@ -38,6 +38,7 @@ public:
     bool isNode();
     bool isEdge();
     bool isReadOnly();
+    bool isSnippetReadOnly();
 
 
     QVariant getDataValue(QString keyName);

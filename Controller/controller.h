@@ -211,7 +211,7 @@ signals:
 
     void controller_AskQuestion(MESSAGE_TYPE, QString title, QString message, int ID=-1);
     void controller_GotQuestionAnswer();
-    void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, int ID=-1);
+    void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, int ID=-1, bool centralize=false);
 
 
     void controller_SavedProject(QString filePath, QString dat);

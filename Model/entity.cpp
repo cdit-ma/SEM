@@ -218,6 +218,24 @@ bool Entity::isReadOnly()
     return false;
 }
 
+bool Entity::isSnippetReadOnly()
+{
+    if(isReadOnly()){
+        if(!getData("snippetID")){
+            return false;
+        }
+        if(!getData("snippetMAC")){
+            return false;
+        }
+        if(!getData("snippetTime")){
+            return false;
+        }
+        return true;
+    }
+    return false;
+
+}
+
 QVariant Entity::getDataValue(QString keyName)
 {
     Data* data = getData(keyName);
