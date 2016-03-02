@@ -412,4 +412,6 @@ DISTFILES += \
     Resources/Fonts/OpenSans-Regular.ttf \
     settings.ini \
     doxygen.config \
-    defaultSettings.ini
+    defaultSettings.ini \
+    Resources/Images/Actions/Export_Snippet.png \
+    Resources/Images/Actions/Import_Snippet.png

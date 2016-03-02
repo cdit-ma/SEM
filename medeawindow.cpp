@@ -720,13 +720,14 @@ void MedeaWindow::setupMenu()
     file_newProject = file_menu->addAction(getIcon("Actions", "New"), "New Project");
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
 
-    file_openProject = file_menu->addAction(getIcon("Actions", "Import"), "Open Project");
+    //file_openProject = file_menu->addAction(getIcon("Actions", "Import"), "Open Project");
+    file_openProject = file_menu->addAction(getIcon("Actions", "Open"), "Open Project");
     file_openProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 
     file_recentProjectsMenu = file_menu->addMenu(getIcon("Actions", "Timer"), "Recent Projects");
 
-
     file_recentProjects_clearHistory = file_recentProjectsMenu->addAction(getIcon("Actions", "Clear"), "Clear History");
+
     file_menu->addSeparator();
 
     file_saveProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project");
@@ -740,13 +741,16 @@ void MedeaWindow::setupMenu()
     file_menu->addSeparator();
 
     file_importGraphML = file_menu->addAction(getIcon("Actions", "Import"), "Import");
-    file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
+    file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
+    //file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
+    file_importSnippet = file_menu->addAction(getIcon("Actions", "Import_Snippet"), "Import Snippet");
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
 
-
-    file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_menu->addSeparator();
-    file_exportSnippet = file_menu->addAction(getIcon("Actions", "ExportSnippet"), "Export Snippet");
+
+    //file_exportSnippet = file_menu->addAction(getIcon("Actions", "ExportSnippet"), "Export Snippet");
+    file_exportSnippet = file_menu->addAction(getIcon("Actions", "Export_Snippet"), "Export Snippet");
+
     file_menu->addSeparator();
 
     edit_undo = edit_menu->addAction(getIcon("Actions", "Undo"), "Undo");
@@ -1487,7 +1491,6 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
  */
 void MedeaWindow::setupWelcomeScreen()
 {
-
     QWidget *containerWidget = new QWidget();
     containerWidget->setFixedHeight(400);
     containerWidget->setFixedWidth(500);
@@ -1503,7 +1506,7 @@ void MedeaWindow::setupWelcomeScreen()
     settingsButton->setFlat(true);
     settingsButton->setStyleSheet("QPushButton{ color: white; font-size: 16px; text-align: left; }"
                                   "QPushButton:hover{ color: orange; }"
-                               "QTooltip{ background: white; color: black; }");
+                                  "QTooltip{ background: white; color: black; }");
 
     openProjectButton->setStyleSheet(settingsButton->styleSheet());
     openProjectButton->setFlat(true);
@@ -1515,8 +1518,6 @@ void MedeaWindow::setupWelcomeScreen()
     wikiButton->setStyleSheet(settingsButton->styleSheet());
     aboutButton->setFlat(true);
     aboutButton->setStyleSheet(settingsButton->styleSheet());
-
-
 
 
     QLabel* medeaIcon = new QLabel(this);
@@ -1531,30 +1532,24 @@ void MedeaWindow::setupWelcomeScreen()
     pixMap = pixMap.scaled(medeaIcon->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     medeaIcon->setPixmap(pixMap);
 
-
     newProjectButton->setIcon(getIcon("Actions", "New"));
-    openProjectButton->setIcon(getIcon("Actions","Import"));
+    openProjectButton->setIcon(getIcon("Actions", "Open"));
     settingsButton->setIcon(getIcon("Actions", "Settings"));
     recentProjectButton->setIcon(getIcon("Actions", "Timer"));
-    wikiButton->setIcon(getIcon("Actions", "MEDEA"));
+    wikiButton->setIcon(getIcon("Actions", "Wiki"));
     aboutButton->setIcon(getIcon("Actions", "Help"));
-
-
 
     QVBoxLayout* topLayout = new QVBoxLayout();
     topLayout->addWidget(medeaIcon, 0, Qt::AlignHCenter);
     topLayout->addWidget(medeaLabel, 0, Qt::AlignHCenter);
     topLayout->addWidget(medeaVersionLabel, 0, Qt::AlignHCenter);
 
-
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->addStretch();
-
 
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
     QVBoxLayout* leftButtonLayout = new QVBoxLayout();
     QVBoxLayout* rightButtonLayout = new QVBoxLayout();
-
 
     leftButtonLayout->addLayout(topLayout);
     leftButtonLayout->setAlignment(topLayout, Qt::AlignHCenter);
@@ -1571,8 +1566,6 @@ void MedeaWindow::setupWelcomeScreen()
     buttonsLayout->addSpacerItem(new QSpacerItem(5,0));
     buttonsLayout->addLayout(rightButtonLayout,1);
 
-
-
     recentProjectsListWidget = new QListWidget(this);
     connect(recentProjectsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(recentProjectItemClicked(QListWidgetItem*)));
 
@@ -1581,7 +1574,6 @@ void MedeaWindow::setupWelcomeScreen()
     recentProjectButton->setEnabled(false);
     rightButtonLayout->addWidget(recentProjectButton, 0);
     rightButtonLayout->addWidget(recentProjectsListWidget, 1);
-
 
     mainLayout->addLayout(buttonsLayout);
     mainLayout->setAlignment(buttonsLayout, Qt::AlignHCenter);
@@ -1592,7 +1584,6 @@ void MedeaWindow::setupWelcomeScreen()
     bottomLayout->addWidget(aboutButton,0, Qt::AlignRight);
     mainLayout->addLayout(bottomLayout);
     mainLayout->addStretch();
-
 
     containerLayout->addLayout(mainLayout);
 
@@ -1608,7 +1599,6 @@ void MedeaWindow::setupWelcomeScreen()
     holderWidget->hide();
 
     welcomeScreenOn = false;
-
 
     connect(newProjectButton, SIGNAL(clicked(bool)), file_newProject, SIGNAL(triggered(bool)));
     connect(openProjectButton, SIGNAL(clicked(bool)), file_openProject, SIGNAL(triggered(bool)));

@@ -870,8 +870,10 @@ void ToolbarWidget::setupToolBar()
     expandButton = constructToolButton(buttonSize, 0.6, "Expand", "Expand Selection");
     contractButton = constructToolButton(buttonSize, 0.6, "Contract", "Contract Selection");
     snippetFrame = constructFrameSeparator();
-    importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
-    exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
+    //importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
+    //exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
+    importSnippetButton = constructToolButton(buttonSize, 0.6, "Import_Snippet", "Import GraphML Snippet");
+    exportSnippetButton = constructToolButton(buttonSize, 0.6, "Export_Snippet", "Export GraphML Snippet");
     getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
 
     setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Read Only");
