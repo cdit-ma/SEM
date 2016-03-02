@@ -154,6 +154,7 @@ private slots:
     void aboutMedea();
     void aboutQt();
     void reportBug();
+    void showWiki(QString componentName="");
     void showShortcutList();
     void invalidJenkinsSettings(QString message);
     void jenkinsNodesLoaded();
@@ -358,6 +359,7 @@ private:
     QAction* settings_changeAppSettings;
 
     QAction* help_AboutMedea;
+    QAction* help_Wiki;
     QAction* help_AboutQt;
     QAction* help_Shortcuts;
     QAction* help_ReportBug;

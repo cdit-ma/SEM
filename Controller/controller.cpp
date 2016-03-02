@@ -2220,9 +2220,14 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
 
 
     QString labelString = nodeKind;
+
     if(nodeLabel != ""){
         labelString = nodeLabel;
     }
+    if(nodeKind == "Model"){
+        labelString = "Untitled";
+    }
+
     if(nodeKind.endsWith("Parameter")){
         labelString = "";
     }

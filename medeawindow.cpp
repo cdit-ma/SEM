@@ -59,7 +59,7 @@
 #define GME_FILE_EXT "GME Documents (*.xme)"
 #define GME_FILE_SUFFIX ".xme"
 
-#define GITHUB_URL "https://github.com/cdit-ma/MEDEA/issues"
+#define GITHUB_URL "https://github.com/cdit-ma/MEDEA/"
 // USER SETTINGS
 //Some change
 
@@ -802,6 +802,7 @@ void MedeaWindow::setupMenu()
     help_Shortcuts = help_menu->addAction(getIcon("Actions", "Keyboard"), "App Shortcuts");
     help_Shortcuts->setShortcut(QKeySequence(Qt::Key_F1));
     help_ReportBug = help_menu->addAction(getIcon("Actions", "BugReport"), "Report Bug");
+    help_Wiki = help_menu->addAction(getIcon("Actions", "MEDEA"), "Wiki");
     help_menu->addSeparator();
     help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
     help_AboutQt = help_menu->addAction(QIcon(":/Qt.ico"), "About Qt");
@@ -1494,9 +1495,12 @@ void MedeaWindow::setupWelcomeScreen()
     QPushButton* openProjectButton = new QPushButton("Open Project", this);
     QPushButton* settingsButton = new QPushButton("Settings", this);
     QPushButton* recentProjectButton = new QPushButton("Recent Projects", this);
+    QPushButton* wikiButton = new QPushButton("Wiki", this);
+    QPushButton* aboutButton = new QPushButton("About", this);
 
     settingsButton->setFlat(true);
     settingsButton->setStyleSheet("QPushButton{ color: white; font-size: 16px; text-align: left; }"
+                                  "QPushButton:hover{ color: orange; }"
                                "QTooltip{ background: white; color: black; }");
 
     openProjectButton->setStyleSheet(settingsButton->styleSheet());
@@ -1505,6 +1509,12 @@ void MedeaWindow::setupWelcomeScreen()
     newProjectButton->setFlat(true);
     recentProjectButton->setFlat(true);
     recentProjectButton->setStyleSheet(settingsButton->styleSheet());
+    wikiButton->setFlat(true);
+    wikiButton->setStyleSheet(settingsButton->styleSheet());
+    aboutButton->setFlat(true);
+    aboutButton->setStyleSheet(settingsButton->styleSheet());
+
+
 
 
     QLabel* medeaIcon = new QLabel(this);
@@ -1524,6 +1534,8 @@ void MedeaWindow::setupWelcomeScreen()
     openProjectButton->setIcon(getIcon("Actions","Import"));
     settingsButton->setIcon(getIcon("Actions", "Settings"));
     recentProjectButton->setIcon(getIcon("Actions", "Timer"));
+    wikiButton->setIcon(getIcon("Actions", "MEDEA"));
+    aboutButton->setIcon(getIcon("Actions", "Help"));
 
 
 
@@ -1571,6 +1583,12 @@ void MedeaWindow::setupWelcomeScreen()
 
     mainLayout->addLayout(buttonsLayout);
     mainLayout->setAlignment(buttonsLayout, Qt::AlignHCenter);
+
+    QHBoxLayout *bottomLayout = new QHBoxLayout();
+    bottomLayout->addStretch();
+    bottomLayout->addWidget(wikiButton,0, Qt::AlignRight);
+    bottomLayout->addWidget(aboutButton,0, Qt::AlignRight);
+    mainLayout->addLayout(bottomLayout);
     mainLayout->addStretch();
 
 
@@ -1593,6 +1611,8 @@ void MedeaWindow::setupWelcomeScreen()
     connect(newProjectButton, SIGNAL(clicked(bool)), file_newProject, SIGNAL(triggered(bool)));
     connect(openProjectButton, SIGNAL(clicked(bool)), file_openProject, SIGNAL(triggered(bool)));
     connect(settingsButton, SIGNAL(clicked(bool)), settings_changeAppSettings, SIGNAL(triggered(bool)));
+    connect(wikiButton, SIGNAL(clicked(bool)), help_Wiki, SIGNAL(triggered(bool)));
+    connect(aboutButton, SIGNAL(clicked(bool)), help_AboutMedea, SIGNAL(triggered(bool)));
 }
 
 
@@ -1814,6 +1834,7 @@ void MedeaWindow::makeConnections()
     connect(help_AboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
     connect(help_ReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(help_Shortcuts, SIGNAL(triggered()), this, SLOT(showShortcutList()));
+    connect(help_Wiki, SIGNAL(triggered(bool)), this, SLOT(showWiki()));
 
     connect(this, SIGNAL(window_OpenProject(QString,QString)), nodeView, SIGNAL(view_OpenProject(QString,QString)));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SLOT(importProjects(QStringList)));
@@ -2382,7 +2403,19 @@ void MedeaWindow::aboutQt()
 
 void MedeaWindow::reportBug()
 {
-    QDesktopServices::openUrl(QUrl(GITHUB_URL));
+    QString URL = GITHUB_URL;
+    URL += "issues/";
+    QDesktopServices::openUrl(QUrl(URL));
+}
+
+void MedeaWindow::showWiki(QString componentName)
+{
+    QString URL = GITHUB_URL;
+    URL += "wiki/";
+    if(componentName != ""){
+        URL += "SEM-MEDEA-ModelEntities#" + componentName;
+    }
+    QDesktopServices::openUrl(QUrl(URL));
 }
 
 
