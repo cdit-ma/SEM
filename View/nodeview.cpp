@@ -1460,6 +1460,7 @@ void NodeView::request_ExportSnippet()
 
 void NodeView::entitySetReadOnly(int ID, bool isReadOnly)
 {
+    Q_UNUSED(isReadOnly);
     if(selectedIDs.contains(ID)){
         //Only refresh dock if we have this item in selection.
         emit view_RefreshDock();

@@ -3069,16 +3069,21 @@ void MedeaWindow::exportSnippet(QString snippetType)
         displayNotification("Only 1 file can be selected to export snippet!");
         return;
     }
-    QString snippetName = files.first();
 
-    if (snippetName == "" || !snippetName.endsWith(snippetType + ".snippet")){
-        displayNotification("Snippet file selected doesn't match the required file format: " + snippetType);
+    QString snippetFileName = files.first();
+    if(snippetFileName == ""){
+        displayNotification("Snippet file selected has no name.");
         return;
     }
 
-    QString grapmlData = nodeView->getSelectionAsGraphMLSnippet();
-    if(grapmlData != ""){
-        writeFile(snippetName, grapmlData);
+    if(!snippetFileName.endsWith(snippetType + ".snippet")){
+        snippetFileName += "." + snippetType + ".snippet";
+        displayNotification("Snippet file selected changed to: " + snippetFileName + " To match type.");
+    }
+
+    QString graphmlData = nodeView->getSelectionAsGraphMLSnippet();
+    if(graphmlData != ""){
+        writeFile(snippetFileName, graphmlData);
     }else{
         displayNotification("Cannot export snippet!");
     }
@@ -4339,6 +4344,8 @@ void MedeaWindow::dialogRejected()
 
 QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple, QString fileName)
 {
+    Q_UNUSED(defaultSuffix);
+
     QStringList files;
 
     if(fileName == ""){

@@ -51,6 +51,8 @@ QRectF NotificationItem::boundingRect() const
 
 void NotificationItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
     //qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
 
     painter->setRenderHint(QPainter::Antialiasing);
