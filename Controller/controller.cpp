@@ -2969,8 +2969,8 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
         }
 
         Data* updateData = item->getData(keyName);
-        if(updateData){
-            updateData->setProtected(data->isProtected());
+        if(updateData && data->isProtected()){
+            updateData->setProtected(true);
         }
 
         if(isParameter){

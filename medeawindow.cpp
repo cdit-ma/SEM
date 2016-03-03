@@ -1478,10 +1478,10 @@ void MedeaWindow::setupWelcomeScreen()
 
     newProjectButton->setIcon(getIcon("Actions", "New"));
     openProjectButton->setIcon(getIcon("Actions", "Open"));
-    settingsButton->setIcon(getIcon("Actions", "Settings"));
+    settingsButton->setIcon(getIcon("Actions", "WelcomeSettings"));
     recentProjectButton->setIcon(getIcon("Actions", "Timer"));
-    wikiButton->setIcon(getIcon("Actions", "Wiki"));
-    aboutButton->setIcon(getIcon("Actions", "Help"));
+    wikiButton->setIcon(getIcon("Actions", "WelcomeWiki"));
+    aboutButton->setIcon(getIcon("Actions", "WelcomeHelp"));
 
     QVBoxLayout* topLayout = new QVBoxLayout();
     topLayout->addWidget(medeaIcon, 0, Qt::AlignCenter);

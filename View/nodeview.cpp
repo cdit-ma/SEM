@@ -38,7 +38,7 @@
 #define CENTER_ON_PADDING 1 / 0.25
 
 #define MAX_ZOOM_RATIO 200
-#define MIN_ZOOM_RATIO 2
+#define MIN_ZOOM_RATIO 3
 
 #define ASPECT_INTERFACES "Interfaces"
 #define ASPECT_BEHAVIOUR "Behaviour"
@@ -56,7 +56,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     wasPanning = false;
     connectLine = 0;
     constructedFromImport = false;
-    //constructedFromImport = true;
     toolbarJustClosed = false;
     editingEntityItemLabel = false;
     managementComponentVisible = false;
@@ -67,12 +66,11 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     showSearchSuggestions = false;
 
     backgroundText = 0;
-    //clickSound = 0;
 
 
     IS_SUB_VIEW = subView;
 
-    setSceneRect(QRectF(0,0,10000,10000));
+    //setSceneRect(QRectF(0,0,10000,10000));
 
 
 
@@ -388,7 +386,9 @@ QImage NodeView::renderScreenshot(bool currentViewPort, int quality)
     if(currentViewPort){
         capturedSceneRect = getVisibleRect();
     }else{
-        capturedSceneRect = scene()->itemsBoundingRect();
+        if(getModelItem()){
+            capturedSceneRect = getModelItem()->childrenBoundingRect();
+        }
     }
 
     QSizeF imageSize = capturedSceneRect.size() * quality;
@@ -3146,17 +3146,17 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
             QColor tint = QColor(60, 60, 60, 255);
 
             QStringList redImages;
-            //redImages << "Critical" ;
+            //redImages << "Critical";
             QStringList orangeImages;
-            orangeImages << "Warning" << "New"  << "Help";
+            orangeImages << "Warning" << "New"  << "WelcomeHelp";
             QStringList whiteImages;
-            whiteImages << "Exclamation" << "Cross";//
+            whiteImages << "Exclamation" << "Cross";
             QStringList blueImages;
-            blueImages << "Import"<< "Timer" << "Info" << "Wiki" << "Open";
+            blueImages << "Import" << "Timer" << "Info" << "WelcomeWiki" << "Open";
             QStringList pinkImages;
             pinkImages << "Save";
             QStringList greyImages;
-            greyImages << "Settings"; // << "Wiki";
+            greyImages << "WelcomeSettings";
 
 
 

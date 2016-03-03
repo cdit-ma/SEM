@@ -197,6 +197,9 @@
         <file alias="Wiki.png">Resources/Images/Actions/Wiki.png</file>
         <file alias="Open.png">Resources/Images/Actions/Open.png</file>
         <file alias="Snippet.png">Resources/Images/Actions/Snippet.png</file>
+        <file alias="WelcomeSettings.png">Resources/Images/Actions/WelcomeSettings.png</file>
+        <file alias="WelcomeWiki.png">Resources/Images/Actions/WelcomeWiki.png</file>
+        <file alias="WelcomeHelp.png">Resources/Images/Actions/WelcomeHelp.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>
