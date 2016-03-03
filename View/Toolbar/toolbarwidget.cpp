@@ -870,16 +870,14 @@ void ToolbarWidget::setupToolBar()
     expandButton = constructToolButton(buttonSize, 0.6, "Expand", "Expand Selection");
     contractButton = constructToolButton(buttonSize, 0.6, "Contract", "Contract Selection");
     snippetFrame = constructFrameSeparator();
-    //importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
-    //exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
-    importSnippetButton = constructToolButton(buttonSize, 0.6, "Import_Snippet", "Import GraphML Snippet");
-    exportSnippetButton = constructToolButton(buttonSize, 0.6, "Export_Snippet", "Export GraphML Snippet");
+    importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
+    exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
     getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
 
     setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Read Only");
     unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Read Only");
 
-    wikiButton = constructToolButton(buttonSize, 0.6, "Help", "Wiki page for Entity");
+    wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "Wiki page for Entity");
 
     goToFrame = constructFrameSeparator();
     definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Definition");

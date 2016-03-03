@@ -194,8 +194,6 @@
         <file alias="DisconnectHardwareNode.png">Resources/Images/Actions/DisconnectHardwareNode.png</file>
         <file alias="PrintScreen.png">Resources/Images/Actions/PrintScreen.png</file>
         <file alias="Timer.png">Resources/Images/Actions/Timer.png</file>
-        <file alias="Export_Snippet.png">Resources/Images/Actions/Export_Snippet.png</file>
-        <file alias="Import_Snippet.png">Resources/Images/Actions/Import_Snippet.png</file>
         <file alias="Wiki.png">Resources/Images/Actions/Wiki.png</file>
         <file alias="Open.png">Resources/Images/Actions/Open.png</file>
     </qresource>

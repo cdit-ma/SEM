@@ -137,6 +137,8 @@ bool EntityAdapter::isValid()
     return _isValid;
 }
 
+
+
 void EntityAdapter::addListener(QObject *object)
 {
     if(!_listeners.contains(object)){

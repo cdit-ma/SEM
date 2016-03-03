@@ -10,6 +10,8 @@ public:
 
     void setErrorType(ERROR_TYPE errorType, QString tooltip="");
 
+    qreal getAngle();
+
     void setBackgroundColor(QColor color);
     // QGraphicsItem interface
 public:

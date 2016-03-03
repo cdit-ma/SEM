@@ -1202,7 +1202,6 @@ void NodeView::resetViewState()
     viewCenteredRectangles.clear();
     modelPositions.clear();
     centeredRects.clear();
-    definitionIDs.clear();
     guiItems.clear();
     noGuiIDHash.clear();
     noGUINodeIDHash.clear();
@@ -1440,10 +1439,19 @@ void NodeView::request_ImportSnippet()
 
 void NodeView::request_ExportSnippet()
 {
-    GraphMLItem* selectedItem = getSelectedGraphMLItem();
 
-    if (selectedItem){
-        GraphMLItem* parentItem = selectedItem->getParent();
+    QList<GraphMLItem*> selectedItems = getSelectedItems();
+
+    NodeItem* nodeItem = 0;
+
+    foreach(GraphMLItem* item, selectedItems){
+        if(item && item->isNodeItem()){
+            nodeItem = (NodeItem*)item;
+        }
+    }
+
+    if (nodeItem){
+        GraphMLItem* parentItem = nodeItem->getParent();
         if(parentItem){
             emit view_ExportSnippet(parentItem->getNodeKind());
         }
@@ -3437,14 +3445,6 @@ void NodeView::removeGraphMLItemFromHash(int ID)
         }
     }
 
-    //Maybe have important thing.
-    if(definitionIDs.contains(ID)){
-        EntityItem* src = getEntityItemFromID(definitionIDs[ID]);
-        if(src){
-            src->updateDefinition();
-        }
-        definitionIDs.remove(ID);
-    }
 }
 
 
@@ -5067,8 +5067,6 @@ void NodeView::constructEdgeItem(EdgeAdapter *edge)
             constructEdge = false;
             break;
         case Edge::EC_DEFINITION:
-            srcGUI->updateDefinition();
-            definitionIDs[edge->getID()] = srcID;
             constructEdge = false;
             break;
         default:

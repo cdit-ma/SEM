@@ -82,6 +82,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
 
     IS_READ_ONLY = false;
     IS_READ_ONLY_DEF = false;
+    IS_READ_ONLY_SNIPPET = false;
 
     isInputParameter = false;
     isReturnParameter = false;
@@ -113,7 +114,12 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     editableDataKey = "type";
 
     if(node){
+        connect(node, SIGNAL(gotDefinition(bool)), this, SLOT(gotDefinition(bool)));
         IS_IMPL_OR_INST = node->isInstance() || node->isImpl();
+
+        if(IS_IMPL_OR_INST){
+            HAS_DEFINITION = node->gotDefinition();
+        }
     }
 
     currentResizeMode = EntityItem::NO_RESIZE;
@@ -632,7 +638,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         QBrush headBrush = this->headerBrush;
         QBrush bodyBrush = this->bodyBrush;
 
-        if(IS_READ_ONLY){
+        if(IS_READ_ONLY_SNIPPET){
             bodyBrush = this->readOnlyBodyBrush;
             headBrush = this->readOnlyHeaderBrush;
         }else if(IS_READ_ONLY_DEF){
@@ -665,10 +671,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
 
-
-        if(IS_READ_ONLY || IS_READ_ONLY_DEF){
-           // headBrush.setStyle(Qt::Dense6Pattern);
-        }
         painter->setBrush(headBrush);
         painter->drawRect(headerRect());
 
@@ -981,18 +983,6 @@ double EntityItem::getExpandedHeight() const
     return expandedHeight;
 }
 
-void EntityItem::updateDefinition(){
-    if(IS_IMPL_OR_INST){
-        if(getNodeView()){
-            int defID = getNodeView()->getDefinitionID(getID());
-            bool hasDef = defID != -1;
-            if(HAS_DEFINITION != hasDef){
-                HAS_DEFINITION = hasDef;
-                update();
-            }
-        }
-    }
-}
 
 
 void EntityItem::setCenterPos(QPointF pos)
@@ -1160,6 +1150,11 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
             update();
         }else if(keyName == "readOnlyDefinition"){
             IS_READ_ONLY_DEF = data.toBool();
+            update();
+        }else if(keyName == "snippetID"){
+            qCritical() << this->nodeKind;
+            qCritical() << "HOLA";
+            IS_READ_ONLY_SNIPPET = true;
             update();
         }else if(keyName == "description"){
             //Use as tooltip.
@@ -1536,6 +1531,14 @@ void EntityItem::updateErrorState()
             notificationItem->setErrorType(ET_OKAY);
         }
         setNodeConnectable(bA->needsConnection());
+    }else if(IS_IMPL_OR_INST){
+        if(HAS_DEFINITION){
+            //Clear the notification.
+            notificationItem->setErrorType(ET_OKAY);
+        }else{
+            //Clear the notification.
+            notificationItem->setErrorType(ET_CRITICAL, "Instance/Impl isn't connected to a Definition.");
+        }
     }
 }
 
@@ -1960,6 +1963,10 @@ void EntityItem::updateTextLabel(QString newLabel)
 
     statusItem->setCircleCenter(boundingRect().topRight());
 
+
+    QPointF notificationIconPos =  boundingRect().topRight() -  QPointF(0,statusItem->boundingRect().height() - getItemMargin());// - statusItem->boundingRect().bottomRight();
+    notificationItem->setPos(notificationIconPos);
+    notificationItem->setRotation(notificationItem->getAngle());
     updateTextVisibility();
 }
 
@@ -2228,13 +2235,14 @@ void EntityItem::setupLabel()
     QPointF bottomLabelPos = iconRect_BottomLeft().topRight();
     QPointF expandedLabelPos = expandedLabelRect().topLeft() - QPointF(0, rightLabelInputItem->boundingRect().height() /2);
     QPointF statusIconPos = boundingRect().topRight() - statusItem->boundingRect().center();
-    QPointF notificationIconPos =  - (2*notificationItem->boundingRect().bottomRight());
 
     rightLabelInputItem->setPos(expandedLabelPos);
     bottomInputItem->setPos(bottomLabelPos);
     topLabelInputItem->setPos(bottomLabelPos - QPointF(0 , bottomInputItem->boundingRect().height()));
     statusItem->setPos(statusIconPos);
-    notificationItem->setPos(statusIconPos);
+
+    QPointF notificationIconPos =  boundingRect().topRight() - statusItem->boundingRect().bottomRight();
+    notificationItem->setPos(notificationIconPos);
 
 
 
@@ -2258,6 +2266,7 @@ void EntityItem::setupDataConnections()
 
     listenForData("readOnly");
     listenForData("readOnlyDefinition");
+    listenForData("snippetID");
 
 
     listenForData("description");
@@ -2589,6 +2598,12 @@ void EntityItem::forceExpandParentItem()
         EntityItem* pi = parentItems.at(i);
         emit GraphMLItem_SetData(pi->getID(), "isExpanded", true);
     }
+}
+
+void EntityItem::gotDefinition(bool def)
+{
+    HAS_DEFINITION = def;
+    updateErrorState();
 }
 
 void EntityItem::edgeAdded(int ID, Edge::EDGE_CLASS edgeClass)

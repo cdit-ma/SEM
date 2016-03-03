@@ -733,7 +733,9 @@ void Node::setDefinition(Node *def)
 {
     if(isImpl() || isInstance()){
         definition = def;
+        emit node_GotDefinition(true);
     }
+
 }
 
 Node *Node::getDefinition()
@@ -744,6 +746,7 @@ Node *Node::getDefinition()
 void Node::unsetDefinition()
 {
     definition = 0;
+    emit node_GotDefinition(false);
 }
 
 void Node::addInstance(Node *inst)

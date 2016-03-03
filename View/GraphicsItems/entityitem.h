@@ -137,7 +137,6 @@ public:
     void setHidden(bool hidden);
 
 
-    void updateDefinition();
 
 
     void setCenterPos(QPointF pos);
@@ -229,6 +228,7 @@ signals:
 
 
 public slots:
+    void gotDefinition(bool def);
     void edgeAdded(int ID, Edge::EDGE_CLASS edgeClass);
     void edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
 
@@ -496,6 +496,7 @@ private:
 
     bool IS_READ_ONLY;
     bool IS_READ_ONLY_DEF;
+    bool IS_READ_ONLY_SNIPPET;
 
     bool isInputParameter;
     bool isReturnParameter;

@@ -34,6 +34,7 @@ public:
     bool hasListeners();
 
 signals:
+
     void dataAdded(QString keyName, QVariant data);
     void dataChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);

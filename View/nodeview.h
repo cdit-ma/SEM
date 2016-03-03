@@ -591,7 +591,6 @@ private:
     QHash<int, QPointF> modelPositions;
     QHash<int, QRectF> centeredRects;
 
-    QHash<int, int> definitionIDs;
 
     QHash<QString, QPixmap> imageLookup;
     QHash<int, GraphMLItem*> guiItems;

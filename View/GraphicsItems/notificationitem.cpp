@@ -2,11 +2,12 @@
 #include "graphmlitem.h"
 #include "../nodeview.h"
 
+#include <math.h>
 #include <QPainter>
 #define RADIUS 10
 #define VERT_PADDING 4
 #define HORIZ_PADDING 4
-
+#define PI 3.14159
 NotificationItem::NotificationItem(GraphMLItem *item):QGraphicsObject(item)
 {
     this->item = item;
@@ -33,6 +34,11 @@ void NotificationItem::setErrorType(ERROR_TYPE errorType, QString tooltip)
     update();
 }
 
+qreal NotificationItem::getAngle()
+{
+    return atan2(1.0,2.0) * (180.0 / PI);
+}
+
 void NotificationItem::setBackgroundColor(QColor color)
 {
     backgroundColor = color;
@@ -54,6 +60,7 @@ void NotificationItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
      pen.setJoinStyle(Qt::MiterJoin);
 
+     //painter->rotate(getAngle());
     QPainterPath path;
     QPointF bottomMid;
     bottomMid = boundingRect().bottomRight() - QPointF(boundingRect().width()/2,0);
@@ -77,8 +84,12 @@ void NotificationItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     imageRect.moveCenter(QPointF(RADIUS, RADIUS));
 
     QPixmap imageData;
+
+
     imageData = item->getNodeView()->getImage("Actions", "Exclamation");
 
+    painter->rotate(-getAngle());
+    painter->translate(-RADIUS /2, RADIUS / 4);//RADIUS/2);
     painter->drawPixmap(imageRect.toAlignedRect(), imageData);
 }
 

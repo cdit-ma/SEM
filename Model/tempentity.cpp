@@ -166,11 +166,11 @@ void TempEntity::addData(Data *data)
         }else if(keyName == "snippetID"){
             readOnlyState.snippetID = data->getValue().toInt();
         }else if(keyName == "snippetTime"){
-            readOnlyState.snippetTime = data->getValue().toInt();
+            readOnlyState.snippetTime = data->getValue().toLongLong();
         }else if(keyName == "snippetMAC"){
             readOnlyState.snippetMAC = data->getValue().toLongLong();
         }else if(keyName == "exportTime"){
-            readOnlyState.exportTime = data->getValue().toInt();
+            readOnlyState.exportTime = data->getValue().toLongLong();
         }else if(_resetPosition && (keyName == "x" || keyName == "y")){
             data->setValue(-1);
         }

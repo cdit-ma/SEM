@@ -39,6 +39,7 @@ public:
 signals:
     void edgeAdded(int ID, Edge::EDGE_CLASS edgeClass);
     void edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
+    void gotDefinition(bool gotDefinition);
 
 private:
     Node* _node;

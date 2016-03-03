@@ -377,6 +377,9 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
                         exportEdge = true;
                     }
                 }
+                if(!exportAllEdges){
+                    exportEdge = false;
+                }
             }
 
             if(exportEdge && !containedEdges.contains(edge)){
@@ -1309,9 +1312,10 @@ QString NewController::_exportSnippet(QList<int> IDs)
             Key* readOnlyDefinitionKey = constructKey("readOnlyDefinition", QVariant::Bool, Entity::EK_NODE);
             Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_NODE);
             Key* IDKey = constructKey("snippetID", QVariant::Int, Entity::EK_NODE);
-            Key* timeKey = constructKey("snippetTime", QVariant::UInt, Entity::EK_NODE);
+
+            Key* timeKey = constructKey("snippetTime", QVariant::LongLong, Entity::EK_NODE);
+            Key* exportTimeKey = constructKey("exportTime", QVariant::LongLong, Entity::EK_NODE);
             Key* macKey = constructKey("snippetMAC", QVariant::LongLong, Entity::EK_NODE);
-            Key* exportTimeKey = constructKey("exportTime", QVariant::UInt, Entity::EK_NODE);
 
 
             //Construct a list of Nodes to be snippeted
@@ -1329,7 +1333,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
                 }
             }
 
-            uint historicSnippetTime = exportTimeStamp;
+            long long historicSnippetTime = exportTimeStamp;
             //Attach read only Data to all nodes in list.
             foreach(Node* node, nodeList){
                 Data* readOnlyData = node->getData(readOnlyKey);
@@ -1338,6 +1342,8 @@ QString NewController::_exportSnippet(QList<int> IDs)
                 Data* macData = node->getData(macKey);
                 Data* exportTimeData = node->getData(exportTimeKey);
 
+                //Remove stuff.
+                node->removeData(readOnlyDefinitionKey);
 
                 //If node doesn't have snippetTime data, create and set one.
                 if(!timeData){
@@ -1346,7 +1352,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
                 }else{
                     //If we have a timestamp value which is different to the export time stamp, update.
                     if(historicSnippetTime == exportTimeStamp){
-                        historicSnippetTime = timeData->getValue().toUInt();
+                        historicSnippetTime = timeData->getValue().toLongLong();
                     }
                 }
 
@@ -1369,6 +1375,8 @@ QString NewController::_exportSnippet(QList<int> IDs)
                     readOnlyData = new Data(readOnlyKey);
                     node->addData(readOnlyData);
                 }
+
+
                 //Set Node as Read Only.
                 readOnlyData->setValue(true);
 
@@ -5947,7 +5955,9 @@ bool NewController::canExportSnippet(QList<int> IDs)
         if(nonSnippetableKinds.contains(node->getDataValue("kind").toString())){
             return false;
         }
-        if(node->getData("readOnly")){
+        Data* readOnlyData = node->getData("readOnly");
+        if(readOnlyData && readOnlyData->getValue().toBool()){
+            //Can't Export Read-Only Stuffs.
             return false;
         }
         if(!parent){

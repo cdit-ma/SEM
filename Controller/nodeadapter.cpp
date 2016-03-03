@@ -7,7 +7,10 @@ NodeAdapter::NodeAdapter(Node *node, NodeAdapter::NODE_ADAPTER_KIND nodeAdapterK
     _nodeAdapterKind = nodeAdapterKind;
     connect(node, SIGNAL(node_EdgeAdded(int,Edge::EDGE_CLASS)), this, SIGNAL(edgeAdded(int, Edge::EDGE_CLASS)));
     connect(node, SIGNAL(node_EdgeRemoved(int,Edge::EDGE_CLASS)), this, SIGNAL(edgeRemoved(int,Edge::EDGE_CLASS)));
+    connect(node, SIGNAL(node_GotDefinition(bool)), this, SIGNAL(gotDefinition(bool)));
 }
+
+
 
 bool NodeAdapter::isDefinition()
 {

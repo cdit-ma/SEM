@@ -742,8 +742,7 @@ void MedeaWindow::setupMenu()
 
     file_importGraphML = file_menu->addAction(getIcon("Actions", "Import"), "Import");
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
-    //file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
-    file_importSnippet = file_menu->addAction(getIcon("Actions", "Import_Snippet"), "Import Snippet");
+    file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
 
     file_menu->addSeparator();
@@ -808,7 +807,7 @@ void MedeaWindow::setupMenu()
     help_Shortcuts = help_menu->addAction(getIcon("Actions", "Keyboard"), "App Shortcuts");
     help_Shortcuts->setShortcut(QKeySequence(Qt::Key_F1));
     help_ReportBug = help_menu->addAction(getIcon("Actions", "BugReport"), "Report Bug");
-    help_Wiki = help_menu->addAction(getIcon("Actions", "MEDEA"), "Wiki");
+    help_Wiki = help_menu->addAction(getIcon("Actions", "Wiki"), "Wiki");
     help_menu->addSeparator();
     help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
     help_AboutQt = help_menu->addAction(QIcon(":/Qt.ico"), "About Qt");

@@ -192,7 +192,9 @@ void GraphMLItem::updateFromData()
 {
     foreach(QString keyName, connectedDataKeys){
         QVariant dataValue = getEntityAdapter()->getDataValue(keyName);
-        dataChanged(keyName, dataValue);
+        if(!dataValue.isNull()){
+            dataChanged(keyName, dataValue);
+        }
     }
 }
 

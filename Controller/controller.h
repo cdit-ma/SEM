@@ -46,8 +46,8 @@ struct ViewSignal{
 
 struct ReadOnlyState{
     long long snippetMAC;
-    long snippetTime;
-    long exportTime;
+    long long snippetTime;
+    long long exportTime;
     int snippetID;
 
     bool imported;

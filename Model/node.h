@@ -108,6 +108,8 @@ public:
     bool compareData(Node* node, QStringList keys);
 
 signals:
+
+    void node_GotDefinition(bool gotDef);
     void node_EdgeAdded(int ID, Edge::EDGE_CLASS edgeClass);
     void node_EdgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
 private:
