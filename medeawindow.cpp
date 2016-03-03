@@ -693,8 +693,7 @@ void MedeaWindow::setupMenu()
 
     file_menu->addSeparator();
 
-    //file_exportSnippet = file_menu->addAction(getIcon("Actions", "ExportSnippet"), "Export Snippet");
-    file_exportSnippet = file_menu->addAction(getIcon("Actions", "Export_Snippet"), "Export Snippet");
+    file_exportSnippet = file_menu->addAction(getIcon("Actions", "ExportSnippet"), "Export Snippet");
 
     file_menu->addSeparator();
 
@@ -3036,10 +3035,14 @@ void MedeaWindow::importSnippet(QString snippetType)
     }
 
     QString snippetFileName = files.first();
-
-    if (snippetFileName == "" || !snippetFileName.endsWith(snippetType + ".snippet")){
-        displayNotification("Snippet file selected doesn't match the required file format: " + snippetType);
+    if(snippetFileName == ""){
+        displayNotification("Snippet file selected has no name.");
         return;
+    }
+
+    if(!snippetFileName.endsWith(snippetType + ".snippet")){
+        snippetFileName += snippetType + ".snippet";
+        displayNotification("Snippet file selected changed to: " + snippetFileName + " To match type.");
     }
 
     QString fileData = readFile(snippetFileName);
@@ -4351,7 +4354,6 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString
         fileDialog->setWindowTitle(title);
         fileDialog->setNameFilter(fileString);
         fileDialog->setDirectory(DEFAULT_PATH);
-        //fileDialog->setDefaultSuffix();
 
 
         if(open){
