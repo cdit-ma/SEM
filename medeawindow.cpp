@@ -3066,7 +3066,9 @@ void MedeaWindow::exportSnippet(QString snippetType)
     QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)","."+snippetType+".snippet", false);
 
     if(files.size() != 1){
-        displayNotification("Only 1 file can be selected to export snippet!");
+        if(files.size() > 1){
+            displayNotification("Only 1 file can be selected to export snippet!");
+        }
         return;
     }
     QString snippetName = files.first();

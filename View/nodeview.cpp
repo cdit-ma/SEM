@@ -153,7 +153,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     comboBox->setVisible(false);
     comboBox->setFixedHeight(0);
     if(isMainView()){
-        connect(comboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(dropDownChangedValue(QString)));
+        connect(comboBox, SIGNAL(activated(QString)), this, SLOT(dropDownChangedValue(QString)));
     }
 
     // call this after the toolbar has been constructed to pass on the theme
