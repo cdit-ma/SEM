@@ -2624,11 +2624,15 @@ void EntityItem::gotDefinition(bool def)
 
 void EntityItem::edgeAdded(int ID, Edge::EDGE_CLASS edgeClass)
 {
+    Q_UNUSED(ID);
+    Q_UNUSED(edgeClass);
     updateErrorState();
 }
 
 void EntityItem::edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass)
 {
+    Q_UNUSED(ID);
+    Q_UNUSED(edgeClass);
     updateErrorState();
 }
 

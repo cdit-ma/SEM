@@ -54,7 +54,7 @@ ModelTester::ModelTester()
 
      qCritical() << "FILE";
     for(int j = 0 ; j < repeatCount; j++){
-        float beforeLoad = getMemoryUsage();
+        //float beforeLoad = getMemoryUsage();
         //if(beforeLoad > priorMemory){
         //    qCritical() << "Delta Memory: " << beforeLoad - priorMemory << "KB.";
         //}
