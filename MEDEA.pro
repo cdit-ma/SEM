@@ -156,8 +156,7 @@ HEADERS += \
     Controller/behaviournodeadapter.h \
     View/GraphicsItems/notificationitem.h \
     doublehash.h \
-    Model/tempentity.h \
-    View/medeasplash.h
+    Model/tempentity.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -279,7 +278,6 @@ SOURCES += \
     View/GraphicsItems/notificationitem.cpp \
     doublehash.cpp \
     Model/tempentity.cpp \
-    View/medeasplash.cpp \
     enumerations.cpp
 
 

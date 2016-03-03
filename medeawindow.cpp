@@ -18,14 +18,12 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QTemporaryFile>
-#include <QSplashScreen>
 #include <QPicture>
 #include "GUI/actionbutton.h"
 #include "GUI/shortcutdialog.h"
 #include <QToolButton>
 #include <QToolBar>
 #include <QDesktopServices>
-#include "View/medeasplash.h"
 
 
 #define THREADING true
@@ -61,8 +59,6 @@
 
 #define GITHUB_URL "https://github.com/cdit-ma/MEDEA/"
 // USER SETTINGS
-//Some change
-
 
 /**
  * @brief MedeaWindow::MedeaWindow
@@ -72,79 +68,45 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-
     setupApplication();
 
-    QString version = "v";
-    version += APP_VERSION;
-    splashScreen = new MedeaSplash("MEDEA", version, QPixmap(":/Actions/MEDEA.png"));
-    splashScreen->showMessage("Loading Settings");
-
-
-    splashScreen->show();
-    //Timeout for 2 seconds before hiding.
-    QTimer::singleShot(2000, splashScreen, SLOT(close()));
-
-    setAcceptDrops(true);
-
-    controllerThread = 0;
-    controller = 0;
     nodeView = 0;
+    nodeView = 0;
+    controller = 0;
+    fileDialog = 0;
+    leftOverTime = 0;
+    controllerThread = 0;
 
+    SETTINGS_LOADING = false;
     WINDOW_MAXIMIZED = false;
     WINDOW_FULLSCREEN = false;
-    launchFilePathArg = graphMLFile;
-    loadLaunchedFile = launchFilePathArg != "";
-
-    modelCleared = false;
-
-
-    appSettings = new AppSettings(this, applicationDirectory);
-    appSettings->setModal(true);
-    connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
-
-
-    tempExport = false;
-    validate_TempExport = false;
-    cuts_TempExport = false;
-    jenkins_TempExport = false;
-    cpp_TempExport = false;
-
-    leftOverTime = 0;
-    isWindowMaximized = false;
-    settingsLoading = false;
-
-    initialSettingsLoaded = false;
-
+    IS_WINDOW_MAXIMIZED = false;
+    INITIAL_SETTINGS_LOADED = false;
     maximizedSettingInitiallyChanged = false;
-    nodeView = 0;
-    fileDialog = 0;
 
+    //Initialize classes.
+    initialiseSettings();
     initialiseJenkinsManager();
     initialiseCUTSManager();
-
     initialiseGUI();
-    makeConnections();
+
+    setupConnections();
 
     resetGUI();
     resetView();
 
-    show();
-
-    // load the initial settings
-    splashScreen->showMessage("Setting Up View");
+    //Load the Settings
     setupInitialSettings();
-    splashScreen->raise();
+
+    //Show Welcome Screen
+    toggleWelcomeScreen(true);
 
     //Load initial model.
-    if(loadLaunchedFile){
-        openProject(launchFilePathArg);
+    if(!graphMLFile.isEmpty()){
+        openProject(graphMLFile);
     }
 
-    initialSettingsLoaded = true;
-
-    //newProject();
-    toggleWelcomeScreen(true);
+    INITIAL_SETTINGS_LOADED = true;
 }
 
 
@@ -168,15 +130,9 @@ MedeaWindow::~MedeaWindow()
         delete nodeView;
     }
 
-    if(splashScreen){
-        splashScreen->deleteLater();
-    }
-
     if(jenkinsManager){
         delete jenkinsManager;
     }
-
-
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
@@ -306,16 +262,6 @@ void MedeaWindow::modelReady()
     // re-enable the view widgets and window
     setViewWidgetsEnabled(true);
     //setApplicationEnabled(true);
-
-
-    //Load loadLaunchedFile
-    if(loadLaunchedFile){
-        QStringList files;
-        files << launchFilePathArg;
-        importProjects(files);
-        loadLaunchedFile = false;
-    }
-
 }
 
 void MedeaWindow::modelDisconnected()
@@ -348,10 +294,10 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
 {
     if(groupName==TOOLBAR_SETTINGS){
         toolbarSettingChanged(keyName, value);
-    }else if(groupName==WINDOW_SETTINGS && initialSettingsLoaded){
+    }else if(groupName==WINDOW_SETTINGS && INITIAL_SETTINGS_LOADED){
         //Ignore Window settigns after initial load.
         return;
-    }else if(groupName==ASPECT_SETTINGS && !initialSettingsLoaded){
+    }else if(groupName==ASPECT_SETTINGS && !INITIAL_SETTINGS_LOADED){
         //Ignore Aspect Settings on initial load.
         return;
     }
@@ -374,7 +320,7 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     }else if(keyName == WINDOW_H && isInt){
         resize(size().width(), intValue);
     }else if(keyName == WINDOW_MAX_STATE){
-        if(boolValue != isWindowMaximized && settingsLoading){
+        if(boolValue != IS_WINDOW_MAXIMIZED && SETTINGS_LOADING){
             maximizedSettingInitiallyChanged = true;
             WINDOW_MAXIMIZED = boolValue;
         }
@@ -447,9 +393,9 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
 void MedeaWindow::loadSettingsFromINI()
 {
     if(appSettings){
-        settingsLoading = true;
+        SETTINGS_LOADING = true;
         appSettings->loadSettings();
-        settingsLoading = false;
+        SETTINGS_LOADING = false;
     }
 }
 
@@ -1491,8 +1437,8 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
 void MedeaWindow::setupWelcomeScreen()
 {
     QWidget *containerWidget = new QWidget();
-    containerWidget->setFixedHeight(400);
-    containerWidget->setFixedWidth(500);
+    containerWidget->setFixedHeight(450);
+    containerWidget->setFixedWidth(900);
     QVBoxLayout* containerLayout = new QVBoxLayout(containerWidget);
 
     QPushButton* newProjectButton = new QPushButton("New Project", this);
@@ -1520,7 +1466,6 @@ void MedeaWindow::setupWelcomeScreen()
 
 
     QLabel* medeaIcon = new QLabel(this);
-    medeaIcon->setFixedSize(150, 150);
 
     QLabel* medeaLabel = new QLabel("MEDEA");
     medeaLabel->setStyleSheet("font-size:32pt;color:white; text-align:center;");
@@ -1528,7 +1473,7 @@ void MedeaWindow::setupWelcomeScreen()
     medeaVersionLabel->setStyleSheet("font-size:12pt;color:gray; text-align:center;");
 
     QPixmap pixMap(":/Actions/MEDEA.png");
-    pixMap = pixMap.scaled(medeaIcon->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    pixMap = pixMap.scaled(QSize(150,150), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     medeaIcon->setPixmap(pixMap);
 
     newProjectButton->setIcon(getIcon("Actions", "New"));
@@ -1539,9 +1484,9 @@ void MedeaWindow::setupWelcomeScreen()
     aboutButton->setIcon(getIcon("Actions", "Help"));
 
     QVBoxLayout* topLayout = new QVBoxLayout();
-    topLayout->addWidget(medeaIcon, 0, Qt::AlignHCenter);
-    topLayout->addWidget(medeaLabel, 0, Qt::AlignHCenter);
-    topLayout->addWidget(medeaVersionLabel, 0, Qt::AlignHCenter);
+    topLayout->addWidget(medeaIcon, 0, Qt::AlignCenter);
+    topLayout->addWidget(medeaLabel, 0, Qt::AlignCenter);
+    topLayout->addWidget(medeaVersionLabel, 0, Qt::AlignCenter);
 
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->addStretch();
@@ -1551,19 +1496,22 @@ void MedeaWindow::setupWelcomeScreen()
     QVBoxLayout* rightButtonLayout = new QVBoxLayout();
 
     leftButtonLayout->addLayout(topLayout);
-    leftButtonLayout->setAlignment(topLayout, Qt::AlignHCenter);
-    leftButtonLayout->addSpacerItem(new QSpacerItem(0,10));
-    leftButtonLayout->addWidget(newProjectButton,1);
+    //leftButtonLayout->setAlignment(topLayout, Qt::AlignHCenter);
 
-    leftButtonLayout->addSpacerItem(new QSpacerItem(0,5));
-    leftButtonLayout->addWidget(openProjectButton,1);
-    leftButtonLayout->addSpacerItem(new QSpacerItem(0,5));
-    leftButtonLayout->addWidget(settingsButton,1);
+    QVBoxLayout* buttonsLayout2 = new QVBoxLayout();
+    leftButtonLayout->addSpacerItem(new QSpacerItem(0,10));
+    buttonsLayout2->addWidget(newProjectButton,1);
+    buttonsLayout2->addSpacerItem(new QSpacerItem(0,5));
+    buttonsLayout2->addWidget(openProjectButton,1);
+    buttonsLayout2->addSpacerItem(new QSpacerItem(0,5));
+    buttonsLayout2->addWidget(settingsButton,1);
+    leftButtonLayout->addLayout(buttonsLayout2);
+    leftButtonLayout->setAlignment(buttonsLayout2, Qt::AlignHCenter);
     leftButtonLayout->addStretch();
 
     buttonsLayout->addLayout(leftButtonLayout,1);
-    buttonsLayout->addSpacerItem(new QSpacerItem(5,0));
-    buttonsLayout->addLayout(rightButtonLayout,1);
+    buttonsLayout->addSpacerItem(new QSpacerItem(10,0));
+    buttonsLayout->addLayout(rightButtonLayout,2);
 
     recentProjectsListWidget = new QListWidget(this);
     connect(recentProjectsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(recentProjectItemClicked(QListWidgetItem*)));
@@ -1740,7 +1688,7 @@ void MedeaWindow::newProject()
  * @brief MedeaWindow::makeConnections
  * Connect signals and slots.
  */
-void MedeaWindow::makeConnections()
+void MedeaWindow::setupConnections()
 {
     validateResults.connectToWindow(this);
     connect(this, SIGNAL(window_SetViewVisible(bool)), nodeView, SLOT(setVisible(bool)));
@@ -1962,10 +1910,10 @@ void MedeaWindow::makeConnections()
  */
 void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
-    if(isWindowMaximized != isMaximized() && maximizedSettingInitiallyChanged){
+    if(IS_WINDOW_MAXIMIZED != isMaximized() && maximizedSettingInitiallyChanged){
         maximizedSettingInitiallyChanged = false;
     }
-    isWindowMaximized = isMaximized();
+    IS_WINDOW_MAXIMIZED = isMaximized();
     updateWidgetsOnWindowChange();
 
     QWidget::resizeEvent(event);
@@ -2152,6 +2100,9 @@ bool MedeaWindow::canFilesBeDragImported(QList<QUrl> files)
 
 void MedeaWindow::setupApplication()
 {
+    //Allow Drops
+    setAcceptDrops(true);
+
     //Set QApplication information.
     QApplication::setApplicationName("MEDEA");
     QApplication::setApplicationVersion(APP_VERSION);
@@ -2209,6 +2160,13 @@ void MedeaWindow::initialiseJenkinsManager()
         jenkinsManager = new JenkinsManager(binaryPath, jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
         connect(jenkinsManager, SIGNAL(gotInvalidSettings(QString)), this, SLOT(invalidJenkinsSettings(QString)));
     }
+}
+
+void MedeaWindow::initialiseSettings()
+{
+    appSettings = new AppSettings(this, applicationDirectory);
+    appSettings->setModal(true);
+    connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
 }
 
 
@@ -2319,7 +2277,7 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
         view_fullScreenMode->setChecked(true);
         view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Failure"));
     } else {
-        if (!settingsLoading) {
+        if (!SETTINGS_LOADING) {
             if (WINDOW_MAXIMIZED) {
                 showMaximized();
             } else {

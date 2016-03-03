@@ -2250,7 +2250,6 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     data.append(new Data(widthKey, -1));
     data.append(new Data(heightKey, -1));
 
-    //typeKey->setProtected(true);
     QStringList protectedLabels;
     protectedLabels << "Parameter" << "ManagementComponent";
 
@@ -2316,7 +2315,6 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     }
     if(nodeKind == "PeriodicEvent"){
         Key* frequencyKey = constructKey("frequency", QVariant::Double, Entity::EK_NODE);
-        //Key* frequencyKey = constructKey("frequency", QVariant::String, Entity::EK_NODE);
         Data* freqData = new Data(frequencyKey);
 
         Data* typeData = new Data(typeKey, "Constant");

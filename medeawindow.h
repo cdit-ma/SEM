@@ -54,7 +54,6 @@
 #include "View/Dock/functionsdockscrollarea.h"
 
 #include "View/Validate/validatedialog.h"
-#include "View/medeasplash.h"
 
 #include "CUTS/cutsmanager.h"
 
@@ -264,6 +263,7 @@ private:
     bool canFilesBeDragImported(const QList<QUrl> files);
     void setupApplication();
     void initialiseJenkinsManager();
+    void initialiseSettings();
     void initialiseCUTSManager();
     void importXMEProject(QString fileName);
     void importProjects(QStringList files);
@@ -285,7 +285,7 @@ private:
     void resetView();
     void newProject();
     void initialiseGUI();
-    void makeConnections();
+    void setupConnections();
 
     void teardownProject();
     void setupProject();
@@ -515,20 +515,15 @@ private:
     QHash<QAction*, int> rightMidActions;
     QHash<QAction*, int> rightMostActions;
 
-    bool modelCleared;
     QFont guiFont;
     int boxWidth, boxHeight;
     int minLeftPanelHeight;
 
     //QString DEPGEN_ROOT;
-    QString launchFilePathArg;
-    bool loadLaunchedFile;
-    QString exportFileName;
-    QString tempFileName;
-    bool tempExport;
-    bool isWindowMaximized;
-    bool settingsLoading;
-    bool initialSettingsLoaded;
+
+    bool IS_WINDOW_MAXIMIZED;
+    bool SETTINGS_LOADING;
+    bool INITIAL_SETTINGS_LOADED;
     bool maximizedSettingInitiallyChanged;
 
     bool SAVE_WINDOW_SETTINGS;
@@ -549,14 +544,9 @@ private:
     QAction* action_ContextMenu;
     ActionButton* toolbar_ContextMenu;
 
-    bool jenkins_TempExport;
-    bool cpp_TempExport;
-    bool cuts_TempExport;
-    bool validate_TempExport;
     QString validation_report_path;
     QString componentName_CPPExport;
 
-    MedeaSplash* splashScreen;
 
     QVBoxLayout* viewHolderLayout;
     QHBoxLayout* viewLayout;
