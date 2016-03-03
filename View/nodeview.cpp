@@ -4113,15 +4113,9 @@ void NodeView::showMessage(MESSAGE_TYPE type, QString title, QString message, in
         if(type == CRITICAL){
             QMessageBox::critical(this, "Error: " + title, message, QMessageBox::Ok);
         }else if(type == WARNING){
-            //QMessageBox::warning(this, "Warning: " + title, message, QMessageBox::Ok);
             emit view_displayNotification(message);
         }else{
-            //QMessageBox::information(this, "Message: " + title, message, QMessageBox::Ok);
-            if (type == MODEL) {
-                QMessageBox::information(this, "Message: " + title, message, QMessageBox::Ok);
-            } else {
-                emit view_displayNotification(message);
-            }
+            emit view_displayNotification(message);
         }
     }
 }

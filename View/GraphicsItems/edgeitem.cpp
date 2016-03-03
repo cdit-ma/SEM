@@ -240,7 +240,9 @@ void EdgeItem::setSelected(bool selected)
 
 
     //Hide/Show the label if selected.
-    textItem->setVisible(selected);
+	if(textItem){
+		textItem->setVisible(selected);
+	}
 
     //Call base class
     GraphMLItem::setSelected(selected);

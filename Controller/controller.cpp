@@ -1781,10 +1781,12 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         newKey->addValidValues(validValues, keysValues);
     }
     if(name == "replicate_count"){
+        QStringList keysValues;
+        keysValues << "ComponentAssembly";
         QPair<qreal, qreal> range;
         range.first = 1;
         range.second = 999;
-        newKey->addValidRange(range, QStringList("ComponentAssembly"));
+        newKey->addValidRange(range, keysValues);
     }
     if(name == "folder" || name == "file"){
         QStringList invalidChars;

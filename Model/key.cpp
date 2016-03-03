@@ -2,6 +2,7 @@
 #include "entity.h"
 #include "data.h"
 #include <QDebug>
+#include "node.h"
 
 QString Key::getGraphMLTypeName(const QVariant::Type type)
 {
@@ -178,9 +179,15 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
     Entity* parentEntity = data->getParent();
 
     QString entityKind = "";
+
+    QString entityNodeKind = "";
+
 	int parentEntityID = -1;
     if(parentEntity){
         entityKind = parentEntity->getEntityName();
+        if(parentEntity->isNode()){
+            entityNodeKind = ((Node*)parentEntity)->getNodeKind();
+        }
 		parentEntityID = parentEntity->getID();
     }
 
@@ -201,8 +208,8 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
                 }
 
                 //Check for valid values
-                if(gotValidValues(entityKind)){
-                    QStringList values = getValidValues(entityKind);
+                if(gotValidValues(entityNodeKind)){
+                    QStringList values = getValidValues(entityNodeKind);
                     if(values.contains(dataValue.toString())){
                         okay = true;
                     }else{
@@ -213,8 +220,8 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
                 }
                 if(okay){
                     //Check for invalid Characters.
-                    if(gotInvalidCharacters(entityKind)){
-                        QStringList badChars = getInvalidCharacters(entityKind);
+                    if(gotInvalidCharacters(entityNodeKind)){
+                        QStringList badChars = getInvalidCharacters(entityNodeKind);
                         foreach(QChar qChar, dataValue.toString()){
                             if(badChars.contains(qChar)){
                                 errorString = "Value has one or more invalid characters (" + badChars.join(" ") + ")";
@@ -237,8 +244,8 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
 
             double newValue = dataValue.toDouble(&okay);
             if(okay){
-                if(gotValidRange(entityKind)){
-                    QPair<qreal, qreal> range = getValidRange(entityKind);
+                if(gotValidRange(entityNodeKind)){
+                    QPair<qreal, qreal> range = getValidRange(entityNodeKind);
                     if(range.first > newValue || range.second < newValue){
                         errorString = "Number value is outside of valid range: " + QString::number(range.first) + " > value > " + QString::number(range.second) +"!";
                         okay = false;
