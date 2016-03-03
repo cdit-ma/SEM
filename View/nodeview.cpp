@@ -70,9 +70,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     IS_SUB_VIEW = subView;
 
-    //setSceneRect(QRectF(0,0,10000,10000));
-
-
+    setSceneRect(QRectF(-10000,-10000,20000,20000));
 
     //controller = 0;
     parentNodeView = 0;
@@ -582,7 +580,7 @@ void NodeView::adjustModelPosition(QPoint delta)
 {
     //Scale by zoom!
     QPointF floatDelta(delta.x(), delta.y());
-    floatDelta /= this->zoomCurrent;
+    floatDelta /= zoomCurrent;
     adjustModelPosition(floatDelta);
 }
 
