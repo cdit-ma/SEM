@@ -48,15 +48,16 @@ struct ReadOnlyState{
     long long snippetMAC;
     long long snippetTime;
     long long exportTime;
+    bool isDefinition;
     int snippetID;
 
     bool imported;
 
     bool operator==(const ReadOnlyState &other) const{
-        return (snippetID == other.snippetID) && (snippetTime == other.snippetTime) && (snippetMAC == other.snippetMAC);
+        return (snippetID == other.snippetID) && (snippetTime == other.snippetTime) && (snippetMAC == other.snippetMAC) && (isDefinition == other.isDefinition);
     }
     bool isValid(){
-        return (snippetMAC > 0) && (snippetTime > 0) && (snippetID > 0);
+        return (snippetMAC > 0) && (snippetTime > 0) && (snippetID > 0) && (!isDefinition);
     }
     bool isOlder(const ReadOnlyState &other) const{
         if(this->operator ==(other)){
@@ -315,7 +316,6 @@ private:
     bool askQuestion(MESSAGE_TYPE type, QString questionTitle, QString question, int ID=-1);
     Node* getSingleNode(QList<int> IDs);
 
-    bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
     bool _newImportGraphML(QString document, Node* parent = 0);
 

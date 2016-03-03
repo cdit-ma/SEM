@@ -18,6 +18,7 @@ TempEntity::TempEntity(Entity::ENTITY_KIND entityKind, TempEntity *parent)
     readOnlyState.snippetMAC = -1;
     readOnlyState.snippetTime = -1;
     readOnlyState.exportTime = -1;
+    readOnlyState.isDefinition = false;
     isReadOnly = false;
 
     retryCount = 0;
@@ -171,6 +172,8 @@ void TempEntity::addData(Data *data)
             readOnlyState.snippetMAC = data->getValue().toLongLong();
         }else if(keyName == "exportTime"){
             readOnlyState.exportTime = data->getValue().toLongLong();
+        }else if(keyName == "readOnlyDefinition"){
+            readOnlyState.isDefinition = data->getValue().toBool();
         }else if(_resetPosition && (keyName == "x" || keyName == "y")){
             data->setValue(-1);
         }

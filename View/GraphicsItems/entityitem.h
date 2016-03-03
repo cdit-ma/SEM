@@ -303,6 +303,7 @@ private:
 
     QRectF statusRect_Left() const;
     QRectF iconRect_TopMid() const;
+    QRectF iconRect_Center() const;
     //QRectF iconRect_MidRight() const;
 
     QRectF iconRect_TopLeft() const;

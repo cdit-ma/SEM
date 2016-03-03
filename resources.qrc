@@ -196,6 +196,7 @@
         <file alias="Timer.png">Resources/Images/Actions/Timer.png</file>
         <file alias="Wiki.png">Resources/Images/Actions/Wiki.png</file>
         <file alias="Open.png">Resources/Images/Actions/Open.png</file>
+        <file alias="Snippet.png">Resources/Images/Actions/Snippet.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>

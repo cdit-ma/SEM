@@ -12,6 +12,7 @@ println('<key attr.name="os" attr.type="string" for="node" id="' + (ID_COUNTER++
 println('<key attr.name="architecture" attr.type="string" for="node" id="' + (ID_COUNTER++) + '"/>');		//8
 println('<key attr.name="os_version" attr.type="string" for="node" id="' + (ID_COUNTER++) + '"/>');			//9
 println('<key attr.name="shared_directory" attr.type="string" for="node" id="' + (ID_COUNTER++) + '"/>');	//10
+println('<key attr.name="readOnly" attr.type="boolean" for="node" id="' + (ID_COUNTER++) + '"/>');	//11
 println('\t<graph edgedefault="directed" id="parentGraph0">');
 println('\t<node id="' + (ID_COUNTER++) + '">');
 println('\t\t<data key="1">HardwareDefinitions</data>');
@@ -44,6 +45,7 @@ for (slave in hudson.model.Hudson.instance.slaves) {
                         println('\t\t\t\t\t\t<data key="8">' + slave.getComputer().getSystemProperties().get("os.arch") + '</data>');
                         println('\t\t\t\t\t\t<data key="9">' + slave.getComputer().getSystemProperties().get("os.version") + '</data>');
                         println('\t\t\t\t\t\t<data key="10">' + slave.getComputer().getEnvironment().get("sharedir","NOTDEFINED") + '</data>');
+                        println('\t\t\t\t\t\t<data key="11">true</data>');
                         println('\t\t\t\t\t</node>');
                 }
         }

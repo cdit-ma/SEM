@@ -3150,13 +3150,14 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
             QStringList orangeImages;
             orangeImages << "Warning" << "New"  << "Help";
             QStringList whiteImages;
-            whiteImages << "Exclamation" << "Cross";
+            whiteImages << "Exclamation" << "Cross";//
             QStringList blueImages;
             blueImages << "Import"<< "Timer" << "Info" << "Wiki" << "Open";
             QStringList pinkImages;
             pinkImages << "Save";
             QStringList greyImages;
             greyImages << "Settings"; // << "Wiki";
+
 
 
 

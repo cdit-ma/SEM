@@ -22,7 +22,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
     }
 
     attachedEntity->addListener(this);
-    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded";//<< "kind";
+    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded" << "readOnly";//<< "kind";
     hiddenKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime";
     permanentlyLockedKeyNames << "kind";
  	multiLineKeyNames << "code";

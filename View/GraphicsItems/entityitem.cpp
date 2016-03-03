@@ -639,12 +639,13 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         QBrush bodyBrush = this->bodyBrush;
 
         if(IS_READ_ONLY_SNIPPET){
-            bodyBrush = this->readOnlyBodyBrush;
-            headBrush = this->readOnlyHeaderBrush;
-        }else if(IS_READ_ONLY_DEF){
-            bodyBrush = readOnlyDefBodyBrush;
-            headBrush = readOnlyDefHeaderBrush;
-
+            if(IS_READ_ONLY_DEF){
+                bodyBrush = readOnlyDefBodyBrush;
+                headBrush = readOnlyDefHeaderBrush;
+            }else{
+                bodyBrush = readOnlyBodyBrush;
+                headBrush = readOnlyHeaderBrush;
+            }
         }
 
         //Make the background transparent
@@ -754,14 +755,16 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         paintPixmap(painter, IP_TOPLEFT, "Actions", "Lock_Closed");
     }
 
+    if(nodeMemberIsKey){
+        paintPixmap(painter, IP_CENTER_SMALL, "Actions", "Key");
+    }
+
     if(renderState == RS_FULL){
         //If a Node has a Definition, paint a definition icon
-        if(HAS_DEFINITION){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Definition");
+        if(IS_READ_ONLY_DEF){
+            paintPixmap(painter, IP_TOPLEFT, "Actions", "Snippet");
         }else if (nodeKind == "HardwareCluster") {
             paintPixmap(painter, IP_TOPLEFT, "Actions", "MenuCluster");
-        }else if(IS_READ_ONLY){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Lock_Closed");
         }
 
         if(isInputParameter){
@@ -771,9 +774,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, IP_TOPRIGHT, "Actions", "Arrow_Forward");
         }
 
-        if(nodeMemberIsKey){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Key");
-        }
+
 
         if(canNodeBeConnected){
             //Paint connect Icon
@@ -863,7 +864,7 @@ bool EntityItem::mouseOverDeploymentIcon(QPointF mousePosition)
 
 bool EntityItem::mouseOverDefinition(QPointF mousePosition)
 {
-    if (HAS_DEFINITION || nodeMemberIsKey){
+    if (IS_READ_ONLY_DEF || nodeMemberIsKey || IS_READ_ONLY){
         return iconRect_TopLeft().contains(mousePosition);
     }
     return false;
@@ -1102,6 +1103,10 @@ void EntityItem::setVisibility(bool visible)
  */
 void EntityItem::dataChanged(QString keyName, QVariant data)
 {
+    bool boolValue = data.toBool();
+    if(data.isNull()){
+        boolValue = false;
+    }
         if(keyName == "x" || keyName == "y"){
             qreal dataValue = data.toReal();
             //If data is related to the position of the EntityItem
@@ -1138,23 +1143,21 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "type"){
             this->nodeType = data.toString();
         }else if(keyName == "localhost"){
-            this->nodeHardwareLocalHost = data.toBool();
+            this->nodeHardwareLocalHost = boolValue;
             update();
         }else if(keyName == "key"){
-            nodeMemberIsKey = data.toBool();
+            nodeMemberIsKey = boolValue;
             update();
         }else if(keyName == "isExpanded"){
-            handleExpandState(data.toBool());
+            handleExpandState(boolValue);
         }else if(keyName == "readOnly"){
-            IS_READ_ONLY = data.toBool();
+            IS_READ_ONLY = boolValue;
             update();
         }else if(keyName == "readOnlyDefinition"){
-            IS_READ_ONLY_DEF = data.toBool();
+            IS_READ_ONLY_DEF = boolValue;
             update();
         }else if(keyName == "snippetID"){
-            qCritical() << this->nodeKind;
-            qCritical() << "HOLA";
-            IS_READ_ONLY_SNIPPET = true;
+            IS_READ_ONLY_SNIPPET = boolValue;
             update();
         }else if(keyName == "description"){
             //Use as tooltip.
@@ -1458,10 +1461,10 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         break;
     case  MO_DEFINITION:
         cursor = Qt::WhatsThisCursor;
-        if(HAS_DEFINITION){
-            tooltip = "This entity has a definition.";
-        }else if(nodeMemberIsKey){
-            tooltip = "This Member is the key.";
+        if(IS_READ_ONLY_DEF){
+            tooltip = "This Entity is a Read-Only Snippet definition.";
+        }else if(IS_READ_ONLY){
+            tooltip = "This Entity is in Read-Only Mode. You can only make visual changes.";
         }
         break;
     case MO_HARDWAREMENU:
@@ -1736,6 +1739,17 @@ QRectF EntityItem::iconRect_TopMid() const
 
 }
 
+QRectF EntityItem::iconRect_Center() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF iconRect = smallIconRect();
+
+    //Translate to move the icon to its position
+    iconRect.moveCenter(minimumRect().center());
+
+    return iconRect;
+}
+
 
 
 /**
@@ -1804,6 +1818,8 @@ QRectF EntityItem::getImageRect(EntityItem::IMAGE_POS pos) const
         return iconRect_BottomRight();
     case IP_CENTER:
         return iconRect();
+    case IP_CENTER_SMALL:
+        return iconRect_Center();
     default:
         return QRectF();
     }
