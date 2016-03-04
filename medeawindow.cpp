@@ -526,7 +526,7 @@ void MedeaWindow::initialiseGUI()
     viewLayout->setSpacing(0);
     viewLayout->addLayout(leftVlayout, 4);
     viewLayout->addLayout(rightVlayout, 1);
-    viewLayout->setContentsMargins(15, 0, 5, 5);
+    viewLayout->setContentsMargins(15, 0, 5, 10);
 
     viewHolderLayout = new QVBoxLayout();
     viewHolderLayout->setMargin(0);
