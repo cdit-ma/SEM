@@ -1,4 +1,7 @@
 #include "enumerations.h"
+#include <QDebug>
+
+#define SHADE_AMOUNT 130
 
 VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
 {
@@ -163,19 +166,35 @@ QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
 }
 
 
-QColor GET_VIEW_COLOR(VIEW_THEME theme)
+QColor GET_VIEW_COLOR(VIEW_THEME theme, COLOR_SHADE shade)
 {
     // TODO - Use this function to alter the widget colours when the theme's changed.
+    QColor color = Qt::white;
+
     switch (theme) {
     case VT_LIGHT_THEME:
         // not using this theme at the moment
+        color = QColor(250,250,250);
+        break;
     case VT_NORMAL_THEME:
-        return QColor(170,170,170);
+        color = QColor(170,170,170);
+        break;
     case VT_DARK_THEME:
-        return QColor(70,70,70);
-        //return QColor(50,50,50);
+        color = QColor(70,70,70);
+        break;
     default:
-        return Qt::white;
+        return color;
+    }
+
+    switch (shade) {
+    case LIGHTER_SHADE:
+        return color.lighter(SHADE_AMOUNT);
+    case NORMAL_SHADE:
+        return color;
+    case DARKER_SHADE:
+        return color.darker(SHADE_AMOUNT);
+    default:
+        return color;
     }
 }
 
@@ -191,7 +210,6 @@ QColor GET_INVERT_COLOR(VIEW_THEME theme){
     default:
         return Qt::white;
     }
-
 }
 
 
@@ -217,5 +235,67 @@ QString GET_DOCK_LABEL(DOCK_TYPE type)
         return "Nodes";
     default:
         return "Unknown";
+    }
+}
+
+
+QString GET_COLOR_STRING(QColor color, COLOR_SHADE shade)
+{
+    if (!color.isValid()) {
+        return "white";
+    }
+
+    switch (shade) {
+    case LIGHTER_SHADE:
+        color = color.lighter(SHADE_AMOUNT);
+    case NORMAL_SHADE:
+        break;
+    case DARKER_SHADE:
+        color = color.darker(SHADE_AMOUNT);
+    default:
+        break;
+    }
+
+    QString colorStr = "rgba(";
+    colorStr += QString::number(color.red()) + ",";
+    colorStr += QString::number(color.green()) + ",";
+    colorStr += QString::number(color.blue()) + ",";
+    colorStr += QString::number(color.alpha()) + ")";
+    return colorStr;
+}
+
+
+QString GET_VIEW_COLOR_STRING(VIEW_THEME theme, COLOR_SHADE shade)
+{
+    QColor viewColor = GET_VIEW_COLOR(theme, shade);
+    return GET_COLOR_STRING(viewColor);
+}
+
+
+QColor GET_TEXT_COLOR(VIEW_THEME theme, bool invert)
+{
+    if (invert) {
+        /*
+        switch (theme) {
+        case VT_LIGHT_THEME:
+        case VT_NORMAL_THEME:
+            return Qt::white;
+        case VT_DARK_THEME:
+            return Qt::black;
+        default:
+            return Qt::blue;
+        }
+        */
+        return Qt::black;
+    } else {
+        switch (theme) {
+        case VT_LIGHT_THEME:
+        case VT_NORMAL_THEME:
+            return Qt::black;
+        case VT_DARK_THEME:
+            return Qt::white;
+        default:
+            return Qt::red;
+        }
     }
 }

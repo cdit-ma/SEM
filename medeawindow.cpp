@@ -84,6 +84,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     INITIAL_SETTINGS_LOADED = false;
     maximizedSettingInitiallyChanged = false;
 
+    CURRENT_THEME = VT_NORMAL_THEME;
+
     //Initialize classes.
     initialiseSettings();
     initialiseJenkinsManager();
@@ -584,6 +586,9 @@ void MedeaWindow::initialiseGUI()
  */
 void MedeaWindow::setWindowStyleSheet()
 {
+    //QString background = "rgb(70,70,70);";
+    //QString textColor = "white;";
+
     setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
@@ -612,18 +617,18 @@ void MedeaWindow::setWindowStyleSheet()
                   "QCheckBox:checked { color: green; font-weight: bold; }"
 
                   /*
-                                                                                        "QProgressBar {"
-                                                                                        "border: 2px solid gray;"
-                                                                                        "border-radius: 10px;"
-                                                                                        "background: rgb(240,240,240);"
-                                                                                        "text-align: center;"
-                                                                                        "color: black;"
-                                                                                        "}"
-                                                                                        "QProgressBar::chunk {"
-                                                                                        "border-radius: 7px;"
-                                                                                        "background: rgb(0,204,0);"
-                                                                                        "}"
-                                                                                        */
+                                                                          "QProgressBar {"
+                                                                          "border: 2px solid gray;"
+                                                                          "border-radius: 10px;"
+                                                                          "background: rgb(240,240,240);"
+                                                                          "text-align: center;"
+                                                                          "color: black;"
+                                                                          "}"
+                                                                          "QProgressBar::chunk {"
+                                                                          "border-radius: 7px;"
+                                                                          "background: rgb(0,204,0);"
+                                                                          "}"
+                                                                          */
 
                   "QGroupBox {"
                   "background-color: rgba(0,0,0,0);"
@@ -634,6 +639,7 @@ void MedeaWindow::setWindowStyleSheet()
 
                   "QMessageBox{background-color:" + palette().color(QWidget::backgroundRole()).name() + ";}"
                   );
+
 }
 
 
@@ -643,7 +649,7 @@ void MedeaWindow::setWindowStyleSheet()
  */
 void MedeaWindow::setupMenu()
 {
-    menu = new QMenu();
+    menu = new QMenu(this);
 
 
     file_menu = menu->addMenu(getIcon("Actions", "Menu"), "File");
@@ -1459,9 +1465,9 @@ void MedeaWindow::setupWelcomeScreen()
     recentProjectButton->setFlat(true);
     recentProjectButton->setStyleSheet(settingsButton->styleSheet());
     wikiButton->setFlat(true);
-    wikiButton->setStyleSheet(settingsButton->styleSheet());
+    wikiButton->setStyleSheet(settingsButton->styleSheet() + "QPushButton{ text-align: right; }");
     aboutButton->setFlat(true);
-    aboutButton->setStyleSheet(settingsButton->styleSheet());
+    aboutButton->setStyleSheet(settingsButton->styleSheet() + "QPushButton{ text-align: right; }");
 
 
     QLabel* medeaIcon = new QLabel(this);
@@ -1515,7 +1521,8 @@ void MedeaWindow::setupWelcomeScreen()
     recentProjectsListWidget = new QListWidget(this);
     connect(recentProjectsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(recentProjectItemClicked(QListWidgetItem*)));
 
-    recentProjectsListWidget->setStyleSheet("background-color:black;color: white; font-size: 16px; text-align: left;");
+    recentProjectsListWidget->setStyleSheet("background:" + GET_VIEW_COLOR_STRING(CURRENT_THEME, DARKER_SHADE) + "; color: white; font-size: 16px; text-align: left;");
+    //recentProjectsListWidget->setStyleSheet("background: white; color: white; font-size: 16px; text-align: left;");
 
     recentProjectButton->setEnabled(false);
     rightButtonLayout->addWidget(recentProjectButton, 0);
@@ -1994,8 +2001,8 @@ bool MedeaWindow::closeProject()
     if(nodeView->projectRequiresSaving()){
         //Ask User to confirm save?
         QMessageBox msgBox(QMessageBox::Question, "Save Changes",
-                    "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
-                    QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+                           "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
+                           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 
         msgBox.setIconPixmap(getDialogPixmap("Actions", "Save"));
         msgBox.setButtonText(QMessageBox::Yes, "Save");
@@ -4168,7 +4175,7 @@ bool MedeaWindow::ensureDirectory(QString filePath)
     QDir dir = fileInfo.dir();
     if (!dir.exists()) {
         if(dir.mkpath(".")){
-             displayNotification("Dir: '" + dir.absolutePath() + "'' Constructed!");
+            displayNotification("Dir: '" + dir.absolutePath() + "'' Constructed!");
         }else{
             QMessageBox::critical(this, "File Error", "Unable to make path: '" + dir.absolutePath() + "'! Check permissions and try again.", QMessageBox::Ok);
             return false;
@@ -4413,27 +4420,32 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString
  */
 void MedeaWindow::themeChanged(VIEW_THEME theme)
 {
-    QString textColor;
-    switch (theme) {
-    case VT_NORMAL_THEME:
-        textColor = "black;";
-        break;
-    case VT_DARK_THEME:
-        textColor = "white;";
-        break;
-    default:
-        return;
-    }
+    CURRENT_THEME = theme;
+
+    QString lighterViewColor = GET_VIEW_COLOR_STRING(theme, LIGHTER_SHADE) + ";";
+    QString darkerViewColor = GET_VIEW_COLOR_STRING(theme, DARKER_SHADE) + ";";
+    QString textColor = GET_COLOR_STRING(GET_TEXT_COLOR(theme)) + ";";
+    QString highlightTextColor = GET_COLOR_STRING(GET_TEXT_COLOR(theme, true)) + ";";
+
+    qDebug() << "highlight color: " << highlightTextColor;
+
+    loadingLabel->setStyleSheet("QLabel{ color:" + textColor + "}");
+    recentProjectsListWidget->setStyleSheet("background:" + darkerViewColor + "color: white; font-size: 16px;");
     projectName->setStyleSheet("QPushButton{ color:" + textColor + "font-size: 16px; text-align: left; }"
                                                                    "QTooltip{ background: white; color: black; }");
-    loadingLabel->setStyleSheet("QLabel{ color:" + textColor + "}");
 
-
-
-//    QPalette palette;
-//    palette.setColor(menu->backgroundRole(), GET_VIEW_COLOR(theme));
-//    palette.setColor(menu->foregroundRole(), GET_INVERT_COLOR(theme));
-
-//    menu->setStyleSheet("color:"+textColor+";");
-//    menu->setPalette(palette);
+    menu->setStyleSheet("QMenu { "
+                        "background:" + lighterViewColor +
+                        "}"
+                        "QMenu::item {"
+                        "padding: 1px 20px 1px 45px;"
+                        "background:" + lighterViewColor +
+                        "color:" + textColor +
+                        "border: none;"
+                        "}"
+                        "QMenu::item:selected {"
+                        "border: 1px solid gray;"
+                        "background:" + GET_COLOR_STRING(lighterViewColor, LIGHTER_SHADE) + ";"
+                        "color:" + highlightTextColor +
+                        "}");
 }

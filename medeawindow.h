@@ -554,6 +554,8 @@ private:
     QHBoxLayout* welcomeLayout;
     bool welcomeScreenOn;
 
+    VIEW_THEME CURRENT_THEME;
+
 
     QSettings* persistantSettings;
 
