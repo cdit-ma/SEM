@@ -466,31 +466,6 @@ void MedeaWindow::initialiseGUI()
     aspectToggles << assemblyToggle;
     aspectToggles << hardwareToggle;
 
-    // setup minimap
-    minimap = new NodeViewMinimap();
-    minimap->setScene(nodeView->scene());
-    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
-    minimap->setInteractive(false);
-    minimap->setFixedSize(RIGHT_PANEL_WIDTH + 10, RIGHT_PANEL_WIDTH * 0.6);
-    minimap->setStyleSheet("QGraphicsView{border: 1px solid rgb(50,50,50);}");
-    minimap->centerView();
-
-    QLabel* minimapLabel = new QLabel("Minimap", this);
-    minimapLabel->setFont(guiFont);
-    minimapLabel->setAlignment(Qt::AlignCenter);
-    minimapLabel->setFixedSize(RIGHT_PANEL_WIDTH + 10, 20);
-    minimapLabel->setStyleSheet("background-color: rgb(210,210,210);"
-                                "border: 1px solid rgb(50,50,50);"
-                                "border-bottom: none;"
-                                "font-size: 12px;");
-
-    // setup layouts for widgets
-    QVBoxLayout* minimapLayout = new QVBoxLayout();
-    minimapLayout->addWidget(minimapLabel);
-    minimapLayout->addWidget(minimap);
-    minimapLayout->setContentsMargins(10,0,8,5);
-
     QVBoxLayout* tableLayout = new QVBoxLayout();
     tableLayout->setMargin(0);
     tableLayout->setContentsMargins(5,0,0,0);
@@ -533,6 +508,8 @@ void MedeaWindow::initialiseGUI()
     viewButtonsGrid->addWidget(hardwareToggle, hardwareToggle->getToggleGridPos().x(), hardwareToggle->getToggleGridPos().y());
 
     searchLayout = new QHBoxLayout();
+    minimapBox = new QWidget(this);
+
     QVBoxLayout* rightVlayout =  new QVBoxLayout();
     rightVlayout->setMargin(0);
     rightVlayout->setContentsMargins(0, SPACER_SIZE, 0, 0);
@@ -542,7 +519,7 @@ void MedeaWindow::initialiseGUI()
     rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     rightVlayout->addWidget(dataTableBox);
     rightVlayout->addStretch();
-    rightVlayout->addLayout(minimapLayout);
+    rightVlayout->addWidget(minimapBox);
 
     viewLayout = new QHBoxLayout();
     viewLayout->setMargin(0);
@@ -561,11 +538,14 @@ void MedeaWindow::initialiseGUI()
     setCentralWidget(nodeView);
     setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     setWindowStyleSheet();
+    //setStyle(QStyleFactory::create("windows"));
+
 
     // setup the menu, dock, search tools, toolbar and information display widgets
     setupMenu();
     setupSearchTools();
     setupToolbar();
+    setupMinimap();
     setupDocks(bodyLayout);
     setupInfoWidgets(bodyLayout);
     setupMultiLineBox();
@@ -644,7 +624,6 @@ void MedeaWindow::setWindowStyleSheet()
 void MedeaWindow::setupMenu()
 {
     menu = new QMenu(this);
-
 
     file_menu = menu->addMenu(getIcon("Actions", "Menu"), "File");
     edit_menu = menu->addMenu(getIcon("Actions", "Edit"), "Edit");
@@ -730,6 +709,10 @@ void MedeaWindow::setupMenu()
     view_fullScreenMode->setCheckable(true);
     view_printScreen = view_menu->addAction(getIcon("Actions", "PrintScreen"), "Print Screen");
     view_printScreen->setShortcut(QKeySequence(Qt::Key_F12));
+
+    view_menu->addSeparator();
+    view_showMinimap = view_menu->addAction(getIcon("Actions", "Wiki"), "Show Minimap");
+    view_showMinimap->setEnabled(false);
 
     model_clearModel = model_menu->addAction(getIcon("Actions", "Clear"), "Clear Model");
     model_menu->addSeparator();
@@ -824,6 +807,7 @@ void MedeaWindow::setupMenu()
     modelActions << jenkins_menu->actions();
 
     modelActions.removeAll(view_fullScreenMode);
+    modelActions.removeAll(view_showMinimap);
 }
 
 
@@ -1004,30 +988,10 @@ void MedeaWindow::setupSearchTools()
 
     QVBoxLayout* resultsMainLayout = new QVBoxLayout();
     resultsLayout = new QVBoxLayout();
+
     int searchBarHeight = 28;
-
-    // TODO - Clean up search header widgets. Don't need them anymore!
-    QHBoxLayout* headerLayout = new QHBoxLayout();
-    QLabel* objectLabel = new QLabel("Entity Label:", this);
-    QLabel* parentLabel = new QLabel("Location:", this);
-    QLabel* iconHolder = new QLabel(this);
-
     float searchItemMinWidth = 500.0;
-    iconHolder->setFixedWidth(43);
-    objectLabel->setFixedWidth(searchItemMinWidth*2.0/5.0);
-    parentLabel->setMinimumWidth(searchItemMinWidth - objectLabel->width());
 
-    iconHolder->hide();
-    objectLabel->hide();
-    parentLabel->hide();
-
-    headerLayout->setMargin(2);
-    headerLayout->setSpacing(5);
-    headerLayout->addWidget(objectLabel);
-    headerLayout->addWidget(iconHolder);
-    headerLayout->addWidget(parentLabel);
-
-    resultsMainLayout->addLayout(headerLayout);
     resultsMainLayout->addLayout(resultsLayout);
     resultsMainLayout->addStretch();
 
@@ -1037,11 +1001,12 @@ void MedeaWindow::setupSearchTools()
     searchOptionButton->setFixedSize(30, searchBarHeight);
     searchOptionButton->setIconSize(searchButton->size()*0.7);
     searchOptionButton->setCheckable(true);
+    //searchOptionButton->setStyle(QStyleFactory::create("windows"));
 
     searchBar->setPlaceholderText(searchBarDefaultText);
     searchBar->setFixedSize(RIGHT_PANEL_WIDTH - (searchButton->width()*2) + 10, searchBarHeight - 3);
     searchBar->setStyleSheet("QLineEdit{ background-color: rgb(230,230,230); }"
-                             "QLineEdit:focus{border: 1px solid; border-color:blue;background-color: rgb(250,250,250)}");
+                             "QLineEdit:focus{ border: 1px solid; border-color: blue; background: rgb(250,250,250) }");
 
     searchSuggestions->setSize(searchBar->width(), height(), 2);
 
@@ -1187,8 +1152,6 @@ void MedeaWindow::setupSearchTools()
     viewAspectsBar->setFont(guiFont);
     nodeKindsBar->setFont(guiFont);
     dataKeysBar->setFont(guiFont);
-    objectLabel->setFont(guiFont);
-    parentLabel->setFont(guiFont);
     aspectsLabel->setFont(guiFont);
     kindsLabel->setFont(guiFont);
     keysLabel->setFont(guiFont);
@@ -1557,6 +1520,62 @@ void MedeaWindow::setupWelcomeScreen()
 }
 
 
+/**
+ * @brief MedeaWindow::setupMinimap
+ */
+void MedeaWindow::setupMinimap()
+{
+    // setup minimap
+    minimap = new NodeViewMinimap();
+    minimap->setScene(nodeView->scene());
+    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
+    minimap->setInteractive(false);
+    minimap->setFixedSize(RIGHT_PANEL_WIDTH + 10, RIGHT_PANEL_WIDTH * 0.6);
+    minimap->setStyleSheet("QGraphicsView{ border: 1px solid rgb(50,50,50); }");
+    minimap->centerView();
+
+    QLabel* minimapLabel = new QLabel("Minimap", this);
+    minimapLabel->setFont(guiFont);
+    minimapLabel->setAlignment(Qt::AlignCenter);
+    minimapLabel->setFixedSize(RIGHT_PANEL_WIDTH - 10, 20);
+    minimapLabel->setStyleSheet("background-color: rgb(210,210,210);"
+                                "border: 1px solid rgb(50,50,50);"
+                                "border-bottom: none;"
+                                "font-size: 12px;");
+
+    QPushButton* closeMinimapButton = new QPushButton(getIcon("Actions", "Close"), "");
+    closeMinimapButton->setFixedSize(20,20);
+    /*closeMinimapButton->setStyleSheet("QPushButton{ background: rgb(200,200,200); }"
+                                      "QPushButton:hover{ background: rgb(240,240,240); }"
+                                      "QPushButton:pressed{ background: white; }");*/
+
+    QHBoxLayout* minimapHeaderLayout = new QHBoxLayout();
+    minimapHeaderLayout->setSpacing(0);
+    minimapHeaderLayout->setMargin(0);
+    minimapHeaderLayout->setContentsMargins(0,0,0,0);
+    minimapHeaderLayout->addWidget(closeMinimapButton);
+    minimapHeaderLayout->addWidget(minimapLabel);
+
+    // setup layouts for widgets
+    QVBoxLayout* minimapLayout = new QVBoxLayout();
+    minimapLayout->setSpacing(0);
+    minimapLayout->setMargin(0);
+    minimapLayout->setContentsMargins(0,0,0,0);
+    minimapLayout->addLayout(minimapHeaderLayout);
+    minimapLayout->addWidget(minimap);
+    //minimapLayout->setContentsMargins(10,0,8,10);
+
+    minimapBox->setLayout(minimapLayout);
+    minimapBox->setFixedWidth(RIGHT_PANEL_WIDTH + 10);
+    minimapBox->setFixedHeight(minimapLabel->height() + minimap->height());
+    minimapBox->setStyle(QStyleFactory::create("windows"));
+
+    connect(closeMinimapButton, SIGNAL(clicked()), minimapBox, SLOT(hide()));
+    connect(closeMinimapButton, SIGNAL(clicked()), this, SLOT(toggleMinimap()));
+}
+
+
 void MedeaWindow::teardownProject()
 {
     if (controller) {
@@ -1801,7 +1820,7 @@ void MedeaWindow::setupConnections()
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
     connect(view_fullScreenMode, SIGNAL(triggered(bool)), this, SLOT(setFullscreenMode(bool)));
     connect(view_printScreen, SIGNAL(triggered()), this, SLOT(screenshot()));
-
+    connect(view_showMinimap, SIGNAL(triggered()), this, SLOT(toggleMinimap()));
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
 
@@ -4439,9 +4458,27 @@ void MedeaWindow::themeChanged(VIEW_THEME theme)
                         "color:" + textColor +
                         "border: none;"
                         "}"
+                        "QMenu::item:disabled {"
+                        "color: gray;"
+                        "}"
                         "QMenu::item:selected {"
                         "border: 1px solid gray;"
                         "background:" + GET_COLOR_STRING(lighterViewColor, LIGHTER_SHADE) + ";"
                         "color:" + highlightTextColor +
                         "}");
+}
+
+
+/**
+ * @brief MedeaWindow::toggleMinimap
+ */
+void MedeaWindow::toggleMinimap()
+{
+    QAction* action = qobject_cast<QAction*>(QObject::sender());
+    if (action && action == view_showMinimap) {
+        view_showMinimap->setEnabled(false);
+        minimapBox->show();
+    } else {
+        view_showMinimap->setEnabled(true);
+    }
 }

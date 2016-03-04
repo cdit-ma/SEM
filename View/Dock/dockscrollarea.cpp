@@ -488,7 +488,9 @@ void DockScrollArea::setupLayout()
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
     infoLabel->setFixedWidth(BUTTON_WIDTH + DOCK_PADDING*2);
-    infoLabel->setStyleSheet("padding:" + QString::number(DOCK_PADDING/2) + "px; font-style: italic;");
+    infoLabel->setStyleSheet("font-style: italic;"
+                             "padding:" + QString::number(DOCK_PADDING) + "px "
+                             + QString::number(DOCK_PADDING/2) + "px; ");
 
     QGroupBox* groupBox = new QGroupBox(0);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
