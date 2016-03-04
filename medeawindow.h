@@ -217,8 +217,6 @@ private slots:
     void detachDocks(bool checked);
     void detachedDockClosed();
 
-
-
     void showWindowToolbar(bool checked);
     void setToolbarVisibility(bool visible);
     void detachWindowToolbar(bool checked);
@@ -233,6 +231,7 @@ private slots:
     QStringList fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple=true, QString fileName = "");
 
     void themeChanged(VIEW_THEME theme);
+    void toggleMinimap();
 
 protected:
     void closeEvent(QCloseEvent*);
@@ -301,6 +300,7 @@ private:
     bool constructToolbarButton(QToolBar* toolbar, QAction* action, QString actionName);
 
     void setupWelcomeScreen();
+    void setupMinimap();
     void setupMultiLineBox();
 
     void updateWidgetsOnWindowChange();
@@ -360,6 +360,8 @@ private:
     QAction* view_showConnectedNodes;
     QAction* view_fullScreenMode;
     QAction* view_printScreen;
+    QAction* view_showMinimap;
+
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_ExecuteLocalJob;
@@ -490,6 +492,9 @@ private:
     QString nodeKindsDefaultText;
     QString dataKeysDefaultText;
 
+    NodeViewMinimap* minimap;
+    QWidget* minimapBox;
+
     QString currentProjectFilePath;
 
     AppSettings* appSettings;
@@ -499,7 +504,6 @@ private:
 
     NewController* controller;
     NodeView* nodeView;
-    NodeViewMinimap* minimap;
     QFileDialog* fileDialog;
 
     QThread* controllerThread;
