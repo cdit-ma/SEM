@@ -423,7 +423,7 @@ void DockNodeItem::iconChanged()
  */
 void DockNodeItem::setupLayout()
 {
-    QVBoxLayout *layout = new QVBoxLayout();
+    QVBoxLayout* layout = new QVBoxLayout();
     layout->setMargin(0);
 
     textLabel = new QLabel(label, this);

@@ -3508,6 +3508,8 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
         } else {
             // if no docks are open, update the dock area's mask - allow mouse events to pass through it
             updateWidgetMask(docksArea, dockButtonsBox);
+            // make sure that any highlighted node item from the dock are cleared
+            nodeView->highlightOnHover();
         }
     }
 
