@@ -187,6 +187,8 @@ private:
     bool showSetReadyOnlyToolButton;
     bool showUnsetReadyOnlyToolButton;
 
+    bool showAlignmentButtons;
+
     bool alterModelButtonsVisible;
     bool alignButtonsVisible;
     bool expandContractButtonsVisible;

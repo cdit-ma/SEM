@@ -132,10 +132,12 @@ public:
 
     void setVisible(bool visible);
 
+    void updateActionsEnabledStates();
 
     void aspectGraphicsChanged();
     void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
     VIEW_THEME getTheme();
+
 
 protected:
     //Mouse Handling Methods
@@ -271,6 +273,7 @@ signals:
     void view_QuestionAnswered(bool answer);
 
     void view_ProjectRequiresSaving(bool requiresSave);
+
 public slots:
     QPointF getCenterOfScreenScenePos(QPoint mousePosition = QPoint());
     void canUndo(bool okay);
@@ -438,7 +441,6 @@ private:
     void transition();
     void selectJenkinsImportedNodes();
     void _deleteFromIDs(QList<int> IDs);
-    void updateActionsEnabledStates();
     void alignSelectionOnGrid(ALIGN alignment = NONE);
     void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
     void connectGraphMLItemToController(GraphMLItem* GUIItem);
@@ -477,7 +479,6 @@ private:
     int getMapSize();
 
 
-
     QStringList getAdoptableNodeList(int ID);
     QList<int> getConnectableNodes(int ID);
     QList<NodeItem*> getConnectableNodeItems(int ID);
@@ -510,6 +511,7 @@ private:
     QList<NodeItem*> getNodeItemsList();
     QList<EdgeItem*> getEdgeItemsList();
 
+    NodeItem* getSharedParentNodeItem(QList<GraphMLItem *> graphMLItems);
 
 
 

@@ -116,6 +116,7 @@ signals:
 
     void window_DisplayMessage(MESSAGE_TYPE type, QString title, QString message);
 
+    void window_refreshActions();
 
 public slots:
     void projectRequiresSaving(bool requiresSave);
@@ -189,7 +190,7 @@ private slots:
     void setAttributeModel(AttributeTableModel* model);
 
     void forceToggleAspect(VIEW_ASPECT aspect, bool on);
-    void setMenuActionEnabled(QString action, bool enable);
+    void setActionEnabled(QString action, bool enable);
     QIcon getIcon(QString alias, QString image);
     void menuActionTriggered();
 

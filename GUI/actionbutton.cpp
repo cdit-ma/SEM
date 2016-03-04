@@ -6,7 +6,6 @@ ActionButton::ActionButton(QAction *action): QToolButton()
 {
     if(action){
         setDefaultAction(action);
-
         this->action = action;
         connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
         this->setEnabled(action->isEnabled());

@@ -164,22 +164,16 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
 
     if(toolbarActionLookup.contains(keyName)){
         QAction* action = toolbarActionLookup[keyName];
+
         if(action){
             action->setVisible(boolValue);
         }
         updateToolbar();
     }
 
-    // TODO - Need to check if newly show button should be enabled or disabled
-    /*
     if (boolValue) {
-        NodeItem* selectedItem = nodeView->getSelectedNodeItem();
-        nodeView->clearSelection();
-        if (selectedItem) {
-            nodeView->appendToSelection(selectedItem);
-        }
+        nodeView->updateActionsEnabledStates();
     }
-    */
 }
 
 
@@ -1407,9 +1401,11 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
             qCritical() << "Duplicate Actions";
         }
 
-        if(!modelActions.contains(action)){
+        if (!modelActions.contains(action)) {
             modelActions << action;
         }
+
+        connect(this, SIGNAL(window_refreshActions()), actionButton, SLOT(actionChanged()));
 
         // setup a menu for the replicate button to allow the user to enter the replicate count
         /*
@@ -1740,7 +1736,7 @@ void MedeaWindow::setupConnections()
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
     connect(nodeView, SIGNAL(view_displayNotification(QString,int,int)), this, SLOT(displayNotification(QString,int,int)));
 
-    connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
+    connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setActionEnabled(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
 
@@ -3111,13 +3107,13 @@ void MedeaWindow::setClipboard(QString value)
 
 
 /**
- * @brief MedeaWindow::setMenuActionEnabled
+ * @brief MedeaWindow::setActionEnabled
  * This gets called everytime a node is selected.
  * It enables/disables the specified menu action depending on the selected node.
  * @param action
  * @param node
  */
-void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
+void MedeaWindow::setActionEnabled(QString action, bool enable)
 {
     if (action == "definition") {
         view_goToDefinition->setEnabled(enable);
@@ -3143,18 +3139,20 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         edit_redo->setEnabled(enable);
     } else if (action == "sort"){
         actionSort->setEnabled(enable);
-    }else if (action == "singleSelection") {
+    } else if (action == "singleSelection") {
         actionCenter->setEnabled(enable);
         actionZoomToFit->setEnabled(enable);
-        // added this after the tag was made
+    } else if (action == "multipleSelection") {
         actionContextMenu->setEnabled(enable);
-    } else if(action == "multipleSelection"){
-
-    } else if(action == "localdeployment"){
+    } else if (action == "localdeployment") {
         model_ExecuteLocalJob->setEnabled(enable);
-    }else if(action == "subView"){
+    } else if (action == "subView") {
         actionPopupSubview->setEnabled(enable);
+    } else if (action == "align") {
+        actionAlignHorizontally->setEnabled(enable);
+        actionAlignVertically->setEnabled(enable);
     }
+    emit window_refreshActions();
 }
 
 
@@ -3166,7 +3164,7 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
  */
 QIcon MedeaWindow::getIcon(QString alias, QString image)
 {
-    if(nodeView){
+    if (nodeView) {
         return QIcon(nodeView->getImage(alias, image));
     }
     return QIcon();

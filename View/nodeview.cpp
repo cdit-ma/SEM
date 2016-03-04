@@ -565,7 +565,7 @@ void NodeView::setNoModelTextVisible(bool visible)
     }
     if(backgroundText){
         if(visible){
-           centerRect(backgroundText->sceneBoundingRect(), CENTER_ON_PADDING, true);
+            centerRect(backgroundText->sceneBoundingRect(), CENTER_ON_PADDING, true);
         }
         backgroundText->setVisible(visible);
     }
@@ -678,6 +678,37 @@ QList<EdgeItem *> NodeView::getEdgeItemsList()
         }
     }
     return edgeItems;
+}
+
+
+/**
+ * @brief NodeView::getSharedParentNodeItem
+ * @param graphMLItems
+ * @return
+ */
+NodeItem* NodeView::getSharedParentNodeItem(QList<GraphMLItem*> graphMLItems)
+{
+    QList<NodeItem*> nodeItems;
+    foreach (GraphMLItem* item, graphMLItems) {
+        if (item->isNodeItem()) {
+            nodeItems.append((NodeItem*)item);
+        }
+    }
+
+    if (nodeItems.isEmpty() || nodeItems.count() == 1) {
+        return 0;
+    }
+
+    // check if all the provided items have a shared parent item
+    NodeItem* prevParentItem = 0;
+    foreach (NodeItem* nodeItem, nodeItems) {
+        NodeItem* parentItem = nodeItem->getParentNodeItem();
+        if (prevParentItem && (prevParentItem != parentItem)) {
+            return 0;
+        }
+        prevParentItem = parentItem;
+    }
+    return prevParentItem;
 }
 
 
@@ -1569,9 +1600,9 @@ void NodeView::scrollEvent(int delta, QPoint mouseCenter)
         //qreal viewWidth = viewport()->rect().width();
         //qreal modelVisibleWidth = getModelItem()->childrenBoundingRect().width() * zoomCurrent;
 
-		if(!getModelItem()){
-			return;
-		}
+        if(!getModelItem()){
+            return;
+        }
         QRectF modelRect = getModelItem()->childrenBoundingRect();
         qreal modelSize, viewSize;
 
@@ -2609,43 +2640,47 @@ void NodeView::_deleteFromIDs(QList<int> IDs)
  */
 void NodeView::updateActionsEnabledStates()
 {
-    int selectedID = getSelectedNodeID();
-    int defnID;
-    int implID;
-    bool canExport = false;
-    bool canImport = false;
-
-    if (controller) {
-        defnID = controller->getDefinition(selectedID);
-        implID = controller->getImplementation(selectedID);
-        canExport = controller->canExportSnippet(selectedIDs);
-        canImport = controller->canImportSnippet(selectedIDs);
-
-        emit view_updateMenuActionEnabled("cut", controller->canCut(selectedIDs));
-        emit view_updateMenuActionEnabled("copy", controller->canCopy(selectedIDs));
-        emit view_updateMenuActionEnabled("replicate", controller->canReplicate(selectedIDs));
-        emit view_updateMenuActionEnabled("paste", controller->canPaste(selectedIDs));
-        emit view_updateMenuActionEnabled("delete", controller->canDelete(selectedIDs));
-        emit view_updateMenuActionEnabled("undo", controller->canUndo());
-        emit view_updateMenuActionEnabled("redo", controller->canRedo());
-        emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
-        emit view_updateMenuActionEnabled("getCPP", controller->canGetCPP(selectedIDs));
-        emit view_updateMenuActionEnabled("setReadOnly", controller->canSetReadOnly(selectedIDs));
-        emit view_updateMenuActionEnabled("unsetReadOnly", controller->canUnsetReadOnly(selectedIDs));
-        emit view_updateMenuActionEnabled("subView",  getSelectedID() != -1);
-
-        emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
-        emit view_updateMenuActionEnabled("wiki", getSelectedNodeIDs().size() == 1);
-
-        emit view_updateMenuActionEnabled("singleSelection", selectedID != -1);
-        emit view_updateMenuActionEnabled("multipleSelection", !getSelectedNodeIDs().isEmpty());
-
-        // update other menu actions and toolbar buttons
-        emit view_updateMenuActionEnabled("definition", defnID != -1);
-        emit view_updateMenuActionEnabled("implementation", implID != -1);
-        emit view_updateMenuActionEnabled("exportSnippet", canExport);
-        emit view_updateMenuActionEnabled("importSnippet", canImport);
+    if (!controller) {
+        return;
     }
+
+    int selectedID = getSelectedNodeID();
+    int selectedNodeItemsCount = getSelectedNodeIDs().size();
+    int defnID = controller->getDefinition(selectedID);
+    int implID = controller->getImplementation(selectedID);
+    bool canExport = controller->canExportSnippet(selectedIDs);
+    bool canImport = controller->canImportSnippet(selectedIDs);
+    bool canAlign = getSharedParentNodeItem(getSelectedItems()) != 0;
+
+    emit view_updateMenuActionEnabled("cut", controller->canCut(selectedIDs));
+    emit view_updateMenuActionEnabled("copy", controller->canCopy(selectedIDs));
+    emit view_updateMenuActionEnabled("replicate", controller->canReplicate(selectedIDs));
+    emit view_updateMenuActionEnabled("paste", controller->canPaste(selectedIDs));
+    emit view_updateMenuActionEnabled("delete", controller->canDelete(selectedIDs));
+    emit view_updateMenuActionEnabled("undo", controller->canUndo());
+    emit view_updateMenuActionEnabled("redo", controller->canRedo());
+    emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
+    emit view_updateMenuActionEnabled("getCPP", controller->canGetCPP(selectedIDs));
+    emit view_updateMenuActionEnabled("setReadOnly", controller->canSetReadOnly(selectedIDs));
+    emit view_updateMenuActionEnabled("unsetReadOnly", controller->canUnsetReadOnly(selectedIDs));
+    emit view_updateMenuActionEnabled("subView",  selectedID != -1);
+
+    emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
+    emit view_updateMenuActionEnabled("wiki", getSelectedNodeIDs().size() == 1);
+
+    emit view_updateMenuActionEnabled("sort", selectedNodeItemsCount != 0);
+    emit view_updateMenuActionEnabled("wiki", selectedNodeItemsCount == 1);
+
+    emit view_updateMenuActionEnabled("singleSelection", selectedID != -1);
+    emit view_updateMenuActionEnabled("multipleSelection", selectedNodeItemsCount != 0);
+
+    // update other menu actions and toolbar buttons
+    emit view_updateMenuActionEnabled("definition", defnID != -1);
+    emit view_updateMenuActionEnabled("implementation", implID != -1);
+    emit view_updateMenuActionEnabled("exportSnippet", canExport);
+    emit view_updateMenuActionEnabled("importSnippet", canImport);
+
+    emit view_updateMenuActionEnabled("align", canAlign);
 }
 
 
@@ -3578,16 +3613,16 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
         EntityAdapter* modelItem  = item->getEntityAdapter();
 
         bool remove = false;
-                if(modelItem && modelItem->isNodeAdapter()){
-                    remove = controller->isNodeAncestor(selectedModelItem->getID(), modelItem->getID());
-                }else if(modelItem && modelItem->isEdgeAdapter()){
-                    EdgeAdapter* modelEdge = (EdgeAdapter*)modelItem;
-                    remove = selectedModelItem->getID() == modelEdge->getSourceID() || selectedModelItem->getID() == modelEdge->getDestinationID();
-                }
-                if(remove){
-                    selectedIDs.removeAll(ID);
-                    item->setSelected(false);
-                }
+        if(modelItem && modelItem->isNodeAdapter()){
+            remove = controller->isNodeAncestor(selectedModelItem->getID(), modelItem->getID());
+        }else if(modelItem && modelItem->isEdgeAdapter()){
+            EdgeAdapter* modelEdge = (EdgeAdapter*)modelItem;
+            remove = selectedModelItem->getID() == modelEdge->getSourceID() || selectedModelItem->getID() == modelEdge->getDestinationID();
+        }
+        if(remove){
+            selectedIDs.removeAll(ID);
+            item->setSelected(false);
+        }
     }
 }
 

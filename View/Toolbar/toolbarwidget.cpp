@@ -31,6 +31,8 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     showImplementationToolButton = false;
     showShowCPPToolButton = false;
     showWikiButton = false;
+    showAlignmentButtons = false;
+
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
 
@@ -69,6 +71,8 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
     wikiButton->setVisible(showWikiButton);
     setReadOnlyButton->setVisible(showSetReadyOnlyToolButton);
     unsetReadOnlyButton->setVisible(showUnsetReadyOnlyToolButton);
+    alignVerticallyButton->setVisible(showAlignmentButtons);
+    alignHorizontallyButton->setVisible(showAlignmentButtons);
 
     alterModelButtonsVisible = showDeleteToolButton;
     snippetButtonsVisible = showExportSnippetToolButton || showImportSnippetToolButton;
@@ -145,7 +149,7 @@ QStringList ToolbarWidget::getNonDeletableMenuActionKinds()
 
 
 /**
- * @brief ToolbarWidget::updateActionEnabled
+ * @brief ToolbarWidget::updateActionEnabledState
  * @param actionName
  * @param enabled
  */
@@ -163,12 +167,14 @@ void ToolbarWidget::updateActionEnabledState(QString actionName, bool enabled)
         showImportSnippetToolButton = enabled;
     } else if(actionName == "getCPP"){
         showShowCPPToolButton = enabled;
-    } else if(actionName == "setReadOnly"){
+    } else if (actionName == "setReadOnly"){
         showSetReadyOnlyToolButton = enabled;
     } else if (actionName == "unsetReadOnly") {
         showUnsetReadyOnlyToolButton = enabled;
-    } else if(actionName == "wiki"){
+    } else if (actionName == "wiki"){
         showWikiButton = enabled;
+    } else if (actionName == "align") {
+        showAlignmentButtons = enabled;
     }
 }
 
@@ -1102,7 +1108,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         expandContractButtonsVisible = false;
 
         // check if the selected node item has other node items connected to it (edges)
-        if(nodeItem->getNodeAdapter()->edgeCount() > 0){
+        if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
             connectionsButton->show();
         }
 
@@ -1130,8 +1136,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
          * Multiple NodeItems selected
          */
 
-        NodeItem* prevParentItem = 0;
-        bool shareParent = true;
         bool allClusters = true;
         bool canBeExpanded = false;
         int viewMode = -1;
@@ -1139,14 +1143,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         for (int i = 0; i < nodeItems.count(); i++) {
 
             NodeItem* item_i = nodeItems.at(i);
-            NodeItem* parentItem = item_i->getParentNodeItem();
-
-            // check if all the selected items have a shared parent item
-            if (prevParentItem && (prevParentItem != parentItem)) {
-                shareParent = false;
-            }
-
-            prevParentItem = parentItem;
 
             // if it's not an EntityItem, skip the following checks
             if (!item_i->isEntityItem()){
@@ -1209,13 +1205,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         expandButton->setVisible(canBeExpanded);
         contractButton->setVisible(canBeExpanded);
         expandContractButtonsVisible = canBeExpanded;
-
-        // only show the group alignment buttons if all the selected items have the same parent
-        if (shareParent) {
-            alignVerticallyButton->show();
-            alignHorizontallyButton->show();
-            alignButtonsVisible = true;
-        }
 
         // if all selected node items are Hardware clusters, show diplay option button
         if (allClusters) {
