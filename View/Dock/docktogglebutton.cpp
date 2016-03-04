@@ -33,12 +33,13 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
     enabled = false;
 
     QSize buttonSize(BUTTON_WIDTH + 4, BUTTON_HEIGHT + 4);
-    QSize pixmapSize = buttonSize * 0.6;
+    QSize pixmapSize = buttonSize * 0.55;
     QPixmap pixmap;
 
     switch (type) {
     case PARTS_DOCK:
         pixmap = QPixmap::fromImage(QImage(":/Actions/Parts.png"));
+        pixmapSize *= 1.25;
         setToolTip("Parts Dock");
         break;
     case DEFINITIONS_DOCK:
