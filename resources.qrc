@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/Items">
-        <file alias="Activate.png">Resources/Images/Items/Activate.png</file>
         <file alias="Aggregate.png">Resources/Images/Items/Aggregate.png</file>
         <file alias="AggregateInstance.png">Resources/Images/Items/AggregateInstance.png</file>
         <file alias="AssemblyDefinitions.png">Resources/Images/Items/AssemblyDefinitions.png</file>
@@ -11,13 +10,11 @@
         <file alias="BlackBox.png">Resources/Images/Items/BlackBox.png</file>
         <file alias="BlackBoxInstance.png">Resources/Images/Items/BlackBoxInstance.png</file>
         <file alias="BranchState.png">Resources/Images/Items/BranchState.png</file>
-        <file alias="Complexity.png">Resources/Images/Items/Complexity.png</file>
         <file alias="Component.png">Resources/Images/Items/Component.png</file>
         <file alias="ComponentAssembly.png">Resources/Images/Items/ComponentAssembly.png</file>
         <file alias="ComponentImpl.png">Resources/Images/Items/ComponentImpl.png</file>
         <file alias="ComponentInstance.png">Resources/Images/Items/ComponentInstance.png</file>
         <file alias="Condition.png">Resources/Images/Items/Condition.png</file>
-        <file alias="Event.png">Resources/Images/Items/Event.png</file>
         <file alias="HardwareCluster.png">Resources/Images/Items/HardwareCluster.png</file>
         <file alias="HardwareDefinitions.png">Resources/Images/Items/HardwareDefinitions.png</file>
         <file alias="HardwareNode.png">Resources/Images/Items/HardwareNode.png</file>
@@ -26,7 +23,6 @@
         <file alias="InEventPortDelegate.png">Resources/Images/Items/InEventPortDelegate.png</file>
         <file alias="InEventPortImpl.png">Resources/Images/Items/InEventPortImpl.png</file>
         <file alias="InEventPortInstance.png">Resources/Images/Items/InEventPortInstance.png</file>
-        <file alias="InMember.png">Resources/Images/Items/InMember.png</file>
         <file alias="InterfaceDefinitions.png">Resources/Images/Items/InterfaceDefinitions.png</file>
         <file alias="Linux_amd64.png">Resources/Images/Items/Linux_amd64.png</file>
         <file alias="Linux_arm.png">Resources/Images/Items/Linux_arm.png</file>
@@ -38,14 +34,8 @@
         <file alias="OutEventPortDelegate.png">Resources/Images/Items/OutEventPortDelegate.png</file>
         <file alias="OutEventPortImpl.png">Resources/Images/Items/OutEventPortImpl.png</file>
         <file alias="OutEventPortInstance.png">Resources/Images/Items/OutEventPortInstance.png</file>
-        <file alias="OutMember.png">Resources/Images/Items/OutMember.png</file>
-        <file alias="Parameter.png">Resources/Images/Items/Parameter.png</file>
         <file alias="PeriodicEvent.png">Resources/Images/Items/PeriodicEvent.png</file>
-        <file alias="Postprocess.png">Resources/Images/Items/Postprocess.png</file>
-        <file alias="Preprocess.png">Resources/Images/Items/Preprocess.png</file>
         <file alias="Process.png">Resources/Images/Items/Process.png</file>
-        <file alias="ProvidedRequestPort.png">Resources/Images/Items/ProvidedRequestPort.png</file>
-        <file alias="RequiredRequestPort.png">Resources/Images/Items/RequiredRequestPort.png</file>
         <file alias="Termination.png">Resources/Images/Items/Termination.png</file>
         <file alias="Variable.png">Resources/Images/Items/Variable.png</file>
         <file alias="Windows7_amd64.png">Resources/Images/Items/Windows7_amd64.png</file>
@@ -55,7 +45,6 @@
         <file alias="WhileLoop.png">Resources/Images/Items/WhileLoop.png</file>
         <file alias="Vector.png">Resources/Images/Items/Vector.png</file>
         <file alias="Localhost.png">Resources/Images/Items/Localhost.png</file>
-        <file alias="Passivate.png">Resources/Images/Items/Passivate.png</file>
         <file alias="VectorInstance.png">Resources/Images/Items/VectorInstance.png</file>
         <file alias="VectorOperation.png">Resources/Images/Items/VectorOperation.png</file>
         <file alias="InputParameter.png">Resources/Images/Items/InputParameter.png</file>
