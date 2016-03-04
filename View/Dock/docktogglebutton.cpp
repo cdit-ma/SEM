@@ -52,7 +52,8 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
         setToolTip("Functions Dock");
         break;
     case HARDWARE_DOCK:
-        pixmap = QPixmap::fromImage(QImage(":/Items/HardwareNode.png"));
+        //pixmap = QPixmap::fromImage(QImage(":/Items/HardwareNode.png"));
+        pixmap = QPixmap::fromImage(QImage(":/Actions/Computer.png"));
         setToolTip("Hardware Dock");
         break;
     default:

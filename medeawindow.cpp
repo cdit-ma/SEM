@@ -711,7 +711,7 @@ void MedeaWindow::setupMenu()
     view_printScreen->setShortcut(QKeySequence(Qt::Key_F12));
 
     view_menu->addSeparator();
-    view_showMinimap = view_menu->addAction(getIcon("Actions", "Wiki"), "Show Minimap");
+    view_showMinimap = view_menu->addAction(getIcon("Actions", "Minimap"), "Show Minimap");
     view_showMinimap->setEnabled(false);
 
     model_clearModel = model_menu->addAction(getIcon("Actions", "Clear"), "Clear Model");
