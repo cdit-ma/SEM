@@ -55,6 +55,8 @@ HardwareDockScrollArea::HardwareDockScrollArea(DOCK_TYPE type, NodeView* view, D
     setNotAllowedKinds(hardware_notAllowedKinds);
     setDockEnabled(false);
     connectToView();
+
+    connect(this, SIGNAL(dock_opened(bool)), this, SLOT(displayHighlightedItem()));
 }
 
 
@@ -72,6 +74,7 @@ void HardwareDockScrollArea::connectToView()
         connect(view, SIGNAL(view_nodeConstructed(NodeItem*)), this, SLOT(nodeConstructed(NodeItem*)));
         connect(view, SIGNAL(view_edgeDeleted(int,int)), this, SLOT(onEdgeDeleted(int, int)));
         connect(view, SIGNAL(view_nodeDeleted(int,int)), this, SLOT(onNodeDeleted(int, int)));
+        connect(view, SIGNAL(view_nodeSelected()), this, SLOT(displayHighlightedItem()));
     }
 }
 
@@ -237,6 +240,27 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
     // if there's currently no item in this dock or the dock item
     // wasn't inserted, just add it to the end of the layout
     addDockNodeItem(dockItem);
+}
+
+
+/**
+ * @brief HardwareDockScrollArea::displayHighlightedItem
+ */
+void HardwareDockScrollArea::displayHighlightedItem()
+{
+    if (!isDockOpen()) {
+        return;
+    }
+    DockNodeItem* highlightedItem = 0;
+    foreach (DockNodeItem* item, getDockNodeItems()) {
+        if (item->isHighlighted()) {
+            highlightedItem = item;
+            break;
+        }
+    }
+    if (highlightedItem) {
+        ensureWidgetVisible(highlightedItem);
+    }
 }
 
 

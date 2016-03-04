@@ -4427,8 +4427,6 @@ void MedeaWindow::themeChanged(VIEW_THEME theme)
     QString textColor = GET_COLOR_STRING(GET_TEXT_COLOR(theme)) + ";";
     QString highlightTextColor = GET_COLOR_STRING(GET_TEXT_COLOR(theme, true)) + ";";
 
-    qDebug() << "highlight color: " << highlightTextColor;
-
     loadingLabel->setStyleSheet("QLabel{ color:" + textColor + "}");
     recentProjectsListWidget->setStyleSheet("background:" + darkerViewColor + "color: white; font-size: 16px;");
     projectName->setStyleSheet("QPushButton{ color:" + textColor + "font-size: 16px; text-align: left; }"

@@ -22,6 +22,8 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
 
+    void displayHighlightedItem();
+
 private:
     void highlightHardwareConnection(QList<GraphMLItem*> selectedItems);
 

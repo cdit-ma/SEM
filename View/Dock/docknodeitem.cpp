@@ -299,9 +299,32 @@ bool DockNodeItem::isExpanded()
     return expanded;
 }
 
+
+/**
+ * @brief DockNodeItem::isHighlighted
+ * @return
+ */
+bool DockNodeItem::isHighlighted()
+{
+    switch (state) {
+    case DEFAULT:
+        return false;
+    case HIGHLIGHTED:
+        return true;
+    default:
+        return false;
+    }
+}
+
+
+/**
+ * @brief DockNodeItem::dataChanged
+ * @param keyName
+ * @param data
+ */
 void DockNodeItem::dataChanged(QString keyName, QVariant data)
 {
-    if(keyName == "label"){
+    if (keyName == "label") {
         labelChanged(data.toString());
     }
 }

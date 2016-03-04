@@ -45,6 +45,7 @@ public:
 
     bool isDockItemLabel();
     bool isExpanded();
+    bool isHighlighted();
 
 signals:
     void dockItem_clicked();
