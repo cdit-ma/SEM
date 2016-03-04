@@ -1542,6 +1542,7 @@ void MedeaWindow::setupMinimap()
     minimapLabel->setStyleSheet("background-color: rgb(210,210,210);"
                                 "border: 1px solid rgb(50,50,50);"
                                 "border-bottom: none;"
+                                "padding-right: 20px;"
                                 "font-size: 12px;");
 
     QPushButton* closeMinimapButton = new QPushButton(getIcon("Actions", "Close"), "");
