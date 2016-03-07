@@ -19,6 +19,7 @@
 #include <QPointF>
 #include <QRubberBand>
 #include <QMutex>
+#include "theme.h"
 //#include <QSoundEffect>
 
 #include "../enumerations.h"
@@ -112,7 +113,8 @@ public:
     void viewDeploymentAspect();
 
 
-    QPixmap getImage(QString alias, QString imageName);
+    QPixmap getImage(QString alias, QString imageName, QColor tintColor = QColor());
+    QIcon getIcon(QString alias, QString imageName);
     EntityItem* getImplementation(int ID);
     QList<EntityItem*> getInstances(int ID);
     EntityItem* getDefinition(int ID);

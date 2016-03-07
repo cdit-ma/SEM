@@ -138,6 +138,8 @@ public slots:
 
 
 private slots:
+    void updateMenu();
+
     void recentProjectItemClicked(QListWidgetItem* item);
     void recentProjectMenuActionClicked();
     void clearRecentProjectsList();
@@ -231,7 +233,7 @@ private slots:
     QStringList fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple=true, QString fileName = "");
 
     void themeChanged(VIEW_THEME theme);
-    void toggleMinimap();
+    void toggleMinimap(bool on);
 
 protected:
     void closeEvent(QCloseEvent*);
@@ -264,7 +266,9 @@ private:
     void setupApplication();
     void initialiseJenkinsManager();
     void initialiseSettings();
+    void updateTheme();
     void initialiseCUTSManager();
+    void initialiseTheme();
     void importXMEProject(QString fileName);
     void importProjects(QStringList files);
 
@@ -292,6 +296,9 @@ private:
 
     void setWindowStyleSheet();
     void setupMenu();
+
+
+
     void setupSearchTools();
     void setupDocks(QHBoxLayout* layout);
     void setupInfoWidgets(QHBoxLayout* layout);

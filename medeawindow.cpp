@@ -87,6 +87,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     CURRENT_THEME = VT_NORMAL_THEME;
 
     //Initialize classes.
+    initialiseTheme();
     initialiseSettings();
     initialiseJenkinsManager();
     initialiseCUTSManager();
@@ -99,6 +100,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     //Load the Settings
     setupInitialSettings();
+
 
     //Show Welcome Screen
     toggleWelcomeScreen(true);
@@ -711,8 +713,10 @@ void MedeaWindow::setupMenu()
     view_printScreen->setShortcut(QKeySequence(Qt::Key_F12));
 
     view_menu->addSeparator();
-    view_showMinimap = view_menu->addAction(getIcon("Actions", "Minimap"), "Show Minimap");
-    view_showMinimap->setEnabled(false);
+    view_showMinimap = view_menu->addAction(getIcon("Actions", "Minimap"), "Hide Minimap");
+    view_showMinimap->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M));
+    view_showMinimap->setCheckable(true);
+    view_showMinimap->setChecked(true);
 
     model_clearModel = model_menu->addAction(getIcon("Actions", "Clear"), "Clear Model");
     model_menu->addSeparator();
@@ -810,6 +814,72 @@ void MedeaWindow::setupMenu()
     modelActions.removeAll(view_showMinimap);
 }
 
+void MedeaWindow::updateMenu()
+{
+    file_menu->setIcon(getIcon("Actions", "Menu"));
+    edit_menu->setIcon(getIcon("Actions", "Edit"));
+    view_menu->setIcon(getIcon("Actions", "MenuView"));
+    model_menu->setIcon(getIcon("Actions", "MenuModel"));
+    jenkins_menu->setIcon(getIcon("Actions", "Jenkins_Icon"));
+    help_menu->setIcon(getIcon("Actions", "Help"));
+
+    settings_changeAppSettings->setIcon(getIcon("Actions", "Settings"));
+    exit->setIcon(getIcon("Actions", "Power"));
+
+    file_newProject->setIcon(getIcon("Actions", "New"));
+    file_openProject->setIcon(getIcon("Actions", "Open"));
+    file_recentProjectsMenu->setIcon(getIcon("Actions", "Timer"));
+    file_recentProjects_clearHistory->setIcon(getIcon("Actions", "Clear"));
+    file_saveProject->setIcon(getIcon("Actions", "Save"));
+    file_saveAsProject->setIcon(getIcon("Actions", "Save"));
+    file_closeProject->setIcon(getIcon("Actions", "Close"));
+    file_importGraphML->setIcon(getIcon("Actions", "Import"));
+    file_importSnippet->setIcon(getIcon("Actions", "ImportSnippet"));
+    file_importXME->setIcon(QIcon(":/GME.ico"));
+    file_exportSnippet->setIcon(getIcon("Actions", "ExportSnippet"));
+
+    edit_undo->setIcon(getIcon("Actions", "Undo"));
+    edit_redo->setIcon(getIcon("Actions", "Redo"));
+    edit_cut->setIcon(getIcon("Actions", "Cut"));
+    edit_copy->setIcon(getIcon("Actions", "Copy"));
+    edit_paste->setIcon(getIcon("Actions", "Paste"));
+    edit_replicate->setIcon(getIcon("Actions", "Replicate"));
+    edit_search->setIcon(getIcon("Actions", "Search"));
+    edit_delete->setIcon(getIcon("Actions", "Delete"));
+
+    view_fitToScreen->setIcon(getIcon("Actions", "FitToScreen"));
+    view_goToDefinition->setIcon(getIcon("Actions", "Definition"));
+    view_goToImplementation->setIcon(getIcon("Actions", "Implementation"));
+    view_showConnectedNodes->setIcon(getIcon("Actions", "Connections"));
+    view_fullScreenMode->setIcon(getIcon("Actions", "Fullscreen"));
+    view_printScreen->setIcon(getIcon("Actions", "PrintScreen"));
+    view_showMinimap->setIcon(getIcon("Actions", "Minimap"));
+
+    model_clearModel->setIcon(getIcon("Actions", "Clear"));
+    model_validateModel->setIcon(getIcon("Actions", "Validate"));
+    model_ExecuteLocalJob->setIcon(getIcon("Actions", "Job_Build"));
+
+    jenkins_ImportNodes->setIcon(getIcon("Actions", "Computer"));
+    jenkins_ExecuteJob->setIcon(getIcon("Actions", "Job_Build"));
+
+    help_Shortcuts->setIcon(getIcon("Actions", "Keyboard"));
+    help_ReportBug->setIcon(getIcon("Actions", "BugReport"));
+    help_Wiki->setIcon(getIcon("Actions", "Wiki"));
+    help_AboutMedea->setIcon(getIcon("Actions", "Info"));
+    help_AboutQt->setIcon(QIcon(":/Qt.ico"));
+
+    actionSort->setIcon(getIcon("Actions", "Sort"));
+    actionCenter->setIcon(getIcon("Actions", "Crosshair"));
+    actionZoomToFit->setIcon(getIcon("Actions", "ZoomToFit"));
+    actionFitToScreen->setIcon(getIcon("Actions", "FitToScreen"));
+    actionAlignVertically->setIcon(getIcon("Actions", "Align_Vertical"));
+    actionAlignHorizontally->setIcon(getIcon("Actions", "Align_Horizontal"));
+    actionPopupSubview->setIcon(getIcon("Actions", "Popup"));
+    actionBack->setIcon(getIcon("Actions", "Backward"));
+    actionForward->setIcon(getIcon("Actions", "Forward"));
+    actionContextMenu->setIcon(getIcon("Actions", "Toolbar"));
+}
+
 
 /**
  * @brief MedeaWindow::setupDocks
@@ -897,7 +967,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockActionLabel->setAlignment(Qt::AlignCenter);
     dockActionLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 10px 5px;");
 
-    QPushButton* dockBackButton = new QPushButton(QIcon(":/Actions/Backward.png"), "", this);
+    QPushButton* dockBackButton = new QPushButton(getIcon("Actions", "Backward"), "", this);
     dockBackButton->setFixedSize(boxWidth, 35);
     dockBackButton->setToolTip("Go back to the Parts list");
     dockBackButton->setStyleSheet("QPushButton{"
@@ -1295,7 +1365,9 @@ void MedeaWindow::setupToolbar()
     toolbarButton->setLayout(labelLayout);
 
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
+    edit_undo->setIconVisibleInMenu(false);
     constructToolbarButton(toolbar, edit_redo, TOOLBAR_REDO);
+    edit_redo->setIconVisibleInMenu(false);
 
     toolbar->addSeparator();
     constructToolbarButton(toolbar, edit_cut, TOOLBAR_CUT);
@@ -1405,7 +1477,7 @@ void MedeaWindow::setupWelcomeScreen()
     containerWidget->setFixedWidth(900);
     QVBoxLayout* containerLayout = new QVBoxLayout(containerWidget);
 
-    QPushButton* newProjectButton = new QPushButton("New Project", this);
+    QPushButton* newProjectButton = new QPushButton(getIcon("Actions", "Wiki"), "New Project", this);
     QPushButton* openProjectButton = new QPushButton("Open Project", this);
     QPushButton* settingsButton = new QPushButton("Settings", this);
     QPushButton* recentProjectButton = new QPushButton("Recent Projects", this);
@@ -1436,16 +1508,16 @@ void MedeaWindow::setupWelcomeScreen()
     QLabel* medeaVersionLabel = new QLabel("Version " + MEDEA_VERSION);
     medeaVersionLabel->setStyleSheet("font-size:12pt;color:gray; text-align:center;");
 
-    QPixmap pixMap(":/Actions/MEDEA.png");
+    QPixmap pixMap = Theme::theme()->getImage("Actions", "MEDEA");
     pixMap = pixMap.scaled(QSize(150,150), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     medeaIcon->setPixmap(pixMap);
 
-    newProjectButton->setIcon(getIcon("Actions", "New"));
-    openProjectButton->setIcon(getIcon("Actions", "Open"));
-    settingsButton->setIcon(getIcon("Actions", "WelcomeSettings"));
-    recentProjectButton->setIcon(getIcon("Actions", "Timer"));
-    wikiButton->setIcon(getIcon("Actions", "WelcomeWiki"));
-    aboutButton->setIcon(getIcon("Actions", "WelcomeHelp"));
+    newProjectButton->setIcon(getIcon("Welcome", "New"));
+    openProjectButton->setIcon(getIcon("Welcome", "Open"));
+    settingsButton->setIcon(getIcon("Welcome", "Settings"));
+    recentProjectButton->setIcon(getIcon("Welcome", "Timer"));
+    wikiButton->setIcon(getIcon("Welcome", "Wiki"));
+    aboutButton->setIcon(getIcon("Welcome", "Help"));
 
     QVBoxLayout* topLayout = new QVBoxLayout();
     topLayout->addWidget(medeaIcon, 0, Qt::AlignCenter);
@@ -1545,11 +1617,12 @@ void MedeaWindow::setupMinimap()
                                 "padding-right: 20px;"
                                 "font-size: 12px;");
 
-    QPushButton* closeMinimapButton = new QPushButton(getIcon("Actions", "Close"), "");
+QToolButton* closeMinimapButton = new QToolButton();
+closeMinimapButton->setDefaultAction(view_showMinimap);
+
+    //QPushButton* closeMinimapButton = new QPushButton(getIcon("Actions", "Invisible"), "");
     closeMinimapButton->setFixedSize(20,20);
-    /*closeMinimapButton->setStyleSheet("QPushButton{ background: rgb(200,200,200); }"
-                                      "QPushButton:hover{ background: rgb(240,240,240); }"
-                                      "QPushButton:pressed{ background: white; }");*/
+    closeMinimapButton->setToolTip("Hide Minimap");
 
     QHBoxLayout* minimapHeaderLayout = new QHBoxLayout();
     minimapHeaderLayout->setSpacing(0);
@@ -1572,8 +1645,9 @@ void MedeaWindow::setupMinimap()
     minimapBox->setFixedHeight(minimapLabel->height() + minimap->height());
     minimapBox->setStyle(QStyleFactory::create("windows"));
 
-    connect(closeMinimapButton, SIGNAL(clicked()), minimapBox, SLOT(hide()));
-    connect(closeMinimapButton, SIGNAL(clicked()), this, SLOT(toggleMinimap()));
+
+    //connect(closeMinimapButton, SIGNAL(clicked()), minimapBox, SLOT(hide()));
+    //connect(closeMinimapButton, SIGNAL(clicked()), this, SLOT(toggleMinimap()));
 }
 
 
@@ -1821,7 +1895,8 @@ void MedeaWindow::setupConnections()
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
     connect(view_fullScreenMode, SIGNAL(triggered(bool)), this, SLOT(setFullscreenMode(bool)));
     connect(view_printScreen, SIGNAL(triggered()), this, SLOT(screenshot()));
-    connect(view_showMinimap, SIGNAL(triggered()), this, SLOT(toggleMinimap()));
+    connect(view_showMinimap, SIGNAL(triggered(bool)), this, SLOT(toggleMinimap(bool)));
+
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
 
@@ -2020,6 +2095,15 @@ bool MedeaWindow::closeProject()
                            "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
                            QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 
+
+        QColor bgColor = Theme::theme()->getBackgroundColor();
+        QColor textColor = Theme::theme()->getTextColor(Theme::CR_NORMAL);
+
+        QString bgColorStr = Theme::QColorToHex(bgColor) + ";";
+        QString textColorStr = Theme::QColorToHex(textColor) + ";";
+
+        msgBox.setStyleSheet("QMessageBox{background:" + bgColorStr + "color: " + textColorStr + "}");
+
         msgBox.setIconPixmap(getDialogPixmap("Actions", "Save"));
         msgBox.setButtonText(QMessageBox::Yes, "Save");
         msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
@@ -2130,7 +2214,7 @@ void MedeaWindow::setupApplication()
     QApplication::setApplicationVersion(APP_VERSION);
     QApplication::setOrganizationName("Defence Information Group");
     QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
-    QApplication::setWindowIcon(QIcon(":/Actions/MEDEA.png"));
+    QApplication::setWindowIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
 
     // this needs to happen before the menu is set up and connected
     applicationDirectory = QApplication::applicationDirPath() + "/";
@@ -2161,6 +2245,8 @@ void MedeaWindow::setupApplication()
     QFont font = QFont(fontName);
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
+
+    //Setup global th
 }
 
 /**
@@ -2189,6 +2275,42 @@ void MedeaWindow::initialiseSettings()
     appSettings = new AppSettings(this, applicationDirectory);
     appSettings->setModal(true);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
+}
+
+void MedeaWindow::updateTheme()
+{
+    if(CURRENT_THEME == VT_DARK_THEME){
+        Theme::theme()->setBackgroundColor(QColor(70,70,70));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
+        Theme::theme()->setHighlightColor(QColor(255,165,0));
+
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(165,165,165));
+
+
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(165,165,165));
+    }else{
+        Theme::theme()->setBackgroundColor(QColor(170,170,170));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().darker(130));
+        Theme::theme()->setHighlightColor(QColor(75,110,175));
+
+
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(70,70,70));
+
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(70,70,70));
+    }
+
+
+    //Update the theme.
+    Theme::theme()->applyTheme();
+    updateMenu();
 }
 
 
@@ -2229,6 +2351,26 @@ void MedeaWindow::initialiseCUTSManager()
     connect(cutsManager, SIGNAL(gotCPPForComponent(bool, QString, QString,QString)), this, SLOT(gotCPPForComponent(bool,QString,  QString, QString)));
     connect(cutsManager, SIGNAL(gotXMETransform(bool,QString, QString)), this, SLOT(gotXMETransform(bool, QString, QString)));
     connect(cutsManager, SIGNAL(executedXSLValidation(bool,QString)), this, SLOT(XSLValidationCompleted(bool,QString)));
+}
+
+void MedeaWindow::initialiseTheme()
+{
+    Theme::theme()->setDefaultImageTintColor(QColor(70,70,70));
+    Theme::theme()->setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
+    Theme::theme()->setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
+    Theme::theme()->setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
+
+    //Orange
+    Theme::theme()->setDefaultImageTintColor("Welcome", "New", QColor(232,188,0));
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Help", QColor(232,188,0));
+
+    //Blue
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Open", QColor(78,150,186));
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Timer", QColor(78,150,186));
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Wiki", QColor(78,150,186));
+
+    //Red
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Settings", QColor(177,12,67));
 }
 
 
@@ -2297,7 +2439,6 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
         showFullScreen();
         view_fullScreenMode->setText("Exit Fullscreen Mode");
         view_fullScreenMode->setChecked(true);
-        view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Failure"));
     } else {
         if (!SETTINGS_LOADING) {
             if (WINDOW_MAXIMIZED) {
@@ -2308,7 +2449,6 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
         }
         view_fullScreenMode->setText("Set Fullscreen Mode");
         view_fullScreenMode->setChecked(false);
-        view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Fullscreen"));
     }
 }
 
@@ -2360,12 +2500,8 @@ void MedeaWindow::toggleGridLines()
 {
     if(actionToggleGrid){
         if(actionToggleGrid->isChecked()){
-            actionToggleGrid->setIcon(nodeView->getImage("Actions", "Grid_On"));
-            //actionToggleGrid->setIcon(getIcon("Actions", "Grid_On"));
             actionToggleGrid->setToolTip("Turn Off Grid");
         }else{
-            actionToggleGrid->setIcon(nodeView->getImage("Actions", "Grid_Off"));
-            //actionToggleGrid->setIcon(getIcon("Actions", "Grid_Off"));
             actionToggleGrid->setToolTip("Turn On Grid");
         }
     }
@@ -3184,10 +3320,7 @@ void MedeaWindow::setActionEnabled(QString action, bool enable)
  */
 QIcon MedeaWindow::getIcon(QString alias, QString image)
 {
-    if (nodeView) {
-        return QIcon(nodeView->getImage(alias, image));
-    }
-    return QIcon();
+    return Theme::theme()->getIcon(alias, image);
 }
 
 
@@ -4298,7 +4431,7 @@ void MedeaWindow::setupMultiLineBox()
     popupMultiLine->setModal(true);
     //remove the '?' from the title bar
     popupMultiLine->setWindowFlags(popupMultiLine->windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    popupMultiLine->setWindowIcon(QIcon(":/Actions/getCPP.png"));
+    popupMultiLine->setWindowIcon(getIcon("Actions", "getCPP"));
     //Sexy Layout Stuff
     QGridLayout *gridLayout = new QGridLayout(popupMultiLine);
 
@@ -4441,47 +4574,54 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString
 void MedeaWindow::themeChanged(VIEW_THEME theme)
 {
     CURRENT_THEME = theme;
+    //Update le theme.
+    updateTheme();
+    QColor bgColor = Theme::theme()->getBackgroundColor();
+    QColor altBGColor = Theme::theme()->getAltBackgroundColor();
+    QColor textColor = Theme::theme()->getTextColor(Theme::CR_NORMAL);
+    QColor highlightColor = Theme::theme()->getTextColor(Theme::CR_SELECTED);
 
-    QString lighterViewColor = GET_VIEW_COLOR_STRING(theme, LIGHTER_SHADE) + ";";
-    QString darkerViewColor = GET_VIEW_COLOR_STRING(theme, DARKER_SHADE) + ";";
-    QString textColor = GET_COLOR_STRING(GET_TEXT_COLOR(theme)) + ";";
-    QString highlightTextColor = GET_COLOR_STRING(GET_TEXT_COLOR(theme, true)) + ";";
+    QString bgColorStr = Theme::QColorToHex(bgColor) + ";";
+    QString altBGColorStr = Theme::QColorToHex(altBGColor) + ";";
+    QString textColorStr = Theme::QColorToHex(textColor) + ";";
+    QString highlightColorStr = Theme::QColorToHex(highlightColor) + ";";
 
-    loadingLabel->setStyleSheet("QLabel{ color:" + textColor + "}");
-    recentProjectsListWidget->setStyleSheet("background:" + darkerViewColor + "color: white; font-size: 16px;");
-    projectName->setStyleSheet("QPushButton{ color:" + textColor + "font-size: 16px; text-align: left; }"
+    loadingLabel->setStyleSheet("QLabel{ color:" + textColorStr + "}");
+    recentProjectsListWidget->setStyleSheet("background:" + altBGColorStr + "color: white; font-size: 16px;");
+    projectName->setStyleSheet("QPushButton{ color:" + textColorStr + "font-size: 16px; text-align: left; }"
                                                                    "QTooltip{ background: white; color: black; }");
 
     menu->setStyleSheet("QMenu { "
-                        "background:" + lighterViewColor +
-                        "}"
+                        "background:" + altBGColorStr + "}"
                         "QMenu::item {"
-                        "padding: 1px 20px 1px 45px;"
-                        "background:" + lighterViewColor +
-                        "color:" + textColor +
+                        "padding: 1px 30px 1px 30px;"
+                        "background:" + altBGColorStr +
+                        "color:" + textColorStr +
                         "border: none;"
                         "}"
                         "QMenu::item:disabled {"
                         "color: gray;"
                         "}"
                         "QMenu::item:selected {"
-                        "border: 1px solid gray;"
-                        "background:" + GET_COLOR_STRING(lighterViewColor, LIGHTER_SHADE) + ";"
-                        "color:" + highlightTextColor +
-                        "}");
+                       /* "border: 1px solid gray;"*/
+                        "background: rgb(232,188,0);"
+                        //"background:" + GET_COLOR_STRING(lighterViewColor, LIGHTER_SHADE) + ";"
+                                                                "color:" + highlightColorStr +
+                        "}"
+                        );
 }
 
 
 /**
  * @brief MedeaWindow::toggleMinimap
  */
-void MedeaWindow::toggleMinimap()
+void MedeaWindow::toggleMinimap(bool on)
 {
-    QAction* action = qobject_cast<QAction*>(QObject::sender());
-    if (action && action == view_showMinimap) {
-        view_showMinimap->setEnabled(false);
+    if (on) {
+        view_showMinimap->setText("Hide Minimap");
         minimapBox->show();
     } else {
-        view_showMinimap->setEnabled(true);
+        view_showMinimap->setText("Show Minimap");
+        minimapBox->hide();
     }
 }

@@ -658,8 +658,9 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
         if (isHighlighted()) {
-            bodyBrush.setColor(Qt::white);
-            headBrush.setColor(Qt::white);
+            //bodyBrush.setColor(Qt::white);
+            bodyBrush.setColor(QColor(255,136,0));
+            headBrush.setColor(QColor(255,136,0));
         }
         //Paint Background
         painter->setPen(Qt::NoPen);

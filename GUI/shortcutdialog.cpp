@@ -24,6 +24,8 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("F3", "Sets the focus into the search box.");
     addShortcut("F10", "Opens the settings window.");
     addShortcut("F11", "Toggles fullscreen mode.");
+    addShortcut("F12", "Takes a screenshot.");
+    addShortcut("CTRL + SHIFT + M", "Toggles minimap visibility.");
 
     addTitle("Project", QIcon(":/Actions/Project.png"));
     addShortcut("CTRL + N", "Constructs a new project.");
@@ -36,6 +38,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("CTRL + Y", "Redoes the last Undo.");
     addShortcut("CTRL + Space", "Fits the entire model into the view.");
     addShortcut("CTRL + J", "Imports the Nodes from the Jenkins Server.");
+
 
 
 

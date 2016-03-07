@@ -3166,82 +3166,14 @@ void NodeView::viewDeploymentAspect()
     emit view_displayNotification("Turned on deployment view aspects.",  notificationNumber, numberOfNotifications);
 }
 
-QPixmap NodeView::getImage(QString alias, QString imageName)
+QPixmap NodeView::getImage(QString alias, QString imageName, QColor tintColor)
 {
-    QString longName = alias + "/" + imageName;
-    if(imageLookup.contains(longName)){
-        return imageLookup[longName];
-    }else{
-        QImage image(":/" + longName + ".png");
+    return Theme::theme()->getImage(alias, imageName, tintColor);
+}
 
-        QPixmap imageData = QPixmap::fromImage(image);
-
-        if(alias == "Actions" || alias == "Data" || alias == "Functions"){
-            QColor tint = QColor(60, 60, 60, 255);
-
-            QStringList redImages;
-            //redImages << "Critical";
-            QStringList orangeImages;
-            orangeImages << "Warning" << "New"  << "WelcomeHelp";
-            QStringList whiteImages;
-            whiteImages << "Exclamation" << "Cross";
-            QStringList blueImages;
-            blueImages << "Import" << "Timer" << "Info" << "WelcomeWiki" << "Open";
-            QStringList pinkImages;
-            pinkImages << "Save";
-            QStringList greyImages;
-            greyImages << "WelcomeSettings";
-
-
-
-
-
-            bool gotMatch = false;
-            if(redImages.contains(imageName)){
-                gotMatch = true;
-                tint = QColor(255,0,0);
-            }else if(orangeImages.contains(imageName)){
-                gotMatch = true;
-                tint = QColor(232,188,0);
-            }else if(whiteImages.contains(imageName)){
-                gotMatch = true;
-                tint = QColor(255,255,255);
-            }else if(blueImages.contains(imageName)){
-                gotMatch = true;
-                tint = QColor(78,150,186);
-            }else if(pinkImages.contains(imageName)){
-                gotMatch = true;
-                tint = QColor(177,12,67);
-            }else if(greyImages.contains(imageName)){
-                gotMatch = true;
-                tint = QColor(177,177,177);
-            }
-
-            if(!gotMatch){
-                //Should be Grey only if Android ICon.
-                if(image.size() == QSize(96,96)){
-                    gotMatch = true;
-                }
-
-            }
-
-            if(gotMatch){
-                image = image.alphaChannel();
-
-                // now replace the colors in the image
-                for(int i = 0; i < image.colorCount(); ++i) {
-                    tint.setAlpha(qGray(image.color(i)));
-                    image.setColor(i, tint.rgba());
-                }
-                imageData = QPixmap::fromImage(image);
-            }
-        }
-
-
-        imageLookup[longName] = imageData;
-
-        return imageData;
-    }
+QIcon NodeView::getIcon(QString alias, QString imageName)
+{
+    return Theme::theme()->getIcon(alias, imageName);
 }
 
 EntityItem *NodeView::getImplementation(int ID)

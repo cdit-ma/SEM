@@ -8,6 +8,7 @@
 #include <QBrush>
 
 
+#include "../../theme.h"
 //#define BUTTON_WIDTH 40
 #define BUTTON_WIDTH 65
 #define BUTTON_HEIGHT 42
@@ -38,23 +39,22 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
 
     switch (type) {
     case PARTS_DOCK:
-        pixmap = QPixmap::fromImage(QImage(":/Actions/Parts.png"));
+        pixmap = Theme::theme()->getImage("Actions", "Parts");
         pixmapSize *= 1.25;
         setToolTip("Parts Dock");
         break;
     case DEFINITIONS_DOCK:
-        pixmap = QPixmap::fromImage(QImage(":/Actions/Definition.png"));
+        pixmap = Theme::theme()->getImage("Actions", "Definition");
         pixmapSize /= 1.5;
         setToolTip("Definitions Dock");
         break;
     case FUNCTIONS_DOCK:
-        pixmap = QPixmap::fromImage(QImage(":/Actions/Function.png"));
+        pixmap = Theme::theme()->getImage("Actions", "Function");
         pixmapSize /= 1.25;
         setToolTip("Functions Dock");
         break;
     case HARDWARE_DOCK:
-        //pixmap = QPixmap::fromImage(QImage(":/Items/HardwareNode.png"));
-        pixmap = QPixmap::fromImage(QImage(":/Actions/Computer.png"));
+        pixmap = Theme::theme()->getImage("Actions", "Computer");
         setToolTip("Hardware Dock");
         break;
     default:

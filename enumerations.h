@@ -89,6 +89,7 @@ extern VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect);
 extern QString GET_ASPECT_NAME(VIEW_ASPECT aspect);
 extern VIEW_ASPECT GET_ASPECT_FROM_KIND(QString aspectKind);
 extern QStringList GET_ASPECT_NAMES();
+
 extern QColor GET_INVERT_COLOR(VIEW_THEME theme);
 extern QColor GET_TEXT_COLOR(VIEW_THEME theme, bool invert = false);
 extern QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect);
