@@ -1603,37 +1603,35 @@ void MedeaWindow::setupMinimap()
     minimap->setStyleSheet("QGraphicsView{ border: 1px solid rgb(50,50,50); }");
     minimap->centerView();
 
-    QLabel* minimapLabel = new QLabel("Minimap", this);
+    minimapTitleBar = new QWidget(this);
+
+    minimapLabel = new QLabel("Minimap", this);
     minimapLabel->setFont(guiFont);
     minimapLabel->setAlignment(Qt::AlignCenter);
     minimapLabel->setFixedSize(RIGHT_PANEL_WIDTH - 10, 20);
-    minimapLabel->setStyleSheet("background-color: rgb(210,210,210);"
-                                "border: 1px solid rgb(50,50,50);"
-                                "border-bottom: none;"
-                                "padding-right: 20px;"
-                                "font-size: 12px;");
 
-QToolButton* closeMinimapButton = new QToolButton();
-closeMinimapButton->setDefaultAction(view_showMinimap);
 
-    //QPushButton* closeMinimapButton = new QPushButton(getIcon("Actions", "Invisible"), "");
-    closeMinimapButton->setFixedSize(20,20);
+    closeMinimapButton = new ActionButton(view_showMinimap);
     closeMinimapButton->setToolTip("Hide Minimap");
 
     QHBoxLayout* minimapHeaderLayout = new QHBoxLayout();
+    minimapTitleBar->setLayout(minimapHeaderLayout);
     minimapHeaderLayout->setSpacing(0);
     minimapHeaderLayout->setMargin(0);
     minimapHeaderLayout->setContentsMargins(0,0,0,0);
     minimapHeaderLayout->addWidget(closeMinimapButton);
-    minimapHeaderLayout->addWidget(minimapLabel);
+    minimapHeaderLayout->addWidget(minimapLabel, 1);
+    //Centralize.
+    minimapLabel->setStyleSheet("padding-right: 20px;");
 
     // setup layouts for widgets
     QVBoxLayout* minimapLayout = new QVBoxLayout();
     minimapLayout->setSpacing(0);
     minimapLayout->setMargin(0);
     minimapLayout->setContentsMargins(0,0,0,0);
-    minimapLayout->addLayout(minimapHeaderLayout);
-    minimapLayout->addWidget(minimap);
+    minimapLayout->addWidget(minimapTitleBar);
+    minimapLayout->addWidget(minimap, 1);
+
     //minimapLayout->setContentsMargins(10,0,8,10);
 
     minimapBox->setLayout(minimapLayout);
@@ -4703,6 +4701,16 @@ void MedeaWindow::updateStyleSheets()
     if(searchOptionButton){
         searchOptionButton->setStyleSheet(pushButtonStyle);
     }
+
+    if(closeMinimapButton){
+        closeMinimapButton->setStyleSheet(pushButtonStyle);
+    }
+
+    minimapTitleBar->setStyleSheet("background-color: " + altBGColor + ";"
+                                   "color: " + textColor + ";"
+                                "border: 1px solid rgb(50,50,50);"
+                                "border-bottom: none;"
+                                "font-size: 12px;");
 
     searchButton->setIcon(getIcon("Actions", "Search"));
     searchOptionButton->setIcon(getIcon("Actions", "Settings"));

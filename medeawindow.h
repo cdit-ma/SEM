@@ -498,6 +498,10 @@ private:
     QPushButton* dataKeysButton;
     QMenu* dataKeysMenu;
 
+    QWidget* minimapTitleBar;
+    ActionButton* closeMinimapButton;
+    QLabel* minimapLabel;
+
     QStringList dataKeys;
 
     QString searchBarDefaultText;
