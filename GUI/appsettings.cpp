@@ -282,7 +282,7 @@ void AppSettings::setupLayout()
 
     if(!settingFileWriteable){
         QLabel* label = new QLabel("settings.ini file is read-only! Settings changed won't persist!");
-        label->setStyleSheet("font-style:italic; color:red; font-weight:bold;");
+        label->setStyleSheet("font-style:italic; color:orange; font-weight:bold;");
         label->setAlignment(Qt::AlignCenter);
         vLayout->addWidget(label);
     }
@@ -343,7 +343,7 @@ void AppSettings::setupLayout()
 
             connect(darkTheme, SIGNAL(clicked()), this, SLOT(setDarkTheme()));
             connect(lightTheme, SIGNAL(clicked()), this, SLOT(setLightTheme()));
-            groupLayout->addWidget(label, 1, Qt::AlignCenter);
+            groupLayout->addWidget(label, 0, Qt::AlignCenter);
             groupLayout->addLayout(buttonLayout);
         }
 

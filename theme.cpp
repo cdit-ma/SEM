@@ -14,14 +14,32 @@ QColor Theme::getBackgroundColor()
     return backgroundColor;
 }
 
+QString Theme::getBackgroundColorHex()
+{
+    QColor color = getBackgroundColor();
+    return Theme::QColorToHex(color);
+}
+
 QColor Theme::getAltBackgroundColor()
 {
     return altBackgroundColor;
 }
 
+QString Theme::getAltBackgroundColorHex()
+{
+    QColor color = getAltBackgroundColor();
+    return Theme::QColorToHex(color);
+}
+
 QColor Theme::getHighlightColor()
 {
     return highlightColor;
+}
+
+QString Theme::getHighlightColorHex()
+{
+    QColor color = getHighlightColor();
+    return Theme::QColorToHex(color);
 }
 
 void Theme::setBackgroundColor(QColor color)
@@ -56,6 +74,12 @@ QColor Theme::getTextColor(Theme::COLOR_ROLE role)
     return QColor();
 }
 
+QString Theme::getTextColorHex(Theme::COLOR_ROLE role)
+{
+    QColor color = getTextColor(role);
+    return Theme::QColorToHex(color);
+}
+
 void Theme::setTextColor(Theme::COLOR_ROLE role, QColor color)
 {
     if(textColor[role] != color){
@@ -70,6 +94,12 @@ QColor Theme::getMenuIconColor(Theme::COLOR_ROLE role)
         return menuIconColor[role];
     }
     return QColor();
+}
+
+QString Theme::getMenuIconColorHex(Theme::COLOR_ROLE role)
+{
+    QColor color = getMenuIconColor(role);
+    return Theme::QColorToHex(color);
 }
 
 void Theme::setMenuIconColor(Theme::COLOR_ROLE role, QColor color)
@@ -90,6 +120,11 @@ void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledAl
 QColor Theme::getDefaultImageTintColor()
 {
     return iconColor;
+}
+
+QString Theme::getDefaultImageTintColorHex()
+{
+    return Theme::QColorToHex(iconColor);
 }
 
 void Theme::setDefaultImageTintColor(QColor color)

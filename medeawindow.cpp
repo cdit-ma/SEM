@@ -484,10 +484,7 @@ void MedeaWindow::initialiseGUI()
     menuButton = new QPushButton(getIcon("Actions", "MEDEA"), "");
     menuButton->setFixedSize(55, 45);
     menuButton->setIconSize(menuButton->size() * 0.75);
-    //menuButton->setFlat(true);
-    menuButton->setStyleSheet("QPushButton{ background-color: rgb(120,120,120);}"// border:1px solid gray;}"
-                              "QPushButton:hover{background-color: rgb(140,140,140);}"
-                              "QPushButton::menu-indicator{ image: none; }");
+
 
     projectName = new QPushButton("");
     projectName->setFlat(true);
@@ -497,9 +494,7 @@ void MedeaWindow::initialiseGUI()
     closeProjectButton = new QPushButton(getIcon("Actions", "Close"), "");
     closeProjectButton->setToolTip("Close Current Project");
     closeProjectButton->setFixedSize(menuButton->height()/2.5, menuButton->height()/2.5);
-    closeProjectButton->setStyleSheet("QPushButton{ background: rgb(200,200,200); border-radius: 2px; }"
-                                      "QPushButton:hover{ background: rgb(240,240,240); }"
-                                      "QPushButton:pressed{ background: white; }");
+
 
     menuTitleBox = new QGroupBox(this);
     menuTitleBox->setFixedHeight(menuButton->height() + SPACER_SIZE*3);
@@ -590,7 +585,6 @@ void MedeaWindow::initialiseGUI()
     // set central widget, window size and generic stylesheets
     setCentralWidget(nodeView);
     setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
-    setWindowStyleSheet();
     //setStyle(QStyleFactory::create("windows"));
 
 
@@ -604,70 +598,13 @@ void MedeaWindow::initialiseGUI()
     setupMultiLineBox();
     setupWelcomeScreen();
 
+    updateStyleSheets();
+
     updateRecentProjectsWidgets();
 }
 
 
-/**
- * @brief MedeaWindow::setWindowStyleSheet
- */
-void MedeaWindow::setWindowStyleSheet()
-{
-    //QString background = "rgb(70,70,70);";
-    //QString textColor = "white;";
 
-    setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
-                  "QToolButton {"
-                  "margin: 0px 1px;"
-                  "border-radius: 10px;"
-                  "border: 1px solid rgb(160,160,160);"
-                  "background-color: rgb(200,200,200);"
-                  "}"
-                  "QToolButton:hover {"
-                  "border: 2px solid rgb(140,140,140);"
-                  "background-color: rgb(240,240,240);"
-                  "}"
-                  "QToolButton:disabled { background-color: rgb(150,150,150);}"
-                  "QToolButton:pressed { background-color: white; }"
-                  "QToolButton[popupMode=\"1\"] {"
-                  "padding-right: 15px;"
-                  "}"
-                  "QToolButton::menu-button {"
-                  "border-left: 1px solid rgb(150,150,150);"
-                  "border-top-right-radius: 10px;"
-                  "border-bottom-right-radius: 10px;"
-                  "width: 15px;"
-                  "}"
-
-                  "QCheckBox { padding: 0px 10px 0px 0px; }"
-                  "QCheckBox::indicator { width: 25px; height: 25px; }"
-                  "QCheckBox:checked { color: green; font-weight: bold; }"
-
-                  /*
-                                                                          "QProgressBar {"
-                                                                          "border: 2px solid gray;"
-                                                                          "border-radius: 10px;"
-                                                                          "background: rgb(240,240,240);"
-                                                                          "text-align: center;"
-                                                                          "color: black;"
-                                                                          "}"
-                                                                          "QProgressBar::chunk {"
-                                                                          "border-radius: 7px;"
-                                                                          "background: rgb(0,204,0);"
-                                                                          "}"
-                                                                          */
-
-                  "QGroupBox {"
-                  "background-color: rgba(0,0,0,0);"
-                  "border: 0px;"
-                  "margin: 0px;"
-                  "padding: 0px;"
-                  "}"
-
-                  "QMessageBox{background-color:" + palette().color(QWidget::backgroundRole()).name() + ";}"
-                  );
-
-}
 
 
 /**
@@ -865,8 +802,9 @@ void MedeaWindow::setupMenu()
     modelActions.removeAll(view_showMinimap);
 }
 
-void MedeaWindow::updateMenu()
+void MedeaWindow::updateMenuIcons()
 {
+    //Update Icons.
     file_menu->setIcon(getIcon("Actions", "Menu"));
     edit_menu->setIcon(getIcon("Actions", "Edit"));
     view_menu->setIcon(getIcon("Actions", "MenuView"));
@@ -929,7 +867,14 @@ void MedeaWindow::updateMenu()
     actionBack->setIcon(getIcon("Actions", "Backward"));
     actionForward->setIcon(getIcon("Actions", "Forward"));
     actionContextMenu->setIcon(getIcon("Actions", "Toolbar"));
+
+
+    closeProjectButton->setIcon(getIcon("Actions", "Close"));
+
+    searchButton->setIcon(getIcon("Actions", "Search"));
+    searchOptionButton->setIcon(getIcon("Actions", "Settings"));
 }
+
 
 
 /**
@@ -1122,12 +1067,11 @@ void MedeaWindow::setupSearchTools()
     searchOptionButton->setFixedSize(30, searchBarHeight);
     searchOptionButton->setIconSize(searchButton->size()*0.7);
     searchOptionButton->setCheckable(true);
+
     //searchOptionButton->setStyle(QStyleFactory::create("windows"));
 
     searchBar->setPlaceholderText(searchBarDefaultText);
-    searchBar->setFixedSize(RIGHT_PANEL_WIDTH - (searchButton->width()*2) + 10, searchBarHeight - 3);
-    searchBar->setStyleSheet("QLineEdit{ background-color: rgb(230,230,230); }"
-                             "QLineEdit:focus{ border: 1px solid; border-color: blue; background: rgb(250,250,250) }");
+    searchBar->setFixedSize(RIGHT_PANEL_WIDTH - (searchButton->width()*2) + 10, searchBarHeight);
 
     searchSuggestions->setSize(searchBar->width(), height(), 2);
 
@@ -1142,6 +1086,7 @@ void MedeaWindow::setupSearchTools()
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
 
+    searchLayout->setSpacing(2);
     searchLayout->setContentsMargins(10,0,8,0);
     searchLayout->addWidget(searchBar, 3);
     searchLayout->addWidget(searchButton, 1);
@@ -1845,7 +1790,6 @@ void MedeaWindow::setupConnections()
 
     connect(nodeView, SIGNAL(view_LoadSettings()), this, SLOT(loadSettingsFromINI()));
 
-    connect(nodeView, SIGNAL(view_themeChanged(VIEW_THEME)), this, SLOT(themeChanged(VIEW_THEME)));
 
     connect(this, SIGNAL(window_ProjectSaved(bool,QString)), nodeView, SIGNAL(view_ProjectSaved(bool, QString)));
 
@@ -1964,6 +1908,7 @@ void MedeaWindow::setupConnections()
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
     connect(nodeView, SIGNAL(view_searchFinished(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
+
 
     connect(searchBar, SIGNAL(textEdited(QString)), this, SLOT(updateSearchSuggestions()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
@@ -2108,7 +2053,7 @@ void MedeaWindow::resetTheme(bool darkTheme)
     if(darkTheme){
         Theme::theme()->setBackgroundColor(QColor(70,70,70));
         Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
-        Theme::theme()->setHighlightColor(QColor(255,165,0));
+        Theme::theme()->setHighlightColor(QColor(255,165,70));
 
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
         Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
@@ -2120,7 +2065,7 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(165,165,165));
     }else{
         Theme::theme()->setBackgroundColor(QColor(170,170,170));
-        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().darker(130));
+        Theme::theme()->setAltBackgroundColor(QColor(238,238,239));
         Theme::theme()->setHighlightColor(QColor(75,110,175));
 
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
@@ -2414,7 +2359,7 @@ void MedeaWindow::updateTheme()
 
     //Update the theme.
     Theme::theme()->applyTheme();
-    updateMenu();
+    updateMenuIcons();
 }
 
 
@@ -2474,9 +2419,9 @@ void MedeaWindow::initialiseTheme()
     Theme::theme()->setDefaultImageTintColor("Welcome", "Wiki", QColor(78,150,186));
 
     //Red
-    Theme::theme()->setDefaultImageTintColor("Welcome", "Settings", QColor(177,12,67));
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Settings", QColor(230,51,42));
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged2()));
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
 
@@ -2888,11 +2833,10 @@ void MedeaWindow::executeJenkinsDeployment()
     }
 }
 
-void MedeaWindow::themeChanged2()
+void MedeaWindow::themeChanged()
 {
-
-    themeChanged(CURRENT_THEME);
-    updateMenu();
+    updateStyleSheets();
+    updateMenuIcons();
 }
 
 void MedeaWindow::recentProjectItemClicked(QListWidgetItem *item)
@@ -4029,6 +3973,9 @@ void MedeaWindow::updateSearchLineEdits()
 void MedeaWindow::updateSearchSuggestions()
 {
     if (nodeView && searchBar) {
+        bool showSearch = !searchBar->text().isEmpty();
+        searchButton->setEnabled(showSearch);
+
         nodeView->searchSuggestionsRequested(searchBar->text(), getCheckedItems(0), getCheckedItems(1), getCheckedItems(2));
     }
 }
@@ -4686,44 +4633,131 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString
  * @brief MedeaWindow::themeChanged
  * @param theme
  */
-void MedeaWindow::themeChanged(VIEW_THEME theme)
+void MedeaWindow::updateStyleSheets()
 {
-    CURRENT_THEME = theme;
-    //Update le theme.
-    //updateTheme();
-    QColor bgColor = Theme::theme()->getBackgroundColor();
-    QColor altBGColor = Theme::theme()->getAltBackgroundColor();
-    QColor textColor = Theme::theme()->getTextColor(Theme::CR_NORMAL);
-    QColor highlightColor = Theme::theme()->getTextColor(Theme::CR_SELECTED);
+    Theme* theme = Theme::theme();
 
-    QString bgColorStr = Theme::QColorToHex(bgColor) + ";";
-    QString altBGColorStr = Theme::QColorToHex(altBGColor) + ";";
-    QString textColorStr = Theme::QColorToHex(textColor) + ";";
-    QString highlightColorStr = Theme::QColorToHex(highlightColor) + ";";
+    QString BGColor = theme->getBackgroundColorHex();
+    QString altBGColor = theme->getAltBackgroundColorHex();
+    QString highlightColor = theme->getHighlightColorHex();
 
-    loadingLabel->setStyleSheet("QLabel{ color:" + textColorStr + "}");
-    recentProjectsListWidget->setStyleSheet("background:" + altBGColorStr + "color: white; font-size: 16px;");
-    projectName->setStyleSheet("QPushButton{ color:" + textColorStr + "font-size: 16px; text-align: left; }"
-                                                                   "QTooltip{ background: white; color: black; }");
+    QString textColor = Theme::theme()->getTextColorHex(Theme::CR_NORMAL);
+    QString textSelectedColor = Theme::theme()->getTextColorHex(Theme::CR_SELECTED);
+    QString textDisabledColor = Theme::theme()->getTextColorHex(Theme::CR_DISABLED);
 
-    menu->setStyleSheet("QMenu { "
-                        "background:" + altBGColorStr + "}"
-                        "QMenu::item {"
-                        "padding: 1px 30px 1px 30px;"
-                        "background:" + altBGColorStr +
-                        "color:" + textColorStr +
-                        "border: none;"
-                        "}"
-                        "QMenu::item:disabled {"
-                        "color: gray;"
-                        "}"
-                        "QMenu::item:selected {"
-                       /* "border: 1px solid gray;"*/
-                        "background: rgb(232,188,0);"
-                        //"background:" + GET_COLOR_STRING(lighterViewColor, LIGHTER_SHADE) + ";"
-                                                                "color:" + highlightColorStr +
-                        "}"
-                        );
+    if(loadingLabel){
+        loadingLabel->setStyleSheet("QLabel{ color:" + textColor + ";}");
+    }
+
+    if(recentProjectsListWidget){
+        recentProjectsListWidget->setStyleSheet(
+                    "background:" + altBGColor + ";"
+                    "color:" + textColor + ";"
+                    "font-size: 16px;"
+                    );
+    }
+
+    if(projectName){
+        projectName->setStyleSheet(
+                    "QPushButton{ color:" + textColor + ";font-size: 16px; text-align: left; }"
+                    "QTooltip{ background: white; color: black; }"
+                    );
+    }
+    if(menu){
+        menu->setStyleSheet("QMenu{"
+                            "background:" + altBGColor + ";}"
+                            "QMenu::item {"
+                            "padding: 1px 30px 1px 30px;"
+                            "background:" + altBGColor + ";"
+                            "color:" + textColor + ";"
+                            "border: none;"
+                            "}"
+                            "QMenu::item:disabled {"
+                            "color:" + textDisabledColor + ";"
+                            "}"
+                            "QMenu::item:selected {"
+                            "color:" + textSelectedColor + ";"
+                            "background: " + highlightColor + ";"
+                            "}"
+                            );
+    }
+
+    if(menuButton){
+        menuButton->setStyleSheet("QPushButton{background: " + altBGColor+ ";}"
+                                  "QPushButton:hover{background: " + highlightColor + ";}"
+                                  "QPushButton::menu-indicator{ image: none; }"
+                                  );
+    }
+
+    QString pushButtonStyle = "QPushButton{background: " + altBGColor + ";border-radius: 2px}"
+                                 "QPushButton:hover{background: " + highlightColor + ";}";
+
+    if(closeProjectButton){
+        closeProjectButton->setStyleSheet(pushButtonStyle);
+    }
+
+    if(searchButton){
+        searchButton->setStyleSheet(pushButtonStyle);
+    }
+
+    if(searchOptionButton){
+        searchOptionButton->setStyleSheet(pushButtonStyle);
+    }
+
+    searchButton->setIcon(getIcon("Actions", "Search"));
+    searchOptionButton->setIcon(getIcon("Actions", "Settings"));
+
+    if(searchBar){
+        searchBar->setStyleSheet("QLineEdit{background: " + altBGColor + "; color: " + textDisabledColor + ";border: 2px solid;border-color:" + altBGColor + "}"
+                                 "QLineEdit:focus{border-color:" + highlightColor + "; background: " + altBGColor + ";color:" + textColor +";}"
+                                 );
+
+
+    }
+
+
+
+
+    if(toolbarButton){
+        toolbarButton->setStyleSheet(
+                    "QToolButton{ background:"+ altBGColor + ";color:" + textColor + "; border-radius: 5px; }"
+                    "QToolButton:hover{background:" + highlightColor +";color:" + textSelectedColor + ";}"
+                    );
+    }
+
+    setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
+                  "QToolButton {"
+                  "margin: 0px 1px;"
+                  "border-radius: 10px;"
+                  "border: 1px solid rgb(160,160,160);"
+                  "background:"+ altBGColor + ";"
+                  "}"
+                  "QToolButton:hover {"
+                  "border: 2px solid rgb(140,140,140);"
+                  "background:" + highlightColor +";"
+                  "}"
+                  "QToolButton:disabled { background-color: rgb(150,150,150);}"
+                  "QToolButton:pressed { background-color: white; }"
+                  "QToolButton[popupMode=\"1\"] {"
+                  "padding-right: 15px;"
+                  "}"
+                  "QToolButton::menu-button {"
+                  "border-left: 1px solid rgb(150,150,150);"
+                  "border-top-right-radius: 10px;"
+                  "border-bottom-right-radius: 10px;"
+                  "width: 15px;"
+                  "}"
+                  "QCheckBox { padding: 0px 10px 0px 0px; }"
+                  "QCheckBox::indicator { width: 25px; height: 25px; }"
+                  "QCheckBox:checked { color: green; font-weight: bold; }"
+                  "QGroupBox {"
+                  "background-color: rgba(0,0,0,0);"
+                  "border: 0px;"
+                  "margin: 0px;"
+                  "padding: 0px;"
+                  "}"
+                  "QMessageBox{background-color:" + altBGColor + ";}"
+                    );
 }
 
 

@@ -139,8 +139,9 @@ public slots:
 
 
 private slots:
-    void themeChanged2();
-    void updateMenu();
+    void themeChanged();
+
+    void updateMenuIcons();
 
     void recentProjectItemClicked(QListWidgetItem* item);
     void recentProjectMenuActionClicked();
@@ -234,7 +235,7 @@ private slots:
 
     QStringList fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple=true, QString fileName = "");
 
-    void themeChanged(VIEW_THEME theme);
+    void updateStyleSheets();
     void toggleMinimap(bool on);
 
 protected:
@@ -300,7 +301,6 @@ private:
     void teardownProject();
     void setupProject();
 
-    void setWindowStyleSheet();
     void setupMenu();
 
 

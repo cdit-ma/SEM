@@ -17,17 +17,25 @@ public:
     Theme();
 
     QColor getBackgroundColor();
+    QString getBackgroundColorHex();
+
     QColor getAltBackgroundColor();
+    QString getAltBackgroundColorHex();
+
     QColor getHighlightColor();
+    QString getHighlightColorHex();
 
     void setBackgroundColor(QColor color);
     void setAltBackgroundColor(QColor color);
     void setHighlightColor(QColor color);
 
     QColor getTextColor(COLOR_ROLE role = CR_NORMAL);
+    QString getTextColorHex(COLOR_ROLE role = CR_NORMAL);
+
     void setTextColor(COLOR_ROLE role, QColor color);
 
     QColor getMenuIconColor(COLOR_ROLE role = CR_NORMAL);
+    QString getMenuIconColorHex(COLOR_ROLE role = CR_NORMAL);
     void setMenuIconColor(COLOR_ROLE role, QColor color);
 
 
@@ -35,6 +43,7 @@ public:
 
 
     QColor getDefaultImageTintColor();
+    QString getDefaultImageTintColorHex();
     void setDefaultImageTintColor(QColor color);
     void setDefaultImageTintColor(QString prefix, QString alias, QColor color);
 
