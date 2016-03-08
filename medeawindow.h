@@ -125,6 +125,7 @@ public slots:
 
     void projectCleared();
     void settingChanged(QString groupName, QString keyName, QVariant value);
+    void settingsApplied();
 
     void loadSettingsFromINI();
     void setupInitialSettings();
@@ -138,6 +139,7 @@ public slots:
 
 
 private slots:
+    void themeChanged2();
     void updateMenu();
 
     void recentProjectItemClicked(QListWidgetItem* item);
@@ -241,6 +243,8 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    void saveTheme();
+    void resetTheme(bool darkTheme);
     void updateRecentProjectsWidgets(QString topFileName="");
 
     QPixmap getDialogPixmap(QString alias, QString image, QSize size = QSize(50,50));
@@ -267,12 +271,14 @@ private:
     void initialiseJenkinsManager();
     void initialiseSettings();
     void updateTheme();
+
     void initialiseCUTSManager();
     void initialiseTheme();
     void importXMEProject(QString fileName);
     void importProjects(QStringList files);
 
     void toolbarSettingChanged(QString keyName, QVariant value);
+    void themeSettingChanged(QString keyName, QVariant value);
     void jenkins_JobName_Changed(QString jobName);
     void enableTempExport(bool enable);
 

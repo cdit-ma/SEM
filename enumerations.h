@@ -19,7 +19,7 @@ enum NODE_CLASS{NC_NONE, NC_DEPLOYMENT_DEFINITIONS, NC_WORKER_DEFINITIONS};
 
 enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 
-
+#define GENERAL_SETTINGS "00-General"
 #define LOG_DEBUGGING "00-01-Log_Debug_Information"
 #define THREAD_LIMIT "00-02-Thread_Limit"
 #define CUTS_CONFIGURE_PATH "00-03-CUTS_Configure_Script_Path"
@@ -27,7 +27,7 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define SCREENSHOT_PATH "00-05-Default_Screenshot_Path"
 #define SCREENSHOT_QUALITY "00-06-Screenshot_Quality"
 
-#define WINDOW_SETTINGS "01-Window_Settings"
+#define WINDOW_SETTINGS "01-Window"
 #define WINDOW_X "01-01-Position_X"
 #define WINDOW_Y "01-02-Position_Y"
 #define WINDOW_W "01-03-Width"
@@ -36,7 +36,7 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define WINDOW_FULL_SCREEN "01-06-Full_Screen_Mode"
 #define WINDOW_STORE_SETTINGS "01-07-Save_Position_On_Exit"
 
-
+#define VIEW_SETTINGS "02-View"
 #define AUTO_CENTER_VIEW "02-01-Auto_Center_View"
 #define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"
 #define ZOOM_ANCHOR_ON_MOUSE "02-03-Zoom_View_Under_Mouse"
@@ -51,17 +51,10 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define ASPECT_A "03-03-Assemblies"
 #define ASPECT_H "03-04-Hardware"
 #define DOCK_VISIBLE "04-01-Hide_Dock"
+
+#define TOOLBAR_SETTINGS "05-Toolbar"
 #define TOOLBAR_VISIBLE "05-00-00-Hide_Toolbar"
 #define TOOLBAR_EXPANDED "05-00-01-Expand_Toolbar"
-
-#define JENKINS_URL "06-01-URL"
-#define JENKINS_USER "06-02-Username"
-#define JENKINS_PASS "06-03-Password"
-#define JENKINS_JOB "06-04-MEDEA_Jobname"
-#define JENKINS_TOKEN "06-05-API_Token"
-
-
-#define TOOLBAR_SETTINGS "05-Toolbar_Settings"
 #define TOOLBAR_CONTEXT "05-01-Context_Toolbar"
 #define TOOLBAR_UNDO "05-02-Undo"
 #define TOOLBAR_REDO "05-03-Redo"
@@ -80,6 +73,27 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define TOOLBAR_HORIZ_ALIGN "05-16-Horizontal_Align_Entities"
 #define TOOLBAR_BACK "05-17-Back"
 #define TOOLBAR_FORWARD "05-18-Forward"
+
+#define JENKINS_SETTINGS "06-Jenkins"
+#define JENKINS_URL "06-01-URL"
+#define JENKINS_USER "06-02-Username"
+#define JENKINS_PASS "06-03-Password"
+#define JENKINS_JOB "06-04-MEDEA_Jobname"
+#define JENKINS_TOKEN "06-05-API_Token"
+
+#define THEME_SETTINGS "07-Theme"
+#define THEME_SET_LIGHT_THEME "07-00-Set_Light_Theme"
+#define THEME_SET_DARK_THEME "07-00-Set_Dark_Theme"
+#define THEME_BG_COLOR "07-01-Background_Color"
+#define THEME_BG_ALT_COLOR "07-02-Alternate_Background_Color"
+#define THEME_HIGHLIGHT_COLOR "07-03-Highlight_Color"
+#define THEME_MENU_TEXT_COLOR "07-04-Menu_Text_Color"
+#define THEME_MENU_TEXT_DISABLED_COLOR "07-05-Menu_Text_Disabled_Color"
+#define THEME_MENU_TEXT_SELECTED_COLOR "07-06-Menu_Text_Selected_Color"
+#define THEME_MENU_ICON_COLOR "07-07-Menu_Icon_Tint_Color"
+#define THEME_MENU_ICON_DISABLED_COLOR "07-08-Menu_Icon_Disabled_Tint_Color"
+#define THEME_MENU_ICON_SELECTED_COLOR "07-09-Menu_Icon_Selected_Tint_Color"
+#define THEME_ICON_TINT_COLOR "07-10-Default_Icon_Tint_Color"
 
 #define MINIMUM_TEXT_SIZE 6
 

@@ -19,7 +19,7 @@
 //https://www.google.com/design/icons/index.html
 
 /**
- * @brief main Main Yo
+ * @brief main
  * @param argc
  * @param argv
  * @return

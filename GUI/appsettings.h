@@ -8,6 +8,12 @@
 #include <QGroupBox>
 #include "keyeditwidget.h"
 
+struct SettingStruct{
+    QString key;
+    QString group;
+    QVariant value;
+};
+
 class AppSettings: public QDialog
 {
     Q_OBJECT
@@ -27,15 +33,18 @@ public:
     QString getReadableValue(const QString value);
 signals:
     void settingChanged(QString settingGroup, QString settingName, QVariant settingValue);
+    void settingsApplied();
 private slots:
-    void _settingChanged(QString settingGroup, QString settingName, QString settingValue);
+    void _settingChanged(QString settingGroup, QString settingName, QVariant settingValue);
     void settingUpdated(QString, QString, QVariant);
 
 
-    void groupToggled(bool toggled);
 
     void clearSettings(bool applySettings=true);
+    void clearChanges();
 
+    void setDarkTheme();
+    void setLightTheme();
 
 private:
     void updateApplyButton();
@@ -48,9 +57,10 @@ private:
     bool settingsLoaded;
     bool settingFileWriteable;
 
+    QPushButton* clearChangesButton;
     QPushButton* applyButton;
     QHash<QString, KeyEditWidget*> settingsWidgetsHash;
-    QHash<QString, QStringList> changedSettings;
+    QHash<QString, SettingStruct> changedSettings;
 
     QScrollArea* scrollArea;
 

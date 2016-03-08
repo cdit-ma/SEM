@@ -52,6 +52,7 @@
  */
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     controller = 0;
     wasPanning = false;
     connectLine = 0;
@@ -1350,30 +1351,10 @@ void NodeView::showDropDown(GraphMLItem *item, QLineF dropDownPosition, QString 
  */
 void NodeView::setupTheme(VIEW_THEME theme)
 {
-    QColor bgColor = GET_VIEW_COLOR(theme);
-    QString red = QString::number(bgColor.red());
-    QString green = QString::number(bgColor.green());
-    QString blue = QString::number(bgColor.blue());
-
-    QString background = "rgb(" + red + "," + green + "," + blue + ");";
-
-    /*
-    QString background = ";";
-
-    switch (theme) {
-    case VT_NORMAL_THEME:
-        background = "rgba(170,170,170,255);";
-        break;
-    case VT_DARK_THEME:
-        background = "rgb(70,70,70);";
-        break;
-    default:
-        break;
-    }
-    */
+    QColor bgColor = Theme::theme()->getBackgroundColor();
 
     setStyleSheet("QGraphicsView {"
-                  "background-color:" + background +
+                  "background-color:" + bgColor.name() + ";"
                   "border: 0px;}");
 
     currentTheme = theme;
@@ -1902,6 +1883,15 @@ void NodeView::modelReady()
     emit view_ProjectFileChanged("Untitled Project");
     updateActionsEnabledStates();
 
+}
+
+void NodeView::themeChanged()
+{
+    QColor bgColor = Theme::theme()->getBackgroundColor();
+
+    setStyleSheet("QGraphicsView {"
+                  "background-color:" + bgColor.name() + ";"
+                  "border: 0px;}");
 }
 
 

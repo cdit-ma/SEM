@@ -34,16 +34,19 @@ public:
     void setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName);
 
 
+    QColor getDefaultImageTintColor();
     void setDefaultImageTintColor(QColor color);
     void setDefaultImageTintColor(QString prefix, QString alias, QColor color);
 
     void applyTheme();
+    bool isValid();
 
     QIcon getIcon(QString prefix, QString alias);
     QPixmap getImage(QString prefix, QString alias, QColor tintColor = QColor());
 signals:
     void theme_Changed();
 private:
+    void updateValid();
     QHash<QString, QPixmap> pixmapLookup;
     QHash<QString, QIcon> iconLookup;
     QHash<QString, QColor> pixmapTintLookup;
@@ -57,12 +60,11 @@ private:
     QColor backgroundColor;
     QColor altBackgroundColor;
 
-
     QColor iconColor;
-    QColor defaultTextColor;
-    QColor defaultIconColor;
-    QColor defaultMenuIconColor;
 
+    bool themeChanged;
+
+    bool valid;
 
 public:
     static QString QColorToHex(const QColor color);

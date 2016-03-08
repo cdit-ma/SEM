@@ -99,7 +99,7 @@ void JenkinsStartJobWidget::build()
         Jenkins_Job_Parameter parameter;
         if(parameterWidget){
             parameter.name = parameterWidget->getKeyName();
-            parameter.value = parameterWidget->getValue();
+            parameter.value = parameterWidget->getValue().toString();
             buildParameters.append(parameter);
         }
     }

@@ -169,6 +169,7 @@ private slots:
     void controllerDestroyed();
     void settingChanged(QString groupName, QString keyName, QVariant value);
     void modelReady();
+    void themeChanged();
 
 
     void hardwareClusterMenuClicked(int viewMode);

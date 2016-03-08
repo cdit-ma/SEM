@@ -27,6 +27,8 @@
 
 
 #define THREADING true
+//DARK MODE DEFAULT THEME
+#define DEFAULT_THEME true
 
 #define RIGHT_PANEL_WIDTH 230.0
 #define SPACER_SIZE 10
@@ -164,6 +166,14 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
         return;
     }
 
+    if(keyName == TOOLBAR_VISIBLE){
+        setToolbarVisibility(!boolValue);
+        SHOW_TOOLBAR = !boolValue;
+    }else if(keyName == TOOLBAR_EXPANDED){
+        toolbarButton->setChecked(boolValue);
+        toolbarButton->clicked(boolValue);
+    }
+
     if(toolbarActionLookup.contains(keyName)){
         QAction* action = toolbarActionLookup[keyName];
 
@@ -175,6 +185,41 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
 
     if (boolValue) {
         nodeView->updateActionsEnabledStates();
+    }
+
+
+}
+
+void MedeaWindow::themeSettingChanged(QString keyName, QVariant value)
+{
+    QString strValue = value.toString();
+    //Color String.
+    QColor color(strValue);
+
+    if(keyName == THEME_BG_COLOR){
+       Theme::theme()->setBackgroundColor(color);
+    }else if(keyName == THEME_BG_ALT_COLOR){
+       Theme::theme()->setAltBackgroundColor(color);
+    }else if(keyName == THEME_HIGHLIGHT_COLOR){
+       Theme::theme()->setHighlightColor(color);
+    }else if(keyName == THEME_MENU_TEXT_COLOR){
+       Theme::theme()->setTextColor(Theme::CR_NORMAL, color);
+    }else if(keyName == THEME_MENU_TEXT_DISABLED_COLOR){
+       Theme::theme()->setTextColor(Theme::CR_DISABLED, color);
+    }else if(keyName == THEME_MENU_TEXT_SELECTED_COLOR){
+       Theme::theme()->setTextColor(Theme::CR_SELECTED, color);
+    }else if(keyName == THEME_MENU_ICON_COLOR){
+       Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, color);
+    }else if(keyName == THEME_MENU_ICON_DISABLED_COLOR){
+       Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, color);
+    }else if(keyName == THEME_MENU_ICON_SELECTED_COLOR){
+       Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, color);
+    }else if(keyName == THEME_ICON_TINT_COLOR){
+       Theme::theme()->setDefaultImageTintColor(color);
+    }else if(keyName == THEME_SET_DARK_THEME){
+       resetTheme(true);
+    }else if(keyName == THEME_SET_LIGHT_THEME){
+       resetTheme(false);
     }
 }
 
@@ -292,11 +337,9 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
 {
     if(groupName==TOOLBAR_SETTINGS){
         toolbarSettingChanged(keyName, value);
-    }else if(groupName==WINDOW_SETTINGS && INITIAL_SETTINGS_LOADED){
-        //Ignore Window settigns after initial load.
         return;
-    }else if(groupName==ASPECT_SETTINGS && !INITIAL_SETTINGS_LOADED){
-        //Ignore Aspect Settings on initial load.
+    }else if(groupName == THEME_SETTINGS){
+        themeSettingChanged(keyName, value);
         return;
     }
 
@@ -304,6 +347,8 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     QString strValue = value.toString();
     bool boolValue = value.toBool();
     int intValue = value.toInt(&isInt);
+
+
 
     if(keyName == WINDOW_X && isInt){
         if(intValue >= 0){
@@ -343,15 +388,6 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         toggleAndTriggerAction(actionToggleGrid, boolValue);
     }else if(keyName == DOCK_VISIBLE){
         showDocks(!boolValue);
-    }else if(keyName == TOOLBAR_VISIBLE){
-        setToolbarVisibility(!boolValue);
-        settingChanged(groupName,TOOLBAR_EXPANDED, appSettings->getSetting(TOOLBAR_EXPANDED));
-        SHOW_TOOLBAR = !boolValue;
-    }else if(keyName == TOOLBAR_EXPANDED){
-        if(appSettings->getSetting(TOOLBAR_VISIBLE) != "true"){
-            toolbarButton->setChecked(boolValue);
-            toolbarButton->clicked(boolValue);
-        }
     }else if(keyName == ASPECT_I){
         definitionsToggle->setClicked(boolValue);
     }else if(keyName == ASPECT_B){
@@ -386,6 +422,19 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
             DEFAULT_PATH = applicationDirectory;
         }
     }
+}
+
+void MedeaWindow::settingsApplied()
+{
+    //Reset the theme if we are initially loading and don't have a valid theme.
+    if(SETTINGS_LOADING){
+        if(!Theme::theme()->isValid()){
+            resetTheme(DEFAULT_THEME);
+        }
+    }
+
+    //Will only send an update if theme was modifed.
+    Theme::theme()->applyTheme();
 }
 
 void MedeaWindow::loadSettingsFromINI()
@@ -432,10 +481,12 @@ void MedeaWindow::initialiseGUI()
     dataTable->resize(dataTable->width(), 0);
 
     // setup menu, close project and project name buttons
-    menuButton = new QPushButton(getIcon("Actions", "MEDEA_Menu"), "");
+    menuButton = new QPushButton(getIcon("Actions", "MEDEA"), "");
     menuButton->setFixedSize(55, 45);
     menuButton->setIconSize(menuButton->size() * 0.75);
-    menuButton->setStyleSheet("QPushButton{ background-color: rgb(210,210,210); }"
+    //menuButton->setFlat(true);
+    menuButton->setStyleSheet("QPushButton{ background-color: rgb(120,120,120);}"// border:1px solid gray;}"
+                              "QPushButton:hover{background-color: rgb(140,140,140);}"
                               "QPushButton::menu-indicator{ image: none; }");
 
     projectName = new QPushButton("");
@@ -1791,6 +1842,7 @@ void MedeaWindow::setupConnections()
 
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), nodeView, SLOT(settingChanged(QString,QString,QVariant)));
 
+
     connect(nodeView, SIGNAL(view_LoadSettings()), this, SLOT(loadSettingsFromINI()));
 
     connect(nodeView, SIGNAL(view_themeChanged(VIEW_THEME)), this, SLOT(themeChanged(VIEW_THEME)));
@@ -2030,6 +2082,57 @@ void MedeaWindow::changeEvent(QEvent *event)
     if (event->type() == QEvent::WindowStateChange){
         updateWidgetsOnWindowChange();
     }
+}
+
+void MedeaWindow::saveTheme()
+{
+    if(appSettings){
+        appSettings->setSetting(THEME_BG_COLOR, Theme::theme()->getBackgroundColor());
+        appSettings->setSetting(THEME_BG_ALT_COLOR, Theme::theme()->getAltBackgroundColor());
+        appSettings->setSetting(THEME_HIGHLIGHT_COLOR, Theme::theme()->getHighlightColor());
+
+        appSettings->setSetting(THEME_MENU_TEXT_COLOR, Theme::theme()->getTextColor(Theme::CR_NORMAL));
+        appSettings->setSetting(THEME_MENU_TEXT_DISABLED_COLOR, Theme::theme()->getTextColor(Theme::CR_DISABLED));
+        appSettings->setSetting(THEME_MENU_TEXT_SELECTED_COLOR, Theme::theme()->getTextColor(Theme::CR_SELECTED));
+
+        appSettings->setSetting(THEME_MENU_ICON_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_NORMAL));
+        appSettings->setSetting(THEME_MENU_ICON_DISABLED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_DISABLED));
+        appSettings->setSetting(THEME_MENU_ICON_SELECTED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_SELECTED));
+
+        appSettings->setSetting(THEME_ICON_TINT_COLOR, Theme::theme()->getDefaultImageTintColor());
+    }
+}
+
+void MedeaWindow::resetTheme(bool darkTheme)
+{
+    if(darkTheme){
+        Theme::theme()->setBackgroundColor(QColor(70,70,70));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
+        Theme::theme()->setHighlightColor(QColor(255,165,0));
+
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(165,165,165));
+
+
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(165,165,165));
+    }else{
+        Theme::theme()->setBackgroundColor(QColor(170,170,170));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().darker(130));
+        Theme::theme()->setHighlightColor(QColor(75,110,175));
+
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(70,70,70));
+
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(70,70,70));
+    }
+    saveTheme();
+    Theme::theme()->applyTheme();
 }
 
 QPixmap MedeaWindow::getDialogPixmap(QString alias, QString image, QSize size)
@@ -2275,6 +2378,7 @@ void MedeaWindow::initialiseSettings()
     appSettings = new AppSettings(this, applicationDirectory);
     appSettings->setModal(true);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
+    connect(appSettings, SIGNAL(settingsApplied()), this, SLOT(settingsApplied()));
 }
 
 void MedeaWindow::updateTheme()
@@ -2371,6 +2475,8 @@ void MedeaWindow::initialiseTheme()
 
     //Red
     Theme::theme()->setDefaultImageTintColor("Welcome", "Settings", QColor(177,12,67));
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged2()));
 }
 
 
@@ -2782,6 +2888,13 @@ void MedeaWindow::executeJenkinsDeployment()
     }
 }
 
+void MedeaWindow::themeChanged2()
+{
+
+    themeChanged(CURRENT_THEME);
+    updateMenu();
+}
+
 void MedeaWindow::recentProjectItemClicked(QListWidgetItem *item)
 {
     if(item){
@@ -2940,10 +3053,12 @@ void MedeaWindow::saveSettings()
             appSettings->setSetting(WINDOW_H, size().height());
             appSettings->setSetting(WINDOW_X, pos().x());
             appSettings->setSetting(WINDOW_Y, pos().y());
+
         }
         appSettings->setSetting(DEFAULT_DIR_PATH, DEFAULT_PATH);
-    }
 
+
+    }
     if(persistantSettings){
         QStringList historicList;
 
@@ -4575,7 +4690,7 @@ void MedeaWindow::themeChanged(VIEW_THEME theme)
 {
     CURRENT_THEME = theme;
     //Update le theme.
-    updateTheme();
+    //updateTheme();
     QColor bgColor = Theme::theme()->getBackgroundColor();
     QColor altBGColor = Theme::theme()->getAltBackgroundColor();
     QColor textColor = Theme::theme()->getTextColor(Theme::CR_NORMAL);

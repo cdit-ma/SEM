@@ -627,6 +627,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
     painter->setRenderHint(QPainter::Antialiasing, true);
+    painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
 
 
@@ -747,39 +748,39 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         //Paint the Icon
 
         if(renderState > RS_BLOCK){
-            paintPixmap(painter, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
+            paintPixmap(painter, lod, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
         }
     }
 
 
     if(IS_READ_ONLY){
-        paintPixmap(painter, IP_TOPLEFT, "Actions", "Lock_Closed");
+        paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Lock_Closed");
     }
 
     if(nodeMemberIsKey){
-        paintPixmap(painter, IP_CENTER_SMALL, "Actions", "Key");
+        paintPixmap(painter, lod, IP_CENTER_SMALL, "Actions", "Key");
     }
 
     if(renderState == RS_FULL){
         //If a Node has a Definition, paint a definition icon
         if(IS_READ_ONLY_DEF){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Snippet");
+            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Snippet");
         }else if (nodeKind == "HardwareCluster") {
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "MenuCluster");
+            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "MenuCluster");
         }
 
         if(isInputParameter){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Arrow_Forward");
+            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Arrow_Forward");
         }
         if(isReturnParameter){
-            paintPixmap(painter, IP_TOPRIGHT, "Actions", "Arrow_Forward");
+            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "Arrow_Forward");
         }
 
 
 
         if(canNodeBeConnected){
             //Paint connect Icon
-            paintPixmap(painter, IP_TOPRIGHT, "Actions", "ConnectTo");
+            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "ConnectTo");
 
             QPen newPen(Qt::gray);
             newPen.setWidthF(0.5);
@@ -790,9 +791,9 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         if(hasChildren()){
             if(isExpanded()){
-                paintPixmap(painter, IP_BOT_RIGHT, "Actions", "Contract", true);
+                paintPixmap(painter, lod, IP_BOT_RIGHT, "Actions", "Contract", true);
             }else{
-                paintPixmap(painter, IP_BOT_RIGHT, "Actions", "Expand", true);
+                paintPixmap(painter, lod, IP_BOT_RIGHT, "Actions", "Expand", true);
             }
         }
 
@@ -801,9 +802,9 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         if(hasEditData){
             if(editableDataKey == "worker"){
-                paintPixmap(painter, IP_BOTLEFT, "Functions", workerKind);
+                paintPixmap(painter, lod, IP_BOTLEFT, "Functions", workerKind);
             }else{
-                paintPixmap(painter, IP_BOTLEFT, "Data", editableDataKey);
+                paintPixmap(painter, lod, IP_BOTLEFT, "Data", editableDataKey);
             }
 
         }
@@ -812,7 +813,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     if(renderState >= RS_REDUCED){
         //If this Node has a Deployment Warning, paint a warning Icon
         if(showDeploymentWarningIcon){
-            paintPixmap(painter, IP_TOPRIGHT, "Actions", "Warning");
+            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "Warning");
         }
     }
 
@@ -2783,7 +2784,7 @@ QString EntityItem::getIconPrefix()
 
 }
 
-void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update)
 {
     QRectF place = getImageRect(pos);
     QPixmap image = imageMap[pos];
@@ -2813,8 +2814,10 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
         }
         imageMap[pos] = image;
     }
-
-    painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
+    int width = place.width()* lod * 2;
+    int height = place.height() * lod * 2;
+    QPixmap newPixmap = image.scaled(width, height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), newPixmap);
 
     if (changeIcon) {
         emit entityItem_iconChanged();

@@ -11,7 +11,8 @@ enum KEY_TYPE{
     KEY_INT,
     KEY_DOUBLE,
     KEY_BOOL,
-    KEY_FILE
+    KEY_FILE,
+    KEY_COLOR
 };
 class AppSettings;
 class KeyEditWidget : public QWidget
@@ -21,30 +22,30 @@ public:
     explicit KeyEditWidget(QString groupName, QString keyName, QString keyNameHR, QVariant valueVar, QString description="", QString customType="");
     QString getKeyName();
     QString getGroupName();
-    QString getValue();
+    QVariant getValue();
 
     void setLabelWidth(int labelWidth);
     void setValue(QVariant value);
 
     void setHighlighted(bool highlighted);
 signals:
-    void valueChanged(QString groupName, QString keyName, QString value);
+    void valueChanged(QString groupName, QString keyName, QVariant value);
 
 
 public slots:
-    void _boolChanged(bool value);
-    void _valueChanged(QString value);
+    void pickColor();
+    void _valueChanged(QVariant value);
     void _editingFinished();
 
 
 private:
-    void updatePallete();
     QString keyName;
     QString hrKeyName;
 
     QString groupName;
-    QString newValue;
-    QString oldValue;
+
+    QVariant newValue;
+    QVariant oldValue;
     QString descriptionValue;
 
     bool highlighted;
@@ -53,22 +54,13 @@ private:
     QVBoxLayout* oldLayout;
     QVBoxLayout* vLayout;
     QWidget *valueBox;
+    QWidget *value2Box;
     QWidget *labelBox;
     QString labelStyleSheet;
+    QString colorBoxStyleSheet;
     QTextBrowser* descriptionBox;
 
     KEY_TYPE keyType;
-
-    bool hover;
-
-    QPalette normalPal;
-
-    QPalette hoverPal;
-
-    // QWidget interface
-protected:
-    void enterEvent(QEvent *);
-    void leaveEvent(QEvent *);
 };
 
 #endif // KEYEDITWIDGET_H

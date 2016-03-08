@@ -14,10 +14,12 @@
 #include <QDialog>
 #include <QMessageBox>
 
-#define SETTINGS_WIDTH 450
-#define SETTINGS_HEIGHT 350
+#define SETTINGS_WIDTH 600
+#define SETTINGS_HEIGHT 400
+#include "../enumerations.h"
 
 
+#include <QTabWidget>
 
 AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(parent)
 {
@@ -42,6 +44,7 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
     setModal(true);
 
     setupLayout();
+    updateApplyButton();
 }
 
 AppSettings::~AppSettings()
@@ -72,13 +75,29 @@ void AppSettings::loadSettings()
 
         foreach(QString key, settings->childKeys()){
             //Dont reload window settings.
-            if(settingsLoaded && group == "01-Window_Settings"){
+            if(settingsLoaded && group == WINDOW_SETTINGS){
                  continue;
             }
-            QVariant variant = settings->value(key);
+            QVariant variant;
+            bool gotValue = false;
 
-            //Foreach Key in each Group in the settings file, emit the signal that the setting has changed.
-            emit settingChanged(group ,key, variant);
+            //Get value from Widget first.
+            if(settingsWidgetsHash.contains(key)){
+                KeyEditWidget* settingWidget = settingsWidgetsHash[key];
+                if(settingWidget){
+                    variant = settingWidget->getValue();
+                    gotValue = true;
+                }
+            }
+
+            if(!gotValue){
+                variant = settings->value(key);
+            }
+
+            if(variant.isValid()){
+                //Foreach Key in each Group in the settings file, emit the signal that the setting has changed.
+                emit settingChanged(group ,key, variant);
+            }
         }
         settings->endGroup();
     }
@@ -87,6 +106,8 @@ void AppSettings::loadSettings()
     if(!settingsLoaded){
         settingsLoaded = true;
     }
+
+    emit settingsApplied();
 }
 
 /**
@@ -138,18 +159,21 @@ QString AppSettings::getReadableValue(const QString value)
         int hypenPos = returnable.indexOf("-") + 1;
         returnable = returnable.mid(hypenPos);
     }
-    return returnable+":";
+    return returnable;
 }
 
-void AppSettings::_settingChanged(QString settingGroup, QString settingName, QString settingValue)
+void AppSettings::_settingChanged(QString settingGroup, QString settingName, QVariant settingValue)
 {
     //Check if value has changed.
-
-    bool settingChanged = getSetting(settingName) != settingValue;
+    QVariant oldValue = getSetting(settingName);
+    bool settingChanged = oldValue != settingValue;
 
     if(settingChanged){
-        QStringList setting;
-        setting << settingGroup << settingName << settingValue;
+        SettingStruct setting;
+        setting.group = settingGroup;
+        setting.key = settingName;
+        setting.value = settingValue;
+
         changedSettings[settingName] = setting;
     }else{
         changedSettings.remove(settingName);
@@ -170,55 +194,25 @@ void AppSettings::_settingChanged(QString settingGroup, QString settingName, QSt
 void AppSettings::settingUpdated(QString g , QString n , QVariant v)
 {
     settings->beginGroup(g);
-    settings->setValue(n,v);
+    settings->setValue(n, v);
     settings->endGroup();
-    emit settingChanged(g,n,v);
-}
-
-
-void AppSettings::groupToggled(bool toggled)
-{
-    QGroupBox* groupBox = dynamic_cast<QGroupBox*>(sender());
-    if(groupBox){
-        QString groupTitle = groupBox->title();
-
-
-        int groupBoxPadding = groupBox->layout()->spacing();
-
-        int initialHeight = groupBox->layout()->contentsMargins().top();
-
-        int expandedHeight = groupBox->layout()->contentsMargins().top() + groupBox->layout()->contentsMargins().bottom();
-
-        foreach(KeyEditWidget* edit, settingsWidgetsHash.values()){
-            if(getReadableValue(edit->getGroupName()) == groupTitle){
-                expandedHeight += groupBoxPadding + edit->height();
-                edit->setVisible(toggled);
-            }
-        }
-        if(toggled){
-            groupBox->setFixedHeight(expandedHeight);
-        }else{
-            groupBox->setFixedHeight(initialHeight);
-        }
-    }
+    emit settingChanged(g, n, v);
 }
 
 void AppSettings::clearSettings(bool applySettings)
 {
     //While we still have setttings which need updating.
     while(!changedSettings.isEmpty()){
-        QString settingKey = changedSettings.keys().first();
-        QStringList setting = changedSettings.take(settingKey);
 
+        QString settingKey = changedSettings.keys().first();
+
+        SettingStruct setting = changedSettings.take(settingKey);
+
+        QVariant newGUIVal = getSetting(settingKey);
         //If we are meant to apply the settings we need to update the QSettings.
         if(applySettings){
-            if(setting.size() == 3){
-                QString setting_group = setting[0];
-                QString setting_name = setting[1];
-                QVariant setting_value = setting[2];
-                //Update the QSetting
-                settingUpdated(setting_group, setting_name, setting_value);
-            }
+            settingUpdated(setting.group, setting.key, setting.value);
+            newGUIVal = setting.value;
         }
 
         //Clear the GUI.
@@ -226,16 +220,40 @@ void AppSettings::clearSettings(bool applySettings)
         if(settingWidget){
             settingWidget->setHighlighted(false);
             //Reset Previous Value
-            settingWidget->setValue(getSetting(settingKey));
+            settingWidget->setValue(newGUIVal);
         }
     }
     updateApplyButton();
+
+    if(applySettings){
+        emit settingsApplied();
+    }
+}
+
+void AppSettings::clearChanges()
+{
+    clearSettings(false);
+}
+
+void AppSettings::setDarkTheme()
+{
+    clearSettings(false);
+    emit settingChanged(THEME_SETTINGS, THEME_SET_DARK_THEME, true);
+}
+
+void AppSettings::setLightTheme()
+{
+    clearSettings(false);
+    emit settingChanged(THEME_SETTINGS, THEME_SET_LIGHT_THEME, true);
 }
 
 void AppSettings::updateApplyButton()
 {
     if(applyButton){
         applyButton->setEnabled(!changedSettings.isEmpty());
+    }
+    if(clearChangesButton){
+        clearChangesButton->setEnabled(!changedSettings.isEmpty());
     }
 }
 
@@ -257,6 +275,8 @@ void AppSettings::setupLayout()
     setLayout(mainLayout);
 
     QVBoxLayout *vLayout = new QVBoxLayout();
+    QTabWidget* tabWidget = new QTabWidget();
+
 
     int longestFont = 0;
 
@@ -267,52 +287,26 @@ void AppSettings::setupLayout()
         vLayout->addWidget(label);
     }
 
+    vLayout->addWidget(tabWidget, 1);
+
     //For each group in Settings.ini
     foreach(QString group, settings->childGroups()){
         //Open Group
         settings->beginGroup(group);
 
 
-        //Construct Group Box to group Items
-        QGroupBox* groupBox = new QGroupBox();
-        groupBox->setCheckable(true);
-        groupBox->setChecked(false);
-
-        groupBox->setTitle(getReadableValue(group));
-        connect(groupBox, SIGNAL(toggled(bool)), this, SLOT(groupToggled(bool)));
-
-        QFont keyFont = font();
-        keyFont.setBold(false);
-
-        //Set font to Bold
-        QFont groupTitleFont = font();
-        groupTitleFont.setBold(true);
-        groupBox->setFont(groupTitleFont);
-        //Add to Layout.
-        vLayout->addWidget(groupBox);
+        QWidget* groupWidget = new QWidget();
+        QVBoxLayout* groupLayout = new QVBoxLayout();
+        groupWidget->setLayout(groupLayout);
 
 
-        QFontMetrics keyFontMetric(keyFont);
-        int labelHeight = keyFontMetric.height();
-
-        QVBoxLayout* groupVLayout = new QVBoxLayout();
-        groupVLayout->setSpacing(5);
-        groupVLayout->setContentsMargins(0, labelHeight + 5,0,5);
-        groupBox->setLayout(groupVLayout);
-
+        tabWidget->addTab(groupWidget, getReadableValue(group));
 
 
         //For each key, construct a KeyEditWidget to change the setting of that key.
         foreach(QString key, settings->childKeys()){
             if(!settingsWidgetsHash.contains(key)){
                 QString humanReadableKey =  getReadableValue(key);
-
-                int fontWidth = keyFontMetric.width(humanReadableKey);
-
-
-                if(fontWidth > longestFont){
-                    longestFont = fontWidth;
-                }
 
                 KeyEditWidget* keyEdit = new KeyEditWidget( group, key, humanReadableKey, settings->value(key));
 
@@ -323,18 +317,38 @@ void AppSettings::setupLayout()
                 settingsWidgetsHash[key] = keyEdit;
 
                 //Connect the valueChanged signal to this, to update the settings.ini file.
-                connect(keyEdit, SIGNAL(valueChanged(QString,QString,QString)), this, SLOT(_settingChanged(QString,QString,QString)));
+                connect(keyEdit, SIGNAL(valueChanged(QString,QString,QVariant)), this, SLOT(_settingChanged(QString,QString,QVariant)));
 
-                groupVLayout->addWidget(keyEdit);
-
-                keyEdit->setFont(keyFont);
-
+                groupLayout->addWidget(keyEdit);
             }else{
                 QMessageBox::critical(this, "Settings Error", "Settings file has 2 settings in .ini file with same Key Name! Ignoring duplicate Settings", QMessageBox::Ok);
             }
         }
+        //ADD A RESET THEME BUTTON.
+        if(group == THEME_SETTINGS){
+            QLabel* label = new QLabel("Theme Presets");
+            QHBoxLayout* buttonLayout = new QHBoxLayout();
+            QPushButton* darkTheme = new QPushButton("Dark Theme");
+            QPushButton* lightTheme = new QPushButton("Light Theme");
+            buttonLayout->addWidget(lightTheme,1);
+            buttonLayout->addWidget(darkTheme,1);
+            darkTheme->setStyleSheet(
+                        "QPushButton{background:rgb(70,70,70); color: rgb(255,255,255);}"
+                        "QPushButton:hover{background:rgb(255,165,70); color: rgb(0,0,0);}"
+                        );
+            lightTheme->setStyleSheet(
+                        "QPushButton{background:rgb(170,170,170); color: rgb(0,0,0);}"
+                        "QPushButton:hover{background:rgb(75,110,175); color: rgb(255,255,255);}"
+                        );
+
+            connect(darkTheme, SIGNAL(clicked()), this, SLOT(setDarkTheme()));
+            connect(lightTheme, SIGNAL(clicked()), this, SLOT(setLightTheme()));
+            groupLayout->addWidget(label, 1, Qt::AlignCenter);
+            groupLayout->addLayout(buttonLayout);
+        }
+
+        groupLayout->addStretch();
         settings->endGroup();
-        emit groupBox->toggled(false);
     }
 
 
@@ -344,9 +358,6 @@ void AppSettings::setupLayout()
             keyEdit->setLabelWidth(longestFont);
         }
     }
-
-    vLayout->addStretch();
-
 
     QWidget* widgetContainer = new QWidget();
     widgetContainer->setLayout(vLayout);
@@ -359,21 +370,23 @@ void AppSettings::setupLayout()
     QHBoxLayout* buttonLayout = new QHBoxLayout();
 
 
-    applyButton = new QPushButton("Apply");
+    clearChangesButton = new QPushButton("Clear Changes");
+
+    applyButton = new QPushButton("Apply Changes");
     if(settingFileWriteable){
         applyButton->setToolTip("Updates settings.ini file.");
     }else{
         applyButton->setToolTip("Updates local setting for this apps lifecycle.");
     }
 
-    QPushButton* cancelButton = new QPushButton("Cancel");
+   // QPushButton* cancelButton = new QPushButton("Cancel");
 
 
     buttonLayout->setSpacing(2);
     buttonLayout->setMargin(2);
 
     buttonLayout->addStretch();
-    buttonLayout->addWidget(cancelButton);
+    buttonLayout->addWidget(clearChangesButton);
     buttonLayout->addWidget(applyButton);
 
     mainLayout->addLayout(buttonLayout);
@@ -382,8 +395,7 @@ void AppSettings::setupLayout()
     scrollArea->setStyleSheet("QScrollArea{border: none;}");
 
     connect(applyButton, SIGNAL(clicked()), this, SLOT(clearSettings()));
-    connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
-
+    connect(clearChangesButton, SIGNAL(clicked()), this, SLOT(clearChanges()));
 }
 
 void AppSettings::reject()

@@ -5,6 +5,8 @@ Theme* Theme::themeSingleton = 0;
 
 Theme::Theme():QObject(0)
 {
+    updateValid();
+    valid = false;
 }
 
 QColor Theme::getBackgroundColor()
@@ -24,17 +26,26 @@ QColor Theme::getHighlightColor()
 
 void Theme::setBackgroundColor(QColor color)
 {
-    backgroundColor = color;
+    if(backgroundColor != color){
+        backgroundColor = color;
+        updateValid();
+    }
 }
 
 void Theme::setAltBackgroundColor(QColor color)
 {
-    altBackgroundColor = color;
+    if(altBackgroundColor != color){
+        altBackgroundColor = color;
+        updateValid();
+    }
 }
 
 void Theme::setHighlightColor(QColor color)
 {
-    highlightColor = color;
+    if(highlightColor != color){
+        highlightColor = color;
+        updateValid();
+    }
 }
 
 QColor Theme::getTextColor(Theme::COLOR_ROLE role)
@@ -42,12 +53,15 @@ QColor Theme::getTextColor(Theme::COLOR_ROLE role)
     if(textColor.contains(role)){
         return textColor[role];
     }
-    return defaultTextColor;
+    return QColor();
 }
 
 void Theme::setTextColor(Theme::COLOR_ROLE role, QColor color)
 {
-    textColor[role] = color;
+    if(textColor[role] != color){
+        textColor[role] = color;
+        updateValid();
+    }
 }
 
 QColor Theme::getMenuIconColor(Theme::COLOR_ROLE role)
@@ -55,25 +69,35 @@ QColor Theme::getMenuIconColor(Theme::COLOR_ROLE role)
     if(menuIconColor.contains(role)){
         return menuIconColor[role];
     }
-    return defaultMenuIconColor;
+    return QColor();
 }
 
 void Theme::setMenuIconColor(Theme::COLOR_ROLE role, QColor color)
 {
-    menuIconColor[role] = color;
+     if(menuIconColor[role] != color){
+        menuIconColor[role] = color;
+        updateValid();
+     }
 }
 
 void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName)
 {
     QString name = prefix + "/" + alias;
     QString toggledName = toggledAlias + "/" + toggledImageName;
-    qCritical() << "LOOKUP: " << name << " POINTS TO " << toggledName;
     iconToggledLookup[name] = toggledName;
+}
+
+QColor Theme::getDefaultImageTintColor()
+{
+    return iconColor;
 }
 
 void Theme::setDefaultImageTintColor(QColor color)
 {
-    iconColor = color;
+    if(iconColor != color){
+        iconColor = color;
+        updateValid();
+    }
 }
 
 void Theme::setDefaultImageTintColor(QString prefix, QString alias, QColor color)
@@ -84,9 +108,17 @@ void Theme::setDefaultImageTintColor(QString prefix, QString alias, QColor color
 
 void Theme::applyTheme()
 {
-    pixmapLookup.clear();
-    iconLookup.clear();
-    emit theme_Changed();
+    if(themeChanged && valid){
+        pixmapLookup.clear();
+        iconLookup.clear();
+        emit theme_Changed();
+    }
+    themeChanged = false;
+}
+
+bool Theme::isValid()
+{
+    return valid;
 }
 
 QIcon Theme::getIcon(QString prefix, QString alias)
@@ -169,6 +201,32 @@ QPixmap Theme::getImage(QString prefix, QString alias, QColor tintColor)
         pixmapLookup[lookupName] = pixmap;
         return pixmap;
     }
+}
+
+void Theme::updateValid()
+{
+    bool gotAllColors = true;
+    if(highlightColor.isValid() && backgroundColor.isValid() && altBackgroundColor.isValid() && iconColor.isValid()){
+        QList<COLOR_ROLE> states;
+        states << CR_NORMAL << CR_DISABLED << CR_SELECTED;
+
+        foreach(COLOR_ROLE state, states){
+            QColor tColor = textColor[state];
+            QColor iColor = menuIconColor[state];
+
+            if(tColor.isValid() && iColor.isValid()){
+               continue;
+            }else{
+                gotAllColors = false;
+                break;
+            }
+        }
+    }else{
+        gotAllColors = false;
+    }
+
+    valid = gotAllColors;
+    themeChanged = true;
 }
 
 QString Theme::QColorToHex(const QColor color)

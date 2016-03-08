@@ -315,7 +315,7 @@ private:
     void setImage(IMAGE_POS pos, QPixmap image);
 
 
-    void paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update=false);
+    void paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update=false);
 
 
     //USED PARAMETERS;
