@@ -316,8 +316,12 @@
 			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> IDL should contain either Component, BlackBox or Aggregate entities</assert>
 		<assert test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) = 0
 					  or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) > 0 
-				      and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate']) = 0)" 
-			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> IDL with Aggregate entities can only contain other Aggregate entities</assert> 
+				      and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate' and text()!='Vector']) = 0)" 
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> IDL with Aggregate entities can only contain other Aggregate or Vector entities</assert> 
+		<assert test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Vector']) = 0
+					  or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Vector']) > 0 
+				      and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate' and text()!='Vector']) = 0)" 
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> IDL with Aggregate entities can only contain other Aggregate or Vector entities</assert> 
 		<assert test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Component']) = 0
 					  or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Component']) > 0
 				      and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Component']) = 0)" 
@@ -485,12 +489,13 @@
 		<assert test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate label must not be an IDL reserved word </assert> 
 		<assert test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Member']) &gt; 0
-					   or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='AggregateInstance']) &gt; 0" 
-			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate should contain Member and AggregateInstance entities</assert>
+					   or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='AggregateInstance']) &gt; 0
+					   or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='VectorInstance']) &gt; 0" 
+			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate should contain Member, AggregateInstance and VectorInstance entities</assert>
 		<assert test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Member']/../gml:data[@key=$nodeKeyMemberKey][text()='true'] ) &gt; 0" 
 			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate should contain at least one Member that has a key of true</assert>
-		<assert test="count($childNode/gml:data[@key=$nodeKindKey][text()!='Member' and text()!='AggregateInstance']) = 0" 
-			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate must contain only Member and AggregateInstance kind of entities</assert> 
+		<assert test="count($childNode/gml:data[@key=$nodeKindKey][text()!='Member' and text()!='AggregateInstance' and text()!='VectorInstance']) = 0" 
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate must contain only Member, AggregateInstance, and VectorInstance kind of entities</assert> 
 	</rule>
   </pattern>
  

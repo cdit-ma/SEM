@@ -547,15 +547,30 @@
 
 		<!--ASSERT critical-->
 <axsl:choose>
-<axsl:when test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) = 0        or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) &gt; 0            and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate']) = 0)"/>
+<axsl:when test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) = 0        or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) &gt; 0            and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate' and text()!='Vector']) = 0)"/>
 <axsl:otherwise>
-<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) = 0 or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) &gt; 0 and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate']) = 0)">
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) = 0 or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) &gt; 0 and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate' and text()!='Vector']) = 0)">
 <axsl:attribute name="role">critical</axsl:attribute>
 <svrl:text>[<axsl:text/>
 <axsl:value-of select="$node/@id"/>
 <axsl:text/>] <axsl:text/>
 <axsl:value-of select="$label"/>
-<axsl:text/> IDL with Aggregate entities can only contain other Aggregate entities</svrl:text>
+<axsl:text/> IDL with Aggregate entities can only contain other Aggregate or Vector entities</svrl:text>
+</svrl:failed-assert>
+</axsl:otherwise>
+</axsl:choose>
+
+		<!--ASSERT critical-->
+<axsl:choose>
+<axsl:when test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Vector']) = 0        or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Vector']) &gt; 0            and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate' and text()!='Vector']) = 0)"/>
+<axsl:otherwise>
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Vector']) = 0 or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Vector']) &gt; 0 and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate' and text()!='Vector']) = 0)">
+<axsl:attribute name="role">critical</axsl:attribute>
+<svrl:text>[<axsl:text/>
+<axsl:value-of select="$node/@id"/>
+<axsl:text/>] <axsl:text/>
+<axsl:value-of select="$label"/>
+<axsl:text/> IDL with Aggregate entities can only contain other Aggregate or Vector entities</svrl:text>
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
@@ -1144,15 +1159,15 @@
 
 		<!--ASSERT warning-->
 <axsl:choose>
-<axsl:when test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Member']) &gt; 0         or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='AggregateInstance']) &gt; 0"/>
+<axsl:when test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Member']) &gt; 0         or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='AggregateInstance']) &gt; 0         or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='VectorInstance']) &gt; 0"/>
 <axsl:otherwise>
-<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Member']) &gt; 0 or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='AggregateInstance']) &gt; 0">
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Member']) &gt; 0 or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='AggregateInstance']) &gt; 0 or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='VectorInstance']) &gt; 0">
 <axsl:attribute name="role">warning</axsl:attribute>
 <svrl:text>[<axsl:text/>
 <axsl:value-of select="$node/@id"/>
 <axsl:text/>] <axsl:text/>
 <axsl:value-of select="$label"/>
-<axsl:text/> Aggregate should contain Member and AggregateInstance entities</svrl:text>
+<axsl:text/> Aggregate should contain Member, AggregateInstance and VectorInstance entities</svrl:text>
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
@@ -1174,15 +1189,15 @@
 
 		<!--ASSERT critical-->
 <axsl:choose>
-<axsl:when test="count($childNode/gml:data[@key=$nodeKindKey][text()!='Member' and text()!='AggregateInstance']) = 0"/>
+<axsl:when test="count($childNode/gml:data[@key=$nodeKindKey][text()!='Member' and text()!='AggregateInstance' and text()!='VectorInstance']) = 0"/>
 <axsl:otherwise>
-<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="count($childNode/gml:data[@key=$nodeKindKey][text()!='Member' and text()!='AggregateInstance']) = 0">
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="count($childNode/gml:data[@key=$nodeKindKey][text()!='Member' and text()!='AggregateInstance' and text()!='VectorInstance']) = 0">
 <axsl:attribute name="role">critical</axsl:attribute>
 <svrl:text>[<axsl:text/>
 <axsl:value-of select="$node/@id"/>
 <axsl:text/>] <axsl:text/>
 <axsl:value-of select="$label"/>
-<axsl:text/> Aggregate must contain only Member and AggregateInstance kind of entities</svrl:text>
+<axsl:text/> Aggregate must contain only Member, AggregateInstance, and VectorInstance kind of entities</svrl:text>
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
