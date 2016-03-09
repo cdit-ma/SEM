@@ -333,8 +333,12 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
     qCritical() << "processGraphml " << graphmlPath << " " << outputPath;
     //Run preprocess generation on the graphml, this will be used as the input to all transforms.
     QString processedGraphmlPath = preProcessIDL(graphmlPath, outputPath);
+
+    qCritical() << "replicateTransformGraphML " << processedGraphmlPath << " " << outputPath;
+
     //Run Replication transform on the graphml, this will be used as the input to all transforms.
     processedGraphmlPath = replicateTransformGraphML(processedGraphmlPath, outputPath);
+    processedGraphmlPath = deployTransformGraphML(processedGraphmlPath, outputPath);
 
 
     if(!isFileReadable(processedGraphmlPath)){
@@ -938,13 +942,18 @@ QString CUTSManager::replicateTransformGraphML(QString inputFilePath, QString ou
     return executeBlockedTransform(inputFilePath, "Replicate", outputPath);
 }
 
+QString CUTSManager::deployTransformGraphML(QString inputFilePath, QString outputPath)
+{
+    return executeBlockedTransform(inputFilePath, "Deploy", outputPath);
+}
+
 QString CUTSManager::executeBlockedTransform(QString inputFilePath, QString transformName, QString outputPath)
 {
     //Start a QProcess for this program
     QProcess* process = new QProcess();
     process->setWorkingDirectory(XSLTransformPath);
 
-    QString outFileName = outputPath + getProjectNameFromFile(inputFilePath) + ".graphml";
+    QString outFileName = outputPath + getProjectNameFromFile(inputFilePath) + "_" +  transformName + ".graphml";
 
     //Construct the arguments for the xsl transform
     QStringList arguments;

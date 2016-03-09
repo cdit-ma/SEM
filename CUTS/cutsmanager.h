@@ -118,6 +118,7 @@ private:
 
     QString preProcessIDL(QString inputFilePath, QString outputPath);
     QString replicateTransformGraphML(QString inputFilePath, QString outputPath);
+    QString deployTransformGraphML(QString inputFilePath, QString outputPath);
 
     QString executeBlockedTransform(QString inputFilePath, QString transformName, QString outputPath);
 
