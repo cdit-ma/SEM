@@ -19,6 +19,7 @@
 #include <QTimer>
 #include <QTime>
 #include <QMessageBox>
+#include "../../theme.h"
 
 
 CUTSExecutionWidget::CUTSExecutionWidget(QWidget *, CUTSManager *cutsManager)
@@ -30,7 +31,7 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *, CUTSManager *cutsManager)
     outputPathOk = false;
 
     setWindowTitle("Launch CUTS Execution");
-    setWindowIcon(QIcon(":/Actions/Cut.png"));
+    setWindowIcon(Theme::theme()->getImage("Actions", "Cut", Qt::black));
     setupLayout();
 
     connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
@@ -62,6 +63,9 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *, CUTSManager *cutsManager)
 
 
     loadingMovie = new QMovie(this);
+
+
+
     loadingMovie->setFileName(":/Actions/Waiting.gif");
     loadingMovie->start();
 
@@ -420,7 +424,9 @@ void CUTSExecutionWidget::setupLayout()
     jobLabel = new QLabel("Local Deployment");
     QLabel* iconLabel = new QLabel();
 
-    iconLabel->setPixmap(QPixmap::fromImage(QImage(":/Actions/Job_Build.png")));
+    iconLabel->setPixmap(Theme::theme()->getImage("Actions", "Job_Build"));
+
+
 
     jobLabel->setStyleSheet("font-family: Helvetica, Arial, sans-serif; font-size: 18px;  font-weight: bold;");
 
@@ -442,7 +448,8 @@ void CUTSExecutionWidget::setupLayout()
 
     graphmlPathButton = new QPushButton();
     graphmlPathButton->setIconSize(QSize(20,20));
-    graphmlPathButton->setIcon(QIcon(":/Actions/Search_Folder.png"));
+    graphmlPathButton->setIcon(Theme::theme()->getImage("Actions", "Search_Folder", Qt::black));
+
     connect(graphmlPathButton, SIGNAL(clicked()), this, SLOT(selectGraphMLPath()));
     modelLayout->addWidget(graphmlPathIcon);
     modelLayout->addWidget(modelLabel);
@@ -465,7 +472,7 @@ void CUTSExecutionWidget::setupLayout()
 
     outputPathButton = new QPushButton();
     outputPathButton->setIconSize(QSize(20,20));
-    outputPathButton->setIcon(QIcon(":/Actions/Search_Folder.png"));
+    outputPathButton->setIcon(Theme::theme()->getImage("Actions", "Search_Folder", Qt::black));
 
     connect(outputPathButton, SIGNAL(clicked()), this, SLOT(selectOutputPath()));
     outputLayout->addWidget(outputPathIcon);
@@ -482,7 +489,8 @@ void CUTSExecutionWidget::setupLayout()
     QLabel* durationIcon = new QLabel();
     durationIcon->setFixedSize(25,25);
     durationIcon->setScaledContents(true);
-    durationIcon->setPixmap(QPixmap::fromImage(QImage(":/Actions/Clock.png")));
+
+    durationIcon->setPixmap(Theme::theme()->getImage("Actions", "Clock"));
     durationWidget = new QSpinBox();
     durationWidget->setRange(10,6000);
     durationWidget->setValue(60);
@@ -496,9 +504,9 @@ void CUTSExecutionWidget::setupLayout()
 
     tabWidget = new QTabWidget();
     verticalLayout->addWidget(tabWidget, 1);
-    tabWidget->addTab(setupGenerateWidget(), QIcon(":/Actions/Generate.png"), "Generate");
-    tabWidget->addTab(setupBuildWidget(), QIcon(":/Actions/Build.png"), "Build");
-    tabWidget->addTab(setupExecuteWidget(),QIcon(":/Actions/Forward.png"),  "Execute");
+    tabWidget->addTab(setupGenerateWidget(), Theme::theme()->getImage("Actions", "Generate", Qt::black), "Generate");
+    tabWidget->addTab(setupBuildWidget(),  Theme::theme()->getImage("Actions", "Build", Qt::black), "Build");
+    tabWidget->addTab(setupExecuteWidget(), Theme::theme()->getImage("Actions", "Forward", Qt::black),  "Execute");
 
 
 
@@ -512,7 +520,8 @@ void CUTSExecutionWidget::setupLayout()
     nextButton = new QPushButton("Next");
 
     //Setup a QPushButton to stop the job.
-    stopProcessButton = new QPushButton(QIcon(":/Actions/Job_Stop.png"),"");
+
+    stopProcessButton = new QPushButton(Theme::theme()->getIcon("Actions", "Job_Stop"),"");
     stopProcessButton->setStyleSheet("border: 0px solid black;");
     stopProcessButton->setFixedSize(QSize(24,24));
     stopProcessButton->setToolTip("Stop the Process.");
@@ -548,7 +557,7 @@ void CUTSExecutionWidget::setIconSuccess(QLabel *label, bool success)
         fileName = "Success";
     }
     if(label){
-        label->setPixmap(QPixmap::fromImage(QImage(":/Actions/" + fileName + ".png")));
+        label->setPixmap(Theme::theme()->getImage("Actions", fileName));
     }
 }
 
