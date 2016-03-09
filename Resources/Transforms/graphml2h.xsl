@@ -200,6 +200,7 @@
 				<xsl:with-param name="implNode" select="$implNode" />
 				<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
 				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+				<xsl:with-param name="transformNodeFileKey" select="$transformNodeFileKey"/>
 				<xsl:with-param name="transformNodeFolderKey" select="$transformNodeFolderKey"/>
 				<xsl:with-param name="transformNodeWorkerKey" select="$transformNodeWorkerKey"/>
 				<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
@@ -236,6 +237,7 @@
 		<xsl:param name="implNode" />
 		<xsl:param name="transformNodeKindKey" />
 		<xsl:param name="transformNodeLabelKey" />
+		<xsl:param name="transformNodeFileKey" />
 		<xsl:param name="transformNodeFolderKey" />
 		<xsl:param name="transformNodeWorkerKey" />
 		<xsl:param name="transformNodeWorkerIDKey" />
@@ -260,6 +262,7 @@
 			<xsl:with-param name="implNode" select="$implNode" />
 			<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
 			<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+			<xsl:with-param name="transformNodeFileKey" select="$transformNodeFileKey"/>
 			<xsl:with-param name="transformNodeFolderKey" select="$transformNodeFolderKey"/>
 			<xsl:with-param name="transformNodeWorkerKey" select="$transformNodeWorkerKey"/>
 			<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
@@ -341,6 +344,7 @@
 		<xsl:param name="implNode" />
 		<xsl:param name="transformNodeKindKey" />
 		<xsl:param name="transformNodeLabelKey" />
+		<xsl:param name="transformNodeFileKey" />
 		<xsl:param name="transformNodeFolderKey" />
 		<xsl:param name="transformNodeWorkerKey" />
 		<xsl:param name="transformNodeWorkerIDKey" />
@@ -508,6 +512,7 @@
 			<xsl:with-param name="implNode" select="$implNode" />
 			<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
 			<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+			<xsl:with-param name="transformNodeFileKey" select="$transformNodeFileKey"/>
 			<xsl:with-param name="transformNodeWorkerKey" select="$transformNodeWorkerKey"/>
 			<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
 		</xsl:call-template>
@@ -572,7 +577,7 @@
 					<xsl:sort select="./gml:data[@key=$transformNodeFileKey]/text()" data-type="text" />
 					<xsl:value-of select="concat(./gml:data[@key=$transformNodeFileKey]/text(), $delim)"/>
 				</xsl:for-each>
-				<!-- Add Utility worker for any components that use a WE_ worker -->
+				<!-- Add Utility worker for any components that use a WE_ worker (this may become redundant in future) -->
 				<xsl:for-each select="$workerIncludes"> 
 					<xsl:if test="'WE' = substring-before( concat(./gml:data[@key=$transformNodeFileKey]/text(), '_'), '_') "> 
 						<xsl:value-of select="concat('WE_UTE', $delim)"/>
@@ -619,10 +624,12 @@
 		<xsl:param name="implNode" />
 		<xsl:param name="transformNodeKindKey" />
 		<xsl:param name="transformNodeLabelKey" />
+		<xsl:param name="transformNodeFileKey" />
 		<xsl:param name="transformNodeWorkerKey" />
 		<xsl:param name="transformNodeWorkerIDKey" />
 	
 		<xsl:variable name="workerVariables" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Process']/../gml:data[@key=$transformNodeWorkerKey][text() != '']/.." />
+		<xsl:variable name="workerIncludes" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Process']/../gml:data[@key=$transformNodeFileKey][text() != '']/.." />
 		
 		<!-- find all workers and add include paths -->
 		<xsl:if test="count($workerVariables) &gt; 0" >
@@ -645,10 +652,10 @@
 					</xsl:otherwise>
 					</xsl:choose>
 				</xsl:for-each>
-				<!-- Add Utility worker for any components that use a WE_ worker, if not already included -->
-				<xsl:for-each select="$workerVariables"> 
-					<xsl:if test="( 'WE' = substring-before( concat(./gml:data[@key=$transformNodeWorkerKey]/text(), '_'), '_') 
-								and count($utilityVar) = 0 )" > 
+				<!-- Add Utility worker for any components that use a WE_ worker, if not already included (this may become redundant in future) -->
+				<xsl:for-each select="$workerIncludes"> 
+					<xsl:if test="( 'WE' = substring-before( concat(./gml:data[@key=$transformNodeFileKey]/text(), '_'), '_') 
+								and count($utilityVar) = 0 )"> 
 						<xsl:value-of select="concat('WE_UTE', $subDelim, 'we_ute', $delim)"/>
 					</xsl:if> 
 				</xsl:for-each>
@@ -682,6 +689,8 @@
 				<xsl:choose>
 				<!-- VectorOperations are not defined as variables, will be inline code generated process in cpp -->
 				<xsl:when test="$processWorker = 'VectorOperation'" />
+				<xsl:when test="$processName = 'cppCode'" />
+				<xsl:when test="$processName = 'cppHeader'" />
 				<xsl:otherwise>
 					<xsl:value-of select="concat('&#xA;// worker variable: ', $processName, '&#xA;')" />
 					<xsl:value-of select="concat($processWorker, ' ', $processName, '_;&#xA;')" />
