@@ -3,6 +3,8 @@ Version 1.3.0:
             * Added a Report Bug link to the github account.
             * Fixed the Read-Only Snippet.
             * Implemented new GraphML Parser.
+            * Implemented Themes
+            * Settings is now a Tabbed widget instead of a list.
 
         GitHub Issues Resolved:
             * 45, 26

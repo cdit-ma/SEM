@@ -40,6 +40,12 @@ ModelItem::ModelItem(NodeAdapter *node, NodeView *view):  GraphMLItem(node, 0, G
     updateFromData();
 
     setNodeView(view);
+    themeChanged();
+}
+
+ModelItem::~ModelItem()
+{
+    delete middlewareItem;
 }
 
 void ModelItem::adjustPos(QPointF delta)
@@ -70,27 +76,12 @@ QRectF ModelItem::boundingRect() const
     return QRectF(QPointF(left, top), QPointF(right, bot));
 }
 
-QRectF ModelItem::topInputRect() const
+QRectF ModelItem::centerInputRect() const
 {
     QRectF rect = QRectF();
-    rect.setWidth(width / 2);
-    rect.setHeight(height / 8);
-    rect.moveTop(-rect.height()/2);
-    rect.moveRight(-width /4);
-
-    //rect.moveTopLeft(QPointF(-rect.width()/2, -rect.height()));
-    return rect;
-}
-
-QRectF ModelItem::bottomInputRect() const
-{
-    QRectF rect = QRectF();
-    rect.setWidth(width / 2);
-    rect.setHeight(height / 8);
-    rect.moveTop(-rect.height()/2);
-
-    rect.moveLeft(width /4);
-    //rect.moveLeft(QPointF(-rect.width()/2, 0));
+    rect.setWidth(width);
+    rect.setHeight(height / 6);
+    rect.moveCenter(QPointF(0,0));
     return rect;
 }
 
@@ -158,32 +149,36 @@ void ModelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         painter->drawLine(QPointF(-width / 2, 0), QPointF(width / 2, 0));
     }
 
-    //Setup the Pen
-    painter->setPen(getCurrentPen());
-    painter->setBrush(modelCircleColor);
+    if(true){
+        //CLIP ON CIRCLE
+        QPainterPath painterPath;
+        painterPath.setFillRule(Qt::WindingFill);
+        painterPath.addEllipse(quadrant);
+        painterPath.addRect(centerInputRect());
 
-    //Draw the center circle
-    painter->drawEllipse(quadrant);
+        painter->setPen(getCurrentPen());
+        painter->setBrush(Theme::theme()->getBackgroundColor());
+        painter->drawPath(painterPath.simplified());
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(Theme::theme()->getAltBackgroundColor());
+        painter->drawRect(centerInputRect());
+    }
 }
 
 void ModelItem::setInSubView(bool inSubview)
 {
-    if(topInputItem && bottomInputItem){
-        topInputItem->setVisible(!inSubview);
-        bottomInputItem->setVisible(!inSubview);
+    if(middlewareItem){
+        middlewareItem->setVisible(!inSubview);
     }
     GraphMLItem::setInSubView(inSubview);
 }
 
 void ModelItem::dataChanged(QString keyName, QVariant data)
 {
-    if(keyName == "label"){
-        if(topInputItem){
-            topInputItem->setValue(data.toString());
-        }
-    }else if(keyName == "middleware"){
-        if(bottomInputItem){
-            bottomInputItem->setValue(data.toString());
+    if(keyName == "middleware"){
+        if(middlewareItem){
+            middlewareItem->setValue(data.toString());
         }
     }
 }
@@ -192,22 +187,14 @@ void ModelItem::dataEditModeRequested()
 {
     InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
     if (inputItem){
-        QString dataKey = "label";
+        QString dataKey = "middleware";
         QString dataValue = inputItem->getValue();
 
-        if(inputItem == bottomInputItem){
-            dataKey = "middleware";
-        }
-
         if (isDataEditable(dataKey)){
-            if(inputItem == topInputItem){
-                topInputItem->setEditMode(true);
-            }else{
-                QPointF botLeft = inputItem->sceneBoundingRect().bottomLeft();
-                QPointF botRight = inputItem->sceneBoundingRect().bottomRight();
-                QLineF botLine = QLineF(botLeft,botRight);
-                getNodeView()->showDropDown(this, botLine, dataKey, dataValue);
-            }
+            QPointF botLeft = inputItem->sceneBoundingRect().bottomLeft();
+            QPointF botRight = inputItem->sceneBoundingRect().bottomRight();
+            QLineF botLine = QLineF(botLeft,botRight);
+            getNodeView()->showDropDown(this, botLine, dataKey, dataValue);
         }
     }
 }
@@ -217,11 +204,7 @@ void ModelItem::dataChanged(QString dataValue)
     InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
     if (inputItem){
 
-        QString keyValue = "label";
-
-        if(inputItem == bottomInputItem){
-            keyValue = "middleware";
-        }
+        QString keyValue = "middleware";
 
         if(!getEntityAdapter()->isDataProtected(keyValue)){
             emit GraphMLItem_TriggerAction("Set New Data Value");
@@ -235,21 +218,11 @@ void ModelItem::dataChanged(QString dataValue)
  * @brief ModelItem::themeChanged
  * @param theme
  */
-void ModelItem::themeChanged(VIEW_THEME theme)
+void ModelItem::themeChanged()
 {
-    modelCircleColor = GET_VIEW_COLOR(theme);
-    /*
-    switch (theme) {
-    case VT_NORMAL_THEME:
-        modelCircleColor = QColor(170,170,170);
-        break;
-    case VT_DARK_THEME:
-        modelCircleColor = QColor(70,70,70);
-        break;
-    default:
-        break;
-    }
-    */
+    modelCircleColor = Theme::theme()->getBackgroundColor();
+    rectColor = Theme::theme()->getAltBackgroundColor();
+    middlewareItem->setTextColor(Theme::theme()->getTextColor());
 }
 
 
@@ -264,27 +237,21 @@ void ModelItem::setupInputItems()
 {
     qreal fontSize = LABEL_RATIO * height;
 
-    topInputItem = new InputItem(this, "asd", false);
-    bottomInputItem = new InputItem(this, "asd", true);
+    middlewareItem = new InputItem(this, "MIDDLEWARE", true);
 
     //Setup Alignment
-    bottomInputItem->setAlignment(Qt::AlignCenter);
-    topInputItem->setAlignment(Qt::AlignCenter);
+    middlewareItem->setAlignment(Qt::AlignCenter);
 
     QFont textFont;
     textFont.setPixelSize(fontSize);
-    bottomInputItem->setFont(textFont);
     textFont.setBold(true);
-    topInputItem->setFont(textFont);
+    middlewareItem->setFont(textFont);
 
     //Connect to signals.
-    connect(topInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(dataEditModeRequested()));
-    connect(bottomInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(dataEditModeRequested()));
-    connect(topInputItem, SIGNAL(InputItem_ValueChanged(QString)), this, SLOT(dataChanged(QString)));
-    connect(bottomInputItem, SIGNAL(InputItem_ValueChanged(QString)), this, SLOT(dataChanged(QString)));
+    connect(middlewareItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(dataEditModeRequested()));
+    connect(middlewareItem, SIGNAL(InputItem_ValueChanged(QString)), this, SLOT(dataChanged(QString)));
 
-    topInputItem->updatePosSize(topInputRect());
-    bottomInputItem->updatePosSize(bottomInputRect());
+    middlewareItem->updatePosSize(centerInputRect());
 }
 
 void ModelItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
