@@ -1752,6 +1752,7 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         keysValues << "Attribute" << "Member" << "Variable";
         validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger" << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber" << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
         newKey->addValidValues(validValues, keysValues);
+        newKey->setAllowAllValues("Variable");
 
         keysValues.clear();;
         validValues.clear();

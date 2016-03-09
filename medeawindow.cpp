@@ -200,6 +200,8 @@ void MedeaWindow::themeSettingChanged(QString keyName, QVariant value)
        Theme::theme()->setBackgroundColor(color);
     }else if(keyName == THEME_BG_ALT_COLOR){
        Theme::theme()->setAltBackgroundColor(color);
+    }else if(keyName == THEME_DISABLED_BG_COLOR){
+       Theme::theme()->setDisabledBackgroundColor(color);
     }else if(keyName == THEME_HIGHLIGHT_COLOR){
        Theme::theme()->setHighlightColor(color);
     }else if(keyName == THEME_MENU_TEXT_COLOR){
@@ -271,7 +273,8 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
 
     // search widgets
     searchBar->setEnabled(enable);
-    searchButton->setEnabled(enable);
+    searchBar->clear();
+
     searchOptionButton->setEnabled(enable);
 
     // dock buttons
@@ -866,7 +869,9 @@ void MedeaWindow::updateMenuIcons()
     actionPopupSubview->setIcon(getIcon("Actions", "Popup"));
     actionBack->setIcon(getIcon("Actions", "Backward"));
     actionForward->setIcon(getIcon("Actions", "Forward"));
-    actionContextMenu->setIcon(getIcon("Actions", "Toolbar"));
+    actionContextMenu->setIcon(getIcon("Actions", "Toolbar"));\
+
+    actionToggleGrid->setIcon(getIcon("Actions", "Grid_On"));
 
 
     closeProjectButton->setIcon(getIcon("Actions", "Close"));
@@ -1043,6 +1048,7 @@ void MedeaWindow::setupSearchTools()
     searchBar = new QLineEdit(searchBarDefaultText, this);
     searchSuggestions = new SearchSuggestCompletion(searchBar);
     searchButton = new QPushButton(getIcon("Actions", "Search"), "");
+    searchButton->setEnabled(false);
     searchOptionButton = new QPushButton(getIcon("Actions", "Settings"), "");
     searchOptionMenu = new QMenu(searchOptionButton);
     searchResults = new QDialog(this);
@@ -1604,6 +1610,7 @@ void MedeaWindow::setupMinimap()
     minimap->centerView();
 
     minimapTitleBar = new QWidget(this);
+    minimapTitleBar->setAttribute(Qt::WA_Hover);
 
     minimapLabel = new QLabel("Minimap", this);
     minimapLabel->setFont(guiFont);
@@ -1611,7 +1618,8 @@ void MedeaWindow::setupMinimap()
     minimapLabel->setFixedSize(RIGHT_PANEL_WIDTH - 10, 20);
 
 
-    closeMinimapButton = new ActionButton(view_showMinimap);
+    closeMinimapButton = new QToolButton();
+    closeMinimapButton->setDefaultAction(view_showMinimap);
     closeMinimapButton->setToolTip("Hide Minimap");
 
     QHBoxLayout* minimapHeaderLayout = new QHBoxLayout();
@@ -1619,6 +1627,7 @@ void MedeaWindow::setupMinimap()
     minimapHeaderLayout->setSpacing(0);
     minimapHeaderLayout->setMargin(0);
     minimapHeaderLayout->setContentsMargins(0,0,0,0);
+
     minimapHeaderLayout->addWidget(closeMinimapButton);
     minimapHeaderLayout->addWidget(minimapLabel, 1);
     //Centralize.
@@ -1908,7 +1917,7 @@ void MedeaWindow::setupConnections()
     connect(nodeView, SIGNAL(view_searchFinished(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
 
 
-    connect(searchBar, SIGNAL(textEdited(QString)), this, SLOT(updateSearchSuggestions()));
+    connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(updateSearchSuggestions()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
 
     connect(searchDialog, SIGNAL(searchDialog_refresh()), this, SLOT(on_actionSearch_triggered()));
@@ -2032,6 +2041,7 @@ void MedeaWindow::saveTheme()
     if(appSettings){
         appSettings->setSetting(THEME_BG_COLOR, Theme::theme()->getBackgroundColor());
         appSettings->setSetting(THEME_BG_ALT_COLOR, Theme::theme()->getAltBackgroundColor());
+        appSettings->setSetting(THEME_DISABLED_BG_COLOR, Theme::theme()->getDisabledBackgroundColor());
         appSettings->setSetting(THEME_HIGHLIGHT_COLOR, Theme::theme()->getHighlightColor());
 
         appSettings->setSetting(THEME_MENU_TEXT_COLOR, Theme::theme()->getTextColor(Theme::CR_NORMAL));
@@ -2052,27 +2062,30 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setBackgroundColor(QColor(70,70,70));
         Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
         Theme::theme()->setHighlightColor(QColor(255,165,70));
+        Theme::theme()->setDisabledBackgroundColor(QColor(162,162,162));
 
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
         Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
-        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(165,165,165));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(199,199,199));
 
 
         Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
-        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(165,165,165));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(199,199,199));
     }else{
         Theme::theme()->setBackgroundColor(QColor(170,170,170));
         Theme::theme()->setAltBackgroundColor(QColor(238,238,239));
         Theme::theme()->setHighlightColor(QColor(75,110,175));
+        Theme::theme()->setDisabledBackgroundColor(QColor(162,162,162));
+
 
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
         Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(255,255,255));
-        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(70,70,70));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(199,199,199));
 
         Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
-        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(70,70,70));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(199,199,199));
     }
     saveTheme();
     Theme::theme()->applyTheme();
@@ -2148,7 +2161,7 @@ bool MedeaWindow::closeProject()
         QString bgColorStr = Theme::QColorToHex(bgColor) + ";";
         QString textColorStr = Theme::QColorToHex(textColor) + ";";
 
-        msgBox.setStyleSheet("QMessageBox{background:" + bgColorStr + "color: " + textColorStr + "}");
+        msgBox.setStyleSheet("QMessageBox{background:" + bgColorStr + "color: " + textColorStr + ";}");
 
         msgBox.setIconPixmap(getDialogPixmap("Actions", "Save"));
         msgBox.setButtonText(QMessageBox::Yes, "Save");
@@ -4636,6 +4649,7 @@ void MedeaWindow::updateStyleSheets()
     Theme* theme = Theme::theme();
 
     QString BGColor = theme->getBackgroundColorHex();
+    QString disabledBGColor = theme->getDisabledBackgroundColorHex();
     QString altBGColor = theme->getAltBackgroundColorHex();
     QString highlightColor = theme->getHighlightColorHex();
 
@@ -4643,11 +4657,14 @@ void MedeaWindow::updateStyleSheets()
     QString textSelectedColor = Theme::theme()->getTextColorHex(Theme::CR_SELECTED);
     QString textDisabledColor = Theme::theme()->getTextColorHex(Theme::CR_DISABLED);
 
+    int count = 0;
     if(loadingLabel){
+
         loadingLabel->setStyleSheet("QLabel{ color:" + textColor + ";}");
     }
 
     if(recentProjectsListWidget){
+
         recentProjectsListWidget->setStyleSheet(
                     "background:" + altBGColor + ";"
                     "color:" + textColor + ";"
@@ -4656,12 +4673,14 @@ void MedeaWindow::updateStyleSheets()
     }
 
     if(projectName){
+
         projectName->setStyleSheet(
                     "QPushButton{ color:" + textColor + ";font-size: 16px; text-align: left; }"
                     "QTooltip{ background: white; color: black; }"
                     );
     }
     if(menu){
+
         menu->setStyleSheet("QMenu{"
                             "background:" + altBGColor + ";}"
                             "QMenu::item {"
@@ -4681,41 +4700,54 @@ void MedeaWindow::updateStyleSheets()
     }
 
     if(menuButton){
+
         menuButton->setStyleSheet("QPushButton{background: " + altBGColor+ ";}"
                                   "QPushButton:hover{background: " + highlightColor + ";}"
                                   "QPushButton::menu-indicator{ image: none; }"
                                   );
     }
 
-    QString pushButtonStyle = "QPushButton{background: " + altBGColor + ";border-radius: 2px}"
-                                 "QPushButton:hover{background: " + highlightColor + ";}";
+    QString pushButtonStyle = "QPushButton{background:" + altBGColor + ";border-radius: 2px;}"
+                              "QPushButton:hover{background: " + highlightColor + ";}"
+                              "QPushButton:disabled{background: " + disabledBGColor + ";}";
 
     if(closeProjectButton){
+
         closeProjectButton->setStyleSheet(pushButtonStyle);
     }
 
     if(searchButton){
+
         searchButton->setStyleSheet(pushButtonStyle);
     }
 
     if(searchOptionButton){
+
         searchOptionButton->setStyleSheet(pushButtonStyle);
     }
 
+    minimapBox->setStyleSheet("background: " + altBGColor + ";"
+                                    "color: " + textColor + ";"
+                                 "border: 1px solid rgb(50,50,50);"
+                                 "border-bottom: none;"
+                                 "font-size: 12px;");
+
+
     if(closeMinimapButton){
-        closeMinimapButton->setStyleSheet(pushButtonStyle);
+
+        closeMinimapButton->setStyleSheet("QToolButton{background:" + altBGColor + ";border-radius:0px;}"
+                                          "QToolButton:hover{background: " + highlightColor + ";}"
+                                          );
     }
 
-    minimapTitleBar->setStyleSheet("background-color: " + altBGColor + ";"
-                                   "color: " + textColor + ";"
-                                "border: 1px solid rgb(50,50,50);"
-                                "border-bottom: none;"
-                                "font-size: 12px;");
+
+
 
     searchButton->setIcon(getIcon("Actions", "Search"));
     searchOptionButton->setIcon(getIcon("Actions", "Settings"));
 
     if(searchBar){
+
         searchBar->setStyleSheet("QLineEdit{background: " + altBGColor + "; color: " + textDisabledColor + ";border: 2px solid;border-color:" + altBGColor + "}"
                                  "QLineEdit:focus{border-color:" + highlightColor + "; background: " + altBGColor + ";color:" + textColor +";}"
                                  );
@@ -4727,6 +4759,7 @@ void MedeaWindow::updateStyleSheets()
 
 
     if(toolbarButton){
+
         toolbarButton->setStyleSheet(
                     "QToolButton{ background:"+ altBGColor + ";color:" + textColor + "; border-radius: 5px; }"
                     "QToolButton:hover{background:" + highlightColor +";color:" + textSelectedColor + ";}"
@@ -4738,17 +4771,16 @@ void MedeaWindow::updateStyleSheets()
                   "margin: 0px 1px;"
                   "border-radius: 10px;"
                   "border: 1px solid rgb(160,160,160);"
-                  "background:"+ altBGColor + ";"
+                  "background:" + altBGColor + ";"
                   "}"
                   "QToolButton:hover {"
                   "border: 2px solid rgb(140,140,140);"
                   "background:" + highlightColor +";"
                   "}"
-                  "QToolButton:disabled { background-color: rgb(150,150,150);}"
-                  "QToolButton:pressed { background-color: white; }"
+                  "QToolButton:disabled{background:" + disabledBGColor + ";}"
+                  "QToolButton:pressed{background: white;}"
                   "QToolButton[popupMode=\"1\"] {"
                   "padding-right: 15px;"
-                  "}"
                   "QToolButton::menu-button {"
                   "border-left: 1px solid rgb(150,150,150);"
                   "border-top-right-radius: 10px;"
@@ -4763,6 +4795,7 @@ void MedeaWindow::updateStyleSheets()
                   "border: 0px;"
                   "margin: 0px;"
                   "padding: 0px;"
+                  "}"
                   "}"
                   "QMessageBox{background-color:" + altBGColor + ";}"
                     );

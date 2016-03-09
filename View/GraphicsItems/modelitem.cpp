@@ -80,7 +80,7 @@ QRectF ModelItem::centerInputRect() const
 {
     QRectF rect = QRectF();
     rect.setWidth(width);
-    rect.setHeight(height / 6);
+    rect.setHeight(height / 5);
     rect.moveCenter(QPointF(0,0));
     return rect;
 }

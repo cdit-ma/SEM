@@ -499,7 +499,7 @@ private:
     QMenu* dataKeysMenu;
 
     QWidget* minimapTitleBar;
-    ActionButton* closeMinimapButton;
+    QToolButton* closeMinimapButton;
     QLabel* minimapLabel;
 
     QStringList dataKeys;

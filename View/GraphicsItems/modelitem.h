@@ -11,7 +11,7 @@
 #define MODEL_WIDTH 72
 #define MODEL_HEIGHT 72
 
-#define LABEL_RATIO (1.0 / 9.0)
+#define LABEL_RATIO (1.0 / 10.0)
 
 class ModelItem : public GraphMLItem
 {

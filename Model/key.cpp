@@ -210,7 +210,7 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
                 //Check for valid values
                 if(gotValidValues(entityNodeKind)){
                     QStringList values = getValidValues(entityNodeKind);
-                    if(values.contains(dataValue.toString())){
+                    if(values.contains(dataValue.toString()) || ignoreValues[entityNodeKind]){
                         okay = true;
                     }else{
                         errorString = "Value doesn't match any valid values: " + values.join(",");
@@ -323,6 +323,11 @@ void Key::addValidValue(QString nodeKind, QString value)
         values.append(value);
         validValues[nodeKind] = values;
     }
+}
+
+void Key::setAllowAllValues(QString nodeKind)
+{
+    ignoreValues[nodeKind] = true;
 }
 
 void Key::addInvalidCharacters(QString nodeKind, QString invalidCharacter)

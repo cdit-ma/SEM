@@ -86,14 +86,15 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define THEME_SET_DARK_THEME "07-00-Set_Dark_Theme"
 #define THEME_BG_COLOR "07-01-Background_Color"
 #define THEME_BG_ALT_COLOR "07-02-Alternate_Background_Color"
-#define THEME_HIGHLIGHT_COLOR "07-03-Highlight_Color"
-#define THEME_MENU_TEXT_COLOR "07-04-Menu_Text_Color"
-#define THEME_MENU_TEXT_DISABLED_COLOR "07-05-Menu_Text_Disabled_Color"
-#define THEME_MENU_TEXT_SELECTED_COLOR "07-06-Menu_Text_Selected_Color"
-#define THEME_MENU_ICON_COLOR "07-07-Menu_Icon_Tint_Color"
-#define THEME_MENU_ICON_DISABLED_COLOR "07-08-Menu_Icon_Disabled_Tint_Color"
-#define THEME_MENU_ICON_SELECTED_COLOR "07-09-Menu_Icon_Selected_Tint_Color"
-#define THEME_ICON_TINT_COLOR "07-10-Default_Icon_Tint_Color"
+#define THEME_DISABLED_BG_COLOR "07-03-Disabled_Background_Color"
+#define THEME_HIGHLIGHT_COLOR "07-04-Highlight_Color"
+#define THEME_MENU_TEXT_COLOR "07-05-Menu_Text_Color"
+#define THEME_MENU_TEXT_DISABLED_COLOR "07-06-Menu_Text_Disabled_Color"
+#define THEME_MENU_TEXT_SELECTED_COLOR "07-07-Menu_Text_Selected_Color"
+#define THEME_MENU_ICON_COLOR "07-08-Menu_Icon_Tint_Color"
+#define THEME_MENU_ICON_DISABLED_COLOR "07-09-Menu_Icon_Disabled_Tint_Color"
+#define THEME_MENU_ICON_SELECTED_COLOR "07-10-Menu_Icon_Selected_Tint_Color"
+#define THEME_ICON_TINT_COLOR "07-11-Default_Icon_Tint_Color"
 
 #define MINIMUM_TEXT_SIZE 6
 

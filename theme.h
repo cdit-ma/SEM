@@ -19,6 +19,9 @@ public:
     QColor getBackgroundColor();
     QString getBackgroundColorHex();
 
+    QColor getDisabledBackgroundColor();
+    QString getDisabledBackgroundColorHex();
+
     QColor getAltBackgroundColor();
     QString getAltBackgroundColorHex();
 
@@ -26,6 +29,7 @@ public:
     QString getHighlightColorHex();
 
     void setBackgroundColor(QColor color);
+    void setDisabledBackgroundColor(QColor color);
     void setAltBackgroundColor(QColor color);
     void setHighlightColor(QColor color);
 
@@ -68,7 +72,7 @@ private:
     QColor highlightColor;
     QColor backgroundColor;
     QColor altBackgroundColor;
-
+    QColor disabledBackgroundColor;
     QColor iconColor;
 
     bool themeChanged;

@@ -20,6 +20,17 @@ QString Theme::getBackgroundColorHex()
     return Theme::QColorToHex(color);
 }
 
+QColor Theme::getDisabledBackgroundColor()
+{
+    return disabledBackgroundColor;
+}
+
+QString Theme::getDisabledBackgroundColorHex()
+{
+    QColor color = getDisabledBackgroundColor();
+    return Theme::QColorToHex(color);
+}
+
 QColor Theme::getAltBackgroundColor()
 {
     return altBackgroundColor;
@@ -46,6 +57,14 @@ void Theme::setBackgroundColor(QColor color)
 {
     if(backgroundColor != color){
         backgroundColor = color;
+        updateValid();
+    }
+}
+
+void Theme::setDisabledBackgroundColor(QColor color)
+{
+    if(disabledBackgroundColor != color){
+        disabledBackgroundColor = color;
         updateValid();
     }
 }
@@ -241,7 +260,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QColor tintColor)
 void Theme::updateValid()
 {
     bool gotAllColors = true;
-    if(highlightColor.isValid() && backgroundColor.isValid() && altBackgroundColor.isValid() && iconColor.isValid()){
+    if(highlightColor.isValid() && backgroundColor.isValid() && altBackgroundColor.isValid() && iconColor.isValid() && disabledBackgroundColor.isValid()){
         QList<COLOR_ROLE> states;
         states << CR_NORMAL << CR_DISABLED << CR_SELECTED;
 
