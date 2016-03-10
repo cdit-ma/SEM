@@ -60,7 +60,7 @@ public slots:
     void hide();
     void setVisible(bool visible);
 
-    void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
+    void setupTheme();
 
     // these slots and their corresponding list are only needed for Mac
     void appendToOpenMenusList();
@@ -86,6 +86,7 @@ private:
     void setupHardwareList(QList<EntityItem*> hardware);
     void setupComponentList(QString actionKind);
 
+    void updateToolButtonIcons();
     QToolButton* constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip = "", QString iconPath = "Actions");
     QFrame* constructFrameSeparator();
 

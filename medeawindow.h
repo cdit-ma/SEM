@@ -428,8 +428,6 @@ private:
     QVBoxLayout* toolbarLayout;
 
     QLabel* toolbarButtonLabel;
-    QPixmap expandPixmap;
-    QPixmap contractPixmap;
 
     QToolBar* toolbar;
     QAction* toolbarAction;
@@ -442,6 +440,7 @@ private:
     QHash<QString, QAction*> toolbarActionLookup;
     QHash<QString, ActionButton*> toolbarButtonLookup;
 
+    QAction* actionToggleToolbar;
     QAction* leftMostSpacer;
     QAction* leftMidSpacer;
     QAction* midLeftSpacer;
@@ -512,6 +511,7 @@ private:
     NodeViewMinimap* minimap;
     QWidget* minimapBox;
 
+    QGraphicsDropShadowEffect *projectNameShadow;
     QString currentProjectFilePath;
 
     AppSettings* appSettings;

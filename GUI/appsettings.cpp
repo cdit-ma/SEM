@@ -371,8 +371,10 @@ void AppSettings::setupLayout()
 
 
     clearChangesButton = new QPushButton("Clear Changes");
+    clearChangesButton->setObjectName("original");
 
     applyButton = new QPushButton("Apply Changes");
+    applyButton->setObjectName("original");
     if(settingFileWriteable){
         applyButton->setToolTip("Updates settings.ini file.");
     }else{

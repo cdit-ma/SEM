@@ -21,6 +21,8 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
         return;
     }
 
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(setupTheme()));
+
     nodeView = parentView;
     nodeItem = 0;
 
@@ -40,7 +42,6 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     // the toolbar to have a translucent background and a mock shadow
     shadowFrame = new QFrame(this);
     mainFrame = new QFrame(this);
-
     setupToolBar();
     setupTheme();
 
@@ -467,12 +468,19 @@ void ToolbarWidget::setVisible(bool visible)
  * @brief ToolbarWidget::setupTheme
  * @param theme
  */
-void ToolbarWidget::setupTheme(VIEW_THEME theme)
+void ToolbarWidget::setupTheme()
 {
+    updateToolButtonIcons();
+    QColor backgroundColor = Theme::theme()->theme()->getAltBackgroundColor();
+    backgroundColor.setAlpha(200);
+
+    QString mainBackground = Theme::theme()->QColorToHex(backgroundColor) +";";
+    qCritical() << mainBackground;
+
     QString buttonBorder = "1px solid rgba(160,160,160,250);";
     QString hoverBorder = "1.5px solid rgba(170,170,170,250);";
 
-    QString mainBackground = "rgba(250,250,250,200);";
+    //QString mainBackground = "rgba(250,250,250,200);";
     QString shadowBackground = "rgba(50,50,50,150);";
 
     QString background = "rgba(240,240,240,250);";
@@ -481,11 +489,12 @@ void ToolbarWidget::setupTheme(VIEW_THEME theme)
     QString hoverTextColor = "black;";
     QString hoverBackground = "rgba(230,230,230,250);";
 
+    VIEW_THEME theme = VT_DARK_THEME;
     switch (theme) {
     case VT_DARK_THEME:
         buttonBorder = "1px solid rgba(100,100,100,250);";
         hoverBorder = "1.5px solid rgba(100,100,100,250);";
-        mainBackground = "rgba(150,150,150,200);";
+        //mainBackground = "rgba(150,150,150,200);";
         shadowBackground = "rgba(50,50,50,200);";
         background = "rgba(130,130,130,250);";
         selectedColor = "yellow;";
@@ -495,7 +504,7 @@ void ToolbarWidget::setupTheme(VIEW_THEME theme)
         break;
     }
 
-    setStyleSheet("QToolButton {"
+    setStyleSheet(/*"QToolButton {"
                   "border:" + buttonBorder +
                   "background-color: rgba(240,240,240,240);"
                   "}"
@@ -511,7 +520,7 @@ void ToolbarWidget::setupTheme(VIEW_THEME theme)
                   "border-top-right-radius: 10px;"
                   "border-bottom-right-radius: 10px;"
                   "width: 15px;"
-                  "}"
+                  "}"*/
                   "QRadioButton {"
                   "padding: 8px 10px 8px 8px;"
                   "color:" + textColor +
@@ -1437,6 +1446,38 @@ void ToolbarWidget::setupComponentList(QString actionKind)
         // set up an action for each Component definition
         constructSubMenuAction(component, actionMenu);
     }
+}
+
+void ToolbarWidget::updateToolButtonIcons()
+{
+    Theme* theme = Theme::theme();
+    addChildButton->setIcon(theme->getIcon("Actions", "Plus"));
+    deleteButton->setIcon(theme->getIcon("Actions", "Delete"));
+    connectButton->setIcon(theme->getIcon("Actions", "ConnectTo"));
+    hardwareButton->setIcon(theme->getIcon("Actions", "HardwareNode"));
+
+    definitionButton->setIcon(theme->getIcon("Actions", "Definition"));
+    implementationButton->setIcon(theme->getIcon("Actions", "Implementation"));
+    instancesButton->setIcon(theme->getIcon("Actions", "Instance"));
+
+    alignVerticallyButton->setIcon(theme->getIcon("Actions", "Align_Vertical"));
+    alignHorizontallyButton->setIcon(theme->getIcon("Actions", "Align_Horizontal"));
+
+    exportSnippetButton->setIcon(theme->getIcon("Actions", "ExportSnippet"));
+    importSnippetButton->setIcon(theme->getIcon("Actions", "ImportSnippet"));
+
+    getCPPButton->setIcon(theme->getIcon("Actions", "getCPP"));
+
+    setReadOnlyButton->setIcon(theme->getIcon("Actions", "Lock_Closed"));
+    unsetReadOnlyButton->setIcon(theme->getIcon("Actions", "Lock_Open"));
+
+    connectionsButton->setIcon(theme->getIcon("Actions", "Connections"));
+    popupNewWindow->setIcon(theme->getIcon("Actions", "Popup"));
+    displayedChildrenOptionButton->setIcon(theme->getIcon("Actions", "MenuCluster"));
+
+    expandButton->setIcon(theme->getIcon("Actions", "Expand"));
+    contractButton->setIcon(theme->getIcon("Actions", "Contract"));
+    wikiButton->setIcon(theme->getIcon("Actions", "Wiki"));
 }
 
 

@@ -38,7 +38,7 @@
 //#define MIN_WIDTH 1280
 //#define MIN_HEIGHT (720 + SPACER_SIZE*3)
 
-#define TOOLBAR_BUTTON_WIDTH 46
+#define TOOLBAR_BUTTON_WIDTH 42
 #define TOOLBAR_BUTTON_HEIGHT 40
 #define TOOLBAR_GAP 5
 
@@ -60,6 +60,8 @@
 #define GME_FILE_SUFFIX ".xme"
 
 #define GITHUB_URL "https://github.com/cdit-ma/MEDEA/"
+
+#define THEME_STYLE_QPUSHBUTTON "THEME_STYLE_QPUSHBUTTON"
 // USER SETTINGS
 
 /**
@@ -484,17 +486,27 @@ void MedeaWindow::initialiseGUI()
     dataTable->resize(dataTable->width(), 0);
 
     // setup menu, close project and project name buttons
-    menuButton = new QPushButton(getIcon("Actions", "MEDEA"), "");
-    menuButton->setFixedSize(55, 45);
+    menuButton = new QPushButton(getIcon("Actions", "MEDEAIcon"), "");
+    menuButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    menuButton->setFixedSize(50, 50);
     menuButton->setIconSize(menuButton->size() * 0.75);
 
 
     projectName = new QPushButton("");
+    projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
     projectName->setFlat(true);
-    projectName->setStyleSheet("QPushButton{ color: black; font-weight: bold; font-size: 16px; text-align: left; }"
-                               "QTooltip{ background: white; color: black; }");
+    projectName->setStyleSheet("QPushButton{font-weight: bold; font-size: 16px; text-align: left;}"
+                                  "QTooltip{ background: white; color: black; }");
+
+    projectNameShadow = new QGraphicsDropShadowEffect(this);
+    projectNameShadow->setBlurRadius(0);
+    projectNameShadow->setColor(QColor("#000000"));
+    projectNameShadow->setOffset(1,1);
+    projectName->setGraphicsEffect(projectNameShadow);
+
 
     closeProjectButton = new QPushButton(getIcon("Actions", "Close"), "");
+    projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
     closeProjectButton->setToolTip("Close Current Project");
     closeProjectButton->setFixedSize(menuButton->height()/2.5, menuButton->height()/2.5);
 
@@ -785,6 +797,10 @@ void MedeaWindow::setupMenu()
     actionToggleGrid->setToolTip("Turn Off Grid");
     actionToggleGrid->setCheckable(true);
 
+    actionToggleToolbar = new QAction(getIcon("Actions", "Arrow_Down"), "Toggle Toolbar", this);
+    actionToggleToolbar->setToolTip("Toggle Toolbar");
+    actionToggleToolbar->setCheckable(true);
+
     //Model Actions
     modelActions << file_closeProject;
     modelActions << file_saveProject;
@@ -869,7 +885,9 @@ void MedeaWindow::updateMenuIcons()
     actionPopupSubview->setIcon(getIcon("Actions", "Popup"));
     actionBack->setIcon(getIcon("Actions", "Backward"));
     actionForward->setIcon(getIcon("Actions", "Forward"));
-    actionContextMenu->setIcon(getIcon("Actions", "Toolbar"));\
+    actionContextMenu->setIcon(getIcon("Actions", "Toolbar"));
+
+    actionToggleToolbar->setIcon(getIcon("Actions", "Arrow_Down"));
 
     actionToggleGrid->setIcon(getIcon("Actions", "Grid_On"));
 
@@ -878,6 +896,19 @@ void MedeaWindow::updateMenuIcons()
 
     searchButton->setIcon(getIcon("Actions", "Search"));
     searchOptionButton->setIcon(getIcon("Actions", "Settings"));
+
+
+    QIcon fileIcon = getIcon("Actions", "New");
+    for(int i = 0; i < recentProjectsListWidget->count(); ++i)
+    {
+        QListWidgetItem* item = recentProjectsListWidget->item(i);
+         item->setIcon(fileIcon);
+    }
+
+    QIcon arrowDown = getIcon("Actions", "Arrow_Down");
+    viewAspectsButton->setIcon(arrowDown);
+    nodeKindsButton->setIcon(arrowDown);
+    dataKeysButton->setIcon(arrowDown);
 }
 
 
@@ -1048,8 +1079,10 @@ void MedeaWindow::setupSearchTools()
     searchBar = new QLineEdit(searchBarDefaultText, this);
     searchSuggestions = new SearchSuggestCompletion(searchBar);
     searchButton = new QPushButton(getIcon("Actions", "Search"), "");
+    searchButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     searchButton->setEnabled(false);
     searchOptionButton = new QPushButton(getIcon("Actions", "Settings"), "");
+    searchOptionButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     searchOptionMenu = new QMenu(searchOptionButton);
     searchResults = new QDialog(this);
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
@@ -1110,6 +1143,8 @@ void MedeaWindow::setupSearchTools()
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
     viewAspectsButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
+    viewAspectsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+
     viewAspectsMenu = new QMenu(viewAspectsButton);
 
     viewAspectsButton->setFixedSize(20, 20);
@@ -1149,6 +1184,7 @@ void MedeaWindow::setupSearchTools()
     nodeKindsDefaultText = "All Kinds";
     nodeKindsBar = new QLineEdit(nodeKindsDefaultText, this);
     nodeKindsButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
+    nodeKindsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     nodeKindsMenu = new QMenu(nodeKindsButton);
 
     kindsLabel->setMinimumWidth(50);
@@ -1190,6 +1226,7 @@ void MedeaWindow::setupSearchTools()
 
     dataKeysBar = new QLineEdit(dataKeysDefaultText, this);
     dataKeysButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
+    dataKeysButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     dataKeysMenu = new QMenu(dataKeysButton);
 
     dataKeysButton->setFixedSize(20, 20);
@@ -1345,26 +1382,8 @@ void MedeaWindow::setupToolbar()
     toolbarLayout = new QVBoxLayout();
 
     toolbarButton = new QToolButton(this);
+    toolbarButton->setDefaultAction(actionToggleToolbar);
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
-    toolbarButton->setCheckable(true);
-    toolbarButton->setStyleSheet("QToolButton{ background-color: rgb(200,200,200); border-radius: 5px; }"
-                                 "QToolButton:hover{ background-color: rgb(240,240,240); }");
-
-    QImage expandImage(":/Actions/Arrow_Down");
-    QImage contractImage(":/Actions/Arrow_Up");
-    expandImage = expandImage.scaled(toolbarButton->width(), toolbarButton->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    contractImage = contractImage.scaled(toolbarButton->width(), toolbarButton->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-    expandPixmap = QPixmap::fromImage(expandImage);
-    contractPixmap = QPixmap::fromImage(contractImage);
-
-    toolbarButtonLabel = new QLabel(this);
-    toolbarButtonLabel->setPixmap(expandPixmap);
-    QVBoxLayout* labelLayout = new QVBoxLayout();
-    labelLayout->setMargin(0);
-    labelLayout->addWidget(toolbarButtonLabel);
-    labelLayout->setAlignment(toolbarButtonLabel, Qt::AlignCenter);
-    toolbarButton->setLayout(labelLayout);
 
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
     edit_undo->setIconVisibleInMenu(false);
@@ -1487,9 +1506,16 @@ void MedeaWindow::setupWelcomeScreen()
     QPushButton* aboutButton = new QPushButton("About", this);
 
     settingsButton->setFlat(true);
-    settingsButton->setStyleSheet("QPushButton{ color: white; font-size: 16px; text-align: left; }"
-                                  "QPushButton:hover{ color: orange; }"
+    settingsButton->setStyleSheet("font-size: 16px; text-align: left;"
                                   "QTooltip{ background: white; color: black; }");
+
+    newProjectButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    openProjectButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    settingsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    recentProjectButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    wikiButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    aboutButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+
 
     openProjectButton->setStyleSheet(settingsButton->styleSheet());
     openProjectButton->setFlat(true);
@@ -1554,9 +1580,6 @@ void MedeaWindow::setupWelcomeScreen()
     recentProjectsListWidget = new QListWidget(this);
     connect(recentProjectsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(recentProjectItemClicked(QListWidgetItem*)));
 
-    recentProjectsListWidget->setStyleSheet("background:" + GET_VIEW_COLOR_STRING(CURRENT_THEME, DARKER_SHADE) + "; color: white; font-size: 16px; text-align: left;");
-    //recentProjectsListWidget->setStyleSheet("background: white; color: white; font-size: 16px; text-align: left;");
-
     recentProjectButton->setEnabled(false);
     rightButtonLayout->addWidget(recentProjectButton, 0);
     rightButtonLayout->addWidget(recentProjectsListWidget, 1);
@@ -1606,21 +1629,20 @@ void MedeaWindow::setupMinimap()
     minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
     minimap->setInteractive(false);
     minimap->setFixedSize(RIGHT_PANEL_WIDTH + 10, RIGHT_PANEL_WIDTH * 0.6);
-    minimap->setStyleSheet("QGraphicsView{ border: 1px solid rgb(50,50,50); }");
     minimap->centerView();
 
     minimapTitleBar = new QWidget(this);
-    minimapTitleBar->setAttribute(Qt::WA_Hover);
+    minimapTitleBar->setObjectName("minimapTitle");
 
     minimapLabel = new QLabel("Minimap", this);
     minimapLabel->setFont(guiFont);
     minimapLabel->setAlignment(Qt::AlignCenter);
     minimapLabel->setFixedSize(RIGHT_PANEL_WIDTH - 10, 20);
 
-
     closeMinimapButton = new QToolButton();
     closeMinimapButton->setDefaultAction(view_showMinimap);
     closeMinimapButton->setToolTip("Hide Minimap");
+    closeMinimapButton->setFixedSize(20,18);
 
     QHBoxLayout* minimapHeaderLayout = new QHBoxLayout();
     minimapTitleBar->setLayout(minimapHeaderLayout);
@@ -1846,7 +1868,7 @@ void MedeaWindow::setupConnections()
     connect(file_importXME, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XME_triggered()));
 
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
-    connect(toolbarButton, SIGNAL(clicked(bool)), this, SLOT(showWindowToolbar(bool)));
+    connect(actionToggleToolbar, SIGNAL(triggered(bool)), this, SLOT(showWindowToolbar(bool)));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
 
@@ -2093,7 +2115,8 @@ void MedeaWindow::resetTheme(bool darkTheme)
 
 QPixmap MedeaWindow::getDialogPixmap(QString alias, QString image, QSize size)
 {
-    return getIcon(alias, image).pixmap(size);
+    return Theme::theme()->getImage(alias, image, Qt::black);
+    //return getIcon(alias, image).pixmap(size);
 }
 
 bool MedeaWindow::openProject(QString fileName)
@@ -2153,15 +2176,8 @@ bool MedeaWindow::closeProject()
         QMessageBox msgBox(QMessageBox::Question, "Save Changes",
                            "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
                            QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        //msgBox.setParent(this);
 
-
-        QColor bgColor = Theme::theme()->getBackgroundColor();
-        QColor textColor = Theme::theme()->getTextColor(Theme::CR_NORMAL);
-
-        QString bgColorStr = Theme::QColorToHex(bgColor) + ";";
-        QString textColorStr = Theme::QColorToHex(textColor) + ";";
-
-        msgBox.setStyleSheet("QMessageBox{background:" + bgColorStr + "color: " + textColorStr + ";}");
 
         msgBox.setIconPixmap(getDialogPixmap("Actions", "Save"));
         msgBox.setButtonText(QMessageBox::Yes, "Save");
@@ -2419,6 +2435,7 @@ void MedeaWindow::initialiseTheme()
     Theme::theme()->setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
     Theme::theme()->setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
     Theme::theme()->setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
+    Theme::theme()->setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
 
     //Orange
     Theme::theme()->setDefaultImageTintColor("Welcome", "New", QColor(232,188,0));
@@ -3402,22 +3419,11 @@ QIcon MedeaWindow::getIcon(QString alias, QString image)
  */
 void MedeaWindow::showWindowToolbar(bool checked)
 {
-    if (checked) {
-        toolbarButton->setToolTip("Contract Toolbar");
-        toolbarButtonLabel->setPixmap(contractPixmap);
-        toolbar->clearMask();
-    } else {
-        // NOTE: hover/focus doesn't leave the button until you move the mouse
-        toolbarButton->setToolTip("Expand Toolbar");
-        toolbarButtonLabel->setPixmap(expandPixmap);
-        toolbar->setMask(QRegion(0,0,1,1, QRegion::Ellipse));
-    }
+    toolbar->setVisible(!checked);
 
     if (appSettings) {
         appSettings->setSetting(TOOLBAR_EXPANDED, checked);
     }
-
-    //toolbar->setVisible(checked);
 }
 
 
@@ -4672,13 +4678,7 @@ void MedeaWindow::updateStyleSheets()
                     );
     }
 
-    if(projectName){
 
-        projectName->setStyleSheet(
-                    "QPushButton{ color:" + textColor + ";font-size: 16px; text-align: left; }"
-                    "QTooltip{ background: white; color: black; }"
-                    );
-    }
     if(menu){
 
         menu->setStyleSheet("QMenu{"
@@ -4699,17 +4699,15 @@ void MedeaWindow::updateStyleSheets()
                             );
     }
 
-    if(menuButton){
-
-        menuButton->setStyleSheet("QPushButton{background: " + altBGColor+ ";}"
-                                  "QPushButton:hover{background: " + highlightColor + ";}"
-                                  "QPushButton::menu-indicator{ image: none; }"
-                                  );
-    }
-
-    QString pushButtonStyle = "QPushButton{background:" + altBGColor + ";border-radius: 2px;}"
+    QString pushButtonStyle = "QPushButton{background:" + altBGColor + ";border-radius: 5px;}"
                               "QPushButton:hover{background: " + highlightColor + ";}"
                               "QPushButton:disabled{background: " + disabledBGColor + ";}";
+
+
+    if(menuButton){
+        menuButton->setStyleSheet(pushButtonStyle + "QPushButton::menu-indicator{ image: none; }");
+    }
+
 
     if(closeProjectButton){
 
@@ -4726,20 +4724,25 @@ void MedeaWindow::updateStyleSheets()
         searchOptionButton->setStyleSheet(pushButtonStyle);
     }
 
-    minimapBox->setStyleSheet("background: " + altBGColor + ";"
-                                    "color: " + textColor + ";"
-                                 "border: 1px solid rgb(50,50,50);"
-                                 "border-bottom: none;"
-                                 "font-size: 12px;");
+    minimapBox->setStyleSheet("#minimapTitle{background: " + altBGColor + ";"
+                                 "border: 1px solid " + textSelectedColor +";"
+                                 "border-bottom:none;}"
+                              );
+    minimapLabel->setStyleSheet("color: " + textColor + ";font-size: 12px;");
+
+    minimap->setStyleSheet("QGraphicsView{background:"+ BGColor + "; border: 1px solid " + textSelectedColor +";}");
+    nodeView->setStyleSheet("QGraphicsView{background:"+ BGColor + ";}");
 
 
     if(closeMinimapButton){
 
-        closeMinimapButton->setStyleSheet("QToolButton{background:" + altBGColor + ";border-radius:0px;}"
-                                          "QToolButton:hover{background: " + highlightColor + ";}"
+        closeMinimapButton->setStyleSheet("QToolButton{background:" + altBGColor + ";border-radius:0px;border:0px;}"
+                                          "QToolButton:hover{background: " + highlightColor + ";border:0px;}"
                                           );
     }
 
+
+    projectNameShadow->setColor(Theme::theme()->getBackgroundColor());
 
 
 
@@ -4769,24 +4772,29 @@ void MedeaWindow::updateStyleSheets()
     setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
-                  "border-radius: 10px;"
+                  "border-radius: 5px;"
                   "border: 1px solid rgb(160,160,160);"
                   "background:" + altBGColor + ";"
                   "}"
-                  "QToolButton:hover {"
+                  "QToolButton:hover{"
                   "border: 2px solid rgb(140,140,140);"
                   "background:" + highlightColor +";"
                   "}"
                   "QToolButton:disabled{background:" + disabledBGColor + ";}"
                   "QToolButton:pressed{background: white;}"
+                  "QMessageBox{background:" + altBGColor + ";color:" + textColor + ";}"
                   "QToolButton[popupMode=\"1\"] {"
                   "padding-right: 15px;"
+                    "}"
                   "QToolButton::menu-button {"
                   "border-left: 1px solid rgb(150,150,150);"
                   "border-top-right-radius: 10px;"
                   "border-bottom-right-radius: 10px;"
                   "width: 15px;"
                   "}"
+                "QPushButton#" + THEME_STYLE_QPUSHBUTTON + "{border:0px;color: " + textColor + ";}"
+                "QPushButton#" + THEME_STYLE_QPUSHBUTTON + ":hover{color:" + highlightColor + ";}"
+
                   "QCheckBox { padding: 0px 10px 0px 0px; }"
                   "QCheckBox::indicator { width: 25px; height: 25px; }"
                   "QCheckBox:checked { color: green; font-weight: bold; }"
@@ -4796,8 +4804,7 @@ void MedeaWindow::updateStyleSheets()
                   "margin: 0px;"
                   "padding: 0px;"
                   "}"
-                  "}"
-                  "QMessageBox{background-color:" + altBGColor + ";}"
+
                     );
 }
 

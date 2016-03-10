@@ -189,6 +189,7 @@
         <file alias="Invisible">Resources/Images/Actions/Invisible.png</file>
         <file alias="Visible">Resources/Images/Actions/Visible.png</file>
         <file alias="Minimap">Resources/Images/Actions/Minimap.png</file>
+        <file alias="MEDEAIcon">Resources/Images/Actions/MEDEAIcon.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

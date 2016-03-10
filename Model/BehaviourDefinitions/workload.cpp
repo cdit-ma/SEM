@@ -15,7 +15,9 @@ Workload::~Workload(){
 bool Workload::canAdoptChild(Node *child)
 {
     Process* process = dynamic_cast<Process*>(child);
-    if(!process){
+    Variable* variable = dynamic_cast<Variable*>(child);
+
+    if(!process && !variable){
         return false;
     }
 

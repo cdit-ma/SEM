@@ -32,7 +32,13 @@ ModelItem::ModelItem(NodeAdapter *node, NodeView *view):  GraphMLItem(node, 0, G
 
     width = MODEL_WIDTH;
     height = MODEL_HEIGHT;
+
+
     setupInputItems();
+
+
+    rectColor = QColor(235,235,235);
+
 
     setFlag(QGraphicsItem::ItemIsFocusable);
 
@@ -157,12 +163,16 @@ void ModelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         painterPath.addRect(centerInputRect());
 
         painter->setPen(getCurrentPen());
-        painter->setBrush(Theme::theme()->getBackgroundColor());
+        painter->setBrush(modelCircleColor);
         painter->drawPath(painterPath.simplified());
 
         painter->setPen(Qt::NoPen);
-        painter->setBrush(Theme::theme()->getAltBackgroundColor());
-        painter->drawRect(centerInputRect());
+        painter->setBrush(rectColor);
+
+        QRectF rect = centerInputRect();
+        qreal offset = getCurrentPen().widthF()/2;
+        rect.adjust(offset,offset,-offset,-offset);
+        painter->drawRect(rect);
     }
 }
 
@@ -221,8 +231,6 @@ void ModelItem::dataChanged(QString dataValue)
 void ModelItem::themeChanged()
 {
     modelCircleColor = Theme::theme()->getBackgroundColor();
-    rectColor = Theme::theme()->getAltBackgroundColor();
-    middlewareItem->setTextColor(Theme::theme()->getTextColor());
 }
 
 
@@ -238,7 +246,7 @@ void ModelItem::setupInputItems()
     qreal fontSize = LABEL_RATIO * height;
 
     middlewareItem = new InputItem(this, "MIDDLEWARE", true);
-
+    middlewareItem->setTextColor(Qt::black);
     //Setup Alignment
     middlewareItem->setAlignment(Qt::AlignCenter);
 
