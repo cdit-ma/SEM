@@ -470,20 +470,30 @@ void ToolbarWidget::setVisible(bool visible)
  */
 void ToolbarWidget::setupTheme()
 {
-    updateToolButtonIcons();
-    QColor backgroundColor = Theme::theme()->theme()->getAltBackgroundColor();
-    backgroundColor.setAlpha(200);
+    Theme* theme = Theme::theme();
 
-    QString mainBackground = Theme::theme()->QColorToHex(backgroundColor) +";";
-    qCritical() << mainBackground;
+    QString backgroundColor = theme->getAltBackgroundColorHex() + ";";
+    QString highlightColor = theme->getHighlightColorHex() + ";";
+
+    QString textColor = theme->getTextColorHex(Theme::CR_NORMAL) + ";";
+    QString textSelectedColor = theme->getTextColorHex(Theme::CR_SELECTED) + ";";
+
+    QColor shadowColor = theme->getBackgroundColor().darker(120);
+    QString shadowColorStr = theme->QColorToHex(shadowColor) + ";";
 
     QString buttonBorder = "1px solid rgba(160,160,160,250);";
     QString hoverBorder = "1.5px solid rgba(170,170,170,250);";
 
-    //QString mainBackground = "rgba(250,250,250,200);";
-    QString shadowBackground = "rgba(50,50,50,150);";
+    /*
 
-    QString background = "rgba(240,240,240,250);";
+    QColor backgroundColor = theme->getAltBackgroundColor();
+    backgroundColor.setAlpha(200);
+
+    QString mainBackground = theme->QColorToHex(backgroundColor) +";";
+    QString shadowBackground = "rgba(50,50,50,250);";
+
+    //QString background = "rgba(240,240,240,250);";
+    QString background = mainBackground;
     QString textColor = "black;";
     QString selectedColor = "green";
     QString hoverTextColor = "black;";
@@ -495,22 +505,23 @@ void ToolbarWidget::setupTheme()
         buttonBorder = "1px solid rgba(100,100,100,250);";
         hoverBorder = "1.5px solid rgba(100,100,100,250);";
         //mainBackground = "rgba(150,150,150,200);";
-        shadowBackground = "rgba(50,50,50,200);";
-        background = "rgba(130,130,130,250);";
-        selectedColor = "yellow;";
+        //shadowBackground = "rgba(50,50,50,200);";
+        //background = "rgba(130,130,130,250);";
+        selectedColor = "orange;";
         textColor = "white;";
         break;
     default:
         break;
     }
+    */
 
     setStyleSheet(/*"QToolButton {"
                   "border:" + buttonBorder +
-                  "background-color: rgba(240,240,240,240);"
+                  "background: rgba(240,240,240,240);"
                   "}"
                   "QToolButton:hover {"
                   "border:" + hoverBorder +
-                  "background-color: rgba(255,255,255,255);"
+                  "background: rgba(255,255,255,255);"
                   "}"
                   "QToolButton[popupMode=\"1\"] {"
                   "padding-right: 15px;"
@@ -527,20 +538,20 @@ void ToolbarWidget::setupTheme()
                   "}"
                   "QRadioButton::checked {"
                   "font-weight: bold; "
-                  "color:" + selectedColor +
+                  "color:" + highlightColor +
                   "}"
                   "QMenu { "
-                  "background-color:" + background +
+                  "background:" + backgroundColor +
                   "}"
                   "QMenu::item {"
                   "padding: 1px 20px 1px 45px;"
-                  "background-color:" + background +
+                  "background:" + backgroundColor +
                   "color:" + textColor +
                   "border: none;"
                   "}"
                   "QMenu::item:selected {"
-                  "background-color:" + hoverBackground +
-                  "color:" + hoverTextColor +
+                  "background:" + highlightColor +
+                  "color:" + textSelectedColor +
                   "border: 1px solid gray;"
                   "}"
                   "QMenu::icon {"
@@ -552,11 +563,12 @@ void ToolbarWidget::setupTheme()
                   "}"
                   );
 
-    mainFrame->setStyleSheet("background-color:" + mainBackground +
+    mainFrame->setStyleSheet("background:" + backgroundColor +
                              "border-radius: 8px;");
-    shadowFrame->setStyleSheet("background-color:" + shadowBackground +
+    shadowFrame->setStyleSheet("background:" + shadowColorStr +
                                "border-radius: 10px;");
-    currentTheme = theme;
+    //currentTheme = theme;
+    updateToolButtonIcons();
 }
 
 

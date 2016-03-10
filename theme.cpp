@@ -53,6 +53,17 @@ QString Theme::getHighlightColorHex()
     return Theme::QColorToHex(color);
 }
 
+QColor Theme::getPressedColor()
+{
+    return highlightColor.lighter(110);
+}
+
+QString Theme::getPressedColorHex()
+{
+    QColor color = getPressedColor();
+    return Theme::QColorToHex(color);
+}
+
 void Theme::setBackgroundColor(QColor color)
 {
     if(backgroundColor != color){

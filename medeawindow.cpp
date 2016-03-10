@@ -199,31 +199,31 @@ void MedeaWindow::themeSettingChanged(QString keyName, QVariant value)
     QColor color(strValue);
 
     if(keyName == THEME_BG_COLOR){
-       Theme::theme()->setBackgroundColor(color);
+        Theme::theme()->setBackgroundColor(color);
     }else if(keyName == THEME_BG_ALT_COLOR){
-       Theme::theme()->setAltBackgroundColor(color);
+        Theme::theme()->setAltBackgroundColor(color);
     }else if(keyName == THEME_DISABLED_BG_COLOR){
-       Theme::theme()->setDisabledBackgroundColor(color);
+        Theme::theme()->setDisabledBackgroundColor(color);
     }else if(keyName == THEME_HIGHLIGHT_COLOR){
-       Theme::theme()->setHighlightColor(color);
+        Theme::theme()->setHighlightColor(color);
     }else if(keyName == THEME_MENU_TEXT_COLOR){
-       Theme::theme()->setTextColor(Theme::CR_NORMAL, color);
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, color);
     }else if(keyName == THEME_MENU_TEXT_DISABLED_COLOR){
-       Theme::theme()->setTextColor(Theme::CR_DISABLED, color);
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, color);
     }else if(keyName == THEME_MENU_TEXT_SELECTED_COLOR){
-       Theme::theme()->setTextColor(Theme::CR_SELECTED, color);
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, color);
     }else if(keyName == THEME_MENU_ICON_COLOR){
-       Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, color);
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, color);
     }else if(keyName == THEME_MENU_ICON_DISABLED_COLOR){
-       Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, color);
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, color);
     }else if(keyName == THEME_MENU_ICON_SELECTED_COLOR){
-       Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, color);
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, color);
     }else if(keyName == THEME_ICON_TINT_COLOR){
-       Theme::theme()->setDefaultImageTintColor(color);
+        Theme::theme()->setDefaultImageTintColor(color);
     }else if(keyName == THEME_SET_DARK_THEME){
-       resetTheme(true);
+        resetTheme(true);
     }else if(keyName == THEME_SET_LIGHT_THEME){
-       resetTheme(false);
+        resetTheme(false);
     }
 }
 
@@ -489,14 +489,14 @@ void MedeaWindow::initialiseGUI()
     menuButton = new QPushButton(getIcon("Actions", "MEDEAIcon"), "");
     menuButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     menuButton->setFixedSize(50, 50);
-    menuButton->setIconSize(menuButton->size() * 0.75);
+    menuButton->setIconSize(menuButton->size() * 0.85);
 
 
     projectName = new QPushButton("");
     projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
     projectName->setFlat(true);
-    projectName->setStyleSheet("QPushButton{font-weight: bold; font-size: 16px; text-align: left;}"
-                                  "QTooltip{ background: white; color: black; }");
+    projectName->setStyleSheet("QPushButton{ font-weight: bold; font-size: 16px; text-align: left; }"
+                               "QTooltip{ background: white; color: black; }");
 
     projectNameShadow = new QGraphicsDropShadowEffect(this);
     projectNameShadow->setBlurRadius(0);
@@ -504,6 +504,7 @@ void MedeaWindow::initialiseGUI()
     projectNameShadow->setOffset(1,1);
     projectName->setGraphicsEffect(projectNameShadow);
 
+    menuButton->setGraphicsEffect(projectNameShadow);
 
     closeProjectButton = new QPushButton(getIcon("Actions", "Close"), "");
     projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
@@ -902,7 +903,7 @@ void MedeaWindow::updateMenuIcons()
     for(int i = 0; i < recentProjectsListWidget->count(); ++i)
     {
         QListWidgetItem* item = recentProjectsListWidget->item(i);
-         item->setIcon(fileIcon);
+        item->setIcon(fileIcon);
     }
 
     QIcon arrowDown = getIcon("Actions", "Arrow_Down");
@@ -1002,10 +1003,10 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     QPushButton* dockBackButton = new QPushButton(getIcon("Actions", "Backward"), "", this);
     dockBackButton->setFixedSize(boxWidth, 35);
     dockBackButton->setToolTip("Go back to the Parts list");
-    dockBackButton->setStyleSheet("QPushButton{"
+    dockBackButton->setStyleSheet("QPushButton {"
                                   "background-color: rgba(130,130,130,120);"
                                   "}"
-                                  "QPushButton:hover{"
+                                  "QPushButton:hover {"
                                   "background-color: rgba(180,180,180,150);"
                                   "}");
     connect(dockBackButton, SIGNAL(clicked(bool)), this, SLOT(dockBackButtonTriggered()));
@@ -1386,9 +1387,9 @@ void MedeaWindow::setupToolbar()
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
 
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
-    edit_undo->setIconVisibleInMenu(false);
+    //edit_undo->setIconVisibleInMenu(false);
     constructToolbarButton(toolbar, edit_redo, TOOLBAR_REDO);
-    edit_redo->setIconVisibleInMenu(false);
+    //edit_redo->setIconVisibleInMenu(false);
 
     toolbar->addSeparator();
     constructToolbarButton(toolbar, edit_cut, TOOLBAR_CUT);
@@ -1516,7 +1517,6 @@ void MedeaWindow::setupWelcomeScreen()
     wikiButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     aboutButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
-
     openProjectButton->setStyleSheet(settingsButton->styleSheet());
     openProjectButton->setFlat(true);
     newProjectButton->setStyleSheet(settingsButton->styleSheet());
@@ -1528,12 +1528,10 @@ void MedeaWindow::setupWelcomeScreen()
     aboutButton->setFlat(true);
     aboutButton->setStyleSheet(settingsButton->styleSheet() + "QPushButton{ text-align: right; }");
 
-
     QLabel* medeaIcon = new QLabel(this);
-
     QLabel* medeaLabel = new QLabel("MEDEA");
-    medeaLabel->setStyleSheet("font-size:32pt;color:white; text-align:center;");
     QLabel* medeaVersionLabel = new QLabel("Version " + MEDEA_VERSION);
+    medeaLabel->setStyleSheet("font-size:32pt;color:white; text-align:center;");
     medeaVersionLabel->setStyleSheet("font-size:12pt;color:gray; text-align:center;");
 
     QPixmap pixMap = Theme::theme()->getImage("Actions", "MEDEA");
@@ -1652,7 +1650,6 @@ void MedeaWindow::setupMinimap()
 
     minimapHeaderLayout->addWidget(closeMinimapButton);
     minimapHeaderLayout->addWidget(minimapLabel, 1);
-    //Centralize.
     minimapLabel->setStyleSheet("padding-right: 20px;");
 
     // setup layouts for widgets
@@ -1662,8 +1659,6 @@ void MedeaWindow::setupMinimap()
     minimapLayout->setContentsMargins(0,0,0,0);
     minimapLayout->addWidget(minimapTitleBar);
     minimapLayout->addWidget(minimap, 1);
-
-    //minimapLayout->setContentsMargins(10,0,8,10);
 
     minimapBox->setLayout(minimapLayout);
     minimapBox->setFixedWidth(RIGHT_PANEL_WIDTH + 10);
@@ -2015,10 +2010,12 @@ void MedeaWindow::setupConnections()
     addAction(actionToggleGrid);
     addAction(actionContextMenu);
 
+    addAction(actionToggleToolbar);
+
     addAction(jenkins_ExecuteJob);
     addAction(jenkins_ImportNodes);
 
-    addAction(actionToggleGrid);
+    //addAction(actionToggleGrid);
     addAction(settings_changeAppSettings);
     addAction(help_AboutMedea);
     addAction(help_Shortcuts);
@@ -2080,35 +2077,37 @@ void MedeaWindow::saveTheme()
 
 void MedeaWindow::resetTheme(bool darkTheme)
 {
-    if(darkTheme){
+    if (darkTheme) {
         Theme::theme()->setBackgroundColor(QColor(70,70,70));
-        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
         Theme::theme()->setHighlightColor(QColor(255,165,70));
-        Theme::theme()->setDisabledBackgroundColor(QColor(162,162,162));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
+        Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter());
+        //Theme::theme()->setDisabledBackgroundColor(QColor(162,162,162));
 
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
         Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
-        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(199,199,199));
-
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(130,130,130));
 
         Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
-        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(199,199,199));
-    }else{
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(130,130,130));
+    } else {
         Theme::theme()->setBackgroundColor(QColor(170,170,170));
         Theme::theme()->setAltBackgroundColor(QColor(238,238,239));
         Theme::theme()->setHighlightColor(QColor(75,110,175));
         Theme::theme()->setDisabledBackgroundColor(QColor(162,162,162));
 
-
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
         Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(255,255,255));
-        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(199,199,199));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(130,130,130));
+        //Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(199,199,199));
 
         Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
-        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(199,199,199));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(130,130,130));
+        //Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(199,199,199));
     }
+
     saveTheme();
     Theme::theme()->applyTheme();
 }
@@ -4647,8 +4646,7 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString
 
 
 /**
- * @brief MedeaWindow::themeChanged
- * @param theme
+ * @brief MedeaWindow::updateStyleSheets
  */
 void MedeaWindow::updateStyleSheets()
 {
@@ -4657,155 +4655,120 @@ void MedeaWindow::updateStyleSheets()
     QString BGColor = theme->getBackgroundColorHex();
     QString disabledBGColor = theme->getDisabledBackgroundColorHex();
     QString altBGColor = theme->getAltBackgroundColorHex();
+
     QString highlightColor = theme->getHighlightColorHex();
+    QString pressedColor = theme->getPressedColorHex();
 
-    QString textColor = Theme::theme()->getTextColorHex(Theme::CR_NORMAL);
-    QString textSelectedColor = Theme::theme()->getTextColorHex(Theme::CR_SELECTED);
-    QString textDisabledColor = Theme::theme()->getTextColorHex(Theme::CR_DISABLED);
+    QString textColor = theme->getTextColorHex(Theme::CR_NORMAL);
+    QString textSelectedColor = theme->getTextColorHex(Theme::CR_SELECTED);
+    QString textDisabledColor = theme->getTextColorHex(Theme::CR_DISABLED);
 
-    int count = 0;
-    if(loadingLabel){
+    loadingLabel->setStyleSheet("QLabel { color:" + textColor + ";}");
 
-        loadingLabel->setStyleSheet("QLabel{ color:" + textColor + ";}");
-    }
+    recentProjectsListWidget->setStyleSheet("background:" + altBGColor + ";"
+                                            "color:" + textColor + ";"
+                                            "font-size: 16px;"
+                                            );
 
-    if(recentProjectsListWidget){
+    menu->setStyleSheet("QMenu {"
+                        "background:" + altBGColor + ";"
+                        "}"
+                        "QMenu::item {"
+                        "padding: 1px 30px 1px 30px;"
+                        "background:" + altBGColor + ";"
+                        "color:" + textColor + ";"
+                        "border: none;"
+                        "}"
+                        "QMenu::item:disabled {"
+                        "color:" + textDisabledColor + ";"
+                        "}"
+                        "QMenu::item:selected:!disabled {"
+                        "color:" + textSelectedColor + ";"
+                        "background: " + highlightColor + ";"
+                        "}"
+                        );
 
-        recentProjectsListWidget->setStyleSheet(
-                    "background:" + altBGColor + ";"
-                    "color:" + textColor + ";"
-                    "font-size: 16px;"
-                    );
-    }
+    QString pushButtonStyle = "QPushButton{ background:" + altBGColor + "; border-radius: 5px; border: 1px solid " + disabledBGColor + "; }"
+                              "QPushButton:hover{ background: " + highlightColor + "; }"
+                              "QPushButton:disabled{ background: " + disabledBGColor + "; }";
 
+    menuButton->setStyleSheet(pushButtonStyle + "QPushButton::menu-indicator{ image: none; }");
+    closeProjectButton->setStyleSheet(pushButtonStyle);
+    searchButton->setStyleSheet(pushButtonStyle);
+    searchOptionButton->setStyleSheet(pushButtonStyle);
 
-    if(menu){
+    minimapBox->setStyleSheet("#minimapTitle {"
+                              "background: " + altBGColor + ";"
+                              "border: 1px solid " + textSelectedColor +";"
+                              "border-bottom:none;"
+                              "}");
 
-        menu->setStyleSheet("QMenu{"
-                            "background:" + altBGColor + ";}"
-                            "QMenu::item {"
-                            "padding: 1px 30px 1px 30px;"
-                            "background:" + altBGColor + ";"
-                            "color:" + textColor + ";"
-                            "border: none;"
-                            "}"
-                            "QMenu::item:disabled {"
-                            "color:" + textDisabledColor + ";"
-                            "}"
-                            "QMenu::item:selected {"
-                            "color:" + textSelectedColor + ";"
-                            "background: " + highlightColor + ";"
-                            "}"
-                            );
-    }
+    minimapLabel->setStyleSheet("color: " + textColor + "; font-size: 12px; padding-right: 20px;");
+    minimap->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; border: 1px solid " + textSelectedColor + "; }");
+    nodeView->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; }");
 
-    QString pushButtonStyle = "QPushButton{background:" + altBGColor + ";border-radius: 5px;}"
-                              "QPushButton:hover{background: " + highlightColor + ";}"
-                              "QPushButton:disabled{background: " + disabledBGColor + ";}";
+    closeMinimapButton->setStyleSheet("QToolButton{ background:" + altBGColor + "; border:0px; }"
+                                      "QToolButton:hover{ background: " + highlightColor + "; border:0px; }");
 
-
-    if(menuButton){
-        menuButton->setStyleSheet(pushButtonStyle + "QPushButton::menu-indicator{ image: none; }");
-    }
-
-
-    if(closeProjectButton){
-
-        closeProjectButton->setStyleSheet(pushButtonStyle);
-    }
-
-    if(searchButton){
-
-        searchButton->setStyleSheet(pushButtonStyle);
-    }
-
-    if(searchOptionButton){
-
-        searchOptionButton->setStyleSheet(pushButtonStyle);
-    }
-
-    minimapBox->setStyleSheet("#minimapTitle{background: " + altBGColor + ";"
-                                 "border: 1px solid " + textSelectedColor +";"
-                                 "border-bottom:none;}"
-                              );
-    minimapLabel->setStyleSheet("color: " + textColor + ";font-size: 12px;");
-
-    minimap->setStyleSheet("QGraphicsView{background:"+ BGColor + "; border: 1px solid " + textSelectedColor +";}");
-    nodeView->setStyleSheet("QGraphicsView{background:"+ BGColor + ";}");
-
-
-    if(closeMinimapButton){
-
-        closeMinimapButton->setStyleSheet("QToolButton{background:" + altBGColor + ";border-radius:0px;border:0px;}"
-                                          "QToolButton:hover{background: " + highlightColor + ";border:0px;}"
-                                          );
-    }
-
-
-    projectNameShadow->setColor(Theme::theme()->getBackgroundColor());
-
-
+    projectNameShadow->setColor(theme->getBackgroundColor());
 
     searchButton->setIcon(getIcon("Actions", "Search"));
     searchOptionButton->setIcon(getIcon("Actions", "Settings"));
 
-    if(searchBar){
+    searchBar->setStyleSheet("QLineEdit {"
+                             "background: " + altBGColor + ";"
+                             "color: " + textDisabledColor + ";"
+                             "border: 2px solid;"
+                             "border-color:" + altBGColor +
+                             "}"
+                             "QLineEdit:focus {"
+                             "border-color:" + highlightColor + ";"
+                             "background: " + altBGColor + ";"
+                             "color:" + textColor + ";"
+                             "}");
 
-        searchBar->setStyleSheet("QLineEdit{background: " + altBGColor + "; color: " + textDisabledColor + ";border: 2px solid;border-color:" + altBGColor + "}"
-                                 "QLineEdit:focus{border-color:" + highlightColor + "; background: " + altBGColor + ";color:" + textColor +";}"
-                                 );
-
-
-    }
-
-
-
-
-    if(toolbarButton){
-
-        toolbarButton->setStyleSheet(
-                    "QToolButton{ background:"+ altBGColor + ";color:" + textColor + "; border-radius: 5px; }"
-                    "QToolButton:hover{background:" + highlightColor +";color:" + textSelectedColor + ";}"
-                    );
-    }
+    //toolbarButton->setStyleSheet("QToolButton{ background:"+ altBGColor + "; color:" + textColor + "; border-radius: 5px; }"
+    //                             "QToolButton:hover{ background:" + highlightColor +"; color:" + textSelectedColor + "; }");
 
     setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 5px;"
-                  "border: 1px solid rgb(160,160,160);"
+                  "border: 1px solid " + textColor + ";"
                   "background:" + altBGColor + ";"
                   "}"
-                  "QToolButton:hover{"
+                  "QToolButton:hover {"
                   "border: 2px solid rgb(140,140,140);"
                   "background:" + highlightColor +";"
                   "}"
-                  "QToolButton:disabled{background:" + disabledBGColor + ";}"
-                  "QToolButton:pressed{background: white;}"
-                  "QMessageBox{background:" + altBGColor + ";color:" + textColor + ";}"
+                  "QToolButton:disabled { background:" + disabledBGColor + "; border: 1px solid " + disabledBGColor + "; }"
+                  "QToolButton:pressed { background:" + pressedColor + "; }"
                   "QToolButton[popupMode=\"1\"] {"
                   "padding-right: 15px;"
-                    "}"
+                  "}"
                   "QToolButton::menu-button {"
                   "border-left: 1px solid rgb(150,150,150);"
                   "border-top-right-radius: 10px;"
                   "border-bottom-right-radius: 10px;"
                   "width: 15px;"
                   "}"
-                "QPushButton#" + THEME_STYLE_QPUSHBUTTON + "{border:0px;color: " + textColor + ";}"
-                "QPushButton#" + THEME_STYLE_QPUSHBUTTON + ":hover{color:" + highlightColor + ";}"
+
+                  "QMessageBox{ background:" + altBGColor + ";color:" + textColor + "; }"
+
+                  "QPushButton#" + THEME_STYLE_QPUSHBUTTON + "{ border:0px;color: " + textColor + "; }"
+                  "QPushButton#" + THEME_STYLE_QPUSHBUTTON + ":hover { color:" + highlightColor + "; }"
 
                   "QCheckBox { padding: 0px 10px 0px 0px; }"
                   "QCheckBox::indicator { width: 25px; height: 25px; }"
                   "QCheckBox:checked { color: green; font-weight: bold; }"
+
                   "QGroupBox {"
                   "background-color: rgba(0,0,0,0);"
                   "border: 0px;"
                   "margin: 0px;"
                   "padding: 0px;"
                   "}"
-
-                    );
+                  );
 }
 
 

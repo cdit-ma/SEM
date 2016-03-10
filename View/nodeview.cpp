@@ -147,7 +147,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     toolbar = new ToolbarWidget(this);
     if (isMainView()) {
         connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabledState(QString,bool)));
-        connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), toolbar, SLOT(setupTheme(VIEW_THEME)));
+        //connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), toolbar, SLOT(setupTheme(VIEW_THEME)));
     }
 
     comboBox = new QComboBox(this);
@@ -3269,7 +3269,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     }
 
     if(item->isModelItem()){
-        connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), modelItem, SLOT(themeChanged(VIEW_THEME)));
+        //connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), modelItem, SLOT(themeChanged(VIEW_THEME)));
     }
 
     if(item->isNodeItem()){

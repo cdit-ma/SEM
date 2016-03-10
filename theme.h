@@ -28,6 +28,9 @@ public:
     QColor getHighlightColor();
     QString getHighlightColorHex();
 
+    QColor getPressedColor();
+    QString getPressedColorHex();
+
     void setBackgroundColor(QColor color);
     void setDisabledBackgroundColor(QColor color);
     void setAltBackgroundColor(QColor color);
