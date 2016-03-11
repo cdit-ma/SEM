@@ -54,7 +54,7 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
         setToolTip("Functions Dock");
         break;
     case HARDWARE_DOCK:
-        pixmap = Theme::theme()->getImage("Actions", "Computer", Qt::white);
+        pixmap = Theme::theme()->getImage("Actions", "Computer_DockButton");
         setToolTip("Hardware Dock");
         break;
     default:

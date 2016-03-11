@@ -503,14 +503,13 @@ void MedeaWindow::initialiseGUI()
     projectNameShadow->setColor(QColor("#000000"));
     projectNameShadow->setOffset(1,1);
     projectName->setGraphicsEffect(projectNameShadow);
+    projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
     menuButton->setGraphicsEffect(projectNameShadow);
 
     closeProjectButton = new QPushButton(getIcon("Actions", "Close"), "");
-    projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
     closeProjectButton->setToolTip("Close Current Project");
     closeProjectButton->setFixedSize(menuButton->height()/2.5, menuButton->height()/2.5);
-
 
     menuTitleBox = new QGroupBox(this);
     menuTitleBox->setFixedHeight(menuButton->height() + SPACER_SIZE*3);
@@ -892,7 +891,6 @@ void MedeaWindow::updateMenuIcons()
 
     actionToggleGrid->setIcon(getIcon("Actions", "Grid_On"));
 
-
     closeProjectButton->setIcon(getIcon("Actions", "Close"));
 
     searchButton->setIcon(getIcon("Actions", "Search"));
@@ -1081,7 +1079,7 @@ void MedeaWindow::setupSearchTools()
     searchSuggestions = new SearchSuggestCompletion(searchBar);
     searchButton = new QPushButton(getIcon("Actions", "Search"), "");
     searchButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
-    searchButton->setEnabled(false);
+    //searchButton->setEnabled(false);
     searchOptionButton = new QPushButton(getIcon("Actions", "Settings"), "");
     searchOptionButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     searchOptionMenu = new QMenu(searchOptionButton);
@@ -3990,8 +3988,7 @@ void MedeaWindow::updateSearchSuggestions()
 {
     if (nodeView && searchBar) {
         bool showSearch = !searchBar->text().isEmpty();
-        searchButton->setEnabled(showSearch);
-
+        //searchButton->setEnabled(showSearch);
         nodeView->searchSuggestionsRequested(searchBar->text(), getCheckedItems(0), getCheckedItems(1), getCheckedItems(2));
     }
 }
