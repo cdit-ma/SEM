@@ -37,6 +37,7 @@ public:
 
 public slots:
     void dockButtonPressed(DOCK_TYPE type);
+    void themeChanged();
 
 private:
     void updateStyleSheet(int state);
@@ -51,6 +52,7 @@ private:
     bool enabled;
 
     QString fixedStyleSheet;
+    QString currentStyleSheet;
 
 };
 

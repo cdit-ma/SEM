@@ -991,7 +991,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockHeaderBox->setStyleSheet("QGroupBox {"
                                  "border-left: 1px solid rgb(125,125,125);"
                                  "border-right: 1px solid rgb(125,125,125);"
-                                 "border-top: none;"
+                                 "border-top: 1px solid rgb(125,125,125);"
                                  "border-bottom: none;"
                                  "background-color: rgba(250,250,250,240);"
                                  "padding: 10px 0px 0px 0px; }");
@@ -4734,7 +4734,8 @@ void MedeaWindow::updateStyleSheets()
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 5px;"
-                  "border: 1px solid " + textColor + ";"
+                  "border: 1px solid " + disabledBGColor + ";"
+                  //"border: 1px solid " + textColor + ";"
                   "background:" + altBGColor + ";"
                   "}"
                   "QToolButton:hover {"

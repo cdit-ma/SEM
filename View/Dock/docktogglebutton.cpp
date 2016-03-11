@@ -7,8 +7,8 @@
 #include <QPainterPath>
 #include <QBrush>
 
-
 #include "../../theme.h"
+
 //#define BUTTON_WIDTH 40
 #define BUTTON_WIDTH 65
 #define BUTTON_HEIGHT 42
@@ -54,7 +54,7 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
         setToolTip("Functions Dock");
         break;
     case HARDWARE_DOCK:
-        pixmap = Theme::theme()->getImage("Actions", "Computer");
+        pixmap = Theme::theme()->getImage("Actions", "Computer", Qt::white);
         setToolTip("Hardware Dock");
         break;
     default:
@@ -63,6 +63,10 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
     }
 
     fixedStyleSheet = "QPushButton:disabled {"
+                      "border: 1px solid rgb(125,125,125);"
+                      "background: rgb(150,150,150);"
+                      "}"
+                      "QPushButton:hover {"
                       "border: 1px solid rgb(125,125,125);"
                       "background: rgb(150,150,150);"
                       "}"
@@ -76,6 +80,7 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
     // make connections
     connect(this, SIGNAL(pressed()), window, SLOT(dockButtonPressed()));
     connect(window, SIGNAL(window_dockButtonPressed(DOCK_TYPE)), this, SLOT(dockButtonPressed(DOCK_TYPE)));
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
 
@@ -228,32 +233,52 @@ void DockToggleButton::dockButtonPressed(DOCK_TYPE type)
 
 
 /**
+ * @brief DockToggleButton::themeChanged
+ */
+void DockToggleButton::themeChanged()
+{
+    fixedStyleSheet = "QPushButton:disabled {"
+                      "background:" + Theme::theme()->getDisabledBackgroundColorHex() + ";"
+                      "}"
+                      "QPushButton:hover {"
+                      "background:" + Theme::theme()->getHighlightColorHex() + ";"
+                      "}"
+                      "QToolTip{ background: white; }";
+
+    updateStyleSheet(-1);
+}
+
+
+/**
  * @brief DockToggleButton::updateStyleSheet
  * @param state
  */
 void DockToggleButton::updateStyleSheet(int state)
 {
-    QString borderStyleSheet;
-    QString backgroundStyleSheet;
+    QString backgroundStyleSheet = "background:" + Theme::theme()->getAltBackgroundColorHex() + ";";
+
+    if (state == -1) {
+        if (isSelected()) {
+            state = SELECTED;
+        } else {
+            state = DEFAULT;
+        }
+    }
 
     switch (state) {
-    case DEFAULT:
-        borderStyleSheet = "border: 1px solid rgb(125,125,125);";
-        backgroundStyleSheet = "background: rgb(235,235,235);";
-        break;
     case SELECTED:
-        borderStyleSheet = "border: 2px solid rgb(50,50,250);";
-        backgroundStyleSheet = "background: rgb(250,250,250);";
+        backgroundStyleSheet = "background:" + Theme::theme()->getPressedColorHex() + ";";
         break;
     default:
-        return;
+        break;
     }
 
     setStyleSheet("QPushButton {"
                   "padding: 0px;"
-                  + borderStyleSheet
-                  + backgroundStyleSheet +
-                  "}" + fixedStyleSheet);
+                  "border: 1px solid rgb(125,125,125);"
+                  + backgroundStyleSheet
+                  + "}"
+                  + fixedStyleSheet);
 }
 
 

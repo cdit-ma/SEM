@@ -888,7 +888,7 @@ void ToolbarWidget::setupToolBar()
     // construct tool buttons and separators and add them to the toolbar's layout
     addChildButton = constructToolButton(buttonSize, 0.8, "Plus", "Add Child Entity");
     connectButton = constructToolButton(buttonSize, 0.7, "ConnectTo", "Connect Selection");
-    hardwareButton = constructToolButton(buttonSize, 0.7,  "HardwareNode", "Deploy Selection", "Items");
+    hardwareButton = constructToolButton(buttonSize, 0.7,  "Computer", "Deploy Selection", "Actions");
     deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
     alignFrame = constructFrameSeparator();
     alignVerticallyButton = constructToolButton(buttonSize, 0.6, "Align_Vertical", "Align Selection Vertically");
