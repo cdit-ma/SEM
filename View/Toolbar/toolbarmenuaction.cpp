@@ -56,7 +56,7 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_act
     }
 
     if (actionKind == "Info") {
-        setEnabled(false);
+        //setEnabled(false);
     }
 
     if (!displayedText.isEmpty()) {

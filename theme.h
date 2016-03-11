@@ -45,15 +45,11 @@ public:
     QString getMenuIconColorHex(COLOR_ROLE role = CR_NORMAL);
     void setMenuIconColor(COLOR_ROLE role, QColor color);
 
-
     void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
     QColor getAspectBackgroundColor(VIEW_ASPECT aspect);
     QString getAspectBackgroundColorHex(VIEW_ASPECT aspect);
 
-
-
     void setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName);
-
 
     QColor getDefaultImageTintColor();
     QString getDefaultImageTintColorHex();
@@ -65,8 +61,10 @@ public:
 
     QIcon getIcon(QString prefix, QString alias);
     QPixmap getImage(QString prefix, QString alias, QColor tintColor = QColor());
+
 signals:
     void theme_Changed();
+
 private:
     void updateValid();
     QHash<QString, QPixmap> pixmapLookup;

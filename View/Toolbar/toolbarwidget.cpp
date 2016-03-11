@@ -42,6 +42,7 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     // the toolbar to have a translucent background and a mock shadow
     shadowFrame = new QFrame(this);
     mainFrame = new QFrame(this);
+
     setupToolBar();
     setupTheme();
 
@@ -472,67 +473,19 @@ void ToolbarWidget::setupTheme()
 {
     Theme* theme = Theme::theme();
 
+    QColor altColor = theme->getAltBackgroundColor().darker(120);
+    QString altBackgroundColor = theme->QColorToHex(altColor) + ";";
+
     QString backgroundColor = theme->getAltBackgroundColorHex() + ";";
     QString highlightColor = theme->getHighlightColorHex() + ";";
 
     QString textColor = theme->getTextColorHex(Theme::CR_NORMAL) + ";";
     QString textSelectedColor = theme->getTextColorHex(Theme::CR_SELECTED) + ";";
 
-    QColor shadowColor = theme->getBackgroundColor().darker(120);
+    QColor shadowColor = theme->getBackgroundColor().darker(130);
     QString shadowColorStr = theme->QColorToHex(shadowColor) + ";";
 
-    QString buttonBorder = "1px solid rgba(160,160,160,250);";
-    QString hoverBorder = "1.5px solid rgba(170,170,170,250);";
-
-    /*
-
-    QColor backgroundColor = theme->getAltBackgroundColor();
-    backgroundColor.setAlpha(200);
-
-    QString mainBackground = theme->QColorToHex(backgroundColor) +";";
-    QString shadowBackground = "rgba(50,50,50,250);";
-
-    //QString background = "rgba(240,240,240,250);";
-    QString background = mainBackground;
-    QString textColor = "black;";
-    QString selectedColor = "green";
-    QString hoverTextColor = "black;";
-    QString hoverBackground = "rgba(230,230,230,250);";
-
-    VIEW_THEME theme = VT_DARK_THEME;
-    switch (theme) {
-    case VT_DARK_THEME:
-        buttonBorder = "1px solid rgba(100,100,100,250);";
-        hoverBorder = "1.5px solid rgba(100,100,100,250);";
-        //mainBackground = "rgba(150,150,150,200);";
-        //shadowBackground = "rgba(50,50,50,200);";
-        //background = "rgba(130,130,130,250);";
-        selectedColor = "orange;";
-        textColor = "white;";
-        break;
-    default:
-        break;
-    }
-    */
-
-    setStyleSheet(/*"QToolButton {"
-                  "border:" + buttonBorder +
-                  "background: rgba(240,240,240,240);"
-                  "}"
-                  "QToolButton:hover {"
-                  "border:" + hoverBorder +
-                  "background: rgba(255,255,255,255);"
-                  "}"
-                  "QToolButton[popupMode=\"1\"] {"
-                  "padding-right: 15px;"
-                  "}"
-                  "QToolButton::menu-button {"
-                  "border-left: 1px solid gray;"
-                  "border-top-right-radius: 10px;"
-                  "border-bottom-right-radius: 10px;"
-                  "width: 15px;"
-                  "}"*/
-                  "QRadioButton {"
+    setStyleSheet("QRadioButton {"
                   "padding: 8px 10px 8px 8px;"
                   "color:" + textColor +
                   "}"
@@ -540,6 +493,7 @@ void ToolbarWidget::setupTheme()
                   "font-weight: bold; "
                   "color:" + highlightColor +
                   "}"
+                  "QFrame { color:" + backgroundColor + "}"
                   "QMenu { "
                   "background:" + backgroundColor +
                   "}"
@@ -563,11 +517,10 @@ void ToolbarWidget::setupTheme()
                   "}"
                   );
 
-    mainFrame->setStyleSheet("background:" + backgroundColor +
+    mainFrame->setStyleSheet("background:" + altBackgroundColor +
                              "border-radius: 8px;");
     shadowFrame->setStyleSheet("background:" + shadowColorStr +
                                "border-radius: 10px;");
-    //currentTheme = theme;
     updateToolButtonIcons();
 }
 

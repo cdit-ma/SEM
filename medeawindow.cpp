@@ -2101,8 +2101,8 @@ void MedeaWindow::resetTheme(bool darkTheme)
     if (darkTheme) {
         Theme::theme()->setBackgroundColor(QColor(70,70,70));
         Theme::theme()->setHighlightColor(QColor(255,165,70));
-        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
-        Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter());
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter());
+        Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter(120));
 
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
         Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
@@ -2110,12 +2110,15 @@ void MedeaWindow::resetTheme(bool darkTheme)
 
         Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
-        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(130,130,130));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
+        //Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(130,130,130));
     } else {
         Theme::theme()->setBackgroundColor(QColor(170,170,170));
-        Theme::theme()->setAltBackgroundColor(QColor(238,238,239));
         Theme::theme()->setHighlightColor(QColor(75,110,175));
-        Theme::theme()->setDisabledBackgroundColor(QColor(162,162,162));
+        //Theme::theme()->setAltBackgroundColor(QColor(238,238,238));
+        //Theme::theme()->setDisabledBackgroundColor(QColor(162,162,162));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
+        Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter(110));
 
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
         Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(255,255,255));
@@ -2123,7 +2126,9 @@ void MedeaWindow::resetTheme(bool darkTheme)
 
         Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
-        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(130,130,130));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
+        //Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getAltBackgroundColor().darker(110));
+        //Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(130,130,130));
     }
 }
 
@@ -4806,12 +4811,13 @@ void MedeaWindow::updateStyleSheets()
 
     minimapBox->setStyleSheet("#minimapTitle {"
                               "background: " + altBGColor + ";"
-                              "border: 1px solid " + textSelectedColor +";"
+                              //"border: 1px solid " + textSelectedColor +";"
+                              "border: 2px solid " + disabledBGColor +";"
                               "border-bottom:none;"
                               "}");
 
     minimapLabel->setStyleSheet("color: " + textColor + "; font-size: 12px; padding-right: 20px;");
-    minimap->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; border: 1px solid " + textSelectedColor + "; }");
+    minimap->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; border: 2px solid " + disabledBGColor + "; }");
     nodeView->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; }");
 
     closeMinimapButton->setStyleSheet("QToolButton{ background:" + altBGColor + "; border:0px; }"
@@ -4851,7 +4857,8 @@ void MedeaWindow::updateStyleSheets()
                   "background:" + altBGColor + ";"
                   "}"
                   "QToolButton:hover {"
-                  "border: 2px solid rgb(140,140,140);"
+                  //"border: 2px solid rgb(140,140,140);"
+                  //"border: 2px solid " + BGColor + ";"
                   "background:" + highlightColor +";"
                   "}"
                   "QToolButton:disabled { background:" + disabledBGColor + "; border: 1px solid " + disabledBGColor + "; }"
@@ -4875,13 +4882,20 @@ void MedeaWindow::updateStyleSheets()
                   "QCheckBox::indicator { width: 25px; height: 25px; }"
                   "QCheckBox:checked { color: green; font-weight: bold; }"
 
-                  /*"QGroupBox {"
+                  "QGroupBox {"
                   "background-color: rgba(0,0,0,0);"
                   "border: 0px;"
                   "margin: 0px;"
                   "padding: 0px;"
-                  "}"*/
+                  "}"
                   );
+
+    dataTable->setStyleSheet("QTableView {"
+                             //"background:" + altBGColor + ";"
+                             "background: green;"
+                             //"color:" + textColor + ";"
+                             "}"
+                             );
 }
 
 
