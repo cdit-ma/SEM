@@ -244,8 +244,9 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
-    void saveTheme();
+    void saveTheme(bool apply = true);
     void resetTheme(bool darkTheme);
+    void resetAspectTheme(bool colorBlindTheme);
     void updateRecentProjectsWidgets(QString topFileName="");
 
     QPixmap getDialogPixmap(QString alias, QString image, QSize size = QSize(50,50));

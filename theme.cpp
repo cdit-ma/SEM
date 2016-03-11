@@ -140,6 +140,28 @@ void Theme::setMenuIconColor(Theme::COLOR_ROLE role, QColor color)
      }
 }
 
+void Theme::setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color)
+{
+    if(aspectColor[aspect] != color){
+        aspectColor[aspect] = color;
+        updateValid();
+    }
+}
+
+QColor Theme::getAspectBackgroundColor(VIEW_ASPECT aspect)
+{
+    if(aspectColor.contains(aspect)){
+        return aspectColor[aspect];
+    }
+    return QColor();
+}
+
+QString Theme::getAspectBackgroundColorHex(VIEW_ASPECT aspect)
+{
+    QColor color = getAspectBackgroundColor(aspect);
+    return Theme::QColorToHex(color);
+}
+
 void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName)
 {
     QString name = prefix + "/" + alias;
@@ -280,6 +302,17 @@ void Theme::updateValid()
             QColor iColor = menuIconColor[state];
 
             if(tColor.isValid() && iColor.isValid()){
+               continue;
+            }else{
+                gotAllColors = false;
+                break;
+            }
+        }
+
+        foreach(VIEW_ASPECT aspect, GET_VIEW_ASPECTS()){
+            QColor color = aspectColor[aspect];
+
+            if(color.isValid()){
                continue;
             }else{
                 gotAllColors = false;

@@ -13,6 +13,8 @@
 #include <QPushButton>
 #include <QEventLoop>
 #include <QColorDialog>
+#include <QFileDialog>
+#include "../theme.h"
 
 #define SMALL_SQUARE 25
 KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v, QString description, QString customType)
@@ -32,6 +34,8 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     bool isInt = false;
     bool isString = true;
     bool isColor = keyNameHR.endsWith("Color");
+    isFilePath = keyNameHR.endsWith("File Path");
+    isPath = keyNameHR.endsWith("Path");
 
     QString stringVal = v.toString();
     int intVal = -1;
@@ -96,7 +100,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
     hLayout->setSpacing(5);
 
-    labelBox = keyLabel;
+    labelButton = keyLabel;
 
     if(isBool){
         //Setup Checkbox.
@@ -148,21 +152,18 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         QString hexName = colorVal.name();
 
         QLineEdit* hexEdit = new QLineEdit(hexName);
-        QLabel* colorBox = new QLabel();
+        QPushButton* pickerButton = new QPushButton();
 
         colorBoxStyleSheet = "border:1px solid black;";
-        colorBox->setStyleSheet(colorBoxStyleSheet +"background:" + hexName +";");
-        colorBox->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
-
-        QPushButton* pickerButton = new QPushButton("...");
-        pickerButton->setFixedSize(SMALL_SQUARE,SMALL_SQUARE);
+        pickerButton->setStyleSheet(colorBoxStyleSheet +"background:" + hexName +";");
+        pickerButton->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
+        pickerButton->setFlat(true);
 
         hLayout->addWidget(hexEdit, 1);
-        hLayout->addWidget(colorBox);
         hLayout->addWidget(pickerButton);
 
         valueBox = hexEdit;
-        value2Box = colorBox;
+        value2Box = pickerButton;
 
         connect(pickerButton, SIGNAL(pressed()), this, SLOT(pickColor()));
         connect(hexEdit, &QLineEdit::textEdited, this, &KeyEditWidget::_valueChanged);
@@ -183,6 +184,18 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         connect(lineEdit, &QLineEdit::textEdited, this, &KeyEditWidget::_valueChanged);
 
         connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(_editingFinished()));
+
+        if(isPath || isFilePath){
+            QPushButton* pickerButton = new QPushButton();
+            if(isFilePath){
+                pickerButton->setIcon(Theme::theme()->getImage("Actions", "New"));
+            }else{
+                pickerButton->setIcon(Theme::theme()->getImage("Actions", "Open"));
+            }
+            connect(pickerButton, SIGNAL(pressed()), this, SLOT(pickPath()));
+            pickerButton->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
+            hLayout->addWidget(pickerButton);
+        }
         oldValue = stringVal;
         valueBox = lineEdit;
 
@@ -207,12 +220,20 @@ QVariant KeyEditWidget::getValue()
     return oldValue;
 }
 
-void KeyEditWidget::setLabelWidth(int labelWidth)
+int KeyEditWidget::getLabelWidth()
 {
-    if(labelBox){
-        labelBox->setMinimumWidth(labelWidth+2);
+    if(labelButton && keyType != KEY_BOOL){
+        QFontMetrics fm(labelButton->font());
+        return fm.width(hrKeyName);
     }
+    return -1;
+}
 
+void KeyEditWidget::setLabelWidth(int width)
+{
+    if(labelButton && keyType != KEY_BOOL){
+        labelButton->setFixedWidth(width + 2);
+    }
 }
 
 void KeyEditWidget::setValue(QVariant value)
@@ -244,16 +265,7 @@ void KeyEditWidget::setValue(QVariant value)
         }
     }else if(keyType == KEY_COLOR){
         QColor color = value.value<QColor>();
-
-
-        QLabel* label = dynamic_cast<QLabel*>(value2Box);
-        if(label){
-            label->setStyleSheet(colorBoxStyleSheet +"background:" + color.name() +";");
-        }
-        QLineEdit* stringEdit = dynamic_cast<QLineEdit*>(valueBox);
-        if(stringEdit){
-            stringEdit->setText(color.name());
-        }
+        updateColorWidget(color.name());
         value = color.name();
     }
     oldValue = value;
@@ -262,16 +274,31 @@ void KeyEditWidget::setValue(QVariant value)
 
 void KeyEditWidget::setHighlighted(bool highlighted)
 {
-    if(labelBox){
+    if(labelButton){
         if(this->highlighted != highlighted){
             this->highlighted = highlighted;
             if(highlighted){
-                labelBox->setStyleSheet(labelStyleSheet + "color:orange; font-weight:bold;text-decoration:underline;");
+                labelButton->setStyleSheet(labelStyleSheet + "color:orange; font-weight:bold;text-decoration:underline;");
             }else{
-                labelBox->setStyleSheet(labelStyleSheet);
+                labelButton->setStyleSheet(labelStyleSheet);
             }
             update();
         }
+    }
+}
+
+void KeyEditWidget::updateColorWidget(QString color)
+{
+    if(keyType != KEY_COLOR){
+        return;
+    }
+    QPushButton* button = dynamic_cast<QPushButton*>(value2Box);
+    if(button){
+        button->setStyleSheet(colorBoxStyleSheet +"background:" + color +";");
+    }
+    QLineEdit* stringEdit = dynamic_cast<QLineEdit*>(valueBox);
+    if(stringEdit){
+        stringEdit->setText(color);
     }
 }
 
@@ -289,6 +316,20 @@ void KeyEditWidget::pickColor()
     }
 }
 
+void KeyEditWidget::pickPath()
+{
+    QString path = "";
+    if(isFilePath){
+        path = QFileDialog::getOpenFileName(this, "Select File" , oldValue.toString());
+    }else{
+        path = QFileDialog::getExistingDirectory(this, "Select Path" , oldValue.toString() ,QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    }
+    if(path != ""){
+        _valueChanged(path);
+        _editingFinished();
+    }
+}
+
 void KeyEditWidget::_valueChanged(QVariant value)
 {
     newValue = value;
@@ -300,5 +341,15 @@ void KeyEditWidget::_editingFinished()
     if(oldValue != newValue && (!newValue.isNull() && newValue.isValid())){
         valueChanged(groupName, keyName, newValue);
         oldValue = newValue;
+    }
+
+    //UPDATE COLOR.
+    if(keyType == KEY_COLOR){
+        updateColorWidget(oldValue.toString());
+    }else if(isPath){
+        QLineEdit* lineEdit = dynamic_cast<QLineEdit*>(valueBox);
+        if(lineEdit){
+            lineEdit->setText(oldValue.toString());
+        }
     }
 }

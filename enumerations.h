@@ -22,8 +22,8 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define GENERAL_SETTINGS "00-General"
 #define LOG_DEBUGGING "00-01-Log_Debug_Information"
 #define THREAD_LIMIT "00-02-Thread_Limit"
-#define CUTS_CONFIGURE_PATH "00-03-CUTS_Configure_Script_Path"
-#define DEFAULT_DIR_PATH "00-04-Default_Open_Path"
+#define CUTS_CONFIGURE_PATH "00-03-CUTS_Configure_Script_File_Path"
+#define DEFAULT_DIR_PATH "00-04-Default_Model_Path"
 #define SCREENSHOT_PATH "00-05-Default_Screenshot_Path"
 #define SCREENSHOT_QUALITY "00-06-Screenshot_Quality"
 
@@ -45,11 +45,18 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define SHOW_LOCAL_NODE "02-06-Show_Local_Node"
 #define DARK_THEME_ON "02-07-Dark_Theme_On"
 
-#define ASPECT_SETTINGS "03-Default_Aspects"
+#define ASPECT_SETTINGS "03-Aspects"
+#define ASPECT_COLOR_DEFAULT "03-00-Set_Aspect_Default"
+#define ASPECT_COLOR_BLIND "03-00-Set_Aspect_ColorBlind"
 #define ASPECT_I "03-01-Interfaces"
 #define ASPECT_B "03-02-Behaviour"
 #define ASPECT_A "03-03-Assemblies"
 #define ASPECT_H "03-04-Hardware"
+#define ASPECT_I_COLOR "03-05-Interface_Color"
+#define ASPECT_B_COLOR "03-06-Behaviour_Color"
+#define ASPECT_A_COLOR "03-07-Assembly_Color"
+#define ASPECT_H_COLOR "03-08-Hardware_Color"
+
 #define DOCK_VISIBLE "04-01-Hide_Dock"
 
 #define TOOLBAR_SETTINGS "05-Toolbar"
@@ -81,6 +88,7 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define JENKINS_JOB "06-04-MEDEA_Jobname"
 #define JENKINS_TOKEN "06-05-API_Token"
 
+
 #define THEME_SETTINGS "07-Theme"
 #define THEME_SET_LIGHT_THEME "07-00-Set_Light_Theme"
 #define THEME_SET_DARK_THEME "07-00-Set_Dark_Theme"
@@ -88,13 +96,12 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define THEME_BG_ALT_COLOR "07-02-Alternate_Background_Color"
 #define THEME_DISABLED_BG_COLOR "07-03-Disabled_Background_Color"
 #define THEME_HIGHLIGHT_COLOR "07-04-Highlight_Color"
-#define THEME_MENU_TEXT_COLOR "07-05-Menu_Text_Color"
-#define THEME_MENU_TEXT_DISABLED_COLOR "07-06-Menu_Text_Disabled_Color"
-#define THEME_MENU_TEXT_SELECTED_COLOR "07-07-Menu_Text_Selected_Color"
-#define THEME_MENU_ICON_COLOR "07-08-Menu_Icon_Tint_Color"
-#define THEME_MENU_ICON_DISABLED_COLOR "07-09-Menu_Icon_Disabled_Tint_Color"
-#define THEME_MENU_ICON_SELECTED_COLOR "07-10-Menu_Icon_Selected_Tint_Color"
-#define THEME_ICON_TINT_COLOR "07-11-Default_Icon_Tint_Color"
+#define THEME_MENU_TEXT_COLOR "07-05-Text_Color"
+#define THEME_MENU_TEXT_DISABLED_COLOR "07-06-Disabled_Text_Color"
+#define THEME_MENU_TEXT_SELECTED_COLOR "07-07-Selected_Text_Color"
+#define THEME_MENU_ICON_COLOR "07-08-Icon_Color"
+#define THEME_MENU_ICON_DISABLED_COLOR "07-09-Disabled_Icon_Color"
+#define THEME_MENU_ICON_SELECTED_COLOR "07-10-Selected_Icon_Color"
 
 #define MINIMUM_TEXT_SIZE 6
 
