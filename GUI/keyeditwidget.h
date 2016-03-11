@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTextBrowser>
 #include <QVBoxLayout>
+#include <QPushButton>
 
 
 enum KEY_TYPE{
@@ -24,16 +25,19 @@ public:
     QString getGroupName();
     QVariant getValue();
 
-    void setLabelWidth(int labelWidth);
+    int getLabelWidth();
+    void setLabelWidth(int width);
     void setValue(QVariant value);
 
     void setHighlighted(bool highlighted);
+    void updateColorWidget(QString color);
 signals:
     void valueChanged(QString groupName, QString keyName, QVariant value);
 
 
 public slots:
     void pickColor();
+    void pickPath();
     void _valueChanged(QVariant value);
     void _editingFinished();
 
@@ -50,12 +54,15 @@ private:
 
     bool highlighted;
 
+    bool isPath;
+    bool isFilePath;
+
     int difference;
     QVBoxLayout* oldLayout;
     QVBoxLayout* vLayout;
     QWidget *valueBox;
     QWidget *value2Box;
-    QWidget *labelBox;
+    QPushButton *labelButton;
     QString labelStyleSheet;
     QString colorBoxStyleSheet;
     QTextBrowser* descriptionBox;

@@ -218,12 +218,12 @@ void MedeaWindow::themeSettingChanged(QString keyName, QVariant value)
         Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, color);
     }else if(keyName == THEME_MENU_ICON_SELECTED_COLOR){
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, color);
-    }else if(keyName == THEME_ICON_TINT_COLOR){
-        Theme::theme()->setDefaultImageTintColor(color);
     }else if(keyName == THEME_SET_DARK_THEME){
         resetTheme(true);
+        saveTheme(true);
     }else if(keyName == THEME_SET_LIGHT_THEME){
         resetTheme(false);
+        saveTheme(true);
     }
 }
 
@@ -353,6 +353,7 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     bool boolValue = value.toBool();
     int intValue = value.toInt(&isInt);
 
+    QColor color(strValue);
 
 
     if(keyName == WINDOW_X && isInt){
@@ -401,6 +402,20 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         assemblyToggle->setClicked(boolValue);
     }else if(keyName == ASPECT_H){
         hardwareToggle->setClicked(boolValue);
+    }else if(keyName == ASPECT_I_COLOR){
+        Theme::theme()->setAspectBackgroundColor(VA_INTERFACES, color);
+    }else if(keyName == ASPECT_B_COLOR){
+        Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, color);
+    }else if(keyName == ASPECT_A_COLOR){
+        Theme::theme()->setAspectBackgroundColor(VA_ASSEMBLIES, color);
+    }else if(keyName == ASPECT_H_COLOR){
+        Theme::theme()->setAspectBackgroundColor(VA_HARDWARE, color);
+    }else if(keyName == ASPECT_COLOR_BLIND){
+        resetAspectTheme(true);
+        saveTheme(true);
+    }else if(keyName == ASPECT_COLOR_DEFAULT){
+        resetAspectTheme(false);
+        saveTheme(true);
     }else if(keyName == JENKINS_URL){
         if(jenkinsManager){
             jenkinsManager->setURL(strValue);
@@ -435,6 +450,8 @@ void MedeaWindow::settingsApplied()
     if(SETTINGS_LOADING){
         if(!Theme::theme()->isValid()){
             resetTheme(DEFAULT_THEME);
+            resetAspectTheme(false);
+            saveTheme(true);
         }
     }
 
@@ -2053,7 +2070,7 @@ void MedeaWindow::changeEvent(QEvent *event)
     }
 }
 
-void MedeaWindow::saveTheme()
+void MedeaWindow::saveTheme(bool apply)
 {
     if(appSettings){
         appSettings->setSetting(THEME_BG_COLOR, Theme::theme()->getBackgroundColor());
@@ -2069,7 +2086,13 @@ void MedeaWindow::saveTheme()
         appSettings->setSetting(THEME_MENU_ICON_DISABLED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_DISABLED));
         appSettings->setSetting(THEME_MENU_ICON_SELECTED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_SELECTED));
 
-        appSettings->setSetting(THEME_ICON_TINT_COLOR, Theme::theme()->getDefaultImageTintColor());
+        appSettings->setSetting(ASPECT_I_COLOR, Theme::theme()->getAspectBackgroundColor(VA_INTERFACES));
+        appSettings->setSetting(ASPECT_B_COLOR, Theme::theme()->getAspectBackgroundColor(VA_BEHAVIOUR));
+        appSettings->setSetting(ASPECT_A_COLOR, Theme::theme()->getAspectBackgroundColor(VA_ASSEMBLIES));
+        appSettings->setSetting(ASPECT_H_COLOR, Theme::theme()->getAspectBackgroundColor(VA_HARDWARE));
+    }
+    if(apply){
+        Theme::theme()->applyTheme();
     }
 }
 
@@ -2080,7 +2103,6 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setHighlightColor(QColor(255,165,70));
         Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
         Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter());
-        //Theme::theme()->setDisabledBackgroundColor(QColor(162,162,162));
 
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
         Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
@@ -2098,16 +2120,26 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
         Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(255,255,255));
         Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(130,130,130));
-        //Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(199,199,199));
 
         Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
         Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(130,130,130));
-        //Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(199,199,199));
     }
+}
 
-    saveTheme();
-    Theme::theme()->applyTheme();
+void MedeaWindow::resetAspectTheme(bool colorBlindTheme)
+{
+    if(colorBlindTheme){
+        Theme::theme()->setAspectBackgroundColor(VA_INTERFACES, QColor(24,148,184));
+        Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, QColor(245,222,179));
+        Theme::theme()->setAspectBackgroundColor(VA_ASSEMBLIES, QColor(175,175,175));
+        Theme::theme()->setAspectBackgroundColor(VA_HARDWARE, QColor(207,107,100));
+    }else{
+        Theme::theme()->setAspectBackgroundColor(VA_INTERFACES, QColor(110,210,210));
+        Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, QColor(254,184,126));
+        Theme::theme()->setAspectBackgroundColor(VA_ASSEMBLIES, QColor(255,160,160));
+        Theme::theme()->setAspectBackgroundColor(VA_HARDWARE, QColor(110,170,220));
+    }
 }
 
 QPixmap MedeaWindow::getDialogPixmap(QString alias, QString image, QSize size)
@@ -2344,10 +2376,93 @@ void MedeaWindow::initialiseJenkinsManager()
 
 void MedeaWindow::initialiseSettings()
 {
-    appSettings = new AppSettings(this, applicationDirectory);
+    //SETTINGS.
+    QHash<QString, QString> tooltips;
+    QHash<QString, QString> visualGroups;
+
+    visualGroups[THEME_BG_COLOR] = "Colors";
+    visualGroups[THEME_BG_ALT_COLOR] = "Colors";
+    visualGroups[THEME_DISABLED_BG_COLOR] = "Disabled_Colors";
+    visualGroups[THEME_HIGHLIGHT_COLOR] = "Selected_Colors";
+
+    visualGroups[THEME_MENU_ICON_COLOR] = "Colors";
+    visualGroups[THEME_MENU_ICON_DISABLED_COLOR] = "Disabled_Colors";
+    visualGroups[THEME_MENU_ICON_SELECTED_COLOR] = "Selected_Colors";
+
+    visualGroups[THEME_MENU_TEXT_COLOR] = "Colors";
+    visualGroups[THEME_MENU_TEXT_DISABLED_COLOR] = "Disabled_Colors";
+    visualGroups[THEME_MENU_TEXT_SELECTED_COLOR] = "Selected_Colors";
+
+
+    visualGroups[JENKINS_URL] = "Server";
+    visualGroups[JENKINS_JOB] = "Server";
+
+    visualGroups[JENKINS_USER] = "User";
+    visualGroups[JENKINS_PASS] = "User";
+    visualGroups[JENKINS_TOKEN] = "User";
+
+    visualGroups[TOOLBAR_VISIBLE] = "Visible_Buttons";
+    visualGroups[TOOLBAR_EXPANDED] = "Visible_Buttons";
+    visualGroups[TOOLBAR_CONTEXT] = "Visible_Buttons";
+    visualGroups[TOOLBAR_UNDO] = "Visible_Buttons";
+    visualGroups[TOOLBAR_REDO] = "Visible_Buttons";
+    visualGroups[TOOLBAR_CUT] = "Visible_Buttons";
+    visualGroups[TOOLBAR_COPY] = "Visible_Buttons";
+    visualGroups[TOOLBAR_PASTE] = "Visible_Buttons";
+    visualGroups[TOOLBAR_REPLICATE] = "Visible_Buttons";
+    visualGroups[TOOLBAR_DELETE_ENTITIES] = "Visible_Buttons";
+    visualGroups[TOOLBAR_POPUP_SUBVIEW] = "Visible_Buttons";
+    visualGroups[TOOLBAR_GRID_LINES] = "Visible_Buttons";
+    visualGroups[TOOLBAR_FIT_TO_SCREEN] = "Visible_Buttons";
+    visualGroups[TOOLBAR_CENTER_ON_ENTITY] = "Visible_Buttons";
+    visualGroups[TOOLBAR_ZOOM_TO_FIT] = "Visible_Buttons";
+    visualGroups[TOOLBAR_SORT] = "Visible_Buttons";
+    visualGroups[TOOLBAR_VERT_ALIGN] = "Visible_Buttons";
+    visualGroups[TOOLBAR_HORIZ_ALIGN] = "Visible_Buttons";
+    visualGroups[TOOLBAR_BACK] = "Visible_Buttons";
+    visualGroups[TOOLBAR_FORWARD] = "Visible_Buttons";
+
+    visualGroups[ASPECT_I] = "0-Default_Aspects_Visible";
+    visualGroups[ASPECT_B] = "0-Default_Aspects_Visible";
+    visualGroups[ASPECT_A] = "0-Default_Aspects_Visible";
+    visualGroups[ASPECT_H] = "0-Default_Aspects_Visible";
+
+    visualGroups[ASPECT_I_COLOR] = "1-Aspect_Background_Color";
+    visualGroups[ASPECT_B_COLOR] = "1-Aspect_Background_Color";
+    visualGroups[ASPECT_A_COLOR] = "1-Aspect_Background_Color";
+    visualGroups[ASPECT_H_COLOR] = "1-Aspect_Background_Color";
+
+    visualGroups[SHOW_LOCAL_NODE] = "Show_Entities";
+    visualGroups[SHOW_MANAGEMENT_COMPONENTS] = "Show_Entities";
+
+    visualGroups[WINDOW_X] = "Geometry";
+    visualGroups[WINDOW_Y] = "Geometry";
+    visualGroups[WINDOW_W] = "Geometry";
+    visualGroups[WINDOW_H] = "Geometry";
+
+    visualGroups[WINDOW_MAX_STATE] = "State";
+    visualGroups[WINDOW_FULL_SCREEN] = "State";
+    visualGroups[WINDOW_STORE_SETTINGS] = "State";
+
+    visualGroups[SCREENSHOT_PATH] = "Screenshot";
+    visualGroups[SCREENSHOT_QUALITY] = "Screenshot";
+
+    visualGroups[CUTS_CONFIGURE_PATH] = "CUTS";
+
+
+
+
+
+    appSettings = new AppSettings(this,applicationDirectory, visualGroups, tooltips);
     appSettings->setModal(true);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
     connect(appSettings, SIGNAL(settingsApplied()), this, SLOT(settingsApplied()));
+
+
+    //Apply settings groups.
+    //appSettings->setSettingsVisualGroup(JENKINS_URL, "Username");
+    //appSettings->setSettingsVisualGroup(JENKINS_USER, "Username");
+    //appSettings->setSettingsVisualGroup(JENKINS_PASS, "Test");
 }
 
 void MedeaWindow::updateTheme()
@@ -4662,11 +4777,6 @@ void MedeaWindow::updateStyleSheets()
 
     loadingLabel->setStyleSheet("QLabel { color:" + textColor + ";}");
 
-    recentProjectsListWidget->setStyleSheet("background:" + altBGColor + ";"
-                                            "color:" + textColor + ";"
-                                            "font-size: 16px;"
-                                            );
-
     menu->setStyleSheet("QMenu {"
                         "background:" + altBGColor + ";"
                         "}"
@@ -4727,6 +4837,11 @@ void MedeaWindow::updateStyleSheets()
     //toolbarButton->setStyleSheet("QToolButton{ background:"+ altBGColor + "; color:" + textColor + "; border-radius: 5px; }"
     //                             "QToolButton:hover{ background:" + highlightColor +"; color:" + textSelectedColor + "; }");
 
+
+    recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
+                                            "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
+
+
     setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
@@ -4760,12 +4875,12 @@ void MedeaWindow::updateStyleSheets()
                   "QCheckBox::indicator { width: 25px; height: 25px; }"
                   "QCheckBox:checked { color: green; font-weight: bold; }"
 
-                  "QGroupBox {"
+                  /*"QGroupBox {"
                   "background-color: rgba(0,0,0,0);"
                   "border: 0px;"
                   "margin: 0px;"
                   "padding: 0px;"
-                  "}"
+                  "}"*/
                   );
 }
 

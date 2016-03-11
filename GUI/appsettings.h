@@ -18,7 +18,7 @@ class AppSettings: public QDialog
 {
     Q_OBJECT
 public:
-    AppSettings(QWidget *parent = 0, QString applicationPath="");
+    AppSettings(QWidget *parent = 0, QString applicationPath="", QHash<QString, QString> visualGroups = QHash<QString, QString>(), QHash<QString, QString> tooltips = QHash<QString, QString>());
     ~AppSettings();
 
 
@@ -46,21 +46,29 @@ private slots:
     void setDarkTheme();
     void setLightTheme();
 
+    void setAspectColor_Blind();
+    void setAspectColor_Default();
+
 private:
     void updateApplyButton();
     QString getGroup(QString keyName);
     void setupLayout();
     QSettings* settings;
 
+    QHash<QString, QString> keysTooltips;
+    QHash<QString, QString> keysVisualGroups;
+    QHash<QString, KeyEditWidget*> settingsWidgetsHash;
+    QHash<QString, SettingStruct> changedSettings;
+
+
+    QHash<QString, QVBoxLayout*> groupLayouts;
     QHash<QString, QString> keyToGroupMap;
-    //QList<KeyEditWidget*> settingsWidgets;
+
     bool settingsLoaded;
     bool settingFileWriteable;
 
     QPushButton* clearChangesButton;
     QPushButton* applyButton;
-    QHash<QString, KeyEditWidget*> settingsWidgetsHash;
-    QHash<QString, SettingStruct> changedSettings;
 
     QScrollArea* scrollArea;
 
