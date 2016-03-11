@@ -4780,11 +4780,6 @@ void MedeaWindow::updateStyleSheets()
 
     loadingLabel->setStyleSheet("QLabel { color:" + textColor + ";}");
 
-    recentProjectsListWidget->setStyleSheet("background:" + altBGColor + ";"
-                                            "color:" + textColor + ";"
-                                            "font-size: 16px;"
-                                            );
-
     menu->setStyleSheet("QMenu {"
                         "background:" + altBGColor + ";"
                         "}"
@@ -4844,6 +4839,11 @@ void MedeaWindow::updateStyleSheets()
 
     //toolbarButton->setStyleSheet("QToolButton{ background:"+ altBGColor + "; color:" + textColor + "; border-radius: 5px; }"
     //                             "QToolButton:hover{ background:" + highlightColor +"; color:" + textSelectedColor + "; }");
+
+
+    recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
+                                            "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
+
 
     setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
