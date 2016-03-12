@@ -62,6 +62,7 @@
 #define GITHUB_URL "https://github.com/cdit-ma/MEDEA/"
 
 #define THEME_STYLE_QPUSHBUTTON "THEME_STYLE_QPUSHBUTTON"
+#define THEME_STYLE_GROUPBOX "THEME_STYLE_GROUPBOX"
 // USER SETTINGS
 
 /**
@@ -492,6 +493,7 @@ void MedeaWindow::initialiseGUI()
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTableBox = new QGroupBox(this);
+    dataTableBox->setObjectName(THEME_STYLE_GROUPBOX);
     dataTableBox->setFixedWidth(RIGHT_PANEL_WIDTH + 10);
     dataTableBox->setContentsMargins(0,0,0,0);
 
@@ -529,6 +531,7 @@ void MedeaWindow::initialiseGUI()
     closeProjectButton->setFixedSize(menuButton->height()/2.5, menuButton->height()/2.5);
 
     menuTitleBox = new QGroupBox(this);
+    menuTitleBox->setObjectName(THEME_STYLE_GROUPBOX);
     menuTitleBox->setFixedHeight(menuButton->height() + SPACER_SIZE*3);
     menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
                                   menuButton->width() + SPACER_SIZE + projectName->width() + closeProjectButton->width(), menuButton->height(),
@@ -630,7 +633,6 @@ void MedeaWindow::initialiseGUI()
     setupMultiLineBox();
     setupWelcomeScreen();
 
-    updateStyleSheets();
 
     updateRecentProjectsWidgets();
 }
@@ -938,7 +940,9 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 {
     dockStandAloneDialog = new QDialog(this);
     docksArea = new QGroupBox(this);
+    docksArea->setObjectName(THEME_STYLE_GROUPBOX);
     dockButtonsBox = new QGroupBox();
+    dockButtonsBox->setObjectName(THEME_STYLE_GROUPBOX);
     dockButtonsBox->setStyle(QStyleFactory::create("windows"));
 
     dockLayout = new QVBoxLayout();
@@ -1058,6 +1062,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     innerDockLayout->addStretch();
 
     dockGroupBox = new QGroupBox(this);
+    dockGroupBox->setObjectName(THEME_STYLE_GROUPBOX);
     dockGroupBox->setLayout(innerDockLayout);
 
     dockLayout->addWidget(dockButtonsBox);
@@ -1151,6 +1156,7 @@ void MedeaWindow::setupSearchTools()
     QWidgetAction* aspectsAction = new QWidgetAction(this);
     QLabel* aspectsLabel = new QLabel("Aspect(s):", this);
     QGroupBox* aspectsGroup = new QGroupBox(this);
+    aspectsGroup->setObjectName(THEME_STYLE_GROUPBOX);
     QHBoxLayout* aspectsLayout = new QHBoxLayout();
 
     aspectsLabel->setMinimumWidth(50);
@@ -1196,6 +1202,7 @@ void MedeaWindow::setupSearchTools()
     QWidgetAction* kindsAction = new QWidgetAction(this);
     QLabel* kindsLabel = new QLabel("Kind(s):", this);
     QGroupBox* kindsGroup = new QGroupBox(this);
+    kindsGroup->setObjectName(THEME_STYLE_GROUPBOX);
     QHBoxLayout* kindsLayout = new QHBoxLayout();
     nodeKindsDefaultText = "All Kinds";
     nodeKindsBar = new QLineEdit(nodeKindsDefaultText, this);
@@ -1227,6 +1234,7 @@ void MedeaWindow::setupSearchTools()
     QWidgetAction* keysAction = new QWidgetAction(this);
     QLabel* keysLabel = new QLabel("Data Key(s):", this);
     QGroupBox* keysGroup = new QGroupBox(this);
+    keysGroup->setObjectName(THEME_STYLE_GROUPBOX);
     QHBoxLayout* keysLayout = new QHBoxLayout();
 
     keysLabel->setMinimumWidth(50);
@@ -1371,6 +1379,7 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     loadingLayout->addStretch();
 
     loadingBox = new QGroupBox(this);
+    loadingBox->setObjectName(THEME_STYLE_GROUPBOX);
     loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT);
     loadingBox->setLayout(loadingLayout);
 
@@ -2382,77 +2391,10 @@ void MedeaWindow::initialiseJenkinsManager()
 void MedeaWindow::initialiseSettings()
 {
     //SETTINGS.
-    QHash<QString, QString> tooltips;
-    QHash<QString, QString> visualGroups;
-
-    visualGroups[THEME_BG_COLOR] = "Colors";
-    visualGroups[THEME_BG_ALT_COLOR] = "Colors";
-    visualGroups[THEME_DISABLED_BG_COLOR] = "Disabled_Colors";
-    visualGroups[THEME_HIGHLIGHT_COLOR] = "Selected_Colors";
-
-    visualGroups[THEME_MENU_ICON_COLOR] = "Colors";
-    visualGroups[THEME_MENU_ICON_DISABLED_COLOR] = "Disabled_Colors";
-    visualGroups[THEME_MENU_ICON_SELECTED_COLOR] = "Selected_Colors";
-
-    visualGroups[THEME_MENU_TEXT_COLOR] = "Colors";
-    visualGroups[THEME_MENU_TEXT_DISABLED_COLOR] = "Disabled_Colors";
-    visualGroups[THEME_MENU_TEXT_SELECTED_COLOR] = "Selected_Colors";
+    QHash<QString, QString> tooltips = GET_SETTINGS_TOOLTIPS_HASH();
+    QHash<QString, QString> visualGroups = GET_SETTINGS_GROUP_HASH();
 
 
-    visualGroups[JENKINS_URL] = "Server";
-    visualGroups[JENKINS_JOB] = "Server";
-
-    visualGroups[JENKINS_USER] = "User";
-    visualGroups[JENKINS_PASS] = "User";
-    visualGroups[JENKINS_TOKEN] = "User";
-
-    visualGroups[TOOLBAR_VISIBLE] = "Visible_Buttons";
-    visualGroups[TOOLBAR_EXPANDED] = "Visible_Buttons";
-    visualGroups[TOOLBAR_CONTEXT] = "Visible_Buttons";
-    visualGroups[TOOLBAR_UNDO] = "Visible_Buttons";
-    visualGroups[TOOLBAR_REDO] = "Visible_Buttons";
-    visualGroups[TOOLBAR_CUT] = "Visible_Buttons";
-    visualGroups[TOOLBAR_COPY] = "Visible_Buttons";
-    visualGroups[TOOLBAR_PASTE] = "Visible_Buttons";
-    visualGroups[TOOLBAR_REPLICATE] = "Visible_Buttons";
-    visualGroups[TOOLBAR_DELETE_ENTITIES] = "Visible_Buttons";
-    visualGroups[TOOLBAR_POPUP_SUBVIEW] = "Visible_Buttons";
-    visualGroups[TOOLBAR_GRID_LINES] = "Visible_Buttons";
-    visualGroups[TOOLBAR_FIT_TO_SCREEN] = "Visible_Buttons";
-    visualGroups[TOOLBAR_CENTER_ON_ENTITY] = "Visible_Buttons";
-    visualGroups[TOOLBAR_ZOOM_TO_FIT] = "Visible_Buttons";
-    visualGroups[TOOLBAR_SORT] = "Visible_Buttons";
-    visualGroups[TOOLBAR_VERT_ALIGN] = "Visible_Buttons";
-    visualGroups[TOOLBAR_HORIZ_ALIGN] = "Visible_Buttons";
-    visualGroups[TOOLBAR_BACK] = "Visible_Buttons";
-    visualGroups[TOOLBAR_FORWARD] = "Visible_Buttons";
-
-    visualGroups[ASPECT_I] = "0-Default_Aspects_Visible";
-    visualGroups[ASPECT_B] = "0-Default_Aspects_Visible";
-    visualGroups[ASPECT_A] = "0-Default_Aspects_Visible";
-    visualGroups[ASPECT_H] = "0-Default_Aspects_Visible";
-
-    visualGroups[ASPECT_I_COLOR] = "1-Aspect_Background_Color";
-    visualGroups[ASPECT_B_COLOR] = "1-Aspect_Background_Color";
-    visualGroups[ASPECT_A_COLOR] = "1-Aspect_Background_Color";
-    visualGroups[ASPECT_H_COLOR] = "1-Aspect_Background_Color";
-
-    visualGroups[SHOW_LOCAL_NODE] = "Show_Entities";
-    visualGroups[SHOW_MANAGEMENT_COMPONENTS] = "Show_Entities";
-
-    visualGroups[WINDOW_X] = "Geometry";
-    visualGroups[WINDOW_Y] = "Geometry";
-    visualGroups[WINDOW_W] = "Geometry";
-    visualGroups[WINDOW_H] = "Geometry";
-
-    visualGroups[WINDOW_MAX_STATE] = "State";
-    visualGroups[WINDOW_FULL_SCREEN] = "State";
-    visualGroups[WINDOW_STORE_SETTINGS] = "State";
-
-    visualGroups[SCREENSHOT_PATH] = "Screenshot";
-    visualGroups[SCREENSHOT_QUALITY] = "Screenshot";
-
-    visualGroups[CUTS_CONFIGURE_PATH] = "CUTS";
 
 
 
@@ -4882,7 +4824,7 @@ void MedeaWindow::updateStyleSheets()
                   "QCheckBox::indicator { width: 25px; height: 25px; }"
                   "QCheckBox:checked { color: green; font-weight: bold; }"
 
-                  "QGroupBox {"
+                  "QGroupBox#"+ THEME_STYLE_GROUPBOX + "{"
                   "background-color: rgba(0,0,0,0);"
                   "border: 0px;"
                   "margin: 0px;"
