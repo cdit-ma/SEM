@@ -42,6 +42,7 @@ ModelItem::ModelItem(NodeAdapter *node, NodeView *view):  GraphMLItem(node, 0, G
 
     setFlag(QGraphicsItem::ItemIsFocusable);
 
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     setupDataConnections();
     updateFromData();
 
@@ -231,6 +232,30 @@ void ModelItem::dataChanged(QString dataValue)
 void ModelItem::themeChanged()
 {
     modelCircleColor = Theme::theme()->getBackgroundColor();
+
+    // setup quadrant colours based on the aspects' positions
+    foreach (VIEW_ASPECT aspect, GET_VIEW_ASPECTS()) {
+        VIEW_ASPECT_POS aspectPos = GET_ASPECT_POS(aspect);
+
+        QColor aspectColor = Theme::theme()->getAspectBackgroundColor(aspect);
+        switch (aspectPos) {
+        case VAP_TOPLEFT:
+            topLeftColor = aspectColor;
+            break;
+        case VAP_TOPRIGHT:
+            topRightColor = aspectColor;
+            break;
+        case VAP_BOTTOMLEFT:
+            bottomLeftColor = aspectColor;
+            break;
+        case VAP_BOTTOMRIGHT:
+            bottomRightColor = aspectColor;
+            break;
+        default:
+            break;
+        }
+    }
+    update();
 }
 
 

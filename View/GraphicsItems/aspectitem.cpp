@@ -59,8 +59,8 @@ AspectItem::AspectItem(NodeAdapter *node, GraphMLItem *parent, VIEW_ASPECT aspec
 
     forcePos(getAspectPos());
 
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(this, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(sizeChanged()));
-
 
     listenForData("width");
     listenForData("height");
@@ -80,15 +80,6 @@ QRectF AspectItem::boundingRect() const
 
 void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
-    /*
-    if (getViewAspect() == VA_BEHAVIOUR) {
-        QPixmap pixmap = getNodeView()->getImage("Items", "BehaviourDefinitions");
-        pixmap =  pixmap.scaled(boundingRect().width(), boundingRect().height(),
-                                Qt::KeepAspectRatio,
-                                Qt::SmoothTransformation);
-        painter->drawPixmap(boundingRect().topLeft(), pixmap);
-    }
-    */
 
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
@@ -98,17 +89,6 @@ void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     if(!isSelected()){
         borderPen = Qt::NoPen;
     }
-
-    /*
-    if (!isSelected()) {        
-        if (isHovered()) {
-            //borderPen.setColor(QColor(220,220,220));
-            borderPen.setColor(QColor(130,130,130));
-        } else {
-            borderPen = Qt::NoPen;
-        }
-    }
-    */
 
     painter->setPen(borderPen);
     painter->setBrush(backgroundColor);
@@ -239,6 +219,13 @@ void AspectItem::dataChanged(QString keyName, QVariant data)
             emit dataChanged(keyName, height);
         }
     }
+}
+
+void AspectItem::themeChanged()
+{
+    backgroundColor = Theme::theme()->getAspectBackgroundColor(getViewAspect());
+    textColor = backgroundColor.darker(110);
+    update();
 }
 
 
