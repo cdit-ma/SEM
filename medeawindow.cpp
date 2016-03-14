@@ -4892,7 +4892,7 @@ void MedeaWindow::updateStyleSheets()
 
     dataTable->setStyleSheet("QTableView {"
                              //"background:" + altBGColor + ";"
-                             "background: green;"
+                             /*"background: green;"*/
                              //"color:" + textColor + ";"
                              "}"
                              );
