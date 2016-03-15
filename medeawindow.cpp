@@ -81,6 +81,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     fileDialog = 0;
     leftOverTime = 0;
     controllerThread = 0;
+    rightPanelWidget = 0;
 
     SETTINGS_LOADING = false;
     WINDOW_MAXIMIZED = false;
@@ -492,15 +493,11 @@ void MedeaWindow::initialiseGUI()
     delegate = new ComboBoxTableDelegate(0);
 
     // setup and add dataTable/dataTableBox widget/layout
-    dataTableBox = new QGroupBox(this);
-    dataTableBox->setObjectName(THEME_STYLE_GROUPBOX);
-    dataTableBox->setContentsMargins(0,0,0,0);
 
-    dataTable = new QTableView(dataTableBox);
+    dataTable = new QTableView(this);
     dataTable->setItemDelegateForColumn(1, delegate);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
-    dataTable->resize(dataTable->width(), 0);
 
     // setup menu, close project and project name buttons
     menuButton = new QPushButton(getIcon("Actions", "MEDEAIcon"), "");
@@ -543,10 +540,6 @@ void MedeaWindow::initialiseGUI()
     aspectToggles << assemblyToggle;
     aspectToggles << hardwareToggle;
 
-    QVBoxLayout* tableLayout = new QVBoxLayout();
-    tableLayout->setMargin(0);
-    tableLayout->addWidget(dataTable);
-    dataTableBox->setLayout(tableLayout);
 
     QHBoxLayout* titleLayout = new QHBoxLayout();
     titleLayout->setMargin(0);
@@ -571,7 +564,6 @@ void MedeaWindow::initialiseGUI()
     leftVlayout->setSpacing(0);
     leftVlayout->setContentsMargins(0,0,0,0);
     leftVlayout->addLayout(topHLayout);
-    //leftVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     leftVlayout->addLayout(bodyLayout);
     leftVlayout->addStretch();
 
@@ -587,21 +579,23 @@ void MedeaWindow::initialiseGUI()
     searchLayout = new QHBoxLayout();
     minimapBox = new QWidget(this);
 
-    QVBoxLayout* rightVlayout =  new QVBoxLayout();
+    rightVlayout =  new QVBoxLayout();
     rightVlayout->setMargin(0);
     rightVlayout->setContentsMargins(0, SPACER_SIZE, 0, 0);
     rightVlayout->addLayout(searchLayout);
-    //rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     rightVlayout->addLayout(viewButtonsGrid);
-    //rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
-    rightVlayout->addWidget(dataTableBox);
-    rightVlayout->addStretch();
-    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
-    rightVlayout->addWidget(minimapBox);
+    rightVlayout->addWidget(dataTable, 1);
+
+    rightVlayout->addWidget(minimapBox, 0, Qt::AlignBottom);
 
     rightPanelWidget = new QWidget(this);
     rightPanelWidget->setFixedWidth(RIGHT_PANEL_WIDTH);
     rightPanelWidget->setLayout(rightVlayout);
+
+
+
+
+    //rightPanelWidget->setWindowFlags(Qt::FramelessWindowHint | Qt::SubWindow);
 
     viewLayout = new QHBoxLayout();
     viewLayout->setMargin(0);
@@ -633,6 +627,8 @@ void MedeaWindow::initialiseGUI()
     setupWelcomeScreen();
 
     updateRecentProjectsWidgets();
+
+    //dataTable->setAttribute(Qt::WA_TransparentForMouseEvents,false);
 }
 
 
@@ -1738,7 +1734,6 @@ void MedeaWindow::resetGUI()
 
     // initially hide these
     notificationsBar->hide();
-    dataTableBox->hide();
     progressDialog->hide();
     loadingBox->hide();
 
@@ -2069,6 +2064,7 @@ void MedeaWindow::changeEvent(QEvent *event)
         updateWidgetsOnWindowChange();
     }
 }
+
 
 void MedeaWindow::saveTheme(bool apply)
 {
@@ -2918,6 +2914,15 @@ void MedeaWindow::themeChanged()
     updateMenuIcons();
 }
 
+void MedeaWindow::updateRightMask()
+{
+    if(rightPanelWidget){
+        rightPanelWidget->setMask(rightPanelWidget->childrenRegion());
+        rightPanelWidget->repaint();
+    }
+}
+
+
 void MedeaWindow::recentProjectItemClicked(QListWidgetItem *item)
 {
     if(item){
@@ -3684,6 +3689,12 @@ void MedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
     dataTable->clearSelection();
     dataTable->setModel(model);
+    if(model){
+        if(dataTable->horizontalHeader()->count() == 2){
+            dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
+            dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        }
+    }
     updateDataTable();
 }
 
@@ -4194,43 +4205,80 @@ void MedeaWindow::updateDataTable()
     QAbstractItemModel* tableModel = dataTable->model();
     bool hasData = tableModel && tableModel->rowCount() > 0;
 
-    if (hasData) {
-        dataTableBox->setVisible(true);
-        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents, false);
-    } else {
-        dataTable->resize(dataTable->width(), 0);
-        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
-        updateWidgetMask(dataTableBox, dataTable);
-        dataTableBox->setVisible(false);
+    if(hasData){
+        if(!dataTable->isVisible()){
+            //Remove the Stretch before the minimap
+            int indexOfStretch = rightVlayout->indexOf(minimapBox) - 1;
+
+            QLayoutItem* stretchItem = rightVlayout->itemAt(indexOfStretch);
+            //Remove the Stretch
+            rightVlayout->removeItem(stretchItem);
+
+            if(stretchItem && !stretchItem->widget()){
+                //Delete the stretch item
+                delete stretchItem;
+            }
+
+            //Insert the DataTable Widget with a stretch and alignment.
+            rightVlayout->insertWidget(indexOfStretch, dataTable, 1);
+            rightVlayout->setAlignment(dataTable, Qt::AlignTop);
+            dataTable->setVisible(true);
+        }
+    }else{
+        if(dataTable->isVisible()){
+            int indexOfTable = rightVlayout->indexOf(minimapBox) - 1;
+            QLayoutItem* tableItem = rightVlayout->itemAt(indexOfTable);
+
+            //Remove the Table.
+            rightVlayout->removeItem(tableItem);
+
+            //Insert the Stretch
+            rightVlayout->insertStretch(indexOfTable, 1);
+        }
+
+        //Hide the DataTable
+        dataTable->setVisible(false);
+        updateRightMask();
         return;
     }
 
-    // calculate the required height
-    int newHeight = 0;
-    int maxHeight = dataTableBox->height() - SPACER_SIZE;
+    int requiredHeight = 0;
 
-    for (int i = 0; i < tableModel->rowCount(); i++) {
-        newHeight += dataTable->rowHeight(i);
+    //Sum the height.
+    for (int i = 0; i < tableModel->rowCount(); i++){
+        requiredHeight += dataTable->rowHeight(i);
     }
 
-    newHeight += dataTable->horizontalHeader()->size().height();
-    newHeight += dataTable->contentsMargins().top() + dataTable->contentsMargins().bottom();
+    requiredHeight += dataTable->horizontalHeader()->size().height();
+    requiredHeight += dataTable->contentsMargins().top() + dataTable->contentsMargins().bottom();
 
-    if (newHeight > maxHeight) {
-        dataTable->resize(dataTable->width(), maxHeight);
-    } else {
-        dataTable->resize(dataTable->width(), newHeight);
+    int availableHeight = rightPanelWidget->height();
+    availableHeight -= rightVlayout->contentsMargins().top();
+    availableHeight -= rightVlayout->contentsMargins().bottom();
+
+    for(int i = 0; i < rightVlayout->count(); i++){
+
+        QLayoutItem* item = rightVlayout->itemAt(i);
+        if(item->widget() != dataTable){
+            //Ignore invisible items
+            if(item->widget() && !item->widget()->isVisible()){
+                continue;
+            }
+            availableHeight -= item->geometry().height();
+        }
+        availableHeight -= rightVlayout->spacing();
     }
 
-    // update the visible region of the groupbox to fit the dataTable
-    updateWidgetMask(dataTableBox, dataTable);
-    dataTableBox->repaint();
+    //Resize the DataTable to be the required Height.
+    dataTable->resize(QSize(dataTable->width(), requiredHeight));
 
-    // align the contents of the datatable
-    if(dataTable->horizontalHeader()->count() == 2){
-        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
-        dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    }
+    //Force the height to minimize the size we have available and the required height.
+    int newHeight = qMin(requiredHeight, availableHeight);
+    dataTable->setFixedHeight(newHeight);
+
+
+
+    updateRightMask();
 }
 
 void MedeaWindow::updateRecentProjectsWidgets(QString topFileName)
@@ -4836,8 +4884,10 @@ void MedeaWindow::toggleMinimap(bool on)
     if (on) {
         view_showMinimap->setText("Hide Minimap");
         minimapBox->show();
+        updateDataTable();
     } else {
         view_showMinimap->setText("Show Minimap");
         minimapBox->hide();
+        updateDataTable();
     }
 }

@@ -137,9 +137,10 @@ public slots:
     void executeLocalNodeDeployment();
     void executeJenkinsDeployment();
 
-
 private slots:
     void themeChanged();
+
+    void updateRightMask();
 
     void updateMenuIcons();
 
@@ -242,6 +243,7 @@ protected:
     void closeEvent(QCloseEvent*);
     void resizeEvent(QResizeEvent* event);
     void changeEvent(QEvent * event);
+
 
 private:
     void saveTheme(bool apply = true);
@@ -380,6 +382,8 @@ private:
     QAction* model_clearModel;
     QAction* model_ExecuteLocalJob;
 
+    QVBoxLayout* rightVlayout;
+
     QAction* settings_editToolbarButtons;
     QAction* settings_changeAppSettings;
 
@@ -476,7 +480,7 @@ private:
     QWidget* rightPanelWidget;
 
     QTableView* dataTable;
-    QGroupBox* dataTableBox;
+
     ComboBoxTableDelegate* delegate;
 
     QLineEdit* searchBar;

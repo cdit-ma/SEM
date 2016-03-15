@@ -2294,7 +2294,7 @@ void EntityItem::setupDataConnections()
         listenForData("os");
         listenForData("architecture");
         listenForData("localhost");
-    }else if(nodeKind == "Member"){
+    }else if(nodeKind == "Member" || nodeKind == "MemberInstance"){
         listenForData("key");
     }else if(nodeKind == "Process"){
         listenForData("worker");

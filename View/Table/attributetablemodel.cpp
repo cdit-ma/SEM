@@ -6,7 +6,6 @@
 #include <QDialog>
 #include <QPlainTextEdit>
 #include <QDialogButtonBox>
-
 AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QAbstractTableModel(item)
 {
     Q_UNUSED(parent);
@@ -177,7 +176,7 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::BackgroundRole){
         if(index.column() < 1){
-         return QVariant::fromValue(QColor(240,240,240));
+            return QVariant::fromValue(QColor(240,240,240));
         }
     }
 

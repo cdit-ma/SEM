@@ -50,6 +50,7 @@
  * @param subView
  * @param parent
  */
+
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
@@ -344,6 +345,7 @@ NodeView::~NodeView()
         parentNodeView->removeSubView(this);
     }
 }
+
 
 void NodeView::setApplicationDirectory(QString appDir)
 {

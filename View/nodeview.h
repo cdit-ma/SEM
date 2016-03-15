@@ -45,6 +45,7 @@ public:
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
 
+
     void setApplicationDirectory(QString appDir);
     void setCursor(QCursor cursor);
     void unsetCursor();
