@@ -65,6 +65,7 @@ AspectItem::AspectItem(NodeAdapter *node, GraphMLItem *parent, VIEW_ASPECT aspec
     listenForData("width");
     listenForData("height");
     updateFromData();
+    themeChanged();
 }
 
 

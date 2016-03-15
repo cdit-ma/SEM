@@ -42,6 +42,7 @@ AspectToggleWidget::AspectToggleWidget(VIEW_ASPECT aspect, double size, MedeaWin
     connect(this, SIGNAL(aspectToggle_middleClicked(VIEW_ASPECT)), parentWindow, SIGNAL(window_aspectMiddleClicked(VIEW_ASPECT)));
     connect(parentWindow, SIGNAL(window_aspectMiddleClicked(VIEW_ASPECT)), this, SLOT(aspectMiddleClicked(VIEW_ASPECT)));
     connect(parentWindow, SIGNAL(window_SetViewVisible(bool)), this, SLOT(enableToggleButton(bool)));
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
 
@@ -231,7 +232,25 @@ void AspectToggleWidget::enableToggleButton(bool enable)
 
 
 /**
- * @brief AspectToggleWidget::toColorStr
+ * @brief AspectToggleWidget::themeChanged
+ */
+void AspectToggleWidget::themeChanged()
+{
+    QColor aspectColor = Theme::theme()->getAspectBackgroundColor(viewAspect); //GET_ASPECT_COLOR(viewAspect);
+    QColor darkerAspectColor = adjustColorRGB(aspectColor, -55); //-15);
+    int checkedAlpha = 250;
+
+    disabledColor = Theme::theme()->getDisabledBackgroundColorHex(); //colorToString(Qt::darkGray);
+    defaultColor = colorToString(darkerAspectColor);
+    p1_Color = colorToString(adjustColorRGB(darkerAspectColor, 175), checkedAlpha);
+    p2_Color = colorToString(adjustColorRGB(darkerAspectColor, 15), checkedAlpha);
+
+    updateStyleSheet();
+}
+
+
+/**
+ * @brief AspectToggleWidget::colorToString
  * @param color
  * @param alpha
  * @return
@@ -278,11 +297,11 @@ QColor AspectToggleWidget::adjustColorRGB(QColor color, int delta)
  */
 void AspectToggleWidget::setupColor()
 {
-    QColor aspectColor = GET_ASPECT_COLOR(viewAspect);
+    QColor aspectColor = Theme::theme()->getAspectBackgroundColor(viewAspect); //GET_ASPECT_COLOR(viewAspect);
     QColor darkerAspectColor = adjustColorRGB(aspectColor, -55); //-15);
     int checkedAlpha = 250;
 
-    disabledColor = colorToString(Qt::darkGray);
+    disabledColor = Theme::theme()->getDisabledBackgroundColorHex(); //colorToString(Qt::darkGray);
     defaultColor = colorToString(darkerAspectColor);
     p1_Color = colorToString(adjustColorRGB(darkerAspectColor, 175), checkedAlpha);
     p2_Color = colorToString(adjustColorRGB(darkerAspectColor, 15), checkedAlpha);
