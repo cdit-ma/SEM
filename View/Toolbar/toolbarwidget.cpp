@@ -568,15 +568,14 @@ void ToolbarWidget::setInstanceID()
  */
 void ToolbarWidget::menuActionHovered(QAction* action)
 {
-    if (!action) {
-        nodeView->highlightOnHover();
-        return;
+    int itemToHighlightID = -1;
+    if (action) {
+        ToolbarMenuAction* menuAction = qobject_cast<ToolbarMenuAction*>(action);
+        if (menuAction) {
+            itemToHighlightID = menuAction->getNodeItemID();
+        }
     }
-
-    ToolbarMenuAction* menuAction = qobject_cast<ToolbarMenuAction*>(action);
-    if (menuAction) {
-        nodeView->highlightOnHover(menuAction->getNodeItemID());
-    }
+    nodeView->highlightOnHover(itemToHighlightID);
 }
 
 

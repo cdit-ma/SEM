@@ -3493,6 +3493,8 @@ void NodeView::edgeConstructed_signalUpdates()
     if (hardwareDockOpen) {
         highlightDeployment();
     }
+
+
     // update the docks
     emit view_edgeConstructed();
 }

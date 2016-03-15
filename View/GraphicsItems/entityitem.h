@@ -101,7 +101,6 @@ public:
     bool isNodeReadOnlyDefinition();
     void setHardwareHighlighting(bool highlighted);
 
-
     bool isHardwareCluster();
     bool isHardwareNode();
     bool isVector();
@@ -271,6 +270,8 @@ public slots:
     void hardwareClusterMenuItemPressed();
     int getHardwareClusterChildrenViewMode();
 
+    void highlightHardwareLink(NodeItem* nodeItem = 0);
+
     void themeChanged(VIEW_THEME theme);
 
 protected:
@@ -398,7 +399,7 @@ private:
 
     bool hasHardwareWarning;
 
-
+    bool isHardwareLink;
 
     bool hidden;
 

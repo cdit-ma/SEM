@@ -102,6 +102,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     eventFromMenu = true;
     hasWarning = false;
 
+    isHardwareLink = false;
 
     showDeploymentWarningIcon = false;
     hasHardwareWarning = false;
@@ -629,9 +630,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-
-
-
     VIEW_STATE viewState = getViewState();
 
     //Background
@@ -658,6 +656,16 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             }
         }
 
+        // this highlights this item if it is a hardware entity and the selected entity is connected to it
+        if (isHardwareLink) {
+            //bodyBrush.setColor(QColor(90,150,200));
+            //headBrush.setColor(QColor(90,150,200));
+            //bodyBrush.setColor(Qt::darkBlue);
+            //headBrush.setColor(Qt::darkBlue);
+            bodyBrush.setColor(Theme::theme()->getHighlightColor());
+            headBrush.setColor(Theme::theme()->getHighlightColor());
+        }
+
         if (isHighlighted()) {
             //bodyBrush.setColor(Qt::white);
             //bodyBrush.setColor(QColor(255,136,0));
@@ -682,7 +690,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
         //Draw the boundary.
-        if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
+        //if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
             if(renderState != RS_BLOCK){
                 //Setup the Pen
                 QPen  pen = this->pen;
@@ -719,7 +727,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
                 painter->drawRect(adjustRectForPen(boundingRect(), pen));
             }
-        }
+        //}
 
 
 
@@ -1110,85 +1118,85 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
     if(data.isNull()){
         boolValue = false;
     }
-        if(keyName == "x" || keyName == "y"){
-            qreal dataValue = data.toReal();
-            //If data is related to the position of the EntityItem
-            //Get the current center position.
+    if(keyName == "x" || keyName == "y"){
+        qreal dataValue = data.toReal();
+        //If data is related to the position of the EntityItem
+        //Get the current center position.
 
-            QPointF newCenter = centerPos();
+        QPointF newCenter = centerPos();
 
-            if(keyName == "x"){
-                newCenter.setX(dataValue);
-            }else if(keyName == "y"){
-                newCenter.setY(dataValue);
-            }
-
-            //Update the center position.
-            setCenterPos(newCenter);
-
-        }else if(keyName == "width" || keyName == "height"){
-            qreal dataValue = data.toReal();
-            if(keyName == "width"){
-                setExpandedWidth(dataValue);
-            }else if(keyName == "height"){
-                setExpandedHeight(dataValue);
-            }
-        }else if(keyName == "label"){
-            QString dataValue = data.toString();
-            //Update the Label
-            updateTextLabel(dataValue);
-        }else if(keyName == "architecture"){
-            nodeHardwareArch = data.toString();
-            update();
-        }else if(keyName == "os"){
-            nodeHardwareOS = data.toString();
-            update();
-        }else if(keyName == "type"){
-            this->nodeType = data.toString();
-        }else if(keyName == "localhost"){
-            this->nodeHardwareLocalHost = boolValue;
-            update();
-        }else if(keyName == "key"){
-            nodeMemberIsKey = boolValue;
-            update();
-        }else if(keyName == "isExpanded"){
-            handleExpandState(boolValue);
-        }else if(keyName == "readOnly"){
-            IS_READ_ONLY = boolValue;
-            update();
-        }else if(keyName == "readOnlyDefinition"){
-            IS_READ_ONLY_DEF = boolValue;
-            update();
-        }else if(keyName == "snippetID"){
-            IS_READ_ONLY_SNIPPET = boolValue;
-            update();
-        }else if(keyName == "description"){
-            //Use as tooltip.
-            descriptionValue = data.toString();
-        }else if(keyName == "worker"){
-            //Use as tooltip.
-            workerKind = data.toString();
-        }else if(keyName == "operation"){
-            //Use as tooltip.
-            operationKind = data.toString();
+        if(keyName == "x"){
+            newCenter.setX(dataValue);
+        }else if(keyName == "y"){
+            newCenter.setY(dataValue);
         }
 
-        if(keyName == editableDataKey){
-            if(bottomInputItem){
-                bottomInputItem->setValue(data.toString());
+        //Update the center position.
+        setCenterPos(newCenter);
 
-                if(getEntityAdapter()->isDataProtected(keyName)){
-                    bottomInputItem->setBrush(Qt::NoBrush);
-                }else{
-                    bottomInputItem->setBrush(Qt::white);
-                }
+    }else if(keyName == "width" || keyName == "height"){
+        qreal dataValue = data.toReal();
+        if(keyName == "width"){
+            setExpandedWidth(dataValue);
+        }else if(keyName == "height"){
+            setExpandedHeight(dataValue);
+        }
+    }else if(keyName == "label"){
+        QString dataValue = data.toString();
+        //Update the Label
+        updateTextLabel(dataValue);
+    }else if(keyName == "architecture"){
+        nodeHardwareArch = data.toString();
+        update();
+    }else if(keyName == "os"){
+        nodeHardwareOS = data.toString();
+        update();
+    }else if(keyName == "type"){
+        this->nodeType = data.toString();
+    }else if(keyName == "localhost"){
+        this->nodeHardwareLocalHost = boolValue;
+        update();
+    }else if(keyName == "key"){
+        nodeMemberIsKey = boolValue;
+        update();
+    }else if(keyName == "isExpanded"){
+        handleExpandState(boolValue);
+    }else if(keyName == "readOnly"){
+        IS_READ_ONLY = boolValue;
+        update();
+    }else if(keyName == "readOnlyDefinition"){
+        IS_READ_ONLY_DEF = boolValue;
+        update();
+    }else if(keyName == "snippetID"){
+        IS_READ_ONLY_SNIPPET = boolValue;
+        update();
+    }else if(keyName == "description"){
+        //Use as tooltip.
+        descriptionValue = data.toString();
+    }else if(keyName == "worker"){
+        //Use as tooltip.
+        workerKind = data.toString();
+    }else if(keyName == "operation"){
+        //Use as tooltip.
+        operationKind = data.toString();
+    }
+
+    if(keyName == editableDataKey){
+        if(bottomInputItem){
+            bottomInputItem->setValue(data.toString());
+
+            if(getEntityAdapter()->isDataProtected(keyName)){
+                bottomInputItem->setBrush(Qt::NoBrush);
+            }else{
+                bottomInputItem->setBrush(Qt::white);
             }
         }
-        if(keyName == statusModeDataKey){
-            if(statusItem){
-                statusItem->setValue(data.toString());
-            }
+    }
+    if(keyName == statusModeDataKey){
+        if(statusItem){
+            statusItem->setValue(data.toString());
         }
+    }
 }
 
 
@@ -2069,17 +2077,17 @@ void EntityItem::setupBrushes()
     errorHeaderBrush = QBrush(bColor);
 
 
-     blendColor = QColor(222,184,135);
+    blendColor = QColor(222,184,135);
     blendFactor = .2;
     bColor = bodyBrush.color();
 
-   bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
     bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
     bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
 
 
     readOnlyDefBodyBrush = QBrush(bColor);
-     blendFactor = .6;
+    blendFactor = .6;
 
     bColor = headerBrush.color();
     bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
@@ -2416,6 +2424,23 @@ void EntityItem::hardwareClusterMenuItemPressed()
 int EntityItem::getHardwareClusterChildrenViewMode()
 {
     return CHILDREN_VIEW_MODE;
+}
+
+
+/**
+ * @brief EntityItem::highlightHardwareLink
+ * @param nodeItem
+ */
+void EntityItem::highlightHardwareLink(NodeItem *nodeItem)
+{
+    if (isHardwareNode() || isHardwareCluster()) {
+        if (nodeItem == this) {
+            isHardwareLink = true;
+        } else {
+            isHardwareLink = false;
+        }
+        update();
+    }
 }
 
 

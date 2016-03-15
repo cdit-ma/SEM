@@ -4239,6 +4239,9 @@ void MedeaWindow::updateDataTable()
         //Hide the DataTable
         dataTable->setVisible(false);
         updateRightMask();
+    }
+
+    if(!tableModel){
         return;
     }
 
@@ -4280,6 +4283,7 @@ void MedeaWindow::updateDataTable()
 
     updateRightMask();
 }
+
 
 void MedeaWindow::updateRecentProjectsWidgets(QString topFileName)
 {
@@ -4850,7 +4854,7 @@ void MedeaWindow::updateStyleSheets()
                   "width: 15px;"
                   "}"
 
-                  "QMessageBox{ background:" + altBGColor + ";color:" + textColor + "; }"
+                  "QMessageBox{ background:" + altBGColor + "; color:" + textColor + "; }"
 
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON + "{ border:0px;color: " + textColor + "; }"
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON + ":hover { color:" + highlightColor + "; }"
@@ -4867,11 +4871,12 @@ void MedeaWindow::updateStyleSheets()
                   "}"
                   );
 
-    /*dataTable->setStyleSheet("QTableView {"
-                             //"background:" + altBGColor + ";"
+    /*
+    dataTable->setStyleSheet(/*"QTableView {"
+                             "background:" + altBGColor + ";"
                              //"background: green;"
                              //"color:" + textColor + ";"
-                             "}"
+                             //"}"
                              );*/
 }
 

@@ -51,6 +51,8 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         this->kind = nodeItem->getNodeKind();
         strID = QString::number(nodeItem->getID());
         highlightColor = "rgba(90,150,200,210);";
+        highlightColor = Theme::theme()->getHighlightColorHex() + ";";
+        //highlightColor = "darkBlue;";
         setLabel(nodeItem->getDataValue("label").toString());
 
         if (nodeItem->getNodeAdapter()) {
@@ -417,6 +419,16 @@ void DockNodeItem::iconChanged()
 
 
 /**
+ * @brief DockNodeItem::themeChanged
+ */
+void DockNodeItem::themeChanged()
+{
+    highlightColor = Theme::theme()->getHighlightColorHex() + ";";
+    updateStyleSheet();
+}
+
+
+/**
  * @brief DockNodeItem::setupLayout
  * Sets up the visual layout for dock items.
  * A groupbox is used to group the text and image labels.
@@ -579,6 +591,7 @@ void DockNodeItem::updateTextLabel()
 void DockNodeItem::updateStyleSheet()
 {
     if (isDockItemLabel()) {
+
         QString textLabelBackground;
         if (expanded) {
             textLabelBackground = "background-color: rgba(208,197,134,0.85);";
@@ -600,7 +613,6 @@ void DockNodeItem::updateStyleSheet()
             hoverBorder = "none;";
             break;
         case READONLY:
-            //backgroundColor = "rgba(200,200,200,0.8);";
             hoverBorder = "none;";
             break;
         default:
