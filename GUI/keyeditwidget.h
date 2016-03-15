@@ -5,6 +5,7 @@
 #include <QTextBrowser>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QGroupBox>
 
 
 enum KEY_TYPE{
@@ -58,6 +59,7 @@ private:
     bool isFilePath;
 
     int difference;
+    QGroupBox* containerBox;
     QVBoxLayout* oldLayout;
     QVBoxLayout* vLayout;
     QWidget *valueBox;

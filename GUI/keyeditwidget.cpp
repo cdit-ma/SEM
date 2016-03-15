@@ -39,6 +39,13 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     isFilePath = keyNameHR.endsWith("File Path");
     isPath = keyNameHR.endsWith("Path");
 
+    setStyleSheet("#HiddenGroup{border:0px;}");
+
+    containerBox = new QGroupBox(this);
+    containerBox->setObjectName("HiddenGroup");
+
+
+
     QString stringVal = v.toString();
     int intVal = -1;
     bool boolVal = false;
@@ -61,12 +68,14 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     vLayout->setSpacing(0);
     vLayout->setMargin(0);
     setLayout(vLayout);
+    vLayout->addWidget(containerBox);
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     hLayout->setSpacing(0);
     hLayout->setMargin(0);
 
-    vLayout->addLayout(hLayout);
+    containerBox->setLayout(hLayout);
+
 
 
     QString label = hrKeyName;
@@ -115,6 +124,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         hLayout->setStretch(1,1);
 
         valueBox = checkBox;
+        value2Box = keyLabel;
         keyType = KEY_BOOL;
         oldValue = boolVal;
     }else if (isInt){
@@ -221,7 +231,8 @@ QVariant KeyEditWidget::getValue()
 int KeyEditWidget::getLabelWidth()
 {
     if(labelButton && keyType != KEY_BOOL){
-        QFontMetrics fm(labelButton->font());
+        QFont Font = labelButton->font();
+        QFontMetrics fm(Font);
         return fm.width(hrKeyName);
     }
     return -1;
@@ -273,9 +284,9 @@ void KeyEditWidget::setValue(QVariant value)
 void KeyEditWidget::setHighlighted(bool highlighted)
 {
     if(highlighted){
-        this->setStyleSheet("border: 2px solid orange;");
+        labelButton->setStyleSheet(labelStyleSheet + "text-decoration:underline;color:#ffa546;");
     }else{
-        this->setStyleSheet("border: none;");
+        labelButton->setStyleSheet(labelStyleSheet + "text-decoration:normal;color:black;");
     }
 }
 
