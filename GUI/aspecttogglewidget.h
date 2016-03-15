@@ -36,6 +36,7 @@ public slots:
     void aspectMiddleClicked(VIEW_ASPECT viewAspect);
     void highlightToggleButton(VIEW_ASPECT viewAspect);
     void enableToggleButton(bool enable);
+    void themeChanged();
 
 private:
     QString colorToString(QColor color, int alpha = 255);
