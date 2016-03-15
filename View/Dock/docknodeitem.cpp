@@ -579,6 +579,7 @@ void DockNodeItem::updateTextLabel()
 void DockNodeItem::updateStyleSheet()
 {
     if (isDockItemLabel()) {
+
         QString textLabelBackground;
         if (expanded) {
             textLabelBackground = "background-color: rgba(208,197,134,0.85);";

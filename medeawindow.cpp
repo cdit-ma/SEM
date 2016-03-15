@@ -4261,6 +4261,7 @@ void MedeaWindow::updateDataTable()
     bool hasData = tableModel && tableModel->rowCount() > 0;
 
     if (hasData) {
+        //tableModel->setHeaderData(0, Qt::Vertical, 0, Qt::DisplayRole);
         dataTableBox->setVisible(true);
         dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents, false);
     } else {
@@ -4298,6 +4299,7 @@ void MedeaWindow::updateDataTable()
         dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     }
 }
+
 
 void MedeaWindow::updateRecentProjectsWidgets(QString topFileName)
 {
@@ -4873,7 +4875,7 @@ void MedeaWindow::updateStyleSheets()
                   "width: 15px;"
                   "}"
 
-                  "QMessageBox{ background:" + altBGColor + ";color:" + textColor + "; }"
+                  "QMessageBox{ background:" + altBGColor + "; color:" + textColor + "; }"
 
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON + "{ border:0px;color: " + textColor + "; }"
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON + ":hover { color:" + highlightColor + "; }"
@@ -4890,12 +4892,13 @@ void MedeaWindow::updateStyleSheets()
                   "}"
                   );
 
-    dataTable->setStyleSheet("QTableView {"
-                             //"background:" + altBGColor + ";"
-                             "background: green;"
+    /*
+    dataTable->setStyleSheet(/*"QTableView {"
+                             "background:" + altBGColor + ";"
+                             //"background: green;"
                              //"color:" + textColor + ";"
-                             "}"
-                             );
+                             //"}"
+                             );*/
 }
 
 

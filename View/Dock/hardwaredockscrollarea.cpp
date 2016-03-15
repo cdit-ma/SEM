@@ -184,6 +184,7 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem* nodeItem)
         DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
         insertDockNodeItem(dockItem);
 
+        connect(this, SIGNAL(dock_highlightDockItem(NodeItem*)), entityItem, SLOT(highlightHardwareLink(NodeItem*)));
         connect(this, SIGNAL(dock_highlightDockItem(NodeItem*)), dockItem, SLOT(highlightDockItem(NodeItem*)));
         connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
 
