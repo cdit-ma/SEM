@@ -932,7 +932,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockStandAloneDialog = new QDialog(this);
     docksArea = new QGroupBox(this);
     docksArea->setObjectName(THEME_STYLE_GROUPBOX);
-    dockButtonsBox = new QGroupBox();
+    dockButtonsBox = new QGroupBox(this);
     dockButtonsBox->setObjectName(THEME_STYLE_GROUPBOX);
     dockButtonsBox->setStyle(QStyleFactory::create("windows"));
 
@@ -990,8 +990,9 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockButtonsBox->setLayout(dockButtonsHlayout);
 
     dockBackButtonBox = new QGroupBox(this);
+    dockBackButtonBox->setObjectName(THEME_STYLE_GROUPBOX);
     dockBackButtonBox->setStyleSheet("QGroupBox {"
-                                     "background-color: rgba(0,0,0,0);"
+                                     "background: rgba(0,0,0,0);"
                                      "border: 0px;"
                                      "margin: 0px;"
                                      "padding: 0px;"
@@ -1010,7 +1011,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockActionLabel->setAlignment(Qt::AlignCenter);
     dockActionLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 10px 5px;");
 
-    QPushButton* dockBackButton = new QPushButton(getIcon("Actions", "Backward"), "", this);
+    dockBackButton = new QPushButton(getIcon("Actions", "Backward"), "", this);
     dockBackButton->setFixedSize(boxWidth, 35);
     dockBackButton->setToolTip("Go back to the Parts list");
     dockBackButton->setStyleSheet("QPushButton {"
@@ -4795,6 +4796,14 @@ void MedeaWindow::updateStyleSheets()
     searchButton->setStyleSheet(pushButtonStyle);
     searchOptionButton->setStyleSheet(pushButtonStyle);
 
+    dockBackButton->setStyleSheet("QPushButton {"
+                                  "background: rgba(130,130,130,120);"
+                                  //"background: " + altBGColor + ";"
+                                  "}"
+                                  "QPushButton:hover {"
+                                  "background: " + pressedColor + ";"
+                                  "}");
+
     minimapBox->setStyleSheet("#minimapTitle {"
                               "background: " + altBGColor + ";"
                               "border: 2px solid " + disabledBGColor +";"
@@ -4831,7 +4840,6 @@ void MedeaWindow::updateStyleSheets()
     recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
                                             "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
 
-
     setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
@@ -4846,6 +4854,10 @@ void MedeaWindow::updateStyleSheets()
                   "QToolButton:pressed { background:" + pressedColor + "; }"
                   "QToolButton[popupMode=\"1\"] {"
                   "padding-right: 15px;"
+                  "}"
+                  "QToolButton::menu-indicator {"
+                  "image: none;"
+                  //"background: white;"
                   "}"
                   "QToolButton::menu-button {"
                   "border-left: 1px solid rgb(150,150,150);"
@@ -4870,14 +4882,6 @@ void MedeaWindow::updateStyleSheets()
                   "padding: 0px;"
                   "}"
                   );
-
-    /*
-    dataTable->setStyleSheet(/*"QTableView {"
-                             "background:" + altBGColor + ";"
-                             //"background: green;"
-                             //"color:" + textColor + ";"
-                             //"}"
-                             );*/
 }
 
 

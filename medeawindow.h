@@ -420,6 +420,7 @@ private:
     QGroupBox* dockHeaderBox;
     QGroupBox* dockBackButtonBox;
     QLabel* openedDockLabel;
+    QPushButton* dockBackButton;
     QLabel* dockActionLabel;
 
     QDialog* dockStandAloneDialog;

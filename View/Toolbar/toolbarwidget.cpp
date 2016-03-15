@@ -865,7 +865,7 @@ void ToolbarWidget::setupToolBar()
     alterViewFrame = constructFrameSeparator();
     connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Connections");
     popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View In New Window");
-    displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "MenuCluster", "Change Displayed Nodes");
+    displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "Menu_Vertical", "Change Displayed Nodes");
 
     deleteButton->setStyleSheet("padding-right: 3px;");
 
@@ -1437,7 +1437,7 @@ void ToolbarWidget::updateToolButtonIcons()
 
     connectionsButton->setIcon(theme->getIcon("Actions", "Connections"));
     popupNewWindow->setIcon(theme->getIcon("Actions", "Popup"));
-    displayedChildrenOptionButton->setIcon(theme->getIcon("Actions", "MenuCluster"));
+    displayedChildrenOptionButton->setIcon(theme->getIcon("Actions", "Menu_Vertical"));
 
     expandButton->setIcon(theme->getIcon("Actions", "Expand"));
     contractButton->setIcon(theme->getIcon("Actions", "Contract"));
