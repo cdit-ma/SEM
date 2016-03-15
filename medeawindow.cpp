@@ -571,7 +571,7 @@ void MedeaWindow::initialiseGUI()
     leftVlayout->setSpacing(0);
     leftVlayout->setContentsMargins(0,0,0,0);
     leftVlayout->addLayout(topHLayout);
-    leftVlayout->addSpacerItem(new QSpacerItem(SPACER_SIZE*2, SPACER_SIZE));
+    //leftVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     leftVlayout->addLayout(bodyLayout);
     leftVlayout->addStretch();
 
@@ -591,9 +591,9 @@ void MedeaWindow::initialiseGUI()
     rightVlayout->setMargin(0);
     rightVlayout->setContentsMargins(0, SPACER_SIZE, 0, 0);
     rightVlayout->addLayout(searchLayout);
-    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
+    //rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     rightVlayout->addLayout(viewButtonsGrid);
-    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
+    //rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     rightVlayout->addWidget(dataTableBox);
     rightVlayout->addStretch();
     rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
@@ -2831,7 +2831,7 @@ void MedeaWindow::updateWidgetsOnProjectChange(bool projectActive)
 void MedeaWindow::updateDock()
 {
     // update widget sizes and mask
-    boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height();
+    boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height() + SPACER_SIZE;
     int prevHeight = docksArea->height();
     int newHeight = (boxHeight*2) - dockHeaderBox->height();
     if (newHeight != prevHeight) {
