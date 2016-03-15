@@ -39,7 +39,7 @@ private:
 
 public slots:
     void dataChanged(QString keyName, QVariant data);
-
+    void themeChanged();
     void sizeChanged();
 
 public:

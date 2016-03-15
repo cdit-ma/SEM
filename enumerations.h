@@ -5,6 +5,7 @@
 #include <QString>
 #include <QColor>
 #include <QList>
+#include <QHash>
 
 
 enum ERROR_TYPE{ET_OKAY, ET_WARNING, ET_CRITICAL};
@@ -105,7 +106,8 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 
 #define MINIMUM_TEXT_SIZE 6
 
-
+extern QHash<QString, QString> GET_SETTINGS_TOOLTIPS_HASH();
+extern QHash<QString, QString> GET_SETTINGS_GROUP_HASH();
 extern QList<VIEW_ASPECT> GET_VIEW_ASPECTS();
 extern VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect);
 extern QString GET_ASPECT_NAME(VIEW_ASPECT aspect);

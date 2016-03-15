@@ -14,11 +14,13 @@
 #include <QEventLoop>
 #include <QColorDialog>
 #include <QFileDialog>
+#include <QGroupBox>
 #include "../theme.h"
 
 #define SMALL_SQUARE 25
-KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v, QString description, QString customType)
+KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v, QString description, QString customType):QWidget(0)
 {
+    setObjectName("KeyEditWidget");
     groupName = g;
     keyName = k;
     hrKeyName = keyNameHR;
@@ -54,11 +56,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         }
     }
 
-
-
     vLayout = new QVBoxLayout();
-
-
 
     vLayout->setSpacing(0);
     vLayout->setMargin(0);
@@ -274,16 +272,10 @@ void KeyEditWidget::setValue(QVariant value)
 
 void KeyEditWidget::setHighlighted(bool highlighted)
 {
-    if(labelButton){
-        if(this->highlighted != highlighted){
-            this->highlighted = highlighted;
-            if(highlighted){
-                labelButton->setStyleSheet(labelStyleSheet + "color:orange; font-weight:bold;text-decoration:underline;");
-            }else{
-                labelButton->setStyleSheet(labelStyleSheet);
-            }
-            update();
-        }
+    if(highlighted){
+        this->setStyleSheet("border: 2px solid orange;");
+    }else{
+        this->setStyleSheet("border: none;");
     }
 }
 

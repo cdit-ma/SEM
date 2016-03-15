@@ -40,7 +40,7 @@ public slots:
     void themeChanged();
 
 private:
-    void updateStyleSheet(int state);
+    void updateStyleSheet(int state = -1);
 
     DockScrollArea* dock;
     MedeaWindow* parentWindow;

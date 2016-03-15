@@ -245,7 +245,7 @@ void DockToggleButton::themeChanged()
                       "}"
                       "QToolTip{ background: white; }";
 
-    updateStyleSheet(-1);
+    updateStyleSheet();
 }
 
 
@@ -267,7 +267,8 @@ void DockToggleButton::updateStyleSheet(int state)
 
     switch (state) {
     case SELECTED:
-        backgroundStyleSheet = "background:" + Theme::theme()->getPressedColorHex() + ";";
+        //backgroundStyleSheet = "background:" + Theme::theme()->getPressedColorHex() + ";";
+        backgroundStyleSheet = "background: rgba(250,250,250,240);";
         break;
     default:
         break;

@@ -56,6 +56,7 @@ QString Theme::getHighlightColorHex()
 QColor Theme::getPressedColor()
 {
     return highlightColor.lighter(110);
+    //return highlightColor;
 }
 
 QString Theme::getPressedColorHex()
