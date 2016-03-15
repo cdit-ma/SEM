@@ -100,16 +100,19 @@ void HardwareDockScrollArea::dockNodeItemClicked()
 
 
 /**
- * @brief DefinitionsDockScrollArea::updateDock
+ * @brief HardwareDockScrollArea::updateDock
  * This is called whenever a node item is selected.
  * It checks to see if this dock should be enabled for the currently selected item(s)
  * and if any of its items should be highlighted to denote current deployment link.
  */
 void HardwareDockScrollArea::updateDock()
 {    
+    qDebug() << "updateDock";
     QList<GraphMLItem*> selectedItems = getNodeView()->getSelectedItems();
+
     if (selectedItems.isEmpty()) {
         setDockEnabled(false);
+        emit dock_highlightDockItem();
         return;
     }
 
@@ -122,8 +125,8 @@ void HardwareDockScrollArea::updateDock()
 
         // disable this dock for the ModelItem
         if (selectedItem->isModelItem()) {
-            setDockEnabled(false);
-            return;
+            enableDock = false;
+            break;
         }
 
         // ignore graphML items that aren't node items
@@ -160,6 +163,8 @@ void HardwareDockScrollArea::updateDock()
             dockItem->setReadOnlyState(readOnlyState);
         }
         highlightHardwareConnection(selectedItems);
+    } else {
+        emit dock_highlightDockItem();
     }
 }
 
@@ -191,6 +196,7 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem* nodeItem)
         if (getNodeView()) {
             connect(dockItem, SIGNAL(dockItem_hoverEnter(int)), getNodeView(), SLOT(highlightOnHover(int)));
             connect(dockItem, SIGNAL(dockItem_hoverLeave(int)), getNodeView(), SLOT(highlightOnHover(int)));
+
         }
 
         // if the dock is open, update it
@@ -246,12 +252,15 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
 
 /**
  * @brief HardwareDockScrollArea::displayHighlightedItem
+ * This slot ensures that if there is a highlighted item in this dock, that it's visible.
+ * This is called everytime the selection is changed.
  */
 void HardwareDockScrollArea::displayHighlightedItem()
 {
     if (!isDockOpen()) {
         return;
     }
+
     DockNodeItem* highlightedItem = 0;
     foreach (DockNodeItem* item, getDockNodeItems()) {
         if (item->isHighlighted()) {
@@ -259,6 +268,7 @@ void HardwareDockScrollArea::displayHighlightedItem()
             break;
         }
     }
+
     if (highlightedItem) {
         ensureWidgetVisible(highlightedItem);
     }

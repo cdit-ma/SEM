@@ -630,9 +630,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-
-
-
     VIEW_STATE viewState = getViewState();
 
     //Background
@@ -661,8 +658,10 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         // this highlights this item if it is a hardware entity and the selected entity is connected to it
         if (isHardwareLink) {
-            bodyBrush.setColor(QColor(90,150,200));
-            headBrush.setColor(QColor(90,150,200));
+            //bodyBrush.setColor(QColor(90,150,200));
+            //headBrush.setColor(QColor(90,150,200));
+            bodyBrush.setColor(Qt::darkBlue);
+            headBrush.setColor(Qt::darkBlue);
         }
 
         if (isHighlighted()) {
@@ -689,7 +688,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
         //Draw the boundary.
-        if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
+        //if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
             if(renderState != RS_BLOCK){
                 //Setup the Pen
                 QPen  pen = this->pen;
@@ -726,7 +725,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
                 painter->drawRect(adjustRectForPen(boundingRect(), pen));
             }
-        }
+        //}
 
 
 
@@ -2434,8 +2433,10 @@ void EntityItem::highlightHardwareLink(NodeItem *nodeItem)
 {
     if (isHardwareNode() || isHardwareCluster()) {
         if (nodeItem == this) {
+            qDebug() << "HIGHLIGHT";
             isHardwareLink = true;
         } else {
+            qDebug() << "CLEAR HIGHLIGHT";
             isHardwareLink = false;
         }
         update();

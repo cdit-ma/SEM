@@ -51,6 +51,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         this->kind = nodeItem->getNodeKind();
         strID = QString::number(nodeItem->getID());
         highlightColor = "rgba(90,150,200,210);";
+        //highlightColor = "darkBlue;";
         setLabel(nodeItem->getDataValue("label").toString());
 
         if (nodeItem->getNodeAdapter()) {
