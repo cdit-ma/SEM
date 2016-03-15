@@ -660,8 +660,10 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         if (isHardwareLink) {
             //bodyBrush.setColor(QColor(90,150,200));
             //headBrush.setColor(QColor(90,150,200));
-            bodyBrush.setColor(Qt::darkBlue);
-            headBrush.setColor(Qt::darkBlue);
+            //bodyBrush.setColor(Qt::darkBlue);
+            //headBrush.setColor(Qt::darkBlue);
+            bodyBrush.setColor(Theme::theme()->getHighlightColor());
+            headBrush.setColor(Theme::theme()->getHighlightColor());
         }
 
         if (isHighlighted()) {
@@ -2433,10 +2435,8 @@ void EntityItem::highlightHardwareLink(NodeItem *nodeItem)
 {
     if (isHardwareNode() || isHardwareCluster()) {
         if (nodeItem == this) {
-            qDebug() << "HIGHLIGHT";
             isHardwareLink = true;
         } else {
-            qDebug() << "CLEAR HIGHLIGHT";
             isHardwareLink = false;
         }
         update();

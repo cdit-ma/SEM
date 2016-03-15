@@ -62,6 +62,7 @@ public slots:
 
     void labelChanged(QString label);
     void iconChanged();
+    void themeChanged();
     void childVisibilityChanged();
 
     void changeVectorHiddenState();
