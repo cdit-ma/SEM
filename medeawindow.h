@@ -473,6 +473,8 @@ private:
     QHash<int, QString> multipleNotification;
     int leftOverTime;
 
+    QWidget* rightPanelWidget;
+
     QTableView* dataTable;
     QGroupBox* dataTableBox;
     ComboBoxTableDelegate* delegate;

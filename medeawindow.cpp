@@ -494,12 +494,10 @@ void MedeaWindow::initialiseGUI()
     // setup and add dataTable/dataTableBox widget/layout
     dataTableBox = new QGroupBox(this);
     dataTableBox->setObjectName(THEME_STYLE_GROUPBOX);
-    dataTableBox->setFixedWidth(RIGHT_PANEL_WIDTH + 10);
     dataTableBox->setContentsMargins(0,0,0,0);
 
     dataTable = new QTableView(dataTableBox);
     dataTable->setItemDelegateForColumn(1, delegate);
-    dataTable->setFixedWidth(RIGHT_PANEL_WIDTH + 5);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
     dataTable->resize(dataTable->width(), 0);
@@ -509,7 +507,6 @@ void MedeaWindow::initialiseGUI()
     menuButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     menuButton->setFixedSize(50, 50);
     menuButton->setIconSize(menuButton->size() * 0.85);
-
 
     projectName = new QPushButton("");
     projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
@@ -524,8 +521,6 @@ void MedeaWindow::initialiseGUI()
     projectName->setGraphicsEffect(projectNameShadow);
     projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
-    menuButton->setGraphicsEffect(projectNameShadow);
-
     closeProjectButton = new QPushButton(getIcon("Actions", "Close"), "");
     closeProjectButton->setToolTip("Close Current Project");
     closeProjectButton->setFixedSize(menuButton->height()/2.5, menuButton->height()/2.5);
@@ -537,12 +532,11 @@ void MedeaWindow::initialiseGUI()
                                   menuButton->width() + SPACER_SIZE + projectName->width() + closeProjectButton->width(), menuButton->height(),
                                   QRegion::Rectangle));
 
-
     // setup aspect toggle buttons
-    definitionsToggle = new AspectToggleWidget(VA_INTERFACES, RIGHT_PANEL_WIDTH/2, this);
-    workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, RIGHT_PANEL_WIDTH/2, this);
-    assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, RIGHT_PANEL_WIDTH/2, this);
-    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, RIGHT_PANEL_WIDTH/2, this);
+    definitionsToggle = new AspectToggleWidget(VA_INTERFACES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
+    workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
+    assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
+    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
 
     aspectToggles << definitionsToggle;
     aspectToggles << workloadToggle;
@@ -551,7 +545,6 @@ void MedeaWindow::initialiseGUI()
 
     QVBoxLayout* tableLayout = new QVBoxLayout();
     tableLayout->setMargin(0);
-    tableLayout->setContentsMargins(5,0,0,0);
     tableLayout->addWidget(dataTable);
     dataTableBox->setLayout(tableLayout);
 
@@ -568,6 +561,7 @@ void MedeaWindow::initialiseGUI()
     QHBoxLayout* topHLayout = new QHBoxLayout();
     topHLayout->setMargin(0);
     topHLayout->setSpacing(0);
+    topHLayout->setContentsMargins(0,0,0,0);
     topHLayout->addWidget(menuTitleBox);
     topHLayout->addStretch();
 
@@ -575,15 +569,15 @@ void MedeaWindow::initialiseGUI()
     QVBoxLayout* leftVlayout = new QVBoxLayout();
     leftVlayout->setMargin(0);
     leftVlayout->setSpacing(0);
+    leftVlayout->setContentsMargins(0,0,0,0);
     leftVlayout->addLayout(topHLayout);
     leftVlayout->addSpacerItem(new QSpacerItem(SPACER_SIZE*2, SPACER_SIZE));
     leftVlayout->addLayout(bodyLayout);
     leftVlayout->addStretch();
 
     QGridLayout* viewButtonsGrid = new QGridLayout();
-    viewButtonsGrid->setSpacing(5);
+    viewButtonsGrid->setSpacing(SPACER_SIZE / 2);
     viewButtonsGrid->setMargin(0);
-    viewButtonsGrid->setContentsMargins(5,0,5,0);
 
     viewButtonsGrid->addWidget(definitionsToggle, definitionsToggle->getToggleGridPos().x(), definitionsToggle->getToggleGridPos().y());
     viewButtonsGrid->addWidget(workloadToggle, workloadToggle->getToggleGridPos().x(), workloadToggle->getToggleGridPos().y());
@@ -602,18 +596,24 @@ void MedeaWindow::initialiseGUI()
     rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     rightVlayout->addWidget(dataTableBox);
     rightVlayout->addStretch();
+    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
     rightVlayout->addWidget(minimapBox);
+
+    rightPanelWidget = new QWidget(this);
+    rightPanelWidget->setFixedWidth(RIGHT_PANEL_WIDTH);
+    rightPanelWidget->setLayout(rightVlayout);
 
     viewLayout = new QHBoxLayout();
     viewLayout->setMargin(0);
     viewLayout->setSpacing(0);
     viewLayout->addLayout(leftVlayout, 4);
-    viewLayout->addLayout(rightVlayout, 1);
-    viewLayout->setContentsMargins(15, 0, 5, 10);
+    viewLayout->addWidget(rightPanelWidget, 1);
+    viewLayout->setContentsMargins(SPACER_SIZE, 0, SPACER_SIZE, SPACER_SIZE);
 
     viewHolderLayout = new QVBoxLayout();
     viewHolderLayout->setMargin(0);
     viewHolderLayout->setSpacing(0);
+    viewHolderLayout->setContentsMargins(0, 0, 0, 0);
     viewHolderLayout->addLayout(viewLayout);
     nodeView->setLayout(viewHolderLayout);
 
@@ -621,7 +621,6 @@ void MedeaWindow::initialiseGUI()
     setCentralWidget(nodeView);
     setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     //setStyle(QStyleFactory::create("windows"));
-
 
     // setup the menu, dock, search tools, toolbar and information display widgets
     setupMenu();
@@ -633,12 +632,8 @@ void MedeaWindow::initialiseGUI()
     setupMultiLineBox();
     setupWelcomeScreen();
 
-
     updateRecentProjectsWidgets();
 }
-
-
-
 
 
 /**
@@ -1100,13 +1095,13 @@ void MedeaWindow::setupSearchTools()
     searchBar = new QLineEdit(searchBarDefaultText, this);
     searchSuggestions = new SearchSuggestCompletion(searchBar);
     searchButton = new QPushButton(getIcon("Actions", "Search"), "");
-    searchButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
-    //searchButton->setEnabled(false);
     searchOptionButton = new QPushButton(getIcon("Actions", "Settings"), "");
-    searchOptionButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     searchOptionMenu = new QMenu(searchOptionButton);
     searchResults = new QDialog(this);
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
+
+    searchButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    searchOptionButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
     QVBoxLayout* layout = new QVBoxLayout();
     QWidget* scrollableWidget = new QWidget(this);
@@ -1128,10 +1123,8 @@ void MedeaWindow::setupSearchTools()
     searchOptionButton->setIconSize(searchButton->size()*0.7);
     searchOptionButton->setCheckable(true);
 
-    //searchOptionButton->setStyle(QStyleFactory::create("windows"));
-
     searchBar->setPlaceholderText(searchBarDefaultText);
-    searchBar->setFixedSize(RIGHT_PANEL_WIDTH - (searchButton->width()*2) + 10, searchBarHeight);
+    searchBar->setFixedHeight(searchBarHeight);
 
     searchSuggestions->setSize(searchBar->width(), height(), 2);
 
@@ -1147,10 +1140,10 @@ void MedeaWindow::setupSearchTools()
     searchResults->setVisible(false);
 
     searchLayout->setSpacing(2);
-    searchLayout->setContentsMargins(10,0,8,0);
-    searchLayout->addWidget(searchBar, 3);
-    searchLayout->addWidget(searchButton, 1);
-    searchLayout->addWidget(searchOptionButton, 1);
+    searchLayout->setContentsMargins(0,0,0,0);
+    searchLayout->addWidget(searchBar);
+    searchLayout->addWidget(searchButton);
+    searchLayout->addWidget(searchOptionButton);
 
     // setup search option widgets and menu for view aspects
     QWidgetAction* aspectsAction = new QWidgetAction(this);
@@ -1336,7 +1329,6 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     progressDialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     progressDialog->setAttribute(Qt::WA_NoSystemBackground, true);
     progressDialog->setAttribute(Qt::WA_TranslucentBackground, true);
-    //progressDialog->setStyleSheet("background-color: rgba(250,250,250,0.85);");
     progressDialog->setStyleSheet("background-color: rgba(50,50,50,0.85);");
     progressDialogVisible = false;
 
@@ -1390,6 +1382,8 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     vLayout->setAlignment(notificationsBar, Qt::AlignCenter);
     vLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
 
+    layout->setSpacing(0);
+    layout->setMargin(0);
     layout->addStretch();
     layout->addLayout(vLayout);
     layout->addStretch();
@@ -1650,8 +1644,10 @@ void MedeaWindow::setupMinimap()
     minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
     minimap->setInteractive(false);
-    minimap->setFixedSize(RIGHT_PANEL_WIDTH + 10, RIGHT_PANEL_WIDTH * 0.6);
+    minimap->setFixedHeight(RIGHT_PANEL_WIDTH * 0.6);
     minimap->centerView();
+
+    int titleBarHieight = 20;
 
     minimapTitleBar = new QWidget(this);
     minimapTitleBar->setObjectName("minimapTitle");
@@ -1659,12 +1655,12 @@ void MedeaWindow::setupMinimap()
     minimapLabel = new QLabel("Minimap", this);
     minimapLabel->setFont(guiFont);
     minimapLabel->setAlignment(Qt::AlignCenter);
-    minimapLabel->setFixedSize(RIGHT_PANEL_WIDTH - 10, 20);
+    minimapLabel->setFixedHeight(titleBarHieight);
 
     closeMinimapButton = new QToolButton();
     closeMinimapButton->setDefaultAction(view_showMinimap);
     closeMinimapButton->setToolTip("Hide Minimap");
-    closeMinimapButton->setFixedSize(20,18);
+    closeMinimapButton->setFixedHeight(titleBarHieight);
 
     QHBoxLayout* minimapHeaderLayout = new QHBoxLayout();
     minimapTitleBar->setLayout(minimapHeaderLayout);
@@ -1685,13 +1681,8 @@ void MedeaWindow::setupMinimap()
     minimapLayout->addWidget(minimap, 1);
 
     minimapBox->setLayout(minimapLayout);
-    minimapBox->setFixedWidth(RIGHT_PANEL_WIDTH + 10);
-    minimapBox->setFixedHeight(minimapLabel->height() + minimap->height());
+    minimapBox->setFixedHeight((RIGHT_PANEL_WIDTH * 0.6) + titleBarHieight);
     minimapBox->setStyle(QStyleFactory::create("windows"));
-
-
-    //connect(closeMinimapButton, SIGNAL(clicked()), minimapBox, SLOT(hide()));
-    //connect(closeMinimapButton, SIGNAL(clicked()), this, SLOT(toggleMinimap()));
 }
 
 
@@ -2842,9 +2833,9 @@ void MedeaWindow::updateDock()
     // update widget sizes and mask
     boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height();
     int prevHeight = docksArea->height();
-    int newHeight = (boxHeight*2) - dockHeaderBox->height() - (SPACER_SIZE*3);
+    int newHeight = (boxHeight*2) - dockHeaderBox->height();
     if (newHeight != prevHeight) {
-        docksArea->setFixedHeight((boxHeight*2) - dockHeaderBox->height() - (SPACER_SIZE*3));
+        docksArea->setFixedHeight((boxHeight*2) - dockHeaderBox->height());
     }
     //dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_SIZE/2);
 }
@@ -4753,7 +4744,6 @@ void MedeaWindow::updateStyleSheets()
 
     minimapBox->setStyleSheet("#minimapTitle {"
                               "background: " + altBGColor + ";"
-                              //"border: 1px solid " + textSelectedColor +";"
                               "border: 2px solid " + disabledBGColor +";"
                               "border-bottom:none;"
                               "}");
@@ -4785,7 +4775,6 @@ void MedeaWindow::updateStyleSheets()
     //toolbarButton->setStyleSheet("QToolButton{ background:"+ altBGColor + "; color:" + textColor + "; border-radius: 5px; }"
     //                             "QToolButton:hover{ background:" + highlightColor +"; color:" + textSelectedColor + "; }");
 
-
     recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
                                             "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
 
@@ -4795,12 +4784,9 @@ void MedeaWindow::updateStyleSheets()
                   "margin: 0px 1px;"
                   "border-radius: 5px;"
                   "border: 1px solid " + disabledBGColor + ";"
-                  //"border: 1px solid " + textColor + ";"
                   "background:" + altBGColor + ";"
                   "}"
                   "QToolButton:hover {"
-                  //"border: 2px solid rgb(140,140,140);"
-                  //"border: 2px solid " + BGColor + ";"
                   "background:" + highlightColor +";"
                   "}"
                   "QToolButton:disabled { background:" + disabledBGColor + "; border: 1px solid " + disabledBGColor + "; }"
@@ -4832,12 +4818,12 @@ void MedeaWindow::updateStyleSheets()
                   "}"
                   );
 
-    dataTable->setStyleSheet("QTableView {"
+    /*dataTable->setStyleSheet("QTableView {"
                              //"background:" + altBGColor + ";"
-                             /*"background: green;"*/
+                             //"background: green;"
                              //"color:" + textColor + ";"
                              "}"
-                             );
+                             );*/
 }
 
 
