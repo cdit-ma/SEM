@@ -272,7 +272,7 @@ public slots:
 
     void highlightHardwareLink(NodeItem* nodeItem = 0);
 
-    void themeChanged(VIEW_THEME theme);
+    void themeChanged();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

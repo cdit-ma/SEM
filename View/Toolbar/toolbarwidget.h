@@ -69,7 +69,6 @@ public slots:
 
 private:
     void setupToolBar();
-    void setupActions();
     void setupMenus();
     void makeConnections();
 
@@ -89,10 +88,10 @@ private:
     void setupComponentList(QString actionKind);
 
     void updateToolButtonIcons();
-    QToolButton* constructToolButton(QSize size, QAction* action);
+    QToolButton* constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip = "", QString iconPath = "Actions");
     QFrame* constructFrameSeparator();
 
-    ToolbarMenu* constructTopMenu(QAction *parentAction, bool instantPopup = true, bool addToDynamicMenuHash = false);
+    ToolbarMenu* constructTopMenu(QToolButton* parentButton, bool instantPopup = true, bool addToDynamicMenuHash = false);
     ToolbarMenu* constructSubMenu(ToolbarMenuAction* parentAction, QString infoText, bool addToDynamicMenuHash = true);
 
     ToolbarMenuAction* constructMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu);
@@ -116,29 +115,29 @@ private:
 
     QToolBar* toolbar;
 
-    QHash<QAction*, QToolButton*> buttonLookup;
+    QToolButton* addChildButton;
+    QToolButton* deleteButton;
+    QToolButton* connectButton;
+    QToolButton* hardwareButton;
+    QToolButton* definitionButton;
+    QToolButton* implementationButton;
+    QToolButton* instancesButton;
+    QToolButton* alignVerticallyButton;
+    QToolButton* alignHorizontallyButton;
+    QToolButton* exportSnippetButton;
+    QToolButton* importSnippetButton;
+    QToolButton* getCPPButton;
+    QToolButton* setReadOnlyButton;
+    QToolButton* unsetReadOnlyButton;
+    QToolButton* connectionsButton;
+    QToolButton* popupNewWindow;
+    QToolButton* displayedChildrenOptionButton;
+    QToolButton* expandButton;
+    QToolButton* contractButton;
+    QToolButton* wikiButton;
 
-    QAction* actionAddChild;
-    QAction* actionDelete;
-    QAction* actionConnect;
-    QAction* actionHardware;
-    QAction* actionDefinition;
-    QAction* actionImplementation;
-    QAction* actionInstances;
-    QAction* actionAlignVertically;
-    QAction* actionAlignHorizontally;
-    QAction* actionExportSnippet;
-    QAction* actionImportSnippet;
-    QAction* actionGetCPP;
-    QAction* actionSetReadOnly;
-    QAction* actionUnsetReadOnly;
-    QAction* actionConnections;
-    QAction* actionPopupNewWindow;
-    QAction* actionDisplayedChildrenOption;
-    QAction* actionExpand;
-    QAction* actionContract;
-    QAction* actionWiki;
-
+    QHash<QToolButton*, QAction*> actionLookup;
+    QHash<QFrame*, QAction*> separatorLookup;
 
     ToolbarMenu* addMenu;
     ToolbarMenu* connectMenu;

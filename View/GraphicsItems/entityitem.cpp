@@ -188,19 +188,13 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     setupBrushes();
 
     setupChildrenViewOptionMenu();
-    if (IS_HARDWARE_CLUSTER) {
-        if (getNodeView()) {
-            themeChanged(getNodeView()->getTheme());
-        } else {
-            themeChanged(VT_NORMAL_THEME);
-        }
-    }
 
     updateTextLabel();
     updateErrorState();
 
     //Force a zoom change.
     zoomChanged(getZoomFactor());
+    themeChanged();
 }
 
 
@@ -775,7 +769,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         if(IS_READ_ONLY_DEF){
             paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Snippet");
         }else if (nodeKind == "HardwareCluster") {
-            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "MenuCluster");
+            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Menu_Vertical");
         }
 
         if(isInputParameter){
@@ -2446,24 +2440,14 @@ void EntityItem::highlightHardwareLink(NodeItem *nodeItem)
 
 /**
  * @brief EntityItem::themeChanged
- * @param theme
  */
-void EntityItem::themeChanged(VIEW_THEME theme)
+void EntityItem::themeChanged()
 {
     if (IS_HARDWARE_CLUSTER && childrenViewOptionMenu) {
 
-        QString bgColor = "rgba(240,240,240,250);";
-        QString textColor = "black;";
-        QString checkedColor = "green;";
-
-        switch (theme) {
-        case VT_DARK_THEME:
-            bgColor = "rgba(130,130,130,250);";
-            textColor = "white;";
-            checkedColor = "yellow;";
-        default:
-            break;
-        }
+        QString bgColor = Theme::theme()->getAltBackgroundColorHex() + ";";
+        QString textColor = Theme::theme()->getTextColorHex() + ";";
+        QString checkedColor = Theme::theme()->getHighlightColorHex() + ";";
 
         childrenViewOptionMenu->setStyleSheet("QMenu{ background-color:" + bgColor + "}" +
                                               "QRadioButton {"

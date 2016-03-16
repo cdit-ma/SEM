@@ -1119,7 +1119,6 @@ void MedeaWindow::setupSearchTools()
 
     searchOptionMenu = new QMenu();
 
-
     searchResults = new QDialog(this);
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
 
@@ -1186,7 +1185,8 @@ void MedeaWindow::setupSearchTools()
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
     viewAspectsButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
-    viewAspectsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    //viewAspectsButton = new QPushButton(QIcon(":/Actions/Arrow_Down"), "", this);
+    //viewAspectsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
     viewAspectsMenu = new QMenu(viewAspectsButton);
 

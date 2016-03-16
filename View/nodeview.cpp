@@ -3282,7 +3282,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     }
 
     if (item->isEntityItem() && entityItem->isHardwareCluster()) {
-        connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), entityItem, SLOT(themeChanged(VIEW_THEME)));
+        //connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), entityItem, SLOT(themeChanged(VIEW_THEME)));
+        connect(Theme::theme(), SIGNAL(theme_Changed()), entityItem, SLOT(themeChanged()));
     }
 
     if(isMainView()){
