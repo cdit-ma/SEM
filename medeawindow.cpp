@@ -497,6 +497,7 @@ void MedeaWindow::initialiseGUI()
     dataTable = new QTableView(this);
     dataTable->setItemDelegateForColumn(1, delegate);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    dataTable->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
 
     tableScroll = new QScrollArea(this);
@@ -591,18 +592,13 @@ void MedeaWindow::initialiseGUI()
     rightVlayout->addLayout(searchLayout);
     rightVlayout->addLayout(viewButtonsGrid);
     rightVlayout->addWidget(tableScroll, 1);
-    rightVlayout->addWidget(minimapBox, 0);//, Qt::AlignBottom);
+    rightVlayout->addWidget(minimapBox, 0);
 
 
 
     rightPanelWidget = new QWidget(this);
     rightPanelWidget->setFixedWidth(RIGHT_PANEL_WIDTH);
     rightPanelWidget->setLayout(rightVlayout);
-
-
-
-
-    //rightPanelWidget->setWindowFlags(Qt::FramelessWindowHint | Qt::SubWindow);
 
     viewLayout = new QHBoxLayout();
     viewLayout->setMargin(0);
@@ -1651,28 +1647,34 @@ void MedeaWindow::setupMinimap()
     minimap->setFixedHeight(RIGHT_PANEL_WIDTH * 0.6);
     minimap->centerView();
 
-    int titleBarHieight = 20;
+    int titleBarHeight = 20;
 
     minimapTitleBar = new QWidget(this);
     minimapTitleBar->setObjectName("minimapTitle");
+    minimapTitleBar->setFixedHeight(titleBarHeight);
 
     minimapLabel = new QLabel("Minimap", this);
     minimapLabel->setFont(guiFont);
     minimapLabel->setAlignment(Qt::AlignCenter);
-    minimapLabel->setFixedHeight(titleBarHieight);
+
+    QToolBar* minimapToolbar = new QToolBar(this);
+    minimapToolbar->setObjectName("HIDDEN_TOOLBAR");
 
     closeMinimapButton = new QToolButton();
     closeMinimapButton->setDefaultAction(view_showMinimap);
     closeMinimapButton->setToolTip("Hide Minimap");
-    closeMinimapButton->setFixedHeight(titleBarHieight);
+    closeMinimapButton->setFixedWidth(20);
+
+    minimapToolbar->addWidget(closeMinimapButton);
+    //closeMinimapButton->setFixedHeight(titleBarHieight);
 
     QHBoxLayout* minimapHeaderLayout = new QHBoxLayout();
     minimapTitleBar->setLayout(minimapHeaderLayout);
+
     minimapHeaderLayout->setSpacing(0);
-    minimapHeaderLayout->setMargin(0);
     minimapHeaderLayout->setContentsMargins(0,0,0,0);
 
-    minimapHeaderLayout->addWidget(closeMinimapButton);
+    minimapHeaderLayout->addWidget(minimapToolbar);
     minimapHeaderLayout->addWidget(minimapLabel, 1);
     minimapLabel->setStyleSheet("padding-right: 20px;");
 
@@ -1685,8 +1687,6 @@ void MedeaWindow::setupMinimap()
     minimapLayout->addWidget(minimap, 1);
 
     minimapBox->setLayout(minimapLayout);
-    minimapBox->setFixedHeight((RIGHT_PANEL_WIDTH * 0.6) + titleBarHieight);
-    minimapBox->setStyle(QStyleFactory::create("windows"));
 }
 
 
@@ -4805,9 +4805,6 @@ void MedeaWindow::updateStyleSheets()
     minimap->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; border: 2px solid " + disabledBGColor + "; }");
     nodeView->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; }");
 
-    closeMinimapButton->setStyleSheet("QToolButton{ background:" + altBGColor + "; border:0px; }"
-                                      "QToolButton:hover{ background: " + highlightColor + "; border:0px; }");
-
     projectNameShadow->setColor(theme->getBackgroundColor());
 
     searchButton->setIcon(getIcon("Actions", "Search"));
@@ -4881,13 +4878,13 @@ void MedeaWindow::updateStyleSheets()
  */
 void MedeaWindow::toggleMinimap(bool on)
 {
-    if (on) {
-        view_showMinimap->setText("Hide Minimap");
-        minimapBox->show();
-        updateDataTable();
-    } else {
-        view_showMinimap->setText("Show Minimap");
-        minimapBox->hide();
-        updateDataTable();
+    QString menuText = "Show Minimap";
+
+    if(on){
+        menuText = "Hide Minimap";
     }
+
+    view_showMinimap->setText(menuText);
+    minimapBox->setVisible(on);
+    updateDataTable();
 }
