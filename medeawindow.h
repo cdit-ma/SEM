@@ -211,6 +211,7 @@ private slots:
     void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
     void updateSearchLineEdits();
+
     void updateSearchSuggestions();
     void searchItemClicked();
     void searchMenuButtonClicked(bool checked);
@@ -331,8 +332,10 @@ private:
 
     QString applicationDirectory;
 
+    QToolBar* closeProjectToolbar;
+
     QPushButton *projectName;
-    QPushButton *closeProjectButton;
+    QToolButton *closeProjectToolButton;
     QGroupBox* menuTitleBox;
 
     QPushButton* menuButton;

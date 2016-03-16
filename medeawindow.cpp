@@ -42,6 +42,9 @@
 #define TOOLBAR_BUTTON_HEIGHT 40
 #define TOOLBAR_GAP 5
 
+
+#define TOOLBUTTON_SIZE 20
+
 #define RECENT_PROJECT_SIZE 5
 
 #define SEARCH_DIALOG_MIN_WIDTH ((MIN_WIDTH * 2.0) / 3.0)
@@ -272,7 +275,6 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
 
     // project title widgets
     projectName->setVisible(enable);
-    closeProjectButton->setVisible(enable);
     updateWidgetsOnProjectChange(enable);
 
     // search widgets
@@ -476,6 +478,8 @@ void MedeaWindow::loadSettingsFromINI()
  */
 void MedeaWindow::initialiseGUI()
 {
+    setupMenu();
+
     // set all gui widget fonts to this
     double fontSize = 8.5;
     guiFont = QFont("Verdana", fontSize);
@@ -509,6 +513,7 @@ void MedeaWindow::initialiseGUI()
     menuButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     menuButton->setFixedSize(50, 50);
     menuButton->setIconSize(menuButton->size() * 0.85);
+    menuButton->setMenu(menu);
 
     projectName = new QPushButton("");
     projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
@@ -523,15 +528,18 @@ void MedeaWindow::initialiseGUI()
     projectName->setGraphicsEffect(projectNameShadow);
     projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
-    closeProjectButton = new QPushButton(getIcon("Actions", "Close"), "");
-    closeProjectButton->setToolTip("Close Current Project");
-    closeProjectButton->setFixedSize(menuButton->height()/2.5, menuButton->height()/2.5);
+    closeProjectToolButton = new QToolButton(this);
+    closeProjectToolButton->setDefaultAction(file_closeProject);
+    closeProjectToolButton->setFixedSize(TOOLBUTTON_SIZE, TOOLBUTTON_SIZE);
+
+    closeProjectToolbar = new QToolBar(this);
+    closeProjectToolbar->addWidget(closeProjectToolButton);
 
     menuTitleBox = new QGroupBox(this);
     menuTitleBox->setObjectName(THEME_STYLE_GROUPBOX);
     menuTitleBox->setFixedHeight(menuButton->height() + SPACER_SIZE*3);
     menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
-                                  menuButton->width() + SPACER_SIZE + projectName->width() + closeProjectButton->width(), menuButton->height(),
+                                  menuButton->width() + SPACER_SIZE + projectName->width() + closeProjectToolbar->width(), menuButton->height(),
                                   QRegion::Rectangle));
 
     // setup aspect toggle buttons
@@ -551,7 +559,7 @@ void MedeaWindow::initialiseGUI()
     titleLayout->setSpacing(0);
     titleLayout->addWidget(menuButton);
     titleLayout->addSpacerItem(new QSpacerItem(SPACER_SIZE, 0));
-    titleLayout->addWidget(closeProjectButton);
+    titleLayout->addWidget(closeProjectToolbar);
     titleLayout->addWidget(projectName);
     titleLayout->addStretch();
     menuTitleBox->setLayout(titleLayout);
@@ -619,7 +627,6 @@ void MedeaWindow::initialiseGUI()
     //setStyle(QStyleFactory::create("windows"));
 
     // setup the menu, dock, search tools, toolbar and information display widgets
-    setupMenu();
     setupSearchTools();
     setupToolbar();
     setupMinimap();
@@ -772,7 +779,7 @@ void MedeaWindow::setupMenu()
     view_menu->setFont(guiFont);
     model_menu->setFont(guiFont);
 
-    menuButton->setMenu(menu);
+
 
 
     actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
@@ -915,7 +922,6 @@ void MedeaWindow::updateMenuIcons()
 
     actionToggleGrid->setIcon(getIcon("Actions", "Grid_On"));
 
-    closeProjectButton->setIcon(getIcon("Actions", "Close"));
 
     actionSearch->setIcon(getIcon("Actions", "Search"));
     actionSearchOptions->setIcon(getIcon("Actions", "SearchOptions"));
@@ -1718,6 +1724,7 @@ void MedeaWindow::teardownProject()
         controller = 0;
         controllerThread = 0;
     }
+    projectRequiresSaving(false);
 }
 
 void MedeaWindow::setupProject()
@@ -1916,7 +1923,6 @@ void MedeaWindow::setupConnections()
     connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(minimapScrolled(int)));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(selectModel()));
-    connect(closeProjectButton, SIGNAL(clicked()), this, SLOT(on_actionCloseProject_triggered()));
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_closeProject, SIGNAL(triggered()), this, SLOT(on_actionCloseProject_triggered()));
@@ -2560,11 +2566,13 @@ void MedeaWindow::importXMEProject(QString filePath)
 
 void MedeaWindow::projectFileChanged(QString name)
 {
+    QString title = "MEDEA";
     if(name != ""){
         currentProjectFilePath = name;
-        name = " - " + name + "[*]";
+        title += " - " + name;
     }
-    setWindowTitle("MEDEA" + name);
+    title += "[*]";
+    setWindowTitle(title);
 
 }
 
@@ -2839,7 +2847,7 @@ void MedeaWindow::updateWidgetsOnProjectChange(bool projectActive)
         int totalWidth = 55;
         if (projectActive) {
             totalWidth += SPACER_SIZE;
-            totalWidth += closeProjectButton->width();
+            totalWidth += closeProjectToolbar->width();
             totalWidth += projectName->width();
         }
         menuTitleBox->setFixedWidth(totalWidth);
@@ -4811,9 +4819,6 @@ void MedeaWindow::updateStyleSheets()
                               "QPushButton:disabled{ background: " + disabledBGColor + "; }";
 
     menuButton->setStyleSheet(pushButtonStyle + "QPushButton::menu-indicator{ image: none; }");
-    closeProjectButton->setStyleSheet(pushButtonStyle);
-    //searchButton->setStyleSheet(pushButtonStyle);
-    //searchOptionButton->setStyleSheet(pushButtonStyle);
 
     dockBackButton->setStyleSheet("QPushButton {"
                                   "background: rgba(130,130,130,120);"
@@ -4847,9 +4852,6 @@ void MedeaWindow::updateStyleSheets()
                              "background: " + altBGColor + ";"
                              "color:" + textColor + ";"
                              "}");
-
-    //toolbarButton->setStyleSheet("QToolButton{ background:"+ altBGColor + "; color:" + textColor + "; border-radius: 5px; }"
-    //                             "QToolButton:hover{ background:" + highlightColor +"; color:" + textSelectedColor + "; }");
 
     recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
                                             "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");

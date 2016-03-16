@@ -46,13 +46,11 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
 
     state = DEFAULT;
 
+
     if (nodeItem) {
 
         this->kind = nodeItem->getNodeKind();
         strID = QString::number(nodeItem->getID());
-        highlightColor = "rgba(90,150,200,210);";
-        highlightColor = Theme::theme()->getHighlightColorHex() + ";";
-        //highlightColor = "darkBlue;";
         setLabel(nodeItem->getDataValue("label").toString());
 
         if (nodeItem->getNodeAdapter()) {
@@ -78,6 +76,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     }
 
     setupLayout();
+
     updateStyleSheet();
     updateTextLabel();
 
@@ -90,6 +89,9 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     if (parentDock && parentDock->getDockType() == FUNCTIONS_DOCK) {
         toggleDockItemExpanded();
     }
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 

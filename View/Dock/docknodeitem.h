@@ -68,6 +68,8 @@ public slots:
     void changeVectorHiddenState();
     void highlightDockItem(NodeItem* nodeItem);
 
+
+
 protected:
     void enterEvent(QEvent* event);
     void leaveEvent(QEvent* event);
