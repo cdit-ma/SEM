@@ -408,6 +408,9 @@ private:
     QAction* actionToggleGrid;
     QAction* actionContextMenu;
 
+    QAction* actionSearch;
+    QAction* actionSearchOptions;
+
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
 
@@ -486,6 +489,8 @@ private:
     ComboBoxTableDelegate* delegate;
 
     QLineEdit* searchBar;
+    QToolBar* searchToolbar;
+
     QDialog* searchResults;
     SearchSuggestCompletion* searchSuggestions;
     QHBoxLayout* searchLayout;
@@ -493,8 +498,10 @@ private:
 
     SearchDialog* searchDialog;
 
-    QPushButton* searchButton;
-    QPushButton* searchOptionButton;
+
+
+    QToolButton* searchToolButton;
+    QToolButton* searchOptionToolButton;
     QMenu* searchOptionMenu;
     QLineEdit* viewAspectsBar;
     QPushButton* viewAspectsButton;

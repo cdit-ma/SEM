@@ -279,7 +279,6 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
     searchBar->setEnabled(enable);
     searchBar->clear();
 
-    searchOptionButton->setEnabled(enable);
 
     // dock buttons
     partsButton->setVisible(enable);
@@ -779,6 +778,15 @@ void MedeaWindow::setupMenu()
     actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
     actionSort->setToolTip("Sort Selection");
 
+    actionSearchOptions = new QAction("Search Options", this);
+    actionSearchOptions->setToolTip("Change search options");
+    actionSearchOptions->setCheckable(true);
+
+
+    actionSearch = new QAction("Search", this);
+    actionSearch->setToolTip("Search for text");
+
+
     actionCenter = new QAction(getIcon("Actions", "Crosshair"), "Center Entity", this);
     actionCenter->setToolTip("Center On Entity");
 
@@ -832,6 +840,9 @@ void MedeaWindow::setupMenu()
 
     modelActions.removeAll(view_fullScreenMode);
     modelActions.removeAll(view_showMinimap);
+
+    modelActions << actionSearch;
+    modelActions << actionSearchOptions;
 }
 
 void MedeaWindow::updateMenuIcons()
@@ -906,8 +917,8 @@ void MedeaWindow::updateMenuIcons()
 
     closeProjectButton->setIcon(getIcon("Actions", "Close"));
 
-    searchButton->setIcon(getIcon("Actions", "Search"));
-    searchOptionButton->setIcon(getIcon("Actions", "Settings"));
+    actionSearch->setIcon(getIcon("Actions", "Search"));
+    actionSearchOptions->setIcon(getIcon("Actions", "SearchOptions"));
 
 
     QIcon fileIcon = getIcon("Actions", "New");
@@ -1094,14 +1105,20 @@ void MedeaWindow::setupSearchTools()
     searchBarDefaultText = "Search Here...";
     searchBar = new QLineEdit(searchBarDefaultText, this);
     searchSuggestions = new SearchSuggestCompletion(searchBar);
-    searchButton = new QPushButton(getIcon("Actions", "Search"), "");
-    searchOptionButton = new QPushButton(getIcon("Actions", "Settings"), "");
-    searchOptionMenu = new QMenu(searchOptionButton);
+    searchToolButton = new QToolButton(this);
+    searchToolButton->setDefaultAction(actionSearch);
+
+    searchOptionToolButton = new QToolButton(this);
+    searchOptionToolButton->setDefaultAction(actionSearchOptions);
+
+    searchOptionMenu = new QMenu();
+
+
     searchResults = new QDialog(this);
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
 
-    searchButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
-    searchOptionButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    searchToolButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    searchOptionToolButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
     QVBoxLayout* layout = new QVBoxLayout();
     QWidget* scrollableWidget = new QWidget(this);
@@ -1116,12 +1133,12 @@ void MedeaWindow::setupSearchTools()
     resultsMainLayout->addLayout(resultsLayout);
     resultsMainLayout->addStretch();
 
-    searchButton->setFixedSize(30, searchBarHeight);
-    searchButton->setIconSize(searchButton->size()*0.65);
+    //searchButton->setFixedSize(30, searchBarHeight);
+    //searchButton->setIconSize(searchButton->size()*0.65);
 
-    searchOptionButton->setFixedSize(30, searchBarHeight);
-    searchOptionButton->setIconSize(searchButton->size()*0.7);
-    searchOptionButton->setCheckable(true);
+    //searchOptionButton->setFixedSize(30, searchBarHeight);
+    //searchOptionButton->setIconSize(searchButton->size()*0.7);
+    //searchOptionButton->setCheckable(true);
 
     searchBar->setPlaceholderText(searchBarDefaultText);
     searchBar->setFixedHeight(searchBarHeight);
@@ -1141,9 +1158,14 @@ void MedeaWindow::setupSearchTools()
 
     searchLayout->setSpacing(2);
     searchLayout->setContentsMargins(0,0,0,0);
-    searchLayout->addWidget(searchBar);
-    searchLayout->addWidget(searchButton);
-    searchLayout->addWidget(searchOptionButton);
+
+    searchToolbar = new QToolBar(this);
+    searchToolbar->setObjectName("HIDDEN_TOOLBAR");
+    searchToolbar->addWidget(searchBar);
+    searchToolbar->addWidget(searchToolButton);
+    searchToolbar->addWidget(searchOptionToolButton);
+
+    searchLayout->addWidget(searchToolbar);
 
     // setup search option widgets and menu for view aspects
     QWidgetAction* aspectsAction = new QWidgetAction(this);
@@ -1286,7 +1308,6 @@ void MedeaWindow::setupSearchTools()
     searchOptionMenu->addAction(aspectsAction);
     searchOptionMenu->addAction(kindsAction);
     searchOptionMenu->addAction(keysAction);
-    searchOptionMenu->setVisible(false);
 }
 
 
@@ -1957,8 +1978,11 @@ void MedeaWindow::setupConnections()
 
     connect(searchDialog, SIGNAL(searchDialog_refresh()), this, SLOT(on_actionSearch_triggered()));
 
-    connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
-    connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
+    connect(actionSearch, SIGNAL(triggered(bool)), this, SLOT(on_actionSearch_triggered()));
+
+    connect(actionSearchOptions, SIGNAL(triggered(bool)), this, SLOT(searchMenuButtonClicked(bool)));
+
+    //connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(viewAspectsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(nodeKindsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(dataKeysButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
@@ -2492,6 +2516,8 @@ void MedeaWindow::initialiseTheme()
     Theme::theme()->setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
     Theme::theme()->setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
     Theme::theme()->setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
+    Theme::theme()->setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
+
 
     //Orange
     Theme::theme()->setDefaultImageTintColor("Welcome", "New", QColor(232,188,0));
@@ -3921,26 +3947,30 @@ void MedeaWindow::searchItemClicked()
  */
 void MedeaWindow::searchMenuButtonClicked(bool checked)
 {
-    QPushButton* senderButton = qobject_cast<QPushButton*>(QObject::sender());
+
+    bool showMenu = checked;
     QWidget* widget = 0;
     QMenu* menu = 0;
 
-    if (senderButton == searchOptionButton) {
-        widget = searchBar;
+    qCritical() << QObject::sender();
+    qCritical() << actionSearchOptions;
+    if (QObject::sender() == actionSearchOptions) {
+        widget = searchToolbar;
         menu = searchOptionMenu;
-    } else if (senderButton == viewAspectsButton) {
+    } else if (QObject::sender() == viewAspectsButton) {
         widget = viewAspectsBar;
         menu = viewAspectsMenu;
-    } else  if (senderButton == nodeKindsButton) {
+    } else  if (QObject::sender() == nodeKindsButton) {
         widget = nodeKindsBar;
         menu = nodeKindsMenu;
-    } else  if (senderButton == dataKeysButton) {
+    } else  if (QObject::sender() == dataKeysButton) {
         widget = dataKeysBar;
         menu = dataKeysMenu;
     }
 
     if (widget && menu) {
-        if (checked) {
+        qCritical() << "HELLO" << showMenu;
+        if (showMenu) {
             menu->popup(widget->mapToGlobal(widget->rect().bottomLeft()));
         } else {
             menu->close();
@@ -3971,11 +4001,9 @@ void MedeaWindow::searchMenuClosed()
         if (!menuRect.contains(QCursor::pos())) {
             searchOptionMenu->close();
         }
-
-        //if user has clicked on button, catch that case to not re-open the menu
-        if (searchOptionButton->rect().contains(searchOptionButton->mapFromGlobal(QCursor::pos()))) {
-            searchOptionButton->setChecked(true);
-        }
+    }
+    if(actionSearchOptions->isChecked()){
+        actionSearchOptions->setChecked(false);
     }
 }
 
@@ -4784,8 +4812,8 @@ void MedeaWindow::updateStyleSheets()
 
     menuButton->setStyleSheet(pushButtonStyle + "QPushButton::menu-indicator{ image: none; }");
     closeProjectButton->setStyleSheet(pushButtonStyle);
-    searchButton->setStyleSheet(pushButtonStyle);
-    searchOptionButton->setStyleSheet(pushButtonStyle);
+    //searchButton->setStyleSheet(pushButtonStyle);
+    //searchOptionButton->setStyleSheet(pushButtonStyle);
 
     dockBackButton->setStyleSheet("QPushButton {"
                                   "background: rgba(130,130,130,120);"
@@ -4798,7 +4826,7 @@ void MedeaWindow::updateStyleSheets()
     minimapBox->setStyleSheet("#minimapTitle {"
                               "background: " + altBGColor + ";"
                               "border: 2px solid " + disabledBGColor +";"
-                              "border-bottom:none;"
+                              "border-bottom:Fnone;"
                               "}");
 
     minimapLabel->setStyleSheet("color: " + textColor + "; font-size: 12px; padding-right: 20px;");
@@ -4807,8 +4835,6 @@ void MedeaWindow::updateStyleSheets()
 
     projectNameShadow->setColor(theme->getBackgroundColor());
 
-    searchButton->setIcon(getIcon("Actions", "Search"));
-    searchOptionButton->setIcon(getIcon("Actions", "Settings"));
 
     searchBar->setStyleSheet("QLineEdit {"
                              "background: " + altBGColor + ";"
