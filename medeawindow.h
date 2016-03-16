@@ -481,6 +481,7 @@ private:
     QWidget* rightPanelWidget;
 
     QTableView* dataTable;
+    QScrollArea* tableScroll;
 
     ComboBoxTableDelegate* delegate;
 

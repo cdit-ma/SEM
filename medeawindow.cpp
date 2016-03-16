@@ -499,6 +499,11 @@ void MedeaWindow::initialiseGUI()
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
 
+    tableScroll = new QScrollArea(this);
+    tableScroll->setWidget(dataTable);
+    tableScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+
     // setup menu, close project and project name buttons
     menuButton = new QPushButton(getIcon("Actions", "MEDEAIcon"), "");
     menuButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
@@ -582,11 +587,13 @@ void MedeaWindow::initialiseGUI()
     rightVlayout =  new QVBoxLayout();
     rightVlayout->setMargin(0);
     rightVlayout->setContentsMargins(0, SPACER_SIZE, 0, 0);
+    rightVlayout->setSpacing(SPACER_SIZE);
     rightVlayout->addLayout(searchLayout);
     rightVlayout->addLayout(viewButtonsGrid);
-    rightVlayout->addWidget(dataTable, 1);
+    rightVlayout->addWidget(tableScroll, 1);
+    rightVlayout->addWidget(minimapBox, 0);//, Qt::AlignBottom);
 
-    rightVlayout->addWidget(minimapBox, 0, Qt::AlignBottom);
+
 
     rightPanelWidget = new QWidget(this);
     rightPanelWidget->setFixedWidth(RIGHT_PANEL_WIDTH);
@@ -2045,9 +2052,10 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
         maximizedSettingInitiallyChanged = false;
     }
     IS_WINDOW_MAXIMIZED = isMaximized();
-    updateWidgetsOnWindowChange();
 
     QWidget::resizeEvent(event);
+    updateWidgetsOnWindowChange();
+
 }
 
 
@@ -2777,17 +2785,7 @@ void MedeaWindow::updateWidgetsOnWindowChange()
     canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
     canvasRect.moveTopLeft(QPoint(docksArea->width() + 15, 0));
 
-    /*
-    double newHeight = docksArea->height();
-    if (dockStandAloneDialog->isVisible()) {
-        newHeight *= 2;
-    }
-    partsDock->parentHeightChanged(newHeight);
-    definitionsDock->parentHeightChanged(newHeight);
-    hardwareDock->parentHeightChanged(newHeight);
-    */
-
-    // update the stored view center point and re-center the view
+     // update the stored view center point and re-center the view
     if (nodeView) {
         nodeView->visibleViewRectChanged(getCanvasRect());
         nodeView->updateViewCenterPoint();
@@ -2799,6 +2797,7 @@ void MedeaWindow::updateWidgetsOnWindowChange()
     updateWidgetMask(docksArea, dockButtonsBox, true);
     updateDock();
     updateToolbar();
+
     updateDataTable();
 }
 
@@ -4207,80 +4206,72 @@ void MedeaWindow::updateDataTable()
     bool hasData = tableModel && tableModel->rowCount() > 0;
 
     if(hasData){
-        if(!dataTable->isVisible()){
-            //Remove the Stretch before the minimap
-            int indexOfStretch = rightVlayout->indexOf(minimapBox) - 1;
+        int spacerIndex = rightVlayout->indexOf(minimapBox) - 1;
+        QLayoutItem* spacerItem = rightVlayout->itemAt(spacerIndex);
 
-            QLayoutItem* stretchItem = rightVlayout->itemAt(indexOfStretch);
-            //Remove the Stretch
-            rightVlayout->removeItem(stretchItem);
+        if(spacerItem && spacerItem->spacerItem()){
+            //qCritical() << "Removing Spacer and inserting table.";
+            rightVlayout->removeItem(spacerItem);
+            //Clean up memory
+            rightVlayout->insertWidget(spacerIndex, tableScroll, 1);
+            tableScroll->setVisible(true);
+            delete spacerItem;
+        }
 
-            if(stretchItem && !stretchItem->widget()){
-                //Delete the stretch item
-                delete stretchItem;
+
+        int requiredHeight = 0;
+        requiredHeight += dataTable->horizontalHeader()->size().height();
+        requiredHeight += dataTable->contentsMargins().top() + dataTable->contentsMargins().bottom();
+
+        //Sum the height.
+        for (int i = 0; i < tableModel->rowCount(); i++){
+            requiredHeight += dataTable->rowHeight(i);
+        }
+
+        int availableHeight = rightPanelWidget->height();
+
+        QLayout *panelLayout = rightPanelWidget->layout();
+
+        availableHeight -= rightPanelWidget->contentsMargins().top();
+        availableHeight -= rightPanelWidget->contentsMargins().bottom();
+        availableHeight -= panelLayout->contentsMargins().top();
+        availableHeight -= panelLayout->contentsMargins().bottom();
+
+        for(int i = 0; i < panelLayout->count(); i++){
+            availableHeight -= panelLayout->spacing();
+
+            QLayoutItem* item = panelLayout->itemAt(i);
+            if(item->widget() != tableScroll){
+                if(item->widget() && !item->widget()->isVisible()){
+                    //Ignore Invisible Items
+                    continue;
+                }
+                if(item->spacerItem()){
+                    continue;
+                }
+                availableHeight -= item->geometry().height();
             }
 
-            //Insert the DataTable Widget with a stretch and alignment.
-            rightVlayout->insertWidget(indexOfStretch, dataTable, 1);
-            rightVlayout->setAlignment(dataTable, Qt::AlignTop);
-            dataTable->setVisible(true);
         }
+
+        QSize requiredTableSize(tableScroll->width(), requiredHeight);
+        if(dataTable->geometry().size() != requiredTableSize){
+            //Resize the DataTable availableHeight be the required Height.
+            dataTable->resize(QSize(tableScroll->width(), requiredHeight));
+        }
+        //Update the mask
+        tableScroll->setMask(dataTable->frameGeometry());
     }else{
-        if(dataTable->isVisible()){
-            int indexOfTable = rightVlayout->indexOf(minimapBox) - 1;
-            QLayoutItem* tableItem = rightVlayout->itemAt(indexOfTable);
+        int spacerIndex = rightVlayout->indexOf(minimapBox) - 1;
+        QLayoutItem* spacerItem = rightVlayout->itemAt(spacerIndex);
 
-            //Remove the Table.
-            rightVlayout->removeItem(tableItem);
-
-            //Insert the Stretch
-            rightVlayout->insertStretch(indexOfTable, 1);
+        if(spacerItem && spacerItem->widget()){
+            //qCritical() << "Removing Table and inserting Spacer.";
+            rightVlayout->removeItem(spacerItem);
+            rightVlayout->insertStretch(spacerIndex, 1);
+            tableScroll->setVisible(false);
         }
-
-        //Hide the DataTable
-        dataTable->setVisible(false);
-        updateRightMask();
     }
-
-    if(!tableModel){
-        return;
-    }
-
-    int requiredHeight = 0;
-
-    //Sum the height.
-    for (int i = 0; i < tableModel->rowCount(); i++){
-        requiredHeight += dataTable->rowHeight(i);
-    }
-
-    requiredHeight += dataTable->horizontalHeader()->size().height();
-    requiredHeight += dataTable->contentsMargins().top() + dataTable->contentsMargins().bottom();
-
-    int availableHeight = rightPanelWidget->height();
-    availableHeight -= rightVlayout->contentsMargins().top();
-    availableHeight -= rightVlayout->contentsMargins().bottom();
-
-    for(int i = 0; i < rightVlayout->count(); i++){
-
-        QLayoutItem* item = rightVlayout->itemAt(i);
-        if(item->widget() != dataTable){
-            //Ignore invisible items
-            if(item->widget() && !item->widget()->isVisible()){
-                continue;
-            }
-            availableHeight -= item->geometry().height();
-        }
-        availableHeight -= rightVlayout->spacing();
-    }
-
-    //Resize the DataTable to be the required Height.
-    dataTable->resize(QSize(dataTable->width(), requiredHeight));
-
-    //Force the height to minimize the size we have available and the required height.
-    int newHeight = qMin(requiredHeight, availableHeight);
-    dataTable->setFixedHeight(newHeight);
-
-
 
     updateRightMask();
 }
