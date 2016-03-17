@@ -26,6 +26,7 @@
  */
 int main(int argc, char *argv[])
 {
+    qCritical() << QDateTime::currentDateTime().toTime_t();
     //Construct a QApplication
     QApplication a(argc, argv);
 

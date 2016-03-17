@@ -3,6 +3,7 @@
 
 #include <QHash>
 #include <QPixmap>
+#include <QThread>
 #include <QColor>
 #include <QIcon>
 
@@ -65,6 +66,9 @@ public:
 signals:
     void theme_Changed();
 
+private slots:
+    void preloadImages();
+
 private:
     void updateValid();
     QHash<QString, QPixmap> pixmapLookup;
@@ -95,8 +99,11 @@ public:
     static QString QColorToHex(const QColor color);
     static Theme* theme();
 
+signals:
+    void initPreloadImages();
 private:
     static Theme* themeSingleton;
+    static QThread* themeThread;
 };
 
 #endif // THEME_H

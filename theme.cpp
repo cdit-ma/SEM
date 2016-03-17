@@ -1,8 +1,9 @@
 #include "theme.h"
 #include <QDebug>
 #include <QStringBuilder>
-
+#include <QDirIterator>
 Theme* Theme::themeSingleton = 0;
+QThread* Theme::themeThread = 0;
 
 Theme::Theme():QObject(0)
 {
@@ -366,6 +367,23 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
     }
 }
 
+void Theme::preloadImages()
+{
+    qCritical() << "PRELOADING ON " << QThread::currentThread();
+    QStringList dirs;
+    dirs << "Actions" << "Data" << "Functions" << "Items" << "Welcome";
+    foreach(QString dir, dirs){
+        QDirIterator it(":/" % dir, QDirIterator::Subdirectories);
+        while (it.hasNext()) {
+            it.next();
+            QString imageName = it.fileName();
+            getImage(dir, imageName);
+            //qCritical() << it.fileName();
+        }
+    }
+    qCritical() << "PreLoading Finished ON " << QThread::currentThread();
+}
+
 void Theme::updateValid()
 {
     bool gotAllColors = true;
@@ -411,7 +429,15 @@ QString Theme::QColorToHex(const QColor color)
 Theme *Theme::theme()
 {
     if(!themeSingleton){
+        themeThread = new QThread();
+        themeThread->start();
+
+
         themeSingleton = new Theme();
+        connect(themeSingleton, SIGNAL(initPreloadImages()),themeSingleton, SLOT(preloadImages()));
+
+        //Move the JenkinsRequest to the thread
+        themeSingleton->moveToThread(themeThread);
     }
     return themeSingleton;
 }

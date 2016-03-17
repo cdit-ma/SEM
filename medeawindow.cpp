@@ -76,6 +76,9 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+    initialiseTheme();
     setupApplication();
 
     nodeView = 0;
@@ -96,7 +99,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     CURRENT_THEME = VT_NORMAL_THEME;
 
     //Initialize classes.
-    initialiseTheme();
+    //initialiseTheme();
     initialiseSettings();
     initialiseJenkinsManager();
     initialiseCUTSManager();
@@ -120,6 +123,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     }
 
     INITIAL_SETTINGS_LOADED = true;
+
+    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "LOAD TIME: " <<  timeFinish-timeStart;
 }
 
 
@@ -312,6 +318,7 @@ void MedeaWindow::modelReady()
 
     // re-enable the view widgets and window
     setViewWidgetsEnabled(true);
+
     //setApplicationEnabled(true);
 }
 
@@ -2535,6 +2542,10 @@ void MedeaWindow::initialiseTheme()
     //Red
     Theme::theme()->setDefaultImageTintColor("Welcome", "Settings", QColor(230,51,42));
 
+    //LOAD THINGS
+    qCritical() << "PRELOAD";
+    emit Theme::theme()->initPreloadImages();
+    qCritical() << "PRELOADING";
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
