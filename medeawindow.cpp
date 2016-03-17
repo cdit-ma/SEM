@@ -1185,8 +1185,7 @@ void MedeaWindow::setupSearchTools()
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
     viewAspectsButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
-    //viewAspectsButton = new QPushButton(QIcon(":/Actions/Arrow_Down"), "", this);
-    //viewAspectsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    viewAspectsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
     viewAspectsMenu = new QMenu(viewAspectsButton);
 
@@ -2185,8 +2184,7 @@ void MedeaWindow::resetAspectTheme(bool colorBlindTheme)
 
 QPixmap MedeaWindow::getDialogPixmap(QString alias, QString image, QSize size)
 {
-    return Theme::theme()->getImage(alias, image, Qt::black);
-    //return getIcon(alias, image).pixmap(size);
+    return Theme::theme()->getImage(alias, image, size, Qt::black);
 }
 
 bool MedeaWindow::openProject(QString fileName)

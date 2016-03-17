@@ -8,6 +8,7 @@
 #include <QWidgetAction>
 #include <QPair>
 
+#define SEPERATOR_WIDTH 3
 
 /**
  * @brief ToolbarWidget::ToolbarWidget
@@ -117,10 +118,10 @@ void ToolbarWidget::setupFunctionsList()
 
     foreach (QStringList functions, classFunctionHash.values()) {
         QString className = classFunctionHash.key(functions);
-        ToolbarMenuAction* classAction = new ToolbarMenuAction(className, 0, functionsMenu, "", ":/Functions/" + className);
+        ToolbarMenuAction* classAction = new ToolbarMenuAction(className, 0, functionsMenu, "", "Functions", className);
         ToolbarMenu* classMenu = new ToolbarMenu(this);
         foreach (QString function, functions) {
-            classMenu->addAction(new ToolbarMenuAction(function, classAction, this, "", ":/Functions/" + className));
+            classMenu->addAction(new ToolbarMenuAction(function, classAction, this, "", "Functions", function));
         }
         classAction->setMenu(classMenu);
         functionsMenu->addAction(classAction);
@@ -178,6 +179,7 @@ void ToolbarWidget::updateActionEnabledState(QString actionName, bool enabled)
     } else if (actionName == "align") {
         showAlignmentButtons = enabled;
     }
+
 }
 
 
@@ -456,30 +458,28 @@ void ToolbarWidget::setVisible(bool visible)
 
     // update the toolbar & frame sizes
     if (toolbarVisible) {
+            int height = toolbarLayout->sizeHint().height();
+            int totalWidth = 0;
 
-        int height = toolbarLayout->sizeHint().height();
-        int totalWidth = 0;
+            foreach (QAction* action, toolbar->actions()) {
+                if (action->isVisible()) {
+                    QToolButton* toolButton = actionLookup.key(action);
+                    QFrame* seperator = separatorLookup.key(action);
 
-        int count = 0;
-
-        foreach (QAction* action, toolbar->actions()) {
-            if (action->isVisible()) {
-                count++;
-                if (actionLookup.key(action)) {
-                    totalWidth += actionLookup.key(action)->width();
-                } else if (separatorLookup.key(action)) {
-                    // if I use this, the initial size of the
-                    // toolbar is wrong for some weird reason
-                    //totalWidth += separatorLookup.key(action)->width();
-                    totalWidth += 3;
+                    if (toolButton) {
+                        totalWidth += toolButton->width();
+                    }else if (seperator) {
+                        totalWidth += SEPERATOR_WIDTH;
+                    }
                 }
             }
-        }
+            //Take into account the toolbarLayout margins and the QToolbar Layout margins.
+            totalWidth += toolbarLayout->contentsMargins().left() + toolbarLayout->contentsMargins().right();
+            totalWidth += toolbar->layout()->contentsMargins().left() + toolbar->layout()->contentsMargins().right();
 
-        totalWidth += toolbarLayout->spacing() * 2;
-        mainFrame->setFixedSize(totalWidth, height);
-        shadowFrame->setFixedSize(mainFrame->size() + QSize(3,3));
-        setFixedSize(shadowFrame->size());
+            mainFrame->setFixedSize(totalWidth, height);
+            shadowFrame->setFixedSize(mainFrame->size() + QSize(3,3));
+            setFixedSize(shadowFrame->size());
 
     } else {
         closeOpenMenus();
@@ -520,7 +520,7 @@ void ToolbarWidget::setupTheme()
                   "color:" + highlightColor +
                   "}"
                   "QFrame {"
-                  "color:" + backgroundColor +
+                  "color:" + altBackgroundColor +
                   "}"
                   "QMenu { "
                   "background:" + backgroundColor +
@@ -858,12 +858,12 @@ void ToolbarWidget::setupOutEventPortList()
  */
 void ToolbarWidget::setupToolBar()
 {    
-    QSize buttonSize = QSize(39,39);
+    QSize buttonSize = QSize(42,40);
     toolbar =  new QToolBar(this);
     toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
 
     toolbarLayout = new QHBoxLayout();
-    toolbarLayout->setMargin(5);
+    toolbarLayout->setMargin(2);
     toolbarLayout->setAlignment(Qt::AlignTop);
     toolbarLayout->addWidget(toolbar);
     setLayout(toolbarLayout);
@@ -940,10 +940,10 @@ void ToolbarWidget::setupMenus()
     hardwareClusterViewMenu = constructTopMenu(displayedChildrenOptionButton);
 
     // setup menu actions for the definition and implementation menus
-    definitionMenu->addAction(new ToolbarMenuAction("Goto", 0, definitionMenu, "Go to Definition", ":/Actions/Goto"));
-    definitionMenu->addAction(new ToolbarMenuAction("Popup", 0, definitionMenu, "Popup Definition", ":/Actions/Popup"));
-    implementationMenu->addAction(new ToolbarMenuAction("Goto", 0, implementationMenu, "Go to Implementation", ":/Actions/Goto"));
-    implementationMenu->addAction(new ToolbarMenuAction("Popup", 0, implementationMenu, "Popup Implementation", ":/Actions/Popup"));
+    definitionMenu->addAction(new ToolbarMenuAction("Goto", 0, definitionMenu, "Go to Definition", "Actions", "Goto"));
+    definitionMenu->addAction(new ToolbarMenuAction("Popup", 0, definitionMenu, "Popup Definition", "Actions", "Popup"));
+    implementationMenu->addAction(new ToolbarMenuAction("Goto", 0, implementationMenu, "Go to Implementation", "Actions", "Goto"));
+    implementationMenu->addAction(new ToolbarMenuAction("Popup", 0, implementationMenu, "Popup Implementation", "Actions", "Popup"));
 
     // setup widgets for the displayed children option menu for HardwareClusters
     allNodes = new QRadioButton("All", this);
@@ -1383,8 +1383,8 @@ void ToolbarWidget::setupInstancesList(QList<NodeItem*> instances)
 
         // construct a display option menu
         ToolbarMenu* menu = new ToolbarMenu(this);
-        menu->addAction(new ToolbarMenuAction("Goto", action, instancesMenu, "Go to Instance", ":/Actions/Goto"));
-        menu->addAction(new ToolbarMenuAction("Popup", action, instancesMenu, "Popup Instance", ":/Actions/Popup"));
+        menu->addAction(new ToolbarMenuAction("Goto", action, instancesMenu, "Go to Instance", "Actions", "Goto"));
+        menu->addAction(new ToolbarMenuAction("Popup", action, instancesMenu, "Popup Instance", "Actions", "Popup"));
         action->setMenu(menu);
     }
 }
@@ -1509,7 +1509,7 @@ QFrame* ToolbarWidget::constructFrameSeparator()
 {
     QFrame* frame = new QFrame(this);
     frame->setFrameShape(QFrame::VLine);
-    //frame->setPalette(QPalette(Qt::darkGray));
+    frame->setLineWidth(SEPERATOR_WIDTH);
     QAction* action = toolbar->addWidget(frame);
     separatorLookup[frame] = action;
     return frame;
@@ -1564,7 +1564,7 @@ ToolbarMenu* ToolbarWidget::constructSubMenu(ToolbarMenuAction* parentAction, QS
     }
 
     // construct a menu with an info action and set it as the parent action's menu
-    ToolbarMenuAction* infoAction = new ToolbarMenuAction("Info", 0, this, infoText, ":/Actions/Info");;
+    ToolbarMenuAction* infoAction = new ToolbarMenuAction("Info", 0, this, infoText, "Actions", "Info");
     ToolbarMenu* menu = new ToolbarMenu(this, infoAction);
     parentAction->setMenu(menu);
     if (addToDynamicMenuHash) {

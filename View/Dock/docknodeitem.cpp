@@ -219,9 +219,8 @@ QList<DockNodeItem*> DockNodeItem::getChildrenDockItems()
 void DockNodeItem::setImage(QString prefix, QString image)
 {
     if(parentDock){
-        NodeView* nodeView = parentDock->getNodeView();
-        if(imageLabel && textLabel  && nodeView){
-            QPixmap pixMap = nodeView->getImage(prefix, image);
+        if(imageLabel && textLabel){
+            QPixmap pixMap = Theme::theme()->getImage(prefix,image);
             QPixmap scaledPixmap = pixMap.scaled(width()*ICON_RATIO,
                                                   (height()-textLabel->height())*ICON_RATIO,
                                                   Qt::KeepAspectRatio,
@@ -522,30 +521,30 @@ void DockNodeItem::setImageLabelPixmap()
         return;
     }
 
-    NodeView* nodeView = parentDock->getNodeView();
     QSize pixMapSize = imageLabel->size();
-    QPixmap pixMap = QPixmap(pixMapSize);
+    QPixmap pixMap;
 
-    if (nodeView) {
-        if (nodeItem) {
-            if (nodeItem->isEntityItem()) {
-                EntityItem* entityItem = (EntityItem*)nodeItem;
-                pixMap = nodeView->getImage(entityItem->getIconPrefix(), entityItem->getIconURL());
-            } else {
-                pixMap = nodeView->getImage("Items", imageName);
-            }
+    if (nodeItem) {
+        if (nodeItem->isEntityItem()) {
+            EntityItem* entityItem = (EntityItem*)nodeItem;
+            pixMap = Theme::theme()->getImage(entityItem->getIconPrefix(), entityItem->getIconURL());
         } else {
-            if (parentDock->getDockType() ==  PARTS_DOCK) {
-                pixMap = nodeView->getImage("Items", imageName);
-            } else if (parentDock->getDockType() == FUNCTIONS_DOCK) {
-                pixMap = nodeView->getImage("Functions", imageName);
+            pixMap = Theme::theme()->getImage("Items", imageName);
+        }
+    } else {
+        if (parentDock->getDockType() ==  PARTS_DOCK) {
+            pixMap = Theme::theme()->getImage("Items", imageName);
+        } else if (parentDock->getDockType() == FUNCTIONS_DOCK) {
+            pixMap = Theme::theme()->getImage("Functions", kind);
+            if(pixMap.isNull()){
+                pixMap = Theme::theme()->getImage("Functions", imageName);
             }
         }
     }
 
     if (pixMap.isNull()) {
+        pixMap = Theme::theme()->getImage("Actions", "Help");
         qWarning() << "DockNodeItem::setupImageLabel - Image is null for " << kind;
-        return;
     }
 
     pixMap = pixMap.scaled(pixMapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);

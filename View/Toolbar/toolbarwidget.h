@@ -136,6 +136,7 @@ private:
     QToolButton* contractButton;
     QToolButton* wikiButton;
 
+
     QHash<QToolButton*, QAction*> actionLookup;
     QHash<QFrame*, QAction*> separatorLookup;
 

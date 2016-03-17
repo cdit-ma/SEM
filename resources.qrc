@@ -192,6 +192,7 @@
         <file alias="MEDEAIcon">Resources/Images/Actions/MEDEAIcon.png</file>
         <file alias="Computer_DockButton">Resources/Images/Actions/Computer_DockButton.png</file>
         <file alias="SearchOptions">Resources/Images/Actions/SearchOptions.png</file>
+        <file alias="HardwareNode">Resources/Images/Actions/HardwareNode.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>
@@ -226,6 +227,7 @@
         <file alias="WE_UTE_VariableArguments">Resources/Images/Data/WE_UTE_VariableArguments.png</file>
         <file alias="replicate_count">Resources/Images/Data/replicate_count.png</file>
         <file alias="kilobytes">Resources/Images/Data/kilobytes.png</file>
+        <file alias="max_size">Resources/Images/Data/max_size.png</file>
     </qresource>
     <qresource prefix="/Functions">
         <file alias="WE_GPU">Resources/Images/Functions/WE_GPU.png</file>

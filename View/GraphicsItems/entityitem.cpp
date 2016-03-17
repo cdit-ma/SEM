@@ -756,11 +756,11 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     }
 
 
-    if(IS_READ_ONLY){
+    if(IS_READ_ONLY && renderState > RS_BLOCK){
         paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Lock_Closed");
     }
 
-    if(nodeMemberIsKey){
+    if(nodeMemberIsKey && renderState > RS_BLOCK){
         paintPixmap(painter, lod, IP_CENTER_SMALL, "Actions", "Key");
     }
 
@@ -2797,37 +2797,41 @@ QString EntityItem::getIconPrefix()
 void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update)
 {
     QRectF place = getImageRect(pos);
+
     QPixmap image = imageMap[pos];
 
-    if(getNodeView() && (image.isNull() || update)){
+    Theme* theme = Theme::theme();
+    QSize requiredSize;
+    requiredSize.setWidth(place.width()* lod * 2);
+    requiredSize.setHeight(place.height()* lod * 2);
+
+    if(image.size() != requiredSize || update){
         //Try get the image the user asked for.
-        image = getNodeView()->getImage(alias, imageName);
+        image = theme->getImage(alias, imageName, requiredSize);
 
         if(image.isNull() && workerKind != ""){
             //Try get the Icon for the worker otherwise.
-            image = getNodeView()->getImage("Functions", workerKind);
+            image = theme->getImage("Functions", workerKind, requiredSize);
         }
 
         if(image.isNull() && operationKind != ""){
             //Use the default icon for the Process.
-            image = getNodeView()->getImage("Items", "Process");
+            image = theme->getImage("Items", "Process", requiredSize);
         }
 
         if(image.isNull() && nodeType != ""){
             //Look for a Data icon.
-            image = getNodeView()->getImage("Data", nodeType);
+            image = theme->getImage("Data", nodeType, requiredSize);
         }
 
         if(image.isNull()){
             //Use a help icon.
-            image = getNodeView()->getImage("Actions", "Help");
+            image = theme->getImage("Actions", "Help", requiredSize);
         }
         imageMap[pos] = image;
     }
-    int width = place.width()* lod * 2;
-    int height = place.height() * lod * 2;
-    QPixmap newPixmap = image.scaled(width, height, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), newPixmap);
+
+    painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
 
     if (changeIcon) {
         emit entityItem_iconChanged();

@@ -2377,7 +2377,7 @@ QPair<QString, bool> NodeView::getEditableDataKeyName(GraphMLItem *node)
     //noDropDownKinds << "OutEventPort" << "InEventPort" << "AggregateInstance" << "VectorInstance" << "MemberInstance" << "HardwareNode" << "AttributeInstance"  << "OutEventPortInstance" << "InEventPortInstance";;
 
     QStringList typeKinds;
-    typeKinds << "Attribute" << "Member" << "OutEventPort" << "InEventPort" << "Vector" << "AggregateInstance" << "VectorInstance" << "OutEventPortInstance" << "InEventPortInstance" << "OutEventPortDelegate" << "InEventPortDelegate" << "AttributeImpl" <<"OutEventPortImpl" << "InEventPortImpl" << "ComponentInstance" << "ReturnType";
+    typeKinds << "Attribute" << "Member" << "OutEventPort" << "InEventPort" << "AggregateInstance" << "VectorInstance" << "OutEventPortInstance" << "InEventPortInstance" << "OutEventPortDelegate" << "InEventPortDelegate" << "AttributeImpl" <<"OutEventPortImpl" << "InEventPortImpl" << "ComponentInstance" << "ReturnType";
 
     QStringList valueKinds;
     valueKinds << "Variable" << "Condition" << "InputParameter";
@@ -2412,6 +2412,10 @@ QPair<QString, bool> NodeView::getEditableDataKeyName(GraphMLItem *node)
     }
     if(nodeKind == "HardwareNode"){
         returnType.first = "ip_address";
+    }
+
+    if(nodeKind == "Vector"){
+        returnType.first = "max_size";
     }
 
     if(nodeKind == "PeriodicEvent"){
@@ -3160,7 +3164,7 @@ void NodeView::viewDeploymentAspect()
 
 QPixmap NodeView::getImage(QString alias, QString imageName, QColor tintColor)
 {
-    return Theme::theme()->getImage(alias, imageName, tintColor);
+    return Theme::theme()->getImage(alias, imageName, QSize(), tintColor);
 }
 
 QIcon NodeView::getIcon(QString alias, QString imageName)

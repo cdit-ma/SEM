@@ -31,7 +31,7 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *, CUTSManager *cutsManager)
     outputPathOk = false;
 
     setWindowTitle("Launch CUTS Execution");
-    setWindowIcon(Theme::theme()->getImage("Actions", "Cut", Qt::black));
+    setWindowIcon(Theme::theme()->getImage("Actions", "Cut", QSize(), Qt::black));
     setupLayout();
 
     connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
@@ -448,7 +448,7 @@ void CUTSExecutionWidget::setupLayout()
 
     graphmlPathButton = new QPushButton();
     graphmlPathButton->setIconSize(QSize(20,20));
-    graphmlPathButton->setIcon(Theme::theme()->getImage("Actions", "Search_Folder", Qt::black));
+    graphmlPathButton->setIcon(Theme::theme()->getImage("Actions", "Search_Folder", QSize(), Qt::black));
 
     connect(graphmlPathButton, SIGNAL(clicked()), this, SLOT(selectGraphMLPath()));
     modelLayout->addWidget(graphmlPathIcon);
@@ -472,7 +472,7 @@ void CUTSExecutionWidget::setupLayout()
 
     outputPathButton = new QPushButton();
     outputPathButton->setIconSize(QSize(20,20));
-    outputPathButton->setIcon(Theme::theme()->getImage("Actions", "Search_Folder", Qt::black));
+    outputPathButton->setIcon(Theme::theme()->getImage("Actions", "Search_Folder",QSize(), Qt::black));
 
     connect(outputPathButton, SIGNAL(clicked()), this, SLOT(selectOutputPath()));
     outputLayout->addWidget(outputPathIcon);
@@ -504,9 +504,9 @@ void CUTSExecutionWidget::setupLayout()
 
     tabWidget = new QTabWidget();
     verticalLayout->addWidget(tabWidget, 1);
-    tabWidget->addTab(setupGenerateWidget(), Theme::theme()->getImage("Actions", "Generate", Qt::black), "Generate");
-    tabWidget->addTab(setupBuildWidget(),  Theme::theme()->getImage("Actions", "Build", Qt::black), "Build");
-    tabWidget->addTab(setupExecuteWidget(), Theme::theme()->getImage("Actions", "Forward", Qt::black),  "Execute");
+    tabWidget->addTab(setupGenerateWidget(), Theme::theme()->getImage("Actions", "Generate", QSize(), Qt::black), "Generate");
+    tabWidget->addTab(setupBuildWidget(),  Theme::theme()->getImage("Actions", "Build", QSize(), Qt::black), "Build");
+    tabWidget->addTab(setupExecuteWidget(), Theme::theme()->getImage("Actions", "Forward", QSize(), Qt::black),  "Execute");
 
 
 

@@ -60,7 +60,7 @@ public:
     bool isValid();
 
     QIcon getIcon(QString prefix, QString alias);
-    QPixmap getImage(QString prefix, QString alias, QColor tintColor = QColor());
+    QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
 
 signals:
     void theme_Changed();
@@ -68,6 +68,7 @@ signals:
 private:
     void updateValid();
     QHash<QString, QPixmap> pixmapLookup;
+    QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QIcon> iconLookup;
     QHash<QString, QColor> pixmapTintLookup;
     QHash<QString, QString> iconToggledLookup;
@@ -83,6 +84,8 @@ private:
     QColor altBackgroundColor;
     QColor disabledBackgroundColor;
     QColor iconColor;
+
+    QString slash;
 
     bool themeChanged;
 

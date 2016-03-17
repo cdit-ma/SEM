@@ -386,6 +386,8 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     VIEW_STATE viewState = getViewState();
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
     if(!isPointInCircle(event->pos())){
+        //call the base handler.
+        QGraphicsObject::mousePressEvent(event);
         return;
     }
     switch (event->button()) {
@@ -418,7 +420,9 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent*)
 {
     if(isDataEditable("description")){
-        textItem->setEditMode(true);
+		if(textItem){
+			textItem->setEditMode(true);
+		}
     }
 }
 

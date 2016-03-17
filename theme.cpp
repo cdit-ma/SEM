@@ -1,10 +1,12 @@
 #include "theme.h"
 #include <QDebug>
+#include <QStringBuilder>
 
 Theme* Theme::themeSingleton = 0;
 
 Theme::Theme():QObject(0)
 {
+    slash = QString("/");
     updateValid();
     valid = false;
 }
@@ -165,8 +167,8 @@ QString Theme::getAspectBackgroundColorHex(VIEW_ASPECT aspect)
 
 void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName)
 {
-    QString name = prefix + "/" + alias;
-    QString toggledName = toggledAlias + "/" + toggledImageName;
+    QString name = prefix % slash % alias;
+    QString toggledName = toggledAlias  % slash %  toggledImageName;
     iconToggledLookup[name] = toggledName;
 }
 
@@ -190,14 +192,21 @@ void Theme::setDefaultImageTintColor(QColor color)
 
 void Theme::setDefaultImageTintColor(QString prefix, QString alias, QColor color)
 {
-    QString longName = prefix + "/" + alias;
+
+    QString longName = prefix % slash % alias;
     pixmapTintLookup[longName] = color;
 }
 
 void Theme::applyTheme()
 {
+    long long memSize=0;
+    foreach(QPixmap pix, pixmapLookup){
+        memSize += pix.width() * pix.height() * 4;
+    }
+
+
     if(themeChanged && valid){
-        pixmapLookup.clear();
+        //PRINT OUT MEMORY USAGE.
         iconLookup.clear();
         emit theme_Changed();
     }
@@ -211,18 +220,16 @@ bool Theme::isValid()
 
 QIcon Theme::getIcon(QString prefix, QString alias)
 {
-    QString lookupName = prefix + "/" + alias;
-
-
+    QString lookupName = prefix  % slash %  alias;
 
     if(iconLookup.contains(lookupName)){
         return iconLookup[lookupName];
     }else{
         QIcon icon;
         //Set the default states.
-        icon.addPixmap(getImage(prefix, alias, getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
-        icon.addPixmap(getImage(prefix, alias, getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
-        icon.addPixmap(getImage(prefix, alias, getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::Off);
+        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
+        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
+        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::Off);
 
         if(iconToggledLookup.contains(lookupName)){
             QString toggledName = iconToggledLookup[lookupName];
@@ -233,9 +240,9 @@ QIcon Theme::getIcon(QString prefix, QString alias)
                 QString toggledAliasName = toggledName.mid(midSlash + 1);
 
                 //Set the toggled states.
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::On);
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
+                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::On);
+                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
+                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
             }
         }
 
@@ -244,35 +251,105 @@ QIcon Theme::getIcon(QString prefix, QString alias)
     }
 }
 
-QPixmap Theme::getImage(QString prefix, QString alias, QColor tintColor)
+QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintColor)
 {
-    QString resourceName = prefix + "/" + alias;
-    QString lookupName = resourceName;
+    //Calculate the name of the image.
 
+    QString resourceName = prefix % slash % alias;
+    QString lookupName = resourceName;
 
     //If we have a tint color check for it.
     if(tintColor.isValid()){
-        lookupName += "/" + QColorToHex(tintColor);
+        lookupName = lookupName % slash % QColorToHex(tintColor);
     }
+
+    //If the size we have been provided isn't set, check for the original image size.
+    if(!size.isValid()){
+        if(pixmapSizeLookup.contains(resourceName)){
+            size = pixmapSizeLookup[resourceName];
+        }
+    }
+
+    //If we have a valid size
+    if(size.isValid()){
+        int factor = 1;
+        //Bitshift round to power of 2
+        while((factor <<= 1 ) < size.width()>>1);
+
+        //Scale the request image size to a width = factor
+        int newWidth = factor;
+        int newHeight = (double) factor * ((double)size.width() / (double)size.height());
+        size.setWidth(newWidth);
+        size.setHeight(newHeight);
+
+        //Update the lookupName to include this new size information.
+        lookupName = lookupName % slash % QString::number(size.width()) % slash % QString::number(size.height());
+    }
+
 
     if(pixmapLookup.contains(lookupName)){
         return pixmapLookup[lookupName];
     }else{
-        QImage image(":/" + resourceName);
+        QSize originalSize;
 
+        //Try and get original Size of the resource.
+        if(pixmapSizeLookup.contains(resourceName)){
+            originalSize = pixmapSizeLookup[resourceName];
+        }
+
+
+        if(originalSize.isValid()){
+            //If the size we want is bigger than the original size, return the exact original image.
+            if(size.width() > originalSize.width()){
+                //Request the image at max size.
+                return getImage(prefix, alias, originalSize, tintColor);
+            }
+        }
+
+        //Load the original Image
+        QImage image(":/" % resourceName);
+
+        if(image.isNull()){
+            qCritical() << "NULL IMAGE " << lookupName;
+            pixmapLookup[lookupName] = QPixmap();
+            return pixmapLookup[lookupName];
+        }
+
+        //If we haven't seen this Image before, we should store the original size of the Image
+        if(!pixmapSizeLookup.contains(resourceName)){
+            originalSize = image.size();
+            pixmapSizeLookup[resourceName] = originalSize;
+
+            //Update the lookupName to include the original size.
+            lookupName = lookupName % slash % QString::number(size.width()) % slash % QString::number(size.height());
+        }
+
+        //Handle the tint color.
         if(!tintColor.isValid()){
             //Check for a non-default color.
             if(pixmapTintLookup.contains(resourceName)){
                 tintColor = pixmapTintLookup[resourceName];
             }else{
-                //Return the default.
+                //Return the default color tint.
                 tintColor = iconColor;
             }
         }
 
-        QPixmap pixmap;
-        //Tint the pixmap If it's 96x96
-        if(image.size() == QSize(96,96)){
+        //If the size we want is bigger than the original.
+        if(size.width() > originalSize.width()){
+            //Request the image at the original size.
+            return getImage(prefix, alias, originalSize, tintColor);
+        }else{
+            if(size.isValid() && originalSize.isValid()){
+                //Scale the image to the required size.
+                image = image.scaled(size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            }
+        }
+
+
+        //Tint the pixmap If it's a multiple of 96
+        if(originalSize.width() % 96 == 0){
+            //qCritical() << originalSize;
             //Replace the image with it's alphaChannel
             image = image.alphaChannel();
 
@@ -281,11 +358,9 @@ QPixmap Theme::getImage(QString prefix, QString alias, QColor tintColor)
                 tintColor.setAlpha(qGray(image.color(i)));
                 image.setColor(i, tintColor.rgba());
             }
-            pixmap = QPixmap::fromImage(image);
-        }else{
-            pixmap = QPixmap::fromImage(image);
         }
-
+        //Construct a Pixmap from the image.
+        QPixmap pixmap = QPixmap::fromImage(image);
         pixmapLookup[lookupName] = pixmap;
         return pixmap;
     }

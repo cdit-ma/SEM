@@ -1,6 +1,7 @@
 #include "toolbarmenuaction.h"
 #include "toolbarmenu.h"
 #include <QDebug>
+#include "../../theme.h"
 
 
 /**
@@ -11,23 +12,26 @@
 ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, ToolbarMenuAction* parent_action, QWidget* parent) :
     QAction(parent)
 {
+    //connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     parentAction = parent_action;
     nodeItem = item;
     deletable = true;
+
+    prefixPath = "Items";
+
 
     if (nodeItem) {
         actionKind = nodeItem->getNodeKind();
         if (nodeItem->isEntityItem()) {
             EntityItem* entityItem = (EntityItem*)nodeItem;
-            setIcon(QIcon(QPixmap::fromImage(QImage(":/" + entityItem->getIconPrefix() + "/" + entityItem->getIconURL()))));
             setText(nodeItem->getDataValue("label").toString());
         } else {
-            setIcon(QIcon(QPixmap::fromImage(QImage(":/Items/" + actionKind))));
             setText(actionKind);
         }
     } else {
         qWarning() << "ToolbarMenuAction::ToolbarMenuAction - NodeItem is null.";
     }
+    themeChanged();
 }
 
 
@@ -36,13 +40,16 @@ ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, ToolbarMenuAction* parent_a
  * @param actionKind
  * @param parent
  */
-ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_action, QWidget* parent, QString displayedText, QString iconPath) :
+ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_action, QWidget* parent, QString displayedText, QString prefixPath, QString aliasPath) :
     QAction(parent)
 {
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
     parentAction = parent_action;
     nodeItem = 0;
     deletable = true;
     actionKind = kind;
+
 
     ToolbarWidget* toolbar = dynamic_cast<ToolbarWidget*>(parent);
     QStringList nonDeletableKinds;
@@ -65,24 +72,13 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_act
         setText(actionKind);
     }
 
-    if (iconPath.isEmpty()) {
-        iconPath = ":/Items/" + actionKind;
+    if (prefixPath.isEmpty()) {
+        prefixPath = "Items";
     }
 
-    QPixmap pixmap = QPixmap::fromImage(QImage(iconPath));
-    if (pixmap.isNull()) {
-        qWarning() << "ToolbarMenuAction::ToolbarMenuAction - Pixmap is null for " + actionKind + ". Check icon path.";
-        return;
-    }
+    this->prefixPath = prefixPath;
 
-    /*
-    // resize icons for functions and their classes
-    if (iconPath.contains("Function")) {
-        pixmap = pixmap.scaled(QSize(30,30), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    }
-    */
-
-    setIcon(QIcon(pixmap));
+    themeChanged();
 }
 
 
@@ -149,5 +145,30 @@ QString ToolbarMenuAction::getActionKind()
 bool ToolbarMenuAction::isDeletable()
 {
     return deletable;
+}
+
+void ToolbarMenuAction::themeChanged()
+{
+    updateIcon();
+}
+
+void ToolbarMenuAction::updateIcon()
+{
+    QString prefix = prefixPath;
+    QString name = actionKind;
+
+    if (nodeItem && nodeItem->isEntityItem()){
+        EntityItem* entityItem = (EntityItem*) nodeItem;
+        prefix = entityItem->getIconPrefix();
+        name = entityItem->getIconURL();
+    }
+
+    QIcon icon = Theme::theme()->getIcon(prefixPath, actionKind);
+
+    if(icon.isNull()){
+        icon = Theme::theme()->getIcon("Actions", "Help");
+    }
+
+    setIcon(icon);
 }
 

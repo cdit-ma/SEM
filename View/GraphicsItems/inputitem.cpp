@@ -234,7 +234,7 @@ void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         painter->drawRect(boundingRect());
 
         if(isComboBox){
-            QPixmap imageData = Theme::theme()->getImage("Actions", "Arrow_Down", Qt::black);
+            QPixmap imageData = Theme::theme()->getImage("Actions", "Arrow_Down",QSize(), Qt::black);
 
             painter->drawPixmap(arrowRect().toAlignedRect(), imageData);
 
