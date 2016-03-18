@@ -247,6 +247,7 @@ protected:
 
 
 private:
+    QToolBar *constructToolbar();
     void saveTheme(bool apply = true);
     void resetTheme(bool darkTheme);
     void resetAspectTheme(bool colorBlindTheme);
@@ -447,6 +448,7 @@ private:
     QAction* leftSpacerAction;
     QAction* rightSpacerAction;
 
+    QToolBar* toolbarButtonBar;
     QToolButton* toolbarButton;
     bool SHOW_TOOLBAR;
 

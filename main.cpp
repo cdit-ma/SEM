@@ -26,8 +26,8 @@ void testModel(){
 int launchMEDEA(int argc, char *argv[]){
     //Construct a QApplication
     QApplication a(argc, argv);
-    a.setQuitLockEnabled(true);
-
+    //Fixes MacOS QIcon resolution.
+    a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     QString graphmlFilePath = "";
     if (argc == 2) {
         graphmlFilePath = QString(argv[1]);

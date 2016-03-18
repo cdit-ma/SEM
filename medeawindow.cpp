@@ -79,7 +79,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
     setupApplication();
-
     nodeView = 0;
     nodeView = 0;
     controller = 0;
@@ -538,7 +537,7 @@ void MedeaWindow::initialiseGUI()
     closeProjectToolButton->setDefaultAction(file_closeProject);
     closeProjectToolButton->setFixedSize(TOOLBUTTON_SIZE, TOOLBUTTON_SIZE);
 
-    closeProjectToolbar = new QToolBar(this);
+    closeProjectToolbar = constructToolbar();
     closeProjectToolbar->addWidget(closeProjectToolButton);
     closeProjectToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
@@ -1161,7 +1160,7 @@ void MedeaWindow::setupSearchTools()
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
 
-    searchToolbar = new QToolBar(this);
+    searchToolbar = constructToolbar();
     searchToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     searchToolbar->addWidget(searchBar);
     searchToolbar->addWidget(searchToolButton);
@@ -1187,7 +1186,7 @@ void MedeaWindow::setupSearchTools()
     viewAspectsButton = new QToolButton(this);
     viewAspectsButton->setCheckable(true);
 
-    QToolBar*  viewAspectsToolbar = new QToolBar(this);
+    QToolBar*  viewAspectsToolbar = constructToolbar();
     viewAspectsToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     viewAspectsToolbar->setFixedSize(20, 20);
     viewAspectsToolbar->addWidget(viewAspectsButton);
@@ -1227,7 +1226,7 @@ void MedeaWindow::setupSearchTools()
     nodeKindsButton = new QToolButton(this);
     nodeKindsButton->setCheckable(true);
 
-    QToolBar* nodeKindToolbar = new QToolBar(this);
+    QToolBar* nodeKindToolbar = constructToolbar();
     nodeKindToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     nodeKindToolbar->setFixedSize(20, 20);
     nodeKindToolbar->addWidget(nodeKindsButton);
@@ -1270,7 +1269,7 @@ void MedeaWindow::setupSearchTools()
     dataKeysDefaultText.truncate(dataKeysDefaultText.length() - 2);
 
     dataKeysBar = new QLineEdit(dataKeysDefaultText, this);
-    QToolBar*  dataKeysToolbar = new QToolBar(this);
+    QToolBar*  dataKeysToolbar = constructToolbar();
     dataKeysToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
     dataKeysButton = new QToolButton(this);
@@ -1453,14 +1452,23 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 void MedeaWindow::setupToolbar()
 {
     // TODO - Group separators with tool buttons; hide them accordingly
-    toolbar = new QToolBar(this);
-    //toolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+    toolbar = constructToolbar();
+#ifdef TARGET_OS_MAC
+    toolbar->setStyle(QStyleFactory::create("windows"));
+#endif
+    toolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
     toolbarLayout = new QVBoxLayout();
 
+    toolbarButtonBar = constructToolbar();
+    toolbarButtonBar->setMovable(false);
+    toolbarButtonBar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     toolbarButton = new QToolButton(this);
     toolbarButton->setDefaultAction(actionToggleToolbar);
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
+    toolbarButton->setCheckable(true);
+    toolbarButtonBar->addWidget(toolbarButton);
+
 
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
     //edit_undo->setIconVisibleInMenu(false);
@@ -1715,7 +1723,7 @@ void MedeaWindow::setupMinimap()
     minimapLabel->setFont(guiFont);
     minimapLabel->setAlignment(Qt::AlignCenter);
 
-    QToolBar* minimapToolbar = new QToolBar(this);
+    QToolBar* minimapToolbar = constructToolbar();
     minimapToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
     closeMinimapButton = new QToolButton();
@@ -2132,6 +2140,15 @@ void MedeaWindow::changeEvent(QEvent *event)
     }
 }
 
+QToolBar *MedeaWindow::constructToolbar()
+{
+    QToolBar* tb = new QToolBar(this);
+#ifdef TARGET_OS_MAC
+    tb->setStyle(QStyleFactory::create("windows"));
+#endif
+    return tb;
+}
+
 
 void MedeaWindow::saveTheme(bool apply)
 {
@@ -2388,6 +2405,7 @@ void MedeaWindow::setupApplication()
     QApplication::setOrganizationName("Defence Information Group");
     QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
     QApplication::setWindowIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
+
 
     // this needs to happen before the menu is set up and connected
     applicationDirectory = QApplication::applicationDirPath() + "/";
@@ -2928,7 +2946,7 @@ void MedeaWindow::updateToolbar()
 
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();
-        toolbarButton->move(centerX  - (TOOLBAR_BUTTON_WIDTH / 2) + 3, TOOLBAR_GAP);
+        toolbarButtonBar->move(centerX  - (TOOLBAR_BUTTON_WIDTH / 2), TOOLBAR_GAP);
         toolbar->move(centerX - (toolbar->width() / 2), 2 * TOOLBAR_GAP + (TOOLBAR_BUTTON_HEIGHT / 2));
     }
 }
@@ -4883,8 +4901,6 @@ void MedeaWindow::updateStyleSheets()
     projectNameShadow->setColor(theme->getBackgroundColor());
     toolbar->setStyleSheet("QToolBar{ border: 1px solid " + disabledBGColor + "; border-radius: 5px; spacing: 2px; padding: 1px; }");
                                                                              // "QToolBar::separator { width:" + TOOLBAR_SEPERATOR_WIDTH + "px; }");
-
-
     searchBar->setStyleSheet("QLineEdit {"
                              "background: " + altBGColor + ";"
                              "color: " + textDisabledColor + ";"
@@ -4925,7 +4941,6 @@ void MedeaWindow::updateStyleSheets()
                   "border-bottom-right-radius: 10px;"
                   "width: 15px;"
                   "}"
-
 
                   "QMessageBox{ background:" + altBGColor + "; color:" + textColor + "; }"
 

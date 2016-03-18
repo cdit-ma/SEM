@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QWidgetAction>
 #include <QPair>
+#include <QStyleFactory>
 
 /**
  * @brief ToolbarWidget::ToolbarWidget
@@ -34,9 +35,8 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     showShowCPPToolButton = false;
     showWikiButton = false;
     showAlignmentButtons = false;
-
     setAttribute(Qt::WA_TranslucentBackground);
-    setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::ToolTip);
 
     // these frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
@@ -856,12 +856,14 @@ void ToolbarWidget::setupOutEventPortList()
  * Initialise and setup the layout and tool buttons and separators.
  */
 void ToolbarWidget::setupToolBar()
-{    
+{
     QSize buttonSize = QSize(42,40);
     toolbar =  new QToolBar(this);
     toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
     toolbar->setObjectName("HIDDEN_TOOLBAR");
-
+#ifdef TARGET_OS_MAC
+    toolbar->setStyle(QStyleFactory::create("windows"));
+#endif
     toolbarLayout = new QHBoxLayout();
     toolbarLayout->setMargin(3);
     toolbarLayout->setSpacing(0);
@@ -875,6 +877,9 @@ void ToolbarWidget::setupToolBar()
     connectButton = constructToolButton(buttonSize, 0.7, "ConnectTo", "Connect Selection");
     hardwareButton = constructToolButton(buttonSize, 0.7,  "Computer", "Deploy Selection", "Actions");
     deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
+
+    addChildButton->setStyle(QStyleFactory::create("windows"));
+
 
     actionAlignSeperator = toolbar->addSeparator();
 
