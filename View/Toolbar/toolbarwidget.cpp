@@ -861,13 +861,14 @@ void ToolbarWidget::setupToolBar()
     toolbar =  new QToolBar(this);
     toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
     toolbar->setObjectName("HIDDEN_TOOLBAR");
+
 #ifdef TARGET_OS_MAC
     toolbar->setStyle(QStyleFactory::create("windows"));
 #endif
+
     toolbarLayout = new QHBoxLayout();
     toolbarLayout->setMargin(3);
     toolbarLayout->setSpacing(0);
-    //toolbarLayout->setContentsMargins(0,0,0,0);
     toolbarLayout->setAlignment(Qt::AlignTop);
     toolbarLayout->addWidget(toolbar);
     setLayout(toolbarLayout);
@@ -877,9 +878,6 @@ void ToolbarWidget::setupToolBar()
     connectButton = constructToolButton(buttonSize, 0.7, "ConnectTo", "Connect Selection");
     hardwareButton = constructToolButton(buttonSize, 0.7,  "Computer", "Deploy Selection", "Actions");
     deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
-
-    addChildButton->setStyle(QStyleFactory::create("windows"));
-
 
     actionAlignSeperator = toolbar->addSeparator();
 
@@ -898,7 +896,6 @@ void ToolbarWidget::setupToolBar()
     getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
     setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Read Only");
     unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Read Only");
-    wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "Wiki page for Entity");
 
     actionGoToSeperator = toolbar->addSeparator();
 
@@ -911,6 +908,7 @@ void ToolbarWidget::setupToolBar()
     connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Connections");
     popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View In New Window");
     displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "Menu_Vertical", "Change Displayed Nodes");
+    wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "Wiki page for Entity");
 
     /*
      * This is what makes the tool buttons with a split menu button look good on a Mac

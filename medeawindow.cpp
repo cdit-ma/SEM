@@ -1202,7 +1202,7 @@ void MedeaWindow::setupSearchTools()
     viewAspectsBar->setToolTip("Search Aspects: " + viewAspectsBarDefaultText);
     viewAspectsBar->setEnabled(false);
 
-    viewAspectsMenu = new QMenu(viewAspectsButton);
+    viewAspectsMenu = new QMenu(this);
     viewAspectsMenu->setMinimumWidth(viewAspectsBar->width() + viewAspectsToolbar->width());
     viewAspectsMenu->setObjectName(THEME_STYLE_QMENU);
 
@@ -1214,10 +1214,6 @@ void MedeaWindow::setupSearchTools()
 
     aspectsGroup->setLayout(aspectsLayout);
     aspectsAction->setDefaultWidget(aspectsGroup);
-
-
-
-
 
     // setup search option widgets and menu for view aspects
     QWidgetAction* kindsAction = new QWidgetAction(this);
@@ -1237,7 +1233,7 @@ void MedeaWindow::setupSearchTools()
     nodeKindToolbar->setFixedSize(20, 20);
     nodeKindToolbar->addWidget(nodeKindsButton);
 
-    nodeKindsMenu = new QMenu(nodeKindsButton);
+    nodeKindsMenu = new QMenu(this);
     nodeKindsMenu->setMinimumWidth(nodeKindsBar->width() + nodeKindToolbar->width());
     nodeKindsMenu->setObjectName(THEME_STYLE_QMENU);
 
@@ -1279,12 +1275,14 @@ void MedeaWindow::setupSearchTools()
     dataKeysToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
     dataKeysButton = new QToolButton(this);
-    dataKeysMenu = new QMenu(dataKeysButton);
+    dataKeysButton->setCheckable(true);
+
+    dataKeysMenu = new QMenu(this);
     dataKeysMenu->setObjectName(THEME_STYLE_QMENU);
 
     dataKeysToolbar->setFixedSize(20, 20);
-    dataKeysButton->setCheckable(true);
     keysGroup->setFixedWidth(RIGHT_PANEL_WIDTH - SPACER_SIZE);
+
     dataKeysBar->setToolTip("Search Data Keys: " + dataKeysDefaultText);
     dataKeysBar->setCursorPosition(0);
     dataKeysBar->setEnabled(false);
@@ -1348,6 +1346,10 @@ void MedeaWindow::setupSearchTools()
     searchOptionMenu->addAction(aspectsAction);
     searchOptionMenu->addAction(kindsAction);
     searchOptionMenu->addAction(keysAction);
+
+    viewAspectsButton->setStyle(QStyleFactory::create("windows"));
+    nodeKindsButton->setStyle(QStyleFactory::create("windows"));
+    dataKeysButton->setStyle(QStyleFactory::create("windows"));
 }
 
 
@@ -4038,9 +4040,38 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
  */
 void MedeaWindow::searchMenuClosed()
 {
+    qDebug() << "Menu CLOSED";
     QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
-    QToolButton* button = qobject_cast<QToolButton*>(menu->parentWidget());
-    if (button && button->isChecked()) {
+    //QToolButton* button = qobject_cast<QToolButton*>(menu->parentWidget());
+
+    /*
+    searchOptionMenu->setStyleSheet(themedMenuStyle);
+    viewAspectsMenu->setStyleSheet(themedMenuStyle);
+    nodeKindsMenu->setStyleSheet(themedMenuStyle);
+    dataKeysMenu->setStyleSheet(themedMenuStyle);
+    */
+
+    QToolButton* button = 0;
+    if (menu == searchOptionMenu) {
+        button = searchOptionToolButton;
+    } else if (menu == viewAspectsMenu) {
+        button = viewAspectsButton;
+    } else if (menu == nodeKindsMenu) {
+        button = nodeKindsButton;
+    } else if (menu == dataKeysMenu) {
+        button = dataKeysButton;
+    }
+
+    if (button) {
+        button->setChecked(false);
+    }
+
+    /*
+    qDebug() << "Menu parent widget: " << menu->parentWidget();
+
+    if (button) { // && button->isChecked()) {
+
+        qDebug() << "button checked: " << button->isChecked();
         //close this levels button
         button->setChecked(false);
 
@@ -4053,7 +4084,7 @@ void MedeaWindow::searchMenuClosed()
         if (!menuRect.contains(QCursor::pos())) {
             searchOptionMenu->close();
         }
-    }else if(menu && menu == searchOptionMenu){
+    }/*else if(menu && menu == searchOptionMenu){
         QPoint topLeft = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().topLeft());
         QPoint bottomRight = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().bottomRight());
 
@@ -4064,7 +4095,8 @@ void MedeaWindow::searchMenuClosed()
         }else{
             searchOptionToolButton->setChecked(false);
         }
-    }
+    }*/
+
 }
 
 
@@ -4954,6 +4986,9 @@ void MedeaWindow::updateStyleSheets()
 
     menu->setStyleSheet(themedMenuStyle);
     searchOptionMenu->setStyleSheet(themedMenuStyle);
+    viewAspectsMenu->setStyleSheet(themedMenuStyle);
+    nodeKindsMenu->setStyleSheet(themedMenuStyle);
+    dataKeysMenu->setStyleSheet(themedMenuStyle);
 }
 
 
