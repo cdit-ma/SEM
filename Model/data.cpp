@@ -21,6 +21,21 @@ Data::Data(Key *key, QVariant value, bool protect):GraphML(GK_DATA)
     }
 }
 
+Data::~Data()
+{
+    if(_parentData){
+        //Unset Parent Data.
+        _parentData->removeChildData(this);
+    }
+    QList<Data*> childData = _childData.values();
+    while(!childData.isEmpty()){
+        Data* cData = childData.takeFirst();
+        if(cData){
+            cData->unsetParentData();
+        }
+    }
+}
+
 Data *Data::clone(Data *data)
 {
     Data* cloneData = 0;

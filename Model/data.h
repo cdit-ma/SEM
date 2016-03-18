@@ -7,6 +7,7 @@ class Data : public GraphML
     Q_OBJECT
 public:
     Data(Key* key, QVariant value = QVariant(), bool protect = false);
+    ~Data();
     static Data* clone(Data* data);
 
     void setParent(Entity* parent);
