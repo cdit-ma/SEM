@@ -102,17 +102,8 @@ private:
     NodeView* nodeView;
     NodeItem* nodeItem;
 
-    QHBoxLayout* toolbarLayout;
-
-
     QFrame* mainFrame;
     QFrame* shadowFrame;
-
-  /*  QFrame* alignFrame;
-    QFrame* expandContractFrame;
-    QFrame* snippetFrame;
-    QFrame* goToFrame;
-    QFrame* alterViewFrame;*/
 
     QAction*  actionAlignSeperator;
     QAction*  actionExpandContractSeperator;
@@ -121,6 +112,7 @@ private:
     QAction*  actionAlterViewSeperator;
 
     QToolBar* toolbar;
+    QHBoxLayout* toolbarLayout;
 
     QToolButton* addChildButton;
     QToolButton* deleteButton;

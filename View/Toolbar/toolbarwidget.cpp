@@ -457,20 +457,21 @@ void ToolbarWidget::setVisible(bool visible)
 
     // update the toolbar & frame sizes
     if (toolbarVisible) {
+
             int height = toolbarLayout->sizeHint().height();
             int totalWidth = 0;
 
             foreach (QAction* action, toolbar->actions()) {
                 if (action->isVisible()) {
                     QToolButton* toolButton = actionLookup.key(action);
-
                     if (toolButton) {
                         totalWidth += toolButton->width();
-                    }else if (action->isSeparator()) {
+                    } else if (action->isSeparator()) {
                         totalWidth += TOOLBAR_SEPERATOR_WIDTH;
                     }
                 }
             }
+
             //Take into account the toolbarLayout margins and the QToolbar Layout margins.
             totalWidth += toolbarLayout->contentsMargins().left() + toolbarLayout->contentsMargins().right();
             totalWidth += toolbar->layout()->contentsMargins().left() + toolbar->layout()->contentsMargins().right();
@@ -538,6 +539,8 @@ void ToolbarWidget::setupTheme()
                   "bottom: 1px;"
                   "left: 4px;"
                   "}"
+
+                  "QToolBar::separator { width: 0px; }"
                   );
 
     mainFrame->setStyleSheet("background:" + altBackgroundColor +
@@ -856,9 +859,11 @@ void ToolbarWidget::setupToolBar()
     QSize buttonSize = QSize(42,40);
     toolbar =  new QToolBar(this);
     toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    toolbar->setObjectName("HIDDEN_TOOLBAR");
 
     toolbarLayout = new QHBoxLayout();
-    toolbarLayout->setMargin(2);
+    toolbarLayout->setMargin(3);
+    toolbarLayout->setContentsMargins(0,0,0,0);
     toolbarLayout->setAlignment(Qt::AlignTop);
     toolbarLayout->addWidget(toolbar);
     setLayout(toolbarLayout);
@@ -868,7 +873,6 @@ void ToolbarWidget::setupToolBar()
     connectButton = constructToolButton(buttonSize, 0.7, "ConnectTo", "Connect Selection");
     hardwareButton = constructToolButton(buttonSize, 0.7,  "Computer", "Deploy Selection", "Actions");
     deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
-
 
     actionAlignSeperator = toolbar->addSeparator();
 
