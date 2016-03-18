@@ -341,6 +341,7 @@ void AppSettings::setupLayout()
             QString visualGroupName = getReadableValue(visualGroup);
             QGroupBox* groupBox = new QGroupBox(visualGroupName, this);
             QVBoxLayout* visualLayout = new QVBoxLayout();
+            visualLayout->setSpacing(0);
             groupBox->setLayout(visualLayout);
             groupLayout->addWidget(groupBox);
             //Insert into Hash.

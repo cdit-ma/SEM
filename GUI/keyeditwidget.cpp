@@ -39,10 +39,11 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     isFilePath = keyNameHR.endsWith("File Path");
     isPath = keyNameHR.endsWith("Path");
 
-    setStyleSheet("#HiddenGroup{border:0px;}");
+    setStyleSheet("#HiddenGroup{border:0px;margin: 0px;padding: 0px;}");
 
     containerBox = new QGroupBox(this);
     containerBox->setObjectName("HiddenGroup");
+
 
 
 
@@ -108,10 +109,13 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
     labelButton = keyLabel;
 
+    colorBoxStyleSheet = "border:1px solid black;";
     if(isBool){
         //Setup Checkbox.
         QCheckBox* checkBox = new QCheckBox();
         checkBox->setChecked(boolVal);
+        checkBox->setFixedHeight(SMALL_SQUARE);
+        checkBox->setFixedWidth(SMALL_SQUARE);
 
         //Connect the key label to the checkbox.
         connect(keyLabel, SIGNAL(clicked()), checkBox, SLOT(click()));
@@ -120,7 +124,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
 
         hLayout->insertWidget(0, checkBox);
-        hLayout->setStretch(1,1);
+        hLayout->setStretch(1, 1);
 
         valueBox = checkBox;
         value2Box = keyLabel;
@@ -131,6 +135,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         intEdit->setRange(0,4000);
         intEdit->setValue(intVal);
 
+        intEdit->setFixedHeight(SMALL_SQUARE);
 
         connect(intEdit, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &KeyEditWidget::_valueChanged);
         connect(intEdit, SIGNAL(editingFinished()), this, SLOT(_editingFinished()));
@@ -159,9 +164,9 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         QString hexName = colorVal.name();
 
         QLineEdit* hexEdit = new QLineEdit(hexName);
+         hexEdit->setFixedHeight(SMALL_SQUARE);
         QPushButton* pickerButton = new QPushButton();
 
-        colorBoxStyleSheet = "border:1px solid black;";
         pickerButton->setStyleSheet(colorBoxStyleSheet +"background:" + hexName +";");
         pickerButton->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
         pickerButton->setFlat(true);
@@ -186,6 +191,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     }else{
 
         QLineEdit* lineEdit = new QLineEdit(stringVal);
+        lineEdit->setFixedHeight(SMALL_SQUARE);
         hLayout->addWidget(lineEdit, 1);
 
         connect(lineEdit, &QLineEdit::textEdited, this, &KeyEditWidget::_valueChanged);
@@ -194,13 +200,16 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
         if(isPath || isFilePath){
             QPushButton* pickerButton = new QPushButton();
+            pickerButton->setStyleSheet(colorBoxStyleSheet +"background: #dddddd; ");
+            pickerButton->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
+            pickerButton->setFlat(true);
+
             if(isFilePath){
                 pickerButton->setIcon(Theme::theme()->getImage("Actions", "New"));
             }else{
                 pickerButton->setIcon(Theme::theme()->getImage("Actions", "Open"));
             }
             connect(pickerButton, SIGNAL(pressed()), this, SLOT(pickPath()));
-            pickerButton->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
             hLayout->addWidget(pickerButton);
         }
         oldValue = stringVal;
