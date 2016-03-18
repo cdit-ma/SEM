@@ -940,7 +940,7 @@ void MedeaWindow::updateMenuIcons()
         item->setIcon(fileIcon);
     }
 
-    QIcon arrowDown = getIcon("Actions", "Arrow_Down");
+    QIcon arrowDown = (getIcon("Actions", "Arrow_Down"));
     viewAspectsButton->setIcon(arrowDown);
     nodeKindsButton->setIcon(arrowDown);
     dataKeysButton->setIcon(arrowDown);
@@ -1123,7 +1123,7 @@ void MedeaWindow::setupSearchTools()
     searchOptionToolButton = new QToolButton(this);
     searchOptionToolButton->setDefaultAction(actionSearchOptions);
 
-    searchOptionMenu = new QMenu();
+    searchOptionMenu = new QMenu(this);
 
     searchResults = new QDialog(this);
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
@@ -1192,24 +1192,28 @@ void MedeaWindow::setupSearchTools()
 
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
-    viewAspectsButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
-    viewAspectsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    QToolBar*  viewAspectsToolbar = new QToolBar(this);
+
+    viewAspectsToolbar->setStyleSheet("QToolBar{padding:0px;}");
+    viewAspectsButton = new QToolButton(this);
+
 
     viewAspectsMenu = new QMenu(viewAspectsButton);
 
-    viewAspectsButton->setFixedSize(20, 20);
-    viewAspectsButton->setIconSize(viewAspectsButton->size()*0.6);
+    viewAspectsToolbar->setFixedSize(20, 20);
     viewAspectsButton->setCheckable(true);
-    viewAspectsBar->setFixedWidth(RIGHT_PANEL_WIDTH - viewAspectsButton->width() - aspectsLabel->width() - 30);
+    aspectsGroup->setFixedWidth(RIGHT_PANEL_WIDTH - SPACER_SIZE);
+
     viewAspectsBar->setToolTip("Search Aspects: " + viewAspectsBarDefaultText);
     viewAspectsBar->setEnabled(false);
-    viewAspectsMenu->setMinimumWidth(viewAspectsBar->width() + viewAspectsButton->width());
+    viewAspectsMenu->setMinimumWidth(viewAspectsBar->width() + viewAspectsToolbar->width());
 
-    aspectsLayout->setMargin(5);
+    aspectsLayout->setContentsMargins(2,4,0,4);
     aspectsLayout->setSpacing(3);
     aspectsLayout->addWidget(aspectsLabel);
-    aspectsLayout->addWidget(viewAspectsBar);
-    aspectsLayout->addWidget(viewAspectsButton);
+    aspectsLayout->addWidget(viewAspectsBar,1 );
+    viewAspectsToolbar->addWidget(viewAspectsButton);
+    aspectsLayout->addWidget(viewAspectsToolbar);
 
     aspectsGroup->setLayout(aspectsLayout);
     aspectsAction->setDefaultWidget(aspectsGroup);
@@ -1228,32 +1232,34 @@ void MedeaWindow::setupSearchTools()
 
     // setup search option widgets and menu for view aspects
     QWidgetAction* kindsAction = new QWidgetAction(this);
+
     QLabel* kindsLabel = new QLabel("Kind(s):", this);
     QGroupBox* kindsGroup = new QGroupBox(this);
     kindsGroup->setObjectName(THEME_STYLE_GROUPBOX);
     QHBoxLayout* kindsLayout = new QHBoxLayout();
     nodeKindsDefaultText = "All Kinds";
     nodeKindsBar = new QLineEdit(nodeKindsDefaultText, this);
-    nodeKindsButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
-    nodeKindsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    nodeKindsButton = new QToolButton(this);
+    QToolBar* nodeKindToolbar = new QToolBar(this);
     nodeKindsMenu = new QMenu(nodeKindsButton);
 
-    kindsLabel->setMinimumWidth(50);
     kindsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    nodeKindsButton->setFixedSize(20, 20);
-    nodeKindsButton->setIconSize(nodeKindsButton->size()*0.6);
+    nodeKindToolbar->setFixedSize(20, 20);
     nodeKindsButton->setCheckable(true);
-    nodeKindsBar->setFixedWidth(RIGHT_PANEL_WIDTH - nodeKindsButton->width() - kindsLabel->width() - 30);
+
+    kindsGroup->setFixedWidth(RIGHT_PANEL_WIDTH - SPACER_SIZE);
     nodeKindsBar->setToolTip("Search Kinds: " + nodeKindsDefaultText);
     nodeKindsBar->setEnabled(false);
-    nodeKindsMenu->setMinimumWidth(nodeKindsBar->width() + nodeKindsButton->width());
+    nodeKindsMenu->setMinimumWidth(nodeKindsBar->width() + nodeKindToolbar->width());
 
-    kindsLayout->setMargin(5);
+    kindsLayout->setContentsMargins(2,4,0,4);
     kindsLayout->setSpacing(3);
+
     kindsLayout->addWidget(kindsLabel);
-    kindsLayout->addWidget(nodeKindsBar);
-    kindsLayout->addWidget(nodeKindsButton);
+    kindsLayout->addWidget(nodeKindsBar,1);
+    nodeKindToolbar->addWidget(nodeKindsButton);
+    kindsLayout->addWidget(nodeKindToolbar);
 
     kindsGroup->setLayout(kindsLayout);
     kindsAction->setDefaultWidget(kindsGroup);
@@ -1277,24 +1283,25 @@ void MedeaWindow::setupSearchTools()
     dataKeysDefaultText.truncate(dataKeysDefaultText.length() - 2);
 
     dataKeysBar = new QLineEdit(dataKeysDefaultText, this);
-    dataKeysButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
-    dataKeysButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    QToolBar*  dataKeysToolbar = new QToolBar(this);
+    dataKeysButton = new QToolButton(this);
     dataKeysMenu = new QMenu(dataKeysButton);
 
-    dataKeysButton->setFixedSize(20, 20);
-    dataKeysButton->setIconSize(dataKeysButton->size()*0.6);
+    dataKeysToolbar->setFixedSize(20, 20);
     dataKeysButton->setCheckable(true);
-    dataKeysBar->setFixedWidth(RIGHT_PANEL_WIDTH - dataKeysButton->width() - keysLabel->width() - 30);
+    keysGroup->setFixedWidth(RIGHT_PANEL_WIDTH - SPACER_SIZE);
     dataKeysBar->setToolTip("Search Data Keys: " + dataKeysDefaultText);
     dataKeysBar->setCursorPosition(0);
     dataKeysBar->setEnabled(false);
-    dataKeysMenu->setMinimumWidth(dataKeysBar->width() + dataKeysButton->width());
+    dataKeysMenu->setMinimumWidth(dataKeysBar->width() + dataKeysToolbar->width());
 
-    keysLayout->setMargin(5);
+    keysLayout->setContentsMargins(2,4,0,4);
     keysLayout->setSpacing(3);
-    keysLayout->addWidget(keysLabel);
+
+    keysLayout->addWidget(keysLabel, 1);
     keysLayout->addWidget(dataKeysBar);
-    keysLayout->addWidget(dataKeysButton);
+    dataKeysToolbar->addWidget(dataKeysButton);
+    keysLayout->addWidget(dataKeysToolbar);
 
     keysGroup->setLayout(keysLayout);
     keysAction->setDefaultWidget(keysGroup);
@@ -1316,6 +1323,12 @@ void MedeaWindow::setupSearchTools()
     aspectsLabel->setFont(guiFont);
     kindsLabel->setFont(guiFont);
     keysLabel->setFont(guiFont);
+
+    int labelWidth = keysLabel->fontMetrics().width(keysLabel->text());
+    kindsLabel->setFixedWidth(labelWidth);
+    keysLabel->setFixedWidth(labelWidth);
+    aspectsLabel->setFixedWidth(labelWidth);
+
 
     // add widget actions and their menus to the main search option menu
     searchOptionMenu->addAction(aspectsAction);
@@ -3967,8 +3980,7 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
     QWidget* widget = 0;
     QMenu* menu = 0;
 
-    qCritical() << QObject::sender();
-    qCritical() << actionSearchOptions;
+    QPoint offset(0,2);
     if (QObject::sender() == actionSearchOptions) {
         widget = searchToolbar;
         menu = searchOptionMenu;
@@ -3984,9 +3996,9 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
     }
 
     if (widget && menu) {
-        qCritical() << "HELLO" << showMenu;
         if (showMenu) {
-            menu->popup(widget->mapToGlobal(widget->rect().bottomLeft()));
+            QPoint popupLocation = widget->rect().bottomLeft() + offset;
+            menu->popup(widget->mapToGlobal(popupLocation));
         } else {
             menu->close();
         }
@@ -4001,9 +4013,8 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
 void MedeaWindow::searchMenuClosed()
 {
     QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
-    QPushButton* button = qobject_cast<QPushButton*>(menu->parentWidget());
+    QToolButton* button = qobject_cast<QToolButton*>(menu->parentWidget());
     if (button && button->isChecked()) {
-
         //close this levels button
         button->setChecked(false);
 
@@ -4017,9 +4028,10 @@ void MedeaWindow::searchMenuClosed()
             searchOptionMenu->close();
         }
     }
-    if(actionSearchOptions->isChecked()){
-        actionSearchOptions->setChecked(false);
-    }
+
+    //if(actionSearchOptions->isChecked()){
+    //    actionSearchOptions->setChecked(false);
+    //}
 }
 
 
@@ -4803,23 +4815,32 @@ void MedeaWindow::updateStyleSheets()
 
     loadingLabel->setStyleSheet("QLabel { color:" + textColor + ";}");
 
-    menu->setStyleSheet("QMenu {"
-                        "background:" + altBGColor + ";"
-                        "}"
-                        "QMenu::item {"
-                        "padding: 1px 30px 1px 30px;"
-                        "background:" + altBGColor + ";"
-                        "color:" + textColor + ";"
-                        "border: none;"
-                        "}"
-                        "QMenu::item:disabled {"
-                        "color:" + textDisabledColor + ";"
-                        "}"
-                        "QMenu::item:selected:!disabled {"
-                        "color:" + textSelectedColor + ";"
-                        "background: " + highlightColor + ";"
-                        "}"
-                        );
+    QString themedMenuStyle = "QMenu {"
+                              "background:" + altBGColor + ";"
+                              "}"
+                              "QMenu::item {"
+                              "padding: 1px 30px 1px 30px;"
+                              "background:" + altBGColor + ";"
+                              "color:" + textColor + ";"
+                              "border: none;"
+                              "}"
+                              "QMenu::item:disabled {"
+                              "color:" + textDisabledColor + ";"
+                              "}"
+                              "QMenu::item:selected:!disabled {"
+                              "color:" + textSelectedColor + ";"
+                              "background: " + highlightColor + ";"
+                              "}"
+                              "QLabel, QCheckBox{color: " + textColor + ";}"
+                              "QCheckBox { padding: 0px 10px 0px 0px; }"
+                              "QCheckBox::indicator { width: 25px; height: 25px; }"
+                              "QCheckBox:checked { color: " + highlightColor + "; font-weight: bold; }"
+                            ;
+
+
+
+    menu->setStyleSheet(themedMenuStyle);
+    searchOptionMenu->setStyleSheet(themedMenuStyle);
 
     QString pushButtonStyle = "QPushButton{ background:" + altBGColor + "; border-radius: 5px; border: 1px solid " + disabledBGColor + "; }"
                               "QPushButton:hover{ background: " + highlightColor + "; }"
@@ -4864,6 +4885,7 @@ void MedeaWindow::updateStyleSheets()
 
     setStyleSheet("QToolBar#HIDDEN_TOOLBAR { border: none; background-color: rgba(0,0,0,0); }"
                   "QToolBar::separator { width:" + QString::number(TOOLBAR_SEPERATOR_WIDTH) + "px; background-color: rgba(0,0,0,0); }"
+                  "QToolBar{padding:0px;}"
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 5px;"
@@ -4889,14 +4911,12 @@ void MedeaWindow::updateStyleSheets()
                   "width: 15px;"
                   "}"
 
+
                   "QMessageBox{ background:" + altBGColor + "; color:" + textColor + "; }"
 
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON + "{ border:0px;color: " + textColor + "; }"
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON + ":hover { color:" + highlightColor + "; }"
 
-                  "QCheckBox { padding: 0px 10px 0px 0px; }"
-                  "QCheckBox::indicator { width: 25px; height: 25px; }"
-                  "QCheckBox:checked { color: green; font-weight: bold; }"
 
                   "QGroupBox#"+ THEME_STYLE_GROUPBOX + "{"
                   "background-color: rgba(0,0,0,0);"
