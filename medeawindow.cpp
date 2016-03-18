@@ -4939,8 +4939,10 @@ void MedeaWindow::updateStyleSheets()
                   "border: 0px;"
                   "margin: 0px;"
                   "padding: 0px;"
-                  "}"
-                  + themedMenuStyle);
+                  "}");
+
+    menu->setStyleSheet(themedMenuStyle);
+    searchOptionMenu->setStyleSheet(themedMenuStyle);
 }
 
 
