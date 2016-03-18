@@ -163,7 +163,7 @@ void ToolbarMenuAction::updateIcon()
         name = entityItem->getIconURL();
     }
 
-    QIcon icon = Theme::theme()->getIcon(prefixPath, actionKind);
+    QIcon icon = Theme::theme()->getIcon(prefix, name);
 
     if(icon.isNull()){
         icon = Theme::theme()->getIcon("Actions", "Help");

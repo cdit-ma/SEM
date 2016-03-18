@@ -1118,9 +1118,9 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         expandContractButtonsVisible = false;
 
         // check if the selected node item has other node items connected to it (edges)
-        if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
-            actionLookup[connectButton]->setVisible(true);
-        }
+        //if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
+        //    actionLookup[connectButton]->setVisible(true);
+        //}
 
         // only show the displayed children option button if the selected item is a HardwareCluster
         if (entityItem) {
@@ -1345,7 +1345,8 @@ void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
         }
     }
     if (!nodeList.isEmpty()) {
-        actionLookup[deleteButton]->setVisible(true);
+        qCritical() << "SHOW CONNECT BUTTON";
+        actionLookup[connectButton]->setVisible(true);
         alterModelButtonsVisible = true;
         legalNodeItems = nodeList;
     }
