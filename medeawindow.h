@@ -422,6 +422,7 @@ private:
     DefinitionsDockScrollArea* definitionsDock;
     FunctionsDockScrollArea* functionsDock;
 
+    int searchOptionMenuWidth;
     QGroupBox* dockGroupBox;
     QGroupBox* dockHeaderBox;
     QGroupBox* dockBackButtonBox;

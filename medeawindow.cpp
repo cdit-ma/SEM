@@ -63,9 +63,10 @@
 
 #define GITHUB_URL "https://github.com/cdit-ma/MEDEA/"
 
+#define THEME_STYLE_QMENU "THEME_STYLE_QMENU"
 #define THEME_STYLE_QPUSHBUTTON "THEME_STYLE_QPUSHBUTTON"
 #define THEME_STYLE_GROUPBOX "THEME_STYLE_GROUPBOX"
-// USER SETTINGS
+#define THEME_STYLE_HIDDEN_TOOLBAR "HIDDEN_TOOLBAR"
 
 /**
  * @brief MedeaWindow::MedeaWindow
@@ -539,7 +540,7 @@ void MedeaWindow::initialiseGUI()
 
     closeProjectToolbar = new QToolBar(this);
     closeProjectToolbar->addWidget(closeProjectToolButton);
-    closeProjectToolbar->setObjectName("HIDDEN_TOOLBAR");
+    closeProjectToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
     menuTitleBox = new QGroupBox(this);
     menuTitleBox->setObjectName(THEME_STYLE_GROUPBOX);
@@ -654,6 +655,7 @@ void MedeaWindow::initialiseGUI()
 void MedeaWindow::setupMenu()
 {
     menu = new QMenu(this);
+    menu->setObjectName(THEME_STYLE_QMENU);
 
     file_menu = menu->addMenu(getIcon("Actions", "Menu"), "File");
     edit_menu = menu->addMenu(getIcon("Actions", "Edit"), "Edit");
@@ -1124,6 +1126,8 @@ void MedeaWindow::setupSearchTools()
     searchOptionToolButton->setDefaultAction(actionSearchOptions);
 
     searchOptionMenu = new QMenu(this);
+    //searchOptionMenu->setStyle(QStyleFactory::create("windows"));
+    searchOptionMenu->setObjectName(THEME_STYLE_QMENU);
 
     searchResults = new QDialog(this);
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
@@ -1143,13 +1147,6 @@ void MedeaWindow::setupSearchTools()
 
     resultsMainLayout->addLayout(resultsLayout);
     resultsMainLayout->addStretch();
-
-    //searchButton->setFixedSize(30, searchBarHeight);
-    //searchButton->setIconSize(searchButton->size()*0.65);
-
-    //searchOptionButton->setFixedSize(30, searchBarHeight);
-    //searchOptionButton->setIconSize(searchButton->size()*0.7);
-    //searchOptionButton->setCheckable(true);
 
     searchBar->setPlaceholderText(searchBarDefaultText);
     searchBar->setFixedHeight(searchBarHeight);
@@ -1171,7 +1168,7 @@ void MedeaWindow::setupSearchTools()
     searchResults->setVisible(false);
 
     searchToolbar = new QToolBar(this);
-    searchToolbar->setObjectName("HIDDEN_TOOLBAR");
+    searchToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     searchToolbar->addWidget(searchBar);
     searchToolbar->addWidget(searchToolButton);
     searchToolbar->addWidget(searchOptionToolButton);
@@ -1181,84 +1178,80 @@ void MedeaWindow::setupSearchTools()
     searchLayout->addWidget(searchToolbar);
 
     // setup search option widgets and menu for view aspects
+    QHBoxLayout* aspectsLayout = new QHBoxLayout();
     QWidgetAction* aspectsAction = new QWidgetAction(this);
-    QLabel* aspectsLabel = new QLabel("Aspect(s):", this);
     QGroupBox* aspectsGroup = new QGroupBox(this);
     aspectsGroup->setObjectName(THEME_STYLE_GROUPBOX);
-    QHBoxLayout* aspectsLayout = new QHBoxLayout();
 
+    QLabel* aspectsLabel = new QLabel("Aspect(s):", this);
     aspectsLabel->setMinimumWidth(50);
     aspectsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
-    QToolBar*  viewAspectsToolbar = new QToolBar(this);
 
-    viewAspectsToolbar->setStyleSheet("QToolBar{padding:0px;}");
     viewAspectsButton = new QToolButton(this);
-
-
-    viewAspectsMenu = new QMenu(viewAspectsButton);
-
-    viewAspectsToolbar->setFixedSize(20, 20);
     viewAspectsButton->setCheckable(true);
+
+    QToolBar*  viewAspectsToolbar = new QToolBar(this);
+    viewAspectsToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+    viewAspectsToolbar->setFixedSize(20, 20);
+    viewAspectsToolbar->addWidget(viewAspectsButton);
+
     aspectsGroup->setFixedWidth(RIGHT_PANEL_WIDTH - SPACER_SIZE);
 
     viewAspectsBar->setToolTip("Search Aspects: " + viewAspectsBarDefaultText);
     viewAspectsBar->setEnabled(false);
+
+    viewAspectsMenu = new QMenu(viewAspectsButton);
     viewAspectsMenu->setMinimumWidth(viewAspectsBar->width() + viewAspectsToolbar->width());
+    viewAspectsMenu->setObjectName(THEME_STYLE_QMENU);
 
     aspectsLayout->setContentsMargins(2,4,0,4);
     aspectsLayout->setSpacing(3);
     aspectsLayout->addWidget(aspectsLabel);
     aspectsLayout->addWidget(viewAspectsBar,1 );
-    viewAspectsToolbar->addWidget(viewAspectsButton);
     aspectsLayout->addWidget(viewAspectsToolbar);
 
     aspectsGroup->setLayout(aspectsLayout);
     aspectsAction->setDefaultWidget(aspectsGroup);
 
-    // populate view aspects menu
-    QStringList aspects = GET_ASPECT_NAMES();
-    aspects.sort();
-    foreach (QString aspect, aspects) {
-        QWidgetAction* action = new QWidgetAction(this);
-        QCheckBox* checkBox = new QCheckBox(aspect, this);
-        checkBox->setFont(guiFont);
-        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
-        action->setDefaultWidget(checkBox);
-        viewAspectsMenu->addAction(action);
-    }
+
+
+
 
     // setup search option widgets and menu for view aspects
     QWidgetAction* kindsAction = new QWidgetAction(this);
-
     QLabel* kindsLabel = new QLabel("Kind(s):", this);
     QGroupBox* kindsGroup = new QGroupBox(this);
     kindsGroup->setObjectName(THEME_STYLE_GROUPBOX);
     QHBoxLayout* kindsLayout = new QHBoxLayout();
+
     nodeKindsDefaultText = "All Kinds";
     nodeKindsBar = new QLineEdit(nodeKindsDefaultText, this);
+
     nodeKindsButton = new QToolButton(this);
+    nodeKindsButton->setCheckable(true);
+
     QToolBar* nodeKindToolbar = new QToolBar(this);
+    nodeKindToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+    nodeKindToolbar->setFixedSize(20, 20);
+    nodeKindToolbar->addWidget(nodeKindsButton);
+
     nodeKindsMenu = new QMenu(nodeKindsButton);
+    nodeKindsMenu->setMinimumWidth(nodeKindsBar->width() + nodeKindToolbar->width());
+    nodeKindsMenu->setObjectName(THEME_STYLE_QMENU);
 
     kindsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-
-    nodeKindToolbar->setFixedSize(20, 20);
-    nodeKindsButton->setCheckable(true);
 
     kindsGroup->setFixedWidth(RIGHT_PANEL_WIDTH - SPACER_SIZE);
     nodeKindsBar->setToolTip("Search Kinds: " + nodeKindsDefaultText);
     nodeKindsBar->setEnabled(false);
-    nodeKindsMenu->setMinimumWidth(nodeKindsBar->width() + nodeKindToolbar->width());
 
     kindsLayout->setContentsMargins(2,4,0,4);
     kindsLayout->setSpacing(3);
-
     kindsLayout->addWidget(kindsLabel);
     kindsLayout->addWidget(nodeKindsBar,1);
-    nodeKindToolbar->addWidget(nodeKindsButton);
     kindsLayout->addWidget(nodeKindToolbar);
 
     kindsGroup->setLayout(kindsLayout);
@@ -1284,8 +1277,11 @@ void MedeaWindow::setupSearchTools()
 
     dataKeysBar = new QLineEdit(dataKeysDefaultText, this);
     QToolBar*  dataKeysToolbar = new QToolBar(this);
+    dataKeysToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+
     dataKeysButton = new QToolButton(this);
     dataKeysMenu = new QMenu(dataKeysButton);
+    dataKeysMenu->setObjectName(THEME_STYLE_QMENU);
 
     dataKeysToolbar->setFixedSize(20, 20);
     dataKeysButton->setCheckable(true);
@@ -1306,15 +1302,7 @@ void MedeaWindow::setupSearchTools()
     keysGroup->setLayout(keysLayout);
     keysAction->setDefaultWidget(keysGroup);
 
-    // populate data attribute keys menu
-    foreach (QString key, dataKeys) {
-        QWidgetAction* action = new QWidgetAction(this);
-        QCheckBox* checkBox = new QCheckBox(key, this);
-        checkBox->setFont(guiFont);
-        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
-        action->setDefaultWidget(checkBox);
-        dataKeysMenu->addAction(action);
-    }
+
 
     searchBar->setFont(guiFont);
     viewAspectsBar->setFont(guiFont);
@@ -1329,6 +1317,33 @@ void MedeaWindow::setupSearchTools()
     keysLabel->setFixedWidth(labelWidth);
     aspectsLabel->setFixedWidth(labelWidth);
 
+    searchOptionMenuWidth = aspectsGroup->width() - (viewAspectsToolbar->width() + labelWidth + (SPACER_SIZE) );
+
+    viewAspectsMenu->setFixedWidth(searchOptionMenuWidth);
+    dataKeysMenu->setFixedWidth(searchOptionMenuWidth);
+    nodeKindsMenu->setFixedWidth(searchOptionMenuWidth);
+
+    // populate view aspects menu
+    QStringList aspects = GET_ASPECT_NAMES();
+    aspects.sort();
+    foreach (QString aspect, aspects) {
+        QWidgetAction* action = new QWidgetAction(this);
+        QCheckBox* checkBox = new QCheckBox(aspect, this);
+        checkBox->setFont(guiFont);
+        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
+        action->setDefaultWidget(checkBox);
+        viewAspectsMenu->addAction(action);
+    }
+
+    // populate data attribute keys menu
+    foreach (QString key, dataKeys) {
+        QWidgetAction* action = new QWidgetAction(this);
+        QCheckBox* checkBox = new QCheckBox(key, this);
+        checkBox->setFont(guiFont);
+        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
+        action->setDefaultWidget(checkBox);
+        dataKeysMenu->addAction(action);
+    }
 
     // add widget actions and their menus to the main search option menu
     searchOptionMenu->addAction(aspectsAction);
@@ -1705,7 +1720,7 @@ void MedeaWindow::setupMinimap()
     minimapLabel->setAlignment(Qt::AlignCenter);
 
     QToolBar* minimapToolbar = new QToolBar(this);
-    minimapToolbar->setObjectName("HIDDEN_TOOLBAR");
+    minimapToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
     closeMinimapButton = new QToolButton();
     closeMinimapButton->setDefaultAction(view_showMinimap);
@@ -2344,6 +2359,7 @@ void MedeaWindow::populateDocks()
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(kind, this);
         checkBox->setFont(guiFont);
+        //checkBox->setFixedWidth(nodeKindsBar->width());
         connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
         action->setDefaultWidget(checkBox);
         nodeKindsMenu->addAction(action);
@@ -4812,6 +4828,7 @@ void MedeaWindow::updateStyleSheets()
     loadingLabel->setStyleSheet("QLabel { color:" + textColor + ";}");
 
     QString themedMenuStyle = "QMenu {"
+                              "padding:" + QString::number(SPACER_SIZE/2) + "px;"
                               "background:" + altBGColor + ";"
                               "}"
                               "QMenu::item {"
@@ -4832,11 +4849,6 @@ void MedeaWindow::updateStyleSheets()
                               "QCheckBox::indicator { width: 25px; height: 25px; }"
                               "QCheckBox:checked { color: " + highlightColor + "; font-weight: bold; }"
                             ;
-
-
-
-    menu->setStyleSheet(themedMenuStyle);
-    searchOptionMenu->setStyleSheet(themedMenuStyle);
 
     QString pushButtonStyle = "QPushButton{ background:" + altBGColor + "; border-radius: 5px; border: 1px solid " + disabledBGColor + "; }"
                               "QPushButton:hover{ background: " + highlightColor + "; }"
@@ -4879,9 +4891,8 @@ void MedeaWindow::updateStyleSheets()
     recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
                                             "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
 
-    setStyleSheet("QToolBar#HIDDEN_TOOLBAR { border: none; background-color: rgba(0,0,0,0); }"
+    setStyleSheet("QToolBar#" THEME_STYLE_HIDDEN_TOOLBAR "{ border: none; background-color: rgba(0,0,0,0); padding:0px; }"
                   "QToolBar::separator { width:" + QString::number(TOOLBAR_SEPERATOR_WIDTH) + "px; background-color: rgba(0,0,0,0); }"
-                  "QToolBar{padding:0px;}"
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 5px;"
@@ -4920,7 +4931,8 @@ void MedeaWindow::updateStyleSheets()
                   "margin: 0px;"
                   "padding: 0px;"
                   "}"
-                  );
+
+                  + themedMenuStyle);
 }
 
 

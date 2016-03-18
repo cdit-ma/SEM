@@ -540,7 +540,8 @@ void ToolbarWidget::setupTheme()
                   "left: 4px;"
                   "}"
 
-                  "QToolBar::separator { width: 0px; }"
+                  "QToolBar { spacing: 0px; }"
+                  "QToolBar::separator { width:" + TOOLBAR_SEPERATOR_WIDTH + "px; }"
                   );
 
     mainFrame->setStyleSheet("background:" + altBackgroundColor +
@@ -863,7 +864,8 @@ void ToolbarWidget::setupToolBar()
 
     toolbarLayout = new QHBoxLayout();
     toolbarLayout->setMargin(3);
-    toolbarLayout->setContentsMargins(0,0,0,0);
+    toolbarLayout->setSpacing(0);
+    //toolbarLayout->setContentsMargins(0,0,0,0);
     toolbarLayout->setAlignment(Qt::AlignTop);
     toolbarLayout->addWidget(toolbar);
     setLayout(toolbarLayout);
