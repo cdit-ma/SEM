@@ -507,13 +507,13 @@ private:
     QToolButton* searchOptionToolButton;
     QMenu* searchOptionMenu;
     QLineEdit* viewAspectsBar;
-    QPushButton* viewAspectsButton;
+    QToolButton* viewAspectsButton;
     QMenu* viewAspectsMenu;
     QLineEdit* nodeKindsBar;
-    QPushButton* nodeKindsButton;
+    QToolButton* nodeKindsButton;
     QMenu* nodeKindsMenu;
     QLineEdit* dataKeysBar;
-    QPushButton* dataKeysButton;
+    QToolButton* dataKeysButton;
     QMenu* dataKeysMenu;
 
     QWidget* minimapTitleBar;
