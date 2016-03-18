@@ -478,7 +478,6 @@ private:
     QPointF getModelScenePos();
 
 
-    void setNoModelTextVisible(bool hasModel);
 
     int getMapSize();
 
@@ -583,7 +582,8 @@ private:
     bool eventFromEdgeItem;
     bool wasPanning;
 
-    qreal zoomCurrent;
+    qreal currentZoom;
+    QRectF currentVisibleRect;
     //Selection Lists
     QList<int> selectedIDs;
     QList<int> highlightedIDs;
@@ -614,9 +614,6 @@ private:
 
     VIEW_ASPECT aspectVisible;
 
-
-    QGraphicsTextItem* backgroundText;
-	//QSoundEffect* clickSound;
 
     QString applicationDirectory;
 protected:

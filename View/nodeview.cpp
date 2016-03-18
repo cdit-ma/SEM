@@ -68,9 +68,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     showSearchSuggestions = false;
     aspectVisible = VA_NONE;
 
-    backgroundText = 0;
-
-
     IS_SUB_VIEW = subView;
 
     setSceneRect(QRectF(-10000,-10000,20000,20000));
@@ -179,8 +176,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
 
     //Set Initial zoom.
-    setNoModelTextVisible(true);
-    zoomCurrent = transform().m11();
+    currentZoom = transform().m11();
 }
 
 
@@ -188,7 +184,6 @@ void NodeView::setController(NewController *c)
 {
     controller = c;
     if(controller){
-        setNoModelTextVisible(false);
         connect(controller, SIGNAL(destroyed(QObject*)), this, SLOT(controllerDestroyed()));
     }
 }
@@ -207,7 +202,7 @@ VIEW_STATE NodeView::getViewState()
 
 qreal NodeView::getCurrentZoom()
 {
-    return transform().m11();
+    return currentZoom;
 }
 
 bool NodeView::hasModel()
@@ -340,8 +335,6 @@ NodeView::~NodeView()
     //Clear the current Selected Attribute Model so that the GUI doesn't crash.
     setAttributeModel(0, true);
 
-    delete backgroundText;
-
     if(parentNodeView && !parentNodeView->isTerminating()){
         parentNodeView->removeSubView(this);
     }
@@ -452,6 +445,7 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     }
 
     // add the padding to the rect to be centered
+
     rect.setWidth(rect.width() * padding);
     rect.setHeight(rect.height() * padding);
 
@@ -469,15 +463,11 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     QPointF sceneOffset = QPointF(centerOffset.x() / newScale, centerOffset.y() / newScale);
 
     // reset current transform before scaling
-    setTransform(QTransform());
+    resetTransform();
     scale(newScale, newScale);
-
 
     // center the view on rect's original center
     centerViewOn(rectCenter + sceneOffset);
-
-    // check if any of the aspect toggle buttons need highlighting
-    viewportTranslated();
 }
 
 
@@ -550,31 +540,6 @@ QPointF NodeView::getModelScenePos()
     return QPointF();
 }
 
-void NodeView::setNoModelTextVisible(bool visible)
-{
-    //visible = false;
-
-    if(!backgroundText){
-        backgroundText = new QGraphicsTextItem("NO PROJECT");
-        QFont textFont = font();
-        textFont.setPixelSize(50);
-        backgroundText->setDefaultTextColor(GET_INVERT_COLOR(currentTheme));
-        backgroundText->setFont(textFont);
-
-        QPointF position;
-        position.setX(-backgroundText->boundingRect().width()/2);
-        position.setY(-backgroundText->boundingRect().height()/2);
-        backgroundText->setPos(position);
-        scene()->addItem(backgroundText);
-    }
-    if(backgroundText){
-        if(visible){
-            centerRect(backgroundText->sceneBoundingRect(), CENTER_ON_PADDING, true);
-        }
-        backgroundText->setVisible(visible);
-    }
-}
-
 
 /**
  * @brief NodeView::adjustModelPosition
@@ -584,7 +549,7 @@ void NodeView::adjustModelPosition(QPoint delta)
 {
     //Scale by zoom!
     QPointF floatDelta(delta.x(), delta.y());
-    floatDelta /= zoomCurrent;
+    floatDelta /= getCurrentZoom();
     adjustModelPosition(floatDelta);
 }
 
@@ -1231,10 +1196,6 @@ void NodeView::resetViewState()
     noGUINodeIDHash.clear();
     viewState = VS_NONE;
 
-
-    setNoModelTextVisible(true);
-
-
     emit view_ProjectNameChanged("");
     emit view_ProjectFileChanged("");
 }
@@ -1377,8 +1338,20 @@ void NodeView::viewportTranslated()
         return;
     }
 
-    QRectF viewSceneRect = getVisibleRect();
-    emit view_ViewportRectChanged(getVisibleRect());
+    //Update ViewPortRect if it's changed.
+    QRectF visibleRect = getVisibleRect();
+    if(currentVisibleRect != visibleRect){
+        currentVisibleRect = visibleRect;
+        emit view_ViewportRectChanged(currentVisibleRect);
+    }
+
+    //Update Zoom if it's changed.
+    qreal newZoom = transform().m11();
+    if(newZoom != currentZoom){
+        currentZoom = newZoom;
+        emit view_ZoomChanged(currentZoom);
+    }
+
 
     VIEW_ASPECT aspectContained = VA_NONE;
 
@@ -1386,7 +1359,7 @@ void NodeView::viewportTranslated()
         NodeItem* aspectItem = getNodeItemFromID(aspectID);
         if(aspectItem && aspectItem->isVisible()){
             QRectF sceneRect = aspectItem->sceneBoundingRect();
-            if(sceneRect.contains(viewSceneRect)){
+            if(sceneRect.contains(visibleRect)){
                 aspectContained = aspectItem->getViewAspect();
                 break;
             }
@@ -1581,10 +1554,10 @@ void NodeView::scrollEvent(int delta, QPoint mouseCenter)
 
         // use the bigger side of the model to check model:viewport ratio
         if (modelRect.width() > modelRect.height()) {
-            modelSize = modelRect.width() * zoomCurrent;
+            modelSize = modelRect.width() * getCurrentZoom();
             viewSize = viewport()->rect().width();
         } else {
-            modelSize = modelRect.height() * zoomCurrent;
+            modelSize = modelRect.height() * getCurrentZoom();
             viewSize = viewport()->rect().height();
         }
 
@@ -1858,14 +1831,10 @@ void NodeView::settingChanged(QString, QString keyName, QVariant value)
 
 void NodeView::modelReady()
 {
-    setNoModelTextVisible(false);
     //Do initializing here!
     if(toolbar){
         toolbar->setupFunctionsList();
     }
-
-
-
 
     emit view_LoadSettings();
 
@@ -2046,11 +2015,11 @@ void NodeView::centerInstance(int instanceID)
 void NodeView::centerOnItem(GraphMLItem* item)
 {
     if (!item) {
+        //Get the current Selected Item.
         item = getSelectedGraphMLItem();
     }
 
     if (item) {
-
         // if the selected node is a main container, just use centerItem()
         // we would only ever want to center and zoom into it
         if (item->isAspectItem()) {
@@ -3683,7 +3652,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         //Check panning state.
         QLineF distance(panOrigin, event->pos());
 
-        if((distance.length() * zoomCurrent) < 5){
+        if((distance.length() * getCurrentZoom()) < 5){
             wasPanning = false;
             showToolbar(event->pos());
         }

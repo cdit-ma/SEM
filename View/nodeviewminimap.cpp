@@ -42,6 +42,19 @@ void NodeViewMinimap::setVisible(bool visible)
     viewport()->setVisible(visible);
 }
 
+void NodeViewMinimap::minimapPan()
+{
+    emit minimap_Pan();
+    setCursor(Qt::ClosedHandCursor);
+}
+
+
+void NodeViewMinimap::minimapPanned()
+{
+    viewport()->unsetCursor();
+    emit minimap_Panned();
+}
+
 
 void NodeViewMinimap::setupLayout()
 {
@@ -81,6 +94,13 @@ void NodeViewMinimap::fitToScreen()
     }
 
     fitInView(visibleItemsRect, Qt::KeepAspectRatio);
+}
+
+void NodeViewMinimap::setCursor(QCursor cursor)
+{
+    if(viewport()->cursor().shape() != cursor.shape()){
+        viewport()->setCursor(cursor);
+    }
 }
 
 
@@ -135,12 +155,11 @@ void NodeViewMinimap::setEnabled(bool enabled)
 
 void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
 {
-    if(event->button() == Qt::LeftButton){
+    if(event->button() == Qt::LeftButton || event->button() == Qt::RightButton){
         if(viewportContainsPoint(event->pos())){
             isPanning = true;
             previousScenePos = mapToScene(event->pos());
-            emit minimap_Pan();
-            update();
+            minimapPan();
         }else{
             QGraphicsView::mousePressEvent(event);
         }
@@ -149,9 +168,10 @@ void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
 
 void NodeViewMinimap::mouseReleaseEvent(QMouseEvent *)
 {
-    isPanning = false;
-    emit minimap_Panned();
-    update();
+    if(isPanning){
+        isPanning = false;
+        minimapPanned();
+    }
 }
 
 void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
@@ -160,6 +180,7 @@ void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
         QPoint currentMousePos = event->pos();
         QPointF currentPos = mapToScene(currentMousePos);
         QPointF delta = previousScenePos - currentPos;
+
         emit minimap_Panning(delta);
         //Update the previous Scene position after the view has panned, such that we get smooth movement.
         previousScenePos = mapToScene(currentMousePos);
