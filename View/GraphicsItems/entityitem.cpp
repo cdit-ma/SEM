@@ -340,6 +340,20 @@ void EntityItem::restoreZValue()
     }
 }
 
+void EntityItem::setHighlighted(bool isHighlight)
+{
+    GraphMLItem::setHighlighted(isHighlight);
+
+    QColor textColor = Theme::theme()->getTextColor(Theme::CR_SELECTED);
+    if(!isHighlight){
+        textColor = Qt::black;
+    }
+
+    if(rightLabelInputItem){
+        rightLabelInputItem->setTextColor(textColor);
+    }
+}
+
 /**
  * @brief EntityItem::setNodeConnectable Sets whether or not this node has a visible icon to allow connections to be "drawn"
  * @param connectable Is this node able to connect visually.
