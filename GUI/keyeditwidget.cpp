@@ -77,7 +77,6 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     containerBox->setLayout(hLayout);
 
 
-
     QString label = hrKeyName;
     if(!isBool){
         label += ":";

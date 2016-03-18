@@ -17,18 +17,16 @@
 
 //ICON_LINK
 //https://www.google.com/design/icons/index.html
+void testModel(){
+    ModelTester *t = new ModelTester();
+    t->loadTest("E:/MCMS.graphml");
+    delete t;
+}
 
-/**
- * @brief main
- * @param argc
- * @param argv
- * @return
- */
-int main(int argc, char *argv[])
-{
-    qCritical() << QDateTime::currentDateTime().toTime_t();
+int launchMEDEA(int argc, char *argv[]){
     //Construct a QApplication
     QApplication a(argc, argv);
+    a.setQuitLockEnabled(true);
 
     QString graphmlFilePath = "";
     if (argc == 2) {
@@ -38,8 +36,17 @@ int main(int argc, char *argv[])
     MedeaWindow *w = new MedeaWindow(graphmlFilePath);
     a.setActiveWindow(w);
 
-    //ModelTester *t = new ModelTester();
-    //return 0;
-
     return a.exec();
+}
+
+/**
+ * @brief main
+ * @param argc
+ * @param argv
+ * @return
+ */
+int main(int argc, char *argv[])
+{
+    launchMEDEA(argc, argv);
+    //testModel();
 }

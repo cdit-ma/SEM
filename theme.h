@@ -71,6 +71,9 @@ private slots:
 
 private:
     void updateValid();
+
+    bool tintIcon(QString prefix, QString alias);
+    bool tintIcon(QSize size);
     QHash<QString, QPixmap> pixmapLookup;
     QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QIcon> iconLookup;

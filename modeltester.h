@@ -8,6 +8,10 @@ class ModelTester : QObject
 public:
     ModelTester();
 
+    bool loadTest(QString model, int repeatCount = 10);
+
+    float printMemoryUsage(QString name);
+
     void sleep(int ms);
     float getMemoryUsage();
 signals:

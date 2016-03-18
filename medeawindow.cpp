@@ -1119,7 +1119,7 @@ void MedeaWindow::setupSearchTools()
     searchOptionToolButton->setCheckable(true);
 
     searchOptionMenu = new QMenu(this);
-  //  searchOptionToolButton->setMenu(searchOptionMenu);
+    //searchOptionToolButton->setMenu(searchOptionMenu);
 
     searchResults = new QDialog(this);
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
@@ -3988,11 +3988,6 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
         widget = dataKeysBar;
         menu = dataKeysMenu;
     }
-
-    qCritical() << "CLICKED";
-    qCritical() << widget;
-    qCritical() << menu;
-
 
     if (widget && menu) {
         if (showMenu) {

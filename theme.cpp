@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QStringBuilder>
 #include <QDirIterator>
+#include <QDateTime>
 Theme* Theme::themeSingleton = 0;
 QThread* Theme::themeThread = 0;
 
@@ -221,16 +222,21 @@ bool Theme::isValid()
 
 QIcon Theme::getIcon(QString prefix, QString alias)
 {
+    //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QString lookupName = prefix  % slash %  alias;
 
     if(iconLookup.contains(lookupName)){
         return iconLookup[lookupName];
     }else{
         QIcon icon;
+
+        bool isTinted = tintIcon(prefix, alias);
         //Set the default states.
         icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
-        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
-        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::Off);
+        if(isTinted){
+            icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
+            icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::Off);
+        }
 
         if(iconToggledLookup.contains(lookupName)){
             QString toggledName = iconToggledLookup[lookupName];
@@ -240,14 +246,20 @@ QIcon Theme::getIcon(QString prefix, QString alias)
                 QString toggledPrefixName = toggledName.mid(0, midSlash);
                 QString toggledAliasName = toggledName.mid(midSlash + 1);
 
+                bool isTinted2 = tintIcon(toggledPrefixName, toggledAliasName);
+
                 //Set the toggled states.
                 icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::On);
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
+                if(isTinted2){
+                    icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
+                    icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
+                }
             }
         }
 
         iconLookup[lookupName] = icon;
+        //qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        //qCritical() <<  lookupName << " HARD TIME: " <<  timeFinish-timeStart;
         return icon;
     }
 }
@@ -349,7 +361,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
 
 
         //Tint the pixmap If it's a multiple of 96
-        if(originalSize.width() % 96 == 0){
+        if(tintIcon(originalSize)){
             //qCritical() << originalSize;
             //Replace the image with it's alphaChannel
             image = image.alphaChannel();
@@ -369,6 +381,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
 
 void Theme::preloadImages()
 {
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QStringList dirs;
     dirs << "Actions" << "Data" << "Functions" << "Items" << "Welcome";
     foreach(QString dir, dirs){
@@ -381,6 +394,8 @@ void Theme::preloadImages()
     }
     //Only Allow once.
     disconnect(this, SIGNAL(initPreloadImages()), this, SLOT(preloadImages()));
+    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "PRELOADING IMAGES TIME: " <<  timeFinish-timeStart;
 }
 
 void Theme::updateValid()
@@ -420,6 +435,20 @@ void Theme::updateValid()
     themeChanged = true;
 }
 
+bool Theme::tintIcon(QString prefix, QString alias)
+{
+    QString key = prefix % slash % alias;
+    if(pixmapSizeLookup.contains(key)){
+        return tintIcon(pixmapSizeLookup[key]);
+    }
+    return false;
+}
+
+bool Theme::tintIcon(QSize size)
+{
+    return size.width() % 96 == 0;
+}
+
 QString Theme::QColorToHex(const QColor color)
 {
     return color.name(QColor::HexArgb);
@@ -428,7 +457,7 @@ QString Theme::QColorToHex(const QColor color)
 Theme *Theme::theme()
 {
     if(!themeSingleton){
-        themeThread = new QThread();
+        themeThread = new QThread(QThread::currentThread());
         themeThread->start();
 
 

@@ -2,6 +2,7 @@
 #include "Controller/controller.h"
 #include <QDebug>
 #include <QTime>
+#include <QStringBuilder>
 #ifdef _WIN32
 #define _WINSOCKAPI_    // stops windows.h including winsock.h
 #include <windows.h>
@@ -13,12 +14,11 @@
 
 ModelTester::ModelTester()
 {
+}
 
-    qCritical() << "Starting in 10 seconds";
-    //sleep(1000);
-
-    float initialMemory = getMemoryUsage();
-    qCritical() << "Memory Usage on Load: " << initialMemory << "KB.";
+bool ModelTester::loadTest(QString model, int repeatCount)
+{
+    printMemoryUsage("Initial");
 
     NewController* controller = new NewController();
     controller->initializeModel();
@@ -27,15 +27,15 @@ ModelTester::ModelTester()
     connect(this, SIGNAL(redo()), controller, SLOT(redo()));
     connect(this, SIGNAL(triggerAction(QString)), controller, SLOT(triggerAction(QString)));
 
-    float postInitializeMemory = getMemoryUsage();
-    qCritical() << "Memory Usage after Initialize: " << postInitializeMemory << "KB.";
+    printMemoryUsage("Post controller setup");
 
-    QFile file("E:/MCMS.graphml");
-
-    qCritical() << "FILE";
+    qCritical() << controller->getModel()->getChildren().size();
+    QFile file(model);
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";
+        delete controller;
+        return false;
     }
 
     QTextStream in(&file);
@@ -44,44 +44,46 @@ ModelTester::ModelTester()
 
     emit triggerAction("LOADING FILE");
 
-    int repeatCount = 1;
-    int loadCount = 1;
-    QTime  time;
-    time.start();
-    //sleep(5);
-    //float priorMemory = getMemoryUsage();
-    //sleep(5);
 
-     qCritical() << "FILE";
-    for(int j = 0 ; j < repeatCount; j++){
-        //float beforeLoad = getMemoryUsage();
-        //if(beforeLoad > priorMemory){
-        //    qCritical() << "Delta Memory: " << beforeLoad - priorMemory << "KB.";
-        //}
+    int initialComponentCount = controller->getModel()->getChildren().size();
 
-        for(int i = 0 ; i < loadCount; i++){
-            QStringList list;
-            list << xmlText;
-            emit importProjects(list);
+    for(int i = 0 ; i < repeatCount; i++){
+        qint64 loadStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        emit triggerAction("Loading File #" % QString::number(i));
+        QStringList list;
+        list << xmlText;
+        emit importProjects(list);
+        int componentAfterLoad = controller->getModel()->getChildren().size();
+        qint64 loadFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "Loaded " << componentAfterLoad << " Components in: " << loadFinish - loadStart << "MS.";
+        emit undo();
 
+        qint64 undoFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "Undone " << componentAfterLoad << " Components in: " << undoFinish - loadFinish << "MS.";
+
+        int componentAfterUndo = controller->getModel()->getChildren().size();
+        if(componentAfterUndo != initialComponentCount){
+            qCritical() << "Undo didn't restore state! Failure";
+            return false;
         }
-        //sleep(10);
-        //qCritical() << time.elapsed();
-        //float afterLoad = getMemoryUsage();
-        //qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
+        sleep(1000);
+        printMemoryUsage("After Load #" % QString::number(i));
     }
-
-    //UNDO LOAD.
-    qCritical() << "UNDOING";
-   //emit undo();
-
-    qCritical() << "REDOING";
-    //emit redo();
-    //controller->undo();
 
     //THEN DELETE.
     delete controller;
-    qCritical() << " DELETED YO:";
+
+    sleep(1000);
+    printMemoryUsage("After Deletion");
+
+    return true;
+}
+
+float ModelTester::printMemoryUsage(QString name)
+{
+    float memoryUsage = getMemoryUsage();
+    qCritical() << "Memory Usage - " << name << " = " << memoryUsage << "KB";
+    return memoryUsage;
 }
 
 void ModelTester::sleep(int ms){
