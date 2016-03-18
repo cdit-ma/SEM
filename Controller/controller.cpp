@@ -3435,7 +3435,7 @@ void NewController::constructNodeGUI(Node *node)
     if(node->getParentNode()){
         //Variable.
         Node* parentNode = node->getParentNode();
-        if(parentNode->getNodeKind() == "Variable"){
+        if(parentNode && parentNode->getNodeKind() == "Variable"){
             Data* typeData = parentNode->getData("type");
             Data* childType = node->getData("type");
             typeData->setParentData(childType);

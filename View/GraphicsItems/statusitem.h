@@ -35,6 +35,8 @@ signals:
     void statusItem_EditModeRequested();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event);
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
     void focusOutEvent(QFocusEvent *event);
 
@@ -45,6 +47,8 @@ private:
     QPointF topRight;
     QColor backgroundColor;
 
+    bool hoverOnUp;
+    bool hoverOnDown;
     bool editMode;
 
     bool numberMode;

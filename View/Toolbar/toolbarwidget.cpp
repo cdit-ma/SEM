@@ -1,5 +1,6 @@
 #include "toolbarwidget.h"
 #include "toolbarmenu.h"
+#include "../../enumerations.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -7,8 +8,6 @@
 #include <QDebug>
 #include <QWidgetAction>
 #include <QPair>
-
-#define SEPERATOR_WIDTH 3
 
 /**
  * @brief ToolbarWidget::ToolbarWidget
@@ -464,12 +463,11 @@ void ToolbarWidget::setVisible(bool visible)
             foreach (QAction* action, toolbar->actions()) {
                 if (action->isVisible()) {
                     QToolButton* toolButton = actionLookup.key(action);
-                    QFrame* seperator = separatorLookup.key(action);
 
                     if (toolButton) {
                         totalWidth += toolButton->width();
-                    }else if (seperator) {
-                        totalWidth += SEPERATOR_WIDTH;
+                    }else if (action->isSeparator()) {
+                        totalWidth += TOOLBAR_SEPERATOR_WIDTH;
                     }
                 }
             }
@@ -518,9 +516,6 @@ void ToolbarWidget::setupTheme()
                   "QRadioButton::checked {"
                   "font-weight: bold; "
                   "color:" + highlightColor +
-                  "}"
-                  "QFrame {"
-                  "color:" + altBackgroundColor +
                   "}"
                   "QMenu { "
                   "background:" + backgroundColor +
@@ -874,17 +869,18 @@ void ToolbarWidget::setupToolBar()
     hardwareButton = constructToolButton(buttonSize, 0.7,  "Computer", "Deploy Selection", "Actions");
     deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
 
-    alignFrame = constructFrameSeparator();
+
+    actionAlignSeperator = toolbar->addSeparator();
 
     alignVerticallyButton = constructToolButton(buttonSize, 0.6, "Align_Vertical", "Align Selection Vertically");
     alignHorizontallyButton = constructToolButton(buttonSize, 0.6, "Align_Horizontal", "Align Selection Horizontally");
 
-    expandContractFrame = constructFrameSeparator();
+    actionExpandContractSeperator = toolbar->addSeparator();
 
     expandButton = constructToolButton(buttonSize, 0.6, "Expand", "Expand Selection");
     contractButton = constructToolButton(buttonSize, 0.6, "Contract", "Contract Selection");
 
-    snippetFrame = constructFrameSeparator();
+    actionSnippetSeperator = toolbar->addSeparator();
 
     importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
     exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
@@ -893,13 +889,13 @@ void ToolbarWidget::setupToolBar()
     unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Read Only");
     wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "Wiki page for Entity");
 
-    goToFrame = constructFrameSeparator();
+    actionGoToSeperator = toolbar->addSeparator();
 
     definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Definition");
     implementationButton = constructToolButton(buttonSize, 0.6, "Implementation", "View Implementation");
     instancesButton = constructToolButton(buttonSize, 0.6, "Instance", "View Instances");
 
-    alterViewFrame = constructFrameSeparator();
+    actionAlterViewSeperator = toolbar->addSeparator();
 
     connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Connections");
     popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View In New Window");
@@ -1122,9 +1118,9 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         expandContractButtonsVisible = false;
 
         // check if the selected node item has other node items connected to it (edges)
-        if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
-            actionLookup[connectButton]->setVisible(true);
-        }
+        //if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
+        //    actionLookup[connectButton]->setVisible(true);
+        //}
 
         // only show the displayed children option button if the selected item is a HardwareCluster
         if (entityItem) {
@@ -1245,11 +1241,11 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
  */
 void ToolbarWidget::updateSeparators()
 {
-    separatorLookup[alignFrame]->setVisible(alignButtonsVisible && alterModelButtonsVisible);
-    separatorLookup[snippetFrame]->setVisible(snippetButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
-    separatorLookup[goToFrame]->setVisible(goToButtonsVisible && (alterModelButtonsVisible || snippetButtonsVisible));
-    separatorLookup[alterViewFrame]->setVisible(alterViewButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible || goToButtonsVisible));
-    separatorLookup[expandContractFrame]->setVisible(expandContractButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
+    actionAlignSeperator->setVisible(alignButtonsVisible && alterModelButtonsVisible);
+    actionExpandContractSeperator->setVisible(expandContractButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
+    actionSnippetSeperator->setVisible(snippetButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
+    actionGoToSeperator->setVisible(goToButtonsVisible && (alterModelButtonsVisible || snippetButtonsVisible));;
+    actionAlterViewSeperator->setVisible(alterViewButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible || goToButtonsVisible));;
 }
 
 
@@ -1272,16 +1268,11 @@ void ToolbarWidget::hideButtons()
  */
 void ToolbarWidget::hideSeparators()
 {
-    /*
-    snippetSeparator->setVisible(false);
-    goToSeparator->setVisible(false);
-    alterViewSeparator->setVisible(false);
-    alignSeparator->setVisible(false);
-    expandContractSeparator->setVisible(false);
-    */
-    foreach(QAction* action, separatorLookup.values()){
-        action->setVisible(false);
-    }
+    actionAlignSeperator->setVisible(false);
+    actionExpandContractSeperator->setVisible(false);
+    actionSnippetSeperator->setVisible(false);
+    actionGoToSeperator->setVisible(false);
+    actionAlterViewSeperator->setVisible(false);
 }
 
 
@@ -1354,7 +1345,8 @@ void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
         }
     }
     if (!nodeList.isEmpty()) {
-        actionLookup[deleteButton]->setVisible(true);
+        qCritical() << "SHOW CONNECT BUTTON";
+        actionLookup[connectButton]->setVisible(true);
         alterModelButtonsVisible = true;
         legalNodeItems = nodeList;
     }
@@ -1500,20 +1492,6 @@ QToolButton* ToolbarWidget::constructToolButton(QSize size, double iconSizeRatio
 }
 
 
-/**
- * @brief ToolbarWidget::constructFrameSeparator
- * This constructs a QFrame used as a separator, adds it to the toolbar's layout and then returns it.
- * @return
- */
-QFrame* ToolbarWidget::constructFrameSeparator()
-{
-    QFrame* frame = new QFrame(this);
-    frame->setFrameShape(QFrame::VLine);
-    frame->setLineWidth(SEPERATOR_WIDTH);
-    QAction* action = toolbar->addWidget(frame);
-    separatorLookup[frame] = action;
-    return frame;
-}
 
 
 /**

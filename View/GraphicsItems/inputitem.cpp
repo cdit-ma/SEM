@@ -60,6 +60,7 @@ bool InputItem::isTruncated()
 void InputItem::setTextColor(QColor color)
 {
     textItem->setDefaultTextColor(color);
+    textItem->update();
 }
 
 

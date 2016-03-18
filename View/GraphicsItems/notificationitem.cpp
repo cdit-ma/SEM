@@ -88,7 +88,7 @@ void NotificationItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     QPixmap imageData;
 
 
-    imageData = item->getNodeView()->getImage("Actions", "Exclamation");
+    imageData = item->getNodeView()->getImage("Actions", "Exclamation", Qt::white);
 
     painter->rotate(-getAngle());
     painter->translate(-RADIUS /2, RADIUS / 4);//RADIUS/2);

@@ -340,6 +340,20 @@ void EntityItem::restoreZValue()
     }
 }
 
+void EntityItem::setHighlighted(bool isHighlight)
+{
+    GraphMLItem::setHighlighted(isHighlight);
+
+    QColor textColor = Theme::theme()->getTextColor(Theme::CR_SELECTED);
+    if(!isHighlight){
+        textColor = Qt::black;
+    }
+
+    if(rightLabelInputItem){
+        rightLabelInputItem->setTextColor(textColor);
+    }
+}
+
 /**
  * @brief EntityItem::setNodeConnectable Sets whether or not this node has a visible icon to allow connections to be "drawn"
  * @param connectable Is this node able to connect visually.
@@ -621,8 +635,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
-    painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
     VIEW_STATE viewState = getViewState();
 
@@ -652,18 +664,11 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         // this highlights this item if it is a hardware entity and the selected entity is connected to it
         if (isHardwareLink) {
-            //bodyBrush.setColor(QColor(90,150,200));
-            //headBrush.setColor(QColor(90,150,200));
-            //bodyBrush.setColor(Qt::darkBlue);
-            //headBrush.setColor(Qt::darkBlue);
             bodyBrush.setColor(Theme::theme()->getHighlightColor());
             headBrush.setColor(Theme::theme()->getHighlightColor());
         }
 
         if (isHighlighted()) {
-            //bodyBrush.setColor(Qt::white);
-            //bodyBrush.setColor(QColor(255,136,0));
-            //headBrush.setColor(QColor(255,136,0));
             headBrush.setColor(Theme::theme()->getHighlightColor());
         }
         //Paint Background
@@ -1108,6 +1113,10 @@ void EntityItem::setVisibility(bool visible)
  */
 void EntityItem::dataChanged(QString keyName, QVariant data)
 {
+    if(keyName == ""){
+        return;
+    }
+
     bool boolValue = data.toBool();
     if(data.isNull()){
         boolValue = false;
@@ -1189,6 +1198,11 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
     if(keyName == statusModeDataKey){
         if(statusItem){
             statusItem->setValue(data.toString());
+            if(statusItem->getValue() == "1"){
+                statusItem->setVisible(false);
+            }else{
+                statusItem->setVisible(true);
+            }
         }
     }
 }

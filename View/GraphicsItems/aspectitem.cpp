@@ -81,19 +81,21 @@ QRectF AspectItem::boundingRect() const
 
 void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
-
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
-    painter->setRenderHint(QPainter::HighQualityAntialiasing, true);
 
     QPen borderPen = getCurrentPen();
     if(!isSelected()){
         borderPen = Qt::NoPen;
+    }else{
+        borderPen.setWidthF(2 * borderPen.widthF());
     }
 
     painter->setPen(borderPen);
     painter->setBrush(backgroundColor);
-    painter->drawRect(adjustRectForPen(boundingRect(), borderPen));
+
+    //Double the width to save adjusting rect.
+    painter->drawRect(boundingRect());
 
     painter->setPen(textColor);
     painter->setFont(textFont);

@@ -55,6 +55,8 @@ public:
     void setZValue(qreal z);
     void restoreZValue();
 
+    void setHighlighted(bool isHighlight);
+
     void setNodeConnectable(bool connectable);
 
 

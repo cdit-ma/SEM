@@ -34,6 +34,7 @@
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 
+#define ARROW_PAN_DISTANCE 1
 #define VIEW_PADDING 1.1
 #define CENTER_ON_PADDING 1 / 0.25
 
@@ -66,9 +67,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     hardwareDockOpen = false;
     showConnectLine = true;
     showSearchSuggestions = false;
-
-    backgroundText = 0;
-
+    aspectVisible = VA_NONE;
 
     IS_SUB_VIEW = subView;
 
@@ -178,8 +177,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
 
     //Set Initial zoom.
-    setNoModelTextVisible(true);
-    zoomCurrent = transform().m11();
+    currentZoom = transform().m11();
 }
 
 
@@ -187,7 +185,6 @@ void NodeView::setController(NewController *c)
 {
     controller = c;
     if(controller){
-        setNoModelTextVisible(false);
         connect(controller, SIGNAL(destroyed(QObject*)), this, SLOT(controllerDestroyed()));
     }
 }
@@ -206,7 +203,7 @@ VIEW_STATE NodeView::getViewState()
 
 qreal NodeView::getCurrentZoom()
 {
-    return transform().m11();
+    return currentZoom;
 }
 
 bool NodeView::hasModel()
@@ -339,8 +336,6 @@ NodeView::~NodeView()
     //Clear the current Selected Attribute Model so that the GUI doesn't crash.
     setAttributeModel(0, true);
 
-    delete backgroundText;
-
     if(parentNodeView && !parentNodeView->isTerminating()){
         parentNodeView->removeSubView(this);
     }
@@ -388,7 +383,7 @@ QImage NodeView::renderScreenshot(bool currentViewPort, int quality)
         capturedSceneRect = getVisibleRect();
     }else{
         if(getModelItem()){
-            capturedSceneRect = getModelItem()->childrenBoundingRect();
+            capturedSceneRect = scene()->itemsBoundingRect();
         }
     }
 
@@ -451,6 +446,7 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     }
 
     // add the padding to the rect to be centered
+
     rect.setWidth(rect.width() * padding);
     rect.setHeight(rect.height() * padding);
 
@@ -468,15 +464,11 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     QPointF sceneOffset = QPointF(centerOffset.x() / newScale, centerOffset.y() / newScale);
 
     // reset current transform before scaling
-    setTransform(QTransform());
+    resetTransform();
     scale(newScale, newScale);
-
 
     // center the view on rect's original center
     centerViewOn(rectCenter + sceneOffset);
-
-    // check if any of the aspect toggle buttons need highlighting
-    aspectGraphicsChanged();
 }
 
 
@@ -549,31 +541,6 @@ QPointF NodeView::getModelScenePos()
     return QPointF();
 }
 
-void NodeView::setNoModelTextVisible(bool visible)
-{
-    //visible = false;
-
-    if(!backgroundText){
-        backgroundText = new QGraphicsTextItem("NO PROJECT");
-        QFont textFont = font();
-        textFont.setPixelSize(50);
-        backgroundText->setDefaultTextColor(GET_INVERT_COLOR(currentTheme));
-        backgroundText->setFont(textFont);
-
-        QPointF position;
-        position.setX(-backgroundText->boundingRect().width()/2);
-        position.setY(-backgroundText->boundingRect().height()/2);
-        backgroundText->setPos(position);
-        scene()->addItem(backgroundText);
-    }
-    if(backgroundText){
-        if(visible){
-            centerRect(backgroundText->sceneBoundingRect(), CENTER_ON_PADDING, true);
-        }
-        backgroundText->setVisible(visible);
-    }
-}
-
 
 /**
  * @brief NodeView::adjustModelPosition
@@ -583,15 +550,13 @@ void NodeView::adjustModelPosition(QPoint delta)
 {
     //Scale by zoom!
     QPointF floatDelta(delta.x(), delta.y());
-    floatDelta /= zoomCurrent;
+    floatDelta /= getCurrentZoom();
     adjustModelPosition(floatDelta);
 }
 
 void NodeView::adjustModelPosition(QPointF delta)
 {
     translate(delta.x(),delta.y());
-    //emit view_ModelSizeChanged();
-    aspectGraphicsChanged();
 }
 
 
@@ -636,6 +601,12 @@ void NodeView::clearMaps(int fromKey)
         centeredRects.remove(i);
     }
     currentMapKey = -1;
+}
+
+void NodeView::translate(qreal dx, qreal dy)
+{
+    QGraphicsView::translate(dx, dy);
+    viewportTranslated();
 }
 
 
@@ -1211,19 +1182,6 @@ QList<NodeItem *> NodeView::getEntityItemsOfKind(QString kind, int ID, int depth
     return nodes;
 }
 
-
-bool NodeView::viewportEvent(QEvent * e)
-{
-    emit view_ViewportRectChanged(getVisibleRect());
-    qreal current = transform().m11();
-    if(current != zoomCurrent){
-        zoomCurrent = current;
-        emit view_ZoomChanged(current);
-    }
-
-    return QGraphicsView::viewportEvent(e);
-}
-
 void NodeView::resetViewState()
 {
     selectedIDs.clear();
@@ -1238,10 +1196,6 @@ void NodeView::resetViewState()
     noGuiIDHash.clear();
     noGUINodeIDHash.clear();
     viewState = VS_NONE;
-
-
-    setNoModelTextVisible(true);
-
 
     emit view_ProjectNameChanged("");
     emit view_ProjectFileChanged("");
@@ -1379,28 +1333,44 @@ VIEW_THEME NodeView::getTheme()
  * This checks if the current viewport is completely contained within one of the dispalyed aspects.
  * If it is, highlight the corresponding aspect's toggle button's label.
  */
-void NodeView::aspectGraphicsChanged()
+void NodeView::viewportTranslated()
 {
-    // opening a subview will crash without this check
-    if (isSubView()) {
+    if (isSubView() || !getModelItem()) {
         return;
     }
 
-    if (!getModelItem()) {
-        return;
+    //Update ViewPortRect if it's changed.
+    QRectF visibleRect = getVisibleRect();
+    if(currentVisibleRect != visibleRect){
+        currentVisibleRect = visibleRect;
+        emit view_ViewportRectChanged(currentVisibleRect);
     }
 
-    QRectF viewSceneRect = getVisibleRect();
-    VIEW_ASPECT aspectToHighlight = VA_NONE;
+    //Update Zoom if it's changed.
+    qreal newZoom = transform().m11();
+    if(newZoom != currentZoom){
+        currentZoom = newZoom;
+        emit view_ZoomChanged(currentZoom);
+    }
 
-    foreach (GraphMLItem* aspect, getModelItem()->getChildren()) {
-        if (aspect->isVisible() && aspect->sceneBoundingRect().contains(viewSceneRect)){
-            aspectToHighlight = ((NodeItem*)aspect)->getViewAspect();
-            break;
+
+    VIEW_ASPECT aspectContained = VA_NONE;
+
+    foreach(int aspectID, aspectIDs){
+        NodeItem* aspectItem = getNodeItemFromID(aspectID);
+        if(aspectItem && aspectItem->isVisible()){
+            QRectF sceneRect = aspectItem->sceneBoundingRect();
+            if(sceneRect.contains(visibleRect)){
+                aspectContained = aspectItem->getViewAspect();
+                break;
+            }
         }
     }
 
-    emit view_highlightAspectButton(aspectToHighlight);
+    if(aspectVisible != aspectContained){
+        aspectVisible = aspectContained;
+        emit view_highlightAspectButton(aspectVisible);
+    }
 }
 
 
@@ -1578,23 +1548,17 @@ void NodeView::importSnippet(QString fileName, QString fileData)
 
 void NodeView::scrollEvent(int delta, QPoint mouseCenter)
 {
-    if(viewState == VS_NONE || viewState ==  VS_SELECTED || viewState == VS_CONNECT || viewState == VS_CONNECTING){
+    if(getModelItem() && (viewState == VS_NONE || viewState ==  VS_SELECTED || viewState == VS_CONNECT || viewState == VS_CONNECTING)){
+        QRectF modelRect = scene()->itemsBoundingRect();
 
-        //qreal viewWidth = viewport()->rect().width();
-        //qreal modelVisibleWidth = getModelItem()->childrenBoundingRect().width() * zoomCurrent;
-
-        if(!getModelItem()){
-            return;
-        }
-        QRectF modelRect = getModelItem()->childrenBoundingRect();
         qreal modelSize, viewSize;
 
         // use the bigger side of the model to check model:viewport ratio
         if (modelRect.width() > modelRect.height()) {
-            modelSize = modelRect.width() * zoomCurrent;
+            modelSize = modelRect.width() * getCurrentZoom();
             viewSize = viewport()->rect().width();
         } else {
-            modelSize = modelRect.height() * zoomCurrent;
+            modelSize = modelRect.height() * getCurrentZoom();
             viewSize = viewport()->rect().height();
         }
 
@@ -1619,7 +1583,6 @@ void NodeView::scrollEvent(int delta, QPoint mouseCenter)
             QPointF newSceneCenter = getCenterOfScreenScenePos(mouseCenter);
             QPointF delta = newSceneCenter - previousSceneCenter;
             translate(delta.x(), delta.y());
-            aspectGraphicsChanged();
         }
     }
 }
@@ -1629,10 +1592,10 @@ void NodeView::scrollEvent(int delta, QPoint mouseCenter)
 
 void NodeView::minimapPanning(QPointF delta)
 {
-
     if(viewState == VS_PAN){
         setState(VS_PANNING);
     }
+
     if(viewState == VS_PANNING){
         //translate to scenepos.
         adjustModelPosition(delta);
@@ -1727,7 +1690,7 @@ void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
         }
     }
 
-    aspectGraphicsChanged();
+    viewportTranslated();
 }
 
 
@@ -1869,14 +1832,10 @@ void NodeView::settingChanged(QString, QString keyName, QVariant value)
 
 void NodeView::modelReady()
 {
-    setNoModelTextVisible(false);
     //Do initializing here!
     if(toolbar){
         toolbar->setupFunctionsList();
     }
-
-
-
 
     emit view_LoadSettings();
 
@@ -2057,11 +2016,11 @@ void NodeView::centerInstance(int instanceID)
 void NodeView::centerOnItem(GraphMLItem* item)
 {
     if (!item) {
+        //Get the current Selected Item.
         item = getSelectedGraphMLItem();
     }
 
     if (item) {
-
         // if the selected node is a main container, just use centerItem()
         // we would only ever want to center and zoom into it
         if (item->isAspectItem()) {
@@ -2569,6 +2528,18 @@ void NodeView::setState(VIEW_STATE state)
     if(viewState != oldState){
         transition();
     }
+}
+
+qreal NodeView::getArrowKeyDelta(bool SHIFT, bool neg)
+{
+    qreal distance = ARROW_PAN_DISTANCE * getCurrentZoom();
+    if(neg){
+        distance *= -1;
+    }
+    if(SHIFT){
+        distance *= 10;
+    }
+    return distance;
 }
 
 /**
@@ -3365,6 +3336,9 @@ void NodeView::removeGraphMLItemFromHash(int ID)
         if(selectedIDs.contains(ID)){
             selectedIDs.removeAll(ID);
         }
+        if(aspectIDs.contains(ID)){
+            aspectIDs.removeAll(ID);
+        }
 
         if(ID == currentTableID){
             setAttributeModel(0);
@@ -3689,9 +3663,9 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         }
 
         //Check panning state.
-        QLineF distance(panningOrigin, event->pos());
+        QLineF distance(panOrigin, event->pos());
 
-        if((distance.length() * zoomCurrent) < 5){
+        if((distance.length() * getCurrentZoom()) < 5){
             wasPanning = false;
             showToolbar(event->pos());
         }
@@ -3757,11 +3731,10 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         if(viewState == VS_PAN){
             setState(VS_PANNING);
         }
-
-        QPoint delta = event->pos() - previousPanPos;
-        previousPanPos = event->pos();
-
-        adjustModelPosition(delta);
+        QPointF currentPos = mapToScene(event->pos());
+        adjustModelPosition(currentPos - panPrevPos);
+        //The new previous point needs to be recalculated.
+        panPrevPos = mapToScene(event->pos());
         return;
     }else{
         QGraphicsView::mouseMoveEvent(event);
@@ -3822,8 +3795,8 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             //Handle as Selected.
         case VS_SELECTED:
             setState(VS_PAN);
-            panningOrigin = event->pos();
-            previousPanPos = event->pos();
+            panOrigin = event->pos();
+            panPrevPos = mapToScene(panOrigin);
             return;
         default:
             break;
@@ -3912,6 +3885,26 @@ void NodeView::keyPressEvent(QKeyEvent *event)
                     EntityItem->setNewLabel();
                 }
             }
+        }
+        QPoint arrowAdjust;
+        if(event->key() == Qt::Key_Up){
+            arrowAdjust.setY(getArrowKeyDelta(SHIFT));
+        }
+
+        if(event->key() == Qt::Key_Down){
+            arrowAdjust.setY(getArrowKeyDelta(SHIFT, true));
+        }
+
+        if(event->key() == Qt::Key_Right){
+            arrowAdjust.setX(getArrowKeyDelta(SHIFT, true));
+
+        }
+
+        if(event->key() == Qt::Key_Left){
+            arrowAdjust.setX(getArrowKeyDelta(SHIFT));
+        }
+        if(!arrowAdjust.isNull()){
+            translate(arrowAdjust.x(), arrowAdjust.y());
         }
     }
 
@@ -4664,6 +4657,7 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
         if(aspect != VA_NONE){
             item = new AspectItem(node, visibleParentItem, aspect);
+            aspectIDs << node->getID();
         }else{
             qCritical() << "Unknown Aspect!";
             return;

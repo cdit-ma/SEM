@@ -89,7 +89,6 @@ private:
 
     void updateToolButtonIcons();
     QToolButton* constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip = "", QString iconPath = "Actions");
-    QFrame* constructFrameSeparator();
 
     ToolbarMenu* constructTopMenu(QToolButton* parentButton, bool instantPopup = true, bool addToDynamicMenuHash = false);
     ToolbarMenu* constructSubMenu(ToolbarMenuAction* parentAction, QString infoText, bool addToDynamicMenuHash = true);
@@ -105,13 +104,21 @@ private:
 
     QHBoxLayout* toolbarLayout;
 
+
     QFrame* mainFrame;
     QFrame* shadowFrame;
-    QFrame* alignFrame;
+
+  /*  QFrame* alignFrame;
     QFrame* expandContractFrame;
     QFrame* snippetFrame;
     QFrame* goToFrame;
-    QFrame* alterViewFrame;
+    QFrame* alterViewFrame;*/
+
+    QAction*  actionAlignSeperator;
+    QAction*  actionExpandContractSeperator;
+    QAction*  actionSnippetSeperator;
+    QAction*  actionGoToSeperator;
+    QAction*  actionAlterViewSeperator;
 
     QToolBar* toolbar;
 
@@ -138,7 +145,6 @@ private:
 
 
     QHash<QToolButton*, QAction*> actionLookup;
-    QHash<QFrame*, QAction*> separatorLookup;
 
     ToolbarMenu* addMenu;
     ToolbarMenu* connectMenu;

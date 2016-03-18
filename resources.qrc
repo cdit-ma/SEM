@@ -204,7 +204,6 @@
         <file alias="index">Resources/Images/Data/index.png</file>
         <file alias="worker">Resources/Images/Data/worker.png</file>
         <file alias="WE_UTE_Vector">Resources/Images/Data/WE_UTE_Vector.png</file>
-        <file>Resources/Images/Data/domain2.png</file>
         <file alias="failure">Resources/Images/Data/failure.png</file>
         <file alias="message">Resources/Images/Data/message.png</file>
         <file alias="domain">Resources/Images/Data/domain.png</file>

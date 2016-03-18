@@ -137,7 +137,7 @@ public:
 
     void updateActionsEnabledStates();
 
-    void aspectGraphicsChanged();
+    void viewportTranslated();
     void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
     VIEW_THEME getTheme();
 
@@ -158,7 +158,6 @@ protected:
 
     void setReadOnlyMode(bool readOnly);
 
-    bool viewportEvent(QEvent *);
 
 private:
     void resetViewState();
@@ -435,12 +434,14 @@ public slots:
     void itemEntered(int ID, bool enter);
 
 
+    void translate(qreal dx, qreal dy);
 private:
     AspectItem* getAspectItem(VIEW_ASPECT aspect);
     void setConnectMode(bool on);
     void setRubberBandMode(bool On);
     void setState(VIEW_STATE newState);
 
+    qreal getArrowKeyDelta(bool SHIFT, bool neg = false);
     void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
     void transition();
     void selectJenkinsImportedNodes();
@@ -478,7 +479,6 @@ private:
     QPointF getModelScenePos();
 
 
-    void setNoModelTextVisible(bool hasModel);
 
     int getMapSize();
 
@@ -536,14 +536,13 @@ private:
     QList<Edge::EDGE_CLASS> nonDrawnEdgeClasses;
 
 
-    QPoint panningOrigin;
-    QPoint previousPanPos;
+    QPoint panOrigin;
+    QPointF panPrevPos;
     QPoint rubberBandOrigin;
 
     QPointF toolbarPosition;
     QPointF centerPoint;
     QPointF prevCenterPoint;
-    //QPointF panningSceneOrigin;
     QPoint testSceneOrigin;
 
     int centralizedItemID;
@@ -584,7 +583,8 @@ private:
     bool eventFromEdgeItem;
     bool wasPanning;
 
-    qreal zoomCurrent;
+    qreal currentZoom;
+    QRectF currentVisibleRect;
     //Selection Lists
     QList<int> selectedIDs;
     QList<int> highlightedIDs;
@@ -598,6 +598,7 @@ private:
     QHash<int, QRectF> centeredRects;
 
 
+    QList<int> aspectIDs;
     QHash<QString, QPixmap> imageLookup;
     QHash<int, GraphMLItem*> guiItems;
     QHash<int, QString> noGuiIDHash;
@@ -612,9 +613,8 @@ private:
 
     bool ZOOM_UNDER_MOUSE;
 
+    VIEW_ASPECT aspectVisible;
 
-    QGraphicsTextItem* backgroundText;
-	//QSoundEffect* clickSound;
 
     QString applicationDirectory;
 protected:
