@@ -4028,10 +4028,6 @@ void MedeaWindow::searchMenuClosed()
             searchOptionMenu->close();
         }
     }
-
-    //if(actionSearchOptions->isChecked()){
-    //    actionSearchOptions->setChecked(false);
-    //}
 }
 
 
