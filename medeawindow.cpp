@@ -1404,8 +1404,10 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     notificationsBar->setFixedHeight(40);
     notificationsBar->setFont(biggerFont);
     notificationsBar->setAlignment(Qt::AlignCenter);
-    notificationsBar->setStyleSheet("background-color: rgba(250,250,250,0.85);"
-                                    "color: rgb(30,30,30);"
+    notificationsBar->setStyleSheet(//"background-color: rgba(250,250,250,0.85);"
+                                    "background-color: rgba(30,30,30,0.9);"
+                                    //"color: rgb(30,30,30);"
+                                    "color: rgb(250,250,250);"
                                     "border-radius: 5px;"
                                     "padding: 0px 15px;");
 
