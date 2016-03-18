@@ -14,6 +14,7 @@
 #include <QList>
 #include <QPair>
 #include <string>
+#include "theme.h"
 
 //ICON_LINK
 //https://www.google.com/design/icons/index.html

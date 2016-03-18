@@ -451,6 +451,7 @@ private:
     QToolBar* toolbarButtonBar;
     QToolButton* toolbarButton;
     bool SHOW_TOOLBAR;
+    bool EXPAND_TOOLBAR;
 
     QHash<QString, QAction*> toolbarActionLookup;
     QHash<QString, ActionButton*> toolbarButtonLookup;

@@ -457,16 +457,21 @@ QString Theme::QColorToHex(const QColor color)
 Theme *Theme::theme()
 {
     if(!themeSingleton){
-        themeThread = new QThread(QThread::currentThread());
+        themeThread = new QThread();
         themeThread->start();
 
-
         themeSingleton = new Theme();
-        connect(themeSingleton, SIGNAL(initPreloadImages()),themeSingleton, SLOT(preloadImages()));
-
+        connect(themeSingleton, SIGNAL(initPreloadImages()), themeSingleton, SLOT(preloadImages()));
+        connect(themeSingleton, SIGNAL(destroyed(QObject*)), themeThread, SIGNAL(finished()));
         //Move the JenkinsRequest to the thread
         themeSingleton->moveToThread(themeThread);
     }
     return themeSingleton;
+}
+
+void Theme::teardownTheme()
+{
+    delete themeSingleton;
+    themeSingleton = 0;
 }
 

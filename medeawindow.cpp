@@ -93,6 +93,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     IS_WINDOW_MAXIMIZED = false;
     INITIAL_SETTINGS_LOADED = false;
     maximizedSettingInitiallyChanged = false;
+    EXPAND_TOOLBAR = false;
+    SHOW_TOOLBAR = false;
 
     CURRENT_THEME = VT_NORMAL_THEME;
 
@@ -150,6 +152,9 @@ MedeaWindow::~MedeaWindow()
     if(jenkinsManager){
         delete jenkinsManager;
     }
+
+    //Delete last
+    Theme::theme()->teardownTheme();
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
@@ -181,8 +186,8 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
         setToolbarVisibility(!boolValue);
         SHOW_TOOLBAR = !boolValue;
     }else if(keyName == TOOLBAR_EXPANDED){
-        toolbarButton->setChecked(boolValue);
-        toolbarButton->clicked(boolValue);
+        EXPAND_TOOLBAR = boolValue;
+        showWindowToolbar(boolValue);
     }
 
     if(toolbarActionLookup.contains(keyName)){
@@ -1453,22 +1458,18 @@ void MedeaWindow::setupToolbar()
 {
     // TODO - Group separators with tool buttons; hide them accordingly
     toolbar = constructToolbar();
-#ifdef TARGET_OS_MAC
-    toolbar->setStyle(QStyleFactory::create("windows"));
-#endif
     toolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
     toolbarLayout = new QVBoxLayout();
 
     toolbarButtonBar = constructToolbar();
+
     toolbarButtonBar->setMovable(false);
     toolbarButtonBar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     toolbarButton = new QToolButton(this);
     toolbarButton->setDefaultAction(actionToggleToolbar);
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
-    toolbarButton->setCheckable(true);
     toolbarButtonBar->addWidget(toolbarButton);
-
 
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
     //edit_undo->setIconVisibleInMenu(false);
@@ -2437,7 +2438,6 @@ void MedeaWindow::setupApplication()
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
 
-    //Setup global th
 }
 
 /**
@@ -2467,22 +2467,10 @@ void MedeaWindow::initialiseSettings()
     QHash<QString, QString> tooltips = GET_SETTINGS_TOOLTIPS_HASH();
     QHash<QString, QString> visualGroups = GET_SETTINGS_GROUP_HASH();
 
-
-
-
-
-
-
     appSettings = new AppSettings(this,applicationDirectory, visualGroups, tooltips);
     appSettings->setModal(true);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
     connect(appSettings, SIGNAL(settingsApplied()), this, SLOT(settingsApplied()));
-
-
-    //Apply settings groups.
-    //appSettings->setSettingsVisualGroup(JENKINS_URL, "Username");
-    //appSettings->setSettingsVisualGroup(JENKINS_USER, "Username");
-    //appSettings->setSettingsVisualGroup(JENKINS_PASS, "Test");
 }
 
 void MedeaWindow::updateTheme()
@@ -2947,7 +2935,7 @@ void MedeaWindow::updateToolbar()
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();
         toolbarButtonBar->move(centerX  - (TOOLBAR_BUTTON_WIDTH / 2), TOOLBAR_GAP);
-        toolbar->move(centerX - (toolbar->width() / 2), 2 * TOOLBAR_GAP + (TOOLBAR_BUTTON_HEIGHT / 2));
+        toolbar->move(centerX - (toolbar->width() / 2), 3 * TOOLBAR_GAP + (TOOLBAR_BUTTON_HEIGHT / 2));
     }
 }
 
@@ -3556,12 +3544,12 @@ QIcon MedeaWindow::getIcon(QString alias, QString image)
  * Otherwise if it came from toolbarsetButton, expand/contract the toolbar.
  * @param checked
  */
-void MedeaWindow::showWindowToolbar(bool checked)
+void MedeaWindow::showWindowToolbar(bool show)
 {
-    toolbar->setVisible(!checked);
 
-    if (appSettings) {
-        appSettings->setSetting(TOOLBAR_EXPANDED, checked);
+    actionToggleToolbar->setChecked(show);
+    if(SHOW_TOOLBAR){
+        toolbar->setVisible(show);
     }
 }
 
@@ -3572,10 +3560,10 @@ void MedeaWindow::showWindowToolbar(bool checked)
  */
 void MedeaWindow::setToolbarVisibility(bool visible)
 {
-    if (toolbarButton) {
-        toolbarButton->setVisible(visible);
+    if (toolbarButtonBar) {
+        toolbarButtonBar->setVisible(visible);
     }
-    if (toolbar) {
+    if (toolbar && EXPAND_TOOLBAR) {
         toolbar->setVisible(visible);
     }
 }

@@ -101,6 +101,7 @@ private:
 public:
     static QString QColorToHex(const QColor color);
     static Theme* theme();
+    static void teardownTheme();
 
 signals:
     void initPreloadImages();
