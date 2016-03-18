@@ -329,7 +329,7 @@ void AspectToggleWidget::setupLayout(double widgetSize)
 
     aspectLabel = new QLabel(aspectText, this);
     aspectLabel->setFont(font);
-    aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
+    aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0); color: black;");
 
     QVBoxLayout* layout = new QVBoxLayout();
     layout->addWidget(aspectLabel);
