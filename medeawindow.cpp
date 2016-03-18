@@ -541,6 +541,7 @@ void MedeaWindow::initialiseGUI()
 
     closeProjectToolbar = new QToolBar(this);
     closeProjectToolbar->addWidget(closeProjectToolButton);
+    closeProjectToolbar->setObjectName("HIDDEN_TOOLBAR");
 
     menuTitleBox = new QGroupBox(this);
     menuTitleBox->setObjectName(THEME_STYLE_GROUPBOX);
@@ -1155,6 +1156,9 @@ void MedeaWindow::setupSearchTools()
     searchBar->setPlaceholderText(searchBarDefaultText);
     searchBar->setFixedHeight(searchBarHeight);
 
+    searchToolButton->setFixedSize(searchBarHeight, searchBarHeight);
+    searchOptionToolButton->setFixedSize(searchBarHeight, searchBarHeight);
+
     searchSuggestions->setSize(searchBar->width(), height(), 2);
 
     scrollableWidget->setLayout(resultsMainLayout);
@@ -1168,15 +1172,14 @@ void MedeaWindow::setupSearchTools()
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
 
-    searchLayout->setSpacing(2);
-    searchLayout->setContentsMargins(0,0,0,0);
-
     searchToolbar = new QToolBar(this);
     searchToolbar->setObjectName("HIDDEN_TOOLBAR");
     searchToolbar->addWidget(searchBar);
     searchToolbar->addWidget(searchToolButton);
     searchToolbar->addWidget(searchOptionToolButton);
 
+    searchLayout->setSpacing(0);
+    searchLayout->setContentsMargins(0,0,0,0);
     searchLayout->addWidget(searchToolbar);
 
     // setup search option widgets and menu for view aspects
@@ -2093,7 +2096,6 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
     updateWidgetsOnWindowChange();
 
 }
-
 
 
 /**
@@ -4853,8 +4855,7 @@ void MedeaWindow::updateStyleSheets()
     searchBar->setStyleSheet("QLineEdit {"
                              "background: " + altBGColor + ";"
                              "color: " + textDisabledColor + ";"
-                             "border: 2px solid;"
-                             "border-color:" + altBGColor +
+                             "border: 1px solid " + disabledBGColor + ";"
                              "}"
                              "QLineEdit:focus {"
                              "border-color:" + highlightColor + ";"
@@ -4865,7 +4866,8 @@ void MedeaWindow::updateStyleSheets()
     recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
                                             "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
 
-    setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
+    setStyleSheet("QToolBar#HIDDEN_TOOLBAR { border: none; background-color: rgba(0,0,0,0); }"
+                  "QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 5px;"

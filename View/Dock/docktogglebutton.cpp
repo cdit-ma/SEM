@@ -276,7 +276,8 @@ void DockToggleButton::updateStyleSheet(int state)
 
     setStyleSheet("QPushButton {"
                   "padding: 0px;"
-                  "border: 1px solid rgb(125,125,125);"
+                  //"border: 1px solid rgb(125,125,125);"
+                  "border: 1px solid " + Theme::theme()->getDisabledBackgroundColorHex() + ";"
                   + backgroundStyleSheet
                   + "}"
                   + fixedStyleSheet);
