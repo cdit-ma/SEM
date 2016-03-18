@@ -412,7 +412,7 @@ private:
     QAction* actionContextMenu;
 
     QAction* actionSearch;
-    QAction* actionSearchOptions;
+    //QAction* actionSearchOptions;
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;

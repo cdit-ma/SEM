@@ -78,7 +78,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 {
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-    initialiseTheme();
     setupApplication();
 
     nodeView = 0;
@@ -99,6 +98,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     CURRENT_THEME = VT_NORMAL_THEME;
 
     //Initialize classes.
+    initialiseTheme();
     initialiseSettings();
     initialiseJenkinsManager();
     initialiseCUTSManager();
@@ -793,10 +793,6 @@ void MedeaWindow::setupMenu()
     actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
     actionSort->setToolTip("Sort Selection");
 
-    actionSearchOptions = new QAction("Search Options", this);
-    actionSearchOptions->setToolTip("Change search options");
-    actionSearchOptions->setCheckable(true);
-
 
     actionSearch = new QAction("Search", this);
     actionSearch->setToolTip("Search for text");
@@ -857,7 +853,6 @@ void MedeaWindow::setupMenu()
     modelActions.removeAll(view_showMinimap);
 
     modelActions << actionSearch;
-    modelActions << actionSearchOptions;
 }
 
 void MedeaWindow::updateMenuIcons()
@@ -932,7 +927,7 @@ void MedeaWindow::updateMenuIcons()
 
 
     actionSearch->setIcon(getIcon("Actions", "Search"));
-    actionSearchOptions->setIcon(getIcon("Actions", "SearchOptions"));
+    searchOptionToolButton->setIcon(getIcon("Actions", "SearchOptions"));
 
 
     QIcon fileIcon = getIcon("Actions", "New");
@@ -1123,7 +1118,7 @@ void MedeaWindow::setupSearchTools()
     searchToolButton->setDefaultAction(actionSearch);
 
     searchOptionToolButton = new QToolButton(this);
-    searchOptionToolButton->setDefaultAction(actionSearchOptions);
+    searchOptionToolButton->setCheckable(true);
 
     searchOptionMenu = new QMenu(this);
     //searchOptionMenu->setStyle(QStyleFactory::create("windows"));
@@ -1460,6 +1455,8 @@ void MedeaWindow::setupToolbar()
 {
     // TODO - Group separators with tool buttons; hide them accordingly
     toolbar = new QToolBar(this);
+    //toolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+
     toolbarLayout = new QVBoxLayout();
 
     toolbarButton = new QToolButton(this);
@@ -1499,7 +1496,7 @@ void MedeaWindow::setupToolbar()
     constructToolbarButton(toolbar, actionBack, TOOLBAR_BACK);
     constructToolbarButton(toolbar, actionForward, TOOLBAR_FORWARD);
 
-    toolbar->setStyle(QStyleFactory::create("windows"));
+    //toolbar->setStyle(QStyleFactory::create("windows"));
     toolbar->setFloatable(false);
     toolbar->setMovable(false);
 }
@@ -2021,9 +2018,7 @@ void MedeaWindow::setupConnections()
 
     connect(actionSearch, SIGNAL(triggered(bool)), this, SLOT(on_actionSearch_triggered()));
 
-    connect(actionSearchOptions, SIGNAL(triggered(bool)), this, SLOT(searchMenuButtonClicked(bool)));
-
-    //connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
+    connect(searchOptionToolButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(viewAspectsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(nodeKindsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(dataKeysButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
@@ -2928,8 +2923,9 @@ void MedeaWindow::updateToolbar()
         }
     }
 
+    // TODO - Calculate the toolbar padding and stuff the proper way!
     QSize toolbarSize = QSize(totalWidth, TOOLBAR_BUTTON_HEIGHT);
-    toolbar->setFixedSize(toolbarSize + QSize(5, TOOLBAR_GAP));
+    toolbar->setFixedSize(toolbarSize + QSize(32, TOOLBAR_GAP));
 
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();
@@ -3997,7 +3993,7 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
     QMenu* menu = 0;
 
     QPoint offset(0,2);
-    if (QObject::sender() == actionSearchOptions) {
+    if (QObject::sender() == searchOptionToolButton) {
         widget = searchToolbar;
         menu = searchOptionMenu;
     } else if (QObject::sender() == viewAspectsButton) {
@@ -4010,6 +4006,11 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
         widget = dataKeysBar;
         menu = dataKeysMenu;
     }
+
+    qCritical() << "CLICKED";
+    qCritical() << widget;
+    qCritical() << menu;
+
 
     if (widget && menu) {
         if (showMenu) {
@@ -4042,6 +4043,17 @@ void MedeaWindow::searchMenuClosed()
         //if the mouse is not within the confines of the searchOptionMenu, then close the searchOptionMenu too
         if (!menuRect.contains(QCursor::pos())) {
             searchOptionMenu->close();
+        }
+    }else if(menu && menu == searchOptionMenu){
+        QPoint topLeft = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().topLeft());
+        QPoint bottomRight = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().bottomRight());
+
+        QRect buttonRect(topLeft, bottomRight);
+
+        if (buttonRect.contains(QCursor::pos())){
+            searchOptionToolButton->setChecked(true);
+        }else{
+            searchOptionToolButton->setChecked(false);
         }
     }
 }
@@ -4875,6 +4887,8 @@ void MedeaWindow::updateStyleSheets()
     nodeView->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; }");
 
     projectNameShadow->setColor(theme->getBackgroundColor());
+    toolbar->setStyleSheet("QToolBar{ border: 1px solid " + disabledBGColor + "; border-radius: 5px; spacing: 2px; padding: 1px; }");
+                                                                             // "QToolBar::separator { width:" + TOOLBAR_SEPERATOR_WIDTH + "px; }");
 
 
     searchBar->setStyleSheet("QLineEdit {"
@@ -4894,7 +4908,7 @@ void MedeaWindow::updateStyleSheets()
     setStyleSheet("QToolBar#" THEME_STYLE_HIDDEN_TOOLBAR "{ border: none; background-color: rgba(0,0,0,0); padding:0px; }"
                   "QToolBar::separator { width:" + QString::number(TOOLBAR_SEPERATOR_WIDTH) + "px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
-                  "margin: 0px 1px;"
+                  //"margin: 0px 1px;"
                   "border-radius: 5px;"
                   "border: 1px solid " + disabledBGColor + ";"
                   "background:" + altBGColor + ";"
