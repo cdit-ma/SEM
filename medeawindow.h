@@ -247,7 +247,7 @@ protected:
 
 
 private:
-    QToolBar *constructToolbar();
+    QToolBar *constructToolbar(bool ignoreStyle = false);
     void saveTheme(bool apply = true);
     void resetTheme(bool darkTheme);
     void resetAspectTheme(bool colorBlindTheme);

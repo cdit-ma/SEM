@@ -1167,6 +1167,7 @@ void MedeaWindow::setupSearchTools()
 
     searchToolbar = constructToolbar();
     searchToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+
     searchToolbar->addWidget(searchBar);
     searchToolbar->addWidget(searchToolButton);
     searchToolbar->addWidget(searchOptionToolButton);
@@ -1191,7 +1192,7 @@ void MedeaWindow::setupSearchTools()
     viewAspectsButton = new QToolButton(this);
     viewAspectsButton->setCheckable(true);
 
-    QToolBar*  viewAspectsToolbar = constructToolbar();
+    QToolBar*  viewAspectsToolbar = constructToolbar(true);
     viewAspectsToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     viewAspectsToolbar->setFixedSize(20, 20);
     viewAspectsToolbar->addWidget(viewAspectsButton);
@@ -1231,7 +1232,7 @@ void MedeaWindow::setupSearchTools()
     nodeKindsButton = new QToolButton(this);
     nodeKindsButton->setCheckable(true);
 
-    QToolBar* nodeKindToolbar = constructToolbar();
+    QToolBar* nodeKindToolbar = constructToolbar(true);
     nodeKindToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     nodeKindToolbar->setFixedSize(20, 20);
     nodeKindToolbar->addWidget(nodeKindsButton);
@@ -1274,7 +1275,7 @@ void MedeaWindow::setupSearchTools()
     dataKeysDefaultText.truncate(dataKeysDefaultText.length() - 2);
 
     dataKeysBar = new QLineEdit(dataKeysDefaultText, this);
-    QToolBar*  dataKeysToolbar = constructToolbar();
+    QToolBar*  dataKeysToolbar = constructToolbar(true);
     dataKeysToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
     dataKeysButton = new QToolButton(this);
@@ -1462,6 +1463,7 @@ void MedeaWindow::setupToolbar()
     toolbar = constructToolbar();
     toolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
+
     toolbarLayout = new QVBoxLayout();
 
     toolbarButtonBar = constructToolbar();
@@ -1469,9 +1471,12 @@ void MedeaWindow::setupToolbar()
     toolbarButtonBar->setMovable(false);
     toolbarButtonBar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     toolbarButton = new QToolButton(this);
+    toolbarButton->setStyle(QStyleFactory::create("windows"));
     toolbarButton->setDefaultAction(actionToggleToolbar);
-    toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
+    toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT/2);
     toolbarButtonBar->addWidget(toolbarButton);
+    qCritical()<< toolbarButton->autoRaise();
+    toolbarButton->setAutoRaise(false);
 
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
     //edit_undo->setIconVisibleInMenu(false);
@@ -2143,11 +2148,13 @@ void MedeaWindow::changeEvent(QEvent *event)
     }
 }
 
-QToolBar *MedeaWindow::constructToolbar()
+QToolBar *MedeaWindow::constructToolbar(bool ignoreStyle)
 {
     QToolBar* tb = new QToolBar(this);
 #ifdef TARGET_OS_MAC
-    tb->setStyle(QStyleFactory::create("windows"));
+    if(!ignoreStyle){
+        tb->setStyle(QStyleFactory::create("windows"));
+    }
 #endif
     return tb;
 }
