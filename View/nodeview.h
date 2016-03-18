@@ -519,8 +519,10 @@ private:
 
 
 
+
     NodeView* parentNodeView;
     ToolbarWidget* toolbar;
+
     NewController* controller;
     QRubberBand* rubberBand;
     QMenu* prevLockMenuOpened;

@@ -4820,7 +4820,6 @@ void MedeaWindow::updateStyleSheets()
 {
     Theme* theme = Theme::theme();
 
-
     QString BGColor = theme->getBackgroundColorHex();
     QString disabledBGColor = theme->getDisabledBackgroundColorHex();
     QString altBGColor = theme->getAltBackgroundColorHex();
