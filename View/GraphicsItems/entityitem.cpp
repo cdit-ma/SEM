@@ -621,8 +621,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
-    //painter->setRenderHint(QPainter::Antialiasing, true);
-    //painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
     VIEW_STATE viewState = getViewState();
 
@@ -1101,6 +1099,10 @@ void EntityItem::setVisibility(bool visible)
  */
 void EntityItem::dataChanged(QString keyName, QVariant data)
 {
+    if(keyName == ""){
+        return;
+    }
+
     bool boolValue = data.toBool();
     if(data.isNull()){
         boolValue = false;
@@ -1182,6 +1184,11 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
     if(keyName == statusModeDataKey){
         if(statusItem){
             statusItem->setValue(data.toString());
+            if(statusItem->getValue() == "1"){
+                statusItem->setVisible(false);
+            }else{
+                statusItem->setVisible(true);
+            }
         }
     }
 }
