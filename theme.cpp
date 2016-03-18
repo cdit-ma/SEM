@@ -369,7 +369,6 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
 
 void Theme::preloadImages()
 {
-    qCritical() << "PRELOADING ON " << QThread::currentThread();
     QStringList dirs;
     dirs << "Actions" << "Data" << "Functions" << "Items" << "Welcome";
     foreach(QString dir, dirs){
@@ -378,10 +377,10 @@ void Theme::preloadImages()
             it.next();
             QString imageName = it.fileName();
             getImage(dir, imageName);
-            //qCritical() << it.fileName();
         }
     }
-    qCritical() << "PreLoading Finished ON " << QThread::currentThread();
+    //Only Allow once.
+    disconnect(this, SIGNAL(initPreloadImages()), this, SLOT(preloadImages()));
 }
 
 void Theme::updateValid()

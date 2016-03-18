@@ -86,7 +86,8 @@ void NodeViewMinimap::fitToScreen()
 
 void NodeViewMinimap::viewportRectChanged(QRectF viewport)
 {
-    this->viewportRect = viewport;
+    //Update the viewport Rect.
+    viewportRect = viewport;
 }
 
 

@@ -149,6 +149,7 @@ private:
     ERROR_TYPE errorType;
 
 
+
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);

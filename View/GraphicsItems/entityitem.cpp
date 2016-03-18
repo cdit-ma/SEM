@@ -621,8 +621,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
-    painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
+    //painter->setRenderHint(QPainter::Antialiasing, true);
+    //painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
     VIEW_STATE viewState = getViewState();
 
@@ -652,18 +652,11 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         // this highlights this item if it is a hardware entity and the selected entity is connected to it
         if (isHardwareLink) {
-            //bodyBrush.setColor(QColor(90,150,200));
-            //headBrush.setColor(QColor(90,150,200));
-            //bodyBrush.setColor(Qt::darkBlue);
-            //headBrush.setColor(Qt::darkBlue);
             bodyBrush.setColor(Theme::theme()->getHighlightColor());
             headBrush.setColor(Theme::theme()->getHighlightColor());
         }
 
         if (isHighlighted()) {
-            //bodyBrush.setColor(Qt::white);
-            //bodyBrush.setColor(QColor(255,136,0));
-            //headBrush.setColor(QColor(255,136,0));
             headBrush.setColor(Theme::theme()->getHighlightColor());
         }
         //Paint Background

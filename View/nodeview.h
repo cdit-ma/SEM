@@ -137,7 +137,7 @@ public:
 
     void updateActionsEnabledStates();
 
-    void aspectGraphicsChanged();
+    void viewportTranslated();
     void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
     VIEW_THEME getTheme();
 
@@ -158,7 +158,6 @@ protected:
 
     void setReadOnlyMode(bool readOnly);
 
-    bool viewportEvent(QEvent *);
 
 private:
     void resetViewState();
@@ -435,6 +434,7 @@ public slots:
     void itemEntered(int ID, bool enter);
 
 
+    void translate(qreal dx, qreal dy);
 private:
     AspectItem* getAspectItem(VIEW_ASPECT aspect);
     void setConnectMode(bool on);
@@ -536,14 +536,13 @@ private:
     QList<Edge::EDGE_CLASS> nonDrawnEdgeClasses;
 
 
-    QPoint panningOrigin;
-    QPoint previousPanPos;
+    QPoint panOrigin;
+    QPointF panPrevPos;
     QPoint rubberBandOrigin;
 
     QPointF toolbarPosition;
     QPointF centerPoint;
     QPointF prevCenterPoint;
-    //QPointF panningSceneOrigin;
     QPoint testSceneOrigin;
 
     int centralizedItemID;
@@ -598,6 +597,7 @@ private:
     QHash<int, QRectF> centeredRects;
 
 
+    QList<int> aspectIDs;
     QHash<QString, QPixmap> imageLookup;
     QHash<int, GraphMLItem*> guiItems;
     QHash<int, QString> noGuiIDHash;
@@ -611,6 +611,8 @@ private:
     int prevHighlightedFromToolbarID;
 
     bool ZOOM_UNDER_MOUSE;
+
+    VIEW_ASPECT aspectVisible;
 
 
     QGraphicsTextItem* backgroundText;

@@ -99,7 +99,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     CURRENT_THEME = VT_NORMAL_THEME;
 
     //Initialize classes.
-    //initialiseTheme();
     initialiseSettings();
     initialiseJenkinsManager();
     initialiseCUTSManager();
@@ -2543,9 +2542,7 @@ void MedeaWindow::initialiseTheme()
     Theme::theme()->setDefaultImageTintColor("Welcome", "Settings", QColor(230,51,42));
 
     //LOAD THINGS
-    qCritical() << "PRELOAD";
     emit Theme::theme()->initPreloadImages();
-    qCritical() << "PRELOADING";
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
@@ -2833,7 +2830,7 @@ void MedeaWindow::updateWidgetsOnWindowChange()
         nodeView->visibleViewRectChanged(getCanvasRect());
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
-        nodeView->aspectGraphicsChanged();
+        nodeView->viewportTranslated();
     }
 
 
