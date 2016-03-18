@@ -34,6 +34,7 @@
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 
+#define ARROW_PAN_DISTANCE 1
 #define VIEW_PADDING 1.1
 #define CENTER_ON_PADDING 1 / 0.25
 
@@ -2529,6 +2530,18 @@ void NodeView::setState(VIEW_STATE state)
     }
 }
 
+qreal NodeView::getArrowKeyDelta(bool SHIFT, bool neg)
+{
+    qreal distance = ARROW_PAN_DISTANCE * getCurrentZoom();
+    if(neg){
+        distance *= -1;
+    }
+    if(SHIFT){
+        distance *= 10;
+    }
+    return distance;
+}
+
 /**
  * @brief NodeView::transition - Called when viewstate changes.
  */
@@ -3872,6 +3885,26 @@ void NodeView::keyPressEvent(QKeyEvent *event)
                     EntityItem->setNewLabel();
                 }
             }
+        }
+        QPoint arrowAdjust;
+        if(event->key() == Qt::Key_Up){
+            arrowAdjust.setY(getArrowKeyDelta(SHIFT));
+        }
+
+        if(event->key() == Qt::Key_Down){
+            arrowAdjust.setY(getArrowKeyDelta(SHIFT, true));
+        }
+
+        if(event->key() == Qt::Key_Right){
+            arrowAdjust.setX(getArrowKeyDelta(SHIFT, true));
+
+        }
+
+        if(event->key() == Qt::Key_Left){
+            arrowAdjust.setX(getArrowKeyDelta(SHIFT));
+        }
+        if(!arrowAdjust.isNull()){
+            translate(arrowAdjust.x(), arrowAdjust.y());
         }
     }
 

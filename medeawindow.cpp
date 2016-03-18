@@ -27,6 +27,7 @@
 
 
 #define THREADING true
+
 //DARK MODE DEFAULT THEME
 #define DEFAULT_THEME true
 
@@ -35,8 +36,6 @@
 
 #define MIN_WIDTH 1000
 #define MIN_HEIGHT (480 + SPACER_SIZE * 3)
-//#define MIN_WIDTH 1280
-//#define MIN_HEIGHT (720 + SPACER_SIZE*3)
 
 #define TOOLBAR_BUTTON_WIDTH 42
 #define TOOLBAR_BUTTON_HEIGHT 40
@@ -2893,7 +2892,7 @@ void MedeaWindow::updateToolbar()
                 totalWidth += toolbarButtonLookup[actionName]->width();
             } else {
                 // if actionName is empty, it means that it's a sepator - 8 is the width of the separator
-                totalWidth += 8;
+                totalWidth += TOOLBAR_SEPERATOR_WIDTH;
             }
         }
     }
@@ -4862,7 +4861,7 @@ void MedeaWindow::updateStyleSheets()
     recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
                                             "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
 
-    setStyleSheet("QToolBar::separator { width:8px; background-color: rgba(0,0,0,0); }"
+    setStyleSheet("QToolBar::separator { width:" + QString::number(TOOLBAR_SEPERATOR_WIDTH) + "px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 5px;"

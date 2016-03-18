@@ -441,6 +441,7 @@ private:
     void setRubberBandMode(bool On);
     void setState(VIEW_STATE newState);
 
+    qreal getArrowKeyDelta(bool SHIFT, bool neg = false);
     void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
     void transition();
     void selectJenkinsImportedNodes();
