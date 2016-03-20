@@ -1473,12 +1473,9 @@ void MedeaWindow::setupToolbar()
     toolbarButtonBar->setMovable(false);
     toolbarButtonBar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     toolbarButton = new QToolButton(this);
-    toolbarButton->setStyle(QStyleFactory::create("windows"));
     toolbarButton->setDefaultAction(actionToggleToolbar);
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT/2);
     toolbarButtonBar->addWidget(toolbarButton);
-    qCritical()<< toolbarButton->autoRaise();
-    toolbarButton->setAutoRaise(false);
 
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
     //edit_undo->setIconVisibleInMenu(false);

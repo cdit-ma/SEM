@@ -36,7 +36,13 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     showWikiButton = false;
     showAlignmentButtons = false;
     setAttribute(Qt::WA_TranslucentBackground);
+
+#ifdef TARGET_OS_MAC
+    //Toolbar in a Qt::Popup class doesn't allow Hover/QIcon state changes.
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::ToolTip);
+#else
+    setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
+#endif
 
     // these frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
