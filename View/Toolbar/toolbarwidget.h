@@ -203,6 +203,10 @@ private:
     // is shown and a bool of whether the menu has been re-populated or not
     QHash<ToolbarMenu*, bool> dynamicMenus;
 
+
+    // QWidget interface
+protected:
+    bool event(QEvent *);
 };
 
 #endif // TOOLBARWIDGET_H
