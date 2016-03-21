@@ -265,7 +265,7 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
         //Return new Value
         return dataValue;
     }else{
-        emit validateError("Data Input failed Validation!", errorString, parentEntityID);
+        emit validateError("Data Validation Failed", errorString, parentEntityID);
         //Return old value.
         return data->getValue();
     }

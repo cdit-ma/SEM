@@ -38,8 +38,8 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     setAttribute(Qt::WA_TranslucentBackground);
 
 
-    //Toolbar in a Qt::Popup class doesn't allow Hover/QIcon state changes.
 #ifdef Q_OS_WIN32
+    //Toolbar in a Qt::Popup class doesn't allow Hover/QIcon state changes.
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
 #else
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup | Qt::Dialog);

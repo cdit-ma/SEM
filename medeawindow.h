@@ -67,6 +67,10 @@
 #include <QAbstractMessageHandler>
 
 
+struct NotificationStruct{
+    QString text;
+    QString actionImage;
+};
 
 class SearchDialog;
 
@@ -113,8 +117,6 @@ signals:
     void window_updateActionsEnabled();
 
     void checkDockScrollBar();
-
-    void window_DisplayMessage(MESSAGE_TYPE type, QString title, QString message);
 
     void window_refreshActions();
 
@@ -169,7 +171,7 @@ private slots:
     void saveSettings();
     void search();
 
-    void gotJenkinsNodeGraphML(QString graphML);
+    void gotJenkinsNodeGraphML(QString graphML = "");
     void setImportJenkinsNodeEnabled(bool enabled = true);
     void on_actionImportJenkinsNode();
 
@@ -217,7 +219,7 @@ private slots:
     void searchMenuButtonClicked(bool checked);
     void searchMenuClosed();
 
-    void displayNotification(QString notification = "",  int seqNum = 0, int totalNum = 1);
+    void displayNotification(QString notification = "", QString actionImage="");
     void checkNotificationsQueue();
 
     void showDocks(bool checked);
@@ -479,12 +481,15 @@ private:
     bool progressDialogVisible;
 
     QGroupBox* loadingBox;
+    QWidget* loadingWidget;
     QLabel* loadingLabel;
     QLabel* loadingMovieLabel;
 
+    QGroupBox* notificationsBox;
+    QLabel* notificationsIcon;
     QLabel* notificationsBar;
     QTimer* notificationTimer;
-    QQueue<QString> notificationsQueue;
+    QQueue<NotificationStruct> notificationsQueue;
     QHash<int, QString> multipleNotification;
     int leftOverTime;
 
@@ -603,6 +608,8 @@ private:
 
 
     QSettings* persistantSettings;
+
+    int NOTIFICATION_TIME;
 
 
 

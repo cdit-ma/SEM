@@ -17,6 +17,7 @@
 #include "../Model/Edges/dataedge.h"
 #include "../Model/Edges/assemblyedge.h"
 #include "../Model/Edges/aggregateedge.h"
+#include "../Model/Edges/deploymentedge.h"
 #include "../Model/data.h"
 
 #include "../doublehash.h"
@@ -212,7 +213,10 @@ signals:
 
     void controller_AskQuestion(MESSAGE_TYPE, QString title, QString message, int ID=-1);
     void controller_GotQuestionAnswer();
-    void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, int ID=-1, bool centralize=false);
+
+    void controller_DisplayMessage(MESSAGE_TYPE, QString messageString, QString messageTitle = "", QString messageIcon = "", int centerID =-1);
+
+    //void controller_DisplayMessage(MESSAGE_TYPE, QString messageTitle, QString messageIcon = "", QString message = "", int ID=-1, bool centralize=false);
 
 
     void controller_SavedProject(QString filePath, QString dat);

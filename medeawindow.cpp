@@ -49,8 +49,6 @@
 #define SEARCH_DIALOG_MIN_WIDTH ((MIN_WIDTH * 2.0) / 3.0)
 #define SEARCH_DIALOG_MIN_HEIGHT ((MIN_HEIGHT * 2.0) / 3.0)
 
-//#define NOTIFICATION_TIME 2000
-#define NOTIFICATION_TIME 2000
 
 #define SEARCH_VIEW_ASPECTS 0
 #define SEARCH_NODE_KINDS 1
@@ -79,6 +77,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
     setupApplication();
+    NOTIFICATION_TIME = 1000;
     nodeView = 0;
     nodeView = 0;
     controller = 0;
@@ -453,6 +452,10 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         if(DEFAULT_PATH == ""){
             //Use application directory
             DEFAULT_PATH = applicationDirectory;
+        }
+    }else if(keyName == NOTIFICATION_LENGTH && isInt){
+        if(intValue > 0 && intValue < 10000){
+            NOTIFICATION_TIME = intValue;
         }
     }
 }
@@ -1403,21 +1406,33 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 
     // setup notification bar and timer
     notificationTimer = new QTimer(this);
+
+    notificationsBox = new QGroupBox(this);
+    notificationsBox->setObjectName(THEME_STYLE_GROUPBOX);
+
+    QHBoxLayout* hLayout = new QHBoxLayout();
+    notificationsBox->setLayout(hLayout);
+
+
+
     notificationsBar = new QLabel("", this);
+    notificationsIcon = new QLabel(this);
+    notificationsBar->setStyleSheet("color: white;");
+    notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", "Clear", QSize(64,64), Qt::white));
     notificationsBar->setFixedHeight(40);
     notificationsBar->setFont(biggerFont);
     notificationsBar->setAlignment(Qt::AlignCenter);
-    notificationsBar->setStyleSheet(//"background-color: rgba(250,250,250,0.85);"
-                                    "background-color: rgba(30,30,30,0.9);"
-                                    //"color: rgb(30,30,30);"
-                                    "color: rgb(250,250,250);"
-                                    "border-radius: 5px;"
-                                    "padding: 0px 15px;");
+
+    hLayout->addWidget(notificationsIcon, 0);
+    hLayout->addWidget(notificationsBar, 1);
+
 
     // setup loading gif and widgets
     loadingLabel = new QLabel("Loading...", this);
     loadingLabel->setFont(biggerFont);
-    loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    //loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    loadingLabel->setAlignment(Qt::AlignCenter);
+    loadingLabel->setStyleSheet("color:white;");
 
     loadingMovie = new QMovie(":/Actions/Loading.gif");
     loadingMovie->setBackgroundColor(Qt::white);
@@ -1435,16 +1450,19 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     loadingLayout->addWidget(loadingLabel);
     loadingLayout->addStretch();
 
+
+
     loadingBox = new QGroupBox(this);
     loadingBox->setObjectName(THEME_STYLE_GROUPBOX);
     loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT);
     loadingBox->setLayout(loadingLayout);
 
+
     // add widgets to layout
     QVBoxLayout* vLayout = new QVBoxLayout();
     vLayout->addStretch();
-    vLayout->addWidget(notificationsBar);
-    vLayout->setAlignment(notificationsBar, Qt::AlignCenter);
+    vLayout->addWidget(notificationsBox);
+    vLayout->setAlignment(notificationsBox, Qt::AlignCenter);
     vLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
 
     layout->setSpacing(0);
@@ -1815,7 +1833,7 @@ void MedeaWindow::resetGUI()
     leftOverTime = 0;
 
     // initially hide these
-    notificationsBar->hide();
+    notificationsBox->hide();
     progressDialog->hide();
     loadingBox->hide();
 
@@ -1935,12 +1953,12 @@ void MedeaWindow::setupConnections()
 
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
 
-    connect(this, SIGNAL(window_DisplayMessage(MESSAGE_TYPE,QString,QString)), nodeView, SLOT(showMessage(MESSAGE_TYPE,QString,QString)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
 
-    connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
+    connect(notificationTimer, SIGNAL(timeout()), notificationsBox, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
-    connect(nodeView, SIGNAL(view_displayNotification(QString,int,int)), this, SLOT(displayNotification(QString,int,int)));
+
+    connect(nodeView, SIGNAL(view_DisplayNotification(QString,QString)), this, SLOT(displayNotification(QString,QString)));
 
     connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setActionEnabled(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
@@ -2200,12 +2218,9 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
         Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
-        //Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(130,130,130));
     } else {
         Theme::theme()->setBackgroundColor(QColor(170,170,170));
         Theme::theme()->setHighlightColor(QColor(75,110,175));
-        //Theme::theme()->setAltBackgroundColor(QColor(238,238,238));
-        //Theme::theme()->setDisabledBackgroundColor(QColor(162,162,162));
         Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
         Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter(110));
 
@@ -2216,8 +2231,6 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
         Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
         Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
-        //Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getAltBackgroundColor().darker(110));
-        //Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(130,130,130));
     }
 }
 
@@ -2225,7 +2238,6 @@ void MedeaWindow::resetAspectTheme(bool colorBlindTheme)
 {
     if(colorBlindTheme){
         Theme::theme()->setAspectBackgroundColor(VA_INTERFACES, QColor(24,148,184));
-        //Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, QColor(245,222,179));
         Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, QColor(110,110,110));
         Theme::theme()->setAspectBackgroundColor(VA_ASSEMBLIES, QColor(175,175,175));
         Theme::theme()->setAspectBackgroundColor(VA_HARDWARE, QColor(207,107,100));
@@ -2786,7 +2798,9 @@ void MedeaWindow::showShortcutList()
  */
 void MedeaWindow::invalidJenkinsSettings(QString message)
 {
-    emit window_DisplayMessage(CRITICAL, "Invalid Jenkins Settings", message);
+    if(nodeView){
+        nodeView->showMessage(CRITICAL, message, "Jenkins Error", "Jenkins_Icon");
+    }
 }
 
 
@@ -3201,8 +3215,6 @@ void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
     if(jenkinsXML != ""){
         // import Jenkins
         emit window_ImportJenkinsNodes(jenkinsXML);
-    }else{
-        QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
     }
 }
 
@@ -3227,13 +3239,14 @@ void MedeaWindow::on_actionImportJenkinsNode()
     progressAction = "Importing Jenkins";
 
     if(jenkinsManager){
-        displayLoadingStatus(true, "Import Jenkins Nodes");
+        displayLoadingStatus(true, "Importing Jenkins Nodes");
         QString groovyScript = applicationDirectory + "Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy";
 
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
         connect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
         connect(jenkinsGS, SIGNAL(gotGroovyScriptOutput(QString)), this, SLOT(gotJenkinsNodeGraphML(QString)));
         connect(jenkinsGS, SIGNAL(requestFinished()), this, SLOT(setImportJenkinsNodeEnabled()));
+        connect(jenkinsGS, SIGNAL(requestFailed()), this, SLOT(gotJenkinsNodeGraphML()));
 
         //Disable the Jenkins Menu Button
         setImportJenkinsNodeEnabled(false);
@@ -3970,7 +3983,7 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
 void MedeaWindow::closeProgressDialog()
 {
     if (leftOverTime > 0) {
-        notificationsBar->show();
+        notificationsBox->show();
         notificationTimer->start(leftOverTime);
         leftOverTime = 0;
     }
@@ -4182,35 +4195,36 @@ void MedeaWindow::updateSearchSuggestions()
  * @param seqNum
  * @param totalNum
  */
-void MedeaWindow::displayNotification(QString notification, int seqNum, int totalNum)
+void MedeaWindow::displayNotification(QString notification, QString actionImage)
 {
-    if (totalNum > 1) {
-        multipleNotification[seqNum] = notification;
-        if (multipleNotification.count() == totalNum) {
-            notification = "";
-            for (int i = 0; i < totalNum; i++) {
-                notification += multipleNotification[i] + " ";
-            }
-            multipleNotification.clear();
-        } else {
-            return;
-        }
-    }
-
     // add new notification to the queue
-    if (!notification.isEmpty()) {
-        notificationsQueue.enqueue(notification);
+    if (notification != ""){
+        NotificationStruct notif;
+        notif.text = notification;
+        notif.actionImage = actionImage;
+        notificationsQueue.enqueue(notif);
     }
 
     // if there is a notification in the queue, start the timer and show the notification bar
     if (!notificationTimer->isActive() && !notificationsQueue.isEmpty()) {
-        notification = notificationsQueue.dequeue();
-        notificationsBar->setText(notification);
-        notificationsBar->setFixedWidth(notificationsBar->fontMetrics().width(notification) + 30);
+        NotificationStruct notif = notificationsQueue.dequeue();
+        notificationsBar->setText(notif.text);
+
+        if(notif.actionImage != ""){
+            notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", notif.actionImage, QSize(64,64), Qt::white));
+            notificationsIcon->setVisible(true);
+        }else{
+            notificationsIcon->setVisible(false);
+        }
+
+        notificationsBar->setFixedWidth(notificationsBar->fontMetrics().width(notif.text) + 30);
+
         // only show the notifications bar if the progress dialog is not open
         if (!progressDialogVisible) {
-            notificationsBar->show();
+            notificationsBox->show();
         }
+
+
         notificationTimer->start(NOTIFICATION_TIME);
     }
 }
@@ -4651,7 +4665,7 @@ bool MedeaWindow::writeFile(QString filePath, QString fileData, bool notify)
     }
 
     if(notify){
-        displayNotification("File: '" + filePath + "'' written!");
+        displayNotification("File: '" + filePath + "'' written!", "Save");
     }
     return true;
 }
@@ -4875,8 +4889,6 @@ void MedeaWindow::updateStyleSheets()
     QString textSelectedColor = theme->getTextColorHex(Theme::CR_SELECTED);
     QString textDisabledColor = theme->getTextColorHex(Theme::CR_DISABLED);
 
-    loadingLabel->setStyleSheet("QLabel { color:" + textColor + ";}");
-
     QString themedMenuStyle = "QMenu {"
                               "padding:" + QString::number(SPACER_SIZE/2) + "px;"
                               "background:" + altBGColor + ";"
@@ -4923,6 +4935,16 @@ void MedeaWindow::updateStyleSheets()
     minimapLabel->setStyleSheet("color: " + textColor + "; font-size: 12px; padding-right: 20px;");
     minimap->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; border: 2px solid " + disabledBGColor + "; }");
     nodeView->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; }");
+
+    QString notificationStyle = "QGroupBox{background-color: rgba(30,30,30,0.9);"
+                                "border-radius: 5px;color: white;}";
+
+
+
+    loadingBox->setStyleSheet(notificationStyle);
+    notificationsBox->setStyleSheet(notificationStyle);
+
+
 
     projectNameShadow->setColor(theme->getBackgroundColor());
     toolbar->setStyleSheet("QToolBar{ border: 1px solid " + disabledBGColor + "; border-radius: 5px; spacing: 2px; padding: 1px; }");

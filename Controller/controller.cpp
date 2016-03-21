@@ -8,7 +8,7 @@
 #include <QObject>
 #include <QSysInfo>
 #include <QDir>
-
+#include <QStringBuilder>
 #include "edgeadapter.h"
 #include "nodeadapter.h"
 #include "../Model/tempentity.h"
@@ -157,7 +157,7 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_ActionProgressChanged(int,QString)), view, SIGNAL(view_updateProgressStatus(int,QString)));
 
         //Signals to the View.
-        connect(this, SIGNAL(controller_DisplayMessage(MESSAGE_TYPE, QString, QString, int,bool)), view, SLOT(showMessage(MESSAGE_TYPE,QString,QString,int, bool)));
+        connect(this, SIGNAL(controller_DisplayMessage(MESSAGE_TYPE,QString,QString,QString,int)), view, SLOT(showMessage(MESSAGE_TYPE,QString,QString,QString,int)));
 
         // Re-added this for now
 
@@ -275,12 +275,14 @@ void NewController::loadWorkerDefinitions()
                 bool success = _newImportGraphML(data.second, workerDefinition);
 
                 if(!success){
-                    emit controller_DisplayMessage(WARNING, "Cannot Import Worker Definition", "MEDEA cannot import worker definition '" + file +"'!");
+                    QString message = "Cannot import worker definition '" + file +"'";
+                    emit controller_DisplayMessage(WARNING, message, "Worker Definition Error", "Warning");
                 }else{
                     qCritical() << "Loaded Worker Definition: " << file;
                 }
             }else{
-                 emit controller_DisplayMessage(WARNING, "Cannot Read Worker Definition", "MEDEA cannot read worker definition '" + file + "'!");
+                QString message = "Cannot read worker definition '" + file +"'";
+                emit controller_DisplayMessage(WARNING, message, "Worker Definition Error", "Warning");
             }
         }
 
@@ -292,7 +294,8 @@ void NewController::loadWorkerDefinitions()
                 if(!workerProcesses.contains(longName)){
                     workerProcesses[longName] = process;
                 }else{
-                    emit controller_DisplayMessage(WARNING, "Duplicate Worker Definitions", "MEDEA has found 2 worker operations with the same name! Using the first found.");
+                    QString message = "2 Worker Operations with the same name, Using only the first.";
+                    emit controller_DisplayMessage(WARNING, message, "Worker Definition Error", "Warning");
                 }
             }
         }
@@ -368,7 +371,6 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
                     exportEdge = false;
                 }else{
                     if(GUI_USED && !copySelectionQuestion){
-                        controller_DisplayMessage(MESSAGE, "", "", src->getID());
                         exportAllEdges = askQuestion(CRITICAL, "Copy Selection?", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", src->getID());
                         copySelectionQuestion = true;
                         GUI_USED = false;
@@ -895,7 +897,7 @@ void NewController::openProject(QString filePath, QString xmlData)
 
     if(!result){
         emit controller_ActionProgressChanged(100);
-        controller_DisplayMessage(CRITICAL, "Open Error", "Cannot fully open document.", getModel()->getID());
+        controller_DisplayMessage(CRITICAL, "Open Error", "Cannot fully open document.", "Open", getModel()->getID());
         //Undo the failed load.
         //undoRedo(true);
     }
@@ -969,7 +971,7 @@ void NewController::setReadOnly(QList<int> IDs, bool readOnly)
         if(node->isSnippetReadOnly() || node->getData("readOnlyDefinition")){
             if(displayWarning){
                 displayWarning = false;
-                emit controller_DisplayMessage(WARNING, "Cannot Modify Read-Only Snippet", "Entity in selection is a read-only snippet. Cannot modify read-only state.", node->getID(), true);
+                emit controller_DisplayMessage(WARNING, "Entity in selection is a read-only snippet. Cannot modify read-only state.", "Cannot Modify Read-Only Snippet", "Snippet", node->getID());
             }
             continue;
         }
@@ -1047,7 +1049,7 @@ bool NewController::_paste(int ID, QString xmlData, bool addAction)
 
     Node* parentNode = getNodeFromID(ID);
     if(!parentNode){
-        controller_DisplayMessage(WARNING, "Paste Error" ,"Please select an entity to paste into.");
+        controller_DisplayMessage(WARNING, "Paste Error" ,"Please select an entity to paste into.", "Critical");
         success = false;
     }else{
         if(isGraphMLValid(xmlData) && xmlData != ""){
@@ -1111,7 +1113,7 @@ bool NewController::_copy(QList<int> IDs)
 
         success = true;
     } else {
-        emit controller_DisplayMessage(WARNING, "Error", "Cannot copy/cut selection.");
+        emit controller_DisplayMessage(WARNING, "Cannot copy selection", "Copy Error", "Warning");
     }
     return success;
 }
@@ -1216,7 +1218,7 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
             //bool result = _importGraphMLXML(xmlData, getModel());
             bool result = _newImportGraphML(xmlData, getModel());
             if(!result){
-                controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
+                controller_DisplayMessage(CRITICAL, "Cannot import document", "Import Error", "Critical", getModel()->getID());
                 success = false;
             }
         }
@@ -2589,11 +2591,11 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
 
 
         if(newNumber > 0){
-            QString questionLabel = newLabel + "_" + QString::number(newNumber);
-            emit controller_DisplayMessage(WARNING, "Label Error", "Found sibling entity with label: '" + newLabel + "'. Setting '" + questionLabel + "' instead.",node->getID());
+            QString questionLabel = newLabel % "_" % QString::number(newNumber);
+            QString message = "Found sibling entity with label: '" % newLabel % "'. Setting as '" % questionLabel % "'.";
+            emit controller_DisplayMessage(WARNING, message, "Duplicate Labels", "Info");
             newLabel = questionLabel;
         }
-
     }
     node->setDataValue("label", newLabel);
 }
@@ -2826,6 +2828,12 @@ bool NewController::destructEdge(Edge *edge)
             setupDataEdgeRelationship(outputNode, inputNode, false);
         }
         break;
+    }
+    case Edge::EC_DEPLOYMENT:{
+        if(isUserAction()){
+            QString message = "Disconnected: '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
+            emit controller_DisplayMessage(MESSAGE, message, "Deployment Changed", "Clear");
+        }
     }
     default:
         break;
@@ -4067,7 +4075,10 @@ void NewController::constructEdgeGUI(Edge *edge)
         qCritical() << "Source and Desitnation null";
     }
 
+    qCritical() << edge->toString();
     Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
+
+    qCritical() << edgeClass;
 
     switch(edgeClass){
     case Edge::EC_DEFINITION:{
@@ -4107,6 +4118,13 @@ void NewController::constructEdgeGUI(Edge *edge)
         BehaviourNode* outputNode = dynamic_cast<BehaviourNode*>(src);
         if(inputNode && outputNode){
             setupDataEdgeRelationship(outputNode, inputNode, true);
+        }
+        break;
+    }
+    case Edge::EC_DEPLOYMENT:{
+        if(isUserAction()){
+            QString message = "Deployed: '" % src->getDataValue("label").toString() % "' onto '" % dst->getDataValue("label").toString() % "'";
+            emit controller_DisplayMessage(MESSAGE, message, "Deployment Changed", "ConnectTo");
         }
         break;
     }
@@ -4297,6 +4315,9 @@ Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS e
     case Edge::EC_AGGREGATE:
         returnable = new AggregateEdge(src,dst);
         break;
+    case Edge::EC_DEPLOYMENT:
+        returnable = new DeploymentEdge(src, dst);
+        break;
     default:
         returnable = new Edge(src, dst);
     }
@@ -4386,7 +4407,8 @@ void NewController::enableDebugLogging(bool logMode, QString applicationPath)
         logFile = new QFile(filePath);
 
         if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
-            emit controller_DisplayMessage(WARNING, "Log File Error", "MEDEA Cannot open log file: " + filePath + ". Logging disabled.");
+            QString message = "Cannot open log file: '" % filePath % "'. Logging disabled.";
+            emit controller_DisplayMessage(WARNING,message, "Log Error", "Warning");
             USE_LOGGING = false;
         }else{
             USE_LOGGING = true;
@@ -4412,7 +4434,7 @@ void NewController::enableDebugLogging(bool logMode, QString applicationPath)
 void NewController::displayMessage(QString title, QString message, int ID)
 {
     //Emit a signal to the view.
-    emit controller_DisplayMessage(MODEL, title, message, ID);
+    emit controller_DisplayMessage(MODEL, message, title, "Critical", ID);
 }
 
 /**
@@ -4486,7 +4508,8 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
                 constructEdgeWithData(dst, src);
             }
             if(!src || !src->gotEdgeTo(dst)){
-                emit controller_DisplayMessage(WARNING, "Deployment Failed", "Cannot connect entity: " + src->toString() + " to hardware entity: " + dst->toString() + ".", srcID);
+                QString message = "Cannot connect entity: '" % src->getDataValue("label").toString() % "'' to hardware entity: '" % dst->getDataValue("label").toString() % ".";
+                emit controller_DisplayMessage(WARNING, message, "Deployment Failed", "Failure" , srcID);
             }
         }
     }
@@ -4600,13 +4623,14 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
     if(parent->isInstance() || parent->isImpl()){
         if(!(UNDOING || REDOING)){
-            emit controller_DisplayMessage(WARNING, "Error", "Cannot import or paste into an Instance/Implementation.", parent->getID());
+            QString message =  "Cannot import/paste into an Instance/Implementation.";
+            emit controller_DisplayMessage(WARNING, message, "Import Error", "Warning" , parent->getID());
             return false;
         }
     }
 
     if(!isGraphMLValid(document)){
-        emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import; invalid GraphML document.", parent->getID());
+        emit controller_DisplayMessage(CRITICAL, "Cannot import, invalid GraphML document.", "Import Error", "Critical");
         return false;
     }
 
@@ -4872,7 +4896,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }
 
                     if(!newNode){
-                        emit controller_DisplayMessage(WARNING, "Import Error", "Cannot create node from document at line #" + QString::number(entity->getLineNumber()) + ".");
+                        QString message = "Cannot create node from document at line #" % QString::number(entity->getLineNumber()) % ".";
+                        emit controller_DisplayMessage(WARNING, message, "Import Error");
                         entity->setIgnoreConstruction();
                         continue;
                     }
@@ -5518,7 +5543,7 @@ QString NewController::getProcessName(Process *process)
 
 bool NewController::isUserAction()
 {
-    if(UNDOING || REDOING || OPENING_PROJECT || IMPORTING_PROJECT || INITIALIZING || PASTE_USED){
+    if(UNDOING || REDOING || OPENING_PROJECT || IMPORTING_PROJECT || INITIALIZING || PASTE_USED || DESTRUCTING_CONTROLLER){
         return false;
     }else{
         return true;

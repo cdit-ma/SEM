@@ -46,7 +46,7 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define TOGGLE_GRID "02-04-Toggle_Grid_Lines"
 #define SHOW_MANAGEMENT_COMPONENTS "02-05-Show_Management_Components"
 #define SHOW_LOCAL_NODE "02-06-Show_Local_Node"
-#define DARK_THEME_ON "02-07-Dark_Theme_On"
+#define NOTIFICATION_LENGTH "02-07-Notification_Length_In_MS"
 
 #define ASPECT_SETTINGS "03-Aspects"
 #define ASPECT_COLOR_DEFAULT "03-00-Set_Aspect_Default"

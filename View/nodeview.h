@@ -138,8 +138,6 @@ public:
     void updateActionsEnabledStates();
 
     void viewportTranslated();
-    void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
-    VIEW_THEME getTheme();
 
 
 protected:
@@ -270,7 +268,7 @@ signals:
     void view_toggleAspect(VIEW_ASPECT, bool);
 
     void view_updateProgressStatus(int percent, QString action="");
-    void view_displayNotification(QString notification, int seqNum = 0, int totalNum = 1);
+    void view_DisplayNotification(QString notification, QString actionImage = "");
 
     void view_EntityItemLockMenuClosed(EntityItem* EntityItem);
     void view_QuestionAnswered(bool answer);
@@ -318,7 +316,7 @@ public slots:
 
     void setEnabled(bool);
 
-    void showMessage(MESSAGE_TYPE type, QString title, QString message, int ID=-1, bool centralizeItem = false);
+    void showMessage(MESSAGE_TYPE type, QString messageString, QString messageTitle, QString messageIcon, int centerID=-1);
 
     void view_ClearHistory();
 

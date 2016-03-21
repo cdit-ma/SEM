@@ -169,11 +169,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     IS_VECTOR = nodeKind.startsWith("Vector");
 
 
-    if(inMainView()){
-        CHILDREN_VIEW_MODE = CONNECTED;
-    }else{
-        CHILDREN_VIEW_MODE = ALL;
-    }
+    CHILDREN_VIEW_MODE = ALL;
 
     childrenViewOptionMenu = 0;
     allChildren = 0;
@@ -2146,8 +2142,6 @@ void EntityItem::setupChildrenViewOptionMenu()
     font.setPointSize(9);
 
     childrenViewOptionMenu->setFont(font);
-    //childrenViewOptionMenu->setAttribute(Qt::WA_TranslucentBackground);
-    //childrenViewOptionMenu->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
 
     allChildren = new QRadioButton("All");
     connectedChildren = new QRadioButton("Connected");

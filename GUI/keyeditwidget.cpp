@@ -132,7 +132,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         oldValue = boolVal;
     }else if (isInt){
         QSpinBox* intEdit = new QSpinBox();
-        intEdit->setRange(0,4000);
+        intEdit->setRange(0,10000);
         intEdit->setValue(intVal);
 
         intEdit->setFixedHeight(SMALL_SQUARE);

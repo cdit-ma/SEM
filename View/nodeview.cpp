@@ -157,13 +157,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
         connect(comboBox, SIGNAL(activated(QString)), this, SLOT(dropDownChangedValue(QString)));
     }
 
-    // call this after the toolbar has been constructed to pass on the theme
-    setupTheme();
-
-
-
-    //Started sound effects
-    //setupSoundEffects();
 
     // initialise the view's center point
     centerPoint = getVisibleRect().center();
@@ -1301,32 +1294,6 @@ void NodeView::showDropDown(GraphMLItem *item, QLineF dropDownPosition, QString 
 }
 
 
-/**
- * @brief NodeView::setupTheme
- * @param theme
- */
-void NodeView::setupTheme(VIEW_THEME theme)
-{
-    QColor bgColor = Theme::theme()->getBackgroundColor();
-
-    setStyleSheet("QGraphicsView {"
-                  "background-color:" + bgColor.name() + ";"
-                  "border: 0px;}");
-
-    currentTheme = theme;
-    emit view_themeChanged(theme);
-}
-
-
-/**
- * @brief NodeView::getTheme
- * @return
- */
-VIEW_THEME NodeView::getTheme()
-{
-    return currentTheme;
-}
-
 
 /**
  * @brief NodeView::aspectGraphicsChanged
@@ -1821,12 +1788,6 @@ void NodeView::settingChanged(QString, QString keyName, QVariant value)
         showManagementComponents(boolValue);
     }else if(keyName == SHOW_LOCAL_NODE){
         showLocalNode(boolValue);
-    }else if(keyName == DARK_THEME_ON) {
-        if (boolValue){
-            setupTheme(VT_DARK_THEME);
-        }else{
-            setupTheme(VT_NORMAL_THEME);
-        }
     }
 }
 
@@ -2031,7 +1992,7 @@ void NodeView::centerOnItem(GraphMLItem* item)
         }
 
     } else {
-        view_displayNotification("Select entity to center on.");
+        view_DisplayNotification("Select entity to center on.");
     }
 }
 
@@ -2075,7 +2036,7 @@ void NodeView::selectAndCenterItem(int ID)
         centerOnItem(item);
 
     } else {
-        view_displayNotification("Entity no longer exists!");
+        view_DisplayNotification("Entity no longer exists!");
     }
 }
 
@@ -2224,7 +2185,7 @@ void NodeView::highlightDeployment(bool clear)
         }
         if (!selectedEntityItem->deploymentView(true, selectedEntityItem).isEmpty()) {
             // if there are higlighted children, display notification
-            view_displayNotification("The selected entity has children that are deployed to a different node.");
+            view_DisplayNotification("The selected entity has children that are deployed to a different node.");
         }
         prevSelectedNodeID = selectedEntityItem->getID();
     }
@@ -2597,7 +2558,7 @@ void NodeView::_deleteFromIDs(QList<int> IDs)
             emit view_Delete(IDs);
         }
     } else {
-        view_displayNotification("Select entity(s)/connection(s) to delete.");
+        view_DisplayNotification("Select entity(s)/connection(s) to delete.");
     }
 }
 
@@ -2808,16 +2769,6 @@ void NodeView::destructEdge(int srcID, int dstID, bool triggerAction)
     Q_UNUSED(triggerAction);
 
     if(viewMutex.tryLock()){
-        EntityItem* srcNode = getEntityItemFromID(srcID);
-        EntityItem* dstNode = getEntityItemFromID(dstID);
-        if(srcNode && dstNode){
-            view_displayNotification("Disconnected " + srcNode->getNodeLabel() +
-                                     " from " + dstNode->getNodeLabel() + ".",
-                                     notificationNumber, numberOfNotifications);
-            // reset notification seq and total number
-            //numberOfNotifications = 1;
-            //notificationNumber = 0;
-        }
         emit view_DestructEdge(srcID, dstID);
     }
 }
@@ -3131,7 +3082,7 @@ void NodeView::viewDeploymentAspect()
     emit view_toggleAspect(VA_ASSEMBLIES, true);
     emit view_toggleAspect(VA_HARDWARE, true);
     // only show a notification if there has been a change in view aspects
-    emit view_displayNotification("Turned on deployment view aspects.",  notificationNumber, numberOfNotifications);
+    //emit view_DisplayNotification("Turned on deployment view aspects.");
 }
 
 QPixmap NodeView::getImage(QString alias, QString imageName, QColor tintColor)
@@ -3957,7 +3908,7 @@ void NodeView::setReadOnlyMode(bool readOnly)
             emit view_SetReadOnly(selectedIDs, readOnly);
         }
     } else {
-        view_displayNotification("Select entity(s) to copy.");
+        view_DisplayNotification("Select entity(s) to copy.");
     }
 }
 
@@ -3972,7 +3923,7 @@ void NodeView::alignSelectionHorizontally()
     if (selectedIDs.count() > 0) {
         alignSelectionOnGrid(HORIZONTAL);
     } else {
-        view_displayNotification("No selected entities to align.");
+        view_DisplayNotification("No selected entities to align.");
     }
 }
 
@@ -3987,7 +3938,7 @@ void NodeView::alignSelectionVertically()
     if (selectedIDs.count() > 0) {
         alignSelectionOnGrid(VERTICAL);
     } else {
-        view_displayNotification("No selected entities to align.");
+        view_DisplayNotification("No selected entities to align.");
     }
 }
 
@@ -4011,7 +3962,7 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
             if(!sharedParent){
                 sharedParent = nodeItem->getParent();
             }else if(sharedParent != nodeItem->getParent()){
-                view_displayNotification("Cannot align entities which aren't contained by the same parent.");
+                view_DisplayNotification("Cannot align entities which aren't contained by the same parent.");
                 return;
             }
             averageX += nodeItem->getMinimumRectCenterPos().x();
@@ -4062,19 +4013,22 @@ void NodeView::setEnabled(bool enabled)
 }
 
 
-void NodeView::showMessage(MESSAGE_TYPE type, QString title, QString message, int ID, bool centralizeItem)
+void NodeView::showMessage(MESSAGE_TYPE type, QString messageString, QString messageTitle, QString messageIcon, int centerID)
 {
-    GraphMLItem* item = getGraphMLItemFromID(ID);
-    if(item && centralizeItem){
+    GraphMLItem* item = getGraphMLItemFromID(centerID);
+    if(item){
         centerItem(item);
     }
-    if(message != ""){
+    if(messageString != ""){
         if(type == CRITICAL){
-            QMessageBox::critical(this, "Error: " + title, message, QMessageBox::Ok);
-        }else if(type == WARNING){
-            emit view_displayNotification(message);
+            QMessageBox msgBox(QMessageBox::Critical, messageTitle, messageString);
+            msgBox.setWindowIcon(Theme::theme()->getImage("Actions", "Critical", QSize(), Qt::black));
+            if(messageIcon != ""){
+                msgBox.setIconPixmap(Theme::theme()->getImage("Actions", messageIcon, QSize(64,64), Qt::black));
+            }
+            msgBox.exec();
         }else{
-            emit view_displayNotification(message);
+            emit view_DisplayNotification(messageString, messageIcon);
         }
     }
 }
@@ -4094,7 +4048,7 @@ void NodeView::replicate()
             emit view_Replicate(duplicateList);
         }
     } else {
-        view_displayNotification("Select entity(s) to replicate.");
+        view_DisplayNotification("Select entity(s) to replicate.");
     }
 }
 
@@ -4109,7 +4063,7 @@ void NodeView::copy()
             emit view_Copy(selectedIDs);
         }
     } else {
-        view_displayNotification("Select entity(s) to copy.");
+        view_DisplayNotification("Select entity(s) to copy.");
     }
 }
 
@@ -4128,7 +4082,7 @@ void NodeView::cut()
             emit view_Cut(selectedIDs);
         }
     } else {
-        view_displayNotification("Select entity(s) to cut.");
+        view_DisplayNotification("Select entity(s) to cut.");
     }
 }
 
@@ -4142,7 +4096,7 @@ void NodeView::paste(QString xmlData)
     int ID = getSelectedNodeID();
 
     if (ID == -1) {
-        //view_displayNotification("Select entity to paste into.");
+        //view_DisplayNotification("Select entity to paste into.");
         return;
     }
 
@@ -4776,9 +4730,9 @@ void NodeView::showManagementComponents(bool show)
     }
 
     /*if (show) {
-        view_displayNotification("Displayed Management Components.", notificationNumber, numberOfNotifications);
+        view_DisplayNotification("Displayed Management Components.", notificationNumber, numberOfNotifications);
     } else {
-        view_displayNotification("Hidden Management Components.", notificationNumber, numberOfNotifications);
+        view_DisplayNotification("Hidden Management Components.", notificationNumber, numberOfNotifications);
     }*/
 
     // this goes through all the ManagementComponents and shows/hides them
