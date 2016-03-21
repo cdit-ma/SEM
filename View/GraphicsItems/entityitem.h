@@ -348,7 +348,7 @@ private:
     void setupDataConnections();
     void setupChildrenViewOptionMenu();
 
-    void retrieveData();
+
     void updateTextLabel(QString text="");
     void childUpdated();
 
@@ -378,6 +378,7 @@ private:
     bool IS_HARDWARE_NODE;
     bool IS_VECTOR;
 
+    bool IS_ONLINE;
     int CHILDREN_VIEW_MODE;
     bool sortTriggerAction;
     bool eventFromMenu;

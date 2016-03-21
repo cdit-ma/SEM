@@ -91,6 +91,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     nodeHardwareLocalHost = false;
     nodeMemberIsKey = false;
     IS_HARDWARE_NODE = false;
+    IS_ONLINE = true;
 
     //Setup initial states
     canNodeBeConnected = false;
@@ -769,8 +770,9 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         //If a Node has a Definition, paint a definition icon
         if(IS_READ_ONLY_DEF){
             paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Snippet");
-        }else if (nodeKind == "HardwareCluster") {
-            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Menu_Vertical");
+        }
+        if(IS_HARDWARE_CLUSTER){
+            paintPixmap(painter, lod, IP_BOTLEFT, "Actions", "Menu_Vertical");
         }
 
         if(isInputParameter){
@@ -900,7 +902,7 @@ bool EntityItem::mouseOverTopBar(QPointF mousePosition)
 bool EntityItem::mouseOverHardwareMenu(QPointF mousePosition)
 {
     if (IS_HARDWARE_CLUSTER) {
-        if(iconRect_TopLeft().contains(mousePosition)){
+        if(iconRect_BottomLeft().contains(mousePosition)){
             return true;
         }
     }
@@ -1178,6 +1180,9 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
     }else if(keyName == "operation"){
         //Use as tooltip.
         operationKind = data.toString();
+    }else if(keyName =="is_online"){
+        IS_ONLINE = boolValue;
+        updateErrorState();
     }
 
     if(keyName == editableDataKey){
@@ -1556,6 +1561,12 @@ void EntityItem::updateErrorState()
         }else{
             //Clear the notification.
             notificationItem->setErrorType(ET_CRITICAL, "Instance/Impl isn't connected to a Definition.");
+        }
+    }else if(IS_HARDWARE_NODE){
+        if(IS_ONLINE){
+            notificationItem->setErrorType(ET_OKAY);
+        }else{
+            notificationItem->setErrorType(ET_CRITICAL, "HardwareNode is Offline!");
         }
     }
 }
@@ -2304,6 +2315,7 @@ void EntityItem::setupDataConnections()
         listenForData("os");
         listenForData("architecture");
         listenForData("localhost");
+        listenForData("is_online");
     }else if(nodeKind == "Member" || nodeKind == "MemberInstance"){
         listenForData("key");
     }else if(nodeKind == "Process"){
@@ -2471,23 +2483,6 @@ void EntityItem::themeChanged()
 
 
 
-
-
-void EntityItem::retrieveData()
-{
-
-    if(!getEntityAdapter()){
-        return;
-    }
-
-
-    updateData("width");
-    updateData("height");
-    updateData("x");
-    updateData("y");
-    updateData("label");
-    updateData("type");
-}
 
 
 /**
@@ -2760,7 +2755,7 @@ QMenu *EntityItem::getChildrenViewOptionMenu()
 QRectF EntityItem::geChildrenViewOptionMenuSceneRect()
 {
     if (IS_HARDWARE_CLUSTER) {
-        QRectF menuButtonRect = mapRectToScene(iconRect_TopLeft());
+        QRectF menuButtonRect = mapRectToScene(iconRect_BottomLeft());
         return menuButtonRect;
     }
     return QRectF();
