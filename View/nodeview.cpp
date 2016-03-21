@@ -2724,7 +2724,8 @@ void NodeView::showToolbar(QPoint position)
         if (toolbarPositionContained) {
             toolbar->move(globalPos.toPoint());
             toolbar->updateToolbar(selectedNodeItems, selectedEdgeItems);
-            toolbar->setVisible(true);
+            toolbar->show();
+            toolbar->setFocus();
         }
     }
 }
