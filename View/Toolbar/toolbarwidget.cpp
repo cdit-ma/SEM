@@ -1658,9 +1658,12 @@ void ToolbarWidget::closeOpenMenus()
 
 bool ToolbarWidget::event(QEvent *e)
 {
-    if (e->type() == QEvent::WindowDeactivate) {
-        closeOpenMenus();
-        hide();
+    if(e->type() == QEvent::FocusOut){
+        QFocusEvent* ev = (QFocusEvent*)e;
+        if(ev->lostFocus() && ev->reason() == Qt::ActiveWindowFocusReason){
+            closeOpenMenus();
+            hide();
+        }
     }
     return QWidget::event(e);
 }
