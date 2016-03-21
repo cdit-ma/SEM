@@ -39,7 +39,12 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
 
 
     //Toolbar in a Qt::Popup class doesn't allow Hover/QIcon state changes.
+#ifdef Q_OS_WIN32
+    setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
+#else
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup | Qt::Dialog);
+#endif
+
 
     // these frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
