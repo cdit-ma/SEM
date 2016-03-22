@@ -325,6 +325,7 @@ void MedeaWindow::modelReady()
     setViewWidgetsEnabled(true);
 
     //setApplicationEnabled(true);
+    updateRightMask();
 }
 
 void MedeaWindow::modelDisconnected()
@@ -617,8 +618,6 @@ void MedeaWindow::initialiseGUI()
     rightVlayout->addLayout(viewButtonsGrid);
     rightVlayout->addWidget(tableScroll, 1);
     rightVlayout->addWidget(minimapBox, 0);
-
-
 
     rightPanelWidget = new QWidget(this);
     rightPanelWidget->setFixedWidth(RIGHT_PANEL_WIDTH);
@@ -2907,7 +2906,6 @@ void MedeaWindow::updateWidgetsOnWindowChange()
     updateWidgetMask(docksArea, dockButtonsBox, true);
     updateDock();
     updateToolbar();
-
     updateDataTable();
 }
 
