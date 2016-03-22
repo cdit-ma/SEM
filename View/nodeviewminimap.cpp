@@ -53,6 +53,7 @@ void NodeViewMinimap::minimapPanned()
 {
     viewport()->unsetCursor();
     emit minimap_Panned();
+    update();
 }
 
 

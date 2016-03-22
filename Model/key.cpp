@@ -191,6 +191,8 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
 		parentEntityID = parentEntity->getID();
     }
 
+
+
     QString errorString = "";
 
 
@@ -236,6 +238,7 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
         }
     case QVariant::Bool:
         okay = dataValue.convert(QVariant::Bool);
+        errorString = "Boolean Failed";
         break;
     default:{
         //Could be a number.
@@ -265,7 +268,9 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
         //Return new Value
         return dataValue;
     }else{
-        emit validateError("Data Validation Failed", errorString, parentEntityID);
+        if(dataValue.isValid()){
+            emit validateError("Data Validation Failed", errorString, parentEntityID);
+        }
         //Return old value.
         return data->getValue();
     }

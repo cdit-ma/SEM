@@ -1656,7 +1656,7 @@ void NodeView::minimapPanning(QPointF delta)
 
 void NodeView::minimapPanned()
 {
-    if(viewState == VS_PANNING){
+    if(viewState == VS_PANNING || viewState == VS_PAN){
         if(selectedIDs.isEmpty()){
             setState(VS_NONE);
         }else{
@@ -1979,6 +1979,7 @@ void NodeView::sortEntireModel()
  */
 void NodeView::centerItem(GraphMLItem *item)
 {
+    qCritical() << QObject::sender();
     if (!item) {
         item = getSelectedGraphMLItem();
     }
@@ -2760,8 +2761,11 @@ void NodeView::showToolbar(QPoint position)
 
 void NodeView::view_CenterGraphML(GraphML *graphML)
 {
+
+
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
     if(guiItem){
+
         centerItem(guiItem);
     }
 }
@@ -3150,9 +3154,8 @@ QRect NodeView::getVisibleViewRect()
  */
 void NodeView::viewDeploymentAspect()
 {
-    qCritical() << "HELLO";
     // Turn on Aspects
-    emit view_toggleAspect(VA_ASSEMBLIES, true);
+    //emit view_toggleAspect(VA_ASSEMBLIES, true);
     emit view_toggleAspect(VA_HARDWARE, true);
     // only show a notification if there has been a change in view aspects
     //emit view_DisplayNotification("Turned on deployment view aspects.");
@@ -4725,12 +4728,13 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         if (toolbarDockConstruction && SELECT_AFTER_CONSTRUCTION) {
             clearSelection();
             // why not update menu/toolbar actions here?
-            appendToSelection(item, false);
+            appendToSelection(item, true);
 
             if(item->isEntityItem()){
                 //Set new Label for EntityItem.
                 entityItem->setNewLabel();
             }
+
             centerOnItem();
             toolbarDockConstruction = false;
         }
@@ -4777,7 +4781,7 @@ void NodeView::showManagementComponents(bool show)
 
     // make sure that the aspects for Deployment are turned on
     if (show) {
-        viewDeploymentAspect();
+        //viewDeploymentAspect();
         notificationNumber++;
     }  else {
         numberOfNotifications = 1;
@@ -4811,31 +4815,19 @@ void NodeView::showManagementComponents(bool show)
 
 void NodeView::showLocalNode(bool show)
 {
-    if(!controller){
-        return;
-    }
-    Node* hardwareDefinition = 0;
-    Model* model = controller->getModel();
-    if (model){
-        QList<Node*> result = model->getChildrenOfKind("HardwareDefinitions");
-        if(result.size() == 1){
-            hardwareDefinition = result[0];
-        }else{
-            return;
+    AspectItem* aspect =  getAspectItem(VA_HARDWARE);
+    if(aspect){
+        EntityItem* localHostNode = 0;
+        foreach(GraphMLItem* child, aspect->getChildren()){
+            if(child->isEntityItem() && child->getNodeKind() == "HardwareNode"){
+                localHostNode = (EntityItem*) child;
+                break;
+            }
         }
-    }
-
-    // this goes through all the ManagementComponents and shows/hides them
-    foreach (Node* node, hardwareDefinition->getChildren(0)){
-        EntityItem* entityItem = getEntityItemFromNode(node);
-        if(entityItem && entityItem->getNodeKind() == "HardwareNode"){
-            entityItem->setHidden(!show);
+        if(localHostNode){
+            localHostNode->setHidden(!show);
+            aspect->sortChildren();
         }
-    }
-
-    EntityItem* hardwareNI = getEntityItemFromNode(hardwareDefinition);
-    if(hardwareNI){
-        hardwareNI->sortChildren();
     }
 
     localNodeVisible = show;
@@ -4994,7 +4986,6 @@ void NodeView::clearModel()
 void NodeView::selectModel()
 {
     if (getModelItem()) {
-        qCritical() << "GOT MODEL ITEM";
         clearSelection();
         appendToSelection(getModelItem());
     }
