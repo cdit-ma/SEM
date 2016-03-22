@@ -5006,7 +5006,6 @@ void MedeaWindow::updateStyleSheets()
                   "}"
                   );
 
-    qCritical() << this->styleSheet();
     menu->setStyleSheet(themedMenuStyle);
     searchOptionMenu->setStyleSheet(themedMenuStyle);
     viewAspectsMenu->setStyleSheet(themedMenuStyle);
