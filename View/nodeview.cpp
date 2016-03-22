@@ -1529,7 +1529,7 @@ void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, i
 
     QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No);
 
-    msgBox.setIconPixmap(getImage("Actions", "Help").scaled(50,50));
+    msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Help").scaled(50,50));
     int reply = msgBox.exec();
     bool yes = reply == QMessageBox::Yes;
     emit view_QuestionAnswered(yes);
@@ -3154,16 +3154,6 @@ void NodeView::viewDeploymentAspect()
     emit view_toggleAspect(VA_HARDWARE, true);
     // only show a notification if there has been a change in view aspects
     //emit view_DisplayNotification("Turned on deployment view aspects.");
-}
-
-QPixmap NodeView::getImage(QString alias, QString imageName, QColor tintColor)
-{
-    return Theme::theme()->getImage(alias, imageName, QSize(), tintColor);
-}
-
-QIcon NodeView::getIcon(QString alias, QString imageName)
-{
-    return Theme::theme()->getIcon(alias, imageName);
 }
 
 EntityItem *NodeView::getImplementation(int ID)

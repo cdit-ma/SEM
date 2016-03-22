@@ -2087,6 +2087,21 @@ void MedeaWindow::setupConnections()
     connect(functionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
     connect(hardwareDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
 
+
+    connect(this, SIGNAL(window_clearDocks()), partsDock, SLOT(clear()));
+    connect(this, SIGNAL(window_clearDocks()), definitionsDock, SLOT(clear()));
+    connect(this, SIGNAL(window_clearDocks()), functionsDock, SLOT(clear()));
+    connect(this, SIGNAL(window_clearDocks()), hardwareDock, SLOT(clear()));
+
+    connect(this, SIGNAL(window_clearDocksSelection()), partsDock, SLOT(clearSelected()));
+    connect(this, SIGNAL(window_clearDocksSelection()), definitionsDock, SLOT(clearSelected()));
+    connect(this, SIGNAL(window_clearDocksSelection()), functionsDock, SLOT(clearSelected()));
+    connect(this, SIGNAL(window_clearDocksSelection()), hardwareDock, SLOT(clearSelected()));
+
+
+
+
+
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));

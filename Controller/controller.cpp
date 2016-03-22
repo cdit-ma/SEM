@@ -1790,7 +1790,7 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         keysValues << "ComponentAssembly";
         QPair<qreal, qreal> range;
         range.first = 1;
-        range.second = 999;
+        range.second = 999999;
         newKey->addValidRange(range, keysValues);
     }
     if(name == "folder" || name == "file"){

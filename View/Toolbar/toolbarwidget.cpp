@@ -1500,7 +1500,7 @@ QToolButton* ToolbarWidget::constructToolButton(QSize size, double iconSizeRatio
 {
     QToolButton* button = new QToolButton(this);
     button->setFixedSize(size);
-    button->setIcon(nodeView->getImage(iconPath, iconPng));
+    button->setIcon(Theme::theme()->getIcon(iconPath, iconPng));
     button->setIconSize(size * iconSizeRatio);
     button->setToolTip(tooltip);
     QAction* action = toolbar->addWidget(button);

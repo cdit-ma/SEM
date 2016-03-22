@@ -148,12 +148,6 @@ DockScrollArea* DockToggleButton::getDock()
 void DockToggleButton::setDock(DockScrollArea* dock)
 {
     this->dock = dock;
-
-    // connect the dock to the parent window
-    if (parentWindow && dock) {
-        connect(parentWindow, SIGNAL(window_clearDocks()), dock, SLOT(clear()));
-        connect(parentWindow, SIGNAL(window_clearDocksSelection()), dock, SLOT(clearSelected()));
-    }
 }
 
 
