@@ -2197,23 +2197,23 @@ QToolBar *MedeaWindow::constructToolbar(bool ignoreStyle)
 void MedeaWindow::saveTheme(bool apply)
 {
     if(appSettings){
-        appSettings->setSetting(THEME_BG_COLOR, Theme::theme()->getBackgroundColor());
-        appSettings->setSetting(THEME_BG_ALT_COLOR, Theme::theme()->getAltBackgroundColor());
-        appSettings->setSetting(THEME_DISABLED_BG_COLOR, Theme::theme()->getDisabledBackgroundColor());
-        appSettings->setSetting(THEME_HIGHLIGHT_COLOR, Theme::theme()->getHighlightColor());
+        appSettings->setSetting(THEME_BG_COLOR, Theme::theme()->getBackgroundColor().name());
+        appSettings->setSetting(THEME_BG_ALT_COLOR, Theme::theme()->getAltBackgroundColor().name());
+        appSettings->setSetting(THEME_DISABLED_BG_COLOR, Theme::theme()->getDisabledBackgroundColor().name());
+        appSettings->setSetting(THEME_HIGHLIGHT_COLOR, Theme::theme()->getHighlightColor().name());
 
-        appSettings->setSetting(THEME_MENU_TEXT_COLOR, Theme::theme()->getTextColor(Theme::CR_NORMAL));
-        appSettings->setSetting(THEME_MENU_TEXT_DISABLED_COLOR, Theme::theme()->getTextColor(Theme::CR_DISABLED));
-        appSettings->setSetting(THEME_MENU_TEXT_SELECTED_COLOR, Theme::theme()->getTextColor(Theme::CR_SELECTED));
+        appSettings->setSetting(THEME_MENU_TEXT_COLOR, Theme::theme()->getTextColor(Theme::CR_NORMAL).name());
+        appSettings->setSetting(THEME_MENU_TEXT_DISABLED_COLOR, Theme::theme()->getTextColor(Theme::CR_DISABLED).name());
+        appSettings->setSetting(THEME_MENU_TEXT_SELECTED_COLOR, Theme::theme()->getTextColor(Theme::CR_SELECTED).name());
 
-        appSettings->setSetting(THEME_MENU_ICON_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_NORMAL));
-        appSettings->setSetting(THEME_MENU_ICON_DISABLED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_DISABLED));
-        appSettings->setSetting(THEME_MENU_ICON_SELECTED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_SELECTED));
+        appSettings->setSetting(THEME_MENU_ICON_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_NORMAL).name());
+        appSettings->setSetting(THEME_MENU_ICON_DISABLED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_DISABLED).name());
+        appSettings->setSetting(THEME_MENU_ICON_SELECTED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_SELECTED).name());
 
-        appSettings->setSetting(ASPECT_I_COLOR, Theme::theme()->getAspectBackgroundColor(VA_INTERFACES));
-        appSettings->setSetting(ASPECT_B_COLOR, Theme::theme()->getAspectBackgroundColor(VA_BEHAVIOUR));
-        appSettings->setSetting(ASPECT_A_COLOR, Theme::theme()->getAspectBackgroundColor(VA_ASSEMBLIES));
-        appSettings->setSetting(ASPECT_H_COLOR, Theme::theme()->getAspectBackgroundColor(VA_HARDWARE));
+        appSettings->setSetting(ASPECT_I_COLOR, Theme::theme()->getAspectBackgroundColor(VA_INTERFACES).name());
+        appSettings->setSetting(ASPECT_B_COLOR, Theme::theme()->getAspectBackgroundColor(VA_BEHAVIOUR).name());
+        appSettings->setSetting(ASPECT_A_COLOR, Theme::theme()->getAspectBackgroundColor(VA_ASSEMBLIES).name());
+        appSettings->setSetting(ASPECT_H_COLOR, Theme::theme()->getAspectBackgroundColor(VA_HARDWARE).name());
     }
     if(apply){
         Theme::theme()->applyTheme();
