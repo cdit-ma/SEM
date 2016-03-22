@@ -1898,10 +1898,11 @@ void NodeView::modelReady()
 
 void NodeView::themeChanged()
 {
-    QColor bgColor = Theme::theme()->getBackgroundColor();
+   QString bgColor =  Theme::theme()->getBackgroundColorHex();
+   QString textColor =  Theme::theme()->getTextColorHex();
 
     setStyleSheet("QGraphicsView {"
-                  "background-color:" + bgColor.name() + ";"
+                  "background-color:" + bgColor + ";"
                   "border: 0px;}");
 }
 

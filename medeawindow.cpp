@@ -3067,9 +3067,11 @@ void MedeaWindow::screenshot()
                     "Please select which type of screenshot to save.",
                     QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 
+
         msgBox.setIconPixmap(getDialogPixmap("Actions", "PrintScreen"));
         msgBox.setButtonText(QMessageBox::Yes, "Entire Model");
         msgBox.setButtonText(QMessageBox::No, "Current Viewport");
+        msgBox.setParent(this);
 
         displayLoadingStatus(true, "Rendering screenshot");
 
@@ -4992,20 +4994,19 @@ void MedeaWindow::updateStyleSheets()
                   "border-bottom-right-radius: 10px;"
                   "width: 15px;"
                   "}"
-
-                  "QMessageBox{ background:" + altBGColor + "; color:" + textColor + "; }"
-
+                  "QMessageBox{ background:" + altBGColor + "}"
+                  "QMessageBox QLabel{ color: " +textColor +";}"
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON + "{ border:0px;color: " + textColor + "; }"
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON + ":hover { color:" + highlightColor + "; }"
-
-
                   "QGroupBox#"+ THEME_STYLE_GROUPBOX + "{"
                   "background-color: rgba(0,0,0,0);"
                   "border: 0px;"
                   "margin: 0px;"
                   "padding: 0px;"
-                  "}");
+                  "}"
+                  );
 
+    qCritical() << this->styleSheet();
     menu->setStyleSheet(themedMenuStyle);
     searchOptionMenu->setStyleSheet(themedMenuStyle);
     viewAspectsMenu->setStyleSheet(themedMenuStyle);
