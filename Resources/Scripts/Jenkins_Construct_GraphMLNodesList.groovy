@@ -78,6 +78,8 @@ OUTPUT <<= '\t\t\t\t<data key="k6">' + SERVER_IP + '</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k5">' + SERVER_URL + '</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k16">' + USER_NAME + '</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k14">' + LOAD_TIME + '</data>\n';
+OUTPUT <<= '\t\t\t\t<data key="k20">-1</data>\n';
+OUTPUT <<= '\t\t\t\t<data key="k21">-1</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k11">true</data>\n';
 OUTPUT <<= '\t\t\t\t<graph edgedefault="directed" id="' + (ID_COUNTER++) + '">\n';
 
@@ -97,6 +99,7 @@ i = 0
 //Deal with the nodes
 for(slave in SLAVES){
     hudson.model.Computer c = slave.getComputer();
+
     sortOrder = i
     x = INIT_X + (((int) (i % MAX)) * OFFSET);
     y = INIT_Y + (((int) (i / MAX)) * OFFSET);
@@ -112,6 +115,7 @@ for(slave in SLAVES){
         IP = addr.getHostAddress();
     }catch(Exception e){}
 
+
     OUTPUT <<= '\t\t\t\t\t<node id="' + (ID_COUNTER++) + '">\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k1">HardwareNode</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k20">' + x + '</data>\n';
@@ -121,16 +125,19 @@ for(slave in SLAVES){
     OUTPUT <<= '\t\t\t\t\t\t<data key="k18">' + hostname + '</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k6">' + IP + '</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k5">' + SERVER_URL + "/" + c.getUrl() + '</data>\n';
-
     OUTPUT <<= '\t\t\t\t\t\t<data key="k15">' + online + '</data>\n';
 
-    OUTPUT <<= '\t\t\t\t\t\t<data key="k7">' + c.getSystemProperties().get("os.name", "") + '</data>\n';
-    OUTPUT <<= '\t\t\t\t\t\t<data key="k8">' + c.getSystemProperties().get("os.arch", "") + '</data>\n';
-    OUTPUT <<= '\t\t\t\t\t\t<data key="k9">' + c.getSystemProperties().get("os.version", "") + '</data>\n';
-    OUTPUT <<= '\t\t\t\t\t\t<data key="k10">' + c.getEnvironment().get("sharedir", "NOTDEFINED") + '</data>\n';
+        if(!c.isOffline()){
+                //Can only get whilst online
+                OUTPUT <<= '\t\t\t\t\t\t<data key="k7">' + c.getSystemProperties().get("os.name", "") + '</data>\n';
+                OUTPUT <<= '\t\t\t\t\t\t<data key="k8">' + c.getSystemProperties().get("os.arch", "") + '</data>\n';
+                OUTPUT <<= '\t\t\t\t\t\t<data key="k9">' + c.getSystemProperties().get("os.version", "") + '</data>\n';
+                OUTPUT <<= '\t\t\t\t\t\t<data key="k10">' + c.getEnvironment().get("sharedir", "NOTDEFINED") + '</data>\n';
+                OUTPUT <<= '\t\t\t\t\t\t<data key="k13">' + slave.getRootPath() +'</data>\n';
+        }
+
     OUTPUT <<= '\t\t\t\t\t\t<data key="k11">true</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k12">' + sortOrder +'</data>\n';
-    OUTPUT <<= '\t\t\t\t\t\t<data key="k13">' + slave.getRootPath() +'</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k14">' + LOAD_TIME +'</data>\n';
     OUTPUT <<= '\t\t\t\t\t</node>\n';
     i++;

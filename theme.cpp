@@ -323,7 +323,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
         QImage image(":/" % resourceName);
 
         if(image.isNull()){
-            qCritical() << "NULL IMAGE " << lookupName;
+            qCritical() << "Cannot find image: " << resourceName;
             pixmapLookup[lookupName] = QPixmap();
             return pixmapLookup[lookupName];
         }
@@ -384,18 +384,21 @@ void Theme::preloadImages()
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QStringList dirs;
     dirs << "Actions" << "Data" << "Functions" << "Items" << "Welcome";
+    int count = 0;
     foreach(QString dir, dirs){
         QDirIterator it(":/" % dir, QDirIterator::Subdirectories);
         while (it.hasNext()) {
             it.next();
             QString imageName = it.fileName();
-            getImage(dir, imageName);
+            if(!getImage(dir, imageName).isNull()){
+                count ++;
+            }
         }
     }
     //Only Allow once.
     disconnect(this, SIGNAL(initPreloadImages()), this, SLOT(preloadImages()));
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "PRELOADING IMAGES TIME: " <<  timeFinish-timeStart;
+    qCritical() << "Preloaded #" << count << "images in: " <<  timeFinish-timeStart << "MS";
 }
 
 void Theme::updateValid()

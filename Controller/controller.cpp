@@ -2831,7 +2831,7 @@ bool NewController::destructEdge(Edge *edge)
     }
     case Edge::EC_DEPLOYMENT:{
         if(isUserAction()){
-            QString message = "Disconnected: '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
+            QString message = "Disconnected '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
             emit controller_DisplayMessage(MESSAGE, message, "Deployment Changed", "Clear");
         }
     }
@@ -2974,6 +2974,10 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
         QString keyName = data->getKeyName();
         //Check if the item has a Data already.
         if(item->getData(keyName)){
+            if((keyName == "x" || keyName == "y") && (data->getValue() == "" || data->getValue() == "-1")){
+                //Skip bad values
+                continue;
+            }
             setData(item, keyName, data->getValue(), addAction);
         }else{
             attachData(item, data, addAction);
@@ -4074,11 +4078,7 @@ void NewController::constructEdgeGUI(Edge *edge)
     if(!src || !dst){
         qCritical() << "Source and Desitnation null";
     }
-
-    qCritical() << edge->toString();
     Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
-
-    qCritical() << edgeClass;
 
     switch(edgeClass){
     case Edge::EC_DEFINITION:{
@@ -4123,7 +4123,7 @@ void NewController::constructEdgeGUI(Edge *edge)
     }
     case Edge::EC_DEPLOYMENT:{
         if(isUserAction()){
-            QString message = "Deployed: '" % src->getDataValue("label").toString() % "' onto '" % dst->getDataValue("label").toString() % "'";
+            QString message = "Deployed '" % src->getDataValue("label").toString() % "' to '" % dst->getDataValue("label").toString() % "'";
             emit controller_DisplayMessage(MESSAGE, message, "Deployment Changed", "ConnectTo");
         }
         break;

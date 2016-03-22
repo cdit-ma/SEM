@@ -76,6 +76,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 {
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
+    hide();
     setupApplication();
     NOTIFICATION_TIME = 1000;
     nodeView = 0;
@@ -115,6 +116,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     //Show Welcome Screen
     toggleWelcomeScreen(true);
+    show();
+
 
     //Load initial model.
     if(!graphMLFile.isEmpty()){
@@ -124,7 +127,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     INITIAL_SETTINGS_LOADED = true;
 
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "LOAD TIME: " <<  timeFinish-timeStart;
+    qCritical() << "MEDEA Loaded in: " <<  timeFinish-timeStart << "MS";
 }
 
 

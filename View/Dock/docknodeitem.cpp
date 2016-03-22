@@ -543,8 +543,8 @@ void DockNodeItem::setImageLabelPixmap()
     }
 
     if (pixMap.isNull()) {
-        pixMap = Theme::theme()->getImage("Actions", "Help");
         qWarning() << "DockNodeItem::setupImageLabel - Image is null for " << kind;
+        pixMap = Theme::theme()->getImage("Actions", "Help");
     }
 
     pixMap = pixMap.scaled(pixMapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
