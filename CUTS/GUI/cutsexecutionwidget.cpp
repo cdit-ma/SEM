@@ -145,6 +145,9 @@ void CUTSExecutionWidget::setOutputPath(QString outputPath)
         setIconSuccess(outputPathIcon, false);
         outputPathOk = false;
     }
+    if(outputPathOk){
+        emit outputPathChanged(path);
+    }
     updateButtons();
 }
 
@@ -398,7 +401,9 @@ void CUTSExecutionWidget::selectGraphMLPath()
 {
     QString directory = getDirectory(graphmlPathEdit->text());
     QString graphmlFile = QFileDialog::getOpenFileName(this, "Select GraphML File.", directory, "GraphML Documents (*.graphml)");
-    setGraphMLPath(graphmlFile);
+    if(graphmlFile != ""){
+        setGraphMLPath(graphmlFile);
+    }
 }
 
 void CUTSExecutionWidget::selectOutputPath()
@@ -406,8 +411,9 @@ void CUTSExecutionWidget::selectOutputPath()
     QString directory = getDirectory(outputPathEdit->text());
     QString path = QFileDialog::getExistingDirectory(this, "Select Output Directory.", directory, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-    setOutputPath(path);
-
+    if(path != ""){
+        setOutputPath(path);
+    }
 }
 
 void CUTSExecutionWidget::setupLayout()
@@ -540,7 +546,6 @@ void CUTSExecutionWidget::setupLayout()
     buttonGroups->addWidget(stopProcessButton);
     buttonGroups->addWidget(nextButton);
     buttonGroups->addWidget(cancelButton);
-
 }
 
 QString CUTSExecutionWidget::getDirectory(QString filePath)

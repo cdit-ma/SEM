@@ -568,11 +568,14 @@ void JenkinsRequest::waitForJobNumber(QString jobName, int buildNumber, QString 
  * @brief JenkinsRequest::runGroovyScript Executes a Groovy Script(File) on the Jenkins Server and returns the data
  * @param groovyScriptPath The Absolute path to the Groovy Script file.
  */
-void JenkinsRequest::runGroovyScript(QString groovyScriptPath)
+void JenkinsRequest::runGroovyScript(QString groovyScriptPath, QString parameters)
 {
     if(waitForValidSettings()){
         //Construct the console CLI request command
         QString command = "groovy " + groovyScriptPath;
+        if(parameters != ""){
+            command += " " + parameters;
+        }
 
         //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
         QPair<int, QByteArray> response = runProcess(manager->getCLICommand(command));

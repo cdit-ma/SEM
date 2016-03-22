@@ -50,6 +50,7 @@ signals:
     void executeCUTS(QString path, int executionTime);
     void stopProcesses();
 
+    void outputPathChanged(QString path);
 public slots:
     void stateFinished(int code);
     void selectGraphMLPath();

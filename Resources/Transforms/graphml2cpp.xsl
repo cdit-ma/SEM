@@ -1458,6 +1458,7 @@
 						<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey"/>
 						<xsl:with-param name="transformNodeWorkerKey" select="$transformNodeWorkerKey"/>
 						<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
+						<xsl:with-param name="transformNodeOperationKey" select="$transformNodeOperationKey"/>
 						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 						<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
 						<xsl:with-param name="transformNodeTypeKey"  select="$transformNodeTypeKey" />
@@ -1531,11 +1532,13 @@
 		<xsl:param name="transformNodeSortOrderKey" />
 		<xsl:param name="transformNodeWorkerKey" />
 		<xsl:param name="transformNodeWorkerIDKey" />
+		<xsl:param name="transformNodeOperationKey" />
 		<xsl:param name="transformNodeLabelKey" />
 		<xsl:param name="transformNodeValueKey" />
 		<xsl:param name="transformNodeTypeKey" />
 		
 		<xsl:variable name="worker" select="$inputParameters/../../gml:data[@key=$transformNodeWorkerKey]/text()" />
+		<xsl:variable name="opName" select="$inputParameters/../../gml:data[@key=$transformNodeOperationKey]/text()" />  
 		<xsl:for-each select="$inputParameters" >
 			<xsl:sort select="./gml:data[@key=$transformNodeSortOrderKey]" data-type="number" order="ascending" /> 
 			<xsl:variable name="inputParameter" select="." />
@@ -1557,6 +1560,11 @@
 			<xsl:if test="$worker = 'WE_GPU' and $paramType = 'WE_UTE_Vector'" > 
 				<xsl:value-of select="'WE_UTE_Vector'" />
 			</xsl:if>
+			<!-- for WE_UTE evaluateComplexity need to cast to double -->
+			<xsl:if test="position() &gt; 1 and $worker = 'WE_UTE' and $opName = 'evaluateComplexity'" > 
+				<xsl:value-of select="'(double)'" />
+			</xsl:if>
+
 			<xsl:value-of select="concat('(', $param)" />
 			
 			<!-- need to add .in () function for variables of _var type, ie strings and vectors. -->

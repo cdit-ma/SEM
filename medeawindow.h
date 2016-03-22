@@ -87,7 +87,7 @@ signals:
     void window_ConnectViewAndSetupModel(NodeView* view);
 
 
-    void jenkins_RunGroovyScript(QString groovyScriptPath);
+    void jenkins_RunGroovyScript(QString groovyScriptPath, QString parameters);
 
     void window_Paste(QString value);
 
@@ -140,6 +140,7 @@ public slots:
     void executeJenkinsDeployment();
 
 private slots:
+    void CUTSOutputPathChanged(QString path);
     void themeChanged();
 
     void updateRightMask();
@@ -598,6 +599,7 @@ private:
     QString componentName_CPPExport;
 
 
+    QString cutsOutputPath;
     QVBoxLayout* viewHolderLayout;
     QHBoxLayout* viewLayout;
     QVBoxLayout* holderLayout;

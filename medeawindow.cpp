@@ -3004,6 +3004,11 @@ void MedeaWindow::executeJenkinsDeployment()
     }
 }
 
+void MedeaWindow::CUTSOutputPathChanged(QString path)
+{
+    cutsOutputPath = path;
+}
+
 void MedeaWindow::themeChanged()
 {
     updateStyleSheets();
@@ -3147,14 +3152,15 @@ void MedeaWindow::executeLocalNodeDeployment()
     }
 
     if(cutsManager){
-        QString path = "";
-        if(appSettings){
-            path = appSettings->getSetting(DEFAULT_DIR_PATH).toString();
+
+        if(appSettings && cutsOutputPath == ""){
+            cutsOutputPath = appSettings->getSetting(DEFAULT_DIR_PATH).toString();
         }
 
         CUTSExecutionWidget* cWidget = new CUTSExecutionWidget(this, cutsManager);
+        connect(cWidget, SIGNAL(outputPathChanged(QString)), this, SLOT(CUTSOutputPathChanged(QString)));
         cWidget->setGraphMLPath(exportFile);
-        cWidget->setOutputPath(path);
+        cWidget->setOutputPath(cutsOutputPath);
         cWidget->show();
     }
 }
@@ -3244,9 +3250,13 @@ void MedeaWindow::on_actionImportJenkinsNode()
     if(jenkinsManager){
         displayLoadingStatus(true, "Importing Jenkins Nodes");
         QString groovyScript = applicationDirectory + "Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy";
+        QString jobName = "MEDEA-SEM";
+        if(appSettings){
+            jobName = appSettings->getSetting(JENKINS_JOB).toString();
+        }
 
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
-        connect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
+        connect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));
         connect(jenkinsGS, SIGNAL(gotGroovyScriptOutput(QString)), this, SLOT(gotJenkinsNodeGraphML(QString)));
         connect(jenkinsGS, SIGNAL(requestFinished()), this, SLOT(setImportJenkinsNodeEnabled()));
         connect(jenkinsGS, SIGNAL(requestFailed()), this, SLOT(gotJenkinsNodeGraphML()));
@@ -3254,8 +3264,8 @@ void MedeaWindow::on_actionImportJenkinsNode()
         //Disable the Jenkins Menu Button
         setImportJenkinsNodeEnabled(false);
 
-        emit jenkins_RunGroovyScript(groovyScript);
-        disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
+        emit jenkins_RunGroovyScript(groovyScript, jobName);
+        disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));
     }
 }
 

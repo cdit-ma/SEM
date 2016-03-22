@@ -11,7 +11,7 @@
 #include <QMenu>
 #include <QProgressDialog>
 #include <QMovie>
-
+#include "../../theme.h"
 /**
  * @brief JenkinsJobMonitorWidget::JenkinsJobMonitorWidget A Widget which represents and displays the Output of a Jenkins Job which has just been invoked.
  * @param parent The Parent Widget for this Dialog
@@ -27,7 +27,7 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
     requestedConsoleOutput = false;
 
     setWindowTitle("Jenkins Job Monitor");
-    setWindowIcon(QIcon(":/Actions/Job_Build.png"));
+    setWindowIcon(Theme::theme()->getIcon("Actions", "Job_Build"));
 
 
     setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
@@ -100,10 +100,13 @@ void JenkinsJobMonitorWidget::setupLayout()
     titleWidget->setLayout(titleLayout);
 
     //Set up a QLabel for the Building Icon
-    jobIcon = new QLabel(":/Actions/Job_Build.png");
+
+    jobIcon = new QLabel();
+    jobIcon->setPixmap(Theme::theme()->getImage("Actions", "Job_Build"));
 
     //Setup a QPushButton to stop the job.
-    stopButton = new QPushButton(QIcon(":/Actions/Job_Stop.png"),"");
+    stopButton = new QPushButton("");
+    stopButton->setIcon(Theme::theme()->getIcon("Actions", "Job_Stop"));
     stopButton->setStyleSheet("border: 0px solid black;");
     stopButton->setFixedSize(QSize(24,24));
     stopButton->setToolTip("Stop the Job.");
