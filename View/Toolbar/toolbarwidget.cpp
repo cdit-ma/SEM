@@ -902,8 +902,6 @@ void ToolbarWidget::setupToolBar()
     importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
     exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
     getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
-    setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Read Only");
-    unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Read Only");
 
     actionGoToSeperator = toolbar->addSeparator();
 
@@ -916,6 +914,8 @@ void ToolbarWidget::setupToolBar()
     connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Connections");
     popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View In New Window");
     displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "Menu_Vertical", "Change Displayed Nodes");
+    setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Read Only");
+    unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Read Only");
     wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "Wiki page for Entity");
 
     /*
