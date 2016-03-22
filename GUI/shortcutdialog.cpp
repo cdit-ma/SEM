@@ -4,6 +4,7 @@
 #include <QPalette>
 #include <QBrush>
 #include <QDebug>
+#include "../theme.h"
 #define WIDTH 550
 #define HEIGHT 650
 
@@ -12,13 +13,13 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
 {
     setWindowTitle("MEDEA - Shortcuts");
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    this->setWindowIcon(QIcon(":/Actions/Keyboard.png"));
+    setWindowIcon(Theme::theme()->getImage("Actions", "Keyboard"));
     setModal(false);
 
     resize(WIDTH, HEIGHT);
 
     setupLayout();
-    addTitle("Global", QIcon(":/Actions/Global.png"));
+    addTitle("Global", Theme::theme()->getImage("Actions", "Global"));
 
     addShortcut("F1", "Opens the Shortcut window.");
     addShortcut("F3", "Sets the focus into the search box.");
@@ -26,8 +27,10 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("F11", "Toggles fullscreen mode.");
     addShortcut("F12", "Takes a screenshot.");
     addShortcut("CTRL + SHIFT + M", "Toggles minimap visibility.");
+    addShortcut("ARROW KEYS", "Nudges the viewport by a small amount.");
+    addShortcut("SHIFT + ARROW KEYS", "Nudges the viewport by a larger amount.");
 
-    addTitle("Project", QIcon(":/Actions/Project.png"));
+    addTitle("Project", Theme::theme()->getImage("Actions", "New"));
     addShortcut("CTRL + N", "Constructs a new project.");
     addShortcut("CTRL + O", "Opens an existing project.");
     addShortcut("CTRL + S", "Saves the current project.");
@@ -43,7 +46,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
 
 
 
-    addTitle("Selection", QIcon(":/Actions/SelectAll.png"));
+    addTitle("Selection", Theme::theme()->getImage("Actions", "SelectAll"));
     addShortcut("ESC", "Clears the current selection / Closes current dialog window.");
     addShortcut("F2", "Renames the current (singular) selection.");
     addShortcut("CTRL + A", "Selects all children of currently selected entity.");
@@ -56,7 +59,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("SHIFT + D", "Centers on the (singular) selected entity's definition.");
     addShortcut("SHIFT + I", "Centers on the (singular) selected entity's implementation.");
 
-    addTitle("Mouse", QIcon(":/Actions/Mouse.png"));
+    addTitle("Mouse", Theme::theme()->getImage("Actions", "Mouse"));
     addShortcut("L MOUSE", "Selects the entity under the cursor.");
     addShortcut("R MOUSE", "Opens the toolbar for the selection.");
     addShortcut("M MOUSE", "Centers the entity under the cursor.");

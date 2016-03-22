@@ -6,6 +6,7 @@
 #include <QTableView>
 #include <QGroupBox>
 #include "View/Table/attributetablemodel.h"
+#include "theme.h"
 
 class NodeView;
 

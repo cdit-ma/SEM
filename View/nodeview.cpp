@@ -171,6 +171,10 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     //Set Initial zoom.
     currentZoom = transform().m11();
+
+    if(isSubView()){
+        themeChanged();
+    }
 }
 
 
@@ -1979,7 +1983,6 @@ void NodeView::sortEntireModel()
  */
 void NodeView::centerItem(GraphMLItem *item)
 {
-    qCritical() << QObject::sender();
     if (!item) {
         item = getSelectedGraphMLItem();
     }
@@ -2033,7 +2036,6 @@ void NodeView::centerImplementation(int ID)
         int implementationID =  controller->getImplementation(ID);
         GraphMLItem *impl = getEntityItemFromID(implementationID);
 
-        qCritical() << impl;
         if(impl){
             // make sure the Assembly view aspect is on
             clearSelection();
@@ -3277,7 +3279,6 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     }
 
     if (item->isEntityItem() && entityItem->isHardwareCluster()) {
-        //connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), entityItem, SLOT(themeChanged(VIEW_THEME)));
         connect(Theme::theme(), SIGNAL(theme_Changed()), entityItem, SLOT(themeChanged()));
     }
 
