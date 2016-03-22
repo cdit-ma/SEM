@@ -4386,36 +4386,10 @@ void MedeaWindow::updateDataTable()
             requiredHeight += dataTable->rowHeight(i);
         }
 
-        int availableHeight = rightPanelWidget->height();
-
-        QLayout *panelLayout = rightPanelWidget->layout();
-
-        availableHeight -= rightPanelWidget->contentsMargins().top();
-        availableHeight -= rightPanelWidget->contentsMargins().bottom();
-        availableHeight -= panelLayout->contentsMargins().top();
-        availableHeight -= panelLayout->contentsMargins().bottom();
-
-        for(int i = 0; i < panelLayout->count(); i++){
-            availableHeight -= panelLayout->spacing();
-
-            QLayoutItem* item = panelLayout->itemAt(i);
-            if(item->widget() != tableScroll){
-                if(item->widget() && !item->widget()->isVisible()){
-                    //Ignore Invisible Items
-                    continue;
-                }
-                if(item->spacerItem()){
-                    continue;
-                }
-                availableHeight -= item->geometry().height();
-            }
-
-        }
-
         QSize requiredTableSize(tableScroll->width(), requiredHeight);
         if(dataTable->geometry().size() != requiredTableSize){
             //Resize the DataTable availableHeight be the required Height.
-            dataTable->resize(QSize(tableScroll->width(), requiredHeight));
+            dataTable->resize(requiredTableSize);
         }
         //Update the mask
         tableScroll->setMask(dataTable->frameGeometry());
