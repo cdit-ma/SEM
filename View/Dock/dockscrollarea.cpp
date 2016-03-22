@@ -88,6 +88,7 @@ QStringList DockScrollArea::getNotAllowedKinds()
  */
 void DockScrollArea::updateCurrentNodeItem()
 {
+
     currentNodeItem = nodeView->getSelectedNodeItem();
 
     if (currentNodeItem) {

@@ -1699,6 +1699,8 @@ QString NewController::getData(int ID, QString key)
     return "";
 }
 
+
+
 bool NewController::isInModel(int ID)
 {
     Entity* item = getGraphMLFromID(ID);

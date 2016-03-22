@@ -26,6 +26,7 @@ public:
     QVariant::Type getKeyType(QString keyName);
 
 
+
     QString toString();
     bool isValid();
 

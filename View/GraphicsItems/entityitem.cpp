@@ -586,8 +586,10 @@ bool EntityItem::isNodeReadOnlyDefinition()
 
 void EntityItem::setHardwareHighlighting(bool highlighted)
 {
-    hasHardwareWarning = highlighted;
-    update();
+    if(highlighted != hasHardwareWarning){
+        hasHardwareWarning = highlighted;
+        update();
+    }
 }
 
 
@@ -668,6 +670,12 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         if (isHighlighted()) {
             headBrush.setColor(Theme::theme()->getHighlightColor());
         }
+
+        if(hasHardwareWarning && renderState == RS_BLOCK){
+            headBrush.setColor(Qt::red);
+        }
+
+
         //Paint Background
         painter->setPen(Qt::NoPen);
         painter->setBrush(bodyBrush);
@@ -686,7 +694,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
         //Draw the boundary.
-        //if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
+        if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
             if(renderState != RS_BLOCK){
                 //Setup the Pen
                 QPen  pen = this->pen;
@@ -723,7 +731,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
                 painter->drawRect(adjustRectForPen(boundingRect(), pen));
             }
-        //}
+        }
 
 
 
@@ -1081,6 +1089,9 @@ void EntityItem::setSelected(bool selected)
             //Restore the items previous ZValue.
             restoreZValue();
         }
+
+        //Unset the hardware higlighting when an item is deslected.
+        setHardwareHighlighting(false);
         //Call the base class.
         GraphMLItem::setSelected(selected);
     }
@@ -2220,6 +2231,7 @@ void EntityItem::setupLabel()
     statusItem = new StatusItem(this);
     statusItem->setBackgroundColor(QColor(0,150,150));
     notificationItem = new NotificationItem(this);
+    statusItem->setZValue(1000);
     notificationItem->setBackgroundColor(QColor(255,204,51));
 
     //Setup external Label
@@ -2481,6 +2493,17 @@ void EntityItem::themeChanged()
     }
 }
 
+void EntityItem::showDeploymentWarning(bool show)
+{
+    if(notificationItem){
+        if(show){
+            notificationItem->setErrorType(ET_WARNING, "Child Entity is deployed to different Hardware Entity.");
+        }else{
+            notificationItem->setErrorType(ET_OKAY);
+        }
+    }
+}
+
 
 
 
@@ -2540,64 +2563,7 @@ void EntityItem::showHardwareIcon(bool show)
  * @param selectedItem
  * @return
  */
-QList<EntityItem*> EntityItem::deploymentView(bool on, EntityItem *)
-{
-    QList<EntityItem*> chlidrenDeployedToDifferentNode;
 
-    if (on) {
-        /*
-
-        // get the hardware node that this item is deployed to
-        foreach (Edge* edge, getNodeAdapter()->getEdges(0)) {
-            if (edge->isDeploymentLink()) {
-                deploymentLink = edge->getDestination();
-                break;
-            }
-        }
-
-        // if this item isn't connected to a hardware node, do nothing
-        if (!deploymentLink) {
-            return chlidrenDeployedToDifferentNode;
-        }
-
-        // check this item's children's deployment links
-        foreach (EntityItem* childItem, getChildEntityItems()) {
-            foreach (Edge* edge, childItem->getNodeAdapter()->getEdges(0)) {
-                if (edge->isDeploymentLink() && edge->getDestination() != deploymentLink) {
-                    if (selectedItem && selectedItem == this) {
-                        childItem->setHardwareHighlighting(true);
-                        //childItem->highlightEntityItem(true);
-                    }
-                    chlidrenDeployedToDifferentNode.append(childItem);
-                    break;
-                }
-            }
-        }
-        */
-
-        // if there are children deployed to a different node, show red hardware icon
-        if (chlidrenDeployedToDifferentNode.isEmpty()) {
-            showHardwareIcon(false);
-        } else {
-            showHardwareIcon(true);
-        }
-
-    } else {
-
-        // remove highlight and hide the red hradware icon
-        foreach (EntityItem* childItem, getChildEntityItems()) {
-            childItem->setHardwareHighlighting(false);
-            //childItem->highlightEntityItem(false);
-        }
-
-        showHardwareIcon(false);
-    }
-
-    // need to update here otherwise the visual changes aren't applied till the mouse is moved
-    update();
-
-    return chlidrenDeployedToDifferentNode;
-}
 
 
 /**

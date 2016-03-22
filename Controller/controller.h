@@ -167,6 +167,7 @@ public:
 
     QString getData(int ID, QString key);
 
+
     bool isInModel(int ID);
     bool canCopy(QList<int> selection);
     bool canGetCPP(QList<int> selection);

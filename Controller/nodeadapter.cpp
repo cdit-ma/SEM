@@ -113,6 +113,32 @@ bool NodeAdapter::isBehaviourAdapter()
     return _nodeAdapterKind == NAK_BEHAVIOUR;
 }
 
+
+int NodeAdapter::getChildEdgeSrcID(int edgeID)
+{
+    int ID = -1;
+    if(isValid()){
+        Edge* edge = _node->getEdge(edgeID);
+        if(edge){
+            ID = edge->getSourceID();
+        }
+    }
+    return ID;
+}
+
+int NodeAdapter::getChildEdgeDstID(int edgeID)
+{
+    int ID = -1;
+    if(isValid()){
+        Edge* edge = _node->getEdge(edgeID);
+        if(edge){
+            ID = edge->getDestinationID();
+        }
+    }
+    return ID;
+}
+
+
 QList<int> NodeAdapter::getEdgeIDs(Edge::EDGE_CLASS edgeClass)
 {
     if(isValid()){

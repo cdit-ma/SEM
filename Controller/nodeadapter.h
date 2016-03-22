@@ -29,6 +29,9 @@ public:
 
     QList<int> getEdgeIDs(Edge::EDGE_CLASS edgeClass = Edge::EC_NONE);
 
+    int getChildEdgeSrcID(int edgeID);
+    int getChildEdgeDstID(int edgeID);
+
 
     QList<int> getTreeIndex();
 

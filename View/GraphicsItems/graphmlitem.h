@@ -111,7 +111,8 @@ signals:
 
     void GraphMLItem_AppendSelected(GraphMLItem*);
     void GraphMLItem_RemoveSelected(GraphMLItem*);
-    void GraphMLItem_ClearSelection(bool updateTable = false);
+    void GraphMLItem_ClearSelection();
+    void GraphMLItem_SelectionChanged();
 
     void GraphMLItem_PositionChanged();
     void GraphMLItem_SizeChanged();

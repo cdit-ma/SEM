@@ -78,6 +78,7 @@ public:
     //Gets the edge that is joining the node to this.
     Edge* getEdgeTo(Node* node);
     bool gotEdgeTo(Node* node);
+    Edge* getEdge(int ID);
     bool isIndirectlyConnected(Node* node);
     bool containsEdgeEndPoints(Edge* edge);
     QList<Node *> getAllConnectedNodes();

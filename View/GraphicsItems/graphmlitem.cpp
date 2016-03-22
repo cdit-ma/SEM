@@ -432,16 +432,24 @@ void GraphMLItem::handleSelection(bool setSelected, bool controlDown)
         setSelected = false;
     }
 
+    bool hasChanged = false;
     if(isSelected() != setSelected){
         if(setSelected && !controlDown){
             emit GraphMLItem_ClearSelection();
+            hasChanged = true;
         }
         if(getNodeView() && setSelected){
             getNodeView()->setStateSelected();
             emit GraphMLItem_AppendSelected(this);
+            hasChanged = true;
         }else{
             emit GraphMLItem_RemoveSelected(this);
+            hasChanged = true;
         }
+    }
+    if(hasChanged){
+        //Emit a signal which is connected to the docks to update stuffs.
+        emit GraphMLItem_SelectionChanged();
     }
 }
 
