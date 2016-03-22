@@ -1178,7 +1178,7 @@ void MedeaWindow::setupSearchTools()
     searchToolbar->addWidget(searchToolButton);
     searchToolbar->addWidget(searchOptionToolButton);
 
-    searchLayout->setSpacing(0);
+    searchLayout->setSpacing(3);
     searchLayout->setContentsMargins(0,0,0,0);
     searchLayout->addWidget(searchToolbar);
 

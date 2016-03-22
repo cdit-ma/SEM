@@ -18,6 +18,7 @@ QMAKE_TARGET_COMPANY = Defence Information Group
 QMAKE_TARGET_PRODUCT = MEDEA
 QMAKE_TARGET_DESCRIPTION = Modelling, Experiment DEsign and Analysis
 
+
 TARGET = MEDEA
 
 TEMPLATE = app
@@ -30,9 +31,6 @@ win32{
 mac{
     macx:ICON = $${PWD}/Resources/Images/MedeaIcon.icns
 }
-
-
-
 
 #DEBUG MODE FLAG
 #DEFINES += DEBUG_MODE
@@ -370,8 +368,14 @@ mac{
 
 
 
-SETTINGS_FILE.files += settings.ini
-SETTINGS_FILE.path = $$OUTPUT_DIR/
+equals($$DEPLOY, "true") {
+    SETTINGS_FILE.files += settings.ini
+    SETTINGS_FILE.path = $$OUTPUT_DIR/
+}else{
+    SETTINGS_FILE.files += settings.ini
+    SETTINGS_FILE.path = $$OUTPUT_DIR/
+}
+
 
 CHANGELOG_FILE.files += changelog.txt
 CHANGELOG_FILE.path = $$OUTPUT_DIR/
