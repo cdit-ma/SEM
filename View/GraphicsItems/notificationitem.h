@@ -19,6 +19,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
 private:
+    QPixmap pixmap;
     QColor backgroundColor;
     GraphMLItem* item;
     ERROR_TYPE errorType;

@@ -114,8 +114,6 @@ public:
     void viewDeploymentAspect();
 
 
-    QPixmap getImage(QString alias, QString imageName, QColor tintColor = QColor());
-    QIcon getIcon(QString alias, QString imageName);
     EntityItem* getImplementation(int ID);
     QList<EntityItem*> getInstances(int ID);
     EntityItem* getDefinition(int ID);
@@ -135,7 +133,7 @@ public:
 
     void setVisible(bool visible);
 
-    void updateActionsEnabledStates();
+    void updateActionsEnabledStates(bool updateDocks = false);
 
     void viewportTranslated();
 
@@ -172,8 +170,9 @@ private slots:
 
     void hardwareClusterMenuClicked(int viewMode);
 
-    void actionFinished();
+    void selectionChanged();
 
+    void actionFinished();
 signals:
     void view_LaunchWiki(QString entityKind);
     void view_ProjectFileChanged(QString);
@@ -339,13 +338,15 @@ public slots:
     void undo();
     void redo();
 
-    void appendToSelection(GraphMLItem* item, bool updateActions=true);
-    void removeFromSelection(GraphMLItem* item);
+    void appendToSelection(GraphMLItem* item, bool updateActions=false);
+    void removeFromSelection(GraphMLItem* item, bool updateActions=false);
+    void clearSelection(bool updateActions = false);
+
+
     void moveSelection(QPointF delta);
     void resizeSelection(int ID, QSizeF delta);
     void moveFinished();
     void resizeFinished(int ID);
-    void clearSelection(bool updateTable = true, bool updateDocks = true);
 
     void toggleGridLines(bool gridOn);
     void autoCenterAspects(bool center);
@@ -440,7 +441,6 @@ private:
     void setState(VIEW_STATE newState);
 
     qreal getArrowKeyDelta(bool SHIFT, bool neg = false);
-    void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
     void transition();
     void selectJenkinsImportedNodes();
     void _deleteFromIDs(QList<int> IDs);
@@ -450,7 +450,6 @@ private:
     void storeGraphMLItemInHash(GraphMLItem* item);
     void unsetItemsDescendants(GraphMLItem* selectedItem);
     void nodeConstructed_signalUpdates(NodeItem *EntityItem);
-    void nodeSelected_signalUpdates();
     void edgeConstructed_signalUpdates();
     void centerRect(QRectF rect, double padding = 0, bool addToMap = true);
     void centerViewOn(QPointF center);
@@ -515,8 +514,9 @@ private:
 
     NodeItem* getSharedParentNodeItem(QList<GraphMLItem *> graphMLItems);
 
+    void updateDeploymentWarnings(int nodeID = -1);
 
-
+    int getDeployedHardwareID(EntityItem* item);
 
     NodeView* parentNodeView;
     ToolbarWidget* toolbar;
@@ -588,6 +588,8 @@ private:
     //Selection Lists
     QList<int> selectedIDs;
     QList<int> highlightedIDs;
+    QList<int> hardwareHighlightedIDs;
+
     QList<NodeView*> subViews;
 
     QStack<QPointF> viewCenterPointStack;

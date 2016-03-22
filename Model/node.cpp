@@ -605,6 +605,17 @@ bool Node::gotEdgeTo(Node *node)
     return getEdgeTo(node) != 0;
 }
 
+Edge *Node::getEdge(int ID)
+{
+    for(int i =0; i < edges.length(); i++){
+        Edge* edge = edges[i];
+        if(edge && edge->getID() == ID){
+            return edge;
+        }
+    }
+    return 0;
+}
+
 QList<Node *> Node::getAllConnectedNodes()
 {
 

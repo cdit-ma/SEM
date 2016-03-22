@@ -1,9 +1,9 @@
 #include "notificationitem.h"
 #include "graphmlitem.h"
-#include "../nodeview.h"
 
 #include <math.h>
 #include <QPainter>
+#include "../../theme.h"
 #define RADIUS 10
 #define VERT_PADDING 4
 #define HORIZ_PADDING 4
@@ -11,6 +11,7 @@
 NotificationItem::NotificationItem(GraphMLItem *item):QGraphicsObject(item)
 {
     this->item = item;
+    pixmap = Theme::theme()->getImage("Actions", "Exclamation", QSize(), Qt::white);
     setErrorType(ET_OKAY);
 }
 
@@ -85,13 +86,8 @@ void NotificationItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     imageRect.setHeight(imageRect.width());
     imageRect.moveCenter(QPointF(RADIUS, RADIUS));
 
-    QPixmap imageData;
-
-
-    imageData = item->getNodeView()->getImage("Actions", "Exclamation", Qt::white);
-
     painter->rotate(-getAngle());
-    painter->translate(-RADIUS /2, RADIUS / 4);//RADIUS/2);
-    painter->drawPixmap(imageRect.toAlignedRect(), imageData);
+    painter->translate(-RADIUS /2, RADIUS / 4);
+    painter->drawPixmap(imageRect.toAlignedRect(), pixmap);
 }
 

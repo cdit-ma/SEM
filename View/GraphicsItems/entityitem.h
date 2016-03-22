@@ -178,7 +178,6 @@ public:
     QMenu* getChildrenViewOptionMenu();
     QRectF geChildrenViewOptionMenuSceneRect();
     void showHardwareIcon(bool show);
-    QList<EntityItem *> deploymentView(bool on, EntityItem* selectedItem = 0);
 
     int getChildrenViewMode();
 
@@ -275,6 +274,8 @@ public slots:
     void highlightHardwareLink(NodeItem* nodeItem = 0);
 
     void themeChanged();
+
+    void showDeploymentWarning(bool show);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
