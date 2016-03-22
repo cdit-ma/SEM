@@ -9,6 +9,7 @@
 #include <QPixmap>
 #include <QBitmap>
 
+#include "../../Controller/behaviournodeadapter.h"
 #include <QInputDialog>
 #include <QTextBlockFormat>
 
@@ -33,7 +34,7 @@
 #define TOP_LABEL_RATIO (1.0 / 6.0)
 #define RIGHT_LABEL_RATIO (1.5 / 6.0)
 #define BOTTOM_LABEL_RATIO (1.0 / 9.0)
-#define LABEL_RATIO (1 - ICON_RATIO)
+
 
 
 
@@ -80,6 +81,8 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     }
 
     IS_READ_ONLY = false;
+    IS_READ_ONLY_DEF = false;
+    IS_READ_ONLY_SNIPPET = false;
 
     isInputParameter = false;
     isReturnParameter = false;
@@ -88,6 +91,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     nodeHardwareLocalHost = false;
     nodeMemberIsKey = false;
     IS_HARDWARE_NODE = false;
+    IS_ONLINE = true;
 
     //Setup initial states
     canNodeBeConnected = false;
@@ -97,7 +101,9 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
 
     sortTriggerAction = true;
     eventFromMenu = true;
+    hasWarning = false;
 
+    isHardwareLink = false;
 
     showDeploymentWarningIcon = false;
     hasHardwareWarning = false;
@@ -110,7 +116,12 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     editableDataKey = "type";
 
     if(node){
+        connect(node, SIGNAL(gotDefinition(bool)), this, SLOT(gotDefinition(bool)));
         IS_IMPL_OR_INST = node->isInstance() || node->isImpl();
+
+        if(IS_IMPL_OR_INST){
+            HAS_DEFINITION = node->gotDefinition();
+        }
     }
 
     currentResizeMode = EntityItem::NO_RESIZE;
@@ -159,11 +170,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     IS_VECTOR = nodeKind.startsWith("Vector");
 
 
-    if(inMainView()){
-        CHILDREN_VIEW_MODE = CONNECTED;
-    }else{
-        CHILDREN_VIEW_MODE = ALL;
-    }
+    CHILDREN_VIEW_MODE = ALL;
 
     childrenViewOptionMenu = 0;
     allChildren = 0;
@@ -178,18 +185,13 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     setupBrushes();
 
     setupChildrenViewOptionMenu();
-    if (IS_HARDWARE_CLUSTER) {
-        if (getNodeView()) {
-            themeChanged(getNodeView()->getTheme());
-        } else {
-            themeChanged(VT_NORMAL_THEME);
-        }
-    }
 
     updateTextLabel();
+    updateErrorState();
 
     //Force a zoom change.
     zoomChanged(getZoomFactor());
+    themeChanged();
 }
 
 
@@ -335,6 +337,20 @@ void EntityItem::restoreZValue()
     }
 }
 
+void EntityItem::setHighlighted(bool isHighlight)
+{
+    GraphMLItem::setHighlighted(isHighlight);
+
+    QColor textColor = Theme::theme()->getTextColor(Theme::CR_SELECTED);
+    if(!isHighlight){
+        textColor = Qt::black;
+    }
+
+    if(rightLabelInputItem){
+        rightLabelInputItem->setTextColor(textColor);
+    }
+}
+
 /**
  * @brief EntityItem::setNodeConnectable Sets whether or not this node has a visible icon to allow connections to be "drawn"
  * @param connectable Is this node able to connect visually.
@@ -368,7 +384,6 @@ void EntityItem::handleExpandState(bool newState)
         updateDisplayedChildren(CHILDREN_VIEW_MODE);
     }
 
-    update();
     emit GraphMLItem_SizeChanged();
 
     updateTextLabel();
@@ -446,11 +461,6 @@ EntityItem *EntityItem::getParentEntityItem()
 }
 
 
-QList<EdgeItem *> EntityItem::getEdgeItems()
-{
-    return this->connections;
-}
-
 
 QRectF EntityItem::boundingRect() const
 {
@@ -506,20 +516,6 @@ QRectF EntityItem::expandedLabelRect() const
 }
 
 
-
-int EntityItem::getEdgeItemIndex(EdgeItem *item)
-{
-    return connections.indexOf(item);
-
-}
-
-int EntityItem::getEdgeItemCount()
-{
-    return connections.size();
-
-
-}
-
 /**
  * @brief EntityItem::gridRect Returns a QRectF which contains the local coordinates of where the Grid lines are to be drawn.
  * @return The grid rectangle
@@ -549,8 +545,9 @@ QRectF EntityItem::gridRect() const
 QRectF EntityItem::headerRect()
 {
     qreal itemMargin = 2 * getItemMargin();
-    return QRectF(QPointF(0, 0), QPointF(getWidth() + itemMargin, contractedHeight + itemMargin));
+    return QRectF(QPointF(0, 0), QPointF(getCurrentWidth() + itemMargin, contractedHeight + itemMargin));
 }
+
 
 QRectF EntityItem::bodyRect()
 {
@@ -582,10 +579,17 @@ bool EntityItem::isNodeReadOnly()
     return IS_READ_ONLY;
 }
 
+bool EntityItem::isNodeReadOnlyDefinition()
+{
+    return IS_READ_ONLY_DEF;
+}
+
 void EntityItem::setHardwareHighlighting(bool highlighted)
 {
-    hasHardwareWarning = highlighted;
-    update();
+    if(highlighted != hasHardwareWarning){
+        hasHardwareWarning = highlighted;
+        update();
+    }
 }
 
 
@@ -621,7 +625,7 @@ bool EntityItem::isVector()
 
 
 
-void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget* widget)
+void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget*)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
 
@@ -630,10 +634,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
-    painter->setRenderHint(QPainter::Antialiasing, true);
-
-
-
 
     VIEW_STATE viewState = getViewState();
 
@@ -642,13 +642,18 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         QBrush headBrush = this->headerBrush;
         QBrush bodyBrush = this->bodyBrush;
 
-        if(IS_READ_ONLY){
-            bodyBrush = this->readOnlyBodyBrush;
-            headBrush = this->readOnlyHeaderBrush;
+        if(IS_READ_ONLY_SNIPPET){
+            if(IS_READ_ONLY_DEF){
+                bodyBrush = readOnlyDefBodyBrush;
+                headBrush = readOnlyDefHeaderBrush;
+            }else{
+                bodyBrush = readOnlyBodyBrush;
+                headBrush = readOnlyHeaderBrush;
+            }
         }
 
         //Make the background transparent
-        if((renderState > RS_BLOCK) && viewState == VS_MOVING || viewState == VS_RESIZING){
+        if((renderState > RS_BLOCK) && (viewState == VS_MOVING || viewState == VS_RESIZING)){
             if(isSelected() && isNodeOnGrid){
                 QColor color = bodyBrush.color();
                 color.setAlpha(90);
@@ -656,10 +661,21 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             }
         }
 
-        if (isHighlighted()) {
-            bodyBrush.setColor(Qt::white);
-            headBrush.setColor(Qt::white);
+        // this highlights this item if it is a hardware entity and the selected entity is connected to it
+        if (isHardwareLink) {
+            bodyBrush.setColor(Theme::theme()->getHighlightColor());
+            headBrush.setColor(Theme::theme()->getHighlightColor());
         }
+
+        if (isHighlighted()) {
+            headBrush.setColor(Theme::theme()->getHighlightColor());
+        }
+
+        if(hasHardwareWarning && renderState == RS_BLOCK){
+            headBrush.setColor(Qt::red);
+        }
+
+
         //Paint Background
         painter->setPen(Qt::NoPen);
         painter->setBrush(bodyBrush);
@@ -670,17 +686,18 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             headBrush.setColor(selectedPen.color());
         }
 
-        //Paint Header
-        painter->setPen(Qt::NoPen);
+
         painter->setBrush(headBrush);
         painter->drawRect(headerRect());
+
+
 
 
         //Draw the boundary.
         if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
             if(renderState != RS_BLOCK){
                 //Setup the Pen
-                QPen pen = this->pen;
+                QPen  pen = this->pen;
 
                 if(isSelected()){
                     pen = this->selectedPen;
@@ -744,36 +761,40 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         //Paint the Icon
 
         if(renderState > RS_BLOCK){
-            paintPixmap(painter, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
+            paintPixmap(painter, lod, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
         }
     }
 
 
+    if(IS_READ_ONLY && renderState > RS_BLOCK){
+        paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Lock_Closed");
+    }
+
+    if(nodeMemberIsKey && renderState > RS_BLOCK){
+        paintPixmap(painter, lod, IP_CENTER_SMALL, "Actions", "Key");
+    }
 
     if(renderState == RS_FULL){
         //If a Node has a Definition, paint a definition icon
-        if(HAS_DEFINITION){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Definition");
-        }else if (nodeKind == "HardwareCluster") {
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "MenuCluster");
-        }else if(IS_READ_ONLY){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Lock_Closed");
+        if(IS_READ_ONLY_DEF){
+            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Snippet");
+        }
+        if(IS_HARDWARE_CLUSTER){
+            paintPixmap(painter, lod, IP_BOTLEFT, "Actions", "Menu_Vertical");
         }
 
         if(isInputParameter){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Arrow_Forward");
+            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Arrow_Forward");
         }
         if(isReturnParameter){
-            paintPixmap(painter, IP_TOPRIGHT, "Actions", "Arrow_Forward");
+            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "Arrow_Forward");
         }
 
-        if(nodeMemberIsKey){
-            paintPixmap(painter, IP_TOPLEFT, "Actions", "Key");
-        }
+
 
         if(canNodeBeConnected){
             //Paint connect Icon
-            paintPixmap(painter, IP_TOPRIGHT, "Actions", "ConnectTo");
+            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "ConnectTo");
 
             QPen newPen(Qt::gray);
             newPen.setWidthF(0.5);
@@ -784,9 +805,9 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         if(hasChildren()){
             if(isExpanded()){
-                paintPixmap(painter, IP_BOT_RIGHT, "Actions", "Contract", true);
+                paintPixmap(painter, lod, IP_BOT_RIGHT, "Actions", "Contract", true);
             }else{
-                paintPixmap(painter, IP_BOT_RIGHT, "Actions", "Expand", true);
+                paintPixmap(painter, lod, IP_BOT_RIGHT, "Actions", "Expand", true);
             }
         }
 
@@ -794,7 +815,11 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
         if(hasEditData){
-            paintPixmap(painter, IP_BOTLEFT, "Data", editableDataKey);
+            if(editableDataKey == "worker"){
+                paintPixmap(painter, lod, IP_BOTLEFT, "Functions", workerKind);
+            }else{
+                paintPixmap(painter, lod, IP_BOTLEFT, "Data", editableDataKey);
+            }
 
         }
     }
@@ -802,7 +827,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     if(renderState >= RS_REDUCED){
         //If this Node has a Deployment Warning, paint a warning Icon
         if(showDeploymentWarningIcon){
-            paintPixmap(painter, IP_TOPRIGHT, "Actions", "Warning");
+            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "Warning");
         }
     }
 
@@ -855,7 +880,7 @@ bool EntityItem::mouseOverDeploymentIcon(QPointF mousePosition)
 
 bool EntityItem::mouseOverDefinition(QPointF mousePosition)
 {
-    if (HAS_DEFINITION || nodeMemberIsKey){
+    if (IS_READ_ONLY_DEF || nodeMemberIsKey || IS_READ_ONLY){
         return iconRect_TopLeft().contains(mousePosition);
     }
     return false;
@@ -885,7 +910,7 @@ bool EntityItem::mouseOverTopBar(QPointF mousePosition)
 bool EntityItem::mouseOverHardwareMenu(QPointF mousePosition)
 {
     if (IS_HARDWARE_CLUSTER) {
-        if(iconRect_TopLeft().contains(mousePosition)){
+        if(iconRect_BottomLeft().contains(mousePosition)){
             return true;
         }
     }
@@ -975,29 +1000,6 @@ double EntityItem::getExpandedHeight() const
     return expandedHeight;
 }
 
-void EntityItem::updateDefinition(){
-    if(IS_IMPL_OR_INST){
-        if(getNodeView()){
-            int defID = getNodeView()->getDefinitionID(getID());
-            bool hasDef = defID != -1;
-            if(HAS_DEFINITION != hasDef){
-                HAS_DEFINITION = hasDef;
-                update();
-            }
-        }
-    }
-}
-
-void EntityItem::addEdgeItem(EdgeItem *line)
-{
-    connections.append(line);
-}
-
-
-void EntityItem::removeEdgeItem(EdgeItem *line)
-{
-    connections.removeAll(line);
-}
 
 
 void EntityItem::setCenterPos(QPointF pos)
@@ -1087,6 +1089,9 @@ void EntityItem::setSelected(bool selected)
             //Restore the items previous ZValue.
             restoreZValue();
         }
+
+        //Unset the hardware higlighting when an item is deslected.
+        setHardwareHighlighting(false);
         //Call the base class.
         GraphMLItem::setSelected(selected);
     }
@@ -1117,76 +1122,101 @@ void EntityItem::setVisibility(bool visible)
  */
 void EntityItem::dataChanged(QString keyName, QVariant data)
 {
-        if(keyName == "x" || keyName == "y"){
-            qreal dataValue = data.toReal();
-            //If data is related to the position of the EntityItem
-            //Get the current center position.
+    if(keyName == ""){
+        return;
+    }
 
-            QPointF newCenter = centerPos();
+    bool boolValue = data.toBool();
+    if(data.isNull()){
+        boolValue = false;
+    }
+    if(keyName == "x" || keyName == "y"){
+        qreal dataValue = data.toReal();
+        //If data is related to the position of the EntityItem
+        //Get the current center position.
 
-            if(keyName == "x"){
-                newCenter.setX(dataValue);
-            }else if(keyName == "y"){
-                newCenter.setY(dataValue);
-            }
+        QPointF newCenter = centerPos();
 
-            //Update the center position.
-            setCenterPos(newCenter);
-
-        }else if(keyName == "width" || keyName == "height"){
-            qreal dataValue = data.toReal();
-            if(keyName == "width"){
-                setExpandedWidth(dataValue);
-            }else if(keyName == "height"){
-                setExpandedHeight(dataValue);
-            }
-        }else if(keyName == "label"){
-            QString dataValue = data.toString();
-            //Update the Label
-            updateTextLabel(dataValue);
-        }else if(keyName == "architecture"){
-            nodeHardwareArch = data.toString();
-            update();
-        }else if(keyName == "os"){
-            nodeHardwareOS = data.toString();
-            update();
-        }else if(keyName == "type"){
-            this->nodeType = data.toString();
-        }else if(keyName == "localhost"){
-            this->nodeHardwareLocalHost = data.toBool();
-            update();
-        }else if(keyName == "key"){
-            nodeMemberIsKey = data.toBool();
-            update();
-        }else if(keyName == "isExpanded"){
-            handleExpandState(data.toBool());
-        }else if(keyName == "readOnly"){
-            IS_READ_ONLY = data.toBool();
-            update();
-        }else if(keyName == "description"){
-            //Use as tooltip.
-            descriptionValue = data.toString();
-        }else if(keyName == "operation"){
-            //Use as tooltip.
-            operationKind = data.toString();
+        if(keyName == "x"){
+            newCenter.setX(dataValue);
+        }else if(keyName == "y"){
+            newCenter.setY(dataValue);
         }
 
-        if(keyName == editableDataKey){
-            if(bottomInputItem){
-                bottomInputItem->setValue(data.toString());
+        //Update the center position.
+        setCenterPos(newCenter);
 
-                if(getEntityAdapter()->isDataProtected(keyName)){
-                    bottomInputItem->setBrush(Qt::NoBrush);
-                }else{
-                    bottomInputItem->setBrush(Qt::white);
-                }
+    }else if(keyName == "width" || keyName == "height"){
+        qreal dataValue = data.toReal();
+        if(keyName == "width"){
+            setExpandedWidth(dataValue);
+        }else if(keyName == "height"){
+            setExpandedHeight(dataValue);
+        }
+    }else if(keyName == "label"){
+        QString dataValue = data.toString();
+        //Update the Label
+        updateTextLabel(dataValue);
+    }else if(keyName == "architecture"){
+        nodeHardwareArch = data.toString();
+        update();
+    }else if(keyName == "os"){
+        nodeHardwareOS = data.toString();
+        update();
+    }else if(keyName == "type"){
+        this->nodeType = data.toString();
+    }else if(keyName == "localhost"){
+        this->nodeHardwareLocalHost = boolValue;
+        update();
+    }else if(keyName == "key"){
+        nodeMemberIsKey = boolValue;
+        update();
+    }else if(keyName == "isExpanded"){
+        handleExpandState(boolValue);
+    }else if(keyName == "readOnly"){
+        IS_READ_ONLY = boolValue;
+        update();
+    }else if(keyName == "readOnlyDefinition"){
+        IS_READ_ONLY_DEF = boolValue;
+        update();
+    }else if(keyName == "snippetID"){
+        IS_READ_ONLY_SNIPPET = boolValue;
+        update();
+    }else if(keyName == "description"){
+        //Use as tooltip.
+        descriptionValue = data.toString();
+    }else if(keyName == "worker"){
+        //Use as tooltip.
+        workerKind = data.toString();
+    }else if(keyName == "operation"){
+        //Use as tooltip.
+        operationKind = data.toString();
+    }else if(keyName =="is_online"){
+        IS_ONLINE = boolValue;
+        updateErrorState();
+    }
+
+    if(keyName == editableDataKey){
+        if(bottomInputItem){
+            bottomInputItem->setValue(data.toString());
+
+            if(getEntityAdapter()->isDataProtected(keyName)){
+                bottomInputItem->setBrush(Qt::NoBrush);
+            }else{
+                bottomInputItem->setBrush(Qt::white);
             }
         }
-        if(keyName == statusModeDataKey){
-            if(statusItem){
-                statusItem->setValue(data.toString());
+    }
+    if(keyName == statusModeDataKey){
+        if(statusItem){
+            statusItem->setValue(data.toString());
+            if(statusItem->getValue() == "1"){
+                statusItem->setVisible(false);
+            }else{
+                statusItem->setVisible(true);
             }
         }
+    }
 }
 
 
@@ -1217,7 +1247,11 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 }
             }
             break;
+        default:
+            break;
         }
+        break;
+    default:
         break;
     }
 }
@@ -1261,6 +1295,8 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         case VS_MOVING:
             emit EntityItem_MoveSelection(deltaPos);
             previousScenePosition = event->scenePos();
+            break;
+        default:
             break;
         }
     }
@@ -1343,7 +1379,6 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
     MOUSEOVER_TYPE mouseDblClickType = getMouseOverType(event->scenePos());
 
-    int aspectID = -1;
     RESIZE_TYPE rt = RESIZE;
     switch(event->button()){
     case Qt::LeftButton:{
@@ -1457,10 +1492,10 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         break;
     case  MO_DEFINITION:
         cursor = Qt::WhatsThisCursor;
-        if(HAS_DEFINITION){
-            tooltip = "This entity has a definition.";
-        }else if(nodeMemberIsKey){
-            tooltip = "This Member is the key.";
+        if(IS_READ_ONLY_DEF){
+            tooltip = "This Entity is a Read-Only Snippet definition.";
+        }else if(IS_READ_ONLY){
+            tooltip = "This Entity is in Read-Only Mode. You can only make visual changes.";
         }
         break;
     case MO_HARDWAREMENU:
@@ -1517,6 +1552,36 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     GraphMLItem::hoverMoveEvent(event);
 }
 
+void EntityItem::updateErrorState()
+{
+    NodeAdapter* node = getNodeAdapter();
+    if(node->isBehaviourAdapter()){
+        BehaviourNodeAdapter* bA = (BehaviourNodeAdapter*)node;
+
+        if(bA->needsLeftEdge()){
+            notificationItem->setErrorType(ET_CRITICAL, "Entity requires workload edge.");
+        }else{
+            //Clear the notification.
+            notificationItem->setErrorType(ET_OKAY);
+        }
+        setNodeConnectable(bA->needsConnection());
+    }else if(IS_IMPL_OR_INST){
+        if(HAS_DEFINITION){
+            //Clear the notification.
+            notificationItem->setErrorType(ET_OKAY);
+        }else{
+            //Clear the notification.
+            notificationItem->setErrorType(ET_CRITICAL, "Instance/Impl isn't connected to a Definition.");
+        }
+    }else if(IS_HARDWARE_NODE){
+        if(IS_ONLINE){
+            notificationItem->setErrorType(ET_OKAY);
+        }else{
+            notificationItem->setErrorType(ET_CRITICAL, "HardwareNode is Offline!");
+        }
+    }
+}
+
 
 /*void EntityItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
@@ -1550,6 +1615,12 @@ void EntityItem::updateTextVisibility()
 
         bottomInputItem->setVisible(showBottomLabel);
     }
+}
+
+void EntityItem::setWarning(bool warning, QString warningTooltip)
+{
+    hasWarning = warning;
+    this->warningTooltip = warningTooltip;
 }
 
 
@@ -1634,9 +1705,9 @@ QRectF EntityItem::smallIconRect() const
 QRectF EntityItem::iconRect() const
 {
     qreal iconSize = ICON_RATIO * contractedWidth;
-    if(getRenderState() <= RS_REDUCED){
-        iconSize = contractedWidth;
-    }
+    //if(getRenderState() <= RS_MINIMAL){
+    //    iconSize = contractedWidth;
+    //}
 
     //Construct a Rectangle to represent the icon size at the origin
     QRectF icon = QRectF(0, 0, iconSize, iconSize);
@@ -1680,6 +1751,42 @@ QRectF EntityItem::textRect_Bot() const
     rect.moveBottomLeft(iconRect_BottomLeft().bottomRight());
     return rect;
 }
+
+QRectF EntityItem::statusRect_Left() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    qreal rWidth = SMALL_ICON_RATIO * contractedWidth;
+
+    QRectF headRect = minimumRect();
+    headRect.setWidth(rWidth);
+
+    return headRect;
+}
+
+QRectF EntityItem::iconRect_TopMid() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF iconRect = smallIconRect();
+
+    //Translate to move the icon to its position
+    qreal itemMargin = getItemMargin();
+    iconRect.moveTopLeft(QPointF(itemMargin + (getCurrentWidth()/2) - (iconRect.width() /2), itemMargin));
+
+    return iconRect;
+
+}
+
+QRectF EntityItem::iconRect_Center() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF iconRect = smallIconRect();
+
+    //Translate to move the icon to its position
+    iconRect.moveCenter(minimumRect().center());
+
+    return iconRect;
+}
+
 
 
 /**
@@ -1740,12 +1847,16 @@ QRectF EntityItem::getImageRect(EntityItem::IMAGE_POS pos) const
         return iconRect_BottomLeft();
     case IP_TOPRIGHT:
         return iconRect_TopRight();
+    case IP_TOPMID:
+        return iconRect();
     case IP_TOPLEFT:
         return iconRect_TopLeft();
     case IP_BOT_RIGHT:
         return iconRect_BottomRight();
     case IP_CENTER:
         return iconRect();
+    case IP_CENTER_SMALL:
+        return iconRect_Center();
     default:
         return QRectF();
     }
@@ -1903,8 +2014,12 @@ void EntityItem::updateTextLabel(QString newLabel)
 
     bottomInputItem->updatePosSize(textRect_Bot());
 
-    statusItem->setCircleCenter(boundingRect().topRight() + QPointF(-getItemMargin(), getItemMargin()));
+    statusItem->setCircleCenter(boundingRect().topRight());
 
+
+    QPointF notificationIconPos =  boundingRect().topRight() -  QPointF(0,statusItem->boundingRect().height() - getItemMargin());// - statusItem->boundingRect().bottomRight();
+    notificationItem->setPos(notificationIconPos);
+    notificationItem->setRotation(notificationItem->getAngle());
     updateTextVisibility();
 }
 
@@ -1958,7 +2073,7 @@ void EntityItem::setupBrushes()
 
     //Set up ReadOnly Bruhs
 
-    QColor blendColor = Qt::blue;
+    QColor blendColor = QColor(100,149,237);
     qreal blendFactor = .2;
     QColor bColor = bodyBrush.color();
 
@@ -1968,13 +2083,44 @@ void EntityItem::setupBrushes()
 
 
     readOnlyBodyBrush = QBrush(bColor);
+    blendFactor = .6;
+
+    bColor = headerBrush.color();
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
+    bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
+    readOnlyHeaderBrush = QBrush(bColor);
+
+
+
+    blendColor = QColor(222,184,135);
+    blendFactor = .6;
+    bColor = headerBrush.color();
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
+    bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
+
+    errorHeaderBrush = QBrush(bColor);
+
+
+    blendColor = QColor(222,184,135);
+    blendFactor = .2;
+    bColor = bodyBrush.color();
+
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
+    bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
+
+
+    readOnlyDefBodyBrush = QBrush(bColor);
+    blendFactor = .6;
 
     bColor = headerBrush.color();
     bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
     bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
     bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
 
-    readOnlyHeaderBrush = QBrush(bColor);
+    readOnlyDefHeaderBrush = QBrush(bColor);
 
 }
 
@@ -2018,8 +2164,6 @@ void EntityItem::setupChildrenViewOptionMenu()
     font.setPointSize(9);
 
     childrenViewOptionMenu->setFont(font);
-    //childrenViewOptionMenu->setAttribute(Qt::WA_TranslucentBackground);
-    //childrenViewOptionMenu->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
 
     allChildren = new QRadioButton("All");
     connectedChildren = new QRadioButton("Connected");
@@ -2085,6 +2229,10 @@ void EntityItem::setupLabel()
     topLabelInputItem = new InputItem(this,"", false);
     rightLabelInputItem = new InputItem(this, "", false);
     statusItem = new StatusItem(this);
+    statusItem->setBackgroundColor(QColor(0,150,150));
+    notificationItem = new NotificationItem(this);
+    statusItem->setZValue(1000);
+    notificationItem->setBackgroundColor(QColor(255,204,51));
 
     //Setup external Label
     topLabelInputItem->setAcceptHoverEvents(true);
@@ -2094,6 +2242,9 @@ void EntityItem::setupLabel()
     //Setup external statusItem
     statusItem->setAcceptHoverEvents(true);
     statusItem->setToolTipString("Click to edit field.");
+
+    notificationItem->setAcceptHoverEvents(true);
+
 
 
 
@@ -2142,6 +2293,10 @@ void EntityItem::setupLabel()
     topLabelInputItem->setPos(bottomLabelPos - QPointF(0 , bottomInputItem->boundingRect().height()));
     statusItem->setPos(statusIconPos);
 
+    QPointF notificationIconPos =  boundingRect().topRight() - statusItem->boundingRect().bottomRight();
+    notificationItem->setPos(notificationIconPos);
+
+
 
 }
 
@@ -2162,16 +2317,28 @@ void EntityItem::setupDataConnections()
     listenForData("isExpanded");
 
     listenForData("readOnly");
+    listenForData("readOnlyDefinition");
+    listenForData("snippetID");
+
+
     listenForData("description");
 
     if(nodeKind == "HardwareNode"){
         listenForData("os");
         listenForData("architecture");
         listenForData("localhost");
-    }else if(nodeKind == "Member"){
+        listenForData("is_online");
+    }else if(nodeKind == "Member" || nodeKind == "MemberInstance"){
         listenForData("key");
     }else if(nodeKind == "Process"){
+        listenForData("worker");
         listenForData("operation");
+    }
+
+    NodeAdapter* node = getNodeAdapter();
+    if(node){
+        connect(node, SIGNAL(edgeAdded(int,Edge::EDGE_CLASS)), this, SLOT(edgeAdded(int,Edge::EDGE_CLASS)));
+        connect(node, SIGNAL(edgeRemoved(int,Edge::EDGE_CLASS)), this, SLOT(edgeRemoved(int,Edge::EDGE_CLASS)));
     }
 }
 
@@ -2287,25 +2454,32 @@ int EntityItem::getHardwareClusterChildrenViewMode()
 
 
 /**
- * @brief EntityItem::themeChanged
- * @param theme
+ * @brief EntityItem::highlightHardwareLink
+ * @param nodeItem
  */
-void EntityItem::themeChanged(VIEW_THEME theme)
+void EntityItem::highlightHardwareLink(NodeItem *nodeItem)
+{
+    if (isHardwareNode() || isHardwareCluster()) {
+        if (nodeItem == this) {
+            isHardwareLink = true;
+        } else {
+            isHardwareLink = false;
+        }
+        update();
+    }
+}
+
+
+/**
+ * @brief EntityItem::themeChanged
+ */
+void EntityItem::themeChanged()
 {
     if (IS_HARDWARE_CLUSTER && childrenViewOptionMenu) {
 
-        QString bgColor = "rgba(240,240,240,250);";
-        QString textColor = "black;";
-        QString checkedColor = "green;";
-
-        switch (theme) {
-        case VT_DARK_THEME:
-            bgColor = "rgba(130,130,130,250);";
-            textColor = "white;";
-            checkedColor = "yellow;";
-        default:
-            break;
-        }
+        QString bgColor = Theme::theme()->getAltBackgroundColorHex() + ";";
+        QString textColor = Theme::theme()->getTextColorHex() + ";";
+        QString checkedColor = Theme::theme()->getHighlightColorHex() + ";";
 
         childrenViewOptionMenu->setStyleSheet("QMenu{ background-color:" + bgColor + "}" +
                                               "QRadioButton {"
@@ -2319,25 +2493,19 @@ void EntityItem::themeChanged(VIEW_THEME theme)
     }
 }
 
-
-
-
-
-void EntityItem::retrieveData()
+void EntityItem::showDeploymentWarning(bool show)
 {
-
-    if(!getEntityAdapter()){
-        return;
+    if(notificationItem){
+        if(show){
+            notificationItem->setErrorType(ET_WARNING, "Child Entity is deployed to different Hardware Entity.");
+        }else{
+            notificationItem->setErrorType(ET_OKAY);
+        }
     }
-
-
-    updateData("width");
-    updateData("height");
-    updateData("x");
-    updateData("y");
-    updateData("label");
-    updateData("type");
 }
+
+
+
 
 
 /**
@@ -2395,66 +2563,7 @@ void EntityItem::showHardwareIcon(bool show)
  * @param selectedItem
  * @return
  */
-QList<EntityItem*> EntityItem::deploymentView(bool on, EntityItem *selectedItem)
-{
-    QList<EntityItem*> chlidrenDeployedToDifferentNode;
 
-    if (on) {
-
-        Node* deploymentLink = 0;
-        /*
-
-        // get the hardware node that this item is deployed to
-        foreach (Edge* edge, getNodeAdapter()->getEdges(0)) {
-            if (edge->isDeploymentLink()) {
-                deploymentLink = edge->getDestination();
-                break;
-            }
-        }
-
-        // if this item isn't connected to a hardware node, do nothing
-        if (!deploymentLink) {
-            return chlidrenDeployedToDifferentNode;
-        }
-
-        // check this item's children's deployment links
-        foreach (EntityItem* childItem, getChildEntityItems()) {
-            foreach (Edge* edge, childItem->getNodeAdapter()->getEdges(0)) {
-                if (edge->isDeploymentLink() && edge->getDestination() != deploymentLink) {
-                    if (selectedItem && selectedItem == this) {
-                        childItem->setHardwareHighlighting(true);
-                        //childItem->highlightEntityItem(true);
-                    }
-                    chlidrenDeployedToDifferentNode.append(childItem);
-                    break;
-                }
-            }
-        }
-        */
-
-        // if there are children deployed to a different node, show red hardware icon
-        if (chlidrenDeployedToDifferentNode.isEmpty()) {
-            showHardwareIcon(false);
-        } else {
-            showHardwareIcon(true);
-        }
-
-    } else {
-
-        // remove highlight and hide the red hradware icon
-        foreach (EntityItem* childItem, getChildEntityItems()) {
-            childItem->setHardwareHighlighting(false);
-            //childItem->highlightEntityItem(false);
-        }
-
-        showHardwareIcon(false);
-    }
-
-    // need to update here otherwise the visual changes aren't applied till the mouse is moved
-    update();
-
-    return chlidrenDeployedToDifferentNode;
-}
 
 
 /**
@@ -2486,6 +2595,26 @@ void EntityItem::forceExpandParentItem()
         EntityItem* pi = parentItems.at(i);
         emit GraphMLItem_SetData(pi->getID(), "isExpanded", true);
     }
+}
+
+void EntityItem::gotDefinition(bool def)
+{
+    HAS_DEFINITION = def;
+    updateErrorState();
+}
+
+void EntityItem::edgeAdded(int ID, Edge::EDGE_CLASS edgeClass)
+{
+    Q_UNUSED(ID);
+    Q_UNUSED(edgeClass);
+    updateErrorState();
+}
+
+void EntityItem::edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass)
+{
+    Q_UNUSED(ID);
+    Q_UNUSED(edgeClass);
+    updateErrorState();
 }
 
 
@@ -2592,7 +2721,7 @@ QMenu *EntityItem::getChildrenViewOptionMenu()
 QRectF EntityItem::geChildrenViewOptionMenuSceneRect()
 {
     if (IS_HARDWARE_CLUSTER) {
-        QRectF menuButtonRect = mapRectToScene(iconRect_TopLeft());
+        QRectF menuButtonRect = mapRectToScene(iconRect_BottomLeft());
         return menuButtonRect;
     }
     return QRectF();
@@ -2634,21 +2763,39 @@ QString EntityItem::getIconPrefix()
 
 }
 
-void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update)
 {
     QRectF place = getImageRect(pos);
+
     QPixmap image = imageMap[pos];
 
-    if(getNodeView() && (image.isNull() || update)){
-        image = getNodeView()->getImage(alias, imageName);
+    Theme* theme = Theme::theme();
+    QSize requiredSize;
+    requiredSize.setWidth(place.width()* lod * 2);
+    requiredSize.setHeight(place.height()* lod * 2);
+
+    if(image.size() != requiredSize || update){
+        //Try get the image the user asked for.
+        image = theme->getImage(alias, imageName, requiredSize);
+
+        if(image.isNull() && workerKind != ""){
+            //Try get the Icon for the worker otherwise.
+            image = theme->getImage("Functions", workerKind, requiredSize);
+        }
+
         if(image.isNull() && operationKind != ""){
-            image = getNodeView()->getImage("Items", "Process");
+            //Use the default icon for the Process.
+            image = theme->getImage("Items", "Process", requiredSize);
         }
+
         if(image.isNull() && nodeType != ""){
-            image = getNodeView()->getImage("Data", nodeType);
+            //Look for a Data icon.
+            image = theme->getImage("Data", nodeType, requiredSize);
         }
+
         if(image.isNull()){
-            image = getNodeView()->getImage("Actions", "Help");
+            //Use a help icon.
+            image = theme->getImage("Actions", "Help", requiredSize);
         }
         imageMap[pos] = image;
     }

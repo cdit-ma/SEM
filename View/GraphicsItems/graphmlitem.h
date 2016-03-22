@@ -28,6 +28,7 @@ public:
     VIEW_STATE getViewState() const;
     void setRenderState(RENDER_STATE renderState);
 
+
     virtual void firstChildAdded(GraphMLItem* child);
     virtual void lastChildRemoved();
 
@@ -94,6 +95,7 @@ public slots:
     virtual void setSelected(bool selected);
 
     virtual void dataChanged(QString keyName, QVariant Data) = 0;
+    virtual void dataRemoved(QString keyName);
 
     virtual void zoomChanged(qreal zoom);
 
@@ -109,7 +111,8 @@ signals:
 
     void GraphMLItem_AppendSelected(GraphMLItem*);
     void GraphMLItem_RemoveSelected(GraphMLItem*);
-    void GraphMLItem_ClearSelection(bool updateTable = false);
+    void GraphMLItem_ClearSelection();
+    void GraphMLItem_SelectionChanged();
 
     void GraphMLItem_PositionChanged();
     void GraphMLItem_SizeChanged();
@@ -143,6 +146,10 @@ private:
     QPen currentPen;
 
     qreal selectedPenWidth;
+
+    ERROR_TYPE errorType;
+
+
 
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);

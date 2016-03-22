@@ -8,41 +8,57 @@
 #include <QDebug>
 #include <qmath.h>
 
+//#define DOCK_PADDING 5
+#define DOCK_PADDING 10
 #define MAX_LABEL_LENGTH 12
-#define BUTTON_WIDTH 131
+#define BUTTON_WIDTH 81
+//#define BUTTON_WIDTH 131
 
 
 /**
  * @brief DockScrollArea::DockScrollArea
- * @param label
+ * @param type
  * @param view
  * @param parent
  * @param dockEmptyText
  */
-DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* parent, QString dockEmptyText) :
+DockScrollArea::DockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton* parent, QString dockEmptyText) :
     QScrollArea(parent)
 {
-    if (!view || !parent) {
-        qWarning() << "DockScrollArea::DockScrollArea - NodeView or parent DockToggleButton is null.";
+    if (!view) {
+        qWarning() << "DockScrollArea::DockScrollArea - NodeView is null for dock: " << GET_DOCK_LABEL(type);
         return;
     }
 
     nodeView = view;
-    parentButton = 0;
-
-    this->label = label;
 
     currentNodeItem = 0;
     currentNodeItemID = -1;
 
-    dockOpen = false;
-    infoLabelVisible = true;
+    label = GET_DOCK_LABEL(type);
+    dockType = type;
+
+    OPEN = true;
+    ENABLED = true;
 
     defaultInfoText = dockEmptyText;
     infoText = defaultInfoText;
+    infoLabelVisible = true;
 
-    setParentButton(parent);
     setupLayout();
+    setParentButton(parent);
+    setDockOpen(false);
+
+    // the definitions and functions dock have their own signal related to this
+    switch (getDockType()) {
+    case PARTS_DOCK:
+    case HARDWARE_DOCK:
+        connect(this, SIGNAL(dock_opened(bool)), this, SIGNAL(dock_toggled(bool)));
+        connect(this, SIGNAL(dock_closed(bool)), this, SIGNAL(dock_toggled(bool)));
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -72,6 +88,7 @@ QStringList DockScrollArea::getNotAllowedKinds()
  */
 void DockScrollArea::updateCurrentNodeItem()
 {
+
     currentNodeItem = nodeView->getSelectedNodeItem();
 
     if (currentNodeItem) {
@@ -104,10 +121,10 @@ NodeItem* DockScrollArea::getCurrentNodeItem()
  */
 QString DockScrollArea::getCurrentNodeKind()
 {
-   if (getCurrentNodeItem()) {
+    if (getCurrentNodeItem()) {
         return getCurrentNodeItem()->getNodeKind();
-   }
-   return "";
+    }
+    return "";
 }
 
 
@@ -128,10 +145,7 @@ DockToggleButton* DockScrollArea::getParentButton()
  */
 DOCK_TYPE DockScrollArea::getDockType()
 {
-    if (parentButton) {
-        return parentButton->getDockType();
-    }
-    return UNKNOWN_DOCK;
+    return dockType;
 }
 
 
@@ -184,14 +198,16 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
 
 /**
  * @brief DockScrollArea::setInfoText
+ * This sets the text that is displayed when this dock is empty.
  * @param text
  */
 void DockScrollArea::setInfoText(QString text)
 {
     if (!text.isEmpty()) {
 
+        // break up the text so that it fits inside the dock
         QStringList textList = text.split(" ");
-        int lineWidth;
+        int lineWidth = 0;
         text = "";
 
         foreach (QString s, textList) {
@@ -206,10 +222,9 @@ void DockScrollArea::setInfoText(QString text)
         }
 
         text.truncate(text.length() - 1);
+        infoText = text;
+        infoLabel->setText(infoText);
     }
-
-    infoText = text;
-    infoLabel->setText(infoText);
 }
 
 
@@ -278,7 +293,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
 
 
 /**
- * @brief DockScrollArea::removeDockNodeItemFromList
+ * @brief DockScrollArea::removeDockNodeItem
  * This method removes the provided dock item from this dock's list and layout.
  * @param dockItem
  */
@@ -314,12 +329,6 @@ void DockScrollArea::removeDockNodeItem(DockNodeItem* dockItem, bool deleteItem)
  */
 DockNodeItem* DockScrollArea::getDockNodeItem(QString dockItemID)
 {
-    foreach (QString itemID, dockNodeItems.keys()) {
-        if (itemID == dockItemID) {
-            return dockNodeItems[itemID];
-        }
-    }
-
     if (dockNodeItems.contains(dockItemID)) {
         return dockNodeItems[dockItemID];
     }
@@ -340,23 +349,23 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
 
 /**
  * @brief DockScrollArea::isDockEnabled
+ * If this dock is attached to a DockToggleButton, it returns whether or not that button is enabled.
  * @return
  */
 bool DockScrollArea::isDockEnabled()
 {
-    if (getParentButton()) {
-        return getParentButton()->isEnabled();
-    }
-    return false;
+    return ENABLED;
 }
 
 
 /**
  * @brief DockScrollArea::setDockEnabled
+ * If this dock is attached to a DockToggleButton, it enables/disables that button.
  * @param enabled
  */
 void DockScrollArea::setDockEnabled(bool enabled)
 {
+    ENABLED = enabled;
     if (getParentButton()) {
         getParentButton()->setEnabled(enabled);
     }
@@ -369,17 +378,22 @@ void DockScrollArea::setDockEnabled(bool enabled)
  */
 bool DockScrollArea::isDockOpen()
 {
-    return dockOpen;
+    return OPEN;
 }
 
 
 /**
  * @brief DockScrollArea::setDockOpen
+ * This opens/closes this dock.
  * @param open
  */
 void DockScrollArea::setDockOpen(bool open)
 {
-    dockOpen = open;
+    if ((!ENABLED && open) || (open == OPEN)) {
+        return;
+    }
+
+    OPEN = open;
     setVisible(open);
 
     if (open) {
@@ -394,7 +408,7 @@ void DockScrollArea::setDockOpen(bool open)
  * @brief DockScrollArea::updateDock
  * If the currently selected node kind is contained in notAllowedKinds,
  * it means that this dock can't be used for the selected node.
- * If so, disable this dock and its parentButton.
+ * If so, disable this dock's parentButton.
  */
 void DockScrollArea::updateDock()
 {
@@ -474,35 +488,41 @@ void DockScrollArea::setupLayout()
     infoLabel = new QLabel(this);
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
-    infoLabel->setFixedWidth(BUTTON_WIDTH + 10);
-    infoLabel->setStyleSheet("padding: 10px; font-style: italic;");
-    setInfoText(defaultInfoText);
+    infoLabel->setFixedWidth(BUTTON_WIDTH + DOCK_PADDING*2);
+    infoLabel->setStyleSheet("font-style: italic;"
+                             "padding:" + QString::number(DOCK_PADDING) + "px "
+                             + QString::number(DOCK_PADDING/2) + "px; ");
 
     QGroupBox* groupBox = new QGroupBox(0);
-    groupBox->setTitle(label);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     groupBox->setStyleSheet("QGroupBox {"
-                            "background-color: rgba(255,255,255,0);"
+                            "background-color: rgba(0,0,0,0);"
+                            "margin: 0px 18px;"
                             "border: 0px;"
-                            "padding: 10px;"
+                            "padding: 0px;"
                             "}");
 
     layout = new QVBoxLayout(this);
-    layout->setSpacing(2);
+    layout->setMargin(0);
+    layout->setSpacing(0);
     layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSizeConstraint(QLayout::SetMinimumSize);
     layout->addWidget(infoLabel);
     groupBox->setLayout(layout);
 
     setWidget(groupBox);
-    setVisible(false);
     setWidgetResizable(true);
+    setInfoText(defaultInfoText);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setStyleSheet("QScrollArea {"
-                  "padding: 10px 0px;"
-                  "background-color: rgba(250,250,250,240);"
-                  "border: 0px;"
-                  //"border-radius: 10px;"
+                  "padding: 0px 0px 10px 0px;"
+                  "background: rgba(250,250,250,240);"
+                  //"border: none;"
+                  "border-left: 1px solid rgb(125,125,125);"
+                  "border-right: 1px solid rgb(125,125,125);"
+                  "border-bottom: 1px solid rgb(125,125,125);;"
+                  //"border-bottom: none;"
+                  "border-top: none;"
                   "}");
 }
 
@@ -511,14 +531,12 @@ void DockScrollArea::setupLayout()
  * @brief DockScrollArea::setParentButton
  * Attach and connect this dock to its parent button.
  */
-void DockScrollArea::setParentButton(DockToggleButton *parent)
+void DockScrollArea::setParentButton(DockToggleButton* parent)
 {
-    if (!parent) {
-        qWarning() << "DockScrollArea::setParentButton - Parent is null.";
-        return;
-    }
     parentButton = parent;
-    parentButton->setDock(this);
+    if (parent) {
+        parentButton->setDock(this);
+    }
 }
 
 
@@ -572,6 +590,9 @@ void DockScrollArea::updateInfoLabel()
     if (showLabel != infoLabelVisible) {
         infoLabel->setVisible(showLabel);
         infoLabelVisible = showLabel;
+        if (infoLabelVisible && infoLabel->text().isEmpty()) {
+            infoLabel->setText("Info label text is empty!");
+        }
     }
 }
 

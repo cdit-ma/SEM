@@ -103,7 +103,8 @@ private:
 
     QProcessEnvironment getEnvFromScript(QString scriptPath);
 
-    QString getGraphmlName(QString file);
+    //QString getGraphmlName(QString file);
+    QString getProjectNameFromFile(QString file);
     QString getGraphmlPath(QString filePath);
 
 
@@ -116,6 +117,10 @@ private:
     void queueHardwareGeneration(QString graphmlPath, QStringList hardwareNodes, QString outputPath);
 
     QString preProcessIDL(QString inputFilePath, QString outputPath);
+    QString replicateTransformGraphML(QString inputFilePath, QString outputPath);
+    QString deployTransformGraphML(QString inputFilePath, QString outputPath);
+
+    QString executeBlockedTransform(QString inputFilePath, QString transformName, QString outputPath);
 
     void queueXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters);
 

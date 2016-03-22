@@ -4,7 +4,6 @@
 
 #define DIALOG_PADDING 200
 
-#define LABEL_RATIO (2.0 / 5.0)
 #define ICON_RATIO 0.8
 
 #define LAYOUT_MARGIN 2
@@ -194,7 +193,8 @@ void SearchDialog::setupLayout()
     QHBoxLayout* headerLayout = new QHBoxLayout();
     QVBoxLayout* headerLabelsLayout = new QVBoxLayout();
 
-    defaultFont = QFont("Verdana", 8.5);
+    double fontSize = 8.5;
+    defaultFont = QFont("Verdana", fontSize);
     int keyLabelWidth = fontMetrics().width("WWWWWWWW");
 
     QGroupBox* headerBox = new QGroupBox(this);

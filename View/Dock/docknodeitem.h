@@ -14,7 +14,7 @@ class DockNodeItem : public QPushButton
 public:
     explicit DockNodeItem(QString kind = "", EntityItem* item = 0, QWidget* parent = 0, bool isLabel = false, QString imageName = "");
 
-    EntityItem* getNodeItem();
+    EntityItem* getEntityItem();
     QString getKind();
 
     void setID(QString strID);
@@ -45,23 +45,34 @@ public:
 
     bool isDockItemLabel();
     bool isExpanded();
+    bool isHighlighted();
 
 signals:
     void dockItem_clicked();
     void dockItem_fileClicked(bool show);
     void dockItem_relabelled(DockNodeItem* dockItem);
     void dockItem_hiddenStateChanged();
+    void dockItem_hoverEnter(int ID);
+    void dockItem_hoverLeave(int ID = -1);
 
 public slots:
+    void dataChanged(QString keyName, QVariant data);
     void clicked();
     void parentDockItemClicked(bool show);
 
     void labelChanged(QString label);
     void iconChanged();
+    void themeChanged();
     void childVisibilityChanged();
 
     void changeVectorHiddenState();
     void highlightDockItem(NodeItem* nodeItem);
+
+
+
+protected:
+    void enterEvent(QEvent* event);
+    void leaveEvent(QEvent* event);
 
 private:
     void setupLayout();
@@ -70,7 +81,7 @@ private:
     void updateTextLabel();
     void updateStyleSheet();
 
-    void setDockItemExpanded();
+    void toggleDockItemExpanded();
     bool hasVisibleChildren();
 
     DockScrollArea* parentDock;
@@ -96,6 +107,9 @@ private:
     bool forceHidden;
 
     int state;
+    int labelPadding;
+    int MAX_LABEL_LENGTH;
+
 };
 
 #endif // DOCKNODEITEM_H

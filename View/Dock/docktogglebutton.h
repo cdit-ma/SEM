@@ -30,15 +30,17 @@ public:
     void hideDock();
 
     int getWidth();
-    DOCK_TYPE getDockType();
+    int getHeight();
 
+    DOCK_TYPE getDockType();
     MedeaWindow* getParentWindow();
 
 public slots:
     void dockButtonPressed(DOCK_TYPE type);
+    void themeChanged();
 
 private:
-    void updateStyleSheet(int state);
+    void updateStyleSheet(int state = -1);
 
     DockScrollArea* dock;
     MedeaWindow* parentWindow;
@@ -50,6 +52,7 @@ private:
     bool enabled;
 
     QString fixedStyleSheet;
+    QString currentStyleSheet;
 
 };
 

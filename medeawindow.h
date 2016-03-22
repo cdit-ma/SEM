@@ -27,6 +27,11 @@
 #include <QProgressDialog>
 #include <QTemporaryFile>
 
+#include <QGuiApplication>
+#include <QScreen>
+#include <QDebug>
+
+
 #include <QXmlQuery>
 #include <QXmlResultItems>
 
@@ -62,6 +67,11 @@
 #include <QAbstractMessageHandler>
 
 
+struct NotificationStruct{
+    QString text;
+    QString actionImage;
+};
+
 class SearchDialog;
 
 class MedeaWindow : public QMainWindow
@@ -77,7 +87,7 @@ signals:
     void window_ConnectViewAndSetupModel(NodeView* view);
 
 
-    void jenkins_RunGroovyScript(QString groovyScriptPath);
+    void jenkins_RunGroovyScript(QString groovyScriptPath, QString parameters);
 
     void window_Paste(QString value);
 
@@ -108,8 +118,7 @@ signals:
 
     void checkDockScrollBar();
 
-    void window_DisplayMessage(MESSAGE_TYPE type, QString title, QString message);
-
+    void window_refreshActions();
 
 public slots:
     void projectRequiresSaving(bool requiresSave);
@@ -118,6 +127,7 @@ public slots:
 
     void projectCleared();
     void settingChanged(QString groupName, QString keyName, QVariant value);
+    void settingsApplied();
 
     void loadSettingsFromINI();
     void setupInitialSettings();
@@ -129,8 +139,19 @@ public slots:
     void executeLocalNodeDeployment();
     void executeJenkinsDeployment();
 
-
 private slots:
+    void CUTSOutputPathChanged(QString path);
+    void themeChanged();
+
+    void updateRightMask();
+
+    void updateMenuIcons();
+
+    void recentProjectItemClicked(QListWidgetItem* item);
+    void recentProjectMenuActionClicked();
+    void clearRecentProjectsList();
+
+    void screenshot();
     void XSLValidationCompleted(bool success, QString reportPath);
     void projectFileChanged(QString name="");
     void projectNameChanged(QString name="");
@@ -143,13 +164,15 @@ private slots:
     void toggleGridLines();
     void aboutMedea();
     void aboutQt();
+    void reportBug();
+    void showWiki(QString componentName="");
     void showShortcutList();
     void invalidJenkinsSettings(QString message);
     void jenkinsNodesLoaded();
     void saveSettings();
     void search();
 
-    void gotJenkinsNodeGraphML(QString graphML);
+    void gotJenkinsNodeGraphML(QString graphML = "");
     void setImportJenkinsNodeEnabled(bool enabled = true);
     void on_actionImportJenkinsNode();
 
@@ -169,8 +192,6 @@ private slots:
     void on_searchResultItem_clicked(int ID);
     void on_validationItem_clicked(int ID);
 
-    void writeExportedSnippet(QString parentName, QString snippetXMLData);
-
     void importSnippet(QString snippetType = "");
     void exportSnippet(QString snippetType = "");
 
@@ -178,23 +199,28 @@ private slots:
     void setAttributeModel(AttributeTableModel* model);
 
     void forceToggleAspect(VIEW_ASPECT aspect, bool on);
-    void setMenuActionEnabled(QString action, bool enable);
+    void setActionEnabled(QString action, bool enable);
     QIcon getIcon(QString alias, QString image);
     void menuActionTriggered();
 
     void dockButtonPressed();
-    void forceOpenDock(DOCK_TYPE type, QString srcKind = "");
+    void dockToggled(bool opened, QString kindToConstruct = "");
+    void dockBackButtonTriggered();
 
+    void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);
+    void closeProgressDialog();
+
     void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
     void updateSearchLineEdits();
+
     void updateSearchSuggestions();
     void searchItemClicked();
     void searchMenuButtonClicked(bool checked);
     void searchMenuClosed();
 
-    void displayNotification(QString notification = "",  int seqNum = 0, int totalNum = 1);
+    void displayNotification(QString notification = "", QString actionImage="");
     void checkNotificationsQueue();
 
     void showDocks(bool checked);
@@ -210,82 +236,116 @@ private slots:
     //multi-line popup for QTableView (SLOTS)
     void dataTableDoubleClicked(QModelIndex);
     void dialogAccepted();
-
     void dialogRejected();
 
-    QStringList fileSelector(QString title, QString fileString, bool open, bool allowMultiple=true);
+    QStringList fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple=true, QString fileName = "");
+
+    void updateStyleSheets();
+    void toggleMinimap(bool on);
+
 protected:
     void closeEvent(QCloseEvent*);
     void resizeEvent(QResizeEvent* event);
     void changeEvent(QEvent * event);
 
+
 private:
+    QToolBar *constructToolbar(bool ignoreStyle = false);
+    void saveTheme(bool apply = true);
+    void resetTheme(bool darkTheme);
+    void resetAspectTheme(bool colorBlindTheme);
+    void updateRecentProjectsWidgets(QString topFileName="");
+
+    QPixmap getDialogPixmap(QString alias, QString image, QSize size = QSize(50,50));
     bool openProject(QString fileName);
     QRect getCanvasRect();
     QString getTimestamp();
     QString getTempFileName(QString prefix="");
+    QString getTempTimeName();
     bool closeProject();
     bool saveProject(bool saveAs=false);
 
     QString readFile(QString fileName);
     bool writeFile(QString filePath, QString fileData, bool notify=true);
+    bool writeQImage(QString filePath, QImage image, bool notify=true);
+
+    bool ensureDirectory(QString filePath);
     QString writeTempFile(QString fileData);
     QString writeProjectToTempFile();
+    QTemporaryFile* writeTemporaryFile(QString data);
 
     void populateDocks();
-    void _getCPPForComponent(QString filePath);
     bool canFilesBeDragImported(const QList<QUrl> files);
     void setupApplication();
     void initialiseJenkinsManager();
+    void initialiseSettings();
+    void updateTheme();
+
     void initialiseCUTSManager();
+    void initialiseTheme();
     void importXMEProject(QString fileName);
+    void importProjects(QStringList files);
 
     void toolbarSettingChanged(QString keyName, QVariant value);
+    void themeSettingChanged(QString keyName, QVariant value);
+    void jenkins_JobName_Changed(QString jobName);
     void enableTempExport(bool enable);
+
+    EventAction getEventAction();    
+    QStringList getCheckedItems(int menu);
 
     void setApplicationEnabled(bool enable);
     void setViewWidgetsEnabled(bool enable);
 
-    EventAction getEventAction();
+    void toggleWelcomeScreen(bool show);
+    void toggleAndTriggerAction(QAction* action, bool value);
+
     void resetGUI();
     void resetView();
     void newProject();
     void initialiseGUI();
-    void makeConnections();
+    void setupConnections();
 
     void teardownProject();
     void setupProject();
-    void setupMenu(QPushButton* button);
-    void setupDocks(QHBoxLayout* layout);
+
+    void setupMenu();
+
+
+
     void setupSearchTools();
+    void setupDocks(QHBoxLayout* layout);
+    void setupInfoWidgets(QHBoxLayout* layout);
 
     void setupToolbar();
     bool constructToolbarButton(QToolBar* toolbar, QAction* action, QString actionName);
 
+    void setupWelcomeScreen();
+    void setupMinimap();
     void setupMultiLineBox();
 
-    void updateWidgetsOnWindowChanged();
+    void updateWidgetsOnWindowChange();
+    void updateWidgetsOnProjectChange(bool projectActive = true);
+
+    void updateDock();
     void updateToolbar();
     void updateDataTable();
 
-    void importProjects(QStringList files);
 
-    void jenkins_JobName_Changed(QString jobName);
-
-    void toggleAndTriggerAction(QAction* action, bool value);
-
-    QStringList getCheckedItems(int menu);
-    QTemporaryFile* writeTemporaryFile(QString data);
 
 
     QString applicationDirectory;
 
+    QToolBar* closeProjectToolbar;
+
     QPushButton *projectName;
-    QPushButton *closeProjectButton;
+    QToolButton *closeProjectToolButton;
     QGroupBox* menuTitleBox;
 
+    QPushButton* menuButton;
     QMenu* menu;
     QMenu* file_menu;
+    QMenu *file_recentProjectsMenu;
     QMenu* edit_menu;
     QMenu* view_menu;
     QMenu* model_menu;
@@ -296,6 +356,8 @@ private:
     QAction* file_newProject;
     QAction* file_importGraphML;
     QAction* file_importXME;
+
+    QAction* file_recentProjects_clearHistory;
 
     QAction* file_openProject;
     QAction* file_saveProject;
@@ -320,16 +382,23 @@ private:
     QAction* view_goToImplementation;
     QAction* view_showConnectedNodes;
     QAction* view_fullScreenMode;
+    QAction* view_printScreen;
+    QAction* view_showMinimap;
+
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_ExecuteLocalJob;
+
+    QVBoxLayout* rightVlayout;
 
     QAction* settings_editToolbarButtons;
     QAction* settings_changeAppSettings;
 
     QAction* help_AboutMedea;
+    QAction* help_Wiki;
     QAction* help_AboutQt;
     QAction* help_Shortcuts;
+    QAction* help_ReportBug;
 
     QAction* jenkins_ImportNodes;
     QAction* jenkins_ExecuteJob;
@@ -346,16 +415,24 @@ private:
     QAction* actionToggleGrid;
     QAction* actionContextMenu;
 
+    QAction* actionSearch;
+    //QAction* actionSearchOptions;
+
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
-    DockToggleButton* definitionsButton;
-    DockToggleButton* functionsButton;
-    DockToggleButton* prevPressedButton;
 
     PartsDockScrollArea* partsDock;
     HardwareDockScrollArea* hardwareDock;
     DefinitionsDockScrollArea* definitionsDock;
     FunctionsDockScrollArea* functionsDock;
+
+    int searchOptionMenuWidth;
+    QGroupBox* dockGroupBox;
+    QGroupBox* dockHeaderBox;
+    QGroupBox* dockBackButtonBox;
+    QLabel* openedDockLabel;
+    QPushButton* dockBackButton;
+    QLabel* dockActionLabel;
 
     QDialog* dockStandAloneDialog;
     QGroupBox* docksArea;
@@ -368,19 +445,21 @@ private:
     QVBoxLayout* toolbarLayout;
 
     QLabel* toolbarButtonLabel;
-    QPixmap expandPixmap;
-    QPixmap contractPixmap;
 
     QToolBar* toolbar;
     QAction* toolbarAction;
     QAction* leftSpacerAction;
     QAction* rightSpacerAction;
 
+    QToolBar* toolbarButtonBar;
     QToolButton* toolbarButton;
+    bool SHOW_TOOLBAR;
+    bool EXPAND_TOOLBAR;
 
     QHash<QString, QAction*> toolbarActionLookup;
     QHash<QString, ActionButton*> toolbarButtonLookup;
 
+    QAction* actionToggleToolbar;
     QAction* leftMostSpacer;
     QAction* leftMidSpacer;
     QAction* midLeftSpacer;
@@ -394,21 +473,37 @@ private:
     AspectToggleWidget* hardwareToggle;
     QList<AspectToggleWidget*> aspectToggles;
 
+	QDialog* progressDialog;
+    QMovie* loadingMovie;
+
     QProgressBar* progressBar;
     QLabel* progressLabel;
     QString progressAction;
+    bool progressDialogVisible;
 
+    QGroupBox* loadingBox;
+    QWidget* loadingWidget;
+    QLabel* loadingLabel;
+    QLabel* loadingMovieLabel;
+
+    QGroupBox* notificationsBox;
+    QLabel* notificationsIcon;
     QLabel* notificationsBar;
     QTimer* notificationTimer;
-    QQueue<QString> notificationsQueue;
+    QQueue<NotificationStruct> notificationsQueue;
     QHash<int, QString> multipleNotification;
     int leftOverTime;
 
+    QWidget* rightPanelWidget;
+
     QTableView* dataTable;
-    QGroupBox* dataTableBox;
+    QScrollArea* tableScroll;
+
     ComboBoxTableDelegate* delegate;
 
     QLineEdit* searchBar;
+    QToolBar* searchToolbar;
+
     QDialog* searchResults;
     SearchSuggestCompletion* searchSuggestions;
     QHBoxLayout* searchLayout;
@@ -416,18 +511,24 @@ private:
 
     SearchDialog* searchDialog;
 
-    QPushButton* searchButton;
-    QPushButton* searchOptionButton;
+
+
+    QToolButton* searchToolButton;
+    QToolButton* searchOptionToolButton;
     QMenu* searchOptionMenu;
     QLineEdit* viewAspectsBar;
-    QPushButton* viewAspectsButton;
+    QToolButton* viewAspectsButton;
     QMenu* viewAspectsMenu;
     QLineEdit* nodeKindsBar;
-    QPushButton* nodeKindsButton;
+    QToolButton* nodeKindsButton;
     QMenu* nodeKindsMenu;
     QLineEdit* dataKeysBar;
-    QPushButton* dataKeysButton;
+    QToolButton* dataKeysButton;
     QMenu* dataKeysMenu;
+
+    QWidget* minimapTitleBar;
+    QToolButton* closeMinimapButton;
+    QLabel* minimapLabel;
 
     QStringList dataKeys;
 
@@ -436,6 +537,10 @@ private:
     QString nodeKindsDefaultText;
     QString dataKeysDefaultText;
 
+    NodeViewMinimap* minimap;
+    QWidget* minimapBox;
+
+    QGraphicsDropShadowEffect *projectNameShadow;
     QString currentProjectFilePath;
 
     AppSettings* appSettings;
@@ -445,7 +550,6 @@ private:
 
     NewController* controller;
     NodeView* nodeView;
-    NodeViewMinimap* minimap;
     QFileDialog* fileDialog;
 
     QThread* controllerThread;
@@ -462,21 +566,18 @@ private:
     QHash<QAction*, int> rightMidActions;
     QHash<QAction*, int> rightMostActions;
 
-    bool modelCleared;
     QFont guiFont;
     int boxWidth, boxHeight;
     int minLeftPanelHeight;
 
     //QString DEPGEN_ROOT;
-    QString launchFilePathArg;
-    bool loadLaunchedFile;
-    QString exportFileName;
-    QString tempFileName;
-    bool tempExport;
-    bool isWindowMaximized;
-    bool settingsLoading;
-    bool initialSettingsLoaded;
+
+    bool IS_WINDOW_MAXIMIZED;
+    bool SETTINGS_LOADING;
+    bool INITIAL_SETTINGS_LOADED;
     bool maximizedSettingInitiallyChanged;
+
+    bool SAVE_WINDOW_SETTINGS;
 
     bool WINDOW_MAXIMIZED;
     bool WINDOW_FULLSCREEN;
@@ -494,12 +595,28 @@ private:
     QAction* action_ContextMenu;
     ActionButton* toolbar_ContextMenu;
 
-    bool jenkins_TempExport;
-    bool cpp_TempExport;
-    bool cuts_TempExport;
-    bool validate_TempExport;
     QString validation_report_path;
     QString componentName_CPPExport;
+
+
+    QString cutsOutputPath;
+    QVBoxLayout* viewHolderLayout;
+    QHBoxLayout* viewLayout;
+    QVBoxLayout* holderLayout;
+    QHBoxLayout* welcomeLayout;
+    bool welcomeScreenOn;
+
+    VIEW_THEME CURRENT_THEME;
+
+
+    QSettings* persistantSettings;
+
+    int NOTIFICATION_TIME;
+
+
+
+    QStack<QString> recentProjectsList;
+    QListWidget* recentProjectsListWidget;
 
     // QWidget interface
 protected:

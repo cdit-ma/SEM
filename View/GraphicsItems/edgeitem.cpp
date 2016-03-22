@@ -19,7 +19,6 @@
 
 #define EDGE_GAP_RATIO ((1 - EDGE_SPACE_RATIO)/2)
 
-#define LABEL_RATIO .50
 
 EdgeItem::EdgeItem(EdgeAdapter *edge, NodeItem *parent, EntityItem* s, EntityItem* d): GraphMLItem(edge, 0, GraphMLItem::NODE_EDGE)
 {
@@ -59,8 +58,8 @@ EdgeItem::EdgeItem(EdgeAdapter *edge, NodeItem *parent, EntityItem* s, EntityIte
     connect(destination, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(updateLine()));
 
     //Add the Edge Item to the source/destination.
-    source->addEdgeItem(this);
-    destination->addEdgeItem(this);
+    source->addEdge(this);
+    destination->addEdge(this);
 
     setupBrushes();
 
@@ -110,11 +109,11 @@ EdgeItem::~EdgeItem()
     if(getNodeView() && !getNodeView()->isTerminating()){
         if(source){
             source->removeVisibleParentForEdgeItem(getID());
-            source->removeEdgeItem(this);
+            source->removeEdge(getID());
         }
         if(destination){
             destination->removeVisibleParentForEdgeItem(getID());
-            destination->removeEdgeItem(this);
+            destination->removeEdge(getID());
         }
 
         if(visibleSource){
@@ -241,7 +240,9 @@ void EdgeItem::setSelected(bool selected)
 
 
     //Hide/Show the label if selected.
-    textItem->setVisible(selected);
+	if(textItem){
+		textItem->setVisible(selected);
+	}
 
     //Call base class
     GraphMLItem::setSelected(selected);
@@ -311,9 +312,16 @@ void EdgeItem::updateVisibleParents()
                 visibleDestination = dst;
             }
 
+            bool hide = false;
+            if(getEdgeAdapter()->getEdgeClass() == Edge::EC_DATA){
+                if(visibleSource != source || visibleDestination != destination){
+                    hide = true;
+                }
+            }
+
 
             updateLine();
-            setVisible(true);
+            setVisible(!hide);
             return;
         }
     }
@@ -378,6 +386,8 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     VIEW_STATE viewState = getViewState();
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
     if(!isPointInCircle(event->pos())){
+        //call the base handler.
+        QGraphicsObject::mousePressEvent(event);
         return;
     }
     switch (event->button()) {
@@ -389,7 +399,10 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             //Enter Selected Mode.
             handleSelection(true, controlPressed);
             break;
+        default:
+            break;
         }
+
         break;
     }
     case Qt::MiddleButton:{
@@ -404,14 +417,16 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     emit edgeItem_eventFromItem();
 }
 
-void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent*)
 {
     if(isDataEditable("description")){
-        textItem->setEditMode(true);
+		if(textItem){
+			textItem->setEditMode(true);
+		}
     }
 }
 
-void EdgeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void EdgeItem::hoverEnterEvent(QGraphicsSceneHoverEvent*)
 {
     if(!isHovered()){
         emit GraphMLItem_Hovered(getID(), true);
@@ -419,14 +434,14 @@ void EdgeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 }
 
-void EdgeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void EdgeItem::hoverMoveEvent(QGraphicsSceneHoverEvent*)
 {
     if(!isHovered()){
         emit GraphMLItem_Hovered(getID(), true);
     }
 }
 
-void EdgeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void EdgeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
     if(isHovered()){
         emit GraphMLItem_Hovered(getID(), false);
@@ -536,11 +551,11 @@ void EdgeItem::setupBrushes()
             edgeClass = getEdgeAdapter()->getEdgeClass();
         }
         if(edgeClass == Edge::EC_DATA){
-            pen.setColor(Qt::red);
+            pen.setColor(QColor(205,133,63));
         }else if(edgeClass == Edge::EC_WORKFLOW){
-            pen.setColor(Qt::yellow);
+            pen.setColor(Qt::black);
         }else if(edgeClass == Edge::EC_ASSEMBLY){
-            pen.setColor(Qt::green);
+            pen.setColor(Qt::black);
         }
     }
 
@@ -586,6 +601,9 @@ void EdgeItem::updateLines()
     if(!(visibleSource && visibleDestination)){
         return;
     }
+
+
+
 
     QRectF sRect = visibleSource->minimumRect();
     QRectF dRect = visibleDestination->minimumRect();
@@ -743,8 +761,8 @@ void EdgeItem::updateLines()
 
 
 
-    qreal srcArrowLength = abs((-CIRCLE_RADIUS - arrowTailMR.x())/2);
-    qreal dstArrowLength = abs((CIRCLE_RADIUS - arrowHeadMR.x())/2);
+    qreal srcArrowLength = fabs((-CIRCLE_RADIUS - arrowTailMR.x())/2);
+    qreal dstArrowLength = fabs((CIRCLE_RADIUS - arrowHeadMR.x())/2);
     qreal srcArrowOffset = (srcRect.height() /2) - srcYOffset;
     qreal dstArrowOffset = (dstRect.height() /2) - dstYOffset;
 

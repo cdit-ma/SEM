@@ -14,6 +14,10 @@ public:
     QRectF topRect() const;
     QRectF botRect() const;
 
+    QPointF getCircleCenter();
+    void setBackgroundColor(QColor color);
+
+
 
     void incrementDecrementNumber(bool inc);
     void setNumberMode(bool num);
@@ -31,6 +35,8 @@ signals:
     void statusItem_EditModeRequested();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event);
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
     void focusOutEvent(QFocusEvent *event);
 
@@ -39,7 +45,10 @@ private:
     void _setEditMode(bool editMode);
     qreal widthOffset();
     QPointF topRight;
+    QColor backgroundColor;
 
+    bool hoverOnUp;
+    bool hoverOnDown;
     bool editMode;
 
     bool numberMode;

@@ -31,6 +31,8 @@ public:
     void addValidRange(QPair<qreal, qreal> range, QStringList entityKinds = QStringList("ALL"));
     void addInvalidCharacters(QStringList invalidCharacters, QStringList entityKinds = QStringList("ALL"));
 
+    void setAllowAllValues(QString nodeKind);
+
     QPair<qreal, qreal> getValidRange(QString entityKinds = "ALL");
     bool gotValidRange(QString entityKinds = "ALL");
 
@@ -49,6 +51,7 @@ signals:
     void validateError(QString, QString, int);
 private:
     void addValidValue(QString nodeKind, QString value);
+
     void addInvalidCharacters(QString nodeKind, QString invalidCharacter);
     QString _keyName;
     QVariant::Type _keyType;
@@ -58,6 +61,7 @@ private:
     bool _isProtected;
     QVariant defaultValue;
 
+    QMap<QString, bool> ignoreValues;
     QMap<QString, QPair<qreal, qreal> > validRanges;
     QMap<QString, QStringList> validValues;
     QMap<QString, QStringList> invalidCharacters;

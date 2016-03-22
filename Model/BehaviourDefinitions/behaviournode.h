@@ -13,6 +13,7 @@ class BehaviourNode : public Node
     Q_OBJECT
 public:
     BehaviourNode(Node::NODE_TYPE type = NT_NODE);
+    bool requiresParameters();
 
     void setIsWorkflowStart(bool start);
     void setIsWorkflowEnd(bool end);
@@ -20,6 +21,7 @@ public:
 
     void setIsDataInput(bool input);
     void setIsDataOutput(bool output);
+
 
     bool isWorkflowStart();
     bool isWorkflowEnd();
@@ -56,6 +58,7 @@ public:
 
 
     bool needEdge();
+
 
     bool compareableTypes(Node* node);
 

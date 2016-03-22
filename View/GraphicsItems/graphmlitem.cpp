@@ -25,7 +25,6 @@
 #define TOP_LABEL_RATIO (1.0 / 6.0)
 #define RIGHT_LABEL_RATIO (1.5 / 6.0)
 #define BOTTOM_LABEL_RATIO (1.0 / 9.0)
-#define LABEL_RATIO (1 - ICON_RATIO)
 
 
 
@@ -59,6 +58,7 @@ GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem:
     graph->addListener(this);
     connect(graph, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
     connect(graph, SIGNAL(dataAdded(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
+    connect(graph, SIGNAL(dataRemoved(QString)), this, SLOT(dataRemoved(QString)));
     parentItem = 0;
     attachedGraph = graph;
 
@@ -77,6 +77,7 @@ GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem:
     IS_HOVERED = false;
     IS_HIGHLIGHTED = false;
     IN_SUBVIEW = false;
+    errorType = ET_OKAY;
 
     ID = -1;
 
@@ -130,12 +131,11 @@ void GraphMLItem::setRenderState(GraphMLItem::RENDER_STATE renderState)
     }
 }
 
-
 /**
  * @brief GraphMLItem::firstChildAdded
  * @param item
  */
-void GraphMLItem::firstChildAdded(GraphMLItem* child)
+void GraphMLItem::firstChildAdded(GraphMLItem*)
 {
     // Do nothing
 }
@@ -192,7 +192,9 @@ void GraphMLItem::updateFromData()
 {
     foreach(QString keyName, connectedDataKeys){
         QVariant dataValue = getEntityAdapter()->getDataValue(keyName);
-        dataChanged(keyName, dataValue);
+        if(!dataValue.isNull()){
+            dataChanged(keyName, dataValue);
+        }
     }
 }
 
@@ -383,6 +385,11 @@ void GraphMLItem::setSelected(bool selected)
     }
 }
 
+void GraphMLItem::dataRemoved(QString keyName)
+{
+    dataChanged(keyName, QVariant());
+}
+
 void GraphMLItem::setHovered(bool isHovered)
 {
     if(IS_HOVERED != isHovered){
@@ -425,16 +432,24 @@ void GraphMLItem::handleSelection(bool setSelected, bool controlDown)
         setSelected = false;
     }
 
+    bool hasChanged = false;
     if(isSelected() != setSelected){
         if(setSelected && !controlDown){
             emit GraphMLItem_ClearSelection();
+            hasChanged = true;
         }
         if(getNodeView() && setSelected){
             getNodeView()->setStateSelected();
             emit GraphMLItem_AppendSelected(this);
+            hasChanged = true;
         }else{
             emit GraphMLItem_RemoveSelected(this);
+            hasChanged = true;
         }
+    }
+    if(hasChanged){
+        //Emit a signal which is connected to the docks to update stuffs.
+        emit GraphMLItem_SelectionChanged();
     }
 }
 
@@ -502,18 +517,18 @@ void GraphMLItem::updateCurrentPen(bool zoomChanged)
     }
 }
 
-void GraphMLItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void GraphMLItem::hoverEnterEvent(QGraphicsSceneHoverEvent *)
 {
     handleHover(true);
 }
 
-void GraphMLItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void GraphMLItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *)
 {
     handleHover(false);
     unsetCursor();
 }
 
-void GraphMLItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void GraphMLItem::hoverMoveEvent(QGraphicsSceneHoverEvent *)
 {
     handleHover(true);
 }

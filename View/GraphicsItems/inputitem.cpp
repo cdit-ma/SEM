@@ -7,7 +7,8 @@
 #include "editabletextitem.h"
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
-#define TEXT_PADDING 2
+#include "../../theme.h"
+#define TEXT_PADDING 4
 
 InputItem::InputItem(GraphMLItem *parent, QString initialValue, bool isCombo):QGraphicsObject(parent)
 {
@@ -59,6 +60,7 @@ bool InputItem::isTruncated()
 void InputItem::setTextColor(QColor color)
 {
     textItem->setDefaultTextColor(color);
+    textItem->update();
 }
 
 
@@ -219,7 +221,7 @@ void InputItem::updateTextSize()
     textItem->setPos(TEXT_PADDING, moveHeight);
 }
 
-void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     qreal actualSize = lod * height;
@@ -233,8 +235,7 @@ void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
         painter->drawRect(boundingRect());
 
         if(isComboBox){
-            QImage image(":/Actions/Arrow_Down.png");
-            QPixmap imageData = QPixmap::fromImage(image);
+            QPixmap imageData = Theme::theme()->getImage("Actions", "Arrow_Down",QSize(), Qt::black);
 
             painter->drawPixmap(arrowRect().toAlignedRect(), imageData);
 

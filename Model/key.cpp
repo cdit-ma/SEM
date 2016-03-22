@@ -2,6 +2,7 @@
 #include "entity.h"
 #include "data.h"
 #include <QDebug>
+#include "node.h"
 
 QString Key::getGraphMLTypeName(const QVariant::Type type)
 {
@@ -25,7 +26,7 @@ QVariant::Type Key::getTypeFromGraphML(const QString typeString)
         return QVariant::Bool;
     }else if(typeString == "int"){
         return QVariant::Int;
-    }else if(typeString == "long"){
+    }else if(typeString == "long" || typeString == "longlong"){
         return QVariant::LongLong;
     }else if(typeString == "float" || typeString == "double"){
         return QVariant::Double;
@@ -170,19 +171,31 @@ bool Key::gotInvalidCharacters(QString entityKinds)
 QVariant Key::validateDataChange(Data *data, QVariant dataValue)
 {
     if(data->getKey() != this){
+        qCritical() << "DIFFERENT KEY: ";
         //Return a blank QVariant
         return dataValue;
     }
 
     Entity* parentEntity = data->getParent();
-    if(!parentEntity){
-        //If no parent we can't validate the data, so assume correct
-        return dataValue;
+
+    QString entityKind = "";
+
+    QString entityNodeKind = "";
+
+	int parentEntityID = -1;
+    if(parentEntity){
+        entityKind = parentEntity->getEntityName();
+        if(parentEntity->isNode()){
+            entityNodeKind = ((Node*)parentEntity)->getNodeKind();
+        }
+		parentEntityID = parentEntity->getID();
     }
+
+
 
     QString errorString = "";
 
-    QString entityKind = parentEntity->getEntityName();
+
 
     bool okay = false;
     switch(_keyType){
@@ -197,9 +210,9 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
                 }
 
                 //Check for valid values
-                if(gotValidValues(entityKind)){
-                    QStringList values = getValidValues(entityKind);
-                    if(values.contains(dataValue.toString())){
+                if(gotValidValues(entityNodeKind)){
+                    QStringList values = getValidValues(entityNodeKind);
+                    if(values.contains(dataValue.toString()) || ignoreValues[entityNodeKind]){
                         okay = true;
                     }else{
                         errorString = "Value doesn't match any valid values: " + values.join(",");
@@ -209,8 +222,8 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
                 }
                 if(okay){
                     //Check for invalid Characters.
-                    if(gotInvalidCharacters(entityKind)){
-                        QStringList badChars = getInvalidCharacters(entityKind);
+                    if(gotInvalidCharacters(entityNodeKind)){
+                        QStringList badChars = getInvalidCharacters(entityNodeKind);
                         foreach(QChar qChar, dataValue.toString()){
                             if(badChars.contains(qChar)){
                                 errorString = "Value has one or more invalid characters (" + badChars.join(" ") + ")";
@@ -224,30 +237,18 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
             break;
         }
     case QVariant::Bool:
-        if(dataValue.type() == QVariant::String){
-            //Try cast from string.
-            QString boolStr = dataValue.toString().toLower();
-            if(boolStr == "true"){
-                okay = true;
-                dataValue.setValue(true);
-            }else if(boolStr == "false"){
-                okay = true;
-                dataValue.setValue(false);
-            }else{
-                okay = false;
-            }
-            break;
-        }
-
-
+        okay = dataValue.convert(QVariant::Bool);
+        errorString = "Boolean Failed";
+        break;
     default:{
         //Could be a number.
+        if(dataValue.canConvert(_keyType)){
+            dataValue.convert(_keyType);
 
-        if(dataValue.canConvert(QVariant::Double)){
             double newValue = dataValue.toDouble(&okay);
             if(okay){
-                if(gotValidRange(entityKind)){
-                    QPair<qreal, qreal> range = getValidRange(entityKind);
+                if(gotValidRange(entityNodeKind)){
+                    QPair<qreal, qreal> range = getValidRange(entityNodeKind);
                     if(range.first > newValue || range.second < newValue){
                         errorString = "Number value is outside of valid range: " + QString::number(range.first) + " > value > " + QString::number(range.second) +"!";
                         okay = false;
@@ -267,7 +268,9 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
         //Return new Value
         return dataValue;
     }else{
-        emit validateError("Data Input failed Validation!",errorString, parentEntity->getID());
+        if(dataValue.isValid()){
+            emit validateError("Data Validation Failed", errorString, parentEntityID);
+        }
         //Return old value.
         return data->getValue();
     }
@@ -325,6 +328,11 @@ void Key::addValidValue(QString nodeKind, QString value)
         values.append(value);
         validValues[nodeKind] = values;
     }
+}
+
+void Key::setAllowAllValues(QString nodeKind)
+{
+    ignoreValues[nodeKind] = true;
 }
 
 void Key::addInvalidCharacters(QString nodeKind, QString invalidCharacter)

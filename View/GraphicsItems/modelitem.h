@@ -11,13 +11,14 @@
 #define MODEL_WIDTH 72
 #define MODEL_HEIGHT 72
 
-#define LABEL_RATIO (1.0 / 9.0)
+#define LABEL_RATIO (1.0 / 10.0)
 
 class ModelItem : public GraphMLItem
 {
     Q_OBJECT
 public:
     ModelItem(NodeAdapter* node, NodeView* view);
+    ~ModelItem();
 
     void adjustPos(QPointF delta);
 
@@ -25,8 +26,7 @@ public:
     void setPos(qreal x, qreal y);
 
     QRectF boundingRect() const;
-    QRectF topInputRect() const;
-    QRectF bottomInputRect() const;
+    QRectF centerInputRect() const;
 
     QList<VIEW_ASPECT> getVisibleAspects();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -35,18 +35,18 @@ public slots:
     void dataChanged(QString keyName, QVariant data);
     void dataEditModeRequested();
     void dataChanged(QString data);
-    void themeChanged(VIEW_THEME theme);
+    void themeChanged();
 
 private:
     void setupDataConnections();
     void setupInputItems();
 
-    InputItem* topInputItem;
-    InputItem* bottomInputItem;
+    InputItem* middlewareItem;
     qreal width;
     qreal height;
 
     QColor modelCircleColor;
+    QColor rectColor;
     QColor topLeftColor;
     QColor topRightColor;
     QColor bottomLeftColor;

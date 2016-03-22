@@ -14,7 +14,11 @@ void GraphML::resetID()
 
 GraphML::GraphML(GraphML::GRAPHML_KIND kind):QObject(0)
 {
-    this->id = ++_IDCounter;
+    this->id = -1;
+
+    if(kind != GraphML::GK_DATA){
+        setID();
+    }
     this->kind = kind;
 }
 
@@ -26,6 +30,13 @@ GraphML::GraphML(GraphML::GRAPHML_KIND kind):QObject(0)
 GraphML::GRAPHML_KIND GraphML::getGraphMLKind() const
 {
     return kind;
+}
+
+void GraphML::setID()
+{
+    if(id < 0){
+        this->id = ++_IDCounter;
+    }
 }
 
 /**

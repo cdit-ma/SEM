@@ -5,11 +5,10 @@
 #include <QLabel>
 #include <QDebug>
 
-#define MAX_LABEL_LENGTH 15
-#define ICON_RATIO 0.85
+#define ICON_RATIO 0.75
 #define IMAGE_PADDING 5
 
-#define BUTTON_WIDTH 141
+#define BUTTON_WIDTH 101
 #define BUTTON_HEIGHT 100
 #define LABEL_BUTTON_HEIGHT 28
 
@@ -42,21 +41,20 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     dockItemVisible = true;
     dockItemLabel = isLabel;
 
+    textLabel = 0;
+    imageLabel = 0;
+
     state = DEFAULT;
+
 
     if (nodeItem) {
 
         this->kind = nodeItem->getNodeKind();
-        label = nodeItem->getDataValue("label").toString();
         strID = QString::number(nodeItem->getID());
-        highlightColor = "rgba(90,150,200,210)";
+        setLabel(nodeItem->getDataValue("label").toString());
 
         if (nodeItem->getNodeAdapter()) {
-            //TODO
-            //Data* label = nodeItem->getNodeAdapter()->getData("label");
-            //if (label) {
-            //    connect(label, SIGNAL(valueChanged(QString)), this, SLOT(labelChanged(QString)));
-            //}
+            connect(nodeItem->getNodeAdapter(), SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
         }
 
         if (nodeItem->isEntityItem()) {
@@ -67,8 +65,8 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         // if there is no node item, it means that this item belongs
         // to the parts dock and it uses its kind as its label and ID
         this->kind = kind;
-        label = kind;
         strID = kind;
+        setLabel(kind);
     }
 
     if (imageName.isEmpty()) {
@@ -78,6 +76,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     }
 
     setupLayout();
+
     updateStyleSheet();
     updateTextLabel();
 
@@ -86,17 +85,22 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         connect(this, SIGNAL(dockItem_hiddenStateChanged()), parentDock, SLOT(updateInfoLabel()));
     }
 
-    // initially contract labels
-    setDockItemExpanded();
+    // this initially contract the labels in the functions dock
+    if (parentDock && parentDock->getDockType() == FUNCTIONS_DOCK) {
+        toggleDockItemExpanded();
+    }
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 
 /**
- * @brief DockNodeItem::getNodeItem
- * Returns the NodeItem this dock item is conneted to.
+ * @brief DockNodeItem::getEntityItem
+ * Returns the EntityItem this dock item is conneted to.
  * @return nodeItem
  */
-EntityItem* DockNodeItem::getNodeItem()
+EntityItem* DockNodeItem::getEntityItem()
 {
     return nodeItem;
 }
@@ -132,6 +136,7 @@ void DockNodeItem::setLabel(QString newLabel)
 {
     label = newLabel;
     updateTextLabel();
+    setToolTip(label);
 }
 
 
@@ -214,10 +219,9 @@ QList<DockNodeItem*> DockNodeItem::getChildrenDockItems()
 void DockNodeItem::setImage(QString prefix, QString image)
 {
     if(parentDock){
-        NodeView* nodeView = parentDock->getNodeView();
-        if(imageLabel && textLabel  && nodeView){
-            QPixmap pixMap = nodeView->getImage(prefix, image);
-            QPixmap scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
+        if(imageLabel && textLabel){
+            QPixmap pixMap = Theme::theme()->getImage(prefix,image);
+            QPixmap scaledPixmap = pixMap.scaled(width()*ICON_RATIO,
                                                   (height()-textLabel->height())*ICON_RATIO,
                                                   Qt::KeepAspectRatio,
                                                   Qt::SmoothTransformation);
@@ -296,6 +300,36 @@ bool DockNodeItem::isDockItemLabel()
 bool DockNodeItem::isExpanded()
 {
     return expanded;
+}
+
+
+/**
+ * @brief DockNodeItem::isHighlighted
+ * @return
+ */
+bool DockNodeItem::isHighlighted()
+{
+    switch (state) {
+    case DEFAULT:
+        return false;
+    case HIGHLIGHTED:
+        return true;
+    default:
+        return false;
+    }
+}
+
+
+/**
+ * @brief DockNodeItem::dataChanged
+ * @param keyName
+ * @param data
+ */
+void DockNodeItem::dataChanged(QString keyName, QVariant data)
+{
+    if (keyName == "label") {
+        labelChanged(data.toString());
+    }
 }
 
 
@@ -386,13 +420,23 @@ void DockNodeItem::iconChanged()
 
 
 /**
+ * @brief DockNodeItem::themeChanged
+ */
+void DockNodeItem::themeChanged()
+{
+    highlightColor = Theme::theme()->getHighlightColorHex() + ";";
+    updateStyleSheet();
+}
+
+
+/**
  * @brief DockNodeItem::setupLayout
  * Sets up the visual layout for dock items.
  * A groupbox is used to group the text and image labels.
  */
 void DockNodeItem::setupLayout()
 {
-    QVBoxLayout *layout = new QVBoxLayout();
+    QVBoxLayout* layout = new QVBoxLayout();
     layout->setMargin(0);
 
     textLabel = new QLabel(label, this);
@@ -405,6 +449,10 @@ void DockNodeItem::setupLayout()
         setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT);
         textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     }
+
+    int maxCharWidth = textLabel->fontMetrics().width('W');
+    MAX_LABEL_LENGTH = BUTTON_WIDTH / maxCharWidth + 2;
+    labelPadding = textLabel->fontMetrics().width("__");
 
     textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
@@ -432,20 +480,20 @@ void DockNodeItem::setupLayout()
                                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
             QLabel* dockArrowLabel = new QLabel(this);
-            dockArrowLabel->setFixedWidth(ARROW_WIDTH);
+            dockArrowLabel->setFixedSize(ARROW_WIDTH, IMAGE_SIZE);
             dockArrowLabel->setPixmap(arrowPixmap);
             dockArrowLabel->setStyleSheet("padding-top:" + QString::number(arrowPixmap.height()/2 - IMAGE_PADDING) + "px;");
 
             QHBoxLayout* imageLayout = new QHBoxLayout();
             imageLayout->addStretch(1);
             imageLayout->addWidget(imageLabel, 2);
-            imageLayout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+            imageLayout->setAlignment(imageLabel, Qt::AlignHCenter);
             imageLayout->addWidget(dockArrowLabel, 1);
             layout->addLayout(imageLayout);
 
         } else {
             layout->addWidget(imageLabel);
-            layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+            layout->setAlignment(imageLabel, Qt::AlignHCenter);
         }
     }
 
@@ -473,30 +521,30 @@ void DockNodeItem::setImageLabelPixmap()
         return;
     }
 
-    NodeView* nodeView = parentDock->getNodeView();
     QSize pixMapSize = imageLabel->size();
-    QPixmap pixMap = QPixmap(pixMapSize);
+    QPixmap pixMap;
 
-    if (nodeView) {
-        if (nodeItem) {
-            if (nodeItem->isEntityItem()) {
-                EntityItem* entityItem = (EntityItem*)nodeItem;
-                pixMap = nodeView->getImage(entityItem->getIconPrefix(), entityItem->getIconURL());
-            } else {
-                pixMap = nodeView->getImage("Items", imageName);
-            }
+    if (nodeItem) {
+        if (nodeItem->isEntityItem()) {
+            EntityItem* entityItem = (EntityItem*)nodeItem;
+            pixMap = Theme::theme()->getImage(entityItem->getIconPrefix(), entityItem->getIconURL());
         } else {
-            if (parentDock->getDockType() ==  PARTS_DOCK) {
-                pixMap = nodeView->getImage("Items", imageName);
-            } else if (parentDock->getDockType() == FUNCTIONS_DOCK) {
-                pixMap = nodeView->getImage("Functions", imageName);
+            pixMap = Theme::theme()->getImage("Items", imageName);
+        }
+    } else {
+        if (parentDock->getDockType() ==  PARTS_DOCK) {
+            pixMap = Theme::theme()->getImage("Items", imageName);
+        } else if (parentDock->getDockType() == FUNCTIONS_DOCK) {
+            pixMap = Theme::theme()->getImage("Functions", kind);
+            if(pixMap.isNull()){
+                pixMap = Theme::theme()->getImage("Functions", imageName);
             }
         }
     }
 
     if (pixMap.isNull()) {
         qWarning() << "DockNodeItem::setupImageLabel - Image is null for " << kind;
-        return;
+        pixMap = Theme::theme()->getImage("Actions", "Help");
     }
 
     pixMap = pixMap.scaled(pixMapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -511,26 +559,29 @@ void DockNodeItem::setImageLabelPixmap()
  */
 void DockNodeItem::updateTextLabel()
 {
-    QString newLabel = label;
-    int maxLength = MAX_LABEL_LENGTH;
+    if (textLabel) {
 
-    // file labels have a bigger font and can therefore fit less chars
-    if (isDockItemLabel()) {
-        maxLength -= 2;
-    }
+        QString newLabel = label;
+        int maxLength = MAX_LABEL_LENGTH;
 
-    if (label.length() >= maxLength) {
-
-        QFontMetrics fm(textLabel->fontMetrics());
-        int textWidth = fm.width(newLabel + "__");
-
-        if (textWidth > this->width()) {
-            newLabel.truncate(maxLength - 1);
-            newLabel += "..";
+        // file labels have a bigger font and can therefore fit less chars
+        if (isDockItemLabel()) {
+            maxLength -= 2;
         }
-    }
 
-    textLabel->setText(newLabel);
+        if (label.length() >= maxLength) {
+
+            int maxTextWidth = BUTTON_WIDTH - labelPadding;
+            int textWidth = textLabel->fontMetrics().width(newLabel);
+
+            if (textWidth > maxTextWidth) {
+                newLabel.truncate(maxLength);
+                newLabel += "..";
+            }
+        }
+
+        textLabel->setText(newLabel);
+    }
 }
 
 
@@ -541,6 +592,7 @@ void DockNodeItem::updateTextLabel()
 void DockNodeItem::updateStyleSheet()
 {
     if (isDockItemLabel()) {
+
         QString textLabelBackground;
         if (expanded) {
             textLabelBackground = "background-color: rgba(208,197,134,0.85);";
@@ -559,11 +611,10 @@ void DockNodeItem::updateStyleSheet()
         switch (state) {
         case HIGHLIGHTED:
             backgroundColor = highlightColor;
-            hoverBorder = "none";
+            hoverBorder = "none;";
             break;
         case READONLY:
-            //backgroundColor = "rgba(200,200,200,0.8)";
-            hoverBorder = "none";
+            hoverBorder = "none;";
             break;
         default:
             break;
@@ -592,7 +643,7 @@ void DockNodeItem::clicked()
         return;
     }
     if (isDockItemLabel()) {
-        setDockItemExpanded();
+        toggleDockItemExpanded();
     } else {
         emit dockItem_clicked();
     }
@@ -616,7 +667,7 @@ void DockNodeItem::parentDockItemClicked(bool show)
  */
 void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
 {
-    if (nodeItem == getNodeItem()) {
+    if (nodeItem == getEntityItem()) {
         switch (state) {
         case DEFAULT:
             state = HIGHLIGHTED;
@@ -634,6 +685,32 @@ void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
         }
     }
     updateStyleSheet();
+}
+
+
+/**
+ * @brief DockNodeItem::enterEvent
+ * @param event
+ */
+void DockNodeItem::enterEvent(QEvent* event)
+{
+    if (nodeItem) {
+        emit dockItem_hoverEnter(nodeItem->getID());
+    }
+    QPushButton::enterEvent(event);
+}
+
+
+/**
+ * @brief DockNodeItem::leaveEvent
+ * @param event
+ */
+void DockNodeItem::leaveEvent(QEvent* event)
+{
+    if (nodeItem) {
+        emit dockItem_hoverLeave();
+    }
+    QPushButton::leaveEvent(event);
 }
 
 
@@ -656,7 +733,7 @@ void DockNodeItem::childVisibilityChanged()
  */
 void DockNodeItem::changeVectorHiddenState()
 {
-    NodeItem* item = getNodeItem();
+    NodeItem* item = getEntityItem();
     if (item) {
         if (item->hasChildren()) {
             setForceHidden(false);
@@ -668,9 +745,9 @@ void DockNodeItem::changeVectorHiddenState()
 
 
 /**
- * @brief DockNodeItem::setDockItemExpanded
+ * @brief DockNodeItem::toggleDockItemExpanded
  */
-void DockNodeItem::setDockItemExpanded()
+void DockNodeItem::toggleDockItemExpanded()
 {
     if (isDockItemLabel()) {
         if (expanded) {

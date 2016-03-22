@@ -3,7 +3,7 @@
 #include "GUI/codeeditor.h"
 #include "CUTS/GUI/cutsexecutionwidget.h"
 
-//Testing a new Include
+//Testing a new Include..
 #include <QDebug>
 
 #include <QFileDialog>
@@ -23,36 +23,48 @@
 #include "GUI/shortcutdialog.h"
 #include <QToolButton>
 #include <QToolBar>
+#include <QDesktopServices>
+
 
 #define THREADING true
 
-#define MIN_WIDTH 1000
-#define MIN_HEIGHT (480 + SPACER_HEIGHT * 3)
-//#define MIN_WIDTH 1280
-//#define MIN_HEIGHT (720 + SPACER_HEIGHT*3)
+//DARK MODE DEFAULT THEME
+#define DEFAULT_THEME true
 
 #define RIGHT_PANEL_WIDTH 230.0
-#define SPACER_HEIGHT 10
+#define SPACER_SIZE 10
 
-#define TOOLBAR_BUTTON_WIDTH 46
+#define MIN_WIDTH 1000
+#define MIN_HEIGHT (480 + SPACER_SIZE * 3)
+
+#define TOOLBAR_BUTTON_WIDTH 42
 #define TOOLBAR_BUTTON_HEIGHT 40
 #define TOOLBAR_GAP 5
+
+
+#define TOOLBUTTON_SIZE 20
+
+#define RECENT_PROJECT_SIZE 5
 
 #define SEARCH_DIALOG_MIN_WIDTH ((MIN_WIDTH * 2.0) / 3.0)
 #define SEARCH_DIALOG_MIN_HEIGHT ((MIN_HEIGHT * 2.0) / 3.0)
 
-#define NOTIFICATION_TIME 2000
 
 #define SEARCH_VIEW_ASPECTS 0
 #define SEARCH_NODE_KINDS 1
 #define SEARCH_DATA_KEYS 2
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
+#define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
+#define GME_FILE_SUFFIX ".xme"
 
-// USER SETTINGS
+#define GITHUB_URL "https://github.com/cdit-ma/MEDEA/"
 
-
+#define THEME_STYLE_QMENU "THEME_STYLE_QMENU"
+#define THEME_STYLE_QPUSHBUTTON "THEME_STYLE_QPUSHBUTTON"
+#define THEME_STYLE_GROUPBOX "THEME_STYLE_GROUPBOX"
+#define THEME_STYLE_HIDDEN_TOOLBAR "HIDDEN_TOOLBAR"
 
 /**
  * @brief MedeaWindow::MedeaWindow
@@ -62,63 +74,60 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+    hide();
     setupApplication();
-    setAcceptDrops(true);
-
-    controllerThread = 0;
-    controller = 0;
+    NOTIFICATION_TIME = 1000;
     nodeView = 0;
+    nodeView = 0;
+    controller = 0;
+    fileDialog = 0;
+    leftOverTime = 0;
+    controllerThread = 0;
+    rightPanelWidget = 0;
 
-
+    SETTINGS_LOADING = false;
     WINDOW_MAXIMIZED = false;
     WINDOW_FULLSCREEN = false;
-    launchFilePathArg = graphMLFile;
-    loadLaunchedFile = launchFilePathArg != "";
-
-    modelCleared = false;
-
-    // this needs to happen before the menu is set up and connected
-    applicationDirectory = QApplication::applicationDirPath() + "/";
-    MEDEA_VERSION = QApplication::applicationVersion();
-
-    appSettings = new AppSettings(this, applicationDirectory);
-    appSettings->setModal(true);
-    connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
-
-
-    tempExport = false;
-    validate_TempExport = false;
-    cuts_TempExport = false;
-    jenkins_TempExport = false;
-    cpp_TempExport = false;
-
-    leftOverTime = 0;
-    isWindowMaximized = false;
-    settingsLoading = false;
-
-    initialSettingsLoaded = false;
-
+    IS_WINDOW_MAXIMIZED = false;
+    INITIAL_SETTINGS_LOADED = false;
     maximizedSettingInitiallyChanged = false;
-    nodeView = 0;
-    fileDialog = 0;
+    EXPAND_TOOLBAR = false;
+    SHOW_TOOLBAR = false;
 
+    CURRENT_THEME = VT_NORMAL_THEME;
+
+    //Initialize classes.
+    initialiseTheme();
+    initialiseSettings();
     initialiseJenkinsManager();
     initialiseCUTSManager();
-
     initialiseGUI();
-    makeConnections();
+
+    setupConnections();
 
     resetGUI();
-
     resetView();
 
-    // load the initial settings
+    //Load the Settings
     setupInitialSettings();
 
-    //show();
+
+    //Show Welcome Screen
+    toggleWelcomeScreen(true);
+    show();
 
 
-    initialSettingsLoaded = true;
+    //Load initial model.
+    if(!graphMLFile.isEmpty()){
+        openProject(graphMLFile);
+    }
+
+    INITIAL_SETTINGS_LOADED = true;
+
+    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "MEDEA Loaded in: " <<  timeFinish-timeStart << "MS";
 }
 
 
@@ -127,33 +136,32 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
  */
 MedeaWindow::~MedeaWindow()
 {
+    if(loadingMovie){
+        delete loadingMovie;
+    }
+
     if (appSettings) {
         saveSettings();
-        appSettings->deleteLater();
+        delete appSettings;
     }
 
-    if (controller) {
-        controller->deleteLater();
-    }
+    teardownProject();
+
     if (nodeView) {
-        nodeView->deleteLater();
+        delete nodeView;
     }
-
 
     if(jenkinsManager){
-        jenkinsManager->deleteLater();
+        delete jenkinsManager;
     }
 
-    // REMOVED TO STOP UBUNTU CRASH LOGGING
-    //if(controllerThread){
-    //    controllerThread->deleteLater();
-    //}
+    //Delete last
+    Theme::theme()->teardownTheme();
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
 {
     setWindowModified(requiresSave);
-    file_saveProject->setEnabled(requiresSave);
 }
 
 
@@ -176,12 +184,62 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
         return;
     }
 
+    if(keyName == TOOLBAR_VISIBLE){
+        setToolbarVisibility(!boolValue);
+        SHOW_TOOLBAR = !boolValue;
+    }else if(keyName == TOOLBAR_EXPANDED){
+        EXPAND_TOOLBAR = boolValue;
+        showWindowToolbar(boolValue);
+    }
+
     if(toolbarActionLookup.contains(keyName)){
         QAction* action = toolbarActionLookup[keyName];
+
         if(action){
             action->setVisible(boolValue);
         }
         updateToolbar();
+    }
+
+    if (boolValue) {
+        nodeView->updateActionsEnabledStates();
+    }
+
+
+}
+
+void MedeaWindow::themeSettingChanged(QString keyName, QVariant value)
+{
+    QString strValue = value.toString();
+    //Color String.
+    QColor color(strValue);
+
+    if(keyName == THEME_BG_COLOR){
+        Theme::theme()->setBackgroundColor(color);
+    }else if(keyName == THEME_BG_ALT_COLOR){
+        Theme::theme()->setAltBackgroundColor(color);
+    }else if(keyName == THEME_DISABLED_BG_COLOR){
+        Theme::theme()->setDisabledBackgroundColor(color);
+    }else if(keyName == THEME_HIGHLIGHT_COLOR){
+        Theme::theme()->setHighlightColor(color);
+    }else if(keyName == THEME_MENU_TEXT_COLOR){
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, color);
+    }else if(keyName == THEME_MENU_TEXT_DISABLED_COLOR){
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, color);
+    }else if(keyName == THEME_MENU_TEXT_SELECTED_COLOR){
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, color);
+    }else if(keyName == THEME_MENU_ICON_COLOR){
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, color);
+    }else if(keyName == THEME_MENU_ICON_DISABLED_COLOR){
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, color);
+    }else if(keyName == THEME_MENU_ICON_SELECTED_COLOR){
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, color);
+    }else if(keyName == THEME_SET_DARK_THEME){
+        resetTheme(true);
+        saveTheme(true);
+    }else if(keyName == THEME_SET_LIGHT_THEME){
+        resetTheme(false);
+        saveTheme(true);
     }
 }
 
@@ -213,30 +271,42 @@ void MedeaWindow::setApplicationEnabled(bool enable)
     setEnabled(enable);
 }
 
+
+/**
+ * @brief MedeaWindow::setViewWidgetsEnabled
+ * This enables/disables all widgets/actions that depend on the model being ready.
+ * @param enable
+ */
 void MedeaWindow::setViewWidgetsEnabled(bool enable)
 {
+    // TODO - Can't seem to hide the minimap!
     minimap->setEnabled(enable);
+    //minimap->setVisible(false);
+    //minimap->hide();
 
-    //Search
-    projectName->setEnabled(enable);
-    closeProjectButton->setVisible(enable);
+    // project title widgets
+    projectName->setVisible(enable);
+    updateWidgetsOnProjectChange(enable);
+
+    // search widgets
     searchBar->setEnabled(enable);
-    searchButton->setEnabled(enable);
-    searchOptionButton->setEnabled(enable);
+    searchBar->clear();
 
+
+    // dock buttons
+    partsButton->setVisible(enable);
+    hardwareNodesButton->setVisible(enable);
+
+    // aspect toggle buttons
+    emit window_SetViewVisible(enable);
+    /*foreach(AspectToggleWidget* aspect, aspectToggles){
+        aspect->enableToggleButton(enable);
+    }*/
+
+    // actions that alter the model
     foreach(QAction* action, modelActions){
         action->setEnabled(enable);
     }
-
-    foreach(AspectToggleWidget* aspect, aspectToggles){
-        aspect->setEnabled(enable);
-    }
-
-    //setApplicationEnabled(enable);
-
-    emit window_SetViewVisible(enable);
-
-
 }
 
 
@@ -253,20 +323,9 @@ void MedeaWindow::modelReady()
 
     // re-enable the view widgets and window
     setViewWidgetsEnabled(true);
-    setApplicationEnabled(true);
 
-    //Load loadLaunchedFile
-    if(loadLaunchedFile){
-        QStringList files;
-        files << launchFilePathArg;
-        importProjects(files);
-        loadLaunchedFile = false;
-    }
-
-    if(nodeView){
-        nodeView->fitToScreen();
-    }
-
+    //setApplicationEnabled(true);
+    updateRightMask();
 }
 
 void MedeaWindow::modelDisconnected()
@@ -276,6 +335,8 @@ void MedeaWindow::modelDisconnected()
 
     //Clear the Docks
     emit window_clearDocks();
+
+    //Clear toolbar
 }
 
 
@@ -297,11 +358,9 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
 {
     if(groupName==TOOLBAR_SETTINGS){
         toolbarSettingChanged(keyName, value);
-    }else if(groupName==WINDOW_SETTINGS && initialSettingsLoaded){
-        //Ignore Window settigns after initial load.
         return;
-    }else if(groupName==ASPECT_SETTINGS && !initialSettingsLoaded){
-        //Ignore Aspect Settings on initial load.
+    }else if(groupName == THEME_SETTINGS){
+        themeSettingChanged(keyName, value);
         return;
     }
 
@@ -310,16 +369,23 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     bool boolValue = value.toBool();
     int intValue = value.toInt(&isInt);
 
+    QColor color(strValue);
+
+
     if(keyName == WINDOW_X && isInt){
-        move(intValue, pos().y());
+        if(intValue >= 0){
+            move(intValue, pos().y());
+        }
     }else if(keyName == WINDOW_Y && isInt){
-        move(pos().x(), intValue);
+        if(intValue >= 0){
+            move(pos().x(), intValue);
+        }
     }else if(keyName == WINDOW_W && isInt){
         resize(intValue, size().height());
     }else if(keyName == WINDOW_H && isInt){
         resize(size().width(), intValue);
     }else if(keyName == WINDOW_MAX_STATE){
-        if(boolValue != isWindowMaximized && settingsLoading){
+        if(boolValue != IS_WINDOW_MAXIMIZED && SETTINGS_LOADING){
             maximizedSettingInitiallyChanged = true;
             WINDOW_MAXIMIZED = boolValue;
         }
@@ -330,6 +396,8 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         }
     }else if(keyName == WINDOW_FULL_SCREEN){
         setFullscreenMode(boolValue);
+    }else if(keyName == WINDOW_STORE_SETTINGS){
+        SAVE_WINDOW_SETTINGS = boolValue;
     }else if(keyName == CUTS_CONFIGURE_PATH){
         if(cutsManager){
             cutsManager->setCUTSConfigScriptPath(strValue);
@@ -342,14 +410,6 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         toggleAndTriggerAction(actionToggleGrid, boolValue);
     }else if(keyName == DOCK_VISIBLE){
         showDocks(!boolValue);
-    }else if(keyName == TOOLBAR_VISIBLE){
-        setToolbarVisibility(!boolValue);
-        settingChanged(groupName,TOOLBAR_EXPANDED, appSettings->getSetting(TOOLBAR_EXPANDED));
-    }else if(keyName == TOOLBAR_EXPANDED){
-        if(appSettings->getSetting(TOOLBAR_VISIBLE) != "true"){
-            toolbarButton->setChecked(boolValue);
-            toolbarButton->clicked(boolValue);
-        }
     }else if(keyName == ASPECT_I){
         definitionsToggle->setClicked(boolValue);
     }else if(keyName == ASPECT_B){
@@ -358,6 +418,20 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         assemblyToggle->setClicked(boolValue);
     }else if(keyName == ASPECT_H){
         hardwareToggle->setClicked(boolValue);
+    }else if(keyName == ASPECT_I_COLOR){
+        Theme::theme()->setAspectBackgroundColor(VA_INTERFACES, color);
+    }else if(keyName == ASPECT_B_COLOR){
+        Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, color);
+    }else if(keyName == ASPECT_A_COLOR){
+        Theme::theme()->setAspectBackgroundColor(VA_ASSEMBLIES, color);
+    }else if(keyName == ASPECT_H_COLOR){
+        Theme::theme()->setAspectBackgroundColor(VA_HARDWARE, color);
+    }else if(keyName == ASPECT_COLOR_BLIND){
+        resetAspectTheme(true);
+        saveTheme(true);
+    }else if(keyName == ASPECT_COLOR_DEFAULT){
+        resetAspectTheme(false);
+        saveTheme(true);
     }else if(keyName == JENKINS_URL){
         if(jenkinsManager){
             jenkinsManager->setURL(strValue);
@@ -383,304 +457,220 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
             //Use application directory
             DEFAULT_PATH = applicationDirectory;
         }
+    }else if(keyName == NOTIFICATION_LENGTH && isInt){
+        if(intValue > 0 && intValue < 10000){
+            NOTIFICATION_TIME = intValue;
+        }
     }
+}
+
+void MedeaWindow::settingsApplied()
+{
+    //Reset the theme if we are initially loading and don't have a valid theme.
+    if(SETTINGS_LOADING){
+        if(!Theme::theme()->isValid()){
+            resetTheme(DEFAULT_THEME);
+            resetAspectTheme(false);
+            saveTheme(true);
+        }
+    }
+
+    //Will only send an update if theme was modifed.
+    Theme::theme()->applyTheme();
 }
 
 void MedeaWindow::loadSettingsFromINI()
 {
     if(appSettings){
-        settingsLoading = true;
+        SETTINGS_LOADING = true;
         appSettings->loadSettings();
-        settingsLoading = false;
+        SETTINGS_LOADING = false;
     }
 }
 
 
 /**
  * @brief MedeaWindow::initialiseGUI
- * Initialise variables, setup widget sizes, organise layout
- * and setup the view, scene and menu.
+ * Initialise variables, setup widget sizes, organise layout and setup the view, scene and menu.
  */
 void MedeaWindow::initialiseGUI()
 {
-    // stylesheets
-    setStyleSheet("QToolBar::separator { background-color: rgba(0,0,0,0); }"
-                  "QToolButton {"
-                  "margin: 0px 1px;"
-                  "border-radius: 10px;"
-                  "border: 1px solid rgb(160,160,160);"
-                  "background-color: rgb(200,200,200);"
-                  "}"
-                  "QToolButton:hover {"
-                  "border: 2px solid rgb(140,140,140);"
-                  "background-color: rgb(240,240,240);"
-                  "}"
-                  "QToolButton:disabled { background-color: rgb(150,150,150);}"
-                  "QToolButton:pressed { background-color: white; }"
-                  "QToolButton[popupMode=\"1\"] {"
-                  "padding-right: 15px;"
-                  "}"
-                  "QToolButton::menu-button {"
-                  "border-left: 1px solid rgb(150,150,150);"
-                  "border-top-right-radius: 10px;"
-                  "border-bottom-right-radius: 10px;"
-                  "width: 15px;"
-                  "}"
-
-                  "QCheckBox { padding: 0px 10px 0px 0px; }"
-                  "QCheckBox::indicator { width: 25px; height: 25px; }"
-                  "QCheckBox:checked { color: green; font-weight: bold; }"
-
-                  "QProgressBar {"
-                  "border: 2px solid gray;"
-                  "border-radius: 10px;"
-                  "background: rgb(240,240,240);"
-                  "text-align: center;"
-                  "color: black;"
-                  "}"
-                  "QProgressBar::chunk {"
-                  "border-radius: 7px;"
-                  "background: rgb(0,204,0);"
-                  "}"
-
-                  "QGroupBox {"
-                  "background-color: rgba(0,0,0,0);"
-                  "border: 0px;"
-                  "margin: 0px;"
-                  "padding: 0px;"
-                  "}"
-
-                  "QMessageBox{background-color:" + palette().color(QWidget::backgroundRole()).name() + ";}"
-                  );
+    setupMenu();
 
     // set all gui widget fonts to this
-    guiFont = QFont("Verdana", 8.5);
+    double fontSize = 8.5;
+    guiFont = QFont("Verdana", fontSize);
 
     // initialise variables
     controller = 0;
-    prevPressedButton = 0;
     controllerThread = 0;
 
     nodeView = new NodeView();
     nodeView->setApplicationDirectory(applicationDirectory);
-
-
-    progressBar = new QProgressBar(this);
-    progressLabel = new QLabel(this);
-
-    notificationsBar = new QLabel("", this);
-    notificationTimer = new QTimer(this);
-
-    dataTableBox = new QGroupBox(this);
-    dataTable = new QTableView(dataTableBox);
-    delegate = new ComboBoxTableDelegate(0);
-
-    menuTitleBox = new QGroupBox(this);
-    projectName = new QPushButton("");
-    closeProjectButton = new QPushButton();
-    closeProjectButton->setToolTip("Close the current Project.");
-    closeProjectButton->setIcon(nodeView->getImage("Actions", "Close"));
-
-    // set central widget and window size
-    setCentralWidget(nodeView);
-    setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
-
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
 
-    // set the size for the right panel where the view buttons and data table are located
-    double rightPanelWidth = RIGHT_PANEL_WIDTH;
+    delegate = new ComboBoxTableDelegate(0);
 
-    // setup widgets
-    QPushButton* menuButton = new QPushButton(getIcon("Actions", "MEDEA_Menu"), "");
-    menuButton->setFixedSize(55, 45);
-    menuButton->setIconSize(menuButton->size() * 0.75);
-    menuButton->setStyleSheet("QPushButton{ background-color: rgb(210,210,210); }"
-                              "QPushButton::menu-indicator{ image: none; }");
+    // setup and add dataTable/dataTableBox widget/layout
 
+    dataTable = new QTableView(this);
+    dataTable->setItemDelegateForColumn(1, delegate);
+    dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    dataTable->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    dataTable->setFont(guiFont);
+
+    tableScroll = new QScrollArea(this);
+    tableScroll->setWidget(dataTable);
+    tableScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+
+    // setup menu, close project and project name buttons
+    menuButton = new QPushButton(getIcon("Actions", "MEDEAIcon"), "");
+    menuButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    menuButton->setFixedSize(50, 50);
+    menuButton->setIconSize(menuButton->size() * 0.85);
+    menuButton->setMenu(menu);
+
+    projectName = new QPushButton("");
+    projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
     projectName->setFlat(true);
-    projectName->setStyleSheet("color: black; font-size: 16px; text-align: left;");// /*padding: 8px;*/");
-    projectName->setFixedWidth(200);
+    projectName->setStyleSheet("QPushButton{ font-weight: bold; font-size: 16px; text-align: left; }"
+                               "QTooltip{ background: white; color: black; }");
 
-    closeProjectButton->setFlat(true);
-    closeProjectButton->setFixedWidth(menuButton->height()/2);
-    closeProjectButton->setFixedHeight(menuButton->height()/2);
+    projectNameShadow = new QGraphicsDropShadowEffect(this);
+    projectNameShadow->setBlurRadius(0);
+    projectNameShadow->setColor(QColor("#000000"));
+    projectNameShadow->setOffset(1,1);
+    projectName->setGraphicsEffect(projectNameShadow);
+    projectName->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
+    closeProjectToolButton = new QToolButton(this);
+    closeProjectToolButton->setDefaultAction(file_closeProject);
+    closeProjectToolButton->setFixedSize(TOOLBUTTON_SIZE, TOOLBUTTON_SIZE);
 
+    closeProjectToolbar = constructToolbar();
+    closeProjectToolbar->addWidget(closeProjectToolButton);
+    closeProjectToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
-    definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
-    workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
-    assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, rightPanelWidth/2, this);
-    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, rightPanelWidth/2, this);
+    menuTitleBox = new QGroupBox(this);
+    menuTitleBox->setObjectName(THEME_STYLE_GROUPBOX);
+    menuTitleBox->setFixedHeight(menuButton->height() + SPACER_SIZE*3);
+    menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
+                                  menuButton->width() + SPACER_SIZE + projectName->width() + closeProjectToolbar->width(), menuButton->height(),
+                                  QRegion::Rectangle));
+
+    // setup aspect toggle buttons
+    definitionsToggle = new AspectToggleWidget(VA_INTERFACES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
+    workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
+    assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
+    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
 
     aspectToggles << definitionsToggle;
     aspectToggles << workloadToggle;
     aspectToggles << assemblyToggle;
     aspectToggles << hardwareToggle;
 
-    // setup progress bar
-    progressBar->setVisible(false);
-    progressBar->setFixedSize(rightPanelWidth*2, 20);
-    //progressBar->setRange(0, 0);
 
-    progressLabel->setVisible(false);
-    progressLabel->setFixedSize(rightPanelWidth*2, 40);
-    progressLabel->setAlignment(Qt::AlignCenter);
-    progressLabel->setStyleSheet("color: black; font: 14px;");
-
-    notificationsBar->setVisible(false);
-    notificationsBar->setFixedHeight(40);
-    notificationsBar->setAlignment(Qt::AlignCenter);
-    notificationsBar->setStyleSheet("background-color: rgba(250,250,250,0.85);"
-                                    "color: rgb(30,30,30);"
-                                    "border-radius: 10px;"
-                                    "padding: 0px 15px;"
-                                    "font: 14px;");
-
-    QVBoxLayout* progressLayout = new QVBoxLayout();
-    progressLayout->addStretch(3);
-    progressLayout->addWidget(progressLabel);
-    progressLayout->addWidget(progressBar);
-    progressLayout->addStretch(4);
-    progressLayout->addWidget(notificationsBar);
-    progressLayout->setAlignment(notificationsBar, Qt::AlignCenter);
-
-    // setup and add dataTable/dataTableBox widget/layout
-    dataTable->setItemDelegateForColumn(2, delegate);
-    dataTable->setFixedWidth(rightPanelWidth + 5);
-    dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    dataTable->setFont(guiFont);
-    dataTable->resize(dataTable->width(), 0);
-
-    QVBoxLayout* tableLayout = new QVBoxLayout();
-    tableLayout->setMargin(0);
-    tableLayout->setContentsMargins(5,0,0,0);
-    tableLayout->addWidget(dataTable);
-
-    dataTableBox->setFixedWidth(rightPanelWidth + 10);
-    dataTableBox->setContentsMargins(0,0,0,0);
-    dataTableBox->setLayout(tableLayout);
-
-    // setup minimap
-    QLabel* minimapLabel = new QLabel("Minimap", this);
-    minimapLabel->setFont(guiFont);
-    minimapLabel->setAlignment(Qt::AlignCenter);
-    minimapLabel->setFixedSize(rightPanelWidth + 10, 20);
-    minimapLabel->setStyleSheet("background-color: rgb(210,210,210);"
-                                "border: 1px solid rgb(50,50,50);"
-                                "border-bottom: none;"
-                                //"font-weight: bold;"
-                                "font-size: 12px;");
-
-    //minimap = 0;
-    minimap = new NodeViewMinimap();
-    minimap->setScene(nodeView->scene());
-
-    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
-    minimap->setInteractive(false);
-
-    QVBoxLayout* minimapLayout = new QVBoxLayout();
-    minimapLayout->addWidget(minimapLabel);
-    minimapLayout->addWidget(minimap);
-    minimapLayout->setContentsMargins(10,0,8,5);
-
-    minimap->setFixedSize(rightPanelWidth + 10, rightPanelWidth * 0.6);
-    minimap->setStyleSheet("QGraphicsView{border: 1px solid rgb(50,50,50);}");
-    minimap->centerView();
-
-    // layouts
-    QHBoxLayout* mainHLayout = new QHBoxLayout();
-    QHBoxLayout* topHLayout = new QHBoxLayout();
-    QVBoxLayout* leftVlayout = new QVBoxLayout();
-    QVBoxLayout* rightVlayout =  new QVBoxLayout();
     QHBoxLayout* titleLayout = new QHBoxLayout();
-    QHBoxLayout* bodyLayout = new QHBoxLayout();
-    QGridLayout* viewButtonsGrid = new QGridLayout();
-    searchLayout = new QHBoxLayout();
-
-    // setup layouts for widgets
     titleLayout->setMargin(0);
     titleLayout->setSpacing(0);
-    titleLayout->addWidget(menuButton, 1);
-    titleLayout->addSpacerItem(new QSpacerItem(10, 0));
-    titleLayout->addWidget(projectName, 1);
-    titleLayout->addSpacerItem(new QSpacerItem(10, 0));
-    titleLayout->addWidget(closeProjectButton, 1);
-
-
+    titleLayout->addWidget(menuButton);
+    titleLayout->addSpacerItem(new QSpacerItem(SPACER_SIZE, 0));
+    titleLayout->addWidget(closeProjectToolbar);
+    titleLayout->addWidget(projectName);
     titleLayout->addStretch();
-
     menuTitleBox->setLayout(titleLayout);
-    menuTitleBox->setFixedHeight(menuButton->height() + 30);
-    menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
-                                  menuButton->width() + 10 + projectName->width() + 10 + closeProjectButton->width(), menuButton->height(),
-                                  QRegion::Rectangle));
 
+    QHBoxLayout* topHLayout = new QHBoxLayout();
     topHLayout->setMargin(0);
     topHLayout->setSpacing(0);
+    topHLayout->setContentsMargins(0,0,0,0);
     topHLayout->addWidget(menuTitleBox);
     topHLayout->addStretch();
 
+    QHBoxLayout* bodyLayout = new QHBoxLayout();
+    QVBoxLayout* leftVlayout = new QVBoxLayout();
     leftVlayout->setMargin(0);
     leftVlayout->setSpacing(0);
+    leftVlayout->setContentsMargins(0,0,0,0);
     leftVlayout->addLayout(topHLayout);
-    leftVlayout->addSpacerItem(new QSpacerItem(20, 10));
     leftVlayout->addLayout(bodyLayout);
     leftVlayout->addStretch();
 
-    viewButtonsGrid->setSpacing(5);
+    QGridLayout* viewButtonsGrid = new QGridLayout();
+    viewButtonsGrid->setSpacing(SPACER_SIZE / 2);
     viewButtonsGrid->setMargin(0);
-    viewButtonsGrid->setContentsMargins(5,0,5,0);
 
     viewButtonsGrid->addWidget(definitionsToggle, definitionsToggle->getToggleGridPos().x(), definitionsToggle->getToggleGridPos().y());
     viewButtonsGrid->addWidget(workloadToggle, workloadToggle->getToggleGridPos().x(), workloadToggle->getToggleGridPos().y());
     viewButtonsGrid->addWidget(assemblyToggle, assemblyToggle->getToggleGridPos().x(), assemblyToggle->getToggleGridPos().y());
     viewButtonsGrid->addWidget(hardwareToggle, hardwareToggle->getToggleGridPos().x(), hardwareToggle->getToggleGridPos().y());
 
+    searchLayout = new QHBoxLayout();
+    minimapBox = new QWidget(this);
+
+    rightVlayout =  new QVBoxLayout();
     rightVlayout->setMargin(0);
-    rightVlayout->setContentsMargins(0, 10, 0, 0);
+    rightVlayout->setContentsMargins(0, SPACER_SIZE, 0, 0);
+    rightVlayout->setSpacing(SPACER_SIZE);
     rightVlayout->addLayout(searchLayout);
-    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_HEIGHT));
     rightVlayout->addLayout(viewButtonsGrid);
-    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_HEIGHT));
-    rightVlayout->addWidget(dataTableBox);
-    rightVlayout->addStretch();
-    rightVlayout->addLayout(minimapLayout);
+    rightVlayout->addWidget(tableScroll, 1);
+    rightVlayout->addWidget(minimapBox, 0);
 
-    mainHLayout->setMargin(0);
-    mainHLayout->setSpacing(0);
-    mainHLayout->addLayout(leftVlayout, 4);
-    mainHLayout->addLayout(rightVlayout, 1);
-    mainHLayout->setContentsMargins(15, 0, 5, 5);
-    nodeView->setLayout(mainHLayout);
+    rightPanelWidget = new QWidget(this);
+    rightPanelWidget->setFixedWidth(RIGHT_PANEL_WIDTH);
+    rightPanelWidget->setLayout(rightVlayout);
 
-    // setup the menu, dock, search tools and toolbar
-    setupMenu(menuButton);
-    setupDocks(bodyLayout);
+    viewLayout = new QHBoxLayout();
+    viewLayout->setMargin(0);
+    viewLayout->setSpacing(0);
+    viewLayout->addLayout(leftVlayout, 4);
+    viewLayout->addWidget(rightPanelWidget, 1);
+    viewLayout->setContentsMargins(SPACER_SIZE, 0, SPACER_SIZE, SPACER_SIZE);
+
+    viewHolderLayout = new QVBoxLayout();
+    viewHolderLayout->setMargin(0);
+    viewHolderLayout->setSpacing(0);
+    viewHolderLayout->setContentsMargins(0, 0, 0, 0);
+    viewHolderLayout->addLayout(viewLayout);
+    nodeView->setLayout(viewHolderLayout);
+
+    // set central widget, window size and generic stylesheets
+    setCentralWidget(nodeView);
+    setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
+    //setStyle(QStyleFactory::create("windows"));
+
+    // setup the menu, dock, search tools, toolbar and information display widgets
     setupSearchTools();
     setupToolbar();
+    setupMinimap();
+    setupDocks(bodyLayout);
+    setupInfoWidgets(bodyLayout);
     setupMultiLineBox();
+    setupWelcomeScreen();
 
-    // add progress bar layout to the body layout after the dock has been set up
-    bodyLayout->addStretch(4);
-    bodyLayout->addLayout(progressLayout);
-    bodyLayout->addStretch(3);
+    updateRecentProjectsWidgets();
+
+    //dataTable->setAttribute(Qt::WA_TransparentForMouseEvents,false);
 }
 
 
 /**
  * @brief MedeaWindow::setupMenu
  * Initialise and setup menus and their actions.
- * @param button
  */
-void MedeaWindow::setupMenu(QPushButton *button)
+void MedeaWindow::setupMenu()
 {
-    // menu buttons/actions
-    menu = new QMenu();
+    menu = new QMenu(this);
+    menu->setObjectName(THEME_STYLE_QMENU);
+
     file_menu = menu->addMenu(getIcon("Actions", "Menu"), "File");
     edit_menu = menu->addMenu(getIcon("Actions", "Edit"), "Edit");
+
     menu->addSeparator();
+
     view_menu = menu->addMenu(getIcon("Actions", "MenuView"), "View");
     model_menu = menu->addMenu(getIcon("Actions", "MenuModel"), "Model");
     jenkins_menu = menu->addMenu(getIcon("Actions", "Jenkins_Icon"), "Jenkins");
@@ -693,19 +683,19 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     exit = menu->addAction(getIcon("Actions", "Power"), "Exit");
 
-    menu->setFont(guiFont);
-    file_menu->setFont(guiFont);
-    edit_menu->setFont(guiFont);
-    view_menu->setFont(guiFont);
-    model_menu->setFont(guiFont);
-
     file_newProject = file_menu->addAction(getIcon("Actions", "New"), "New Project");
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
 
-    file_openProject = file_menu->addAction(getIcon("Actions", "Import"), "Open Project");
+    //file_openProject = file_menu->addAction(getIcon("Actions", "Import"), "Open Project");
+    file_openProject = file_menu->addAction(getIcon("Actions", "Open"), "Open Project");
     file_openProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 
+    file_recentProjectsMenu = file_menu->addMenu(getIcon("Actions", "Timer"), "Recent Projects");
+
+    file_recentProjects_clearHistory = file_recentProjectsMenu->addAction(getIcon("Actions", "Clear"), "Clear History");
+
     file_menu->addSeparator();
+
     file_saveProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project");
     file_saveProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
 
@@ -716,15 +706,15 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     file_menu->addSeparator();
 
-
-
     file_importGraphML = file_menu->addAction(getIcon("Actions", "Import"), "Import");
+    file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
 
-    file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_menu->addSeparator();
+
     file_exportSnippet = file_menu->addAction(getIcon("Actions", "ExportSnippet"), "Export Snippet");
+
     file_menu->addSeparator();
 
     edit_undo = edit_menu->addAction(getIcon("Actions", "Undo"), "Undo");
@@ -745,7 +735,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     edit_search->setShortcut(QKeySequence(Qt::Key_F3));
     edit_delete= edit_menu->addAction(getIcon("Actions", "Delete"), "Delete Selection");
 
-
     view_fitToScreen = view_menu->addAction(getIcon("Actions", "FitToScreen"), "Fit To Screen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
     view_menu->addSeparator();
@@ -759,8 +748,14 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_fullScreenMode = view_menu->addAction(getIcon("Actions", "Fullscreen"), "Start Fullscreen Mode");
     view_fullScreenMode->setShortcut(QKeySequence(Qt::Key_F11));
     view_fullScreenMode->setCheckable(true);
+    view_printScreen = view_menu->addAction(getIcon("Actions", "PrintScreen"), "Print Screen");
+    view_printScreen->setShortcut(QKeySequence(Qt::Key_F12));
 
-
+    view_menu->addSeparator();
+    view_showMinimap = view_menu->addAction(getIcon("Actions", "Minimap"), "Hide Minimap");
+    view_showMinimap->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M));
+    view_showMinimap->setCheckable(true);
+    view_showMinimap->setChecked(true);
 
     model_clearModel = model_menu->addAction(getIcon("Actions", "Clear"), "Clear Model");
     model_menu->addSeparator();
@@ -770,8 +765,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_ExecuteLocalJob = model_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: Local Deployment");
     model_ExecuteLocalJob->setEnabled(true);
     model_ExecuteLocalJob->setToolTip("Requires Valid CUTS and Windows");
-
-    button->setMenu(menu);
 
     //Setup Jenkins Menu
     QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB).toString();
@@ -784,8 +777,10 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     help_Shortcuts = help_menu->addAction(getIcon("Actions", "Keyboard"), "App Shortcuts");
     help_Shortcuts->setShortcut(QKeySequence(Qt::Key_F1));
-    help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
+    help_ReportBug = help_menu->addAction(getIcon("Actions", "BugReport"), "Report Bug");
+    help_Wiki = help_menu->addAction(getIcon("Actions", "Wiki"), "Wiki");
     help_menu->addSeparator();
+    help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
     help_AboutQt = help_menu->addAction(QIcon(":/Qt.ico"), "About Qt");
 
     if(!jenkinsManager){
@@ -795,14 +790,22 @@ void MedeaWindow::setupMenu(QPushButton *button)
         jenkins_ExecuteJob->setEnabled(false);
     }
 
-    // initially disable these actions
-    //view_goToDefinition->setEnabled(false);
-    //view_goToImplementation->setEnabled(false);
-    //view_showConnectedNodes->setEnabled(false);
+    menu->setFont(guiFont);
+    file_menu->setFont(guiFont);
+    edit_menu->setFont(guiFont);
+    view_menu->setFont(guiFont);
+    model_menu->setFont(guiFont);
 
-    //actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
+
+
+
     actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
     actionSort->setToolTip("Sort Selection");
+
+
+    actionSearch = new QAction("Search", this);
+    actionSearch->setToolTip("Search for text");
+
 
     actionCenter = new QAction(getIcon("Actions", "Crosshair"), "Center Entity", this);
     actionCenter->setToolTip("Center On Entity");
@@ -835,6 +838,10 @@ void MedeaWindow::setupMenu(QPushButton *button)
     actionToggleGrid->setToolTip("Turn Off Grid");
     actionToggleGrid->setCheckable(true);
 
+    actionToggleToolbar = new QAction(getIcon("Actions", "Arrow_Down"), "Toggle Toolbar", this);
+    actionToggleToolbar->setToolTip("Toggle Toolbar");
+    actionToggleToolbar->setCheckable(true);
+
     //Model Actions
     modelActions << file_closeProject;
     modelActions << file_saveProject;
@@ -847,13 +854,104 @@ void MedeaWindow::setupMenu(QPushButton *button)
     modelActions << view_menu->actions();
     modelActions << edit_menu->actions();
 
-
     modelActions << view_menu->actions();
     modelActions << model_menu->actions();
     modelActions << jenkins_menu->actions();
 
     modelActions.removeAll(view_fullScreenMode);
+    modelActions.removeAll(view_showMinimap);
+
+    modelActions << actionSearch;
 }
+
+void MedeaWindow::updateMenuIcons()
+{
+    //Update Icons.
+    file_menu->setIcon(getIcon("Actions", "Menu"));
+    edit_menu->setIcon(getIcon("Actions", "Edit"));
+    view_menu->setIcon(getIcon("Actions", "MenuView"));
+    model_menu->setIcon(getIcon("Actions", "MenuModel"));
+    jenkins_menu->setIcon(getIcon("Actions", "Jenkins_Icon"));
+    help_menu->setIcon(getIcon("Actions", "Help"));
+
+    settings_changeAppSettings->setIcon(getIcon("Actions", "Settings"));
+    exit->setIcon(getIcon("Actions", "Power"));
+
+    file_newProject->setIcon(getIcon("Actions", "New"));
+    file_openProject->setIcon(getIcon("Actions", "Open"));
+    file_recentProjectsMenu->setIcon(getIcon("Actions", "Timer"));
+    file_recentProjects_clearHistory->setIcon(getIcon("Actions", "Clear"));
+    file_saveProject->setIcon(getIcon("Actions", "Save"));
+    file_saveAsProject->setIcon(getIcon("Actions", "Save"));
+    file_closeProject->setIcon(getIcon("Actions", "Close"));
+    file_importGraphML->setIcon(getIcon("Actions", "Import"));
+    file_importSnippet->setIcon(getIcon("Actions", "ImportSnippet"));
+    file_importXME->setIcon(QIcon(":/GME.ico"));
+    file_exportSnippet->setIcon(getIcon("Actions", "ExportSnippet"));
+
+    edit_undo->setIcon(getIcon("Actions", "Undo"));
+    edit_redo->setIcon(getIcon("Actions", "Redo"));
+    edit_cut->setIcon(getIcon("Actions", "Cut"));
+    edit_copy->setIcon(getIcon("Actions", "Copy"));
+    edit_paste->setIcon(getIcon("Actions", "Paste"));
+    edit_replicate->setIcon(getIcon("Actions", "Replicate"));
+    edit_search->setIcon(getIcon("Actions", "Search"));
+    edit_delete->setIcon(getIcon("Actions", "Delete"));
+
+    view_fitToScreen->setIcon(getIcon("Actions", "FitToScreen"));
+    view_goToDefinition->setIcon(getIcon("Actions", "Definition"));
+    view_goToImplementation->setIcon(getIcon("Actions", "Implementation"));
+    view_showConnectedNodes->setIcon(getIcon("Actions", "Connections"));
+    view_fullScreenMode->setIcon(getIcon("Actions", "Fullscreen"));
+    view_printScreen->setIcon(getIcon("Actions", "PrintScreen"));
+    view_showMinimap->setIcon(getIcon("Actions", "Minimap"));
+
+    model_clearModel->setIcon(getIcon("Actions", "Clear"));
+    model_validateModel->setIcon(getIcon("Actions", "Validate"));
+    model_ExecuteLocalJob->setIcon(getIcon("Actions", "Job_Build"));
+
+    jenkins_ImportNodes->setIcon(getIcon("Actions", "Computer"));
+    jenkins_ExecuteJob->setIcon(getIcon("Actions", "Job_Build"));
+
+    help_Shortcuts->setIcon(getIcon("Actions", "Keyboard"));
+    help_ReportBug->setIcon(getIcon("Actions", "BugReport"));
+    help_Wiki->setIcon(getIcon("Actions", "Wiki"));
+    help_AboutMedea->setIcon(getIcon("Actions", "Info"));
+    help_AboutQt->setIcon(QIcon(":/Qt.ico"));
+
+    actionSort->setIcon(getIcon("Actions", "Sort"));
+    actionCenter->setIcon(getIcon("Actions", "Crosshair"));
+    actionZoomToFit->setIcon(getIcon("Actions", "ZoomToFit"));
+    actionFitToScreen->setIcon(getIcon("Actions", "FitToScreen"));
+    actionAlignVertically->setIcon(getIcon("Actions", "Align_Vertical"));
+    actionAlignHorizontally->setIcon(getIcon("Actions", "Align_Horizontal"));
+    actionPopupSubview->setIcon(getIcon("Actions", "Popup"));
+    actionBack->setIcon(getIcon("Actions", "Backward"));
+    actionForward->setIcon(getIcon("Actions", "Forward"));
+    actionContextMenu->setIcon(getIcon("Actions", "Toolbar"));
+
+    actionToggleToolbar->setIcon(getIcon("Actions", "Arrow_Down"));
+
+    actionToggleGrid->setIcon(getIcon("Actions", "Grid_On"));
+
+
+    actionSearch->setIcon(getIcon("Actions", "Search"));
+    searchOptionToolButton->setIcon(getIcon("Actions", "SearchOptions"));
+
+
+    QIcon fileIcon = getIcon("Actions", "New");
+    for(int i = 0; i < recentProjectsListWidget->count(); ++i)
+    {
+        QListWidgetItem* item = recentProjectsListWidget->item(i);
+        item->setIcon(fileIcon);
+    }
+
+    QIcon arrowDown = (getIcon("Actions", "Arrow_Down"));
+    viewAspectsButton->setIcon(arrowDown);
+    nodeKindsButton->setIcon(arrowDown);
+    dataKeysButton->setIcon(arrowDown);
+}
+
 
 
 /**
@@ -865,7 +963,9 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 {
     dockStandAloneDialog = new QDialog(this);
     docksArea = new QGroupBox(this);
-    dockButtonsBox = new QGroupBox();
+    docksArea->setObjectName(THEME_STYLE_GROUPBOX);
+    dockButtonsBox = new QGroupBox(this);
+    dockButtonsBox->setObjectName(THEME_STYLE_GROUPBOX);
     dockButtonsBox->setStyle(QStyleFactory::create("windows"));
 
     dockLayout = new QVBoxLayout();
@@ -875,19 +975,18 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 
     partsButton = new DockToggleButton(PARTS_DOCK, this);
     hardwareNodesButton = new DockToggleButton(HARDWARE_DOCK, this);
-    definitionsButton = new DockToggleButton(DEFINITIONS_DOCK, this);
-    functionsButton = new DockToggleButton(FUNCTIONS_DOCK, this);
 
-    partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
-    definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, definitionsButton);
-    hardwareDock = new HardwareDockScrollArea("Nodes", nodeView, hardwareNodesButton);
-    functionsDock = new FunctionsDockScrollArea("Functions", nodeView, functionsButton);
+    partsDock = new PartsDockScrollArea(PARTS_DOCK, nodeView, partsButton);
+    definitionsDock = new DefinitionsDockScrollArea(DEFINITIONS_DOCK, nodeView);
+    functionsDock = new FunctionsDockScrollArea(FUNCTIONS_DOCK, nodeView);
+    hardwareDock = new HardwareDockScrollArea(HARDWARE_DOCK, nodeView, hardwareNodesButton);
 
     // width of the containers are fixed
-    boxWidth = (partsButton->getWidth()*4) + 19;
+    int dockPadding = 5;
+    boxWidth = (partsButton->getWidth() - dockPadding) * 2 + 19;
 
     // set buttonBox's size and get rid of its border
-    QSize buttonsBoxSize(boxWidth + 1, 48);
+    QSize buttonsBoxSize(boxWidth + 1, partsButton->getHeight() + dockPadding);
     dockButtonsBox->setStyleSheet("margin: 0px; border: 0px; padding: 0px;");
     dockButtonsBox->setFixedSize(buttonsBoxSize);
 
@@ -906,8 +1005,6 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     // set size policy for buttons
     partsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     hardwareNodesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    definitionsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    functionsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     // remove extra space in layouts
     dockButtonsHlayout->setMargin(0);
@@ -921,22 +1018,83 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 
     // add widgets to/and layouts
     dockButtonsHlayout->addWidget(partsButton);
-    dockButtonsHlayout->addWidget(definitionsButton);
-    dockButtonsHlayout->addWidget(functionsButton);
     dockButtonsHlayout->addWidget(hardwareNodesButton);
     dockButtonsBox->setLayout(dockButtonsHlayout);
 
+    dockBackButtonBox = new QGroupBox(this);
+    dockBackButtonBox->setObjectName(THEME_STYLE_GROUPBOX);
+    dockBackButtonBox->setStyleSheet("QGroupBox {"
+                                     "background: rgba(0,0,0,0);"
+                                     "border: 0px;"
+                                     "margin: 0px;"
+                                     "padding: 0px;"
+                                     "}");
+
+    dockHeaderBox = new QGroupBox(this);
+    dockHeaderBox->setStyleSheet("QGroupBox {"
+                                 "border-left: 1px solid rgb(125,125,125);"
+                                 "border-right: 1px solid rgb(125,125,125);"
+                                 "border-top: 1px solid rgb(125,125,125);"
+                                 "border-bottom: none;"
+                                 "background-color: rgba(250,250,250,240);"
+                                 "padding: 10px 0px 0px 0px; }");
+
+    dockActionLabel = new QLabel("Describe action here", this);
+    dockActionLabel->setAlignment(Qt::AlignCenter);
+    dockActionLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 10px 5px;");
+
+    dockBackButton = new QPushButton(getIcon("Actions", "Backward"), "", this);
+    dockBackButton->setFixedSize(boxWidth, 35);
+    dockBackButton->setToolTip("Go back to the Parts list");
+    dockBackButton->setStyleSheet("QPushButton {"
+                                  "background-color: rgba(130,130,130,120);"
+                                  "}"
+                                  "QPushButton:hover {"
+                                  "background-color: rgba(180,180,180,150);"
+                                  "}");
+    connect(dockBackButton, SIGNAL(clicked(bool)), this, SLOT(dockBackButtonTriggered()));
+
+    openedDockLabel = new QLabel("Parts", this);
+    openedDockLabel->setFixedWidth(boxWidth);
+    //openedDockLabel->setAlignment(Qt::AlignCenter);
+    openedDockLabel->setFont(QFont("Helvetica", 11));
+    openedDockLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 0px 8px 5px 8px;");
+
+    QVBoxLayout* dockBackButtonLayout = new QVBoxLayout();
+    dockBackButtonLayout->setMargin(0);
+    dockBackButtonLayout->setSpacing(0);
+    dockBackButtonLayout->addWidget(dockBackButton, 0, Qt::AlignCenter);
+    dockBackButtonLayout->addSpacerItem(new QSpacerItem(0, SPACER_SIZE));
+    dockBackButtonBox->setLayout(dockBackButtonLayout);
+
+    QVBoxLayout* dockHeaderLayout = new QVBoxLayout();
+    dockHeaderLayout->setMargin(0);
+    dockHeaderLayout->setSpacing(0);
+    dockHeaderLayout->addWidget(openedDockLabel);
+    dockHeaderLayout->addWidget(dockActionLabel);
+    dockHeaderLayout->addWidget(dockBackButtonBox);
+    dockHeaderBox->setLayout(dockHeaderLayout);
+
+    QVBoxLayout* innerDockLayout = new QVBoxLayout();
+    innerDockLayout->setMargin(0);
+    innerDockLayout->setSpacing(0);
+    innerDockLayout->addWidget(dockHeaderBox);
+    innerDockLayout->addWidget(partsDock);
+    innerDockLayout->addWidget(definitionsDock);
+    innerDockLayout->addWidget(functionsDock);
+    innerDockLayout->addWidget(hardwareDock);
+    innerDockLayout->addStretch();
+
+    dockGroupBox = new QGroupBox(this);
+    dockGroupBox->setObjectName(THEME_STYLE_GROUPBOX);
+    dockGroupBox->setLayout(innerDockLayout);
+
     dockLayout->addWidget(dockButtonsBox);
-    dockLayout->addWidget(partsDock);
-    dockLayout->addWidget(definitionsDock);
-    dockLayout->addWidget(functionsDock);
-    dockLayout->addWidget(hardwareDock);
-    dockLayout->addStretch();
+    dockLayout->addWidget(dockGroupBox);
 
     dockAreaLayout->addLayout(dockLayout);
     docksArea->setLayout(dockAreaLayout);
     docksArea->setFixedWidth(boxWidth);
-    docksArea->setStyleSheet("border: none; padding: 0px; margin: 0px; background-color: rgba(0,0,0,0);");
     docksArea->setMask(QRegion(0, 0, boxWidth, dockButtonsBox->height(), QRegion::Rectangle));
     docksArea->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     layout->addWidget(docksArea, 1);
@@ -947,6 +1105,12 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockStandAloneDialog->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     dockStandAloneDialog->setStyleSheet("QDialog{ background-color: rgba(175,175,175,255); }");
     dockStandAloneDialog->setWindowTitle("MEDEA - Dock");
+
+    // initially hide the header section of the dock
+    dockHeaderBox->hide();
+    openedDockLabel->hide();
+    dockBackButtonBox->hide();
+    dockActionLabel->hide();
 }
 
 
@@ -959,12 +1123,20 @@ void MedeaWindow::setupSearchTools()
     searchBarDefaultText = "Search Here...";
     searchBar = new QLineEdit(searchBarDefaultText, this);
     searchSuggestions = new SearchSuggestCompletion(searchBar);
-    searchButton = new QPushButton(getIcon("Actions", "Search"), "");
-    searchOptionButton = new QPushButton(getIcon("Actions", "Settings"), "");
-    searchOptionMenu = new QMenu(searchOptionButton);
-    searchResults = new QDialog(this);
+    searchToolButton = new QToolButton(this);
+    searchToolButton->setDefaultAction(actionSearch);
 
+    searchOptionToolButton = new QToolButton(this);
+    searchOptionToolButton->setCheckable(true);
+
+    searchOptionMenu = new QMenu(this);
+    searchOptionMenu->setObjectName(THEME_STYLE_QMENU);
+
+    searchResults = new QDialog(this);
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
+
+    searchToolButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    searchOptionToolButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
     QVBoxLayout* layout = new QVBoxLayout();
     QWidget* scrollableWidget = new QWidget(this);
@@ -972,46 +1144,18 @@ void MedeaWindow::setupSearchTools()
 
     QVBoxLayout* resultsMainLayout = new QVBoxLayout();
     resultsLayout = new QVBoxLayout();
-    int rightPanelWidth = RIGHT_PANEL_WIDTH;
+
     int searchBarHeight = 28;
-
-    // TODO - Clean up search header widgets. Don't need them anymore!
-
-    QHBoxLayout* headerLayout = new QHBoxLayout();
-    QLabel* objectLabel = new QLabel("Entity Label:", this);
-    QLabel* parentLabel = new QLabel("Location:", this);
-    QLabel* iconHolder = new QLabel(this);
-
     float searchItemMinWidth = 500.0;
-    iconHolder->setFixedWidth(43);
-    objectLabel->setFixedWidth(searchItemMinWidth*2.0/5.0);
-    parentLabel->setMinimumWidth(searchItemMinWidth - objectLabel->width());
 
-    iconHolder->hide();
-    objectLabel->hide();
-    parentLabel->hide();
-
-    headerLayout->setMargin(2);
-    headerLayout->setSpacing(5);
-    headerLayout->addWidget(objectLabel);
-    headerLayout->addWidget(iconHolder);
-    headerLayout->addWidget(parentLabel);
-
-    resultsMainLayout->addLayout(headerLayout);
     resultsMainLayout->addLayout(resultsLayout);
     resultsMainLayout->addStretch();
 
-    searchButton->setFixedSize(30, searchBarHeight);
-    searchButton->setIconSize(searchButton->size()*0.65);
-
-    searchOptionButton->setFixedSize(30, searchBarHeight);
-    searchOptionButton->setIconSize(searchButton->size()*0.7);
-    searchOptionButton->setCheckable(true);
-
     searchBar->setPlaceholderText(searchBarDefaultText);
-    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2) + 10, searchBarHeight - 3);
-    searchBar->setStyleSheet("QLineEdit{ background-color: rgb(230,230,230); }"
-                             "QLineEdit:focus{border: 1px solid; border-color:blue;background-color: rgb(250,250,250)}");
+    searchBar->setFixedHeight(searchBarHeight);
+
+    searchToolButton->setFixedSize(searchBarHeight, searchBarHeight);
+    searchOptionToolButton->setFixedSize(searchBarHeight, searchBarHeight);
 
     searchSuggestions->setSize(searchBar->width(), height(), 2);
 
@@ -1026,80 +1170,89 @@ void MedeaWindow::setupSearchTools()
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
 
-    searchLayout->setContentsMargins(10,0,8,0);
-    searchLayout->addWidget(searchBar, 3);
-    searchLayout->addWidget(searchButton, 1);
-    searchLayout->addWidget(searchOptionButton, 1);
+    searchToolbar = constructToolbar();
+    searchToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+
+    searchToolbar->addWidget(searchBar);
+    searchToolbar->addWidget(searchToolButton);
+    searchToolbar->addWidget(searchOptionToolButton);
+
+    searchLayout->setSpacing(0);
+    searchLayout->setContentsMargins(0,0,0,0);
+    searchLayout->addWidget(searchToolbar);
 
     // setup search option widgets and menu for view aspects
-    QWidgetAction* aspectsAction = new QWidgetAction(this);
-    QLabel* aspectsLabel = new QLabel("Aspect(s):", this);
-    QGroupBox* aspectsGroup = new QGroupBox(this);
     QHBoxLayout* aspectsLayout = new QHBoxLayout();
+    QWidgetAction* aspectsAction = new QWidgetAction(this);
+    QGroupBox* aspectsGroup = new QGroupBox(this);
+    aspectsGroup->setObjectName(THEME_STYLE_GROUPBOX);
 
+    QLabel* aspectsLabel = new QLabel("Aspect(s):", this);
     aspectsLabel->setMinimumWidth(50);
     aspectsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
-    viewAspectsButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
-    viewAspectsMenu = new QMenu(viewAspectsButton);
 
-    viewAspectsButton->setFixedSize(20, 20);
-    viewAspectsButton->setIconSize(viewAspectsButton->size()*0.6);
+    viewAspectsButton = new QToolButton(this);
     viewAspectsButton->setCheckable(true);
-    viewAspectsBar->setFixedWidth(rightPanelWidth - viewAspectsButton->width() - aspectsLabel->width() - 30);
+
+    QToolBar*  viewAspectsToolbar = constructToolbar(true);
+    viewAspectsToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+    viewAspectsToolbar->setFixedSize(20, 20);
+    viewAspectsToolbar->addWidget(viewAspectsButton);
+
+    aspectsGroup->setFixedWidth(RIGHT_PANEL_WIDTH - SPACER_SIZE);
+
     viewAspectsBar->setToolTip("Search Aspects: " + viewAspectsBarDefaultText);
     viewAspectsBar->setEnabled(false);
-    viewAspectsMenu->setMinimumWidth(viewAspectsBar->width() + viewAspectsButton->width());
 
-    aspectsLayout->setMargin(5);
+    viewAspectsMenu = new QMenu(this);
+    viewAspectsMenu->setMinimumWidth(viewAspectsBar->width() + viewAspectsToolbar->width());
+    viewAspectsMenu->setObjectName(THEME_STYLE_QMENU);
+
+    aspectsLayout->setContentsMargins(2,4,0,4);
     aspectsLayout->setSpacing(3);
     aspectsLayout->addWidget(aspectsLabel);
-    aspectsLayout->addWidget(viewAspectsBar);
-    aspectsLayout->addWidget(viewAspectsButton);
+    aspectsLayout->addWidget(viewAspectsBar,1 );
+    aspectsLayout->addWidget(viewAspectsToolbar);
 
     aspectsGroup->setLayout(aspectsLayout);
     aspectsAction->setDefaultWidget(aspectsGroup);
-
-    // populate view aspects menu
-    QStringList aspects = GET_ASPECT_NAMES();
-    aspects.sort();
-    foreach (QString aspect, aspects) {
-        QWidgetAction* action = new QWidgetAction(this);
-        QCheckBox* checkBox = new QCheckBox(aspect, this);
-        checkBox->setFont(guiFont);
-        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
-        action->setDefaultWidget(checkBox);
-        viewAspectsMenu->addAction(action);
-    }
 
     // setup search option widgets and menu for view aspects
     QWidgetAction* kindsAction = new QWidgetAction(this);
     QLabel* kindsLabel = new QLabel("Kind(s):", this);
     QGroupBox* kindsGroup = new QGroupBox(this);
+    kindsGroup->setObjectName(THEME_STYLE_GROUPBOX);
     QHBoxLayout* kindsLayout = new QHBoxLayout();
+
     nodeKindsDefaultText = "All Kinds";
     nodeKindsBar = new QLineEdit(nodeKindsDefaultText, this);
-    nodeKindsButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
-    nodeKindsMenu = new QMenu(nodeKindsButton);
 
-    kindsLabel->setMinimumWidth(50);
+    nodeKindsButton = new QToolButton(this);
+    nodeKindsButton->setCheckable(true);
+
+    QToolBar* nodeKindToolbar = constructToolbar(true);
+    nodeKindToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+    nodeKindToolbar->setFixedSize(20, 20);
+    nodeKindToolbar->addWidget(nodeKindsButton);
+
+    nodeKindsMenu = new QMenu(this);
+    nodeKindsMenu->setMinimumWidth(nodeKindsBar->width() + nodeKindToolbar->width());
+    nodeKindsMenu->setObjectName(THEME_STYLE_QMENU);
+
     kindsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    nodeKindsButton->setFixedSize(20, 20);
-    nodeKindsButton->setIconSize(nodeKindsButton->size()*0.6);
-    nodeKindsButton->setCheckable(true);
-    nodeKindsBar->setFixedWidth(rightPanelWidth - nodeKindsButton->width() - kindsLabel->width() - 30);
+    kindsGroup->setFixedWidth(RIGHT_PANEL_WIDTH - SPACER_SIZE);
     nodeKindsBar->setToolTip("Search Kinds: " + nodeKindsDefaultText);
     nodeKindsBar->setEnabled(false);
-    nodeKindsMenu->setMinimumWidth(nodeKindsBar->width() + nodeKindsButton->width());
 
-    kindsLayout->setMargin(5);
+    kindsLayout->setContentsMargins(2,4,0,4);
     kindsLayout->setSpacing(3);
     kindsLayout->addWidget(kindsLabel);
-    kindsLayout->addWidget(nodeKindsBar);
-    kindsLayout->addWidget(nodeKindsButton);
+    kindsLayout->addWidget(nodeKindsBar,1);
+    kindsLayout->addWidget(nodeKindToolbar);
 
     kindsGroup->setLayout(kindsLayout);
     kindsAction->setDefaultWidget(kindsGroup);
@@ -1108,6 +1261,7 @@ void MedeaWindow::setupSearchTools()
     QWidgetAction* keysAction = new QWidgetAction(this);
     QLabel* keysLabel = new QLabel("Data Key(s):", this);
     QGroupBox* keysGroup = new QGroupBox(this);
+    keysGroup->setObjectName(THEME_STYLE_GROUPBOX);
     QHBoxLayout* keysLayout = new QHBoxLayout();
 
     keysLabel->setMinimumWidth(50);
@@ -1122,26 +1276,66 @@ void MedeaWindow::setupSearchTools()
     dataKeysDefaultText.truncate(dataKeysDefaultText.length() - 2);
 
     dataKeysBar = new QLineEdit(dataKeysDefaultText, this);
-    dataKeysButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
-    dataKeysMenu = new QMenu(dataKeysButton);
+    QToolBar*  dataKeysToolbar = constructToolbar(true);
+    dataKeysToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
 
-    dataKeysButton->setFixedSize(20, 20);
-    dataKeysButton->setIconSize(dataKeysButton->size()*0.6);
+    dataKeysButton = new QToolButton(this);
     dataKeysButton->setCheckable(true);
-    dataKeysBar->setFixedWidth(rightPanelWidth - dataKeysButton->width() - keysLabel->width() - 30);
+
+    dataKeysMenu = new QMenu(this);
+    dataKeysMenu->setObjectName(THEME_STYLE_QMENU);
+
+    dataKeysToolbar->setFixedSize(20, 20);
+    keysGroup->setFixedWidth(RIGHT_PANEL_WIDTH - SPACER_SIZE);
+
     dataKeysBar->setToolTip("Search Data Keys: " + dataKeysDefaultText);
     dataKeysBar->setCursorPosition(0);
     dataKeysBar->setEnabled(false);
-    dataKeysMenu->setMinimumWidth(dataKeysBar->width() + dataKeysButton->width());
+    dataKeysMenu->setMinimumWidth(dataKeysBar->width() + dataKeysToolbar->width());
 
-    keysLayout->setMargin(5);
+    keysLayout->setContentsMargins(2,4,0,4);
     keysLayout->setSpacing(3);
-    keysLayout->addWidget(keysLabel);
+
+    keysLayout->addWidget(keysLabel, 1);
     keysLayout->addWidget(dataKeysBar);
-    keysLayout->addWidget(dataKeysButton);
+    dataKeysToolbar->addWidget(dataKeysButton);
+    keysLayout->addWidget(dataKeysToolbar);
 
     keysGroup->setLayout(keysLayout);
     keysAction->setDefaultWidget(keysGroup);
+
+
+
+    searchBar->setFont(guiFont);
+    viewAspectsBar->setFont(guiFont);
+    nodeKindsBar->setFont(guiFont);
+    dataKeysBar->setFont(guiFont);
+    aspectsLabel->setFont(guiFont);
+    kindsLabel->setFont(guiFont);
+    keysLabel->setFont(guiFont);
+
+    int labelWidth = keysLabel->fontMetrics().width(keysLabel->text());
+    kindsLabel->setFixedWidth(labelWidth);
+    keysLabel->setFixedWidth(labelWidth);
+    aspectsLabel->setFixedWidth(labelWidth);
+
+    searchOptionMenuWidth = aspectsGroup->width() - (viewAspectsToolbar->width() + labelWidth + (SPACER_SIZE) );
+
+    viewAspectsMenu->setFixedWidth(searchOptionMenuWidth);
+    dataKeysMenu->setFixedWidth(searchOptionMenuWidth);
+    nodeKindsMenu->setMinimumWidth(searchOptionMenuWidth);
+
+    // populate view aspects menu
+    QStringList aspects = GET_ASPECT_NAMES();
+    aspects.sort();
+    foreach (QString aspect, aspects) {
+        QWidgetAction* action = new QWidgetAction(this);
+        QCheckBox* checkBox = new QCheckBox(aspect, this);
+        checkBox->setFont(guiFont);
+        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
+        action->setDefaultWidget(checkBox);
+        viewAspectsMenu->addAction(action);
+    }
 
     // populate data attribute keys menu
     foreach (QString key, dataKeys) {
@@ -1153,21 +1347,131 @@ void MedeaWindow::setupSearchTools()
         dataKeysMenu->addAction(action);
     }
 
-    searchBar->setFont(guiFont);
-    viewAspectsBar->setFont(guiFont);
-    nodeKindsBar->setFont(guiFont);
-    dataKeysBar->setFont(guiFont);
-    objectLabel->setFont(guiFont);
-    parentLabel->setFont(guiFont);
-    aspectsLabel->setFont(guiFont);
-    kindsLabel->setFont(guiFont);
-    keysLabel->setFont(guiFont);
-
     // add widget actions and their menus to the main search option menu
     searchOptionMenu->addAction(aspectsAction);
     searchOptionMenu->addAction(kindsAction);
     searchOptionMenu->addAction(keysAction);
-    searchOptionMenu->setVisible(false);
+
+    viewAspectsButton->setStyle(QStyleFactory::create("windows"));
+    nodeKindsButton->setStyle(QStyleFactory::create("windows"));
+    dataKeysButton->setStyle(QStyleFactory::create("windows"));
+}
+
+
+/**
+ * @brief MedeaWindow::setupInfoWidgets
+ * @param layout
+ */
+void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
+{
+    QFont biggerFont = QFont(guiFont.family(), 11);
+
+    // setup progress bar
+    progressBar = new QProgressBar(this);
+    progressBar->setFixedHeight(20);
+    progressBar->setStyleSheet("border: 2px solid gray;"
+                               "border-radius: 5px;"
+                               "background: rgb(240,240,240);"
+                               "text-align: center;"
+                               "color: black;");
+
+    // setup progress label
+    progressLabel = new QLabel(this);
+    progressLabel->setAlignment(Qt::AlignCenter);
+    progressLabel->setFixedHeight(30);
+    progressLabel->setFont(biggerFont);
+    progressLabel->setStyleSheet("background: rgba(0,0,0,0); padding: 0px; color: white;");
+
+    QVBoxLayout* progressLayout = new QVBoxLayout();
+    progressLayout->addWidget(progressLabel);
+    progressLayout->addWidget(progressBar);
+
+    QWidget* progressWidget = new QWidget(this);
+    progressWidget->setLayout(progressLayout);
+    progressWidget->setFixedSize(RIGHT_PANEL_WIDTH*2, progressBar->height() + progressLabel->height() + SPACER_SIZE*3);
+    progressWidget->setStyleSheet("QWidget{ padding: 0px; border-radius: 5px; }");
+
+    // setup progress dialog
+    progressDialog = new QDialog();
+    progressDialog->setModal(true);
+    progressDialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+    progressDialog->setAttribute(Qt::WA_NoSystemBackground, true);
+    progressDialog->setAttribute(Qt::WA_TranslucentBackground, true);
+    progressDialog->setStyleSheet("background-color: rgba(50,50,50,0.85);");
+    progressDialogVisible = false;
+
+    QVBoxLayout* innerLayout = new QVBoxLayout();
+    innerLayout->setMargin(0);
+    innerLayout->setSpacing(0);
+    innerLayout->addWidget(progressWidget);
+    progressDialog->setLayout(innerLayout);
+
+    // setup notification bar and timer
+    notificationTimer = new QTimer(this);
+
+    notificationsBox = new QGroupBox(this);
+    notificationsBox->setObjectName(THEME_STYLE_GROUPBOX);
+
+    QHBoxLayout* hLayout = new QHBoxLayout();
+    notificationsBox->setLayout(hLayout);
+
+
+
+    notificationsBar = new QLabel("", this);
+    notificationsIcon = new QLabel(this);
+    notificationsBar->setStyleSheet("color: white;");
+    notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", "Clear", QSize(64,64), Qt::white));
+    notificationsBar->setFixedHeight(40);
+    notificationsBar->setFont(biggerFont);
+    notificationsBar->setAlignment(Qt::AlignCenter);
+
+    hLayout->addWidget(notificationsIcon, 0);
+    hLayout->addWidget(notificationsBar, 1);
+
+
+    // setup loading gif and widgets
+    loadingLabel = new QLabel("Loading...", this);
+    loadingLabel->setFont(biggerFont);
+    //loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    loadingLabel->setAlignment(Qt::AlignCenter);
+    loadingLabel->setStyleSheet("color:white;");
+
+    loadingMovie = new QMovie(":/Actions/Loading.gif");
+    loadingMovie->setBackgroundColor(Qt::white);
+    loadingMovie->setScaledSize(QSize(TOOLBAR_BUTTON_WIDTH*1.25, TOOLBAR_BUTTON_HEIGHT*1.25));
+    loadingMovie->start();
+
+    loadingMovieLabel = new QLabel(this);
+    loadingMovieLabel->setMovie(loadingMovie);
+
+    QHBoxLayout* loadingLayout = new QHBoxLayout();
+    loadingLayout->setMargin(0);
+    loadingLayout->setSpacing(0);
+    loadingLayout->addStretch();
+    loadingLayout->addWidget(loadingMovieLabel);
+    loadingLayout->addWidget(loadingLabel);
+    loadingLayout->addStretch();
+
+
+
+    loadingBox = new QGroupBox(this);
+    loadingBox->setObjectName(THEME_STYLE_GROUPBOX);
+    loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT);
+    loadingBox->setLayout(loadingLayout);
+
+
+    // add widgets to layout
+    QVBoxLayout* vLayout = new QVBoxLayout();
+    vLayout->addStretch();
+    vLayout->addWidget(notificationsBox);
+    vLayout->setAlignment(notificationsBox, Qt::AlignCenter);
+    vLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
+
+    layout->setSpacing(0);
+    layout->setMargin(0);
+    layout->addStretch();
+    layout->addLayout(vLayout);
+    layout->addStretch();
 }
 
 
@@ -1177,33 +1481,26 @@ void MedeaWindow::setupSearchTools()
  */
 void MedeaWindow::setupToolbar()
 {
-    toolbar = new QToolBar(this);
+    // TODO - Group separators with tool buttons; hide them accordingly
+    toolbar = constructToolbar();
+    toolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+
+
     toolbarLayout = new QVBoxLayout();
 
+    toolbarButtonBar = constructToolbar();
+
+    toolbarButtonBar->setMovable(false);
+    toolbarButtonBar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     toolbarButton = new QToolButton(this);
-    toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
-    toolbarButton->setCheckable(true);
-    toolbarButton->setStyleSheet("QToolButton{ background-color: rgb(200,200,200); border-radius: 5px; }"
-                                 "QToolButton:hover{ background-color: rgb(240,240,240); }");
-
-    QImage expandImage(":/Actions/Arrow_Down");
-    QImage contractImage(":/Actions/Arrow_Up");
-    expandImage = expandImage.scaled(toolbarButton->width(), toolbarButton->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    contractImage = contractImage.scaled(toolbarButton->width(), toolbarButton->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-    expandPixmap = QPixmap::fromImage(expandImage);
-    contractPixmap = QPixmap::fromImage(contractImage);
-
-    toolbarButtonLabel = new QLabel(this);
-    toolbarButtonLabel->setPixmap(expandPixmap);
-    QVBoxLayout* labelLayout = new QVBoxLayout();
-    labelLayout->setMargin(0);
-    labelLayout->addWidget(toolbarButtonLabel);
-    labelLayout->setAlignment(toolbarButtonLabel, Qt::AlignCenter);
-    toolbarButton->setLayout(labelLayout);
+    toolbarButton->setDefaultAction(actionToggleToolbar);
+    toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT/2);
+    toolbarButtonBar->addWidget(toolbarButton);
 
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
+    //edit_undo->setIconVisibleInMenu(false);
     constructToolbarButton(toolbar, edit_redo, TOOLBAR_REDO);
+    //edit_redo->setIconVisibleInMenu(false);
 
     toolbar->addSeparator();
     constructToolbarButton(toolbar, edit_cut, TOOLBAR_CUT);
@@ -1221,30 +1518,19 @@ void MedeaWindow::setupToolbar()
     constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
     constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);
 
-    toolbar->addSeparator();
+    //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
     constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
 
     //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionAlignVertically, TOOLBAR_VERT_ALIGN);
     constructToolbarButton(toolbar, actionAlignHorizontally, TOOLBAR_HORIZ_ALIGN);
+
     //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionBack, TOOLBAR_BACK);
     constructToolbarButton(toolbar, actionForward, TOOLBAR_FORWARD);
 
-    /*
-    QHBoxLayout* toolbarHLayout = new QHBoxLayout();
-    toolbarHLayout->addStretch();
-    toolbarHLayout->addWidget(toolbarButton);
-    toolbarHLayout->addStretch();
-
-    layout->addLayout(toolbarHLayout);
-    layout->addLayout(toolbarLayout);
-    layout->addStretch();
-    toolbarLayout->addWidget(toolbar);
-    */
-
-    toolbar->setStyle(QStyleFactory::create("windows"));
+    //toolbar->setStyle(QStyleFactory::create("windows"));
     toolbar->setFloatable(false);
     toolbar->setMovable(false);
 }
@@ -1283,11 +1569,14 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
             qCritical() << "Duplicate Actions";
         }
 
-        if(!modelActions.contains(action)){
+        if (!modelActions.contains(action)) {
             modelActions << action;
         }
 
+        connect(this, SIGNAL(window_refreshActions()), actionButton, SLOT(actionChanged()));
+
         // setup a menu for the replicate button to allow the user to enter the replicate count
+        /*
         if (actionName == TOOLBAR_REPLICATE) {
             QMenu* buttonMenu = new QMenu(this);
             QLineEdit* le = new QLineEdit(this);
@@ -1303,10 +1592,194 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
             // connect to the replicate slot in the view here
             //connect(le, SIGNAL(returnPressed()), ));
         }
+        */
 
         return true;
     }
     return false;
+}
+
+
+/**
+ * @brief MedeaWindow::setupWelcomeScreen
+ */
+void MedeaWindow::setupWelcomeScreen()
+{
+    QWidget *containerWidget = new QWidget();
+    containerWidget->setFixedHeight(450);
+    containerWidget->setFixedWidth(900);
+    QVBoxLayout* containerLayout = new QVBoxLayout(containerWidget);
+
+    QPushButton* newProjectButton = new QPushButton(getIcon("Actions", "Wiki"), "New Project", this);
+    QPushButton* openProjectButton = new QPushButton("Open Project", this);
+    QPushButton* settingsButton = new QPushButton("Settings", this);
+    QPushButton* recentProjectButton = new QPushButton("Recent Projects", this);
+    QPushButton* wikiButton = new QPushButton("Wiki", this);
+    QPushButton* aboutButton = new QPushButton("About", this);
+
+    settingsButton->setFlat(true);
+    settingsButton->setStyleSheet("font-size: 16px; text-align: left;"
+                                  "QTooltip{ background: white; color: black; }");
+
+    newProjectButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    openProjectButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    settingsButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    recentProjectButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    wikiButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    aboutButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+
+    openProjectButton->setStyleSheet(settingsButton->styleSheet());
+    openProjectButton->setFlat(true);
+    newProjectButton->setStyleSheet(settingsButton->styleSheet());
+    newProjectButton->setFlat(true);
+    recentProjectButton->setFlat(true);
+    recentProjectButton->setStyleSheet(settingsButton->styleSheet());
+    wikiButton->setFlat(true);
+    wikiButton->setStyleSheet(settingsButton->styleSheet() + "QPushButton{ text-align: right; }");
+    aboutButton->setFlat(true);
+    aboutButton->setStyleSheet(settingsButton->styleSheet() + "QPushButton{ text-align: right; }");
+
+    QLabel* medeaIcon = new QLabel(this);
+    QLabel* medeaLabel = new QLabel("MEDEA");
+    QLabel* medeaVersionLabel = new QLabel("Version " + MEDEA_VERSION);
+    medeaLabel->setStyleSheet("font-size:32pt;color:white; text-align:center;");
+    medeaVersionLabel->setStyleSheet("font-size:12pt;color:gray; text-align:center;");
+
+    QPixmap pixMap = Theme::theme()->getImage("Actions", "MEDEA");
+    pixMap = pixMap.scaled(QSize(150,150), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    medeaIcon->setPixmap(pixMap);
+
+    newProjectButton->setIcon(getIcon("Welcome", "New"));
+    openProjectButton->setIcon(getIcon("Welcome", "Open"));
+    settingsButton->setIcon(getIcon("Welcome", "Settings"));
+    recentProjectButton->setIcon(getIcon("Welcome", "Timer"));
+    wikiButton->setIcon(getIcon("Welcome", "Wiki"));
+    aboutButton->setIcon(getIcon("Welcome", "Help"));
+
+    QVBoxLayout* topLayout = new QVBoxLayout();
+    topLayout->addWidget(medeaIcon, 0, Qt::AlignCenter);
+    topLayout->addWidget(medeaLabel, 0, Qt::AlignCenter);
+    topLayout->addWidget(medeaVersionLabel, 0, Qt::AlignCenter);
+
+    QVBoxLayout* mainLayout = new QVBoxLayout();
+    mainLayout->addStretch();
+
+    QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    QVBoxLayout* leftButtonLayout = new QVBoxLayout();
+    QVBoxLayout* rightButtonLayout = new QVBoxLayout();
+
+    leftButtonLayout->addLayout(topLayout);
+    //leftButtonLayout->setAlignment(topLayout, Qt::AlignHCenter);
+
+    QVBoxLayout* buttonsLayout2 = new QVBoxLayout();
+    leftButtonLayout->addSpacerItem(new QSpacerItem(0,10));
+    buttonsLayout2->addWidget(newProjectButton,1);
+    buttonsLayout2->addSpacerItem(new QSpacerItem(0,5));
+    buttonsLayout2->addWidget(openProjectButton,1);
+    buttonsLayout2->addSpacerItem(new QSpacerItem(0,5));
+    buttonsLayout2->addWidget(settingsButton,1);
+    leftButtonLayout->addLayout(buttonsLayout2);
+    leftButtonLayout->setAlignment(buttonsLayout2, Qt::AlignHCenter);
+    leftButtonLayout->addStretch();
+
+    buttonsLayout->addLayout(leftButtonLayout,1);
+    buttonsLayout->addSpacerItem(new QSpacerItem(10,0));
+    buttonsLayout->addLayout(rightButtonLayout,2);
+
+    recentProjectsListWidget = new QListWidget(this);
+    connect(recentProjectsListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(recentProjectItemClicked(QListWidgetItem*)));
+
+    recentProjectButton->setEnabled(false);
+    rightButtonLayout->addWidget(recentProjectButton, 0);
+    rightButtonLayout->addWidget(recentProjectsListWidget, 1);
+
+    mainLayout->addLayout(buttonsLayout);
+    mainLayout->setAlignment(buttonsLayout, Qt::AlignHCenter);
+
+    QHBoxLayout *bottomLayout = new QHBoxLayout();
+    bottomLayout->addStretch();
+    bottomLayout->addWidget(wikiButton,0, Qt::AlignRight);
+    bottomLayout->addWidget(aboutButton,0, Qt::AlignRight);
+    mainLayout->addLayout(bottomLayout);
+    mainLayout->addStretch();
+
+    containerLayout->addLayout(mainLayout);
+
+    welcomeLayout = new QHBoxLayout();
+    welcomeLayout->addWidget(containerWidget);
+
+    holderLayout = new QVBoxLayout();
+    holderLayout->addLayout(welcomeLayout);
+
+    QWidget* holderWidget = new QWidget(this);
+    holderWidget->setLayout(holderLayout);
+    holderWidget->setMinimumSize(holderLayout->sizeHint());
+    holderWidget->hide();
+
+    welcomeScreenOn = false;
+
+    connect(newProjectButton, SIGNAL(clicked(bool)), file_newProject, SIGNAL(triggered(bool)));
+    connect(openProjectButton, SIGNAL(clicked(bool)), file_openProject, SIGNAL(triggered(bool)));
+    connect(settingsButton, SIGNAL(clicked(bool)), settings_changeAppSettings, SIGNAL(triggered(bool)));
+    connect(wikiButton, SIGNAL(clicked(bool)), help_Wiki, SIGNAL(triggered(bool)));
+    connect(aboutButton, SIGNAL(clicked(bool)), help_AboutMedea, SIGNAL(triggered(bool)));
+}
+
+
+/**
+ * @brief MedeaWindow::setupMinimap
+ */
+void MedeaWindow::setupMinimap()
+{
+    // setup minimap
+    minimap = new NodeViewMinimap();
+    minimap->setScene(nodeView->scene());
+    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
+    minimap->setInteractive(false);
+    minimap->setFixedHeight(RIGHT_PANEL_WIDTH * 0.6);
+    minimap->centerView();
+
+    int titleBarHeight = 20;
+
+    minimapTitleBar = new QWidget(this);
+    minimapTitleBar->setObjectName("minimapTitle");
+    minimapTitleBar->setFixedHeight(titleBarHeight);
+
+    minimapLabel = new QLabel("Minimap", this);
+    minimapLabel->setFont(guiFont);
+    minimapLabel->setAlignment(Qt::AlignCenter);
+
+    QToolBar* minimapToolbar = constructToolbar();
+    minimapToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+
+    closeMinimapButton = new QToolButton();
+    closeMinimapButton->setDefaultAction(view_showMinimap);
+    closeMinimapButton->setToolTip("Hide Minimap");
+    closeMinimapButton->setFixedWidth(20);
+
+    minimapToolbar->addWidget(closeMinimapButton);
+    //closeMinimapButton->setFixedHeight(titleBarHieight);
+
+    QHBoxLayout* minimapHeaderLayout = new QHBoxLayout();
+    minimapTitleBar->setLayout(minimapHeaderLayout);
+
+    minimapHeaderLayout->setSpacing(0);
+    minimapHeaderLayout->setContentsMargins(0,0,0,0);
+
+    minimapHeaderLayout->addWidget(minimapToolbar);
+    minimapHeaderLayout->addWidget(minimapLabel, 1);
+    minimapLabel->setStyleSheet("padding-right: 20px;");
+
+    // setup layouts for widgets
+    QVBoxLayout* minimapLayout = new QVBoxLayout();
+    minimapLayout->setSpacing(0);
+    minimapLayout->setMargin(0);
+    minimapLayout->setContentsMargins(0,0,0,0);
+    minimapLayout->addWidget(minimapTitleBar);
+    minimapLayout->addWidget(minimap, 1);
+
+    minimapBox->setLayout(minimapLayout);
 }
 
 
@@ -1315,11 +1788,9 @@ void MedeaWindow::teardownProject()
     if (controller) {
         delete controller;
         controller = 0;
-    }
-    if (controllerThread) {
-        controllerThread->terminate();
         controllerThread = 0;
     }
+    projectRequiresSaving(false);
 }
 
 void MedeaWindow::setupProject()
@@ -1333,6 +1804,8 @@ void MedeaWindow::setupProject()
             controllerThread = new QThread();
             controllerThread->start();
             controller->moveToThread(controllerThread);
+
+            connect(controller, SIGNAL(destroyed(QObject*)), controllerThread, SIGNAL(finished()));
         }
 
         connect(this, SIGNAL(window_ConnectViewAndSetupModel(NodeView*)), controller, SLOT(connectViewAndSetupModel(NodeView*)));
@@ -1351,28 +1824,27 @@ void MedeaWindow::setupProject()
  */
 void MedeaWindow::resetGUI()
 {
-    updateWidgetsOnWindowChanged();
+    updateWidgetsOnWindowChange();
 
-    if(nodeView && !nodeView->hasModel()){
+    if (nodeView && !nodeView->hasModel()) {
         modelDisconnected();
     }
-
-
-    prevPressedButton = 0;
 
     // reset timer
     notificationTimer->stop();
     leftOverTime = 0;
 
     // initially hide these
-    notificationsBar->hide();
-    //progressBar->hide();
-    dataTableBox->hide();
+    notificationsBox->hide();
+    progressDialog->hide();
+    loadingBox->hide();
+
+    // shouldn't really need this
+    progressDialogVisible = false;
 
     // clear and reset search bar and search results
     searchBar->clear();
     searchResults->close();
-
     searchDialog->clear();
     searchDialog->close();
 
@@ -1430,9 +1902,12 @@ void MedeaWindow::resetView()
  */
 void MedeaWindow::newProject()
 {
-    setApplicationEnabled(false);
     progressAction = "Setting up New Project";
 
+    toggleWelcomeScreen(false);
+
+    //TODO
+    resetGUI();
     setupProject();
 }
 
@@ -1441,17 +1916,20 @@ void MedeaWindow::newProject()
  * @brief MedeaWindow::makeConnections
  * Connect signals and slots.
  */
-void MedeaWindow::makeConnections()
+void MedeaWindow::setupConnections()
 {
     validateResults.connectToWindow(this);
     connect(this, SIGNAL(window_SetViewVisible(bool)), nodeView, SLOT(setVisible(bool)));
 
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), nodeView, SLOT(settingChanged(QString,QString,QVariant)));
 
+
     connect(nodeView, SIGNAL(view_LoadSettings()), this, SLOT(loadSettingsFromINI()));
+
 
     connect(this, SIGNAL(window_ProjectSaved(bool,QString)), nodeView, SIGNAL(view_ProjectSaved(bool, QString)));
 
+    connect(nodeView, SIGNAL(view_LaunchWiki(QString)), this, SLOT(showWiki(QString)));
     connect(nodeView, SIGNAL(view_ProjectFileChanged(QString)), this, SLOT(projectFileChanged(QString)));
     connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(projectNameChanged(QString)));
 
@@ -1464,29 +1942,29 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), assemblyToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), hardwareToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
 
+    connect(nodeView, SIGNAL(view_RefreshDock()), partsDock, SLOT(updateCurrentNodeItem()));
+
     connect(nodeView, SIGNAL(view_ProjectRequiresSaving(bool)), this, SLOT(projectRequiresSaving(bool)));
     connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
 
     connect(nodeView, SIGNAL(view_SavedProject(QString,QString)), this, SLOT(gotSaveData(QString, QString)));
 
-
-
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
     connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
 
-
-
-
-
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
 
-    connect(this, SIGNAL(window_DisplayMessage(MESSAGE_TYPE,QString,QString)), nodeView, SLOT(showMessage(MESSAGE_TYPE,QString,QString)));
-    connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
-    connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
-    connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
 
+    connect(notificationTimer, SIGNAL(timeout()), notificationsBox, SLOT(hide()));
+    connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
+
+    connect(nodeView, SIGNAL(view_DisplayNotification(QString,QString)), this, SLOT(displayNotification(QString,QString)));
+
+    connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setActionEnabled(QString,bool)));
+    connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
+    connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
 
     connect(file_importSnippet, SIGNAL(triggered()), nodeView, SLOT(request_ImportSnippet()));
     connect(file_exportSnippet, SIGNAL(triggered()), nodeView, SLOT(request_ExportSnippet()));
@@ -1494,15 +1972,10 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
     connect(nodeView, SIGNAL(view_ExportSnippet(QString)), this, SLOT(exportSnippet(QString)));
 
-
-
-
     connect(file_importXME, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XME_triggered()));
 
-
-
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
-    connect(toolbarButton, SIGNAL(clicked(bool)), this, SLOT(showWindowToolbar(bool)));
+    connect(actionToggleToolbar, SIGNAL(triggered(bool)), this, SLOT(showWindowToolbar(bool)));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
 
@@ -1515,24 +1988,21 @@ void MedeaWindow::makeConnections()
     connect(minimap, SIGNAL(minimap_Panned()), nodeView, SLOT(minimapPanned()));
     connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(minimapScrolled(int)));
 
-    connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
-    connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
-    connect(nodeView, SIGNAL(view_displayNotification(QString,int,int)), this, SLOT(displayNotification(QString,int,int)));
-
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(selectModel()));
-    connect(closeProjectButton, SIGNAL(clicked()), this, SLOT(on_actionCloseProject_triggered()));
-
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_closeProject, SIGNAL(triggered()), this, SLOT(on_actionCloseProject_triggered()));
     connect(file_openProject, SIGNAL(triggered()), this, SLOT(on_actionOpenProject_triggered()));
     connect(file_saveProject, SIGNAL(triggered(bool)), this, SLOT(on_actionSaveProject_triggered()));
     connect(file_saveAsProject, SIGNAL(triggered()), this, SLOT(on_actionSaveProjectAs_triggered()));
+    connect(file_recentProjects_clearHistory, SIGNAL(triggered()), this, SLOT(clearRecentProjectsList()));
 
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(help_AboutMedea, SIGNAL(triggered()), this, SLOT(aboutMedea()));
     connect(help_AboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    connect(help_ReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(help_Shortcuts, SIGNAL(triggered()), this, SLOT(showShortcutList()));
+    connect(help_Wiki, SIGNAL(triggered(bool)), this, SLOT(showWiki()));
 
     connect(this, SIGNAL(window_OpenProject(QString,QString)), nodeView, SIGNAL(view_OpenProject(QString,QString)));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SLOT(importProjects(QStringList)));
@@ -1555,6 +2025,9 @@ void MedeaWindow::makeConnections()
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(centerDefinition()));
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
     connect(view_fullScreenMode, SIGNAL(triggered(bool)), this, SLOT(setFullscreenMode(bool)));
+    connect(view_printScreen, SIGNAL(triggered()), this, SLOT(screenshot()));
+    connect(view_showMinimap, SIGNAL(triggered(bool)), this, SLOT(toggleMinimap(bool)));
+
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
 
@@ -1571,13 +2044,15 @@ void MedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_searchFinished(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
 
-    connect(searchBar, SIGNAL(textEdited(QString)), this, SLOT(updateSearchSuggestions()));
+
+    connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(updateSearchSuggestions()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
 
     connect(searchDialog, SIGNAL(searchDialog_refresh()), this, SLOT(on_actionSearch_triggered()));
 
-    connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
-    connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
+    connect(actionSearch, SIGNAL(triggered(bool)), this, SLOT(on_actionSearch_triggered()));
+
+    connect(searchOptionToolButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(viewAspectsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(nodeKindsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(dataKeysButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
@@ -1601,7 +2076,30 @@ void MedeaWindow::makeConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
-    connect(nodeView, SIGNAL(view_ExportedSnippet(QString,QString)), this, SLOT(writeExportedSnippet(QString,QString)));
+    connect(partsDock, SIGNAL(dock_forceOpenDock(QString)), definitionsDock, SLOT(forceOpenDock(QString)));
+    connect(partsDock, SIGNAL(dock_forceOpenDock()), functionsDock, SLOT(forceOpenDock()));
+    connect(definitionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
+    connect(functionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
+
+    connect(partsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    connect(definitionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    connect(functionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    connect(hardwareDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+
+
+    connect(this, SIGNAL(window_clearDocks()), partsDock, SLOT(clear()));
+    connect(this, SIGNAL(window_clearDocks()), definitionsDock, SLOT(clear()));
+    connect(this, SIGNAL(window_clearDocks()), functionsDock, SLOT(clear()));
+    connect(this, SIGNAL(window_clearDocks()), hardwareDock, SLOT(clear()));
+
+    connect(this, SIGNAL(window_clearDocksSelection()), partsDock, SLOT(clearSelected()));
+    connect(this, SIGNAL(window_clearDocksSelection()), definitionsDock, SLOT(clearSelected()));
+    connect(this, SIGNAL(window_clearDocksSelection()), functionsDock, SLOT(clearSelected()));
+    connect(this, SIGNAL(window_clearDocksSelection()), hardwareDock, SLOT(clearSelected()));
+
+
+
+
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
 
@@ -1610,6 +2108,7 @@ void MedeaWindow::makeConnections()
     //For mac
     addAction(exit);
     addAction(file_newProject);
+    addAction(file_openProject);
     addAction(file_importGraphML);
 
     addAction(edit_undo);
@@ -1638,10 +2137,12 @@ void MedeaWindow::makeConnections()
     addAction(actionToggleGrid);
     addAction(actionContextMenu);
 
+    addAction(actionToggleToolbar);
+
     addAction(jenkins_ExecuteJob);
     addAction(jenkins_ImportNodes);
 
-    addAction(actionToggleGrid);
+    //addAction(actionToggleGrid);
     addAction(settings_changeAppSettings);
     addAction(help_AboutMedea);
     addAction(help_Shortcuts);
@@ -1656,15 +2157,15 @@ void MedeaWindow::makeConnections()
  */
 void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
-    if(isWindowMaximized != isMaximized() && maximizedSettingInitiallyChanged){
+    if(IS_WINDOW_MAXIMIZED != isMaximized() && maximizedSettingInitiallyChanged){
         maximizedSettingInitiallyChanged = false;
     }
-    isWindowMaximized = isMaximized();
-    updateWidgetsOnWindowChanged();
+    IS_WINDOW_MAXIMIZED = isMaximized();
 
     QWidget::resizeEvent(event);
-}
+    updateWidgetsOnWindowChange();
 
+}
 
 
 /**
@@ -1677,8 +2178,97 @@ void MedeaWindow::changeEvent(QEvent *event)
 {
     QWidget::changeEvent(event);
     if (event->type() == QEvent::WindowStateChange){
-        updateWidgetsOnWindowChanged();
+        updateWidgetsOnWindowChange();
     }
+}
+
+QToolBar *MedeaWindow::constructToolbar(bool ignoreStyle)
+{
+    QToolBar* tb = new QToolBar(this);
+#ifdef TARGET_OS_MAC
+    if(!ignoreStyle){
+        tb->setStyle(QStyleFactory::create("windows"));
+    }
+#endif
+    return tb;
+}
+
+
+void MedeaWindow::saveTheme(bool apply)
+{
+    if(appSettings){
+        appSettings->setSetting(THEME_BG_COLOR, Theme::theme()->getBackgroundColor().name());
+        appSettings->setSetting(THEME_BG_ALT_COLOR, Theme::theme()->getAltBackgroundColor().name());
+        appSettings->setSetting(THEME_DISABLED_BG_COLOR, Theme::theme()->getDisabledBackgroundColor().name());
+        appSettings->setSetting(THEME_HIGHLIGHT_COLOR, Theme::theme()->getHighlightColor().name());
+
+        appSettings->setSetting(THEME_MENU_TEXT_COLOR, Theme::theme()->getTextColor(Theme::CR_NORMAL).name());
+        appSettings->setSetting(THEME_MENU_TEXT_DISABLED_COLOR, Theme::theme()->getTextColor(Theme::CR_DISABLED).name());
+        appSettings->setSetting(THEME_MENU_TEXT_SELECTED_COLOR, Theme::theme()->getTextColor(Theme::CR_SELECTED).name());
+
+        appSettings->setSetting(THEME_MENU_ICON_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_NORMAL).name());
+        appSettings->setSetting(THEME_MENU_ICON_DISABLED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_DISABLED).name());
+        appSettings->setSetting(THEME_MENU_ICON_SELECTED_COLOR, Theme::theme()->getMenuIconColor(Theme::CR_SELECTED).name());
+
+        appSettings->setSetting(ASPECT_I_COLOR, Theme::theme()->getAspectBackgroundColor(VA_INTERFACES).name());
+        appSettings->setSetting(ASPECT_B_COLOR, Theme::theme()->getAspectBackgroundColor(VA_BEHAVIOUR).name());
+        appSettings->setSetting(ASPECT_A_COLOR, Theme::theme()->getAspectBackgroundColor(VA_ASSEMBLIES).name());
+        appSettings->setSetting(ASPECT_H_COLOR, Theme::theme()->getAspectBackgroundColor(VA_HARDWARE).name());
+    }
+    if(apply){
+        Theme::theme()->applyTheme();
+    }
+}
+
+void MedeaWindow::resetTheme(bool darkTheme)
+{
+    if (darkTheme) {
+        Theme::theme()->setBackgroundColor(QColor(70,70,70));
+        Theme::theme()->setHighlightColor(QColor(255,165,70));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter());
+        Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter(120));
+
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(130,130,130));
+
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
+    } else {
+        Theme::theme()->setBackgroundColor(QColor(170,170,170));
+        Theme::theme()->setHighlightColor(QColor(75,110,175));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
+        Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter(110));
+
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(130,130,130));
+
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
+    }
+}
+
+void MedeaWindow::resetAspectTheme(bool colorBlindTheme)
+{
+    if(colorBlindTheme){
+        Theme::theme()->setAspectBackgroundColor(VA_INTERFACES, QColor(24,148,184));
+        Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, QColor(110,110,110));
+        Theme::theme()->setAspectBackgroundColor(VA_ASSEMBLIES, QColor(175,175,175));
+        Theme::theme()->setAspectBackgroundColor(VA_HARDWARE, QColor(207,107,100));
+    }else{
+        Theme::theme()->setAspectBackgroundColor(VA_INTERFACES, QColor(110,210,210));
+        Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, QColor(254,184,126));
+        Theme::theme()->setAspectBackgroundColor(VA_ASSEMBLIES, QColor(255,160,160));
+        Theme::theme()->setAspectBackgroundColor(VA_HARDWARE, QColor(110,170,220));
+    }
+}
+
+QPixmap MedeaWindow::getDialogPixmap(QString alias, QString image, QSize size)
+{
+    return Theme::theme()->getImage(alias, image, size, Qt::black);
 }
 
 bool MedeaWindow::openProject(QString fileName)
@@ -1694,6 +2284,7 @@ bool MedeaWindow::openProject(QString fileName)
     QString fileData = readFile(fileName);
     if(!fileData.isEmpty()){
         nodeView->openProject(fileName, fileData);
+        updateRecentProjectsWidgets(fileName);
     }else{
         return false;
     }
@@ -1722,29 +2313,46 @@ QString MedeaWindow::getTempFileName(QString suffix)
         suffix = ".graphml";
     }
     //Get Timestamp
-    return QDir::tempPath() + "/" + getTimestamp() + "-" + projectName->text() + suffix;
+    return QDir::tempPath() + "/" + getTempTimeName() + suffix;
+}
+
+QString MedeaWindow::getTempTimeName()
+{
+    return getTimestamp() + "-" + projectName->text();
 }
 
 bool MedeaWindow::closeProject()
 {
     if(nodeView->projectRequiresSaving()){
         //Ask User to confirm save?
-        QMessageBox::StandardButton saveProjectButton = QMessageBox::question(this,
-                                                                        "Close Project", "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
-                                                                        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
-        if(saveProjectButton == QMessageBox::Yes){
+        QMessageBox msgBox(QMessageBox::Question, "Save Changes",
+                           "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
+                           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        //msgBox.setParent(this);
+
+
+        msgBox.setIconPixmap(getDialogPixmap("Actions", "Save"));
+        msgBox.setButtonText(QMessageBox::Yes, "Save");
+        msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
+
+        int buttonPressed = msgBox.exec();
+
+        if(buttonPressed == QMessageBox::Yes){
             bool saveSuccess = saveProject();
             // if failed to save, do nothing
             if(!saveSuccess){
                 return false;
             }
-        }else if(saveProjectButton == QMessageBox::No){
+        }else if(buttonPressed == QMessageBox::No){
             //Do Nothing
         }else{
             return false;
         }
     }
     teardownProject();
+
+    toggleWelcomeScreen(true);
+
     return true;
 }
 
@@ -1758,7 +2366,7 @@ bool MedeaWindow::saveProject(bool saveAs)
         }
 
         if(saveAs){
-            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, false);
+            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, false, false, filePath);
 
             if(files.size() != 1){
                 return false;
@@ -1770,6 +2378,11 @@ bool MedeaWindow::saveProject(bool saveAs)
         QString fileData = nodeView->getProjectAsGraphML();
 
         bool saveSuccess = writeFile(filePath, fileData);
+
+        if(saveSuccess){
+            updateRecentProjectsWidgets(filePath);
+        }
+
         emit window_ProjectSaved(saveSuccess, filePath);
         return saveSuccess;
     }
@@ -1778,9 +2391,6 @@ bool MedeaWindow::saveProject(bool saveAs)
 
 void MedeaWindow::populateDocks()
 {
-    //Clear docks first.
-    emit window_clearDocks();
-
     // TODO - The following setup only needs to happen once the whole time the application is open
     // It doesn't need to be redone every time new project is called
     QStringList allKinds = nodeView->getAllNodeKinds();
@@ -1798,17 +2408,13 @@ void MedeaWindow::populateDocks()
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(kind, this);
         checkBox->setFont(guiFont);
+        //checkBox->setFixedWidth(nodeKindsBar->width());
         connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
         action->setDefaultWidget(checkBox);
         nodeKindsMenu->addAction(action);
     }
-
 }
 
-void MedeaWindow::_getCPPForComponent(QString filePath)
-{
-    emit window_GetCPPForComponent(filePath, componentName_CPPExport);
-}
 
 bool MedeaWindow::canFilesBeDragImported(QList<QUrl> files)
 {
@@ -1828,12 +2434,38 @@ bool MedeaWindow::canFilesBeDragImported(QList<QUrl> files)
 
 void MedeaWindow::setupApplication()
 {
+    //Allow Drops
+    setAcceptDrops(true);
+
     //Set QApplication information.
     QApplication::setApplicationName("MEDEA");
     QApplication::setApplicationVersion(APP_VERSION);
     QApplication::setOrganizationName("Defence Information Group");
     QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
-    QApplication::setWindowIcon(QIcon(":/Actions/MEDEA.png"));
+    QApplication::setWindowIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
+
+
+    // this needs to happen before the menu is set up and connected
+    applicationDirectory = QApplication::applicationDirPath() + "/";
+    MEDEA_VERSION = QApplication::applicationVersion();
+
+
+    //load the persistantSettings from the state.ini file to load in the history.
+    persistantSettings = new QSettings(applicationDirectory + "/Resources/state.ini", QSettings::IniFormat);
+    QVariant projectHistory = persistantSettings->value("projectHistory");
+
+    if(!projectHistory.isNull()){
+        QStringList history = projectHistory.toStringList();
+        while(!history.isEmpty()){
+            QString fileName = history.takeLast();
+            if(!fileName.isEmpty()){
+                //update the stack.
+                recentProjectsList.push(fileName);
+            }
+        }
+    }
+
+
     projectFileChanged();
 
     //Set Font.
@@ -1842,6 +2474,7 @@ void MedeaWindow::setupApplication()
     QFont font = QFont(fontName);
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
+
 }
 
 /**
@@ -1863,6 +2496,54 @@ void MedeaWindow::initialiseJenkinsManager()
         jenkinsManager = new JenkinsManager(binaryPath, jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
         connect(jenkinsManager, SIGNAL(gotInvalidSettings(QString)), this, SLOT(invalidJenkinsSettings(QString)));
     }
+}
+
+void MedeaWindow::initialiseSettings()
+{
+    //SETTINGS.
+    QHash<QString, QString> tooltips = GET_SETTINGS_TOOLTIPS_HASH();
+    QHash<QString, QString> visualGroups = GET_SETTINGS_GROUP_HASH();
+
+    appSettings = new AppSettings(this,applicationDirectory, visualGroups, tooltips);
+    appSettings->setModal(true);
+    connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
+    connect(appSettings, SIGNAL(settingsApplied()), this, SLOT(settingsApplied()));
+}
+
+void MedeaWindow::updateTheme()
+{
+    if(CURRENT_THEME == VT_DARK_THEME){
+        Theme::theme()->setBackgroundColor(QColor(70,70,70));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
+        Theme::theme()->setHighlightColor(QColor(255,165,0));
+
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(165,165,165));
+
+
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(165,165,165));
+    }else{
+        Theme::theme()->setBackgroundColor(QColor(170,170,170));
+        Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().darker(130));
+        Theme::theme()->setHighlightColor(QColor(75,110,175));
+
+
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(70,70,70));
+
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(70,70,70));
+    }
+
+
+    //Update the theme.
+    Theme::theme()->applyTheme();
+    updateMenuIcons();
 }
 
 
@@ -1905,6 +2586,33 @@ void MedeaWindow::initialiseCUTSManager()
     connect(cutsManager, SIGNAL(executedXSLValidation(bool,QString)), this, SLOT(XSLValidationCompleted(bool,QString)));
 }
 
+void MedeaWindow::initialiseTheme()
+{
+    Theme::theme()->setDefaultImageTintColor(QColor(70,70,70));
+    Theme::theme()->setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
+    Theme::theme()->setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
+    Theme::theme()->setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
+    Theme::theme()->setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
+    Theme::theme()->setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
+
+
+    //Orange
+    Theme::theme()->setDefaultImageTintColor("Welcome", "New", QColor(232,188,0));
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Help", QColor(232,188,0));
+
+    //Blue
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Open", QColor(78,150,186));
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Timer", QColor(78,150,186));
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Wiki", QColor(78,150,186));
+
+    //Red
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Settings", QColor(230,51,42));
+
+    //LOAD THINGS
+    emit Theme::theme()->initPreloadImages();
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+}
+
 
 /**
  * @brief MedeaWindow::importXMEProject
@@ -1931,18 +2639,28 @@ void MedeaWindow::importXMEProject(QString filePath)
 
 void MedeaWindow::projectFileChanged(QString name)
 {
+    QString title = "MEDEA";
     if(name != ""){
         currentProjectFilePath = name;
-        name = " - " + name + "[*]";
+        title += " - " + name;
     }
-    setWindowTitle("MEDEA" + name);
+    title += "[*]";
+    setWindowTitle(title);
 
 }
 
+
+/**
+ * @brief MedeaWindow::projectNameChanged
+ * @param name
+ */
 void MedeaWindow::projectNameChanged(QString name)
 {
-    if(projectName){
+    if (projectName && !name.isEmpty()) {
         projectName->setText(name);
+        projectName->setToolTip(name);
+        projectName->setFixedWidth(projectName->fontMetrics().width(name) + 10);
+        updateWidgetsOnProjectChange();
     }
 }
 
@@ -1963,9 +2681,8 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
         showFullScreen();
         view_fullScreenMode->setText("Exit Fullscreen Mode");
         view_fullScreenMode->setChecked(true);
-        view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Failure"));
     } else {
-        if (!settingsLoading) {
+        if (!SETTINGS_LOADING) {
             if (WINDOW_MAXIMIZED) {
                 showMaximized();
             } else {
@@ -1974,12 +2691,12 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
         }
         view_fullScreenMode->setText("Set Fullscreen Mode");
         view_fullScreenMode->setChecked(false);
-        view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Fullscreen"));
     }
 }
 
 void MedeaWindow::gotXMETransform(bool success, QString errorString, QString path)
 {
+    displayLoadingStatus(false);
     setEnabled(true);
     updateProgressStatus(0,"");
     if(!success){
@@ -1995,7 +2712,7 @@ void MedeaWindow::gotXMETransform(bool success, QString errorString, QString pat
 void MedeaWindow::gotCPPForComponent(bool success, QString errorString, QString componentName, QString code)
 {
     setEnabled(true);
-    updateProgressStatus(100, "");
+    displayLoadingStatus(false);
     if(!success){
         QMessageBox::critical(this, "XSL Transformation for CPP Error", errorString, QMessageBox::Ok);
     }else{
@@ -2025,12 +2742,8 @@ void MedeaWindow::toggleGridLines()
 {
     if(actionToggleGrid){
         if(actionToggleGrid->isChecked()){
-            actionToggleGrid->setIcon(nodeView->getImage("Actions", "Grid_On"));
-            //actionToggleGrid->setIcon(getIcon("Actions", "Grid_On"));
             actionToggleGrid->setToolTip("Turn Off Grid");
         }else{
-            actionToggleGrid->setIcon(nodeView->getImage("Actions", "Grid_Off"));
-            //actionToggleGrid->setIcon(getIcon("Actions", "Grid_Off"));
             actionToggleGrid->setToolTip("Turn On Grid");
         }
     }
@@ -2053,7 +2766,9 @@ void MedeaWindow::aboutMedea()
     aboutString += "<li>Marianne Rieckmann</li>";
     aboutString += "<li>Matthew Hart</li>";
     aboutString += "</ul>";
-
+    aboutString += "<a href=\"";
+    aboutString += GITHUB_URL;
+    aboutString += "\">MEDEA GitHub</a>";
     QMessageBox::about(this, "About MEDEA", aboutString);
 }
 
@@ -2064,6 +2779,23 @@ void MedeaWindow::aboutMedea()
 void MedeaWindow::aboutQt()
 {
     QMessageBox::aboutQt(this);
+}
+
+void MedeaWindow::reportBug()
+{
+    QString URL = GITHUB_URL;
+    URL += "issues/";
+    QDesktopServices::openUrl(QUrl(URL));
+}
+
+void MedeaWindow::showWiki(QString componentName)
+{
+    QString URL = GITHUB_URL;
+    URL += "wiki/";
+    if(componentName != ""){
+        URL += "SEM-MEDEA-ModelEntities#" + componentName;
+    }
+    QDesktopServices::openUrl(QUrl(URL));
 }
 
 
@@ -2083,7 +2815,9 @@ void MedeaWindow::showShortcutList()
  */
 void MedeaWindow::invalidJenkinsSettings(QString message)
 {
-    emit window_DisplayMessage(CRITICAL, "Invalid Jenkins Settings", message);
+    if(nodeView){
+        nodeView->showMessage(CRITICAL, message, "Jenkins Error", "Jenkins_Icon");
+    }
 }
 
 
@@ -2095,6 +2829,43 @@ void MedeaWindow::jenkinsNodesLoaded()
     // if the hardware dock isn't already open, open it
     if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->isSelected()) {
         hardwareNodesButton->pressed();
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::toggleWelcomeScreen
+ * @param show
+ */
+void MedeaWindow::toggleWelcomeScreen(bool show)
+{
+    if (welcomeScreenOn == show) {
+        return;
+    }
+
+    QVBoxLayout* fromLayout;
+    QVBoxLayout* toLayout;
+
+    if (show) {
+        fromLayout = holderLayout;
+        toLayout = viewHolderLayout;
+    } else {
+        fromLayout = viewHolderLayout;
+        toLayout = holderLayout;
+    }
+
+    fromLayout->removeItem(welcomeLayout);
+    toLayout->addLayout(welcomeLayout);
+
+    toLayout->removeItem(viewLayout);
+    fromLayout->addLayout(viewLayout);
+
+    welcomeScreenOn = show;
+
+    if (show) {
+        setToolbarVisibility(false);
+    } else {
+        setToolbarVisibility(SHOW_TOOLBAR);
     }
 }
 
@@ -2112,45 +2883,66 @@ void MedeaWindow::toggleAndTriggerAction(QAction *action, bool value)
 
 
 /**
- * @brief MedeaWindow::updateWidgetsOnWindowChanged
+ * @brief MedeaWindow::updateWidgetsOnWindowChange
  * This is called when the GUI widgets size/pos need to be
  * updated after the window has been changed.
  */
-void MedeaWindow::updateWidgetsOnWindowChanged()
-{
-    // update widget sizes, containers and and masks
-    boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height() - SPACER_HEIGHT;
-    docksArea->setFixedHeight(boxHeight*2);
-    dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_HEIGHT/2);
-
+void MedeaWindow::updateWidgetsOnWindowChange()
+{   
     QRect canvasRect;
     canvasRect.setHeight(height()-1);
     canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
     canvasRect.moveTopLeft(QPoint(docksArea->width() + 15, 0));
 
-    /*
-    double newHeight = docksArea->height();
-    if (dockStandAloneDialog->isVisible()) {
-        newHeight *= 2;
-    }
-    partsDock->parentHeightChanged(newHeight);
-    definitionsDock->parentHeightChanged(newHeight);
-    hardwareDock->parentHeightChanged(newHeight);
-    */
-
-    // update the stored view center point and re-center the view
+     // update the stored view center point and re-center the view
     if (nodeView) {
-        //qCritical() << "UPDATE YO";
         nodeView->visibleViewRectChanged(getCanvasRect());
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
-        nodeView->aspectGraphicsChanged();
+        nodeView->viewportTranslated();
     }
 
 
     updateWidgetMask(docksArea, dockButtonsBox, true);
+    updateDock();
     updateToolbar();
     updateDataTable();
+}
+
+
+/**
+ * @brief MedeaWindow::updateWidgetsOnProjectChange
+ * @param projectActive
+ */
+void MedeaWindow::updateWidgetsOnProjectChange(bool projectActive)
+{
+    if (menuTitleBox) {
+        // 55 is the width of the menu button
+        int totalWidth = 55;
+        if (projectActive) {
+            totalWidth += SPACER_SIZE;
+            totalWidth += closeProjectToolbar->width();
+            totalWidth += projectName->width();
+        }
+        menuTitleBox->setFixedWidth(totalWidth);
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::updateDock
+ * This recalculates the size of the area that's available for the dock.
+ */
+void MedeaWindow::updateDock()
+{
+    // update widget sizes and mask
+    boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height() + SPACER_SIZE;
+    int prevHeight = docksArea->height();
+    int newHeight = (boxHeight*2) - dockHeaderBox->height();
+    if (newHeight != prevHeight) {
+        docksArea->setFixedHeight((boxHeight*2) - dockHeaderBox->height());
+    }
+    //dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_SIZE/2);
 }
 
 
@@ -2161,24 +2953,27 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
  */
 void MedeaWindow::updateToolbar()
 {
-    //int visibleActionCount = 0;
     int totalWidth = 0;
     foreach (QAction* action, toolbar->actions()) {
-        if (!action->isSeparator() && action->isVisible()) {
-            //visibleActionCount++;
+        if (action->isVisible()) {
             QString actionName = toolbarActionLookup.key(action);
-            totalWidth += toolbarButtonLookup[actionName]->width();
+            if (!actionName.isEmpty()) {
+                totalWidth += toolbarButtonLookup[actionName]->width();
+            } else {
+                // if actionName is empty, it means that it's a sepator - 8 is the width of the separator
+                totalWidth += TOOLBAR_SEPERATOR_WIDTH;
+            }
         }
     }
 
-    //QSize toolbarSize = QSize(TOOLBAR_BUTTON_WIDTH * visibleActionCount + 9, TOOLBAR_BUTTON_HEIGHT);
+    // TODO - Calculate the toolbar padding and stuff the proper way!
     QSize toolbarSize = QSize(totalWidth, TOOLBAR_BUTTON_HEIGHT);
-    toolbar->setFixedSize(toolbarSize + QSize(28, TOOLBAR_GAP));
+    toolbar->setFixedSize(toolbarSize + QSize(32, TOOLBAR_GAP));
 
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();
-        toolbarButton->move(centerX  - (TOOLBAR_BUTTON_WIDTH / 2) + 3, TOOLBAR_GAP);
-        toolbar->move(centerX - (toolbar->width() / 2), 2 * TOOLBAR_GAP + (TOOLBAR_BUTTON_HEIGHT / 2));
+        toolbarButtonBar->move(centerX  - (TOOLBAR_BUTTON_WIDTH / 2), TOOLBAR_GAP);
+        toolbar->move(centerX - (toolbar->width() / 2), 3 * TOOLBAR_GAP + (TOOLBAR_BUTTON_HEIGHT / 2));
     }
 }
 
@@ -2194,7 +2989,7 @@ void MedeaWindow::setupInitialSettings()
     loadSettingsFromINI();
 
     // calculate the centered view rect and widget masks after the settings has been loaded
-    updateWidgetsOnWindowChanged();
+    updateWidgetsOnWindowChange();
 }
 
 
@@ -2222,13 +3017,98 @@ void MedeaWindow::executeJenkinsDeployment()
     }
 }
 
+void MedeaWindow::CUTSOutputPathChanged(QString path)
+{
+    cutsOutputPath = path;
+}
+
+void MedeaWindow::themeChanged()
+{
+    updateStyleSheets();
+    updateMenuIcons();
+}
+
+void MedeaWindow::updateRightMask()
+{
+    if(rightPanelWidget){
+        rightPanelWidget->setMask(rightPanelWidget->childrenRegion());
+        rightPanelWidget->repaint();
+    }
+}
+
+
+void MedeaWindow::recentProjectItemClicked(QListWidgetItem *item)
+{
+    if(item){
+        //Open the project with the text from the item.
+        openProject(item->text());
+    }
+}
+
+void MedeaWindow::recentProjectMenuActionClicked()
+{
+    QAction* action = dynamic_cast<QAction*>(QObject::sender());
+    if(action){
+        QString fileName = action->text();
+        if(!fileName.isEmpty()){
+            openProject(fileName);
+        }
+    }
+}
+
+void MedeaWindow::screenshot()
+{
+    if(appSettings){
+        QString screenshotPath = appSettings->getSetting(SCREENSHOT_PATH).toString();
+        int screenshotQuality = appSettings->getSetting(SCREENSHOT_QUALITY).toInt();
+
+        QMessageBox msgBox(
+                    QMessageBox::Question,"MEDEA",
+                    "Please select which type of screenshot to save.",
+                    QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+
+
+        msgBox.setIconPixmap(getDialogPixmap("Actions", "PrintScreen"));
+        msgBox.setButtonText(QMessageBox::Yes, "Entire Model");
+        msgBox.setButtonText(QMessageBox::No, "Current Viewport");
+        msgBox.setParent(this);
+
+        displayLoadingStatus(true, "Rendering screenshot");
+
+        int buttonPressed = msgBox.exec();
+        //Hide!
+        msgBox.hide();
+
+        if(buttonPressed == QMessageBox::Cancel){
+            displayLoadingStatus(false);
+            return;
+        }
+        bool currentViewPort = buttonPressed == QMessageBox::No;
+
+
+
+
+        QImage image = nodeView->renderScreenshot(currentViewPort, screenshotQuality);
+        if(!image.isNull()){
+            if(!screenshotPath.endsWith("/")){
+                screenshotPath += "/";
+            }
+            qCritical() << screenshotPath;
+            QString fileName = screenshotPath + getTempTimeName() + ".png";
+            writeQImage(fileName, image, true);
+        }
+        displayLoadingStatus(false);
+    }
+}
+
 void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
 {
+    displayLoadingStatus(false);
     if(success){
         QFile xmlFile(reportPath);
 
         if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
-            displayNotification("XSL Validation failed to produce a report.");
+            displayNotification("XSL validation failed to produce a report.");
             return;
         }
 
@@ -2242,18 +3122,19 @@ void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
         xmlFile.close();
 
         if(!result){
-            displayNotification("Cannot run QXmlQuery on Validation Report.");
+            displayNotification("Cannot run QXmlQuery on validation report.");
         }else{
             validateResults.setupItemsTable(messagesResult);
             validateResults.show();
         }
     }else{
-        displayNotification("XSL Validation failed!");
+        displayNotification("XSL validation failed!");
     }
 }
 
 void MedeaWindow::generateCPPForComponent(QString componentName)
 {
+    displayLoadingStatus(true, "Getting CPP for ComponentImpl");
     QString exportFile = writeProjectToTempFile();
     if(exportFile.isEmpty()){
         return;
@@ -2271,8 +3152,9 @@ void MedeaWindow::executeProjectValidation()
         return;
     }
 
-    QString reportPath = getTempFileName("_report.xml");
+    displayLoadingStatus(true, "Validating Model");
 
+    QString reportPath = getTempFileName("_report.xml");
     emit window_ExecuteXSLValidation(exportFile, reportPath);
 }
 
@@ -2285,14 +3167,15 @@ void MedeaWindow::executeLocalNodeDeployment()
     }
 
     if(cutsManager){
-        QString path = "";
-        if(appSettings){
-            path = appSettings->getSetting(DEFAULT_DIR_PATH).toString();
+
+        if(appSettings && cutsOutputPath == ""){
+            cutsOutputPath = appSettings->getSetting(DEFAULT_DIR_PATH).toString();
         }
 
         CUTSExecutionWidget* cWidget = new CUTSExecutionWidget(this, cutsManager);
+        connect(cWidget, SIGNAL(outputPathChanged(QString)), this, SLOT(CUTSOutputPathChanged(QString)));
         cWidget->setGraphMLPath(exportFile);
-        cWidget->setOutputPath(path);
+        cWidget->setOutputPath(cutsOutputPath);
         cWidget->show();
     }
 }
@@ -2304,7 +3187,7 @@ void MedeaWindow::executeLocalNodeDeployment()
 void MedeaWindow::saveSettings()
 {
     //Write Settings on Quit.
-    if(appSettings){
+    if(appSettings && SAVE_WINDOW_SETTINGS){
         appSettings->setSetting(TOOLBAR_EXPANDED, toolbarButton->isChecked());
 
         appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
@@ -2315,8 +3198,21 @@ void MedeaWindow::saveSettings()
             appSettings->setSetting(WINDOW_H, size().height());
             appSettings->setSetting(WINDOW_X, pos().x());
             appSettings->setSetting(WINDOW_Y, pos().y());
+
         }
         appSettings->setSetting(DEFAULT_DIR_PATH, DEFAULT_PATH);
+
+
+    }
+    if(persistantSettings){
+        QStringList historicList;
+
+        while(!recentProjectsList.isEmpty()){
+            historicList.append(recentProjectsList.takeLast());
+        }
+        //Write the projectHistory to disk
+        persistantSettings->setValue("projectHistory", historicList);
+        delete persistantSettings;
     }
 }
 
@@ -2339,11 +3235,10 @@ void MedeaWindow::search()
  */
 void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
 {
+    displayLoadingStatus(false);
     if(jenkinsXML != ""){
         // import Jenkins
         emit window_ImportJenkinsNodes(jenkinsXML);
-    }else{
-        QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
     }
 }
 
@@ -2368,18 +3263,24 @@ void MedeaWindow::on_actionImportJenkinsNode()
     progressAction = "Importing Jenkins";
 
     if(jenkinsManager){
+        displayLoadingStatus(true, "Importing Jenkins Nodes");
         QString groovyScript = applicationDirectory + "Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy";
+        QString jobName = "MEDEA-SEM";
+        if(appSettings){
+            jobName = appSettings->getSetting(JENKINS_JOB).toString();
+        }
 
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
-        connect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
+        connect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));
         connect(jenkinsGS, SIGNAL(gotGroovyScriptOutput(QString)), this, SLOT(gotJenkinsNodeGraphML(QString)));
         connect(jenkinsGS, SIGNAL(requestFinished()), this, SLOT(setImportJenkinsNodeEnabled()));
+        connect(jenkinsGS, SIGNAL(requestFailed()), this, SLOT(gotJenkinsNodeGraphML()));
 
         //Disable the Jenkins Menu Button
         setImportJenkinsNodeEnabled(false);
 
-        emit jenkins_RunGroovyScript(groovyScript);
-        disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
+        emit jenkins_RunGroovyScript(groovyScript, jobName);
+        disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));
     }
 }
 
@@ -2391,11 +3292,11 @@ void MedeaWindow::on_actionImportJenkinsNode()
 void MedeaWindow::on_actionNew_Project_triggered()
 {
     // ask user if they want to save current project before closing it
-   bool closed = closeProject();
+    bool closed = closeProject();
 
-   if(closed){
-       newProject();
-   }
+    if(closed){
+        newProject();
+    }
 }
 
 void MedeaWindow::on_actionCloseProject_triggered()
@@ -2408,7 +3309,11 @@ void MedeaWindow::on_actionCloseProject_triggered()
 
 void MedeaWindow::on_actionOpenProject_triggered()
 {
-    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false);
+    QString filePath;
+    if(nodeView){
+        filePath = nodeView->getProjectFileName();
+    }
+    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, true, false, filePath);
 
     if(fileNames.size() == 1){
         openProject(fileNames.first());
@@ -2434,15 +3339,16 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
 {
     progressAction = "Importing GraphML";
 
-    importProjects(fileSelector("Select one or more files to import.", GRAPHML_FILE_EXT, true));
+    importProjects(fileSelector("Select one or more files to import.", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, true));
 }
 
 void MedeaWindow::on_actionImport_XME_triggered()
 {
     progressAction = "Importing XME";
 
-    QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, true, false);
+    QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, GME_FILE_SUFFIX, true, false);
     if(files.size() == 1){
+        displayLoadingStatus(true, "Transforming XME for import");
         importXMEProject(files.first());
     }
 }
@@ -2526,53 +3432,6 @@ void MedeaWindow::on_validationItem_clicked(int ID)
 
 
 /**
- * @brief MedeaWindow::writeExportedSnippet
- * @param parentName
- * @param snippetXMLData
- */
-void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLData)
-{
-    try {
-        //Try and Open File.
-
-        QStringList files = fileSelector("Export " + parentName+ ".snippet", "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)", false);
-
-        if(files.size() != 1){
-            return;
-        }
-        QString exportName = files.first();
-
-        if (exportName == "") {
-            return;
-        }
-
-        if(!exportName.toLower().endsWith(".snippet")){
-            return;
-        }
-
-        QFile file(exportName);
-        bool fileOpened = file.open(QIODevice::WriteOnly | QIODevice::Text);
-
-        if(!fileOpened){
-            QMessageBox::critical(this, "File Error", "Unable to open file: '" + exportName + "'! Check permissions and try again.", QMessageBox::Ok);
-            return;
-        }
-
-        //Create stream to write the data.
-        QTextStream out(&file);
-        out << snippetXMLData;
-        file.close();
-
-        //QMessageBox::information(this, "Successfully Exported Snippit", "GraphML documented successfully exported to: '" + exportName +"'!", QMessageBox::Ok);
-        displayNotification("Successfully exported GraphML Snippet document.");
-
-    }catch(...){
-        QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
-    }
-}
-
-
-/**
  * @brief MedeaWindow::importSnippet
  * @param parentName
  */
@@ -2591,16 +3450,21 @@ void MedeaWindow::importSnippet(QString snippetType)
         return;
     }
 
-    QStringList files = fileSelector("Import " + snippetType + ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", true, false);
+    QStringList files = fileSelector("Import " + snippetType + ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", "."+snippetType+".snippet", true, false);
 
     if(files.size() != 1){
         return;
     }
 
     QString snippetFileName = files.first();
-
-    if(snippetFileName.isNull()){
+    if(snippetFileName == ""){
+        displayNotification("Snippet file selected has no name.");
         return;
+    }
+
+    if(!snippetFileName.endsWith(snippetType + ".snippet")){
+        snippetFileName += snippetType + ".snippet";
+        displayNotification("Snippet file selected changed to: " + snippetFileName + " To match type.");
     }
 
     QString fileData = readFile(snippetFileName);
@@ -2621,20 +3485,31 @@ void MedeaWindow::exportSnippet(QString snippetType)
         return;
     }
 
-    QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", false);
+    QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)","."+snippetType+".snippet", false);
 
     if(files.size() != 1){
-        return;
-    }
-    QString snippetName = files.first();
-
-    if (snippetName == "" || !snippetName.endsWith(snippetType + ".snippet")){
+        if(files.size() > 1){
+            displayNotification("Only 1 file can be selected to export snippet!");
+        }
         return;
     }
 
-    QString grapmlData = nodeView->getSelectionAsGraphMLSnippet();
-    if(grapmlData != ""){
-        writeFile(snippetName, grapmlData);
+    QString snippetFileName = files.first();
+    if(snippetFileName == ""){
+        displayNotification("Snippet file selected has no name.");
+        return;
+    }
+
+    if(!snippetFileName.endsWith(snippetType + ".snippet")){
+        snippetFileName += "." + snippetType + ".snippet";
+        displayNotification("Snippet file selected changed to: " + snippetFileName + " To match type.");
+    }
+
+    QString graphmlData = nodeView->getSelectionAsGraphMLSnippet();
+    if(graphmlData != ""){
+        writeFile(snippetFileName, graphmlData);
+    }else{
+        displayNotification("Cannot export snippet!");
     }
 }
 
@@ -2651,13 +3526,13 @@ void MedeaWindow::setClipboard(QString value)
 
 
 /**
- * @brief MedeaWindow::setMenuActionEnabled
+ * @brief MedeaWindow::setActionEnabled
  * This gets called everytime a node is selected.
  * It enables/disables the specified menu action depending on the selected node.
  * @param action
  * @param node
  */
-void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
+void MedeaWindow::setActionEnabled(QString action, bool enable)
 {
     if (action == "definition") {
         view_goToDefinition->setEnabled(enable);
@@ -2683,18 +3558,20 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         edit_redo->setEnabled(enable);
     } else if (action == "sort"){
         actionSort->setEnabled(enable);
-    }else if (action == "singleSelection") {
+    } else if (action == "singleSelection") {
         actionCenter->setEnabled(enable);
         actionZoomToFit->setEnabled(enable);
-        // added this after the tag was made
+    } else if (action == "multipleSelection") {
         actionContextMenu->setEnabled(enable);
-    } else if(action == "multipleSelection"){
-
-    } else if(action == "localdeployment"){
+    } else if (action == "localdeployment") {
         model_ExecuteLocalJob->setEnabled(enable);
-    }else if(action == "subView"){
+    } else if (action == "subView") {
         actionPopupSubview->setEnabled(enable);
+    } else if (action == "align") {
+        actionAlignHorizontally->setEnabled(enable);
+        actionAlignVertically->setEnabled(enable);
     }
+    emit window_refreshActions();
 }
 
 
@@ -2706,38 +3583,23 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
  */
 QIcon MedeaWindow::getIcon(QString alias, QString image)
 {
-    if(nodeView){
-        return QIcon(nodeView->getImage(alias, image));
-    }
-    return QIcon();
+    return Theme::theme()->getIcon(alias, image);
 }
 
 
 /**
  * @brief MedeaWindow::showWindowToolbar
  * If the signal came from the menu, show/hide the toolbar.
- * Otherwise if it came from toolbarButton, expand/contract the toolbar.
+ * Otherwise if it came from toolbarsetButton, expand/contract the toolbar.
  * @param checked
  */
-void MedeaWindow::showWindowToolbar(bool checked)
+void MedeaWindow::showWindowToolbar(bool show)
 {
-    if (checked) {
-        toolbarButton->setToolTip("Contract Toolbar");
-        toolbarButtonLabel->setPixmap(contractPixmap);
-        toolbar->clearMask();
-    } else {
-        // NOTE: hover/focus doesn't leave the button until you move the mouse
-        toolbarButton->setToolTip("Expand Toolbar");
-        toolbarButtonLabel->setPixmap(expandPixmap);
-        toolbar->setMask(QRegion(0,0,1,1, QRegion::Ellipse));
-    }
 
-    if (appSettings) {
-        appSettings->setSetting(TOOLBAR_EXPANDED, checked);
+    actionToggleToolbar->setChecked(show);
+    if(SHOW_TOOLBAR){
+        toolbar->setVisible(show);
     }
-
-    toolbar->setVisible(checked);
-    return;
 }
 
 
@@ -2747,10 +3609,10 @@ void MedeaWindow::showWindowToolbar(bool checked)
  */
 void MedeaWindow::setToolbarVisibility(bool visible)
 {
-    if (toolbarButton) {
-        toolbarButton->setVisible(visible);
+    if (toolbarButtonBar) {
+        toolbarButtonBar->setVisible(visible);
     }
-    if (toolbar) {
+    if (toolbar && EXPAND_TOOLBAR) {
         toolbar->setVisible(visible);
     }
 }
@@ -2903,6 +3765,8 @@ void MedeaWindow::updateCheckedToolbarActions(bool checked)
  * @brief MedeaWindow::updateWidgetMask
  * @param widget
  * @param maskWidget
+ * @param check
+ * @param border
  */
 void MedeaWindow::updateWidgetMask(QWidget *widget, QWidget *maskWidget, bool check, QSize border)
 {
@@ -2945,6 +3809,12 @@ void MedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
     dataTable->clearSelection();
     dataTable->setModel(model);
+    if(model){
+        if(dataTable->horizontalHeader()->count() == 2){
+            dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
+            dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        }
+    }
     updateDataTable();
 }
 
@@ -2969,43 +3839,122 @@ void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
  * @brief MedeaWindow::dockButtonPressed
  * This slot is called whenever a dock toggle button is pressed.
  * It toggles the dock button and shows/hides the attached dock accordingly.
- * It also updates the dock area's mask depending on whether a dock is opened
  */
 void MedeaWindow::dockButtonPressed()
 {
     DockToggleButton* button = qobject_cast<DockToggleButton*>(QObject::sender());
     if (button) {
-        updateWidgetMask(docksArea, dockButtonsBox);
         emit window_dockButtonPressed(button->getDockType());
-        if (button->isSelected()) {
-            docksArea->clearMask();
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::dockToggled
+ * This is called whenever a dock is opened/closed.
+ * If a dock is opened, update the dock header widgets. Otherwise, hide them.
+ * It also updates the dock area's mask depending on whether there's an opened dock.
+ * @param dockAction
+ */
+void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
+{
+    bool dockLabelVisible = false;
+    bool backButtonVisible = false;
+    bool actionLabelVisible = false;
+    bool headerBoxVisible = false;
+
+    // clear the dock are's mask; this makes sure that the whole area is visible
+    docksArea->clearMask();
+
+    if (opened) {
+
+        DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+        DOCK_TYPE dockType = dock->getDockType();
+
+        switch (dockType) {
+        case PARTS_DOCK:
+        case HARDWARE_DOCK:
+            openedDockLabel->setText(GET_DOCK_LABEL(dockType));
+            dockLabelVisible = true;
+            break;
+        case DEFINITIONS_DOCK:
+        case FUNCTIONS_DOCK:
+            if (!kindToConstruct.isEmpty()) {
+                QString action = "Select to construct a <br/>" + kindToConstruct;
+                dockActionLabel->setText(action);
+                actionLabelVisible = true;
+            }
+            backButtonVisible = true;
+            break;
+        default:
+            break;
+        }
+
+        headerBoxVisible = true;
+
+    } else {
+        if (partsDock->isDockOpen() || definitionsDock->isDockOpen() || functionsDock->isDockOpen() || hardwareDock->isDockOpen()) {
+            // if any of the docks are open, show the dock header widgets
+            headerBoxVisible = true;
+        } else {
+            // if no docks are open, update the dock area's mask - allow mouse events to pass through it
+            updateWidgetMask(docksArea, dockButtonsBox);
+            // make sure that any highlighted node item from the dock are cleared
+            nodeView->highlightOnHover();
+        }
+    }
+
+    if (dockLabelVisible != openedDockLabel->isVisible()) {
+        openedDockLabel->setVisible(dockLabelVisible);
+    }
+    if (backButtonVisible != dockBackButtonBox->isVisible()) {
+        dockBackButtonBox->setVisible(backButtonVisible);
+    }
+    if (actionLabelVisible != dockActionLabel->isVisible()) {
+        dockActionLabel->setVisible(actionLabelVisible);
+    }
+    if (headerBoxVisible != dockHeaderBox->isVisible()) {
+        dockHeaderBox->setVisible(headerBoxVisible);
+        if (headerBoxVisible) {
+            updateDock();
         }
     }
 }
 
 
 /**
- * @brief MedeaWindow::forceOpenDock
- * @param type
- * @param srcKind
+ * @brief MedeaWindow::dockBackButtonTriggered
  */
-void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
+void MedeaWindow::dockBackButtonTriggered()
 {
-    switch (type) {
-    case PARTS_DOCK:
-        partsDock->forceOpenDock();
-        break;
-    case DEFINITIONS_DOCK:
-        definitionsDock->forceOpenDock(srcKind);
-        break;
-    case FUNCTIONS_DOCK:
-        functionsDock->forceOpenDock();
-        break;
-    case HARDWARE_DOCK:
-        //hardwareDock->forceOpenDock();
-        break;
-    default:
-        break;
+    if (definitionsDock->isDockOpen()) {
+        definitionsDock->setDockOpen(false);
+    } else if (functionsDock->isDockOpen()) {
+        functionsDock->setDockOpen(false);
+    }
+    partsDock->forceOpenDock();
+}
+
+
+/**
+ * @brief MedeaWindow::displayLoadingStatus
+ * @param show
+ * @param displayText
+ */
+void MedeaWindow::displayLoadingStatus(bool show, QString displayText)
+{
+    if (loadingBox) {
+        if (show != loadingBox->isVisible()) {
+            loadingBox->setVisible(show);
+        }
+        if (show && !displayText.isEmpty()) {
+            //displayText += "...";
+            if (loadingLabel->text() != displayText) {
+                loadingLabel->setText(displayText);
+                loadingLabel->setFixedWidth(loadingLabel->fontMetrics().width(loadingLabel->text()) + 20);
+                loadingBox->setFixedWidth(loadingMovieLabel->width() + loadingLabel->width());
+            }
+        }
     }
 }
 
@@ -3016,43 +3965,61 @@ void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
-    // hide the notification bar and pause the timer before showing the progress bar
+    // pause the notification timer before showing the progress dialog
     if (notificationTimer->isActive()) {
         leftOverTime = notificationTimer->remainingTime();
-        notificationsBar->hide();
         notificationTimer->stop();
     }
 
-    if (!progressBar->isVisible()) {
-        progressLabel->show();
-        progressBar->show();
+    // show progress dialog
+    if (!progressDialogVisible) {
+        //QPoint dialogOrigin = pos() + QPoint(width(), height());
+        //QPoint dialogOrigin = pos() + getCanvasRect().center();
+        //dialogOrigin -= QPoint(progressDialog->width() / 2, progressDialog->height() / 2);
+        //progressDialog->move(dialogOrigin);
+        progressDialog->show();
+        progressDialogVisible = true;
     }
 
-    // update displayed text
+    // update progress text
     if (!status.isEmpty()) {
-        progressLabel->setText(status + "...");
+        progressLabel->setText(status + ". Please wait...");
     }
 
-    if(value == -1){
+    if (value == -1) {
         progressBar->setMaximum(0);
         value = 0;
-    }else{
+    } else {
         progressBar->setMaximum(100);
         value = qMax(value, 0);
     }
+
+    // update progress value
     progressBar->setValue(value);
 
-    // reset the progress bar and re-display the notification bar if it was previously displayed
-    if (value == 100) {
-        progressLabel->hide();
-        progressBar->hide();
-        progressBar->reset();
-        if (leftOverTime > 0) {
-            notificationsBar->show();
-            notificationTimer->start(leftOverTime);
-            leftOverTime = 0;
-        }
+    // close the progress dialog and re-display the notification bar if it was previously displayed
+    bool finishedLoading = value == progressBar->maximum();
+    if (finishedLoading) {
+        closeProgressDialog();
     }
+}
+
+
+/**
+ * @brief MedeaWindow::closeProgressDialog
+ */
+void MedeaWindow::closeProgressDialog()
+{
+    if (leftOverTime > 0) {
+        notificationsBox->show();
+        notificationTimer->start(leftOverTime);
+        leftOverTime = 0;
+    }
+
+    progressDialog->close();
+    progressLabel->setText("Loading...");
+    progressBar->reset();
+    progressDialogVisible = false;
 }
 
 
@@ -3074,27 +4041,30 @@ void MedeaWindow::searchItemClicked()
  */
 void MedeaWindow::searchMenuButtonClicked(bool checked)
 {
-    QPushButton* senderButton = qobject_cast<QPushButton*>(QObject::sender());
+
+    bool showMenu = checked;
     QWidget* widget = 0;
     QMenu* menu = 0;
 
-    if (senderButton == searchOptionButton) {
-        widget = searchBar;
+    QPoint offset(0,2);
+    if (QObject::sender() == searchOptionToolButton) {
+        widget = searchToolbar;
         menu = searchOptionMenu;
-    } else if (senderButton == viewAspectsButton) {
+    } else if (QObject::sender() == viewAspectsButton) {
         widget = viewAspectsBar;
         menu = viewAspectsMenu;
-    } else  if (senderButton == nodeKindsButton) {
+    } else  if (QObject::sender() == nodeKindsButton) {
         widget = nodeKindsBar;
         menu = nodeKindsMenu;
-    } else  if (senderButton == dataKeysButton) {
+    } else  if (QObject::sender() == dataKeysButton) {
         widget = dataKeysBar;
         menu = dataKeysMenu;
     }
 
     if (widget && menu) {
-        if (checked) {
-            menu->popup(widget->mapToGlobal(widget->rect().bottomLeft()));
+        if (showMenu) {
+            QPoint popupLocation = widget->rect().bottomLeft() + offset;
+            menu->popup(widget->mapToGlobal(popupLocation));
         } else {
             menu->close();
         }
@@ -3109,9 +4079,36 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
 void MedeaWindow::searchMenuClosed()
 {
     QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
-    QPushButton* button = qobject_cast<QPushButton*>(menu->parentWidget());
-    if (button && button->isChecked()) {
+    //QToolButton* button = qobject_cast<QToolButton*>(menu->parentWidget());
 
+    /*
+    searchOptionMenu->setStyleSheet(themedMenuStyle);
+    viewAspectsMenu->setStyleSheet(themedMenuStyle);
+    nodeKindsMenu->setStyleSheet(themedMenuStyle);
+    dataKeysMenu->setStyleSheet(themedMenuStyle);
+    */
+
+    QToolButton* button = 0;
+    if (menu == searchOptionMenu) {
+        button = searchOptionToolButton;
+    } else if (menu == viewAspectsMenu) {
+        button = viewAspectsButton;
+    } else if (menu == nodeKindsMenu) {
+        button = nodeKindsButton;
+    } else if (menu == dataKeysMenu) {
+        button = dataKeysButton;
+    }
+
+    if (button) {
+        button->setChecked(false);
+    }
+
+    /*
+    qDebug() << "Menu parent widget: " << menu->parentWidget();
+
+    if (button) { // && button->isChecked()) {
+
+        qDebug() << "button checked: " << button->isChecked();
         //close this levels button
         button->setChecked(false);
 
@@ -3124,12 +4121,19 @@ void MedeaWindow::searchMenuClosed()
         if (!menuRect.contains(QCursor::pos())) {
             searchOptionMenu->close();
         }
+    }/*else if(menu && menu == searchOptionMenu){
+        QPoint topLeft = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().topLeft());
+        QPoint bottomRight = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().bottomRight());
 
-        //if user has clicked on button, catch that case to not re-open the menu
-        if (searchOptionButton->rect().contains(searchOptionButton->mapFromGlobal(QCursor::pos()))) {
-            searchOptionButton->setChecked(true);
+        QRect buttonRect(topLeft, bottomRight);
+
+        if (buttonRect.contains(QCursor::pos())){
+            searchOptionToolButton->setChecked(true);
+        }else{
+            searchOptionToolButton->setChecked(false);
         }
-    }
+    }*/
+
 }
 
 
@@ -3205,6 +4209,8 @@ void MedeaWindow::updateSearchLineEdits()
 void MedeaWindow::updateSearchSuggestions()
 {
     if (nodeView && searchBar) {
+        bool showSearch = !searchBar->text().isEmpty();
+        //searchButton->setEnabled(showSearch);
         nodeView->searchSuggestionsRequested(searchBar->text(), getCheckedItems(0), getCheckedItems(1), getCheckedItems(2));
     }
 }
@@ -3216,31 +4222,36 @@ void MedeaWindow::updateSearchSuggestions()
  * @param seqNum
  * @param totalNum
  */
-void MedeaWindow::displayNotification(QString notification, int seqNum, int totalNum)
+void MedeaWindow::displayNotification(QString notification, QString actionImage)
 {
-    if (totalNum > 1) {
-        multipleNotification[seqNum] = notification;
-        if (multipleNotification.count() == totalNum) {
-            notification = "";
-            for (int i = 0; i < totalNum; i++) {
-                notification += multipleNotification[i] + " ";
-            }
-            multipleNotification.clear();
-        } else {
-            return;
-        }
-    }
-
     // add new notification to the queue
-    if (!notification.isEmpty()) {
-        notificationsQueue.enqueue(notification);
+    if (notification != ""){
+        NotificationStruct notif;
+        notif.text = notification;
+        notif.actionImage = actionImage;
+        notificationsQueue.enqueue(notif);
     }
 
+    // if there is a notification in the queue, start the timer and show the notification bar
     if (!notificationTimer->isActive() && !notificationsQueue.isEmpty()) {
-        notification = notificationsQueue.dequeue();
-        notificationsBar->setText(notification);
-        notificationsBar->setFixedWidth(notificationsBar->fontMetrics().width(notification) + 30);
-        notificationsBar->show();
+        NotificationStruct notif = notificationsQueue.dequeue();
+        notificationsBar->setText(notif.text);
+
+        if(notif.actionImage != ""){
+            notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", notif.actionImage, QSize(64,64), Qt::white));
+            notificationsIcon->setVisible(true);
+        }else{
+            notificationsIcon->setVisible(false);
+        }
+
+        notificationsBar->setFixedWidth(notificationsBar->fontMetrics().width(notif.text) + 30);
+
+        // only show the notifications bar if the progress dialog is not open
+        if (!progressDialogVisible) {
+            notificationsBox->show();
+        }
+
+
         notificationTimer->start(NOTIFICATION_TIME);
     }
 }
@@ -3252,6 +4263,7 @@ void MedeaWindow::displayNotification(QString notification, int seqNum, int tota
 void MedeaWindow::checkNotificationsQueue()
 {
     notificationTimer->stop();
+    //notificationsBar->hide();
 
     // if there are still notifications waiting to be displayed, display them in order
     if (notificationsQueue.count() > 0) {
@@ -3331,6 +4343,14 @@ void MedeaWindow::detachedDockClosed()
     //settings_displayDocks->triggered(false);
 }
 
+void MedeaWindow::clearRecentProjectsList()
+{
+    //Clear the list.
+    recentProjectsList.clear();
+    //Update the widgets.
+    updateRecentProjectsWidgets();
+}
+
 
 /**
  * @brief MedeaWindow::updateDataTable
@@ -3343,42 +4363,104 @@ void MedeaWindow::updateDataTable()
     QAbstractItemModel* tableModel = dataTable->model();
     bool hasData = tableModel && tableModel->rowCount() > 0;
 
-    if (hasData) {
-        dataTableBox->setVisible(true);
-        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents, false);
-    } else {
-        dataTable->resize(dataTable->width(), 0);
-        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
-        updateWidgetMask(dataTableBox, dataTable);
-        dataTableBox->setVisible(false);
-        return;
+    if(hasData){
+        int spacerIndex = rightVlayout->indexOf(minimapBox) - 1;
+        QLayoutItem* spacerItem = rightVlayout->itemAt(spacerIndex);
+
+        if(spacerItem && spacerItem->spacerItem()){
+            //qCritical() << "Removing Spacer and inserting table.";
+            rightVlayout->removeItem(spacerItem);
+            //Clean up memory
+            rightVlayout->insertWidget(spacerIndex, tableScroll, 1);
+            tableScroll->setVisible(true);
+            delete spacerItem;
+        }
+
+
+        int requiredHeight = 0;
+        requiredHeight += dataTable->horizontalHeader()->size().height();
+        requiredHeight += dataTable->contentsMargins().top() + dataTable->contentsMargins().bottom();
+
+        //Sum the height.
+        for (int i = 0; i < tableModel->rowCount(); i++){
+            requiredHeight += dataTable->rowHeight(i);
+        }
+
+        QSize requiredTableSize(tableScroll->width(), requiredHeight);
+        if(dataTable->geometry().size() != requiredTableSize){
+            //Resize the DataTable availableHeight be the required Height.
+            dataTable->resize(requiredTableSize);
+        }
+        //Update the mask
+        tableScroll->setMask(dataTable->frameGeometry());
+    }else{
+        int spacerIndex = rightVlayout->indexOf(minimapBox) - 1;
+        QLayoutItem* spacerItem = rightVlayout->itemAt(spacerIndex);
+
+        if(spacerItem && spacerItem->widget()){
+            //qCritical() << "Removing Table and inserting Spacer.";
+            rightVlayout->removeItem(spacerItem);
+            rightVlayout->insertStretch(spacerIndex, 1);
+            tableScroll->setVisible(false);
+        }
     }
 
-    // calculate the required height
-    int newHeight = 0;
-    int maxHeight = dataTableBox->height() - SPACER_HEIGHT;
+    updateRightMask();
+}
 
-    for (int i = 0; i < tableModel->rowCount(); i++) {
-        newHeight += dataTable->rowHeight(i);
+
+void MedeaWindow::updateRecentProjectsWidgets(QString topFileName)
+{
+    if(!topFileName.isEmpty()){
+        //Get the index of the filename opened (if it exists)
+        int index = recentProjectsList.indexOf(topFileName);
+        if(index > 0){
+            //Remove it.
+            recentProjectsList.remove(index);
+        }else if(index == 0){
+            return;
+        }
+        recentProjectsList.prepend(topFileName);
     }
 
-    newHeight += dataTable->horizontalHeader()->size().height();
-    newHeight += dataTable->contentsMargins().top() + dataTable->contentsMargins().bottom();
-
-    if (newHeight > maxHeight) {
-        dataTable->resize(dataTable->width(), maxHeight);
-    } else {
-        dataTable->resize(dataTable->width(), newHeight);
+    //Keep the list short.
+    while(recentProjectsList.size() > RECENT_PROJECT_SIZE){
+        recentProjectsList.removeLast();
     }
 
-    // update the visible region of the groupbox to fit the dataTable
-    updateWidgetMask(dataTableBox, dataTable);
-    dataTableBox->repaint();
+    //Get all of the previous QActions for the projects, except for the clear list button.
+    QList<QAction*> actionsToRemove;
+    foreach(QAction* action, file_recentProjectsMenu->actions()){
+        if(action != file_recentProjects_clearHistory){
+            actionsToRemove << action;
+        }
+    }
 
-    // align the contents of the datatable
-    if(dataTable->horizontalHeader()->count() == 2){
-        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    //Delete the old actions.
+    while(!actionsToRemove.isEmpty()){
+        delete actionsToRemove.takeFirst();
+    }
+
+    //Clear the Welcome screen widget.
+    recentProjectsListWidget->clear();
+
+    //Construct a new item for the List Widget and Menu.
+    foreach(QString fileName, recentProjectsList){
+        QListWidgetItem* item = new QListWidgetItem(recentProjectsListWidget);
+        item->setIcon(getIcon("Actions", "New"));
+        item->setText(fileName);
+        recentProjectsListWidget->addItem(item);
+
+        QAction* fileAction = new QAction(file_recentProjectsMenu);
+        fileAction->setIcon(getIcon("Actions", "New"));
+        fileAction->setText(fileName);
+        file_recentProjectsMenu->insertAction(file_recentProjects_clearHistory, fileAction);
+
+        //Connect the menu item to the loadRecentProject.
+        connect(fileAction, SIGNAL(triggered(bool)), this, SLOT(recentProjectMenuActionClicked()));
+    }
+    if(recentProjectsList.size() > 0){
+        file_recentProjectsMenu->insertSeparator(file_recentProjects_clearHistory);
     }
 }
 
@@ -3495,6 +4577,7 @@ QTemporaryFile* MedeaWindow::writeTemporaryFile(QString data)
     return tempFile;
 }
 
+
 QString MedeaWindow::readFile(QString fileName)
 {
     QString fileData = "";
@@ -3517,30 +4600,73 @@ QString MedeaWindow::readFile(QString fileName)
     return fileData;
 }
 
-bool MedeaWindow::writeFile(QString filePath, QString fileData, bool notify)
+
+bool MedeaWindow::writeQImage(QString filePath, QImage image, bool notify)
 {
     try {
-        QFile file(filePath);
+        if(ensureDirectory(filePath)){
+            QFile file(filePath);
 
-        bool fileOpened = file.open(QFile::WriteOnly | QFile::Text);
-
-        if (!fileOpened) {
-            QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
-            return false;
+            if(image.save(filePath, "PNG")){
+                //SUCCESS
+            }else{
+                QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
+                return false;
+            }
         }
-
-        //Create stream to write the data.
-        QTextStream out(&file);
-        out << fileData;
-        file.close();
-
     }catch (...) {
         QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
         return false;
     }
 
     if(notify){
-        displayNotification("File: '" + filePath + "'' Written!");
+        displayNotification("Image: '" + filePath + "'' written!");
+    }
+    return true;
+
+}
+
+bool MedeaWindow::ensureDirectory(QString filePath)
+{
+    QFile file(filePath);
+    QFileInfo fileInfo(file);
+    QDir dir = fileInfo.dir();
+    if (!dir.exists()) {
+        if(dir.mkpath(".")){
+            displayNotification("Dir: '" + dir.absolutePath() + "'' Constructed!");
+        }else{
+            QMessageBox::critical(this, "File Error", "Unable to make path: '" + dir.absolutePath() + "'! Check permissions and try again.", QMessageBox::Ok);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MedeaWindow::writeFile(QString filePath, QString fileData, bool notify)
+{
+    try {
+        if(ensureDirectory(filePath)){
+            QFile file(filePath);
+
+            bool fileOpened = file.open(QFile::WriteOnly | QFile::Text);
+
+            if (!fileOpened) {
+                QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
+                return false;
+            }
+
+            //Create stream to write the data.
+            QTextStream out(&file);
+            out << fileData;
+            file.close();
+        }
+    }catch (...) {
+        QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
+        return false;
+    }
+
+    if(notify){
+        displayNotification("File: '" + filePath + "'' written!", "Save");
     }
     return true;
 }
@@ -3610,7 +4736,7 @@ void MedeaWindow::setupMultiLineBox()
     popupMultiLine->setModal(true);
     //remove the '?' from the title bar
     popupMultiLine->setWindowFlags(popupMultiLine->windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    popupMultiLine->setWindowIcon(QIcon(":/Actions/getCPP.png"));
+    popupMultiLine->setWindowIcon(getIcon("Actions", "getCPP"));
     //Sexy Layout Stuff
     QGridLayout *gridLayout = new QGridLayout(popupMultiLine);
 
@@ -3683,39 +4809,48 @@ void MedeaWindow::dialogRejected()
     popupMultiLine->close();
 }
 
-QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool open, bool allowMultiple)
+QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple, QString fileName)
 {
+    Q_UNUSED(defaultSuffix);
+
+    QStringList files;
+
+    if(fileName == ""){
+        fileName = "/";
+    }
+
     if(!fileDialog){
         fileDialog = new QFileDialog(this);
         fileDialog->setWindowModality(Qt::WindowModal);
     }
-    QStringList files;
+
     if(fileDialog){
         fileDialog->setWindowTitle(title);
+        fileDialog->setNameFilter(fileString);
         fileDialog->setDirectory(DEFAULT_PATH);
+
+
         if(open){
             fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
-            fileDialog->setNameFilter(fileString);
-            //Clear the file name on open
-            fileDialog->setLabelText(QFileDialog::FileName, "");
+
             if(allowMultiple){
                 fileDialog->setFileMode(QFileDialog::ExistingFiles);
             }else{
                 fileDialog->setFileMode(QFileDialog::ExistingFile);
             }
-            fileDialog->setConfirmOverwrite(false);
 
+            fileDialog->setConfirmOverwrite(false);
+            fileDialog->selectFile(fileName);
 
             if (fileDialog->exec()){
                 files = fileDialog->selectedFiles();
             }
         }else{
             fileDialog->setAcceptMode(QFileDialog::AcceptSave);
-
-            fileDialog->setFileMode(QFileDialog::ExistingFile);
             fileDialog->setFileMode(QFileDialog::AnyFile);
+
             fileDialog->setConfirmOverwrite(true);
-            fileDialog->setNameFilter(fileString);
+            fileDialog->selectFile(fileName);
 
             if (fileDialog->exec()){
                 files = fileDialog->selectedFiles();
@@ -3731,5 +4866,166 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool op
             }
         }
     }
+
+
     return files;
+}
+
+
+/**
+ * @brief MedeaWindow::updateStyleSheets
+ */
+void MedeaWindow::updateStyleSheets()
+{
+    Theme* theme = Theme::theme();
+
+    QString BGColor = theme->getBackgroundColorHex();
+    QString disabledBGColor = theme->getDisabledBackgroundColorHex();
+    QString altBGColor = theme->getAltBackgroundColorHex();
+
+    QString highlightColor = theme->getHighlightColorHex();
+    QString pressedColor = theme->getPressedColorHex();
+
+    QString textColor = theme->getTextColorHex(Theme::CR_NORMAL);
+    QString textSelectedColor = theme->getTextColorHex(Theme::CR_SELECTED);
+    QString textDisabledColor = theme->getTextColorHex(Theme::CR_DISABLED);
+
+    QString themedMenuStyle = "QMenu {"
+                              "padding:" + QString::number(SPACER_SIZE/2) + "px;"
+                              "background:" + altBGColor + ";"
+                              "}"
+                              "QMenu::item {"
+                              "padding: 1px 30px 1px 30px;"
+                              "background:" + altBGColor + ";"
+                              "color:" + textColor + ";"
+                              "border: none;"
+                              "}"
+                              "QMenu::item:disabled {"
+                              "color:" + textDisabledColor + ";"
+                              "}"
+                              "QMenu::item:selected:!disabled {"
+                              "color:" + textSelectedColor + ";"
+                              "background: " + highlightColor + ";"
+                              "}"
+                              "QLabel, QCheckBox{color: " + textColor + ";}"
+                              "QCheckBox { padding: 0px 10px 0px 0px; }"
+                              "QCheckBox::indicator { width: 25px; height: 25px; }"
+                              "QCheckBox:checked { color: " + highlightColor + "; font-weight: bold; }"
+                            ;
+
+    QString pushButtonStyle = "QPushButton{ background:" + altBGColor + "; border-radius: 5px; border: 1px solid " + disabledBGColor + "; }"
+                              "QPushButton:hover{ background: " + highlightColor + "; }"
+                              "QPushButton:disabled{ background: " + disabledBGColor + "; }";
+
+    menuButton->setStyleSheet(pushButtonStyle + "QPushButton::menu-indicator{ image: none; }");
+
+    dockBackButton->setStyleSheet("QPushButton {"
+                                  "background: rgba(130,130,130,120);"
+                                  //"background: " + altBGColor + ";"
+                                  "}"
+                                  "QPushButton:hover {"
+                                  "background: " + pressedColor + ";"
+                                  "}");
+
+    minimapBox->setStyleSheet("#minimapTitle {"
+                              "background: " + altBGColor + ";"
+                              "border: 2px solid " + disabledBGColor +";"
+                              "border-bottom:Fnone;"
+                              "}");
+
+    minimapLabel->setStyleSheet("color: " + textColor + "; font-size: 12px; padding-right: 20px;");
+    minimap->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; border: 2px solid " + disabledBGColor + "; }");
+    nodeView->setStyleSheet("QGraphicsView{ background:"+ BGColor + "; }");
+
+    QString notificationStyle = "QGroupBox{background-color: rgba(30,30,30,0.9);"
+                                "border-radius: 5px;color: white;}";
+
+
+
+    loadingBox->setStyleSheet(notificationStyle);
+    notificationsBox->setStyleSheet(notificationStyle);
+
+
+
+    projectNameShadow->setColor(theme->getBackgroundColor());
+    toolbar->setStyleSheet("QToolBar{ border: 1px solid " + disabledBGColor + "; border-radius: 5px; spacing: 2px; padding: 1px; }");
+                                                                             // "QToolBar::separator { width:" + TOOLBAR_SEPERATOR_WIDTH + "px; }");
+    searchBar->setStyleSheet("QLineEdit {"
+                             "background: " + altBGColor + ";"
+                             "color: " + textDisabledColor + ";"
+                             "border: 1px solid " + disabledBGColor + ";"
+                             "}"
+                             "QLineEdit:focus {"
+                             "border-color:" + highlightColor + ";"
+                             "background: " + altBGColor + ";"
+                             "color:" + textColor + ";"
+                             "}");
+
+    recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
+                                            "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
+
+    setStyleSheet("QToolBar#" THEME_STYLE_HIDDEN_TOOLBAR "{ border: none; background-color: rgba(0,0,0,0); padding:0px; spacing: 2px;}"
+                  "QToolBar::separator { width:" + QString::number(TOOLBAR_SEPERATOR_WIDTH) + "px; background-color: rgba(0,0,0,0); }"
+                  "QToolButton {"
+                  //"margin: 0px 1px;"
+                  "border-radius: 5px;"
+                  "border: 1px solid " + disabledBGColor + ";"
+                  "background:" + altBGColor + ";"
+                  "}"
+                  "QToolButton:hover {"
+                  "background:" + highlightColor +";"
+                  "}"
+                  "QToolButton:disabled { background:" + disabledBGColor + "; border: 1px solid " + disabledBGColor + "; }"
+                  "QToolButton:pressed { background:" + pressedColor + "; }"
+                  "QToolButton[popupMode=\"1\"] {"
+                  "padding-right: 15px;"
+                  "color:" + textColor + ";"
+                  "}"
+                  "QToolButton[popupMode=\"1\"]:hover {"
+                  "color:" + textSelectedColor + ";"
+                  "}"
+                  "QToolButton::menu-indicator {"
+                  "image: none;"
+                  //"background: white;"
+                  "}"
+                  "QToolButton::menu-button {"
+                  "border-left: 1px solid rgb(150,150,150);"
+                  "border-top-right-radius: 10px;"
+                  "border-bottom-right-radius: 10px;"
+                  "width: 15px;"
+                  "}"
+                  "QMessageBox{ background:" + altBGColor + "}"
+                  "QMessageBox QLabel{ color: " +textColor +";}"
+                  "QPushButton#" + THEME_STYLE_QPUSHBUTTON + "{ border:0px;color: " + textColor + "; }"
+                  "QPushButton#" + THEME_STYLE_QPUSHBUTTON + ":hover { color:" + highlightColor + "; }"
+                  "QGroupBox#"+ THEME_STYLE_GROUPBOX + "{"
+                  "background-color: rgba(0,0,0,0);"
+                  "border: 0px;"
+                  "margin: 0px;"
+                  "padding: 0px;"
+                  "}"
+                  );
+
+    menu->setStyleSheet(themedMenuStyle);
+    searchOptionMenu->setStyleSheet(themedMenuStyle);
+    viewAspectsMenu->setStyleSheet(themedMenuStyle);
+    nodeKindsMenu->setStyleSheet(themedMenuStyle);
+    dataKeysMenu->setStyleSheet(themedMenuStyle);
+}
+
+
+/**
+ * @brief MedeaWindow::toggleMinimap
+ */
+void MedeaWindow::toggleMinimap(bool on)
+{
+    QString menuText = "Show Minimap";
+
+    if(on){
+        menuText = "Hide Minimap";
+    }
+
+    view_showMinimap->setText(menuText);
+    minimapBox->setVisible(on);
+    updateDataTable();
 }

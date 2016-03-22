@@ -10,6 +10,7 @@
 #include <QToolButton>
 #include <QMenu>
 #include <QFrame>
+#include <QToolBar>
 
 class ToolbarMenu;
 class ToolbarMenuAction;
@@ -22,7 +23,10 @@ public:
     explicit ToolbarWidget(NodeView* parentView = 0);
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
+    void clearToolbarMenus();
+
     void setupFunctionsList();
+    QStringList getNonDeletableMenuActionKinds();
 
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);
@@ -35,6 +39,7 @@ public slots:
     void constructNewView();
     void getCPPForComponent();
     void setReadOnlyMode();
+    void launchWiki();
 
     void setupAdoptableNodesList();
     void setupLegalNodesList();
@@ -56,7 +61,7 @@ public slots:
     void hide();
     void setVisible(bool visible);
 
-    void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
+    void setupTheme();
 
     // these slots and their corresponding list are only needed for Mac
     void appendToOpenMenusList();
@@ -82,10 +87,12 @@ private:
     void setupHardwareList(QList<EntityItem*> hardware);
     void setupComponentList(QString actionKind);
 
+    void updateToolButtonIcons();
     QToolButton* constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip = "", QString iconPath = "Actions");
-    QFrame* constructFrameSeparator();
 
-    ToolbarMenu* constructToolButtonMenu(QToolButton* parentButton, bool instantPopup = true);
+    ToolbarMenu* constructTopMenu(QToolButton* parentButton, bool instantPopup = true, bool addToDynamicMenuHash = false);
+    ToolbarMenu* constructSubMenu(ToolbarMenuAction* parentAction, QString infoText, bool addToDynamicMenuHash = true);
+
     ToolbarMenuAction* constructMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu);
     ToolbarMenuAction* constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu);
 
@@ -95,43 +102,40 @@ private:
     NodeView* nodeView;
     NodeItem* nodeItem;
 
-    QHBoxLayout* toolbarLayout;
-
     QFrame* mainFrame;
     QFrame* shadowFrame;
-    QFrame* alignFrame;
-    QFrame* expandContractFrame;
-    QFrame* snippetFrame;
-    QFrame* goToFrame;
-    QFrame* alterViewFrame;
+
+    QAction*  actionAlignSeperator;
+    QAction*  actionExpandContractSeperator;
+    QAction*  actionSnippetSeperator;
+    QAction*  actionGoToSeperator;
+    QAction*  actionAlterViewSeperator;
+
+    QToolBar* toolbar;
+    QHBoxLayout* toolbarLayout;
 
     QToolButton* addChildButton;
     QToolButton* deleteButton;
     QToolButton* connectButton;
     QToolButton* hardwareButton;
-
     QToolButton* definitionButton;
     QToolButton* implementationButton;
     QToolButton* instancesButton;
-
     QToolButton* alignVerticallyButton;
     QToolButton* alignHorizontallyButton;
-
     QToolButton* exportSnippetButton;
     QToolButton* importSnippetButton;
-
     QToolButton* getCPPButton;
-
     QToolButton* setReadOnlyButton;
     QToolButton* unsetReadOnlyButton;
-
-
     QToolButton* connectionsButton;
     QToolButton* popupNewWindow;
     QToolButton* displayedChildrenOptionButton;
-
     QToolButton* expandButton;
     QToolButton* contractButton;
+    QToolButton* wikiButton;
+
+    QHash<QToolButton*, QAction*> actionLookup;
 
     ToolbarMenu* addMenu;
     ToolbarMenu* connectMenu;
@@ -145,6 +149,8 @@ private:
     ToolbarMenu* componentImplMenu;
     ToolbarMenu* componentInstMenu;
     ToolbarMenu* blackBoxInstMenu;
+    ToolbarMenu* inEventPortMenu;
+    ToolbarMenu* outEventPortMenu;
     ToolbarMenu* inEventPortDelegateMenu;
     ToolbarMenu* outEventPortDelegateMenu;
     ToolbarMenu* outEventPortImplMenu;
@@ -155,22 +161,14 @@ private:
     ToolbarMenuAction* componentImplAction;
     ToolbarMenuAction* componentInstAction;
     ToolbarMenuAction* blackBoxInstAction;
+    ToolbarMenuAction* inEventPortAction;
+    ToolbarMenuAction* outEventPortAction;
     ToolbarMenuAction* inEventPortDelegateAction;
     ToolbarMenuAction* outEventPortDelegateAction;
     ToolbarMenuAction* outEventPortImplAction;
     ToolbarMenuAction* aggregateInstAction;
     ToolbarMenuAction* vectorInstAction;
     ToolbarMenuAction* processAction;
-
-    ToolbarMenuAction* componentImplMenuInfoAction;
-    ToolbarMenuAction* componentInstMenuInfoAction;
-    ToolbarMenuAction* blackBoxMenuInfoAction;
-    ToolbarMenuAction* inEventPortDelegateMenuInfoAction;
-    ToolbarMenuAction* outEventPortDelegateMenuInfoAction;
-    ToolbarMenuAction* outEventPortImplMenuInfoAction;
-    ToolbarMenuAction* aggregateInstMenuInfoAction;
-    ToolbarMenuAction* vectorInstMenuInfoAction;
-    ToolbarMenuAction* functionsMenuInfoAction;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
@@ -181,9 +179,13 @@ private:
     bool showExportSnippetToolButton;
     bool showDefinitionToolButton;
     bool showImplementationToolButton;
+
+    bool showWikiButton;
     bool showShowCPPToolButton;
     bool showSetReadyOnlyToolButton;
     bool showUnsetReadyOnlyToolButton;
+
+    bool showAlignmentButtons;
 
     bool alterModelButtonsVisible;
     bool alignButtonsVisible;
@@ -192,25 +194,19 @@ private:
     bool goToButtonsVisible;
     bool alterViewButtonsVisible;
 
-    bool blackBoxMenuDone;
-    bool componentImplMenuDone;
-    bool componentInstMenuDone;
-    bool inEventPortInstMenuDone;
-    bool outEventPortInstMenuDone;
-    bool outEventPortMenuDone;
-    bool aggregateMenuDone;
-    bool vectorMenuDone;
-    bool addMenuDone;
-    bool connectMenuDone;
-    bool hardwareMenuDone;
-
     int chosenInstanceID;
     QStringList adoptableNodeKinds;
     QList<NodeItem*> legalNodeItems;
     QList<EntityItem*> hardwareNodeItems;
 
-    VIEW_THEME currentTheme;
+    // this hash stores the menus that are cleared/re-populated when the toolbar
+    // is shown and a bool of whether the menu has been re-populated or not
+    QHash<ToolbarMenu*, bool> dynamicMenus;
 
+
+    // QWidget interface
+protected:
+    bool event(QEvent *);
 };
 
 #endif // TOOLBARWIDGET_H

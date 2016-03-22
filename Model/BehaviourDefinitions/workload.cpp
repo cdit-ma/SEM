@@ -15,13 +15,11 @@ Workload::~Workload(){
 bool Workload::canAdoptChild(Node *child)
 {
     Process* process = dynamic_cast<Process*>(child);
-    Variable* variable = dynamic_cast<Variable*>(child);
-    Parameter* parameter = dynamic_cast<Parameter*>(child);
-    if(!(parameter || process || variable)){
+   // Variable* variable = dynamic_cast<Variable*>(child);
+
+    if(!process/* && !variable*/){
         return false;
     }
-
-
 
     return BehaviourNode::canAdoptChild(child);
 }

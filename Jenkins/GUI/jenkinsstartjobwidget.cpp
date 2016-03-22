@@ -99,7 +99,7 @@ void JenkinsStartJobWidget::build()
         Jenkins_Job_Parameter parameter;
         if(parameterWidget){
             parameter.name = parameterWidget->getKeyName();
-            parameter.value = parameterWidget->getValue();
+            parameter.value = parameterWidget->getValue().toString();
             buildParameters.append(parameter);
         }
     }
@@ -131,7 +131,7 @@ void JenkinsStartJobWidget::build()
  * @param jobName The name of the job the Parameters are for.
  * @param params The list of Jenkins Job Parameters
  */
-void JenkinsStartJobWidget::gotJobParameters(QString jobName, Jenkins_JobParameters params)
+void JenkinsStartJobWidget::gotJobParameters(QString, Jenkins_JobParameters params)
 {
     //Hide the Loading Bar.
     loadingWidget->hideLoadingBar();

@@ -7,18 +7,13 @@
 
 /**
  * @brief DefinitionsDockScrollArea::DefinitionsDockScrollArea
- * @param label
+ * @param type
  * @param view
  * @param parent
  */
-DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* view, DockToggleButton* parent) :
-    DockScrollArea(label, view, parent, "No entity of the following kinds has been constructed: <br/>Aggregate, BlackBox, Component and Vector")
+DefinitionsDockScrollArea::DefinitionsDockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton* parent) :
+    DockScrollArea(type, view, parent, "No entity of the following kinds has been constructed: <br/>Aggregate, BlackBox, Component and Vector")
 {
-    // populate list of not allowed kinds
-    if (view) {
-        definitions_notAllowedKinds = view->getAllNodeKinds();
-    }
-
     // this is the list of entity kinds that this dock constructs items for
     definitionKinds.append("IDL");
     definitionKinds.append("Component");
@@ -34,10 +29,11 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     mainLayout->addStretch();
     getLayout()->addLayout(mainLayout);
 
-    setNotAllowedKinds(definitions_notAllowedKinds);
-    setDockEnabled(false);
-
+    setDockOpen(false);
     connectToView();
+
+    connect(this, SIGNAL(dock_opened(bool)), this, SLOT(dockToggled(bool)));
+    connect(this, SIGNAL(dock_closed(bool)), this, SLOT(dockToggled(bool)));
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
 }
 
@@ -67,7 +63,7 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
  * @param nodeKind
  * @return
  */
-QList<DockNodeItem *> DefinitionsDockScrollArea::getDockItemsOfKind(QString nodeKind)
+QList<DockNodeItem*> DefinitionsDockScrollArea::getDockItemsOfKind(QString nodeKind)
 {
     QList<DockNodeItem*> itemsOfKind;
 
@@ -171,7 +167,7 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     DockNodeItem* dockNodeItem = qobject_cast<DockNodeItem*>(QObject::sender());
 
     if (!selectedNodeItem || !dockNodeItem || dockNodeItem->isDockItemLabel()) {
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 
@@ -179,11 +175,8 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     int dockNodeID = dockNodeItem->getID().toInt();
     getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, sourceDockItemKind, 0);
 
-    // disable this dock after an item has been clicked
-    dockClosed();
-
-    // then re-open the parts dock
-    emit dock_forceOpenDock(PARTS_DOCK);
+    // this closes this dock and then re-opens the parts dock
+    emit dock_forceOpenDock();
 }
 
 
@@ -199,9 +192,9 @@ void DefinitionsDockScrollArea::updateDock()
         return;
     }
 
-    // if there is no selected item, disable the dock
+    // if there is no selected item, close the dock
     if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 
@@ -209,7 +202,10 @@ void DefinitionsDockScrollArea::updateDock()
     if (getCurrentNodeID() == sourceSelectedItemID) {
         filterDock();
     } else {
-        setDockEnabled(false);
+        if (isDockOpen()) {
+            // this closes this dock and then opens the parts dock
+            emit dock_forceOpenDock();
+        }
     }
 }
 
@@ -247,6 +243,12 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
         }
         updateDock();
     }
+
+    DockNodeItem* newDockItem = getDockNodeItem(QString::number(entityItem->getID()));
+    if (newDockItem && getNodeView()) {
+        connect(newDockItem, SIGNAL(dockItem_hoverEnter(int)), getNodeView(), SLOT(highlightOnHover(int)));
+        connect(newDockItem, SIGNAL(dockItem_hoverLeave(int)), getNodeView(), SLOT(highlightOnHover(int)));
+    }
 }
 
 
@@ -259,18 +261,20 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
  */
 void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
 {
-    if (isDockOpen() || !getParentButton() || !getCurrentNodeItem() || (getCurrentNodeID() == -1)) {
+    if (isDockOpen() || !getCurrentNodeItem() || (getCurrentNodeID() == -1)) {
         return;
-    }
-
-    if (!isDockEnabled()) {
-        setDockEnabled(true);
     }
 
     sourceDockItemKind = srcKind;
     sourceSelectedItemID = getCurrentNodeID();
 
-    getParentButton()->pressed();
+    // close the sender dock then open this dock
+    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+    if (dock) {
+        dock->setDockOpen(false);
+    }
+
+    setDockOpen();
     filterDock(srcKind);
 }
 
@@ -301,10 +305,9 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
             }
             infoLabelText = "There are no IDL files containing " + kind + " entities.";
         }
-    } else if (nodeKind.endsWith("Delegate")) {
+    } else if (nodeKind.endsWith("Port") || nodeKind.endsWith("Delegate")) {
         kind = "Aggregate";
         infoLabelText = "There are no IDL files containing Aggregate entities.";
-
     } else if (nodeKind.endsWith("Impl")) {
         kind = nodeKind.remove("Impl");
         if (kind == "Component") {
@@ -317,7 +320,7 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
         }
     } else {
         qWarning() << "DefinitionsDockScrollArea::filterDock - Node kind is not handled.";
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 
@@ -342,17 +345,28 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
 /**
  * @brief DefinitionsDockScrollArea::dockClosed
  * This is called everytime the dock is closed.
- * It is either when the parent toggle button or an item in this dock has been clicked.
+ * It is either when the selection has changed or an item in this dock has been clicked.
  */
 void DefinitionsDockScrollArea::dockClosed()
 {
-    // the moment this dock is closed, it is also disabled
-    if (isDockEnabled()) {
-        setDockEnabled(false);
-    }
-
+    // reset previous source kind and ID that were used to filter this dock
     sourceDockItemKind = "";
     sourceSelectedItemID = -1;
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::dockToggled
+ * @param opened
+ */
+void DefinitionsDockScrollArea::dockToggled(bool opened)
+{
+    QString action = "";
+    if (opened) {
+        //action = "Select to construct a " + sourceDockItemKind;
+        action = sourceDockItemKind;
+    }
+    emit dock_toggled(opened, action);
 }
 
 
@@ -366,7 +380,7 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
 {
     // disable the dock
     if (nodeKind.isEmpty()) {
-        setDockEnabled(false);
+        setDockOpen(false);
         return;
     }
 
@@ -434,13 +448,15 @@ void DefinitionsDockScrollArea::showChildrenOutEventPorts()
 {
     NodeItem* selectedItem = getCurrentNodeItem();
     if (getCurrentNodeID() == -1 || !selectedItem || !selectedItem->getNodeAdapter()) {
+        qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - The selected entity is invalid.";
+        setDockOpen(false);
         return;
     }
 
-
     int definitionID = selectedItem->getNodeAdapter()->getDefinitionID();
     if (definitionID == -1) {
-        qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - Selected entity doesn't have a definition.";
+        qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - The selected entity doesn't have a definition.";
+        setDockOpen(false);
         return;
     }
 
@@ -453,7 +469,8 @@ void DefinitionsDockScrollArea::showChildrenOutEventPorts()
             }
         }
     } else {
-        setInfoText("Error: There is no dock item for the selected entity's definition.");
+        hideDockItems();
+        setInfoText("The selected entity's definition does not contain any OutEventPorts.");
     }
 }
 

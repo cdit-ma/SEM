@@ -9,31 +9,28 @@ QT       += xml
 QT       += gui
 QT       += widgets
 QT       += xmlpatterns
-QT       += multimedia
 
 
-VERSION = 1.2.0.0
+VERSION = 1.4.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 QMAKE_TARGET_COMPANY = Defence Information Group
 QMAKE_TARGET_PRODUCT = MEDEA
 QMAKE_TARGET_DESCRIPTION = Modelling, Experiment DEsign and Analysis
 
+
 TARGET = MEDEA
 
 TEMPLATE = app
 
 win32{
-    #Used for Icon in windows
+    #Used for Icon in windows.
     RC_ICONS = Resources/Images/MedeaIcon.ico
     LIBS += -lpsapi
 }
 mac{
     macx:ICON = $${PWD}/Resources/Images/MedeaIcon.icns
 }
-
-
-
 
 #DEBUG MODE FLAG
 #DEFINES += DEBUG_MODE
@@ -153,7 +150,13 @@ HEADERS += \
     Model/data.h \
     Controller/entityadapter.h \
     Controller/nodeadapter.h \
-    Controller/edgeadapter.h
+    Controller/edgeadapter.h \
+    Controller/behaviournodeadapter.h \
+    View/GraphicsItems/notificationitem.h \
+    doublehash.h \
+    Model/tempentity.h \
+    theme.h \
+    Model/Edges/deploymentedge.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -270,9 +273,15 @@ SOURCES += \
     Model/data.cpp \
     Controller/entityadapter.cpp \
     Controller/nodeadapter.cpp \
-    Controller/edgeadapter.cpp
+    Controller/edgeadapter.cpp \
+    Controller/behaviournodeadapter.cpp \
+    View/GraphicsItems/notificationitem.cpp \
+    doublehash.cpp \
+    Model/tempentity.cpp \
+    enumerations.cpp \
+    theme.cpp \
+    Model/Edges/deploymentedge.cpp
 
-FORMS +=
 
 RESOURCES += \
     resources.qrc
@@ -359,8 +368,14 @@ mac{
 
 
 
-SETTINGS_FILE.files += settings.ini
-SETTINGS_FILE.path = $$OUTPUT_DIR/
+equals($$DEPLOY, "true") {
+    SETTINGS_FILE.files += settings.ini
+    SETTINGS_FILE.path = $$OUTPUT_DIR/
+}else{
+    SETTINGS_FILE.files += settings.ini
+    SETTINGS_FILE.path = $$OUTPUT_DIR/
+}
+
 
 CHANGELOG_FILE.files += changelog.txt
 CHANGELOG_FILE.path = $$OUTPUT_DIR/
@@ -402,4 +417,7 @@ DISTFILES += \
     Resources/Images/qt.ico \
     Resources/Fonts/OpenSans-Regular.ttf \
     settings.ini \
-    doxygen.config
+    doxygen.config \
+    defaultSettings.ini \
+    Resources/Images/Actions/Export_Snippet.png \
+    Resources/Images/Actions/Import_Snippet.png

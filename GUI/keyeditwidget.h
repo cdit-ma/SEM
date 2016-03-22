@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QTextBrowser>
 #include <QVBoxLayout>
+#include <QPushButton>
+#include <QGroupBox>
 
 
 enum KEY_TYPE{
@@ -11,7 +13,8 @@ enum KEY_TYPE{
     KEY_INT,
     KEY_DOUBLE,
     KEY_BOOL,
-    KEY_FILE
+    KEY_FILE,
+    KEY_COLOR
 };
 class AppSettings;
 class KeyEditWidget : public QWidget
@@ -21,54 +24,52 @@ public:
     explicit KeyEditWidget(QString groupName, QString keyName, QString keyNameHR, QVariant valueVar, QString description="", QString customType="");
     QString getKeyName();
     QString getGroupName();
-    QString getValue();
+    QVariant getValue();
 
-    void setLabelWidth(int labelWidth);
+    int getLabelWidth();
+    void setLabelWidth(int width);
     void setValue(QVariant value);
 
     void setHighlighted(bool highlighted);
+    void updateColorWidget(QString color);
 signals:
-    void valueChanged(QString groupName, QString keyName, QString value);
+    void valueChanged(QString groupName, QString keyName, QVariant value);
 
 
 public slots:
-    void _boolChanged(bool value);
-    void _valueChanged(QString value);
+    void pickColor();
+    void pickPath();
+    void _valueChanged(QVariant value);
     void _editingFinished();
 
 
 private:
-    void updatePallete();
     QString keyName;
     QString hrKeyName;
 
     QString groupName;
-    QString newValue;
-    QString oldValue;
+
+    QVariant newValue;
+    QVariant oldValue;
     QString descriptionValue;
 
     bool highlighted;
 
+    bool isPath;
+    bool isFilePath;
+
     int difference;
+    QGroupBox* containerBox;
     QVBoxLayout* oldLayout;
     QVBoxLayout* vLayout;
     QWidget *valueBox;
-    QWidget *labelBox;
+    QWidget *value2Box;
+    QPushButton *labelButton;
     QString labelStyleSheet;
+    QString colorBoxStyleSheet;
     QTextBrowser* descriptionBox;
 
     KEY_TYPE keyType;
-
-    bool hover;
-
-    QPalette normalPal;
-
-    QPalette hoverPal;
-
-    // QWidget interface
-protected:
-    void enterEvent(QEvent *);
-    void leaveEvent(QEvent *);
 };
 
 #endif // KEYEDITWIDGET_H

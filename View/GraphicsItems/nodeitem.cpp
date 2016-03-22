@@ -124,7 +124,6 @@ void NodeItem::sortChildren()
         }
         NodeItem* nodeItem = (NodeItem*)child;
         //Find the sortOrder.
-        int childSortOrder = toSortMap.size();
         int sortOrder = nodeItem->getDataValue("sortOrder").toInt();
         toSortMap.insertMulti(sortOrder, nodeItem);
     }
@@ -250,6 +249,11 @@ void NodeItem::removeChildEdge(int ID)
 QList<EdgeItem *> NodeItem::getEdges()
 {
     return connectedEdges.values();
+}
+
+int NodeItem::getEdgeCount()
+{
+    return connectedEdges.size();
 }
 
 void NodeItem::resizeToOptimumSize(NodeItem::RESIZE_TYPE rt)

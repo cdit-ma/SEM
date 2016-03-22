@@ -21,7 +21,7 @@ class DockScrollArea : public QScrollArea
     Q_OBJECT
 
 public:
-    explicit DockScrollArea(QString label, NodeView* view, DockToggleButton* parent, QString dockEmptyText = "");
+    explicit DockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton* parent = 0, QString dockEmptyText = "");
 
     void setNotAllowedKinds(QStringList kinds);
     QStringList getNotAllowedKinds();
@@ -33,7 +33,7 @@ public:
     virtual QList<DockNodeItem*> getDockNodeItems();
 
     bool isDockOpen();
-    void setDockOpen(bool open);
+    void setDockOpen(bool open = true);
 
     bool isDockEnabled();
     void setDockEnabled(bool enabled);
@@ -60,7 +60,9 @@ public:
 signals:
     void dock_opened(bool open = true);
     void dock_closed(bool open = false);
-    void dock_forceOpenDock(DOCK_TYPE type, QString filterForKind = "");
+    void dock_toggled(bool open, QString action = "");
+    void dock_forceOpenDock(QString filterForKind);
+    void dock_forceOpenDock();
 
 public slots:
     virtual void dockNodeItemClicked() = 0;
@@ -96,7 +98,10 @@ private:
     bool infoLabelVisible;
 
     QString label;
-    bool dockOpen;
+    DOCK_TYPE dockType;
+
+    bool OPEN;
+    bool ENABLED;
 
     QHash<QString, DockNodeItem*> dockNodeItems;
     QList<int> dockNodeIDs;

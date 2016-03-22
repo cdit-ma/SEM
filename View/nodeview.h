@@ -19,6 +19,7 @@
 #include <QPointF>
 #include <QRubberBand>
 #include <QMutex>
+#include "theme.h"
 //#include <QSoundEffect>
 
 #include "../enumerations.h"
@@ -44,12 +45,15 @@ public:
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
 
+
     void setApplicationDirectory(QString appDir);
     void setCursor(QCursor cursor);
     void unsetCursor();
 
     void destroySubViews();
 
+
+    QImage renderScreenshot(bool currentViewPort = true, int quality=1);
     //Set Controller
 
     void setController(NewController* controller);
@@ -110,7 +114,6 @@ public:
     void viewDeploymentAspect();
 
 
-    QPixmap getImage(QString alias, QString imageName);
     EntityItem* getImplementation(int ID);
     QList<EntityItem*> getInstances(int ID);
     EntityItem* getDefinition(int ID);
@@ -130,10 +133,10 @@ public:
 
     void setVisible(bool visible);
 
+    void updateActionsEnabledStates(bool updateDocks = false);
 
-    void aspectGraphicsChanged();
-    void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
-    VIEW_THEME getTheme();
+    void viewportTranslated();
+
 
 protected:
     //Mouse Handling Methods
@@ -151,7 +154,6 @@ protected:
 
     void setReadOnlyMode(bool readOnly);
 
-    bool viewportEvent(QEvent *);
 
 private:
     void resetViewState();
@@ -163,13 +165,16 @@ private slots:
     void controllerDestroyed();
     void settingChanged(QString groupName, QString keyName, QVariant value);
     void modelReady();
+    void themeChanged();
 
 
     void hardwareClusterMenuClicked(int viewMode);
 
-    void actionFinished();
+    void selectionChanged();
 
+    void actionFinished();
 signals:
+    void view_LaunchWiki(QString entityKind);
     void view_ProjectFileChanged(QString);
     void view_ProjectNameChanged(QString);
 
@@ -220,6 +225,7 @@ signals:
     void view_Undo();
     void view_Redo();
 
+    void view_RefreshDock();
     void view_SetData(int, QString, QVariant);
     void view_ConstructData(GraphML*, QString);
     void view_DestructData(GraphML*, QString);
@@ -261,12 +267,13 @@ signals:
     void view_toggleAspect(VIEW_ASPECT, bool);
 
     void view_updateProgressStatus(int percent, QString action="");
-    void view_displayNotification(QString notification, int seqNum = 0, int totalNum = 1);
+    void view_DisplayNotification(QString notification, QString actionImage = "");
 
     void view_EntityItemLockMenuClosed(EntityItem* EntityItem);
     void view_QuestionAnswered(bool answer);
 
     void view_ProjectRequiresSaving(bool requiresSave);
+
 public slots:
     QPointF getCenterOfScreenScenePos(QPoint mousePosition = QPoint());
     void canUndo(bool okay);
@@ -281,6 +288,8 @@ public slots:
     void clearState();
     void request_ImportSnippet();
     void request_ExportSnippet();
+
+    void entitySetReadOnly(int ID, bool isReadOnly);
 
     void hardwareDockOpened(bool opened);
     void showQuestion(MESSAGE_TYPE type, QString title, QString message, int ID);
@@ -306,7 +315,7 @@ public slots:
 
     void setEnabled(bool);
 
-    void showMessage(MESSAGE_TYPE type, QString title, QString message, int ID=-1, bool centralizeItem = false);
+    void showMessage(MESSAGE_TYPE type, QString messageString, QString messageTitle, QString messageIcon, int centerID=-1);
 
     void view_ClearHistory();
 
@@ -329,13 +338,15 @@ public slots:
     void undo();
     void redo();
 
-    void appendToSelection(GraphMLItem* item, bool updateActions=true);
-    void removeFromSelection(GraphMLItem* item);
+    void appendToSelection(GraphMLItem* item, bool updateActions=false);
+    void removeFromSelection(GraphMLItem* item, bool updateActions=false);
+    void clearSelection(bool updateActions = false);
+
+
     void moveSelection(QPointF delta);
     void resizeSelection(int ID, QSizeF delta);
     void moveFinished();
     void resizeFinished(int ID);
-    void clearSelection(bool updateTable = true, bool updateDocks = true);
 
     void toggleGridLines(bool gridOn);
     void autoCenterAspects(bool center);
@@ -422,24 +433,23 @@ public slots:
     void itemEntered(int ID, bool enter);
 
 
+    void translate(qreal dx, qreal dy);
 private:
     AspectItem* getAspectItem(VIEW_ASPECT aspect);
     void setConnectMode(bool on);
     void setRubberBandMode(bool On);
     void setState(VIEW_STATE newState);
 
-    void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
+    qreal getArrowKeyDelta(bool SHIFT, bool neg = false);
     void transition();
     void selectJenkinsImportedNodes();
     void _deleteFromIDs(QList<int> IDs);
-    void updateActionsEnabledStates();
     void alignSelectionOnGrid(ALIGN alignment = NONE);
     void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
     void connectGraphMLItemToController(GraphMLItem* GUIItem);
     void storeGraphMLItemInHash(GraphMLItem* item);
     void unsetItemsDescendants(GraphMLItem* selectedItem);
     void nodeConstructed_signalUpdates(NodeItem *EntityItem);
-    void nodeSelected_signalUpdates();
     void edgeConstructed_signalUpdates();
     void centerRect(QRectF rect, double padding = 0, bool addToMap = true);
     void centerViewOn(QPointF center);
@@ -466,10 +476,8 @@ private:
     QPointF getModelScenePos();
 
 
-    void setNoModelTextVisible(bool hasModel);
 
     int getMapSize();
-
 
 
     QStringList getAdoptableNodeList(int ID);
@@ -504,11 +512,15 @@ private:
     QList<NodeItem*> getNodeItemsList();
     QList<EdgeItem*> getEdgeItemsList();
 
+    NodeItem* getSharedParentNodeItem(QList<GraphMLItem *> graphMLItems);
 
+    void updateDeploymentWarnings(int nodeID = -1);
 
+    int getDeployedHardwareID(EntityItem* item);
 
     NodeView* parentNodeView;
     ToolbarWidget* toolbar;
+
     NewController* controller;
     QRubberBand* rubberBand;
     QMenu* prevLockMenuOpened;
@@ -521,17 +533,16 @@ private:
 
     QStringList nonDrawnItemKinds;
     QList<NODE_CLASS> nonDrawnNodeClasses;
-    QList<EDGE_CLASS> nonDrawnEdgeClasses;
+    QList<Edge::EDGE_CLASS> nonDrawnEdgeClasses;
 
 
-    QPoint panningOrigin;
-    QPoint previousPanPos;
+    QPoint panOrigin;
+    QPointF panPrevPos;
     QPoint rubberBandOrigin;
 
     QPointF toolbarPosition;
     QPointF centerPoint;
     QPointF prevCenterPoint;
-    //QPointF panningSceneOrigin;
     QPoint testSceneOrigin;
 
     int centralizedItemID;
@@ -572,10 +583,13 @@ private:
     bool eventFromEdgeItem;
     bool wasPanning;
 
-    qreal zoomCurrent;
+    qreal currentZoom;
+    QRectF currentVisibleRect;
     //Selection Lists
     QList<int> selectedIDs;
     QList<int> highlightedIDs;
+    QList<int> hardwareHighlightedIDs;
+
     QList<NodeView*> subViews;
 
     QStack<QPointF> viewCenterPointStack;
@@ -585,8 +599,8 @@ private:
     QHash<int, QPointF> modelPositions;
     QHash<int, QRectF> centeredRects;
 
-    QHash<int, int> definitionIDs;
 
+    QList<int> aspectIDs;
     QHash<QString, QPixmap> imageLookup;
     QHash<int, GraphMLItem*> guiItems;
     QHash<int, QString> noGuiIDHash;
@@ -601,9 +615,8 @@ private:
 
     bool ZOOM_UNDER_MOUSE;
 
+    VIEW_ASPECT aspectVisible;
 
-    QGraphicsTextItem* backgroundText;
-	//QSoundEffect* clickSound;
 
     QString applicationDirectory;
 protected:

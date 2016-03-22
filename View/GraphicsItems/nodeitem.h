@@ -54,6 +54,9 @@ public:
     void removeChildEdge(int ID);
     QList<EdgeItem*> getEdges();
 
+    int getEdgeCount();
+
+
 
 
     void resizeToOptimumSize(RESIZE_TYPE rt = RESIZE);

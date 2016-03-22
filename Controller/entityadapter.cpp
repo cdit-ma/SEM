@@ -14,6 +14,7 @@ EntityAdapter::EntityAdapter(Entity *entity): QObject(0)
     connect(entity, SIGNAL(dataChanged(QString,QVariant)), this, SIGNAL(dataChanged(QString,QVariant)));
     connect(entity, SIGNAL(dataAdded(QString,QVariant)), this, SIGNAL(dataAdded(QString,QVariant)));
     connect(entity, SIGNAL(dataRemoved(QString)), this, SIGNAL(dataRemoved(QString)));
+    connect(entity, SIGNAL(readOnlySet(int, bool)), this, SIGNAL(readOnlySet(int, bool)));
 }
 
 EntityAdapter::~EntityAdapter()
@@ -61,7 +62,11 @@ bool EntityAdapter::isDataProtected(QString keyName)
             if(data->isVisualData()){
                 return false;
             }else{
-                return data->isProtected();
+                if(_entity->isReadOnly()){
+                    return true;
+                }else{
+                    return data->isProtected();
+                }
             }
         }
     }
@@ -73,6 +78,24 @@ QStringList EntityAdapter::getKeys()
     QStringList list;
     if(isValid()){
         list = _entity->getKeyNames();
+    }
+    return list;
+}
+
+QStringList EntityAdapter::getValidValuesForKey(QString keyName)
+{
+    QStringList list;
+    if(isValid()){
+        QString nodeKind = getDataValue("kind").toString();
+        if(nodeKind != ""){
+            Data* data = _entity->getData(keyName);
+            if(data){
+                Key* key = data->getKey();
+                if(key){
+                    list = key->getValidValues(nodeKind);
+                }
+            }
+        }
     }
     return list;
 }
@@ -114,6 +137,8 @@ bool EntityAdapter::isValid()
     return _isValid;
 }
 
+
+
 void EntityAdapter::addListener(QObject *object)
 {
     if(!_listeners.contains(object)){
@@ -131,6 +156,11 @@ void EntityAdapter::removeListener(QObject *object)
         }
    }
 
+}
+
+bool EntityAdapter::hasListeners()
+{
+    return _listeners.isEmpty();
 }
 
 void EntityAdapter::invalidate()

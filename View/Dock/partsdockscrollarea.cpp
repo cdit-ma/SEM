@@ -5,18 +5,21 @@
 
 /**
  * @brief PartsDockScrollArea::PartsDockScrollArea
- * @param label
+ * @param type
  * @param view
  * @param parent
  */
-PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent) :
-    DockScrollArea(label, view, parent, "Selected entity cannot adopt any other entity.")
+
+PartsDockScrollArea::PartsDockScrollArea(DOCK_TYPE type, NodeView *view, DockToggleButton *parent) :
+    DockScrollArea(type, view, parent, "Selected entity cannot adopt any other entity.")
 {
     kindsRequiringDefinition.append("BlackBoxInstance");
     kindsRequiringDefinition.append("ComponentInstance");
     kindsRequiringDefinition.append("ComponentImpl");
     kindsRequiringDefinition.append("AggregateInstance");
     kindsRequiringDefinition.append("VectorInstance");
+    kindsRequiringDefinition.append("InEventPort");
+    kindsRequiringDefinition.append("OutEventPort");
     kindsRequiringDefinition.append("InEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortImpl");
@@ -99,10 +102,14 @@ void PartsDockScrollArea::forceOpenDock()
     if (!isDockEnabled()) {
         setDockEnabled(true);
     }
-    if (getParentButton()) {
-        getParentButton()->pressed();
-        updateDock();
+
+    // close the sender dock then open this dock
+    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+    if (dock) {
+        dock->setDockOpen(false);
     }
+    setDockOpen();
+    updateDock();
 }
 
 
@@ -140,6 +147,10 @@ bool PartsDockScrollArea::kindRequiresDockSwitching(QString dockItemKind)
     return kindsRequiringDefinition.contains(dockItemKind) || kindsRequiringFunction.contains(dockItemKind);
 }
 
+
+/**
+ * @brief PartsDockScrollArea::connectToView
+ */
 void PartsDockScrollArea::connectToView()
 {
     NodeView* view = getNodeView();
@@ -162,9 +173,11 @@ void PartsDockScrollArea::dockNodeItemClicked()
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
     QString nodeKind = sender->getKind();
     if (kindsRequiringDefinition.contains(nodeKind)) {
-        emit dock_forceOpenDock(DEFINITIONS_DOCK, nodeKind);
+        //qDebug() << "Open Definitions Dock";
+        emit dock_forceOpenDock(nodeKind);
     } else if (kindsRequiringFunction.contains(nodeKind)) {
-        emit dock_forceOpenDock(FUNCTIONS_DOCK);
+        //qDebug() << "Open Functions Dock";
+        emit dock_forceOpenDock();
     } else {
         getNodeView()->constructNode(nodeKind, 0);
     }

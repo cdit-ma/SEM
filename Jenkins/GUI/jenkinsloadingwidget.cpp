@@ -1,6 +1,7 @@
 #include "jenkinsloadingwidget.h"
 #include <QBoxLayout>
 #include <QLabel>
+#include "../../theme.h"
 #include <QProgressBar>
 
 /**
@@ -23,9 +24,8 @@ JenkinsLoadingWidget::JenkinsLoadingWidget(QWidget *parent):QWidget(parent)
     titleLayout->setMargin(1);
 
     //Get the Jenkins Logo and scale.
-    QImage jenkinsLogo(":/Actions/Jenkins_Icon.png");
-    QImage jenkinsText(":/Actions/Jenkins_Text.png");
-
+    QPixmap jenkinsLogo = Theme::theme()->getImage("Actions", "Jenkins_Icon");
+    QPixmap jenkinsText = Theme::theme()->getImage("Actions", "Jenkins_Text");
 
     //Set the size to match the Jenkins Webpage Sizes.
     jenkinsLogo = jenkinsLogo.scaled(36,36, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -33,11 +33,11 @@ JenkinsLoadingWidget::JenkinsLoadingWidget(QWidget *parent):QWidget(parent)
 
     //Setup a QLabel to hold the pixmap for the Logo
     QLabel* jenkinsIcon = new QLabel();
-    jenkinsIcon->setPixmap(QPixmap::fromImage(jenkinsLogo));
+    jenkinsIcon->setPixmap(jenkinsLogo);
 
     //Setup a QLabel to hold the pixmap for the Text
     QLabel* jenkinsLabel = new QLabel();
-    jenkinsLabel->setPixmap(QPixmap::fromImage(jenkinsText));
+    jenkinsLabel->setPixmap(jenkinsText);
 
     //Add QLabels to the title layout.
     titleLayout->addWidget(jenkinsIcon);

@@ -7,9 +7,11 @@
 #include <QPainterPath>
 #include <QBrush>
 
+#include "../../theme.h"
 
-#define BUTTON_WIDTH 40
-#define BUTTON_HEIGHT 40
+//#define BUTTON_WIDTH 40
+#define BUTTON_WIDTH 65
+#define BUTTON_HEIGHT 42
 
 #define DEFAULT 0
 #define SELECTED 1
@@ -32,38 +34,41 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
     enabled = false;
 
     QSize buttonSize(BUTTON_WIDTH + 4, BUTTON_HEIGHT + 4);
-    QSize pixmapSize = buttonSize * 0.6;
+    QSize pixmapSize = buttonSize * 0.55;
     QPixmap pixmap;
 
     switch (type) {
     case PARTS_DOCK:
-        pixmap = QPixmap::fromImage(QImage(":/Actions/Parts.png"));
+        pixmap = Theme::theme()->getImage("Actions", "Parts");
+        pixmapSize *= 1.25;
         setToolTip("Parts Dock");
         break;
     case DEFINITIONS_DOCK:
-        pixmap = QPixmap::fromImage(QImage(":/Actions/Definition.png"));
+        pixmap = Theme::theme()->getImage("Actions", "Definition");
         pixmapSize /= 1.5;
         setToolTip("Definitions Dock");
         break;
     case FUNCTIONS_DOCK:
-        pixmap = QPixmap::fromImage(QImage(":/Actions/Function.png"));
+        pixmap = Theme::theme()->getImage("Actions", "Function");
         pixmapSize /= 1.25;
         setToolTip("Functions Dock");
         break;
     case HARDWARE_DOCK:
-        pixmap = QPixmap::fromImage(QImage(":/Items/HardwareNode.png"));
+        pixmap = Theme::theme()->getImage("Actions", "Computer_DockButton");
         setToolTip("Hardware Dock");
         break;
     default:
+        qWarning() << "DockToggleButton::DockToggleButton - Unknown dock type.";
         break;
     }
 
-    fixedStyleSheet = "QPushButton:hover {"
-                      "background-color: white;"
+    fixedStyleSheet = "QPushButton:disabled {"
+                      "border: 1px solid rgb(125,125,125);"
+                      "background: rgb(150,150,150);"
                       "}"
-                      "QPushButton:disabled {"
-                      "border: 1px solid rgb(140,140,140);"
-                      "background-color: rgb(150,150,150);"
+                      "QPushButton:hover {"
+                      "border: 1px solid rgb(125,125,125);"
+                      "background: rgb(150,150,150);"
                       "}"
                       "QToolTip{ background: white; }";
 
@@ -75,6 +80,7 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
     // make connections
     connect(this, SIGNAL(pressed()), window, SLOT(dockButtonPressed()));
     connect(window, SIGNAL(window_dockButtonPressed(DOCK_TYPE)), this, SLOT(dockButtonPressed(DOCK_TYPE)));
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
 
@@ -117,10 +123,10 @@ void DockToggleButton::setSelected(bool b)
  */
 void DockToggleButton::hideDock()
 {
-    // if the groupbox is still visible, force press this button to hide it
-    if (selected) {
-        emit pressed();
+    if (dock) {
+        dock->setDockOpen(false);
     }
+    setSelected(false);
 }
 
 
@@ -142,13 +148,6 @@ DockScrollArea* DockToggleButton::getDock()
 void DockToggleButton::setDock(DockScrollArea* dock)
 {
     this->dock = dock;
-
-    // connect the dock to the parent window
-    if (parentWindow && dock) {
-        connect(parentWindow, SIGNAL(window_clearDocks()), dock, SLOT(clear()));
-        connect(parentWindow, SIGNAL(window_clearDocksSelection()), dock, SLOT(clearSelected()));
-        connect(dock, SIGNAL(dock_forceOpenDock(DOCK_TYPE,QString)), parentWindow, SLOT(forceOpenDock(DOCK_TYPE,QString)));
-    }
 }
 
 
@@ -160,6 +159,17 @@ void DockToggleButton::setDock(DockScrollArea* dock)
 int DockToggleButton::getWidth()
 {
     return BUTTON_WIDTH;
+}
+
+
+/**
+ * @brief DockToggleButton::getHeight
+ * Returns the height of this button.
+ * @return
+ */
+int DockToggleButton::getHeight()
+{
+   return BUTTON_HEIGHT;
 }
 
 
@@ -209,9 +219,27 @@ void DockToggleButton::dockButtonPressed(DOCK_TYPE type)
         } else {
             updateStyleSheet(DEFAULT);
         }
-        // show/hide the attached dock
-        getDock()->setDockOpen(selected);
     }
+
+    // show/hide the attached dock
+    getDock()->setDockOpen(selected);
+}
+
+
+/**
+ * @brief DockToggleButton::themeChanged
+ */
+void DockToggleButton::themeChanged()
+{
+    fixedStyleSheet = "QPushButton:disabled {"
+                      "background:" + Theme::theme()->getDisabledBackgroundColorHex() + ";"
+                      "}"
+                      "QPushButton:hover {"
+                      "background:" + Theme::theme()->getHighlightColorHex() + ";"
+                      "}"
+                      "QToolTip{ background: white; }";
+
+    updateStyleSheet();
 }
 
 
@@ -221,37 +249,40 @@ void DockToggleButton::dockButtonPressed(DOCK_TYPE type)
  */
 void DockToggleButton::updateStyleSheet(int state)
 {
-    QString borderStyleSheet;
-    QString backgroundStyleSheet;
+    QString backgroundStyleSheet = "background:" + Theme::theme()->getAltBackgroundColorHex() + ";";
+
+    if (state == -1) {
+        if (isSelected()) {
+            state = SELECTED;
+        } else {
+            state = DEFAULT;
+        }
+    }
 
     switch (state) {
-    case DEFAULT:
-        borderStyleSheet = "border: 1px solid rgb(100,100,100);";
-        backgroundStyleSheet = "background-color: rgb(235,235,235);";
-        break;
     case SELECTED:
-        borderStyleSheet = "border: 2px solid rgb(50,50,250);";
-        backgroundStyleSheet = "background-color: rgb(240,240,240);";
+        //backgroundStyleSheet = "background:" + Theme::theme()->getPressedColorHex() + ";";
+        backgroundStyleSheet = "background: rgba(250,250,250,240);";
         break;
     default:
-        return;
+        break;
     }
 
     setStyleSheet("QPushButton {"
                   "padding: 0px;"
-                  //"border-radius: 22px;"
-                  + borderStyleSheet
-                  + backgroundStyleSheet +
-                  "}" + fixedStyleSheet);
+                  //"border: 1px solid rgb(125,125,125);"
+                  "border: 1px solid " + Theme::theme()->getDisabledBackgroundColorHex() + ";"
+                  + backgroundStyleSheet
+                  + "}"
+                  + fixedStyleSheet);
 }
 
 
 /**
  * @brief DockToggleButton::setEnabled
  * This enables/disables this dock toggle button, updating its selected and enabled state and its colour.
- * If this button was previously selected, it makes sure that the dock attched to it is closed.
+ * If this button was previously selected, it makes sure that the dock attached to it is closed.
  * @param enable
- * @param repaint
  */
 void DockToggleButton::setEnabled(bool enable)
 {

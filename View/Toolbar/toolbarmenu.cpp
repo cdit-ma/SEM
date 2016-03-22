@@ -40,8 +40,9 @@ ToolbarMenu::ToolbarMenu(ToolbarWidget* toolbar, ToolbarMenuAction* info_action)
     connect(this, SIGNAL(aboutToShow()), toolbar, SLOT(appendToOpenMenusList()));
     connect(this, SIGNAL(aboutToHide()), toolbar, SLOT(removeFromOpenMenusList()));
     connect(this, SIGNAL(aboutToHide()), toolbar, SLOT(menuActionHovered()));
-    connect(this, SIGNAL(hovered(QAction*)), toolbar, SLOT(menuActionHovered(QAction*)));
     connect(this, SIGNAL(triggered(QAction*)), this, SLOT(menuTriggered(QAction*)));
+    connect(this, SIGNAL(hovered(QAction*)), toolbar, SLOT(menuActionHovered(QAction*)));
+    connect(this, SIGNAL(toolbarMenu_hoverLeave(QAction*)), toolbar, SLOT(menuActionHovered(QAction*)));
 }
 
 
@@ -188,6 +189,17 @@ void ToolbarMenu::mousePressEvent(QMouseEvent* event)
     if (mb == Qt::LeftButton || mb == Qt::RightButton) {
         QMenu::mousePressEvent(event);
     }
+}
+
+
+/**
+ * @brief ToolbarMenu::leaveEvent
+ * @param event
+ */
+void ToolbarMenu::leaveEvent(QEvent *event)
+{
+    emit toolbarMenu_hoverLeave();
+    QMenu::leaveEvent(event);
 }
 
 

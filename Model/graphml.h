@@ -10,6 +10,7 @@ public:
     GraphML(GRAPHML_KIND kind);
 
     GraphML::GRAPHML_KIND getGraphMLKind() const;
+    void setID();
     int getID();
 
     //Pure Virtual

@@ -8,7 +8,7 @@ class HardwareDockScrollArea : public DockScrollArea
     Q_OBJECT
     
 public:
-    explicit HardwareDockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
+    explicit HardwareDockScrollArea(DOCK_TYPE type, NodeView *view, DockToggleButton *parent);
 
     void connectToView();
     
@@ -21,6 +21,8 @@ public slots:
 
     void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
+
+    void displayHighlightedItem();
 
 private:
     void highlightHardwareConnection(QList<GraphMLItem*> selectedItems);

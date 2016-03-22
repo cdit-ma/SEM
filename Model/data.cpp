@@ -21,6 +21,21 @@ Data::Data(Key *key, QVariant value, bool protect):GraphML(GK_DATA)
     }
 }
 
+Data::~Data()
+{
+    if(_parentData){
+        //Unset Parent Data.
+        _parentData->removeChildData(this);
+    }
+    QList<Data*> childData = _childData.values();
+    while(!childData.isEmpty()){
+        Data* cData = childData.takeFirst();
+        if(cData){
+            cData->unsetParentData();
+        }
+    }
+}
+
 Data *Data::clone(Data *data)
 {
     Data* cloneData = 0;
@@ -39,6 +54,8 @@ void Data::setParent(Entity *parent)
 {
     if(parent){
         connect(this, SIGNAL(dataChanged(int,QString,QVariant)), parent, SLOT(dataChanged(int, QString,QVariant)));
+        //Set the ID
+        setID();
     }
     _parent = parent;
 }
@@ -171,7 +188,7 @@ QString Data::toGraphML(int indentDepth)
 
 QString Data::toString()
 {
-    return QString("[" + QString::number(getID()) + "]Data" + getKeyName() + ": " + getValue().toString());
+    return QString("[" + QString::number(getID()) + "] Data " + getKeyName() + ": " + getValue().toString());
 }
 
 void Data::addChildData(Data *childData)
@@ -199,7 +216,7 @@ void Data::removeChildData(Data *childData)
     }
 }
 
-void Data::parentDataChanged(int ID, QString keyName, QVariant data)
+void Data::parentDataChanged(int ID, QString, QVariant data)
 {
     if(ID == _parentDataID){
         //If this signal is coming from our parent, update our value

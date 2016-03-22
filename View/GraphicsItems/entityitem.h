@@ -22,6 +22,7 @@
 #include "nodeitem.h"
 #include "inputitem.h"
 #include "statusitem.h"
+#include "notificationitem.h"
 
 #include "../../Model/node.h"
 #include "../../Model/data.h"
@@ -39,7 +40,7 @@ public:
 
 
 
-    enum IMAGE_POS{IP_TOPLEFT, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
+    enum IMAGE_POS{IP_TOPLEFT, IP_TOPMID, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER, IP_CENTER_SMALL};
 
     EntityItem(NodeAdapter* node, NodeItem *parent);
     ~EntityItem();
@@ -53,6 +54,8 @@ public:
     //Used Methods
     void setZValue(qreal z);
     void restoreZValue();
+
+    void setHighlighted(bool isHighlight);
 
     void setNodeConnectable(bool connectable);
 
@@ -81,8 +84,6 @@ public:
     QRectF expandedBoundingRect() const;
     QRectF expandedLabelRect() const;
 
-    int getEdgeItemIndex(EdgeItem* item = 0);
-    int getEdgeItemCount();
 
     QRectF gridRect() const;
 
@@ -99,8 +100,8 @@ public:
 
     bool isHardwareHighlighted();
     bool isNodeReadOnly();
+    bool isNodeReadOnlyDefinition();
     void setHardwareHighlighting(bool highlighted);
-
 
     bool isHardwareCluster();
     bool isHardwareNode();
@@ -137,9 +138,6 @@ public:
     void setHidden(bool hidden);
 
 
-    void addEdgeItem(EdgeItem* line);
-    void updateDefinition();
-    void removeEdgeItem(EdgeItem* line);
 
 
     void setCenterPos(QPointF pos);
@@ -180,7 +178,6 @@ public:
     QMenu* getChildrenViewOptionMenu();
     QRectF geChildrenViewOptionMenuSceneRect();
     void showHardwareIcon(bool show);
-    QList<EntityItem *> deploymentView(bool on, EntityItem* selectedItem = 0);
 
     int getChildrenViewMode();
 
@@ -231,6 +228,10 @@ signals:
 
 
 public slots:
+    void gotDefinition(bool def);
+    void edgeAdded(int ID, Edge::EDGE_CLASS edgeClass);
+    void edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
+
     void labelEditModeRequest();
     void dataChanged(QString dataValue);
     void labelUpdated(QString newLabel);
@@ -270,7 +271,11 @@ public slots:
     void hardwareClusterMenuItemPressed();
     int getHardwareClusterChildrenViewMode();
 
-    void themeChanged(VIEW_THEME theme);
+    void highlightHardwareLink(NodeItem* nodeItem = 0);
+
+    void themeChanged();
+
+    void showDeploymentWarning(bool show);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -284,7 +289,10 @@ protected:
 
 
 private:
+    void updateErrorState();
     void updateTextVisibility();
+
+    void setWarning(bool warning, QString warningTooltip);
 
     void updateDisplayedChildren(int viewMode);
 
@@ -296,6 +304,12 @@ private:
     QRectF textRect_Right() const;
     QRectF textRect_Bot() const;
 
+
+    QRectF statusRect_Left() const;
+    QRectF iconRect_TopMid() const;
+    QRectF iconRect_Center() const;
+    //QRectF iconRect_MidRight() const;
+
     QRectF iconRect_TopLeft() const;
     QRectF iconRect_TopRight() const;
     QRectF iconRect_BottomLeft() const;
@@ -305,7 +319,7 @@ private:
     void setImage(IMAGE_POS pos, QPixmap image);
 
 
-    void paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update=false);
+    void paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update=false);
 
 
     //USED PARAMETERS;
@@ -335,7 +349,7 @@ private:
     void setupDataConnections();
     void setupChildrenViewOptionMenu();
 
-    void retrieveData();
+
     void updateTextLabel(QString text="");
     void childUpdated();
 
@@ -365,6 +379,7 @@ private:
     bool IS_HARDWARE_NODE;
     bool IS_VECTOR;
 
+    bool IS_ONLINE;
     int CHILDREN_VIEW_MODE;
     bool sortTriggerAction;
     bool eventFromMenu;
@@ -377,6 +392,7 @@ private:
     QString nodeKind;
     QString nodeLabel;
     QString nodeType;
+    QString workerKind;
     QString operationKind;
     QString fileID;
 
@@ -387,7 +403,7 @@ private:
 
     bool hasHardwareWarning;
 
-
+    bool isHardwareLink;
 
     bool hidden;
 
@@ -417,7 +433,6 @@ private:
     QPointF previousScenePosition;
 
     //USED TO DETERMINE THE NUMBER OF EDGES.
-    QList<EdgeItem*> connections;
 
     QList<int> currentLeftEdgeIDs;
     QList<int> currentRightEdgeIDs;
@@ -446,6 +461,11 @@ private:
     QBrush readOnlyBodyBrush;
     QBrush readOnlyHeaderBrush;
 
+    QBrush readOnlyDefBodyBrush;
+    QBrush readOnlyDefHeaderBrush;
+
+    QBrush errorHeaderBrush;
+
     QPen pen;
     QPen selectedPen;
     bool updatedAlready;
@@ -472,6 +492,7 @@ private:
     InputItem* rightLabelInputItem;
 
     StatusItem* statusItem;
+    NotificationItem* notificationItem;
 
     QString descriptionValue;
     QString nodeHardwareOS;
@@ -480,6 +501,8 @@ private:
     bool nodeMemberIsKey;
 
     bool IS_READ_ONLY;
+    bool IS_READ_ONLY_DEF;
+    bool IS_READ_ONLY_SNIPPET;
 
     bool isInputParameter;
     bool isReturnParameter;
@@ -492,6 +515,9 @@ private:
     QString statusModeDataKey;
     bool hasEditData;
     bool editableDataDropDown;
+
+    bool hasWarning;
+    QString warningTooltip;
     // GraphMLItem interface
 public slots:
     bool canHover();

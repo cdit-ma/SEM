@@ -9,11 +9,13 @@
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 #include "../../enumerations.h"
+#include "../../theme.h"
 
 EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     QGraphicsTextItem(parent)
 {
     alignment = Qt::AlignLeft;
+
 
     currentFullValue = "";
     currentTruncValue = "";
@@ -23,7 +25,6 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
 
     setFlag(ItemIsFocusable, false);
     setFlag(ItemIsSelectable, false);
-
     setTextInteractionFlags(Qt::NoTextInteraction);
 
     this->setAcceptHoverEvents(false);
@@ -191,7 +192,6 @@ QString EditableTextItem::getTruncatedText(const QString text)
 
     //Have to truncate.
     //
-    bool firstInsert = true;
     bool isEven = text.size() % 2;
     if(fm.width(fullText) > textWidth){
         int centerIndex = fullText.size() / 2;
@@ -276,6 +276,7 @@ void EditableTextItem::setEditable(bool edit)
 {
     editable = edit;
 }
+
 
 
 void EditableTextItem::keyPressEvent(QKeyEvent *event)

@@ -64,7 +64,7 @@ private slots:
     void getJobState(QString jobName, int buildNumber, QString activeConfiguration="");
 
     //Requests
-    void runGroovyScript(QString groovyScriptPath);
+    void runGroovyScript(QString groovyScriptPath, QString parameters="");
     void buildJob(QString jobName, Jenkins_JobParameters jobParameters);
     void stopJob(QString jobName, int buildNumber, QString activeConfiguration="");
     void validateJenkinsSettings();

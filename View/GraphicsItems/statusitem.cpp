@@ -3,15 +3,16 @@
 #include <QDebug>
 #include <QFontMetrics>
 #include <QGraphicsSceneMouseEvent>
+#include "../../theme.h"
 
 #define RADIUS 10
-#define VERT_PADDING 2
-#define HORIZ_PADDING 2
+#define VERT_PADDING 4
+#define HORIZ_PADDING 4
 StatusItem::StatusItem(GraphMLItem *item):InputItem(item, "", false)
 {
     setHeight(RADIUS * 2);
     setWidth(RADIUS * 2);
-    setValue("0");
+    setValue("");
     editMode = false;
     wasTextEditing = false;
 
@@ -19,6 +20,9 @@ StatusItem::StatusItem(GraphMLItem *item):InputItem(item, "", false)
     setTextColor(Qt::white);
     connect(this, SIGNAL(InputItem_HasFocus(bool)), SLOT(textFocussed(bool)));
     setCursor(Qt::PointingHandCursor);
+    hoverOnUp = false;
+    hoverOnDown = false;
+
 }
 
 QRectF StatusItem::boundingRect() const
@@ -44,6 +48,17 @@ QRectF StatusItem::botRect() const
     rect.setHeight(rect.width());
     rect.moveBottomRight(boundingRect().bottomRight());
     return rect;
+}
+
+QPointF StatusItem::getCircleCenter()
+{
+    return topRight;
+}
+
+void StatusItem::setBackgroundColor(QColor color)
+{
+    backgroundColor = color;
+    update();
 }
 
 void StatusItem::incrementDecrementNumber(bool inc)
@@ -108,7 +123,7 @@ void StatusItem::setCircleCenter(QPointF pos)
     updatePosition();
 }
 
-void StatusItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void StatusItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
 
     QRectF rect = InputItem::boundingRect();
@@ -116,10 +131,12 @@ void StatusItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         rect = boundingRect();
     }
     painter->setPen(Qt::NoPen);
-    painter->setBrush(QColor(0,150,150));
+    painter->setBrush(backgroundColor);
     painter->drawRoundedRect(rect,getHeight()/2,getHeight()/2);
 
     if(editMode){
+         qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
+
         QRectF sideRect = botRect().united(topRect());
         painter->setClipping(true);
         painter->setClipRect(sideRect);
@@ -127,10 +144,11 @@ void StatusItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         painter->setPen(Qt::NoPen);
         painter->drawRect(sideRect);
 
+
         //Setup Pen for side Rect.
         QPen pen;
         pen.setWidthF(1);
-        pen.setColor(Qt::gray);
+        pen.setColor(Qt::black);
         pen.setJoinStyle(Qt::MiterJoin);
         painter->setPen(pen);
         painter->setBrush(Qt::NoBrush);
@@ -142,22 +160,31 @@ void StatusItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         painter->drawRect(sideRect);
 
+        if(hoverOnUp){
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(Theme::theme()->getHighlightColor());
+            painter->drawRect(topRect());
+        }
+
+        if(hoverOnDown){
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(Theme::theme()->getHighlightColor());
+            painter->drawRect(botRect());
+        }
 
 
+        QSize arrowSize;
+        arrowSize.setWidth(botRect().width()* lod * 2);
+        arrowSize.setHeight(botRect().height()* lod * 2);
+
+
+        painter->setBrush(Qt::NoBrush);
+        painter->setPen(pen);
+        painter->drawRect(sideRect);
         painter->drawLine(botRect().topLeft(), botRect().topRight());
 
-        QImage image(":/Actions/Arrow_Down.png");
-        QPixmap imageData = QPixmap::fromImage(image);
-
-        painter->drawPixmap(botRect().toAlignedRect(), imageData);
-
-        QImage image2(":/Actions/Arrow_Up.png");
-        imageData = QPixmap::fromImage(image2);
-
-        painter->drawPixmap(topRect().toAlignedRect(), imageData);
-
-
-
+        painter->drawPixmap(botRect().toAlignedRect(), Theme::theme()->getImage("Actions", "Arrow_Down", arrowSize, Qt::black));
+        painter->drawPixmap(topRect().toAlignedRect(), Theme::theme()->getImage("Actions", "Arrow_Up", arrowSize, Qt::black));
     }
 }
 
@@ -200,6 +227,48 @@ void StatusItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
+void StatusItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+{
+    QPointF mousePoint =  event->pos();
+
+    if(topRect().contains(mousePoint)){
+        if(!hoverOnUp){
+            hoverOnUp = true;
+            hoverOnDown = false;
+            update();
+        }
+    }else if(botRect().contains(mousePoint)){
+        if(!hoverOnDown){
+            hoverOnDown = true;
+            hoverOnUp = false;
+            update();
+        }
+    }else{
+        if(hoverOnUp){
+            hoverOnUp = false;
+            update();
+        }
+        if(hoverOnDown){
+            hoverOnDown = false;
+            update();
+        }
+    }
+    QGraphicsObject::hoverMoveEvent(event);
+}
+
+void StatusItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+{
+    if(hoverOnUp){
+        hoverOnUp = false;
+        update();
+    }
+    if(hoverOnDown){
+        hoverOnDown = false;
+        update();
+    }
+    QGraphicsObject::hoverLeaveEvent(event);
+}
+
 void StatusItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     InputItem::mouseReleaseEvent(event);
@@ -230,6 +299,14 @@ void StatusItem::textFocussed(bool focus)
     if (focus) {
         wasTextEditing = true;
     }
+    if(hoverOnUp){
+        hoverOnUp = false;
+        update();
+    }
+    if(hoverOnDown){
+        hoverOnDown = false;
+        update();
+    }
 }
 
 
@@ -238,7 +315,7 @@ qreal StatusItem::widthOffset()
     return getHeight()/2;
 }
 
-void StatusItem::focusOutEvent(QFocusEvent *event)
+void StatusItem::focusOutEvent(QFocusEvent *)
 {
     setEditMode(false);
 }

@@ -6,7 +6,6 @@
 #include <QDialog>
 #include <QPlainTextEdit>
 #include <QDialogButtonBox>
-
 AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QAbstractTableModel(item)
 {
     Q_UNUSED(parent);
@@ -22,7 +21,8 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
     }
 
     attachedEntity->addListener(this);
-    hiddenKeyNames /*<< "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded"; << "kind"*/;
+    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded" << "readOnly";//<< "kind";
+    hiddenKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime";
     permanentlyLockedKeyNames << "kind";
  	multiLineKeyNames << "code";
     setupDataBinding();
@@ -47,7 +47,6 @@ void AttributeTableModel::updatedData(QString keyName)
 
 void AttributeTableModel::removedData(QString keyName)
 {
-    qCritical() << "REMOVED DATA";
     //Get the Index of the data to be removed.
     int index = getIndex(keyName);
     if(index != -1){
@@ -100,7 +99,6 @@ bool AttributeTableModel::hasData() const
 
 void AttributeTableModel::clearData()
 {
-    qCritical() << "CLEAR DATA";
     beginRemoveRows(QModelIndex(),0, dataOrder.size());
     dataOrder.clear();
     keys.clear();
@@ -178,7 +176,7 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::BackgroundRole){
         if(index.column() < 1){
-         return QVariant::fromValue(QColor(240,240,240));
+            return QVariant::fromValue(QColor(240,240,240));
         }
     }
 
@@ -218,6 +216,8 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         }
     }
     if(role == -1){
+        QVariant v(QMetaType::QObjectStar, &attachedEntity);
+        return v;
         return 0;
     }
 
@@ -283,7 +283,9 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 
     if(index.isValid()){
         if(index.column() == 1){
-            if(!isDataProtected(index.row())){
+            bool isIndexProtected = isDataProtected(index.row());
+            if(!isIndexProtected){
+                //Set it editable.
                 return QAbstractTableModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsEnabled;
             }
         }
@@ -325,7 +327,7 @@ void AttributeTableModel::setupDataBinding()
  */
 bool AttributeTableModel::popupMultiLine(const QModelIndex &index) const
 {
-    if(index.column() == 2) {
+    if(index.column() == 1) {
         QString keyName = getKeyName(index.row());
         //Check types
         if(multiLineKeyNames.contains(keyName)) {

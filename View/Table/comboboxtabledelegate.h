@@ -2,7 +2,7 @@
 #define COMBOBOXTABLEDELEGATE_H
 #include <QItemDelegate>
 
-#include "../../Model/data.h"
+#include "../../Controller/entityadapter.h"
 
 class ComboBoxTableDelegate : public QItemDelegate
 {
@@ -26,7 +26,8 @@ public slots:
     void updateValue();
 
 private:
-    Data* getData(const QModelIndex &index) const;
+    EntityAdapter *getEntityAdapter(const QModelIndex &index) const;
+    QString getKeyName(const QModelIndex &index) const;
     QStringList getValidValueList(const QModelIndex &index) const;
 };
 

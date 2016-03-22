@@ -20,36 +20,12 @@ Node::Node(NODE_TYPE type, NODE_CLASS nClass) : Entity(EK_NODE)
 
 QString Node::toGraphML(int indentDepth)
 {
-    QString tab("\t");
-    //Construct the desired tab width.
-    QString indent = tab.repeated(indentDepth);
+    return _toGraphML(indentDepth, false);
+}
 
-    QString xml;
-    xml += indent;
-    xml += indent + QString("<node id =\"%1\">\n").arg(getID());
-
-
-    foreach(Data* data, getData()){
-        xml += data->toGraphML(indentDepth + 1);
-    }
-
-    if(childrenCount() > 0){
-        xml += indent;
-        xml += QString("\t<graph id =\"g%1\">\n").arg(getID());
-    }
-
-    foreach(Node* child, getChildren(0)){
-        xml += child->toGraphML(indentDepth + 2);
-    }
-
-    if(childrenCount() > 0){
-        xml += indent;
-        xml += QString("\t</graph>\n");
-    }
-    xml += indent;
-    xml += "</node>\n";
-
-    return xml;
+QString Node::toGraphMLNoVisualData(int indentDepth)
+{
+    return _toGraphML(indentDepth, true);
 }
 
 
@@ -308,6 +284,17 @@ QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
     return returnableList;
 }
 
+QList<int> Node::getEdgeIDs(Edge::EDGE_CLASS edgeClass)
+{
+    QList<int> returnable;
+    foreach(Edge* edge, getEdges(0)){
+        if(edgeClass == Edge::EC_NONE || edge->getEdgeClass() == edgeClass){
+            returnable += edge->getID();
+        }
+    }
+    return returnable;
+}
+
 
 
 /*
@@ -474,12 +461,12 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
     return Edge::EC_NONE;
 }
 
-bool Node::canConnect_AggregateEdge(Node *aggregate)
+bool Node::canConnect_AggregateEdge(Node *)
 {
     return true;
 }
 
-bool Node::canConnect_AssemblyEdge(Node *node)
+bool Node::canConnect_AssemblyEdge(Node *)
 {
     return true;
 }
@@ -618,7 +605,18 @@ bool Node::gotEdgeTo(Node *node)
     return getEdgeTo(node) != 0;
 }
 
-QList<Node *> Node::getAllConnectedNodes(QList<Node *> connectedNodes)
+Edge *Node::getEdge(int ID)
+{
+    for(int i =0; i < edges.length(); i++){
+        Edge* edge = edges[i];
+        if(edge && edge->getID() == ID){
+            return edge;
+        }
+    }
+    return 0;
+}
+
+QList<Node *> Node::getAllConnectedNodes()
 {
 
     QList<Node*> currentNodes = getChildren();
@@ -746,7 +744,9 @@ void Node::setDefinition(Node *def)
 {
     if(isImpl() || isInstance()){
         definition = def;
+        emit node_GotDefinition(true);
     }
+
 }
 
 Node *Node::getDefinition()
@@ -757,6 +757,7 @@ Node *Node::getDefinition()
 void Node::unsetDefinition()
 {
     definition = 0;
+    emit node_GotDefinition(false);
 }
 
 void Node::addInstance(Node *inst)
@@ -820,12 +821,16 @@ void Node::addEdge(Edge *edge)
 {
     if(!containsEdge(edge)){
         edges.append(edge);
+        emit node_EdgeAdded(edge->getID(), edge->getEdgeClass());
     }
 }
 
 void Node::removeEdge(Edge *edge)
 {
     edges.removeAll(edge);
+    if(edge){
+        emit node_EdgeRemoved(edge->getID(), edge->getEdgeClass());
+    }
 }
 
 void Node::setParentNode(Node *parent, int index)
@@ -835,6 +840,46 @@ void Node::setParentNode(Node *parent, int index)
     this->treeIndexStr += QString::number(index);
     this->treeIndex.append(index);
     parentNode = parent;
+}
+
+QString Node::_toGraphML(int indentDepth, bool ignoreVisuals)
+{
+    QString tab("\t");
+    //Construct the desired tab width.
+    QString indent = tab.repeated(indentDepth);
+
+    QString xml;
+    xml += indent;
+    xml += indent + QString("<node id =\"%1\">\n").arg(getID());
+
+
+    foreach(Data* data, getData()){
+        if(data->isVisualData() && ignoreVisuals){
+            if(data->getKeyName() != "readOnly"){
+                //Skip Visual data.
+                continue;
+            }
+        }
+        xml += data->toGraphML(indentDepth + 1);
+    }
+
+    if(childrenCount() > 0){
+        xml += indent;
+        xml += QString("\t<graph id =\"g%1\">\n").arg(getID());
+    }
+
+    foreach(Node* child, getChildren(0)){
+        xml += child->toGraphML(indentDepth + 2);
+    }
+
+    if(childrenCount() > 0){
+        xml += indent;
+        xml += QString("\t</graph>\n");
+    }
+    xml += indent;
+    xml += "</node>\n";
+
+    return xml;
 }
 
 QList<Node *> Node::getOrderedChildNodes()

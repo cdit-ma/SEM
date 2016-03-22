@@ -25,12 +25,14 @@ public:
 
 signals:
     void toolbarMenu_triggered(ToolbarMenuAction* action);
+    void toolbarMenu_hoverLeave(QAction* action = 0);
 
 private slots:
     void menuTriggered(QAction* action);
 
 protected:
     void mousePressEvent(QMouseEvent* event);
+    void leaveEvent(QEvent* event);
 
 private:
     void setupInfoAction();
