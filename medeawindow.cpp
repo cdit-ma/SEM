@@ -1178,7 +1178,7 @@ void MedeaWindow::setupSearchTools()
     searchToolbar->addWidget(searchToolButton);
     searchToolbar->addWidget(searchOptionToolButton);
 
-    searchLayout->setSpacing(3);
+    searchLayout->setSpacing(0);
     searchLayout->setContentsMargins(0,0,0,0);
     searchLayout->addWidget(searchToolbar);
 
@@ -4078,7 +4078,6 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
  */
 void MedeaWindow::searchMenuClosed()
 {
-    qDebug() << "Menu CLOSED";
     QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
     //QToolButton* button = qobject_cast<QToolButton*>(menu->parentWidget());
 
@@ -4991,7 +4990,7 @@ void MedeaWindow::updateStyleSheets()
     recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
                                             "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
 
-    setStyleSheet("QToolBar#" THEME_STYLE_HIDDEN_TOOLBAR "{ border: none; background-color: rgba(0,0,0,0); padding:0px; }"
+    setStyleSheet("QToolBar#" THEME_STYLE_HIDDEN_TOOLBAR "{ border: none; background-color: rgba(0,0,0,0); padding:0px; spacing: 2px;}"
                   "QToolBar::separator { width:" + QString::number(TOOLBAR_SEPERATOR_WIDTH) + "px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   //"margin: 0px 1px;"

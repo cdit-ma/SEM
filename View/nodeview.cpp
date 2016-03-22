@@ -2016,9 +2016,9 @@ void NodeView::centerDefinition(int ID)
 
         if(definition){
             // make sure the Assembly view aspect is on
-            clearSelection(false);
-            appendToSelection(definition);
-            centerOnItem();
+            clearSelection();
+            appendToSelection(definition, true);
+            centerItem();
         }
     }
 }
@@ -2032,11 +2032,12 @@ void NodeView::centerImplementation(int ID)
         int implementationID =  controller->getImplementation(ID);
         GraphMLItem *impl = getEntityItemFromID(implementationID);
 
+        qCritical() << impl;
         if(impl){
             // make sure the Assembly view aspect is on
-            clearSelection(false);
-            appendToSelection(impl);
-            centerOnItem();
+            clearSelection();
+            appendToSelection(impl, true);
+            centerItem();
         }
     }
 
@@ -2049,9 +2050,9 @@ void NodeView::centerInstance(int instanceID)
 
         if(instance){
             // make sure the Assembly view aspect is on
-            clearSelection(false);
-            appendToSelection(instance);
-            centerOnItem();
+            clearSelection();
+            appendToSelection(instance, true);
+            centerItem();
         }
     }
 
@@ -3149,6 +3150,7 @@ QRect NodeView::getVisibleViewRect()
  */
 void NodeView::viewDeploymentAspect()
 {
+    qCritical() << "HELLO";
     // Turn on Aspects
     emit view_toggleAspect(VA_ASSEMBLIES, true);
     emit view_toggleAspect(VA_HARDWARE, true);
