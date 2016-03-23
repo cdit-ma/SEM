@@ -261,8 +261,7 @@ void DockToggleButton::updateStyleSheet(int state)
 
     switch (state) {
     case SELECTED:
-        //backgroundStyleSheet = "background:" + Theme::theme()->getPressedColorHex() + ";";
-        backgroundStyleSheet = "background: rgba(250,250,250,240);";
+        backgroundStyleSheet = "background: rgba(250,250,250,255);";
         break;
     default:
         break;
@@ -270,7 +269,6 @@ void DockToggleButton::updateStyleSheet(int state)
 
     setStyleSheet("QPushButton {"
                   "padding: 0px;"
-                  //"border: 1px solid rgb(125,125,125);"
                   "border: 1px solid " + Theme::theme()->getDisabledBackgroundColorHex() + ";"
                   + backgroundStyleSheet
                   + "}"

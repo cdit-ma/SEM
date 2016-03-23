@@ -578,6 +578,7 @@ void MedeaWindow::initialiseGUI()
     titleLayout->addWidget(menuButton);
     titleLayout->addSpacerItem(new QSpacerItem(SPACER_SIZE, 0));
     titleLayout->addWidget(closeProjectToolbar);
+    titleLayout->addSpacerItem(new QSpacerItem(2, 0));
     titleLayout->addWidget(projectName);
     titleLayout->addStretch();
     menuTitleBox->setLayout(titleLayout);
@@ -1036,7 +1037,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
                                  "border-right: 1px solid rgb(125,125,125);"
                                  "border-top: 1px solid rgb(125,125,125);"
                                  "border-bottom: none;"
-                                 "background-color: rgba(250,250,250,240);"
+                                 "background-color: rgba(250,250,250,255);"
                                  "padding: 10px 0px 0px 0px; }");
 
     dockActionLabel = new QLabel("Describe action here", this);

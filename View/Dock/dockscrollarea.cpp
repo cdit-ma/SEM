@@ -516,7 +516,7 @@ void DockScrollArea::setupLayout()
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setStyleSheet("QScrollArea {"
                   "padding: 0px 0px 10px 0px;"
-                  "background: rgba(250,250,250,240);"
+                  "background: rgba(250,250,250,255);"
                   //"border: none;"
                   "border-left: 1px solid rgb(125,125,125);"
                   "border-right: 1px solid rgb(125,125,125);"
