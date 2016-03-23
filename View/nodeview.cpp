@@ -1069,6 +1069,35 @@ QList<int> NodeView::getConnectableNodes(int ID)
     return controller->getConnectableNodes(ID);
 }
 
+QList<int> NodeView::getConnectableNodes(QList<int> IDs)
+{
+    bool firstComponent = true;
+    QList<int> validComponents;
+
+    foreach(int ID, IDs){
+        QList<int> validIDs = controller->getConnectableNodes(ID);
+
+        if(firstComponent){
+            firstComponent = false;
+            validComponents = validIDs;
+        }else{
+            QList<int> tempList = validComponents;
+            validComponents.clear();
+            while(!tempList.isEmpty()){
+                int currentID = tempList.takeFirst();
+                if(validIDs.contains(currentID)){
+                    validComponents.append(currentID);
+                }
+            }
+            if(validComponents.isEmpty()){
+                break;
+            }
+        }
+    }
+
+    return validComponents;
+}
+
 QList<NodeItem *> NodeView::getConnectableNodeItems(int ID)
 {
     QList<NodeItem*> nodeItems;
