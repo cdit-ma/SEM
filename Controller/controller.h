@@ -586,6 +586,7 @@ private:
     bool isUserAction();
 
     bool CUT_USED;
+    bool REPLICATE_USED;
     bool OPENING_PROJECT;
     bool IMPORTING_PROJECT;
     bool PASTE_USED;

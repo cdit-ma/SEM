@@ -32,6 +32,7 @@ NewController::NewController()
     logFile = 0;
 
     PASTE_USED = false;
+    REPLICATE_USED = false;
     IMPORTING_PROJECT = false;
     USE_LOGGING = false;
     UNDOING = false;
@@ -379,9 +380,9 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
                         exportEdge = true;
                     }
                 }
-                if(!exportAllEdges){
-                    exportEdge = false;
-                }
+                //if(!exportAllEdges){
+                //    exportEdge = false;
+                //}
             }
 
             if(exportEdge && !containedEdges.contains(edge)){
@@ -1177,7 +1178,7 @@ bool NewController::_replicate(QList<int> IDs, bool addAction)
     bool success = false;
 
     if(canCopy(IDs)){
-
+        REPLICATE_USED = true;
         Node* node = getFirstNodeFromList(IDs);
         if(node && node->getParentNode()){
             emit controller_ActionProgressChanged(0,"Replicating selection");
@@ -1193,6 +1194,7 @@ bool NewController::_replicate(QList<int> IDs, bool addAction)
             }
             emit controller_ActionProgressChanged(100);
         }
+        REPLICATE_USED = false;
     }
     return success;
 }
@@ -4625,7 +4627,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
     if(parent->isInstance() || parent->isImpl()){
         if(!(UNDOING || REDOING)){
-            QString message =  "Cannot import/paste into an Instance/Implementation.";
+            QString message =  "Cannot import/paste into an Instance.";
             emit controller_DisplayMessage(WARNING, message, "Import Error", "Warning" , parent->getID());
             return false;
         }
@@ -4983,7 +4985,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
-                emit  controller_DisplayMessage(WARNING, "Import Error", "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".");
+                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error");
 			}
         }
     }
@@ -5172,6 +5174,7 @@ bool NewController::canReplicate(QList<int> selection)
     if(!canCut(selection)){
         return false;
     }
+
     //Find selections parent, to see if paste would work
     Node* parentNode = 0;
 
@@ -5189,6 +5192,14 @@ bool NewController::canReplicate(QList<int> selection)
             if(parentNode != node->getParentNode()){
                 return false;
             }
+        }
+    }
+
+    if(parentNode){
+        QList<int> parentID;
+        parentID << parentNode->getID();
+        if(!canPaste(parentID)){
+            return false;
         }
     }
     return true;
@@ -5248,7 +5259,11 @@ bool NewController::canPaste(QList<int> selection)
     if(selection.size() == 1){
         Entity* graphml = getGraphMLFromID(selection[0]);\
         if(graphml && graphml->isNode() && graphml != model){
-            if(graphml->isReadOnly()){
+            Node* node = (Node*)graphml;
+            if(node->isReadOnly()){
+                return false;
+            }
+            if(node->isInstance() || node->isImpl()){
                 return false;
             }
             return true;
