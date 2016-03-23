@@ -1120,36 +1120,16 @@ QList<NodeItem *> NodeView::getConnectableNodeItems(int ID)
  */
 QList<NodeItem *> NodeView::getConnectableNodeItems(QList<int> IDs)
 {
-    Q_UNUSED(IDs);
-    /*
-    if (IDs.isEmpty()) {
-        IDs = selectedIDs;
-    }
+    QList<NodeItem*> nodes;
 
-    QHash<QString, int> connectableNodesHash;
-    foreach (QString ID, IDs) {
-        QStringList connectableNodes = getConnectableNodes(ID);
-        connectableNodes.removeDuplicates();
-        foreach (QString cnID, connectableNodes) {
-            connectableNodesHash[cnID] = connectableNodesHash[cnID]++;
+    foreach(int ID, getConnectableNodes(IDs)){
+        NodeItem* item = getNodeItemFromID(ID);
+        if(item){
+            nodes.append(item);
         }
     }
 
-
-    QList<EntityItem*> sharedLegalEntityItems;
-    foreach (QString hashID, connectableNodesHash.keys()) {
-        if (connectableNodesHash[hashID] == IDs.count()) {
-            EntityItem* item = getEntityItemFromID(hashID);
-            if (item) {
-                sharedLegalEntityItems.append(item);
-            }
-        }
-    }
-
-    return sharedLegalEntityItems;
-    */
-
-    return QList<NodeItem*>();
+    return nodes;
 }
 
 

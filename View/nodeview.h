@@ -482,6 +482,7 @@ private:
 
     QStringList getAdoptableNodeList(int ID);
     QList<int> getConnectableNodes(int ID);
+    QList<int> getConnectableNodes(QList<int> IDs);
     QList<NodeItem*> getConnectableNodeItems(int ID);
     QList<NodeItem*> getConnectableNodeItems(QList<int> IDs = QList<int>());
     QList<NodeItem*> getNodeInstances(int ID);

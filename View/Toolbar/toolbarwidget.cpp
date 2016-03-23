@@ -1211,24 +1211,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 
             // this allows multiple selection to connect to a shared legal node
             // check if there is any item in item_i's legal nodes list that can connect to all the other items
-            foreach (NodeItem* legalNode, nodeView->getConnectableNodeItems(item_i->getID())) {
-                bool appendToList = true;
-                for (int j = 0; j < nodeItems.count(); j++) {
-                    appendToList = false;
-                    //TODO FIX THIS
-                    /*
-                    Node* itemNode = item_j->getNodeAdapter();
-                    if (!item_j->isEntityItem() || !itemNode->canConnect(legalNode->getNodeAdapter())) {
-                        appendToList = false;
-                        break;
-                    }
-                    */
-
-                }
-                if (appendToList && !legalNodes.contains(legalNode)) {
-                    legalNodes.append(legalNode);
-                }
-            }
+            legalNodes = nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs());
         }
 
         // these buttons are only available for multiple selected entities
