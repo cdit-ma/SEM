@@ -1135,12 +1135,12 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         expandContractButtonsVisible = false;
 
         // check if the selected node item has other node items connected to it (edges)
-        //if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
-        //    actionLookup[connectButton]->setVisible(true);
-        //}
+        if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
+            actionLookup[connectionsButton]->setVisible(true);
+        }
 
-        // only show the displayed children option button if the selected item is a HardwareCluster
         if (entityItem) {
+            // only show the displayed children option button if the selected item is a HardwareCluster
             if (entityItem->isHardwareCluster()) {
                 hardwareClusterMenuClicked(entityItem->getHardwareClusterChildrenViewMode());
                 actionLookup[displayedChildrenOptionButton]->setVisible(true);
@@ -1216,11 +1216,14 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                 for (int j = 0; j < nodeItems.count(); j++) {
                     appendToList = false;
                     //TODO FIX THIS
-                    //Node* itemNode = item_j->getNodeAdapter();
-                    //if (!item_j->isEntityItem() || !itemNode->canConnect(legalNode->getNodeAdapter())) {
-                    //    appendToList = false;
-                    //    break;
-                    //}
+                    /*
+                    Node* itemNode = item_j->getNodeAdapter();
+                    if (!item_j->isEntityItem() || !itemNode->canConnect(legalNode->getNodeAdapter())) {
+                        appendToList = false;
+                        break;
+                    }
+                    */
+
                 }
                 if (appendToList && !legalNodes.contains(legalNode)) {
                     legalNodes.append(legalNode);

@@ -34,6 +34,7 @@ int launchMEDEA(int argc, char *argv[]){
         graphmlFilePath = QString(argv[1]);
     }
 
+
     MedeaWindow *w = new MedeaWindow(graphmlFilePath);
     a.setActiveWindow(w);
 
