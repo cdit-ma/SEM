@@ -206,13 +206,13 @@ void AspectToggleWidget::aspectMiddleClicked(VIEW_ASPECT aspect)
 void AspectToggleWidget::highlightToggleButton(VIEW_ASPECT aspect)
 {
     if (viewAspect == aspect) {
+        aspectLabelShadow->setColor(Qt::black);
         aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0);"
-                                   //"font-size: 11.5px;"
                                    "font-weight: bold;"
                                    "color: white;");
     } else {
+        aspectLabelShadow->setColor(Qt::white);
         aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0);"
-                                   //"font-size: 12px;"
                                    "color: black;");
     }
 }
@@ -236,11 +236,11 @@ void AspectToggleWidget::enableToggleButton(bool enable)
  */
 void AspectToggleWidget::themeChanged()
 {
-    QColor aspectColor = Theme::theme()->getAspectBackgroundColor(viewAspect); //GET_ASPECT_COLOR(viewAspect);
-    QColor darkerAspectColor = adjustColorRGB(aspectColor, -55); //-15);
+    QColor aspectColor = Theme::theme()->getAspectBackgroundColor(viewAspect);
+    QColor darkerAspectColor = adjustColorRGB(aspectColor, -55);
     int checkedAlpha = 250;
 
-    disabledColor = Theme::theme()->getDisabledBackgroundColorHex(); //colorToString(Qt::darkGray);
+    disabledColor = Theme::theme()->getDisabledBackgroundColorHex();
     defaultColor = colorToString(darkerAspectColor);
     p1_Color = colorToString(adjustColorRGB(darkerAspectColor, 175), checkedAlpha);
     p2_Color = colorToString(adjustColorRGB(darkerAspectColor, 15), checkedAlpha);
@@ -327,9 +327,15 @@ void AspectToggleWidget::setupLayout(double widgetSize)
     QFont font = this->font();
     font.setPointSizeF(9);
 
+    aspectLabelShadow = new QGraphicsDropShadowEffect(this);
+    aspectLabelShadow->setBlurRadius(10);
+    aspectLabelShadow->setColor(Qt::white);
+    aspectLabelShadow->setOffset(0,0);
+
     aspectLabel = new QLabel(aspectText, this);
     aspectLabel->setFont(font);
     aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0); color: black;");
+    aspectLabel->setGraphicsEffect(aspectLabelShadow);
 
     QVBoxLayout* layout = new QVBoxLayout();
     layout->addWidget(aspectLabel);

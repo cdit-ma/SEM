@@ -4986,6 +4986,7 @@ void MedeaWindow::updateStyleSheets()
                   "}"
                   "QToolButton::menu-indicator {"
                   "image: none;"
+                  //"subcontrol-position: bottom left;"
                   //"background: white;"
                   "}"
                   "QToolButton::menu-button {"

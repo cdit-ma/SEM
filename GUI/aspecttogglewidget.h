@@ -7,6 +7,7 @@
 #include <QMouseEvent>
 #include <QFrame>
 #include <QLabel>
+#include <QGraphicsDropShadowEffect>
 
 class MedeaWindow;
 
@@ -53,6 +54,7 @@ private:
 
     QString aspectText;
     QLabel* aspectLabel;
+    QGraphicsDropShadowEffect* aspectLabelShadow;
 
     QFrame* shadowFrame;
     QFrame* mainFrame;

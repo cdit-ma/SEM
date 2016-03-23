@@ -1103,7 +1103,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
     }
 
     QList<NodeItem*> legalNodes;
-    bool setupLegalNodes = false;
+    //bool setupLegalNodes = false;
     bool deployable = true;
 
     // need to clear menus before updating them
@@ -1145,7 +1145,8 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                 hardwareClusterMenuClicked(entityItem->getHardwareClusterChildrenViewMode());
                 actionLookup[displayedChildrenOptionButton]->setVisible(true);
             } else if (!entityItem->isHardwareNode()) {
-                setupLegalNodes = true;
+                //setupLegalNodes = true;
+                legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
             }
         }
 
@@ -1153,7 +1154,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getID()));
         setupInstancesList(nodeView->getNodeInstances(nodeItem->getID()));
 
-        legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
+        //legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
         deployable = nodeView->isNodeKindDeployable(nodeItem->getNodeKind());
         alterViewButtonsVisible = true;
 
@@ -1180,10 +1181,12 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 
             EntityItem* entityItem = (EntityItem*)item_i;
 
+            /*
             // only clear the legal nodes list if all selected items are hardware
             if (!setupLegalNodes && (!entityItem->isHardwareNode() || !entityItem->isHardwareCluster())) {
                 setupLegalNodes = true;
             }
+            */
 
             // check if all the selected items are HardwareClusters
             if (entityItem->isHardwareCluster()) {
@@ -1210,8 +1213,18 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             }
 
             // this allows multiple selection to connect to a shared legal node
-            // check if there is any item in item_i's legal nodes list that can connect to all the other items
             legalNodes = nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs());
+
+            /*
+            // this filtering is already done in setupLegalNodesList
+            // remove hardware nodes and clusters from this list
+            foreach (NodeItem* node, nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs())) {
+                EntityItem* entity = (EntityItem*) node;
+                if (node->isEntityItem() && (!entity->isHardwareNode() && !entity->isHardwareCluster())) {
+                    legalNodes.append(node);
+                }
+            }
+            */
         }
 
         // these buttons are only available for multiple selected entities
@@ -1233,9 +1246,9 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
     }
 
     // setup connectable nodes menu for the selected item(s)
-    if (setupLegalNodes) {
+    //if (setupLegalNodes) {
         setupLegalNodesList(legalNodes);
-    }
+    //}
 }
 
 
@@ -1257,9 +1270,6 @@ void ToolbarWidget::updateSeparators()
  */
 void ToolbarWidget::hideButtons()
 {
-    /*foreach(QAction* action, buttonLookup.keys()){
-        action->setVisible(false);
-    }*/
     foreach(QAction* action, actionLookup.values()){
         action->setVisible(false);
     }
@@ -1348,7 +1358,6 @@ void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
         }
     }
     if (!nodeList.isEmpty()) {
-        qCritical() << "SHOW CONNECT BUTTON";
         actionLookup[connectButton]->setVisible(true);
         alterModelButtonsVisible = true;
         legalNodeItems = nodeList;
