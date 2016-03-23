@@ -3395,6 +3395,7 @@ void MedeaWindow::on_actionSearch_triggered()
         }
 
         searchDialog->show();
+        searchDialog->raise();
     }
 }
 
