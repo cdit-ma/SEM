@@ -3072,7 +3072,6 @@ void MedeaWindow::screenshot()
         msgBox.setIconPixmap(getDialogPixmap("Actions", "PrintScreen"));
         msgBox.setButtonText(QMessageBox::Yes, "Entire Model");
         msgBox.setButtonText(QMessageBox::No, "Current Viewport");
-        msgBox.setParent(this);
 
         displayLoadingStatus(true, "Rendering screenshot");
 
