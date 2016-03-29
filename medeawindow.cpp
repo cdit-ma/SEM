@@ -4046,7 +4046,6 @@ void MedeaWindow::searchItemClicked()
  */
 void MedeaWindow::searchMenuButtonClicked(bool checked)
 {
-    qDebug() << "****** searchMenuButtonClicked : " << checked << " ******";
     bool showMenu = checked;
     QWidget* widget = 0;
     QMenu* menu = 0;
@@ -4074,7 +4073,6 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
             menu->close();
         }
     }
-    qDebug() << "****** ****** ****** ****** ******";
 }
 
 
