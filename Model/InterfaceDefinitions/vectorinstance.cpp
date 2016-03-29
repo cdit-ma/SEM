@@ -55,7 +55,7 @@ bool VectorInstance::canConnect_DataEdge(Node *node)
 {
     VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(node);
     if(vectorInstance){
-        if(getDefinition() != vectorInstance->getDefinition()){
+        if(getDefinition(true) != vectorInstance->getDefinition(true)){
             return false;
         }
     }

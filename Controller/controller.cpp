@@ -5469,11 +5469,8 @@ int NewController::getDefinition(int ID)
 {
     Node* original = getNodeFromID(ID);
     if(original){
-        Node* node = original;
-        while (node && node->getDefinition()) {
-            node = node->getDefinition();
-        }
-        if (node != original) {
+        Node* node = original->getDefinition(true);
+        if(node && node != original){
             return node->getID();
         }
     }

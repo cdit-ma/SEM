@@ -13,6 +13,7 @@
 
 #include <QList>
 #include <QPair>
+#include <QApplication>
 #include <string>
 #include "theme.h"
 
@@ -25,8 +26,12 @@ void testModel(){
 }
 
 int launchMEDEA(int argc, char *argv[]){
+
+
     //Construct a QApplication
     QApplication a(argc, argv);
+
+
     //Fixes MacOS QIcon resolution.
     a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     QString graphmlFilePath = "";

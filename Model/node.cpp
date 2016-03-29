@@ -749,9 +749,14 @@ void Node::setDefinition(Node *def)
 
 }
 
-Node *Node::getDefinition()
+Node *Node::getDefinition(bool recurse)
 {
-    return definition;
+    Node* def = definition;
+
+    if(recurse && def && def->getDefinition(false)){
+        def = def->getDefinition(true);
+    }
+    return def;
 }
 
 void Node::unsetDefinition()

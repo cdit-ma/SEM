@@ -2963,7 +2963,11 @@ void EntityItem::setNewLabel(QString newLabel)
             setData("label", newLabel);
         }else{
             if(!getEntityAdapter()->isDataProtected("label")){
-                topLabelInputItem->setEditMode(true);
+                if(topLabelInputItem && topLabelInputItem->isVisible()){
+                    topLabelInputItem->setEditMode(true);
+                }else if(rightLabelInputItem && rightLabelInputItem->isVisible()){
+                    rightLabelInputItem->setEditMode(true);
+                }
             }
         }
     }

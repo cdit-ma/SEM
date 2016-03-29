@@ -94,7 +94,8 @@ public:
     bool isHardware();
 
     void setDefinition(Node *def);
-    Node* getDefinition();
+    Node* getDefinition(bool recurse=false);
+
     void unsetDefinition();
 
     void addInstance(Node* inst);

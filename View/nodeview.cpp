@@ -793,7 +793,7 @@ void NodeView::dropEvent(QDropEvent *event)
 bool NodeView::allowedFocus(QWidget *widget)
 {
     // the view has focus but the focus is on the editable text item
-    if (this->hasFocus() && editingEntityItemLabel) {
+    if (hasFocus() && editingEntityItemLabel) {
         return false;
     }
 
@@ -801,7 +801,6 @@ bool NodeView::allowedFocus(QWidget *widget)
     QTableView* tv = dynamic_cast<QTableView*>(widget);
     if (tv) {
         return false;
-
     }
 
     // either the search bar or the expanding line edit on the data table has focus
@@ -3876,6 +3875,8 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
  */
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
+    bool allowedFocusWidget = allowedFocus(focusWidget());
+
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
@@ -3922,7 +3923,8 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         if(event->key() == Qt::Key_Left){
             arrowAdjust.setX(getArrowKeyDelta(SHIFT));
         }
-        if(!arrowAdjust.isNull()){
+        if(allowedFocusWidget && !arrowAdjust.isNull()){
+
             translate(arrowAdjust.x(), arrowAdjust.y());
         }
     }

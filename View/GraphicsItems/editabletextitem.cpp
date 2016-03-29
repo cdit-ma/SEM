@@ -10,6 +10,8 @@
 #include <QStyleOptionGraphicsItem>
 #include "../../enumerations.h"
 #include "../../theme.h"
+#include <QApplication>
+#include <QClipboard>
 
 EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     QGraphicsTextItem(parent)
@@ -42,6 +44,8 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     option.setWrapMode(QTextOption::WrapAnywhere);
     option.setAlignment(Qt::AlignTop);
     doc->setDefaultTextOption(option);
+
+
     setDocument(doc);
     editable = true;
 }
@@ -283,19 +287,34 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
 {
     //Check for Enter pressing!
     int keyPressed = event->key();
-     bool CONTROL = event->modifiers() & Qt::ControlModifier;
+    bool CONTROL = event->modifiers() & Qt::ControlModifier;
 
     if(keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return || keyPressed == Qt::Key_Escape){
         focusOutEvent(0);
         return;
     }
-    if(keyPressed == Qt::Key_V && CONTROL){
+
+    if(event->matches(QKeySequence::Paste)){
+        paste();
         return;
     }
-    if(keyPressed == Qt::Key_Delete){
+
+
+    if(keyPressed == Qt::Key_Up || keyPressed == Qt::Key_Down || keyPressed == Qt::Key_Right || keyPressed == Qt::Key_Left){
         event->setAccepted(true);
-        //return;
+        return;
     }
+
     QGraphicsTextItem::keyPressEvent(event);
 
+}
+
+void EditableTextItem::paste()
+{
+    QClipboard* _clipboard = QApplication::clipboard();
+
+    const QMimeData* _mimeData = _clipboard->mimeData();
+    QTextCursor _cursor1 = textCursor();
+    _cursor1.insertText(_mimeData->text());
+    setTextCursor(_cursor1);
 }

@@ -65,7 +65,6 @@ int NodeAdapter::getDefinitionID()
 {
     if(isValid()){
         if(_node->getDefinition()){
-            qCritical() << _node->getDefinition()->toString();
             return _node->getDefinition()->getID();
         }
     }
