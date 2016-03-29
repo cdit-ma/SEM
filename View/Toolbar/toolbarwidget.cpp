@@ -320,7 +320,7 @@ void ToolbarWidget::displayConnectedNode(ToolbarMenuAction* action)
     // if there is no action, the sender is a QToolButton
     if (!action) {
         QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
-        if (button == deleteButton) {
+        if (button == definitionButton) {
             nodeView->centerDefinition(nodeItem->getID());
         } else if (button == implementationButton) {
             nodeView->centerImplementation(nodeItem->getID());

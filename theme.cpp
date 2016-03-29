@@ -287,7 +287,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
     if(size.isValid()){
         int factor = 1;
         //Bitshift round to power of 2
-        while((factor <<= 1 ) < size.width()>>1);
+        while((factor <<= 1 ) <= size.width()>>1);
 
         //Scale the request image size to a width = factor
         int newWidth = factor;

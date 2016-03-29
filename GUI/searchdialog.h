@@ -26,7 +26,7 @@ public:
     bool addSearchItems(QList<GraphMLItem*> searchResult);
     void clear();
 
-    void updateHedearLabels(QString search, QStringList aspects, QStringList kinds);
+    void updateHedearLabels(QString search, QStringList aspects, QStringList kinds, QStringList keys);
 
 signals:
     void searchDialog_refresh();
@@ -55,6 +55,7 @@ private:
     QLabel* searchLabel;
     QLabel* aspectsLabel;
     QLabel* kindsLabel;
+    QLabel* dataKeysLabel;
     QLabel* notFoundLabel;
 
     QMenu* sortMenu;

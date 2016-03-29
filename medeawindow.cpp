@@ -1158,8 +1158,6 @@ void MedeaWindow::setupSearchTools()
     searchToolButton->setFixedSize(searchBarHeight, searchBarHeight);
     searchOptionToolButton->setFixedSize(searchBarHeight, searchBarHeight);
 
-    searchSuggestions->setSize(searchBar->width(), height(), 2);
-
     scrollableWidget->setLayout(resultsMainLayout);
     scrollableSearchResults->setWidget(scrollableWidget);
     scrollableSearchResults->setWidgetResizable(true);
@@ -1182,6 +1180,9 @@ void MedeaWindow::setupSearchTools()
     searchLayout->setContentsMargins(0,0,0,0);
     searchLayout->addWidget(searchToolbar);
 
+    searchSuggestions->setSize(searchBar->width(), height(), 1);
+    searchSuggestions->setSize(RIGHT_PANEL_WIDTH, height(), 2);
+
     // setup search option widgets and menu for view aspects
     QHBoxLayout* aspectsLayout = new QHBoxLayout();
     QWidgetAction* aspectsAction = new QWidgetAction(this);
@@ -1198,7 +1199,7 @@ void MedeaWindow::setupSearchTools()
     viewAspectsButton = new QToolButton(this);
     viewAspectsButton->setCheckable(true);
 
-    QToolBar*  viewAspectsToolbar = constructToolbar(true);
+    QToolBar* viewAspectsToolbar = constructToolbar(true);
     viewAspectsToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     viewAspectsToolbar->setFixedSize(20, 20);
     viewAspectsToolbar->addWidget(viewAspectsButton);
@@ -3388,13 +3389,16 @@ void MedeaWindow::on_actionSearch_triggered()
         QStringList checkedKeys = getCheckedItems(SEARCH_DATA_KEYS);
         QList<GraphMLItem*> searchResultItems = nodeView->search(searchText, checkedAspects, checkedKinds, checkedKeys);
 
+        /*
         bool newSearch = searchDialog->addSearchItems(searchResultItems);
         if (newSearch) {
             searchDialog->updateHedearLabels(searchText.trimmed(), checkedAspects, checkedKinds);
         }
+        */
 
+        searchDialog->addSearchItems(searchResultItems);
+        searchDialog->updateHedearLabels(searchText.trimmed(), checkedAspects, checkedKinds, checkedKeys);
         searchDialog->show();
-        searchDialog->raise();
     }
 }
 
@@ -4042,7 +4046,7 @@ void MedeaWindow::searchItemClicked()
  */
 void MedeaWindow::searchMenuButtonClicked(bool checked)
 {
-
+    qDebug() << "****** searchMenuButtonClicked : " << checked << " ******";
     bool showMenu = checked;
     QWidget* widget = 0;
     QMenu* menu = 0;
@@ -4070,6 +4074,7 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
             menu->close();
         }
     }
+    qDebug() << "****** ****** ****** ****** ******";
 }
 
 
@@ -4080,18 +4085,12 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
 void MedeaWindow::searchMenuClosed()
 {
     QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
-    //QToolButton* button = qobject_cast<QToolButton*>(menu->parentWidget());
-
-    /*
-    searchOptionMenu->setStyleSheet(themedMenuStyle);
-    viewAspectsMenu->setStyleSheet(themedMenuStyle);
-    nodeKindsMenu->setStyleSheet(themedMenuStyle);
-    dataKeysMenu->setStyleSheet(themedMenuStyle);
-    */
-
     QToolButton* button = 0;
+    bool firstLayerButton = false;
+
     if (menu == searchOptionMenu) {
         button = searchOptionToolButton;
+        firstLayerButton = true;
     } else if (menu == viewAspectsMenu) {
         button = viewAspectsButton;
     } else if (menu == nodeKindsMenu) {
@@ -4101,40 +4100,25 @@ void MedeaWindow::searchMenuClosed()
     }
 
     if (button) {
-        button->setChecked(false);
+        // check if the corresponding tool button was used to close the menu
+        QPoint buttonPos = button->mapFromParent(button->pos());
+        buttonPos = button->mapToGlobal(buttonPos);
+        QRect buttonRect = QRect(buttonPos, button->rect().size());
+        if (buttonRect.contains(QCursor::pos())) {
+            if (!firstLayerButton) {
+                // if an inner button is clicked to close the menu, a click signal isn't emitted
+                // need to send click signal and update the button's checked state
+                button->clicked(false);
+                button->setChecked(false);
+            } else {
+                //qDebug() << "Search option clicked";
+                // this works except for when the cursor is over the search
+                // option button and then the menu is closed using the ESC key
+            }
+        } else {
+            button->setChecked(false);
+        }
     }
-
-    /*
-    qDebug() << "Menu parent widget: " << menu->parentWidget();
-
-    if (button) { // && button->isChecked()) {
-
-        qDebug() << "button checked: " << button->isChecked();
-        //close this levels button
-        button->setChecked(false);
-
-        //get the point of the cursor and the main SearchOptionMenu
-        QPoint topLeft = searchOptionMenu->mapToParent(searchOptionMenu->rect().topLeft());
-        QPoint bottomRight = searchOptionMenu->mapToParent(searchOptionMenu->rect().bottomRight());
-        QRect menuRect(topLeft, bottomRight);
-
-        //if the mouse is not within the confines of the searchOptionMenu, then close the searchOptionMenu too
-        if (!menuRect.contains(QCursor::pos())) {
-            searchOptionMenu->close();
-        }
-    }/*else if(menu && menu == searchOptionMenu){
-        QPoint topLeft = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().topLeft());
-        QPoint bottomRight = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().bottomRight());
-
-        QRect buttonRect(topLeft, bottomRight);
-
-        if (buttonRect.contains(QCursor::pos())){
-            searchOptionToolButton->setChecked(true);
-        }else{
-            searchOptionToolButton->setChecked(false);
-        }
-    }*/
-
 }
 
 
