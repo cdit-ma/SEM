@@ -287,9 +287,8 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
 {
     //Check for Enter pressing!
     int keyPressed = event->key();
-    bool CONTROL = event->modifiers() & Qt::ControlModifier;
 
-    if(keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return || keyPressed == Qt::Key_Escape){
+     if(keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return || keyPressed == Qt::Key_Escape){
         focusOutEvent(0);
         return;
     }
@@ -299,14 +298,7 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
         return;
     }
 
-
-    if(keyPressed == Qt::Key_Up || keyPressed == Qt::Key_Down || keyPressed == Qt::Key_Right || keyPressed == Qt::Key_Left){
-        event->setAccepted(true);
-        return;
-    }
-
     QGraphicsTextItem::keyPressEvent(event);
-
 }
 
 void EditableTextItem::paste()
