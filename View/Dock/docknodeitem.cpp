@@ -12,7 +12,7 @@
 #define BUTTON_HEIGHT 100
 #define LABEL_BUTTON_HEIGHT 28
 
-#define ARROW_WIDTH (BUTTON_WIDTH / 5)
+#define ARROW_WIDTH 16
 #define TEXT_HEIGHT (BUTTON_HEIGHT / 5)
 #define IMAGE_SIZE ((BUTTON_HEIGHT - TEXT_HEIGHT) * ICON_RATIO - IMAGE_PADDING)
 
@@ -457,14 +457,16 @@ void DockNodeItem::setupLayout()
     textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
 
+    layout->addStretch(1);
     // setup icon label
     if (!isDockItemLabel()) {
 
         imageLabel = new QLabel(this);
         imageLabel->setAlignment(Qt::AlignCenter);
-        imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
-        imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        imageLabel->setStyleSheet("padding-top:" + QString::number(IMAGE_PADDING) + "px;");
+        imageLabel->setMinimumSize(IMAGE_SIZE, IMAGE_SIZE);
+        //imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
+        //imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        //imageLabel->setStyleSheet("padding-top:" + QString::number(IMAGE_PADDING) + "px;");
         setImageLabelPixmap();
 
         // determine whether this dock item will open another dock when clicked
@@ -475,22 +477,15 @@ void DockNodeItem::setupLayout()
 
         // if it does, display a right arrow image
         if (requireDockSwitch) {
-            QPixmap arrowPixmap = QPixmap::fromImage(QImage(":/Actions/Arrow_Right"));
-            arrowPixmap = arrowPixmap.scaled(BUTTON_WIDTH * ICON_RATIO / 5, BUTTON_HEIGHT * ICON_RATIO,
-                                             Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
             QLabel* dockArrowLabel = new QLabel(this);
-            dockArrowLabel->setFixedSize(ARROW_WIDTH, IMAGE_SIZE);
-            dockArrowLabel->setPixmap(arrowPixmap);
-            dockArrowLabel->setStyleSheet("padding-top:" + QString::number(arrowPixmap.height()/2 - IMAGE_PADDING) + "px;");
+            dockArrowLabel->setPixmap(Theme::theme()->getImage("Actions", "Arrow_Right", QSize(ARROW_WIDTH, ARROW_WIDTH)));
 
             QHBoxLayout* imageLayout = new QHBoxLayout();
-            imageLayout->addStretch(1);
-            imageLayout->addWidget(imageLabel, 2);
-            imageLayout->setAlignment(imageLabel, Qt::AlignHCenter);
-            imageLayout->addWidget(dockArrowLabel, 1);
-            layout->addLayout(imageLayout);
+            imageLayout->addItem(new QSpacerItem(ARROW_WIDTH, 0));
+            imageLayout->addWidget(imageLabel, 1);
+            imageLayout->addWidget(dockArrowLabel);
 
+            layout->addLayout(imageLayout);
         } else {
             layout->addWidget(imageLabel);
             layout->setAlignment(imageLabel, Qt::AlignHCenter);
@@ -498,7 +493,8 @@ void DockNodeItem::setupLayout()
     }
 
     layout->addWidget(textLabel);
-    layout->setAlignment(textLabel, Qt::AlignHCenter);
+    layout->addStretch(1);
+    layout->setAlignment(textLabel, Qt::AlignCenter);
 
     setFlat(true);
     setLayout(layout);
