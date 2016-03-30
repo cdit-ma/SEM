@@ -742,20 +742,16 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             painter->setPen(Qt::gray);
             QPen linePen = painter->pen();
 
-            linePen.setStyle(Qt::DotLine);
-            //linePen.setWidth(1);
-            painter->setPen(linePen);
-            painter->drawLines(getGridLines());
-
-            linePen.setColor(headerBrush.color().darker(220));
-            linePen.setStyle(Qt::DotLine);
-            linePen.setWidthF(selectedPenWidth);
-
-            painter->setPen(linePen);
-
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(QColor(0,0,255,90));
             foreach(QRectF rect, getChildrenGridOutlines()){
                 painter->drawRect(adjustRectForPen(rect, linePen));
             }
+
+            linePen.setStyle(Qt::SolidLine);
+            linePen.setWidthF(.5);
+            painter->setPen(linePen);
+            painter->drawLines(getGridLines());
         }
 
         //Paint the Icon
