@@ -101,24 +101,21 @@ void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setFont(textFont);
     painter->drawText(boundingRect(), Qt::AlignHCenter | Qt::AlignBottom, aspectLabel);
 
-    if (drawGridLines()) {
+    //New Code
+    if(drawGridLines()){
         painter->setPen(Qt::gray);
         QPen linePen = painter->pen();
 
-        linePen.setStyle(Qt::DotLine);
-        painter->setPen(linePen);
-        painter->drawLines(getGridLines());
-
-        linePen.setColor(Qt::darkGray);
-        linePen.setWidthF(2);
-
-        painter->setBrush(Qt::NoBrush);
-        painter->setPen(linePen);
-        //painter->drawRects(getChildrenGridOutlines());
-
-        foreach (QRectF rect, getChildrenGridOutlines()) {
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QColor(0,0,255,90));
+        foreach(QRectF rect, getChildrenGridOutlines()){
             painter->drawRect(adjustRectForPen(rect, linePen));
         }
+
+        linePen.setStyle(Qt::SolidLine);
+        linePen.setWidthF(.5);
+        painter->setPen(linePen);
+        painter->drawLines(getGridLines());
     }
 }
 
