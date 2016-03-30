@@ -2186,6 +2186,7 @@ void MedeaWindow::changeEvent(QEvent *event)
 
 QToolBar *MedeaWindow::constructToolbar(bool ignoreStyle)
 {
+    Q_UNUSED(ignoreStyle)
     QToolBar* tb = new QToolBar(this);
 #ifdef TARGET_OS_MAC
     if(!ignoreStyle){
@@ -4192,8 +4193,6 @@ void MedeaWindow::updateSearchLineEdits()
 void MedeaWindow::updateSearchSuggestions()
 {
     if (nodeView && searchBar) {
-        bool showSearch = !searchBar->text().isEmpty();
-        //searchButton->setEnabled(showSearch);
         nodeView->searchSuggestionsRequested(searchBar->text(), getCheckedItems(0), getCheckedItems(1), getCheckedItems(2));
     }
 }

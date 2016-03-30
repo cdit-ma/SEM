@@ -295,7 +295,6 @@ void AppSettings::setupLayout()
     QTabWidget* tabWidget = new QTabWidget();
 
 
-    int longestFont = 0;
 
     if(!settingFileWriteable){
         QLabel* label = new QLabel("settings.ini file is read-only! Settings changed won't persist!");

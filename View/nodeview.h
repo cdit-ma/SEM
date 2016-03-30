@@ -423,7 +423,7 @@ public slots:
     void moveViewBack();
     void moveViewForward();
 
-    void highlightDeployment(bool clear = false);
+
 
     void setEventFromEdgeItem();
 

@@ -697,11 +697,9 @@ void NodeView::updateDeploymentWarnings(int nodeID)
         bool isSelected = selectedIDs.contains(ID);
 
         EntityItem* node = getEntityItemFromID(ID);
-        NodeAdapter* nodeAdapter = 0;
         EntityItem* parent = 0;
 
         if(node){
-            nodeAdapter = node->getNodeAdapter();
             GraphMLItem* parentG = node->getParent();
 
             int deployedID = getDeployedHardwareID(node);
@@ -2235,67 +2233,6 @@ void NodeView::moveViewForward()
     }
 }
 
-
-/**
- * @brief NodeView::highlightDeployment
- * @param clear
- */
-void NodeView::highlightDeployment(bool clear)
-{
-    /*
-    // clear highlighted node items
-    if (guiItems.contains(prevSelectedNodeID)) {
-        GraphMLItem* item = guiItems[prevSelectedNodeID];
-        if (item->isEntityItem()) {
-            ((EntityItem*)item)->deploymentView(false);
-        }
-    }
-
-    // check if any ComponentAssemblies, ComponentInstances or ManagementComponents
-    // have children deployed to a different node; show red hardware icon
-    if (controller) {
-        Model* model = controller->getModel();
-        if (model) {
-            foreach (Node* assm, model->getChildrenOfKind("ComponentAssembly")) {
-                EntityItem* assmItem = getEntityItemFromNode(assm);
-                if (assmItem) {
-                    assmItem->deploymentView(true && !clear);
-                }
-            }
-            foreach (Node* inst, model->getChildrenOfKind("ComponentInstance")) {
-                EntityItem* instItem = getEntityItemFromNode(inst);
-                if (instItem) {
-                    instItem->deploymentView(true && !clear);
-                }
-            }
-            foreach (Node* mngt, model->getChildrenOfKind("ManagementComponent")) {
-                EntityItem* mngtItem = getEntityItemFromNode(mngt);
-                if (mngtItem) {
-                    mngtItem->deploymentView(true && !clear);
-                }
-            }
-        }
-    }
-
-    if (clear) {
-        prevSelectedNodeID = -1;
-        return;
-    }
-
-    EntityItem* selectedEntityItem = getSelectedEntityItem();
-    if (selectedEntityItem) {
-        if (selectedEntityItem->getNodeKind().startsWith("Hardware")) {
-            return;
-        }
-        if (!selectedEntityItem->deploymentView(true, selectedEntityItem).isEmpty()) {
-            // if there are higlighted children, display notification
-            view_DisplayNotification("The selected entity has children that are deployed to a different node.");
-        }
-        prevSelectedNodeID = selectedEntityItem->getID();
-    }*/
-}
-
-
 /**
  * @brief NodeView::setEventFromEdgeItem
  */
@@ -3254,7 +3191,6 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
         return;
     }
 
-    ModelItem* modelItem = (ModelItem*)item;
     NodeItem* nodeItem = (NodeItem*)item;
     EdgeItem* edgeItem = (EdgeItem*)item;
     EntityItem* entityItem = (EntityItem*)item;
@@ -3272,12 +3208,9 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     if(item->isEdgeItem()){
         connect(edgeItem, SIGNAL(edgeItem_eventFromItem()), this, SLOT(setEventFromEdgeItem()));
     }
+
     if(item->isAspectItem()){
         connect(item, SIGNAL(GraphMLItem_SizeChanged()), this, SIGNAL(view_ModelSizeChanged()));
-    }
-
-    if(item->isModelItem()){
-        //connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), modelItem, SLOT(themeChanged(VIEW_THEME)));
     }
 
     if(item->isNodeItem()){
@@ -3483,12 +3416,6 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* entityItem)
  */
 void NodeView::edgeConstructed_signalUpdates()
 {
-    // update the highlighted deployment nodes
-    if (hardwareDockOpen) {
-        highlightDeployment();
-    }
-
-
     // update the docks
     emit view_edgeConstructed();
 }

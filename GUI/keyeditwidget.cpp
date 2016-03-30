@@ -34,7 +34,6 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
     bool isBool = false;
     bool isInt = false;
-    bool isString = true;
     bool isColor = keyNameHR.endsWith("Color");
     isFilePath = keyNameHR.endsWith("File Path");
     isPath = keyNameHR.endsWith("Path");

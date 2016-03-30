@@ -23,8 +23,7 @@ ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, ToolbarMenuAction* parent_a
     if (nodeItem) {
         actionKind = nodeItem->getNodeKind();
         if (nodeItem->isEntityItem()) {
-            EntityItem* entityItem = (EntityItem*)nodeItem;
-            setText(nodeItem->getDataValue("label").toString());
+            setText(nodeItem->getLabel());
         } else {
             setText(actionKind);
         }
@@ -43,6 +42,7 @@ ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, ToolbarMenuAction* parent_a
 ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_action, QWidget* parent, QString displayedText, QString prefixPath, QString aliasPath) :
     QAction(parent)
 {
+    Q_UNUSED(aliasPath)
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
     parentAction = parent_action;
