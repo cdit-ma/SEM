@@ -79,6 +79,7 @@ private:
     QHash<QString, QIcon> iconLookup;
     QHash<QString, QColor> pixmapTintLookup;
     QHash<QString, QString> iconToggledLookup;
+    QHash<QString, QImage> imageLookup;
 
     QHash<VIEW_ASPECT, QColor> aspectColor;
 
@@ -96,6 +97,7 @@ private:
 
     bool themeChanged;
 
+    int readCount;
     bool valid;
 
 public:

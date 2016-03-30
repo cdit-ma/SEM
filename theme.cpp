@@ -3,6 +3,7 @@
 #include <QStringBuilder>
 #include <QDirIterator>
 #include <QDateTime>
+#include <QPainter>
 Theme* Theme::themeSingleton = 0;
 QThread* Theme::themeThread = 0;
 
@@ -11,6 +12,7 @@ Theme::Theme():QObject(0)
     slash = QString("/");
     updateValid();
     valid = false;
+    readCount = 0;
 }
 
 QColor Theme::getBackgroundColor()
@@ -319,8 +321,18 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
             }
         }
 
-        //Load the original Image
-        QImage image(":/" % resourceName);
+
+
+        QImage image;
+
+        if(imageLookup.contains(resourceName)){
+            image = imageLookup[resourceName];
+        }else{
+            //Load the original Image
+            image =  QImage(":/" % resourceName);
+            //Store it
+            imageLookup[resourceName] = image;
+        }
 
         if(image.isNull()){
             qCritical() << "Cannot find image: " << resourceName;
@@ -366,6 +378,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
             //Replace the image with it's alphaChannel
             image = image.alphaChannel();
 
+
             //Replace the colors with the tinted color.
             for(int i = 0; i < image.colorCount(); ++i) {
                 tintColor.setAlpha(qGray(image.color(i)));
@@ -374,6 +387,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
         }
         //Construct a Pixmap from the image.
         QPixmap pixmap = QPixmap::fromImage(image);
+
         pixmapLookup[lookupName] = pixmap;
         return pixmap;
     }
