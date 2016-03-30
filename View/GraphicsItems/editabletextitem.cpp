@@ -16,6 +16,8 @@
 EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     QGraphicsTextItem(parent)
 {
+
+
     alignment = Qt::AlignLeft;
 
 
@@ -37,7 +39,6 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     doc->setDocumentMargin(0);
     doc->setUseDesignMetrics(true);
     doc->setTextWidth(this->textWidth);
-
 
 
     QTextOption option = doc->defaultTextOption();
@@ -81,6 +82,8 @@ void EditableTextItem::setEditMode(bool editMode)
         setAlignment(alignment);
         QTextCursor c = textCursor();
         c.select(QTextCursor::Document);
+
+
         setTextCursor(c);
     }else if(inEditingMode && !editMode){
 

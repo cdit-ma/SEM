@@ -26,8 +26,6 @@ void testModel(){
 }
 
 int launchMEDEA(int argc, char *argv[]){
-
-
     //Construct a QApplication
     QApplication a(argc, argv);
 
