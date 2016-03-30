@@ -3033,12 +3033,6 @@ bool NewController::_attachData(Entity *item, Data *data, bool addAction)
 
 void NewController::addActionToStack(EventAction action, bool useAction)
 {
-    //Get Current Action ID and action.
-    //action.Action.ID = currentActionID;
-    //action.Action.name = currentAction;
-    //action.Action.actionID = currentActionItemID++;
-    action.Action.timestamp = getTimeStamp();
-
     //Change made, make dirty the project
     setProjectDirty(true);
 

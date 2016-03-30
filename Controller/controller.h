@@ -95,7 +95,7 @@ struct EventAction{
         ACTION_TYPE type;
         GraphML::GRAPHML_KIND kind;
         QString name;
-        QString timestamp;
+        uint timestamp;
     } Action;
 
     int ID;

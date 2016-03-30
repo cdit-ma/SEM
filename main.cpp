@@ -21,7 +21,7 @@
 //https://www.google.com/design/icons/index.html
 void testModel(){
     ModelTester *t = new ModelTester();
-    t->loadTest("E:/MCMS.graphml");
+    t->loadTest("/home/dig/Desktop/HelloWorld(2).graphml");
     delete t;
 }
 
@@ -52,6 +52,6 @@ int launchMEDEA(int argc, char *argv[]){
  */
 int main(int argc, char *argv[])
 {
-    launchMEDEA(argc, argv);
-    //testModel();
+    //launchMEDEA(argc, argv);
+    testModel();
 }

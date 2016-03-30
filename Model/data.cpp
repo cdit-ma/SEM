@@ -53,7 +53,7 @@ Data *Data::clone(Data *data)
 void Data::setParent(Entity *parent)
 {
     if(parent){
-        connect(this, SIGNAL(dataChanged(int,QString,QVariant)), parent, SLOT(dataChanged(int, QString,QVariant)));
+        //connect(this, SIGNAL(dataChanged(int,QString,QVariant)), parent, SLOT(dataChanged(int, QString,QVariant)));
         //Set the ID
         setID();
     }
@@ -91,6 +91,11 @@ bool Data::setValue(QVariant value)
 
     //Send a signal saying the data changed, regardless of whether it did.
     emit dataChanged(getID(), getKeyName(), _value);
+    if(_dataChanged){
+        foreach(Data* data, _childData){
+            data->parentDataChanged(getID(), getKeyName(), _value);
+        }
+    }
     return _dataChanged;
 }
 
