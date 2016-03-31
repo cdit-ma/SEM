@@ -52,6 +52,6 @@ int launchMEDEA(int argc, char *argv[]){
  */
 int main(int argc, char *argv[])
 {
-    //launchMEDEA(argc, argv);
-    testModel();
+    launchMEDEA(argc, argv);
+    //testModel();
 }
