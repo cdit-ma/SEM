@@ -154,7 +154,6 @@ void EntityAdapter::removeListener(QObject *object)
             deleteLater();
         }
    }
-
 }
 
 bool EntityAdapter::hasListeners()
