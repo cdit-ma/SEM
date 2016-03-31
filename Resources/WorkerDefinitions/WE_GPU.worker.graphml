@@ -17,6 +17,7 @@
 	<key attr.name="value" attr.type="string" for="node" id="472"/>
 	<key attr.name="type" attr.type="string" for="node" id="6"/>
 	<key attr.name="readOnly" attr.type="boolean" for="node" id="9999"/>
+        <key attr.name="workerID" attr.type="string" for="node" id="d26"/>
 
 	<graph edgedefault="directed" id="parentGraph0">
 		<node id ="483">
@@ -48,6 +49,8 @@
 					<data key="469">bufferData</data>
 					<data key="362">Buffer a given amount of data, optionally copying that across to the GPU by default</data>
 					<data key="9999">true</data>
+                                        <data key="d26">we_gpu</data>
+
 					<graph id ="g519">
 						<node id ="565">
 							<data key="2">InputParameter</data>
@@ -131,6 +134,7 @@
 					<data key="469">releaseData</data>
 					<data key="362">Buffer a given amount of data, optionally copying that across to the GPU by default</data>
 					<data key="9999">true</data>
+                                        <data key="d26">we_gpu</data>
 					<graph id ="g725">
 						<node id ="771">
 							<data key="2">InputParameter</data>
@@ -214,6 +218,7 @@
 					<data key="469">setKernelComplexity</data>
 					<data key="362">Set the complexity of the kernel for subsequent executions (passing in the result of the evaluated complexity function)</data>
 					<data key="9999">true</data>
+                                        <data key="d26">we_gpu</data>
 					<graph id ="g931">
 						<node id ="977">
 							<data key="2">InputParameter</data>
@@ -246,6 +251,7 @@
 					<data key="469">runParallel</data>
 					<data key="362">Launch a kernel to run on a GPU, executing as many of the specified work-items (threads) as is possible at once. Doesn&apos;t contain factors such as excessive global memory reads or inter-work-item synchronisation that could result in performance scaling better than some kernels as the number of work-items increases.</data>
 					<data key="9999">true</data>
+                                        <data key="d26">we_gpu</data>
 					<graph id ="g1016">
 						<node id ="1062">
 							<data key="2">InputParameter</data>
@@ -291,6 +297,7 @@
                                         <data key="469">FFT</data>
 					<data key="362">Run an FFT usign the given data, with the result overwriting the input array. The input should be an array of real floats, which is replaced by the an array of interleaved real and imaginary numbers stored as floats, with the complex conjugates discarded (Hermetian). Note: as each FFT in O(n*log(n)) wrt sampleLength execution times should increase as sampleLength is increased. A decrease is potentially a sign that initialisation and memory transfer bottlenecks are overwhelming compute bottlenecks.</data>
                                         <data key="9999">true</data>
+                                        <data key="d26">we_gpu</data>
 					<graph id ="g1768">
 						<node id ="1814">
 							<data key="2">InputParameter</data>
@@ -336,6 +343,7 @@
                                         <data key="469">matrixMult</data>
 					<data key="362">Run an FFT usign the given data, with the result overwriting the input array. The input should be an array of real floats, which is replaced by the an array of interleaved real and imaginary numbers stored as floats, with the complex conjugates discarded (Hermetian). Note: as each FFT in O(n*log(n)) wrt sampleLength execution times should increase as sampleLength is increased. A decrease is potentially a sign that initialisation and memory transfer bottlenecks are overwhelming compute bottlenecks.</data>
                                         <data key="9999">true</data>
+                                        <data key="d26">we_gpu</data>
 					<graph id ="g2867">
 						<node id ="2913">
 							<data key="2">InputParameter</data>
