@@ -56,6 +56,7 @@ signals:
     void dataChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);
     void readOnlySet(int, bool isReadOnly);
+    void terminating();
 private slots:
     void dataChanged(int ID, QString keyName, QVariant data);
     void thisDataChanged(QString keyName);

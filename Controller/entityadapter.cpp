@@ -19,7 +19,6 @@ EntityAdapter::EntityAdapter(Entity *entity): QObject(0)
 
 EntityAdapter::~EntityAdapter()
 {
-    //qCritical() << "REMOVING EntityAdapter" << getID();
 }
 
 int EntityAdapter::getID()
@@ -162,6 +161,7 @@ bool EntityAdapter::hasListeners()
 {
     return _listeners.isEmpty();
 }
+
 
 void EntityAdapter::invalidate()
 {
