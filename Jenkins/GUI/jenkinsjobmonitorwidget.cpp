@@ -23,6 +23,7 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
     this->jenkins = jenkins;
     this->jobName = jobName;
     this->buildNumber = -1;
+    loadingWidget = 0;
     spinning = 0;
     requestedConsoleOutput = false;
 
@@ -37,8 +38,7 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
     if(jenkins->hasValidatedSettings()){
         loadingWidget->setWaiting(true);
     }else{
-        connect(jenkins, SIGNAL(settingsValidationComplete()), loadingWidget, SLOT(authenticationFinished()));
-        connect(jenkins, SIGNAL(gotInvalidSettings(QString)), this, SLOT(reject()));
+        connect(jenkins, SIGNAL(settingsValidationComplete(bool, QString)), this, SLOT(authenticationFinished(bool, QString)));
     }
 
     //Request the JenkinsData
@@ -334,6 +334,14 @@ void JenkinsJobMonitorWidget::frameChanged(int frame)
                 tabWidget->setTabIcon(i, QIcon(pixmap));
             }
         }
+    }
+}
+
+void JenkinsJobMonitorWidget::authenticationFinished(bool success, QString message)
+{
+    loadingWidget->authenticationFinished();
+    if(!success){
+        reject();
     }
 }
 

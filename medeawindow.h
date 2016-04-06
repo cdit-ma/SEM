@@ -167,7 +167,7 @@ private slots:
     void reportBug();
     void showWiki(QString componentName="");
     void showShortcutList();
-    void invalidJenkinsSettings(QString message);
+    void jenkinsSettingsValidated(bool success, QString message);
     void jenkinsNodesLoaded();
     void saveSettings();
     void search();
@@ -288,6 +288,7 @@ private:
 
     void toolbarSettingChanged(QString keyName, QVariant value);
     void themeSettingChanged(QString keyName, QVariant value);
+    void jenkinsSettingChanged(QString keyName, QVariant value);
     void jenkins_JobName_Changed(QString jobName);
     void enableTempExport(bool enable);
 

@@ -77,8 +77,7 @@ void JenkinsStartJobWidget::requestJob(QString jobName, QString graphmlFile)
     if(jenkins->hasValidatedSettings()){
         loadingWidget->setWaiting(true);
     }else{
-        connect(jenkins, SIGNAL(settingsValidationComplete()), loadingWidget, SLOT(authenticationFinished()));
-        connect(jenkins, SIGNAL(gotInvalidSettings(QString)), this, SLOT(reject()));
+        connect(jenkins, SIGNAL(settingsValidationComplete(bool,QString)), this, SLOT(authenticationFinished(bool, QString)));
     }
 
 
@@ -154,6 +153,16 @@ void JenkinsStartJobWidget::gotJobParameters(QString, Jenkins_JobParameters para
             groupVLayout->addWidget(parameterEdit);
             parameterWidgets.append(parameterEdit);
         }
+    }
+}
+
+void JenkinsStartJobWidget::authenticationFinished(bool success, QString)
+{
+    if(!success){
+        reject();
+    }
+    if(loadingWidget){
+        loadingWidget->authenticationFinished();
     }
 }
 

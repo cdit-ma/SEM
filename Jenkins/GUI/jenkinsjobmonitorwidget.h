@@ -40,6 +40,8 @@ private slots:
     void stopPressed();
     void frameChanged(int frame);
 
+    void authenticationFinished(bool success, QString message);
+
 private:
 
     QString htmlize(QString consoleOutput);

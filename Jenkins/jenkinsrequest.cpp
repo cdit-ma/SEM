@@ -55,7 +55,7 @@ JenkinsRequest::~JenkinsRequest()
  * @param url - The Url to request.
  * @return - The returncode of the action and the ByteArray downloaded from the url. Can be empty if the Request Failed, or there was nothing to Download.
  */
-QPair<int, QByteArray> JenkinsRequest::wget(QString url)
+QPair<int, QByteArray> JenkinsRequest::wget(QString url, bool auth)
 {
     //The returnable byteArray.
     QByteArray byteArray;
@@ -68,7 +68,7 @@ QPair<int, QByteArray> JenkinsRequest::wget(QString url)
         qCritical() << "Requesting URL: " << url;
 
         //Construct the post request, Authenticated
-        QNetworkRequest request = manager->getAuthenticatedRequest(url);
+        QNetworkRequest request = manager->getAuthenticatedRequest(url, auth);
 
 
         //Request the URL from the networkManager.
@@ -134,6 +134,8 @@ QPair<int, QByteArray> JenkinsRequest::waitForReply(QNetworkReply *reply)
     timeOutTimer->setSingleShot(true);
     int returnCode = -1;
 
+    QString errorString = "";
+
     while(processing){
         bool timedOut = false;
         qint64 bytesAvailable = reply->bytesAvailable();
@@ -179,11 +181,11 @@ QPair<int, QByteArray> JenkinsRequest::waitForReply(QNetworkReply *reply)
         if(reply->atEnd() && (reply->isFinished() || timedOut)){
             if(timedOut){
                 emit requestFailed();
-                qCritical() << "Timed Out: " << reply->url();
+                returnCode = QNetworkReply::TimeoutError;
             }
             if(reply->error() != QNetworkReply::NoError){
                 emit requestFailed();
-                qCritical() << "QNetwork Error: " << reply->errorString();
+                returnCode = reply->error();
             }else{
                 returnCode = 0;
             }
@@ -287,7 +289,7 @@ bool JenkinsRequest::waitForValidSettings()
 
     QEventLoop waitLoop;
     connect(timeOutTimer, SIGNAL(timeout()), &waitLoop, SLOT(quit()));
-    connect(manager, SIGNAL(settingsValidationComplete()), &waitLoop, SLOT(quit()));
+    connect(manager, SIGNAL(settingsValidationComplete(bool, QString)), &waitLoop, SLOT(quit()));
     connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
 
     //Start the timer
@@ -507,22 +509,8 @@ void JenkinsRequest::getJobState(QString jobName, int buildNumber, QString activ
 
 void JenkinsRequest::validateJenkinsSettings()
 {
-    QString command = "login";
-
-    //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
-
-    QPair<int, QByteArray> response = runProcess(manager->getCLICommand(command));
-    QString result = "";
-    bool success = false;
-    if(response.first == 0){
-        success = true;
-    }else if(response.first == -1){
-        result = "Authentication Failed as user: " + manager->getUsername() + " Failed!";
-    }else if(response.first >= 1){
-        result = "Cannot Reach Server Address";
-    }
-    emit gotSettingsValidationResponse(success, result);
-
+    QString vError = validate();
+    emit gotSettingsValidationResponse(vError.isEmpty(), vError);
     emit requestFinished();
 }
 
@@ -766,6 +754,65 @@ void JenkinsRequest::_unexpectedTermination()
     terminated = true;
     //Try unset JenkinsManger
     manager = 0;
+}
+
+QString JenkinsRequest::validate()
+{
+    //Get the the data from the URL using wget.
+    QPair<int, QByteArray> jenkinsRequest = wget(manager->getURL() + "api/json", false);
+    QNetworkReply::NetworkError error = (QNetworkReply::NetworkError) jenkinsRequest.first;
+    QJsonDocument jenkinsJSON = QJsonDocument::fromJson(jenkinsRequest.second);
+
+    if(error == QNetworkReply::NoError){
+        if(jenkinsJSON.isNull()){
+            return "Isn't a Jenkins Server";
+        }else{
+            QJsonObject configData = jenkinsJSON.object();
+
+            QString jobName = manager->getJobName();
+            bool gotMatch = false;
+            //Append The name of the Active Configurations to the configurationList
+            foreach(QJsonValue jobs, configData["jobs"].toArray()){
+                if(jobName == jobs.toObject()["name"].toString()){
+                    gotMatch = true;
+                    break;
+                }
+            }
+            if(!gotMatch){
+                return "No job called '" + jobName + "'";
+            }
+        }
+    }else{
+        if(error == QNetworkReply::HostNotFoundError){
+            return "Host Not Found";
+        }else if(error == QNetworkReply::ContentNotFoundError){
+            return "Isn't a Jenkins Server";
+        }else if(error == QNetworkReply::ProtocolUnknownError){
+            return "Protocol Error";
+        }else{
+            qCritical() << error;
+            return "Unknown Network Error";
+        }
+    }
+
+    //Try Auth
+    QPair<int, QByteArray> authJenkinsRequest = wget(manager->getURL() + "api/json");
+    error = (QNetworkReply::NetworkError) authJenkinsRequest.first;
+
+    if(error == QNetworkReply::AuthenticationRequiredError){
+        return "API User/Token Authentication Failed";
+    }
+
+    //Try CLI stuff.
+    QPair<int, QByteArray> response = runProcess(manager->getCLICommand("login"));
+
+    if(response.first == -1){
+        return "Authentication Failed as user: '" + manager->getUsername() + "'";
+    }else if(response.first >= 1){
+        return "Cannot Reach Server Address";
+    }
+
+    return "";
 }
 
 /**

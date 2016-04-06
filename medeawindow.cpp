@@ -86,6 +86,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     leftOverTime = 0;
     controllerThread = 0;
     rightPanelWidget = 0;
+    jenkinsManager = 0;
 
     SETTINGS_LOADING = false;
     WINDOW_MAXIMIZED = false;
@@ -243,6 +244,36 @@ void MedeaWindow::themeSettingChanged(QString keyName, QVariant value)
     }
 }
 
+void MedeaWindow::jenkinsSettingChanged(QString keyName, QVariant value)
+{
+    QString strValue = value.toString();
+
+    if(jenkinsManager){
+        if(keyName == JENKINS_URL){
+            jenkinsManager->setURL(strValue);
+        }else if(keyName == JENKINS_USER){
+            jenkinsManager->setUsername(strValue);
+        }else if(keyName == JENKINS_PASS){
+            jenkinsManager->setPassword(strValue);
+        }else if(keyName == JENKINS_TOKEN){
+            jenkinsManager->setToken(strValue);
+        }else if(keyName == JENKINS_JOB){
+            jenkinsManager->setJobName(strValue);
+            jenkins_JobName_Changed(strValue);
+        }
+
+        if(!jenkinsManager->hasValidatedSettings()){
+            //Devalidate Menu
+            jenkins_menu->setEnabled(false);
+            jenkins_ExecuteJob->setEnabled(false);
+        }
+
+        if(jenkinsManager->hasSettings() && !jenkinsManager->hasValidatedSettings()){
+            jenkinsManager->validateSettings();
+        }
+    }
+}
+
 
 /**
  * @brief MedeaWindow::enableTempExport
@@ -362,6 +393,9 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     }else if(groupName == THEME_SETTINGS){
         themeSettingChanged(keyName, value);
         return;
+    }else if(groupName == JENKINS_SETTINGS){
+        jenkinsSettingChanged(keyName, value);
+        return;
     }
 
     bool isInt;
@@ -432,24 +466,6 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     }else if(keyName == ASPECT_COLOR_DEFAULT){
         resetAspectTheme(false);
         saveTheme(true);
-    }else if(keyName == JENKINS_URL){
-        if(jenkinsManager){
-            jenkinsManager->setURL(strValue);
-        }
-    }else if(keyName == JENKINS_USER){
-        if(jenkinsManager){
-            jenkinsManager->setUsername(strValue);
-        }
-    }else if(keyName == JENKINS_PASS){
-        if(jenkinsManager){
-            jenkinsManager->setPassword(strValue);
-        }
-    }else if(keyName == JENKINS_TOKEN){
-        if(jenkinsManager){
-            jenkinsManager->setToken(strValue);
-        }
-    }else if(keyName == JENKINS_JOB){
-        jenkins_JobName_Changed(strValue);
     }else if(keyName == DEFAULT_DIR_PATH){
         //Set up default path.
         DEFAULT_PATH = strValue;
@@ -676,6 +692,7 @@ void MedeaWindow::setupMenu()
     model_menu = menu->addMenu(getIcon("Actions", "MenuModel"), "Model");
     jenkins_menu = menu->addMenu(getIcon("Actions", "Jenkins_Icon"), "Jenkins");
 
+
     menu->addSeparator();
 
     settings_changeAppSettings = menu->addAction(getIcon("Actions", "Settings"), "Settings");
@@ -784,12 +801,6 @@ void MedeaWindow::setupMenu()
     help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
     help_AboutQt = help_menu->addAction(QIcon(":/Qt.ico"), "About Qt");
 
-    if(!jenkinsManager){
-        jenkins_menu->setEnabled(false);
-    }
-    if(jenkinsJobName == ""){
-        jenkins_ExecuteJob->setEnabled(false);
-    }
 
     menu->setFont(guiFont);
     file_menu->setFont(guiFont);
@@ -2485,19 +2496,10 @@ void MedeaWindow::setupApplication()
  */
 void MedeaWindow::initialiseJenkinsManager()
 {
-    jenkinsManager = 0;
-
-    QString jenkinsUrl = appSettings->getSetting(JENKINS_URL).toString();
-    QString jenkinsUser = appSettings->getSetting(JENKINS_USER).toString();
-    QString jenkinsPass = appSettings->getSetting(JENKINS_PASS).toString();
-    QString jenkinsToken = appSettings->getSetting(JENKINS_TOKEN).toString();
-
-    if(jenkinsUrl != "" && jenkinsUser != "" && jenkinsPass != ""){
+    if(!jenkinsManager){
         QString binaryPath = applicationDirectory + "Resources/Binaries/";
-
-
-        jenkinsManager = new JenkinsManager(binaryPath, jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
-        connect(jenkinsManager, SIGNAL(gotInvalidSettings(QString)), this, SLOT(invalidJenkinsSettings(QString)));
+        jenkinsManager = new JenkinsManager(binaryPath);
+        connect(jenkinsManager, SIGNAL(settingsValidationComplete(bool, QString)), this, SLOT(jenkinsSettingsValidated(bool, QString)));
     }
 }
 
@@ -2816,11 +2818,16 @@ void MedeaWindow::showShortcutList()
  * @brief MedeaWindow::invalidJenkinsSettings
  * @param message
  */
-void MedeaWindow::invalidJenkinsSettings(QString message)
+void MedeaWindow::jenkinsSettingsValidated(bool success, QString message)
 {
-    if(nodeView){
-        nodeView->showMessage(CRITICAL, message, "Jenkins Error", "Jenkins_Icon");
+    if(nodeView && !success){
+        nodeView->showMessage(WARNING, "Jenkins: " + message, "Jenkins Error", "Jenkins_Icon");
+    }else{
+        nodeView->showMessage(MESSAGE, "Jenkins: Settings Validated!", "Jenkins Settings Validated", "Jenkins_Icon");
     }
+
+    jenkins_menu->setEnabled(success);
+    jenkins_ExecuteJob->setEnabled(success);
 }
 
 
