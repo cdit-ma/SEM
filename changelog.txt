@@ -4,6 +4,7 @@ Version 1.5.0:
                 ** Now Authenticates on launch to save time
 
         GitHub Issues Resolved:
+            * 34
 
 Version 1.4.0:
         New Features:

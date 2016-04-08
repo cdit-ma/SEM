@@ -1,3 +1,31 @@
+def getJenkinsIP(){
+        IP = "null";
+        //Get the Interfaces from this machine.
+    for(iface in NetworkInterface.getNetworkInterfaces()){
+                if(!iface.isLoopback()){
+                        for(addr in iface.getInetAddresses()){
+                                if(!addr.isLoopbackAddress() && addr.isSiteLocalAddress()){
+                                        IP = addr.getHostAddress();
+                                        return IP
+                                }
+                        }
+                }
+    }
+    return IP;
+}
+
+def getJenkinsNodeIP(String nodename){
+        IP = "";
+
+        try{
+                IP = InetAddress.getByName(hostname).getHostAddress();
+    }catch(Exception e){
+
+    }
+    return IP;
+}
+
+
 //Get Jenkins Singleton
 jenkins.model.Jenkins jenkins = jenkins.model.Jenkins.getInstance();
 
@@ -27,7 +55,7 @@ nodesInJob = [];
 //Get Server Specific information.
 try{
     SERVER_NAME = InetAddress.getLocalHost().getHostName();
-    SERVER_IP = InetAddress.getByName(SERVER_NAME).getHostAddress();
+    SERVER_IP = getJenkinsIP();
     SERVER_URL = jenkins.getRootUrl();
     USER_NAME = jenkins.getMe().getDisplayName();
 
@@ -39,7 +67,7 @@ try{
             }
         }
     }
-}catch(Exception e){}
+}catch(Exception e){println(e);}
 
 //SETUP TOP OF GRAPHML
 ID_COUNTER = 0
@@ -110,13 +138,9 @@ for(slave in SLAVES){
     if(c.isOffline()){
         online = "false";
     }
-    hostname = c.getHostName();
-    IP = ""
-    try{
-        addr = InetAddress.getByName(hostname)
-        IP = addr.getHostAddress();
-    }catch(Exception e){}
 
+    hostname = c.getHostName();
+    IP = getJenkinsNodeIP(hostname)
 
     OUTPUT <<= '\t\t\t\t\t<node id="' + (ID_COUNTER++) + '">\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k1">HardwareNode</data>\n';

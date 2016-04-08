@@ -420,4 +420,5 @@ DISTFILES += \
     doxygen.config \
     defaultSettings.ini \
     Resources/Images/Actions/Export_Snippet.png \
-    Resources/Images/Actions/Import_Snippet.png
+    Resources/Images/Actions/Import_Snippet.png \
+    README.md
