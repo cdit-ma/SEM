@@ -263,9 +263,10 @@ void MedeaWindow::jenkinsSettingChanged(QString keyName, QVariant value)
         }
 
         if(!jenkinsManager->hasValidatedSettings()){
-            //Devalidate Menu
-            jenkins_menu->setEnabled(false);
-            jenkins_ExecuteJob->setEnabled(false);
+            //DeActivate menu Menu
+            foreach(QAction* action, jenkins_menu->actions()){
+                action->setEnabled(false);
+            }
         }
 
         if(jenkinsManager->hasSettings() && !jenkinsManager->hasValidatedSettings()){
@@ -336,6 +337,10 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
 
     // actions that alter the model
     foreach(QAction* action, modelActions){
+        if(enable && jenkins_menu->actions().contains(action) && !jenkinsManager->hasValidatedSettings()){
+            action->setEnabled(false);
+            continue;
+        }
         action->setEnabled(enable);
     }
 }
@@ -693,6 +698,7 @@ void MedeaWindow::setupMenu()
     jenkins_menu = menu->addMenu(getIcon("Actions", "Jenkins_Icon"), "Jenkins");
 
 
+
     menu->addSeparator();
 
     settings_changeAppSettings = menu->addAction(getIcon("Actions", "Settings"), "Settings");
@@ -868,6 +874,7 @@ void MedeaWindow::setupMenu()
 
     modelActions << view_menu->actions();
     modelActions << model_menu->actions();
+
     modelActions << jenkins_menu->actions();
 
     modelActions.removeAll(view_fullScreenMode);
@@ -2826,8 +2833,9 @@ void MedeaWindow::jenkinsSettingsValidated(bool success, QString message)
         nodeView->showMessage(MESSAGE, "Jenkins: Settings Validated!", "Jenkins Settings Validated", "Jenkins_Icon");
     }
 
-    jenkins_menu->setEnabled(success);
-    jenkins_ExecuteJob->setEnabled(success);
+    foreach(QAction* action, jenkins_menu->actions()){
+        action->setEnabled(success);
+    }
 }
 
 
@@ -3249,18 +3257,7 @@ void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
         // import Jenkins
         emit window_ImportJenkinsNodes(jenkinsXML);
     }
-}
-
-
-/**
- * @brief MedeaWindow::setImportJenkinsNodeEnabled
- * @param enabled
- */
-void MedeaWindow::setImportJenkinsNodeEnabled(bool enabled)
-{
-    if(jenkins_ImportNodes){
-        jenkins_ImportNodes->setEnabled(enabled);
-    }
+    jenkins_ImportNodes->setEnabled(true);
 }
 
 
@@ -3282,11 +3279,10 @@ void MedeaWindow::on_actionImportJenkinsNode()
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
         connect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));
         connect(jenkinsGS, SIGNAL(gotGroovyScriptOutput(QString)), this, SLOT(gotJenkinsNodeGraphML(QString)));
-        connect(jenkinsGS, SIGNAL(requestFinished()), this, SLOT(setImportJenkinsNodeEnabled()));
         connect(jenkinsGS, SIGNAL(requestFailed()), this, SLOT(gotJenkinsNodeGraphML()));
 
         //Disable the Jenkins Menu Button
-        setImportJenkinsNodeEnabled(false);
+        jenkins_ImportNodes->setEnabled(false);
 
         emit jenkins_RunGroovyScript(groovyScript, jobName);
         disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));

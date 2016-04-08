@@ -173,7 +173,6 @@ private slots:
     void search();
 
     void gotJenkinsNodeGraphML(QString graphML = "");
-    void setImportJenkinsNodeEnabled(bool enabled = true);
     void on_actionImportJenkinsNode();
 
     void on_actionNew_Project_triggered();

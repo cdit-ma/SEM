@@ -12,12 +12,16 @@
 #include <QProgressDialog>
 #include <QMovie>
 #include "../../theme.h"
+#define CONSOLE_SUFFIX "_CONSOLE"
+#define STATE_SUFFIX "_STATE"
+
 /**
  * @brief JenkinsJobMonitorWidget::JenkinsJobMonitorWidget A Widget which represents and displays the Output of a Jenkins Job which has just been invoked.
  * @param parent The Parent Widget for this Dialog
  * @param jenkins The Jenkins Manager used to spawn requests.
  * @param jobName The Name of the job started.
  */
+
 JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager *jenkins, QString jobName):QDialog(parent)
 {
     this->jenkins = jenkins;
@@ -103,10 +107,11 @@ void JenkinsJobMonitorWidget::setupLayout()
 
     jobIcon = new QLabel();
     jobIcon->setPixmap(Theme::theme()->getImage("Actions", "Job_Build"));
+    jobIcon->setFixedSize(48,48);
 
     //Setup a QPushButton to stop the job.
     stopButton = new QPushButton("");
-    stopButton->setIcon(Theme::theme()->getIcon("Actions", "Job_Stop"));
+    stopButton->setIcon(Theme::theme()->getImage("Actions", "Job_Stop"));
     stopButton->setStyleSheet("border: 0px solid black;");
     stopButton->setFixedSize(QSize(24,24));
     stopButton->setToolTip("Stop the Job.");
@@ -127,6 +132,8 @@ void JenkinsJobMonitorWidget::setupLayout()
     //Setup the Title
     tabWidget = new QTabWidget();
     verticalLayout->addWidget(tabWidget,1);
+    tabWidget->setTabsClosable(true);
+    connect(tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
     //Hide the Title Widget and Tab Widget.
     titleWidget->hide();
@@ -240,8 +247,8 @@ void JenkinsJobMonitorWidget::jobStateChanged(QString jobName, int buildNumber, 
             //Connect the gotJobStateChange SIGNAL to this so we can update the GUI as the job state changes for this configuration.
             connect(jenkinsJS, SIGNAL(gotJobStateChange(QString,int,QString,JOB_STATE)), this, SLOT(jobStateChanged(QString,int,QString,JOB_STATE)));
 
-
             //Request the console output
+
             getJobConsoleOutput(this->jobName, this->buildNumber, configuration);
 
             if(configuration != ""){
@@ -284,7 +291,7 @@ void JenkinsJobMonitorWidget::gotJobActiveConfigurations(QString jobName, QStrin
             int seperator = tabName.indexOf("=") + 1;
             tabName = tabName.mid(seperator);
         }
-        qCritical() << tabName;
+
         //Add it to the Tabbed Widget.
         tabWidget->addTab(newBrowser, tabName);
     }
@@ -320,7 +327,7 @@ void JenkinsJobMonitorWidget::stopPressed()
         //Connect the emit signals from this Thread to the JenkinsRequest Thread.
         connect(this, SIGNAL(stopJob(QString,int,QString)), jenkinsStop, SLOT(stopJob(QString,int,QString)));
         emit stopJob(jobName, buildNumber, "");
-        qCritical() << "Trying to stop!";
+        disconnect(this, SIGNAL(stopJob(QString,int,QString)), jenkinsStop, SLOT(stopJob(QString,int,QString)));
     }
 }
 
@@ -334,6 +341,18 @@ void JenkinsJobMonitorWidget::frameChanged(int frame)
                 tabWidget->setTabIcon(i, QIcon(pixmap));
             }
         }
+    }
+}
+
+void JenkinsJobMonitorWidget::closeTab(int tabID)
+{
+
+    QString tabName = tabWidget->tabText(tabID);
+    if(tabName != "Master"){
+        QString configName = "master=" + tabName;
+        QTextBrowser* textBrowser = configurationBrowsers[configName];
+        configurationBrowsers.remove(configName);
+        tabWidget->removeTab(tabID);
     }
 }
 

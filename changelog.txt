@@ -1,7 +1,11 @@
 Version 1.5.0:
         New Features:
+            * Implemented the ability to close tabs from JenkinsJobMonitorWidget
+            * Jenkins settings now validate on launch and setting changes.
+
+        Fixes:
             * Implemented new Jenkins authentication validation.
-                ** Now Authenticates on launch to save time
+            ** Now Authenticates on launch to save time
 
         GitHub Issues Resolved:
             * 34
