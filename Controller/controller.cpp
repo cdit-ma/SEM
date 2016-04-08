@@ -1996,15 +1996,16 @@ void NewController::removeGraphMLFromHash(int ID)
         {
 
             if(item->isNode()){
-                Node* node = (Node*)item;
+                Node* node = (Node*) item;
                 QString nodeLabel = node->getDataValue("label").toString();
-                QString nodeKind = node->getDataValue("kind").toString();
+                QString nodeKind = node->getNodeKind();
 
 
-                if(nodeKind == "HardwareNode"){
-                    hardwareNodes.remove(nodeLabel);
-                }else if(nodeKind == "HardwareCluster"){
-                    hardwareClusters.remove(nodeLabel);
+                if(nodeKind.startsWith("Hardware")){
+                    QList<QString> keys = hardwareEntities.keys(node);
+                    while(!keys.isEmpty()){
+                        hardwareEntities.remove(keys.takeFirst());
+                    }
                 }else if(nodeKind == "ManagementComponent"){
                     managementComponents.remove(nodeLabel);
                 }else if(nodeKind == "Process"){
@@ -2147,10 +2148,17 @@ Node *NewController::constructNode(QList<Data *> nodeData)
     //Get the Kind from the data.
     QString childNodeKind = getDataValueFromKeyName(nodeData, "kind");
     QString childNodeType = getDataValueFromKeyName(nodeData, "type");
-    QString childNodeLabel = getDataValueFromKeyName(nodeData, "label");
 
+    QString childUniqueID = getDataValueFromKeyName(nodeData, "label");;
+    if(childNodeKind.startsWith("Hardware")){
+        //Use the URL, but fall back on the label if nothing is in url
+        QString url = getDataValueFromKeyName(nodeData, "url");
+        if(url != ""){
+            childUniqueID = url;
+        }
+    }
 
-    Node* node = constructTypedNode(childNodeKind, false, childNodeType, childNodeLabel);
+    Node* node = constructTypedNode(childNodeKind, false, childNodeType, childUniqueID);
 
     //Enforce Default Data!
     QList<Data*> requiredData = constructDataVector(childNodeKind);
@@ -3322,22 +3330,22 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
         }
         return  new WorkerDefinitions();
     }else if(nodeKind == "HardwareNode"){
-        if(hardwareNodes.contains(nodeLabel)){
-            return hardwareNodes[nodeLabel];
+        if(hardwareEntities.contains(nodeLabel)){
+            return hardwareEntities[nodeLabel];
         }else{
             HardwareNode* hN = new HardwareNode();
             if(storeNode && nodeLabel != ""){
-                hardwareNodes[nodeLabel] = hN;
+                hardwareEntities[nodeLabel] = hN;
             }
             return hN;
         }
     }else if(nodeKind == "HardwareCluster"){
-        if(hardwareClusters.contains(nodeLabel)){
-            return hardwareClusters[nodeLabel];
+        if(hardwareEntities.contains(nodeLabel)){
+            return hardwareEntities[nodeLabel];
         }else{
             HardwareCluster* hC = new HardwareCluster();
             if(storeNode && nodeLabel != ""){
-                hardwareClusters[nodeLabel] = hC;
+                hardwareEntities[nodeLabel] = hC;
             }
             return hC;
         }

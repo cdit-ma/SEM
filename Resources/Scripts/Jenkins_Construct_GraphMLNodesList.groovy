@@ -64,6 +64,7 @@ OUTPUT <<= '<key attr.name="hostname" attr.type="string" for="node" id="k18"/>\n
 OUTPUT <<= '<key attr.name="version" attr.type="string" for="node" id="k17"/>\n';
 OUTPUT <<= '<key attr.name="x" attr.type="double" for="node" id="k20"/>\n';
 OUTPUT <<= '<key attr.name="y" attr.type="double" for="node" id="k21"/>\n';
+OUTPUT <<= '<key attr.name="isExpanded" attr.type="boolean" for="node" id="k22"/>\n';
 OUTPUT <<= '\t<graph edgedefault="directed" id="' + (ID_COUNTER++) + '">\n';
 OUTPUT <<= '\t<node id="' + (ID_COUNTER++) + '">\n';
 OUTPUT <<= '\t\t<data key="k1">HardwareDefinitions</data>\n';
@@ -78,6 +79,7 @@ OUTPUT <<= '\t\t\t\t<data key="k6">' + SERVER_IP + '</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k5">' + SERVER_URL + '</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k16">' + USER_NAME + '</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k14">' + LOAD_TIME + '</data>\n';
+OUTPUT <<= '\t\t\t\t<data key="k22">true</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k20">-1</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k21">-1</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k11">true</data>\n';

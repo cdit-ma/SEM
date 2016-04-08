@@ -573,8 +573,8 @@ private:
 
 
     QHash<QString, ManagementComponent*> managementComponents;
-    QHash<QString, HardwareNode*> hardwareNodes;
-    QHash<QString, HardwareCluster*> hardwareClusters;
+
+    QHash<QString, Node*> hardwareEntities;
     QHash<QString, Process*> workerProcesses;
 
     int previousUndos;
