@@ -425,9 +425,7 @@ private:
 
     void enforceUniqueLabel(Node* node, QString newLabel = "");
     bool requiresUniqueLabel(Node* node);
-    //int getUniqueSortOrder(Node* node, )
-    //void enforceUniqueLabel(Node* node, QString newLabel = "");
-    void enforceUniqueSortOrder(Node* node, int newSortPos = -1);
+    void enforceUniqueSortOrder(Node* node, int newPosition = -1);
 
 
     //Returns true if the Model Entities can be connected.

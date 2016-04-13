@@ -380,9 +380,6 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
                         exportEdge = true;
                     }
                 }
-                //if(!exportAllEdges){
-                //    exportEdge = false;
-                //}
             }
 
             if(exportEdge && !containedEdges.contains(edge)){
@@ -518,6 +515,7 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
 
     Data* data = parent->getData(keyName);
 
+    Node* node = (Node*) parent;
     if(data){
         action.ID = data->getID();
         action.Data.oldValue = data->getValue();
@@ -527,19 +525,23 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
             return;
         }
 
-        if(keyName == "label"){
-            if(parent->isNode()){
-                enforceUniqueLabel((Node*)parent, dataValue.toString());
+        bool need2Set = true;
+        //If we are dealing with a Node
+        if(parent->isNode()){
+            if(keyName == "label"){
+                enforceUniqueLabel(node, dataValue.toString());
+                need2Set = false;
+            }else if(keyName == "sortOrder" && node->getParentNode()){
+                enforceUniqueSortOrder(node, dataValue.toInt());
+                need2Set = false;
             }
-        }else if(keyName == "sortOrder"){
-            if(parent->isNode()){
-                enforceUniqueSortOrder((Node*)parent, dataValue.toInt());
-            }
-        }else{
+        }
+
+        if(need2Set){
             data->setValue(dataValue);
         }
-        action.Data.newValue = data->getValue();
 
+        action.Data.newValue = data->getValue();
     }else{
         qCritical() << "view_UpdateData() Doesn't Contain Data for Key: " << keyName;
         return;
@@ -2110,10 +2112,8 @@ bool NewController::attachChildNode(Node *parentNode, Node *node)
                 enforceUniqueLabel(node);
             }
 
-            if(isUserAction()){
-                //Force Unique sort order
-                enforceUniqueSortOrder(node);
-            }
+            //Force Unique sort order
+            enforceUniqueSortOrder(node);
 
             constructNodeGUI(node);
         }else{
@@ -2620,69 +2620,45 @@ bool NewController::requiresUniqueLabel(Node *node)
     return true;
 }
 
-void NewController::enforceUniqueSortOrder(Node *node, int newSortPos)
+/**
+ * @brief NewController::enforceUniqueSortOrder
+ * @param node
+ * @param newPosition
+ */
+void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
 {
     if(!node){
         return;
     }
-
-    //If this action is caused by a non-user import, treat the value as gospel.
-    if(!isUserAction()){
-        if(newSortPos != -1){
-            node->setDataValue("sortOrder", newSortPos);
-        }
+    Node* parentNode = node->getParentNode();
+    if(!parentNode){
         return;
     }
 
-    Node* parentNode = node->getParentNode();
+    if(newPosition == -1){
+        newPosition = node->getDataValue("sortOrder").toInt();
+    }
 
-    if(parentNode){
-        int maxSortPos = parentNode->childrenCount() - 1;
+    int maxPos = parentNode->childrenCount() - 1;
 
-        int currentSortPos = node->getDataValue("sortOrder").toInt();
+    //Don't set above what we can set.
+    if(newPosition > maxPos || newPosition == -1){
+        newPosition = maxPos;
+    }
 
+    //Don't set Below 0
+    if(newPosition < 0){
+        newPosition = 0;
+    }
 
-        if(currentSortPos == -1){
-            //If the currentSortPos is invalid, set it as the maximum.
-            currentSortPos = maxSortPos;
+    node->setDataValue("sortOrder", newPosition);
+
+    int sortOrder = 0;
+    foreach(Node* sibling, parentNode->getChildren(0)){
+        if(sibling != node){
+            sibling->setDataValue("sortOrder", sortOrder);
         }
-
-        if(newSortPos == -1){
-            //If the new position is -1, set it to it's current value.
-            newSortPos = currentSortPos;
-        }
-
-        //Bound the new Sort position.
-        if(newSortPos > maxSortPos){
-            newSortPos = maxSortPos;
-        }else if(newSortPos < 0){
-            newSortPos = 0;
-        }
-
-        int lowerPos = qMin(currentSortPos, newSortPos);
-        int upperPos = qMax(currentSortPos, newSortPos);
-
-        //If we are updating. refactor.
-        if(currentSortPos == newSortPos){
-            lowerPos = currentSortPos;
-            upperPos = maxSortPos;
-        }
-
-        int modifier = 1;
-        if(newSortPos > currentSortPos){
-            modifier = -1;
-        }
-
-
-        foreach(Node* sibling, node->getSiblings()){
-            int siblingSortPos = sibling->getDataValue("sortOrder").toInt();
-
-            if(siblingSortPos >= lowerPos && siblingSortPos <= upperPos){
-                sibling->setDataValue("sortOrder", siblingSortPos + modifier);
-            }
-        }
-
-        node->setDataValue("sortOrder", newSortPos);
+        sortOrder++;
     }
 }
 
@@ -2699,8 +2675,15 @@ bool NewController::destructNode(Node *node)
 
     bool addAction = true;
 
+
     int ID = node->getID();
-    int parentID = node->getParentNodeID();
+    Node* parentNode = node->getParentNode();
+    int parentID = -1;
+    if(parentNode){
+        parentID = parentNode->getID();
+
+    }
+
 
     if(DESTRUCTING_CONTROLLER){
         //If we are destructing the controller; Don't add an undo state.
@@ -2717,13 +2700,9 @@ bool NewController::destructNode(Node *node)
 
 
 
-    if(addAction){
-        int maxPosition = -1;
-        if(node->getParentNode()){
-            maxPosition = node->getParentNode()->childrenCount() - 1;
-        }
-        enforceUniqueSortOrder(node, maxPosition);
-    }
+
+
+
 
     //Get a list of dependants.
     QList<Node*> dependants = node->getDependants();
@@ -2746,6 +2725,7 @@ bool NewController::destructNode(Node *node)
         destructNode(child);
     }
 
+
     if(addAction){
         //Add an action to reverse this action.
         EventAction action = getEventAction();
@@ -2760,7 +2740,15 @@ bool NewController::destructNode(Node *node)
         addActionToStack(action);
     }
 
+
+    if(parentNode){
+        //Put it last.
+        enforceUniqueSortOrder(node, parentNode->childrenCount());
+    }
+
     removeGraphMLFromHash(ID);
+
+
 
     delete node;
     return true;
@@ -4749,8 +4737,20 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 if(key && currentEntity){
                     //Attach the data to the current entity.
                     QString dataValue = xml.readElementText();
-                    Data* data = new Data(key, dataValue);
-                    currentEntity->addData(data);
+
+                    bool addData = true;
+                    if(PASTE_USED && !CUT_USED){
+                        //We are dealing with the top level parent
+                        if(currentEntity->getParentEntity() == topEntity){
+                            if(key->getName() == "sortOrder"){
+                                addData = false;
+                            }
+                        }
+                    }
+                    if(addData){
+                        Data* data = new Data(key, dataValue);
+                        currentEntity->addData(data);
+                    }
                 }
             }
         }
