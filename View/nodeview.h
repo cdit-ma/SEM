@@ -506,6 +506,8 @@ private:
     GraphMLItem* getGraphMLItemFromScreenPos(QPoint pos);
 
     GraphMLItem* getGraphMLItemFromID(int ID);
+    EntityAdapter* getEntityAdapterFromID(int ID);
+    NodeAdapter* getNodeAdapterFromID(int ID);
     NodeItem* getNodeItemFromID(int ID);
 
     QString getData(int ID, QString key);

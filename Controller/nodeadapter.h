@@ -22,6 +22,9 @@ public:
     bool gotInstances();
     bool gotImpl();
 
+    uint getSelectionID();
+
+
     int childCount();
     int edgeCount();
 

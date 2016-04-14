@@ -90,6 +90,20 @@ bool NodeAdapter::gotImpl()
 
 }
 
+uint NodeAdapter::getSelectionID()
+{
+    if(isValid()){
+        int sortOrder = qMax(0, _node->getDataValue("sortOrder").toInt());
+        int depth = _node->getTreeIndex().size();
+
+        int selectionID = 0;
+        selectionID += (depth << 16) & 0xFFFF0000;
+        selectionID += (sortOrder) & 0x0000FFFF;
+        return selectionID;
+    }
+    return 0;
+}
+
 int NodeAdapter::childCount()
 {
     if(isValid()){

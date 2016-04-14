@@ -2519,7 +2519,8 @@ void NodeView::transition()
 {
     switch(viewState){
     case VS_NONE:
-
+        //Clear the table.
+        setAttributeModel();
         //Do the VS_SELECTED case.
     case VS_SELECTED:
         setConnectMode(false);
@@ -2887,76 +2888,81 @@ void NodeView::showConnectedNodes()
 
 void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
 {
-    int itemID = item->getID();
+    if(!item){
+        return;
+    }
+
+    int ID = item->getID();
+    EntityAdapter* itemAdapter = item->getEntityAdapter();
+    NodeAdapter* nodeAdapter = 0;
+    if(itemAdapter && itemAdapter->isNodeAdapter()){
+        nodeAdapter = (NodeAdapter*) itemAdapter;
+    }
+
     bool updateDeploymentSelection = false;
 
     if(setSelected){
-        if(!selectedIDs.contains(itemID)){
-            int nodeSize = 0;
+        if(!selectedIDs.contains(ID)){
+            uint itemSelectionID = 0;
 
-            EntityAdapter* graphml = item->getEntityAdapter();
-
-            if(graphml && graphml->isNodeAdapter()){
-                nodeSize = ((NodeAdapter*)graphml)->getTreeIndex().size();
+            //Get the bitwise shifted Depth + sort order index.
+            if(nodeAdapter){
+                itemSelectionID = nodeAdapter->getSelectionID();
             }
 
-            //Find spot for selectedID;
+            //Find spot for this item in the sorted list
             int position = selectedIDs.count();
-            for(int i = 0;i < selectedIDs.count();i++){
-                GraphMLItem* selectedItem = getGraphMLItemFromID(selectedIDs[i]);
-                EntityAdapter* graphml2 = selectedItem->getEntityAdapter();
-
-                if(graphml2 && graphml2->isNodeAdapter()){
-                    int currentPos = ((NodeAdapter*)graphml2)->getTreeIndex().size();
-                    if(nodeSize > currentPos){
-                        position = i;
-                        break;
-                    }
+            for(int i = 0; i < selectedIDs.count(); i++){
+                NodeAdapter* nA = getNodeAdapterFromID(selectedIDs[i]);
+                if(nA && (itemSelectionID < nA->getSelectionID())){
+                    position = i;
+                    break;
                 }
             }
-            selectedIDs.insert(position, itemID);
+            selectedIDs.insert(position, ID);
+
+            //Set the Item as Selected
             item->setSelected(true);
-            if(graphml && graphml->isNodeAdapter()){
+
+
+            setAttributeModel(item);
+
+
+            //Update the Deployment Selection for any node selected.
+            if(nodeAdapter){
                 updateDeploymentSelection = true;
             }
-
         }
     }else{
-        if(selectedIDs.contains(itemID)){
-            selectedIDs.removeAll(itemID);
-        }
+        //Remove all Items of type;
+        selectedIDs.removeAll(ID);
 
-        setAttributeModel(0);
+        //Set the Item as Unselected
         item->setSelected(false);
 
-        EntityAdapter* graphml = item->getEntityAdapter();
-        if(graphml && graphml->isNodeAdapter()){
+        if(selectedIDs.count() == 1){
+            GraphMLItem* item = getGraphMLItemFromID(selectedIDs.last());
+            if(item){
+                setAttributeModel(item);
+            }
+        }
+
+        //Update the Deployment Selection for any node selected.
+        if(nodeAdapter){
             updateDeploymentSelection = true;
         }
     }
 
-
     //Update the warnings.
     if(updateDeploymentSelection){
         if(item && isNodeKindDeployable(item->getNodeKind())){
-            updateDeploymentWarnings(itemID);
+            updateDeploymentWarnings(ID);
         }
     }
 
-    if(selectedIDs.count() == 1){
-        GraphMLItem* item = getGraphMLItemFromID(selectedIDs.last());
-        if(item){
-            setAttributeModel(item);
-            return;
-        }
-    }
     if(selectedIDs.isEmpty()){
-        if(viewState == VS_SELECTED){
-            setState(VS_NONE);
-        }
+        setState(VS_NONE);
     }
-    setAttributeModel();
-
 }
 
 
@@ -3508,6 +3514,24 @@ GraphMLItem *NodeView::getGraphMLItemFromID(int ID)
 {
     if(guiItems.contains(ID)){
         return guiItems[ID];
+    }
+    return 0;
+}
+
+EntityAdapter *NodeView::getEntityAdapterFromID(int ID)
+{
+    GraphMLItem* gml = getGraphMLItemFromID(ID);
+    if(gml){
+        return gml->getEntityAdapter();
+    }
+    return 0;
+}
+
+NodeAdapter *NodeView::getNodeAdapterFromID(int ID)
+{
+    EntityAdapter* eA = getEntityAdapterFromID(ID);
+    if(eA && eA->isNodeAdapter()){
+        return (NodeAdapter*) eA;
     }
     return 0;
 }
