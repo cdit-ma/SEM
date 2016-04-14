@@ -2635,13 +2635,14 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
         return;
     }
 
+    //If we have been given a position of -1 use the current value of sortOrder.
     if(newPosition == -1){
         newPosition = node->getDataValue("sortOrder").toInt();
     }
 
-    int maxPos = parentNode->childrenCount() - 1;
+    int maxPos = parentNode->childrenCount();
 
-    //Don't set above what we can set.
+    //If the newPosition is -1 or is bigger than our maxPos, put it last.
     if(newPosition > maxPos || newPosition == -1){
         newPosition = maxPos;
     }
@@ -2651,14 +2652,13 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
         newPosition = 0;
     }
 
+    //Set the position
     node->setDataValue("sortOrder", newPosition);
 
+    //Realign all siblings in order starting at 0
     int sortOrder = 0;
     foreach(Node* sibling, parentNode->getChildren(0)){
-        if(sibling != node){
-            sibling->setDataValue("sortOrder", sortOrder);
-        }
-        sortOrder++;
+        sibling->setDataValue("sortOrder", sortOrder ++);
     }
 }
 
@@ -2725,7 +2725,6 @@ bool NewController::destructNode(Node *node)
         destructNode(child);
     }
 
-
     if(addAction){
         //Add an action to reverse this action.
         EventAction action = getEventAction();
@@ -2736,19 +2735,16 @@ bool NewController::destructNode(Node *node)
         action.Entity.kind = node->getEntityKind();
         action.Entity.nodeKind = node->getNodeKind();
         action.Entity.XML = _exportGraphMLDocument(node);
-
         addActionToStack(action);
     }
 
 
     if(parentNode){
-        //Put it last.
+        //Put this item last to fix the sort order of it's siblings.
         enforceUniqueSortOrder(node, parentNode->childrenCount());
     }
 
     removeGraphMLFromHash(ID);
-
-
 
     delete node;
     return true;
@@ -4638,7 +4634,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         linkPreviousID = true;
     }
 
-    if(PASTE_USED || IMPORTING_WORKERDEFINITIONS){
+    if((PASTE_USED && !CUT_USED) || IMPORTING_WORKERDEFINITIONS){
         resetPosition = true;
     }
 
@@ -4712,10 +4708,9 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 //Set the Item as the current Entity.
                 currentEntity = entity;
 
-                if(resetPosition && currentEntity){
+                if(resetPosition && currentEntity && currentEntity->getParentEntity() == topEntity){
                     //Reset the position of the first item, then clear reset position.
                     currentEntity->setResetPosition();
-                    resetPosition = false;
                 }
             }else if(currentKind == GraphML::GK_KEY){
                 QString ID = getXMLAttribute(xml, "id");
@@ -4739,14 +4734,12 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     QString dataValue = xml.readElementText();
 
                     bool addData = true;
-                    if(PASTE_USED && !CUT_USED){
-                        //We are dealing with the top level parent
-                        if(currentEntity->getParentEntity() == topEntity){
-                            if(key->getName() == "sortOrder"){
-                                addData = false;
-                            }
+                    if(resetPosition && currentEntity && currentEntity->getParentEntity() == topEntity){
+                        if(key->getName() == "sortOrder"){
+                            addData = false;
                         }
                     }
+
                     if(addData){
                         Data* data = new Data(key, dataValue);
                         currentEntity->addData(data);
