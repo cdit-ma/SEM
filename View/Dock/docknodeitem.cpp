@@ -458,15 +458,13 @@ void DockNodeItem::setupLayout()
     textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
 
     layout->addStretch(1);
+
     // setup icon label
     if (!isDockItemLabel()) {
 
         imageLabel = new QLabel(this);
         imageLabel->setAlignment(Qt::AlignCenter);
         imageLabel->setMinimumSize(IMAGE_SIZE, IMAGE_SIZE);
-        //imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
-        //imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        //imageLabel->setStyleSheet("padding-top:" + QString::number(IMAGE_PADDING) + "px;");
         setImageLabelPixmap();
 
         // determine whether this dock item will open another dock when clicked

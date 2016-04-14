@@ -357,6 +357,9 @@ void EntityItem::setHighlighted(bool isHighlight)
  */
 void EntityItem::setNodeConnectable(bool connectable)
 {
+    //canNodeBeConnected = false;
+    //return;
+
     if(connectable != canNodeBeConnected){
         canNodeBeConnected = connectable;
         update();
@@ -1607,6 +1610,7 @@ void EntityItem::updateTextVisibility()
 
     if (topLabelInputItem && rightLabelInputItem) {
         topLabelInputItem->setVisible(showTopLabel);
+        //topLabelInputItem->setVisible(false);
         rightLabelInputItem->setVisible(showRightLabel);
 
         bottomInputItem->setVisible(showBottomLabel);
@@ -2795,6 +2799,23 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS
         }
         imageMap[pos] = image;
     }
+
+    /*
+    if (nodeKind == "Process") {
+        QPixmap originalPixmap = Theme::theme()->getImage("Items", nodeKind);
+        painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), originalPixmap);
+        QPixmap operationPixmap(":/Functions/" + operationKind);
+        if (operationPixmap.isNull()) {
+            operationPixmap = Theme::theme()->getImage("Actions", "Help");
+        }
+        int pixmapSize = iconRect().width() / 2.5;
+        operationPixmap = operationPixmap.scaled(pixmapSize, pixmapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPointF opPixmapPos = iconRect().center() - QPointF(pixmapSize/2, pixmapSize/2);
+        painter->drawPixmap(opPixmapPos.x(), opPixmapPos.y(), operationPixmap);
+    } else {
+        painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
+    }
+    */
 
     painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
 

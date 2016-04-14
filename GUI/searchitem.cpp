@@ -190,11 +190,13 @@ void SearchItem::setClickToCenter(bool b)
 void SearchItem::setDoubleClickToExpand(bool b)
 {
     DOUBLE_CLICK_TO_EXPAND = b;
+    /*
     if (DOUBLE_CLICK_TO_EXPAND) {
         connect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
     } else {
         disconnect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
     }
+    */
 }
 
 

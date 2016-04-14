@@ -133,6 +133,7 @@ private:
     QToolButton* displayedChildrenOptionButton;
     QToolButton* expandButton;
     QToolButton* contractButton;
+    QToolButton* tagButton;
     QToolButton* wikiButton;
 
     QHash<QToolButton*, QAction*> actionLookup;
@@ -201,7 +202,7 @@ private:
 
     // this hash stores the menus that are cleared/re-populated when the toolbar
     // is shown and a bool of whether the menu has been re-populated or not
-    QHash<ToolbarMenu*, bool> dynamicMenus;
+    QHash<ToolbarMenu*, bool> dynamicMenuPopulated;
 
 
     // QWidget interface
