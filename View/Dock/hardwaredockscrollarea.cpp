@@ -106,7 +106,7 @@ void HardwareDockScrollArea::dockNodeItemClicked()
  * and if any of its items should be highlighted to denote current deployment link.
  */
 void HardwareDockScrollArea::updateDock()
-{    
+{
     QList<GraphMLItem*> selectedItems = getNodeView()->getSelectedItems();
 
     if (selectedItems.isEmpty()) {

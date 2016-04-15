@@ -1299,7 +1299,7 @@ void MedeaWindow::setupSearchTools()
     keysLabel->setMinimumWidth(50);
     keysLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    dataKeys = QStringList() << "label" << "type" << "worker" << "description" << "topicName" << "kind";
+    dataKeys = QStringList() << "label" << "type" << "worker" << "description" << "topicName" << "kind" << "id"; // << "tags";
     dataKeys.sort();
 
     foreach (QString key, dataKeys) {
@@ -3000,7 +3000,7 @@ void MedeaWindow::updateToolbar()
 
     // TODO - Calculate the toolbar padding and stuff the proper way!
     QSize toolbarSize = QSize(totalWidth, TOOLBAR_BUTTON_HEIGHT);
-    toolbar->setFixedSize(toolbarSize + QSize(32, TOOLBAR_GAP));
+    toolbar->setFixedSize(toolbarSize + QSize(40, TOOLBAR_GAP));
 
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();

@@ -22,7 +22,9 @@ public slots:
 
     void forceOpenDock();
 
-private:    
+private:
+    void hideDockNodeItems();
+
     QStringList kindsRequiringDefinition;
     QStringList kindsRequiringFunction;
     QStringList displayedItems;

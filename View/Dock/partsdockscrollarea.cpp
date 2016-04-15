@@ -48,9 +48,14 @@ void PartsDockScrollArea::updateDock()
 
     QStringList kindsToShow = getAdoptableNodeListFromView();
 
-    // if there are no adoptable node kinds, disable the dock
     if (kindsToShow.isEmpty()) {
-        setDockEnabled(false);
+        // if there are no adoptable node kinds, disable the dock
+        //setDockEnabled(false);
+        //return;
+
+        // if there are no adoptable node kinds, hide all the dock items
+        setInfoText("The selected entity does not have any adoptable entities.");
+        hideDockNodeItems();
         return;
     }
 
@@ -110,6 +115,21 @@ void PartsDockScrollArea::forceOpenDock()
     }
     setDockOpen();
     updateDock();
+}
+
+
+/**
+ * @brief PartsDockScrollArea::hideDockNodeItems
+ */
+void PartsDockScrollArea::hideDockNodeItems()
+{
+    foreach (QString kind, displayedItems) {
+        DockNodeItem* dockNodeItem = getDockNodeItem(kind);
+        if (dockNodeItem) {
+            dockNodeItem->setHidden(true);
+        }
+    }
+    displayedItems.clear();
 }
 
 

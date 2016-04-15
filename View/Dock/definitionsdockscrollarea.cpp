@@ -314,7 +314,6 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
             hideCompsWithImpl = true;
             infoLabelText = "There are no IDL files containing unimplemented Component entities.";
         } else {
-            setInfoText("The selected entity's definition does not contain any OutEventPort entities.");
             showChildrenOutEventPorts();
             return;
         }
@@ -470,7 +469,7 @@ void DefinitionsDockScrollArea::showChildrenOutEventPorts()
         }
     } else {
         hideDockItems();
-        setInfoText("The selected entity's definition does not contain any OutEventPorts.");
+        setInfoText("The selected entity's definition does not contain any OutEventPort entities.");
     }
 }
 

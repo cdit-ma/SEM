@@ -154,9 +154,11 @@ void SearchItem::expandItem()
     if (expanded) {
         setFixedHeight(MIN_HEIGHT + dataBox->sizeHint().height());
         expandButton->setIcon(QIcon(contractPixmap));
+        expandButton->setToolTip("Show less information");
     } else {
         setFixedHeight(MIN_HEIGHT);
         expandButton->setIcon(QIcon(expandPixmap));
+        expandButton->setToolTip("Show more information");
     }
 }
 
@@ -188,11 +190,13 @@ void SearchItem::setClickToCenter(bool b)
 void SearchItem::setDoubleClickToExpand(bool b)
 {
     DOUBLE_CLICK_TO_EXPAND = b;
+    /*
     if (DOUBLE_CLICK_TO_EXPAND) {
         connect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
     } else {
         disconnect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
     }
+    */
 }
 
 
@@ -304,6 +308,8 @@ void SearchItem::setupLayout()
     contractPixmap = QPixmap(":/Actions/Arrow_Up");
     expandButton = new QPushButton(QIcon(expandPixmap), "", this);
     centerOnButton = new QPushButton(QIcon(":/Actions/Crosshair"), "", this);
+    expandButton->setToolTip("Show more information");
+    centerOnButton->setToolTip("Click to center the view on this entity");
 
     QSize buttonSize(BUTTON_SIZE, BUTTON_SIZE);
     expandButton->setFixedSize(buttonSize);

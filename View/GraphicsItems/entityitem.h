@@ -518,6 +518,9 @@ private:
 
     bool hasWarning;
     QString warningTooltip;
+
+    QColor hardwareLinkColor;
+
     // GraphMLItem interface
 public slots:
     bool canHover();

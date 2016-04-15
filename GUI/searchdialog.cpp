@@ -229,19 +229,22 @@ void SearchDialog::setupLayout()
     searchFont.setItalic(false);
     searchLabel->setFont(searchFont);
 
+    headerLabelsLayout->setMargin(0);
     headerBox->setLayout(headerLabelsLayout);
     headerBox->setMinimumWidth(minimumWidth() * LABEL_RATIO / 2);
     headerLayout->addWidget(headerBox, 0, Qt::AlignTop);
+    headerLayout->setMargin(10);
 
-    resultsMainLayout->addLayout(headerLayout);
     resultsMainLayout->addLayout(resultsLayout);
     resultsMainLayout->addStretch(1);
 
     scrollableWidget->setLayout(resultsMainLayout);
+    scrollableSearchResults->setStyleSheet("QScrollArea{ border: none; border-top: 1px solid rgb(180,180,180); }");
     scrollableSearchResults->setWidget(scrollableWidget);
     scrollableSearchResults->setWidgetResizable(true);
 
-    layout->addWidget(scrollableSearchResults);
+    layout->addLayout(headerLayout);
+    layout->addWidget(scrollableSearchResults, 1);
     layout->setMargin(0);
 
     setLayout(layout);
@@ -316,10 +319,9 @@ void SearchDialog::setupMenus(QHBoxLayout* layout)
     refreshButton->setFixedSize(buttonSize, buttonSize);
 
     QHBoxLayout* hLayout = new QHBoxLayout();
+    hLayout->setSpacing(2);
     hLayout->addWidget(sortButton);
-    hLayout->addSpacing(2);
     hLayout->addWidget(settingsButton);
-    hLayout->addSpacing(2);
     hLayout->addWidget(refreshButton);
 
     QVBoxLayout* vLayout = new QVBoxLayout();

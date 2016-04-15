@@ -1012,6 +1012,8 @@ void NodeView::removeSubView(NodeView *subView)
 /**
  * @brief NodeView::search
  * @param searchString
+ * @param viewAspects
+ * @param entityKinds
  * @param dataKeys
  * @param kind
  * @return
@@ -1073,6 +1075,19 @@ QList<GraphMLItem*> NodeView::search(QString searchString, QStringList viewAspec
         EntityAdapter* gml = item->getEntityAdapter();
         if (!gml) {
             continue;
+        }
+
+        // the data table doesn't contain an id key - deal with it separately
+        // don't show any id suggestions and only add item with an exact id match
+        if (!showSearchSuggestions && dataKeys.contains("id")) {
+            if (QString::number(item->getID()) == searchString.remove("*")) {
+                if (!matchedItems.contains(item)) {
+                    matchedItems.append(item);
+                    if (dataKeys.size() == 1) {
+                        break;
+                    }
+                }
+            }
         }
 
         // if searchString matches at least one of the values of the provided
@@ -2195,7 +2210,8 @@ void NodeView::selectAndCenterItem(int ID)
         // clear the selection, select the item and then center on it
         clearSelection();
         appendToSelection(item);
-        centerOnItem(item);
+        //centerOnItem(item);
+        centerItem(item);
 
     } else {
         view_DisplayNotification("Entity no longer exists!");
@@ -3398,6 +3414,7 @@ void NodeView::removeGraphMLItemFromHash(int ID)
                 deleteLater();
             }
         }
+
 
     } else if(noGUIItems.contains(ID)){
         NoGUIItem* item = noGUIItems[ID];

@@ -46,6 +46,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
 
     state = DEFAULT;
 
+    highlightColor = "rgb(160, 100, 190);";
 
     if (nodeItem) {
 
@@ -56,7 +57,6 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         if (nodeItem->getNodeAdapter()) {
             connect(nodeItem->getNodeAdapter(), SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
         }
-
         if (nodeItem->isEntityItem()) {
             connect((EntityItem*)nodeItem, SIGNAL(entityItem_iconChanged()), this, SLOT(iconChanged()));
         }
@@ -424,7 +424,7 @@ void DockNodeItem::iconChanged()
  */
 void DockNodeItem::themeChanged()
 {
-    highlightColor = Theme::theme()->getHighlightColorHex() + ";";
+    //highlightColor = Theme::theme()->getHighlightColorHex() + ";";
     updateStyleSheet();
 }
 
@@ -458,15 +458,13 @@ void DockNodeItem::setupLayout()
     textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
 
     layout->addStretch(1);
+
     // setup icon label
     if (!isDockItemLabel()) {
 
         imageLabel = new QLabel(this);
         imageLabel->setAlignment(Qt::AlignCenter);
         imageLabel->setMinimumSize(IMAGE_SIZE, IMAGE_SIZE);
-        //imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
-        //imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        //imageLabel->setStyleSheet("padding-top:" + QString::number(IMAGE_PADDING) + "px;");
         setImageLabelPixmap();
 
         // determine whether this dock item will open another dock when clicked
