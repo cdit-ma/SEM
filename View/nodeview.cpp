@@ -58,6 +58,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     controller = 0;
     wasPanning = false;
     connectLine = 0;
+
+    currentActiveSelectedID = -1;
     constructedFromImport = false;
     toolbarJustClosed = false;
     editingEntityItemLabel = false;
@@ -600,6 +602,60 @@ void NodeView::clearMaps(int fromKey)
     currentMapKey = -1;
 }
 
+void NodeView::setActiveSelectionItem(int ID)
+{
+    if(selectedIDs.contains(ID)){
+        if(currentActiveSelectedID){
+            GraphMLItem* prev = getGraphMLItemFromID(currentActiveSelectedID);
+            if(prev){
+                prev->setActiveSelected(false);
+            }
+        }
+        currentActiveSelectedID = ID;
+
+        if(currentActiveSelectedID){
+            GraphMLItem* prev = getGraphMLItemFromID(currentActiveSelectedID);
+            if(prev){
+                setAttributeModel(prev);
+                prev->setActiveSelected(true);
+            }
+        }
+    }else{
+        currentActiveSelectedID = -1;
+        setAttributeModel();
+    }
+}
+
+void NodeView::setNextActiveSelectionItem(bool previous)
+{
+    int modifier = 1;
+    if(previous){
+        modifier *= -1;
+    }
+
+    int position = selectedIDs.indexOf(currentActiveSelectedID);
+    if(position == -1){
+        position = 0;
+        modifier = 0;
+    }
+
+    int max = selectedIDs.count();
+
+    position += modifier;
+
+    if(position >= max){
+        position = 0;
+    }
+    if(position < 0){
+        position = max - 1;
+    }
+    int nextItem = -1;
+    if(position >= 0 && position < selectedIDs.count()){
+        nextItem = selectedIDs[position];
+    }
+    setActiveSelectionItem(nextItem);
+}
+
 void NodeView::translate(qreal dx, qreal dy)
 {
     QGraphicsView::translate(dx, dy);
@@ -778,6 +834,11 @@ void NodeView::dropEvent(QDropEvent *event)
 {
     //Ignore the event so that MEDEA window will handle it.
     event->ignore();
+}
+
+bool NodeView::focusNextPrevChild(bool)
+{
+    return false;
 }
 
 
@@ -2519,8 +2580,6 @@ void NodeView::transition()
 {
     switch(viewState){
     case VS_NONE:
-        //Clear the table.
-        setAttributeModel();
         //Do the VS_SELECTED case.
     case VS_SELECTED:
         setConnectMode(false);
@@ -2564,7 +2623,6 @@ void NodeView::_deleteFromIDs(QList<int> IDs)
 {
     if (IDs.count() > 0) {
         if(viewMutex.tryLock()){
-            //setAttributeModel(0, true);
             emit view_Delete(IDs);
         }
     } else {
@@ -2924,9 +2982,7 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
             //Set the Item as Selected
             item->setSelected(true);
 
-
-            setAttributeModel(item);
-
+            setActiveSelectionItem(ID);
 
             //Update the Deployment Selection for any node selected.
             if(nodeAdapter){
@@ -2937,15 +2993,13 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
         //Remove all Items of type;
         selectedIDs.removeAll(ID);
 
+        //Move the selection along before we remove
+        if(currentActiveSelectedID == ID){
+            setNextActiveSelectionItem();
+        }
+
         //Set the Item as Unselected
         item->setSelected(false);
-
-        if(selectedIDs.count() == 1){
-            GraphMLItem* item = getGraphMLItemFromID(selectedIDs.last());
-            if(item){
-                setAttributeModel(item);
-            }
-        }
 
         //Update the Deployment Selection for any node selected.
         if(nodeAdapter){
@@ -3205,6 +3259,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     connect(item, SIGNAL(GraphMLItem_ClearSelection()), this, SLOT(clearSelection()));
     connect(item, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
     connect(item, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
+    connect(item, SIGNAL(GraphMLItem_SetActiveSelected(GraphMLItem*)), this, SLOT(setActiveSelectionItem(GraphMLItem*)));
     connect(item, SIGNAL(GraphMLItem_SelectionChanged()), this, SLOT(selectionChanged()));
 
     connect(item, SIGNAL(GraphMLItem_Hovered(int,bool)), this, SLOT(itemEntered(int,bool)));
@@ -3298,20 +3353,22 @@ void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
 void NodeView::removeGraphMLItemFromHash(int ID)
 {
     if (guiItems.contains(ID)) {
-
         GraphMLItem* item = guiItems[ID];
         guiItems.remove(ID);
+
 
         if(selectedIDs.contains(ID)){
             selectedIDs.removeAll(ID);
         }
+        if(ID == currentActiveSelectedID){
+            setNextActiveSelectionItem();
+        }
+
         if(aspectIDs.contains(ID)){
             aspectIDs.removeAll(ID);
         }
 
-        if(ID == currentTableID){
-            setAttributeModel(0);
-        }
+
 
         if (item) {
             if (item->isEdgeItem()) {
@@ -3474,8 +3531,6 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
         }
         if(remove){
             setGraphMLItemSelected(item, false);
-            //selectedIDs.removeAll(ID);
-            //item->setSelected(false);
         }
     }
 }
@@ -3836,6 +3891,8 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         setState(VS_RUBBERBAND);
     }
 
+
+
     if(hasFocus()){
         if(CONTROL){
             if(event->key() == Qt::Key_A){
@@ -3844,6 +3901,19 @@ void NodeView::keyPressEvent(QKeyEvent *event)
                 }
             }
         }
+
+
+        //Handle Tabbage
+        if (event->key() == Qt::Key_Tab){
+            setNextActiveSelectionItem();
+            return;
+        }else if(event->key() == Qt::Key_Backtab){
+            setNextActiveSelectionItem(true);
+            return;
+        }
+
+
+
 
         if (event->key() == Qt::Key_Escape){
             setState(VS_NONE);
@@ -3878,6 +3948,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
             translate(arrowAdjust.x(), arrowAdjust.y());
         }
+
     }
 
     QGraphicsView::keyPressEvent(event);
@@ -4098,7 +4169,7 @@ void NodeView::cut()
         //Try and Lock the Mutex before the operation.
         if(viewMutex.tryLock()){
             //Clear the Attribute Table Model
-            setAttributeModel(0, true);
+            //setAttributeModel(0, true);
             emit view_Cut(selectedIDs);
         }
     } else {
@@ -4156,7 +4227,6 @@ void NodeView::undo()
 {
     // undo the action
     if(viewMutex.tryLock()) {
-        //setAttributeModel(0, true);
         emit view_Undo();
     }
 }
@@ -4172,7 +4242,6 @@ void NodeView::redo()
 
     // redo the action
     if(viewMutex.tryLock()) {
-        //setAttributeModel(0,true);
         emit this->view_Redo();
     }
 }
@@ -4203,6 +4272,14 @@ void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
     if (updateActions) {
         selectionChanged();
     }
+}
+
+void NodeView::setActiveSelectionItem(GraphMLItem *item)
+{
+    if(!item){
+        return;
+    }
+    setActiveSelectionItem(item->getID());
 }
 
 /**

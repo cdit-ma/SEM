@@ -682,8 +682,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         painter->drawRect(boundingRect());
 
 
-        if(isSelected() && renderState == RS_BLOCK){
-            headBrush.setColor(selectedPen.color());
+        if(renderState == RS_BLOCK && isSelected()){
+            headBrush.setColor(getCurrentPen().color());
         }
 
 
@@ -697,12 +697,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
             if(renderState != RS_BLOCK){
                 //Setup the Pen
-                QPen  pen = this->pen;
+                QPen  pen = getCurrentPen();
 
-                if(isSelected()){
-                    pen = this->selectedPen;
-                    pen.setWidthF(selectedPenWidth);
-                }
 
                 if (hasHardwareWarning) {
                     pen.setWidthF(selectedPenWidth);
@@ -716,14 +712,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
                     pen.setWidthF(selectedPenWidth);
                 }
 
-                if(isHovered()){
-                    if(pen.color() == Qt::black){
-                        pen.setWidthF(selectedPenWidth);
-                        pen.setColor(QColor(130,130,130));
-                    }else{
-                        pen.setColor(pen.color().lighter(130));
-                    }
-                }
 
                 //Trace the boundary
                 painter->setPen(pen);

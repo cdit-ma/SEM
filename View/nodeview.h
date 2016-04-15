@@ -339,6 +339,7 @@ public slots:
     void redo();
 
     void appendToSelection(GraphMLItem* item, bool updateActions=false);
+    void setActiveSelectionItem(GraphMLItem* item);
     void removeFromSelection(GraphMLItem* item, bool updateActions=false);
     void clearSelection(bool updateActions = false);
 
@@ -459,6 +460,11 @@ private:
     void addToMaps(QPointF modelPos, QRectF centeredRect);
     void clearMaps(int fromKey = 0);
 
+    void setActiveSelectionItem(int ID);
+    void setNextActiveSelectionItem(bool previous=false);
+
+
+
     void enforceItemAspectOn(int ID);
     void enforceEntityItemVisible(int ID);
 
@@ -552,6 +558,7 @@ private:
     int prevSelectedNodeID;
     int prevHighlightedID;
     int currentTableID;
+    int currentActiveSelectedID;
 
     int initialRect;
     int notificationNumber;
@@ -625,6 +632,10 @@ private:
 protected:
     void dragEnterEvent(QDragEnterEvent *);
     void dropEvent(QDropEvent* );
+
+    // QWidget interface
+protected:
+    bool focusNextPrevChild(bool next);
 };
 
 #endif // NODEVIEW_H

@@ -77,6 +77,7 @@ GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem:
     IS_HOVERED = false;
     IS_HIGHLIGHTED = false;
     IN_SUBVIEW = false;
+    IS_ACTIVE_SELECTED = false;
     errorType = ET_OKAY;
 
     ID = -1;
@@ -385,6 +386,15 @@ void GraphMLItem::setSelected(bool selected)
     }
 }
 
+void GraphMLItem::setActiveSelected(bool active)
+{
+    if(IS_ACTIVE_SELECTED != active){
+        IS_ACTIVE_SELECTED = active;
+        updateCurrentPen();
+        update();
+    }
+}
+
 void GraphMLItem::dataRemoved(QString keyName)
 {
     dataChanged(keyName, QVariant());
@@ -413,6 +423,11 @@ void GraphMLItem::setHighlighted(bool isHighlighted)
 bool GraphMLItem::isSelected()
 {
     return IS_SELECTED;
+}
+
+bool GraphMLItem::isActiveSelected()
+{
+    return IS_ACTIVE_SELECTED;
 }
 
 bool GraphMLItem::isHovered()
@@ -446,6 +461,9 @@ void GraphMLItem::handleSelection(bool setSelected, bool controlDown)
             emit GraphMLItem_RemoveSelected(this);
             hasChanged = true;
         }
+    }
+    if(!isActiveSelected() && setSelected){
+        emit GraphMLItem_SetActiveSelected(this);
     }
     if(hasChanged){
         //Emit a signal which is connected to the docks to update stuffs.
@@ -502,6 +520,10 @@ void GraphMLItem::updateCurrentPen(bool zoomChanged)
         currentPen = defaultPen;
     }else{
         currentPen = selectedPen;
+        if(!isActiveSelected()){
+            QColor color = selectedPen.color().lighter(140);
+            currentPen.setColor(color);
+        }
     }
 
     if(isHovered()){
@@ -511,7 +533,7 @@ void GraphMLItem::updateCurrentPen(bool zoomChanged)
         }else{
             // remove hover highlight for aspect items altogether
             if (!isAspectItem()) {
-                currentPen.setColor(currentPen.color().lighter(130));
+                //currentPen.setColor(currentPen.color().lighter(130));
             }
         }
     }
