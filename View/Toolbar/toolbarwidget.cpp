@@ -976,16 +976,16 @@ void ToolbarWidget::setupMenus()
     processAction = new ToolbarMenuAction("Process", 0, this);
 
     // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
-    componentImplMenu = constructSubMenu(componentImplAction, "There are no IDL files containing unimplemented Components.");
-    componentInstMenu = constructSubMenu(componentInstAction, "There are no IDL files containing Components.");
-    blackBoxInstMenu = constructSubMenu(blackBoxInstAction, "There are no IDL files containing BlackBoxes.");
-    inEventPortMenu = constructSubMenu(inEventPortAction, "There are no IDL files containing Aggregates.");
-    outEventPortMenu = constructSubMenu(outEventPortAction, "There are no IDL files containing Aggregates.");
-    inEventPortDelegateMenu = constructSubMenu(inEventPortDelegateAction, "There are no IDL files containing Aggregates.");
-    outEventPortDelegateMenu = constructSubMenu(outEventPortDelegateAction, "There are no IDL files containing Aggregates.");
-    outEventPortImplMenu = constructSubMenu(outEventPortImplAction, "The selected entity's definition does not contain any OutEventPorts.");
-    aggregateInstMenu = constructSubMenu(aggregateInstAction, "There are no IDL files containing Aggregates.");
-    vectorInstMenu = constructSubMenu(vectorInstAction, "There are no IDL files containing initialised Vectors.");
+    componentImplMenu = constructSubMenu(componentImplAction, "There are no IDL files containing unimplemented Component entities.");
+    componentInstMenu = constructSubMenu(componentInstAction, "There are no IDL files containing Component entities.");
+    blackBoxInstMenu = constructSubMenu(blackBoxInstAction, "There are no IDL files containing BlackBox entities.");
+    inEventPortMenu = constructSubMenu(inEventPortAction, "There are no IDL files containing Aggregate entities.");
+    outEventPortMenu = constructSubMenu(outEventPortAction, "There are no IDL files containing Aggregate entities.");
+    inEventPortDelegateMenu = constructSubMenu(inEventPortDelegateAction, "There are no IDL files containing Aggregate entities.");
+    outEventPortDelegateMenu = constructSubMenu(outEventPortDelegateAction, "There are no IDL files containing Aggregate entities.");
+    outEventPortImplMenu = constructSubMenu(outEventPortImplAction, "The selected entity's definition does not contain any OutEventPort entities.");
+    aggregateInstMenu = constructSubMenu(aggregateInstAction, "There are no IDL files containing Aggregate entities.");
+    vectorInstMenu = constructSubMenu(vectorInstAction, "There are no IDL files containing initialised Vector entities.");
     functionsMenu = constructSubMenu(processAction, "There are no available functions.", false);
 }
 

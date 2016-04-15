@@ -1906,6 +1906,9 @@ void NewController::storeGraphMLInHash(Entity* item)
     }
 
     int ID = item->getID();
+
+    qDebug() << "Constructed ID: " << ID;
+
     if(IDLookupGraphMLHash.contains(ID)){
         qCritical() << "Hash already contains item with ID: " << ID;
     }else{

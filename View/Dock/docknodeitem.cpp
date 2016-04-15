@@ -46,6 +46,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
 
     state = DEFAULT;
 
+    highlightColor = "rgb(160, 100, 190);";
 
     if (nodeItem) {
 
@@ -56,7 +57,6 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         if (nodeItem->getNodeAdapter()) {
             connect(nodeItem->getNodeAdapter(), SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
         }
-
         if (nodeItem->isEntityItem()) {
             connect((EntityItem*)nodeItem, SIGNAL(entityItem_iconChanged()), this, SLOT(iconChanged()));
         }
@@ -424,7 +424,7 @@ void DockNodeItem::iconChanged()
  */
 void DockNodeItem::themeChanged()
 {
-    highlightColor = Theme::theme()->getHighlightColorHex() + ";";
+    //highlightColor = Theme::theme()->getHighlightColorHex() + ";";
     updateStyleSheet();
 }
 

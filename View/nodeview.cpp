@@ -3307,7 +3307,11 @@ void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
 
 void NodeView::removeGraphMLItemFromHash(int ID)
 {
+    qDebug() << "removeGraphMLItemFromHash - " << ID;
+
     if (guiItems.contains(ID)) {
+
+        qDebug() << "Has GUI item";
 
         GraphMLItem* item = guiItems[ID];
         guiItems.remove(ID);
@@ -3358,6 +3362,7 @@ void NodeView::removeGraphMLItemFromHash(int ID)
 
         // need to send view_edgeDeleted signal even if the edge doesn't have a gui item
         if (noGuiIDHash.contains(ID) && noGuiIDHash[ID] == "Edge") {
+            qDebug() << "Edge deleted";
             emit view_edgeDeleted();
         }
     }
@@ -4507,6 +4512,7 @@ void NodeView::destructEntityItem(EntityAdapter *item)
         }
     }
 
+    qDebug() << "item: " << item;
     destructGUIItem(item->getID(), GraphML::GK_NONE);
 
     if(_updateDeploymentWarnings){
@@ -4706,6 +4712,8 @@ void NodeView::constructNodeItem(NodeAdapter *node)
 void NodeView::destructGUIItem(int ID, GraphML::GRAPHML_KIND kind)
 {
     Q_UNUSED(kind);
+    qDebug() << "kind: " << kind;
+    qDebug() << "id: " << ID;
     removeGraphMLItemFromHash(ID);
 }
 
@@ -5008,6 +5016,9 @@ void NodeView::constructEdgeItem(EdgeAdapter *edge)
     }
 
     if(!constructEdge){
+
+        qDebug() << "Store in no gui id hash! - " << edge->getID();
+
         //Store non created edge ID
         noGuiIDHash[edge->getID()] = "Edge";
 
