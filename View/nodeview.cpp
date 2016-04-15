@@ -5,6 +5,7 @@
 #include "../medeasubwindow.h"
 #include "../medeawindow.h"
 #include "GraphicsItems/aspectitem.h"
+#include "GraphicsItems/noguiitem.h"
 #include <limits>
 
 
@@ -1345,8 +1346,7 @@ void NodeView::resetViewState()
     modelPositions.clear();
     centeredRects.clear();
     guiItems.clear();
-    noGuiIDHash.clear();
-    noGUINodeIDHash.clear();
+    noGUIItems.clear();
     viewState = VS_NONE;
 
     emit view_ProjectNameChanged("");
@@ -3342,9 +3342,7 @@ void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
     EntityAdapter* graphML = item->getEntityAdapter();
     if(graphML){
         int ID = graphML->getID();
-        if(guiItems.contains(ID)){
-            qCritical() << "Hash already contains GraphMLItem with ID: " << ID;
-        }else{
+        if(!guiItems.contains(ID)){
             guiItems[ID] = item;
         }
     }
@@ -3401,12 +3399,13 @@ void NodeView::removeGraphMLItemFromHash(int ID)
             }
         }
 
-    } else {
-
-        // need to send view_edgeDeleted signal even if the edge doesn't have a gui item
-        if (noGuiIDHash.contains(ID) && noGuiIDHash[ID] == "Edge") {
+    } else if(noGUIItems.contains(ID)){
+        NoGUIItem* item = noGUIItems[ID];
+        if(item && item->getEntityAdapter()->isEdgeAdapter()){
             emit view_edgeDeleted();
         }
+        noGUIItems.remove(ID);
+        delete item;
     }
 
 }
@@ -3423,40 +3422,13 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* entityItem)
     // update the docks
     emit view_nodeConstructed(entityItem);
 
-    // this will set the correct theme for the necessary parts of particular EntityItems
-    //entityItem->themeChanged(currentTheme);
-
     // send specific current view states to the newly constaructed node item
     entityItem->toggleGridMode(GRID_LINES_ON);
 
-
-    if (entityItem->getNodeKind().startsWith("Hardware")) {
-
+    if (entityItem->getNodeKind().startsWith("Hardware")){
         // this will update the HardwareClusters' children view mode
         // and the HardwareNodes' initial visibility
         updateDeployment = true;
-
-    } else if (entityItem->getNodeKind() == "ManagementComponent") {
-
-        bool show = managementComponentsShown();
-        if (isSubView() && parentNodeView) {
-            show = parentNodeView->managementComponentsShown();
-            Q_UNUSED(show)
-        }
-        //entityItem->setHidden(!show);
-
-    } else if (entityItem->getNodeKind() == "AggregateInstance") {
-
-        // hide all AggregateInstances except for in OutEventPortImpls
-        NodeItem* parentItem = entityItem->getParentNodeItem();
-
-        if (parentItem) {
-            QStringList shownKinds;
-            shownKinds << "AggregateInstance" << "Aggregate" << "OutEventPortImpl" << "InEventPortImpl";
-            if (!shownKinds.contains(parentItem->getNodeKind()) ){
-                //   entityItem->setHidden(true);
-            }
-        }
 
     }
 
@@ -4563,17 +4535,21 @@ void NodeView::constructEntityItem(EntityAdapter *item)
         }
     }
 
-    if(controller && controller->isInModel(item->getID())){
+    bool constructed = false;
+    if(item && item->isInModel()){
         if(getGraphMLItemFromID(item->getID())){
             //Only construct each item once.
             return;
         }
 
         if(item->isNodeAdapter()){
-            constructNodeItem((NodeAdapter*) item);
+            constructed = constructNodeItem((NodeAdapter*) item);
         }else if(item->isEdgeAdapter()){
-            constructEdgeItem((EdgeAdapter*) item);
+            constructed = constructEdgeItem((EdgeAdapter*) item);
         }
+    }
+    if(!constructed){
+        constructNoGUIItem(item);
     }
 }
 
@@ -4592,29 +4568,25 @@ void NodeView::destructEntityItem(EntityAdapter *item)
         }
     }
 
-    destructGUIItem(item->getID(), GraphML::GK_NONE);
+    destructGUIItem(item->getID());
 
     if(_updateDeploymentWarnings){
         updateDeploymentWarnings(deployedID);
     }
 }
 
-void NodeView::constructNodeItem(NodeAdapter *node)
+bool NodeView::constructNodeItem(NodeAdapter *node)
 {
     if(!node){
-        return;
+        return false;
     }
-
-    int ID = node->getID();
 
     NODE_CLASS nodeClass = node->getNodeClass();
 
     //Check if we should construct this Node.
     if(nonDrawnNodeClasses.contains(nodeClass)){
-        noGUINodeIDHash[ID] = nodeClass;
-        return;
+        return false;
     }
-
 
     GraphMLItem* visibleParentItem = 0;
 
@@ -4644,10 +4616,6 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         }
         parentNodeItem = dynamic_cast<NodeItem*>(visibleParentItem);
     }
-
-
-
-
 
     QVariant xVal = node->getDataValue("x");
     QVariant yVal = node->getDataValue("y");
@@ -4713,22 +4681,19 @@ void NodeView::constructNodeItem(NodeAdapter *node)
             aspectIDs << node->getID();
         }else{
             qCritical() << "Unknown Aspect!";
-            return;
+            return false;
         }
     }else{
         item =  new EntityItem(node, parentNodeItem);
     }
 
-
     //Do Generic connect stuffs.
     if(item){
-
         storeGraphMLItemInHash(item);
 
         if(!scene()->items().contains(item)){
             scene()->addItem(item);
         }
-
 
         connectGraphMLItemToController(item);
 
@@ -4783,14 +4748,16 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         if(isSubView() && item->getID() == centralizedItemID){
             appendToSelection(item);
         }
+    }else{
+        return false;
     }
+    return true;
 }
 
 
 
-void NodeView::destructGUIItem(int ID, GraphML::GRAPHML_KIND kind)
+void NodeView::destructGUIItem(int ID)
 {
-    Q_UNUSED(kind);
     removeGraphMLItemFromHash(ID);
 }
 
@@ -5032,7 +4999,7 @@ void NodeView::selectModel()
     }
 }
 
-void NodeView::constructEdgeItem(EdgeAdapter *edge)
+bool NodeView::constructEdgeItem(EdgeAdapter *edge)
 {
     int srcID = edge->getSourceID();
     int dstID = edge->getDestinationID();
@@ -5092,14 +5059,19 @@ void NodeView::constructEdgeItem(EdgeAdapter *edge)
         }
     }
 
-    if(!constructEdge){
-        //Store non created edge ID
-        noGuiIDHash[edge->getID()] = "Edge";
-
-        if(updateDeploymentWarning){
-            updateDeploymentWarnings(srcID);
-        }
+    //Update deployment Warnings
+    if(!constructEdge && updateDeploymentWarning){
+        updateDeploymentWarnings(srcID);
     }
+
+    return constructEdge;
+}
+
+void NodeView::constructNoGUIItem(EntityAdapter *entity)
+{
+    NoGUIItem* item = new NoGUIItem(entity);
+    int ID = item->getID();
+    noGUIItems[ID] = item;
 }
 
 

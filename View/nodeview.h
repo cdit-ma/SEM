@@ -8,6 +8,7 @@
 #include "GraphicsItems/entityitem.h"
 #include "GraphicsItems/aspectitem.h"
 #include "GraphicsItems/modelitem.h"
+#include "GraphicsItems/noguiitem.h"
 
 #include "../Controller/edgeadapter.h"
 #include "../Controller/nodeadapter.h"
@@ -363,9 +364,8 @@ public slots:
 
     void constructEntityItem(EntityAdapter* item);
     void destructEntityItem(EntityAdapter* item);
-    void constructNodeItem(NodeAdapter* node);
-    void constructEdgeItem(EdgeAdapter* node);
-    void destructGUIItem(int ID, GraphML::GRAPHML_KIND kind);
+
+    void destructGUIItem(int ID);
 
     void showToolbar(QPoint position = QPoint());
     void toolbarClosed();
@@ -436,6 +436,9 @@ public slots:
 
     void translate(qreal dx, qreal dy);
 private:
+    bool constructNodeItem(NodeAdapter* node);
+    bool constructEdgeItem(EdgeAdapter* node);
+    void constructNoGUIItem(EntityAdapter* entity);
     AspectItem* getAspectItem(VIEW_ASPECT aspect);
     void setConnectMode(bool on);
     void setRubberBandMode(bool On);
@@ -613,9 +616,10 @@ private:
     QList<int> aspectIDs;
     QHash<QString, QPixmap> imageLookup;
     QHash<int, GraphMLItem*> guiItems;
-    QHash<int, QString> noGuiIDHash;
+    QHash<int, NoGUIItem*> noGUIItems;
 
-    QHash<int, NODE_CLASS> noGUINodeIDHash;
+  //  QHash<int, QString> noGuiIDHash;
+  //  QHash<int, NODE_CLASS> noGUINodeIDHash;
 
     QRect visibleViewRect;
 

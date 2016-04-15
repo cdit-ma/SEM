@@ -1978,9 +1978,7 @@ void NewController::removeGraphMLFromHash(int ID)
         EntityAdapter* entityAdapter = ID2AdapterHash[ID];
 
         if(entityAdapter){
-
             bool canDelete = entityAdapter->hasListeners();
-
             entityAdapter->invalidate();
 
             emit controller_EntityDestructed(entityAdapter);
@@ -1991,8 +1989,6 @@ void NewController::removeGraphMLFromHash(int ID)
                 delete entityAdapter;
             }
         }
-
-
 
         if(item)
         {
@@ -2916,47 +2912,6 @@ bool NewController::reverseAction(EventAction action)
     }
     return success;
 }
-/*
-bool NewController::_attachData(Entity *item, QList<QStringList> dataList, bool addAction)
-{
-    QList<Data*> graphMLDataList;
-    //Conver the StringList into Data Objects.
-
-    foreach(QStringList data, dataList){
-        if(data.size() != 5){
-            qCritical() << "Data Cannot be Parsed.";
-            continue;
-        }
-
-        QString keyName = data.at(0);
-        QString keyType = data.at(1);
-        QString keyFor = data.at(2);
-        QString dataValue = data.at(3);
-        bool isProtected = data.at(4) == "true";
-
-        QVariant::Type type = Key::getTypeFromGraphML(keyType);
-        Entity::ENTITY_KIND entityKind = Entity::getEntityKind(keyFor);
-
-        Key* key = constructKey(keyName, type, entityKind);
-        if(!key){
-            qCritical() << "Cannot Construct Key";
-            continue;
-        }
-
-        Data* graphMLData = new Data(key);
-        graphMLData->setValue(dataValue);
-        if(!graphMLData){
-            qCritical() << "Cannot Construct Data";
-            continue;
-        }
-
-        graphMLData->setProtected(isProtected);
-        graphMLDataList.append(graphMLData);
-    }
-
-    return _attachData(item, graphMLDataList, addAction);
-}*/
-
 bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAction)
 {
 
@@ -3413,7 +3368,7 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
     }else if(nodeKind == "ReturnParameter"){
         return new ReturnParameter();
     }else{
-        qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
+        //qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
     }
 
     return 0;
@@ -3960,7 +3915,6 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
                     foreach(Node* child, process->getChildren(0)){
                         Parameter* parameter = dynamic_cast<Parameter*>(child);
                         if(parameter && parameter->getDataValue("label") == "value"){
-                            qCritical() << "BINDING YO!";
                             Data* returnType = parameter->getData("type");
                             returnType->setParentData(bindData);
                         }
@@ -4895,8 +4849,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }
 
                     if(!newNode){
-                        QString message = "Cannot create node from document at line #" % QString::number(entity->getLineNumber()) % ".";
-                        emit controller_DisplayMessage(WARNING, message, "Import Error");
+                        QString message = "Cannot create Node '" % entity->getNodeKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
+                        emit  controller_DisplayMessage(WARNING, message, "Import Error", "Import");
                         entity->setIgnoreConstruction();
                         continue;
                     }
@@ -4980,7 +4934,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
-                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error");
+                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error", "Import");
 			}
         }
     }

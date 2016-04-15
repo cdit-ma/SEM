@@ -14,7 +14,7 @@ Version 1.5.0:
             * Fixes a bug with sort-order not restoring correctly after undo/redo/copy/paste
 
         GitHub Issues Resolved:
-            * 34, 56
+            * 34, 58
 
 Version 1.4.0:
         New Features:

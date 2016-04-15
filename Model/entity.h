@@ -20,6 +20,7 @@ public:
     ~Entity();
     ENTITY_KIND getEntityKind() const;
 
+    virtual bool isInModel() = 0;
     bool addData(Data* data);
     bool addData(QList<Data*> dataList);
 

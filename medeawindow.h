@@ -493,6 +493,7 @@ private:
     QQueue<NotificationStruct> notificationsQueue;
     QHash<int, QString> multipleNotification;
     int leftOverTime;
+    bool showNotifications;
 
     QWidget* rightPanelWidget;
 

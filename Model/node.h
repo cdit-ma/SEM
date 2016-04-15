@@ -53,7 +53,7 @@ public:
 
     QString toMD5Hash();
 
-
+    bool isInModel();
 
     int childrenCount();
     int edgeCount();
@@ -157,6 +157,8 @@ private:
 protected:
     void setAcceptEdgeClass(Edge::EDGE_CLASS edgeClass);
     bool acceptsEdgeClass(Edge::EDGE_CLASS edgeClass);
+
+
 
 };
 

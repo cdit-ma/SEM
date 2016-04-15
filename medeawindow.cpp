@@ -87,6 +87,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     controllerThread = 0;
     rightPanelWidget = 0;
     jenkinsManager = 0;
+    showNotifications = true;
 
     SETTINGS_LOADING = false;
     WINDOW_MAXIMIZED = false;
@@ -965,6 +966,14 @@ void MedeaWindow::updateMenuIcons()
         item->setIcon(fileIcon);
     }
 
+    foreach(QAction* action, file_recentProjectsMenu->actions()){
+        if(action != file_recentProjects_clearHistory){
+            action->setIcon(fileIcon);
+        }
+    }
+
+
+
     QIcon arrowDown = (getIcon("Actions", "Arrow_Down"));
     viewAspectsButton->setIcon(arrowDown);
     nodeKindsButton->setIcon(arrowDown);
@@ -1428,6 +1437,7 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 
     // setup notification bar and timer
     notificationTimer = new QTimer(this);
+    notificationTimer->setSingleShot(true);
 
     notificationsBox = new QGroupBox(this);
     notificationsBox->setObjectName(THEME_STYLE_GROUPBOX);
@@ -1977,7 +1987,7 @@ void MedeaWindow::setupConnections()
 
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
 
-    connect(notificationTimer, SIGNAL(timeout()), notificationsBox, SLOT(hide()));
+    //connect(notificationTimer, SIGNAL(timeout()), notificationsBox, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
 
     connect(nodeView, SIGNAL(view_DisplayNotification(QString,QString)), this, SLOT(displayNotification(QString,QString)));
@@ -3976,16 +3986,12 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
 {
     // pause the notification timer before showing the progress dialog
     if (notificationTimer->isActive()) {
-        leftOverTime = notificationTimer->remainingTime();
         notificationTimer->stop();
     }
+    showNotifications = false;
 
     // show progress dialog
     if (!progressDialogVisible) {
-        //QPoint dialogOrigin = pos() + QPoint(width(), height());
-        //QPoint dialogOrigin = pos() + getCanvasRect().center();
-        //dialogOrigin -= QPoint(progressDialog->width() / 2, progressDialog->height() / 2);
-        //progressDialog->move(dialogOrigin);
         progressDialog->show();
         progressDialogVisible = true;
     }
@@ -4019,16 +4025,15 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
  */
 void MedeaWindow::closeProgressDialog()
 {
-    if (leftOverTime > 0) {
-        notificationsBox->show();
-        notificationTimer->start(leftOverTime);
-        leftOverTime = 0;
-    }
-
     progressDialog->close();
     progressLabel->setText("Loading...");
     progressBar->reset();
     progressDialogVisible = false;
+
+    showNotifications = true;
+    if(!notificationsQueue.isEmpty()){
+        displayNotification();
+    }
 }
 
 
@@ -4217,13 +4222,12 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
         notificationsQueue.enqueue(notif);
     }
 
-    // if there is a notification in the queue, start the timer and show the notification bar
-    if (!notificationTimer->isActive() && !notificationsQueue.isEmpty()) {
+    if(showNotifications && !notificationsQueue.isEmpty() && !notificationTimer->isActive()){
         NotificationStruct notif = notificationsQueue.dequeue();
         notificationsBar->setText(notif.text);
 
         if(notif.actionImage != ""){
-            notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", notif.actionImage, QSize(64,64), Qt::white));
+            notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", notif.actionImage, QSize(32,32), Qt::white));
             notificationsIcon->setVisible(true);
         }else{
             notificationsIcon->setVisible(false);
@@ -4235,8 +4239,6 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
         if (!progressDialogVisible) {
             notificationsBox->show();
         }
-
-
         notificationTimer->start(NOTIFICATION_TIME);
     }
 }
@@ -4247,11 +4249,10 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
  */
 void MedeaWindow::checkNotificationsQueue()
 {
-    notificationTimer->stop();
-    //notificationsBar->hide();
-
     // if there are still notifications waiting to be displayed, display them in order
-    if (notificationsQueue.count() > 0) {
+    if (notificationsQueue.isEmpty()) {
+        notificationsBox->hide();
+    }else{
         displayNotification();
     }
 }

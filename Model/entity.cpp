@@ -68,6 +68,7 @@ Entity::ENTITY_KIND Entity::getEntityKind() const
     return entityKind;
 }
 
+
 /**
  * @brief Entity::addData
  * Attaches the Data to this Entity.

@@ -17,6 +17,7 @@ private:
     int _sourceID;
     int _destinationID;
     Edge::EDGE_CLASS _edgeClass;
+    // EntityAdapter interface
 };
 
 #endif // EDGEADAPTER_H

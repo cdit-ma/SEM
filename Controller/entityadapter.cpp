@@ -36,6 +36,15 @@ bool EntityAdapter::isEdgeAdapter()
     return !_isNode;
 }
 
+bool EntityAdapter::isInModel()
+{
+    if(isValid()){
+        return _entity->isInModel();
+    }
+    return false;
+}
+
+
 bool EntityAdapter::isReadOnly()
 {
     if(isValid()){

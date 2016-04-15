@@ -156,7 +156,8 @@ HEADERS += \
     doublehash.h \
     Model/tempentity.h \
     theme.h \
-    Model/Edges/deploymentedge.h
+    Model/Edges/deploymentedge.h \
+    View/GraphicsItems/noguiitem.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -280,7 +281,8 @@ SOURCES += \
     Model/tempentity.cpp \
     enumerations.cpp \
     theme.cpp \
-    Model/Edges/deploymentedge.cpp
+    Model/Edges/deploymentedge.cpp \
+    View/GraphicsItems/noguiitem.cpp
 
 
 RESOURCES += \

@@ -217,9 +217,6 @@ signals:
 
     void controller_DisplayMessage(MESSAGE_TYPE, QString messageString, QString messageTitle = "", QString messageIcon = "", int centerID =-1);
 
-    //void controller_DisplayMessage(MESSAGE_TYPE, QString messageTitle, QString messageIcon = "", QString message = "", int ID=-1, bool centralize=false);
-
-
     void controller_SavedProject(QString filePath, QString dat);
 
     void controller_ExportedProject(QString);

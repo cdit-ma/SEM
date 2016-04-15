@@ -533,7 +533,7 @@ void GraphMLItem::updateCurrentPen(bool zoomChanged)
         }else{
             // remove hover highlight for aspect items altogether
             if (!isAspectItem()) {
-                //currentPen.setColor(currentPen.color().lighter(130));
+                currentPen.setColor(currentPen.color().lighter(130));
             }
         }
     }
