@@ -2,13 +2,19 @@ Version 1.5.0:
         New Features:
             * Implemented the ability to close tabs from JenkinsJobMonitorWidget
             * Jenkins settings now validate on launch and setting changes.
+            * Implemented the ability to tab/shift+tab through a selection of EntityItems.
+            ** The Active selected item will have the table shown.
+            ** The border of the active selected item will be dark blue, whilst other items in selection are light blue.
+            ** Clicking on an Item whilst it's selected will set it as the Active Selected item.
+
 
         Fixes:
             * Implemented new Jenkins authentication validation.
             ** Now Authenticates on launch to save time
+            * Fixes a bug with sort-order not restoring correctly after undo/redo/copy/paste
 
         GitHub Issues Resolved:
-            * 34
+            * 34, 56
 
 Version 1.4.0:
         New Features:
