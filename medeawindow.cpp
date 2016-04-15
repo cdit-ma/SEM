@@ -40,7 +40,7 @@
 #define TOOLBAR_BUTTON_WIDTH 42
 #define TOOLBAR_BUTTON_HEIGHT 40
 #define TOOLBAR_GAP 5
-
+#define TOOLBAR_SPACING 2
 
 #define TOOLBUTTON_SIZE 20
 
@@ -2985,7 +2985,8 @@ void MedeaWindow::updateDock()
  */
 void MedeaWindow::updateToolbar()
 {
-    int totalWidth = 0;
+    //Allow for the spacing on the left of the first button
+    int totalWidth = TOOLBAR_SPACING;
     foreach (QAction* action, toolbar->actions()) {
         if (action->isVisible()) {
             QString actionName = toolbarActionLookup.key(action);
@@ -2995,12 +2996,14 @@ void MedeaWindow::updateToolbar()
                 // if actionName is empty, it means that it's a sepator - 8 is the width of the separator
                 totalWidth += TOOLBAR_SEPERATOR_WIDTH;
             }
+            //Allow for spacing between the toolbar buttons
+            totalWidth += TOOLBAR_SPACING;
         }
     }
 
     // TODO - Calculate the toolbar padding and stuff the proper way!
     QSize toolbarSize = QSize(totalWidth, TOOLBAR_BUTTON_HEIGHT);
-    toolbar->setFixedSize(toolbarSize + QSize(40, TOOLBAR_GAP));
+    toolbar->setFixedSize(toolbarSize + QSize(0, TOOLBAR_GAP));
 
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();
@@ -4954,7 +4957,7 @@ void MedeaWindow::updateStyleSheets()
     recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
                                             "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
 
-    setStyleSheet("QToolBar#" THEME_STYLE_HIDDEN_TOOLBAR "{ border: none; background-color: rgba(0,0,0,0); padding:0px; spacing: 2px;}"
+    setStyleSheet("QToolBar#" THEME_STYLE_HIDDEN_TOOLBAR "{ border: none; background-color: rgba(0,0,0,0); padding:0px; spacing: " +  QString::number(TOOLBAR_SPACING) + "px;}"
                   "QToolBar::separator { width:" + QString::number(TOOLBAR_SEPERATOR_WIDTH) + "px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   //"margin: 0px 1px;"
