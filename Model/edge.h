@@ -58,6 +58,8 @@ private:
     Node* source;
     Node* destination;
 
+public:
+    bool isInModel();
 };
 
 #endif // EDGE_H

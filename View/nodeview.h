@@ -8,6 +8,7 @@
 #include "GraphicsItems/entityitem.h"
 #include "GraphicsItems/aspectitem.h"
 #include "GraphicsItems/modelitem.h"
+#include "GraphicsItems/noguiitem.h"
 
 #include "../Controller/edgeadapter.h"
 #include "../Controller/nodeadapter.h"
@@ -339,6 +340,7 @@ public slots:
     void redo();
 
     void appendToSelection(GraphMLItem* item, bool updateActions=false);
+    void setActiveSelectionItem(GraphMLItem* item);
     void removeFromSelection(GraphMLItem* item, bool updateActions=false);
     void clearSelection(bool updateActions = false);
 
@@ -362,9 +364,8 @@ public slots:
 
     void constructEntityItem(EntityAdapter* item);
     void destructEntityItem(EntityAdapter* item);
-    void constructNodeItem(NodeAdapter* node);
-    void constructEdgeItem(EdgeAdapter* node);
-    void destructGUIItem(int ID, GraphML::GRAPHML_KIND kind);
+
+    void destructGUIItem(int ID);
 
     void showToolbar(QPoint position = QPoint());
     void toolbarClosed();
@@ -435,6 +436,9 @@ public slots:
 
     void translate(qreal dx, qreal dy);
 private:
+    bool constructNodeItem(NodeAdapter* node);
+    bool constructEdgeItem(EdgeAdapter* node);
+    void constructNoGUIItem(EntityAdapter* entity);
     AspectItem* getAspectItem(VIEW_ASPECT aspect);
     void setConnectMode(bool on);
     void setRubberBandMode(bool On);
@@ -458,6 +462,11 @@ private:
     void adjustModelPosition(QPoint delta);
     void addToMaps(QPointF modelPos, QRectF centeredRect);
     void clearMaps(int fromKey = 0);
+
+    void setActiveSelectionItem(int ID);
+    void setNextActiveSelectionItem(bool previous=false);
+
+
 
     void enforceItemAspectOn(int ID);
     void enforceEntityItemVisible(int ID);
@@ -506,6 +515,8 @@ private:
     GraphMLItem* getGraphMLItemFromScreenPos(QPoint pos);
 
     GraphMLItem* getGraphMLItemFromID(int ID);
+    EntityAdapter* getEntityAdapterFromID(int ID);
+    NodeAdapter* getNodeAdapterFromID(int ID);
     NodeItem* getNodeItemFromID(int ID);
 
     QString getData(int ID, QString key);
@@ -550,6 +561,7 @@ private:
     int prevSelectedNodeID;
     int prevHighlightedID;
     int currentTableID;
+    int currentActiveSelectedID;
 
     int initialRect;
     int notificationNumber;
@@ -604,9 +616,10 @@ private:
     QList<int> aspectIDs;
     QHash<QString, QPixmap> imageLookup;
     QHash<int, GraphMLItem*> guiItems;
-    QHash<int, QString> noGuiIDHash;
+    QHash<int, NoGUIItem*> noGUIItems;
 
-    QHash<int, NODE_CLASS> noGUINodeIDHash;
+  //  QHash<int, QString> noGuiIDHash;
+  //  QHash<int, NODE_CLASS> noGUINodeIDHash;
 
     QRect visibleViewRect;
 
@@ -623,6 +636,10 @@ private:
 protected:
     void dragEnterEvent(QDragEnterEvent *);
     void dropEvent(QDropEvent* );
+
+    // QWidget interface
+protected:
+    bool focusNextPrevChild(bool next);
 };
 
 #endif // NODEVIEW_H

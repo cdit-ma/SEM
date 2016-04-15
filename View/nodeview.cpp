@@ -5,6 +5,7 @@
 #include "../medeasubwindow.h"
 #include "../medeawindow.h"
 #include "GraphicsItems/aspectitem.h"
+#include "GraphicsItems/noguiitem.h"
 #include <limits>
 
 
@@ -58,6 +59,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     controller = 0;
     wasPanning = false;
     connectLine = 0;
+
+    currentActiveSelectedID = -1;
     constructedFromImport = false;
     toolbarJustClosed = false;
     editingEntityItemLabel = false;
@@ -600,6 +603,60 @@ void NodeView::clearMaps(int fromKey)
     currentMapKey = -1;
 }
 
+void NodeView::setActiveSelectionItem(int ID)
+{
+    if(selectedIDs.contains(ID)){
+        if(currentActiveSelectedID){
+            GraphMLItem* prev = getGraphMLItemFromID(currentActiveSelectedID);
+            if(prev){
+                prev->setActiveSelected(false);
+            }
+        }
+        currentActiveSelectedID = ID;
+
+        if(currentActiveSelectedID){
+            GraphMLItem* prev = getGraphMLItemFromID(currentActiveSelectedID);
+            if(prev){
+                setAttributeModel(prev);
+                prev->setActiveSelected(true);
+            }
+        }
+    }else{
+        currentActiveSelectedID = -1;
+        setAttributeModel();
+    }
+}
+
+void NodeView::setNextActiveSelectionItem(bool previous)
+{
+    int modifier = 1;
+    if(previous){
+        modifier *= -1;
+    }
+
+    int position = selectedIDs.indexOf(currentActiveSelectedID);
+    if(position == -1){
+        position = 0;
+        modifier = 0;
+    }
+
+    int max = selectedIDs.count();
+
+    position += modifier;
+
+    if(position >= max){
+        position = 0;
+    }
+    if(position < 0){
+        position = max - 1;
+    }
+    int nextItem = -1;
+    if(position >= 0 && position < selectedIDs.count()){
+        nextItem = selectedIDs[position];
+    }
+    setActiveSelectionItem(nextItem);
+}
+
 void NodeView::translate(qreal dx, qreal dy)
 {
     QGraphicsView::translate(dx, dy);
@@ -778,6 +835,11 @@ void NodeView::dropEvent(QDropEvent *event)
 {
     //Ignore the event so that MEDEA window will handle it.
     event->ignore();
+}
+
+bool NodeView::focusNextPrevChild(bool)
+{
+    return false;
 }
 
 
@@ -1299,8 +1361,7 @@ void NodeView::resetViewState()
     modelPositions.clear();
     centeredRects.clear();
     guiItems.clear();
-    noGuiIDHash.clear();
-    noGUINodeIDHash.clear();
+    noGUIItems.clear();
     viewState = VS_NONE;
 
     emit view_ProjectNameChanged("");
@@ -2535,7 +2596,6 @@ void NodeView::transition()
 {
     switch(viewState){
     case VS_NONE:
-
         //Do the VS_SELECTED case.
     case VS_SELECTED:
         setConnectMode(false);
@@ -2579,7 +2639,6 @@ void NodeView::_deleteFromIDs(QList<int> IDs)
 {
     if (IDs.count() > 0) {
         if(viewMutex.tryLock()){
-            //setAttributeModel(0, true);
             emit view_Delete(IDs);
         }
     } else {
@@ -2903,76 +2962,77 @@ void NodeView::showConnectedNodes()
 
 void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
 {
-    int itemID = item->getID();
+    if(!item){
+        return;
+    }
+
+    int ID = item->getID();
+    EntityAdapter* itemAdapter = item->getEntityAdapter();
+    NodeAdapter* nodeAdapter = 0;
+    if(itemAdapter && itemAdapter->isNodeAdapter()){
+        nodeAdapter = (NodeAdapter*) itemAdapter;
+    }
+
     bool updateDeploymentSelection = false;
 
     if(setSelected){
-        if(!selectedIDs.contains(itemID)){
-            int nodeSize = 0;
+        if(!selectedIDs.contains(ID)){
+            uint itemSelectionID = 0;
 
-            EntityAdapter* graphml = item->getEntityAdapter();
-
-            if(graphml && graphml->isNodeAdapter()){
-                nodeSize = ((NodeAdapter*)graphml)->getTreeIndex().size();
+            //Get the bitwise shifted Depth + sort order index.
+            if(nodeAdapter){
+                itemSelectionID = nodeAdapter->getSelectionID();
             }
 
-            //Find spot for selectedID;
+            //Find spot for this item in the sorted list
             int position = selectedIDs.count();
-            for(int i = 0;i < selectedIDs.count();i++){
-                GraphMLItem* selectedItem = getGraphMLItemFromID(selectedIDs[i]);
-                EntityAdapter* graphml2 = selectedItem->getEntityAdapter();
-
-                if(graphml2 && graphml2->isNodeAdapter()){
-                    int currentPos = ((NodeAdapter*)graphml2)->getTreeIndex().size();
-                    if(nodeSize > currentPos){
-                        position = i;
-                        break;
-                    }
+            for(int i = 0; i < selectedIDs.count(); i++){
+                NodeAdapter* nA = getNodeAdapterFromID(selectedIDs[i]);
+                if(nA && (itemSelectionID < nA->getSelectionID())){
+                    position = i;
+                    break;
                 }
             }
-            selectedIDs.insert(position, itemID);
+            selectedIDs.insert(position, ID);
+
+            //Set the Item as Selected
             item->setSelected(true);
-            if(graphml && graphml->isNodeAdapter()){
+
+            setActiveSelectionItem(ID);
+
+            //Update the Deployment Selection for any node selected.
+            if(nodeAdapter){
                 updateDeploymentSelection = true;
             }
-
         }
     }else{
-        if(selectedIDs.contains(itemID)){
-            selectedIDs.removeAll(itemID);
+        //Remove all Items of type;
+        selectedIDs.removeAll(ID);
+
+        //Move the selection along before we remove
+        if(currentActiveSelectedID == ID){
+            setNextActiveSelectionItem();
         }
 
-        setAttributeModel(0);
+        //Set the Item as Unselected
         item->setSelected(false);
 
-        EntityAdapter* graphml = item->getEntityAdapter();
-        if(graphml && graphml->isNodeAdapter()){
+        //Update the Deployment Selection for any node selected.
+        if(nodeAdapter){
             updateDeploymentSelection = true;
         }
     }
 
-
     //Update the warnings.
     if(updateDeploymentSelection){
         if(item && isNodeKindDeployable(item->getNodeKind())){
-            updateDeploymentWarnings(itemID);
+            updateDeploymentWarnings(ID);
         }
     }
 
-    if(selectedIDs.count() == 1){
-        GraphMLItem* item = getGraphMLItemFromID(selectedIDs.last());
-        if(item){
-            setAttributeModel(item);
-            return;
-        }
-    }
     if(selectedIDs.isEmpty()){
-        if(viewState == VS_SELECTED){
-            setState(VS_NONE);
-        }
+        setState(VS_NONE);
     }
-    setAttributeModel();
-
 }
 
 
@@ -3215,6 +3275,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     connect(item, SIGNAL(GraphMLItem_ClearSelection()), this, SLOT(clearSelection()));
     connect(item, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
     connect(item, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
+    connect(item, SIGNAL(GraphMLItem_SetActiveSelected(GraphMLItem*)), this, SLOT(setActiveSelectionItem(GraphMLItem*)));
     connect(item, SIGNAL(GraphMLItem_SelectionChanged()), this, SLOT(selectionChanged()));
 
     connect(item, SIGNAL(GraphMLItem_Hovered(int,bool)), this, SLOT(itemEntered(int,bool)));
@@ -3297,9 +3358,7 @@ void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
     EntityAdapter* graphML = item->getEntityAdapter();
     if(graphML){
         int ID = graphML->getID();
-        if(guiItems.contains(ID)){
-            qCritical() << "Hash already contains GraphMLItem with ID: " << ID;
-        }else{
+        if(!guiItems.contains(ID)){
             guiItems[ID] = item;
         }
     }
@@ -3307,25 +3366,23 @@ void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
 
 void NodeView::removeGraphMLItemFromHash(int ID)
 {
-    qDebug() << "removeGraphMLItemFromHash - " << ID;
-
     if (guiItems.contains(ID)) {
-
-        qDebug() << "Has GUI item";
-
         GraphMLItem* item = guiItems[ID];
         guiItems.remove(ID);
+
 
         if(selectedIDs.contains(ID)){
             selectedIDs.removeAll(ID);
         }
+        if(ID == currentActiveSelectedID){
+            setNextActiveSelectionItem();
+        }
+
         if(aspectIDs.contains(ID)){
             aspectIDs.removeAll(ID);
         }
 
-        if(ID == currentTableID){
-            setAttributeModel(0);
-        }
+
 
         if (item) {
             if (item->isEdgeItem()) {
@@ -3358,13 +3415,14 @@ void NodeView::removeGraphMLItemFromHash(int ID)
             }
         }
 
-    } else {
 
-        // need to send view_edgeDeleted signal even if the edge doesn't have a gui item
-        if (noGuiIDHash.contains(ID) && noGuiIDHash[ID] == "Edge") {
-            qDebug() << "Edge deleted";
+    } else if(noGUIItems.contains(ID)){
+        NoGUIItem* item = noGUIItems[ID];
+        if(item && item->getEntityAdapter()->isEdgeAdapter()){
             emit view_edgeDeleted();
         }
+        noGUIItems.remove(ID);
+        delete item;
     }
 
 }
@@ -3381,40 +3439,13 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* entityItem)
     // update the docks
     emit view_nodeConstructed(entityItem);
 
-    // this will set the correct theme for the necessary parts of particular EntityItems
-    //entityItem->themeChanged(currentTheme);
-
     // send specific current view states to the newly constaructed node item
     entityItem->toggleGridMode(GRID_LINES_ON);
 
-
-    if (entityItem->getNodeKind().startsWith("Hardware")) {
-
+    if (entityItem->getNodeKind().startsWith("Hardware")){
         // this will update the HardwareClusters' children view mode
         // and the HardwareNodes' initial visibility
         updateDeployment = true;
-
-    } else if (entityItem->getNodeKind() == "ManagementComponent") {
-
-        bool show = managementComponentsShown();
-        if (isSubView() && parentNodeView) {
-            show = parentNodeView->managementComponentsShown();
-            Q_UNUSED(show)
-        }
-        //entityItem->setHidden(!show);
-
-    } else if (entityItem->getNodeKind() == "AggregateInstance") {
-
-        // hide all AggregateInstances except for in OutEventPortImpls
-        NodeItem* parentItem = entityItem->getParentNodeItem();
-
-        if (parentItem) {
-            QStringList shownKinds;
-            shownKinds << "AggregateInstance" << "Aggregate" << "OutEventPortImpl" << "InEventPortImpl";
-            if (!shownKinds.contains(parentItem->getNodeKind()) ){
-                //   entityItem->setHidden(true);
-            }
-        }
 
     }
 
@@ -3489,8 +3520,6 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
         }
         if(remove){
             setGraphMLItemSelected(item, false);
-            //selectedIDs.removeAll(ID);
-            //item->setSelected(false);
         }
     }
 }
@@ -3529,6 +3558,24 @@ GraphMLItem *NodeView::getGraphMLItemFromID(int ID)
 {
     if(guiItems.contains(ID)){
         return guiItems[ID];
+    }
+    return 0;
+}
+
+EntityAdapter *NodeView::getEntityAdapterFromID(int ID)
+{
+    GraphMLItem* gml = getGraphMLItemFromID(ID);
+    if(gml){
+        return gml->getEntityAdapter();
+    }
+    return 0;
+}
+
+NodeAdapter *NodeView::getNodeAdapterFromID(int ID)
+{
+    EntityAdapter* eA = getEntityAdapterFromID(ID);
+    if(eA && eA->isNodeAdapter()){
+        return (NodeAdapter*) eA;
     }
     return 0;
 }
@@ -3833,6 +3880,8 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         setState(VS_RUBBERBAND);
     }
 
+
+
     if(hasFocus()){
         if(CONTROL){
             if(event->key() == Qt::Key_A){
@@ -3841,6 +3890,19 @@ void NodeView::keyPressEvent(QKeyEvent *event)
                 }
             }
         }
+
+
+        //Handle Tabbage
+        if (event->key() == Qt::Key_Tab){
+            setNextActiveSelectionItem();
+            return;
+        }else if(event->key() == Qt::Key_Backtab){
+            setNextActiveSelectionItem(true);
+            return;
+        }
+
+
+
 
         if (event->key() == Qt::Key_Escape){
             setState(VS_NONE);
@@ -3875,6 +3937,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
             translate(arrowAdjust.x(), arrowAdjust.y());
         }
+
     }
 
     QGraphicsView::keyPressEvent(event);
@@ -4095,7 +4158,7 @@ void NodeView::cut()
         //Try and Lock the Mutex before the operation.
         if(viewMutex.tryLock()){
             //Clear the Attribute Table Model
-            setAttributeModel(0, true);
+            //setAttributeModel(0, true);
             emit view_Cut(selectedIDs);
         }
     } else {
@@ -4153,7 +4216,6 @@ void NodeView::undo()
 {
     // undo the action
     if(viewMutex.tryLock()) {
-        //setAttributeModel(0, true);
         emit view_Undo();
     }
 }
@@ -4169,7 +4231,6 @@ void NodeView::redo()
 
     // redo the action
     if(viewMutex.tryLock()) {
-        //setAttributeModel(0,true);
         emit this->view_Redo();
     }
 }
@@ -4200,6 +4261,14 @@ void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
     if (updateActions) {
         selectionChanged();
     }
+}
+
+void NodeView::setActiveSelectionItem(GraphMLItem *item)
+{
+    if(!item){
+        return;
+    }
+    setActiveSelectionItem(item->getID());
 }
 
 /**
@@ -4483,17 +4552,21 @@ void NodeView::constructEntityItem(EntityAdapter *item)
         }
     }
 
-    if(controller && controller->isInModel(item->getID())){
+    bool constructed = false;
+    if(item && item->isInModel()){
         if(getGraphMLItemFromID(item->getID())){
             //Only construct each item once.
             return;
         }
 
         if(item->isNodeAdapter()){
-            constructNodeItem((NodeAdapter*) item);
+            constructed = constructNodeItem((NodeAdapter*) item);
         }else if(item->isEdgeAdapter()){
-            constructEdgeItem((EdgeAdapter*) item);
+            constructed = constructEdgeItem((EdgeAdapter*) item);
         }
+    }
+    if(!constructed){
+        constructNoGUIItem(item);
     }
 }
 
@@ -4512,30 +4585,25 @@ void NodeView::destructEntityItem(EntityAdapter *item)
         }
     }
 
-    qDebug() << "item: " << item;
-    destructGUIItem(item->getID(), GraphML::GK_NONE);
+    destructGUIItem(item->getID());
 
     if(_updateDeploymentWarnings){
         updateDeploymentWarnings(deployedID);
     }
 }
 
-void NodeView::constructNodeItem(NodeAdapter *node)
+bool NodeView::constructNodeItem(NodeAdapter *node)
 {
     if(!node){
-        return;
+        return false;
     }
-
-    int ID = node->getID();
 
     NODE_CLASS nodeClass = node->getNodeClass();
 
     //Check if we should construct this Node.
     if(nonDrawnNodeClasses.contains(nodeClass)){
-        noGUINodeIDHash[ID] = nodeClass;
-        return;
+        return false;
     }
-
 
     GraphMLItem* visibleParentItem = 0;
 
@@ -4565,10 +4633,6 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         }
         parentNodeItem = dynamic_cast<NodeItem*>(visibleParentItem);
     }
-
-
-
-
 
     QVariant xVal = node->getDataValue("x");
     QVariant yVal = node->getDataValue("y");
@@ -4634,22 +4698,19 @@ void NodeView::constructNodeItem(NodeAdapter *node)
             aspectIDs << node->getID();
         }else{
             qCritical() << "Unknown Aspect!";
-            return;
+            return false;
         }
     }else{
         item =  new EntityItem(node, parentNodeItem);
     }
 
-
     //Do Generic connect stuffs.
     if(item){
-
         storeGraphMLItemInHash(item);
 
         if(!scene()->items().contains(item)){
             scene()->addItem(item);
         }
-
 
         connectGraphMLItemToController(item);
 
@@ -4704,16 +4765,16 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         if(isSubView() && item->getID() == centralizedItemID){
             appendToSelection(item);
         }
+    }else{
+        return false;
     }
+    return true;
 }
 
 
 
-void NodeView::destructGUIItem(int ID, GraphML::GRAPHML_KIND kind)
+void NodeView::destructGUIItem(int ID)
 {
-    Q_UNUSED(kind);
-    qDebug() << "kind: " << kind;
-    qDebug() << "id: " << ID;
     removeGraphMLItemFromHash(ID);
 }
 
@@ -4955,7 +5016,7 @@ void NodeView::selectModel()
     }
 }
 
-void NodeView::constructEdgeItem(EdgeAdapter *edge)
+bool NodeView::constructEdgeItem(EdgeAdapter *edge)
 {
     int srcID = edge->getSourceID();
     int dstID = edge->getDestinationID();
@@ -5015,17 +5076,19 @@ void NodeView::constructEdgeItem(EdgeAdapter *edge)
         }
     }
 
-    if(!constructEdge){
-
-        qDebug() << "Store in no gui id hash! - " << edge->getID();
-
-        //Store non created edge ID
-        noGuiIDHash[edge->getID()] = "Edge";
-
-        if(updateDeploymentWarning){
-            updateDeploymentWarnings(srcID);
-        }
+    //Update deployment Warnings
+    if(!constructEdge && updateDeploymentWarning){
+        updateDeploymentWarnings(srcID);
     }
+
+    return constructEdge;
+}
+
+void NodeView::constructNoGUIItem(EntityAdapter *entity)
+{
+    NoGUIItem* item = new NoGUIItem(entity);
+    int ID = item->getID();
+    noGUIItems[ID] = item;
 }
 
 

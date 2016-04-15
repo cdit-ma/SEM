@@ -715,6 +715,16 @@ QString Node::toMD5Hash()
     return hash;
 }
 
+bool Node::isInModel()
+{
+    if(treeIndex.size() > 0){
+        if(treeIndex.first() == 0){
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Node::isDefinition()
 {
     return nodeType == Node::NT_DEFINITION || nodeType == Node::NT_DEFINSTANCE;

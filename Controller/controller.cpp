@@ -380,9 +380,6 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
                         exportEdge = true;
                     }
                 }
-                //if(!exportAllEdges){
-                //    exportEdge = false;
-                //}
             }
 
             if(exportEdge && !containedEdges.contains(edge)){
@@ -518,6 +515,7 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
 
     Data* data = parent->getData(keyName);
 
+    Node* node = (Node*) parent;
     if(data){
         action.ID = data->getID();
         action.Data.oldValue = data->getValue();
@@ -527,19 +525,23 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
             return;
         }
 
-        if(keyName == "label"){
-            if(parent->isNode()){
-                enforceUniqueLabel((Node*)parent, dataValue.toString());
+        bool need2Set = true;
+        //If we are dealing with a Node
+        if(parent->isNode()){
+            if(keyName == "label"){
+                enforceUniqueLabel(node, dataValue.toString());
+                need2Set = false;
+            }else if(keyName == "sortOrder" && node->getParentNode()){
+                enforceUniqueSortOrder(node, dataValue.toInt());
+                need2Set = false;
             }
-        }else if(keyName == "sortOrder"){
-            if(parent->isNode()){
-                enforceUniqueSortOrder((Node*)parent, dataValue.toInt());
-            }
-        }else{
+        }
+
+        if(need2Set){
             data->setValue(dataValue);
         }
-        action.Data.newValue = data->getValue();
 
+        action.Data.newValue = data->getValue();
     }else{
         qCritical() << "view_UpdateData() Doesn't Contain Data for Key: " << keyName;
         return;
@@ -1907,8 +1909,6 @@ void NewController::storeGraphMLInHash(Entity* item)
 
     int ID = item->getID();
 
-    qDebug() << "Constructed ID: " << ID;
-
     if(IDLookupGraphMLHash.contains(ID)){
         qCritical() << "Hash already contains item with ID: " << ID;
     }else{
@@ -1979,9 +1979,7 @@ void NewController::removeGraphMLFromHash(int ID)
         EntityAdapter* entityAdapter = ID2AdapterHash[ID];
 
         if(entityAdapter){
-
             bool canDelete = entityAdapter->hasListeners();
-
             entityAdapter->invalidate();
 
             emit controller_EntityDestructed(entityAdapter);
@@ -1993,21 +1991,20 @@ void NewController::removeGraphMLFromHash(int ID)
             }
         }
 
-
-
         if(item)
         {
 
             if(item->isNode()){
-                Node* node = (Node*)item;
+                Node* node = (Node*) item;
                 QString nodeLabel = node->getDataValue("label").toString();
-                QString nodeKind = node->getDataValue("kind").toString();
+                QString nodeKind = node->getNodeKind();
 
 
-                if(nodeKind == "HardwareNode"){
-                    hardwareNodes.remove(nodeLabel);
-                }else if(nodeKind == "HardwareCluster"){
-                    hardwareClusters.remove(nodeLabel);
+                if(nodeKind.startsWith("Hardware")){
+                    QList<QString> keys = hardwareEntities.keys(node);
+                    while(!keys.isEmpty()){
+                        hardwareEntities.remove(keys.takeFirst());
+                    }
                 }else if(nodeKind == "ManagementComponent"){
                     managementComponents.remove(nodeLabel);
                 }else if(nodeKind == "Process"){
@@ -2112,10 +2109,8 @@ bool NewController::attachChildNode(Node *parentNode, Node *node)
                 enforceUniqueLabel(node);
             }
 
-            if(isUserAction()){
-                //Force Unique sort order
-                enforceUniqueSortOrder(node);
-            }
+            //Force Unique sort order
+            enforceUniqueSortOrder(node);
 
             constructNodeGUI(node);
         }else{
@@ -2150,10 +2145,17 @@ Node *NewController::constructNode(QList<Data *> nodeData)
     //Get the Kind from the data.
     QString childNodeKind = getDataValueFromKeyName(nodeData, "kind");
     QString childNodeType = getDataValueFromKeyName(nodeData, "type");
-    QString childNodeLabel = getDataValueFromKeyName(nodeData, "label");
 
+    QString childUniqueID = getDataValueFromKeyName(nodeData, "label");;
+    if(childNodeKind.startsWith("Hardware")){
+        //Use the URL, but fall back on the label if nothing is in url
+        QString url = getDataValueFromKeyName(nodeData, "url");
+        if(url != ""){
+            childUniqueID = url;
+        }
+    }
 
-    Node* node = constructTypedNode(childNodeKind, false, childNodeType, childNodeLabel);
+    Node* node = constructTypedNode(childNodeKind, false, childNodeType, childUniqueID);
 
     //Enforce Default Data!
     QList<Data*> requiredData = constructDataVector(childNodeKind);
@@ -2615,69 +2617,45 @@ bool NewController::requiresUniqueLabel(Node *node)
     return true;
 }
 
-void NewController::enforceUniqueSortOrder(Node *node, int newSortPos)
+/**
+ * @brief NewController::enforceUniqueSortOrder
+ * @param node
+ * @param newPosition
+ */
+void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
 {
     if(!node){
         return;
     }
-
-    //If this action is caused by a non-user import, treat the value as gospel.
-    if(!isUserAction()){
-        if(newSortPos != -1){
-            node->setDataValue("sortOrder", newSortPos);
-        }
+    Node* parentNode = node->getParentNode();
+    if(!parentNode){
         return;
     }
 
-    Node* parentNode = node->getParentNode();
+    //If we have been given a position of -1 use the current value of sortOrder.
+    if(newPosition == -1){
+        newPosition = node->getDataValue("sortOrder").toInt();
+    }
 
-    if(parentNode){
-        int maxSortPos = parentNode->childrenCount() - 1;
+    int maxPos = parentNode->childrenCount();
 
-        int currentSortPos = node->getDataValue("sortOrder").toInt();
+    //If the newPosition is -1 or is bigger than our maxPos, put it last.
+    if(newPosition > maxPos || newPosition == -1){
+        newPosition = maxPos;
+    }
 
+    //Don't set Below 0
+    if(newPosition < 0){
+        newPosition = 0;
+    }
 
-        if(currentSortPos == -1){
-            //If the currentSortPos is invalid, set it as the maximum.
-            currentSortPos = maxSortPos;
-        }
+    //Set the position
+    node->setDataValue("sortOrder", newPosition);
 
-        if(newSortPos == -1){
-            //If the new position is -1, set it to it's current value.
-            newSortPos = currentSortPos;
-        }
-
-        //Bound the new Sort position.
-        if(newSortPos > maxSortPos){
-            newSortPos = maxSortPos;
-        }else if(newSortPos < 0){
-            newSortPos = 0;
-        }
-
-        int lowerPos = qMin(currentSortPos, newSortPos);
-        int upperPos = qMax(currentSortPos, newSortPos);
-
-        //If we are updating. refactor.
-        if(currentSortPos == newSortPos){
-            lowerPos = currentSortPos;
-            upperPos = maxSortPos;
-        }
-
-        int modifier = 1;
-        if(newSortPos > currentSortPos){
-            modifier = -1;
-        }
-
-
-        foreach(Node* sibling, node->getSiblings()){
-            int siblingSortPos = sibling->getDataValue("sortOrder").toInt();
-
-            if(siblingSortPos >= lowerPos && siblingSortPos <= upperPos){
-                sibling->setDataValue("sortOrder", siblingSortPos + modifier);
-            }
-        }
-
-        node->setDataValue("sortOrder", newSortPos);
+    //Realign all siblings in order starting at 0
+    int sortOrder = 0;
+    foreach(Node* sibling, parentNode->getChildren(0)){
+        sibling->setDataValue("sortOrder", sortOrder ++);
     }
 }
 
@@ -2694,8 +2672,15 @@ bool NewController::destructNode(Node *node)
 
     bool addAction = true;
 
+
     int ID = node->getID();
-    int parentID = node->getParentNodeID();
+    Node* parentNode = node->getParentNode();
+    int parentID = -1;
+    if(parentNode){
+        parentID = parentNode->getID();
+
+    }
+
 
     if(DESTRUCTING_CONTROLLER){
         //If we are destructing the controller; Don't add an undo state.
@@ -2712,13 +2697,9 @@ bool NewController::destructNode(Node *node)
 
 
 
-    if(addAction){
-        int maxPosition = -1;
-        if(node->getParentNode()){
-            maxPosition = node->getParentNode()->childrenCount() - 1;
-        }
-        enforceUniqueSortOrder(node, maxPosition);
-    }
+
+
+
 
     //Get a list of dependants.
     QList<Node*> dependants = node->getDependants();
@@ -2751,8 +2732,13 @@ bool NewController::destructNode(Node *node)
         action.Entity.kind = node->getEntityKind();
         action.Entity.nodeKind = node->getNodeKind();
         action.Entity.XML = _exportGraphMLDocument(node);
-
         addActionToStack(action);
+    }
+
+
+    if(parentNode){
+        //Put this item last to fix the sort order of it's siblings.
+        enforceUniqueSortOrder(node, parentNode->childrenCount());
     }
 
     removeGraphMLFromHash(ID);
@@ -2927,47 +2913,6 @@ bool NewController::reverseAction(EventAction action)
     }
     return success;
 }
-/*
-bool NewController::_attachData(Entity *item, QList<QStringList> dataList, bool addAction)
-{
-    QList<Data*> graphMLDataList;
-    //Conver the StringList into Data Objects.
-
-    foreach(QStringList data, dataList){
-        if(data.size() != 5){
-            qCritical() << "Data Cannot be Parsed.";
-            continue;
-        }
-
-        QString keyName = data.at(0);
-        QString keyType = data.at(1);
-        QString keyFor = data.at(2);
-        QString dataValue = data.at(3);
-        bool isProtected = data.at(4) == "true";
-
-        QVariant::Type type = Key::getTypeFromGraphML(keyType);
-        Entity::ENTITY_KIND entityKind = Entity::getEntityKind(keyFor);
-
-        Key* key = constructKey(keyName, type, entityKind);
-        if(!key){
-            qCritical() << "Cannot Construct Key";
-            continue;
-        }
-
-        Data* graphMLData = new Data(key);
-        graphMLData->setValue(dataValue);
-        if(!graphMLData){
-            qCritical() << "Cannot Construct Data";
-            continue;
-        }
-
-        graphMLData->setProtected(isProtected);
-        graphMLDataList.append(graphMLData);
-    }
-
-    return _attachData(item, graphMLDataList, addAction);
-}*/
-
 bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAction)
 {
 
@@ -3325,22 +3270,22 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
         }
         return  new WorkerDefinitions();
     }else if(nodeKind == "HardwareNode"){
-        if(hardwareNodes.contains(nodeLabel)){
-            return hardwareNodes[nodeLabel];
+        if(hardwareEntities.contains(nodeLabel)){
+            return hardwareEntities[nodeLabel];
         }else{
             HardwareNode* hN = new HardwareNode();
             if(storeNode && nodeLabel != ""){
-                hardwareNodes[nodeLabel] = hN;
+                hardwareEntities[nodeLabel] = hN;
             }
             return hN;
         }
     }else if(nodeKind == "HardwareCluster"){
-        if(hardwareClusters.contains(nodeLabel)){
-            return hardwareClusters[nodeLabel];
+        if(hardwareEntities.contains(nodeLabel)){
+            return hardwareEntities[nodeLabel];
         }else{
             HardwareCluster* hC = new HardwareCluster();
             if(storeNode && nodeLabel != ""){
-                hardwareClusters[nodeLabel] = hC;
+                hardwareEntities[nodeLabel] = hC;
             }
             return hC;
         }
@@ -3424,7 +3369,7 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
     }else if(nodeKind == "ReturnParameter"){
         return new ReturnParameter();
     }else{
-        qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
+        //qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
     }
 
     return 0;
@@ -3971,7 +3916,6 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
                     foreach(Node* child, process->getChildren(0)){
                         Parameter* parameter = dynamic_cast<Parameter*>(child);
                         if(parameter && parameter->getDataValue("label") == "value"){
-                            qCritical() << "BINDING YO!";
                             Data* returnType = parameter->getData("type");
                             returnType->setParentData(bindData);
                         }
@@ -4645,7 +4589,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         linkPreviousID = true;
     }
 
-    if(PASTE_USED || IMPORTING_WORKERDEFINITIONS){
+    if((PASTE_USED && !CUT_USED) || IMPORTING_WORKERDEFINITIONS){
         resetPosition = true;
     }
 
@@ -4719,10 +4663,9 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 //Set the Item as the current Entity.
                 currentEntity = entity;
 
-                if(resetPosition && currentEntity){
+                if(resetPosition && currentEntity && currentEntity->getParentEntity() == topEntity){
                     //Reset the position of the first item, then clear reset position.
                     currentEntity->setResetPosition();
-                    resetPosition = false;
                 }
             }else if(currentKind == GraphML::GK_KEY){
                 QString ID = getXMLAttribute(xml, "id");
@@ -4744,8 +4687,18 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 if(key && currentEntity){
                     //Attach the data to the current entity.
                     QString dataValue = xml.readElementText();
-                    Data* data = new Data(key, dataValue);
-                    currentEntity->addData(data);
+
+                    bool addData = true;
+                    if(resetPosition && currentEntity && currentEntity->getParentEntity() == topEntity){
+                        if(key->getName() == "sortOrder"){
+                            addData = false;
+                        }
+                    }
+
+                    if(addData){
+                        Data* data = new Data(key, dataValue);
+                        currentEntity->addData(data);
+                    }
                 }
             }
         }
@@ -4897,8 +4850,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }
 
                     if(!newNode){
-                        QString message = "Cannot create node from document at line #" % QString::number(entity->getLineNumber()) % ".";
-                        emit controller_DisplayMessage(WARNING, message, "Import Error");
+                        QString message = "Cannot create Node '" % entity->getNodeKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
+                        emit  controller_DisplayMessage(WARNING, message, "Import Error", "Import");
                         entity->setIgnoreConstruction();
                         continue;
                     }
@@ -4982,7 +4935,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
-                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error");
+                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error", "Import");
 			}
         }
     }

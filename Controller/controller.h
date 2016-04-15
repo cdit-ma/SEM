@@ -217,9 +217,6 @@ signals:
 
     void controller_DisplayMessage(MESSAGE_TYPE, QString messageString, QString messageTitle = "", QString messageIcon = "", int centerID =-1);
 
-    //void controller_DisplayMessage(MESSAGE_TYPE, QString messageTitle, QString messageIcon = "", QString message = "", int ID=-1, bool centralize=false);
-
-
     void controller_SavedProject(QString filePath, QString dat);
 
     void controller_ExportedProject(QString);
@@ -425,9 +422,7 @@ private:
 
     void enforceUniqueLabel(Node* node, QString newLabel = "");
     bool requiresUniqueLabel(Node* node);
-    //int getUniqueSortOrder(Node* node, )
-    //void enforceUniqueLabel(Node* node, QString newLabel = "");
-    void enforceUniqueSortOrder(Node* node, int newSortPos = -1);
+    void enforceUniqueSortOrder(Node* node, int newPosition = -1);
 
 
     //Returns true if the Model Entities can be connected.
@@ -573,8 +568,8 @@ private:
 
 
     QHash<QString, ManagementComponent*> managementComponents;
-    QHash<QString, HardwareNode*> hardwareNodes;
-    QHash<QString, HardwareCluster*> hardwareClusters;
+
+    QHash<QString, Node*> hardwareEntities;
     QHash<QString, Process*> workerProcesses;
 
     int previousUndos;

@@ -86,6 +86,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     leftOverTime = 0;
     controllerThread = 0;
     rightPanelWidget = 0;
+    jenkinsManager = 0;
+    showNotifications = true;
 
     SETTINGS_LOADING = false;
     WINDOW_MAXIMIZED = false;
@@ -243,6 +245,37 @@ void MedeaWindow::themeSettingChanged(QString keyName, QVariant value)
     }
 }
 
+void MedeaWindow::jenkinsSettingChanged(QString keyName, QVariant value)
+{
+    QString strValue = value.toString();
+
+    if(jenkinsManager){
+        if(keyName == JENKINS_URL){
+            jenkinsManager->setURL(strValue);
+        }else if(keyName == JENKINS_USER){
+            jenkinsManager->setUsername(strValue);
+        }else if(keyName == JENKINS_PASS){
+            jenkinsManager->setPassword(strValue);
+        }else if(keyName == JENKINS_TOKEN){
+            jenkinsManager->setToken(strValue);
+        }else if(keyName == JENKINS_JOB){
+            jenkinsManager->setJobName(strValue);
+            jenkins_JobName_Changed(strValue);
+        }
+
+        if(!jenkinsManager->hasValidatedSettings()){
+            //DeActivate menu Menu
+            foreach(QAction* action, jenkins_menu->actions()){
+                action->setEnabled(false);
+            }
+        }
+
+        if(jenkinsManager->hasSettings() && !jenkinsManager->hasValidatedSettings()){
+            jenkinsManager->validateSettings();
+        }
+    }
+}
+
 
 /**
  * @brief MedeaWindow::enableTempExport
@@ -305,6 +338,10 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
 
     // actions that alter the model
     foreach(QAction* action, modelActions){
+        if(enable && jenkins_menu->actions().contains(action) && !jenkinsManager->hasValidatedSettings()){
+            action->setEnabled(false);
+            continue;
+        }
         action->setEnabled(enable);
     }
 }
@@ -361,6 +398,9 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         return;
     }else if(groupName == THEME_SETTINGS){
         themeSettingChanged(keyName, value);
+        return;
+    }else if(groupName == JENKINS_SETTINGS){
+        jenkinsSettingChanged(keyName, value);
         return;
     }
 
@@ -432,24 +472,6 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     }else if(keyName == ASPECT_COLOR_DEFAULT){
         resetAspectTheme(false);
         saveTheme(true);
-    }else if(keyName == JENKINS_URL){
-        if(jenkinsManager){
-            jenkinsManager->setURL(strValue);
-        }
-    }else if(keyName == JENKINS_USER){
-        if(jenkinsManager){
-            jenkinsManager->setUsername(strValue);
-        }
-    }else if(keyName == JENKINS_PASS){
-        if(jenkinsManager){
-            jenkinsManager->setPassword(strValue);
-        }
-    }else if(keyName == JENKINS_TOKEN){
-        if(jenkinsManager){
-            jenkinsManager->setToken(strValue);
-        }
-    }else if(keyName == JENKINS_JOB){
-        jenkins_JobName_Changed(strValue);
     }else if(keyName == DEFAULT_DIR_PATH){
         //Set up default path.
         DEFAULT_PATH = strValue;
@@ -676,6 +698,8 @@ void MedeaWindow::setupMenu()
     model_menu = menu->addMenu(getIcon("Actions", "MenuModel"), "Model");
     jenkins_menu = menu->addMenu(getIcon("Actions", "Jenkins_Icon"), "Jenkins");
 
+
+
     menu->addSeparator();
 
     settings_changeAppSettings = menu->addAction(getIcon("Actions", "Settings"), "Settings");
@@ -784,12 +808,6 @@ void MedeaWindow::setupMenu()
     help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
     help_AboutQt = help_menu->addAction(QIcon(":/Qt.ico"), "About Qt");
 
-    if(!jenkinsManager){
-        jenkins_menu->setEnabled(false);
-    }
-    if(jenkinsJobName == ""){
-        jenkins_ExecuteJob->setEnabled(false);
-    }
 
     menu->setFont(guiFont);
     file_menu->setFont(guiFont);
@@ -857,6 +875,7 @@ void MedeaWindow::setupMenu()
 
     modelActions << view_menu->actions();
     modelActions << model_menu->actions();
+
     modelActions << jenkins_menu->actions();
 
     modelActions.removeAll(view_fullScreenMode);
@@ -946,6 +965,14 @@ void MedeaWindow::updateMenuIcons()
         QListWidgetItem* item = recentProjectsListWidget->item(i);
         item->setIcon(fileIcon);
     }
+
+    foreach(QAction* action, file_recentProjectsMenu->actions()){
+        if(action != file_recentProjects_clearHistory){
+            action->setIcon(fileIcon);
+        }
+    }
+
+
 
     QIcon arrowDown = (getIcon("Actions", "Arrow_Down"));
     viewAspectsButton->setIcon(arrowDown);
@@ -1410,6 +1437,7 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 
     // setup notification bar and timer
     notificationTimer = new QTimer(this);
+    notificationTimer->setSingleShot(true);
 
     notificationsBox = new QGroupBox(this);
     notificationsBox->setObjectName(THEME_STYLE_GROUPBOX);
@@ -1959,7 +1987,7 @@ void MedeaWindow::setupConnections()
 
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
 
-    connect(notificationTimer, SIGNAL(timeout()), notificationsBox, SLOT(hide()));
+    //connect(notificationTimer, SIGNAL(timeout()), notificationsBox, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
 
     connect(nodeView, SIGNAL(view_DisplayNotification(QString,QString)), this, SLOT(displayNotification(QString,QString)));
@@ -2485,19 +2513,10 @@ void MedeaWindow::setupApplication()
  */
 void MedeaWindow::initialiseJenkinsManager()
 {
-    jenkinsManager = 0;
-
-    QString jenkinsUrl = appSettings->getSetting(JENKINS_URL).toString();
-    QString jenkinsUser = appSettings->getSetting(JENKINS_USER).toString();
-    QString jenkinsPass = appSettings->getSetting(JENKINS_PASS).toString();
-    QString jenkinsToken = appSettings->getSetting(JENKINS_TOKEN).toString();
-
-    if(jenkinsUrl != "" && jenkinsUser != "" && jenkinsPass != ""){
+    if(!jenkinsManager){
         QString binaryPath = applicationDirectory + "Resources/Binaries/";
-
-
-        jenkinsManager = new JenkinsManager(binaryPath, jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
-        connect(jenkinsManager, SIGNAL(gotInvalidSettings(QString)), this, SLOT(invalidJenkinsSettings(QString)));
+        jenkinsManager = new JenkinsManager(binaryPath);
+        connect(jenkinsManager, SIGNAL(settingsValidationComplete(bool, QString)), this, SLOT(jenkinsSettingsValidated(bool, QString)));
     }
 }
 
@@ -2816,10 +2835,16 @@ void MedeaWindow::showShortcutList()
  * @brief MedeaWindow::invalidJenkinsSettings
  * @param message
  */
-void MedeaWindow::invalidJenkinsSettings(QString message)
+void MedeaWindow::jenkinsSettingsValidated(bool success, QString message)
 {
-    if(nodeView){
-        nodeView->showMessage(CRITICAL, message, "Jenkins Error", "Jenkins_Icon");
+    if(nodeView && !success){
+        nodeView->showMessage(WARNING, "Jenkins: " + message, "Jenkins Error", "Jenkins_Icon");
+    }else{
+        nodeView->showMessage(MESSAGE, "Jenkins: Settings Validated!", "Jenkins Settings Validated", "Jenkins_Icon");
+    }
+
+    foreach(QAction* action, jenkins_menu->actions()){
+        action->setEnabled(success);
     }
 }
 
@@ -3242,18 +3267,7 @@ void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
         // import Jenkins
         emit window_ImportJenkinsNodes(jenkinsXML);
     }
-}
-
-
-/**
- * @brief MedeaWindow::setImportJenkinsNodeEnabled
- * @param enabled
- */
-void MedeaWindow::setImportJenkinsNodeEnabled(bool enabled)
-{
-    if(jenkins_ImportNodes){
-        jenkins_ImportNodes->setEnabled(enabled);
-    }
+    jenkins_ImportNodes->setEnabled(true);
 }
 
 
@@ -3275,11 +3289,10 @@ void MedeaWindow::on_actionImportJenkinsNode()
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
         connect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));
         connect(jenkinsGS, SIGNAL(gotGroovyScriptOutput(QString)), this, SLOT(gotJenkinsNodeGraphML(QString)));
-        connect(jenkinsGS, SIGNAL(requestFinished()), this, SLOT(setImportJenkinsNodeEnabled()));
         connect(jenkinsGS, SIGNAL(requestFailed()), this, SLOT(gotJenkinsNodeGraphML()));
 
         //Disable the Jenkins Menu Button
-        setImportJenkinsNodeEnabled(false);
+        jenkins_ImportNodes->setEnabled(false);
 
         emit jenkins_RunGroovyScript(groovyScript, jobName);
         disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));
@@ -3973,16 +3986,12 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
 {
     // pause the notification timer before showing the progress dialog
     if (notificationTimer->isActive()) {
-        leftOverTime = notificationTimer->remainingTime();
         notificationTimer->stop();
     }
+    showNotifications = false;
 
     // show progress dialog
     if (!progressDialogVisible) {
-        //QPoint dialogOrigin = pos() + QPoint(width(), height());
-        //QPoint dialogOrigin = pos() + getCanvasRect().center();
-        //dialogOrigin -= QPoint(progressDialog->width() / 2, progressDialog->height() / 2);
-        //progressDialog->move(dialogOrigin);
         progressDialog->show();
         progressDialogVisible = true;
     }
@@ -4016,16 +4025,15 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
  */
 void MedeaWindow::closeProgressDialog()
 {
-    if (leftOverTime > 0) {
-        notificationsBox->show();
-        notificationTimer->start(leftOverTime);
-        leftOverTime = 0;
-    }
-
     progressDialog->close();
     progressLabel->setText("Loading...");
     progressBar->reset();
     progressDialogVisible = false;
+
+    showNotifications = true;
+    if(!notificationsQueue.isEmpty()){
+        displayNotification();
+    }
 }
 
 
@@ -4214,13 +4222,12 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
         notificationsQueue.enqueue(notif);
     }
 
-    // if there is a notification in the queue, start the timer and show the notification bar
-    if (!notificationTimer->isActive() && !notificationsQueue.isEmpty()) {
+    if(showNotifications && !notificationsQueue.isEmpty() && !notificationTimer->isActive()){
         NotificationStruct notif = notificationsQueue.dequeue();
         notificationsBar->setText(notif.text);
 
         if(notif.actionImage != ""){
-            notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", notif.actionImage, QSize(64,64), Qt::white));
+            notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", notif.actionImage, QSize(32,32), Qt::white));
             notificationsIcon->setVisible(true);
         }else{
             notificationsIcon->setVisible(false);
@@ -4232,8 +4239,6 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
         if (!progressDialogVisible) {
             notificationsBox->show();
         }
-
-
         notificationTimer->start(NOTIFICATION_TIME);
     }
 }
@@ -4244,11 +4249,10 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
  */
 void MedeaWindow::checkNotificationsQueue()
 {
-    notificationTimer->stop();
-    //notificationsBar->hide();
-
     // if there are still notifications waiting to be displayed, display them in order
-    if (notificationsQueue.count() > 0) {
+    if (notificationsQueue.isEmpty()) {
+        notificationsBox->hide();
+    }else{
         displayNotification();
     }
 }

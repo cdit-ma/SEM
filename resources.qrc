@@ -120,7 +120,6 @@
         <file alias="Lock_Open">Resources/Images/Actions/Lock_Open.png</file>
         <file alias="Log">Resources/Images/Actions/Log.png</file>
         <file alias="MEDEA">Resources/Images/Actions/MEDEA.png</file>
-        <file alias="MEDEA_Menu">Resources/Images/Actions/MEDEA_Menu.png</file>
         <file alias="Menu">Resources/Images/Actions/Menu.png</file>
         <file alias="Menu_Horizontal">Resources/Images/Actions/Menu_Horizontal.png</file>
         <file alias="Menu_Vertical">Resources/Images/Actions/Menu_Vertical.png</file>

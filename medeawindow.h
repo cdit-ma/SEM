@@ -167,13 +167,12 @@ private slots:
     void reportBug();
     void showWiki(QString componentName="");
     void showShortcutList();
-    void invalidJenkinsSettings(QString message);
+    void jenkinsSettingsValidated(bool success, QString message);
     void jenkinsNodesLoaded();
     void saveSettings();
     void search();
 
     void gotJenkinsNodeGraphML(QString graphML = "");
-    void setImportJenkinsNodeEnabled(bool enabled = true);
     void on_actionImportJenkinsNode();
 
     void on_actionNew_Project_triggered();
@@ -288,6 +287,7 @@ private:
 
     void toolbarSettingChanged(QString keyName, QVariant value);
     void themeSettingChanged(QString keyName, QVariant value);
+    void jenkinsSettingChanged(QString keyName, QVariant value);
     void jenkins_JobName_Changed(QString jobName);
     void enableTempExport(bool enable);
 
@@ -493,6 +493,7 @@ private:
     QQueue<NotificationStruct> notificationsQueue;
     QHash<int, QString> multipleNotification;
     int leftOverTime;
+    bool showNotifications;
 
     QWidget* rightPanelWidget;
 
