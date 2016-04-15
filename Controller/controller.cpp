@@ -2600,7 +2600,7 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
 
         if(newNumber > 0){
             QString questionLabel = newLabel % "_" % QString::number(newNumber);
-            QString message = "Found sibling entity with label: '" % newLabel % "'. Setting as '" % questionLabel % "'.";
+            QString message = "Label collision! Setting label as '" % questionLabel % "'.";
             emit controller_DisplayMessage(WARNING, message, "Duplicate Labels", "Info");
             newLabel = questionLabel;
         }

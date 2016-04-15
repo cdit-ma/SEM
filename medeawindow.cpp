@@ -95,8 +95,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     IS_WINDOW_MAXIMIZED = false;
     INITIAL_SETTINGS_LOADED = false;
     maximizedSettingInitiallyChanged = false;
-    EXPAND_TOOLBAR = false;
-    SHOW_TOOLBAR = false;
+    EXPAND_TOOLBAR = true;
+    SHOW_TOOLBAR = true;
 
     CURRENT_THEME = VT_NORMAL_THEME;
 
@@ -174,6 +174,8 @@ void MedeaWindow::projectRequiresSaving(bool requiresSave)
  */
 void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
 {
+
+
     bool isBool = false;
     bool boolValue = false;
     if(value == "true" || value == "false"){
@@ -186,12 +188,12 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
         return;
     }
 
+
+
     if(keyName == TOOLBAR_VISIBLE){
-        setToolbarVisibility(!boolValue);
-        SHOW_TOOLBAR = !boolValue;
-    }else if(keyName == TOOLBAR_EXPANDED){
-        EXPAND_TOOLBAR = boolValue;
-        showWindowToolbar(boolValue);
+        qCritical() << keyName << boolValue;
+        setToolbarVisibility(boolValue);
+        SHOW_TOOLBAR = boolValue;
     }
 
     if(toolbarActionLookup.contains(keyName)){
@@ -860,6 +862,7 @@ void MedeaWindow::setupMenu()
     actionToggleToolbar = new QAction(getIcon("Actions", "Arrow_Down"), "Toggle Toolbar", this);
     actionToggleToolbar->setToolTip("Toggle Toolbar");
     actionToggleToolbar->setCheckable(true);
+    actionToggleToolbar->setChecked(EXPAND_TOOLBAR);
 
     //Model Actions
     modelActions << file_closeProject;
@@ -2891,8 +2894,9 @@ void MedeaWindow::toggleWelcomeScreen(bool show)
     welcomeScreenOn = show;
 
     if (show) {
+        //Store the previous state of the toolbar visibility
         setToolbarVisibility(false);
-    } else {
+    }else {
         setToolbarVisibility(SHOW_TOOLBAR);
     }
 }
@@ -3215,8 +3219,6 @@ void MedeaWindow::saveSettings()
 {
     //Write Settings on Quit.
     if(appSettings && SAVE_WINDOW_SETTINGS){
-        appSettings->setSetting(TOOLBAR_EXPANDED, toolbarButton->isChecked());
-
         appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
         appSettings->setSetting(WINDOW_FULL_SCREEN, isFullScreen());
 
@@ -3614,11 +3616,9 @@ QIcon MedeaWindow::getIcon(QString alias, QString image)
  */
 void MedeaWindow::showWindowToolbar(bool show)
 {
-
     actionToggleToolbar->setChecked(show);
-    if(SHOW_TOOLBAR){
-        toolbar->setVisible(show);
-    }
+    EXPAND_TOOLBAR = show;
+    toolbar->setVisible(show);
 }
 
 
@@ -3631,8 +3631,12 @@ void MedeaWindow::setToolbarVisibility(bool visible)
     if (toolbarButtonBar) {
         toolbarButtonBar->setVisible(visible);
     }
-    if (toolbar && EXPAND_TOOLBAR) {
-        toolbar->setVisible(visible);
+    if(toolbar){
+        if(visible){
+            toolbar->setVisible(EXPAND_TOOLBAR);
+        }else{
+            toolbar->setVisible(false);
+        }
     }
 }
 

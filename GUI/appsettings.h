@@ -26,6 +26,7 @@ public:
     QSettings* getSettings();
 
     void loadSettings();
+    bool areSettingsLoaded();
 
     void setSetting(QString keyName, QVariant value);
     QVariant getSetting(QString keyName);

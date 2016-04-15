@@ -63,8 +63,7 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define DOCK_VISIBLE "04-01-Hide_Dock"
 
 #define TOOLBAR_SETTINGS "05-Toolbar"
-#define TOOLBAR_VISIBLE "05-00-00-Hide_Toolbar"
-#define TOOLBAR_EXPANDED "05-00-01-Expand_Toolbar"
+#define TOOLBAR_VISIBLE "05-00-Show_Toolbar"
 #define TOOLBAR_CONTEXT "05-01-Context_Toolbar"
 #define TOOLBAR_UNDO "05-02-Undo"
 #define TOOLBAR_REDO "05-03-Redo"
