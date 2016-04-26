@@ -1012,6 +1012,10 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     functionsDock = new FunctionsDockScrollArea(FUNCTIONS_DOCK, nodeView);
     hardwareDock = new HardwareDockScrollArea(HARDWARE_DOCK, nodeView, hardwareNodesButton);
 
+    // attach the definitions and fuctions dock to the parts dock
+    partsDock->attachDockSrollArea(definitionsDock);
+    partsDock->attachDockSrollArea(functionsDock);
+
     // width of the containers are fixed
     int dockPadding = 5;
     boxWidth = (partsButton->getWidth() - dockPadding) * 2 + 19;
@@ -1083,7 +1087,6 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
                                   "QPushButton:hover {"
                                   "background-color: rgba(180,180,180,150);"
                                   "}");
-    connect(dockBackButton, SIGNAL(clicked(bool)), this, SLOT(dockBackButtonTriggered()));
 
     openedDockLabel = new QLabel("Parts", this);
     openedDockLabel->setFixedWidth(boxWidth);
@@ -1946,7 +1949,7 @@ void MedeaWindow::newProject()
 
 
 /**
- * @brief MedeaWindow::makeConnections
+ * @brief MedeaWindow::setupConnections
  * Connect signals and slots.
  */
 void MedeaWindow::setupConnections()
@@ -1974,8 +1977,6 @@ void MedeaWindow::setupConnections()
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), workloadToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), assemblyToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), hardwareToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
-
-    connect(nodeView, SIGNAL(view_RefreshDock()), partsDock, SLOT(updateCurrentNodeItem()));
 
     connect(nodeView, SIGNAL(view_ProjectRequiresSaving(bool)), this, SLOT(projectRequiresSaving(bool)));
     connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
@@ -2109,14 +2110,19 @@ void MedeaWindow::setupConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
+    connect(nodeView, SIGNAL(view_RefreshDock()), partsDock, SLOT(updateCurrentNodeItem()));
+    connect(dockBackButton, SIGNAL(clicked(bool)), partsDock, SLOT(showMainDock()));
+
+    /*
     connect(partsDock, SIGNAL(dock_forceOpenDock(QString)), definitionsDock, SLOT(forceOpenDock(QString)));
     connect(partsDock, SIGNAL(dock_forceOpenDock()), functionsDock, SLOT(forceOpenDock()));
     connect(definitionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
     connect(functionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
+    */
 
     connect(partsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
-    connect(definitionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
-    connect(functionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    //connect(definitionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    //connect(functionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
     connect(hardwareDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
 
 
@@ -2129,9 +2135,6 @@ void MedeaWindow::setupConnections()
     connect(this, SIGNAL(window_clearDocksSelection()), definitionsDock, SLOT(clearSelected()));
     connect(this, SIGNAL(window_clearDocksSelection()), functionsDock, SLOT(clearSelected()));
     connect(this, SIGNAL(window_clearDocksSelection()), hardwareDock, SLOT(clearSelected()));
-
-
-
 
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
@@ -2967,12 +2970,17 @@ void MedeaWindow::updateWidgetsOnProjectChange(bool projectActive)
  */
 void MedeaWindow::updateDock()
 {
+    // TODO - dockHeaderBox height is wrong!
     // update widget sizes and mask
     boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height() + SPACER_SIZE;
     int prevHeight = docksArea->height();
     int newHeight = (boxHeight*2) - dockHeaderBox->height();
     if (newHeight != prevHeight) {
-        docksArea->setFixedHeight((boxHeight*2) - dockHeaderBox->height());
+        //qDebug() << "Update dock's height";
+        //qDebug() << "Prev: " << prevHeight;
+        //qDebug() << "New: " << newHeight;
+        qDebug() << "Dock header: " << dockHeaderBox->height();
+        docksArea->setFixedHeight(newHeight);
     }
     //dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_SIZE/2);
 }
@@ -3880,7 +3888,8 @@ void MedeaWindow::dockButtonPressed()
  * This is called whenever a dock is opened/closed.
  * If a dock is opened, update the dock header widgets. Otherwise, hide them.
  * It also updates the dock area's mask depending on whether there's an opened dock.
- * @param dockAction
+ * @param opened
+ * @param kindToConstruct
  */
 void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
 {
@@ -3896,21 +3905,23 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
 
         DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
         DOCK_TYPE dockType = dock->getDockType();
+        QString dockLabel = GET_DOCK_LABEL(dockType);
 
         switch (dockType) {
         case PARTS_DOCK:
-        case HARDWARE_DOCK:
-            openedDockLabel->setText(GET_DOCK_LABEL(dockType));
-            dockLabelVisible = true;
-            break;
-        case DEFINITIONS_DOCK:
-        case FUNCTIONS_DOCK:
-            if (!kindToConstruct.isEmpty()) {
+            if (kindToConstruct.isEmpty()) {
+                openedDockLabel->setText(dockLabel);
+                dockLabelVisible = true;
+            } else {
                 QString action = "Select to construct a <br/>" + kindToConstruct;
                 dockActionLabel->setText(action);
                 actionLabelVisible = true;
+                backButtonVisible = true;
             }
-            backButtonVisible = true;
+            break;
+        case HARDWARE_DOCK:
+            openedDockLabel->setText(dockLabel);
+            dockLabelVisible = true;
             break;
         default:
             break;
@@ -3919,8 +3930,10 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
         headerBoxVisible = true;
 
     } else {
-        if (partsDock->isDockOpen() || definitionsDock->isDockOpen() || functionsDock->isDockOpen() || hardwareDock->isDockOpen()) {
+
+        if (partsDock->isDockOpen() || hardwareDock->isDockOpen()) {
             // if any of the docks are open, show the dock header widgets
+            dockLabelVisible = true;
             headerBoxVisible = true;
         } else {
             // if no docks are open, update the dock area's mask - allow mouse events to pass through it
@@ -3941,24 +3954,10 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
     }
     if (headerBoxVisible != dockHeaderBox->isVisible()) {
         dockHeaderBox->setVisible(headerBoxVisible);
-        if (headerBoxVisible) {
-            updateDock();
-        }
     }
-}
-
-
-/**
- * @brief MedeaWindow::dockBackButtonTriggered
- */
-void MedeaWindow::dockBackButtonTriggered()
-{
-    if (definitionsDock->isDockOpen()) {
-        definitionsDock->setDockOpen(false);
-    } else if (functionsDock->isDockOpen()) {
-        functionsDock->setDockOpen(false);
+    if (headerBoxVisible) {
+        updateDock();
     }
-    partsDock->forceOpenDock();
 }
 
 

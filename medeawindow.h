@@ -204,7 +204,6 @@ private slots:
 
     void dockButtonPressed();
     void dockToggled(bool opened, QString kindToConstruct = "");
-    void dockBackButtonTriggered();
 
     void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);

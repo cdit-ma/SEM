@@ -3,7 +3,7 @@
 #include "docknodeitem.h"
 
 #include <QDebug>
-
+// TEST
 
 /**
  * @brief HardwareDockScrollArea::HardwareDockScrollArea
@@ -53,10 +53,10 @@ HardwareDockScrollArea::HardwareDockScrollArea(DOCK_TYPE type, NodeView* view, D
     hardware_notAllowedKinds.append("VectorInstance");
 
     setNotAllowedKinds(hardware_notAllowedKinds);
-    setDockEnabled(false);
-    connectToView();
+    setDockToReadOnly(true);
 
-    connect(this, SIGNAL(dock_opened(bool)), this, SLOT(displayHighlightedItem()));
+    connectToView();
+    connect(this, SIGNAL(dock_opened(bool)), SLOT(ensureHighlightedItemVisible()));
 }
 
 
@@ -74,7 +74,7 @@ void HardwareDockScrollArea::connectToView()
         connect(view, SIGNAL(view_nodeConstructed(NodeItem*)), this, SLOT(nodeConstructed(NodeItem*)));
         connect(view, SIGNAL(view_edgeDeleted(int,int)), this, SLOT(onEdgeDeleted(int, int)));
         connect(view, SIGNAL(view_nodeDeleted(int,int)), this, SLOT(onNodeDeleted(int, int)));
-        connect(view, SIGNAL(view_nodeSelected()), this, SLOT(displayHighlightedItem()));
+        connect(view, SIGNAL(view_nodeSelected()), this, SLOT(ensureHighlightedItemVisible()));
     }
 }
 
@@ -112,6 +112,13 @@ void HardwareDockScrollArea::updateDock()
     if (selectedItems.isEmpty()) {
         setDockEnabled(false);
         emit dock_highlightDockItem();
+        return;
+    } else {
+        setDockEnabled(true);
+    }
+
+    // if the dock is disabled, there is no need to update
+    if (!isDockEnabled()) {
         return;
     }
 
@@ -155,6 +162,10 @@ void HardwareDockScrollArea::updateDock()
         }
     }
 
+    setDockToReadOnly(!enableDock || readOnlyState);
+    highlightHardwareConnection(selectedItems);
+
+    /*
     setDockEnabled(enableDock);
 
     if (enableDock) {
@@ -165,8 +176,8 @@ void HardwareDockScrollArea::updateDock()
     } else {
         emit dock_highlightDockItem();
     }
+    */
 }
-
 
 
 /**
@@ -195,7 +206,6 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem* nodeItem)
         if (getNodeView()) {
             connect(dockItem, SIGNAL(dockItem_hoverEnter(int)), getNodeView(), SLOT(highlightOnHover(int)));
             connect(dockItem, SIGNAL(dockItem_hoverLeave(int)), getNodeView(), SLOT(highlightOnHover(int)));
-
         }
 
         // if the dock is open, update it
@@ -250,11 +260,11 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
 
 
 /**
- * @brief HardwareDockScrollArea::displayHighlightedItem
+ * @brief HardwareDockScrollArea::ensureHighlightedItemVisible
  * This slot ensures that if there is a highlighted item in this dock, that it's visible.
  * This is called everytime the selection is changed.
  */
-void HardwareDockScrollArea::displayHighlightedItem()
+void HardwareDockScrollArea::ensureHighlightedItemVisible()
 {
     if (!isDockOpen()) {
         return;
@@ -270,6 +280,18 @@ void HardwareDockScrollArea::displayHighlightedItem()
 
     if (highlightedItem) {
         ensureWidgetVisible(highlightedItem);
+    }
+}
+
+
+/**
+ * @brief HardwareDockScrollArea::setDockToReadOnly
+ * @param readOnly
+ */
+void HardwareDockScrollArea::setDockToReadOnly(bool readOnly)
+{
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        dockItem->setReadOnlyState(readOnly);
     }
 }
 
@@ -294,20 +316,18 @@ void HardwareDockScrollArea::highlightHardwareConnection(QList<GraphMLItem*> sel
 
     if (selectedItems.count() == 1) {
         emit dock_highlightDockItem(hardwareItem);
-        return;
-    }
-
-    for (int i = 1; i < selectedItems.count(); i++) {
-
-        GraphMLItem* prevHardwareItem = hardwareItem;
-        item = selectedItems[i];
-        hardwareItem = getNodeView()->getDeployedNode(item->getID());
-
-        if (hardwareItem != prevHardwareItem) {
-            emit dock_highlightDockItem();
-            return;
+    } else {
+        for (int i = 1; i < selectedItems.count(); i++) {
+            GraphMLItem* prevHardwareItem = hardwareItem;
+            item = selectedItems[i];
+            hardwareItem = getNodeView()->getDeployedNode(item->getID());
+            if (hardwareItem != prevHardwareItem) {
+                emit dock_highlightDockItem();
+                return;
+            }
         }
     }
 
     emit dock_highlightDockItem(hardwareItem);
+    ensureHighlightedItemVisible();
 }

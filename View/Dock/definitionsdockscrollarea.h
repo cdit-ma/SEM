@@ -18,6 +18,7 @@ public:
 
 public slots:
     void dockNodeItemClicked();
+    void forceOpenDock(QString srcKind = "");
     void updateDock();
     void clear();
 
@@ -27,8 +28,6 @@ public slots:
     void sortDockLabelItems(DockNodeItem* dockItem);
 
     void dockClosed();
-    void dockToggled(bool opened);
-    void forceOpenDock(QString srcKind);
 
 private:
     void filterDock(QString nodeKind = "");

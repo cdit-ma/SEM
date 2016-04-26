@@ -291,7 +291,6 @@ void DockToggleButton::setEnabled(bool enable)
             updateStyleSheet(DEFAULT);
         }
     } else {
-        hideDock();
         setSelected(false);
     }
 

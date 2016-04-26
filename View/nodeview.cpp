@@ -2694,7 +2694,7 @@ void NodeView::updateActionsEnabledStates(bool updateDocks)
 
     emit view_updateMenuActionEnabled("align", canAlign);
 
-    if(updateDocks){
+    if (updateDocks) {
         emit view_nodeSelected();
     }
 }
@@ -3906,7 +3906,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
         if (event->key() == Qt::Key_Escape){
             setState(VS_NONE);
-            clearSelection();
+            clearSelection(true);
         }
         if(event->key() == Qt::Key_F2){
             if(viewState == VS_NONE || viewState == VS_SELECTED){

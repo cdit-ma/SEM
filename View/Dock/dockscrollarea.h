@@ -61,22 +61,24 @@ signals:
     void dock_opened(bool open = true);
     void dock_closed(bool open = false);
     void dock_toggled(bool open, QString action = "");
+
     void dock_forceOpenDock(QString filterForKind);
     void dock_forceOpenDock();
 
+    void dock_dockItemClicked();
+
 public slots:
     virtual void dockNodeItemClicked() = 0;
+    virtual void forceOpenDock(QString = "");
     virtual void updateDock();
     virtual void clear();
+
+    void clearSelected();
 
     void onNodeDeleted(int nodeID, int parentID);
     void onEdgeDeleted(int srcID = -1, int dstID = -1);
 
-    void clearSelected();
     void updateCurrentNodeItem();
-
-    void parentHeightChanged(double height);
-
     void updateInfoLabel();
 
 private:

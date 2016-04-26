@@ -22,9 +22,10 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
 
-    void displayHighlightedItem();
+    void ensureHighlightedItemVisible();
 
 private:
+    void setDockToReadOnly(bool readOnly);
     void highlightHardwareConnection(QList<GraphMLItem*> selectedItems);
 
     QStringList hardware_notAllowedKinds;
