@@ -90,6 +90,7 @@ private:
 
     void updateToolButtonIcons();
     QToolButton* constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip = "", QString iconPath = "Actions");
+    QAction* constructToolbarSeparator();
 
     ToolbarMenu* constructTopMenu(QToolButton* parentButton, bool instantPopup = true, bool addToDynamicMenuHash = false);
     ToolbarMenu* constructSubMenu(ToolbarMenuAction* parentAction, QString infoText, bool addToDynamicMenuHash = true);
@@ -105,12 +106,6 @@ private:
 
     QFrame* mainFrame;
     QFrame* shadowFrame;
-
-    QAction*  actionAlignSeperator;
-    QAction*  actionExpandContractSeperator;
-    QAction*  actionSnippetSeperator;
-    QAction*  actionGoToSeperator;
-    QAction*  actionAlterViewSeperator;
 
     QToolBar* toolbar;
     QHBoxLayout* toolbarLayout;
@@ -177,17 +172,22 @@ private:
     QRadioButton* connectedNodes;
     QRadioButton* unconnectedNodes;
 
+    QAction*  actionAlterModelSeperator;
+    QAction*  actionAlignSeperator;
+    QAction*  actionExpandContractSeperator;
+    QAction*  actionSnippetSeperator;
+    QAction*  actionGoToSeperator;
+    QAction*  actionAlterViewSeperator;
+
     bool showDeleteToolButton;
     bool showImportSnippetToolButton;
     bool showExportSnippetToolButton;
     bool showDefinitionToolButton;
     bool showImplementationToolButton;
-
     bool showWikiButton;
     bool showShowCPPToolButton;
     bool showSetReadyOnlyToolButton;
     bool showUnsetReadyOnlyToolButton;
-
     bool showAlignmentButtons;
 
     bool alterModelButtonsVisible;
@@ -196,6 +196,7 @@ private:
     bool snippetButtonsVisible;
     bool goToButtonsVisible;
     bool alterViewButtonsVisible;
+    bool redirectButtonsVisible;
 
     int chosenInstanceID;
     QList<int> deploymentEdgeIDs;

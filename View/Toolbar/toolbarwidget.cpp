@@ -84,7 +84,9 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
 
     alterModelButtonsVisible = showDeleteToolButton;
     alignButtonsVisible = showAlignmentButtons;
+    redirectButtonsVisible = showShowCPPToolButton || showWikiButton;
     snippetButtonsVisible = showExportSnippetToolButton || showImportSnippetToolButton;
+    alterViewButtonsVisible = showSetReadyOnlyToolButton || showUnsetReadyOnlyToolButton;
 
     // update the rest of the tool buttons and menus if only node items are selected
     if (edgeItems.isEmpty()) {
@@ -471,8 +473,9 @@ void ToolbarWidget::hide()
 void ToolbarWidget::setVisible(bool visible)
 {
     bool toolbarVisible = visible && (alterModelButtonsVisible || alignButtonsVisible
-                                      || snippetButtonsVisible || goToButtonsVisible
-                                      || alterViewButtonsVisible || expandContractButtonsVisible);
+                                      || expandContractButtonsVisible || snippetButtonsVisible
+                                      || goToButtonsVisible || alterViewButtonsVisible
+                                      || redirectButtonsVisible);
 
     // update the toolbar & frame sizes
     if (toolbarVisible) {
@@ -894,46 +897,47 @@ void ToolbarWidget::setupToolBar()
 
     // construct tool buttons and separators and add them to the toolbar's layout
     addChildButton = constructToolButton(buttonSize, 0.8, "Plus", "Add Child Entity");
+    deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
     connectButton = constructToolButton(buttonSize, 0.7, "ConnectTo", "Connect Selection");
     hardwareButton = constructToolButton(buttonSize, 0.7,  "Computer", "Deploy Selection");
     disconnectHardwareButton = constructToolButton(buttonSize, 0.7,  "Computer_Cross", "Disconnect Selection From Its Current Deployment");
-    deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
 
-    actionAlignSeperator = toolbar->addSeparator();
+    actionAlterModelSeperator = constructToolbarSeparator();
 
     alignVerticallyButton = constructToolButton(buttonSize, 0.6, "Align_Vertical", "Align Selection Vertically");
     alignHorizontallyButton = constructToolButton(buttonSize, 0.6, "Align_Horizontal", "Align Selection Horizontally");
 
-    actionExpandContractSeperator = toolbar->addSeparator();
+    actionAlignSeperator = constructToolbarSeparator();
 
     expandButton = constructToolButton(buttonSize, 0.6, "Expand", "Expand Selection");
     contractButton = constructToolButton(buttonSize, 0.6, "Contract", "Contract Selection");
 
-    actionSnippetSeperator = toolbar->addSeparator();
+    actionExpandContractSeperator = constructToolbarSeparator();
 
     importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
     exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
-    getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
 
-    actionGoToSeperator = toolbar->addSeparator();
+    actionSnippetSeperator = constructToolbarSeparator();
 
     definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Selection's Definition");
     implementationButton = constructToolButton(buttonSize, 0.6, "Implementation", "View Selection's Implementation");
     instancesButton = constructToolButton(buttonSize, 0.6, "Instance", "View Selection's Instances");
 
-    actionAlterViewSeperator = toolbar->addSeparator();
+    actionGoToSeperator = constructToolbarSeparator();
 
-    connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Selection's Connections");
-    popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View Selection In New Window");
-    displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "Menu_Vertical", "Displayed Nodes Settings");
-
+    displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "Menu_Vertical", "Change Displayed Nodes Settings");
     setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Selection To Read Only");
     unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Selection From Read Only");
 
+    actionAlterViewSeperator = constructToolbarSeparator();
+
+    connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Selection's Connections");
+    getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
+    popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View Selection In New Window");
+    wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "View Wiki Page For Selected Entity");
+
     // NOTE: This is currently only used to make screenshots for the large deployment workshop
     //tagButton = constructToolButton(buttonSize, 0.5, "Tag", "Add Tag To Selection");
-
-    wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "View Wiki Page For Selected Entity");
 
     setupMenus();
 }
@@ -1135,6 +1139,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         actionLookup[popupNewWindow]->setVisible(true);
         actionLookup[definitionButton]->setVisible(showDefinitionToolButton);
         actionLookup[implementationButton]->setVisible(showImplementationToolButton);
+        redirectButtonsVisible = true;
         goToButtonsVisible = showDefinitionToolButton || showImplementationToolButton;
 
         // the expand and contract buttons are only available for multiple selection
@@ -1143,6 +1148,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         // check if the selected node item has other node items connected to it (edges)
         if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
             actionLookup[connectionsButton]->setVisible(true);
+            redirectButtonsVisible = true;
         }
 
         if (entityItem) {
@@ -1150,6 +1156,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             if (entityItem->isHardwareCluster()) {
                 hardwareClusterMenuClicked(entityItem->getHardwareClusterChildrenViewMode());
                 actionLookup[displayedChildrenOptionButton]->setVisible(true);
+                alterViewButtonsVisible = true;
             } else if (!entityItem->isHardwareNode()) {
                 legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
             }
@@ -1158,7 +1165,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             if (nodeAdapter) {
                 // get list of deployment edges
                 if (!nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).isEmpty()) {
-                    //deploymentEdgeID = nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).at(0);
                     deploymentEdgeIDs.append(nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).at(0));
                 }
             }
@@ -1169,8 +1175,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         setupInstancesList(nodeView->getNodeInstances(nodeItem->getID()));
 
         deployable = nodeView->isNodeKindDeployable(nodeItem->getNodeKind());
-        alterViewButtonsVisible = true;
-
 
     } else {
 
@@ -1268,6 +1272,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
     if (deployable) {
         if (!deploymentEdgeIDs.isEmpty()) {
             actionLookup[disconnectHardwareButton]->setVisible(true);
+            alterModelButtonsVisible = true;
         } else {
             setupHardwareList(nodeView->getHardwareList());
         }
@@ -1284,11 +1289,12 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
  */
 void ToolbarWidget::updateSeparators()
 {
-    actionAlignSeperator->setVisible(alignButtonsVisible && alterModelButtonsVisible);
-    actionExpandContractSeperator->setVisible(expandContractButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
-    actionSnippetSeperator->setVisible(snippetButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
-    actionGoToSeperator->setVisible(goToButtonsVisible && (alterModelButtonsVisible || snippetButtonsVisible));;
-    actionAlterViewSeperator->setVisible(alterViewButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible || goToButtonsVisible));;
+    actionAlterModelSeperator->setVisible(alterModelButtonsVisible && (alignButtonsVisible || expandContractButtonsVisible || snippetButtonsVisible || goToButtonsVisible || alterViewButtonsVisible || redirectButtonsVisible));
+    actionAlignSeperator->setVisible(alignButtonsVisible && (expandContractButtonsVisible || snippetButtonsVisible || goToButtonsVisible || alterViewButtonsVisible || redirectButtonsVisible));
+    actionExpandContractSeperator->setVisible(expandContractButtonsVisible && (snippetButtonsVisible || goToButtonsVisible || alterViewButtonsVisible || redirectButtonsVisible));
+    actionSnippetSeperator->setVisible(snippetButtonsVisible && (goToButtonsVisible || alterViewButtonsVisible || redirectButtonsVisible));
+    actionGoToSeperator->setVisible(goToButtonsVisible && (alterViewButtonsVisible || redirectButtonsVisible));
+    actionAlterViewSeperator->setVisible(alterViewButtonsVisible && redirectButtonsVisible);
 }
 
 
@@ -1308,6 +1314,7 @@ void ToolbarWidget::hideButtons()
  */
 void ToolbarWidget::hideSeparators()
 {
+    actionAlterModelSeperator->setVisible(false);
     actionAlignSeperator->setVisible(false);
     actionExpandContractSeperator->setVisible(false);
     actionSnippetSeperator->setVisible(false);
@@ -1354,6 +1361,7 @@ void ToolbarWidget::resetGroupFlags()
     snippetButtonsVisible = false;
     goToButtonsVisible = false;
     alterViewButtonsVisible = false;
+    redirectButtonsVisible = false;
 }
 
 
@@ -1532,6 +1540,18 @@ QToolButton* ToolbarWidget::constructToolButton(QSize size, double iconSizeRatio
     QAction* action = toolbar->addWidget(button);
     actionLookup[button] = action;
     return button;
+}
+
+
+/**
+ * @brief ToolbarWidget::constructToolbarSeparator
+ * @return
+ */
+QAction* ToolbarWidget::constructToolbarSeparator()
+{
+    QAction* separator = toolbar->addSeparator();
+    buttonsGroupVisible[separator] = false;
+    return separator;
 }
 
 
