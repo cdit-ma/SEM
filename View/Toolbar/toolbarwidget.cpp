@@ -37,7 +37,6 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     showAlignmentButtons = false;
     setAttribute(Qt::WA_TranslucentBackground);
 
-
 #ifdef Q_OS_WIN32
     //Toolbar in a Qt::Popup class doesn't allow Hover/QIcon state changes.
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
@@ -84,6 +83,7 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
     actionLookup[alignHorizontallyButton]->setVisible(showAlignmentButtons);
 
     alterModelButtonsVisible = showDeleteToolButton;
+    alignButtonsVisible = showAlignmentButtons;
     snippetButtonsVisible = showExportSnippetToolButton || showImportSnippetToolButton;
 
     // update the rest of the tool buttons and menus if only node items are selected
@@ -103,7 +103,6 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
 void ToolbarWidget::clearToolbarMenus()
 {
     clearMenus();
-    chosenInstanceID = -1;
     functionsMenu->clearMenu();
 }
 
@@ -348,6 +347,21 @@ void ToolbarWidget::displayConnectedNode(ToolbarMenuAction* action)
     } else {
         qWarning() << "ToolbarWidget::displayConnectedNode -  Action kind not handled.";
     }
+}
+
+
+/**
+ * @brief ToolbarWidget::destructEdge
+ */
+void ToolbarWidget::destructEdge()
+{
+    QList<int> IDsToDelete;
+    QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+    // delete hardware link(s)
+    if (button == disconnectHardwareButton) {
+        IDsToDelete = deploymentEdgeIDs;
+    }
+    nodeView->deleteFromIDs(IDsToDelete);
 }
 
 
@@ -882,6 +896,7 @@ void ToolbarWidget::setupToolBar()
     addChildButton = constructToolButton(buttonSize, 0.8, "Plus", "Add Child Entity");
     connectButton = constructToolButton(buttonSize, 0.7, "ConnectTo", "Connect Selection");
     hardwareButton = constructToolButton(buttonSize, 0.7,  "Computer", "Deploy Selection");
+    disconnectHardwareButton = constructToolButton(buttonSize, 0.7,  "Computer_Cross", "Disconnect Selection From Its Current Deployment");
     deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
 
     actionAlignSeperator = toolbar->addSeparator();
@@ -911,11 +926,12 @@ void ToolbarWidget::setupToolBar()
     connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Selection's Connections");
     popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View Selection In New Window");
     displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "Menu_Vertical", "Displayed Nodes Settings");
+
     setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Selection To Read Only");
     unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Selection From Read Only");
 
     // NOTE: This is currently only used to make screenshots for the large deployment workshop
-    tagButton = constructToolButton(buttonSize, 0.5, "Tag", "Add Tag To Selection");
+    //tagButton = constructToolButton(buttonSize, 0.5, "Tag", "Add Tag To Selection");
 
     wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "View Wiki Page For Selected Entity");
 
@@ -1010,10 +1026,10 @@ void ToolbarWidget::makeConnections()
     connect(importSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(definitionButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(implementationButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(getCPPButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
-    connect(setReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
-    connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
-    connect(wikiButton, SIGNAL(clicked(bool)), this, SLOT(launchWiki()));
+    connect(getCPPButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(setReadOnlyButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(unsetReadOnlyButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(disconnectHardwareButton, SIGNAL(clicked()), this, SLOT(hide()));
 
     // hide toolbar when a radio button from hardwareClusterViewMenu is clicked
     connect(allNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
@@ -1037,9 +1053,10 @@ void ToolbarWidget::makeConnections()
     connect(connectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(getCPPButton, SIGNAL(clicked(bool)), this, SLOT(getCPPForComponent()));
-
     connect(setReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
     connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
+    connect(wikiButton, SIGNAL(clicked(bool)), this, SLOT(launchWiki()));
+    connect(disconnectHardwareButton, SIGNAL(clicked()), this, SLOT(destructEdge()));
 
     // specific slots for the menus
     connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(setupAdoptableNodesList()));
@@ -1136,6 +1153,15 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             } else if (!entityItem->isHardwareNode()) {
                 legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
             }
+            // check if the selected entity item has a deployment link
+            NodeAdapter* nodeAdapter = nodeItem->getNodeAdapter();
+            if (nodeAdapter) {
+                // get list of deployment edges
+                if (!nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).isEmpty()) {
+                    //deploymentEdgeID = nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).at(0);
+                    deploymentEdgeIDs.append(nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).at(0));
+                }
+            }
         }
 
         // setup selected item's adoptable nodes menu and sub-menus, and its instances menu
@@ -1144,6 +1170,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 
         deployable = nodeView->isNodeKindDeployable(nodeItem->getNodeKind());
         alterViewButtonsVisible = true;
+
 
     } else {
 
@@ -1154,6 +1181,10 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         bool allClusters = true;
         bool canBeExpanded = false;
         int viewMode = -1;
+
+        bool sharedDeploymentLink = true;
+        int deploymentDstID = -1;
+        int prevDeploymentDstID = -1;
 
         for (int i = 0; i < nodeItems.count(); i++) {
 
@@ -1192,8 +1223,29 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                 deployable = false;
             }
 
-            // this allows multiple selection to connect to a shared legal node
-            legalNodes = nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs());
+            // check the edge dst instead of the edge id
+            if (sharedDeploymentLink) {
+                NodeAdapter* nodeAdapter = item_i->getNodeAdapter();
+                if (nodeAdapter) {
+                    int edgeID = -1;
+                    if (!nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).isEmpty()) {
+                        edgeID = nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).at(0);
+                    }
+                    if (edgeID != -1) {
+                        deploymentDstID = nodeAdapter->getChildEdgeDstID(edgeID);
+                        if ((prevDeploymentDstID != -1) && (prevDeploymentDstID != deploymentDstID)) {
+                            sharedDeploymentLink = false;
+                            deploymentEdgeIDs.clear();
+                        } else {
+                            deploymentEdgeIDs.append(edgeID);
+                        }
+                        prevDeploymentDstID = deploymentDstID;
+                    } else {
+                        sharedDeploymentLink = false;
+                        deploymentEdgeIDs.clear();
+                    }
+                }
+            }
         }
 
         // these buttons are only available for multiple selected entities
@@ -1207,11 +1259,18 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             actionLookup[displayedChildrenOptionButton]->setVisible(true);
             alterViewButtonsVisible = true;
         }
+
+        // this allows multiple selection to connect to a shared legal node
+        legalNodes = nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs());
     }
 
     // setup the hardware menu for deployable node items
     if (deployable) {
-        setupHardwareList(nodeView->getHardwareList());
+        if (!deploymentEdgeIDs.isEmpty()) {
+            actionLookup[disconnectHardwareButton]->setVisible(true);
+        } else {
+            setupHardwareList(nodeView->getHardwareList());
+        }
     }
 
     // setup connectable nodes menu for the selected item(s)
@@ -1238,7 +1297,7 @@ void ToolbarWidget::updateSeparators()
  */
 void ToolbarWidget::hideButtons()
 {
-    foreach(QAction* action, actionLookup.values()){
+    foreach (QAction* action, actionLookup.values()) {
         action->setVisible(false);
     }
 }
@@ -1273,7 +1332,9 @@ void ToolbarWidget::clearMenus()
 
     componentInstMenu->clearMenu();
     instancesMenu->clearMenu();
+
     chosenInstanceID = -1;
+    deploymentEdgeIDs.clear();
 
     // these lists needs to be cleared as well - used to populate menus
     adoptableNodeKinds.clear();
@@ -1421,6 +1482,7 @@ void ToolbarWidget::updateToolButtonIcons()
     deleteButton->setIcon(theme->getIcon("Actions", "Delete"));
     connectButton->setIcon(theme->getIcon("Actions", "ConnectTo"));
     hardwareButton->setIcon(theme->getIcon("Actions", "HardwareNode"));
+    disconnectHardwareButton->setIcon(theme->getIcon("Actions", "Computer_Cross"));
 
     definitionButton->setIcon(theme->getIcon("Actions", "Definition"));
     implementationButton->setIcon(theme->getIcon("Actions", "Implementation"));
@@ -1444,7 +1506,7 @@ void ToolbarWidget::updateToolButtonIcons()
     expandButton->setIcon(theme->getIcon("Actions", "Expand"));
     contractButton->setIcon(theme->getIcon("Actions", "Contract"));
 
-    tagButton->setIcon(theme->getIcon("Actions", "Tag"));
+    //tagButton->setIcon(theme->getIcon("Actions", "Tag"));
     wikiButton->setIcon(theme->getIcon("Actions", "Wiki"));
 }
 
@@ -1471,8 +1533,6 @@ QToolButton* ToolbarWidget::constructToolButton(QSize size, double iconSizeRatio
     actionLookup[button] = action;
     return button;
 }
-
-
 
 
 /**

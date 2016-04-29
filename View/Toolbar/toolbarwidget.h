@@ -35,6 +35,7 @@ public slots:
     void addConnectedNode(ToolbarMenuAction* action);
     void connectNodes(ToolbarMenuAction* action);
     void displayConnectedNode(ToolbarMenuAction* action = 0);
+    void destructEdge();
     void expandContractNodes();
     void constructNewView();
     void getCPPForComponent();
@@ -118,6 +119,7 @@ private:
     QToolButton* deleteButton;
     QToolButton* connectButton;
     QToolButton* hardwareButton;
+    QToolButton* disconnectHardwareButton;
     QToolButton* definitionButton;
     QToolButton* implementationButton;
     QToolButton* instancesButton;
@@ -196,6 +198,8 @@ private:
     bool alterViewButtonsVisible;
 
     int chosenInstanceID;
+    QList<int> deploymentEdgeIDs;
+
     QStringList adoptableNodeKinds;
     QList<NodeItem*> legalNodeItems;
     QList<EntityItem*> hardwareNodeItems;
@@ -204,8 +208,9 @@ private:
     // is shown and a bool of whether the menu has been re-populated or not
     QHash<ToolbarMenu*, bool> dynamicMenuPopulated;
 
+    // this hash is used to check whether each separator should be visible or not
+    QHash<QAction*, bool> buttonsGroupVisible;
 
-    // QWidget interface
 protected:
     bool event(QEvent *);
 };

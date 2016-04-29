@@ -193,6 +193,7 @@
         <file alias="SearchOptions">Resources/Images/Actions/SearchOptions.png</file>
         <file alias="HardwareNode">Resources/Images/Actions/HardwareNode.png</file>
         <file alias="Tag">Resources/Images/Actions/Tag.png</file>
+        <file alias="Computer_Cross">Resources/Images/Actions/Computer_Cross.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>
