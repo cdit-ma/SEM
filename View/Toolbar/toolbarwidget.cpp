@@ -9,6 +9,7 @@
 #include <QWidgetAction>
 #include <QPair>
 #include <QStyleFactory>
+#include <QMessageBox>
 
 /**
  * @brief ToolbarWidget::ToolbarWidget
@@ -629,6 +630,24 @@ void ToolbarWidget::menuActionHovered(QAction* action)
 
 
 /**
+ * @brief ToolbarWidget::updateReplicateCount
+ */
+void ToolbarWidget::updateReplicateCount()
+{
+    if (replicateCount->text().isEmpty()) {
+        return;
+    }
+    bool isValid = false;
+    int replicateVal = replicateCount->text().toInt(&isValid);
+    if (isValid) {
+        nodeView->replicateCountChanged(replicateVal);
+    } else {
+        nodeView->showMessage(CRITICAL, "Please enter a valid number.", "Input Error", "");
+    }
+}
+
+
+/**
  * @brief ToolbarWidget::setupAdoptableNodesList
  */
 void ToolbarWidget::setupAdoptableNodesList()
@@ -926,6 +945,7 @@ void ToolbarWidget::setupToolBar()
     actionGoToSeperator = constructToolbarSeparator();
 
     displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "Menu_Vertical", "Change Displayed Nodes Settings");
+    replicateCountButton = constructToolButton(buttonSize, 0.6, "Replicate_Count", "Change Replicate Count");
     setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Selection To Read Only");
     unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Selection From Read Only");
 
@@ -956,6 +976,7 @@ void ToolbarWidget::setupMenus()
     definitionMenu = constructTopMenu(definitionButton, false);
     implementationMenu = constructTopMenu(implementationButton, false);
     instancesMenu = constructTopMenu(instancesButton);
+    replicateMenu = constructTopMenu(replicateCountButton);
     hardwareClusterViewMenu = constructTopMenu(displayedChildrenOptionButton);
 
     // setup menu actions for the definition and implementation menus
@@ -964,23 +985,31 @@ void ToolbarWidget::setupMenus()
     implementationMenu->addAction(new ToolbarMenuAction("Goto", 0, implementationMenu, "Go to Implementation", "Actions", "Goto"));
     implementationMenu->addAction(new ToolbarMenuAction("Popup", 0, implementationMenu, "Popup Implementation", "Actions", "Popup"));
 
+    // setup widget for the replicate count
+    replicateCount = new QLineEdit(this);
+    replicateCount->setFixedWidth(replicateCount->fontMetrics().width("00000000"));
+    replicateCount->setPlaceholderText("x");
+    QWidgetAction* rc = new QWidgetAction(this);
+    rc->setDefaultWidget(replicateCount);
+    replicateMenu->QMenu::addAction(rc);
+
     // setup widgets for the displayed children option menu for HardwareClusters
     allNodes = new QRadioButton("All", this);
     connectedNodes = new QRadioButton("Connected", this);
     unconnectedNodes = new QRadioButton("Unconnected", this);
-    QRadioButton* tagRadioButton = new QRadioButton("SensorProcess", this);
+    //QRadioButton* tagRadioButton = new QRadioButton("SensorProcess", this);
     QWidgetAction* a1 = new QWidgetAction(this);
     QWidgetAction* a2 = new QWidgetAction(this);
     QWidgetAction* a3 = new QWidgetAction(this);
-    QWidgetAction* a4 = new QWidgetAction(this);
+    //QWidgetAction* a4 = new QWidgetAction(this);
     a1->setDefaultWidget(allNodes);
     a2->setDefaultWidget(connectedNodes);
     a3->setDefaultWidget(unconnectedNodes);
-    a4->setDefaultWidget(tagRadioButton);
+    //a4->setDefaultWidget(tagRadioButton);
     hardwareClusterViewMenu->QMenu::addAction(a1);
     hardwareClusterViewMenu->QMenu::addAction(a2);
     hardwareClusterViewMenu->QMenu::addAction(a3);
-    hardwareClusterViewMenu->QMenu::addAction(a4);
+    //hardwareClusterViewMenu->QMenu::addAction(a4);
 
     // these actions are not deletable - when their parent menu is cleared, they're only hidden
     componentImplAction = new ToolbarMenuAction("ComponentImpl", 0, this);
@@ -1035,6 +1064,9 @@ void ToolbarWidget::makeConnections()
     connect(unsetReadOnlyButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(disconnectHardwareButton, SIGNAL(clicked()), this, SLOT(hide()));
 
+    // hide toolbar when return is pressed from the replicate Menu
+    connect(replicateCount, SIGNAL(returnPressed()), this, SLOT(hide()));
+
     // hide toolbar when a radio button from hardwareClusterViewMenu is clicked
     connect(allNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
     connect(connectedNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
@@ -1061,6 +1093,7 @@ void ToolbarWidget::makeConnections()
     connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
     connect(wikiButton, SIGNAL(clicked(bool)), this, SLOT(launchWiki()));
     connect(disconnectHardwareButton, SIGNAL(clicked()), this, SLOT(destructEdge()));
+    connect(replicateCount, SIGNAL(returnPressed()), this, SLOT(updateReplicateCount()));
 
     // specific slots for the menus
     connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(setupAdoptableNodesList()));
@@ -1115,6 +1148,9 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 
     QList<NodeItem*> legalNodes;
     bool deployable = true;
+    bool allAssemblies = true;
+    bool allClusters = true;
+    int viewMode = -1;
 
     // need to clear menus before updating them
     clearMenus();
@@ -1142,9 +1178,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         redirectButtonsVisible = true;
         goToButtonsVisible = showDefinitionToolButton || showImplementationToolButton;
 
-        // the expand and contract buttons are only available for multiple selection
-        expandContractButtonsVisible = false;
-
         // check if the selected node item has other node items connected to it (edges)
         if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
             actionLookup[connectionsButton]->setVisible(true);
@@ -1154,11 +1187,15 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         if (entityItem) {
             // only show the displayed children option button if the selected item is a HardwareCluster
             if (entityItem->isHardwareCluster()) {
-                hardwareClusterMenuClicked(entityItem->getHardwareClusterChildrenViewMode());
-                actionLookup[displayedChildrenOptionButton]->setVisible(true);
-                alterViewButtonsVisible = true;
-            } else if (!entityItem->isHardwareNode()) {
-                legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
+                viewMode = entityItem->getHardwareClusterChildrenViewMode();
+            } else {
+                if (!entityItem->isHardwareNode()) {
+                    legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
+                }
+                if (entityItem->getNodeKind() != "ComponentAssembly") {
+                    allAssemblies = false;
+                }
+                allClusters = false;
             }
             // check if the selected entity item has a deployment link
             NodeAdapter* nodeAdapter = nodeItem->getNodeAdapter();
@@ -1168,6 +1205,9 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                     deploymentEdgeIDs.append(nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).at(0));
                 }
             }
+        } else {
+            allAssemblies = false;
+            allClusters = false;
         }
 
         // setup selected item's adoptable nodes menu and sub-menus, and its instances menu
@@ -1182,12 +1222,8 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
          * Multiple NodeItems selected
          */
 
-        bool allClusters = true;
         bool canBeExpanded = false;
-        int viewMode = -1;
-
         bool sharedDeploymentLink = true;
-        int deploymentDstID = -1;
         int prevDeploymentDstID = -1;
 
         for (int i = 0; i < nodeItems.count(); i++) {
@@ -1197,6 +1233,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             // if it's not an EntityItem, skip the following checks
             if (!item_i->isEntityItem()){
                 deployable = false;
+                allAssemblies = false;
                 allClusters = false;
                 continue;
             }
@@ -1204,17 +1241,24 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             EntityItem* entityItem = (EntityItem*)item_i;
 
             // check if all the selected items are HardwareClusters
-            if (entityItem->isHardwareCluster()) {
-                int currentViewMode = entityItem->getHardwareClusterChildrenViewMode();
-                if (viewMode == -1) {
-                    // viewMode hasn't been set yet; set it
-                    viewMode = currentViewMode;
-                } else if (currentViewMode != viewMode) {
-                    // if currentMode != viewMode, we don't have a shared viewMode
-                    viewMode = -2;
+            if (allClusters) {
+                if (entityItem->isHardwareCluster()) {
+                    int currentViewMode = entityItem->getHardwareClusterChildrenViewMode();
+                    if (viewMode == -1) {
+                        // viewMode hasn't been set yet; set it
+                        viewMode = currentViewMode;
+                    } else if (currentViewMode != viewMode) {
+                        // if currentMode != viewMode, we don't have a shared viewMode
+                        viewMode = -2;
+                    }
+                } else {
+                    allClusters = false;
                 }
-            } else {
-                allClusters = false;
+            }
+
+            // check if all the selected items are ComponentAssemblies
+            if (allAssemblies && entityItem->getNodeKind() != "ComponentAssembly") {
+                allAssemblies = false;
             }
 
             // check if at least one of the selected items can be expanded
@@ -1236,7 +1280,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                         edgeID = nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).at(0);
                     }
                     if (edgeID != -1) {
-                        deploymentDstID = nodeAdapter->getChildEdgeDstID(edgeID);
+                        int deploymentDstID = nodeAdapter->getChildEdgeDstID(edgeID);
                         if ((prevDeploymentDstID != -1) && (prevDeploymentDstID != deploymentDstID)) {
                             sharedDeploymentLink = false;
                             deploymentEdgeIDs.clear();
@@ -1257,15 +1301,21 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         actionLookup[contractButton]->setVisible(canBeExpanded);
         expandContractButtonsVisible = canBeExpanded;
 
-        // if all selected node items are Hardware clusters, show diplay option button
-        if (allClusters) {
-            hardwareClusterMenuClicked(viewMode);
-            actionLookup[displayedChildrenOptionButton]->setVisible(true);
-            alterViewButtonsVisible = true;
-        }
-
         // this allows multiple selection to connect to a shared legal node
         legalNodes = nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs());
+    }
+
+    // if all selected node items are ComponentAssemblies, show replicate count button
+    if (allAssemblies) {
+        actionLookup[replicateCountButton]->setVisible(true);
+        alterViewButtonsVisible = true;
+    }
+
+    // if all selected node items are Hardware clusters, show diplay option button
+    if (allClusters) {
+        hardwareClusterMenuClicked(viewMode);
+        actionLookup[displayedChildrenOptionButton]->setVisible(true);
+        alterViewButtonsVisible = true;
     }
 
     // setup the hardware menu for deployable node items
@@ -1509,6 +1559,7 @@ void ToolbarWidget::updateToolButtonIcons()
 
     connectionsButton->setIcon(theme->getIcon("Actions", "Connections"));
     popupNewWindow->setIcon(theme->getIcon("Actions", "Popup"));
+    replicateCountButton->setIcon(theme->getIcon("Actions", "Replicate_Count"));
     displayedChildrenOptionButton->setIcon(theme->getIcon("Actions", "Menu_Vertical"));
 
     expandButton->setIcon(theme->getIcon("Actions", "Expand"));

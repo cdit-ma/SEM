@@ -2310,6 +2310,24 @@ void NodeView::moveViewForward()
     }
 }
 
+
+/**
+ * @brief NodeView::replicateCountChanged
+ * @param x
+ */
+void NodeView::replicateCountChanged(int x)
+{
+    if (x >= 1) {
+        foreach (GraphMLItem* item, getSelectedItems()) {
+            if (item->isEntityItem() && item->getNodeKind() == "ComponentAssembly") {
+                emit view_SetData(item->getID(), "replicate_count", x);
+            }
+        }
+    } else {
+        showMessage(CRITICAL, "Please enter a number >= 1.", "Input Error", "");
+    }
+}
+
 /**
  * @brief NodeView::setEventFromEdgeItem
  */

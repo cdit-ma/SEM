@@ -424,7 +424,7 @@ public slots:
     void moveViewBack();
     void moveViewForward();
 
-
+    void replicateCountChanged(int x);
 
     void setEventFromEdgeItem();
 

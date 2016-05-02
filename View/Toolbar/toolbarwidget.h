@@ -5,6 +5,7 @@
 #include "../GraphicsItems/nodeitem.h"
 #include "../GraphicsItems/edgeitem.h"
 #include "toolbarmenuaction.h"
+#include <QLineEdit>
 #include <QRadioButton>
 #include <QWidget>
 #include <QToolButton>
@@ -54,6 +55,8 @@ public slots:
     void setInstanceID();
 
     void menuActionHovered(QAction* action = 0);
+
+    void updateReplicateCount();
 
     void updateDisplayedChildren();
     void hardwareClusterMenuClicked(int viewMode = -1);
@@ -127,6 +130,7 @@ private:
     QToolButton* unsetReadOnlyButton;
     QToolButton* connectionsButton;
     QToolButton* popupNewWindow;
+    QToolButton* replicateCountButton;
     QToolButton* displayedChildrenOptionButton;
     QToolButton* expandButton;
     QToolButton* contractButton;
@@ -140,8 +144,8 @@ private:
     ToolbarMenu* definitionMenu;
     ToolbarMenu* implementationMenu;
     ToolbarMenu* instancesMenu;
-
     ToolbarMenu* hardwareMenu;
+    ToolbarMenu* replicateMenu;
     ToolbarMenu* hardwareClusterViewMenu;
 
     ToolbarMenu* componentImplMenu;
@@ -167,6 +171,8 @@ private:
     ToolbarMenuAction* aggregateInstAction;
     ToolbarMenuAction* vectorInstAction;
     ToolbarMenuAction* processAction;
+
+    QLineEdit* replicateCount;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
