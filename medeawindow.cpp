@@ -1074,7 +1074,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
                                  "background-color: rgba(250,250,250,255);"
                                  "padding: 10px 0px 0px 0px; }");
 
-    dockActionLabel = new QLabel("Describe action here", this);
+    dockActionLabel = new QLabel("Select to construct an entity", this);
     dockActionLabel->setAlignment(Qt::AlignCenter);
     dockActionLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 10px 5px;");
 
@@ -1145,6 +1145,12 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     openedDockLabel->hide();
     dockBackButtonBox->hide();
     dockActionLabel->hide();
+
+    // TODO - This is currently a work around the dock sizing issue; can't figure out why the widget size calculation is wrong!
+    // the dock group header box has a 10px padding at the top
+    // the openedLabel has 5px at the bottom and the actionLabel has 10px at the top and the bottom
+    dockWithLabelHeight = 15 + openedDockLabel->height();
+    dockWithoutLabelHeight = 50 + dockActionLabel->height() + dockBackButton->height();
 }
 
 
@@ -2976,10 +2982,6 @@ void MedeaWindow::updateDock()
     int prevHeight = docksArea->height();
     int newHeight = (boxHeight*2) - dockHeaderBox->height();
     if (newHeight != prevHeight) {
-        //qDebug() << "Update dock's height";
-        //qDebug() << "Prev: " << prevHeight;
-        //qDebug() << "New: " << newHeight;
-        qDebug() << "Dock header: " << dockHeaderBox->height();
         docksArea->setFixedHeight(newHeight);
     }
     //dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_SIZE/2);
@@ -3910,9 +3912,11 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
         switch (dockType) {
         case PARTS_DOCK:
             if (kindToConstruct.isEmpty()) {
+                dockHeaderBox->setFixedHeight(dockWithLabelHeight);
                 openedDockLabel->setText(dockLabel);
                 dockLabelVisible = true;
             } else {
+                dockHeaderBox->setFixedHeight(dockWithoutLabelHeight);
                 QString action = "Select to construct a <br/>" + kindToConstruct;
                 dockActionLabel->setText(action);
                 actionLabelVisible = true;
@@ -3956,6 +3960,7 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
         dockHeaderBox->setVisible(headerBoxVisible);
     }
     if (headerBoxVisible) {
+        //qDebug() << "Header box height: " << dockHeaderBox->height();
         updateDock();
     }
 }

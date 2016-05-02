@@ -571,6 +571,9 @@ private:
     int boxWidth, boxHeight;
     int minLeftPanelHeight;
 
+    int dockWithLabelHeight;
+    int dockWithoutLabelHeight;
+
     //QString DEPGEN_ROOT;
 
     bool IS_WINDOW_MAXIMIZED;
