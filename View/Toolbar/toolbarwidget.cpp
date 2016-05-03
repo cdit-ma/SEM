@@ -1188,6 +1188,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             // only show the displayed children option button if the selected item is a HardwareCluster
             if (entityItem->isHardwareCluster()) {
                 viewMode = entityItem->getHardwareClusterChildrenViewMode();
+                allAssemblies = false;
             } else {
                 if (!entityItem->isHardwareNode()) {
                     legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
@@ -1222,6 +1223,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
          * Multiple NodeItems selected
          */
 
+        bool allHardware = true;
         bool canBeExpanded = false;
         bool sharedDeploymentLink = true;
         int prevDeploymentDstID = -1;
@@ -1254,6 +1256,12 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                 } else {
                     allClusters = false;
                 }
+            }
+
+            // check if all the selected items are Hardware entities
+            if (allHardware && !entityItem->isHardwareNode() && !entityItem->isHardwareCluster()) {
+                qDebug() << "enitity kind: " << entityItem->getNodeKind();
+                allHardware = false;
             }
 
             // check if all the selected items are ComponentAssemblies
@@ -1302,7 +1310,9 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         expandContractButtonsVisible = canBeExpanded;
 
         // this allows multiple selection to connect to a shared legal node
-        legalNodes = nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs());
+        if (!allHardware) {
+            legalNodes = nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs());
+        }
     }
 
     // if all selected node items are ComponentAssemblies, show replicate count button
