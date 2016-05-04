@@ -202,40 +202,7 @@
 						</node>
 					</graph>
 				</node>
-				<node id ="931">
-					<data key="2">Process</data>
-					<data key="4">754</data>
-					<data key="5">140</data>
-					<data key="7">76</data>
-					<data key="8">162</data>
-					<data key="3">setKernelComplexity</data>
-					<data key="9">2</data>
-					<data key="10">true</data>
-					<data key="463"></data>
-					<data key="465">WE_GPU</data>
-                                        <data key="467">$(CUTS_ROOT)/cuts/workers/we_gpu</data>
-                                        <data key="468">WE_GPU</data>
-					<data key="469">setKernelComplexity</data>
-					<data key="362">Set the complexity of the kernel for subsequent executions (passing in the result of the evaluated complexity function)</data>
-					<data key="9999">true</data>
-                                        <data key="d26">we_gpu</data>
-					<graph id ="g931">
-						<node id ="977">
-							<data key="2">InputParameter</data>
-							<data key="4">54</data>
-							<data key="5">140</data>
-							<data key="7">36</data>
-							<data key="8">36</data>
-							<data key="3">operations</data>
-							<data key="9">0</data>
-							<data key="472"></data>
-                                                        <data key="6">DoubleNumber</data>
-							<data key="362">The amount of operations to be performed per kernel execution (will be rounded to the nearest integer.</data>
-							<data key="9999">true</data>
-						</node>
-					</graph>
-				</node>
-				<node id ="1016">
+                                <node id ="1016">
 					<data key="2">Process</data>
 					<data key="4">854</data>
 					<data key="5">140</data>
@@ -259,13 +226,26 @@
 							<data key="5">140</data>
 							<data key="7">36</data>
 							<data key="8">36</data>
-							<data key="3">workItems</data>
+                                                        <data key="3">numThreads</data>
 							<data key="9">0</data>
 							<data key="472"></data>
-                                                        <data key="6">DoubleNumber</data>
-							<data key="362">The amount of work-items to be spawned.</data>
+                                                        <data key="6">UnsignedLongInteger</data>
+                                                        <data key="362">The amount of threads to be spawned.</data>
 							<data key="9999">true</data>
 						</node>
+                                                <node id ="1063">
+                                                        <data key="2">InputParameter</data>
+                                                        <data key="4">54</data>
+                                                        <data key="5">140</data>
+                                                        <data key="7">36</data>
+                                                        <data key="8">36</data>
+                                                        <data key="3">opsPerThread</data>
+                                                        <data key="9">1</data>
+                                                        <data key="472"></data>
+                                                        <data key="6">UnsignedLongLongInteger</data>
+                                                        <data key="362">The amount of work that should be done by each thread.</data>
+                                                        <data key="9999">true</data>
+                                                </node>
 						<node id ="1093">
 							<data key="2">InputParameter</data>
 							<data key="4">54</data>
@@ -273,7 +253,7 @@
 							<data key="7">36</data>
 							<data key="8">36</data>
 							<data key="3">gpuNum</data>
-							<data key="9">1</data>
+                                                        <data key="9">2</data>
 							<data key="472"></data>
 							<data key="6">UnsignedLongInteger</data>
 							<data key="362">The index of the target GPU/device (starting from 0)</data>

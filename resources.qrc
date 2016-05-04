@@ -229,6 +229,7 @@
         <file alias="replicate_count">Resources/Images/Data/replicate_count.png</file>
         <file alias="kilobytes">Resources/Images/Data/kilobytes.png</file>
         <file alias="max_size">Resources/Images/Data/max_size.png</file>
+        <file alias="opsPerThread">Resources/Images/Data/opsPerThread.png</file>
     </qresource>
     <qresource prefix="/Functions">
         <file alias="WE_GPU">Resources/Images/Functions/WE_GPU.png</file>
