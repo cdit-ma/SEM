@@ -2292,8 +2292,10 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(typeData);
         if(nodeType == DDS_LOGGING_SERVER){
             Key* frequencyKey = constructKey("frequency", QVariant::Double, Entity::EK_NODE);
-            Key* localLoggingKey = constructKey("localLogging", QVariant::Bool, Entity::EK_NODE);
-            Key* topicKey = constructKey("topicName", QVariant::String, Entity::EK_NODE);
+            Key* localLoggingKey = constructKey("cached_logging", QVariant::Bool, Entity::EK_NODE);
+            Key* processLoggingKey = constructKey("processes_to_log", QVariant::String, Entity::EK_NODE);
+
+            Key* topicKey = constructKey("topic_name", QVariant::String, Entity::EK_NODE);
             Key* domainKey = constructKey("domain", QVariant::Int, Entity::EK_NODE);
 
             Data* freqData = new Data(frequencyKey, 1);
@@ -2301,10 +2303,15 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
             Data* topicData = new Data(topicKey, "DIGSystemMonitor");
             Data* domainData = new Data(domainKey, 9);
 
+            QString processes = "dance_node_manager\ndance_execution_manager\ndig-sls\ndig-slc";
+
+            Data* processData = new Data(processLoggingKey, processes);
+
             data.append(freqData);
             data.append(localData);
             data.append(topicData);
             data.append(domainData);
+            data.append(processData);
         }
     }
 

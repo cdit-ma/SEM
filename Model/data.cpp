@@ -187,6 +187,10 @@ QString Data::toGraphML(int indentDepth)
     dataString.replace( "\"", "&quot;" );
     dataString.replace( "\'", "&apos;" );
 
+    if(getKey()->getName() == "processes_to_log"){
+        dataString.replace("\n", ",");
+    }
+
 
     QString xml;
     xml += tabSpace;
