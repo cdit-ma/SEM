@@ -438,6 +438,10 @@ private:
     QGroupBox* dockButtonsBox;
     QVBoxLayout* dockLayout;
 
+    QGroupBox* nodesDockButtonsBox;
+    QPushButton* nodesDockDeployButton;
+    QPushButton* nodesDockCenterButton;
+
     // DEMO CHANGE
     //QDialog* toolbarStandAloneDialog;
     //QGroupBox* toolbarArea;

@@ -1056,15 +1056,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockButtonsHlayout->addWidget(hardwareNodesButton);
     dockButtonsBox->setLayout(dockButtonsHlayout);
 
-    dockBackButtonBox = new QGroupBox(this);
-    dockBackButtonBox->setObjectName(THEME_STYLE_GROUPBOX);
-    dockBackButtonBox->setStyleSheet("QGroupBox {"
-                                     "background: rgba(0,0,0,0);"
-                                     "border: 0px;"
-                                     "margin: 0px;"
-                                     "padding: 0px;"
-                                     "}");
-
+    // setup dock header widgets
     dockHeaderBox = new QGroupBox(this);
     dockHeaderBox->setStyleSheet("QGroupBox {"
                                  "border-left: 1px solid rgb(125,125,125);"
@@ -1073,6 +1065,49 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
                                  "border-bottom: none;"
                                  "background-color: rgba(250,250,250,255);"
                                  "padding: 10px 0px 0px 0px; }");
+
+    openedDockLabel = new QLabel("Parts", this);
+    //openedDockLabel->setFixedWidth(boxWidth/2);
+    //openedDockLabel->setFixedWidth(boxWidth);
+    //openedDockLabel->setAlignment(Qt::AlignCenter);
+    openedDockLabel->setAlignment(Qt::AlignLeft);
+    openedDockLabel->setFont(QFont("Helvetica", 11));
+    openedDockLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 0px 8px 5px 8px;");
+
+    nodesDockButtonsBox = new QGroupBox(this);
+    nodesDockButtonsBox->setStyleSheet("QGroupBox{ border: none; margin: 0px 8px 5px 8px; padding: 0px; }"
+                                       "QPushButton{ padding: 0px; margin: 0px; background: rgba(130,130,130,120); border: none; }"
+                                       "QPushButton:hover { background: rgba(130,130,130,70); }" //border: 1px solid gray; }"
+                                       "QPushButton:hover:checked { background: rgb(183,255,123); }"
+                                       "QPushButton:checked { background: rgb(124,252,0); }");
+
+    QFrame* splitFrame = new QFrame(this);
+    splitFrame->setFixedWidth(1);
+    splitFrame->setStyleSheet("color: rgb(80,80,80);");
+    splitFrame->setFrameShape(QFrame::VLine);
+
+    nodesDockDeployButton = new QPushButton(Theme::theme()->getIcon("Actions", "ConnectTo"), "", this);
+    nodesDockCenterButton = new QPushButton(Theme::theme()->getIcon("Actions", "Crosshair"), "", this);
+    QHBoxLayout* nbLayout = new QHBoxLayout();
+    nbLayout->setSpacing(0);
+    nbLayout->setMargin(0);
+    nbLayout->setAlignment(Qt::AlignTop);
+    nbLayout->addWidget(nodesDockDeployButton);
+    nbLayout->addWidget(splitFrame);
+    nbLayout->addWidget(nodesDockCenterButton);
+    nodesDockButtonsBox->setLayout(nbLayout);
+
+    nodesDockDeployButton->setStyleSheet("border-top-left-radius: 3px; border-bottom-left-radius: 3px;");
+    nodesDockCenterButton->setStyleSheet("border-top-right-radius: 3px; border-bottom-right-radius: 3px;");
+    nodesDockDeployButton->setFixedHeight(openedDockLabel->height() - 10);
+    nodesDockCenterButton->setFixedHeight(openedDockLabel->height() - 10);
+    nodesDockDeployButton->setCheckable(true);
+    nodesDockCenterButton->setCheckable(true);
+    nodesDockDeployButton->setChecked(true);
+
+    QHBoxLayout* labelButtonsLayout = new QHBoxLayout();
+    labelButtonsLayout->addWidget(openedDockLabel);
+    labelButtonsLayout->addWidget(nodesDockButtonsBox);
 
     dockActionLabel = new QLabel("Select to construct an entity", this);
     dockActionLabel->setAlignment(Qt::AlignCenter);
@@ -1088,11 +1123,14 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
                                   "background-color: rgba(180,180,180,150);"
                                   "}");
 
-    openedDockLabel = new QLabel("Parts", this);
-    openedDockLabel->setFixedWidth(boxWidth);
-    //openedDockLabel->setAlignment(Qt::AlignCenter);
-    openedDockLabel->setFont(QFont("Helvetica", 11));
-    openedDockLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 0px 8px 5px 8px;");
+    dockBackButtonBox = new QGroupBox(this);
+    dockBackButtonBox->setObjectName(THEME_STYLE_GROUPBOX);
+    dockBackButtonBox->setStyleSheet("QGroupBox {"
+                                     "background: rgba(0,0,0,0);"
+                                     "border: 0px;"
+                                     "margin: 0px;"
+                                     "padding: 0px;"
+                                     "}");
 
     QVBoxLayout* dockBackButtonLayout = new QVBoxLayout();
     dockBackButtonLayout->setMargin(0);
@@ -1104,7 +1142,8 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     QVBoxLayout* dockHeaderLayout = new QVBoxLayout();
     dockHeaderLayout->setMargin(0);
     dockHeaderLayout->setSpacing(0);
-    dockHeaderLayout->addWidget(openedDockLabel);
+    //dockHeaderLayout->addWidget(openedDockLabel);
+    dockHeaderLayout->addLayout(labelButtonsLayout);
     dockHeaderLayout->addWidget(dockActionLabel);
     dockHeaderLayout->addWidget(dockBackButtonBox);
     dockHeaderBox->setLayout(dockHeaderLayout);
@@ -3887,6 +3926,7 @@ void MedeaWindow::dockButtonPressed()
  */
 void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
 {
+    bool functionSwitchVisible = false;
     bool dockLabelVisible = false;
     bool backButtonVisible = false;
     bool actionLabelVisible = false;
@@ -3919,6 +3959,7 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
             dockHeaderBox->setFixedHeight(dockWithLabelHeight);
             openedDockLabel->setText(dockLabel);
             dockLabelVisible = true;
+            functionSwitchVisible = true;
             break;
         default:
             qWarning() << "MedeaWindow::dockToggled - Case not dealt with.";
@@ -3930,6 +3971,9 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
     } else {
 
         if (partsDock->isDockOpen() || hardwareDock->isDockOpen()) {
+            if (hardwareDock->isDockOpen()) {
+                functionSwitchVisible = true;
+            }
             // if any of the docks are open, show the dock header widgets
             dockLabelVisible = true;
             headerBoxVisible = true;
@@ -3940,7 +3984,9 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
             nodeView->highlightOnHover();
         }
     }
-
+    if (functionSwitchVisible != nodesDockButtonsBox->isVisible()) {
+        nodesDockButtonsBox->setVisible(functionSwitchVisible);
+    }
     if (dockLabelVisible != openedDockLabel->isVisible()) {
         openedDockLabel->setVisible(dockLabelVisible);
     }
