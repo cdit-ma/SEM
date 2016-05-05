@@ -1146,11 +1146,13 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockBackButtonBox->hide();
     dockActionLabel->hide();
 
-    // TODO - This is currently a work around the dock sizing issue; can't figure out why the widget size calculation is wrong!
-    // the dock group header box has a 10px padding at the top
-    // the openedLabel has 5px at the bottom and the actionLabel has 10px at the top and the bottom
-    dockWithLabelHeight = 15 + openedDockLabel->height();
-    dockWithoutLabelHeight = 50 + dockActionLabel->height() + dockBackButton->height();
+    // TODO - This is currently a work around the dock sizing issue; can't figure out why the widget size calculation is wrong!;
+    // the dock header groupbox has a 10px padding at the top
+    // the actionLabel has a 10px padding at the top and the bottom
+    dockWithLabelHeight = 10 + openedDockLabel->height();
+    dockWithoutLabelHeight = 35 + dockActionLabel->height() + dockBackButtonLayout->sizeHint().height();
+    // for some reason the dockBackButtonBox height is not what you expect it to be
+    //dockWithoutLabelHeight = 30 + dockActionLabel->height() + dockBackButtonBox->height();
 }
 
 
@@ -1345,8 +1347,6 @@ void MedeaWindow::setupSearchTools()
     keysGroup->setLayout(keysLayout);
     keysAction->setDefaultWidget(keysGroup);
 
-
-
     searchBar->setFont(guiFont);
     viewAspectsBar->setFont(guiFont);
     nodeKindsBar->setFont(guiFont);
@@ -1456,26 +1456,23 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     notificationsBox->setLayout(hLayout);
-
-
+    notificationsBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT + SPACER_SIZE);
 
     notificationsBar = new QLabel("", this);
     notificationsIcon = new QLabel(this);
-    notificationsBar->setStyleSheet("color: white;");
     notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", "Clear", QSize(64,64), Qt::white));
-    notificationsBar->setFixedHeight(40);
+    notificationsBar->setStyleSheet("color: white;");
     notificationsBar->setFont(biggerFont);
     notificationsBar->setAlignment(Qt::AlignCenter);
 
     hLayout->addWidget(notificationsIcon, 0);
     hLayout->addWidget(notificationsBar, 1);
 
-
     // setup loading gif and widgets
     loadingLabel = new QLabel("Loading...", this);
     loadingLabel->setFont(biggerFont);
-    //loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    loadingLabel->setAlignment(Qt::AlignCenter);
+    //loadingLabel->setAlignment(Qt::AlignCenter);
+    loadingLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     loadingLabel->setStyleSheet("color:white;");
 
     loadingMovie = new QMovie(":/Actions/Loading.gif");
@@ -1489,18 +1486,13 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     QHBoxLayout* loadingLayout = new QHBoxLayout();
     loadingLayout->setMargin(0);
     loadingLayout->setSpacing(0);
-    loadingLayout->addStretch();
-    loadingLayout->addWidget(loadingMovieLabel);
-    loadingLayout->addWidget(loadingLabel);
-    loadingLayout->addStretch();
-
-
+    loadingLayout->addWidget(loadingMovieLabel, 0);
+    loadingLayout->addWidget(loadingLabel, 1);
 
     loadingBox = new QGroupBox(this);
     loadingBox->setObjectName(THEME_STYLE_GROUPBOX);
-    loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT);
+    loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT + SPACER_SIZE);
     loadingBox->setLayout(loadingLayout);
-
 
     // add widgets to layout
     QVBoxLayout* vLayout = new QVBoxLayout();
@@ -2905,7 +2897,7 @@ void MedeaWindow::toggleWelcomeScreen(bool show)
     if (show) {
         //Store the previous state of the toolbar visibility
         setToolbarVisibility(false);
-    }else {
+    } else {
         setToolbarVisibility(SHOW_TOOLBAR);
     }
 }
@@ -3924,10 +3916,12 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
             }
             break;
         case HARDWARE_DOCK:
+            dockHeaderBox->setFixedHeight(dockWithLabelHeight);
             openedDockLabel->setText(dockLabel);
             dockLabelVisible = true;
             break;
         default:
+            qWarning() << "MedeaWindow::dockToggled - Case not dealt with.";
             break;
         }
 

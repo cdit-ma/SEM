@@ -46,7 +46,8 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
 
     state = DEFAULT;
 
-    highlightColor = "rgb(160, 100, 190);";
+    //highlightColor = "rgb(160, 100, 190);";
+    highlightColor = GET_COLOR_STRING(GET_HARDWARE_HIGHLIGHT_COLOR()) + ";";
 
     if (nodeItem) {
 

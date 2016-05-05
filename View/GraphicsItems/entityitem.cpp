@@ -2082,7 +2082,6 @@ void EntityItem::setupBrushes()
     readOnlyHeaderBrush = QBrush(bColor);
 
 
-
     blendColor = QColor(222,184,135);
     blendFactor = .6;
     bColor = headerBrush.color();
@@ -2113,7 +2112,8 @@ void EntityItem::setupBrushes()
     readOnlyDefHeaderBrush = QBrush(bColor);
 
     //hardwareLinkColor = QColor(170, 33, 105);
-    hardwareLinkColor = QColor(160, 100, 190);
+    //hardwareLinkColor = QColor(160, 100, 190);
+    hardwareLinkColor = GET_HARDWARE_HIGHLIGHT_COLOR();
 }
 
 
