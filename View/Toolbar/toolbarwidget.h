@@ -170,7 +170,7 @@ private:
     ToolbarMenuAction* outEventPortImplAction;
     ToolbarMenuAction* aggregateInstAction;
     ToolbarMenuAction* vectorInstAction;
-    ToolbarMenuAction* processAction;
+    ToolbarMenuAction* workerProcessAction;
 
     QLineEdit* replicateCount;
 

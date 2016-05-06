@@ -103,7 +103,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     }
 
     hLayout->addWidget(keyLabel);
-
+    keyLabel->setFocusPolicy(Qt::NoFocus);
     hLayout->setSpacing(5);
 
     labelButton = keyLabel;
@@ -125,6 +125,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         hLayout->insertWidget(0, checkBox);
         hLayout->setStretch(1, 1);
 
+        keyLabel->setFocusPolicy(Qt::ClickFocus);
         valueBox = checkBox;
         value2Box = keyLabel;
         keyType = KEY_BOOL;

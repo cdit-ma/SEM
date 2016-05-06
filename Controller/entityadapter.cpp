@@ -72,6 +72,8 @@ bool EntityAdapter::isDataProtected(QString keyName)
             }else{
                 if(_entity->isReadOnly()){
                     return true;
+                }else if(_entity->isDataProtected(keyName)){
+                    return true;
                 }else{
                     return data->isProtected();
                 }

@@ -39,6 +39,7 @@ public:
     bool isNode();
     bool isEdge();
     bool isReadOnly();
+    bool isDataProtected(QString keyName);
     bool isSnippetReadOnly();
 
 
@@ -67,6 +68,7 @@ private:
     int getDataIDFromKeyID(int keyID);
     Data* getDataFromDataID(int dataID);
 
+    QStringList unprotectedKeys;
     Entity::ENTITY_KIND entityKind;
     //Data ID -> Data
     QHash<int, Data*> lookupDataID2Data;

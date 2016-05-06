@@ -33,6 +33,7 @@ NewController::NewController()
 
     PASTE_USED = false;
     REPLICATE_USED = false;
+    CONSTRUCTING_WORKERFUNCTION = false;
     IMPORTING_PROJECT = false;
     USE_LOGGING = false;
     UNDOING = false;
@@ -63,10 +64,11 @@ NewController::NewController()
 
     viewAspects << "Assembly" << "Workload" << "Definitions" << "Hardware";
     protectedKeyNames << "kind" << "localhost";
-    protectedKeyNames << "worker" << "operation" << "workerID" << "description";
+    protectedKeyNames << "description";
+    //protectedKeyNames << "worker" << "operation" << "workerID" << "description";
     protectedKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime" << "readOnlyDefinition";
 
-    visualKeyNames << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
+    visualKeyNames << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly" << "dataProtected";
 
 
     containerNodeKinds << "Model";
@@ -92,7 +94,7 @@ NewController::NewController()
 
 
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
-    behaviourNodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "VectorInstance";
+    behaviourNodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
 
 
     //Append Kinds which can't be constructed by the GUI.
@@ -712,6 +714,9 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
                 //If we don't have a matching parameter.
                 ignore = true;
             }
+        }else if(kind == "Process"){
+            data = constructDataVector(kind, centerPoint);
+
         }else{
             data = constructDataVector(kind, centerPoint);
         }
@@ -731,11 +736,15 @@ void NewController::constructWorkerProcessNode(int parentID, QString workerName,
 
 
     triggerAction("Constructing worker Process");
+    CONSTRUCTING_WORKERFUNCTION = true;
     Node* processFunction = cloneNode(processDefinition, parentNode);
+    CONSTRUCTING_WORKERFUNCTION = false;
 
     if(processFunction){
         processFunction->setDataValue("x", position.x());
         processFunction->setDataValue("y", position.y());
+        Key* protectedKey = constructKey("dataProtected", QVariant::Bool, Entity::EK_NODE);
+        attachData(processFunction, new Data(protectedKey, true));
     }
 
     emit controller_ActionFinished();
@@ -2348,6 +2357,28 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     }
     if(nodeKind == "Process"){
         Key* actionOnKey = constructKey("actionOn", QVariant::String,Entity::EK_NODE);
+
+        if(isUserAction() && !CONSTRUCTING_WORKERFUNCTION){
+            //If this is a user action, this is a blank process
+            Key* fileKey = constructKey("file", QVariant::String,Entity::EK_NODE);
+            Key* folderKey = constructKey("folder", QVariant::String,Entity::EK_NODE);
+            Key* operationKey = constructKey("operation", QVariant::String,Entity::EK_NODE);
+
+            Key* parametersKey = constructKey("parameters", QVariant::String,Entity::EK_NODE);
+            Key* codeKey = constructKey("code", QVariant::String,Entity::EK_NODE);
+
+            Key* workerKey = constructKey("worker", QVariant::String,Entity::EK_NODE);
+            Key* workerIDKey = constructKey("workerID", QVariant::String,Entity::EK_NODE);
+
+            data.append(new Data(fileKey, "File"));
+            data.append(new Data(folderKey, "Folder"));
+            data.append(new Data(operationKey, "Operation"));
+            data.append(new Data(workerKey, "Worker"));
+            data.append(new Data(parametersKey, "/*USED FOR BLANK FUNCTIONS*/"));
+            data.append(new Data(codeKey, ""));
+            data.append(new Data(workerIDKey, "workerID"));
+        }
+
         data.append(new Data(actionOnKey, "Mainprocess"));
     }
     if(nodeKind == "Condition"){
@@ -3356,7 +3387,7 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
         return new PeriodicEvent();
     }else if(nodeKind == "Workload"){
         return new Workload();
-    }else if(nodeKind == "Process"){
+    }else if(nodeKind == "Process" || nodeKind == "WorkerProcess"){
         return new Process();
     }else if(nodeKind == "WhileLoop"){
         return new WhileLoop();

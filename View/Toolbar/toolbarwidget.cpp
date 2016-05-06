@@ -126,7 +126,7 @@ void ToolbarWidget::setupFunctionsList()
 
     foreach (QStringList functions, classFunctionHash.values()) {
         QString className = classFunctionHash.key(functions);
-        ToolbarMenuAction* classAction = new ToolbarMenuAction(className, processAction, functionsMenu, "", "Functions", className);
+        ToolbarMenuAction* classAction = new ToolbarMenuAction(className, workerProcessAction, functionsMenu, "", "Functions", className);
         ToolbarMenu* classMenu = new ToolbarMenu(this);
         foreach (QString function, functions) {
             classMenu->addAction(new ToolbarMenuAction(function, classAction, this, "", "Functions", function));
@@ -154,7 +154,7 @@ QStringList ToolbarWidget::getNonDeletableMenuActionKinds()
     nonDeletableKinds.append("OutEventPortImpl");
     nonDeletableKinds.append("AggregateInstance");
     nonDeletableKinds.append("VectorInstance");
-    nonDeletableKinds.append("Process");
+    nonDeletableKinds.append("WorkerProcess");
     return nonDeletableKinds;
 }
 
@@ -682,8 +682,8 @@ void ToolbarWidget::setupAdoptableNodesList()
             action = aggregateInstAction;
         } else if (kind == "VectorInstance") {
             action = vectorInstAction;
-        } else if (kind == "Process") {
-            action = processAction;
+        } else if (kind == "WorkerProcess") {
+            action = workerProcessAction;
         } else {
             action  = new ToolbarMenuAction(kind, 0, this);
         }
@@ -1022,7 +1022,7 @@ void ToolbarWidget::setupMenus()
     blackBoxInstAction = new ToolbarMenuAction("BlackBoxInstance", 0, this);
     aggregateInstAction = new ToolbarMenuAction("AggregateInstance", 0, this);
     vectorInstAction = new ToolbarMenuAction("VectorInstance", 0, this);
-    processAction = new ToolbarMenuAction("Process", 0, this);
+    workerProcessAction = new ToolbarMenuAction("WorkerProcess", 0, this);
 
     // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
     componentImplMenu = constructSubMenu(componentImplAction, "There are no IDL files containing unimplemented Component entities.");
@@ -1035,7 +1035,7 @@ void ToolbarWidget::setupMenus()
     outEventPortImplMenu = constructSubMenu(outEventPortImplAction, "The selected entity's definition does not contain any OutEventPort entities.");
     aggregateInstMenu = constructSubMenu(aggregateInstAction, "There are no IDL files containing Aggregate entities.");
     vectorInstMenu = constructSubMenu(vectorInstAction, "There are no IDL files containing initialised Vector entities.");
-    functionsMenu = constructSubMenu(processAction, "There are no available functions.", false);
+    functionsMenu = constructSubMenu(workerProcessAction, "There are no available functions.", false);
 }
 
 

@@ -222,6 +222,20 @@ bool Entity::isReadOnly()
     return false;
 }
 
+bool Entity::isDataProtected(QString keyName)
+{
+    Data* readOnlyData = getData("dataProtected");
+    if(readOnlyData){
+        if(readOnlyData->getValue().toBool()){
+            Data* data = getData(keyName);
+            if(data && (!data->isVisualData() && keyName != "sortOrder")){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 bool Entity::isSnippetReadOnly()
 {
     if(isReadOnly()){

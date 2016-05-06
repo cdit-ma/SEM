@@ -18,6 +18,7 @@ public:
     bool isInModel();
     bool isReadOnly();
 
+
     const QVariant getDataValue(QString keyName);
     bool isDataProtected(QString keyName);
 

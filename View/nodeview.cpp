@@ -1642,7 +1642,10 @@ void NodeView::importProjects(QStringList xmlDataList)
     if(!xmlDataList.isEmpty()){
         if(viewMutex.tryLock()){
             constructedFromImport = true;
-            clearSelection();
+            if(!importFromJenkins){
+                //Only clear selection from non jenkins imports
+                clearSelection();
+            }
             emit view_ImportProjects(xmlDataList);
         }
     }

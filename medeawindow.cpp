@@ -2869,6 +2869,7 @@ void MedeaWindow::jenkinsNodesLoaded()
 {
     // if the hardware dock isn't already open, open it
     if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->isSelected()) {
+        qCritical() << "TRIGGERED";
         hardwareNodesButton->pressed();
     }
 }

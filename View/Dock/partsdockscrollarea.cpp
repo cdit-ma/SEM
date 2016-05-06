@@ -23,7 +23,7 @@ PartsDockScrollArea::PartsDockScrollArea(DOCK_TYPE type, NodeView *view, DockTog
     kindsRequiringDefinition.append("InEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortImpl");
-    kindsRequiringFunction.append("Process");
+    kindsRequiringFunction.append("WorkerProcess");
 
     connectToView();
     connect(this, SIGNAL(dock_toggled(bool,QString)), SLOT(dockToggled(bool)));
