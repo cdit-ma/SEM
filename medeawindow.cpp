@@ -1057,15 +1057,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockButtonsHlayout->addWidget(hardwareNodesButton);
     dockButtonsBox->setLayout(dockButtonsHlayout);
 
-    dockBackButtonBox = new QGroupBox(this);
-    dockBackButtonBox->setObjectName(THEME_STYLE_GROUPBOX);
-    dockBackButtonBox->setStyleSheet("QGroupBox {"
-                                     "background: rgba(0,0,0,0);"
-                                     "border: 0px;"
-                                     "margin: 0px;"
-                                     "padding: 0px;"
-                                     "}");
-
+    // setup dock header widgets
     dockHeaderBox = new QGroupBox(this);
     dockHeaderBox->setStyleSheet("QGroupBox {"
                                  "border-left: 1px solid rgb(125,125,125);"
@@ -1074,6 +1066,52 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
                                  "border-bottom: none;"
                                  "background-color: rgba(250,250,250,255);"
                                  "padding: 10px 0px 0px 0px; }");
+
+    openedDockLabel = new QLabel("Parts", this);
+    //openedDockLabel->setFixedWidth(boxWidth/2);
+    //openedDockLabel->setFixedWidth(boxWidth);
+    //openedDockLabel->setAlignment(Qt::AlignCenter);
+    openedDockLabel->setAlignment(Qt::AlignLeft);
+    openedDockLabel->setFont(QFont("Helvetica", 11));
+    openedDockLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 0px 8px 5px 8px;");
+
+    nodesDockButtonsBox = new QGroupBox(this);
+    nodesDockButtonsBox->setStyleSheet("QGroupBox{ border: none; margin: 0px 8px 5px 8px; padding: 0px; }"
+                                       "QPushButton{ padding: 0px; margin: 0px; background: rgba(130,130,130,100); border: none; }"
+                                       "QPushButton:disabled { background: rgba(130,130,130,225); }"
+                                       "QPushButton:hover { background: rgba(130,130,130,60); }" //border: 1px solid gray; }"
+                                       "QPushButton:hover:checked { background: rgb(173,255,113); }"
+                                       "QPushButton:checked { background: rgb(124,252,0); }");
+
+    QFrame* splitFrame = new QFrame(this);
+    splitFrame->setFixedWidth(1);
+    splitFrame->setStyleSheet("color: rgb(80,80,80);");
+    splitFrame->setFrameShape(QFrame::VLine);
+
+    nodesDockDeployButton = new QPushButton(Theme::theme()->getIcon("Actions", "ConnectTo"), "", this);
+    nodesDockCenterButton = new QPushButton(Theme::theme()->getIcon("Actions", "Crosshair"), "", this);
+    QHBoxLayout* nbLayout = new QHBoxLayout();
+    nbLayout->setSpacing(0);
+    nbLayout->setMargin(0);
+    nbLayout->setAlignment(Qt::AlignTop);
+    nbLayout->addWidget(nodesDockDeployButton);
+    nbLayout->addWidget(splitFrame);
+    nbLayout->addWidget(nodesDockCenterButton);
+    nodesDockButtonsBox->setLayout(nbLayout);
+
+    nodesDockDeployButton->setStyleSheet("border-top-left-radius: 3px; border-bottom-left-radius: 3px;");
+    nodesDockCenterButton->setStyleSheet("border-top-right-radius: 3px; border-bottom-right-radius: 3px;");
+    nodesDockDeployButton->setToolTip("Deployment Mode");
+    nodesDockCenterButton->setToolTip("Center On Mode");
+    nodesDockDeployButton->setFixedHeight(openedDockLabel->height() - 10);
+    nodesDockCenterButton->setFixedHeight(openedDockLabel->height() - 10);
+    nodesDockDeployButton->setCheckable(true);
+    nodesDockCenterButton->setCheckable(true);
+    nodesDockDeployButton->setChecked(true);
+
+    QHBoxLayout* labelButtonsLayout = new QHBoxLayout();
+    labelButtonsLayout->addWidget(openedDockLabel);
+    labelButtonsLayout->addWidget(nodesDockButtonsBox);
 
     dockActionLabel = new QLabel("Select to construct an entity", this);
     dockActionLabel->setAlignment(Qt::AlignCenter);
@@ -1089,11 +1127,14 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
                                   "background-color: rgba(180,180,180,150);"
                                   "}");
 
-    openedDockLabel = new QLabel("Parts", this);
-    openedDockLabel->setFixedWidth(boxWidth);
-    //openedDockLabel->setAlignment(Qt::AlignCenter);
-    openedDockLabel->setFont(QFont("Helvetica", 11));
-    openedDockLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 0px 8px 5px 8px;");
+    dockBackButtonBox = new QGroupBox(this);
+    dockBackButtonBox->setObjectName(THEME_STYLE_GROUPBOX);
+    dockBackButtonBox->setStyleSheet("QGroupBox {"
+                                     "background: rgba(0,0,0,0);"
+                                     "border: 0px;"
+                                     "margin: 0px;"
+                                     "padding: 0px;"
+                                     "}");
 
     QVBoxLayout* dockBackButtonLayout = new QVBoxLayout();
     dockBackButtonLayout->setMargin(0);
@@ -1105,7 +1146,8 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     QVBoxLayout* dockHeaderLayout = new QVBoxLayout();
     dockHeaderLayout->setMargin(0);
     dockHeaderLayout->setSpacing(0);
-    dockHeaderLayout->addWidget(openedDockLabel);
+    //dockHeaderLayout->addWidget(openedDockLabel);
+    dockHeaderLayout->addLayout(labelButtonsLayout);
     dockHeaderLayout->addWidget(dockActionLabel);
     dockHeaderLayout->addWidget(dockBackButtonBox);
     dockHeaderBox->setLayout(dockHeaderLayout);
@@ -1147,11 +1189,13 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockBackButtonBox->hide();
     dockActionLabel->hide();
 
-    // TODO - This is currently a work around the dock sizing issue; can't figure out why the widget size calculation is wrong!
-    // the dock group header box has a 10px padding at the top
-    // the openedLabel has 5px at the bottom and the actionLabel has 10px at the top and the bottom
-    dockWithLabelHeight = 15 + openedDockLabel->height();
-    dockWithoutLabelHeight = 50 + dockActionLabel->height() + dockBackButton->height();
+    // TODO - This is currently a work around the dock sizing issue; can't figure out why the widget size calculation is wrong!;
+    // the dock header groupbox has a 10px padding at the top
+    // the actionLabel has a 10px padding at the top and the bottom
+    dockWithLabelHeight = 10 + openedDockLabel->height();
+    dockWithoutLabelHeight = 35 + dockActionLabel->height() + dockBackButtonLayout->sizeHint().height();
+    // for some reason the dockBackButtonBox height is not what you expect it to be
+    //dockWithoutLabelHeight = 30 + dockActionLabel->height() + dockBackButtonBox->height();
 }
 
 
@@ -1346,8 +1390,6 @@ void MedeaWindow::setupSearchTools()
     keysGroup->setLayout(keysLayout);
     keysAction->setDefaultWidget(keysGroup);
 
-
-
     searchBar->setFont(guiFont);
     viewAspectsBar->setFont(guiFont);
     nodeKindsBar->setFont(guiFont);
@@ -1457,26 +1499,23 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     notificationsBox->setLayout(hLayout);
-
-
+    notificationsBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT + SPACER_SIZE);
 
     notificationsBar = new QLabel("", this);
     notificationsIcon = new QLabel(this);
-    notificationsBar->setStyleSheet("color: white;");
     notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", "Clear", QSize(64,64), Qt::white));
-    notificationsBar->setFixedHeight(40);
+    notificationsBar->setStyleSheet("color: white;");
     notificationsBar->setFont(biggerFont);
     notificationsBar->setAlignment(Qt::AlignCenter);
 
     hLayout->addWidget(notificationsIcon, 0);
     hLayout->addWidget(notificationsBar, 1);
 
-
     // setup loading gif and widgets
     loadingLabel = new QLabel("Loading...", this);
     loadingLabel->setFont(biggerFont);
-    //loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    loadingLabel->setAlignment(Qt::AlignCenter);
+    //loadingLabel->setAlignment(Qt::AlignCenter);
+    loadingLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     loadingLabel->setStyleSheet("color:white;");
 
     loadingMovie = new QMovie(":/Actions/Loading.gif");
@@ -1490,18 +1529,13 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     QHBoxLayout* loadingLayout = new QHBoxLayout();
     loadingLayout->setMargin(0);
     loadingLayout->setSpacing(0);
-    loadingLayout->addStretch();
-    loadingLayout->addWidget(loadingMovieLabel);
-    loadingLayout->addWidget(loadingLabel);
-    loadingLayout->addStretch();
-
-
+    loadingLayout->addWidget(loadingMovieLabel, 0);
+    loadingLayout->addWidget(loadingLabel, 1);
 
     loadingBox = new QGroupBox(this);
     loadingBox->setObjectName(THEME_STYLE_GROUPBOX);
-    loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT);
+    loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT + SPACER_SIZE);
     loadingBox->setLayout(loadingLayout);
-
 
     // add widgets to layout
     QVBoxLayout* vLayout = new QVBoxLayout();
@@ -2119,6 +2153,11 @@ void MedeaWindow::setupConnections()
 
     connect(nodeView, SIGNAL(view_RefreshDock()), partsDock, SLOT(updateCurrentNodeItem()));
     connect(dockBackButton, SIGNAL(clicked(bool)), partsDock, SLOT(showMainDock()));
+
+    connect(nodesDockDeployButton, SIGNAL(clicked(bool)), this, SLOT(hardwareDockFunctionChanged(bool)));
+    connect(nodesDockCenterButton, SIGNAL(clicked(bool)), this, SLOT(hardwareDockFunctionChanged(bool)));
+    connect(hardwareDock, SIGNAL(dock_selectedItemDeployable(bool)), this, SLOT(enableHardwareDockDeployButton(bool)));
+    connect(this, SIGNAL(window_changeHardwareDockFunction(bool)), hardwareDock, SLOT(setDockFunction(bool)));
 
     /*
     connect(partsDock, SIGNAL(dock_forceOpenDock(QString)), definitionsDock, SLOT(forceOpenDock(QString)));
@@ -2907,7 +2946,7 @@ void MedeaWindow::toggleWelcomeScreen(bool show)
     if (show) {
         //Store the previous state of the toolbar visibility
         setToolbarVisibility(false);
-    }else {
+    } else {
         setToolbarVisibility(SHOW_TOOLBAR);
     }
 }
@@ -3897,6 +3936,7 @@ void MedeaWindow::dockButtonPressed()
  */
 void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
 {
+    bool functionSwitchVisible = false;
     bool dockLabelVisible = false;
     bool backButtonVisible = false;
     bool actionLabelVisible = false;
@@ -3926,10 +3966,13 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
             }
             break;
         case HARDWARE_DOCK:
+            dockHeaderBox->setFixedHeight(dockWithLabelHeight);
             openedDockLabel->setText(dockLabel);
             dockLabelVisible = true;
+            functionSwitchVisible = true;
             break;
         default:
+            qWarning() << "MedeaWindow::dockToggled - Case not dealt with.";
             break;
         }
 
@@ -3938,6 +3981,9 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
     } else {
 
         if (partsDock->isDockOpen() || hardwareDock->isDockOpen()) {
+            if (hardwareDock->isDockOpen()) {
+                functionSwitchVisible = true;
+            }
             // if any of the docks are open, show the dock header widgets
             dockLabelVisible = true;
             headerBoxVisible = true;
@@ -3948,7 +3994,9 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
             nodeView->highlightOnHover();
         }
     }
-
+    if (functionSwitchVisible != nodesDockButtonsBox->isVisible()) {
+        nodesDockButtonsBox->setVisible(functionSwitchVisible);
+    }
     if (dockLabelVisible != openedDockLabel->isVisible()) {
         openedDockLabel->setVisible(dockLabelVisible);
     }
@@ -3965,6 +4013,54 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
         //qDebug() << "Header box height: " << dockHeaderBox->height();
         updateDock();
     }
+}
+
+
+/**
+ * @brief MedeaWindow::hardwareDockFunctionChanged
+ * This slot switches the state of the two hardware dock function buttons.
+ * @param checked
+ */
+void MedeaWindow::hardwareDockFunctionChanged(bool checked)
+{
+    QPushButton* senderButton = qobject_cast<QPushButton*>(QObject::sender());
+    QPushButton* otherButton = 0;
+
+    if (senderButton == nodesDockDeployButton) {
+        otherButton = nodesDockCenterButton;
+    } else if (senderButton == nodesDockCenterButton) {
+        otherButton = nodesDockDeployButton;
+    } else {
+        return;
+    }
+
+    // revert the state of nodesDockCenterButton if nodesDockCenterButton is disabled
+    if (!checked && senderButton == nodesDockCenterButton) {
+        if (!nodesDockDeployButton->isEnabled()) {
+            nodesDockCenterButton->setChecked(true);
+            return;
+        }
+    }
+
+    // switch button states
+    if (otherButton && otherButton->isEnabled()) {
+        otherButton->setChecked(!checked);
+        emit window_changeHardwareDockFunction(nodesDockCenterButton->isChecked());
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::enableHardwareDockDeployButton
+ * @param enable
+ */
+void MedeaWindow::enableHardwareDockDeployButton(bool enable)
+{
+    if (!enable && nodesDockDeployButton->isChecked()) {
+        nodesDockDeployButton->clicked(false);
+        nodesDockDeployButton->setChecked(false);
+    }
+    nodesDockDeployButton->setEnabled(enable);
 }
 
 

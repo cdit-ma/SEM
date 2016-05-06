@@ -360,3 +360,13 @@ QHash<QString, QString> GET_SETTINGS_GROUP_HASH()
     groups[CUTS_CONFIGURE_PATH] = "CUTS";
     return groups;
 }
+
+
+QColor GET_HARDWARE_HIGHLIGHT_COLOR()
+{
+    //return QColor(153,153,255);
+    //return QColor(0,102,102);
+    //return QColor(0,76,153);
+    //return QColor(102,0,51);
+    return QColor(178,34,34);
+}

@@ -3,7 +3,9 @@
 #include "docknodeitem.h"
 
 #include <QDebug>
-// TEST
+
+#define CLICK_TO_DEPLOY 0
+#define CLICK_TO_CENTER 1
 
 /**
  * @brief HardwareDockScrollArea::HardwareDockScrollArea
@@ -14,6 +16,8 @@
 HardwareDockScrollArea::HardwareDockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton *parent) :
     DockScrollArea(type, view, parent, "There are no available Hardware nodes.")
 {
+    function = CLICK_TO_DEPLOY;
+
     // populate list of not allowed kinds
     hardware_notAllowedKinds.append("Model");
     hardware_notAllowedKinds.append("InterfaceDefinitions");
@@ -91,11 +95,20 @@ void HardwareDockScrollArea::dockNodeItemClicked()
         return;
     }
 
-    // if all selected items are connected to the clicked hardware node, disconnect them
-    // otherwise, connect all selected items to the clicked hardware node
-    // disconnect any previous deployment links if they exist
-    int dockId = dockNodeItem->getID().toInt();
-    getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockId);
+    switch (function) {
+    case CLICK_TO_DEPLOY:
+        // if all selected items are connected to the clicked hardware node, disconnect them
+        // otherwise, connect all selected items to the clicked hardware node
+        // disconnect any previous deployment links if they exist
+        getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockNodeItem->getID().toInt());
+        break;
+    case CLICK_TO_CENTER:
+        // center the view on the corresponding entity item
+        getNodeView()->centerItem(dockNodeItem->getEntityItem());
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -285,14 +298,31 @@ void HardwareDockScrollArea::ensureHighlightedItemVisible()
 
 
 /**
+ * @brief HardwareDockScrollArea::setDockFunction
+ * @param clickToCenter
+ */
+void HardwareDockScrollArea::setDockFunction(bool clickToCenter)
+{
+    if (clickToCenter) {
+        function = CLICK_TO_CENTER;
+    } else {
+        function = CLICK_TO_DEPLOY;
+    }
+}
+
+
+/**
  * @brief HardwareDockScrollArea::setDockToReadOnly
  * @param readOnly
  */
 void HardwareDockScrollArea::setDockToReadOnly(bool readOnly)
 {
+    /*
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
         dockItem->setReadOnlyState(readOnly);
     }
+    */
+    emit dock_selectedItemDeployable(!readOnly);
 }
 
 

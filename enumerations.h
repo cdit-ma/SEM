@@ -123,5 +123,7 @@ extern QString GET_VIEW_COLOR_STRING(VIEW_THEME theme, COLOR_SHADE shade = NORMA
 extern QString GET_COLOR_STRING(QColor color, COLOR_SHADE shade = NORMAL_SHADE);
 extern QString GET_DOCK_LABEL(DOCK_TYPE type);
 
+extern QColor GET_HARDWARE_HIGHLIGHT_COLOR();
+
 
 #endif // ENUMERATIONS_H
