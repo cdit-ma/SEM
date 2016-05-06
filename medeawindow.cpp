@@ -4056,12 +4056,18 @@ void MedeaWindow::hardwareDockFunctionChanged(bool checked)
  */
 void MedeaWindow::enableHardwareDockDeployButton(bool enable)
 {
-    if (!enable && nodesDockDeployButton->isChecked()) {
-        nodesDockDeployButton->clicked(false);
-        nodesDockDeployButton->setChecked(false);
-    }else if(enable && !nodesDockDeployButton->isChecked()){
-        nodesDockDeployButton->clicked(true);
-        nodesDockDeployButton->setChecked(true);
+    if (enable) {
+        if (!nodesDockDeployButton->isChecked()) {
+            nodesDockDeployButton->clicked(true);
+            nodesDockDeployButton->setChecked(true);
+        }
+        nodesDockDeployButton->setToolTip("Deployment Mode");
+    } else {
+        if (nodesDockDeployButton->isChecked()) {
+            nodesDockDeployButton->clicked(false);
+            nodesDockDeployButton->setChecked(false);
+        }
+        nodesDockDeployButton->setToolTip("Deployment Mode Disabled For Selection");
     }
     nodesDockDeployButton->setEnabled(enable);
 }
