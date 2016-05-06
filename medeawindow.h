@@ -114,6 +114,8 @@ signals:
     void window_clearDocks();
     void window_clearDocksSelection();
 
+    void window_changeHardwareDockFunction(bool clictToCenter);
+
     void window_updateActionsEnabled();
 
     void checkDockScrollBar();
@@ -204,6 +206,7 @@ private slots:
 
     void dockButtonPressed();
     void dockToggled(bool opened, QString kindToConstruct = "");
+    void hardwareDockFunctionChanged(bool checked);
 
     void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);

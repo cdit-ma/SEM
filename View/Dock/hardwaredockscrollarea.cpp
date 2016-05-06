@@ -3,7 +3,9 @@
 #include "docknodeitem.h"
 
 #include <QDebug>
-// TEST
+
+#define CLICK_TO_DEPLOY 0
+#define CLICK_TO_CENTER 1
 
 /**
  * @brief HardwareDockScrollArea::HardwareDockScrollArea
@@ -14,6 +16,8 @@
 HardwareDockScrollArea::HardwareDockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton *parent) :
     DockScrollArea(type, view, parent, "There are no available Hardware nodes.")
 {
+    function = CLICK_TO_DEPLOY;
+
     // populate list of not allowed kinds
     hardware_notAllowedKinds.append("Model");
     hardware_notAllowedKinds.append("InterfaceDefinitions");
@@ -285,6 +289,20 @@ void HardwareDockScrollArea::ensureHighlightedItemVisible()
 
 
 /**
+ * @brief HardwareDockScrollArea::setDockFunction
+ * @param clickToCenter
+ */
+void HardwareDockScrollArea::setDockFunction(bool clickToCenter)
+{
+    if (clickToCenter) {
+        function = CLICK_TO_CENTER;
+    } else {
+        function = CLICK_TO_DEPLOY;
+    }
+}
+
+
+/**
  * @brief HardwareDockScrollArea::setDockToReadOnly
  * @param readOnly
  */
@@ -293,6 +311,7 @@ void HardwareDockScrollArea::setDockToReadOnly(bool readOnly)
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
         dockItem->setReadOnlyState(readOnly);
     }
+    emit dock_selectedItemDeployable(!readOnly);
 }
 
 

@@ -1099,6 +1099,8 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 
     nodesDockDeployButton->setStyleSheet("border-top-left-radius: 3px; border-bottom-left-radius: 3px;");
     nodesDockCenterButton->setStyleSheet("border-top-right-radius: 3px; border-bottom-right-radius: 3px;");
+    nodesDockDeployButton->setToolTip("Deploy to clicked node");
+    nodesDockCenterButton->setToolTip("Center on clicked node");
     nodesDockDeployButton->setFixedHeight(openedDockLabel->height() - 10);
     nodesDockCenterButton->setFixedHeight(openedDockLabel->height() - 10);
     nodesDockDeployButton->setCheckable(true);
@@ -2149,6 +2151,11 @@ void MedeaWindow::setupConnections()
 
     connect(nodeView, SIGNAL(view_RefreshDock()), partsDock, SLOT(updateCurrentNodeItem()));
     connect(dockBackButton, SIGNAL(clicked(bool)), partsDock, SLOT(showMainDock()));
+
+    connect(nodesDockDeployButton, SIGNAL(clicked(bool)), this, SLOT(hardwareDockFunctionChanged(bool)));
+    connect(nodesDockCenterButton, SIGNAL(clicked(bool)), this, SLOT(hardwareDockFunctionChanged(bool)));
+    connect(hardwareDock, SIGNAL(dock_selectedItemDeployable(bool)), nodesDockDeployButton, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(window_changeHardwareDockFunction(bool)), hardwareDock, SLOT(setDockFunction(bool)));
 
     /*
     connect(partsDock, SIGNAL(dock_forceOpenDock(QString)), definitionsDock, SLOT(forceOpenDock(QString)));
@@ -4002,6 +4009,37 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
     if (headerBoxVisible) {
         //qDebug() << "Header box height: " << dockHeaderBox->height();
         updateDock();
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::hardwareDockFunctionChanged
+ * This slot switches the state of the two hardware dock function buttons.
+ * @param checked
+ */
+void MedeaWindow::hardwareDockFunctionChanged(bool checked)
+{
+    QPushButton* senderButton = qobject_cast<QPushButton*>(QObject::sender());
+    QPushButton* otherButton = 0;
+
+    if (senderButton == nodesDockDeployButton) {
+        otherButton = nodesDockCenterButton;
+    } else if (senderButton == nodesDockCenterButton) {
+        otherButton = nodesDockDeployButton;
+    } else {
+        return;
+    }
+
+    if (otherButton) {
+        if (otherButton->isEnabled()) {
+            // switch button states
+            otherButton->setChecked(!checked);
+            emit window_changeHardwareDockFunction(nodesDockCenterButton->isChecked());
+        } else if (senderButton) {
+            // revert the state of the sender button
+            senderButton->setChecked(!checked);
+        }
     }
 }
 
