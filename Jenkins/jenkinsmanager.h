@@ -43,6 +43,7 @@ private slots:
 private:
     void validateJenkinsSettings();
     void storeJobConfiguration(QString jobName, QJsonDocument json);
+    void clearJobConfigurations();
     QNetworkRequest getAuthenticatedRequest(QString url, bool auth =true);
     QJsonDocument getJobConfiguration(QString jobName);
 
@@ -68,6 +69,7 @@ private:
 
     bool settingsValidated;
     bool settingsValidating;
+    bool urlChanged;
     //A Hash lookup of Jenkins Jobs JSON Documents
     QHash<QString, QJsonDocument> jobsJSON;
     //Vector of all Active JenkinsRequest objects created from this.

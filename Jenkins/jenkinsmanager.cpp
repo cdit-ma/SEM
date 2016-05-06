@@ -19,6 +19,7 @@ JenkinsManager::JenkinsManager(QString cliBinaryPath)
     //Set instance variables.
     this->cliBinaryPath = cliBinaryPath;
     settingsValidating = false;
+    urlChanged = false;
 }
 
 QString JenkinsManager::getUsername()
@@ -38,6 +39,7 @@ void JenkinsManager::setURL(QString url)
             url += "/";
         }
         this->url = url;
+        urlChanged = true;
         //Devalidate the settings.
         settingsValidated = false;
     }
@@ -166,6 +168,12 @@ void JenkinsManager::gotSettingsValidationResponse(bool valid, QString message)
     settingsValidating  = false;
     settingsValidated = valid;
 
+    if(urlChanged && valid){
+        //If our Jenkins url changed we should clear the job configs
+        clearJobConfigurations();
+        urlChanged = false;
+    }
+
     //Make a Window
     //Tell Jenkins Requests that we are validated.
     emit settingsValidationComplete(valid, message);
@@ -209,6 +217,11 @@ QString JenkinsManager::getURL()
 void JenkinsManager::storeJobConfiguration(QString jobName, QJsonDocument json)
 {
     jobsJSON[jobName] = json;
+}
+
+void JenkinsManager::clearJobConfigurations()
+{
+    jobsJSON.clear();
 }
 
 /**

@@ -426,8 +426,16 @@ void JenkinsRequest::getJobParameters(QString jobName)
                 //The type is in format [type]ParameterDefinition, so trim this.
                 jobParameter.type = parameterData["type"].toString().replace("ParameterDefinition","");
                 jobParameter.description = parameterData["description"].toString();
-                jobParameter.defaultValue = parameterData["defaultParameterValue"].toObject()["value"].toString();
-
+                QJsonValue defaultValue = parameterData["defaultParameterValue"].toObject()["value"];
+                if(defaultValue.isBool()){
+                    if(defaultValue.toBool()){
+                        jobParameter.defaultValue = "true";
+                    }else{
+                        jobParameter.defaultValue = "false";
+                    }
+                }else{
+                    jobParameter.defaultValue = defaultValue.toString();
+                }
                 //Add it the jobParameter List
                 jobParameters.append(jobParameter);
             }

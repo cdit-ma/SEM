@@ -801,6 +801,7 @@ void MedeaWindow::setupMenu()
     jenkins_ImportNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
 
     jenkins_ExecuteJob = jenkins_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: " + jenkinsJobName);
+    jenkins_ExecuteJob->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B));
 
     help_Shortcuts = help_menu->addAction(getIcon("Actions", "Keyboard"), "App Shortcuts");
     help_Shortcuts->setShortcut(QKeySequence(Qt::Key_F1));

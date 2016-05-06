@@ -50,11 +50,13 @@ if(args.length >= 1){
 
 
 nodesInJob = [];
-
+SERVER_NAME = ""
+try{
+        SERVER_NAME = InetAddress.getLocalHost().getHostName();
+}catch(Exception e){}
 
 //Get Server Specific information.
 try{
-    SERVER_NAME = InetAddress.getLocalHost().getHostName();
     SERVER_IP = getJenkinsIP();
     SERVER_URL = jenkins.getRootUrl();
     USER_NAME = jenkins.getMe().getDisplayName();

@@ -41,10 +41,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("CTRL + Y", "Redoes the last Undo.");
     addShortcut("CTRL + SPACE", "Fits the entire model into the view.");
     addShortcut("CTRL + J", "Imports the Nodes from the Jenkins Server.");
-
-
-
-
+    addShortcut("CTRL + SHIFT + B", "Executes the current project on the Jenkins Server.");
 
     addTitle("Selection", Theme::theme()->getImage("Actions", "SelectAll"));
     addShortcut("ESC", "Clears the current selection / Closes current dialog window.");
