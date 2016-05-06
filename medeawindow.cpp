@@ -4057,6 +4057,9 @@ void MedeaWindow::enableHardwareDockDeployButton(bool enable)
     if (!enable && nodesDockDeployButton->isChecked()) {
         nodesDockDeployButton->clicked(false);
         nodesDockDeployButton->setChecked(false);
+        nodesDockDeployButton->setToolTip("Deployment Mode Disabled");
+    } else {
+        nodesDockDeployButton->setToolTip("Deployment Mode");
     }
     nodesDockDeployButton->setEnabled(enable);
 }
