@@ -512,6 +512,7 @@ bool Node::canConnect_DefinitionEdge(Node *definition)
         return false;
     }
 
+
     //Check parentNode
     Node* parentNode = getParentNode();
 
@@ -526,17 +527,9 @@ bool Node::canConnect_DefinitionEdge(Node *definition)
     }
 
     //Check for cyclic stuff
-    foreach(Node* child, definition->getChildren(0)){
+    foreach(Node* child, definition->getChildren()){
         if(child->isInstance() && child->getDefinition()){
-            Node* def = child->getDefinition();
-
-            while(def){
-                if(def->getDefinition()){
-                    def = def->getDefinition();
-                }else{
-                    break;
-                }
-            }
+            Node* def = child->getDefinition(true);
 
             if(def){
                 if(def->isAncestorOf(this)){

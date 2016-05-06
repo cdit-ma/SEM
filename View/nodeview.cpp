@@ -3899,6 +3899,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
 
 
+
     if(hasFocus()){
         if(CONTROL){
             if(event->key() == Qt::Key_A){
@@ -3907,7 +3908,6 @@ void NodeView::keyPressEvent(QKeyEvent *event)
                 }
             }
         }
-
 
         //Handle Tabbage
         if (event->key() == Qt::Key_Tab){
@@ -3918,18 +3918,17 @@ void NodeView::keyPressEvent(QKeyEvent *event)
             return;
         }
 
-
-
-
         if (event->key() == Qt::Key_Escape){
             setState(VS_NONE);
             clearSelection(true);
         }
         if(event->key() == Qt::Key_F2){
             if(viewState == VS_NONE || viewState == VS_SELECTED){
-                EntityItem* EntityItem = getSelectedEntityItem();
-                if(EntityItem){
-                    EntityItem->setNewLabel();
+                if(currentActiveSelectedID != 0){
+                    EntityItem* entityItem = getEntityItemFromID(currentActiveSelectedID);
+                    if(entityItem){
+                        entityItem->setNewLabel();
+                    }
                 }
             }
         }

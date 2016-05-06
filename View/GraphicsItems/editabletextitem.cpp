@@ -200,7 +200,7 @@ QString EditableTextItem::getTruncatedText(const QString text)
     //Have to truncate.
     //
     bool isEven = text.size() % 2;
-    if(fm.width(fullText) > textWidth){
+    if(fm.width(fullText) >= textWidth){
         int centerIndex = fullText.size() / 2;
         QString truncChars = "...";
 
@@ -210,7 +210,7 @@ QString EditableTextItem::getTruncatedText(const QString text)
 
         fullText = fullText.insert(centerIndex, truncChars);
 
-        while(fm.width(fullText) >= textWidth){
+        while(fm.width(fullText) >= (textWidth - 1)){
             if(fullText.size() <= 3){
                 //Only got ... left
                 break;

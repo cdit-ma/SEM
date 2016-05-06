@@ -681,15 +681,23 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
 
+        if(renderState <= RS_MINIMAL && isHovered()){
+            headBrush.setColor(headBrush.color().darker(105));
+            bodyBrush.setColor(bodyBrush.color().darker(105));
+        }
         //Paint Background
         painter->setPen(Qt::NoPen);
         painter->setBrush(bodyBrush);
         painter->drawRect(boundingRect());
 
 
-        if(renderState == RS_BLOCK && isSelected()){
-            headBrush.setColor(getCurrentPen().color());
+        if(renderState == RS_BLOCK){
+
+            if(isSelected()){
+                headBrush.setColor(getCurrentPen().color());
+            }
         }
+
 
 
         painter->setBrush(headBrush);
@@ -751,7 +759,12 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         if(renderState > RS_BLOCK){
             paintPixmap(painter, lod, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
+
+            if(nodeKind == "Process"){
+                paintPixmap(painter, lod, IP_CENTER_OVERLAY, "Functions", operationKind, false, true);
+            }
         }
+
     }
 
 
@@ -1777,6 +1790,18 @@ QRectF EntityItem::iconRect_Center() const
     return iconRect;
 }
 
+QRectF EntityItem::iconRect_BigCenter() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF iconRect;
+    iconRect.setSize(QSize(24,24));
+    //Translate to move the icon to its position
+    iconRect.moveCenter(minimumRect().center());
+
+    return iconRect;
+
+}
+
 
 
 /**
@@ -1847,6 +1872,8 @@ QRectF EntityItem::getImageRect(EntityItem::IMAGE_POS pos) const
         return iconRect();
     case IP_CENTER_SMALL:
         return iconRect_Center();
+    case IP_CENTER_OVERLAY:
+        return iconRect_BigCenter();
     default:
         return QRectF();
     }
@@ -2614,9 +2641,14 @@ void EntityItem::labelEditModeRequest()
     if(inSubView()){
         return;
     }
+
+    if(!isSelected()){
+        //Force item to be selected.
+        handleSelection(true, false);
+    }
     InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
     StatusItem* statusItem = qobject_cast<StatusItem*>(QObject::sender());
-    if (inputItem){
+    if (inputItem && isSelected()){
         QString dataKey = "label";
         bool comboBox = false;
         if (inputItem == bottomInputItem) {
@@ -2643,6 +2675,7 @@ void EntityItem::labelEditModeRequest()
         }
     }
 }
+
 
 void EntityItem::dataChanged(QString dataValue)
 {
@@ -2734,8 +2767,6 @@ QString EntityItem::getIconURL()
         imageURL = vectorIconURL;
     } else if (nodeKind.endsWith("Parameter")) {
         return nodeLabel;
-    } else if(nodeKind == "Process"){
-        return operationKind;
     }
 
     return imageURL;
@@ -2743,17 +2774,14 @@ QString EntityItem::getIconURL()
 
 QString EntityItem::getIconPrefix()
 {
-    QString imageURL = nodeKind;
     if(nodeKind.endsWith("Parameter")){
         return "Data";
-    }else if(nodeKind == "Process"){
-        return "Functions";
     }
     return "Items";
 
 }
 
-void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update, bool useBlackIcon)
 {
     QRectF place = getImageRect(pos);
 
@@ -2766,26 +2794,30 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS
 
     if(image.size() != requiredSize || update){
         //Try get the image the user asked for.
-        image = theme->getImage(alias, imageName, requiredSize);
+        QColor tintColor;
+        if(useBlackIcon){
+            tintColor = Qt::black;
+        }
+        image = theme->getImage(alias, imageName, requiredSize, tintColor);
 
         if(image.isNull() && workerKind != ""){
             //Try get the Icon for the worker otherwise.
-            image = theme->getImage("Functions", workerKind, requiredSize);
+            image = theme->getImage("Functions", workerKind, requiredSize, tintColor);
         }
 
         if(image.isNull() && operationKind != ""){
             //Use the default icon for the Process.
-            image = theme->getImage("Items", "Process", requiredSize);
+            image = theme->getImage("Items", "Process", requiredSize, tintColor);
         }
 
         if(image.isNull() && nodeType != ""){
             //Look for a Data icon.
-            image = theme->getImage("Data", nodeType, requiredSize);
+            image = theme->getImage("Data", nodeType, requiredSize, tintColor);
         }
 
         if(image.isNull()){
             //Use a help icon.
-            image = theme->getImage("Actions", "Help", requiredSize);
+            image = theme->getImage("Actions", "Help", requiredSize, tintColor);
         }
         imageMap[pos] = image;
     }

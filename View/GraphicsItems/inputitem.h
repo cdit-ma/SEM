@@ -55,6 +55,7 @@ public slots:
 signals:
     void InputItem_ValueChanged(QString newValue);
     void InputItem_EditModeRequested();
+    void InputItem_Selected();
 
     void InputItem_HasFocus(bool focus);
 

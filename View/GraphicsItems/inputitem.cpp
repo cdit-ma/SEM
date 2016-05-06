@@ -173,7 +173,6 @@ void InputItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(handleMouse && lastPressed.elapsed()  < 250){
         wasDoubleClicked = true;
-
     }else{
         wasDoubleClicked = false;
         QGraphicsObject::mousePressEvent(event);

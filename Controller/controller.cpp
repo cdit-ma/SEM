@@ -785,26 +785,45 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
         //Disable the auto send of construct graphml items.
         setViewSignalsEnabled(false);
         triggerAction("Constructed Connected Node");
-        Node* newNode = constructChildNode(parentNode, constructDataVector(kind));
-        //bool gotEdge = false;
-        if(newNode){
-            //Update the position
-            setData(newNode, "x", relativePos.x());
-            setData(newNode, "y", relativePos.y());
 
-            constructEdgeWithData(newNode, connectedNode);
+        //Create a test node, without telling the GUI.
+        Node* testNode = constructNode(constructDataVector(kind));
+        if(testNode){
+            if(parentNode->canAdoptChild(testNode)){
+                parentNode->addChild(testNode);
+                //if we can create an edge to this test node, remove it and recreate a new Node properly
+                bool edgeOkay = testNode->canConnect_DefinitionEdge(connectedNode);
 
-            //Try the alternate connection.
-            if(!newNode->gotEdgeTo(newNode)){
-                constructEdgeWithData(connectedNode, newNode);
+
+                if(edgeOkay){
+                    Node* newNode = constructChildNode(parentNode,constructDataVector(kind));
+                    if(newNode){
+                        //Update the position
+                        setData(newNode, "x", relativePos.x());
+                        setData(newNode, "y", relativePos.y());
+
+                        //Attach but don't send a GUI request.
+                        attachChildNode(parentNode, newNode);
+
+                        //Constrct an Edge between the 2 items.
+                        constructEdgeWithData(newNode, connectedNode);
+
+                        //Try the alternate connection.
+                        if(!newNode->gotEdgeTo(connectedNode)){
+                            constructEdgeWithData(connectedNode, newNode);
+                        }
+
+                        if(!newNode->getEdgeTo(connectedNode)){
+                            qCritical() << "MEGA ERROR";
+                        }
+                    }
+                }else{
+                    emit controller_DisplayMessage(WARNING, "Cannot construct edge; Cycle detected.", "Construction Error", "ConnectTo");
+                }
+            }else{
+                emit controller_DisplayMessage(WARNING, "Parent cannot adopt entity '" + kind +"'", "Construction Error", "Cancel");
             }
-        }
-
-        Edge* connectingEdge = newNode->getEdgeTo(connectedNode);
-
-        if(!connectingEdge){
-            _remove(newNode->getID(),false);
-            viewSignalsList.clear();
+            delete testNode;
         }
         setViewSignalsEnabled(true);
         //If we can't connect destruct the node we created.
@@ -1904,7 +1923,7 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
         return edge;
     }else{
         if(!source->gotEdgeTo(destination)){
-            //qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
+            qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
         }
         return 0;
     }
@@ -2103,7 +2122,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
     return node;
 }
 
-bool NewController::attachChildNode(Node *parentNode, Node *node)
+bool NewController::attachChildNode(Node *parentNode, Node *node, bool sendGUIRequest)
 {
     bool inModel = _isInModel(node);
 
@@ -2121,7 +2140,9 @@ bool NewController::attachChildNode(Node *parentNode, Node *node)
             //Force Unique sort order
             enforceUniqueSortOrder(node);
 
-            constructNodeGUI(node);
+            if(sendGUIRequest){
+                constructNodeGUI(node);
+            }
         }else{
             return false;
 
@@ -2597,9 +2618,11 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
     //Get root String
     if(requiresUniqueLabel(node)){
         bool gotMatches = false;
+        bool gotExactMatch = false;
         QList<int> duplicateNumbers;
+        int duplicateCount = 0;
 
-        QRegularExpression regex(newLabel+"($|_)(([0-9]+)?$)");
+        QRegularExpression regex("^"+ newLabel+"(_?)([0-9]+)?$");
 
         //If we have no parent node we don't need to enforce unique labels.
         foreach(Node* sibling, node->getSiblings()){
@@ -2607,42 +2630,40 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
 
             QRegularExpressionMatch match = regex.match(siblingLabel);
             if(match.hasMatch()){
-                gotMatches = true;
-
                 QString underscore = match.captured(1);
                 QString numberStr = match.captured(2);
 
-                if(underscore != "_"){
-                    duplicateNumbers += 0;
-                }else{
+                duplicateCount ++;
+                if(siblingLabel == newLabel){
+                    gotExactMatch = true;
+                    gotMatches = true;
+                    continue;
+                }
+                if(!underscore.isEmpty() && !numberStr.isEmpty()){
                     bool isInt = false;
                     int number = numberStr.toInt(&isInt);
                     if(isInt){
+                        gotMatches = true;
                         duplicateNumbers += number;
                     }
                 }
             }
         }
+
         qSort(duplicateNumbers);
 
-        int newNumber = -1;
+
         if(gotMatches){
-            newNumber = duplicateNumbers.size();
-            for(int i = 0; i < duplicateNumbers.size(); i ++){
-                int nextNumber = duplicateNumbers[i];
-                if(nextNumber != i){
-                    newNumber = i;
-                    break;
+            if(gotExactMatch){
+                int newNumber = duplicateCount;
+                for(int i = 0; i < duplicateCount; i ++){
+                    if(!duplicateNumbers.contains(i)){
+                        newNumber = i;
+                        break;
+                    }
                 }
+                newLabel = newLabel % "_" % QString::number(newNumber);
             }
-        }
-
-
-        if(newNumber > 0){
-            QString questionLabel = newLabel % "_" % QString::number(newNumber);
-            QString message = "Label collision! Setting label as '" % questionLabel % "'.";
-            emit controller_DisplayMessage(WARNING, message, "Duplicate Labels", "Info");
-            newLabel = questionLabel;
         }
     }
     node->setDataValue("label", newLabel);
