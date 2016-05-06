@@ -2113,7 +2113,7 @@ void EntityItem::setupBrushes()
 
     //hardwareLinkColor = QColor(170, 33, 105);
     //hardwareLinkColor = QColor(160, 100, 190);
-    hardwareLinkColor = GET_HARDWARE_HIGHLIGHT_COLOR();
+    hardwareLinkColor = Theme::theme()->getDeployColor();
 }
 
 

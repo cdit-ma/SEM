@@ -13,6 +13,11 @@ Theme::Theme():QObject(0)
     updateValid();
     valid = false;
     readCount = 0;
+
+    //Cadet Blue
+    deployColor.setRed(95);
+    deployColor.setGreen(158);
+    deployColor.setBlue(160);
 }
 
 QColor Theme::getBackgroundColor()
@@ -61,7 +66,6 @@ QString Theme::getHighlightColorHex()
 
 QColor Theme::getPressedColor()
 {
-    //return highlightColor.lighter(110);
     return highlightColor;
 }
 
@@ -69,6 +73,16 @@ QString Theme::getPressedColorHex()
 {
     QColor color = getPressedColor();
     return Theme::QColorToHex(color);
+}
+
+QColor Theme::getDeployColor()
+{
+    return deployColor;
+}
+
+QString Theme::getDeployColorHex()
+{
+    return Theme::QColorToHex(getDeployColor());
 }
 
 void Theme::setBackgroundColor(QColor color)

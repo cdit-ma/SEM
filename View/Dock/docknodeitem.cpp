@@ -47,8 +47,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     state = DEFAULT;
 
     //highlightColor = "rgb(160, 100, 190);";
-    highlightColor = GET_COLOR_STRING(GET_HARDWARE_HIGHLIGHT_COLOR()) + ";";
-
+    highlightColor = Theme::theme()->getDeployColorHex() + ";";
     if (nodeItem) {
 
         this->kind = nodeItem->getNodeKind();
@@ -90,6 +89,8 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     if (parentDock && parentDock->getDockType() == FUNCTIONS_DOCK) {
         toggleDockItemExpanded();
     }
+
+    setCursor(Qt::PointingHandCursor);
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
@@ -605,7 +606,8 @@ void DockNodeItem::updateStyleSheet()
 
         switch (state) {
         case HIGHLIGHTED:
-            backgroundColor = highlightColor;
+            //backgroundColor = highlightColor;
+            backgroundColor = Theme::theme()->getDeployColorHex() + ";";
             hoverBorder = "none;";
             break;
         case READONLY:

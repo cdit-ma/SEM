@@ -32,6 +32,9 @@ public:
     QColor getPressedColor();
     QString getPressedColorHex();
 
+    QColor getDeployColor();
+    QString getDeployColorHex();
+
     void setBackgroundColor(QColor color);
     void setDisabledBackgroundColor(QColor color);
     void setAltBackgroundColor(QColor color);
@@ -87,6 +90,7 @@ private:
     QHash<COLOR_ROLE, QColor> menuIconColor;
 
 
+    QColor deployColor;
     QColor highlightColor;
     QColor backgroundColor;
     QColor altBackgroundColor;
