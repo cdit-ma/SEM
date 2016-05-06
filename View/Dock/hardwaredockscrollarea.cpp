@@ -95,11 +95,20 @@ void HardwareDockScrollArea::dockNodeItemClicked()
         return;
     }
 
-    // if all selected items are connected to the clicked hardware node, disconnect them
-    // otherwise, connect all selected items to the clicked hardware node
-    // disconnect any previous deployment links if they exist
-    int dockId = dockNodeItem->getID().toInt();
-    getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockId);
+    switch (function) {
+    case CLICK_TO_DEPLOY:
+        // if all selected items are connected to the clicked hardware node, disconnect them
+        // otherwise, connect all selected items to the clicked hardware node
+        // disconnect any previous deployment links if they exist
+        getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockNodeItem->getID().toInt());
+        break;
+    case CLICK_TO_CENTER:
+        // center the view on the corresponding entity item
+        getNodeView()->centerItem(dockNodeItem->getEntityItem());
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -308,9 +317,11 @@ void HardwareDockScrollArea::setDockFunction(bool clickToCenter)
  */
 void HardwareDockScrollArea::setDockToReadOnly(bool readOnly)
 {
+    /*
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
         dockItem->setReadOnlyState(readOnly);
     }
+    */
     emit dock_selectedItemDeployable(!readOnly);
 }
 

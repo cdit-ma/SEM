@@ -207,6 +207,7 @@ private slots:
     void dockButtonPressed();
     void dockToggled(bool opened, QString kindToConstruct = "");
     void hardwareDockFunctionChanged(bool checked);
+    void enableHardwareDockDeployButton(bool enable);
 
     void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);

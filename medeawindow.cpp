@@ -1076,9 +1076,10 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 
     nodesDockButtonsBox = new QGroupBox(this);
     nodesDockButtonsBox->setStyleSheet("QGroupBox{ border: none; margin: 0px 8px 5px 8px; padding: 0px; }"
-                                       "QPushButton{ padding: 0px; margin: 0px; background: rgba(130,130,130,120); border: none; }"
-                                       "QPushButton:hover { background: rgba(130,130,130,70); }" //border: 1px solid gray; }"
-                                       "QPushButton:hover:checked { background: rgb(183,255,123); }"
+                                       "QPushButton{ padding: 0px; margin: 0px; background: rgba(130,130,130,100); border: none; }"
+                                       "QPushButton:disabled { background: rgba(130,130,130,225); }"
+                                       "QPushButton:hover { background: rgba(130,130,130,60); }" //border: 1px solid gray; }"
+                                       "QPushButton:hover:checked { background: rgb(173,255,113); }"
                                        "QPushButton:checked { background: rgb(124,252,0); }");
 
     QFrame* splitFrame = new QFrame(this);
@@ -1099,8 +1100,8 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 
     nodesDockDeployButton->setStyleSheet("border-top-left-radius: 3px; border-bottom-left-radius: 3px;");
     nodesDockCenterButton->setStyleSheet("border-top-right-radius: 3px; border-bottom-right-radius: 3px;");
-    nodesDockDeployButton->setToolTip("Deploy to clicked node");
-    nodesDockCenterButton->setToolTip("Center on clicked node");
+    nodesDockDeployButton->setToolTip("Deployment Mode");
+    nodesDockCenterButton->setToolTip("Center On Mode");
     nodesDockDeployButton->setFixedHeight(openedDockLabel->height() - 10);
     nodesDockCenterButton->setFixedHeight(openedDockLabel->height() - 10);
     nodesDockDeployButton->setCheckable(true);
@@ -2154,7 +2155,7 @@ void MedeaWindow::setupConnections()
 
     connect(nodesDockDeployButton, SIGNAL(clicked(bool)), this, SLOT(hardwareDockFunctionChanged(bool)));
     connect(nodesDockCenterButton, SIGNAL(clicked(bool)), this, SLOT(hardwareDockFunctionChanged(bool)));
-    connect(hardwareDock, SIGNAL(dock_selectedItemDeployable(bool)), nodesDockDeployButton, SLOT(setEnabled(bool)));
+    connect(hardwareDock, SIGNAL(dock_selectedItemDeployable(bool)), this, SLOT(enableHardwareDockDeployButton(bool)));
     connect(this, SIGNAL(window_changeHardwareDockFunction(bool)), hardwareDock, SLOT(setDockFunction(bool)));
 
     /*
@@ -4031,16 +4032,33 @@ void MedeaWindow::hardwareDockFunctionChanged(bool checked)
         return;
     }
 
-    if (otherButton) {
-        if (otherButton->isEnabled()) {
-            // switch button states
-            otherButton->setChecked(!checked);
-            emit window_changeHardwareDockFunction(nodesDockCenterButton->isChecked());
-        } else if (senderButton) {
-            // revert the state of the sender button
-            senderButton->setChecked(!checked);
+    // revert the state of nodesDockCenterButton if nodesDockCenterButton is disabled
+    if (!checked && senderButton == nodesDockCenterButton) {
+        if (!nodesDockDeployButton->isEnabled()) {
+            nodesDockCenterButton->setChecked(true);
+            return;
         }
     }
+
+    // switch button states
+    if (otherButton && otherButton->isEnabled()) {
+        otherButton->setChecked(!checked);
+        emit window_changeHardwareDockFunction(nodesDockCenterButton->isChecked());
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::enableHardwareDockDeployButton
+ * @param enable
+ */
+void MedeaWindow::enableHardwareDockDeployButton(bool enable)
+{
+    if (!enable && nodesDockDeployButton->isChecked()) {
+        nodesDockDeployButton->clicked(false);
+        nodesDockDeployButton->setChecked(false);
+    }
+    nodesDockDeployButton->setEnabled(enable);
 }
 
 
