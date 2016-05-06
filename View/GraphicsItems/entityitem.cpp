@@ -2111,8 +2111,6 @@ void EntityItem::setupBrushes()
 
     readOnlyDefHeaderBrush = QBrush(bColor);
 
-    //hardwareLinkColor = QColor(170, 33, 105);
-    //hardwareLinkColor = QColor(160, 100, 190);
     hardwareLinkColor = Theme::theme()->getDeployColor();
 }
 

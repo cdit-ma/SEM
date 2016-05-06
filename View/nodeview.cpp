@@ -2320,14 +2320,10 @@ void NodeView::moveViewForward()
  */
 void NodeView::replicateCountChanged(int x)
 {
-    if (x >= 1) {
-        foreach (GraphMLItem* item, getSelectedItems()) {
-            if (item->isEntityItem() && item->getNodeKind() == "ComponentAssembly") {
-                emit view_SetData(item->getID(), "replicate_count", x);
-            }
+    foreach (GraphMLItem* item, getSelectedItems()) {
+        if (item && item->isEntityItem() && item->getNodeKind() == "ComponentAssembly") {
+            emit view_SetData(item->getID(), "replicate_count", x);
         }
-    } else {
-        showMessage(CRITICAL, "Please enter a number >= 1.", "Input Error", "");
     }
 }
 

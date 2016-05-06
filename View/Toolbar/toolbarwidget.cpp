@@ -507,6 +507,7 @@ void ToolbarWidget::setVisible(bool visible)
         closeOpenMenus();
     }
 
+
     mainFrame->setVisible(toolbarVisible);
     shadowFrame->setVisible(toolbarVisible);
     QWidget::setVisible(toolbarVisible);
@@ -581,7 +582,9 @@ void ToolbarWidget::setupTheme()
 void ToolbarWidget::appendToOpenMenusList()
 {
     ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
-    openMenus.append(menu);
+    if(menu){
+        openMenus.append(menu);
+    }
 }
 
 
@@ -591,11 +594,11 @@ void ToolbarWidget::appendToOpenMenusList()
 void ToolbarWidget::removeFromOpenMenusList()
 {
     ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
-    openMenus.removeAll(menu);
-
-    QPoint cursorPos = mapFromGlobal(QCursor::pos());
-    if (rect().contains(cursorPos)) {
-        closeOpenMenus();
+    if(menu){
+        QPoint cursorPos = mapFromGlobal(QCursor::pos());
+        if (rect().contains(cursorPos)) {
+            closeOpenMenus();
+        }
     }
 }
 
@@ -634,16 +637,8 @@ void ToolbarWidget::menuActionHovered(QAction* action)
  */
 void ToolbarWidget::updateReplicateCount()
 {
-    if (replicateCount->text().isEmpty()) {
-        return;
-    }
-    bool isValid = false;
-    int replicateVal = replicateCount->text().toInt(&isValid);
-    if (isValid) {
-        nodeView->replicateCountChanged(replicateVal);
-    } else {
-        nodeView->showMessage(CRITICAL, "Please enter a valid number.", "Input Error", "");
-    }
+    int replicateValue = replicateCount->value();
+    nodeView->replicateCountChanged(replicateValue);
 }
 
 
@@ -985,13 +980,8 @@ void ToolbarWidget::setupMenus()
     implementationMenu->addAction(new ToolbarMenuAction("Goto", 0, implementationMenu, "Go to Implementation", "Actions", "Goto"));
     implementationMenu->addAction(new ToolbarMenuAction("Popup", 0, implementationMenu, "Popup Implementation", "Actions", "Popup"));
 
-    // setup widget for the replicate count
-    replicateCount = new QLineEdit(this);
-    replicateCount->setFixedWidth(replicateCount->fontMetrics().width("00000000"));
-    replicateCount->setPlaceholderText("x");
-    QWidgetAction* rc = new QWidgetAction(this);
-    rc->setDefaultWidget(replicateCount);
-    replicateMenu->QMenu::addAction(rc);
+
+
 
     // setup widgets for the displayed children option menu for HardwareClusters
     allNodes = new QRadioButton("All", this);
@@ -1036,6 +1026,32 @@ void ToolbarWidget::setupMenus()
     aggregateInstMenu = constructSubMenu(aggregateInstAction, "There are no IDL files containing Aggregate entities.");
     vectorInstMenu = constructSubMenu(vectorInstAction, "There are no IDL files containing initialised Vector entities.");
     functionsMenu = constructSubMenu(workerProcessAction, "There are no available functions.", false);
+
+    setupReplicateWidgets();
+}
+
+void ToolbarWidget::setupReplicateWidgets()
+{
+    // setup widget for the replicate count
+    replicateCount = new QSpinBox(this);
+    replicateCount->setMinimum(1);
+    replicateCount->setMaximum(100000);
+
+    applyReplicateCountButton = new QPushButton("Apply", this);
+    applyReplicateCountButton->setStyleSheet("background:white;padding:0px 10px;");
+
+    QToolBar* replicateToolbar = new QToolBar(this);
+    replicateToolbar->setStyleSheet("spacing:2px;");
+    replicateToolbar->addWidget(replicateCount);
+    replicateToolbar->addWidget(applyReplicateCountButton);
+    applyReplicateCountButton->setFixedHeight(25);
+    replicateCount->setFixedHeight(25);
+
+
+    QWidgetAction* rc = new QWidgetAction(this);
+    rc->setDefaultWidget(replicateToolbar);
+    replicateMenu->QMenu::addAction(rc);
+
 }
 
 
@@ -1065,7 +1081,9 @@ void ToolbarWidget::makeConnections()
     connect(disconnectHardwareButton, SIGNAL(clicked()), this, SLOT(hide()));
 
     // hide toolbar when return is pressed from the replicate Menu
-    connect(replicateCount, SIGNAL(returnPressed()), this, SLOT(hide()));
+    //connect(replicateCount, SIGNAL(editingFinished()), this, SLOT(hide()));
+
+   // connect(replicateCount, SIGNAL(editingFinished()), this, SLOT(hide()));
 
     // hide toolbar when a radio button from hardwareClusterViewMenu is clicked
     connect(allNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
@@ -1093,7 +1111,9 @@ void ToolbarWidget::makeConnections()
     connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
     connect(wikiButton, SIGNAL(clicked(bool)), this, SLOT(launchWiki()));
     connect(disconnectHardwareButton, SIGNAL(clicked()), this, SLOT(destructEdge()));
-    connect(replicateCount, SIGNAL(returnPressed()), this, SLOT(updateReplicateCount()));
+
+    connect(applyReplicateCountButton, SIGNAL(clicked(bool)), this, SLOT(updateReplicateCount()));
+    connect(applyReplicateCountButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
 
     // specific slots for the menus
     connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(setupAdoptableNodesList()));
@@ -1260,7 +1280,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 
             // check if all the selected items are Hardware entities
             if (allHardware && !entityItem->isHardwareNode() && !entityItem->isHardwareCluster()) {
-                qDebug() << "enitity kind: " << entityItem->getNodeKind();
                 allHardware = false;
             }
 
@@ -1755,19 +1774,24 @@ ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, Too
  */
 void ToolbarWidget::closeOpenMenus()
 {
-    foreach (ToolbarMenu* menu, openMenus) {
-        menu->close();
+    while(!openMenus.isEmpty()){
+        ToolbarMenu* menu = openMenus.takeFirst();
+        if(menu){
+            menu->close();
+        }
     }
 }
 
 
 bool ToolbarWidget::event(QEvent *e)
 {
-    if(e->type() == QEvent::FocusOut){
+  if(e->type() == QEvent::FocusOut){
         QFocusEvent* ev = (QFocusEvent*)e;
-        if(ev->lostFocus() && ev->reason() == Qt::ActiveWindowFocusReason){
-            closeOpenMenus();
-            hide();
+        if(ev){
+            if(ev->lostFocus() && ev->reason() == Qt::ActiveWindowFocusReason){
+                closeOpenMenus();
+                hide();
+            }
         }
     }
     return QWidget::event(e);

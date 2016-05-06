@@ -12,6 +12,7 @@
 #include <QMenu>
 #include <QFrame>
 #include <QToolBar>
+#include <QSpinBox>
 
 class ToolbarMenu;
 class ToolbarMenuAction;
@@ -74,6 +75,7 @@ public slots:
 private:
     void setupToolBar();
     void setupMenus();
+    void setupReplicateWidgets();
     void makeConnections();
 
     void updateButtonsAndMenus(QList<NodeItem *> nodeItems);
@@ -172,7 +174,8 @@ private:
     ToolbarMenuAction* vectorInstAction;
     ToolbarMenuAction* workerProcessAction;
 
-    QLineEdit* replicateCount;
+    QSpinBox* replicateCount;
+    QPushButton* applyReplicateCountButton;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
