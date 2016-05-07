@@ -83,11 +83,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     nodeView = 0;
     controller = 0;
     fileDialog = 0;
-    leftOverTime = 0;
     controllerThread = 0;
     rightPanelWidget = 0;
     jenkinsManager = 0;
-    showNotifications = true;
 
     SETTINGS_LOADING = false;
     WINDOW_MAXIMIZED = false;
@@ -1492,6 +1490,7 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     // setup notification bar and timer
     notificationTimer = new QTimer(this);
     notificationTimer->setSingleShot(true);
+    notificationTimer->stop();
 
     notificationsBox = new QGroupBox(this);
     notificationsBox->setObjectName(THEME_STYLE_GROUPBOX);
@@ -1908,7 +1907,6 @@ void MedeaWindow::resetGUI()
 
     // reset timer
     notificationTimer->stop();
-    leftOverTime = 0;
 
     // initially hide these
     notificationsBox->hide();
@@ -4101,11 +4099,6 @@ void MedeaWindow::displayLoadingStatus(bool show, QString displayText)
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
-    // pause the notification timer before showing the progress dialog
-    if (notificationTimer->isActive()) {
-        notificationTimer->stop();
-    }
-    showNotifications = false;
 
     // show progress dialog
     if (!progressDialogVisible) {
@@ -4147,7 +4140,6 @@ void MedeaWindow::closeProgressDialog()
     progressBar->reset();
     progressDialogVisible = false;
 
-    showNotifications = true;
     if(!notificationsQueue.isEmpty()){
         displayNotification();
     }
@@ -4339,7 +4331,7 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
         notificationsQueue.enqueue(notif);
     }
 
-    if(showNotifications && !notificationsQueue.isEmpty() && !notificationTimer->isActive()){
+    if(!notificationsQueue.isEmpty() && !notificationTimer->isActive()){
         NotificationStruct notif = notificationsQueue.dequeue();
         notificationsBar->setText(notif.text);
 
@@ -4356,6 +4348,7 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
         if (!progressDialogVisible) {
             notificationsBox->show();
         }
+
         notificationTimer->start(NOTIFICATION_TIME);
     }
 }
