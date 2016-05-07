@@ -4907,7 +4907,6 @@ void MedeaWindow::dialogRejected()
 
 QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple, QString fileName)
 {
-    Q_UNUSED(defaultSuffix);
 
     QStringList files;
 
@@ -4963,8 +4962,16 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString
         }
     }
 
+    //Force Extension
+    QStringList returnableFiles;
+    foreach(QString file, files){
+        if(!file.endsWith(defaultSuffix)){
+            file.append(defaultSuffix);
+        }
+        returnableFiles.append(file);
+    }
 
-    return files;
+    return returnableFiles;
 }
 
 
