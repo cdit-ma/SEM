@@ -359,13 +359,14 @@ void ToolbarWidget::displayConnectedNode(ToolbarMenuAction* action)
  */
 void ToolbarWidget::destructEdge()
 {
-    QList<int> IDsToDelete;
-    QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+//    QList<int> IDsToDelete;
+ //   QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
     // delete hardware link(s)
-    if (button == disconnectHardwareButton) {
-        IDsToDelete = deploymentEdgeIDs;
-    }
-    nodeView->deleteFromIDs(IDsToDelete);
+  //  if (button == disconnectHardwareButton) {
+   //     IDsToDelete = deploymentEdgeIDs;
+    //}
+    //Use selection, and -1 means to delete only.
+    nodeView->constructDestructEdges(QList<int>(), -1);
 }
 
 

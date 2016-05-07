@@ -401,7 +401,7 @@ public slots:
     void constructEdge(int srcID, int dstID);
     void destructEdge(int srcID, int dstID, bool triggerAction=true);
 
-    void constructDestructEdges(QList<int> srcIDs, int dstID);
+    void constructDestructEdges(QList<int> srcIDs, int dstID=-1);
 
     void deleteFromIDs(QList<int> IDs);
     void constructConnectedNode(int parentID, int dstID, QString kind, int sender=0);

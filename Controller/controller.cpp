@@ -4462,13 +4462,14 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
 
     QList<Edge*> edgesToDelete;
     bool allAlreadyDeployed = true;
+    bool disconnectOnly = dstID == -1;
 
     Node* dst = getNodeFromID(dstID);
     //Look for destructs
     foreach(int ID, srcIDs){
         int deployedID = getDeployedHardwareID(ID);
 
-        if(dstID != deployedID){
+        if(disconnectOnly || dstID != deployedID){
             allAlreadyDeployed = false;
             if(deployedID != -1){
                 Node* src = getNodeFromID(ID);
@@ -4481,7 +4482,11 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
         }
     }
 
-    triggerAction("Deploying Multiple Entities to singular Hardware Entity.");
+    QString message = "Deploying Multiple Entities to singular Hardware Entity.";
+    if(disconnectOnly){
+        message = "Disconnecting Multiple Entities from shared Hardware Entity";
+    }
+    triggerAction(message);
 
     //Have to delete all edges.
     if(allAlreadyDeployed){
@@ -4503,18 +4508,21 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
             }
         }
 
-        //Construct new edges.
-        foreach (int srcID, srcIDs) {
-            Node* src = getNodeFromID(srcID);
 
-            Edge* edge = constructEdgeWithData(src, dst);
-            if(!edge){
-                //Try swap
-                constructEdgeWithData(dst, src);
-            }
-            if(!src || !src->gotEdgeTo(dst)){
-                QString message = "Cannot connect entity: '" % src->getDataValue("label").toString() % "'' to hardware entity: '" % dst->getDataValue("label").toString() % ".";
-                emit controller_DisplayMessage(WARNING, message, "Deployment Failed", "Failure" , srcID);
+        if(!disconnectOnly){
+        //Construct new edges.
+            foreach (int srcID, srcIDs) {
+                Node* src = getNodeFromID(srcID);
+
+                Edge* edge = constructEdgeWithData(src, dst);
+                if(!edge){
+                    //Try swap
+                    constructEdgeWithData(dst, src);
+                }
+                if(!src || !src->gotEdgeTo(dst)){
+                    QString message = "Cannot connect entity: '" % src->getDataValue("label").toString() % "'' to hardware entity: '" % dst->getDataValue("label").toString() % ".";
+                    emit controller_DisplayMessage(WARNING, message, "Deployment Failed", "Failure" , srcID);
+                }
             }
         }
     }
