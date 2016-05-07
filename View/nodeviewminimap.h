@@ -29,7 +29,6 @@ private:
     void minimapPan();
     void minimapPanned();
     void setupLayout();
-    void fitToScreen();
     void setCursor(QCursor cursor);
     bool viewportContainsPoint(QPointF localPos);
 

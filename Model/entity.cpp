@@ -47,6 +47,10 @@ Entity::Entity(Entity::ENTITY_KIND kind):GraphML(GraphML::GK_ENTITY)
 
 Entity::~Entity()
 {
+    disconnect(this, SLOT(thisDataChanged(QString)));
+    disconnect(this, SLOT(thisDataChanged(QString)));
+    disconnect(this, SLOT(thisDataChanged(QString)));
+
     //Clear data.
     QList<Data*> data = getData();
     while(!data.isEmpty()){
@@ -63,6 +67,7 @@ Entity::ENTITY_KIND Entity::getEntityKind() const
 {
     return entityKind;
 }
+
 
 /**
  * @brief Entity::addData
@@ -109,7 +114,6 @@ bool Entity::addData(Data *data)
     lookupDataID2Data[dataID] = data;
     lookupKeyID2DataID[keyID] = dataID;
     lookupKeyName2KeyID[key->getName()] = keyID;
-
 
     emit dataAdded(keyName, data->getValue());
     return true;
@@ -214,6 +218,20 @@ bool Entity::isReadOnly()
     Data* readOnlyData = getData("readOnly");
     if(readOnlyData){
         return readOnlyData->getValue().toBool();
+    }
+    return false;
+}
+
+bool Entity::isDataProtected(QString keyName)
+{
+    Data* readOnlyData = getData("dataProtected");
+    if(readOnlyData){
+        if(readOnlyData->getValue().toBool()){
+            Data* data = getData(keyName);
+            if(data && (!data->isVisualData() && keyName != "sortOrder")){
+                return true;
+            }
+        }
     }
     return false;
 }
@@ -339,8 +357,9 @@ bool Entity::removeData(QString keyName)
     return true;
 }
 
-void Entity::dataChanged(int, QString keyName, QVariant data)
+void Entity::dataChanged(int id2, QString keyName, QVariant data)
 {
+    Q_UNUSED(id2)
     emit dataChanged(keyName, data);
 }
 

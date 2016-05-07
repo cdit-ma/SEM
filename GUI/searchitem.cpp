@@ -1,5 +1,5 @@
 #include "searchitem.h"
-#include "../medeawindow.h"
+#include "../Widgets/medeawindow.h"
 
 #include <QDebug>
 
@@ -8,7 +8,7 @@
 
 #define BUTTON_SIZE 28
 #define BUTTON_RADIUS (BUTTON_SIZE / 6)
-#define KEY_LABEL_WIDTH 100
+#define KEY_LABEL_WIDTH 90
 
 #define LAYOUT_MARGIN 2
 #define LAYOUT_SPACING 5
@@ -35,6 +35,12 @@ SearchItem::SearchItem(GraphMLItem *item, QWidget *parent) : QLabel(parent)
     if (item) {
         graphMLItem = item;
         graphMLItemID = graphMLItem->getID();
+        if (item->isNodeItem()) {
+            NodeAdapter* nodeAdapter = ((NodeItem*)item)->getNodeAdapter();
+            if (nodeAdapter) {
+                connect(nodeAdapter, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
+            }
+        }
     } else {
         qWarning() << "SearchItem:: Cannot create a search item widget with a NULL graphMLItem.";
         return;
@@ -148,9 +154,11 @@ void SearchItem::expandItem()
     if (expanded) {
         setFixedHeight(MIN_HEIGHT + dataBox->sizeHint().height());
         expandButton->setIcon(QIcon(contractPixmap));
+        expandButton->setToolTip("Show less information");
     } else {
         setFixedHeight(MIN_HEIGHT);
         expandButton->setIcon(QIcon(expandPixmap));
+        expandButton->setToolTip("Show more information");
     }
 }
 
@@ -182,10 +190,29 @@ void SearchItem::setClickToCenter(bool b)
 void SearchItem::setDoubleClickToExpand(bool b)
 {
     DOUBLE_CLICK_TO_EXPAND = b;
+    /*
     if (DOUBLE_CLICK_TO_EXPAND) {
         connect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
     } else {
         disconnect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
+    }
+    */
+}
+
+
+/**
+ * @brief SearchItem::dataChanged
+ * @param keyName
+ * @param data
+ */
+void SearchItem::dataChanged(QString keyName, QVariant data)
+{
+    if (!keyName.isEmpty()) {
+        if (keyName == "label") {
+            entityLabel->setText(data.toString());
+        } else if (keyName == "topicName") {
+            topicLabel->setText(data.toString());
+        }
     }
 }
 
@@ -242,8 +269,21 @@ void SearchItem::setupLayout()
 
     // setup icon label
     QString graphMLKind = graphMLItem->getEntityAdapter()->getDataValue("kind").toString();
-    QPixmap pixmap(":/Items/" + graphMLKind + ".png");
-    pixmap = pixmap.scaled(ICON_SIZE, ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QString imagePrefix = "Items";
+    QString imageURL = graphMLKind;
+
+    if (graphMLItem->isEntityItem()) {
+        EntityItem* item = (EntityItem*)graphMLItem;
+        imagePrefix = item->getIconPrefix();
+        imageURL = item->getIconURL();
+    }
+
+    QPixmap pixmap = Theme::theme()->getImage(imagePrefix, imageURL, QSize(ICON_SIZE, ICON_SIZE));
+    if (pixmap.isNull()) {
+        pixmap = Theme::theme()->getImage("Actions", "Help", QSize(ICON_SIZE, ICON_SIZE));
+    }
+
+    //pixmap = pixmap.scaled(ICON_SIZE, ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     iconLabel = new QLabel(this);
     iconLabel->setFixedSize(MIN_HEIGHT - MARGIN_OFFSET, MIN_HEIGHT - MARGIN_OFFSET);
@@ -268,6 +308,8 @@ void SearchItem::setupLayout()
     contractPixmap = QPixmap(":/Actions/Arrow_Up");
     expandButton = new QPushButton(QIcon(expandPixmap), "", this);
     centerOnButton = new QPushButton(QIcon(":/Actions/Crosshair"), "", this);
+    expandButton->setToolTip("Show more information");
+    centerOnButton->setToolTip("Click to center the view on this entity");
 
     QSize buttonSize(BUTTON_SIZE, BUTTON_SIZE);
     expandButton->setFixedSize(buttonSize);
@@ -275,8 +317,9 @@ void SearchItem::setupLayout()
     expandButton->setIconSize(buttonSize*0.75);
     centerOnButton->setIconSize(buttonSize*0.75);
 
-    dataBox = new QGroupBox(this);
     QVBoxLayout* boxLayout = new QVBoxLayout();
+    boxLayout->setSpacing(0);
+    boxLayout->setMargin(0);
 
     //locationLabel = setupDataValueBox("Location", boxLayout, false);
     kindLabel = setupDataValueBox("kind", boxLayout);
@@ -285,6 +328,9 @@ void SearchItem::setupLayout()
     workerLabel = setupDataValueBox("worker", boxLayout);
     descriptionLabel = setupDataValueBox("description", boxLayout);
 
+    boxLayout->addSpacing(MARGIN_OFFSET);
+
+    dataBox = new QGroupBox(this);
     dataBox->setLayout(boxLayout);
     dataBox->setStyleSheet("QGroupBox{ background: rgba(0,0,0,0); }");
 
@@ -320,22 +366,27 @@ void SearchItem::setupLayout()
  */
 QLabel* SearchItem::setupDataValueBox(QString key, QLayout *layout, bool storeInHash)
 {
-    QGroupBox* dataValBox = new QGroupBox(this);
-    QLabel* keyLabel = new QLabel(key + ":", this);
     QLabel* valueLabel = new QLabel(this);
+    QLabel* keyLabel = new QLabel(key + ":", this);
+    keyLabel->setFixedWidth(KEY_LABEL_WIDTH);
+    keyLabel->setStyleSheet("color: rgb(80,80,80);");
+
     QHBoxLayout* subLayout = new QHBoxLayout();
-    keyLabel->setFixedSize(KEY_LABEL_WIDTH, font().pointSize() + MARGIN_OFFSET);
+    subLayout->setContentsMargins(LAYOUT_MARGIN + MARGIN_OFFSET, 0, LAYOUT_MARGIN + MARGIN_OFFSET, 0);
     subLayout->addWidget(keyLabel);
     subLayout->addWidget(valueLabel);
+
+    QGroupBox* dataValBox = new QGroupBox(this);
     dataValBox->setLayout(subLayout);
-    if (layout) {
-        layout->addWidget(dataValBox);
-    }
+    dataValBox->setFixedHeight(MIN_HEIGHT / 2);
+    layout->addWidget(dataValBox);
+
     if (storeInHash) {
         dataKeys.append(key);
         dataValueLabels[key] = valueLabel;
         dataValueBoxes[key] = dataValBox;
     }
+
     return valueLabel;
 }
 

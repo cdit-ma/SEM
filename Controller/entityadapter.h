@@ -15,7 +15,9 @@ public:
     int getID();
     bool isNodeAdapter();
     bool isEdgeAdapter();
+    bool isInModel();
     bool isReadOnly();
+
 
     const QVariant getDataValue(QString keyName);
     bool isDataProtected(QString keyName);

@@ -53,7 +53,7 @@ public:
 
     QString toMD5Hash();
 
-
+    bool isInModel();
 
     int childrenCount();
     int edgeCount();
@@ -94,7 +94,8 @@ public:
     bool isHardware();
 
     void setDefinition(Node *def);
-    Node* getDefinition();
+    Node* getDefinition(bool recurse=false);
+
     void unsetDefinition();
 
     void addInstance(Node* inst);
@@ -156,6 +157,8 @@ private:
 protected:
     void setAcceptEdgeClass(Edge::EDGE_CLASS edgeClass);
     bool acceptsEdgeClass(Edge::EDGE_CLASS edgeClass);
+
+
 
 };
 

@@ -43,34 +43,16 @@ bool AggregateInstance::canConnect_DataEdge(Node *node)
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(node);
 
     if(aggregateInstance){
-        Node* nDef = node;
-        while(nDef->getDefinition()){
-            Node* def = nDef->getDefinition();
-            if(def){
-                nDef = def;
-            }else{
-                break;
-            }
-        }
+        Node* nDef = node->getDefinition(true);
+        Node* tDef = this->getDefinition(true);
 
-        Node* tDef = this;
-        while(tDef->getDefinition()){
-            Node* def = tDef->getDefinition();
-            if(def){
-                tDef = def;
-            }else{
-                break;
-            }
-        }
         if(nDef != tDef){
             return false;
-
         }
         if(aggregateInstance->getInputData()){
             return false;
         }
     }
-
 
     return DataNode::canConnect_DataEdge(node);
 }

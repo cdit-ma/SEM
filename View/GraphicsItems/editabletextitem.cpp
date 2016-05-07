@@ -9,11 +9,15 @@
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 #include "../../enumerations.h"
-#include "../../theme.h"
+#include "../../View/theme.h"
+#include <QApplication>
+#include <QClipboard>
 
 EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     QGraphicsTextItem(parent)
 {
+
+
     alignment = Qt::AlignLeft;
 
 
@@ -37,11 +41,12 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     doc->setTextWidth(this->textWidth);
 
 
-
     QTextOption option = doc->defaultTextOption();
     option.setWrapMode(QTextOption::WrapAnywhere);
     option.setAlignment(Qt::AlignTop);
     doc->setDefaultTextOption(option);
+
+
     setDocument(doc);
     editable = true;
 }
@@ -77,6 +82,8 @@ void EditableTextItem::setEditMode(bool editMode)
         setAlignment(alignment);
         QTextCursor c = textCursor();
         c.select(QTextCursor::Document);
+
+
         setTextCursor(c);
     }else if(inEditingMode && !editMode){
 
@@ -193,7 +200,7 @@ QString EditableTextItem::getTruncatedText(const QString text)
     //Have to truncate.
     //
     bool isEven = text.size() % 2;
-    if(fm.width(fullText) > textWidth){
+    if(fm.width(fullText) >= textWidth){
         int centerIndex = fullText.size() / 2;
         QString truncChars = "...";
 
@@ -203,7 +210,7 @@ QString EditableTextItem::getTruncatedText(const QString text)
 
         fullText = fullText.insert(centerIndex, truncChars);
 
-        while(fm.width(fullText) >= textWidth){
+        while(fm.width(fullText) >= (textWidth - 1)){
             if(fullText.size() <= 3){
                 //Only got ... left
                 break;
@@ -283,19 +290,26 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
 {
     //Check for Enter pressing!
     int keyPressed = event->key();
-     bool CONTROL = event->modifiers() & Qt::ControlModifier;
 
-    if(keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return || keyPressed == Qt::Key_Escape){
+     if(keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return || keyPressed == Qt::Key_Escape){
         focusOutEvent(0);
         return;
     }
-    if(keyPressed == Qt::Key_V && CONTROL){
+
+    if(event->matches(QKeySequence::Paste)){
+        paste();
         return;
     }
-    if(keyPressed == Qt::Key_Delete){
-        event->setAccepted(true);
-        //return;
-    }
-    QGraphicsTextItem::keyPressEvent(event);
 
+    QGraphicsTextItem::keyPressEvent(event);
+}
+
+void EditableTextItem::paste()
+{
+    QClipboard* _clipboard = QApplication::clipboard();
+
+    const QMimeData* _mimeData = _clipboard->mimeData();
+    QTextCursor _cursor1 = textCursor();
+    _cursor1.insertText(_mimeData->text());
+    setTextCursor(_cursor1);
 }

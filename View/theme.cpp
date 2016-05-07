@@ -3,6 +3,7 @@
 #include <QStringBuilder>
 #include <QDirIterator>
 #include <QDateTime>
+#include <QPainter>
 Theme* Theme::themeSingleton = 0;
 QThread* Theme::themeThread = 0;
 
@@ -11,6 +12,12 @@ Theme::Theme():QObject(0)
     slash = QString("/");
     updateValid();
     valid = false;
+    readCount = 0;
+
+    //Cadet Blue
+    deployColor.setRed(95);
+    deployColor.setGreen(158);
+    deployColor.setBlue(160);
 }
 
 QColor Theme::getBackgroundColor()
@@ -59,7 +66,6 @@ QString Theme::getHighlightColorHex()
 
 QColor Theme::getPressedColor()
 {
-    //return highlightColor.lighter(110);
     return highlightColor;
 }
 
@@ -67,6 +73,16 @@ QString Theme::getPressedColorHex()
 {
     QColor color = getPressedColor();
     return Theme::QColorToHex(color);
+}
+
+QColor Theme::getDeployColor()
+{
+    return deployColor;
+}
+
+QString Theme::getDeployColorHex()
+{
+    return Theme::QColorToHex(getDeployColor());
 }
 
 void Theme::setBackgroundColor(QColor color)
@@ -287,7 +303,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
     if(size.isValid()){
         int factor = 1;
         //Bitshift round to power of 2
-        while((factor <<= 1 ) < size.width()>>1);
+        while((factor <<= 1 ) <= size.width()>>1);
 
         //Scale the request image size to a width = factor
         int newWidth = factor;
@@ -319,11 +335,21 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
             }
         }
 
-        //Load the original Image
-        QImage image(":/" % resourceName);
+
+
+        QImage image;
+
+        if(imageLookup.contains(resourceName)){
+            image = imageLookup[resourceName];
+        }else{
+            //Load the original Image
+            image =  QImage(":/" % resourceName);
+            //Store it
+            imageLookup[resourceName] = image;
+        }
 
         if(image.isNull()){
-            qCritical() << "Cannot find image: " << resourceName;
+            //qCritical() << "Cannot find image: " << resourceName;
             pixmapLookup[lookupName] = QPixmap();
             return pixmapLookup[lookupName];
         }
@@ -366,6 +392,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
             //Replace the image with it's alphaChannel
             image = image.alphaChannel();
 
+
             //Replace the colors with the tinted color.
             for(int i = 0; i < image.colorCount(); ++i) {
                 tintColor.setAlpha(qGray(image.color(i)));
@@ -374,6 +401,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
         }
         //Construct a Pixmap from the image.
         QPixmap pixmap = QPixmap::fromImage(image);
+
         pixmapLookup[lookupName] = pixmap;
         return pixmap;
     }

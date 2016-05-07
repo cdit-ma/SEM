@@ -24,6 +24,7 @@ public:
     QRectF childrenBoundingRect();
     QRectF translatedBoundingRect();
     QString getNodeKind();
+    RENDER_STATE getRenderStateFromZoom(qreal lod) const;
     RENDER_STATE getRenderState() const;
     VIEW_STATE getViewState() const;
     void setRenderState(RENDER_STATE renderState);
@@ -69,6 +70,7 @@ public:
     bool inMainView();
     bool inSubView();
     bool isSelected();
+    bool isActiveSelected();
     bool isHovered();
     bool isHighlighted();
     bool isEntityItem();
@@ -93,6 +95,7 @@ public slots:
     virtual void setHovered(bool isHovered);
     virtual void setHighlighted(bool isHighlight);
     virtual void setSelected(bool selected);
+    virtual void setActiveSelected(bool active);
 
     virtual void dataChanged(QString keyName, QVariant Data) = 0;
     virtual void dataRemoved(QString keyName);
@@ -112,6 +115,7 @@ signals:
     void GraphMLItem_AppendSelected(GraphMLItem*);
     void GraphMLItem_RemoveSelected(GraphMLItem*);
     void GraphMLItem_ClearSelection();
+    void GraphMLItem_SetActiveSelected(GraphMLItem*);
     void GraphMLItem_SelectionChanged();
 
     void GraphMLItem_PositionChanged();
@@ -124,6 +128,7 @@ private:
     void updateCurrentPen(bool zoomChanged = false);
     bool IS_DELETING;
     bool IS_SELECTED;
+    bool IS_ACTIVE_SELECTED;
     bool IS_HOVERED;
     bool IS_HIGHLIGHTED;
     bool IN_SUBVIEW;

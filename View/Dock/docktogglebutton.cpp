@@ -1,13 +1,13 @@
 #include "docktogglebutton.h"
 #include "dockscrollarea.h"
 
-#include "../../medeawindow.h"
+#include "../../Widgets/medeawindow.h"
 
 #include <QPainter>
 #include <QPainterPath>
 #include <QBrush>
 
-#include "../../theme.h"
+#include "../../View/theme.h"
 
 //#define BUTTON_WIDTH 40
 #define BUTTON_WIDTH 65
@@ -291,7 +291,6 @@ void DockToggleButton::setEnabled(bool enable)
             updateStyleSheet(DEFAULT);
         }
     } else {
-        hideDock();
         setSelected(false);
     }
 

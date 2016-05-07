@@ -26,12 +26,17 @@ public:
 
 public slots:
     void themeChanged();
+
 private:
     void updateIcon();
+
     ToolbarMenuAction* parentAction;
     NodeItem* nodeItem;
-    QString prefixPath;
+
     QString actionKind;
+    QString prefixPath;
+    QString urlPath;
+
     bool deletable;
 };
 

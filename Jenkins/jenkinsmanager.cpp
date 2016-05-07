@@ -9,7 +9,7 @@
  * @param password The password for the Jenkins Server
  * @todo Discover way of removing password from .ini
  */
-JenkinsManager::JenkinsManager(QString cliBinaryPath, QString url, QString username, QString password, QString token)
+JenkinsManager::JenkinsManager(QString cliBinaryPath)
 {
     //Register the Types used as parameters JenkinsRequest so signals/slots can be connected.
     qRegisterMetaType<QPair<QByteArray,QByteArray> >();
@@ -18,11 +18,8 @@ JenkinsManager::JenkinsManager(QString cliBinaryPath, QString url, QString usern
 
     //Set instance variables.
     this->cliBinaryPath = cliBinaryPath;
-    setURL(url);
-    setUsername(username);
-    setPassword(password);
-    setToken(token);
     settingsValidating = false;
+    urlChanged = false;
 }
 
 QString JenkinsManager::getUsername()
@@ -38,7 +35,11 @@ void JenkinsManager::setURL(QString url)
 {
     //If the url we are setting is different, update it.
     if(this->url != url){
+        if(!url.endsWith("/")){
+            url += "/";
+        }
         this->url = url;
+        urlChanged = true;
         //Devalidate the settings.
         settingsValidated = false;
     }
@@ -82,6 +83,24 @@ void JenkinsManager::setToken(QString token)
     if(this->token != token){
         this->token = token;
     }
+}
+
+void JenkinsManager::setJobName(QString jobName)
+{
+    if(this->jobName != jobName){
+        this->jobName = jobName;
+        //Devalidate the settings.
+        settingsValidated = false;
+    }
+}
+
+/**
+ * @brief JenkinsManager::hasSettings Returns true if we have a non-empty url, username and password
+ * @return Has all settings required
+ */
+bool JenkinsManager::hasSettings()
+{
+    return !(token.isEmpty() || password.isEmpty() || username.isEmpty() || url.isEmpty() || jobName.isEmpty());
 }
 
 /**
@@ -137,17 +156,27 @@ JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOn
     return request;
 }
 
+void JenkinsManager::validateSettings()
+{
+    if(!settingsValidating){
+        validateJenkinsSettings();
+    }
+}
+
 void JenkinsManager::gotSettingsValidationResponse(bool valid, QString message)
 {
     settingsValidating  = false;
     settingsValidated = valid;
 
+    if(urlChanged && valid){
+        //If our Jenkins url changed we should clear the job configs
+        clearJobConfigurations();
+        urlChanged = false;
+    }
+
     //Make a Window
     //Tell Jenkins Requests that we are validated.
-    if(!valid){
-        emit gotInvalidSettings(message);
-    }
-    emit settingsValidationComplete();
+    emit settingsValidationComplete(valid, message);
 }
 
 /**
@@ -161,7 +190,7 @@ void JenkinsManager::validateJenkinsSettings()
     connect(this, SIGNAL(tryValidateSettings()), jR, SLOT(validateJenkinsSettings()));
     connect(jR, SIGNAL(gotSettingsValidationResponse(bool,QString)), this, SLOT(gotSettingsValidationResponse(bool,QString)));
 
-    emit this->tryValidateSettings();
+    emit tryValidateSettings();
     disconnect(this, SIGNAL(tryValidateSettings()), jR, SLOT(validateJenkinsSettings()));
 }
 
@@ -190,21 +219,30 @@ void JenkinsManager::storeJobConfiguration(QString jobName, QJsonDocument json)
     jobsJSON[jobName] = json;
 }
 
+void JenkinsManager::clearJobConfigurations()
+{
+    jobsJSON.clear();
+}
+
 /**
  * @brief JenkinsManager::getAuthenticatedRequest - Returns an Authenticated QNetworkRequest.
  * @param url - The URL to request.
  * @return - A QNetworkRequest Object which contains the token.
  */
-QNetworkRequest JenkinsManager::getAuthenticatedRequest(QString url)
+QNetworkRequest JenkinsManager::getAuthenticatedRequest(QString url, bool auth)
 {
     QNetworkRequest request;
     //Set the URL
     request.setUrl(QUrl(url));
 
     // HTTP Basic authentication header value: base64(username:password)
-    QString concatenated = username + ":" + token;
-    QByteArray data = concatenated.toLocal8Bit().toBase64();
-    QString headerData = "Basic " + data;
+
+    QString headerData = "";
+    if(auth){
+        QString concatenated = username + ":" + token;
+        QByteArray data = concatenated.toLocal8Bit().toBase64();
+        headerData = "Basic " + data;
+    }
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/x-www-form-urlencoded"));
     request.setRawHeader("User-Agent", "JenkinsManager-Request");
@@ -260,5 +298,10 @@ QString JenkinsManager::getCLIPath()
 QString JenkinsManager::getCLICommand(QString cliCommand)
 {
     return getCLIPrefix() + cliCommand + getCLILoginSuffix();
+}
+
+QString JenkinsManager::getJobName()
+{
+    return jobName;
 }
 

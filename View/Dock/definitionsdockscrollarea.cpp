@@ -29,12 +29,8 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(DOCK_TYPE type, NodeView* v
     mainLayout->addStretch();
     getLayout()->addLayout(mainLayout);
 
-    setDockOpen(false);
     connectToView();
-
-    connect(this, SIGNAL(dock_opened(bool)), this, SLOT(dockToggled(bool)));
-    connect(this, SIGNAL(dock_closed(bool)), this, SLOT(dockToggled(bool)));
-    connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
+    connect(this, SIGNAL(dock_closed()), SLOT(dockClosed()));
 }
 
 
@@ -66,7 +62,6 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
 QList<DockNodeItem*> DefinitionsDockScrollArea::getDockItemsOfKind(QString nodeKind)
 {
     QList<DockNodeItem*> itemsOfKind;
-
     if (nodeKind.isEmpty()) {
         return itemsOfKind;
     }
@@ -174,9 +169,6 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     int selectedNodeID = selectedNodeItem->getID();
     int dockNodeID = dockNodeItem->getID().toInt();
     getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, sourceDockItemKind, 0);
-
-    // this closes this dock and then re-opens the parts dock
-    emit dock_forceOpenDock();
 }
 
 
@@ -187,14 +179,10 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
  */
 void DefinitionsDockScrollArea::updateDock()
 {
-    // if the dock is not open, do nothing
-    if (!isDockOpen()) {
-        return;
-    }
+    DockScrollArea::updateDock();
 
-    // if there is no selected item, close the dock
-    if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
-        setDockOpen(false);
+    // if the dock is disabled, there is no need to update
+    if (!isDockEnabled()) {
         return;
     }
 
@@ -202,10 +190,7 @@ void DefinitionsDockScrollArea::updateDock()
     if (getCurrentNodeID() == sourceSelectedItemID) {
         filterDock();
     } else {
-        if (isDockOpen()) {
-            // this closes this dock and then opens the parts dock
-            emit dock_forceOpenDock();
-        }
+        setDockOpen(false);
     }
 }
 
@@ -261,20 +246,11 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
  */
 void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
 {
-    if (isDockOpen() || !getCurrentNodeItem() || (getCurrentNodeID() == -1)) {
-        return;
-    }
+    DockScrollArea::forceOpenDock();
 
     sourceDockItemKind = srcKind;
     sourceSelectedItemID = getCurrentNodeID();
 
-    // close the sender dock then open this dock
-    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
-    if (dock) {
-        dock->setDockOpen(false);
-    }
-
-    setDockOpen();
     filterDock(srcKind);
 }
 
@@ -314,7 +290,6 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
             hideCompsWithImpl = true;
             infoLabelText = "There are no IDL files containing unimplemented Component entities.";
         } else {
-            setInfoText("The selected entity's definition does not contain any OutEventPort entities.");
             showChildrenOutEventPorts();
             return;
         }
@@ -339,34 +314,6 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
 
     // update the information text for when this dock is empty depending on the filtered kind
     setInfoText(infoLabelText);
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::dockClosed
- * This is called everytime the dock is closed.
- * It is either when the selection has changed or an item in this dock has been clicked.
- */
-void DefinitionsDockScrollArea::dockClosed()
-{
-    // reset previous source kind and ID that were used to filter this dock
-    sourceDockItemKind = "";
-    sourceSelectedItemID = -1;
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::dockToggled
- * @param opened
- */
-void DefinitionsDockScrollArea::dockToggled(bool opened)
-{
-    QString action = "";
-    if (opened) {
-        //action = "Select to construct a " + sourceDockItemKind;
-        action = sourceDockItemKind;
-    }
-    emit dock_toggled(opened, action);
 }
 
 
@@ -470,7 +417,7 @@ void DefinitionsDockScrollArea::showChildrenOutEventPorts()
         }
     } else {
         hideDockItems();
-        setInfoText("The selected entity's definition does not contain any OutEventPorts.");
+        setInfoText("The selected entity's definition does not contain any OutEventPort entities.");
     }
 }
 
@@ -547,7 +494,8 @@ void DefinitionsDockScrollArea::sortDockItems(DockNodeItem* dockItem)
  * @param dockItem
  */
 void DefinitionsDockScrollArea::sortDockLabelItems(DockNodeItem* dockItem)
-{ if (!dockItem || !dockItem->isDockItemLabel() || !itemsLayout) {
+{
+    if (!dockItem || !dockItem->isDockItemLabel() || !itemsLayout) {
         return;
     }
 
@@ -608,6 +556,19 @@ void DefinitionsDockScrollArea::sortDockLabelItems(DockNodeItem* dockItem)
 
     // if there was no spot to insert the dock label item's layout, add it to the end of the layout
     itemsLayout->addLayout(layout);
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::dockClosed
+ * This is called everytime the dock is closed.
+ * It is either when the selection has changed or an item in this dock has been clicked.
+ */
+void DefinitionsDockScrollArea::dockClosed()
+{
+    // reset previous source kind and ID that were used to filter this dock
+    sourceDockItemKind = "";
+    sourceSelectedItemID = -1;
 }
 
 

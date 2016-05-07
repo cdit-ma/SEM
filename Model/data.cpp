@@ -23,6 +23,9 @@ Data::Data(Key *key, QVariant value, bool protect):GraphML(GK_DATA)
 
 Data::~Data()
 {
+    //Unset the parent
+    setParent(0);
+
     if(_parentData){
         //Unset Parent Data.
         _parentData->removeChildData(this);
@@ -57,6 +60,11 @@ void Data::setParent(Entity *parent)
         //Set the ID
         setID();
     }
+    if(_parent){
+        disconnect(this, SIGNAL(dataChanged(int,QString,QVariant)), _parent, SLOT(dataChanged(int, QString,QVariant)));
+    }
+
+
     _parent = parent;
 }
 
@@ -178,6 +186,10 @@ QString Data::toGraphML(int indentDepth)
     dataString.replace( "<", "&lt;" );
     dataString.replace( "\"", "&quot;" );
     dataString.replace( "\'", "&apos;" );
+
+    if(getKey()->getName() == "processes_to_log"){
+        dataString.replace("\n", ",");
+    }
 
 
     QString xml;

@@ -1,5 +1,5 @@
 #include "validatedialog.h"
-#include "../../medeawindow.h"
+#include "../../Widgets/medeawindow.h"
 
 #include <QDebug>
 /**

@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QString>
 #include <QNetworkAccessManager>
+#include <QNetworkReply>
 
 enum JOB_STATE{
     NO_JOB = 0,
@@ -74,8 +75,10 @@ private slots:
     //Called if the JenkinsManager has been destroyed.
     void _unexpectedTermination();
 private:
+    QString validate();
+
     //CLI and HTTP getters
-    QPair<int, QByteArray> wget(QString url);
+    QPair<int, QByteArray> wget(QString url, bool auth = true);
     QPair<int, QByteArray> post(QString url, QByteArray data = QByteArray());
     QPair<int, QByteArray> waitForReply(QNetworkReply* reply);
     QPair<int, QByteArray> runProcess(QString command);

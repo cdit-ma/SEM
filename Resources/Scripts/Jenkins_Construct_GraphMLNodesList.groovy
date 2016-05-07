@@ -1,3 +1,31 @@
+def getJenkinsIP(){
+        IP = "null";
+        //Get the Interfaces from this machine.
+    for(iface in NetworkInterface.getNetworkInterfaces()){
+                if(!iface.isLoopback()){
+                        for(addr in iface.getInetAddresses()){
+                                if(!addr.isLoopbackAddress() && addr.isSiteLocalAddress()){
+                                        IP = addr.getHostAddress();
+                                        return IP
+                                }
+                        }
+                }
+    }
+    return IP;
+}
+
+def getJenkinsNodeIP(String nodename){
+        IP = "";
+
+        try{
+                IP = InetAddress.getByName(hostname).getHostAddress();
+    }catch(Exception e){
+
+    }
+    return IP;
+}
+
+
 //Get Jenkins Singleton
 jenkins.model.Jenkins jenkins = jenkins.model.Jenkins.getInstance();
 
@@ -22,12 +50,14 @@ if(args.length >= 1){
 
 
 nodesInJob = [];
-
+SERVER_NAME = ""
+try{
+        SERVER_NAME = InetAddress.getLocalHost().getHostName();
+}catch(Exception e){}
 
 //Get Server Specific information.
 try{
-    SERVER_NAME = InetAddress.getLocalHost().getHostName();
-    SERVER_IP = InetAddress.getByName(SERVER_NAME).getHostAddress();
+    SERVER_IP = getJenkinsIP();
     SERVER_URL = jenkins.getRootUrl();
     USER_NAME = jenkins.getMe().getDisplayName();
 
@@ -39,7 +69,7 @@ try{
             }
         }
     }
-}catch(Exception e){}
+}catch(Exception e){println(e);}
 
 //SETUP TOP OF GRAPHML
 ID_COUNTER = 0
@@ -64,6 +94,7 @@ OUTPUT <<= '<key attr.name="hostname" attr.type="string" for="node" id="k18"/>\n
 OUTPUT <<= '<key attr.name="version" attr.type="string" for="node" id="k17"/>\n';
 OUTPUT <<= '<key attr.name="x" attr.type="double" for="node" id="k20"/>\n';
 OUTPUT <<= '<key attr.name="y" attr.type="double" for="node" id="k21"/>\n';
+OUTPUT <<= '<key attr.name="isExpanded" attr.type="boolean" for="node" id="k22"/>\n';
 OUTPUT <<= '\t<graph edgedefault="directed" id="' + (ID_COUNTER++) + '">\n';
 OUTPUT <<= '\t<node id="' + (ID_COUNTER++) + '">\n';
 OUTPUT <<= '\t\t<data key="k1">HardwareDefinitions</data>\n';
@@ -78,6 +109,7 @@ OUTPUT <<= '\t\t\t\t<data key="k6">' + SERVER_IP + '</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k5">' + SERVER_URL + '</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k16">' + USER_NAME + '</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k14">' + LOAD_TIME + '</data>\n';
+OUTPUT <<= '\t\t\t\t<data key="k22">true</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k20">-1</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k21">-1</data>\n';
 OUTPUT <<= '\t\t\t\t<data key="k11">true</data>\n';
@@ -108,13 +140,9 @@ for(slave in SLAVES){
     if(c.isOffline()){
         online = "false";
     }
-    hostname = c.getHostName();
-    IP = ""
-    try{
-        addr = InetAddress.getByName(hostname)
-        IP = addr.getHostAddress();
-    }catch(Exception e){}
 
+    hostname = c.getHostName();
+    IP = getJenkinsNodeIP(hostname)
 
     OUTPUT <<= '\t\t\t\t\t<node id="' + (ID_COUNTER++) + '">\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k1">HardwareNode</data>\n';

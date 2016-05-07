@@ -20,7 +20,7 @@
 #include "../Model/Edges/deploymentedge.h"
 #include "../Model/data.h"
 
-#include "../doublehash.h"
+#include "doublehash.h"
 
 #define DANCE_EXECUTION_MANAGER "DANCE_EXECUTION_MANAGER"
 #define DANCE_PLAN_LAUNCHER "DANCE_PLAN_LAUNCHER"
@@ -95,7 +95,7 @@ struct EventAction{
         ACTION_TYPE type;
         GraphML::GRAPHML_KIND kind;
         QString name;
-        QString timestamp;
+        uint timestamp;
     } Action;
 
     int ID;
@@ -216,9 +216,6 @@ signals:
     void controller_GotQuestionAnswer();
 
     void controller_DisplayMessage(MESSAGE_TYPE, QString messageString, QString messageTitle = "", QString messageIcon = "", int centerID =-1);
-
-    //void controller_DisplayMessage(MESSAGE_TYPE, QString messageTitle, QString messageIcon = "", QString message = "", int ID=-1, bool centralize=false);
-
 
     void controller_SavedProject(QString filePath, QString dat);
 
@@ -363,7 +360,7 @@ private:
 
     //Constructs a Node using the attached Data elements. Attachs the node to the parentNode provided.
     Node* constructChildNode(Node* parentNode, QList<Data*> dataToAttach);
-    bool attachChildNode(Node* parentNode, Node* childNode);
+    bool attachChildNode(Node* parentNode, Node* childNode, bool sendGUIRequest = true);
 
     Node* constructNode(QList<Data*> data);
 
@@ -425,9 +422,7 @@ private:
 
     void enforceUniqueLabel(Node* node, QString newLabel = "");
     bool requiresUniqueLabel(Node* node);
-    //int getUniqueSortOrder(Node* node, )
-    //void enforceUniqueLabel(Node* node, QString newLabel = "");
-    void enforceUniqueSortOrder(Node* node, int newSortPos = -1);
+    void enforceUniqueSortOrder(Node* node, int newPosition = -1);
 
 
     //Returns true if the Model Entities can be connected.
@@ -573,8 +568,8 @@ private:
 
 
     QHash<QString, ManagementComponent*> managementComponents;
-    QHash<QString, HardwareNode*> hardwareNodes;
-    QHash<QString, HardwareCluster*> hardwareClusters;
+
+    QHash<QString, Node*> hardwareEntities;
     QHash<QString, Process*> workerProcesses;
 
     int previousUndos;
@@ -591,6 +586,7 @@ private:
     bool IMPORTING_PROJECT;
     bool PASTE_USED;
     bool IMPORTING_WORKERDEFINITIONS;
+    bool CONSTRUCTING_WORKERFUNCTION;
 
     int actionCount;
     QString currentAction;

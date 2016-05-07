@@ -23,10 +23,10 @@ PartsDockScrollArea::PartsDockScrollArea(DOCK_TYPE type, NodeView *view, DockTog
     kindsRequiringDefinition.append("InEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortImpl");
-    kindsRequiringFunction.append("Process");
+    kindsRequiringFunction.append("WorkerProcess");
 
-    setDockEnabled(false);
     connectToView();
+    connect(this, SIGNAL(dock_toggled(bool,QString)), SLOT(dockToggled(bool)));
 }
 
 
@@ -48,9 +48,14 @@ void PartsDockScrollArea::updateDock()
 
     QStringList kindsToShow = getAdoptableNodeListFromView();
 
-    // if there are no adoptable node kinds, disable the dock
     if (kindsToShow.isEmpty()) {
-        setDockEnabled(false);
+        // if there are no adoptable node kinds, disable the dock
+        //setDockEnabled(false);
+        //return;
+
+        // if there are no adoptable node kinds, hide all the dock items
+        setInfoText("The selected entity does not have any adoptable entities.");
+        hideDockNodeItems();
         return;
     }
 
@@ -92,24 +97,76 @@ void PartsDockScrollArea::clear()
 
 
 /**
- * @brief PartsDockScrollArea::forceOpenDock
+ * @brief PartsDockScrollArea::dockToggled
+ * @param open
  */
-void PartsDockScrollArea::forceOpenDock()
+void PartsDockScrollArea::dockToggled(bool open)
 {
-    if (isDockOpen()) {
-        return;
+    if (open) {
+        updateDock();
+    } else {
+        closeAttachedDocks();
     }
-    if (!isDockEnabled()) {
-        setDockEnabled(true);
-    }
+}
 
-    // close the sender dock then open this dock
-    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
-    if (dock) {
+
+/**
+ * @brief PartsDockScrollArea::attachedDockToggled
+ * @param open
+ */
+void PartsDockScrollArea::attachedDockToggled(bool open)
+{
+    DockScrollArea* senderDock = qobject_cast<DockScrollArea*>(QObject::sender());
+    if (senderDock) {
+        if (open) {
+            openedDocks.append(senderDock);
+        } else {
+            openedDocks.removeAll(senderDock);
+            // if an attached dock is closed, check if this dock should be reopened
+            // or if a closed signal should be sent to the medea
+            if (getParentButton() && getParentButton()->isSelected() && !isDockOpen()) {
+                setDockOpen(true);
+            } else {
+                emit dock_toggled(false);
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief PartsDockScrollArea::showMainDock
+ */
+void PartsDockScrollArea::showMainDock()
+{
+    closeAttachedDocks();
+}
+
+
+/**
+ * @brief PartsDockScrollArea::hideDockNodeItems
+ */
+void PartsDockScrollArea::hideDockNodeItems()
+{
+    foreach (QString kind, displayedItems) {
+        DockNodeItem* dockNodeItem = getDockNodeItem(kind);
+        if (dockNodeItem) {
+            dockNodeItem->setHidden(true);
+        }
+    }
+    displayedItems.clear();
+}
+
+
+/**
+ * @brief PartsDockScrollArea::closeAttachedDocks
+ */
+void PartsDockScrollArea::closeAttachedDocks()
+{
+    foreach (DockScrollArea* dock, openedDocks) {
         dock->setDockOpen(false);
     }
-    setDockOpen();
-    updateDock();
+    openedDocks.clear();
 }
 
 
@@ -138,13 +195,37 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
 
 
 /**
+ * @brief PartsDockScrollArea::attachDockSrollArea
+ * @param dock
+ */
+void PartsDockScrollArea::attachDockSrollArea(DockScrollArea* dock)
+{
+    if (dock) {
+        DOCK_TYPE dt = dock->getDockType();
+        if (!attachedDocks.contains(dt)) {
+            attachedDocks[dt] = dock;
+            connect(dock, SIGNAL(dock_opened(bool)), this, SLOT(attachedDockToggled(bool)));
+            connect(dock, SIGNAL(dock_closed(bool)), this, SLOT(attachedDockToggled(bool)));
+            connect(dock, SIGNAL(dock_dockItemClicked()), this, SLOT(forceOpenDock()));
+        }
+    }
+}
+
+
+/**
  * @brief PartsDockScrollArea::kindRequiresDockSwitching
  * @param dockItemKind
  * @return
  */
-bool PartsDockScrollArea::kindRequiresDockSwitching(QString dockItemKind)
+DOCK_TYPE PartsDockScrollArea::kindRequiresDockSwitching(QString dockItemKind)
 {
-    return kindsRequiringDefinition.contains(dockItemKind) || kindsRequiringFunction.contains(dockItemKind);
+    if (kindsRequiringDefinition.contains(dockItemKind)) {
+        return DEFINITIONS_DOCK;
+    } else if (kindsRequiringFunction.contains(dockItemKind)) {
+        return FUNCTIONS_DOCK;
+    } else {
+        return UNKNOWN_DOCK;
+    }
 }
 
 
@@ -163,6 +244,20 @@ void PartsDockScrollArea::connectToView()
 
 
 /**
+ * @brief PartsDockScrollArea::isDockOpen
+ * @return
+ */
+bool PartsDockScrollArea::isDockOpen()
+{
+    bool dockOpen = DockScrollArea::isDockOpen();
+    if (!dockOpen && openedDocks.count() > 0) {
+        dockOpen = true;
+    }
+    return dockOpen;
+}
+
+
+/**
  * @brief PartsDockScrollArea::dockNodeItemPressed
  * This gets called when a dock adoptable node item is clicked.
  * It tells the view to create a NodeItem with the specified
@@ -171,14 +266,14 @@ void PartsDockScrollArea::connectToView()
 void PartsDockScrollArea::dockNodeItemClicked()
 {
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
-    QString nodeKind = sender->getKind();
-    if (kindsRequiringDefinition.contains(nodeKind)) {
-        //qDebug() << "Open Definitions Dock";
-        emit dock_forceOpenDock(nodeKind);
-    } else if (kindsRequiringFunction.contains(nodeKind)) {
-        //qDebug() << "Open Functions Dock";
-        emit dock_forceOpenDock();
+    QString senderItemKind = sender->getKind();
+    DOCK_TYPE dt = kindRequiresDockSwitching(senderItemKind);
+
+    if (attachedDocks.contains(dt)) {
+        setDockOpen(false);
+        attachedDocks[dt]->forceOpenDock(senderItemKind);
+        emit dock_toggled(true, senderItemKind);
     } else {
-        getNodeView()->constructNode(nodeKind, 0);
+        getNodeView()->constructNode(senderItemKind, 0);
     }
 }

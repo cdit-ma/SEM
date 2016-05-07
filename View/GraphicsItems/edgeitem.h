@@ -106,6 +106,8 @@ private:
     QPen pen;
     QPen selectedPen;
 
+    bool hasLabel;
+
 };
 
 #endif // EDGEITEM_H

@@ -231,7 +231,7 @@ EntityItem::MOUSEOVER_TYPE EntityItem::getMouseOverType(QPointF scenePos)
         if(mouseOverRightLabel(itemPos) && state >= RS_REDUCED){
             return MO_EXPANDLABEL;
         }
-        if(mouseOverConnect(itemPos) && state > RS_REDUCED){
+        if(mouseOverConnect(itemPos) && state >= RS_REDUCED){
             return MO_CONNECT;
         }
 
@@ -337,6 +337,11 @@ void EntityItem::restoreZValue()
     }
 }
 
+QPointF EntityItem::getConnectLineCenter()
+{
+    return iconRect_TopRight().center();
+}
+
 void EntityItem::setHighlighted(bool isHighlight)
 {
     GraphMLItem::setHighlighted(isHighlight);
@@ -357,6 +362,9 @@ void EntityItem::setHighlighted(bool isHighlight)
  */
 void EntityItem::setNodeConnectable(bool connectable)
 {
+    //canNodeBeConnected = false;
+    //return;
+
     if(connectable != canNodeBeConnected){
         canNodeBeConnected = connectable;
         update();
@@ -663,8 +671,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         // this highlights this item if it is a hardware entity and the selected entity is connected to it
         if (isHardwareLink) {
-            bodyBrush.setColor(Theme::theme()->getHighlightColor());
-            headBrush.setColor(Theme::theme()->getHighlightColor());
+            headBrush.setColor(hardwareLinkColor);
+            //bodyBrush.setColor(hardwareLinkColor);
         }
 
         if (isHighlighted()) {
@@ -676,15 +684,22 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
 
+        if(renderState <= RS_MINIMAL && isHovered()){
+            headBrush.setColor(headBrush.color().darker(105));
+            bodyBrush.setColor(bodyBrush.color().darker(105));
+        }
         //Paint Background
         painter->setPen(Qt::NoPen);
         painter->setBrush(bodyBrush);
         painter->drawRect(boundingRect());
 
 
-        if(isSelected() && renderState == RS_BLOCK){
-            headBrush.setColor(selectedPen.color());
+        if(renderState == RS_BLOCK){
+            if(isSelected()){
+                headBrush.setColor(getCurrentPen().color());
+            }
         }
+
 
 
         painter->setBrush(headBrush);
@@ -697,12 +712,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
             if(renderState != RS_BLOCK){
                 //Setup the Pen
-                QPen  pen = this->pen;
+                QPen  pen = getCurrentPen();
 
-                if(isSelected()){
-                    pen = this->selectedPen;
-                    pen.setWidthF(selectedPenWidth);
-                }
 
                 if (hasHardwareWarning) {
                     pen.setWidthF(selectedPenWidth);
@@ -711,24 +722,13 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
                 }
 
                 if (isHighlighted()) {
-                    pen.setStyle(Qt::DashLine);
-                    pen.setColor(Qt::darkBlue);
                     pen.setWidthF(selectedPenWidth);
                 }
 
-                if(isHovered()){
-                    if(pen.color() == Qt::black){
-                        pen.setWidthF(selectedPenWidth);
-                        pen.setColor(QColor(130,130,130));
-                    }else{
-                        pen.setColor(pen.color().lighter(130));
-                    }
-                }
 
                 //Trace the boundary
                 painter->setPen(pen);
                 painter->setBrush(Qt::NoBrush);
-
                 painter->drawRect(adjustRectForPen(boundingRect(), pen));
             }
         }
@@ -742,27 +742,30 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             painter->setPen(Qt::gray);
             QPen linePen = painter->pen();
 
-            linePen.setStyle(Qt::DotLine);
-            //linePen.setWidth(1);
-            painter->setPen(linePen);
-            painter->drawLines(getGridLines());
-
-            linePen.setColor(headerBrush.color().darker(220));
-            linePen.setStyle(Qt::DotLine);
-            linePen.setWidthF(selectedPenWidth);
-
-            painter->setPen(linePen);
-
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(QColor(0,0,255,90));
             foreach(QRectF rect, getChildrenGridOutlines()){
                 painter->drawRect(adjustRectForPen(rect, linePen));
             }
+
+            linePen.setStyle(Qt::SolidLine);
+            linePen.setWidthF(.5);
+            painter->setPen(linePen);
+            painter->drawLines(getGridLines());
         }
 
         //Paint the Icon
 
         if(renderState > RS_BLOCK){
+
+
             paintPixmap(painter, lod, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
+
+            if(nodeKind == "Process"){
+                paintPixmap(painter, lod, IP_CENTER_OVERLAY, "Functions", operationKind, false, Qt::black);
+            }
         }
+
     }
 
 
@@ -774,6 +777,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         paintPixmap(painter, lod, IP_CENTER_SMALL, "Actions", "Key");
     }
 
+
     if(renderState == RS_FULL){
         //If a Node has a Definition, paint a definition icon
         if(IS_READ_ONLY_DEF){
@@ -783,25 +787,17 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, lod, IP_BOTLEFT, "Actions", "Menu_Vertical");
         }
 
-        if(isInputParameter){
-            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Arrow_Forward");
+        if(isInputParameter || isReturnParameter){
+            QColor tintColor = QColor(22,177,22);
+            if(isInputParameter){
+                tintColor = QColor(206,23,23);
+            }
+
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(tintColor);
+            painter->drawRect(iconRect_TopLeft());
+            paintPixmap(painter, lod, IP_TOPLEFT, "Items", nodeKind, false, Qt::white);
         }
-        if(isReturnParameter){
-            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "Arrow_Forward");
-        }
-
-
-
-        if(canNodeBeConnected){
-            //Paint connect Icon
-            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "ConnectTo");
-
-            QPen newPen(Qt::gray);
-            newPen.setWidthF(0.5);
-            painter->setPen(newPen);
-            painter->drawEllipse(iconRect_TopRight());
-        }
-
 
         if(hasChildren()){
             if(isExpanded()){
@@ -822,6 +818,17 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             }
 
         }
+    }
+
+    //Can Connect Line
+    if(canNodeBeConnected && renderState >= RS_REDUCED){
+        QBrush brush = bodyBrush;
+        brush.setColor(brush.color().lighter(110));
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(brush);
+        painter->drawRect(iconRect_TopRight());
+        //Paint connect Icon
+        paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "ConnectTo");
     }
 
     if(renderState >= RS_REDUCED){
@@ -880,7 +887,7 @@ bool EntityItem::mouseOverDeploymentIcon(QPointF mousePosition)
 
 bool EntityItem::mouseOverDefinition(QPointF mousePosition)
 {
-    if (IS_READ_ONLY_DEF || nodeMemberIsKey || IS_READ_ONLY){
+    if (IS_READ_ONLY_DEF || nodeMemberIsKey || IS_READ_ONLY || isReturnParameter || isInputParameter){
         return iconRect_TopLeft().contains(mousePosition);
     }
     return false;
@@ -1496,6 +1503,8 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
             tooltip = "This Entity is a Read-Only Snippet definition.";
         }else if(IS_READ_ONLY){
             tooltip = "This Entity is in Read-Only Mode. You can only make visual changes.";
+        }else if(isInputParameter || isReturnParameter){
+            tooltip = "This Parameter is a " + nodeKind;
         }
         break;
     case MO_HARDWAREMENU:
@@ -1611,6 +1620,7 @@ void EntityItem::updateTextVisibility()
 
     if (topLabelInputItem && rightLabelInputItem) {
         topLabelInputItem->setVisible(showTopLabel);
+        //topLabelInputItem->setVisible(false);
         rightLabelInputItem->setVisible(showRightLabel);
 
         bottomInputItem->setVisible(showBottomLabel);
@@ -1787,6 +1797,18 @@ QRectF EntityItem::iconRect_Center() const
     return iconRect;
 }
 
+QRectF EntityItem::iconRect_BigCenter() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF iconRect;
+    iconRect.setSize(QSize(contractedWidth / 3,contractedWidth / 3));
+    //Translate to move the icon to its position
+    iconRect.moveCenter(minimumRect().center());
+
+    return iconRect;
+
+}
+
 
 
 /**
@@ -1857,6 +1879,8 @@ QRectF EntityItem::getImageRect(EntityItem::IMAGE_POS pos) const
         return iconRect();
     case IP_CENTER_SMALL:
         return iconRect_Center();
+    case IP_CENTER_OVERLAY:
+        return iconRect_BigCenter();
     default:
         return QRectF();
     }
@@ -2092,7 +2116,6 @@ void EntityItem::setupBrushes()
     readOnlyHeaderBrush = QBrush(bColor);
 
 
-
     blendColor = QColor(222,184,135);
     blendFactor = .6;
     bColor = headerBrush.color();
@@ -2122,6 +2145,7 @@ void EntityItem::setupBrushes()
 
     readOnlyDefHeaderBrush = QBrush(bColor);
 
+    hardwareLinkColor = Theme::theme()->getDeployColor();
 }
 
 
@@ -2624,9 +2648,14 @@ void EntityItem::labelEditModeRequest()
     if(inSubView()){
         return;
     }
+
+    if(!isSelected()){
+        //Force item to be selected.
+        handleSelection(true, false);
+    }
     InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
     StatusItem* statusItem = qobject_cast<StatusItem*>(QObject::sender());
-    if (inputItem){
+    if (inputItem && isSelected()){
         QString dataKey = "label";
         bool comboBox = false;
         if (inputItem == bottomInputItem) {
@@ -2653,6 +2682,7 @@ void EntityItem::labelEditModeRequest()
         }
     }
 }
+
 
 void EntityItem::dataChanged(QString dataValue)
 {
@@ -2691,18 +2721,6 @@ void EntityItem::zoomChanged(qreal currentZoom)
     GraphMLItem::zoomChanged(currentZoom);
 }
 
-GraphMLItem::RENDER_STATE EntityItem::getRenderStateFromZoom(qreal zoom)
-{
-    if(zoom >= 1.0){
-        return RS_FULL;
-    }else if(zoom >= (2.0/3.0)){
-        return RS_REDUCED;
-    }else if(zoom >= (1.0/3.0)){
-        return RS_MINIMAL;
-    }else{
-        return RS_BLOCK;
-    }
-}
 
 /**
  * @brief EntityItem::getChildrenViewOptionMenu
@@ -2744,8 +2762,6 @@ QString EntityItem::getIconURL()
         imageURL = vectorIconURL;
     } else if (nodeKind.endsWith("Parameter")) {
         return nodeLabel;
-    } else if(nodeKind == "Process"){
-        return operationKind;
     }
 
     return imageURL;
@@ -2753,17 +2769,14 @@ QString EntityItem::getIconURL()
 
 QString EntityItem::getIconPrefix()
 {
-    QString imageURL = nodeKind;
     if(nodeKind.endsWith("Parameter")){
         return "Data";
-    }else if(nodeKind == "Process"){
-        return "Functions";
     }
     return "Items";
 
 }
 
-void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update, QColor tintColor)
 {
     QRectF place = getImageRect(pos);
 
@@ -2776,29 +2789,46 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS
 
     if(image.size() != requiredSize || update){
         //Try get the image the user asked for.
-        image = theme->getImage(alias, imageName, requiredSize);
+        image = theme->getImage(alias, imageName, requiredSize, tintColor);
 
         if(image.isNull() && workerKind != ""){
             //Try get the Icon for the worker otherwise.
-            image = theme->getImage("Functions", workerKind, requiredSize);
+            image = theme->getImage("Functions", workerKind, requiredSize, tintColor);
         }
 
         if(image.isNull() && operationKind != ""){
             //Use the default icon for the Process.
-            image = theme->getImage("Items", "Process", requiredSize);
+            image = theme->getImage("Items", "Process", requiredSize, tintColor);
         }
 
         if(image.isNull() && nodeType != ""){
             //Look for a Data icon.
-            image = theme->getImage("Data", nodeType, requiredSize);
+            image = theme->getImage("Data", nodeType, requiredSize, tintColor);
         }
 
         if(image.isNull()){
             //Use a help icon.
-            image = theme->getImage("Actions", "Help", requiredSize);
+            image = theme->getImage("Actions", "Help", requiredSize, tintColor);
         }
         imageMap[pos] = image;
     }
+
+    /*
+    if (nodeKind == "Process") {
+        QPixmap originalPixmap = Theme::theme()->getImage("Items", nodeKind);
+        painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), originalPixmap);
+        QPixmap operationPixmap(":/Functions/" + operationKind);
+        if (operationPixmap.isNull()) {
+            operationPixmap = Theme::theme()->getImage("Actions", "Help");
+        }
+        int pixmapSize = iconRect().width() / 2.5;
+        operationPixmap = operationPixmap.scaled(pixmapSize, pixmapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        QPointF opPixmapPos = iconRect().center() - QPointF(pixmapSize/2, pixmapSize/2);
+        painter->drawPixmap(opPixmapPos.x(), opPixmapPos.y(), operationPixmap);
+    } else {
+        painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
+    }
+    */
 
     painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
 
@@ -2963,7 +2993,11 @@ void EntityItem::setNewLabel(QString newLabel)
             setData("label", newLabel);
         }else{
             if(!getEntityAdapter()->isDataProtected("label")){
-                topLabelInputItem->setEditMode(true);
+                if(topLabelInputItem && topLabelInputItem->isVisible()){
+                    topLabelInputItem->setEditMode(true);
+                }else if(rightLabelInputItem && rightLabelInputItem->isVisible()){
+                    rightLabelInputItem->setEditMode(true);
+                }
             }
         }
     }

@@ -3,7 +3,7 @@
 
 #include <math.h>
 #include <QPainter>
-#include "../../theme.h"
+#include "../../View/theme.h"
 #define RADIUS 10
 #define VERT_PADDING 4
 #define HORIZ_PADDING 4

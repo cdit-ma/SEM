@@ -39,6 +39,9 @@ public slots:
 private slots:
     void stopPressed();
     void frameChanged(int frame);
+    void closeTab(int tabID);
+
+    void authenticationFinished(bool success, QString message);
 
 private:
 

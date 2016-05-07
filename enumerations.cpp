@@ -250,7 +250,6 @@ QHash<QString, QString> GET_SETTINGS_TOOLTIPS_HASH()
     tooltips[ASPECT_H_COLOR] = "Sets the background color of the Hardware Definitions Aspect";
 
     tooltips[TOOLBAR_VISIBLE] = "Toggles the visibility of the toolbar.";
-    tooltips[TOOLBAR_EXPANDED] = "Sets the initial expanded state of the toolbar.";
     tooltips[TOOLBAR_CONTEXT] = "Sets the visibility of the context toolbar toolbutton.";
     tooltips[TOOLBAR_UNDO] = "Sets the visibility of the undo toolbar toolbutton.";
     tooltips[TOOLBAR_REDO] = "Sets the visibility of the redo toolbar toolbutton.";
@@ -314,7 +313,6 @@ QHash<QString, QString> GET_SETTINGS_GROUP_HASH()
     groups[JENKINS_TOKEN] = "User";
 
     groups[TOOLBAR_VISIBLE] = "Visible_Buttons";
-    groups[TOOLBAR_EXPANDED] = "Visible_Buttons";
     groups[TOOLBAR_CONTEXT] = "Visible_Buttons";
     groups[TOOLBAR_UNDO] = "Visible_Buttons";
     groups[TOOLBAR_REDO] = "Visible_Buttons";
@@ -361,4 +359,14 @@ QHash<QString, QString> GET_SETTINGS_GROUP_HASH()
 
     groups[CUTS_CONFIGURE_PATH] = "CUTS";
     return groups;
+}
+
+
+QColor GET_HARDWARE_HIGHLIGHT_COLOR()
+{
+    //return QColor(153,153,255);
+    //return QColor(0,102,102);
+    //return QColor(0,76,153);
+    //return QColor(102,0,51);
+    return QColor(178,34,34);
 }

@@ -90,7 +90,8 @@ void ModelTester::sleep(int ms){
     #ifdef _WIN32
         Sleep(ms);
     #else
-        sleep(ms);
+    return;
+    sleep(ms / 1000);
 #endif
 }
 

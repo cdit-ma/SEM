@@ -207,6 +207,21 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
                     newValue.replace(QString(" "), QString("_"));
                     newValue.replace(QString("\t"), QString("_"));
                     dataValue = newValue;
+                }else if(_keyName == "processes_to_log"){
+                    QString newValue = dataValue.toString();
+                    newValue.replace(QString(" "), QString(""));
+                    newValue.replace(QString(","), QString("\n"));
+                    QString value = "";
+                    foreach(QString proc, newValue.split("\n")){
+                        if(!proc.isEmpty()){
+                            value += proc + "\n";
+                        }
+                    }
+                    if(value.endsWith("\n")){
+                        //Trim off Last \n
+                        value = value.left(value.length() - 1);
+                    }
+                    dataValue = value;
                 }
 
                 //Check for valid values

@@ -5,12 +5,14 @@
 #include "../GraphicsItems/nodeitem.h"
 #include "../GraphicsItems/edgeitem.h"
 #include "toolbarmenuaction.h"
+#include <QLineEdit>
 #include <QRadioButton>
 #include <QWidget>
 #include <QToolButton>
 #include <QMenu>
 #include <QFrame>
 #include <QToolBar>
+#include <QSpinBox>
 
 class ToolbarMenu;
 class ToolbarMenuAction;
@@ -35,6 +37,7 @@ public slots:
     void addConnectedNode(ToolbarMenuAction* action);
     void connectNodes(ToolbarMenuAction* action);
     void displayConnectedNode(ToolbarMenuAction* action = 0);
+    void destructEdge();
     void expandContractNodes();
     void constructNewView();
     void getCPPForComponent();
@@ -54,6 +57,8 @@ public slots:
 
     void menuActionHovered(QAction* action = 0);
 
+    void updateReplicateCount();
+
     void updateDisplayedChildren();
     void hardwareClusterMenuClicked(int viewMode = -1);
 
@@ -70,6 +75,7 @@ public slots:
 private:
     void setupToolBar();
     void setupMenus();
+    void setupReplicateWidgets();
     void makeConnections();
 
     void updateButtonsAndMenus(QList<NodeItem *> nodeItems);
@@ -89,6 +95,7 @@ private:
 
     void updateToolButtonIcons();
     QToolButton* constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip = "", QString iconPath = "Actions");
+    QAction* constructToolbarSeparator();
 
     ToolbarMenu* constructTopMenu(QToolButton* parentButton, bool instantPopup = true, bool addToDynamicMenuHash = false);
     ToolbarMenu* constructSubMenu(ToolbarMenuAction* parentAction, QString infoText, bool addToDynamicMenuHash = true);
@@ -105,12 +112,6 @@ private:
     QFrame* mainFrame;
     QFrame* shadowFrame;
 
-    QAction*  actionAlignSeperator;
-    QAction*  actionExpandContractSeperator;
-    QAction*  actionSnippetSeperator;
-    QAction*  actionGoToSeperator;
-    QAction*  actionAlterViewSeperator;
-
     QToolBar* toolbar;
     QHBoxLayout* toolbarLayout;
 
@@ -118,6 +119,7 @@ private:
     QToolButton* deleteButton;
     QToolButton* connectButton;
     QToolButton* hardwareButton;
+    QToolButton* disconnectHardwareButton;
     QToolButton* definitionButton;
     QToolButton* implementationButton;
     QToolButton* instancesButton;
@@ -130,9 +132,11 @@ private:
     QToolButton* unsetReadOnlyButton;
     QToolButton* connectionsButton;
     QToolButton* popupNewWindow;
+    QToolButton* replicateCountButton;
     QToolButton* displayedChildrenOptionButton;
     QToolButton* expandButton;
     QToolButton* contractButton;
+    QToolButton* tagButton;
     QToolButton* wikiButton;
 
     QHash<QToolButton*, QAction*> actionLookup;
@@ -142,8 +146,8 @@ private:
     ToolbarMenu* definitionMenu;
     ToolbarMenu* implementationMenu;
     ToolbarMenu* instancesMenu;
-
     ToolbarMenu* hardwareMenu;
+    ToolbarMenu* replicateMenu;
     ToolbarMenu* hardwareClusterViewMenu;
 
     ToolbarMenu* componentImplMenu;
@@ -168,23 +172,31 @@ private:
     ToolbarMenuAction* outEventPortImplAction;
     ToolbarMenuAction* aggregateInstAction;
     ToolbarMenuAction* vectorInstAction;
-    ToolbarMenuAction* processAction;
+    ToolbarMenuAction* workerProcessAction;
+
+    QSpinBox* replicateCount;
+    QPushButton* applyReplicateCountButton;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
     QRadioButton* unconnectedNodes;
+
+    QAction*  actionAlterModelSeperator;
+    QAction*  actionAlignSeperator;
+    QAction*  actionExpandContractSeperator;
+    QAction*  actionSnippetSeperator;
+    QAction*  actionGoToSeperator;
+    QAction*  actionAlterViewSeperator;
 
     bool showDeleteToolButton;
     bool showImportSnippetToolButton;
     bool showExportSnippetToolButton;
     bool showDefinitionToolButton;
     bool showImplementationToolButton;
-
     bool showWikiButton;
     bool showShowCPPToolButton;
     bool showSetReadyOnlyToolButton;
     bool showUnsetReadyOnlyToolButton;
-
     bool showAlignmentButtons;
 
     bool alterModelButtonsVisible;
@@ -193,18 +205,22 @@ private:
     bool snippetButtonsVisible;
     bool goToButtonsVisible;
     bool alterViewButtonsVisible;
+    bool redirectButtonsVisible;
 
     int chosenInstanceID;
+    QList<int> deploymentEdgeIDs;
+
     QStringList adoptableNodeKinds;
     QList<NodeItem*> legalNodeItems;
     QList<EntityItem*> hardwareNodeItems;
 
     // this hash stores the menus that are cleared/re-populated when the toolbar
     // is shown and a bool of whether the menu has been re-populated or not
-    QHash<ToolbarMenu*, bool> dynamicMenus;
+    QHash<ToolbarMenu*, bool> dynamicMenuPopulated;
 
+    // this hash is used to check whether each separator should be visible or not
+    QHash<QAction*, bool> buttonsGroupVisible;
 
-    // QWidget interface
 protected:
     bool event(QEvent *);
 };

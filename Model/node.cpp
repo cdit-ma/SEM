@@ -512,6 +512,7 @@ bool Node::canConnect_DefinitionEdge(Node *definition)
         return false;
     }
 
+
     //Check parentNode
     Node* parentNode = getParentNode();
 
@@ -526,17 +527,9 @@ bool Node::canConnect_DefinitionEdge(Node *definition)
     }
 
     //Check for cyclic stuff
-    foreach(Node* child, definition->getChildren(0)){
+    foreach(Node* child, definition->getChildren()){
         if(child->isInstance() && child->getDefinition()){
-            Node* def = child->getDefinition();
-
-            while(def){
-                if(def->getDefinition()){
-                    def = def->getDefinition();
-                }else{
-                    break;
-                }
-            }
+            Node* def = child->getDefinition(true);
 
             if(def){
                 if(def->isAncestorOf(this)){
@@ -715,6 +708,16 @@ QString Node::toMD5Hash()
     return hash;
 }
 
+bool Node::isInModel()
+{
+    if(treeIndex.size() > 0){
+        if(treeIndex.first() == 0){
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Node::isDefinition()
 {
     return nodeType == Node::NT_DEFINITION || nodeType == Node::NT_DEFINSTANCE;
@@ -749,9 +752,14 @@ void Node::setDefinition(Node *def)
 
 }
 
-Node *Node::getDefinition()
+Node *Node::getDefinition(bool recurse)
 {
-    return definition;
+    Node* def = definition;
+
+    if(recurse && def && def->getDefinition(false)){
+        def = def->getDefinition(true);
+    }
+    return def;
 }
 
 void Node::unsetDefinition()

@@ -6,6 +6,7 @@
 #include <QDialog>
 #include <QPlainTextEdit>
 #include <QDialogButtonBox>
+#include "View/theme.h"
 AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QAbstractTableModel(item)
 {
     Q_UNUSED(parent);
@@ -22,16 +23,15 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
 
     attachedEntity->addListener(this);
     hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded" << "readOnly";//<< "kind";
-    hiddenKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime";
+    hiddenKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime" << "dataProtected";
     permanentlyLockedKeyNames << "kind";
- 	multiLineKeyNames << "code";
+    multiLineKeyNames << "code" << "processes_to_log";
     setupDataBinding();
 
 }
 
 AttributeTableModel::~AttributeTableModel()
 {
-    //qCritical() << "Deleting Table Model";
     attachedEntity->removeListener(this);
 }
 
@@ -148,9 +148,9 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
     if (role == Qt::TextAlignmentRole) {
         switch(index.column()){
 
-        case 1:
+        case 0:
             return QVariant(Qt::AlignLeft | Qt::AlignVCenter);
-        case 2:{
+        case 1:{
             if(popupMultiLine(index)) {
                 return QVariant(Qt::AlignLeft | Qt::AlignTop);
             }else{
@@ -163,12 +163,9 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DecorationRole) {
         switch(index.column()){
-        case 2:
+        case 1:
             if(popupMultiLine(index)) {
-                QImage* image = new QImage(":/Actions/Popup.png");
-                QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
-                QPixmap pixmap(QPixmap::fromImage(scaledImage));
-                return pixmap;
+                return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16));
             }
            break;
         }

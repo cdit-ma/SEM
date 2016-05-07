@@ -15,7 +15,7 @@
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QGroupBox>
-#include "../theme.h"
+#include "../View/theme.h"
 
 #define SMALL_SQUARE 25
 KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v, QString description, QString customType):QWidget(0)
@@ -34,7 +34,6 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
     bool isBool = false;
     bool isInt = false;
-    bool isString = true;
     bool isColor = keyNameHR.endsWith("Color");
     isFilePath = keyNameHR.endsWith("File Path");
     isPath = keyNameHR.endsWith("Path");
@@ -104,7 +103,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     }
 
     hLayout->addWidget(keyLabel);
-
+    keyLabel->setFocusPolicy(Qt::NoFocus);
     hLayout->setSpacing(5);
 
     labelButton = keyLabel;
@@ -126,6 +125,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         hLayout->insertWidget(0, checkBox);
         hLayout->setStretch(1, 1);
 
+        keyLabel->setFocusPolicy(Qt::ClickFocus);
         valueBox = checkBox;
         value2Box = keyLabel;
         keyType = KEY_BOOL;

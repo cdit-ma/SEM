@@ -134,6 +134,7 @@ void SearchSuggestCompletion::setSize(qreal width, qreal height, int sizeKind)
        break;
    default:
        popup->setFixedSize(width, height);
+       break;
    }
 }
 

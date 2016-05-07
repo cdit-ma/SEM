@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QFontMetrics>
 #include <QGraphicsSceneMouseEvent>
-#include "../../theme.h"
+#include "../../View/theme.h"
 
 #define RADIUS 10
 #define VERT_PADDING 4

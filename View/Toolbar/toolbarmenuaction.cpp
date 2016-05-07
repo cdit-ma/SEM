@@ -1,7 +1,7 @@
 #include "toolbarmenuaction.h"
 #include "toolbarmenu.h"
 #include <QDebug>
-#include "../../theme.h"
+#include "../../View/theme.h"
 
 
 /**
@@ -12,25 +12,24 @@
 ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, ToolbarMenuAction* parent_action, QWidget* parent) :
     QAction(parent)
 {
-    //connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     parentAction = parent_action;
     nodeItem = item;
     deletable = true;
 
-    prefixPath = "Items";
-
-
     if (nodeItem) {
         actionKind = nodeItem->getNodeKind();
         if (nodeItem->isEntityItem()) {
-            EntityItem* entityItem = (EntityItem*)nodeItem;
-            setText(nodeItem->getDataValue("label").toString());
+            setText(nodeItem->getLabel());
         } else {
             setText(actionKind);
         }
     } else {
         qWarning() << "ToolbarMenuAction::ToolbarMenuAction - NodeItem is null.";
     }
+
+    prefixPath = "Items";
+    urlPath = actionKind;
+
     themeChanged();
 }
 
@@ -43,6 +42,7 @@ ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, ToolbarMenuAction* parent_a
 ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_action, QWidget* parent, QString displayedText, QString prefixPath, QString aliasPath) :
     QAction(parent)
 {
+    //Q_UNUSED(aliasPath)
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
     parentAction = parent_action;
@@ -75,8 +75,12 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_act
     if (prefixPath.isEmpty()) {
         prefixPath = "Items";
     }
-
     this->prefixPath = prefixPath;
+
+    if (aliasPath.isEmpty()) {
+        aliasPath = actionKind;
+    }
+    urlPath = aliasPath;
 
     themeChanged();
 }
@@ -155,7 +159,8 @@ void ToolbarMenuAction::themeChanged()
 void ToolbarMenuAction::updateIcon()
 {
     QString prefix = prefixPath;
-    QString name = actionKind;
+    QString name = urlPath;
+    //QString name = actionKind;
 
     if (nodeItem && nodeItem->isEntityItem()){
         EntityItem* entityItem = (EntityItem*) nodeItem;
@@ -165,7 +170,15 @@ void ToolbarMenuAction::updateIcon()
 
     QIcon icon = Theme::theme()->getIcon(prefix, name);
 
-    if(icon.isNull()){
+    // if there is no matching icon, use the parent action's icon
+    if (icon.isNull()) {
+        if (getParentAction()) {
+            icon = getParentAction()->icon();
+        }
+    }
+
+    // if the icon is still null, usee the help icon
+    if (icon.isNull()) {
         icon = Theme::theme()->getIcon("Actions", "Help");
     }
 

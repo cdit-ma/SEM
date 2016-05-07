@@ -26,6 +26,7 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
 }
 
 void NodeViewMinimap::centerView()
@@ -33,7 +34,9 @@ void NodeViewMinimap::centerView()
     if (scene()) {
         QRectF rect = scene()->itemsBoundingRect();
         fitInView(rect, Qt::KeepAspectRatio);
+        setSceneRect(rect);
     }
+
 }
 
 void NodeViewMinimap::setVisible(bool visible)
@@ -75,27 +78,6 @@ void NodeViewMinimap::setupLayout()
     setLayout(layout);
 }
 
-
-/**
- * @brief NodeViewMinimap::fitToScreen
- */
-void NodeViewMinimap::fitToScreen()
-{
-    if (!scene()) {
-        return;
-    }
-
-    QList<QGraphicsItem*> itemsToCenter = scene()->items();
-    QRectF visibleItemsRect;
-
-    foreach (QGraphicsItem* item, itemsToCenter) {
-        if (item->isVisible()) {
-            visibleItemsRect = visibleItemsRect.united(item->sceneBoundingRect());
-        }
-    }
-
-    fitInView(visibleItemsRect, Qt::KeepAspectRatio);
-}
 
 void NodeViewMinimap::setCursor(QCursor cursor)
 {

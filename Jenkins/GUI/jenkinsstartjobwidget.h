@@ -28,7 +28,7 @@ signals:
 public slots:
     //Connected to from JenkinsRequest SIGNALS
     void gotJobParameters(QString jobName, Jenkins_JobParameters parameters);
-
+    void authenticationFinished(bool success, QString message);
     //Connected to the build button in the GUI
     void build();
 private:

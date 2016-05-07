@@ -35,6 +35,8 @@ public slots:
     void setClickToCenter(bool b);
     void setDoubleClickToExpand(bool b);
 
+    void dataChanged(QString keyName, QVariant data);
+
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);

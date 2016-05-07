@@ -114,6 +114,8 @@ signals:
     void window_clearDocks();
     void window_clearDocksSelection();
 
+    void window_changeHardwareDockFunction(bool clictToCenter);
+
     void window_updateActionsEnabled();
 
     void checkDockScrollBar();
@@ -167,13 +169,12 @@ private slots:
     void reportBug();
     void showWiki(QString componentName="");
     void showShortcutList();
-    void invalidJenkinsSettings(QString message);
+    void jenkinsSettingsValidated(bool success, QString message);
     void jenkinsNodesLoaded();
     void saveSettings();
     void search();
 
     void gotJenkinsNodeGraphML(QString graphML = "");
-    void setImportJenkinsNodeEnabled(bool enabled = true);
     void on_actionImportJenkinsNode();
 
     void on_actionNew_Project_triggered();
@@ -205,7 +206,8 @@ private slots:
 
     void dockButtonPressed();
     void dockToggled(bool opened, QString kindToConstruct = "");
-    void dockBackButtonTriggered();
+    void hardwareDockFunctionChanged(bool checked);
+    void enableHardwareDockDeployButton(bool enable);
 
     void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);
@@ -288,6 +290,7 @@ private:
 
     void toolbarSettingChanged(QString keyName, QVariant value);
     void themeSettingChanged(QString keyName, QVariant value);
+    void jenkinsSettingChanged(QString keyName, QVariant value);
     void jenkins_JobName_Changed(QString jobName);
     void enableTempExport(bool enable);
 
@@ -439,6 +442,10 @@ private:
     QGroupBox* dockButtonsBox;
     QVBoxLayout* dockLayout;
 
+    QGroupBox* nodesDockButtonsBox;
+    QPushButton* nodesDockDeployButton;
+    QPushButton* nodesDockCenterButton;
+
     // DEMO CHANGE
     //QDialog* toolbarStandAloneDialog;
     //QGroupBox* toolbarArea;
@@ -454,6 +461,7 @@ private:
     QToolBar* toolbarButtonBar;
     QToolButton* toolbarButton;
     bool SHOW_TOOLBAR;
+    bool wasToolbarVisible;
     bool EXPAND_TOOLBAR;
 
     QHash<QString, QAction*> toolbarActionLookup;
@@ -492,7 +500,6 @@ private:
     QTimer* notificationTimer;
     QQueue<NotificationStruct> notificationsQueue;
     QHash<int, QString> multipleNotification;
-    int leftOverTime;
 
     QWidget* rightPanelWidget;
 
@@ -569,6 +576,9 @@ private:
     QFont guiFont;
     int boxWidth, boxHeight;
     int minLeftPanelHeight;
+
+    int dockWithLabelHeight;
+    int dockWithoutLabelHeight;
 
     //QString DEPGEN_ROOT;
 

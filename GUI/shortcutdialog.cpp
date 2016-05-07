@@ -4,7 +4,7 @@
 #include <QPalette>
 #include <QBrush>
 #include <QDebug>
-#include "../theme.h"
+#include "../View/theme.h"
 #define WIDTH 550
 #define HEIGHT 650
 
@@ -39,12 +39,9 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("CTRL + SHIFT + V", "Validates the current project.");
     addShortcut("CTRL + Z", "Undoes the last change in the model.");
     addShortcut("CTRL + Y", "Redoes the last Undo.");
-    addShortcut("CTRL + Space", "Fits the entire model into the view.");
+    addShortcut("CTRL + SPACE", "Fits the entire model into the view.");
     addShortcut("CTRL + J", "Imports the Nodes from the Jenkins Server.");
-
-
-
-
+    addShortcut("CTRL + SHIFT + B", "Executes the current project on the Jenkins Server.");
 
     addTitle("Selection", Theme::theme()->getImage("Actions", "SelectAll"));
     addShortcut("ESC", "Clears the current selection / Closes current dialog window.");
@@ -58,6 +55,9 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("DELETE", "Deletes all selected entities.");
     addShortcut("SHIFT + D", "Centers on the (singular) selected entity's definition.");
     addShortcut("SHIFT + I", "Centers on the (singular) selected entity's implementation.");
+    addShortcut("TAB", "Sets the next entity in the selection as the active selection.");
+    addShortcut("SHIFT + TAB", "Sets the previous entity in the selection as the active selection.");
+
 
     addTitle("Mouse", Theme::theme()->getImage("Actions", "Mouse"));
     addShortcut("L MOUSE", "Selects the entity under the cursor.");

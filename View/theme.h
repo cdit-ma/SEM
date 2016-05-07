@@ -32,6 +32,9 @@ public:
     QColor getPressedColor();
     QString getPressedColorHex();
 
+    QColor getDeployColor();
+    QString getDeployColorHex();
+
     void setBackgroundColor(QColor color);
     void setDisabledBackgroundColor(QColor color);
     void setAltBackgroundColor(QColor color);
@@ -79,6 +82,7 @@ private:
     QHash<QString, QIcon> iconLookup;
     QHash<QString, QColor> pixmapTintLookup;
     QHash<QString, QString> iconToggledLookup;
+    QHash<QString, QImage> imageLookup;
 
     QHash<VIEW_ASPECT, QColor> aspectColor;
 
@@ -86,6 +90,7 @@ private:
     QHash<COLOR_ROLE, QColor> menuIconColor;
 
 
+    QColor deployColor;
     QColor highlightColor;
     QColor backgroundColor;
     QColor altBackgroundColor;
@@ -96,6 +101,7 @@ private:
 
     bool themeChanged;
 
+    int readCount;
     bool valid;
 
 public:

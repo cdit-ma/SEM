@@ -22,3 +22,4 @@ Edge::EDGE_CLASS EdgeAdapter::getEdgeClass()
     return _edgeClass;
 }
 
+

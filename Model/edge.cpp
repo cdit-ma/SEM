@@ -216,3 +216,11 @@ Edge::EDGE_TYPE Edge::getType()
     }
     return ET_NORMAL;
 }
+
+bool Edge::isInModel()
+{
+    if(source && destination){
+        return source->isInModel() && destination->isInModel();
+    }
+    return false;
+}

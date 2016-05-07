@@ -80,7 +80,7 @@ void AppSettings::loadSettings()
 
         foreach(QString key, settings->childKeys()){
             //Dont reload window settings.
-            if(settingsLoaded && group == WINDOW_SETTINGS){
+            if(settingsLoaded && (group == WINDOW_SETTINGS || group == TOOLBAR_SETTINGS)){
                  continue;
             }
             QVariant variant;
@@ -113,6 +113,11 @@ void AppSettings::loadSettings()
     }
 
     emit settingsApplied();
+}
+
+bool AppSettings::areSettingsLoaded()
+{
+    return settingsLoaded;
 }
 
 /**
@@ -295,7 +300,6 @@ void AppSettings::setupLayout()
     QTabWidget* tabWidget = new QTabWidget();
 
 
-    int longestFont = 0;
 
     if(!settingFileWriteable){
         QLabel* label = new QLabel("settings.ini file is read-only! Settings changed won't persist!");

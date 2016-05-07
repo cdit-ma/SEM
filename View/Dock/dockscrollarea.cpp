@@ -8,11 +8,12 @@
 #include <QDebug>
 #include <qmath.h>
 
-//#define DOCK_PADDING 5
 #define DOCK_PADDING 10
 #define MAX_LABEL_LENGTH 12
 #define BUTTON_WIDTH 81
-//#define BUTTON_WIDTH 131
+
+#define OPENED_DEFAULT false
+#define ENABLED_DEFAULT false
 
 
 /**
@@ -47,18 +48,24 @@ DockScrollArea::DockScrollArea(DOCK_TYPE type, NodeView* view, DockToggleButton*
 
     setupLayout();
     setParentButton(parent);
-    setDockOpen(false);
+    setDockOpen(OPENED_DEFAULT);
+    setDockEnabled(ENABLED_DEFAULT);
 
+    connect(this, SIGNAL(dock_opened(bool)), SIGNAL(dock_toggled(bool)));
+    connect(this, SIGNAL(dock_closed(bool)), SIGNAL(dock_toggled(bool)));
+
+    /*
     // the definitions and functions dock have their own signal related to this
     switch (getDockType()) {
     case PARTS_DOCK:
     case HARDWARE_DOCK:
-        connect(this, SIGNAL(dock_opened(bool)), this, SIGNAL(dock_toggled(bool)));
-        connect(this, SIGNAL(dock_closed(bool)), this, SIGNAL(dock_toggled(bool)));
+        connect(this, SIGNAL(dock_opened(bool)), SIGNAL(dock_toggled(bool)));
+        connect(this, SIGNAL(dock_closed(bool)), SIGNAL(dock_toggled(bool)));
         break;
     default:
         break;
     }
+    */
 }
 
 
@@ -88,7 +95,6 @@ QStringList DockScrollArea::getNotAllowedKinds()
  */
 void DockScrollArea::updateCurrentNodeItem()
 {
-
     currentNodeItem = nodeView->getSelectedNodeItem();
 
     if (currentNodeItem) {
@@ -283,6 +289,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
         dockNodeIDs.append(dockItemID.toInt());
         dockNodeItems[dockItemID] = dockItem;
         connect(dockItem, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
+        connect(dockItem, SIGNAL(dockItem_clicked()), this, SIGNAL(dock_dockItemClicked()));
 
     } else {
         qWarning() << "DockScrollArea::addDockNodeItem - Item is null.";
@@ -369,6 +376,9 @@ void DockScrollArea::setDockEnabled(bool enabled)
     if (getParentButton()) {
         getParentButton()->setEnabled(enabled);
     }
+    if (!enabled && isDockOpen()) {
+        setDockOpen(false);
+    }
 }
 
 
@@ -389,26 +399,29 @@ bool DockScrollArea::isDockOpen()
  */
 void DockScrollArea::setDockOpen(bool open)
 {
-    if ((!ENABLED && open) || (open == OPEN)) {
+    if (!ENABLED && open) {
         return;
     }
 
-    OPEN = open;
-    setVisible(open);
+    if (open != OPEN) {
+        OPEN = open;
+        setVisible(open);
+    }
 
+    // these signals still need to be sent event if the open state hasn't changed
     if (open) {
         emit dock_opened();
     } else {
         emit dock_closed();
     }
+
 }
 
 
 /**
  * @brief DockScrollArea::updateDock
- * If the currently selected node kind is contained in notAllowedKinds,
- * it means that this dock can't be used for the selected node.
- * If so, disable this dock's parentButton.
+ * If the currently selected node's kind is contained in notAllowedKinds,
+ * disable this dock and its parent button (if it has one).
  */
 void DockScrollArea::updateDock()
 {
@@ -572,12 +585,27 @@ void DockScrollArea::clearSelected()
 
 
 /**
- * @brief DockScrollArea::parentHeightChanged
- * @param height
+ * @brief DockScrollArea::forceOpenDock
  */
-void DockScrollArea::parentHeightChanged(double height)
+void DockScrollArea::forceOpenDock(QString)
 {
-    resize(width(), height);
+    // check if the dock is already opened or if there is no selected item
+    if (isDockOpen() || !getCurrentNodeItem() || (getCurrentNodeID() == -1)) {
+        return;
+    }
+
+    // before opening this dock, make sure it is enabled
+    if (!isDockEnabled()) {
+        setDockEnabled(true);
+    }
+
+    // close the sender dock (if there is one) then open this dock
+    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+    if (dock) {
+        dock->setDockOpen(false);
+    }
+
+    setDockOpen();
 }
 
 

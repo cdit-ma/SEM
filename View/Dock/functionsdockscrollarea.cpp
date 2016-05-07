@@ -20,11 +20,7 @@ FunctionsDockScrollArea::FunctionsDockScrollArea(DOCK_TYPE type, NodeView *view,
     mainLayout->addStretch();
     getLayout()->addLayout(mainLayout);
 
-    setDockOpen(false);
     connectToView();
-
-    connect(this, SIGNAL(dock_opened(bool)), this, SLOT(dockToggled(bool)));
-    connect(this, SIGNAL(dock_closed(bool)), this, SLOT(dockToggled(bool)));
 }
 
 
@@ -94,9 +90,6 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
     if (dockItem && parentItem) {
         getNodeView()->constructWorkerProcessNode(parentItem->getKind(), dockItem->getKind(), 0);
     }
-
-    // this closes this dock and then re-opens the parts dock
-    emit dock_forceOpenDock();
 }
 
 
@@ -106,7 +99,7 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
 void FunctionsDockScrollArea::updateDock()
 {
     if (isDockOpen()) {
-        emit dock_forceOpenDock();
+        setDockOpen(false);
     }
 }
 
@@ -215,36 +208,5 @@ void FunctionsDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
         }
     } else {
         layoutToSort->addWidget(dockItem);
-    }
-}
-
-
-/**
- * @brief FunctionsDockScrollArea::dockToggled
- * @param opened
- */
-void FunctionsDockScrollArea::dockToggled(bool opened)
-{
-    QString action = "";
-    if (opened) {
-        //action = "Select to construct a Process";
-        action = "Process";
-    }
-    emit dock_toggled(opened, action);
-}
-
-
-/**
- * @brief FunctionsDockScrollArea::forceOpenDock
- */
-void FunctionsDockScrollArea::forceOpenDock()
-{
-    if (!isDockOpen()) {
-        // close the sender dock then open this dock
-        DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
-        if (dock) {
-            dock->setDockOpen(false);
-        }
-        setDockOpen();
     }
 }

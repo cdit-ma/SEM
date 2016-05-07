@@ -9,6 +9,7 @@
 #include <QWidgetAction>
 #include <QPair>
 #include <QStyleFactory>
+#include <QMessageBox>
 
 /**
  * @brief ToolbarWidget::ToolbarWidget
@@ -37,14 +38,12 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     showAlignmentButtons = false;
     setAttribute(Qt::WA_TranslucentBackground);
 
-
 #ifdef Q_OS_WIN32
     //Toolbar in a Qt::Popup class doesn't allow Hover/QIcon state changes.
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
 #else
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup | Qt::Dialog);
 #endif
-
 
     // these frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
@@ -85,7 +84,10 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
     actionLookup[alignHorizontallyButton]->setVisible(showAlignmentButtons);
 
     alterModelButtonsVisible = showDeleteToolButton;
+    alignButtonsVisible = showAlignmentButtons;
+    redirectButtonsVisible = showShowCPPToolButton || showWikiButton;
     snippetButtonsVisible = showExportSnippetToolButton || showImportSnippetToolButton;
+    alterViewButtonsVisible = showSetReadyOnlyToolButton || showUnsetReadyOnlyToolButton;
 
     // update the rest of the tool buttons and menus if only node items are selected
     if (edgeItems.isEmpty()) {
@@ -104,7 +106,6 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
 void ToolbarWidget::clearToolbarMenus()
 {
     clearMenus();
-    chosenInstanceID = -1;
     functionsMenu->clearMenu();
 }
 
@@ -125,7 +126,7 @@ void ToolbarWidget::setupFunctionsList()
 
     foreach (QStringList functions, classFunctionHash.values()) {
         QString className = classFunctionHash.key(functions);
-        ToolbarMenuAction* classAction = new ToolbarMenuAction(className, 0, functionsMenu, "", "Functions", className);
+        ToolbarMenuAction* classAction = new ToolbarMenuAction(className, workerProcessAction, functionsMenu, "", "Functions", className);
         ToolbarMenu* classMenu = new ToolbarMenu(this);
         foreach (QString function, functions) {
             classMenu->addAction(new ToolbarMenuAction(function, classAction, this, "", "Functions", function));
@@ -136,7 +137,8 @@ void ToolbarWidget::setupFunctionsList()
 }
 
 
-/**
+/**git clone https://github.com/cdit-ma/MEDEA
+
  * @brief ToolbarWidget::getNonDeletableMenuActionKinds
  * @return - the list of actios from the addMenu that has a subMenu.
  */
@@ -153,7 +155,7 @@ QStringList ToolbarWidget::getNonDeletableMenuActionKinds()
     nonDeletableKinds.append("OutEventPortImpl");
     nonDeletableKinds.append("AggregateInstance");
     nonDeletableKinds.append("VectorInstance");
-    nonDeletableKinds.append("Process");
+    nonDeletableKinds.append("WorkerProcess");
     return nonDeletableKinds;
 }
 
@@ -186,7 +188,6 @@ void ToolbarWidget::updateActionEnabledState(QString actionName, bool enabled)
     } else if (actionName == "align") {
         showAlignmentButtons = enabled;
     }
-
 }
 
 
@@ -320,7 +321,7 @@ void ToolbarWidget::displayConnectedNode(ToolbarMenuAction* action)
     // if there is no action, the sender is a QToolButton
     if (!action) {
         QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
-        if (button == deleteButton) {
+        if (button == definitionButton) {
             nodeView->centerDefinition(nodeItem->getID());
         } else if (button == implementationButton) {
             nodeView->centerImplementation(nodeItem->getID());
@@ -350,6 +351,22 @@ void ToolbarWidget::displayConnectedNode(ToolbarMenuAction* action)
     } else {
         qWarning() << "ToolbarWidget::displayConnectedNode -  Action kind not handled.";
     }
+}
+
+
+/**
+ * @brief ToolbarWidget::destructEdge
+ */
+void ToolbarWidget::destructEdge()
+{
+//    QList<int> IDsToDelete;
+//    QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+//    delete hardware link(s)
+//    if (button == disconnectHardwareButton) {
+//        IDsToDelete = deploymentEdgeIDs;
+//    }
+//    Use selection, and -1 means to delete only.
+    nodeView->constructDestructEdges(QList<int>(), -1);
 }
 
 
@@ -420,8 +437,7 @@ void ToolbarWidget::setReadOnlyMode()
 void ToolbarWidget::launchWiki()
 {
     if (nodeItem) {
-        QString nodeKind = nodeItem->getNodeKind();
-        emit nodeView->view_LaunchWiki(nodeKind);
+        emit nodeView->view_LaunchWiki(nodeItem->getNodeKind());
     }
 }
 
@@ -460,8 +476,9 @@ void ToolbarWidget::hide()
 void ToolbarWidget::setVisible(bool visible)
 {
     bool toolbarVisible = visible && (alterModelButtonsVisible || alignButtonsVisible
-                                      || snippetButtonsVisible || goToButtonsVisible
-                                      || alterViewButtonsVisible || expandContractButtonsVisible);
+                                      || expandContractButtonsVisible || snippetButtonsVisible
+                                      || goToButtonsVisible || alterViewButtonsVisible
+                                      || redirectButtonsVisible);
 
     // update the toolbar & frame sizes
     if (toolbarVisible) {
@@ -491,6 +508,7 @@ void ToolbarWidget::setVisible(bool visible)
     } else {
         closeOpenMenus();
     }
+
 
     mainFrame->setVisible(toolbarVisible);
     shadowFrame->setVisible(toolbarVisible);
@@ -566,7 +584,9 @@ void ToolbarWidget::setupTheme()
 void ToolbarWidget::appendToOpenMenusList()
 {
     ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
-    openMenus.append(menu);
+    if(menu){
+        openMenus.append(menu);
+    }
 }
 
 
@@ -576,11 +596,11 @@ void ToolbarWidget::appendToOpenMenusList()
 void ToolbarWidget::removeFromOpenMenusList()
 {
     ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
-    openMenus.removeAll(menu);
-
-    QPoint cursorPos = mapFromGlobal(QCursor::pos());
-    if (rect().contains(cursorPos)) {
-        closeOpenMenus();
+    if(menu){
+        QPoint cursorPos = mapFromGlobal(QCursor::pos());
+        if (rect().contains(cursorPos)) {
+            closeOpenMenus();
+        }
     }
 }
 
@@ -615,14 +635,24 @@ void ToolbarWidget::menuActionHovered(QAction* action)
 
 
 /**
+ * @brief ToolbarWidget::updateReplicateCount
+ */
+void ToolbarWidget::updateReplicateCount()
+{
+    int replicateValue = replicateCount->value();
+    nodeView->replicateCountChanged(replicateValue);
+}
+
+
+/**
  * @brief ToolbarWidget::setupAdoptableNodesList
  */
 void ToolbarWidget::setupAdoptableNodesList()
 {
-    if (dynamicMenus.value(addMenu)) {
+    if (dynamicMenuPopulated.value(addMenu)) {
         return;
     } else {
-        dynamicMenus[addMenu] = true;
+        dynamicMenuPopulated[addMenu] = true;
     }
 
     foreach (QString kind, adoptableNodeKinds) {
@@ -649,8 +679,8 @@ void ToolbarWidget::setupAdoptableNodesList()
             action = aggregateInstAction;
         } else if (kind == "VectorInstance") {
             action = vectorInstAction;
-        } else if (kind == "Process") {
-            action = processAction;
+        } else if (kind == "WorkerProcess") {
+            action = workerProcessAction;
         } else {
             action  = new ToolbarMenuAction(kind, 0, this);
         }
@@ -665,10 +695,10 @@ void ToolbarWidget::setupAdoptableNodesList()
  */
 void ToolbarWidget::setupLegalNodesList()
 {
-    if (dynamicMenus.value(connectMenu)) {
+    if (dynamicMenuPopulated.value(connectMenu)) {
         return;
     } else {
-        dynamicMenus[connectMenu] = true;
+        dynamicMenuPopulated[connectMenu] = true;
     }
 
     NodeItem* selectedItem = nodeView->getSelectedNodeItem();
@@ -719,10 +749,10 @@ void ToolbarWidget::setupComponentList()
  */
 void ToolbarWidget::setupBlackBoxList()
 {
-    if (dynamicMenus.value(blackBoxInstMenu)) {
+    if (dynamicMenuPopulated.value(blackBoxInstMenu)) {
         return;
     } else {
-        dynamicMenus[blackBoxInstMenu] = true;
+        dynamicMenuPopulated[blackBoxInstMenu] = true;
     }
 
     QList<NodeItem*> blackBoxes = nodeView->getEntityItemsOfKind("BlackBox");
@@ -755,12 +785,12 @@ void ToolbarWidget::setupAggregateList()
         return;
     }
 
-    if (dynamicMenus.contains(menu)) {
+    if (dynamicMenuPopulated.contains(menu)) {
         // check if the menu has already been populated
-        if (dynamicMenus.value(menu)) {
+        if (dynamicMenuPopulated.value(menu)) {
             return;
         } else {
-            dynamicMenus[menu] = true;
+            dynamicMenuPopulated[menu] = true;
         }
     } else {
         qWarning() << "ToolbarWidget::setupAggregateList - Menu not stored in hash.";
@@ -781,10 +811,10 @@ void ToolbarWidget::setupAggregateList()
  */
 void ToolbarWidget::setupVectorList()
 {
-    if (dynamicMenus.value(vectorInstMenu)) {
+    if (dynamicMenuPopulated.value(vectorInstMenu)) {
         return;
     } else {
-        dynamicMenus[vectorInstMenu] = true;
+        dynamicMenuPopulated[vectorInstMenu] = true;
     }
 
     QList<NodeItem*> vectors = nodeView->getEntityItemsOfKind("Vector");
@@ -801,10 +831,10 @@ void ToolbarWidget::setupVectorList()
  */
 void ToolbarWidget::setupHardwareList()
 {
-    if (dynamicMenus.value(hardwareMenu)) {
+    if (dynamicMenuPopulated.value(hardwareMenu)) {
         return;
     } else {
-        dynamicMenus[hardwareMenu] = true;
+        dynamicMenuPopulated[hardwareMenu] = true;
     }
 
     QList<NodeItem*> topActions, subActions;
@@ -832,10 +862,10 @@ void ToolbarWidget::setupHardwareList()
  */
 void ToolbarWidget::setupOutEventPortList()
 {
-    if (dynamicMenus.value(outEventPortImplMenu)) {
+    if (dynamicMenuPopulated.value(outEventPortImplMenu)) {
         return;
     } else {
-        dynamicMenus[outEventPortImplMenu] = true;
+        dynamicMenuPopulated[outEventPortImplMenu] = true;
     }
 
     NodeAdapter* nodeAdapter = nodeItem->getNodeAdapter();
@@ -883,55 +913,48 @@ void ToolbarWidget::setupToolBar()
 
     // construct tool buttons and separators and add them to the toolbar's layout
     addChildButton = constructToolButton(buttonSize, 0.8, "Plus", "Add Child Entity");
-    connectButton = constructToolButton(buttonSize, 0.7, "ConnectTo", "Connect Selection");
-    hardwareButton = constructToolButton(buttonSize, 0.7,  "Computer", "Deploy Selection", "Actions");
     deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
+    connectButton = constructToolButton(buttonSize, 0.7, "ConnectTo", "Connect Selection");
+    hardwareButton = constructToolButton(buttonSize, 0.7,  "Computer", "Deploy Selection");
+    disconnectHardwareButton = constructToolButton(buttonSize, 0.7,  "Computer_Cross", "Disconnect Selection From Its Current Deployment");
 
-    actionAlignSeperator = toolbar->addSeparator();
+    actionAlterModelSeperator = constructToolbarSeparator();
 
     alignVerticallyButton = constructToolButton(buttonSize, 0.6, "Align_Vertical", "Align Selection Vertically");
     alignHorizontallyButton = constructToolButton(buttonSize, 0.6, "Align_Horizontal", "Align Selection Horizontally");
 
-    actionExpandContractSeperator = toolbar->addSeparator();
+    actionAlignSeperator = constructToolbarSeparator();
 
     expandButton = constructToolButton(buttonSize, 0.6, "Expand", "Expand Selection");
     contractButton = constructToolButton(buttonSize, 0.6, "Contract", "Contract Selection");
 
-    actionSnippetSeperator = toolbar->addSeparator();
+    actionExpandContractSeperator = constructToolbarSeparator();
 
     importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
     exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
+
+    actionSnippetSeperator = constructToolbarSeparator();
+
+    definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Selection's Definition");
+    implementationButton = constructToolButton(buttonSize, 0.6, "Implementation", "View Selection's Implementation");
+    instancesButton = constructToolButton(buttonSize, 0.6, "Instance", "View Selection's Instances");
+
+    actionGoToSeperator = constructToolbarSeparator();
+
+    displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "Menu_Vertical", "Change Displayed Nodes Settings");
+    replicateCountButton = constructToolButton(buttonSize, 0.6, "Replicate_Count", "Change Replicate Count");
+    setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Selection To Read Only");
+    unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Selection From Read Only");
+
+    actionAlterViewSeperator = constructToolbarSeparator();
+
+    connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Selection's Connections");
     getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
+    popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View Selection In New Window");
+    wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "View Wiki Page For Selected Entity");
 
-    actionGoToSeperator = toolbar->addSeparator();
-
-    definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Definition");
-    implementationButton = constructToolButton(buttonSize, 0.6, "Implementation", "View Implementation");
-    instancesButton = constructToolButton(buttonSize, 0.6, "Instance", "View Instances");
-
-    actionAlterViewSeperator = toolbar->addSeparator();
-
-    connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Connections");
-    popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View In New Window");
-    displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "Menu_Vertical", "Change Displayed Nodes");
-    setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Read Only");
-    unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Read Only");
-    wikiButton = constructToolButton(buttonSize, 0.6, "Wiki", "Wiki page for Entity");
-
-    /*
-     * This is what makes the tool buttons with a split menu button look good on a Mac
-     *
-    "QToolButton[popupMode=\"1\"] {"
-    "padding-right: 12px;"
-    "}"
-    "QToolButton::menu-button {"
-    "border-left: 1px solid gray;"
-    "border-top-right-radius: 10px;"
-    "border-bottom-right-radius: 10px;"
-    "padding-right: 4px;"
-    "width: 10px;"
-    "}"
-    */
+    // NOTE: This is currently only used to make screenshots for the large deployment workshop
+    //tagButton = constructToolButton(buttonSize, 0.5, "Tag", "Add Tag To Selection");
 
     setupMenus();
 }
@@ -950,6 +973,7 @@ void ToolbarWidget::setupMenus()
     definitionMenu = constructTopMenu(definitionButton, false);
     implementationMenu = constructTopMenu(implementationButton, false);
     instancesMenu = constructTopMenu(instancesButton);
+    replicateMenu = constructTopMenu(replicateCountButton);
     hardwareClusterViewMenu = constructTopMenu(displayedChildrenOptionButton);
 
     // setup menu actions for the definition and implementation menus
@@ -958,19 +982,26 @@ void ToolbarWidget::setupMenus()
     implementationMenu->addAction(new ToolbarMenuAction("Goto", 0, implementationMenu, "Go to Implementation", "Actions", "Goto"));
     implementationMenu->addAction(new ToolbarMenuAction("Popup", 0, implementationMenu, "Popup Implementation", "Actions", "Popup"));
 
+
+
+
     // setup widgets for the displayed children option menu for HardwareClusters
     allNodes = new QRadioButton("All", this);
     connectedNodes = new QRadioButton("Connected", this);
     unconnectedNodes = new QRadioButton("Unconnected", this);
+    //QRadioButton* tagRadioButton = new QRadioButton("SensorProcess", this);
     QWidgetAction* a1 = new QWidgetAction(this);
     QWidgetAction* a2 = new QWidgetAction(this);
     QWidgetAction* a3 = new QWidgetAction(this);
+    //QWidgetAction* a4 = new QWidgetAction(this);
     a1->setDefaultWidget(allNodes);
     a2->setDefaultWidget(connectedNodes);
     a3->setDefaultWidget(unconnectedNodes);
+    //a4->setDefaultWidget(tagRadioButton);
     hardwareClusterViewMenu->QMenu::addAction(a1);
     hardwareClusterViewMenu->QMenu::addAction(a2);
     hardwareClusterViewMenu->QMenu::addAction(a3);
+    //hardwareClusterViewMenu->QMenu::addAction(a4);
 
     // these actions are not deletable - when their parent menu is cleared, they're only hidden
     componentImplAction = new ToolbarMenuAction("ComponentImpl", 0, this);
@@ -983,20 +1014,46 @@ void ToolbarWidget::setupMenus()
     blackBoxInstAction = new ToolbarMenuAction("BlackBoxInstance", 0, this);
     aggregateInstAction = new ToolbarMenuAction("AggregateInstance", 0, this);
     vectorInstAction = new ToolbarMenuAction("VectorInstance", 0, this);
-    processAction = new ToolbarMenuAction("Process", 0, this);
+    workerProcessAction = new ToolbarMenuAction("WorkerProcess", 0, this);
 
     // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
-    componentImplMenu = constructSubMenu(componentImplAction, "There are no IDL files containing unimplemented Components.");
-    componentInstMenu = constructSubMenu(componentInstAction, "There are no IDL files containing Components.");
-    blackBoxInstMenu = constructSubMenu(blackBoxInstAction, "There are no IDL files containing BlackBoxes.");
-    inEventPortMenu = constructSubMenu(inEventPortAction, "There are no IDL files containing Aggregates.");
-    outEventPortMenu = constructSubMenu(outEventPortAction, "There are no IDL files containing Aggregates.");
-    inEventPortDelegateMenu = constructSubMenu(inEventPortDelegateAction, "There are no IDL files containing Aggregates.");
-    outEventPortDelegateMenu = constructSubMenu(outEventPortDelegateAction, "There are no IDL files containing Aggregates.");
-    outEventPortImplMenu = constructSubMenu(outEventPortImplAction, "The selected entity's definition does not contain any OutEventPorts.");
-    aggregateInstMenu = constructSubMenu(aggregateInstAction, "There are no IDL files containing Aggregates.");
-    vectorInstMenu = constructSubMenu(vectorInstAction, "There are no IDL files containing initialised Vectors.");
-    functionsMenu = constructSubMenu(processAction, "There are no available functions.", false);
+    componentImplMenu = constructSubMenu(componentImplAction, "There are no IDL files containing unimplemented Component entities.");
+    componentInstMenu = constructSubMenu(componentInstAction, "There are no IDL files containing Component entities.");
+    blackBoxInstMenu = constructSubMenu(blackBoxInstAction, "There are no IDL files containing BlackBox entities.");
+    inEventPortMenu = constructSubMenu(inEventPortAction, "There are no IDL files containing Aggregate entities.");
+    outEventPortMenu = constructSubMenu(outEventPortAction, "There are no IDL files containing Aggregate entities.");
+    inEventPortDelegateMenu = constructSubMenu(inEventPortDelegateAction, "There are no IDL files containing Aggregate entities.");
+    outEventPortDelegateMenu = constructSubMenu(outEventPortDelegateAction, "There are no IDL files containing Aggregate entities.");
+    outEventPortImplMenu = constructSubMenu(outEventPortImplAction, "The selected entity's definition does not contain any OutEventPort entities.");
+    aggregateInstMenu = constructSubMenu(aggregateInstAction, "There are no IDL files containing Aggregate entities.");
+    vectorInstMenu = constructSubMenu(vectorInstAction, "There are no IDL files containing initialised Vector entities.");
+    functionsMenu = constructSubMenu(workerProcessAction, "There are no available functions.", false);
+
+    setupReplicateWidgets();
+}
+
+void ToolbarWidget::setupReplicateWidgets()
+{
+    // setup widget for the replicate count
+    replicateCount = new QSpinBox(this);
+    replicateCount->setMinimum(1);
+    replicateCount->setMaximum(100000);
+
+    applyReplicateCountButton = new QPushButton("Apply", this);
+    applyReplicateCountButton->setStyleSheet("background:white;padding:0px 10px;");
+
+    QToolBar* replicateToolbar = new QToolBar(this);
+    replicateToolbar->setStyleSheet("spacing:2px;");
+    replicateToolbar->addWidget(replicateCount);
+    replicateToolbar->addWidget(applyReplicateCountButton);
+    applyReplicateCountButton->setFixedHeight(25);
+    replicateCount->setFixedHeight(25);
+
+
+    QWidgetAction* rc = new QWidgetAction(this);
+    rc->setDefaultWidget(replicateToolbar);
+    replicateMenu->QMenu::addAction(rc);
+
 }
 
 
@@ -1020,10 +1077,15 @@ void ToolbarWidget::makeConnections()
     connect(importSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(definitionButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(implementationButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(getCPPButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
-    connect(setReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
-    connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
-    connect(wikiButton, SIGNAL(clicked(bool)), this, SLOT(launchWiki()));
+    connect(getCPPButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(setReadOnlyButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(unsetReadOnlyButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(disconnectHardwareButton, SIGNAL(clicked()), this, SLOT(hide()));
+
+    // hide toolbar when return is pressed from the replicate Menu
+    //connect(replicateCount, SIGNAL(editingFinished()), this, SLOT(hide()));
+
+   // connect(replicateCount, SIGNAL(editingFinished()), this, SLOT(hide()));
 
     // hide toolbar when a radio button from hardwareClusterViewMenu is clicked
     connect(allNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
@@ -1047,9 +1109,13 @@ void ToolbarWidget::makeConnections()
     connect(connectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(getCPPButton, SIGNAL(clicked(bool)), this, SLOT(getCPPForComponent()));
-
     connect(setReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
     connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
+    connect(wikiButton, SIGNAL(clicked(bool)), this, SLOT(launchWiki()));
+    connect(disconnectHardwareButton, SIGNAL(clicked()), this, SLOT(destructEdge()));
+
+    connect(applyReplicateCountButton, SIGNAL(clicked(bool)), this, SLOT(updateReplicateCount()));
+    connect(applyReplicateCountButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
 
     // specific slots for the menus
     connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(setupAdoptableNodesList()));
@@ -1103,8 +1169,10 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
     }
 
     QList<NodeItem*> legalNodes;
-    //bool setupLegalNodes = false;
     bool deployable = true;
+    bool allAssemblies = true;
+    bool allClusters = true;
+    int viewMode = -1;
 
     // need to clear menus before updating them
     clearMenus();
@@ -1129,34 +1197,47 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         actionLookup[popupNewWindow]->setVisible(true);
         actionLookup[definitionButton]->setVisible(showDefinitionToolButton);
         actionLookup[implementationButton]->setVisible(showImplementationToolButton);
+        redirectButtonsVisible = true;
         goToButtonsVisible = showDefinitionToolButton || showImplementationToolButton;
-
-        // the expand and contract buttons are only available for multiple selection
-        expandContractButtonsVisible = false;
 
         // check if the selected node item has other node items connected to it (edges)
         if (nodeItem->getNodeAdapter()->edgeCount() > 0) {
             actionLookup[connectionsButton]->setVisible(true);
+            redirectButtonsVisible = true;
         }
 
         if (entityItem) {
             // only show the displayed children option button if the selected item is a HardwareCluster
             if (entityItem->isHardwareCluster()) {
-                hardwareClusterMenuClicked(entityItem->getHardwareClusterChildrenViewMode());
-                actionLookup[displayedChildrenOptionButton]->setVisible(true);
-            } else if (!entityItem->isHardwareNode()) {
-                //setupLegalNodes = true;
-                legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
+                viewMode = entityItem->getHardwareClusterChildrenViewMode();
+                allAssemblies = false;
+            } else {
+                if (!entityItem->isHardwareNode()) {
+                    legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
+                }
+                if (entityItem->getNodeKind() != "ComponentAssembly") {
+                    allAssemblies = false;
+                }
+                allClusters = false;
             }
+            // check if the selected entity item has a deployment link
+            NodeAdapter* nodeAdapter = nodeItem->getNodeAdapter();
+            if (nodeAdapter) {
+                // get list of deployment edges
+                if (!nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).isEmpty()) {
+                    deploymentEdgeIDs.append(nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).at(0));
+                }
+            }
+        } else {
+            allAssemblies = false;
+            allClusters = false;
         }
 
         // setup selected item's adoptable nodes menu and sub-menus, and its instances menu
         setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getID()));
         setupInstancesList(nodeView->getNodeInstances(nodeItem->getID()));
 
-        //legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
         deployable = nodeView->isNodeKindDeployable(nodeItem->getNodeKind());
-        alterViewButtonsVisible = true;
 
     } else {
 
@@ -1164,9 +1245,10 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
          * Multiple NodeItems selected
          */
 
-        bool allClusters = true;
+        bool allHardware = true;
         bool canBeExpanded = false;
-        int viewMode = -1;
+        bool sharedDeploymentLink = true;
+        int prevDeploymentDstID = -1;
 
         for (int i = 0; i < nodeItems.count(); i++) {
 
@@ -1175,31 +1257,37 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             // if it's not an EntityItem, skip the following checks
             if (!item_i->isEntityItem()){
                 deployable = false;
+                allAssemblies = false;
                 allClusters = false;
                 continue;
             }
 
             EntityItem* entityItem = (EntityItem*)item_i;
 
-            /*
-            // only clear the legal nodes list if all selected items are hardware
-            if (!setupLegalNodes && (!entityItem->isHardwareNode() || !entityItem->isHardwareCluster())) {
-                setupLegalNodes = true;
-            }
-            */
-
             // check if all the selected items are HardwareClusters
-            if (entityItem->isHardwareCluster()) {
-                int currentViewMode = entityItem->getHardwareClusterChildrenViewMode();
-                if (viewMode == -1) {
-                    // viewMode hasn't been set yet; set it
-                    viewMode = currentViewMode;
-                } else if (currentViewMode != viewMode) {
-                    // if currentMode != viewMode, we don't have a shared viewMode
-                    viewMode = -2;
+            if (allClusters) {
+                if (entityItem->isHardwareCluster()) {
+                    int currentViewMode = entityItem->getHardwareClusterChildrenViewMode();
+                    if (viewMode == -1) {
+                        // viewMode hasn't been set yet; set it
+                        viewMode = currentViewMode;
+                    } else if (currentViewMode != viewMode) {
+                        // if currentMode != viewMode, we don't have a shared viewMode
+                        viewMode = -2;
+                    }
+                } else {
+                    allClusters = false;
                 }
-            } else {
-                allClusters = false;
+            }
+
+            // check if all the selected items are Hardware entities
+            if (allHardware && !entityItem->isHardwareNode() && !entityItem->isHardwareCluster()) {
+                allHardware = false;
+            }
+
+            // check if all the selected items are ComponentAssemblies
+            if (allAssemblies && entityItem->getNodeKind() != "ComponentAssembly") {
+                allAssemblies = false;
             }
 
             // check if at least one of the selected items can be expanded
@@ -1212,19 +1300,29 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                 deployable = false;
             }
 
-            // this allows multiple selection to connect to a shared legal node
-            legalNodes = nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs());
-
-            /*
-            // this filtering is already done in setupLegalNodesList
-            // remove hardware nodes and clusters from this list
-            foreach (NodeItem* node, nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs())) {
-                EntityItem* entity = (EntityItem*) node;
-                if (node->isEntityItem() && (!entity->isHardwareNode() && !entity->isHardwareCluster())) {
-                    legalNodes.append(node);
+            // check the edge dst instead of the edge id
+            if (sharedDeploymentLink) {
+                NodeAdapter* nodeAdapter = item_i->getNodeAdapter();
+                if (nodeAdapter) {
+                    int edgeID = -1;
+                    if (!nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).isEmpty()) {
+                        edgeID = nodeAdapter->getEdgeIDs(Edge::EC_DEPLOYMENT).at(0);
+                    }
+                    if (edgeID != -1) {
+                        int deploymentDstID = nodeAdapter->getChildEdgeDstID(edgeID);
+                        if ((prevDeploymentDstID != -1) && (prevDeploymentDstID != deploymentDstID)) {
+                            sharedDeploymentLink = false;
+                            deploymentEdgeIDs.clear();
+                        } else {
+                            deploymentEdgeIDs.append(edgeID);
+                        }
+                        prevDeploymentDstID = deploymentDstID;
+                    } else {
+                        sharedDeploymentLink = false;
+                        deploymentEdgeIDs.clear();
+                    }
                 }
             }
-            */
         }
 
         // these buttons are only available for multiple selected entities
@@ -1232,23 +1330,38 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         actionLookup[contractButton]->setVisible(canBeExpanded);
         expandContractButtonsVisible = canBeExpanded;
 
-        // if all selected node items are Hardware clusters, show diplay option button
-        if (allClusters) {
-            hardwareClusterMenuClicked(viewMode);
-            actionLookup[displayedChildrenOptionButton]->setVisible(true);
-            alterViewButtonsVisible = true;
+        // this allows multiple selection to connect to a shared legal node
+        if (!allHardware) {
+            legalNodes = nodeView->getConnectableNodeItems(nodeView->getSelectedNodeIDs());
         }
+    }
+
+    // if all selected node items are ComponentAssemblies, show replicate count button
+    if (allAssemblies) {
+        actionLookup[replicateCountButton]->setVisible(true);
+        alterViewButtonsVisible = true;
+    }
+
+    // if all selected node items are Hardware clusters, show diplay option button
+    if (allClusters) {
+        hardwareClusterMenuClicked(viewMode);
+        actionLookup[displayedChildrenOptionButton]->setVisible(true);
+        alterViewButtonsVisible = true;
     }
 
     // setup the hardware menu for deployable node items
     if (deployable) {
-        setupHardwareList(nodeView->getHardwareList());
+        if (!deploymentEdgeIDs.isEmpty()) {
+            actionLookup[disconnectHardwareButton]->setVisible(true);
+            alterModelButtonsVisible = true;
+        } else {
+            setupHardwareList(nodeView->getHardwareList());
+        }
     }
 
     // setup connectable nodes menu for the selected item(s)
-    //if (setupLegalNodes) {
-        setupLegalNodesList(legalNodes);
-    //}
+    // hardware nodes and clusters are removed from the list in this function
+    setupLegalNodesList(legalNodes);
 }
 
 
@@ -1257,20 +1370,21 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
  */
 void ToolbarWidget::updateSeparators()
 {
-    actionAlignSeperator->setVisible(alignButtonsVisible && alterModelButtonsVisible);
-    actionExpandContractSeperator->setVisible(expandContractButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
-    actionSnippetSeperator->setVisible(snippetButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
-    actionGoToSeperator->setVisible(goToButtonsVisible && (alterModelButtonsVisible || snippetButtonsVisible));;
-    actionAlterViewSeperator->setVisible(alterViewButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible || goToButtonsVisible));;
+    actionAlterModelSeperator->setVisible(alterModelButtonsVisible && (alignButtonsVisible || expandContractButtonsVisible || snippetButtonsVisible || goToButtonsVisible || alterViewButtonsVisible || redirectButtonsVisible));
+    actionAlignSeperator->setVisible(alignButtonsVisible && (expandContractButtonsVisible || snippetButtonsVisible || goToButtonsVisible || alterViewButtonsVisible || redirectButtonsVisible));
+    actionExpandContractSeperator->setVisible(expandContractButtonsVisible && (snippetButtonsVisible || goToButtonsVisible || alterViewButtonsVisible || redirectButtonsVisible));
+    actionSnippetSeperator->setVisible(snippetButtonsVisible && (goToButtonsVisible || alterViewButtonsVisible || redirectButtonsVisible));
+    actionGoToSeperator->setVisible(goToButtonsVisible && (alterViewButtonsVisible || redirectButtonsVisible));
+    actionAlterViewSeperator->setVisible(alterViewButtonsVisible && redirectButtonsVisible);
 }
 
 
 /**
- * @brief ToolbarWidget::hideAllButtons
+ * @brief ToolbarWidget::hideButtons
  */
 void ToolbarWidget::hideButtons()
 {
-    foreach(QAction* action, actionLookup.values()){
+    foreach (QAction* action, actionLookup.values()) {
         action->setVisible(false);
     }
 }
@@ -1281,6 +1395,7 @@ void ToolbarWidget::hideButtons()
  */
 void ToolbarWidget::hideSeparators()
 {
+    actionAlterModelSeperator->setVisible(false);
     actionAlignSeperator->setVisible(false);
     actionExpandContractSeperator->setVisible(false);
     actionSnippetSeperator->setVisible(false);
@@ -1295,12 +1410,19 @@ void ToolbarWidget::hideSeparators()
  */
 void ToolbarWidget::clearMenus()
 {
-    foreach (ToolbarMenu* menu, dynamicMenus.keys()) {
+    foreach (ToolbarMenu* menu, dynamicMenuPopulated.keys()) {
         menu->clearMenu();
+    }
+
+    foreach (ToolbarMenu* menu, dynamicMenuPopulated.keys()) {
+        dynamicMenuPopulated[menu] = false;
     }
 
     componentInstMenu->clearMenu();
     instancesMenu->clearMenu();
+
+    chosenInstanceID = -1;
+    deploymentEdgeIDs.clear();
 
     // these lists needs to be cleared as well - used to populate menus
     adoptableNodeKinds.clear();
@@ -1320,12 +1442,7 @@ void ToolbarWidget::resetGroupFlags()
     snippetButtonsVisible = false;
     goToButtonsVisible = false;
     alterViewButtonsVisible = false;
-
-    foreach (ToolbarMenu* menu, dynamicMenus.keys()) {
-        dynamicMenus[menu] = false;
-    }
-
-    chosenInstanceID = -1;
+    redirectButtonsVisible = false;
 }
 
 
@@ -1427,10 +1544,10 @@ void ToolbarWidget::setupComponentList(QString actionKind)
 
     // check if the menu has already been populated
     if (actionMenu) {
-        if (dynamicMenus.value(actionMenu)) {
+        if (dynamicMenuPopulated.value(actionMenu)) {
             return;
         } else {
-            dynamicMenus[actionMenu] = true;
+            dynamicMenuPopulated[actionMenu] = true;
         }
     }
 
@@ -1454,6 +1571,7 @@ void ToolbarWidget::updateToolButtonIcons()
     deleteButton->setIcon(theme->getIcon("Actions", "Delete"));
     connectButton->setIcon(theme->getIcon("Actions", "ConnectTo"));
     hardwareButton->setIcon(theme->getIcon("Actions", "HardwareNode"));
+    disconnectHardwareButton->setIcon(theme->getIcon("Actions", "Computer_Cross"));
 
     definitionButton->setIcon(theme->getIcon("Actions", "Definition"));
     implementationButton->setIcon(theme->getIcon("Actions", "Implementation"));
@@ -1472,10 +1590,13 @@ void ToolbarWidget::updateToolButtonIcons()
 
     connectionsButton->setIcon(theme->getIcon("Actions", "Connections"));
     popupNewWindow->setIcon(theme->getIcon("Actions", "Popup"));
+    replicateCountButton->setIcon(theme->getIcon("Actions", "Replicate_Count"));
     displayedChildrenOptionButton->setIcon(theme->getIcon("Actions", "Menu_Vertical"));
 
     expandButton->setIcon(theme->getIcon("Actions", "Expand"));
     contractButton->setIcon(theme->getIcon("Actions", "Contract"));
+
+    //tagButton->setIcon(theme->getIcon("Actions", "Tag"));
     wikiButton->setIcon(theme->getIcon("Actions", "Wiki"));
 }
 
@@ -1504,6 +1625,16 @@ QToolButton* ToolbarWidget::constructToolButton(QSize size, double iconSizeRatio
 }
 
 
+/**
+ * @brief ToolbarWidget::constructToolbarSeparator
+ * @return
+ */
+QAction* ToolbarWidget::constructToolbarSeparator()
+{
+    QAction* separator = toolbar->addSeparator();
+    buttonsGroupVisible[separator] = false;
+    return separator;
+}
 
 
 /**
@@ -1528,7 +1659,7 @@ ToolbarMenu* ToolbarWidget::constructTopMenu(QToolButton* parentButton, bool ins
             parentButton->setFixedWidth(55);
         }
         if (addToDynamicMenuHash) {
-            dynamicMenus[menu] = false;
+            dynamicMenuPopulated[menu] = false;
         }
         parentButton->setMenu(menu);
         return menu;
@@ -1558,7 +1689,7 @@ ToolbarMenu* ToolbarWidget::constructSubMenu(ToolbarMenuAction* parentAction, QS
     ToolbarMenu* menu = new ToolbarMenu(this, infoAction);
     parentAction->setMenu(menu);
     if (addToDynamicMenuHash) {
-        dynamicMenus[menu] = false;
+        dynamicMenuPopulated[menu] = false;
     }
     return menu;
 }
@@ -1645,20 +1776,24 @@ ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, Too
  */
 void ToolbarWidget::closeOpenMenus()
 {
-    foreach (ToolbarMenu* menu, openMenus) {
-        menu->close();
+    while(!openMenus.isEmpty()){
+        ToolbarMenu* menu = openMenus.takeFirst();
+        if(menu){
+            menu->close();
+        }
     }
 }
 
 
 bool ToolbarWidget::event(QEvent *e)
 {
-    if(e->type() == QEvent::FocusOut){
+  if(e->type() == QEvent::FocusOut){
         QFocusEvent* ev = (QFocusEvent*)e;
         if(ev->lostFocus() && ev->reason() == Qt::ActiveWindowFocusReason){
             closeOpenMenus();
             hide();
         }
+
     }
     return QWidget::event(e);
 }

@@ -19,7 +19,6 @@ EntityAdapter::EntityAdapter(Entity *entity): QObject(0)
 
 EntityAdapter::~EntityAdapter()
 {
-    //qCritical() << "REMOVING EntityAdapter" << getID();
 }
 
 int EntityAdapter::getID()
@@ -36,6 +35,15 @@ bool EntityAdapter::isEdgeAdapter()
 {
     return !_isNode;
 }
+
+bool EntityAdapter::isInModel()
+{
+    if(isValid()){
+        return _entity->isInModel();
+    }
+    return false;
+}
+
 
 bool EntityAdapter::isReadOnly()
 {
@@ -63,6 +71,8 @@ bool EntityAdapter::isDataProtected(QString keyName)
                 return false;
             }else{
                 if(_entity->isReadOnly()){
+                    return true;
+                }else if(_entity->isDataProtected(keyName)){
                     return true;
                 }else{
                     return data->isProtected();
@@ -155,13 +165,13 @@ void EntityAdapter::removeListener(QObject *object)
             deleteLater();
         }
    }
-
 }
 
 bool EntityAdapter::hasListeners()
 {
     return _listeners.isEmpty();
 }
+
 
 void EntityAdapter::invalidate()
 {

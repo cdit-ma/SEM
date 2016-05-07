@@ -40,7 +40,7 @@
 #define TOOLBAR_BUTTON_WIDTH 42
 #define TOOLBAR_BUTTON_HEIGHT 40
 #define TOOLBAR_GAP 5
-
+#define TOOLBAR_SPACING 2
 
 #define TOOLBUTTON_SIZE 20
 
@@ -75,7 +75,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
     hide();
     setupApplication();
     NOTIFICATION_TIME = 1000;
@@ -83,9 +82,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     nodeView = 0;
     controller = 0;
     fileDialog = 0;
-    leftOverTime = 0;
     controllerThread = 0;
     rightPanelWidget = 0;
+    jenkinsManager = 0;
 
     SETTINGS_LOADING = false;
     WINDOW_MAXIMIZED = false;
@@ -93,8 +92,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     IS_WINDOW_MAXIMIZED = false;
     INITIAL_SETTINGS_LOADED = false;
     maximizedSettingInitiallyChanged = false;
-    EXPAND_TOOLBAR = false;
-    SHOW_TOOLBAR = false;
+    EXPAND_TOOLBAR = true;
+    SHOW_TOOLBAR = true;
 
     CURRENT_THEME = VT_NORMAL_THEME;
 
@@ -172,6 +171,8 @@ void MedeaWindow::projectRequiresSaving(bool requiresSave)
  */
 void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
 {
+
+
     bool isBool = false;
     bool boolValue = false;
     if(value == "true" || value == "false"){
@@ -184,12 +185,11 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
         return;
     }
 
+
+
     if(keyName == TOOLBAR_VISIBLE){
-        setToolbarVisibility(!boolValue);
-        SHOW_TOOLBAR = !boolValue;
-    }else if(keyName == TOOLBAR_EXPANDED){
-        EXPAND_TOOLBAR = boolValue;
-        showWindowToolbar(boolValue);
+        setToolbarVisibility(boolValue);
+        SHOW_TOOLBAR = boolValue;
     }
 
     if(toolbarActionLookup.contains(keyName)){
@@ -240,6 +240,37 @@ void MedeaWindow::themeSettingChanged(QString keyName, QVariant value)
     }else if(keyName == THEME_SET_LIGHT_THEME){
         resetTheme(false);
         saveTheme(true);
+    }
+}
+
+void MedeaWindow::jenkinsSettingChanged(QString keyName, QVariant value)
+{
+    QString strValue = value.toString();
+
+    if(jenkinsManager){
+        if(keyName == JENKINS_URL){
+            jenkinsManager->setURL(strValue);
+        }else if(keyName == JENKINS_USER){
+            jenkinsManager->setUsername(strValue);
+        }else if(keyName == JENKINS_PASS){
+            jenkinsManager->setPassword(strValue);
+        }else if(keyName == JENKINS_TOKEN){
+            jenkinsManager->setToken(strValue);
+        }else if(keyName == JENKINS_JOB){
+            jenkinsManager->setJobName(strValue);
+            jenkins_JobName_Changed(strValue);
+        }
+
+        if(!jenkinsManager->hasValidatedSettings()){
+            //DeActivate menu Menu
+            foreach(QAction* action, jenkins_menu->actions()){
+                action->setEnabled(false);
+            }
+        }
+
+        if(jenkinsManager->hasSettings() && !jenkinsManager->hasValidatedSettings()){
+            jenkinsManager->validateSettings();
+        }
     }
 }
 
@@ -305,6 +336,10 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
 
     // actions that alter the model
     foreach(QAction* action, modelActions){
+        if(enable && jenkins_menu->actions().contains(action) && !jenkinsManager->hasValidatedSettings()){
+            action->setEnabled(false);
+            continue;
+        }
         action->setEnabled(enable);
     }
 }
@@ -361,6 +396,9 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         return;
     }else if(groupName == THEME_SETTINGS){
         themeSettingChanged(keyName, value);
+        return;
+    }else if(groupName == JENKINS_SETTINGS){
+        jenkinsSettingChanged(keyName, value);
         return;
     }
 
@@ -432,24 +470,6 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     }else if(keyName == ASPECT_COLOR_DEFAULT){
         resetAspectTheme(false);
         saveTheme(true);
-    }else if(keyName == JENKINS_URL){
-        if(jenkinsManager){
-            jenkinsManager->setURL(strValue);
-        }
-    }else if(keyName == JENKINS_USER){
-        if(jenkinsManager){
-            jenkinsManager->setUsername(strValue);
-        }
-    }else if(keyName == JENKINS_PASS){
-        if(jenkinsManager){
-            jenkinsManager->setPassword(strValue);
-        }
-    }else if(keyName == JENKINS_TOKEN){
-        if(jenkinsManager){
-            jenkinsManager->setToken(strValue);
-        }
-    }else if(keyName == JENKINS_JOB){
-        jenkins_JobName_Changed(strValue);
     }else if(keyName == DEFAULT_DIR_PATH){
         //Set up default path.
         DEFAULT_PATH = strValue;
@@ -676,6 +696,8 @@ void MedeaWindow::setupMenu()
     model_menu = menu->addMenu(getIcon("Actions", "MenuModel"), "Model");
     jenkins_menu = menu->addMenu(getIcon("Actions", "Jenkins_Icon"), "Jenkins");
 
+
+
     menu->addSeparator();
 
     settings_changeAppSettings = menu->addAction(getIcon("Actions", "Settings"), "Settings");
@@ -775,6 +797,7 @@ void MedeaWindow::setupMenu()
     jenkins_ImportNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
 
     jenkins_ExecuteJob = jenkins_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: " + jenkinsJobName);
+    jenkins_ExecuteJob->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B));
 
     help_Shortcuts = help_menu->addAction(getIcon("Actions", "Keyboard"), "App Shortcuts");
     help_Shortcuts->setShortcut(QKeySequence(Qt::Key_F1));
@@ -784,12 +807,6 @@ void MedeaWindow::setupMenu()
     help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
     help_AboutQt = help_menu->addAction(QIcon(":/Qt.ico"), "About Qt");
 
-    if(!jenkinsManager){
-        jenkins_menu->setEnabled(false);
-    }
-    if(jenkinsJobName == ""){
-        jenkins_ExecuteJob->setEnabled(false);
-    }
 
     menu->setFont(guiFont);
     file_menu->setFont(guiFont);
@@ -842,6 +859,7 @@ void MedeaWindow::setupMenu()
     actionToggleToolbar = new QAction(getIcon("Actions", "Arrow_Down"), "Toggle Toolbar", this);
     actionToggleToolbar->setToolTip("Toggle Toolbar");
     actionToggleToolbar->setCheckable(true);
+    actionToggleToolbar->setChecked(EXPAND_TOOLBAR);
 
     //Model Actions
     modelActions << file_closeProject;
@@ -857,6 +875,7 @@ void MedeaWindow::setupMenu()
 
     modelActions << view_menu->actions();
     modelActions << model_menu->actions();
+
     modelActions << jenkins_menu->actions();
 
     modelActions.removeAll(view_fullScreenMode);
@@ -947,6 +966,14 @@ void MedeaWindow::updateMenuIcons()
         item->setIcon(fileIcon);
     }
 
+    foreach(QAction* action, file_recentProjectsMenu->actions()){
+        if(action != file_recentProjects_clearHistory){
+            action->setIcon(fileIcon);
+        }
+    }
+
+
+
     QIcon arrowDown = (getIcon("Actions", "Arrow_Down"));
     viewAspectsButton->setIcon(arrowDown);
     nodeKindsButton->setIcon(arrowDown);
@@ -981,6 +1008,10 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     definitionsDock = new DefinitionsDockScrollArea(DEFINITIONS_DOCK, nodeView);
     functionsDock = new FunctionsDockScrollArea(FUNCTIONS_DOCK, nodeView);
     hardwareDock = new HardwareDockScrollArea(HARDWARE_DOCK, nodeView, hardwareNodesButton);
+
+    // attach the definitions and fuctions dock to the parts dock
+    partsDock->attachDockSrollArea(definitionsDock);
+    partsDock->attachDockSrollArea(functionsDock);
 
     // width of the containers are fixed
     int dockPadding = 5;
@@ -1022,15 +1053,7 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     dockButtonsHlayout->addWidget(hardwareNodesButton);
     dockButtonsBox->setLayout(dockButtonsHlayout);
 
-    dockBackButtonBox = new QGroupBox(this);
-    dockBackButtonBox->setObjectName(THEME_STYLE_GROUPBOX);
-    dockBackButtonBox->setStyleSheet("QGroupBox {"
-                                     "background: rgba(0,0,0,0);"
-                                     "border: 0px;"
-                                     "margin: 0px;"
-                                     "padding: 0px;"
-                                     "}");
-
+    // setup dock header widgets
     dockHeaderBox = new QGroupBox(this);
     dockHeaderBox->setStyleSheet("QGroupBox {"
                                  "border-left: 1px solid rgb(125,125,125);"
@@ -1040,7 +1063,53 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
                                  "background-color: rgba(250,250,250,255);"
                                  "padding: 10px 0px 0px 0px; }");
 
-    dockActionLabel = new QLabel("Describe action here", this);
+    openedDockLabel = new QLabel("Parts", this);
+    //openedDockLabel->setFixedWidth(boxWidth/2);
+    //openedDockLabel->setFixedWidth(boxWidth);
+    //openedDockLabel->setAlignment(Qt::AlignCenter);
+    openedDockLabel->setAlignment(Qt::AlignLeft);
+    openedDockLabel->setFont(QFont("Helvetica", 11));
+    openedDockLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 0px 8px 5px 8px;");
+
+    nodesDockButtonsBox = new QGroupBox(this);
+    nodesDockButtonsBox->setStyleSheet("QGroupBox{ border: none; margin: 0px 8px 5px 8px; padding: 0px; }"
+                                       "QPushButton{ padding: 0px; margin: 0px; background: rgba(130,130,130,100); border: none; }"
+                                       "QPushButton:disabled { background: rgba(130,130,130,225); }"
+                                       "QPushButton:hover { background: rgba(130,130,130,60); }" //border: 1px solid gray; }"
+                                       "QPushButton:hover:checked { background: rgb(173,255,113); }"
+                                       "QPushButton:checked { background: rgb(124,252,0); }");
+
+    QFrame* splitFrame = new QFrame(this);
+    splitFrame->setFixedWidth(1);
+    splitFrame->setStyleSheet("color: rgb(80,80,80);");
+    splitFrame->setFrameShape(QFrame::VLine);
+
+    nodesDockDeployButton = new QPushButton(Theme::theme()->getIcon("Actions", "ConnectTo"), "", this);
+    nodesDockCenterButton = new QPushButton(Theme::theme()->getIcon("Actions", "Crosshair"), "", this);
+    QHBoxLayout* nbLayout = new QHBoxLayout();
+    nbLayout->setSpacing(0);
+    nbLayout->setMargin(0);
+    nbLayout->setAlignment(Qt::AlignTop);
+    nbLayout->addWidget(nodesDockDeployButton);
+    nbLayout->addWidget(splitFrame);
+    nbLayout->addWidget(nodesDockCenterButton);
+    nodesDockButtonsBox->setLayout(nbLayout);
+
+    nodesDockDeployButton->setStyleSheet("border-top-left-radius: 3px; border-bottom-left-radius: 3px;");
+    nodesDockCenterButton->setStyleSheet("border-top-right-radius: 3px; border-bottom-right-radius: 3px;");
+    nodesDockDeployButton->setToolTip("Deployment Mode");
+    nodesDockCenterButton->setToolTip("Center On Mode");
+    nodesDockDeployButton->setFixedHeight(openedDockLabel->height() - 10);
+    nodesDockCenterButton->setFixedHeight(openedDockLabel->height() - 10);
+    nodesDockDeployButton->setCheckable(true);
+    nodesDockCenterButton->setCheckable(true);
+    nodesDockDeployButton->setChecked(true);
+
+    QHBoxLayout* labelButtonsLayout = new QHBoxLayout();
+    labelButtonsLayout->addWidget(openedDockLabel);
+    labelButtonsLayout->addWidget(nodesDockButtonsBox);
+
+    dockActionLabel = new QLabel("Select to construct an entity", this);
     dockActionLabel->setAlignment(Qt::AlignCenter);
     dockActionLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 10px 5px;");
 
@@ -1053,13 +1122,15 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
                                   "QPushButton:hover {"
                                   "background-color: rgba(180,180,180,150);"
                                   "}");
-    connect(dockBackButton, SIGNAL(clicked(bool)), this, SLOT(dockBackButtonTriggered()));
 
-    openedDockLabel = new QLabel("Parts", this);
-    openedDockLabel->setFixedWidth(boxWidth);
-    //openedDockLabel->setAlignment(Qt::AlignCenter);
-    openedDockLabel->setFont(QFont("Helvetica", 11));
-    openedDockLabel->setStyleSheet("border: none; background-color: rgba(0,0,0,0); padding: 0px 8px 5px 8px;");
+    dockBackButtonBox = new QGroupBox(this);
+    dockBackButtonBox->setObjectName(THEME_STYLE_GROUPBOX);
+    dockBackButtonBox->setStyleSheet("QGroupBox {"
+                                     "background: rgba(0,0,0,0);"
+                                     "border: 0px;"
+                                     "margin: 0px;"
+                                     "padding: 0px;"
+                                     "}");
 
     QVBoxLayout* dockBackButtonLayout = new QVBoxLayout();
     dockBackButtonLayout->setMargin(0);
@@ -1071,7 +1142,8 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     QVBoxLayout* dockHeaderLayout = new QVBoxLayout();
     dockHeaderLayout->setMargin(0);
     dockHeaderLayout->setSpacing(0);
-    dockHeaderLayout->addWidget(openedDockLabel);
+    //dockHeaderLayout->addWidget(openedDockLabel);
+    dockHeaderLayout->addLayout(labelButtonsLayout);
     dockHeaderLayout->addWidget(dockActionLabel);
     dockHeaderLayout->addWidget(dockBackButtonBox);
     dockHeaderBox->setLayout(dockHeaderLayout);
@@ -1112,6 +1184,14 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     openedDockLabel->hide();
     dockBackButtonBox->hide();
     dockActionLabel->hide();
+
+    // TODO - This is currently a work around the dock sizing issue; can't figure out why the widget size calculation is wrong!;
+    // the dock header groupbox has a 10px padding at the top
+    // the actionLabel has a 10px padding at the top and the bottom
+    dockWithLabelHeight = 10 + openedDockLabel->height();
+    dockWithoutLabelHeight = 35 + dockActionLabel->height() + dockBackButtonLayout->sizeHint().height();
+    // for some reason the dockBackButtonBox height is not what you expect it to be
+    //dockWithoutLabelHeight = 30 + dockActionLabel->height() + dockBackButtonBox->height();
 }
 
 
@@ -1158,8 +1238,6 @@ void MedeaWindow::setupSearchTools()
     searchToolButton->setFixedSize(searchBarHeight, searchBarHeight);
     searchOptionToolButton->setFixedSize(searchBarHeight, searchBarHeight);
 
-    searchSuggestions->setSize(searchBar->width(), height(), 2);
-
     scrollableWidget->setLayout(resultsMainLayout);
     scrollableSearchResults->setWidget(scrollableWidget);
     scrollableSearchResults->setWidgetResizable(true);
@@ -1182,6 +1260,9 @@ void MedeaWindow::setupSearchTools()
     searchLayout->setContentsMargins(0,0,0,0);
     searchLayout->addWidget(searchToolbar);
 
+    searchSuggestions->setSize(searchBar->width(), height(), 1);
+    searchSuggestions->setSize(RIGHT_PANEL_WIDTH, height(), 2);
+
     // setup search option widgets and menu for view aspects
     QHBoxLayout* aspectsLayout = new QHBoxLayout();
     QWidgetAction* aspectsAction = new QWidgetAction(this);
@@ -1198,7 +1279,7 @@ void MedeaWindow::setupSearchTools()
     viewAspectsButton = new QToolButton(this);
     viewAspectsButton->setCheckable(true);
 
-    QToolBar*  viewAspectsToolbar = constructToolbar(true);
+    QToolBar* viewAspectsToolbar = constructToolbar(true);
     viewAspectsToolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
     viewAspectsToolbar->setFixedSize(20, 20);
     viewAspectsToolbar->addWidget(viewAspectsButton);
@@ -1268,7 +1349,7 @@ void MedeaWindow::setupSearchTools()
     keysLabel->setMinimumWidth(50);
     keysLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    dataKeys = QStringList() << "label" << "type" << "worker" << "description" << "topicName" << "kind";
+    dataKeys = QStringList() << "label" << "type" << "worker" << "description" << "topicName" << "kind" << "id"; // << "tags";
     dataKeys.sort();
 
     foreach (QString key, dataKeys) {
@@ -1304,8 +1385,6 @@ void MedeaWindow::setupSearchTools()
 
     keysGroup->setLayout(keysLayout);
     keysAction->setDefaultWidget(keysGroup);
-
-
 
     searchBar->setFont(guiFont);
     viewAspectsBar->setFont(guiFont);
@@ -1409,32 +1488,31 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 
     // setup notification bar and timer
     notificationTimer = new QTimer(this);
+    notificationTimer->setSingleShot(true);
+    notificationTimer->stop();
 
     notificationsBox = new QGroupBox(this);
     notificationsBox->setObjectName(THEME_STYLE_GROUPBOX);
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     notificationsBox->setLayout(hLayout);
-
-
+    notificationsBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT + SPACER_SIZE);
 
     notificationsBar = new QLabel("", this);
     notificationsIcon = new QLabel(this);
-    notificationsBar->setStyleSheet("color: white;");
     notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", "Clear", QSize(64,64), Qt::white));
-    notificationsBar->setFixedHeight(40);
+    notificationsBar->setStyleSheet("color: white;");
     notificationsBar->setFont(biggerFont);
     notificationsBar->setAlignment(Qt::AlignCenter);
 
     hLayout->addWidget(notificationsIcon, 0);
     hLayout->addWidget(notificationsBar, 1);
 
-
     // setup loading gif and widgets
     loadingLabel = new QLabel("Loading...", this);
     loadingLabel->setFont(biggerFont);
-    //loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    loadingLabel->setAlignment(Qt::AlignCenter);
+    //loadingLabel->setAlignment(Qt::AlignCenter);
+    loadingLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     loadingLabel->setStyleSheet("color:white;");
 
     loadingMovie = new QMovie(":/Actions/Loading.gif");
@@ -1448,18 +1526,13 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     QHBoxLayout* loadingLayout = new QHBoxLayout();
     loadingLayout->setMargin(0);
     loadingLayout->setSpacing(0);
-    loadingLayout->addStretch();
-    loadingLayout->addWidget(loadingMovieLabel);
-    loadingLayout->addWidget(loadingLabel);
-    loadingLayout->addStretch();
-
-
+    loadingLayout->addWidget(loadingMovieLabel, 0);
+    loadingLayout->addWidget(loadingLabel, 1);
 
     loadingBox = new QGroupBox(this);
     loadingBox->setObjectName(THEME_STYLE_GROUPBOX);
-    loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT);
+    loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT + SPACER_SIZE);
     loadingBox->setLayout(loadingLayout);
-
 
     // add widgets to layout
     QVBoxLayout* vLayout = new QVBoxLayout();
@@ -1833,7 +1906,6 @@ void MedeaWindow::resetGUI()
 
     // reset timer
     notificationTimer->stop();
-    leftOverTime = 0;
 
     // initially hide these
     notificationsBox->hide();
@@ -1914,7 +1986,7 @@ void MedeaWindow::newProject()
 
 
 /**
- * @brief MedeaWindow::makeConnections
+ * @brief MedeaWindow::setupConnections
  * Connect signals and slots.
  */
 void MedeaWindow::setupConnections()
@@ -1943,8 +2015,6 @@ void MedeaWindow::setupConnections()
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), assemblyToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), hardwareToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
 
-    connect(nodeView, SIGNAL(view_RefreshDock()), partsDock, SLOT(updateCurrentNodeItem()));
-
     connect(nodeView, SIGNAL(view_ProjectRequiresSaving(bool)), this, SLOT(projectRequiresSaving(bool)));
     connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
 
@@ -1958,7 +2028,7 @@ void MedeaWindow::setupConnections()
 
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
 
-    connect(notificationTimer, SIGNAL(timeout()), notificationsBox, SLOT(hide()));
+    //connect(notificationTimer, SIGNAL(timeout()), notificationsBox, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
 
     connect(nodeView, SIGNAL(view_DisplayNotification(QString,QString)), this, SLOT(displayNotification(QString,QString)));
@@ -2077,14 +2147,24 @@ void MedeaWindow::setupConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
+    connect(nodeView, SIGNAL(view_RefreshDock()), partsDock, SLOT(updateCurrentNodeItem()));
+    connect(dockBackButton, SIGNAL(clicked(bool)), partsDock, SLOT(showMainDock()));
+
+    connect(nodesDockDeployButton, SIGNAL(clicked(bool)), this, SLOT(hardwareDockFunctionChanged(bool)));
+    connect(nodesDockCenterButton, SIGNAL(clicked(bool)), this, SLOT(hardwareDockFunctionChanged(bool)));
+    connect(hardwareDock, SIGNAL(dock_selectedItemDeployable(bool)), this, SLOT(enableHardwareDockDeployButton(bool)));
+    connect(this, SIGNAL(window_changeHardwareDockFunction(bool)), hardwareDock, SLOT(setDockFunction(bool)));
+
+    /*
     connect(partsDock, SIGNAL(dock_forceOpenDock(QString)), definitionsDock, SLOT(forceOpenDock(QString)));
     connect(partsDock, SIGNAL(dock_forceOpenDock()), functionsDock, SLOT(forceOpenDock()));
     connect(definitionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
     connect(functionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
+    */
 
     connect(partsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
-    connect(definitionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
-    connect(functionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    //connect(definitionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
+    //connect(functionsDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
     connect(hardwareDock, SIGNAL(dock_toggled(bool,QString)), this, SLOT(dockToggled(bool,QString)));
 
 
@@ -2097,9 +2177,6 @@ void MedeaWindow::setupConnections()
     connect(this, SIGNAL(window_clearDocksSelection()), definitionsDock, SLOT(clearSelected()));
     connect(this, SIGNAL(window_clearDocksSelection()), functionsDock, SLOT(clearSelected()));
     connect(this, SIGNAL(window_clearDocksSelection()), hardwareDock, SLOT(clearSelected()));
-
-
-
 
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
@@ -2185,6 +2262,7 @@ void MedeaWindow::changeEvent(QEvent *event)
 
 QToolBar *MedeaWindow::constructToolbar(bool ignoreStyle)
 {
+    Q_UNUSED(ignoreStyle)
     QToolBar* tb = new QToolBar(this);
 #ifdef TARGET_OS_MAC
     if(!ignoreStyle){
@@ -2483,19 +2561,10 @@ void MedeaWindow::setupApplication()
  */
 void MedeaWindow::initialiseJenkinsManager()
 {
-    jenkinsManager = 0;
-
-    QString jenkinsUrl = appSettings->getSetting(JENKINS_URL).toString();
-    QString jenkinsUser = appSettings->getSetting(JENKINS_USER).toString();
-    QString jenkinsPass = appSettings->getSetting(JENKINS_PASS).toString();
-    QString jenkinsToken = appSettings->getSetting(JENKINS_TOKEN).toString();
-
-    if(jenkinsUrl != "" && jenkinsUser != "" && jenkinsPass != ""){
+    if(!jenkinsManager){
         QString binaryPath = applicationDirectory + "Resources/Binaries/";
-
-
-        jenkinsManager = new JenkinsManager(binaryPath, jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
-        connect(jenkinsManager, SIGNAL(gotInvalidSettings(QString)), this, SLOT(invalidJenkinsSettings(QString)));
+        jenkinsManager = new JenkinsManager(binaryPath);
+        connect(jenkinsManager, SIGNAL(settingsValidationComplete(bool, QString)), this, SLOT(jenkinsSettingsValidated(bool, QString)));
     }
 }
 
@@ -2814,10 +2883,16 @@ void MedeaWindow::showShortcutList()
  * @brief MedeaWindow::invalidJenkinsSettings
  * @param message
  */
-void MedeaWindow::invalidJenkinsSettings(QString message)
+void MedeaWindow::jenkinsSettingsValidated(bool success, QString message)
 {
-    if(nodeView){
-        nodeView->showMessage(CRITICAL, message, "Jenkins Error", "Jenkins_Icon");
+    if(nodeView && !success){
+        nodeView->showMessage(WARNING, "Jenkins: " + message, "Jenkins Error", "Jenkins_Icon");
+    }else{
+        nodeView->showMessage(MESSAGE, "Jenkins: Settings Validated!", "Jenkins Settings Validated", "Jenkins_Icon");
+    }
+
+    foreach(QAction* action, jenkins_menu->actions()){
+        action->setEnabled(success);
     }
 }
 
@@ -2829,6 +2904,7 @@ void MedeaWindow::jenkinsNodesLoaded()
 {
     // if the hardware dock isn't already open, open it
     if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->isSelected()) {
+        qCritical() << "TRIGGERED";
         hardwareNodesButton->pressed();
     }
 }
@@ -2864,6 +2940,7 @@ void MedeaWindow::toggleWelcomeScreen(bool show)
     welcomeScreenOn = show;
 
     if (show) {
+        //Store the previous state of the toolbar visibility
         setToolbarVisibility(false);
     } else {
         setToolbarVisibility(SHOW_TOOLBAR);
@@ -2936,12 +3013,13 @@ void MedeaWindow::updateWidgetsOnProjectChange(bool projectActive)
  */
 void MedeaWindow::updateDock()
 {
+    // TODO - dockHeaderBox height is wrong!
     // update widget sizes and mask
     boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height() + SPACER_SIZE;
     int prevHeight = docksArea->height();
     int newHeight = (boxHeight*2) - dockHeaderBox->height();
     if (newHeight != prevHeight) {
-        docksArea->setFixedHeight((boxHeight*2) - dockHeaderBox->height());
+        docksArea->setFixedHeight(newHeight);
     }
     //dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_SIZE/2);
 }
@@ -2954,7 +3032,8 @@ void MedeaWindow::updateDock()
  */
 void MedeaWindow::updateToolbar()
 {
-    int totalWidth = 0;
+    //Allow for the spacing on the left of the first button
+    int totalWidth = TOOLBAR_SPACING;
     foreach (QAction* action, toolbar->actions()) {
         if (action->isVisible()) {
             QString actionName = toolbarActionLookup.key(action);
@@ -2964,12 +3043,14 @@ void MedeaWindow::updateToolbar()
                 // if actionName is empty, it means that it's a sepator - 8 is the width of the separator
                 totalWidth += TOOLBAR_SEPERATOR_WIDTH;
             }
+            //Allow for spacing between the toolbar buttons
+            totalWidth += TOOLBAR_SPACING;
         }
     }
 
     // TODO - Calculate the toolbar padding and stuff the proper way!
     QSize toolbarSize = QSize(totalWidth, TOOLBAR_BUTTON_HEIGHT);
-    toolbar->setFixedSize(toolbarSize + QSize(32, TOOLBAR_GAP));
+    toolbar->setFixedSize(toolbarSize + QSize(0, TOOLBAR_GAP));
 
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();
@@ -3072,7 +3153,6 @@ void MedeaWindow::screenshot()
         msgBox.setIconPixmap(getDialogPixmap("Actions", "PrintScreen"));
         msgBox.setButtonText(QMessageBox::Yes, "Entire Model");
         msgBox.setButtonText(QMessageBox::No, "Current Viewport");
-        msgBox.setParent(this);
 
         displayLoadingStatus(true, "Rendering screenshot");
 
@@ -3189,8 +3269,6 @@ void MedeaWindow::saveSettings()
 {
     //Write Settings on Quit.
     if(appSettings && SAVE_WINDOW_SETTINGS){
-        appSettings->setSetting(TOOLBAR_EXPANDED, toolbarButton->isChecked());
-
         appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
         appSettings->setSetting(WINDOW_FULL_SCREEN, isFullScreen());
 
@@ -3241,18 +3319,7 @@ void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
         // import Jenkins
         emit window_ImportJenkinsNodes(jenkinsXML);
     }
-}
-
-
-/**
- * @brief MedeaWindow::setImportJenkinsNodeEnabled
- * @param enabled
- */
-void MedeaWindow::setImportJenkinsNodeEnabled(bool enabled)
-{
-    if(jenkins_ImportNodes){
-        jenkins_ImportNodes->setEnabled(enabled);
-    }
+    jenkins_ImportNodes->setEnabled(true);
 }
 
 
@@ -3274,11 +3341,10 @@ void MedeaWindow::on_actionImportJenkinsNode()
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
         connect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));
         connect(jenkinsGS, SIGNAL(gotGroovyScriptOutput(QString)), this, SLOT(gotJenkinsNodeGraphML(QString)));
-        connect(jenkinsGS, SIGNAL(requestFinished()), this, SLOT(setImportJenkinsNodeEnabled()));
         connect(jenkinsGS, SIGNAL(requestFailed()), this, SLOT(gotJenkinsNodeGraphML()));
 
         //Disable the Jenkins Menu Button
-        setImportJenkinsNodeEnabled(false);
+        jenkins_ImportNodes->setEnabled(false);
 
         emit jenkins_RunGroovyScript(groovyScript, jobName);
         disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString, QString)), jenkinsGS, SLOT(runGroovyScript(QString, QString)));
@@ -3389,13 +3455,16 @@ void MedeaWindow::on_actionSearch_triggered()
         QStringList checkedKeys = getCheckedItems(SEARCH_DATA_KEYS);
         QList<GraphMLItem*> searchResultItems = nodeView->search(searchText, checkedAspects, checkedKinds, checkedKeys);
 
+        /*
         bool newSearch = searchDialog->addSearchItems(searchResultItems);
         if (newSearch) {
             searchDialog->updateHedearLabels(searchText.trimmed(), checkedAspects, checkedKinds);
         }
+        */
 
+        searchDialog->addSearchItems(searchResultItems);
+        searchDialog->updateHedearLabels(searchText.trimmed(), checkedAspects, checkedKinds, checkedKeys);
         searchDialog->show();
-        searchDialog->raise();
     }
 }
 
@@ -3597,11 +3666,9 @@ QIcon MedeaWindow::getIcon(QString alias, QString image)
  */
 void MedeaWindow::showWindowToolbar(bool show)
 {
-
     actionToggleToolbar->setChecked(show);
-    if(SHOW_TOOLBAR){
-        toolbar->setVisible(show);
-    }
+    EXPAND_TOOLBAR = show;
+    toolbar->setVisible(show);
 }
 
 
@@ -3614,8 +3681,12 @@ void MedeaWindow::setToolbarVisibility(bool visible)
     if (toolbarButtonBar) {
         toolbarButtonBar->setVisible(visible);
     }
-    if (toolbar && EXPAND_TOOLBAR) {
-        toolbar->setVisible(visible);
+    if(toolbar){
+        if(visible){
+            toolbar->setVisible(EXPAND_TOOLBAR);
+        }else{
+            toolbar->setVisible(false);
+        }
     }
 }
 
@@ -3856,10 +3927,12 @@ void MedeaWindow::dockButtonPressed()
  * This is called whenever a dock is opened/closed.
  * If a dock is opened, update the dock header widgets. Otherwise, hide them.
  * It also updates the dock area's mask depending on whether there's an opened dock.
- * @param dockAction
+ * @param opened
+ * @param kindToConstruct
  */
 void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
 {
+    bool functionSwitchVisible = false;
     bool dockLabelVisible = false;
     bool backButtonVisible = false;
     bool actionLabelVisible = false;
@@ -3872,31 +3945,43 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
 
         DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
         DOCK_TYPE dockType = dock->getDockType();
+        QString dockLabel = GET_DOCK_LABEL(dockType);
 
         switch (dockType) {
         case PARTS_DOCK:
-        case HARDWARE_DOCK:
-            openedDockLabel->setText(GET_DOCK_LABEL(dockType));
-            dockLabelVisible = true;
-            break;
-        case DEFINITIONS_DOCK:
-        case FUNCTIONS_DOCK:
-            if (!kindToConstruct.isEmpty()) {
+            if (kindToConstruct.isEmpty()) {
+                dockHeaderBox->setFixedHeight(dockWithLabelHeight);
+                openedDockLabel->setText(dockLabel);
+                dockLabelVisible = true;
+            } else {
+                dockHeaderBox->setFixedHeight(dockWithoutLabelHeight);
                 QString action = "Select to construct a <br/>" + kindToConstruct;
                 dockActionLabel->setText(action);
                 actionLabelVisible = true;
+                backButtonVisible = true;
             }
-            backButtonVisible = true;
+            break;
+        case HARDWARE_DOCK:
+            dockHeaderBox->setFixedHeight(dockWithLabelHeight);
+            openedDockLabel->setText(dockLabel);
+            dockLabelVisible = true;
+            functionSwitchVisible = true;
             break;
         default:
+            qWarning() << "MedeaWindow::dockToggled - Case not dealt with.";
             break;
         }
 
         headerBoxVisible = true;
 
     } else {
-        if (partsDock->isDockOpen() || definitionsDock->isDockOpen() || functionsDock->isDockOpen() || hardwareDock->isDockOpen()) {
+
+        if (partsDock->isDockOpen() || hardwareDock->isDockOpen()) {
+            if (hardwareDock->isDockOpen()) {
+                functionSwitchVisible = true;
+            }
             // if any of the docks are open, show the dock header widgets
+            dockLabelVisible = true;
             headerBoxVisible = true;
         } else {
             // if no docks are open, update the dock area's mask - allow mouse events to pass through it
@@ -3905,7 +3990,9 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
             nodeView->highlightOnHover();
         }
     }
-
+    if (functionSwitchVisible != nodesDockButtonsBox->isVisible()) {
+        nodesDockButtonsBox->setVisible(functionSwitchVisible);
+    }
     if (dockLabelVisible != openedDockLabel->isVisible()) {
         openedDockLabel->setVisible(dockLabelVisible);
     }
@@ -3917,24 +4004,68 @@ void MedeaWindow::dockToggled(bool opened, QString kindToConstruct)
     }
     if (headerBoxVisible != dockHeaderBox->isVisible()) {
         dockHeaderBox->setVisible(headerBoxVisible);
-        if (headerBoxVisible) {
-            updateDock();
-        }
+    }
+    if (headerBoxVisible) {
+        //qDebug() << "Header box height: " << dockHeaderBox->height();
+        updateDock();
     }
 }
 
 
 /**
- * @brief MedeaWindow::dockBackButtonTriggered
+ * @brief MedeaWindow::hardwareDockFunctionChanged
+ * This slot switches the state of the two hardware dock function buttons.
+ * @param checked
  */
-void MedeaWindow::dockBackButtonTriggered()
+void MedeaWindow::hardwareDockFunctionChanged(bool checked)
 {
-    if (definitionsDock->isDockOpen()) {
-        definitionsDock->setDockOpen(false);
-    } else if (functionsDock->isDockOpen()) {
-        functionsDock->setDockOpen(false);
+    QPushButton* senderButton = qobject_cast<QPushButton*>(QObject::sender());
+    QPushButton* otherButton = 0;
+
+    if (senderButton == nodesDockDeployButton) {
+        otherButton = nodesDockCenterButton;
+    } else if (senderButton == nodesDockCenterButton) {
+        otherButton = nodesDockDeployButton;
+    } else {
+        return;
     }
-    partsDock->forceOpenDock();
+
+    // revert the state of nodesDockCenterButton if nodesDockCenterButton is disabled
+    if (!checked && senderButton == nodesDockCenterButton) {
+        if (!nodesDockDeployButton->isEnabled()) {
+            nodesDockCenterButton->setChecked(true);
+            return;
+        }
+    }
+
+    // switch button states
+    if (otherButton && otherButton->isEnabled()) {
+        otherButton->setChecked(!checked);
+        emit window_changeHardwareDockFunction(nodesDockCenterButton->isChecked());
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::enableHardwareDockDeployButton
+ * @param enable
+ */
+void MedeaWindow::enableHardwareDockDeployButton(bool enable)
+{
+    if (enable) {
+        if (!nodesDockDeployButton->isChecked()) {
+            nodesDockDeployButton->clicked(true);
+            nodesDockDeployButton->setChecked(true);
+        }
+        nodesDockDeployButton->setToolTip("Deployment Mode");
+    } else {
+        if (nodesDockDeployButton->isChecked()) {
+            nodesDockDeployButton->clicked(false);
+            nodesDockDeployButton->setChecked(false);
+        }
+        nodesDockDeployButton->setToolTip("Deployment Mode Disabled For Selection");
+    }
+    nodesDockDeployButton->setEnabled(enable);
 }
 
 
@@ -3967,18 +4098,9 @@ void MedeaWindow::displayLoadingStatus(bool show, QString displayText)
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
-    // pause the notification timer before showing the progress dialog
-    if (notificationTimer->isActive()) {
-        leftOverTime = notificationTimer->remainingTime();
-        notificationTimer->stop();
-    }
 
     // show progress dialog
     if (!progressDialogVisible) {
-        //QPoint dialogOrigin = pos() + QPoint(width(), height());
-        //QPoint dialogOrigin = pos() + getCanvasRect().center();
-        //dialogOrigin -= QPoint(progressDialog->width() / 2, progressDialog->height() / 2);
-        //progressDialog->move(dialogOrigin);
         progressDialog->show();
         progressDialogVisible = true;
     }
@@ -4012,16 +4134,14 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
  */
 void MedeaWindow::closeProgressDialog()
 {
-    if (leftOverTime > 0) {
-        notificationsBox->show();
-        notificationTimer->start(leftOverTime);
-        leftOverTime = 0;
-    }
-
     progressDialog->close();
     progressLabel->setText("Loading...");
     progressBar->reset();
     progressDialogVisible = false;
+
+    if(!notificationsQueue.isEmpty()){
+        displayNotification();
+    }
 }
 
 
@@ -4043,7 +4163,6 @@ void MedeaWindow::searchItemClicked()
  */
 void MedeaWindow::searchMenuButtonClicked(bool checked)
 {
-
     bool showMenu = checked;
     QWidget* widget = 0;
     QMenu* menu = 0;
@@ -4081,18 +4200,12 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
 void MedeaWindow::searchMenuClosed()
 {
     QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
-    //QToolButton* button = qobject_cast<QToolButton*>(menu->parentWidget());
-
-    /*
-    searchOptionMenu->setStyleSheet(themedMenuStyle);
-    viewAspectsMenu->setStyleSheet(themedMenuStyle);
-    nodeKindsMenu->setStyleSheet(themedMenuStyle);
-    dataKeysMenu->setStyleSheet(themedMenuStyle);
-    */
-
     QToolButton* button = 0;
+    bool firstLayerButton = false;
+
     if (menu == searchOptionMenu) {
         button = searchOptionToolButton;
+        firstLayerButton = true;
     } else if (menu == viewAspectsMenu) {
         button = viewAspectsButton;
     } else if (menu == nodeKindsMenu) {
@@ -4102,40 +4215,25 @@ void MedeaWindow::searchMenuClosed()
     }
 
     if (button) {
-        button->setChecked(false);
+        // check if the corresponding tool button was used to close the menu
+        QPoint buttonPos = button->mapFromParent(button->pos());
+        buttonPos = button->mapToGlobal(buttonPos);
+        QRect buttonRect = QRect(buttonPos, button->rect().size());
+        if (buttonRect.contains(QCursor::pos())) {
+            if (!firstLayerButton) {
+                // if an inner button is clicked to close the menu, a click signal isn't emitted
+                // need to send click signal and update the button's checked state
+                button->clicked(false);
+                button->setChecked(false);
+            } else {
+                //qDebug() << "Search option clicked";
+                // this works except for when the cursor is over the search
+                // option button and then the menu is closed using the ESC key
+            }
+        } else {
+            button->setChecked(false);
+        }
     }
-
-    /*
-    qDebug() << "Menu parent widget: " << menu->parentWidget();
-
-    if (button) { // && button->isChecked()) {
-
-        qDebug() << "button checked: " << button->isChecked();
-        //close this levels button
-        button->setChecked(false);
-
-        //get the point of the cursor and the main SearchOptionMenu
-        QPoint topLeft = searchOptionMenu->mapToParent(searchOptionMenu->rect().topLeft());
-        QPoint bottomRight = searchOptionMenu->mapToParent(searchOptionMenu->rect().bottomRight());
-        QRect menuRect(topLeft, bottomRight);
-
-        //if the mouse is not within the confines of the searchOptionMenu, then close the searchOptionMenu too
-        if (!menuRect.contains(QCursor::pos())) {
-            searchOptionMenu->close();
-        }
-    }/*else if(menu && menu == searchOptionMenu){
-        QPoint topLeft = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().topLeft());
-        QPoint bottomRight = searchOptionToolButton->mapToGlobal(searchOptionToolButton->rect().bottomRight());
-
-        QRect buttonRect(topLeft, bottomRight);
-
-        if (buttonRect.contains(QCursor::pos())){
-            searchOptionToolButton->setChecked(true);
-        }else{
-            searchOptionToolButton->setChecked(false);
-        }
-    }*/
-
 }
 
 
@@ -4211,8 +4309,6 @@ void MedeaWindow::updateSearchLineEdits()
 void MedeaWindow::updateSearchSuggestions()
 {
     if (nodeView && searchBar) {
-        bool showSearch = !searchBar->text().isEmpty();
-        //searchButton->setEnabled(showSearch);
         nodeView->searchSuggestionsRequested(searchBar->text(), getCheckedItems(0), getCheckedItems(1), getCheckedItems(2));
     }
 }
@@ -4234,13 +4330,12 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
         notificationsQueue.enqueue(notif);
     }
 
-    // if there is a notification in the queue, start the timer and show the notification bar
-    if (!notificationTimer->isActive() && !notificationsQueue.isEmpty()) {
+    if(!notificationsQueue.isEmpty() && !notificationTimer->isActive()){
         NotificationStruct notif = notificationsQueue.dequeue();
         notificationsBar->setText(notif.text);
 
         if(notif.actionImage != ""){
-            notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", notif.actionImage, QSize(64,64), Qt::white));
+            notificationsIcon->setPixmap(Theme::theme()->getImage("Actions", notif.actionImage, QSize(32,32), Qt::white));
             notificationsIcon->setVisible(true);
         }else{
             notificationsIcon->setVisible(false);
@@ -4253,7 +4348,6 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
             notificationsBox->show();
         }
 
-
         notificationTimer->start(NOTIFICATION_TIME);
     }
 }
@@ -4264,11 +4358,10 @@ void MedeaWindow::displayNotification(QString notification, QString actionImage)
  */
 void MedeaWindow::checkNotificationsQueue()
 {
-    notificationTimer->stop();
-    //notificationsBar->hide();
-
     // if there are still notifications waiting to be displayed, display them in order
-    if (notificationsQueue.count() > 0) {
+    if (notificationsQueue.isEmpty()) {
+        notificationsBox->hide();
+    }else{
         displayNotification();
     }
 }
@@ -4966,7 +5059,7 @@ void MedeaWindow::updateStyleSheets()
     recentProjectsListWidget->setStyleSheet("QListWidget{background:" + altBGColor + ";color:" + textColor + ";font-size: 16px;}"
                                             "QListWidget::item:hover{background: " + highlightColor + ";color:" + textSelectedColor +";}");
 
-    setStyleSheet("QToolBar#" THEME_STYLE_HIDDEN_TOOLBAR "{ border: none; background-color: rgba(0,0,0,0); padding:0px; spacing: 2px;}"
+    setStyleSheet("QToolBar#" THEME_STYLE_HIDDEN_TOOLBAR "{ border: none; background-color: rgba(0,0,0,0); padding:0px; spacing: " +  QString::number(TOOLBAR_SPACING) + "px;}"
                   "QToolBar::separator { width:" + QString::number(TOOLBAR_SEPERATOR_WIDTH) + "px; background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   //"margin: 0px 1px;"

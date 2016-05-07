@@ -3,7 +3,7 @@
 #include <QObject>
 
 #include <QFont>
-#include "medeawindow.h"
+#include "Widgets/medeawindow.h"
 #include "modeltester.h"
 
 #include <QString>
@@ -13,20 +13,21 @@
 
 #include <QList>
 #include <QPair>
+#include <QApplication>
 #include <string>
-#include "theme.h"
+#include "View/theme.h"
 
-//ICON_LINK
-//https://www.google.com/design/icons/index.html
 void testModel(){
     ModelTester *t = new ModelTester();
-    t->loadTest("E:/MCMS.graphml");
+    t->loadTest("/home/dig/Desktop/HelloWorld(2).graphml");
     delete t;
 }
 
 int launchMEDEA(int argc, char *argv[]){
     //Construct a QApplication
     QApplication a(argc, argv);
+
+
     //Fixes MacOS QIcon resolution.
     a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     QString graphmlFilePath = "";

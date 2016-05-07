@@ -40,7 +40,7 @@ public:
 
 
 
-    enum IMAGE_POS{IP_TOPLEFT, IP_TOPMID, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER, IP_CENTER_SMALL};
+    enum IMAGE_POS{IP_TOPLEFT, IP_TOPMID, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER, IP_CENTER_SMALL, IP_CENTER_OVERLAY};
 
     EntityItem(NodeAdapter* node, NodeItem *parent);
     ~EntityItem();
@@ -54,6 +54,8 @@ public:
     //Used Methods
     void setZValue(qreal z);
     void restoreZValue();
+
+    QPointF getConnectLineCenter();
 
     void setHighlighted(bool isHighlight);
 
@@ -238,7 +240,6 @@ public slots:
 
 
     void zoomChanged(qreal zoom);
-    RENDER_STATE getRenderStateFromZoom(qreal zoom);
 
 
     //USED METHODS
@@ -308,6 +309,7 @@ private:
     QRectF statusRect_Left() const;
     QRectF iconRect_TopMid() const;
     QRectF iconRect_Center() const;
+    QRectF iconRect_BigCenter() const;
     //QRectF iconRect_MidRight() const;
 
     QRectF iconRect_TopLeft() const;
@@ -319,7 +321,7 @@ private:
     void setImage(IMAGE_POS pos, QPixmap image);
 
 
-    void paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update=false);
+    void paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update=false, QColor tintColor=QColor());
 
 
     //USED PARAMETERS;
@@ -518,6 +520,9 @@ private:
 
     bool hasWarning;
     QString warningTooltip;
+
+    QColor hardwareLinkColor;
+
     // GraphMLItem interface
 public slots:
     bool canHover();

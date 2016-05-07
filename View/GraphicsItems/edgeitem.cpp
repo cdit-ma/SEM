@@ -32,7 +32,7 @@ EdgeItem::EdgeItem(EdgeAdapter *edge, NodeItem *parent, EntityItem* s, EntityIte
 
     textItem = 0;
 
-
+    hasLabel = false;
 
     source = s;
     destination = d;
@@ -176,7 +176,7 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         QRectF rectangle = circleRect();
-        if(isSelected()){
+        if(isSelected() && hasLabel){
             rectangle = boundingRect();
         }
 
@@ -184,9 +184,6 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(currentBrush);
         rectangle.adjust(selectedPen.widthF(), selectedPen.widthF(), -selectedPen.widthF(), -selectedPen.widthF());
         painter->drawRoundedRect(rectangle, CIRCLE_RADIUS, CIRCLE_RADIUS);
-
-
-
         break;
     }
     case RS_MINIMAL:
@@ -248,6 +245,7 @@ void EdgeItem::setSelected(bool selected)
     GraphMLItem::setSelected(selected);
     updateBrushes();
 }
+
 
 void EdgeItem::labelUpdated(QString newLabel)
 {
@@ -505,10 +503,6 @@ bool EdgeItem::isPointInCircle(QPointF position)
 
 void EdgeItem::updateLabel(QString labelText)
 {
-    if(labelText == ""){
-        labelText = "ID: " + QString::number(getEntityAdapter()->getID());
-    }
-
     if(!textItem){
         textItem = new EditableTextItem(this);
         textItem->setAlignment(Qt::AlignCenter);
@@ -532,6 +526,7 @@ void EdgeItem::updateLabel(QString labelText)
     }
 
     if(textItem){
+        hasLabel = true;
         textItem->setPlainText(labelText);
     }
 }

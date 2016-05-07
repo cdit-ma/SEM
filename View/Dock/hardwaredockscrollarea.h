@@ -14,6 +14,7 @@ public:
     
 signals:
     void dock_highlightDockItem(NodeItem* nodeItem = 0);
+    void dock_selectedItemDeployable(bool deployable);
 
 public slots:
     void dockNodeItemClicked();
@@ -22,12 +23,15 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
 
-    void displayHighlightedItem();
+    void ensureHighlightedItemVisible();
+    void setDockFunction(bool clickToCenter);
 
 private:
+    void setDockToReadOnly(bool readOnly);
     void highlightHardwareConnection(QList<GraphMLItem*> selectedItems);
 
     QStringList hardware_notAllowedKinds;
+    int function;
 
 };
 

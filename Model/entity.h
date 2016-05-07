@@ -20,6 +20,7 @@ public:
     ~Entity();
     ENTITY_KIND getEntityKind() const;
 
+    virtual bool isInModel() = 0;
     bool addData(Data* data);
     bool addData(QList<Data*> dataList);
 
@@ -38,6 +39,7 @@ public:
     bool isNode();
     bool isEdge();
     bool isReadOnly();
+    bool isDataProtected(QString keyName);
     bool isSnippetReadOnly();
 
 
@@ -56,6 +58,7 @@ signals:
     void dataChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);
     void readOnlySet(int, bool isReadOnly);
+    void terminating();
 private slots:
     void dataChanged(int ID, QString keyName, QVariant data);
     void thisDataChanged(QString keyName);
@@ -65,6 +68,7 @@ private:
     int getDataIDFromKeyID(int keyID);
     Data* getDataFromDataID(int dataID);
 
+    QStringList unprotectedKeys;
     Entity::ENTITY_KIND entityKind;
     //Data ID -> Data
     QHash<int, Data*> lookupDataID2Data;

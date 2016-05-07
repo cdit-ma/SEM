@@ -2,6 +2,7 @@
 #define EDITABLETEXTITEM_H
 
 #include <QGraphicsTextItem>
+#include <QMimeData>
 
 class EditableTextItem : public QGraphicsTextItem
 {
@@ -22,16 +23,20 @@ public:
     QString getFullValue() const;
     void setEditable(bool edit);
 
+
 signals:
     void textUpdated(QString data);
     void editableItem_EditModeRequested();
     void editableItem_hasFocus(bool hasFocus);
+
+
 
     // QGraphicsItem interface
 protected:
     void focusInEvent(QFocusEvent*);
     void focusOutEvent(QFocusEvent* event);
     void keyPressEvent(QKeyEvent *event);
+    void paste();
 private:
     QString getTruncatedText(const QString text );
 
