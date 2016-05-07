@@ -671,8 +671,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         // this highlights this item if it is a hardware entity and the selected entity is connected to it
         if (isHardwareLink) {
-            bodyBrush.setColor(hardwareLinkColor);
             headBrush.setColor(hardwareLinkColor);
+            //bodyBrush.setColor(hardwareLinkColor);
         }
 
         if (isHighlighted()) {
@@ -822,8 +822,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     //Can Connect Line
     if(canNodeBeConnected && renderState >= RS_REDUCED){
-        QBrush brush = headerBrush;
-        brush.setColor(brush.color().darker(130));
+        QBrush brush = bodyBrush;
+        brush.setColor(brush.color().lighter(110));
         painter->setPen(Qt::NoPen);
         painter->setBrush(brush);
         painter->drawRect(iconRect_TopRight());
