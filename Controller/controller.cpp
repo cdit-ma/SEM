@@ -792,8 +792,9 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
             if(parentNode->canAdoptChild(testNode)){
                 parentNode->addChild(testNode);
                 //if we can create an edge to this test node, remove it and recreate a new Node properly
-                bool edgeOkay = testNode->canConnect_DefinitionEdge(connectedNode);
-
+                bool edgeOkay = testNode->canConnect(connectedNode);
+                //Remove it.
+                delete testNode;
 
                 if(edgeOkay){
                     Node* newNode = constructChildNode(parentNode,constructDataVector(kind));
@@ -813,6 +814,7 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
                             constructEdgeWithData(connectedNode, newNode);
                         }
 
+
                         if(!newNode->getEdgeTo(connectedNode)){
                             qCritical() << "MEGA ERROR";
                         }
@@ -821,9 +823,10 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
                     emit controller_DisplayMessage(WARNING, "Cannot construct edge; Cycle detected.", "Construction Error", "ConnectTo");
                 }
             }else{
+                delete testNode;
                 emit controller_DisplayMessage(WARNING, "Parent cannot adopt entity '" + kind +"'", "Construction Error", "Cancel");
             }
-            delete testNode;
+
         }
         setViewSignalsEnabled(true);
         //If we can't connect destruct the node we created.
@@ -2714,8 +2717,15 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
 
     //Realign all siblings in order starting at 0
     int sortOrder = 0;
-    foreach(Node* sibling, parentNode->getChildren(0)){
-        sibling->setDataValue("sortOrder", sortOrder ++);
+
+
+    QList<int> siblings = parentNode->getChildrenIDs(0);
+    while(!siblings.isEmpty()){
+        int ID = siblings.takeFirst();
+        Node* sibling = getNodeFromID(ID);
+        if(sibling){
+            sibling->setDataValue("sortOrder", sortOrder ++);
+        }
     }
 }
 

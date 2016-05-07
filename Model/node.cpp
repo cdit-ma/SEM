@@ -225,6 +225,17 @@ QList<Node *> Node::getChildren(int depth)
     return childList;
 }
 
+QList<int> Node::getChildrenIDs(int depth)
+{
+    QList<int> childIDs;
+    foreach(Node* child, getChildren(depth)){
+        if(child){
+            childIDs.append(child->getID());
+        }
+    }
+    return childIDs;
+}
+
 
 
 QList<Edge *> Node::getEdges(int depth)
