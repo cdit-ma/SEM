@@ -6,7 +6,7 @@
 #include <QDialog>
 #include <QPlainTextEdit>
 #include <QDialogButtonBox>
-#include "theme.h"
+#include "View/theme.h"
 AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QAbstractTableModel(item)
 {
     Q_UNUSED(parent);

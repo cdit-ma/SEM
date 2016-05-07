@@ -6,7 +6,7 @@
 #include <QTableView>
 #include <QGroupBox>
 #include "View/Table/attributetablemodel.h"
-#include "theme.h"
+#include "View/theme.h"
 
 class NodeView;
 
@@ -28,8 +28,6 @@ signals:
 public slots:
     void setAttributeModel(AttributeTableModel* model=0);
 
-
-    // QWidget interface
 protected:
     void resizeEvent(QResizeEvent *event);
 

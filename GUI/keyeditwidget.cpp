@@ -15,7 +15,7 @@
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QGroupBox>
-#include "../theme.h"
+#include "../View/theme.h"
 
 #define SMALL_SQUARE 25
 KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v, QString description, QString customType):QWidget(0)

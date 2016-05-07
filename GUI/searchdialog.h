@@ -2,7 +2,7 @@
 #define SEARCHDIALOG_H
 
 #include "searchitem.h"
-#include "medeawindow.h"
+#include "Widgets/medeawindow.h"
 
 #include <QDialog>
 #include <QVBoxLayout>

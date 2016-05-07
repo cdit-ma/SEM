@@ -1,5 +1,6 @@
 #include "edgeitemarrow.h"
 #include <QGraphicsSceneMouseEvent>
+#include "../../enumerations.h"
 EdgeItemArrow::EdgeItemArrow(EdgeItem *parentEdge):QGraphicsPolygonItem(parentEdge)
 {
     this->parentEdge = parentEdge;
@@ -29,4 +30,16 @@ void EdgeItemArrow::hoverMoveEvent(QGraphicsSceneHoverEvent*)
 void EdgeItemArrow::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
     parentEdge->handleHover(false);
+}
+
+void EdgeItemArrow::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
+
+    //Get Render State.
+    GraphMLItem::RENDER_STATE renderState = parentEdge->getRenderStateFromZoom(lod);
+
+    if(renderState >= GraphMLItem::RS_MINIMAL){
+        QGraphicsPolygonItem::paint(painter, option, widget);
+    }
 }

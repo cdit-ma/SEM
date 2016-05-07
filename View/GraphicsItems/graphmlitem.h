@@ -24,6 +24,7 @@ public:
     QRectF childrenBoundingRect();
     QRectF translatedBoundingRect();
     QString getNodeKind();
+    RENDER_STATE getRenderStateFromZoom(qreal lod) const;
     RENDER_STATE getRenderState() const;
     VIEW_STATE getViewState() const;
     void setRenderState(RENDER_STATE renderState);

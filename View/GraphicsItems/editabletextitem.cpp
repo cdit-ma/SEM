@@ -9,7 +9,7 @@
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 #include "../../enumerations.h"
-#include "../../theme.h"
+#include "../../View/theme.h"
 #include <QApplication>
 #include <QClipboard>
 

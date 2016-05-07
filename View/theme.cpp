@@ -349,7 +349,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
         }
 
         if(image.isNull()){
-            qCritical() << "Cannot find image: " << resourceName;
+            //qCritical() << "Cannot find image: " << resourceName;
             pixmapLookup[lookupName] = QPixmap();
             return pixmapLookup[lookupName];
         }

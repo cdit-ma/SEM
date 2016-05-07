@@ -11,7 +11,7 @@
 #include <QMenu>
 #include <QProgressDialog>
 #include <QMovie>
-#include "../../theme.h"
+#include "../../View/theme.h"
 #define CONSOLE_SUFFIX "_CONSOLE"
 #define STATE_SUFFIX "_STATE"
 

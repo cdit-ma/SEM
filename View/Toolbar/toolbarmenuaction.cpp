@@ -1,7 +1,7 @@
 #include "toolbarmenuaction.h"
 #include "toolbarmenu.h"
 #include <QDebug>
-#include "../../theme.h"
+#include "../../View/theme.h"
 
 
 /**
@@ -12,7 +12,6 @@
 ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, ToolbarMenuAction* parent_action, QWidget* parent) :
     QAction(parent)
 {
-    //connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     parentAction = parent_action;
     nodeItem = item;
     deletable = true;

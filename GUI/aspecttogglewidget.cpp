@@ -1,5 +1,5 @@
 #include "aspecttogglewidget.h"
-#include "../medeawindow.h"
+#include "../Widgets/medeawindow.h"
 
 #include "../enumerations.h"
 

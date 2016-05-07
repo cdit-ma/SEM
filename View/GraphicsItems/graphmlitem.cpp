@@ -100,6 +100,19 @@ GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem:
     }
 }
 
+GraphMLItem::RENDER_STATE GraphMLItem::getRenderStateFromZoom(qreal zoom) const
+{
+    if(zoom >= 1.0){
+        return RS_FULL;
+    }else if(zoom >= (2.0/3.0)){
+        return RS_REDUCED;
+    }else if(zoom >= (1.0/3.0)){
+        return RS_MINIMAL;
+    }else{
+        return RS_BLOCK;
+    }
+}
+
 GraphMLItem::RENDER_STATE GraphMLItem::getRenderState() const
 {
     return renderState;
@@ -276,6 +289,8 @@ QString GraphMLItem::getNodeKind()
 {
     return nodeKind;
 }
+
+
 
 bool GraphMLItem::hasGraphMLKey(QString keyName)
 {

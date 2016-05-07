@@ -20,7 +20,7 @@
 #include "../Model/Edges/deploymentedge.h"
 #include "../Model/data.h"
 
-#include "../doublehash.h"
+#include "doublehash.h"
 
 #define DANCE_EXECUTION_MANAGER "DANCE_EXECUTION_MANAGER"
 #define DANCE_PLAN_LAUNCHER "DANCE_PLAN_LAUNCHER"

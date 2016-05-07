@@ -359,6 +359,7 @@ bool Entity::removeData(QString keyName)
 
 void Entity::dataChanged(int id2, QString keyName, QVariant data)
 {
+    Q_UNUSED(id2)
     emit dataChanged(keyName, data);
 }
 

@@ -3,7 +3,7 @@
 #include <QObject>
 
 #include <QFont>
-#include "medeawindow.h"
+#include "Widgets/medeawindow.h"
 #include "modeltester.h"
 
 #include <QString>
@@ -15,10 +15,8 @@
 #include <QPair>
 #include <QApplication>
 #include <string>
-#include "theme.h"
+#include "View/theme.h"
 
-//ICON_LINK
-//https://www.google.com/design/icons/index.html
 void testModel(){
     ModelTester *t = new ModelTester();
     t->loadTest("/home/dig/Desktop/HelloWorld(2).graphml");

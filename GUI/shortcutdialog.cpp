@@ -4,7 +4,7 @@
 #include <QPalette>
 #include <QBrush>
 #include <QDebug>
-#include "../theme.h"
+#include "../View/theme.h"
 #define WIDTH 550
 #define HEIGHT 650
 

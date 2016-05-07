@@ -1,5 +1,5 @@
 #include "searchitem.h"
-#include "../medeawindow.h"
+#include "../Widgets/medeawindow.h"
 
 #include <QDebug>
 

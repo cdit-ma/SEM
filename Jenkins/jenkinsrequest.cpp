@@ -798,7 +798,7 @@ QString JenkinsRequest::validate()
         }else if(error == QNetworkReply::ProtocolUnknownError){
             return "Protocol Error";
         }else{
-            qCritical() << error;
+            //qCritical() << error;
             return "Unknown Network Error";
         }
     }

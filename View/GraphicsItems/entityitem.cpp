@@ -231,7 +231,7 @@ EntityItem::MOUSEOVER_TYPE EntityItem::getMouseOverType(QPointF scenePos)
         if(mouseOverRightLabel(itemPos) && state >= RS_REDUCED){
             return MO_EXPANDLABEL;
         }
-        if(mouseOverConnect(itemPos) && state > RS_REDUCED){
+        if(mouseOverConnect(itemPos) && state >= RS_REDUCED){
             return MO_CONNECT;
         }
 
@@ -335,6 +335,11 @@ void EntityItem::restoreZValue()
     if(parentEntityItem){
         parentEntityItem->restoreZValue();
     }
+}
+
+QPointF EntityItem::getConnectLineCenter()
+{
+    return iconRect_TopRight().center();
 }
 
 void EntityItem::setHighlighted(bool isHighlight)
@@ -666,8 +671,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         // this highlights this item if it is a hardware entity and the selected entity is connected to it
         if (isHardwareLink) {
-            //bodyBrush.setColor(Theme::theme()->getHighlightColor());
-            //headBrush.setColor(Theme::theme()->getHighlightColor());
             bodyBrush.setColor(hardwareLinkColor);
             headBrush.setColor(hardwareLinkColor);
         }
@@ -692,7 +695,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
         if(renderState == RS_BLOCK){
-
             if(isSelected()){
                 headBrush.setColor(getCurrentPen().color());
             }
@@ -720,8 +722,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
                 }
 
                 if (isHighlighted()) {
-                    //pen.setStyle(Qt::DashLine);
-                    //pen.setColor(Qt::darkBlue);
                     pen.setWidthF(selectedPenWidth);
                 }
 
@@ -729,7 +729,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
                 //Trace the boundary
                 painter->setPen(pen);
                 painter->setBrush(Qt::NoBrush);
-
                 painter->drawRect(adjustRectForPen(boundingRect(), pen));
             }
         }
@@ -758,10 +757,12 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         //Paint the Icon
 
         if(renderState > RS_BLOCK){
+
+
             paintPixmap(painter, lod, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
 
             if(nodeKind == "Process"){
-                paintPixmap(painter, lod, IP_CENTER_OVERLAY, "Functions", operationKind, false, true);
+                paintPixmap(painter, lod, IP_CENTER_OVERLAY, "Functions", operationKind, false, Qt::black);
             }
         }
 
@@ -776,6 +777,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         paintPixmap(painter, lod, IP_CENTER_SMALL, "Actions", "Key");
     }
 
+
     if(renderState == RS_FULL){
         //If a Node has a Definition, paint a definition icon
         if(IS_READ_ONLY_DEF){
@@ -785,25 +787,17 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, lod, IP_BOTLEFT, "Actions", "Menu_Vertical");
         }
 
-        if(isInputParameter){
-            paintPixmap(painter, lod, IP_TOPLEFT, "Actions", "Arrow_Forward");
+        if(isInputParameter || isReturnParameter){
+            QColor tintColor = QColor(22,177,22);
+            if(isInputParameter){
+                tintColor = QColor(206,23,23);
+            }
+
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(tintColor);
+            painter->drawRect(iconRect_TopLeft());
+            paintPixmap(painter, lod, IP_TOPLEFT, "Items", nodeKind, false, Qt::white);
         }
-        if(isReturnParameter){
-            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "Arrow_Forward");
-        }
-
-
-
-        if(canNodeBeConnected){
-            //Paint connect Icon
-            paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "ConnectTo");
-
-            QPen newPen(Qt::gray);
-            newPen.setWidthF(0.5);
-            painter->setPen(newPen);
-            painter->drawEllipse(iconRect_TopRight());
-        }
-
 
         if(hasChildren()){
             if(isExpanded()){
@@ -824,6 +818,17 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             }
 
         }
+    }
+
+    //Can Connect Line
+    if(canNodeBeConnected && renderState >= RS_REDUCED){
+        QBrush brush = headerBrush;
+        brush.setColor(brush.color().darker(130));
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(brush);
+        painter->drawRect(iconRect_TopRight());
+        //Paint connect Icon
+        paintPixmap(painter, lod, IP_TOPRIGHT, "Actions", "ConnectTo");
     }
 
     if(renderState >= RS_REDUCED){
@@ -882,7 +887,7 @@ bool EntityItem::mouseOverDeploymentIcon(QPointF mousePosition)
 
 bool EntityItem::mouseOverDefinition(QPointF mousePosition)
 {
-    if (IS_READ_ONLY_DEF || nodeMemberIsKey || IS_READ_ONLY){
+    if (IS_READ_ONLY_DEF || nodeMemberIsKey || IS_READ_ONLY || isReturnParameter || isInputParameter){
         return iconRect_TopLeft().contains(mousePosition);
     }
     return false;
@@ -1498,6 +1503,8 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
             tooltip = "This Entity is a Read-Only Snippet definition.";
         }else if(IS_READ_ONLY){
             tooltip = "This Entity is in Read-Only Mode. You can only make visual changes.";
+        }else if(isInputParameter || isReturnParameter){
+            tooltip = "This Parameter is a " + nodeKind;
         }
         break;
     case MO_HARDWAREMENU:
@@ -1794,7 +1801,7 @@ QRectF EntityItem::iconRect_BigCenter() const
 {
     //Construct a Rectangle to represent the icon size at the origin.
     QRectF iconRect;
-    iconRect.setSize(QSize(24,24));
+    iconRect.setSize(QSize(contractedWidth / 3,contractedWidth / 3));
     //Translate to move the icon to its position
     iconRect.moveCenter(minimumRect().center());
 
@@ -2714,18 +2721,6 @@ void EntityItem::zoomChanged(qreal currentZoom)
     GraphMLItem::zoomChanged(currentZoom);
 }
 
-GraphMLItem::RENDER_STATE EntityItem::getRenderStateFromZoom(qreal zoom)
-{
-    if(zoom >= 1.0){
-        return RS_FULL;
-    }else if(zoom >= (2.0/3.0)){
-        return RS_REDUCED;
-    }else if(zoom >= (1.0/3.0)){
-        return RS_MINIMAL;
-    }else{
-        return RS_BLOCK;
-    }
-}
 
 /**
  * @brief EntityItem::getChildrenViewOptionMenu
@@ -2781,7 +2776,7 @@ QString EntityItem::getIconPrefix()
 
 }
 
-void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update, bool useBlackIcon)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update, QColor tintColor)
 {
     QRectF place = getImageRect(pos);
 
@@ -2794,10 +2789,6 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS
 
     if(image.size() != requiredSize || update){
         //Try get the image the user asked for.
-        QColor tintColor;
-        if(useBlackIcon){
-            tintColor = Qt::black;
-        }
         image = theme->getImage(alias, imageName, requiredSize, tintColor);
 
         if(image.isNull() && workerKind != ""){

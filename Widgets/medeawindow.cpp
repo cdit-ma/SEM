@@ -191,7 +191,6 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
 
 
     if(keyName == TOOLBAR_VISIBLE){
-        qCritical() << keyName << boolValue;
         setToolbarVisibility(boolValue);
         SHOW_TOOLBAR = boolValue;
     }

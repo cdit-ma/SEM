@@ -2,8 +2,8 @@
 #include "../Controller/controller.h"
 #include "Toolbar/toolbarwidget.h"
 #include "Dock/docktogglebutton.h"
-#include "../medeasubwindow.h"
-#include "../medeawindow.h"
+#include "../Widgets/medeasubwindow.h"
+#include "../Widgets/medeawindow.h"
 #include "GraphicsItems/aspectitem.h"
 #include "GraphicsItems/noguiitem.h"
 #include <limits>
@@ -3740,9 +3740,8 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         }
         EntityItem* item = getSelectedEntityItem();
         if(item){
-
             QPointF lineStart = item->scenePos();
-            lineStart += item->minimumRect().center();
+            lineStart += item->getConnectLineCenter();
 
             QPointF lineEnd = mapToScene(event->pos());
             QLineF line(lineStart, lineEnd);

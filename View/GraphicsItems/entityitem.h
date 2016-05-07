@@ -55,6 +55,8 @@ public:
     void setZValue(qreal z);
     void restoreZValue();
 
+    QPointF getConnectLineCenter();
+
     void setHighlighted(bool isHighlight);
 
     void setNodeConnectable(bool connectable);
@@ -238,7 +240,6 @@ public slots:
 
 
     void zoomChanged(qreal zoom);
-    RENDER_STATE getRenderStateFromZoom(qreal zoom);
 
 
     //USED METHODS
@@ -320,7 +321,7 @@ private:
     void setImage(IMAGE_POS pos, QPixmap image);
 
 
-    void paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update=false, bool useBlackIcon=true);
+    void paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update=false, QColor tintColor=QColor());
 
 
     //USED PARAMETERS;

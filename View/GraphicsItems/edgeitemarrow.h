@@ -15,6 +15,10 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 private:
     EdgeItem* parentEdge;
+
+    // QGraphicsItem interface
+public:
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
 #endif // EDGEITEMARROW_H

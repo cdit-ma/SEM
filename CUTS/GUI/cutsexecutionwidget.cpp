@@ -19,7 +19,7 @@
 #include <QTimer>
 #include <QTime>
 #include <QMessageBox>
-#include "../../theme.h"
+#include "../../View/theme.h"
 
 
 CUTSExecutionWidget::CUTSExecutionWidget(QWidget *, CUTSManager *cutsManager)
