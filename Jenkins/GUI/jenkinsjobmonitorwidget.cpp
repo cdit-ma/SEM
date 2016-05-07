@@ -353,11 +353,15 @@ void JenkinsJobMonitorWidget::closeTab(int tabID)
         QTextBrowser* textBrowser = configurationBrowsers[configName];
         configurationBrowsers.remove(configName);
         tabWidget->removeTab(tabID);
+        if(textBrowser){
+            delete textBrowser;
+        }
     }
 }
 
 void JenkinsJobMonitorWidget::authenticationFinished(bool success, QString message)
 {
+    Q_UNUSED(message)
     loadingWidget->authenticationFinished();
     if(!success){
         reject();

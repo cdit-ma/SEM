@@ -137,7 +137,8 @@ void ToolbarWidget::setupFunctionsList()
 }
 
 
-/**
+/**git clone https://github.com/cdit-ma/MEDEA
+
  * @brief ToolbarWidget::getNonDeletableMenuActionKinds
  * @return - the list of actios from the addMenu that has a subMenu.
  */
@@ -1787,12 +1788,11 @@ bool ToolbarWidget::event(QEvent *e)
 {
   if(e->type() == QEvent::FocusOut){
         QFocusEvent* ev = (QFocusEvent*)e;
-        if(ev){
-            if(ev->lostFocus() && ev->reason() == Qt::ActiveWindowFocusReason){
-                closeOpenMenus();
-                hide();
-            }
+        if(ev->lostFocus() && ev->reason() == Qt::ActiveWindowFocusReason){
+            closeOpenMenus();
+            hide();
         }
+
     }
     return QWidget::event(e);
 }
