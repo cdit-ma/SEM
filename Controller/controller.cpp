@@ -2717,7 +2717,11 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
 
     //Realign all siblings in order starting at 0
     int sortOrder = 0;
-    foreach(Node* sibling, parentNode->getChildren(0)){
+
+    QList<Node*> siblings = parentNode->getChildren(0);
+
+    while(!siblings.isEmpty()){
+        Node* sibling = siblings.takeFirst();
         sibling->setDataValue("sortOrder", sortOrder ++);
     }
 }

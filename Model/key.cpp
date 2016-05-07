@@ -3,6 +3,7 @@
 #include "data.h"
 #include <QDebug>
 #include "node.h"
+#include <QStringBuilder>
 
 QString Key::getGraphMLTypeName(const QVariant::Type type)
 {
@@ -253,7 +254,7 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
         }
     case QVariant::Bool:
         okay = dataValue.convert(QVariant::Bool);
-        errorString = "Boolean Failed";
+        errorString = "Converting: '" % dataValue.toString() % "' failed!";
         break;
     default:{
         //Could be a number.
