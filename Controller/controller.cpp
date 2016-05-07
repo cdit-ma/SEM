@@ -2715,16 +2715,14 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
     //Set the position
     node->setDataValue("sortOrder", newPosition);
 
-    //Realign all siblings in order starting at 0
-    int sortOrder = 0;
+    QList<Node*> siblings = parentNode->getChildren(0);
+    siblings.removeAll(node);
 
-
-    QList<int> siblings = parentNode->getChildrenIDs(0);
-    while(!siblings.isEmpty()){
-        int ID = siblings.takeFirst();
-        Node* sibling = getNodeFromID(ID);
-        if(sibling){
-            sibling->setDataValue("sortOrder", sortOrder ++);
+    int siblingIndex = 0;
+    for(int sortOrder = 0; sortOrder < siblings.count() + 1; sortOrder ++){
+        if(sortOrder != newPosition){
+            siblings[siblingIndex]->setDataValue("sortOrder", sortOrder);
+            siblingIndex ++;
         }
     }
 }
