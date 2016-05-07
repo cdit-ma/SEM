@@ -43,6 +43,7 @@ public:
 
     bool containsChild(Node* child);
     QList<Node *> getChildren(int depth =-1);
+    QList<int> getChildrenIDs(int depth =-1);
     QList<Node *> getChildrenOfKind(QString kind, int depth =-1);
 
     QList<int> getEdgeIDs(Edge::EDGE_CLASS edgeClass = Edge::EC_NONE);
