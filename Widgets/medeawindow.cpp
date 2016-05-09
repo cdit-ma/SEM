@@ -2831,14 +2831,20 @@ void MedeaWindow::aboutMedea()
     aboutString += "<i>The University of Adelaide</i><br /><br />";
     aboutString += "Developers:";
     aboutString += "<ul>";
-    aboutString += "<li>Dan Fraser</li>";
-    aboutString += "<li>Cathlyn Aston</li>";
-    aboutString += "<li>Marianne Rieckmann</li>";
+    aboutString += "<li><b>Lead: </b>Dan Fraser</li>";
+    aboutString += "<li><b>UX: </b>Cathlyn Aston</li>";
+    aboutString += "<li><b>Transforms: </b>Marianne Rieckmann</li>";
+    aboutString += "</ul>With thanks to:";
+    aboutString += "<ul>";
     aboutString += "<li>Matthew Hart</li>";
+    aboutString += "<li>Jackson Michael</li>";
+    aboutString += "<li>Mitchell Conrad</li>";
     aboutString += "</ul>";
     aboutString += "<a href=\"";
     aboutString += GITHUB_URL;
-    aboutString += "\">MEDEA GitHub</a>";
+    aboutString += "\">MEDEA GitHub URL</a>";
+
+
     QMessageBox::about(this, "About MEDEA", aboutString);
 }
 
