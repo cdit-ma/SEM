@@ -228,7 +228,7 @@ bool Entity::isDataProtected(QString keyName)
     if(readOnlyData){
         if(readOnlyData->getValue().toBool()){
             Data* data = getData(keyName);
-            if(data && (!data->isVisualData() && keyName != "sortOrder")){
+            if(data && (!data->isVisualData() && keyName != "sortOrder" && keyName != "actionOn")){
                 return true;
             }
         }
