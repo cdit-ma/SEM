@@ -743,8 +743,10 @@ void NewController::constructWorkerProcessNode(int parentID, QString workerName,
     if(processFunction){
         processFunction->setDataValue("x", position.x());
         processFunction->setDataValue("y", position.y());
-        Key* protectedKey = constructKey("dataProtected", QVariant::Bool, Entity::EK_NODE);
-        attachData(processFunction, new Data(protectedKey, true));
+        if(!(workerName == "WE_UTE" && (operationName == "cppCode" || operationName == "cppHeader"))){
+            Key* protectedKey = constructKey("dataProtected", QVariant::Bool, Entity::EK_NODE);
+            attachData(processFunction, new Data(protectedKey, true));
+        }
     }
 
     emit controller_ActionFinished();

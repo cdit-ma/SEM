@@ -22,7 +22,6 @@ class JenkinsManager: public QObject
     Q_OBJECT
 public:
     JenkinsManager(QString cliBinaryPath);
-    ~JenkinsManager();
     QString getUsername();
 
     void setURL(QString url);

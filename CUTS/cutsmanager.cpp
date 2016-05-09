@@ -219,32 +219,14 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 
 void CUTSManager::getCPPForComponent(QString graphmlPath, QString component)
 {
-    //Start a QProcess for this program
-    QProcess* process = new QProcess();
-    process->setWorkingDirectory(XSLTransformPath);
+    QStringList cppArgs, hArgs;
+    cppArgs << "File" << component + "Impl.cpp";
+    hArgs << "File" << component + "Impl.h";
+    QPair<int, QPair<QString, QString>> cppCode = runLocalTransform(graphmlPath, "graphml2cpp.xsl", cppArgs);
+    QPair<int, QPair<QString, QString>> hCode = runLocalTransform(graphmlPath, "graphml2h.xsl", hArgs);
 
-    //Construct the arguments for the xsl transform
-    QStringList arguments;
-    arguments << "-jar" << xalanJPath + "xalan.jar";
-    arguments << "-in" << graphmlPath;
-    arguments << "-xsl" << XSLTransformPath + "graphml2cpp.xsl";
-    arguments << "-param" << "File" << component + "Impl.cpp";
-
-    //Construct a wait loop to make sure this transform happens first.
-    QEventLoop waitLoop;
-    connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
-
-    //Execute the QProcess
-    process->start("java", arguments);
-
-    //Wait for The process to exit the loop.
-    waitLoop.exec();
-
-    int code = process->exitCode();
-
-    QString commandOutput = process->readAllStandardOutput();
-    QString errorString = process->readAllStandardError();
-    emit gotCPPForComponent(code == 0,errorString, component, commandOutput);
+    emit gotCPPForComponent(cppCode.first == 0, cppCode.second.second, component + "Impl.cpp", cppCode.second.first);
+    emit gotCPPForComponent(hCode.first == 0, hCode.second.second, component + "Impl.h", hCode.second.first);
 }
 
 void CUTSManager::executeXMETransform(QString xmePath, QString outputFilePath)
@@ -558,6 +540,40 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 
     //Start Queue
     processQueue();
+}
+
+QPair<int, QPair<QString, QString> > CUTSManager::runLocalTransform(QString graphmlPath, QString transformName, QStringList params)
+{
+    QPair<int, QPair<QString, QString> > status;
+
+    //Start a QProcess for this program
+    QProcess* process = new QProcess();
+    process->setWorkingDirectory(XSLTransformPath);
+
+    //Construct the arguments for the xsl transform
+    QStringList arguments;
+    arguments << "-jar" << xalanJPath + "xalan.jar";
+    arguments << "-in" << graphmlPath;
+    arguments << "-xsl" << XSLTransformPath + transformName;
+    if(!params.isEmpty()){
+        arguments << "-param";
+        arguments.append(params);
+    }
+
+    //Construct a wait loop to make sure this transform happens first.
+    QEventLoop waitLoop;
+    connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
+
+    //Execute the QProcess
+    process->start("java", arguments);
+    //Wait for The process to exit the loop.
+    waitLoop.exec();
+
+    status.first = process->exitCode();
+    status.second.first = process->readAllStandardOutput();
+    status.second.second = process->readAllStandardError();
+    delete process;
+    return status;
 }
 
 
