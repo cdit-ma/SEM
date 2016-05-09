@@ -149,6 +149,7 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
 {
 
     QString resourceName = "";
+    QString prefixName = "Actions";
 
     int index = configurations.indexOf(activeConfiguration);
 
@@ -170,34 +171,23 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
         }
         buildingTabs[index] = true;
     }else if(state == BUILT){
-        resourceName = ":/Actions/Job_Built.png";
+        resourceName = "Job_Built";
         buildingTabs[index] = false;
     }else if(state == FAILED){
-        resourceName = ":/Actions/Job_Failed.png";
+        resourceName = "Job_Failed";
         buildingTabs[index] = false;
     }else if(state == ABORTED){
-        resourceName = ":/Actions/Job_Aborted.png";
+        resourceName = "Job_Aborted";
         buildingTabs[index] = false;
     }
 
     if(index >=0 && resourceName != ""){
         if(activeConfiguration == ""){
-            jobIcon->setPixmap(QPixmap::fromImage(QImage(resourceName)));
+            jobIcon->setPixmap(Theme::theme()->getImage(prefixName, resourceName));
             //Hide the Stop Button.
             stopButton->setVisible(false);
         }
-        if(activeConfiguration != ""){
-            //QTextBrowser* browser = configurationBrowsers[activeConfiguration];
-            //if(browser){
-                //QRegExp regExp("((([A-Za-z]{3,9}:(?:\\/\\/)?)(?:[\\-;:&=\\+\\$,\\w]+@)?[A-Za-z0-9\\.\\-]+|(?:www\\.|[\\-;:&=\\+\\$,\\w]+@)[A-Za-z0-9\\.\\-]+)((?:\\/[\\+~%\\/\\.\\w\\-]*)?\\??(?:[\\-\\+=&;%@\\.\\w]*)#?(?:[\\.\\!\\/\\\\\\w]*))?)");
-                //QString consoleOutput = browser->toPlainText();
-                //consoleOutput = consoleOutput.replace("\r\n)
-                //consoleOutput = consoleOutput.replace(regExp, "<a href=\"\\1\">\\1</a>" );
-                //browser->setHtml(consoleOutput);
-            //}
-        }
-
-        tabWidget->setTabIcon(index, QIcon(resourceName));
+        tabWidget->setTabIcon(index, Theme::theme()->getImage(prefixName, resourceName));
     }
 }
 
