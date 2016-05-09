@@ -233,9 +233,15 @@ void JenkinsJobMonitorWidget::jobStateChanged(QString jobName, int buildNumber, 
 
         //Get each ActiveConfigurations console output
         foreach(QString configuration, configurations){
+            QObject *threadParent = this;
+            QTextBrowser* textBrowser = configurationBrowsers[configuration];
+            if(textBrowser){
+                threadParent = textBrowser;
+            }
+
             //Construct a JenkinsRequest Object to get the Console Output of this Configuration
-            JenkinsRequest* jenkinsCO = jenkins->getJenkinsRequest(this);
-            JenkinsRequest* jenkinsJS = jenkins->getJenkinsRequest(this);
+            JenkinsRequest* jenkinsCO = jenkins->getJenkinsRequest(threadParent);
+            JenkinsRequest* jenkinsJS = jenkins->getJenkinsRequest(threadParent);
 
              //Connect the emit signals from this to the JenkinsRequest Thread.
             connect(this, SIGNAL(getJobConsoleOutput(QString,int, QString)), jenkinsCO, SLOT(getJobConsoleOutput(QString,int,QString)));
@@ -248,6 +254,9 @@ void JenkinsJobMonitorWidget::jobStateChanged(QString jobName, int buildNumber, 
             connect(jenkinsJS, SIGNAL(gotJobStateChange(QString,int,QString,JOB_STATE)), this, SLOT(jobStateChanged(QString,int,QString,JOB_STATE)));
 
             //Request the console output
+
+
+
 
             getJobConsoleOutput(this->jobName, this->buildNumber, configuration);
 

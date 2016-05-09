@@ -2015,7 +2015,7 @@ void NewController::removeGraphMLFromHash(int ID)
 
             emit controller_EntityDestructed(entityAdapter);
 
-            ID2AdapterHash.remove(ID);
+            int removeCount = ID2AdapterHash.remove(ID);
             if(canDelete){
                 //Otherwise when the last item in the view is done it will delete.
                 delete entityAdapter;
@@ -2700,7 +2700,7 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
         newPosition = node->getDataValue("sortOrder").toInt();
     }
 
-    int maxPos = parentNode->childrenCount();
+    int maxPos = parentNode->childrenCount() - 1;
 
     //If the newPosition is -1 or is bigger than our maxPos, put it last.
     if(newPosition > maxPos || newPosition == -1){

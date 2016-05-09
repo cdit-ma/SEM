@@ -169,6 +169,7 @@ QPair<int, QByteArray> JenkinsRequest::waitForReply(QNetworkReply *reply)
             //Wait for something to quit the EventLoop
             waitLoop.exec();
         }
+        //qCritical() << "WAITING YO;";
 
         //If we have bytes, read them and append them to the data we already have.
         if(bytesAvailable > 0){
@@ -371,7 +372,7 @@ QJsonDocument JenkinsRequest::getJobConfiguration(QString jobName, int buildNumb
         configuration = QJsonDocument::fromJson(response.second);
 
         //If we have a valid JSON document, store it in the manager for future use.
-        if(!configuration.isNull()){
+        if(manager && !configuration.isNull()){
             manager->storeJobConfiguration(jobName, configuration);
         }
     }
@@ -762,6 +763,8 @@ void JenkinsRequest::_unexpectedTermination()
     terminated = true;
     //Try unset JenkinsManger
     manager = 0;
+
+
 }
 
 QString JenkinsRequest::validate()
