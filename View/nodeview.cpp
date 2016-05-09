@@ -1461,7 +1461,7 @@ void NodeView::showDropDown(GraphMLItem *item, QLineF dropDownPosition, QString 
 
         comboBox->addItems(validValues);
         comboBox->setCurrentText(currentValue);
-        comboBox->setFixedWidth(width);
+        comboBox->setMinimumWidth(width);
         comboBox->move(topLeft);
         comboBox->showPopup();
         comboBox->setVisible(true);
