@@ -2791,19 +2791,14 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS
         //Try get the image the user asked for.
         image = theme->getImage(alias, imageName, requiredSize, tintColor);
 
+        if(image.isNull() && nodeType != ""){
+            //Try get the Icon for the worker otherwise.
+            image = theme->getImage("Data", nodeType, requiredSize, tintColor);
+        }
+
         if(image.isNull() && workerKind != ""){
             //Try get the Icon for the worker otherwise.
             image = theme->getImage("Functions", workerKind, requiredSize, tintColor);
-        }
-
-        if(image.isNull() && operationKind != ""){
-            //Use the default icon for the Process.
-            image = theme->getImage("Items", "Process", requiredSize, tintColor);
-        }
-
-        if(image.isNull() && nodeType != ""){
-            //Look for a Data icon.
-            image = theme->getImage("Data", nodeType, requiredSize, tintColor);
         }
 
         if(image.isNull()){
