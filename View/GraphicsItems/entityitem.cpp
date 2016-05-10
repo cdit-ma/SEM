@@ -2786,7 +2786,10 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS
     QSize requiredSize;
     requiredSize.setWidth(place.width()* lod * 2);
     requiredSize.setHeight(place.height()* lod * 2);
+    //Round the image
+    requiredSize = theme->roundQSize(requiredSize);
 
+    //If the image size is different to what is cached, we should Update, or we have been told to update.
     if(image.size() != requiredSize || update){
         //Try get the image the user asked for.
         image = theme->getImage(alias, imageName, requiredSize, tintColor);
@@ -2805,25 +2808,9 @@ void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::IMAGE_POS
             //Use a help icon.
             image = theme->getImage("Actions", "Help", requiredSize, tintColor);
         }
+        //Store the image into the map.
         imageMap[pos] = image;
     }
-
-    /*
-    if (nodeKind == "Process") {
-        QPixmap originalPixmap = Theme::theme()->getImage("Items", nodeKind);
-        painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), originalPixmap);
-        QPixmap operationPixmap(":/Functions/" + operationKind);
-        if (operationPixmap.isNull()) {
-            operationPixmap = Theme::theme()->getImage("Actions", "Help");
-        }
-        int pixmapSize = iconRect().width() / 2.5;
-        operationPixmap = operationPixmap.scaled(pixmapSize, pixmapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        QPointF opPixmapPos = iconRect().center() - QPointF(pixmapSize/2, pixmapSize/2);
-        painter->drawPixmap(opPixmapPos.x(), opPixmapPos.y(), operationPixmap);
-    } else {
-        painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
-    }
-    */
 
     painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
 
