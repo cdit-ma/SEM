@@ -525,7 +525,7 @@ void MedeaWindow::initialiseGUI()
     controller = 0;
     controllerThread = 0;
 
-    nodeView = new NodeView();
+    nodeView = new NodeView(false, this);
     nodeView->setApplicationDirectory(applicationDirectory);
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
@@ -1446,8 +1446,12 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
 {
     QFont biggerFont = QFont(guiFont.family(), 11);
 
+    progressDialog = new QDialog();
+    progressDialog->setParent(this);
+
+
     // setup progress bar
-    progressBar = new QProgressBar(this);
+    progressBar = new QProgressBar(progressDialog);
     progressBar->setFixedHeight(20);
     progressBar->setStyleSheet("border: 2px solid gray;"
                                "border-radius: 5px;"
@@ -1456,7 +1460,7 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
                                "color: black;");
 
     // setup progress label
-    progressLabel = new QLabel(this);
+    progressLabel = new QLabel(progressDialog);
     progressLabel->setAlignment(Qt::AlignCenter);
     progressLabel->setFixedHeight(30);
     progressLabel->setFont(biggerFont);
@@ -1466,13 +1470,13 @@ void MedeaWindow::setupInfoWidgets(QHBoxLayout* layout)
     progressLayout->addWidget(progressLabel);
     progressLayout->addWidget(progressBar);
 
-    QWidget* progressWidget = new QWidget(this);
+    QWidget* progressWidget = new QWidget(progressDialog);
     progressWidget->setLayout(progressLayout);
     progressWidget->setFixedSize(RIGHT_PANEL_WIDTH*2, progressBar->height() + progressLabel->height() + SPACER_SIZE*3);
     progressWidget->setStyleSheet("QWidget{ padding: 0px; border-radius: 5px; }");
 
     // setup progress dialog
-    progressDialog = new QDialog();
+
     progressDialog->setModal(true);
     progressDialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     progressDialog->setAttribute(Qt::WA_NoSystemBackground, true);
@@ -4112,6 +4116,11 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
 
     // show progress dialog
     if (!progressDialogVisible) {
+        //Centralize
+        QPoint topLeft = rect().center();
+        topLeft.rx() -= RIGHT_PANEL_WIDTH;
+        topLeft.ry() -= (progressDialog->height() / 2);
+        progressDialog->move(topLeft);
         progressDialog->show();
         progressDialogVisible = true;
     }
