@@ -1690,6 +1690,7 @@ void MedeaWindow::setupWelcomeScreen()
     QPushButton* recentProjectButton = new QPushButton("Recent Projects", this);
     QPushButton* wikiButton = new QPushButton("Wiki", this);
     QPushButton* aboutButton = new QPushButton("About", this);
+    QPushButton* closeButton = new QPushButton("Close", this);
 
     settingsButton->setFlat(true);
     settingsButton->setStyleSheet("font-size: 16px; text-align: left;"
@@ -1701,6 +1702,7 @@ void MedeaWindow::setupWelcomeScreen()
     recentProjectButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     wikiButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
     aboutButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
+    closeButton->setObjectName(THEME_STYLE_QPUSHBUTTON);
 
     openProjectButton->setStyleSheet(settingsButton->styleSheet());
     openProjectButton->setFlat(true);
@@ -1712,6 +1714,11 @@ void MedeaWindow::setupWelcomeScreen()
     wikiButton->setStyleSheet(settingsButton->styleSheet() + "QPushButton{ text-align: right; }");
     aboutButton->setFlat(true);
     aboutButton->setStyleSheet(settingsButton->styleSheet() + "QPushButton{ text-align: right; }");
+
+    closeButton->setFlat(true);
+    closeButton->setStyleSheet(settingsButton->styleSheet() + "QPushButton{ text-align: right; }");
+
+
 
     QLabel* medeaIcon = new QLabel(this);
     QLabel* medeaLabel = new QLabel("MEDEA");
@@ -1729,6 +1736,7 @@ void MedeaWindow::setupWelcomeScreen()
     recentProjectButton->setIcon(getIcon("Welcome", "Timer"));
     wikiButton->setIcon(getIcon("Welcome", "Wiki"));
     aboutButton->setIcon(getIcon("Welcome", "Help"));
+    closeButton->setIcon(getIcon("Welcome", "Close"));
 
     QVBoxLayout* topLayout = new QVBoxLayout();
     topLayout->addWidget(medeaIcon, 0, Qt::AlignCenter);
@@ -1774,6 +1782,7 @@ void MedeaWindow::setupWelcomeScreen()
     bottomLayout->addStretch();
     bottomLayout->addWidget(wikiButton,0, Qt::AlignRight);
     bottomLayout->addWidget(aboutButton,0, Qt::AlignRight);
+    bottomLayout->addWidget(closeButton,0, Qt::AlignRight);
     mainLayout->addLayout(bottomLayout);
     mainLayout->addStretch();
 
@@ -1797,6 +1806,7 @@ void MedeaWindow::setupWelcomeScreen()
     connect(settingsButton, SIGNAL(clicked(bool)), settings_changeAppSettings, SIGNAL(triggered(bool)));
     connect(wikiButton, SIGNAL(clicked(bool)), help_Wiki, SIGNAL(triggered(bool)));
     connect(aboutButton, SIGNAL(clicked(bool)), help_AboutMedea, SIGNAL(triggered(bool)));
+    connect(closeButton, SIGNAL(clicked(bool)), this, SLOT(close()));
 }
 
 
@@ -2677,6 +2687,7 @@ void MedeaWindow::initialiseTheme()
 
     //Red
     Theme::theme()->setDefaultImageTintColor("Welcome", "Settings", QColor(230,51,42));
+    Theme::theme()->setDefaultImageTintColor("Welcome", "Close",  QColor(230,51,42));
 
     //LOAD THINGS
     emit Theme::theme()->initPreloadImages();

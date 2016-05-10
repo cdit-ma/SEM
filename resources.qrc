@@ -287,5 +287,6 @@
         <file alias="Timer">Resources/Images/Welcome/Timer.png</file>
         <file alias="Wiki">Resources/Images/Welcome/Wiki.png</file>
         <file alias="Settings">Resources/Images/Welcome/Settings.png</file>
+        <file alias="Close">Resources/Images/Welcome/Close.png</file>
     </qresource>
 </RCC>
