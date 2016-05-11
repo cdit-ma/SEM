@@ -222,8 +222,8 @@ void CUTSManager::getCPPForComponent(QString graphmlPath, QString component)
     QStringList cppArgs, hArgs;
     cppArgs << "File" << component + "Impl.cpp";
     hArgs << "File" << component + "Impl.h";
-    QPair<int, QPair<QString, QString>> cppCode = runLocalTransform(graphmlPath, "graphml2cpp.xsl", cppArgs);
-    QPair<int, QPair<QString, QString>> hCode = runLocalTransform(graphmlPath, "graphml2h.xsl", hArgs);
+    QPair<int, QPair<QString, QString> > cppCode = runLocalTransform(graphmlPath, "graphml2cpp.xsl", cppArgs);
+    QPair<int, QPair<QString, QString> > hCode = runLocalTransform(graphmlPath, "graphml2h.xsl", hArgs);
 
     emit gotCPPForComponent(cppCode.first == 0, cppCode.second.second, component + "Impl.cpp", cppCode.second.first);
     emit gotCPPForComponent(hCode.first == 0, hCode.second.second, component + "Impl.h", hCode.second.first);

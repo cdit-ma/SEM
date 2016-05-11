@@ -36,7 +36,7 @@ public:
     bool gotLeftWorkflowEdge();
     bool gotRightWorkflowEdge();
 
-    WorkflowEdge* getLeftWorkflowEdge();
+    virtual WorkflowEdge* getLeftWorkflowEdge();
     WorkflowEdge* getRightWorkflowEdge();
 
     DataEdge* getInputDataEdge();

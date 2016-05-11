@@ -3984,1126 +3984,1131 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     }
 
 
-    if(allowedFocusWidget){
-        if(event->key() == Qt::Key_Delete){
+        if(allowedFocusWidget){
+            bool deletePressed = event->key() == Qt::Key_Delete;
 
-            deleteSelection();
-        }
-    }
+            #ifdef Q_OS_MAC
+            //Patch for EZ delete on OSX
+            deletePressed = event->key() == Qt::Key_Backspace;
+            #endif
 
-    QGraphicsView::keyReleaseEvent(event);
-
-}
-
-void NodeView::setReadOnlyMode(bool readOnly)
-{
-    if (selectedIDs.count() > 0) {
-        if(viewMutex.tryLock()){
-            triggerAction("Setting Read Only.");
-            emit view_SetReadOnly(selectedIDs, readOnly);
-        }
-    } else {
-        view_DisplayNotification("Select entity(s) to copy.");
-    }
-}
-
-
-/**
- * @brief NodeView::alignSelectionHorizontally
- * This is called when the alignHorizontal button on the toolbar is clicked.
- * It aligns the selected items horizontally.
- */
-void NodeView::alignSelectionHorizontally()
-{
-    if (selectedIDs.count() > 0) {
-        alignSelectionOnGrid(HORIZONTAL);
-    } else {
-        view_DisplayNotification("No selected entities to align.");
-    }
-}
-
-
-/**
- * @brief NodeView::alignSelectionVertically
- * This is called when the alignVertical button on the toolbar is clicked.
- * It aligns the selected items vertically.
- */
-void NodeView::alignSelectionVertically()
-{
-    if (selectedIDs.count() > 0) {
-        alignSelectionOnGrid(VERTICAL);
-    } else {
-        view_DisplayNotification("No selected entities to align.");
-    }
-}
-
-
-void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
-{
-
-    if(!(alignment == VERTICAL || alignment == HORIZONTAL)){
-        return;
-    }
-
-
-    int itemCount=0;
-    qreal averageY=0;
-    qreal averageX=0;
-    GraphMLItem* sharedParent = 0;
-
-    foreach(int ID, selectedIDs){
-        NodeItem* nodeItem = getNodeItemFromID(ID);
-        if(nodeItem){
-            if(!sharedParent){
-                sharedParent = nodeItem->getParent();
-            }else if(sharedParent != nodeItem->getParent()){
-                view_DisplayNotification("Cannot align entities which aren't contained by the same parent.");
-                return;
-            }
-            averageX += nodeItem->getMinimumRectCenterPos().x();
-            averageY += nodeItem->getMinimumRectCenterPos().y();
-            itemCount++;
-        }
-    }
-
-    triggerAction("Aligning Selection");
-    averageX /= itemCount;
-    averageY /= itemCount;
-
-    QPointF center;
-
-
-    //NodeItems have Grids.
-    if(sharedParent && sharedParent->isNodeItem()){
-        //Find closest Grid Line
-        NodeItem* parent = (NodeItem*)sharedParent;
-        center = parent->getClosestGridPoint(QPointF(averageX, averageY));
-    }
-
-    foreach(int ID, selectedIDs){
-        NodeItem* nodeItem = getNodeItemFromID(ID);
-        if(nodeItem){
-            QPointF pos = nodeItem->getMinimumRectCenterPos();
-
-            if(alignment == VERTICAL){
-                pos.setX(center.x());
-            }
-            if(alignment == HORIZONTAL){
-                pos.setY(center.y());
-            }
-
-            nodeItem->setMinimumRectCenterPos(pos);
-            nodeItem->updatePositionInModel();
-        }
-    }
-}
-
-
-
-
-
-void NodeView::setEnabled(bool enabled)
-{
-    QGraphicsView::setEnabled(enabled);
-}
-
-
-void NodeView::showMessage(MESSAGE_TYPE type, QString messageString, QString messageTitle, QString messageIcon, int centerID)
-{
-    GraphMLItem* item = getGraphMLItemFromID(centerID);
-    if(item){
-        centerItem(item);
-    }
-    if(messageString != ""){
-        if(type == CRITICAL){
-            QMessageBox msgBox(QMessageBox::Critical, messageTitle, messageString);
-            msgBox.setWindowIcon(Theme::theme()->getImage("Actions", "Critical", QSize(), Qt::black));
-            if(messageIcon != ""){
-                msgBox.setIconPixmap(Theme::theme()->getImage("Actions", messageIcon, QSize(64,64), Qt::black));
-            }
-            msgBox.exec();
-        }else{
-            emit view_DisplayNotification(messageString, messageIcon);
-        }
-    }
-}
-
-
-/**
- * @brief NodeView::duplicate
- */
-void NodeView::replicate()
-{
-    if (selectedIDs.count() > 0) {
-        if(viewMutex.tryLock()){
-            pasting = true;
-            //Clear before pasting
-            QList<int> duplicateList = selectedIDs;
-            clearSelection();
-            emit view_Replicate(duplicateList);
-        }
-    } else {
-        view_DisplayNotification("Select entity(s) to replicate.");
-    }
-}
-
-
-/**
- * @brief NodeView::copy
- */
-void NodeView::copy()
-{
-    if (selectedIDs.count() > 0) {
-        if(viewMutex.tryLock()){
-            emit view_Copy(selectedIDs);
-        }
-    } else {
-        view_DisplayNotification("Select entity(s) to copy.");
-    }
-}
-
-
-/**
- * @brief NodeView::cut
- */
-void NodeView::cut()
-{
-    //If we have got something selected.
-    if (selectedIDs.count() > 0) {
-        //Try and Lock the Mutex before the operation.
-        if(viewMutex.tryLock()){
-            //Clear the Attribute Table Model
-            //setAttributeModel(0, true);
-            emit view_Cut(selectedIDs);
-        }
-    } else {
-        view_DisplayNotification("Select entity(s) to cut.");
-    }
-}
-
-
-/**
- * @brief NodeView::paste
- * @param xmlData
- */
-void NodeView::paste(QString xmlData)
-{
-    int ID = getSelectedNodeID();
-
-    if (ID == -1) {
-        //view_DisplayNotification("Select entity to paste into.");
-        return;
-    }
-
-    if(viewMutex.tryLock()){
-        //Pasting gets cleared in actionFinished()
-        pasting = true;
-        //Clear before pasting
-        clearSelection();
-        //Tell the Controller to paste.
-        emit view_Paste(ID, xmlData);
-    }
-}
-
-
-void NodeView::selectAll()
-{
-    GraphMLItem* graphMLItem = getSelectedGraphMLItem();
-    if(graphMLItem){
-        clearSelection();
-
-        foreach(GraphMLItem* child, graphMLItem->getChildren()){
-            if(child->isVisible()){
-                appendToSelection(child);
+            if(deletePressed){
+                deleteSelection();
             }
         }
-        selectionChanged();
-    }
-}
+        QGraphicsView::keyReleaseEvent(event);
 
-
-/**
- * @brief NodeView::undo
- * This undoes the previous triggered action and recenters the
- * view on the same spot when that action was triggered.
- */
-void NodeView::undo()
-{
-    // undo the action
-    if(viewMutex.tryLock()) {
-        emit view_Undo();
-    }
-}
-
-
-/**
- * @brief NodeView::redo
- * This redoes the previous undo action and recenters the
- * view on the same spot when that action was triggered.
- */
-void NodeView::redo()
-{
-
-    // redo the action
-    if(viewMutex.tryLock()) {
-        emit this->view_Redo();
-    }
-}
-
-
-/**
- * @brief NodeView::appendToSelection
- * @param item
- * @param updateActions
- */
-void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
-{
-    if (!item) {
-        return;
     }
 
-    if (isItemsAncestorSelected(item)) {
-        return;
+    void NodeView::setReadOnlyMode(bool readOnly)
+    {
+        if (selectedIDs.count() > 0) {
+            if(viewMutex.tryLock()){
+                triggerAction("Setting Read Only.");
+                emit view_SetReadOnly(selectedIDs, readOnly);
+            }
+        } else {
+            view_DisplayNotification("Select entity(s) to copy.");
+        }
     }
 
-    //Unset Items Descendant Items.
-    unsetItemsDescendants(item);
 
-    //Set this item as Selected.
-    setGraphMLItemSelected(item, true);
-
-    // update enabled states of menu and toolbar actions
-    if (updateActions) {
-        selectionChanged();
+    /**
+     * @brief NodeView::alignSelectionHorizontally
+     * This is called when the alignHorizontal button on the toolbar is clicked.
+     * It aligns the selected items horizontally.
+     */
+    void NodeView::alignSelectionHorizontally()
+    {
+        if (selectedIDs.count() > 0) {
+            alignSelectionOnGrid(HORIZONTAL);
+        } else {
+            view_DisplayNotification("No selected entities to align.");
+        }
     }
-}
 
-void NodeView::setActiveSelectionItem(GraphMLItem *item)
-{
-    if(!item){
-        return;
+
+    /**
+     * @brief NodeView::alignSelectionVertically
+     * This is called when the alignVertical button on the toolbar is clicked.
+     * It aligns the selected items vertically.
+     */
+    void NodeView::alignSelectionVertically()
+    {
+        if (selectedIDs.count() > 0) {
+            alignSelectionOnGrid(VERTICAL);
+        } else {
+            view_DisplayNotification("No selected entities to align.");
+        }
     }
-    setActiveSelectionItem(item->getID());
-}
 
-/**
- * @brief NodeView::removeFromSelection
- * @param item
- */
-void NodeView::removeFromSelection(GraphMLItem *item, bool updateActions)
-{
-    //Set this item as Selected.
-    setGraphMLItemSelected(item, false);
 
-    if(updateActions){
-        selectionChanged();
-    }
-}
+    void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
+    {
 
-void NodeView::moveSelection(QPointF delta)
-{
-    if(viewState == VS_MOVING){
+        if(!(alignment == VERTICAL || alignment == HORIZONTAL)){
+            return;
+        }
 
-        bool canReduceX = true;
-        bool canReduceY = true;
+
+        int itemCount=0;
+        qreal averageY=0;
+        qreal averageX=0;
+        GraphMLItem* sharedParent = 0;
 
         foreach(int ID, selectedIDs){
+            NodeItem* nodeItem = getNodeItemFromID(ID);
+            if(nodeItem){
+                if(!sharedParent){
+                    sharedParent = nodeItem->getParent();
+                }else if(sharedParent != nodeItem->getParent()){
+                    view_DisplayNotification("Cannot align entities which aren't contained by the same parent.");
+                    return;
+                }
+                averageX += nodeItem->getMinimumRectCenterPos().x();
+                averageY += nodeItem->getMinimumRectCenterPos().y();
+                itemCount++;
+            }
+        }
+
+        triggerAction("Aligning Selection");
+        averageX /= itemCount;
+        averageY /= itemCount;
+
+        QPointF center;
+
+
+        //NodeItems have Grids.
+        if(sharedParent && sharedParent->isNodeItem()){
+            //Find closest Grid Line
+            NodeItem* parent = (NodeItem*)sharedParent;
+            center = parent->getClosestGridPoint(QPointF(averageX, averageY));
+        }
+
+        foreach(int ID, selectedIDs){
+            NodeItem* nodeItem = getNodeItemFromID(ID);
+            if(nodeItem){
+                QPointF pos = nodeItem->getMinimumRectCenterPos();
+
+                if(alignment == VERTICAL){
+                    pos.setX(center.x());
+                }
+                if(alignment == HORIZONTAL){
+                    pos.setY(center.y());
+                }
+
+                nodeItem->setMinimumRectCenterPos(pos);
+                nodeItem->updatePositionInModel();
+            }
+        }
+    }
+
+
+
+
+
+    void NodeView::setEnabled(bool enabled)
+    {
+        QGraphicsView::setEnabled(enabled);
+    }
+
+
+    void NodeView::showMessage(MESSAGE_TYPE type, QString messageString, QString messageTitle, QString messageIcon, int centerID)
+    {
+        GraphMLItem* item = getGraphMLItemFromID(centerID);
+        if(item){
+            centerItem(item);
+        }
+        if(messageString != ""){
+            if(type == CRITICAL){
+                QMessageBox msgBox(QMessageBox::Critical, messageTitle, messageString);
+                msgBox.setWindowIcon(Theme::theme()->getImage("Actions", "Critical", QSize(), Qt::black));
+                if(messageIcon != ""){
+                    msgBox.setIconPixmap(Theme::theme()->getImage("Actions", messageIcon, QSize(64,64), Qt::black));
+                }
+                msgBox.exec();
+            }else{
+                emit view_DisplayNotification(messageString, messageIcon);
+            }
+        }
+    }
+
+
+    /**
+     * @brief NodeView::duplicate
+     */
+    void NodeView::replicate()
+    {
+        if (selectedIDs.count() > 0) {
+            if(viewMutex.tryLock()){
+                pasting = true;
+                //Clear before pasting
+                QList<int> duplicateList = selectedIDs;
+                clearSelection();
+                emit view_Replicate(duplicateList);
+            }
+        } else {
+            view_DisplayNotification("Select entity(s) to replicate.");
+        }
+    }
+
+
+    /**
+     * @brief NodeView::copy
+     */
+    void NodeView::copy()
+    {
+        if (selectedIDs.count() > 0) {
+            if(viewMutex.tryLock()){
+                emit view_Copy(selectedIDs);
+            }
+        } else {
+            view_DisplayNotification("Select entity(s) to copy.");
+        }
+    }
+
+
+    /**
+     * @brief NodeView::cut
+     */
+    void NodeView::cut()
+    {
+        //If we have got something selected.
+        if (selectedIDs.count() > 0) {
+            //Try and Lock the Mutex before the operation.
+            if(viewMutex.tryLock()){
+                //Clear the Attribute Table Model
+                //setAttributeModel(0, true);
+                emit view_Cut(selectedIDs);
+            }
+        } else {
+            view_DisplayNotification("Select entity(s) to cut.");
+        }
+    }
+
+
+    /**
+     * @brief NodeView::paste
+     * @param xmlData
+     */
+    void NodeView::paste(QString xmlData)
+    {
+        int ID = getSelectedNodeID();
+
+        if (ID == -1) {
+            //view_DisplayNotification("Select entity to paste into.");
+            return;
+        }
+
+        if(viewMutex.tryLock()){
+            //Pasting gets cleared in actionFinished()
+            pasting = true;
+            //Clear before pasting
+            clearSelection();
+            //Tell the Controller to paste.
+            emit view_Paste(ID, xmlData);
+        }
+    }
+
+
+    void NodeView::selectAll()
+    {
+        GraphMLItem* graphMLItem = getSelectedGraphMLItem();
+        if(graphMLItem){
+            clearSelection();
+
+            foreach(GraphMLItem* child, graphMLItem->getChildren()){
+                if(child->isVisible()){
+                    appendToSelection(child);
+                }
+            }
+            selectionChanged();
+        }
+    }
+
+
+    /**
+     * @brief NodeView::undo
+     * This undoes the previous triggered action and recenters the
+     * view on the same spot when that action was triggered.
+     */
+    void NodeView::undo()
+    {
+        // undo the action
+        if(viewMutex.tryLock()) {
+            emit view_Undo();
+        }
+    }
+
+
+    /**
+     * @brief NodeView::redo
+     * This redoes the previous undo action and recenters the
+     * view on the same spot when that action was triggered.
+     */
+    void NodeView::redo()
+    {
+
+        // redo the action
+        if(viewMutex.tryLock()) {
+            emit this->view_Redo();
+        }
+    }
+
+
+    /**
+     * @brief NodeView::appendToSelection
+     * @param item
+     * @param updateActions
+     */
+    void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
+    {
+        if (!item) {
+            return;
+        }
+
+        if (isItemsAncestorSelected(item)) {
+            return;
+        }
+
+        //Unset Items Descendant Items.
+        unsetItemsDescendants(item);
+
+        //Set this item as Selected.
+        setGraphMLItemSelected(item, true);
+
+        // update enabled states of menu and toolbar actions
+        if (updateActions) {
+            selectionChanged();
+        }
+    }
+
+    void NodeView::setActiveSelectionItem(GraphMLItem *item)
+    {
+        if(!item){
+            return;
+        }
+        setActiveSelectionItem(item->getID());
+    }
+
+    /**
+     * @brief NodeView::removeFromSelection
+     * @param item
+     */
+    void NodeView::removeFromSelection(GraphMLItem *item, bool updateActions)
+    {
+        //Set this item as Selected.
+        setGraphMLItemSelected(item, false);
+
+        if(updateActions){
+            selectionChanged();
+        }
+    }
+
+    void NodeView::moveSelection(QPointF delta)
+    {
+        if(viewState == VS_MOVING){
+
+            bool canReduceX = true;
+            bool canReduceY = true;
+
+            foreach(int ID, selectedIDs){
+                GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
+                EntityAdapter* graphml = graphMLItem->getEntityAdapter();
+
+                if(graphml && graphml->isNodeAdapter()){
+                    EntityItem* entityItem = (EntityItem*) graphMLItem;
+                    QPointF resultingPosition = entityItem->pos() + delta;
+
+
+
+                    qreal minX = 0;
+                    qreal minY = 0;
+                    if(entityItem->getParentEntityItem()){
+                        QRectF gridRect = entityItem->getParentEntityItem()->gridRect();
+                        minX = gridRect.left();
+                        minY = gridRect.top();
+                    }
+
+                    if(resultingPosition.x() < minX){
+                        canReduceX = false;
+                    }
+                    if(resultingPosition.y() < minY){
+                        canReduceY = false;
+                    }
+                }
+            }
+
+            if(!canReduceX){
+                delta.setX(qMax(0.0, delta.x()));
+            }
+
+            if(!canReduceY){
+                delta.setY(qMax(0.0, delta.y()));
+            }
+
+            /*
+            // find out if there is an aspect selected
+            bool containsAspectEntity = false;
+            bool allAspectEntities = true;
+
+            foreach(QString ID, selectedIDs){
+                GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+                if (graphMLItem && graphMLItem->isEntityItem()) {
+                    EntityItem* item = (EntityItem*) graphMLItem;
+                    if (item->getNodeKind().endsWith("Definitions")) {
+                        containsAspectEntity = true;
+                    } else {
+                        allAspectEntities = false;
+                    }
+                }
+            }
+
+            // if all selected entities are aspects, move the model item accordingly
+            if (allAspectEntities) {
+                adjustModelPosition(delta);
+                return;
+            }
+
+            // if there is at least one aspect selected, don't move any of the selected items
+            if (containsAspectEntity) {
+                return;
+            }*/
+
+            foreach(int ID, selectedIDs){
+                GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
+                if(graphMLItem && graphMLItem->isNodeItem()){
+                    NodeItem* nodeItem = (NodeItem*) graphMLItem;
+                    if(nodeItem->getParentNodeItem()){
+                        nodeItem->getParentNodeItem()->setDrawGrid(true);
+                    }
+
+                    nodeItem->adjustPos(delta);
+                }
+            }
+
+        }
+    }
+
+    void NodeView::resizeSelection(int ID, QSizeF delta)
+    {
+        //Cannot resize from any state except None and Resizing.
+        if(viewState == VS_RESIZING){
             GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
-            EntityAdapter* graphml = graphMLItem->getEntityAdapter();
-
-            if(graphml && graphml->isNodeAdapter()){
-                EntityItem* entityItem = (EntityItem*) graphMLItem;
-                QPointF resultingPosition = entityItem->pos() + delta;
-
-
-
-                qreal minX = 0;
-                qreal minY = 0;
-                if(entityItem->getParentEntityItem()){
-                    QRectF gridRect = entityItem->getParentEntityItem()->gridRect();
-                    minX = gridRect.left();
-                    minY = gridRect.top();
-                }
-
-                if(resultingPosition.x() < minX){
-                    canReduceX = false;
-                }
-                if(resultingPosition.y() < minY){
-                    canReduceY = false;
-                }
+            if(graphMLItem && graphMLItem->isNodeItem()){
+                ((NodeItem*)graphMLItem)->adjustSize(delta);
             }
         }
+    }
 
-        if(!canReduceX){
-            delta.setX(qMax(0.0, delta.x()));
-        }
-
-        if(!canReduceY){
-            delta.setY(qMax(0.0, delta.y()));
-        }
-
-        /*
-        // find out if there is an aspect selected
-        bool containsAspectEntity = false;
-        bool allAspectEntities = true;
-
-        foreach(QString ID, selectedIDs){
-            GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
-            if (graphMLItem && graphMLItem->isEntityItem()) {
-                EntityItem* item = (EntityItem*) graphMLItem;
-                if (item->getNodeKind().endsWith("Definitions")) {
-                    containsAspectEntity = true;
-                } else {
-                    allAspectEntities = false;
-                }
-            }
-        }
-
-        // if all selected entities are aspects, move the model item accordingly
-        if (allAspectEntities) {
-            adjustModelPosition(delta);
-            return;
-        }
-
-        // if there is at least one aspect selected, don't move any of the selected items
-        if (containsAspectEntity) {
-            return;
-        }*/
-
+    void NodeView::moveFinished()
+    {
+        //triggerAction("RESIZE YO");
         foreach(int ID, selectedIDs){
             GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
             if(graphMLItem && graphMLItem->isNodeItem()){
                 NodeItem* nodeItem = (NodeItem*) graphMLItem;
+
                 if(nodeItem->getParentNodeItem()){
-                    nodeItem->getParentNodeItem()->setDrawGrid(true);
+                    nodeItem->getParentNodeItem()->setDrawGrid(false);
+                    nodeItem->getParentNodeItem()->updateSizeInModel();
                 }
 
-                nodeItem->adjustPos(delta);
+                nodeItem->snapToGrid();
+            }
+        }
+        setState(VS_SELECTED);
+    }
+
+    void NodeView::resizeFinished(int ID)
+    {
+
+        GraphMLItem* currentItem = getGraphMLItemFromID(ID);
+        if(currentItem && currentItem->isNodeItem()){
+            //triggerAction("RESIZE YO");
+            NodeItem* nodeItem = (NodeItem*) currentItem;
+            nodeItem->updateSizeInModel();
+        }
+        setState(VS_SELECTED);
+    }
+
+
+    void NodeView::view_ClearHistory()
+    {
+        emit view_ClearHistoryStates();
+        viewCenterPointStack.clear();
+
+        // clear the maps used for moving the view backwards & forwards
+        modelPositions.clear();
+        centeredRects.clear();
+    }
+
+
+    /**
+     * @brief NodeView::clearSelection
+     * This gets called when either the view or the model is pressed.
+     * It clears the selection.
+     * @param updateTable
+     * @param updateDocks
+     */
+    void NodeView::clearSelection(bool updateActions)
+    {
+        while (!selectedIDs.isEmpty()){
+            int currentID = selectedIDs.takeFirst();
+            GraphMLItem* currentItem = getGraphMLItemFromID(currentID);
+            if (currentItem) {
+                setGraphMLItemSelected(currentItem, false);
             }
         }
 
-    }
-}
 
-void NodeView::resizeSelection(int ID, QSizeF delta)
-{   
-    //Cannot resize from any state except None and Resizing.
-    if(viewState == VS_RESIZING){
-        GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
-        if(graphMLItem && graphMLItem->isNodeItem()){
-            ((NodeItem*)graphMLItem)->adjustSize(delta);
+
+        ModelItem* modelItem = getModelItem();
+        if(modelItem){
+            //Allow defocusing of other things
+            modelItem->setFocus();
+        }
+
+
+        if(updateActions){
+            selectionChanged();
         }
     }
-}
 
-void NodeView::moveFinished()
-{
-    //triggerAction("RESIZE YO");
-    foreach(int ID, selectedIDs){
-        GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
-        if(graphMLItem && graphMLItem->isNodeItem()){
-            NodeItem* nodeItem = (NodeItem*) graphMLItem;
 
-            if(nodeItem->getParentNodeItem()){
-                nodeItem->getParentNodeItem()->setDrawGrid(false);
-                nodeItem->getParentNodeItem()->updateSizeInModel();
+    /**
+     * @brief NodeView::toolbarClosed
+     * This is called when the toolbar is closed by pressing on the view.
+     */
+    void NodeView::toolbarClosed()
+    {
+        toolbarJustClosed = true;
+    }
+
+
+    /**
+     * @brief NodeView::toggleGridLines
+     * This is called when the grid lines are turned on/off from the menu.
+     * It sends a signal to the node items.
+     * @param gridOn
+     */
+    void NodeView::toggleGridLines(bool gridOn)
+    {
+        GRID_LINES_ON = gridOn;
+        emit view_toggleGridLines(GRID_LINES_ON);
+    }
+
+
+    /**
+     * @brief NodeView::autoCenterAspects
+     * This is called from the MedeaWindow menu.
+     * It sets the automatic centering of the view aspects on and off.
+     * @param center
+     */
+    void NodeView::autoCenterAspects(bool center)
+    {
+        AUTO_CENTER_ASPECTS = center;
+    }
+
+
+    /**
+     * @brief NodeView::setSelectOnConstruction
+     * This is called from the MedeaWindow menu.
+     * It sets the selection of newly constucted node on and off.
+     * @param select
+     */
+    void NodeView::selectNodeOnConstruction(bool select)
+    {
+        SELECT_AFTER_CONSTRUCTION = select;
+    }
+
+
+    void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint)
+    {
+        if(!controller){
+            qCritical() << "NodeView::selectedInRubberBand() Has no attached Controller.";
+            return;
+        }
+
+        ModelItem* modelItem = getModelItem();
+
+        if(!modelItem){
+            return;
+        }
+
+        QRectF selectionRectangle(fromScenePoint, toScenePoint);
+
+        QList<GraphMLItem*> items;
+        items << modelItem;
+
+        while(items.size() > 0){
+            GraphMLItem* currentItem = items.takeFirst();
+            bool intersects = currentItem->intersectsRectangle(selectionRectangle) && currentItem->isVisible();
+
+            if(intersects){
+                appendToSelection(currentItem);
+            }else{
+                if(currentItem->isNodeItem()){
+                    foreach(EdgeItem* edge, ((NodeItem*)currentItem)->getEdges()){
+                        items << edge;
+                    }
+                }
+                foreach(GraphMLItem* child, currentItem->getChildren()){
+                    items << child;
+                }
             }
-
-            nodeItem->snapToGrid();
         }
-    }
-    setState(VS_SELECTED);
-}
 
-void NodeView::resizeFinished(int ID)
-{
-
-    GraphMLItem* currentItem = getGraphMLItemFromID(ID);
-    if(currentItem && currentItem->isNodeItem()){
-        //triggerAction("RESIZE YO");
-        NodeItem* nodeItem = (NodeItem*) currentItem;
-        nodeItem->updateSizeInModel();
-    }
-    setState(VS_SELECTED);
-}
-
-
-void NodeView::view_ClearHistory()
-{
-    emit view_ClearHistoryStates();
-    viewCenterPointStack.clear();
-
-    // clear the maps used for moving the view backwards & forwards
-    modelPositions.clear();
-    centeredRects.clear();
-}
-
-
-/**
- * @brief NodeView::clearSelection
- * This gets called when either the view or the model is pressed.
- * It clears the selection.
- * @param updateTable
- * @param updateDocks
- */
-void NodeView::clearSelection(bool updateActions)
-{
-    while (!selectedIDs.isEmpty()){
-        int currentID = selectedIDs.takeFirst();
-        GraphMLItem* currentItem = getGraphMLItemFromID(currentID);
-        if (currentItem) {
-            setGraphMLItemSelected(currentItem, false);
-        }
-    }
-
-
-
-    ModelItem* modelItem = getModelItem();
-    if(modelItem){
-        //Allow defocusing of other things
-        modelItem->setFocus();
-    }
-
-
-    if(updateActions){
         selectionChanged();
     }
-}
 
+    void NodeView::constructEntityItem(EntityAdapter *item)
+    {
 
-/**
- * @brief NodeView::toolbarClosed
- * This is called when the toolbar is closed by pressing on the view.
- */
-void NodeView::toolbarClosed()
-{
-    toolbarJustClosed = true;
-}
-
-
-/**
- * @brief NodeView::toggleGridLines
- * This is called when the grid lines are turned on/off from the menu.
- * It sends a signal to the node items.
- * @param gridOn
- */
-void NodeView::toggleGridLines(bool gridOn)
-{
-    GRID_LINES_ON = gridOn;
-    emit view_toggleGridLines(GRID_LINES_ON);
-}
-
-
-/**
- * @brief NodeView::autoCenterAspects
- * This is called from the MedeaWindow menu.
- * It sets the automatic centering of the view aspects on and off.
- * @param center
- */
-void NodeView::autoCenterAspects(bool center)
-{
-    AUTO_CENTER_ASPECTS = center;
-}
-
-
-/**
- * @brief NodeView::setSelectOnConstruction
- * This is called from the MedeaWindow menu.
- * It sets the selection of newly constucted node on and off.
- * @param select
- */
-void NodeView::selectNodeOnConstruction(bool select)
-{
-    SELECT_AFTER_CONSTRUCTION = select;
-}
-
-
-void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint)
-{
-    if(!controller){
-        qCritical() << "NodeView::selectedInRubberBand() Has no attached Controller.";
-        return;
-    }
-
-    ModelItem* modelItem = getModelItem();
-
-    if(!modelItem){
-        return;
-    }
-
-    QRectF selectionRectangle(fromScenePoint, toScenePoint);
-
-    QList<GraphMLItem*> items;
-    items << modelItem;
-
-    while(items.size() > 0){
-        GraphMLItem* currentItem = items.takeFirst();
-        bool intersects = currentItem->intersectsRectangle(selectionRectangle) && currentItem->isVisible();
-
-        if(intersects){
-            appendToSelection(currentItem);
-        }else{
-            if(currentItem->isNodeItem()){
-                foreach(EdgeItem* edge, ((NodeItem*)currentItem)->getEdges()){
-                    items << edge;
-                }
-            }
-            foreach(GraphMLItem* child, currentItem->getChildren()){
-                items << child;
+        if(isSubView() && controller){
+            int ID = item->getID();
+            if(!controller->areIDsInSameBranch(centralizedItemID, ID)){
+                return;
             }
         }
-    }
 
-    selectionChanged();
-}
-
-void NodeView::constructEntityItem(EntityAdapter *item)
-{
-
-    if(isSubView() && controller){
-        int ID = item->getID();
-        if(!controller->areIDsInSameBranch(centralizedItemID, ID)){
-            return;
-        }
-    }
-
-    bool constructed = false;
-    if(item && item->isInModel()){
-        if(getGraphMLItemFromID(item->getID())){
-            //Only construct each item once.
-            return;
-        }
-
-        if(item->isNodeAdapter()){
-            constructed = constructNodeItem((NodeAdapter*) item);
-        }else if(item->isEdgeAdapter()){
-            constructed = constructEdgeItem((EdgeAdapter*) item);
-        }
-    }
-    if(!constructed){
-        constructNoGUIItem(item);
-    }
-}
-
-void NodeView::destructEntityItem(EntityAdapter *item)
-{
-    int deployedID = -1;
-    bool _updateDeploymentWarnings = false;
-
-    if(item && item->isEdgeAdapter()){
-        EdgeAdapter* eA = (EdgeAdapter*)item;
-        Edge::EDGE_CLASS edgeClass = eA->getEdgeClass();
-
-        if(edgeClass == Edge::EC_DEPLOYMENT){
-            _updateDeploymentWarnings = true;
-            deployedID = eA->getSourceID();
-        }
-    }
-
-    destructGUIItem(item->getID());
-
-    if(_updateDeploymentWarnings){
-        updateDeploymentWarnings(deployedID);
-    }
-}
-
-bool NodeView::constructNodeItem(NodeAdapter *node)
-{
-    if(!node){
-        return false;
-    }
-
-    NODE_CLASS nodeClass = node->getNodeClass();
-
-    //Check if we should construct this Node.
-    if(nonDrawnNodeClasses.contains(nodeClass)){
-        return false;
-    }
-
-    GraphMLItem* visibleParentItem = 0;
-
-    int depth = 1;
-    while(true){
-        int parentID = node->getParentNodeID(depth);
-        if(parentID == -1){
-            break;
-        }
-        GraphMLItem* parentItem = getGraphMLItemFromID(parentID);
-        if(parentItem){
-            visibleParentItem = parentItem;
-            break;
-        }
-        depth ++;
-    }
-
-
-    NodeItem* parentNodeItem = 0;
-    EntityItem* parentEntityItem = 0;
-
-
-
-    if(visibleParentItem){
-        if(visibleParentItem->isEntityItem()){
-            parentEntityItem = (EntityItem*) visibleParentItem;
-        }
-        parentNodeItem = dynamic_cast<NodeItem*>(visibleParentItem);
-    }
-
-    QVariant xVal = node->getDataValue("x");
-    QVariant yVal = node->getDataValue("y");
-    QVariant wVal = node->getDataValue("width");
-    QVariant hVal = node->getDataValue("height");
-
-    QString nodeKind = node->getDataValue("kind").toString();
-
-
-    QRectF itemRect;
-    QPointF centerPoint;
-    QSizeF size;
-
-    if(parentNodeItem){
-        itemRect = parentNodeItem->getChildBoundingRect();
-    }
-
-    if(wVal.isValid() && hVal.isValid()){
-        qreal w = wVal.toDouble();
-        qreal h = hVal.toDouble();
-
-        if(w > itemRect.width()){
-            itemRect.setWidth(w);
-        }
-        if(h > itemRect.height()){
-            itemRect.setHeight(h);
-        }
-    }
-
-    size = itemRect.size();
-
-    if(xVal.isValid() && yVal.isValid()){
-        qreal x = xVal.toDouble();
-        qreal y = yVal.toDouble();
-
-        if(x == -1 && y == -1){
-            if(parentNodeItem){
-                centerPoint = parentNodeItem->getNextChildPos(itemRect);
+        bool constructed = false;
+        if(item && item->isInModel()){
+            if(getGraphMLItemFromID(item->getID())){
+                //Only construct each item once.
+                return;
             }
-        }else{
-            centerPoint = QPointF(x,y);
+
+            if(item->isNodeAdapter()){
+                constructed = constructNodeItem((NodeAdapter*) item);
+            }else if(item->isEdgeAdapter()){
+                constructed = constructEdgeItem((EdgeAdapter*) item);
+            }
+        }
+        if(!constructed){
+            constructNoGUIItem(item);
         }
     }
 
+    void NodeView::destructEntityItem(EntityAdapter *item)
+    {
+        int deployedID = -1;
+        bool _updateDeploymentWarnings = false;
 
-    bool expandItem = toolbarDockConstruction || importFromJenkins;
+        if(item && item->isEdgeAdapter()){
+            EdgeAdapter* eA = (EdgeAdapter*)item;
+            Edge::EDGE_CLASS edgeClass = eA->getEdgeClass();
 
-    //Expand Parent
-    if(expandItem && parentEntityItem){
-        emit view_SetData(parentEntityItem->getID(), "isExpanded", true);
+            if(edgeClass == Edge::EC_DEPLOYMENT){
+                _updateDeploymentWarnings = true;
+                deployedID = eA->getSourceID();
+            }
+        }
+
+        destructGUIItem(item->getID());
+
+        if(_updateDeploymentWarnings){
+            updateDeploymentWarnings(deployedID);
+        }
     }
 
-
-
-    GraphMLItem* item = 0;
-
-    if(nodeKind == "Model"){
-        item = new ModelItem(node, this);
-    }else if(node->isAspect()){
-        VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
-        if(aspect != VA_NONE){
-            item = new AspectItem(node, visibleParentItem, aspect);
-            aspectIDs << node->getID();
-        }else{
-            qCritical() << "Unknown Aspect!";
+    bool NodeView::constructNodeItem(NodeAdapter *node)
+    {
+        if(!node){
             return false;
         }
-    }else{
-        item =  new EntityItem(node, parentNodeItem);
-    }
 
-    //Do Generic connect stuffs.
-    if(item){
-        storeGraphMLItemInHash(item);
+        NODE_CLASS nodeClass = node->getNodeClass();
 
-        if(!scene()->items().contains(item)){
-            scene()->addItem(item);
+        //Check if we should construct this Node.
+        if(nonDrawnNodeClasses.contains(nodeClass)){
+            return false;
         }
 
-        connectGraphMLItemToController(item);
+        GraphMLItem* visibleParentItem = 0;
 
-
-        EntityItem* entityItem = (EntityItem*) item;
-        NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
-
-        if(nodeItem && !size.isNull()){
-            nodeItem->setWidth(size.width());
-            nodeItem->setHeight(size.height());
-        }
-        if(item->isEntityItem()){
-            entityItem->setCenterPos(centerPoint);
-            QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
-            QPair<QString, bool> statusField = getStatusDataKeyName(entityItem);
-
-            entityItem->setNodeConnectable(isNodeVisuallyConnectable(node));
-            entityItem->setEditableField(editField.first, editField.second);
-            entityItem->setStatusField(statusField.first, statusField.second);
-        }
-
-        if(parentNodeItem){
-            parentNodeItem->updateSizeInModel();
-        }
-        if(nodeItem){
-            //Update the model if we need to.
-            nodeItem->updateSizeInModel();
-            nodeItem->updatePositionInModel();
-            // send/do necessary signals/updates when a node has been constructed
-            nodeConstructed_signalUpdates(nodeItem);
-        }
-
-
-
-
-        // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
-        // the node's label is automatically selected and editable
-        if (toolbarDockConstruction && SELECT_AFTER_CONSTRUCTION) {
-            clearSelection();
-            // why not update menu/toolbar actions here?
-            appendToSelection(item, true);
-
-            if(item->isEntityItem()){
-                //Set new Label for EntityItem.
-                entityItem->setNewLabel();
-            }
-
-            centerOnItem();
-            toolbarDockConstruction = false;
-        }
-
-        if(isSubView() && item->getID() == centralizedItemID){
-            appendToSelection(item);
-        }
-    }else{
-        return false;
-    }
-    return true;
-}
-
-
-
-void NodeView::destructGUIItem(int ID)
-{
-    removeGraphMLItemFromHash(ID);
-}
-
-
-/**
- * @brief NodeView::showManagementComponents
- * @param show
- */
-void NodeView::showManagementComponents(bool show)
-{
-    if(!controller){
-        return;
-    }
-
-    Node* assemblyDefinition = 0;
-
-    Model* model = controller->getModel();
-    if (model) {
-        QList<Node*> result = model->getChildrenOfKind("AssemblyDefinitions");
-        if(result.size() == 1){
-            assemblyDefinition = result[0];
-        }else{
-            return;
-        }
-    }
-
-    numberOfNotifications = 2;
-    notificationNumber = 0;
-
-    // make sure that the aspects for Deployment are turned on
-    if (show) {
-        //viewDeploymentAspect();
-        notificationNumber++;
-    }  else {
-        numberOfNotifications = 1;
-    }
-
-    /*if (show) {
-        view_DisplayNotification("Displayed Management Components.", notificationNumber, numberOfNotifications);
-    } else {
-        view_DisplayNotification("Hidden Management Components.", notificationNumber, numberOfNotifications);
-    }*/
-
-    // this goes through all the ManagementComponents and shows/hides them
-    foreach (Node* node, assemblyDefinition->getChildren(0)){
-        EntityItem* entityItem = getEntityItemFromNode(node);
-        if(entityItem && entityItem->getNodeKind() == "ManagementComponent"){
-            entityItem->setHidden(!show);
-        }
-    }
-
-    EntityItem* assemblyNI = getEntityItemFromNode(assemblyDefinition);
-    if(assemblyNI){
-        assemblyNI->sortChildren();
-    }
-
-    managementComponentVisible = show;
-
-    // reset notification seq and total number
-    numberOfNotifications = 1;
-    notificationNumber = 0;
-}
-
-void NodeView::showLocalNode(bool show)
-{
-    AspectItem* aspect =  getAspectItem(VA_HARDWARE);
-    if(aspect){
-        EntityItem* localHostNode = 0;
-        foreach(GraphMLItem* child, aspect->getChildren()){
-            if(child->isEntityItem() && child->getNodeKind() == "HardwareNode"){
-                localHostNode = (EntityItem*) child;
+        int depth = 1;
+        while(true){
+            int parentID = node->getParentNodeID(depth);
+            if(parentID == -1){
                 break;
             }
+            GraphMLItem* parentItem = getGraphMLItemFromID(parentID);
+            if(parentItem){
+                visibleParentItem = parentItem;
+                break;
+            }
+            depth ++;
         }
-        if(localHostNode){
-            localHostNode->setHidden(!show);
-            aspect->sortChildren();
+
+
+        NodeItem* parentNodeItem = 0;
+        EntityItem* parentEntityItem = 0;
+
+
+
+        if(visibleParentItem){
+            if(visibleParentItem->isEntityItem()){
+                parentEntityItem = (EntityItem*) visibleParentItem;
+            }
+            parentNodeItem = dynamic_cast<NodeItem*>(visibleParentItem);
         }
-    }
 
-    localNodeVisible = show;
-}
+        QVariant xVal = node->getDataValue("x");
+        QVariant yVal = node->getDataValue("y");
+        QVariant wVal = node->getDataValue("width");
+        QVariant hVal = node->getDataValue("height");
 
-
-/**
- * @brief NodeView::toggleZoomAnchor
- * This slot switches the view's zoom anchor.
- * This is called by one of the menu action's in MEDEA.
- * @param underMouse
- */
-void NodeView::toggleZoomAnchor(bool underMouse)
-{
-    ZOOM_UNDER_MOUSE = underMouse;
-}
+        QString nodeKind = node->getDataValue("kind").toString();
 
 
+        QRectF itemRect;
+        QPointF centerPoint;
+        QSizeF size;
 
+        if(parentNodeItem){
+            itemRect = parentNodeItem->getChildBoundingRect();
+        }
 
-void NodeView::setConnectMode(bool on)
-{
-    if(on){
-        EntityItem* srcNode = getSelectedEntityItem();
-        if(srcNode){
-            foreach(NodeItem* entityItem, getConnectableNodeItems(srcNode->getID())){
-                highlightedIDs.append(entityItem->getID());
-                entityItem->setHighlighted(true);
+        if(wVal.isValid() && hVal.isValid()){
+            qreal w = wVal.toDouble();
+            qreal h = hVal.toDouble();
+
+            if(w > itemRect.width()){
+                itemRect.setWidth(w);
+            }
+            if(h > itemRect.height()){
+                itemRect.setHeight(h);
             }
         }
-    }else{
-        while(!highlightedIDs.isEmpty()){
-            int ID = highlightedIDs.takeFirst();
-            EntityItem* EntityItem = getEntityItemFromID(ID);
-            if(EntityItem){
-                EntityItem->setHighlighted(false);
+
+        size = itemRect.size();
+
+        if(xVal.isValid() && yVal.isValid()){
+            qreal x = xVal.toDouble();
+            qreal y = yVal.toDouble();
+
+            if(x == -1 && y == -1){
+                if(parentNodeItem){
+                    centerPoint = parentNodeItem->getNextChildPos(itemRect);
+                }
+            }else{
+                centerPoint = QPointF(x,y);
             }
         }
 
-        if(connectLine){
-            delete connectLine;
-            connectLine = 0;
-            update();
+
+        bool expandItem = toolbarDockConstruction || importFromJenkins;
+
+        //Expand Parent
+        if(expandItem && parentEntityItem){
+            emit view_SetData(parentEntityItem->getID(), "isExpanded", true);
         }
 
-        showConnectLine = true;
+
+
+        GraphMLItem* item = 0;
+
+        if(nodeKind == "Model"){
+            item = new ModelItem(node, this);
+        }else if(node->isAspect()){
+            VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
+            if(aspect != VA_NONE){
+                item = new AspectItem(node, visibleParentItem, aspect);
+                aspectIDs << node->getID();
+            }else{
+                qCritical() << "Unknown Aspect!";
+                return false;
+            }
+        }else{
+            item =  new EntityItem(node, parentNodeItem);
+        }
+
+        //Do Generic connect stuffs.
+        if(item){
+            storeGraphMLItemInHash(item);
+
+            if(!scene()->items().contains(item)){
+                scene()->addItem(item);
+            }
+
+            connectGraphMLItemToController(item);
+
+
+            EntityItem* entityItem = (EntityItem*) item;
+            NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
+
+            if(nodeItem && !size.isNull()){
+                nodeItem->setWidth(size.width());
+                nodeItem->setHeight(size.height());
+            }
+            if(item->isEntityItem()){
+                entityItem->setCenterPos(centerPoint);
+                QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
+                QPair<QString, bool> statusField = getStatusDataKeyName(entityItem);
+
+                entityItem->setNodeConnectable(isNodeVisuallyConnectable(node));
+                entityItem->setEditableField(editField.first, editField.second);
+                entityItem->setStatusField(statusField.first, statusField.second);
+            }
+
+            if(parentNodeItem){
+                parentNodeItem->updateSizeInModel();
+            }
+            if(nodeItem){
+                //Update the model if we need to.
+                nodeItem->updateSizeInModel();
+                nodeItem->updatePositionInModel();
+                // send/do necessary signals/updates when a node has been constructed
+                nodeConstructed_signalUpdates(nodeItem);
+            }
+
+
+
+
+            // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
+            // the node's label is automatically selected and editable
+            if (toolbarDockConstruction && SELECT_AFTER_CONSTRUCTION) {
+                clearSelection();
+                // why not update menu/toolbar actions here?
+                appendToSelection(item, true);
+
+                if(item->isEntityItem()){
+                    //Set new Label for EntityItem.
+                    entityItem->setNewLabel();
+                }
+
+                centerOnItem();
+                toolbarDockConstruction = false;
+            }
+
+            if(isSubView() && item->getID() == centralizedItemID){
+                appendToSelection(item);
+            }
+        }else{
+            return false;
+        }
+        return true;
     }
-}
 
 
 
+    void NodeView::destructGUIItem(int ID)
+    {
+        removeGraphMLItemFromHash(ID);
+    }
 
-/**
- * @brief NodeView::fitToScreen
- * This makes sure that all the visible items fit and are centered within the view.
- * If there is a list provided, only go through the items in the list.
- * Otherwise, go through all the items on the scene.
- * @param itemsToCenter - list of items to center on
- * @param padding - padding around the items rect
- * @param addToMap - detemines whether a rect/pos should be added to the maps
- */
-void NodeView::fitToScreen(QList<GraphMLItem *> itemsToCenter, double padding, bool addToMap)
-{
-    if (itemsToCenter.isEmpty() && getModelItem()) {
-        ModelItem* modelItem = getModelItem();
-        if (modelItem->getVisibleAspects().isEmpty()) {
-            itemsToCenter.append(getModelItem());
+
+    /**
+     * @brief NodeView::showManagementComponents
+     * @param show
+     */
+    void NodeView::showManagementComponents(bool show)
+    {
+        if(!controller){
+            return;
+        }
+
+        Node* assemblyDefinition = 0;
+
+        Model* model = controller->getModel();
+        if (model) {
+            QList<Node*> result = model->getChildrenOfKind("AssemblyDefinitions");
+            if(result.size() == 1){
+                assemblyDefinition = result[0];
+            }else{
+                return;
+            }
+        }
+
+        numberOfNotifications = 2;
+        notificationNumber = 0;
+
+        // make sure that the aspects for Deployment are turned on
+        if (show) {
+            //viewDeploymentAspect();
+            notificationNumber++;
+        }  else {
+            numberOfNotifications = 1;
+        }
+
+        /*if (show) {
+            view_DisplayNotification("Displayed Management Components.", notificationNumber, numberOfNotifications);
         } else {
-            itemsToCenter.append(getModelItem()->getChildren());
-        }
-    }
+            view_DisplayNotification("Hidden Management Components.", notificationNumber, numberOfNotifications);
+        }*/
 
-
-    QRectF visibleItemsRect;
-
-    foreach (GraphMLItem* nodeItem, itemsToCenter) {
-        if (nodeItem->isVisible()) {
-            visibleItemsRect = visibleItemsRect.united(nodeItem->sceneBoundingRect());
-        }
-    }
-
-    centerRect(visibleItemsRect, padding, addToMap);
-}
-
-
-/**
- * @brief NodeView::deleteSelection
- * This triggers the same actions as for when the DELETE key is pressed.
- */
-void NodeView::deleteSelection()
-{
-    deleteFromIDs(selectedIDs);
-}
-
-
-void NodeView::constructWorkerProcessNode(QString workerName, QString operationName, int sender)
-{
-    //Do stuff!
-    if(viewMutex.tryLock()){
-        NodeItem* item = getSelectedNodeItem();
-        if (item) {
-            toolbarDockConstruction = true;
-
-            QPointF position = item->getNextChildPos();
-
-            if(sender == 1){
-                // if from toolbar, place at closest grid point to the toolbar's position
-                position = item->mapFromScene(toolbarPosition);
-                position = item->getClosestGridPoint(position);
+        // this goes through all the ManagementComponents and shows/hides them
+        foreach (Node* node, assemblyDefinition->getChildren(0)){
+            EntityItem* entityItem = getEntityItemFromNode(node);
+            if(entityItem && entityItem->getNodeKind() == "ManagementComponent"){
+                entityItem->setHidden(!show);
             }
-            emit view_ConstructWorkerProcessNode(item->getID(), workerName, operationName, position);
-        }
-    }
-}
-
-
-/**
- * @brief NodeView::resetModel
- * This method is called after the model is cleared.
- * It resets the size, sorts and centers the model.
- */
-void NodeView::resetModel(bool addAction)
-{
-    if(addAction){
-        triggerAction("Resetting Model");
-    }
-    foreach (EntityItem* entityItem, getEntityItemsList()) {
-        if (entityItem) {
-            entityItem->resetSize();
-        }
-    }
-
-    emit view_ProjectCleared();
-}
-
-
-/**
- * @brief NodeView::clearModel
- * This tells the controller to clear the model.
- * This is called from MedeaWindow.
- */
-void NodeView::clearModel()
-{
-    if(viewMutex.tryLock()){
-        clearingModel = true;
-        emit view_Clear();
-    }
-}
-
-
-/**
- * @brief NodeView::view_SelectModel
- * This is called when the project name is clicked.
- * It selects the model item and updates the data table.
- */
-void NodeView::selectModel()
-{
-    if (getModelItem()) {
-        clearSelection();
-        appendToSelection(getModelItem());
-    }
-}
-
-bool NodeView::constructEdgeItem(EdgeAdapter *edge)
-{
-    int srcID = edge->getSourceID();
-    int dstID = edge->getDestinationID();
-
-    EntityItem* srcGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(srcID));
-    EntityItem* dstGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(dstID));
-
-    bool updateDeploymentWarning = false;
-    Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
-    if(edgeClass == Edge::EC_DEPLOYMENT){
-        updateDeployment = true;
-        updateDeploymentWarning = true;
-    }
-
-    // need to put this back here
-    edgeConstructed_signalUpdates();
-
-    bool constructEdge = srcGUI != 0 && dstGUI != 0;
-
-    if(constructEdge){
-        //We have valid GUI elements for both ends of this edge.
-
-        switch(edgeClass){
-        case Edge::EC_AGGREGATE:
-            constructEdge = false;
-            break;
-        case Edge::EC_DEFINITION:
-            constructEdge = false;
-            break;
-        case Edge::EC_DEPLOYMENT:
-            constructEdge = false;
-        default:
-            break;
         }
 
-        GraphMLItem* parent = getSharedEntityItemParent(srcGUI, dstGUI);
-
-        if(!parent || !parent->isNodeItem()){
-            // added this here otherwise constructed edge with no gui is not stored
-            constructEdge = false;
+        EntityItem* assemblyNI = getEntityItemFromNode(assemblyDefinition);
+        if(assemblyNI){
+            assemblyNI->sortChildren();
         }
+
+        managementComponentVisible = show;
+
+        // reset notification seq and total number
+        numberOfNotifications = 1;
+        notificationNumber = 0;
+    }
+
+    void NodeView::showLocalNode(bool show)
+    {
+        AspectItem* aspect =  getAspectItem(VA_HARDWARE);
+        if(aspect){
+            EntityItem* localHostNode = 0;
+            foreach(GraphMLItem* child, aspect->getChildren()){
+                if(child->isEntityItem() && child->getNodeKind() == "HardwareNode"){
+                    localHostNode = (EntityItem*) child;
+                    break;
+                }
+            }
+            if(localHostNode){
+                localHostNode->setHidden(!show);
+                aspect->sortChildren();
+            }
+        }
+
+        localNodeVisible = show;
+    }
+
+
+    /**
+     * @brief NodeView::toggleZoomAnchor
+     * This slot switches the view's zoom anchor.
+     * This is called by one of the menu action's in MEDEA.
+     * @param underMouse
+     */
+    void NodeView::toggleZoomAnchor(bool underMouse)
+    {
+        ZOOM_UNDER_MOUSE = underMouse;
+    }
+
+
+
+
+    void NodeView::setConnectMode(bool on)
+    {
+        if(on){
+            EntityItem* srcNode = getSelectedEntityItem();
+            if(srcNode){
+                foreach(NodeItem* entityItem, getConnectableNodeItems(srcNode->getID())){
+                    highlightedIDs.append(entityItem->getID());
+                    entityItem->setHighlighted(true);
+                }
+            }
+        }else{
+            while(!highlightedIDs.isEmpty()){
+                int ID = highlightedIDs.takeFirst();
+                EntityItem* EntityItem = getEntityItemFromID(ID);
+                if(EntityItem){
+                    EntityItem->setHighlighted(false);
+                }
+            }
+
+            if(connectLine){
+                delete connectLine;
+                connectLine = 0;
+                update();
+            }
+
+            showConnectLine = true;
+        }
+    }
+
+
+
+
+    /**
+     * @brief NodeView::fitToScreen
+     * This makes sure that all the visible items fit and are centered within the view.
+     * If there is a list provided, only go through the items in the list.
+     * Otherwise, go through all the items on the scene.
+     * @param itemsToCenter - list of items to center on
+     * @param padding - padding around the items rect
+     * @param addToMap - detemines whether a rect/pos should be added to the maps
+     */
+    void NodeView::fitToScreen(QList<GraphMLItem *> itemsToCenter, double padding, bool addToMap)
+    {
+        if (itemsToCenter.isEmpty() && getModelItem()) {
+            ModelItem* modelItem = getModelItem();
+            if (modelItem->getVisibleAspects().isEmpty()) {
+                itemsToCenter.append(getModelItem());
+            } else {
+                itemsToCenter.append(getModelItem()->getChildren());
+            }
+        }
+
+
+        QRectF visibleItemsRect;
+
+        foreach (GraphMLItem* nodeItem, itemsToCenter) {
+            if (nodeItem->isVisible()) {
+                visibleItemsRect = visibleItemsRect.united(nodeItem->sceneBoundingRect());
+            }
+        }
+
+        centerRect(visibleItemsRect, padding, addToMap);
+    }
+
+
+    /**
+     * @brief NodeView::deleteSelection
+     * This triggers the same actions as for when the DELETE key is pressed.
+     */
+    void NodeView::deleteSelection()
+    {
+        deleteFromIDs(selectedIDs);
+    }
+
+
+    void NodeView::constructWorkerProcessNode(QString workerName, QString operationName, int sender)
+    {
+        //Do stuff!
+        if(viewMutex.tryLock()){
+            NodeItem* item = getSelectedNodeItem();
+            if (item) {
+                toolbarDockConstruction = true;
+
+                QPointF position = item->getNextChildPos();
+
+                if(sender == 1){
+                    // if from toolbar, place at closest grid point to the toolbar's position
+                    position = item->mapFromScene(toolbarPosition);
+                    position = item->getClosestGridPoint(position);
+                }
+                emit view_ConstructWorkerProcessNode(item->getID(), workerName, operationName, position);
+            }
+        }
+    }
+
+
+    /**
+     * @brief NodeView::resetModel
+     * This method is called after the model is cleared.
+     * It resets the size, sorts and centers the model.
+     */
+    void NodeView::resetModel(bool addAction)
+    {
+        if(addAction){
+            triggerAction("Resetting Model");
+        }
+        foreach (EntityItem* entityItem, getEntityItemsList()) {
+            if (entityItem) {
+                entityItem->resetSize();
+            }
+        }
+
+        emit view_ProjectCleared();
+    }
+
+
+    /**
+     * @brief NodeView::clearModel
+     * This tells the controller to clear the model.
+     * This is called from MedeaWindow.
+     */
+    void NodeView::clearModel()
+    {
+        if(viewMutex.tryLock()){
+            clearingModel = true;
+            emit view_Clear();
+        }
+    }
+
+
+    /**
+     * @brief NodeView::view_SelectModel
+     * This is called when the project name is clicked.
+     * It selects the model item and updates the data table.
+     */
+    void NodeView::selectModel()
+    {
+        if (getModelItem()) {
+            clearSelection();
+            appendToSelection(getModelItem());
+        }
+    }
+
+    bool NodeView::constructEdgeItem(EdgeAdapter *edge)
+    {
+        int srcID = edge->getSourceID();
+        int dstID = edge->getDestinationID();
+
+        EntityItem* srcGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(srcID));
+        EntityItem* dstGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(dstID));
+
+        bool updateDeploymentWarning = false;
+        Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
+        if(edgeClass == Edge::EC_DEPLOYMENT){
+            updateDeployment = true;
+            updateDeploymentWarning = true;
+        }
+
+        // need to put this back here
+        edgeConstructed_signalUpdates();
+
+        bool constructEdge = srcGUI != 0 && dstGUI != 0;
 
         if(constructEdge){
-            NodeItem* parentNodeItem = (NodeItem*) parent;
+            //We have valid GUI elements for both ends of this edge.
 
-            //Construct a new GUI Element for this edge
-            EdgeItem* nodeEdge = new EdgeItem(edge, parentNodeItem, srcGUI, dstGUI);
+            switch(edgeClass){
+            case Edge::EC_AGGREGATE:
+                constructEdge = false;
+                break;
+            case Edge::EC_DEFINITION:
+                constructEdge = false;
+                break;
+            case Edge::EC_DEPLOYMENT:
+                constructEdge = false;
+            default:
+                break;
+            }
 
-            //Add it to the list of EdgeItems in the Model.
-            storeGraphMLItemInHash(nodeEdge);
-            connectGraphMLItemToController(nodeEdge);
+            GraphMLItem* parent = getSharedEntityItemParent(srcGUI, dstGUI);
 
-            if(!scene()->items().contains(nodeEdge)){
-                //Add to model.
-                scene()->addItem(nodeEdge);
+            if(!parent || !parent->isNodeItem()){
+                // added this here otherwise constructed edge with no gui is not stored
+                constructEdge = false;
+            }
+
+            if(constructEdge){
+                NodeItem* parentNodeItem = (NodeItem*) parent;
+
+                //Construct a new GUI Element for this edge
+                EdgeItem* nodeEdge = new EdgeItem(edge, parentNodeItem, srcGUI, dstGUI);
+
+                //Add it to the list of EdgeItems in the Model.
+                storeGraphMLItemInHash(nodeEdge);
+                connectGraphMLItemToController(nodeEdge);
+
+                if(!scene()->items().contains(nodeEdge)){
+                    //Add to model.
+                    scene()->addItem(nodeEdge);
+                }
             }
         }
+
+        //Update deployment Warnings
+        if(!constructEdge && updateDeploymentWarning){
+            updateDeploymentWarnings(srcID);
+        }
+
+        return constructEdge;
     }
 
-    //Update deployment Warnings
-    if(!constructEdge && updateDeploymentWarning){
-        updateDeploymentWarnings(srcID);
+    void NodeView::constructNoGUIItem(EntityAdapter *entity)
+    {
+        NoGUIItem* item = new NoGUIItem(entity);
+        int ID = item->getID();
+        noGUIItems[ID] = item;
     }
-
-    return constructEdge;
-}
-
-void NodeView::constructNoGUIItem(EntityAdapter *entity)
-{
-    NoGUIItem* item = new NoGUIItem(entity);
-    int ID = item->getID();
-    noGUIItems[ID] = item;
-}
 
 
