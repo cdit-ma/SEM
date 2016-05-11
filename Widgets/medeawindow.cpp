@@ -76,6 +76,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 {
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     hide();
+
     setupApplication();
     NOTIFICATION_TIME = 1000;
     nodeView = 0;
