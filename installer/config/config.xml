@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+	<Name>MEDEA</Name>
+	<Version>1.0.0</Version>
+	<Title>Modelling, Experiment DEsign and Analysis (MEDEA)</Title>
+	<Publisher>CDIT-MA</Publisher>
+	<StartMenuDir>MEDEA</StartMenuDir>
+	<TargetDir>@RootDir@</TargetDir>
+	<!--<InstallerWindowIcon>../../Resources/Images/Actions/MEDEA.png</InstallerWindowIcon> -->
+	<InstallerApplicationIcon>../../Resources/Images/MedeaIcon</InstallerApplicationIcon>
+	<Banner>../../Resources/Images/MEDEA_Banner.png</Banner>
+	<WizardStyle>Modern</WizardStyle>
+	<ProductUrl>https://github.com/cdit-ma/MEDEA</ProductUrl>
+</Installer>

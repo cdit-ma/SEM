@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>MEDEA</DisplayName>
+    <Description>Install this example.</Description>
+    <Version>@ProductVersion@</Version>
+    <ReleaseDate>2010-09-21</ReleaseDate>
+    <Licenses>
+        <License name="License" file="license.txt" />
+    </Licenses>
+</Package>
