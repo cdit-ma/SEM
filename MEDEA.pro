@@ -11,12 +11,12 @@ QT       += widgets
 QT       += xmlpatterns
 
 
-VERSION = 1.5.1
+VERSION = 1.5.2
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
-QMAKE_TARGET_COMPANY = Defence Information Group
+QMAKE_TARGET_COMPANY = CDIT-MA
 QMAKE_TARGET_PRODUCT = MEDEA
-QMAKE_TARGET_DESCRIPTION = Modelling, Experiment DEsign and Analysis
+QMAKE_TARGET_DESCRIPTION = MEDEA
 
 
 TARGET = MEDEA
@@ -25,7 +25,9 @@ TEMPLATE = app
 
 win32{
     #Used for Icon in windows.
-    RC_ICONS = Resources/Images/MedeaIcon.ico
+    RC_ICONS += Resources/Images/MedeaIcon.ico
+    #Sets Icon for GraphML Documents.
+    RC_ICONS += Resources/Images/Graphml.ico
     LIBS += -lpsapi
 }
 mac{
@@ -292,9 +294,12 @@ RESOURCES += \
     resources.qrc
 
 OTHER_FILES += \
+    doxygen.config \
+    settings.ini \
+    defaultSettings.ini \
+    changelog.txt \
     Resources/Scripts/jenkins-cli.jar \
     Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy \
-    settings.ini \
     Resources/Scripts/MEDEA.xsl \
     Resources/Scripts/serializer.jar \
     Resources/Scripts/xalan.jar \
@@ -304,7 +309,6 @@ OTHER_FILES += \
     Resources/Scripts/xalan.jar \
     Resources/Scripts/xercesImpl.jar \
     Resources/Scripts/xml-apis.jar \
-    changelog.txt \
     Resources/Transforms/Absolute2Relative.xsl \
     Resources/Transforms/Deploy.xsl \
     Resources/Transforms/ExtractSchFromRNG.xsl \
@@ -348,7 +352,10 @@ OTHER_FILES += \
     Resources/Binaries/xercesImpl.jar \
     Resources/Binaries/xml-apis.jar \
     Resources/Scripts/runCuts.pl \
-    installer/config/config.xml
+    installer/config/config.xml \
+    installer/packages/cditma.MEDEA/meta/package.xml \
+    installer/packages/cditma.MEDEA/meta/license.txt \
+    installer/packages/cditma.MEDEA/meta/installscript.qs
 
 
 
@@ -420,19 +427,6 @@ mac{
     QMAKE_BUNDLE_DATA += TRANSFORMS_FILES
 }
 
-DISTFILES += \
-    Resources/Images/qt.ico \
-    Resources/Fonts/OpenSans-Regular.ttf \
-    settings.ini \
-    doxygen.config \
-    defaultSettings.ini \
-    Resources/Images/Actions/Export_Snippet.png \
-    Resources/Images/Actions/Import_Snippet.png \
-    README.md \
-    installer/packages/cditma.MEDEA/meta/package.xml \
-    installer/packages/cditma.MEDEA/meta/license.txt \
-    MEDEA_resource.rc \
-    installer/packages/cditma.MEDEA/meta/installscript.qs
 
 FORMS += \
     installer/packages/cditma.MEDEA/meta/registerfilecheckboxform.ui

@@ -268,8 +268,9 @@ private:
     bool closeProject();
     bool saveProject(bool saveAs=false);
 
-    QString readFile(QString fileName);
-    bool writeFile(QString filePath, QString fileData, bool notify=true);
+    QString readTextFile(QString fileName);
+    bool writeTextFile(QString filePath, QString fileData, bool notify=true);
+
     bool writeQImage(QString filePath, QImage image, bool notify=true);
 
     bool ensureDirectory(QString filePath);
@@ -374,6 +375,7 @@ private:
     QAction* file_exportSnippet;
 
     QList<QAction*> modelActions;
+    QList<QAction*> nonModelActions;
     QAction* edit_undo;
     QAction* edit_redo;
     QAction* edit_cut;

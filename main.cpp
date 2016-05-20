@@ -32,13 +32,11 @@ int launchMEDEA(int argc, char *argv[]){
     a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     QString graphmlFilePath = "";
     if (argc == 2) {
-        graphmlFilePath = QString(argv[1]);
+        graphmlFilePath = QString::fromUtf8(argv[1]);
     }
-
 
     MedeaWindow *w = new MedeaWindow(graphmlFilePath);
     a.setActiveWindow(w);
-
     return a.exec();
 }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package>
     <DisplayName>MEDEA</DisplayName>
-    <Version>1.5.0</Version>
+    <Version>1.5.2</Version>
     <Description>The core MEDEA tool.</Description>
     <ReleaseDate>2016-05-20</ReleaseDate>
     <Default>true</Default>
@@ -11,9 +11,7 @@
     <UserInterfaces>
         <UserInterface>registerfilecheckboxform.ui</UserInterface>
     </UserInterfaces>
-    <!--
-    <Licenses>
+    <!--<Licenses>
         <License name="License" file="license.txt" />
-    </Licenses>
-    -->
+    </Licenses>-->
 </Package>

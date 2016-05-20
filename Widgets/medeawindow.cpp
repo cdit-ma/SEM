@@ -74,6 +74,8 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+    //Updates2
+    //REBUILD
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     hide();
 
@@ -119,15 +121,15 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     show();
 
 
-    //Load initial model.
-    if(!graphMLFile.isEmpty()){
-        openProject(graphMLFile);
-    }
-
     INITIAL_SETTINGS_LOADED = true;
 
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "MEDEA Loaded in: " <<  timeFinish-timeStart << "MS";
+
+    //Load initial model.
+    if(!graphMLFile.isEmpty()){
+        openProject(graphMLFile);
+    }
 }
 
 
@@ -311,6 +313,8 @@ void MedeaWindow::setApplicationEnabled(bool enable)
  */
 void MedeaWindow::setViewWidgetsEnabled(bool enable)
 {
+    //Disable NodeView
+
     // TODO - Can't seem to hide the minimap!
     minimap->setEnabled(enable);
     //minimap->setVisible(false);
@@ -323,6 +327,7 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
     // search widgets
     searchBar->setEnabled(enable);
     searchBar->clear();
+
 
 
     // dock buttons
@@ -684,109 +689,111 @@ void MedeaWindow::initialiseGUI()
  * Initialise and setup menus and their actions.
  */
 void MedeaWindow::setupMenu()
-{
-    menu = new QMenu(this);
+{ menu = new QMenu(this);
     menu->setObjectName(THEME_STYLE_QMENU);
 
-    file_menu = menu->addMenu(getIcon("Actions", "Menu"), "File");
-    edit_menu = menu->addMenu(getIcon("Actions", "Edit"), "Edit");
+    file_menu = menu->addMenu("File");
+    edit_menu = menu->addMenu("Edit");
 
     menu->addSeparator();
 
-    view_menu = menu->addMenu(getIcon("Actions", "MenuView"), "View");
-    model_menu = menu->addMenu(getIcon("Actions", "MenuModel"), "Model");
-    jenkins_menu = menu->addMenu(getIcon("Actions", "Jenkins_Icon"), "Jenkins");
+    view_menu = menu->addMenu("View");
+    model_menu = menu->addMenu("Model");
+    jenkins_menu = menu->addMenu("Jenkins");
 
 
 
     menu->addSeparator();
 
-    settings_changeAppSettings = menu->addAction(getIcon("Actions", "Settings"), "Settings");
+    settings_changeAppSettings = menu->addAction("Settings");
     settings_changeAppSettings->setShortcut(QKeySequence(Qt::Key_F10));
-    help_menu = menu->addMenu(getIcon("Actions", "Help"), "Help");
+    help_menu = menu->addMenu("Help");
 
-    exit = menu->addAction(getIcon("Actions", "Power"), "Exit");
+    exit = menu->addAction("Exit");
 
-    file_newProject = file_menu->addAction(getIcon("Actions", "New"), "New Project");
+    file_newProject = file_menu->addAction("New Project");
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
 
-    //file_openProject = file_menu->addAction(getIcon("Actions", "Import"), "Open Project");
-    file_openProject = file_menu->addAction(getIcon("Actions", "Open"), "Open Project");
+    //file_openProject = file_menu->addAction("Open Project");
+    file_openProject = file_menu->addAction("Open Project");
     file_openProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 
-    file_recentProjectsMenu = file_menu->addMenu(getIcon("Actions", "Timer"), "Recent Projects");
+    file_recentProjectsMenu = file_menu->addMenu("Recent Projects");
 
-    file_recentProjects_clearHistory = file_recentProjectsMenu->addAction(getIcon("Actions", "Clear"), "Clear History");
+    file_recentProjects_clearHistory = file_recentProjectsMenu->addAction("Clear History");
 
     file_menu->addSeparator();
 
-    file_saveProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project");
+    file_saveProject = file_menu->addAction("Save Project");
     file_saveProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
 
-    file_saveAsProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project As");
+    file_saveAsProject = file_menu->addAction("Save Project As");
     file_saveAsProject->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
 
-    file_closeProject = file_menu->addAction(getIcon("Actions", "Close"), "Close Project");
+    file_closeProject = file_menu->addAction("Close Project");
+    file_closeProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
 
     file_menu->addSeparator();
 
-    file_importGraphML = file_menu->addAction(getIcon("Actions", "Import"), "Import");
+    file_importGraphML = file_menu->addAction("Import");
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
-    file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
+    file_importSnippet = file_menu->addAction("Import Snippet");
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
 
     file_menu->addSeparator();
 
-    file_exportSnippet = file_menu->addAction(getIcon("Actions", "ExportSnippet"), "Export Snippet");
+    file_exportSnippet = file_menu->addAction("Export Snippet");
 
     file_menu->addSeparator();
 
-    edit_undo = edit_menu->addAction(getIcon("Actions", "Undo"), "Undo");
+    //
+    edit_undo = edit_menu->addAction("Undo");
     edit_undo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
-    edit_redo = edit_menu->addAction(getIcon("Actions", "Redo"), "Redo");
+    edit_redo = edit_menu->addAction("Redo");
     edit_redo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
     edit_menu->addSeparator();
-    edit_cut = edit_menu->addAction(getIcon("Actions", "Cut"), "Cut");
+    edit_cut = edit_menu->addAction("Cut");
     edit_cut->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_X));
-    edit_copy = edit_menu->addAction(getIcon("Actions", "Copy"), "Copy");
+    edit_copy = edit_menu->addAction("Copy");
     edit_copy->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
-    edit_paste = edit_menu->addAction(getIcon("Actions", "Paste"), "Paste");
+    edit_paste = edit_menu->addAction("Paste");
     edit_paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
-    edit_replicate = edit_menu->addAction(getIcon("Actions", "Replicate"), "Replicate");
+    edit_replicate = edit_menu->addAction("Replicate");
     edit_replicate->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
     edit_menu->addSeparator();
-    edit_search = edit_menu->addAction(getIcon("Actions", "Search"), "Search");
+    edit_search = edit_menu->addAction("Search");
     edit_search->setShortcut(QKeySequence(Qt::Key_F3));
-    edit_delete= edit_menu->addAction(getIcon("Actions", "Delete"), "Delete Selection");
+    edit_delete= edit_menu->addAction("Delete Selection");
 
-    view_fitToScreen = view_menu->addAction(getIcon("Actions", "FitToScreen"), "Fit To Screen");
+    view_fitToScreen = view_menu->addAction("Fit To Screen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
     view_menu->addSeparator();
-    view_goToDefinition = view_menu->addAction(getIcon("Actions", "Definition"), "Go To Definition");
+    view_goToDefinition = view_menu->addAction("Go To Definition");
     view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
-    view_goToImplementation = view_menu->addAction(getIcon("Actions", "Implementation"), "Go To Implementation");
+    view_goToImplementation = view_menu->addAction("Go To Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
-    view_showConnectedNodes = view_menu->addAction(getIcon("Actions", "Connections"), "View Connections");
+    view_showConnectedNodes = view_menu->addAction("View Connections");
     view_menu->addSeparator();
-    view_fullScreenMode = view_menu->addAction(getIcon("Actions", "Fullscreen"), "Start Fullscreen Mode");
-    view_fullScreenMode->setShortcut(QKeySequence(Qt::Key_F11));
+    view_fullScreenMode = view_menu->addAction("Start Fullscreen Mode");
+    view_fullScreenMode->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_F));
     view_fullScreenMode->setCheckable(true);
-    view_printScreen = view_menu->addAction(getIcon("Actions", "PrintScreen"), "Print Screen");
+
+    view_printScreen = view_menu->addAction("Print Screen");
     view_printScreen->setShortcut(QKeySequence(Qt::Key_F12));
 
     view_menu->addSeparator();
-    view_showMinimap = view_menu->addAction(getIcon("Actions", "Minimap"), "Hide Minimap");
+    view_showMinimap = view_menu->addAction("Hide Minimap");
     view_showMinimap->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_M));
     view_showMinimap->setCheckable(true);
     view_showMinimap->setChecked(true);
 
-    model_clearModel = model_menu->addAction(getIcon("Actions", "Clear"), "Clear Model");
+    model_clearModel = model_menu->addAction("Clear Model");
     model_menu->addSeparator();
-    model_validateModel = model_menu->addAction(getIcon("Actions", "Validate"), "Validate Model");
+    model_validateModel = model_menu->addAction("Validate Model");
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
 
-    model_ExecuteLocalJob = model_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: Local Deployment");
+    model_ExecuteLocalJob = model_menu->addAction("Launch: Local Deployment");
     model_ExecuteLocalJob->setEnabled(true);
     model_ExecuteLocalJob->setToolTip("Requires Valid CUTS and Windows");
 
@@ -794,18 +801,18 @@ void MedeaWindow::setupMenu()
     QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB).toString();
 
     //Generic Jenkins Functionality.
-    jenkins_ImportNodes = jenkins_menu->addAction(getIcon("Actions", "Computer"), "Import Jenkins Nodes");
+    jenkins_ImportNodes = jenkins_menu->addAction("Import Jenkins Nodes");
     jenkins_ImportNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
 
-    jenkins_ExecuteJob = jenkins_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: " + jenkinsJobName);
+    jenkins_ExecuteJob = jenkins_menu->addAction("Launch: " + jenkinsJobName);
     jenkins_ExecuteJob->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B));
 
-    help_Shortcuts = help_menu->addAction(getIcon("Actions", "Keyboard"), "App Shortcuts");
+    help_Shortcuts = help_menu->addAction("App Shortcuts");
     help_Shortcuts->setShortcut(QKeySequence(Qt::Key_F1));
-    help_ReportBug = help_menu->addAction(getIcon("Actions", "BugReport"), "Report Bug");
-    help_Wiki = help_menu->addAction(getIcon("Actions", "Wiki"), "Wiki");
+    help_ReportBug = help_menu->addAction("Report Bug");
+    help_Wiki = help_menu->addAction("Wiki");
     help_menu->addSeparator();
-    help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
+    help_AboutMedea = help_menu->addAction("About MEDEA");
     help_AboutQt = help_menu->addAction(QIcon(":/Qt.ico"), "About Qt");
 
 
@@ -818,7 +825,7 @@ void MedeaWindow::setupMenu()
 
 
 
-    actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
+    actionSort = new QAction(this);
     actionSort->setToolTip("Sort Selection");
 
 
@@ -826,63 +833,66 @@ void MedeaWindow::setupMenu()
     actionSearch->setToolTip("Search for text");
 
 
-    actionCenter = new QAction(getIcon("Actions", "Crosshair"), "Center Entity", this);
+    actionCenter = new QAction(this);
     actionCenter->setToolTip("Center On Entity");
 
-    actionZoomToFit = new QAction(getIcon("Actions", "ZoomToFit"), "Zoom to Fit Selection", this);
+    actionZoomToFit = new QAction(this);
     actionZoomToFit->setToolTip("Center selection and zoom in to fit");
 
-    actionFitToScreen = new QAction(getIcon("Actions", "FitToScreen"), "Fit Model to Screen", this);
+    actionFitToScreen = new QAction(this);
     actionFitToScreen->setToolTip("Show Entire Model");
 
-    actionAlignVertically = new QAction(getIcon("Actions", "Align_Vertical"), "Align Selection Vertically", this);
+    actionAlignVertically = new QAction(this);
     actionAlignVertically->setToolTip("Align Selection Vertically");
 
-    actionAlignHorizontally = new QAction(getIcon("Actions", "Align_Horizontal"), "Align Selection Horizontally", this);
+    actionAlignHorizontally = new QAction(this);
     actionAlignHorizontally->setToolTip("Align Selection Horizontally");
 
-    actionPopupSubview = new QAction(getIcon("Actions", "Popup"), "Show Selection in New Window", this);
+    actionPopupSubview = new QAction(this);
     actionPopupSubview->setToolTip("Show Selection In New Window");
 
-    actionBack = new QAction(getIcon("Actions", "Backward"), "Navigate Back", this);
+    actionBack = new QAction(this);
     actionBack->setToolTip("Navigate Back");
 
-    actionForward = new QAction(getIcon("Actions", "Forward"), "Navigate Forward", this);
+    actionForward = new QAction(this);
     actionForward->setToolTip("Navigate Forward");
 
-    actionContextMenu = new QAction(getIcon("Actions", "Toolbar"), "Show Context Toolbar", this);
+    actionContextMenu = new QAction(this);
     actionContextMenu->setToolTip("Show Context Toolbar");
 
-    actionToggleGrid = new QAction(getIcon("Actions", "Grid_On"), "Toggle Grid Lines", this);
+    actionToggleGrid = new QAction(this);
     actionToggleGrid->setToolTip("Turn Off Grid");
     actionToggleGrid->setCheckable(true);
 
-    actionToggleToolbar = new QAction(getIcon("Actions", "Arrow_Down"), "Toggle Toolbar", this);
+    actionToggleToolbar = new QAction(this);
     actionToggleToolbar->setToolTip("Toggle Toolbar");
     actionToggleToolbar->setCheckable(true);
     actionToggleToolbar->setChecked(EXPAND_TOOLBAR);
 
-    //Model Actions
-    modelActions << file_closeProject;
-    modelActions << file_saveProject;
-    modelActions << file_saveAsProject;
-    modelActions << file_importGraphML;
-    modelActions << file_importXME;
-    modelActions << file_importSnippet;
-    modelActions << file_exportSnippet;
 
-    modelActions << view_menu->actions();
+    //These actions can be run at any time
+    nonModelActions << menu->actions();
+    nonModelActions << file_openProject;
+    nonModelActions << file_newProject;
+    nonModelActions << file_recentProjectsMenu->menuAction();
+    nonModelActions << view_fullScreenMode;
+    nonModelActions << help_menu->actions();
+
+    //These actions can only be run when a project is open
+    modelActions << file_menu->actions();
     modelActions << edit_menu->actions();
-
-    modelActions << view_menu->actions();
     modelActions << model_menu->actions();
-
     modelActions << jenkins_menu->actions();
-
-    modelActions.removeAll(view_fullScreenMode);
-    modelActions.removeAll(view_showMinimap);
-
+    modelActions << view_menu->actions();
     modelActions << actionSearch;
+
+    foreach(QAction* nonModelAction, nonModelActions){
+        modelActions.removeAll(nonModelAction);
+    }
+
+    //Add all QActions to this widget, so that shortcuts work.
+    addActions(nonModelActions);
+    addActions(modelActions);
 }
 
 void MedeaWindow::updateMenuIcons()
@@ -2197,48 +2207,6 @@ void MedeaWindow::setupConnections()
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
-
-    //For mac
-    addAction(exit);
-    addAction(file_newProject);
-    addAction(file_openProject);
-    addAction(file_importGraphML);
-
-    addAction(edit_undo);
-    addAction(edit_redo);
-    addAction(edit_cut);
-    addAction(edit_copy);
-    addAction(edit_paste);
-    addAction(edit_replicate);
-    addAction(view_fitToScreen);
-    addAction(view_goToDefinition);
-    addAction(view_goToImplementation);
-    addAction(view_showConnectedNodes);
-
-    addAction(model_validateModel);
-    addAction(model_clearModel);
-
-    addAction(actionSort);
-    addAction(actionCenter);
-    addAction(actionZoomToFit);
-    addAction(actionFitToScreen);
-    addAction(actionAlignVertically);
-    addAction(actionAlignHorizontally);
-    addAction(actionPopupSubview);
-    addAction(actionBack);
-    addAction(actionForward);
-    addAction(actionToggleGrid);
-    addAction(actionContextMenu);
-
-    addAction(actionToggleToolbar);
-
-    addAction(jenkins_ExecuteJob);
-    addAction(jenkins_ImportNodes);
-
-    //addAction(actionToggleGrid);
-    addAction(settings_changeAppSettings);
-    addAction(help_AboutMedea);
-    addAction(help_Shortcuts);
 }
 
 
@@ -2375,7 +2343,10 @@ bool MedeaWindow::openProject(QString fileName)
         return false;
     }
 
-    QString fileData = readFile(fileName);
+    //Convert to forward slashes
+    fileName = fileName.replace("\\","/");
+
+    QString fileData = readTextFile(fileName);
     if(!fileData.isEmpty()){
         nodeView->openProject(fileName, fileData);
         updateRecentProjectsWidgets(fileName);
@@ -2471,7 +2442,7 @@ bool MedeaWindow::saveProject(bool saveAs)
 
         QString fileData = nodeView->getProjectAsGraphML();
 
-        bool saveSuccess = writeFile(filePath, fileData);
+        bool saveSuccess = writeTextFile(filePath, fileData);
 
         if(saveSuccess){
             updateRecentProjectsWidgets(filePath);
@@ -2482,6 +2453,7 @@ bool MedeaWindow::saveProject(bool saveAs)
     }
     return false;
 }
+
 
 void MedeaWindow::populateDocks()
 {
@@ -2753,7 +2725,7 @@ void MedeaWindow::projectNameChanged(QString name)
 void MedeaWindow::gotSaveData(QString filePath, QString fileData)
 {
     //Try and write the file.
-    bool success = writeFile(filePath, fileData);
+    bool success = writeTextFile(filePath, fileData);
 
     //Tell the View the project saved.
     emit window_ProjectSaved(success, filePath);
@@ -2851,7 +2823,7 @@ void MedeaWindow::aboutMedea()
     aboutString += "Developers:";
     aboutString += "<ul>";
     aboutString += "<li><b>Lead: </b>Dan Fraser</li>";
-    aboutString += "<li><b>UX: </b>Cathlyn Aston</li>";
+    aboutString += "<li><b>UX/UI: </b>Cathlyn Aston</li>";
     aboutString += "<li><b>Transforms: </b>Marianne Rieckmann</li>";
     aboutString += "</ul>With thanks to:";
     aboutString += "<ul>";
@@ -3575,7 +3547,7 @@ void MedeaWindow::importSnippet(QString snippetType)
         displayNotification("Snippet file selected changed to: " + snippetFileName + " To match type.");
     }
 
-    QString fileData = readFile(snippetFileName);
+    QString fileData = readTextFile(snippetFileName);
 
     if(fileData == ""){
         return;
@@ -3615,7 +3587,7 @@ void MedeaWindow::exportSnippet(QString snippetType)
 
     QString graphmlData = nodeView->getSelectionAsGraphMLSnippet();
     if(graphmlData != ""){
-        writeFile(snippetFileName, graphmlData);
+        writeTextFile(snippetFileName, graphmlData);
     }else{
         displayNotification("Cannot export snippet!");
     }
@@ -4633,7 +4605,7 @@ void MedeaWindow::importProjects(QStringList files)
 {
     QStringList projects;
     foreach (QString fileName, files) {
-        QString file = readFile(fileName);
+        QString file = readTextFile(fileName);
         if(file != ""){
             projects << file;
         }
@@ -4738,27 +4710,7 @@ QTemporaryFile* MedeaWindow::writeTemporaryFile(QString data)
 }
 
 
-QString MedeaWindow::readFile(QString fileName)
-{
-    QString fileData = "";
-    try {
-        QFile file(fileName);
 
-        bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
-
-        if (!fileOpened) {
-            QMessageBox::critical(this, "File Error", "Unable to open file: '" + fileName + "'! Check permissions and try again.", QMessageBox::Ok);
-            return "";
-        }
-
-        QTextStream fileStream(&file);
-        fileData = fileStream.readAll();
-        file.close();
-    }catch (...) {
-        QMessageBox::critical(this, "Error", "Error reading file: '" + fileName + "'", QMessageBox::Ok);
-    }
-    return fileData;
-}
 
 
 bool MedeaWindow::writeQImage(QString filePath, QImage image, bool notify)
@@ -4802,26 +4754,42 @@ bool MedeaWindow::ensureDirectory(QString filePath)
     return true;
 }
 
-bool MedeaWindow::writeFile(QString filePath, QString fileData, bool notify)
+QString MedeaWindow::readTextFile(QString fileName)
 {
-    try {
-        if(ensureDirectory(filePath)){
-            QFile file(filePath);
+    QString fileData = "";
+    QFile file(fileName);
 
-            bool fileOpened = file.open(QFile::WriteOnly | QFile::Text);
+    if(file.exists()){
+        if(file.open(QFile::ReadOnly | QFile::Text)){
+            QTextStream fileStream(&file);
+            fileData = fileStream.readAll();
+            file.close();
+        }else{
+            QMessageBox::critical(this, "File Read Error", "File: '" + fileName + "' cannot be read. Check permissions and try again.", QMessageBox::Ok);
+        }
+    }else{
+        QMessageBox::critical(this, "File Read Error", "File: '" + fileName + "' doesn't exist!", QMessageBox::Ok);
+    }
 
-            if (!fileOpened) {
-                QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
-                return false;
-            }
+    return fileData;
+}
 
+bool MedeaWindow::writeTextFile(QString filePath, QString fileData, bool notify)
+{
+    if(ensureDirectory(filePath)){
+        QFile file(filePath);
+
+        if(file.open(QFile::WriteOnly | QFile::Text)){
             //Create stream to write the data.
             QTextStream out(&file);
             out << fileData;
             file.close();
+        }else{
+            QMessageBox::critical(this, "File Write Error", "File: '" + filePath + "' cannot be written! Check permissions and try again.", QMessageBox::Ok);
+            return false;
         }
-    }catch (...) {
-        QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
+    }else{
+        QMessageBox::critical(this, "File Write Error", "Directory for File: '" + filePath + "' cannot be made!", QMessageBox::Ok);
         return false;
     }
 
@@ -4835,7 +4803,7 @@ QString MedeaWindow::writeTempFile(QString fileData)
 {
     QString tempFilePath = getTempFileName();
 
-    bool success = writeFile(tempFilePath, fileData, false);
+    bool success = writeTextFile(tempFilePath, fileData, false);
 
     if(!success){
         return "";

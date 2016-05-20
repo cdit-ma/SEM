@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Installer>
 	<Name>MEDEA</Name>
-        <Version>1.5.0</Version>
-        <Title>Modelling, Experiment DEsign and Analysis (MEDEA) </Title>
+        <Version>1.5.2</Version>
+        <Title>MEDEA</Title>
 	<Publisher>CDIT-MA</Publisher>
 	<StartMenuDir>MEDEA</StartMenuDir>
         <TargetDir>@RootDir@/MEDEA</TargetDir>
-	<!--<InstallerWindowIcon>../../Resources/Images/Actions/MEDEA.png</InstallerWindowIcon> -->
+	<InstallerWindowIcon>../../Resources/Images/Actions/MEDEA.png</InstallerWindowIcon>
 	<InstallerApplicationIcon>../../Resources/Images/MedeaIcon</InstallerApplicationIcon>
-	<Banner>../../Resources/Images/MEDEA_Banner.png</Banner>
-	<WizardStyle>Modern</WizardStyle>
+        <WizardStyle>Modern</WizardStyle>
+        <Banner>MEDEABanner.png</Banner>
+        <WizardDefaultHeight>450</WizardDefaultHeight>
 	<ProductUrl>https://github.com/cdit-ma/MEDEA</ProductUrl>
 	<RunProgram>@TargetDir@/MEDEA</RunProgram>
+        <MaintenanceToolName>UninstallMEDEA</MaintenanceToolName>
 </Installer>

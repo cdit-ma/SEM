@@ -24,7 +24,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("F1", "Opens the Shortcut window.");
     addShortcut("F3", "Sets the focus into the search box.");
     addShortcut("F10", "Opens the settings window.");
-    addShortcut("F11", "Toggles fullscreen mode.");
+    addShortcut("CTRL + SHIFT + F", "Toggles fullscreen mode.");
     addShortcut("F12", "Takes a screenshot.");
     addShortcut("CTRL + SHIFT + M", "Toggles minimap visibility.");
     addShortcut("ARROW KEYS", "Nudges the viewport by a small amount.");
@@ -37,6 +37,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("CTRL + SHIFT + S", "Saves the current project as another file.");
     addShortcut("CTRL + I", "Imports a Graphml document into current project.");
     addShortcut("CTRL + SHIFT + V", "Validates the current project.");
+    addShortcut("CTRL + W", "Closes the current Project.");
     addShortcut("CTRL + Z", "Undoes the last change in the model.");
     addShortcut("CTRL + Y", "Redoes the last Undo.");
     addShortcut("CTRL + SPACE", "Fits the entire model into the view.");
