@@ -347,7 +347,9 @@ OTHER_FILES += \
     Resources/Binaries/xalan.jar \
     Resources/Binaries/xercesImpl.jar \
     Resources/Binaries/xml-apis.jar \
-    Resources/Scripts/runCuts.pl
+    Resources/Scripts/runCuts.pl \
+    installer/config/config.xml
+
 
 
 #Define $$OUTPUT_DIR
@@ -426,4 +428,11 @@ DISTFILES += \
     defaultSettings.ini \
     Resources/Images/Actions/Export_Snippet.png \
     Resources/Images/Actions/Import_Snippet.png \
-    README.md
+    README.md \
+    installer/packages/cditma.MEDEA/meta/package.xml \
+    installer/packages/cditma.MEDEA/meta/license.txt \
+    MEDEA_resource.rc \
+    installer/packages/cditma.MEDEA/meta/installscript.qs
+
+FORMS += \
+    installer/packages/cditma.MEDEA/meta/registerfilecheckboxform.ui

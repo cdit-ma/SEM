@@ -61,6 +61,8 @@
         <file alias="Qt.ico">Resources/Images/Qt.ico</file>
         <file alias="GME.ico">Resources/Images/GME.ico</file>
         <file>Resources/Fonts/OpenSans-Regular.ttf</file>
+        <file alias="MEDEABanner.png">Resources/Images/MEDEA_Banner.png</file>
+        <file alias="Graphml.ico">Resources/Images/Graphml.ico</file>
     </qresource>
     <qresource prefix="/Actions">
         <file alias="Add">Resources/Images/Actions/Add.png</file>
