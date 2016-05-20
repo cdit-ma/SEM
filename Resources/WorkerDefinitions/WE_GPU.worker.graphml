@@ -9,7 +9,6 @@
         <key attr.name="sortOrder" attr.type="int" for="node" id="9" />
         <key attr.name="isExpanded" attr.type="boolean" for="node" id="10" />
 	<key attr.name="description" attr.type="string" for="node" id="362"/>
-	<key attr.name="code" attr.type="string" for="node" id="463"/>
 	<key attr.name="worker" attr.type="string" for="node" id="465"/>
 	<key attr.name="folder" attr.type="string" for="node" id="467"/>
 	<key attr.name="file" attr.type="string" for="node" id="468"/>
@@ -41,7 +40,6 @@
 					<data key="3">bufferData</data>
 					<data key="9">0</data>
 					<data key="10">true</data>
-					<data key="463"></data>
                                         <data key="465">WE_GPU</data>
 
                                         <data key="467">$(CUTS_ROOT)/cuts/workers/we_gpu</data>
@@ -127,7 +125,6 @@
 					<data key="3">releaseData</data>
 					<data key="9">1</data>
 					<data key="10">true</data>
-					<data key="463"></data>
 					<data key="465">WE_GPU</data>
                                         <data key="467">$(CUTS_ROOT)/cuts/workers/we_gpu</data>
                                         <data key="468">WE_GPU</data>
@@ -211,7 +208,6 @@
 					<data key="3">runParallel</data>
 					<data key="9">3</data>
 					<data key="10">true</data>
-					<data key="463"></data>
 					<data key="465">WE_GPU</data>
                                         <data key="467">$(CUTS_ROOT)/cuts/workers/we_gpu</data>
                                         <data key="468">WE_GPU</data>
@@ -270,7 +266,6 @@
 					<data key="3">FFT</data>
 					<data key="9">4</data>
 					<data key="10">true</data>
-					<data key="463"></data>
 					<data key="465">WE_GPU</data>
                                         <data key="467">$(CUTS_ROOT)/cuts/workers/we_gpu</data>
                                         <data key="468">WE_GPU</data>
@@ -316,7 +311,6 @@
 					<data key="3">matrixMult</data>
 					<data key="9">5</data>
 					<data key="10">true</data>
-					<data key="463"></data>
 					<data key="465">WE_GPU</data>
                                         <data key="467">$(CUTS_ROOT)/cuts/workers/we_gpu</data>
                                         <data key="468">WE_GPU</data>

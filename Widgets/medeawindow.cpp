@@ -76,6 +76,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 {
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     hide();
+
     setupApplication();
     NOTIFICATION_TIME = 1000;
     nodeView = 0;
@@ -2801,8 +2802,11 @@ void MedeaWindow::gotCPPForComponent(bool success, QString errorString, QString 
     if(!success){
         QMessageBox::critical(this, "XSL Transformation for CPP Error", errorString, QMessageBox::Ok);
     }else{
-        popupMultiLine->setWindowTitle(componentName + "Impl.cpp");
-        txtMultiLine->setPlainText(code);
+        QIcon icon = Theme::theme()->getImage("Actions", "getCPP");
+        if(componentName.endsWith(".h")){
+            icon = Theme::theme()->getImage("Actions", "getH");
+        }
+        addCodeViewerTab(componentName,icon, code, false);
         popupMultiLine->show();
     }
 }
@@ -2846,14 +2850,20 @@ void MedeaWindow::aboutMedea()
     aboutString += "<i>The University of Adelaide</i><br /><br />";
     aboutString += "Developers:";
     aboutString += "<ul>";
-    aboutString += "<li>Dan Fraser</li>";
-    aboutString += "<li>Cathlyn Aston</li>";
-    aboutString += "<li>Marianne Rieckmann</li>";
+    aboutString += "<li><b>Lead: </b>Dan Fraser</li>";
+    aboutString += "<li><b>UX: </b>Cathlyn Aston</li>";
+    aboutString += "<li><b>Transforms: </b>Marianne Rieckmann</li>";
+    aboutString += "</ul>With thanks to:";
+    aboutString += "<ul>";
     aboutString += "<li>Matthew Hart</li>";
+    aboutString += "<li>Jackson Michael</li>";
+    aboutString += "<li>Mitchell Conrad</li>";
     aboutString += "</ul>";
     aboutString += "<a href=\"";
     aboutString += GITHUB_URL;
-    aboutString += "\">MEDEA GitHub</a>";
+    aboutString += "\">MEDEA GitHub URL</a>";
+
+
     QMessageBox::about(this, "About MEDEA", aboutString);
 }
 
@@ -3111,6 +3121,18 @@ void MedeaWindow::executeJenkinsDeployment()
     if(jenkinsManager){
         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
         jenkinsSJ->requestJob(jobName, exportFile);
+    }
+}
+
+void MedeaWindow::closeCodeTab(int tabID)
+{
+    QWidget* content = codeViewerTabWidget->widget(tabID);
+    codeViewerTabWidget->removeTab(tabID);
+    if(content){
+        delete content;
+    }
+    if(codeViewerTabWidget->count() == 0){
+        popupMultiLine->close();
     }
 }
 
@@ -4523,6 +4545,29 @@ void MedeaWindow::updateDataTable()
     updateRightMask();
 }
 
+void MedeaWindow::addCodeViewerTab(QString tabName, QIcon tabIcon, QString content, bool editable)
+{
+    //Text Edit Box
+    CodeEditor* codeEditor = new CodeEditor(this);
+    //make tab width mode civilized
+    codeEditor->setTabStopWidth(40);
+    //Make look purrdy!
+    codeEditor->setObjectName(QString::fromUtf8("txtMultiline"));
+    codeEditor->setPlainText(content);
+
+    codeEditor->setReadOnly(!editable);
+    int index = codeViewerTabWidget->addTab(codeEditor, tabIcon, tabName);
+
+}
+
+void MedeaWindow::removeAllCodeViewerTabs()
+{
+    while(codeViewerTabWidget->count() != 0){
+        emit codeViewerTabWidget->tabCloseRequested(0);
+    }
+    popupMultiLine->close();
+}
+
 
 void MedeaWindow::updateRecentProjectsWidgets(QString topFileName)
 {
@@ -4851,27 +4896,28 @@ void MedeaWindow::setupMultiLineBox()
     popupMultiLine->setModal(true);
     //remove the '?' from the title bar
     popupMultiLine->setWindowFlags(popupMultiLine->windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    popupMultiLine->setWindowIcon(getIcon("Actions", "getCPP"));
-    //Sexy Layout Stuff
-    QGridLayout *gridLayout = new QGridLayout(popupMultiLine);
+    popupMultiLine->setWindowTitle("Code Viewer");
+    popupMultiLine->setMinimumSize(600,600);
 
-    //Text Edit Box
-    txtMultiLine = new CodeEditor();
-    //make tab width mode civilized
-    txtMultiLine->setTabStopWidth(40);
+    QVBoxLayout* vLayout = new QVBoxLayout();
+    popupMultiLine->setLayout(vLayout);
 
-    //Make look purrdy!
-    txtMultiLine->setObjectName(QString::fromUtf8("txtMultiline"));
-    gridLayout->addWidget(txtMultiLine, 0, 0, 1, 1);
+    codeViewerTabWidget = new QTabWidget(this);
+    vLayout->addWidget(codeViewerTabWidget, 1);
+    codeViewerTabWidget->setTabsClosable(true);
+    connect(codeViewerTabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(closeCodeTab(int)));
+
+
     QDialogButtonBox *buttonBox = new QDialogButtonBox();
     buttonBox->setObjectName(QString::fromUtf8("buttonBox"));
     buttonBox->setOrientation(Qt::Horizontal);
     buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-    gridLayout->addWidget(buttonBox, 1, 0, 1, 1);
+    vLayout->addWidget(buttonBox);
 
     //hook up OK/Cancel boxes
-    connect(buttonBox,SIGNAL(accepted()),this,SLOT(dialogAccepted()));
-    connect(buttonBox,SIGNAL(rejected()),this,SLOT(dialogRejected()));
+    connect(popupMultiLine, SIGNAL(rejected()), this, SLOT(dialogRejected()));
+    connect(buttonBox,SIGNAL(accepted()), this, SLOT(dialogAccepted()));
+    connect(buttonBox,SIGNAL(rejected()), this, SLOT(dialogRejected()));
 }
 
 
@@ -4887,13 +4933,12 @@ void MedeaWindow::dataTableDoubleClicked(QModelIndex index)
 
     //Only do this if it's in column 2
     if(needsMultiLine == true) {
+        QString code = index.model()->data(index, Qt::DisplayRole).toString();
+        QString tabName = "Data <" % (index.model()->data(index, -3).toString() +">");
 
-        popupMultiLine->setWindowTitle("Editing: " + index.model()->data(index, -3).toString());
 
-        QVariant value = index.model()->data(index, Qt::DisplayRole);
-
-        txtMultiLine->setPlainText(value.toString());
-
+        QIcon icon = Theme::theme()->getImage("Actions", "getCPP");
+        addCodeViewerTab(tabName, icon, code, true);
         //Show me the box!
         popupMultiLine->show();
 
@@ -4909,9 +4954,17 @@ void MedeaWindow::dataTableDoubleClicked(QModelIndex index)
  */
 void MedeaWindow::dialogAccepted()
 {
-    //Update the table and close
-    dataTable->model()->setData(clickedModelIndex, QVariant(txtMultiLine->toPlainText()), Qt::EditRole);
-    popupMultiLine->close();
+    int currentTabID = codeViewerTabWidget->currentIndex();
+    if(currentTabID != -1){
+
+        CodeEditor* cE = dynamic_cast<CodeEditor*>(codeViewerTabWidget->widget(currentTabID));
+
+        if(cE && !cE->isReadOnly()){
+            QString value = cE->toPlainText();
+            dataTable->model()->setData(clickedModelIndex, value, Qt::EditRole);
+        }
+    }
+    removeAllCodeViewerTabs();
 }
 
 
@@ -4921,7 +4974,7 @@ void MedeaWindow::dialogAccepted()
  */
 void MedeaWindow::dialogRejected()
 {
-    popupMultiLine->close();
+    removeAllCodeViewerTabs();
 }
 
 QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple, QString fileName)

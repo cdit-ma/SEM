@@ -11,6 +11,7 @@ public:
     ~Termination();
 
     Branch* getBranch();
+    WorkflowEdge* getLeftWorkflowEdge();
 public:
     bool canAdoptChild(Node*);
     bool canConnect_WorkflowEdge(Node *node);

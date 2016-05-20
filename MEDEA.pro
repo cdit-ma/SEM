@@ -11,7 +11,7 @@ QT       += widgets
 QT       += xmlpatterns
 
 
-VERSION = 1.5.0
+VERSION = 1.5.1
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 QMAKE_TARGET_COMPANY = Defence Information Group

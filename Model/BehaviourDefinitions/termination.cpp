@@ -1,5 +1,6 @@
 #include "termination.h"
 #include "branch.h"
+#include <QDebug>
 Termination::Termination():BehaviourNode(){
 
 }
@@ -23,6 +24,27 @@ Branch *Termination::getBranch()
 bool Termination::canAdoptChild(Node*)
 {
     return false;
+}
+
+/**
+ * @brief Termination::getLeftWorkflowEdge Overloaded function to return the Branch state of a termination
+ * @return
+ */
+WorkflowEdge* Termination::getLeftWorkflowEdge()
+{
+    foreach(Edge* edge, getEdges(0)){
+        if(edge->getEdgeClass() == Edge::EC_WORKFLOW){
+            if(edge->getDestination() == this){
+                Node* src = edge->getSource();
+                Branch* srcB = dynamic_cast<Branch*>(src);
+                if(srcB){
+                    //Only return the left most Branch edge
+                    return (WorkflowEdge*)edge;
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 bool Termination::canConnect_WorkflowEdge(Node *node)

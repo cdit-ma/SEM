@@ -85,6 +85,20 @@ QString Theme::getDeployColorHex()
     return Theme::QColorToHex(getDeployColor());
 }
 
+QSize Theme::roundQSize(QSize size)
+{
+    int factor = 1;
+    //Bitshift round to power of 2
+    while((factor <<= 1 ) <= size.width()>>1);
+
+    //Scale the request image size to a width = factor
+    int newWidth = factor;
+    int newHeight = (double) factor * ((double)size.width() / (double)size.height());
+    size.setWidth(newWidth);
+    size.setHeight(newHeight);
+    return size;
+}
+
 void Theme::setBackgroundColor(QColor color)
 {
     if(backgroundColor != color){
@@ -301,16 +315,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
 
     //If we have a valid size
     if(size.isValid()){
-        int factor = 1;
-        //Bitshift round to power of 2
-        while((factor <<= 1 ) <= size.width()>>1);
-
-        //Scale the request image size to a width = factor
-        int newWidth = factor;
-        int newHeight = (double) factor * ((double)size.width() / (double)size.height());
-        size.setWidth(newWidth);
-        size.setHeight(newHeight);
-
+        size = roundQSize(size);
         //Update the lookupName to include this new size information.
         lookupName = lookupName % slash % QString::number(size.width()) % slash % QString::number(size.height());
     }

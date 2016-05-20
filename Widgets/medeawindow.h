@@ -142,6 +142,7 @@ public slots:
     void executeJenkinsDeployment();
 
 private slots:
+    void closeCodeTab(int tabID);
     void CUTSOutputPathChanged(QString path);
     void themeChanged();
 
@@ -335,6 +336,8 @@ private:
     void updateDataTable();
 
 
+    void addCodeViewerTab(QString tabName, QIcon tabIcon, QString content, bool editable);
+    void removeAllCodeViewerTabs();
 
 
     QString applicationDirectory;
@@ -594,7 +597,8 @@ private:
 
     //multi-line popup for QTableView (VARIABLES)
     QDialog *popupMultiLine;
-    CodeEditor *txtMultiLine;
+    QTabWidget* codeViewerTabWidget;
+    //CodeEditor *txtMultiLine;
     QModelIndex clickedModelIndex;
 
     JenkinsManager* jenkinsManager;

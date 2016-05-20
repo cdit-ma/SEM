@@ -35,6 +35,7 @@ public:
     QColor getDeployColor();
     QString getDeployColorHex();
 
+    QSize roundQSize(QSize size);
     void setBackgroundColor(QColor color);
     void setDisabledBackgroundColor(QColor color);
     void setAltBackgroundColor(QColor color);

@@ -90,6 +90,8 @@ private:
 
 
 private:
+
+    QPair<int, QPair<QString, QString> > runLocalTransform(QString graphmlPath, QString transformName, QStringList params);
     bool ensureDirectory(QString dirPath);
     QString monitorProcess(QProcess* process);
     bool checkForCPPCompiler();

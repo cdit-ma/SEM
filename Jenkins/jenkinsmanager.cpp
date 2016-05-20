@@ -136,6 +136,7 @@ JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOn
     if(deleteOnCompletion){
         connect(request, SIGNAL(requestFinished()), request, SLOT(deleteLater()));
     }
+    connect(this, SIGNAL(destroyed()), request, SIGNAL(unexpectedTermination()));
 
     if(parent){
         //If the parent has been destroyed

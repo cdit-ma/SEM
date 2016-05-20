@@ -3,7 +3,7 @@
 #include "branch.h"
 #include "parameter.h"
 #include "../InterfaceDefinitions/vectorinstance.h"
-
+#include <QDebug>
 BehaviourNode::BehaviourNode(Node::NODE_TYPE type):Node(type)
 {
     //Setup initial sets.
@@ -316,6 +316,9 @@ bool BehaviourNode::canConnect_WorkflowEdge(Node *node)
         //Can't connect a workflow edge to a non Behaviour Node
         return false;
     }
+    if(!node->isInModel()){
+        return false;
+    }
 
     if(gotRightWorkflowEdge()){
         //Cannot connect to an item if we already have a right edge.
@@ -336,16 +339,21 @@ bool BehaviourNode::canConnect_WorkflowEdge(Node *node)
             if(terminationsBranch){
                 //If we are connecting to a Termination which has a Branch.
                 if(conditionChainStart){
-                    if(chainStart->getParentNode() != terminationsBranch){
-                        //If the Parent of the Condition at the start of this branch isn't The Branch connected to this termination.
+                    //If we are in a chain connected to a Condition
+                    Branch* conditionBranch = conditionChainStart->getBranch();
+                    if(conditionBranch && conditionBranch->getTermination() != node){
+                        //If the Termiantion of the condition's parent branch isn't the Termination we are trying to connect to, return false.
                         return false;
                     }
+                }else{
+                    //The thing we are connecting to isn't contained within a branch. So we should never need a Termiantion.
+                    return false;
                 }
             }else{
                 //Check if we connecting to an unconnected Termination.
                 Branch* branch = dynamic_cast<Branch*>(this);
-                if(!branch){
-                    //Can only connect a Termination if the Termination doesn't yet have a Branch.
+                if(!branch || (branch && branch->getTermination())){
+                    //Connecting to a non Branch or a Branchw with a Termination isn't allowed.
                     return false;
                 }
             }
