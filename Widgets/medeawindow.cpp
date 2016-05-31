@@ -739,6 +739,7 @@ void MedeaWindow::setupMenu()
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_importSnippet = file_menu->addAction("Import Snippet");
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
+    file_importXMI = file_menu->addAction(QIcon(":/UML.gif"), "Import UML XMI File");
 
     file_menu->addSeparator();
 
@@ -918,6 +919,7 @@ void MedeaWindow::updateMenuIcons()
     file_importGraphML->setIcon(getIcon("Actions", "Import"));
     file_importSnippet->setIcon(getIcon("Actions", "ImportSnippet"));
     file_importXME->setIcon(QIcon(":/GME.ico"));
+    file_importXMI->setIcon(QIcon(":/UML.gif"));
     file_exportSnippet->setIcon(getIcon("Actions", "ExportSnippet"));
 
     edit_undo->setIcon(getIcon("Actions", "Undo"));
@@ -2069,7 +2071,7 @@ void MedeaWindow::setupConnections()
     connect(nodeView, SIGNAL(view_ExportSnippet(QString)), this, SLOT(exportSnippet(QString)));
 
     connect(file_importXME, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XME_triggered()));
-
+    connect(file_importXMI, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XMI_triggered()));
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
     connect(actionToggleToolbar, SIGNAL(triggered(bool)), this, SLOT(showWindowToolbar(bool)));
 
@@ -3071,6 +3073,25 @@ void MedeaWindow::setupInitialSettings()
     updateWidgetsOnWindowChange();
 }
 
+void MedeaWindow::importXMIProject(QString xmiPath)
+{
+    //Use CUTSManager to transform into XML which can be parsed to show table view.
+    QFile xmlFile(xmiPath);
+    if(!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        return;
+    }
+    QXmlStreamReader xml(&xmlFile);
+
+    while(!xml.atEnd()){
+        //Read each line of the xml document.
+        xml.readNext();
+
+        //Get the tagName
+        QStringRef tagName = xml.name();
+        qCritical() << tagName;
+    }
+}
+
 
 
 
@@ -3427,6 +3448,20 @@ void MedeaWindow::on_actionImport_XME_triggered()
         displayLoadingStatus(true, "Transforming XME for import");
         importXMEProject(files.first());
     }
+}
+
+void MedeaWindow::on_actionImport_XMI_triggered()
+{
+    /*
+    progressAction = "Importing XMI";
+
+    QStringList files = fileSelector("Select an XMI file to import.", "XMI XML Documents (*.xml)", ".xml", true, false);
+    if(files.size() == 1){
+        displayLoadingStatus(true, "Transforming XME for import");
+        importXMEProject(files.first());
+    }*/
+
+    importXMIProject("C:/XMI.xml");
 }
 
 

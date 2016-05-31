@@ -136,6 +136,7 @@ public slots:
 
 
 
+    void importXMIProject(QString xmiPath="");
     void generateCPPForComponent(QString componentName);
     void executeProjectValidation();
     void executeLocalNodeDeployment();
@@ -186,6 +187,7 @@ private slots:
 
     void on_actionImport_GraphML_triggered();
     void on_actionImport_XME_triggered();
+    void on_actionImport_XMI_triggered();
 
     void on_actionPaste_triggered();
     void on_actionExit_triggered();
@@ -363,6 +365,7 @@ private:
     QAction* file_newProject;
     QAction* file_importGraphML;
     QAction* file_importXME;
+    QAction* file_importXMI;
 
     QAction* file_recentProjects_clearHistory;
 
