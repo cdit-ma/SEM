@@ -12,6 +12,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QProgressDialog>
+#include <QStyle>
 
 /**
  * @brief JenkinsStartJobWidget::JenkinsStartJobWidget Constructor for the Jenkins Start Job Widget.
@@ -28,7 +29,8 @@ JenkinsStartJobWidget::JenkinsStartJobWidget(QWidget *parent, JenkinsManager *je
     setWindowTitle("Launch Jenkins Job");
     setWindowIcon(Theme::theme()->getImage("Actions", "Job_Build"));
 
-    setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
+    //Set Widget Style
+    setStyleSheet("QDialog{background-color:white; color: #333;}");
 
 
     //Turn off the Other Buttons.
@@ -106,7 +108,7 @@ void JenkinsStartJobWidget::build()
 
 
     //Construct a new JenkinsJobMonitorWidget to show the resulting Job build status. Connect it to the parent of this.
-    JenkinsJobMonitorWidget* jjmw = new JenkinsJobMonitorWidget(this->parentWidget(), jenkins, jobName);
+    JenkinsJobMonitorWidget* jjmw = new JenkinsJobMonitorWidget(this->parentWidget(), jenkins, jobName, buildParameters);
 
     //Get a new Jenkins Request Object. Tied to the new Jenkins Widget
     JenkinsRequest* jenkinsB = jenkins->getJenkinsRequest(jjmw);
@@ -190,7 +192,7 @@ void JenkinsStartJobWidget::setupLayout(QString jobName)
     QLabel* iconLabel = new QLabel();
     iconLabel->setPixmap(Theme::theme()->getImage("Actions", "Job_Build"));
 
-    jobLabel->setStyleSheet("font-family: Helvetica, Arial, sans-serif; font-size: 18px;  font-weight: bold;");
+    jobLabel->setStyleSheet("font-size: 18px; font-weight: bold;");
 
     titleLayout->addWidget(iconLabel);
     titleLayout->addWidget(jobLabel);
@@ -221,7 +223,9 @@ void JenkinsStartJobWidget::setupLayout(QString jobName)
     connect(buildButton, SIGNAL(clicked()), this, SLOT(build()));
 
     //Set the Style to match the CSS from Jenkins
-    buildButton->setStyleSheet("background-color: #4b758b; color: #eee; border: 1px solid #5788a1;font-weight: bold;  font-size: 12px;  font-family: Helvetica, Arial, sans-serif;   padding: 3px 20px;");
+    buildButton->setObjectName(THEME_STYLE_QPUSHBUTTON_JENKINS);
+    this->style()->unpolish(buildButton);
+    this->style()->polish(buildButton);
 
     //Add the Button widget to the layout.
     verticalLayout->addWidget(buttonWidget);
@@ -247,6 +251,10 @@ KeyEditWidget* JenkinsStartJobWidget::getParameterWidget(Jenkins_Job_Parameter p
     QVariant valueType;
 
     if(parameter.type == "String"){
+        //Set the Type to be String.
+        valueType = QVariant(QVariant::String);
+        valueType.setValue(parameter.defaultValue);
+    }else if(parameter.type == "Run"){
         //Set the Type to be String.
         valueType = QVariant(QVariant::String);
         valueType.setValue(parameter.defaultValue);

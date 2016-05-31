@@ -22,20 +22,29 @@
  * @param jobName The Name of the job started.
  */
 
-JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager *jenkins, QString jobName):QDialog(parent)
+JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager *jenkins, QString jobName, Jenkins_JobParameters build_parameters):QDialog(parent)
 {
+    setMinimumWidth(800);
+    setMinimumHeight(600);
+
+
+    this->buildParameters = build_parameters;
     this->jenkins = jenkins;
     this->jobName = jobName;
     this->buildNumber = -1;
     loadingWidget = 0;
-    spinning = 0;
+    areTabsSpinning = false;
+    spinning = new QMovie(this);
+    spinning->setFileName(":/Actions/Waiting.gif");
+    spinning->start();
+
     requestedConsoleOutput = false;
 
     setWindowTitle("Jenkins Job Monitor");
     setWindowIcon(Theme::theme()->getIcon("Actions", "Job_Build"));
 
 
-    setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
+    setStyleSheet("QDialog{background-color:white; color: #333;}");
 
     setupLayout();
 
@@ -100,7 +109,7 @@ void JenkinsJobMonitorWidget::setupLayout()
 
     //Setup Title.
     titleWidget = new QWidget();
-    QHBoxLayout* titleLayout = new QHBoxLayout();
+    titleLayout = new QHBoxLayout();
     titleWidget->setLayout(titleLayout);
 
     //Set up a QLabel for the Building Icon
@@ -110,21 +119,52 @@ void JenkinsJobMonitorWidget::setupLayout()
     jobIcon->setFixedSize(48,48);
 
     //Setup a QPushButton to stop the job.
-    stopButton = new QPushButton("");
-    stopButton->setIcon(Theme::theme()->getImage("Actions", "Job_Stop"));
-    stopButton->setStyleSheet("border: 0px solid black;");
-    stopButton->setFixedSize(QSize(24,24));
+    cancelButton = new QPushButton("");
+    cancelButton->setIcon(Theme::theme()->getImage("Actions", "Job_Stop"));
+    cancelButton->setStyleSheet("border: 0px solid black;");
+    cancelButton->setFixedSize(QSize(24,24));
+    cancelButton->setToolTip("Cancel the Job.");
+    connect(cancelButton, SIGNAL(pressed()), this, SLOT(cancelPressed()));
+
+    stopButton = new QPushButton("Stop Job");
+    stopButton->setObjectName(THEME_STYLE_QPUSHBUTTON_JENKINS);
     stopButton->setToolTip("Stop the Job.");
+
+    //Given a length of 0
+    if(getBuildParameter("RUNTIME_DURATION") == "0"){
+        //Show stop Job button only for indefinite jobs
+        stopButton->setVisible(true);
+    }else{
+        //Hide stop Job button
+        stopButton->setVisible(false);
+    }
+
+    cancelLabel = new QLabel();
+    cancelLabel->setFixedSize(QSize(16,16));
+    cancelLabel->setMovie(spinning);
+    cancelLabel->setVisible(false);
+
     connect(stopButton, SIGNAL(pressed()), this, SLOT(stopPressed()));
 
+
     //Setup a QLabel for the Job Name
-    jobLabel = new QLabel(jobName);
+    //Get URL.
+
+    jobLabel = new QLabel();
+    QString url = jenkins->getJenkinsURL(jobName);
+    jobLabel->setText("<a href='" + url + "'>" + jobName + "</a>");
+
     jobLabel->setStyleSheet("font-family: Helvetica, Arial, sans-serif; font-size: 18px;  font-weight: bold;");
+    jobLabel->setTextFormat(Qt::RichText);
+    jobLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    jobLabel->setOpenExternalLinks(true);
 
 
     titleLayout->addWidget(jobIcon);
     titleLayout->addWidget(jobLabel,1);
     titleLayout->addWidget(stopButton);
+    //titleLayout->addWidget(cancelLabel);
+    titleLayout->addWidget(cancelButton);
     //titleLayout->addStretch();
 
     verticalLayout->addWidget(titleWidget);
@@ -160,13 +200,12 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
             movie->start();
 
             jobIcon->setMovie(movie);
-            jobLabel->setText(jobName + " Build #" + QString::number(buildNumber));
+            QString url = jenkins->getJenkinsURL(jobName, buildNumber);
+            jobLabel->setText("<a href='" + url + "'>" + jobName + " Build #" + QString::number(buildNumber) + "</a>");
 
-            if(!spinning){
-                spinning = new QMovie(this);
-                spinning->setFileName(":/Actions/Waiting.gif");
-                spinning->start();
+            if(!areTabsSpinning){
                 connect(spinning, SIGNAL(frameChanged(int)), this, SLOT(frameChanged(int)));
+                areTabsSpinning = true;
             }
         }
         buildingTabs[index] = true;
@@ -185,7 +224,9 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
         if(activeConfiguration == ""){
             jobIcon->setPixmap(Theme::theme()->getImage(prefixName, resourceName));
             //Hide the Stop Button.
+            cancelButton->setVisible(false);
             stopButton->setVisible(false);
+            cancelLabel->setVisible(false);
         }
         tabWidget->setTabIcon(index, Theme::theme()->getImage(prefixName, resourceName));
     }
@@ -275,6 +316,14 @@ void JenkinsJobMonitorWidget::gotJobActiveConfigurations(QString jobName, QStrin
     //Construct a TextBrowser for each Active Configuration.
     foreach(QString configuration, configurations){
         QTextBrowser* newBrowser = new QTextBrowser();
+
+
+        QFont font("Monospace");
+        font.setStyleHint(QFont::Monospace);
+        font.setPixelSize(12);
+        newBrowser->setFont(font);
+
+        //newBrowser->setStyleSheet("QTextBrowser{font-family:Inconsolata;font-size:14px;line-height:1.4em;}");
         newBrowser->setEnabled(true);
         newBrowser->setOpenExternalLinks(true);
 
@@ -318,22 +367,48 @@ void JenkinsJobMonitorWidget::gotJobConsoleOutput(QString jobName, int buildNumb
     }
 }
 
-void JenkinsJobMonitorWidget::stopPressed()
+void JenkinsJobMonitorWidget::cancelPressed()
 {
     if(this->jobName != ""  && buildNumber > 0){
+        haltRequested(cancelButton);
         //Construct a new JenkinsRequest Object.
         JenkinsRequest* jenkinsStop = jenkins->getJenkinsRequest(this);
         //Connect the emit signals from this Thread to the JenkinsRequest Thread.
-        connect(this, SIGNAL(stopJob(QString,int,QString)), jenkinsStop, SLOT(stopJob(QString,int,QString)));
-        emit stopJob(jobName, buildNumber, "");
-        disconnect(this, SIGNAL(stopJob(QString,int,QString)), jenkinsStop, SLOT(stopJob(QString,int,QString)));
+        connect(this, SIGNAL(cancelJob(QString,int,QString)), jenkinsStop, SLOT(stopJob(QString,int,QString)));
+        emit cancelJob(jobName, buildNumber, "");
+        disconnect(this, SIGNAL(cancelJob(QString,int,QString)), jenkinsStop, SLOT(stopJob(QString,int,QString)));
+    }
+}
+
+void JenkinsJobMonitorWidget::stopPressed()
+{
+    if(this->jobName != ""  && buildNumber > 0){
+        //Get Index in layout.
+        haltRequested(stopButton);
+
+        QString stopJobName = jobName + "-Stop";
+
+        Jenkins_JobParameters buildParameters;
+
+        //Get the values from each of the Parameter Widgets.
+        Jenkins_Job_Parameter buildParameter;
+        buildParameter.name = "build";
+        buildParameter.value = jobName + "#" + QString::number(buildNumber);
+        buildParameters.append(buildParameter);
+
+        //Get a new Jenkins Request Object. Tied to the new Jenkins Widget
+        JenkinsRequest* jenkinsStop = jenkins->getJenkinsRequest(this);
+
+        connect(this, SIGNAL(stopJob(QString,Jenkins_JobParameters)), jenkinsStop, SLOT(buildJob(QString,Jenkins_JobParameters)));
+        emit stopJob(stopJobName, buildParameters);
+        disconnect(this, SIGNAL(stopJob(QString,Jenkins_JobParameters)), jenkinsStop, SLOT(buildJob(QString,Jenkins_JobParameters)));
     }
 }
 
 void JenkinsJobMonitorWidget::frameChanged(int frame)
 {
     Q_UNUSED(frame);
-    if(spinning){
+    if(areTabsSpinning && spinning){
         QPixmap pixmap = spinning->currentPixmap();
         for(int i = 0; i < tabWidget->count(); i++){
             if(buildingTabs[i]){
@@ -365,6 +440,28 @@ void JenkinsJobMonitorWidget::authenticationFinished(bool success, QString messa
     if(!success){
         reject();
     }
+}
+
+QString JenkinsJobMonitorWidget::getBuildParameter(QString name)
+{
+    foreach(Jenkins_Job_Parameter parameter, buildParameters){
+        if(parameter.name == name){
+            return parameter.value;
+        }
+    }
+    return QString();
+}
+
+void JenkinsJobMonitorWidget::haltRequested(QPushButton* button)
+{
+    if(button){
+        titleLayout->removeWidget(cancelLabel);
+        int position = titleLayout->indexOf(button);
+        titleLayout->insertWidget(position, cancelLabel);
+    }
+    cancelLabel->setVisible(true);
+    cancelButton->setEnabled(false);
+    stopButton->setEnabled(false);
 }
 
 QString JenkinsJobMonitorWidget::htmlize(QString consoleOutput)

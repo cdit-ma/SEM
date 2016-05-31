@@ -30,6 +30,8 @@ public:
     void setToken(QString token);
     void setJobName(QString jobname);
 
+    QString getJenkinsURL(QString jobName="", int jobNumber = -1);
+
     bool hasSettings();
     bool hasValidatedSettings();
     JenkinsRequest* getJenkinsRequest(QObject* parent = 0, bool deleteOnCompletion = true);

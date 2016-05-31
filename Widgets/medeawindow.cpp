@@ -61,11 +61,6 @@
 
 #define GITHUB_URL "https://github.com/cdit-ma/MEDEA/"
 
-#define THEME_STYLE_QMENU "THEME_STYLE_QMENU"
-#define THEME_STYLE_QPUSHBUTTON "THEME_STYLE_QPUSHBUTTON"
-#define THEME_STYLE_GROUPBOX "THEME_STYLE_GROUPBOX"
-#define THEME_STYLE_HIDDEN_TOOLBAR "HIDDEN_TOOLBAR"
-
 /**
  * @brief MedeaWindow::MedeaWindow
  * @param graphMLFile
@@ -2534,13 +2529,15 @@ void MedeaWindow::setupApplication()
 
     projectFileChanged();
 
+    //Add fonts.
+
     //Set Font.
-    int fontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
-    QString fontName = QFontDatabase::applicationFontFamilies(fontID).at(0);
-    QFont font = QFont(fontName);
+    int opensans_FontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
+    QString opensans_fontname = QFontDatabase::applicationFontFamilies(opensans_FontID).at(0);
+    QFont font = QFont(opensans_fontname);
+    font.setStyleStrategy(QFont::PreferAntialias);
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
-
 }
 
 /**
@@ -5148,6 +5145,9 @@ void MedeaWindow::updateStyleSheets()
                   "margin: 0px;"
                   "padding: 0px;"
                   "}"
+                  "QPushButton#" + THEME_STYLE_QPUSHBUTTON_JENKINS + "{background-color: #4b758b; color: #eee; border: 1px solid #5788a1;font-weight: bold;  font-size: 12px;  font-family: Helvetica, Arial, sans-serif;   padding: 3px 20px;}"
+                  "QPushButton#" + THEME_STYLE_QPUSHBUTTON_JENKINS + ":hover{background-color: #3f6275;border: 1px solid #5788a1;}"
+                  "QPushButton#" + THEME_STYLE_QPUSHBUTTON_JENKINS + ":disabled{background-color: #e5e5e5;border: 1px solid #d2d2d2; color:#999;}"
                   );
 
     menu->setStyleSheet(themedMenuStyle);

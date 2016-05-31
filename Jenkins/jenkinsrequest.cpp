@@ -367,7 +367,6 @@ QJsonDocument JenkinsRequest::getJobConfiguration(QString jobName, int buildNumb
         //Get the the data from the URL using wget.
         QPair<int, QByteArray> response = wget(configurationURL);
 
-
         //Construct a JSON document from the data from wget.
         configuration = QJsonDocument::fromJson(response.second);
 
@@ -422,20 +421,31 @@ void JenkinsRequest::getJobParameters(QString jobName)
 
                 Jenkins_Job_Parameter jobParameter;
 
+                QString parameterClass = parameterData["_class"].toString();
                 //Fill the data in the Jenkins_Job_Parameter from the JSON object.
                 jobParameter.name = parameterData["name"].toString();
                 //The type is in format [type]ParameterDefinition, so trim this.
                 jobParameter.type = parameterData["type"].toString().replace("ParameterDefinition","");
                 jobParameter.description = parameterData["description"].toString();
                 QJsonValue defaultValue = parameterData["defaultParameterValue"].toObject()["value"];
-                if(defaultValue.isBool()){
-                    if(defaultValue.toBool()){
-                        jobParameter.defaultValue = "true";
+
+                if(!defaultValue.isNull()){
+                    if(defaultValue.isBool()){
+                        if(defaultValue.toBool()){
+                            jobParameter.defaultValue = "true";
+                        }else{
+                            jobParameter.defaultValue = "false";
+                        }
                     }else{
-                        jobParameter.defaultValue = "false";
+                        jobParameter.defaultValue = defaultValue.toString();
                     }
                 }else{
-                    jobParameter.defaultValue = defaultValue.toString();
+
+                    QString projectName = parameterData["projectName"].toString();
+                    //If this parameter type is a RunParameterDefinition, it is required in the format JOB_NAME#BUILD_NUMBER
+                    if(parameterClass == "hudson.model.RunParameterDefinition"){
+                        jobParameter.defaultValue = projectName + "#1";
+                    }
                 }
                 //Add it the jobParameter List
                 jobParameters.append(jobParameter);

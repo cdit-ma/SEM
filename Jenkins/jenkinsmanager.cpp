@@ -94,6 +94,19 @@ void JenkinsManager::setJobName(QString jobName)
     }
 }
 
+QString JenkinsManager::getJenkinsURL(QString jobName, int jobNumber)
+{
+    QString jenkinsURL = url;
+    if(jobName != ""){
+        jenkinsURL += "/job/" + jobName;
+        if(jobNumber > 0){
+            jenkinsURL += "/" + QString::number(jobNumber);
+        }
+    }
+
+    return jenkinsURL;
+}
+
 /**
  * @brief JenkinsManager::hasSettings Returns true if we have a non-empty url, username and password
  * @return Has all settings required
