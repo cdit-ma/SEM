@@ -2612,8 +2612,10 @@ void MedeaWindow::initializePlugins()
     initialiseJenkinsManager();
     initialiseCUTSManager();
 
-    xmiImporter = new XMIImporter(this);
-    connect(this, SIGNAL(window_ImportXMIProject(QString)), xmiImporter, SLOT(importXMIFile(QString)));
+    xmiImporter = new XMIImporter(cutsManager, this);
+    connect(this, SIGNAL(window_ImportXMIProject(QString)), xmiImporter, SLOT(importXMI(QString)));
+    connect(xmiImporter, SIGNAL(loadingStatus(bool,QString)), this, SLOT(displayLoadingStatus(bool,QString)));
+    connect(xmiImporter, SIGNAL(gotXMIGraphML(bool,QString,QString)), this, SLOT(gotXMIGraphml(bool,QString,QString)));
 }
 
 
@@ -2777,6 +2779,20 @@ void MedeaWindow::gotXMETransform(bool success, QString errorString, QString pat
         QStringList projects;
         projects << path;
         emit importProjects(projects);
+    }
+}
+
+void MedeaWindow::gotXMIGraphml(bool success, QString errorString, QString graphmlData)
+{
+    displayLoadingStatus(false);
+    setEnabled(true);
+
+    if(!success){
+        QMessageBox::critical(this, "XMI Import Error", errorString, QMessageBox::Ok);
+    }else{
+        QStringList projects;
+        projects << graphmlData;
+        emit window_ImportProjects(projects);
     }
 }
 
@@ -3459,7 +3475,7 @@ void MedeaWindow::on_actionImport_XMI_triggered()
         importXMEProject(files.first());
     }*/
 
-    importXMIProject("C:/XMI.xml");
+    importXMIProject("C:/OARIS PSM XMI.xml");
 }
 
 

@@ -7,25 +7,36 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QDialog>
+#include <QDebug>
 #include "../../View/theme.h"
 #include "GUI/XMITreeViewDialog.h"
 
-XMIImporter::XMIImporter(QWidget *parent):QObject(parent)
+XMIImporter::XMIImporter(CUTSManager *cutsManager, QWidget *parent):QObject(parent)
 {
     parentWidget = parent;
+    this->cutsManager = cutsManager;
+
+    connect(this, SIGNAL(requestXMLFromXMI(QString)), cutsManager, SLOT(executeXMI2XML(QString)));
+    connect(cutsManager, SIGNAL(gotXMIXML(bool,QString,QString)), this, SLOT(gotXMIXML(bool,QString,QString)));
+
+    connect(this, SIGNAL(requestGraphMLFromXMI(QString,QStringList)), cutsManager, SLOT(executeXMI2GraphML(QString,QStringList)));
+    connect(cutsManager, SIGNAL(gotXMIGraphML(bool,QString,QString)), this, SIGNAL(gotXMIGraphML(bool,QString,QString)));
 
 }
 
-void XMIImporter::importXMIFile(QString xmi_file)
+void XMIImporter::importXMI(QString XMIPath)
 {
-    QFile xmlFile(xmi_file);
-    QFileInfo xmlFileInfo(xmlFile);
+    filePath = XMIPath;
+    emit loadingStatus(true, "Transforming XMI 2 XML");
+    emit requestXMLFromXMI(XMIPath);
+}
 
-    if(!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text)){
-        return;
-    }
 
-    QXmlStreamReader xml(&xmlFile);
+void XMIImporter::gotXMIXML(bool success, QString errorString, QString outputxml)
+{
+    emit loadingStatus(false);
+
+    QXmlStreamReader xml(outputxml);
 
     XMITreeModel *model = new XMITreeModel();
 
@@ -41,7 +52,7 @@ void XMIImporter::importXMIFile(QString xmi_file)
          if(xml.isStartElement()){
              QString name = xml.attributes().value("name").toString();
              if(tagName == "doc"){
-                 name = xmlFileInfo.fileName();
+                 name = "doc";
              }
 
              QString id = xml.attributes().value("id").toString();
@@ -61,7 +72,11 @@ void XMIImporter::importXMIFile(QString xmi_file)
     }
 
     XMITreeViewDialog* dialog = new XMITreeViewDialog(model, parentWidget);
+    connect(dialog, SIGNAL(importClasses(QStringList)), this, SLOT(importSelectedXMI(QStringList)));
+}
 
-
-
+void XMIImporter::importSelectedXMI(QStringList selectedClasses)
+{
+    emit loadingStatus(true, "Transforming XMI 2 Graphml");
+    emit requestGraphMLFromXMI(filePath, selectedClasses);
 }

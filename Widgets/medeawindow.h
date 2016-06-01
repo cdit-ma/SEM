@@ -164,6 +164,7 @@ private slots:
     void gotSaveData(QString filePath, QString fileData);
     void setFullscreenMode(bool fullscreen);
     void gotXMETransform(bool success, QString errorString, QString path);
+    void gotXMIGraphml(bool success, QString errorString, QString graphmlData);
     void gotCPPForComponent(bool success, QString errorString, QString componentName, QString code);
     void localDeploymentOkay();
     void toggleGridLines();

@@ -705,6 +705,21 @@ void CUTSManager::processFinished(int code, QProcess::ExitStatus)
     processQueue();
 }
 
+void CUTSManager::executeXMI2GraphML(QString XMIPath, QStringList selectedIDs)
+{
+    QStringList classes;
+    classes << "class_ids";
+    classes << selectedIDs;
+    QPair<int, QPair<QString, QString> > result = runLocalTransform(XMIPath, "xmi2graphml.xsl", classes);
+    emit gotXMIGraphML(result.first == 0, result.second.second, result.second.first);
+}
+
+void CUTSManager::executeXMI2XML(QString XMIPath)
+{
+    QPair<int, QPair<QString, QString> > result = runLocalTransform(XMIPath, "xmi2xml.xsl");
+    emit gotXMIXML(result.first == 0, result.second.second, result.second.first);
+}
+
 
 /**
  * @brief CUTSManager::getEnvFromScript Executes a .bat/.sh script and constructs a QProcessEnvironment to put the newly set environment variables into.

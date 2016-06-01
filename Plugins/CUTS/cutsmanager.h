@@ -59,7 +59,8 @@ signals:
     void gotLiveCPPOutput(QString output);
     void gotLiveCUTSOutput(QString output);
 
-
+    void gotXMIXML(bool success, QString errorString, QString outputxml);
+    void gotXMIGraphML(bool success, QString errorString, QString outputxml);
 
     void _gotLiveOutput(QString output);
 private slots:
@@ -83,15 +84,15 @@ private slots:
     //Called once a QProcess finishes executing
     void processFinished(int code, QProcess::ExitStatus status);
 
-
-
+    void executeXMI2GraphML(QString XMIPath, QStringList selectedIDs);
+    void executeXMI2XML(QString XMIPath);
 private:
     void processGraphml(QString graphmlPath, QString outputPath);
 
 
 private:
 
-    QPair<int, QPair<QString, QString> > runLocalTransform(QString graphmlPath, QString transformName, QStringList params);
+    QPair<int, QPair<QString, QString> > runLocalTransform(QString graphmlPath, QString transformName, QStringList params = QStringList());
     bool ensureDirectory(QString dirPath);
     QString monitorProcess(QProcess* process);
     bool checkForCPPCompiler();

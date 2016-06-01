@@ -39,17 +39,27 @@
 
 			<key attr.name="sortOrder" attr.type="double" for="node" id="{$nodeSortOrderKey}"/>
 			<graph edgedefault="directed" id="G">
-				<!-- Select all packagedElement from document -->
-				<xsl:for-each select="//packagedElement[@xmi:type='uml:Package']">
-					<xsl:variable name="package_name" select="@name" />
-					<xsl:variable name="package_id" select="@xmi:id" />
-					<xsl:variable name="package_classes" select="packagedElement[@xmi:type='uml:Class']" />
-					
-					<xsl:call-template name="write_idl">
-						<xsl:with-param name="id" select="$package_id" />
-						<xsl:with-param name="label" select="$package_name" />
-					</xsl:call-template>
-				</xsl:for-each>
+                            <node id="M">
+                                <data key="{$nodeKindKey}">Model</data>
+                                <graph id="Mg">
+                                    <node id="ID">
+                                        <data key="{$nodeKindKey}">InterfaceDefinitions</data>
+                                        <graph id="IDg">
+                                            <!-- Select all packagedElement from document -->
+                                            <xsl:for-each select="//packagedElement[@xmi:type='uml:Package']">
+                                                    <xsl:variable name="package_name" select="@name" />
+                                                    <xsl:variable name="package_id" select="@xmi:id" />
+                                                    <xsl:variable name="package_classes" select="packagedElement[@xmi:type='uml:Class']" />
+
+                                                    <xsl:call-template name="write_idl">
+                                                            <xsl:with-param name="id" select="$package_id" />
+                                                            <xsl:with-param name="label" select="$package_name" />
+                                                    </xsl:call-template>
+                                            </xsl:for-each>
+                                        </graph>
+                                    </node>
+                                </graph>
+                            </node>
 			</graph>
 		</graphml>
     </xsl:template>
