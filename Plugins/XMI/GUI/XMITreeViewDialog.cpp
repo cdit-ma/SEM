@@ -42,6 +42,7 @@ void XMITreeViewDialog::selectionChanged(Qt::CheckState overallState)
 void XMITreeViewDialog::importSelection()
 {
     QStringList classIDs = treeModel->getSelectedClassIDs();
+    qCritical() << classIDs;
     //Close the GUI
     accept();
     //Emit the signal to start the importing of elements.
