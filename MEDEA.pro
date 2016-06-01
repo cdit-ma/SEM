@@ -46,8 +46,6 @@ HEADERS += \
     Controller/edgeadapter.h \
     Controller/entityadapter.h \
     Controller/nodeadapter.h \
-    CUTS/GUI/cutsexecutionwidget.h \
-    CUTS/cutsmanager.h \
     GUI/actionbutton.h \
     GUI/appsettings.h \
     GUI/aspecttogglewidget.h \
@@ -58,11 +56,6 @@ HEADERS += \
     GUI/searchsuggestcompletion.h \
     GUI/shortcutdialog.h \
     GUI/syntaxhighlighter.h \
-    Jenkins/GUI/jenkinsjobmonitorwidget.h \
-    Jenkins/GUI/jenkinsloadingwidget.h \
-    Jenkins/GUI/jenkinsstartjobwidget.h \
-    Jenkins/jenkinsmanager.h \
-    Jenkins/jenkinsrequest.h \
     Model/BehaviourDefinitions/attributeimpl.h \
     Model/BehaviourDefinitions/behaviourdefinitions.h \
     Model/BehaviourDefinitions/behaviournode.h \
@@ -161,7 +154,17 @@ HEADERS += \
     Widgets/medeasubwindow.h \
     Widgets/medeawindow.h \
     enumerations.h \
-    modeltester.h
+    modeltester.h \
+    Plugins/CUTS/GUI/cutsexecutionwidget.h \
+    Plugins/CUTS/cutsmanager.h \
+    Plugins/Jenkins/GUI/jenkinsjobmonitorwidget.h \
+    Plugins/Jenkins/GUI/jenkinsloadingwidget.h \
+    Plugins/Jenkins/GUI/jenkinsstartjobwidget.h \
+    Plugins/Jenkins/jenkinsmanager.h \
+    Plugins/Jenkins/jenkinsrequest.h \
+    Plugins/XMI/xmiimporter.h \
+    Plugins/XMI/xmitreemodel.h \
+    Plugins/XMI/GUI/XMITreeViewDialog.h
 
 
 SOURCES += \
@@ -172,8 +175,6 @@ SOURCES += \
     Controller/edgeadapter.cpp \
     Controller/entityadapter.cpp \
     Controller/nodeadapter.cpp \
-    CUTS/GUI/cutsexecutionwidget.cpp \
-    CUTS/cutsmanager.cpp \
     GUI/actionbutton.cpp \
     GUI/appsettings.cpp \
     GUI/aspecttogglewidget.cpp \
@@ -184,11 +185,6 @@ SOURCES += \
     GUI/searchsuggestcompletion.cpp \
     GUI/shortcutdialog.cpp \
     GUI/syntaxhighlighter.cpp \
-    Jenkins/GUI/jenkinsjobmonitorwidget.cpp \
-    Jenkins/GUI/jenkinsloadingwidget.cpp \
-    Jenkins/GUI/jenkinsstartjobwidget.cpp \
-    Jenkins/jenkinsmanager.cpp \
-    Jenkins/jenkinsrequest.cpp \
     Model/BehaviourDefinitions/attributeimpl.cpp \
     Model/BehaviourDefinitions/behaviourdefinitions.cpp \
     Model/BehaviourDefinitions/behaviournode.cpp \
@@ -287,7 +283,17 @@ SOURCES += \
     Widgets/medeasubwindow.cpp \
     Widgets/medeawindow.cpp \
     enumerations.cpp \
-    modeltester.cpp
+    modeltester.cpp \
+    Plugins/CUTS/GUI/cutsexecutionwidget.cpp \
+    Plugins/CUTS/cutsmanager.cpp \
+    Plugins/Jenkins/GUI/jenkinsjobmonitorwidget.cpp \
+    Plugins/Jenkins/GUI/jenkinsloadingwidget.cpp \
+    Plugins/Jenkins/GUI/jenkinsstartjobwidget.cpp \
+    Plugins/Jenkins/jenkinsmanager.cpp \
+    Plugins/Jenkins/jenkinsrequest.cpp \
+    Plugins/XMI/xmiimporter.cpp \
+    Plugins/XMI/xmitreemodel.cpp \
+    Plugins/XMI/GUI/XMITreeViewDialog.cpp
 
 
 RESOURCES += \

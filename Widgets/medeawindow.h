@@ -35,8 +35,8 @@
 #include <QXmlQuery>
 #include <QXmlResultItems>
 
-#include "Jenkins/jenkinsmanager.h"
-#include "Jenkins/GUI/jenkinsstartjobwidget.h"
+#include "Plugins/Jenkins/jenkinsmanager.h"
+#include "Plugins/Jenkins/GUI/jenkinsstartjobwidget.h"
 #include "GUI/actionbutton.h"
 
 #include "Controller/controller.h"
@@ -55,7 +55,8 @@
 
 #include "View/Validate/validatedialog.h"
 
-#include "CUTS/cutsmanager.h"
+#include "Plugins/CUTS/cutsmanager.h"
+#include "Plugins/XMI/xmiimporter.h"
 
 #include "GUI/searchsuggestcompletion.h"
 #include "GUI/searchdialog.h"
@@ -121,7 +122,7 @@ signals:
     void checkDockScrollBar();
 
     void window_refreshActions();
-
+    void window_ImportXMIProject(QString xmi_path);
 public slots:
     void projectRequiresSaving(bool requiresSave);
     void modelReady();
@@ -286,7 +287,7 @@ private:
     void initialiseJenkinsManager();
     void initialiseSettings();
     void updateTheme();
-
+    void initializePlugins();
     void initialiseCUTSManager();
     void initialiseTheme();
     void importXMEProject(QString fileName);
@@ -608,6 +609,7 @@ private:
 
     JenkinsManager* jenkinsManager;
     CUTSManager* cutsManager;
+    XMIImporter* xmiImporter;
 
     QString MEDEA_VERSION;
     QString DEFAULT_PATH;

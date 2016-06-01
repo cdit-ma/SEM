@@ -1,7 +1,7 @@
 #include "medeawindow.h"
 #include "Controller/controller.h"
 #include "GUI/codeeditor.h"
-#include "CUTS/GUI/cutsexecutionwidget.h"
+#include "Plugins/CUTS/GUI/cutsexecutionwidget.h"
 
 //Testing a new Include..
 #include <QDebug>
@@ -103,8 +103,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     //Initialize classes.
     initialiseTheme();
     initialiseSettings();
-    initialiseJenkinsManager();
-    initialiseCUTSManager();
+
+    initializePlugins();
+
     initialiseGUI();
 
     setupConnections();
@@ -740,6 +741,7 @@ void MedeaWindow::setupMenu()
     file_importSnippet = file_menu->addAction("Import Snippet");
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
     file_importXMI = file_menu->addAction(QIcon(":/UML.gif"), "Import UML XMI File");
+    file_importXMI->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
     file_menu->addSeparator();
 
@@ -2605,6 +2607,15 @@ void MedeaWindow::updateTheme()
     updateMenuIcons();
 }
 
+void MedeaWindow::initializePlugins()
+{
+    initialiseJenkinsManager();
+    initialiseCUTSManager();
+
+    xmiImporter = new XMIImporter(this);
+    connect(this, SIGNAL(window_ImportXMIProject(QString)), xmiImporter, SLOT(importXMIFile(QString)));
+}
+
 
 /**
  * @brief MedeaWindow::initialiseCUTSManager
@@ -3075,21 +3086,8 @@ void MedeaWindow::setupInitialSettings()
 
 void MedeaWindow::importXMIProject(QString xmiPath)
 {
-    //Use CUTSManager to transform into XML which can be parsed to show table view.
-    QFile xmlFile(xmiPath);
-    if(!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text)){
-        return;
-    }
-    QXmlStreamReader xml(&xmlFile);
-
-    while(!xml.atEnd()){
-        //Read each line of the xml document.
-        xml.readNext();
-
-        //Get the tagName
-        QStringRef tagName = xml.name();
-        qCritical() << tagName;
-    }
+    //Call to the XMIImporter Module
+    emit window_ImportXMIProject(xmiPath);
 }
 
 
