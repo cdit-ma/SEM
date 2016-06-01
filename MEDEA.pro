@@ -361,7 +361,9 @@ OTHER_FILES += \
     installer/config/config.xml \
     installer/packages/cditma.MEDEA/meta/package.xml \
     installer/packages/cditma.MEDEA/meta/license.txt \
-    installer/packages/cditma.MEDEA/meta/installscript.qs
+    installer/packages/cditma.MEDEA/meta/installscript.qs \
+    Resources/Transforms/umi2xml.xsl \
+    Resources/Transforms/umi2graphml.xsl
 
 
 
