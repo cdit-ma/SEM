@@ -7,7 +7,8 @@
 	xmlns:xalan="http://xml.apache.org/xslt"
 	exclude-result-prefixes="xmi uml xalan"
 >
-<!-- Runtime parameters -->
+
+<!-- Represents the list of ID's that should be included in the transform. (CSV ID's) -->
 <xsl:param name="class_ids"></xsl:param>
 	
 <xsl:output method="xml" version="1.0" indent="yes" standalone="no" xalan:indent-amount="4"/>
@@ -23,14 +24,15 @@
                     <xsl:when test="count($package_classes) > 0">
                     <package name="{$package_name}" id="{$package_id}">
                         <xsl:for-each select="$package_classes">
-                            <xsl:variable name="class_attributes" select="ownedAttribute[@xmi:type='uml:Property' and @visibility='public']" />
                             <xsl:variable name="class_name" select="@name" />
                             <xsl:variable name="class_id" select="@xmi:id" />
+                            <xsl:variable name="required_class_ids" select="../packagedElement[@xmi:type='uml:Dependency' and @client=$class_id]" />
+                            <xsl:variable name="class_attributes" select="ownedAttribute[@xmi:type='uml:Property' and @visibility='public']" />
                             <class name="{$class_name}" id="{$class_id}">
-                                <xsl:for-each select="$class_attributes">
-                                    <xsl:variable name="attribute_name" select="./@name" />
-                                    <attribute name="{$attribute_name}"/>
+                                <xsl:for-each select="$required_class_ids">
+                                    <requires id="{@supplier}"/>
                                 </xsl:for-each>
+                                <attributes count="{count($class_attributes)}"/>
                             </class>
                         </xsl:for-each>
                     </package>
@@ -38,19 +40,6 @@
                 </xsl:choose>
             </xsl:for-each>
         </doc>
-    </xsl:template>
-
-    <xsl:template name="get_property_kind">
-        <xsl:param name="type" />
-        <xsl:variable name="kind" select="//packagedElement[@xmi:id=$type]/@name" />
-        <xsl:choose>
-            <xsl:when test="$kind">
-                <xsl:value-of select="$kind"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="$type"/>
-            </xsl:otherwise>
-        </xsl:choose>
     </xsl:template>
 </xsl:stylesheet>
 
