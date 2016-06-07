@@ -28,11 +28,10 @@
                             <xsl:variable name="class_id" select="@xmi:id" />
                             <xsl:variable name="required_class_ids" select="../packagedElement[@xmi:type='uml:Dependency' and @client=$class_id]" />
                             <xsl:variable name="class_attributes" select="ownedAttribute[@xmi:type='uml:Property' and @visibility='public']" />
-                            <class name="{$class_name}" id="{$class_id}">
+                            <class name="{$class_name}" id="{$class_id}" attribute_count="{count($class_attributes)}">
                                 <xsl:for-each select="$required_class_ids">
                                     <requires id="{@supplier}"/>
                                 </xsl:for-each>
-                                <attributes count="{count($class_attributes)}"/>
                             </class>
                         </xsl:for-each>
                     </package>

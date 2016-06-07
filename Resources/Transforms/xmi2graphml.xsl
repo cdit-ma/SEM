@@ -6,20 +6,27 @@
 	xmlns:xalan="http://xml.apache.org/xslt"
 	xmlns:exsl="http://exslt.org/common"
 	xmlns:gml="http://graphml.graphdrawing.org/xmlns"
+	xmlns:str="http://exslt.org/strings"
 	exclude-result-prefixes="xmi uml xalan gml #default exsl"
 >
+
 <!-- Runtime parameters -->
 <xsl:param name="class_ids" />
+
+<xsl:variable name="required_class_ids"> 
+	<xsl:call-template name="get_required_ids">
+		<xsl:with-param name="check_ids" select="$class_ids" />
+	</xsl:call-template>	
+</xsl:variable>
+
+
 <xsl:include href="graphmlKeyVariables.xsl" />
 
-<xsl:output method="xml" 
-        version="1.0" 
-        indent="yes" xalan:indent-amount="4"/>
+<xsl:output method="xml" version="1.0" indent="yes" xalan:indent-amount="4"/>
+<xsl:strip-space elements="*" />
 	
-	<xsl:strip-space elements="*" />
-	
-	
-    <xsl:template match="/">
+<xsl:template match="/">
+		
     <graphml
 			xmlns="http://graphml.graphdrawing.org/xmlns"  
 			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -40,27 +47,27 @@
 
 			<key attr.name="sortOrder" attr.type="double" for="node" id="{$nodeSortOrderKey}"/>
 			<graph edgedefault="directed" id="G">
-                            <node id="M">
-                                <data key="{$nodeKindKey}">Model</data>
-                                <graph id="Mg">
-                                    <node id="ID">
-                                        <data key="{$nodeKindKey}">InterfaceDefinitions</data>
-                                        <graph id="IDg">
-                                            <!-- Select all packagedElement from document -->
-                                            <xsl:for-each select="//packagedElement[@xmi:type='uml:Package']">
-                                                    <xsl:variable name="package_name" select="@name" />
-                                                    <xsl:variable name="package_id" select="@xmi:id" />
-                                                    <xsl:variable name="package_classes" select="packagedElement[@xmi:type='uml:Class']" />
+				<node id="M">
+					<data key="{$nodeKindKey}">Model</data>
+					<graph id="Mg">
+						<node id="ID">
+							<data key="{$nodeKindKey}">InterfaceDefinitions</data>
+							<graph id="IDg">
+								<!-- Select all packagedElement from document -->
+								<xsl:for-each select="//packagedElement[@xmi:type='uml:Package']">
+										<xsl:variable name="package_name" select="@name" />
+										<xsl:variable name="package_id" select="@xmi:id" />
+										<xsl:variable name="package_classes" select="packagedElement[@xmi:type='uml:Class']" />
 
-                                                    <xsl:call-template name="write_idl">
-                                                            <xsl:with-param name="id" select="$package_id" />
-                                                            <xsl:with-param name="label" select="$package_name" />
-                                                    </xsl:call-template>
-                                            </xsl:for-each>
-                                        </graph>
-                                    </node>
-                                </graph>
-                            </node>
+										<xsl:call-template name="write_idl">
+												<xsl:with-param name="id" select="$package_id" />
+												<xsl:with-param name="label" select="$package_name" />
+										</xsl:call-template>
+								</xsl:for-each>
+							</graph>
+						</node>
+					</graph>
+				</node>
 			</graph>
 		</graphml>
     </xsl:template>
@@ -148,15 +155,19 @@
 	<xsl:template name="write_idl">
 		<xsl:param name="id" />
 		<xsl:param name="label" />
-		<xsl:param name="aggregates" select="packagedElement[@xmi:type='uml:Class']"/>
-
-		<xsl:message><xsl:value-of select="count($aggregates) > 0" /></xsl:message>
-
-		<xsl:if test="count($aggregates) > 0">
+		
+		<xsl:variable name="aggregates" select="packagedElement[@xmi:type='uml:Class']"/>
+	
+		<xsl:variable name="require_idl">
+			<xsl:call-template name="requires_idl" />
+		</xsl:variable>
+		
+		<xsl:message><xsl:value-of select="$require_idl"/></xsl:message>
+			
+		<xsl:if test="$require_idl='true'">
 			<node id="{$id}">
 				<data key="{$nodeKindKey}">IDL</data>
 				<data key="{$nodeLabelKey}"><xsl:value-of select="$label"/></data>
-				<xsl:if test="count($aggregates) > 0">
 				<graph id="{$id}g">
 					<xsl:for-each select="$aggregates">
 						<xsl:variable name="aggregate_label" select="@name" />
@@ -168,12 +179,88 @@
 								<xsl:with-param name="members" select="$aggregate_members" />
 						</xsl:call-template>
 					</xsl:for-each>
-					
 				</graph>
-				</xsl:if>
 			</node>
 		</xsl:if>
 
+	</xsl:template>
+	
+	<xsl:template name="list2str">
+		<xsl:param name="list"/>
+		<xsl:for-each select="$list">
+			<xsl:value-of select="."/>
+			<xsl:if test="position() != last()">
+				<xsl:text>,</xsl:text>
+			</xsl:if>
+		</xsl:for-each>
+	</xsl:template>
+	
+	<!-- Returns a string which contains all of the ID's -->
+	<xsl:template name="get_required_ids">
+		<xsl:param name="check_ids"/>
+		<xsl:param name="required_ids" select="$check_ids"/>
+
+		<!-- Get all the links/dependencies/imports for any item which has id contained in $check_ids -->
+		<xsl:variable name="dependencies" select="//packagedElement[@xmi:type='uml:Dependency' and contains($check_ids, @client)]/@supplier" />
+		<xsl:variable name="importies" select="//packagedElement[@xmi:type='uml:Class' and contains($check_ids, @xmi:id)]/elementImport/@importedElement" />
+		<xsl:variable name="properties" select="//packagedElement[@xmi:type='uml:Class' and contains($check_ids, @xmi:id)]/ownedAttribute/type/@xmi:idref" />
+
+		<!-- Combine all variables into one list -->
+		<xsl:variable name="required_ids_list" select="$dependencies | $importies | $properties" />
+	
+		<xsl:choose>
+            <xsl:when test="count($required_ids_list) > 0">
+				<!-- Convert $required_ids_list to a string -->
+				<xsl:variable name="required_ids_str">
+					<xsl:call-template name="list2str">
+						<xsl:with-param name="list" select="$required_ids_list" />
+					</xsl:call-template>
+				</xsl:variable>
+				<!-- Recurse -->
+				<xsl:call-template name="get_required_ids">
+						<xsl:with-param name="check_ids" select="$required_ids_str" />
+						<xsl:with-param name="required_ids" select="concat($required_ids, $required_ids_str)" />
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:otherwise>
+				<!-- Return the $required_ids-->
+				<xsl:value-of select="$required_ids" />
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	
+	<xsl:template name="requires_idl">
+		<xsl:choose>
+            <xsl:when test="$required_class_ids != ''">
+				<xsl:value-of select="count(packagedElement[@xmi:type='uml:Class' and contains($required_class_ids, @xmi:id)]) > 0"/>
+			</xsl:when>
+			<xsl:otherwise> 
+				<xsl:value-of select="true()"/>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	
+	<xsl:template name="requires_aggregate">
+		<xsl:param name="id" />
+		<xsl:param name="check_ids" />
+	
+		
+		
+		<xsl:variable name="is_in_list">
+			<xsl:call-template name="in_list">
+					<xsl:with-param name="list" select="$required_class_ids" />
+					<xsl:with-param name="element" select="$id" />
+			</xsl:call-template>	
+		</xsl:variable>
+		<xsl:choose>
+            <xsl:when test="$is_in_list = 'true'">
+				<xsl:message><xsl:value-of select="$id"/>: Needed directly.</xsl:message>
+				<xsl:value-of select="true()"/>
+			</xsl:when>
+			<xsl:otherwise> 
+				<xsl:value-of select="false()"/>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:template>
 	
 	<xsl:template name="write_aggregate">
@@ -181,17 +268,17 @@
 		<xsl:param name="label" />
 		<xsl:param name="members" />
 		
-		<xsl:variable name="process_member">
-			<xsl:call-template name="in_list">
-					<xsl:with-param name="list" select="$class_ids" />
-					<xsl:with-param name="element" select="$id" />
+		<xsl:variable name="process_aggregate">
+			<xsl:call-template name="requires_aggregate">
+				<xsl:with-param name="id" select="$id" />
 			</xsl:call-template>
-		</xsl:variable>
-		<xsl:if test="$process_member='true'">
+		</xsl:variable> 
+		
+		<xsl:if test="$process_aggregate='true'">
 			<node id="{$id}">
 				<data key="{$nodeKindKey}">Aggregate</data>
 				<data key="{$nodeLabelKey}"><xsl:value-of select="$label"/></data>
-				<data key="{$nodeDescriptionKey}"><xsl:value-of select="$process_member"/></data>
+				<data key="{$nodeDescriptionKey}"><xsl:value-of select="$process_aggregate"/></data>
 				<graph id="{$id}g">
 					<xsl:for-each select="$members">
 						<xsl:variable name="member_label" select="@name" />
