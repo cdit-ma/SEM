@@ -11,7 +11,7 @@
 
 <!-- Runtime parameter - A CSV string of Class IDs to Transform -->
 <!-- Defaults to a blank string -->
-<xsl:param name="class_ids" select="''" />
+<xsl:param name="class_ids" select ="''" />
 <xsl:param name="debug_mode" select="'false'" />
 
 <!-- Permute the list of required class ids -->
@@ -20,6 +20,8 @@
 		<xsl:with-param name="ids" select="$class_ids" />
 	</xsl:call-template>	
 </xsl:variable>
+
+
 
 <!-- include the variables.xsl for graphml keys -->
 <xsl:include href="graphmlKeyVariables.xsl" />
@@ -208,14 +210,14 @@
 	<xsl:variable name="properties" select="//packagedElement[@xmi:type='uml:Class' and contains($ids, @xmi:id)]/ownedAttribute/type/@xmi:idref" />
 
 	<!-- Combine all variables into one list -->
-	<xsl:variable name="required_ids" select="$dependencies | $importies | $properties" />
+	<xsl:variable name="new_required_ids" select="$dependencies | $importies | $properties" />
 
 	<xsl:choose>
-		<xsl:when test="count($required_ids) > 0">
-			<!-- Convert $required_ids_list to a string -->
+		<xsl:when test="count($new_required_ids) > 0">
+			<!-- Convert $new_required_ids to a string -->
 			<xsl:variable name="required_ids_str">
 				<xsl:call-template name="list2str">
-					<xsl:with-param name="list" select="$required_ids" />
+					<xsl:with-param name="list" select="$new_required_ids" />
 				</xsl:call-template>
 			</xsl:variable>
 
