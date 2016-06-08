@@ -27,7 +27,6 @@
                             <class name="{$class_name}" id="{$class_id}" attribute_count="{count($class_attributes)}" />
                         </xsl:for-each>
                     </package>
-                    </xsl:when>
                 </xsl:if>
             </xsl:for-each>
         </model>
