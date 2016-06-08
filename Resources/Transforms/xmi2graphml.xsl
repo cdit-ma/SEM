@@ -134,8 +134,29 @@
 
 <!-- Transform the current 'uml:Property' ownedAttribute element to a GraphML AggregateInstance or Member -->
 <xsl:template name="property2member">
-	<xsl:variable name="id" select="@xmi:id" />
-	<xsl:variable name="type_id" select="type/@xmi:idref" />
+	<xsl:param name="is_instance" select="'false'" />
+
+	<xsl:variable name="id">
+		<xsl:choose>
+			<xsl:when test="$is_instance ='true'">
+				<xsl:value-of select="generate-id()" />
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="@xmi:id" />
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:variable>
+
+	<xsl:variable name="type_id">
+		<xsl:choose>
+			<xsl:when test="$is_instance ='true'">
+				<xsl:value-of select="@xmi:id" />
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="type/@xmi:idref" />
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:variable>
 
 	<!-- Sanitize label -->
 	<xsl:variable name="safe_label">
@@ -154,9 +175,12 @@
 	<!-- Check to see if this has a linked type -->
 	<xsl:variable name="linked_type">
 		<xsl:call-template name="got_linked_type">
-			<xsl:with-param name="type_id" select="$type_id" />
+			<xsl:with-param name="type_id" select="type/@xmi:idref" />
 		</xsl:call-template>
 	</xsl:variable>
+
+	<!-- Check to see if this has a linked type -->
+	<xsl:variable name="orig_id" select="type/@xmi:idref" />
 
 	<!-- If we have got an Unknown type, set as string, else use the $type -->
 	<xsl:variable name="valid_type_name">
@@ -177,7 +201,14 @@
 				<xsl:value-of select="'AggregateInstance'"/>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:value-of select="'Member'"/>
+				<xsl:choose>
+					<xsl:when test="$is_instance = 'true'">
+						<xsl:value-of select="'MemberInstance'"/>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="'Member'"/>
+					</xsl:otherwise>
+				</xsl:choose>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:variable>
@@ -191,10 +222,22 @@
 		<xsl:if test="$type_name = 'Unknown' and string-length($type_id) > 0">
 			<data key="{$nodeOriginalTypeKey}"><xsl:value-of select="$type_id"/></data>
 		</xsl:if>
+
+		<!-- Add your children -->
+		<xsl:if test="$linked_type='true'">
+			<graph id="{$id}g">
+				<xsl:for-each select="//packagedElement[@xmi:type = 'uml:Class' and @xmi:id=$orig_id]/ownedAttribute[@xmi:type='uml:Property' and @visibility='public']">
+					<xsl:message>RECURSE FOR ID: <xsl:value-of select="$orig_id"/></xsl:message>
+					<xsl:call-template name="property2member">
+						<xsl:with-param name="is_instance" select="'true'" />
+					</xsl:call-template>
+				</xsl:for-each>
+			</graph>
+		</xsl:if>
 	</node>
 
 	<!-- If this is a linked type, we should construct an edge to the definition -->
-	<xsl:if test="$linked_type='true'">
+	<xsl:if test="$linked_type='true' or $kind='MemberInstance'">
 		<edge id="{$id}{$type_id}" source="{$id}" target ="{$type_id}" />
 	</xsl:if>
 </xsl:template>
