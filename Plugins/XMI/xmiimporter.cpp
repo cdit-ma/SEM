@@ -10,6 +10,7 @@
 #include <QDebug>
 #include "../../View/theme.h"
 #include "GUI/XMITreeViewDialog.h"
+#include <QStringBuilder>
 
 XMIImporter::XMIImporter(CUTSManager *cutsManager, QWidget *parent):QObject(parent)
 {
@@ -50,12 +51,15 @@ void XMIImporter::gotXMIXML(bool success, QString errorString, QString outputxml
 
 
          if(xml.isStartElement()){
-             QString name = xml.attributes().value("name").toString();
-             if(tagName == "doc"){
-                 name = "doc";
-             }
-
              QString id = xml.attributes().value("id").toString();
+             QString name = xml.attributes().value("name").toString();
+
+             if(tagName == "model"){
+                 name = "model";
+             }else if(tagName == "class"){
+                 QString attributeCount = xml.attributes().value("attribute_count").toString();
+                 name += " [" % attributeCount % "]";
+             }
 
              QStandardItem *newItem = new QStandardItem(name);
              newItem->setData(name, XMI_NAME);

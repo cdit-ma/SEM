@@ -565,6 +565,7 @@ QPair<int, QPair<QString, QString> > CUTSManager::runLocalTransform(QString grap
     connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
 
     //Execute the QProcess
+    qCritical() << arguments;
     process->start("java", arguments);
     //Wait for The process to exit the loop.
     waitLoop.exec();
@@ -710,6 +711,7 @@ void CUTSManager::executeXMI2GraphML(QString XMIPath, QStringList selectedIDs)
     QStringList classes;
     classes << "class_ids";
     classes << selectedIDs;
+    qCritical() << selectedIDs;
     QPair<int, QPair<QString, QString> > result = runLocalTransform(XMIPath, "xmi2graphml.xsl", classes);
     emit gotXMIGraphML(result.first == 0, result.second.second, result.second.first);
 }

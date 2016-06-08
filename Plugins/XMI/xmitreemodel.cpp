@@ -40,14 +40,12 @@ QVariant XMITreeModel::data(const QModelIndex &index, int role) const
     {
         QString type = data(index, XMI_TYPE).toString();
         QString iconName = "";
-        if(type == "doc"){
+        if(type == "model"){
             iconName = "Global";
         }else if(type == "package"){
             iconName = "Search_Folder";
         }else if(type == "class"){
             iconName = "GridLayout";
-        }else if(type == "attribute"){
-            iconName = "Tag";
         }
         return Theme::theme()->getImage("Actions", iconName, QSize(16,16));
     }else if(role == Qt::CheckStateRole){
