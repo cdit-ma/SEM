@@ -36,6 +36,7 @@
 
 		<!-- PICML specific attributes -->
 		<key attr.name="label" attr.type="string" for="node" id="{$nodeLabelKey}"/>
+		<key attr.name="description" attr.type="string" for="node" id="{$nodeDescriptionKey}"/>
 		<key attr.name="kind" attr.type="string" for="node" id="{$nodeKindKey}"/>
 		<key attr.name="type" attr.type="string" for="node" id="{$nodeTypeKey}"/>
 		<key attr.name="key" attr.type="boolean" for="node" id="{$nodeKeyMemberKey}"/>
@@ -134,8 +135,28 @@
 
 <!-- Transform the current 'uml:Property' ownedAttribute element to a GraphML AggregateInstance or Member -->
 <xsl:template name="property2member">
-	<xsl:variable name="id" select="@xmi:id" />
-	<xsl:variable name="type_id" select="type/@xmi:idref" />
+	<xsl:param name="parent_id" select="''" />								<!-- The path to our parent (if we have been called recursively -->
+	<xsl:param name="has_recursed" select="'false'" />						<!-- Is true if we have recursed (if we have been called recursively) -->
+	<xsl:param name="is_in_aggregate_instance" select="'false'" />			<!-- Says whether or not this item is contained in an AggregateInstance (if we have been called recursively) -->
+	<xsl:param name="definition_id_prefix" select="''" />					<!-- The current instance_id suffix, used for determining edges (if we have been called recursively) -->
+	
+	<!-- If we have a value for parent_id, attach it to it's ID (Allows uniqueness in recursion) -->
+	<xsl:variable name="id" select="concat($parent_id, @xmi:id)" />
+
+	<!-- Get this elements type id link -->
+	<xsl:variable name="orig_type_id" select="type/@xmi:idref" />
+
+	<!-- If we have recursed, get the ID of the element, else get the child type elements id:ref -->
+	<xsl:variable name="type_id">
+		<xsl:choose>
+			<xsl:when test="$has_recursed ='true'">
+				<xsl:value-of select="@xmi:id" />
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$orig_type_id" />
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:variable>
 
 	<!-- Sanitize label -->
 	<xsl:variable name="safe_label">
@@ -144,21 +165,21 @@
 		</xsl:call-template>
 	</xsl:variable>
 
-	<!-- Get the string version of the type-->
+	<!-- Get the string version of the type (Used for the Member Types more than anything) -->
 	<xsl:variable name="type_name">
 		<xsl:call-template name="get_type_name">
-			<xsl:with-param name="type_id" select="$type_id" />
+			<xsl:with-param name="type_id" select="type/@xmi:idref" />
 		</xsl:call-template>
 	</xsl:variable>
 
 	<!-- Check to see if this has a linked type -->
 	<xsl:variable name="linked_type">
 		<xsl:call-template name="got_linked_type">
-			<xsl:with-param name="type_id" select="$type_id" />
+			<xsl:with-param name="type_id" select="type/@xmi:idref" />
 		</xsl:call-template>
 	</xsl:variable>
 
-	<!-- If we have got an Unknown type, set as string, else use the $type -->
+	<!-- If we get an unknown type, set this typename as string -->
 	<xsl:variable name="valid_type_name">
 		<xsl:choose>
 			<xsl:when test="$type_name = 'Unknown'">
@@ -170,14 +191,21 @@
 		</xsl:choose>
 	</xsl:variable>
 	
-	<!-- Checks whether to see if this has a linked type, if it does it's an AggregateInstance, else it's a Member -->
+	<!-- Gets the kind of this element (AggregateInstance, MemberInstance or Member) -->
 	<xsl:variable name="kind">
 		<xsl:choose>
 			<xsl:when test="$linked_type = 'true'">
 				<xsl:value-of select="'AggregateInstance'"/>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:value-of select="'Member'"/>
+				<xsl:choose>
+					<xsl:when test="$has_recursed = 'true'">
+						<xsl:value-of select="'MemberInstance'"/>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="'Member'"/>
+					</xsl:otherwise>
+				</xsl:choose>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:variable>
@@ -191,11 +219,43 @@
 		<xsl:if test="$type_name = 'Unknown' and string-length($type_id) > 0">
 			<data key="{$nodeOriginalTypeKey}"><xsl:value-of select="$type_id"/></data>
 		</xsl:if>
+
+		<!-- If we have a linked type, we need to recursively add the children. -->
+		<xsl:if test="$linked_type='true'">
+			<graph id="{$id}g">
+				<!-- Select all the packagedElement 'uml:Class' (which match the id of this elements type) child 'uml:Property' elements  -->
+				<xsl:for-each select="//packagedElement[@xmi:type = 'uml:Class' and @xmi:id=$orig_type_id]/ownedAttribute[@xmi:type='uml:Property' and @visibility='public']">
+					<!-- Calculate the new definition_id_prefix for the recusive call -->
+					<xsl:variable name="new_def_id_prefix">
+						<xsl:choose>
+							<xsl:when test="$is_in_aggregate_instance = 'true'">
+								<!-- If we are in an instance, we need to keep track of that elements ID so we can establish the edge to it -->
+								<xsl:value-of select="concat($definition_id_prefix, $type_id)" />
+							</xsl:when>
+							<xsl:otherwise>
+								<!-- If we aren't in an instance element, we don't care about the id of the instance, as the edge will connect to the $type_id -->
+								<xsl:value-of select="''"/>
+							</xsl:otherwise>
+						</xsl:choose>
+					</xsl:variable>
+
+					<!-- Recurse for all children, keeping track of the instance_id prefix and the parent_id -->
+					<xsl:call-template name="property2member">
+						<xsl:with-param name="has_recursed" select="'true'" />
+						<xsl:with-param name="is_in_aggregate_instance" select="$is_in_aggregate_instance = 'true' or $kind = 'AggregateInstance'" />
+						<xsl:with-param name="definition_id_prefix" select="$new_def_id_prefix" />
+						<xsl:with-param name="parent_id" select="$id" />
+					</xsl:call-template>
+				</xsl:for-each>
+			</graph>
+		</xsl:if>
 	</node>
 
 	<!-- If this is a linked type, we should construct an edge to the definition -->
-	<xsl:if test="$linked_type='true'">
-		<edge id="{$id}{$type_id}" source="{$id}" target ="{$type_id}" />
+	<xsl:if test="$linked_type='true' or $kind='MemberInstance'">
+			<xsl:variable name="definition_id" select="concat($definition_id_prefix, $type_id)" />
+			<!-- Construct edge connecting the Instance to it's definition -->
+			<edge id="{concat($id, concat('-', $definition_id))}" source="{$id}" target="{$definition_id}" />
 	</xsl:if>
 </xsl:template>
 
