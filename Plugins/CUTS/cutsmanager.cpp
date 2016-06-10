@@ -710,7 +710,8 @@ void CUTSManager::executeXMI2GraphML(QString XMIPath, QStringList selectedIDs)
 {
     QStringList classes;
     classes << "class_ids";
-    classes << selectedIDs;
+    classes << selectedIDs.join(",");
+
     qCritical() << selectedIDs;
     QPair<int, QPair<QString, QString> > result = runLocalTransform(XMIPath, "xmi2graphml.xsl", classes);
     emit gotXMIGraphML(result.first == 0, result.second.second, result.second.first);
