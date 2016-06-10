@@ -36,6 +36,7 @@
 
 		<!-- PICML specific attributes -->
 		<key attr.name="label" attr.type="string" for="node" id="{$nodeLabelKey}"/>
+		<key attr.name="description" attr.type="string" for="node" id="{$nodeDescriptionKey}"/>
 		<key attr.name="kind" attr.type="string" for="node" id="{$nodeKindKey}"/>
 		<key attr.name="type" attr.type="string" for="node" id="{$nodeTypeKey}"/>
 		<key attr.name="key" attr.type="boolean" for="node" id="{$nodeKeyMemberKey}"/>
@@ -125,7 +126,9 @@
 			<graph id="{$id}g">
 				<!-- Select all child public 'uml:Property' elements -->
 				<xsl:for-each select="ownedAttribute[@xmi:type='uml:Property' and @visibility='public']">
-					<xsl:call-template name="property2member" />
+					<xsl:call-template name="property2member">
+						<xsl:with-param name="parent_id"/>
+					</xsl:call-template>
 				</xsl:for-each>
 			</graph>
 		</node>
@@ -135,17 +138,14 @@
 <!-- Transform the current 'uml:Property' ownedAttribute element to a GraphML AggregateInstance or Member -->
 <xsl:template name="property2member">
 	<xsl:param name="is_instance" select="'false'" />
+	<xsl:param name="is_in_instance" select="'false'" />
+	<xsl:param name="instance_id" select="''" />
+	<xsl:param name="parent_id" select="''" />
 
-	<xsl:variable name="id">
-		<xsl:choose>
-			<xsl:when test="$is_instance ='true'">
-				<xsl:value-of select="generate-id()" />
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:value-of select="@xmi:id" />
-			</xsl:otherwise>
-		</xsl:choose>
-	</xsl:variable>
+
+	<!-- If we have a value for parent_id, attach it to it's ID (To enable uniquity in recursion -->
+	<xsl:variable name="id" select="concat($parent_id, @xmi:id)" />
+	<xsl:variable name="orig_type_id" select="type/@xmi:idref" />
 
 	<xsl:variable name="type_id">
 		<xsl:choose>
@@ -168,7 +168,7 @@
 	<!-- Get the string version of the type-->
 	<xsl:variable name="type_name">
 		<xsl:call-template name="get_type_name">
-			<xsl:with-param name="type_id" select="$type_id" />
+			<xsl:with-param name="type_id" select="type/@xmi:idref" />
 		</xsl:call-template>
 	</xsl:variable>
 
@@ -217,6 +217,7 @@
 		<data key="{$nodeKindKey}"><xsl:value-of select="$kind"/></data>
 		<data key="{$nodeLabelKey}"><xsl:value-of select="$safe_label"/></data>
 		<data key="{$nodeTypeKey}"><xsl:value-of select="$valid_type_name"/></data>
+		<data key="{$nodeDescriptionKey}"><xsl:value-of select="$id"/></data>
 
 		<!-- Output the original $type_id if we have an Unknown type-->
 		<xsl:if test="$type_name = 'Unknown' and string-length($type_id) > 0">
@@ -227,9 +228,34 @@
 		<xsl:if test="$linked_type='true'">
 			<graph id="{$id}g">
 				<xsl:for-each select="//packagedElement[@xmi:type = 'uml:Class' and @xmi:id=$orig_id]/ownedAttribute[@xmi:type='uml:Property' and @visibility='public']">
-					<xsl:message>RECURSE FOR ID: <xsl:value-of select="$orig_id"/></xsl:message>
+					<xsl:variable name="new_instance_id">
+						<xsl:choose>
+							<xsl:when test="$is_in_instance = 'true'">
+								<xsl:message>IS IN INSTANCE</xsl:message>
+								<xsl:choose>
+									<xsl:when test="$instance_id != ''">
+										<xsl:value-of select="concat($instance_id, $type_id)" />
+									</xsl:when>
+									<xsl:otherwise>
+										<xsl:value-of select="$type_id"/>
+									</xsl:otherwise>
+								</xsl:choose>
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:value-of select="''"/>
+							</xsl:otherwise>
+						</xsl:choose>
+					</xsl:variable>
+
+
+				
+
+					<xsl:message>RECURSE: <xsl:value-of select="$is_in_instance = 'true' or $kind = 'AggregateInstance'" /></xsl:message>
 					<xsl:call-template name="property2member">
 						<xsl:with-param name="is_instance" select="'true'" />
+						<xsl:with-param name="is_in_instance" select="$is_in_instance = 'true' or $kind = 'AggregateInstance'" />
+						<xsl:with-param name="instance_id" select="$new_instance_id" />
+						<xsl:with-param name="parent_id" select="$id" />
 					</xsl:call-template>
 				</xsl:for-each>
 			</graph>
@@ -238,8 +264,59 @@
 
 	<!-- If this is a linked type, we should construct an edge to the definition -->
 	<xsl:if test="$linked_type='true' or $kind='MemberInstance'">
-		<edge id="{$id}{$type_id}" source="{$id}" target ="{$type_id}" />
+		<xsl:message>__________</xsl:message>
+		<xsl:message>is MEMBER: <xsl:value-of select="$kind='MemberInstance'" /></xsl:message>
+		<xsl:message>Instance ID: <xsl:value-of select="$instance_id" /></xsl:message>
+		<xsl:message>Is In Instance: <xsl:value-of select="$is_in_instance" /></xsl:message>
+		<xsl:message>Actual ID: <xsl:value-of select="$id" /></xsl:message>
+		<xsl:message>ID: <xsl:value-of select="@xmi:id" /></xsl:message>
+		<xsl:message>TYPE ID: <xsl:value-of select="$type_id" /></xsl:message>
+		
+
+		<xsl:variable name="target_id">
+			<xsl:choose>
+				<xsl:when test="$is_in_instance = 'true'">
+					<xsl:value-of select="concat($instance_id, $type_id)"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="$type_id"/>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
+
+		<xsl:message>Source ID: <xsl:value-of select="$id" /></xsl:message>
+		<xsl:message>Target_id: <xsl:value-of select="$target_id" /></xsl:message>
+		
+		<xsl:message>Instance ID: <xsl:value-of select="$instance_id" /></xsl:message>
+		<xsl:message>TYPE ID: <xsl:value-of select="$type_id" /></xsl:message>
+		<xsl:message>__________</xsl:message>
+
+		<edge id="{concat($id, concat('-', $target_id))}" source="{$id}" target="{$target_id}" />
 	</xsl:if>
+</xsl:template>
+
+<xsl:template name="get_definition_id">
+	<xsl:param name="id"/>
+	<xsl:param name="def_id"/>
+
+	<xsl:message>get_definition_id in[<xsl:value-of select="$id" />] for typeid= <xsl:value-of select="$def_id"/></xsl:message>
+
+
+	<xsl:variable name="classes" select = "//packagedElement[@xmi:type = 'uml:Class' and @xmi:id=$def_id]" />
+	<xsl:variable name="properties" select = "//ownedAttribute[@xmi:type = 'uml:Property' and @xmi:id=$def_id]" />
+
+	<xsl:message>classes for <xsl:value-of select="count($classes)" /></xsl:message>
+
+	<xsl:choose>
+		<xsl:when test="count($classes) > 0">
+			<xsl:message>GOT CLASSES</xsl:message>
+			<xsl:value-of select="$def_id"/>
+		</xsl:when>
+		<xsl:otherwise>
+			<xsl:message>NON</xsl:message>
+			<xsl:value-of select="$def_id" />
+		</xsl:otherwise>
+	</xsl:choose>
 </xsl:template>
 
 <!-- Returns a string which contains all of the ID's (Recursive) -->
