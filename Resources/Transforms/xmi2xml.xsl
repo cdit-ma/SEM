@@ -17,7 +17,7 @@
                 <xsl:variable name="name" select="@name" />
                 <xsl:variable name="id" select="@xmi:id" />
                 <xsl:variable name="classes" select="packagedElement[@xmi:type='uml:Class']" />
-                <xsl:if select="count($classes) > 0">
+                <xsl:if test="count($classes) > 0">
                     <package name="{$name}" id="{$id}">
                         <!-- Select all child 'uml:Class' packagedElement elements -->
                         <xsl:for-each select="$classes">

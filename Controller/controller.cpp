@@ -2017,7 +2017,7 @@ void NewController::removeGraphMLFromHash(int ID)
 
             emit controller_EntityDestructed(entityAdapter);
 
-            int removeCount = ID2AdapterHash.remove(ID);
+            ID2AdapterHash.remove(ID);
             if(canDelete){
                 //Otherwise when the last item in the view is done it will delete.
                 delete entityAdapter;

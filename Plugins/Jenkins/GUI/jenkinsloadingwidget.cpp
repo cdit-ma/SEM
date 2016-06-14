@@ -1,7 +1,8 @@
 #include "jenkinsloadingwidget.h"
 #include <QBoxLayout>
 #include <QLabel>
-#include "../../View/theme.h"
+
+#include "../../../View/theme.h"
 #include <QProgressBar>
 
 /**
