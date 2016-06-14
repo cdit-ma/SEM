@@ -9,7 +9,7 @@
 	<InstallerWindowIcon>../../Resources/Images/Actions/MEDEA.png</InstallerWindowIcon>
 	<InstallerApplicationIcon>../../Resources/Images/MedeaIcon</InstallerApplicationIcon>
         <WizardStyle>Modern</WizardStyle>
-        <Banner>MEDEABanner.png</Banner>
+        <Banner>../../Resources/Images/MEDEABanner.png</Banner>
         <WizardDefaultHeight>450</WizardDefaultHeight>
 	<ProductUrl>https://github.com/cdit-ma/MEDEA</ProductUrl>
 	<RunProgram>@TargetDir@/MEDEA</RunProgram>

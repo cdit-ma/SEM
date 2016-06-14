@@ -897,4 +897,3 @@ JOB_STATE JenkinsRequest::_getJobState(QString jobName, int buildNumber, QString
     }
     return NO_JOB;
 }
-
