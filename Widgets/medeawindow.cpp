@@ -59,6 +59,9 @@
 #define GME_FILE_EXT "GME Documents (*.xme)"
 #define GME_FILE_SUFFIX ".xme"
 
+#define XMI_FILE_EXT "UML XMI Documents (*.xml)"
+#define XMI_FILE_SUFFIX ".xml"
+
 #define GITHUB_URL "https://github.com/cdit-ma/MEDEA/"
 
 #define THEME_STYLE_QMENU "THEME_STYLE_QMENU"
@@ -736,20 +739,22 @@ void MedeaWindow::setupMenu()
 
     file_menu->addSeparator();
 
-    file_importGraphML = file_menu->addAction("Import");
+    file_importGraphML = file_menu->addAction("Import Project");
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
-    file_importSnippet = file_menu->addAction("Import Snippet");
+    file_menu->addSeparator();
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
-    file_importXMI = file_menu->addAction(QIcon(":/UML.gif"), "Import UML XMI File");
-    file_importXMI->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
-
+    file_importXMI = file_menu->addAction(QIcon(":/UML"), "Import UML XMI File");
     file_menu->addSeparator();
 
+    file_menu->addSeparator();
+    file_importSnippet = file_menu->addAction("Import Snippet");
     file_exportSnippet = file_menu->addAction("Export Snippet");
+    file_menu->addSeparator();
+
+
 
     file_menu->addSeparator();
 
-    //
     edit_undo = edit_menu->addAction("Undo");
     edit_undo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
     edit_redo = edit_menu->addAction("Redo");
@@ -921,7 +926,7 @@ void MedeaWindow::updateMenuIcons()
     file_importGraphML->setIcon(getIcon("Actions", "Import"));
     file_importSnippet->setIcon(getIcon("Actions", "ImportSnippet"));
     file_importXME->setIcon(QIcon(":/GME.ico"));
-    file_importXMI->setIcon(QIcon(":/UML.gif"));
+    file_importXMI->setIcon(QIcon(":/UML"));
     file_exportSnippet->setIcon(getIcon("Actions", "ExportSnippet"));
 
     edit_undo->setIcon(getIcon("Actions", "Undo"));
@@ -3466,16 +3471,12 @@ void MedeaWindow::on_actionImport_XME_triggered()
 
 void MedeaWindow::on_actionImport_XMI_triggered()
 {
-    /*
     progressAction = "Importing XMI";
-
-    QStringList files = fileSelector("Select an XMI file to import.", "XMI XML Documents (*.xml)", ".xml", true, false);
+    QStringList files = fileSelector("Select an XMI file to import.", XMI_FILE_EXT, XMI_FILE_SUFFIX, true, false);
     if(files.size() == 1){
-        displayLoadingStatus(true, "Transforming XME for import");
-        importXMEProject(files.first());
-    }*/
-
-    importXMIProject("C:/OARIS PSM XMI.xml");
+        displayLoadingStatus(true, "Transforming XMI for import");
+        importXMIProject(files.first());
+    }
 }
 
 

@@ -312,11 +312,9 @@ void CUTSManager::executeCUTS(QString path, int executionTime)
 
 void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 {
-    qCritical() << "processGraphml " << graphmlPath << " " << outputPath;
     //Run preprocess generation on the graphml, this will be used as the input to all transforms.
     QString processedGraphmlPath = preProcessIDL(graphmlPath, outputPath);
 
-    qCritical() << "replicateTransformGraphML " << processedGraphmlPath << " " << outputPath;
 
     //Run Replication transform on the graphml, this will be used as the input to all transforms.
     processedGraphmlPath = replicateTransformGraphML(processedGraphmlPath, outputPath);
@@ -377,7 +375,6 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
     while(!modelXML.isNull()){
         QString middleware = evaluateQuery2String(query, "gml:data[@key='" + keys["middleware"] + "']/string()", &modelXML);
         modelMiddleware = middleware;
-        qCritical() << modelMiddleware;
         modelXML = modelsXML->next();
     }
 
@@ -565,7 +562,6 @@ QPair<int, QPair<QString, QString> > CUTSManager::runLocalTransform(QString grap
     connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
 
     //Execute the QProcess
-    qCritical() << arguments;
     process->start("java", arguments);
     //Wait for The process to exit the loop.
     waitLoop.exec();
@@ -711,8 +707,6 @@ void CUTSManager::executeXMI2GraphML(QString XMIPath, QStringList selectedIDs)
     QStringList classes;
     classes << "class_ids";
     classes << selectedIDs.join(",");
-
-    qCritical() << selectedIDs;
     QPair<int, QPair<QString, QString> > result = runLocalTransform(XMIPath, "xmi2graphml.xsl", classes);
     emit gotXMIGraphML(result.first == 0, result.second.second, result.second.first);
 }

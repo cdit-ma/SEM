@@ -14,7 +14,7 @@ XMITreeViewDialog::XMITreeViewDialog(XMITreeModel *treeModel, QWidget *parent):Q
     connect(treeModel, SIGNAL(selectionChanged(Qt::CheckState)), this, SLOT(selectionChanged(Qt::CheckState)));
 
     setWindowTitle("Select XMI Elements to Import");
-    setWindowIcon(Theme::theme()->getIcon("", "UML.gif"));
+    setWindowIcon(Theme::theme()->getIcon("", "UML"));
 
     //Disable Help Button
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -73,6 +73,6 @@ void XMITreeViewDialog::setupLayout()
 
     connect(button_selectAll, SIGNAL(clicked(bool)), treeModel, SLOT(selectAll()));
     connect(button_selectNone, SIGNAL(clicked(bool)), treeModel, SLOT(selectNone()));
-    connect(button_cancelImport, SIGNAL(clicked(bool)), this, SIGNAL(rejected()));
+    connect(button_cancelImport, SIGNAL(clicked(bool)), this, SLOT(reject()));
     connect(button_importSelection, SIGNAL(clicked(bool)), this, SLOT(importSelection()));
 }
