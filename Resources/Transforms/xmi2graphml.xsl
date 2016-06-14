@@ -360,15 +360,33 @@
 		<xsl:value-of select="count($all_classes[@xmi:id=$type_id]) > 0"/>
 	</xsl:template>
 
-	<!-- TODO -->
+	<!-- Replaces all invalid characters from labels -->
 	<xsl:template name="sanitize_label">
-		<xsl:param name="label"/>
-		<xsl:variable name="new_label" select="replace($label, '\*|\.|\[|\]|;|\||,|%|/|\\|=|:| ', '_')" />
+		<xsl:param name="label" />
+	
+		<!-- Remove all non-filesystem characters from label -->
+		<xsl:variable name="label_1" select="translate($label, '*', '_')" />
+		<xsl:variable name="label_2" select="translate($label_1, '.', '_')" />
+		<xsl:variable name="label_3" select="translate($label_2, '[', '_')" />
+		<xsl:variable name="label_4" select="translate($label_3, ']', '_')" />
+		<xsl:variable name="label_5" select="translate($label_4, ';', '_')" />
+		<xsl:variable name="label_6" select="translate($label_5, '|', '_')" />
+		<xsl:variable name="label_7" select="translate($label_6, ',', '_')" />
+		<xsl:variable name="label_8" select="translate($label_7, '%', '_')" />
+		<xsl:variable name="label_9" select="translate($label_8, '/', '_')" />
+		<xsl:variable name="label_10" select="translate($label_9, '\\', '_')" />
+		<xsl:variable name="label_11" select="translate($label_10, '=', '_')" />
+		<xsl:variable name="label_12" select="translate($label_11, ':', '_')" />
+		<xsl:variable name="label_13" select="translate($label_12, ' ', '_')" />
+		<xsl:variable name="label_14" select="translate($label_12, '?', '_')" />
 
-		<xsl:if test="$label != $new_label">
-			<xsl:message>INFO: Sanitized Label '<xsl:value-of select="$label" />' to '<xsl:value-of select="$new_label" />'</xsl:message>
+		<!-- XALAN Doesn't support REGEX -->
+		<!--<xsl:variable name="new_label" select="replace($label, '\*|\.|\[|\]|;|\||,|%|/|\\|=|:| ', '_')" />-->
+
+		<xsl:if test="$debug_mode != 'false' and $label != $label_14">
+			<xsl:message>INFO: Sanitized Label '<xsl:value-of select="$label" />' to '<xsl:value-of select="$label_14" />'</xsl:message>
 		</xsl:if>
-		<xsl:value-of select="$new_label"/>
+		<xsl:value-of select="$label_14"/>
 	</xsl:template>
 
 	<!-- Translates from *** to Corba IDL Type ***-->
