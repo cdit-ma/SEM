@@ -75,7 +75,7 @@ NewController::NewController()
     containerNodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
     containerNodeKinds << "HardwareDefinitions" << "AssemblyDefinitions" << "ManagementComponent";
     containerNodeKinds << "HardwareCluster";
-    containerNodeKinds << "WorkerDefinitions";
+
 
     definitionNodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" << "BlackBox" << "BlackBoxInstance";
     definitionNodeKinds << "Member" << "Aggregate";
@@ -86,6 +86,30 @@ NewController::NewController()
 
     definitionNodeKinds << "Vector" << "VectorInstance";
 
+
+    dds_QosNodeKinds << "DDS_QOSProfile";
+    dds_QosNodeKinds << "DDS_DeadlineQosPolicy";
+    dds_QosNodeKinds << "DDS_DestinationOrderQosPolicy";
+    dds_QosNodeKinds << "DDS_DurabilityQosPolicy";
+    dds_QosNodeKinds << "DDS_DurabilityServiceQosPolicy";
+    dds_QosNodeKinds << "DDS_EntityFactoryQosPolicy";
+    dds_QosNodeKinds << "DDS_GroupDataQosPolicy";
+    dds_QosNodeKinds << "DDS_HistoryQosPolicy";
+    dds_QosNodeKinds << "DDS_LatencyBudgetQosPolicy";
+    dds_QosNodeKinds << "DDS_LifespanQosPolicy";
+    dds_QosNodeKinds << "DDS_LivelinessQosPolicy";
+    dds_QosNodeKinds << "DDS_OwnershipQosPolicy";
+    dds_QosNodeKinds << "DDS_OwnershipStrengthQosPolicy";
+    dds_QosNodeKinds << "DDS_PartitionQosPolicy";
+    dds_QosNodeKinds << "DDS_PresentationQosPolicy";
+    dds_QosNodeKinds << "DDS_ReaderDataLifecycleQosPolicy";
+    dds_QosNodeKinds << "DDS_ReliabilityQosPolicy";
+    dds_QosNodeKinds << "DDS_ResourceLimitsQosPolicy";
+    dds_QosNodeKinds << "DDS_TimeBasedFilterQosPolicy";
+    dds_QosNodeKinds << "DDS_TopicDataQosPolicy";
+    dds_QosNodeKinds << "DDS_TransportPriorityQosPolicy";
+    dds_QosNodeKinds << "DDS_UserDataQosPolicy";
+    dds_QosNodeKinds << "DDS_WriterDataLifecycleQosPolicy";
 
 
 
@@ -103,12 +127,14 @@ NewController::NewController()
     constructableNodeKinds << "AttributeInstance" << "AttributeImpl";
     constructableNodeKinds << "InEventPortInstance" << "InEventPortImpl";
     constructableNodeKinds << "OutEventPortInstance" << "OutEventPortImpl" << "HardwareNode";
+    constructableNodeKinds << "QOSProfile";
 
     snippetableParentKinds << "ComponentImpl" << "InterfaceDefinitions";
     nonSnippetableKinds << "OutEventPortImpl" << "InEventPortImpl";
 
     constructableNodeKinds.append(definitionNodeKinds);
     constructableNodeKinds.append(behaviourNodeKinds);
+    constructableNodeKinds.append(dds_QosNodeKinds);
     constructableNodeKinds << "ManagementComponent";
 
     constructableNodeKinds << "InputParameter";
@@ -117,6 +143,9 @@ NewController::NewController()
 
     guiConstructableNodeKinds.append(definitionNodeKinds);
     guiConstructableNodeKinds.append(behaviourNodeKinds);
+
+    guiConstructableNodeKinds.append(dds_QosNodeKinds);
+
     guiConstructableNodeKinds.removeDuplicates();
     guiConstructableNodeKinds.sort();
 
@@ -3438,6 +3467,52 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
         return new InputParameter();
     }else if(nodeKind == "ReturnParameter"){
         return new ReturnParameter();
+    }else if(nodeKind == "DDS_QOSProfile"){
+        return new DDS_QOSProfile();
+    }else if(nodeKind == "DDS_DeadlineQosPolicy"){
+        return new DDS_DeadlineQosPolicy();
+    }else if(nodeKind == "DDS_DestinationOrderQosPolicy"){
+        return new DDS_DestinationOrderQosPolicy();
+    }else if(nodeKind == "DDS_DurabilityQosPolicy"){
+        return new DDS_DurabilityQosPolicy();
+    }else if(nodeKind == "DDS_DurabilityServiceQosPolicy"){
+        return new DDS_DurabilityServiceQosPolicy();
+    }else if(nodeKind == "DDS_EntityFactoryQosPolicy"){
+        return new DDS_EntityFactoryQosPolicy();
+    }else if(nodeKind == "DDS_GroupDataQosPolicy"){
+        return new DDS_GroupDataQosPolicy();
+    }else if(nodeKind == "DDS_HistoryQosPolicy"){
+        return new DDS_HistoryQosPolicy();
+    }else if(nodeKind == "DDS_LatencyBudgetQosPolicy"){
+        return new DDS_LatencyBudgetQosPolicy();
+    }else if(nodeKind == "DDS_LifespanQosPolicy"){
+        return new DDS_LifespanQosPolicy();
+    }else if(nodeKind == "DDS_LivelinessQosPolicy"){
+        return new DDS_LivelinessQosPolicy();
+    }else if(nodeKind == "DDS_OwnershipQosPolicy"){
+        return new DDS_OwnershipQosPolicy();
+    }else if(nodeKind == "DDS_OwnershipStrengthQosPolicy"){
+        return new DDS_OwnershipStrengthQosPolicy();
+    }else if(nodeKind == "DDS_PartitionQosPolicy"){
+        return new DDS_PartitionQosPolicy();
+    }else if(nodeKind == "DDS_PresentationQosPolicy"){
+        return new DDS_PresentationQosPolicy();
+    }else if(nodeKind == "DDS_ReaderDataLifecycleQosPolicy"){
+        return new DDS_ReaderDataLifecycleQosPolicy();
+    }else if(nodeKind == "DDS_ReliabilityQosPolicy"){
+        return new DDS_ReliabilityQosPolicy();
+    }else if(nodeKind == "DDS_ResourceLimitsQosPolicy"){
+        return new DDS_ResourceLimitsQosPolicy();
+    }else if(nodeKind == "DDS_TimeBasedFilterQosPolicy"){
+        return new DDS_TimeBasedFilterQosPolicy();
+    }else if(nodeKind == "DDS_TopicDataQosPolicy"){
+        return new DDS_TopicDataQosPolicy();
+    }else if(nodeKind == "DDS_TransportPriorityQosPolicy"){
+        return new DDS_TransportPriorityQosPolicy();
+    }else if(nodeKind == "DDS_UserDataQosPolicy"){
+        return new DDS_UserDataQosPolicy();
+    }else if(nodeKind == "DDS_WriterDataLifecycleQosPolicy"){
+        return new DDS_WriterDataLifecycleQosPolicy();
     }else{
         //qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
     }

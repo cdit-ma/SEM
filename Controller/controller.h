@@ -539,6 +539,7 @@ private:
 
     QStringList behaviourNodeKinds;
     QStringList definitionNodeKinds;
+    QStringList dds_QosNodeKinds;
 
     //A list of View Aspects present in the model.
     QStringList viewAspects;

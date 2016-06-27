@@ -1,6 +1,7 @@
 #include "assemblydefinitions.h"
 #include "componentassembly.h"
 #include "managementcomponent.h"
+#include "QOS/qosprofile.h"
 
 AssemblyDefinitions::AssemblyDefinitions():Node(Node::NT_ASPECT)
 {
@@ -15,8 +16,9 @@ bool AssemblyDefinitions::canAdoptChild(Node *node)
 {
     ComponentAssembly* componentAssembly = dynamic_cast<ComponentAssembly *>(node);
     ManagementComponent* managementComponent = dynamic_cast<ManagementComponent *>(node);
+    QOSProfile* qosProfile = dynamic_cast<QOSProfile *>(node);
 
-    if(!(componentAssembly || managementComponent)){
+    if(!(componentAssembly || managementComponent || qosProfile)){
         //AssemblyDefinition can only adopt ComponentAssemblies or ManagementComponents
         return false;
     }

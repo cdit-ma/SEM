@@ -44,6 +44,11 @@ NODE_CLASS Node::getNodeClass()
     return nodeClass;
 }
 
+Node::NODE_TYPE Node::getNodeType()
+{
+    return nodeType;
+}
+
 Node::~Node()
 {
     if(parentNode){
