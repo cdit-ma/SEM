@@ -264,6 +264,8 @@ private slots:
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
     void constructWorkerProcessNode(int parentID,QString workerName, QString operationName, QPointF position);
+    void constructDDSQOSProfile(int parentID, QPointF position);
+
     void constructEdge(int srcID, int dstID);
     void destructEdge(int srcID, int dstID);
     void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);

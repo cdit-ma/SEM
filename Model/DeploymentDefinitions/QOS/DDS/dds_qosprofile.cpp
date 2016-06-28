@@ -15,5 +15,12 @@ bool DDS_QOSProfile::canAdoptChild(Node *node)
     if(node->getNodeType() != NT_QOS){
         return false;
     }
+
+    QString nodeKind = node->getNodeKind();
+    //ONE QOS OF EACH KIND.
+    if(!getChildrenOfKind(nodeKind).isEmpty()){
+        return false;
+    }
+
     return Node::canAdoptChild(node);
 }
