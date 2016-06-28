@@ -1900,7 +1900,6 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
                //HistoryQosPolicy
                QStringList kinds, values;
                kinds << "DDS_HistoryQosPolicy";
-               kinds << "DDS_DurabilityServiceQosPolicy";
                values << "KEEP_LAST_HISTORY_QOS";
                values << "KEEP_ALL_HISTORY_QOS";
                newKey->addValidValues(values, kinds);
@@ -1966,6 +1965,15 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
                values << "INSTANCE_PRESENTATION_QOS";
                values << "TOPIC_PRESENTATION_QOS";
                values << "GROUP_PRESENTATION_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+        }else if(name == "qos_dds_history_kind"){
+            {
+               //HistoryQosPolicy
+               QStringList kinds, values;
+               kinds << "DDS_DurabilityServiceQosPolicy";
+               values << "KEEP_LAST_HISTORY_QOS";
+               values << "KEEP_ALL_HISTORY_QOS";
                newKey->addValidValues(values, kinds);
             }
         }
