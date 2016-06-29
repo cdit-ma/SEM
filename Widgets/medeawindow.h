@@ -65,6 +65,7 @@
 #include "GUI/aspecttogglewidget.h"
 #include "GUI/appsettings.h"
 #include "GUI/codeeditor.h"
+#include "Controller/viewcontroller.h"
 #include <QAbstractMessageHandler>
 
 
@@ -566,6 +567,7 @@ private:
     QDialog* toolbarSettingsDialog;
 
     NewController* controller;
+    ViewController* viewController;
     NodeView* nodeView;
     QFileDialog* fileDialog;
 

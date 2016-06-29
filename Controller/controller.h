@@ -19,6 +19,7 @@
 #include "../Model/Edges/aggregateedge.h"
 #include "../Model/Edges/deploymentedge.h"
 #include "../Model/data.h"
+#include "viewcontroller.h"
 
 #include "doublehash.h"
 
@@ -138,6 +139,7 @@ public:
 
     void initializeModel();
     void connectView(NodeView* view);
+    void connectViewController(ViewController* view);
 
     //Gets the Model Node.
     Model* getModel();

@@ -164,7 +164,13 @@ HEADERS += \
     Plugins/Jenkins/jenkinsrequest.h \
     Plugins/XMI/xmiimporter.h \
     Plugins/XMI/xmitreemodel.h \
-    Plugins/XMI/GUI/XMITreeViewDialog.h
+    Plugins/XMI/GUI/XMITreeViewDialog.h \
+    View/viewitem.h \
+    Controller/viewcontroller.h \
+    View/SceneItems/entityitem.h \
+    View/SceneItems/edgeitem.h \
+    View/nodeviewitem.h \
+    View/edgeviewitem.h
 
 
 SOURCES += \
@@ -293,7 +299,13 @@ SOURCES += \
     Plugins/Jenkins/jenkinsrequest.cpp \
     Plugins/XMI/xmiimporter.cpp \
     Plugins/XMI/xmitreemodel.cpp \
-    Plugins/XMI/GUI/XMITreeViewDialog.cpp
+    Plugins/XMI/GUI/XMITreeViewDialog.cpp \
+    View/viewitem.cpp \
+    Controller/viewcontroller.cpp \
+    View/SceneItems/entityitem.cpp \
+    View/SceneItems/edgeitem.cpp \
+    View/nodeviewitem.cpp \
+    View/edgeviewitem.cpp
 
 
 RESOURCES += \

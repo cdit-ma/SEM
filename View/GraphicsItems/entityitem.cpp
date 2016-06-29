@@ -208,6 +208,19 @@ EntityItem::~EntityItem()
     delete statusItem;
 }
 
+EntityItem::RENDER_STATE EntityItem::getRenderState(qreal levelOfDetail) const
+{
+    if(levelOfDetail >= 1.0){
+        return RS_FULL;
+    }else if(levelOfDetail >= (2.0/3.0)){
+        return RS_REDUCED;
+    }else if(levelOfDetail >= (1.0/3.0)){
+        return RS_MINIMAL;
+    }else{
+        return RS_BLOCK;
+    }
+}
+
 /**
  * @brief EntityItem::getMouseOverType Returns the type of the node the position
  * @param scenePos - The scene coordinate to check.

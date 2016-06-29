@@ -209,6 +209,12 @@ void NewController::connectView(NodeView *view)
     }
 }
 
+void NewController::connectViewController(ViewController *view)
+{
+    connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(entityConstructed(EntityAdapter*)));
+    connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(entityDestructed(EntityAdapter*)));
+}
+
 
 
 void NewController::initializeModel()

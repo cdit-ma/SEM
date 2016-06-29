@@ -1900,6 +1900,7 @@ void MedeaWindow::setupProject()
 {
     if(!controller && !controllerThread){
         controller = new NewController();
+        viewController = new ViewController();
         //Set External Worker Definitions Path.
         controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
 
@@ -1916,6 +1917,7 @@ void MedeaWindow::setupProject()
         QEventLoop waitLoop;
         connect(controller, SIGNAL(controller_ModelReady()), &waitLoop, SLOT(quit()));
         emit window_ConnectViewAndSetupModel(nodeView);
+        controller->connectViewController(viewController);
         waitLoop.exec();
     }
 }
