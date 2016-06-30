@@ -170,7 +170,8 @@ HEADERS += \
     View/SceneItems/entityitem.h \
     View/SceneItems/edgeitem.h \
     View/nodeviewitem.h \
-    View/edgeviewitem.h
+    View/edgeviewitem.h \
+    View/SceneItems/nodeitem.h
 
 
 SOURCES += \
@@ -305,7 +306,8 @@ SOURCES += \
     View/SceneItems/entityitem.cpp \
     View/SceneItems/edgeitem.cpp \
     View/nodeviewitem.cpp \
-    View/edgeviewitem.cpp
+    View/edgeviewitem.cpp \
+    View/SceneItems/nodeitem.cpp
 
 
 RESOURCES += \

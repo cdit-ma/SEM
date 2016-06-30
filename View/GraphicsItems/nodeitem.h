@@ -97,6 +97,7 @@ public:
 
 signals:
     void lastEdgeRemoved();
+
     void move(QPointF delta);
     void resize(QSizeF delta);
     void moveFinished();

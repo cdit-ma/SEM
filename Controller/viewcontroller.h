@@ -11,7 +11,7 @@ class ViewController : public QObject
 public:
     ViewController();
 
-    SelectionHandler* constructSelectionHandler(QObject* parent);
+    //SelectionHandler* constructSelectionHandler(QObject* parent);
 signals:
     void viewItemConstructed(ViewItem* viewItem);
 

@@ -43,6 +43,52 @@ EntityItemNew *EntityItemNew::getParent()
     return parentItem;
 }
 
+int EntityItemNew::getID()
+{
+    return viewItem->getID();
+}
+
+void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELEMENT_RECT pos, QString alias, QString imageName, bool update, QColor tintColor)
+{
+    QRectF place = getElementRect(pos);
+
+    if(!place.isEmpty()){
+        Theme* theme = Theme::theme();
+
+        //Get the current Image from the Map
+        QPixmap image = imageMap[pos];
+
+        //Calculate the required size of the image.
+        QSize requiredSize;
+        requiredSize.setWidth(place.width() * lod * 2);
+        requiredSize.setHeight(place.height() * lod * 2);
+        requiredSize = theme->roundQSize(requiredSize);
+
+        //If the image size is different to what is cached, we should Update, or we have been told to update.
+        if(image.size() != requiredSize || update){
+            //Try get the image the user asked for.
+            image = theme->getImage(alias, imageName, requiredSize, tintColor);
+
+            if(image.isNull()){
+                //Use a help icon.
+                image = theme->getImage("Actions", "Help", requiredSize, tintColor);
+            }
+            //Store the image into the map.
+            imageMap[pos] = image;
+        }
+
+        //Paint Pixmap
+        painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
+    }
+}
+
+QRectF EntityItemNew::translatedBoundingRect() const
+{
+    QRectF rect = boundingRect();
+    rect.translate(pos());
+    return rect;
+}
+
 /**
  * @brief EntityItemNew::intersectsRectInScene - Checks to see if a Rectangle in Scene Coordinated contains this EntityItems's SceneRect
  * @param rectInScene - A rectangle in scene coordinate space
@@ -212,6 +258,26 @@ bool EntityItemNew::isNodeItem()
 bool EntityItemNew::isEdgeItem()
 {
     return kind == EntityItemNew::EDGE;
+}
+
+void EntityItemNew::setHovered(bool isHovered)
+{
+    _isHovered = isHovered;
+}
+
+void EntityItemNew::setHighlighted(bool isHighlight)
+{
+    _isHightlighted = isHighlight;
+}
+
+void EntityItemNew::setSelected(bool selected)
+{
+    _isSelected = selected;
+}
+
+void EntityItemNew::setActiveSelected(bool active)
+{
+    _isActiveSelected = active;
 }
 
 bool EntityItemNew::isSelectionEnabled()

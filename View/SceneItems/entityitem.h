@@ -11,6 +11,8 @@ class EntityItemNew: public QGraphicsObject
 
 public:
     enum KIND{EDGE, NODE};
+    enum ELEMENT_RECT{ER_MAIN_LABEL, ER_SECONDARY_LABEL, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION};
+
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
     EntityItemNew(ViewItem *viewItem, EntityItem* parentItem, KIND kind);
@@ -21,6 +23,13 @@ public:
 
     EntityItemNew* getParent();
 
+    int getID();
+
+    virtual QRectF getElementRect(ELEMENT_RECT rect) = 0;
+    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString alias, QString imageName, bool update=false, QColor tintColor=QColor());
+
+
+    QRectF translatedBoundingRect() const;
     virtual QRectF sceneBoundingRect() const;
     virtual QRectF boundingRect() const;
 
@@ -86,6 +95,8 @@ private:
     EntityItem* parentItem;
     ViewItem* viewItem;
     QStringList requiredDataKeys;
+
+    QHash<ELEMENT_RECT, QPixmap> imageMap;
 
     bool selectEnabled;
     bool hoverEnabled;
