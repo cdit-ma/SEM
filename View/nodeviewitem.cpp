@@ -6,11 +6,16 @@ NodeViewItem::NodeViewItem(NodeAdapter *entity):ViewItem(entity)
     this->entity = entity;
 }
 
+NodeViewItem::~NodeViewItem()
+{
+
+}
+
 int NodeViewItem::getParentID(int depth)
 {
     int ID = -1;
     if(entity){
-        ID = entity->getParentID(depth);
+        ID = entity->getParentNodeID(depth);
     }
     return ID;
 }

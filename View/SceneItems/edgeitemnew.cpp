@@ -1,6 +1,7 @@
-#include "edgeitem.h"
+#include "edgeitemnew.h"
+#include "nodeitemnew.h"
 
-EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeItemNew* source, NodeItemNew* destination, KIND edge_kind):EntityItemNew(viewItem, parent, EntityItemNew::EDGE)
+EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeItemNew* source, NodeItemNew* destination, KIND edge_kind):EntityItemNew(edgeViewItem, parent, EntityItemNew::EDGE)
 {
     this->edgeViewItem = edgeViewItem;
     this->sourceItem = source;
@@ -8,7 +9,12 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
     this->edge_kind = edge_kind;
 
     //TODO
-    parent->addEdgeItem(this);
+    parent->addChildEdge(this);
+}
+
+EdgeItemNew::~EdgeItemNew()
+{
+
 }
 
 EdgeItemNew::KIND EdgeItemNew::getEdgeItemKind()

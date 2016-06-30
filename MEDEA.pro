@@ -167,11 +167,12 @@ HEADERS += \
     Plugins/XMI/GUI/XMITreeViewDialog.h \
     View/viewitem.h \
     Controller/viewcontroller.h \
-    View/SceneItems/entityitem.h \
-    View/SceneItems/edgeitem.h \
     View/nodeviewitem.h \
     View/edgeviewitem.h \
-    View/SceneItems/nodeitem.h
+    View/SceneItems/defaultnodeitem.h \
+    View/SceneItems/edgeitemnew.h \
+    View/SceneItems/entityitemnew.h \
+    View/SceneItems/nodeitemnew.h
 
 
 SOURCES += \
@@ -303,11 +304,12 @@ SOURCES += \
     Plugins/XMI/GUI/XMITreeViewDialog.cpp \
     View/viewitem.cpp \
     Controller/viewcontroller.cpp \
-    View/SceneItems/entityitem.cpp \
-    View/SceneItems/edgeitem.cpp \
     View/nodeviewitem.cpp \
     View/edgeviewitem.cpp \
-    View/SceneItems/nodeitem.cpp
+    View/SceneItems/defaultnodeitem.cpp \
+    View/SceneItems/edgeitemnew.cpp \
+    View/SceneItems/entityitemnew.cpp \
+    View/SceneItems/nodeitemnew.cpp
 
 
 RESOURCES += \

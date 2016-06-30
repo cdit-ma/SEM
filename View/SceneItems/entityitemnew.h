@@ -1,9 +1,9 @@
 #ifndef ENTITYITEMNEW_H
 #define ENTITYITEMNEW_H
 
-#include "../../View/viewitem.h"
+#include "../viewitem.h"
 #include <QGraphicsObject>
-
+#include <QGraphicsSceneHoverEvent>
 
 class EntityItemNew: public QGraphicsObject
 {
@@ -15,13 +15,13 @@ public:
 
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
-    EntityItemNew(ViewItem *viewItem, EntityItem* parentItem, KIND kind);
+    EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind);
     ~EntityItemNew();
 
     RENDER_STATE getRenderState(qreal lod) const;
     VIEW_STATE getViewState() const;
 
-    EntityItemNew* getParent();
+    EntityItemNew* getParent() const;
 
     int getID();
 
@@ -31,7 +31,7 @@ public:
 
     QRectF translatedBoundingRect() const;
     virtual QRectF sceneBoundingRect() const;
-    virtual QRectF boundingRect() const;
+    virtual QRectF boundingRect() const = 0;
 
     bool intersectsRectInScene(QRectF rectInScene) const;
 
@@ -79,20 +79,23 @@ signals:
 private slots:
     virtual void dataChanged(QString keyName, QVariant data) = 0;
 
-    virtual void setHovered(bool isHovered);
-    virtual void setHighlighted(bool isHighlight);
-    virtual void setSelected(bool selected);
-    virtual void setActiveSelected(bool active);
+public:
+
+    void setHovered(bool isHovered);
+    void setHighlighted(bool isHighlight);
+    void setSelected(bool selected);
+    void setActiveSelected(bool active);
+    /*
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
-
+*/
 private:
     void connectViewItem(ViewItem* viewItem);
     void disconnectViewItem();
 
-    EntityItem* parentItem;
+    EntityItemNew* parentItem;
     ViewItem* viewItem;
     QStringList requiredDataKeys;
 

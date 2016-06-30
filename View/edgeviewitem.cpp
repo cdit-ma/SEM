@@ -6,6 +6,11 @@ EdgeViewItem::EdgeViewItem(EdgeAdapter *entity):ViewItem(entity)
     this->entity = entity;
 }
 
+EdgeViewItem::~EdgeViewItem()
+{
+
+}
+
 int EdgeViewItem::getSourceID()
 {
     int ID = -1;

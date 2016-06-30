@@ -8,6 +8,10 @@
 #include "GraphicsItems/noguiitem.h"
 #include <limits>
 
+#include "nodeviewitem.h"
+#include "SceneItems/nodeitemnew.h"
+#include "SceneItems/edgeitemnew.h"
+#include "SceneItems/defaultnodeitem.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
@@ -31,6 +35,8 @@
 #include <cmath>
 #include <QBitmap>
 #include "GraphicsItems/entityitem.h"
+
+#include "SceneItems/nodeitemnew.h"
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
@@ -1408,6 +1414,36 @@ void NodeView::actionFinished()
     updateActionsEnabledStates();
 
     viewMutex.unlock();
+}
+
+void NodeView::viewItemConstructed(ViewItem *viewItem)
+{
+    if(viewItem->isNode()){
+        NodeViewItem* nodeViewItem = (NodeViewItem*)viewItem;
+
+
+        NodeItemNew* parent = 0;
+        int depth = 1;
+        int parentID = -2;
+        while(depth > 0 && parentID != -1){
+            parentID = nodeViewItem->getParentID(depth);
+            if(newNodeItems.contains(parentID)){
+                parent = (NodeItemNew*)newNodeItems[parentID];
+                break;
+            }
+            depth ++;
+        }
+
+        qCritical() << "PARENT: " << parent;
+        DefaultNodeItem* nodeItem = new DefaultNodeItem(nodeViewItem, parent);
+
+        newNodeItems[viewItem->getID()] = nodeItem;
+
+
+        if(!scene()->items().contains(nodeItem)){
+           scene()->addItem(nodeItem);
+        }//
+    }
 }
 
 

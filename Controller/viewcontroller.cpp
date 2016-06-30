@@ -1,16 +1,29 @@
 #include "viewcontroller.h"
+#include "../View/nodeviewitem.h"
+#include "../View/edgeviewitem.h"
+
 #include <QDebug>
 ViewController::ViewController(){
 }
 
 void ViewController::entityConstructed(EntityAdapter *entity)
 {
-    ViewItem* viewItem = new ViewItem(entity);
-    int ID = viewItem->getID();
-    viewItems[ID] = viewItem;
+    ViewItem* viewItem = 0;
 
-    //Tell Views
-    emit viewItemConstructed(viewItem);
+    if(entity->isNodeAdapter()){
+        viewItem = new NodeViewItem((NodeAdapter*)entity);
+    }else if(entity->isEdgeAdapter()){
+        viewItem = new EdgeViewItem((EdgeAdapter*)entity);
+    }
+
+    if(viewItem){
+        int ID = viewItem->getID();
+        viewItems[ID] = viewItem;
+
+        //Tell Views
+        emit viewItemConstructed(viewItem);
+    }
+
 }
 
 void ViewController::entityDestructed(EntityAdapter *entity)

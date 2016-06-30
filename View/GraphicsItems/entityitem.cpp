@@ -496,8 +496,7 @@ QRectF EntityItem::boundingRect() const
 
 QRectF EntityItem::minimumRect() const
 {
-    qreal itemMargin = getItemMargin() * 2;
-    return QRectF(QPointF(0, 0), QPointF(contractedWidth + itemMargin, contractedHeight + itemMargin));
+    return QRectF(QPointF(getItemMargin(),getItemMargin()), QPointF(contractedWidth , contractedHeight));
 }
 
 QRectF EntityItem::sceneBoundingRect() const
@@ -1014,6 +1013,7 @@ void EntityItem::setCenterPos(QPointF pos)
 {
     //pos is the new center Position.
     pos -= minimumRect().center();
+    pos += QPointF(getItemMargin(), getItemMargin());
     //QGraphicsItem::setPos(pos);
 
     setPos(pos);
@@ -1021,7 +1021,7 @@ void EntityItem::setCenterPos(QPointF pos)
 
 QPointF EntityItem::centerPos()
 {
-    return pos() + minimumRect().center();
+    return pos() + minimumRect().center() - QPointF(getItemMargin(), getItemMargin());
 }
 
 

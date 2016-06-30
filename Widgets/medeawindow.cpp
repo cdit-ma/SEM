@@ -1901,6 +1901,7 @@ void MedeaWindow::setupProject()
     if(!controller && !controllerThread){
         controller = new NewController();
         viewController = new ViewController();
+        connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView, SLOT(viewItemConstructed(ViewItem*)));
         //Set External Worker Definitions Path.
         controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
 

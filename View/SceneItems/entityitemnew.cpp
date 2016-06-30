@@ -1,9 +1,12 @@
-#include "entityitem.h"
+#include "entityitemnew.h"
+#include "../theme.h"
+#include <QPainter>
+#include <QDebug>
 
-
-EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItem *parentItem, KIND kind)
+EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind)
 {
-    viewItem = 0;
+    this->viewItem = 0;
+    this->parentItem = parentItem;
     this->kind = kind;
     connectViewItem(viewItem);
 
@@ -38,7 +41,7 @@ VIEW_STATE EntityItemNew::getViewState() const
     return VIEW_STATE::VS_NONE;
 }
 
-EntityItemNew *EntityItemNew::getParent()
+EntityItemNew *EntityItemNew::getParent() const
 {
     return parentItem;
 }
@@ -121,14 +124,10 @@ QRectF EntityItemNew::sceneBoundingRect() const
     return QGraphicsObject::sceneBoundingRect();
 }
 
-QRectF EntityItemNew::boundingRect() const
-{
-    return QGraphicsObject::boundingRect();
-}
 
 void EntityItemNew::setData(QString keyName, QVariant value)
 {
-    emit req_setData(this, keyName, value);
+    emit req_setData(viewItem, keyName, value);
 }
 
 QVariant EntityItemNew::getData(QString keyName)
@@ -202,7 +201,7 @@ bool EntityItemNew::isActiveSelected()
 
 bool EntityItemNew::isHighlighted()
 {
-    return _isHighlighted;
+    return _isHightlighted;
 }
 
 bool EntityItemNew::isHovered()
@@ -229,6 +228,8 @@ void EntityItemNew::disconnectViewItem()
     }
 }
 
+/*
+
 void EntityItemNew::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     handleHover(true);
@@ -242,7 +243,7 @@ void EntityItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 void EntityItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     handleHover(true);
-}
+}*/
 
 QPen EntityItemNew::getPen(qreal lod)
 {

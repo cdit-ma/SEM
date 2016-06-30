@@ -25,6 +25,7 @@
 
 #include "../enumerations.h"
 
+#include "SceneItems/nodeitemnew.h"
 
 class ToolbarWidget;
 
@@ -174,6 +175,8 @@ private slots:
     void selectionChanged();
 
     void actionFinished();
+
+    void viewItemConstructed(ViewItem* viewItem);
 signals:
     void view_LaunchWiki(QString entityKind);
     void view_ProjectFileChanged(QString);
@@ -611,6 +614,8 @@ private:
 
     QHash<int, QPointF> modelPositions;
     QHash<int, QRectF> centeredRects;
+
+    QHash<int, NodeItemNew*> newNodeItems;
 
 
     QList<int> aspectIDs;

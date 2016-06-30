@@ -3,8 +3,9 @@
 
 #include "../edgeviewitem.h"
 
-#include "entityitem.h"
-#include "nodeitem.h"
+#include "entityitemnew.h"
+
+class NodeItemNew;
 
 class EdgeItemNew : public EntityItemNew{
     Q_OBJECT
@@ -13,6 +14,7 @@ public:
     enum KIND{DEFAULT};
 
     EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew* parent, NodeItemNew* source, NodeItemNew* destination, KIND edge_kind = DEFAULT);
+    ~EdgeItemNew();
     KIND getEdgeItemKind();
 
     NodeItemNew* getParentItem();

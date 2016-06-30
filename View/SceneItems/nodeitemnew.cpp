@@ -1,9 +1,18 @@
-#include "nodeitem.h"
+#include "nodeitemnew.h"
+#include "entityitemnew.h"
+
+#include <QDebug>
 
 
-
-NodeItemNew::NodeItemNew(NodeViewItem *viewItem, EntityItem *parentItem, NodeItemNew::KIND kind):EntityItemNew(viewItem, parentItem, EntityItemNew::NODE)
+NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeItemNew::KIND kind):EntityItemNew(viewItem, parentItem, EntityItemNew::NODE)
 {
+    minimumHeight = 0;
+    minimumWidth = 0;
+    expandedHeight = 0;
+    expandedWidth = 0;
+    marginSize = 0;
+    _isExpanded = false;
+    qCritical() << "NodeItemNew()";
     nodeViewItem = viewItem;
     nodeItemKind = kind;
 
@@ -12,9 +21,25 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, EntityItem *parentItem, NodeIte
     addRequiredData("width");
     addRequiredData("height");
     addRequiredData("isExpanded");
+
+    reloadRequiredData();
+
+
+    if(parentItem){
+        parentItem->addChildNode(this);
+        setParentItem(parentItem);
+    }
+
+
+    qCritical() << "NodeItemNew()";
 }
 
-NodeItemNew *NodeItemNew::getParentNodeItem()
+NodeItemNew::~NodeItemNew()
+{
+
+}
+
+NodeItemNew *NodeItemNew::getParentNodeItem() const
 {
     EntityItemNew* parent = getParent();
     if(parent && parent->isNodeItem()){
@@ -52,13 +77,18 @@ void NodeItemNew::removeChildNode(int ID)
 
 QList<NodeItemNew *> NodeItemNew::getChildNodes()
 {
-    return childNodes;
+    return childNodes.values();
 }
 
-QList<EntityItemNew *> NodeItemNew::getChildEntities()
+QList<EntityItemNew *> NodeItemNew::getChildEntities() const
 {
-    QList<EntityItemNew*> children = childNodes.values();
-    children.append(childEdges.values());
+    QList<EntityItemNew*> children;
+    foreach(NodeItemNew* child, childNodes.values()){
+        children.append(child);
+    }
+    foreach(EdgeItemNew* child, childEdges.values()){
+        children.append(child);
+    }
     return children;
 }
 
@@ -77,7 +107,7 @@ void NodeItemNew::removeChildEdge(int ID)
 
 QList<EdgeItemNew *> NodeItemNew::getChildEdges()
 {
-    return childEdges;
+    return childEdges.values();
 }
 
 void NodeItemNew::addProxyEdge(EdgeItemNew *edgeItem)
@@ -103,7 +133,7 @@ void NodeItemNew::removeProxyEdge(int ID)
 
 QList<EdgeItemNew *> NodeItemNew::getProxyEdges()
 {
-    return proxyChildEdges;
+    return proxyChildEdges.values();
 }
 
 void NodeItemNew::setGridEnabled(bool enabled)
@@ -114,9 +144,51 @@ void NodeItemNew::setGridEnabled(bool enabled)
     }
 }
 
-bool NodeItemNew::isGridEnabled()
+bool NodeItemNew::isGridEnabled() const
 {
     return gridEnabled;
+}
+
+QRectF NodeItemNew::sceneBoundingRect() const
+{
+    return EntityItemNew::sceneBoundingRect();
+}
+
+QRectF NodeItemNew::boundingRect() const
+{
+    qreal margin = 2 * getMarginSize();
+
+    QRectF rect;
+    rect.setWidth(margin + getWidth());
+    rect.setHeight(margin + getHeight());
+    return rect;
+}
+
+QRectF NodeItemNew::contractedRect() const
+{
+    qreal margin = getMarginSize();
+    QRectF rect;
+    rect.setLeft(margin);
+    rect.setTop(margin);
+    rect.setWidth(getMinimumWidth());
+    rect.setHeight(getMinimumHeight());
+    return rect;
+}
+
+QRectF NodeItemNew::expandedRect() const
+{
+    qreal margin = getMarginSize();
+    QRectF rect;
+    rect.setLeft(margin);
+    rect.setTop(margin);
+    rect.setWidth(getExpandedWidth());
+    rect.setHeight(getExpandedHeight());
+    return rect;
+}
+
+QRectF NodeItemNew::gridRect() const
+{
+    return QRectF(10,10,10,10);
 }
 
 
@@ -139,22 +211,39 @@ QSizeF NodeItemNew::getSize() const
 
 void NodeItemNew::setMinimumWidth(qreal width)
 {
+    prepareGeometryChange();
     minimumWidth = width;
+    update();
 }
 
 void NodeItemNew::setMinimumHeight(qreal height)
 {
+    prepareGeometryChange();
     minimumHeight = height;
+    update();
 }
 
 void NodeItemNew::setExpandedWidth(qreal width)
 {
+    prepareGeometryChange();
     expandedWidth = width;
+    update();
 }
 
 void NodeItemNew::setExpandedHeight(qreal height)
 {
+    prepareGeometryChange();
     expandedHeight = height;
+    update();
+}
+
+void NodeItemNew::setMarginSize(qreal size)
+{
+    if(marginSize != size){
+        prepareGeometryChange();
+        marginSize = size;
+        update();
+    }
 }
 
 qreal NodeItemNew::getExpandedWidth() const
@@ -177,32 +266,56 @@ qreal NodeItemNew::getMinimumHeight() const
     return minimumHeight;
 }
 
+qreal NodeItemNew::getMarginSize() const
+{
+    return marginSize;
+}
+
+QPointF NodeItemNew::getMarginOffset() const
+{
+    return QPointF(marginSize, marginSize);
+}
+
 qreal NodeItemNew::getWidth() const
 {
     if(_isExpanded){
-        return getMinimumWidth();
-    }else{
         return getExpandedWidth();
+    }else{
+        return getMinimumWidth();
     }
 }
 
 qreal NodeItemNew::getHeight() const
 {
     if(_isExpanded){
-        return getMinimumHeight();
-    }else{
         return getExpandedHeight();
+    }else{
+        return getMinimumHeight();
     }
 }
 
 QPointF NodeItemNew::getCenter() const
 {
-    return pos() + contractedRect().center();
+    QPointF center = pos() + contractedRect().center();
+
+    NodeItemNew* parent = getParentNodeItem();
+
+    if(parent){
+        center -= parent->getMarginOffset();
+    }
+    return center;
 }
 
 void NodeItemNew::setCenter(QPointF center)
 {
     center -= contractedRect().center();
+
+    NodeItemNew* parent = getParentNodeItem();
+
+    if(parent){
+        center += parent->getMarginOffset();
+    }
+
     setPos(center);
 }
 
@@ -222,6 +335,7 @@ void NodeItemNew::setExpanded(bool expand)
             child->setVisible(_isExpanded);
         }
 
+        update();
         emit sizeChanged(getSize());
     }
 }
@@ -231,12 +345,12 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
     if(keyName == "x" || keyName == "y"){
         qreal realData = data.toReal();
         QPointF oldCenter = getCenter();
-        PointF newCenter = oldCenter;
+        QPointF newCenter = oldCenter;
 
         if(keyName == "x"){
-            currentCenter.setX(realData);
+            newCenter.setX(realData);
         }else if(keyName == "y"){
-            currentCenter.setY(realData);
+            newCenter.setY(realData);
         }
 
         if(newCenter != oldCenter){
@@ -259,6 +373,10 @@ void NodeItemNew::updateGridLines()
 {
     //TODO
 
+}
+
+void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
 }
 
 
