@@ -13,6 +13,9 @@ public:
     ~NodeViewItem();
 
     int getParentID(int depth = 1);
+
+    NODE_CLASS getNodeClass();
+    bool isInModel();
     QList<int> getTreeIndex();
 private:
     NodeAdapter* entity;

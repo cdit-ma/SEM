@@ -10,6 +10,9 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     this->kind = kind;
     connectViewItem(viewItem);
 
+    //Sets the default border to be dark gray
+    setDefaultPen(QPen(QColor(50, 50, 50)));
+
     _isHovered = false;
     _isSelected = false;
     _isActiveSelected = false;
@@ -247,8 +250,31 @@ void EntityItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 QPen EntityItemNew::getPen(qreal lod)
 {
-    //TODO
-    return QPen();
+    QPen pen = defaultPen;
+    QColor penColor = defaultPen.color();
+
+    qreal selectedPenWidth = qMax(SELECTED_LINE_WIDTH / lod, 1.0);
+
+    if(isSelected()){
+        pen.setStyle(Qt::SolidLine);
+        penColor = Theme::theme()->getSelectedItemBorderColor();
+
+        pen.setWidthF(selectedPenWidth);
+    }
+
+    if(isHovered()){
+        pen.setWidthF(selectedPenWidth);
+        penColor = penColor.lighter(130);
+    }
+
+    pen.setColor(penColor);
+
+    return pen;
+}
+
+void EntityItemNew::setDefaultPen(QPen pen)
+{
+    defaultPen = pen;
 }
 
 bool EntityItemNew::isNodeItem()
@@ -263,22 +289,34 @@ bool EntityItemNew::isEdgeItem()
 
 void EntityItemNew::setHovered(bool isHovered)
 {
-    _isHovered = isHovered;
+    if(_isHovered != isHovered){
+        _isHovered = isHovered;
+        update();
+    }
 }
 
 void EntityItemNew::setHighlighted(bool isHighlight)
 {
-    _isHightlighted = isHighlight;
+    if(_isHightlighted != isHighlight){
+        _isHightlighted = isHighlight;
+        update();
+    }
 }
 
 void EntityItemNew::setSelected(bool selected)
 {
-    _isSelected = selected;
+    if(_isSelected != selected){
+        _isSelected = selected;
+        update();
+    }
 }
 
 void EntityItemNew::setActiveSelected(bool active)
 {
-    _isActiveSelected = active;
+    if(_isActiveSelected != active){
+        _isActiveSelected = active;
+        update();
+    }
 }
 
 bool EntityItemNew::isSelectionEnabled()

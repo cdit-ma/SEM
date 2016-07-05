@@ -33,5 +33,9 @@ public:
     // NodeItemNew interface
 
     // QGraphicsItem interface
+
+    // NodeItemNew interface
+public:
+    QRectF gridRect() const;
 };
 #endif

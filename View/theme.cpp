@@ -18,6 +18,8 @@ Theme::Theme():QObject(0)
     deployColor.setRed(95);
     deployColor.setGreen(158);
     deployColor.setBlue(160);
+
+    selectedItemBorderColor = Qt::blue;
 }
 
 QColor Theme::getBackgroundColor()
@@ -83,6 +85,16 @@ QColor Theme::getDeployColor()
 QString Theme::getDeployColorHex()
 {
     return Theme::QColorToHex(getDeployColor());
+}
+
+QColor Theme::getSelectedItemBorderColor()
+{
+    return selectedItemBorderColor;
+}
+
+QString Theme::getSelectedItemBorderColorHex()
+{
+    return Theme::QColorToHex(getSelectedItemBorderColor());
 }
 
 QSize Theme::roundQSize(QSize size)

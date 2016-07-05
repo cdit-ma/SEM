@@ -10,9 +10,11 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     minimumWidth = 0;
     expandedHeight = 0;
     expandedWidth = 0;
-    marginSize = 0;
     _isExpanded = false;
-    qCritical() << "NodeItemNew()";
+    gridVisible = true;
+    gridEnabled = true;
+    aspect = VA_NONE;
+
     nodeViewItem = viewItem;
     nodeItemKind = kind;
 
@@ -24,14 +26,13 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
 
     reloadRequiredData();
 
-
     if(parentItem){
+        //Lock child in same aspect as parent
+        setAspect(parentItem->getAspect());
+
         parentItem->addChildNode(this);
         setParentItem(parentItem);
     }
-
-
-    qCritical() << "NodeItemNew()";
 }
 
 NodeItemNew::~NodeItemNew()
@@ -138,15 +139,30 @@ QList<EdgeItemNew *> NodeItemNew::getProxyEdges()
 
 void NodeItemNew::setGridEnabled(bool enabled)
 {
-    gridEnabled = enabled;
-    if(gridEnabled){
-        updateGridLines();
+    if(gridEnabled != enabled){
+        gridEnabled = enabled;
+        if(gridEnabled){
+            updateGridLines();
+        }
     }
 }
 
 bool NodeItemNew::isGridEnabled() const
 {
     return gridEnabled;
+}
+
+void NodeItemNew::setGridVisible(bool visible)
+{
+    if(gridVisible != visible){
+        gridVisible = visible;
+        update();
+    }
+}
+
+bool NodeItemNew::isGridVisible() const
+{
+    return isGridEnabled() && gridVisible;
 }
 
 QRectF NodeItemNew::sceneBoundingRect() const
@@ -156,34 +172,25 @@ QRectF NodeItemNew::sceneBoundingRect() const
 
 QRectF NodeItemNew::boundingRect() const
 {
-    qreal margin = 2 * getMarginSize();
-
     QRectF rect;
-    rect.setWidth(margin + getWidth());
-    rect.setHeight(margin + getHeight());
+    rect.setWidth(margin.left() + margin.right() + getWidth());
+    rect.setHeight(margin.top() + margin.bottom() + getHeight());
     return rect;
 }
 
 QRectF NodeItemNew::contractedRect() const
 {
-    qreal margin = getMarginSize();
-    QRectF rect;
-    rect.setLeft(margin);
-    rect.setTop(margin);
-    rect.setWidth(getMinimumWidth());
-    rect.setHeight(getMinimumHeight());
-    return rect;
+    return QRectF(getMarginOffset(), QSizeF(getMinimumWidth(), getMinimumHeight()));
 }
 
 QRectF NodeItemNew::expandedRect() const
 {
-    qreal margin = getMarginSize();
-    QRectF rect;
-    rect.setLeft(margin);
-    rect.setTop(margin);
-    rect.setWidth(getExpandedWidth());
-    rect.setHeight(getExpandedHeight());
-    return rect;
+    return QRectF(getMarginOffset(), QSizeF(getExpandedWidth(), getExpandedHeight()));
+}
+
+QRectF NodeItemNew::currentRect() const
+{
+    return QRectF(getMarginOffset(), QSizeF(getWidth(), getHeight()));
 }
 
 QRectF NodeItemNew::gridRect() const
@@ -211,40 +218,54 @@ QSizeF NodeItemNew::getSize() const
 
 void NodeItemNew::setMinimumWidth(qreal width)
 {
-    prepareGeometryChange();
-    minimumWidth = width;
-    update();
+    if(minimumWidth != width){
+        minimumWidth = width;
+        if(!isExpanded()){
+            prepareGeometryChange();
+            update();
+            emit sizeChanged(getSize());
+        }
+    }
 }
 
 void NodeItemNew::setMinimumHeight(qreal height)
 {
-    prepareGeometryChange();
-    minimumHeight = height;
-    update();
+    if(minimumHeight != height){
+        minimumHeight = height;
+        if(!isExpanded()){
+            prepareGeometryChange();
+            update();
+            emit sizeChanged(getSize());
+        }
+    }
 }
 
 void NodeItemNew::setExpandedWidth(qreal width)
 {
-    prepareGeometryChange();
-    expandedWidth = width;
-    update();
+    if(expandedWidth != width){
+        expandedWidth = width;
+        if(isExpanded()){
+            prepareGeometryChange();
+            update();
+            emit sizeChanged(getSize());
+            updateGridLines();
+        }
+    }
 }
 
 void NodeItemNew::setExpandedHeight(qreal height)
 {
-    prepareGeometryChange();
-    expandedHeight = height;
-    update();
-}
-
-void NodeItemNew::setMarginSize(qreal size)
-{
-    if(marginSize != size){
-        prepareGeometryChange();
-        marginSize = size;
-        update();
+    if(expandedHeight != height){
+        expandedHeight = height;
+        if(isExpanded()){
+            prepareGeometryChange();
+            update();
+            emit sizeChanged(getSize());
+            updateGridLines();
+        }
     }
 }
+
 
 qreal NodeItemNew::getExpandedWidth() const
 {
@@ -266,14 +287,31 @@ qreal NodeItemNew::getMinimumHeight() const
     return minimumHeight;
 }
 
-qreal NodeItemNew::getMarginSize() const
+void NodeItemNew::setMargin(QMarginsF margin)
 {
-    return marginSize;
+    if(this->margin != margin){
+        prepareGeometryChange();
+        this->margin = margin;
+        update();
+    }
+}
+
+void NodeItemNew::setPadding(QMarginsF padding)
+{
+    if(this->padding != padding){
+        this->padding = padding;
+        updateGridLines();
+    }
 }
 
 QPointF NodeItemNew::getMarginOffset() const
 {
-    return QPointF(marginSize, marginSize);
+    return QPointF(margin.left(), margin.top());
+}
+
+QPointF NodeItemNew::getTopLeftSceneCoordinate() const
+{
+    return sceneBoundingRect().topLeft();
 }
 
 qreal NodeItemNew::getWidth() const
@@ -318,6 +356,36 @@ void NodeItemNew::setCenter(QPointF center)
 
     setPos(center);
 }
+
+void NodeItemNew::setPos(const QPointF &pos)
+{
+    if(this->pos() != pos){
+        QGraphicsObject::setPos(pos);
+        updateGridLines();
+        emit positionChanged();
+    }
+}
+
+void NodeItemNew::setAspect(VIEW_ASPECT aspect)
+{
+    this->aspect = aspect;
+}
+
+VIEW_ASPECT NodeItemNew::getAspect()
+{
+    return aspect;
+}
+
+QMarginsF NodeItemNew::getMargin() const
+{
+    return margin;
+}
+
+QMarginsF NodeItemNew::getPadding() const
+{
+    return padding;
+}
+
 
 bool NodeItemNew::isExpanded() const
 {
@@ -369,14 +437,98 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
     }
 }
 
+int NodeItemNew::getGridSize() const
+{
+    return 10;
+}
+
 void NodeItemNew::updateGridLines()
 {
     //TODO
+    if(isGridEnabled()){
+        QRectF grid = gridRect();
+        int gridSize = getGridSize();
+        int majorGridCount = 5;
+        gridLines_Major_Horizontal.clear();
+        gridLines_Minor_Horizontal.clear();
+        gridLines_Major_Vertical.clear();
+        gridLines_Minor_Vertical.clear();
 
+        QPointF topLeftOffset = getTopLeftSceneCoordinate();
+        QPointF gridScenePos =  topLeftOffset + gridRect().topLeft();
+
+        int gridX = ceil(gridScenePos.x() / gridSize);
+        int gridY = ceil(gridScenePos.y() / gridSize);
+
+        //Calculate the coordinate for the next grid line (In Scene coordinates)
+        qreal firstGridX = gridX * gridSize;
+        qreal firstGridY = gridY * gridSize;
+
+        //Translate back into item coordinates
+        qreal offsetX = firstGridX - topLeftOffset.x();
+        qreal offsetY = firstGridY - topLeftOffset.y();
+
+        int majorCountX = abs(gridX) % majorGridCount;
+        int majorCountY = abs(gridY) % majorGridCount;
+
+        if(gridX > 0 && majorCountX > 0){
+            majorCountX = majorGridCount - majorCountX;
+        }
+        if(gridY > 0 && majorCountY > 0){
+            majorCountY = majorGridCount - majorCountY;
+        }
+
+        //int majorCountY = gridY % majorGridCount;
+
+        qCritical() <<"Grid X: " << gridX << " X: " << majorCountX;
+        for(qreal x = offsetX; x <= grid.right(); x += gridSize){
+            QLineF line(x, grid.top(), x, grid.bottom());
+
+            if(majorCountX == 0){
+                gridLines_Major_Horizontal.append(line);
+                majorCountX = majorGridCount;
+            }else{
+                gridLines_Minor_Horizontal.append(line);
+            }
+            majorCountX --;
+        }
+
+        for(qreal y = offsetY; y <= grid.bottom(); y += gridSize){
+            QLineF line(grid.left(), y, grid.right(), y);
+            if(majorCountY == 0){
+                gridLines_Major_Horizontal.append(line);
+                majorCountY = majorGridCount;
+            }else{
+                gridLines_Minor_Horizontal.append(line);
+            }
+            majorCountY --;
+        }
+    }
 }
 
 void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    if(isGridVisible()){
+        painter->setClipRect(gridRect());
+        //Paint the grid lines.
+
+
+        QPen linePen;
+        linePen.setColor(Qt::gray);
+        linePen.setStyle(Qt::DotLine);
+        linePen.setWidthF(.5);
+        painter->setBrush(Qt::NoBrush);
+        painter->setPen(linePen);
+
+        painter->drawLines(gridLines_Minor_Horizontal);
+        painter->drawLines(gridLines_Minor_Vertical);
+
+        linePen.setWidthF(1);
+        linePen.setStyle(Qt::SolidLine);
+        painter->setPen(linePen);
+        painter->drawLines(gridLines_Major_Horizontal);
+        painter->drawLines(gridLines_Major_Vertical);
+    }
 }
 
 

@@ -172,7 +172,8 @@ HEADERS += \
     View/SceneItems/defaultnodeitem.h \
     View/SceneItems/edgeitemnew.h \
     View/SceneItems/entityitemnew.h \
-    View/SceneItems/nodeitemnew.h
+    View/SceneItems/nodeitemnew.h \
+    View/SceneItems/aspectitemnew.h
 
 
 SOURCES += \
@@ -309,7 +310,8 @@ SOURCES += \
     View/SceneItems/defaultnodeitem.cpp \
     View/SceneItems/edgeitemnew.cpp \
     View/SceneItems/entityitemnew.cpp \
-    View/SceneItems/nodeitemnew.cpp
+    View/SceneItems/nodeitemnew.cpp \
+    View/SceneItems/aspectitemnew.cpp
 
 
 RESOURCES += \

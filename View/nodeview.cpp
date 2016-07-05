@@ -12,6 +12,7 @@
 #include "SceneItems/nodeitemnew.h"
 #include "SceneItems/edgeitemnew.h"
 #include "SceneItems/defaultnodeitem.h"
+#include "SceneItems/aspectitemnew.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
@@ -1434,8 +1435,25 @@ void NodeView::viewItemConstructed(ViewItem *viewItem)
             depth ++;
         }
 
-        qCritical() << "PARENT: " << parent;
-        DefaultNodeItem* nodeItem = new DefaultNodeItem(nodeViewItem, parent);
+        QString nodeKind = nodeViewItem->getData("kind").toString();
+
+        NODE_CLASS nodeClass = nodeViewItem->getNodeClass();
+
+
+        //Check if we should construct this Node.
+        if(nonDrawnNodeClasses.contains(nodeClass) || !nodeViewItem->isInModel()){
+            return;
+        }
+
+        NodeItemNew* nodeItem =  0;
+        if(nodeKind.endsWith("Definitions")){
+            VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
+            nodeItem = new AspectItemNew(nodeViewItem, parent, aspect);
+        }else{
+            if(parent || (!parent  && nodeKind != "Model")){
+                nodeItem = new DefaultNodeItem(nodeViewItem, parent);
+            }
+        }
 
         newNodeItems[viewItem->getID()] = nodeItem;
 
@@ -2417,12 +2435,22 @@ void NodeView::itemEntered(int ID, bool enter)
 {
     GraphMLItem* current = getGraphMLItemFromID(ID);
     if(current && current->canHover()){
+
+        NodeItemNew* nvi = newNodeItems[ID];
+        if(nvi){
+            nvi->setHovered(enter);
+        }
         current->setHovered(enter);
 
         if(enter){
             GraphMLItem* prev = getGraphMLItemFromID(prevHighlightedID);
             if(prev){
                 prev->setHovered(false);
+            }
+
+            nvi = newNodeItems[prevHighlightedID];
+            if(nvi){
+                nvi->setHovered(false);
             }
 
             prevHighlightedID = ID;
@@ -3051,6 +3079,14 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
             //Set the Item as Selected
             item->setSelected(true);
 
+            //NodeView
+            NodeItemNew * nvi = newNodeItems[ID];
+            if(nvi){
+                nvi->setSelected(true);
+            }
+
+
+
             setActiveSelectionItem(ID);
 
             //Update the Deployment Selection for any node selected.
@@ -3069,6 +3105,11 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
 
         //Set the Item as Unselected
         item->setSelected(false);
+
+        NodeItemNew * nvi = newNodeItems[ID];
+        if(nvi){
+            nvi->setSelected(false);
+        }
 
         //Update the Deployment Selection for any node selected.
         if(nodeAdapter){
@@ -4417,6 +4458,12 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
                     NodeItem* nodeItem = (NodeItem*) graphMLItem;
                     if(nodeItem->getParentNodeItem()){
                         nodeItem->getParentNodeItem()->setDrawGrid(true);
+
+                        NodeItemNew*  nvi = newNodeItems[ID];
+                        if(nvi){
+                            nvi->getParentNodeItem()->setGridVisible(true);
+                        }
+
                     }
 
                     nodeItem->adjustPos(delta);
@@ -4447,6 +4494,12 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
                 if(nodeItem->getParentNodeItem()){
                     nodeItem->getParentNodeItem()->setDrawGrid(false);
+
+                    NodeItemNew*  nvi = newNodeItems[ID];
+                    if(nvi){
+                         //nvi->getParentNodeItem()->setGridVisible(false);
+                    }
+
                     nodeItem->getParentNodeItem()->updateSizeInModel();
                 }
 

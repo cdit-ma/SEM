@@ -41,6 +41,9 @@ public:
     QColor getDeployColor();
     QString getDeployColorHex();
 
+    QColor getSelectedItemBorderColor();
+    QString getSelectedItemBorderColorHex();
+
     QSize roundQSize(QSize size);
     void setBackgroundColor(QColor color);
     void setDisabledBackgroundColor(QColor color);
@@ -103,6 +106,7 @@ private:
     QColor altBackgroundColor;
     QColor disabledBackgroundColor;
     QColor iconColor;
+    QColor selectedItemBorderColor;
 
     QString slash;
 

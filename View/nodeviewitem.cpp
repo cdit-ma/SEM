@@ -20,6 +20,25 @@ int NodeViewItem::getParentID(int depth)
     return ID;
 }
 
+NODE_CLASS NodeViewItem::getNodeClass()
+{
+
+    NODE_CLASS nodeClass = NC_NONE;
+    if(entity){
+        nodeClass = entity->getNodeClass();
+    }
+    return nodeClass;
+}
+
+bool NodeViewItem::isInModel()
+{
+    bool isInModel = false;
+    if(entity){
+        isInModel = entity->isInModel();
+    }
+    return isInModel;
+}
+
 QList<int> NodeViewItem::getTreeIndex()
 {
     QList<int> index;

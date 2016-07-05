@@ -4,7 +4,10 @@
 #include "../viewitem.h"
 #include <QGraphicsObject>
 #include <QGraphicsSceneHoverEvent>
+#include <QPen>
 
+
+#define SELECTED_LINE_WIDTH 3
 class EntityItemNew: public QGraphicsObject
 {
     Q_OBJECT
@@ -56,6 +59,7 @@ public:
     bool isHighlighted();
 
     QPen getPen(qreal lod = -1);
+    void setDefaultPen(QPen pen);
 
     bool isNodeItem();
     bool isEdgeItem();
@@ -107,6 +111,8 @@ private:
     bool _isHightlighted;
     bool _isSelected;
     bool _isActiveSelected;
+
+    QPen defaultPen;
 
     KIND kind;
 

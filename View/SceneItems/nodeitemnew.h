@@ -5,6 +5,8 @@
 #include "../nodeviewitem.h"
 #include "edgeitemnew.h"
 #include <QRectF>
+#include <QMarginsF>
+#include <QPainter>
 #include <QPointF>
 class NodeItemNew: public EntityItemNew
 {
@@ -33,6 +35,8 @@ public:
 
     void setGridEnabled(bool enabled);
     bool isGridEnabled() const;
+    void setGridVisible(bool visible);
+    bool isGridVisible() const;
 
     virtual QRectF sceneBoundingRect() const;
 
@@ -41,6 +45,7 @@ public:
     virtual QRectF boundingRect() const;
     virtual QRectF contractedRect() const;
     virtual QRectF expandedRect() const;
+    virtual QRectF currentRect() const;
     virtual QRectF gridRect() const;
     QRectF childrenRect() const;
 
@@ -52,19 +57,34 @@ public:
     //Size/Position Functions
     void setExpandedWidth(qreal width);
     void setExpandedHeight(qreal height);
-    void setMarginSize(qreal size);
+
     qreal getExpandedWidth() const;
     qreal getExpandedHeight() const;
     qreal getMinimumWidth() const;
     qreal getMinimumHeight() const;
 
-    qreal getMarginSize() const;
+    void setMargin(QMarginsF margin);
+    void setPadding(QMarginsF padding);
+
     QPointF getMarginOffset() const;
+    QPointF getTopLeftSceneCoordinate() const;
+
     qreal getWidth() const;
     qreal getHeight() const;
 
     QPointF getCenter() const;
     void setCenter(QPointF center);
+
+    virtual void setPos(const QPointF &pos);
+
+
+    void setAspect(VIEW_ASPECT aspect);
+    VIEW_ASPECT getAspect();
+
+
+    QMarginsF getMargin() const;
+    QMarginsF getPadding() const;
+
 
     bool isExpanded() const;
 
@@ -87,6 +107,7 @@ public slots:
     void setExpanded(bool);
     virtual void dataChanged(QString keyName, QVariant data);
 private:
+    int getGridSize() const;
     void updateGridLines();
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
@@ -97,14 +118,24 @@ private:
     qreal expandedWidth;
     qreal expandedHeight;
 
-    qreal marginSize;
+    QMarginsF margin;
+    QMarginsF padding;
+
     bool _isExpanded;
 
     bool gridEnabled;
+    bool gridVisible;
+
+    VIEW_ASPECT aspect;
 
     QHash<int, NodeItemNew*> childNodes;
     QHash<int, EdgeItemNew*> childEdges;
     QHash<int, EdgeItemNew*> proxyChildEdges;
+
+    QVector<QLineF> gridLines_Minor_Horizontal;
+    QVector<QLineF> gridLines_Major_Horizontal;
+    QVector<QLineF> gridLines_Minor_Vertical;
+    QVector<QLineF> gridLines_Major_Vertical;
 
     // QGraphicsItem interface
 public:

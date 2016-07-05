@@ -17,7 +17,7 @@
 #define GRID_PADDING_RATIO .25
 
 #define GRID_MARGIN (GRID_PADDING_RATIO * ACTUAL_ITEM_SIZE)
-#define GRID_SIZE ((ACTUAL_ITEM_SIZE + GRID_MARGIN) / GRID_COUNT)
+#define GRID_SIZE 10 //((ACTUAL_ITEM_SIZE + GRID_MARGIN) / GRID_COUNT)
 
 #define SNAP_PERCENTAGE .5
 
@@ -208,11 +208,11 @@ void NodeItem::snapToGrid()
         return;
     }
 
-    QPointF gridPoint = getParentNodeItem()->getClosestGridPoint(getMinimumRectCenterPos());
+    //QPointF gridPoint = getParentNodeItem()->getClosestGridPoint(getMinimumRectCenterPos());
 
-    if(!gridPoint.isNull()){
-        setMinimumRectCenterPos(gridPoint);
-    }
+    //if(!gridPoint.isNull()){
+    //    setMinimumRectCenterPos(gridPoint);
+    //}
     updatePositionInModel();
 }
 
