@@ -22,6 +22,7 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
 
 EntityItemNew::~EntityItemNew()
 {
+    qCritical() << "DISCONNECTING";
     disconnectViewItem();
 }
 
@@ -223,10 +224,11 @@ void EntityItemNew::connectViewItem(ViewItem *viewItem)
 
 void EntityItemNew::disconnectViewItem()
 {
+    qCritical() << "GOT CRASH";
     if(viewItem){
         viewItem->removeListener(this);
         disconnect(viewItem, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
-        disconnect(viewItem, SIGNAL(destructing()), this, SLOT(deleteLater()));
+        disconnect(viewItem, SIGNAL(destructing()), this, SLOT(destruct()));
         viewItem = 0;
     }
 }
@@ -285,6 +287,12 @@ bool EntityItemNew::isNodeItem()
 bool EntityItemNew::isEdgeItem()
 {
     return kind == EntityItemNew::EDGE;
+}
+
+void EntityItemNew::destruct()
+{
+    disconnectViewItem();
+    delete this;
 }
 
 void EntityItemNew::setHovered(bool isHovered)

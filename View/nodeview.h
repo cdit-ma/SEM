@@ -177,6 +177,7 @@ private slots:
     void actionFinished();
 
     void viewItemConstructed(ViewItem* viewItem);
+
 signals:
     void view_LaunchWiki(QString entityKind);
     void view_ProjectFileChanged(QString);

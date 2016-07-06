@@ -4497,7 +4497,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
                     NodeItemNew*  nvi = newNodeItems[ID];
                     if(nvi){
-                         //nvi->getParentNodeItem()->setGridVisible(false);
+                         nvi->getParentNodeItem()->setGridVisible(false);
                     }
 
                     nodeItem->getParentNodeItem()->updateSizeInModel();

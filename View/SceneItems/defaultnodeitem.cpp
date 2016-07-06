@@ -10,6 +10,8 @@ DefaultNodeItem::DefaultNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem
     setMargin(QMarginsF(10, 25, 10, 10));
     setMinimumWidth(72);
     setMinimumHeight(72);
+    setGridEnabled(true);
+
 }
 
 DefaultNodeItem::~DefaultNodeItem()

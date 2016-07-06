@@ -108,6 +108,7 @@ public slots:
     virtual void dataChanged(QString keyName, QVariant data);
 private:
     int getGridSize() const;
+    int getMajorGridCount() const;
     void updateGridLines();
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;

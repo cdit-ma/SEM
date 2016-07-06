@@ -1,4 +1,5 @@
 #include "viewitem.h"
+#include <QDebug>
 
 ViewItem::ViewItem(EntityAdapter *entity)
 {
@@ -112,7 +113,6 @@ void ViewItem::destruct()
     if(hasListeners()){
         emit destructing();
     }else{
-        //Delete yo!
         deleteLater();
     }
 }

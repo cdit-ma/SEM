@@ -14,6 +14,7 @@ public:
     //SelectionHandler* constructSelectionHandler(QObject* parent);
 signals:
     void viewItemConstructed(ViewItem* viewItem);
+    void viewItemDestructing(int ID);
 
 private slots:
     void entityConstructed(EntityAdapter* entity);

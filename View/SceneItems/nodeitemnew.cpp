@@ -11,8 +11,8 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     expandedHeight = 0;
     expandedWidth = 0;
     _isExpanded = false;
-    gridVisible = true;
-    gridEnabled = true;
+    gridVisible = false;
+    gridEnabled = false;
     aspect = VA_NONE;
 
     nodeViewItem = viewItem;
@@ -442,35 +442,40 @@ int NodeItemNew::getGridSize() const
     return 10;
 }
 
+int NodeItemNew::getMajorGridCount() const
+{
+    return 5;
+}
+
 void NodeItemNew::updateGridLines()
 {
-    //TODO
     if(isGridEnabled()){
         QRectF grid = gridRect();
         int gridSize = getGridSize();
-        int majorGridCount = 5;
+        int majorGridCount = getMajorGridCount();
+
+        //Clear the old grid lines
         gridLines_Major_Horizontal.clear();
         gridLines_Minor_Horizontal.clear();
         gridLines_Major_Vertical.clear();
         gridLines_Minor_Vertical.clear();
 
-        QPointF topLeftOffset = getTopLeftSceneCoordinate();
-        QPointF gridScenePos =  topLeftOffset + gridRect().topLeft();
 
-        int gridX = ceil(gridScenePos.x() / gridSize);
-        int gridY = ceil(gridScenePos.y() / gridSize);
+        QPointF itemsOriginScenePos = getTopLeftSceneCoordinate();
+        QPointF gridRectScenePos =  itemsOriginScenePos + grid.topLeft();
 
-        //Calculate the coordinate for the next grid line (In Scene coordinates)
-        qreal firstGridX = gridX * gridSize;
-        qreal firstGridY = gridY * gridSize;
+        //Calculate the next grid count.
+        int gridX = ceil(gridRectScenePos.x() / gridSize);
+        int gridY = ceil(gridRectScenePos.y() / gridSize);
 
-        //Translate back into item coordinates
-        qreal offsetX = firstGridX - topLeftOffset.x();
-        qreal offsetY = firstGridY - topLeftOffset.y();
+        //Calculate the offset from the grid rect for the next gridlines (Item Coordinates)
+        qreal gridOffsetX = (gridX * gridSize) - itemsOriginScenePos.x();
+        qreal gridOffsetY = (gridY * gridSize) - itemsOriginScenePos.y();
 
         int majorCountX = abs(gridX) % majorGridCount;
         int majorCountY = abs(gridY) % majorGridCount;
 
+        //Positive Grid lines are counting down since the last grid line, so we have to invert it.
         if(gridX > 0 && majorCountX > 0){
             majorCountX = majorGridCount - majorCountX;
         }
@@ -478,10 +483,7 @@ void NodeItemNew::updateGridLines()
             majorCountY = majorGridCount - majorCountY;
         }
 
-        //int majorCountY = gridY % majorGridCount;
-
-        qCritical() <<"Grid X: " << gridX << " X: " << majorCountX;
-        for(qreal x = offsetX; x <= grid.right(); x += gridSize){
+        for(qreal x = gridOffsetX; x <= grid.right(); x += gridSize){
             QLineF line(x, grid.top(), x, grid.bottom());
 
             if(majorCountX == 0){
@@ -493,7 +495,7 @@ void NodeItemNew::updateGridLines()
             majorCountX --;
         }
 
-        for(qreal y = offsetY; y <= grid.bottom(); y += gridSize){
+        for(qreal y = gridOffsetY; y <= grid.bottom(); y += gridSize){
             QLineF line(grid.left(), y, grid.right(), y);
             if(majorCountY == 0){
                 gridLines_Major_Horizontal.append(line);
@@ -519,11 +521,10 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         linePen.setWidthF(.5);
         painter->setBrush(Qt::NoBrush);
         painter->setPen(linePen);
-
         painter->drawLines(gridLines_Minor_Horizontal);
         painter->drawLines(gridLines_Minor_Vertical);
 
-        linePen.setWidthF(1);
+        //linePen.setWidthF(1);
         linePen.setStyle(Qt::SolidLine);
         painter->setPen(linePen);
         painter->drawLines(gridLines_Major_Horizontal);

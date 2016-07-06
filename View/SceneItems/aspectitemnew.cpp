@@ -6,27 +6,22 @@ AspectItemNew::AspectItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, VI
 {
     setAspect(aspect);
     setExpanded(true);
+    setGridEnabled(true);
+
     setMinimumWidth(600);
     setMinimumHeight(400);
+    setDefaultPen(Qt::NoPen);
 
+    //Setup Margins/Padding
     setMargin(QMarginsF(10,10,10,10));
     setPadding(QMarginsF(10,10,10,10));
 
-
-    setGridEnabled(true);
-
-    setDefaultPen(Qt::NoPen);
-
-    //Force
-    QGraphicsObject::setPos(getAspectPos());
-
     aspectLabel = GET_ASPECT_NAME(aspect).toUpper();
     backgroundColor = GET_ASPECT_COLOR(aspect).darker(150);
-
     mainTextColor = backgroundColor.darker(110);
+
     mainTextFont.setPixelSize(70);
     mainTextFont.setBold(true);
-
 
     connect(this, SIGNAL(sizeChanged(QSizeF)), this, SLOT(resetPos()));
 }
@@ -71,21 +66,13 @@ QPointF AspectItemNew::getAspectPos()
 
 QRectF AspectItemNew::getMainTextRect() const
 {
-    QRectF rect;
-
     QMarginsF padding = getPadding();
-
 
     qreal width = getWidth() - (padding.left() + padding.right());
     qreal height = mainTextFont.pixelSize();
+    QPointF topLeft = expandedRect().bottomLeft() + QPointF(padding.left(), -height);
 
-    QPointF rectCenter = expandedRect().center();
-    rectCenter.setY(expandedRect().bottom() - padding.bottom() - (height / 2));
-
-    rect.setWidth(width);
-    rect.setHeight(height);
-    rect.moveCenter(rectCenter);
-    return rect;
+    return QRectF(topLeft, QSizeF(width, height));
 }
 
 void AspectItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
