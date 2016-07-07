@@ -1230,6 +1230,7 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
 
 void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+
     VIEW_STATE viewState = getViewState();
     //Set the mouse down type to the type which matches the position.
     mouseDownType = getMouseOverType(event->scenePos());

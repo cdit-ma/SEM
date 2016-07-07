@@ -16,8 +16,13 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     _isHovered = false;
     _isSelected = false;
     _isActiveSelected = false;
+    _isMoving = false;
+    selectEnabled = true;
+    moveEnabled = true;
+
 
     setHoverEnabled(true);
+    setFlag(QGraphicsItem::ItemIsSelectable, false);
 }
 
 EntityItemNew::~EntityItemNew()
@@ -128,6 +133,16 @@ QRectF EntityItemNew::sceneBoundingRect() const
     return QGraphicsObject::sceneBoundingRect();
 }
 
+QRectF EntityItemNew::moveRect() const
+{
+    return currentRect();
+}
+
+void EntityItemNew::adjustPos(QPointF delta)
+{
+    setPos(pos() + delta);
+}
+
 
 void EntityItemNew::setData(QString keyName, QVariant value)
 {
@@ -185,6 +200,7 @@ void EntityItemNew::setSelectionEnabled(bool enabled)
 
 void EntityItemNew::setHoverEnabled(bool enabled)
 {
+    setAcceptHoverEvents(enabled);
     hoverEnabled = enabled;
 }
 
@@ -224,12 +240,48 @@ void EntityItemNew::connectViewItem(ViewItem *viewItem)
 
 void EntityItemNew::disconnectViewItem()
 {
-    qCritical() << "GOT CRASH";
     if(viewItem){
         viewItem->removeListener(this);
         disconnect(viewItem, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
         disconnect(viewItem, SIGNAL(destructing()), this, SLOT(destruct()));
         viewItem = 0;
+    }
+}
+
+void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    qCritical() << "ENTITY ITEM MOUSE PRESS";
+    bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
+    if(currentRect().contains(event->pos())){
+        handleSelection(true, controlDown);
+    }
+
+
+    if(isMoveEnabled()){
+        if(event->button() == Qt::LeftButton && moveRect().contains(event->pos())){
+            //Check for movement.
+            _isMoving = true;
+            previousMovePoint = event->scenePos();
+        }
+    }
+}
+
+void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+{
+
+    if(_isMoving){
+        qCritical() << "ENTITY ITEM MOUSE MOVE";
+        QPointF deltaPos = event->scenePos() - previousMovePoint;
+        previousMovePoint = event->scenePos();
+        emit req_adjustPos(deltaPos);
+    }
+}
+
+void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    if(_isMoving){
+        _isMoving = false;
+        emit req_adjustPosFinished();
     }
 }
 
@@ -289,6 +341,19 @@ bool EntityItemNew::isEdgeItem()
     return kind == EntityItemNew::EDGE;
 }
 
+bool EntityItemNew::isMoving()
+{
+    return _isMoving;
+}
+
+QPair<QString, QString> EntityItemNew::getIconPath()
+{
+    if(viewItem){
+        return viewItem->getIcon();
+    }
+    return QPair<QString, QString>();
+}
+
 void EntityItemNew::destruct()
 {
     disconnectViewItem();
@@ -330,4 +395,16 @@ void EntityItemNew::setActiveSelected(bool active)
 bool EntityItemNew::isSelectionEnabled()
 {
     return selectEnabled;
+}
+
+void EntityItemNew::setMoveEnabled(bool enabled)
+{
+    if(moveEnabled != enabled){
+        moveEnabled = enabled;
+    }
+}
+
+bool EntityItemNew::isMoveEnabled()
+{
+    return moveEnabled;
 }

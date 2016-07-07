@@ -1454,13 +1454,22 @@ void NodeView::viewItemConstructed(ViewItem *viewItem)
                 nodeItem = new DefaultNodeItem(nodeViewItem, parent);
             }
         }
+        if(nodeItem){
 
-        newNodeItems[viewItem->getID()] = nodeItem;
+            newNodeItems[viewItem->getID()] = nodeItem;
 
 
-        if(!scene()->items().contains(nodeItem)){
-           scene()->addItem(nodeItem);
-        }//
+            connect(nodeItem, SIGNAL(req_adjustSize(NodeViewItem*,QSizeF, RECT_VERTEX)), this, SLOT(nodeItemNew_AdjustSize(NodeViewItem*,QSizeF,RECT_VERTEX)));
+            connect(nodeItem, SIGNAL(req_setData(ViewItem*,QString,QVariant)), this, SLOT(nodeItemNew_SetData(ViewItem*,QString,QVariant)));
+            connect(nodeItem, SIGNAL(req_setSelected(ViewItem*,bool)), this, SLOT(entityItemNew_Select(ViewItem*,bool)));
+            connect(nodeItem, SIGNAL(req_clearSelection()), this, SLOT(clearSelection()));
+            connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(moveSelection(QPointF)));
+            connect(nodeItem, SIGNAL(req_adjustPosFinished()), this, SLOT(moveFinished()));
+
+            if(!scene()->items().contains(nodeItem)){
+               scene()->addItem(nodeItem);
+            }//
+        }
     }
 }
 
@@ -1984,6 +1993,48 @@ void NodeView::setupSoundEffects()
         connect(this, SIGNAL(view_ModelReady()), clickSound, SLOT(play()));
     }
     */
+}
+
+void NodeView::nodeItemNew_SetData(ViewItem *item, QString key, QVariant data)
+{
+    emit view_SetData(item->getID(), key, data);
+}
+
+void NodeView::nodeItemNew_AdjustSize(NodeViewItem *item, QSizeF delta, RECT_VERTEX vertex)
+{
+    int ID = item->getID();
+    NodeItemNew* nodeItem = newNodeItems[ID];
+    if(nodeItem){
+        qreal deltaW = delta.width();
+        qreal deltaH = delta.height();
+        if(vertex == RV_TOP || vertex == RV_BOTTOM){
+            //Ignore width changes
+            deltaW = 0;
+        }else if(vertex == RV_LEFT || vertex == RV_RIGHT){
+            deltaH = 0;
+        }
+
+        if(vertex == RV_TOP || vertex == RV_TOPLEFT || vertex == RV_TOPRIGHT){
+            //Invert the H
+            deltaH *= -1;
+        }
+        if(vertex == RV_TOPLEFT || vertex == RV_LEFT || vertex == RV_BOTTOMLEFT){
+            //Invert the W
+            deltaW *= -1;
+        }
+
+        qreal currentW = nodeItem->getData("width").toReal();
+        qreal currentH = nodeItem->getData("height").toReal();
+
+        nodeItem->setData("width", currentW + deltaW);
+        nodeItem->setData("height", currentH + deltaH);
+    }
+}
+
+void NodeView::entityItemNew_Select(ViewItem *item, bool select)
+{
+    GraphMLItem* item2 = getGraphMLItemFromID(item->getID());
+    setGraphMLItemSelected(item2, select);
 }
 
 void NodeView::controllerDestroyed()
@@ -3705,6 +3756,20 @@ GraphMLItem *NodeView::getGraphMLItemFromScreenPos(QPoint pos)
     return 0;
 }
 
+EntityItemNew *NodeView::getEntityItemFromScreenPos(QPoint pos)
+{
+    QPointF scenePos = mapToScene(pos);
+
+    foreach(QGraphicsItem* item, scene()->items(scenePos)){
+        EntityItemNew* eIN =  dynamic_cast<EntityItemNew*>(item);
+        if(eIN){
+            return eIN;
+        }
+    }
+    return 0;
+
+}
+
 
 
 GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
@@ -3869,13 +3934,14 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     case Qt::LeftButton:{
         //QPointF scenePos = mapToScene(event->pos());
         GraphMLItem* itemUnderMouse = getGraphMLItemFromScreenPos(event->pos());
+        EntityItemNew* eIN = getEntityItemFromScreenPos(event->pos());
 
         switch(viewState){
         case VS_NONE:
             //Handle as Selected.
         case VS_SELECTED:
             //If we are currently in the None/Selected states and there is no item under the mouse/.
-            if(!itemUnderMouse){
+            if(!itemUnderMouse && !eIN){
                 //If Left Click on no item, clear selection.
                 clearSelection();
                 selectionChanged();
@@ -3946,8 +4012,9 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
     }
 
     GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
+    EntityItemNew* eIN = getEntityItemFromScreenPos(event->pos());
 
-    if(!item){
+    if(!item && !eIN){
         if(event->button() == Qt::LeftButton){
             fitToScreen();
         }
@@ -4384,6 +4451,9 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
     void NodeView::moveSelection(QPointF delta)
     {
+        if(viewState == VS_SELECTED){
+            setState(VS_MOVING);
+        }
         if(viewState == VS_MOVING){
 
             bool canReduceX = true;
@@ -4467,6 +4537,11 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
                     }
 
                     nodeItem->adjustPos(delta);
+
+                    NodeItemNew*  nvi = newNodeItems[ID];
+                    if(nvi){
+                        nvi->adjustPos(delta);
+                    }
                 }
             }
 

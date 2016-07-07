@@ -370,3 +370,21 @@ QColor GET_HARDWARE_HIGHLIGHT_COLOR()
     //return QColor(102,0,51);
     return QColor(178,34,34);
 }
+
+
+RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect)
+{
+    switch(aspect){
+    case VA_INTERFACES:
+        return RV_TOPLEFT;
+    case VA_BEHAVIOUR:
+        return RV_TOPRIGHT;
+    case VA_ASSEMBLIES:
+        return RV_BOTTOMLEFT;
+    case VA_HARDWARE:
+        return RV_BOTTOMRIGHT;
+    default:
+        break;
+    }
+    return RV_NONE;
+}

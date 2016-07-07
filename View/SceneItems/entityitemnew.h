@@ -14,7 +14,9 @@ class EntityItemNew: public QGraphicsObject
 
 public:
     enum KIND{EDGE, NODE};
-    enum ELEMENT_RECT{ER_MAIN_LABEL, ER_SECONDARY_LABEL, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION};
+    enum ELEMENT_RECT{ER_MAIN_LABEL, ER_SECONDARY_LABEL, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT};
+
+
 
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
@@ -29,12 +31,17 @@ public:
     int getID();
 
     virtual QRectF getElementRect(ELEMENT_RECT rect) = 0;
+    virtual QRectF getResizeRect(RECT_VERTEX vert) = 0;
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString alias, QString imageName, bool update=false, QColor tintColor=QColor());
 
 
     QRectF translatedBoundingRect() const;
     virtual QRectF sceneBoundingRect() const;
     virtual QRectF boundingRect() const = 0;
+    virtual QRectF currentRect() const = 0;
+    virtual QRectF moveRect() const;
+
+    void adjustPos(QPointF delta);
 
     bool intersectsRectInScene(QRectF rectInScene) const;
 
@@ -52,6 +59,10 @@ public:
     bool isActiveSelected();
     bool isSelectionEnabled();
 
+
+    void setMoveEnabled(bool enabled);
+    bool isMoveEnabled();
+
     void handleHover(bool hovered);
     void setHoverEnabled(bool enabled);
     bool isHovered();
@@ -63,8 +74,15 @@ public:
 
     bool isNodeItem();
     bool isEdgeItem();
+    bool isMoving();
+
+    QPair<QString, QString> getIconPath();
 
 signals:
+    //Request changes
+    void req_adjustPos(QPointF delta);
+    void req_adjustPosFinished();
+
     //Request changes
     void req_setSelected(ViewItem*, bool);
     void req_setActiveSelected(ViewItem*, bool);
@@ -85,17 +103,10 @@ private slots:
     void destruct();
 
 public:
-
     void setHovered(bool isHovered);
     void setHighlighted(bool isHighlight);
     void setSelected(bool selected);
     void setActiveSelected(bool active);
-    /*
-protected:
-    void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
-    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
-*/
 private:
     void connectViewItem(ViewItem* viewItem);
     void disconnectViewItem();
@@ -108,16 +119,24 @@ private:
 
     bool selectEnabled;
     bool hoverEnabled;
+    bool moveEnabled;
     bool _isHovered;
     bool _isHightlighted;
     bool _isSelected;
     bool _isActiveSelected;
+
+    bool _isMoving;
+    QPointF previousMovePoint;
 
     QPen defaultPen;
 
     KIND kind;
 
 
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // GRAPHMLITEM_H

@@ -38,6 +38,9 @@ public:
     void setGridVisible(bool visible);
     bool isGridVisible() const;
 
+    void setResizeEnabled(bool enabled);
+    bool isResizeEnabled();
+
     virtual QRectF sceneBoundingRect() const;
 
 
@@ -47,6 +50,8 @@ public:
     virtual QRectF expandedRect() const;
     virtual QRectF currentRect() const;
     virtual QRectF gridRect() const;
+    virtual QRectF moveRect() const;
+
     QRectF childrenRect() const;
 
     QSizeF getSize() const;
@@ -89,11 +94,7 @@ public:
     bool isExpanded() const;
 
 signals:
-    //Request changes
-    void req_adjustPos(QPointF delta);
-    void req_adjustPosFinished();
-
-    void req_adjustSize(NodeViewItem* item, QSizeF delta);
+    void req_adjustSize(NodeViewItem* item, QSizeF delta, RECT_VERTEX vertex);
     void req_adjustSizeFinished();
 
     //Inform of Changes
@@ -127,6 +128,13 @@ private:
     bool gridEnabled;
     bool gridVisible;
 
+    bool resizeEnabled;
+
+    RECT_VERTEX hoveredResizeVertex;
+    RECT_VERTEX selectedResizeVertex;
+
+    QPointF previousMovePoint;
+    QPointF previousResizePoint;
     VIEW_ASPECT aspect;
 
     QHash<int, NodeItemNew*> childNodes;
@@ -145,5 +153,18 @@ public:
     // EntityItemNew interface
 public:
     virtual QRectF getElementRect(ELEMENT_RECT rect) = 0;
+    virtual QRectF getResizeRect(RECT_VERTEX vert);
+
+    // QGraphicsItem interface
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
+
+
+    // QGraphicsItem interface
+protected:
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 };
 #endif

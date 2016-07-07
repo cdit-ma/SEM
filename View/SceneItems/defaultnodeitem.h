@@ -17,25 +17,15 @@ public:
     DefaultNodeItem(NodeViewItem* viewItem, NodeItemNew* parentItem);
     ~DefaultNodeItem();
 
+    QRectF headerRect() const;
+    QRectF bodyRect() const;
+
+    QRectF gridRect() const;
+    QRectF getElementRect(ELEMENT_RECT rect);
+    QRectF getResizeRect(RECT_VERTEX vert);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-    // EntityItemNew interface
-public:
-    QRectF getElementRect(ELEMENT_RECT rect);
-
-    // EntityItemNew interface
 private slots:
     void dataChanged(QString keyName, QVariant data);
-
-    // QGraphicsItem interface
-public:
-
-    // NodeItemNew interface
-
-    // QGraphicsItem interface
-
-    // NodeItemNew interface
-public:
-    QRectF gridRect() const;
 };
 #endif

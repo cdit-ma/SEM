@@ -37,7 +37,7 @@ void ViewController::entityDestructed(EntityAdapter *entity)
             viewItems.remove(ID);
 
             if(viewItem){
-                emit viewItemDestructed(ID);
+                emit viewItemDestructing(ID);
 
                 qCritical() << "VC: Destructing: " << viewItem;
                 viewItem->destruct();

@@ -164,6 +164,11 @@ private:
     void setupSoundEffects();
 
 private slots:
+    void nodeItemNew_SetData(ViewItem *item, QString key, QVariant data);
+    void nodeItemNew_AdjustSize(NodeViewItem* item, QSizeF delta, RECT_VERTEX vertex);
+    void entityItemNew_Select(ViewItem* item, bool select);
+
+
     void controllerDestroyed();
     void settingChanged(QString groupName, QString keyName, QVariant value);
     void modelReady();
@@ -517,7 +522,7 @@ private:
     GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);
 
     GraphMLItem* getGraphMLItemFromScreenPos(QPoint pos);
-
+    EntityItemNew* getEntityItemFromScreenPos(QPoint pos);
     GraphMLItem* getGraphMLItemFromID(int ID);
     EntityAdapter* getEntityAdapterFromID(int ID);
     NodeAdapter* getNodeAdapterFromID(int ID);
