@@ -587,6 +587,12 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             painter->drawRect(getResizeRect(hoveredResizeVertex));
         }
     }
+
+    if(state > RS_BLOCK){
+        painter->setPen(getPen());
+        painter->setBrush(Qt::NoBrush);
+        painter->drawRect(currentRect());
+    }
 }
 
 QRectF NodeItemNew::getResizeRect(RECT_VERTEX vert)

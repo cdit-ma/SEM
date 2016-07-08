@@ -65,6 +65,18 @@ bool ViewItem::hasData(QString keyName)
     return hasData;
 }
 
+void ViewItem::setDefaultIcon(QString icon_prefix, QString icon_name)
+{
+    //If the icon is different to what we have currently, update and send signal.
+    if(defaultIcon.first != icon_prefix || defaultIcon.second != icon_name){
+        defaultIcon.first = icon_prefix;
+        defaultIcon.second = icon_name;
+        if(currentIcon.first == "" || currentIcon.second == ""){
+            setIcon(icon_prefix, icon_name);
+        }
+    }
+}
+
 void ViewItem::setIcon(QString icon_prefix, QString icon_name)
 {
     //If the icon is different to what we have currently, update and send signal.

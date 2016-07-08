@@ -44,6 +44,7 @@ public:
     QColor getSelectedItemBorderColor();
     QString getSelectedItemBorderColorHex();
 
+
     QSize roundQSize(QSize size);
     void setBackgroundColor(QColor color);
     void setDisabledBackgroundColor(QColor color);

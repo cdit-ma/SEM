@@ -2005,13 +2005,18 @@ void NodeView::nodeItemNew_AdjustSize(NodeViewItem *item, QSizeF delta, RECT_VER
     int ID = item->getID();
     NodeItemNew* nodeItem = newNodeItems[ID];
     if(nodeItem){
+        qreal deltaX = delta.width();
+        qreal deltaY = delta.height();
+
         qreal deltaW = delta.width();
         qreal deltaH = delta.height();
         if(vertex == RV_TOP || vertex == RV_BOTTOM){
             //Ignore width changes
             deltaW = 0;
+            deltaX = 0;
         }else if(vertex == RV_LEFT || vertex == RV_RIGHT){
             deltaH = 0;
+            deltaY = 0;
         }
 
         if(vertex == RV_TOP || vertex == RV_TOPLEFT || vertex == RV_TOPRIGHT){
@@ -2023,9 +2028,29 @@ void NodeView::nodeItemNew_AdjustSize(NodeViewItem *item, QSizeF delta, RECT_VER
             deltaW *= -1;
         }
 
+        if(vertex == RV_BOTTOM || vertex == RV_BOTTOMLEFT || vertex == RV_BOTTOMRIGHT){
+            //Ignore the delta Y
+            deltaY = 0;
+        }
+        if(vertex == RV_RIGHT || vertex == RV_BOTTOMRIGHT || vertex == RV_TOPRIGHT){
+            //Ignore the delta X
+            deltaX = 0;
+        }
+
+        if(deltaW == 0){
+            deltaX = 0;
+        }
+        if(deltaH == 0){
+            deltaY = 0;
+        }
+
         qreal currentW = nodeItem->getData("width").toReal();
         qreal currentH = nodeItem->getData("height").toReal();
+        qreal currentX = nodeItem->getData("x").toReal();
+        qreal currentY = nodeItem->getData("y").toReal();
 
+        nodeItem->setData("x", currentX + deltaX);
+        nodeItem->setData("y", currentY + deltaY);
         nodeItem->setData("width", currentW + deltaW);
         nodeItem->setData("height", currentH + deltaH);
     }

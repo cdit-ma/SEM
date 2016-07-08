@@ -302,27 +302,26 @@ void EntityItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     handleHover(true);
 }*/
 
-QPen EntityItemNew::getPen(qreal lod)
+QPen EntityItemNew::getPen()
 {
     QPen pen = defaultPen;
+    pen.setJoinStyle(Qt::MiterJoin);
     QColor penColor = defaultPen.color();
-
-    qreal selectedPenWidth = qMax(SELECTED_LINE_WIDTH / lod, 1.0);
 
     if(isSelected()){
         pen.setStyle(Qt::SolidLine);
+        pen.setCosmetic(true);
         penColor = Theme::theme()->getSelectedItemBorderColor();
-
-        pen.setWidthF(selectedPenWidth);
+        pen.setWidthF(SELECTED_LINE_WIDTH);
     }
 
     if(isHovered()){
-        pen.setWidthF(selectedPenWidth);
+        pen.setCosmetic(true);
+        pen.setWidthF(SELECTED_LINE_WIDTH);
         penColor = penColor.lighter(130);
     }
 
     pen.setColor(penColor);
-
     return pen;
 }
 

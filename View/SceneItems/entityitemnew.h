@@ -69,7 +69,7 @@ public:
     bool isHoverEnabled();
     bool isHighlighted();
 
-    QPen getPen(qreal lod = -1);
+    QPen getPen();
     void setDefaultPen(QPen pen);
 
     bool isNodeItem();

@@ -24,6 +24,7 @@ public:
     QVariant getData(QString keyName);
     bool hasData(QString keyName);
 
+    void setDefaultIcon(QString icon_prefix, QString icon_name);
     void setIcon(QString icon_prefix, QString icon_name);
     void resetIcon();
     QPair<QString, QString> getIcon();

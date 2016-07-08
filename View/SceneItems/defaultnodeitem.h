@@ -25,6 +25,13 @@ public:
     QRectF getResizeRect(RECT_VERTEX vert);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
+private:
+    QRectF mainIconRect() const;
+    QRectF statusIcon(RECT_VERTEX vert) const;
+    QRectF rightLabelRect() const;
+    QRectF topLabelRect() const;
+    QRectF bottomTextRect() const;
+
 private slots:
     void dataChanged(QString keyName, QVariant data);
 };

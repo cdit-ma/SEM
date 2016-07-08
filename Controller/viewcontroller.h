@@ -11,6 +11,8 @@ class ViewController : public QObject
 public:
     ViewController();
 
+    void setDefaultIcon(ViewItem* viewItem);
+
     //SelectionHandler* constructSelectionHandler(QObject* parent);
 signals:
     void viewItemConstructed(ViewItem* viewItem);

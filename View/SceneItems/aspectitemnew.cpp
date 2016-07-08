@@ -24,7 +24,7 @@ AspectItemNew::AspectItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, VI
     mainTextColor = backgroundColor.darker(110);
 
     mainTextFont.setPixelSize(70);
-    mainTextFont.setBold(true);
+    mainTextFont.setBold(false);
 
     connect(this, SIGNAL(sizeChanged(QSizeF)), this, SLOT(resetPos()));
 }
@@ -106,17 +106,15 @@ QRectF AspectItemNew::getResizeRect(RECT_VERTEX vert)
 
 void AspectItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
-
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
 
-    painter->setPen(getPen(lod));
+    painter->setPen(Qt::NoPen);
     painter->setBrush(backgroundColor);
     painter->drawRect(expandedRect());
 
-    painter->setPen(mainTextColor);
     painter->setFont(mainTextFont);
+    painter->setPen(mainTextColor);
     painter->drawText(getMainTextRect(), Qt::AlignCenter, aspectLabel);
 
     NodeItemNew::paint(painter, option, widget);
