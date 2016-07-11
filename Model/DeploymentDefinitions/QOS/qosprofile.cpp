@@ -1,6 +1,6 @@
 #include "qosprofile.h"
 
-QOSProfile::QOSProfile(QOS_PROFILE profile):Node()
+QOSProfile::QOSProfile(QOS_PROFILE profile):Node(NT_QOSPROFILE)
 {
     middleware = profile;
 }

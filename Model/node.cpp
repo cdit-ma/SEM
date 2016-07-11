@@ -474,6 +474,13 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
         }
     }
 
+    if(acceptsEdgeClass(Edge::EC_QOS)){
+        //qCritical() << "Trying canConnect_QOSEdge";
+        if(canConnect_QOSEdge(node)){
+            return Edge::EC_QOS;
+        }
+    }
+
     return Edge::EC_NONE;
 }
 
@@ -593,6 +600,22 @@ bool Node::canConnect_WorkflowEdge(Node *node)
         return false;
     }
 
+    return true;
+}
+
+bool Node::canConnect_QOSEdge(Node *node)
+{
+    if(node->getNodeClass() != NT_QOSPROFILE){
+        //If the node we are trying to connect to isn't a HardwareType, then return false.
+        return false;
+    }
+
+    foreach(Edge* edge, getEdges(0)){
+        if(edge->getEdgeClass() == Edge::EC_QOS){
+            //There can only be one Deployment edge.
+            return false;
+        }
+    }
     return true;
 }
 

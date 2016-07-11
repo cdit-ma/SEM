@@ -7,6 +7,7 @@
 ComponentAssembly::ComponentAssembly():Node()
 {
     setAcceptEdgeClass(Edge::EC_DEPLOYMENT);
+    setAcceptEdgeClass(Edge::EC_QOS);
 }
 
 ComponentAssembly::~ComponentAssembly()

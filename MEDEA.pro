@@ -188,7 +188,8 @@ HEADERS += \
     Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h \
     Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h \
     Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h \
-    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h
+    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h \
+    Model/Edges/qosedge.h
 
 
 SOURCES += \
@@ -341,7 +342,8 @@ SOURCES += \
     Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.cpp \
     Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp \
     Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp \
-    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp
+    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp \
+    Model/Edges/qosedge.cpp
 
 
 RESOURCES += \
