@@ -108,6 +108,7 @@ public slots:
     void setExpanded(bool);
     virtual void dataChanged(QString keyName, QVariant data);
 private:
+    int getResizeArrowRotation(RECT_VERTEX vert) const;
     int getGridSize() const;
     int getMajorGridCount() const;
     void updateGridLines();
@@ -153,7 +154,9 @@ public:
     // EntityItemNew interface
 public:
     virtual QRectF getElementRect(ELEMENT_RECT rect) = 0;
-    virtual QRectF getResizeRect(RECT_VERTEX vert);
+    virtual QRectF getResizeRect(RECT_VERTEX vert) const;
+    virtual QRectF getResizeArrowRect(RECT_VERTEX vert) const;
+
 
     // QGraphicsItem interface
 protected:

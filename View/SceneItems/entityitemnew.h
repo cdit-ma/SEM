@@ -32,7 +32,10 @@ public:
 
     virtual QRectF getElementRect(ELEMENT_RECT rect) = 0;
     virtual QRectF getResizeRect(RECT_VERTEX vert) = 0;
-    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString alias, QString imageName, bool update=false, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor=QColor(), bool update=false);
+    void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor=QColor());
+
+
 
 
     QRectF translatedBoundingRect() const;
@@ -108,6 +111,10 @@ public:
     void setSelected(bool selected);
     void setActiveSelected(bool active);
 private:
+    void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
+    QPixmap getPixmap(QString imageAlias, QString imageName, QSize requiredSize=QSize(), QColor tintColor=QColor()) const;
+    QSize getPixmapSize(QRectF rect, qreal lod) const;
+
     void connectViewItem(ViewItem* viewItem);
     void disconnectViewItem();
 

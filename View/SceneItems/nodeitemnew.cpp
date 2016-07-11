@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <QStyleOptionGraphicsItem>
 
-
+#define RESIZE_RECT_SIZE 5
 NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeItemNew::KIND kind):EntityItemNew(viewItem, parentItem, EntityItemNew::NODE)
 {
     minimumHeight = 0;
@@ -477,6 +477,12 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
     }
 }
 
+int NodeItemNew::getResizeArrowRotation(RECT_VERTEX vert) const
+{
+    //Image starts Facing Bottom.
+    return -45 + (-45 * int(vert));
+}
+
 int NodeItemNew::getGridSize() const
 {
     return 10;
@@ -553,39 +559,28 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
 
     RENDER_STATE state = getRenderState(lod);
-    if(isGridVisible()){
-        painter->setClipRect(gridRect());
-        //Paint the grid lines.
 
+    //Paint the grid lines.
+    if(isGridVisible()){
+        painter->save();
+
+        painter->setClipRect(gridRect());
 
         QPen linePen;
         linePen.setColor(Qt::gray);
         linePen.setStyle(Qt::DotLine);
         linePen.setWidthF(.5);
+
         painter->setBrush(Qt::NoBrush);
         painter->setPen(linePen);
         painter->drawLines(gridLines_Minor_Horizontal);
         painter->drawLines(gridLines_Minor_Vertical);
 
-        //linePen.setWidthF(1);
         linePen.setStyle(Qt::SolidLine);
         painter->setPen(linePen);
         painter->drawLines(gridLines_Major_Horizontal);
         painter->drawLines(gridLines_Major_Vertical);
-    }
-
-    if(state > RS_BLOCK){
-        QColor resizeColor(150, 150, 150, 150);
-
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(resizeColor);
-
-        if(selectedResizeVertex != RV_NONE){
-            painter->drawRect(getResizeRect(selectedResizeVertex));
-        }
-        if(hoveredResizeVertex != RV_NONE){
-            painter->drawRect(getResizeRect(hoveredResizeVertex));
-        }
+        painter->restore();
     }
 
     if(state > RS_BLOCK){
@@ -593,14 +588,44 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->setBrush(Qt::NoBrush);
         painter->drawRect(currentRect());
     }
+
+    if(state > RS_BLOCK){
+        painter->save();
+        QColor resizeColor(150, 150, 150, 150);
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(resizeColor);
+
+
+        if(hoveredResizeVertex != RV_NONE){
+            painter->drawRect(getResizeRect(hoveredResizeVertex));
+        }
+
+        if(selectedResizeVertex != RV_NONE){
+            painter->drawRect(getResizeRect(selectedResizeVertex));
+            QRectF arrowRect = getResizeArrowRect(selectedResizeVertex);
+
+
+            //Rotate
+            painter->save();
+            painter->translate(arrowRect.center());
+            painter->rotate(-getResizeArrowRotation(selectedResizeVertex));
+            painter->translate(-(arrowRect.width() / 2), - (arrowRect.height() / 2));
+            paintPixmap(painter, lod, arrowRect.translated(-arrowRect.topLeft()), "Actions", "Resize", Qt::black);
+            painter->restore();
+        }
+        painter->restore();
+    }
+
+
 }
 
-QRectF NodeItemNew::getResizeRect(RECT_VERTEX vert)
+QRectF NodeItemNew::getResizeRect(RECT_VERTEX vert) const
 {
     QRectF rect;
 
     if(vert != RV_NONE){
-        int resizeRectRadius = 5;
+        int resizeRectRadius = RESIZE_RECT_SIZE;
         int resizeRectSize = resizeRectRadius * 2;
         rect.setWidth(resizeRectSize);
         rect.setHeight(resizeRectSize);
@@ -644,6 +669,13 @@ QRectF NodeItemNew::getResizeRect(RECT_VERTEX vert)
             }
         }
     }
+    return rect;
+}
+
+QRectF NodeItemNew::getResizeArrowRect(RECT_VERTEX vert) const
+{
+    QRectF rect(0, 0, 2 * RESIZE_RECT_SIZE, 2 * RESIZE_RECT_SIZE);
+    rect.moveCenter(getResizeRect(vert).center());
     return rect;
 }
 

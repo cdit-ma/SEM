@@ -60,39 +60,67 @@ int EntityItemNew::getID()
     return viewItem->getID();
 }
 
-void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELEMENT_RECT pos, QString alias, QString imageName, bool update, QColor tintColor)
+void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor, bool update)
 {
-    QRectF place = getElementRect(pos);
+    QRectF imageRect = getElementRect(pos);
 
-    if(!place.isEmpty()){
-        Theme* theme = Theme::theme();
-
+    if(!imageRect.isEmpty()){
         //Get the current Image from the Map
         QPixmap image = imageMap[pos];
 
         //Calculate the required size of the image.
-        QSize requiredSize;
-        requiredSize.setWidth(place.width() * lod * 2);
-        requiredSize.setHeight(place.height() * lod * 2);
-        requiredSize = theme->roundQSize(requiredSize);
+        QSize requiredSize = getPixmapSize(imageRect, lod);
 
         //If the image size is different to what is cached, we should Update, or we have been told to update.
         if(image.size() != requiredSize || update){
-            //Try get the image the user asked for.
-            image = theme->getImage(alias, imageName, requiredSize, tintColor);
-
-            if(image.isNull()){
-                //Use a help icon.
-                image = theme->getImage("Actions", "Help", requiredSize, tintColor);
-            }
+            image = getPixmap(imageAlias, imageName, requiredSize, tintColor);
             //Store the image into the map.
             imageMap[pos] = image;
         }
 
         //Paint Pixmap
-        painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
+        paintPixmap(painter, imageRect, image);
     }
 }
+
+void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor)
+{
+    //Calculate the required size of the image.
+    QSize requiredSize = getPixmapSize(imageRect, lod);
+    QPixmap pixmap = getPixmap(imageAlias, imageName, requiredSize, tintColor);
+    paintPixmap(painter, imageRect, pixmap);
+}
+
+void EntityItemNew::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap) const
+{
+    if(imageRect.isValid()){
+        painter->drawPixmap(imageRect.x(), imageRect.y(), imageRect.width(), imageRect.height(), pixmap);
+    }
+}
+
+QSize EntityItemNew::getPixmapSize(QRectF rect, qreal lod) const
+{
+    //Calculate the required size of the image.
+    QSize requiredSize;
+    requiredSize.setWidth(rect.width() * lod * 2);
+    requiredSize.setHeight(rect.height() * lod * 2);
+    requiredSize = Theme::theme()->roundQSize(requiredSize);
+    return requiredSize;
+}
+
+QPixmap EntityItemNew::getPixmap(QString imageAlias, QString imageName, QSize requiredSize, QColor tintColor) const
+{
+    Theme* theme = Theme::theme();
+
+    QPixmap image = theme->getImage(imageAlias, imageName, requiredSize, tintColor);
+
+    if(image.isNull()){
+        //Return a default ? Icon
+        image = theme->getImage("Actions", "Help", requiredSize, tintColor);
+    }
+    return image;
+}
+
 
 QRectF EntityItemNew::translatedBoundingRect() const
 {
