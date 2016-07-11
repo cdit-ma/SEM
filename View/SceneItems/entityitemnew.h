@@ -31,7 +31,7 @@ public:
     int getID();
 
     virtual QRectF getElementRect(ELEMENT_RECT rect) = 0;
-    virtual QRectF getResizeRect(RECT_VERTEX vert) = 0;
+    //virtual QRectF getResizeRect(RECT_VERTEX vert) = 0;
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor=QColor(), bool update=false);
     void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor=QColor());
 
@@ -144,6 +144,10 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
+    void hoverMoveEvent(QGraphicsSceneHoverEvent* event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+
 };
 
 #endif // GRAPHMLITEM_H

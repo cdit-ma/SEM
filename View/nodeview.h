@@ -164,6 +164,7 @@ private:
     void setupSoundEffects();
 
 private slots:
+    void entityItemNew_Hovered(EntityItemNew* item, bool hovered);
     void nodeItemNew_SetData(ViewItem *item, QString key, QVariant data);
     void nodeItemNew_AdjustSize(NodeViewItem* item, QSizeF delta, RECT_VERTEX vertex);
     void entityItemNew_Select(ViewItem* item, bool select);
@@ -285,6 +286,7 @@ signals:
     void view_ProjectRequiresSaving(bool requiresSave);
 
 public slots:
+
     QPointF getCenterOfScreenScenePos(QPoint mousePosition = QPoint());
     void canUndo(bool okay);
     void canRedo(bool okay);

@@ -216,7 +216,7 @@ void EntityItemNew::handleHover(bool hovered)
 {
     if(isHoverEnabled()){
         if(hovered != _isHovered){
-            emit req_hovered(this, _isHovered);
+            emit req_hovered(this, hovered);
         }
     }
 }
@@ -298,7 +298,6 @@ void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
 
     if(_isMoving){
-        qCritical() << "ENTITY ITEM MOUSE MOVE";
         QPointF deltaPos = event->scenePos() - previousMovePoint;
         previousMovePoint = event->scenePos();
         emit req_adjustPos(deltaPos);
@@ -313,22 +312,29 @@ void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-/*
+
 
 void EntityItemNew::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    handleHover(true);
-}
-
-void EntityItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
-{
-    handleHover(false);
 }
 
 void EntityItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    handleHover(true);
-}*/
+    if (currentRect().contains(event->pos())) {
+        handleHover(true);
+    }else{
+        if(isHovered()){
+           handleHover(false);
+        }
+    }
+}
+
+void EntityItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+{
+    if(isHovered()){
+        handleHover(false);
+    }
+}
 
 QPen EntityItemNew::getPen()
 {
@@ -339,13 +345,15 @@ QPen EntityItemNew::getPen()
     if(isSelected()){
         pen.setStyle(Qt::SolidLine);
         pen.setCosmetic(true);
-        penColor = Theme::theme()->getSelectedItemBorderColor();
         pen.setWidthF(SELECTED_LINE_WIDTH);
+        penColor = Theme::theme()->getSelectedItemBorderColor();
     }
 
     if(isHovered()){
-        pen.setCosmetic(true);
-        pen.setWidthF(SELECTED_LINE_WIDTH);
+        if(!isSelected()){
+            //penColor = Qt::darkGray;
+            penColor = QColor(115,115,115);
+        }
         penColor = penColor.lighter(130);
     }
 

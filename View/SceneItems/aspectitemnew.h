@@ -13,8 +13,7 @@ public:
     void setPos(const QPointF &pos);
 
     QRectF getElementRect(ELEMENT_RECT rect);
-    QRectF getResizeRect(RECT_VERTEX vert);
-    QRectF gridRect() const;
+    QRectF getResizeRect(RECT_VERTEX vert) const;
 
 public slots:
     void resetPos();
@@ -23,15 +22,12 @@ private:
     QPointF getAspectPos();
 
     QRectF getMainTextRect() const;
-    QRectF getResizeRect();
 
     QFont mainTextFont;
     QString aspectLabel;
     QColor backgroundColor;
     QColor mainTextColor;
     RECT_VERTEX aspectVertex;
-
-    // EntityItemNew interface
 };
 
 #endif // ASPECTITEMNEW_H

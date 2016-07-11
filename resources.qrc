@@ -201,6 +201,7 @@
         <file alias="Replicate_Count">Resources/Images/Actions/Replicate_Count.png</file>
         <file alias="getH">Resources/Images/Actions/getH.png</file>
         <file alias="Resize">Resources/Images/Actions/Resize.png</file>
+        <file alias="Square">Resources/Images/Actions/Square.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

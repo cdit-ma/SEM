@@ -20,9 +20,11 @@ public:
     KIND getNodeItemKind();
 
     void addChildNode(NodeItemNew* nodeItem);
+
     void removeChildNode(int ID);
 
-    QList<NodeItemNew*> getChildNodes();
+    bool hasChildNodes() const;
+    QList<NodeItemNew*> getChildNodes() const;
     QList<EntityItemNew*> getChildEntities() const;
 
     void addChildEdge(EdgeItemNew* edgeItem);
@@ -43,13 +45,16 @@ public:
 
     virtual QRectF sceneBoundingRect() const;
 
+    QColor getBodyColor() const;
+    void setBodyColor(QColor color);
 
     //RECTS
     virtual QRectF boundingRect() const;
     virtual QRectF contractedRect() const;
     virtual QRectF expandedRect() const;
     virtual QRectF currentRect() const;
-    virtual QRectF gridRect() const;
+    QRectF gridRect() const;
+    virtual QRectF bodyRect() const;
     virtual QRectF moveRect() const;
 
     QRectF childrenRect() const;
@@ -69,7 +74,7 @@ public:
     qreal getMinimumHeight() const;
 
     void setMargin(QMarginsF margin);
-    void setPadding(QMarginsF padding);
+    void setBodyPadding(QMarginsF bodyPadding);
 
     QPointF getMarginOffset() const;
     QPointF getTopLeftSceneCoordinate() const;
@@ -88,7 +93,7 @@ public:
 
 
     QMarginsF getMargin() const;
-    QMarginsF getPadding() const;
+    QMarginsF getBodyPadding() const;
 
 
     bool isExpanded() const;
@@ -122,9 +127,10 @@ private:
     qreal expandedHeight;
 
     QMarginsF margin;
-    QMarginsF padding;
+    QMarginsF bodyPadding;
 
     bool _isExpanded;
+    QColor bodyColor;
 
     bool gridEnabled;
     bool gridVisible;

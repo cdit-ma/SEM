@@ -15,12 +15,13 @@ AspectItemNew::AspectItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, VI
 
     //Setup Margins/Padding
     setMargin(QMarginsF(10,10,10,10));
-    setPadding(QMarginsF(10,10,10,10));
+    setBodyPadding(QMarginsF(10,10,10,10));
 
     aspectVertex = GET_ASPECT_VERTEX(aspect);
 
     aspectLabel = GET_ASPECT_NAME(aspect).toUpper();
     backgroundColor = GET_ASPECT_COLOR(aspect);//.darker(150);
+    setBodyColor(backgroundColor);
     mainTextColor = backgroundColor.darker(110);
 
     mainTextFont.setPixelSize(70);
@@ -68,7 +69,7 @@ QPointF AspectItemNew::getAspectPos()
 
 QRectF AspectItemNew::getMainTextRect() const
 {
-    QMarginsF padding = getPadding();
+    QMarginsF padding = getBodyPadding();
 
     qreal width = getWidth() - (padding.left() + padding.right());
     qreal height = mainTextFont.pixelSize();
@@ -77,7 +78,7 @@ QRectF AspectItemNew::getMainTextRect() const
     return QRectF(topLeft, QSizeF(width, height));
 }
 
-QRectF AspectItemNew::getResizeRect(RECT_VERTEX vert)
+QRectF AspectItemNew::getResizeRect(RECT_VERTEX vert) const
 {
     QRectF rect;
 
@@ -125,13 +126,3 @@ void AspectItemNew::setPos(const QPointF &pos)
     Q_UNUSED(pos);
     NodeItemNew::setPos(getAspectPos());
 }
-
-QRectF AspectItemNew::gridRect() const
-{
-    QRectF rect = currentRect();
-    QMarginsF padding = getPadding();
-
-    rect.adjust(padding.left(), padding.top(), -padding.right(), -padding.bottom());
-    return rect;
-}
-

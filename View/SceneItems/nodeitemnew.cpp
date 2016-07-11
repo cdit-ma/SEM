@@ -50,6 +50,20 @@ NodeItemNew::~NodeItemNew()
 
 }
 
+
+QColor NodeItemNew::getBodyColor() const
+{
+    return bodyColor;
+}
+
+void NodeItemNew::setBodyColor(QColor color)
+{
+    if(bodyColor != color){
+        bodyColor = color;
+        update();
+    }
+}
+
 NodeItemNew *NodeItemNew::getParentNodeItem() const
 {
     EntityItemNew* parent = getParent();
@@ -86,7 +100,12 @@ void NodeItemNew::removeChildNode(int ID)
     }
 }
 
-QList<NodeItemNew *> NodeItemNew::getChildNodes()
+bool NodeItemNew::hasChildNodes() const
+{
+    return !childNodes.isEmpty();
+}
+
+QList<NodeItemNew *> NodeItemNew::getChildNodes() const
 {
     return childNodes.values();
 }
@@ -217,7 +236,12 @@ QRectF NodeItemNew::currentRect() const
 
 QRectF NodeItemNew::gridRect() const
 {
-    return QRectF(10,10,10,10);
+    return bodyRect().marginsRemoved(getBodyPadding());
+}
+
+QRectF NodeItemNew::bodyRect() const
+{
+    return currentRect();
 }
 
 QRectF NodeItemNew::moveRect() const
@@ -336,10 +360,10 @@ void NodeItemNew::setMargin(QMarginsF margin)
     }
 }
 
-void NodeItemNew::setPadding(QMarginsF padding)
+void NodeItemNew::setBodyPadding(QMarginsF padding)
 {
-    if(this->padding != padding){
-        this->padding = padding;
+    if(this->bodyPadding != padding){
+        this->bodyPadding = padding;
         updateGridLines();
     }
 }
@@ -421,9 +445,9 @@ QMarginsF NodeItemNew::getMargin() const
     return margin;
 }
 
-QMarginsF NodeItemNew::getPadding() const
+QMarginsF NodeItemNew::getBodyPadding() const
 {
-    return padding;
+    return bodyPadding;
 }
 
 
@@ -567,7 +591,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->setClipRect(gridRect());
 
         QPen linePen;
-        linePen.setColor(Qt::gray);
+        linePen.setColor(getBodyColor().darker(150));
         linePen.setStyle(Qt::DotLine);
         linePen.setWidthF(.5);
 
@@ -597,23 +621,27 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->setBrush(resizeColor);
 
 
-        if(hoveredResizeVertex != RV_NONE){
-            painter->drawRect(getResizeRect(hoveredResizeVertex));
-        }
-
         if(selectedResizeVertex != RV_NONE){
             painter->drawRect(getResizeRect(selectedResizeVertex));
-            QRectF arrowRect = getResizeArrowRect(selectedResizeVertex);
+        }
 
+        if(hoveredResizeVertex != RV_NONE){
+            painter->drawRect(getResizeRect(hoveredResizeVertex));
 
+            QRectF arrowRect = getResizeArrowRect(hoveredResizeVertex);
             //Rotate
             painter->save();
             painter->translate(arrowRect.center());
-            painter->rotate(-getResizeArrowRotation(selectedResizeVertex));
+
+            painter->rotate(-getResizeArrowRotation(hoveredResizeVertex));
+
             painter->translate(-(arrowRect.width() / 2), - (arrowRect.height() / 2));
+
             paintPixmap(painter, lod, arrowRect.translated(-arrowRect.topLeft()), "Actions", "Resize", Qt::black);
             painter->restore();
         }
+
+
         painter->restore();
     }
 

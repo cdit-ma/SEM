@@ -1461,6 +1461,7 @@ void NodeView::viewItemConstructed(ViewItem *viewItem)
 
             connect(nodeItem, SIGNAL(req_adjustSize(NodeViewItem*,QSizeF, RECT_VERTEX)), this, SLOT(nodeItemNew_AdjustSize(NodeViewItem*,QSizeF,RECT_VERTEX)));
             connect(nodeItem, SIGNAL(req_setData(ViewItem*,QString,QVariant)), this, SLOT(nodeItemNew_SetData(ViewItem*,QString,QVariant)));
+            connect(nodeItem, SIGNAL(req_hovered(EntityItemNew*,bool)), this, SLOT(entityItemNew_Hovered(EntityItemNew*, bool)));
             connect(nodeItem, SIGNAL(req_setSelected(ViewItem*,bool)), this, SLOT(entityItemNew_Select(ViewItem*,bool)));
             connect(nodeItem, SIGNAL(req_clearSelection()), this, SLOT(clearSelection()));
             connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(moveSelection(QPointF)));
@@ -1472,6 +1473,7 @@ void NodeView::viewItemConstructed(ViewItem *viewItem)
         }
     }
 }
+
 
 
 QPointF NodeView::getCenterOfScreenScenePos(QPoint mousePosition)
@@ -1993,6 +1995,11 @@ void NodeView::setupSoundEffects()
         connect(this, SIGNAL(view_ModelReady()), clickSound, SLOT(play()));
     }
     */
+}
+
+void NodeView::entityItemNew_Hovered(EntityItemNew *item, bool hovered)
+{
+    item->setHovered(hovered);
 }
 
 void NodeView::nodeItemNew_SetData(ViewItem *item, QString key, QVariant data)

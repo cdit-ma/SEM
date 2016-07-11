@@ -11,7 +11,6 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
     if(viewItem->isNode()){
         QString nodeKind = viewItem->getData("kind").toString();
         viewItem->setDefaultIcon("Items", nodeKind);
-        qCritical() << viewItem->getIcon();
     }
 }
 

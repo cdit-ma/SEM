@@ -8,18 +8,33 @@
 #define SMALL_ICON_RATIO (1.0 / 6.0)
 #define LABEL_RATIO (2.5 / 6.0)
 #define INNER_PADDING 3
-
 DefaultNodeItem::DefaultNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem):NodeItemNew(viewItem, parentItem, NodeItemNew::DEFAULT_ITEM)
 {
     setMargin(QMarginsF(10, 25, 10, 10));
+    setBodyPadding(QMarginsF(10,10,10,10));
     setMinimumWidth(72);
     setMinimumHeight(72);
+    setHeaderPadding(QMarginsF(INNER_PADDING, INNER_PADDING, INNER_PADDING, INNER_PADDING));
 
+    setupBrushes();
 }
 
 DefaultNodeItem::~DefaultNodeItem()
 {
 
+}
+
+void DefaultNodeItem::setHeaderPadding(QMarginsF padding)
+{
+    if(headerPadding != padding){
+        headerPadding = padding;
+        update();
+    }
+}
+
+QMarginsF DefaultNodeItem::getHeaderPadding() const
+{
+    return headerPadding;
 }
 
 QRectF DefaultNodeItem::headerRect() const
@@ -34,6 +49,18 @@ QRectF DefaultNodeItem::bodyRect() const
     QRectF rect = currentRect();
     rect.setHeight(getHeight() - getMinimumHeight());
     rect.moveBottomLeft(currentRect().bottomLeft());
+    return rect;
+}
+
+QRectF DefaultNodeItem::expandStateRect() const
+{
+    QRectF rect;
+    if(hasChildNodes()){
+        qreal iconSize = (SMALL_ICON_RATIO * getMinimumHeight()) / 2;
+        rect.setWidth(iconSize);
+        rect.setHeight(iconSize);
+        rect.moveBottomRight(currentRect().marginsRemoved(getHeaderPadding()).bottomRight());
+    }
     return rect;
 }
 
@@ -55,9 +82,9 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
 
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(Qt::gray);
+    painter->setBrush(getBodyColor());
     painter->drawRect(bodyRect());
-    painter->setBrush(Qt::white);
+    painter->setBrush(getBodyColor().darker(105));
     painter->drawRect(headerRect());
     painter->setBrush(Qt::NoBrush);
 
@@ -71,10 +98,12 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
     if(state > RS_BLOCK){
         QPair<QString, QString> icon = getIconPath();
         paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
-        paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
-        paintPixmap(painter, lod, ER_STATUS, "Actions", "Locked");
-        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", "Snippet");
-        paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, "Actions", "Key");
+        //paintPixmap(painter, lod, ER_MAIN_ICON, "Actions", "Square", Qt::yellow);
+
+        paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Square");
+        paintPixmap(painter, lod, ER_STATUS, "Actions", "Square");
+        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", "Square");
+        paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, "Actions", "Square");
     }
 
     painter->setPen(Qt::NoPen);
@@ -83,9 +112,28 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
     painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, "LABEL");
 
     painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
-    //painter->drawRect(getElementRect(ER_MAIN_ICON));
+
+    if(isExpanded()){
+        paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Contract");
+    }else{
+        paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
+    }
 
     NodeItemNew::paint(painter, option, widget);
+}
+
+
+
+void DefaultNodeItem::setupBrushes()
+{
+    QColor bodyColor = QColor(233,234,237);
+
+    NodeItemNew* parentNodeItem = getParentNodeItem();
+    if(parentNodeItem && parentNodeItem->getNodeItemKind() == DEFAULT_ITEM){
+        DefaultNodeItem* parent = (DefaultNodeItem*)parentNodeItem;
+        bodyColor = parent->getBodyColor().darker(110);
+    }
+    setBodyColor(bodyColor);
 }
 
 QRectF DefaultNodeItem::mainIconRect() const
@@ -101,26 +149,23 @@ QRectF DefaultNodeItem::statusIcon(RECT_VERTEX vert) const
 {
     qreal iconSize = SMALL_ICON_RATIO * getMinimumHeight();
     QRectF rect(0, 0, iconSize, iconSize);
+    QRectF hRect = headerRect().marginsRemoved(getHeaderPadding());
 
     switch(vert){
     case RV_TOPLEFT:{
-        rect.moveTopLeft(currentRect().topLeft());
-        rect.adjust(INNER_PADDING, INNER_PADDING, INNER_PADDING, INNER_PADDING);
+        rect.moveTopLeft(hRect.topLeft());
         break;
     }
     case RV_TOPRIGHT:{
-        rect.moveTopRight(currentRect().topRight());
-        rect.adjust(-INNER_PADDING, INNER_PADDING, -INNER_PADDING, INNER_PADDING);
+        rect.moveTopRight(hRect.topRight());
         break;
     }
     case RV_BOTTOMLEFT:{
-        rect.moveBottomLeft(contractedRect().bottomLeft());
-        rect.adjust(INNER_PADDING, -INNER_PADDING, INNER_PADDING, -INNER_PADDING);
+        rect.moveBottomLeft(hRect.bottomLeft());
         break;
     }
     case RV_BOTTOMRIGHT:{
-        rect.moveBottomRight(contractedRect().bottomLeft() + QPointF(getWidth(), 0));
-        rect.adjust(-INNER_PADDING, -INNER_PADDING, -INNER_PADDING, -INNER_PADDING);
+        rect.moveBottomRight(hRect.bottomRight());
         break;
     }
     case RV_NONE:{
@@ -184,6 +229,8 @@ QRectF DefaultNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect)
         return rightLabelRect();
     case ER_SECONDARY_TEXT:
         return bottomTextRect();
+    case ER_EXPANDED_STATE:
+        return expandStateRect();
     default:
         return QRectF();
     }
@@ -194,10 +241,6 @@ void DefaultNodeItem::dataChanged(QString keyName, QVariant data)
     NodeItemNew::dataChanged(keyName, data);
 }
 
-QRectF DefaultNodeItem::gridRect() const
-{
-    return bodyRect();
-}
 
 QRectF DefaultNodeItem::getResizeRect(RECT_VERTEX vert)
 {
