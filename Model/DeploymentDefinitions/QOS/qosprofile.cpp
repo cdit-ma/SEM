@@ -7,7 +7,6 @@ QOSProfile::QOSProfile(QOS_PROFILE profile):Node(NT_QOSPROFILE)
 
 QOSProfile::~QOSProfile()
 {
-
 }
 
 QOS_PROFILE QOSProfile::getProfileMiddleware()

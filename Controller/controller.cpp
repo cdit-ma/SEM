@@ -4413,6 +4413,13 @@ void NewController::constructEdgeGUI(Edge *edge)
         }
         break;
     }
+    case Edge::EC_QOS:{
+        if(!edge->getData(descriptionKey)){
+            Data* label = new Data(descriptionKey, "Using QOS");
+            attachData(edge, label, false);
+        }
+        break;
+    }
     default:
         break;
     }
@@ -4602,6 +4609,9 @@ Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS e
         break;
     case Edge::EC_DEPLOYMENT:
         returnable = new DeploymentEdge(src, dst);
+        break;
+    case Edge::EC_QOS:
+        returnable = new QOSEdge(src, dst);
         break;
     default:
         returnable = new Edge(src, dst);

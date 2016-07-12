@@ -18,6 +18,7 @@
 #include "../Model/Edges/assemblyedge.h"
 #include "../Model/Edges/aggregateedge.h"
 #include "../Model/Edges/deploymentedge.h"
+#include "../Model/Edges/qosedge.h"
 #include "../Model/data.h"
 
 #include "doublehash.h"

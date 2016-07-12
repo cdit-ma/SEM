@@ -1,5 +1,5 @@
 #include "qosedge.h"
-
+#include "../node.h"
 QOSEdge::QOSEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_QOS)
 {
 }
