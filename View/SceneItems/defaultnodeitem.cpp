@@ -8,12 +8,14 @@
 #define SMALL_ICON_RATIO (1.0 / 6.0)
 #define LABEL_RATIO (2.5 / 6.0)
 #define INNER_PADDING 3
+
 DefaultNodeItem::DefaultNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem):NodeItemNew(viewItem, parentItem, NodeItemNew::DEFAULT_ITEM)
 {
     setMargin(QMarginsF(10, 25, 10, 10));
     setBodyPadding(QMarginsF(10,10,10,10));
     setMinimumWidth(72);
     setMinimumHeight(72);
+
     setHeaderPadding(QMarginsF(INNER_PADDING, INNER_PADDING, INNER_PADDING, INNER_PADDING));
 
     setupBrushes();
@@ -50,6 +52,11 @@ QRectF DefaultNodeItem::bodyRect() const
     rect.setHeight(getHeight() - getMinimumHeight());
     rect.moveBottomLeft(currentRect().bottomLeft());
     return rect;
+}
+
+QRectF DefaultNodeItem::moveRect() const
+{
+    return headerRect();
 }
 
 QRectF DefaultNodeItem::expandStateRect() const
@@ -89,9 +96,10 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
     painter->setBrush(Qt::NoBrush);
 
     QPen pen;
+
     pen.setColor(Qt::yellow);
     painter->setPen(pen);
-    painter->drawRect(childrenBoundingRect());
+    painter->drawPath(getChildNodePath());
 
 
 
@@ -100,16 +108,24 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
         paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
         //paintPixmap(painter, lod, ER_MAIN_ICON, "Actions", "Square", Qt::yellow);
 
-        paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Square");
-        paintPixmap(painter, lod, ER_STATUS, "Actions", "Square");
-        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", "Square");
-        paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, "Actions", "Square");
+
+
+        paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
+        paintPixmap(painter, lod, ER_STATUS, "Actions", "Computer");
+        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", "Clock");
+
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QColor(255,255,255,150));
+        painter->drawRect(getElementRect(ER_MAIN_ICON_OVERLAY));
+        paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, "Actions", "Key");
     }
 
     painter->setPen(Qt::NoPen);
-    painter->setPen(Qt::red);
-    painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignVCenter | Qt::AlignLeft, "LABEL");
-    painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, "LABEL");
+    painter->setPen(Qt::black);
+    QString label = getData("label").toString();
+    painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignVCenter | Qt::AlignLeft, label);
+    painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, label);
 
     painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
 
@@ -126,7 +142,7 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
 
 void DefaultNodeItem::setupBrushes()
 {
-    QColor bodyColor = QColor(233,234,237);
+    QColor bodyColor = QColor(233,234,237).lighter(110);
 
     NodeItemNew* parentNodeItem = getParentNodeItem();
     if(parentNodeItem && parentNodeItem->getNodeItemKind() == DEFAULT_ITEM){
@@ -182,7 +198,8 @@ QRectF DefaultNodeItem::statusIcon(RECT_VERTEX vert) const
 QRectF DefaultNodeItem::rightLabelRect() const
 {
     QRectF rect;
-    rect.setWidth(expandedRect().right() - mainIconRect().right());
+    QRectF cRect = headerRect().marginsRemoved(getHeaderPadding());
+    rect.setWidth(cRect.right() - mainIconRect().right());
     rect.setHeight(LABEL_RATIO * getMinimumHeight());
     QPointF topLeft = mainIconRect().topRight();
     topLeft += QPointF(0, (mainIconRect().height() / 2)) + QPointF(0, -rect.height() / 2);
@@ -231,6 +248,8 @@ QRectF DefaultNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect)
         return bottomTextRect();
     case ER_EXPANDED_STATE:
         return expandStateRect();
+    case ER_EXPANDCONTRACT:
+        return mainIconRect();
     default:
         return QRectF();
     }

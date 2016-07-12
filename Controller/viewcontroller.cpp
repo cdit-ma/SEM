@@ -9,8 +9,22 @@ ViewController::ViewController(){
 void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
     if(viewItem->isNode()){
+
         QString nodeKind = viewItem->getData("kind").toString();
-        viewItem->setDefaultIcon("Items", nodeKind);
+        QString imageName = nodeKind;
+        if(nodeKind == "HardwareNode"){
+            bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
+
+            if(localhost){
+                imageName = "Localhost";
+            }else{
+                QString os = viewItem->getData("os").toString();
+                QString arch = viewItem->getData("architecture").toString();
+                imageName = os + "_" + arch;
+                imageName = imageName.remove(" ");
+            }
+        }
+        viewItem->setDefaultIcon("Items", imageName);
     }
 }
 

@@ -11,7 +11,6 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     minimumWidth = 0;
     expandedHeight = 0;
     expandedWidth = 0;
-    _isExpanded = false;
     gridVisible = false;
     gridEnabled = false;
     resizeEnabled = false;
@@ -26,6 +25,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     setGridEnabled(true);
     setSelectionEnabled(true);
     setResizeEnabled(true);
+    setExpandEnabled(true);
 
 
     addRequiredData("x");
@@ -380,7 +380,7 @@ QPointF NodeItemNew::getTopLeftSceneCoordinate() const
 
 qreal NodeItemNew::getWidth() const
 {
-    if(_isExpanded){
+    if(isExpanded()){
         return getExpandedWidth();
     }else{
         return getMinimumWidth();
@@ -389,7 +389,7 @@ qreal NodeItemNew::getWidth() const
 
 qreal NodeItemNew::getHeight() const
 {
-    if(_isExpanded){
+    if(isExpanded()){
         return getExpandedHeight();
     }else{
         return getMinimumHeight();
@@ -450,27 +450,24 @@ QMarginsF NodeItemNew::getBodyPadding() const
     return bodyPadding;
 }
 
-
-bool NodeItemNew::isExpanded() const
-{
-    return _isExpanded;
-}
-
 void NodeItemNew::setExpanded(bool expand)
 {
-    if(_isExpanded != expand){
-        prepareGeometryChange();
-        _isExpanded = expand;
+    if(isExpanded() != expand){
+        //Call the base class
+        EntityItemNew::setExpanded(expand);
 
+        prepareGeometryChange();
         //Hide/Show Children
         foreach(NodeItemNew* child, getChildNodes()){
-            child->setVisible(_isExpanded);
+            child->setVisible(isExpanded());
         }
 
         update();
         emit sizeChanged(getSize());
     }
 }
+
+
 
 void NodeItemNew::dataChanged(QString keyName, QVariant data)
 {
@@ -515,6 +512,24 @@ int NodeItemNew::getGridSize() const
 int NodeItemNew::getMajorGridCount() const
 {
     return 5;
+}
+
+QPainterPath NodeItemNew::getChildNodePath()
+{
+    QPainterPath path;
+    foreach(NodeItemNew* child, childNodes.values()){
+        path.addRect(child->translatedBoundingRect());
+    }
+    return path;
+}
+
+QPointF NodeItemNew::getNextChildPos(QRectF childRect)
+{
+    if(childRect.isNull()){
+        childRect = contractedRect();
+    }
+
+
 }
 
 void NodeItemNew::updateGridLines()
@@ -709,6 +724,7 @@ QRectF NodeItemNew::getResizeArrowRect(RECT_VERTEX vert) const
 
 void NodeItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    bool caughtResize = false;
     if(isResizeEnabled() && isExpanded()){
         RECT_VERTEX vertex = RV_NONE;
         for(int i = RV_LEFT;i <= RV_BOTTOMLEFT; i++){
@@ -723,10 +739,13 @@ void NodeItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 previousResizePoint = event->scenePos();
             }
             update();
+            caughtResize = true;
         }
     }
 
-    EntityItemNew::mousePressEvent(event);
+    if(!caughtResize){
+        EntityItemNew::mousePressEvent(event);
+    }
 }
 
 void NodeItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -734,9 +753,9 @@ void NodeItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
    if(selectedResizeVertex != RV_NONE){
        selectedResizeVertex = RV_NONE;
        update();
+   }else{
+       EntityItemNew::mouseReleaseEvent(event);
    }
-
-   EntityItemNew::mouseReleaseEvent(event);
 }
 
 void NodeItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -745,9 +764,9 @@ void NodeItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QPointF deltaPos = event->scenePos() - previousResizePoint;
         previousResizePoint = event->scenePos();
         emit req_adjustSize(nodeViewItem, QSizeF(deltaPos.x(), deltaPos.y()), selectedResizeVertex);
+    }else{
+        EntityItemNew::mouseMoveEvent(event);
     }
-
-    EntityItemNew::mouseMoveEvent(event);
 }
 
 void NodeItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
@@ -765,7 +784,6 @@ void NodeItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
             update();
         }
     }
-
     EntityItemNew::hoverMoveEvent(event);
 }
 

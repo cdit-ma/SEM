@@ -4,6 +4,7 @@
 #include <QStyleOptionGraphicsItem>
 AspectItemNew::AspectItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, VIEW_ASPECT aspect):NodeItemNew(viewItem, parentItem, NodeItemNew::ASPECT_ITEM)
 {
+    //Set the Aspect
     setAspect(aspect);
 
     setExpanded(true);
@@ -17,15 +18,12 @@ AspectItemNew::AspectItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, VI
     setMargin(QMarginsF(10,10,10,10));
     setBodyPadding(QMarginsF(10,10,10,10));
 
+    setupBrushes();
+
+    //Get the Aspects Position
     aspectVertex = GET_ASPECT_VERTEX(aspect);
-
+    //Get the Label of the Aspect
     aspectLabel = GET_ASPECT_NAME(aspect).toUpper();
-    backgroundColor = GET_ASPECT_COLOR(aspect);//.darker(150);
-    setBodyColor(backgroundColor);
-    mainTextColor = backgroundColor.darker(110);
-
-    mainTextFont.setPixelSize(70);
-    mainTextFont.setBold(false);
 
     connect(this, SIGNAL(sizeChanged(QSizeF)), this, SLOT(resetPos()));
 }
@@ -76,6 +74,16 @@ QRectF AspectItemNew::getMainTextRect() const
     QPointF topLeft = expandedRect().bottomLeft() + QPointF(padding.left(), -height);
 
     return QRectF(topLeft, QSizeF(width, height));
+}
+
+void AspectItemNew::setupBrushes()
+{
+    backgroundColor = GET_ASPECT_COLOR(getAspect());
+    setBodyColor(backgroundColor);
+    mainTextColor = backgroundColor.darker(110);
+
+    mainTextFont.setPixelSize(70);
+    mainTextFont.setBold(true);
 }
 
 QRectF AspectItemNew::getResizeRect(RECT_VERTEX vert) const

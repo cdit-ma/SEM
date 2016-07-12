@@ -2,7 +2,6 @@
 #define ASPECTITEMNEW_H
 
 #include "nodeitemnew.h"
-#include <QFont>
 
 class AspectItemNew : public NodeItemNew
 {
@@ -20,9 +19,10 @@ public slots:
 
 private:
     QPointF getAspectPos();
-
     QRectF getMainTextRect() const;
+    void setupBrushes();
 
+private:
     QFont mainTextFont;
     QString aspectLabel;
     QColor backgroundColor;

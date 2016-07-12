@@ -168,6 +168,8 @@ private slots:
     void nodeItemNew_SetData(ViewItem *item, QString key, QVariant data);
     void nodeItemNew_AdjustSize(NodeViewItem* item, QSizeF delta, RECT_VERTEX vertex);
     void entityItemNew_Select(ViewItem* item, bool select);
+    void entityItemNew_Expand(EntityItemNew* item, bool expand);
+
 
 
     void controllerDestroyed();

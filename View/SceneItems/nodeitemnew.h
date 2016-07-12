@@ -27,6 +27,8 @@ public:
     QList<NodeItemNew*> getChildNodes() const;
     QList<EntityItemNew*> getChildEntities() const;
 
+    QPainterPath getChildNodePath();
+
     void addChildEdge(EdgeItemNew* edgeItem);
     void removeChildEdge(int ID);
     QList<EdgeItemNew*> getChildEdges();
@@ -96,7 +98,8 @@ public:
     QMarginsF getBodyPadding() const;
 
 
-    bool isExpanded() const;
+    virtual void setExpanded(bool expand);
+
 
 signals:
     void req_adjustSize(NodeViewItem* item, QSizeF delta, RECT_VERTEX vertex);
@@ -110,12 +113,12 @@ signals:
     void sizeChanged(QSizeF newSize);
 
 public slots:
-    void setExpanded(bool);
     virtual void dataChanged(QString keyName, QVariant data);
 private:
     int getResizeArrowRotation(RECT_VERTEX vert) const;
     int getGridSize() const;
     int getMajorGridCount() const;
+
     void updateGridLines();
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
@@ -129,7 +132,6 @@ private:
     QMarginsF margin;
     QMarginsF bodyPadding;
 
-    bool _isExpanded;
     QColor bodyColor;
 
     bool gridEnabled;
@@ -169,10 +171,6 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
-
-
-    // QGraphicsItem interface
-protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 };

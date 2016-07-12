@@ -6,8 +6,6 @@
 #include "entityitemnew.h"
 
 
-#include <QPainter>
-#include <QStyleOptionGraphicsItem>
 
 
 class DefaultNodeItem: public NodeItemNew
@@ -19,13 +17,18 @@ public:
 
     void setHeaderPadding(QMarginsF bodyPadding);
     QMarginsF getHeaderPadding() const;
+
     QRectF headerRect() const;
     QRectF bodyRect() const;
+    QRectF moveRect() const;
     QRectF expandStateRect() const;
 
     QRectF getElementRect(ELEMENT_RECT rect);
     QRectF getResizeRect(RECT_VERTEX vert);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
+private slots:
+    void dataChanged(QString keyName, QVariant data);
 
 private:
     void setupBrushes();
@@ -36,10 +39,8 @@ private:
     QRectF topLabelRect() const;
     QRectF bottomTextRect() const;
 
-
 private:
     QMarginsF headerPadding;
-private slots:
-    void dataChanged(QString keyName, QVariant data);
+
 };
 #endif

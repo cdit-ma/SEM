@@ -17,6 +17,9 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     _isSelected = false;
     _isActiveSelected = false;
     _isMoving = false;
+
+    _isExpanded = true;
+    expandEnabled = false;
     selectEnabled = true;
     moveEnabled = true;
 
@@ -90,6 +93,13 @@ void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, 
     QPixmap pixmap = getPixmap(imageAlias, imageName, requiredSize, tintColor);
     paintPixmap(painter, imageRect, pixmap);
 }
+
+void EntityItemNew::setTooltip(EntityItemNew::ELEMENT_RECT rect, QString tooltip, QCursor cursor)
+{
+    tooltipMap[rect] = tooltip;
+    tooltipCursorMap[rect] = cursor;
+}
+
 
 void EntityItemNew::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap) const
 {
@@ -212,6 +222,16 @@ void EntityItemNew::handleSelection(bool setSelected, bool controlPressed)
     }
 }
 
+void EntityItemNew::handleExpand(bool expand)
+{
+    if(isExpandEnabled()){
+        if(expand != _isExpanded){
+            emit req_expanded(this, expand);
+        }
+    }
+
+}
+
 void EntityItemNew::handleHover(bool hovered)
 {
     if(isHoverEnabled()){
@@ -237,22 +257,22 @@ bool EntityItemNew::isHoverEnabled()
     return hoverEnabled;
 }
 
-bool EntityItemNew::isSelected()
+bool EntityItemNew::isSelected() const
 {
     return _isSelected;
 }
 
-bool EntityItemNew::isActiveSelected()
+bool EntityItemNew::isActiveSelected() const
 {
     return _isActiveSelected;
 }
 
-bool EntityItemNew::isHighlighted()
+bool EntityItemNew::isHighlighted() const
 {
     return _isHightlighted;
 }
 
-bool EntityItemNew::isHovered()
+bool EntityItemNew::isHovered() const
 {
     return _isHovered;
 }
@@ -336,6 +356,29 @@ void EntityItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
+
+bool EntityItemNew::isExpanded() const
+{
+    return _isExpanded;
+}
+
+void EntityItemNew::setExpanded(bool expand)
+{
+    if(_isExpanded != expand){
+        _isExpanded = expand;
+    }
+}
+
+
+void EntityItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    if(isExpandEnabled()){
+        if(event->button() == Qt::LeftButton && getElementRect(ER_EXPANDCONTRACT).contains(event->pos())){
+            handleExpand(!isExpanded());
+        }
+    }
+}
+
 QPen EntityItemNew::getPen()
 {
     QPen pen = defaultPen;
@@ -376,7 +419,7 @@ bool EntityItemNew::isEdgeItem()
     return kind == EntityItemNew::EDGE;
 }
 
-bool EntityItemNew::isMoving()
+bool EntityItemNew::isMoving() const
 {
     return _isMoving;
 }
@@ -430,6 +473,18 @@ void EntityItemNew::setActiveSelected(bool active)
 bool EntityItemNew::isSelectionEnabled()
 {
     return selectEnabled;
+}
+
+bool EntityItemNew::isExpandEnabled()
+{
+    return expandEnabled;
+}
+
+void EntityItemNew::setExpandEnabled(bool enabled)
+{
+    if(expandEnabled != enabled){
+        expandEnabled = enabled;
+    }
 }
 
 void EntityItemNew::setMoveEnabled(bool enabled)
