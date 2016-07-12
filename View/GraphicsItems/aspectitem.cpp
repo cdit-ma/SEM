@@ -37,6 +37,7 @@
 AspectItem::AspectItem(NodeAdapter *node, GraphMLItem *parent, VIEW_ASPECT aspect) : NodeItem(node, parent, GraphMLItem::ASPECT_ITEM)
 {
     //Set View Aspect.
+    //setViewAspect(VA_NONE);
     setViewAspect(aspect);
 
     backgroundColor = GET_ASPECT_COLOR(aspect);

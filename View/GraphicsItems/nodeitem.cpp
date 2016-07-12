@@ -35,7 +35,8 @@
 NodeItem::NodeItem(NodeAdapter *node, GraphMLItem *parent, GraphMLItem::GUI_KIND kind) : GraphMLItem(node, parent, kind)
 {
     if(parent && parent->isNodeItem()){
-        setViewAspect(((NodeItem*)parent)->getViewAspect());
+        setViewAspect(VA_NONE);
+        //setViewAspect(((NodeItem*)parent)->getViewAspect());
     }
 
     DRAW_GRID = false;

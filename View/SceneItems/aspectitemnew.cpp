@@ -15,7 +15,7 @@ AspectItemNew::AspectItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, VI
     setDefaultPen(Qt::NoPen);
 
     //Setup Margins/Padding
-    setMargin(QMarginsF(10,10,10,10));
+    setMargin(QMarginsF(16,16,16,16));
     setBodyPadding(QMarginsF(10,10,10,10));
 
     setupBrushes();
@@ -33,6 +33,8 @@ QRectF AspectItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect)
     switch(rect){
         case ER_MAIN_LABEL:
             return getMainTextRect();
+        case ER_EXPANDCONTRACT:
+            return getCircleRect();
         default:
             return QRectF();
     }
@@ -46,7 +48,7 @@ void AspectItemNew::resetPos()
 
 QPointF AspectItemNew::getAspectPos()
 {
-    qreal aspectOffset = 10;
+    qreal aspectOffset = 0;
 
     qreal width = boundingRect().width();
     qreal height = boundingRect().height();
@@ -86,6 +88,34 @@ void AspectItemNew::setupBrushes()
     mainTextFont.setBold(true);
 }
 
+QRectF AspectItemNew::currentRect() const
+{
+    if(isExpanded()){
+        return NodeItemNew::currentRect();
+    }else{
+        return QRectF();
+    }
+}
+
+void AspectItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+{
+    if (getCircleRect().contains(event->pos())) {
+        handleHover(true);
+    }else{
+        NodeItemNew::hoverMoveEvent(event);
+    }
+}
+
+void AspectItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
+    if(getCircleRect().contains(event->pos())){
+        handleSelection(true, controlDown);
+    }else{
+        NodeItemNew::mousePressEvent(event);
+    }
+}
+
 QRectF AspectItemNew::getResizeRect(RECT_VERTEX vert) const
 {
     QRectF rect;
@@ -113,20 +143,57 @@ QRectF AspectItemNew::getResizeRect(RECT_VERTEX vert) const
     return NodeItemNew::getResizeRect(vert);
 }
 
+QRectF AspectItemNew::getCircleRect()
+{
+    QRectF circleRect;
+    circleRect.setSize(QSizeF(72, 72));
+
+
+    QPointF centerPoint;
+    switch(aspectVertex){
+    case RV_TOPLEFT:
+        centerPoint = boundingRect().bottomRight();
+        break;
+    case RV_TOPRIGHT:
+        centerPoint = boundingRect().bottomLeft();
+        break;
+    case RV_BOTTOMRIGHT:
+        centerPoint = boundingRect().topLeft();
+        break;
+    case RV_BOTTOMLEFT:
+        centerPoint = boundingRect().topRight();
+        break;
+    default:
+        break;
+    }
+    circleRect.moveCenter(centerPoint);
+    return circleRect;
+}
+
 void AspectItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
 
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(backgroundColor);
-    painter->drawRect(expandedRect());
+    if(isExpanded()){
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(backgroundColor);
+        painter->drawRect(expandedRect());
 
-    painter->setFont(mainTextFont);
-    painter->setPen(mainTextColor);
-    painter->drawText(getMainTextRect(), Qt::AlignCenter, aspectLabel);
+        painter->setFont(mainTextFont);
+        painter->setPen(mainTextColor);
+        painter->drawText(getMainTextRect(), Qt::AlignCenter, aspectLabel);
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(backgroundColor);
+    }
 
     NodeItemNew::paint(painter, option, widget);
+
+
+    painter->setPen(getPen());
+    painter->setBrush(backgroundColor);
+    painter->drawEllipse(getCircleRect());
 }
 
 void AspectItemNew::setPos(const QPointF &pos)

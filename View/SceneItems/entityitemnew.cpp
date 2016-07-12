@@ -298,7 +298,6 @@ void EntityItemNew::disconnectViewItem()
 
 void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qCritical() << "ENTITY ITEM MOUSE PRESS";
     bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
     if(currentRect().contains(event->pos())){
         handleSelection(true, controlDown);

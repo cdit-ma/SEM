@@ -5,6 +5,7 @@
 #include <QStyleOptionGraphicsItem>
 
 #define RESIZE_RECT_SIZE 5
+
 NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeItemNew::KIND kind):EntityItemNew(viewItem, parentItem, EntityItemNew::NODE)
 {
     minimumHeight = 0;
@@ -523,14 +524,6 @@ QPainterPath NodeItemNew::getChildNodePath()
     return path;
 }
 
-QPointF NodeItemNew::getNextChildPos(QRectF childRect)
-{
-    if(childRect.isNull()){
-        childRect = contractedRect();
-    }
-
-
-}
 
 void NodeItemNew::updateGridLines()
 {

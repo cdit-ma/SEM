@@ -1880,6 +1880,11 @@ void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
     AspectItem* aspectItem = getAspectItem(aspect);
     if (aspectItem) {
         aspectItem->setVisible(on);
+
+
+        NodeItemNew* nodeItem = newNodeItems[aspectItem->getID()];
+        nodeItem->setExpanded(on);
+        //nodeItem->setVisible(on);
     }
 
     if (AUTO_CENTER_ASPECTS) {

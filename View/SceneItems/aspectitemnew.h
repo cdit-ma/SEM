@@ -11,8 +11,10 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     void setPos(const QPointF &pos);
 
+
     QRectF getElementRect(ELEMENT_RECT rect);
     QRectF getResizeRect(RECT_VERTEX vert) const;
+    QRectF getCircleRect();
 
 public slots:
     void resetPos();
@@ -28,6 +30,15 @@ private:
     QColor backgroundColor;
     QColor mainTextColor;
     RECT_VERTEX aspectVertex;
+
+    // EntityItemNew interface
+public:
+    QRectF currentRect() const;
+
+    // QGraphicsItem interface
+protected:
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // ASPECTITEMNEW_H
