@@ -80,7 +80,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     setupApplication();
     NOTIFICATION_TIME = 1000;
     nodeView = 0;
-    nodeView = 0;
+    nodeViewNew = 0;
     controller = 0;
     fileDialog = 0;
     controllerThread = 0;
@@ -531,6 +531,15 @@ void MedeaWindow::initialiseGUI()
     controllerThread = 0;
 
     nodeView = new NodeView(false, this);
+
+    nodeViewNew = new NodeViewNew();
+
+    QMainWindow* window = new QMainWindow(this);
+    window->setMinimumHeight(600);
+    window->setMinimumWidth(600);
+    window->setCentralWidget(nodeViewNew);
+    window->show();
+
     nodeView->setApplicationDirectory(applicationDirectory);
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
@@ -1901,7 +1910,12 @@ void MedeaWindow::setupProject()
     if(!controller && !controllerThread){
         controller = new NewController();
         viewController = new ViewController();
-        connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView, SLOT(viewItemConstructed(ViewItem*)));
+
+        nodeViewNew->setViewController(viewController);
+        //connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView, SLOT(viewItemConstructed(ViewItem*)));
+        connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeViewNew, SLOT(viewItem_Constructed(ViewItem*)));
+        connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeViewNew, SLOT(viewItem_Destructed(int, ViewItem*)));
+
         //Set External Worker Definitions Path.
         controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
 

@@ -3,6 +3,8 @@
 #include <QPainter>
 #include <QDebug>
 
+
+
 EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind)
 {
     this->viewItem = 0;
@@ -30,7 +32,6 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
 
 EntityItemNew::~EntityItemNew()
 {
-    qCritical() << "DISCONNECTING";
     disconnectViewItem();
 }
 
@@ -58,9 +59,35 @@ EntityItemNew *EntityItemNew::getParent() const
     return parentItem;
 }
 
+ViewItem *EntityItemNew::getViewItem() const
+{
+    return viewItem;
+}
+
 int EntityItemNew::getID()
 {
     return viewItem->getID();
+}
+
+QRectF EntityItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
+{
+    QRectF r;
+
+    switch(rect){
+        case ER_SELECTION:
+            r = currentRect();
+            break;
+        default:
+            break;
+    }
+    return r;
+}
+
+QPainterPath EntityItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
+{
+    QPainterPath region;
+    region.addRect(getElementRect(rect));
+    return region;
 }
 
 void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor, bool update)
@@ -176,6 +203,11 @@ QRectF EntityItemNew::moveRect() const
     return currentRect();
 }
 
+QPainterPath EntityItemNew::shape() const
+{
+    return getElementPath(ER_SELECTION);
+}
+
 void EntityItemNew::adjustPos(QPointF delta)
 {
     setPos(pos() + delta);
@@ -212,12 +244,8 @@ void EntityItemNew::handleSelection(bool setSelected, bool controlPressed)
         }
 
         if(isSelected() != setSelected){
-            if(setSelected && !controlPressed){
-                //Clear before selection.
-                emit req_clearSelection();
-            }
             //Select/deselect this item
-            emit req_setSelected(viewItem, setSelected);
+            emit req_setSelected(this, setSelected, controlPressed);
         }
     }
 }
@@ -236,7 +264,8 @@ void EntityItemNew::handleHover(bool hovered)
 {
     if(isHoverEnabled()){
         if(hovered != _isHovered){
-            emit req_hovered(this, hovered);
+            setHovered(hovered);
+            //emit req_hovered(this, hovered);
         }
     }
 }
@@ -289,9 +318,9 @@ void EntityItemNew::connectViewItem(ViewItem *viewItem)
 void EntityItemNew::disconnectViewItem()
 {
     if(viewItem){
-        viewItem->removeListener(this);
         disconnect(viewItem, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
         disconnect(viewItem, SIGNAL(destructing()), this, SLOT(destruct()));
+        viewItem->removeListener(this);
         viewItem = 0;
     }
 }
@@ -299,7 +328,8 @@ void EntityItemNew::disconnectViewItem()
 void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
-    if(currentRect().contains(event->pos())){
+
+    if(getElementPath(ER_SELECTION).contains(event->pos())){
         handleSelection(true, controlDown);
     }
 
@@ -315,7 +345,6 @@ void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-
     if(_isMoving){
         QPointF deltaPos = event->scenePos() - previousMovePoint;
         previousMovePoint = event->scenePos();
@@ -335,16 +364,21 @@ void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItemNew::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
+    bool inItem = getElementPath(ER_SELECTION).contains(event->pos());
+    if(isHovered() && !inItem){
+        handleHover(false);
+    }else if(!isHovered() && inItem){
+        handleHover(true);
+    }
 }
 
 void EntityItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if (currentRect().contains(event->pos())) {
+    bool inItem = getElementPath(ER_SELECTION).contains(event->pos());
+    if(isHovered() && !inItem){
+        handleHover(false);
+    }else if(!isHovered() && inItem){
         handleHover(true);
-    }else{
-        if(isHovered()){
-           handleHover(false);
-        }
     }
 }
 
@@ -372,7 +406,7 @@ void EntityItemNew::setExpanded(bool expand)
 void EntityItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     if(isExpandEnabled()){
-        if(event->button() == Qt::LeftButton && getElementRect(ER_EXPANDCONTRACT).contains(event->pos())){
+        if(event->button() == Qt::LeftButton && getElementPath(ER_EXPANDCONTRACT).contains(event->pos())){
             handleExpand(!isExpanded());
         }
     }

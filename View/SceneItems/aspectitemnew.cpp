@@ -25,18 +25,22 @@ AspectItemNew::AspectItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, VI
     //Get the Label of the Aspect
     aspectLabel = GET_ASPECT_NAME(aspect).toUpper();
 
+    setFlag(QGraphicsItem::ItemStacksBehindParent, true);
     connect(this, SIGNAL(sizeChanged(QSizeF)), this, SLOT(resetPos()));
 }
 
-QRectF AspectItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect)
+QRectF AspectItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
 {
     switch(rect){
         case ER_MAIN_LABEL:
             return getMainTextRect();
         case ER_EXPANDCONTRACT:
             return getCircleRect();
+        case ER_EXPANDED_STATE:
+            return getExpandStateRect();
         default:
-            return QRectF();
+            //Call the default
+            return NodeItemNew::getElementRect(rect);
     }
 }
 
@@ -97,24 +101,6 @@ QRectF AspectItemNew::currentRect() const
     }
 }
 
-void AspectItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
-{
-    if (getCircleRect().contains(event->pos())) {
-        handleHover(true);
-    }else{
-        NodeItemNew::hoverMoveEvent(event);
-    }
-}
-
-void AspectItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
-{
-    bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
-    if(getCircleRect().contains(event->pos())){
-        handleSelection(true, controlDown);
-    }else{
-        NodeItemNew::mousePressEvent(event);
-    }
-}
 
 QRectF AspectItemNew::getResizeRect(RECT_VERTEX vert) const
 {
@@ -143,11 +129,51 @@ QRectF AspectItemNew::getResizeRect(RECT_VERTEX vert) const
     return NodeItemNew::getResizeRect(vert);
 }
 
-QRectF AspectItemNew::getCircleRect()
+QRectF AspectItemNew::getExpandStateRect() const
+{
+     QRectF quadrantRect = getCircleRect().intersected(boundingRect());
+     QRectF rect;
+     qreal iconSize = SMALL_ICON_RATIO * DEFAULT_SIZE;
+     rect.setSize(QSizeF(iconSize, iconSize));
+     rect.moveCenter(quadrantRect.center());
+     return rect;
+}
+
+int AspectItemNew::getExpandArrowRotation() const
+{
+    //Image starts Facing Bottom-Right. which is 135
+    //However we want it to be at right angles to the edge.
+    int imageOffset = 135 - 90;
+    return (imageOffset + getVertexAngle(aspectVertex)) % 360;
+}
+
+
+QPainterPath AspectItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
+{
+    QPainterPath path = NodeItemNew::getElementPath(rect);
+    path.setFillRule(Qt::WindingFill);
+
+    switch(rect){
+    case ER_SELECTION:
+        //Add in the Circle Rect
+        path.addEllipse(getCircleRect());
+        break;
+    default:
+        break;
+    }
+    return path.simplified();
+}
+
+QRectF AspectItemNew::getCircleRect() const
 {
     QRectF circleRect;
-    circleRect.setSize(QSizeF(72, 72));
 
+    QSizeF size(DEFAULT_SIZE, DEFAULT_SIZE);
+    if(isExpanded()){
+        size *= 1.2;
+    }
+
+    circleRect.setSize(size);
 
     QPointF centerPoint;
     switch(aspectVertex){
@@ -166,12 +192,15 @@ QRectF AspectItemNew::getCircleRect()
     default:
         break;
     }
+
     circleRect.moveCenter(centerPoint);
     return circleRect;
 }
 
 void AspectItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
+
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
 
@@ -188,16 +217,32 @@ void AspectItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         painter->setBrush(backgroundColor);
     }
 
-    NodeItemNew::paint(painter, option, widget);
 
-
-    painter->setPen(getPen());
+    //Paint the Circle Segment
+    painter->setPen(Qt::NoPen);
     painter->setBrush(backgroundColor);
     painter->drawEllipse(getCircleRect());
+
+    {
+        QRectF arrowRect = getElementRect(ER_EXPANDED_STATE);
+        painter->save();
+        painter->translate(arrowRect.center());
+        painter->rotate(getExpandArrowRotation());
+        painter->translate(-(arrowRect.width() / 2), - (arrowRect.height() / 2));
+        if(isExpanded()){
+           // paintPixmap(painter, lod, arrowRect.translated(-arrowRect.topLeft()), "Actions", "Contract");
+        }else{
+            paintPixmap(painter, lod, arrowRect.translated(-arrowRect.topLeft()), "Actions", "Expand");
+        }
+        painter->restore();
+    }
+
+    //Paint the grid and stuff.
+    NodeItemNew::paint(painter, option, widget);
+
 }
 
 void AspectItemNew::setPos(const QPointF &pos)
 {
-    Q_UNUSED(pos);
     NodeItemNew::setPos(getAspectPos());
 }

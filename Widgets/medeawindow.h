@@ -66,6 +66,7 @@
 #include "GUI/appsettings.h"
 #include "GUI/codeeditor.h"
 #include "Controller/viewcontroller.h"
+#include "../View/nodeviewnew.h"
 #include <QAbstractMessageHandler>
 
 
@@ -569,6 +570,7 @@ private:
     NewController* controller;
     ViewController* viewController;
     NodeView* nodeView;
+    NodeViewNew* nodeViewNew;
     QFileDialog* fileDialog;
 
     QThread* controllerThread;

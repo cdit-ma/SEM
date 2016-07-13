@@ -6,6 +6,8 @@
 
 #define RESIZE_RECT_SIZE 5
 
+
+
 NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeItemNew::KIND kind):EntityItemNew(viewItem, parentItem, EntityItemNew::NODE)
 {
     minimumHeight = 0;
@@ -40,6 +42,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     if(parentItem){
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
+        parentItem->removeChildNode(getID());
 
         parentItem->addChildNode(this);
         setParentItem(parentItem);
@@ -48,7 +51,10 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
 
 NodeItemNew::~NodeItemNew()
 {
-
+    //Unset
+    if(getParentNodeItem()){
+        getParentNodeItem()->removeChildNode(getID());
+    }
 }
 
 
@@ -222,17 +228,18 @@ QRectF NodeItemNew::boundingRect() const
 
 QRectF NodeItemNew::contractedRect() const
 {
-    return QRectF(getMarginOffset(), QSizeF(getMinimumWidth(), getMinimumHeight()));
+    return QRectF(boundingRect().topLeft() + getMarginOffset(), QSizeF(getMinimumWidth(), getMinimumHeight()));
 }
 
 QRectF NodeItemNew::expandedRect() const
 {
-    return QRectF(getMarginOffset(), QSizeF(getExpandedWidth(), getExpandedHeight()));
+    return QRectF(boundingRect().topLeft() + getMarginOffset(), QSizeF(getExpandedWidth(), getExpandedHeight()));
 }
 
 QRectF NodeItemNew::currentRect() const
 {
-    return QRectF(getMarginOffset(), QSizeF(getWidth(), getHeight()));
+
+    return QRectF(boundingRect().topLeft() + getMarginOffset(), QSizeF(getWidth(), getHeight()));
 }
 
 QRectF NodeItemNew::gridRect() const
@@ -499,10 +506,20 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
     }
 }
 
+int NodeItemNew::getVertexAngle(RECT_VERTEX vert) const
+{
+    //Bottom Left is 360 and 0, going clockwise
+    //Bottom left is technically 225 degrees from 0
+    int interval = 45;
+    int initial = 225;
+    return (initial + (vert * interval)) % 360;
+}
+
 int NodeItemNew::getResizeArrowRotation(RECT_VERTEX vert) const
 {
-    //Image starts Facing Bottom.
-    return -45 + (-45 * int(vert));
+    //Image starts Facing Bottom. which is 180
+    int imageOffset = 180;
+    return (imageOffset + getVertexAngle(vert)) % 360;
 }
 
 int NodeItemNew::getGridSize() const
@@ -618,7 +635,8 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     if(state > RS_BLOCK){
         painter->setPen(getPen());
         painter->setBrush(Qt::NoBrush);
-        painter->drawRect(currentRect());
+        painter->drawPath(getElementPath(ER_SELECTION));
+        //painter->drawRect(currentRect());
     }
 
     if(state > RS_BLOCK){
@@ -641,7 +659,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             painter->save();
             painter->translate(arrowRect.center());
 
-            painter->rotate(-getResizeArrowRotation(hoveredResizeVertex));
+            painter->rotate(getResizeArrowRotation(hoveredResizeVertex));
 
             painter->translate(-(arrowRect.width() / 2), - (arrowRect.height() / 2));
 
@@ -649,11 +667,19 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             painter->restore();
         }
 
-
         painter->restore();
     }
+}
 
+QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
+{
+    //Just call base class.
+    return EntityItemNew::getElementRect(rect);
+}
 
+QPainterPath NodeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
+{
+    return EntityItemNew::getElementPath(rect);
 }
 
 QRectF NodeItemNew::getResizeRect(RECT_VERTEX vert) const

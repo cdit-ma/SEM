@@ -21,6 +21,7 @@ public:
     bool isNode();
     bool isEdge();
 
+
     QVariant getData(QString keyName);
     bool hasData(QString keyName);
 

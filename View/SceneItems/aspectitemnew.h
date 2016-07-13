@@ -12,9 +12,15 @@ public:
     void setPos(const QPointF &pos);
 
 
-    QRectF getElementRect(ELEMENT_RECT rect);
+    QRectF getElementRect(ELEMENT_RECT rect) const;
+
     QRectF getResizeRect(RECT_VERTEX vert) const;
-    QRectF getCircleRect();
+    QRectF getExpandStateRect() const;
+
+    int getExpandArrowRotation() const;
+    QPainterPath getElementPath(ELEMENT_RECT rect) const;
+
+    QRectF getCircleRect() const;
 
 public slots:
     void resetPos();
@@ -34,11 +40,6 @@ private:
     // EntityItemNew interface
 public:
     QRectF currentRect() const;
-
-    // QGraphicsItem interface
-protected:
-    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // ASPECTITEMNEW_H

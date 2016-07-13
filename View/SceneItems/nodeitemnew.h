@@ -101,6 +101,7 @@ public:
     virtual void setExpanded(bool expand);
 
 
+    int getVertexAngle(RECT_VERTEX vert) const;
 signals:
     void req_adjustSize(NodeViewItem* item, QSizeF delta, RECT_VERTEX vertex);
     void req_adjustSizeFinished();
@@ -161,7 +162,8 @@ public:
 
     // EntityItemNew interface
 public:
-    virtual QRectF getElementRect(ELEMENT_RECT rect) = 0;
+    virtual QRectF getElementRect(ELEMENT_RECT rect) const;
+    virtual QPainterPath getElementPath(ELEMENT_RECT rect) const;
     virtual QRectF getResizeRect(RECT_VERTEX vert) const;
     virtual QRectF getResizeArrowRect(RECT_VERTEX vert) const;
 

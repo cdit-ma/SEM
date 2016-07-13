@@ -13,6 +13,7 @@
 #include "SceneItems/edgeitemnew.h"
 #include "SceneItems/defaultnodeitem.h"
 #include "SceneItems/aspectitemnew.h"
+#include "SceneItems/modelitemnew.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
@@ -1446,13 +1447,13 @@ void NodeView::viewItemConstructed(ViewItem *viewItem)
         }
 
         NodeItemNew* nodeItem =  0;
-        if(nodeKind.endsWith("Definitions")){
+        if(nodeKind == "Model"){
+            nodeItem = new ModelItemNew(nodeViewItem);
+        }else if(nodeKind.endsWith("Definitions")){
             VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
             nodeItem = new AspectItemNew(nodeViewItem, parent, aspect);
-        }else{
-            if(parent || (!parent  && nodeKind != "Model")){
-                nodeItem = new DefaultNodeItem(nodeViewItem, parent);
-            }
+        }else if(parent){
+            nodeItem = new DefaultNodeItem(nodeViewItem, parent);
         }
         if(nodeItem){
 
@@ -1883,7 +1884,9 @@ void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
 
 
         NodeItemNew* nodeItem = newNodeItems[aspectItem->getID()];
-        nodeItem->setExpanded(on);
+        if(nodeItem){
+            nodeItem->setExpanded(on);
+        }
         //nodeItem->setVisible(on);
     }
 
@@ -2530,10 +2533,10 @@ void NodeView::itemEntered(int ID, bool enter)
     GraphMLItem* current = getGraphMLItemFromID(ID);
     if(current && current->canHover()){
 
-        NodeItemNew* nvi = newNodeItems[ID];
-        if(nvi){
-            nvi->setHovered(enter);
-        }
+        //NodeItemNew* nvi = newNodeItems[ID];
+        //if(nvi){
+        //    nvi->setHovered(enter);
+        //}
         current->setHovered(enter);
 
         if(enter){
@@ -2542,10 +2545,10 @@ void NodeView::itemEntered(int ID, bool enter)
                 prev->setHovered(false);
             }
 
-            nvi = newNodeItems[prevHighlightedID];
-            if(nvi){
-                nvi->setHovered(false);
-            }
+            //nvi = newNodeItems[prevHighlightedID];
+            //if(nvi){
+            //    nvi->setHovered(false);
+           // }
 
             prevHighlightedID = ID;
         }else{
@@ -4918,6 +4921,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
         if(nodeKind == "Model"){
             item = new ModelItem(node, this);
+            //item->setVisible(false);
         }else if(node->isAspect()){
             VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
             if(aspect != VA_NONE){

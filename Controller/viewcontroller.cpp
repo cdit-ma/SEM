@@ -4,6 +4,12 @@
 
 #include <QDebug>
 ViewController::ViewController(){
+    selectionHandler = new SelectionHandler();
+}
+
+SelectionHandler *ViewController::getSelectionHandler(QObject *object)
+{
+    return selectionHandler;
 }
 
 void ViewController::setDefaultIcon(ViewItem *viewItem)
@@ -61,10 +67,11 @@ void ViewController::entityDestructed(EntityAdapter *entity)
             //Remove the item from the Hash
             viewItems.remove(ID);
 
-            if(viewItem){
-                emit viewItemDestructing(ID);
+            //Unset.
+            selectionHandler->itemDeleted(viewItem);
 
-                qCritical() << "VC: Destructing: " << viewItem;
+            if(viewItem){
+                emit viewItemDestructing(ID, viewItem);
                 viewItem->destruct();
             }
         }

@@ -9,6 +9,10 @@
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 
+#define ICON_RATIO (4.0 / 6.0)
+#define SMALL_ICON_RATIO (1.0 / 6.0)
+#define LABEL_RATIO (2.5 / 6.0)
+#define DEFAULT_SIZE 72
 
 #define SELECTED_LINE_WIDTH 3
 class EntityItemNew: public QGraphicsObject
@@ -17,7 +21,7 @@ class EntityItemNew: public QGraphicsObject
 
 public:
     enum KIND{EDGE, NODE};
-    enum ELEMENT_RECT{ER_MAIN_LABEL, ER_SECONDARY_LABEL, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT};
+    enum ELEMENT_RECT{ER_MAIN_LABEL, ER_SECONDARY_LABEL, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION};
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
     EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind);
@@ -27,9 +31,12 @@ public:
     VIEW_STATE getViewState() const;
     EntityItemNew* getParent() const;
 
+    ViewItem* getViewItem() const;
+
     int getID();
 
-    virtual QRectF getElementRect(ELEMENT_RECT rect) = 0;
+    virtual QRectF getElementRect(ELEMENT_RECT rect) const;
+    virtual QPainterPath getElementPath(ELEMENT_RECT rect) const;
 
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor=QColor(), bool update=false);
     void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor=QColor());
@@ -41,6 +48,7 @@ public:
     virtual QRectF boundingRect() const = 0;
     virtual QRectF currentRect() const = 0;
     virtual QRectF moveRect() const;
+    QPainterPath shape() const;
 
     void adjustPos(QPointF delta);
 
@@ -103,9 +111,8 @@ signals:
     void req_adjustPosFinished();
 
     //Request changes
-    void req_setSelected(ViewItem*, bool);
-    void req_setActiveSelected(ViewItem*, bool);
-    void req_clearSelection();
+    void req_setSelected(EntityItemNew*, bool, bool);
+    void req_setActiveSelected(EntityItemNew*, bool);
 
     void req_setData(ViewItem* item, QString keyName, QVariant data);
 

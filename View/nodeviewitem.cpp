@@ -47,3 +47,24 @@ QList<int> NodeViewItem::getTreeIndex()
     }
     return index;
 }
+
+bool NodeViewItem::isAncestorOf(NodeViewItem *item)
+{
+    QList<int> thisTree = getTreeIndex();
+    QList<int> thatTree = item->getTreeIndex();
+
+    if(this == item){
+        return true;
+    }
+
+    if(thisTree.size() >= thatTree.size()){
+        return false;
+    }
+
+    for(int i=0; i< thisTree.size(); i++){
+        if(thisTree[i] != thatTree[i]){
+            return false;
+        }
+    }
+    return true;
+}

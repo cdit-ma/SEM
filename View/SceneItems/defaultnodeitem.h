@@ -23,7 +23,7 @@ public:
     QRectF moveRect() const;
     QRectF expandStateRect() const;
 
-    QRectF getElementRect(ELEMENT_RECT rect);
+    QRectF getElementRect(ELEMENT_RECT rect) const;
     QRectF getResizeRect(RECT_VERTEX vert);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 

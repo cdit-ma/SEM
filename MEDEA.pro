@@ -173,7 +173,10 @@ HEADERS += \
     View/SceneItems/edgeitemnew.h \
     View/SceneItems/entityitemnew.h \
     View/SceneItems/nodeitemnew.h \
-    View/SceneItems/aspectitemnew.h
+    View/SceneItems/aspectitemnew.h \
+    View/SceneItems/modelitemnew.h \
+    View/nodeviewnew.h \
+    Controller/selectionhandler.h
 
 
 SOURCES += \
@@ -311,7 +314,10 @@ SOURCES += \
     View/SceneItems/edgeitemnew.cpp \
     View/SceneItems/entityitemnew.cpp \
     View/SceneItems/nodeitemnew.cpp \
-    View/SceneItems/aspectitemnew.cpp
+    View/SceneItems/aspectitemnew.cpp \
+    View/SceneItems/modelitemnew.cpp \
+    View/nodeviewnew.cpp \
+    Controller/selectionhandler.cpp
 
 
 RESOURCES += \

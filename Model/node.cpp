@@ -384,6 +384,7 @@ bool Node::isAncestorOf(GraphML *item)
     return false;
 }
 
+
 bool Node::isDescendantOf(Node *node)
 {
     QList<int> otherTree = node->getTreeIndex();

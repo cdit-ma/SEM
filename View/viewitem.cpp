@@ -47,6 +47,7 @@ bool ViewItem::isEdge()
     return false;
 }
 
+
 QVariant ViewItem::getData(QString keyName)
 {
     QVariant data;

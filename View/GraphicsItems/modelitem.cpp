@@ -48,6 +48,7 @@ ModelItem::ModelItem(NodeAdapter *node, NodeView *view):  GraphMLItem(node, 0, G
 
     setNodeView(view);
     themeChanged();
+
 }
 
 ModelItem::~ModelItem()
@@ -268,6 +269,8 @@ void ModelItem::setupDataConnections()
 
 void ModelItem::setupInputItems()
 {
+    middlewareItem = 0;
+    return;
     qreal fontSize = LABEL_RATIO * height;
 
     middlewareItem = new InputItem(this, "MIDDLEWARE", true);

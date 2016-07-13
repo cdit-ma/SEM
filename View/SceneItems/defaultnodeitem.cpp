@@ -4,9 +4,7 @@
 #include <QPainter>
 #include <QDebug>
 
-#define ICON_RATIO (4.0 / 6.0)
-#define SMALL_ICON_RATIO (1.0 / 6.0)
-#define LABEL_RATIO (2.5 / 6.0)
+
 #define INNER_PADDING 3
 
 DefaultNodeItem::DefaultNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem):NodeItemNew(viewItem, parentItem, NodeItemNew::DEFAULT_ITEM)
@@ -227,7 +225,7 @@ QRectF DefaultNodeItem::bottomTextRect() const
     return rect;
 }
 
-QRectF DefaultNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect)
+QRectF DefaultNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
 {
     switch(rect){
     case ER_MAIN_ICON:
@@ -251,7 +249,7 @@ QRectF DefaultNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect)
     case ER_EXPANDCONTRACT:
         return mainIconRect();
     default:
-        return QRectF();
+        return NodeItemNew::getElementRect(rect);
     }
 }
 

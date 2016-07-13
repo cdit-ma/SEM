@@ -14,7 +14,9 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
 
 EdgeItemNew::~EdgeItemNew()
 {
-
+    if(getParentItem()){
+        getParentItem()->removeChildEdge(getID());
+    }
 }
 
 EdgeItemNew::KIND EdgeItemNew::getEdgeItemKind()
