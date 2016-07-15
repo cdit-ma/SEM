@@ -33,6 +33,7 @@ public:
 
     ViewItem* getViewItem() const;
 
+    void setPos(const QPointF &pos);
     int getID();
 
     virtual QRectF getElementRect(ELEMENT_RECT rect) const;
@@ -47,14 +48,20 @@ public:
     virtual QRectF sceneBoundingRect() const;
     virtual QRectF boundingRect() const = 0;
     virtual QRectF currentRect() const = 0;
+    virtual QRectF viewRect() const;
+    QRectF sceneViewRect() const;
     virtual QRectF moveRect() const;
     QPainterPath shape() const;
+    QPainterPath sceneShape() const;
 
     void adjustPos(QPointF delta);
+
+    bool isAdjustValid(QPointF delta);
 
     bool intersectsRectInScene(QRectF rectInScene) const;
 
     void addRequiredData(QString keyName);
+    QStringList getRequiredDataKeys();
     void reloadRequiredData();
     QPen getPen();
     void setDefaultPen(QPen pen);
@@ -86,6 +93,8 @@ public:
     void setExpandEnabled(bool enabled);
     void setSelectionEnabled(bool enabled);
 
+    virtual void setMoving(bool moving);
+
 public:
     //State Getters
     bool isSelected() const;
@@ -108,7 +117,7 @@ public:
 signals:
     //Request changes
     void req_adjustPos(QPointF delta);
-    void req_adjustPosFinished();
+    void req_adjustingPos(bool adjusting);
 
     //Request changes
     void req_setSelected(EntityItemNew*, bool, bool);
@@ -164,6 +173,9 @@ private:
     bool _isExpanded;
 
     bool _isMoving;
+    bool _isMouseMoving;
+    bool _hasMouseMoved;
+
     QPointF previousMovePoint;
 
     QPen defaultPen;

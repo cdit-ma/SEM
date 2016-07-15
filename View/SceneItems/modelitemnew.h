@@ -10,7 +10,6 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
     QPainterPath getElementPath(ELEMENT_RECT rect) const;
-    QRectF getCircleRect() const;
 private:
     QColor backgroundColor;
 };

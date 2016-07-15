@@ -2,7 +2,7 @@
 #include <QDebug>
 ModelItemNew::ModelItemNew(NodeViewItem *viewItem):NodeItemNew(viewItem, 0, NodeItemNew::MODEL_ITEM)
 {
-    //setMoveEnabled(false);
+    setMoveEnabled(false);
     setExpandEnabled(false);
     setResizeEnabled(false);
     setExpanded(true);
@@ -12,11 +12,10 @@ ModelItemNew::ModelItemNew(NodeViewItem *viewItem):NodeItemNew(viewItem, 0, Node
     setMinimumHeight(size);
     setExpandedHeight(size);
     setExpandedWidth(size);
-    setDefaultPen(QPen(Qt::black));
 
+    setDefaultPen(QPen(Qt::darkGray));
     backgroundColor = Qt::gray;
-
-    setMargin(QMarginsF(10,10,10,10));
+    setMargin(QMarginsF(size, size, size, size));
 }
 
 QPainterPath ModelItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
@@ -25,21 +24,13 @@ QPainterPath ModelItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) cons
     case ER_SELECTION:{
         //Add in the Circle Rect
         QPainterPath path;
-        path.addEllipse(getCircleRect());
+        path.addEllipse(currentRect());
         return path;
     }
     default:
         break;
     }
     return NodeItemNew::getElementPath(rect);
-}
-
-QRectF ModelItemNew::getCircleRect() const
-{
-    QRectF circleRect = currentRect();
-    //circleRect.setSize(QSizeF(DEFAULT_SIZE / 2, DEFAULT_SIZE / 2));
-    //circleRect.moveCenter(currentRect().center());
-    return circleRect;
 }
 
 void ModelItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -50,7 +41,7 @@ void ModelItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     painter->save();
     painter->setPen(Qt::NoPen);
     painter->setBrush(backgroundColor);
-    painter->drawEllipse(getCircleRect());
+    painter->drawEllipse(currentRect());
     painter->restore();
 
     //Call Base class

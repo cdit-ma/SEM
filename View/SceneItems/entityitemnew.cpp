@@ -19,6 +19,8 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     _isSelected = false;
     _isActiveSelected = false;
     _isMoving = false;
+    _isMouseMoving = false;
+    _hasMouseMoved = false;
 
     _isExpanded = true;
     expandEnabled = false;
@@ -62,6 +64,14 @@ EntityItemNew *EntityItemNew::getParent() const
 ViewItem *EntityItemNew::getViewItem() const
 {
     return viewItem;
+}
+
+void EntityItemNew::setPos(const QPointF &pos)
+{
+    if(pos != this->pos()){
+       QGraphicsObject::setPos(pos);
+       emit positionChanged();
+    }
 }
 
 int EntityItemNew::getID()
@@ -183,6 +193,11 @@ void EntityItemNew::addRequiredData(QString keyName)
     }
 }
 
+QStringList EntityItemNew::getRequiredDataKeys()
+{
+    return requiredDataKeys;
+}
+
 void EntityItemNew::reloadRequiredData()
 {
     foreach(QString keyName, requiredDataKeys){
@@ -198,6 +213,16 @@ QRectF EntityItemNew::sceneBoundingRect() const
     return QGraphicsObject::sceneBoundingRect();
 }
 
+QRectF EntityItemNew::viewRect() const
+{
+    return boundingRect();
+}
+
+QRectF EntityItemNew::sceneViewRect() const
+{
+    return mapToScene(viewRect()).boundingRect();
+}
+
 QRectF EntityItemNew::moveRect() const
 {
     return currentRect();
@@ -208,9 +233,19 @@ QPainterPath EntityItemNew::shape() const
     return getElementPath(ER_SELECTION);
 }
 
+QPainterPath EntityItemNew::sceneShape() const
+{
+    return mapToScene(shape());
+}
+
 void EntityItemNew::adjustPos(QPointF delta)
 {
     setPos(pos() + delta);
+}
+
+bool EntityItemNew::isAdjustValid(QPointF delta)
+{
+    return true;
 }
 
 
@@ -275,6 +310,12 @@ void EntityItemNew::setSelectionEnabled(bool enabled)
     selectEnabled = enabled;
 }
 
+void EntityItemNew::setMoving(bool moving)
+{
+    _isMoving = moving;
+    //TODO STUFF WITH PARENT.
+}
+
 void EntityItemNew::setHoverEnabled(bool enabled)
 {
     setAcceptHoverEvents(enabled);
@@ -327,25 +368,33 @@ void EntityItemNew::disconnectViewItem()
 
 void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+
     bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
 
-    if(getElementPath(ER_SELECTION).contains(event->pos())){
+    if(event->button() == Qt::LeftButton && getElementPath(ER_SELECTION).contains(event->pos())){
         handleSelection(true, controlDown);
     }
 
-
-    if(isMoveEnabled()){
-        if(event->button() == Qt::LeftButton && moveRect().contains(event->pos())){
-            //Check for movement.
-            _isMoving = true;
-            previousMovePoint = event->scenePos();
-        }
+    if(event->button() == Qt::MiddleButton){
+        emit req_centerItem(this);
     }
+
+    if(isMoveEnabled() && event->button() == Qt::LeftButton && moveRect().contains(event->pos())){
+        //Check for movement.
+        _isMouseMoving = true;
+        _hasMouseMoved = false;
+        previousMovePoint = event->scenePos();
+    }
+
 }
 
 void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(_isMoving){
+    if(_isMouseMoving){
+        if(!_hasMouseMoved){
+            emit req_adjustingPos(true);
+            _hasMouseMoved = true;
+        }
         QPointF deltaPos = event->scenePos() - previousMovePoint;
         previousMovePoint = event->scenePos();
         emit req_adjustPos(deltaPos);
@@ -354,9 +403,9 @@ void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(_isMoving){
-        _isMoving = false;
-        emit req_adjustPosFinished();
+    if(_isMouseMoving){
+        _isMouseMoving = false;
+        emit req_adjustingPos(false);
     }
 }
 

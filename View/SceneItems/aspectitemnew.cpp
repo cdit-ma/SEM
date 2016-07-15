@@ -27,6 +27,12 @@ AspectItemNew::AspectItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, VI
 
     setFlag(QGraphicsItem::ItemStacksBehindParent, true);
     connect(this, SIGNAL(sizeChanged(QSizeF)), this, SLOT(resetPos()));
+
+
+
+    addRequiredData("width");
+    addRequiredData("height");
+    reloadRequiredData();
 }
 
 QRectF AspectItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
@@ -245,4 +251,13 @@ void AspectItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 void AspectItemNew::setPos(const QPointF &pos)
 {
     NodeItemNew::setPos(getAspectPos());
+}
+
+QRectF AspectItemNew::viewRect() const
+{
+    QRectF r = NodeItemNew::viewRect();
+    if(!isExpanded()){
+        r = r.intersected(getCircleRect());
+    }
+    return r;
 }

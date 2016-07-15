@@ -176,7 +176,8 @@ HEADERS += \
     View/SceneItems/aspectitemnew.h \
     View/SceneItems/modelitemnew.h \
     View/nodeviewnew.h \
-    Controller/selectionhandler.h
+    Controller/selectionhandler.h \
+    View/SceneItems/Hardware/hardwarenodeitem.h
 
 
 SOURCES += \
@@ -317,7 +318,8 @@ SOURCES += \
     View/SceneItems/aspectitemnew.cpp \
     View/SceneItems/modelitemnew.cpp \
     View/nodeviewnew.cpp \
-    Controller/selectionhandler.cpp
+    Controller/selectionhandler.cpp \
+    View/SceneItems/Hardware/hardwarenodeitem.cpp
 
 
 RESOURCES += \

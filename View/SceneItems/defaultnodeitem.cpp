@@ -11,12 +11,19 @@ DefaultNodeItem::DefaultNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem
 {
     setMargin(QMarginsF(10, 25, 10, 10));
     setBodyPadding(QMarginsF(10,10,10,10));
-    setMinimumWidth(72);
-    setMinimumHeight(72);
+    setMinimumWidth(DEFAULT_SIZE);
+    setMinimumHeight(DEFAULT_SIZE);
 
     setHeaderPadding(QMarginsF(INNER_PADDING, INNER_PADDING, INNER_PADDING, INNER_PADDING));
 
     setupBrushes();
+
+    addRequiredData("x");
+    addRequiredData("y");
+    addRequiredData("width");
+    addRequiredData("height");
+    addRequiredData("isExpanded");
+    reloadRequiredData();
 }
 
 DefaultNodeItem::~DefaultNodeItem()
@@ -122,16 +129,18 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
     painter->setPen(Qt::NoPen);
     painter->setPen(Qt::black);
     QString label = getData("label").toString();
-    painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignVCenter | Qt::AlignLeft, label);
-    painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, label);
+     if(state > RS_BLOCK){
+        painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignVCenter | Qt::AlignLeft, label);
+        painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, label);
 
-    painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
+        painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
 
-    if(isExpanded()){
-        paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Contract");
-    }else{
-        paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
-    }
+        if(isExpanded()){
+            paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Contract");
+        }else{
+            paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
+        }
+     }
 
     NodeItemNew::paint(painter, option, widget);
 }
@@ -152,7 +161,7 @@ void DefaultNodeItem::setupBrushes()
 
 QRectF DefaultNodeItem::mainIconRect() const
 {
-    qreal iconSize = ICON_RATIO * getMinimumHeight();// - (INNER_PADDING);
+    qreal iconSize = ICON_RATIO * getMinimumHeight();
 
     QRectF iconRect(0, 0, iconSize, iconSize);
     iconRect.moveCenter(contractedRect().center());

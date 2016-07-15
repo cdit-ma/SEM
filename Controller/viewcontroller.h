@@ -15,6 +15,7 @@ public:
     SelectionHandler* getSelectionHandler(QObject* object);
 
     void setDefaultIcon(ViewItem* viewItem);
+    ViewItem* getModel();
 signals:
     void viewItemConstructed(ViewItem* viewItem);
     void viewItemDestructing(int ID, ViewItem *viewItem);
@@ -25,6 +26,7 @@ private slots:
 
 private:
     QHash<int, ViewItem*> viewItems;
+    ViewItem* modelItem;
     SelectionHandler* selectionHandler;
 };
 

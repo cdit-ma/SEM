@@ -31,19 +31,9 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     setExpandEnabled(true);
 
 
-    addRequiredData("x");
-    addRequiredData("y");
-    addRequiredData("width");
-    addRequiredData("height");
-    addRequiredData("isExpanded");
-
-    reloadRequiredData();
-
     if(parentItem){
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
-        parentItem->removeChildNode(getID());
-
         parentItem->addChildNode(this);
         setParentItem(parentItem);
     }
@@ -53,7 +43,7 @@ NodeItemNew::~NodeItemNew()
 {
     //Unset
     if(getParentNodeItem()){
-        getParentNodeItem()->removeChildNode(getID());
+        getParentNodeItem()->removeChildNode(this);
     }
 }
 
@@ -69,6 +59,11 @@ void NodeItemNew::setBodyColor(QColor color)
         bodyColor = color;
         update();
     }
+}
+
+QRectF NodeItemNew::viewRect() const
+{
+    return EntityItemNew::viewRect();
 }
 
 NodeItemNew *NodeItemNew::getParentNodeItem() const
@@ -90,6 +85,7 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
     int ID = nodeItem->getID();
     //If we have added a child, and there is only one. emit a signal
     if(!childNodes.contains(ID)){
+        //connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
         childNodes[ID] = nodeItem;
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
@@ -97,13 +93,15 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
     }
 }
 
-void NodeItemNew::removeChildNode(int ID)
+void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
 {
     //If we have removed a child, and there is no children left. emit a signal
-    if(childNodes.remove(ID) > 0){
+    if(childNodes.remove(nodeItem->getID()) > 0){
         if(childNodes.count() == 0){
             emit gotChildNodes(false);
         }
+        //Unset child moving.
+        setChildNodeMoving(nodeItem, false);
     }
 }
 
@@ -173,6 +171,36 @@ QList<EdgeItemNew *> NodeItemNew::getProxyEdges()
     return proxyChildEdges.values();
 }
 
+QRectF NodeItemNew::getNearestGridOutline()
+{
+    //TODO REMOVE FUNCTION?
+
+    QPointF center = getNearestGridPointToCenter();
+    QPointF deltaPos = currentRect().center() - contractedRect().center();
+    center += deltaPos;
+    QRectF outlineRect = currentRect();
+    qreal gridSize = getGridSize();
+
+    qreal width = outlineRect.width() + (gridSize);
+    qreal height = outlineRect.height() + (gridSize);
+    outlineRect.setWidth(width);
+    outlineRect.setHeight(height);
+    outlineRect.moveCenter(center);
+    return outlineRect;
+}
+
+QPointF NodeItemNew::getNearestGridPointToCenter()
+{
+    qreal gridSize = getGridSize();
+    QPointF point = getSceneCenter();
+    qreal closestX = qRound(point.x() / gridSize) * gridSize;
+    qreal closestY = qRound(point.y() / gridSize) * gridSize;
+    QPointF delta = QPointF(closestX, closestY) - point;
+
+    return getCenter() + delta;
+
+}
+
 void NodeItemNew::setGridEnabled(bool enabled)
 {
     if(gridEnabled != enabled){
@@ -213,6 +241,35 @@ bool NodeItemNew::isResizeEnabled()
     return resizeEnabled;
 }
 
+void NodeItemNew::setChildNodeMoving(NodeItemNew *child, bool moving)
+{
+    if(childNodes.contains(child->getID())){
+        if(moving && !movingChildren.contains(child)){
+            movingChildren.append(child);
+            if(movingChildren.size() == 1){
+                setGridVisible(true);
+            }
+        }else if(!moving && movingChildren.contains(child)){
+            movingChildren.removeAll(child);
+            if(movingChildren.isEmpty()){
+                setGridVisible(false);
+            }
+        }
+    }
+}
+
+void NodeItemNew::setMoving(bool moving)
+{
+    EntityItemNew::setMoving(moving);
+    NodeItemNew* parentNodeItem = getParentNodeItem();
+    if(parentNodeItem){
+        parentNodeItem->setChildNodeMoving(this, moving);
+        if(!moving){
+            setCenter(getNearestGridPointToCenter());
+        }
+    }
+}
+
 QRectF NodeItemNew::sceneBoundingRect() const
 {
     return EntityItemNew::sceneBoundingRect();
@@ -225,6 +282,7 @@ QRectF NodeItemNew::boundingRect() const
     rect.setHeight(margin.top() + margin.bottom() + getHeight());
     return rect;
 }
+
 
 QRectF NodeItemNew::contractedRect() const
 {
@@ -324,8 +382,9 @@ void NodeItemNew::setExpandedHeight(qreal height)
     //Limit by the size of all contained children.
     qreal minHeight = childrenBoundingRect().bottom();
     //Can't shrink smaller than minimum
-    minHeight = qMax(minHeight, minimumHeight);
+    minHeight = qMax(minHeight, height);
     height = qMax(height, minHeight);
+
 
     if(expandedHeight != height){
         expandedHeight = height;
@@ -406,27 +465,30 @@ qreal NodeItemNew::getHeight() const
 
 QPointF NodeItemNew::getCenter() const
 {
-    QPointF center = pos() + contractedRect().center();
+    return pos() + getCenterOffset();
+}
 
-    NodeItemNew* parent = getParentNodeItem();
-
-    if(parent){
-        center -= parent->getMarginOffset();
-    }
-    return center;
+QPointF NodeItemNew::getCenterOffset() const
+{
+    return contractedRect().center();
 }
 
 void NodeItemNew::setCenter(QPointF center)
 {
-    center -= contractedRect().center();
+    center -= getCenterOffset();
 
-    NodeItemNew* parent = getParentNodeItem();
+    /*NodeItemNew* parent = getParentNodeItem();
 
     if(parent){
         center += parent->getMarginOffset();
-    }
+    }*/
 
     setPos(center);
+}
+
+QPointF NodeItemNew::getSceneCenter() const
+{
+    return sceneBoundingRect().topLeft() + getCenterOffset();
 }
 
 void NodeItemNew::setPos(const QPointF &pos)
@@ -479,31 +541,38 @@ void NodeItemNew::setExpanded(bool expand)
 
 void NodeItemNew::dataChanged(QString keyName, QVariant data)
 {
-    if(keyName == "x" || keyName == "y"){
-        qreal realData = data.toReal();
-        QPointF oldCenter = getCenter();
-        QPointF newCenter = oldCenter;
+    if(getRequiredDataKeys().contains(keyName)){
+        if(keyName == "x" || keyName == "y"){
+            qreal realData = data.toReal();
+            QPointF oldCenter = getCenter();
+            QPointF newCenter = oldCenter;
 
-        if(keyName == "x"){
-            newCenter.setX(realData);
-        }else if(keyName == "y"){
-            newCenter.setY(realData);
-        }
+            if(keyName == "x"){
+                newCenter.setX(realData);
+            }else if(keyName == "y"){
+                newCenter.setY(realData);
+            }
 
-        if(newCenter != oldCenter){
-            setCenter(newCenter);
+            if(newCenter != oldCenter){
+                setCenter(newCenter);
+            }
+        }else if(keyName == "width" || keyName == "height"){
+            qreal realData = data.toReal();
+            if(keyName == "width"){
+                setExpandedWidth(realData);
+            }else if(keyName == "height"){
+                setExpandedHeight(realData);
+            }
+        }else if(keyName == "isExpanded"){
+            bool boolData = data.toBool();
+            setExpanded(boolData);
         }
-    }else if(keyName == "width" || keyName == "height"){
-        qreal realData = data.toReal();
-        if(keyName == "width"){
-            setExpandedWidth(realData);
-        }else if(keyName == "height"){
-            setExpandedHeight(realData);
-        }
-    }else if(keyName == "isExpanded"){
-        bool boolData = data.toBool();
-        setExpanded(boolData);
     }
+}
+
+void NodeItemNew::childPosChanged()
+{
+    //update();
 }
 
 int NodeItemNew::getVertexAngle(RECT_VERTEX vert) const
@@ -630,6 +699,13 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->drawLines(gridLines_Major_Horizontal);
         painter->drawLines(gridLines_Major_Vertical);
         painter->restore();
+
+        painter->setBrush(Qt::red);
+        foreach(NodeItemNew* child, movingChildren){
+            //QRectF rect = child->getNearestGridOutline();
+            //painter->setBrush(Qt::red);
+            //painter->drawRect(rect);
+        }
     }
 
     if(state > RS_BLOCK){

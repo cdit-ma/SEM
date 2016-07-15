@@ -317,6 +317,7 @@ private:
     void initialiseGUI();
     void setupConnections();
 
+    void setupNewNodeView();
     void teardownProject();
     void setupProject();
 

@@ -12,6 +12,7 @@ public:
     void setPos(const QPointF &pos);
 
 
+    QRectF viewRect() const;
     QRectF getElementRect(ELEMENT_RECT rect) const;
 
     QRectF getResizeRect(RECT_VERTEX vert) const;

@@ -12,7 +12,7 @@ class NodeItemNew: public EntityItemNew
 {
     Q_OBJECT
 public:
-    enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM};
+    enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM, HARDWARE_ITEM};
     NodeItemNew(NodeViewItem *viewItem, NodeItemNew* parentItem, KIND kind);
     ~NodeItemNew();
 
@@ -21,7 +21,7 @@ public:
 
     void addChildNode(NodeItemNew* nodeItem);
 
-    void removeChildNode(int ID);
+    void removeChildNode(NodeItemNew *nodeItem);
 
     bool hasChildNodes() const;
     QList<NodeItemNew*> getChildNodes() const;
@@ -37,6 +37,10 @@ public:
     void removeProxyEdge(int ID);
     QList<EdgeItemNew*> getProxyEdges();
 
+    QRectF getNearestGridOutline();
+    QPointF getNearestGridPointToCenter();
+
+
     void setGridEnabled(bool enabled);
     bool isGridEnabled() const;
     void setGridVisible(bool visible);
@@ -45,12 +49,17 @@ public:
     void setResizeEnabled(bool enabled);
     bool isResizeEnabled();
 
+    void setChildNodeMoving(NodeItemNew* child, bool moving);
+
+    void setMoving(bool moving);
+
     virtual QRectF sceneBoundingRect() const;
 
     QColor getBodyColor() const;
     void setBodyColor(QColor color);
 
     //RECTS
+    virtual QRectF viewRect() const;
     virtual QRectF boundingRect() const;
     virtual QRectF contractedRect() const;
     virtual QRectF expandedRect() const;
@@ -85,7 +94,9 @@ public:
     qreal getHeight() const;
 
     QPointF getCenter() const;
+    QPointF getCenterOffset() const;
     void setCenter(QPointF center);
+    QPointF getSceneCenter() const;
 
     virtual void setPos(const QPointF &pos);
 
@@ -115,6 +126,7 @@ signals:
 
 public slots:
     virtual void dataChanged(QString keyName, QVariant data);
+    void childPosChanged();
 private:
     int getResizeArrowRotation(RECT_VERTEX vert) const;
     int getGridSize() const;
@@ -150,6 +162,8 @@ private:
     QHash<int, NodeItemNew*> childNodes;
     QHash<int, EdgeItemNew*> childEdges;
     QHash<int, EdgeItemNew*> proxyChildEdges;
+
+    QVector<NodeItemNew*> movingChildren;
 
     QVector<QLineF> gridLines_Minor_Horizontal;
     QVector<QLineF> gridLines_Major_Horizontal;

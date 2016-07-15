@@ -1,32 +1,20 @@
 #include "nodeviewminimap.h"
 #include <QPainter>
-#include <QDebug>
 #include <QMouseEvent>
 #include <QPen>
-#include <QGraphicsItem>
-#include <QVBoxLayout>
-#include <QLabel>
-
-#define GRID_COUNT 50
-//#define LINEWIDTH 400
-#define LINEWIDTH 10
-#define GRACE 1000
-
-#define ZOOM_SCALE_INCREMENTOR 1.05
-#define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
-#define MAX_ZOOM_RATIO 50
-#define MIN_ZOOM_RATIO 2
 
 NodeViewMinimap::NodeViewMinimap(QObject*)
 {
-    isPanning = false;
-    drawRect = isEnabled();
-    setMouseTracking(true);
+    _isPanning = false;
+    drawRect = false;
+
     setDragMode(NoDrag);
+    setInteractive(false);
+    setMouseTracking(true);
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
+    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
 }
 
 void NodeViewMinimap::centerView()
@@ -36,61 +24,30 @@ void NodeViewMinimap::centerView()
         fitInView(rect, Qt::KeepAspectRatio);
         setSceneRect(rect);
     }
-
 }
 
-void NodeViewMinimap::setVisible(bool visible)
+void NodeViewMinimap::setMinimapPanning(bool pan)
 {
-    QGraphicsView::setVisible(true);
-    viewport()->setVisible(visible);
-}
+    if(pan != isPanning()){
+        setUpdatesEnabled(false);
+        _isPanning = pan;
+        emit minimap_Panning(pan);
 
-void NodeViewMinimap::minimapPan()
-{
-    emit minimap_Pan();
-    setCursor(Qt::ClosedHandCursor);
-}
-
-
-void NodeViewMinimap::minimapPanned()
-{
-    viewport()->unsetCursor();
-    emit minimap_Panned();
-    update();
-}
-
-
-void NodeViewMinimap::setupLayout()
-{
-    QVBoxLayout* layout = new QVBoxLayout();
-
-    layout->setSpacing(0);
-    layout->setMargin(0);
-
-    QLabel* label = new QLabel("Minimap:");
-
-    label->setStyleSheet("color:#3C3C3C; font-size:10px; font-weight: bold; background-color: rgb(210,210,210);border-bottom: 1px solid;border-color: black;padding-bottom: 1px;");
-    label->setAlignment(Qt::AlignCenter);
-
-    layout->addWidget(label);
-    layout->addStretch();
-
-    setLayout(layout);
-}
-
-
-void NodeViewMinimap::setCursor(QCursor cursor)
-{
-    if(viewport()->cursor().shape() != cursor.shape()){
-        viewport()->setCursor(cursor);
+        if(isPanning()){
+            setCursor(Qt::ClosedHandCursor);
+        }else{
+            unsetCursor();
+        }
+        setUpdatesEnabled(true);
     }
 }
 
-
 void NodeViewMinimap::viewportRectChanged(QRectF viewport)
 {
+    setUpdatesEnabled(false);
     //Update the viewport Rect.
     viewportRect = viewport;
+    setUpdatesEnabled(true);
 }
 
 
@@ -103,28 +60,31 @@ bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 
 void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
-    // this darkens the area in the scene that's not currently visualised by the view
-    // it also still draws a rectangle representing what is currently shown in the view
     if(drawRect){
-        QPainterPath path, viewPath;
-        path.addRect(rect);
-        viewPath.addRect(viewportRect);
-        path -= viewPath;
+        QRegion mainArea(rect.toAlignedRect());
+        QRegion viewArea(viewportRect.toAlignedRect());
+        QRegion maskArea = mainArea.xored(viewArea);
 
-        QBrush brush(QColor(0,0,0,100));
-        painter->setBrush(brush);
+        //Mask off the current viewportRect
+        painter->setClipRegion(maskArea);
+        painter->setBrush(QColor(0, 0, 0, 150));
         painter->setPen(Qt::NoPen);
-        painter->drawPath(path);
+        //Paint the background
+        painter->drawRect(rect);
 
+
+        painter->setClipping(false);
+
+        //Paint the viewportRect (With no Brush just a Pen)
         QPen pen(Qt::white);
-        if (isPanning) {
+        pen.setCosmetic(true);
+        if(isPanning()) {
             pen.setColor(Qt::blue);
         }
-
-        //pen.setWidth(LINEWIDTH);
-        pen.setWidth(rect.height()/100);
-        painter->setPen(pen);
+        pen.setJoinStyle(Qt::MiterJoin);
+        pen.setWidth(2);
         painter->setBrush(Qt::NoBrush);
+        painter->setPen(pen);
         painter->drawRect(viewportRect);
     }
 }
@@ -135,54 +95,63 @@ void NodeViewMinimap::setEnabled(bool enabled)
     QGraphicsView::setEnabled(true);
 }
 
+void NodeViewMinimap::setScene(QGraphicsScene *scene)
+{
+    //Center View.
+    QGraphicsView::setScene(scene);
+    //Update
+    drawRect = scene != 0;
+}
+
+bool NodeViewMinimap::isPanning()
+{
+    return _isPanning;
+}
 
 void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton || event->button() == Qt::RightButton){
         if(viewportContainsPoint(event->pos())){
-            isPanning = true;
             previousScenePos = mapToScene(event->pos());
-            minimapPan();
-        }else{
-            QGraphicsView::mousePressEvent(event);
+            setMinimapPanning(true);
         }
     }
 }
 
 void NodeViewMinimap::mouseReleaseEvent(QMouseEvent *)
 {
-    if(isPanning){
-        isPanning = false;
-        minimapPanned();
-    }
+    setMinimapPanning(false);
 }
 
 void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
 {
-    if(isPanning){
-        QPoint currentMousePos = event->pos();
-        QPointF currentPos = mapToScene(currentMousePos);
-        QPointF delta = previousScenePos - currentPos;
+    if(isPanning()){
+        QPointF sceneDelta = previousScenePos - mapToScene(event->pos());
 
-        emit minimap_Panning(delta);
+        emit minimap_Pan(sceneDelta);
+
         //Update the previous Scene position after the view has panned, such that we get smooth movement.
-        previousScenePos = mapToScene(currentMousePos);
-
+        previousScenePos = mapToScene(event->pos());
     }
 }
 
 void NodeViewMinimap::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    QPointF previousCenter = viewportRect.center();
-
-    QPointF currentPos = mapToScene(event->pos());
-    QPointF delta = previousCenter - currentPos;
-    emit minimap_Pan();
-    emit minimap_Panning(delta);
-    emit minimap_Panned();
+    if(event->button() == Qt::LeftButton){
+        QPointF sceneDelta = viewportRect.center() - mapToScene(event->pos());
+        setMinimapPanning(true);
+        emit minimap_Pan(sceneDelta);
+        setMinimapPanning(false);
+    }
 }
 
 void NodeViewMinimap::wheelEvent(QWheelEvent *event)
 {
-    minimap_Scrolled(event->delta());
+    emit minimap_Zoom(event->delta());
+}
+
+void NodeViewMinimap::resizeEvent(QResizeEvent *)
+{
+    //Recenter the Minimap after a widget resize.
+    centerView();;
 }

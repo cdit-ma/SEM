@@ -7,34 +7,60 @@
 #include "SceneItems/aspectitemnew.h"
 #include "SceneItems/modelitemnew.h"
 #include "SceneItems/defaultnodeitem.h"
+#include "SceneItems/Hardware/hardwarenodeitem.h"
 
 #include <QDebug>
 #include <QKeyEvent>
+
+#define ZOOM_INCREMENTOR 1.05
+
+
+
 NodeViewNew::NodeViewNew():QGraphicsView()
 {
-    setSceneRect(QRectF(-10000,-10000,20000,20000));
-    setScene(new QGraphicsScene(this));
-    //Set QT Options for this QGraphicsView
-    setDragMode(NoDrag);
-    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
-    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    QRectF sceneRect;
+    sceneRect.setSize(QSize(100000,100000));
+    sceneRect.moveCenter(QPointF(0,0));
+    setSceneRect(sceneRect);
 
+    setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //Set QT Options for this QGraphicsView
+    setDragMode(NoDrag);
+    setAcceptDrops(true);
+    setTransformationAnchor(QGraphicsView::NoAnchor);
+    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
+
+    //Turn off the Scroll bars.
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     viewController = 0;
     selectionHandler = 0;
-
 }
 
 void NodeViewNew::setViewController(ViewController *viewController)
 {
     this->viewController = viewController;
     if(viewController){
-        this->selectionHandler = viewController->getSelectionHandler(this);
+        selectionHandler = viewController->getSelectionHandler(this);
         connect(selectionHandler, SIGNAL(itemSelected(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelected(ViewItem*,bool)));
+    }
+}
+
+void NodeViewNew::translate(QPointF point)
+{
+    QGraphicsView::translate(point.x(), point.y());
+    viewportChanged();
+}
+
+void NodeViewNew::scale(qreal sx, qreal sy)
+{
+    if(sx != 1 || sy != 1){
+        QGraphicsView::scale(sx, sy);
+        viewportChanged();
     }
 }
 
@@ -69,6 +95,15 @@ void NodeViewNew::selectionHandler_ItemSelected(ViewItem *item, bool selected)
     }
 }
 
+void NodeViewNew::fitToScreen()
+{
+    NodeItemNew* model = getModelItem();
+
+    if(model){
+        centerOnItems(model->getChildEntities());
+    }
+}
+
 void NodeViewNew::item_SetSelected(EntityItemNew *item, bool selected, bool append)
 {
     if(selectionHandler){
@@ -79,6 +114,119 @@ void NodeViewNew::item_SetSelected(EntityItemNew *item, bool selected, bool appe
 void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
 {
     item->setExpanded(expand);
+}
+
+void NodeViewNew::item_SetCentered(EntityItemNew *item)
+{
+    centerRect(item->sceneViewRect());
+}
+
+void NodeViewNew::item_AdjustingPos(bool adjusting)
+{
+    foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+        EntityItemNew* item = getEntityItem(viewItem);
+        if(item){
+            item->setMoving(adjusting);
+        }
+    }
+}
+
+void NodeViewNew::item_AdjustPos(QPointF delta)
+{
+    //Moves the selection.
+    if(selectionHandler){
+        bool isMoveOkay = true;
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+            EntityItemNew* item = getEntityItem(viewItem);
+            if(item){
+                //Try see if move is okay.
+                if(!item->isAdjustValid(delta)){
+                    isMoveOkay = false;
+                    break;
+                }
+            }
+        }
+        if(isMoveOkay){
+            foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+                EntityItemNew* item = getEntityItem(viewItem);
+                if(item){
+                    //Move!
+                    item->adjustPos(delta);
+                }
+            }
+        }
+    }
+}
+
+void NodeViewNew::minimap_Panning(bool panning)
+{
+
+}
+
+void NodeViewNew::minimap_Pan(QPointF delta)
+{
+    translate(delta);
+}
+
+void NodeViewNew::minimap_Zoom(int delta)
+{
+    zoom(delta);
+}
+
+void NodeViewNew::centerOnItems(QList<EntityItemNew *> items)
+{
+    QRectF itemsRect;
+    foreach(EntityItemNew* item, items){
+        itemsRect = itemsRect.united(item->sceneViewRect());
+    }
+    centerRect(itemsRect);
+}
+
+NodeItemNew *NodeViewNew::getModelItem()
+{
+    NodeItemNew* item = 0;
+    if(viewController){
+        ViewItem* viewItem = viewController->getModel();
+        EntityItemNew* model = 0;
+        if(viewItem){
+            model = getEntityItem(viewItem->getID());
+        }
+        if(model && model->isNodeItem()){
+            item = (NodeItemNew*) model;
+        }
+    }
+    return item;
+}
+
+void NodeViewNew::centerRect(QRectF rectScene)
+{
+    //Inflate by 110%
+    QRectF visibleRect = viewportRect();
+    qreal widthRatio = visibleRect.width() / (rectScene.width() * 1.1);
+    qreal heightRatio = visibleRect.height() / (rectScene.height() * 1.1);
+
+    qreal scaleRatio = qMin(widthRatio, heightRatio);
+
+    //Change the scale.
+    scale(scaleRatio, scaleRatio);
+    centerView(rectScene.center());
+}
+
+void NodeViewNew::centerView(QPointF scenePos)
+{
+    QPointF delta = viewportRect().center() - scenePos;
+    translate(delta);
+    viewportCenter_Scene = viewportRect().center();
+}
+
+void NodeViewNew::viewportChanged()
+{
+    emit viewportChanged(viewportRect());
+}
+
+QRectF NodeViewNew::viewportRect()
+{
+    return mapToScene(rect()).boundingRect();
 }
 
 void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
@@ -100,13 +248,20 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
         nodeItem = new AspectItemNew(item, parentNode, aspect);
     }else if(parentNode){
-        nodeItem = new DefaultNodeItem(item, parentNode);
+        if(nodeKind == "HardwareNode"){
+            nodeItem = new HardwareNodeItem(item, parentNode);
+        }else{
+            nodeItem = new DefaultNodeItem(item, parentNode);
+        }
     }
 
     if(nodeItem){
         guiItems[item->getID()] = nodeItem;
         connect(nodeItem, SIGNAL(req_setSelected(EntityItemNew*,bool,bool)), this, SLOT(item_SetSelected(EntityItemNew*,bool,bool)));
         connect(nodeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(item_SetExpanded(EntityItemNew*,bool)));
+        connect(nodeItem, SIGNAL(req_centerItem(EntityItemNew*)), this, SLOT(item_SetCentered(EntityItemNew*)));
+        connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(item_AdjustPos(QPointF)));
+        connect(nodeItem, SIGNAL(req_adjustingPos(bool)), this, SLOT(item_AdjustingPos(bool)));
 
         /*
         connect(nodeItem, SIGNAL(req_adjustSize(NodeViewItem*,QSizeF, RECT_VERTEX)), this, SLOT(nodeItemNew_AdjustSize(NodeViewItem*,QSizeF,RECT_VERTEX)));
@@ -118,8 +273,9 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
         connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(moveSelection(QPointF)));
         connect(nodeItem, SIGNAL(req_adjustPosFinished()), this, SLOT(moveFinished()));
         */
-        if(!scene()->items().contains(nodeItem)){
-           scene()->addItem(nodeItem);
+
+        if(nodeItem->getNodeItemKind() == NodeItemNew::MODEL_ITEM){
+            scene()->addItem(nodeItem);
         }
     }
 }
@@ -164,6 +320,29 @@ EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item)
     return getEntityItem(item->getID());
 }
 
+void NodeViewNew::zoom(int delta, QPoint anchorScreenPos)
+{
+    QPointF anchorScenePos = getScenePosOfPoint(anchorScreenPos);
+
+    //Calculate the zoom change.
+    qreal scaleFactor = pow(ZOOM_INCREMENTOR, (delta / abs(delta)));
+    if(scaleFactor != 1){
+        scale(scaleFactor, scaleFactor);
+
+        QPointF delta = getScenePosOfPoint(anchorScreenPos) - anchorScenePos;
+        translate(delta);
+    }
+}
+
+QPointF NodeViewNew::getScenePosOfPoint(QPoint pos)
+{
+    if(pos.isNull()){
+        //If we haven't been given a point, use the center of the viewport rect.
+        pos = viewport()->rect().center();
+    }
+    return mapToScene(pos);
+}
+
 void NodeViewNew::clearSelection()
 {
     if(selectionHandler){
@@ -200,5 +379,48 @@ void NodeViewNew::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Escape){
         clearSelection();
     }
+}
+
+void NodeViewNew::wheelEvent(QWheelEvent *event)
+{
+    //Call Zoom
+    zoom(event->delta(), event->pos());
+}
+
+void NodeViewNew::mousePressEvent(QMouseEvent *event)
+{
+    event->ignore();
+
+    QPointF scenePos = mapToScene(event->pos());
+    //bool itemUnderMouse = scene()->itemAt(scenePos, transform());
+
+    if(event->button() == Qt::RightButton){
+        isPanning = true;
+        panOrigin_Screen = event->pos();
+        panPrev_Scene = mapToScene(panOrigin_Screen);
+        event->accept();
+    }
+
+    if(!event->isAccepted()){
+        QGraphicsView::mousePressEvent(event);
+    }
+}
+
+void NodeViewNew::mouseMoveEvent(QMouseEvent *event)
+{
+    if(isPanning){
+        QPointF pan_Scene = mapToScene(event->pos());
+        translate(pan_Scene - panPrev_Scene);
+        panPrev_Scene = mapToScene(event->pos());
+    }
+    QGraphicsView::mouseMoveEvent(event);
+}
+
+void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
+{
+    if(isPanning){
+        isPanning = false;
+    }
+    QGraphicsView::mouseReleaseEvent(event);
 }
 

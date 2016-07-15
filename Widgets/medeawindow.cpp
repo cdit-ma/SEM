@@ -532,13 +532,9 @@ void MedeaWindow::initialiseGUI()
 
     nodeView = new NodeView(false, this);
 
-    nodeViewNew = new NodeViewNew();
 
-    QMainWindow* window = new QMainWindow(this);
-    window->setMinimumHeight(600);
-    window->setMinimumWidth(600);
-    window->setCentralWidget(nodeViewNew);
-    window->show();
+    setupNewNodeView();
+
 
     nodeView->setApplicationDirectory(applicationDirectory);
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
@@ -1846,11 +1842,8 @@ void MedeaWindow::setupMinimap()
     // setup minimap
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
-    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
-    minimap->setInteractive(false);
+
     minimap->setFixedHeight(RIGHT_PANEL_WIDTH * 0.6);
-    minimap->centerView();
 
     int titleBarHeight = 20;
 
@@ -2137,6 +2130,9 @@ void MedeaWindow::setupConnections()
     connect(this, SIGNAL(window_Paste(QString)), nodeView, SLOT(paste(QString)));
     connect(edit_search, SIGNAL(triggered()), this, SLOT(search()));
 
+
+    connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew, SLOT(fitToScreen()));
+
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(centerImplementation()));
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(centerDefinition()));
@@ -2228,6 +2224,38 @@ void MedeaWindow::setupConnections()
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
+}
+
+void MedeaWindow::setupNewNodeView()
+{
+    nodeViewNew = new NodeViewNew();
+
+    QMainWindow* window = new QMainWindow(this);
+    window->setMinimumHeight(600);
+    window->setMinimumWidth(600);
+    window->setCentralWidget(nodeViewNew);
+    window->show();
+
+    QDialog* minimapWindow = new QDialog(this);
+    QVBoxLayout* layout = new QVBoxLayout(minimapWindow);
+    NodeViewMinimap* minimap2 = new NodeViewMinimap(minimapWindow);
+    layout->addWidget(minimap2);
+    minimap2->setScene(nodeViewNew->scene());
+    minimapWindow->show();
+
+    connect(minimap2, SIGNAL(minimap_Pan(QPointF)), nodeViewNew, SLOT(minimap_Pan(QPointF)));
+    connect(minimap2, SIGNAL(minimap_Panning(bool)), nodeViewNew, SLOT(minimap_Panning(bool)));
+    connect(minimap2, SIGNAL(minimap_Zoom(int)), nodeViewNew, SLOT(minimap_Zoom(int)));
+    connect(nodeViewNew, SIGNAL(viewportChanged(QRectF)), minimap2, SLOT(viewportRectChanged(QRectF)));
+    //connect(nodeViewN)
+/*
+    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
+    connect(nodeView, SIGNAL(view_ModelSizeChanged()), minimap, SLOT(centerView()));
+    connect(minimap, SIGNAL(minimap_Pan()), nodeView, SLOT(minimapPan()));
+    connect(minimap, SIGNAL(minimap_Panning(QPointF)), nodeView, SLOT(minimapPanning(QPointF)));
+    connect(minimap, SIGNAL(minimap_Panned()), nodeView, SLOT(minimapPanned()));
+    connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(minimapScrolled(int)));
+*/
 }
 
 
