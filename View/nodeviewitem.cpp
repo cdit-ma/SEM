@@ -11,6 +11,14 @@ NodeViewItem::~NodeViewItem()
 
 }
 
+VIEW_ASPECT NodeViewItem::getViewAspect()
+{
+    if(entity){
+        return entity->getViewAspect();
+    }
+    return VA_NONE;
+}
+
 int NodeViewItem::getParentID(int depth)
 {
     int ID = -1;

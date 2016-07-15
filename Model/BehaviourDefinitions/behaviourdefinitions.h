@@ -9,6 +9,7 @@ class BehaviourDefinitions: public Node
 public:
     BehaviourDefinitions();
     ~BehaviourDefinitions();
+    VIEW_ASPECT getViewAspect();
 
 public:
     bool canAdoptChild(Node* child);

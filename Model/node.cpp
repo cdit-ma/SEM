@@ -16,6 +16,7 @@ Node::Node(NODE_TYPE type, NODE_CLASS nClass) : Entity(EK_NODE)
     childCount = 0;
 
     nodeClass = nClass;
+    aspect = VA_NONE;
 }
 
 QString Node::toGraphML(int indentDepth)
@@ -110,6 +111,11 @@ QString Node::toString()
     return QString("[%1]%2 - %3").arg(QString::number(getID()), kind, label);
 }
 
+VIEW_ASPECT Node::getViewAspect()
+{
+    return aspect;
+}
+
 Node *Node::getParentNode(int depth)
 {
 
@@ -190,6 +196,11 @@ bool Node::compareData(Node *node, QStringList keys)
         }
     }
     return true;
+}
+
+void Node::setViewAspect(VIEW_ASPECT aspect)
+{
+    this->aspect = aspect;
 }
 
 void Node::addChild(Node *child)
@@ -860,6 +871,12 @@ void Node::setParentNode(Node *parent, int index)
     this->treeIndexStr += QString::number(index);
     this->treeIndex.append(index);
     parentNode = parent;
+    if(parent){
+        //Set the view Aspect.
+        setViewAspect(parent->getViewAspect());
+    }else{
+        setViewAspect(VA_NONE);
+    }
 }
 
 QString Node::_toGraphML(int indentDepth, bool ignoreVisuals)

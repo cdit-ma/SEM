@@ -9,6 +9,11 @@ HardwareDefinitions::~HardwareDefinitions()
 {
 }
 
+VIEW_ASPECT HardwareDefinitions::getViewAspect()
+{
+    return VA_HARDWARE;
+}
+
 bool HardwareDefinitions::canAdoptChild(Node *child)
 {
     Hardware* hardware = dynamic_cast<Hardware*>(child);

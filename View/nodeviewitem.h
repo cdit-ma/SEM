@@ -12,6 +12,8 @@ public:
     NodeViewItem(NodeAdapter* entity);
     ~NodeViewItem();
 
+
+    VIEW_ASPECT getViewAspect();
     int getParentID(int depth = 1);
 
     NODE_CLASS getNodeClass();

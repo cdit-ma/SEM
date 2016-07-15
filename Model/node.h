@@ -23,6 +23,8 @@ public:
     QString toGraphMLNoVisualData(int indentDepth);
     virtual QString toString();
 
+
+    virtual VIEW_ASPECT getViewAspect();
     QList<int> getTreeIndex();
     QString getTreeIndexString();
 
@@ -116,6 +118,7 @@ signals:
     void node_EdgeAdded(int ID, Edge::EDGE_CLASS edgeClass);
     void node_EdgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
 private:
+    void setViewAspect(VIEW_ASPECT aspect);
     void setParentNode(Node* parent, int index);
 
     QString _toGraphML(int indentDepth, bool ignoreVisuals=false);
@@ -154,7 +157,7 @@ private:
     //The list of contained Edge elements in this graph. (Top level only)
     QList<Edge *> edges;
 
-
+    VIEW_ASPECT aspect;
 protected:
     void setAcceptEdgeClass(Edge::EDGE_CLASS edgeClass);
     bool acceptsEdgeClass(Edge::EDGE_CLASS edgeClass);

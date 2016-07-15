@@ -11,6 +11,11 @@ AssemblyDefinitions::~AssemblyDefinitions()
 
 }
 
+VIEW_ASPECT AssemblyDefinitions::getViewAspect()
+{
+    return VA_ASSEMBLIES;
+}
+
 bool AssemblyDefinitions::canAdoptChild(Node *node)
 {
     ComponentAssembly* componentAssembly = dynamic_cast<ComponentAssembly *>(node);

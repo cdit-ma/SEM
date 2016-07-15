@@ -90,6 +90,14 @@ bool NodeAdapter::gotImpl()
 
 }
 
+VIEW_ASPECT NodeAdapter::getViewAspect()
+{
+    if(isValid()){
+        return _node->getViewAspect();
+    }
+    return VA_NONE;
+}
+
 uint NodeAdapter::getSelectionID()
 {
     if(isValid()){

@@ -8,6 +8,7 @@ class InterfaceDefinitions: public Node
 public:
     InterfaceDefinitions();
     ~InterfaceDefinitions();
+    VIEW_ASPECT getViewAspect();
 
     bool canAdoptChild(Node* child);
 };

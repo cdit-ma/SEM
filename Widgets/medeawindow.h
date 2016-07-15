@@ -146,6 +146,7 @@ public slots:
     void executeJenkinsDeployment();
 
 private slots:
+    void viewFocussed(NodeViewNew* view, bool focussed);
     void closeCodeTab(int tabID);
     void CUTSOutputPathChanged(QString path);
     void themeChanged();
@@ -572,6 +573,11 @@ private:
     ViewController* viewController;
     NodeView* nodeView;
     NodeViewNew* nodeViewNew;
+    NodeViewNew* nodeViewNew1;
+    NodeViewNew* nodeViewNew2;
+    NodeViewNew* nodeViewNew3;
+    NodeViewNew* nodeViewNew4;
+
     QFileDialog* fileDialog;
 
     QThread* controllerThread;
@@ -645,6 +651,7 @@ private:
     QStack<QString> recentProjectsList;
     QListWidget* recentProjectsListWidget;
 
+    NodeViewMinimap* minimap2;
     // QWidget interface
 protected:
     void dropEvent(QDropEvent *);

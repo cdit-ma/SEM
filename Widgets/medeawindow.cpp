@@ -1904,10 +1904,24 @@ void MedeaWindow::setupProject()
         controller = new NewController();
         viewController = new ViewController();
 
+
         nodeViewNew->setViewController(viewController);
+        nodeViewNew1->setViewController(viewController);
+        nodeViewNew2->setViewController(viewController);
+        nodeViewNew3->setViewController(viewController);
+        nodeViewNew4->setViewController(viewController);
+
         //connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView, SLOT(viewItemConstructed(ViewItem*)));
         connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeViewNew, SLOT(viewItem_Constructed(ViewItem*)));
         connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeViewNew, SLOT(viewItem_Destructed(int, ViewItem*)));
+        connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeViewNew1, SLOT(viewItem_Constructed(ViewItem*)));
+        connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeViewNew1, SLOT(viewItem_Destructed(int, ViewItem*)));
+        connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeViewNew2, SLOT(viewItem_Constructed(ViewItem*)));
+        connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeViewNew2, SLOT(viewItem_Destructed(int, ViewItem*)));
+        connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeViewNew3, SLOT(viewItem_Constructed(ViewItem*)));
+        connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeViewNew3, SLOT(viewItem_Destructed(int, ViewItem*)));
+        connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeViewNew4, SLOT(viewItem_Constructed(ViewItem*)));
+        connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeViewNew4, SLOT(viewItem_Destructed(int, ViewItem*)));
 
         //Set External Worker Definitions Path.
         controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
@@ -2132,6 +2146,11 @@ void MedeaWindow::setupConnections()
 
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew, SLOT(fitToScreen()));
+    connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew1, SLOT(fitToScreen()));
+    connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew2, SLOT(fitToScreen()));
+    connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew3, SLOT(fitToScreen()));
+    connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew4, SLOT(fitToScreen()));
+
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(centerImplementation()));
@@ -2229,24 +2248,37 @@ void MedeaWindow::setupConnections()
 void MedeaWindow::setupNewNodeView()
 {
     nodeViewNew = new NodeViewNew();
+    nodeViewNew1 = new NodeViewNew(VA_INTERFACES);
+    nodeViewNew2 = new NodeViewNew(VA_BEHAVIOUR);
+    nodeViewNew3 = new NodeViewNew(VA_ASSEMBLIES);
+    nodeViewNew4 = new NodeViewNew(VA_HARDWARE);
 
     QMainWindow* window = new QMainWindow(this);
     window->setMinimumHeight(600);
     window->setMinimumWidth(600);
-    window->setCentralWidget(nodeViewNew);
+    QWidget* viewWidget = new QWidget(this);
+    QGridLayout* VLayout = new QGridLayout(viewWidget);
+    window->setCentralWidget(viewWidget);
+
+    minimap2 = new NodeViewMinimap(this);
+    minimap2->setMinimumSize(300,200);
+
+    VLayout->addWidget(nodeViewNew1, 1, 1);
+    VLayout->addWidget(nodeViewNew2, 1, 2);
+    VLayout->addWidget(nodeViewNew3, 2, 1);
+    VLayout->addWidget(nodeViewNew4, 2, 2);
+    VLayout->addWidget(minimap2, 3, 3);
     window->show();
 
-    QDialog* minimapWindow = new QDialog(this);
-    QVBoxLayout* layout = new QVBoxLayout(minimapWindow);
-    NodeViewMinimap* minimap2 = new NodeViewMinimap(minimapWindow);
-    layout->addWidget(minimap2);
-    minimap2->setScene(nodeViewNew->scene());
-    minimapWindow->show();
 
-    connect(minimap2, SIGNAL(minimap_Pan(QPointF)), nodeViewNew, SLOT(minimap_Pan(QPointF)));
-    connect(minimap2, SIGNAL(minimap_Panning(bool)), nodeViewNew, SLOT(minimap_Panning(bool)));
-    connect(minimap2, SIGNAL(minimap_Zoom(int)), nodeViewNew, SLOT(minimap_Zoom(int)));
-    connect(nodeViewNew, SIGNAL(viewportChanged(QRectF)), minimap2, SLOT(viewportRectChanged(QRectF)));
+
+
+    connect(nodeViewNew1, SIGNAL(viewFocussed(NodeViewNew*,bool)), this, SLOT(viewFocussed(NodeViewNew*,bool)));
+    connect(nodeViewNew2, SIGNAL(viewFocussed(NodeViewNew*,bool)), this, SLOT(viewFocussed(NodeViewNew*,bool)));
+    connect(nodeViewNew3, SIGNAL(viewFocussed(NodeViewNew*,bool)), this, SLOT(viewFocussed(NodeViewNew*,bool)));
+    connect(nodeViewNew4, SIGNAL(viewFocussed(NodeViewNew*,bool)), this, SLOT(viewFocussed(NodeViewNew*,bool)));
+
+
     //connect(nodeViewN)
 /*
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
@@ -3175,6 +3207,20 @@ void MedeaWindow::executeJenkinsDeployment()
     if(jenkinsManager){
         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
         jenkinsSJ->requestJob(jobName, exportFile);
+    }
+}
+
+void MedeaWindow::viewFocussed(NodeViewNew *view, bool focussed)
+{
+    if(focussed){
+        minimap2->setScene(view->scene());
+        minimap2->disconnect();
+        connect(minimap2, SIGNAL(minimap_Pan(QPointF)), view, SLOT(minimap_Pan(QPointF)));
+        connect(minimap2, SIGNAL(minimap_Panning(bool)), view, SLOT(minimap_Panning(bool)));
+        connect(minimap2, SIGNAL(minimap_Zoom(int)), view, SLOT(minimap_Zoom(int)));
+        connect(view, SIGNAL(viewportChanged(QRectF, qreal)), minimap2, SLOT(viewportRectChanged(QRectF, qreal)));
+
+        view->viewportChanged();
     }
 }
 

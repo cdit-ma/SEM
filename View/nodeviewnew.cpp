@@ -16,7 +16,7 @@
 
 
 
-NodeViewNew::NodeViewNew():QGraphicsView()
+NodeViewNew::NodeViewNew(VIEW_ASPECT aspect):QGraphicsView()
 {
     QRectF sceneRect;
     sceneRect.setSize(QSize(100000,100000));
@@ -37,8 +37,12 @@ NodeViewNew::NodeViewNew():QGraphicsView()
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+    isPanning = false;
+
     viewController = 0;
     selectionHandler = 0;
+    this->aspect = aspect;
+    setupAspect();
 }
 
 void NodeViewNew::setViewController(ViewController *viewController)
@@ -64,6 +68,11 @@ void NodeViewNew::scale(qreal sx, qreal sy)
     }
 }
 
+QRectF NodeViewNew::getViewportRect()
+{
+    return viewportRect();
+}
+
 void NodeViewNew::viewItem_Constructed(ViewItem *item)
 {
     if(item){
@@ -78,7 +87,6 @@ void NodeViewNew::viewItem_Constructed(ViewItem *item)
 void NodeViewNew::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
     EntityItemNew* item = getEntityItem(ID);
-    qCritical() << "ID: " << ID;
     if(item){
         guiItems.remove(ID);
         delete item;
@@ -97,11 +105,12 @@ void NodeViewNew::selectionHandler_ItemSelected(ViewItem *item, bool selected)
 
 void NodeViewNew::fitToScreen()
 {
-    NodeItemNew* model = getModelItem();
+    //NodeItemNew* model = getModelItem();
 
-    if(model){
-        centerOnItems(model->getChildEntities());
-    }
+    //if(model){
+        centerRect(scene()->itemsBoundingRect());
+        //centerOnItems(model->getChildEntities());
+    //}
 }
 
 void NodeViewNew::item_SetSelected(EntityItemNew *item, bool selected, bool append)
@@ -221,7 +230,7 @@ void NodeViewNew::centerView(QPointF scenePos)
 
 void NodeViewNew::viewportChanged()
 {
-    emit viewportChanged(viewportRect());
+    emit viewportChanged(viewportRect(), transform().m11());
 }
 
 QRectF NodeViewNew::viewportRect()
@@ -231,7 +240,7 @@ QRectF NodeViewNew::viewportRect()
 
 void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 {
-    if(!item->isInModel()){
+    if(item->getViewAspect() != aspect){
         return;
     }
 
@@ -240,14 +249,19 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
     NodeItemNew* nodeItem =  0;
     QString nodeKind = item->getData("kind").toString();
     if(nodeKind == "Model"){
-        nodeItem = new ModelItemNew(item);
+        //nodeItem = new ModelItemNew(item);
     }else if(nodeKind.endsWith("Definitions")){
         if(nodeKind == "DeploymentDefinitions"){
             return;
         }
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
-        nodeItem = new AspectItemNew(item, parentNode, aspect);
-    }else if(parentNode){
+        if(this->aspect == aspect){
+            //qCritical() << "ASPECT MATCH!";
+            //nodeItem = new AspectItemNew(item, parentNode, aspect);
+        }
+    }else{
+
+
         if(nodeKind == "HardwareNode"){
             nodeItem = new HardwareNodeItem(item, parentNode);
         }else{
@@ -274,7 +288,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
         connect(nodeItem, SIGNAL(req_adjustPosFinished()), this, SLOT(moveFinished()));
         */
 
-        if(nodeItem->getNodeItemKind() == NodeItemNew::MODEL_ITEM){
+        if(!scene()->items().contains(nodeItem)){
             scene()->addItem(nodeItem);
         }
     }
@@ -368,6 +382,15 @@ void NodeViewNew::selectAll()
     }
 }
 
+void NodeViewNew::setupAspect()
+{
+    aspectName = GET_ASPECT_NAME(aspect).toUpper();
+    aspectColor = GET_ASPECT_COLOR(aspect);
+    aspectFontColor = aspectColor.darker(110);
+    aspectFont.setPixelSize(70);
+    aspectFont.setBold(true);
+}
+
 void NodeViewNew::keyPressEvent(QKeyEvent *event)
 {
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
@@ -422,5 +445,30 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
         isPanning = false;
     }
     QGraphicsView::mouseReleaseEvent(event);
+}
+
+void NodeViewNew::focusInEvent(QFocusEvent *event)
+{
+    qCritical() << "FOCUSED!";
+    emit viewFocussed(this, true);
+}
+
+void NodeViewNew::focusOutEvent(QFocusEvent *event)
+{
+    qCritical() << "LOST";
+    emit viewFocussed(this, false);
+}
+
+void NodeViewNew::drawBackground(QPainter *painter, const QRectF &rect)
+{
+    painter->resetTransform();
+
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(aspectColor);
+    painter->drawRect(this->rect());
+
+    painter->setFont(aspectFont);
+    painter->setPen(aspectFontColor);
+    painter->drawText(this->rect(), Qt::AlignHCenter |Qt::AlignBottom, aspectName);
 }
 

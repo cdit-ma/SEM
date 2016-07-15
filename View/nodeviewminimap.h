@@ -21,9 +21,12 @@ signals:
     void minimap_Zoom(int delta);
 
 public slots:
-    void viewportRectChanged(QRectF viewportRect);
+    void viewportRectChanged(QRectF viewportRect, qreal zoom);
 
 private:
+    QRectF zoomIcon() const;
+    QRectF zoomText() const;
+    QRectF infoBox() const;
     void centerView();
     void setMinimapPanning(bool pan);
 
@@ -31,8 +34,9 @@ private:
 
     QPointF previousScenePos;
     QRectF viewportRect;
-
+    QString zoomPercent;
     bool _isPanning;
+    QPixmap zoomPixmap;
     bool drawRect;
 protected:
     void drawForeground(QPainter *painter, const QRectF &rect);

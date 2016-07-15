@@ -9,6 +9,7 @@ public:
     AssemblyDefinitions();
     ~AssemblyDefinitions();
 
+    VIEW_ASPECT getViewAspect();
     bool canAdoptChild(Node* node);
 };
 #endif // AssemblyDefinitions_H

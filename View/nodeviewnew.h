@@ -12,13 +12,16 @@ class NodeViewNew : public QGraphicsView
 {
     Q_OBJECT
 public:
-    NodeViewNew();
+    NodeViewNew(VIEW_ASPECT aspect=VA_NONE);
     void setViewController(ViewController* viewController);
     void translate(QPointF point);
     void scale(qreal sx, qreal sy);
 
+    QRectF getViewportRect();
+    void viewportChanged();
 signals:
-    void viewportChanged(QRectF rect);
+    void viewportChanged(QRectF rect, qreal zoom);
+    void viewFocussed(NodeViewNew* view, bool focussed);
 private slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
@@ -41,7 +44,7 @@ private:
     NodeItemNew* getModelItem();
     void centerRect(QRectF rectScene);
     void centerView(QPointF scenePos);
-    void viewportChanged();
+
     QRectF viewportRect();
     void nodeViewItem_Constructed(NodeViewItem* item);
     void edgeViewItem_Constructed(EdgeViewItem* item);
@@ -57,6 +60,7 @@ private:
 private:
     void clearSelection();
     void selectAll();
+    void setupAspect();
 private:
     QHash<int, EntityItemNew*> guiItems;
 
@@ -69,6 +73,11 @@ private:
 
     QPointF viewportCenter_Scene;
 
+    VIEW_ASPECT aspect;
+    QString aspectName;
+    QColor aspectColor;
+    QFont aspectFont;
+    QColor aspectFontColor;
 
 protected:
     void keyPressEvent(QKeyEvent* event);
@@ -77,6 +86,12 @@ protected:
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
+    void focusInEvent(QFocusEvent* event);
+    void focusOutEvent(QFocusEvent* event);
+
+    // QGraphicsView interface
+protected:
+    void drawBackground(QPainter *painter, const QRectF &rect);
 };
 
 #endif // NODEVIEWNEW_H

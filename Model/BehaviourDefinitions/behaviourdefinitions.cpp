@@ -9,6 +9,11 @@ BehaviourDefinitions::~BehaviourDefinitions()
 {
 }
 
+VIEW_ASPECT BehaviourDefinitions::getViewAspect()
+{
+    return VA_BEHAVIOUR;
+}
+
 bool BehaviourDefinitions::canAdoptChild(Node *child)
 {
     ComponentImpl* component = dynamic_cast<ComponentImpl *>(child);

@@ -2,6 +2,8 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QPen>
+#include <QDebug>
+#include "theme.h"
 
 NodeViewMinimap::NodeViewMinimap(QObject*)
 {
@@ -15,13 +17,23 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+
+    zoomPixmap = Theme::theme()->getImage("Actions", "Search", QSize(16, 16), Qt::white);
 }
 
 void NodeViewMinimap::centerView()
 {
     if (scene()) {
         QRectF rect = scene()->itemsBoundingRect();
+        QPointF centerPoint = rect.center();
+        qreal width = qMax(1200.0, rect.width());
+        qreal height = qMax(800.0, rect.height());
+
+        rect.setWidth(width);
+        rect.setHeight(height);
+        rect.moveCenter(centerPoint);
         fitInView(rect, Qt::KeepAspectRatio);
+        centerOn(centerPoint);
         setSceneRect(rect);
     }
 }
@@ -42,12 +54,37 @@ void NodeViewMinimap::setMinimapPanning(bool pan)
     }
 }
 
-void NodeViewMinimap::viewportRectChanged(QRectF viewport)
+void NodeViewMinimap::viewportRectChanged(QRectF viewport, qreal zoom)
 {
     setUpdatesEnabled(false);
     //Update the viewport Rect.
     viewportRect = viewport;
+    zoomPercent = QString::number(zoom * 100, 'f' ,2) + "%";
     setUpdatesEnabled(true);
+}
+
+QRectF NodeViewMinimap::zoomIcon() const
+{
+    QRectF rect;
+    rect.setWidth(16);
+    rect.setHeight(16);
+    rect.moveTopLeft(infoBox().topLeft());
+    return rect;
+}
+
+QRectF NodeViewMinimap::zoomText() const
+{
+    return QRectF(zoomIcon().topRight(), infoBox().bottomRight());
+}
+
+QRectF NodeViewMinimap::infoBox() const
+{
+    QRectF rect;
+    rect.setWidth(80);
+    rect.setHeight(16);
+
+    rect.moveBottomRight(this->rect().bottomRight());
+    return rect;
 }
 
 
@@ -87,6 +124,23 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
         painter->setPen(pen);
         painter->drawRect(viewportRect);
     }
+    painter->resetTransform();
+    QFont font;
+    font.setBold(true);
+    font.setPixelSize(12);
+    painter->setFont(font);
+
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(Qt::darkGray);
+    painter->drawRect(infoBox());
+    painter->setPen(Qt::white);
+
+
+
+
+    painter->drawText(zoomText(), Qt::AlignCenter|Qt::AlignLeft, zoomPercent);
+    QRectF imageRect = zoomIcon();
+    painter->drawPixmap(imageRect.x(), imageRect.y(), imageRect.width(), imageRect.height(), zoomPixmap);
 }
 
 void NodeViewMinimap::setEnabled(bool enabled)
@@ -101,6 +155,7 @@ void NodeViewMinimap::setScene(QGraphicsScene *scene)
     QGraphicsView::setScene(scene);
     //Update
     drawRect = scene != 0;
+    centerView();
 }
 
 bool NodeViewMinimap::isPanning()

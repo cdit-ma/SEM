@@ -9,6 +9,7 @@ class HardwareDefinitions: public Node
 public:
     HardwareDefinitions();
     ~HardwareDefinitions();
+    VIEW_ASPECT getViewAspect();
 
     bool canAdoptChild(Node* child);
 };

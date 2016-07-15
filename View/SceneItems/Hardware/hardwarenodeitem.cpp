@@ -93,10 +93,13 @@ QRectF HardwareNodeItem::labelRect() const
 
 void HardwareNodeItem::setupBrushes()
 {
+    QColor bodyColor = QColor(233,234,237).lighter(110);
+
     NodeItemNew* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
-        setBodyColor(parentNodeItem->getBodyColor().darker(110));
+        bodyColor = parentNodeItem->getBodyColor().darker(110);
     }
+    setBodyColor(bodyColor);
 }
 
 void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

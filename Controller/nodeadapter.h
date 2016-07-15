@@ -22,6 +22,8 @@ public:
     bool gotInstances();
     bool gotImpl();
 
+    VIEW_ASPECT getViewAspect();
+
     uint getSelectionID();
 
 
