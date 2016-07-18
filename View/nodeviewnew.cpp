@@ -447,15 +447,13 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
     QGraphicsView::mouseReleaseEvent(event);
 }
 
-void NodeViewNew::focusInEvent(QFocusEvent *event)
+void NodeViewNew::focusInEvent(QFocusEvent *)
 {
-    qCritical() << "FOCUSED!";
     emit viewFocussed(this, true);
 }
 
-void NodeViewNew::focusOutEvent(QFocusEvent *event)
+void NodeViewNew::focusOutEvent(QFocusEvent *)
 {
-    qCritical() << "LOST";
     emit viewFocussed(this, false);
 }
 
@@ -469,6 +467,6 @@ void NodeViewNew::drawBackground(QPainter *painter, const QRectF &rect)
 
     painter->setFont(aspectFont);
     painter->setPen(aspectFontColor);
-    painter->drawText(this->rect(), Qt::AlignHCenter |Qt::AlignBottom, aspectName);
+    painter->drawText(this->rect(), Qt::AlignHCenter | Qt::AlignBottom, aspectName);
 }
 

@@ -202,6 +202,8 @@
         <file alias="getH">Resources/Images/Actions/getH.png</file>
         <file alias="Resize">Resources/Images/Actions/Resize.png</file>
         <file alias="Square">Resources/Images/Actions/Square.png</file>
+        <file alias="Maximize">Resources/Images/Actions/Maximize.png</file>
+        <file alias="Minimize">Resources/Images/Actions/Minimize.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

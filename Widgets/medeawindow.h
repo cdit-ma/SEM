@@ -517,7 +517,9 @@ private:
 
     QWidget* rightPanelWidget;
 
+
     QTableView* dataTable;
+    QTableView* dataTable2;
     QScrollArea* tableScroll;
 
     ComboBoxTableDelegate* delegate;
@@ -646,6 +648,7 @@ private:
 
     int NOTIFICATION_TIME;
 
+    QMainWindow* window;
 
 
     QStack<QString> recentProjectsList;

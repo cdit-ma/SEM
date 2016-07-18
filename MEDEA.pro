@@ -177,7 +177,8 @@ HEADERS += \
     View/SceneItems/modelitemnew.h \
     View/nodeviewnew.h \
     Controller/selectionhandler.h \
-    View/SceneItems/Hardware/hardwarenodeitem.h
+    View/SceneItems/Hardware/hardwarenodeitem.h \
+    View/docktitlebarwidget.h
 
 
 SOURCES += \
@@ -319,7 +320,8 @@ SOURCES += \
     View/SceneItems/modelitemnew.cpp \
     View/nodeviewnew.cpp \
     Controller/selectionhandler.cpp \
-    View/SceneItems/Hardware/hardwarenodeitem.cpp
+    View/SceneItems/Hardware/hardwarenodeitem.cpp \
+    View/docktitlebarwidget.cpp
 
 
 RESOURCES += \

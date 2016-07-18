@@ -24,8 +24,9 @@
 #include <QToolButton>
 #include <QToolBar>
 #include <QDesktopServices>
+#include <QDockWidget>
 
-
+#include "../View/docktitlebarwidget.h"
 #define THREADING true
 
 //DARK MODE DEFAULT THEME
@@ -105,6 +106,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initializePlugins();
 
     initialiseGUI();
+    setupNewNodeView();
 
     setupConnections();
 
@@ -113,6 +115,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     //Load the Settings
     setupInitialSettings();
+
 
 
     //Show Welcome Screen
@@ -533,7 +536,7 @@ void MedeaWindow::initialiseGUI()
     nodeView = new NodeView(false, this);
 
 
-    setupNewNodeView();
+
 
 
     nodeView->setApplicationDirectory(applicationDirectory);
@@ -549,6 +552,11 @@ void MedeaWindow::initialiseGUI()
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
+
+    dataTable2 = new QTableView(this);
+    dataTable2->setItemDelegateForColumn(1, delegate);
+    //dataTable2->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //dataTable2->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     tableScroll = new QScrollArea(this);
     tableScroll->setWidget(dataTable);
@@ -591,10 +599,10 @@ void MedeaWindow::initialiseGUI()
                                   QRegion::Rectangle));
 
     // setup aspect toggle buttons
-    definitionsToggle = new AspectToggleWidget(VA_INTERFACES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
-    workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
-    assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
-    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2, this);
+    definitionsToggle = new AspectToggleWidget(VA_INTERFACES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 4, this);
+    workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 4, this);
+    assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 4, this);
+    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 4, this);
 
     aspectToggles << definitionsToggle;
     aspectToggles << workloadToggle;
@@ -1581,7 +1589,9 @@ void MedeaWindow::setupToolbar()
 {
     // TODO - Group separators with tool buttons; hide them accordingly
     toolbar = constructToolbar();
+
     toolbar->setObjectName(THEME_STYLE_HIDDEN_TOOLBAR);
+    toolbar->setAllowedAreas(Qt::TopToolBarArea);
 
 
     toolbarLayout = new QVBoxLayout();
@@ -1628,9 +1638,10 @@ void MedeaWindow::setupToolbar()
     constructToolbarButton(toolbar, actionBack, TOOLBAR_BACK);
     constructToolbarButton(toolbar, actionForward, TOOLBAR_FORWARD);
 
+
     //toolbar->setStyle(QStyleFactory::create("windows"));
-    toolbar->setFloatable(false);
-    toolbar->setMovable(false);
+    //toolbar->setFloatable(false);
+    //toolbar->setMovable(false);
 }
 
 
@@ -2253,23 +2264,134 @@ void MedeaWindow::setupNewNodeView()
     nodeViewNew3 = new NodeViewNew(VA_ASSEMBLIES);
     nodeViewNew4 = new NodeViewNew(VA_HARDWARE);
 
-    QMainWindow* window = new QMainWindow(this);
-    window->setMinimumHeight(600);
-    window->setMinimumWidth(600);
-    QWidget* viewWidget = new QWidget(this);
-    QGridLayout* VLayout = new QGridLayout(viewWidget);
-    window->setCentralWidget(viewWidget);
+    window = new QMainWindow();
+
+    window->addToolBar(Qt::TopToolBarArea, toolbar);
+
+    //window->statusBar();
+    //QMainWindow* tabWindow = new QMainWindow();
+    //window->setCentralWidget(tabWindow);
+
+    minimap2 = new NodeViewMinimap(this);
+    minimap2->setMinimumWidth(100);
+   // dataTable2->set(100);
+    //minimap2->setMinimumSize(200,150);
+
+
+    //Tab Positions.
+    window->setTabPosition(Qt::TopDockWidgetArea, QTabWidget::West);
+    window->setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
+
+    QDockWidget *dockWidget1 = new QDockWidget("Interfaces", window);
+    dockWidget1->setWidget(nodeViewNew1);
+    dockWidget1->setAllowedAreas(Qt::TopDockWidgetArea);
+
+    DockTitleBarWidget* title1 = new DockTitleBarWidget(dockWidget1);
+    dockWidget1->setTitleBarWidget(title1);
+
+    QDockWidget *dockWidget2 = new QDockWidget("Behaviour", window);
+    dockWidget2->setWidget(nodeViewNew2);
+    dockWidget2->setAllowedAreas(Qt::TopDockWidgetArea);
+
+    QDockWidget *dockWidget3 = new QDockWidget("Assemblies", window);
+    dockWidget3->setWidget(nodeViewNew3);
+    dockWidget3->setAllowedAreas(Qt::BottomDockWidgetArea);
+
+    QDockWidget *dockWidget4 = new QDockWidget("Hardware", window);
+    dockWidget4->setWidget(nodeViewNew4);
+    dockWidget4->setAllowedAreas(Qt::BottomDockWidgetArea);
+
+    //QDockWidget *dockWidget5 = new QDockWidget("Minimap");
+    //dockWidget5->setWidget(minimap2);
+    //dockWidget5->setFeatures(QDockWidget::NoDockWidgetFeatures);
+
+    //QDockWidget *dockWidget6 = new QDockWidget("Table");
+    //dockWidget6->setTitleBarWidget(new QWidget());
+    //dockWidget6->setWidget(dataTable2);
+    //dockWidget6->setFeatures(QDockWidget::NoDockWidgetFeatures);
+
+    //QDockWidget *dockWidget7 = new QDockWidget("Table");
+   // dockWidget7->setTitleBarWidget(new QWidget());
+
+    QWidget* buttons = new QWidget();
+
+    QGridLayout* viewButtonsGrid = new QGridLayout(buttons);
+    viewButtonsGrid->setMargin(0);
+    viewButtonsGrid->addWidget(definitionsToggle, definitionsToggle->getToggleGridPos().x(), definitionsToggle->getToggleGridPos().y());
+    viewButtonsGrid->addWidget(workloadToggle, workloadToggle->getToggleGridPos().x(), workloadToggle->getToggleGridPos().y());
+    viewButtonsGrid->addWidget(assemblyToggle, assemblyToggle->getToggleGridPos().x(), assemblyToggle->getToggleGridPos().y());
+    viewButtonsGrid->addWidget(hardwareToggle, hardwareToggle->getToggleGridPos().x(), hardwareToggle->getToggleGridPos().y());
+
+
+     QDockWidget *dockWidget5 = new QDockWidget("Interfaces", window);
+     dockWidget5->setWidget(dataTable2);
+   // dockWidget7->setWidget(buttons);
+    //dockWidget7->setFeatures(QDockWidget::NoDockWidgetFeatures);
+
+   // dockWidget5->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
+
+    window->addDockWidget(Qt::TopDockWidgetArea, dockWidget1);
+    window->addDockWidget(Qt::BottomDockWidgetArea, dockWidget3);
+    window->splitDockWidget(dockWidget1, dockWidget2, Qt::Horizontal);
+    window->splitDockWidget(dockWidget3, dockWidget4, Qt::Horizontal);
+
+
+
+    //window->addDockWidget(Qt::RightDockWidgetArea, dockWidget7);
+    //window->addDockWidget(Qt::RightDockWidgetArea, dockWidget6);
+    //window->addDockWidget(Qt::RightDockWidgetArea, dockWidget5);
+
+
+
+    QToolBar* minimapToolbar = new QToolBar(this);
+    minimapToolbar->setAllowedAreas(Qt::RightToolBarArea);
+    minimapToolbar->addWidget(minimap2);
+    QToolBar* minimapToolbar2 = new QToolBar(this);
+    minimapToolbar2->setAllowedAreas(Qt::RightToolBarArea);
+    minimapToolbar2->addWidget(dockWidget5);
+
+
+    QToolBar* minimapToolbar3 = new QToolBar(this);
+    minimapToolbar3->setAllowedAreas(Qt::RightToolBarArea);
+    minimapToolbar3->addWidget(buttons);
+
+    window->addToolBar(Qt::RightToolBarArea, minimapToolbar3);
+    window->addToolBar(Qt::RightToolBarArea, minimapToolbar2);
+    window->addToolBar(Qt::RightToolBarArea, minimapToolbar);
+
+    window->show();
+/*
+
+
+    //MDI STUFF
+    QMdiArea* area = new QMdiArea(window);
+    //QWidget* viewWidget = new QWidget(this);
+    //QGridLayout* VLayout = new QGridLayout(viewWidget);
+    window->setCentralWidget(area);
+    area->setDocumentMode(true);
+    area->setTabShape(QTabWidget::Triangular);
 
     minimap2 = new NodeViewMinimap(this);
     minimap2->setMinimumSize(300,200);
 
-    VLayout->addWidget(nodeViewNew1, 1, 1);
-    VLayout->addWidget(nodeViewNew2, 1, 2);
-    VLayout->addWidget(nodeViewNew3, 2, 1);
-    VLayout->addWidget(nodeViewNew4, 2, 2);
-    VLayout->addWidget(minimap2, 3, 3);
+    QMdiSubWindow* window1 = area->addSubWindow(nodeViewNew1);
+    window1->setWindowTitle("Interfaces");
+    QMdiSubWindow* window2 = area->addSubWindow(nodeViewNew2);
+    window2->setWindowTitle("Behaviour");
+    QMdiSubWindow* window3 = area->addSubWindow(nodeViewNew3);
+    window3->setWindowTitle("Assemblies");
+    QMdiSubWindow* window4 = area->addSubWindow(nodeViewNew4);
+    window4->setWindowTitle("Hardware");
+    QMdiSubWindow* window5 = area->addSubWindow(minimap2);
+    window5->setWindowTitle("Minimap");
+    area->setViewMode(QMdiArea::TabbedView);
+    area->setTabsMovable(true);
+    area->setTabsClosable(true);
+    area->tileSubWindows();
     window->show();
 
+
+    */
 
 
 
@@ -2328,6 +2450,8 @@ QToolBar *MedeaWindow::constructToolbar(bool ignoreStyle)
 {
     Q_UNUSED(ignoreStyle)
     QToolBar* tb = new QToolBar(this);
+
+
 #ifdef TARGET_OS_MAC
     if(!ignoreStyle){
         tb->setStyle(QStyleFactory::create("windows"));
@@ -4029,10 +4153,14 @@ void MedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
     dataTable->clearSelection();
     dataTable->setModel(model);
+    dataTable2->setModel(model);
     if(model){
         if(dataTable->horizontalHeader()->count() == 2){
             dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
             dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+
+            dataTable2->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
+            dataTable2->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
         }
     }
     updateDataTable();
@@ -5171,6 +5299,8 @@ void MedeaWindow::updateStyleSheets()
     QString textSelectedColor = theme->getTextColorHex(Theme::CR_SELECTED);
     QString textDisabledColor = theme->getTextColorHex(Theme::CR_DISABLED);
 
+
+    window->setStyleSheet("QMainWindow{background: " + BGColor + ";color:" + textColor+";}");
     QString themedMenuStyle = "QMenu {"
                               "padding:" + QString::number(SPACER_SIZE/2) + "px;"
                               "background:" + altBGColor + ";"
