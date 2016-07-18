@@ -12,7 +12,7 @@ class DockTitleBarWidget : public QToolBar
 public:
     explicit DockTitleBarWidget(QString title = "", QWidget *parent = 0);
 
-    void setIcon(QPixmap icon);
+    void setIcon(QPixmap pixmap);
     void setTitle(QString title);
 
 signals:
@@ -25,6 +25,7 @@ signals:
 
 private slots:
     void themeChanged();
+    void toolButtonTriggered();
 
 private:
     void setupToolBar();

@@ -14,11 +14,16 @@ DockTitleBarWidget::DockTitleBarWidget(QString title, QWidget *parent) : QToolBa
     connect(minimizeAction, SIGNAL(triggered(bool)), this, SIGNAL(minimizeWidget()));
     connect(popInAction, SIGNAL(triggered(bool)), this, SIGNAL(popInWidget()));
     connect(popOutAction, SIGNAL(triggered(bool)), this, SIGNAL(popOutWidget()));
+
+    connect(maximizeAction, SIGNAL(triggered(bool)), this, SLOT(toolButtonTriggered()));
+    connect(minimizeAction, SIGNAL(triggered(bool)), this, SLOT(toolButtonTriggered()));
+    connect(popInAction, SIGNAL(triggered(bool)), this, SLOT(toolButtonTriggered()));
+    connect(popOutAction, SIGNAL(triggered(bool)), this, SLOT(toolButtonTriggered()));
 }
 
-void DockTitleBarWidget::setIcon(QPixmap icon)
+void DockTitleBarWidget::setIcon(QPixmap pixmap)
 {
-    this->icon->setPixmap(icon);
+    icon->setPixmap(pixmap);
 }
 
 void DockTitleBarWidget::setTitle(QString title)
@@ -50,10 +55,29 @@ void DockTitleBarWidget::themeChanged()
     title->setStyleSheet("color:" + textColor +";");
 
     closeAction->setIcon(theme->getIcon("Actions", "Close"));
-    popInAction->setIcon(theme->getIcon("Actions", "Popup"));
+    popInAction->setIcon(theme->getIcon("Actions", "Download"));
     popOutAction->setIcon(theme->getIcon("Actions", "Popup"));
     maximizeAction->setIcon(theme->getIcon("Actions", "Maximize"));
     minimizeAction->setIcon(theme->getIcon("Actions", "Minimize"));
+}
+
+void DockTitleBarWidget::toolButtonTriggered()
+{
+    QAction* senderAction = qobject_cast<QAction*>(QObject::sender());
+    QAction* pairAction = 0;
+    if (senderAction == popInAction) {
+        pairAction = popOutAction;
+    } else if (senderAction == popOutAction) {
+        pairAction = popInAction;
+    } else if (senderAction == minimizeAction) {
+        pairAction = maximizeAction;
+    } else if (senderAction == maximizeAction) {
+        pairAction = minimizeAction;
+    }
+    if (pairAction) {
+        pairAction->setVisible(true);
+        senderAction->setVisible(false);
+    }
 }
 
 void DockTitleBarWidget::setupToolBar()
@@ -70,12 +94,12 @@ void DockTitleBarWidget::setupToolBar()
     addWidget(title);
     addWidget(widget);
 
-    popInAction = addAction("PopIn");
-    popOutAction = addAction("PopOut");
-    //popInAction->setVisible(false);
-    //popOutAction->setVisible(false);
-    minimizeAction = addAction("Min");
-    maximizeAction = addAction("Max");
+    popInAction = addAction("Pop In");
+    popInAction->setVisible(false);
+    popOutAction = addAction("Pop Out");
+    minimizeAction = addAction("Minimise");
+    minimizeAction->setVisible(false);
+    maximizeAction = addAction("Maximise");
     closeAction = addAction("Close");
 
     setIconSize(QSize(16,16));
