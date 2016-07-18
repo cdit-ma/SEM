@@ -26,7 +26,6 @@
 #include <QDesktopServices>
 #include <QDockWidget>
 
-#include "../View/docktitlebarwidget.h"
 #define THREADING true
 
 //DARK MODE DEFAULT THEME
@@ -599,10 +598,11 @@ void MedeaWindow::initialiseGUI()
                                   QRegion::Rectangle));
 
     // setup aspect toggle buttons
-    definitionsToggle = new AspectToggleWidget(VA_INTERFACES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 4, this);
-    workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 4, this);
-    assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 4, this);
-    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 4, this);
+    qreal aspectButtonSize = (RIGHT_PANEL_WIDTH - SPACER_SIZE) / 2;
+    definitionsToggle = new AspectToggleWidget(VA_INTERFACES, aspectButtonSize, this);
+    workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, aspectButtonSize, this);
+    assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, aspectButtonSize, this);
+    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, aspectButtonSize, this);
 
     aspectToggles << definitionsToggle;
     aspectToggles << workloadToggle;
@@ -2286,9 +2286,6 @@ void MedeaWindow::setupNewNodeView()
     dockWidget1->setWidget(nodeViewNew1);
     dockWidget1->setAllowedAreas(Qt::TopDockWidgetArea);
 
-    DockTitleBarWidget* title1 = new DockTitleBarWidget(dockWidget1);
-    dockWidget1->setTitleBarWidget(title1);
-
     QDockWidget *dockWidget2 = new QDockWidget("Behaviour", window);
     dockWidget2->setWidget(nodeViewNew2);
     dockWidget2->setAllowedAreas(Qt::TopDockWidgetArea);
@@ -2300,6 +2297,31 @@ void MedeaWindow::setupNewNodeView()
     QDockWidget *dockWidget4 = new QDockWidget("Hardware", window);
     dockWidget4->setWidget(nodeViewNew4);
     dockWidget4->setAllowedAreas(Qt::BottomDockWidgetArea);
+
+    DockTitleBarWidget* title1 = new DockTitleBarWidget("Interfaces", dockWidget1);
+    dockWidget1->setTitleBarWidget(title1);
+
+    DockTitleBarWidget* title2 = new DockTitleBarWidget("Behaviour", dockWidget2);
+    dockWidget2->setTitleBarWidget(title2);
+
+    DockTitleBarWidget* title3 = new DockTitleBarWidget("Assemblies", dockWidget3);
+    dockWidget3->setTitleBarWidget(title3);
+
+    DockTitleBarWidget* title4 = new DockTitleBarWidget("Hardware", dockWidget4);
+    dockWidget4->setTitleBarWidget(title4);
+
+    aspectDockWidgets[dockWidget1] = title1;
+    aspectDockWidgets[dockWidget2] = title2;
+    aspectDockWidgets[dockWidget3] = title3;
+    aspectDockWidgets[dockWidget4] = title4;
+
+    foreach (DockTitleBarWidget* t, aspectDockWidgets.values()) {
+        connect(t, SIGNAL(closeWidget()), this, SLOT(closeDockWidget()));
+        connect(t, SIGNAL(maximizeWidget()), this, SLOT(maximizeDockWidget()));
+        connect(t, SIGNAL(minimizeWidget()), this, SLOT(minimizeDockWidget()));
+        connect(t, SIGNAL(popInWidget()), this, SLOT(popInDockWidget()));
+        connect(t, SIGNAL(popOutWidget()), this, SLOT(popOutDockWidget()));
+    }
 
     //QDockWidget *dockWidget5 = new QDockWidget("Minimap");
     //dockWidget5->setWidget(minimap2);
@@ -5443,4 +5465,53 @@ void MedeaWindow::toggleMinimap(bool on)
     view_showMinimap->setText(menuText);
     minimapBox->setVisible(on);
     updateDataTable();
+}
+
+
+void MedeaWindow::closeDockWidget()
+{
+    DockTitleBarWidget* widget = qobject_cast<DockTitleBarWidget*>(QObject::sender());
+    if (widget) {
+        aspectDockWidgets.key(widget)->close();
+    }
+}
+
+void MedeaWindow::maximizeDockWidget()
+{
+    DockTitleBarWidget* widget = qobject_cast<DockTitleBarWidget*>(QObject::sender());
+    QDockWidget* tw = aspectDockWidgets.key(widget);
+    foreach (QDockWidget* w, aspectDockWidgets.keys()) {
+        if (w != tw) {
+            w->close();
+        }
+    }
+}
+
+void MedeaWindow::minimizeDockWidget()
+{
+    DockTitleBarWidget* widget = qobject_cast<DockTitleBarWidget*>(QObject::sender());
+    QDockWidget* tw = aspectDockWidgets.key(widget);
+    foreach (QDockWidget* w, aspectDockWidgets.keys()) {
+        if (w != tw) {
+            w->show();
+        }
+    }
+}
+
+void MedeaWindow::popOutDockWidget()
+{
+    DockTitleBarWidget* widget = qobject_cast<DockTitleBarWidget*>(QObject::sender());
+    if (widget) {
+        QDockWidget* tw = aspectDockWidgets.key(widget);
+        tw->setFloating(true);
+        tw->move(pos() + rect().center() - QPoint(tw->width()/2, tw->height()/2));
+    }
+}
+
+void MedeaWindow::popInDockWidget()
+{
+    DockTitleBarWidget* widget = qobject_cast<DockTitleBarWidget*>(QObject::sender());
+    if (widget) {
+        aspectDockWidgets.key(widget)->setFloating(false);
+    }
 }

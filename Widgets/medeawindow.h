@@ -69,6 +69,8 @@
 #include "../View/nodeviewnew.h"
 #include <QAbstractMessageHandler>
 
+#include "../View/docktitlebarwidget.h"
+
 
 struct NotificationStruct{
     QString text;
@@ -252,6 +254,12 @@ private slots:
 
     void updateStyleSheets();
     void toggleMinimap(bool on);
+
+    void closeDockWidget();
+    void maximizeDockWidget();
+    void minimizeDockWidget();
+    void popOutDockWidget();
+    void popInDockWidget();
 
 protected:
     void closeEvent(QCloseEvent*);
@@ -494,6 +502,8 @@ private:
     AspectToggleWidget* assemblyToggle;
     AspectToggleWidget* hardwareToggle;
     QList<AspectToggleWidget*> aspectToggles;
+
+    QHash<QDockWidget*, DockTitleBarWidget*> aspectDockWidgets;
 
 	QDialog* progressDialog;
     QMovie* loadingMovie;

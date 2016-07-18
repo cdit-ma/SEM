@@ -1,13 +1,16 @@
 #ifndef DOCKTITLEBARWIDGET_H
 #define DOCKTITLEBARWIDGET_H
+
 #include <QToolBar>
 #include <QLabel>
 #include <QAction>
+#include <QDockWidget>
+
 class DockTitleBarWidget : public QToolBar
 {
     Q_OBJECT
 public:
-    explicit DockTitleBarWidget(QWidget *parent = 0);
+    explicit DockTitleBarWidget(QString title = "", QWidget *parent = 0);
 
     void setIcon(QPixmap icon);
     void setTitle(QString title);
@@ -35,7 +38,6 @@ private:
     QAction* minimizeAction;
     QAction* popInAction;
     QAction* popOutAction;
-
 };
 
 #endif // DOCKTITLEBARWIDGET_H
