@@ -4,7 +4,7 @@ DockTitleBarWidget::DockTitleBarWidget(QWidget *parent) : QToolBar(parent)
 {
     setupToolBar();
     setIcon(Theme::theme()->getImage("Items","AssemblyDefinitions",QSize(16,16)));
-    setTitle("TEST!");
+    setTitle("Interfaces");
     themeChanged();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
