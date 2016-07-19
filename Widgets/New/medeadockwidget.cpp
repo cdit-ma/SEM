@@ -34,9 +34,20 @@ MedeaWindowNew *MedeaDockWidget::getSourceWindow()
 
 void MedeaDockWidget::setCurrentWindow(MedeaWindowNew *window)
 {
+    if (currentWindow) {
+        currentWindow->removeMedeaDockWidget(this);
+    }
+    if (window) {
+        window->addMedeaDockWidget(this);
+        if (!sourceWindow) {
+            setSourceWindow(window);
+        }
+    }
+    /*
     if(!sourceWindow && window){
         setSourceWindow(window);
     }
+    */
     currentWindow = window;
 }
 

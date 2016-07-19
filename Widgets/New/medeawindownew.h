@@ -11,14 +11,18 @@ public:
     MedeaWindowNew(QWidget* parent = 0);
 
     void addMedeaDockWidget(MedeaDockWidget* widget, Qt::DockWidgetArea area=Qt::TopDockWidgetArea);
-    void removeDockWidget(MedeaDockWidget *dockwidget);
+    void removeMedeaDockWidget(MedeaDockWidget *dockwidget);
 
 private slots:
     void dockWidget_Closed();
     void dockWidget_Maximized(bool maximized);
     void dockWidget_PopOut(bool popOut);
+
 private:
     QAction* resetDockedWidgetsAction;
+
+    QList<MedeaDockWidget*> childrenDockWidgets;
+
 public:
     QMenu *createPopupMenu();
 };

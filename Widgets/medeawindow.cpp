@@ -2276,7 +2276,7 @@ void MedeaWindow::setupNewNodeView()
     //window->setCentralWidget(tabWindow);
 
     minimap2 = new NodeViewMinimap(this);
-    minimap2->setMinimumWidth(100);
+    //minimap2->setMinimumWidth(100);
    // dataTable2->set(100);
     //minimap2->setMinimumSize(200,150);
 
@@ -2313,17 +2313,16 @@ void MedeaWindow::setupNewNodeView()
     //dockWidget67->show();
 
 
-
-   // dockWidget1->setCurrentWindow(window);
-   // dockWidget2->setCurrentWindow(window);
-   // dockWidget3->setCurrentWindow(window);
-   // dockWidget4->setCurrentWindow(window);
-
+    // add them to the window first before setting the current window so that they're positioned correctly
     window->addMedeaDockWidget(dockWidget1, Qt::TopDockWidgetArea);
     window->addMedeaDockWidget(dockWidget2, Qt::TopDockWidgetArea);
     window->addMedeaDockWidget(dockWidget3, Qt::BottomDockWidgetArea);
     window->addMedeaDockWidget(dockWidget4, Qt::BottomDockWidgetArea);
 
+    dockWidget1->setCurrentWindow(window);
+    dockWidget2->setCurrentWindow(window);
+    dockWidget3->setCurrentWindow(window);
+    dockWidget4->setCurrentWindow(window);
 
 
     //window->splitDockWidget(dockWidget1, dockWidget2, Qt::Horizontal);
@@ -2370,12 +2369,13 @@ void MedeaWindow::setupNewNodeView()
     viewButtonsGrid->addWidget(assemblyToggle, assemblyToggle->getToggleGridPos().x(), assemblyToggle->getToggleGridPos().y());
     viewButtonsGrid->addWidget(hardwareToggle, hardwareToggle->getToggleGridPos().x(), hardwareToggle->getToggleGridPos().y());
 
-    buttons->setFixedHeight(200);
+    buttons->setFixedSize(viewButtonsGrid->sizeHint() + QSize(SPACER_SIZE, SPACER_SIZE));
+    dataTable2->setFixedWidth(buttons->width());
+    minimap2->setFixedWidth(buttons->width());
 
-
-    QDockWidget *dockWidget5 = new QDockWidget("Interfaces", window);
+    QDockWidget *dockWidget5 = new QDockWidget("Data Table", window);
     dockWidget5->setWidget(dataTable2);
-    dockWidget5->setStyleSheet("background:" + Theme::theme()->getBackgroundColorHex() + ";");
+    dockWidget5->setStyleSheet("QDOckWidget{background:" + Theme::theme()->getBackgroundColorHex() + ";}");
   // dockWidget7->setWidget(buttons);
    //dockWidget7->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
@@ -4211,10 +4211,11 @@ void MedeaWindow::setAttributeModel(AttributeTableModel *model)
             dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
             dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
 
-            dataTable2->horizontalHeader()->setDefaultSectionSize(50);
+            //dataTable2->horizontalHeader()->setDefaultSectionSize(50);
+            //dataTable2->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
             dataTable2->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
             dataTable2->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-
+            dataTable2->resizeColumnToContents(0);
         }
     }
     updateDataTable();
@@ -5473,6 +5474,8 @@ void MedeaWindow::updateStyleSheets()
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON_JENKINS + "{background-color: #4b758b; color: #eee; border: 1px solid #5788a1;font-weight: bold;  font-size: 12px;  font-family: Helvetica, Arial, sans-serif;   padding: 3px 20px;}"
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON_JENKINS + ":hover{background-color: #3f6275;border: 1px solid #5788a1;}"
                   "QPushButton#" + THEME_STYLE_QPUSHBUTTON_JENKINS + ":disabled{background-color: #e5e5e5;border: 1px solid #d2d2d2; color:#999;}"
+
+                  "QTableView::item{ padding: 0px 4px; }"
                   );
 
     menu->setStyleSheet(themedMenuStyle);

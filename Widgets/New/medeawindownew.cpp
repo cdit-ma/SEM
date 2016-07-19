@@ -6,6 +6,7 @@
 #include "../../View/docktitlebarwidget.h"
 #include "../../Widgets/New/medeawindowmanager.h"
 #include "../../View/theme.h"
+
 MedeaWindowNew::MedeaWindowNew(QWidget *parent):QMainWindow(parent)
 {
     setAcceptDrops(true);
@@ -16,25 +17,27 @@ MedeaWindowNew::MedeaWindowNew(QWidget *parent):QMainWindow(parent)
 
 void MedeaWindowNew::addMedeaDockWidget(MedeaDockWidget *widget, Qt::DockWidgetArea area)
 {
-    qCritical() << "addMedeaDockWidget!" << this->windowTitle();
+    if (childrenDockWidgets.contains(widget)) {
+        return;
+    }
     connect(widget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Closed()));
     connect(widget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximized(bool)));
     connect(widget, SIGNAL(popOutWidget(bool)), this, SLOT(dockWidget_PopOut(bool)));
-    widget->setCurrentWindow(this);
-    widget->setParent(this);
     QMainWindow::addDockWidget(area, widget, Qt::Horizontal);
+    childrenDockWidgets.append(widget);
 }
 
-void MedeaWindowNew::removeDockWidget(MedeaDockWidget *widget)
+void MedeaWindowNew::removeMedeaDockWidget(MedeaDockWidget *widget)
 {
-    qCritical() << "removeDockWidget!" << this->windowTitle();
     disconnect(widget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Closed()));
     disconnect(widget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximized(bool)));
     disconnect(widget, SIGNAL(popOutWidget(bool)), this, SLOT(dockWidget_PopOut(bool)));
-    widget->setCurrentWindow(0);
-    //QMainWindow::removeDockWidget(widget);
+    QMainWindow::removeDockWidget(widget);
+    childrenDockWidgets.removeAll(widget);
+    if (childrenDockWidgets.isEmpty()) {
+        close();
+    }
 }
-
 
 void MedeaWindowNew::dockWidget_Closed()
 {
@@ -44,9 +47,6 @@ void MedeaWindowNew::dockWidget_Closed()
 
 void MedeaWindowNew::dockWidget_Maximized(bool maximized)
 {
-    qCritical() << maximized;
-
-
     MedeaDockWidget* dockPressed = qobject_cast<MedeaDockWidget*>(sender());
     foreach(MedeaDockWidget* dockWidget, findChildren<MedeaDockWidget*>()){
         bool setVisible = !maximized;
@@ -62,15 +62,27 @@ void MedeaWindowNew::dockWidget_PopOut(bool popOut)
 {
     MedeaDockWidget* dockPressed = qobject_cast<MedeaDockWidget*>(sender());
     if(popOut){
+        /*
         MedeaWindowNew* newWindow = MedeaWindowManager::manager()->getNewSubWindow();
         newWindow->show();
-        removeDockWidget(dockPressed);
+        removeMedeaDockWidget(dockPressed);
         newWindow->addMedeaDockWidget(dockPressed);
+        */
+        MedeaWindowNew* newWindow = MedeaWindowManager::manager()->getNewSubWindow();
+        dockPressed->setCurrentWindow(newWindow);
+        dockPressed->show();
+        newWindow->show();
     }else{
-        MedeaWindowNew* newWindow = dockPressed->getSourceWindow();
-        removeDockWidget(dockPressed);
+        /*
+        MedeaWindowNew* newWindow = MedeaWindowManager::manager()->getNewSubWindow();
+        removeMedeaDockWidget(dockPressed);
         newWindow->addMedeaDockWidget(dockPressed);
         newWindow->show();
+        */
+        MedeaWindowNew* sourceWindow = dockPressed->getSourceWindow();
+        dockPressed->setCurrentWindow(sourceWindow);
+        dockPressed->show();
+        sourceWindow->raise();
     }
 }
 
