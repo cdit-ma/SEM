@@ -25,6 +25,7 @@
 #include <QToolBar>
 #include <QDesktopServices>
 #include <QDockWidget>
+#include "New/medeadockwidget.h"
 
 #define THREADING true
 
@@ -2264,7 +2265,7 @@ void MedeaWindow::setupNewNodeView()
     nodeViewNew3 = new NodeViewNew(VA_ASSEMBLIES);
     nodeViewNew4 = new NodeViewNew(VA_HARDWARE);
 
-    window = new QMainWindow();
+    window = new MedeaWindowNew(this);
 
     window->addToolBar(Qt::TopToolBarArea, toolbar);
 
@@ -2282,33 +2283,36 @@ void MedeaWindow::setupNewNodeView()
     window->setTabPosition(Qt::TopDockWidgetArea, QTabWidget::West);
     window->setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
 
-    QDockWidget *dockWidget1 = new QDockWidget("Interfaces", window);
+    QDockWidget *dockWidget1 = new MedeaDockWidget("Interfaces", window);
     dockWidget1->setWidget(nodeViewNew1);
-    dockWidget1->setAllowedAreas(Qt::TopDockWidgetArea);
+    dockWidget1->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    QDockWidget *dockWidget2 = new QDockWidget("Behaviour", window);
+    QDockWidget *dockWidget2 = new MedeaDockWidget("Behaviour", window);
     dockWidget2->setWidget(nodeViewNew2);
-    dockWidget2->setAllowedAreas(Qt::TopDockWidgetArea);
+    dockWidget2->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    QDockWidget *dockWidget3 = new QDockWidget("Assemblies", window);
+    QDockWidget *dockWidget3 = new MedeaDockWidget("Assemblies", window);
     dockWidget3->setWidget(nodeViewNew3);
-    dockWidget3->setAllowedAreas(Qt::BottomDockWidgetArea);
+    dockWidget3->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    QDockWidget *dockWidget4 = new QDockWidget("Hardware", window);
+    QDockWidget *dockWidget4 = new MedeaDockWidget("Hardware", window);
     dockWidget4->setWidget(nodeViewNew4);
-    dockWidget4->setAllowedAreas(Qt::BottomDockWidgetArea);
+    dockWidget4->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    DockTitleBarWidget* title1 = new DockTitleBarWidget("Interfaces", dockWidget1);
-    dockWidget1->setTitleBarWidget(title1);
 
-    DockTitleBarWidget* title2 = new DockTitleBarWidget("Behaviour", dockWidget2);
-    dockWidget2->setTitleBarWidget(title2);
+    window->addDockWidget(Qt::TopDockWidgetArea, dockWidget1);
+    window->addDockWidget(Qt::TopDockWidgetArea, dockWidget2);
+    window->addDockWidget(Qt::BottomDockWidgetArea, dockWidget3);
+    window->addDockWidget(Qt::BottomDockWidgetArea, dockWidget4);
 
-    DockTitleBarWidget* title3 = new DockTitleBarWidget("Assemblies", dockWidget3);
-    dockWidget3->setTitleBarWidget(title3);
 
-    DockTitleBarWidget* title4 = new DockTitleBarWidget("Hardware", dockWidget4);
-    dockWidget4->setTitleBarWidget(title4);
+    //window->splitDockWidget(dockWidget1, dockWidget2, Qt::Horizontal);
+   // window->splitDockWidget(dockWidget3, dockWidget4, Qt::Horizontal);
+
+    DockTitleBarWidget* title1 = new DockTitleBarWidget(dockWidget1, "Interfaces");
+    DockTitleBarWidget* title2 = new DockTitleBarWidget(dockWidget2, "Behaviour");
+    DockTitleBarWidget* title3 = new DockTitleBarWidget(dockWidget3, "Assemblies");
+    DockTitleBarWidget* title4 = new DockTitleBarWidget(dockWidget4, "Hardware");
 
     aspectDockWidgets[dockWidget1] = title1;
     aspectDockWidgets[dockWidget2] = title2;
@@ -2352,10 +2356,10 @@ void MedeaWindow::setupNewNodeView()
 
    // dockWidget5->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
 
-    window->addDockWidget(Qt::TopDockWidgetArea, dockWidget1);
-    window->addDockWidget(Qt::BottomDockWidgetArea, dockWidget3);
-    window->splitDockWidget(dockWidget1, dockWidget2, Qt::Horizontal);
-    window->splitDockWidget(dockWidget3, dockWidget4, Qt::Horizontal);
+
+
+
+
 
 
 
@@ -5480,6 +5484,7 @@ void MedeaWindow::maximizeDockWidget()
 {
     DockTitleBarWidget* widget = qobject_cast<DockTitleBarWidget*>(QObject::sender());
     QDockWidget* tw = aspectDockWidgets.key(widget);
+
     foreach (QDockWidget* w, aspectDockWidgets.keys()) {
         if (w != tw) {
             w->close();

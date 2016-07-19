@@ -31,7 +31,6 @@
 #include <QScreen>
 #include <QDebug>
 
-
 #include <QXmlQuery>
 #include <QXmlResultItems>
 
@@ -39,6 +38,7 @@
 #include "Plugins/Jenkins/GUI/jenkinsstartjobwidget.h"
 #include "GUI/actionbutton.h"
 
+#include "New/medeawindownew.h"
 #include "Controller/controller.h"
 
 #include "View/nodeviewminimap.h"
@@ -658,7 +658,7 @@ private:
 
     int NOTIFICATION_TIME;
 
-    QMainWindow* window;
+    MedeaWindowNew* window;
 
 
     QStack<QString> recentProjectsList;

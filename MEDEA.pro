@@ -178,7 +178,9 @@ HEADERS += \
     View/nodeviewnew.h \
     Controller/selectionhandler.h \
     View/SceneItems/Hardware/hardwarenodeitem.h \
-    View/docktitlebarwidget.h
+    View/docktitlebarwidget.h \
+    Widgets/New/medeawindownew.h \
+    Widgets/New/medeadockwidget.h
 
 
 SOURCES += \
@@ -321,7 +323,9 @@ SOURCES += \
     View/nodeviewnew.cpp \
     Controller/selectionhandler.cpp \
     View/SceneItems/Hardware/hardwarenodeitem.cpp \
-    View/docktitlebarwidget.cpp
+    View/docktitlebarwidget.cpp \
+    Widgets/New/medeawindownew.cpp \
+    Widgets/New/medeadockwidget.cpp
 
 
 RESOURCES += \
