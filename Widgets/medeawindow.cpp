@@ -2312,8 +2312,12 @@ void MedeaWindow::setupNewNodeView()
     //dockWidget67->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     //dockWidget67->show();
 
+    /*
+     *  DAN!!! - I updated addMedeaDockWidget() and setCurrentWindow() to make the code underneath and popout stuff work :D
+     */
 
     // add them to the window first before setting the current window so that they're positioned correctly
+    // this should be the only place where you need to call addMedeaDockWidget() directly
     window->addMedeaDockWidget(dockWidget1, Qt::TopDockWidgetArea);
     window->addMedeaDockWidget(dockWidget2, Qt::TopDockWidgetArea);
     window->addMedeaDockWidget(dockWidget3, Qt::BottomDockWidgetArea);
