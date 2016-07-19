@@ -238,7 +238,7 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
         case 0:
-            return "Key Name";
+            return "Key";
         case 1:
             return "Value";
         default:

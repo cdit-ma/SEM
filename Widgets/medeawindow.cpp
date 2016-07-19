@@ -26,6 +26,7 @@
 #include <QDesktopServices>
 #include <QDockWidget>
 #include "New/medeadockwidget.h"
+#include "New/medeawindowmanager.h"
 
 #define THREADING true
 
@@ -2266,6 +2267,7 @@ void MedeaWindow::setupNewNodeView()
     nodeViewNew4 = new NodeViewNew(VA_HARDWARE);
 
     window = new MedeaWindowNew(this);
+    MedeaWindowManager::manager()->setMainWindow(window);
 
     window->addToolBar(Qt::TopToolBarArea, toolbar);
 
@@ -2283,32 +2285,50 @@ void MedeaWindow::setupNewNodeView()
     window->setTabPosition(Qt::TopDockWidgetArea, QTabWidget::West);
     window->setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
 
-    QDockWidget *dockWidget1 = new MedeaDockWidget("Interfaces", window);
+    MedeaDockWidget *dockWidget1 = new MedeaDockWidget("Interfaces");
     dockWidget1->setWidget(nodeViewNew1);
     dockWidget1->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    QDockWidget *dockWidget2 = new MedeaDockWidget("Behaviour", window);
+    MedeaDockWidget *dockWidget2 = new MedeaDockWidget("Behaviour");
     dockWidget2->setWidget(nodeViewNew2);
     dockWidget2->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    QDockWidget *dockWidget3 = new MedeaDockWidget("Assemblies", window);
+    MedeaDockWidget *dockWidget3 = new MedeaDockWidget("Assemblies");
     dockWidget3->setWidget(nodeViewNew3);
     dockWidget3->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    QDockWidget *dockWidget4 = new MedeaDockWidget("Hardware", window);
+    MedeaDockWidget *dockWidget4 = new MedeaDockWidget("Hardware");
     dockWidget4->setWidget(nodeViewNew4);
     dockWidget4->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
 
-    window->addDockWidget(Qt::TopDockWidgetArea, dockWidget1);
-    window->addDockWidget(Qt::TopDockWidgetArea, dockWidget2);
-    window->addDockWidget(Qt::BottomDockWidgetArea, dockWidget3);
-    window->addDockWidget(Qt::BottomDockWidgetArea, dockWidget4);
+    dockWidget1->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
+    dockWidget2->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
+    dockWidget3->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
+    dockWidget4->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
+
+    //MedeaDockWidget *dockWidget67 = new MedeaDockWidget("asdasdasd");
+    //dockWidget67->setWidget(nodeViewNew4);
+    //dockWidget67->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    //dockWidget67->show();
+
+
+
+   // dockWidget1->setCurrentWindow(window);
+   // dockWidget2->setCurrentWindow(window);
+   // dockWidget3->setCurrentWindow(window);
+   // dockWidget4->setCurrentWindow(window);
+
+    window->addMedeaDockWidget(dockWidget1, Qt::TopDockWidgetArea);
+    window->addMedeaDockWidget(dockWidget2, Qt::TopDockWidgetArea);
+    window->addMedeaDockWidget(dockWidget3, Qt::BottomDockWidgetArea);
+    window->addMedeaDockWidget(dockWidget4, Qt::BottomDockWidgetArea);
+
 
 
     //window->splitDockWidget(dockWidget1, dockWidget2, Qt::Horizontal);
    // window->splitDockWidget(dockWidget3, dockWidget4, Qt::Horizontal);
-
+/*
     DockTitleBarWidget* title1 = new DockTitleBarWidget(dockWidget1, "Interfaces");
     DockTitleBarWidget* title2 = new DockTitleBarWidget(dockWidget2, "Behaviour");
     DockTitleBarWidget* title3 = new DockTitleBarWidget(dockWidget3, "Assemblies");
@@ -2339,6 +2359,8 @@ void MedeaWindow::setupNewNodeView()
     //QDockWidget *dockWidget7 = new QDockWidget("Table");
    // dockWidget7->setTitleBarWidget(new QWidget());
 
+
+*/
     QWidget* buttons = new QWidget();
 
     QGridLayout* viewButtonsGrid = new QGridLayout(buttons);
@@ -2348,16 +2370,16 @@ void MedeaWindow::setupNewNodeView()
     viewButtonsGrid->addWidget(assemblyToggle, assemblyToggle->getToggleGridPos().x(), assemblyToggle->getToggleGridPos().y());
     viewButtonsGrid->addWidget(hardwareToggle, hardwareToggle->getToggleGridPos().x(), hardwareToggle->getToggleGridPos().y());
 
-
-     QDockWidget *dockWidget5 = new QDockWidget("Interfaces", window);
-     dockWidget5->setWidget(dataTable2);
-   // dockWidget7->setWidget(buttons);
-    //dockWidget7->setFeatures(QDockWidget::NoDockWidgetFeatures);
-
-   // dockWidget5->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
+    buttons->setFixedHeight(200);
 
 
+    QDockWidget *dockWidget5 = new QDockWidget("Interfaces", window);
+    dockWidget5->setWidget(dataTable2);
+    dockWidget5->setStyleSheet("background:" + Theme::theme()->getBackgroundColorHex() + ";");
+  // dockWidget7->setWidget(buttons);
+   //dockWidget7->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
+  // dockWidget5->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
 
 
 
@@ -2895,6 +2917,10 @@ void MedeaWindow::initialiseTheme()
     Theme::theme()->setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
     Theme::theme()->setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
     Theme::theme()->setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
+    Theme::theme()->setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
+    Theme::theme()->setIconToggledImage("Actions", "DockPopOut", "Actions", "Download");
+
+
 
 
     //Orange
@@ -4185,8 +4211,10 @@ void MedeaWindow::setAttributeModel(AttributeTableModel *model)
             dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
             dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
 
+            dataTable2->horizontalHeader()->setDefaultSectionSize(50);
             dataTable2->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
             dataTable2->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+
         }
     }
     updateDataTable();

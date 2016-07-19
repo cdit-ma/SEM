@@ -180,7 +180,8 @@ HEADERS += \
     View/SceneItems/Hardware/hardwarenodeitem.h \
     View/docktitlebarwidget.h \
     Widgets/New/medeawindownew.h \
-    Widgets/New/medeadockwidget.h
+    Widgets/New/medeadockwidget.h \
+    Widgets/New/medeawindowmanager.h
 
 
 SOURCES += \
@@ -325,7 +326,8 @@ SOURCES += \
     View/SceneItems/Hardware/hardwarenodeitem.cpp \
     View/docktitlebarwidget.cpp \
     Widgets/New/medeawindownew.cpp \
-    Widgets/New/medeadockwidget.cpp
+    Widgets/New/medeadockwidget.cpp \
+    Widgets/New/medeawindowmanager.cpp
 
 
 RESOURCES += \
