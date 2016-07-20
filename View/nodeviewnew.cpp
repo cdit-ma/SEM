@@ -447,15 +447,18 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
     QGraphicsView::mouseReleaseEvent(event);
 }
 
-void NodeViewNew::focusInEvent(QFocusEvent *)
+/*
+void NodeViewNew::focusInEvent(QFocusEvent *event)
 {
     emit viewFocussed(this, true);
+    QGraphicsView::focusInEvent(event);
 }
 
-void NodeViewNew::focusOutEvent(QFocusEvent *)
+void NodeViewNew::focusOutEvent(QFocusEvent *event)
 {
     emit viewFocussed(this, false);
-}
+    QGraphicsView::focusOutEvent(event);
+}*/
 
 void NodeViewNew::drawBackground(QPainter *painter, const QRectF &rect)
 {

@@ -86,8 +86,8 @@ protected:
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
-    void focusInEvent(QFocusEvent* event);
-    void focusOutEvent(QFocusEvent* event);
+   //void focusInEvent(QFocusEvent* event);
+   // void focusOutEvent(QFocusEvent* event);
 
     // QGraphicsView interface
 protected:

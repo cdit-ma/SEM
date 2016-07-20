@@ -25,6 +25,7 @@
 #include <QToolBar>
 #include <QDesktopServices>
 #include <QDockWidget>
+#include "New/medeamainwindow.h"
 #include "New/medeadockwidget.h"
 #include "New/medeawindowmanager.h"
 
@@ -162,6 +163,15 @@ MedeaWindow::~MedeaWindow()
 
     //Delete last
     Theme::theme()->teardownTheme();
+}
+
+void MedeaWindow::newSubView()
+{
+    MedeaDockWidget* newDockWidget = MedeaWindowManager::constructDockWidget();
+    newDockWidget->setTitle("New SubView");
+    newDockWidget->setCurrentWindow(window);
+    newDockWidget->setWidget(new NodeViewNew());
+    newDockWidget->setCloseVisible(true);
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
@@ -2266,104 +2276,39 @@ void MedeaWindow::setupNewNodeView()
     nodeViewNew3 = new NodeViewNew(VA_ASSEMBLIES);
     nodeViewNew4 = new NodeViewNew(VA_HARDWARE);
 
-    window = new MedeaWindowNew(this);
-    MedeaWindowManager::manager()->setMainWindow(window);
+    window = MedeaWindowManager::constructMainWindow();
 
     window->addToolBar(Qt::TopToolBarArea, toolbar);
 
-    //window->statusBar();
-    //QMainWindow* tabWindow = new QMainWindow();
-    //window->setCentralWidget(tabWindow);
-
     minimap2 = new NodeViewMinimap(this);
-    //minimap2->setMinimumWidth(100);
-   // dataTable2->set(100);
-    //minimap2->setMinimumSize(200,150);
 
 
-    //Tab Positions.
-    window->setTabPosition(Qt::TopDockWidgetArea, QTabWidget::West);
-    window->setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
-
-    MedeaDockWidget *dockWidget1 = new MedeaDockWidget("Interfaces");
+    MedeaDockWidget *dockWidget1 = MedeaWindowManager::constructDockWidget("Interface", Qt::TopDockWidgetArea);
     dockWidget1->setWidget(nodeViewNew1);
     dockWidget1->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    MedeaDockWidget *dockWidget2 = new MedeaDockWidget("Behaviour");
+    MedeaDockWidget *dockWidget2 = MedeaWindowManager::constructDockWidget("Behaviour", Qt::TopDockWidgetArea);
     dockWidget2->setWidget(nodeViewNew2);
     dockWidget2->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    MedeaDockWidget *dockWidget3 = new MedeaDockWidget("Assemblies");
+    MedeaDockWidget *dockWidget3 = MedeaWindowManager::constructDockWidget("Assemblies", Qt::BottomDockWidgetArea);
     dockWidget3->setWidget(nodeViewNew3);
     dockWidget3->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    MedeaDockWidget *dockWidget4 = new MedeaDockWidget("Hardware");
+    MedeaDockWidget *dockWidget4 = MedeaWindowManager::constructDockWidget("Hardware", Qt::BottomDockWidgetArea);
     dockWidget4->setWidget(nodeViewNew4);
     dockWidget4->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-
-
-    dockWidget1->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
-    dockWidget2->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
-    dockWidget3->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
-    dockWidget4->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
-
-    //MedeaDockWidget *dockWidget67 = new MedeaDockWidget("asdasdasd");
-    //dockWidget67->setWidget(nodeViewNew4);
-    //dockWidget67->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    //dockWidget67->show();
-
-    /*
-     *  DAN!!! - I updated addMedeaDockWidget() and setCurrentWindow() to make the code underneath and popout stuff work :D
-     */
-
-    // add them to the window first before setting the current window so that they're positioned correctly
-    // this should be the only place where you need to call addMedeaDockWidget() directly
-    window->addMedeaDockWidget(dockWidget1, Qt::TopDockWidgetArea);
-    window->addMedeaDockWidget(dockWidget2, Qt::TopDockWidgetArea);
-    window->addMedeaDockWidget(dockWidget3, Qt::BottomDockWidgetArea);
-    window->addMedeaDockWidget(dockWidget4, Qt::BottomDockWidgetArea);
 
     dockWidget1->setCurrentWindow(window);
     dockWidget2->setCurrentWindow(window);
     dockWidget3->setCurrentWindow(window);
     dockWidget4->setCurrentWindow(window);
 
+    dockWidget1->setProtected(true);
+    dockWidget2->setProtected(true);
+    dockWidget3->setProtected(true);
+    dockWidget4->setProtected(true);
 
-    //window->splitDockWidget(dockWidget1, dockWidget2, Qt::Horizontal);
-   // window->splitDockWidget(dockWidget3, dockWidget4, Qt::Horizontal);
-/*
-    DockTitleBarWidget* title1 = new DockTitleBarWidget(dockWidget1, "Interfaces");
-    DockTitleBarWidget* title2 = new DockTitleBarWidget(dockWidget2, "Behaviour");
-    DockTitleBarWidget* title3 = new DockTitleBarWidget(dockWidget3, "Assemblies");
-    DockTitleBarWidget* title4 = new DockTitleBarWidget(dockWidget4, "Hardware");
-
-    aspectDockWidgets[dockWidget1] = title1;
-    aspectDockWidgets[dockWidget2] = title2;
-    aspectDockWidgets[dockWidget3] = title3;
-    aspectDockWidgets[dockWidget4] = title4;
-
-    foreach (DockTitleBarWidget* t, aspectDockWidgets.values()) {
-        connect(t, SIGNAL(closeWidget()), this, SLOT(closeDockWidget()));
-        connect(t, SIGNAL(maximizeWidget()), this, SLOT(maximizeDockWidget()));
-        connect(t, SIGNAL(minimizeWidget()), this, SLOT(minimizeDockWidget()));
-        connect(t, SIGNAL(popInWidget()), this, SLOT(popInDockWidget()));
-        connect(t, SIGNAL(popOutWidget()), this, SLOT(popOutDockWidget()));
-    }
-
-    //QDockWidget *dockWidget5 = new QDockWidget("Minimap");
-    //dockWidget5->setWidget(minimap2);
-    //dockWidget5->setFeatures(QDockWidget::NoDockWidgetFeatures);
-
-    //QDockWidget *dockWidget6 = new QDockWidget("Table");
-    //dockWidget6->setTitleBarWidget(new QWidget());
-    //dockWidget6->setWidget(dataTable2);
-    //dockWidget6->setFeatures(QDockWidget::NoDockWidgetFeatures);
-
-    //QDockWidget *dockWidget7 = new QDockWidget("Table");
-   // dockWidget7->setTitleBarWidget(new QWidget());
-
-
-*/
     QWidget* buttons = new QWidget();
 
     QGridLayout* viewButtonsGrid = new QGridLayout(buttons);
@@ -2378,7 +2323,10 @@ void MedeaWindow::setupNewNodeView()
     minimap2->setFixedWidth(buttons->width());
 
     QDockWidget *dockWidget5 = new QDockWidget("Data Table", window);
-    dockWidget5->setWidget(dataTable2);
+QPushButton* button = new QPushButton("Add View");
+
+    dockWidget5->setWidget(button);
+    connect(button, SIGNAL(clicked(bool)), this, SLOT(newSubView()));
     dockWidget5->setStyleSheet("QDOckWidget{background:" + Theme::theme()->getBackgroundColorHex() + ";}");
   // dockWidget7->setWidget(buttons);
    //dockWidget7->setFeatures(QDockWidget::NoDockWidgetFeatures);

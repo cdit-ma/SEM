@@ -128,6 +128,7 @@ signals:
     void window_refreshActions();
     void window_ImportXMIProject(QString xmi_path);
 public slots:
+    void newSubView();
     void projectRequiresSaving(bool requiresSave);
     void modelReady();
     void modelDisconnected();

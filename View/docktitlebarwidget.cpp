@@ -1,9 +1,21 @@
 #include "docktitlebarwidget.h"
-
+#include <QDebug>
 DockTitleBarWidget::DockTitleBarWidget(QWidget* parent) : QToolBar(parent)
 {
+    setFocusPolicy(Qt::ClickFocus);
+    setFocusProxy(parent);
+    //Setting as Custom Context Menu so the parent can catch this signal.
+    setContextMenuPolicy(Qt::CustomContextMenu);
     setupToolBar();
 }
+
+void DockTitleBarWidget::setLabelStyleSheet(QString style)
+{
+    if(titleLabel){
+        titleLabel->setStyleSheet(style);
+    }
+}
+
 
 void DockTitleBarWidget::setIcon(QPixmap pixmap)
 {
@@ -57,3 +69,4 @@ void DockTitleBarWidget::setupToolBar()
 
     setIconSize(QSize(16,16));
 }
+

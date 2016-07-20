@@ -7,12 +7,41 @@
 #include "../../Widgets/New/medeawindowmanager.h"
 #include "../../View/theme.h"
 
-MedeaWindowNew::MedeaWindowNew(QWidget *parent):QMainWindow(parent)
+int MedeaWindowNew::_WindowID = 0;
+
+MedeaWindowNew::MedeaWindowNew(QWidget *parent, bool mainWindow):QMainWindow(parent)
 {
+    ID = ++_WindowID;
+
+    _isMainWindow = mainWindow;
     setAcceptDrops(true);
     setDockNestingEnabled(true);
+    setContextMenuPolicy(Qt::CustomContextMenu);
+
     resetDockedWidgetsAction = new QAction("Reset Docked Widgets", this);
     resetDockedWidgetsAction->setIcon(Theme::theme()->getImage("Actions", "Maximize"));
+
+    setTabPosition(Qt::RightDockWidgetArea, QTabWidget::West);
+    setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::West);
+    setTabPosition(Qt::TopDockWidgetArea, QTabWidget::West);
+    setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
+
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(showContextMenu(const QPoint &)));
+    connect(resetDockedWidgetsAction, SIGNAL(triggered(bool)), this, SLOT(resetDockWidgets()));
+}
+
+MedeaWindowNew::~MedeaWindowNew()
+{
+}
+
+QList<MedeaDockWidget *> MedeaWindowNew::getDockWidgets()
+{
+    return childrenDockWidgets;
+}
+
+int MedeaWindowNew::getID()
+{
+    return ID;
 }
 
 void MedeaWindowNew::addMedeaDockWidget(MedeaDockWidget *widget, Qt::DockWidgetArea area)
@@ -22,27 +51,37 @@ void MedeaWindowNew::addMedeaDockWidget(MedeaDockWidget *widget, Qt::DockWidgetA
     }
     connect(widget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Closed()));
     connect(widget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximized(bool)));
-    connect(widget, SIGNAL(popOutWidget(bool)), this, SLOT(dockWidget_PopOut(bool)));
+    connect(widget, SIGNAL(customContextMenuRequested(QPoint)), this, SIGNAL(customContextMenuRequested(QPoint)));
     QMainWindow::addDockWidget(area, widget, Qt::Horizontal);
     childrenDockWidgets.append(widget);
+    widget->setCurrentWindow(this);
+    widget->show();
 }
+
 
 void MedeaWindowNew::removeMedeaDockWidget(MedeaDockWidget *widget)
 {
     disconnect(widget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Closed()));
     disconnect(widget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximized(bool)));
-    disconnect(widget, SIGNAL(popOutWidget(bool)), this, SLOT(dockWidget_PopOut(bool)));
+    disconnect(widget, SIGNAL(customContextMenuRequested(QPoint)), this, SIGNAL(customContextMenuRequested(QPoint)));
     QMainWindow::removeDockWidget(widget);
     childrenDockWidgets.removeAll(widget);
-    if (childrenDockWidgets.isEmpty()) {
+
+    if (!isMainWindow() && childrenDockWidgets.isEmpty()) {
         close();
     }
+}
+
+bool MedeaWindowNew::isMainWindow()
+{
+    return _isMainWindow;
 }
 
 void MedeaWindowNew::dockWidget_Closed()
 {
     MedeaDockWidget* dockPressed = qobject_cast<MedeaDockWidget*>(sender());
-    dockPressed->setCurrentWindow(0);
+    removeMedeaDockWidget(dockPressed);
+
 }
 
 void MedeaWindowNew::dockWidget_Maximized(bool maximized)
@@ -58,31 +97,22 @@ void MedeaWindowNew::dockWidget_Maximized(bool maximized)
 
 }
 
-void MedeaWindowNew::dockWidget_PopOut(bool popOut)
+void MedeaWindowNew::resetDockWidgets()
 {
-    MedeaDockWidget* dockPressed = qobject_cast<MedeaDockWidget*>(sender());
-    if(popOut){
-        /*
-        MedeaWindowNew* newWindow = MedeaWindowManager::manager()->getNewSubWindow();
-        newWindow->show();
-        removeMedeaDockWidget(dockPressed);
-        newWindow->addMedeaDockWidget(dockPressed);
-        */
-        MedeaWindowNew* newWindow = MedeaWindowManager::manager()->getNewSubWindow();
-        dockPressed->setCurrentWindow(newWindow);
-        dockPressed->show();
-        newWindow->show();
-    }else{
-        /*
-        MedeaWindowNew* newWindow = MedeaWindowManager::manager()->getNewSubWindow();
-        removeMedeaDockWidget(dockPressed);
-        newWindow->addMedeaDockWidget(dockPressed);
-        newWindow->show();
-        */
-        MedeaWindowNew* sourceWindow = dockPressed->getSourceWindow();
-        dockPressed->setCurrentWindow(sourceWindow);
-        dockPressed->show();
-        sourceWindow->raise();
+    foreach(MedeaDockWidget* child, childrenDockWidgets){
+        child->setVisible(true);
+    }
+}
+
+void MedeaWindowNew::showContextMenu(const QPoint & point)
+{
+    createPopupMenu()->exec(mapToGlobal(point));
+}
+
+void MedeaWindowNew::closeEvent(QCloseEvent *)
+{
+    if(!isMainWindow()){
+        MedeaWindowManager::destructWindow(this);
     }
 }
 

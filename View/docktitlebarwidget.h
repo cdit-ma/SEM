@@ -13,6 +13,7 @@ public:
 
     explicit DockTitleBarWidget(QWidget *parent=0);
 
+    void setLabelStyleSheet(QString style);
     void setIcon(QPixmap pixmap);
     void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
     QString getTitle();
@@ -28,6 +29,6 @@ private:
     QAction* closeAction;
     QAction* maximizeAction;
     QAction* popOutAction;
-};
 
+};
 #endif // DOCKTITLEBARWIDGET_H

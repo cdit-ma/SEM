@@ -22,6 +22,11 @@ Theme::Theme():QObject(0)
     selectedItemBorderColor = Qt::blue;
 }
 
+Theme::~Theme()
+{
+
+}
+
 QColor Theme::getBackgroundColor()
 {
     return backgroundColor;

@@ -19,9 +19,12 @@
 class Theme: public QObject
 {
 Q_OBJECT
+protected:
+    Theme();
+    ~Theme();
 public:
     enum COLOR_ROLE{CR_NONE, CR_NORMAL, CR_DISABLED, CR_SELECTED};
-    Theme();
+
 
     QColor getBackgroundColor();
     QString getBackgroundColorHex();
