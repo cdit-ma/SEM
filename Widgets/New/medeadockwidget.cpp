@@ -26,7 +26,7 @@ MedeaDockWidget::MedeaDockWidget(QString title, Qt::DockWidgetArea area, QWidget
         //Do connects.
         connect(titleBar->getAction(DockTitleBarWidget::DA_CLOSE), SIGNAL(triggered(bool)), this, SIGNAL(closeWidget()));
         connect(titleBar->getAction(DockTitleBarWidget::DA_MAXIMIZE), SIGNAL(triggered(bool)),this, SIGNAL(maximizeWidget(bool)));
-        connect(titleBar->getAction(DockTitleBarWidget::DA_POPOUT), SIGNAL(triggered(bool)),this, SIGNAL(popOutWidget(bool)));
+        connect(titleBar->getAction(DockTitleBarWidget::DA_POPOUT), SIGNAL(triggered(bool)),this, SIGNAL(popOutWidget()));
         connect(titleBar, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
         titleBar->installEventFilter(this);
     }
@@ -37,12 +37,16 @@ MedeaDockWidget::MedeaDockWidget(QString title, Qt::DockWidgetArea area, QWidget
 
 MedeaDockWidget::~MedeaDockWidget()
 {
-    delete titleBar;
 }
 
 int MedeaDockWidget::getID()
 {
     return ID;
+}
+
+Qt::DockWidgetArea MedeaDockWidget::getDockWidgetArea()
+{
+    return initialArea;
 }
 
 void MedeaDockWidget::setSourceWindow(MedeaWindowNew *window)
@@ -66,28 +70,19 @@ void MedeaDockWidget::setProtected(bool protect)
     setCloseVisible(!protect);
 }
 
-void MedeaDockWidget::setWidget(QWidget *widget)
+void MedeaDockWidget::setWidget(QWidget *w)
 {
-    if(this->widget()){
-        this->widget()->removeEventFilter(this);
-        this->widget()->setFocusProxy(0);
+    if(widget()){
+        widget()->removeEventFilter(this);
+        widget()->setFocusProxy(0);
     }
-    widget->installEventFilter(this);
-    this->setFocusProxy(widget);
-    QDockWidget::setWidget(widget);
+    w->installEventFilter(this);
+    setFocusProxy(w);
+    QDockWidget::setWidget(w);
 }
 
 void MedeaDockWidget::setCurrentWindow(MedeaWindowNew *window)
 {
-    if (currentWindow) {
-        currentWindow->removeMedeaDockWidget(this);
-    }
-    if (window) {
-        window->addMedeaDockWidget(this, initialArea);
-        if (!sourceWindow) {
-            setSourceWindow(window);
-        }
-    }
     currentWindow = window;
 }
 
@@ -157,6 +152,7 @@ void MedeaDockWidget::setPopOutToggled(bool toggled)
     setActionToggled(DockTitleBarWidget::DA_POPOUT, toggled);
 }
 
+
 void MedeaDockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
@@ -187,6 +183,7 @@ void MedeaDockWidget::themeChanged()
     QAction* closeAction = getAction(DockTitleBarWidget::DA_CLOSE);
     QAction* maxAction = getAction(DockTitleBarWidget::DA_MAXIMIZE);
     QAction* popAction = getAction(DockTitleBarWidget::DA_POPOUT);
+    QAction* protectAction = getAction(DockTitleBarWidget::DA_PROTECT);
 
     if(closeAction){
         closeAction->setIcon(theme->getIcon("Actions", "Close"));
@@ -196,6 +193,9 @@ void MedeaDockWidget::themeChanged()
     }
     if(popAction){
         popAction->setIcon(theme->getIcon("Actions", "DockPopOut"));
+    }
+    if(protectAction){
+        protectAction->setIcon(theme->getIcon("Actions", "Lock_Open"));
     }
 }
 

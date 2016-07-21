@@ -169,9 +169,9 @@ void MedeaWindow::newSubView()
 {
     MedeaDockWidget* newDockWidget = MedeaWindowManager::constructDockWidget();
     newDockWidget->setTitle("New SubView");
-    newDockWidget->setCurrentWindow(window);
     newDockWidget->setWidget(new NodeViewNew());
     newDockWidget->setCloseVisible(true);
+    window->addDockWidget(newDockWidget);
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
@@ -2299,15 +2299,16 @@ void MedeaWindow::setupNewNodeView()
     dockWidget4->setWidget(nodeViewNew4);
     dockWidget4->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    dockWidget1->setCurrentWindow(window);
-    dockWidget2->setCurrentWindow(window);
-    dockWidget3->setCurrentWindow(window);
-    dockWidget4->setCurrentWindow(window);
-
     dockWidget1->setProtected(true);
     dockWidget2->setProtected(true);
     dockWidget3->setProtected(true);
     dockWidget4->setProtected(true);
+
+    window->addDockWidget(Qt::TopDockWidgetArea, dockWidget1);
+    window->addDockWidget(Qt::TopDockWidgetArea, dockWidget2);
+    window->addDockWidget(Qt::BottomDockWidgetArea, dockWidget3);
+    window->addDockWidget(Qt::BottomDockWidgetArea, dockWidget4);
+
 
     QWidget* buttons = new QWidget();
 
@@ -2328,18 +2329,6 @@ QPushButton* button = new QPushButton("Add View");
     dockWidget5->setWidget(button);
     connect(button, SIGNAL(clicked(bool)), this, SLOT(newSubView()));
     dockWidget5->setStyleSheet("QDOckWidget{background:" + Theme::theme()->getBackgroundColorHex() + ";}");
-  // dockWidget7->setWidget(buttons);
-   //dockWidget7->setFeatures(QDockWidget::NoDockWidgetFeatures);
-
-  // dockWidget5->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
-
-
-
-
-
-    //window->addDockWidget(Qt::RightDockWidgetArea, dockWidget7);
-    //window->addDockWidget(Qt::RightDockWidgetArea, dockWidget6);
-    //window->addDockWidget(Qt::RightDockWidgetArea, dockWidget5);
 
 
 
@@ -2870,7 +2859,7 @@ void MedeaWindow::initialiseTheme()
     Theme::theme()->setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
     Theme::theme()->setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
     Theme::theme()->setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
-    Theme::theme()->setIconToggledImage("Actions", "DockPopOut", "Actions", "Download");
+    Theme::theme()->setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
 
 
 

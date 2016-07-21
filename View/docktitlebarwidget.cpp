@@ -2,11 +2,17 @@
 #include <QDebug>
 DockTitleBarWidget::DockTitleBarWidget(QWidget* parent) : QToolBar(parent)
 {
+    //This sets to the parent that everything is okay.
     setFocusPolicy(Qt::ClickFocus);
     setFocusProxy(parent);
+
     //Setting as Custom Context Menu so the parent can catch this signal.
     setContextMenuPolicy(Qt::CustomContextMenu);
     setupToolBar();
+}
+
+DockTitleBarWidget::~DockTitleBarWidget()
+{
 }
 
 void DockTitleBarWidget::setLabelStyleSheet(QString style)
@@ -42,6 +48,8 @@ QAction *DockTitleBarWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
         return maximizeAction;
     case DA_POPOUT:
         return popOutAction;
+    case DA_PROTECT:
+        return protectAction;
     default:
         return 0;
     }
@@ -61,12 +69,12 @@ void DockTitleBarWidget::setupToolBar()
     addWidget(titleLabel);
     addWidget(widget);
 
-    popOutAction = addAction("Pop Out/Restore");
-    popOutAction->setCheckable(true);
+    popOutAction = addAction("Pop Out");
     maximizeAction = addAction("Maximise/Minimise");
     maximizeAction->setCheckable(true);
     closeAction = addAction("Close");
-
+    protectAction = addAction("Protect Window");
+    protectAction->setCheckable(true);
     setIconSize(QSize(16,16));
 }
 

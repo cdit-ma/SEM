@@ -12,31 +12,53 @@ int MedeaWindowNew::_WindowID = 0;
 MedeaWindowNew::MedeaWindowNew(QWidget *parent, bool mainWindow):QMainWindow(parent)
 {
     ID = ++_WindowID;
-
     _isMainWindow = mainWindow;
+
+
     setAcceptDrops(true);
     setDockNestingEnabled(true);
     setContextMenuPolicy(Qt::CustomContextMenu);
 
+    //Setup Reset action
     resetDockedWidgetsAction = new QAction("Reset Docked Widgets", this);
     resetDockedWidgetsAction->setIcon(Theme::theme()->getImage("Actions", "Maximize"));
+    connect(resetDockedWidgetsAction, SIGNAL(triggered(bool)), this, SLOT(resetDockWidgets()));
 
+    //Setup Tab positions
     setTabPosition(Qt::RightDockWidgetArea, QTabWidget::West);
     setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::West);
     setTabPosition(Qt::TopDockWidgetArea, QTabWidget::West);
     setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
 
+    //Connect the custom context menu.
     connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(showContextMenu(const QPoint &)));
-    connect(resetDockedWidgetsAction, SIGNAL(triggered(bool)), this, SLOT(resetDockWidgets()));
 }
 
 MedeaWindowNew::~MedeaWindowNew()
 {
+    //Unset Original flag on all owned DockWidgets.
+    while(!ownedDockWidgets.isEmpty()){
+        MedeaDockWidget* dockWidget = ownedDockWidgets.takeFirst();
+        dockWidget->setSourceWindow(0);
+    }
+    //Clean up current dock widget.
+    while(!currentDockWidgets.isEmpty()){
+        MedeaDockWidget* dockWidget = currentDockWidgets.takeFirst();
+        if(dockWidget){
+            //This should cause MedeaWindowManager to shutdown the widget.
+            emit dockWidget->closeWidget();
+        }
+    }
+}
+
+bool MedeaWindowNew::hasDockWidgets()
+{
+    return !currentDockWidgets.isEmpty();
 }
 
 QList<MedeaDockWidget *> MedeaWindowNew::getDockWidgets()
 {
-    return childrenDockWidgets;
+    return currentDockWidgets;
 }
 
 int MedeaWindowNew::getID()
@@ -44,32 +66,57 @@ int MedeaWindowNew::getID()
     return ID;
 }
 
-void MedeaWindowNew::addMedeaDockWidget(MedeaDockWidget *widget, Qt::DockWidgetArea area)
+void MedeaWindowNew::addDockWidget(MedeaDockWidget *widget)
 {
-    if (childrenDockWidgets.contains(widget)) {
-        return;
-    }
-    connect(widget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Closed()));
-    connect(widget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximized(bool)));
-    connect(widget, SIGNAL(customContextMenuRequested(QPoint)), this, SIGNAL(customContextMenuRequested(QPoint)));
-    QMainWindow::addDockWidget(area, widget, Qt::Horizontal);
-    childrenDockWidgets.append(widget);
-    widget->setCurrentWindow(this);
-    widget->show();
+    addDockWidget(widget->getDockWidgetArea(), widget, Qt::Horizontal);
 }
 
-
-void MedeaWindowNew::removeMedeaDockWidget(MedeaDockWidget *widget)
+void MedeaWindowNew::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget)
 {
-    disconnect(widget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Closed()));
-    disconnect(widget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximized(bool)));
-    disconnect(widget, SIGNAL(customContextMenuRequested(QPoint)), this, SIGNAL(customContextMenuRequested(QPoint)));
-    QMainWindow::removeDockWidget(widget);
-    childrenDockWidgets.removeAll(widget);
+    addDockWidget(area, widget, Qt::Horizontal);
+}
 
-    if (!isMainWindow() && childrenDockWidgets.isEmpty()) {
-        close();
+void MedeaWindowNew::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt::Orientation orientation)
+{
+    MedeaDockWidget* dockWidget = qobject_cast<MedeaDockWidget*>(widget);
+    if(dockWidget){
+        if(!currentDockWidgets.contains(dockWidget)){
+            if(!dockWidget->getSourceWindow()){
+                //Set the Dock's source window to this.
+                dockWidget->setSourceWindow(this);
+                ownedDockWidgets.append(dockWidget);
+            }
+            dockWidget->setCurrentWindow(this);
+            currentDockWidgets.append(dockWidget);
+        }
     }
+    QMainWindow::addDockWidget(area, widget, orientation);
+}
+
+void MedeaWindowNew::removeDockWidget(QDockWidget *widget)
+{
+    MedeaDockWidget* dockWidget = qobject_cast<MedeaDockWidget*>(widget);
+    if(dockWidget){
+        if(currentDockWidgets.contains(dockWidget)){
+            currentDockWidgets.removeAll(dockWidget);
+            //Unset current window
+            dockWidget->setCurrentWindow(0);
+        }
+    }
+    QMainWindow::removeDockWidget(widget);
+}
+
+void MedeaWindowNew::setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool maximized)
+{
+    foreach(MedeaDockWidget* dw, currentDockWidgets){
+        bool setVisible = !maximized;
+        dw->setVisible(setVisible);
+    }
+
+    if(maximized){
+        dockwidget->setVisible(maximized);
+    }
+
 }
 
 bool MedeaWindowNew::isMainWindow()
@@ -77,29 +124,10 @@ bool MedeaWindowNew::isMainWindow()
     return _isMainWindow;
 }
 
-void MedeaWindowNew::dockWidget_Closed()
-{
-    MedeaDockWidget* dockPressed = qobject_cast<MedeaDockWidget*>(sender());
-    removeMedeaDockWidget(dockPressed);
-
-}
-
-void MedeaWindowNew::dockWidget_Maximized(bool maximized)
-{
-    MedeaDockWidget* dockPressed = qobject_cast<MedeaDockWidget*>(sender());
-    foreach(MedeaDockWidget* dockWidget, findChildren<MedeaDockWidget*>()){
-        bool setVisible = !maximized;
-        dockWidget->setVisible(setVisible);
-    }
-    if(maximized){
-        dockPressed->setVisible(maximized);
-    }
-
-}
 
 void MedeaWindowNew::resetDockWidgets()
 {
-    foreach(MedeaDockWidget* child, childrenDockWidgets){
+    foreach(MedeaDockWidget* child, currentDockWidgets){
         child->setVisible(true);
     }
 }
@@ -111,9 +139,7 @@ void MedeaWindowNew::showContextMenu(const QPoint & point)
 
 void MedeaWindowNew::closeEvent(QCloseEvent *)
 {
-    if(!isMainWindow()){
-        MedeaWindowManager::destructWindow(this);
-    }
+    MedeaWindowManager::destructWindow(this);
 }
 
 QMenu *MedeaWindowNew::createPopupMenu()

@@ -14,6 +14,7 @@ protected:
     ~MedeaDockWidget();
 public:
     int getID();
+    Qt::DockWidgetArea getDockWidgetArea();
     void setSourceWindow(MedeaWindowNew* window);
     MedeaWindowNew* getSourceWindow();
 
@@ -36,10 +37,9 @@ public:
 
     void setMaximizeToggled(bool toggled);
     void setPopOutToggled(bool toggled);
-
 signals:
     void maximizeWidget(bool maximize);
-    void popOutWidget(bool popout);
+    void popOutWidget();
     void closeWidget();
 private slots:
     void themeChanged();
