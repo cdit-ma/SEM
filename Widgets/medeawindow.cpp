@@ -72,7 +72,7 @@
  * @param graphMLFile
  * @param parent
  */
-MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
+MedeaWindow::MedeaWindow(ViewController* vc, QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
     //Updates2
@@ -100,6 +100,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     SHOW_TOOLBAR = true;
 
     CURRENT_THEME = VT_NORMAL_THEME;
+    viewController = vc;
 
     //Initialize classes.
     initialiseTheme();
@@ -108,7 +109,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initializePlugins();
 
     initialiseGUI();
-    setupNewNodeView();
+    //setupNewNodeView();
 
     setupConnections();
 
@@ -167,11 +168,12 @@ MedeaWindow::~MedeaWindow()
 
 void MedeaWindow::newSubView()
 {
-    MedeaDockWidget* newDockWidget = MedeaWindowManager::constructDockWidget();
+    /*
+    MedeaDockWidget* newDockWidget = MedeaWindowManager::constructViewDockWidget("New SubView");
     newDockWidget->setTitle("New SubView");
     newDockWidget->setWidget(new NodeViewNew());
     newDockWidget->setCloseVisible(true);
-    window->addDockWidget(newDockWidget);
+    window->addDockWidget(newDockWidget);*/
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
@@ -1925,16 +1927,19 @@ void MedeaWindow::setupProject()
 {
     if(!controller && !controllerThread){
         controller = new NewController();
-        viewController = new ViewController();
+        //viewController = new ViewController();
 
 
+        /*
         nodeViewNew->setViewController(viewController);
         nodeViewNew1->setViewController(viewController);
         nodeViewNew2->setViewController(viewController);
         nodeViewNew3->setViewController(viewController);
         nodeViewNew4->setViewController(viewController);
+        */
 
         //connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView, SLOT(viewItemConstructed(ViewItem*)));
+        /*
         connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeViewNew, SLOT(viewItem_Constructed(ViewItem*)));
         connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeViewNew, SLOT(viewItem_Destructed(int, ViewItem*)));
         connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeViewNew1, SLOT(viewItem_Constructed(ViewItem*)));
@@ -1945,7 +1950,7 @@ void MedeaWindow::setupProject()
         connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeViewNew3, SLOT(viewItem_Destructed(int, ViewItem*)));
         connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeViewNew4, SLOT(viewItem_Constructed(ViewItem*)));
         connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeViewNew4, SLOT(viewItem_Destructed(int, ViewItem*)));
-
+*/
         //Set External Worker Definitions Path.
         controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
 
@@ -2168,12 +2173,13 @@ void MedeaWindow::setupConnections()
     connect(edit_search, SIGNAL(triggered()), this, SLOT(search()));
 
 
+    /*
     connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew, SLOT(fitToScreen()));
     connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew1, SLOT(fitToScreen()));
     connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew2, SLOT(fitToScreen()));
     connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew3, SLOT(fitToScreen()));
     connect(view_fitToScreen, SIGNAL(triggered()), nodeViewNew4, SLOT(fitToScreen()));
-
+*/
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(centerImplementation()));
@@ -2279,10 +2285,15 @@ void MedeaWindow::setupNewNodeView()
     window = MedeaWindowManager::constructMainWindow();
 
     window->addToolBar(Qt::TopToolBarArea, toolbar);
+    //toolbar->setWindowFlags(Qt::WindowStaysOnTopHint);
+    //toolbar->setParent(0);
+    //window->addToolBar(Qt::TopToolBarArea, toolbar);
+
+    //toolbar->setParent(this);
 
     minimap2 = new NodeViewMinimap(this);
 
-
+/*
     MedeaDockWidget *dockWidget1 = MedeaWindowManager::constructDockWidget("Interface", Qt::TopDockWidgetArea);
     dockWidget1->setWidget(nodeViewNew1);
     dockWidget1->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
@@ -2324,7 +2335,7 @@ void MedeaWindow::setupNewNodeView()
     minimap2->setFixedWidth(buttons->width());
 
     QDockWidget *dockWidget5 = new QDockWidget("Data Table", window);
-QPushButton* button = new QPushButton("Add View");
+    QPushButton* button = new QPushButton("Add View");
 
     dockWidget5->setWidget(button);
     connect(button, SIGNAL(clicked(bool)), this, SLOT(newSubView()));
@@ -2347,8 +2358,8 @@ QPushButton* button = new QPushButton("Add View");
     window->addToolBar(Qt::RightToolBarArea, minimapToolbar3);
     window->addToolBar(Qt::RightToolBarArea, minimapToolbar2);
     window->addToolBar(Qt::RightToolBarArea, minimapToolbar);
-
-    window->show();
+*/
+   // window->show();
 /*
 
 
@@ -5296,7 +5307,7 @@ void MedeaWindow::updateStyleSheets()
     QString textDisabledColor = theme->getTextColorHex(Theme::CR_DISABLED);
 
 
-    window->setStyleSheet("QMainWindow{background: " + BGColor + ";color:" + textColor+";}");
+//    window->setStyleSheet("QMainWindow{background: " + BGColor + ";color:" + textColor+";}");
     QString themedMenuStyle = "QMenu {"
                               "padding:" + QString::number(SPACER_SIZE/2) + "px;"
                               "background:" + altBGColor + ";"

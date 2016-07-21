@@ -6,6 +6,8 @@
 
 //Forward Class Declarations
 class MedeaDockWidget;
+class MedeaToolDockWidget;
+class MedeaViewDockWidget;
 class MedeaWindowNew;
 
 class MedeaWindowManager : public QObject
@@ -19,7 +21,8 @@ public:
     //Factory constructor Functions
     static MedeaWindowNew* constructMainWindow(QString title="");
     static MedeaWindowNew* constructSubWindow(QString title="");
-    static MedeaDockWidget* constructDockWidget(QString title="", Qt::DockWidgetArea initialArea = Qt::TopDockWidgetArea);
+    static MedeaViewDockWidget* constructViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
+    static MedeaToolDockWidget* constructToolDockWidget(QString title="");
 
     //Factory destructor functions
     static void destructWindow(MedeaWindowNew* window);
@@ -27,7 +30,8 @@ public:
 protected:
     MedeaWindowManager();
     ~MedeaWindowManager();
-
+signals:
+    void activeDockWidgetChanged(MedeaDockWidget* widget);
 public:
     MedeaDockWidget* getActiveDockWidget();
     void setActiveDockWidget(MedeaDockWidget* dockWidget = 0);
@@ -42,7 +46,8 @@ private:
     //Helper functions
     MedeaWindowNew* _constructMainWindow(QString title);
     MedeaWindowNew* _constructSubWindow(QString title);
-    MedeaDockWidget* _constructDockWidget(QString title, Qt::DockWidgetArea initalArea);
+    MedeaToolDockWidget* _constructToolDockWidget(QString title);
+    MedeaViewDockWidget* _constructViewDockWidget(QString title, Qt::DockWidgetArea area);
 
     void _destructWindow(MedeaWindowNew* window);
     void _destructDockWidget(MedeaDockWidget* widget);

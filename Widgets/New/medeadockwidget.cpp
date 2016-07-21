@@ -5,23 +5,24 @@
 #include <QDebug>
 #include <QEvent>
 int MedeaDockWidget::_DockWidgetID = 0;
-MedeaDockWidget::MedeaDockWidget(QString title, Qt::DockWidgetArea area, QWidget *parent):QDockWidget(title, parent)
+MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 {
     ID = ++_DockWidgetID;
+    this->type = type;
     sourceWindow = 0;
     currentWindow = 0;
-    initialArea = area;
+    initialArea = Qt::TopDockWidgetArea;
     _isActive = false;
 
+    _isFocusEnabled = false;
     titleBar = new DockTitleBarWidget(this);
     setTitleBarWidget(titleBar);
 
     _isProtected = false;
 
     setContextMenuPolicy(Qt::PreventContextMenu);
-    setTitle(title);
 
-    setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
+
     if(titleBar){
         //Do connects.
         connect(titleBar->getAction(DockTitleBarWidget::DA_CLOSE), SIGNAL(triggered(bool)), this, SIGNAL(closeWidget()));
@@ -44,9 +45,19 @@ int MedeaDockWidget::getID()
     return ID;
 }
 
+MedeaDockWidget::DOCKWIDGET_TYPE MedeaDockWidget::getDockType()
+{
+    return type;
+}
+
 Qt::DockWidgetArea MedeaDockWidget::getDockWidgetArea()
 {
     return initialArea;
+}
+
+void MedeaDockWidget::setDockWidgetArea(Qt::DockWidgetArea area)
+{
+    initialArea = area;
 }
 
 void MedeaDockWidget::setSourceWindow(MedeaWindowNew *window)
@@ -127,6 +138,16 @@ bool MedeaDockWidget::isActive()
     return _isActive;
 }
 
+void MedeaDockWidget::setFocusEnabled(bool enabled)
+{
+    _isFocusEnabled = enabled;
+}
+
+bool MedeaDockWidget::isFocusEnabled()
+{
+    return _isFocusEnabled;
+}
+
 void MedeaDockWidget::setCloseVisible(bool visible)
 {
     setActionVisible(DockTitleBarWidget::DA_CLOSE, visible);
@@ -142,6 +163,11 @@ void MedeaDockWidget::setPopOutVisible(bool visible)
     setActionVisible(DockTitleBarWidget::DA_POPOUT, visible);
 }
 
+void MedeaDockWidget::setProtectVisible(bool visible)
+{
+    setActionVisible(DockTitleBarWidget::DA_PROTECT, visible);
+}
+
 void MedeaDockWidget::setMaximizeToggled(bool toggled)
 {
     setActionToggled(DockTitleBarWidget::DA_MAXIMIZE, toggled);
@@ -150,6 +176,11 @@ void MedeaDockWidget::setMaximizeToggled(bool toggled)
 void MedeaDockWidget::setPopOutToggled(bool toggled)
 {
     setActionToggled(DockTitleBarWidget::DA_POPOUT, toggled);
+}
+
+void MedeaDockWidget::setProtectToggled(bool toggled)
+{
+    setActionToggled(DockTitleBarWidget::DA_PROTECT, toggled);
 }
 
 
@@ -243,7 +274,7 @@ QAction *MedeaDockWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
 
 bool MedeaDockWidget::eventFilter(QObject *object, QEvent *event)
 {
-    if(event->type() == QEvent::FocusIn){
+    if(_isFocusEnabled && event->type() == QEvent::FocusIn){
         MedeaWindowManager::manager()->setActiveDockWidget(this);
     }
     return QObject::eventFilter(object, event);

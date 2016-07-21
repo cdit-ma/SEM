@@ -132,10 +132,12 @@ void NodeViewNew::item_SetCentered(EntityItemNew *item)
 
 void NodeViewNew::item_AdjustingPos(bool adjusting)
 {
-    foreach(ViewItem* viewItem, selectionHandler->getSelection()){
-        EntityItemNew* item = getEntityItem(viewItem);
-        if(item){
-            item->setMoving(adjusting);
+    if(selectionHandler){
+        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+            EntityItemNew* item = getEntityItem(viewItem);
+            if(item){
+                item->setMoving(adjusting);
+            }
         }
     }
 }

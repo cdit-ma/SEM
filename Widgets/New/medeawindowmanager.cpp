@@ -7,6 +7,9 @@
 #include <QObject>
 #include "medeamainwindow.h"
 
+#include "medeatooldockwidget.h"
+#include "medeaviewdockwidget.h"
+
 #include "../../View/theme.h"
 #define WINDOW_ID_DATA "WINDOW_ID"
 MedeaWindowManager* MedeaWindowManager::managerSingleton = 0;
@@ -29,10 +32,16 @@ MedeaWindowNew *MedeaWindowManager::constructSubWindow(QString title)
     return manager()->_constructSubWindow(title);
 }
 
-MedeaDockWidget *MedeaWindowManager::constructDockWidget(QString title, Qt::DockWidgetArea initialArea)
+MedeaViewDockWidget *MedeaWindowManager::constructViewDockWidget(QString title, Qt::DockWidgetArea area)
 {
-    return manager()->_constructDockWidget(title, initialArea);
+    return manager()->_constructViewDockWidget(title, area);
 }
+
+MedeaToolDockWidget *MedeaWindowManager::constructToolDockWidget(QString title)
+{
+    return manager()->_constructToolDockWidget(title);
+}
+
 
 void MedeaWindowManager::destructWindow(MedeaWindowNew *window)
 {
@@ -117,13 +126,23 @@ MedeaWindowNew *MedeaWindowManager::_constructSubWindow(QString title)
     return window;
 }
 
-MedeaDockWidget *MedeaWindowManager::_constructDockWidget(QString title, Qt::DockWidgetArea initialArea)
+MedeaToolDockWidget *MedeaWindowManager::_constructToolDockWidget(QString title)
 {
     //Construct new DockWidget
-    MedeaDockWidget* dockWidget = new MedeaDockWidget(title, initialArea);
+    MedeaToolDockWidget* dockWidget = new MedeaToolDockWidget(title);
+    addDockWidget(dockWidget);
+    return dockWidget;
+
+}
+
+MedeaViewDockWidget *MedeaWindowManager::_constructViewDockWidget(QString title, Qt::DockWidgetArea area)
+{
+    //Construct new DockWidget
+    MedeaViewDockWidget* dockWidget = new MedeaViewDockWidget(title, area);
     addDockWidget(dockWidget);
     return dockWidget;
 }
+
 
 MedeaDockWidget *MedeaWindowManager::getActiveDockWidget()
 {
@@ -132,16 +151,19 @@ MedeaDockWidget *MedeaWindowManager::getActiveDockWidget()
 
 void MedeaWindowManager::setActiveDockWidget(MedeaDockWidget *dockWidget)
 {
-    //Unset the old
-    if(activeDockWidget){
-        activeDockWidget->setActive(false);
-        activeDockWidget = 0;
-    }
+    if(dockWidget != activeDockWidget){
+        //Unset the old
+        if(activeDockWidget){
+            activeDockWidget->setActive(false);
+            activeDockWidget = 0;
+        }
 
-    //Set the New.
-    if(dockWidget){
-        dockWidget->setActive(true);
+        //Set the New.
+        if(dockWidget){
+            dockWidget->setActive(true);
+        }
         activeDockWidget = dockWidget;
+        emit activeDockWidgetChanged(activeDockWidget);
     }
 }
 

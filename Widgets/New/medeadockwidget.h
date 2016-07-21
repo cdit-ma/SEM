@@ -7,14 +7,18 @@
 class MedeaWindowNew;
 class MedeaDockWidget : public QDockWidget
 {
+public:
+    enum DOCKWIDGET_TYPE {MDW_VIEW, MDW_TOOL};
     Q_OBJECT
     friend class MedeaWindowManager;
 protected:
-    MedeaDockWidget(QString title="", Qt::DockWidgetArea initalArea = Qt::TopDockWidgetArea, QWidget* parent=0);
+    MedeaDockWidget(DOCKWIDGET_TYPE type);
     ~MedeaDockWidget();
 public:
     int getID();
+    DOCKWIDGET_TYPE getDockType();
     Qt::DockWidgetArea getDockWidgetArea();
+    void setDockWidgetArea(Qt::DockWidgetArea area);
     void setSourceWindow(MedeaWindowNew* window);
     MedeaWindowNew* getSourceWindow();
 
@@ -31,12 +35,16 @@ public:
     void setActive(bool focussed);
     bool isActive();
 
+    void setFocusEnabled(bool enabled);
+    bool isFocusEnabled();
     void setCloseVisible(bool visible);
     void setMaximizeVisible(bool visible);
     void setPopOutVisible(bool visible);
+    void setProtectVisible(bool visible);
 
     void setMaximizeToggled(bool toggled);
     void setPopOutToggled(bool toggled);
+    void setProtectToggled(bool toggled);
 signals:
     void maximizeWidget(bool maximize);
     void popOutWidget();
@@ -58,8 +66,10 @@ private:
 protected:
     bool eventFilter(QObject *object, QEvent *event);
 private:
+    DOCKWIDGET_TYPE type;
     bool _isProtected;
     bool _isActive;
+    bool _isFocusEnabled;
     QString labelStyle_Normal;
     QString labelStyle_Focussed;
     QString highlightedTextColor;

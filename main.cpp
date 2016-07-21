@@ -4,6 +4,9 @@
 
 #include <QFont>
 #include "Widgets/medeawindow.h"
+#include "Widgets/New/medeamainwindow.h"
+#include "Widgets/New/medeawindowmanager.h"
+#include "Controller/viewcontroller.h"
 #include "modeltester.h"
 
 #include <QString>
@@ -35,8 +38,14 @@ int launchMEDEA(int argc, char *argv[]){
         graphmlFilePath = QString::fromUtf8(argv[1]);
     }
 
-    MedeaWindow *w = new MedeaWindow(graphmlFilePath);
-    a.setActiveWindow(w);
+    ViewController* vc = new ViewController();
+
+    MedeaMainWindow* w2 = (MedeaMainWindow*) MedeaWindowManager::constructMainWindow();
+    w2->setViewController(vc);
+
+    MedeaWindow *w = new MedeaWindow(vc, graphmlFilePath);
+
+    a.setActiveWindow(w2);
     return a.exec();
 }
 

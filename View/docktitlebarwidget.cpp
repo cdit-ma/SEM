@@ -70,11 +70,15 @@ void DockTitleBarWidget::setupToolBar()
     addWidget(widget);
 
     popOutAction = addAction("Pop Out");
+    popOutAction->setVisible(false);
     maximizeAction = addAction("Maximise/Minimise");
     maximizeAction->setCheckable(true);
+    maximizeAction->setVisible(false);
     closeAction = addAction("Close");
+    closeAction->setVisible(false);
     protectAction = addAction("Protect Window");
     protectAction->setCheckable(true);
+    protectAction->setVisible(false);
     setIconSize(QSize(16,16));
 }
 

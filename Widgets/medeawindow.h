@@ -84,7 +84,7 @@ class MedeaWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MedeaWindow(QString graphMLFile=0, QWidget* parent = 0);
+    explicit MedeaWindow(ViewController* vc, QString graphMLFile=0, QWidget* parent = 0);
     ~MedeaWindow();
 
 signals:

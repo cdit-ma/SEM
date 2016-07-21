@@ -182,7 +182,9 @@ HEADERS += \
     Widgets/New/medeawindownew.h \
     Widgets/New/medeadockwidget.h \
     Widgets/New/medeawindowmanager.h \
-    Widgets/New/medeamainwindow.h
+    Widgets/New/medeamainwindow.h \
+    Widgets/New/medeaviewdockwidget.h \
+    Widgets/New/medeatooldockwidget.h
 
 
 SOURCES += \
@@ -329,7 +331,9 @@ SOURCES += \
     Widgets/New/medeawindownew.cpp \
     Widgets/New/medeadockwidget.cpp \
     Widgets/New/medeawindowmanager.cpp \
-    Widgets/New/medeamainwindow.cpp
+    Widgets/New/medeamainwindow.cpp \
+    Widgets/New/medeaviewdockwidget.cpp \
+    Widgets/New/medeatooldockwidget.cpp
 
 
 RESOURCES += \
