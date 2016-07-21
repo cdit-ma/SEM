@@ -30,6 +30,27 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
 
 }
 
+AttributeTableModel::AttributeTableModel(EntityAdapter* adapter)
+{
+    guiItem = 0;
+    attachedEntity = adapter;
+    if(attachedEntity->isNodeAdapter()){
+        QString kind = attachedEntity->getDataValue("kind").toString();
+        if(!(kind == "Aggregate" || kind == "AggregateInstance"
+             || kind == "Member" || kind == "MemberInstance"
+             || kind == "Condition" || kind == "Process" || kind =="Vector" || kind == "VectorInstance")){
+            hiddenKeyNames << "sortOrder";
+        }
+    }
+
+    attachedEntity->addListener(this);
+    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded" << "readOnly";//<< "kind";
+    hiddenKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime" << "dataProtected";
+    permanentlyLockedKeyNames << "kind";
+    multiLineKeyNames << "code" << "processes_to_log";
+    setupDataBinding();
+}
+
 AttributeTableModel::~AttributeTableModel()
 {
     attachedEntity->removeListener(this);
@@ -254,8 +275,10 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
         if (index.column() == 1){
             if(!isDataProtected(index.row())){
                 QString keyName = getKeyName(index.row());
-                emit guiItem->GraphMLItem_TriggerAction("Setting Value for: " + keyName);
-                guiItem->setData(keyName, value);
+                if (guiItem) {
+                    emit guiItem->GraphMLItem_TriggerAction("Setting Value for: " + keyName);
+                    guiItem->setData(keyName, value);
+                }
                 return true;
             }
         }

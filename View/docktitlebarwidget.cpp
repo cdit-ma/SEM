@@ -62,12 +62,12 @@ void DockTitleBarWidget::setupToolBar()
     iconLabel->setFixedSize(16,16);
     titleLabel = new QLabel(this);
 
-    QWidget* widget = new QWidget();
-    widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //QWidget* widget = new QWidget();
+    titleLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     addWidget(iconLabel);
     addWidget(titleLabel);
-    addWidget(widget);
+    //addWidget(widget);
 
     popOutAction = addAction("Pop Out");
     popOutAction->setVisible(false);

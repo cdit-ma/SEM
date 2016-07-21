@@ -7,6 +7,7 @@
 #include "SceneItems/nodeitemnew.h"
 #include "viewitem.h"
 #include "Controller/viewcontroller.h"
+//#include "View/Table/attributetablemodel.h"
 
 class NodeViewNew : public QGraphicsView
 {
@@ -19,14 +20,19 @@ public:
 
     QRectF getViewportRect();
     void viewportChanged();
+
 signals:
     void viewportChanged(QRectF rect, qreal zoom);
     void viewFocussed(NodeViewNew* view, bool focussed);
+
+    void viewSelectionChanged(AttributeTableModel* model);
+
 private slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 
     void selectionHandler_ItemSelected(ViewItem*item, bool selected);
+
 private slots:
     void fitToScreen();
 

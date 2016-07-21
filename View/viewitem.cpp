@@ -5,6 +5,7 @@ ViewItem::ViewItem(EntityAdapter *entity)
 {
     this->entity = entity;
     this->ID = entity->getID();
+    tableModel = new AttributeTableModel(entity);
 
     //Register Item to Adapter
     entity->addListener(this);
@@ -14,7 +15,6 @@ ViewItem::ViewItem(EntityAdapter *entity)
     //Set the default icon.
     defaultIcon = defaultIcon;//TODO: Theme::theme()->getIconForViewItem(this);
     currentIcon = defaultIcon;
-
 
 }
 
@@ -29,6 +29,11 @@ ViewItem::~ViewItem()
 int ViewItem::getID()
 {
     return ID;
+}
+
+AttributeTableModel *ViewItem::getTableModel()
+{
+    return tableModel;
 }
 
 bool ViewItem::isNode()

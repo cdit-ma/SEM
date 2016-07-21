@@ -22,7 +22,6 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 
     setContextMenuPolicy(Qt::PreventContextMenu);
 
-
     if(titleBar){
         //Do connects.
         connect(titleBar->getAction(DockTitleBarWidget::DA_CLOSE), SIGNAL(triggered(bool)), this, SIGNAL(closeWidget()));
@@ -113,6 +112,7 @@ void MedeaDockWidget::setTitle(QString title, Qt::Alignment alignment)
 {
     if(titleBar){
         titleBar->setTitle(title, alignment);
+        QDockWidget::setWindowTitle(title);
     }
 }
 
@@ -187,29 +187,12 @@ void MedeaDockWidget::setProtectToggled(bool toggled)
 void MedeaDockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-
-    QString altBGColor = theme->getAltBackgroundColorHex();
     QString textColor = theme->getTextColorHex(Theme::CR_NORMAL);
     QString highlightColor = theme->getHighlightColorHex();
-    QString pressedColor = theme->getPressedColorHex();
 
-    setStyleSheet("QToolBar{margin:1px 0px;background: " + altBGColor + ";border:1px solid gray;}"
-                "QToolBar#focussed{color:" + highlightColor + ";font-weight:bold;}"
-                  "QToolButton {"
-                  "padding:0px;"
-                  "border: none;"
-                  "background:" + altBGColor + ";"
-                  "}"
-                  "QToolButton:hover {"
-                  "background:" + highlightColor + ";"
-                  "}"
-                  "QToolButton:pressed {background:" + pressedColor + "; }"
-                  );
-    labelStyle_Normal = "QLabel{color:" + textColor + ";}";
-    labelStyle_Focussed = "QLabel{color:" + highlightColor + ";font-weight:bold;}";
-
+    labelStyle_Normal = "color:" + textColor + ";";
+    labelStyle_Focussed = "color:" + highlightColor + ";font-weight:bold;";
     updateTitleLabelStyle();
-
 
     QAction* closeAction = getAction(DockTitleBarWidget::DA_CLOSE);
     QAction* maxAction = getAction(DockTitleBarWidget::DA_MAXIMIZE);

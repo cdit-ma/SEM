@@ -16,14 +16,16 @@ public:
     void setViewController(ViewController* vc);
 
 private slots:
+    void themeChanged();
     void activeDockWidgetChanged(MedeaDockWidget* widget);
+    void dataTableModelChanged(AttributeTableModel* model);
+
 private:
     void setupInnerWindow();
-    void setupTools();
-
+    void setupDataTable();
+    void setupMinimap();
 
 private:
-
     MedeaWindowNew* innerWindow;
 
     NodeViewNew* nodeView_Interfaces;
@@ -34,6 +36,7 @@ private:
 
     NodeViewMinimap* minimap;
     QTableView* tableView;
+    bool resizeModeSet;
 };
 
 #endif // MEDEAMAINWINDOW_H

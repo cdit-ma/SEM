@@ -3,6 +3,7 @@
 #include <QObject>
 
 #include "../Controller/entityadapter.h"
+#include "Table/attributetablemodel.h"
 
 //Forward declaration.
 class ViewController;
@@ -17,10 +18,10 @@ public:
     ~ViewItem();
 
     int getID();
+    AttributeTableModel* getTableModel();
 
     bool isNode();
     bool isEdge();
-
 
     QVariant getData(QString keyName);
     bool hasData(QString keyName);
@@ -33,14 +34,18 @@ public:
     void addListener(QObject* object);
     void removeListener(QObject* object);
     bool hasListeners();
+
 signals:
     void dataChanged(QString key_name, QVariant data);
     void destructing();
     void iconChanged();
+
 private:
     void destruct();
+
     EntityAdapter* entity;
     int ID;
+    AttributeTableModel* tableModel;
     QPair<QString, QString> defaultIcon;
     QPair<QString, QString> currentIcon;
 

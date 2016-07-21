@@ -14,6 +14,7 @@ public:
 protected:
     MedeaDockWidget(DOCKWIDGET_TYPE type);
     ~MedeaDockWidget();
+
 public:
     int getID();
     DOCKWIDGET_TYPE getDockType();
@@ -29,7 +30,7 @@ public:
     MedeaWindowNew* getCurrentWindow();
 
     void setIcon(QPixmap icon);
-    void setTitle(QString title, Qt::Alignment alignment = Qt::AlignCenter);
+    void setTitle(QString title, Qt::Alignment alignment = Qt::AlignLeft);
     QString getTitle();
 
     void setActive(bool focussed);

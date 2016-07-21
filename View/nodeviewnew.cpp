@@ -100,6 +100,7 @@ void NodeViewNew::selectionHandler_ItemSelected(ViewItem *item, bool selected)
         EntityItemNew* e = getEntityItem(item->getID());
         if(e){
             e->setSelected(selected);
+            emit viewSelectionChanged(e->getViewItem()->getTableModel());
         }
     }
 }
