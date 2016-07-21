@@ -10,6 +10,7 @@
 #include "SceneItems/Hardware/hardwarenodeitem.h"
 
 #include <QDebug>
+#include <math.h>
 #include <QKeyEvent>
 
 #define ZOOM_INCREMENTOR 1.05

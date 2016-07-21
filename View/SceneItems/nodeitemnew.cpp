@@ -3,7 +3,7 @@
 
 #include <QDebug>
 #include <QStyleOptionGraphicsItem>
-
+#include <math.h>
 #define RESIZE_RECT_SIZE 5
 
 

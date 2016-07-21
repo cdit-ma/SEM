@@ -135,6 +135,7 @@ MedeaWindow::MedeaWindow(ViewController* vc, QString graphMLFile, QWidget *paren
     if(!graphMLFile.isEmpty()){
         openProject(graphMLFile);
     }
+
 }
 
 
@@ -168,12 +169,6 @@ MedeaWindow::~MedeaWindow()
 
 void MedeaWindow::newSubView()
 {
-    /*
-    MedeaDockWidget* newDockWidget = MedeaWindowManager::constructViewDockWidget("New SubView");
-    newDockWidget->setTitle("New SubView");
-    newDockWidget->setWidget(new NodeViewNew());
-    newDockWidget->setCloseVisible(true);
-    window->addDockWidget(newDockWidget);*/
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
@@ -2340,8 +2335,6 @@ void MedeaWindow::setupNewNodeView()
     dockWidget5->setWidget(button);
     connect(button, SIGNAL(clicked(bool)), this, SLOT(newSubView()));
     dockWidget5->setStyleSheet("QDOckWidget{background:" + Theme::theme()->getBackgroundColorHex() + ";}");
-
-
 
     QToolBar* minimapToolbar = new QToolBar(this);
     minimapToolbar->setAllowedAreas(Qt::RightToolBarArea);
