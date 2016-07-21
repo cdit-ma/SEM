@@ -134,6 +134,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     if(!graphMLFile.isEmpty()){
         openProject(graphMLFile);
     }
+
 }
 
 
@@ -167,10 +168,15 @@ MedeaWindow::~MedeaWindow()
 
 void MedeaWindow::newSubView()
 {
+    NodeViewNew* newNodeView = new NodeViewNew();
+    newNodeView->setStyleSheet("background:" + Theme::theme()->getBackgroundColorHex() + ";");
+
     MedeaDockWidget* newDockWidget = MedeaWindowManager::constructDockWidget();
+    newDockWidget->setStyleSheet("background:" + Theme::theme()->getBackgroundColorHex() + ";");
+
     newDockWidget->setTitle("New SubView");
-    newDockWidget->setWidget(new NodeViewNew());
     newDockWidget->setCloseVisible(true);
+    newDockWidget->setWidget(newNodeView);
     window->addDockWidget(newDockWidget);
 }
 
@@ -2324,13 +2330,11 @@ void MedeaWindow::setupNewNodeView()
     minimap2->setFixedWidth(buttons->width());
 
     QDockWidget *dockWidget5 = new QDockWidget("Data Table", window);
-QPushButton* button = new QPushButton("Add View");
+    QPushButton* button = new QPushButton("Add View");
 
     dockWidget5->setWidget(button);
     connect(button, SIGNAL(clicked(bool)), this, SLOT(newSubView()));
     dockWidget5->setStyleSheet("QDOckWidget{background:" + Theme::theme()->getBackgroundColorHex() + ";}");
-
-
 
     QToolBar* minimapToolbar = new QToolBar(this);
     minimapToolbar->setAllowedAreas(Qt::RightToolBarArea);

@@ -310,10 +310,13 @@ void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
 
 
     QDialog* dialog = new QDialog();
-    dialog->setWindowTitle("Select Parent Window");
+    dialog->setWindowTitle("Select Destination Window");
     //dialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     //dialog->setAttribute(Qt::WA_NoSystemBackground, true);
-    //dialog->setAttribute(Qt::WA_TranslucentBackground, true);
+    dialog->setAttribute(Qt::WA_TranslucentBackground, true);
+    dialog->setStyleSheet("QDialog{ background: rgba(150,150,150,255); }");
+    //dialog->setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
+
     dialog->setModal(true);
 
     QHBoxLayout* layout = new QHBoxLayout(dialog);
@@ -325,10 +328,25 @@ void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
         if(w != currentWindow){
             QToolButton* button = constructPopOutWindowButton(dialog, w);
             layout->addWidget(button);
+
         }
     }
     QToolButton* button = constructPopOutWindowButton(dialog, 0);
     layout->addWidget(button);
+
+    /*
+    QToolButton* cancelButton = new QToolButton(dialog);
+    cancelButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    cancelButton->setIcon(Theme::theme()->getImage("Actions", "Failure", QSize(), QColor(178, 50, 50)));
+    cancelButton->setText("Cancel");
+    cancelButton->setProperty(WINDOW_ID_DATA, -1);
+    cancelButton->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 20px;");
+    cancelButton->setFixedSize(170,170);
+    cancelButton->setIconSize(QSize(175, 80));
+    cancelButton->setFont(QFont("Verdana", 10));
+    connect(cancelButton, SIGNAL(clicked(bool)), dialog, SLOT(reject()));
+    layout->addWidget(cancelButton);
+    */
 
     dialog->exec();
     delete dialog;
@@ -338,8 +356,14 @@ QToolButton *MedeaWindowManager::constructPopOutWindowButton(QDialog *parent, Me
 {
     QToolButton* button = new QToolButton(parent);
     button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    button->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 10px;");
+    button->setFont(mainWindow->font());
 
-    button->setIconSize(QSize(200,100));
+    QFont guiFont = QFont("Verdana", 10);
+    button->setFont(guiFont);
+    button->setFixedSize(200, 170);
+    button->setIconSize(QSize(175, 80));
+
     if(window){
         button->setIcon(QIcon(window->grab()));
         QString text = window->windowTitle();
@@ -349,9 +373,11 @@ QToolButton *MedeaWindowManager::constructPopOutWindowButton(QDialog *parent, Me
         button->setText(text);
         button->setProperty(WINDOW_ID_DATA, window->getID());
     }else{
-        button->setIcon(Theme::theme()->getImage("Actions", "Plus"));
+        button->setIcon(Theme::theme()->getImage("Actions", "Add", QSize(), QColor(50, 128, 50)));
         button->setText("New Window");
         button->setProperty(WINDOW_ID_DATA, -1);
+        button->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 20px;");
+        button->setFixedWidth(170);
     }
 
     connect(button, SIGNAL(clicked(bool)), this, SLOT(reparentDockWidget_ButtonPressed()));
