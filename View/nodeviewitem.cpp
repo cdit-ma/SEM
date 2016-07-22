@@ -8,7 +8,6 @@ NodeViewItem::NodeViewItem(NodeAdapter *entity):ViewItem(entity)
 
 NodeViewItem::~NodeViewItem()
 {
-
 }
 
 VIEW_ASPECT NodeViewItem::getViewAspect()
@@ -55,6 +54,8 @@ QList<int> NodeViewItem::getTreeIndex()
     }
     return index;
 }
+
+
 
 bool NodeViewItem::isAncestorOf(NodeViewItem *item)
 {

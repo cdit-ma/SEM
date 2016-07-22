@@ -3,7 +3,7 @@
 #include "../Model/data.h"
 #include <QDebug>
 
-EntityAdapter::EntityAdapter(Entity *entity): QObject(0)
+EntityAdapter::EntityAdapter(Entity *entity): QObjectRegistrar(0)
 {
     _isValid = true;
     _entity = entity;
@@ -148,29 +148,6 @@ bool EntityAdapter::isValid()
 }
 
 
-
-void EntityAdapter::addListener(QObject *object)
-{
-    if(!_listeners.contains(object)){
-        _listeners.append(object);
-    }
-}
-
-void EntityAdapter::removeListener(QObject *object)
-{
-   if(_listeners.contains(object)){
-        _listeners.removeAll(object);
-
-        if(_listeners.isEmpty()){
-            deleteLater();
-        }
-   }
-}
-
-bool EntityAdapter::hasListeners()
-{
-    return _listeners.isEmpty();
-}
 
 
 void EntityAdapter::invalidate()

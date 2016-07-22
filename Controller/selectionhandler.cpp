@@ -86,20 +86,6 @@ void SelectionHandler::_selectionChanged(int changes = 0)
     }
 }
 
-bool SelectionHandler::appendToSelection(ViewItem *item)
-{
-    if(!item || isItemsAncestorSelected(item)){
-        return false;
-    }
-
-    //Unset Items Descendants.
-    int itemsChanged = unsetItemsDescendants(item);
-
-    itemsChanged += _setItemSelected(item, true);
-
-    //selectionChanged(count);
-}
-
 int SelectionHandler::_clearSelection()
 {
     int itemsChanged = 0;

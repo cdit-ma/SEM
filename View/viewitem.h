@@ -32,6 +32,12 @@ public:
     void resetIcon();
     QPair<QString, QString> getIcon();
 
+    void addChild(ViewItem* child);
+    void removeChild(ViewItem* child);
+    QList<ViewItem *> getChildren();
+    ViewItem* getParentItem();
+    void setParentViewItem(ViewItem* item);
+
 signals:
     void dataChanged(QString key_name, QVariant data);
     void destructing();
@@ -40,6 +46,8 @@ signals:
 private:
     void destruct();
 
+    QList<ViewItem*> children;
+    ViewItem* _parent;
     EntityAdapter* entity;
     int ID;
     AttributeTableModel* tableModel;

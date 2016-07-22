@@ -14,6 +14,7 @@ class NodeViewNew : public QGraphicsView
     Q_OBJECT
 public:
     NodeViewNew();
+    ~NodeViewNew();
     void setViewController(ViewController* viewController);
     void translate(QPointF point);
     void scale(qreal sx, qreal sy);
@@ -28,11 +29,10 @@ signals:
     void viewportChanged(QRectF rect, qreal zoom);
     void viewFocussed(NodeViewNew* view, bool focussed);
 
-
-private slots:
+public slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
-
+private slots:
     void selectionHandler_ItemSelected(ViewItem*item, bool selected);
 
 private slots:

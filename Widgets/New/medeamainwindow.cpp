@@ -5,6 +5,8 @@
 #include "selectioncontroller.h"
 #include <QDebug>
 #include <QHeaderView>
+#include <QPushButton>
+
 MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, true)
 {
     setDockNestingEnabled(false);
@@ -25,20 +27,10 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     viewController = vc;
     SelectionController* controller = vc->getSelectionController();
     connect(controller, SIGNAL(activeSelectedItemChanged(ViewItem*)), this, SLOT(activeSelectedItemChanged(ViewItem*)));
-    nodeView_Interfaces->setViewController(vc);
-    nodeView_Behaviour->setViewController(vc);
-    nodeView_Assemblies->setViewController(vc);
-    nodeView_Hardware->setViewController(vc);
-
-    connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView_Interfaces, SLOT(viewItem_Constructed(ViewItem*)));
-    connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView_Behaviour, SLOT(viewItem_Constructed(ViewItem*)));
-    connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView_Assemblies, SLOT(viewItem_Constructed(ViewItem*)));
-    connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView_Hardware, SLOT(viewItem_Constructed(ViewItem*)));
-
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Interfaces, SLOT(viewItem_Destructed(int,ViewItem*)));
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Behaviour, SLOT(viewItem_Destructed(int,ViewItem*)));
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Assemblies, SLOT(viewItem_Destructed(int,ViewItem*)));
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Hardware, SLOT(viewItem_Destructed(int,ViewItem*)));
+    connectNodeView(nodeView_Interfaces);
+    connectNodeView(nodeView_Behaviour);
+    connectNodeView(nodeView_Assemblies);
+    connectNodeView(nodeView_Hardware);
 }
 
 void MedeaMainWindow::themeChanged()
@@ -122,6 +114,40 @@ void MedeaMainWindow::activeSelectedItemChanged(ViewItem *item)
     }
 }
 
+void MedeaMainWindow::spawnSubView()
+{
+
+    if(viewController){
+        SelectionController* selectionController = viewController->getSelectionController();
+
+        QVector<ViewItem*> items = selectionController->getSelection();
+
+        if(items.length() == 1){
+            NodeViewNew* nodeView = new NodeViewNew();
+            connectNodeView(nodeView);
+            ViewItem* item = items.first();
+            if(item->isNode()){
+                nodeView->setContainedNodeViewItem((NodeViewItem*)item);
+                MedeaDockWidget *dockWidget = MedeaWindowManager::constructViewDockWidget("SubView", Qt::TopDockWidgetArea);
+                dockWidget->setWidget(nodeView);
+                dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+                dockWidget->setParent(this);
+                innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockWidget);
+                //Get children.
+            }
+        }
+    }
+}
+
+void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
+{
+    if(nodeView && viewController){
+        nodeView->setViewController(viewController);
+        connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView, SLOT(viewItem_Constructed(ViewItem*)));
+        connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView, SLOT(viewItem_Destructed(int,ViewItem*)));
+    }
+}
+
 void MedeaMainWindow::setupTools()
 {
 
@@ -192,6 +218,15 @@ void MedeaMainWindow::setupMinimap()
     dockWidget->setWidget(minimap);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+
+
+    MedeaDockWidget* dockWidget2 = MedeaWindowManager::constructToolDockWidget("Sub Views Yo");
+    QPushButton* button = new QPushButton("Spawn SubView");
+    dockWidget2->setWidget(button);
+    dockWidget2->setAllowedAreas(Qt::RightDockWidgetArea);
+    addDockWidget(Qt::RightDockWidgetArea, dockWidget2, Qt::Vertical);
+
+    connect(button, SIGNAL(clicked(bool)), this, SLOT(spawnSubView()));
 }
 
 

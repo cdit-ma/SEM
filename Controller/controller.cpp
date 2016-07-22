@@ -2018,7 +2018,7 @@ void NewController::removeGraphMLFromHash(int ID)
         EntityAdapter* entityAdapter = ID2AdapterHash[ID];
 
         if(entityAdapter){
-            bool canDelete = entityAdapter->hasListeners();
+            bool canDelete = entityAdapter->hasRegisteredObjects();
             entityAdapter->invalidate();
 
             emit controller_EntityDestructed(entityAdapter);

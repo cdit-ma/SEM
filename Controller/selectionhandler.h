@@ -31,13 +31,11 @@ private slots:
     void itemDeleted(int ID, ViewItem *item);
 private:
     void _selectionChanged(int changes);
-    bool appendToSelection(ViewItem* item);
     int _clearSelection();
-    bool isItemsAncestorSelected(ViewItem* item);
-
-    int unsetItemsDescendants(ViewItem* item);
-
     int _setItemSelected(ViewItem* item, bool selected, bool sendSignal=true);
+
+    bool isItemsAncestorSelected(ViewItem* item);
+    int unsetItemsDescendants(ViewItem* item);
 
     int ID;
 private:

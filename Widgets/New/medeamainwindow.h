@@ -21,7 +21,9 @@ private slots:
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget);
     void activeSelectedItemChanged(ViewItem* item);
 
+    void spawnSubView();
 private:
+    void connectNodeView(NodeViewNew* nodeView);
     void setupTools();
     void setupInnerWindow();
     void setupDataTable();

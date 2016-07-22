@@ -7,12 +7,12 @@ NoGUIItem::NoGUIItem(EntityAdapter *eA):QObject()
     if(eA){
         ID = eA->getID();
     }
-    entityAdapter->addListener(this);
+    entityAdapter->registerObject(this);
 }
 
 NoGUIItem::~NoGUIItem()
 {
-    entityAdapter->removeListener(this);
+    entityAdapter->unregisterObject(this);
 }
 
 int NoGUIItem::getID()

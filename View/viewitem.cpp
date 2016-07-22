@@ -8,7 +8,7 @@ ViewItem::ViewItem(EntityAdapter *entity): QObjectRegistrar()
     tableModel = new AttributeTableModel(entity);
 
     //Register Item to Adapter
-    entity->addListener(this);
+    entity->registerObject(this);
 
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
 
@@ -17,14 +17,14 @@ ViewItem::ViewItem(EntityAdapter *entity): QObjectRegistrar()
     //Set the default icon.
     defaultIcon = defaultIcon;//TODO: Theme::theme()->getIconForViewItem(this);
     currentIcon = defaultIcon;
-
+    _parent = 0 ;
 }
 
 ViewItem::~ViewItem()
 {
     if(entity){
         //De-register Item from adapter
-        entity->removeListener(this);
+        entity->unregisterObject(this);
     }
 }
 
@@ -113,4 +113,42 @@ void ViewItem::destruct()
         deleteLater();
     }
 }
+
+
+void ViewItem::addChild(ViewItem *child)
+{
+    if(!children.contains(child)){
+        children.append(child);
+        child->setParentViewItem(this);
+    }
+}
+
+void ViewItem::removeChild(ViewItem *child)
+{
+    if(children.contains(child)){
+        children.removeAll(child);
+    }
+}
+
+QList<ViewItem *> ViewItem::getChildren()
+{
+    QList<ViewItem*> _children;
+
+    foreach(ViewItem* child, children){
+        _children.append(child);
+        _children.append(child->getChildren());
+    }
+    return _children;
+}
+
+ViewItem *ViewItem::getParentItem()
+{
+    return _parent;
+}
+
+void ViewItem::setParentViewItem(ViewItem *item)
+{
+    _parent = item;
+}
+
 

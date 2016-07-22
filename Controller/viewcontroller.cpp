@@ -45,7 +45,17 @@ void ViewController::entityConstructed(EntityAdapter *entity)
     ViewItem* viewItem = 0;
     bool isModel = false;
     if(entity->isNodeAdapter()){
-        viewItem = new NodeViewItem((NodeAdapter*)entity);
+        NodeAdapter* nodeAdapter = (NodeAdapter*)entity;
+        int parentID = nodeAdapter->getParentNodeID();
+
+        viewItem = new NodeViewItem(nodeAdapter);
+
+        //Attach the node to it's parent
+        if(viewItems.contains(parentID)){
+            ViewItem* parent = viewItems[parentID];
+            parent->addChild(viewItem);
+        }
+
         if(entity->getDataValue("kind") == "Model"){
             isModel = true;
         }
@@ -79,6 +89,11 @@ void ViewController::entityDestructed(EntityAdapter *entity)
             //Unset modelItem
             if(viewItem == modelItem){
                 modelItem = 0;
+            }
+
+            ViewItem* parentItem = viewItem->getParentItem();
+            if(parentItem){
+                parentItem->removeChild(viewItem);
             }
 
             //Remove the item from the Hash

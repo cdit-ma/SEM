@@ -20,6 +20,9 @@ public:
     bool isInModel();
     QList<int> getTreeIndex();
 
+
+
+
     bool isAncestorOf(NodeViewItem* item);
 private:
     NodeAdapter* entity;

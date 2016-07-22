@@ -55,7 +55,7 @@
 
 GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem::GUI_KIND kind)
 {
-    graph->addListener(this);
+    graph->registerObject(this);
     connect(graph, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
     connect(graph, SIGNAL(dataAdded(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
     connect(graph, SIGNAL(dataRemoved(QString)), this, SLOT(dataRemoved(QString)));
@@ -255,7 +255,7 @@ GraphMLItem::~GraphMLItem()
         table->deleteLater();
         table = 0;
     }
-    getEntityAdapter()->removeListener(this);
+    getEntityAdapter()->unregisterObject(this);
 }
 
 QRectF GraphMLItem::sceneBoundingRect() const

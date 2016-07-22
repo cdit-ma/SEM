@@ -47,6 +47,22 @@ NodeViewNew::NodeViewNew():QGraphicsView()
 
 }
 
+NodeViewNew::~NodeViewNew()
+{
+    if(containedNodeViewItem){
+        QList<ViewItem*> items = containedNodeViewItem->getChildren();
+        items.insert(0, containedNodeViewItem);
+
+        QListIterator<ViewItem*> it(items);
+
+        it.toBack();
+        while(it.hasPrevious()){
+            ViewItem* item = it.previous();
+            viewItem_Destructed(item->getID(), item);
+        }
+    }
+}
+
 void NodeViewNew::setViewController(ViewController *viewController)
 {
     this->viewController = viewController;
@@ -81,7 +97,17 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
 {
     containedNodeViewItem = item;
     if(item){
-        containedAspect = item->getViewAspect();
+        item->registerObject(this);
+
+        if(containedAspect == VA_NONE){
+            containedAspect = item->getViewAspect();
+            //Request items from ViewController.
+
+            viewItem_Constructed(item);
+            foreach(ViewItem* item, item->getChildren()){
+                viewItem_Constructed(item);
+            }
+        }
     }
 }
 

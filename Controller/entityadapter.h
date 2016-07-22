@@ -4,8 +4,9 @@
 #include <QObject>
 #include <QVector>
 #include "../enumerations.h"
+#include "../Controller/qobjectregistrar.h"
 class NewController;
-class EntityAdapter: public QObject
+class EntityAdapter: public QObjectRegistrar
 {
     Q_OBJECT
     friend class NewController;
@@ -32,9 +33,6 @@ public:
     QString toString();
     bool isValid();
 
-    void addListener(QObject* object);
-    void removeListener(QObject* object);
-    bool hasListeners();
 
 signals:
 
@@ -49,7 +47,6 @@ private:
     Entity* _entity;
     bool _isNode;
     int _ID;
-    QVector<QObject*> _listeners;
 };
 
 #endif // ENTITYADAPTER_H

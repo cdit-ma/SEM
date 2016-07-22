@@ -17,6 +17,7 @@ public:
 
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
+
 signals:
     void viewItemConstructed(ViewItem* viewItem);
     void viewItemDestructing(int ID, ViewItem *viewItem);

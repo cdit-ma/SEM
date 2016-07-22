@@ -21,7 +21,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
         }
     }
 
-    attachedEntity->addListener(this);
+    attachedEntity->registerObject(this);
     hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded" << "readOnly";//<< "kind";
     hiddenKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime" << "dataProtected";
     permanentlyLockedKeyNames << "kind";
@@ -43,7 +43,7 @@ AttributeTableModel::AttributeTableModel(EntityAdapter* adapter)
         }
     }
 
-    attachedEntity->addListener(this);
+    attachedEntity->registerObject(this);
     hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded" << "readOnly";//<< "kind";
     hiddenKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime" << "dataProtected";
     permanentlyLockedKeyNames << "kind";
@@ -53,7 +53,7 @@ AttributeTableModel::AttributeTableModel(EntityAdapter* adapter)
 
 AttributeTableModel::~AttributeTableModel()
 {
-    attachedEntity->removeListener(this);
+    attachedEntity->unregisterObject(this);
 }
 
 void AttributeTableModel::updatedData(QString keyName)
