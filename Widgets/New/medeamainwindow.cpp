@@ -46,12 +46,12 @@ void MedeaMainWindow::themeChanged()
                   "color: " + textColor + ";"
                   "}"
                   "QGraphicsView {"
-                  "background: " + altBGColor + ";"
+                  "background: " + BGColor + ";"
                   "}"
                   "QToolBar {"
                   "margin:1px 0px;"
                   "background: " + altBGColor + ";"
-                  "border:1px solid gray;"
+                  "border:1px solid " + BGColor + ";"
                   "}"
                   "QToolButton {"
                   "padding:0px;"
@@ -72,9 +72,9 @@ void MedeaMainWindow::themeChanged()
                   //"QTableView{ background: " + BGColor + ";}"
                   );
 
-    //if (tableView && tableView->parentWidget()) {
-    //    tableView->parentWidget()->setStyleSheet("QDockWidget{ background: " + BGColor + ";}");
-    //}
+    if (tableView && tableView->parentWidget()) {
+        tableView->parentWidget()->setStyleSheet("QDockWidget{ background: " + BGColor + ";}");
+    }
 }
 
 void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock)
@@ -97,26 +97,25 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock)
 void MedeaMainWindow::activeSelectedItemChanged(ViewItem *item)
 {
     QAbstractItemModel* model = 0;
-
-    if(item){
+    if (item) {
         model = item->getTableModel();
     }
-    if(tableView){
-        bool update = !tableView->model();
+    if (tableView) {
 
         tableView->setModel(model);
 
-        if(update && tableView->horizontalHeader()->count() == 2) {
+        if (tableView->horizontalHeader()->count() == 2) {
             //Set the resize mode of the sections on first model launch.
             tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
             tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
         }
+
+        updateDataTableSize();
     }
 }
 
 void MedeaMainWindow::spawnSubView()
 {
-
     if(viewController){
         SelectionController* selectionController = viewController->getSelectionController();
 
@@ -203,12 +202,11 @@ void MedeaMainWindow::setupDataTable()
 {
     tableView = new QTableView(this);
 
-
-
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Table");
     dockWidget->setWidget(tableView);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+    connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(updateDataTableSize()));
 }
 
 void MedeaMainWindow::setupMinimap()
@@ -228,6 +226,21 @@ void MedeaMainWindow::setupMinimap()
     addDockWidget(Qt::RightDockWidgetArea, dockWidget2, Qt::Vertical);
 
     connect(button, SIGNAL(clicked(bool)), this, SLOT(spawnSubView()));
+}
+
+void MedeaMainWindow::updateDataTableSize()
+{
+    if (tableView->model()) {
+        qreal tableHeight = 0;
+        tableHeight += tableView->horizontalHeader()->size().height();
+        tableHeight += tableView->contentsMargins().top() + tableView->contentsMargins().bottom();
+        for (int i = 0; i < tableView->model()->rowCount(); i++){
+            tableHeight += tableView->rowHeight(i);
+        }
+        tableView->resize(tableView->width(), tableHeight);
+    } else {
+        tableView->resize(tableView->width(), 0);
+    }
 }
 
 

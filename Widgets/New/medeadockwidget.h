@@ -57,7 +57,7 @@ private slots:
     void showContextMenu(const QPoint &point);
 
 private:
-    void updateTitleLabelStyle();
+    void updateActiveStyleSheet();
     void setActionVisible(DockTitleBarWidget::DOCK_ACTION action, bool visible);
     void setActionToggled(DockTitleBarWidget::DOCK_ACTION action, bool toggled);
     QAction* getAction(DockTitleBarWidget::DOCK_ACTION action);
@@ -76,8 +76,6 @@ private:
     bool _isProtected;
     bool _isActive;
     bool _isFocusEnabled;
-    QString labelStyle_Normal;
-    QString labelStyle_Focussed;
     QString highlightedTextColor;
     int ID;
     static int _DockWidgetID;
