@@ -667,7 +667,6 @@ void NodeView::setNextActiveSelectionItem(bool previous)
 
 void NodeView::translate(qreal dx, qreal dy)
 {
-    qCritical() << "OLD: " << transformationAnchor();
     QGraphicsView::translate(dx, dy);
     viewportTranslated();
 }

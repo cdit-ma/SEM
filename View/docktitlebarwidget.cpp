@@ -31,7 +31,7 @@ void DockTitleBarWidget::setIcon(QPixmap pixmap)
 void DockTitleBarWidget::setTitle(QString title, Qt::Alignment alignment)
 {
     titleLabel->setText(title);
-    titleLabel->setAlignment(alignment);
+    titleLabel->setAlignment(alignment | Qt::AlignVCenter);
 }
 
 QString DockTitleBarWidget::getTitle()
@@ -60,9 +60,9 @@ void DockTitleBarWidget::setupToolBar()
     iconLabel = new QLabel(this);
     iconLabel->setVisible(false);
     iconLabel->setFixedSize(16,16);
-    titleLabel = new QLabel(this);
+    iconLabel->setAlignment(Qt::AlignCenter);
 
-    //QWidget* widget = new QWidget();
+    titleLabel = new QLabel(this);
     titleLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     addWidget(iconLabel);

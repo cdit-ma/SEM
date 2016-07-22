@@ -196,7 +196,6 @@ void MedeaWindowManager::addDockWidget(MedeaDockWidget *dockWidget)
 {
     if(dockWidget){
         int ID = dockWidget->getID();
-        qCritical() << "MedeaWindowManager::addDockWidget() - " << ID;
         if(!dockWidgets.contains(ID)){
             dockWidgets[ID] = dockWidget;
             connect(dockWidget, SIGNAL(popOutWidget()), this, SLOT(dockWidget_PopOut()));

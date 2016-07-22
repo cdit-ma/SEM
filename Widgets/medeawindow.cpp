@@ -2128,12 +2128,12 @@ void MedeaWindow::setupConnections()
 
     //Minimap Funcs
     connect(this, SIGNAL(window_SetViewVisible(bool)), minimap, SLOT(setVisible(bool)));
-    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
-    connect(nodeView, SIGNAL(view_ModelSizeChanged()), minimap, SLOT(centerView()));
-    connect(minimap, SIGNAL(minimap_Pan()), nodeView, SLOT(minimapPan()));
-    connect(minimap, SIGNAL(minimap_Panning(QPointF)), nodeView, SLOT(minimapPanning(QPointF)));
-    connect(minimap, SIGNAL(minimap_Panned()), nodeView, SLOT(minimapPanned()));
-    connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(minimapScrolled(int)));
+    //connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
+   // connect(nodeView, SIGNAL(view_ModelSizeChanged()), minimap, SLOT(centerView()));
+   // connect(minimap, SIGNAL(minimap_Pan()), nodeView, SLOT(minimapPan()));
+    //connect(minimap, SIGNAL(minimap_Panning(QPointF)), nodeView, SLOT(minimapPanning(QPointF)));
+    //connect(minimap, SIGNAL(minimap_Panned()), nodeView, SLOT(minimapPanned()));
+    //connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(minimapScrolled(int)));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(selectModel()));
 
@@ -2490,12 +2490,12 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter());
         Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter(120));
 
-        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
-        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(250,250,250));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(50,50,50));
         Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(130,130,130));
 
-        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
-        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(250,250,250));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(50,50,50));
         Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
     } else {
         Theme::theme()->setBackgroundColor(QColor(170,170,170));
@@ -2503,12 +2503,12 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
         Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter(110));
 
-        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(0,0,0));
-        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(50,50,50));
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(250,250,250));
         Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(130,130,130));
 
-        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(70,70,70));
-        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(255,255,255));
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(50,50,50));
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(250,250,250));
         Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
     }
 }

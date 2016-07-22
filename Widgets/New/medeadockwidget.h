@@ -46,13 +46,16 @@ public:
     void setMaximizeToggled(bool toggled);
     void setPopOutToggled(bool toggled);
     void setProtectToggled(bool toggled);
+
 signals:
     void maximizeWidget(bool maximize);
     void popOutWidget();
     void closeWidget();
+
 private slots:
     void themeChanged();
     void showContextMenu(const QPoint &point);
+
 private:
     void updateTitleLabelStyle();
     void setActionVisible(DockTitleBarWidget::DOCK_ACTION action, bool visible);
@@ -64,8 +67,10 @@ private:
 
     MedeaWindowNew* sourceWindow;
     MedeaWindowNew* currentWindow;
+
 protected:
     bool eventFilter(QObject *object, QEvent *event);
+
 private:
     DOCKWIDGET_TYPE type;
     bool _isProtected;

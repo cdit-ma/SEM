@@ -35,6 +35,8 @@ public slots:
 private slots:
     void selectionHandler_ItemSelected(ViewItem*item, bool selected);
 
+    void themeChanged();
+
 private slots:
     void fitToScreen();
 

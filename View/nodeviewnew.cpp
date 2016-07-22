@@ -9,13 +9,13 @@
 #include "SceneItems/defaultnodeitem.h"
 #include "SceneItems/Hardware/hardwarenodeitem.h"
 
+#include "theme.h"
+
 #include <QDebug>
 #include <math.h>
 #include <QKeyEvent>
 
 #define ZOOM_INCREMENTOR 1.05
-
-
 
 NodeViewNew::NodeViewNew():QGraphicsView()
 {
@@ -45,6 +45,7 @@ NodeViewNew::NodeViewNew():QGraphicsView()
     containedAspect = VA_NONE;
     containedNodeViewItem = 0;
 
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
 NodeViewNew::~NodeViewNew()
@@ -89,7 +90,6 @@ void NodeViewNew::scale(qreal sx, qreal sy)
 void NodeViewNew::setContainedViewAspect(VIEW_ASPECT aspect)
 {
     containedAspect = aspect;
-
     setupAspect();
 }
 
@@ -146,6 +146,12 @@ void NodeViewNew::selectionHandler_ItemSelected(ViewItem *item, bool selected)
             e->setSelected(selected);
         }
     }
+}
+
+void NodeViewNew::themeChanged()
+{
+    aspectColor = Theme::theme()->getAspectBackgroundColor(containedAspect);
+    aspectFontColor = aspectColor.darker(110);
 }
 
 void NodeViewNew::fitToScreen()

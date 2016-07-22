@@ -47,7 +47,7 @@ void MedeaMainWindow::themeChanged()
                   "color: " + textColor + ";"
                   "}"
                   "QGraphicsView {"
-                  "background: " + BGColor + ";"
+                  "background: " + altBGColor + ";"
                   "}"
                   "QToolBar {"
                   "margin:1px 0px;"
@@ -57,6 +57,7 @@ void MedeaMainWindow::themeChanged()
                   "QToolButton {"
                   "padding:0px;"
                   "border: none;"
+                  "border-radius: 2px;"
                   "background:" + altBGColor + ";"
                   "}"
                   "QToolButton:hover {"
@@ -150,11 +151,9 @@ void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
 
 void MedeaMainWindow::setupTools()
 {
-
     setupDataTable();
     setupMinimap();
 }
-
 
 void MedeaMainWindow::setupInnerWindow()
 {
@@ -203,6 +202,8 @@ void MedeaMainWindow::setupInnerWindow()
 void MedeaMainWindow::setupDataTable()
 {
     tableView = new QTableView(this);
+
+
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Table");
     dockWidget->setWidget(tableView);

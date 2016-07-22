@@ -102,6 +102,22 @@ QString Theme::getSelectedItemBorderColorHex()
     return Theme::QColorToHex(getSelectedItemBorderColor());
 }
 
+QColor Theme::getActiveWidgetBorderColor()
+{
+    if (textColor[CR_NORMAL] == QColor(250,250,250)) {
+        return QColor(50,50,50);
+    } else if (textColor[CR_NORMAL] == QColor(50,50,50)) {
+        return QColor(255,255,255);
+    } else {
+        return Qt::white;
+    }
+}
+
+QString Theme::getActiveWidgetBorderColorHex()
+{
+    return Theme::QColorToHex(getActiveWidgetBorderColor());
+}
+
 QSize Theme::roundQSize(QSize size)
 {
     int factor = 1;

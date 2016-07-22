@@ -30,7 +30,6 @@ NodeViewNew *MedeaViewDockWidget::getNodeView()
 
 void MedeaViewDockWidget::setWidget(QWidget *widget)
 {
-    qCritical() << "Setting View!?";
     NodeViewNew* view = qobject_cast<NodeViewNew*>(widget);
     if(view){
         nodeView = view;

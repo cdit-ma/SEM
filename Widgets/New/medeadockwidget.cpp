@@ -131,6 +131,15 @@ void MedeaDockWidget::setActive(bool active)
         _isActive = active;
         updateTitleLabelStyle();
     }
+    QString color2 = Theme::theme()->getAltBackgroundColorHex();
+    if (isActive()) {
+        QString color = Theme::theme()->getActiveWidgetBorderColorHex();
+        setStyleSheet("QGraphicsView { border: 1px solid " + color + ";}"
+                      "QToolButton::!hover { background:" + color +";}"
+                      "QToolBar { background:" + color +"; border: 1px solid " + color + ";}");
+    } else {
+        setStyleSheet("QDockWidget{ border: 1px solid " + color2 + "; background:" + color2 + ";}");
+    }
 }
 
 bool MedeaDockWidget::isActive()
@@ -188,10 +197,11 @@ void MedeaDockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
     QString textColor = theme->getTextColorHex(Theme::CR_NORMAL);
-    QString highlightColor = theme->getHighlightColorHex();
+    QString textHighlightColor = theme->getTextColorHex(Theme::CR_SELECTED);
 
     labelStyle_Normal = "color:" + textColor + ";";
-    labelStyle_Focussed = "color:" + highlightColor + ";font-weight:bold;";
+    labelStyle_Focussed = "color:" + textColor + "; font-weight:bold;";
+    //labelStyle_Focussed = "color: black; font-weight: bold;";
     updateTitleLabelStyle();
 
     QAction* closeAction = getAction(DockTitleBarWidget::DA_CLOSE);
