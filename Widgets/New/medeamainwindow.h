@@ -22,6 +22,9 @@ private slots:
     void activeSelectedItemChanged(ViewItem* item);
 
     void spawnSubView();
+
+    void updateDataTableSize();
+
 private:
     void connectNodeView(NodeViewNew* nodeView);
     void setupTools();
