@@ -47,6 +47,8 @@ public:
     QColor getSelectedItemBorderColor();
     QString getSelectedItemBorderColorHex();
 
+    QColor getActiveWidgetBorderColor();
+    QString getActiveWidgetBorderColorHex();
 
     QSize roundQSize(QSize size);
     void setBackgroundColor(QColor color);
