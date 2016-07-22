@@ -22,6 +22,7 @@ private slots:
     void activeSelectedItemChanged(ViewItem* item);
 
 private:
+    void setupTools();
     void setupInnerWindow();
     void setupDataTable();
     void setupMinimap();

@@ -14,8 +14,7 @@ MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, true)
     showNormal();
 
     setupInnerWindow();
-    setupDataTable();
-    setupMinimap();
+    setupTools();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*)));
@@ -75,15 +74,15 @@ void MedeaMainWindow::themeChanged()
                   "background:" + pressedColor + ";"
                   "}"
                   "QTableView::item {"
-                  "background: white;"
+                  //"background: white;"
                   "padding: 0px 4px;"
                   "}"
-                  "QTableView{ background: " + BGColor + ";}"
+                  //"QTableView{ background: " + BGColor + ";}"
                   );
 
-    if (tableView && tableView->parentWidget()) {
-        tableView->parentWidget()->setStyleSheet("QDockWidget{ background: " + BGColor + ";}");
-    }
+    //if (tableView && tableView->parentWidget()) {
+    //    tableView->parentWidget()->setStyleSheet("QDockWidget{ background: " + BGColor + ";}");
+    //}
 }
 
 void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock)
@@ -121,6 +120,13 @@ void MedeaMainWindow::activeSelectedItemChanged(ViewItem *item)
             tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
         }
     }
+}
+
+void MedeaMainWindow::setupTools()
+{
+
+    setupDataTable();
+    setupMinimap();
 }
 
 
