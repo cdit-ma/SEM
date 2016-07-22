@@ -127,18 +127,9 @@ QString MedeaDockWidget::getTitle()
 
 void MedeaDockWidget::setActive(bool active)
 {
-    if(_isActive != active){
+    if (_isActive != active) {
         _isActive = active;
-        updateTitleLabelStyle();
-    }
-    QString color2 = Theme::theme()->getAltBackgroundColorHex();
-    if (isActive()) {
-        QString color = Theme::theme()->getActiveWidgetBorderColorHex();
-        setStyleSheet("QGraphicsView { border: 1px solid " + color + ";}"
-                      "QToolButton::!hover { background:" + color +";}"
-                      "QToolBar { background:" + color +"; border: 1px solid " + color + ";}");
-    } else {
-        setStyleSheet("QDockWidget{ border: 1px solid " + color2 + "; background:" + color2 + ";}");
+        updateActiveStyleSheet();
     }
 }
 
@@ -196,13 +187,8 @@ void MedeaDockWidget::setProtectToggled(bool toggled)
 void MedeaDockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    QString textColor = theme->getTextColorHex(Theme::CR_NORMAL);
-    QString textHighlightColor = theme->getTextColorHex(Theme::CR_SELECTED);
-
-    labelStyle_Normal = "color:" + textColor + ";";
-    labelStyle_Focussed = "color:" + textColor + "; font-weight:bold;";
-    //labelStyle_Focussed = "color: black; font-weight: bold;";
-    updateTitleLabelStyle();
+    titleBar->setLabelStyleSheet("color:" + theme->getTextColorHex(Theme::CR_NORMAL) + ";");
+    updateActiveStyleSheet();
 
     QAction* closeAction = getAction(DockTitleBarWidget::DA_CLOSE);
     QAction* maxAction = getAction(DockTitleBarWidget::DA_MAXIMIZE);
@@ -230,16 +216,18 @@ void MedeaDockWidget::showContextMenu(const QPoint &point)
     }
 }
 
-void MedeaDockWidget::updateTitleLabelStyle()
+void MedeaDockWidget::updateActiveStyleSheet()
 {
-    if(titleBar){
-        if(isActive()){
-            titleBar->setLabelStyleSheet(labelStyle_Focussed);
-        }else{
-            titleBar->setLabelStyleSheet(labelStyle_Normal);
-        }
+    QString activeColor = Theme::theme()->getActiveWidgetBorderColorHex();
+    if (isActive()) {
+        setStyleSheet("QGraphicsView { border: 1px solid " + activeColor + ";}"
+                      "QToolButton::!hover { background:" + activeColor +";}"
+                      "QToolBar { background:" + activeColor +"; border: 1px solid " + activeColor + ";}");
+    } else {
+        setStyleSheet("");
     }
 }
+
 void MedeaDockWidget::setActionVisible(DockTitleBarWidget::DOCK_ACTION action, bool visible)
 {
     QAction* a = getAction(action);

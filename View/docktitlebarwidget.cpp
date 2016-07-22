@@ -17,11 +17,10 @@ DockTitleBarWidget::~DockTitleBarWidget()
 
 void DockTitleBarWidget::setLabelStyleSheet(QString style)
 {
-    if(titleLabel){
+    if (titleLabel) {
         titleLabel->setStyleSheet(style);
     }
 }
-
 
 void DockTitleBarWidget::setIcon(QPixmap pixmap)
 {
