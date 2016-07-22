@@ -151,7 +151,6 @@ HEADERS += \
     View/nodeview.h \
     View/nodeviewminimap.h \
     View/theme.h \
-    Widgets/medeasubwindow.h \
     Widgets/medeawindow.h \
     enumerations.h \
     modeltester.h \
@@ -186,7 +185,10 @@ HEADERS += \
     Widgets/New/medeaviewdockwidget.h \
     Widgets/New/medeatooldockwidget.h \
     Widgets/New/selectioncontroller.h \
-    Controller/qobjectregistrar.h
+    Controller/qobjectregistrar.h \
+    Widgets/New/medeacentralwindow.h \
+    Widgets/New/medeasubwindow.h \
+    Widgets/New/medeaviewwindow.h
 
 
 SOURCES += \
@@ -302,7 +304,6 @@ SOURCES += \
     View/nodeview.cpp \
     View/nodeviewminimap.cpp \
     View/theme.cpp \
-    Widgets/medeasubwindow.cpp \
     Widgets/medeawindow.cpp \
     enumerations.cpp \
     modeltester.cpp \
@@ -337,7 +338,10 @@ SOURCES += \
     Widgets/New/medeaviewdockwidget.cpp \
     Widgets/New/medeatooldockwidget.cpp \
     Widgets/New/selectioncontroller.cpp \
-    Controller/qobjectregistrar.cpp
+    Controller/qobjectregistrar.cpp \
+    Widgets/New/medeacentralwindow.cpp \
+    Widgets/New/medeasubwindow.cpp \
+    Widgets/New/medeaviewwindow.cpp
 
 
 RESOURCES += \

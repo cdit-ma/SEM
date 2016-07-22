@@ -1,14 +1,17 @@
 #include "medeawindowmanager.h"
-#include "medeawindownew.h"
 #include <QDebug>
 #include <QDialog>
 #include <QPushButton>
 #include <QBoxLayout>
 #include <QObject>
-#include "medeamainwindow.h"
 
 #include "medeatooldockwidget.h"
 #include "medeaviewdockwidget.h"
+
+#include "medeasubwindow.h"
+#include "medeamainwindow.h"
+#include "medeaviewwindow.h"
+#include "medeacentralwindow.h"
 
 #include "../../View/theme.h"
 #define WINDOW_ID_DATA "WINDOW_ID"
@@ -30,6 +33,11 @@ MedeaWindowNew *MedeaWindowManager::constructMainWindow(QString title)
 MedeaWindowNew *MedeaWindowManager::constructSubWindow(QString title)
 {
     return manager()->_constructSubWindow(title);
+}
+
+MedeaWindowNew *MedeaWindowManager::constructCentralWindow(QString title)
+{
+    return manager()->_constructCentralWindow(title);
 }
 
 MedeaViewDockWidget *MedeaWindowManager::constructViewDockWidget(QString title, Qt::DockWidgetArea area)
@@ -59,7 +67,7 @@ void MedeaWindowManager::_destructWindow(MedeaWindowNew *window)
         int wID = window->getID();
 
         //Teardown
-        if(window->isMainWindow() && windows.contains(wID)){
+        if(window->getType() == MedeaWindowNew::MAIN_WINDOW && windows.contains(wID)){
             delete this;
         }else{
             removeWindow(window);
@@ -88,13 +96,18 @@ MedeaWindowManager::MedeaWindowManager():QObject(0)
 {
     activeViewDockWidget = 0;
     mainWindow = 0;
+    centralWindow = 0;
 }
 
 MedeaWindowManager::~MedeaWindowManager()
 {
+    if(centralWindow){
+        windows.remove(centralWindow->getID());
+    }
     if(mainWindow){
         windows.remove(mainWindow->getID());
     }
+
     //Delete all subwindows.
     while(!windows.isEmpty()){
         int ID = windows.keys().first();
@@ -103,6 +116,7 @@ MedeaWindowManager::~MedeaWindowManager()
             _destructWindow(window);
         }
     }
+    _destructWindow(centralWindow);
     _destructWindow(mainWindow);
 }
 
@@ -120,9 +134,21 @@ MedeaWindowNew *MedeaWindowManager::_constructMainWindow(QString title)
 
 MedeaWindowNew *MedeaWindowManager::_constructSubWindow(QString title)
 {
-    MedeaWindowNew* window = new MedeaWindowNew();
+    MedeaWindowNew* window = new MedeaSubWindow();
     window->setWindowTitle(title);
     addWindow(window);
+    return window;
+}
+
+MedeaWindowNew *MedeaWindowManager::_constructCentralWindow(QString title)
+{
+    MedeaWindowNew* window = 0;
+    if(!centralWindow){
+        window = new MedeaCentralWindow();
+        window->setWindowTitle(title);
+        centralWindow = window;
+        addWindow(window);
+    }
     return window;
 }
 
@@ -299,8 +325,10 @@ void MedeaWindowManager::destructWindowIfEmpty(MedeaWindowNew *window)
 {
     if(window){
         int wID = window->getID();
-        if(windows.contains(wID) && !window->hasDockWidgets() && !window->isMainWindow()){
-           _destructWindow(window);
+        if(windows.contains(wID) && !window->hasDockWidgets()){
+            if(window != mainWindow && window != centralWindow){
+                _destructWindow(window);
+            }
         }
     }
 }
@@ -346,7 +374,7 @@ void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
 
     MedeaWindowNew* currentWindow = dockWidget->getCurrentWindow();
     foreach(MedeaWindowNew* w, windows.values()){
-        if(w != currentWindow){
+        if(w != currentWindow && w != mainWindow){
             QToolButton* button = constructPopOutWindowButton(dialog, w);
             layout->addWidget(button);
 

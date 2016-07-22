@@ -7,6 +7,7 @@
 class NodeViewNew;
 class MedeaViewDockWidget : public MedeaDockWidget
 {
+    Q_OBJECT
 public:
     MedeaViewDockWidget(QString title, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
 

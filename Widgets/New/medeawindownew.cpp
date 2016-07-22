@@ -9,28 +9,21 @@
 
 int MedeaWindowNew::_WindowID = 0;
 
-MedeaWindowNew::MedeaWindowNew(QWidget *parent, bool mainWindow):QMainWindow(parent)
+MedeaWindowNew::MedeaWindowNew(QWidget *parent, MedeaWindowNew::WindowType type):QMainWindow(parent)
 {
     ID = ++_WindowID;
-    _isMainWindow = mainWindow;
+    windowType = type;
 
-    setAcceptDrops(true);
-    setDockNestingEnabled(true);
+    setDockNestingEnabled(false);
+    setTabPosition(Qt::RightDockWidgetArea, QTabWidget::North);
     setContextMenuPolicy(Qt::CustomContextMenu);
 
-    //Setup Reset action
-    resetDockedWidgetsAction = new QAction("Reset Docked Widgets", this);
-    resetDockedWidgetsAction->setIcon(Theme::theme()->getImage("Actions", "Maximize"));
-    connect(resetDockedWidgetsAction, SIGNAL(triggered(bool)), this, SLOT(resetDockWidgets()));
 
     //Setup Tab positions
     setTabPosition(Qt::RightDockWidgetArea, QTabWidget::West);
     setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::West);
     setTabPosition(Qt::TopDockWidgetArea, QTabWidget::West);
     setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
-
-    //Connect the custom context menu.
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(showContextMenu(const QPoint &)));
 }
 
 MedeaWindowNew::~MedeaWindowNew()
@@ -63,6 +56,11 @@ QList<MedeaDockWidget *> MedeaWindowNew::getDockWidgets()
 int MedeaWindowNew::getID()
 {
     return ID;
+}
+
+MedeaWindowNew::WindowType MedeaWindowNew::getType()
+{
+    return windowType;
 }
 
 void MedeaWindowNew::addDockWidget(MedeaDockWidget *widget)
@@ -118,34 +116,12 @@ void MedeaWindowNew::setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool ma
 
 }
 
-bool MedeaWindowNew::isMainWindow()
-{
-    return _isMainWindow;
-}
 
 
-void MedeaWindowNew::resetDockWidgets()
-{
-    foreach(MedeaDockWidget* child, currentDockWidgets){
-        child->setVisible(true);
-    }
-}
-
-void MedeaWindowNew::showContextMenu(const QPoint & point)
-{
-    createPopupMenu()->exec(mapToGlobal(point));
-}
 
 void MedeaWindowNew::closeEvent(QCloseEvent *)
 {
     MedeaWindowManager::destructWindow(this);
 }
 
-QMenu *MedeaWindowNew::createPopupMenu()
-{
-    QMenu* menu = QMainWindow::createPopupMenu();
-    menu->addSeparator();
-    menu->addAction(resetDockedWidgetsAction);
-    return menu;
-}
 

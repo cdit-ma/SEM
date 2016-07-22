@@ -5,41 +5,39 @@
 #include "medeawindowmanager.h"
 #include "medeadockwidget.h"
 class MedeaWindowNew : public QMainWindow{
-Q_OBJECT
+
+    Q_OBJECT
 friend class MedeaWindowManager;
-protected:
-    MedeaWindowNew(QWidget* parent = 0, bool mainWindow=false);
+
+public:
+    enum WindowType {MAIN_WINDOW, VIEW_WINDOW};
+public:
+    MedeaWindowNew(QWidget* parent = 0, WindowType type = VIEW_WINDOW);
     ~MedeaWindowNew();
 public:
     bool hasDockWidgets();
     QList<MedeaDockWidget*> getDockWidgets();
     int getID();
+    WindowType getType();
 
     void addDockWidget(MedeaDockWidget *widget);
 
     void addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget);
-    void addDockWidget(Qt::DockWidgetArea area, QDockWidget* widget, Qt::Orientation orientation);
+    virtual void addDockWidget(Qt::DockWidgetArea area, QDockWidget* widget, Qt::Orientation orientation);
     void removeDockWidget(QDockWidget* widget);
 
     void setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool maximized);
 
-    bool isMainWindow();
-private slots:
-    void resetDockWidgets();
-    void showContextMenu(const QPoint &point);
 
 private:
-    QAction* resetDockedWidgetsAction;
 
-    bool _isMainWindow;
+    WindowType windowType;
 
     QList<MedeaDockWidget*> currentDockWidgets;
     QList<MedeaDockWidget*> ownedDockWidgets;
 
 protected:
     void closeEvent(QCloseEvent *);
-public:
-    QMenu *createPopupMenu();
 private:
     int ID;
     static int _WindowID;

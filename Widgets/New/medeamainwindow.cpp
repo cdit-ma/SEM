@@ -7,10 +7,9 @@
 #include <QHeaderView>
 #include <QPushButton>
 
-MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, true)
+MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
-    setDockNestingEnabled(false);
-    setTabPosition(Qt::RightDockWidgetArea, QTabWidget::North);
+
 
     setMinimumSize(1000,600);
     showNormal();
@@ -157,7 +156,8 @@ void MedeaMainWindow::setupTools()
 
 void MedeaMainWindow::setupInnerWindow()
 {
-    innerWindow = MedeaWindowManager::constructSubWindow();
+    innerWindow = MedeaWindowManager::constructCentralWindow();
+
     setCentralWidget(innerWindow);
 
     nodeView_Interfaces = new NodeViewNew();

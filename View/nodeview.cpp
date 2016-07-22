@@ -2,7 +2,6 @@
 #include "../Controller/controller.h"
 #include "Toolbar/toolbarwidget.h"
 #include "Dock/docktogglebutton.h"
-#include "../Widgets/medeasubwindow.h"
 #include "../Widgets/medeawindow.h"
 #include "GraphicsItems/aspectitem.h"
 #include "GraphicsItems/noguiitem.h"
@@ -1292,17 +1291,20 @@ void NodeView::constructNewView(int viewKind)
         return;
     }
 
-    MedeaSubWindow* subWindow = new MedeaSubWindow();
-    connect(this, SIGNAL(destroyed()), subWindow, SLOT(reject()));
 
-    NodeView* newView = new NodeView(true , subWindow);
-    subViews.append(newView);
-    newView->setParentNodeView(this);
+    return;
+    /*
+   // MedeaSubWindow* subWindow = new MedeaSubWindow();
+    //connect(this, SIGNAL(destroyed()), subWindow, SLOT(reject()));
+//
+  //  NodeView* newView = new NodeView(true , subWindow);
+   // subViews.append(newView);
+    //newView->setParentNodeView(this);
 
-    subWindow->setNodeView(newView);
-    newView->view_LockCenteredGraphML(nodeID);
+    //subWindow->setNodeView(newView);
+    //newView->view_LockCenteredGraphML(nodeID);
 
-    controller->connectView(newView);
+    //controller->connectView(newView);
 
 
     QList<GraphMLItem*> constructList;
@@ -1342,6 +1344,7 @@ void NodeView::constructNewView(int viewKind)
     subWindow->show();
     //Centralize item.
     newView->centralizedItemMoved();
+    */
 }
 QList<NodeItem *> NodeView::getEntityItemsOfKind(QString kind, int ID, int depth)
 {

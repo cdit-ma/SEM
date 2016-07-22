@@ -21,6 +21,7 @@ public:
     //Factory constructor Functions
     static MedeaWindowNew* constructMainWindow(QString title="");
     static MedeaWindowNew* constructSubWindow(QString title="");
+    static MedeaWindowNew* constructCentralWindow(QString title="");
     static MedeaViewDockWidget* constructViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     static MedeaToolDockWidget* constructToolDockWidget(QString title="");
 
@@ -46,6 +47,7 @@ private:
     //Helper functions
     MedeaWindowNew* _constructMainWindow(QString title);
     MedeaWindowNew* _constructSubWindow(QString title);
+    MedeaWindowNew* _constructCentralWindow(QString title);
     MedeaToolDockWidget* _constructToolDockWidget(QString title);
     MedeaViewDockWidget* _constructViewDockWidget(QString title, Qt::DockWidgetArea area);
 
@@ -63,6 +65,7 @@ private:
     QToolButton* constructPopOutWindowButton(QDialog *parent, MedeaWindowNew* window=0);
 
     MedeaWindowNew* mainWindow;
+    MedeaWindowNew* centralWindow;
     MedeaViewDockWidget* activeViewDockWidget;
     QHash<int, MedeaWindowNew*> windows;
     QHash<int, MedeaDockWidget*> dockWidgets;
