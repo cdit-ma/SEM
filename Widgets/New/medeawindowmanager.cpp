@@ -86,7 +86,7 @@ void MedeaWindowManager::teardown()
 
 MedeaWindowManager::MedeaWindowManager():QObject(0)
 {
-    activeDockWidget = 0;
+    activeViewDockWidget = 0;
     mainWindow = 0;
 }
 
@@ -144,26 +144,26 @@ MedeaViewDockWidget *MedeaWindowManager::_constructViewDockWidget(QString title,
 }
 
 
-MedeaDockWidget *MedeaWindowManager::getActiveDockWidget()
+MedeaViewDockWidget *MedeaWindowManager::getActiveViewDockWidget()
 {
-    return activeDockWidget;
+    return activeViewDockWidget;
 }
 
 void MedeaWindowManager::setActiveDockWidget(MedeaDockWidget *dockWidget)
 {
-    if(dockWidget != activeDockWidget){
+    if(dockWidget != activeViewDockWidget){
         //Unset the old
-        if(activeDockWidget){
-            activeDockWidget->setActive(false);
-            activeDockWidget = 0;
+        if(activeViewDockWidget){
+            activeViewDockWidget->setActive(false);
+            activeViewDockWidget = 0;
         }
 
         //Set the New.
-        if(dockWidget){
+        if(dockWidget && dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
             dockWidget->setActive(true);
         }
-        activeDockWidget = dockWidget;
-        emit activeDockWidgetChanged(activeDockWidget);
+        activeViewDockWidget = (MedeaViewDockWidget*)dockWidget;
+        emit activeViewDockWidgetChanged(activeViewDockWidget);
     }
 }
 
@@ -214,7 +214,7 @@ void MedeaWindowManager::removeDockWidget(MedeaDockWidget *dockWidget)
         int ID = dockWidget->getID();
         if(dockWidgets.contains(ID)){
             //Clear the active flag.
-            if(activeDockWidget == dockWidget){
+            if(activeViewDockWidget == dockWidget){
                 setActiveDockWidget();
             }
 
@@ -289,8 +289,8 @@ void MedeaWindowManager::reparentDockWidget_ButtonPressed()
                     qCritical() << "MedeaWindowManager::reparentDockWidget_ButtonPressed() - Can't find MedeaWindow with ID: " << wID;
                 }
             }
-            if(activeDockWidget && window){
-                _reparentDockWidget(activeDockWidget, window);
+            if(activeViewDockWidget && window){
+                _reparentDockWidget(activeViewDockWidget, window);
             }
         }
     }
@@ -326,7 +326,7 @@ void MedeaWindowManager::_reparentDockWidget(MedeaDockWidget *dockWidget, MedeaW
 
 void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
 {
-    if(dockWidget != activeDockWidget){
+    if(dockWidget != activeViewDockWidget){
         setActiveDockWidget(dockWidget);
     }
 

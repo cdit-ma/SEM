@@ -6,6 +6,7 @@
 #include "medeawindownew.h"
 #include "../../View/nodeviewnew.h"
 #include "../../View/nodeviewminimap.h"
+#include "../../Controller/viewcontroller.h"
 
 class MedeaMainWindow : public MedeaWindowNew
 {
@@ -17,8 +18,8 @@ public:
 
 private slots:
     void themeChanged();
-    void activeDockWidgetChanged(MedeaDockWidget* widget);
-    void dataTableModelChanged(AttributeTableModel* model);
+    void activeViewDockWidgetChanged(MedeaViewDockWidget* widget);
+    void activeSelectedItemChanged(ViewItem* item);
 
 private:
     void setupInnerWindow();
@@ -36,7 +37,6 @@ private:
 
     NodeViewMinimap* minimap;
     QTableView* tableView;
-    bool resizeModeSet;
 };
 
 #endif // MEDEAMAINWINDOW_H

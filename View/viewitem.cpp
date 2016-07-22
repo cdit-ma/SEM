@@ -1,7 +1,7 @@
 #include "viewitem.h"
 #include <QDebug>
 
-ViewItem::ViewItem(EntityAdapter *entity)
+ViewItem::ViewItem(EntityAdapter *entity): QObjectRegistrar()
 {
     this->entity = entity;
     this->ID = entity->getID();
@@ -9,6 +9,8 @@ ViewItem::ViewItem(EntityAdapter *entity)
 
     //Register Item to Adapter
     entity->addListener(this);
+
+    connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
 
     connect(entity, SIGNAL(dataChanged(QString,QVariant)), this, SIGNAL(dataChanged(QString,QVariant)));
 
@@ -31,7 +33,7 @@ int ViewItem::getID()
     return ID;
 }
 
-AttributeTableModel *ViewItem::getTableModel()
+QAbstractItemModel *ViewItem::getTableModel()
 {
     return tableModel;
 }
@@ -103,32 +105,9 @@ QPair<QString, QString> ViewItem::getIcon()
     return currentIcon;
 }
 
-void ViewItem::addListener(QObject *object)
-{
-    if(!_listeners.contains(object)){
-        _listeners.append(object);
-    }
-}
-
-void ViewItem::removeListener(QObject *object)
-{
-    if(_listeners.contains(object)){
-         _listeners.removeAll(object);
-
-         if(_listeners.isEmpty()){
-             deleteLater();
-         }
-    }
-}
-
-bool ViewItem::hasListeners()
-{
-    return _listeners.isEmpty();
-}
-
 void ViewItem::destruct()
 {
-    if(hasListeners()){
+    if(hasRegisteredObjects()){
         emit destructing();
     }else{
         deleteLater();

@@ -13,19 +13,21 @@ class NodeViewNew : public QGraphicsView
 {
     Q_OBJECT
 public:
-    NodeViewNew(VIEW_ASPECT aspect=VA_NONE);
+    NodeViewNew();
     void setViewController(ViewController* viewController);
     void translate(QPointF point);
     void scale(qreal sx, qreal sy);
 
+    void setContainedViewAspect(VIEW_ASPECT aspect);
+    void setContainedNodeViewItem(NodeViewItem* item);
+
     QRectF getViewportRect();
     void viewportChanged();
-
+    SelectionHandler* getSelectionHandler();
 signals:
     void viewportChanged(QRectF rect, qreal zoom);
     void viewFocussed(NodeViewNew* view, bool focussed);
 
-    void viewSelectionChanged(AttributeTableModel* model);
 
 private slots:
     void viewItem_Constructed(ViewItem* viewItem);
@@ -55,6 +57,9 @@ private:
     void nodeViewItem_Constructed(NodeViewItem* item);
     void edgeViewItem_Constructed(EdgeViewItem* item);
 
+    QList<ViewItem*> getTopLevelViewItems();
+    QList<EntityItemNew*> getTopLevelEntityItems();
+
     NodeItemNew* getParentNodeItem(NodeViewItem* item);
 
     EntityItemNew* getEntityItem(int ID);
@@ -68,6 +73,7 @@ private:
     void selectAll();
     void setupAspect();
 private:
+    QList<int> topLevelGUIItemIDs;
     QHash<int, EntityItemNew*> guiItems;
 
     ViewController* viewController;
@@ -79,7 +85,10 @@ private:
 
     QPointF viewportCenter_Scene;
 
-    VIEW_ASPECT aspect;
+
+    VIEW_ASPECT containedAspect;
+    NodeViewItem* containedNodeViewItem;
+
     QString aspectName;
     QColor aspectColor;
     QFont aspectFont;

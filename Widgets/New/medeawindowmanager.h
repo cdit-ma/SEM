@@ -31,9 +31,9 @@ protected:
     MedeaWindowManager();
     ~MedeaWindowManager();
 signals:
-    void activeDockWidgetChanged(MedeaDockWidget* widget);
+    void activeViewDockWidgetChanged(MedeaViewDockWidget* widget);
 public:
-    MedeaDockWidget* getActiveDockWidget();
+    MedeaViewDockWidget* getActiveViewDockWidget();
     void setActiveDockWidget(MedeaDockWidget* dockWidget = 0);
 private slots:
     void dockWidget_Close();
@@ -63,7 +63,7 @@ private:
     QToolButton* constructPopOutWindowButton(QDialog *parent, MedeaWindowNew* window=0);
 
     MedeaWindowNew* mainWindow;
-    MedeaDockWidget* activeDockWidget;
+    MedeaViewDockWidget* activeViewDockWidget;
     QHash<int, MedeaWindowNew*> windows;
     QHash<int, MedeaDockWidget*> dockWidgets;
 

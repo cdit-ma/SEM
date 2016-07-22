@@ -25,7 +25,7 @@ public:
 
     bool isProtected();
     void setProtected(bool protect);
-    void setWidget(QWidget* widget);
+    virtual void setWidget(QWidget* widget);
     void setCurrentWindow(MedeaWindowNew* window);
     MedeaWindowNew* getCurrentWindow();
 

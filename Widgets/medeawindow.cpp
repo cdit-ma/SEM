@@ -2272,10 +2272,12 @@ void MedeaWindow::setupConnections()
 void MedeaWindow::setupNewNodeView()
 {
     nodeViewNew = new NodeViewNew();
-    nodeViewNew1 = new NodeViewNew(VA_INTERFACES);
-    nodeViewNew2 = new NodeViewNew(VA_BEHAVIOUR);
-    nodeViewNew3 = new NodeViewNew(VA_ASSEMBLIES);
-    nodeViewNew4 = new NodeViewNew(VA_HARDWARE);
+    nodeViewNew1 = new NodeViewNew();
+    nodeViewNew2 = new NodeViewNew();
+    nodeViewNew3 = new NodeViewNew();
+    nodeViewNew4 = new NodeViewNew();
+
+
 
     window = MedeaWindowManager::constructMainWindow();
 

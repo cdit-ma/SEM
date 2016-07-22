@@ -351,7 +351,7 @@ void EntityItemNew::connectViewItem(ViewItem *viewItem)
 {
     this->viewItem = viewItem;
 
-    viewItem->addListener(this);
+    viewItem->registerObject(this);
     connect(viewItem, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
     connect(viewItem, SIGNAL(destructing()), this, SLOT(deleteLater()));
 }
@@ -361,7 +361,7 @@ void EntityItemNew::disconnectViewItem()
     if(viewItem){
         disconnect(viewItem, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
         disconnect(viewItem, SIGNAL(destructing()), this, SLOT(destruct()));
-        viewItem->removeListener(this);
+        viewItem->unregisterObject(this);
         viewItem = 0;
     }
 }

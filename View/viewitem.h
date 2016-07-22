@@ -4,11 +4,12 @@
 
 #include "../Controller/entityadapter.h"
 #include "Table/attributetablemodel.h"
+#include "../Controller/qobjectregistrar.h"
 
 //Forward declaration.
 class ViewController;
 
-class ViewItem: public QObject
+class ViewItem: public QObjectRegistrar
 {
     friend class ViewController;
 
@@ -18,7 +19,7 @@ public:
     ~ViewItem();
 
     int getID();
-    AttributeTableModel* getTableModel();
+    QAbstractItemModel* getTableModel();
 
     bool isNode();
     bool isEdge();
@@ -30,10 +31,6 @@ public:
     void setIcon(QString icon_prefix, QString icon_name);
     void resetIcon();
     QPair<QString, QString> getIcon();
-
-    void addListener(QObject* object);
-    void removeListener(QObject* object);
-    bool hasListeners();
 
 signals:
     void dataChanged(QString key_name, QVariant data);

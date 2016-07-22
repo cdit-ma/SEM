@@ -14,7 +14,6 @@ MedeaWindowNew::MedeaWindowNew(QWidget *parent, bool mainWindow):QMainWindow(par
     ID = ++_WindowID;
     _isMainWindow = mainWindow;
 
-
     setAcceptDrops(true);
     setDockNestingEnabled(true);
     setContextMenuPolicy(Qt::CustomContextMenu);

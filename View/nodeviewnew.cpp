@@ -17,7 +17,7 @@
 
 
 
-NodeViewNew::NodeViewNew(VIEW_ASPECT aspect):QGraphicsView()
+NodeViewNew::NodeViewNew():QGraphicsView()
 {
     QRectF sceneRect;
     sceneRect.setSize(QSize(100000,100000));
@@ -42,15 +42,16 @@ NodeViewNew::NodeViewNew(VIEW_ASPECT aspect):QGraphicsView()
 
     viewController = 0;
     selectionHandler = 0;
-    this->aspect = aspect;
-    setupAspect();
+    containedAspect = VA_NONE;
+    containedNodeViewItem = 0;
+
 }
 
 void NodeViewNew::setViewController(ViewController *viewController)
 {
     this->viewController = viewController;
     if(viewController){
-        selectionHandler = viewController->getSelectionHandler(this);
+        selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
         connect(selectionHandler, SIGNAL(itemSelected(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelected(ViewItem*,bool)));
     }
 }
@@ -68,6 +69,22 @@ void NodeViewNew::scale(qreal sx, qreal sy)
         viewportChanged();
     }
 }
+
+void NodeViewNew::setContainedViewAspect(VIEW_ASPECT aspect)
+{
+    containedAspect = aspect;
+
+    setupAspect();
+}
+
+void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
+{
+    containedNodeViewItem = item;
+    if(item){
+        containedAspect = item->getViewAspect();
+    }
+}
+
 
 QRectF NodeViewNew::getViewportRect()
 {
@@ -89,6 +106,7 @@ void NodeViewNew::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
     EntityItemNew* item = getEntityItem(ID);
     if(item){
+        topLevelGUIItemIDs.removeAll(ID);
         guiItems.remove(ID);
         delete item;
     }
@@ -100,7 +118,6 @@ void NodeViewNew::selectionHandler_ItemSelected(ViewItem *item, bool selected)
         EntityItemNew* e = getEntityItem(item->getID());
         if(e){
             e->setSelected(selected);
-            emit viewSelectionChanged(e->getViewItem()->getTableModel());
         }
     }
 }
@@ -237,6 +254,11 @@ void NodeViewNew::viewportChanged()
     emit viewportChanged(viewportRect(), transform().m11());
 }
 
+SelectionHandler *NodeViewNew::getSelectionHandler()
+{
+    return selectionHandler;
+}
+
 QRectF NodeViewNew::viewportRect()
 {
     return mapToScene(rect()).boundingRect();
@@ -244,56 +266,57 @@ QRectF NodeViewNew::viewportRect()
 
 void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 {
-    if(item->getViewAspect() != aspect){
+    if(!item || item->getViewAspect() != containedAspect){
         return;
     }
 
     NodeItemNew* parentNode = getParentNodeItem(item);
 
-    NodeItemNew* nodeItem =  0;
-    QString nodeKind = item->getData("kind").toString();
-    if(nodeKind == "Model"){
-        //nodeItem = new ModelItemNew(item);
-    }else if(nodeKind.endsWith("Definitions")){
-        if(nodeKind == "DeploymentDefinitions"){
+
+
+    if(!containedNodeViewItem){
+        if(item->getViewAspect() == containedAspect){
+            setContainedNodeViewItem(item);
+            //Don't construct an aspect.
             return;
         }
-        VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
-        if(this->aspect == aspect){
-            //qCritical() << "ASPECT MATCH!";
-            //nodeItem = new AspectItemNew(item, parentNode, aspect);
-        }
-    }else{
-
-
-        if(nodeKind == "HardwareNode"){
-            nodeItem = new HardwareNodeItem(item, parentNode);
-        }else{
-            nodeItem = new DefaultNodeItem(item, parentNode);
-        }
     }
+    if(containedNodeViewItem){
+        if(containedNodeViewItem->isAncestorOf(item)){
+            int ID = item->getID();
+            NodeItemNew* nodeItem =  0;
+            QString nodeKind = item->getData("kind").toString();
 
-    if(nodeItem){
-        guiItems[item->getID()] = nodeItem;
-        connect(nodeItem, SIGNAL(req_setSelected(EntityItemNew*,bool,bool)), this, SLOT(item_SetSelected(EntityItemNew*,bool,bool)));
-        connect(nodeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(item_SetExpanded(EntityItemNew*,bool)));
-        connect(nodeItem, SIGNAL(req_centerItem(EntityItemNew*)), this, SLOT(item_SetCentered(EntityItemNew*)));
-        connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(item_AdjustPos(QPointF)));
-        connect(nodeItem, SIGNAL(req_adjustingPos(bool)), this, SLOT(item_AdjustingPos(bool)));
+            if(nodeKind == "HardwareNode"){
+                nodeItem = new HardwareNodeItem(item, parentNode);
+            }else{
+                nodeItem = new DefaultNodeItem(item, parentNode);
+            }
 
-        /*
-        connect(nodeItem, SIGNAL(req_adjustSize(NodeViewItem*,QSizeF, RECT_VERTEX)), this, SLOT(nodeItemNew_AdjustSize(NodeViewItem*,QSizeF,RECT_VERTEX)));
-        connect(nodeItem, SIGNAL(req_setData(ViewItem*,QString,QVariant)), this, SLOT(nodeItemNew_SetData(ViewItem*,QString,QVariant)));
-        connect(nodeItem, SIGNAL(req_hovered(EntityItemNew*,bool)), this, SLOT(entityItemNew_Hovered(EntityItemNew*, bool)));
-        connect(nodeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(entityItemNew_Expand(EntityItemNew*,bool)));
-        connect(nodeItem, SIGNAL(req_setSelected(ViewItem*,bool)), this, SLOT(entityItemNew_Select(ViewItem*,bool)));
-        connect(nodeItem, SIGNAL(req_clearSelection()), this, SLOT(clearSelection()));
-        connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(moveSelection(QPointF)));
-        connect(nodeItem, SIGNAL(req_adjustPosFinished()), this, SLOT(moveFinished()));
-        */
+            if(nodeItem){
+                guiItems[ID] = nodeItem;
+                connect(nodeItem, SIGNAL(req_setSelected(EntityItemNew*,bool,bool)), this, SLOT(item_SetSelected(EntityItemNew*,bool,bool)));
+                connect(nodeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(item_SetExpanded(EntityItemNew*,bool)));
+                connect(nodeItem, SIGNAL(req_centerItem(EntityItemNew*)), this, SLOT(item_SetCentered(EntityItemNew*)));
+                connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(item_AdjustPos(QPointF)));
+                connect(nodeItem, SIGNAL(req_adjustingPos(bool)), this, SLOT(item_AdjustingPos(bool)));
 
-        if(!scene()->items().contains(nodeItem)){
-            scene()->addItem(nodeItem);
+                /*
+                connect(nodeItem, SIGNAL(req_adjustSize(NodeViewItem*,QSizeF, RECT_VERTEX)), this, SLOT(nodeItemNew_AdjustSize(NodeViewItem*,QSizeF,RECT_VERTEX)));
+                connect(nodeItem, SIGNAL(req_setData(ViewItem*,QString,QVariant)), this, SLOT(nodeItemNew_SetData(ViewItem*,QString,QVariant)));
+                connect(nodeItem, SIGNAL(req_hovered(EntityItemNew*,bool)), this, SLOT(entityItemNew_Hovered(EntityItemNew*, bool)));
+                connect(nodeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(entityItemNew_Expand(EntityItemNew*,bool)));
+                connect(nodeItem, SIGNAL(req_setSelected(ViewItem*,bool)), this, SLOT(entityItemNew_Select(ViewItem*,bool)));
+                connect(nodeItem, SIGNAL(req_clearSelection()), this, SLOT(clearSelection()));
+                connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(moveSelection(QPointF)));
+                connect(nodeItem, SIGNAL(req_adjustPosFinished()), this, SLOT(moveFinished()));
+                */
+
+                if(!scene()->items().contains(nodeItem)){
+                    scene()->addItem(nodeItem);
+                    topLevelGUIItemIDs.append(ID);
+                }
+            }
         }
     }
 }
@@ -301,6 +324,26 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
 {
     //Do nothing.
+}
+
+QList<ViewItem *> NodeViewNew::getTopLevelViewItems()
+{
+    QList<ViewItem *> items;
+    foreach(EntityItemNew* item, getTopLevelEntityItems()){
+        items.append(item->getViewItem());
+    }
+    return items;
+}
+
+QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems()
+{
+    QList<EntityItemNew*> items;
+    foreach(int ID, topLevelGUIItemIDs){
+        if(guiItems.contains(ID)){
+            items.append(guiItems[ID]);
+        }
+    }
+    return items;
 }
 
 NodeItemNew *NodeViewNew::getParentNodeItem(NodeViewItem *item)
@@ -335,7 +378,11 @@ EntityItemNew *NodeViewNew::getEntityItem(int ID)
 
 EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item)
 {
-    return getEntityItem(item->getID());
+    EntityItemNew* e = 0;
+    if(item){
+        e = getEntityItem(item->getID());
+    }
+    return e;
 }
 
 void NodeViewNew::zoom(int delta, QPoint anchorScreenPos)
@@ -372,24 +419,31 @@ void NodeViewNew::selectAll()
 {
     if(selectionHandler){
         EntityItemNew* guiItem = getEntityItem(selectionHandler->getFirstSelectedItem());
-        if(selectionHandler->getSelectionCount() == 1 && guiItem){
-            if(guiItem->isNodeItem()){
+
+        QList<ViewItem*> itemsToSelect;
+
+        if(guiItem){
+            if(selectionHandler->getSelectionCount() == 1 && guiItem->isNodeItem()){
                 NodeItemNew* nodeItem = (NodeItemNew*) guiItem;
 
-                QList<ViewItem*> itemsToSelect;
                 foreach(NodeItemNew* child, nodeItem->getChildNodes()){
                     itemsToSelect.append(child->getViewItem());
                 }
-                selectionHandler->setItemsSelected(itemsToSelect, true);
             }
+        }else{
+            //Get all top level children.
+            itemsToSelect = getTopLevelViewItems();
+        }
+        if(itemsToSelect.size() > 0){
+            selectionHandler->setItemsSelected(itemsToSelect, true);
         }
     }
 }
 
 void NodeViewNew::setupAspect()
 {
-    aspectName = GET_ASPECT_NAME(aspect).toUpper();
-    aspectColor = GET_ASPECT_COLOR(aspect);
+    aspectName = GET_ASPECT_NAME(containedAspect).toUpper();
+    aspectColor = GET_ASPECT_COLOR(containedAspect);
     aspectFontColor = aspectColor.darker(110);
     aspectFont.setPixelSize(70);
     aspectFont.setBold(true);

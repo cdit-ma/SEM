@@ -1,9 +1,20 @@
 #include "selectionhandler.h"
 #include "../View/nodeviewitem.h"
-
+#include <QDebug>
+int SelectionHandler::_SelectionHandlerID  = 0;
 SelectionHandler::SelectionHandler()
 {
+    ID = ++_SelectionHandlerID;
+    currentActiveSelectedItem = 0;
+    newActiveSelectedItem = 0;
 
+    //Empty selection will result in destruction.
+    connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
+}
+
+int SelectionHandler::getID()
+{
+    return ID;
 }
 
 void SelectionHandler::setItemSelected(ViewItem *item, bool setSelected, bool append)
@@ -24,23 +35,19 @@ void SelectionHandler::setItemsSelected(QList<ViewItem *> items, bool setSelecte
         changes += _setItemSelected(item, setSelected);
     }
 
-    if(changes > 0){
-        _selectionChanged();
-    }
+    _selectionChanged(changes);
 }
 
-void SelectionHandler::itemDeleted(ViewItem *item)
+void SelectionHandler::itemDeleted(int ID, ViewItem *item)
 {
-    if(_setItemSelected(item, false, false) > 0){
-        _selectionChanged();
-    }
+    int changes = _setItemSelected(item, false, false);
+    _selectionChanged(changes);
 }
 
 void SelectionHandler::clearSelection()
 {
-    if(_clearSelection() > 0){
-        _selectionChanged();
-    }
+    int changes = _clearSelection();
+    _selectionChanged(changes);
 }
 
 QVector<ViewItem *> SelectionHandler::getSelection()
@@ -62,9 +69,21 @@ ViewItem *SelectionHandler::getFirstSelectedItem()
     return item;
 }
 
-void SelectionHandler::_selectionChanged()
+ViewItem *SelectionHandler::getActiveSelectedItem()
 {
-    emit selectionChanged(currentSelection.size());
+    return getFirstSelectedItem();
+}
+
+void SelectionHandler::_selectionChanged(int changes = 0)
+{
+    if(changes > 0){
+        emit selectionChanged(currentSelection.size());
+    }
+    if(newActiveSelectedItem != currentActiveSelectedItem){
+        currentActiveSelectedItem = newActiveSelectedItem;
+        newActiveSelectedItem = currentActiveSelectedItem;
+        emit activeSelectedItemChanged(currentActiveSelectedItem);
+    }
 }
 
 bool SelectionHandler::appendToSelection(ViewItem *item)
@@ -78,9 +97,7 @@ bool SelectionHandler::appendToSelection(ViewItem *item)
 
     itemsChanged += _setItemSelected(item, true);
 
-    if(itemsChanged > 0){
-        emit selectionChanged(itemsChanged);
-    }
+    //selectionChanged(count);
 }
 
 int SelectionHandler::_clearSelection()
@@ -142,12 +159,25 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected, bool sendS
             if(!isItemsAncestorSelected(item)){
                 changeCount += unsetItemsDescendants(item);
                 currentSelection.append(item);
+                //If there is only 1 item there can only be 1 active item.
+                if(currentSelection.size() == 1){
+                    newActiveSelectedItem = item;
+                }
                 changeCount += 1;
             }
         }
     }else{
         //Remove it from the map.
         changeCount = currentSelection.removeAll(item);
+
+        //If there is no items left, there is no active item
+        if(currentSelection.isEmpty()){
+            newActiveSelectedItem = 0;
+        }else{
+            if(currentActiveSelectedItem == item || newActiveSelectedItem == item){
+                newActiveSelectedItem = currentSelection.first();
+            }
+        }
     }
     if(changeCount > 0 && sendSignal){
         emit itemSelected(item, selected);

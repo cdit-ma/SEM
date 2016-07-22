@@ -1,17 +1,17 @@
 #include "viewcontroller.h"
 #include "../View/nodeviewitem.h"
 #include "../View/edgeviewitem.h"
-
 #include <QDebug>
 ViewController::ViewController(){
     modelItem = 0;
-    selectionHandler = new SelectionHandler();
+    selectionController = new SelectionController(this);
 }
 
-SelectionHandler *ViewController::getSelectionHandler(QObject *object)
+SelectionController *ViewController::getSelectionController()
 {
-    return selectionHandler;
+    return selectionController;
 }
+
 
 void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
@@ -83,9 +83,6 @@ void ViewController::entityDestructed(EntityAdapter *entity)
 
             //Remove the item from the Hash
             viewItems.remove(ID);
-
-            //Unset.
-            selectionHandler->itemDeleted(viewItem);
 
             if(viewItem){
                 emit viewItemDestructing(ID, viewItem);

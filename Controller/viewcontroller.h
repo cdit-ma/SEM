@@ -4,6 +4,7 @@
 #include "entityadapter.h"
 #include "../View/viewitem.h"
 #include "selectionhandler.h"
+#include "../Widgets/New/selectioncontroller.h"
 
 
 class ViewController : public QObject
@@ -12,7 +13,7 @@ class ViewController : public QObject
 public:
     ViewController();
 
-    SelectionHandler* getSelectionHandler(QObject* object);
+    SelectionController* getSelectionController();
 
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
@@ -27,7 +28,8 @@ private slots:
 private:
     QHash<int, ViewItem*> viewItems;
     ViewItem* modelItem;
-    SelectionHandler* selectionHandler;
+
+    SelectionController* selectionController;
 };
 
 #endif // VIEWCONTROLLER_H

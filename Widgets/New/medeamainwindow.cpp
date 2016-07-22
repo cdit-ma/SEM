@@ -2,9 +2,9 @@
 #include "medeaviewdockwidget.h"
 #include "medeatooldockwidget.h"
 #include "../../View/theme.h"
+#include "selectioncontroller.h"
 #include <QDebug>
 #include <QHeaderView>
-
 MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, true)
 {
     setDockNestingEnabled(false);
@@ -18,12 +18,14 @@ MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, true)
     setupMinimap();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(MedeaWindowManager::manager(), SIGNAL(activeDockWidgetChanged(MedeaDockWidget*)), this, SLOT(activeDockWidgetChanged(MedeaDockWidget*)));
+    connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*)));
 }
 
 void MedeaMainWindow::setViewController(ViewController *vc)
 {
     viewController = vc;
+    SelectionController* controller = vc->getSelectionController();
+    connect(controller, SIGNAL(activeSelectedItemChanged(ViewItem*)), this, SLOT(activeSelectedItemChanged(ViewItem*)));
     nodeView_Interfaces->setViewController(vc);
     nodeView_Behaviour->setViewController(vc);
     nodeView_Assemblies->setViewController(vc);
@@ -34,15 +36,10 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView_Assemblies, SLOT(viewItem_Constructed(ViewItem*)));
     connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView_Hardware, SLOT(viewItem_Constructed(ViewItem*)));
 
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Interfaces, SLOT(viewItemDestructing(int,ViewItem*)));
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Behaviour, SLOT(viewItemDestructing(int,ViewItem*)));
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Assemblies, SLOT(viewItemDestructing(int,ViewItem*)));
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Hardware, SLOT(viewItemDestructing(int,ViewItem*)));
-
-    connect(nodeView_Interfaces, SIGNAL(viewSelectionChanged(AttributeTableModel*)), this, SLOT(dataTableModelChanged(AttributeTableModel*)));
-    connect(nodeView_Behaviour, SIGNAL(viewSelectionChanged(AttributeTableModel*)), this, SLOT(dataTableModelChanged(AttributeTableModel*)));
-    connect(nodeView_Assemblies, SIGNAL(viewSelectionChanged(AttributeTableModel*)), this, SLOT(dataTableModelChanged(AttributeTableModel*)));
-    connect(nodeView_Hardware, SIGNAL(viewSelectionChanged(AttributeTableModel*)), this, SLOT(dataTableModelChanged(AttributeTableModel*)));
+    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Interfaces, SLOT(viewItem_Destructed(int,ViewItem*)));
+    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Behaviour, SLOT(viewItem_Destructed(int,ViewItem*)));
+    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Assemblies, SLOT(viewItem_Destructed(int,ViewItem*)));
+    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView_Hardware, SLOT(viewItem_Destructed(int,ViewItem*)));
 }
 
 void MedeaMainWindow::themeChanged()
@@ -78,10 +75,10 @@ void MedeaMainWindow::themeChanged()
                   "background:" + pressedColor + ";"
                   "}"
                   "QTableView::item {"
-                  //"background: white;"
+                  "background: white;"
                   "padding: 0px 4px;"
                   "}"
-                  //"QTableView{ background: " + BGColor + ";}"
+                  "QTableView{ background: " + BGColor + ";}"
                   );
 
     if (tableView && tableView->parentWidget()) {
@@ -89,11 +86,10 @@ void MedeaMainWindow::themeChanged()
     }
 }
 
-void MedeaMainWindow::activeDockWidgetChanged(MedeaDockWidget *widget)
+void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock)
 {
-    if(widget){
-        QWidget* content = widget->widget();
-        NodeViewNew* view = qobject_cast<NodeViewNew*>(content);
+    if(viewDock){
+        NodeViewNew* view = viewDock->getNodeView();
         if(view){
             minimap->setScene(view->scene());
             minimap->disconnect();
@@ -102,36 +98,47 @@ void MedeaMainWindow::activeDockWidgetChanged(MedeaDockWidget *widget)
             connect(minimap, SIGNAL(minimap_Panning(bool)), view, SLOT(minimap_Panning(bool)));
             connect(minimap, SIGNAL(minimap_Zoom(int)), view, SLOT(minimap_Zoom(int)));
             connect(view, SIGNAL(viewportChanged(QRectF, qreal)), minimap, SLOT(viewportRectChanged(QRectF, qreal)));
-
             view->viewportChanged();
         }
     }
 }
 
-void MedeaMainWindow::dataTableModelChanged(AttributeTableModel* model)
+void MedeaMainWindow::activeSelectedItemChanged(ViewItem *item)
 {
-    if (tableView) {
-        tableView->clearSelection();
+    QAbstractItemModel* model = 0;
+
+    if(item){
+        model = item->getTableModel();
+    }
+    if(tableView){
+        bool update = !tableView->model();
+
         tableView->setModel(model);
-        if (!resizeModeSet && tableView->horizontalHeader()->count() == 2) {
+
+        if(update && tableView->horizontalHeader()->count() == 2) {
+            //Set the resize mode of the sections on first model launch.
             tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
             tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-            resizeModeSet = true;
         }
-        //tableView->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
-        //tableView->adjustSize();
     }
 }
+
 
 void MedeaMainWindow::setupInnerWindow()
 {
     innerWindow = MedeaWindowManager::constructSubWindow();
     setCentralWidget(innerWindow);
 
-    nodeView_Interfaces = new NodeViewNew(VA_INTERFACES);
-    nodeView_Behaviour = new NodeViewNew(VA_BEHAVIOUR);
-    nodeView_Assemblies = new NodeViewNew(VA_ASSEMBLIES);
-    nodeView_Hardware = new NodeViewNew(VA_HARDWARE);
+    nodeView_Interfaces = new NodeViewNew();
+    nodeView_Behaviour = new NodeViewNew();
+    nodeView_Assemblies = new NodeViewNew();
+    nodeView_Hardware = new NodeViewNew();
+
+    nodeView_Interfaces->setContainedViewAspect(VA_INTERFACES);
+    nodeView_Behaviour->setContainedViewAspect(VA_BEHAVIOUR);
+    nodeView_Assemblies->setContainedViewAspect(VA_ASSEMBLIES);
+    nodeView_Hardware->setContainedViewAspect(VA_HARDWARE);
+
 
     MedeaDockWidget *dockWidget1 = MedeaWindowManager::constructViewDockWidget("Interface", Qt::TopDockWidgetArea);
     dockWidget1->setWidget(nodeView_Interfaces);
@@ -164,8 +171,6 @@ void MedeaMainWindow::setupInnerWindow()
 void MedeaMainWindow::setupDataTable()
 {
     tableView = new QTableView(this);
-    tableView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    resizeModeSet = false;
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Table");
     dockWidget->setWidget(tableView);

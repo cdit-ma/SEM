@@ -184,7 +184,9 @@ HEADERS += \
     Widgets/New/medeawindowmanager.h \
     Widgets/New/medeamainwindow.h \
     Widgets/New/medeaviewdockwidget.h \
-    Widgets/New/medeatooldockwidget.h
+    Widgets/New/medeatooldockwidget.h \
+    Widgets/New/selectioncontroller.h \
+    Controller/qobjectregistrar.h
 
 
 SOURCES += \
@@ -333,7 +335,9 @@ SOURCES += \
     Widgets/New/medeawindowmanager.cpp \
     Widgets/New/medeamainwindow.cpp \
     Widgets/New/medeaviewdockwidget.cpp \
-    Widgets/New/medeatooldockwidget.cpp
+    Widgets/New/medeatooldockwidget.cpp \
+    Widgets/New/selectioncontroller.cpp \
+    Controller/qobjectregistrar.cpp
 
 
 RESOURCES += \
