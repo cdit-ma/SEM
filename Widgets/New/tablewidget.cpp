@@ -43,6 +43,7 @@ void TableWidget::activeSelectedItemChanged(ViewItem *item, bool isActive)
             tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
             tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
         }
+        tableView->verticalHeader()->setVisible(false);
         tableView->resizeColumnToContents(0);
 
         updateTableSize();
@@ -105,8 +106,13 @@ void TableWidget::setupLayout()
     toolbar->addWidget(iconLabel);
     toolbar->addWidget(label);
     cycleForwardAction = toolbar->addAction("Cycle Forward");
-    layout->addWidget(toolbar);
-    layout->addWidget(tableView, 1);
+
+    //layout->addWidget(toolbar);
+
+    layout->addWidget(tableView);
+    //QWidget* widget = new QWidget(this);
+    //widget->setStyleSheet("background:yellow;");
+    //layout->addWidget(widget, 1);
 
     connect(cycleForwardAction, SIGNAL(triggered(bool)), this, SLOT(cyclePressed()));
     connect(cycleBackwardAction, SIGNAL(triggered(bool)), this, SLOT(cyclePressed()));
