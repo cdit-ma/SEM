@@ -188,7 +188,8 @@ HEADERS += \
     Controller/qobjectregistrar.h \
     Widgets/New/medeacentralwindow.h \
     Widgets/New/medeasubwindow.h \
-    Widgets/New/medeaviewwindow.h
+    Widgets/New/medeaviewwindow.h \
+    Widgets/New/tablewidget.h
 
 
 SOURCES += \
@@ -341,7 +342,8 @@ SOURCES += \
     Controller/qobjectregistrar.cpp \
     Widgets/New/medeacentralwindow.cpp \
     Widgets/New/medeasubwindow.cpp \
-    Widgets/New/medeaviewwindow.cpp
+    Widgets/New/medeaviewwindow.cpp \
+    Widgets/New/tablewidget.cpp
 
 
 RESOURCES += \

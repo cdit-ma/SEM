@@ -9,7 +9,7 @@ SelectionController::SelectionController(ViewController *vc):QObject(vc)
     currentHandler = 0;
     viewController = vc;
 
-    connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*)));
+    connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*)));
 }
 
 SelectionHandler *SelectionController::constructSelectionHandler(QObject *object)
@@ -81,6 +81,13 @@ void SelectionController::activeViewDockWidgetChanged(MedeaViewDockWidget *dockW
         if(handler){
             setCurrentSelectionHandler(handler);
         }
+    }
+}
+
+void SelectionController::cycleActiveSelectedItem(bool forward)
+{
+    if(currentHandler){
+        currentHandler->cycleActiveSelectedItem(forward);
     }
 }
 

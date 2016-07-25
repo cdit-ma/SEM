@@ -178,6 +178,7 @@ MedeaViewDockWidget *MedeaWindowManager::getActiveViewDockWidget()
 void MedeaWindowManager::setActiveDockWidget(MedeaDockWidget *dockWidget)
 {
     if(dockWidget != activeViewDockWidget){
+        MedeaViewDockWidget* prevDock = activeViewDockWidget;
         //Unset the old
         if(activeViewDockWidget){
             activeViewDockWidget->setActive(false);
@@ -189,7 +190,7 @@ void MedeaWindowManager::setActiveDockWidget(MedeaDockWidget *dockWidget)
             dockWidget->setActive(true);
         }
         activeViewDockWidget = (MedeaViewDockWidget*)dockWidget;
-        emit activeViewDockWidgetChanged(activeViewDockWidget);
+        emit activeViewDockWidgetChanged(activeViewDockWidget, prevDock);
     }
 }
 

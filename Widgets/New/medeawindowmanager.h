@@ -32,7 +32,7 @@ protected:
     MedeaWindowManager();
     ~MedeaWindowManager();
 signals:
-    void activeViewDockWidgetChanged(MedeaViewDockWidget* widget);
+    void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevWidget = 0);
 public:
     MedeaViewDockWidget* getActiveViewDockWidget();
     void setActiveDockWidget(MedeaDockWidget* dockWidget = 0);

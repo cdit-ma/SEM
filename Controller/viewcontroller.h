@@ -26,6 +26,7 @@ private slots:
     void entityConstructed(EntityAdapter* entity);
     void entityDestructed(EntityAdapter* entity);
 
+
 private:
     QHash<int, ViewItem*> viewItems;
     ViewItem* modelItem;

@@ -7,6 +7,7 @@
 #include <QHeaderView>
 #include <QPushButton>
 
+
 MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
 
@@ -18,14 +19,16 @@ MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, MedeaWi
     setupTools();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*)));
+    connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*,MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)));
 }
 
 void MedeaMainWindow::setViewController(ViewController *vc)
 {
     viewController = vc;
     SelectionController* controller = vc->getSelectionController();
-    connect(controller, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)), this, SLOT(activeSelectedItemChanged(ViewItem*, bool)));
+
+    connect(tableWidget, SIGNAL(cycleActiveItem(bool)), controller, SLOT(cycleActiveSelectedItem(bool)));
+    connect(controller, SIGNAL(activeSelectedItemChanged(ViewItem*,bool)), tableWidget, SLOT(activeSelectedItemChanged(ViewItem*,bool)));
     connectNodeView(nodeView_Interfaces);
     connectNodeView(nodeView_Behaviour);
     connectNodeView(nodeView_Assemblies);
@@ -66,52 +69,44 @@ void MedeaMainWindow::themeChanged()
                   "background:" + pressedColor + ";"
                   "}"
                   "QTableView::item {"
-                  //"background: white;"
                   "padding: 0px 4px;"
                   "}"
-                  //"QTableView{ background: " + BGColor + ";}"
+                "QTableView{background: red;}"
                   );
 
-    if (tableView && tableView->parentWidget()) {
-        tableView->parentWidget()->setStyleSheet("QDockWidget{ background: " + BGColor + ";}");
+    if (tableWidget && tableWidget->parentWidget()) {
+        tableWidget->parentWidget()->setStyleSheet("QDockWidget{ background: " + BGColor + ";}");
     }
 }
 
-void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock)
+void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock, MedeaViewDockWidget *prevDock)
 {
     if(viewDock){
         NodeViewNew* view = viewDock->getNodeView();
+        NodeViewNew* prevView = 0;
+        if(prevDock){
+            prevView = prevDock->getNodeView();
+            if(prevView){
+                disconnect(minimap, SIGNAL(minimap_Pan(QPointF)), prevView, SLOT(minimap_Pan(QPointF)));
+                disconnect(minimap, SIGNAL(minimap_Panning(bool)), prevView, SLOT(minimap_Panning(bool)));
+                disconnect(minimap, SIGNAL(minimap_Zoom(int)), prevView, SLOT(minimap_Zoom(int)));
+                disconnect(prevView, SIGNAL(viewportChanged(QRectF, qreal)), minimap, SLOT(viewportRectChanged(QRectF, qreal)));
+            }
+        }
+
         if(view){
             minimap->setScene(view->scene());
-            minimap->disconnect();
 
             connect(minimap, SIGNAL(minimap_Pan(QPointF)), view, SLOT(minimap_Pan(QPointF)));
             connect(minimap, SIGNAL(minimap_Panning(bool)), view, SLOT(minimap_Panning(bool)));
             connect(minimap, SIGNAL(minimap_Zoom(int)), view, SLOT(minimap_Zoom(int)));
             connect(view, SIGNAL(viewportChanged(QRectF, qreal)), minimap, SLOT(viewportRectChanged(QRectF, qreal)));
+
             view->viewportChanged();
         }
     }
 }
 
-void MedeaMainWindow::activeSelectedItemChanged(ViewItem *item, bool isActive)
-{
-    QAbstractItemModel* model = 0;
-    if (item && isActive) {
-        model = item->getTableModel();
-    }
-    if (tableView) {
-        tableView->setModel(model);
-
-        if (tableView->horizontalHeader()->count() == 2) {
-            //Set the resize mode of the sections on first model launch.
-            tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
-            tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-        }
-
-        updateDataTableSize();
-    }
-}
 
 void MedeaMainWindow::spawnSubView()
 {
@@ -199,10 +194,11 @@ void MedeaMainWindow::setupInnerWindow()
 
 void MedeaMainWindow::setupDataTable()
 {
-    tableView = new QTableView(this);
+    tableWidget = new TableWidget(this);
+    qCritical() << "YELLO!";
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Table");
-    dockWidget->setWidget(tableView);
+    dockWidget->setWidget(tableWidget);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
     connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(updateDataTableSize()));
@@ -211,6 +207,7 @@ void MedeaMainWindow::setupDataTable()
 void MedeaMainWindow::setupMinimap()
 {
     minimap = new NodeViewMinimap(this);
+    minimap->setFixedHeight(200);
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Minimap");
     dockWidget->setWidget(minimap);
@@ -218,8 +215,10 @@ void MedeaMainWindow::setupMinimap()
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
 
 
+
     MedeaDockWidget* dockWidget2 = MedeaWindowManager::constructToolDockWidget("Sub Views Yo");
     QPushButton* button = new QPushButton("Spawn SubView");
+    button->setFixedHeight(50);
     dockWidget2->setWidget(button);
     dockWidget2->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, dockWidget2, Qt::Vertical);
@@ -229,17 +228,7 @@ void MedeaMainWindow::setupMinimap()
 
 void MedeaMainWindow::updateDataTableSize()
 {
-    if (tableView->model()) {
-        qreal tableHeight = 0;
-        tableHeight += tableView->horizontalHeader()->size().height();
-        tableHeight += tableView->contentsMargins().top() + tableView->contentsMargins().bottom();
-        for (int i = 0; i < tableView->model()->rowCount(); i++){
-            tableHeight += tableView->rowHeight(i);
-        }
-        tableView->resize(tableView->width(), tableHeight);
-    } else {
-        tableView->resize(tableView->width(), 0);
-    }
+
 }
 
 

@@ -25,6 +25,7 @@ signals:
     void viewItemDeleted(ViewItem* item);
 private slots:
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget);
+    void cycleActiveSelectedItem(bool forward);
     void removeSelectionHandler();
 private:
     void setCurrentSelectionHandler(SelectionHandler* handler);
