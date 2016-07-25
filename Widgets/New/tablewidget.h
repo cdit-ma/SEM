@@ -38,10 +38,6 @@ private:
 
     int height;
     // QWidget interface
-protected:
-    void resizeEvent(QResizeEvent *);
-
-    // QWidget interface
 };
 
 #endif // TABLEWIDGET_H

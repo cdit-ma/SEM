@@ -111,11 +111,3 @@ void TableWidget::setupLayout()
     connect(cycleForwardAction, SIGNAL(triggered(bool)), this, SLOT(cyclePressed()));
     connect(cycleBackwardAction, SIGNAL(triggered(bool)), this, SLOT(cyclePressed()));
 }
-
-void TableWidget::resizeEvent(QResizeEvent *)
-{
-
-
-    qCritical() << "SUP!";
-
-}
