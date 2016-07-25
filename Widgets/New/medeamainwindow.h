@@ -38,10 +38,6 @@ private:
 private:
     MedeaWindowNew* innerWindow;
 
-    QToolBar* containerToolbar;
-    QToolBar* floatingToolbar;
-    QHBoxLayout* toolbarLayout;
-
     QPushButton* menuButton;
     QPushButton* projectTitleButton;
     QToolButton* middlewareButton;
@@ -51,6 +47,7 @@ private:
     QToolButton* searchButton;
     QToolButton* searchOptionsButton;
 
+    QToolBar* floatingToolbar;
     TableWidget* tableWidget;
     NodeViewMinimap* minimap;
 
