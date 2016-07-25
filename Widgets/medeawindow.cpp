@@ -99,11 +99,12 @@ MedeaWindow::MedeaWindow(ViewController* vc, QString graphMLFile, QWidget *paren
     EXPAND_TOOLBAR = true;
     SHOW_TOOLBAR = true;
 
-    CURRENT_THEME = VT_NORMAL_THEME;
+    CURRENT_THEME = VT_DARK_THEME;
     viewController = vc;
 
     //Initialize classes.
     initialiseTheme();
+
     initialiseSettings();
 
     initializePlugins();
@@ -135,6 +136,8 @@ MedeaWindow::MedeaWindow(ViewController* vc, QString graphMLFile, QWidget *paren
     if(!graphMLFile.isEmpty()){
         openProject(graphMLFile);
     }
+
+    updateTheme();
 
 }
 
@@ -2802,6 +2805,7 @@ void MedeaWindow::updateTheme()
 
     //Update the theme.
     Theme::theme()->applyTheme();
+
     updateMenuIcons();
 }
 
@@ -2885,6 +2889,7 @@ void MedeaWindow::initialiseTheme()
 
     //LOAD THINGS
     emit Theme::theme()->initPreloadImages();
+    emit Theme::theme()->theme_Changed();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 

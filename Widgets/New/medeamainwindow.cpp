@@ -10,8 +10,6 @@
 
 MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
-
-
     setMinimumSize(1000,600);
     showNormal();
 
@@ -71,7 +69,6 @@ void MedeaMainWindow::themeChanged()
                   "QTableView::item {"
                   "padding: 0px 4px;"
                   "}"
-                "QTableView{background: red;}"
                   );
 
     if (tableWidget && tableWidget->parentWidget()) {

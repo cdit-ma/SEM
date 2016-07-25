@@ -151,88 +151,44 @@ int AttributeTableModel::rowCount(const QModelIndex&) const
 
 int AttributeTableModel::columnCount(const QModelIndex&) const
 {
-    if(hasData()){
-        return 2;
-    }
-    return 0;
+    return 1;
 }
 
 QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 {
+    int column = index.column();
+    int row = index.row();
+
     if (!index.isValid())
         return QVariant();
 
     if (index.row() >= dataOrder.size() || index.row() < 0)
         return QVariant();
 
-    // center align the Values column
     if (role == Qt::TextAlignmentRole) {
-        switch(index.column()){
-
-        case 0:
-            return QVariant(Qt::AlignLeft | Qt::AlignVCenter);
-        case 1:{
+        if(column == 0){
             if(popupMultiLine(index)) {
                 return QVariant(Qt::AlignLeft | Qt::AlignTop);
             }else{
                 return QVariant(Qt::AlignCenter);
-
             }
-        }
         }
     }
 
     if (role == Qt::DecorationRole) {
-        switch(index.column()){
-        case 1:
+        if(column == 0){
             if(popupMultiLine(index)) {
                 return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16));
             }
-           break;
         }
     }
 
-    if (role == Qt::BackgroundRole){
-        if(index.column() < 1){
-            return QVariant::fromValue(QColor(240,240,240));
+    if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
+        if(column == 0){
+            return getDataValue(row);
         }
     }
 
-
-
-
-
-
-    if (role == Qt::DisplayRole) {
-        switch(index.column()){
-        case 0:
-            return getKeyName(index.row());
-        case 1:
-            return getDataValue(index.row());
-        default:
-            return QVariant();
-        }
-    }
-
-    if (role == Qt::EditRole) {
-        switch(index.column()){
-        case 0:
-            return getKeyName(index.row());
-        case 1:
-            return getDataValue(index.row());
-        default:
-            return QVariant();
-        }
-    }
-
-    if (role == Qt::ToolTipRole) {
-        switch(index.column()){
-        case 0:
-            return getKeyName(index.row());
-        case 1:
-            return getDataValue(index.row());
-        }
-    }
     if(role == -1){
         QVariant v(QMetaType::QObjectStar, &attachedEntity);
         return v;
@@ -253,18 +209,8 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
 QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if(!hasData()){
-        return QVariant();
-    }
-    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
-        switch (section) {
-        case 0:
-            return "Key";
-        case 1:
-            return "Value";
-        default:
-            return QVariant();
-        }
+    if(role ==Qt::DisplayRole && orientation == Qt::Vertical){
+        return getKeyName(section);
     }
     return QVariant();
 }
@@ -272,7 +218,7 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
 bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::EditRole) {
-        if (index.column() == 1){
+        if (index.column() == 0){
             if(!isDataProtected(index.row())){
                 QString keyName = getKeyName(index.row());
                 if (guiItem) {
@@ -301,17 +247,18 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
         return Qt::ItemIsEnabled;
     }
 
-    if(index.isValid()){
-        if(index.column() == 1){
-            bool isIndexProtected = isDataProtected(index.row());
-            if(!isIndexProtected){
-                //Set it editable.
-                return QAbstractTableModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsEnabled;
-            }
+    int row = index.row();
+    int column = index.column();
+
+    if(column == 0){
+        bool isIndexProtected = isDataProtected(row);
+        if(!isIndexProtected){
+            //Set it editable.
+            return  Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
         }
     }
 
-    return (QAbstractTableModel::flags(index)  ^ Qt::ItemIsEnabled);
+    return Qt::NoItemFlags;
 }
 
 bool AttributeTableModel::isDataProtected(int row) const
