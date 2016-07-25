@@ -219,13 +219,14 @@ void MedeaDockWidget::showContextMenu(const QPoint &point)
 
 void MedeaDockWidget::updateActiveStyleSheet()
 {
-    QString activeColor = Theme::theme()->getActiveWidgetBorderColorHex();
     if (isActive()) {
+        QString activeColor = Theme::theme()->getActiveWidgetBorderColorHex();
         setStyleSheet("QGraphicsView { border: 1px solid " + activeColor + ";}"
                       "QToolButton::!hover { background:" + activeColor +";}"
-                      "QToolBar { background:" + activeColor +"; border: 1px solid " + activeColor + ";}");
+                      "QToolBar { background:" + activeColor + "; border: 1px solid " + activeColor + ";}");
     } else {
         setStyleSheet("");
+        //setStyleSheet("QToolBar { border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + ";}");
     }
 }
 

@@ -2,6 +2,8 @@
 #define MEDEAMAINWINDOW_H
 
 #include <QTableView>
+#include <QPushButton>
+#include <QLineEdit>
 
 #include "medeawindownew.h"
 #include "../../View/nodeviewnew.h"
@@ -23,18 +25,34 @@ private slots:
 
     void spawnSubView();
 
-    void updateDataTableSize();
-
 private:
     void connectNodeView(NodeViewNew* nodeView);
     void setupTools();
     void setupInnerWindow();
+    void setupMenuAndTitle();
+    void setupToolBar();
+    void setupSearchBar();
     void setupDataTable();
     void setupMinimap();
 
 private:
     MedeaWindowNew* innerWindow;
+
+    QToolBar* containerToolbar;
+    QToolBar* floatingToolbar;
+    QHBoxLayout* toolbarLayout;
+
+    QPushButton* menuButton;
+    QPushButton* projectTitleButton;
+    QToolButton* middlewareButton;
+    QToolButton* closeProjectButton;
+
+    QLineEdit* searchBar;
+    QToolButton* searchButton;
+    QToolButton* searchOptionsButton;
+
     TableWidget* tableWidget;
+    NodeViewMinimap* minimap;
 
     NodeViewNew* nodeView_Interfaces;
     NodeViewNew* nodeView_Behaviour;
@@ -42,7 +60,6 @@ private:
     NodeViewNew* nodeView_Hardware;
     ViewController* viewController;
 
-    NodeViewMinimap* minimap;
 };
 
 #endif // MEDEAMAINWINDOW_H

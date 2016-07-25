@@ -4,19 +4,14 @@
 #include <QObject>
 #include <QDebug>
 #include <QPalette>
+
 TableWidget::TableWidget(QWidget *parent) : QWidget(parent)
 {
-
     iconSize = QSize(32,32);
     setupLayout();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     themeChanged();
-
-
-    height = 300;
-
-
 }
 
 void TableWidget::activeSelectedItemChanged(ViewItem *item, bool isActive)
@@ -36,7 +31,6 @@ void TableWidget::activeSelectedItemChanged(ViewItem *item, bool isActive)
         iconLabel->setText("");
         label->setText("");
     }
-
 
     if (tableView) {
         tableView->setModel(model);
@@ -72,35 +66,15 @@ void TableWidget::themeChanged()
                   "QTableView::item::selected{background-color: " + highlightColor + ";color:" + highlightTextColor + ";}"
                   );
     tableView->setStyleSheet("QHeaderView{background-color: " + BGColor +";border:none;color:" + textColor+";}"
-                "QHeaderView::section{background-color:" + altBGColor +";border:0px;}"
+                "QHeaderView::section{background-color:" + altBGColor +";border:0px; padding: 0px 0px 0px 3px;}"
                 "QHeaderView::section:hover{background-color:" + highlightColor +";color:" + highlightTextColor + ";border:0px;}"
                              "QHeaderView::section:selected{font-weight:normal;}"
                              "QTableView QLineEdit{background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
                              "QTableView QComboBox{background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
                              "QTableView QSpinBox {background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
                              "QTableView QDoubleSpinBox{background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
-
-
                 );
 
-
-    //tableView->setPalette(p);
-
-}
-
-void TableWidget::updateTableSize()
-{
-    if (tableView->model()) {
-        qreal tableHeight = 0;
-        tableHeight += tableView->horizontalHeader()->size().height();
-        tableHeight += tableView->contentsMargins().top() + tableView->contentsMargins().bottom();
-        for (int i = 0; i < tableView->model()->rowCount(); i++){
-            tableHeight += tableView->rowHeight(i);
-        }
-        //tableView->resize(tableView->width(), tableHeight);
-    } else {
-        //tableView->resize(tableView->width(), 0);
-    }
 }
 
 void TableWidget::setupLayout()
@@ -118,8 +92,6 @@ void TableWidget::setupLayout()
     tableView->horizontalHeader()->setHighlightSections(false);
     tableView->verticalHeader()->setHighlightSections(false);
 
-    QLabel* topLeftCornerLabel = new QLabel("Key", this);
-    tableView->setCornerWidget(topLeftCornerLabel);
     iconLabel = new QLabel(this);
     label = new QLabel(this);
     label->setMinimumWidth(1);
@@ -130,6 +102,8 @@ void TableWidget::setupLayout()
     toolbar->addWidget(iconLabel);
     toolbar->addWidget(label);
     cycleForwardAction = toolbar->addAction("Cycle Forward");
+
+    //toolbar->setStyleSheet("QToolBar{ padding: 20px 0px; }");
 
     layout->addWidget(toolbar);
 

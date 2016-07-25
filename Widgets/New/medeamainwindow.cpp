@@ -37,8 +37,10 @@ void MedeaMainWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
     QString BGColor = theme->getBackgroundColorHex();
+    QString disabledBGColor = theme->getDisabledBackgroundColorHex();
     QString altBGColor = theme->getAltBackgroundColorHex();
     QString textColor = theme->getTextColorHex(Theme::CR_NORMAL);
+    QString textDisabledColor = theme->getTextColorHex(Theme::CR_DISABLED);
     QString highlightColor = theme->getHighlightColorHex();
     QString pressedColor = theme->getPressedColorHex();
 
@@ -50,14 +52,14 @@ void MedeaMainWindow::themeChanged()
                   "background: " + BGColor + ";"
                   "}"
                   "QToolBar {"
-                  "margin:1px 0px;"
+                  "spacing: 3px;"
                   "background: " + altBGColor + ";"
-                  "border:1px solid " + BGColor + ";"
+                  "border:1px solid " + disabledBGColor + ";"
                   "}"
                   "QToolButton {"
                   "padding:0px;"
-                  "border: none;"
-                  "border-radius: 2px;"
+                  //"border: 1px solid " + disabledBGColor + ";"
+                  "border-radius: 5px;"
                   "background:" + altBGColor + ";"
                   "}"
                   "QToolButton:hover {"
@@ -66,14 +68,28 @@ void MedeaMainWindow::themeChanged()
                   "QToolButton:pressed {"
                   "background:" + pressedColor + ";"
                   "}"
-                  "QTableView::item {"
-                  "padding: 0px 4px;"
-                  "}"
+                  "QDockWidget{ background: " + BGColor + ";}"
+                  "QPushButton{ color:" + textColor + ";}"
                   );
 
-    if (tableWidget && tableWidget->parentWidget()) {
-        tableWidget->parentWidget()->setStyleSheet("QDockWidget{ background: " + BGColor + ";}");
-    }
+    containerToolbar->setStyleSheet("QToolBar{ border: none; padding: 1px; margin: 0px; background:" + BGColor + ";}");
+    floatingToolbar->setStyleSheet("QToolBar{ border: none; padding: 1px; margin: 0px; background:" + BGColor + ";}");
+
+    searchBar->setStyleSheet("QLineEdit {"
+                             "background: " + altBGColor + ";"
+                             "color: " + textDisabledColor + ";"
+                             "border: 1px solid " + disabledBGColor + ";"
+                             "}"
+                             "QLineEdit:focus {"
+                             "border-color:" + highlightColor + ";"
+                             "background: " + altBGColor + ";"
+                             "color:" + textColor + ";"
+                             "}");
+
+    middlewareButton->setIcon(Theme::theme()->getIcon("Actions", "Arrow_Down"));
+    closeProjectButton->setIcon(Theme::theme()->getIcon("Actions", "Close"));
+    searchButton->setIcon(Theme::theme()->getIcon("Actions", "Search"));
+    searchOptionsButton->setIcon(Theme::theme()->getIcon("Actions", "Settings"));
 }
 
 void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock, MedeaViewDockWidget *prevDock)
@@ -103,7 +119,6 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
         }
     }
 }
-
 
 void MedeaMainWindow::spawnSubView()
 {
@@ -140,6 +155,25 @@ void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
 
 void MedeaMainWindow::setupTools()
 {
+    toolbarLayout = new QHBoxLayout();
+    toolbarLayout->setSpacing(0);
+    toolbarLayout->setMargin(0);
+
+    containerToolbar = new QToolBar(this);
+    containerToolbar->setFixedHeight(34);
+    containerToolbar->setIconSize(QSize(24,24));
+    containerToolbar->setMovable(false);
+    containerToolbar->setFloatable(false);
+
+    QWidget* widget = new QWidget(this);
+    widget->setLayout(toolbarLayout);
+
+    containerToolbar->addWidget(widget);
+    addToolBar(Qt::TopToolBarArea, containerToolbar);
+
+    setupMenuAndTitle();
+    setupToolBar();
+    setupSearchBar();
     setupDataTable();
     setupMinimap();
 }
@@ -159,7 +193,6 @@ void MedeaMainWindow::setupInnerWindow()
     nodeView_Behaviour->setContainedViewAspect(VA_BEHAVIOUR);
     nodeView_Assemblies->setContainedViewAspect(VA_ASSEMBLIES);
     nodeView_Hardware->setContainedViewAspect(VA_HARDWARE);
-
 
     MedeaDockWidget *dockWidget1 = MedeaWindowManager::constructViewDockWidget("Interface", Qt::TopDockWidgetArea);
     dockWidget1->setWidget(nodeView_Interfaces);
@@ -189,29 +222,101 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockWidget4);
 }
 
+void MedeaMainWindow::setupMenuAndTitle()
+{
+    menuButton = new QPushButton(Theme::theme()->getIcon("Actions", "MEDEAIcon"), "", this);
+    menuButton->setFixedSize(30, 30);
+    menuButton->setIconSize(menuButton->size() - QSize(2,8));
+
+    projectTitleButton = new QPushButton("Project Title", this);
+    projectTitleButton->setFont(QFont("Verdana", 10));
+    projectTitleButton->setFlat(true);
+
+    middlewareButton = new QToolButton(this);
+    middlewareButton->setFixedSize(20,20);
+    middlewareButton->setToolTip("Select Model's Middleware");
+
+    closeProjectButton = new QToolButton(this);
+    closeProjectButton->setFixedSize(20,20);
+    closeProjectButton->setToolTip("Close Active Project");
+    //closeProjectButton->hide();
+
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->addWidget(menuButton);
+    toolbar->addWidget(projectTitleButton);
+    toolbar->addWidget(middlewareButton);
+    toolbar->addWidget(closeProjectButton);
+    toolbarLayout->addWidget(toolbar);
+}
+
+void MedeaMainWindow::setupToolBar()
+{
+    floatingToolbar = new QToolBar(this);
+
+    QToolButton* b1 = new QToolButton(this);
+    QToolButton* b2 = new QToolButton(this);
+    QToolButton* b3 = new QToolButton(this);
+    QToolButton* b4 = new QToolButton(this);
+    QToolButton* b5 = new QToolButton(this);
+
+    QWidget* w1 = new QWidget(this);
+    QWidget* w2 = new QWidget(this);
+    w1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    w2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    floatingToolbar->addWidget(w1);
+    floatingToolbar->addWidget(b1);
+    floatingToolbar->addWidget(b2);
+    floatingToolbar->addWidget(b3);
+    floatingToolbar->addWidget(b4);
+    floatingToolbar->addWidget(b5);
+    floatingToolbar->addWidget(w2);
+    //toolbarLayout->addWidget(floatingToolbar, 1);
+    addToolBar(Qt::LeftToolBarArea, floatingToolbar);
+}
+
+void MedeaMainWindow::setupSearchBar()
+{
+    searchBar = new QLineEdit(this);
+    searchBar->setFixedHeight(28);
+    searchBar->setPlaceholderText("Search Here...");
+    searchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    searchButton = new QToolButton(this);
+    searchButton->setToolTip("Submit Search");
+
+    searchOptionsButton = new QToolButton(this);
+    searchOptionsButton->setToolTip("Search Settings");
+
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->setFixedWidth(255);
+    toolbar->setStyleSheet("QToolBar{ background: rgba(0,0,0,0); }");
+
+    toolbar->addWidget(searchBar);
+    toolbar->addWidget(searchButton);
+    toolbar->addWidget(searchOptionsButton);
+    toolbarLayout->addWidget(toolbar);
+}
+
 void MedeaMainWindow::setupDataTable()
 {
     tableWidget = new TableWidget(this);
-    qCritical() << "YELLO!";
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Table");
     dockWidget->setWidget(tableWidget);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
-    connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(updateDataTableSize()));
 }
 
 void MedeaMainWindow::setupMinimap()
 {
     minimap = new NodeViewMinimap(this);
-    minimap->setFixedHeight(200);
+    minimap->setFixedHeight(175);
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Minimap");
     dockWidget->setWidget(minimap);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
-
-
 
     MedeaDockWidget* dockWidget2 = MedeaWindowManager::constructToolDockWidget("Sub Views Yo");
     QPushButton* button = new QPushButton("Spawn SubView");
@@ -222,31 +327,4 @@ void MedeaMainWindow::setupMinimap()
 
     connect(button, SIGNAL(clicked(bool)), this, SLOT(spawnSubView()));
 }
-
-void MedeaMainWindow::updateDataTableSize()
-{
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

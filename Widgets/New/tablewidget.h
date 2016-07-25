@@ -19,13 +19,14 @@ private slots:
     void activeSelectedItemChanged(ViewItem* item, bool isActive);
     void cyclePressed();
     void themeChanged();
+
 signals:
     void cycleActiveItem(bool forward);
-private:
-    void updateTableSize();
-    void setupLayout();
-    QVBoxLayout * layout;
 
+private:
+    void setupLayout();
+
+    QVBoxLayout * layout;
     ViewItem* activeItem;
 
     QSize iconSize;
@@ -36,8 +37,6 @@ private:
     QAction* cycleBackwardAction;
     QAction* cycleForwardAction;
 
-    int height;
-    // QWidget interface
 };
 
 #endif // TABLEWIDGET_H
