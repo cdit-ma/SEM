@@ -84,36 +84,17 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
 
-    QColor grey = Qt::gray;
-    grey.setAlpha(20);
-
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(grey);
-    painter->drawRect(boundingRect());
-
-
-
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(getBodyColor());
-    painter->drawRect(bodyRect());
-    painter->setBrush(getBodyColor().darker(105));
-    painter->drawRect(headerRect());
-    painter->setBrush(Qt::NoBrush);
-
-    QPen pen;
-
-    pen.setColor(Qt::yellow);
-    painter->setPen(pen);
-    painter->drawPath(getChildNodePath());
-
-
 
     if(state > RS_BLOCK){
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(getBodyColor());
+        painter->drawRect(bodyRect());
+        painter->setBrush(getBodyColor().darker(105));
+        painter->drawRect(headerRect());
+        painter->setBrush(Qt::NoBrush);
+
         QPair<QString, QString> icon = getIconPath();
         paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
-        //paintPixmap(painter, lod, ER_MAIN_ICON, "Actions", "Square", Qt::yellow);
-
-
 
         paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
         paintPixmap(painter, lod, ER_STATUS, "Actions", "Computer");
@@ -126,10 +107,11 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
         paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, "Actions", "Key");
     }
 
-    painter->setPen(Qt::NoPen);
-    painter->setPen(Qt::black);
-    QString label = getData("label").toString();
      if(state > RS_BLOCK){
+        QString label = getData("label").toString();
+
+        painter->setPen(Qt::NoPen);
+        painter->setPen(Qt::black);
         painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignVCenter | Qt::AlignLeft, label);
         painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, label);
 

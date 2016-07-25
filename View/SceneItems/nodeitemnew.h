@@ -55,8 +55,7 @@ public:
 
     virtual QRectF sceneBoundingRect() const;
 
-    QColor getBodyColor() const;
-    void setBodyColor(QColor color);
+
 
     //RECTS
     virtual QRectF viewRect() const;
@@ -145,7 +144,7 @@ private:
     QMarginsF margin;
     QMarginsF bodyPadding;
 
-    QColor bodyColor;
+
 
     bool gridEnabled;
     bool gridVisible;

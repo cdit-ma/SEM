@@ -41,6 +41,10 @@ protected:
 private:
     int ID;
     static int _WindowID;
+
+    // QWidget interface
+protected:
+    bool focusNextPrevChild(bool next);
 };
 
 #endif

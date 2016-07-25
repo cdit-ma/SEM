@@ -105,12 +105,12 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
 {
     if(currentHandler != handler){
         if(currentHandler){
-            disconnect(currentHandler, SIGNAL(activeSelectedItemChanged(ViewItem*)), this, SIGNAL(activeSelectedItemChanged(ViewItem*)));
+            disconnect(currentHandler, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)), this, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)));
         }
         currentHandler = handler;
         if(handler){
-            connect(currentHandler, SIGNAL(activeSelectedItemChanged(ViewItem*)), this, SIGNAL(activeSelectedItemChanged(ViewItem*)));
-            emit activeSelectedItemChanged(currentHandler->getActiveSelectedItem());
+            connect(currentHandler, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)), this, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)));
+            emit activeSelectedItemChanged(currentHandler->getActiveSelectedItem(), true);
         }
         emit selectionChanged();
     }

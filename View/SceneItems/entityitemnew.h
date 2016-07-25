@@ -33,6 +33,10 @@ public:
 
     ViewItem* getViewItem() const;
 
+
+    QColor getBodyColor() const;
+    void setBodyColor(QColor color);
+
     void setPos(const QPointF &pos);
     int getID();
 
@@ -179,6 +183,7 @@ private:
     QPointF previousMovePoint;
 
     QPen defaultPen;
+    QColor bodyColor;
 
     KIND kind;
 
@@ -192,6 +197,10 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
+
+    // QGraphicsItem interface
+public:
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
 #endif // GRAPHMLITEM_H

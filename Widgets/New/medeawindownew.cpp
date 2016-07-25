@@ -124,4 +124,10 @@ void MedeaWindowNew::closeEvent(QCloseEvent *)
     MedeaWindowManager::destructWindow(this);
 }
 
+bool MedeaWindowNew::focusNextPrevChild(bool)
+{
+    //Disable Tabs
+    return false;
+}
+
 

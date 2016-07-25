@@ -20,7 +20,7 @@ public:
     ViewItem* getFirstSelectedItem();
 
 signals:
-    void activeSelectedItemChanged(ViewItem* item);
+    void activeSelectedItemChanged(ViewItem* item, bool isActive);
     void selectionChanged();
     void viewItemDeleted(ViewItem* item);
 private slots:

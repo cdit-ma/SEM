@@ -34,6 +34,7 @@ public slots:
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 private slots:
     void selectionHandler_ItemSelected(ViewItem*item, bool selected);
+    void selectionHandler_ActiveSelectedItemChanged(ViewItem* item, bool isActive);
 
     void themeChanged();
 
@@ -41,6 +42,7 @@ private slots:
     void fitToScreen();
 
     void item_SetSelected(EntityItemNew* item, bool selected, bool append);
+    void item_SetActiveSelected(EntityItemNew* item, bool active);
     void item_SetExpanded(EntityItemNew* item, bool expand);
     void item_SetCentered(EntityItemNew* item);
     void item_AdjustingPos(bool adjusting);
@@ -103,12 +105,12 @@ protected:
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
-   //void focusInEvent(QFocusEvent* event);
-   // void focusOutEvent(QFocusEvent* event);
 
-    // QGraphicsView interface
-protected:
     void drawBackground(QPainter *painter, const QRectF &rect);
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *);
 };
 
 #endif // NODEVIEWNEW_H

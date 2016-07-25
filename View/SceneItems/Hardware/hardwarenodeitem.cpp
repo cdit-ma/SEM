@@ -108,37 +108,30 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     RENDER_STATE state = getRenderState(lod);
 
     //Set Clip Rectangle
-    painter->setClipRect(option->exposedRect);
-
-    painter->setPen(Qt::NoPen);
-
-    if(isExpanded()){
-        painter->setBrush(getBodyColor());
-        painter->drawRoundedRect(rightRect(),cornerRadius, cornerRadius);
-    }
-
-    painter->setBrush(getBodyColor().darker(120));
-    painter->drawRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
-
-    if(isExpanded()){
-        mainTextFont.setPixelSize(labelRect().height());
-        painter->setPen(Qt::black);
-        painter->drawText(labelRect(),Qt::AlignCenter, getData("label").toString());
-        painter->drawText(ipTextRect(),Qt::AlignVCenter | Qt::AlignLeft, getData("ip_address").toString());
-    }else{
-
-    }
-
-
     if(state > RS_BLOCK){
+        painter->setClipRect(option->exposedRect);
+        painter->setPen(Qt::NoPen);
+        if(isExpanded()){
+            painter->setBrush(getBodyColor());
+            painter->drawRoundedRect(rightRect(),cornerRadius, cornerRadius);
+        }
+        painter->setBrush(getBodyColor().darker(120));
+        painter->drawRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
+
+        if(isExpanded()){
+            mainTextFont.setPixelSize(labelRect().height());
+            painter->setPen(Qt::black);
+            painter->drawText(labelRect(),Qt::AlignCenter, getData("label").toString());
+            painter->drawText(ipTextRect(),Qt::AlignVCenter | Qt::AlignLeft, getData("ip_address").toString());
+        }
+
+
         QPair<QString, QString> icon = getIconPath();
         paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
         if(isExpanded()){
             paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", "ip_address");
         }
     }
-
-
     //Call Base class
     NodeItemNew::paint(painter, option, widget);
 }

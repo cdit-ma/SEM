@@ -19,6 +19,7 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
     setTitleBarWidget(titleBar);
 
     _isProtected = false;
+    //setFocusPolicy(Qt::ClickFocus);
 
     setContextMenuPolicy(Qt::PreventContextMenu);
 

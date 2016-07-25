@@ -50,6 +50,36 @@ void SelectionHandler::clearSelection()
     _selectionChanged(changes);
 }
 
+void SelectionHandler::setActiveSelectedItem(ViewItem *viewItem)
+{
+    if(viewItem && currentSelection.contains(viewItem)){
+        newActiveSelectedItem = viewItem;
+        _selectionChanged();
+    }
+}
+
+void SelectionHandler::cycleActiveSelectedItem(bool forward)
+{
+    if(currentActiveSelectedItem){
+        int index = currentSelection.indexOf(currentActiveSelectedItem);
+        int lastPos = currentSelection.size() - 1;
+        if(forward){
+            index ++;
+        }else{
+            index --;
+        }
+
+        if(index > lastPos){
+            index = 0;
+        }else if(index < 0){
+            index = lastPos;
+        }
+
+        newActiveSelectedItem = currentSelection.at(index);
+        _selectionChanged();
+    }
+}
+
 QVector<ViewItem *> SelectionHandler::getSelection()
 {
     return currentSelection;
@@ -74,15 +104,19 @@ ViewItem *SelectionHandler::getActiveSelectedItem()
     return getFirstSelectedItem();
 }
 
-void SelectionHandler::_selectionChanged(int changes = 0)
+void SelectionHandler::_selectionChanged(int changes)
 {
     if(changes > 0){
         emit selectionChanged(currentSelection.size());
     }
     if(newActiveSelectedItem != currentActiveSelectedItem){
+        if(currentActiveSelectedItem){
+            emit activeSelectedItemChanged(currentActiveSelectedItem, false);
+        }
         currentActiveSelectedItem = newActiveSelectedItem;
         newActiveSelectedItem = currentActiveSelectedItem;
-        emit activeSelectedItemChanged(currentActiveSelectedItem);
+
+        emit activeSelectedItemChanged(currentActiveSelectedItem, true);
     }
 }
 
@@ -170,4 +204,5 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected, bool sendS
     }
     return changeCount;
 }
+
 

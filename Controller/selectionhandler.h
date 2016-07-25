@@ -19,20 +19,26 @@ public:
     void setItemSelected(ViewItem* item, bool setSelected, bool append=false);
     void setItemsSelected(QList<ViewItem*> items, bool setSelected, bool append=false);
     void clearSelection();
+
+    void setActiveSelectedItem(ViewItem* viewItem);
+    void cycleActiveSelectedItem(bool forward = true);
+
     QVector<ViewItem*> getSelection();
     int getSelectionCount();
     ViewItem* getFirstSelectedItem();
     ViewItem* getActiveSelectedItem();
 signals:
     void itemSelected(ViewItem* item, bool isSelected);
-    void activeSelectedItemChanged(ViewItem* item);
+    void activeSelectedItemChanged(ViewItem* item, bool isActive);
     void selectionChanged(int count);
 private slots:
     void itemDeleted(int ID, ViewItem *item);
 private:
-    void _selectionChanged(int changes);
+    void _selectionChanged(int changes = 0);
     int _clearSelection();
     int _setItemSelected(ViewItem* item, bool selected, bool sendSignal=true);
+
+
 
     bool isItemsAncestorSelected(ViewItem* item);
     int unsetItemsDescendants(ViewItem* item);

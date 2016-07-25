@@ -19,7 +19,7 @@ public:
 private slots:
     void themeChanged();
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget);
-    void activeSelectedItemChanged(ViewItem* item);
+    void activeSelectedItemChanged(ViewItem* item, bool isActive);
 
     void spawnSubView();
 

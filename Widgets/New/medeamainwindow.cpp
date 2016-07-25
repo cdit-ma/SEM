@@ -25,7 +25,7 @@ void MedeaMainWindow::setViewController(ViewController *vc)
 {
     viewController = vc;
     SelectionController* controller = vc->getSelectionController();
-    connect(controller, SIGNAL(activeSelectedItemChanged(ViewItem*)), this, SLOT(activeSelectedItemChanged(ViewItem*)));
+    connect(controller, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)), this, SLOT(activeSelectedItemChanged(ViewItem*, bool)));
     connectNodeView(nodeView_Interfaces);
     connectNodeView(nodeView_Behaviour);
     connectNodeView(nodeView_Assemblies);
@@ -94,14 +94,13 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock)
     }
 }
 
-void MedeaMainWindow::activeSelectedItemChanged(ViewItem *item)
+void MedeaMainWindow::activeSelectedItemChanged(ViewItem *item, bool isActive)
 {
     QAbstractItemModel* model = 0;
-    if (item) {
+    if (item && isActive) {
         model = item->getTableModel();
     }
     if (tableView) {
-
         tableView->setModel(model);
 
         if (tableView->horizontalHeader()->count() == 2) {

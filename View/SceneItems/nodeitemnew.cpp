@@ -48,18 +48,7 @@ NodeItemNew::~NodeItemNew()
 }
 
 
-QColor NodeItemNew::getBodyColor() const
-{
-    return bodyColor;
-}
 
-void NodeItemNew::setBodyColor(QColor color)
-{
-    if(bodyColor != color){
-        bodyColor = color;
-        update();
-    }
-}
 
 QRectF NodeItemNew::viewRect() const
 {
@@ -745,6 +734,8 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
         painter->restore();
     }
+
+    EntityItemNew::paint(painter, option, widget);
 }
 
 QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const

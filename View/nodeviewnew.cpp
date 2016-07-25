@@ -24,6 +24,8 @@ NodeViewNew::NodeViewNew():QGraphicsView()
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
+
+
     setScene(new QGraphicsScene(this));
     scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
@@ -70,6 +72,7 @@ void NodeViewNew::setViewController(ViewController *viewController)
     if(viewController){
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
         connect(selectionHandler, SIGNAL(itemSelected(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelected(ViewItem*,bool)));
+        connect(selectionHandler, SIGNAL(activeSelectedItemChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ActiveSelectedItemChanged(ViewItem*,bool)));
     }
 }
 
@@ -148,6 +151,16 @@ void NodeViewNew::selectionHandler_ItemSelected(ViewItem *item, bool selected)
     }
 }
 
+void NodeViewNew::selectionHandler_ActiveSelectedItemChanged(ViewItem *item, bool isActive)
+{
+    if(item){
+        EntityItemNew* e = getEntityItem(item->getID());
+        if(e){
+            e->setActiveSelected(isActive);
+        }
+    }
+}
+
 void NodeViewNew::themeChanged()
 {
     aspectColor = Theme::theme()->getAspectBackgroundColor(containedAspect);
@@ -166,8 +179,15 @@ void NodeViewNew::fitToScreen()
 
 void NodeViewNew::item_SetSelected(EntityItemNew *item, bool selected, bool append)
 {
-    if(selectionHandler){
+    if(selectionHandler && item){
         selectionHandler->setItemSelected(item->getViewItem(), selected, append);
+    }
+}
+
+void NodeViewNew::item_SetActiveSelected(EntityItemNew *item, bool active)
+{
+    if(selectionHandler && item){
+        selectionHandler->setActiveSelectedItem(item->getViewItem());
     }
 }
 
@@ -328,6 +348,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             if(nodeItem){
                 guiItems[ID] = nodeItem;
                 connect(nodeItem, SIGNAL(req_setSelected(EntityItemNew*,bool,bool)), this, SLOT(item_SetSelected(EntityItemNew*,bool,bool)));
+                connect(nodeItem, SIGNAL(req_setActiveSelected(EntityItemNew*,bool)), this, SLOT(item_SetActiveSelected(EntityItemNew*, bool)));
                 connect(nodeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(item_SetExpanded(EntityItemNew*,bool)));
                 connect(nodeItem, SIGNAL(req_centerItem(EntityItemNew*)), this, SLOT(item_SetCentered(EntityItemNew*)));
                 connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(item_AdjustPos(QPointF)));
@@ -491,6 +512,14 @@ void NodeViewNew::keyPressEvent(QKeyEvent *event)
     }
     if(event->key() == Qt::Key_Escape){
         clearSelection();
+        event->accept();
+    }
+    if(event->key() == Qt::Key_Tab){
+        //Cycle Selection.
+        selectionHandler->cycleActiveSelectedItem(true);
+    }
+    if(event->key() == Qt::Key_Backtab){
+        selectionHandler->cycleActiveSelectedItem(false);
     }
 }
 
@@ -502,10 +531,7 @@ void NodeViewNew::wheelEvent(QWheelEvent *event)
 
 void NodeViewNew::mousePressEvent(QMouseEvent *event)
 {
-    event->ignore();
-
     QPointF scenePos = mapToScene(event->pos());
-    //bool itemUnderMouse = scene()->itemAt(scenePos, transform());
 
     if(event->button() == Qt::RightButton){
         isPanning = true;
@@ -513,10 +539,14 @@ void NodeViewNew::mousePressEvent(QMouseEvent *event)
         panPrev_Scene = mapToScene(panOrigin_Screen);
         event->accept();
     }
-
-    if(!event->isAccepted()){
-        QGraphicsView::mousePressEvent(event);
+    if(event->button() == Qt::LeftButton){
+        bool itemUnderMouse = scene()->itemAt(scenePos, transform());
+        if(!itemUnderMouse){
+            selectionHandler->clearSelection();
+        }
     }
+
+    QGraphicsView::mousePressEvent(event);
 }
 
 void NodeViewNew::mouseMoveEvent(QMouseEvent *event)
@@ -537,29 +567,22 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
     QGraphicsView::mouseReleaseEvent(event);
 }
 
-/*
-void NodeViewNew::focusInEvent(QFocusEvent *event)
-{
-    emit viewFocussed(this, true);
-    QGraphicsView::focusInEvent(event);
-}
-
-void NodeViewNew::focusOutEvent(QFocusEvent *event)
-{
-    emit viewFocussed(this, false);
-    QGraphicsView::focusOutEvent(event);
-}*/
-
-void NodeViewNew::drawBackground(QPainter *painter, const QRectF &rect)
+void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)
 {
     painter->resetTransform();
 
     painter->setPen(Qt::NoPen);
     painter->setBrush(aspectColor);
-    painter->drawRect(this->rect());
+    painter->drawRect(rect());
 
     painter->setFont(aspectFont);
     painter->setPen(aspectFontColor);
-    painter->drawText(this->rect(), Qt::AlignHCenter | Qt::AlignBottom, aspectName);
+    painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, aspectName);
+}
+
+void NodeViewNew::resizeEvent(QResizeEvent *event)
+{
+    QGraphicsView::resizeEvent(event);
+    viewportChanged();
 }
 

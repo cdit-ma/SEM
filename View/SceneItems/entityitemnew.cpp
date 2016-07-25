@@ -273,14 +273,23 @@ bool EntityItemNew::isDataEditable(QString keyName)
 void EntityItemNew::handleSelection(bool setSelected, bool controlPressed)
 {
     if(isSelectionEnabled()){
-        if(isSelected() && controlPressed){
-            //We should deselect on Control + Click
-            setSelected = false;
+        bool setActive = false;
+
+        if(isSelected()){
+            if(controlPressed){
+                //We should deselect on Control + Click
+                setSelected = false;
+            }else if(!isActiveSelected()){
+                setActive = true;
+            }
         }
 
         if(isSelected() != setSelected){
             //Select/deselect this item
             emit req_setSelected(this, setSelected, controlPressed);
+        }
+        if(isActiveSelected() != setActive){
+            emit req_setActiveSelected(this, true);
         }
     }
 }
@@ -368,10 +377,10 @@ void EntityItemNew::disconnectViewItem()
 
 void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-
     bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
 
     if(event->button() == Qt::LeftButton && getElementPath(ER_SELECTION).contains(event->pos())){
+
         handleSelection(true, controlDown);
     }
 
@@ -461,6 +470,25 @@ void EntityItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
+void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
+    RENDER_STATE state = getRenderState(lod);
+
+    if(state == RS_BLOCK){
+        QBrush brush(Qt::SolidPattern);
+
+        if(isSelected()){
+            brush.setColor(getPen().color());
+        }else{
+            brush.setColor(getBodyColor());
+        }
+        painter->setBrush(brush);
+        painter->setPen(Qt::NoPen);
+        painter->drawPath(getElementPath(ER_SELECTION));
+    }
+}
+
 QPen EntityItemNew::getPen()
 {
     QPen pen = defaultPen;
@@ -480,6 +508,10 @@ QPen EntityItemNew::getPen()
             penColor = QColor(115,115,115);
         }
         penColor = penColor.lighter(130);
+    }
+
+    if(!isActiveSelected()){
+        penColor = penColor.lighter();
     }
 
     pen.setColor(penColor);
@@ -548,6 +580,19 @@ void EntityItemNew::setActiveSelected(bool active)
 {
     if(_isActiveSelected != active){
         _isActiveSelected = active;
+        update();
+    }
+}
+
+QColor EntityItemNew::getBodyColor() const
+{
+    return bodyColor;
+}
+
+void EntityItemNew::setBodyColor(QColor color)
+{
+    if(bodyColor != color){
+        bodyColor = color;
         update();
     }
 }
