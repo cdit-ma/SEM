@@ -52,7 +52,6 @@
 #define SEARCH_DIALOG_MIN_WIDTH ((MIN_WIDTH * 2.0) / 3.0)
 #define SEARCH_DIALOG_MIN_HEIGHT ((MIN_HEIGHT * 2.0) / 3.0)
 
-
 #define SEARCH_VIEW_ASPECTS 0
 #define SEARCH_NODE_KINDS 1
 #define SEARCH_DATA_KEYS 2
@@ -2491,12 +2490,12 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter());
         Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter(120));
 
-        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(250,250,250));
-        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(50,50,50));
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, Theme::theme()->white());
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, Theme::theme()->black());
         Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(130,130,130));
 
-        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(250,250,250));
-        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(50,50,50));
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, Theme::theme()->white());
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, Theme::theme()->black());
         Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
     } else {
         Theme::theme()->setBackgroundColor(QColor(170,170,170));
@@ -2504,12 +2503,12 @@ void MedeaWindow::resetTheme(bool darkTheme)
         Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
         Theme::theme()->setDisabledBackgroundColor(Theme::theme()->getBackgroundColor().lighter(110));
 
-        Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(50,50,50));
-        Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(250,250,250));
+        Theme::theme()->setTextColor(Theme::CR_NORMAL, Theme::theme()->black());
+        Theme::theme()->setTextColor(Theme::CR_SELECTED, Theme::theme()->white());
         Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(130,130,130));
 
-        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(50,50,50));
-        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(250,250,250));
+        Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, Theme::theme()->black());
+        Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, Theme::theme()->white());
         Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, Theme::theme()->getBackgroundColor());
     }
 }

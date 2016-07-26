@@ -25,6 +25,8 @@ protected:
 public:
     enum COLOR_ROLE{CR_NONE, CR_NORMAL, CR_DISABLED, CR_SELECTED};
 
+    QColor white();
+    QColor black();
 
     QColor getBackgroundColor();
     QString getBackgroundColorHex();
@@ -105,6 +107,8 @@ private:
     QHash<COLOR_ROLE, QColor> textColor;
     QHash<COLOR_ROLE, QColor> menuIconColor;
 
+    QColor Theme_white;
+    QColor Theme_black;
 
     QColor deployColor;
     QColor highlightColor;

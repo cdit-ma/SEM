@@ -25,7 +25,19 @@ public:
 
     ActionGroup* applicationToolbar;
 
-    //EDIT
+    QMenu* file_recentProjectsMenu;
+    RootAction* file_recentProjects_clearHistory;
+    RootAction* file_newProject;
+    RootAction* file_importGraphML;
+    RootAction* file_importXME;
+    RootAction* file_importXMI;
+    RootAction* file_openProject;
+    RootAction* file_saveProject;
+    RootAction* file_saveAsProject;
+    RootAction* file_closeProject;
+    RootAction* file_importSnippet;
+    RootAction* file_exportSnippet;
+
     RootAction* edit_undo;
     RootAction* edit_redo;
     RootAction* edit_cut;
@@ -47,6 +59,25 @@ public:
     RootAction* view_centerOnImpl;
     RootAction* view_viewConnections;
     RootAction* view_viewInNewWindow;
+
+    RootAction* window_printScreen;
+    RootAction* window_displayMinimap;
+
+    RootAction* model_validateModel;
+    RootAction* model_clearModel;
+    RootAction* model_executeLocalJob;
+
+    RootAction* settings_editToolbarButtons;
+    RootAction* settings_changeAppSettings;
+
+    RootAction* help_aboutMedea;
+    RootAction* help_wiki;
+    RootAction* help_aboutQt;
+    RootAction* help_shortcuts;
+    RootAction* help_reportBug;
+
+    RootAction* jenkins_importNodes;
+    RootAction* jenkins_executeJob;
 
 
     RootAction* toolbar_contextToolbar;

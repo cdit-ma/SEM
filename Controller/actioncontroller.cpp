@@ -93,6 +93,18 @@ QMenu *ActionController::getMainMenu()
 
 void ActionController::setupActions()
 {
+    file_newProject = new RootAction("New Project");
+    file_openProject = new RootAction("Open Project");
+    file_recentProjects_clearHistory = new RootAction("Clear History");
+    file_saveProject = new RootAction("Save Project");
+    file_saveAsProject = new RootAction("Save Project As");
+    file_closeProject = new RootAction("Close Project");
+    file_importGraphML = new RootAction("Import Project");
+    file_importXME = new RootAction("Import XME File");
+    file_importXMI = new RootAction("Import UML XMI File");
+    file_importSnippet = new RootAction("Import Snippet");
+    file_exportSnippet = new RootAction("Export Snippet");
+
     edit_undo = new RootAction("Undo");
     edit_redo = new RootAction("Redo");
     edit_cut = new RootAction("Cut");
@@ -112,9 +124,25 @@ void ActionController::setupActions()
     view_viewConnections = new RootAction("View Connections");
     view_viewInNewWindow = new RootAction("View In New Window");
 
+    window_printScreen = new RootAction("Print Screen");
+    window_displayMinimap = new RootAction("Display Minimap");
+
+    model_clearModel = new RootAction("Clear Model");
+    model_validateModel = new RootAction("Validate Model");
+    model_executeLocalJob = new RootAction("Launch: Local Deployment");
+    model_executeLocalJob->setToolTip("Requires Valid CUTS and Windows");
+
+    jenkins_importNodes = new RootAction("Import Jenkins Nodes");
+    jenkins_executeJob = new RootAction("Launch: ");
+
+    help_shortcuts = new RootAction("App Shortcuts");
+    help_reportBug = new RootAction("Report Bug");
+    help_wiki = new RootAction("Wiki");
+    help_aboutMedea = new RootAction("About MEDEA");
+    help_aboutQt = new RootAction("About Qt");
+
     menu_settings = new RootAction("Settings");
     menu_exit = new RootAction("Exit");
-
 
     toolbar_contextToolbar = new RootAction("Show Context Toolbar");
 }
@@ -134,6 +162,23 @@ void ActionController::setupMainMenu()
     mainMenu->addSeparator();
     mainMenu_help = mainMenu->addMenu("Help");
     mainMenu->addAction(menu_exit);
+
+    // File Menu
+    mainMenu_file->addAction(file_newProject);
+    mainMenu_file->addAction(file_openProject);
+    file_recentProjectsMenu = mainMenu_file->addMenu("Recent Projects");
+    file_recentProjectsMenu->addAction(file_recentProjects_clearHistory);
+    mainMenu_file->addSeparator();
+    mainMenu_file->addAction(file_saveProject);
+    mainMenu_file->addAction(file_saveAsProject);
+    mainMenu_file->addAction(file_closeProject);
+    mainMenu_file->addSeparator();
+    mainMenu_file->addAction(file_importGraphML);
+    mainMenu_file->addAction(file_importXME);
+    mainMenu_file->addAction(file_importXMI);
+    mainMenu_file->addSeparator();
+    mainMenu_file->addAction(file_importSnippet);
+    mainMenu_file->addAction(file_exportSnippet);
 }
 
 void ActionController::setupApplicationToolbar()

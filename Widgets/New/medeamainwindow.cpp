@@ -7,16 +7,16 @@
 #include <QHeaderView>
 #include <QPushButton>
 #include <QMenuBar>
-#define TOOLBAR_HEIGHT 34
+#define TOOLBAR_HEIGHT 32
 
 
 MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
     viewController = vc;
 
+    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setMinimumSize(1000,600);
     showNormal();
-
 
     setupInnerWindow();
     setupTools();
@@ -41,7 +41,7 @@ void MedeaMainWindow::themeChanged()
     QString disabledBGColor = theme->getDisabledBackgroundColorHex();
     QString altBGColor = theme->getAltBackgroundColorHex();
     QString textColor = theme->getTextColorHex(Theme::CR_NORMAL);
-    QString textHighlightColor = theme->getTextColorHex(Theme::CR_SELECTED);
+    QString textSelectedColor = theme->getTextColorHex(Theme::CR_SELECTED);
     QString textDisabledColor = theme->getTextColorHex(Theme::CR_DISABLED);
     QString highlightColor = theme->getHighlightColorHex();
     QString pressedColor = theme->getPressedColorHex();
@@ -57,17 +57,21 @@ void MedeaMainWindow::themeChanged()
                   "spacing: 3px;"
                   "border: none;"
                   "padding: 1px;"
-                  //"padding: 50px 0px 20px 30px;"
                   "margin: 0px;"
                   "background:" + BGColor + ";"
                   "}"
+                  "QToolBar::separator {"
+                  "width: 5px;"
+                  "background: rgba(0,0,0,0);"
+                  "}"
                   "DockTitleBarWidget {"
-                  "padding: 1px;"
+                  "padding: 0px;"
+                  "spacing: 0px;"
                   "background: " + altBGColor + ";"
-                  "border:1px solid " + disabledBGColor + ";"
+                  "border: 1px solid " + disabledBGColor + ";"
                   "}"
                   "QToolButton {"
-                  "padding:0px;"
+                  "padding:2px;"
                   //"border: 1px solid " + disabledBGColor + ";"
                   "border-radius: 5px;"
                   "background:" + altBGColor + ";"
@@ -78,24 +82,63 @@ void MedeaMainWindow::themeChanged()
                   "QToolButton:pressed {"
                   "background:" + pressedColor + ";"
                   "}"
+                  "QPushButton {"
+                  "background:" + altBGColor + ";"
+                  "color:" + textColor + ";"
+                  "border-radius: 5px;"
+                  "border: 1px solid " + disabledBGColor + ";"
+                  "}"
+                  "QPushButton:hover {"
+                  "background: " + highlightColor + ";"
+                  "color:" + textSelectedColor + ";"
+                  "}"
+                  "QMenuBar {"
+                  "padding: 3px;"
+                  "background:" + BGColor + ";"
+                  "border-bottom: 1px solid " + disabledBGColor + ";"
+                  "}"
+                  "QMenuBar::item {"
+                  "background:" + BGColor + ";"
+                  "color:" + textColor + ";"
+                  "padding: 5px;"
+                  "}"
+                  "QMenuBar::item:selected {"
+                  "color:" + textSelectedColor + ";"
+                  "background:" + highlightColor + ";"
+                  "border-radius: 2px;"
+                  "}"
+                  "QMenu {"
+                  "background:" + altBGColor + ";"
+                  "}"
+                  "QMenu::item {"
+                  "padding: 2px 20px 2px 30px;"
+                  "background:" + altBGColor + ";"
+                  "color:" + textColor + ";"
+                  "border: none;"
+                  "}"
+                  "QMenu::item:disabled {"
+                  "color:" + textDisabledColor + ";"
+                  "}"
+                  "QMenu::item:selected:!disabled {"
+                  "color:" + textSelectedColor + ";"
+                  "background: " + highlightColor + ";"
+                  "}"
                   "QDockWidget{ background: " + BGColor + ";}"
-                  "QPushButton{ background:" + altBGColor + "; color:" + textColor + "; border-radius: 5px; border: 1px solid " + disabledBGColor + "; }"
-                  "QPushButton:hover{ background: " + highlightColor + "; color:" + textHighlightColor + "; }"
                   );
+
+    viewController->getActionController()->mainMenu_file->setStyleSheet(styleSheet());
 
     searchBar->setStyleSheet("QLineEdit {"
                              "background: " + altBGColor + ";"
-                             "color: " + textDisabledColor + ";"
+                             "color:" + textColor + ";"
                              "border: 1px solid " + disabledBGColor + ";"
                              "}"
                              "QLineEdit:focus {"
                              "border-color:" + highlightColor + ";"
-                             "background: " + altBGColor + ";"
-                             "color:" + textColor + ";"
                              "}");
 
-    middlewareButton->setIcon(Theme::theme()->getIcon("Actions", "Arrow_Down"));
-    closeProjectButton->setIcon(Theme::theme()->getIcon("Actions", "Close"));
+    //middlewareButton->setIcon(Theme::theme()->getIcon("Actions", "Arrow_Down"));
+    //closeProjectButton->setIcon(Theme::theme()->getIcon("Actions", "Close"));
     searchButton->setIcon(Theme::theme()->getIcon("Actions", "Search"));
     searchOptionsButton->setIcon(Theme::theme()->getIcon("Actions", "Settings"));
 }
@@ -163,7 +206,8 @@ void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
 
 void MedeaMainWindow::setupTools()
 {
-    setupMenuAndTitle();
+    //setupMenuAndTitle();
+    setupMenuBar();
     setupToolBar();
     setupSearchBar();
     setupDataTable();
@@ -217,15 +261,12 @@ void MedeaMainWindow::setupInnerWindow()
     connectNodeView(nodeView_Behaviour);
     connectNodeView(nodeView_Assemblies);
     connectNodeView(nodeView_Hardware);
-
-
-
 }
 
 void MedeaMainWindow::setupMenuAndTitle()
 {
     menuButton = new QPushButton(Theme::theme()->getIcon("Actions", "MEDEAIcon"), "", this);
-    menuButton->setFixedSize(30, 30);
+    menuButton->setFixedSize(30,30);
     menuButton->setIconSize(menuButton->size() - QSize(2,8));
 
     projectTitleButton = new QPushButton("Project Title", this);
@@ -241,7 +282,6 @@ void MedeaMainWindow::setupMenuAndTitle()
     closeProjectButton = new QToolButton(this);
     closeProjectButton->setFixedSize(20,20);
     closeProjectButton->setToolTip("Close Active Project");
-    //closeProjectButton->hide();
 
     QWidget* spacerWidget1 = new QWidget(this);
     QWidget* spacerWidget2 = new QWidget(this);
@@ -250,8 +290,6 @@ void MedeaMainWindow::setupMenuAndTitle()
 
     QToolBar* toolbar = new QToolBar(this);
     toolbar->addWidget(menuButton);
-
-
     toolbar->addWidget(spacerWidget1);
     toolbar->addWidget(projectTitleButton);
     toolbar->addWidget(spacerWidget2);
@@ -265,21 +303,31 @@ void MedeaMainWindow::setupMenuAndTitle()
     addToolBar(Qt::TopToolBarArea, toolbar);
 
     //menuButton->setMenu(viewController->getActionController()->mainMenu);
-    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_file);
-    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_edit);
-    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_view);
-    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_model);
-    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_jenkins);
-    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_window);
-    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_help);
+}
 
-    //this->menuBar()->setVisible(true);
+void MedeaMainWindow::setupMenuBar()
+{
+    menuBar = new QMenuBar(0);
+    menuBar->addMenu(viewController->getActionController()->mainMenu_file);
+    menuBar->addMenu(viewController->getActionController()->mainMenu_edit);
+    menuBar->addMenu(viewController->getActionController()->mainMenu_view);
+    menuBar->addMenu(viewController->getActionController()->mainMenu_model);
+    menuBar->addMenu(viewController->getActionController()->mainMenu_jenkins);
+    menuBar->addMenu(viewController->getActionController()->mainMenu_window);
+    menuBar->addMenu(viewController->getActionController()->mainMenu_help);
 
+    // TODO - Find out how to set the height of the menubar items
+    menuBar->setFixedHeight(TOOLBAR_HEIGHT);
+    setMenuBar(menuBar);
 }
 
 void MedeaMainWindow::setupToolBar()
 {
     floatingToolbar = new QToolBar(this);
+    floatingToolbar->setStyleSheet("QToolBar{ margin: 5px; background: rgba(0,0,0,0); }");
+    floatingToolbar->setIconSize(QSize(24,24));
+    floatingToolbar->setMovable(false);
+    floatingToolbar->setFloatable(false);
 
     QWidget* w1 = new QWidget(this);
     QWidget* w2 = new QWidget(this);
@@ -290,15 +338,36 @@ void MedeaMainWindow::setupToolBar()
     floatingToolbar->addActions(viewController->getActionController()->applicationToolbar->actions());
     floatingToolbar->addWidget(w2);
 
-    addToolBar(Qt::TopToolBarArea, floatingToolbar);
+    /*
+    QHBoxLayout* layout = new QHBoxLayout();
+    layout->setSpacing(0);
+    layout->setMargin(0);
+    layout->addStretch();
+    layout->addWidget(floatingToolbar);
+    layout->addStretch();
+
+    QWidget* holderWidget = new QWidget(this);
+    holderWidget->setLayout(layout);
+    */
+
+    //addToolBar(Qt::TopToolBarArea, floatingToolbar);
+
+    MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Application Toolbar");
+    // TODO - removing the titlebar widget stops it from being moveable
+    //dockWidget->setTitleBarWidget(new QWidget(this));
+    //dockWidget->setStyleSheet("QDockWidget{padding:0px; margin:0px;}");
+    //dockWidget->setWidget(holderWidget);
+    dockWidget->setWidget(floatingToolbar);
+    dockWidget->setAllowedAreas(Qt::TopDockWidgetArea);
+    addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
 }
 
 void MedeaMainWindow::setupSearchBar()
 {   
     searchBar = new QLineEdit(this);
-    searchBar->setMinimumHeight(28);
+    searchBar->setFixedWidth(195);
     searchBar->setPlaceholderText("Search Here...");
-    searchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    searchBar->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
     searchButton = new QToolButton(this);
     searchButton->setToolTip("Submit Search");
@@ -307,12 +376,13 @@ void MedeaMainWindow::setupSearchBar()
     searchOptionsButton->setToolTip("Search Settings");
 
     QToolBar* searchToolbar = new QToolBar(this);
-    searchToolbar->setFixedWidth(255);
-
+    searchToolbar->setIconSize(QSize(18,18));
+    searchToolbar->setFixedHeight(menuBar->height() - 6);
     searchToolbar->addWidget(searchBar);
     searchToolbar->addWidget(searchButton);
     searchToolbar->addWidget(searchOptionsButton);
 
+    /*
     QWidget* holderWidget = new QWidget(this);
     QWidget* fillerWidget = new QWidget(this);
     fillerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -330,6 +400,9 @@ void MedeaMainWindow::setupSearchBar()
     toolbar->setFixedHeight(TOOLBAR_HEIGHT);
     toolbar->addWidget(holderWidget);
     addToolBar(Qt::TopToolBarArea, toolbar);
+    */
+
+    menuBar->setCornerWidget(searchToolbar);
 }
 
 void MedeaMainWindow::setupDataTable()

@@ -30,6 +30,7 @@ private:
     void setupTools();
     void setupInnerWindow();
     void setupMenuAndTitle();
+    void setupMenuBar();
     void setupToolBar();
     void setupSearchBar();
     void setupDataTable();
@@ -38,6 +39,7 @@ private:
 private:
     MedeaWindowNew* innerWindow;
 
+    QMenuBar* menuBar;
     QPushButton* menuButton;
     QPushButton* projectTitleButton;
     QToolButton* middlewareButton;

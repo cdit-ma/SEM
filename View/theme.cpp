@@ -20,11 +20,24 @@ Theme::Theme():QObject(0)
     deployColor.setBlue(160);
 
     selectedItemBorderColor = Qt::blue;
+
+    Theme_white = QColor(250,250,250);
+    Theme_black = QColor(50,50,50);
 }
 
 Theme::~Theme()
 {
 
+}
+
+QColor Theme::white()
+{
+    return Theme_white;
+}
+
+QColor Theme::black()
+{
+    return Theme_black;
 }
 
 QColor Theme::getBackgroundColor()
@@ -104,12 +117,12 @@ QString Theme::getSelectedItemBorderColorHex()
 
 QColor Theme::getActiveWidgetBorderColor()
 {
-    if (textColor[CR_NORMAL] == QColor(250,250,250)) {
-        return QColor(50,50,50);
-    } else if (textColor[CR_NORMAL] == QColor(50,50,50)) {
-        return QColor(255,255,255);
+    if (textColor[CR_NORMAL] == white()) {
+        return black();
+    } else if (textColor[CR_NORMAL] == black()) {
+        return white();
     } else {
-        return Qt::white;
+        return black();
     }
 }
 

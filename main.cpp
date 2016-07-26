@@ -39,10 +39,11 @@ int launchMEDEA(int argc, char *argv[]){
 
     ViewController* vc = new ViewController();
 
+
     MedeaMainWindow* w2 = (MedeaMainWindow*) MedeaWindowManager::constructMainWindow(vc);
+    MedeaWindow *w = new MedeaWindow(vc, graphmlFilePath);
     //w2->setViewController(vc);
 
-    MedeaWindow *w = new MedeaWindow(vc, graphmlFilePath);
     a.setActiveWindow(w2);
     return a.exec();
 }
