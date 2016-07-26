@@ -8,21 +8,16 @@
 #include <QLabel>
 #include <QAction>
 #include "../../View/viewitem.h"
-
+#include "../../Controller/viewcontroller.h"
 class TableWidget : public QWidget
 {
     Q_OBJECT
 public:
-    TableWidget(QWidget *parent = 0);
+    TableWidget(ViewController *controller, QWidget *parent = 0);
 
 private slots:
-    void activeSelectedItemChanged(ViewItem* item, bool isActive);
-    void cyclePressed();
+    void itemActiveSelectionChanged(ViewItem* item, bool isActive);
     void themeChanged();
-
-signals:
-    void cycleActiveItem(bool forward);
-
 private:
     void setupLayout();
 
@@ -34,8 +29,7 @@ private:
     QToolBar* toolbar;
     QLabel* iconLabel;
     QLabel* label;
-    QAction* cycleBackwardAction;
-    QAction* cycleForwardAction;
+    ViewController* viewController;
 
 };
 

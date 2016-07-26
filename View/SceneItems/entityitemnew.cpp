@@ -270,26 +270,21 @@ bool EntityItemNew::isDataEditable(QString keyName)
     return false;
 }
 
-void EntityItemNew::handleSelection(bool setSelected, bool controlPressed)
+void EntityItemNew::handleSelection(bool append)
 {
     if(isSelectionEnabled()){
         bool setActive = false;
 
         if(isSelected()){
-            if(controlPressed){
-                //We should deselect on Control + Click
-                setSelected = false;
-            }else if(!isActiveSelected()){
+            if(!append && !isActiveSelected()){
                 setActive = true;
             }
         }
 
-        if(isSelected() != setSelected){
-            //Select/deselect this item
-            emit req_setSelected(this, setSelected, controlPressed);
-        }
-        if(isActiveSelected() != setActive){
-            emit req_setActiveSelected(this, true);
+        if(setActive){
+            emit req_activeSelected(getViewItem());
+        }else{
+            emit req_selected(getViewItem(), append);
         }
     }
 }
@@ -380,8 +375,7 @@ void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
     bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
 
     if(event->button() == Qt::LeftButton && getElementPath(ER_SELECTION).contains(event->pos())){
-
-        handleSelection(true, controlDown);
+        handleSelection(controlDown);
     }
 
     if(event->button() == Qt::MiddleButton){

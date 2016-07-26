@@ -5,11 +5,19 @@
 ViewController::ViewController(){
     modelItem = 0;
     selectionController = new SelectionController(this);
+    actionController = new ActionController(this);
+    actionController->connectSelectionController(selectionController);
+
 }
 
 SelectionController *ViewController::getSelectionController()
 {
     return selectionController;
+}
+
+ActionController *ViewController::getActionController()
+{
+    return actionController;
 }
 
 

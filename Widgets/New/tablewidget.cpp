@@ -5,8 +5,9 @@
 #include <QDebug>
 #include <QPalette>
 
-TableWidget::TableWidget(QWidget *parent) : QWidget(parent)
+TableWidget::TableWidget(ViewController *controller, QWidget *parent) : QWidget(parent)
 {
+    viewController = controller;
     iconSize = QSize(32,32);
     setupLayout();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
@@ -14,7 +15,7 @@ TableWidget::TableWidget(QWidget *parent) : QWidget(parent)
     themeChanged();
 }
 
-void TableWidget::activeSelectedItemChanged(ViewItem *item, bool isActive)
+void TableWidget::itemActiveSelectionChanged(ViewItem *item, bool isActive)
 {
     QAbstractItemModel* model = 0;
     if(item){
@@ -37,20 +38,9 @@ void TableWidget::activeSelectedItemChanged(ViewItem *item, bool isActive)
     }
 }
 
-void TableWidget::cyclePressed()
-{
-    if(sender() == cycleForwardAction){
-        emit cycleActiveItem(true);
-    }else if(sender() == cycleBackwardAction){
-        emit cycleActiveItem(false);
-    }
-}
-
 void TableWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    cycleBackwardAction->setIcon(theme->getIcon("Actions", "Arrow_Left"));
-    cycleForwardAction->setIcon(theme->getIcon("Actions", "Arrow_Right"));
 
     QString BGColor = theme->getBackgroundColorHex();
     QString highlightColor = theme->getHighlightColorHex();
@@ -98,20 +88,12 @@ void TableWidget::setupLayout()
     label->setAlignment(Qt::AlignCenter);
     label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
 
-    cycleBackwardAction = toolbar->addAction("Cycle Backward");
+    toolbar->addAction(viewController->getActionController()->view_CycleActiveSelectionBackward);
     toolbar->addWidget(iconLabel);
     toolbar->addWidget(label);
-    cycleForwardAction = toolbar->addAction("Cycle Forward");
-
-    //toolbar->setStyleSheet("QToolBar{ padding: 20px 0px; }");
+    toolbar->addAction(viewController->getActionController()->view_CycleActiveSelectionForward);
 
     layout->addWidget(toolbar);
 
     layout->addWidget(tableView, 1);
-    //QWidget* widget = new QWidget(this);
-    //widget->setStyleSheet("background:yellow;");
-    //layout->addWidget(widget, 1);
-
-    connect(cycleForwardAction, SIGNAL(triggered(bool)), this, SLOT(cyclePressed()));
-    connect(cycleBackwardAction, SIGNAL(triggered(bool)), this, SLOT(cyclePressed()));
 }

@@ -82,7 +82,8 @@ public:
     //State Handlers
     void handleExpand(bool expand);
     void handleHover(bool hovered);
-    void handleSelection(bool setSelected, bool controlPressed);
+    void handleSelection(bool append);
+
 
 public:
     //Item State Getters
@@ -124,8 +125,8 @@ signals:
     void req_adjustingPos(bool adjusting);
 
     //Request changes
-    void req_setSelected(EntityItemNew*, bool, bool);
-    void req_setActiveSelected(EntityItemNew*, bool);
+    void req_selected(ViewItem*, bool);
+    void req_activeSelected(ViewItem*);
 
     void req_setData(ViewItem* item, QString keyName, QVariant data);
 

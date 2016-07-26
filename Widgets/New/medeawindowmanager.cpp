@@ -25,9 +25,9 @@ MedeaWindowManager* MedeaWindowManager::manager()
     return managerSingleton;
 }
 
-MedeaWindowNew *MedeaWindowManager::constructMainWindow(QString title)
+MedeaWindowNew *MedeaWindowManager::constructMainWindow(ViewController* vc, QString title)
 {
-    return manager()->_constructMainWindow(title);
+    return manager()->_constructMainWindow(vc, title);
 }
 
 MedeaWindowNew *MedeaWindowManager::constructSubWindow(QString title)
@@ -120,11 +120,11 @@ MedeaWindowManager::~MedeaWindowManager()
     _destructWindow(mainWindow);
 }
 
-MedeaWindowNew *MedeaWindowManager::_constructMainWindow(QString title)
+MedeaWindowNew *MedeaWindowManager::_constructMainWindow(ViewController* vc, QString title)
 {
     MedeaMainWindow* window = 0;
     if(!mainWindow){
-        window = new MedeaMainWindow();
+        window = new MedeaMainWindow(vc);
         window->setWindowTitle(title);
         mainWindow = window;
         addWindow(window);

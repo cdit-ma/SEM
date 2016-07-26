@@ -5,7 +5,7 @@
 #include "../View/viewitem.h"
 #include "selectionhandler.h"
 #include "../Widgets/New/selectioncontroller.h"
-
+#include "actioncontroller.h"
 
 class ViewController : public QObject
 {
@@ -14,6 +14,7 @@ public:
     ViewController();
 
     SelectionController* getSelectionController();
+    ActionController* getActionController();
 
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
@@ -32,6 +33,7 @@ private:
     ViewItem* modelItem;
 
     SelectionController* selectionController;
+    ActionController* actionController;
 };
 
 #endif // VIEWCONTROLLER_H

@@ -17,7 +17,7 @@ MedeaWindowNew::MedeaWindowNew(QWidget *parent, MedeaWindowNew::WindowType type)
     setDockNestingEnabled(false);
     setTabPosition(Qt::RightDockWidgetArea, QTabWidget::North);
     setContextMenuPolicy(Qt::CustomContextMenu);
-
+    setFocusPolicy(Qt::ClickFocus);
 
     //Setup Tab positions
     setTabPosition(Qt::RightDockWidgetArea, QTabWidget::West);

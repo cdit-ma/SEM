@@ -20,14 +20,16 @@ public:
     ViewItem* getFirstSelectedItem();
 
 signals:
-    void activeSelectedItemChanged(ViewItem* item, bool isActive);
-    void selectionChanged();
+    void itemActiveSelectionChanged(ViewItem* item, bool isActive);
+    void selectionChanged(int selected);
     void viewItemDeleted(ViewItem* item);
 private slots:
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget);
-    void cycleActiveSelectedItem(bool forward);
+    void cycleActiveSelectionBackward();
+    void cycleActiveSelectionForward();
     void removeSelectionHandler();
 private:
+    void cycleActiveSelectedItem(bool forward);
     void setCurrentSelectionHandler(SelectionHandler* handler);
     SelectionHandler* currentHandler;
     QHash<QObject*, int> selectionHandlerIDLookup;

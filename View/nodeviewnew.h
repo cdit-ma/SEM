@@ -26,6 +26,7 @@ public:
     void viewportChanged();
     SelectionHandler* getSelectionHandler();
 signals:
+    void toolbarRequested(QPointF screenPos);
     void viewportChanged(QRectF rect, qreal zoom);
     void viewFocussed(NodeViewNew* view, bool focussed);
 
@@ -33,16 +34,17 @@ public slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 private slots:
-    void selectionHandler_ItemSelected(ViewItem*item, bool selected);
-    void selectionHandler_ActiveSelectedItemChanged(ViewItem* item, bool isActive);
+    void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
+    void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
 
     void themeChanged();
 
 private slots:
     void fitToScreen();
 
-    void item_SetSelected(EntityItemNew* item, bool selected, bool append);
-    void item_SetActiveSelected(EntityItemNew* item, bool active);
+    void item_Selected(ViewItem* item, bool append);
+    void item_ActiveSelected(ViewItem* item);
+
     void item_SetExpanded(EntityItemNew* item, bool expand);
     void item_SetCentered(EntityItemNew* item);
     void item_AdjustingPos(bool adjusting);
@@ -73,9 +75,13 @@ private:
 
     QPointF getScenePosOfPoint(QPoint pos = QPoint());
 private:
+    void selectItemsInRubberband();
     void clearSelection();
     void selectAll();
     void setupAspect();
+    void setState(VIEW_STATE state);
+    void transition();
+    qreal distance(QPoint p1, QPoint p2);
 private:
     QList<int> topLevelGUIItemIDs;
     QHash<int, EntityItemNew*> guiItems;
@@ -83,15 +89,21 @@ private:
     ViewController* viewController;
     SelectionHandler* selectionHandler;
 
-    bool isPanning;
-    QPoint panOrigin_Screen;
-    QPointF panPrev_Scene;
+    QPoint pan_lastPos;
+    QPointF pan_lastScenePos;
+    qreal pan_distance;
+
+    QPoint rubberband_lastPos;
+    QRubberBand* rubberband;
+
 
     QPointF viewportCenter_Scene;
 
 
     VIEW_ASPECT containedAspect;
     NodeViewItem* containedNodeViewItem;
+
+    VIEW_STATE viewState;
 
     QString aspectName;
     QColor aspectColor;
@@ -100,6 +112,7 @@ private:
 
 protected:
     void keyPressEvent(QKeyEvent* event);
+    void keyReleaseEvent(QKeyEvent* event);
     void wheelEvent(QWheelEvent* event);
 
     void mousePressEvent(QMouseEvent* event);

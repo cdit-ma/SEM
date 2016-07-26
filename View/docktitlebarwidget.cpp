@@ -3,7 +3,7 @@
 DockTitleBarWidget::DockTitleBarWidget(QWidget* parent) : QToolBar(parent)
 {
     //This sets to the parent that everything is okay.
-    setFocusPolicy(Qt::ClickFocus);
+    setFocusPolicy(Qt::NoFocus);
     setFocusProxy(parent);
 
     //Setting as Custom Context Menu so the parent can catch this signal.

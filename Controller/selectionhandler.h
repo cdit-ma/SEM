@@ -16,8 +16,9 @@ protected:
     int getID();
 
 public:
-    void setItemSelected(ViewItem* item, bool setSelected, bool append=false);
-    void setItemsSelected(QList<ViewItem*> items, bool setSelected, bool append=false);
+    void toggleItemsSelection(ViewItem* item, bool append = false);
+    void toggleItemsSelection(QList<ViewItem*> items, bool append = false);
+
     void clearSelection();
 
     void setActiveSelectedItem(ViewItem* viewItem);
@@ -25,18 +26,21 @@ public:
 
     QVector<ViewItem*> getSelection();
     int getSelectionCount();
+
     ViewItem* getFirstSelectedItem();
     ViewItem* getActiveSelectedItem();
 signals:
-    void itemSelected(ViewItem* item, bool isSelected);
-    void activeSelectedItemChanged(ViewItem* item, bool isActive);
+    void itemSelectionChanged(ViewItem*, bool selected);
+    void itemActiveSelectionChanged(ViewItem* item, bool active);
+
     void selectionChanged(int count);
 private slots:
     void itemDeleted(int ID, ViewItem *item);
 private:
     void _selectionChanged(int changes = 0);
     int _clearSelection();
-    int _setItemSelected(ViewItem* item, bool selected, bool sendSignal=true);
+    int _toggleItemsSelection(ViewItem* item, bool deletingItem=false);
+    int _setItemSelected(ViewItem* item, bool selected);
 
 
 

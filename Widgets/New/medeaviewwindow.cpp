@@ -4,6 +4,7 @@
 #include <QMenu>
 MedeaViewWindow::MedeaViewWindow():MedeaWindowNew(0, MedeaWindowNew::VIEW_WINDOW)
 {
+
     setAcceptDrops(true);
     setDockNestingEnabled(true);
     //Setup Tab positions

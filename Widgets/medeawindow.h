@@ -659,7 +659,7 @@ private:
 
     int NOTIFICATION_TIME;
 
-    MedeaWindowNew* window;
+    //MedeaWindowNew* window;
 
 
     QStack<QString> recentProjectsList;

@@ -84,6 +84,16 @@ void SelectionController::activeViewDockWidgetChanged(MedeaViewDockWidget *dockW
     }
 }
 
+void SelectionController::cycleActiveSelectionBackward()
+{
+    cycleActiveSelectedItem(false);
+}
+
+void SelectionController::cycleActiveSelectionForward()
+{
+    cycleActiveSelectedItem(true);
+}
+
 void SelectionController::cycleActiveSelectedItem(bool forward)
 {
     if(currentHandler){
@@ -112,14 +122,18 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
 {
     if(currentHandler != handler){
         if(currentHandler){
-            disconnect(currentHandler, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)), this, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)));
+            disconnect(currentHandler, SIGNAL(selectionChanged(int)), this, SIGNAL(selectionChanged(int)));
+            disconnect(currentHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)), this, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)));
         }
         currentHandler = handler;
+        int selectionCount = 0;
         if(handler){
-            connect(currentHandler, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)), this, SIGNAL(activeSelectedItemChanged(ViewItem*, bool)));
-            emit activeSelectedItemChanged(currentHandler->getActiveSelectedItem(), true);
+            connect(currentHandler, SIGNAL(selectionChanged(int)), this, SIGNAL(selectionChanged(int)));
+            connect(currentHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)), this, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)));
+            selectionCount = currentHandler->getSelectionCount();
+            emit itemActiveSelectionChanged(currentHandler->getActiveSelectedItem(), true);
         }
-        emit selectionChanged();
+        emit selectionChanged(selectionCount);
     }
 }
 

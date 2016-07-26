@@ -15,7 +15,7 @@ class MedeaMainWindow : public MedeaWindowNew
 {
     Q_OBJECT
 public:
-    MedeaMainWindow(QWidget *parent=0);
+    MedeaMainWindow(ViewController* vc, QWidget *parent=0);
 
     void setViewController(ViewController* vc);
 

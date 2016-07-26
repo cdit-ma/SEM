@@ -6,20 +6,24 @@
 #include <QDebug>
 #include <QHeaderView>
 #include <QPushButton>
-
+#include <QMenuBar>
 #define TOOLBAR_HEIGHT 34
 
 
-MedeaMainWindow::MedeaMainWindow(QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
+MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
+    viewController = vc;
+
     setMinimumSize(1000,600);
     showNormal();
+
 
     setupInnerWindow();
     setupTools();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*,MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)));
+    setViewController(vc);
 }
 
 void MedeaMainWindow::setViewController(ViewController *vc)
@@ -27,12 +31,7 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     viewController = vc;
     SelectionController* controller = vc->getSelectionController();
 
-    connect(tableWidget, SIGNAL(cycleActiveItem(bool)), controller, SLOT(cycleActiveSelectedItem(bool)));
-    connect(controller, SIGNAL(activeSelectedItemChanged(ViewItem*,bool)), tableWidget, SLOT(activeSelectedItemChanged(ViewItem*,bool)));
-    connectNodeView(nodeView_Interfaces);
-    connectNodeView(nodeView_Behaviour);
-    connectNodeView(nodeView_Assemblies);
-    connectNodeView(nodeView_Hardware);
+    connect(controller, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), tableWidget, SLOT(itemActiveSelectionChanged(ViewItem*, bool)));
 }
 
 void MedeaMainWindow::themeChanged()
@@ -213,6 +212,14 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockWidget2);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockWidget3);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockWidget4);
+
+    connectNodeView(nodeView_Interfaces);
+    connectNodeView(nodeView_Behaviour);
+    connectNodeView(nodeView_Assemblies);
+    connectNodeView(nodeView_Hardware);
+
+
+
 }
 
 void MedeaMainWindow::setupMenuAndTitle()
@@ -243,6 +250,8 @@ void MedeaMainWindow::setupMenuAndTitle()
 
     QToolBar* toolbar = new QToolBar(this);
     toolbar->addWidget(menuButton);
+
+
     toolbar->addWidget(spacerWidget1);
     toolbar->addWidget(projectTitleButton);
     toolbar->addWidget(spacerWidget2);
@@ -254,17 +263,23 @@ void MedeaMainWindow::setupMenuAndTitle()
     toolbar->setFixedHeight(TOOLBAR_HEIGHT);
     toolbar->setMinimumWidth(toolbar->sizeHint().width());
     addToolBar(Qt::TopToolBarArea, toolbar);
+
+    //menuButton->setMenu(viewController->getActionController()->mainMenu);
+    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_file);
+    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_edit);
+    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_view);
+    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_model);
+    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_jenkins);
+    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_window);
+    this->menuBar()->addMenu(viewController->getActionController()->mainMenu_help);
+
+    //this->menuBar()->setVisible(true);
+
 }
 
 void MedeaMainWindow::setupToolBar()
 {
     floatingToolbar = new QToolBar(this);
-
-    QToolButton* b1 = new QToolButton(this);
-    QToolButton* b2 = new QToolButton(this);
-    QToolButton* b3 = new QToolButton(this);
-    QToolButton* b4 = new QToolButton(this);
-    QToolButton* b5 = new QToolButton(this);
 
     QWidget* w1 = new QWidget(this);
     QWidget* w2 = new QWidget(this);
@@ -272,31 +287,10 @@ void MedeaMainWindow::setupToolBar()
     w2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     floatingToolbar->addWidget(w1);
-    floatingToolbar->addWidget(b1);
-    floatingToolbar->addWidget(b2);
-    floatingToolbar->addWidget(b3);
-    floatingToolbar->addWidget(b4);
-    floatingToolbar->addWidget(b5);
+    floatingToolbar->addActions(viewController->getActionController()->applicationToolbar->actions());
     floatingToolbar->addWidget(w2);
 
-    /*
-    QHBoxLayout* layout = new QHBoxLayout();
-    layout->addWidget(w1);
-    layout->addWidget(floatingToolbar);
-    layout->addWidget(w2);
-
-    QWidget* holderWidget = new QWidget(this);
-    holderWidget->setLayout(layout);
-
-    QToolBar* toolbar = new QToolBar(this);
-    toolbar->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
-    toolbar->addWidget(holderWidget);
-    addToolBar(Qt::TopToolBarArea, toolbar);
-    */
-
-    //addToolBarBreak();
-    //addToolBar(Qt::TopToolBarArea, floatingToolbar);
-    addToolBar(Qt::LeftToolBarArea, floatingToolbar);
+    addToolBar(Qt::TopToolBarArea, floatingToolbar);
 }
 
 void MedeaMainWindow::setupSearchBar()
@@ -340,7 +334,7 @@ void MedeaMainWindow::setupSearchBar()
 
 void MedeaMainWindow::setupDataTable()
 {
-    tableWidget = new TableWidget(this);
+    tableWidget = new TableWidget(viewController, this);
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Table");
     dockWidget->setWidget(tableWidget);

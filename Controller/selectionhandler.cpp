@@ -17,14 +17,14 @@ int SelectionHandler::getID()
     return ID;
 }
 
-void SelectionHandler::setItemSelected(ViewItem *item, bool setSelected, bool append)
+void SelectionHandler::toggleItemsSelection(ViewItem *item, bool append)
 {
     QList<ViewItem*> items;
     items << item;
-    setItemsSelected(items, setSelected, append);
+    toggleItemsSelection(items, append);
 }
 
-void SelectionHandler::setItemsSelected(QList<ViewItem *> items, bool setSelected, bool append)
+void SelectionHandler::toggleItemsSelection(QList<ViewItem *> items, bool append)
 {
     int changes = 0;
     if(!append){
@@ -32,7 +32,7 @@ void SelectionHandler::setItemsSelected(QList<ViewItem *> items, bool setSelecte
         changes += _clearSelection();
     }
     foreach(ViewItem* item, items){
-        changes += _setItemSelected(item, setSelected);
+        changes += _toggleItemsSelection(item);
     }
 
     _selectionChanged(changes);
@@ -40,7 +40,7 @@ void SelectionHandler::setItemsSelected(QList<ViewItem *> items, bool setSelecte
 
 void SelectionHandler::itemDeleted(int ID, ViewItem *item)
 {
-    int changes = _setItemSelected(item, false, false);
+    int changes = _toggleItemsSelection(item, true);
     _selectionChanged(changes);
 }
 
@@ -107,16 +107,17 @@ ViewItem *SelectionHandler::getActiveSelectedItem()
 void SelectionHandler::_selectionChanged(int changes)
 {
     if(changes > 0){
+        qCritical() << "SELECTION CHANGED!";
         emit selectionChanged(currentSelection.size());
     }
     if(newActiveSelectedItem != currentActiveSelectedItem){
         if(currentActiveSelectedItem){
-            emit activeSelectedItemChanged(currentActiveSelectedItem, false);
+            emit itemActiveSelectionChanged(currentActiveSelectedItem, false);
         }
         currentActiveSelectedItem = newActiveSelectedItem;
         newActiveSelectedItem = currentActiveSelectedItem;
 
-        emit activeSelectedItemChanged(currentActiveSelectedItem, true);
+        emit itemActiveSelectionChanged(currentActiveSelectedItem, true);
     }
 }
 
@@ -124,7 +125,8 @@ int SelectionHandler::_clearSelection()
 {
     int itemsChanged = 0;
     foreach(ViewItem* item, currentSelection){
-        itemsChanged += _setItemSelected(item, false);
+        itemsChanged += _toggleItemsSelection(item);
+        //itemsChanged += _setItemSelected(item, false);
     }
     return itemsChanged;
 }
@@ -163,7 +165,7 @@ int SelectionHandler::unsetItemsDescendants(ViewItem *item)
 
                 if(nodeItem->isAncestorOf(selectedNodeItem)){
                     //Remove it.
-                    itemsUnset += _setItemSelected(selectedItem, false);
+                    itemsUnset += _toggleItemsSelection(selectedItem);
                 }
             }
         }
@@ -171,20 +173,37 @@ int SelectionHandler::unsetItemsDescendants(ViewItem *item)
     return itemsUnset;
 }
 
-int SelectionHandler::_setItemSelected(ViewItem *item, bool selected, bool sendSignal)
+int SelectionHandler::_toggleItemsSelection(ViewItem *item, bool deletingItem)
+{
+    int changeCount = 0;
+
+    bool inSelection = currentSelection.contains(item);
+    if(deletingItem){
+        if(!inSelection){
+            //We don't need to unselect item.
+            return changeCount;
+        }
+    }
+    changeCount += _setItemSelected(item, !inSelection);
+
+    if(changeCount > 0 && !deletingItem){
+        emit itemSelectionChanged(item, !inSelection);
+    }
+    return changeCount;
+}
+
+int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
 {
     int changeCount = 0;
     if(selected){
-        if(!currentSelection.contains(item)){
-            if(!isItemsAncestorSelected(item)){
-                changeCount += unsetItemsDescendants(item);
-                currentSelection.append(item);
-                //If there is only 1 item there can only be 1 active item.
-                if(currentSelection.size() == 1){
-                    newActiveSelectedItem = item;
-                }
-                changeCount += 1;
+        if(!isItemsAncestorSelected(item)){
+            changeCount += unsetItemsDescendants(item);
+            currentSelection.append(item);
+            //If there is only 1 item there can only be 1 active item.
+            if(currentSelection.size() == 1){
+                newActiveSelectedItem = item;
             }
+            changeCount += 1;
         }
     }else{
         //Remove it from the map.
@@ -198,9 +217,6 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected, bool sendS
                 newActiveSelectedItem = currentSelection.first();
             }
         }
-    }
-    if(changeCount > 0 && sendSignal){
-        emit itemSelected(item, selected);
     }
     return changeCount;
 }

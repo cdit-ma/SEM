@@ -2282,9 +2282,7 @@ void MedeaWindow::setupNewNodeView()
 
 
 
-    window = MedeaWindowManager::constructMainWindow();
-
-    window->addToolBar(Qt::TopToolBarArea, toolbar);
+    //window = MedeaWindowManager::constructMainWindow();
     //toolbar->setWindowFlags(Qt::WindowStaysOnTopHint);
     //toolbar->setParent(0);
     //window->addToolBar(Qt::TopToolBarArea, toolbar);

@@ -189,7 +189,10 @@ HEADERS += \
     Widgets/New/medeacentralwindow.h \
     Widgets/New/medeasubwindow.h \
     Widgets/New/medeaviewwindow.h \
-    Widgets/New/tablewidget.h
+    Widgets/New/tablewidget.h \
+    Controller/actioncontroller.h \
+    Widgets/New/actiongroup.h \
+    Controller/rootaction.h
 
 
 SOURCES += \
@@ -343,7 +346,10 @@ SOURCES += \
     Widgets/New/medeacentralwindow.cpp \
     Widgets/New/medeasubwindow.cpp \
     Widgets/New/medeaviewwindow.cpp \
-    Widgets/New/tablewidget.cpp
+    Widgets/New/tablewidget.cpp \
+    Controller/actioncontroller.cpp \
+    Widgets/New/actiongroup.cpp \
+    Controller/rootaction.cpp
 
 
 RESOURCES += \

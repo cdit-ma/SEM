@@ -9,6 +9,7 @@ class MedeaDockWidget;
 class MedeaToolDockWidget;
 class MedeaViewDockWidget;
 class MedeaWindowNew;
+class ViewController;
 
 class MedeaWindowManager : public QObject
 {
@@ -19,7 +20,7 @@ public:
     static void teardown();
 
     //Factory constructor Functions
-    static MedeaWindowNew* constructMainWindow(QString title="");
+    static MedeaWindowNew* constructMainWindow(ViewController* vc, QString title="");
     static MedeaWindowNew* constructSubWindow(QString title="");
     static MedeaWindowNew* constructCentralWindow(QString title="");
     static MedeaViewDockWidget* constructViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
@@ -45,7 +46,7 @@ private slots:
 
 private:
     //Helper functions
-    MedeaWindowNew* _constructMainWindow(QString title);
+    MedeaWindowNew* _constructMainWindow(ViewController *vc, QString title);
     MedeaWindowNew* _constructSubWindow(QString title);
     MedeaWindowNew* _constructCentralWindow(QString title);
     MedeaToolDockWidget* _constructToolDockWidget(QString title);
