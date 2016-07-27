@@ -14,9 +14,9 @@ ActionController::ActionController(QObject *parent) : QObject(parent)
     setupActions();
     setupMainMenu();
     setupApplicationToolbar();
+    setupContextToolbar();
+
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-
-
 }
 
 void ActionController::connectSelectionController(SelectionController *controller)
@@ -238,6 +238,20 @@ void ActionController::setupActions()
 
     toolbar_contextToolbar = createRootAction("Show Context Toolbar", "", "Actions", "Toolbar");
 
+    toolbar_addChild = createRootAction("Add Child Entity", "", "Actions", "Plus");
+    toolbar_hardware = createRootAction("Deploy Selection", "", "Actions", "Computer");
+    toolbar_disconnectHardware = createRootAction("Disconnect Selection From Its Current Deployment", "", "Actions", "Computer_Cross");
+    //toolbar_popOutDefn = createRootAction("View Selection's Definition", "", "Actions", "Popup");
+    //toolbar_popOutImpl = createRootAction("View Selection's Implementation", "", "Actions", "Popup");
+    //toolbar_popOutInst = createRootAction("View Selection's Instance", "", "Actions", "Popup");
+    toolbar_getCPP = createRootAction("Get CPP Code", "", "Actions", "getCPP");
+    toolbar_setReadOnly = createRootAction("Set Selection To Read Only", "", "Actions", "Lock_Closed");
+    toolbar_unsetReadOnly = createRootAction("Unset Selection From Read Only", "", "Actions", "Lock_Open");
+    toolbar_expand = createRootAction("Expand Selection", "", "Actions", "Expand");
+    toolbar_contract = createRootAction("Contract Selection", "", "Actions", "Contract");
+    toolbar_wiki = createRootAction("View Wiki Page For Selected Entity", "", "Actions", "Wiki");
+    toolbar_replicateCount = createRootAction("Change Replicate Count", "", "Actions", "Replicate_Count");
+    toolbar_displayedChildrenOption = createRootAction("Change Displayed Nodes Settings", "", "Actions", "Menu_Vertical");
 }
 
 void ActionController::setupMainMenu()
@@ -250,7 +264,6 @@ void ActionController::setupMainMenu()
     menu_window = new QMenu("Window");
     menu_options = new QMenu("Options");
     menu_help = new QMenu("Help");
-
 
     // File Menu
     menu_file->addAction(file_newProject);
@@ -292,8 +305,6 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_CycleActiveSelectionForward);
     menu_edit->addAction(edit_CycleActiveSelectionBackward);
 
-
-
      // View Menu
     menu_view->addAction(view_fitToScreen);
     menu_view->addSeparator();
@@ -319,7 +330,6 @@ void ActionController::setupMainMenu()
 
     // Options Menu
     menu_options->addAction(options_settings);
-
 
     menu_help->addAction(help_shortcuts);
     menu_help->addAction(help_wiki);
@@ -352,5 +362,55 @@ void ActionController::setupApplicationToolbar()
     applicationToolbar->addSeperator();
     applicationToolbar->addAction(edit_alignVertical);
     applicationToolbar->addAction(edit_alignHorizontal);
+}
+
+void ActionController::setupContextToolbar()
+{
+    contextToolbar = new ActionGroup(this);
+
+    contextToolbar->addAction(toolbar_addChild);
+    contextToolbar->addAction(edit_delete->getStealthAction());
+    contextToolbar->addAction(toolbar_hardware);
+    contextToolbar->addAction(toolbar_disconnectHardware);
+    contextToolbar->addSeperator();
+    contextToolbar->addAction(edit_alignVertical->getStealthAction());
+    contextToolbar->addAction(edit_alignHorizontal->getStealthAction());
+    contextToolbar->addSeperator();
+    contextToolbar->addAction(toolbar_expand);
+    contextToolbar->addAction(toolbar_contract);
+    contextToolbar->addSeperator();
+    contextToolbar->addAction(file_importSnippet->getStealthAction());
+    contextToolbar->addAction(file_exportSnippet->getStealthAction());
+    contextToolbar->addSeperator();
+    contextToolbar->addAction(view_centerOnDefn->getStealthAction());
+    contextToolbar->addAction(view_centerOnImpl->getStealthAction());
+    //contextToolbar->addAction(toolbar_popOutDefn);
+    //contextToolbar->addAction(toolbar_popOutImpl);
+    //contextToolbar->addAction(toolbar_popOutInst);
+    contextToolbar->addSeperator();
+    contextToolbar->addAction(toolbar_displayedChildrenOption);
+    contextToolbar->addAction(toolbar_replicateCount);
+    contextToolbar->addAction(toolbar_setReadOnly);
+    contextToolbar->addAction(toolbar_unsetReadOnly);
+    contextToolbar->addSeperator();
+    contextToolbar->addAction(view_viewConnections->getStealthAction());
+    contextToolbar->addAction(toolbar_getCPP);
+    contextToolbar->addAction(view_viewInNewWindow->getStealthAction());
+    contextToolbar->addAction(toolbar_wiki);
+
+    /*
+    contextToolbar->addAction(edit_cut->getStealthAction());
+    contextToolbar->addAction(edit_copy->getStealthAction());
+    contextToolbar->addAction(edit_paste->getStealthAction());
+    contextToolbar->addAction(edit_replicate->getStealthAction());
+    contextToolbar->addSeperator();
+    contextToolbar->addAction(view_viewInNewWindow->getStealthAction());
+    contextToolbar->addSeperator();
+    contextToolbar->addAction(edit_sort->getStealthAction());
+    contextToolbar->addAction(edit_delete->getStealthAction());
+    contextToolbar->addSeperator();
+    contextToolbar->addAction(edit_alignVertical->getStealthAction());
+    contextToolbar->addAction(edit_alignHorizontal->getStealthAction());
+    */
 }
 

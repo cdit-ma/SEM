@@ -9,6 +9,8 @@ ViewController::ViewController(){
     actionController = new ActionController(this);
     actionController->connectSelectionController(selectionController);
 
+    toolbar = new ToolbarWidgetNew(actionController);
+
     connect(this, SIGNAL(modelReady(bool)), actionController, SLOT(modelReady(bool)));
     emit modelReady(false);
 }
@@ -58,7 +60,8 @@ bool ViewController::isModelReady()
 
 void ViewController::showToolbar(QPointF pos)
 {
-    qCritical() << "pos : " << pos;
+    toolbar->move(pos.toPoint());
+    toolbar->setVisible(true);
 }
 
 void ViewController::setModelReady(bool okay)

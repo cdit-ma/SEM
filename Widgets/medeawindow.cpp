@@ -137,7 +137,7 @@ MedeaWindow::MedeaWindow(ViewController* vc, QString graphMLFile, QWidget *paren
     }
 
     updateTheme();
-
+    newProject();
 }
 
 
@@ -511,8 +511,9 @@ void MedeaWindow::settingsApplied()
             resetAspectTheme(false);
             saveTheme(true);
         }
+        // currently forcing the color blind theme for the aspects
+        resetAspectTheme(true);
     }
-
     //Will only send an update if theme was modifed.
     Theme::theme()->applyTheme();
 }
@@ -2517,7 +2518,8 @@ void MedeaWindow::resetAspectTheme(bool colorBlindTheme)
 {
     if(colorBlindTheme){
         Theme::theme()->setAspectBackgroundColor(VA_INTERFACES, QColor(24,148,184));
-        Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, QColor(110,110,110));
+        //Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, QColor(110,110,110));
+        Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, QColor(90,90,90));
         Theme::theme()->setAspectBackgroundColor(VA_ASSEMBLIES, QColor(175,175,175));
         Theme::theme()->setAspectBackgroundColor(VA_HARDWARE, QColor(207,107,100));
     }else{

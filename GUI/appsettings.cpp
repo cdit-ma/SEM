@@ -49,6 +49,8 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath, QHash<QString
 
     setupLayout();
     updateApplyButton();
+
+    setAspectColor_Blind();
 }
 
 

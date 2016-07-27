@@ -31,6 +31,7 @@ public:
     QHash<QString, RootAction*> actionHash;
 
     ActionGroup* applicationToolbar;
+    ActionGroup* contextToolbar;
 
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
@@ -61,7 +62,6 @@ public:
     RootAction* edit_CycleActiveSelectionForward;
     RootAction* edit_CycleActiveSelectionBackward;
 
-
     RootAction* view_fitToScreen;
     RootAction* view_centerOn;
     RootAction* view_centerOnDefn;
@@ -90,6 +90,21 @@ public:
 
     RootAction* toolbar_contextToolbar;
 
+    RootAction* toolbar_addChild;
+    //RootAction* toolbar_connect;
+    RootAction* toolbar_hardware;
+    RootAction* toolbar_disconnectHardware;
+    //RootAction* toolbar_popOutDefn;
+    //RootAction* toolbar_popOutImpl;
+    //RootAction* toolbar_popOutInst;
+    RootAction* toolbar_getCPP;
+    RootAction* toolbar_setReadOnly;
+    RootAction* toolbar_unsetReadOnly;
+    RootAction* toolbar_expand;
+    RootAction* toolbar_contract;
+    RootAction* toolbar_wiki;
+    RootAction* toolbar_replicateCount;
+    RootAction* toolbar_displayedChildrenOption;
 
     bool _modelReady;
     bool _jenkinsValidated;
@@ -108,6 +123,7 @@ private:
     void setupActions();
     void setupMainMenu();
     void setupApplicationToolbar();
+    void setupContextToolbar();
 };
 
 #endif // ACTIONCONTROLLER_H

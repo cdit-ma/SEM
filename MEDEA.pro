@@ -192,7 +192,8 @@ HEADERS += \
     Widgets/New/tablewidget.h \
     Controller/actioncontroller.h \
     Widgets/New/actiongroup.h \
-    Controller/rootaction.h
+    Controller/rootaction.h \
+    View/Toolbar/toolbarwidgetnew.h
 
 
 SOURCES += \
@@ -349,7 +350,8 @@ SOURCES += \
     Widgets/New/tablewidget.cpp \
     Controller/actioncontroller.cpp \
     Widgets/New/actiongroup.cpp \
-    Controller/rootaction.cpp
+    Controller/rootaction.cpp \
+    View/Toolbar/toolbarwidgetnew.cpp
 
 
 RESOURCES += \

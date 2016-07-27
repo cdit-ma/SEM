@@ -6,6 +6,7 @@
 #include "selectionhandler.h"
 #include "../Widgets/New/selectioncontroller.h"
 #include "actioncontroller.h"
+#include "../View/Toolbar/toolbarwidgetnew.h"
 
 class ViewController : public QObject
 {
@@ -19,6 +20,7 @@ public:
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
     bool isModelReady();
+
 signals:
     void modelReady(bool);
     void viewItemConstructed(ViewItem* viewItem);
@@ -30,7 +32,6 @@ private slots:
     void entityConstructed(EntityAdapter* entity);
     void entityDestructed(EntityAdapter* entity);
 
-
 private:
     bool _modelReady;
     QHash<int, ViewItem*> viewItems;
@@ -38,6 +39,8 @@ private:
 
     SelectionController* selectionController;
     ActionController* actionController;
+
+    ToolbarWidgetNew* toolbar;
 };
 
 #endif // VIEWCONTROLLER_H

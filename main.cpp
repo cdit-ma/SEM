@@ -42,6 +42,7 @@ int launchMEDEA(int argc, char *argv[]){
 
     MedeaMainWindow* w2 = (MedeaMainWindow*) MedeaWindowManager::constructMainWindow(vc);
     MedeaWindow *w = new MedeaWindow(vc, graphmlFilePath);
+
     //w2->setViewController(vc);
 
     a.setActiveWindow(w2);

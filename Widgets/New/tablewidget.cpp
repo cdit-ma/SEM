@@ -25,6 +25,7 @@ void TableWidget::itemActiveSelectionChanged(ViewItem *item, bool isActive)
         QPair<QString, QString> iconPath = item->getIcon();
 
         QPixmap icon = Theme::theme()->getImage(iconPath.first, iconPath.second, iconSize);
+        //icon = icon.scaled(30, 30, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         iconLabel->setPixmap(icon);
         label->setText(item->getData("label").toString());
     }else{
@@ -51,12 +52,12 @@ void TableWidget::themeChanged()
     QString disabledTextColor = theme->getTextColorHex(Theme::CR_DISABLED);
 
     setStyleSheet("QLabel{color: "+ textColor + ";font-weight:bold;}"
-                  "QTableView{background-color: " + BGColor + ";color: "+ textColor + ";}"
+                  "QTableView{background-color: " + BGColor + ";color: "+ textColor + "; border: 1px solid " + disabledBGColor + ";}" //border: 0px; }"
                   "QTableView::item::disabled{background-color: " + BGColor + ";color: " + disabledTextColor + ";}"
                   "QTableView::item::selected{background-color: " + highlightColor + ";color:" + highlightTextColor + ";}"
                   );
     tableView->setStyleSheet("QHeaderView{background-color: " + BGColor +";border:none;color:" + textColor+";}"
-                "QHeaderView::section{background-color:" + altBGColor +";border:0px; padding: 0px 0px 0px 3px;}"
+                "QHeaderView::section{background-color:" + altBGColor +"; border: 1px solid " + BGColor + "; padding: 0px 0px 0px 3px;}"
                 "QHeaderView::section:hover{background-color:" + highlightColor +";color:" + highlightTextColor + ";border:0px;}"
                              "QHeaderView::section:selected{font-weight:normal;}"
                              "QTableView QLineEdit{background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
@@ -64,6 +65,8 @@ void TableWidget::themeChanged()
                              "QTableView QSpinBox {background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
                              "QTableView QDoubleSpinBox{background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
                 );
+
+    toolbar->setStyleSheet("QToolBar{ border: 1px solid " + disabledBGColor + "; border-bottom: 0px; }");
 
 }
 
@@ -86,6 +89,7 @@ void TableWidget::setupLayout()
     label = new QLabel(this);
 
     QWidget* labelWidget = new QWidget(this);
+
     QHBoxLayout* labelWidgetLayout = new QHBoxLayout(labelWidget);
     labelWidgetLayout->setMargin(0);
     labelWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
