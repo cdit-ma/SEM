@@ -56,6 +56,11 @@ bool ViewController::isModelReady()
     return _modelReady;
 }
 
+void ViewController::showToolbar(QPointF pos)
+{
+    qCritical() << "pos : " << pos;
+}
+
 void ViewController::setModelReady(bool okay)
 {
     if(okay != _modelReady){

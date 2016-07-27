@@ -211,6 +211,11 @@ void ActionController::setupActions()
     view_viewConnections = createRootAction("View Connections", "", "Actions", "Connections");
     view_viewInNewWindow = createRootAction("View In New Window", "", "Actions", "Popup");
 
+    view_viewInNewWindow->setData("Test ID");
+    view_viewInNewWindow->setProperty("ID", 12);
+    view_viewInNewWindow->setProperty("ID2", "HELPP");
+    view_viewInNewWindow->setProperty("ID3",  view_viewInNewWindow->icon());
+
     window_printScreen = createRootAction("Print Screen", "", "Actions", "PrintScreen");
     window_displayMinimap = createRootAction("Display Minimap", "", "Actions", "Minimap");
 

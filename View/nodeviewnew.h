@@ -7,6 +7,8 @@
 #include "SceneItems/nodeitemnew.h"
 #include "viewitem.h"
 #include "Controller/viewcontroller.h"
+
+
 //#include "View/Table/attributetablemodel.h"
 
 class NodeViewNew : public QGraphicsView

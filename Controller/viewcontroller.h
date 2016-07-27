@@ -25,6 +25,7 @@ signals:
     void viewItemDestructing(int ID, ViewItem *viewItem);
 
 private slots:
+    void showToolbar(QPointF pos);
     void setModelReady(bool okay);
     void entityConstructed(EntityAdapter* entity);
     void entityDestructed(EntityAdapter* entity);

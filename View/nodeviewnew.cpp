@@ -9,7 +9,6 @@
 #include "SceneItems/defaultnodeitem.h"
 #include "SceneItems/Hardware/hardwarenodeitem.h"
 #include "theme.h"
-
 #include <QDebug>
 #include <QtMath>
 #include <QGraphicsItem>
@@ -59,6 +58,7 @@ NodeViewNew::NodeViewNew():QGraphicsView()
     transition();
 
     themeChanged();
+
 }
 
 NodeViewNew::~NodeViewNew()
@@ -85,6 +85,7 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(selectionHandler, SIGNAL(itemSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelectionChanged(ViewItem*,bool)));
         connect(selectionHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemActiveSelectionChanged(ViewItem*,bool)));
         connect(selectionHandler, SIGNAL(selectAll()), this, SLOT(selectionHandler_SelectAll()));
+        connect(this, SIGNAL(toolbarRequested(QPointF)), viewController, SLOT(showToolbar(QPointF)));
     }
 }
 

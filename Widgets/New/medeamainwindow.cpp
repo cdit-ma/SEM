@@ -187,6 +187,12 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
 
 void MedeaMainWindow::spawnSubView()
 {
+    QAction* action = (QAction*)sender();
+
+    qCritical() << action->data();
+    qCritical() << sender()->property("ID");
+    qCritical() << sender()->property("ID2");
+    qCritical() << sender()->property("ID3");
     if(viewController){
         SelectionController* selectionController = viewController->getSelectionController();
 
