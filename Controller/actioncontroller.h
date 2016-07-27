@@ -54,6 +54,8 @@ public:
     RootAction* edit_delete;
     RootAction* edit_search;
     RootAction* edit_sort;
+    RootAction* edit_clearSelection;
+    RootAction* edit_selectAll;
     RootAction* edit_alignHorizontal;
     RootAction* edit_alignVertical;
     RootAction* edit_CycleActiveSelectionForward;

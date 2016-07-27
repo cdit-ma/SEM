@@ -12,9 +12,11 @@
 
 MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
+    floatingToolbar = 0;
     viewController = vc;
 
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
     setMinimumSize(1000,600);
     showNormal();
 
@@ -32,6 +34,7 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     SelectionController* controller = vc->getSelectionController();
 
     connect(controller, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), tableWidget, SLOT(itemActiveSelectionChanged(ViewItem*, bool)));
+    connect(vc->getActionController()->view_viewInNewWindow, SIGNAL(triggered(bool)), this, SLOT(spawnSubView()));
 }
 
 void MedeaMainWindow::themeChanged()
@@ -71,7 +74,7 @@ void MedeaMainWindow::themeChanged()
                   "border: 1px solid " + disabledBGColor + ";"
                   "}"
                   "QToolButton {"
-                  "padding:2px;"
+                  "padding: 2px;"
                   //"border: 1px solid " + disabledBGColor + ";"
                   "border-radius: 5px;"
                   "background:" + altBGColor + ";"
@@ -108,7 +111,7 @@ void MedeaMainWindow::themeChanged()
                   "border-radius: 2px;"
                   "}"
                   "QMenu {"
-                  "background:" + altBGColor + ";"
+                  "background:" + altBGColor + ";border-radius: 2px; margin:2px 2px 2px 4px; "
                   "}"
                   "QMenu::item {"
                   "padding: 2px 20px 2px 30px;"
@@ -124,10 +127,8 @@ void MedeaMainWindow::themeChanged()
                   "background: " + highlightColor + ";"
                   "border-radius: 2px;"
                   "}"
-                  "QDockWidget{ background: " + BGColor + ";}"
+                  "QDockWidget{margin:5px; background: " + BGColor + ";}"
                   );
-
-
 
     viewController->getActionController()->menu_file->setStyleSheet(styleSheet());
     viewController->getActionController()->menu_file_recentProjects->setStyleSheet(styleSheet());
@@ -138,6 +139,8 @@ void MedeaMainWindow::themeChanged()
     viewController->getActionController()->menu_help->setStyleSheet(styleSheet());
     viewController->getActionController()->menu_window->setStyleSheet(styleSheet());
     viewController->getActionController()->menu_options->setStyleSheet(styleSheet());
+
+    floatingToolbar->setStyleSheet("QToolButton{ padding: 4px; }");
 
     searchBar->setStyleSheet("QLineEdit {"
                              "background: " + altBGColor + ";"
@@ -203,6 +206,30 @@ void MedeaMainWindow::spawnSubView()
                 //Get children.
             }
         }
+    }
+}
+
+void MedeaMainWindow::toolbarChanged(Qt::DockWidgetArea area)
+{
+    if(area == Qt::TopDockWidgetArea || area == Qt::BottomDockWidgetArea){
+        floatingToolbar->setOrientation(Qt::Horizontal);
+        floatingToolbar->setFixedHeight(QWIDGETSIZE_MAX);
+        floatingToolbar->setFixedWidth(QWIDGETSIZE_MAX);
+    }else{
+        floatingToolbar->setOrientation(Qt::Vertical);
+        resizeEvent(0);
+    }
+}
+
+void MedeaMainWindow::toolbarTopLevelChanged(bool undocked)
+{
+    if(undocked){
+        if(floatingToolbar->orientation() == Qt::Vertical){
+            floatingToolbar->setOrientation(Qt::Horizontal);
+            floatingToolbar->setFixedHeight(QWIDGETSIZE_MAX);
+        }
+        //Apply style to give extra space around undocked
+        floatingToolbar->parentWidget()->resize(floatingToolbar->sizeHint() +  QSize(12,0));
     }
 }
 
@@ -336,20 +363,23 @@ void MedeaMainWindow::setupMenuBar()
 void MedeaMainWindow::setupToolBar()
 {
     floatingToolbar = new QToolBar(this);
-    floatingToolbar->setStyleSheet("QToolBar{ margin: 5px; background: rgba(0,0,0,0); }");
-    floatingToolbar->setIconSize(QSize(24,24));
+
+    //floatingToolbar->setIconSize(QSize(24,24));
+    floatingToolbar->setIconSize(QSize(20,20));
     floatingToolbar->setMovable(false);
     floatingToolbar->setFloatable(false);
-    floatingToolbar->setOrientation(Qt::Vertical);
 
     QWidget* w1 = new QWidget(this);
     QWidget* w2 = new QWidget(this);
     w1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     w2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    //floatingToolbar->addWidget(w1);
+    floatingToolbar->addWidget(w1);
     floatingToolbar->addActions(viewController->getActionController()->applicationToolbar->actions());
-    //floatingToolbar->addWidget(w2);
+    floatingToolbar->addWidget(w2);
+
+    //toolbarDockLeft = new QDockWidget(this);
+    //toolbarDockRight = new QDockWidget(this);
 
     /*
     QHBoxLayout* layout = new QHBoxLayout();
@@ -366,14 +396,17 @@ void MedeaMainWindow::setupToolBar()
     //addToolBar(Qt::TopToolBarArea, floatingToolbar);
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Toolbar");
+    dockWidget->setStyleSheet("QDockWidget{margin:5px;}");
+    connect(dockWidget, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(toolbarChanged(Qt::DockWidgetArea)));
+    connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(toolbarTopLevelChanged(bool)));
+
     // TODO - removing the titlebar widget stops it from being moveable
     //dockWidget->setTitleBarWidget(new QWidget(this));
-    //dockWidget->setStyleSheet("QDockWidget{padding:0px; margin:0px;}");
-    //dockWidget->setWidget(holderWidget);
-    dockWidget->setWidget(floatingToolbar);
-    //dockWidget->setAllowedAreas(Qt::TopDockWidgetArea);
-    //addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Vertical);//, Qt::Horizontal);
-    addDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Vertical);//, Qt::Horizontal);
+    dockWidget->setTitleBarWidget(floatingToolbar);
+    dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::LeftDockWidgetArea | Qt::BottomDockWidgetArea);
+
+    addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
+    //adDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Vertical);
 }
 
 void MedeaMainWindow::setupSearchBar()
@@ -438,14 +471,14 @@ void MedeaMainWindow::setupMinimap()
     dockWidget->setWidget(minimap);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
-
-    MedeaDockWidget* dockWidget2 = MedeaWindowManager::constructToolDockWidget("Sub Views Yo");
-    QPushButton* button = new QPushButton("Spawn SubView");
-    button->setFixedHeight(50);
-    dockWidget2->setWidget(button);
-    dockWidget2->setAllowedAreas(Qt::RightDockWidgetArea);
-    addDockWidget(Qt::RightDockWidgetArea, dockWidget2, Qt::Vertical);
-
-    connect(button, SIGNAL(clicked(bool)), this, SLOT(spawnSubView()));
 }
 
+void MedeaMainWindow::resizeEvent(QResizeEvent *e)
+{
+    if(e){
+        QMainWindow::resizeEvent(e);
+    }
+    if(floatingToolbar && floatingToolbar->orientation() == Qt::Vertical){
+        floatingToolbar->setFixedHeight(centralWidget()->rect().height());
+    }
+}

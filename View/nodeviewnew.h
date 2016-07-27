@@ -36,6 +36,7 @@ public slots:
 private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
+    void selectionHandler_SelectAll();
 
     void themeChanged();
 
@@ -76,9 +77,7 @@ private:
     QPointF getScenePosOfPoint(QPoint pos = QPoint());
 private:
     void selectItemsInRubberband();
-    void clearSelection();
-    void selectAll();
-    void setupAspect();
+    void _selectAll();
     void setState(VIEW_STATE state);
     void transition();
     qreal distance(QPoint p1, QPoint p2);
@@ -100,15 +99,16 @@ private:
     QPointF viewportCenter_Scene;
 
 
+    bool isAspectView;
     VIEW_ASPECT containedAspect;
     NodeViewItem* containedNodeViewItem;
 
     VIEW_STATE viewState;
 
-    QString aspectName;
-    QColor aspectColor;
-    QFont aspectFont;
-    QColor aspectFontColor;
+    QColor backgroundColor;
+    QString backgroundText;
+    QFont backgroundFont;
+    QColor backgroundFontColor;
 
 protected:
     void keyPressEvent(QKeyEvent* event);

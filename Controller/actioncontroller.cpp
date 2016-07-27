@@ -25,6 +25,8 @@ void ActionController::connectSelectionController(SelectionController *controlle
     connect(selectionController, SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
     connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionForward()));
     connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
+    connect(edit_selectAll, SIGNAL(triggered(bool)), controller, SIGNAL(selectAll()));
+    connect(edit_clearSelection, SIGNAL(triggered(bool)), controller, SIGNAL(clearSelection()));
 }
 
 RootAction *ActionController::createRootAction(QString name, QString actionHash, QString iconPath, QString aliasPath)
@@ -51,7 +53,7 @@ void ActionController::selectionChanged(int selectionSize)
         bool noModel = selectionSize == -1;
         bool emptySelection = selectionSize == 0;
 
-        if(emptySelection || noModel){
+        if(emptySelection || !_modelReady){
             edit_cut->setEnabled(false);
             edit_copy->setEnabled(false);
             edit_paste->setEnabled(false);
@@ -71,13 +73,23 @@ void ActionController::selectionChanged(int selectionSize)
 
             file_importSnippet->setEnabled(false);
             file_exportSnippet->setEnabled(false);
+            edit_clearSelection->setEnabled(false);
+            if(_modelReady){
+                edit_selectAll->setEnabled(true);
+            }else{
+                edit_selectAll->setEnabled(false);
+            }
         }else if(!emptySelection){
             if(selectionSize > 1){
+                edit_selectAll->setEnabled(false);
                 edit_CycleActiveSelectionForward->setEnabled(true);
                 edit_CycleActiveSelectionBackward->setEnabled(true);
             }else if(selectionSize == 1){
+                edit_selectAll->setEnabled(true);
+                edit_clearSelection->setEnabled(true);
                 view_viewInNewWindow->setEnabled(true);
             }
+            edit_clearSelection->setEnabled(true);
             view_centerOn->setEnabled(true);
             edit_cut->setEnabled(true);
             edit_copy->setEnabled(true);
@@ -171,6 +183,9 @@ void ActionController::setupActions()
     edit_paste = createRootAction("Paste", "", "Actions", "Paste");
     edit_replicate = createRootAction("Replicate", "", "Actions", "Replicate");
     edit_delete = createRootAction("Delete", "", "Actions", "Delete");
+    edit_delete->setShortcut(QKeySequence(Qt::Key_Delete));
+    edit_delete->setShortcutContext(Qt::ApplicationShortcut);
+
     edit_search = createRootAction("Search", "", "Actions", "Search");
     edit_sort = createRootAction("Sort", "", "Actions", "Sort");
     edit_alignVertical = createRootAction("Align Vertically", "", "Actions", "Align_Vertical");
@@ -181,6 +196,13 @@ void ActionController::setupActions()
     edit_CycleActiveSelectionBackward = createRootAction("Cycle Prev Selected Item", "", "Actions", "Arrow_Left");
     edit_CycleActiveSelectionBackward->setShortcut(QKeySequence::PreviousChild);
     edit_CycleActiveSelectionBackward->setShortcutContext(Qt::ApplicationShortcut);
+    edit_selectAll = createRootAction("Select All", "", "Actions", "SelectAll");
+    edit_selectAll->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_A));
+    edit_selectAll->setShortcutContext(Qt::ApplicationShortcut);
+
+    edit_clearSelection = createRootAction("Clear Selection", "", "Actions", "Clear");
+    edit_clearSelection->setShortcut(QKeySequence(Qt::Key_Escape));
+    edit_clearSelection->setShortcutContext(Qt::ApplicationShortcut);
 
     view_fitToScreen = createRootAction("Fit To Screen", "", "Actions", "FitToScreen");
     view_centerOn = createRootAction("Center On Selection", "", "Actions", "Crosshair");
@@ -260,6 +282,8 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_alignHorizontal);
     menu_edit->addAction(edit_alignVertical);
     menu_edit->addSeparator();
+    menu_edit->addAction(edit_selectAll);
+    menu_edit->addAction(edit_clearSelection);
     menu_edit->addAction(edit_CycleActiveSelectionForward);
     menu_edit->addAction(edit_CycleActiveSelectionBackward);
 

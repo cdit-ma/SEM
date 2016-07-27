@@ -23,6 +23,8 @@ signals:
     void itemActiveSelectionChanged(ViewItem* item, bool isActive);
     void selectionChanged(int selected);
     void viewItemDeleted(ViewItem* item);
+    void clearSelection();
+    void selectAll();
 private slots:
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget);
     void cycleActiveSelectionBackward();

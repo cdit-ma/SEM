@@ -25,6 +25,9 @@ private slots:
 
     void spawnSubView();
 
+    void toolbarChanged(Qt::DockWidgetArea area);
+    void toolbarTopLevelChanged(bool a);
+
 private:
     void connectNodeView(NodeViewNew* nodeView);
     void setupTools();
@@ -53,12 +56,18 @@ private:
     TableWidget* tableWidget;
     NodeViewMinimap* minimap;
 
+    QDockWidget* toolbarDockLeft;
+    QDockWidget* toolbarDockRight;
+
     NodeViewNew* nodeView_Interfaces;
     NodeViewNew* nodeView_Behaviour;
     NodeViewNew* nodeView_Assemblies;
     NodeViewNew* nodeView_Hardware;
     ViewController* viewController;
 
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *);
 };
 
 #endif // MEDEAMAINWINDOW_H

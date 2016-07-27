@@ -45,6 +45,11 @@ NodeViewNew::NodeViewNew():QGraphicsView()
     selectionHandler = 0;
     containedAspect = VA_NONE;
     containedNodeViewItem = 0;
+    isAspectView = false;
+
+    backgroundFont.setPixelSize(70);
+    backgroundFont.setBold(true);
+
 
     rubberband = new QRubberBand(QRubberBand::Rectangle, this);
 
@@ -52,6 +57,8 @@ NodeViewNew::NodeViewNew():QGraphicsView()
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     viewState = VS_NONE;
     transition();
+
+    themeChanged();
 }
 
 NodeViewNew::~NodeViewNew()
@@ -77,6 +84,7 @@ void NodeViewNew::setViewController(ViewController *viewController)
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
         connect(selectionHandler, SIGNAL(itemSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelectionChanged(ViewItem*,bool)));
         connect(selectionHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemActiveSelectionChanged(ViewItem*,bool)));
+        connect(selectionHandler, SIGNAL(selectAll()), this, SLOT(selectionHandler_SelectAll()));
     }
 }
 
@@ -97,7 +105,9 @@ void NodeViewNew::scale(qreal sx, qreal sy)
 void NodeViewNew::setContainedViewAspect(VIEW_ASPECT aspect)
 {
     containedAspect = aspect;
-    setupAspect();
+
+    backgroundText = GET_ASPECT_NAME(aspect).toUpper();
+    isAspectView = true;
 }
 
 void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
@@ -107,6 +117,7 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
         item->registerObject(this);
 
         if(containedAspect == VA_NONE){
+            backgroundText = item->getData("label").toString().toUpper();
             containedAspect = item->getViewAspect();
             //Request items from ViewController.
 
@@ -165,10 +176,21 @@ void NodeViewNew::selectionHandler_ItemActiveSelectionChanged(ViewItem *item, bo
     }
 }
 
+void NodeViewNew::selectionHandler_SelectAll()
+{
+    _selectAll();
+}
+
 void NodeViewNew::themeChanged()
 {
-    aspectColor = Theme::theme()->getAspectBackgroundColor(containedAspect);
-    aspectFontColor = aspectColor.darker(110);
+    if(isAspectView){
+        backgroundColor = Theme::theme()->getAspectBackgroundColor(containedAspect);
+    }else{
+        backgroundColor = Theme::theme()->getAltBackgroundColor();
+    }
+    backgroundFontColor = backgroundColor.darker(110);
+
+    update();
 }
 
 void NodeViewNew::fitToScreen()
@@ -483,14 +505,8 @@ void NodeViewNew::selectItemsInRubberband()
     }
 }
 
-void NodeViewNew::clearSelection()
-{
-    if(selectionHandler){
-        selectionHandler->clearSelection();
-    }
-}
 
-void NodeViewNew::selectAll()
+void NodeViewNew::_selectAll()
 {
     if(selectionHandler){
         EntityItemNew* guiItem = getEntityItem(selectionHandler->getFirstSelectedItem());
@@ -513,15 +529,6 @@ void NodeViewNew::selectAll()
             selectionHandler->toggleItemsSelection(itemsToSelect, false);
         }
     }
-}
-
-void NodeViewNew::setupAspect()
-{
-    aspectName = GET_ASPECT_NAME(containedAspect).toUpper();
-    aspectColor = GET_ASPECT_COLOR(containedAspect);
-    aspectFontColor = aspectColor.darker(110);
-    aspectFont.setPixelSize(70);
-    aspectFont.setBold(true);
 }
 
 void NodeViewNew::setState(VIEW_STATE state)
@@ -632,13 +639,6 @@ void NodeViewNew::keyPressEvent(QKeyEvent *event)
 
     if(CONTROL && SHIFT){
         setState(VS_RUBBERBAND);
-    }
-    if(CONTROL && event->key() == Qt::Key_A){
-        selectAll();
-    }
-    if(event->key() == Qt::Key_Escape){
-        clearSelection();
-        event->accept();
     }
     /*
     if(event->key() == Qt::Key_Tab){
@@ -767,15 +767,17 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
 
 void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)
 {
-    painter->resetTransform();
 
+    painter->resetTransform();
     painter->setPen(Qt::NoPen);
-    painter->setBrush(aspectColor);
+    painter->setBrush(backgroundColor);
     painter->drawRect(rect());
 
-    painter->setFont(aspectFont);
-    painter->setPen(aspectFontColor);
-    painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, aspectName);
+    if(backgroundText != ""){
+        painter->setFont(backgroundFont);
+        painter->setPen(backgroundFontColor);
+        painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, backgroundText);
+    }
 }
 
 void NodeViewNew::resizeEvent(QResizeEvent *event)

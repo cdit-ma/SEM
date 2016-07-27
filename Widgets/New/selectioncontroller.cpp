@@ -124,12 +124,18 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
         if(currentHandler){
             disconnect(currentHandler, SIGNAL(selectionChanged(int)), this, SIGNAL(selectionChanged(int)));
             disconnect(currentHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)), this, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)));
+
+            disconnect(this, SIGNAL(clearSelection()), currentHandler, SLOT(clearSelection()));
+            disconnect(this, SIGNAL(selectAll()), currentHandler, SIGNAL(selectAll()));
         }
         currentHandler = handler;
         int selectionCount = 0;
         if(handler){
             connect(currentHandler, SIGNAL(selectionChanged(int)), this, SIGNAL(selectionChanged(int)));
             connect(currentHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)), this, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)));
+            connect(this, SIGNAL(clearSelection()), currentHandler, SLOT(clearSelection()));
+            connect(this, SIGNAL(selectAll()), currentHandler, SIGNAL(selectAll()));
+
             selectionCount = currentHandler->getSelectionCount();
             emit itemActiveSelectionChanged(currentHandler->getActiveSelectedItem(), true);
         }

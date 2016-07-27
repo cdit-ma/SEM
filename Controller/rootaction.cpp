@@ -26,6 +26,8 @@ QAction *RootAction::getStealthAction()
     if(!stealthAction){
         connect(this, SIGNAL(changed()), this, SLOT(actionChanged()));
         stealthAction = new QAction(this);
+        connect(stealthAction, SIGNAL(toggled(bool)), this, SLOT(setChecked(bool)));
+        connect(stealthAction, SIGNAL(triggered(bool)), this, SLOT(trigger()));
     }
     return stealthAction;
 }

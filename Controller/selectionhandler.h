@@ -19,7 +19,6 @@ public:
     void toggleItemsSelection(ViewItem* item, bool append = false);
     void toggleItemsSelection(QList<ViewItem*> items, bool append = false);
 
-    void clearSelection();
 
     void setActiveSelectedItem(ViewItem* viewItem);
     void cycleActiveSelectedItem(bool forward = true);
@@ -32,8 +31,10 @@ public:
 signals:
     void itemSelectionChanged(ViewItem*, bool selected);
     void itemActiveSelectionChanged(ViewItem* item, bool active);
-
+    void selectAll();
     void selectionChanged(int count);
+public slots:
+    void clearSelection();
 private slots:
     void itemDeleted(int ID, ViewItem *item);
 private:
