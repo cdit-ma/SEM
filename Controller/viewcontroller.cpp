@@ -4,10 +4,13 @@
 #include <QDebug>
 ViewController::ViewController(){
     modelItem = 0;
+    _modelReady = false;
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
     actionController->connectSelectionController(selectionController);
 
+    connect(this, SIGNAL(modelReady(bool)), actionController, SLOT(modelReady(bool)));
+    emit modelReady(false);
 }
 
 SelectionController *ViewController::getSelectionController()
@@ -46,6 +49,19 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 ViewItem *ViewController::getModel()
 {
     return modelItem;
+}
+
+bool ViewController::isModelReady()
+{
+    return _modelReady;
+}
+
+void ViewController::setModelReady(bool okay)
+{
+    if(okay != _modelReady){
+        _modelReady = okay;
+        emit modelReady(okay);
+    }
 }
 
 void ViewController::entityConstructed(EntityAdapter *entity)

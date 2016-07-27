@@ -6,179 +6,298 @@ ActionController::ActionController(QObject *parent) : QObject(parent)
     selectionController = 0;
 
 
-    view_CenterOn = new QAction("Center View on Selection", this);
-
-    view_CycleActiveSelectionForward = new QAction("Cycle the current active selected item forward", this);
-    view_CycleActiveSelectionForward->setShortcut(QKeySequence::NextChild);
-    view_CycleActiveSelectionForward->setShortcutContext(Qt::ApplicationShortcut);
-
-
-    view_CycleActiveSelectionBackward = new QAction("Cycle the current active selected item backward", this);
-    view_CycleActiveSelectionBackward->setShortcut(QKeySequence::PreviousChild);
-    view_CycleActiveSelectionBackward->setShortcutContext(Qt::ApplicationShortcut);
 
 
 
+    _modelReady = true;
+    _jenkinsValidated = false;
     setupActions();
     setupMainMenu();
     setupApplicationToolbar();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
+
 }
 
 void ActionController::connectSelectionController(SelectionController *controller)
 {
     selectionController = controller;
     connect(selectionController, SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
-    connect(view_CycleActiveSelectionForward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionForward()));
-    connect(view_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
+    connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionForward()));
+    connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
+}
+
+RootAction *ActionController::createRootAction(QString name, QString actionHash, QString iconPath, QString aliasPath)
+{
+    RootAction* action = new RootAction(name, this);
+    action->setIconPath(iconPath, aliasPath);
+    allActions.append(action);
+    return action;
+}
+
+void ActionController::jenkinsValidated(bool success)
+{
+    if(_jenkinsValidated != success){
+        _jenkinsValidated = success;
+        updateJenkinsActions();
+    }
 }
 
 void ActionController::selectionChanged(int selectionSize)
 {
     if(selectionController){
         QVector<ViewItem*> selection = selectionController->getSelection();
-        if(selectionSize == 1){
-            view_CenterOn->setEnabled(true);
-        }else{
-            view_CenterOn->setEnabled(false);
+
+        bool noModel = selectionSize == -1;
+        bool emptySelection = selectionSize == 0;
+
+        if(emptySelection || noModel){
+            edit_cut->setEnabled(false);
+            edit_copy->setEnabled(false);
+            edit_paste->setEnabled(false);
+            edit_replicate->setEnabled(false);
+            edit_delete->setEnabled(false);
+            edit_sort->setEnabled(false);
+            edit_alignHorizontal->setEnabled(false);
+            edit_alignVertical->setEnabled(false);
+            edit_CycleActiveSelectionForward->setEnabled(false);
+            edit_CycleActiveSelectionBackward->setEnabled(false);
+
+            view_centerOn->setEnabled(false);
+            view_centerOnDefn->setEnabled(false);
+            view_centerOnImpl->setEnabled(false);
+            view_viewInNewWindow->setEnabled(false);
+            view_viewConnections->setEnabled(false);
+
+            file_importSnippet->setEnabled(false);
+            file_exportSnippet->setEnabled(false);
+        }else if(!emptySelection){
+            if(selectionSize > 1){
+                edit_CycleActiveSelectionForward->setEnabled(true);
+                edit_CycleActiveSelectionBackward->setEnabled(true);
+            }else if(selectionSize == 1){
+                view_viewInNewWindow->setEnabled(true);
+            }
+            view_centerOn->setEnabled(true);
+            edit_cut->setEnabled(true);
+            edit_copy->setEnabled(true);
+            edit_paste->setEnabled(true);
+            edit_replicate->setEnabled(true);
+            edit_delete->setEnabled(true);
+            edit_sort->setEnabled(true);
+            edit_alignHorizontal->setEnabled(true);
+            edit_alignVertical->setEnabled(true);
+
         }
 
-        if(selectionSize > 1){
-            view_CycleActiveSelectionForward->setEnabled(true);
-            view_CycleActiveSelectionBackward->setEnabled(true);
-        }else{
-            view_CycleActiveSelectionForward->setEnabled(false);
-            view_CycleActiveSelectionBackward->setEnabled(false);
-        }
+
         applicationToolbar->updateSpacers();
     }
+}
+
+void ActionController::modelReady(bool ready)
+{
+    _modelReady = ready;
+    file_importGraphML->setEnabled(ready);
+    file_importXME->setEnabled(ready);
+    file_importXMI->setEnabled(ready);
+    file_saveProject->setEnabled(ready);
+    file_saveAsProject->setEnabled(ready);
+    file_closeProject->setEnabled(ready);
+
+    edit_undo->setEnabled(ready);
+    edit_redo->setEnabled(ready);
+
+    model_validateModel->setEnabled(ready);
+    model_clearModel->setEnabled(ready);
+    model_executeLocalJob->setEnabled(ready);
+
+    edit_search->setEnabled(ready);
+    view_fitToScreen->setEnabled(ready);
+    window_printScreen->setEnabled(ready);
+    jenkins_importNodes->setEnabled(ready);
+    jenkins_executeJob->setEnabled(ready);
+    toolbar_contextToolbar->setEnabled(ready);
+
+    if(!ready){
+        //Update the selection changed with a special thing.
+        selectionChanged(-1);
+    }
+    updateJenkinsActions();
 }
 
 void ActionController::themeChanged()
 {
     Theme* theme = Theme::theme();
-    view_CenterOn->setIcon(theme->getIcon("Actions", "Crosshair"));
-    view_CycleActiveSelectionBackward->setIcon(theme->getIcon("Actions", "Arrow_Left"));
-    view_CycleActiveSelectionForward->setIcon(theme->getIcon("Actions", "Arrow_Right"));
 
+    foreach(RootAction* action, allActions){
+        updateIcon(action, theme);
+    }
 
-    edit_undo->setIcon(theme->getIcon("Actions", "Undo"));
-    edit_redo->setIcon(theme->getIcon("Actions", "Redo"));
-    edit_cut->setIcon(theme->getIcon("Actions", "Cut"));
-    edit_copy->setIcon(theme->getIcon("Actions", "Copy"));
-    edit_paste->setIcon(theme->getIcon("Actions", "Paste"));
-    edit_replicate->setIcon(theme->getIcon("Actions", "Replicate"));
-    edit_delete->setIcon(theme->getIcon("Actions", "Delete"));
-    edit_search->setIcon(theme->getIcon("Actions", "Search"));
-    edit_sort->setIcon(theme->getIcon("Actions", "Sort"));
-    edit_alignHorizontal->setIcon(theme->getIcon("Actions", "Align_Horizontal"));
-    edit_alignVertical->setIcon(theme->getIcon("Actions", "Align_Vertical"));
-
-
-    view_fitToScreen->setIcon(theme->getIcon("Actions", "FitToScreen"));
-    view_centerOn->setIcon(theme->getIcon("Actions", "Crosshair"));
-    view_centerOnDefn->setIcon(theme->getIcon("Actions", "Definition"));
-    view_centerOnImpl->setIcon(theme->getIcon("Actions", "Implementation"));
-    view_viewConnections->setIcon(theme->getIcon("Actions", "Connections"));
-    view_viewInNewWindow->setIcon(theme->getIcon("Actions", "Popup"));
-
-
-    toolbar_contextToolbar->setIcon(theme->getIcon("Actions", "Toolbar"));
+    menu_file_recentProjects->setIcon(theme->getIcon("Actions", "Timer"));
 }
 
-QMenu *ActionController::getMainMenu()
+void ActionController::updateJenkinsActions()
 {
-    return mainMenu;
+    jenkins_importNodes->setEnabled(_modelReady && _jenkinsValidated);
+    jenkins_executeJob->setEnabled(_modelReady && _jenkinsValidated);
+}
+
+void ActionController::updateIcon(RootAction *action, Theme *theme)
+{
+    if(theme && action){
+        action->setIcon(theme->getIcon(action->getIconPath(), action->getIconAlias()));
+    }
 }
 
 void ActionController::setupActions()
 {
-    file_newProject = new RootAction("New Project");
-    file_openProject = new RootAction("Open Project");
-    file_recentProjects_clearHistory = new RootAction("Clear History");
-    file_saveProject = new RootAction("Save Project");
-    file_saveAsProject = new RootAction("Save Project As");
-    file_closeProject = new RootAction("Close Project");
-    file_importGraphML = new RootAction("Import Project");
-    file_importXME = new RootAction("Import XME File");
-    file_importXMI = new RootAction("Import UML XMI File");
-    file_importSnippet = new RootAction("Import Snippet");
-    file_exportSnippet = new RootAction("Export Snippet");
+    file_newProject = createRootAction("New Project", "", "Actions", "New");
+    file_openProject = createRootAction("Open Project", "", "Actions", "Open");
+    file_recentProjects_clearHistory = createRootAction("Clear History", "", "Actions", "Clear");
+    file_saveProject = createRootAction("Save Project", "", "Actions", "Save");
+    file_saveAsProject = createRootAction("Save Project As", "", "Actions", "Save");
+    file_closeProject = createRootAction("Close Project", "", "Actions", "Close");
+    file_importGraphML = createRootAction("Import Project", "", "Actions", "Import");
+    file_importXME = createRootAction("Import XME File", "", "Actions", "ImportXME");
+    file_importXMI = createRootAction("Import UML XMI File", "", "Actions", "ImportXMI");
+    file_importSnippet = createRootAction("Import Snippet", "", "Actions", "ImportSnippet");
+    file_exportSnippet = createRootAction("Export Snippet", "", "Actions", "ExportSnippet");
 
-    edit_undo = new RootAction("Undo");
-    edit_redo = new RootAction("Redo");
-    edit_cut = new RootAction("Cut");
-    edit_copy = new RootAction("Copy");
-    edit_paste = new RootAction("Paste");
-    edit_replicate = new RootAction("Replicate");
-    edit_delete = new RootAction("Delete");
-    edit_search = new RootAction("Search");
-    edit_sort = new RootAction("Sort");
-    edit_alignVertical = new RootAction("Align Vertically");
-    edit_alignHorizontal = new RootAction("Align Horizontally");
+    edit_undo = createRootAction("Undo", "", "Actions", "Undo");
+    edit_redo = createRootAction("Redo", "", "Actions", "Redo");
+    edit_cut = createRootAction("Cut", "", "Actions", "Cut");
+    edit_copy = createRootAction("Copy", "", "Actions", "Copy");
+    edit_paste = createRootAction("Paste", "", "Actions", "Paste");
+    edit_replicate = createRootAction("Replicate", "", "Actions", "Replicate");
+    edit_delete = createRootAction("Delete", "", "Actions", "Delete");
+    edit_search = createRootAction("Search", "", "Actions", "Search");
+    edit_sort = createRootAction("Sort", "", "Actions", "Sort");
+    edit_alignVertical = createRootAction("Align Vertically", "", "Actions", "Align_Vertical");
+    edit_alignHorizontal = createRootAction("Align Horizontally", "", "Actions", "Align_Horizontal");
+    edit_CycleActiveSelectionForward = createRootAction("Cycle Next Selected Item", "", "Actions", "Arrow_Right");
+    edit_CycleActiveSelectionForward->setShortcutContext(Qt::ApplicationShortcut);
+    edit_CycleActiveSelectionForward->setShortcut(QKeySequence::NextChild);
+    edit_CycleActiveSelectionBackward = createRootAction("Cycle Prev Selected Item", "", "Actions", "Arrow_Left");
+    edit_CycleActiveSelectionBackward->setShortcut(QKeySequence::PreviousChild);
+    edit_CycleActiveSelectionBackward->setShortcutContext(Qt::ApplicationShortcut);
 
-    view_fitToScreen = new RootAction("Fit To Screen");
-    view_centerOn = new RootAction("Center On Selection");
-    view_centerOnDefn = new RootAction("Center On Definition");
-    view_centerOnImpl = new RootAction("Center On Implementation");
-    view_viewConnections = new RootAction("View Connections");
-    view_viewInNewWindow = new RootAction("View In New Window");
+    view_fitToScreen = createRootAction("Fit To Screen", "", "Actions", "FitToScreen");
+    view_centerOn = createRootAction("Center On Selection", "", "Actions", "Crosshair");
+    view_centerOnDefn = createRootAction("Center On Definition", "", "Actions", "Definition");
+    view_centerOnImpl = createRootAction("Center On Implementation", "", "Actions", "Implementation");
+    view_viewConnections = createRootAction("View Connections", "", "Actions", "Connections");
+    view_viewInNewWindow = createRootAction("View In New Window", "", "Actions", "Popup");
 
-    window_printScreen = new RootAction("Print Screen");
-    window_displayMinimap = new RootAction("Display Minimap");
+    window_printScreen = createRootAction("Print Screen", "", "Actions", "PrintScreen");
+    window_displayMinimap = createRootAction("Display Minimap", "", "Actions", "Minimap");
 
-    model_clearModel = new RootAction("Clear Model");
-    model_validateModel = new RootAction("Validate Model");
-    model_executeLocalJob = new RootAction("Launch: Local Deployment");
+    model_clearModel = createRootAction("Clear Model", "", "Actions", "Clear");
+    model_validateModel = createRootAction("Validate Model", "", "Actions", "Validate");
+    model_executeLocalJob = createRootAction("Launch: Local Deployment", "", "Actions", "Job_Build");
     model_executeLocalJob->setToolTip("Requires Valid CUTS and Windows");
 
-    jenkins_importNodes = new RootAction("Import Jenkins Nodes");
-    jenkins_executeJob = new RootAction("Launch: ");
+    jenkins_importNodes = createRootAction("Import Jenkins Nodes", "", "Actions", "Computer");
+    jenkins_executeJob = createRootAction("Launch: ", "", "Actions", "Job_Build");
 
-    help_shortcuts = new RootAction("App Shortcuts");
-    help_reportBug = new RootAction("Report Bug");
-    help_wiki = new RootAction("Wiki");
-    help_aboutMedea = new RootAction("About MEDEA");
-    help_aboutQt = new RootAction("About Qt");
+    help_shortcuts = createRootAction("App Shortcuts", "", "Actions", "Keyboard");
+    help_reportBug = createRootAction("Report Bug", "", "Actions", "BugReport");
+    help_wiki = createRootAction("Wiki", "", "Actions", "Wiki");
+    help_aboutMedea = createRootAction("About MEDEA", "", "Actions", "Info");
+    help_aboutQt = createRootAction("About Qt", "", "Actions", "Qt");
 
-    menu_settings = new RootAction("Settings");
-    menu_exit = new RootAction("Exit");
+    options_settings = createRootAction("Settings", "", "Actions", "Settings");
+    file_exit = createRootAction("Exit", "", "Actions", "Power");
 
-    toolbar_contextToolbar = new RootAction("Show Context Toolbar");
+    toolbar_contextToolbar = createRootAction("Show Context Toolbar", "", "Actions", "Toolbar");
+
 }
 
 void ActionController::setupMainMenu()
 {
-    mainMenu = new QMenu();
-    mainMenu_file = mainMenu->addMenu("File");
-    mainMenu_edit = mainMenu->addMenu("Edit");
-    mainMenu->addSeparator();
-    mainMenu_view = mainMenu->addMenu("View");
-    mainMenu_model = mainMenu->addMenu("Model");
-    mainMenu_jenkins = mainMenu->addMenu("Jenkins");
-    mainMenu->addSeparator();
-    mainMenu_window = mainMenu->addMenu("Window");
-    mainMenu->addAction(menu_settings);
-    mainMenu->addSeparator();
-    mainMenu_help = mainMenu->addMenu("Help");
-    mainMenu->addAction(menu_exit);
+    menu_file = new QMenu("File");
+    menu_edit = new QMenu("Edit");
+    menu_view = new QMenu("View");
+    menu_model = new QMenu("Model");
+    menu_jenkins = new QMenu("Jenkins");
+    menu_window = new QMenu("Window");
+    menu_options = new QMenu("Options");
+    menu_help = new QMenu("Help");
+
 
     // File Menu
-    mainMenu_file->addAction(file_newProject);
-    mainMenu_file->addAction(file_openProject);
-    file_recentProjectsMenu = mainMenu_file->addMenu("Recent Projects");
-    file_recentProjectsMenu->addAction(file_recentProjects_clearHistory);
-    mainMenu_file->addSeparator();
-    mainMenu_file->addAction(file_saveProject);
-    mainMenu_file->addAction(file_saveAsProject);
-    mainMenu_file->addAction(file_closeProject);
-    mainMenu_file->addSeparator();
-    mainMenu_file->addAction(file_importGraphML);
-    mainMenu_file->addAction(file_importXME);
-    mainMenu_file->addAction(file_importXMI);
-    mainMenu_file->addSeparator();
-    mainMenu_file->addAction(file_importSnippet);
-    mainMenu_file->addAction(file_exportSnippet);
+    menu_file->addAction(file_newProject);
+    menu_file->addAction(file_openProject);
+    menu_file_recentProjects = menu_file->addMenu("Recent Projects");
+    menu_file_recentProjects->addAction(file_recentProjects_clearHistory);
+    menu_file->addSeparator();
+    menu_file->addAction(file_saveProject);
+    menu_file->addAction(file_saveAsProject);
+    menu_file->addAction(file_closeProject);
+    menu_file->addSeparator();
+    menu_file->addAction(file_importGraphML);
+    menu_file->addAction(file_importXME);
+    menu_file->addAction(file_importXMI);
+    menu_file->addSeparator();
+    menu_file->addAction(file_importSnippet);
+    menu_file->addAction(file_exportSnippet);
+    menu_file->addSeparator();
+    menu_file->addAction(file_exit);
+
+    // Edit Menu
+    menu_edit->addAction(edit_undo);
+    menu_edit->addAction(edit_redo);
+    menu_edit->addSeparator();
+    menu_edit->addAction(edit_cut);
+    menu_edit->addAction(edit_copy);
+    menu_edit->addAction(edit_paste);
+    menu_edit->addAction(edit_replicate);
+    menu_edit->addSeparator();
+    menu_edit->addAction(edit_delete);
+    menu_edit->addAction(edit_search);
+    menu_edit->addSeparator();
+    menu_edit->addAction(edit_sort);
+    menu_edit->addAction(edit_alignHorizontal);
+    menu_edit->addAction(edit_alignVertical);
+    menu_edit->addSeparator();
+    menu_edit->addAction(edit_CycleActiveSelectionForward);
+    menu_edit->addAction(edit_CycleActiveSelectionBackward);
+
+
+
+     // View Menu
+    menu_view->addAction(view_fitToScreen);
+    menu_view->addSeparator();
+    menu_view->addAction(view_centerOn);
+    menu_view->addAction(view_centerOnDefn);
+    menu_view->addAction(view_centerOnImpl);
+    menu_view->addSeparator();
+    menu_view->addAction(view_viewConnections);
+    menu_view->addAction(view_viewInNewWindow);
+
+    // Model Menu
+    menu_model->addAction(model_validateModel);
+    menu_model->addAction(model_clearModel);
+    menu_model->addAction(model_executeLocalJob);
+
+    // Jenkins Menu
+    menu_jenkins->addAction(jenkins_importNodes);
+    menu_jenkins->addAction(jenkins_executeJob);
+
+    // Window Menu
+    menu_window->addAction(window_printScreen);
+    menu_window->addAction(window_displayMinimap);
+
+    // Options Menu
+    menu_options->addAction(options_settings);
+
+
+    menu_help->addAction(help_shortcuts);
+    menu_help->addAction(help_wiki);
+    menu_help->addAction(help_reportBug);
+    menu_help->addSeparator();
+    menu_help->addAction(help_aboutMedea);
+    menu_help->addAction(help_aboutQt);
 }
 
 void ActionController::setupApplicationToolbar()

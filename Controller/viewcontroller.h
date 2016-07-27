@@ -18,17 +18,20 @@ public:
 
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
-
+    bool isModelReady();
 signals:
+    void modelReady(bool);
     void viewItemConstructed(ViewItem* viewItem);
     void viewItemDestructing(int ID, ViewItem *viewItem);
 
 private slots:
+    void setModelReady(bool okay);
     void entityConstructed(EntityAdapter* entity);
     void entityDestructed(EntityAdapter* entity);
 
 
 private:
+    bool _modelReady;
     QHash<int, ViewItem*> viewItems;
     ViewItem* modelItem;
 

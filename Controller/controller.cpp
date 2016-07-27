@@ -211,6 +211,7 @@ void NewController::connectView(NodeView *view)
 
 void NewController::connectViewController(ViewController *view)
 {
+    connect(this, SIGNAL(controller_IsModelReady(bool)), view, SLOT(setModelReady(bool)));
     connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(entityConstructed(EntityAdapter*)));
     connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(entityDestructed(EntityAdapter*)));
 }
@@ -223,11 +224,13 @@ void NewController::initializeModel()
     loadWorkerDefinitions();
     clearHistory();
     INITIALIZING = false;
+    emit controller_IsModelReady(true);
     emit controller_ModelReady();
 }
 
 NewController::~NewController()
 {
+    emit controller_IsModelReady(false);
     enableDebugLogging(false);
 
     DESTRUCTING_CONTROLLER = true;

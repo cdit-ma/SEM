@@ -122,11 +122,22 @@ void MedeaMainWindow::themeChanged()
                   "QMenu::item:selected:!disabled {"
                   "color:" + textSelectedColor + ";"
                   "background: " + highlightColor + ";"
+                  "border-radius: 2px;"
                   "}"
                   "QDockWidget{ background: " + BGColor + ";}"
                   );
 
-    viewController->getActionController()->mainMenu_file->setStyleSheet(styleSheet());
+
+
+    viewController->getActionController()->menu_file->setStyleSheet(styleSheet());
+    viewController->getActionController()->menu_file_recentProjects->setStyleSheet(styleSheet());
+    viewController->getActionController()->menu_edit->setStyleSheet(styleSheet());
+    viewController->getActionController()->menu_view->setStyleSheet(styleSheet());
+    viewController->getActionController()->menu_model->setStyleSheet(styleSheet());
+    viewController->getActionController()->menu_jenkins->setStyleSheet(styleSheet());
+    viewController->getActionController()->menu_help->setStyleSheet(styleSheet());
+    viewController->getActionController()->menu_window->setStyleSheet(styleSheet());
+    viewController->getActionController()->menu_options->setStyleSheet(styleSheet());
 
     searchBar->setStyleSheet("QLineEdit {"
                              "background: " + altBGColor + ";"
@@ -308,13 +319,14 @@ void MedeaMainWindow::setupMenuAndTitle()
 void MedeaMainWindow::setupMenuBar()
 {
     menuBar = new QMenuBar(0);
-    menuBar->addMenu(viewController->getActionController()->mainMenu_file);
-    menuBar->addMenu(viewController->getActionController()->mainMenu_edit);
-    menuBar->addMenu(viewController->getActionController()->mainMenu_view);
-    menuBar->addMenu(viewController->getActionController()->mainMenu_model);
-    menuBar->addMenu(viewController->getActionController()->mainMenu_jenkins);
-    menuBar->addMenu(viewController->getActionController()->mainMenu_window);
-    menuBar->addMenu(viewController->getActionController()->mainMenu_help);
+    menuBar->addMenu(viewController->getActionController()->menu_file);
+    menuBar->addMenu(viewController->getActionController()->menu_edit);
+    menuBar->addMenu(viewController->getActionController()->menu_view);
+    menuBar->addMenu(viewController->getActionController()->menu_model);
+    menuBar->addMenu(viewController->getActionController()->menu_jenkins);
+    menuBar->addMenu(viewController->getActionController()->menu_window);
+    menuBar->addMenu(viewController->getActionController()->menu_options);
+    menuBar->addMenu(viewController->getActionController()->menu_help);
 
     // TODO - Find out how to set the height of the menubar items
     menuBar->setFixedHeight(TOOLBAR_HEIGHT);
@@ -328,15 +340,16 @@ void MedeaMainWindow::setupToolBar()
     floatingToolbar->setIconSize(QSize(24,24));
     floatingToolbar->setMovable(false);
     floatingToolbar->setFloatable(false);
+    floatingToolbar->setOrientation(Qt::Vertical);
 
     QWidget* w1 = new QWidget(this);
     QWidget* w2 = new QWidget(this);
     w1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     w2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    floatingToolbar->addWidget(w1);
+    //floatingToolbar->addWidget(w1);
     floatingToolbar->addActions(viewController->getActionController()->applicationToolbar->actions());
-    floatingToolbar->addWidget(w2);
+    //floatingToolbar->addWidget(w2);
 
     /*
     QHBoxLayout* layout = new QHBoxLayout();
@@ -352,14 +365,15 @@ void MedeaMainWindow::setupToolBar()
 
     //addToolBar(Qt::TopToolBarArea, floatingToolbar);
 
-    MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Application Toolbar");
+    MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Toolbar");
     // TODO - removing the titlebar widget stops it from being moveable
     //dockWidget->setTitleBarWidget(new QWidget(this));
     //dockWidget->setStyleSheet("QDockWidget{padding:0px; margin:0px;}");
     //dockWidget->setWidget(holderWidget);
     dockWidget->setWidget(floatingToolbar);
-    dockWidget->setAllowedAreas(Qt::TopDockWidgetArea);
-    addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
+    //dockWidget->setAllowedAreas(Qt::TopDockWidgetArea);
+    //addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Vertical);//, Qt::Horizontal);
+    addDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Vertical);//, Qt::Horizontal);
 }
 
 void MedeaMainWindow::setupSearchBar()

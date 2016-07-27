@@ -7,7 +7,7 @@
 #include "../Widgets/New/actiongroup.h"
 #include "../Widgets/New/selectioncontroller.h"
 #include "rootaction.h"
-
+#include "../view/theme.h"
 class ActionController : public QObject
 {
     Q_OBJECT
@@ -15,17 +15,23 @@ public:
     explicit ActionController(QObject *parent = 0);
 
     void connectSelectionController(SelectionController* controller);
-
-    QMenu* getMainMenu();
+private:
+    RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 private slots:
+    void jenkinsValidated(bool success);
     void selectionChanged(int selectionSize);
+    void modelReady(bool ready);
     void themeChanged();
+
+    void updateJenkinsActions();
+    void updateIcon(RootAction* action, Theme* theme = Theme::theme());
 public:
     SelectionController* selectionController;
+    QList<RootAction*> allActions;
+    QHash<QString, RootAction*> actionHash;
 
     ActionGroup* applicationToolbar;
 
-    QMenu* file_recentProjectsMenu;
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
     RootAction* file_importGraphML;
@@ -37,6 +43,7 @@ public:
     RootAction* file_closeProject;
     RootAction* file_importSnippet;
     RootAction* file_exportSnippet;
+    RootAction* file_exit;
 
     RootAction* edit_undo;
     RootAction* edit_redo;
@@ -49,9 +56,9 @@ public:
     RootAction* edit_sort;
     RootAction* edit_alignHorizontal;
     RootAction* edit_alignVertical;
+    RootAction* edit_CycleActiveSelectionForward;
+    RootAction* edit_CycleActiveSelectionBackward;
 
-    RootAction* menu_exit;
-    RootAction* menu_settings;
 
     RootAction* view_fitToScreen;
     RootAction* view_centerOn;
@@ -67,8 +74,7 @@ public:
     RootAction* model_clearModel;
     RootAction* model_executeLocalJob;
 
-    RootAction* settings_editToolbarButtons;
-    RootAction* settings_changeAppSettings;
+    RootAction* options_settings;
 
     RootAction* help_aboutMedea;
     RootAction* help_wiki;
@@ -83,18 +89,18 @@ public:
     RootAction* toolbar_contextToolbar;
 
 
-    QAction* view_CenterOn;
-    QAction* view_CycleActiveSelectionForward;
-    QAction* view_CycleActiveSelectionBackward;
+    bool _modelReady;
+    bool _jenkinsValidated;
 
-    QMenu* mainMenu;
-    QMenu* mainMenu_file;
-    QMenu* mainMenu_edit;
-    QMenu* mainMenu_view;
-    QMenu* mainMenu_model;
-    QMenu* mainMenu_jenkins;
-    QMenu* mainMenu_help;
-    QMenu* mainMenu_window;
+    QMenu* menu_file;
+    QMenu* menu_file_recentProjects;
+    QMenu* menu_edit;
+    QMenu* menu_view;
+    QMenu* menu_model;
+    QMenu* menu_jenkins;
+    QMenu* menu_help;
+    QMenu* menu_window;
+    QMenu* menu_options;
 
 private:
     void setupActions();

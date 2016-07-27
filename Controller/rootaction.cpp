@@ -5,6 +5,22 @@ RootAction::RootAction(QString text, QObject *parent) : QAction(text, parent)
     stealthAction = 0;
 }
 
+void RootAction::setIconPath(QString path, QString alias)
+{
+    iconPath = path;
+    iconAlias = alias;
+}
+
+QString RootAction::getIconPath()
+{
+    return iconPath;
+}
+
+QString RootAction::getIconAlias()
+{
+    return iconAlias;
+}
+
 QAction *RootAction::getStealthAction()
 {
     if(!stealthAction){

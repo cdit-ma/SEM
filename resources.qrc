@@ -206,6 +206,9 @@
         <file alias="Minimize">Resources/Images/Actions/Minimize.png</file>
         <file alias="DockMaximize">Resources/Images/Actions/DockMaximize.png</file>
         <file alias="DockPopOut">Resources/Images/Actions/DockPopOut.png</file>
+        <file alias="ImportXME">Resources/Images/Actions/ImportXME.ico</file>
+        <file alias="Qt">Resources/Images/Actions/Qt.ico</file>
+        <file alias="ImportXMI">Resources/Images/Actions/ImportXMI.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

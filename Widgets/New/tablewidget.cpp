@@ -84,14 +84,23 @@ void TableWidget::setupLayout()
 
     iconLabel = new QLabel(this);
     label = new QLabel(this);
-    label->setMinimumWidth(1);
-    label->setAlignment(Qt::AlignCenter);
-    label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
 
-    toolbar->addAction(viewController->getActionController()->view_CycleActiveSelectionBackward);
-    toolbar->addWidget(iconLabel);
-    toolbar->addWidget(label);
-    toolbar->addAction(viewController->getActionController()->view_CycleActiveSelectionForward);
+    QWidget* labelWidget = new QWidget(this);
+    QHBoxLayout* labelWidgetLayout = new QHBoxLayout(labelWidget);
+    labelWidgetLayout->setMargin(0);
+    labelWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+
+    labelWidgetLayout->addStretch();
+    labelWidgetLayout->addWidget(iconLabel);
+    labelWidgetLayout->addWidget(label);
+    labelWidgetLayout->addStretch();
+
+
+    label->setAlignment(Qt::AlignCenter);
+
+    toolbar->addAction(viewController->getActionController()->edit_CycleActiveSelectionBackward->getStealthAction());
+    toolbar->addWidget(labelWidget);
+    toolbar->addAction(viewController->getActionController()->edit_CycleActiveSelectionForward->getStealthAction());
 
     layout->addWidget(toolbar);
 

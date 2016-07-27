@@ -210,6 +210,7 @@ signals:
 
     void controller_CanUndo(bool ok);
     void controller_CanRedo(bool ok);
+    void controller_IsModelReady(bool ready);
     void controller_ModelReady();
     void controller_ActionProgressChanged(int percent, QString action="");
     void controller_ActionFinished(bool actionSucceeded = true, QString errorCode = "");

@@ -29,7 +29,7 @@ void ActionGroup::updateSpacers()
             spacerActionsIndexes.append(i);
             visibleActionsCount.append(currentVisibleCount);
             currentVisibleCount = 0;
-        }else if(action->isEnabled()){
+        }else if(action->isVisible()){
             currentVisibleCount ++;
         }
     }
