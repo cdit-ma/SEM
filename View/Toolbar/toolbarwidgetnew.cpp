@@ -12,7 +12,6 @@ ToolbarWidgetNew::ToolbarWidgetNew(ViewController *vc, QWidget *parent) : QWidge
     // using frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
     setAttribute(Qt::WA_TranslucentBackground);
-
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
 
     /*

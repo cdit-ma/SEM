@@ -85,6 +85,22 @@ public:
     QIcon getIcon(QString prefix, QString alias);
     QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
 
+    // Default StyleSheets
+    QString getWindowStyleSheet();
+    QString getViewStyleSheet();
+    QString getDockWidgetStyleSheet();
+    QString getMenuBarStyleSheet();
+    QString getMenuStyleSheet();
+    QString getAltMenuStyleSheet();
+    QString getToolBarStyleSheet();
+    QString getAltToolBarStyleSheet();
+    QString getTableViewStyleSheet();
+    QString getGroupBoxStyleSheet();
+    QString getPushButtonStyleSheet();
+    QString getLineEditStyleSheet();
+    QString getRadioButtonStyleSheet();
+    QString getMessageBoxStyleSheet();
+
 signals:
     void theme_Changed();
 
