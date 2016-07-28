@@ -20,6 +20,8 @@
 #include <string>
 #include "View/theme.h"
 
+// taskkill
+// /F /fi "IMAGENAME eq medea.exe"
 void testModel(){
     ModelTester *t = new ModelTester();
     t->loadTest("/home/dig/Desktop/HelloWorld(2).graphml");

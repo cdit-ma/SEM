@@ -104,7 +104,7 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 
         //Mask off the current viewportRect
         painter->setClipRegion(maskArea);
-        painter->setBrush(QColor(0, 0, 0, 150));
+        painter->setBrush(QColor(0, 0, 0, 50));
         painter->setPen(Qt::NoPen);
         //Paint the background
         painter->drawRect(rect);
