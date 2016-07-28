@@ -593,37 +593,37 @@ QString Theme::getToolBarStyleSheet()
 
 QString Theme::getAltToolBarStyleSheet()
 {
-
+    return "";
 }
 
 QString Theme::getTableViewStyleSheet()
 {
-
+    return "";
 }
 
 QString Theme::getGroupBoxStyleSheet()
 {
-
+    return "";
 }
 
 QString Theme::getPushButtonStyleSheet()
 {
-
+    return "";
 }
 
 QString Theme::getLineEditStyleSheet()
 {
-
+    return "";
 }
 
 QString Theme::getRadioButtonStyleSheet()
 {
-
+    return "";
 }
 
 QString Theme::getMessageBoxStyleSheet()
 {
-
+    return "";
 }
 
 
