@@ -46,6 +46,8 @@ public:
 
 
 
+    QStringList interfaceKinds;
+    QStringList kindsWithSubActions;
 
     ActionGroup* adoptableKindsGroup;
 };

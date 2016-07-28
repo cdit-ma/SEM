@@ -5,6 +5,13 @@
 
 ToolActionController::ToolActionController(ViewController *viewController):QObject(viewController)
 {
+    interfaceKinds << "BlackBox" << "Component" << "Aggregate" << "Vector" << "InEventPort" << "OutEventPort";
+    kindsWithSubActions << "BlackBoxInstance" << "ComponentInstance" << "ComponentImpl";
+    kindsWithSubActions << "AggregateInstance" << "VectorInstance" << "InEventPort";
+    kindsWithSubActions << "OutEventPort" << "InEventPortDelegate" << "OutEventPortDelegate";
+    kindsWithSubActions << "OutEventPortImpl" << "WorkerProcess";
+
+
     toolbar = new QToolBar();
     toolbar->setIconSize(QSize(80,80));
     toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -37,7 +44,7 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
             QString kind = viewItem->getData("kind").toString();
             bool ignore = true;
             if(aspect == VA_WORKERS){
-                if(kind == "Workload" || kind == "Process"){
+                if(kind == "Process"){
                     ignore = false;
                 }
             }else if(aspect == VA_INTERFACES){
@@ -48,6 +55,18 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
             if(!ignore){
                 NodeViewItemAction* action = new NodeViewItemAction(item);
                 if(!actions.contains(ID)){
+
+                    if(item->getParentItem() && item->getParentItem()->isNode()){
+                        int parentID = item->getParentID();
+                        if(!actions.contains(parentID)){
+                            //Construct Parent for Menus which need depth
+                            NodeViewItemAction* parentAction = new NodeViewItemAction((NodeViewItem*) item->getParentItem());
+                            action->setParentNodeViewItemAction(parentAction);
+                            actions[item->getParentID()] = parentAction;
+                            actionGroup->addAction(parentAction);
+                            toolbar->addAction(parentAction);
+                        }
+                    }
                     actions[ID] = action;
                     actionGroup->addAction(action);
                     toolbar->addAction(action);
@@ -63,7 +82,7 @@ void ToolActionController::viewItem_Destructed(int ID, ViewItem *viewItem)
         NodeViewItemAction* action = actions[ID];
         actions.remove(ID);
         actionGroup->removeAction(action);
-        //toolbar->removeAction(action);
+        //toolbar->removeAction(action
         action->deleteLater();
     }
 }
@@ -101,21 +120,9 @@ QList<NodeViewItemAction *> ToolActionController::getRequiredSubActionsForKind(Q
     return actions.values();
 }
 
-QStringList ToolActionController::getKindsRequiringSubMenu()
+QStringList ToolActionController::getKindsRequiringSubActions()
 {
-    QStringList kinds;
-    kinds.append("BlackBoxInstance");
-    kinds.append("ComponentInstance");
-    kinds.append("ComponentImpl");
-    kinds.append("AggregateInstance");
-    kinds.append("VectorInstance");
-    kinds.append("InEventPort");
-    kinds.append("OutEventPort");
-    kinds.append("InEventPortDelegate");
-    kinds.append("OutEventPortDelegate");
-    kinds.append("OutEventPortImpl");
-    kinds.append("WorkerProcess");
-    return kinds;
+    return kindsWithSubActions;
 }
 
 /**

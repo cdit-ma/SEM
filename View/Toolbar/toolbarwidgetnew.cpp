@@ -140,6 +140,11 @@ void ToolbarWidgetNew::setVisible(bool visible)
     QWidget::setVisible(visible);
 }
 
+void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem *viewItem)
+{
+
+}
+
 
 /**
  * @brief ToolbarWidgetNew::setupToolbar
@@ -171,7 +176,7 @@ void ToolbarWidgetNew::setupAddChildMenus()
         addChildAction = toolbarController->getAdoptableKindsAction(true);
         QMenu* partsMenu = new QMenu(this);
 
-        QStringList subMenuKinds = toolbarController->getKindsRequiringSubMenu();
+        QStringList subMenuKinds = toolbarController->getKindsRequiringSubActions();
 
         foreach(QAction* action, toolbarController->getAdoptableKindsActions(true) ){
             QString kind = action->text();

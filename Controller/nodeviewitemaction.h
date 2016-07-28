@@ -8,6 +8,7 @@ class NodeViewItemAction : public QAction
     Q_OBJECT
 public:
     NodeViewItemAction(NodeViewItem* item);
+    void setParentNodeViewItemAction(NodeViewItemAction* item);
     ~NodeViewItemAction();
     NodeViewItemAction* getParentViewItemAction();
 private slots:

@@ -20,6 +20,11 @@ NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):QAction(0)
     parentViewItemAction = 0;
 }
 
+void NodeViewItemAction::setParentNodeViewItemAction(NodeViewItemAction *item)
+{
+    parentViewItemAction = item;
+}
+
 NodeViewItemAction::~NodeViewItemAction()
 {
     //Unregister
@@ -28,7 +33,7 @@ NodeViewItemAction::~NodeViewItemAction()
     nodeViewItem->unregisterObject(this);
 }
 
-NodeViewItem *NodeViewItemAction::getParentViewItemAction()
+NodeViewItemAction *NodeViewItemAction::getParentViewItemAction()
 {
     return parentViewItemAction;
 }
