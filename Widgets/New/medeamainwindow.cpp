@@ -35,6 +35,8 @@ void MedeaMainWindow::setViewController(ViewController *vc)
 
     connect(controller, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), tableWidget, SLOT(itemActiveSelectionChanged(ViewItem*, bool)));
     connect(vc->getActionController()->view_viewInNewWindow, SIGNAL(triggered(bool)), this, SLOT(spawnSubView()));
+
+    this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
 }
 
 void MedeaMainWindow::themeChanged()
@@ -399,8 +401,8 @@ void MedeaMainWindow::setupToolBar()
     connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(toolbarTopLevelChanged(bool)));
 
     addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
-    //addDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Vertical);
-    //resizeEvent(0);
+
+
 }
 
 void MedeaMainWindow::setupSearchBar()

@@ -43,6 +43,7 @@ signals:
     void destructing();
     void iconChanged();
 
+
 private:
     void destruct();
 

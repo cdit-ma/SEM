@@ -81,6 +81,7 @@ public:
     void applyTheme();
     bool isValid();
 
+    QIcon getIcon(QPair<QString, QString> icon);
     QIcon getIcon(QString prefix, QString alias);
     QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
 

@@ -6,6 +6,11 @@ WorkerDefinitions::WorkerDefinitions(): Node(Node::NT_ASPECT, NC_WORKER_DEFINITI
     setTop(1);
 }
 
+VIEW_ASPECT WorkerDefinitions::getViewAspect()
+{
+    return VA_WORKERS;
+}
+
 bool WorkerDefinitions::canAdoptChild(Node *node)
 {
     Workload* workload = dynamic_cast<Workload*>(node);

@@ -13,12 +13,15 @@ ToolbarWidgetNew::ToolbarWidgetNew(ActionController* ac, QWidget *parent) : QWid
     // the toolbar to have a translucent background and a mock shadow
     setAttribute(Qt::WA_TranslucentBackground);
 
+    setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
+
+    /*
 #ifdef Q_OS_WIN32
     // toolbar with a Qt::Popup flag doesn't allow hover/icon state changes in Ubuntu
-    setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint);// | Qt::Popup);
 #else
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup | Qt::Dialog);
-#endif
+#endif*/
 
     actionController = ac;
     iconSize = QSize(20,20);

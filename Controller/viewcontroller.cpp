@@ -8,9 +8,8 @@ ViewController::ViewController(){
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
     actionController->connectSelectionController(selectionController);
-
+    toolbarController = new ToolbarController(this);
     toolbar = new ToolbarWidgetNew(actionController);
-
     connect(this, SIGNAL(modelReady(bool)), actionController, SLOT(modelReady(bool)));
     emit modelReady(false);
 }
@@ -23,6 +22,11 @@ SelectionController *ViewController::getSelectionController()
 ActionController *ViewController::getActionController()
 {
     return actionController;
+}
+
+ToolbarController *ViewController::getToolbarController()
+{
+    return toolbarController;
 }
 
 
@@ -43,6 +47,9 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 imageName = os + "_" + arch;
                 imageName = imageName.remove(" ");
             }
+        }else if(nodeKind == "Process"){
+
+
         }
         viewItem->setDefaultIcon("Items", imageName);
     }
@@ -61,7 +68,8 @@ bool ViewController::isModelReady()
 void ViewController::showToolbar(QPointF pos)
 {
     toolbar->move(pos.toPoint());
-    toolbar->setVisible(true);
+    toolbar->show();
+    //toolbar->setVisible(true);
 }
 
 void ViewController::setModelReady(bool okay)

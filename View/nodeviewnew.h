@@ -32,7 +32,8 @@ signals:
     void viewportChanged(QRectF rect, qreal zoom);
     void viewFocussed(NodeViewNew* view, bool focussed);
 
-public slots:
+private slots:
+    void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 private slots:
@@ -84,6 +85,8 @@ private:
     void transition();
     qreal distance(QPoint p1, QPoint p2);
 private:
+
+    EntityItemNew* getEntityAtPos(QPointF scenePos);
     QList<int> topLevelGUIItemIDs;
     QHash<int, EntityItemNew*> guiItems;
 

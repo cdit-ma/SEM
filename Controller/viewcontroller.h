@@ -7,6 +7,7 @@
 #include "../Widgets/New/selectioncontroller.h"
 #include "actioncontroller.h"
 #include "../View/Toolbar/toolbarwidgetnew.h"
+#include "toolbarcontroller.h"
 
 class ViewController : public QObject
 {
@@ -16,6 +17,7 @@ public:
 
     SelectionController* getSelectionController();
     ActionController* getActionController();
+    ToolbarController* getToolbarController();
 
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
@@ -39,6 +41,7 @@ private:
 
     SelectionController* selectionController;
     ActionController* actionController;
+    ToolbarController* toolbarController;
 
     ToolbarWidgetNew* toolbar;
 };

@@ -21,9 +21,14 @@ public:
     QList<int> getTreeIndex();
 
 
-
-
     bool isAncestorOf(NodeViewItem* item);
+
+signals:
+    void labelChanged(QString label);
+
+private slots:
+    void dataChanged(QString key_name, QVariant data);
+
 private:
     NodeAdapter* entity;
 };

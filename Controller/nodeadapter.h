@@ -49,6 +49,7 @@ signals:
     void edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
     void gotDefinition(bool gotDefinition);
 
+
 private:
     Node* _node;
     NODE_CLASS _nodeClass;

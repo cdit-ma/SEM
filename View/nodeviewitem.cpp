@@ -4,7 +4,10 @@
 NodeViewItem::NodeViewItem(NodeAdapter *entity):ViewItem(entity)
 {
     this->entity = entity;
+
+    connect(entity, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
 }
+
 
 NodeViewItem::~NodeViewItem()
 {
@@ -76,4 +79,11 @@ bool NodeViewItem::isAncestorOf(NodeViewItem *item)
         }
     }
     return true;
+}
+
+void NodeViewItem::dataChanged(QString key_name, QVariant data)
+{
+    if(key_name == "label"){
+        emit labelChanged(data.toString());
+    }
 }

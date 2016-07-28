@@ -118,7 +118,12 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
         item->registerObject(this);
 
         if(containedAspect == VA_NONE){
-            backgroundText = item->getData("label").toString().toUpper();
+            connect(item, SIGNAL(labelChanged(QString)), this, SLOT(viewItem_LabelChanged(QString)));
+
+            viewItem_LabelChanged(item->getData("label").toString());
+
+
+
             containedAspect = item->getViewAspect();
             //Request items from ViewController.
 
@@ -336,6 +341,12 @@ void NodeViewNew::viewportChanged()
 SelectionHandler *NodeViewNew::getSelectionHandler()
 {
     return selectionHandler;
+}
+
+void NodeViewNew::viewItem_LabelChanged(QString label)
+{
+    backgroundText = label.toUpper();
+    update();
 }
 
 QRectF NodeViewNew::viewportRect()
@@ -633,6 +644,16 @@ qreal NodeViewNew::distance(QPoint p1, QPoint p2)
     return qSqrt(qPow(p2.x() - p1.x(), 2) + qPow(p2.y() - p1.y(), 2));
 }
 
+EntityItemNew *NodeViewNew::getEntityAtPos(QPointF scenePos)
+{
+    EntityItemNew* entityItem = 0;
+    QGraphicsItem* item = scene()->itemAt(scenePos, transform());
+    if(item){
+        entityItem = qgraphicsitem_cast<EntityItemNew*>(item);
+    }
+    return entityItem;
+}
+
 void NodeViewNew::keyPressEvent(QKeyEvent *event)
 {
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
@@ -641,14 +662,6 @@ void NodeViewNew::keyPressEvent(QKeyEvent *event)
     if(CONTROL && SHIFT){
         setState(VS_RUBBERBAND);
     }
-    /*
-    if(event->key() == Qt::Key_Tab){
-        //Cycle Selection.
-        selectionHandler->cycleActiveSelectedItem(true);
-    }
-    if(event->key() == Qt::Key_Backtab){
-        selectionHandler->cycleActiveSelectedItem(false);
-    }*/
 }
 
 void NodeViewNew::keyReleaseEvent(QKeyEvent *event)
@@ -693,8 +706,8 @@ void NodeViewNew::mousePressEvent(QMouseEvent *event)
                 break;
             }
         default:
-            bool itemUnderMouse = scene()->itemAt(scenePos, transform());
-            if(!itemUnderMouse){
+            EntityItemNew* item = getEntityAtPos(scenePos);
+            if(!item){
                 selectionHandler->clearSelection();
                 handledEvent = true;
             }
@@ -744,12 +757,21 @@ void NodeViewNew::mouseMoveEvent(QMouseEvent *event)
 
 void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
 {
+    bool CONTROL = event->modifiers() & Qt::ControlModifier;
+    bool SHIFT = event->modifiers() & Qt::ShiftModifier;
+
     switch(viewState){
     case VS_PAN:{
         //Do Nothing
     }
     case VS_PANNING:{
         if(pan_distance < 10){
+            QPointF scenePos = mapToScene(event->pos());
+            EntityItemNew* item = getEntityAtPos(scenePos);
+            if(item){
+                selectionHandler->toggleItemsSelection(item->getViewItem(), CONTROL);
+            }
+            //Check for item under mouse.
             emit toolbarRequested(event->screenPos());
         }
         setState(VS_NONE);

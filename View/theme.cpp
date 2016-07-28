@@ -296,6 +296,11 @@ bool Theme::isValid()
     return valid;
 }
 
+QIcon Theme::getIcon(QPair<QString, QString> icon)
+{
+    return getIcon(icon.first, icon.second);
+}
+
 QIcon Theme::getIcon(QString prefix, QString alias)
 {
     //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
