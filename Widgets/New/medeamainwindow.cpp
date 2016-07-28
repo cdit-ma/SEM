@@ -42,6 +42,36 @@ void MedeaMainWindow::setViewController(ViewController *vc)
 void MedeaMainWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
+    setStyleSheet(theme->getWindowStyleSheet() +
+                  theme->getViewStyleSheet() +
+                  theme->getMenuBarStyleSheet() +
+                  theme->getMenuStyleSheet() +
+                  theme->getToolBarStyleSheet() +
+                  theme->getDockWidgetStyleSheet() +
+                  theme->getPushButtonStyleSheet());
+
+    QString menuStyle = theme->getMenuStyleSheet();
+    viewController->getActionController()->menu_file->setStyleSheet(menuStyle);
+    viewController->getActionController()->menu_file_recentProjects->setStyleSheet(menuStyle);
+    viewController->getActionController()->menu_edit->setStyleSheet(menuStyle);
+    viewController->getActionController()->menu_view->setStyleSheet(menuStyle);
+    viewController->getActionController()->menu_model->setStyleSheet(menuStyle);
+    viewController->getActionController()->menu_jenkins->setStyleSheet(menuStyle);
+    viewController->getActionController()->menu_help->setStyleSheet(menuStyle);
+    viewController->getActionController()->menu_window->setStyleSheet(menuStyle);
+    viewController->getActionController()->menu_options->setStyleSheet(menuStyle);
+
+    floatingToolbar->setStyleSheet("QToolButton{ padding: 4px; }");
+
+    searchBar->setStyleSheet(theme->getLineEditStyleSheet());
+    searchButton->setIcon(Theme::theme()->getIcon("Actions", "Search"));
+    searchOptionsButton->setIcon(Theme::theme()->getIcon("Actions", "Settings"));
+}
+
+/*
+void MedeaMainWindow::themeChanged()
+{
+    Theme* theme = Theme::theme();
     QString BGColor = theme->getBackgroundColorHex();
     QString disabledBGColor = theme->getDisabledBackgroundColorHex();
     QString altBGColor = theme->getAltBackgroundColorHex();
@@ -168,6 +198,7 @@ void MedeaMainWindow::themeChanged()
     searchButton->setIcon(Theme::theme()->getIcon("Actions", "Search"));
     searchOptionsButton->setIcon(Theme::theme()->getIcon("Actions", "Settings"));
 }
+*/
 
 void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock, MedeaViewDockWidget *prevDock)
 {

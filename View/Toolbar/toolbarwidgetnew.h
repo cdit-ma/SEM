@@ -27,6 +27,7 @@ public slots:
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 private:
     void setupToolbar();
+    void setupMenus();
     void setupAddChildMenus();
 
     ViewController* viewController;

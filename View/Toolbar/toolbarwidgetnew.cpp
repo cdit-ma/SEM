@@ -25,11 +25,10 @@ ToolbarWidgetNew::ToolbarWidgetNew(ViewController *vc, QWidget *parent) : QWidge
     viewController = vc;
     actionController = vc->getActionController();
     toolbarController = vc->getToolbarController();
-    iconSize = QSize(20,20);
 
     setupToolbar();
+    setupMenus();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-
 }
 
 
@@ -81,6 +80,7 @@ void ToolbarWidgetNew::themeChanged()
                   "QToolBar {"
                   "spacing: 3px;"
                   "padding: 3px;"
+                  "background: rgba(0,0,0,0);"
                   /*
                   "margin: 0px;"
                   "border-radius: 3px;"
@@ -153,13 +153,11 @@ void ToolbarWidgetNew::setupToolbar()
     shadowFrame = new QFrame(this);
     mainFrame = new QFrame(this);
 
+    iconSize = QSize(20,20);
     toolbar = new QToolBar(this);
     toolbar->setIconSize(iconSize);
 
-    setupAddChildMenus();
-
     if (actionController) {
-
         toolbar->addActions(actionController->contextToolbar->actions());
     }
 
@@ -169,29 +167,43 @@ void ToolbarWidgetNew::setupToolbar()
     layout->addWidget(toolbar, 0, Qt::AlignTop);
 }
 
+
+/**
+ * @brief ToolbarWidgetNew::setupMenus
+ */
+void ToolbarWidgetNew::setupMenus()
+{
+    setupAddChildMenus();
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::setupAddChildMenus
+ */
 void ToolbarWidgetNew::setupAddChildMenus()
 {
-    if(toolbarController){
-        addChildAction = toolbarController->getAdoptableKindsAction(true);
-        QMenu* partsMenu = new QMenu(this);
-
-        QStringList subMenuKinds = toolbarController->getKindsRequiringSubActions();
-
-        foreach(QAction* action, toolbarController->getAdoptableKindsActions(true) ){
-            QString kind = action->text();
-            action->setProperty("kind", kind);
-            if(subMenuKinds.contains(kind)){
-                //Construct a QMenu and place in the subMenuHash with key kind. and add to action.
-                partsMenu->addAction(action);
-            }else{
-                //connect(this, SIGNAL(addChildNode()), toolbarController, SLOT(addChildNode()));
-                connect(action, SIGNAL(triggered(bool)), toolbarController, SLOT(addChildNode()));
-                partsMenu->addAction(action);
-            }
-        }
-        addChildAction->setMenu(partsMenu);
-        toolbar->addAction(addChildAction);
+    if (!toolbarController) {
+        return;
     }
 
+    QStringList kindsWithSubMenus = toolbarController->getKindsRequiringSubActions();
+    QMenu* addMenu = new QMenu(this);
+
+    foreach (QAction* action, toolbarController->getAdoptableKindsActions(true)) {
+        QString kind = action->text();
+        action->setProperty("kind", kind);
+        if (kindsWithSubMenus.contains(kind)) {
+            //Construct a QMenu and place in the subMenuHash with key kind. and add to action.
+            addMenu->addAction(action);
+        } else {
+            //connect(this, SIGNAL(addChildNode()), toolbarController, SLOT(addChildNode()));
+            connect(action, SIGNAL(triggered(bool)), toolbarController, SLOT(addChildNode()));
+            addMenu->addAction(action);
+        }
+    }
+
+    addChildAction = toolbarController->getAdoptableKindsAction(true);
+    addChildAction->setMenu(addMenu);
+    toolbar->addAction(addChildAction);
 }
 
