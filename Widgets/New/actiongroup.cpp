@@ -1,8 +1,31 @@
 #include "actiongroup.h"
 #include <QDebug>
+#include "../../Controller/rootaction.h"
 ActionGroup::ActionGroup(QObject* parent) : QActionGroup(parent)
 {
     setExclusive(false);
+    masterAction = 0;
+}
+
+RootAction *ActionGroup::getGroupVisibilityAction()
+{
+    if(!masterAction){
+        masterAction = new RootAction("Test", 0);
+        updateMasterAction();
+    }
+    return masterAction;
+}
+
+QList<RootAction *> ActionGroup::getRootActions()
+{
+    QList<RootAction* > rootActions;
+    foreach(QAction* action, actions()){
+        RootAction* rootAction = qobject_cast<RootAction*>(action);
+        if(rootAction){
+            rootActions.append(rootAction);
+        }
+    }
+    return rootActions;
 }
 
 void ActionGroup::addSeperator()
@@ -43,6 +66,43 @@ void ActionGroup::updateSpacers()
         int rightOfSeperator = visibleActionsCount.at(i + 1);
 
         QAction* seperatorAction = actions.at(seperatorIndex);
-        seperatorAction->setVisible(leftOfSeperator > 0 && rightOfSeperator > 0);
+        seperatorAction->setVisible(leftOfSeperator > 0 && ((i + 1) != visibleActionsCount.size()));
+    }
+}
+
+void ActionGroup::addAction(QAction *a)
+{
+
+    if(a->isVisible()){
+        updateMasterAction();
+    }
+    connect(a, SIGNAL(changed()), this, SLOT(updateMasterAction()));
+    QActionGroup::addAction(a);
+}
+
+void ActionGroup::removeAction(QAction *a)
+{
+    if(a->isVisible()){
+        updateMasterAction();
+    }
+    disconnect(a, SIGNAL(changed()), this, SLOT(updateMasterAction()));
+    QActionGroup::removeAction(a);
+}
+
+/**
+ * @brief ActionGroup::updateMasterAction
+ * Updates
+ */
+void ActionGroup::updateMasterAction()
+{
+    if(masterAction){
+        bool anyEnabled = false;
+        foreach(QAction* action, actions()){
+            if(action->isEnabled()){
+                anyEnabled = true;
+                break;
+            }
+        }
+        masterAction->setEnabled(anyEnabled);
     }
 }

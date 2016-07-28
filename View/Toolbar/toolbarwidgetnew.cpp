@@ -7,7 +7,7 @@
  * @param ac
  * @param parent
  */
-ToolbarWidgetNew::ToolbarWidgetNew(ActionController* ac, QWidget *parent) : QWidget(parent)
+ToolbarWidgetNew::ToolbarWidgetNew(ViewController *vc, QWidget *parent) : QWidget(parent)
 {
     // using frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
@@ -23,11 +23,14 @@ ToolbarWidgetNew::ToolbarWidgetNew(ActionController* ac, QWidget *parent) : QWid
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup | Qt::Dialog);
 #endif*/
 
-    actionController = ac;
+    viewController = vc;
+    actionController = vc->getActionController();
+    toolbarController = vc->getToolbarController();
     iconSize = QSize(20,20);
 
     setupToolbar();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
 }
 
 
@@ -108,6 +111,9 @@ void ToolbarWidgetNew::themeChanged()
 
     mainFrame->setStyleSheet("background:" + mainBackgroundColor + "; border-radius: 6px;");
     shadowFrame->setStyleSheet("background:" + shadowColorStr + "; border-radius: 8px;");
+
+
+    addChildAction->setIcon(Theme::theme()->getIcon("Actions", "Plus"));
 }
 
 
@@ -146,7 +152,10 @@ void ToolbarWidgetNew::setupToolbar()
     toolbar = new QToolBar(this);
     toolbar->setIconSize(iconSize);
 
+    setupAddChildMenus();
+
     if (actionController) {
+
         toolbar->addActions(actionController->contextToolbar->actions());
     }
 
@@ -154,5 +163,31 @@ void ToolbarWidgetNew::setupToolbar()
     layout->setSpacing(0);
     layout->setMargin(0);
     layout->addWidget(toolbar, 0, Qt::AlignTop);
+}
+
+void ToolbarWidgetNew::setupAddChildMenus()
+{
+    if(toolbarController){
+        addChildAction = toolbarController->getAdoptableKindsAction(true);
+        QMenu* partsMenu = new QMenu(this);
+
+        QStringList subMenuKinds = toolbarController->getKindsRequiringSubMenu();
+
+        foreach(QAction* action, toolbarController->getAdoptableKindsActions(true) ){
+            QString kind = action->text();
+            action->setProperty("kind", kind);
+            if(subMenuKinds.contains(kind)){
+                //Construct a QMenu and place in the subMenuHash with key kind. and add to action.
+                partsMenu->addAction(action);
+            }else{
+                //connect(this, SIGNAL(addChildNode()), toolbarController, SLOT(addChildNode()));
+                connect(action, SIGNAL(triggered(bool)), toolbarController, SLOT(addChildNode()));
+                partsMenu->addAction(action);
+            }
+        }
+        addChildAction->setMenu(partsMenu);
+        toolbar->addAction(addChildAction);
+    }
+
 }
 

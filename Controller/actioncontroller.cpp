@@ -369,21 +369,21 @@ void ActionController::setupContextToolbar()
     contextToolbar = new ActionGroup(this);
 
     contextToolbar->addAction(toolbar_addChild);
-    contextToolbar->addAction(edit_delete->getStealthAction());
+    contextToolbar->addAction(edit_delete->constructSubAction());
     contextToolbar->addAction(toolbar_hardware);
     contextToolbar->addAction(toolbar_disconnectHardware);
     contextToolbar->addSeperator();
-    contextToolbar->addAction(edit_alignVertical->getStealthAction());
-    contextToolbar->addAction(edit_alignHorizontal->getStealthAction());
+    contextToolbar->addAction(edit_alignVertical->constructSubAction());
+    contextToolbar->addAction(edit_alignHorizontal->constructSubAction());
     contextToolbar->addSeperator();
     contextToolbar->addAction(toolbar_expand);
     contextToolbar->addAction(toolbar_contract);
     contextToolbar->addSeperator();
-    contextToolbar->addAction(file_importSnippet->getStealthAction());
-    contextToolbar->addAction(file_exportSnippet->getStealthAction());
+    contextToolbar->addAction(file_importSnippet->constructSubAction());
+    contextToolbar->addAction(file_exportSnippet->constructSubAction());
     contextToolbar->addSeperator();
-    contextToolbar->addAction(view_centerOnDefn->getStealthAction());
-    contextToolbar->addAction(view_centerOnImpl->getStealthAction());
+    contextToolbar->addAction(view_centerOnDefn->constructSubAction());
+    contextToolbar->addAction(view_centerOnImpl->constructSubAction());
     //contextToolbar->addAction(toolbar_popOutDefn);
     //contextToolbar->addAction(toolbar_popOutImpl);
     //contextToolbar->addAction(toolbar_popOutInst);
@@ -393,9 +393,9 @@ void ActionController::setupContextToolbar()
     contextToolbar->addAction(toolbar_setReadOnly);
     contextToolbar->addAction(toolbar_unsetReadOnly);
     contextToolbar->addSeperator();
-    contextToolbar->addAction(view_viewConnections->getStealthAction());
+    contextToolbar->addAction(view_viewConnections->constructSubAction());
     contextToolbar->addAction(toolbar_getCPP);
-    contextToolbar->addAction(view_viewInNewWindow->getStealthAction());
+    contextToolbar->addAction(view_viewInNewWindow->constructSubAction());
     contextToolbar->addAction(toolbar_wiki);
 
     /*

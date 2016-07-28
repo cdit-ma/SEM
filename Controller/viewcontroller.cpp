@@ -1,6 +1,7 @@
 #include "viewcontroller.h"
 #include "../View/nodeviewitem.h"
 #include "../View/edgeviewitem.h"
+#include "../View/Toolbar/toolbarwidgetnew.h"
 #include <QDebug>
 ViewController::ViewController(){
     modelItem = 0;
@@ -8,10 +9,57 @@ ViewController::ViewController(){
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
     actionController->connectSelectionController(selectionController);
-    toolbarController = new ToolbarController(this);
-    toolbar = new ToolbarWidgetNew(actionController);
+    toolbarController = new ToolActionController(this);
+    toolbar = new ToolbarWidgetNew(this);
     connect(this, SIGNAL(modelReady(bool)), actionController, SLOT(modelReady(bool)));
     emit modelReady(false);
+}
+
+QStringList ViewController::getNodeKinds()
+{
+    QStringList nodeKinds;
+    nodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" << "BlackBox" << "BlackBoxInstance";
+    nodeKinds << "Member" << "Aggregate";
+    nodeKinds << "InEventPort"  << "OutEventPort";
+    nodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
+    nodeKinds << "AggregateInstance";
+    nodeKinds << "ComponentImpl";
+    nodeKinds << "Vector" << "VectorInstance";
+    nodeKinds << "HardwareCluster";
+    nodeKinds << "WorkerDefinitions";
+
+    nodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" << "BlackBox" << "BlackBoxInstance";
+    nodeKinds << "Member" << "Aggregate";
+    nodeKinds << "InEventPort"  << "OutEventPort";
+    nodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
+    nodeKinds << "AggregateInstance";
+    nodeKinds << "ComponentImpl";
+
+    nodeKinds << "Vector" << "VectorInstance";
+
+
+
+
+
+
+
+
+    nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
+    nodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
+
+
+    //Append Kinds which can't be constructed by the GUI.
+    nodeKinds << "MemberInstance" << "AttributeImpl";
+    nodeKinds << "OutEventPortInstance" << "MemberInstance" << "AggregateInstance";
+    nodeKinds << "AttributeInstance" << "AttributeImpl";
+    nodeKinds << "InEventPortInstance" << "InEventPortImpl";
+    nodeKinds << "OutEventPortInstance" << "OutEventPortImpl" << "HardwareNode";
+
+    nodeKinds << "ComponentImpl" << "InterfaceDefinitions";
+    nodeKinds << "OutEventPortImpl" << "InEventPortImpl";
+    nodeKinds.removeDuplicates();
+
+    return nodeKinds;
 }
 
 SelectionController *ViewController::getSelectionController()
@@ -24,7 +72,7 @@ ActionController *ViewController::getActionController()
     return actionController;
 }
 
-ToolbarController *ViewController::getToolbarController()
+ToolActionController *ViewController::getToolbarController()
 {
     return toolbarController;
 }

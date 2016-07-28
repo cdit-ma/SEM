@@ -9,12 +9,13 @@ class NodeViewItemAction : public QAction
 public:
     NodeViewItemAction(NodeViewItem* item);
     ~NodeViewItemAction();
-
+    NodeViewItemAction* getParentViewItemAction();
 private slots:
     void iconChanged();
     void labelChanged(QString label);
 private:
     NodeViewItem* nodeViewItem;
+    NodeViewItemAction* parentViewItemAction;
 };
 
 #endif // NODEVIEWITEMACTION_H

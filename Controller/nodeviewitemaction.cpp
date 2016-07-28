@@ -16,6 +16,8 @@ NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):QAction(0)
 
     iconChanged();
     labelChanged(nodeViewItem->getData("label").toString());
+
+    parentViewItemAction = 0;
 }
 
 NodeViewItemAction::~NodeViewItemAction()
@@ -24,6 +26,11 @@ NodeViewItemAction::~NodeViewItemAction()
     disconnect(nodeViewItem, SIGNAL(iconChanged()), this, SLOT(iconChanged()));
     disconnect(nodeViewItem, SIGNAL(labelChanged(QString)), this, SLOT(labelChanged(QString)));
     nodeViewItem->unregisterObject(this);
+}
+
+NodeViewItem *NodeViewItemAction::getParentViewItemAction()
+{
+    return parentViewItemAction;
 }
 
 void NodeViewItemAction::iconChanged()

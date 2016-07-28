@@ -102,9 +102,9 @@ void TableWidget::setupLayout()
 
     label->setAlignment(Qt::AlignCenter);
 
-    toolbar->addAction(viewController->getActionController()->edit_CycleActiveSelectionBackward->getStealthAction());
+    toolbar->addAction(viewController->getActionController()->edit_CycleActiveSelectionBackward->constructSubAction());
     toolbar->addWidget(labelWidget);
-    toolbar->addAction(viewController->getActionController()->edit_CycleActiveSelectionForward->getStealthAction());
+    toolbar->addAction(viewController->getActionController()->edit_CycleActiveSelectionForward->constructSubAction());
 
     layout->addWidget(toolbar);
 

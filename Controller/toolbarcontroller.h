@@ -6,24 +6,48 @@
 #include "../View/viewitem.h"
 #include "nodeviewitemaction.h"
 #include "../Widgets/New/actiongroup.h"
+#include "rootaction.h"
 
 class ViewController;
-class ToolbarController : public QObject
+class ToolActionController : public QObject
 {
     Q_OBJECT
 public:
-    ToolbarController(ViewController* viewController);
+    ToolActionController(ViewController* viewController);
 
 private slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 
+    void selectionChanged(int selected);
+    void addChildNode();
+
+public:
+    QList<QAction*> getAdoptableKindsActions(bool stealth);
+    QAction* getAdoptableKindsAction(bool stealth);
+
+
+    QStringList getKindsRequiringSubActions();
+    QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
+
+    //void connect()
 private:
+    void setupNodeActions();
+
+    QHash<QString, RootAction*> nodeKindActions;
     QHash<int, NodeViewItemAction*> actions;
 
 public:
     QToolBar* toolbar;
+
     ActionGroup* actionGroup;
+    ViewController* viewController;
+
+
+
+
+
+    ActionGroup* adoptableKindsGroup;
 };
 
 #endif // TOOLBARCONTROLLER_H

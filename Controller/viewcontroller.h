@@ -6,18 +6,20 @@
 #include "selectionhandler.h"
 #include "../Widgets/New/selectioncontroller.h"
 #include "actioncontroller.h"
-#include "../View/Toolbar/toolbarwidgetnew.h"
 #include "toolbarcontroller.h"
 
+
+class ToolbarWidgetNew;
 class ViewController : public QObject
 {
     Q_OBJECT
 public:
     ViewController();
 
+    QStringList getNodeKinds();
     SelectionController* getSelectionController();
     ActionController* getActionController();
-    ToolbarController* getToolbarController();
+    ToolActionController* getToolbarController();
 
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
@@ -41,7 +43,7 @@ private:
 
     SelectionController* selectionController;
     ActionController* actionController;
-    ToolbarController* toolbarController;
+    ToolActionController* toolbarController;
 
     ToolbarWidgetNew* toolbar;
 };
