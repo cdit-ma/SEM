@@ -17,6 +17,7 @@ ActionController::ActionController(QObject *parent) : QObject(parent)
     setupContextToolbar();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
 }
 
 void ActionController::connectSelectionController(SelectionController *controller)

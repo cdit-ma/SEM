@@ -39,7 +39,9 @@ private slots:
 private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
-    void selectionHandler_SelectAll();
+    void selectAll();
+
+    void clearSelection();
 
     void themeChanged();
 
@@ -81,6 +83,7 @@ private:
 private:
     void selectItemsInRubberband();
     void _selectAll();
+    void _clearSelection();
     void setState(VIEW_STATE state);
     void transition();
     qreal distance(QPoint p1, QPoint p2);
@@ -105,6 +108,7 @@ private:
 
 
     bool isAspectView;
+    bool isBackgroundSelected;
     VIEW_ASPECT containedAspect;
     NodeViewItem* containedNodeViewItem;
 
@@ -114,6 +118,7 @@ private:
     QString backgroundText;
     QFont backgroundFont;
     QColor backgroundFontColor;
+    QColor selectedBackgroundFontColor;
 
 protected:
     void keyPressEvent(QKeyEvent* event);

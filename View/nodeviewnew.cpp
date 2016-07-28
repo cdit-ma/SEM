@@ -125,6 +125,7 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
 
 
             containedAspect = item->getViewAspect();
+
             //Request items from ViewController.
 
             viewItem_Constructed(item);
@@ -132,6 +133,7 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
                 viewItem_Constructed(item);
             }
         }
+        clearSelection();
     }
 }
 
@@ -169,6 +171,10 @@ void NodeViewNew::selectionHandler_ItemSelectionChanged(ViewItem *item, bool sel
         if(e){
             e->setSelected(selected);
         }
+        if(item == containedNodeViewItem){
+            isBackgroundSelected = selected;
+            update();
+        }
     }
 }
 
@@ -182,9 +188,15 @@ void NodeViewNew::selectionHandler_ItemActiveSelectionChanged(ViewItem *item, bo
     }
 }
 
-void NodeViewNew::selectionHandler_SelectAll()
+
+void NodeViewNew::selectAll()
 {
     _selectAll();
+}
+
+void NodeViewNew::clearSelection()
+{
+    _clearSelection();
 }
 
 void NodeViewNew::themeChanged()
@@ -196,17 +208,20 @@ void NodeViewNew::themeChanged()
     }
     backgroundFontColor = backgroundColor.darker(110);
 
+    QColor selectedColor = Qt::blue;
+
+    //Merge to blue
+    qreal ratio = .90;
+    selectedBackgroundFontColor.setRed((ratio * backgroundFontColor.red() + (1 - ratio) * selectedColor.red() ));
+    selectedBackgroundFontColor.setGreen((ratio *backgroundFontColor.green() + (1 - ratio) * selectedColor.green() ));
+    selectedBackgroundFontColor.setBlue((ratio *backgroundFontColor.blue() + (1 - ratio) * selectedColor.blue() ));
+
     update();
 }
 
 void NodeViewNew::fitToScreen()
 {
-    //NodeItemNew* model = getModelItem();
-
-    //if(model){
-        centerRect(scene()->itemsBoundingRect());
-        //centerOnItems(model->getChildEntities());
-        //}
+    centerRect(scene()->itemsBoundingRect());
 }
 
 void NodeViewNew::item_Selected(ViewItem *item, bool append)
@@ -543,6 +558,20 @@ void NodeViewNew::_selectAll()
     }
 }
 
+void NodeViewNew::_clearSelection()
+{
+    if(selectionHandler){
+        //Depending on the type of NodeView we are.
+        if(isAspectView){
+            //If we are the aspect select the aspect.
+            selectionHandler->toggleItemsSelection(containedNodeViewItem);
+        }else{
+            //If we aren't an aspect clear the selection.
+            selectionHandler->clearSelection();
+        }
+    }
+}
+
 void NodeViewNew::setState(VIEW_STATE state)
 {
     VIEW_STATE newState = viewState;
@@ -708,7 +737,7 @@ void NodeViewNew::mousePressEvent(QMouseEvent *event)
         default:
             EntityItemNew* item = getEntityAtPos(scenePos);
             if(!item){
-                selectionHandler->clearSelection();
+                clearSelection();
                 handledEvent = true;
             }
             break;
@@ -798,7 +827,11 @@ void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)
 
     if(backgroundText != ""){
         painter->setFont(backgroundFont);
-        painter->setPen(backgroundFontColor);
+        if(isBackgroundSelected){
+            painter->setPen(selectedBackgroundFontColor);
+        }else{
+            painter->setPen(backgroundFontColor);
+        }
         painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, backgroundText);
     }
 }

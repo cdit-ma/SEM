@@ -3,6 +3,7 @@
 #include <QObject>
 #include "../../Controller/selectionhandler.h"
 
+
 class MedeaViewDockWidget;
 class SelectionController : public QObject
 {
@@ -32,8 +33,12 @@ private slots:
     void removeSelectionHandler();
 private:
     void cycleActiveSelectedItem(bool forward);
+    void setCurrentViewDockWidget(MedeaViewDockWidget* dock);
     void setCurrentSelectionHandler(SelectionHandler* handler);
+
+    MedeaViewDockWidget* currentViewDockWidget;
     SelectionHandler* currentHandler;
+
     QHash<QObject*, int> selectionHandlerIDLookup;
     QHash<int, SelectionHandler*> selectionHandlers;
     ViewController* viewController;

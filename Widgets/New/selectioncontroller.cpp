@@ -7,6 +7,7 @@
 SelectionController::SelectionController(ViewController *vc):QObject(vc)
 {
     currentHandler = 0;
+    currentViewDockWidget = 0;
     viewController = vc;
 
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*)));
@@ -75,13 +76,7 @@ ViewItem *SelectionController::getFirstSelectedItem()
 
 void SelectionController::activeViewDockWidgetChanged(MedeaViewDockWidget *dockWidget)
 {
-    SelectionHandler* handler = 0;
-    if(dockWidget){
-        handler = dockWidget->getSelectionHandler();
-        if(handler){
-            setCurrentSelectionHandler(handler);
-        }
-    }
+    setCurrentViewDockWidget(dockWidget);
 }
 
 void SelectionController::cycleActiveSelectionBackward()
@@ -98,6 +93,28 @@ void SelectionController::cycleActiveSelectedItem(bool forward)
 {
     if(currentHandler){
         currentHandler->cycleActiveSelectedItem(forward);
+    }
+}
+
+void SelectionController::setCurrentViewDockWidget(MedeaViewDockWidget *dock)
+{
+    if(dock != currentViewDockWidget){
+        if(currentViewDockWidget){
+            NodeViewNew* nodeView = currentViewDockWidget->getNodeView();
+            disconnect(this, SIGNAL(clearSelection()), nodeView, SLOT(clearSelection()));
+            disconnect(this, SIGNAL(selectAll()), nodeView, SLOT(selectAll()));
+        }
+        currentViewDockWidget = dock;
+
+        SelectionHandler* selectionHandler = 0;
+        if(currentViewDockWidget){
+            selectionHandler = currentViewDockWidget->getSelectionHandler();
+            NodeViewNew* nodeView = currentViewDockWidget->getNodeView();
+            connect(this, SIGNAL(clearSelection()), nodeView, SLOT(clearSelection()));
+            connect(this, SIGNAL(selectAll()), nodeView, SLOT(selectAll()));
+        }
+
+        setCurrentSelectionHandler(selectionHandler);
     }
 }
 
@@ -124,17 +141,12 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
         if(currentHandler){
             disconnect(currentHandler, SIGNAL(selectionChanged(int)), this, SIGNAL(selectionChanged(int)));
             disconnect(currentHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)), this, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)));
-
-            disconnect(this, SIGNAL(clearSelection()), currentHandler, SLOT(clearSelection()));
-            disconnect(this, SIGNAL(selectAll()), currentHandler, SIGNAL(selectAll()));
         }
         currentHandler = handler;
         int selectionCount = 0;
         if(handler){
             connect(currentHandler, SIGNAL(selectionChanged(int)), this, SIGNAL(selectionChanged(int)));
             connect(currentHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)), this, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)));
-            connect(this, SIGNAL(clearSelection()), currentHandler, SLOT(clearSelection()));
-            connect(this, SIGNAL(selectAll()), currentHandler, SIGNAL(selectAll()));
 
             selectionCount = currentHandler->getSelectionCount();
             emit itemActiveSelectionChanged(currentHandler->getActiveSelectedItem(), true);
