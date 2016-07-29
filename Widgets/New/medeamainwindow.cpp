@@ -48,7 +48,8 @@ void MedeaMainWindow::themeChanged()
                   theme->getMenuStyleSheet() +
                   theme->getToolBarStyleSheet() +
                   theme->getDockWidgetStyleSheet() +
-                  theme->getPushButtonStyleSheet());
+                  theme->getPushButtonStyleSheet() +
+                  "QToolButton{ padding: 4px; }");
 
     QString menuStyle = theme->getMenuStyleSheet();
     viewController->getActionController()->menu_file->setStyleSheet(menuStyle);
@@ -61,144 +62,11 @@ void MedeaMainWindow::themeChanged()
     viewController->getActionController()->menu_window->setStyleSheet(menuStyle);
     viewController->getActionController()->menu_options->setStyleSheet(menuStyle);
 
-    floatingToolbar->setStyleSheet("QToolButton{ padding: 4px; }");
-
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
     searchButton->setIcon(Theme::theme()->getIcon("Actions", "Search"));
     searchOptionsButton->setIcon(Theme::theme()->getIcon("Actions", "Settings"));
 }
 
-/*
-void MedeaMainWindow::themeChanged()
-{
-    Theme* theme = Theme::theme();
-    QString BGColor = theme->getBackgroundColorHex();
-    QString disabledBGColor = theme->getDisabledBackgroundColorHex();
-    QString altBGColor = theme->getAltBackgroundColorHex();
-    QString textColor = theme->getTextColorHex(Theme::CR_NORMAL);
-    QString textSelectedColor = theme->getTextColorHex(Theme::CR_SELECTED);
-    QString textDisabledColor = theme->getTextColorHex(Theme::CR_DISABLED);
-    QString highlightColor = theme->getHighlightColorHex();
-    QString pressedColor = theme->getPressedColorHex();
-
-    setStyleSheet("QMainWindow {"
-                  "background: " + BGColor + ";"
-                  "color: " + textColor + ";"
-                  "}"
-                  "QGraphicsView {"
-                  "background: " + BGColor + ";"
-                  "border: 1px solid " + disabledBGColor + ";"
-                  "}"
-                  "QToolBar {"
-                  "spacing: 3px;"
-                  "border: none;"
-                  "padding: 1px;"
-                  "margin: 0px;"
-                  "background:" + BGColor + ";"
-
-                  "}"
-                  "QToolBar::separator {"
-                  "width: 5px;"
-                  "background: rgba(0,0,0,0);"
-                  "}"
-                  "DockTitleBarWidget {"
-                  "padding: 0px;"
-                  "spacing: 0px;"
-                  "background: " + altBGColor + ";"
-                  "border: 1px solid " + disabledBGColor + ";"
-                  "}"
-                  "QToolButton {"
-                  "padding: 2px;"
-                  //"border: 1px solid " + disabledBGColor + ";"
-                  "border-radius: 5px;"
-                  "background:" + altBGColor + ";"
-                  "color:" + textColor + ";"
-                  "}"
-                  "QToolButton:hover {"
-                  "background:" + highlightColor + ";"
-                  "color:" + textSelectedColor + ";"
-                  "}"
-                  "QToolButton:pressed {"
-                  "background:" + pressedColor + ";"
-                  "}"
-                  "QPushButton {"
-                  "background:" + altBGColor + ";"
-                  "color:" + textColor + ";"
-                  "border-radius: 5px;"
-                  "border: 1px solid " + disabledBGColor + ";"
-                  "}"
-                  "QPushButton:hover {"
-                  "background: " + highlightColor + ";"
-                  "color:" + textSelectedColor + ";"
-                  "}"
-                  "QMenuBar {"
-                  "padding: 3px;"
-                  "background:" + BGColor + ";"
-                  "border-bottom: 1px solid " + disabledBGColor + ";"
-                  "}"
-                  "QMenuBar::item {"
-                  "background:" + BGColor + ";"
-                  "color:" + textColor + ";"
-                  "padding: 5px;"
-                  "}"
-                  "QMenuBar::item:selected {"
-                  "color:" + textSelectedColor + ";"
-                  "background:" + highlightColor + ";"
-                  "border-radius: 2px;"
-                  "}"
-                  "QMenu {"
-                  "background:" + altBGColor + ";"
-                  //"border: 2px solid red;"
-                  "border-radius: 5px;"
-                  "margin: 2px 2px 2px 6px; "
-                  "}"
-                  "QMenu::item {"
-                  "padding: 2px 15px 2px 25px;"
-                  "background:" + altBGColor + ";"
-                  "color:" + textColor + ";"
-                  "border: none;"
-                  "}"
-                  "QMenu::item:disabled {"
-                  "color:" + textDisabledColor + ";"
-                  "}"
-                  "QMenu::item:selected:!disabled {"
-                  "color:" + textSelectedColor + ";"
-                  "background: " + highlightColor + ";"
-                  "border-radius: 2px;"
-                  "}"
-                  "QDockWidget {"
-                  "margin: 5px;"
-                  "background:" + BGColor + ";"
-                  "}"
-                  );
-
-    viewController->getActionController()->menu_file->setStyleSheet(styleSheet());
-    viewController->getActionController()->menu_file_recentProjects->setStyleSheet(styleSheet());
-    viewController->getActionController()->menu_edit->setStyleSheet(styleSheet());
-    viewController->getActionController()->menu_view->setStyleSheet(styleSheet());
-    viewController->getActionController()->menu_model->setStyleSheet(styleSheet());
-    viewController->getActionController()->menu_jenkins->setStyleSheet(styleSheet());
-    viewController->getActionController()->menu_help->setStyleSheet(styleSheet());
-    viewController->getActionController()->menu_window->setStyleSheet(styleSheet());
-    viewController->getActionController()->menu_options->setStyleSheet(styleSheet());
-
-    floatingToolbar->setStyleSheet("QToolButton{ padding: 4px; }");
-
-    searchBar->setStyleSheet("QLineEdit {"
-                             "background: " + altBGColor + ";"
-                             "color:" + textColor + ";"
-                             "border: 1px solid " + disabledBGColor + ";"
-                             "}"
-                             "QLineEdit:focus {"
-                             "border-color:" + highlightColor + ";"
-                             "}");
-
-    //middlewareButton->setIcon(Theme::theme()->getIcon("Actions", "Arrow_Down"));
-    //closeProjectButton->setIcon(Theme::theme()->getIcon("Actions", "Close"));
-    searchButton->setIcon(Theme::theme()->getIcon("Actions", "Search"));
-    searchOptionsButton->setIcon(Theme::theme()->getIcon("Actions", "Settings"));
-}
-*/
 
 void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock, MedeaViewDockWidget *prevDock)
 {

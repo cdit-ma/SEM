@@ -70,14 +70,14 @@ void ActionGroup::updateSpacers()
     }
 }
 
-void ActionGroup::addAction(QAction *a)
+QAction* ActionGroup::addAction(QAction *a)
 {
 
     if(a->isVisible()){
         updateMasterAction();
     }
     connect(a, SIGNAL(changed()), this, SLOT(updateMasterAction()));
-    QActionGroup::addAction(a);
+    return QActionGroup::addAction(a);
 }
 
 void ActionGroup::removeAction(QAction *a)

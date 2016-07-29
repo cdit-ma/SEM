@@ -101,7 +101,27 @@ void ToolActionController::addChildNode()
     }
 }
 
-QList<QAction *> ToolActionController::getAdoptableKindsActions(bool stealth)
+QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)
+{
+    return QList<QAction*>();
+}
+
+QAction *ToolActionController::getNodeActionOfKind(QString kind, bool stealth)
+{
+    return new RootAction("Nodes: " + kind);
+}
+
+QList<QAction*> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_CLASS kind, bool stealth)
+{
+    return QList<QAction*>();
+}
+
+QAction* ToolActionController::getEdgeActionOfKind(Edge::EDGE_CLASS kind, bool stealth)
+{
+    return new RootAction("Edges: " + kind);
+}
+
+QList<QAction*> ToolActionController::getAdoptableKindsActions(bool stealth)
 {
     QList<QAction*> actions;
     foreach(RootAction* action, adoptableKindsGroup->getRootActions()){
@@ -110,12 +130,32 @@ QList<QAction *> ToolActionController::getAdoptableKindsActions(bool stealth)
     return actions;
 }
 
-QAction *ToolActionController::getAdoptableKindsAction(bool stealth)
+QAction* ToolActionController::getAdoptableKindsAction(bool stealth)
 {
     return adoptableKindsGroup->getGroupVisibilityAction()->constructSubAction(stealth);
 }
 
-QList<NodeViewItemAction *> ToolActionController::getRequiredSubActionsForKind(QString kind)
+QList<QAction*> ToolActionController::getConnectedNodesActions(bool stealth)
+{
+    return QList<QAction*>();
+}
+
+QAction* ToolActionController::getConnectedNodesAction(bool stealth)
+{
+    return new RootAction("Connections");
+}
+
+QList<QAction *> ToolActionController::getInstancesActions(bool stealth)
+{
+    return QList<QAction*>();
+}
+
+QAction *ToolActionController::getInstancesAction(bool stealth)
+{
+    return new RootAction("Instances");
+}
+
+QList<NodeViewItemAction*> ToolActionController::getRequiredSubActionsForKind(QString kind)
 {
     return actions.values();
 }
