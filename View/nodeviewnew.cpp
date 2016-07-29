@@ -84,8 +84,9 @@ void NodeViewNew::setViewController(ViewController *viewController)
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
         connect(selectionHandler, SIGNAL(itemSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelectionChanged(ViewItem*,bool)));
         connect(selectionHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemActiveSelectionChanged(ViewItem*,bool)));
-        connect(selectionHandler, SIGNAL(selectAll()), this, SLOT(selectionHandler_SelectAll()));
         connect(this, SIGNAL(toolbarRequested(QPointF)), viewController, SLOT(showToolbar(QPointF)));
+
+        connect(this, SIGNAL(dataChanged(int,QString,QVariant)), viewController, SIGNAL(dataChanged(int,QString,QVariant)));
     }
 }
 
@@ -240,7 +241,10 @@ void NodeViewNew::item_ActiveSelected(ViewItem *item)
 
 void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
 {
-    item->setExpanded(expand);
+    if(item){
+        int ID = item->getID();
+        emit dataChanged(ID, "isExpanded", expand);
+    }
 }
 
 void NodeViewNew::item_SetCentered(EntityItemNew *item)
@@ -255,6 +259,16 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
             EntityItemNew* item = getEntityItem(viewItem);
             if(item){
                 item->setMoving(adjusting);
+            }
+            if(!adjusting){
+                int id = item->getID();
+                QPointF pos = item->pos();
+
+                if(item->isNodeItem()){
+                    pos = ((NodeItemNew*)item)->getCenter();
+                }
+                emit dataChanged(id, "x", pos.x());
+                emit dataChanged(id, "y", pos.y());
             }
         }
     }
@@ -281,11 +295,68 @@ void NodeViewNew::item_AdjustPos(QPointF delta)
                 if(item){
                     //Move!
                     item->adjustPos(delta);
+
                 }
             }
         }
     }
 }
+
+void NodeViewNew::item_Resizing(bool resizing)
+{
+}
+
+void NodeViewNew::item_ResizeFinished(NodeItemNew *item, RECT_VERTEX vertex)
+{
+    item->setManuallyAdjusted(vertex);
+    int id = item->getID();
+    QSizeF size = item->getExpandedSize();
+    emit dataChanged(id, "width", size.width());
+    emit dataChanged(id, "height", size.height());
+}
+
+void NodeViewNew::item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vertex)
+{
+    QPointF offset(delta.width(), delta.height());
+
+    if(vertex == RV_TOP || vertex == RV_BOTTOM){
+        delta.setWidth(0);
+        offset.setX(0);
+    }else if(vertex == RV_LEFT || vertex == RV_RIGHT){
+        delta.setHeight(0);
+        offset.setY(0);
+    }
+
+    if(vertex == RV_TOP || vertex == RV_TOPLEFT || vertex == RV_TOPRIGHT){
+        //Invert the H
+        delta.rheight() *= -1;
+    }
+    if(vertex == RV_TOPLEFT || vertex == RV_LEFT || vertex == RV_BOTTOMLEFT){
+        //Invert the W
+        delta.rwidth() *= -1;
+    }
+
+    if(vertex == RV_BOTTOM || vertex == RV_BOTTOMLEFT || vertex == RV_BOTTOMRIGHT){
+        //Ignore the delta Y
+        offset.setY(0);
+    }
+    if(vertex == RV_RIGHT || vertex == RV_BOTTOMRIGHT || vertex == RV_TOPRIGHT){
+        //Ignore the delta X
+        offset.setX(0);
+    }
+
+    if(delta.width() == 0){
+        offset.setX(0);
+    }
+    if(delta.height() == 0){
+        offset.setY(0);
+    }
+
+    item->adjustPos(offset);
+    item->adjustExpandedSize(delta);
+
+}
+
 
 void NodeViewNew::minimap_Panning(bool panning)
 {
@@ -407,6 +478,8 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 connect(nodeItem, SIGNAL(req_centerItem(EntityItemNew*)), this, SLOT(item_SetCentered(EntityItemNew*)));
                 connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(item_AdjustPos(QPointF)));
                 connect(nodeItem, SIGNAL(req_adjustingPos(bool)), this, SLOT(item_AdjustingPos(bool)));
+                connect(nodeItem, SIGNAL(req_adjustSize(NodeItemNew*,QSizeF, RECT_VERTEX)), this, SLOT(item_Resize(NodeItemNew*,QSizeF, RECT_VERTEX)));
+                connect(nodeItem, SIGNAL(req_adjustSizeFinished(NodeItemNew*, RECT_VERTEX)), this, SLOT(item_ResizeFinished(NodeItemNew*, RECT_VERTEX)));
 
                 /*
                 connect(nodeItem, SIGNAL(req_adjustSize(NodeViewItem*,QSizeF, RECT_VERTEX)), this, SLOT(nodeItemNew_AdjustSize(NodeViewItem*,QSizeF,RECT_VERTEX)));

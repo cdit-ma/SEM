@@ -214,6 +214,7 @@ void NewController::connectViewController(ViewController *view)
     connect(this, SIGNAL(controller_IsModelReady(bool)), view, SLOT(setModelReady(bool)));
     connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(entityConstructed(EntityAdapter*)));
     connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(entityDestructed(EntityAdapter*)));
+    connect(view, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(setData(int,QString,QVariant)));
 }
 
 

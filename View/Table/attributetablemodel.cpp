@@ -7,61 +7,27 @@
 #include <QPlainTextEdit>
 #include <QDialogButtonBox>
 #include "View/theme.h"
-AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QAbstractTableModel(item)
-{
-    Q_UNUSED(parent);
-    guiItem = item;
-    attachedEntity = guiItem->getEntityAdapter();
-    if(attachedEntity->isNodeAdapter()){
-        QString kind = attachedEntity->getDataValue("kind").toString();
-        if(!(kind == "Aggregate" || kind == "AggregateInstance"
-             || kind == "Member" || kind == "MemberInstance"
-             || kind == "Condition" || kind == "Process" || kind =="Vector" || kind == "VectorInstance")){
-            hiddenKeyNames << "sortOrder";
-        }
-    }
-
-    attachedEntity->registerObject(this);
-    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded" << "readOnly";//<< "kind";
-    hiddenKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime" << "dataProtected";
-    permanentlyLockedKeyNames << "kind";
-    multiLineKeyNames << "code" << "processes_to_log";
-    setupDataBinding();
-
-}
 
 AttributeTableModel::AttributeTableModel(EntityAdapter* adapter)
 {
-    guiItem = 0;
-    attachedEntity = adapter;
-    if(attachedEntity->isNodeAdapter()){
-        QString kind = attachedEntity->getDataValue("kind").toString();
-        if(!(kind == "Aggregate" || kind == "AggregateInstance"
-             || kind == "Member" || kind == "MemberInstance"
-             || kind == "Condition" || kind == "Process" || kind =="Vector" || kind == "VectorInstance")){
-            hiddenKeyNames << "sortOrder";
-        }
-    }
+    entity = adapter;
+    //Register the table
+    entity->registerObject(this);
 
-    attachedEntity->registerObject(this);
-    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded" << "readOnly";//<< "kind";
-    hiddenKeyNames << "snippetMAC" << "snippetTime" << "snippetID" << "exportTime" << "dataProtected";
-    permanentlyLockedKeyNames << "kind";
-    multiLineKeyNames << "code" << "processes_to_log";
     setupDataBinding();
 }
 
 AttributeTableModel::~AttributeTableModel()
 {
-    attachedEntity->unregisterObject(this);
+    entity->unregisterObject(this);
 }
 
 void AttributeTableModel::updatedData(QString keyName)
 {
-    int position = getIndex(keyName);
-    if(position != -1){
-        QModelIndex indexA = this->index(position, 0, QModelIndex());
-        QModelIndex indexB = this->index(position, rowCount(indexA), QModelIndex());
+    int row = getIndex(keyName);
+    if(row != -1){
+        QModelIndex indexA = index(row, 0, QModelIndex());
+        QModelIndex indexB = index(row, rowCount(indexA), QModelIndex());
         emit dataChanged(indexA, indexB);
     }
 }
@@ -69,15 +35,14 @@ void AttributeTableModel::updatedData(QString keyName)
 void AttributeTableModel::removedData(QString keyName)
 {
     //Get the Index of the data to be removed.
-    int index = getIndex(keyName);
-    if(index != -1){
+    int row = getIndex(keyName);
+    if(row != -1){
         //Initiate the removal of the row.
-        beginRemoveRows(QModelIndex(), index, index);
+        beginRemoveRows(QModelIndex(), row, row);
 
         //Remove it from the HashMap.
-        keys.removeAll(keyName);
-        dataOrder.removeAll(keyName);
-
+        editableKeys.removeAll(keyName);
+        lockedKeys.removeAll(keyName);
         endRemoveRows();
     }
 }
@@ -85,68 +50,107 @@ void AttributeTableModel::removedData(QString keyName)
 void AttributeTableModel::addData(QString keyName)
 {
     //If we haven't seen this Data Before.
-    if(keys.contains(keyName) || hiddenKeyNames.contains(keyName)){
+
+    if(editableKeys.contains(keyName) || lockedKeys.contains(keyName)){
         return;
     }
 
-    int insertPosition = 0;
+    bool locked = entity->isDataProtected(keyName);
 
-    //If the Data isn't permanently Locked, work out its position.
-    if(!permanentlyLockedKeyNames.contains(keyName)){
-        insertPosition = dataOrder.size();
-        for(int i=0; i < dataOrder.size(); i++){
-            QString currentKey = dataOrder[i];
-            //If the Data at i isn't permanently Locked, check if the data we are inserting belongs before it.
-            if(!permanentlyLockedKeyNames.contains(currentKey)){
-                if(keyName < currentKey){
-                    insertPosition = i;
-                    break;
-               }
-            }
-        }
+    int insertIndex = 0;
+    if(locked){
+        insertIndex = lockedKeys.size();
+        lockedKeys.append(keyName);
+    }else{
+        insertIndex = lockedKeys.size() + editableKeys.size();
+        editableKeys.append(keyName);
     }
 
-    beginInsertRows(QModelIndex(), insertPosition, insertPosition);
-    dataOrder.insert(insertPosition, keyName);
-    keys.append(keyName);
-    updatedData(keyName);
+    //Insert Rows.
+    beginInsertRows(QModelIndex(), insertIndex, insertIndex);
     endInsertRows();
+    sort(0, Qt::AscendingOrder);
 }
 
 bool AttributeTableModel::hasData() const
 {
-    return !dataOrder.isEmpty();
+    return rowCount(QModelIndex()) > 0;
 }
 
 void AttributeTableModel::clearData()
 {
-    beginRemoveRows(QModelIndex(),0, dataOrder.size());
-    dataOrder.clear();
-    keys.clear();
+    beginRemoveRows(QModelIndex(), 0, rowCount(QModelIndex()));
+    editableKeys.clear();
+    lockedKeys.clear();
     endRemoveRows();
 }
 
 int AttributeTableModel::getIndex(QString keyName) const
 {
-    return dataOrder.indexOf(keyName);
+    int index = -1;
+    if(lockedKeys.contains(keyName)){
+        index = lockedKeys.indexOf(keyName);
+    }else if(editableKeys.contains(keyName)){
+        index = lockedKeys.size() + editableKeys.indexOf(keyName);
+    }
+    return index;
 }
 
-QVariant AttributeTableModel::getDataValue(int row) const
+QString AttributeTableModel::getKey(const QModelIndex &index) const
 {
-    QString name = dataOrder[row];
-    return attachedEntity->getDataValue(name);
+    return getKey(index.row());
 }
 
-QString AttributeTableModel::getKeyName(int row) const
+QString AttributeTableModel::getKey(int row) const
 {
-    return dataOrder[row];
+    QString key;
+    if(row < lockedKeys.size()){
+        key = lockedKeys[row];
+    }else{
+        row -= lockedKeys.size();
+        if(row < editableKeys.size()){
+            key = editableKeys[row];
+        }
+    }
+    return key;
 }
+
+bool AttributeTableModel::isIndexProtected(const QModelIndex &index) const
+{
+    return isRowProtected(index.row());
+}
+
+bool AttributeTableModel::isRowProtected(int row) const
+{
+    QString key = getKey(row);
+    bool isProtected = true;
+    if(entity){
+        isProtected = entity->isDataProtected(key);
+    }
+    return isProtected;
+}
+
+bool AttributeTableModel::hasPopupEditor(const QModelIndex &index) const
+{
+    return false;
+}
+
+QVariant AttributeTableModel::getData(const QModelIndex &index) const
+{
+    QVariant data;
+    if(entity){
+        QString key = getKey(index);
+        data = entity->getDataValue(key);
+    }
+    return data;
+}
+
 
 
 
 int AttributeTableModel::rowCount(const QModelIndex&) const
 {
-    return dataOrder.size();
+    return editableKeys.size() + lockedKeys.size();
 }
 
 int AttributeTableModel::columnCount(const QModelIndex&) const
@@ -156,77 +160,65 @@ int AttributeTableModel::columnCount(const QModelIndex&) const
 
 QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 {
-    int column = index.column();
-    int row = index.row();
-
-    if (!index.isValid())
-        return QVariant();
-
-    if (index.row() >= dataOrder.size() || index.row() < 0)
-        return QVariant();
-
     if (role == Qt::TextAlignmentRole) {
-        if(column == 0){
-            if(popupMultiLine(index)) {
-                return QVariant(Qt::AlignLeft | Qt::AlignTop);
-            }else{
-                return QVariant(Qt::AlignCenter);
-            }
+        if(hasPopupEditor(index)){
+            return QVariant(Qt::AlignLeft | Qt::AlignTop);
+        }else{
+            return QVariant(Qt::AlignCenter);
         }
     }
 
     if (role == Qt::DecorationRole) {
-        if(column == 0){
-            if(popupMultiLine(index)) {
-                return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16));
-            }
+        if(hasPopupEditor(index)){
+            return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16));
         }
     }
 
     if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
-        if(column == 0){
-            return getDataValue(row);
-        }
+        return getData(index);
     }
 
     if(role == -1){
-        QVariant v(QMetaType::QObjectStar, &attachedEntity);
+        QVariant v(QMetaType::QObjectStar, &entity);
         return v;
         return 0;
     }
 
  	//Role of -2 gives back a true/false value as to whether the multi-Line popup window should be visible or not
     if(role == -2) {
-        return popupMultiLine(index);
+        return hasPopupEditor(index);
     }
 
     if(role == -3) {
-        return getKeyName(index.row());
+        return getKey(index);
     }
+
     return QVariant();
 
 }
 
 QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if(role ==Qt::DisplayRole && orientation == Qt::Vertical){
-        return getKeyName(section);
+    if(role == Qt::DisplayRole && orientation == Qt::Vertical){
+        return getKey(section);
+    }
+    if (role == Qt::DecorationRole) {
+        if(isRowProtected(section)){
+            return  Theme::theme()->getIcon("Actions", "Lock_Closed");//, QSize(16,16));
+        }
     }
     return QVariant();
 }
 
 bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if (index.isValid() && role == Qt::EditRole) {
-        if (index.column() == 0){
-            if(!isDataProtected(index.row())){
-                QString keyName = getKeyName(index.row());
-                if (guiItem) {
-                    emit guiItem->GraphMLItem_TriggerAction("Setting Value for: " + keyName);
-                    guiItem->setData(keyName, value);
-                }
-                return true;
-            }
+    if (role == Qt::EditRole) {
+        int column = index.column();
+        int row = index.row();
+        if(column == 0 && !isIndexProtected(index)){
+            QString key = getKey(row);
+            emit req_dataChanged(entity->getID(), key, value);
+            return true;
         }
     }
     return false;
@@ -243,66 +235,50 @@ bool AttributeTableModel::insertRows(int row, int count, const QModelIndex &pare
 
 Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 {
-    if (!index.isValid()){
-        return Qt::ItemIsEnabled;
-    }
-
-    int row = index.row();
-    int column = index.column();
-
-    if(column == 0){
-        bool isIndexProtected = isDataProtected(row);
-        if(!isIndexProtected){
+    if(index.isValid()){
+        if(!isIndexProtected(index)){
             //Set it editable.
-            return  Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+            return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
         }
     }
-
     return Qt::NoItemFlags;
 }
 
 bool AttributeTableModel::isDataProtected(int row) const
 {
-    QString keyName = dataOrder[row];
-    return attachedEntity->isDataProtected(keyName);
+    QString keyName = getKey(row);
+    return entity->isDataProtected(keyName);
 }
 
 
 void AttributeTableModel::setupDataBinding()
 {
-    if(attachedEntity){
-        connect(attachedEntity, SIGNAL(dataAdded(QString, QVariant)), this, SLOT(addData(QString)));
-        connect(attachedEntity, SIGNAL(dataRemoved(QString)), this, SLOT(removedData(QString)));
-        connect(attachedEntity, SIGNAL(dataChanged(QString, QVariant)), this, SLOT(updatedData(QString)));
-
-        connect(attachedEntity, SIGNAL(destroyed()), this, SLOT(clearData()));
-
-
-        foreach(QString keyName, attachedEntity->getKeys()){
-            if(!hiddenKeyNames.contains(keyName)){
-                addData(keyName);
-            }
+    if(entity){
+        //Attach each data.
+        foreach(QString key, entity->getKeys()){
+            addData(key);
         }
+
+        connect(entity, SIGNAL(dataAdded(QString, QVariant)), this, SLOT(addData(QString)));
+        connect(entity, SIGNAL(dataRemoved(QString)), this, SLOT(removedData(QString)));
+        connect(entity, SIGNAL(dataChanged(QString, QVariant)), this, SLOT(updatedData(QString)));
     }
 }
 
 
-/**
- * @brief AttributeTableModel::popupMultiLine
- * @param index
- * @return
- */
-bool AttributeTableModel::popupMultiLine(const QModelIndex &index) const
+
+void AttributeTableModel::sort(int column, Qt::SortOrder order)
 {
-    if(index.column() == 1) {
-        QString keyName = getKeyName(index.row());
-        //Check types
-        if(multiLineKeyNames.contains(keyName)) {
-            //check if String
-            if (attachedEntity->getKeyType(keyName) == QVariant::String) {
-                return true;
-            }
-        }
+    if(order == Qt::AscendingOrder){
+        qSort(lockedKeys.begin(), lockedKeys.end(), qLess<QString>());
+        qSort(editableKeys.begin(), editableKeys.end(), qLess<QString>());
+    }else{
+        qSort(lockedKeys.begin(), lockedKeys.end(), qGreater<QString>());
+        qSort(editableKeys.begin(), editableKeys.end(), qGreater<QString>());
     }
-    return false;
+
+    QModelIndex indexA = index(0, 0, QModelIndex());
+    QModelIndex indexB = index(columnCount(QModelIndex()), rowCount(indexA), QModelIndex());
+    //Do some sorting!
+    emit dataChanged(indexA, indexB);
 }

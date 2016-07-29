@@ -37,7 +37,7 @@ public:
     QColor getBodyColor() const;
     void setBodyColor(QColor color);
 
-    void setPos(const QPointF &pos);
+    virtual void setPos(const QPointF &pos);
     int getID();
 
     virtual QRectF getElementRect(ELEMENT_RECT rect) const;

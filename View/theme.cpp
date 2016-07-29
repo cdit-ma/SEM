@@ -19,6 +19,8 @@ Theme::Theme():QObject(0)
     deployColor.setGreen(158);
     deployColor.setBlue(160);
 
+
+
     selectedItemBorderColor = Qt::blue;
 
     Theme_white = QColor(250,250,250);

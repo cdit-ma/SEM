@@ -29,8 +29,11 @@ signals:
     void modelReady(bool);
     void viewItemConstructed(ViewItem* viewItem);
     void viewItemDestructing(int ID, ViewItem *viewItem);
+    void triggerAction(QString action);
+    void dataChanged(int, QString, QVariant);
 
 private slots:
+    void table_dataChanged(int ID, QString key, QVariant data);
     void showToolbar(QPointF pos);
     void setModelReady(bool okay);
     void entityConstructed(EntityAdapter* entity);

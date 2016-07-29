@@ -17,11 +17,11 @@ class AttributeTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    AttributeTableModel(GraphMLItem* guiItem, QObject* parent = 0);
     AttributeTableModel(EntityAdapter* adapter);
     ~AttributeTableModel();
 
 signals:
+    void req_dataChanged(int ID, QString keyName, QVariant data);
     void editMultilineData(Data* data);
 public slots:
     void updatedData(QString keyName);
@@ -32,7 +32,6 @@ public slots:
 
     // QAbstractItemModel interface
 public:
-
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
@@ -41,26 +40,31 @@ public:
     bool insertRows(int row, int count, const QModelIndex &parent);
 
     Qt::ItemFlags flags(const QModelIndex &index) const;
+    void sort(int column, Qt::SortOrder order);
 private:
     int getIndex(QString keyName) const;
-    QVariant getDataValue(int row) const;
-    QString getKeyName(int row) const;
+    QString getKey(const QModelIndex &index) const;
+    QString getKey(int row) const;
+    bool isIndexProtected(const QModelIndex &index) const;
+    bool isRowProtected(int row) const;
+    bool hasPopupEditor(const QModelIndex &index) const;
+    QVariant getData(const QModelIndex &index) const;
+
     bool isDataProtected(int row) const;
     bool hasData() const;
 
     void setupDataBinding();
-    bool popupMultiLine(const QModelIndex &index) const;
-    GraphMLItem* guiItem;
 
-    bool isNode;
-    EntityAdapter* attachedEntity;
+    EntityAdapter* entity;
 
-    QStringList keys;
-    QStringList dataOrder;
 
-    QStringList permanentlyLockedKeyNames;
-    QStringList hiddenKeyNames;
-    QStringList multiLineKeyNames;
+
+
+
+    QStringList editableKeys;
+    QStringList lockedKeys;
+    QStringList keyOrder;
+
 };
 
 #endif // ATTRIBUTETABLEMODEL_H

@@ -19,7 +19,7 @@ public:
     ~ViewItem();
 
     int getID();
-    QAbstractItemModel* getTableModel();
+    AttributeTableModel* getTableModel();
 
     bool isNode();
     bool isEdge();
