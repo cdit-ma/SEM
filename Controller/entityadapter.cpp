@@ -83,6 +83,18 @@ bool EntityAdapter::isDataProtected(QString keyName)
     return false;
 }
 
+bool EntityAdapter::isDataVisual(QString keyName)
+{
+    if(isValid()){
+        Data* data = _entity->getData(keyName);
+
+        if(data){
+            return data->isVisualData();
+        }
+    }
+    return false;
+}
+
 QStringList EntityAdapter::getKeys()
 {
     QStringList list;

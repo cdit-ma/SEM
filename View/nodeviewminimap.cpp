@@ -25,16 +25,18 @@ void NodeViewMinimap::centerView()
 {
     if (scene()) {
         QRectF rect = scene()->itemsBoundingRect();
-        QPointF centerPoint = rect.center();
-        qreal width = qMax(1200.0, rect.width());
-        qreal height = qMax(800.0, rect.height());
+        if(rect.isValid()){
+            QPointF centerPoint = rect.center();
+            qreal width = qMax(1200.0, rect.width());
+            qreal height = qMax(800.0, rect.height());
 
-        rect.setWidth(width);
-        rect.setHeight(height);
-        rect.moveCenter(centerPoint);
-        fitInView(rect, Qt::KeepAspectRatio);
-        centerOn(centerPoint);
-        setSceneRect(rect);
+            rect.setWidth(width);
+            rect.setHeight(height);
+            rect.moveCenter(centerPoint);
+            fitInView(rect, Qt::KeepAspectRatio);
+            centerOn(centerPoint);
+            setSceneRect(rect);
+        }
     }
 }
 
