@@ -107,7 +107,6 @@ ViewItem *SelectionHandler::getActiveSelectedItem()
 void SelectionHandler::_selectionChanged(int changes)
 {
     if(changes > 0){
-        qCritical() << "SELECTION CHANGED!";
         emit selectionChanged(currentSelection.size());
     }
     if(newActiveSelectedItem != currentActiveSelectedItem){

@@ -38,7 +38,7 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
         NodeViewItem* item = (NodeViewItem*)viewItem;
 
         VIEW_ASPECT aspect = item->getViewAspect();
-
+/*
         //We only care about Interfaces and workers.
         if(aspect == VA_INTERFACES || aspect == VA_WORKERS){
             QString kind = viewItem->getData("kind").toString();
@@ -52,7 +52,7 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
                    ignore = false;
                }
             }
-            if(!ignore){
+            if(!ignore){*/
                 NodeViewItemAction* action = new NodeViewItemAction(item);
                 if(!actions.contains(ID)){
 
@@ -71,8 +71,8 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
                     actionGroup->addAction(action);
                     toolbar->addAction(action);
                 }
-            }
-        }
+            //}
+        //}
     }
 }
 

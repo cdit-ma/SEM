@@ -36,8 +36,8 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     if(parentItem){
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
-        parentItem->addChildNode(this);
         setParentItem(parentItem);
+        parentItem->addChildNode(this);
     }
 }
 
@@ -82,6 +82,8 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
         }
+        //Update our position
+        resizeToChildren();
     }
 }
 
@@ -298,6 +300,11 @@ QRectF NodeItemNew::gridRect() const
     return bodyRect().marginsRemoved(getBodyPadding());
 }
 
+QRectF NodeItemNew::expandedGridRect() const
+{
+    return expandedRect().marginsRemoved(getBodyPadding());
+}
+
 QRectF NodeItemNew::bodyRect() const
 {
     return currentRect();
@@ -355,10 +362,10 @@ void NodeItemNew::setMinimumHeight(qreal height)
     }
 }
 
-void NodeItemNew::setExpandedWidth(qreal width)
+void NodeItemNew::setExpandedWidth(qreal width, bool lockOnChange)
 {
     //Limit by the size of all contained children.
-    qreal minWidth = childrenRect().right();
+    qreal minWidth = childrenRect().right() - getMarginOffset().x();;
     //Can't shrink smaller than minimum
     minWidth = qMax(minWidth, minimumWidth);
     width = qMax(width, minWidth);
@@ -372,21 +379,22 @@ void NodeItemNew::setExpandedWidth(qreal width)
             emit sizeChanged(getSize());
             updateGridLines();
         }
-        if(horizontalLocked){
+        if(lockOnChange){
+            horizontalLocked = true;
+        }else{
             //If we were previously vertically locked, and we are changing position, unset it's vertical locked flag.
             horizontalLocked = false;
         }
     }
 }
 
-void NodeItemNew::setExpandedHeight(qreal height)
+void NodeItemNew::setExpandedHeight(qreal height, bool lockOnChange)
 {
     //Limit by the size of all contained children.
-    qreal minHeight = childrenRect().bottom();
+    qreal minHeight = childrenRect().bottom() - getMarginOffset().y();
     //Can't shrink smaller than minimum
-    minHeight = qMax(minHeight, height);
+    minHeight = qMax(minHeight, minimumHeight);
     height = qMax(height, minHeight);
-
 
     if(expandedHeight != height){
         expandedHeight = height;
@@ -396,7 +404,10 @@ void NodeItemNew::setExpandedHeight(qreal height)
             emit sizeChanged(getSize());
             updateGridLines();
         }
-        if(verticalLocked){
+
+        if(lockOnChange){
+            verticalLocked = true;
+        }else{
             //If we were previously vertically locked, and we are changing position, unset it's vertical locked flag.
             verticalLocked = false;
         }
@@ -615,7 +626,7 @@ void NodeItemNew::childPosChanged()
 
 void NodeItemNew::resizeToChildren()
 {
-    QRectF currentGridRect = gridRect();
+    QRectF currentGridRect = expandedGridRect();
     QRectF minRect = childrenRect();
 
     QSizeF deltaSize;
@@ -805,10 +816,10 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
     EntityItemNew::paint(painter, option, widget);
 
-    QColor red(255,0,0,50);
-    painter->setBrush(red);
-    painter->drawRect(childrenRect());
-    painter->drawRect(gridRect());
+//    QColor red(255,0,0,50);
+//    painter->setBrush(red);
+ //   painter->drawRect(childrenRect());
+  //  painter->drawRect(gridRect());
 }
 
 QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const

@@ -64,6 +64,7 @@ public:
     virtual QRectF expandedRect() const;
     virtual QRectF currentRect() const;
     QRectF gridRect() const;
+    QRectF expandedGridRect() const;
     virtual QRectF bodyRect() const;
     virtual QRectF moveRect() const;
 
@@ -77,8 +78,8 @@ public:
     void setMinimumHeight(qreal height);
 
     //Size/Position Functions
-    void setExpandedWidth(qreal width);
-    void setExpandedHeight(qreal height);
+    void setExpandedWidth(qreal width, bool lockOnChange=false);
+    void setExpandedHeight(qreal height, bool lockOnChange=false);
     void setExpandedSize(QSizeF size);
 
     qreal getExpandedWidth() const;

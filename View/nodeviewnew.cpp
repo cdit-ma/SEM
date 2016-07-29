@@ -212,10 +212,10 @@ void NodeViewNew::themeChanged()
     QColor selectedColor = Qt::blue;
 
     //Merge to blue
-    qreal ratio = .90;
-    selectedBackgroundFontColor.setRed((ratio * backgroundFontColor.red() + (1 - ratio) * selectedColor.red() ));
-    selectedBackgroundFontColor.setGreen((ratio *backgroundFontColor.green() + (1 - ratio) * selectedColor.green() ));
-    selectedBackgroundFontColor.setBlue((ratio *backgroundFontColor.blue() + (1 - ratio) * selectedColor.blue() ));
+    qreal ratio = 1;
+    selectedBackgroundFontColor.setRed((ratio * backgroundFontColor.red() + ((1 - ratio) * selectedColor.red())));
+    selectedBackgroundFontColor.setGreen((ratio *backgroundFontColor.green() + ((1 - ratio) * selectedColor.green()) ));
+    selectedBackgroundFontColor.setBlue((ratio *backgroundFontColor.blue() + ((1 - ratio) * selectedColor.blue()) ));
 
     update();
 }
@@ -308,7 +308,7 @@ void NodeViewNew::item_Resizing(bool resizing)
 
 void NodeViewNew::item_ResizeFinished(NodeItemNew *item, RECT_VERTEX vertex)
 {
-    item->setManuallyAdjusted(vertex);
+    //item->setManuallyAdjusted(vertex);
     int id = item->getID();
     QSizeF size = item->getExpandedSize();
     emit dataChanged(id, "width", size.width());

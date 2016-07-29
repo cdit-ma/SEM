@@ -2314,12 +2314,10 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
 
     bool protectLabel = protectedLabels.contains(nodeKind);
 
-    if(!nodeKind.endsWith("Definitions")){
-        Data* labelData = new Data(labelKey);
-        labelData->setValue(labelString);
-        labelData->setProtected(protectLabel);
-        data.append(labelData);
-    }
+    Data* labelData = new Data(labelKey);
+    labelData->setValue(labelString);
+    labelData->setProtected(protectLabel);
+    data.append(labelData);
 
     data.append(new Data(sortKey, -1));
 
@@ -3505,13 +3503,13 @@ void NewController::setupModel()
     modelLabelChanged();
 
     //Construct the top level parents.
-    interfaceDefinitions = constructChildNode(model, constructDataVector("InterfaceDefinitions"));
-    behaviourDefinitions = constructChildNode(model, constructDataVector("BehaviourDefinitions"));
+    interfaceDefinitions = constructChildNode(model, constructDataVector("InterfaceDefinitions", QPointF(-1,-1),"", "Interfaces"));
+    behaviourDefinitions = constructChildNode(model, constructDataVector("BehaviourDefinitions", QPointF(-1,-1),"", "Interfaces"));
     deploymentDefinitions =  constructChildNode(model, constructDataVector("DeploymentDefinitions"));
 
     //Construct the second level containers.
-    assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("AssemblyDefinitions"));
-    hardwareDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("HardwareDefinitions"));
+    assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("AssemblyDefinitions", QPointF(-1,-1),"", "Assemblies"));
+    hardwareDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("HardwareDefinitions", QPointF(-1,-1),"", "Hardware"));
 
     protectedNodes << model;
     protectedNodes << interfaceDefinitions;

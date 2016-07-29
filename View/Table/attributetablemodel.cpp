@@ -202,9 +202,9 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
     if(role == Qt::DisplayRole && orientation == Qt::Vertical){
         return getKey(section);
     }
-    if (role == Qt::DecorationRole) {
+    if (role == Qt::ToolTipRole) {
         if(isRowProtected(section)){
-            return  Theme::theme()->getIcon("Actions", "Lock_Closed");//, QSize(16,16));
+            return "Data is Protected";
         }
     }
     return QVariant();
