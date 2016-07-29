@@ -98,14 +98,6 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
 
 void MedeaMainWindow::spawnSubView()
 {
-    /*
-    QAction* action = (QAction*)sender();
-    qCritical() << action->data();
-    qCritical() << sender()->property("ID");
-    qCritical() << sender()->property("ID2");
-    qCritical() << sender()->property("ID3");
-    */
-
     if(viewController){
         SelectionController* selectionController = viewController->getSelectionController();
 
@@ -263,7 +255,7 @@ void MedeaMainWindow::setupMenuAndTitle()
 
 void MedeaMainWindow::setupMenuBar()
 {
-    menuBar = new QMenuBar(0);
+    menuBar = new QMenuBar(this);
     menuBar->addMenu(viewController->getActionController()->menu_file);
     menuBar->addMenu(viewController->getActionController()->menu_edit);
     menuBar->addMenu(viewController->getActionController()->menu_view);

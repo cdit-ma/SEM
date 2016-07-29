@@ -58,7 +58,6 @@ NodeViewNew::NodeViewNew():QGraphicsView()
     transition();
 
     themeChanged();
-
 }
 
 NodeViewNew::~NodeViewNew()
@@ -481,17 +480,6 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 connect(nodeItem, SIGNAL(req_adjustSize(NodeItemNew*,QSizeF, RECT_VERTEX)), this, SLOT(item_Resize(NodeItemNew*,QSizeF, RECT_VERTEX)));
                 connect(nodeItem, SIGNAL(req_adjustSizeFinished(NodeItemNew*, RECT_VERTEX)), this, SLOT(item_ResizeFinished(NodeItemNew*, RECT_VERTEX)));
 
-                /*
-                connect(nodeItem, SIGNAL(req_adjustSize(NodeViewItem*,QSizeF, RECT_VERTEX)), this, SLOT(nodeItemNew_AdjustSize(NodeViewItem*,QSizeF,RECT_VERTEX)));
-                connect(nodeItem, SIGNAL(req_setData(ViewItem*,QString,QVariant)), this, SLOT(nodeItemNew_SetData(ViewItem*,QString,QVariant)));
-                connect(nodeItem, SIGNAL(req_hovered(EntityItemNew*,bool)), this, SLOT(entityItemNew_Hovered(EntityItemNew*, bool)));
-                connect(nodeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(entityItemNew_Expand(EntityItemNew*,bool)));
-                connect(nodeItem, SIGNAL(req_setSelected(ViewItem*,bool)), this, SLOT(entityItemNew_Select(ViewItem*,bool)));
-                connect(nodeItem, SIGNAL(req_clearSelection()), this, SLOT(clearSelection()));
-                connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(moveSelection(QPointF)));
-                connect(nodeItem, SIGNAL(req_adjustPosFinished()), this, SLOT(moveFinished()));
-                */
-
                 if(!scene()->items().contains(nodeItem)){
                     scene()->addItem(nodeItem);
                     topLevelGUIItemIDs.append(ID);
@@ -567,15 +555,21 @@ EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item)
 
 void NodeViewNew::zoom(int delta, QPoint anchorScreenPos)
 {
-    QPointF anchorScenePos = getScenePosOfPoint(anchorScreenPos);
+    QPointF anchorScenePos;
+
+    if(!topLevelGUIItemIDs.isEmpty()){
+        anchorScenePos = getScenePosOfPoint(anchorScreenPos);
+    }
 
     //Calculate the zoom change.
     qreal scaleFactor = pow(ZOOM_INCREMENTOR, (delta / abs(delta)));
     if(scaleFactor != 1){
         scale(scaleFactor, scaleFactor);
 
-        QPointF delta = getScenePosOfPoint(anchorScreenPos) - anchorScenePos;
-        translate(delta);
+        if(!topLevelGUIItemIDs.isEmpty()){
+            QPointF delta = getScenePosOfPoint(anchorScreenPos) - anchorScenePos;
+            translate(delta);
+        }
     }
 }
 
@@ -635,7 +629,7 @@ void NodeViewNew::_clearSelection()
 {
     if(selectionHandler){
         //Depending on the type of NodeView we are.
-        if(isAspectView){
+        if(isAspectView && containedNodeViewItem){
             //If we are the aspect select the aspect.
             selectionHandler->toggleItemsSelection(containedNodeViewItem);
         }else{
@@ -779,7 +773,9 @@ void NodeViewNew::keyReleaseEvent(QKeyEvent *event)
 void NodeViewNew::wheelEvent(QWheelEvent *event)
 {
     //Call Zoom
-    zoom(event->delta(), event->pos());
+    if(viewController->isModelReady()){
+        zoom(event->delta(), event->pos());
+    }
 }
 
 void NodeViewNew::mousePressEvent(QMouseEvent *event)

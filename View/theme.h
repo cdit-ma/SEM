@@ -103,6 +103,7 @@ signals:
     void theme_Changed();
 
 private slots:
+public slots:
     void preloadImages();
 
 private:

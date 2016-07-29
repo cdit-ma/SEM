@@ -123,7 +123,6 @@ void ViewController::showToolbar(QPointF pos)
 {
     toolbar->move(pos.toPoint());
     toolbar->show();
-    //toolbar->setVisible(true);
 }
 
 void ViewController::setModelReady(bool okay)

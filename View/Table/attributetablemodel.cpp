@@ -55,6 +55,11 @@ void AttributeTableModel::addData(QString keyName)
         return;
     }
 
+    //Ignore visual data
+    if(entity->isDataVisual(keyName)){
+        return;
+    }
+
     bool locked = entity->isDataProtected(keyName);
 
     int insertIndex = 0;
