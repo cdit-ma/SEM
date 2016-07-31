@@ -277,24 +277,23 @@ void NodeViewNew::item_AdjustPos(QPointF delta)
 {
     //Moves the selection.
     if(selectionHandler){
-        bool isMoveOkay = true;
         foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             EntityItemNew* item = getEntityItem(viewItem);
             if(item){
-                //Try see if move is okay.
-                if(!item->isAdjustValid(delta)){
-                    isMoveOkay = false;
+                delta = item->validateAdjustPos(delta);
+                //If delta is 0,0 we should ignore.
+                if(delta.isNull()){
                     break;
                 }
             }
         }
-        if(isMoveOkay){
+
+        if(!delta.isNull()){
             foreach(ViewItem* viewItem, selectionHandler->getSelection()){
                 EntityItemNew* item = getEntityItem(viewItem);
                 if(item){
                     //Move!
                     item->adjustPos(delta);
-
                 }
             }
         }

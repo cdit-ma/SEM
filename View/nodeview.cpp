@@ -4915,7 +4915,6 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
         //Expand Parent
         if(expandItem && parentEntityItem){
-            qCritical() << "EXPANDING YO!";
             emit view_SetData(parentEntityItem->getID(), "isExpanded", true);
         }
 

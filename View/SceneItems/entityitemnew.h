@@ -30,6 +30,8 @@ public:
     RENDER_STATE getRenderState(qreal lod) const;
     VIEW_STATE getViewState() const;
     EntityItemNew* getParent() const;
+    bool isTopLevelItem() const;
+
 
     ViewItem* getViewItem() const;
 
@@ -60,7 +62,7 @@ public:
 
     void adjustPos(QPointF delta);
 
-    bool isAdjustValid(QPointF delta);
+    virtual QPointF validateAdjustPos(QPointF delta);
 
     bool intersectsRectInScene(QRectF rectInScene) const;
 

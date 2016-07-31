@@ -27,6 +27,7 @@ public:
     QList<NodeItemNew*> getChildNodes() const;
     QList<EntityItemNew*> getChildEntities() const;
 
+    QPointF validateAdjustPos(QPointF delta);
     QPainterPath getChildNodePath();
 
     void addChildEdge(EdgeItemNew* edgeItem);

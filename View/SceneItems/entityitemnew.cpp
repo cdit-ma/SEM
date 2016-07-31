@@ -61,6 +61,11 @@ EntityItemNew *EntityItemNew::getParent() const
     return parentItem;
 }
 
+bool EntityItemNew::isTopLevelItem() const
+{
+    return parentItem == 0;
+}
+
 ViewItem *EntityItemNew::getViewItem() const
 {
     return viewItem;
@@ -243,9 +248,9 @@ void EntityItemNew::adjustPos(QPointF delta)
     setPos(pos() + delta);
 }
 
-bool EntityItemNew::isAdjustValid(QPointF delta)
+QPointF EntityItemNew::validateAdjustPos(QPointF delta)
 {
-    return true;
+    return delta;
 }
 
 
@@ -275,14 +280,15 @@ void EntityItemNew::handleSelection(bool append)
     if(isSelectionEnabled()){
         bool setActive = false;
 
-        if(isSelected()){
-            if(!append && !isActiveSelected()){
-                setActive = true;
-            }
+        if(isSelected() && !append){
+            setActive = true;
         }
 
         if(setActive){
-            emit req_activeSelected(getViewItem());
+            //If it isnt actively selected, we shouldn't unselect
+            if(!isActiveSelected()){
+                emit req_activeSelected(getViewItem());
+            }
         }else{
             emit req_selected(getViewItem(), append);
         }

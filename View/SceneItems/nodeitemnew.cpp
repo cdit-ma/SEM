@@ -121,6 +121,27 @@ QList<EntityItemNew *> NodeItemNew::getChildEntities() const
     return children;
 }
 
+QPointF NodeItemNew::validateAdjustPos(QPointF delta)
+{
+    if(!isTopLevelItem() && getParentNodeItem()){
+        QPointF adjustedPos = pos() + delta;
+        QPointF minPos = getParentNodeItem()->gridRect().topLeft();
+
+        //Minimize on the minimum position this item can go.
+        if(adjustedPos.x() < minPos.x()){
+            adjustedPos.rx() = minPos.x();
+        }
+        if(adjustedPos.y() < minPos.y()){
+            adjustedPos.ry() = minPos.y();
+        }
+
+        //Offset by the pos() to get the restricted delta.
+        delta = adjustedPos - pos();
+    }
+
+    return EntityItemNew::validateAdjustPos(delta);
+}
+
 void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
 {
     int ID = edgeItem->getID();
@@ -515,21 +536,10 @@ QPointF NodeItemNew::getSceneCenter() const
 
 void NodeItemNew::setPos(const QPointF &pos)
 {
-    if(this->pos() != pos){
-        QPointF newPos = pos;
-        //Check if the parent can set it?
-        QPointF minimum;
-        if(getParentNodeItem()){
-            minimum = getParentNodeItem()->gridRect().topLeft();
-        }
-        if(pos.x() < minimum.x()){
-            newPos.setX(minimum.x());
-        }
-        if(pos.y() < minimum.y()){
-            newPos.setY(minimum.y());
-        }
-
-        EntityItemNew::setPos(newPos);
+    QPointF deltaPos = pos - this->pos();
+    deltaPos = validateAdjustPos(deltaPos);
+    if(!deltaPos.isNull()){
+        EntityItemNew::setPos(this->pos() + deltaPos);
         updateGridLines();
     }
 }
