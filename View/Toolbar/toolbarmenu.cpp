@@ -10,7 +10,7 @@
  * @brief The MenuStyle class
  * This class is used to style the menu and its items (actions).
  */
-class MenuStyle : public QProxyStyle
+class MenuStyle2 : public QProxyStyle
 {
 public:
     int pixelMetric(PixelMetric metric, const QStyleOption* option = 0, const QWidget* widget = 0) const
@@ -35,7 +35,7 @@ ToolbarMenu::ToolbarMenu(ToolbarWidget* toolbar, ToolbarMenuAction* info_action)
     infoAction = info_action;
 
     setupInfoAction();
-    setStyle(new MenuStyle);
+    setStyle(new MenuStyle2);
 
     connect(this, SIGNAL(aboutToShow()), toolbar, SLOT(appendToOpenMenusList()));
     connect(this, SIGNAL(aboutToHide()), toolbar, SLOT(removeFromOpenMenusList()));

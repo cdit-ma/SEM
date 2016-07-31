@@ -91,9 +91,7 @@ public:
     QString getDockWidgetStyleSheet();
     QString getMenuBarStyleSheet();
     QString getMenuStyleSheet();
-    QString getAltMenuStyleSheet();
     QString getToolBarStyleSheet();
-    QString getAltToolBarStyleSheet();
     QString getTableViewStyleSheet();
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
