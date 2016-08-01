@@ -226,7 +226,9 @@ void ActionController::setupActions()
     edit_delete->setShortcut(QKeySequence(Qt::Key_Delete));
     edit_delete->setShortcutContext(Qt::ApplicationShortcut);
 
-    edit_search = createRootAction("Search", "", "Actions", "Search");
+    edit_search = createRootAction("Search", "Root_Search", "Actions", "Search");
+    edit_search->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F));
+
     edit_sort = createRootAction("Sort", "", "Actions", "Sort");
     edit_alignVertical = createRootAction("Align Vertically", "", "Actions", "Align_Vertical");
     edit_alignHorizontal = createRootAction("Align Horizontally", "", "Actions", "Align_Horizontal");
@@ -403,6 +405,12 @@ void ActionController::setupApplicationToolbar()
     applicationToolbar->addSeperator();
     applicationToolbar->addAction(edit_alignVertical);
     applicationToolbar->addAction(edit_alignHorizontal);
+
+#ifdef TARGET_OS_MAC
+    applicationToolbar->addSeperator();
+    applicationToolbar->addAction(edit_search);
+#endif
+
 }
 
 void ActionController::setupContextToolbar()

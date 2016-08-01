@@ -25,6 +25,8 @@ private slots:
 
     void spawnSubView();
 
+    void popupSearch();
+
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
 
@@ -36,6 +38,7 @@ private:
     void setupMenuBar();
     void setupToolBar();
     void setupSearchBar();
+    void setupPopupSearchBar();
     void setupDataTable();
     void setupMinimap();
 
@@ -52,12 +55,13 @@ private:
     QToolButton* searchButton;
     QToolButton* searchOptionsButton;
 
+    QToolBar* searchToolbar;
+    QLineEdit* popupSearchBar;
+    QToolButton* popupSearchButton;
+
     QToolBar* floatingToolbar;
     TableWidget* tableWidget;
     NodeViewMinimap* minimap;
-
-    QDockWidget* toolbarDockLeft;
-    QDockWidget* toolbarDockRight;
 
     NodeViewNew* nodeView_Interfaces;
     NodeViewNew* nodeView_Behaviour;

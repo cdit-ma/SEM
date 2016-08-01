@@ -99,6 +99,7 @@ public:
     QString getLineEditStyleSheet();
     QString getRadioButtonStyleSheet();
     QString getMessageBoxStyleSheet();
+    QString getPopupWidgetStyleSheet();
 
 signals:
     void theme_Changed();

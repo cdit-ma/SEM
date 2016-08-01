@@ -704,7 +704,7 @@ QString Theme::getLineEditStyleSheet()
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "QLineEdit:focus {"
-           "border-color:" % getHighlightColorHex() % ";"
+           "border: 2px solid " % getHighlightColorHex() % ";"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
            "}";
@@ -730,6 +730,16 @@ QString Theme::getMessageBoxStyleSheet()
             "QMessageBox QLabel {"
             "color:" % getTextColorHex() % ";"
             "}";
+}
+
+QString Theme::getPopupWidgetStyleSheet()
+{
+    return "QWidget#POPUP_WIDGET {"
+           "background: rgba(50,50,50,0.75);"
+           "border-radius: 5px;"
+           "margin: 0px;"
+           "padding: 5px;"
+           "}";
 }
 
 
@@ -831,4 +841,6 @@ void Theme::teardownTheme()
     delete themeSingleton;
     themeSingleton = 0;
 }
+
+
 

@@ -123,10 +123,10 @@ void ToolbarWidgetNew::execMenu()
     } else if (senderAction == hardwareAction) {
         //hardwareMenu->popup(QCursor::pos());
         hardwareMenu->popup(toolbar->mapToGlobal(toolbar->actionGeometry(hardwareAction).bottomLeft()));
-    } else if (senderAction == replicateCountAction) {
+    } /*else if (senderAction == replicateCountAction) {
         //hardwareMenu->popup(QCursor::pos());
         //replicateMenu->popup(toolbar->mapToGlobal(toolbar->actionGeometry(replicateCountAction).bottomLeft()));
-    } else {
+    }*/ else {
         qWarning() << "ToolbarWidgetNew::execMenu - Action's menu is not dealt with.";
     }
 }
@@ -193,7 +193,7 @@ void ToolbarWidgetNew::setupActions()
     instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
     mainGroup->addSeperator();
     mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
-    replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
+    //replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
@@ -305,6 +305,8 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
 
     QWidgetAction* rc = new QWidgetAction(this);
     rc->setDefaultWidget(replicateToolbar);
+
+    replicateMenu = new QMenu(this);
     replicateMenu->addAction(rc);
 
     connect(replicateCountAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
