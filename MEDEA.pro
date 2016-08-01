@@ -194,9 +194,9 @@ HEADERS += \
     Widgets/New/actiongroup.h \
     Controller/rootaction.h \
     View/Toolbar/toolbarwidgetnew.h \
+    View/SceneItems/Assemblies/managementcomponentnodeitem.h \
     Controller/toolbarcontroller.h \
     Controller/nodeviewitemaction.h
-
 
 SOURCES += \
     main.cpp \
@@ -354,9 +354,9 @@ SOURCES += \
     Widgets/New/actiongroup.cpp \
     Controller/rootaction.cpp \
     View/Toolbar/toolbarwidgetnew.cpp \
+    View/SceneItems/Assemblies/managementcomponentnodeitem.cpp \
     Controller/toolbarcontroller.cpp \
     Controller/nodeviewitemaction.cpp
-
 
 RESOURCES += \
     resources.qrc

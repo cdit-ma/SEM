@@ -470,6 +470,7 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     RENDER_STATE state = getRenderState(lod);
 
     if(state == RS_BLOCK){
+        painter->setClipRect(boundingRect());
         QBrush brush(Qt::SolidPattern);
 
         if(isSelected()){

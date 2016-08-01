@@ -8,6 +8,7 @@
 #include "SceneItems/modelitemnew.h"
 #include "SceneItems/defaultnodeitem.h"
 #include "SceneItems/Hardware/hardwarenodeitem.h"
+#include "SceneItems/Assemblies/managementcomponentnodeitem.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
@@ -394,6 +395,8 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
             if(nodeKind == "HardwareNode"){
                 nodeItem = new HardwareNodeItem(item, parentNode);
+            }else if(nodeKind == "ManagementComponent"){
+                nodeItem = new ManagementComponentNodeItem(item, parentNode);
             }else{
                 nodeItem = new DefaultNodeItem(item, parentNode);
             }
