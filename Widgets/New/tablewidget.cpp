@@ -8,6 +8,7 @@
 TableWidget::TableWidget(ViewController *controller, QWidget *parent) : QWidget(parent)
 {
     viewController = controller;
+    multilineDelegate = new MultilineDelegate(this);
     iconSize = QSize(32,32);
     setupLayout();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
@@ -84,6 +85,8 @@ void TableWidget::setupLayout()
     tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableView->horizontalHeader()->setHighlightSections(false);
     tableView->verticalHeader()->setHighlightSections(false);
+
+    tableView->setItemDelegate(multilineDelegate);
 
     iconLabel = new QLabel(this);
     label = new QLabel(this);

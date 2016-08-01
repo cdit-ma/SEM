@@ -67,6 +67,7 @@ public:
     bool intersectsRectInScene(QRectF rectInScene) const;
 
     void addRequiredData(QString keyName);
+    void removeRequiredData(QString keyName);
     QStringList getRequiredDataKeys();
     void reloadRequiredData();
     QPen getPen();

@@ -25,7 +25,10 @@ public:
     bool isEdge();
 
     QVariant getData(QString keyName);
+    QStringList getKeys();
     bool hasData(QString keyName);
+    bool isDataProtected(QString keyName);
+    bool isDataVisual(QString keyName);
 
     void setDefaultIcon(QString icon_prefix, QString icon_name);
     void setIcon(QString icon_prefix, QString icon_name);
@@ -39,7 +42,9 @@ public:
     void setParentViewItem(ViewItem* item);
 
 signals:
+    void dataAdded(QString key_name, QVariant data);
     void dataChanged(QString key_name, QVariant data);
+    void dataRemoved(QString key_name);
     void destructing();
     void iconChanged();
 

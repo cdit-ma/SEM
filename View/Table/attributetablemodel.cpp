@@ -1,19 +1,15 @@
 #include "attributetablemodel.h"
-#include "../GraphicsItems/nodeitem.h"
-#include "../GraphicsItems/edgeitem.h"
-#include <QGridLayout>
-#include <QDebug>
-#include <QDialog>
-#include <QPlainTextEdit>
-#include <QDialogButtonBox>
+#include "../viewitem.h"
 #include "View/theme.h"
+#include <QDebug>
 
-AttributeTableModel::AttributeTableModel(EntityAdapter* adapter)
+AttributeTableModel::AttributeTableModel(ViewItem *item)
 {
-    entity = adapter;
+    entity = item;
     //Register the table
     entity->registerObject(this);
 
+    multiLineKeys << "processes_to_log" << "code";
     setupDataBinding();
 }
 
@@ -51,12 +47,13 @@ void AttributeTableModel::addData(QString keyName)
 {
     //If we haven't seen this Data Before.
 
-    if(editableKeys.contains(keyName) || lockedKeys.contains(keyName)){
+    if(editableKeys.contains(keyName) || lockedKeys.contains(keyName) || ignoredKeys.contains(keyName)){
         return;
     }
 
     //Ignore visual data
     if(entity->isDataVisual(keyName)){
+        ignoredKeys.append(keyName);
         return;
     }
 
@@ -97,6 +94,8 @@ int AttributeTableModel::getIndex(QString keyName) const
         index = lockedKeys.indexOf(keyName);
     }else if(editableKeys.contains(keyName)){
         index = lockedKeys.size() + editableKeys.indexOf(keyName);
+    }else if(ignoredKeys.contains(keyName)){
+        index = -2;
     }
     return index;
 }
@@ -137,7 +136,8 @@ bool AttributeTableModel::isRowProtected(int row) const
 
 bool AttributeTableModel::hasPopupEditor(const QModelIndex &index) const
 {
-    return false;
+    QString keyName = getKey(index);
+    return multiLineKeys.contains(keyName);
 }
 
 QVariant AttributeTableModel::getData(const QModelIndex &index) const
@@ -145,7 +145,7 @@ QVariant AttributeTableModel::getData(const QModelIndex &index) const
     QVariant data;
     if(entity){
         QString key = getKey(index);
-        data = entity->getDataValue(key);
+        data = entity->getData(key);
     }
     return data;
 }
@@ -175,7 +175,10 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DecorationRole) {
         if(hasPopupEditor(index)){
-            return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16));
+            return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16), Theme::theme()->getAltBackgroundColor());
+        }
+        if(getKey(index) == "kind"){
+            return Theme::theme()->getIcon(entity->getIcon());
         }
     }
 

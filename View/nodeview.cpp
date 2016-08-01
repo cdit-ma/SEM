@@ -1418,7 +1418,9 @@ void NodeView::actionFinished()
     // update menu and toolbar actions
     updateActionsEnabledStates();
 
-    viewMutex.unlock();
+    if(viewMutex.tryLock(1)){
+        viewMutex.unlock();
+    }
 }
 
 void NodeView::viewItemConstructed(ViewItem *viewItem)

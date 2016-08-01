@@ -8,6 +8,7 @@
 #include "SceneItems/modelitemnew.h"
 #include "SceneItems/defaultnodeitem.h"
 #include "SceneItems/Hardware/hardwarenodeitem.h"
+#include "SceneItems/Assemblies/managementcomponentnodeitem.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
@@ -85,6 +86,7 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(selectionHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemActiveSelectionChanged(ViewItem*,bool)));
         connect(this, SIGNAL(toolbarRequested(QPointF)), viewController, SLOT(showToolbar(QPointF)));
 
+        connect(this, SIGNAL(triggerAction(QString)), viewController, SIGNAL(triggerAction(QString)));
         connect(this, SIGNAL(dataChanged(int,QString,QVariant)), viewController, SIGNAL(dataChanged(int,QString,QVariant)));
     }
 }
@@ -242,6 +244,7 @@ void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
 {
     if(item){
         int ID = item->getID();
+        emit triggerAction("Expanding Selection");
         emit dataChanged(ID, "isExpanded", expand);
     }
 }
@@ -254,6 +257,11 @@ void NodeViewNew::item_SetCentered(EntityItemNew *item)
 void NodeViewNew::item_AdjustingPos(bool adjusting)
 {
     if(selectionHandler){
+
+        if(adjusting){
+            emit triggerAction("Moving Selection");
+        }
+
         foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             EntityItemNew* item = getEntityItem(viewItem);
             if(item){
@@ -263,11 +271,16 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
                 int id = item->getID();
                 QPointF pos = item->pos();
 
+                bool ignore = false;
                 if(item->isNodeItem()){
-                    pos = ((NodeItemNew*)item)->getCenter();
+                    NodeItemNew* nodeItem = (NodeItemNew*) item;
+                    pos = nodeItem->getCenter();
+                    ignore = nodeItem->isIgnoringPosition();
                 }
-                emit dataChanged(id, "x", pos.x());
-                emit dataChanged(id, "y", pos.y());
+                if(!ignore){
+                    emit dataChanged(id, "x", pos.x());
+                    emit dataChanged(id, "y", pos.y());
+                }
             }
         }
     }
@@ -306,9 +319,9 @@ void NodeViewNew::item_Resizing(bool resizing)
 
 void NodeViewNew::item_ResizeFinished(NodeItemNew *item, RECT_VERTEX vertex)
 {
-    //item->setManuallyAdjusted(vertex);
     int id = item->getID();
     QSizeF size = item->getExpandedSize();
+    emit triggerAction("Resizing Item");
     emit dataChanged(id, "width", size.width());
     emit dataChanged(id, "height", size.height());
 }
@@ -448,26 +461,34 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
 
 
-    if(!containedNodeViewItem){
-        if(item->getViewAspect() == containedAspect){
-            setContainedNodeViewItem(item);
-            //Don't construct an aspect.
-            return;
-        }
+    if(!containedNodeViewItem && item->getViewAspect() == containedAspect){
+        setContainedNodeViewItem(item);
+        //Don't construct an aspect.
+        return;
     }
+
     if(containedNodeViewItem){
         if(containedNodeViewItem->isAncestorOf(item)){
             int ID = item->getID();
             NodeItemNew* nodeItem =  0;
             QString nodeKind = item->getData("kind").toString();
 
+            bool ignorePosition = containedNodeViewItem == item;
+
             if(nodeKind == "HardwareNode"){
                 nodeItem = new HardwareNodeItem(item, parentNode);
+            }else if(nodeKind == "ManagementComponent"){
+                nodeItem = new ManagementComponentNodeItem(item, parentNode);
             }else{
                 nodeItem = new DefaultNodeItem(item, parentNode);
             }
 
             if(nodeItem){
+
+                if(ignorePosition){
+                    nodeItem->setIgnorePosition(true);
+                }
+
                 guiItems[ID] = nodeItem;
                 connect(nodeItem, SIGNAL(req_activeSelected(ViewItem*)), this, SLOT(item_ActiveSelected(ViewItem*)));
                 connect(nodeItem, SIGNAL(req_selected(ViewItem*,bool)), this, SLOT(item_Selected(ViewItem*,bool)));

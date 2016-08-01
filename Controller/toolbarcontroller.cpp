@@ -1,6 +1,7 @@
 #include "toolbarcontroller.h"
 #include "viewcontroller.h"
 #include "../View/nodeviewitem.h"
+#include "../Widgets/New/selectioncontroller.h"
 #include <QDebug>
 
 ToolActionController::ToolActionController(ViewController *viewController):QObject(viewController)
@@ -12,13 +13,14 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
     kindsWithSubActions << "OutEventPortImpl" << "WorkerProcess";
 
 
-    toolbar = new QToolBar();
-    toolbar->setIconSize(QSize(80,80));
-    toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    //toolbar = new QToolBar();
+    //toolbar->setIconSize(QSize(80,80));
+    //toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
     actionGroup = new ActionGroup();
     adoptableKindsGroup = new ActionGroup();
     this->viewController = viewController;
+    this->selectionController = viewController->getSelectionController();
     setupNodeActions();
 
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
@@ -64,12 +66,12 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
                             action->setParentNodeViewItemAction(parentAction);
                             actions[item->getParentID()] = parentAction;
                             actionGroup->addAction(parentAction);
-                            toolbar->addAction(parentAction);
+                            //toolbar->addAction(parentAction);
                         }
                     }
                     actions[ID] = action;
                     actionGroup->addAction(action);
-                    toolbar->addAction(action);
+                    //toolbar->addAction(action);
                 }
             //}
         //}
@@ -97,7 +99,15 @@ void ToolActionController::selectionChanged(int selected)
 void ToolActionController::addChildNode()
 {
     if(sender()){
-        qCritical() << sender()->property("kind");
+        QString nodeKind = sender()->property("kind").toString();
+        QPointF position = sender()->property("position").toPointF();
+
+        ViewItem* item = selectionController->getFirstSelectedItem();
+
+        if(item){
+            int ID = item->getID();
+            emit viewController->constructChildNode(ID, nodeKind, position);
+        }
     }
 }
 
@@ -143,6 +153,16 @@ QList<QAction*> ToolActionController::getConnectedNodesActions(bool stealth)
 QAction* ToolActionController::getConnectedNodesAction(bool stealth)
 {
     return new RootAction("Connections");
+}
+
+QList<QAction *> ToolActionController::getHardwareActions(bool stealth)
+{
+    return QList<QAction*>();
+}
+
+QAction *ToolActionController::getHardwareAction(bool stealth)
+{
+    return new RootAction("Hardware");
 }
 
 QList<QAction *> ToolActionController::getInstancesActions(bool stealth)

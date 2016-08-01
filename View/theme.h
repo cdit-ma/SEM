@@ -87,6 +87,7 @@ public:
 
     // Default StyleSheets
     QString getWindowStyleSheet();
+    QString getDialogStyleSheet();
     QString getViewStyleSheet();
     QString getDockWidgetStyleSheet();
     QString getMenuBarStyleSheet();

@@ -5,14 +5,16 @@ ViewItem::ViewItem(EntityAdapter *entity): QObjectRegistrar()
 {
     this->entity = entity;
     this->ID = entity->getID();
-    tableModel = new AttributeTableModel(entity);
+    tableModel = new AttributeTableModel(this);
 
     //Register Item to Adapter
     entity->registerObject(this);
 
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
 
+    connect(entity, SIGNAL(dataAdded(QString,QVariant)), this, SIGNAL(dataAdded(QString,QVariant)));
     connect(entity, SIGNAL(dataChanged(QString,QVariant)), this, SIGNAL(dataChanged(QString,QVariant)));
+    connect(entity, SIGNAL(dataRemoved(QString)), this, SIGNAL(dataRemoved(QString)));
 
     //Set the default icon.
     defaultIcon = defaultIcon;//TODO: Theme::theme()->getIconForViewItem(this);
@@ -64,6 +66,15 @@ QVariant ViewItem::getData(QString keyName)
     return data;
 }
 
+QStringList ViewItem::getKeys()
+{
+    QStringList keys;
+    if(entity){
+        keys = entity->getKeys();
+    }
+    return keys;
+}
+
 bool ViewItem::hasData(QString keyName)
 {
     bool hasData = false;
@@ -71,6 +82,24 @@ bool ViewItem::hasData(QString keyName)
         hasData = entity->hasData(keyName);
     }
     return hasData;
+}
+
+bool ViewItem::isDataProtected(QString keyName)
+{
+    bool locked = false;
+    if(entity){
+        locked = entity->isDataProtected(keyName);
+    }
+    return locked;
+}
+
+bool ViewItem::isDataVisual(QString keyName)
+{
+    bool visual = false;
+    if(entity){
+        visual = entity->isDataVisual(keyName);
+    }
+    return visual;
 }
 
 void ViewItem::setDefaultIcon(QString icon_prefix, QString icon_name)

@@ -9,6 +9,7 @@
 #include <QAction>
 #include "../../View/viewitem.h"
 #include "../../Controller/viewcontroller.h"
+#include "../../View/Table/multilinedelegate.h"
 class TableWidget : public QWidget
 {
     Q_OBJECT
@@ -30,6 +31,7 @@ private:
     QLabel* iconLabel;
     QLabel* label;
     ViewController* viewController;
+    MultilineDelegate* multilineDelegate;
 
 };
 

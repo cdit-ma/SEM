@@ -3,7 +3,6 @@
 #include <QProxyStyle>
 
 #include "../../GUI/actionbutton.h"
-#include <QToolButton>
 
 /**
  * @brief The MenuStyle class
@@ -71,10 +70,12 @@ void ToolbarWidgetNew::themeChanged()
     mainFrame->setStyleSheet("background:" + mainBackgroundColor + "; border-radius: 6px;");
     shadowFrame->setStyleSheet("background:" + shadowColorStr + "; border-radius: 8px;");
 
-    addChildAction->setIcon(Theme::theme()->getIcon("Actions", "Plus"));
-    connectAction->setIcon(Theme::theme()->getIcon("Actions", "ConnectTo"));
-    instancesAction->setIcon(Theme::theme()->getIcon("Actions", "Instance"));
-    connectionsAction->setIcon(Theme::theme()->getIcon("Actions", "Connections"));
+    addChildAction->setIcon(theme->getIcon("Actions", "Plus"));
+    connectAction->setIcon(theme->getIcon("Actions", "ConnectTo"));
+    hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
+    instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
+    connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
+    //applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
 }
 
 
@@ -116,8 +117,17 @@ void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem *viewItem)
 void ToolbarWidgetNew::execMenu()
 {
     QAction* senderAction = qobject_cast<QAction*>(sender());
-    if (senderAction) {
-        addMenu->popup(QCursor::pos());
+    if (senderAction == addChildAction) {
+        //addMenu->popup(QCursor::pos());
+        addMenu->popup(toolbar->mapToGlobal(toolbar->actionGeometry(addChildAction).bottomLeft()));
+    } else if (senderAction == hardwareAction) {
+        //hardwareMenu->popup(QCursor::pos());
+        hardwareMenu->popup(toolbar->mapToGlobal(toolbar->actionGeometry(hardwareAction).bottomLeft()));
+    } else if (senderAction == replicateCountAction) {
+        //hardwareMenu->popup(QCursor::pos());
+        //replicateMenu->popup(toolbar->mapToGlobal(toolbar->actionGeometry(replicateCountAction).bottomLeft()));
+    } else {
+        qWarning() << "ToolbarWidgetNew::execMenu - Action's menu is not dealt with.";
     }
 }
 
@@ -164,26 +174,10 @@ void ToolbarWidgetNew::setupActions()
     connectGroup->addAction(toolbarController->getEdgeActionOfKind(Edge::EC_WORKFLOW, true));
 
     mainGroup = new ActionGroup(this);
-
     addChildAction = mainGroup->addAction(toolbarController->getAdoptableKindsAction(true));
-
-    /*
-    addChildAction = toolbarController->getAdoptableKindsAction(true);
-    ActionButton* button = new ActionButton(addChildAction);
-    button->setText("TOYOYOYO");
-    button->setPopupMode(QToolButton::InstantPopup);
-
-    QToolButton* b = new QToolButton(this);
-    b->setDefaultAction(addChildAction);
-    QAction* test = toolbar->addWidget(b);
-
-    connect(addChildAction, SIGNAL(changed()), test, SLOT(actionChanged()));
-    //toolbar->addWidget(button);
-    mainGroup->addAction(test);
-    */
-
     mainGroup->addAction(actionController->getRootAction("Delete")->constructSubAction(true));
     connectAction = mainGroup->addAction(connectGroup->getGroupVisibilityAction()->constructSubAction(true));
+    hardwareAction = mainGroup->addAction(toolbarController->getHardwareAction(true));
     mainGroup->addSeperator();
     mainGroup->addAction(actionController->edit_alignVertical->constructSubAction(true));
     mainGroup->addAction(actionController->edit_alignHorizontal->constructSubAction(true));
@@ -194,12 +188,12 @@ void ToolbarWidgetNew::setupActions()
     mainGroup->addAction(actionController->file_importSnippet->constructSubAction(true));
     mainGroup->addAction(actionController->file_exportSnippet->constructSubAction(true));
     mainGroup->addSeperator();
-    mainGroup->addAction(actionController->view_centerOnDefn->constructSubAction(true));
-    mainGroup->addAction(actionController->view_centerOnImpl->constructSubAction(true));
+    definitionAction = mainGroup->addAction(actionController->view_centerOnDefn->constructSubAction(true));
+    implementationAction = mainGroup->addAction(actionController->view_centerOnImpl->constructSubAction(true));
     instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
     mainGroup->addSeperator();
     mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
-    mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
+    replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
@@ -208,19 +202,13 @@ void ToolbarWidgetNew::setupActions()
     mainGroup->addAction(actionController->view_viewInNewWindow->constructSubAction(true));
     mainGroup->addAction(actionController->help_wiki->constructSubAction(true));
 
-    addChildAction->setText("Add Child Entity");
-    connectAction->setText("Connect Selection");
-
-    /*QToolButton* addButton = new QToolButton(this);
-    addButton->setDefaultAction(addChildAction);
-    addButton->setPopupMode(QToolButton::InstantPopup);
-    toolbar->addWidget(addButton);
-    addButton->setText("ASDASDASDADS");*/
-
-    //setupMenus();
+    setupSplitMenus();
 
     toolbar->addActions(mainGroup->actions());
-    toolbar->actionAt(0)->set
+
+    addChildAction->setText("Add Child Entity");
+    connectAction->setText("Connect Selection");
+    hardwareAction->setText("Deploy Selection");
 }
 
 
@@ -230,6 +218,31 @@ void ToolbarWidgetNew::setupActions()
 void ToolbarWidgetNew::setupMenus()
 {
     setupAddChildMenu();
+    setupHardwareMenu();
+    //setupReplicateCountMenu();
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::setupSplitMenus
+ * In order for the split button/menu to appear correctly, this function needs
+ * to be called before these menus' parent actions are added to the toolbar.
+ */
+void ToolbarWidgetNew::setupSplitMenus()
+{
+    if (!actionController) {
+        return;
+    }
+
+    QMenu* menu = new QMenu(this);
+    menu->addAction(actionController->view_centerOnDefn);
+    menu->addAction(actionController->toolbar_popOutDefn);
+    definitionAction->setMenu(menu);
+
+    QMenu* menu2 = new QMenu(this);
+    menu2->addAction(actionController->view_centerOnImpl);
+    menu2->addAction(actionController->toolbar_popOutImpl);
+    implementationAction->setMenu(menu2);
 }
 
 
@@ -249,23 +262,51 @@ void ToolbarWidgetNew::setupAddChildMenu()
         QString kind = action->text();
         action->setProperty("kind", kind);
         if (kindsWithSubMenus.contains(kind)) {
-            //Construct a QMenu and place in the subMenuHash with key kind. and add to action.
-            addMenu->addAction(action);
+            QMenu* menu = new QMenu(this);
+            adoptableKindsSubMenus[kind] = menu;
+            action->setMenu(menu);
         } else {
-            //connect(this, SIGNAL(addChildNode()), toolbarController, SLOT(addChildNode()));
             connect(action, SIGNAL(triggered(bool)), toolbarController, SLOT(addChildNode()));
-            addMenu->addAction(action);
         }
+        addMenu->addAction(action);
     }
 
-    //addChildAction = toolbarController->getAdoptableKindsAction(true);
-    //addChildAction->setMenu(addMenu);
-    //QMenu* menu = new QMenu(this);
-    //menu->addMenu(addMenu);
-    //addChildAction->setMenu(menu);
-    //toolbar->addAction(addChildAction);
-
-    //connect(addChildAction, SIGNAL(triggered(bool)), addMenu, SLOT(show()));
+    // TODO - replace this with the menu's own execMenu() slot
     connect(addChildAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
+}
+
+void ToolbarWidgetNew::setupHardwareMenu()
+{
+    if (!toolbarController) {
+        return;
+    }
+
+    hardwareMenu = new QMenu(this);
+    hardwareMenu->addActions(toolbarController->getHardwareActions(true));
+
+    // TODO - replace this with the menu's own execMenu() slot
+    connect(hardwareAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
+}
+
+void ToolbarWidgetNew::setupReplicateCountMenu()
+{
+    replicateCount = new QSpinBox(this);
+    replicateCount->setMinimum(1);
+    replicateCount->setMaximum(100000);
+
+    applyReplicateCountButton = new QToolButton(this);
+
+    QToolBar* replicateToolbar = new QToolBar(this);
+    replicateToolbar->setStyleSheet("spacing:2px;");
+    replicateToolbar->addWidget(replicateCount);
+    replicateToolbar->addWidget(applyReplicateCountButton);
+    //applyReplicateCountButton->setFixedHeight(25);
+    replicateCount->setFixedHeight(25);
+
+    QWidgetAction* rc = new QWidgetAction(this);
+    rc->setDefaultWidget(replicateToolbar);
+    replicateMenu->addAction(rc);
+
+    connect(replicateCountAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
 }
 

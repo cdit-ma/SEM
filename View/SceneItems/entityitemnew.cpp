@@ -198,6 +198,13 @@ void EntityItemNew::addRequiredData(QString keyName)
     }
 }
 
+void EntityItemNew::removeRequiredData(QString keyName)
+{
+    if(requiredDataKeys.contains(keyName)){
+        requiredDataKeys.removeAll(keyName);
+    }
+}
+
 QStringList EntityItemNew::getRequiredDataKeys()
 {
     return requiredDataKeys;
@@ -476,6 +483,7 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     RENDER_STATE state = getRenderState(lod);
 
     if(state == RS_BLOCK){
+        painter->setClipRect(boundingRect());
         QBrush brush(Qt::SolidPattern);
 
         if(isSelected()){

@@ -1,11 +1,11 @@
 #include "actioncontroller.h"
+#include "viewcontroller.h"
 #include "../View/theme.h"
 #include <QDebug>
 ActionController::ActionController(QObject *parent) : QObject(parent)
 {
     selectionController = 0;
-
-
+    viewController = 0;
 
 
 
@@ -20,6 +20,19 @@ ActionController::ActionController(QObject *parent) : QObject(parent)
 
 }
 
+void ActionController::connectViewController(ViewController *controller)
+{
+    viewController = controller;
+    if(viewController){
+        connect(controller, SIGNAL(canUndo(bool)), edit_undo, SLOT(setEnabled(bool)));
+        connect(controller, SIGNAL(canRedo(bool)), edit_redo, SLOT(setEnabled(bool)));
+
+        connect(edit_undo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_undo()));
+        connect(edit_redo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_redo()));
+        connectSelectionController(controller->getSelectionController());
+    }
+}
+
 void ActionController::connectSelectionController(SelectionController *controller)
 {
     selectionController = controller;
@@ -28,6 +41,7 @@ void ActionController::connectSelectionController(SelectionController *controlle
     connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
     connect(edit_selectAll, SIGNAL(triggered(bool)), controller, SIGNAL(selectAll()));
     connect(edit_clearSelection, SIGNAL(triggered(bool)), controller, SIGNAL(clearSelection()));
+
 }
 
 
@@ -123,6 +137,9 @@ void ActionController::selectionChanged(int selectionSize)
             edit_alignHorizontal->setEnabled(true);
             edit_alignVertical->setEnabled(true);
 
+            // TODO - Only put this here for testing
+            view_centerOnDefn->setEnabled(true);
+            view_centerOnImpl->setEnabled(true);
         }
 
 
@@ -265,8 +282,8 @@ void ActionController::setupActions()
     toolbar_connect = createRootAction("Connect Selection", "", "Actions", "Connect");
     toolbar_hardware = createRootAction("Deploy Selection", "", "Actions", "Computer");
     toolbar_disconnectHardware = createRootAction("Disconnect Selection From Its Current Deployment", "", "Actions", "Computer_Cross");
-    //toolbar_popOutDefn = createRootAction("View Selection's Definition", "", "Actions", "Popup");
-    //toolbar_popOutImpl = createRootAction("View Selection's Implementation", "", "Actions", "Popup");
+    toolbar_popOutDefn = createRootAction("Popout Definition", "", "Actions", "Popup");
+    toolbar_popOutImpl = createRootAction("Popout Implementation", "", "Actions", "Popup");
     //toolbar_popOutInst = createRootAction("View Selection's Instance", "", "Actions", "Popup");
     toolbar_getCPP = createRootAction("Get CPP Code", "", "Actions", "getCPP");
     toolbar_setReadOnly = createRootAction("Set Selection To Read Only", "", "Actions", "Lock_Closed");

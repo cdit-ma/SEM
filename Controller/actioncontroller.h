@@ -8,6 +8,7 @@
 #include "../Widgets/New/selectioncontroller.h"
 #include "rootaction.h"
 #include "../view/theme.h"
+class ViewController;
 class ActionController : public QObject
 {
     Q_OBJECT
@@ -18,7 +19,10 @@ public:
     void connectSelectionController(SelectionController* controller);
 
     RootAction* getRootAction(QString actionKey);
+    void connectViewController(ViewController* controller);
+
 private:
+    //void connectSelectionController(SelectionController* controller);
     RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 
 private slots:
@@ -33,6 +37,7 @@ private slots:
 
 public:
     SelectionController* selectionController;
+    ViewController* viewController;
     QList<RootAction*> allActions;
     QHash<QString, RootAction*> actionHash;
 
@@ -102,8 +107,8 @@ public:
     RootAction* toolbar_connect;
     RootAction* toolbar_hardware;
     RootAction* toolbar_disconnectHardware;
-    //RootAction* toolbar_popOutDefn;
-    //RootAction* toolbar_popOutImpl;
+    RootAction* toolbar_popOutDefn;
+    RootAction* toolbar_popOutImpl;
     //RootAction* toolbar_popOutInst;
     RootAction* toolbar_getCPP;
     RootAction* toolbar_setReadOnly;
