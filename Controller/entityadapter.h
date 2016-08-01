@@ -22,6 +22,7 @@ public:
 
     const QVariant getDataValue(QString keyName);
     bool isDataProtected(QString keyName);
+    bool isDataVisual(QString keyName);
 
     QStringList getKeys();
     QStringList getValidValuesForKey(QString keyName);

@@ -27,6 +27,7 @@ public:
     QList<NodeItemNew*> getChildNodes() const;
     QList<EntityItemNew*> getChildEntities() const;
 
+    QPointF validateAdjustPos(QPointF delta);
     QPainterPath getChildNodePath();
 
     void addChildEdge(EdgeItemNew* edgeItem);
@@ -64,6 +65,7 @@ public:
     virtual QRectF expandedRect() const;
     virtual QRectF currentRect() const;
     QRectF gridRect() const;
+    QRectF expandedGridRect() const;
     virtual QRectF bodyRect() const;
     virtual QRectF moveRect() const;
 
@@ -71,15 +73,19 @@ public:
 
     QSizeF getSize() const;
 
+    void adjustExpandedSize(QSizeF delta);
+
     void setMinimumWidth(qreal width);
     void setMinimumHeight(qreal height);
 
     //Size/Position Functions
-    void setExpandedWidth(qreal width);
-    void setExpandedHeight(qreal height);
+    void setExpandedWidth(qreal width, bool lockOnChange=false);
+    void setExpandedHeight(qreal height, bool lockOnChange=false);
+    void setExpandedSize(QSizeF size);
 
     qreal getExpandedWidth() const;
     qreal getExpandedHeight() const;
+    QSizeF getExpandedSize() const;
     qreal getMinimumWidth() const;
     qreal getMinimumHeight() const;
 
@@ -103,6 +109,8 @@ public:
     void setAspect(VIEW_ASPECT aspect);
     VIEW_ASPECT getAspect();
 
+    void setManuallyAdjusted(RECT_VERTEX aspect);
+
 
     QMarginsF getMargin() const;
     QMarginsF getBodyPadding() const;
@@ -113,8 +121,8 @@ public:
 
     int getVertexAngle(RECT_VERTEX vert) const;
 signals:
-    void req_adjustSize(NodeViewItem* item, QSizeF delta, RECT_VERTEX vertex);
-    void req_adjustSizeFinished();
+    void req_adjustSize(NodeItemNew* item, QSizeF delta, RECT_VERTEX vert);
+    void req_adjustSizeFinished(NodeItemNew* item, RECT_VERTEX vert);
 
     //Inform of Changes
     void gotChildNodes(bool);
@@ -127,6 +135,7 @@ public slots:
     virtual void dataChanged(QString keyName, QVariant data);
     void childPosChanged();
 private:
+    void resizeToChildren();
     int getResizeArrowRotation(RECT_VERTEX vert) const;
     int getGridSize() const;
     int getMajorGridCount() const;
@@ -148,6 +157,9 @@ private:
 
     bool gridEnabled;
     bool gridVisible;
+
+    bool horizontalLocked;
+    bool verticalLocked;
 
     bool resizeEnabled;
 

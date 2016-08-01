@@ -91,9 +91,7 @@ public:
     QString getDockWidgetStyleSheet();
     QString getMenuBarStyleSheet();
     QString getMenuStyleSheet();
-    QString getAltMenuStyleSheet();
     QString getToolBarStyleSheet();
-    QString getAltToolBarStyleSheet();
     QString getTableViewStyleSheet();
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
@@ -105,6 +103,7 @@ signals:
     void theme_Changed();
 
 private slots:
+public slots:
     void preloadImages();
 
 private:

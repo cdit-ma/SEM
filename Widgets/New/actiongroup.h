@@ -17,7 +17,7 @@ public:
     QList<RootAction*> getRootActions();
     void addSeperator();
     void updateSpacers();
-    void addAction(QAction *a);
+    QAction *addAction(QAction *a);
 
     void removeAction(QAction* a);
 private slots:

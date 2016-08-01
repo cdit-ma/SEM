@@ -240,6 +240,7 @@ void ActionController::setupActions()
     toolbar_contextToolbar = createRootAction("Show Context Toolbar", "", "Actions", "Toolbar");
 
     toolbar_addChild = createRootAction("Add Child Entity", "", "Actions", "Plus");
+    toolbar_connect = createRootAction("Connect Selection", "", "Actions", "Connect");
     toolbar_hardware = createRootAction("Deploy Selection", "", "Actions", "Computer");
     toolbar_disconnectHardware = createRootAction("Disconnect Selection From Its Current Deployment", "", "Actions", "Computer_Cross");
     //toolbar_popOutDefn = createRootAction("View Selection's Definition", "", "Actions", "Popup");

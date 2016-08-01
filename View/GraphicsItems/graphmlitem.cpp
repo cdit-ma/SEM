@@ -69,7 +69,8 @@ GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem:
 
 
 
-    table = new AttributeTableModel(this);
+    table = 0;
+    //table = new AttributeTableModel(this);
     renderState = RS_NONE;
     this->kind = kind;
     IS_DELETING = false;

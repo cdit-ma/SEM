@@ -30,6 +30,8 @@ public:
     RENDER_STATE getRenderState(qreal lod) const;
     VIEW_STATE getViewState() const;
     EntityItemNew* getParent() const;
+    bool isTopLevelItem() const;
+
 
     ViewItem* getViewItem() const;
 
@@ -37,7 +39,7 @@ public:
     QColor getBodyColor() const;
     void setBodyColor(QColor color);
 
-    void setPos(const QPointF &pos);
+    virtual void setPos(const QPointF &pos);
     int getID();
 
     virtual QRectF getElementRect(ELEMENT_RECT rect) const;
@@ -60,7 +62,7 @@ public:
 
     void adjustPos(QPointF delta);
 
-    bool isAdjustValid(QPointF delta);
+    virtual QPointF validateAdjustPos(QPointF delta);
 
     bool intersectsRectInScene(QRectF rectInScene) const;
 

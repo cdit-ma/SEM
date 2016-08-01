@@ -15,6 +15,27 @@ class ToolActionController : public QObject
 public:
     ToolActionController(ViewController* viewController);
 
+    QList<QAction*> getNodeActionsOfKind(QString kind, bool stealth);
+    QAction* getNodeActionOfKind(QString kind, bool stealth);
+
+    QList<QAction*> getEdgeActionsOfKind(Edge::EDGE_CLASS kind, bool stealth);
+    QAction* getEdgeActionOfKind(Edge::EDGE_CLASS kind, bool stealth);
+
+    QList<QAction*> getAdoptableKindsActions(bool stealth);
+    QAction* getAdoptableKindsAction(bool stealth);
+
+    QList<QAction*> getConnectedNodesActions(bool stealth);
+    QAction* getConnectedNodesAction(bool stealth);
+
+    QList<QAction*> getInstancesActions(bool stealth);
+    QAction* getInstancesAction(bool stealth);
+
+    //QAction* getDefinitionAction(bool stealth);
+    //QAction* getImplementationAction(bool stealth);
+
+    QStringList getKindsRequiringSubActions();
+    QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
+
 private slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
@@ -22,15 +43,6 @@ private slots:
     void selectionChanged(int selected);
     void addChildNode();
 
-public:
-    QList<QAction*> getAdoptableKindsActions(bool stealth);
-    QAction* getAdoptableKindsAction(bool stealth);
-
-
-    QStringList getKindsRequiringSubActions();
-    QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
-
-    //void connect()
 private:
     void setupNodeActions();
 
@@ -43,13 +55,11 @@ public:
     ActionGroup* actionGroup;
     ViewController* viewController;
 
-
-
-
     QStringList interfaceKinds;
     QStringList kindsWithSubActions;
 
     ActionGroup* adoptableKindsGroup;
+
 };
 
 #endif // TOOLBARCONTROLLER_H

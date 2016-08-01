@@ -92,7 +92,7 @@ public:
     RootAction* toolbar_contextToolbar;
 
     RootAction* toolbar_addChild;
-    //RootAction* toolbar_connect;
+    RootAction* toolbar_connect;
     RootAction* toolbar_hardware;
     RootAction* toolbar_disconnectHardware;
     //RootAction* toolbar_popOutDefn;

@@ -32,6 +32,8 @@ signals:
     void viewportChanged(QRectF rect, qreal zoom);
     void viewFocussed(NodeViewNew* view, bool focussed);
 
+    void dataChanged(int, QString, QVariant);
+
 private slots:
     void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
@@ -54,7 +56,11 @@ private slots:
     void item_SetExpanded(EntityItemNew* item, bool expand);
     void item_SetCentered(EntityItemNew* item);
     void item_AdjustingPos(bool adjusting);
+
     void item_AdjustPos(QPointF delta);
+    void item_Resizing(bool resizing);
+    void item_ResizeFinished(NodeItemNew* item, RECT_VERTEX vertex);
+    void item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vert);
 
     void minimap_Panning(bool panning);
     void minimap_Pan(QPointF delta);

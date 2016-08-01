@@ -33,7 +33,7 @@ int ViewItem::getID()
     return ID;
 }
 
-QAbstractItemModel *ViewItem::getTableModel()
+AttributeTableModel *ViewItem::getTableModel()
 {
     return tableModel;
 }

@@ -214,6 +214,7 @@ void NewController::connectViewController(ViewController *view)
     connect(this, SIGNAL(controller_IsModelReady(bool)), view, SLOT(setModelReady(bool)));
     connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(entityConstructed(EntityAdapter*)));
     connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(entityDestructed(EntityAdapter*)));
+    connect(view, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(setData(int,QString,QVariant)));
 }
 
 
@@ -2313,12 +2314,10 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
 
     bool protectLabel = protectedLabels.contains(nodeKind);
 
-    if(!nodeKind.endsWith("Definitions")){
-        Data* labelData = new Data(labelKey);
-        labelData->setValue(labelString);
-        labelData->setProtected(protectLabel);
-        data.append(labelData);
-    }
+    Data* labelData = new Data(labelKey);
+    labelData->setValue(labelString);
+    labelData->setProtected(protectLabel);
+    data.append(labelData);
 
     data.append(new Data(sortKey, -1));
 
@@ -3504,13 +3503,13 @@ void NewController::setupModel()
     modelLabelChanged();
 
     //Construct the top level parents.
-    interfaceDefinitions = constructChildNode(model, constructDataVector("InterfaceDefinitions"));
-    behaviourDefinitions = constructChildNode(model, constructDataVector("BehaviourDefinitions"));
+    interfaceDefinitions = constructChildNode(model, constructDataVector("InterfaceDefinitions", QPointF(-1,-1),"", "Interfaces"));
+    behaviourDefinitions = constructChildNode(model, constructDataVector("BehaviourDefinitions", QPointF(-1,-1),"", "Interfaces"));
     deploymentDefinitions =  constructChildNode(model, constructDataVector("DeploymentDefinitions"));
 
     //Construct the second level containers.
-    assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("AssemblyDefinitions"));
-    hardwareDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("HardwareDefinitions"));
+    assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("AssemblyDefinitions", QPointF(-1,-1),"", "Assemblies"));
+    hardwareDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("HardwareDefinitions", QPointF(-1,-1),"", "Hardware"));
 
     protectedNodes << model;
     protectedNodes << interfaceDefinitions;

@@ -113,11 +113,16 @@ bool ViewController::isModelReady()
     return _modelReady;
 }
 
+void ViewController::table_dataChanged(int ID, QString key, QVariant data)
+{
+    emit triggerAction("Table Changed");
+    emit dataChanged(ID, key, data);
+}
+
 void ViewController::showToolbar(QPointF pos)
 {
     toolbar->move(pos.toPoint());
     toolbar->show();
-    //toolbar->setVisible(true);
 }
 
 void ViewController::setModelReady(bool okay)
@@ -159,6 +164,8 @@ void ViewController::entityConstructed(EntityAdapter *entity)
         if(isModel){
             modelItem = viewItem;
         }
+
+        connect(viewItem->getTableModel(), SIGNAL(req_dataChanged(int, QString, QVariant)), this, SLOT(table_dataChanged(int, QString, QVariant)));
 
         //Tell Views
         emit viewItemConstructed(viewItem);

@@ -25,29 +25,37 @@ public slots:
     void themeChanged();
     void setVisible(bool visible);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
+
 private:
     void setupToolbar();
+    void setupActions();
     void setupMenus();
-    void setupAddChildMenus();
+    void setupAddChildMenu();
 
     ViewController* viewController;
     ActionController* actionController;
     ToolActionController* toolbarController;
     QSize iconSize;
 
-
     QHash<QString, QMenu> adoptableKindsSubMenus;
 
     //QHash<int, NodeViewItemAction*> nodeActions;
     //QHash<int, QMenu> nodeActions;
 
-
     QFrame* mainFrame;
     QFrame* shadowFrame;
     QToolBar* toolbar;
 
+    ActionGroup* mainGroup;
+    ActionGroup* connectGroup;
+
+    QMenu* addMenu;
 
     QAction* addChildAction;
+    QAction* connectAction;
+    QAction* instancesAction;
+    QAction* connectionsAction;
+
 };
 
 #endif // TOOLBARWIDGETNEW_H
