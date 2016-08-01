@@ -177,7 +177,7 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DecorationRole) {
         if(hasPopupEditor(index)){
-            return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16), Theme::theme()->getTextColor());
+            return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16), Theme::theme()->getAltBackgroundColor());
         }
     }
 
