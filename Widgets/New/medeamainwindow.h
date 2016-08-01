@@ -9,6 +9,7 @@
 #include "../../View/nodeviewnew.h"
 #include "../../View/nodeviewminimap.h"
 #include "../../Controller/viewcontroller.h"
+#include "qosbrowser.h"
 #include "tablewidget.h"
 
 class MedeaMainWindow : public MedeaWindowNew
@@ -63,6 +64,7 @@ private:
     NodeViewNew* nodeView_Behaviour;
     NodeViewNew* nodeView_Assemblies;
     NodeViewNew* nodeView_Hardware;
+    QOSBrowser* qosBrowser;
     ViewController* viewController;
 
     // QWidget interface

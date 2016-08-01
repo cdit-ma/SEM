@@ -82,8 +82,6 @@ void TableWidget::setupLayout()
     toolbar->setFixedHeight(iconSize.height());
     tableView = new QTableView(this);
     tableView->horizontalHeader()->setVisible(false);
-    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableView->horizontalHeader()->setHighlightSections(false);
     tableView->verticalHeader()->setHighlightSections(false);
 
     tableView->setItemDelegate(multilineDelegate);

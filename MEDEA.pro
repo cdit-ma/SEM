@@ -197,7 +197,9 @@ HEADERS += \
     View/SceneItems/Assemblies/managementcomponentnodeitem.h \
     Controller/toolbarcontroller.h \
     Controller/nodeviewitemaction.h \
-    View/Table/multilinedelegate.h
+    View/Table/multilinedelegate.h \
+    Widgets/New/qosbrowser.h \
+    Widgets/New/qosprofilemodel.h
 
 SOURCES += \
     main.cpp \
@@ -358,7 +360,9 @@ SOURCES += \
     View/SceneItems/Assemblies/managementcomponentnodeitem.cpp \
     Controller/toolbarcontroller.cpp \
     Controller/nodeviewitemaction.cpp \
-    View/Table/multilinedelegate.cpp
+    View/Table/multilinedelegate.cpp \
+    Widgets/New/qosbrowser.cpp \
+    Widgets/New/qosprofilemodel.cpp
 
 RESOURCES += \
     resources.qrc

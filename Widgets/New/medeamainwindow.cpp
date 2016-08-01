@@ -209,6 +209,17 @@ void MedeaMainWindow::setupInnerWindow()
     connectNodeView(nodeView_Behaviour);
     connectNodeView(nodeView_Assemblies);
     connectNodeView(nodeView_Hardware);
+
+
+
+    MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructViewDockWidget("QOS Browser", Qt::BottomDockWidgetArea);
+    qosBrowser = new QOSBrowser(viewController, this);
+    qosDockWidget->setWidget(qosBrowser);
+    qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+
+    qosDockWidget->setProtected(true);
+
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
 }
 
 void MedeaMainWindow::setupMenuAndTitle()
