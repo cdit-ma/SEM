@@ -12,11 +12,15 @@ class ActionController : public QObject
 {
     Q_OBJECT
 public:
+    enum ACTION{};
     explicit ActionController(QObject *parent = 0);
 
     void connectSelectionController(SelectionController* controller);
+
+    RootAction* getRootAction(QString actionKey);
 private:
     RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
+
 private slots:
     void jenkinsValidated(bool success);
     void selectionChanged(int selectionSize);
@@ -26,10 +30,13 @@ private slots:
 
     void updateJenkinsActions();
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
+
 public:
     SelectionController* selectionController;
     QList<RootAction*> allActions;
     QHash<QString, RootAction*> actionHash;
+
+    QHash<ACTION, RootAction*> rootActionHash;
 
     ActionGroup* applicationToolbar;
     ActionGroup* contextToolbar;

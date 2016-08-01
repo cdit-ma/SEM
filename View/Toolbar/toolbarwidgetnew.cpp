@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QProxyStyle>
 
+#include "../../GUI/actionbutton.h"
 #include <QToolButton>
 
 /**
@@ -112,6 +113,14 @@ void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem *viewItem)
 
 }
 
+void ToolbarWidgetNew::execMenu()
+{
+    QAction* senderAction = qobject_cast<QAction*>(sender());
+    if (senderAction) {
+        addMenu->popup(QCursor::pos());
+    }
+}
+
 
 /**
  * @brief ToolbarWidgetNew::setupToolbar
@@ -155,9 +164,25 @@ void ToolbarWidgetNew::setupActions()
     connectGroup->addAction(toolbarController->getEdgeActionOfKind(Edge::EC_WORKFLOW, true));
 
     mainGroup = new ActionGroup(this);
-    //addChildAction = mainGroup->addAction(toolbarController->getAdoptableKindsAction(true));
+
+    addChildAction = mainGroup->addAction(toolbarController->getAdoptableKindsAction(true));
+
+    /*
     addChildAction = toolbarController->getAdoptableKindsAction(true);
-    mainGroup->addAction(actionController->edit_delete->constructSubAction(true));
+    ActionButton* button = new ActionButton(addChildAction);
+    button->setText("TOYOYOYO");
+    button->setPopupMode(QToolButton::InstantPopup);
+
+    QToolButton* b = new QToolButton(this);
+    b->setDefaultAction(addChildAction);
+    QAction* test = toolbar->addWidget(b);
+
+    connect(addChildAction, SIGNAL(changed()), test, SLOT(actionChanged()));
+    //toolbar->addWidget(button);
+    mainGroup->addAction(test);
+    */
+
+    mainGroup->addAction(actionController->getRootAction("Delete")->constructSubAction(true));
     connectAction = mainGroup->addAction(connectGroup->getGroupVisibilityAction()->constructSubAction(true));
     mainGroup->addSeperator();
     mainGroup->addAction(actionController->edit_alignVertical->constructSubAction(true));
@@ -186,14 +211,16 @@ void ToolbarWidgetNew::setupActions()
     addChildAction->setText("Add Child Entity");
     connectAction->setText("Connect Selection");
 
-    QToolButton* addButton = new QToolButton(this);
+    /*QToolButton* addButton = new QToolButton(this);
     addButton->setDefaultAction(addChildAction);
     addButton->setPopupMode(QToolButton::InstantPopup);
     toolbar->addWidget(addButton);
+    addButton->setText("ASDASDASDADS");*/
 
     //setupMenus();
 
     toolbar->addActions(mainGroup->actions());
+    toolbar->actionAt(0)->set
 }
 
 
@@ -232,7 +259,13 @@ void ToolbarWidgetNew::setupAddChildMenu()
     }
 
     //addChildAction = toolbarController->getAdoptableKindsAction(true);
-    addChildAction->setMenu(addMenu);
+    //addChildAction->setMenu(addMenu);
+    //QMenu* menu = new QMenu(this);
+    //menu->addMenu(addMenu);
+    //addChildAction->setMenu(menu);
     //toolbar->addAction(addChildAction);
+
+    //connect(addChildAction, SIGNAL(triggered(bool)), addMenu, SLOT(show()));
+    connect(addChildAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
 }
 

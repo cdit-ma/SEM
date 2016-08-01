@@ -26,6 +26,8 @@ public slots:
     void setVisible(bool visible);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 
+    void execMenu();
+
 private:
     void setupToolbar();
     void setupActions();
@@ -37,6 +39,7 @@ private:
     ToolActionController* toolbarController;
     QSize iconSize;
 
+    QHash<QAction*, QMenu*> actionMenuHash;
     QHash<QString, QMenu> adoptableKindsSubMenus;
 
     //QHash<int, NodeViewItemAction*> nodeActions;

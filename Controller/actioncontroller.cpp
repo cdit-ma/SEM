@@ -30,10 +30,32 @@ void ActionController::connectSelectionController(SelectionController *controlle
     connect(edit_clearSelection, SIGNAL(triggered(bool)), controller, SIGNAL(clearSelection()));
 }
 
-RootAction *ActionController::createRootAction(QString name, QString actionHash, QString iconPath, QString aliasPath)
+
+/**
+ * @brief ActionController::getRootAction
+ * This will return a copy of the root action specified by kind if it exists.
+ * If it doesn't, it will construct the root action and then return a copy of it.
+ * @param action
+ * @param stealth
+ * @return
+ */
+RootAction* ActionController::getRootAction(QString actionKey)
+{
+
+    RootAction* action = 0;
+    if(actionHash.contains(actionKey)){
+        action = actionHash[actionKey];
+    }
+    return action;
+}
+
+RootAction *ActionController::createRootAction(QString name, QString hashKey, QString iconPath, QString aliasPath)
 {
     RootAction* action = new RootAction(name, this);
     action->setIconPath(iconPath, aliasPath);
+    if(hashKey != ""){
+        actionHash[hashKey] = action;
+    }
     allActions.append(action);
     return action;
 }
@@ -183,7 +205,7 @@ void ActionController::setupActions()
     edit_copy = createRootAction("Copy", "", "Actions", "Copy");
     edit_paste = createRootAction("Paste", "", "Actions", "Paste");
     edit_replicate = createRootAction("Replicate", "", "Actions", "Replicate");
-    edit_delete = createRootAction("Delete", "", "Actions", "Delete");
+    edit_delete = createRootAction("Delete", "Delete", "Actions", "Delete");
     edit_delete->setShortcut(QKeySequence(Qt::Key_Delete));
     edit_delete->setShortcutContext(Qt::ApplicationShortcut);
 

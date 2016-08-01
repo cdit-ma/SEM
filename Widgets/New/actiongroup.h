@@ -19,6 +19,7 @@ public:
     void updateSpacers();
     QAction *addAction(QAction *a);
 
+
     void removeAction(QAction* a);
 private slots:
     void updateMasterAction();
