@@ -14,6 +14,7 @@ AttributeTableModel::AttributeTableModel(EntityAdapter* adapter)
     //Register the table
     entity->registerObject(this);
 
+    multiLineKeys << "processes_to_log" << "code";
     setupDataBinding();
 }
 
@@ -137,7 +138,8 @@ bool AttributeTableModel::isRowProtected(int row) const
 
 bool AttributeTableModel::hasPopupEditor(const QModelIndex &index) const
 {
-    return false;
+    QString keyName = getKey(index);
+    return multiLineKeys.contains(keyName);
 }
 
 QVariant AttributeTableModel::getData(const QModelIndex &index) const
@@ -175,7 +177,7 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DecorationRole) {
         if(hasPopupEditor(index)){
-            return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16));
+            return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16), Theme::theme()->getTextColor());
         }
     }
 

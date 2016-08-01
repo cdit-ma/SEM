@@ -32,6 +32,20 @@ signals:
     void triggerAction(QString action);
     void dataChanged(int, QString, QVariant);
 
+
+    void view_undo();
+    void view_redo();
+
+
+
+
+    void canUndo(bool);
+    void canRedo(bool);
+
+
+signals:
+    void constructChildNode(int parentID, QString kind, QPointF pos = QPointF());
+
 private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
     void showToolbar(QPointF pos);

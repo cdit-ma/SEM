@@ -32,6 +32,7 @@ signals:
     void viewportChanged(QRectF rect, qreal zoom);
     void viewFocussed(NodeViewNew* view, bool focussed);
 
+    void triggerAction(QString);
     void dataChanged(int, QString, QVariant);
 
 private slots:

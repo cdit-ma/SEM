@@ -8,11 +8,15 @@ ViewController::ViewController(){
     _modelReady = false;
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
-    actionController->connectSelectionController(selectionController);
+    actionController->connectViewController(this);
+
+
+
     toolbarController = new ToolActionController(this);
     toolbar = new ToolbarWidgetNew(this);
     connect(this, SIGNAL(modelReady(bool)), actionController, SLOT(modelReady(bool)));
     emit modelReady(false);
+
 }
 
 QStringList ViewController::getNodeKinds()

@@ -1,11 +1,11 @@
 #include "actioncontroller.h"
+#include "viewcontroller.h"
 #include "../View/theme.h"
 #include <QDebug>
 ActionController::ActionController(QObject *parent) : QObject(parent)
 {
     selectionController = 0;
-
-
+    viewController = 0;
 
 
 
@@ -20,6 +20,19 @@ ActionController::ActionController(QObject *parent) : QObject(parent)
 
 }
 
+void ActionController::connectViewController(ViewController *controller)
+{
+    viewController = controller;
+    if(viewController){
+        connect(controller, SIGNAL(canUndo(bool)), edit_undo, SLOT(setEnabled(bool)));
+        connect(controller, SIGNAL(canRedo(bool)), edit_redo, SLOT(setEnabled(bool)));
+
+        connect(edit_undo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_undo()));
+        connect(edit_redo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_redo()));
+        connectSelectionController(controller->getSelectionController());
+    }
+}
+
 void ActionController::connectSelectionController(SelectionController *controller)
 {
     selectionController = controller;
@@ -28,6 +41,7 @@ void ActionController::connectSelectionController(SelectionController *controlle
     connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
     connect(edit_selectAll, SIGNAL(triggered(bool)), controller, SIGNAL(selectAll()));
     connect(edit_clearSelection, SIGNAL(triggered(bool)), controller, SIGNAL(clearSelection()));
+
 }
 
 RootAction *ActionController::createRootAction(QString name, QString actionHash, QString iconPath, QString aliasPath)

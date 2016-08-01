@@ -215,6 +215,15 @@ void NewController::connectViewController(ViewController *view)
     connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(entityConstructed(EntityAdapter*)));
     connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(entityDestructed(EntityAdapter*)));
     connect(view, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(setData(int,QString,QVariant)));
+    connect(view, SIGNAL(constructChildNode(int,QString,QPointF)), this, SLOT(constructNode(int,QString,QPointF)));
+
+
+    connect(this, SIGNAL(controller_CanRedo(bool)), view, SIGNAL(canRedo(bool)));
+    connect(this, SIGNAL(controller_CanUndo(bool)), view, SIGNAL(canUndo(bool)));
+
+    connect(view, SIGNAL(triggerAction(QString)), this, SLOT(triggerAction(QString)));
+    connect(view, SIGNAL(view_undo()), this, SLOT(undo()));
+    connect(view, SIGNAL(view_redo()), this, SLOT(redo()));
 }
 
 
@@ -3504,7 +3513,7 @@ void NewController::setupModel()
 
     //Construct the top level parents.
     interfaceDefinitions = constructChildNode(model, constructDataVector("InterfaceDefinitions", QPointF(-1,-1),"", "Interfaces"));
-    behaviourDefinitions = constructChildNode(model, constructDataVector("BehaviourDefinitions", QPointF(-1,-1),"", "Interfaces"));
+    behaviourDefinitions = constructChildNode(model, constructDataVector("BehaviourDefinitions", QPointF(-1,-1),"", "Behaviour"));
     deploymentDefinitions =  constructChildNode(model, constructDataVector("DeploymentDefinitions"));
 
     //Construct the second level containers.

@@ -35,9 +35,15 @@ private slots:
     void highlightCurrentLine();
     void matchParentheses();
 
+    void themeChanged();
+
 private:
     SyntaxHighlighter *highlighter;
     QWidget *lineNumberArea;
+    QColor selectedColor;
+    QColor textColor;
+    QColor selectedTextColor;
+    QColor altBackgroundColor;
 
     bool matchLeftParenthesis(QTextBlock currentBlock, int index, int numRightParentheses);
     bool matchRightParenthesis(QTextBlock currentBlock, int index, int numLeftParentheses);
@@ -52,10 +58,11 @@ class LineNumberArea : public QWidget
 public:
     LineNumberArea(CodeEditor *editor) : QWidget(editor) {
         codeEditor = editor;
+        this->setContentsMargins(0,0,0,0);
     }
 
     QSize sizeHint() const Q_DECL_OVERRIDE {
-        return QSize(codeEditor->lineNumberAreaWidth(), 0);
+        return QSize(codeEditor->lineNumberAreaWidth(), codeEditor->height());
     }
 
 protected:

@@ -8,14 +8,16 @@
 #include "../Widgets/New/selectioncontroller.h"
 #include "rootaction.h"
 #include "../view/theme.h"
+class ViewController;
 class ActionController : public QObject
 {
     Q_OBJECT
 public:
     explicit ActionController(QObject *parent = 0);
 
-    void connectSelectionController(SelectionController* controller);
+    void connectViewController(ViewController* controller);
 private:
+    void connectSelectionController(SelectionController* controller);
     RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 private slots:
     void jenkinsValidated(bool success);
@@ -28,6 +30,7 @@ private slots:
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
 public:
     SelectionController* selectionController;
+    ViewController* viewController;
     QList<RootAction*> allActions;
     QHash<QString, RootAction*> actionHash;
 

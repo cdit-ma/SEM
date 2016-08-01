@@ -19,6 +19,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     resizeEnabled = false;
     verticalLocked = false;
     horizontalLocked = false;
+    ignorePosition = false;
     aspect = VA_NONE;
     selectedResizeVertex = RV_NONE;
     hoveredResizeVertex = RV_NONE;
@@ -85,6 +86,23 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
         //Update our position
         resizeToChildren();
     }
+}
+
+void NodeItemNew::setIgnorePosition(bool ignore)
+{
+    ignorePosition = ignore;
+    if(ignore){
+        removeRequiredData("x");
+        removeRequiredData("y");
+    }else{
+        addRequiredData("x");
+        addRequiredData("y");
+    }
+}
+
+bool NodeItemNew::isIgnoringPosition()
+{
+    return ignorePosition;
 }
 
 void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
@@ -276,12 +294,13 @@ void NodeItemNew::setChildNodeMoving(NodeItemNew *child, bool moving)
 void NodeItemNew::setMoving(bool moving)
 {
     EntityItemNew::setMoving(moving);
+
     NodeItemNew* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
         parentNodeItem->setChildNodeMoving(this, moving);
-        if(!moving){
-            setCenter(getNearestGridPointToCenter());
-        }
+    }
+    if(!moving){
+        setCenter(getNearestGridPointToCenter());
     }
 }
 

@@ -3,7 +3,7 @@
 
 #include "codeeditor.h"
 #include "syntaxhighlighter.h"
-
+#include "../View/theme.h"
 CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
 {
     lineNumberArea = new LineNumberArea(this);
@@ -16,6 +16,8 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 
@@ -93,6 +95,19 @@ void CodeEditor::matchParentheses()
     }
 }
 
+void CodeEditor::themeChanged()
+{
+    Theme* t = Theme::theme();
+
+    selectedColor = t->getHighlightColor();
+    selectedTextColor = t->getTextColor(Theme::CR_SELECTED);
+    textColor = t->getTextColor();
+    altBackgroundColor = t->getAltBackgroundColor();
+
+    setStyleSheet("QPlainTextEdit{background:" + t->getBackgroundColorHex()+";color:"+ t->getTextColorHex()+";}");
+
+}
+
 bool CodeEditor::matchLeftParenthesis(QTextBlock currentBlock, int i, int numLeftParentheses)
 {
     TextBlockData *data = static_cast<TextBlockData *>(currentBlock.userData());
@@ -153,7 +168,7 @@ void CodeEditor::highlightCurrentLine()
 
     QTextEdit::ExtraSelection selection;
 
-    QColor lineColor = QColor(194,225,255,120);
+    QColor lineColor = Theme::theme()->getHighlightColor();
 
     selection.format.setBackground(lineColor);
     selection.format.setProperty(QTextFormat::FullWidthSelection, true);
@@ -169,8 +184,8 @@ void CodeEditor::createParenthesisSelection(int pos)
 
     QTextEdit::ExtraSelection selection;
     QTextCharFormat format = selection.format;
-    format.setBackground(QColor(180,238,180));
-    format.setForeground(QColor(255,0,0));
+    format.setBackground(selectedColor);
+    format.setForeground(selectedTextColor);
     QFont boldFont;
     boldFont.setBold(true);
     format.setFont(boldFont);
@@ -191,35 +206,35 @@ void CodeEditor::createParenthesisSelection(int pos)
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
     QPainter painter(lineNumberArea);
-    painter.fillRect(event->rect(), QColor(240,240,240));
-    painter.setPen(Qt::red);
+
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(altBackgroundColor);
+    painter.drawRect(event->rect());
 
     QFont font = this->font();
-
     QTextBlock block = firstVisibleBlock();
-    int blockNumber = block.blockNumber();
 
-    int top = (int) blockBoundingGeometry(block).translated(contentOffset()).top();
-    int bottom = top + (int) blockBoundingRect(block).height();
+    while (block.isValid()){
+        QString number = QString::number(block.blockNumber() + 1);
 
-    while (block.isValid() && top <= event->rect().bottom()) {
-        if (block.isVisible() && bottom >= event->rect().top()) {
-            QString number = QString::number(blockNumber + 1);
+        QRectF br = blockBoundingGeometry(block);
+        br.setWidth(lineNumberAreaWidth());
+        br.translate(contentOffset());
 
-            if(blockNumber == this->textCursor().blockNumber()) {
-                font.setBold(true);
-            } else {
-                font.setBold(false);
-            }
-
-            painter.setFont(font);
-            painter.drawText(0, top, lineNumberArea->width()-1, this->fontMetrics().height(),
-                             Qt::AlignRight, number);
+        if(block.blockNumber() == textCursor().blockNumber()){
+            font.setBold(true);
+            painter.setBrush(selectedColor);
+            painter.setPen(Qt::NoPen);
+            painter.drawRect(br);
+            painter.setPen(selectedTextColor);
+        } else {
+            font.setBold(false);
+            painter.setPen(textColor);
         }
 
+
+        painter.setFont(font);
+        painter.drawText(br, Qt::AlignCenter, number);
         block = block.next();
-        top = bottom;
-        bottom = top + (int) blockBoundingRect(block).height();
-        ++blockNumber;
     }
 }

@@ -63,8 +63,7 @@ private:
 
     QStringList editableKeys;
     QStringList lockedKeys;
-    QStringList keyOrder;
-
+    QStringList multiLineKeys;
 };
 
 #endif // ATTRIBUTETABLEMODEL_H

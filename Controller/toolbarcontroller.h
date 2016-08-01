@@ -9,6 +9,7 @@
 #include "rootaction.h"
 
 class ViewController;
+class SelectionController;
 class ToolActionController : public QObject
 {
     Q_OBJECT
@@ -20,6 +21,7 @@ public:
 
     QList<QAction*> getEdgeActionsOfKind(Edge::EDGE_CLASS kind, bool stealth);
     QAction* getEdgeActionOfKind(Edge::EDGE_CLASS kind, bool stealth);
+
 
     QList<QAction*> getAdoptableKindsActions(bool stealth);
     QAction* getAdoptableKindsAction(bool stealth);
@@ -50,10 +52,11 @@ private:
     QHash<int, NodeViewItemAction*> actions;
 
 public:
-    QToolBar* toolbar;
+    //QToolBar* toolbar;
 
     ActionGroup* actionGroup;
     ViewController* viewController;
+    SelectionController* selectionController;
 
     QStringList interfaceKinds;
     QStringList kindsWithSubActions;

@@ -198,6 +198,13 @@ void EntityItemNew::addRequiredData(QString keyName)
     }
 }
 
+void EntityItemNew::removeRequiredData(QString keyName)
+{
+    if(requiredDataKeys.contains(keyName)){
+        requiredDataKeys.removeAll(keyName);
+    }
+}
+
 QStringList EntityItemNew::getRequiredDataKeys()
 {
     return requiredDataKeys;

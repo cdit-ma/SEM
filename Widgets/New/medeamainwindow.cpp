@@ -36,7 +36,7 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     connect(controller, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), tableWidget, SLOT(itemActiveSelectionChanged(ViewItem*, bool)));
     connect(vc->getActionController()->view_viewInNewWindow, SIGNAL(triggered(bool)), this, SLOT(spawnSubView()));
 
-    this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
+    //this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
 }
 
 void MedeaMainWindow::themeChanged()

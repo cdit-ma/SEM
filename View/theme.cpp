@@ -473,7 +473,15 @@ QString Theme::getWindowStyleSheet()
     return "QMainWindow {"
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
-           "}";
+                                           "}";
+}
+
+QString Theme::getDialogStyleSheet()
+{
+    return "QDialog {"
+           "background: " % getBackgroundColorHex() % ";"
+           "color: " % getTextColorHex() % ";"
+                                           "}";
 }
 
 QString Theme::getViewStyleSheet()

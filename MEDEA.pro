@@ -195,7 +195,8 @@ HEADERS += \
     Controller/rootaction.h \
     View/Toolbar/toolbarwidgetnew.h \
     Controller/toolbarcontroller.h \
-    Controller/nodeviewitemaction.h
+    Controller/nodeviewitemaction.h \
+    View/Table/multilinedelegate.h
 
 
 SOURCES += \
@@ -355,7 +356,8 @@ SOURCES += \
     Controller/rootaction.cpp \
     View/Toolbar/toolbarwidgetnew.cpp \
     Controller/toolbarcontroller.cpp \
-    Controller/nodeviewitemaction.cpp
+    Controller/nodeviewitemaction.cpp \
+    View/Table/multilinedelegate.cpp
 
 
 RESOURCES += \
