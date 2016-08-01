@@ -24,6 +24,7 @@ QWidget *MultilineDelegate::createEditor(QWidget *parent, const QStyleOptionView
         //Check for multiline gear
         //Clear the editor
         codeEditor->clear();
+        codeEditor->move(parentWidget->rect().bottomRight());
         return dialog;
     }else{
         return QStyledItemDelegate::createEditor(parent, option, index);
@@ -76,6 +77,7 @@ void MultilineDelegate::setupLayout()
     dialog = new QDialog(parentWidget);
     QVBoxLayout* layout = new QVBoxLayout(dialog);
     dialog->setMinimumSize(400,700);
+    dialog->move(parentWidget->geometry().center());
     dialog->setModal(true);
 
     dialog->setWindowFlags(dialog->windowFlags() & (~Qt::WindowContextHelpButtonHint));

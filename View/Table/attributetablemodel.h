@@ -4,25 +4,17 @@
 #include <QAbstractTableModel>
 
 
-#include "../../Model/data.h"
-#include "../../Model/graphml.h"
-#include "../GraphicsItems/graphmlitem.h"
-#include <QVector>
-
-class NodeItem;
-class EdgeItem;
-class GraphMLItem;
-
+class ViewItem;
 class AttributeTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    AttributeTableModel(EntityAdapter* adapter);
+    AttributeTableModel(ViewItem* item);
     ~AttributeTableModel();
 
 signals:
     void req_dataChanged(int ID, QString keyName, QVariant data);
-    void editMultilineData(Data* data);
+
 public slots:
     void updatedData(QString keyName);
     void removedData(QString keyName);
@@ -55,12 +47,13 @@ private:
 
     void setupDataBinding();
 
-    EntityAdapter* entity;
+    ViewItem* entity;
 
 
 
 
 
+    QStringList ignoredKeys;
     QStringList editableKeys;
     QStringList lockedKeys;
     QStringList multiLineKeys;
