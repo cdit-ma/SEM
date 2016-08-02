@@ -314,8 +314,6 @@ void MedeaMainWindow::setupToolBar()
     connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(toolbarTopLevelChanged(bool)));
 
     addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
-
-
 }
 
 void MedeaMainWindow::setupSearchBar()
@@ -367,7 +365,7 @@ void MedeaMainWindow::setupPopupSearchBar()
     popupSearchButton->setToolTip("Submit Search");
 
     popupSearchBar = new QLineEdit(this);
-    popupSearchBar->setFont(QFont(font().family(), 18));
+    popupSearchBar->setFont(QFont(font().family(), 14));
     popupSearchBar->setPlaceholderText("Search Here...");
     popupSearchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
