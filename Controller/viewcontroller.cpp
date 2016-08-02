@@ -85,11 +85,20 @@ ToolActionController *ViewController::getToolbarController()
 
 QList<int> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
 {
-    if(selectionController){
+    if(selectionController && controller){
         int ID = selectionController->getFirstSelectedItem()->getID();
         return controller->getConnectableNodes(ID);
     }
     return QList<int>();
+}
+
+QStringList ViewController::getAdoptableNodeKinds()
+{
+    if(selectionController && controller){
+        int ID = selectionController->getFirstSelectedItem()->getID();
+        return controller->getAdoptableNodeKinds(ID);
+    }
+    return QStringList();
 }
 
 

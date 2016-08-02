@@ -22,6 +22,7 @@ public:
     ToolActionController* getToolbarController();
 
     QList<int> getValidEdges(Edge::EDGE_CLASS kind);
+    QStringList getAdoptableNodeKinds();
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
     bool isModelReady();

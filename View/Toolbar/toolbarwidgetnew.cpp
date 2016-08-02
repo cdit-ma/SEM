@@ -131,6 +131,17 @@ void ToolbarWidgetNew::execMenu()
     }
 }
 
+void ToolbarWidgetNew::populateMenu()
+{
+    QMenu* senderMenu = qobject_cast<QMenu*>(sender());
+    senderMenu->clear();
+
+    senderMenu->addActions(toolbarController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT, true));
+    if(senderMenu->actions().isEmpty()){
+        senderMenu->addAction(toolbarController->getToolAction("NO_EC_DEPLOYMENT_CONNECT", false));
+    }
+}
+
 
 /**
  * @brief ToolbarWidgetNew::setupToolbar
@@ -284,10 +295,11 @@ void ToolbarWidgetNew::setupHardwareMenu()
     }
 
     hardwareMenu = new QMenu(this);
-    hardwareMenu->addActions(toolbarController->getHardwareActions(true));
+    hardwareMenu->addActions(toolbarController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT, true));
 
     // TODO - replace this with the menu's own execMenu() slot
     connect(hardwareAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
+    connect(hardwareMenu, SIGNAL(aboutToShow()), this, SLOT(populateMenu()));
 }
 
 void ToolbarWidgetNew::setupReplicateCountMenu()

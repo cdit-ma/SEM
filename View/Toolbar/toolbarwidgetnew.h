@@ -29,6 +29,7 @@ public slots:
     void setVisible(bool visible);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
     void execMenu();
+    void populateMenu();
 
 private:
     void setupToolbar();

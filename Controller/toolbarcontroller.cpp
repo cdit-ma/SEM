@@ -94,8 +94,13 @@ void ToolActionController::viewItem_Destructed(int ID, ViewItem *viewItem)
 
 void ToolActionController::selectionChanged(int selected)
 {
+    QStringList validActions;
+
+    if(selected > 0){
+        validActions = viewController->getAdoptableNodeKinds();
+    }
     foreach(QAction* action, adoptableKindsGroup->actions()){
-        action->setEnabled(selected != 0);
+        action->setEnabled(validActions.contains(action->text()));
     }
 }
 
@@ -118,6 +123,8 @@ void ToolActionController::setupToolActions()
 {
     createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
     createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
+
+    createRootAction("NO_EC_DEPLOYMENT_CONNECT", "NONE AVAILABLE", "Actions", "Info");//->setEnabled(false);
 }
 
 QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)
