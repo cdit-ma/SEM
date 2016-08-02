@@ -1,7 +1,7 @@
 #include "nodeviewitemaction.h"
 #include "../View/theme.h"
 
-NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):QAction(0)
+NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):RootAction("TEST")
 {
     nodeViewItem = item;
     //Register.

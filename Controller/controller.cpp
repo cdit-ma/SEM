@@ -254,6 +254,7 @@ void NewController::connectViewController(ViewController *view)
     connect(view, SIGNAL(triggerAction(QString)), this, SLOT(triggerAction(QString)));
     connect(view, SIGNAL(view_undo()), this, SLOT(undo()));
     connect(view, SIGNAL(view_redo()), this, SLOT(redo()));
+    view->setController(this);
 }
 
 

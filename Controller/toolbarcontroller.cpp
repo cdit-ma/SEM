@@ -22,7 +22,10 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
     this->viewController = viewController;
     this->selectionController = viewController->getSelectionController();
     setupNodeActions();
+    setupToolActions();
 
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
 
     //Connect to the view controller
@@ -111,6 +114,12 @@ void ToolActionController::addChildNode()
     }
 }
 
+void ToolActionController::setupToolActions()
+{
+    createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
+    createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
+}
+
 QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)
 {
     return QList<QAction*>();
@@ -123,7 +132,12 @@ QAction *ToolActionController::getNodeActionOfKind(QString kind, bool stealth)
 
 QList<QAction*> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_CLASS kind, bool stealth)
 {
-    return QList<QAction*>();
+    QList<QAction*> list;
+
+    foreach(int ID, viewController->getValidEdges(kind)){
+        list.append(actions[ID]->constructSubAction(stealth));
+    }
+    return list;
 }
 
 QAction* ToolActionController::getEdgeActionOfKind(Edge::EDGE_CLASS kind, bool stealth)
@@ -175,9 +189,29 @@ QAction *ToolActionController::getInstancesAction(bool stealth)
     return new RootAction("Instances");
 }
 
+QAction *ToolActionController::getToolAction(QString hashKey, bool stealth)
+{
+    qCritical() << hashKey;
+    qCritical() << toolActions.keys();
+    if(toolActions.contains(hashKey)){
+        return toolActions[hashKey]->constructSubAction(stealth);
+    }
+    return 0;
+}
+
 QList<NodeViewItemAction*> ToolActionController::getRequiredSubActionsForKind(QString kind)
 {
     return actions.values();
+}
+
+void ToolActionController::themeChanged()
+{
+
+    Theme* theme = Theme::theme();
+
+    foreach(RootAction* action, toolActions.values()){
+        viewController->getActionController()->updateIcon(action, theme);
+    }
 }
 
 QStringList ToolActionController::getKindsRequiringSubActions()
@@ -197,4 +231,17 @@ void ToolActionController::setupNodeActions()
         nodeKindActions[kind]= action;
         adoptableKindsGroup->addAction(action);
     }
+}
+
+RootAction *ToolActionController::createRootAction(QString hashKey, QString actionName, QString iconPath, QString aliasPath)
+{
+    if(!toolActions.contains(hashKey)){
+        RootAction* action = new RootAction(actionName, this);
+        action->setIconPath(iconPath, aliasPath);
+        toolActions[hashKey] = action;
+    }
+    if(toolActions.contains(hashKey)){
+        return toolActions[hashKey];
+    }
+    return 0;
 }

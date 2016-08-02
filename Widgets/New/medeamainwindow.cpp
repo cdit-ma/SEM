@@ -130,13 +130,15 @@ void MedeaMainWindow::spawnSubView()
 
 void MedeaMainWindow::popupSearch()
 {
-    //searchBar->setFocus();
+    searchBar->setFocus();
+    /*
     QPointF s = QPointF(searchToolbar->sizeHint().width(), searchToolbar->height());
     QPointF p = pos() + rect().center();
     p -= s;
     searchToolbar->move(p.x(), p.y());
     searchToolbar->show();
     popupSearchBar->setFocus();
+    */
 }
 
 void MedeaMainWindow::toolbarChanged(Qt::DockWidgetArea area)

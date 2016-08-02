@@ -1,9 +1,9 @@
 #ifndef NODEVIEWITEMACTION_H
 #define NODEVIEWITEMACTION_H
 
-#include <QAction>
 #include "../View/nodeviewitem.h"
-class NodeViewItemAction : public QAction
+#include "rootaction.h"
+class NodeViewItemAction : public RootAction
 {
     Q_OBJECT
 public:

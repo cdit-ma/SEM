@@ -66,6 +66,7 @@ private:
     QAction* addChildAction;
     QAction* connectAction;
     QAction* hardwareAction;
+    QAction* disconnectHardwareAction;
     QAction* definitionAction;
     QAction* implementationAction;
     QAction* instancesAction;

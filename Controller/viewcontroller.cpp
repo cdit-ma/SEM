@@ -2,6 +2,7 @@
 #include "../View/nodeviewitem.h"
 #include "../View/edgeviewitem.h"
 #include "../View/Toolbar/toolbarwidgetnew.h"
+#include "controller.h"
 #include <QDebug>
 ViewController::ViewController(){
     modelItem = 0;
@@ -11,6 +12,7 @@ ViewController::ViewController(){
     actionController->connectViewController(this);
 
 
+    controller = 0;
 
     toolbarController = new ToolActionController(this);
     toolbar = new ToolbarWidgetNew(this);
@@ -81,6 +83,15 @@ ToolActionController *ViewController::getToolbarController()
     return toolbarController;
 }
 
+QList<int> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
+{
+    if(selectionController){
+        int ID = selectionController->getFirstSelectedItem()->getID();
+        return controller->getConnectableNodes(ID);
+    }
+    return QList<int>();
+}
+
 
 void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
@@ -115,6 +126,11 @@ ViewItem *ViewController::getModel()
 bool ViewController::isModelReady()
 {
     return _modelReady;
+}
+
+void ViewController::setController(NewController *c)
+{
+    controller = c;
 }
 
 void ViewController::table_dataChanged(int ID, QString key, QVariant data)

@@ -8,7 +8,7 @@
 #include "actioncontroller.h"
 #include "toolbarcontroller.h"
 
-
+class NewController;
 class ToolbarWidgetNew;
 class ViewController : public QObject
 {
@@ -21,10 +21,12 @@ public:
     ActionController* getActionController();
     ToolActionController* getToolbarController();
 
+    QList<int> getValidEdges(Edge::EDGE_CLASS kind);
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
     bool isModelReady();
 
+    void setController(NewController* c);
 signals:
     void modelReady(bool);
     void viewItemConstructed(ViewItem* viewItem);
@@ -63,6 +65,7 @@ private:
     ToolActionController* toolbarController;
 
     ToolbarWidgetNew* toolbar;
+    NewController* controller;
 };
 
 #endif // VIEWCONTROLLER_H

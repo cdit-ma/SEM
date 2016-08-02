@@ -177,7 +177,9 @@ void ToolbarWidgetNew::setupActions()
     addChildAction = mainGroup->addAction(toolbarController->getAdoptableKindsAction(true));
     mainGroup->addAction(actionController->getRootAction("Delete")->constructSubAction(true));
     connectAction = mainGroup->addAction(connectGroup->getGroupVisibilityAction()->constructSubAction(true));
-    hardwareAction = mainGroup->addAction(toolbarController->getHardwareAction(true));
+    qCritical() << toolbarController->getToolAction("EC_DEPLOYMENT_CONNECT", true);
+    hardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_CONNECT", true));
+    disconnectHardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_DISCONNECT", true));
     mainGroup->addSeperator();
     mainGroup->addAction(actionController->edit_alignVertical->constructSubAction(true));
     mainGroup->addAction(actionController->edit_alignHorizontal->constructSubAction(true));
