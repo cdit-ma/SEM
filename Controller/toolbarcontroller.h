@@ -34,8 +34,6 @@ public:
     QList<QAction*> getInstancesActions(bool stealth);
     QAction* getInstancesAction(bool stealth);
 
-
-
     QAction* getToolAction(QString hashKey, bool stealth);
 
     QStringList getKindsRequiringSubActions();
@@ -52,17 +50,12 @@ private slots:
 private:
     void setupToolActions();
     void setupNodeActions();
+
     RootAction* createRootAction(QString hashKey, QString actionName, QString iconPath="", QString aliasPath="");
 
     QHash<QString, RootAction*> toolActions;
-
-
-
     QHash<QString, RootAction*> nodeKindActions;
-
     QHash<int, NodeViewItemAction*> actions;
-
-
 
 public:
     //QToolBar* toolbar;

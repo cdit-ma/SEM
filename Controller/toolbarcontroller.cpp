@@ -124,7 +124,8 @@ void ToolActionController::setupToolActions()
     createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
     createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
 
-    createRootAction("NO_EC_DEPLOYMENT_CONNECT", "NONE AVAILABLE", "Actions", "Info");//->setEnabled(false);
+    // setup menu info actions here
+    createRootAction("NO_EC_DEPLOYMENT_CONNECT", "NONE AVAILABLE", "Actions", "Info");
 }
 
 QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)
@@ -198,8 +199,6 @@ QAction *ToolActionController::getInstancesAction(bool stealth)
 
 QAction *ToolActionController::getToolAction(QString hashKey, bool stealth)
 {
-    qCritical() << hashKey;
-    qCritical() << toolActions.keys();
     if(toolActions.contains(hashKey)){
         return toolActions[hashKey]->constructSubAction(stealth);
     }
@@ -213,9 +212,7 @@ QList<NodeViewItemAction*> ToolActionController::getRequiredSubActionsForKind(QS
 
 void ToolActionController::themeChanged()
 {
-
     Theme* theme = Theme::theme();
-
     foreach(RootAction* action, toolActions.values()){
         viewController->getActionController()->updateIcon(action, theme);
     }
@@ -252,3 +249,4 @@ RootAction *ToolActionController::createRootAction(QString hashKey, QString acti
     }
     return 0;
 }
+
