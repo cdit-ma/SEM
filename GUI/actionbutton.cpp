@@ -17,4 +17,5 @@ void ActionButton::actionChanged()
 {
     setEnabled(action->isEnabled());
     setChecked(action->isChecked());
+    setVisible(action->isVisible());
 }

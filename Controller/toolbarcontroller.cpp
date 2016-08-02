@@ -155,6 +155,16 @@ QAction* ToolActionController::getConnectedNodesAction(bool stealth)
     return new RootAction("Connections");
 }
 
+QList<QAction *> ToolActionController::getHardwareActions(bool stealth)
+{
+    return QList<QAction*>();
+}
+
+QAction *ToolActionController::getHardwareAction(bool stealth)
+{
+    return new RootAction("Hardware");
+}
+
 QList<QAction *> ToolActionController::getInstancesActions(bool stealth)
 {
     return QList<QAction*>();

@@ -26,7 +26,7 @@ QString RootAction::getIconAlias()
     return iconAlias;
 }
 
-QAction *RootAction::constructSubAction(bool stealth)
+QAction* RootAction::constructSubAction(bool stealth)
 {
     QAction* action = new QAction(this);
 

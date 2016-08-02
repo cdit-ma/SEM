@@ -5397,7 +5397,7 @@ void MedeaWindow::updateStyleSheets()
                   "QToolButton[popupMode=\"1\"] {"
                   "padding-right: 15px;"
                   "color:" + textColor + ";"
-                  "}"
+                  "}"+
                   "QToolButton[popupMode=\"1\"]:hover {"
                   "color:" + textSelectedColor + ";"
                   "}"

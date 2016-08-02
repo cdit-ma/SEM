@@ -37,6 +37,10 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     connect(vc->getActionController()->view_viewInNewWindow, SIGNAL(triggered(bool)), this, SLOT(spawnSubView()));
 
     //this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
+
+    if (vc->getActionController()) {
+        connect(vc->getActionController()->getRootAction("Root_Search"), SIGNAL(triggered(bool)), this, SLOT(popupSearch()));
+    }
 }
 
 void MedeaMainWindow::themeChanged()
@@ -49,6 +53,7 @@ void MedeaMainWindow::themeChanged()
                   theme->getToolBarStyleSheet() +
                   theme->getDockWidgetStyleSheet() +
                   theme->getPushButtonStyleSheet() +
+                  theme->getPopupWidgetStyleSheet() +
                   "QToolButton{ padding: 4px; }");
 
     QString menuStyle = theme->getMenuStyleSheet();
@@ -63,8 +68,10 @@ void MedeaMainWindow::themeChanged()
     viewController->getActionController()->menu_options->setStyleSheet(menuStyle);
 
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
-    searchButton->setIcon(Theme::theme()->getIcon("Actions", "Search"));
-    searchOptionsButton->setIcon(Theme::theme()->getIcon("Actions", "Settings"));
+    searchButton->setIcon(theme->getIcon("Actions", "Search"));
+    searchOptionsButton->setIcon(theme->getIcon("Actions", "Settings"));
+    popupSearchBar->setStyleSheet(theme->getLineEditStyleSheet());
+    popupSearchButton->setIcon(theme->getIcon("Actions", "Search"));
 }
 
 
@@ -121,6 +128,17 @@ void MedeaMainWindow::spawnSubView()
     }
 }
 
+void MedeaMainWindow::popupSearch()
+{
+    //searchBar->setFocus();
+    QPointF s = QPointF(searchToolbar->sizeHint().width(), searchToolbar->height());
+    QPointF p = pos() + rect().center();
+    p -= s;
+    searchToolbar->move(p.x(), p.y());
+    searchToolbar->show();
+    popupSearchBar->setFocus();
+}
+
 void MedeaMainWindow::toolbarChanged(Qt::DockWidgetArea area)
 {
     if(area == Qt::TopDockWidgetArea || area == Qt::BottomDockWidgetArea){
@@ -159,6 +177,7 @@ void MedeaMainWindow::setupTools()
     setupMenuBar();
     setupToolBar();
     setupSearchBar();
+    setupPopupSearchBar();
     setupDataTable();
     setupMinimap();
 }
@@ -307,8 +326,6 @@ void MedeaMainWindow::setupToolBar()
     connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(toolbarTopLevelChanged(bool)));
 
     addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
-
-
 }
 
 void MedeaMainWindow::setupSearchBar()
@@ -352,6 +369,31 @@ void MedeaMainWindow::setupSearchBar()
     */
 
     menuBar->setCornerWidget(searchToolbar);
+}
+
+void MedeaMainWindow::setupPopupSearchBar()
+{
+    popupSearchButton = new QToolButton(this);
+    popupSearchButton->setToolTip("Submit Search");
+
+    popupSearchBar = new QLineEdit(this);
+    popupSearchBar->setFont(QFont(font().family(), 14));
+    popupSearchBar->setPlaceholderText("Search Here...");
+    popupSearchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    searchToolbar = new QToolBar(this);
+    searchToolbar->setIconSize(QSize(24,24));
+    searchToolbar->setFixedSize(300, 45);
+    searchToolbar->addWidget(popupSearchBar);
+    searchToolbar->addWidget(popupSearchButton);
+
+    searchToolbar->setMovable(false);
+    searchToolbar->setFloatable(false);
+    searchToolbar->setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
+    searchToolbar->setAttribute(Qt::WA_NoSystemBackground, true);
+    searchToolbar->setAttribute(Qt::WA_TranslucentBackground, true);
+    searchToolbar->setObjectName("POPUP_WIDGET");
+    searchToolbar->hide();
 }
 
 void MedeaMainWindow::setupDataTable()

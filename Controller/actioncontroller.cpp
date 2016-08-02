@@ -44,10 +44,32 @@ void ActionController::connectSelectionController(SelectionController *controlle
 
 }
 
-RootAction *ActionController::createRootAction(QString name, QString actionHash, QString iconPath, QString aliasPath)
+
+/**
+ * @brief ActionController::getRootAction
+ * This will return a copy of the root action specified by kind if it exists.
+ * If it doesn't, it will construct the root action and then return a copy of it.
+ * @param action
+ * @param stealth
+ * @return
+ */
+RootAction* ActionController::getRootAction(QString actionKey)
+{
+
+    RootAction* action = 0;
+    if(actionHash.contains(actionKey)){
+        action = actionHash[actionKey];
+    }
+    return action;
+}
+
+RootAction *ActionController::createRootAction(QString name, QString hashKey, QString iconPath, QString aliasPath)
 {
     RootAction* action = new RootAction(name, this);
     action->setIconPath(iconPath, aliasPath);
+    if(hashKey != ""){
+        actionHash[hashKey] = action;
+    }
     allActions.append(action);
     return action;
 }
@@ -115,6 +137,9 @@ void ActionController::selectionChanged(int selectionSize)
             edit_alignHorizontal->setEnabled(true);
             edit_alignVertical->setEnabled(true);
 
+            // TODO - Only put this here for testing
+            view_centerOnDefn->setEnabled(true);
+            view_centerOnImpl->setEnabled(true);
         }
 
 
@@ -197,11 +222,13 @@ void ActionController::setupActions()
     edit_copy = createRootAction("Copy", "", "Actions", "Copy");
     edit_paste = createRootAction("Paste", "", "Actions", "Paste");
     edit_replicate = createRootAction("Replicate", "", "Actions", "Replicate");
-    edit_delete = createRootAction("Delete", "", "Actions", "Delete");
+    edit_delete = createRootAction("Delete", "Delete", "Actions", "Delete");
     edit_delete->setShortcut(QKeySequence(Qt::Key_Delete));
     edit_delete->setShortcutContext(Qt::ApplicationShortcut);
 
-    edit_search = createRootAction("Search", "", "Actions", "Search");
+    edit_search = createRootAction("Search", "Root_Search", "Actions", "Search");
+    edit_search->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F));
+
     edit_sort = createRootAction("Sort", "", "Actions", "Sort");
     edit_alignVertical = createRootAction("Align Vertically", "", "Actions", "Align_Vertical");
     edit_alignHorizontal = createRootAction("Align Horizontally", "", "Actions", "Align_Horizontal");
@@ -257,8 +284,8 @@ void ActionController::setupActions()
     toolbar_connect = createRootAction("Connect Selection", "", "Actions", "Connect");
     toolbar_hardware = createRootAction("Deploy Selection", "", "Actions", "Computer");
     toolbar_disconnectHardware = createRootAction("Disconnect Selection From Its Current Deployment", "", "Actions", "Computer_Cross");
-    //toolbar_popOutDefn = createRootAction("View Selection's Definition", "", "Actions", "Popup");
-    //toolbar_popOutImpl = createRootAction("View Selection's Implementation", "", "Actions", "Popup");
+    toolbar_popOutDefn = createRootAction("Popout Definition", "", "Actions", "Popup");
+    toolbar_popOutImpl = createRootAction("Popout Implementation", "", "Actions", "Popup");
     //toolbar_popOutInst = createRootAction("View Selection's Instance", "", "Actions", "Popup");
     toolbar_getCPP = createRootAction("Get CPP Code", "", "Actions", "getCPP");
     toolbar_setReadOnly = createRootAction("Set Selection To Read Only", "", "Actions", "Lock_Closed");
@@ -378,6 +405,12 @@ void ActionController::setupApplicationToolbar()
     applicationToolbar->addSeperator();
     applicationToolbar->addAction(edit_alignVertical);
     applicationToolbar->addAction(edit_alignHorizontal);
+
+#ifdef TARGET_OS_MAC
+    applicationToolbar->addSeperator();
+    applicationToolbar->addAction(edit_search);
+#endif
+
 }
 
 void ActionController::setupContextToolbar()

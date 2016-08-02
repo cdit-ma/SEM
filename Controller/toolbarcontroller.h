@@ -22,12 +22,14 @@ public:
     QList<QAction*> getEdgeActionsOfKind(Edge::EDGE_CLASS kind, bool stealth);
     QAction* getEdgeActionOfKind(Edge::EDGE_CLASS kind, bool stealth);
 
-
     QList<QAction*> getAdoptableKindsActions(bool stealth);
     QAction* getAdoptableKindsAction(bool stealth);
 
     QList<QAction*> getConnectedNodesActions(bool stealth);
     QAction* getConnectedNodesAction(bool stealth);
+
+    QList<QAction*> getHardwareActions(bool stealth);
+    QAction* getHardwareAction(bool stealth);
 
     QList<QAction*> getInstancesActions(bool stealth);
     QAction* getInstancesAction(bool stealth);

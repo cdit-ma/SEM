@@ -10,6 +10,9 @@
 #include <QFrame>
 #include <QToolBar>
 #include <QAction>
+#include <QWidgetAction>
+#include <QToolButton>
+#include <QSpinBox>
 #include <QVBoxLayout>
 
 class ToolbarWidgetNew : public QWidget
@@ -25,19 +28,26 @@ public slots:
     void themeChanged();
     void setVisible(bool visible);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
+    void execMenu();
 
 private:
     void setupToolbar();
     void setupActions();
     void setupMenus();
+    void setupSplitMenus();
     void setupAddChildMenu();
+    void setupHardwareMenu();
+    void setupReplicateCountMenu();
+    void setupHardwareViewOptionMenu();
+    void setupInstancesMenu();
 
     ViewController* viewController;
     ActionController* actionController;
     ToolActionController* toolbarController;
     QSize iconSize;
 
-    QHash<QString, QMenu> adoptableKindsSubMenus;
+    QHash<QAction*, QMenu*> actionMenuHash;
+    QHash<QString, QMenu*> adoptableKindsSubMenus;
 
     //QHash<int, NodeViewItemAction*> nodeActions;
     //QHash<int, QMenu> nodeActions;
@@ -50,11 +60,20 @@ private:
     ActionGroup* connectGroup;
 
     QMenu* addMenu;
+    QMenu* hardwareMenu;
+    QMenu* replicateMenu;
 
     QAction* addChildAction;
     QAction* connectAction;
+    QAction* hardwareAction;
+    QAction* definitionAction;
+    QAction* implementationAction;
     QAction* instancesAction;
     QAction* connectionsAction;
+    QAction* replicateCountAction;
+
+    QSpinBox* replicateCount;
+    QToolButton* applyReplicateCountButton;
 
 };
 

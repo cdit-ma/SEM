@@ -982,9 +982,6 @@ void ToolbarWidget::setupMenus()
     implementationMenu->addAction(new ToolbarMenuAction("Goto", 0, implementationMenu, "Go to Implementation", "Actions", "Goto"));
     implementationMenu->addAction(new ToolbarMenuAction("Popup", 0, implementationMenu, "Popup Implementation", "Actions", "Popup"));
 
-
-
-
     // setup widgets for the displayed children option menu for HardwareClusters
     allNodes = new QRadioButton("All", this);
     connectedNodes = new QRadioButton("Connected", this);

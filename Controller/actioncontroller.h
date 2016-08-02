@@ -13,12 +13,18 @@ class ActionController : public QObject
 {
     Q_OBJECT
 public:
+    enum ACTION{};
     explicit ActionController(QObject *parent = 0);
 
-    void connectViewController(ViewController* controller);
-private:
     void connectSelectionController(SelectionController* controller);
+
+    RootAction* getRootAction(QString actionKey);
+    void connectViewController(ViewController* controller);
+
+private:
+    //void connectSelectionController(SelectionController* controller);
     RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
+
 private slots:
     void jenkinsValidated(bool success);
     void selectionChanged(int selectionSize);
@@ -28,11 +34,14 @@ private slots:
 
     void updateJenkinsActions();
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
+
 public:
     SelectionController* selectionController;
     ViewController* viewController;
     QList<RootAction*> allActions;
     QHash<QString, RootAction*> actionHash;
+
+    QHash<ACTION, RootAction*> rootActionHash;
 
     ActionGroup* applicationToolbar;
     ActionGroup* contextToolbar;
@@ -98,8 +107,8 @@ public:
     RootAction* toolbar_connect;
     RootAction* toolbar_hardware;
     RootAction* toolbar_disconnectHardware;
-    //RootAction* toolbar_popOutDefn;
-    //RootAction* toolbar_popOutImpl;
+    RootAction* toolbar_popOutDefn;
+    RootAction* toolbar_popOutImpl;
     //RootAction* toolbar_popOutInst;
     RootAction* toolbar_getCPP;
     RootAction* toolbar_setReadOnly;

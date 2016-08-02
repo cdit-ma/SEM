@@ -1,5 +1,6 @@
 #include "actiongroup.h"
 #include <QDebug>
+
 #include "../../Controller/rootaction.h"
 ActionGroup::ActionGroup(QObject* parent) : QActionGroup(parent)
 {
@@ -79,6 +80,7 @@ QAction* ActionGroup::addAction(QAction *a)
     connect(a, SIGNAL(changed()), this, SLOT(updateMasterAction()));
     return QActionGroup::addAction(a);
 }
+
 
 void ActionGroup::removeAction(QAction *a)
 {
