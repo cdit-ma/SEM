@@ -106,7 +106,8 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 
         //Mask off the current viewportRect
         painter->setClipRegion(maskArea);
-        painter->setBrush(QColor(0, 0, 0, 50));
+
+        painter->setBrush(QColor(0, 0, 0, 100));
         painter->setPen(Qt::NoPen);
         //Paint the background
         painter->drawRect(rect);
@@ -145,10 +146,23 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     painter->drawPixmap(imageRect.x(), imageRect.y(), imageRect.width(), imageRect.height(), zoomPixmap);
 }
 
+void NodeViewMinimap::drawBackground(QPainter *painter, const QRectF &rect)
+{
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(backgroundColor);
+    painter->drawRect(rect);
+}
+
 void NodeViewMinimap::setEnabled(bool enabled)
 {
     drawRect = enabled;
     QGraphicsView::setEnabled(true);
+}
+
+void NodeViewMinimap::setBackgroundColor(QColor color)
+{
+    backgroundColor = color;
+    update();
 }
 
 void NodeViewMinimap::setScene(QGraphicsScene *scene)

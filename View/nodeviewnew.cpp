@@ -139,6 +139,11 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
     }
 }
 
+QColor NodeViewNew::getBackgroundColor()
+{
+    return backgroundColor;
+}
+
 
 QRectF NodeViewNew::getViewportRect()
 {

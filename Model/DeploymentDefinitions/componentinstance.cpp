@@ -7,6 +7,7 @@ ComponentInstance::ComponentInstance():Node(Node::NT_INSTANCE)
 {
     setAcceptEdgeClass(Edge::EC_DEPLOYMENT);
     setAcceptEdgeClass(Edge::EC_DEFINITION);
+    setAcceptEdgeClass(Edge::EC_QOS);
 }
 
 ComponentInstance::~ComponentInstance()

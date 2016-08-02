@@ -75,7 +75,7 @@ NewController::NewController()
     containerNodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
     containerNodeKinds << "HardwareDefinitions" << "AssemblyDefinitions" << "ManagementComponent";
     containerNodeKinds << "HardwareCluster";
-    containerNodeKinds << "WorkerDefinitions";
+
 
     definitionNodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" << "BlackBox" << "BlackBoxInstance";
     definitionNodeKinds << "Member" << "Aggregate";
@@ -86,6 +86,31 @@ NewController::NewController()
 
     definitionNodeKinds << "Vector" << "VectorInstance";
 
+
+    definitionNodeKinds << "DDS_QOSProfile";
+
+    dds_QosNodeKinds << "DDS_DeadlineQosPolicy";
+    dds_QosNodeKinds << "DDS_DestinationOrderQosPolicy";
+    dds_QosNodeKinds << "DDS_DurabilityQosPolicy";
+    dds_QosNodeKinds << "DDS_DurabilityServiceQosPolicy";
+    dds_QosNodeKinds << "DDS_EntityFactoryQosPolicy";
+    dds_QosNodeKinds << "DDS_GroupDataQosPolicy";
+    dds_QosNodeKinds << "DDS_HistoryQosPolicy";
+    dds_QosNodeKinds << "DDS_LatencyBudgetQosPolicy";
+    dds_QosNodeKinds << "DDS_LifespanQosPolicy";
+    dds_QosNodeKinds << "DDS_LivelinessQosPolicy";
+    dds_QosNodeKinds << "DDS_OwnershipQosPolicy";
+    dds_QosNodeKinds << "DDS_OwnershipStrengthQosPolicy";
+    dds_QosNodeKinds << "DDS_PartitionQosPolicy";
+    dds_QosNodeKinds << "DDS_PresentationQosPolicy";
+    dds_QosNodeKinds << "DDS_ReaderDataLifecycleQosPolicy";
+    dds_QosNodeKinds << "DDS_ReliabilityQosPolicy";
+    dds_QosNodeKinds << "DDS_ResourceLimitsQosPolicy";
+    dds_QosNodeKinds << "DDS_TimeBasedFilterQosPolicy";
+    dds_QosNodeKinds << "DDS_TopicDataQosPolicy";
+    dds_QosNodeKinds << "DDS_TransportPriorityQosPolicy";
+    dds_QosNodeKinds << "DDS_UserDataQosPolicy";
+    dds_QosNodeKinds << "DDS_WriterDataLifecycleQosPolicy";
 
 
 
@@ -103,12 +128,14 @@ NewController::NewController()
     constructableNodeKinds << "AttributeInstance" << "AttributeImpl";
     constructableNodeKinds << "InEventPortInstance" << "InEventPortImpl";
     constructableNodeKinds << "OutEventPortInstance" << "OutEventPortImpl" << "HardwareNode";
+    constructableNodeKinds << "QOSProfile";
 
     snippetableParentKinds << "ComponentImpl" << "InterfaceDefinitions";
     nonSnippetableKinds << "OutEventPortImpl" << "InEventPortImpl";
 
     constructableNodeKinds.append(definitionNodeKinds);
     constructableNodeKinds.append(behaviourNodeKinds);
+    constructableNodeKinds.append(dds_QosNodeKinds);
     constructableNodeKinds << "ManagementComponent";
 
     constructableNodeKinds << "InputParameter";
@@ -117,6 +144,9 @@ NewController::NewController()
 
     guiConstructableNodeKinds.append(definitionNodeKinds);
     guiConstructableNodeKinds.append(behaviourNodeKinds);
+
+    guiConstructableNodeKinds.append(dds_QosNodeKinds);
+
     guiConstructableNodeKinds.removeDuplicates();
     guiConstructableNodeKinds.sort();
 
@@ -736,6 +766,10 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
         }else if(kind == "Process"){
             data = constructDataVector(kind, centerPoint);
 
+        }else if(kind == "DDS_QOSProfile"){
+            qCritical() << "YO!";
+            ignore = true;
+            constructDDSQOSProfile(parentID, centerPoint);
         }else{
             data = constructDataVector(kind, centerPoint);
         }
@@ -770,6 +804,21 @@ void NewController::constructWorkerProcessNode(int parentID, QString workerName,
 
     emit controller_ActionFinished();
     return;
+}
+
+void NewController::constructDDSQOSProfile(int parentID, QPointF position)
+{
+    Node* parentNode = getNodeFromID(parentID);
+
+    if(parentNode){
+        triggerAction("Constructing DDS QOS Profile");
+        Node* profile = constructChildNode(parentNode, constructDataVector("DDS_QOSProfile", position));
+        if(profile){
+            foreach(QString kind, dds_QosNodeKinds){
+                Node* child = constructChildNode(profile, constructDataVector(kind));
+            }
+        }
+    }
 }
 
 void NewController::constructEdge(int srcID, int dstID)
@@ -1864,6 +1913,91 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         newKey->addInvalidCharacters(invalidChars);
     }
 
+    if(name.startsWith("qos_dds")){
+        if(name == "qos_dds_kind"){
+            {
+               //HistoryQosPolicy
+               QStringList kinds, values;
+               kinds << "DDS_HistoryQosPolicy";
+               values << "KEEP_LAST_HISTORY_QOS";
+               values << "KEEP_ALL_HISTORY_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+            {
+               //OwnershipQosPolicyKind
+               QStringList kinds, values;
+               kinds << "DDS_OwnershipQosPolicy";
+               values << "SHARED_OWNERSHIP_QOS";
+               values << "EXCLUSIVE_OWNERSHIP_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+            {
+               //ReliabilityQosPolicyKind
+               QStringList kinds, values;
+               kinds << "DDS_ReliabilityQosPolicy";
+               values << "BEST_EFFORT_RELIABILITY_QOS";
+               values << "RELIABLE_RELIABILITY_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+            {
+               //LivelinessQosPolicyKind
+               QStringList kinds, values;
+               kinds << "DDS_LivelinessQosPolicy";
+               values << "AUTOMATIC_LIVELINESS_QOS";
+               values << "MANUAL_BY_PARTICIPANT_LIVELINESS_QOS";
+               values << "MANUAL_BY_TOPIC_LIVELINESS_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+            {
+               //DurabilityQosPolicyKind
+               QStringList kinds, values;
+               kinds << "DDS_DurabilityQosPolicy";
+               values << "VOLATILE_DURABILITY_QOS";
+               values << "TRANSIENT_LOCAL_DURABILITY_QOS";
+               values << "TRANSIENT_DURABILITY_QOS";
+               values << "PERSISTENT_DURABILITY_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+            {
+               //DestinationOrderQosPolicyKind
+               QStringList kinds, values;
+               kinds << "DDS_DestinationOrderQosPolicy";
+               values << "BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS";
+               values << "BY_SOURCE_TIMESTAMP_DESTINATIONORDER_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+        }else if(name == "qos_dds_access_scope"){
+            {
+               //PresentationQosPolicyAccessScopeKind
+               QStringList kinds, values;
+               kinds << "DDS_PresentationQosPolicy";
+               values << "INSTANCE_PRESENTATION_QOS";
+               values << "TOPIC_PRESENTATION_QOS";
+               values << "GROUP_PRESENTATION_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+        }else if(name == "qos_dds_access_scope"){
+            {
+               //PresentationQosPolicyAccessScopeKind
+               QStringList kinds, values;
+               kinds << "DDS_PresentationQosPolicy";
+               values << "INSTANCE_PRESENTATION_QOS";
+               values << "TOPIC_PRESENTATION_QOS";
+               values << "GROUP_PRESENTATION_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+        }else if(name == "qos_dds_history_kind"){
+            {
+               //HistoryQosPolicy
+               QStringList kinds, values;
+               kinds << "DDS_DurabilityServiceQosPolicy";
+               values << "KEEP_LAST_HISTORY_QOS";
+               values << "KEEP_ALL_HISTORY_QOS";
+               newKey->addValidValues(values, kinds);
+            }
+        }
+    }
+
 
     connect(newKey, SIGNAL(validateError(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
     //Add it to the list of Keys.
@@ -2320,6 +2454,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
 
     QStringList protectedLabels;
     protectedLabels << "Parameter" << "ManagementComponent";
+    protectedLabels.append(dds_QosNodeKinds);
 
     bool protectLabel = protectedLabels.contains(nodeKind);
 
@@ -2507,6 +2642,95 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
             data.append(new Data(valueKey));
         }
 
+    }
+
+    if(dds_QosNodeKinds.contains(nodeKind)){
+        Key* duration_key = constructKey("qos_dds_duration", QVariant::Double, Entity::EK_NODE);
+        Key* kind_key = constructKey("qos_dds_kind", QVariant::String, Entity::EK_NODE);
+        Key* int_value_key = constructKey("qos_dds_int_value", QVariant::Int, Entity::EK_NODE);
+        Key* str_value_key = constructKey("qos_dds_str_value", QVariant::String, Entity::EK_NODE);
+        Key* max_samples_key = constructKey("qos_dds_max_samples", QVariant::Int, Entity::EK_NODE);
+        Key* max_instances_key = constructKey("qos_dds_max_instances", QVariant::Int, Entity::EK_NODE);
+        Key* max_samples_per_key = constructKey("qos_dds_max_samples_per_instance", QVariant::Int, Entity::EK_NODE);
+
+
+        if(nodeKind == "DDS_DeadlineQosPolicy"){
+            Key* period_key = constructKey("qos_dds_period", QVariant::String, Entity::EK_NODE);
+            data.append(new Data(period_key, 1));
+        }else if(nodeKind == "DDS_DestinationOrderQosPolicy"){
+            data.append(new Data(kind_key, "BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS"));
+        }else if(nodeKind == "DDS_DurabilityQosPolicy"){
+            data.append(new Data(kind_key, "VOLATILE_DURABILITY_QOS"));
+        }else if(nodeKind == "DDS_DurabilityServiceQosPolicy"){
+            Key* service_key = constructKey("qos_dds_service_cleanup_delay", QVariant::Double, Entity::EK_NODE);
+            Key* history_kind_key = constructKey("qos_dds_history_kind", QVariant::String, Entity::EK_NODE);
+            Key* history_depth_key = constructKey("qos_dds_history_depth", QVariant::Int, Entity::EK_NODE);
+
+            data.append(new Data(service_key, 1.0));
+            data.append(new Data(history_kind_key, "KEEP_LAST_HISTORY_QOS"));
+            data.append(new Data(history_depth_key, 1));
+            data.append(new Data(max_samples_key, 1));
+            data.append(new Data(max_instances_key, 1));
+            data.append(new Data(max_samples_per_key, 1));
+        }else if(nodeKind == "DDS_DurabilityQosPolicy"){
+            data.append(new Data(kind_key, "VOLATILE_DURABILITY_QOS"));
+        }else if(nodeKind == "DDS_EntityFactoryQosPolicy"){
+            Key* autoenable_key = constructKey("qos_dds_autoenable_created_entities", QVariant::Bool, Entity::EK_NODE);
+            data.append(new Data(autoenable_key, true));
+        }else if(nodeKind == "DDS_GroupDataQosPolicy"){
+            data.append(new Data(str_value_key));
+        }else if(nodeKind == "DDS_HistoryQosPolicy"){
+            Key* depth_key = constructKey("qos_dds_depth", QVariant::Int, Entity::EK_NODE);
+            data.append(new Data(kind_key, "KEEP_LAST_HISTORY_QOS"));
+            data.append(new Data(depth_key, 1));
+        }else if(nodeKind == "DDS_LatencyBudgetQosPolicy"){
+            data.append(new Data(duration_key, 1.0));
+        }else if(nodeKind == "DDS_LifespanQosPolicy"){
+            data.append(new Data(duration_key, 1.0));
+        }else if(nodeKind == "DDS_LivelinessQosPolicy"){
+            Key* lease_duration_key = constructKey("qos_dds_lease_duration", QVariant::Double, Entity::EK_NODE);
+            data.append(new Data(kind_key, "AUTOMATIC_LIVELINESS_QOS"));
+            data.append(new Data(lease_duration_key, 1.0));
+        }else if(nodeKind == "DDS_OwnershipQosPolicy"){
+            data.append(new Data(kind_key, "SHARED_OWNERSHIP_QOS"));
+        }else if(nodeKind == "DDS_OwnershipStrengthQosPolicy"){
+            data.append(new Data(int_value_key, 0));
+        }else if(nodeKind == "DDS_PartitionQosPolicy"){
+            Key* name_key = constructKey("qos_dds_name", QVariant::String, Entity::EK_NODE);
+            data.append(new Data(name_key));
+        }else if(nodeKind == "DDS_PresentationQosPolicy"){
+            Key* access_scope_key = constructKey("qos_dds_access_scope", QVariant::String, Entity::EK_NODE);
+            Key* coherant_access_key = constructKey("qos_dds_coherent_access", QVariant::Bool, Entity::EK_NODE);
+            Key* ordered_access_key = constructKey("qos_dds_ordered_access", QVariant::Bool, Entity::EK_NODE);
+            data.append(new Data(access_scope_key, "INSTANCE_PRESENTATION_QOS"));
+            data.append(new Data(coherant_access_key, false));
+            data.append(new Data(ordered_access_key, false));
+        }else if(nodeKind == "DDS_ReaderDataLifecycleQosPolicy"){
+            Key* autopurge_nowriter_key = constructKey("qos_dds_autopurge_nowriter_samples_delay", QVariant::Double, Entity::EK_NODE);
+            Key* autopurge_disposed_key = constructKey("qos_dds_autopurge_disposed_samples_delay", QVariant::Double, Entity::EK_NODE);
+            data.append(new Data(autopurge_nowriter_key, 1.0));
+            data.append(new Data(autopurge_disposed_key, 1.0));
+        }else if(nodeKind == "DDS_ReliabilityQosPolicy"){
+            Key* max_blocking_key = constructKey("qos_dds_max_blocking_time", QVariant::Double, Entity::EK_NODE);
+            data.append(new Data(kind_key, "BEST_EFFORT_RELIABILITY_QOS"));
+            data.append(new Data(max_blocking_key, 1.0));
+        }else if(nodeKind == "DDS_ResourceLimitsQosPolicy"){
+            data.append(new Data(max_samples_key, 1));
+            data.append(new Data(max_instances_key, 1));
+            data.append(new Data(max_samples_per_key, 1));
+        }else if(nodeKind == "DDS_TimeBasedFilterQosPolicy"){
+            Key* minimum_separation_key = constructKey("qos_dds_minimum_separation", QVariant::Double, Entity::EK_NODE);
+            data.append(new Data(minimum_separation_key, -1));
+        }else if(nodeKind == "DDS_TopicDataQosPolicy"){
+            data.append(new Data(str_value_key));
+        }else if(nodeKind == "DDS_TransportPriorityQosPolicy"){
+            data.append(new Data(int_value_key, 0));
+        }else if(nodeKind == "DDS_UserDataQosPolicy"){
+            data.append(new Data(str_value_key));
+        }else if(nodeKind == "DDS_WriterDataLifecycleQosPolicy"){
+            Key* autodispose_key = constructKey("qos_dds_autodispose_unregistered_instances", QVariant::Bool, Entity::EK_NODE);
+            data.append(new Data(autodispose_key, true));
+        }
     }
 
     return data;
@@ -3455,6 +3679,52 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
         return new InputParameter();
     }else if(nodeKind == "ReturnParameter"){
         return new ReturnParameter();
+    }else if(nodeKind == "DDS_QOSProfile"){
+        return new DDS_QOSProfile();
+    }else if(nodeKind == "DDS_DeadlineQosPolicy"){
+        return new DDS_DeadlineQosPolicy();
+    }else if(nodeKind == "DDS_DestinationOrderQosPolicy"){
+        return new DDS_DestinationOrderQosPolicy();
+    }else if(nodeKind == "DDS_DurabilityQosPolicy"){
+        return new DDS_DurabilityQosPolicy();
+    }else if(nodeKind == "DDS_DurabilityServiceQosPolicy"){
+        return new DDS_DurabilityServiceQosPolicy();
+    }else if(nodeKind == "DDS_EntityFactoryQosPolicy"){
+        return new DDS_EntityFactoryQosPolicy();
+    }else if(nodeKind == "DDS_GroupDataQosPolicy"){
+        return new DDS_GroupDataQosPolicy();
+    }else if(nodeKind == "DDS_HistoryQosPolicy"){
+        return new DDS_HistoryQosPolicy();
+    }else if(nodeKind == "DDS_LatencyBudgetQosPolicy"){
+        return new DDS_LatencyBudgetQosPolicy();
+    }else if(nodeKind == "DDS_LifespanQosPolicy"){
+        return new DDS_LifespanQosPolicy();
+    }else if(nodeKind == "DDS_LivelinessQosPolicy"){
+        return new DDS_LivelinessQosPolicy();
+    }else if(nodeKind == "DDS_OwnershipQosPolicy"){
+        return new DDS_OwnershipQosPolicy();
+    }else if(nodeKind == "DDS_OwnershipStrengthQosPolicy"){
+        return new DDS_OwnershipStrengthQosPolicy();
+    }else if(nodeKind == "DDS_PartitionQosPolicy"){
+        return new DDS_PartitionQosPolicy();
+    }else if(nodeKind == "DDS_PresentationQosPolicy"){
+        return new DDS_PresentationQosPolicy();
+    }else if(nodeKind == "DDS_ReaderDataLifecycleQosPolicy"){
+        return new DDS_ReaderDataLifecycleQosPolicy();
+    }else if(nodeKind == "DDS_ReliabilityQosPolicy"){
+        return new DDS_ReliabilityQosPolicy();
+    }else if(nodeKind == "DDS_ResourceLimitsQosPolicy"){
+        return new DDS_ResourceLimitsQosPolicy();
+    }else if(nodeKind == "DDS_TimeBasedFilterQosPolicy"){
+        return new DDS_TimeBasedFilterQosPolicy();
+    }else if(nodeKind == "DDS_TopicDataQosPolicy"){
+        return new DDS_TopicDataQosPolicy();
+    }else if(nodeKind == "DDS_TransportPriorityQosPolicy"){
+        return new DDS_TransportPriorityQosPolicy();
+    }else if(nodeKind == "DDS_UserDataQosPolicy"){
+        return new DDS_UserDataQosPolicy();
+    }else if(nodeKind == "DDS_WriterDataLifecycleQosPolicy"){
+        return new DDS_WriterDataLifecycleQosPolicy();
     }else{
         //qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
     }
@@ -4160,6 +4430,13 @@ void NewController::constructEdgeGUI(Edge *edge)
         }
         break;
     }
+    case Edge::EC_QOS:{
+        if(!edge->getData(descriptionKey)){
+            Data* label = new Data(descriptionKey, "Using QOS");
+            attachData(edge, label, false);
+        }
+        break;
+    }
     default:
         break;
     }
@@ -4349,6 +4626,9 @@ Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS e
         break;
     case Edge::EC_DEPLOYMENT:
         returnable = new DeploymentEdge(src, dst);
+        break;
+    case Edge::EC_QOS:
+        returnable = new QOSEdge(src, dst);
         break;
     default:
         returnable = new Edge(src, dst);

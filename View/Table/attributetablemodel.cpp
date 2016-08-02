@@ -177,9 +177,9 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         if(hasPopupEditor(index)){
             return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16), Theme::theme()->getAltBackgroundColor());
         }
-        if(getKey(index) == "kind"){
-            return Theme::theme()->getIcon(entity->getIcon());
-        }
+        //if(getKey(index) == "kind"){
+        //    return Theme::theme()->getIcon(entity->getIcon());
+        //}
     }
 
     if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
@@ -209,6 +209,13 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
 {
     if(role == Qt::DisplayRole && orientation == Qt::Vertical){
         return getKey(section);
+    }
+    if(role == Qt::DisplayRole && orientation == Qt::Horizontal){
+        if(section == 0){
+            return "Key";
+        }else{
+            return "Value";
+        }
     }
     if (role == Qt::ToolTipRole) {
         if(isRowProtected(section)){

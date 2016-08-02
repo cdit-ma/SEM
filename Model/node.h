@@ -13,7 +13,7 @@ class Node : public Entity
     friend class Edge;
 public:
     //Enum for Node Types
-    enum NODE_TYPE {NT_NODE, NT_ASPECT, NT_DEFINITION, NT_INSTANCE, NT_IMPL, NT_DEFINSTANCE, NT_HARDWARE};
+    enum NODE_TYPE {NT_NODE, NT_ASPECT, NT_DEFINITION, NT_INSTANCE, NT_IMPL, NT_DEFINSTANCE, NT_HARDWARE, NT_QOS, NT_QOSPROFILE};
 
     //Constuctor
     Node(NODE_TYPE type = NT_NODE, NODE_CLASS nClass = NC_NONE);
@@ -29,6 +29,7 @@ public:
     QString getTreeIndexString();
 
     NODE_CLASS getNodeClass();
+    NODE_TYPE getNodeType();
     Node* getContainedAspect();
     int getDepthToAspect();
 
@@ -77,6 +78,7 @@ public:
     virtual bool canConnect_DefinitionEdge(Node* definition);
     virtual bool canConnect_DeploymentEdge(Node* hardware);
     virtual bool canConnect_WorkflowEdge(Node* node);
+    virtual bool canConnect_QOSEdge(Node* node);
 
     //Gets the edge that is joining the node to this.
     Edge* getEdgeTo(Node* node);

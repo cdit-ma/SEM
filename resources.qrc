@@ -54,6 +54,8 @@
         <file alias="VectorInstance_AggregateInstance">Resources/Images/Items/VectorInstance_AggregateInstance.png</file>
         <file alias="VectorInstance_Member">Resources/Images/Items/VectorInstance_Member.png</file>
         <file alias="WorkerProcess">Resources/Images/Items/WorkerProcess.png</file>
+        <file alias="DDS_QOSProfile">Resources/Images/Items/DDS_QOSProfile.png</file>
+        <file alias="QOSProfile">Resources/Images/Items/QOSProfile.png</file>
     </qresource>
     <qresource prefix="/">
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>

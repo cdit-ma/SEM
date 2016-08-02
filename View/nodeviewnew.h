@@ -24,6 +24,7 @@ public:
     void setContainedViewAspect(VIEW_ASPECT aspect);
     void setContainedNodeViewItem(NodeViewItem* item);
 
+    QColor getBackgroundColor();
     QRectF getViewportRect();
     void viewportChanged();
     SelectionHandler* getSelectionHandler();

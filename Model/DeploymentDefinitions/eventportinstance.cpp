@@ -7,6 +7,7 @@ EventPortInstance::EventPortInstance(bool isInEventPortInstance):Node(Node::NT_I
     this->inEventPortInstance = isInEventPortInstance;
     setAcceptEdgeClass(Edge::EC_ASSEMBLY);
     setAcceptEdgeClass(Edge::EC_DEFINITION);
+    setAcceptEdgeClass(Edge::EC_QOS);
 }
 
 EventPortInstance::~EventPortInstance()

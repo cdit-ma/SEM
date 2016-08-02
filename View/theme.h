@@ -93,7 +93,7 @@ public:
     QString getMenuBarStyleSheet();
     QString getMenuStyleSheet();
     QString getToolBarStyleSheet();
-    QString getTableViewStyleSheet();
+    QString getAbstractItemViewStyleSheet();
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
     QString getLineEditStyleSheet();

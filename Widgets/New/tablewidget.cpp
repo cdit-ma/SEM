@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QDebug>
 #include <QPalette>
+#include <QStringBuilder>
 
 TableWidget::TableWidget(ViewController *controller, QWidget *parent) : QWidget(parent)
 {
@@ -37,38 +38,17 @@ void TableWidget::itemActiveSelectionChanged(ViewItem *item, bool isActive)
 
     if (tableView) {
         tableView->setModel(model);
+        tableView->resizeColumnsToContents();
+        //tableView->horizontalHeader()->resizeSections(QHeaderView::Stretch);
     }
 }
 
 void TableWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-
-    QString BGColor = theme->getBackgroundColorHex();
-    QString highlightColor = theme->getHighlightColorHex();
-    QString altBGColor = theme->getAltBackgroundColorHex();
-    QString disabledBGColor = theme->getDisabledBackgroundColorHex();
-    QString textColor = theme->getTextColorHex();
-    QString highlightTextColor = theme->getTextColorHex(Theme::CR_SELECTED);
-    QString disabledTextColor = theme->getTextColorHex(Theme::CR_DISABLED);
-
-    setStyleSheet("QLabel{color: "+ textColor + ";font-weight:bold;}"
-                  "QTableView{background-color: " + BGColor + ";color: "+ textColor + "; border: 1px solid " + disabledBGColor + ";}" //border: 0px; }"
-                  "QTableView::item::disabled{background-color: " + BGColor + ";color: " + disabledTextColor + ";}"
-                  "QTableView::item::selected{background-color: " + highlightColor + ";color:" + highlightTextColor + ";}"
-                  );
-    tableView->setStyleSheet("QHeaderView{background-color: " + BGColor +";border:none;color:" + textColor+";}"
-                "QHeaderView::section{background-color:" + altBGColor +"; border: 1px solid " + BGColor + "; padding: 0px 0px 0px 3px;}"
-                "QHeaderView::section:hover{background-color:" + highlightColor +";color:" + highlightTextColor + ";border:0px;}"
-                             "QHeaderView::section:selected{font-weight:normal;}"
-                             "QTableView QLineEdit{background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
-                             "QTableView QComboBox{background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
-                             "QTableView QSpinBox {background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
-                             "QTableView QDoubleSpinBox{background-color: " + highlightColor + "; color: "+ highlightTextColor +";border:0px;}"
-                );
-
-    toolbar->setStyleSheet("QToolBar{ border: 1px solid " + disabledBGColor + "; border-bottom: 0px; }");
-
+    label->setStyleSheet("QLabel{color: " % theme->getTextColorHex() % ";font-weight:bold;}");
+    setStyleSheet(Theme::theme()->getAbstractItemViewStyleSheet());
+    toolbar->setStyleSheet("QToolBar{ border: 1px solid " % theme->getDisabledBackgroundColorHex() % "; border-bottom: 0px; }");
 }
 
 void TableWidget::setupLayout()
@@ -82,7 +62,15 @@ void TableWidget::setupLayout()
     toolbar->setFixedHeight(iconSize.height());
     tableView = new QTableView(this);
     tableView->horizontalHeader()->setVisible(false);
+    tableView->horizontalHeader()->setHighlightSections(false);
+    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     tableView->verticalHeader()->setHighlightSections(false);
+
+    //tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+    //tableView->verticalHeader()->resizeSections(QHeaderView::ResizeToContents);
+    //tableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+
 
     tableView->setItemDelegate(multilineDelegate);
 

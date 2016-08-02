@@ -84,6 +84,7 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
         }
 
         if(view){
+            minimap->setBackgroundColor(view->getBackgroundColor());
             minimap->setScene(view->scene());
 
             connect(minimap, SIGNAL(minimap_Pan(QPointF)), view, SLOT(minimap_Pan(QPointF)));
@@ -212,14 +213,14 @@ void MedeaMainWindow::setupInnerWindow()
 
 
 
-    MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructViewDockWidget("QOS Browser", Qt::BottomDockWidgetArea);
+    MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructToolDockWidget("QOS Browser");
     qosBrowser = new QOSBrowser(viewController, this);
     qosDockWidget->setWidget(qosBrowser);
     qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     qosDockWidget->setProtected(true);
 
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, qosDockWidget);
 }
 
 void MedeaMainWindow::setupMenuAndTitle()

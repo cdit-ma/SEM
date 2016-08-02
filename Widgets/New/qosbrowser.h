@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QTreeView>
+#include <QListView>
 #include <QTableView>
 #include "Controller/viewcontroller.h"
 #include "qosprofilemodel.h"
@@ -18,11 +19,14 @@ public:
 signals:
 
 public slots:
+    void themeChanged();
 
+    void profileSelected(QModelIndex, QModelIndex);
+    void settingSelected(QModelIndex, QModelIndex);
 private:
     void setupLayout();
-    QTreeView* profileView;
-    QTreeView* elementView;
+    QListView* profileView;
+    QListView* elementView;
     QTableView* tableView;
     ViewController* vc;
     QOSProfileModel* qosModel;

@@ -15,15 +15,16 @@ MedeaWindowNew::MedeaWindowNew(QWidget *parent, MedeaWindowNew::WindowType type)
     windowType = type;
 
     setDockNestingEnabled(false);
-    setTabPosition(Qt::RightDockWidgetArea, QTabWidget::North);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setFocusPolicy(Qt::ClickFocus);
 
+
+    setTabPosition(Qt::RightDockWidgetArea, QTabWidget::North);
+    setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
+    setTabPosition(Qt::TopDockWidgetArea, QTabWidget::North);
+    setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::North);
     //Setup Tab positions
-    setTabPosition(Qt::RightDockWidgetArea, QTabWidget::West);
-    setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::West);
-    setTabPosition(Qt::TopDockWidgetArea, QTabWidget::West);
-    setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::West);
+
 }
 
 MedeaWindowNew::~MedeaWindowNew()

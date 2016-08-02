@@ -1,8 +1,14 @@
 #include "qosprofilemodel.h"
 
-QOSProfileModel::QOSProfileModel(QObject* parent):QAbstractItemModel(parent)
-{
+#include <QDebug>
+#define ID_DATA -1
+#include "../../View/theme.h"
 
+
+
+QOSProfileModel::QOSProfileModel(QObject* parent):QStandardItemModel(parent)
+{
+    rootItem = invisibleRootItem();
 }
 
 void QOSProfileModel::viewItem_Constructed(ViewItem *viewItem)
@@ -15,20 +21,19 @@ void QOSProfileModel::viewItem_Constructed(ViewItem *viewItem)
         VIEW_ASPECT aspect = item->getViewAspect();
         if(aspect == VA_ASSEMBLIES){
             QString nodeKind = viewItem->getData("kind").toString();
-
             int parentID = item->getParentID();
+
+            QStandardItem* parentItem = 0;
             if(nodeKind.endsWith("QOSProfile")){
-                if(!viewItems.contains(ID)){
-                    viewItem->registerObject(this);
-                    viewItems[ID] = item;
-                    profiles.append(ID);
-                }
-            }else if(profiles.contains(parentID)){
-                if(!viewItems.contains(ID)){
-                    viewItem->registerObject(this);
-                    viewItems[ID] = item;
-                    settings[parentID].append(ID);
-                }
+                parentItem = invisibleRootItem();
+            }else if(modelItems.contains(parentID)){
+                parentItem = modelItems[parentID];
+            }
+
+            if(parentItem){
+                QOSModelItem* modelItem = new QOSModelItem(item);
+                parentItem->appendRow(modelItem);
+                modelItems[ID] =  modelItem;
             }
         }
     }
@@ -36,83 +41,107 @@ void QOSProfileModel::viewItem_Constructed(ViewItem *viewItem)
 
 void QOSProfileModel::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
-    if(viewItems.contains(ID)){
-        viewItems.remove(ID);
-        if(profiles.contains(ID)){
-            profiles.removeAll(ID);
-        }
-        if(settings.contains(ID)){
-            profiles.removeAll(ID);
-        }
-        viewItem->unregisterObject(this);
+    if(modelItems.contains(ID)){
+        QOSModelItem* modelItem = modelItems[ID];
+        modelItems.remove(ID);
+        modelItem->deleteLater();
     }
 }
 
-ViewItem *QOSProfileModel::getViewItem(const QModelIndex &index) const
+QAbstractTableModel *QOSProfileModel::getTableModel(const QModelIndex &index) const
 {
+    if(index.isValid()){
+        QStandardItem* item = itemFromIndex(index);
+        if(item){
+            return (QAbstractTableModel*) item->data(QOSProfileModel::DATATABLE_ROLE).value<void *>();
+        }
+    }
     return 0;
-}
-
-int QOSProfileModel::rowCount(const QModelIndex &parent) const
-{
-    int column = parent.column();
-
-    switch(column){
-        case 0:
-        case 1:
-            return profiles.size();
-        case 2:{
-            ViewItem* item = getViewItem(parent);
-            if(item && settings.contains(item->getID())){
-                return settings[item->getID()].size();
-            }
-        }
-        default:
-            return 0;
-    }
 }
 
 QVariant QOSProfileModel::data(const QModelIndex &index, int role) const
 {
-    ViewItem* item = getViewItem(index);
-
-    if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
-        return "TEST";
+    if(index.isValid()){
+        QStandardItem* item = itemFromIndex(index);
+        if(item){
+            return item->data(role);
+        }
     }
+    return QStandardItemModel::data(index, role);
 }
 
 bool QOSProfileModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+    if(index.isValid()){
+        QStandardItem* item = itemFromIndex(index);
+        if(item){
+            item->setData(value, role);
+            return true;
+        }
+    }
     return false;
 }
 
-QVariant QOSProfileModel::headerData(int section, Qt::Orientation orientation, int role) const
+
+QOSModelItem::QOSModelItem(NodeViewItem *item):QObject(), QStandardItem()
 {
-    if(role == Qt::DisplayRole && orientation == Qt::Horizontal){
-        if(section == 0){
-            return "NAME";
-        }else if(section == 1){
-            return "MW";
-        }else if(section == 2){
-            return "Setting";
+    this->item = item;
+    if(item){
+        ID = item->getID();
+        item->registerObject(this);
+        connect(item, SIGNAL(iconChanged()), this, SLOT(itemChanged()));
+        connect(item, SIGNAL(labelChanged(QString)), this, SLOT(itemChanged()));
+    }else{
+        ID = -1;
+    }
+
+}
+
+NodeViewItem *QOSModelItem::getNodeViewItem()
+{
+    return item;
+}
+
+QOSModelItem::~QOSModelItem()
+{
+    if(item){
+        item->unregisterObject(this);
+    }
+}
+
+void QOSModelItem::itemChanged()
+{
+    emitDataChanged();
+}
+
+QVariant QOSModelItem::data(int role) const
+{
+    if(item){
+        if(role == Qt::DisplayRole|| role == Qt::EditRole || role == Qt::ToolTipRole){
+            return item->getData("label");
+        }
+        if(role == Qt::DecorationRole){
+            return Theme::theme()->getIcon(item->getIcon());
         }
     }
-    return QVariant();
+    if(role == QOSProfileModel::ID_ROLE){
+        return ID;
+    }
+    if(role == QOSProfileModel::DATATABLE_ROLE){
+        if(item){
+            return qVariantFromValue((void *)item->getTableModel());
+        }else{
+            return 0;
+        }
+    }
+    return QStandardItem::data(role);
 }
 
-QModelIndex QOSProfileModel::index(int row, int column, const QModelIndex &parent) const
+void QOSModelItem::setData(const QVariant &value, int role)
 {
-    return QModelIndex();
+    if (role == Qt::EditRole) {
+        if(item && !item->isDataProtected("label")){
+            emit item->getTableModel()->req_dataChanged(ID, "label", value);
+        }
+    }
 }
-
-QModelIndex QOSProfileModel::parent(const QModelIndex &child) const
-{
-
-    return QModelIndex();
-}
-
-int QOSProfileModel::columnCount(const QModelIndex &parent) const
-{
-    return 3;
-}
-

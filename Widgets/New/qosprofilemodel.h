@@ -1,37 +1,55 @@
 #ifndef QOSPROFILEMODEL_H
 #define QOSPROFILEMODEL_H
 
-#include <QAbstractListModel>
+#include <QStandardItemModel>
 #include <QObject>
 #include "../../View/nodeviewitem.h"
-class QOSProfileModel : public QAbstractItemModel
+
+
+class QOSModelItem;
+class QOSProfileModel : public QStandardItemModel
 {
     Q_OBJECT
 public:
+    enum QOS_ROLES {
+        ID_ROLE = Qt::UserRole + 1,
+        DATATABLE_ROLE = Qt::UserRole + 2
+    };
     QOSProfileModel(QObject *parent);
 
+    QAbstractTableModel* getTableModel(const QModelIndex &index) const;
 private slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
-
 private:
-    QHash<int, NodeViewItem*> viewItems;
-    QList<int> profiles;
-    QHash<int, QList<int> > settings;
+    QStandardItem* rootItem;
+    QHash<int, QOSModelItem*> modelItems;
 
     // QAbstractItemModel interface
 public:
-    ViewItem* getViewItem(const QModelIndex& index) const;
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-
-    // QAbstractItemModel interface
-public:
-    QModelIndex index(int row, int column, const QModelIndex &parent) const;
-    QModelIndex parent(const QModelIndex &child) const;
 };
+
+class QOSModelItem: public QObject, public QStandardItem{
+    Q_OBJECT
+public:
+    QOSModelItem(NodeViewItem* item);
+    NodeViewItem* getNodeViewItem();
+    ~QOSModelItem();
+
+    QVariant data(int role) const;
+    void setData(const QVariant &value, int role);
+signals:
+    void dataChanged(int, QString, QVariant);
+private slots:
+    void itemChanged();
+private:
+    NodeViewItem* item;
+    int ID;
+
+};
+
+
 
 #endif // QOSPROFILEMODEL_H

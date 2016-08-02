@@ -68,6 +68,32 @@
 #include "InterfaceDefinitions/blackbox.h"
 #include "DeploymentDefinitions/blackboxinstance.h"
 
+#include "DeploymentDefinitions/QOS/qosprofile.h"
+
+#include "DeploymentDefinitions/QOS/DDS/dds_qosprofile.h"
+
+#include "DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h"
+#include "DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h"
 
 
 class Model: public Node

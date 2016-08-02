@@ -199,7 +199,32 @@ HEADERS += \
     Controller/nodeviewitemaction.h \
     View/Table/multilinedelegate.h \
     Widgets/New/qosbrowser.h \
-    Widgets/New/qosprofilemodel.h
+    Widgets/New/qosprofilemodel.h \
+    Model/DeploymentDefinitions/QOS/qosprofile.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h \
+    Model/Edges/qosedge.h
 
 SOURCES += \
     main.cpp \
@@ -362,7 +387,33 @@ SOURCES += \
     Controller/nodeviewitemaction.cpp \
     View/Table/multilinedelegate.cpp \
     Widgets/New/qosbrowser.cpp \
-    Widgets/New/qosprofilemodel.cpp
+    Widgets/New/qosprofilemodel.cpp \
+    Model/DeploymentDefinitions/QOS/qosprofile.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp \
+    Model/Edges/qosedge.cpp
+
 
 RESOURCES += \
     resources.qrc

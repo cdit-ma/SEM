@@ -18,6 +18,7 @@
 #include "../Model/Edges/assemblyedge.h"
 #include "../Model/Edges/aggregateedge.h"
 #include "../Model/Edges/deploymentedge.h"
+#include "../Model/Edges/qosedge.h"
 #include "../Model/data.h"
 #include "viewcontroller.h"
 
@@ -267,6 +268,8 @@ private slots:
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
     void constructWorkerProcessNode(int parentID,QString workerName, QString operationName, QPointF position);
+    void constructDDSQOSProfile(int parentID, QPointF position);
+
     void constructEdge(int srcID, int dstID);
     void destructEdge(int srcID, int dstID);
     void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);
@@ -542,6 +545,7 @@ private:
 
     QStringList behaviourNodeKinds;
     QStringList definitionNodeKinds;
+    QStringList dds_QosNodeKinds;
 
     //A list of View Aspects present in the model.
     QStringList viewAspects;

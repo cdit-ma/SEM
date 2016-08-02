@@ -447,7 +447,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
 
 
         //Tint the pixmap If it's a multiple of 96
-        if(tintIcon(originalSize)){
+        if(prefix != "Items" && tintIcon(originalSize)){
             //qCritical() << originalSize;
             //Replace the image with it's alphaChannel
             image = image.alphaChannel();
@@ -611,23 +611,25 @@ QString Theme::getToolBarStyleSheet()
            "}";
 }
 
-QString Theme::getTableViewStyleSheet()
+QString Theme::getAbstractItemViewStyleSheet()
 {
-    return "QTableView {"
+    return "QAbstractItemView {"
            "background:" % getBackgroundColorHex() % ";"
            "color: "% getTextColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
 
-           "QTableView::item::disabled {"
+           "QAbstractItemView::item {"
+           "padding:5px 0px;"
+           "}"
+           "QAbstractItemView::item::disabled {"
            "background:" % getBackgroundColorHex() % ";"
            "color:" % getTextColorHex(CR_DISABLED) % ";"
            "}"
-           "QTableView::item::selected {"
+           "QAbstractItemView::item::selected {"
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "}"
-
            "QHeaderView {"
            "background:" % getBackgroundColorHex() %";"
            "border: 0px;"
@@ -647,22 +649,22 @@ QString Theme::getTableViewStyleSheet()
            "font-weight: normal;"
            "}"
 
-           "QTableView QLineEdit {"
+           "QAbstractItemView QLineEdit {"
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "border: 0px;"
            "}"
-           "QTableView QComboBox {"
+           "QAbstractItemView QComboBox {"
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "border: 0px;"
            "}"
-           "QTableView QSpinBox {"
+           "QAbstractItemView QSpinBox {"
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "border: 0px;"
            "}"
-           "QTableView QDoubleSpinBox {"
+           "QAbstractItemView QDoubleSpinBox {"
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "border: 0px;"

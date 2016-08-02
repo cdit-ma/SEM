@@ -12,6 +12,7 @@ class NodeViewMinimap : public QGraphicsView
 public:
     explicit NodeViewMinimap(QObject *parent = 0);
     void setEnabled(bool enabled);
+    void setBackgroundColor(QColor color);
     void setScene(QGraphicsScene *scene);
     bool isPanning();
 
@@ -38,8 +39,10 @@ private:
     bool _isPanning;
     QPixmap zoomPixmap;
     bool drawRect;
+    QColor backgroundColor;
 protected:
     void drawForeground(QPainter *painter, const QRectF &rect);
+    void drawBackground(QPainter *painter, const QRectF &rect);
 
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
