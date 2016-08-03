@@ -1,22 +1,17 @@
 #ifndef MEDEAVIEWDOCKWIDGET_H
 #define MEDEAVIEWDOCKWIDGET_H
 
-#include "../../View/nodeviewnew.h"
-#include "../../Controller/selectionhandler.h"
 #include "medeadockwidget.h"
-class NodeViewNew;
 class MedeaViewDockWidget : public MedeaDockWidget
 {
+
     Q_OBJECT
 public:
-    MedeaViewDockWidget(QString title, Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
-
-    SelectionHandler* getSelectionHandler();
-    NodeViewNew* getNodeView();
-    void setWidget(QWidget* widget);
-
+    enum VIEWDOCKWIDGET_TYPE {MVDW_NONE, MVDW_NODEVIEW};
+    MedeaViewDockWidget(QString title, Qt::DockWidgetArea area = Qt::TopDockWidgetArea, VIEWDOCKWIDGET_TYPE type = MVDW_NONE);
+    bool isNodeViewDock();
 private:
-    NodeViewNew* nodeView;
+    VIEWDOCKWIDGET_TYPE type;
 };
 
 #endif // MEDEAVIEWDOCKWIDGET_H

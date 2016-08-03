@@ -23,6 +23,11 @@ MedeaWindowNew::MedeaWindowNew(QWidget *parent, MedeaWindowNew::WindowType type)
     setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);
     setTabPosition(Qt::TopDockWidgetArea, QTabWidget::North);
     setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::North);
+
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
+            this, SLOT(showContextMenu(const QPoint &)));
+
+
     //Setup Tab positions
 
 }
@@ -129,6 +134,17 @@ bool MedeaWindowNew::focusNextPrevChild(bool)
 {
     //Disable Tabs
     return false;
+}
+
+void MedeaWindowNew::showContextMenu(const QPoint & point)
+{
+    createPopupMenu()->exec(mapToGlobal(point));
+}
+QMenu *MedeaWindowNew::createPopupMenu()
+{
+    QMenu* menu = QMainWindow::createPopupMenu();
+
+    return menu;
 }
 
 

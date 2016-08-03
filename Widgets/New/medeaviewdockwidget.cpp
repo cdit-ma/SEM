@@ -1,39 +1,22 @@
 #include "medeaviewdockwidget.h"
 #include <QDebug>
 
-MedeaViewDockWidget::MedeaViewDockWidget(QString title, Qt::DockWidgetArea area):MedeaDockWidget(MedeaDockWidget::MDW_VIEW)
+MedeaViewDockWidget::MedeaViewDockWidget(QString title, Qt::DockWidgetArea area, VIEWDOCKWIDGET_TYPE type):MedeaDockWidget(MedeaDockWidget::MDW_VIEW)
 {
     setTitle(title);
     setDockWidgetArea(area);
 
+    this->type = type;
     setCloseVisible(true);
     setFocusEnabled(true);
     setMaximizeVisible(true);
     setPopOutVisible(true);
+    setHideVisible(true);
 
     setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable);
-    nodeView = 0;
 }
 
-SelectionHandler *MedeaViewDockWidget::getSelectionHandler()
+bool MedeaViewDockWidget::isNodeViewDock()
 {
-    if(nodeView){
-        return nodeView->getSelectionHandler();
-    }
-    return 0;
+    return type == MVDW_NODEVIEW;
 }
-
-NodeViewNew *MedeaViewDockWidget::getNodeView()
-{
-    return nodeView;
-}
-
-void MedeaViewDockWidget::setWidget(QWidget *widget)
-{
-    NodeViewNew* view = qobject_cast<NodeViewNew*>(widget);
-    if(view){
-        nodeView = view;
-    }
-    MedeaDockWidget::setWidget(widget);
-}
-

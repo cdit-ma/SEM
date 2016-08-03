@@ -48,6 +48,7 @@ int launchMEDEA(int argc, char *argv[]){
     Theme::theme()->setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
     Theme::theme()->setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
     Theme::theme()->setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
+    Theme::theme()->setIconToggledImage("Actions", "Invisible", "Actions", "Visible");
 
     //LOAD THINGS
     //emit Theme::theme()->initPreloadImages();

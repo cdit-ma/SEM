@@ -3,6 +3,7 @@
 #include "medeatooldockwidget.h"
 #include "../../View/theme.h"
 #include "selectioncontroller.h"
+#include "medeanodeviewdockwidget.h"
 #include <QDebug>
 #include <QHeaderView>
 #include <QPushButton>
@@ -77,12 +78,15 @@ void MedeaMainWindow::themeChanged()
 
 void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock, MedeaViewDockWidget *prevDock)
 {
-    if(viewDock){
-        NodeViewNew* view = viewDock->getNodeView();
-        NodeViewNew* prevView = 0;
-        if(prevDock){
-            prevView = prevDock->getNodeView();
+    if(viewDock && viewDock->isNodeViewDock()){
+        MedeaNodeViewDockWidget* nodeViewDock = (MedeaNodeViewDockWidget*) viewDock;
+        NodeViewNew* view = nodeViewDock->getNodeView();
+
+        if(prevDock && prevDock->isNodeViewDock()){
+            MedeaNodeViewDockWidget* prevNodeViewDock = (MedeaNodeViewDockWidget*) prevDock;
+            NodeViewNew* prevView = prevNodeViewDock->getNodeView();
             if(prevView){
+                qCritical() << "DISCONNECTED" << prevView;
                 disconnect(minimap, SIGNAL(minimap_Pan(QPointF)), prevView, SLOT(minimap_Pan(QPointF)));
                 disconnect(minimap, SIGNAL(minimap_Panning(bool)), prevView, SLOT(minimap_Panning(bool)));
                 disconnect(minimap, SIGNAL(minimap_Zoom(int)), prevView, SLOT(minimap_Zoom(int)));
@@ -94,6 +98,7 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
             minimap->setBackgroundColor(view->getBackgroundColor());
             minimap->setScene(view->scene());
 
+            qCritical() << "CONNECTED" << view;
             connect(minimap, SIGNAL(minimap_Pan(QPointF)), view, SLOT(minimap_Pan(QPointF)));
             connect(minimap, SIGNAL(minimap_Panning(bool)), view, SLOT(minimap_Panning(bool)));
             connect(minimap, SIGNAL(minimap_Zoom(int)), view, SLOT(minimap_Zoom(int)));
@@ -200,20 +205,20 @@ void MedeaMainWindow::setupInnerWindow()
     nodeView_Assemblies->setContainedViewAspect(VA_ASSEMBLIES);
     nodeView_Hardware->setContainedViewAspect(VA_HARDWARE);
 
-    MedeaDockWidget *dockWidget1 = MedeaWindowManager::constructViewDockWidget("Interface", Qt::TopDockWidgetArea);
+    MedeaDockWidget *dockWidget1 = MedeaWindowManager::constructNodeViewDockWidget("Interface", Qt::TopDockWidgetArea);
     dockWidget1->setWidget(nodeView_Interfaces);
     dockWidget1->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dockWidget1->setParent(this);
 
-    MedeaDockWidget *dockWidget2 = MedeaWindowManager::constructViewDockWidget("Behaviour", Qt::TopDockWidgetArea);
+    MedeaDockWidget *dockWidget2 = MedeaWindowManager::constructNodeViewDockWidget("Behaviour", Qt::TopDockWidgetArea);
     dockWidget2->setWidget(nodeView_Behaviour);
     dockWidget2->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    MedeaDockWidget *dockWidget3 = MedeaWindowManager::constructViewDockWidget("Assemblies", Qt::BottomDockWidgetArea);
+    MedeaDockWidget *dockWidget3 = MedeaWindowManager::constructNodeViewDockWidget("Assemblies", Qt::BottomDockWidgetArea);
     dockWidget3->setWidget(nodeView_Assemblies);
     dockWidget3->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    MedeaDockWidget *dockWidget4 = MedeaWindowManager::constructViewDockWidget("Hardware", Qt::BottomDockWidgetArea);
+    MedeaDockWidget *dockWidget4 = MedeaWindowManager::constructNodeViewDockWidget("Hardware", Qt::BottomDockWidgetArea);
     dockWidget4->setWidget(nodeView_Hardware);
     dockWidget4->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
@@ -234,14 +239,15 @@ void MedeaMainWindow::setupInnerWindow()
 
 
 
-    MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructToolDockWidget("QOS Browser");
+    MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructViewDockWidget("QOS Browser");
     qosBrowser = new QOSBrowser(viewController, this);
     qosDockWidget->setWidget(qosBrowser);
     qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     qosDockWidget->setProtected(true);
 
-    addDockWidget(Qt::BottomDockWidgetArea, qosDockWidget);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
+    qosDockWidget->setVisible(false);
 }
 
 void MedeaMainWindow::setupMenuAndTitle()

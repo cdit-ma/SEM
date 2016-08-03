@@ -12,6 +12,7 @@
 #include "medeamainwindow.h"
 #include "medeaviewwindow.h"
 #include "medeacentralwindow.h"
+#include "medeanodeviewdockwidget.h"
 
 #include "../../View/theme.h"
 #define WINDOW_ID_DATA "WINDOW_ID"
@@ -38,6 +39,11 @@ MedeaWindowNew *MedeaWindowManager::constructSubWindow(QString title)
 MedeaWindowNew *MedeaWindowManager::constructCentralWindow(QString title)
 {
     return manager()->_constructCentralWindow(title);
+}
+
+MedeaNodeViewDockWidget *MedeaWindowManager::constructNodeViewDockWidget(QString title, Qt::DockWidgetArea area)
+{
+    return manager()->_constructNodeViewDockWidget(title, area);
 }
 
 MedeaViewDockWidget *MedeaWindowManager::constructViewDockWidget(QString title, Qt::DockWidgetArea area)
@@ -169,6 +175,14 @@ MedeaViewDockWidget *MedeaWindowManager::_constructViewDockWidget(QString title,
     return dockWidget;
 }
 
+MedeaNodeViewDockWidget *MedeaWindowManager::_constructNodeViewDockWidget(QString title, Qt::DockWidgetArea area)
+{
+    //Construct new DockWidget
+    MedeaNodeViewDockWidget* dockWidget = new MedeaNodeViewDockWidget(title, area);
+    addDockWidget(dockWidget);
+    return dockWidget;
+}
+
 
 MedeaViewDockWidget *MedeaWindowManager::getActiveViewDockWidget()
 {
@@ -179,6 +193,7 @@ void MedeaWindowManager::setActiveDockWidget(MedeaDockWidget *dockWidget)
 {
     if(dockWidget != activeViewDockWidget){
         MedeaViewDockWidget* prevDock = activeViewDockWidget;
+
         //Unset the old
         if(activeViewDockWidget){
             activeViewDockWidget->setActive(false);
@@ -354,7 +369,7 @@ void MedeaWindowManager::_reparentDockWidget(MedeaDockWidget *dockWidget, MedeaW
 
 void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
 {
-    if(dockWidget != activeViewDockWidget){
+   if(dockWidget != activeViewDockWidget){
         setActiveDockWidget(dockWidget);
     }
 

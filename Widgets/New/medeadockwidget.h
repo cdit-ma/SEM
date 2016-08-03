@@ -39,6 +39,7 @@ public:
     void setFocusEnabled(bool enabled);
     bool isFocusEnabled();
     void setCloseVisible(bool visible);
+    void setHideVisible(bool visible);
     void setMaximizeVisible(bool visible);
     void setPopOutVisible(bool visible);
     void setProtectVisible(bool visible);
