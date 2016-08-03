@@ -41,6 +41,8 @@ public:
     ViewItem* getParentItem();
     void setParentViewItem(ViewItem* item);
 
+    QStringList getValidValuesForKey(QString keyName);
+
 signals:
     void dataAdded(QString key_name, QVariant data);
     void dataChanged(QString key_name, QVariant data);

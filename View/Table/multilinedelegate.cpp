@@ -1,104 +1,112 @@
 #include "multilinedelegate.h"
-#include <QDebug>
+#include "attributetablemodel.h"
+
+#include <QPushButton>
+#include <QComboBox>
 #include <QBoxLayout>
 #include <QDialog>
 #include "View/theme.h"
 
-MultilineDelegate::MultilineDelegate(QWidget *parent):QStyledItemDelegate(parent)
+
+AttributeTableDelegate::AttributeTableDelegate(QWidget *parent):QStyledItemDelegate(parent)
 {
     parentWidget = parent;
+
     setupLayout();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
 }
 
-MultilineDelegate::~MultilineDelegate()
+AttributeTableDelegate::~AttributeTableDelegate()
 {
-        dialog->deleteLater();
+    dialog->deleteLater();
 }
 
-QWidget *MultilineDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+QWidget *AttributeTableDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    if(index.data(-2).toBool()){
-        //Check for multiline gear
-        //Clear the editor
+    //If we have a Multiline editor we should popup a code editor.
+    if(index.data(AttributeTableModel::MULTILINE_ROLE).toBool()){
         codeEditor->clear();
-        codeEditor->move(parentWidget->rect().bottomRight());
         return dialog;
     }else{
-        return QStyledItemDelegate::createEditor(parent, option, index);
+        QStringList validValues = index.data(AttributeTableModel::VALID_VALUES_ROLE).toStringList();
+        if(!validValues.isEmpty()){
+            QComboBox *editor = new QComboBox(parent);
+            editor->addItems(validValues);
+            return editor;
+        }else{
+            return QStyledItemDelegate::createEditor(parent, option, index);
+        }
     }
 }
 
-void MultilineDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+void AttributeTableDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    if(index.data(-2).toBool()){
+    if(index.data(AttributeTableModel::MULTILINE_ROLE).toBool()){
         QString keyName = index.model()->headerData(index.row(), Qt::Vertical).toString();
         dialog->setWindowTitle("Editing <" + keyName + ">");
         codeEditor->setPlainText(index.data(Qt::EditRole).toString());
     }else{
-        return QStyledItemDelegate::setEditorData(editor, index);
+        QComboBox *spinBox = qobject_cast<QComboBox*>(editor);
+        if(spinBox){
+            QString currentValue = index.model()->data(index, Qt::EditRole).toString();
+            spinBox->setCurrentText(currentValue);
+        }else{
+            QStyledItemDelegate::setEditorData(editor, index);
+        }
     }
 }
 
-void MultilineDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+void AttributeTableDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-    if(index.data(-2).toBool()){
-        QString keyName = index.model()->headerData(index.row(), Qt::Vertical).toString();
-        dialog->setWindowTitle("Editing <" + keyName + ">");
-        codeEditor->setPlainText(index.data(Qt::EditRole).toString());
+    if(index.data(AttributeTableModel::MULTILINE_ROLE).toBool()){
         model->setData(index, codeEditor->toPlainText());
     }else{
-        return QStyledItemDelegate::setModelData(editor, model, index);
+        QStyledItemDelegate::setModelData(editor, model, index);
     }
 }
 
-void MultilineDelegate::submitPressed()
+void AttributeTableDelegate::submitPressed()
 {
     emit commitData(dialog);
     closeDialog();
-
 }
 
-void MultilineDelegate::closeDialog()
+void AttributeTableDelegate::closeDialog()
 {
     emit closeEditor(dialog);
 }
 
-void MultilineDelegate::themeChanged()
+void AttributeTableDelegate::themeChanged()
 {
     dialog->setWindowIcon(Theme::theme()->getIcon("Actions", "Popup"));
     dialog->setStyleSheet(Theme::theme()->getDialogStyleSheet());
 }
 
-void MultilineDelegate::setupLayout()
+void AttributeTableDelegate::setupLayout()
 {
-    dialog = new QDialog(parentWidget);
-    QVBoxLayout* layout = new QVBoxLayout(dialog);
+    dialog = new QDialog();
     dialog->setMinimumSize(400,700);
-    dialog->move(parentWidget->geometry().center());
     dialog->setModal(true);
-
+    //Get rid of the ? button.
     dialog->setWindowFlags(dialog->windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
     codeEditor = new CodeEditor(parentWidget);
-
     QPushButton* submitButton = new QPushButton("Submit", parentWidget);
 
-    QHBoxLayout* buttonLayout = new QHBoxLayout(0);
-    buttonLayout->addWidget(submitButton, 0, Qt::AlignRight);
-    dialog->setLayout(layout);
+    QVBoxLayout* layout = new QVBoxLayout(dialog);
+
     layout->addWidget(codeEditor, 1);
-    layout->addLayout(buttonLayout);
+    layout->addWidget(submitButton, 0, Qt::AlignRight);
 
     connect(dialog, SIGNAL(rejected()), this, SLOT(closeDialog()));
     connect(submitButton, SIGNAL(clicked(bool)), this, SLOT(submitPressed()));
 }
 
-void MultilineDelegate::destroyEditor(QWidget *editor, const QModelIndex &index) const
+void AttributeTableDelegate::destroyEditor(QWidget *editor, const QModelIndex &index) const
 {
-    if(!index.data(-2).toBool()){
+    if(!index.data(AttributeTableModel::MULTILINE_ROLE).toBool()){
         QStyledItemDelegate::destroyEditor(editor, index);
     }
 }

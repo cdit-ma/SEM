@@ -34,6 +34,8 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     setExpandEnabled(true);
 
 
+    addRequiredData("isExpanded");
+
     if(parentItem){
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());

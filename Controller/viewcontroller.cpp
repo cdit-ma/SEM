@@ -165,7 +165,7 @@ void ViewController::setModelReady(bool okay)
 void ViewController::entityConstructed(EntityAdapter *entity)
 {
     ViewItem* viewItem = 0;
-    bool isModel = false;
+    QString kind;
     if(entity->isNodeAdapter()){
         NodeAdapter* nodeAdapter = (NodeAdapter*)entity;
         int parentID = nodeAdapter->getParentNodeID();
@@ -178,19 +178,19 @@ void ViewController::entityConstructed(EntityAdapter *entity)
             parent->addChild(viewItem);
         }
 
-        if(entity->getDataValue("kind") == "Model"){
-            isModel = true;
-        }
+        kind = nodeAdapter->getNodeKind();
     }else if(entity->isEdgeAdapter()){
         viewItem = new EdgeViewItem((EdgeAdapter*)entity);
+        kind = "EDGE";
     }
 
     if(viewItem){
         int ID = viewItem->getID();
         viewItems[ID] = viewItem;
+        itemKindLists[kind].append(ID);
         setDefaultIcon(viewItem);
 
-        if(isModel){
+        if(kind == "Model"){
             modelItem = viewItem;
         }
 
@@ -207,6 +207,13 @@ void ViewController::entityDestructed(EntityAdapter *entity)
     if(entity){
         int ID = entity->getID();
         if(viewItems.contains(ID)){
+            QString kind;
+
+            if(entity->isNodeAdapter()){
+                kind = ((NodeAdapter*)entity)->getNodeKind();
+            }else{
+                kind = "EDGE";
+            }
             ViewItem* viewItem = viewItems[ID];
 
 
@@ -222,6 +229,7 @@ void ViewController::entityDestructed(EntityAdapter *entity)
 
             //Remove the item from the Hash
             viewItems.remove(ID);
+            itemKindLists[kind].removeAll(ID);
 
             if(viewItem){
                 emit viewItemDestructing(ID, viewItem);
@@ -229,5 +237,28 @@ void ViewController::entityDestructed(EntityAdapter *entity)
             }
         }
     }
+}
+
+void ViewController::deleteSelection()
+{
+    if(selectionController){
+        QList<int> selection;
+        foreach(ViewItem* item, selectionController->getSelection()){
+            selection.append(item->getID());
+        }
+        emit deleteEntities(selection);
+    }
+}
+
+void ViewController::constructDDSQOSProfile()
+{
+    foreach(int ID, getIDsOfKind("AssemblyDefinitions")){
+        emit constructChildNode(ID, "DDS_QOSProfile");
+    }
+}
+
+QList<int> ViewController::getIDsOfKind(QString kind)
+{
+    return itemKindLists[kind];
 }
 

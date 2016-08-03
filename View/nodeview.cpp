@@ -229,11 +229,11 @@ bool NodeView::projectRequiresSaving()
 QString NodeView::getProjectAsGraphML()
 {
     QString data;
-    if(viewMutex.tryLock()){
+    if(true/*viewMutex.tryLock()*/){
         if(controller){
             data = controller->getProjectAsGraphML();
         }
-        viewMutex.unlock();
+        //viewMutex.unlock();
     }
     return data;
 }
@@ -241,11 +241,11 @@ QString NodeView::getProjectAsGraphML()
 QString NodeView::getSelectionAsGraphMLSnippet()
 {
     QString data;
-    if(viewMutex.tryLock()){
+    if(true/*viewMutex.tryLock()*/){
         if(controller){
             data = controller->getSelectionAsGraphMLSnippet(selectedIDs);
         }
-        viewMutex.unlock();
+        //viewMutex.unlock();
     }
     return data;
 }
@@ -1419,7 +1419,7 @@ void NodeView::actionFinished()
     updateActionsEnabledStates();
 
     //if(viewMutex.tryLock(1)){
-        viewMutex.unlock();
+        //viewMutex.unlock();
     //}
 }
 
@@ -1480,6 +1480,12 @@ void NodeView::viewItemConstructed(ViewItem *viewItem)
         }
     }
 }
+
+void NodeView::viewItemDestructed(int ID, ViewItem *viewItem)
+{
+    destructGUIItem(ID);
+}
+
 
 
 
@@ -1712,7 +1718,7 @@ void NodeView::setAttributeModel(GraphMLItem *item, bool tellSubView)
 void NodeView::importProjects(QStringList xmlDataList)
 {
     if(!xmlDataList.isEmpty()){
-        if(viewMutex.tryLock()){
+        if(true/*viewMutex.tryLock()*/){
             constructedFromImport = true;
             if(!importFromJenkins){
                 //Only clear selection from non jenkins imports
@@ -1725,7 +1731,7 @@ void NodeView::importProjects(QStringList xmlDataList)
 
 void NodeView::openProject(QString fileName, QString fileData)
 {
-    if(viewMutex.tryLock()){
+    if(true/*viewMutex.tryLock()*/){
         constructedFromImport = true;
         emit view_OpenProject(fileName, fileData);
     }
@@ -1733,7 +1739,7 @@ void NodeView::openProject(QString fileName, QString fileData)
 
 void NodeView::saveProject(QString filePath="")
 {
-    if(viewMutex.tryLock()){
+    if(true/*viewMutex.tryLock()*/){
         emit view_SaveProject(filePath);
     }
 
@@ -1750,7 +1756,7 @@ void NodeView::loadJenkinsNodes(QString fileData)
 
 void NodeView::importSnippet(QString fileName, QString fileData)
 {
-    if(viewMutex.tryLock()){
+    if(true/*viewMutex.tryLock()*/){
         pasting = true;
         //Clear before pasting
         QList<int> duplicateList = selectedIDs;
@@ -1923,7 +1929,7 @@ void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
  */
 void NodeView::sortSelection(bool recurse)
 {
-    if(viewMutex.tryLock()){
+    if(true/*viewMutex.tryLock()*/){
         triggerAction("View: Sorting Selection");
         emit view_updateProgressStatus(-1, "Sorting selected entities");
 
@@ -1966,7 +1972,7 @@ void NodeView::sortSelection(bool recurse)
 
 void NodeView::expandSelection(bool expand)
 {
-    if(viewMutex.tryLock()){
+    if(true/*viewMutex.tryLock()*/){
         triggerAction("View: Expanding/Contracting Selection");
         emit view_updateProgressStatus(-1, "Expanding/contracting selected entities");
 
@@ -2085,6 +2091,7 @@ void NodeView::entityItemNew_Select(ViewItem *item, bool select)
 
 void NodeView::entityItemNew_Expand(EntityItemNew *item, bool expand)
 {
+    qCritical() << item << expand;
     item->setExpanded(expand);
 }
 
@@ -2821,7 +2828,7 @@ void NodeView::transition()
 void NodeView::_deleteFromIDs(QList<int> IDs)
 {
     if (IDs.count() > 0) {
-        if(viewMutex.tryLock()){
+        if(true/*viewMutex.tryLock()*/){
             emit view_Delete(IDs);
         }
     } else {
@@ -3002,7 +3009,7 @@ void NodeView::expand(bool expand)
  */
 void NodeView::constructNode(QString nodeKind, int sender)
 {
-    if (viewMutex.tryLock()) {
+    if (true/*viewMutex.tryLock()*/) {
         NodeItem* selectedItem = getSelectedNodeItem();
         if (!selectedItem) {
             return;
@@ -3031,7 +3038,7 @@ void NodeView::constructNode(QString nodeKind, int sender)
  */
 void NodeView::constructEdge(int srcID, int dstID)
 {
-    if (viewMutex.tryLock()) {
+    if (true/*viewMutex.tryLock()*/) {
         triggerAction("Dock/Toolbar: Constructing Edge");
         emit view_ConstructEdge(srcID, dstID, true);
     }
@@ -3042,7 +3049,7 @@ void NodeView::destructEdge(int srcID, int dstID, bool triggerAction)
 {
     Q_UNUSED(triggerAction);
 
-    if(viewMutex.tryLock()){
+    if(true/*viewMutex.tryLock()*/){
         emit view_DestructEdge(srcID, dstID);
     }
 }
@@ -3055,7 +3062,7 @@ void NodeView::destructEdge(int srcID, int dstID, bool triggerAction)
  */
 void NodeView::constructDestructEdges(QList<int> srcIDs, int dstID)
 {
-    if (viewMutex.tryLock()) {
+    if (true/*viewMutex.tryLock()*/) {
         // added this for connecting multiple selection using the toolbar
         if (srcIDs.isEmpty()) {
             srcIDs = getSelectedNodeIDs();
@@ -3082,7 +3089,7 @@ void NodeView::deleteFromIDs(QList<int> IDs)
  */
 void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int sender)
 {
-    if (viewMutex.tryLock()) {
+    if (true/*viewMutex.tryLock()*/) {
 
         NodeItem* nodeItem = getNodeItemFromID(parentID);
 
@@ -3103,7 +3110,7 @@ void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int
 
         } else {
             //If we don't have a node Item, forwhatever reason release the mutex.
-            viewMutex.unlock();
+            //viewMutex.unlock();
         }
     }
 }
@@ -4198,7 +4205,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     void NodeView::setReadOnlyMode(bool readOnly)
     {
         if (selectedIDs.count() > 0) {
-            if(viewMutex.tryLock()){
+            if(true/*viewMutex.tryLock()*/){
                 triggerAction("Setting Read Only.");
                 emit view_SetReadOnly(selectedIDs, readOnly);
             }
@@ -4335,7 +4342,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     void NodeView::replicate()
     {
         if (selectedIDs.count() > 0) {
-            if(viewMutex.tryLock()){
+            if(true/*viewMutex.tryLock()*/){
                 pasting = true;
                 //Clear before pasting
                 QList<int> duplicateList = selectedIDs;
@@ -4354,7 +4361,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     void NodeView::copy()
     {
         if (selectedIDs.count() > 0) {
-            if(viewMutex.tryLock()){
+            if(true/*viewMutex.tryLock()*/){
                 emit view_Copy(selectedIDs);
             }
         } else {
@@ -4371,7 +4378,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
         //If we have got something selected.
         if (selectedIDs.count() > 0) {
             //Try and Lock the Mutex before the operation.
-            if(viewMutex.tryLock()){
+            if(true/*viewMutex.tryLock()*/){
                 //Clear the Attribute Table Model
                 //setAttributeModel(0, true);
                 emit view_Cut(selectedIDs);
@@ -4395,7 +4402,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
             return;
         }
 
-        if(viewMutex.tryLock()){
+        if(true/*viewMutex.tryLock()*/){
             //Pasting gets cleared in actionFinished()
             pasting = true;
             //Clear before pasting
@@ -4430,7 +4437,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     void NodeView::undo()
     {
         // undo the action
-        if(viewMutex.tryLock()) {
+        if(true/*viewMutex.tryLock()*/) {
             emit view_Undo();
         }
     }
@@ -4445,7 +4452,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     {
 
         // redo the action
-        if(viewMutex.tryLock()) {
+        if(true/*viewMutex.tryLock()*/) {
             emit this->view_Redo();
         }
     }
@@ -5187,7 +5194,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     void NodeView::constructWorkerProcessNode(QString workerName, QString operationName, int sender)
     {
         //Do stuff!
-        if(viewMutex.tryLock()){
+        if(true/*viewMutex.tryLock()*/){
             NodeItem* item = getSelectedNodeItem();
             if (item) {
                 toolbarDockConstruction = true;
@@ -5232,7 +5239,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
      */
     void NodeView::clearModel()
     {
-        if(viewMutex.tryLock()){
+        if(true/*viewMutex.tryLock()*/){
             clearingModel = true;
             emit view_Clear();
         }

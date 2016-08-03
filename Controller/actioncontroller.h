@@ -119,6 +119,7 @@ public:
     RootAction* toolbar_wiki;
     RootAction* toolbar_replicateCount;
     RootAction* toolbar_displayedChildrenOption;
+    RootAction* toolbar_addDDSQOSProfile;
 
     bool _modelReady;
     bool _jenkinsValidated;

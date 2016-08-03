@@ -9,6 +9,10 @@ class AttributeTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
+    enum ATTRIBUTE_ROLES {
+        MULTILINE_ROLE = Qt::UserRole + 1,
+        VALID_VALUES_ROLE = Qt::UserRole + 2,
+    };
     AttributeTableModel(ViewItem* item);
     ~AttributeTableModel();
 

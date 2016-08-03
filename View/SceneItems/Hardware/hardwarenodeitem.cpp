@@ -27,6 +27,7 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentIt
 
     addRequiredData("x");
     addRequiredData("y");
+    reloadRequiredData();
 }
 
 QPainterPath HardwareNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect) const

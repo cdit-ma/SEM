@@ -23,6 +23,7 @@ ManagementComponentNodeItem::ManagementComponentNodeItem(NodeViewItem *viewItem,
 
     addRequiredData("x");
     addRequiredData("y");
+    reloadRequiredData();
 }
 
 void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

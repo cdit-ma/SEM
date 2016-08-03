@@ -27,6 +27,7 @@ public:
     uint getSelectionID();
 
 
+    QString getNodeKind();
     int childCount();
     int edgeCount();
 
@@ -51,6 +52,7 @@ signals:
 
 
 private:
+    QString _nodeKind;
     Node* _node;
     NODE_CLASS _nodeClass;
     NODE_ADAPTER_KIND _nodeAdapterKind;

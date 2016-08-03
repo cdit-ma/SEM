@@ -22,6 +22,7 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     _isMouseMoving = false;
     _hasMouseMoved = false;
 
+
     _isExpanded = true;
     expandEnabled = false;
     selectEnabled = true;
@@ -471,6 +472,7 @@ void EntityItemNew::setExpanded(bool expand)
 void EntityItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     if(isExpandEnabled()){
+
         if(event->button() == Qt::LeftButton && getElementPath(ER_EXPANDCONTRACT).contains(event->pos())){
             handleExpand(!isExpanded());
         }
@@ -618,6 +620,11 @@ bool EntityItemNew::isExpandEnabled()
 void EntityItemNew::setExpandEnabled(bool enabled)
 {
     if(expandEnabled != enabled){
+        if(enabled){
+            addRequiredData("isExpanded");
+        }else{
+            removeRequiredData("isExpanded");
+        }
         expandEnabled = enabled;
     }
 }

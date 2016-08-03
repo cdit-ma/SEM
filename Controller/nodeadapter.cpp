@@ -3,6 +3,8 @@
 NodeAdapter::NodeAdapter(Node *node, NodeAdapter::NODE_ADAPTER_KIND nodeAdapterKind):EntityAdapter(node)
 {
     _node = node;
+
+    _nodeKind = node->getDataValue("kind").toString();
     _nodeClass = node->getNodeClass();
     _nodeAdapterKind = nodeAdapterKind;
     connect(node, SIGNAL(node_EdgeAdded(int,Edge::EDGE_CLASS)), this, SIGNAL(edgeAdded(int, Edge::EDGE_CLASS)));
@@ -110,6 +112,11 @@ uint NodeAdapter::getSelectionID()
         return selectionID;
     }
     return 0;
+}
+
+QString NodeAdapter::getNodeKind()
+{
+    return _nodeKind;
 }
 
 int NodeAdapter::childCount()

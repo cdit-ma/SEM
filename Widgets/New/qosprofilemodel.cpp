@@ -32,7 +32,8 @@ void QOSProfileModel::viewItem_Constructed(ViewItem *viewItem)
 
             if(parentItem){
                 QOSModelItem* modelItem = new QOSModelItem(item);
-                parentItem->appendRow(modelItem);
+                parentItem->setChild(parentItem->rowCount(), modelItem);
+                //parentItem->appendRow(modelItem);
                 modelItems[ID] =  modelItem;
             }
         }
@@ -44,7 +45,15 @@ void QOSProfileModel::viewItem_Destructed(int ID, ViewItem *viewItem)
     if(modelItems.contains(ID)){
         QOSModelItem* modelItem = modelItems[ID];
         modelItems.remove(ID);
-        modelItem->deleteLater();
+
+        //Remove the row?!
+        QStandardItem* parentItem = ((QStandardItem*)modelItem)->parent();
+
+        if(parentItem){
+            removeRow(modelItem->row(), parentItem->index());
+        }else{
+            removeRow(modelItem->row());
+        }
     }
 }
 
@@ -80,6 +89,19 @@ bool QOSProfileModel::setData(const QModelIndex &index, const QVariant &value, i
         }
     }
     return false;
+}
+
+Qt::ItemFlags QOSProfileModel::flags(const QModelIndex &index) const
+{
+    if(index.isValid()){
+        QStandardItem* item = itemFromIndex(index);
+        if(item){
+            if(item->data(EDITABLELABEL_ROLE).toBool()){
+                return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+            }
+        }
+    }
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 
 
@@ -132,6 +154,13 @@ QVariant QOSModelItem::data(int role) const
             return qVariantFromValue((void *)item->getTableModel());
         }else{
             return 0;
+        }
+    }
+    if(role == QOSProfileModel::EDITABLELABEL_ROLE){
+        if(item){
+            return !item->isDataProtected("label");
+        }else{
+            return false;
         }
     }
     return QStandardItem::data(role);

@@ -13,7 +13,8 @@ class QOSProfileModel : public QStandardItemModel
 public:
     enum QOS_ROLES {
         ID_ROLE = Qt::UserRole + 1,
-        DATATABLE_ROLE = Qt::UserRole + 2
+        DATATABLE_ROLE = Qt::UserRole + 2,
+        EDITABLELABEL_ROLE = Qt::UserRole + 3
     };
     QOSProfileModel(QObject *parent);
 
@@ -29,6 +30,7 @@ private:
 public:
     QVariant data(const QModelIndex &index, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
+    Qt::ItemFlags flags(const QModelIndex &index) const;
 };
 
 class QOSModelItem: public QObject, public QStandardItem{
@@ -39,6 +41,7 @@ public:
     ~QOSModelItem();
 
     QVariant data(int role) const;
+
     void setData(const QVariant &value, int role);
 signals:
     void dataChanged(int, QString, QVariant);
