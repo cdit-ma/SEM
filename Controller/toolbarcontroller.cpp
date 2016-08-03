@@ -22,7 +22,10 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
     this->viewController = viewController;
     this->selectionController = viewController->getSelectionController();
     setupNodeActions();
+    setupToolActions();
 
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
 
     //Connect to the view controller
@@ -91,8 +94,13 @@ void ToolActionController::viewItem_Destructed(int ID, ViewItem *viewItem)
 
 void ToolActionController::selectionChanged(int selected)
 {
+    QStringList validActions;
+
+    if(selected > 0){
+        validActions = viewController->getAdoptableNodeKinds();
+    }
     foreach(QAction* action, adoptableKindsGroup->actions()){
-        action->setEnabled(selected != 0);
+        action->setEnabled(validActions.contains(action->text()));
     }
 }
 
@@ -111,6 +119,15 @@ void ToolActionController::addChildNode()
     }
 }
 
+void ToolActionController::setupToolActions()
+{
+    createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
+    createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
+
+    // setup menu info actions here
+    createRootAction("NO_EC_DEPLOYMENT_CONNECT", "NONE AVAILABLE", "Actions", "Info");
+}
+
 QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)
 {
     return QList<QAction*>();
@@ -123,7 +140,12 @@ QAction *ToolActionController::getNodeActionOfKind(QString kind, bool stealth)
 
 QList<QAction*> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_CLASS kind, bool stealth)
 {
-    return QList<QAction*>();
+    QList<QAction*> list;
+
+    foreach(int ID, viewController->getValidEdges(kind)){
+        list.append(actions[ID]->constructSubAction(stealth));
+    }
+    return list;
 }
 
 QAction* ToolActionController::getEdgeActionOfKind(Edge::EDGE_CLASS kind, bool stealth)
@@ -175,9 +197,25 @@ QAction *ToolActionController::getInstancesAction(bool stealth)
     return new RootAction("Instances");
 }
 
+QAction *ToolActionController::getToolAction(QString hashKey, bool stealth)
+{
+    if(toolActions.contains(hashKey)){
+        return toolActions[hashKey]->constructSubAction(stealth);
+    }
+    return 0;
+}
+
 QList<NodeViewItemAction*> ToolActionController::getRequiredSubActionsForKind(QString kind)
 {
     return actions.values();
+}
+
+void ToolActionController::themeChanged()
+{
+    Theme* theme = Theme::theme();
+    foreach(RootAction* action, toolActions.values()){
+        viewController->getActionController()->updateIcon(action, theme);
+    }
 }
 
 QStringList ToolActionController::getKindsRequiringSubActions()
@@ -198,3 +236,17 @@ void ToolActionController::setupNodeActions()
         adoptableKindsGroup->addAction(action);
     }
 }
+
+RootAction *ToolActionController::createRootAction(QString hashKey, QString actionName, QString iconPath, QString aliasPath)
+{
+    if(!toolActions.contains(hashKey)){
+        RootAction* action = new RootAction(actionName, this);
+        action->setIconPath(iconPath, aliasPath);
+        toolActions[hashKey] = action;
+    }
+    if(toolActions.contains(hashKey)){
+        return toolActions[hashKey];
+    }
+    return 0;
+}
+

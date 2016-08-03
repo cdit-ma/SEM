@@ -158,7 +158,7 @@ void NewController::connectView(NodeView *view)
 
     //Connect SIGNALS to view Slots (ALL VIEWS)
     connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(constructEntityItem(EntityAdapter*)));
-    connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(destructEntityItem(EntityAdapter*)));
+    connect(this, SIGNAL(test_destruct(int)), view, SLOT(destructGUIItem(int)));
 
 
     connect(this, SIGNAL(controller_SetViewEnabled(bool)), view, SLOT(setEnabled(bool)));
@@ -252,8 +252,11 @@ void NewController::connectViewController(ViewController *view)
     connect(this, SIGNAL(controller_CanUndo(bool)), view, SIGNAL(canUndo(bool)));
 
     connect(view, SIGNAL(triggerAction(QString)), this, SLOT(triggerAction(QString)));
+    connect(view, SIGNAL(deleteEntities(QList<int>)), this, SLOT(remove(QList<int>)));
+
     connect(view, SIGNAL(view_undo()), this, SLOT(undo()));
     connect(view, SIGNAL(view_redo()), this, SLOT(redo()));
+    view->setController(this);
 }
 
 
@@ -767,7 +770,6 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
             data = constructDataVector(kind, centerPoint);
 
         }else if(kind == "DDS_QOSProfile"){
-            qCritical() << "YO!";
             ignore = true;
             constructDDSQOSProfile(parentID, centerPoint);
         }else{
@@ -2165,8 +2167,10 @@ void NewController::removeGraphMLFromHash(int ID)
         EntityAdapter* entityAdapter = ID2AdapterHash[ID];
 
         if(entityAdapter){
-            bool canDelete = entityAdapter->hasRegisteredObjects();
+            bool canDelete = !entityAdapter->hasRegisteredObjects();
             entityAdapter->invalidate();
+
+            emit test_destruct(ID);
 
             emit controller_EntityDestructed(entityAdapter);
 

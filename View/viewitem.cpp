@@ -5,10 +5,10 @@ ViewItem::ViewItem(EntityAdapter *entity): QObjectRegistrar()
 {
     this->entity = entity;
     this->ID = entity->getID();
+    entity->registerObject(this);
     tableModel = new AttributeTableModel(this);
 
     //Register Item to Adapter
-    entity->registerObject(this);
 
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
 
@@ -178,6 +178,15 @@ ViewItem *ViewItem::getParentItem()
 void ViewItem::setParentViewItem(ViewItem *item)
 {
     _parent = item;
+}
+
+QStringList ViewItem::getValidValuesForKey(QString keyName)
+{
+    QStringList data;
+    if(entity){
+        data = entity->getValidValuesForKey(keyName);
+    }
+    return data;
 }
 
 

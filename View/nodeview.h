@@ -185,6 +185,7 @@ private slots:
     void actionFinished();
 
     void viewItemConstructed(ViewItem* viewItem);
+    void viewItemDestructed(int ID, ViewItem *viewItem);
 
 signals:
     void view_LaunchWiki(QString entityKind);
@@ -554,7 +555,7 @@ private:
 
 
 
-    QMutex viewMutex;
+    //QMutex viewMutex;
 
     QStringList nonDrawnItemKinds;
     QList<NODE_CLASS> nonDrawnNodeClasses;

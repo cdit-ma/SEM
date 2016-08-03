@@ -225,7 +225,8 @@ HEADERS += \
     Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h \
     Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h \
     Model/Edges/qosedge.h \
-    View/SceneItems/eventportnodeitem.h
+    View/SceneItems/eventportnodeitem.h \
+    View/Table/attributetableview.h
 
 SOURCES += \
     main.cpp \
@@ -414,7 +415,8 @@ SOURCES += \
     Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp \
     Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp \
     Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp \
-    Model/Edges/qosedge.cpp
+    Model/Edges/qosedge.cpp \
+    View/Table/attributetableview.cpp
 
 RESOURCES += \
     resources.qrc

@@ -172,37 +172,28 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
             return QVariant(Qt::AlignCenter);
         }
     }
-
     if (role == Qt::DecorationRole) {
         if(hasPopupEditor(index)){
             return  Theme::theme()->getImage("Actions", "Popup", QSize(16,16), Theme::theme()->getAltBackgroundColor());
         }
-        //if(getKey(index) == "kind"){
-        //    return Theme::theme()->getIcon(entity->getIcon());
-        //}
     }
 
     if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
         return getData(index);
     }
 
-    if(role == -1){
-        QVariant v(QMetaType::QObjectStar, &entity);
-        return v;
-        return 0;
-    }
-
- 	//Role of -2 gives back a true/false value as to whether the multi-Line popup window should be visible or not
-    if(role == -2) {
+    if(role == MULTILINE_ROLE) {
         return hasPopupEditor(index);
     }
 
-    if(role == -3) {
-        return getKey(index);
+    if(role == VALID_VALUES_ROLE){
+        if(entity){
+            QString keyName = getKey(index);
+            return entity->getValidValuesForKey(keyName);
+        }
     }
 
     return QVariant();
-
 }
 
 QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientation, int role) const

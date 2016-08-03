@@ -52,6 +52,10 @@ ToolbarWidgetNew::ToolbarWidgetNew(ViewController *vc, QWidget *parent) : QWidge
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
+
+/**
+ * @brief ToolbarWidgetNew::themeChanged
+ */
 void ToolbarWidgetNew::themeChanged()
 {
     Theme* theme = Theme::theme();
@@ -86,7 +90,6 @@ void ToolbarWidgetNew::themeChanged()
 void ToolbarWidgetNew::setVisible(bool visible)
 {
     if (visible) {
-        //actionController->contextToolbar->updateSpacers();
         mainGroup->updateSpacers();
         QSize toolbarSize = toolbar->sizeHint();
         if (visible && toolbarSize.width() > iconSize.width()) {
@@ -96,11 +99,73 @@ void ToolbarWidgetNew::setVisible(bool visible)
         } else {
             visible = false;
         }
+    } else {
+        // clear all dynamically populated menus
+        clearDynamicMenus();
     }
 
     mainFrame->setVisible(visible);
     shadowFrame->setVisible(visible);
     QWidget::setVisible(visible);
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::execMenu
+ */
+void ToolbarWidgetNew::execMenu()
+{
+    QAction* senderAction = qobject_cast<QAction*>(sender());
+    if (senderAction) {
+        if (popupMenuHash.contains(senderAction)) {
+            QMenu* menu = popupMenuHash[senderAction];
+            menu->popup(toolbar->mapToGlobal(toolbar->actionGeometry(senderAction).bottomLeft()));
+        }
+    } else {
+        qWarning() << "ToolbarWidgetNew::execMenu - Sender object is not a QAction.";
+    }
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::populateDeploymentMenu
+ */
+void ToolbarWidgetNew::populateDeploymentMenu()
+{
+    QMenu* senderMenu = qobject_cast<QMenu*>(sender());
+
+    // check if the sender is a menu and if it's already been populated
+    if (!senderMenu || !senderMenu->isEmpty()) {
+        return;
+    }
+
+    QList<QAction*> actions;
+    if (senderMenu == hardwareMenu) {
+        actions = toolbarController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT, true);
+        if (actions.isEmpty()) {
+            senderMenu->addAction(getInfoAction("NO_EC_DEPLOYMENT_CONNECT"));
+            return;
+        }
+    } else {
+        qWarning() << "ToolbarWidgetNew::populateDeploymentMenu - Sender menu not handled.";
+        return;
+    }
+
+    senderMenu->addActions(actions);
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::menuActionTrigged
+ * @param action
+ */
+void ToolbarWidgetNew::menuActionTrigged(QAction* action)
+{
+    if (action->property("action-type") == "info") {
+        return;
+    } else {
+        setVisible(false);
+    }
 }
 
 
@@ -112,23 +177,6 @@ void ToolbarWidgetNew::setVisible(bool visible)
 void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
 
-}
-
-void ToolbarWidgetNew::execMenu()
-{
-    QAction* senderAction = qobject_cast<QAction*>(sender());
-    if (senderAction == addChildAction) {
-        //addMenu->popup(QCursor::pos());
-        addMenu->popup(toolbar->mapToGlobal(toolbar->actionGeometry(addChildAction).bottomLeft()));
-    } else if (senderAction == hardwareAction) {
-        //hardwareMenu->popup(QCursor::pos());
-        hardwareMenu->popup(toolbar->mapToGlobal(toolbar->actionGeometry(hardwareAction).bottomLeft()));
-    } /*else if (senderAction == replicateCountAction) {
-        //hardwareMenu->popup(QCursor::pos());
-        //replicateMenu->popup(toolbar->mapToGlobal(toolbar->actionGeometry(replicateCountAction).bottomLeft()));
-    }*/ else {
-        qWarning() << "ToolbarWidgetNew::execMenu - Action's menu is not dealt with.";
-    }
 }
 
 
@@ -144,12 +192,6 @@ void ToolbarWidgetNew::setupToolbar()
     toolbar = new QToolBar(this);
     toolbar->setIconSize(iconSize);
 
-    /*
-    if (actionController) {
-        toolbar->addActions(actionController->contextToolbar->actions());
-    }
-    */
-
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setSpacing(0);
     layout->setMargin(0);
@@ -157,6 +199,7 @@ void ToolbarWidgetNew::setupToolbar()
 
     setupActions();
     setupMenus();
+    setupConnections();
 }
 
 
@@ -177,7 +220,8 @@ void ToolbarWidgetNew::setupActions()
     addChildAction = mainGroup->addAction(toolbarController->getAdoptableKindsAction(true));
     mainGroup->addAction(actionController->getRootAction("Delete")->constructSubAction(true));
     connectAction = mainGroup->addAction(connectGroup->getGroupVisibilityAction()->constructSubAction(true));
-    hardwareAction = mainGroup->addAction(toolbarController->getHardwareAction(true));
+    hardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_CONNECT", true));
+    disconnectHardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_DISCONNECT", true));
     mainGroup->addSeperator();
     mainGroup->addAction(actionController->edit_alignVertical->constructSubAction(true));
     mainGroup->addAction(actionController->edit_alignHorizontal->constructSubAction(true));
@@ -218,8 +262,11 @@ void ToolbarWidgetNew::setupActions()
 void ToolbarWidgetNew::setupMenus()
 {
     setupAddChildMenu();
-    setupHardwareMenu();
+
     //setupReplicateCountMenu();
+
+    hardwareMenu = constructTopMenu(hardwareAction);
+
 }
 
 
@@ -234,15 +281,13 @@ void ToolbarWidgetNew::setupSplitMenus()
         return;
     }
 
-    QMenu* menu = new QMenu(this);
+    QMenu* menu = constructTopMenu(definitionAction, false);
     menu->addAction(actionController->view_centerOnDefn);
     menu->addAction(actionController->toolbar_popOutDefn);
-    definitionAction->setMenu(menu);
 
-    QMenu* menu2 = new QMenu(this);
+    QMenu* menu2 = constructTopMenu(implementationAction, false);
     menu2->addAction(actionController->view_centerOnImpl);
     menu2->addAction(actionController->toolbar_popOutImpl);
-    implementationAction->setMenu(menu2);
 }
 
 
@@ -256,7 +301,7 @@ void ToolbarWidgetNew::setupAddChildMenu()
     }
 
     QStringList kindsWithSubMenus = toolbarController->getKindsRequiringSubActions();
-    addMenu = new QMenu(this);
+    addMenu = constructTopMenu(addChildAction);
 
     foreach (QAction* action, toolbarController->getAdoptableKindsActions(true)) {
         QString kind = action->text();
@@ -270,23 +315,8 @@ void ToolbarWidgetNew::setupAddChildMenu()
         }
         addMenu->addAction(action);
     }
-
-    // TODO - replace this with the menu's own execMenu() slot
-    connect(addChildAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
 }
 
-void ToolbarWidgetNew::setupHardwareMenu()
-{
-    if (!toolbarController) {
-        return;
-    }
-
-    hardwareMenu = new QMenu(this);
-    hardwareMenu->addActions(toolbarController->getHardwareActions(true));
-
-    // TODO - replace this with the menu's own execMenu() slot
-    connect(hardwareAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
-}
 
 void ToolbarWidgetNew::setupReplicateCountMenu()
 {
@@ -306,9 +336,62 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
     QWidgetAction* rc = new QWidgetAction(this);
     rc->setDefaultWidget(replicateToolbar);
 
-    replicateMenu = new QMenu(this);
+    replicateMenu = constructTopMenu(replicateCountAction);
     replicateMenu->addAction(rc);
+}
 
-    connect(replicateCountAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
+
+/**
+ * @brief ToolbarWidgetNew::setupConnections
+ */
+void ToolbarWidgetNew::setupConnections()
+{
+    connect(hardwareMenu, SIGNAL(aboutToShow()), this, SLOT(populateDeploymentMenu()));
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::clearDynamicMenus
+ */
+void ToolbarWidgetNew::clearDynamicMenus()
+{
+    hardwareMenu->clear();
+    foreach (QMenu* menu, adoptableKindsSubMenus.values()) {
+        menu->clear();
+    }
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::constructTopMenu
+ * @param parentAction
+ * @return
+ */
+QMenu *ToolbarWidgetNew::constructTopMenu(QAction* parentAction, bool instantPopup)
+{
+   QMenu* menu = new QMenu(this);
+   connect(menu, SIGNAL(triggered(QAction*)), this, SLOT(menuActionTrigged(QAction*)));
+   if (parentAction) {
+       if (instantPopup) {
+           popupMenuHash[parentAction] = menu;
+           connect(parentAction, SIGNAL(triggered(bool)), this, SLOT(execMenu()));
+       } else {
+           parentAction->setMenu(menu);
+       }
+   }
+   return menu;
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::getInfoAction
+ * @param hashKey
+ * @return
+ */
+QAction* ToolbarWidgetNew::getInfoAction(QString hashKey)
+{
+    QAction* infoAction = toolbarController->getToolAction(hashKey, false);
+    infoAction->setProperty("action-type", "info");
+    return infoAction;
 }
 

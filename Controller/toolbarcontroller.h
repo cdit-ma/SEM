@@ -34,13 +34,13 @@ public:
     QList<QAction*> getInstancesActions(bool stealth);
     QAction* getInstancesAction(bool stealth);
 
-    //QAction* getDefinitionAction(bool stealth);
-    //QAction* getImplementationAction(bool stealth);
+    QAction* getToolAction(QString hashKey, bool stealth);
 
     QStringList getKindsRequiringSubActions();
     QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
 
 private slots:
+    void themeChanged();
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 
@@ -48,8 +48,12 @@ private slots:
     void addChildNode();
 
 private:
+    void setupToolActions();
     void setupNodeActions();
 
+    RootAction* createRootAction(QString hashKey, QString actionName, QString iconPath="", QString aliasPath="");
+
+    QHash<QString, RootAction*> toolActions;
     QHash<QString, RootAction*> nodeKindActions;
     QHash<int, NodeViewItemAction*> actions;
 

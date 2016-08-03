@@ -8,7 +8,7 @@
 #include "actioncontroller.h"
 #include "toolbarcontroller.h"
 
-
+class NewController;
 class ToolbarWidgetNew;
 class ViewController : public QObject
 {
@@ -21,10 +21,13 @@ public:
     ActionController* getActionController();
     ToolActionController* getToolbarController();
 
+    QList<int> getValidEdges(Edge::EDGE_CLASS kind);
+    QStringList getAdoptableNodeKinds();
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
     bool isModelReady();
 
+    void setController(NewController* c);
 signals:
     void modelReady(bool);
     void viewItemConstructed(ViewItem* viewItem);
@@ -43,7 +46,7 @@ signals:
     void canRedo(bool);
 
 
-signals:
+    void deleteEntities(QList<int> IDs);
     void constructChildNode(int parentID, QString kind, QPointF pos = QPointF());
 
 private slots:
@@ -52,9 +55,16 @@ private slots:
     void setModelReady(bool okay);
     void entityConstructed(EntityAdapter* entity);
     void entityDestructed(EntityAdapter* entity);
+    void deleteSelection();
+
+    void constructDDSQOSProfile();
+
 
 private:
+    QList<int> getIDsOfKind(QString kind);
     bool _modelReady;
+
+    QHash<QString, QList<int> > itemKindLists;
     QHash<int, ViewItem*> viewItems;
     ViewItem* modelItem;
 
@@ -63,6 +73,7 @@ private:
     ToolActionController* toolbarController;
 
     ToolbarWidgetNew* toolbar;
+    NewController* controller;
 };
 
 #endif // VIEWCONTROLLER_H

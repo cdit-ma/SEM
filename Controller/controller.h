@@ -232,6 +232,7 @@ signals:
     void controller_EntityDestructed(EntityAdapter*);
 
     void controller_GraphMLDestructed(int ID, GraphML::GRAPHML_KIND kind);
+    void test_destruct(int ID);
 
 
 

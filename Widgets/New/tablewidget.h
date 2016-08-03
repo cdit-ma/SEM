@@ -1,12 +1,12 @@
 #ifndef TABLEWIDGET_H
 #define TABLEWIDGET_H
 
-#include <QTableView>
 #include <QVBoxLayout>
 #include <QToolBar>
+
 #include <QTableView>
 #include <QLabel>
-#include <QAction>
+#include "../../View/Table/attributetableview.h"
 #include "../../View/viewitem.h"
 #include "../../Controller/viewcontroller.h"
 #include "../../View/Table/multilinedelegate.h"
@@ -22,16 +22,16 @@ private slots:
 private:
     void setupLayout();
 
-    QVBoxLayout * layout;
+
     ViewItem* activeItem;
 
     QSize iconSize;
-    QTableView* tableView;
+    AttributeTableView* tableView;
     QToolBar* toolbar;
     QLabel* iconLabel;
     QLabel* label;
     ViewController* viewController;
-    MultilineDelegate* multilineDelegate;
+    AttributeTableDelegate* multilineDelegate;
 
 };
 

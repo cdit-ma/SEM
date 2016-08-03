@@ -25,10 +25,15 @@ signals:
     void addChildNode();
 
 public slots:
-    void themeChanged();
     void setVisible(bool visible);
-    void viewItem_Destructed(int ID, ViewItem* viewItem);
+
+    void themeChanged();
+
     void execMenu();
+    void populateDeploymentMenu();
+    void menuActionTrigged(QAction* action);
+
+    void viewItem_Destructed(int ID, ViewItem* viewItem);
 
 private:
     void setupToolbar();
@@ -36,17 +41,22 @@ private:
     void setupMenus();
     void setupSplitMenus();
     void setupAddChildMenu();
-    void setupHardwareMenu();
     void setupReplicateCountMenu();
     void setupHardwareViewOptionMenu();
     void setupInstancesMenu();
+
+    void setupConnections();
+    void clearDynamicMenus();
+
+    QMenu* constructTopMenu(QAction* parentAction, bool instantPopup = true);
+    QAction* getInfoAction(QString hashKey);
 
     ViewController* viewController;
     ActionController* actionController;
     ToolActionController* toolbarController;
     QSize iconSize;
 
-    QHash<QAction*, QMenu*> actionMenuHash;
+    QHash<QAction*, QMenu*> popupMenuHash;
     QHash<QString, QMenu*> adoptableKindsSubMenus;
 
     //QHash<int, NodeViewItemAction*> nodeActions;
@@ -66,6 +76,7 @@ private:
     QAction* addChildAction;
     QAction* connectAction;
     QAction* hardwareAction;
+    QAction* disconnectHardwareAction;
     QAction* definitionAction;
     QAction* implementationAction;
     QAction* instancesAction;

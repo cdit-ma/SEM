@@ -248,6 +248,7 @@ void NodeViewNew::item_ActiveSelected(ViewItem *item)
 
 void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
 {
+    qCritical() << item << expand;
     if(item){
         int ID = item->getID();
         emit triggerAction("Expanding Selection");

@@ -6,27 +6,19 @@
 #include <QDebug>
 QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent) : QWidget(parent)
 {
+    this->vc = vc;
     qosModel = new QOSProfileModel(this);
-
-
     setStyleSheet("QOSBrowser{padding:5px;margin:0px;}");
+
     connect(vc, SIGNAL(viewItemConstructed(ViewItem*)), qosModel, SLOT(viewItem_Constructed(ViewItem*)));
     connect(vc, SIGNAL(viewItemDestructing(int,ViewItem*)), qosModel, SLOT(viewItem_Destructed(int,ViewItem*)));
+
     setupLayout();
 
-    profileView->setModel(qosModel);
-    elementView->setModel(qosModel);
-    profileView->setSelectionBehavior(QAbstractItemView::SelectItems);
-    profileView->setSelectionMode(QAbstractItemView::SingleSelection);
-    elementView->setSelectionBehavior(QAbstractItemView::SelectItems);
-    elementView->setSelectionMode(QAbstractItemView::SingleSelection);
-    connect(profileView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(profileSelected(QModelIndex, QModelIndex)));
-    //
-    connect(elementView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(settingSelected(QModelIndex, QModelIndex)));
+
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
 void QOSBrowser::themeChanged()
@@ -39,10 +31,15 @@ void QOSBrowser::themeChanged()
 
 void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex index2)
 {
-    int ID = qosModel->data(index1, QOSProfileModel::ID_ROLE).toInt();
-    qCritical() << ID;
-    elementView->setRootIndex(index1);
-    //NodeViewItem* item = qosModel->getNodeViewItem(ID);
+    if(index1.isValid()){
+        elementView->setModel(qosModel);
+        //elementView->selectionModel()->deleteLater();
+        elementView->setSelectionModel(elementViewSelectionModel);
+        elementView->setRootIndex(index1);
+    }else{
+        elementView->setModel(0);
+        //elementView->selectionModel()->deleteLater();
+    }
 }
 
 void QOSBrowser::settingSelected(QModelIndex index1, QModelIndex)
@@ -52,18 +49,35 @@ void QOSBrowser::settingSelected(QModelIndex index1, QModelIndex)
 
 void QOSBrowser::setupLayout()
 {
-
     QHBoxLayout* layout = new QHBoxLayout(this);
-    profileView = new QListView();
-    elementView = new QListView();
-    tableView = new QTableView();
-    tableView->horizontalHeader()->setVisible(false);
-    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableView->horizontalHeader()->setHighlightSections(false);
-    tableView->verticalHeader()->setHighlightSections(false);
+    profileView = new QListView(this);
+    elementView = new QListView(this);
+    tableView = new AttributeTableView(this);
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->setIconSize(QSize(20,20));
+    toolbar->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+    toolbar->addAction(vc->getActionController()->toolbar_addDDSQOSProfile);
 
-    layout->addWidget(profileView,1);
-    layout->addWidget(elementView,1);
-    layout->addWidget(tableView,2);
+    QVBoxLayout* profileLayout = new QVBoxLayout(this);
+    profileLayout->addWidget(profileView, 1);
+    profileLayout->addWidget(toolbar);
+    layout->addLayout(profileLayout, 1);
+
+    layout->addWidget(elementView, 1);
+    layout->addWidget(tableView, 2);
+
+    profileView->setModel(qosModel);
+    elementView->setModel(0);
+
+    elementViewSelectionModel = new QItemSelectionModel(qosModel);
+
+    profileView->setSelectionBehavior(QAbstractItemView::SelectItems);
+    profileView->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    elementView->setSelectionBehavior(QAbstractItemView::SelectItems);
+    elementView->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    connect(profileView->selectionModel(), SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(profileSelected(QModelIndex, QModelIndex)));
+    connect(elementViewSelectionModel, SIGNAL(currentChanged(QModelIndex,QModelIndex)), this, SLOT(settingSelected(QModelIndex, QModelIndex)));
 }
 

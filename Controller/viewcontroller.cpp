@@ -2,6 +2,7 @@
 #include "../View/nodeviewitem.h"
 #include "../View/edgeviewitem.h"
 #include "../View/Toolbar/toolbarwidgetnew.h"
+#include "controller.h"
 #include <QDebug>
 ViewController::ViewController(){
     modelItem = 0;
@@ -11,6 +12,7 @@ ViewController::ViewController(){
     actionController->connectViewController(this);
 
 
+    controller = 0;
 
     toolbarController = new ToolActionController(this);
     toolbar = new ToolbarWidgetNew(this);
@@ -81,6 +83,24 @@ ToolActionController *ViewController::getToolbarController()
     return toolbarController;
 }
 
+QList<int> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
+{
+    if(selectionController && controller){
+        int ID = selectionController->getFirstSelectedItem()->getID();
+        return controller->getConnectableNodes(ID);
+    }
+    return QList<int>();
+}
+
+QStringList ViewController::getAdoptableNodeKinds()
+{
+    if(selectionController && controller){
+        int ID = selectionController->getFirstSelectedItem()->getID();
+        return controller->getAdoptableNodeKinds(ID);
+    }
+    return QStringList();
+}
+
 
 void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
@@ -117,6 +137,11 @@ bool ViewController::isModelReady()
     return _modelReady;
 }
 
+void ViewController::setController(NewController *c)
+{
+    controller = c;
+}
+
 void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit triggerAction("Table Changed");
@@ -140,7 +165,7 @@ void ViewController::setModelReady(bool okay)
 void ViewController::entityConstructed(EntityAdapter *entity)
 {
     ViewItem* viewItem = 0;
-    bool isModel = false;
+    QString kind;
     if(entity->isNodeAdapter()){
         NodeAdapter* nodeAdapter = (NodeAdapter*)entity;
         int parentID = nodeAdapter->getParentNodeID();
@@ -153,19 +178,19 @@ void ViewController::entityConstructed(EntityAdapter *entity)
             parent->addChild(viewItem);
         }
 
-        if(entity->getDataValue("kind") == "Model"){
-            isModel = true;
-        }
+        kind = nodeAdapter->getNodeKind();
     }else if(entity->isEdgeAdapter()){
         viewItem = new EdgeViewItem((EdgeAdapter*)entity);
+        kind = "EDGE";
     }
 
     if(viewItem){
         int ID = viewItem->getID();
         viewItems[ID] = viewItem;
+        itemKindLists[kind].append(ID);
         setDefaultIcon(viewItem);
 
-        if(isModel){
+        if(kind == "Model"){
             modelItem = viewItem;
         }
 
@@ -182,6 +207,13 @@ void ViewController::entityDestructed(EntityAdapter *entity)
     if(entity){
         int ID = entity->getID();
         if(viewItems.contains(ID)){
+            QString kind;
+
+            if(entity->isNodeAdapter()){
+                kind = ((NodeAdapter*)entity)->getNodeKind();
+            }else{
+                kind = "EDGE";
+            }
             ViewItem* viewItem = viewItems[ID];
 
 
@@ -197,6 +229,7 @@ void ViewController::entityDestructed(EntityAdapter *entity)
 
             //Remove the item from the Hash
             viewItems.remove(ID);
+            itemKindLists[kind].removeAll(ID);
 
             if(viewItem){
                 emit viewItemDestructing(ID, viewItem);
@@ -204,5 +237,28 @@ void ViewController::entityDestructed(EntityAdapter *entity)
             }
         }
     }
+}
+
+void ViewController::deleteSelection()
+{
+    if(selectionController){
+        QList<int> selection;
+        foreach(ViewItem* item, selectionController->getSelection()){
+            selection.append(item->getID());
+        }
+        emit deleteEntities(selection);
+    }
+}
+
+void ViewController::constructDDSQOSProfile()
+{
+    foreach(int ID, getIDsOfKind("AssemblyDefinitions")){
+        emit constructChildNode(ID, "DDS_QOSProfile");
+    }
+}
+
+QList<int> ViewController::getIDsOfKind(QString kind)
+{
+    return itemKindLists[kind];
 }
 

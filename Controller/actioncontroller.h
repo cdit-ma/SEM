@@ -21,6 +21,8 @@ public:
     RootAction* getRootAction(QString actionKey);
     void connectViewController(ViewController* controller);
 
+    void updateIcon(RootAction* action, Theme* theme = Theme::theme());
+
 private:
     //void connectSelectionController(SelectionController* controller);
     RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
@@ -33,7 +35,6 @@ private slots:
     void themeChanged();
 
     void updateJenkinsActions();
-    void updateIcon(RootAction* action, Theme* theme = Theme::theme());
 
 public:
     SelectionController* selectionController;
@@ -118,6 +119,7 @@ public:
     RootAction* toolbar_wiki;
     RootAction* toolbar_replicateCount;
     RootAction* toolbar_displayedChildrenOption;
+    RootAction* toolbar_addDDSQOSProfile;
 
     bool _modelReady;
     bool _jenkinsValidated;

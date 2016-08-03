@@ -29,6 +29,9 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(edit_undo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_undo()));
         connect(edit_redo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_redo()));
+        connect(edit_delete, SIGNAL(triggered(bool)), viewController, SLOT(deleteSelection()));
+
+        connect(toolbar_addDDSQOSProfile, SIGNAL(triggered(bool)), viewController, SLOT(constructDDSQOSProfile()));
         connectSelectionController(controller->getSelectionController());
     }
 }
@@ -90,6 +93,9 @@ void ActionController::selectionChanged(int selectionSize)
         bool noModel = selectionSize == -1;
         bool emptySelection = selectionSize == 0;
 
+
+
+        if(_modelReady)
         if(emptySelection || !_modelReady){
             edit_cut->setEnabled(false);
             edit_copy->setEnabled(false);
@@ -99,6 +105,7 @@ void ActionController::selectionChanged(int selectionSize)
             edit_sort->setEnabled(false);
             edit_alignHorizontal->setEnabled(false);
             edit_alignVertical->setEnabled(false);
+
             edit_CycleActiveSelectionForward->setEnabled(false);
             edit_CycleActiveSelectionBackward->setEnabled(false);
 
@@ -111,12 +118,17 @@ void ActionController::selectionChanged(int selectionSize)
             file_importSnippet->setEnabled(false);
             file_exportSnippet->setEnabled(false);
             edit_clearSelection->setEnabled(false);
+
             if(_modelReady){
                 edit_selectAll->setEnabled(true);
             }else{
                 edit_selectAll->setEnabled(false);
             }
         }else if(!emptySelection){
+
+            edit_CycleActiveSelectionForward->setEnabled(selectionSize > 1);
+            edit_CycleActiveSelectionBackward->setEnabled(selectionSize > 1);
+
             if(selectionSize > 1){
                 edit_selectAll->setEnabled(false);
                 edit_CycleActiveSelectionForward->setEnabled(true);
@@ -170,6 +182,8 @@ void ActionController::modelReady(bool ready)
     jenkins_importNodes->setEnabled(ready);
     jenkins_executeJob->setEnabled(ready);
     toolbar_contextToolbar->setEnabled(ready);
+
+    toolbar_addDDSQOSProfile->setEnabled(ready);
 
     if(!ready){
         //Update the selection changed with a special thing.
@@ -295,6 +309,8 @@ void ActionController::setupActions()
     toolbar_wiki = createRootAction("View Wiki Page For Selected Entity", "", "Actions", "Wiki");
     toolbar_replicateCount = createRootAction("Change Replicate Count", "", "Actions", "Replicate_Count");
     toolbar_displayedChildrenOption = createRootAction("Change Displayed Nodes Settings", "", "Actions", "Menu_Vertical");
+
+    toolbar_addDDSQOSProfile = createRootAction("Construct new DDS QOS Profile", "", "Actions", "Plus");
 }
 
 void ActionController::setupMainMenu()
