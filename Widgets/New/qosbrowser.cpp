@@ -33,12 +33,10 @@ void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex index2)
 {
     if(index1.isValid()){
         elementView->setModel(qosModel);
-        //elementView->selectionModel()->deleteLater();
         elementView->setSelectionModel(elementViewSelectionModel);
         elementView->setRootIndex(index1);
     }else{
         elementView->setModel(0);
-        //elementView->selectionModel()->deleteLater();
     }
 }
 
@@ -58,9 +56,9 @@ void QOSBrowser::setupLayout()
     toolbar->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
     toolbar->addAction(vc->getActionController()->toolbar_addDDSQOSProfile);
 
-    QVBoxLayout* profileLayout = new QVBoxLayout(this);
+    QVBoxLayout* profileLayout = new QVBoxLayout();
     profileLayout->addWidget(profileView, 1);
-    profileLayout->addWidget(toolbar);
+    profileLayout->addWidget(toolbar, 0, Qt::AlignRight);
     layout->addLayout(profileLayout, 1);
 
     layout->addWidget(elementView, 1);

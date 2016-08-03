@@ -137,7 +137,7 @@ MedeaWindow::MedeaWindow(ViewController* vc, QString graphMLFile, QWidget *paren
     }
 
     updateTheme();
-    newProject();
+   // newProject();
 }
 
 

@@ -33,12 +33,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     setResizeEnabled(true);
     setExpandEnabled(true);
 
-
-<<<<<<< HEAD
-    //Set initial body Color
-=======
     addRequiredData("isExpanded");
->>>>>>> 9d103317c08d988cecca11dde0da6b7fa36e8480
 
     if(parentItem){
         //Lock child in same aspect as parent

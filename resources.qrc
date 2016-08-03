@@ -66,6 +66,7 @@
         <file alias="MEDEABanner.png">Resources/Images/MEDEA_Banner.png</file>
         <file alias="Graphml.ico">Resources/Images/Graphml.ico</file>
         <file alias="UML">Resources/Images/UML.png</file>
+        <file alias="demo.graphml">Resources/demo.graphml</file>
     </qresource>
     <qresource prefix="/Actions">
         <file alias="Add">Resources/Images/Actions/Add.png</file>

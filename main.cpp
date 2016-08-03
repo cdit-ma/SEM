@@ -57,7 +57,7 @@ int launchMEDEA(int argc, char *argv[]){
     ViewController* vc = new ViewController();
     MedeaMainWindow* w2 = (MedeaMainWindow*) MedeaWindowManager::constructMainWindow(vc);
     emit Theme::theme()->theme_Changed();
-    MedeaWindow *w = new MedeaWindow(vc, graphmlFilePath);
+    MedeaWindow *w = new MedeaWindow(vc, ":/demo.graphml");
 
 
 
