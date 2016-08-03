@@ -9,6 +9,7 @@
 #include "SceneItems/defaultnodeitem.h"
 #include "SceneItems/Hardware/hardwarenodeitem.h"
 #include "SceneItems/Assemblies/managementcomponentnodeitem.h"
+#include "SceneItems/eventportnodeitem.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
@@ -484,6 +485,8 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new HardwareNodeItem(item, parentNode);
             }else if(nodeKind == "ManagementComponent"){
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
+            }else if(nodeKind == "InEventPort"){
+                nodeItem = new EventPortNodeItem(item, parentNode);
             }else{
                 nodeItem = new DefaultNodeItem(item, parentNode);
             }

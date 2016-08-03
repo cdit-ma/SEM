@@ -23,7 +23,7 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentIt
     cornerRadius = 5;
     textHeight = size / 2.0;
 
-    setupBrushes();
+    //setupBrushes();
 
     addRequiredData("x");
     addRequiredData("y");

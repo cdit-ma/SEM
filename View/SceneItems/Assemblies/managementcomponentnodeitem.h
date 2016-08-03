@@ -20,7 +20,7 @@ public:
 
     QRectF mainIconRect() const;
 
-    QRectF loggerIconRect() const;
+    QRectF subIconRect() const;
 
     QRectF nameTextRect() const;
 
@@ -28,14 +28,20 @@ public:
 
     QRectF labelRect() const;
 
-    QPolygonF rightPoly() const;
+    QPolygonF getRightPoly() const;
 
-    QPolygonF leftPoly() const;
+    QPolygonF getLeftPoly() const;
 
 
 private:
     QFont mainTextFont;
     int textHeight;
+    QPolygonF leftPoly;
+    QPolygonF rightPoly;
+    void setupPolys();
+
+    bool isLogger();
+    bool isDeployed();
 };
 
 #endif // MANAGEMENTCOMPONENTNODEITEM_H

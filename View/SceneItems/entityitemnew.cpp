@@ -27,6 +27,9 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     selectEnabled = true;
     moveEnabled = true;
 
+    //Setup the initial Body color
+    bodyColor = QColor(233,234,237).lighter(110);
+
 
     setHoverEnabled(true);
     setFlag(QGraphicsItem::ItemIsSelectable, false);

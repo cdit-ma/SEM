@@ -21,6 +21,8 @@ ManagementComponentNodeItem::ManagementComponentNodeItem(NodeViewItem *viewItem,
 
     textHeight = size / 2.0;
 
+    setupPolys();
+
     addRequiredData("x");
     addRequiredData("y");
 }
@@ -33,23 +35,30 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
     if(state > RS_BLOCK){
         painter->setClipRect(option->exposedRect);
         painter->setPen(Qt::NoPen);
+
+        if(isLogger()){
+            painter->save();
+            painter->setBrush(getBodyColor().darker(110));
+            painter->drawRect(subIconRect());
+            painter->restore();
+        }
+
         if(isExpanded()){
             painter->save();
             mainTextFont.setPixelSize(labelRect().height());
             painter->setPen(Qt::black);
-            painter->drawText(labelRect(), Qt::AlignCenter, getData("kind").toString());
-            painter->setBrush(Qt::white);
+            painter->drawText(labelRect(), Qt::AlignCenter, getData("label").toString());
+            painter->setBrush(getBodyColor());
             painter->setPen(Qt::NoPen);
-            painter->drawPolygon(rightPoly());
+
+            painter->drawPolygon(getRightPoly());
             painter->setBrush(Qt::NoBrush);
             painter->setPen(Qt::black);
-            painter->drawText(nameTextRect(), Qt::AlignCenter, getData("label").toString());
+            painter->drawText(nameTextRect(), Qt::AlignCenter, getData("kind").toString());
             painter->restore();
         }
-
-
-        painter->setBrush(Qt::white);
-        painter->drawPolygon(leftPoly());
+        painter->setBrush(getBodyColor().darker(110));
+        painter->drawPolygon(getLeftPoly());
     }
 
 
@@ -68,9 +77,10 @@ QPainterPath ManagementComponentNodeItem::getElementPath(EntityItemNew::ELEMENT_
     case ER_SELECTION:{
         QPainterPath path;
         path.setFillRule(Qt::WindingFill);
-        path.addPolygon(leftPoly());
+        path.addPolygon(getLeftPoly());
+        path.addRect(subIconRect());
         if(isExpanded()){
-            path.addPolygon(rightPoly());
+            path.addPolygon(getRightPoly());
         }
         return path.simplified();
     }
@@ -90,7 +100,7 @@ QRectF ManagementComponentNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT r
    case ER_MAIN_ICON:
        return mainIconRect();
    case ER_SECONDARY_ICON:
-       return loggerIconRect();
+       return subIconRect();
    case ER_SECONDARY_TEXT:
        return nameTextRect();
    default:
@@ -111,18 +121,18 @@ QRectF ManagementComponentNodeItem::mainRect() const
     return mainRect;
 }
 
-QRectF ManagementComponentNodeItem::loggerIconRect() const
+QRectF ManagementComponentNodeItem::subIconRect() const
 {
-    QPointF topLeft = rightRect().topLeft();
-    QPointF bottomRight = rightRect().bottomLeft() + QPointF(rightRect().height(), 0);
+    QPointF topLeft = mainIconRect().topLeft() + QPointF(getMinimumHeight()/10, getMinimumHeight()/10);
+    QPointF bottomRight = mainIconRect().bottomRight() - QPointF(getMinimumHeight()/10, getMinimumHeight()/10);
 
     return QRectF(topLeft, bottomRight);
 }
 
 QRectF ManagementComponentNodeItem::nameTextRect() const
 {
-    QPointF topLeft = loggerIconRect().topRight();
-    QPointF bottomRight = rightPoly().at(2);
+    QPointF topLeft = rightRect().topLeft();
+    QPointF bottomRight = getRightPoly().at(2);
     return QRectF(topLeft, bottomRight);
 }
 
@@ -140,22 +150,40 @@ QRectF ManagementComponentNodeItem::labelRect() const
     return QRectF(topLeft, bottomRight);
 }
 
-QPolygonF ManagementComponentNodeItem::rightPoly() const
+QPolygonF ManagementComponentNodeItem::getRightPoly() const
 {
-    QVector<QPoint> points;
-    points.push_back(rightRect().topLeft().toPoint());
-    points.push_back(rightRect().topRight().toPoint());
-    points.push_back(QPoint(rightRect().bottomRight().x()-rightRect().height(), rightRect().bottomRight().y()));
-    points.push_back(leftPoly().at(2).toPoint());
-    return QPolygonF(points);
+    return rightPoly;
 }
 
-QPolygonF ManagementComponentNodeItem::leftPoly() const
+QPolygonF ManagementComponentNodeItem::getLeftPoly() const
 {
-    QVector<QPoint> points;
-    points.push_back(QPoint((mainIconRect().left()+getMinimumWidth()/2), mainIconRect().top()));
-    points.push_back(QPoint(mainIconRect().right(), mainIconRect().top()+getMinimumHeight()/2));
-    points.push_back(QPoint(mainIconRect().left()+getMinimumWidth()/2, mainIconRect().bottom()));
-    points.push_back(QPoint(mainIconRect().left(), mainIconRect().top()+getMinimumHeight()/2));
-    return QPolygonF(points);
+    return leftPoly;
+}
+
+void ManagementComponentNodeItem::setupPolys()
+{
+    if(leftPoly.isEmpty()){
+        QRectF icon_rect = mainIconRect();
+        leftPoly.push_back(QPointF((icon_rect.left()+getMinimumWidth()/2), icon_rect.top()));
+        leftPoly.push_back(QPointF(icon_rect.right(), icon_rect.top()+getMinimumHeight()/2));
+        leftPoly.push_back(QPointF(icon_rect.left()+getMinimumWidth()/2, icon_rect.bottom()));
+        leftPoly.push_back(QPointF(icon_rect.left(), icon_rect.top()+getMinimumHeight()/2));
+    }
+
+    if(rightPoly.isEmpty()){
+        rightPoly.push_back(mainIconRect().center());
+        rightPoly.push_back(rightRect().topRight());
+        rightPoly.push_back(QPointF(rightRect().bottomRight().x()-rightRect().height(), rightRect().bottomRight().y()));
+        rightPoly.push_back(getLeftPoly().at(2).toPoint());
+    }
+}
+
+bool ManagementComponentNodeItem::isLogger()
+{
+    return getData("label").toString() == "DDS_LOGGING_SERVER";
+}
+
+bool ManagementComponentNodeItem::isDeployed()
+{
+    return getData("kind").toString().startsWith("Out");
 }

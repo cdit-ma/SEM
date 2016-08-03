@@ -34,6 +34,8 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     setExpandEnabled(true);
 
 
+    //Set initial body Color
+
     if(parentItem){
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
@@ -85,6 +87,8 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
         }
         //Update our position
         resizeToChildren();
+
+        nodeItem->setBodyColor(getBodyColor().darker(110));
     }
 }
 

@@ -224,7 +224,8 @@ HEADERS += \
     Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h \
     Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h \
     Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h \
-    Model/Edges/qosedge.h
+    Model/Edges/qosedge.h \
+    View/SceneItems/eventportnodeitem.h
 
 SOURCES += \
     main.cpp \
@@ -385,6 +386,7 @@ SOURCES += \
     View/SceneItems/Assemblies/managementcomponentnodeitem.cpp \
     Controller/toolbarcontroller.cpp \
     Controller/nodeviewitemaction.cpp \
+    View/SceneItems/eventportnodeitem.cpp \
     View/Table/multilinedelegate.cpp \
     Widgets/New/qosbrowser.cpp \
     Widgets/New/qosprofilemodel.cpp \
@@ -413,7 +415,6 @@ SOURCES += \
     Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp \
     Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp \
     Model/Edges/qosedge.cpp
-
 
 RESOURCES += \
     resources.qrc
