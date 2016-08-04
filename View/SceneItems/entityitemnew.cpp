@@ -475,7 +475,6 @@ void EntityItemNew::setExpanded(bool expand)
 void EntityItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     if(isExpandEnabled()){
-
         if(event->button() == Qt::LeftButton && getElementPath(ER_EXPANDCONTRACT).contains(event->pos())){
             handleExpand(!isExpanded());
         }

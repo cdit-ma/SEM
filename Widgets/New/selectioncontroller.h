@@ -5,6 +5,7 @@
 
 
 class MedeaViewDockWidget;
+class MedeaNodeViewDockWidget;
 class SelectionController : public QObject
 {
     Q_OBJECT
@@ -36,7 +37,7 @@ private:
     void setCurrentViewDockWidget(MedeaViewDockWidget* dock);
     void setCurrentSelectionHandler(SelectionHandler* handler);
 
-    MedeaViewDockWidget* currentViewDockWidget;
+    MedeaNodeViewDockWidget* currentViewDockWidget;
     SelectionHandler* currentHandler;
 
     QHash<QObject*, int> selectionHandlerIDLookup;

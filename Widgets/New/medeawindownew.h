@@ -28,6 +28,10 @@ public:
 
     void setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool maximized);
 
+    QMenu *createPopupMenu();
+private slots:
+    void showContextMenu(const QPoint &point);
+
 
 private:
 

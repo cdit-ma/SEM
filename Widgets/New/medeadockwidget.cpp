@@ -20,13 +20,14 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 
     _isProtected = false;
 
-    setContextMenuPolicy(Qt::PreventContextMenu);
+    setContextMenuPolicy(Qt::CustomContextMenu);
 
     if(titleBar){
         //Do connects.
         connect(titleBar->getAction(DockTitleBarWidget::DA_CLOSE), SIGNAL(triggered(bool)), this, SIGNAL(closeWidget()));
         connect(titleBar->getAction(DockTitleBarWidget::DA_MAXIMIZE), SIGNAL(triggered(bool)),this, SIGNAL(maximizeWidget(bool)));
         connect(titleBar->getAction(DockTitleBarWidget::DA_POPOUT), SIGNAL(triggered(bool)),this, SIGNAL(popOutWidget()));
+        connect(titleBar->getAction(DockTitleBarWidget::DA_HIDE), SIGNAL(triggered(bool)),this, SLOT(hide()));
         connect(titleBar, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
         titleBar->installEventFilter(this);
     }
@@ -153,6 +154,11 @@ void MedeaDockWidget::setCloseVisible(bool visible)
     setActionVisible(DockTitleBarWidget::DA_CLOSE, visible);
 }
 
+void MedeaDockWidget::setHideVisible(bool visible)
+{
+    setActionVisible(DockTitleBarWidget::DA_HIDE, visible);
+}
+
 void MedeaDockWidget::setMaximizeVisible(bool visible)
 {
     setActionVisible(DockTitleBarWidget::DA_MAXIMIZE, visible);
@@ -194,6 +200,7 @@ void MedeaDockWidget::themeChanged()
     QAction* maxAction = getAction(DockTitleBarWidget::DA_MAXIMIZE);
     QAction* popAction = getAction(DockTitleBarWidget::DA_POPOUT);
     QAction* protectAction = getAction(DockTitleBarWidget::DA_PROTECT);
+    QAction* hideAction = getAction(DockTitleBarWidget::DA_HIDE);
 
     if(closeAction){
         closeAction->setIcon(theme->getIcon("Actions", "Close"));
@@ -206,6 +213,9 @@ void MedeaDockWidget::themeChanged()
     }
     if(protectAction){
         protectAction->setIcon(theme->getIcon("Actions", "Lock_Open"));
+    }
+    if(hideAction){
+        hideAction->setIcon(theme->getIcon("Actions", "Close"));
     }
 }
 

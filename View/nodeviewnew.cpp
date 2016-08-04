@@ -486,8 +486,10 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new HardwareNodeItem(item, parentNode);
             }else if(nodeKind == "ManagementComponent"){
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
-            }else if(nodeKind == "InEventPort"){
+            }else if(nodeKind.contains("EventPort")){
                 nodeItem = new EventPortNodeItem(item, parentNode);
+            }else if(nodeKind.contains("DDS_")){
+                return;
             }else{
                 nodeItem = new DefaultNodeItem(item, parentNode);
             }

@@ -1,12 +1,14 @@
 #include "medeaviewwindow.h"
 #include "medeaviewdockwidget.h"
 #include "../../View/theme.h"
+#include <QStringBuilder>
 #include <QMenu>
 MedeaViewWindow::MedeaViewWindow():MedeaWindowNew(0, MedeaWindowNew::VIEW_WINDOW)
 {
 
     setAcceptDrops(true);
     setDockNestingEnabled(true);
+    setContextMenuPolicy(Qt::CustomContextMenu);
     //Setup Tab positions
     setTabPosition(Qt::RightDockWidgetArea, QTabWidget::West);
     setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::West);
@@ -15,9 +17,12 @@ MedeaViewWindow::MedeaViewWindow():MedeaWindowNew(0, MedeaWindowNew::VIEW_WINDOW
 
     //Setup Reset action
     resetDockedWidgetsAction = new QAction("Reset Docked Widgets", this);
-    resetDockedWidgetsAction->setIcon(Theme::theme()->getImage("Actions", "Maximize"));
+
     connect(resetDockedWidgetsAction, SIGNAL(triggered(bool)), this, SLOT(resetDockWidgets()));
 
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 void MedeaViewWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt::Orientation orientation)
 {
@@ -28,6 +33,22 @@ void MedeaViewWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget
     }
 }
 
+void MedeaViewWindow::themeChanged()
+{
+    Theme* theme = Theme::theme();
+    setStyleSheet(theme->getWindowStyleSheet() %
+                  theme->getViewStyleSheet() %
+                  theme->getMenuBarStyleSheet() %
+                  theme->getMenuStyleSheet() %
+                  theme->getToolBarStyleSheet() %
+                  theme->getDockWidgetStyleSheet() %
+                  theme->getPushButtonStyleSheet() %
+                  theme->getPopupWidgetStyleSheet() %
+                  "QToolButton{ padding: 4px; }");
+
+    resetDockedWidgetsAction->setIcon(Theme::theme()->getImage("Actions", "Maximize"));
+}
+
 void MedeaViewWindow::resetDockWidgets()
 {
     foreach(MedeaDockWidget* child, getDockWidgets()){
@@ -35,10 +56,6 @@ void MedeaViewWindow::resetDockWidgets()
     }
 }
 
-void MedeaViewWindow::showContextMenu(const QPoint & point)
-{
-    createPopupMenu()->exec(mapToGlobal(point));
-}
 QMenu *MedeaViewWindow::createPopupMenu()
 {
     QMenu* menu = MedeaWindowNew::createPopupMenu();
@@ -46,4 +63,5 @@ QMenu *MedeaViewWindow::createPopupMenu()
     menu->addAction(resetDockedWidgetsAction);
     return menu;
 }
+
 

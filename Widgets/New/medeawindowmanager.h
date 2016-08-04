@@ -8,6 +8,7 @@
 class MedeaDockWidget;
 class MedeaToolDockWidget;
 class MedeaViewDockWidget;
+class MedeaNodeViewDockWidget;
 class MedeaWindowNew;
 class ViewController;
 
@@ -23,6 +24,7 @@ public:
     static MedeaWindowNew* constructMainWindow(ViewController* vc, QString title="");
     static MedeaWindowNew* constructSubWindow(QString title="");
     static MedeaWindowNew* constructCentralWindow(QString title="");
+    static MedeaNodeViewDockWidget* constructNodeViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     static MedeaViewDockWidget* constructViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
     static MedeaToolDockWidget* constructToolDockWidget(QString title="");
 
@@ -36,7 +38,7 @@ signals:
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevWidget = 0);
 public:
     MedeaViewDockWidget* getActiveViewDockWidget();
-    void setActiveDockWidget(MedeaDockWidget* dockWidget = 0);
+    void setActiveDockWidget(MedeaDockWidget *dockWidget = 0);
 private slots:
     void dockWidget_Close();
     void dockWidget_PopOut();
@@ -51,6 +53,7 @@ private:
     MedeaWindowNew* _constructCentralWindow(QString title);
     MedeaToolDockWidget* _constructToolDockWidget(QString title);
     MedeaViewDockWidget* _constructViewDockWidget(QString title, Qt::DockWidgetArea area);
+    MedeaNodeViewDockWidget* _constructNodeViewDockWidget(QString title, Qt::DockWidgetArea area);
 
     void _destructWindow(MedeaWindowNew* window);
     void _destructDockWidget(MedeaDockWidget* widget);

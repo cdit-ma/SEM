@@ -11,13 +11,16 @@ public:
     void addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt::Orientation orientation);
 
 private slots:
+    void themeChanged();
     void resetDockWidgets();
-    void showContextMenu(const QPoint &point);
-    QMenu *createPopupMenu();
 
 
 private:
     QAction* resetDockedWidgetsAction;
+
+    // QMainWindow interface
+public:
+    QMenu *createPopupMenu();
 };
 
 #endif // MEDEAVIEWWINDOW_H

@@ -2,6 +2,7 @@
 #include "../../Controller/viewcontroller.h"
 #include "medeaviewdockwidget.h"
 #include "medeawindowmanager.h"
+#include "medeanodeviewdockwidget.h"
 
 #include <QDebug>
 SelectionController::SelectionController(ViewController *vc):QObject(vc)
@@ -76,6 +77,7 @@ ViewItem *SelectionController::getFirstSelectedItem()
 
 void SelectionController::activeViewDockWidgetChanged(MedeaViewDockWidget *dockWidget)
 {
+
     setCurrentViewDockWidget(dockWidget);
 }
 
@@ -96,15 +98,20 @@ void SelectionController::cycleActiveSelectedItem(bool forward)
     }
 }
 
-void SelectionController::setCurrentViewDockWidget(MedeaViewDockWidget *dock)
+void SelectionController::setCurrentViewDockWidget(MedeaViewDockWidget *d)
 {
-    if(dock != currentViewDockWidget){
+    MedeaNodeViewDockWidget* newDock = 0;
+    if(d && d->isNodeViewDock()){
+        newDock = (MedeaNodeViewDockWidget*)d;
+    }
+
+    if(newDock != currentViewDockWidget){
         if(currentViewDockWidget){
             NodeViewNew* nodeView = currentViewDockWidget->getNodeView();
             disconnect(this, SIGNAL(clearSelection()), nodeView, SLOT(clearSelection()));
             disconnect(this, SIGNAL(selectAll()), nodeView, SLOT(selectAll()));
         }
-        currentViewDockWidget = dock;
+        currentViewDockWidget = newDock;
 
         SelectionHandler* selectionHandler = 0;
         if(currentViewDockWidget){

@@ -3,8 +3,9 @@
 DockTitleBarWidget::DockTitleBarWidget(QWidget* parent) : QToolBar(parent)
 {
     //This sets to the parent that everything is okay.
-    setFocusPolicy(Qt::NoFocus);
+    setFocusPolicy(Qt::ClickFocus);
     setFocusProxy(parent);
+    //setMouseTracking(true);
 
     //Setting as Custom Context Menu so the parent can catch this signal.
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -49,6 +50,8 @@ QAction *DockTitleBarWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
         return popOutAction;
     case DA_PROTECT:
         return protectAction;
+    case DA_HIDE:
+        return hideAction;
     default:
         return 0;
     }
@@ -78,6 +81,9 @@ void DockTitleBarWidget::setupToolBar()
     protectAction = addAction("Protect Window");
     protectAction->setCheckable(true);
     protectAction->setVisible(false);
+    hideAction = addAction("Hide Window");
+    hideAction->setVisible(false);
+
     setIconSize(QSize(16,16));
 }
 
