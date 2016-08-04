@@ -359,7 +359,7 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
     QToolBar* replicateToolbar = new QToolBar(this);
     //replicateToolbar->setStyleSheet("spacing:2px;");
     replicateToolbar->addWidget(replicateCount);
-    applyReplicateCountAction = replicateToolbar->addWidget(applyReplicateCountButton);
+    //applyReplicateCountAction = replicateToolbar->addWidget(applyReplicateCountButton);
     //replicateToolbar->addAction(applyReplicateCountButton);
 
     QWidgetAction* rc = new QWidgetAction(this);
