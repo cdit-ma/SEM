@@ -22,15 +22,23 @@ public:
 
     QRectF subIconRect() const;
 
-    QRectF nameTextRect() const;
+    QRectF secondSubIconRect() const;
+
+    QRectF thirdSubIconRect() const;
+
+    QRectF rightRectExpanded() const;
 
     QRectF rightRect() const;
 
     QRectF labelRect() const;
 
+    QPolygonF getRightPolyExpanded() const;
+
     QPolygonF getRightPoly() const;
 
     QPolygonF getLeftPoly() const;
+
+    QRectF expandStateRect() const;
 
 
 private:
@@ -38,6 +46,7 @@ private:
     int textHeight;
     QPolygonF leftPoly;
     QPolygonF rightPoly;
+    QPolygonF rightPolyExpanded;
     void setupPolys();
 
     bool isLogger();

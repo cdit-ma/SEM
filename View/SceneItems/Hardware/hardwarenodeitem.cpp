@@ -23,6 +23,8 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentIt
     cornerRadius = 5;
     textHeight = size / 2.0;
 
+    mainTextFont.setPixelSize(size / 3.5);
+
     //setupBrushes();
 
     addRequiredData("x");
@@ -108,6 +110,7 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
+    painter->setFont(mainTextFont);
     //Set Clip Rectangle
     if(state > RS_BLOCK){
         painter->setClipRect(option->exposedRect);
@@ -120,7 +123,6 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         painter->drawRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
 
         if(isExpanded()){
-            mainTextFont.setPixelSize(labelRect().height());
             painter->setPen(Qt::black);
             painter->drawText(labelRect(),Qt::AlignCenter, getData("label").toString());
             painter->drawText(ipTextRect(),Qt::AlignVCenter | Qt::AlignLeft, getData("ip_address").toString());

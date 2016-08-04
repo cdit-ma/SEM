@@ -38,6 +38,8 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->setPen(Qt::black);
         painter->drawText(labelRect(), Qt::AlignCenter, getData("label").toString());
         painter->setBrush(getBodyColor());
+        painter->drawRect(mainRect());
+
         painter->setPen(Qt::NoPen);
     }
     painter->restore();
