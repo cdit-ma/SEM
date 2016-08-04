@@ -206,6 +206,15 @@ public:
 
 
 signals:
+    void entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
+    void entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
+
+    void dataChanged(int ID, QString keyName, QVariant data);
+    void dataRemoved(int ID, QString keyName);
+
+    void propertyChanged(int ID, QString propertyName, QVariant data);
+    void propertyRemoved(int ID, QString propertyName);
+
     void controller_ProjectFileChanged(QString);
     void controller_ProjectNameChanged(QString);
 

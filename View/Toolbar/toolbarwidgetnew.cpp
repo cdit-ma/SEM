@@ -52,6 +52,23 @@ ToolbarWidgetNew::ToolbarWidgetNew(ViewController *vc, QWidget *parent) : QWidge
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
+void ToolbarWidgetNew::addChildNode()
+{
+    if(sender()){
+        QString nodeKind = sender()->property("kind").toString();
+        if(toolbarController){
+            toolbarController->addChildNode(nodeKind, itemPos);
+        }
+    }
+}
+
+void ToolbarWidgetNew::showToolbar(QPoint globalPos, QPointF itemPos)
+{
+    move(globalPos);
+    this->itemPos = itemPos;
+    setVisible(true);
+}
+
 
 /**
  * @brief ToolbarWidgetNew::themeChanged
@@ -314,7 +331,7 @@ void ToolbarWidgetNew::setupAddChildMenu()
             adoptableKindsSubMenus[kind] = menu;
             action->setMenu(menu);
         } else {
-            connect(action, SIGNAL(triggered(bool)), toolbarController, SLOT(addChildNode()));
+            connect(action, SIGNAL(triggered(bool)), this, SLOT(addChildNode()));
         }
         addMenu->addAction(action);
     }

@@ -18,6 +18,7 @@ public:
 
 
     QVector<ViewItem*> getSelection();
+    QList<int> getSelectionIDs();
     int getSelectionCount();
     ViewItem* getFirstSelectedItem();
 

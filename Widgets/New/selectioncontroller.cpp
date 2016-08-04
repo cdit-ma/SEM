@@ -57,6 +57,16 @@ QVector<ViewItem *> SelectionController::getSelection()
     return QVector<ViewItem*>();
 }
 
+QList<int> SelectionController::getSelectionIDs()
+{
+    QList<int> selection;
+
+    foreach(ViewItem* item, getSelection()){
+        selection.append(item->getID());
+    }
+    return selection;
+}
+
 int SelectionController::getSelectionCount()
 {
     int count = -1;

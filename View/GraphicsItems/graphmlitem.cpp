@@ -256,7 +256,9 @@ GraphMLItem::~GraphMLItem()
         table->deleteLater();
         table = 0;
     }
-    getEntityAdapter()->unregisterObject(this);
+    if(getEntityAdapter()){
+        getEntityAdapter()->unregisterObject(this);
+    }
 }
 
 QRectF GraphMLItem::sceneBoundingRect() const

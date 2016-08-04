@@ -16,9 +16,10 @@ ViewController::ViewController(){
 
     toolbarController = new ToolActionController(this);
     toolbar = new ToolbarWidgetNew(this);
+    connect(this, &ViewController::showToolbar, toolbar, &ToolbarWidgetNew::showToolbar);
+
     connect(this, SIGNAL(modelReady(bool)), actionController, SLOT(modelReady(bool)));
     emit modelReady(false);
-
 }
 
 QStringList ViewController::getNodeKinds()
@@ -43,16 +44,8 @@ QStringList ViewController::getNodeKinds()
 
     nodeKinds << "Vector" << "VectorInstance";
 
-
-
-
-
-
-
-
     nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
     nodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
-
 
     //Append Kinds which can't be constructed by the GUI.
     nodeKinds << "MemberInstance" << "AttributeImpl";
@@ -94,7 +87,7 @@ QList<int> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
 
 QStringList ViewController::getAdoptableNodeKinds()
 {
-    if(selectionController && controller){
+    if(selectionController && controller && selectionController->getSelectionCount() == 1){
         int ID = selectionController->getFirstSelectedItem()->getID();
         return controller->getAdoptableNodeKinds(ID);
     }
@@ -105,9 +98,9 @@ QStringList ViewController::getAdoptableNodeKinds()
 void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
     if(viewItem->isNode()){
-
         QString nodeKind = viewItem->getData("kind").toString();
         QString imageName = nodeKind;
+
         if(nodeKind == "HardwareNode"){
             bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
 
@@ -148,12 +141,6 @@ void ViewController::table_dataChanged(int ID, QString key, QVariant data)
     emit dataChanged(ID, key, data);
 }
 
-void ViewController::showToolbar(QPointF pos)
-{
-    toolbar->move(pos.toPoint());
-    toolbar->show();
-}
-
 void ViewController::setModelReady(bool okay)
 {
     if(okay != _modelReady){
@@ -162,30 +149,45 @@ void ViewController::setModelReady(bool okay)
     }
 }
 
-void ViewController::entityConstructed(EntityAdapter *entity)
+void ViewController::deleteSelection()
 {
-    ViewItem* viewItem = 0;
-    QString kind;
-    if(entity->isNodeAdapter()){
-        NodeAdapter* nodeAdapter = (NodeAdapter*)entity;
-        int parentID = nodeAdapter->getParentNodeID();
+    if(selectionController){
+        emit triggerAction("Deleting Selection");
+        emit deleteEntities(selectionController->getSelectionIDs());
+    }
+}
 
-        viewItem = new NodeViewItem(nodeAdapter);
+void ViewController::constructDDSQOSProfile()
+{
+    emit triggerAction("Constructing DDS QOS Profile");
+    foreach(int ID, getIDsOfKind("AssemblyDefinitions")){
+        emit constructChildNode(ID, "DDS_QOSProfile");
+    }
+}
+
+void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties)
+{
+
+    ViewItem* viewItem = 0;
+
+    if(eKind == EK_NODE){
+        NodeViewItem* nodeItem = new NodeViewItem(ID, eKind, kind, data, properties);
+        viewItem = nodeItem;
+        int parentID = nodeItem->getParentID();
+
+        ViewItem* parentItem = getViewItem(parentID);
 
         //Attach the node to it's parent
-        if(viewItems.contains(parentID)){
-            ViewItem* parent = viewItems[parentID];
-            parent->addChild(viewItem);
+        if(parentItem){
+            parentItem->addChild(nodeItem);
         }
-
-        kind = nodeAdapter->getNodeKind();
-    }else if(entity->isEdgeAdapter()){
-        viewItem = new EdgeViewItem((EdgeAdapter*)entity);
-        kind = "EDGE";
+    }else if(eKind == EK_EDGE){
+        //DO LATER.
+        EdgeViewItem* edgeItem = new EdgeViewItem(ID, eKind, kind, data, properties);
+        viewItem = edgeItem;
     }
 
     if(viewItem){
-        int ID = viewItem->getID();
         viewItems[ID] = viewItem;
         itemKindLists[kind].append(ID);
         setDefaultIcon(viewItem);
@@ -199,66 +201,80 @@ void ViewController::entityConstructed(EntityAdapter *entity)
         //Tell Views
         emit viewItemConstructed(viewItem);
     }
-
 }
 
-void ViewController::entityDestructed(EntityAdapter *entity)
+void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind)
 {
-    if(entity){
-        int ID = entity->getID();
-        if(viewItems.contains(ID)){
-            QString kind;
+    ViewItem* viewItem = getViewItem(ID);
 
-            if(entity->isNodeAdapter()){
-                kind = ((NodeAdapter*)entity)->getNodeKind();
-            }else{
-                kind = "EDGE";
-            }
-            ViewItem* viewItem = viewItems[ID];
+    if(viewItem){
+        //Unset modelItem
+        if(viewItem == modelItem){
+            modelItem = 0;
+        }
 
+        ViewItem* parentItem = viewItem->getParentItem();
+        if(parentItem){
+            parentItem->removeChild(viewItem);
+        }
 
-            //Unset modelItem
-            if(viewItem == modelItem){
-                modelItem = 0;
-            }
+        //Remove the item from the Hash
+        viewItems.remove(ID);
+        itemKindLists[kind].removeAll(ID);
 
-            ViewItem* parentItem = viewItem->getParentItem();
-            if(parentItem){
-                parentItem->removeChild(viewItem);
-            }
-
-            //Remove the item from the Hash
-            viewItems.remove(ID);
-            itemKindLists[kind].removeAll(ID);
-
-            if(viewItem){
-                emit viewItemDestructing(ID, viewItem);
-                viewItem->destruct();
-            }
+        if(viewItem){
+            emit viewItemDestructing(ID, viewItem);
+            viewItem->destruct();
         }
     }
 }
 
-void ViewController::deleteSelection()
+void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
 {
-    if(selectionController){
-        QList<int> selection;
-        foreach(ViewItem* item, selectionController->getSelection()){
-            selection.append(item->getID());
-        }
-        emit deleteEntities(selection);
+    ViewItem* viewItem = getViewItem(ID);
+
+    if(viewItem){
+        viewItem->changeData(key, data);
     }
 }
 
-void ViewController::constructDDSQOSProfile()
+void ViewController::controller_dataRemoved(int ID, QString key)
 {
-    foreach(int ID, getIDsOfKind("AssemblyDefinitions")){
-        emit constructChildNode(ID, "DDS_QOSProfile");
+    ViewItem* viewItem = getViewItem(ID);
+
+    if(viewItem){
+        viewItem->removeData(key);
+    }
+}
+
+void ViewController::controller_propertyChanged(int ID, QString property, QVariant data)
+{
+    ViewItem* viewItem = getViewItem(ID);
+
+    if(viewItem){
+        viewItem->changeProperty(property, data);
+    }
+}
+
+void ViewController::controller_propertyRemoved(int ID, QString property)
+{
+    ViewItem* viewItem = getViewItem(ID);
+
+    if(viewItem){
+        viewItem->removeProperty(property);
     }
 }
 
 QList<int> ViewController::getIDsOfKind(QString kind)
 {
     return itemKindLists[kind];
+}
+
+ViewItem *ViewController::getViewItem(int ID)
+{
+    if(viewItems.contains(ID)){
+        return viewItems[ID];
+    }
+    return 0;
 }
 

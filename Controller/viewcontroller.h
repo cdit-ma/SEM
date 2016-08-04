@@ -34,6 +34,7 @@ signals:
     void viewItemDestructing(int ID, ViewItem *viewItem);
     void triggerAction(QString action);
     void dataChanged(int, QString, QVariant);
+    void showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
 
 
     void view_undo();
@@ -49,12 +50,21 @@ signals:
     void deleteEntities(QList<int> IDs);
     void constructChildNode(int parentID, QString kind, QPointF pos = QPointF());
 
+public slots:
+    void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
+    void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
+    void controller_dataChanged(int ID, QString key, QVariant data);
+    void controller_dataRemoved(int ID, QString key);
+
+    void controller_propertyChanged(int ID, QString property, QVariant data);
+    void controller_propertyRemoved(int ID, QString property);
+
+
+
 private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
-    void showToolbar(QPointF pos);
+
     void setModelReady(bool okay);
-    void entityConstructed(EntityAdapter* entity);
-    void entityDestructed(EntityAdapter* entity);
     void deleteSelection();
 
     void constructDDSQOSProfile();
@@ -64,6 +74,7 @@ private:
     QList<int> getIDsOfKind(QString kind);
     bool _modelReady;
 
+    ViewItem* getViewItem(int ID);
     QHash<QString, QList<int> > itemKindLists;
     QHash<int, ViewItem*> viewItems;
     ViewItem* modelItem;
