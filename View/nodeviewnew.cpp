@@ -466,6 +466,10 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
     NodeItemNew* parentNode = getParentNodeItem(item);
 
+    qCritical() << item->getParentID();
+
+    qCritical() << item->getData("label") << " Parent " << parentNode;
+
 
 
     if(!containedNodeViewItem && item->getViewAspect() == containedAspect){
@@ -473,6 +477,8 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
         //Don't construct an aspect.
         return;
     }
+
+
 
     if(containedNodeViewItem){
         if(containedNodeViewItem->isAncestorOf(item)){
@@ -547,23 +553,15 @@ QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems()
 
 NodeItemNew *NodeViewNew::getParentNodeItem(NodeViewItem *item)
 {
-     NodeItemNew* guiParentItem = 0;
-
-     int parentID = -1;
-     int depth = 1;
-     while(true){
-        parentID = item->getParentID(depth++);
-        if(parentID == -1){
-            break;
-        }else if(guiItems.contains(parentID)){
-            EntityItemNew* p = guiItems[parentID];
-            if(p->isNodeItem()){
-                guiParentItem = (NodeItemNew*)p;
-                break;
-            }
+     while(item){
+        int ID = item->getID();
+        if(guiItems.contains(ID)){
+            return (NodeItemNew*)guiItems[ID];
+        }else{
+            item = item->getParentNodeViewItem();
         }
      }
-     return guiParentItem;
+     return 0;
 }
 
 EntityItemNew *NodeViewNew::getEntityItem(int ID)

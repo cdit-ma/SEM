@@ -241,13 +241,23 @@ void NewController::connectView(NodeView *view)
 
 void NewController::connectViewController(ViewController *view)
 {
-    connect(this, SIGNAL(controller_IsModelReady(bool)), view, SLOT(setModelReady(bool)));
-    connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(entityConstructed(EntityAdapter*)));
-    connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(entityDestructed(EntityAdapter*)));
+
+    qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
+
+    connect(this, &NewController::entityConstructed, view, &ViewController::controller_entityConstructed);
+    connect(this, &NewController::entityDestructed, view, &ViewController::controller_entityDestructed);
+    connect(this, &NewController::dataAdded, view, &ViewController::controller_dataAdded);
+    connect(this, &NewController::dataChanged, view, &ViewController::controller_dataChanged);
+    connect(this, &NewController::dataRemoved, view, &ViewController::controller_dataRemoved);
+
+    //connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(entityConstructed(EntityAdapter*)));
+    //connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(entityDestructed(EntityAdapter*)));
+
     connect(view, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(setData(int,QString,QVariant)));
     connect(view, SIGNAL(constructChildNode(int,QString,QPointF)), this, SLOT(constructNode(int,QString,QPointF)));
 
 
+    connect(this, SIGNAL(controller_IsModelReady(bool)), view, SLOT(setModelReady(bool)));
     connect(this, SIGNAL(controller_CanRedo(bool)), view, SIGNAL(canRedo(bool)));
     connect(this, SIGNAL(controller_CanUndo(bool)), view, SIGNAL(canUndo(bool)));
 
@@ -2135,6 +2145,40 @@ void NewController::storeGraphMLInHash(Entity* item)
         if(entityAdapter){
             //Store it
             ID2AdapterHash[ID] = entityAdapter;
+
+            QString kind = entityAdapter->getDataValue("kind").toString();
+            ENTITY_KIND kk = EK_NODE;
+            if(entityAdapter){
+                if(entityAdapter->isEdgeAdapter()){
+                    kk = EK_EDGE;
+                }
+            }
+            QHash<QString, QVariant> data;
+            foreach(QString key, entityAdapter->getKeys()){
+                data[key] = entityAdapter->getDataValue(key);
+            }
+
+            qRegisterMetaType<QList<int> >("QList<int>");
+
+            QHash<QString, QVariant> properties;
+            if(entityAdapter->isNodeAdapter()){
+                properties["viewAspect"] = ((NodeAdapter*)entityAdapter)->getViewAspect();
+
+                QString treeIndex;
+
+                foreach(int i, ((NodeAdapter*)entityAdapter)->getTreeIndex()){
+
+                    treeIndex += QChar('A' + i);
+                }
+
+                properties["treeIndex"] = treeIndex;
+                properties["parentID"] = ((NodeAdapter*)entityAdapter)->getParentNodeID();
+            }
+            foreach(QString key, entityAdapter->getKeys()){
+                data[key] = entityAdapter->getDataValue(key);
+            }
+
+            emit entityConstructed(ID,kk,kind,data, properties);
             emit controller_EntityConstructed(entityAdapter);
         }
 
@@ -2360,6 +2404,10 @@ Node *NewController::constructNode(QList<Data *> nodeData)
 
         //Update Data with custom Data!
         _attachData(node, nodeData, inModel);
+
+        connect(node, &Entity::dataAdded, this, &NewController::dataAdded);
+        connect(node, &Entity::dataChanged, this, &NewController::dataChanged);
+        connect(node, &Entity::dataRemoved, this, &NewController::dataRemoved);
     }
 
     //Delete the Data objects which didn't get adopted to the Node (or if our Node is null)

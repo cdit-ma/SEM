@@ -1,20 +1,16 @@
 #ifndef EDGEVIEWITEM_H
 #define EDGEVIEWITEM_H
-#include <QObject>
 
-#include "../Controller/edgeadapter.h"
 #include "viewitem.h"
 
 class EdgeViewItem: public ViewItem
 {
     Q_OBJECT
 public:
-    EdgeViewItem(EdgeAdapter* entity);
+    EdgeViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
     ~EdgeViewItem();
 
     int getSourceID();
     int getDestinationID();
-private:
-    EdgeAdapter* entity;
 };
 #endif // VIEWITEM_H

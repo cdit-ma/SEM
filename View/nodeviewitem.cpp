@@ -1,11 +1,10 @@
 #include "nodeviewitem.h"
+#include <QDebug>
 
 
-NodeViewItem::NodeViewItem(NodeAdapter *entity):ViewItem(entity)
+NodeViewItem::NodeViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(ID, entityKind, kind, data, properties)
 {
-    this->entity = entity;
 
-    connect(entity, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
 }
 
 
@@ -13,47 +12,49 @@ NodeViewItem::~NodeViewItem()
 {
 }
 
-VIEW_ASPECT NodeViewItem::getViewAspect()
+NodeViewItem *NodeViewItem::getParentNodeViewItem()
 {
-    if(entity){
-        return entity->getViewAspect();
+    ViewItem* parent = getParentItem();
+    if(parent && parent->isNode()){
+        return (NodeViewItem*) parent;
     }
-    return VA_NONE;
+    return 0;
 }
 
-int NodeViewItem::getParentID(int depth)
+VIEW_ASPECT NodeViewItem::getViewAspect()
+{
+    VIEW_ASPECT aspect = VA_NONE;
+    if(hasProperty("viewAspect")){
+        int val = getProperty("viewAspect").toInt();
+        aspect = (VIEW_ASPECT) val;
+    }
+    return aspect;
+}
+
+int NodeViewItem::getParentID()
 {
     int ID = -1;
-    if(entity){
-        ID = entity->getParentNodeID(depth);
+    if(hasProperty("parentID")){
+        ID = getProperty("parentID").toInt();
     }
     return ID;
 }
 
-NODE_CLASS NodeViewItem::getNodeClass()
-{
-
-    NODE_CLASS nodeClass = NC_NONE;
-    if(entity){
-        nodeClass = entity->getNodeClass();
-    }
-    return nodeClass;
-}
-
 bool NodeViewItem::isInModel()
 {
-    bool isInModel = false;
-    if(entity){
-        isInModel = entity->isInModel();
+    bool inModel = false;
+    if(hasProperty("inModel")){
+        inModel = getProperty("inModel").toBool();
     }
-    return isInModel;
+    return inModel;
 }
 
-QList<int> NodeViewItem::getTreeIndex()
+QString NodeViewItem::getTreeIndex()
 {
-    QList<int> index;
-    if(entity){
-        index = entity->getTreeIndex();
+    QString index;
+    if(hasProperty("treeIndex")){
+        index = getProperty("treeIndex").toString();
+        qCritical() << index;
     }
     return index;
 }
@@ -62,8 +63,8 @@ QList<int> NodeViewItem::getTreeIndex()
 
 bool NodeViewItem::isAncestorOf(NodeViewItem *item)
 {
-    QList<int> thisTree = getTreeIndex();
-    QList<int> thatTree = item->getTreeIndex();
+    QString thisTree = getTreeIndex();
+    QString thatTree = item->getTreeIndex();
 
     if(this == item){
         return true;
@@ -73,17 +74,13 @@ bool NodeViewItem::isAncestorOf(NodeViewItem *item)
         return false;
     }
 
+    return thatTree.startsWith(thisTree);
+    /*if
     for(int i=0; i< thisTree.size(); i++){
         if(thisTree[i] != thatTree[i]){
             return false;
         }
     }
-    return true;
+    return true;*/
 }
 
-void NodeViewItem::dataChanged(QString key_name, QVariant data)
-{
-    if(key_name == "label"){
-        emit labelChanged(data.toString());
-    }
-}

@@ -11,10 +11,10 @@ EntityAdapter::EntityAdapter(Entity *entity): QObjectRegistrar(0)
     _ID = entity->getID();
 
     //Connect the Signals.
-    connect(entity, SIGNAL(dataChanged(QString,QVariant)), this, SIGNAL(dataChanged(QString,QVariant)));
-    connect(entity, SIGNAL(dataAdded(QString,QVariant)), this, SIGNAL(dataAdded(QString,QVariant)));
-    connect(entity, SIGNAL(dataRemoved(QString)), this, SIGNAL(dataRemoved(QString)));
-    connect(entity, SIGNAL(readOnlySet(int, bool)), this, SIGNAL(readOnlySet(int, bool)));
+    //connect(entity, SIGNAL(dataChanged(QString,QVariant)), this, SIGNAL(dataChanged(QString,QVariant)));
+    //connect(entity, SIGNAL(dataAdded(QString,QVariant)), this, SIGNAL(dataAdded(QString,QVariant)));
+    //connect(entity, SIGNAL(dataRemoved(QString)), this, SIGNAL(dataRemoved(QString)));
+    //connect(entity, SIGNAL(readOnlySet(int, bool)), this, SIGNAL(readOnlySet(int, bool)));
 }
 
 EntityAdapter::~EntityAdapter()

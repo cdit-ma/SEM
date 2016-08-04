@@ -1432,18 +1432,18 @@ void NodeView::viewItemConstructed(ViewItem *viewItem)
         NodeItemNew* parent = 0;
         int depth = 1;
         int parentID = -2;
-        while(depth > 0 && parentID != -1){
+        /*while(depth > 0 && parentID != -1){
             parentID = nodeViewItem->getParentID(depth);
             if(newNodeItems.contains(parentID)){
                 parent = (NodeItemNew*)newNodeItems[parentID];
                 break;
             }
             depth ++;
-        }
+        }*/
 
         QString nodeKind = nodeViewItem->getData("kind").toString();
 
-        NODE_CLASS nodeClass = nodeViewItem->getNodeClass();
+        NODE_CLASS nodeClass = NC_NONE;//nodeViewItem->getNodeClass();
 
 
         //Check if we should construct this Node.

@@ -2,7 +2,7 @@
 #define VIEWITEM_H
 #include <QObject>
 
-#include "../Controller/entityadapter.h"
+#include "../enumerations.h"
 #include "Table/attributetablemodel.h"
 #include "../Controller/qobjectregistrar.h"
 
@@ -15,54 +15,77 @@ class ViewItem: public QObjectRegistrar
 
     Q_OBJECT
 public:
-    ViewItem(EntityAdapter* entity);
+    ViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
     ~ViewItem();
 
-    int getID();
     AttributeTableModel* getTableModel();
 
-    bool isNode();
-    bool isEdge();
+    int getID() const;
+    ENTITY_KIND getEntityKind() const;
+    bool isNode() const;
+    bool isEdge() const;
 
-    QVariant getData(QString keyName);
-    QStringList getKeys();
-    bool hasData(QString keyName);
-    bool isDataProtected(QString keyName);
-    bool isDataVisual(QString keyName);
+    QVariant getData(QString keyName) const;
+    QVariant getProperty(QString propertyName) const;
+    QStringList getKeys() const;
+    QStringList getProperties() const;
+    bool hasData(QString keyName) const;
+    bool hasProperty(QString propertyName) const;
 
-    void setDefaultIcon(QString icon_prefix, QString icon_name);
-    void setIcon(QString icon_prefix, QString icon_name);
+    bool isDataProtected(QString keyName) const;
+    bool isDataVisual(QString keyName) const;
+
+    void setDefaultIcon(QString iconPrefix, QString iconName);
+    void setIcon(QString iconPrefix, QString iconName);
     void resetIcon();
-    QPair<QString, QString> getIcon();
+
+    QPair<QString, QString> getIcon() const;
+
 
     void addChild(ViewItem* child);
     void removeChild(ViewItem* child);
     QList<ViewItem *> getChildren();
+
     ViewItem* getParentItem();
     void setParentViewItem(ViewItem* item);
 
-    QStringList getValidValuesForKey(QString keyName);
-
+    QStringList getValidValuesForKey(QString keyName) const;
 signals:
-    void dataAdded(QString key_name, QVariant data);
-    void dataChanged(QString key_name, QVariant data);
-    void dataRemoved(QString key_name);
-    void destructing();
+    void labelChanged(QString label);
     void iconChanged();
 
+    void dataAdded(QString keyName, QVariant data);
+    void dataChanged(QString keyName, QVariant data);
+    void dataRemoved(QString keyName);
+
+    void propertyAdded(QString propertyName, QVariant data);
+    void propertyChanged(QString propertyName, QVariant data);
+    void propertyRemoved(QString propertyName);
+
+    void destructing();
+private:
+    void changeData(QString keyName, QVariant data);
+    void removeData(QString keyName);
+
+    void changeProperty(QString propertyName, QVariant data);
+    void removeProperty(QString propertyName);
 
 private:
     void destruct();
 
-    QList<ViewItem*> children;
+private:
     ViewItem* _parent;
-    EntityAdapter* entity;
-    int ID;
     AttributeTableModel* tableModel;
+    QList<ViewItem*> children;
+
+    QHash<QString, QVariant> _data;
+    QHash<QString, QVariant> _properties;
+
+    int ID;
+    QString kind;
+    ENTITY_KIND entityKind;
+
     QPair<QString, QString> defaultIcon;
     QPair<QString, QString> currentIcon;
-
-    QVector<QObject*> _listeners;
-
 };
 #endif // VIEWITEM_H

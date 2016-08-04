@@ -164,6 +164,8 @@ void ViewController::setModelReady(bool okay)
 
 void ViewController::entityConstructed(EntityAdapter *entity)
 {
+    return;
+    /*
     ViewItem* viewItem = 0;
     QString kind;
     if(entity->isNodeAdapter()){
@@ -199,6 +201,7 @@ void ViewController::entityConstructed(EntityAdapter *entity)
         //Tell Views
         emit viewItemConstructed(viewItem);
     }
+    */
 
 }
 
@@ -255,6 +258,89 @@ void ViewController::constructDDSQOSProfile()
     foreach(int ID, getIDsOfKind("AssemblyDefinitions")){
         emit constructChildNode(ID, "DDS_QOSProfile");
     }
+}
+
+void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties)
+{
+
+    ViewItem* viewItem = 0;
+
+    if(eKind == EK_NODE){
+        NodeViewItem* nodeItem = new NodeViewItem(ID, eKind, kind, data, properties);
+        viewItem = nodeItem;
+        int parentID = nodeItem->getParentID();
+
+        qCritical() << parentID;
+
+        //Attach the node to it's parent
+        if(viewItems.contains(parentID)){
+            qCritical() << " HELLO!";
+            ViewItem* parent = viewItems[parentID];
+            parent->addChild(nodeItem);
+        }
+    }else if(eKind == EK_EDGE){
+        //DO LATER.
+        EdgeViewItem* edgeItem = new EdgeViewItem(ID, eKind, kind, data, properties);
+        viewItem = edgeItem;
+    }
+
+    if(viewItem){
+        viewItems[ID] = viewItem;
+        itemKindLists[kind].append(ID);
+        setDefaultIcon(viewItem);
+
+        if(kind == "Model"){
+            modelItem = viewItem;
+        }
+
+        connect(viewItem->getTableModel(), SIGNAL(req_dataChanged(int, QString, QVariant)), this, SLOT(table_dataChanged(int, QString, QVariant)));
+
+        //Tell Views
+        emit viewItemConstructed(viewItem);
+    }
+}
+
+void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind)
+{
+    if(viewItems.contains(ID)){
+        ViewItem* viewItem = viewItems[ID];
+
+
+        //Unset modelItem
+        if(viewItem == modelItem){
+            modelItem = 0;
+        }
+
+        ViewItem* parentItem = viewItem->getParentItem();
+        if(parentItem){
+            parentItem->removeChild(viewItem);
+        }
+
+        //Remove the item from the Hash
+        viewItems.remove(ID);
+        itemKindLists[kind].removeAll(ID);
+
+        if(viewItem){
+            emit viewItemDestructing(ID, viewItem);
+            viewItem->destruct();
+        }
+    }
+    qCritical() << "controller_entityDestructed" << ID;
+}
+
+void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
+{
+
+}
+
+void ViewController::controller_dataAdded(int ID, QString key, QVariant data)
+{
+
+}
+
+void ViewController::controller_dataRemoved(int ID, QString key)
+{
+
 }
 
 QList<int> ViewController::getIDsOfKind(QString kind)

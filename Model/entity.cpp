@@ -40,16 +40,16 @@ Entity::Entity(Entity::ENTITY_KIND kind):GraphML(GraphML::GK_ENTITY)
 {
     entityKind = kind;
     //Connect to self.
-    connect(this, SIGNAL(dataAdded(QString,QVariant)), this, SLOT(thisDataChanged(QString)));
-    connect(this, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(thisDataChanged(QString)));
-    connect(this, SIGNAL(dataRemoved(QString)), this, SLOT(thisDataChanged(QString)));
+    //connect(this, SIGNAL(dataAdded(QString,QVariant)), this, SLOT(thisDataChanged(QString)));
+    //connect(this, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(thisDataChanged(QString)));
+    //connect(this, SIGNAL(dataRemoved(QString)), this, SLOT(thisDataChanged(QString)));
 }
 
 Entity::~Entity()
 {
-    disconnect(this, SLOT(thisDataChanged(QString)));
-    disconnect(this, SLOT(thisDataChanged(QString)));
-    disconnect(this, SLOT(thisDataChanged(QString)));
+   // disconnect(this, SLOT(thisDataChanged(QString)));
+   // disconnect(this, SLOT(thisDataChanged(QString)));
+   // disconnect(this, SLOT(thisDataChanged(QString)));
 
     //Clear data.
     QList<Data*> data = getData();
@@ -115,7 +115,7 @@ bool Entity::addData(Data *data)
     lookupKeyID2DataID[keyID] = dataID;
     lookupKeyName2KeyID[key->getName()] = keyID;
 
-    emit dataAdded(keyName, data->getValue());
+    emit dataAdded(getID(), keyName, data->getValue());
     return true;
 }
 
@@ -317,7 +317,7 @@ bool Entity::removeData(Data *data)
             lookupKeyName2KeyID.remove(keyName);
         }
 
-        emit dataRemoved(keyName);
+        emit dataRemoved(getID(), keyName);
     }else{
         //Can't remove null data.
         return false;
@@ -355,12 +355,6 @@ bool Entity::removeData(QString keyName)
         lookupKeyName2KeyID.remove(keyName);
     }
     return true;
-}
-
-void Entity::dataChanged(int id2, QString keyName, QVariant data)
-{
-    Q_UNUSED(id2)
-    emit dataChanged(keyName, data);
 }
 
 void Entity::thisDataChanged(QString keyName)

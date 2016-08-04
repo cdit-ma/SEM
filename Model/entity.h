@@ -54,13 +54,12 @@ public:
     virtual QString toGraphML(int indentDepth=0) = 0;
     virtual QString toString() = 0;
 signals:
-    void dataAdded(QString keyName, QVariant data);
-    void dataChanged(QString keyName, QVariant data);
-    void dataRemoved(QString keyName);
+    void dataAdded(int ID, QString keyName, QVariant data);
+    void dataChanged(int ID, QString keyName, QVariant data);
+    void dataRemoved(int ID, QString keyName);
     void readOnlySet(int, bool isReadOnly);
     void terminating();
 private slots:
-    void dataChanged(int ID, QString keyName, QVariant data);
     void thisDataChanged(QString keyName);
 private:
     int getDataIDFromKeyName(QString keyName);
