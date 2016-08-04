@@ -10,6 +10,7 @@ AttributeTableModel::AttributeTableModel(ViewItem *item)
     entity->registerObject(this);
 
     multiLineKeys << "processes_to_log" << "code";
+    ignoredKeys << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
     setupDataBinding();
 }
 

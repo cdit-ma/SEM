@@ -115,9 +115,9 @@ bool Entity::addData(Data *data)
     lookupKeyID2DataID[keyID] = dataID;
     lookupKeyName2KeyID[key->getName()] = keyID;
 
-    //connect(data, &Data::dataChanged, this, &Entity::dataChanged);
 
-    emit dataAdded(getID(), keyName, data->getValue());
+    emit dataChanged(getID(), keyName, data->getValue());
+    dataProtected(true);
     return true;
 }
 
@@ -274,6 +274,17 @@ void Entity::setDataValue(QString keyName, QVariant value)
      }
 }
 
+QStringList Entity::getProtectedKeys()
+{
+    QStringList protectedKeys;
+    foreach(Data* data, getData()){
+        if(data->isProtected()){
+            protectedKeys.append(data->getKeyName());
+        }
+    }
+    return protectedKeys;
+}
+
 bool Entity::removeData(Key *key)
 {
     return removeData(getData(key));
@@ -358,6 +369,11 @@ bool Entity::removeData(QString keyName)
         lookupKeyName2KeyID.remove(keyName);
     }
     return true;
+}
+
+void Entity::dataProtected(bool protect)
+{
+    emit propertyChanged(getID(), "protectedKeys", getProtectedKeys());
 }
 
 void Entity::thisDataChanged(QString keyName)

@@ -219,11 +219,32 @@ void ActionController::updateIcon(RootAction *action, Theme *theme)
 void ActionController::setupActions()
 {
     file_newProject = createRootAction("New Project", "", "Actions", "New");
+    file_newProject->setShortcutContext(Qt::ApplicationShortcut);
+    file_newProject->setShortcut(QKeySequence::New);
+
     file_openProject = createRootAction("Open Project", "", "Actions", "Open");
+    file_openProject->setShortcutContext(Qt::ApplicationShortcut);
+    file_openProject->setShortcut(QKeySequence::Open);
+
     file_recentProjects_clearHistory = createRootAction("Clear History", "", "Actions", "Clear");
+
     file_saveProject = createRootAction("Save Project", "", "Actions", "Save");
+    file_saveProject->setShortcutContext(Qt::ApplicationShortcut);
+    file_saveProject->setShortcut(QKeySequence::Save);
+
+
     file_saveAsProject = createRootAction("Save Project As", "", "Actions", "Save");
+    file_saveAsProject->setShortcutContext(Qt::ApplicationShortcut);
+    file_saveAsProject->setShortcut(QKeySequence::SaveAs);
+
     file_closeProject = createRootAction("Close Project", "", "Actions", "Close");
+    file_closeProject->setShortcutContext(Qt::ApplicationShortcut);
+    file_closeProject->setShortcut(QKeySequence::Close);
+
+
+
+
+
     file_importGraphML = createRootAction("Import Project", "", "Actions", "Import");
     file_importXME = createRootAction("Import XME File", "", "Actions", "ImportXME");
     file_importXMI = createRootAction("Import UML XMI File", "", "Actions", "ImportXMI");
@@ -231,17 +252,30 @@ void ActionController::setupActions()
     file_exportSnippet = createRootAction("Export Snippet", "", "Actions", "ExportSnippet");
 
     edit_undo = createRootAction("Undo", "", "Actions", "Undo");
+    edit_undo->setShortcutContext(Qt::ApplicationShortcut);
+    edit_undo->setShortcut(QKeySequence::Undo);
     edit_redo = createRootAction("Redo", "", "Actions", "Redo");
+    edit_redo->setShortcutContext(Qt::ApplicationShortcut);
+    edit_redo->setShortcut(QKeySequence::Redo);
+
     edit_cut = createRootAction("Cut", "", "Actions", "Cut");
+    edit_cut->setShortcut(QKeySequence::Cut);
+
     edit_copy = createRootAction("Copy", "", "Actions", "Copy");
+    edit_copy->setShortcut(QKeySequence::Copy);
+
     edit_paste = createRootAction("Paste", "", "Actions", "Paste");
+    edit_paste->setShortcut(QKeySequence::Paste);
+
     edit_replicate = createRootAction("Replicate", "", "Actions", "Replicate");
     edit_delete = createRootAction("Delete", "Delete", "Actions", "Delete");
-    edit_delete->setShortcut(QKeySequence(Qt::Key_Delete));
+    edit_delete->setShortcut(QKeySequence::Delete);
     edit_delete->setShortcutContext(Qt::ApplicationShortcut);
 
     edit_search = createRootAction("Search", "Root_Search", "Actions", "Search");
-    edit_search->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F));
+    edit_search->setShortcutContext(Qt::ApplicationShortcut);
+    edit_search->setShortcut(QKeySequence::Find);
+
 
     edit_sort = createRootAction("Sort", "", "Actions", "Sort");
     edit_alignVertical = createRootAction("Align Vertically", "", "Actions", "Align_Vertical");
@@ -253,7 +287,7 @@ void ActionController::setupActions()
     edit_CycleActiveSelectionBackward->setShortcut(QKeySequence::PreviousChild);
     edit_CycleActiveSelectionBackward->setShortcutContext(Qt::ApplicationShortcut);
     edit_selectAll = createRootAction("Select All", "", "Actions", "SelectAll");
-    edit_selectAll->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_A));
+    edit_selectAll->setShortcut(QKeySequence::SelectAll);
     edit_selectAll->setShortcutContext(Qt::ApplicationShortcut);
 
     edit_clearSelection = createRootAction("Clear Selection", "", "Actions", "Clear");

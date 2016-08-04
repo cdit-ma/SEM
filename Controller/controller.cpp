@@ -231,10 +231,6 @@ void NewController::connectView(NodeView *view)
 
         connect(view, SIGNAL(view_ConstructConnectedNode(int,int,QString,QPointF)), this, SLOT(constructConnectedNode(int,int,QString,QPointF)));
 
-        //Undo SLOTS
-        connect(view, SIGNAL(view_TriggerAction(QString)), this, SLOT(triggerAction(QString)));
-        connect(view, SIGNAL(view_SetData(int, QString, QVariant)), this, SLOT(setData(int, QString, QVariant)));
-
 
     }
 }
@@ -246,12 +242,16 @@ void NewController::connectViewController(ViewController *view)
 
     connect(this, &NewController::entityConstructed, view, &ViewController::controller_entityConstructed);
     connect(this, &NewController::entityDestructed, view, &ViewController::controller_entityDestructed);
-    connect(this, &NewController::dataAdded, view, &ViewController::controller_dataAdded);
+
     connect(this, &NewController::dataChanged, view, &ViewController::controller_dataChanged);
     connect(this, &NewController::dataRemoved, view, &ViewController::controller_dataRemoved);
 
-    //connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(entityConstructed(EntityAdapter*)));
-    //connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(entityDestructed(EntityAdapter*)));
+    connect(this, &NewController::propertyChanged, view, &ViewController::controller_propertyChanged);
+    connect(this, &NewController::propertyRemoved, view, &ViewController::controller_propertyRemoved);
+
+
+
+
 
     connect(view, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(setData(int,QString,QVariant)));
     connect(view, SIGNAL(constructChildNode(int,QString,QPointF)), this, SLOT(constructNode(int,QString,QPointF)));
@@ -1048,7 +1048,7 @@ void NewController::copy(QList<int> IDs)
 void NewController::remove(QList<int> IDs)
 {
     if(canDelete(IDs)){
-        bool success = _remove(IDs);
+        bool success = _remove(IDs, false);
         if (!success) {
             controller_DisplayMessage(WARNING, "Delete Error", "Cannot delete all selected entities.");
         }
@@ -2174,6 +2174,9 @@ void NewController::storeGraphMLInHash(Entity* item)
                 properties["treeIndex"] = treeIndex;
                 properties["parentID"] = ((NodeAdapter*)entityAdapter)->getParentNodeID();
             }
+
+            properties["protectedKeys"] = item->getProtectedKeys();
+
             foreach(QString key, entityAdapter->getKeys()){
                 data[key] = entityAdapter->getDataValue(key);
             }
@@ -2407,9 +2410,10 @@ Node *NewController::constructNode(QList<Data *> nodeData)
         //Update Data with custom Data!
         _attachData(node, nodeData, inModel);
 
-        connect(node, &Entity::dataAdded, this, &NewController::dataAdded);
         connect(node, &Entity::dataChanged, this, &NewController::dataChanged);
         connect(node, &Entity::dataRemoved, this, &NewController::dataRemoved);
+        connect(node, &Entity::propertyChanged, this, &NewController::propertyChanged);
+        connect(node, &Entity::propertyRemoved, this, &NewController::propertyRemoved);
     }
 
     //Delete the Data objects which didn't get adopted to the Node (or if our Node is null)
@@ -4813,7 +4817,6 @@ void NewController::setData(int parentID, QString keyName, QVariant dataValue)
 {
     Entity* graphML = getGraphMLFromID(parentID);
     if(graphML){
-        qCritical() << "YO!";
         setData(graphML, keyName, dataValue, true);
     }
 }

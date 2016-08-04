@@ -84,13 +84,25 @@ bool ViewItem::hasProperty(QString propertyName) const
 
 bool ViewItem::isDataProtected(QString keyName) const
 {
-    //TODO
-    return false;
+    if(isReadOnly()){
+        return true;
+    }else{
+        return getProtectedKeys().contains(keyName);
+    }
 }
 
 bool ViewItem::isDataVisual(QString keyName) const
 {
     return false;
+}
+
+bool ViewItem::isReadOnly() const
+{
+    bool readOnly = false;
+    if(hasData("readOnly")){
+        readOnly = getData("readOnly").toBool();
+    }
+    return readOnly;
 }
 void ViewItem::setDefaultIcon(QString iconPrefix, QString iconName)
 {
@@ -168,6 +180,11 @@ ViewItem *ViewItem::getParentItem()
 void ViewItem::setParentViewItem(ViewItem *item)
 {
     _parent = item;
+}
+
+QStringList ViewItem::getProtectedKeys() const
+{
+    return getProperty("protectedKeys").toStringList();
 }
 
 QStringList ViewItem::getValidValuesForKey(QString keyName) const

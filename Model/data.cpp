@@ -57,11 +57,13 @@ void Data::setParent(Entity *parent)
 {
     if(parent){
         connect(this, &Data::dataChanged, parent, &Entity::dataChanged);
+        connect(this, &Data::dataProtected, parent, &Entity::dataProtected);
         //Set the ID
         setID();
     }
     if(_parent){
-        disconnect(this, &Data::dataChanged, parent, &Entity::dataChanged);
+        disconnect(this, &Data::dataChanged, _parent, &Entity::dataChanged);
+        disconnect(this, &Data::dataProtected, _parent, &Entity::dataProtected);
     }
 
 
@@ -76,6 +78,7 @@ Entity *Data::getParent()
 void Data::setProtected(bool protect)
 {
     _isProtected = protect;
+    emit dataProtected(_isProtected);
 }
 
 bool Data::isProtected() const

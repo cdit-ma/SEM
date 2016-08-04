@@ -22,9 +22,10 @@ public:
     explicit ToolbarWidgetNew(ViewController *vc, QWidget *parent = 0);
 
 signals:
-    void addChildNode();
 
 public slots:
+    void addChildNode();
+    void showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
     void setVisible(bool visible);
 
     void themeChanged();
@@ -86,6 +87,7 @@ private:
     QSpinBox* replicateCount;
     QToolButton* applyReplicateCountButton;
 
+    QPointF itemPos;
 };
 
 #endif // TOOLBARWIDGETNEW_H

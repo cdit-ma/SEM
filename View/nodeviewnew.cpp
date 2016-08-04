@@ -85,7 +85,8 @@ void NodeViewNew::setViewController(ViewController *viewController)
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
         connect(selectionHandler, SIGNAL(itemSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelectionChanged(ViewItem*,bool)));
         connect(selectionHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemActiveSelectionChanged(ViewItem*,bool)));
-        connect(this, SIGNAL(toolbarRequested(QPointF)), viewController, SLOT(showToolbar(QPointF)));
+
+        connect(this, &NodeViewNew::toolbarRequested, viewController, &ViewController::showToolbar);
 
         connect(this, SIGNAL(triggerAction(QString)), viewController, SIGNAL(triggerAction(QString)));
         connect(this, SIGNAL(dataChanged(int,QString,QVariant)), viewController, SIGNAL(dataChanged(int,QString,QVariant)));
@@ -886,16 +887,20 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
         //Do Nothing
     }
     case VS_PANNING:{
+        setState(VS_NONE);
         if(pan_distance < 10){
-            QPointF scenePos = mapToScene(event->pos());
-            EntityItemNew* item = getEntityAtPos(scenePos);
+            QPointF itemPos = mapToScene(event->pos());
+            EntityItemNew* item = getEntityAtPos(itemPos);
             if(item){
-                selectionHandler->toggleItemsSelection(item->getViewItem(), CONTROL);
+                itemPos = item->mapFromScene(itemPos);
+                if(!item->isSelected()){
+                    selectionHandler->toggleItemsSelection(item->getViewItem(), CONTROL);
+                }
             }
             //Check for item under mouse.
-            emit toolbarRequested(event->screenPos());
+            emit toolbarRequested(event->globalPos(), itemPos);
+            return;
         }
-        setState(VS_NONE);
         break;
     }
     case VS_RUBBERBANDING:

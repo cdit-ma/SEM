@@ -21,6 +21,8 @@ MedeaViewWindow::MedeaViewWindow():MedeaWindowNew(0, MedeaWindowNew::VIEW_WINDOW
     connect(resetDockedWidgetsAction, SIGNAL(triggered(bool)), this, SLOT(resetDockWidgets()));
 
 
+
+
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
 }
@@ -44,7 +46,8 @@ void MedeaViewWindow::themeChanged()
                   theme->getDockWidgetStyleSheet() %
                   theme->getPushButtonStyleSheet() %
                   theme->getPopupWidgetStyleSheet() %
-                  "QToolButton{ padding: 4px; }");
+                  "QToolButton{ padding: 4px; }"
+                  );
 
     resetDockedWidgetsAction->setIcon(Theme::theme()->getImage("Actions", "Maximize"));
 }

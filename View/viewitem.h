@@ -35,6 +35,8 @@ public:
     bool isDataProtected(QString keyName) const;
     bool isDataVisual(QString keyName) const;
 
+    bool isReadOnly() const;
+
     void setDefaultIcon(QString iconPrefix, QString iconName);
     void setIcon(QString iconPrefix, QString iconName);
     void resetIcon();
@@ -64,6 +66,7 @@ signals:
 
     void destructing();
 private:
+    QStringList getProtectedKeys() const;
     void changeData(QString keyName, QVariant data);
     void removeData(QString keyName);
 
