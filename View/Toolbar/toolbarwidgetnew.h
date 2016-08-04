@@ -84,6 +84,8 @@ private:
     QAction* replicateCountAction;
 
     QSpinBox* replicateCount;
+    //QAction* applyReplicateCountButton;
+    //QToolBar* replicateToolbar;
     QToolButton* applyReplicateCountButton;
 
 };

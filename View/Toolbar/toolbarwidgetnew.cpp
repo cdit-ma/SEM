@@ -79,7 +79,11 @@ void ToolbarWidgetNew::themeChanged()
     hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
     instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
-    //applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
+    applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
+
+    //applyReplicateCountButton->setStyleSheet("background:" + theme->getHighlightColorHex() + ";");
+    //applyReplicateCountButton->setStyleSheet(theme->getToolBarStyleSheet());
+    //replicateToolbar->setStyleSheet(theme->getToolBarStyleSheet());
 }
 
 
@@ -237,7 +241,7 @@ void ToolbarWidgetNew::setupActions()
     instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
     mainGroup->addSeperator();
     mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
-    //replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
+    replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
@@ -262,8 +266,7 @@ void ToolbarWidgetNew::setupActions()
 void ToolbarWidgetNew::setupMenus()
 {
     setupAddChildMenu();
-
-    //setupReplicateCountMenu();
+    setupReplicateCountMenu();
 
     hardwareMenu = constructTopMenu(hardwareAction);
 
@@ -323,18 +326,26 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
     replicateCount = new QSpinBox(this);
     replicateCount->setMinimum(1);
     replicateCount->setMaximum(100000);
+    replicateCount->setFixedHeight(25);
 
+    //applyReplicateCountButton = toolbarController->getToolAction("APPLY_REPLICATE_COUNT", false);
     applyReplicateCountButton = new QToolButton(this);
+    //applyReplicateCountButton->setIcon(QIcon(Theme::theme()->getImage("Actions", "Tick", QSize(), Qt::white))); //Qt::darkGreen)));
+    //applyReplicateCountButton->setStyleSheet("background: rgb(128,255,0);");
+    applyReplicateCountButton->setStyleSheet("background: white;");
+    //applyReplicateCountButton->setStyleSheet("QToolButton:hover{ background: red; }");
+    applyReplicateCountButton->setFixedSize(25,25);
 
+    //replicateToolbar = new QToolBar(this);
     QToolBar* replicateToolbar = new QToolBar(this);
-    replicateToolbar->setStyleSheet("spacing:2px;");
+    //replicateToolbar->setStyleSheet("spacing:2px;");
     replicateToolbar->addWidget(replicateCount);
     replicateToolbar->addWidget(applyReplicateCountButton);
-    //applyReplicateCountButton->setFixedHeight(25);
-    replicateCount->setFixedHeight(25);
+    //replicateToolbar->addAction(applyReplicateCountButton);
 
     QWidgetAction* rc = new QWidgetAction(this);
     rc->setDefaultWidget(replicateToolbar);
+    //rc->sets
 
     replicateMenu = constructTopMenu(replicateCountAction);
     replicateMenu->addAction(rc);
@@ -346,6 +357,14 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
  */
 void ToolbarWidgetNew::setupConnections()
 {
+    // close the toolbar whenever a toolbutton without a menu is triggered
+    foreach (QAction* action, mainGroup->actions()) {
+        if (action->menu() || popupMenuHash.contains(action)) {
+            continue;
+        }
+        connect(action, SIGNAL(triggered(bool)), this, SLOT(setVisible(bool)));
+    }
+
     connect(hardwareMenu, SIGNAL(aboutToShow()), this, SLOT(populateDeploymentMenu()));
 }
 
