@@ -580,9 +580,9 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
     Data* data = parent->getData(keyName);
 
     Node* node = (Node*) parent;
-    if(data){
-        action.ID = data->getID();
-        action.Data.oldValue = data->getValue();
+    if(parent->hasData(keyName)){
+        action.ID = parent->getID();
+        action.Data.oldValue = parent->getDataValue(keyName);
 
         if(dataValue == action.Data.oldValue){
             //Don't update if we have got the same value in the model.
@@ -602,10 +602,10 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
         }
 
         if(need2Set){
-            data->setValue(dataValue);
+            parent->setDataValue(keyName, dataValue);
         }
 
-        action.Data.newValue = data->getValue();
+        action.Data.newValue = parent->getDataValue(keyName);
     }else{
         qCritical() << "view_UpdateData() Doesn't Contain Data for Key: " << keyName;
         return;
@@ -2217,6 +2217,8 @@ void NewController::removeGraphMLFromHash(int ID)
             emit test_destruct(ID);
 
             emit controller_EntityDestructed(entityAdapter);
+
+            emit entityDestructed(ID, EK_NODE, item->getDataValue("kind").toString());
 
             ID2AdapterHash.remove(ID);
             if(canDelete){
@@ -4811,6 +4813,7 @@ void NewController::setData(int parentID, QString keyName, QVariant dataValue)
 {
     Entity* graphML = getGraphMLFromID(parentID);
     if(graphML){
+        qCritical() << "YO!";
         setData(graphML, keyName, dataValue, true);
     }
 }

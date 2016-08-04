@@ -56,12 +56,12 @@ Data *Data::clone(Data *data)
 void Data::setParent(Entity *parent)
 {
     if(parent){
-        connect(this, SIGNAL(dataChanged(int,QString,QVariant)), parent, SLOT(dataChanged(int, QString,QVariant)));
+        connect(this, &Data::dataChanged, parent, &Entity::dataChanged);
         //Set the ID
         setID();
     }
     if(_parent){
-        disconnect(this, SIGNAL(dataChanged(int,QString,QVariant)), _parent, SLOT(dataChanged(int, QString,QVariant)));
+        disconnect(this, &Data::dataChanged, parent, &Entity::dataChanged);
     }
 
 

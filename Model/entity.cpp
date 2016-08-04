@@ -115,6 +115,8 @@ bool Entity::addData(Data *data)
     lookupKeyID2DataID[keyID] = dataID;
     lookupKeyName2KeyID[key->getName()] = keyID;
 
+    //connect(data, &Data::dataChanged, this, &Entity::dataChanged);
+
     emit dataAdded(getID(), keyName, data->getValue());
     return true;
 }
@@ -268,6 +270,7 @@ void Entity::setDataValue(QString keyName, QVariant value)
      Data* data = getData(keyName);
      if(data){
         data->setValue(value);
+        emit dataChanged(getID(), keyName, data->getValue());
      }
 }
 

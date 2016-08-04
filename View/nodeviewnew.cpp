@@ -466,12 +466,6 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
     NodeItemNew* parentNode = getParentNodeItem(item);
 
-    qCritical() << item->getParentID();
-
-    qCritical() << item->getData("label") << " Parent " << parentNode;
-
-
-
     if(!containedNodeViewItem && item->getViewAspect() == containedAspect){
         setContainedNodeViewItem(item);
         //Don't construct an aspect.

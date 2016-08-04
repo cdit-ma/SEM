@@ -270,11 +270,8 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         viewItem = nodeItem;
         int parentID = nodeItem->getParentID();
 
-        qCritical() << parentID;
-
         //Attach the node to it's parent
         if(viewItems.contains(parentID)){
-            qCritical() << " HELLO!";
             ViewItem* parent = viewItems[parentID];
             parent->addChild(nodeItem);
         }
@@ -330,17 +327,32 @@ void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QStr
 
 void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
 {
-
+    if(viewItems.contains(ID)){
+        ViewItem* viewItem = viewItems[ID];
+        if(viewItem){
+            viewItem->changeData(key, data);
+        }
+    }
 }
 
 void ViewController::controller_dataAdded(int ID, QString key, QVariant data)
 {
-
+    if(viewItems.contains(ID)){
+        ViewItem* viewItem = viewItems[ID];
+        if(viewItem){
+            viewItem->changeData(key, data);
+        }
+    }
 }
 
 void ViewController::controller_dataRemoved(int ID, QString key)
 {
-
+    if(viewItems.contains(ID)){
+        ViewItem* viewItem = viewItems[ID];
+        if(viewItem){
+            viewItem->removeData(key);
+        }
+    }
 }
 
 QList<int> ViewController::getIDsOfKind(QString kind)

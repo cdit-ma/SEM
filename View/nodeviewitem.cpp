@@ -54,7 +54,6 @@ QString NodeViewItem::getTreeIndex()
     QString index;
     if(hasProperty("treeIndex")){
         index = getProperty("treeIndex").toString();
-        qCritical() << index;
     }
     return index;
 }
@@ -75,12 +74,5 @@ bool NodeViewItem::isAncestorOf(NodeViewItem *item)
     }
 
     return thatTree.startsWith(thisTree);
-    /*if
-    for(int i=0; i< thisTree.size(); i++){
-        if(thisTree[i] != thatTree[i]){
-            return false;
-        }
-    }
-    return true;*/
 }
 
