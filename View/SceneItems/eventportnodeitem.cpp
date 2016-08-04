@@ -41,8 +41,8 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->drawRect(mainRect());
 
         painter->setPen(Qt::NoPen);
+        painter->restore();
     }
-    painter->restore();
     NodeItemNew::paint(painter, option, widget);
 }
 
