@@ -47,6 +47,7 @@ public:
     void setDataValue(QString keyName, QVariant value);
 
 
+    QStringList getProtectedKeys();
     bool removeData(Key* key);
     bool removeData(Data* data);
     bool removeData(QString keyName);
@@ -54,13 +55,20 @@ public:
     virtual QString toGraphML(int indentDepth=0) = 0;
     virtual QString toString() = 0;
 signals:
-    void dataAdded(QString keyName, QVariant data);
-    void dataChanged(QString keyName, QVariant data);
-    void dataRemoved(QString keyName);
+    void dataChanged(int ID, QString keyName, QVariant data);
+    void dataRemoved(int ID, QString keyName);
+
+    void propertyChanged(int ID, QString propertyName, QVariant data);
+    void propertyRemoved(int ID, QString propertyName);
+
+
+
+
     void readOnlySet(int, bool isReadOnly);
     void terminating();
+public slots:
+    void dataProtected(bool protect);
 private slots:
-    void dataChanged(int ID, QString keyName, QVariant data);
     void thisDataChanged(QString keyName);
 private:
     int getDataIDFromKeyName(QString keyName);

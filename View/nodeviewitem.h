@@ -9,27 +9,18 @@ class NodeViewItem: public ViewItem
 {
     Q_OBJECT
 public:
-    NodeViewItem(NodeAdapter* entity);
+    NodeViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
     ~NodeViewItem();
 
 
+    NodeViewItem* getParentNodeViewItem();
     VIEW_ASPECT getViewAspect();
-    int getParentID(int depth = 1);
+    int getParentID();
 
-    NODE_CLASS getNodeClass();
     bool isInModel();
-    QList<int> getTreeIndex();
+    QString getTreeIndex();
 
 
     bool isAncestorOf(NodeViewItem* item);
-
-signals:
-    void labelChanged(QString label);
-
-private slots:
-    void dataChanged(QString key_name, QVariant data);
-
-private:
-    NodeAdapter* entity;
 };
 #endif // VIEWITEM_H

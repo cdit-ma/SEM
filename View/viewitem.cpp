@@ -1,36 +1,27 @@
 #include "viewitem.h"
 #include <QDebug>
 
-ViewItem::ViewItem(EntityAdapter *entity): QObjectRegistrar()
+ViewItem::ViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> dataList, QHash<QString, QVariant> properties)
 {
-    this->entity = entity;
-    this->ID = entity->getID();
-    entity->registerObject(this);
-    tableModel = new AttributeTableModel(this);
-
-    //Register Item to Adapter
-
+    this->ID = ID;
+    this->kind = kind;
+    this->entityKind = entityKind;
+    _data = dataList;
+    _properties = properties;
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
-
-    connect(entity, SIGNAL(dataAdded(QString,QVariant)), this, SIGNAL(dataAdded(QString,QVariant)));
-    connect(entity, SIGNAL(dataChanged(QString,QVariant)), this, SIGNAL(dataChanged(QString,QVariant)));
-    connect(entity, SIGNAL(dataRemoved(QString)), this, SIGNAL(dataRemoved(QString)));
 
     //Set the default icon.
     defaultIcon = defaultIcon;//TODO: Theme::theme()->getIconForViewItem(this);
     currentIcon = defaultIcon;
     _parent = 0 ;
+    tableModel = new AttributeTableModel(this);
 }
 
 ViewItem::~ViewItem()
 {
-    if(entity){
-        //De-register Item from adapter
-        entity->unregisterObject(this);
-    }
 }
 
-int ViewItem::getID()
+int ViewItem::getID() const
 {
     return ID;
 }
@@ -40,86 +31,97 @@ AttributeTableModel *ViewItem::getTableModel()
     return tableModel;
 }
 
-bool ViewItem::isNode()
+ENTITY_KIND ViewItem::getEntityKind() const
 {
-    if(entity){
-        return entity->isNodeAdapter();
+    return entityKind;
+}
+
+bool ViewItem::isNode() const
+{
+    return getEntityKind() == EK_NODE;
+}
+
+bool ViewItem::isEdge() const
+{
+    return getEntityKind() == EK_EDGE;
+}
+
+QVariant ViewItem::getData(QString keyName) const
+{
+    if(_data.contains(keyName)){
+        return _data[keyName];
     }
+    return QVariant();
+}
+
+QVariant ViewItem::getProperty(QString propertyName) const
+{
+    if(_properties.contains(propertyName)){
+        return _properties[propertyName];
+    }
+    return QVariant();
+}
+
+QStringList ViewItem::getKeys() const
+{
+    return _data.keys();
+}
+
+QStringList ViewItem::getProperties() const
+{
+    return _properties.keys();
+}
+
+bool ViewItem::hasData(QString keyName) const
+{
+    return _data.contains(keyName);
+}
+
+bool ViewItem::hasProperty(QString propertyName) const
+{
+    return _properties.contains(propertyName);
+}
+
+bool ViewItem::isDataProtected(QString keyName) const
+{
+    if(isReadOnly()){
+        return true;
+    }else{
+        return getProtectedKeys().contains(keyName);
+    }
+}
+
+bool ViewItem::isDataVisual(QString keyName) const
+{
     return false;
 }
 
-bool ViewItem::isEdge()
+bool ViewItem::isReadOnly() const
 {
-    if(entity){
-        return entity->isEdgeAdapter();
+    bool readOnly = false;
+    if(hasData("readOnly")){
+        readOnly = getData("readOnly").toBool();
     }
-    return false;
+    return readOnly;
 }
-
-
-QVariant ViewItem::getData(QString keyName)
-{
-    QVariant data;
-    if(entity){
-        data = entity->getDataValue(keyName);
-    }
-    return data;
-}
-
-QStringList ViewItem::getKeys()
-{
-    QStringList keys;
-    if(entity){
-        keys = entity->getKeys();
-    }
-    return keys;
-}
-
-bool ViewItem::hasData(QString keyName)
-{
-    bool hasData = false;
-    if(entity){
-        hasData = entity->hasData(keyName);
-    }
-    return hasData;
-}
-
-bool ViewItem::isDataProtected(QString keyName)
-{
-    bool locked = false;
-    if(entity){
-        locked = entity->isDataProtected(keyName);
-    }
-    return locked;
-}
-
-bool ViewItem::isDataVisual(QString keyName)
-{
-    bool visual = false;
-    if(entity){
-        visual = entity->isDataVisual(keyName);
-    }
-    return visual;
-}
-
-void ViewItem::setDefaultIcon(QString icon_prefix, QString icon_name)
+void ViewItem::setDefaultIcon(QString iconPrefix, QString iconName)
 {
     //If the icon is different to what we have currently, update and send signal.
-    if(defaultIcon.first != icon_prefix || defaultIcon.second != icon_name){
-        defaultIcon.first = icon_prefix;
-        defaultIcon.second = icon_name;
+    if(defaultIcon.first != iconPrefix || defaultIcon.second != iconName){
+        defaultIcon.first = iconPrefix;
+        defaultIcon.second = iconName;
         if(currentIcon.first == "" || currentIcon.second == ""){
-            setIcon(icon_prefix, icon_name);
+            setIcon(iconPrefix, iconName);
         }
     }
 }
 
-void ViewItem::setIcon(QString icon_prefix, QString icon_name)
+void ViewItem::setIcon(QString iconPrefix, QString iconName)
 {
     //If the icon is different to what we have currently, update and send signal.
-    if(currentIcon.first != icon_prefix || currentIcon.second != icon_name){
-        currentIcon.first = icon_prefix;
-        currentIcon.second = icon_name;
+    if(currentIcon.first != iconPrefix || currentIcon.second != iconName){
+        currentIcon.first = iconPrefix;
+        currentIcon.second = iconName;
         emit iconChanged();
     }
 }
@@ -129,7 +131,7 @@ void ViewItem::resetIcon()
     setIcon(defaultIcon.first, defaultIcon.second);
 }
 
-QPair<QString, QString> ViewItem::getIcon()
+QPair<QString, QString> ViewItem::getIcon() const
 {
     return currentIcon;
 }
@@ -180,13 +182,63 @@ void ViewItem::setParentViewItem(ViewItem *item)
     _parent = item;
 }
 
-QStringList ViewItem::getValidValuesForKey(QString keyName)
+QStringList ViewItem::getProtectedKeys() const
 {
+    return getProperty("protectedKeys").toStringList();
+}
+
+QStringList ViewItem::getValidValuesForKey(QString keyName) const
+{
+    //TODO
     QStringList data;
-    if(entity){
-        data = entity->getValidValuesForKey(keyName);
-    }
+    //if(entity){
+    //    data = entity->getValidValuesForKey(keyName);
+    //}
     return data;
+}
+
+void ViewItem::changeData(QString keyName, QVariant data)
+{
+    bool addedData = !_data.contains(keyName);
+    _data[keyName] = data;
+
+    if(addedData){
+        emit dataAdded(keyName, data);
+    }else{
+        emit dataChanged(keyName, data);
+    }
+
+    if(keyName == "label"){
+        emit labelChanged(data.toString());
+    }
+}
+
+void ViewItem::removeData(QString keyName)
+{
+    if(_data.contains(keyName)){
+        _data.remove(keyName);
+        emit dataRemoved(keyName);
+    }
+}
+
+void ViewItem::changeProperty(QString propertyName, QVariant data)
+{
+    bool addedProperty = !_properties.contains(propertyName);
+    _properties[propertyName] = data;
+
+    if(addedProperty){
+        emit propertyAdded(propertyName, data);
+    }else{
+        emit propertyChanged(propertyName, data);
+    }
+}
+
+void ViewItem::removeProperty(QString propertyName)
+{
+    if(_properties.contains(propertyName)){
+        _properties.remove(propertyName);
+        emit propertyRemoved(propertyName);
+    }
 }
 
 

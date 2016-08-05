@@ -42,6 +42,7 @@ private slots:
     void parentDataChanged(int ID, QString keyName, QVariant data);
 signals:
     void dataChanged(int ID, QString keyName, QVariant data);
+    void dataProtected(bool);
 private:
     Entity* _parent;
     Key* _key;

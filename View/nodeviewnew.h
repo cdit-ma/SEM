@@ -29,7 +29,7 @@ public:
     void viewportChanged();
     SelectionHandler* getSelectionHandler();
 signals:
-    void toolbarRequested(QPointF screenPos);
+    void toolbarRequested(QPoint screenPos, QPointF itemPos);
     void viewportChanged(QRectF rect, qreal zoom);
     void viewFocussed(NodeViewNew* view, bool focussed);
 

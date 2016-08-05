@@ -96,26 +96,22 @@ void ToolActionController::selectionChanged(int selected)
 {
     QStringList validActions;
 
-    if(selected > 0){
+    if(selected == 1){
         validActions = viewController->getAdoptableNodeKinds();
     }
+
     foreach(QAction* action, adoptableKindsGroup->actions()){
         action->setEnabled(validActions.contains(action->text()));
     }
 }
 
-void ToolActionController::addChildNode()
+void ToolActionController::addChildNode(QString kind, QPointF position)
 {
-    if(sender()){
-        QString nodeKind = sender()->property("kind").toString();
-        QPointF position = sender()->property("position").toPointF();
+    ViewItem* item = selectionController->getFirstSelectedItem();
 
-        ViewItem* item = selectionController->getFirstSelectedItem();
-
-        if(item){
-            int ID = item->getID();
-            emit viewController->constructChildNode(ID, nodeKind, position);
-        }
+    if(item){
+        int ID = item->getID();
+        emit viewController->constructChildNode(ID, kind, position);
     }
 }
 
@@ -123,6 +119,8 @@ void ToolActionController::setupToolActions()
 {
     createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
     createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
+
+    //createRootAction("APPLY_REPLICATE_COUNT", "Enter Replicate Count", "Actions", "Tick");
 
     // setup menu info actions here
     createRootAction("NO_EC_DEPLOYMENT_CONNECT", "NONE AVAILABLE", "Actions", "Info");

@@ -39,13 +39,13 @@ public:
     QStringList getKindsRequiringSubActions();
     QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
 
+    void addChildNode(QString kind, QPointF position);
 private slots:
     void themeChanged();
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 
     void selectionChanged(int selected);
-    void addChildNode();
 
 private:
     void setupToolActions();

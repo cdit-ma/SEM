@@ -56,12 +56,14 @@ Data *Data::clone(Data *data)
 void Data::setParent(Entity *parent)
 {
     if(parent){
-        connect(this, SIGNAL(dataChanged(int,QString,QVariant)), parent, SLOT(dataChanged(int, QString,QVariant)));
+        connect(this, &Data::dataChanged, parent, &Entity::dataChanged);
+        connect(this, &Data::dataProtected, parent, &Entity::dataProtected);
         //Set the ID
         setID();
     }
     if(_parent){
-        disconnect(this, SIGNAL(dataChanged(int,QString,QVariant)), _parent, SLOT(dataChanged(int, QString,QVariant)));
+        disconnect(this, &Data::dataChanged, _parent, &Entity::dataChanged);
+        disconnect(this, &Data::dataProtected, _parent, &Entity::dataProtected);
     }
 
 
@@ -76,6 +78,7 @@ Entity *Data::getParent()
 void Data::setProtected(bool protect)
 {
     _isProtected = protect;
+    emit dataProtected(_isProtected);
 }
 
 bool Data::isProtected() const

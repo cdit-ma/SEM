@@ -231,11 +231,10 @@ void MedeaDockWidget::updateActiveStyleSheet()
     if (isActive()) {
         QString activeColor = Theme::theme()->getActiveWidgetBorderColorHex();
         setStyleSheet("QGraphicsView { border: 1px solid " + activeColor + ";}"
-                      "QToolButton::!hover { background:" + activeColor +";}"
-                      "QToolBar { background:" + activeColor + "; border: 1px solid " + activeColor + ";}");
+                      "DockTitleBarWidget { background:" + activeColor + "; border: 1px solid " + activeColor + ";}"
+                      "DockTitleBarWidget QToolButton::!hover { background:" + activeColor +";}");
     } else {
         setStyleSheet("");
-        //setStyleSheet("QToolBar { border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + ";}");
     }
 }
 
