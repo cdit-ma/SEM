@@ -10,7 +10,7 @@ EventPortNodeItem::EventPortNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     height = DEFAULT_SIZE/2.0;
     width = DEFAULT_SIZE * 1.5;
 
-    mainTextFont.setPixelSize(height/ 4);
+    mainTextFont.setPixelSize(7);
 
     setMinimumWidth(width);
     setMinimumHeight(height);
@@ -37,6 +37,7 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
+    painter->setFont(mainTextFont);
 
     if(state > RS_BLOCK) {
         painter->setClipRect(option->exposedRect);
@@ -167,4 +168,12 @@ void EventPortNodeItem::initPolys()
         rightIconPoly.push_back(rect.bottomLeft() + QPointF(0, -height/4));
         rightIconPoly.push_back(rect.topLeft() + QPointF(0, height/4));
     }
+}
+
+void EventPortNodeItem::dataChanged(QString keyName, QVariant data)
+{
+    if(keyName == "label"){
+        update();
+    }
+    NodeItemNew::dataChanged(keyName, data);
 }

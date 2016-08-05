@@ -42,6 +42,10 @@ private:
 
     bool iconRight;
 
+
+    // EntityItemNew interface
+private slots:
+    void dataChanged(QString keyName, QVariant data);
 };
 
 #endif // EVENTPORTNODEITEM_H
