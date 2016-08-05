@@ -94,6 +94,13 @@ void MedeaMainWindow::themeChanged()
     searchOptionsButton->setIcon(theme->getIcon("Actions", "Settings"));
     popupSearchBar->setStyleSheet(theme->getLineEditStyleSheet());
     popupSearchButton->setIcon(theme->getIcon("Actions", "Search"));
+
+    interfaceButton->setIcon(theme->getIcon("Items", "InterfaceDefinitions"));
+    behaviourButton->setIcon(theme->getIcon("Items", "BehaviourDefinitions"));
+    assemblyButton->setIcon(theme->getIcon("Items", "AssemblyDefinitions"));
+    hardwareButton->setIcon(theme->getIcon("Items", "HardwareDefinitions"));
+    //interfaceButton->setIcon(theme->getIcon("Items", "InterfaceDefinitions"));
+    //interfaceButton->setIcon(theme->getIcon("Items", "InterfaceDefinitions"));
 }
 
 
@@ -154,15 +161,16 @@ void MedeaMainWindow::spawnSubView()
 
 void MedeaMainWindow::popupSearch()
 {
-    searchBar->setFocus();
-    /*
-    QPointF s = QPointF(searchToolbar->sizeHint().width(), searchToolbar->height());
-    QPointF p = pos() + rect().center();
-    p -= s;
-    searchToolbar->move(p.x(), p.y());
-    searchToolbar->show();
-    popupSearchBar->setFocus();
-    */
+    if (searchBar->isVisible()) {
+        searchBar->setFocus();
+    } else {
+        QPointF s = QPointF(searchToolbar->sizeHint().width(), searchToolbar->height());
+        QPointF p = pos() + rect().center();
+        p -= s;
+        searchToolbar->move(p.x(), p.y());
+        searchToolbar->show();
+        popupSearchBar->setFocus();
+    }
 }
 
 void MedeaMainWindow::toolbarChanged(Qt::DockWidgetArea area)
@@ -264,6 +272,7 @@ void MedeaMainWindow::setupTools()
     setupPopupSearchBar();
     setupDataTable();
     setupMinimap();
+    setupMainDockWidgetToggles();
 }
 
 void MedeaMainWindow::setupInnerWindow()
@@ -313,8 +322,6 @@ void MedeaMainWindow::setupInnerWindow()
     connectNodeView(nodeView_Behaviour);
     connectNodeView(nodeView_Assemblies);
     connectNodeView(nodeView_Hardware);
-
-
 
     MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructViewDockWidget("QOS Browser");
     qosBrowser = new QOSBrowser(viewController, this);
@@ -384,6 +391,8 @@ void MedeaMainWindow::setupMenuBar()
     // TODO - Find out how to set the height of the menubar items
     menuBar->setFixedHeight(TOOLBAR_HEIGHT);
     setMenuBar(menuBar);
+
+    menuBar->setNativeMenuBar(false);
 }
 
 void MedeaMainWindow::setupToolBar()
@@ -416,7 +425,7 @@ void MedeaMainWindow::setupToolBar()
 void MedeaMainWindow::setupSearchBar()
 {   
     searchBar = new QLineEdit(this);
-    searchBar->setFixedWidth(195);
+    searchBar->setFixedWidth(183);
     searchBar->setPlaceholderText("Search Here...");
     searchBar->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
@@ -433,26 +442,7 @@ void MedeaMainWindow::setupSearchBar()
     searchToolbar->addWidget(searchButton);
     searchToolbar->addWidget(searchOptionsButton);
 
-    /*
-    QWidget* holderWidget = new QWidget(this);
-    QWidget* fillerWidget = new QWidget(this);
-    fillerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    QHBoxLayout* layout = new QHBoxLayout();
-    layout->setSpacing(0);
-    layout->setMargin(0);
-    layout->addWidget(fillerWidget);
-    layout->addWidget(searchToolbar);
-    holderWidget->setLayout(layout);
-
-    QToolBar* toolbar = new QToolBar(this);
-    toolbar->setMovable(false);
-    toolbar->setFloatable(false);
-    toolbar->setFixedHeight(TOOLBAR_HEIGHT);
-    toolbar->addWidget(holderWidget);
-    addToolBar(Qt::TopToolBarArea, toolbar);
-    */
-
+    //searchToolbar->hide();
     menuBar->setCornerWidget(searchToolbar);
 }
 
@@ -500,6 +490,32 @@ void MedeaMainWindow::setupMinimap()
     dockWidget->setWidget(minimap);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+}
+
+void MedeaMainWindow::setupMainDockWidgetToggles()
+{
+    interfaceButton = new QToolButton(this);
+    behaviourButton = new QToolButton(this);
+    assemblyButton = new QToolButton(this);
+    hardwareButton = new QToolButton(this);
+    qosBrowserButton = new QToolButton(this);
+    restoreDefaultButton = new QToolButton(this);
+
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->setIconSize(QSize(20,20));
+    toolbar->setFixedHeight(menuBar->height() - 6);
+
+    toolbar->addWidget(qosBrowserButton);
+    toolbar->addSeparator();
+    toolbar->addWidget(interfaceButton);
+    toolbar->addWidget(behaviourButton);
+    toolbar->addWidget(assemblyButton);
+    toolbar->addWidget(hardwareButton);
+    toolbar->addSeparator();
+    toolbar->addWidget(restoreDefaultButton);
+
+    //menuBar->setCornerWidget(toolbar);
+    toolbar->hide();
 }
 
 void MedeaMainWindow::resizeEvent(QResizeEvent *e)

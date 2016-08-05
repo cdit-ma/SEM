@@ -51,6 +51,7 @@ private:
     void setupPopupSearchBar();
     void setupDataTable();
     void setupMinimap();
+    void setupMainDockWidgetToggles();
 
 private:
     MedeaWindowNew* innerWindow;
@@ -80,6 +81,12 @@ private:
     QOSBrowser* qosBrowser;
     ViewController* viewController;
 
+    QToolButton* interfaceButton;
+    QToolButton* behaviourButton;
+    QToolButton* assemblyButton;
+    QToolButton* hardwareButton;
+    QToolButton* qosBrowserButton;
+    QToolButton* restoreDefaultButton;
 
     // QWidget interface
 protected:

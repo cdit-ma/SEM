@@ -121,7 +121,6 @@ void AppSettings::setupSettingsLayouts()
             customType = "Path";
         }
         KeyEditWidget* keyEditWidget = new KeyEditWidget(category, setting->getSettingString(), setting->getName(), setting->getValue(),"", customType);
-        keyEditWidget->setUseTheme(true);
         layout->addWidget(keyEditWidget);
     }
     foreach(QString category, categoryLayouts.keys()){

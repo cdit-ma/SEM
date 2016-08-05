@@ -120,6 +120,8 @@ void ToolActionController::setupToolActions()
     createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
     createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
 
+    //createRootAction("APPLY_REPLICATE_COUNT", "Enter Replicate Count", "Actions", "Tick");
+
     // setup menu info actions here
     createRootAction("NO_EC_DEPLOYMENT_CONNECT", "NONE AVAILABLE", "Actions", "Info");
 }
