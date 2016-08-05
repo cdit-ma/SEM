@@ -88,6 +88,7 @@ private:
     //QAction* applyReplicateCountButton;
     //QToolBar* replicateToolbar;
     QToolButton* applyReplicateCountButton;
+    QAction* applyReplicateCountAction;
 
     QPointF itemPos;
 };

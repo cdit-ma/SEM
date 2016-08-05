@@ -346,7 +346,7 @@ void MedeaMainWindow::setupToolBar()
 void MedeaMainWindow::setupSearchBar()
 {   
     searchBar = new QLineEdit(this);
-    searchBar->setFixedWidth(195);
+    searchBar->setFixedWidth(183);
     searchBar->setPlaceholderText("Search Here...");
     searchBar->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
