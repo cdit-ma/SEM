@@ -249,6 +249,8 @@ void NewController::connectViewController(ViewController *view)
     connect(this, &NewController::propertyChanged, view, &ViewController::controller_propertyChanged);
     connect(this, &NewController::propertyRemoved, view, &ViewController::controller_propertyRemoved);
 
+    connect(view, &ViewController::initializeModel, this, &NewController::initializeModel);
+
 
 
 

@@ -9,12 +9,15 @@
 
 #include <QObject>
 #include "enumerations.h"
+#include "../Controller/settingscontroller.h"
+
 
 #define THEME_STYLE_QMENU "THEME_STYLE_QMENU"
 #define THEME_STYLE_QPUSHBUTTON "THEME_STYLE_QPUSHBUTTON"
 #define THEME_STYLE_QPUSHBUTTON_JENKINS "THEME_STYLE_QPUSHBUTTON_JENKINS"
 #define THEME_STYLE_GROUPBOX "THEME_STYLE_GROUPBOX"
 #define THEME_STYLE_HIDDEN_TOOLBAR "HIDDEN_TOOLBAR"
+
 
 class Theme: public QObject
 {
@@ -23,6 +26,7 @@ protected:
     Theme();
     ~Theme();
 public:
+
     enum COLOR_ROLE{CR_NONE, CR_NORMAL, CR_DISABLED, CR_SELECTED};
 
     QColor white();
@@ -51,6 +55,7 @@ public:
 
     QColor getActiveWidgetBorderColor();
     QString getActiveWidgetBorderColorHex();
+    void setActiveWidgetBorderColor(QColor color);
 
     QSize roundQSize(QSize size);
     void setBackgroundColor(QColor color);
@@ -88,6 +93,8 @@ public:
     // Default StyleSheets
     QString getWindowStyleSheet();
     QString getDialogStyleSheet();
+    QString getWidgetStyleSheet();
+    QString getTabbedWidgetStyleSheet();
     QString getViewStyleSheet();
     QString getDockWidgetStyleSheet();
     QString getMenuBarStyleSheet();
@@ -101,12 +108,19 @@ public:
     QString getMessageBoxStyleSheet();
     QString getPopupWidgetStyleSheet();
 
+    QColor getThemeColor(SETTING_KEY setting, VIEW_THEME theme);
+
+
 signals:
     void theme_Changed();
 
-private slots:
+    void changeSetting(SETTING_KEY setting, QVariant value);
 public slots:
+    void resetTheme(VIEW_THEME themePreset);
     void preloadImages();
+    void saveTheme();
+
+    void settingChanged(SETTING_KEY setting, QVariant value);
 
 private:
     void updateValid();
@@ -135,6 +149,7 @@ private:
     QColor disabledBackgroundColor;
     QColor iconColor;
     QColor selectedItemBorderColor;
+    QColor selectedWidgetBorderColor;
 
     QString slash;
 

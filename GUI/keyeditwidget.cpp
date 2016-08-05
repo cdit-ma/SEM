@@ -34,9 +34,9 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
     bool isBool = false;
     bool isInt = false;
-    bool isColor = keyNameHR.endsWith("Color");
-    isFilePath = keyNameHR.endsWith("File Path");
-    isPath = keyNameHR.endsWith("Path");
+    bool isColor  = customType == "Color";
+    isFilePath = customType == "File";
+    isPath = customType == "Path";
 
     setStyleSheet("#HiddenGroup{border:0px;margin: 0px;padding: 0px;}");
 
@@ -235,6 +235,7 @@ QVariant KeyEditWidget::getValue()
 {
     return oldValue;
 }
+
 
 int KeyEditWidget::getLabelWidth()
 {

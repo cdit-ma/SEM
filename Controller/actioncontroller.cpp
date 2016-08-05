@@ -31,7 +31,10 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_redo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_redo()));
         connect(edit_delete, SIGNAL(triggered(bool)), viewController, SLOT(deleteSelection()));
 
+        connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
+
         connect(toolbar_addDDSQOSProfile, SIGNAL(triggered(bool)), viewController, SLOT(constructDDSQOSProfile()));
+        connect(options_settings, SIGNAL(triggered(bool)), SettingsController::settings(), SLOT(showSettingsWidget()));
         connectSelectionController(controller->getSelectionController());
     }
 }
@@ -245,6 +248,7 @@ void ActionController::setupActions()
 
 
 
+
     file_importGraphML = createRootAction("Import Project", "", "Actions", "Import");
     file_importXME = createRootAction("Import XME File", "", "Actions", "ImportXME");
     file_importXMI = createRootAction("Import UML XMI File", "", "Actions", "ImportXMI");
@@ -324,6 +328,12 @@ void ActionController::setupActions()
     help_aboutQt = createRootAction("About Qt", "", "Actions", "Qt");
 
     options_settings = createRootAction("Settings", "", "Actions", "Settings");
+    options_settings->setShortcutContext(Qt::ApplicationShortcut);
+    options_settings->setShortcut(QKeySequence(Qt::Key_F10));
+
+
+
+
     file_exit = createRootAction("Exit", "", "Actions", "Power");
 
     toolbar_contextToolbar = createRootAction("Show Context Toolbar", "", "Actions", "Toolbar");

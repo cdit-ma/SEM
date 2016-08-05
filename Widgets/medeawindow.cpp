@@ -522,7 +522,7 @@ void MedeaWindow::loadSettingsFromINI()
 {
     if(appSettings){
         SETTINGS_LOADING = true;
-        appSettings->loadSettings();
+        //appSettings->loadSettings();
         SETTINGS_LOADING = false;
     }
 }
@@ -2765,7 +2765,7 @@ void MedeaWindow::initialiseSettings()
     QHash<QString, QString> tooltips = GET_SETTINGS_TOOLTIPS_HASH();
     QHash<QString, QString> visualGroups = GET_SETTINGS_GROUP_HASH();
 
-    appSettings = new AppSettings(this,applicationDirectory, visualGroups, tooltips);
+    appSettings = new AppSettings(this);
     appSettings->setModal(true);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
     connect(appSettings, SIGNAL(settingsApplied()), this, SLOT(settingsApplied()));

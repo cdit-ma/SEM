@@ -26,6 +26,7 @@ public:
     QString getGroupName();
     QVariant getValue();
 
+
     int getLabelWidth();
     void setLabelWidth(int width);
     void setValue(QVariant value);
