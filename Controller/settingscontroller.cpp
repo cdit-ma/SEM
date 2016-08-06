@@ -28,7 +28,7 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
     //Reset the theme to get default functionality
     t->resetTheme(VT_DARK_THEME);
 
-    loadSettingsFromFile();
+    //loadSettingsFromFile();
     //Update the theme!
     t->applyTheme();
 }

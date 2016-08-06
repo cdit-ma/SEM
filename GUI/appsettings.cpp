@@ -14,6 +14,7 @@
 #include <QDialog>
 #include <QMessageBox>
 #include <QStringBuilder>
+#include "../Widgets/New/dataeditwidget.h"
 
 #define SETTINGS_WIDTH 600
 #define SETTINGS_HEIGHT 400
@@ -120,8 +121,10 @@ void AppSettings::setupSettingsLayouts()
         }else if(setting->getType() == ST_FILE){
             customType = "Path";
         }
-        KeyEditWidget* keyEditWidget = new KeyEditWidget(category, setting->getSettingString(), setting->getName(), setting->getValue(),"", customType);
-        layout->addWidget(keyEditWidget);
+
+        DataEditWidget* dataEditWidget = new DataEditWidget(setting->getSettingString(), setting->getName(), setting->getType(), setting->getValue(),this);
+        //KeyEditWidget* keyEditWidget = new KeyEditWidget(category, setting->getSettingString(), setting->getName(), setting->getValue(),"", customType);
+        layout->addWidget(dataEditWidget);
     }
     foreach(QString category, categoryLayouts.keys()){
         getCategoryLayout(category)->addStretch(1);
