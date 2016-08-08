@@ -139,6 +139,7 @@ private:
     Setting* _getSetting(SETTING_KEY ID);
 
     QHash<SETTING_KEY, Setting*> settingsHash;
+    QList<SETTING_KEY> settingsKeys;
     QSettings* settingsFile;
     AppSettings* settingsGUI;
 

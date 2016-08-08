@@ -68,7 +68,14 @@ bool SettingsController::isThemeSetting(SETTING_KEY key)
 
 QList<Setting *> SettingsController::getSettings()
 {
-    return settingsHash.values();
+    QList<Setting*> s;
+
+    foreach(SETTING_KEY key, settingsKeys){
+        if(settingsHash.contains(key)){
+            s.append(settingsHash[key]);
+        }
+    }
+    return s;
 }
 
 void SettingsController::intializeSettings()
@@ -137,6 +144,9 @@ void SettingsController::intializeSettings()
     createSetting(SK_JENKINS_PASSWORD, ST_STRING, "Jenkins", "User", "Password");
     createSetting(SK_JENKINS_API, ST_STRING, "Jenkins", "User", "API Token");
 
+    createSetting(SK_THEME_SETTHEME_DARKTHEME, ST_BUTTON, "Theme", "Theme Presets", "Dark Theme");
+    createSetting(SK_THEME_SETTHEME_LIGHTHEME, ST_BUTTON, "Theme", "Theme Presets", "Light Theme");
+
     //Theme - Default Colors
     createSetting(SK_THEME_BG_COLOR, ST_COLOR, "Theme", "Default Colors", "Background");
     createSetting(SK_THEME_BG_ALT_COLOR, ST_COLOR, "Theme", "Default Colors", "Alternative Background");
@@ -159,13 +169,11 @@ void SettingsController::intializeSettings()
     createSetting(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Behaviour");
     createSetting(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Assemblies");
     createSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Hardware");
+    createSetting(SK_THEME_SETASPECT_CLASSIC, ST_BUTTON, "Theme", "Aspect Colors", "Classic");
+    createSetting(SK_THEME_SETASPECT_COLORBLIND, ST_BUTTON, "Theme", "Aspect Colors", "Color Blind");
 
 
-    createSetting(SK_THEME_SETTHEME_DARKTHEME, ST_BUTTON, "Theme", "Theme Presets", "Dark Theme");
-    createSetting(SK_THEME_SETTHEME_LIGHTHEME, ST_BUTTON, "Theme", "Theme Presets", "Light Theme");
 
-    createSetting(SK_THEME_SETASPECT_CLASSIC, ST_BUTTON, "Theme", "Aspect Presets", "Classic");
-    createSetting(SK_THEME_SETASPECT_COLORBLIND, ST_BUTTON, "Theme", "Aspect Presets", "Color Blind");
 
     createSetting(SK_THEME_APPLY, ST_NONE, "Theme", "Theme", "Apply Theme");
             \
@@ -238,6 +246,7 @@ Setting *SettingsController::createSetting(SETTING_KEY ID, SETTING_TYPE type, QS
     if(!settingsHash.contains(ID)){
         Setting* setting = new Setting(ID, type, category, section, name);
         settingsHash[ID] = setting;
+        settingsKeys.append(ID);
         return setting;
     }else{
         qCritical() << "Duplicate setting created.";
@@ -302,6 +311,7 @@ Setting::Setting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString se
     this->defaultValue = "";
     this->value = "";
 }
+
 
 SETTING_KEY Setting::getID() const
 {

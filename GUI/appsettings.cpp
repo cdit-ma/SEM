@@ -210,6 +210,9 @@ void AppSettings::setupLayout()
 
 void AppSettings::setupSettingsLayouts()
 {
+
+    QHash<QString, int> categoryToWidth;
+    QHash<QString, QString> nameToCategory;
     foreach(Setting* setting, SettingsController::settings()->getSettings()){
         //Ignore invisible settings.
         if(setting->getType() == ST_NONE){
@@ -230,13 +233,36 @@ void AppSettings::setupSettingsLayouts()
 
             layout->addWidget(widget);
 
+            int width  = widget->getMinimumLabelWidth();
+
             settingKeyLookup[settingString] = key;
             dataEditWidgets[key] = widget;
+
+            nameToCategory[settingString] = category;
+
+            if(categoryToWidth.contains(category)){
+                if(categoryToWidth[category] < width){
+                    categoryToWidth[category] = width;
+                }
+            }else{
+                categoryToWidth[category] = width;
+            }
         }
     }
+
+    foreach(DataEditWidget* dataWidget, dataEditWidgets.values()){
+        QString category = nameToCategory[dataWidget->getKeyName()];
+        int width = categoryToWidth[category];
+        if(width > 0){
+            dataWidget->setLabelWidth(width);
+        }
+    }
+
     foreach(QString category, categoryLayouts.keys()){
         getCategoryLayout(category)->addStretch(1);
     }
+
+
 }
 
 QVBoxLayout *AppSettings::getCategoryLayout(QString category)
