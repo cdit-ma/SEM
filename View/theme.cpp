@@ -728,7 +728,7 @@ QString Theme::getLineEditStyleSheet()
 {
     return "QLineEdit {"
            "background:" % getAltBackgroundColorHex() % ";"
-           "color: " % getTextColorHex(CR_DISABLED) % ";"
+           "color: " % getTextColorHex(CR_NORMAL) % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "QLineEdit:focus {"

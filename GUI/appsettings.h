@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QScrollArea>
 #include <QVBoxLayout>
+#include <QAction>
 #include "../Widgets/New/dataeditwidget.h"
 
 #include "../View/theme.h"

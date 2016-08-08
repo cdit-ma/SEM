@@ -51,7 +51,7 @@ int DataEditWidget::getMinimumLabelWidth()
     return -1;
 }
 
-int DataEditWidget::setLabelWidth(int width)
+void DataEditWidget::setLabelWidth(int width)
 {
     if(editLabel){
         editLabel->setFixedWidth(width);
@@ -70,7 +70,8 @@ void DataEditWidget::themeChanged()
 
     QPushButton* button = qobject_cast<QPushButton*>(editWidget_2);
     if(button){
-        QString style = "border:1px solid " + theme->getAltBackgroundColorHex() + ";";
+        QString style = theme->getPushButtonStyleSheet();
+        //QString style = "border:1px solid " + theme->getAltBackgroundColorHex() + ";";
         switch(type){
         case ST_FILE:{
             button->setIcon(Theme::theme()->getIcon("Actions", "New"));
@@ -81,7 +82,7 @@ void DataEditWidget::themeChanged()
             break;
         }
         case ST_COLOR:{
-            style += " background: " + currentData.toString() + ";";
+            style += "QPushButton{background: " + currentData.toString() + ";}";
             break;
         }
         default:{
@@ -104,14 +105,25 @@ void DataEditWidget::themeChanged()
         editLabel->setStyleSheet(labelStyleSheet);
     }
 
+
+
     if(editWidget_1){
         QString style = "color:" + Theme::theme()->getTextColorHex() + ";";
         if(type == ST_BOOL){
             style = labelStyleSheet;
         }else{
-            style += "background:"+ Theme::theme()->getAltBackgroundColorHex() + ";";
+            style += "background:" + Theme::theme()->getAltBackgroundColorHex() + "; border: 1px solid " + theme->getAltBackgroundColorHex() + ";";
         }
-        editWidget_1->setStyleSheet(style);
+
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+        QPushButton* button = qobject_cast<QPushButton*>(editWidget_1);
+        if(lineEdit){
+            lineEdit->setStyleSheet(theme->getLineEditStyleSheet());
+        }else if(button){
+            button->setStyleSheet(theme->getPushButtonStyleSheet());
+        }else{
+            editWidget_1->setStyleSheet(style);
+        }
     }
 }
 

@@ -18,7 +18,7 @@ public:
     SETTING_TYPE getType();
     void setHighlighted(bool highlighted);
     int getMinimumLabelWidth();
-    int setLabelWidth(int width);
+    void setLabelWidth(int width);
     void setValue(QVariant data);
 
 private slots:
