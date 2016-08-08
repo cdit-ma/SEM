@@ -2,16 +2,19 @@
 
 #include <QHBoxLayout>
 #include <QVariant>
+
 #include <QLineEdit>
-#include <QLabel>
 #include <QCheckBox>
-#include <QDebug>
-#include <QComboBox>
 #include <QSpinBox>
+#include <QComboBox>
+
+
+#include <QLabel>
+#include <QDebug>
 #include <QTextBrowser>
 #include <QAbstractTextDocumentLayout>
-#include <QPushButton>
 #include <QEventLoop>
+#include <QPushButton>
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QGroupBox>

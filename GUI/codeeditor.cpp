@@ -168,9 +168,11 @@ void CodeEditor::highlightCurrentLine()
 
     QTextEdit::ExtraSelection selection;
 
+    QColor textColor = Theme::theme()->getTextColor(Theme::CR_SELECTED);
     QColor lineColor = Theme::theme()->getHighlightColor();
 
     selection.format.setBackground(lineColor);
+    selection.format.setForeground(textColor);
     selection.format.setProperty(QTextFormat::FullWidthSelection, true);
     selection.cursor = textCursor();
     selection.cursor.clearSelection();
@@ -219,7 +221,12 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 
         QRectF br = blockBoundingGeometry(block);
         br.setWidth(lineNumberAreaWidth());
+        br.setHeight(br.height() - 1);
         br.translate(contentOffset());
+
+        if(!block.next().isValid()){
+            br.setHeight(br.height() - 4);
+        }
 
         if(block.blockNumber() == textCursor().blockNumber()){
             font.setBold(true);
@@ -229,6 +236,9 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
             painter.setPen(selectedTextColor);
         } else {
             font.setBold(false);
+            painter.setBrush(altBackgroundColor);
+            painter.setPen(Qt::NoPen);
+            painter.drawRect(br);
             painter.setPen(textColor);
         }
 

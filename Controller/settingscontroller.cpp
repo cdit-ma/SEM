@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QSettings>
 #include <QStringBuilder>
+#include <QVariant>
 
 #include "../View/theme.h"
 #include "../GUI/appsettings.h"
@@ -13,7 +14,7 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<SETTING_KEY>("SETTING_KEY");
     qRegisterMetaType<VIEW_THEME>("VIEW_THEME");
-    settingsFile = new QSettings(QApplication::applicationDirPath() + "/NEWSETTINGS.ini", QSettings::IniFormat);
+    settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
 
     settingsGUI = 0;
     intializeSettings();
@@ -25,8 +26,10 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
     connect(t, &Theme::changeSetting, this, &SettingsController::setSetting);
     connect(this, &SettingsController::settingChanged, t, &Theme::settingChanged);
 
+
     //Reset the theme to get default functionality
     t->resetTheme(VT_DARK_THEME);
+    t->resetAspectTheme(true);
 
     loadSettingsFromFile();
     //Update the theme!
@@ -57,9 +60,22 @@ bool SettingsController::isWriteProtected()
     return !settingsFile->isWritable();
 }
 
+bool SettingsController::isThemeSetting(SETTING_KEY key)
+{
+    Setting* setting = _getSetting(key);
+    return setting && setting->isThemeSetting();
+}
+
 QList<Setting *> SettingsController::getSettings()
 {
-    return settingsHash.values();
+    QList<Setting*> s;
+
+    foreach(SETTING_KEY key, settingsKeys){
+        if(settingsHash.contains(key)){
+            s.append(settingsHash[key]);
+        }
+    }
+    return s;
 }
 
 void SettingsController::intializeSettings()
@@ -128,6 +144,9 @@ void SettingsController::intializeSettings()
     createSetting(SK_JENKINS_PASSWORD, ST_STRING, "Jenkins", "User", "Password");
     createSetting(SK_JENKINS_API, ST_STRING, "Jenkins", "User", "API Token");
 
+    createSetting(SK_THEME_SETTHEME_DARKTHEME, ST_BUTTON, "Theme", "Theme Presets", "Dark Theme");
+    createSetting(SK_THEME_SETTHEME_LIGHTHEME, ST_BUTTON, "Theme", "Theme Presets", "Light Theme");
+
     //Theme - Default Colors
     createSetting(SK_THEME_BG_COLOR, ST_COLOR, "Theme", "Default Colors", "Background");
     createSetting(SK_THEME_BG_ALT_COLOR, ST_COLOR, "Theme", "Default Colors", "Alternative Background");
@@ -150,9 +169,14 @@ void SettingsController::intializeSettings()
     createSetting(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Behaviour");
     createSetting(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Assemblies");
     createSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Hardware");
+    createSetting(SK_THEME_SETASPECT_CLASSIC, ST_BUTTON, "Theme", "Aspect Colors", "Classic");
+    createSetting(SK_THEME_SETASPECT_COLORBLIND, ST_BUTTON, "Theme", "Aspect Colors", "Color Blind");
 
 
 
+
+    createSetting(SK_THEME_APPLY, ST_NONE, "Theme", "Theme", "Apply Theme");
+            \
     _getSetting(SK_GENERAL_WIDTH)->setDefaultValue(1200);
     _getSetting(SK_GENERAL_HEIGHT)->setDefaultValue(800);
     _getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
@@ -194,6 +218,9 @@ void SettingsController::intializeSettings()
 void SettingsController::loadSettingsFromFile()
 {
     foreach(Setting* setting, settingsHash.values()){
+        if(setting->getType() == ST_BUTTON || setting->getType() == ST_NONE){
+            continue;
+        }
         QString settingKey = setting->getSettingString();
 
         if(settingsFile->contains(settingKey)){
@@ -222,6 +249,7 @@ Setting *SettingsController::createSetting(SETTING_KEY ID, SETTING_TYPE type, QS
     if(!settingsHash.contains(ID)){
         Setting* setting = new Setting(ID, type, category, section, name);
         settingsHash[ID] = setting;
+        settingsKeys.append(ID);
         return setting;
     }else{
         qCritical() << "Duplicate setting created.";
@@ -241,13 +269,19 @@ void SettingsController::showSettingsWidget()
 {
     if(!settingsGUI){
         settingsGUI = new AppSettings(0);
+        connect(settingsGUI, &AppSettings::setSetting, this, &SettingsController::setSetting);
+        connect(this, &SettingsController::settingChanged, settingsGUI, &AppSettings::settingChanged);
     }
     settingsGUI->show();
 }
 
 void SettingsController::saveSettings()
 {
+    qCritical() << "Writing Settings";
     foreach(Setting* setting, settingsHash.values()){
+        if(setting->getType() == ST_BUTTON || setting->getType() == ST_NONE){
+            continue;
+        }
         QVariant value = setting->getValue();
 
         if(setting->getType() == ST_COLOR){
@@ -274,6 +308,11 @@ void SettingsController::teardownSettings()
     }
 }
 
+void SettingsController::initializeSettings()
+{
+    settings();
+}
+
 Setting::Setting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name)
 {
     this->ID = ID;
@@ -284,6 +323,7 @@ Setting::Setting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString se
     this->defaultValue = "";
     this->value = "";
 }
+
 
 SETTING_KEY Setting::getID() const
 {
@@ -325,6 +365,11 @@ QPair<QString, QString> Setting::getIcon() const
     return icon;
 }
 
+bool Setting::isThemeSetting() const
+{
+    return getSettingString().contains("theme", Qt::CaseInsensitive);
+}
+
 QString Setting::getSettingString() const
 {
     QString setting = QString::number(ID) % "_" % category % "_" % section % "_" % name;
@@ -343,8 +388,11 @@ void Setting::setDefaultValue(QVariant value)
 
 bool Setting::setValue(QVariant value)
 {
+   //Update if setting has changed
    if(value != this->value){
        this->value = value;
+       return true;
+   }else if(type == ST_BUTTON || type == ST_NONE){
        return true;
    }
    return false;

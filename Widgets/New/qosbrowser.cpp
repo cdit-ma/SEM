@@ -47,7 +47,9 @@ void QOSBrowser::settingSelected(QModelIndex index1, QModelIndex)
 
 void QOSBrowser::setupLayout()
 {
+
     QHBoxLayout* layout = new QHBoxLayout(this);
+    horizontalSplitter = new QSplitter(this);
     profileView = new QListView(this);
     elementView = new QListView(this);
     tableView = new AttributeTableView(this);
@@ -56,13 +58,15 @@ void QOSBrowser::setupLayout()
     toolbar->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
     toolbar->addAction(vc->getActionController()->toolbar_addDDSQOSProfile);
 
-    QVBoxLayout* profileLayout = new QVBoxLayout();
+    QWidget* profileWidget = new QWidget(this);
+    profileWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    QVBoxLayout* profileLayout = new QVBoxLayout(profileWidget);
     profileLayout->addWidget(profileView, 1);
     profileLayout->addWidget(toolbar, 0, Qt::AlignRight);
-    layout->addLayout(profileLayout, 1);
-
-    layout->addWidget(elementView, 1);
-    layout->addWidget(tableView, 2);
+    horizontalSplitter->addWidget(profileWidget);
+    horizontalSplitter->addWidget(elementView);
+    horizontalSplitter->addWidget(tableView);
+    layout->addWidget(horizontalSplitter);
 
     profileView->setModel(qosModel);
     elementView->setModel(0);

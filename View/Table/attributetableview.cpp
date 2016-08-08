@@ -20,6 +20,5 @@ AttributeTableView::AttributeTableView(QWidget* parent):QTableView(parent)
 void AttributeTableView::setModel(QAbstractItemModel *model)
 {
     QTableView::setModel(model);
-    resizeColumnsToContents();
 }
 

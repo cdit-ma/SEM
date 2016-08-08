@@ -14,6 +14,7 @@
 #include <QDialog>
 #include <QMessageBox>
 #include <QStringBuilder>
+#include "../Widgets/New/dataeditwidget.h"
 
 #define SETTINGS_WIDTH 600
 #define SETTINGS_HEIGHT 400
@@ -53,10 +54,16 @@ QVariant AppSettings::getSetting(QString)
     return QVariant();
 }
 
-void AppSettings::setSetting(QString, QVariant)
+void AppSettings::settingChanged(SETTING_KEY key, QVariant data)
 {
-
+    DataEditWidget* widget = getDataWidget(key);
+    if(widget){
+        if(widget->getType() != ST_BUTTON){
+            widget->setValue(data);
+        }
+    }
 }
+
 
 void AppSettings::themeChanged()
 {
@@ -78,6 +85,98 @@ void AppSettings::themeChanged()
     setWindowIcon(theme->getImage("Actions", "Settings"));
 }
 
+void AppSettings::dataValueChanged(QString dataKey, QVariant data)
+{
+    DataEditWidget* widget = getDataWidget(dataKey);
+    if(widget){
+        SETTING_KEY key = getSettingKey(dataKey);
+
+        //Apply directly.
+        if(widget->getType() == ST_BUTTON){
+            emit setSetting(key, true);
+            //APPLY THEME
+            if(SettingsController::settings()->isThemeSetting(key)){
+                emit setSetting(SK_THEME_APPLY, true);
+            }
+        }else{
+            QVariant currentValue = SettingsController::settings()->getSetting(key);
+
+            if(currentValue != data){
+                changedSettings[key] = data;
+                widget->setHighlighted(true);
+            }else{
+                changedSettings.remove(key);
+                widget->setHighlighted(false);
+            }
+            updateButtons();
+        }
+    }
+}
+
+void AppSettings::applySettings()
+{
+    bool themeChanged = false;
+    foreach(SETTING_KEY key, changedSettings.keys()){
+        if(!themeChanged && SettingsController::settings()->isThemeSetting(key)){
+            themeChanged = true;
+        }
+        emit setSetting(key, changedSettings[key]);
+    }
+
+    if(themeChanged){
+        emit setSetting(SK_THEME_APPLY, true);
+    }
+}
+
+void AppSettings::clearSettings()
+{
+    foreach(SETTING_KEY key, changedSettings.keys()){
+        DataEditWidget* widget = getDataWidget(key);
+        if(widget){
+            widget->setValue(SettingsController::settings()->getSetting(key));
+        }
+    }
+}
+
+void AppSettings::updateButtons()
+{
+    int count = changedSettings.size();
+
+    applySettingsAction->setEnabled(count > 0);
+    clearSettingsAction->setEnabled(count > 0);
+
+    QString prefix = "";
+    if(count > 0){
+        prefix += " [" + QString::number(count) % "]";
+    }
+
+    applySettingsAction->setText("Apply" % prefix);
+    clearSettingsAction->setText("Clear" % prefix);
+    warningAction->setVisible(SettingsController::settings()->isWriteProtected());
+}
+
+SETTING_KEY AppSettings::getSettingKey(QString key)
+{
+    if(settingKeyLookup.contains(key)){
+        return settingKeyLookup[key];
+    }
+    return SK_NONE;
+}
+
+DataEditWidget *AppSettings::getDataWidget(QString key)
+{
+    SETTING_KEY sKey = getSettingKey(key);
+    return getDataWidget(sKey);
+}
+
+DataEditWidget *AppSettings::getDataWidget(SETTING_KEY key)
+{
+    if(dataEditWidgets.contains(key)){
+        return dataEditWidgets[key];
+    }
+    return 0;
+}
+
 void AppSettings::setupLayout()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -90,42 +189,80 @@ void AppSettings::setupLayout()
     tabWidget->setContentsMargins(QMargins(0,0,0,0));
 
     warningLabel = new QLabel("settings.ini file is read-only! Settings changed won't persist!");
-    layout->addWidget(warningLabel, 0, Qt::AlignCenter);
     layout->addWidget(tabWidget, 1);
 
 
     toolbar = new QToolBar(this);
 
-    clearSettings = toolbar->addAction("Clear");
-    applySettings = toolbar->addAction("Apply");
+    warningAction = toolbar->addWidget(warningLabel);
+    clearSettingsAction = toolbar->addAction("Clear");
+    applySettingsAction = toolbar->addAction("Apply");
     layout->addWidget(toolbar, 0, Qt::AlignRight);
 
+    connect(applySettingsAction, &QAction::triggered, this, &AppSettings::applySettings);
+    connect(clearSettingsAction, &QAction::triggered, this, &AppSettings::clearSettings);
+
+
+
     setupSettingsLayouts();
+    updateButtons();
 }
 
 
 void AppSettings::setupSettingsLayouts()
 {
+
+    QHash<QString, int> categoryToWidth;
+    QHash<QString, QString> nameToCategory;
     foreach(Setting* setting, SettingsController::settings()->getSettings()){
+        //Ignore invisible settings.
+        if(setting->getType() == ST_NONE){
+            continue;
+        }
+
         QString category = setting->getCategory();
         QString section = setting->getSection();
+        QString settingString = setting->getSettingString();
+        SETTING_KEY key = setting->getID();
 
         QVBoxLayout* layout = getSectionLayout(category, section);
 
-        QString customType = "";
-        if(setting->getType() == ST_COLOR){
-            customType = "Color";
-        }else if(setting->getType() == ST_FILE){
-            customType = "File";
-        }else if(setting->getType() == ST_FILE){
-            customType = "Path";
+        if(!dataEditWidgets.contains(key) && !settingKeyLookup.contains(settingString)){
+            DataEditWidget* widget = new DataEditWidget(settingString, setting->getName(), setting->getType(), setting->getValue(), this);
+            connect(widget, &DataEditWidget::valueChanged, this, &AppSettings::dataValueChanged);
+
+            layout->addWidget(widget);
+
+            int width  = widget->getMinimumLabelWidth();
+
+            settingKeyLookup[settingString] = key;
+            dataEditWidgets[key] = widget;
+
+            nameToCategory[settingString] = category;
+
+            if(categoryToWidth.contains(category)){
+                if(categoryToWidth[category] < width){
+                    categoryToWidth[category] = width;
+                }
+            }else{
+                categoryToWidth[category] = width;
+            }
         }
-        KeyEditWidget* keyEditWidget = new KeyEditWidget(category, setting->getSettingString(), setting->getName(), setting->getValue(),"", customType);
-        layout->addWidget(keyEditWidget);
     }
+
+    foreach(DataEditWidget* dataWidget, dataEditWidgets.values()){
+        QString category = nameToCategory[dataWidget->getKeyName()];
+        int width = categoryToWidth[category];
+        if(width > 0){
+            dataWidget->setLabelWidth(width);
+        }
+    }
+
     foreach(QString category, categoryLayouts.keys()){
         getCategoryLayout(category)->addStretch(1);
     }
+
+
 }
 
 QVBoxLayout *AppSettings::getCategoryLayout(QString category)

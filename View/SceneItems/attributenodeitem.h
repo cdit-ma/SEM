@@ -5,10 +5,10 @@
 
 
 
-class attributenodeitem : public NodeItemNew
+class AttributeNodeItem : public NodeItemNew
 {
 public:
-    attributenodeitem();
+    AttributeNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem);
 
 
 private:

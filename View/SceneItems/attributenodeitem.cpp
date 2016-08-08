@@ -1,6 +1,7 @@
 #include "attributenodeitem.h"
 
-attributenodeitem::attributenodeitem()
+AttributeNodeItem::AttributeNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
+    :NodeItemNew(viewItem, parentItem, NodeItemNew::DEFAULT_ITEM)
 {
 
     setMoveEnabled(true);
@@ -10,7 +11,7 @@ attributenodeitem::attributenodeitem()
     width = DEFAULT_SIZE * 1.5;
     height = DEFAULT_SIZE / 2;
 
-    setMinimumHeight(heigt);
+    setMinimumHeight(height);
     setMinimumWidth(width);
 
     setMargin(QMarginsF(10,10,10,10));
@@ -22,7 +23,7 @@ attributenodeitem::attributenodeitem()
     reloadRequiredData();
 }
 
-QRectF attributenodeitem::mainIconRect() const
+QRectF AttributeNodeItem::mainIconRect() const
 {
     QRectF rect;
     rect.setHeight(height);
@@ -30,7 +31,7 @@ QRectF attributenodeitem::mainIconRect() const
     return rect;
 }
 
-void attributenodeitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void AttributeNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
@@ -45,7 +46,7 @@ void attributenodeitem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     }
 }
 
-QRectF attributenodeitem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
+QRectF AttributeNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
 {
     switch(rect){
     case ER_MAIN_ICON:
@@ -53,9 +54,10 @@ QRectF attributenodeitem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     }
 }
 
-QPainterPath attributenodeitem::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
+QPainterPath AttributeNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
 {
     QPainterPath path;
     path.addRect(mainIconRect());
+    return path;
 }
 

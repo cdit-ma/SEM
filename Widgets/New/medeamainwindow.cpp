@@ -20,9 +20,9 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 {
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
+    SettingsController::initializeSettings();
+
     initializeApplication();
-    initializeSettings();
-    initializeTheme();
 
     floatingToolbar = 0;
     viewController = vc;
@@ -227,32 +227,6 @@ void MedeaMainWindow::initializeApplication()
     QApplication::setFont(font);
 }
 
-void MedeaMainWindow::initializeSettings()
-{
-    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    SettingsController::settings();
-    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Settings loaded in: " <<  timeFinish-timeStart << "MS";
-}
-
-void MedeaMainWindow::initializeTheme()
-{
-    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    Theme::theme()->setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
-    Theme::theme()->setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
-    Theme::theme()->setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
-    Theme::theme()->setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
-    Theme::theme()->setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
-    Theme::theme()->setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
-    Theme::theme()->setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
-    Theme::theme()->setIconToggledImage("Actions", "Invisible", "Actions", "Visible");
-
-    connect(this, &MedeaMainWindow::preloadImages, Theme::theme(), &Theme::preloadImages);
-    emit preloadImages();
-
-    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Theme initialized in: " <<  timeFinish - timeStart << "MS";
-}
 
 void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
 {

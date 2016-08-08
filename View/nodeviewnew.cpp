@@ -210,12 +210,14 @@ void NodeViewNew::clearSelection()
 
 void NodeViewNew::themeChanged()
 {
+
     if(isAspectView){
         backgroundColor = Theme::theme()->getAspectBackgroundColor(containedAspect);
     }else{
         backgroundColor = Theme::theme()->getAltBackgroundColor();
     }
     backgroundFontColor = backgroundColor.darker(110);
+
 
     QColor selectedColor = Qt::blue;
 

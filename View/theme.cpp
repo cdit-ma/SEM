@@ -5,6 +5,9 @@
 #include <QDateTime>
 #include <QPainter>
 #include <QStringBuilder>
+#include <QtConcurrent/QtConcurrentRun>
+#include <QThreadPool>
+
 
 #include "Controller/settingscontroller.h"
 
@@ -13,6 +16,7 @@ QThread* Theme::themeThread = 0;
 
 Theme::Theme():QObject(0)
 {
+    preloadedImages = false;
     slash = QString("/");
     updateValid();
     valid = false;
@@ -31,6 +35,8 @@ Theme::Theme():QObject(0)
 
     Theme_white = QColor(250,250,250);
     Theme_black = QColor(50,50,50);
+
+    QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
 }
 
 Theme::~Theme()
@@ -722,7 +728,7 @@ QString Theme::getLineEditStyleSheet()
 {
     return "QLineEdit {"
            "background:" % getAltBackgroundColorHex() % ";"
-           "color: " % getTextColorHex(CR_DISABLED) % ";"
+           "color: " % getTextColorHex(CR_NORMAL) % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "QLineEdit:focus {"
@@ -772,24 +778,26 @@ QColor Theme::getThemeColor(SETTING_KEY setting, VIEW_THEME theme)
 
 void Theme::preloadImages()
 {
-    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    QStringList dirs;
-    dirs << "Actions" << "Data" << "Functions" << "Items" << "Welcome";
-    int count = 0;
-    foreach(QString dir, dirs){
-        QDirIterator it(":/" % dir, QDirIterator::Subdirectories);
-        while (it.hasNext()) {
-            it.next();
-            QString imageName = it.fileName();
-            if(!getImage(dir, imageName).isNull()){
-                count ++;
+    if(!preloadedImages){
+        preloadedImages = true;
+        qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        QStringList dirs;
+        dirs << "Actions" << "Data" << "Functions" << "Items" << "Welcome";
+        int count = 0;
+        foreach(QString dir, dirs){
+            QDirIterator it(":/" % dir, QDirIterator::Subdirectories);
+            while (it.hasNext()) {
+                it.next();
+                QString imageName = it.fileName();
+                if(!getImage(dir, imageName).isNull()){
+                    count ++;
+                }
             }
         }
+        //Only Allow once.
+        qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        qCritical() << "Preloaded #" << count << "images in: " <<  timeFinish-timeStart << "MS";
     }
-    //Only Allow once.
-    disconnect(this, SIGNAL(initPreloadImages()), this, SLOT(preloadImages()));
-    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Preloaded #" << count << "images in: " <<  timeFinish-timeStart << "MS";
 }
 
 void Theme::saveTheme()
@@ -879,66 +887,58 @@ void Theme::settingChanged(SETTING_KEY setting, QVariant value)
         setAspectBackgroundColor(VA_HARDWARE, color);
         break;
     }
+    case SK_THEME_SETTHEME_DARKTHEME:{
+        resetTheme(VT_DARK_THEME);
+        break;
+    }
+    case SK_THEME_SETTHEME_LIGHTHEME:{
+        resetTheme(VT_LIGHT_THEME);
+        break;
+    }
+    case SK_THEME_SETASPECT_CLASSIC:{
+        resetAspectTheme(false);
+        break;
+    }
+    case SK_THEME_SETASPECT_COLORBLIND:{
+        resetAspectTheme(true);
+        break;
+    }case SK_THEME_APPLY:{
+        applyTheme();
+        break;
+    }
     default:
         break;
     }
+}
 
-
-
-    /*
-    if(setting == THEME_SETTINGS){
-        QString strValue = value.toString();
-        QColor color(strValue);
-
-        QColor color2 = value.value<QColor>();
-        qCritical() << color2;
-
-        if(name == THEME_BG_COLOR){
-            setBackgroundColor(color);
-        }else if(name == THEME_BG_ALT_COLOR){
-            setAltBackgroundColor(color);
-        }else if(name == THEME_DISABLED_BG_COLOR){
-            setDisabledBackgroundColor(color);
-        }else if(name == THEME_HIGHLIGHT_COLOR){
-            setHighlightColor(color);
-        }else if(name == THEME_MENU_TEXT_COLOR){
-            setTextColor(Theme::CR_NORMAL, color);
-        }else if(name == THEME_MENU_TEXT_DISABLED_COLOR){
-            setTextColor(Theme::CR_DISABLED, color);
-        }else if(name == THEME_MENU_TEXT_SELECTED_COLOR){
-            setTextColor(Theme::CR_SELECTED, color);
-        }else if(name == THEME_MENU_ICON_COLOR){
-            setMenuIconColor(Theme::CR_NORMAL, color);
-        }else if(name == THEME_MENU_ICON_DISABLED_COLOR){
-            setMenuIconColor(Theme::CR_DISABLED, color);
-        }else if(name == THEME_MENU_ICON_SELECTED_COLOR){
-            setMenuIconColor(Theme::CR_SELECTED, color);
-        }else if(name == THEME_SET_DARK_THEME){
-            resetTheme(true);
-        }else if(name == THEME_SET_LIGHT_THEME){
-            resetTheme(false);
-        }
-    }*/
+void Theme::setupIcons()
+{
+    setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
+    setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
+    setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
+    setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
+    setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
+    setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
+    setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
+    setIconToggledImage("Actions", "Invisible", "Actions", "Visible");
 }
 
 void Theme::resetTheme(VIEW_THEME themePreset)
 {
     if (themePreset == VT_DARK_THEME) {
-        qCritical() << "Resetting Dark Theme";
         QColor bgColor = QColor(70,70,70);
         emit changeSetting(SK_THEME_BG_COLOR, bgColor);
         emit changeSetting(SK_THEME_BG_ALT_COLOR, bgColor.lighter());
         emit changeSetting(SK_THEME_TEXT_COLOR, white());
         emit changeSetting(SK_THEME_ICON_COLOR, white());
         emit changeSetting(SK_THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
-        emit changeSetting(SK_THEME_TEXT_DISABLED_COLOR, bgColor);
+        emit changeSetting(SK_THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
         emit changeSetting(SK_THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
         emit changeSetting(SK_THEME_BG_SELECTED_COLOR, QColor(255,165,70));
         emit changeSetting(SK_THEME_TEXT_SELECTED_COLOR, black());
         emit changeSetting(SK_THEME_ICON_SELECTED_COLOR, black());
         emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, black());
     }else if(themePreset == VT_LIGHT_THEME){
-        qCritical() << "Resetting Light Theme";
         QColor bgColor = QColor(170,170,170);
 
         emit changeSetting(SK_THEME_BG_COLOR, bgColor);
@@ -954,17 +954,22 @@ void Theme::resetTheme(VIEW_THEME themePreset)
         emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, white());
     }
 
-    //COLOR BLIND
-    emit changeSetting(SK_THEME_ASPECT_BG_INTERFACES_COLOR, QColor(24,148,184));
-    emit changeSetting(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(90,90,90));
-    emit changeSetting(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(175,175,175));
-    emit changeSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, QColor(207,107,100));
+}
 
-    //LEGACY
-    //emit settingChanged(SK_THEME_ASPECT_BG_INTERFACES_COLOR,  QColor(110,210,210));
-    //emit settingChanged(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(254,184,126));
-    //emit settingChanged(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(255,160,160));
-    //emit settingChanged(SK_THEME_ASPECT_BG_HARDWARE_COLOR, QColor(110,170,220));
+void Theme::resetAspectTheme(bool colorBlind)
+{
+    if(colorBlind){
+        emit changeSetting(SK_THEME_ASPECT_BG_INTERFACES_COLOR, QColor(24,148,184));
+        emit changeSetting(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(90,90,90));
+        emit changeSetting(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(175,175,175));
+        emit changeSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, QColor(207,107,100));
+    }else{
+        //LEGACY
+        emit changeSetting(SK_THEME_ASPECT_BG_INTERFACES_COLOR,  QColor(110,210,210));
+        emit changeSetting(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(254,184,126));
+        emit changeSetting(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(255,160,160));
+        emit changeSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, QColor(110,170,220));
+    }
 }
 
 void Theme::updateValid()
@@ -1000,6 +1005,7 @@ void Theme::updateValid()
         gotAllColors = false;
     }
 
+
     valid = gotAllColors;
     themeChanged = true;
 }
@@ -1026,14 +1032,14 @@ QString Theme::QColorToHex(const QColor color)
 Theme *Theme::theme()
 {
     if(!themeSingleton){
-        themeThread = new QThread();
-        themeThread->start();
+        //themeThread = new QThread();
+        //themeThread->start();
 
         themeSingleton = new Theme();
-        connect(themeSingleton, SIGNAL(initPreloadImages()), themeSingleton, SLOT(preloadImages()));
-        connect(themeSingleton, SIGNAL(destroyed(QObject*)), themeThread, SIGNAL(finished()));
+        //connect(themeSingleton, SIGNAL(initPreloadImages()), themeSingleton, SLOT(preloadImages()));
+        //connect(themeSingleton, SIGNAL(destroyed(QObject*)), themeThread, SIGNAL(finished()));
         //Move the JenkinsRequest to the thread
-        themeSingleton->moveToThread(themeThread);
+        //themeSingleton->moveToThread(themeThread);
     }
     return themeSingleton;
 }

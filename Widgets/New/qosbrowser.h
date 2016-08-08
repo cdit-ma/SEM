@@ -6,6 +6,7 @@
 #include <QTreeView>
 #include <QListView>
 #include <QPushButton>
+#include <QSplitter>
 #include "../../View/Table/attributetableview.h"
 #include "Controller/viewcontroller.h"
 #include "qosprofilemodel.h"
@@ -23,6 +24,7 @@ private:
     void setupLayout();
     QListView* profileView;
     QListView* elementView;
+    QSplitter* horizontalSplitter;
 
     QItemSelectionModel* elementViewSelectionModel;
     AttributeTableView* tableView;

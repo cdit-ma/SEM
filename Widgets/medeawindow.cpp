@@ -2460,6 +2460,7 @@ QToolBar *MedeaWindow::constructToolbar(bool ignoreStyle)
 void MedeaWindow::saveTheme(bool apply)
 {
     if(appSettings){
+        /*
         appSettings->setSetting(THEME_BG_COLOR, Theme::theme()->getBackgroundColor().name());
         appSettings->setSetting(THEME_BG_ALT_COLOR, Theme::theme()->getAltBackgroundColor().name());
         appSettings->setSetting(THEME_DISABLED_BG_COLOR, Theme::theme()->getDisabledBackgroundColor().name());
@@ -2476,7 +2477,7 @@ void MedeaWindow::saveTheme(bool apply)
         appSettings->setSetting(ASPECT_I_COLOR, Theme::theme()->getAspectBackgroundColor(VA_INTERFACES).name());
         appSettings->setSetting(ASPECT_B_COLOR, Theme::theme()->getAspectBackgroundColor(VA_BEHAVIOUR).name());
         appSettings->setSetting(ASPECT_A_COLOR, Theme::theme()->getAspectBackgroundColor(VA_ASSEMBLIES).name());
-        appSettings->setSetting(ASPECT_H_COLOR, Theme::theme()->getAspectBackgroundColor(VA_HARDWARE).name());
+        appSettings->setSetting(ASPECT_H_COLOR, Theme::theme()->getAspectBackgroundColor(VA_HARDWARE).name());*/
     }
     if(apply){
         Theme::theme()->applyTheme();
@@ -3533,17 +3534,17 @@ void MedeaWindow::saveSettings()
 {
     //Write Settings on Quit.
     if(appSettings && SAVE_WINDOW_SETTINGS){
-        appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
-        appSettings->setSetting(WINDOW_FULL_SCREEN, isFullScreen());
+        //appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
+        //appSettings->setSetting(WINDOW_FULL_SCREEN, isFullScreen());
 
         if(!isMaximized() && !isFullScreen()){
-            appSettings->setSetting(WINDOW_W, size().width());
-            appSettings->setSetting(WINDOW_H, size().height());
-            appSettings->setSetting(WINDOW_X, pos().x());
-            appSettings->setSetting(WINDOW_Y, pos().y());
+          //  appSettings->setSetting(WINDOW_W, size().width());
+          //  appSettings->setSetting(WINDOW_H, size().height());
+          //  appSettings->setSetting(WINDOW_X, pos().x());
+          //  appSettings->setSetting(WINDOW_Y, pos().y());
 
         }
-        appSettings->setSetting(DEFAULT_DIR_PATH, DEFAULT_PATH);
+        //appSettings->setSetting(DEFAULT_DIR_PATH, DEFAULT_PATH);
 
 
     }

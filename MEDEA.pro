@@ -229,7 +229,8 @@ HEADERS += \
     View/Table/attributetableview.h \
     Widgets/New/medeanodeviewdockwidget.h \
     Controller/settingscontroller.h \
-    View/SceneItems/attributenodeitem.h
+    View/SceneItems/attributenodeitem.h \
+    Widgets/New/dataeditwidget.h
 
 SOURCES += \
     main.cpp \
@@ -422,15 +423,14 @@ SOURCES += \
     View/Table/attributetableview.cpp \
     Widgets/New/medeanodeviewdockwidget.cpp \
     Controller/settingscontroller.cpp \
-    View/SceneItems/attributenodeitem.cpp
+    View/SceneItems/attributenodeitem.cpp \
+    Widgets/New/dataeditwidget.cpp
 
 RESOURCES += \
     resources.qrc
 
 OTHER_FILES += \
     doxygen.config \
-    settings.ini \
-    defaultSettings.ini \
     changelog.txt \
     Resources/Scripts/jenkins-cli.jar \
     Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy \
@@ -517,14 +517,6 @@ mac{
 
 
 
-equals($$DEPLOY, "true") {
-    SETTINGS_FILE.files += settings.ini
-    SETTINGS_FILE.path = $$OUTPUT_DIR/
-}else{
-    SETTINGS_FILE.files += settings.ini
-    SETTINGS_FILE.path = $$OUTPUT_DIR/
-}
-
 
 CHANGELOG_FILE.files += changelog.txt
 CHANGELOG_FILE.path = $$OUTPUT_DIR/
@@ -540,7 +532,6 @@ TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/
 
 #Copy files for Windows and Linux
 linux-g++ | win32{
-    INSTALLS += SETTINGS_FILE
     INSTALLS += CHANGELOG_FILE
     INSTALLS += SCRIPTS_FILES
     INSTALLS += BINARIES_FILES
@@ -555,7 +546,6 @@ mac{
     TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/Transforms/
     WORKER_FILES.path = $$OUTPUT_DIR/Resources/WorkerDefinitions/
 
-    QMAKE_BUNDLE_DATA += SETTINGS_FILE
     QMAKE_BUNDLE_DATA += CHANGELOG_FILE
     QMAKE_BUNDLE_DATA += SCRIPTS_FILES
     QMAKE_BUNDLE_DATA += BINARIES_FILES

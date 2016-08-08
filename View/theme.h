@@ -117,12 +117,14 @@ signals:
     void changeSetting(SETTING_KEY setting, QVariant value);
 public slots:
     void resetTheme(VIEW_THEME themePreset);
+    void resetAspectTheme(bool colorBlind);
     void preloadImages();
     void saveTheme();
 
     void settingChanged(SETTING_KEY setting, QVariant value);
 
 private:
+    void setupIcons();
     void updateValid();
 
     bool tintIcon(QString prefix, QString alias);
@@ -157,6 +159,8 @@ private:
 
     int readCount;
     bool valid;
+
+    bool preloadedImages;
 
 public:
     static QString QColorToHex(const QColor color);

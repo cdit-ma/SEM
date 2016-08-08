@@ -8,8 +8,9 @@
 #include <QToolBar>
 #include <QLabel>
 #include <QScrollArea>
-
-#include "keyeditwidget.h"
+#include <QVBoxLayout>
+#include <QAction>
+#include "../Widgets/New/dataeditwidget.h"
 
 #include "../View/theme.h"
 #include "../Controller/settingscontroller.h"
@@ -29,10 +30,24 @@ public:
 
 
     QVariant getSetting(QString);
-    void setSetting(QString, QVariant);
+signals:
+    void setSetting(SETTING_KEY key, QVariant data);
+public slots:
+    void settingChanged(SETTING_KEY key, QVariant data);
+
 private slots:
     void themeChanged();
+    void dataValueChanged(QString dataKey, QVariant data);
+
+    void applySettings();
+    void clearSettings();
 private:
+    void updateButtons();
+
+    SETTING_KEY getSettingKey(QString key);
+
+    DataEditWidget* getDataWidget(QString key);
+    DataEditWidget* getDataWidget(SETTING_KEY key);
     void setupLayout();
     void setupSettingsLayouts();
     QVBoxLayout *getCategoryLayout(QString category);
@@ -41,11 +56,14 @@ private:
     QTabWidget* tabWidget;
     QLabel* warningLabel;
     QToolBar* toolbar;
-    QHash<SETTING_KEY, KeyEditWidget*> keyEdits;
+    QHash<QString, SETTING_KEY> settingKeyLookup;
+    QHash<SETTING_KEY, DataEditWidget*> dataEditWidgets;
     QHash<QString, QVBoxLayout*> categoryLayouts;
     QHash<QString, QVBoxLayout*> sectionLayouts;
-    QAction* applySettings;
-    QAction* clearSettings;
+    QHash<SETTING_KEY, QVariant> changedSettings;
+    QAction* applySettingsAction;
+    QAction* clearSettingsAction;
+    QAction* warningAction;
 
 };
 
