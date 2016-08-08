@@ -228,7 +228,8 @@ HEADERS += \
     View/SceneItems/eventportnodeitem.h \
     View/Table/attributetableview.h \
     Widgets/New/medeanodeviewdockwidget.h \
-    Controller/settingscontroller.h
+    Controller/settingscontroller.h \
+    View/SceneItems/attributenodeitem.h
 
 SOURCES += \
     main.cpp \
@@ -420,7 +421,8 @@ SOURCES += \
     Model/Edges/qosedge.cpp \
     View/Table/attributetableview.cpp \
     Widgets/New/medeanodeviewdockwidget.cpp \
-    Controller/settingscontroller.cpp
+    Controller/settingscontroller.cpp \
+    View/SceneItems/attributenodeitem.cpp
 
 RESOURCES += \
     resources.qrc
