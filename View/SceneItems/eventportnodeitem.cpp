@@ -21,12 +21,9 @@ EventPortNodeItem::EventPortNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
 
     setMargin(QMarginsF(10,10,10,10));
     setBodyPadding(QMarginsF(3,3,3,3));
-    setDefaultPen(Qt::NoPen);
 
     addRequiredData("x");
     addRequiredData("y");
-
-
 
     reloadRequiredData();
     iconRight = isOutEventPort();
@@ -46,6 +43,10 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
         painter->setBrush(getBodyColor());
         painter->drawPolygon(mainIconPoly());
+        painter->save();
+        painter->setBrush(getBodyColor().darker(110));
+        painter->drawPolygon(subIconPoly());
+        painter->restore();
         painter->drawRect(labelBGRect());
         painter->setPen(Qt::black);
 
@@ -55,6 +56,7 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     }
     QPair<QString, QString> icon = getIconPath();
     paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
+    paintPixmap(painter, lod, ER_SECONDARY_ICON, icon.first, icon.second);
     NodeItemNew::paint(painter, option, widget);
 }
 
@@ -63,6 +65,8 @@ QRectF EventPortNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
    switch(rect){
    case ER_MAIN_ICON:
        return mainIconRect();
+   case ER_SECONDARY_ICON:
+       return subIconRect();
    default:
        return NodeItemNew::getElementRect(rect);
    }
@@ -75,6 +79,7 @@ QPainterPath EventPortNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect)
         QPainterPath path;
         path.setFillRule(Qt::WindingFill);
         path.addPolygon(mainIconPoly());
+        path.addPolygon(subIconPoly());
         path.addRect(labelRect());
         return path.simplified();
     }
@@ -149,6 +154,24 @@ QPolygonF EventPortNodeItem::mainIconPoly() const
     return iconRight ? rightIconPoly : leftIconPoly;
 }
 
+QRectF EventPortNodeItem::subIconRect() const
+{
+    QRectF rect;
+    rect.setWidth(height/4);
+    rect.setHeight(height/4);
+    if(iconRight){
+        rect.moveTopRight(subIconPoly().at(1));
+    } else {
+        rect.moveTopLeft(subIconPoly().at(0));
+    }
+    return rect;
+}
+
+QPolygonF EventPortNodeItem::subIconPoly() const
+{
+    return iconRight ? rightSubPoly : leftSubPoly;
+}
+
 void EventPortNodeItem::initPolys()
 {
     QRectF rect(mainIconRect());
@@ -167,6 +190,19 @@ void EventPortNodeItem::initPolys()
         rightIconPoly.push_back(rect.bottomLeft() + QPointF(height/4, 0));
         rightIconPoly.push_back(rect.bottomLeft() + QPointF(0, -height/4));
         rightIconPoly.push_back(rect.topLeft() + QPointF(0, height/4));
+    }
+    if(leftSubPoly.isEmpty()){
+        leftSubPoly.push_back(leftIconPoly.at(3));
+        leftSubPoly.push_back(leftIconPoly.at(3) + QPointF(height/2, 0));
+        leftSubPoly.push_back(leftIconPoly.at(4) + QPointF(height/2, 0));
+        leftSubPoly.push_back(leftIconPoly.at(4));
+    }
+
+    if(rightSubPoly.isEmpty()){
+        rightSubPoly.push_back(rightIconPoly.at(4) - QPointF(height/2, 0));
+        rightSubPoly.push_back(rightIconPoly.at(4));
+        rightSubPoly.push_back(rightIconPoly.at(3));
+        rightSubPoly.push_back(rightIconPoly.at(3) - QPointF(height/2, 0));
     }
 }
 

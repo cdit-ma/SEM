@@ -32,6 +32,10 @@ private:
 
     QPolygonF mainIconPoly() const;
 
+    QRectF subIconRect() const;
+
+    QPolygonF subIconPoly() const;
+
     void initPolys();
 
     qreal width;
@@ -39,6 +43,9 @@ private:
 
     QPolygonF leftIconPoly;
     QPolygonF rightIconPoly;
+
+    QPolygonF rightSubPoly;
+    QPolygonF leftSubPoly;
 
     bool iconRight;
 
