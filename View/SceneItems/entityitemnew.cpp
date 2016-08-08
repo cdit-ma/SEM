@@ -13,7 +13,10 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     connectViewItem(viewItem);
 
     //Sets the default border to be dark gray
-    setDefaultPen(QPen(QColor(50, 50, 50)));
+    QPen defaultPen(QColor(50, 50, 50));
+    defaultPen.setCosmetic(true);
+
+    setDefaultPen(defaultPen);
 
     _isHovered = false;
     _isSelected = false;
