@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QSettings>
 #include <QStringBuilder>
+#include <QVariant>
 
 #include "../View/theme.h"
 #include "../GUI/appsettings.h"
@@ -241,6 +242,8 @@ void SettingsController::showSettingsWidget()
 {
     if(!settingsGUI){
         settingsGUI = new AppSettings(0);
+        connect(settingsGUI, &AppSettings::setSetting, this, &SettingsController::setSetting);
+        connect(this, &SettingsController::settingChanged, settingsGUI, &AppSettings::settingChanged);
     }
     settingsGUI->show();
 }

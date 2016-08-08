@@ -7,11 +7,14 @@
 #include <QSpinBox>
 #include <QComboBox>
 #include <QPushButton>
+#include <QFileDialog>
+#include <QColorDialog>
 #include "../../View/theme.h"
 
 #define SMALL_SQUARE 25
 DataEditWidget::DataEditWidget(QString dataKey, QString label, SETTING_TYPE type, QVariant data, QWidget *parent) : QWidget(parent)
 {
+    isHighlighted = false;
     this->dataKey = dataKey;
     this->label = label;
     this->currentData = data;
@@ -22,10 +25,38 @@ DataEditWidget::DataEditWidget(QString dataKey, QString label, SETTING_TYPE type
     themeChanged();
 }
 
+void DataEditWidget::setHighlighted(bool highlighted)
+{
+    isHighlighted = highlighted;
+    themeChanged();
+}
+
+int DataEditWidget::getMinimumLabelWidth()
+{
+    if(editLabel){
+        return editLabel->fontMetrics().width(editLabel->text());
+    }
+    return -1;
+}
+
+int DataEditWidget::setLabelWidth(int width)
+{
+    if(editLabel){
+        editLabel->setFixedWidth(width);
+    }
+}
+
+void DataEditWidget::setValue(QVariant data)
+{
+    dataChanged(data);
+    editFinished();
+}
+
 void DataEditWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    QPushButton* button = dynamic_cast<QPushButton*>(editWidget_2);
+
+    QPushButton* button = qobject_cast<QPushButton*>(editWidget_2);
     if(button){
         QString style = "border:1px solid " + theme->getAltBackgroundColorHex() + ";";
         switch(type){
@@ -48,16 +79,120 @@ void DataEditWidget::themeChanged()
         }
         button->setStyleSheet(style);
     }
+
+    QString labelStyleSheet = "";
+
+    if(isHighlighted){
+        labelStyleSheet += "color: " + theme->getHighlightColorHex() + "; text-decoration:underline;";
+    }else{
+        labelStyleSheet += "color: " + theme->getTextColorHex() + "; text-decoration:normal;";
+    }
+
     if(editLabel){
-        editLabel->setStyleSheet("color: " + Theme::theme()->getTextColorHex() + ";");
+        editLabel->setStyleSheet(labelStyleSheet);
     }
 
     if(editWidget_1){
         QString style = "color:" + Theme::theme()->getTextColorHex() + ";";
-        if(type != ST_BOOL){
+        if(type == ST_BOOL){
+            style = labelStyleSheet;
+        }else{
             style += "background:"+ Theme::theme()->getAltBackgroundColorHex() + ";";
         }
         editWidget_1->setStyleSheet(style);
+    }
+}
+
+void DataEditWidget::dataChanged(QVariant value)
+{
+    newData = value;
+}
+
+void DataEditWidget::editFinished()
+{
+    switch(type){
+    case ST_BOOL:{
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(editWidget_1);
+        if(checkBox){
+            //Call dataChanged first
+            dataChanged(checkBox->isChecked());
+        }
+        break;
+    }
+    case ST_INT:{
+        QSpinBox* spinBox = qobject_cast<QSpinBox*>(editWidget_1);
+        if(spinBox){
+            //Call data Changed first
+            dataChanged(spinBox->value());
+        }
+        break;
+    }
+        case ST_COLOR:{
+
+        //Validate color;
+        QColor color(newData.toString());
+        if(color.isValid()){
+            QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+            if(lineEdit){
+                lineEdit->setText(newData.toString());
+            }
+            themeChanged();
+            break;
+        }else{
+            newData = currentData;
+        }
+        break;
+    }
+    case ST_FILE:
+    case ST_PATH:{
+        //Do the same things.
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+        if(lineEdit){
+            lineEdit->setText(newData.toString());
+        }
+        break;
+    }
+    default:
+        break;
+
+    }
+
+    //if(newData != currentData){
+        currentData = newData;
+        emit valueChanged(dataKey, newData);
+    //}
+}
+
+void DataEditWidget::pickColor()
+{
+    //Get the current Color from the string.
+    QColor currentColor(currentData.toString());
+
+    //Select the new Color.
+    QColor newColor  = QColorDialog::getColor(currentColor);
+    if(newColor.isValid()){
+        dataChanged(newColor.name());
+        editFinished();
+    }
+}
+
+void DataEditWidget::pickPath()
+{
+    QString path = "";
+
+    switch(type){
+        case ST_PATH:
+        path = QFileDialog::getExistingDirectory(this, "Select Path" , currentData.toString(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+        break;
+    case ST_FILE:
+        path = QFileDialog::getOpenFileName(this, "Select File" , currentData.toString());
+        break;
+    default:
+        return;
+    }
+    if(path != ""){
+        dataChanged(path);
+        editFinished();
     }
 }
 
@@ -85,12 +220,20 @@ void DataEditWidget::setupLayout()
         lineEdit->setText(currentData.toString());
 
 
+        connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
+        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
+
         editWidget_1 = lineEdit;
         editLayout->addWidget(editWidget_1, 1);
         break;
     }
     case ST_BOOL:{
         QCheckBox* checkBox = new QCheckBox(label, this);
+
+        checkBox->setChecked(currentData.toBool());
+
+
+        connect(checkBox, &QCheckBox::clicked, this, &DataEditWidget::editFinished);
 
         editWidget_1 = checkBox;
         editLayout->removeWidget(editLabel);
@@ -102,16 +245,21 @@ void DataEditWidget::setupLayout()
     }
     case ST_INT:{
         QSpinBox* spinBox = new QSpinBox(this);
-
-
+        spinBox->setMaximum(10000);
+        spinBox->setValue(currentData.toInt());
 
         editWidget_1 = spinBox;
+
+        connect(spinBox, &QSpinBox::editingFinished, this, &DataEditWidget::editFinished);
+
         editLayout->addWidget(editWidget_1, 1);
         break;
     }
     case ST_PATH:
     case ST_FILE:{
-        QLineEdit* lineEdit = new QLineEdit(this);\
+        QLineEdit* lineEdit = new QLineEdit(this);
+
+        lineEdit->setText(currentData.toString());
 
         QPushButton* button = new QPushButton(this);
         button->setFixedSize(SMALL_SQUARE, SMALL_SQUARE);
@@ -121,10 +269,15 @@ void DataEditWidget::setupLayout()
         editWidget_2 = button;
         editLayout->addWidget(editWidget_1, 1);
         editLayout->addWidget(editWidget_2);
+
+        connect(button, &QPushButton::pressed, this, &DataEditWidget::pickPath);
+        connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
+        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
         break;
     }
     case ST_COLOR:{
         QLineEdit* lineEdit = new QLineEdit(this);
+        lineEdit->setText(currentData.toString());
 
 
 
@@ -134,6 +287,10 @@ void DataEditWidget::setupLayout()
 
         editWidget_1 = lineEdit;
         editWidget_2 = button;
+
+        connect(button, &QPushButton::pressed, this, &DataEditWidget::pickColor);
+        connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
+        connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
 
         editLayout->addWidget(editWidget_1, 1);
         editLayout->addWidget(editWidget_2);

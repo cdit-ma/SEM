@@ -12,14 +12,32 @@ class DataEditWidget : public QWidget
     Q_OBJECT
 public:
     explicit DataEditWidget(QString dataKey, QString label, SETTING_TYPE type, QVariant data, QWidget *parent = 0);
+
+    void setHighlighted(bool highlighted);
+    int getMinimumLabelWidth();
+    int setLabelWidth(int width);
+    void setValue(QVariant data);
+
 private slots:
+
     void themeChanged();
+
+    void dataChanged(QVariant value);
+    void editFinished();
+
+    void pickColor();
+    void pickPath();
+signals:
+    void valueChanged(QString datakey, QVariant data);
 private:
+
     void setupLayout();
 
+    bool isHighlighted;
     QString dataKey;
     QString label;
     QVariant currentData;
+    QVariant newData;
 
     SETTING_TYPE type;
     QWidget* editWidget_1;

@@ -54,10 +54,14 @@ QVariant AppSettings::getSetting(QString)
     return QVariant();
 }
 
-void AppSettings::setSetting(QString, QVariant)
+void AppSettings::settingChanged(SETTING_KEY key, QVariant data)
 {
-
+    DataEditWidget* widget = getDataWidget(key);
+    if(widget){
+        widget->setValue(data);
+    }
 }
+
 
 void AppSettings::themeChanged()
 {
@@ -79,6 +83,79 @@ void AppSettings::themeChanged()
     setWindowIcon(theme->getImage("Actions", "Settings"));
 }
 
+void AppSettings::dataValueChanged(QString dataKey, QVariant data)
+{
+    DataEditWidget* widget = getDataWidget(dataKey);
+    if(widget){
+        SETTING_KEY key = getSettingKey(dataKey);
+        QVariant currentValue = SettingsController::settings()->getSetting(key);
+
+        if(currentValue != data){
+            changedSettings[key] = data;
+            widget->setHighlighted(true);
+        }else{
+            changedSettings.remove(key);
+            widget->setHighlighted(false);
+        }
+        updateButtons();
+    }
+}
+
+void AppSettings::applySettings()
+{
+    foreach(SETTING_KEY key, changedSettings.keys()){
+        emit setSetting(key, changedSettings[key]);
+    }
+}
+
+void AppSettings::clearSettings()
+{
+    foreach(SETTING_KEY key, changedSettings.keys()){
+        DataEditWidget* widget = getDataWidget(key);
+        if(widget){
+            widget->setValue(SettingsController::settings()->getSetting(key));
+        }
+    }
+}
+
+void AppSettings::updateButtons()
+{
+    int count = changedSettings.size();
+
+    applySettingsAction->setEnabled(count > 0);
+    clearSettingsAction->setEnabled(count > 0);
+
+    QString prefix = "";
+    if(count > 0){
+        prefix += " [" + QString::number(count) % "]";
+    }
+
+    applySettingsAction->setText("Apply" % prefix);
+    clearSettingsAction->setText("Clear" % prefix);
+}
+
+SETTING_KEY AppSettings::getSettingKey(QString key)
+{
+    if(settingKeyLookup.contains(key)){
+        return settingKeyLookup[key];
+    }
+    return SK_NONE;
+}
+
+DataEditWidget *AppSettings::getDataWidget(QString key)
+{
+    SETTING_KEY sKey = getSettingKey(key);
+    return getDataWidget(sKey);
+}
+
+DataEditWidget *AppSettings::getDataWidget(SETTING_KEY key)
+{
+    if(dataEditWidgets.contains(key)){
+        return dataEditWidgets[key];
+    }
+    return 0;
+}
+
 void AppSettings::setupLayout()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
@@ -97,11 +174,17 @@ void AppSettings::setupLayout()
 
     toolbar = new QToolBar(this);
 
-    clearSettings = toolbar->addAction("Clear");
-    applySettings = toolbar->addAction("Apply");
+    clearSettingsAction = toolbar->addAction("Clear");
+    applySettingsAction = toolbar->addAction("Apply");
     layout->addWidget(toolbar, 0, Qt::AlignRight);
 
+    connect(applySettingsAction, &QAction::triggered, this, &AppSettings::applySettings);
+    connect(clearSettingsAction, &QAction::triggered, this, &AppSettings::clearSettings);
+
+
+
     setupSettingsLayouts();
+    updateButtons();
 }
 
 
@@ -110,21 +193,19 @@ void AppSettings::setupSettingsLayouts()
     foreach(Setting* setting, SettingsController::settings()->getSettings()){
         QString category = setting->getCategory();
         QString section = setting->getSection();
-
+        QString settingString = setting->getSettingString();
+        SETTING_KEY key = setting->getID();
         QVBoxLayout* layout = getSectionLayout(category, section);
 
-        QString customType = "";
-        if(setting->getType() == ST_COLOR){
-            customType = "Color";
-        }else if(setting->getType() == ST_FILE){
-            customType = "File";
-        }else if(setting->getType() == ST_FILE){
-            customType = "Path";
-        }
+        if(!dataEditWidgets.contains(key) && !settingKeyLookup.contains(settingString)){
+            DataEditWidget* widget = new DataEditWidget(settingString, setting->getName(), setting->getType(), setting->getValue(), this);
+            connect(widget, &DataEditWidget::valueChanged, this, &AppSettings::dataValueChanged);
 
-        DataEditWidget* dataEditWidget = new DataEditWidget(setting->getSettingString(), setting->getName(), setting->getType(), setting->getValue(),this);
-        //KeyEditWidget* keyEditWidget = new KeyEditWidget(category, setting->getSettingString(), setting->getName(), setting->getValue(),"", customType);
-        layout->addWidget(dataEditWidget);
+            layout->addWidget(widget);
+
+            settingKeyLookup[settingString] = key;
+            dataEditWidgets[key] = widget;
+        }
     }
     foreach(QString category, categoryLayouts.keys()){
         getCategoryLayout(category)->addStretch(1);
