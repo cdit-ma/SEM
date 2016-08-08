@@ -152,6 +152,7 @@ void AppSettings::updateButtons()
 
     applySettingsAction->setText("Apply" % prefix);
     clearSettingsAction->setText("Clear" % prefix);
+    warningAction->setVisible(SettingsController::settings()->isWriteProtected());
 }
 
 SETTING_KEY AppSettings::getSettingKey(QString key)
@@ -188,12 +189,12 @@ void AppSettings::setupLayout()
     tabWidget->setContentsMargins(QMargins(0,0,0,0));
 
     warningLabel = new QLabel("settings.ini file is read-only! Settings changed won't persist!");
-    layout->addWidget(warningLabel, 0, Qt::AlignCenter);
     layout->addWidget(tabWidget, 1);
 
 
     toolbar = new QToolBar(this);
 
+    warningAction = toolbar->addWidget(warningLabel);
     clearSettingsAction = toolbar->addAction("Clear");
     applySettingsAction = toolbar->addAction("Apply");
     layout->addWidget(toolbar, 0, Qt::AlignRight);
@@ -225,7 +226,6 @@ void AppSettings::setupSettingsLayouts()
         SETTING_KEY key = setting->getID();
 
         QVBoxLayout* layout = getSectionLayout(category, section);
-
 
         if(!dataEditWidgets.contains(key) && !settingKeyLookup.contains(settingString)){
             DataEditWidget* widget = new DataEditWidget(settingString, setting->getName(), setting->getType(), setting->getValue(), this);

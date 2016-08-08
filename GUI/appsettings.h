@@ -62,6 +62,7 @@ private:
     QHash<SETTING_KEY, QVariant> changedSettings;
     QAction* applySettingsAction;
     QAction* clearSettingsAction;
+    QAction* warningAction;
 
 };
 

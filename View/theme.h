@@ -124,6 +124,7 @@ public slots:
     void settingChanged(SETTING_KEY setting, QVariant value);
 
 private:
+    void setupIcons();
     void updateValid();
 
     bool tintIcon(QString prefix, QString alias);

@@ -780,7 +780,6 @@ void Theme::preloadImages()
 {
     if(!preloadedImages){
         preloadedImages = true;
-        qCritical() << QThread::currentThread();
         qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
         QStringList dirs;
         dirs << "Actions" << "Data" << "Functions" << "Items" << "Welcome";
@@ -910,6 +909,18 @@ void Theme::settingChanged(SETTING_KEY setting, QVariant value)
     default:
         break;
     }
+}
+
+void Theme::setupIcons()
+{
+    setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
+    setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
+    setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
+    setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
+    setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
+    setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
+    setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
+    setIconToggledImage("Actions", "Invisible", "Actions", "Visible");
 }
 
 void Theme::resetTheme(VIEW_THEME themePreset)

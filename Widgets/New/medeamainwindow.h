@@ -39,8 +39,6 @@ signals:
     void preloadImages();
 private:
     void initializeApplication();
-    void initializeSettings();
-    void initializeTheme();
     void connectNodeView(NodeViewNew* nodeView);
     void setupTools();
     void setupInnerWindow();

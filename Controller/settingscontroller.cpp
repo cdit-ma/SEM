@@ -14,7 +14,7 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<SETTING_KEY>("SETTING_KEY");
     qRegisterMetaType<VIEW_THEME>("VIEW_THEME");
-    settingsFile = new QSettings(QApplication::applicationDirPath() + "/NEWSETTINGS.ini", QSettings::IniFormat);
+    settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
 
     settingsGUI = 0;
     intializeSettings();
@@ -31,7 +31,7 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
     t->resetTheme(VT_DARK_THEME);
     t->resetAspectTheme(true);
 
-    //loadSettingsFromFile();
+    loadSettingsFromFile();
     //Update the theme!
     t->applyTheme();
 }
@@ -218,6 +218,9 @@ void SettingsController::intializeSettings()
 void SettingsController::loadSettingsFromFile()
 {
     foreach(Setting* setting, settingsHash.values()){
+        if(setting->getType() == ST_BUTTON || setting->getType() == ST_NONE){
+            continue;
+        }
         QString settingKey = setting->getSettingString();
 
         if(settingsFile->contains(settingKey)){
@@ -274,7 +277,11 @@ void SettingsController::showSettingsWidget()
 
 void SettingsController::saveSettings()
 {
+    qCritical() << "Writing Settings";
     foreach(Setting* setting, settingsHash.values()){
+        if(setting->getType() == ST_BUTTON || setting->getType() == ST_NONE){
+            continue;
+        }
         QVariant value = setting->getValue();
 
         if(setting->getType() == ST_COLOR){
@@ -299,6 +306,11 @@ void SettingsController::teardownSettings()
     if(settingsSingleton){
         delete settingsSingleton;
     }
+}
+
+void SettingsController::initializeSettings()
+{
+    settings();
 }
 
 Setting::Setting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name)

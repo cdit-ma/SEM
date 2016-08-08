@@ -129,8 +129,8 @@ public slots:
     void showSettingsWidget();
 
 
-private:
     void saveSettings();
+private:
     void intializeSettings();
     void loadSettingsFromFile();
 
@@ -146,6 +146,7 @@ private:
 public:
     static SettingsController* settings();
     static void teardownSettings();
+    static void initializeSettings();
 private:
     static SettingsController* settingsSingleton;
 };
