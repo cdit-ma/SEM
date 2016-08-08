@@ -26,8 +26,10 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
     connect(t, &Theme::changeSetting, this, &SettingsController::setSetting);
     connect(this, &SettingsController::settingChanged, t, &Theme::settingChanged);
 
+
     //Reset the theme to get default functionality
     t->resetTheme(VT_DARK_THEME);
+    t->resetAspectTheme(true);
 
     //loadSettingsFromFile();
     //Update the theme!
@@ -56,6 +58,12 @@ void SettingsController::setSetting(SETTING_KEY ID, QVariant value)
 bool SettingsController::isWriteProtected()
 {
     return !settingsFile->isWritable();
+}
+
+bool SettingsController::isThemeSetting(SETTING_KEY key)
+{
+    Setting* setting = _getSetting(key);
+    return setting && setting->isThemeSetting();
 }
 
 QList<Setting *> SettingsController::getSettings()
@@ -153,7 +161,14 @@ void SettingsController::intializeSettings()
     createSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, ST_COLOR, "Theme", "Aspect Colors", "Hardware");
 
 
+    createSetting(SK_THEME_SETTHEME_DARKTHEME, ST_BUTTON, "Theme", "Theme Presets", "Dark Theme");
+    createSetting(SK_THEME_SETTHEME_LIGHTHEME, ST_BUTTON, "Theme", "Theme Presets", "Light Theme");
 
+    createSetting(SK_THEME_SETASPECT_CLASSIC, ST_BUTTON, "Theme", "Aspect Presets", "Classic");
+    createSetting(SK_THEME_SETASPECT_COLORBLIND, ST_BUTTON, "Theme", "Aspect Presets", "Color Blind");
+
+    createSetting(SK_THEME_APPLY, ST_NONE, "Theme", "Theme", "Apply Theme");
+            \
     _getSetting(SK_GENERAL_WIDTH)->setDefaultValue(1200);
     _getSetting(SK_GENERAL_HEIGHT)->setDefaultValue(800);
     _getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
@@ -328,6 +343,11 @@ QPair<QString, QString> Setting::getIcon() const
     return icon;
 }
 
+bool Setting::isThemeSetting() const
+{
+    return getSettingString().contains("theme", Qt::CaseInsensitive);
+}
+
 QString Setting::getSettingString() const
 {
     QString setting = QString::number(ID) % "_" % category % "_" % section % "_" % name;
@@ -346,8 +366,11 @@ void Setting::setDefaultValue(QVariant value)
 
 bool Setting::setValue(QVariant value)
 {
+   //Update if setting has changed
    if(value != this->value){
        this->value = value;
+       return true;
+   }else if(type == ST_BUTTON || type == ST_NONE){
        return true;
    }
    return false;

@@ -69,9 +69,15 @@ enum SETTING_KEY{
     SK_THEME_ASPECT_BG_INTERFACES_COLOR,
     SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR,
     SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR,
-    SK_THEME_ASPECT_BG_HARDWARE_COLOR
+    SK_THEME_ASPECT_BG_HARDWARE_COLOR,
+
+    SK_THEME_SETTHEME_DARKTHEME,
+    SK_THEME_SETTHEME_LIGHTHEME,
+    SK_THEME_SETASPECT_CLASSIC,
+    SK_THEME_SETASPECT_COLORBLIND,
+    SK_THEME_APPLY
 };
-enum SETTING_TYPE{ST_COLOR, ST_STRING, ST_BOOL, ST_INT, ST_PATH, ST_FILE};
+enum SETTING_TYPE{ST_NONE, ST_COLOR, ST_STRING, ST_BOOL, ST_INT, ST_PATH, ST_FILE, ST_BUTTON};
 
 class AppSettings;
 class Setting{
@@ -86,6 +92,7 @@ public:
     QString getTooltip() const;
     QPair<QString, QString> getIcon() const;
 
+    bool isThemeSetting() const;
     QString getSettingString() const;
 
     void setDefaultValue(QVariant value);
@@ -112,6 +119,7 @@ protected:
 public:
     QVariant getSetting(SETTING_KEY ID);
     bool isWriteProtected();
+    bool isThemeSetting(SETTING_KEY key);
     QList<Setting*> getSettings();
 
 signals:

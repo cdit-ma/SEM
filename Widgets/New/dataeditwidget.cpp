@@ -22,7 +22,19 @@ DataEditWidget::DataEditWidget(QString dataKey, QString label, SETTING_TYPE type
 
     setContentsMargins(0,0,0,0);
     setupLayout();
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
+}
+
+QString DataEditWidget::getKeyName()
+{
+    return dataKey;
+}
+
+SETTING_TYPE DataEditWidget::getType()
+{
+    return type;
 }
 
 void DataEditWidget::setHighlighted(bool highlighted)
@@ -129,10 +141,11 @@ void DataEditWidget::editFinished()
     }
         case ST_COLOR:{
 
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+
         //Validate color;
         QColor color(newData.toString());
         if(color.isValid()){
-            QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
             if(lineEdit){
                 lineEdit->setText(newData.toString());
             }
@@ -140,6 +153,8 @@ void DataEditWidget::editFinished()
             break;
         }else{
             newData = currentData;
+            lineEdit->setText(currentData.toString());
+            return;
         }
         break;
     }
@@ -157,10 +172,8 @@ void DataEditWidget::editFinished()
 
     }
 
-    //if(newData != currentData){
-        currentData = newData;
-        emit valueChanged(dataKey, newData);
-    //}
+    currentData = newData;
+    emit valueChanged(dataKey, newData);
 }
 
 void DataEditWidget::pickColor()
@@ -289,11 +302,23 @@ void DataEditWidget::setupLayout()
         editWidget_2 = button;
 
         connect(button, &QPushButton::pressed, this, &DataEditWidget::pickColor);
-        connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
+        connect(lineEdit, &QLineEdit::textEdited, this, &DataEditWidget::dataChanged);
         connect(lineEdit, &QLineEdit::editingFinished, this, &DataEditWidget::editFinished);
 
         editLayout->addWidget(editWidget_1, 1);
         editLayout->addWidget(editWidget_2);
+        break;
+    }
+    case ST_BUTTON:{
+        QPushButton* button = new QPushButton(label, this);
+        connect(button, &QPushButton::clicked, this, &DataEditWidget::editFinished);
+
+        editWidget_1 = button;
+        editLayout->removeWidget(editLabel);
+
+        editLayout->addWidget(editWidget_1, 1);
+        editLabel->deleteLater();
+        editLabel = 0;
         break;
     }
     default:{

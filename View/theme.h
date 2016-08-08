@@ -117,6 +117,7 @@ signals:
     void changeSetting(SETTING_KEY setting, QVariant value);
 public slots:
     void resetTheme(VIEW_THEME themePreset);
+    void resetAspectTheme(bool colorBlind);
     void preloadImages();
     void saveTheme();
 
@@ -157,6 +158,8 @@ private:
 
     int readCount;
     bool valid;
+
+    bool preloadedImages;
 
 public:
     static QString QColorToHex(const QColor color);

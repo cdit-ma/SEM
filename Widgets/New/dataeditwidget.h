@@ -13,6 +13,9 @@ class DataEditWidget : public QWidget
 public:
     explicit DataEditWidget(QString dataKey, QString label, SETTING_TYPE type, QVariant data, QWidget *parent = 0);
 
+    QString getKeyName();
+
+    SETTING_TYPE getType();
     void setHighlighted(bool highlighted);
     int getMinimumLabelWidth();
     int setLabelWidth(int width);

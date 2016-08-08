@@ -58,7 +58,9 @@ void AppSettings::settingChanged(SETTING_KEY key, QVariant data)
 {
     DataEditWidget* widget = getDataWidget(key);
     if(widget){
-        widget->setValue(data);
+        if(widget->getType() != ST_BUTTON){
+            widget->setValue(data);
+        }
     }
 }
 
@@ -88,23 +90,41 @@ void AppSettings::dataValueChanged(QString dataKey, QVariant data)
     DataEditWidget* widget = getDataWidget(dataKey);
     if(widget){
         SETTING_KEY key = getSettingKey(dataKey);
-        QVariant currentValue = SettingsController::settings()->getSetting(key);
 
-        if(currentValue != data){
-            changedSettings[key] = data;
-            widget->setHighlighted(true);
+        //Apply directly.
+        if(widget->getType() == ST_BUTTON){
+            emit setSetting(key, true);
+            //APPLY THEME
+            if(SettingsController::settings()->isThemeSetting(key)){
+                emit setSetting(SK_THEME_APPLY, true);
+            }
         }else{
-            changedSettings.remove(key);
-            widget->setHighlighted(false);
+            QVariant currentValue = SettingsController::settings()->getSetting(key);
+
+            if(currentValue != data){
+                changedSettings[key] = data;
+                widget->setHighlighted(true);
+            }else{
+                changedSettings.remove(key);
+                widget->setHighlighted(false);
+            }
+            updateButtons();
         }
-        updateButtons();
     }
 }
 
 void AppSettings::applySettings()
 {
+    bool themeChanged = false;
     foreach(SETTING_KEY key, changedSettings.keys()){
+        if(!themeChanged && SettingsController::settings()->isThemeSetting(key)){
+            themeChanged = true;
+        }
         emit setSetting(key, changedSettings[key]);
+    }
+
+    if(themeChanged){
+        emit setSetting(SK_THEME_APPLY, true);
     }
 }
 
@@ -191,11 +211,18 @@ void AppSettings::setupLayout()
 void AppSettings::setupSettingsLayouts()
 {
     foreach(Setting* setting, SettingsController::settings()->getSettings()){
+        //Ignore invisible settings.
+        if(setting->getType() == ST_NONE){
+            continue;
+        }
+
         QString category = setting->getCategory();
         QString section = setting->getSection();
         QString settingString = setting->getSettingString();
         SETTING_KEY key = setting->getID();
+
         QVBoxLayout* layout = getSectionLayout(category, section);
+
 
         if(!dataEditWidgets.contains(key) && !settingKeyLookup.contains(settingString)){
             DataEditWidget* widget = new DataEditWidget(settingString, setting->getName(), setting->getType(), setting->getValue(), this);

@@ -247,8 +247,9 @@ void MedeaMainWindow::initializeTheme()
     Theme::theme()->setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
     Theme::theme()->setIconToggledImage("Actions", "Invisible", "Actions", "Visible");
 
-    connect(this, &MedeaMainWindow::preloadImages, Theme::theme(), &Theme::preloadImages);
-    emit preloadImages();
+    qCritical() << "GUI THREAD: " << QThread::currentThread();
+    //connect(this, &MedeaMainWindow::preloadImages, Theme::theme(), &Theme::initPreloadImages);
+    //emit preloadImages();
 
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "Theme initialized in: " <<  timeFinish - timeStart << "MS";
