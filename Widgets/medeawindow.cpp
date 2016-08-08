@@ -2888,7 +2888,6 @@ void MedeaWindow::initialiseTheme()
     Theme::theme()->setDefaultImageTintColor("Welcome", "Close",  QColor(230,51,42));
 
     //LOAD THINGS
-    emit Theme::theme()->initPreloadImages();
     emit Theme::theme()->theme_Changed();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }

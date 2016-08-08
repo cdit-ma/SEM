@@ -113,6 +113,7 @@ void NodeViewNew::setContainedViewAspect(VIEW_ASPECT aspect)
 
     backgroundText = GET_ASPECT_NAME(aspect).toUpper();
     isAspectView = true;
+    themeChanged();
 }
 
 void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)

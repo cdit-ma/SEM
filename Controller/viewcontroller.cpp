@@ -9,7 +9,6 @@ ViewController::ViewController(){
     _modelReady = false;
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
-    actionController->connectViewController(this);
 
 
     controller = 0;

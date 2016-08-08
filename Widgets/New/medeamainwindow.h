@@ -33,8 +33,7 @@ private slots:
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
 public slots:
-    void settingChanged(QString group, QString name, QVariant value);
-    void settingsApplied();
+    void settingChanged(SETTING_KEY setting, QVariant value);
 signals:
     void preloadImages();
 private:

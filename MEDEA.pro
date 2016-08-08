@@ -512,10 +512,6 @@ mac{
     OUTPUT_DIR = Contents/MacOS/
 }
 
-
-
-
-
 CHANGELOG_FILE.files += changelog.txt
 CHANGELOG_FILE.path = $$OUTPUT_DIR/
 

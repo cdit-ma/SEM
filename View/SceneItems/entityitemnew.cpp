@@ -163,7 +163,7 @@ QSize EntityItemNew::getPixmapSize(QRectF rect, qreal lod) const
     QSize requiredSize;
     requiredSize.setWidth(rect.width() * lod * 2);
     requiredSize.setHeight(rect.height() * lod * 2);
-    requiredSize = Theme::theme()->roundQSize(requiredSize);
+    requiredSize = Theme::roundQSize(requiredSize);
     return requiredSize;
 }
 

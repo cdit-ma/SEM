@@ -14,7 +14,7 @@ class ActionController : public QObject
     Q_OBJECT
 public:
     enum ACTION{};
-    explicit ActionController(QObject *parent = 0);
+    explicit ActionController(ViewController* vc);
 
     void connectSelectionController(SelectionController* controller);
 
@@ -28,6 +28,7 @@ private:
     RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 
 private slots:
+    void settingChanged(SETTING_KEY key, QVariant value);
     void jenkinsValidated(bool success);
     void selectionChanged(int selectionSize);
 
@@ -35,6 +36,8 @@ private slots:
     void themeChanged();
 
     void updateJenkinsActions();
+
+    QAction* getSettingAction(SETTING_KEY key);
 
 public:
     SelectionController* selectionController;
@@ -46,6 +49,21 @@ public:
 
     ActionGroup* applicationToolbar;
     ActionGroup* contextToolbar;
+
+    QAction* toolbar_context;
+    QAction* toolbar_undo;
+    QAction* toolbar_redo;
+    QAction* toolbar_cut;
+    QAction* toolbar_copy;
+    QAction* toolbar_paste;
+    QAction* toolbar_replicate;
+    QAction* toolbar_fitToScreen;
+    QAction* toolbar_centerOn;
+    QAction* toolbar_viewInNewWindow;
+    QAction* toolbar_sort;
+    QAction* toolbar_delete;
+    QAction* toolbar_alignVertical;
+    QAction* toolbar_alignHorizontal;
 
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;

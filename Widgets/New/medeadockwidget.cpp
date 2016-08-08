@@ -215,7 +215,7 @@ void MedeaDockWidget::themeChanged()
         protectAction->setIcon(theme->getIcon("Actions", "Lock_Open"));
     }
     if(hideAction){
-        hideAction->setIcon(theme->getIcon("Actions", "Close"));
+        hideAction->setIcon(theme->getIcon("Actions", "Invisible"));
     }
 }
 

@@ -12,28 +12,24 @@ SettingsController* SettingsController::settingsSingleton = 0;
 
 SettingsController::SettingsController(QObject *parent) : QObject(parent)
 {
+    //Register the settings key.
     qRegisterMetaType<SETTING_KEY>("SETTING_KEY");
-    qRegisterMetaType<VIEW_THEME>("VIEW_THEME");
-    settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
 
     settingsGUI = 0;
+    settingsFile = new QSettings(QApplication::applicationDirPath() + "/settings.ini", QSettings::IniFormat);
+
     intializeSettings();
 
-    //Load Theme defaults
-    Theme* t = Theme::theme();
+    //Connect to the
+    connect(Theme::theme(), &Theme::changeSetting, this, &SettingsController::setSetting);
+    connect(this, &SettingsController::settingChanged, Theme::theme(), &Theme::settingChanged);
 
 
-    connect(t, &Theme::changeSetting, this, &SettingsController::setSetting);
-    connect(this, &SettingsController::settingChanged, t, &Theme::settingChanged);
-
-
-    //Reset the theme to get default functionality
-    t->resetTheme(VT_DARK_THEME);
-    t->resetAspectTheme(true);
+    //Place defaults in case nothing is set.
+    emit settingChanged(SK_THEME_SETTHEME_DARKTHEME, true);
+    emit settingChanged(SK_THEME_SETASPECT_COLORBLIND, true);
 
     loadSettingsFromFile();
-    //Update the theme!
-    t->applyTheme();
 }
 
 SettingsController::~SettingsController()
@@ -277,13 +273,15 @@ void SettingsController::showSettingsWidget()
 
 void SettingsController::saveSettings()
 {
-    qCritical() << "Writing Settings";
     foreach(Setting* setting, settingsHash.values()){
+        //Ignore writing Button and None Type settings
         if(setting->getType() == ST_BUTTON || setting->getType() == ST_NONE){
             continue;
         }
+
         QVariant value = setting->getValue();
 
+        //Convert QColor to a String'd hex
         if(setting->getType() == ST_COLOR){
             QColor color = value.value<QColor>();
             value = Theme::QColorToHex(color);

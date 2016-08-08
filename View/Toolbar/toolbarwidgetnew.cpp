@@ -50,6 +50,7 @@ ToolbarWidgetNew::ToolbarWidgetNew(ViewController *vc, QWidget *parent) : QWidge
     setStyle(new MenuStyle);
     setupToolbar();
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 void ToolbarWidgetNew::addChildNode()
