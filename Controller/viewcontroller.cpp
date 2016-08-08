@@ -265,6 +265,31 @@ void ViewController::controller_propertyRemoved(int ID, QString property)
     }
 }
 
+void ViewController::newProject()
+{
+    if(!controller){
+        initializeController();
+        emit initializeModel();
+    }
+}
+
+void ViewController::initializeController()
+{
+    if(!controller){
+        controller = new NewController();
+
+        //Set External Worker Definitions Path.
+        //controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
+        controller->connectViewController(this);
+
+        QThread* controllerThread = new QThread();
+        controllerThread->start();
+        controller->moveToThread(controllerThread);
+        connect(controller, SIGNAL(destroyed(QObject*)), controllerThread, SIGNAL(finished()));
+        _modelReady = false;
+    }
+}
+
 QList<int> ViewController::getIDsOfKind(QString kind)
 {
     return itemKindLists[kind];

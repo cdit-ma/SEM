@@ -29,6 +29,7 @@ public:
 
     void setController(NewController* c);
 signals:
+    void initializeModel();
     void modelReady(bool);
     void viewItemConstructed(ViewItem* viewItem);
     void viewItemDestructing(int ID, ViewItem *viewItem);
@@ -60,8 +61,11 @@ public slots:
     void controller_propertyRemoved(int ID, QString property);
 
 
-
+    void newProject();
 private slots:
+    void initializeController();
+
+
     void table_dataChanged(int ID, QString key, QVariant data);
 
     void setModelReady(bool okay);

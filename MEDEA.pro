@@ -227,7 +227,8 @@ HEADERS += \
     Model/Edges/qosedge.h \
     View/SceneItems/eventportnodeitem.h \
     View/Table/attributetableview.h \
-    Widgets/New/medeanodeviewdockwidget.h
+    Widgets/New/medeanodeviewdockwidget.h \
+    Controller/settingscontroller.h
 
 SOURCES += \
     main.cpp \
@@ -418,7 +419,8 @@ SOURCES += \
     Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp \
     Model/Edges/qosedge.cpp \
     View/Table/attributetableview.cpp \
-    Widgets/New/medeanodeviewdockwidget.cpp
+    Widgets/New/medeanodeviewdockwidget.cpp \
+    Controller/settingscontroller.cpp
 
 RESOURCES += \
     resources.qrc

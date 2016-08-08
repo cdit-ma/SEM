@@ -9,6 +9,7 @@
 #include "../../View/nodeviewnew.h"
 #include "../../View/nodeviewminimap.h"
 #include "../../Controller/viewcontroller.h"
+#include "../../GUI/appsettings.h"
 #include "qosbrowser.h"
 #include "tablewidget.h"
 
@@ -17,6 +18,7 @@ class MedeaMainWindow : public MedeaWindowNew
     Q_OBJECT
 public:
     MedeaMainWindow(ViewController* vc, QWidget *parent=0);
+    ~MedeaMainWindow();
 
     void setViewController(ViewController* vc);
 
@@ -30,8 +32,15 @@ private slots:
 
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
-
+public slots:
+    void settingChanged(QString group, QString name, QVariant value);
+    void settingsApplied();
+signals:
+    void preloadImages();
 private:
+    void initializeApplication();
+    void initializeSettings();
+    void initializeTheme();
     void connectNodeView(NodeViewNew* nodeView);
     void setupTools();
     void setupInnerWindow();

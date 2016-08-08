@@ -4,15 +4,26 @@
 #include "../../View/theme.h"
 #include "selectioncontroller.h"
 #include "medeanodeviewdockwidget.h"
+
+
 #include <QDebug>
 #include <QHeaderView>
 #include <QPushButton>
 #include <QMenuBar>
+#include <QDateTime>
+#include <QApplication>
+#include "../../Controller/settingscontroller.h"
 #define TOOLBAR_HEIGHT 32
 
 
 MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+    initializeApplication();
+    initializeSettings();
+    initializeTheme();
+
     floatingToolbar = 0;
     viewController = vc;
 
@@ -26,7 +37,17 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*,MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)));
     setViewController(vc);
-    showMaximized();
+    showNormal();
+
+    emit Theme::theme()->theme_Changed();
+    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "MedeaMainWindow in: " <<  timeFinish - timeStart << "MS";
+}
+
+MedeaMainWindow::~MedeaMainWindow()
+{
+    qCritical() << "~MedeaMainWindow()";
+    SettingsController::teardownSettings();
 }
 
 void MedeaMainWindow::setViewController(ViewController *vc)
@@ -173,6 +194,64 @@ void MedeaMainWindow::toolbarTopLevelChanged(bool undocked)
         }
         floatingToolbar->parentWidget()->resize(floatingToolbar->sizeHint() +  QSize(12,0));
     }
+}
+
+void MedeaMainWindow::settingChanged(QString group, QString name, QVariant value)
+{
+
+}
+
+void MedeaMainWindow::settingsApplied()
+{
+
+}
+
+void MedeaMainWindow::initializeApplication()
+{
+    //Allow Drops
+    setAcceptDrops(true);
+
+    //Set QApplication information.
+    QApplication::setApplicationName("MEDEA");
+    QApplication::setApplicationVersion(APP_VERSION);
+    QApplication::setOrganizationName("Defence Information Group");
+    QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
+    QApplication::setWindowIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
+
+    //Set Font.
+    int opensans_FontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
+    QString opensans_fontname = QFontDatabase::applicationFontFamilies(opensans_FontID).at(0);
+    QFont font = QFont(opensans_fontname);
+    font.setStyleStrategy(QFont::PreferAntialias);
+    font.setPointSizeF(8.5);
+    QApplication::setFont(font);
+}
+
+void MedeaMainWindow::initializeSettings()
+{
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    SettingsController::settings();
+    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "Settings loaded in: " <<  timeFinish-timeStart << "MS";
+}
+
+void MedeaMainWindow::initializeTheme()
+{
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    Theme::theme()->setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
+    Theme::theme()->setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
+    Theme::theme()->setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
+    Theme::theme()->setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
+    Theme::theme()->setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
+    Theme::theme()->setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
+    Theme::theme()->setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
+    Theme::theme()->setIconToggledImage("Actions", "Invisible", "Actions", "Visible");
+
+    connect(this, &MedeaMainWindow::preloadImages, Theme::theme(), &Theme::preloadImages);
+    emit preloadImages();
+
+    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "Theme initialized in: " <<  timeFinish - timeStart << "MS";
 }
 
 void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)

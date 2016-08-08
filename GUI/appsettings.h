@@ -2,11 +2,17 @@
 #define APPSETTINGS_H
 
 #include <QDialog>
-#include <QSettings>
-#include <QScrollArea>
 #include <QHash>
 #include <QGroupBox>
+#include <QTabWidget>
+#include <QToolBar>
+#include <QLabel>
+#include <QScrollArea>
+
 #include "keyeditwidget.h"
+
+#include "../View/theme.h"
+#include "../Controller/settingscontroller.h"
 
 struct SettingStruct{
     QString key;
@@ -18,65 +24,29 @@ class AppSettings: public QDialog
 {
     Q_OBJECT
 public:
-    AppSettings(QWidget *parent = 0, QString applicationPath="", QHash<QString, QString> visualGroups = QHash<QString, QString>(), QHash<QString, QString> tooltips = QHash<QString, QString>());
+    AppSettings(QWidget *parent = 0);
     ~AppSettings();
 
 
-
-    QSettings* getSettings();
-
-    void loadSettings();
-    bool areSettingsLoaded();
-
-    void setSetting(QString keyName, QVariant value);
-    QVariant getSetting(QString keyName);
-
-    QString getReadableValue(const QString value);
-signals:
-    void settingChanged(QString settingGroup, QString settingName, QVariant settingValue);
-    void settingsApplied();
+    QVariant getSetting(QString);
+    void setSetting(QString, QVariant);
 private slots:
-    void _settingChanged(QString settingGroup, QString settingName, QVariant settingValue);
-    void settingUpdated(QString, QString, QVariant);
-
-
-
-    void clearSettings(bool applySettings=true);
-    void clearChanges();
-
-    void setDarkTheme();
-    void setLightTheme();
-
-    void setAspectColor_Blind();
-    void setAspectColor_Default();
-
+    void themeChanged();
 private:
-    void updateApplyButton();
-    QString getGroup(QString keyName);
     void setupLayout();
-    QSettings* settings;
+    void setupSettingsLayouts();
+    QVBoxLayout *getCategoryLayout(QString category);
+    QVBoxLayout* getSectionLayout(QString category, QString section);
 
-    QHash<QString, QString> keysTooltips;
-    QHash<QString, QString> keysVisualGroups;
-    QHash<QString, KeyEditWidget*> settingsWidgetsHash;
-    QHash<QString, SettingStruct> changedSettings;
+    QTabWidget* tabWidget;
+    QLabel* warningLabel;
+    QToolBar* toolbar;
+    QHash<SETTING_KEY, KeyEditWidget*> keyEdits;
+    QHash<QString, QVBoxLayout*> categoryLayouts;
+    QHash<QString, QVBoxLayout*> sectionLayouts;
+    QAction* applySettings;
+    QAction* clearSettings;
 
-
-    QHash<QString, QVBoxLayout*> groupLayouts;
-    QHash<QString, QString> keyToGroupMap;
-
-    bool settingsLoaded;
-    bool settingFileWriteable;
-
-    QPushButton* clearChangesButton;
-    QPushButton* applyButton;
-
-    QScrollArea* scrollArea;
-
-
-    // QDialog interface
-public slots:
-    void reject();
 };
 
 

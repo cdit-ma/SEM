@@ -6,6 +6,8 @@
 #include <QPainter>
 #include <QStringBuilder>
 
+#include "Controller/settingscontroller.h"
+
 Theme* Theme::themeSingleton = 0;
 QThread* Theme::themeThread = 0;
 
@@ -20,6 +22,8 @@ Theme::Theme():QObject(0)
     deployColor.setRed(95);
     deployColor.setGreen(158);
     deployColor.setBlue(160);
+
+    setDefaultImageTintColor(QColor(70,70,70));
 
 
 
@@ -121,18 +125,20 @@ QString Theme::getSelectedItemBorderColorHex()
 
 QColor Theme::getActiveWidgetBorderColor()
 {
-    if (textColor[CR_NORMAL] == white()) {
-        return black();
-    } else if (textColor[CR_NORMAL] == black()) {
-        return white();
-    } else {
-        return black();
-    }
+    return selectedWidgetBorderColor;
 }
 
 QString Theme::getActiveWidgetBorderColorHex()
 {
     return Theme::QColorToHex(getActiveWidgetBorderColor());
+}
+
+void Theme::setActiveWidgetBorderColor(QColor color)
+{
+    if(selectedWidgetBorderColor != color){
+        selectedWidgetBorderColor = color;
+        updateValid();
+    }
 }
 
 QSize Theme::roundQSize(QSize size)
@@ -281,12 +287,6 @@ void Theme::setDefaultImageTintColor(QString prefix, QString alias, QColor color
 
 void Theme::applyTheme()
 {
-    long long memSize=0;
-    foreach(QPixmap pix, pixmapLookup){
-        memSize += pix.width() * pix.height() * 4;
-    }
-
-
     if(themeChanged && valid){
         //PRINT OUT MEMORY USAGE.
         iconLookup.clear();
@@ -483,6 +483,25 @@ QString Theme::getDialogStyleSheet()
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
                                            "}";
+}
+
+QString Theme::getWidgetStyleSheet()
+{
+    return "QDialog {"
+           "background: " % getBackgroundColorHex() % ";"
+           "color: " % getTextColorHex() % ";"
+                                           "}";
+
+}
+
+QString Theme::getTabbedWidgetStyleSheet()
+{
+    return
+            "QTabWidget::tab-bar {alignment: center;}"
+            "QTabWidget::pane {border: none;background: " % getBackgroundColorHex() % ";color: " % getTextColorHex() % "; }"
+            "QTabBar::tab {background:" % getAltBackgroundColorHex() % ";color:" % getTextColorHex() % ";border: 1px solid " % getBackgroundColorHex() % ";padding:5px; border-radius:4px;}"
+            "QTabBar::tab:selected {background:" % getHighlightColorHex() % ";color:" % getTextColorHex(CR_SELECTED) % ";}"
+            ;
 }
 
 QString Theme::getViewStyleSheet()
@@ -745,6 +764,11 @@ QString Theme::getPopupWidgetStyleSheet()
            "}";
 }
 
+QColor Theme::getThemeColor(SETTING_KEY setting, VIEW_THEME theme)
+{
+    return QColor();
+}
+
 
 void Theme::preloadImages()
 {
@@ -766,6 +790,181 @@ void Theme::preloadImages()
     disconnect(this, SIGNAL(initPreloadImages()), this, SLOT(preloadImages()));
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "Preloaded #" << count << "images in: " <<  timeFinish-timeStart << "MS";
+}
+
+void Theme::saveTheme()
+{
+    /*
+    emit setSetting(THEME_BG_COLOR, getBackgroundColor());
+    emit setSetting(THEME_BG_ALT_COLOR, getAltBackgroundColor());
+    emit setSetting(THEME_DISABLED_BG_COLOR, getDisabledBackgroundColor());
+    emit setSetting(THEME_HIGHLIGHT_COLOR, getHighlightColor());
+
+    emit setSetting(THEME_MENU_TEXT_COLOR, getTextColor(Theme::CR_NORMAL));
+    emit setSetting(THEME_MENU_TEXT_DISABLED_COLOR, getTextColor(Theme::CR_DISABLED));
+    emit setSetting(THEME_MENU_TEXT_SELECTED_COLOR, getTextColor(Theme::CR_SELECTED));
+
+    emit setSetting(THEME_MENU_ICON_COLOR, getMenuIconColor(Theme::CR_NORMAL));
+    emit setSetting(THEME_MENU_ICON_DISABLED_COLOR, getMenuIconColor(Theme::CR_DISABLED));
+    emit setSetting(THEME_MENU_ICON_SELECTED_COLOR, getMenuIconColor(Theme::CR_SELECTED));
+
+    emit setSetting(ASPECT_I_COLOR, getAspectBackgroundColor(VA_INTERFACES));
+    emit setSetting(ASPECT_B_COLOR, getAspectBackgroundColor(VA_BEHAVIOUR));
+    emit setSetting(ASPECT_A_COLOR, getAspectBackgroundColor(VA_ASSEMBLIES));
+    emit setSetting(ASPECT_H_COLOR, getAspectBackgroundColor(VA_HARDWARE));*/
+}
+
+void Theme::settingChanged(SETTING_KEY setting, QVariant value)
+{
+    QColor color = value.value<QColor>();
+
+    switch(setting){
+    case SK_THEME_BG_COLOR:{
+        setBackgroundColor(color);
+        break;
+    }
+    case SK_THEME_BG_ALT_COLOR:{
+        setAltBackgroundColor(color);
+        break;
+    }
+    case SK_THEME_TEXT_COLOR:{
+        setTextColor(CR_NORMAL, color);
+        break;
+    }
+    case SK_THEME_ICON_COLOR:{
+        setMenuIconColor(CR_NORMAL, color);
+        break;
+    }
+    case SK_THEME_BG_DISABLED_COLOR:{
+        setDisabledBackgroundColor(color);
+        break;
+    }
+    case SK_THEME_TEXT_DISABLED_COLOR:{
+        setTextColor(CR_DISABLED, color);
+        break;
+    }
+    case SK_THEME_ICON_DISABLED_COLOR:{
+        setMenuIconColor(CR_DISABLED, color);
+        break;
+    }
+    case SK_THEME_BG_SELECTED_COLOR:{
+        setHighlightColor(color);
+        break;
+    }
+    case SK_THEME_TEXT_SELECTED_COLOR:{
+        setTextColor(CR_SELECTED, color);
+        break;
+    }
+    case SK_THEME_ICON_SELECTED_COLOR:{
+        setMenuIconColor(CR_SELECTED, color);
+        break;
+    }
+    case SK_THEME_VIEW_BORDER_SELECTED_COLOR:{
+        setActiveWidgetBorderColor(color);
+        break;
+    }
+    case SK_THEME_ASPECT_BG_INTERFACES_COLOR:{
+        setAspectBackgroundColor(VA_INTERFACES, color);
+        break;
+    }
+    case SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR:{
+        setAspectBackgroundColor(VA_BEHAVIOUR, color);
+        break;
+    }
+    case SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR:{
+        setAspectBackgroundColor(VA_ASSEMBLIES, color);
+        break;
+    }
+    case SK_THEME_ASPECT_BG_HARDWARE_COLOR:{
+        setAspectBackgroundColor(VA_HARDWARE, color);
+        break;
+    }
+    default:
+        break;
+    }
+
+
+
+    /*
+    if(setting == THEME_SETTINGS){
+        QString strValue = value.toString();
+        QColor color(strValue);
+
+        QColor color2 = value.value<QColor>();
+        qCritical() << color2;
+
+        if(name == THEME_BG_COLOR){
+            setBackgroundColor(color);
+        }else if(name == THEME_BG_ALT_COLOR){
+            setAltBackgroundColor(color);
+        }else if(name == THEME_DISABLED_BG_COLOR){
+            setDisabledBackgroundColor(color);
+        }else if(name == THEME_HIGHLIGHT_COLOR){
+            setHighlightColor(color);
+        }else if(name == THEME_MENU_TEXT_COLOR){
+            setTextColor(Theme::CR_NORMAL, color);
+        }else if(name == THEME_MENU_TEXT_DISABLED_COLOR){
+            setTextColor(Theme::CR_DISABLED, color);
+        }else if(name == THEME_MENU_TEXT_SELECTED_COLOR){
+            setTextColor(Theme::CR_SELECTED, color);
+        }else if(name == THEME_MENU_ICON_COLOR){
+            setMenuIconColor(Theme::CR_NORMAL, color);
+        }else if(name == THEME_MENU_ICON_DISABLED_COLOR){
+            setMenuIconColor(Theme::CR_DISABLED, color);
+        }else if(name == THEME_MENU_ICON_SELECTED_COLOR){
+            setMenuIconColor(Theme::CR_SELECTED, color);
+        }else if(name == THEME_SET_DARK_THEME){
+            resetTheme(true);
+        }else if(name == THEME_SET_LIGHT_THEME){
+            resetTheme(false);
+        }
+    }*/
+}
+
+void Theme::resetTheme(VIEW_THEME themePreset)
+{
+    if (themePreset == VT_DARK_THEME) {
+        qCritical() << "Resetting Dark Theme";
+        QColor bgColor = QColor(70,70,70);
+        emit changeSetting(SK_THEME_BG_COLOR, bgColor);
+        emit changeSetting(SK_THEME_BG_ALT_COLOR, bgColor.lighter());
+        emit changeSetting(SK_THEME_TEXT_COLOR, white());
+        emit changeSetting(SK_THEME_ICON_COLOR, white());
+        emit changeSetting(SK_THEME_BG_DISABLED_COLOR, bgColor.lighter(120));
+        emit changeSetting(SK_THEME_TEXT_DISABLED_COLOR, bgColor);
+        emit changeSetting(SK_THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
+        emit changeSetting(SK_THEME_BG_SELECTED_COLOR, QColor(255,165,70));
+        emit changeSetting(SK_THEME_TEXT_SELECTED_COLOR, black());
+        emit changeSetting(SK_THEME_ICON_SELECTED_COLOR, black());
+        emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, black());
+    }else if(themePreset == VT_LIGHT_THEME){
+        qCritical() << "Resetting Light Theme";
+        QColor bgColor = QColor(170,170,170);
+
+        emit changeSetting(SK_THEME_BG_COLOR, bgColor);
+        emit changeSetting(SK_THEME_BG_ALT_COLOR, bgColor.lighter(130));
+        emit changeSetting(SK_THEME_TEXT_COLOR, black());
+        emit changeSetting(SK_THEME_ICON_COLOR, black());
+        emit changeSetting(SK_THEME_BG_DISABLED_COLOR, bgColor.lighter(110));
+        emit changeSetting(SK_THEME_TEXT_DISABLED_COLOR, QColor(130,130,130));
+        emit changeSetting(SK_THEME_ICON_DISABLED_COLOR, QColor(130,130,130));
+        emit changeSetting(SK_THEME_BG_SELECTED_COLOR, QColor(75,110,175));
+        emit changeSetting(SK_THEME_TEXT_SELECTED_COLOR, white());
+        emit changeSetting(SK_THEME_ICON_SELECTED_COLOR, white());
+        emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, white());
+    }
+
+    //COLOR BLIND
+    emit changeSetting(SK_THEME_ASPECT_BG_INTERFACES_COLOR, QColor(24,148,184));
+    emit changeSetting(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(90,90,90));
+    emit changeSetting(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(175,175,175));
+    emit changeSetting(SK_THEME_ASPECT_BG_HARDWARE_COLOR, QColor(207,107,100));
+
+    //LEGACY
+    //emit settingChanged(SK_THEME_ASPECT_BG_INTERFACES_COLOR,  QColor(110,210,210));
+    //emit settingChanged(SK_THEME_ASPECT_BG_BEHAVIOUR_COLOR, QColor(254,184,126));
+    //emit settingChanged(SK_THEME_ASPECT_BG_ASSEMBLIES_COLOR, QColor(255,160,160));
+    //emit settingChanged(SK_THEME_ASPECT_BG_HARDWARE_COLOR, QColor(110,170,220));
 }
 
 void Theme::updateValid()

@@ -138,7 +138,6 @@ public:
     void setExternalWorkerDefinitionPath(QString path);
     void loadWorkerDefinitions();
 
-    void initializeModel();
     void connectView(NodeView* view);
     void connectViewController(ViewController* view);
 
@@ -251,7 +250,11 @@ signals:
     void controller_SetClipboardBuffer(QString);
 
     void controller_SetViewEnabled(bool);
+public slots:
+    void initializeModel();
+
 private slots:
+
     void projectSaved(bool success, QString filePath);
     void enableDebugLogging(bool logMode, QString applicationPath="");
 

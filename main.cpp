@@ -39,47 +39,10 @@ int launchMEDEA(int argc, char *argv[]){
         graphmlFilePath = QString::fromUtf8(argv[1]);
     }
 
-    Theme::theme()->setDefaultImageTintColor(QColor(70,70,70));
 
-    Theme::theme()->setBackgroundColor(QColor(70,70,70));
-    Theme::theme()->setAltBackgroundColor(Theme::theme()->getBackgroundColor().lighter(130));
-    Theme::theme()->setHighlightColor(QColor(255,165,0));
-    Theme::theme()->setAspectBackgroundColor(VA_INTERFACES, Qt::red);
-    Theme::theme()->setAspectBackgroundColor(VA_BEHAVIOUR, Qt::red);
-    Theme::theme()->setAspectBackgroundColor(VA_ASSEMBLIES, Qt::red);
-    Theme::theme()->setAspectBackgroundColor(VA_HARDWARE, Qt::red);
-
-
-    Theme::theme()->setTextColor(Theme::CR_NORMAL, QColor(255,255,255));
-    Theme::theme()->setTextColor(Theme::CR_SELECTED, QColor(0,0,0));
-    Theme::theme()->setTextColor(Theme::CR_DISABLED, QColor(165,165,165));
-
-
-    Theme::theme()->setMenuIconColor(Theme::CR_NORMAL, QColor(255,255,255));
-    Theme::theme()->setMenuIconColor(Theme::CR_SELECTED, QColor(0,0,0));
-    Theme::theme()->setMenuIconColor(Theme::CR_DISABLED, QColor(165,165,165));
-
-    Theme::theme()->setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
-    Theme::theme()->setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
-    Theme::theme()->setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
-    Theme::theme()->setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
-    Theme::theme()->setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
-    Theme::theme()->setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
-    Theme::theme()->setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
-    Theme::theme()->setIconToggledImage("Actions", "Invisible", "Actions", "Visible");
-    Theme::theme()->applyTheme();
-
-    //LOAD THINGS
-    //emit Theme::theme()->initPreloadImages();
-    //emit Theme::theme()->theme_Changed();
-    Theme::theme()->preloadImages();
 
     ViewController* vc = new ViewController();
     MedeaMainWindow* w2 = (MedeaMainWindow*) MedeaWindowManager::constructMainWindow(vc);
-    emit Theme::theme()->theme_Changed();
-    MedeaWindow *w = new MedeaWindow(vc, ":/demo.graphml");
-
-
 
     a.setActiveWindow(w2);
     return a.exec();
