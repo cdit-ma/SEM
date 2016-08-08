@@ -21,12 +21,9 @@ EventPortNodeItem::EventPortNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
 
     setMargin(QMarginsF(10,10,10,10));
     setBodyPadding(QMarginsF(3,3,3,3));
-    //setDefaultPen(Qt::NoPen);
 
     addRequiredData("x");
     addRequiredData("y");
-
-
 
     reloadRequiredData();
     iconRight = isOutEventPort();
