@@ -29,7 +29,8 @@ public:
     void setCurrentWindow(MedeaWindowNew* window);
     MedeaWindowNew* getCurrentWindow();
 
-    void setIcon(QPixmap icon);
+    void setIcon(QPair<QString, QString> pair);
+    void setIcon(QString prefix, QString alias);
     void setTitle(QString title, Qt::Alignment alignment = Qt::AlignLeft);
     QString getTitle();
 

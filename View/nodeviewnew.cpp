@@ -49,7 +49,7 @@ NodeViewNew::NodeViewNew():QGraphicsView()
     isAspectView = false;
 
     backgroundFont.setPixelSize(70);
-    backgroundFont.setBold(true);
+    //backgroundFont.setBold(true);
 
 
     rubberband = new QRubberBand(QRubberBand::Rectangle, this);
@@ -178,9 +178,7 @@ void NodeViewNew::viewItem_Destructed(int ID, ViewItem *viewItem)
     }
 
     if(viewItem && containedNodeViewItem == viewItem){
-        qCritical() << "Remove setContainedNodeViewItem!";
         setContainedNodeViewItem(0);
-        qCritical() << "Removed setContainedNodeViewItem!";
     }
 }
 

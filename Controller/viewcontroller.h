@@ -27,6 +27,8 @@ public:
     ViewItem* getModel();
     bool isModelReady();
 
+    QList<ViewItem*> search(QString field);
+
     void setController(NewController* c);
 signals:
     void initializeModel();

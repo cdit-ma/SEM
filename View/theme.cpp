@@ -534,13 +534,15 @@ QString Theme::getDockWidgetStyleSheet()
            "}"
 
            "DockTitleBarWidget {"
-           "padding: 0px;"
-           "spacing: 0px;"
+           "padding: 0px 2px;"
+           "spacing: 1px;"
            "background: " % getAltBackgroundColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "DockTitleBarWidget QToolButton {"
            "border: 0px;"
+           "padding: 2px;"
+           "margin: 0px;"
            "}";
 }
 
