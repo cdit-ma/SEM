@@ -20,6 +20,7 @@ bool SETUP_AS_IMPL = false;
 
 NewController::NewController()
 {
+    qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
     qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
     qRegisterMetaType<GraphML::GRAPHML_KIND>("GraphML::GRAPHML_KIND");
     qRegisterMetaType<Edge::EDGE_CLASS>("Edge::EDGE_CLASS");
@@ -158,7 +159,6 @@ void NewController::connectView(NodeView *view)
 
     //Connect SIGNALS to view Slots (ALL VIEWS)
     connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(constructEntityItem(EntityAdapter*)));
-    connect(this, SIGNAL(test_destruct(int)), view, SLOT(destructGUIItem(int)));
 
 
     connect(this, SIGNAL(controller_SetViewEnabled(bool)), view, SLOT(setEnabled(bool)));
@@ -226,7 +226,7 @@ void NewController::connectView(NodeView *view)
 
         //Node Slots
         connect(view, SIGNAL(view_ConstructEdge(int,int, bool)), this, SLOT(constructEdge(int, int)));
-        connect(view, SIGNAL(view_ConstructNode(int,QString,QPointF)), this, SLOT(constructNode(int,QString,QPointF)));
+        connect(view, SIGNAL(view_ConstructNode(int,QString,QPointF)), this, SLOT(_constructNode(int,QString,QPointF)));
 
 
         connect(view, SIGNAL(view_ConstructConnectedNode(int,int,QString,QPointF)), this, SLOT(constructConnectedNode(int,int,QString,QPointF)));
@@ -237,9 +237,6 @@ void NewController::connectView(NodeView *view)
 
 void NewController::connectViewController(ViewController *view)
 {
-
-    qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
-
     connect(this, &NewController::entityConstructed, view, &ViewController::controller_entityConstructed);
     connect(this, &NewController::entityDestructed, view, &ViewController::controller_entityDestructed);
 
@@ -254,20 +251,21 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::vc_openProject, this, &NewController::openProject);
 
 
+    connect(view, &ViewController::setData, this, &NewController::setData);
+    connect(view, &ViewController::constructNode, this, &NewController::constructNode);
+    connect(view, &ViewController::triggerAction, this, &NewController::triggerAction);
 
-    connect(view, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(setData(int,QString,QVariant)));
-    connect(view, SIGNAL(constructChildNode(int,QString,QPointF)), this, SLOT(constructNode(int,QString,QPointF)));
 
+    connect(view, &ViewController::undo, this, &NewController::undo);
+    connect(view, &ViewController::redo, this, &NewController::redo);
 
     connect(this, SIGNAL(controller_IsModelReady(bool)), view, SLOT(setModelReady(bool)));
     connect(this, SIGNAL(controller_CanRedo(bool)), view, SIGNAL(canRedo(bool)));
     connect(this, SIGNAL(controller_CanUndo(bool)), view, SIGNAL(canUndo(bool)));
 
-    connect(view, SIGNAL(triggerAction(QString)), this, SLOT(triggerAction(QString)));
     connect(view, SIGNAL(deleteEntities(QList<int>)), this, SLOT(remove(QList<int>)));
 
-    connect(view, SIGNAL(view_undo()), this, SLOT(undo()));
-    connect(view, SIGNAL(view_redo()), this, SLOT(redo()));
+
     view->setController(this);
 }
 
@@ -560,7 +558,7 @@ bool NewController::_clear()
 
 
 
-void NewController::setData(Entity *parent, QString keyName, QVariant dataValue, bool addAction)
+void NewController::_setData(Entity *parent, QString keyName, QVariant dataValue, bool addAction)
 {
     if(DESTRUCTING_CONTROLLER){
         //Ignore any calls to set whilst deleting.
@@ -871,7 +869,7 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
         triggerAction("Constructed Connected Node");
 
         //Create a test node, without telling the GUI.
-        Node* testNode = constructNode(constructDataVector(kind));
+        Node* testNode = _constructNode(constructDataVector(kind));
         if(testNode){
             if(parentNode->canAdoptChild(testNode)){
                 parentNode->addChild(testNode);
@@ -884,8 +882,8 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
                     Node* newNode = constructChildNode(parentNode,constructDataVector(kind));
                     if(newNode){
                         //Update the position
-                        setData(newNode, "x", relativePos.x());
-                        setData(newNode, "y", relativePos.y());
+                        _setData(newNode, "x", relativePos.x());
+                        _setData(newNode, "y", relativePos.y());
 
                         //Attach but don't send a GUI request.
                         attachChildNode(parentNode, newNode);
@@ -1099,7 +1097,7 @@ void NewController::setReadOnly(QList<int> IDs, bool readOnly)
             readOnlyData = new Data(readOnlyKey, readOnly);
             attachData(node, readOnlyData);
         }else{
-            setData(node, "readOnly", readOnly);
+            _setData(node, "readOnly", readOnly);
         }
     }
 
@@ -2112,92 +2110,52 @@ void NewController::storeGraphMLInHash(Entity* item)
     if(IDLookupGraphMLHash.contains(ID)){
         qCritical() << "Hash already contains item with ID: " << ID;
     }else{
-        bool sendSignal = true;
+        //Add it to hash.
         IDLookupGraphMLHash[ID] = item;
-        if(item->getEntityKind() == Entity::EK_NODE){
-            QString nodeKind = ((Node*)item)->getNodeKind();
-            kindLookup[nodeKind].append(ID);
-            reverseKindLookup[ID] = nodeKind;
+
+        QString kind = item->getDataValue("kind").toString();
+
+        Entity::ENTITY_KIND entityKind = item->getEntityKind();
+        Node* node = 0;
+        Edge* edge = 0;
+        if(entityKind == Entity::EK_NODE){
+            node = (Node*)item;
+
+            kindLookup[kind].append(ID);
+            reverseKindLookup[ID] = kind;
+
             QString treeIndexStr = ((Node*)item)->getTreeIndexString();
 
             treeHash.insert(treeIndexStr, ID);
 
             nodeIDs.append(ID);
-
-            //Check if we should tell the views
-            sendSignal = _isInModel(item);
-        }else if(item->getEntityKind() == Entity::EK_EDGE){
+        }else if(entityKind == Entity::EK_EDGE){
+            edge = (Edge*)item;
             edgeIDs.append(ID);
         }
 
-        EntityAdapter* entityAdapter = 0;
+        QHash<QString, QVariant> data;
+        QHash<QString, QVariant> properties;
 
-        if(item->isNode()){
-            //Try for BehaviourNodeAdapter.
-            BehaviourNode* bn = dynamic_cast<BehaviourNode*>(item);
-            if(bn){
-                entityAdapter = new BehaviourNodeAdapter((BehaviourNode*)item);
-            }else{
-                entityAdapter = new NodeAdapter((Node*)item);
-            }
-        }else if(item->isEdge()){
-            entityAdapter = new EdgeAdapter((Edge*)item);
+        foreach(QString key, item->getKeyNames()){
+            data[key] = item->getDataValue(key);
         }
 
-
-        if(entityAdapter){
-            //Store it
-            ID2AdapterHash[ID] = entityAdapter;
-
-            QString kind = entityAdapter->getDataValue("kind").toString();
-            ENTITY_KIND kk = EK_NODE;
-            if(entityAdapter){
-                if(entityAdapter->isEdgeAdapter()){
-                    kk = EK_EDGE;
-                }
-            }
-            QHash<QString, QVariant> data;
-            foreach(QString key, entityAdapter->getKeys()){
-                data[key] = entityAdapter->getDataValue(key);
-            }
-
-            qRegisterMetaType<QList<int> >("QList<int>");
-
-            QHash<QString, QVariant> properties;
-            if(entityAdapter->isNodeAdapter()){
-                properties["viewAspect"] = ((NodeAdapter*)entityAdapter)->getViewAspect();
-
-                QString treeIndex;
-
-                foreach(int i, ((NodeAdapter*)entityAdapter)->getTreeIndex()){
-
-                    treeIndex += QChar('A' + i);
-                }
-
-                properties["treeIndex"] = treeIndex;
-                properties["parentID"] = ((NodeAdapter*)entityAdapter)->getParentNodeID();
-            }
-
-            properties["protectedKeys"] = item->getProtectedKeys();
-
-            foreach(QString key, entityAdapter->getKeys()){
-                data[key] = entityAdapter->getDataValue(key);
-            }
-
-            emit entityConstructed(ID,kk,kind,data, properties);
-            emit controller_EntityConstructed(entityAdapter);
+        if(entityKind == Entity::EK_NODE){
+            properties["viewAspect"] = node->getViewAspect();
+            properties["treeIndex"] = node->getTreeIndexAlpha();
+            properties["parentID"] = node->getParentNodeID();
         }
 
+        properties["protectedKeys"] = item->getProtectedKeys();
 
-        if(viewSignalsEnabled && sendSignal){
-            emit controller_GraphMLConstructed(item);
-        }else{
-            ViewSignal signal;
-            signal.id = ID;
-            signal.constructSignal = true;
-            signal.kind = item->getGraphMLKind();
-            viewSignalsList.append(signal);
+        ENTITY_KIND ek = EK_NODE;
+
+        if(item->isEdge()){
+            ek = EK_EDGE;
         }
+
+        emit entityConstructed(ID, ek, kind, data, properties);
     }
 }
 
@@ -2215,42 +2173,33 @@ void NewController::removeGraphMLFromHash(int ID)
 {
     if(IDLookupGraphMLHash.contains(ID)){
         Entity* item = IDLookupGraphMLHash[ID];
-        EntityAdapter* entityAdapter = ID2AdapterHash[ID];
+        if(item){
+            Entity::ENTITY_KIND entityKind = item->getEntityKind();
+            QString kind = item->getDataValue("kind").toString();
 
-        if(entityAdapter){
-            bool canDelete = !entityAdapter->hasRegisteredObjects();
-            entityAdapter->invalidate();
 
-            emit test_destruct(ID);
 
-            emit controller_EntityDestructed(entityAdapter);
+            Node* node = 0;
+            Edge* edge = 0;
 
-            emit entityDestructed(ID, EK_NODE, item->getDataValue("kind").toString());
-
-            ID2AdapterHash.remove(ID);
-            if(canDelete){
-                //Otherwise when the last item in the view is done it will delete.
-                delete entityAdapter;
-            }
-        }
-
-        if(item)
-        {
-
+            ENTITY_KIND ek = EK_NODE;
             if(item->isNode()){
-                Node* node = (Node*) item;
+                node = (Node*) item;
+            }else{
+                edge = (Edge*) item;
+                ek = EK_EDGE;
+            }
+            emit entityDestructed(ID, ek, kind);
+
+            if(node){
                 QString nodeLabel = node->getDataValue("label").toString();
-                QString nodeKind = node->getNodeKind();
 
 
-                if(nodeKind.startsWith("Hardware")){
-                    QList<QString> keys = hardwareEntities.keys(node);
-                    while(!keys.isEmpty()){
-                        hardwareEntities.remove(keys.takeFirst());
-                    }
-                }else if(nodeKind == "ManagementComponent"){
+                if(kind.startsWith("Hardware")){
+                    hardwareEntities.remove(nodeLabel);
+                }else if(kind == "ManagementComponent"){
                     managementComponents.remove(nodeLabel);
-                }else if(nodeKind == "Process"){
+                }else if(kind == "Process"){
                     if(_isInWorkerDefinitions(node)){
                         //If we are removing a Process contained in the WorkerDefinitions section.
                         QString processName = getProcessName((Process*)node);
@@ -2260,61 +2209,47 @@ void NewController::removeGraphMLFromHash(int ID)
                     }
                 }
             }
-
-
-
-            if(viewSignalsEnabled){
-                emit controller_GraphMLDestructed(ID, item->getGraphMLKind());
-            }else{
-                ViewSignal signal;
-                signal.id = ID;
-                signal.constructSignal = false;
-                signal.kind = item->getGraphMLKind();
-                viewSignalsList.append(signal);
-            }
         }
+    }
 
-        //qCritical() << "Removing Item ID: " << ID;
 
-        if(reverseKindLookup.contains(ID)){
-            QString kind = reverseKindLookup[ID];
-            if(kind != ""){
-                kindLookup[kind].removeAll(ID);
-                reverseKindLookup.remove(ID);
-            }
+    if(reverseKindLookup.contains(ID)){
+        QString kind = reverseKindLookup[ID];
+        if(kind != ""){
+            kindLookup[kind].removeAll(ID);
+            reverseKindLookup.remove(ID);
         }
+    }
 
 
-        if(treeHash.containsValue(ID)){
-            treeHash.removeValue(ID);
-        }
-        if(readOnlyHash.containsValue(ID)){
-            readOnlyHash.removeValue(ID);
-        }
+    if(treeHash.containsValue(ID)){
+        treeHash.removeValue(ID);
+    }
 
-        if(reverseReadOnlyLookup.contains(ID)){
-            int originalID = reverseReadOnlyLookup[ID];
-            reverseReadOnlyLookup.remove(ID);
-            readOnlyLookup.remove(originalID);
-        }
+    if(readOnlyHash.containsValue(ID)){
+        readOnlyHash.removeValue(ID);
+    }
 
-        IDLookupGraphMLHash.remove(ID);
+    if(reverseReadOnlyLookup.contains(ID)){
+        int originalID = reverseReadOnlyLookup[ID];
+        reverseReadOnlyLookup.remove(ID);
+        readOnlyLookup.remove(originalID);
+    }
 
-        if(item->getEntityKind() == Entity::EK_NODE){
-            nodeIDs.removeOne(ID);
-        }else if(item->getEntityKind() == Entity::EK_EDGE){
-            edgeIDs.removeOne(ID);
-        }
-        if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
-            qCritical() << "Hash Map Inconsistency detected!";
-        }
+    IDLookupGraphMLHash.remove(ID);
+
+    nodeIDs.removeOne(ID);
+    edgeIDs.removeOne(ID);
+
+    if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
+        qCritical() << "Hash Map Inconsistency detected!";
     }
 }
 
 Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData)
 {
     //Construct the node with the data.
-    Node* node = constructNode(nodeData);
+    Node* node = _constructNode(nodeData);
 
     if(!node){
         qCritical() << "Node was not successfully constructed!";
@@ -2385,7 +2320,7 @@ bool NewController::attachChildNode(Node *parentNode, Node *node, bool sendGUIRe
     return true;
 }
 
-Node *NewController::constructNode(QList<Data *> nodeData)
+Node *NewController::_constructNode(QList<Data *> nodeData)
 {
     //Get the Kind from the data.
     QString childNodeKind = getDataValueFromKeyName(nodeData, "kind");
@@ -3268,7 +3203,7 @@ bool NewController::reverseAction(EventAction action)
             Entity* entity = getGraphMLFromID(action.parentID);
 
             if(entity){
-                setData(entity, action.Data.keyName, action.Data.oldValue);
+                _setData(entity, action.Data.keyName, action.Data.oldValue);
                 success = true;
             }
         }else if(action.Action.type == DESTRUCTED){
@@ -3303,7 +3238,7 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
                 //Skip bad values
                 continue;
             }
-            setData(item, keyName, data->getValue(), addAction);
+            _setData(item, keyName, data->getValue(), addAction);
         }else{
             attachData(item, data, addAction);
         }
@@ -3932,9 +3867,9 @@ void NewController::bindData(Node *definition, Node *child)
         //Set the value.
         if(child_Label->getValue().toString().startsWith(child->getDataValue("kind").toString())){
             if(child->isImpl()){
-                setData(child, "label", def_Label->getValue().toString() + "_Impl");
+                _setData(child, "label", def_Label->getValue().toString() + "_Impl");
             }else{
-                setData(child, "label", def_Label->getValue().toString() + "_Inst");
+                _setData(child, "label", def_Label->getValue().toString() + "_Inst");
             }
         }
     }
@@ -4821,7 +4756,7 @@ void NewController::setData(int parentID, QString keyName, QVariant dataValue)
 {
     Entity* graphML = getGraphMLFromID(parentID);
     if(graphML){
-        setData(graphML, keyName, dataValue, true);
+        _setData(graphML, keyName, dataValue, true);
     }
 }
 
@@ -5283,7 +5218,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }else{
                         QList<Data*> dataList = entity->takeDataList();
 
-                        newNode = constructNode(dataList);
+                        newNode = _constructNode(dataList);
                     }
 
                     if(!newNode){

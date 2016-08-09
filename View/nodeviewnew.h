@@ -34,7 +34,7 @@ signals:
     void viewFocussed(NodeViewNew* view, bool focussed);
 
     void triggerAction(QString);
-    void dataChanged(int, QString, QVariant);
+    void setData(int, QString, QVariant);
 
 private slots:
     void viewItem_LabelChanged(QString label);

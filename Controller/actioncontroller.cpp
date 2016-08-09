@@ -19,6 +19,7 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
     connect(SettingsController::settings(), SIGNAL(settingChanged(SETTING_KEY,QVariant)), this, SLOT(settingChanged(SETTING_KEY,QVariant)));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
     selectionChanged(0);
     themeChanged();
     connectViewController(vc);
@@ -28,12 +29,8 @@ void ActionController::connectViewController(ViewController *controller)
 {
 
     if(viewController){
-        connect(controller, SIGNAL(canUndo(bool)), edit_undo, SLOT(setEnabled(bool)));
-        connect(controller, SIGNAL(canRedo(bool)), edit_redo, SLOT(setEnabled(bool)));
-
-        connect(edit_undo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_undo()));
-        connect(edit_redo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_redo()));
-        connect(edit_delete, SIGNAL(triggered(bool)), viewController, SLOT(deleteSelection()));
+        connect(controller, &ViewController::canUndo, edit_undo, &QAction::setEnabled);
+        connect(controller, &ViewController::canRedo, edit_redo, &QAction::setEnabled);
 
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
         connect(file_openProject, &QAction::triggered, viewController, &ViewController::openProject);
@@ -42,8 +39,15 @@ void ActionController::connectViewController(ViewController *controller)
         connect(file_saveAsProject, &QAction::triggered, viewController, &ViewController::saveAsProject);
         connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::_importProjects);
 
-        connect(toolbar_addDDSQOSProfile, SIGNAL(triggered(bool)), viewController, SLOT(constructDDSQOSProfile()));
-        connect(options_settings, SIGNAL(triggered(bool)), SettingsController::settings(), SLOT(showSettingsWidget()));
+        connect(edit_undo, &QAction::triggered, viewController, &ViewController::undo);
+        connect(edit_redo, &QAction::triggered, viewController, &ViewController::redo);
+        connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
+
+        connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
+
+        connect(toolbar_addDDSQOSProfile, &QAction::triggered, viewController, &ViewController::constructDDSQOSProfile);
+
+
 
         connectSelectionController(controller->getSelectionController());
     }
@@ -270,7 +274,7 @@ QAction *ActionController::getSettingAction(SETTING_KEY key)
 void ActionController::updateIcon(RootAction *action, Theme *theme)
 {
     if(theme && action){
-        action->setIcon(theme->getIcon(action->getIconPath(), action->getIconAlias()));
+        action->setIcon(theme->getIcon(action->getIconPair()));
     }
 }
 

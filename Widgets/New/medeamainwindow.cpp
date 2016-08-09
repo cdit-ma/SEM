@@ -147,7 +147,7 @@ void MedeaMainWindow::spawnSubView()
             ViewItem* item = items.first();
             if(item->isNode()){
                 nodeView->setContainedNodeViewItem((NodeViewItem*)item);
-                MedeaDockWidget *dockWidget = MedeaWindowManager::constructViewDockWidget("SubView", Qt::TopDockWidgetArea);
+                MedeaDockWidget *dockWidget = MedeaWindowManager::constructNodeViewDockWidget("SubView", Qt::TopDockWidgetArea);
                 dockWidget->setWidget(nodeView);
                 dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
                 dockWidget->setParent(this);

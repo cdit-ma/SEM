@@ -781,6 +781,7 @@ QString Theme::getPopupWidgetStyleSheet()
 void Theme::preloadImages()
 {
     if(!preloadedImages){
+        connect(this, &Theme::_preload, Theme::theme(), &Theme::preloadFinished, Qt::QueuedConnection);
         preloadedImages = true;
         qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
         QStringList dirs;
@@ -799,6 +800,7 @@ void Theme::preloadImages()
         //Only Allow once.
         qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
         qCritical() << "Preloaded #" << count << "images in: " <<  timeFinish-timeStart << "MS";
+        emit _preload();
     }
 }
 

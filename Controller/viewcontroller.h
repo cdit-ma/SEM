@@ -34,12 +34,12 @@ signals:
     void viewItemConstructed(ViewItem* viewItem);
     void viewItemDestructing(int ID, ViewItem *viewItem);
     void triggerAction(QString action);
-    void dataChanged(int, QString, QVariant);
+    void setData(int, QString, QVariant);
     void showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
 
 
-    void view_undo();
-    void view_redo();
+    void undo();
+    void redo();
 
 
 
@@ -49,7 +49,7 @@ signals:
 
 
     void deleteEntities(QList<int> IDs);
-    void constructChildNode(int parentID, QString kind, QPointF pos = QPointF());
+    void constructNode(int parentID, QString kind, QPointF pos = QPointF());
     void importProjects(QStringList fileData);
     void vc_openProject(QString fileName, QString filePath);
 
@@ -70,17 +70,13 @@ public slots:
     void saveAsProject();
     void _importProjects();
 
-private slots:
-    void initializeController();
-
-
-    void table_dataChanged(int ID, QString key, QVariant data);
-
-    void setModelReady(bool okay);
     void deleteSelection();
-
     void constructDDSQOSProfile();
 
+private slots:
+    void initializeController();
+    void table_dataChanged(int ID, QString key, QVariant data);
+    void setModelReady(bool okay);
 
 private:
     void _teardownProject();

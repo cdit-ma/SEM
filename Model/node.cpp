@@ -3,6 +3,7 @@
 #include "edge.h"
 #include <QDebug>
 #include <QCryptographicHash>
+#include <QStringBuilder>
 #include <QByteArray>
 
 Node::Node(NODE_TYPE type, NODE_CLASS nClass) : Entity(EK_NODE)
@@ -38,6 +39,11 @@ QList<int> Node::getTreeIndex()
 QString Node::getTreeIndexString()
 {
     return treeIndexStr;
+}
+
+QString Node::getTreeIndexAlpha()
+{
+    return treeIndexStr2;
 }
 
 NODE_CLASS Node::getNodeClass()
@@ -99,6 +105,7 @@ void Node::setTop(int index)
 {
     this->treeIndex.append(index);
     this->treeIndexStr = QString::number(index);
+    this->treeIndexStr2 = QChar('A' + index);
 }
 
 QString Node::toString()
@@ -898,7 +905,7 @@ void Node::setParentNode(Node *parent, int index)
 {
     this->treeIndex = parent->getTreeIndex();
     this->treeIndexStr = parent->getTreeIndexString() + ",";
-    this->treeIndexStr += QString::number(index);
+    this->treeIndexStr2 = parent->getTreeIndexAlpha() % QChar('A' + index);
     this->treeIndex.append(index);
     parentNode = parent;
     if(parent){

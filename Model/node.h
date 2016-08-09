@@ -27,6 +27,7 @@ public:
     virtual VIEW_ASPECT getViewAspect();
     QList<int> getTreeIndex();
     QString getTreeIndexString();
+    QString getTreeIndexAlpha();
 
     NODE_CLASS getNodeClass();
     NODE_TYPE getNodeType();
@@ -139,6 +140,7 @@ private:
 
     QList<int> treeIndex;
     QString treeIndexStr;
+    QString treeIndexStr2;
     int childCount;
 
     NODE_CLASS nodeClass;

@@ -209,11 +209,12 @@ signals:
     void entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
 
+
     void dataChanged(int ID, QString keyName, QVariant data);
     void dataRemoved(int ID, QString keyName);
-
     void propertyChanged(int ID, QString propertyName, QVariant data);
     void propertyRemoved(int ID, QString propertyName);
+
 
     void controller_ProjectFileChanged(QString);
     void controller_ProjectNameChanged(QString);
@@ -254,6 +255,7 @@ signals:
 public slots:
     void initializeModel();
 
+    void setData(int parentID, QString keyName, QVariant dataValue);
 private slots:
 
     void projectSaved(bool success, QString filePath);
@@ -287,7 +289,6 @@ private slots:
     void constructEdge(int srcID, int dstID);
     void destructEdge(int srcID, int dstID);
     void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);
-    void setData(int parentID, QString keyName, QVariant dataValue);
 
     void constructDestructMultipleEdges(QList<int> srcIDs, int dstID);
     void constructDestructEdges(QList<int> destruct_srcIDs, QList<int> destruct_dstIDs, QList<int> construct_srcIDs, int dstID);
@@ -332,7 +333,7 @@ private:
 private:
     void setViewSignalsEnabled(bool enabled, bool sendQueuedSignals = true);
     void updateUndoRedoState();
-    void setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
+    void _setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
     void clearUndoHistory();
 
     bool askQuestion(MESSAGE_TYPE type, QString questionTitle, QString question, int ID=-1);
@@ -381,7 +382,7 @@ private:
     Node* constructChildNode(Node* parentNode, QList<Data*> dataToAttach);
     bool attachChildNode(Node* parentNode, Node* childNode, bool sendGUIRequest = true);
 
-    Node* constructNode(QList<Data*> data);
+    Node* _constructNode(QList<Data*> data);
 
     bool updateProgressNotification();
 
@@ -523,7 +524,7 @@ private:
     //Provides a lookup for IDs.
     QHash<int, int> IDLookupHash;
     QHash<int, Entity*> IDLookupGraphMLHash;
-    QHash<int, EntityAdapter*> ID2AdapterHash;
+    //QHash<int, EntityAdapter*> ID2AdapterHash;
 
 
 

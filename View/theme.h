@@ -114,6 +114,8 @@ public:
 signals:
     void theme_Changed();
     void changeSetting(SETTING_KEY setting, QVariant value);
+    void preloadFinished();
+    void _preload();
 public slots:
     void preloadImages();
     void settingChanged(SETTING_KEY setting, QVariant value);

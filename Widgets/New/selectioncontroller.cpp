@@ -111,6 +111,7 @@ void SelectionController::cycleActiveSelectedItem(bool forward)
 void SelectionController::setCurrentViewDockWidget(MedeaViewDockWidget *d)
 {
     MedeaNodeViewDockWidget* newDock = 0;
+
     if(d && d->isNodeViewDock()){
         newDock = (MedeaNodeViewDockWidget*)d;
     }
