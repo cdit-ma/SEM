@@ -334,8 +334,6 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
     qosDockWidget->setVisible(false);
 
-
-
 }
 
 void MedeaMainWindow::setupMenuAndTitle()

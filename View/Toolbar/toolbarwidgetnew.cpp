@@ -347,25 +347,19 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
     replicateCount->setMaximum(100000);
     replicateCount->setFixedHeight(25);
 
-    //applyReplicateCountButton = toolbarController->getToolAction("APPLY_REPLICATE_COUNT", false);
     applyReplicateCountButton = new QToolButton(this);
     applyReplicateCountButton->setIcon(QIcon(Theme::theme()->getImage("Actions", "Tick", QSize(), Qt::darkGreen)));
-    //applyReplicateCountButton->setStyleSheet("background: rgb(128,255,0);");
     applyReplicateCountButton->setStyleSheet("background: white;");
-    //applyReplicateCountButton->setStyleSheet("QToolButton:hover{ background: red; }");
+    //applyReplicateCountButton->setStyleSheet("QToolButton:pressed{ background: red; }");
     applyReplicateCountButton->setFixedSize(25,25);
     applyReplicateCountButton->setToolTip("Enter Replicate Count");
 
-    //replicateToolbar = new QToolBar(this);
     QToolBar* replicateToolbar = new QToolBar(this);
-    //replicateToolbar->setStyleSheet("spacing:2px;");
     replicateToolbar->addWidget(replicateCount);
-    //applyReplicateCountAction = replicateToolbar->addWidget(applyReplicateCountButton);
     replicateToolbar->addWidget(applyReplicateCountButton);
 
     QWidgetAction* rc = new QWidgetAction(this);
     rc->setDefaultWidget(replicateToolbar);
-    //rc->sets
 
     replicateMenu = constructTopMenu(replicateCountAction);
     replicateMenu->addAction(rc);

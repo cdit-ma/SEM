@@ -82,13 +82,10 @@ private:
     QAction* implementationAction;
     QAction* instancesAction;
     QAction* connectionsAction;
-    QAction* replicateCountAction;
 
+    QAction* replicateCountAction;
     QSpinBox* replicateCount;
-    //QAction* applyReplicateCountButton;
-    //QToolBar* replicateToolbar;
     QToolButton* applyReplicateCountButton;
-    QAction* applyReplicateCountAction;
 
     QPointF itemPos;
 };
