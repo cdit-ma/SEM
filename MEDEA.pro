@@ -229,7 +229,8 @@ HEADERS += \
     View/Table/attributetableview.h \
     Widgets/New/medeanodeviewdockwidget.h \
     Controller/settingscontroller.h \
-    Widgets/New/dataeditwidget.h
+    Widgets/New/dataeditwidget.h \
+    Controller/filehandler.h
 
 SOURCES += \
     main.cpp \
@@ -422,7 +423,8 @@ SOURCES += \
     View/Table/attributetableview.cpp \
     Widgets/New/medeanodeviewdockwidget.cpp \
     Controller/settingscontroller.cpp \
-    Widgets/New/dataeditwidget.cpp
+    Widgets/New/dataeditwidget.cpp \
+    Controller/filehandler.cpp
 
 RESOURCES += \
     resources.qrc

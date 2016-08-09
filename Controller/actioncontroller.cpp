@@ -36,9 +36,15 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_delete, SIGNAL(triggered(bool)), viewController, SLOT(deleteSelection()));
 
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
+        connect(file_openProject, &QAction::triggered, viewController, &ViewController::openProject);
+        connect(file_closeProject, &QAction::triggered, viewController, &ViewController::closeProject);
+        connect(file_saveProject, &QAction::triggered, viewController, &ViewController::saveProject);
+        connect(file_saveAsProject, &QAction::triggered, viewController, &ViewController::saveAsProject);
+        connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::_importProjects);
 
         connect(toolbar_addDDSQOSProfile, SIGNAL(triggered(bool)), viewController, SLOT(constructDDSQOSProfile()));
         connect(options_settings, SIGNAL(triggered(bool)), SettingsController::settings(), SLOT(showSettingsWidget()));
+
         connectSelectionController(controller->getSelectionController());
     }
 }

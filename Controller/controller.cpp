@@ -250,8 +250,8 @@ void NewController::connectViewController(ViewController *view)
     connect(this, &NewController::propertyRemoved, view, &ViewController::controller_propertyRemoved);
 
     connect(view, &ViewController::initializeModel, this, &NewController::initializeModel);
-
-
+    connect(view, &ViewController::importProjects, this, &NewController::importProjects);
+    connect(view, &ViewController::vc_openProject, this, &NewController::openProject);
 
 
 
@@ -2144,6 +2144,7 @@ void NewController::storeGraphMLInHash(Entity* item)
             entityAdapter = new EdgeAdapter((Edge*)item);
         }
 
+
         if(entityAdapter){
             //Store it
             ID2AdapterHash[ID] = entityAdapter;
@@ -2186,6 +2187,7 @@ void NewController::storeGraphMLInHash(Entity* item)
             emit entityConstructed(ID,kk,kind,data, properties);
             emit controller_EntityConstructed(entityAdapter);
         }
+
 
         if(viewSignalsEnabled && sendSignal){
             emit controller_GraphMLConstructed(item);

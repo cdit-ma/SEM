@@ -89,6 +89,8 @@ public:
     bool isValid();
 
 
+
+
     // Default StyleSheets
     QString getWindowStyleSheet();
     QString getDialogStyleSheet();
@@ -160,6 +162,7 @@ public:
     static Theme* theme();
     static void teardownTheme();
     static QSize roundQSize(QSize size);
+    static QPair<QString, QString> getIconPair(QString prefix, QString alias);
 private:
     static Theme* themeSingleton;
 };

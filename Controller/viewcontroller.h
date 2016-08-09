@@ -50,6 +50,8 @@ signals:
 
     void deleteEntities(QList<int> IDs);
     void constructChildNode(int parentID, QString kind, QPointF pos = QPointF());
+    void importProjects(QStringList fileData);
+    void vc_openProject(QString fileName, QString filePath);
 
 public slots:
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
@@ -62,6 +64,12 @@ public slots:
 
 
     void newProject();
+    void openProject();
+    void closeProject();
+    void saveProject();
+    void saveAsProject();
+    void _importProjects();
+
 private slots:
     void initializeController();
 
@@ -75,6 +83,12 @@ private slots:
 
 
 private:
+    void _teardownProject();
+    bool _newProject();
+    bool _saveProject();
+    bool _saveAsProject();
+    bool _closeProject();
+    bool _openProject();
     QList<int> getIDsOfKind(QString kind);
     bool _modelReady;
 
@@ -89,6 +103,8 @@ private:
 
     ToolbarWidgetNew* toolbar;
     NewController* controller;
+
+
 };
 
 #endif // VIEWCONTROLLER_H

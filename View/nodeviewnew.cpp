@@ -172,6 +172,11 @@ void NodeViewNew::viewItem_Destructed(int ID, ViewItem *viewItem)
         guiItems.remove(ID);
         delete item;
     }
+
+    if(viewItem && containedNodeViewItem == viewItem){
+        //setContainedNodeViewItem(0);
+        //viewItem->unregisterObject(this);
+    }
 }
 
 void NodeViewNew::selectionHandler_ItemSelectionChanged(ViewItem *item, bool selected)

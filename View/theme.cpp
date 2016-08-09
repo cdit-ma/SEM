@@ -152,6 +152,14 @@ QSize Theme::roundQSize(QSize size)
     return size;
 }
 
+QPair<QString, QString> Theme::getIconPair(QString prefix, QString alias)
+{
+    QPair<QString, QString> pair;
+    pair.first = prefix;
+    pair.second = alias;
+    return pair;
+}
+
 void Theme::setBackgroundColor(QColor color)
 {
     if(backgroundColor != color){

@@ -204,6 +204,7 @@ public:
     int getContainedAspect(int ID);
 
 
+    void setProjectFilePath(QString filePath);
 signals:
     void entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
@@ -346,7 +347,6 @@ private:
     EventAction getEventAction();
 
     void setProjectDirty(bool dirty);
-    void setProjectFilePath(QString filePath);
 
     Node* getSharedParent(QList<int> IDs);
 
