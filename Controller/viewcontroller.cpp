@@ -155,6 +155,11 @@ bool ViewController::isModelReady()
     return _modelReady;
 }
 
+QList<ViewItem *> ViewController::search(QString field)
+{
+    return viewItems.values();
+}
+
 void ViewController::setController(NewController *c)
 {
     controller = c;

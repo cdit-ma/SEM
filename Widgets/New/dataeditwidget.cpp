@@ -11,7 +11,7 @@
 #include <QColorDialog>
 #include "../../View/theme.h"
 
-#define SMALL_SQUARE 25
+#define SMALL_SQUARE 24
 DataEditWidget::DataEditWidget(QString dataKey, QString label, SETTING_TYPE type, QVariant data, QWidget *parent) : QWidget(parent)
 {
     isHighlighted = false;
@@ -204,7 +204,6 @@ void DataEditWidget::pickColor()
 void DataEditWidget::pickPath()
 {
     QString path = "";
-
     switch(type){
         case ST_PATH:
         path = QFileDialog::getExistingDirectory(this, "Select Path" , currentData.toString(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
@@ -243,6 +242,7 @@ void DataEditWidget::setupLayout()
         case ST_STRING:{
         QLineEdit* lineEdit = new QLineEdit(this);
         lineEdit->setText(currentData.toString());
+        lineEdit->setFixedHeight(SMALL_SQUARE);
 
 
         connect(lineEdit, &QLineEdit::textChanged, this, &DataEditWidget::dataChanged);
@@ -323,6 +323,7 @@ void DataEditWidget::setupLayout()
     }
     case ST_BUTTON:{
         QPushButton* button = new QPushButton(label, this);
+        button->setFixedHeight(SMALL_SQUARE);
         connect(button, &QPushButton::clicked, this, &DataEditWidget::editFinished);
 
         editWidget_1 = button;
@@ -338,6 +339,13 @@ void DataEditWidget::setupLayout()
 
 
     }
+    }
+
+    if(editWidget_1){
+        editWidget_1->setFixedHeight(SMALL_SQUARE);
+    }
+    if(editWidget_2){
+        editWidget_2->setFixedHeight(SMALL_SQUARE);
     }
 
 

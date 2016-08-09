@@ -151,6 +151,8 @@ void MedeaMainWindow::spawnSubView()
                 dockWidget->setWidget(nodeView);
                 dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
                 dockWidget->setParent(this);
+                dockWidget->setIcon(item->getIcon());
+                dockWidget->setTitle(item->getData("label").toString());
                 innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockWidget);
                 //Get children.
             }
@@ -242,7 +244,8 @@ void MedeaMainWindow::initializeApplication()
     //Set Font.
     int opensans_FontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
     QString opensans_fontname = QFontDatabase::applicationFontFamilies(opensans_FontID).at(0);
-    QFont font = QFont(opensans_fontname);
+    //QFont font = QFont(opensans_fontname);
+    QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
@@ -306,6 +309,12 @@ void MedeaMainWindow::setupInnerWindow()
     dwBehaviour->setProtected(true);
     dwAssemblies->setProtected(true);
     dwHardware->setProtected(true);
+
+    //dwInterfaces->setIcon("Items", "InterfaceDefinitions");
+    //dwBehaviour->setIcon("Items", "BehaviourDefinitions");
+    //dwAssemblies->setIcon("Items", "AssemblyDefinitions");
+    //dwHardware->setIcon("Items", "HardwareDefinitions");
+
 
     //Check visibility state.
     SettingsController* settings = SettingsController::settings();

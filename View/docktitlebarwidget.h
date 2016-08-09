@@ -9,7 +9,7 @@ class DockTitleBarWidget : public QToolBar
 {
     Q_OBJECT
 public:
-    enum DOCK_ACTION{DA_CLOSE, DA_MAXIMIZE, DA_POPOUT, DA_PROTECT, DA_HIDE};
+    enum DOCK_ACTION{DA_CLOSE, DA_MAXIMIZE, DA_POPOUT, DA_PROTECT, DA_HIDE, DA_ICON};
 
     explicit DockTitleBarWidget(QWidget *parent=0);
     ~DockTitleBarWidget();
@@ -32,5 +32,6 @@ private:
     QAction* popOutAction;
     QAction* protectAction;
     QAction* hideAction;
+    QAction* iconAction;
 };
 #endif // DOCKTITLEBARWIDGET_H
