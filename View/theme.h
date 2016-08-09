@@ -109,7 +109,7 @@ public:
     QString getMessageBoxStyleSheet();
     QString getPopupWidgetStyleSheet();
 
-
+    QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 
 signals:
     void theme_Changed();

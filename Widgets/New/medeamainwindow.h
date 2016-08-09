@@ -32,13 +32,17 @@ private slots:
 
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
+
 public slots:
     void settingChanged(SETTING_KEY setting, QVariant value);
+
 signals:
     void preloadImages();
+
 private:
     void initializeApplication();
     void connectNodeView(NodeViewNew* nodeView);
+
     void setupTools();
     void setupInnerWindow();
     void setupMenuAndTitle();
@@ -83,7 +87,8 @@ private:
     QToolButton* assemblyButton;
     QToolButton* hardwareButton;
     QToolButton* qosBrowserButton;
-    QToolButton* restoreDefaultButton;
+    QToolButton* restoreAspectsButton;
+    QToolButton* restoreToolsButton;
 
     // QWidget interface
 protected:

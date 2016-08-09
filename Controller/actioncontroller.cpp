@@ -525,10 +525,10 @@ void ActionController::setupApplicationToolbar()
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
 
-#ifdef TARGET_OS_MAC
+//#ifdef TARGET_OS_MAC
     applicationToolbar->addSeperator();
     applicationToolbar->addAction(edit_search);
-#endif
+//#endif
 
 }
 

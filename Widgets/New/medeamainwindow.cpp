@@ -93,13 +93,19 @@ void MedeaMainWindow::themeChanged()
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
     searchButton->setIcon(theme->getIcon("Actions", "Search"));
     searchOptionsButton->setIcon(theme->getIcon("Actions", "Settings"));
-    popupSearchBar->setStyleSheet(theme->getLineEditStyleSheet());
     popupSearchButton->setIcon(theme->getIcon("Actions", "Search"));
 
+    /*
     interfaceButton->setIcon(theme->getIcon("Items", "InterfaceDefinitions"));
     behaviourButton->setIcon(theme->getIcon("Items", "BehaviourDefinitions"));
     assemblyButton->setIcon(theme->getIcon("Items", "AssemblyDefinitions"));
     hardwareButton->setIcon(theme->getIcon("Items", "HardwareDefinitions"));
+    */
+
+    interfaceButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_INTERFACES));
+    behaviourButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_BEHAVIOUR));
+    assemblyButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_ASSEMBLIES));
+    hardwareButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_HARDWARE));
 }
 
 
@@ -417,7 +423,6 @@ void MedeaMainWindow::setupToolBar()
     floatingToolbar->setMovable(false);
     floatingToolbar->setFloatable(false);
     floatingToolbar->setIconSize(QSize(20,20));
-    //floatingToolbar->setIconSize(QSize(24,24));
 
     QWidget* w1 = new QWidget(this);
     QWidget* w2 = new QWidget(this);
@@ -454,15 +459,15 @@ void MedeaMainWindow::setupSearchBar()
     searchOptionsButton = new QToolButton(this);
     searchOptionsButton->setToolTip("Search Settings");
 
-    QToolBar* searchToolbar = new QToolBar(this);
-    searchToolbar->setIconSize(QSize(18,18));
-    searchToolbar->setFixedHeight(menuBar->height() - 6);
-    searchToolbar->addWidget(searchBar);
-    searchToolbar->addWidget(searchButton);
-    searchToolbar->addWidget(searchOptionsButton);
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->setIconSize(QSize(18,18));
+    toolbar->setFixedHeight(menuBar->height() - 6);
+    toolbar->addWidget(searchBar);
+    toolbar->addWidget(searchButton);
+    toolbar->addWidget(searchOptionsButton);
 
-    //searchToolbar->hide();
-    menuBar->setCornerWidget(searchToolbar);
+    toolbar->hide();
+    //menuBar->setCornerWidget(toolbar);
 }
 
 void MedeaMainWindow::setupPopupSearchBar()
@@ -471,7 +476,7 @@ void MedeaMainWindow::setupPopupSearchBar()
     popupSearchButton->setToolTip("Submit Search");
 
     popupSearchBar = new QLineEdit(this);
-    popupSearchBar->setFont(QFont(font().family(), 14));
+    popupSearchBar->setFont(QFont(font().family(), 13));
     popupSearchBar->setPlaceholderText("Search Here...");
     popupSearchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -522,23 +527,32 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     assemblyButton = new QToolButton(this);
     hardwareButton = new QToolButton(this);
     qosBrowserButton = new QToolButton(this);
-    restoreDefaultButton = new QToolButton(this);
+    restoreAspectsButton = new QToolButton(this);
+    restoreToolsButton = new QToolButton(this);
+
+    interfaceButton->setCheckable(true);
+    behaviourButton->setCheckable(true);
+    assemblyButton->setCheckable(true);
+    hardwareButton->setCheckable(true);
 
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(QSize(20,20));
     toolbar->setFixedHeight(menuBar->height() - 6);
 
-    toolbar->addWidget(qosBrowserButton);
-    toolbar->addSeparator();
+    qosBrowserButton->hide();
+
+    //toolbar->addWidget(qosBrowserButton);
+    //toolbar->addSeparator();
     toolbar->addWidget(interfaceButton);
-    toolbar->addWidget(behaviourButton);
     toolbar->addWidget(assemblyButton);
+    toolbar->addWidget(behaviourButton);
     toolbar->addWidget(hardwareButton);
     toolbar->addSeparator();
-    toolbar->addWidget(restoreDefaultButton);
+    toolbar->addWidget(restoreAspectsButton);
+    toolbar->addWidget(restoreToolsButton);
 
-    //menuBar->setCornerWidget(toolbar);
-    toolbar->hide();
+    menuBar->setCornerWidget(toolbar);
+    //toolbar->hide();
 }
 
 void MedeaMainWindow::resizeEvent(QResizeEvent *e)
