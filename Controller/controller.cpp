@@ -9,6 +9,7 @@
 #include <QSysInfo>
 #include <QDir>
 #include <QStringBuilder>
+#include <QReadWriteLock>
 #include "edgeadapter.h"
 #include "nodeadapter.h"
 #include "../Model/tempentity.h"
@@ -18,8 +19,19 @@ bool REDO = false;
 bool SETUP_AS_INSTANCE = true;
 bool SETUP_AS_IMPL = false;
 
-NewController::NewController()
+static int count = 0;
+
+NewController::NewController() :QObject(0)
 {
+    qCritical() << count ++;
+    controllerThread = new QThread(this);
+    moveToThread(controllerThread);
+
+    connect(this, SIGNAL(destroyed(QObject*)), controllerThread, SLOT(terminate()));
+    connect(this, &NewController::initiateTeardown, this, &QObject::deleteLater, Qt::QueuedConnection);
+    controllerThread->start();
+
+
     qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
     qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
     qRegisterMetaType<GraphML::GRAPHML_KIND>("GraphML::GRAPHML_KIND");
@@ -151,6 +163,8 @@ NewController::NewController()
     guiConstructableNodeKinds.removeDuplicates();
     guiConstructableNodeKinds.sort();
 
+
+
 }
 
 void NewController::connectView(NodeView *view)
@@ -239,6 +253,8 @@ void NewController::connectViewController(ViewController *view)
 {
     connect(this, &NewController::entityConstructed, view, &ViewController::controller_entityConstructed);
     connect(this, &NewController::entityDestructed, view, &ViewController::controller_entityDestructed);
+    connect(view, &ViewController::initializeModel, this, &NewController::initializeModel);
+    connect(this, &NewController::controller_IsModelReady, view, &ViewController::setControllerReady);
 
     connect(this, &NewController::dataChanged, view, &ViewController::controller_dataChanged);
     connect(this, &NewController::dataRemoved, view, &ViewController::controller_dataRemoved);
@@ -246,7 +262,6 @@ void NewController::connectViewController(ViewController *view)
     connect(this, &NewController::propertyChanged, view, &ViewController::controller_propertyChanged);
     connect(this, &NewController::propertyRemoved, view, &ViewController::controller_propertyRemoved);
 
-    connect(view, &ViewController::initializeModel, this, &NewController::initializeModel);
     connect(view, &ViewController::importProjects, this, &NewController::importProjects);
     connect(view, &ViewController::vc_openProject, this, &NewController::openProject);
 
@@ -259,14 +274,29 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::undo, this, &NewController::undo);
     connect(view, &ViewController::redo, this, &NewController::redo);
 
-    connect(this, SIGNAL(controller_IsModelReady(bool)), view, SLOT(setModelReady(bool)));
+    connect(view, &ViewController::cutEntities, this, &NewController::cut);
+    connect(view, &ViewController::copyEntities, this, &NewController::copy);
+    connect(view, &ViewController::pasteIntoEntity, this, &NewController::paste);
+
+
+    connect(this, &NewController::controller_IsModelReady, view, &ViewController::setControllerReady);
+    connect(this, &NewController::controller_IsModelReady, view, &ViewController::setModelReady);
+
+    connect(this, &NewController::controller_SetClipboardBuffer, view, &ViewController::setClipboardData);
+
     connect(this, SIGNAL(controller_CanRedo(bool)), view, SIGNAL(canRedo(bool)));
     connect(this, SIGNAL(controller_CanUndo(bool)), view, SIGNAL(canUndo(bool)));
 
     connect(view, SIGNAL(deleteEntities(QList<int>)), this, SLOT(remove(QList<int>)));
 
-
     view->setController(this);
+}
+
+void NewController::disconnectViewController(ViewController *view)
+{
+    view->disconnect(this);
+    this->disconnect(view);
+    emit initiateTeardown();
 }
 
 
@@ -283,13 +313,13 @@ void NewController::initializeModel()
 
 NewController::~NewController()
 {
-    emit controller_IsModelReady(false);
     enableDebugLogging(false);
 
     DESTRUCTING_CONTROLLER = true;
 
-    destructNode(model);
     destructNode(workerDefinitions);
+    destructNode(model);
+
 
     while(!keys.isEmpty()){
         delete keys.takeFirst();
@@ -343,7 +373,7 @@ void NewController::loadWorkerDefinitions()
                     QString message = "Cannot import worker definition '" + file +"'";
                     emit controller_DisplayMessage(WARNING, message, "Worker Definition Error", "Warning");
                 }else{
-                    qCritical() << "Loaded Worker Definition: " << file;
+                    //qCritical() << "Loaded Worker Definition: " << file;
                 }
             }else{
                 QString message = "Cannot read worker definition '" + file +"'";
@@ -4758,6 +4788,12 @@ void NewController::setData(int parentID, QString keyName, QVariant dataValue)
     if(graphML){
         _setData(graphML, keyName, dataValue, true);
     }
+}
+
+void NewController::destructteardown()
+{
+    qCritical() << "destructteardown: " << QThread::currentThreadId();
+    this->deleteLater();
 }
 
 

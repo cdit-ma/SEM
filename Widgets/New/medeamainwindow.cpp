@@ -30,9 +30,8 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-    setMinimumSize(1000,200);
 
-    resize(1000,400);
+    resize(1000, 600);
 
     setupInnerWindow();
     setupTools();
@@ -40,11 +39,15 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*,MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)));
     setViewController(vc);
-    showNormal();
 
-    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     themeChanged();
-    qCritical() << "MedeaMainWindow in: " <<  timeFinish - timeStart << "MS";
+    show();
+    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+    qCritical() << "MedeaMainWindow in: " <<  time2 - timeStart << "MS";
+    qCritical() << "MedeaMainWindow->show() in: " <<  timeFinish - time2 << "MS";
 }
 
 MedeaMainWindow::~MedeaMainWindow()

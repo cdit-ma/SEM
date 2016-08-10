@@ -11,6 +11,7 @@
 #include <QPointF>
 #include <QXmlStreamReader>
 #include <QNetworkInterface>
+#include <QReadWriteLock>
 
 #include "../Model/Edges/definitionedge.h"
 #include "../Model/Edges/workflowedge.h"
@@ -140,6 +141,7 @@ public:
 
     void connectView(NodeView* view);
     void connectViewController(ViewController* view);
+    void disconnectViewController(ViewController *view);
 
     //Gets the Model Node.
     Model* getModel();
@@ -206,6 +208,8 @@ public:
 
     void setProjectFilePath(QString filePath);
 signals:
+    void initiateTeardown();
+    void controller_dead();
     void entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
 
@@ -256,6 +260,7 @@ public slots:
     void initializeModel();
 
     void setData(int parentID, QString keyName, QVariant dataValue);
+    void destructteardown();
 private slots:
 
     void projectSaved(bool success, QString filePath);
@@ -625,6 +630,9 @@ private:
     QString projectFileSavePath;
 
     bool projectDirty;
+
+    QThread* controllerThread;
+    QReadWriteLock lock;
 
 };
  QDataStream &operator<<(QDataStream &out, const EventAction &action);

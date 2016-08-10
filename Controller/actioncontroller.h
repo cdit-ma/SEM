@@ -32,6 +32,7 @@ private slots:
     void jenkinsValidated(bool success);
     void selectionChanged(int selectionSize);
 
+    void controllerReady(bool ready);
     void modelReady(bool ready);
     void themeChanged();
 

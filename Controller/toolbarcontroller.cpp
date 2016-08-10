@@ -71,7 +71,6 @@ void ToolActionController::viewItem_Destructed(int ID, ViewItem *viewItem)
         NodeViewItemAction* action = actions[ID];
         actions.remove(ID);
         actionGroup->removeAction(action);
-        //toolbar->removeAction(action
         action->deleteLater();
     }
 }

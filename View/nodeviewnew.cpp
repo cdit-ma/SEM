@@ -89,7 +89,6 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(this, &NodeViewNew::toolbarRequested, viewController, &ViewController::showToolbar);
         connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::triggerAction);
         connect(this, &NodeViewNew::setData, viewController, &ViewController::setData);
-
     }
 }
 
@@ -120,9 +119,12 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
 {
     if(containedNodeViewItem){
         //Unregister
-        containedNodeViewItem->unregisterObject(this);
         disconnect(containedNodeViewItem, &NodeViewItem::labelChanged, this, &NodeViewNew::viewItem_LabelChanged);
-        viewItem_LabelChanged("DELETED");
+        viewItem_LabelChanged("");
+        containedNodeViewItem->unregisterObject(this);
+        if(!isAspectView){
+            deleteLater();
+        }
     }
 
     containedNodeViewItem = item;

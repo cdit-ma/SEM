@@ -33,6 +33,7 @@ public:
 signals:
     void initializeModel();
     void modelReady(bool);
+    void controllerReady(bool);
     void viewItemConstructed(ViewItem* viewItem);
     void viewItemDestructing(int ID, ViewItem *viewItem);
     void triggerAction(QString action);
@@ -43,6 +44,9 @@ signals:
     void undo();
     void redo();
 
+    void teardown();
+
+
 
 
 
@@ -51,6 +55,10 @@ signals:
 
 
     void deleteEntities(QList<int> IDs);
+    void cutEntities(QList<int> IDs);
+    void copyEntities(QList<int> IDs);
+    void pasteIntoEntity(int ID, QString data);
+
     void constructNode(int parentID, QString kind, QPointF pos = QPointF());
     void importProjects(QStringList fileData);
     void vc_openProject(QString fileName, QString filePath);
@@ -64,21 +72,30 @@ public slots:
     void controller_propertyChanged(int ID, QString property, QVariant data);
     void controller_propertyRemoved(int ID, QString property);
 
+    void setClipboardData(QString data);
 
     void newProject();
     void openProject();
     void closeProject();
+    void closeMEDEA();
     void saveProject();
     void saveAsProject();
     void _importProjects();
 
+    void threadDead();
+    void cut();
+    void copy();
+    void paste();
+
     void deleteSelection();
     void constructDDSQOSProfile();
 
+    void setModelReady(bool okay);
+
+    void setControllerReady(bool ready);
 private slots:
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);
-    void setModelReady(bool okay);
 
 private:
     void _teardownProject();
@@ -89,8 +106,13 @@ private:
     bool _openProject();
     QList<int> getIDsOfKind(QString kind);
     bool _modelReady;
+    bool _controllerReady;
+
+
+    bool clearVisualItems();
 
     ViewItem* getViewItem(int ID);
+
     QHash<QString, QList<int> > itemKindLists;
     QHash<int, ViewItem*> viewItems;
     ViewItem* modelItem;

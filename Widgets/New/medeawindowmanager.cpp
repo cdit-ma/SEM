@@ -217,6 +217,7 @@ void MedeaWindowManager::addWindow(MedeaWindowNew *window)
         int ID = window->getID();
         if(!windows.contains(ID)){
             windows[ID] = window;
+            qCritical() <<  "MedeaWindowManager::addWindow() - "  << ID << " - Got duplicated MedeaWindow ID.";
         }else{
             qCritical() << "MedeaWindowManager::addWindow() - Got duplicated MedeaWindow ID.";
         }
@@ -230,7 +231,7 @@ void MedeaWindowManager::removeWindow(MedeaWindowNew *window)
         if(windows.contains(ID)){
             windows.remove(ID);
         }else{
-            qCritical() << "MedeaWindowManager::removeWindow() - Trying to remove non-hashed MedeaWindow.";
+            qCritical() << "MedeaWindowManager::removeWindow() " << ID << " - Trying to remove non-hashed MedeaWindow.";
         }
     }
 }

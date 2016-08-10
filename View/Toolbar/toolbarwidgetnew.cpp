@@ -183,7 +183,6 @@ void ToolbarWidgetNew::populateDeploymentMenu()
  */
 void ToolbarWidgetNew::menuActionTrigged(QAction* action)
 {
-    qDebug() << "HELLO";
     if (action->property("action-type") == "info") {
         return;
     } else {

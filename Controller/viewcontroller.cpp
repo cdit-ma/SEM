@@ -7,6 +7,11 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
+#include <QApplication>
+#include <QClipboard>
+#include <QThreadPool>
+
+#include "../Widgets/New/medeawindowmanager.h"
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
@@ -19,7 +24,7 @@ ViewController::ViewController(){
     modelItem = 0;
     controller = 0;
     _modelReady = false;
-
+    _controllerReady = true;
 
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     selectionController = new SelectionController(this);
@@ -177,6 +182,15 @@ void ViewController::setModelReady(bool okay)
         _modelReady = okay;
         emit modelReady(okay);
     }
+
+}
+
+void ViewController::setControllerReady(bool ready)
+{
+    if(ready != _controllerReady){
+        _controllerReady = ready;
+        emit controllerReady(ready);
+    }
 }
 
 void ViewController::deleteSelection()
@@ -198,13 +212,19 @@ void ViewController::constructDDSQOSProfile()
 void ViewController::_teardownProject()
 {
     if (controller) {
-        delete controller;
+        setModelReady(false);
+        setControllerReady(false);
+
+        clearVisualItems();
+        controller->disconnectViewController(this);
         controller = 0;
+
     }
 }
 
 bool ViewController::_newProject()
 {
+
     if(!controller){
         initializeController();
         emit initializeModel();
@@ -241,32 +261,34 @@ bool ViewController::_saveAsProject()
 
 bool ViewController::_closeProject()
 {
-    if(controller && controller->projectRequiresSaving()){
-        //Ask User to confirm save?
-        QMessageBox msgBox(QMessageBox::Question, "Save Changes",
-                           "Do you want to save the changes made to '" /* + currentProjectFilePath +*/ "' ?",
-                           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    if(controller){
+        if(!controller->projectRequiresSaving()){
+            //Ask User to confirm save?
+            QMessageBox msgBox(QMessageBox::Question, "Save Changes",
+                               "Do you want to save the changes made to '" /* + currentProjectFilePath +*/ "' ?",
+                               QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 
 
-        msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
-        msgBox.setButtonText(QMessageBox::Yes, "Save");
-        msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
+            msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
+            msgBox.setButtonText(QMessageBox::Yes, "Save");
+            msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
 
-        int buttonPressed = msgBox.exec();
+            int buttonPressed = msgBox.exec();
 
-        if(buttonPressed == QMessageBox::Yes){
-            bool saveSuccess = _saveProject();
-            // if failed to save, do nothing
-            if(!saveSuccess){
+            if(buttonPressed == QMessageBox::Yes){
+                bool saveSuccess = _saveProject();
+                // if failed to save, do nothing
+                if(!saveSuccess){
+                    return false;
+                }
+            }else if(buttonPressed == QMessageBox::No){
+                //Do Nothing
+            }else{
                 return false;
             }
-        }else if(buttonPressed == QMessageBox::No){
-            //Do Nothing
-        }else{
-            return false;
         }
+        _teardownProject();
     }
-    _teardownProject();
     return true;
 }
 
@@ -292,6 +314,7 @@ bool ViewController::_openProject()
 void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties)
 {
 
+    //qCritical() << "CREATED: " << ID;
     ViewItem* viewItem = 0;
 
     if(eKind == EK_NODE){
@@ -389,10 +412,16 @@ void ViewController::controller_propertyRemoved(int ID, QString property)
     }
 }
 
+void ViewController::setClipboardData(QString data)
+{
+    QApplication::clipboard()->setText(data);
+}
+
 void ViewController::newProject()
 {
     if(_closeProject()){
         _newProject();
+
     }
 }
 
@@ -404,7 +433,15 @@ void ViewController::openProject()
 void ViewController::closeProject()
 {
     _closeProject();
+    setControllerReady(true);
+}
 
+void ViewController::closeMEDEA()
+{
+    if(_closeProject()){
+        //Destruct main window
+        MedeaWindowManager::teardown();
+    }
 }
 
 void ViewController::saveProject()
@@ -431,19 +468,43 @@ void ViewController::_importProjects()
     emit importProjects(fileData);
 }
 
+void ViewController::threadDead()
+{
+    qCritical() << "GG";
+    qCritical() << "ACTIVE THREADS: " << QThreadPool::globalInstance()->activeThreadCount();
+}
+
+void ViewController::cut()
+{
+    if(selectionController){
+        emit triggerAction("Cutting Selection");
+        emit cutEntities(selectionController->getSelectionIDs());
+    }
+}
+
+void ViewController::copy()
+{
+    if(selectionController){
+        emit copyEntities(selectionController->getSelectionIDs());
+    }
+}
+
+void ViewController::paste()
+{
+    if(selectionController && selectionController->getSelectionCount() == 1){
+        emit pasteIntoEntity(selectionController->getSelectionIDs()[0], QApplication::clipboard()->text());
+    }
+}
+
 void ViewController::initializeController()
 {
     if(!controller){
-        controller = new NewController();
+        setControllerReady(false);
 
-        //Set External Worker Definitions Path.
-        //controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
+        controller = new NewController();
         controller->connectViewController(this);
 
-        QThread* controllerThread = new QThread();
-        controllerThread->start();
-        controller->moveToThread(controllerThread);
-        connect(controller, SIGNAL(destroyed(QObject*)), controllerThread, SIGNAL(finished()));
+        //setControllerReady(true);
         _modelReady = false;
     }
 }
@@ -451,6 +512,17 @@ void ViewController::initializeController()
 QList<int> ViewController::getIDsOfKind(QString kind)
 {
     return itemKindLists[kind];
+}
+
+bool ViewController::clearVisualItems()
+{
+    while(!viewItems.isEmpty()){
+        int ID = viewItems.keys().first();
+        controller_entityDestructed(ID, EK_NODE, "");
+    }
+
+    itemKindLists.clear();
+    return true;
 }
 
 ViewItem *ViewController::getViewItem(int ID)

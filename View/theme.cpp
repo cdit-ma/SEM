@@ -307,7 +307,7 @@ bool Theme::isValid()
 
 QString Theme::getCornerRadius()
 {
-    return "3px";
+    return "2px";
 }
 
 QIcon Theme::getIcon(QPair<QString, QString> icon)
@@ -551,7 +551,7 @@ QString Theme::getTabbedWidgetStyleSheet()
             "QTabBar::tab:right {padding: 10px 5px;margin: 1px 5px;}"
             "QTabBar::tab {background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % ";border-radius:" % getCornerRadius() % ";}"
             "QTabBar::tab:selected {background:" % getHighlightColorHex() % "; color: " % getTextColorHex(CR_SELECTED) % ";}"
-            "QTabWidget::tab-bar {alignment: center;}"
+            "QTabBar, QTabWidget::tab-bar {alignment: center;}"
             "QTabWidget::pane,QTabBar::pane {border:none;background:" % getBackgroundColorHex() % "}"
             ;
 }
@@ -652,7 +652,7 @@ QString Theme::getToolBarStyleSheet()
 
            "QToolButton {"
            "padding: 2px;"
-           "border-radius:" % getCornerRadius() % ";"
+           "border-radius: 5px;"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
