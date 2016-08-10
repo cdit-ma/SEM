@@ -33,8 +33,8 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     resize(1000, 600);
 
-    setupInnerWindow();
     setupTools();
+    setupInnerWindow();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*,MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)));
@@ -110,6 +110,10 @@ void MedeaMainWindow::themeChanged()
     assemblyButton->setIcon(theme->getIcon("Items", "AssemblyDefinitions"));
     hardwareButton->setIcon(theme->getIcon("Items", "HardwareDefinitions"));
     */
+
+    //restoreAspectsButton->setIcon(theme->getIcon("Actions", "GridSort"));
+    restoreAspectsButton->setIcon(theme->getIcon("Actions", "MenuView"));
+    restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
 
     interfaceButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_INTERFACES));
     behaviourButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_BEHAVIOUR));
@@ -330,6 +334,8 @@ void MedeaMainWindow::setupInnerWindow()
     //dwAssemblies->setIcon("Items", "AssemblyDefinitions");
     //dwHardware->setIcon("Items", "HardwareDefinitions");
 
+    //dwInterfaces->setVisible(false);
+
 
     //Check visibility state.
     SettingsController* settings = SettingsController::settings();
@@ -337,6 +343,9 @@ void MedeaMainWindow::setupInnerWindow()
     dwBehaviour->setVisible(settings->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
     dwAssemblies->setVisible(settings->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     dwHardware->setVisible(settings->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
+
+    //interfaceButton->setChecked(settings->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
+    //interfaceButton->setChecked(false);
 
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwInterfaces);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
@@ -358,6 +367,19 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
     qosDockWidget->setVisible(false);
 
+    //connect(dwInterfaces, SIGNAL(visibilityChanged(bool)), interfaceButton, SLOT(setChecked(bool)));
+    //connect(dwBehaviour, SIGNAL(visibilityChanged(bool)), behaviourButton, SLOT(setChecked(bool)));
+    //connect(dwAssemblies, SIGNAL(visibilityChanged(bool)), assemblyButton, SLOT(setChecked(bool)));
+    //connect(dwHardware, SIGNAL(visibilityChanged(bool)), hardwareButton, SLOT(setChecked(bool)));
+    //connect(interfaceButton, SIGNAL(clicked(bool)), dwInterfaces, SLOT(setVisible(bool)));
+    //connect(behaviourButton, SIGNAL(clicked(bool)), dwBehaviour, SLOT(setVisible(bool)));
+    //connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setVisible(bool)));
+    //connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setVisible(bool)));
+    connect(interfaceButton, SIGNAL(clicked(bool)), dwInterfaces, SLOT(setHidden(bool)));
+    connect(behaviourButton, SIGNAL(clicked(bool)), dwBehaviour, SLOT(setHidden(bool)));
+    connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setHidden(bool)));
+    connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setHidden(bool)));
+    connect(restoreAspectsButton, SIGNAL(clicked(bool)), innerWindow, SLOT(resetDockWidgets()));
 }
 
 void MedeaMainWindow::setupMenuAndTitle()
@@ -539,6 +561,20 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     restoreAspectsButton = new QToolButton(this);
     restoreToolsButton = new QToolButton(this);
 
+    /*
+    interfaceButton->setText("I");
+    behaviourButton->setText("B");
+    assemblyButton->setText("A");
+    hardwareButton->setText("H");
+    */
+
+    interfaceButton->setToolTip("Toggle Interface Aspect");
+    behaviourButton->setToolTip("Toggle Behaviour Aspect");
+    assemblyButton->setToolTip("Toggle Assembly Aspect");
+    hardwareButton->setToolTip("Toggle Hardware Aspect");
+    restoreAspectsButton->setToolTip("Restore All Aspects");
+    restoreToolsButton->setToolTip("Restore All Tools");
+
     interfaceButton->setCheckable(true);
     behaviourButton->setCheckable(true);
     assemblyButton->setCheckable(true);
@@ -547,14 +583,15 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(QSize(20,20));
     toolbar->setFixedHeight(menuBar->height() - 6);
+    toolbar->setStyleSheet("QToolButton{ padding: 2px 4px; }");
 
     qosBrowserButton->hide();
 
     //toolbar->addWidget(qosBrowserButton);
     //toolbar->addSeparator();
     toolbar->addWidget(interfaceButton);
-    toolbar->addWidget(assemblyButton);
     toolbar->addWidget(behaviourButton);
+    toolbar->addWidget(assemblyButton);
     toolbar->addWidget(hardwareButton);
     toolbar->addSeparator();
     toolbar->addWidget(restoreAspectsButton);

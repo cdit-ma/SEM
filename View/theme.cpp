@@ -815,7 +815,7 @@ QString Theme::getPopupWidgetStyleSheet()
            "border: 1px outset " % getDisabledBackgroundColorHex() % ";"
            "margin: 0px;"
            "padding: 5px;"
-                                                                     "}";
+           "}";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
@@ -825,13 +825,15 @@ QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
     QString gradientColor2 = QColorToHex(color.darker(110));
 
     return "QAbstractButton {"
+           "color:" % QColorToHex(black()) % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "background-color:"
            "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
            "stop:0 " % gradientColor1 % ", stop:1.0 " % gradientColor2 + ");"
            "}"
            "QAbstractButton:hover {"
-           "border: 2px solid " % QColorToHex(white()) % ";"
+           "color:" % QColorToHex(white()) % ";"
+           "border: 1px solid " % QColorToHex(white()) % ";"
            "}"
            "QAbstractButton:checked {"
            "background-color:" % QColorToHex(color) % ";"

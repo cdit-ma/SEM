@@ -10,9 +10,11 @@ public:
     MedeaViewWindow();
     void addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget, Qt::Orientation orientation);
 
+public slots:
+    void resetDockWidgets();
+
 private slots:
     void themeChanged();
-    void resetDockWidgets();
 
 
 private:
