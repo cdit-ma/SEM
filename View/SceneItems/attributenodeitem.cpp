@@ -51,13 +51,20 @@ QRectF AttributeNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     switch(rect){
     case ER_MAIN_ICON:
         return mainIconRect();
+    default:
+        return NodeItemNew::getElementRect(rect);
     }
 }
 
 QPainterPath AttributeNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
 {
-    QPainterPath path;
-    path.addRect(mainIconRect());
-    return path;
+    switch(rect){
+    case ER_SELECTION:
+        QPainterPath path;
+        path.addRect(mainIconRect());
+        return path;
+    }
+
+    return NodeItemNew::getElementPath(rect);
 }
 
