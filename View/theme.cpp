@@ -835,7 +835,7 @@ QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
            "color:" % QColorToHex(white()) % ";"
            "border: 1px solid " % QColorToHex(white()) % ";"
            "}"
-           "QAbstractButton:checked {"
+           "QAbstractButton:!checked {"
            "background-color:" % QColorToHex(color) % ";"
            "}"
            "QAbstractButton:disabled {"

@@ -19,7 +19,6 @@
 MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
     SettingsController::initializeSettings();
     connect(SettingsController::settings(), SIGNAL(settingChanged(SETTING_KEY,QVariant)), this, SLOT(settingChanged(SETTING_KEY,QVariant)));
 
@@ -31,6 +30,7 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
+
     resize(1000, 600);
 
     setupTools();
@@ -41,8 +41,8 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     setViewController(vc);
 
 
-    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     themeChanged();
+    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     show();
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
@@ -337,14 +337,14 @@ void MedeaMainWindow::setupInnerWindow()
     //dwInterfaces->setVisible(false);
 
 
-    //Check visibility state.
     SettingsController* settings = SettingsController::settings();
     dwInterfaces->setVisible(settings->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
     dwBehaviour->setVisible(settings->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
     dwAssemblies->setVisible(settings->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     dwHardware->setVisible(settings->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
 
-    //interfaceButton->setChecked(settings->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
+    //interfaceButton->setChecked(false);
+    //behaviourButton->setChecked(true);
     //interfaceButton->setChecked(false);
 
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwInterfaces);
@@ -367,19 +367,24 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
     qosDockWidget->setVisible(false);
 
-    //connect(dwInterfaces, SIGNAL(visibilityChanged(bool)), interfaceButton, SLOT(setChecked(bool)));
-    //connect(dwBehaviour, SIGNAL(visibilityChanged(bool)), behaviourButton, SLOT(setChecked(bool)));
-    //connect(dwAssemblies, SIGNAL(visibilityChanged(bool)), assemblyButton, SLOT(setChecked(bool)));
-    //connect(dwHardware, SIGNAL(visibilityChanged(bool)), hardwareButton, SLOT(setChecked(bool)));
-    //connect(interfaceButton, SIGNAL(clicked(bool)), dwInterfaces, SLOT(setVisible(bool)));
-    //connect(behaviourButton, SIGNAL(clicked(bool)), dwBehaviour, SLOT(setVisible(bool)));
-    //connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setVisible(bool)));
-    //connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setVisible(bool)));
-    connect(interfaceButton, SIGNAL(clicked(bool)), dwInterfaces, SLOT(setHidden(bool)));
-    connect(behaviourButton, SIGNAL(clicked(bool)), dwBehaviour, SLOT(setHidden(bool)));
-    connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setHidden(bool)));
-    connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setHidden(bool)));
+    connect(dwInterfaces, SIGNAL(visibilityChanged(bool)), interfaceButton, SLOT(setChecked(bool)));
+    connect(dwBehaviour, SIGNAL(visibilityChanged(bool)), behaviourButton, SLOT(setChecked(bool)));
+    connect(dwAssemblies, SIGNAL(visibilityChanged(bool)), assemblyButton, SLOT(setChecked(bool)));
+    connect(dwHardware, SIGNAL(visibilityChanged(bool)), hardwareButton, SLOT(setChecked(bool)));
+    connect(interfaceButton, SIGNAL(clicked(bool)), dwInterfaces, SLOT(setVisible(bool)));
+    connect(behaviourButton, SIGNAL(clicked(bool)), dwBehaviour, SLOT(setVisible(bool)));
+    connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setVisible(bool)));
+    connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setVisible(bool)));
+
+    //connect(interfaceButton, SIGNAL(clicked(bool)), dwInterfaces, SLOT(setHidden(bool)));
+    //connect(behaviourButton, SIGNAL(clicked(bool)), dwBehaviour, SLOT(setHidden(bool)));
+    //connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setHidden(bool)));
+    //connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setHidden(bool)));
     connect(restoreAspectsButton, SIGNAL(clicked(bool)), innerWindow, SLOT(resetDockWidgets()));
+
+    //Check visibility state.
+
+
 }
 
 void MedeaMainWindow::setupMenuAndTitle()
