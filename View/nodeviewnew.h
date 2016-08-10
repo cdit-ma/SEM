@@ -28,6 +28,8 @@ public:
     QRectF getViewportRect();
     void viewportChanged();
     SelectionHandler* getSelectionHandler();
+    void fitToScreen();
+    void centerSelection();
 signals:
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
     void viewportChanged(QRectF rect, qreal zoom);
@@ -50,7 +52,6 @@ private slots:
     void themeChanged();
 
 private slots:
-    void fitToScreen();
 
     void item_Selected(ViewItem* item, bool append);
     void item_ActiveSelected(ViewItem* item);
@@ -79,6 +80,8 @@ private:
 
     QList<ViewItem*> getTopLevelViewItems();
     QList<EntityItemNew*> getTopLevelEntityItems();
+
+    QList<EntityItemNew*> getSelectedItems();
 
     NodeItemNew* getParentNodeItem(NodeViewItem* item);
 

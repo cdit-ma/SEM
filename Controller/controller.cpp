@@ -277,6 +277,10 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::cutEntities, this, &NewController::cut);
     connect(view, &ViewController::copyEntities, this, &NewController::copy);
     connect(view, &ViewController::pasteIntoEntity, this, &NewController::paste);
+    connect(view, &ViewController::replicateEntities, this, &NewController::replicate);
+
+
+
 
 
     connect(this, &NewController::controller_IsModelReady, view, &ViewController::setControllerReady);

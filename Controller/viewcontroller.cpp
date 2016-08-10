@@ -12,6 +12,7 @@
 #include <QThreadPool>
 
 #include "../Widgets/New/medeawindowmanager.h"
+#include "../Widgets/New/medeanodeviewdockwidget.h"
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
@@ -176,6 +177,17 @@ void ViewController::table_dataChanged(int ID, QString key, QVariant data)
     emit setData(ID, key, data);
 }
 
+NodeViewNew *ViewController::getActiveNodeView()
+{
+    MedeaViewDockWidget* dock = MedeaWindowManager::manager()->getActiveViewDockWidget();
+    if(dock && dock->isNodeViewDock()){
+        MedeaNodeViewDockWidget* viewDock = (MedeaNodeViewDockWidget*) dock;
+        NodeViewNew* nodeView = viewDock->getNodeView();
+        return nodeView;
+    }
+    return 0;
+}
+
 void ViewController::setModelReady(bool okay)
 {
     if(okay != _modelReady){
@@ -262,7 +274,7 @@ bool ViewController::_saveAsProject()
 bool ViewController::_closeProject()
 {
     if(controller){
-        if(!controller->projectRequiresSaving()){
+        if(controller->projectRequiresSaving()){
             //Ask User to confirm save?
             QMessageBox msgBox(QMessageBox::Question, "Save Changes",
                                "Do you want to save the changes made to '" /* + currentProjectFilePath +*/ "' ?",
@@ -294,21 +306,13 @@ bool ViewController::_closeProject()
 
 bool ViewController::_openProject()
 {
-    QString filePath;
-    if(controller){
-        filePath = controller->getProjectFileName();
-    }
-
-    filePath = FileHandler::selectFile("Select Project to Open", QFileDialog::ExistingFile, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, filePath);
+    QString filePath = FileHandler::selectFile("Select Project to Open", QFileDialog::ExistingFile, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
     if(!filePath.isEmpty()){
         QString fileData = FileHandler::readTextFile(filePath);
-        if(_closeProject() && _newProject()){
-            emit vc_openProject(filePath, fileData);
-        }else{
-            return false;
-        }
+        emit vc_openProject(filePath, fileData);
+        return true;
     }
-    return true;
+    return false;
 }
 
 void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties)
@@ -427,7 +431,10 @@ void ViewController::newProject()
 
 void ViewController::openProject()
 {
-    _openProject();
+    if(_closeProject() && _newProject()){
+        qCritical() << "OPEN TIME";
+        _openProject();
+    }
 }
 
 void ViewController::closeProject()
@@ -468,16 +475,26 @@ void ViewController::_importProjects()
     emit importProjects(fileData);
 }
 
-void ViewController::threadDead()
+void ViewController::fitView()
 {
-    qCritical() << "GG";
-    qCritical() << "ACTIVE THREADS: " << QThreadPool::globalInstance()->activeThreadCount();
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->fitToScreen();
+    }
 }
+
+void ViewController::centerSelection()
+{
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->centerSelection();
+    }
+}
+
 
 void ViewController::cut()
 {
     if(selectionController){
-        emit triggerAction("Cutting Selection");
         emit cutEntities(selectionController->getSelectionIDs());
     }
 }
@@ -494,6 +511,14 @@ void ViewController::paste()
     if(selectionController && selectionController->getSelectionCount() == 1){
         emit pasteIntoEntity(selectionController->getSelectionIDs()[0], QApplication::clipboard()->text());
     }
+}
+
+void ViewController::replicate()
+{
+    if(selectionController && selectionController->getSelectionCount() > 0){
+        emit replicateEntities(selectionController->getSelectionIDs());
+    }
+
 }
 
 void ViewController::initializeController()

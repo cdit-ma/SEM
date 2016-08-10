@@ -246,6 +246,12 @@ void NodeViewNew::fitToScreen()
     centerRect(scene()->itemsBoundingRect());
 }
 
+void NodeViewNew::centerSelection()
+{
+
+    centerOnItems(getSelectedItems());
+}
+
 void NodeViewNew::item_Selected(ViewItem *item, bool append)
 {
     if(selectionHandler){
@@ -554,6 +560,18 @@ QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems()
     foreach(int ID, topLevelGUIItemIDs){
         if(guiItems.contains(ID)){
             items.append(guiItems[ID]);
+        }
+    }
+    return items;
+}
+
+QList<EntityItemNew *> NodeViewNew::getSelectedItems()
+{
+    QList<EntityItemNew*> items;
+    foreach(ViewItem* item, selectionHandler->getSelection()){
+        EntityItemNew* eItem = getEntityItem(item);
+        if(eItem){
+            items.append(eItem);
         }
     }
     return items;

@@ -10,6 +10,7 @@
 
 class NewController;
 class ToolbarWidgetNew;
+class NodeViewNew;
 class ViewController : public QObject
 {
     Q_OBJECT
@@ -50,6 +51,7 @@ signals:
 
 
 
+
     void canUndo(bool);
     void canRedo(bool);
 
@@ -58,6 +60,7 @@ signals:
     void cutEntities(QList<int> IDs);
     void copyEntities(QList<int> IDs);
     void pasteIntoEntity(int ID, QString data);
+    void replicateEntities(QList<int> IDs);
 
     void constructNode(int parentID, QString kind, QPointF pos = QPointF());
     void importProjects(QStringList fileData);
@@ -82,10 +85,14 @@ public slots:
     void saveAsProject();
     void _importProjects();
 
-    void threadDead();
+
+    void fitView();
+    void centerSelection();
+
     void cut();
     void copy();
     void paste();
+    void replicate();
 
     void deleteSelection();
     void constructDDSQOSProfile();
@@ -98,6 +105,8 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+
+    NodeViewNew* getActiveNodeView();
     void _teardownProject();
     bool _newProject();
     bool _saveProject();

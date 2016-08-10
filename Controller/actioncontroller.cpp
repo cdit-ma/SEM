@@ -49,6 +49,10 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_cut, &QAction::triggered, viewController, &ViewController::cut);
         connect(edit_copy, &QAction::triggered, viewController, &ViewController::copy);
         connect(edit_paste, &QAction::triggered, viewController, &ViewController::paste);
+        connect(edit_replicate, &QAction::triggered, viewController, &ViewController::replicate);
+        connect(view_fitView, &QAction::triggered, viewController, &ViewController::fitView);
+        connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
+
 
 
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
@@ -220,7 +224,7 @@ void ActionController::modelReady(bool ready)
     model_executeLocalJob->setEnabled(ready);
 
     edit_search->setEnabled(ready);
-    view_fitToScreen->setEnabled(ready);
+    view_fitView->setEnabled(ready);
     window_printScreen->setEnabled(ready);
     jenkins_importNodes->setEnabled(ready);
     jenkins_executeJob->setEnabled(ready);
@@ -321,11 +325,11 @@ void ActionController::setupActions()
     file_closeProject->setShortcut(QKeySequence::Close);
 
 
-
-
-
-
     file_importGraphML = createRootAction("Import Project", "", "Actions", "Import");
+    file_importGraphML->setShortcutContext(Qt::ApplicationShortcut);
+    file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
+
+
     file_importXME = createRootAction("Import XME File", "", "Actions", "ImportXME");
     file_importXMI = createRootAction("Import UML XMI File", "", "Actions", "ImportXMI");
     file_importSnippet = createRootAction("Import Snippet", "", "Actions", "ImportSnippet");
@@ -339,15 +343,21 @@ void ActionController::setupActions()
     edit_redo->setShortcut(QKeySequence::Redo);
 
     edit_cut = createRootAction("Cut", "", "Actions", "Cut");
+    edit_cut->setShortcutContext(Qt::ApplicationShortcut);
     edit_cut->setShortcut(QKeySequence::Cut);
 
     edit_copy = createRootAction("Copy", "", "Actions", "Copy");
+    edit_copy->setShortcutContext(Qt::ApplicationShortcut);
     edit_copy->setShortcut(QKeySequence::Copy);
 
     edit_paste = createRootAction("Paste", "", "Actions", "Paste");
+    edit_paste->setShortcutContext(Qt::ApplicationShortcut);
     edit_paste->setShortcut(QKeySequence::Paste);
 
     edit_replicate = createRootAction("Replicate", "", "Actions", "Replicate");
+    edit_replicate->setShortcutContext(Qt::ApplicationShortcut);
+    edit_replicate->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+
     edit_delete = createRootAction("Delete", "Delete", "Actions", "Delete");
     edit_delete->setShortcut(QKeySequence::Delete);
     edit_delete->setShortcutContext(Qt::ApplicationShortcut);
@@ -374,7 +384,10 @@ void ActionController::setupActions()
     edit_clearSelection->setShortcut(QKeySequence(Qt::Key_Escape));
     edit_clearSelection->setShortcutContext(Qt::ApplicationShortcut);
 
-    view_fitToScreen = createRootAction("Fit To Screen", "", "Actions", "FitToScreen");
+    view_fitView = createRootAction("Fit View", "", "Actions", "FitToScreen");
+    view_fitView->setShortcutContext(Qt::ApplicationShortcut);
+    view_fitView->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
+
     view_centerOn = createRootAction("Center On Selection", "", "Actions", "Crosshair");
     view_centerOnDefn = createRootAction("Center On Definition", "", "Actions", "Definition");
     view_centerOnImpl = createRootAction("Center On Implementation", "", "Actions", "Implementation");
@@ -485,7 +498,7 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_CycleActiveSelectionBackward);
 
      // View Menu
-    menu_view->addAction(view_fitToScreen);
+    menu_view->addAction(view_fitView);
     menu_view->addSeparator();
     menu_view->addAction(view_centerOn);
     menu_view->addAction(view_centerOnDefn);
@@ -532,7 +545,7 @@ void ActionController::setupApplicationToolbar()
     toolbar_paste = applicationToolbar->addAction(edit_paste->constructSubAction(false));
     toolbar_replicate = applicationToolbar->addAction(edit_replicate->constructSubAction(false));
     applicationToolbar->addSeperator();
-    toolbar_fitToScreen = applicationToolbar->addAction(view_fitToScreen->constructSubAction(false));
+    toolbar_fitToScreen = applicationToolbar->addAction(view_fitView->constructSubAction(false));
     toolbar_centerOn = applicationToolbar->addAction(view_centerOn->constructSubAction(false));
     toolbar_viewInNewWindow = applicationToolbar->addAction(view_viewInNewWindow->constructSubAction(false));
     applicationToolbar->addSeperator();

@@ -95,7 +95,7 @@ public:
     RootAction* edit_CycleActiveSelectionForward;
     RootAction* edit_CycleActiveSelectionBackward;
 
-    RootAction* view_fitToScreen;
+    RootAction* view_fitView;
     RootAction* view_centerOn;
     RootAction* view_centerOnDefn;
     RootAction* view_centerOnImpl;
