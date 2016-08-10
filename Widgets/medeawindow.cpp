@@ -1300,8 +1300,8 @@ void MedeaWindow::setupSearchTools()
     searchLayout->setContentsMargins(0,0,0,0);
     searchLayout->addWidget(searchToolbar);
 
-    searchSuggestions->setSize(searchBar->width(), height(), 1);
-    searchSuggestions->setSize(RIGHT_PANEL_WIDTH, height(), 2);
+    searchSuggestions->setSize(searchBar->width(), height(), SearchSuggestCompletion::ST_MIN);
+    searchSuggestions->setSize(RIGHT_PANEL_WIDTH, height(), SearchSuggestCompletion::ST_MAX);
 
     // setup search option widgets and menu for view aspects
     QHBoxLayout* aspectsLayout = new QHBoxLayout();
@@ -1764,8 +1764,6 @@ void MedeaWindow::setupWelcomeScreen()
 
     closeButton->setFlat(true);
     closeButton->setStyleSheet(settingsButton->styleSheet() + "QPushButton{ text-align: right; }");
-
-
 
     QLabel* medeaIcon = new QLabel(this);
     QLabel* medeaLabel = new QLabel("MEDEA");

@@ -10,13 +10,15 @@ class SearchSuggestCompletion : public QObject
     Q_OBJECT
 
 public:
+    enum SIZE_TYPE{ST_FIXED, ST_MIN, ST_MAX};
     explicit SearchSuggestCompletion(QLineEdit* parent = 0);
     ~SearchSuggestCompletion();
 
     bool eventFilter(QObject* obj, QEvent* ev) Q_DECL_OVERRIDE;
-    void setSize(qreal width = 0, qreal height = 0, int sizeKind = 0);
+    void setSize(qreal width = 0, qreal height = 0, SIZE_TYPE sizeType = ST_FIXED);
 
 public slots:
+    void themeChanged();
     void doneCompletion();
     void showCompletion(const QStringList &choices);
 

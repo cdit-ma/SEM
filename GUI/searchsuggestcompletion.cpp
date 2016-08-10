@@ -1,4 +1,5 @@
 #include "searchsuggestcompletion.h"
+#include "../View/theme.h"
 
 #include <QHeaderView>
 #include <QEvent>
@@ -41,6 +42,7 @@ SearchSuggestCompletion::SearchSuggestCompletion(QLineEdit* parent) : QObject(pa
     maxSize = QSize(editor->size());
 
     connect(popup, SIGNAL(itemClicked(QTreeWidgetItem*,int)), SLOT(doneCompletion()));
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 }
 
 
@@ -115,7 +117,7 @@ bool SearchSuggestCompletion::eventFilter(QObject* obj, QEvent* ev)
  * @param height
  * @param sizeKind - 0 = fixed, 1 = min, 2 = max
  */
-void SearchSuggestCompletion::setSize(qreal width, qreal height, int sizeKind)
+void SearchSuggestCompletion::setSize(qreal width, qreal height, SIZE_TYPE sizeType)
 {
    if (width <= 0) {
        width = popup->width();
@@ -123,12 +125,12 @@ void SearchSuggestCompletion::setSize(qreal width, qreal height, int sizeKind)
    if (height <= 0) {
        height = popup->height();
    }
-   switch (sizeKind) {
-   case 1:
+   switch (sizeType) {
+   case ST_MIN:
        popup->setMinimumSize(width, height);
        minSize = QSize(width, height);
        break;
-   case 2:
+   case ST_MAX:
        popup->setMaximumSize(width, height);
        maxSize = QSize(width, height);
        break;
@@ -136,6 +138,15 @@ void SearchSuggestCompletion::setSize(qreal width, qreal height, int sizeKind)
        popup->setFixedSize(width, height);
        break;
    }
+}
+
+void SearchSuggestCompletion::themeChanged()
+{
+    Theme* theme = Theme::theme();
+    /*popup->setStyleSheet("QTreeWidget {"
+                         "background:" + theme->getBackgroundColorHex() + ";"
+                         "color:" + theme->getTextColorHex() + ";"
+                         "}");*/
 }
 
 

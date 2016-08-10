@@ -4,7 +4,7 @@
 #include "../../View/theme.h"
 #include "selectioncontroller.h"
 #include "medeanodeviewdockwidget.h"
-
+#include "../../Controller/settingscontroller.h"
 
 #include <QDebug>
 #include <QHeaderView>
@@ -12,9 +12,8 @@
 #include <QMenuBar>
 #include <QDateTime>
 #include <QApplication>
-#include "../../Controller/settingscontroller.h"
-#define TOOLBAR_HEIGHT 32
 
+#define TOOLBAR_HEIGHT 32
 
 MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
@@ -104,13 +103,6 @@ void MedeaMainWindow::themeChanged()
     searchOptionsButton->setIcon(theme->getIcon("Actions", "Settings"));
     popupSearchButton->setIcon(theme->getIcon("Actions", "Search"));
 
-    /*
-    interfaceButton->setIcon(theme->getIcon("Items", "InterfaceDefinitions"));
-    behaviourButton->setIcon(theme->getIcon("Items", "BehaviourDefinitions"));
-    assemblyButton->setIcon(theme->getIcon("Items", "AssemblyDefinitions"));
-    hardwareButton->setIcon(theme->getIcon("Items", "HardwareDefinitions"));
-    */
-
     //restoreAspectsButton->setIcon(theme->getIcon("Actions", "GridSort"));
     restoreAspectsButton->setIcon(theme->getIcon("Actions", "MenuView"));
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
@@ -184,8 +176,9 @@ void MedeaMainWindow::popupSearch()
     if (searchBar->isVisible()) {
         searchBar->setFocus();
     } else {
-        QPointF s = QPointF(searchToolbar->sizeHint().width(), searchToolbar->height());
-        QPointF p = pos() + rect().center();
+        QPointF s = QPointF(searchToolbar->sizeHint().width()/2, searchToolbar->height()/2);
+        QPointF p = pos() + innerWindow->pos() + innerWindow->rect().center();
+        //QPointF p = pos() + rect().center();
         p -= s;
         searchToolbar->move(p.x(), p.y());
         searchToolbar->show();
@@ -334,18 +327,11 @@ void MedeaMainWindow::setupInnerWindow()
     //dwAssemblies->setIcon("Items", "AssemblyDefinitions");
     //dwHardware->setIcon("Items", "HardwareDefinitions");
 
-    //dwInterfaces->setVisible(false);
-
-
     SettingsController* settings = SettingsController::settings();
     dwInterfaces->setVisible(settings->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
     dwBehaviour->setVisible(settings->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
     dwAssemblies->setVisible(settings->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     dwHardware->setVisible(settings->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
-
-    //interfaceButton->setChecked(false);
-    //behaviourButton->setChecked(true);
-    //interfaceButton->setChecked(false);
 
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwInterfaces);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
@@ -367,6 +353,7 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
     qosDockWidget->setVisible(false);
 
+    // connect aspect toggle buttons
     connect(dwInterfaces, SIGNAL(visibilityChanged(bool)), interfaceButton, SLOT(setChecked(bool)));
     connect(dwBehaviour, SIGNAL(visibilityChanged(bool)), behaviourButton, SLOT(setChecked(bool)));
     connect(dwAssemblies, SIGNAL(visibilityChanged(bool)), assemblyButton, SLOT(setChecked(bool)));
@@ -375,16 +362,7 @@ void MedeaMainWindow::setupInnerWindow()
     connect(behaviourButton, SIGNAL(clicked(bool)), dwBehaviour, SLOT(setVisible(bool)));
     connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setVisible(bool)));
     connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setVisible(bool)));
-
-    //connect(interfaceButton, SIGNAL(clicked(bool)), dwInterfaces, SLOT(setHidden(bool)));
-    //connect(behaviourButton, SIGNAL(clicked(bool)), dwBehaviour, SLOT(setHidden(bool)));
-    //connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setHidden(bool)));
-    //connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setHidden(bool)));
     connect(restoreAspectsButton, SIGNAL(clicked(bool)), innerWindow, SLOT(resetDockWidgets()));
-
-    //Check visibility state.
-
-
 }
 
 void MedeaMainWindow::setupMenuAndTitle()
@@ -441,16 +419,10 @@ void MedeaMainWindow::setupMenuBar()
     menuBar->addMenu(viewController->getActionController()->menu_options);
     menuBar->addMenu(viewController->getActionController()->menu_help);
 
-    /*
-    QMenu* viewMenu = menuBar->addMenu("Views");
-    viewMenu->addActions(innerWindow->createPopupMenu()->actions());
-    */
-
     // TODO - Find out how to set the height of the menubar items
     menuBar->setFixedHeight(TOOLBAR_HEIGHT);
-    setMenuBar(menuBar);
-
     menuBar->setNativeMenuBar(false);
+    setMenuBar(menuBar);
 }
 
 void MedeaMainWindow::setupToolBar()
@@ -529,6 +501,14 @@ void MedeaMainWindow::setupPopupSearchBar()
     searchToolbar->setAttribute(Qt::WA_TranslucentBackground, true);
     searchToolbar->setObjectName("POPUP_WIDGET");
     searchToolbar->hide();
+
+    searchSuggestions = new SearchSuggestCompletion(popupSearchBar);
+    searchSuggestions->setSize(300, 0, SearchSuggestCompletion::ST_MIN);
+    searchSuggestions->setSize(300, 0, SearchSuggestCompletion::ST_MAX);
+
+    connect(popupSearchBar, SIGNAL(returnPressed()), popupSearchButton, SLOT(click()));
+    connect(popupSearchBar, SIGNAL(textChanged(QString)), viewController, SLOT(searchSuggestionsRequested(QString)));
+    connect(viewController, SIGNAL(seachSuggestions(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
 }
 
 void MedeaMainWindow::setupDataTable()
@@ -603,7 +583,6 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     toolbar->addWidget(restoreToolsButton);
 
     menuBar->setCornerWidget(toolbar);
-    //toolbar->hide();
 }
 
 void MedeaMainWindow::resizeEvent(QResizeEvent *e)

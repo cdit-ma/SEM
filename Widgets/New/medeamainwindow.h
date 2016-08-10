@@ -12,6 +12,7 @@
 #include "../../GUI/appsettings.h"
 #include "qosbrowser.h"
 #include "tablewidget.h"
+#include "../../GUI/searchsuggestcompletion.h"
 
 class MedeaMainWindow : public MedeaWindowNew
 {
@@ -70,6 +71,7 @@ private:
     QToolBar* searchToolbar;
     QLineEdit* popupSearchBar;
     QToolButton* popupSearchButton;
+    SearchSuggestCompletion* searchSuggestions;
 
     QToolBar* floatingToolbar;
     TableWidget* tableWidget;

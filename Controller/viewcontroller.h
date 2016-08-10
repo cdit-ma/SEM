@@ -27,8 +27,6 @@ public:
     ViewItem* getModel();
     bool isModelReady();
 
-    QList<ViewItem*> search(QString field);
-
     void setController(NewController* c);
 signals:
     void initializeModel();
@@ -63,6 +61,8 @@ signals:
     void importProjects(QStringList fileData);
     void vc_openProject(QString fileName, QString filePath);
 
+    void seachSuggestions(QStringList suggestions);
+
 public slots:
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
@@ -93,6 +93,10 @@ public slots:
     void setModelReady(bool okay);
 
     void setControllerReady(bool ready);
+
+    QList<ViewItem*> search(QString searchString);
+    void searchSuggestionsRequested(QString searchString);
+
 private slots:
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);
@@ -124,7 +128,7 @@ private:
     ToolbarWidgetNew* toolbar;
     NewController* controller;
 
-
+    bool showSearchSuggestions;
 };
 
 #endif // VIEWCONTROLLER_H
