@@ -30,7 +30,9 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-    setMinimumSize(1000,600);
+    setMinimumSize(1000,200);
+
+    resize(1000,400);
 
     setupInnerWindow();
     setupTools();
@@ -77,7 +79,11 @@ void MedeaMainWindow::themeChanged()
                   theme->getDockWidgetStyleSheet() +
                   theme->getPushButtonStyleSheet() +
                   theme->getPopupWidgetStyleSheet() +
+                  theme->getTabbedWidgetStyleSheet() +
+                  theme->getScrollBarStyleSheet() +
                   "QToolButton{ padding: 4px; }");
+
+    innerWindow->setStyleSheet(theme->getWindowStyleSheet());
 
     QString menuStyle = theme->getMenuStyleSheet();
     viewController->getActionController()->menu_file->setStyleSheet(menuStyle);

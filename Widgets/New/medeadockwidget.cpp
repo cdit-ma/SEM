@@ -237,7 +237,8 @@ void MedeaDockWidget::updateActiveStyleSheet()
         QString activeColor = Theme::theme()->getActiveWidgetBorderColorHex();
         setStyleSheet("QGraphicsView { border: 1px solid " + activeColor + ";}"
                       "DockTitleBarWidget { background:" + activeColor + "; border: 1px solid " + activeColor + ";}"
-                      "DockTitleBarWidget QToolButton::!hover { background:" + activeColor +";}");
+                      "DockTitleBarWidget QToolButton::!hover { background:" + activeColor +";}"
+                      );
     } else {
         setStyleSheet("");
     }

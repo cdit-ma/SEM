@@ -92,7 +92,9 @@ public:
 
 
     // Default StyleSheets
+    QString getCornerRadius();
     QString getWindowStyleSheet();
+    QString getScrollBarStyleSheet();
     QString getDialogStyleSheet();
     QString getWidgetStyleSheet();
     QString getTabbedWidgetStyleSheet();
