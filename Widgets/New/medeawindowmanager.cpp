@@ -265,6 +265,12 @@ void MedeaWindowManager::removeDockWidget(MedeaDockWidget *dockWidget)
             disconnect(dockWidget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximize(bool)));
             disconnect(dockWidget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Close()));
             dockWidgets.remove(ID);
+
+            QWidget* widget = dockWidget->parentWidget();
+            MedeaWindowNew* window = qobject_cast<MedeaWindowNew*>(widget);
+            if(window){
+                window->removeDockWidget(dockWidget);
+            }
         }else{
             qCritical() << "MedeaWindowManager::removeDockWidget() - Trying to remove non-hashed MedeaDockWidget.";
         }
