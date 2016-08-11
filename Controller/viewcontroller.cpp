@@ -46,7 +46,6 @@ ViewController::ViewController(){
 
     connect(this, &ViewController::showToolbar, toolbar, &ToolbarWidgetNew::showToolbar);
 
-    //emit modelReady(false);
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "SelectionController in: " <<  time1 - timeStart << "MS";
     qCritical() << "ActionController in: " <<  time2 - time1 << "MS";
@@ -290,7 +289,8 @@ void ViewController::_teardownProject()
         if (controller) {
             setModelReady(false);
             setControllerReady(false);
-
+            emit projectPathChanged("");
+            emit projectModified(false);
             destructChildItems(rootItem);
             itemKindLists.clear();
 
@@ -347,7 +347,7 @@ bool ViewController::_closeProject()
 {
     if(isControllerReady()){
         if(controller){
-            if(!controller->projectRequiresSaving()){
+            if(controller->projectRequiresSaving()){
                 QString filePath = controller->getProjectFileName();
 
                 if(filePath == ""){
