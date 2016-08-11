@@ -551,6 +551,8 @@ void ViewController::_importProjects()
         }
     }
     emit importProjects(fileData);
+
+    // fit the contents in all the view aspects after import when no model has been imported yet?
 }
 
 void ViewController::fitView()

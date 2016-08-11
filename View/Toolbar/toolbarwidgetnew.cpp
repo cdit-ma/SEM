@@ -164,10 +164,10 @@ void ToolbarWidgetNew::populateDynamicMenu()
     } else if (senderMenu == adoptableKindsSubMenus["BlackBoxInstance"]) {
         actions = toolbarController->getNodeActionsOfKind("BlackBox", true);
     } else if (senderMenu == adoptableKindsSubMenus["ComponentImpl"]) {
-        //actions = toolbarController->getNodeActionsOfKind("BlackBox", true);
+        //actions = toolbarController->getNodeActionsOfKind("Component", true);
     } else if (senderMenu == adoptableKindsSubMenus["ComponentInstance"]) {
         actions = toolbarController->getNodeActionsOfKind("Component", true);
-    } else if (senderMenu == adoptableKindsSubMenus["Component"]) {
+    } else if (senderMenu == adoptableKindsSubMenus["InEventPort"]) {
         actions = toolbarController->getNodeActionsOfKind("Aggregate", true);
     } else if (senderMenu == adoptableKindsSubMenus["OutEventPort"]) {
         actions = toolbarController->getNodeActionsOfKind("Aggregate", true);
@@ -176,7 +176,7 @@ void ToolbarWidgetNew::populateDynamicMenu()
     } else if (senderMenu == adoptableKindsSubMenus["OutEventPortDelegate"]) {
         actions = toolbarController->getNodeActionsOfKind("Aggregate", true);
     } else if (senderMenu == adoptableKindsSubMenus["OutEventPortImpl"]) {
-        //actions = toolbarController->getNodeActionsOfKind("BlackBox", true);
+        //actions = toolbarController->getNodeActionsOfKind("OutEventPort", true);
     } else if (senderMenu == adoptableKindsSubMenus["AggregateInstance"]) {
         actions = toolbarController->getNodeActionsOfKind("Aggregate", true);
     } else if (senderMenu == adoptableKindsSubMenus["VectorInstance"]) {
@@ -188,7 +188,7 @@ void ToolbarWidgetNew::populateDynamicMenu()
         return;
     }
 
-    // if the menu is empty, show info action
+    // if the menu is empty, show its info action
     if (actions.isEmpty()) {
         senderMenu->addAction(getInfoAction(dynamicMenuHash[senderMenu]));
     } else {
@@ -467,8 +467,7 @@ void ToolbarWidgetNew::setupConnections()
  */
 void ToolbarWidgetNew::clearDynamicMenus()
 {
-    hardwareMenu->clear();
-    foreach (QMenu* menu, adoptableKindsSubMenus.values()) {
+    foreach (QMenu* menu, dynamicMenuHash.keys()) {
         menu->clear();
     }
 }
