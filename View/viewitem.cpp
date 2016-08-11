@@ -17,6 +17,13 @@ ViewItem::ViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, 
     tableModel = new AttributeTableModel(this);
 }
 
+ViewItem::ViewItem()
+{
+    this->ID = -2;
+    _parent = 0 ;
+    tableModel = 0;
+}
+
 ViewItem::~ViewItem()
 {
 }
@@ -170,6 +177,16 @@ QList<ViewItem *> ViewItem::getChildren()
         _children.append(child->getChildren());
     }
     return _children;
+}
+
+QList<int> ViewItem::getChildrenID()
+{
+    QList<int> children;
+
+    foreach(ViewItem* child, getChildren()){
+        children.append(child->getID());
+    }
+    return children;
 }
 
 ViewItem *ViewItem::getParentItem()

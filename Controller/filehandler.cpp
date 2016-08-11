@@ -37,6 +37,13 @@ QStringList FileHandler::selectFiles(QString windowTitle, QFileDialog::FileMode 
     fd->setConfirmOverwrite(write);
     fd->selectFile(initialFile);
 
+    if(write){
+        fd->setAcceptMode(QFileDialog::AcceptSave);
+    }else{
+        fd->setAcceptMode(QFileDialog::AcceptOpen);
+    }
+
+
     if(fd->exec()){
         foreach(QString file, fd->selectedFiles()){
             if(!file.endsWith(defaultSuffix)){

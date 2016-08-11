@@ -23,6 +23,9 @@ static int count = 0;
 
 NewController::NewController() :QObject(0)
 {
+    //lock.lockForWrite();
+    projectFilePathSet = false;
+
     qCritical() << count ++;
     controllerThread = new QThread(this);
     moveToThread(controllerThread);
@@ -166,89 +169,6 @@ NewController::NewController() :QObject(0)
 
 
 }
-
-void NewController::connectView(NodeView *view)
-{
-    view->setController(this);
-
-    //Connect SIGNALS to view Slots (ALL VIEWS)
-    connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(constructEntityItem(EntityAdapter*)));
-
-
-    connect(this, SIGNAL(controller_SetViewEnabled(bool)), view, SLOT(setEnabled(bool)));
-
-
-
-    if(view->isMainView()){
-        connect(this, SIGNAL(controller_ProjectFileChanged(QString)), view, SIGNAL(view_ProjectFileChanged(QString)));
-        connect(this, SIGNAL(controller_ProjectNameChanged(QString)), view, SIGNAL(view_ProjectNameChanged(QString)));
-
-
-        connect(view, SIGNAL(view_ConstructWorkerProcessNode(int,QString,QString,QPointF)), this, SLOT(constructWorkerProcessNode(int, QString, QString, QPointF)));
-        connect(this, SIGNAL(controller_CanRedo(bool)), view, SLOT(canRedo(bool)));
-        connect(this, SIGNAL(controller_CanUndo(bool)), view, SLOT(canUndo(bool)));
-        connect(view, SIGNAL(view_constructDestructEdges(QList<int>, int)), this, SLOT(constructDestructMultipleEdges(QList<int>, int)));
-        connect(view, SIGNAL(view_EnableDebugLogging(bool, QString)), this, SLOT(enableDebugLogging(bool, QString)));
-        connect(this, SIGNAL(controller_ProjectRequiresSave(bool)), view, SIGNAL(view_ProjectRequiresSaving(bool)));
-
-
-        connect(view, SIGNAL(view_DestructEdge(int, int)), this, SLOT(destructEdge(int, int)));
-        //Pass Through Signals to GUI.
-        connect(view, SIGNAL(view_ClearHistoryStates()), this, SLOT(clearHistory()));
-        connect(view, SIGNAL(view_Clear()), this, SLOT(clear()));
-        connect(this, SIGNAL(controller_ExportedProject(QString)), view, SIGNAL(view_ExportedProject(QString)));
-
-        connect(this, SIGNAL(controller_SetClipboardBuffer(QString)), view, SIGNAL(view_SetClipboardBuffer(QString)));
-
-
-        connect(this, SIGNAL(controller_ActionProgressChanged(int,QString)), view, SIGNAL(view_updateProgressStatus(int,QString)));
-
-        //Signals to the View.
-        connect(this, SIGNAL(controller_DisplayMessage(MESSAGE_TYPE,QString,QString,QString,int)), view, SLOT(showMessage(MESSAGE_TYPE,QString,QString,QString,int)));
-
-        // Re-added this for now
-
-        connect(this, SIGNAL(controller_ExportedSnippet(QString,QString)), view, SIGNAL(view_ExportedSnippet(QString,QString)));
-
-        connect(this, SIGNAL(controller_AskQuestion(MESSAGE_TYPE, QString, QString, int)), view, SLOT(showQuestion(MESSAGE_TYPE,QString,QString,int)));
-        connect(view, SIGNAL(view_QuestionAnswered(bool)), this, SLOT(gotQuestionAnswer(bool)));
-        connect(this, SIGNAL(controller_ModelReady()), view, SLOT(modelReady()));
-    }
-
-    if(view->isMainView()){
-        connect(this, SIGNAL(controller_ActionFinished()), view, SLOT(actionFinished()));
-        connect(view, SIGNAL(view_Replicate(QList<int>)), this, SLOT(replicate(QList<int>)));
-        //File SLOTS
-        connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
-
-        connect(view, SIGNAL(view_OpenProject(QString, QString)), this, SLOT(openProject(QString, QString)));
-        connect(view, SIGNAL(view_SaveProject(QString)), this, SLOT(saveProject(QString)));
-        connect(this, SIGNAL(controller_SavedProject(QString,QString)), view, SIGNAL(view_SavedProject(QString, QString)));
-        connect(view, SIGNAL(view_ProjectSaved(bool,QString)), this, SLOT(projectSaved(bool,QString)));
-
-        connect(view, SIGNAL(view_ImportedSnippet(QList<int>,QString,QString)), this, SLOT(importSnippet(QList<int>,QString,QString)));
-        connect(view, SIGNAL(view_ExportSnippet(QList<int>)), this, SLOT(exportSnippet(QList<int>)));
-
-        //Edit SLOTS
-        connect(view, SIGNAL(view_Undo()), this, SLOT(undo()));
-        connect(view, SIGNAL(view_Redo()), this, SLOT(redo()));
-        connect(view, SIGNAL(view_Delete(QList<int>)), this, SLOT(remove(QList<int>)));
-        connect(view, SIGNAL(view_Copy(QList<int>)), this, SLOT(copy(QList<int>)));
-        connect(view, SIGNAL(view_Cut(QList<int>)), this, SLOT(cut(QList<int>)));
-        connect(view, SIGNAL(view_SetReadOnly(QList<int>,bool)), this, SLOT(setReadOnly(QList<int>,bool)));
-        connect(view, SIGNAL(view_Paste(int,QString)), this, SLOT(paste(int,QString)));
-
-        //Node Slots
-        connect(view, SIGNAL(view_ConstructEdge(int,int, bool)), this, SLOT(constructEdge(int, int)));
-        connect(view, SIGNAL(view_ConstructNode(int,QString,QPointF)), this, SLOT(_constructNode(int,QString,QPointF)));
-
-
-        connect(view, SIGNAL(view_ConstructConnectedNode(int,int,QString,QPointF)), this, SLOT(constructConnectedNode(int,int,QString,QPointF)));
-
-
-    }
-}
-
 void NewController::connectViewController(ViewController *view)
 {
     connect(this, &NewController::entityConstructed, view, &ViewController::controller_entityConstructed);
@@ -270,6 +190,10 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::constructNode, this, &NewController::constructNode);
     connect(view, &ViewController::triggerAction, this, &NewController::triggerAction);
 
+    connect(view, &ViewController::projectSaved, this, &NewController::projectSaved);
+
+
+
 
     connect(view, &ViewController::undo, this, &NewController::undo);
     connect(view, &ViewController::redo, this, &NewController::redo);
@@ -282,14 +206,16 @@ void NewController::connectViewController(ViewController *view)
 
 
 
+    connect(this, &NewController::projectModified, view, &ViewController::projectModified);
+    connect(this, &NewController::controller_ProjectFileChanged, view, &ViewController::projectPathChanged);
 
-    connect(this, &NewController::controller_IsModelReady, view, &ViewController::setControllerReady);
+
     connect(this, &NewController::controller_IsModelReady, view, &ViewController::setModelReady);
 
     connect(this, &NewController::controller_SetClipboardBuffer, view, &ViewController::setClipboardData);
+    connect(this, &NewController::controller_ActionFinished, view, &ViewController::actionFinished);
 
-    connect(this, SIGNAL(controller_CanRedo(bool)), view, SIGNAL(canRedo(bool)));
-    connect(this, SIGNAL(controller_CanUndo(bool)), view, SIGNAL(canUndo(bool)));
+    connect(this, &NewController::undoRedoChanged, view, &ViewController::undoRedoChanged);
 
     connect(view, SIGNAL(deleteEntities(QList<int>)), this, SLOT(remove(QList<int>)));
 
@@ -310,9 +236,14 @@ void NewController::initializeModel()
     setupModel();
     loadWorkerDefinitions();
     clearHistory();
+    //lock.unlock();
     INITIALIZING = false;
     emit controller_IsModelReady(true);
+
     emit controller_ModelReady();
+
+    emit controller_ProjectFileChanged("Untitled Project");
+    emit projectModified(true);
 }
 
 NewController::~NewController()
@@ -326,7 +257,7 @@ NewController::~NewController()
 
 
     while(!keys.isEmpty()){
-        delete keys.takeFirst();
+        delete keys.take(keys.keys().first());
     }
 }
 
@@ -752,7 +683,14 @@ void NewController::setViewSignalsEnabled(bool enabled, bool sendQueuedSignals)
 
 void NewController::updateUndoRedoState()
 {
+    int undos = undoActionStack.size();
+    int redos = undoActionStack.size();
+
+    if(undos <= 1 || redos <= 1){
+        emit undoRedoChanged();
+    }
     if(undoActionStack.isEmpty()){
+
         emit controller_CanUndo(false);
     }else if(undoActionStack.size() == 1){
         emit controller_CanUndo(true);
@@ -1020,22 +958,9 @@ void NewController::redo()
     emit controller_ActionFinished();
 }
 
-void NewController::saveProject(QString filePath="")
-{
-    if(model){
-        QString fileData = _exportGraphMLDocument(model);
-
-        if(filePath == ""){
-            //Use current project file path.
-            filePath = projectFileSavePath;
-        }
-        emit controller_SavedProject(filePath, fileData);
-    }
-    emit controller_ActionFinished();
-}
-
 void NewController::openProject(QString filePath, QString xmlData)
 {
+    //lock.lockForWrite();
     OPENING_PROJECT = true;
 
 
@@ -1051,6 +976,8 @@ void NewController::openProject(QString filePath, QString xmlData)
         //Undo the failed load.
         //undoRedo(true);
     }
+
+
     setProjectFilePath(filePath);
 
     //Clear the Undo/Redo History.
@@ -1062,6 +989,7 @@ void NewController::openProject(QString filePath, QString xmlData)
     setProjectDirty(false);
 
     emit controller_ActionFinished();
+    //lock.unlock();
 }
 
 
@@ -1804,13 +1732,11 @@ int NewController::getContainedAspect(int ID)
     return -1;
 }
 
-void NewController::projectSaved(bool success, QString filePath)
+void NewController::projectSaved(QString filePath)
 {
-    if(success){
-        setProjectDirty(false);
-        //Update the file save path.
-        setProjectFilePath(filePath);
-    }
+    setProjectDirty(false);
+    //Update the file save path.
+    setProjectFilePath(filePath);
 }
 
 /**
@@ -1819,7 +1745,7 @@ void NewController::projectSaved(bool success, QString filePath)
  */
 void NewController::connectViewAndSetupModel(NodeView *view)
 {
-    connectView(view);
+    //connectView(view);
     initializeModel();
 }
 
@@ -1881,7 +1807,7 @@ QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeI
 
 Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTITY_KIND entityKind)
 {
-    Key* newKey = new Key(name, type, entityKind);
+    Key* newKey = new Key(name, type, Entity::EK_ALL);
 
     //Search for a matching Key. If we find one, remove the newly created Key
     foreach(Key* key, keys){
@@ -1921,12 +1847,6 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         keysValues << "Model";
         validValues << "tao" << "rtidds" << "opensplice" << "coredx" << "tcpip" << "qpidpb" ;
         newKey->addValidValues(validValues, keysValues);
-    }
-
-    if(type == QVariant::Bool){
-        QStringList validValues;
-        validValues << "true" << "false";
-        newKey->addValidValues(validValues);
     }
 
     if (name == "actionOn") {
@@ -2047,8 +1967,13 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
 
     connect(newKey, SIGNAL(validateError(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
     //Add it to the list of Keys.
-    keys.append(newKey);
+    if(keys.contains(name)){
+        qCritical() << "Got Duplicate Keys: " << name;
+    }else{
+        keys[name] = newKey;
+    }
 
+    newKey->setParent(this);
     //Construct an Action to reverse the update
     EventAction action = getEventAction();
     action.ID = newKey->getID();
@@ -2077,7 +2002,7 @@ bool NewController::destructKey(QString name)
 
         addActionToStack(action);
 
-        keys.removeAll(key);
+        keys.remove(name);
         delete key;
         return true;
     }
@@ -2086,10 +2011,8 @@ bool NewController::destructKey(QString name)
 
 Key *NewController::getKeyFromName(QString name)
 {
-    foreach(Key* key, keys){
-        if(key->getName() == name){
-            return key;
-        }
+    if(keys.contains(name)){
+        return keys[name];
     }
     return 0;
 }
@@ -2274,6 +2197,8 @@ void NewController::removeGraphMLFromHash(int ID)
 
     nodeIDs.removeOne(ID);
     edgeIDs.removeOne(ID);
+
+
 
     if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
         qCritical() << "Hash Map Inconsistency detected!";
@@ -3085,6 +3010,13 @@ bool NewController::destructNode(Node *node)
 
     removeGraphMLFromHash(ID);
 
+    //node->deleteLater();
+
+    if(model == node){
+        model = 0;
+    }else if(workerDefinitions == node){
+        workerDefinitions = 0;
+    }
     delete node;
     return true;
 }
@@ -5471,14 +5403,17 @@ void NewController::setProjectDirty(bool dirty)
 {
     if(projectDirty != dirty){
         projectDirty = dirty;
-        emit controller_ProjectRequiresSave(projectDirty);
+        emit projectModified(dirty);
     }
 }
 
 void NewController::setProjectFilePath(QString filePath)
 {
-    projectFileSavePath = filePath;
-    emit controller_ProjectFileChanged(filePath);
+    if(projectFilePath != filePath){
+        projectFilePathSet = true;
+        projectFilePath = filePath;
+        emit controller_ProjectFileChanged(projectFilePath);
+    }
 }
 
 
@@ -5760,8 +5695,14 @@ bool NewController::canLocalDeploy()
 
 QString NewController::getProjectFileName()
 {
-    return projectFileSavePath;
+    return projectFilePath;
 }
+
+QString NewController::getProjectSaveFile()
+{
+    return projectFilePath;
+}
+
 
 bool NewController::projectRequiresSaving()
 {

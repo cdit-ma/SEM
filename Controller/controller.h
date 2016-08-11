@@ -139,7 +139,6 @@ public:
     void setExternalWorkerDefinitionPath(QString path);
     void loadWorkerDefinitions();
 
-    void connectView(NodeView* view);
     void connectViewController(ViewController* view);
     void disconnectViewController(ViewController *view);
 
@@ -188,6 +187,7 @@ public:
     bool canLocalDeploy();
 
     QString getProjectFileName();
+    QString getProjectSaveFile();
 
     bool projectRequiresSaving();
 
@@ -208,6 +208,7 @@ public:
 
     void setProjectFilePath(QString filePath);
 signals:
+    void projectModified(bool modified);
     void initiateTeardown();
     void controller_dead();
     void entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
@@ -223,6 +224,7 @@ signals:
     void controller_ProjectFileChanged(QString);
     void controller_ProjectNameChanged(QString);
 
+    void undoRedoChanged();
     void controller_CanUndo(bool ok);
     void controller_CanRedo(bool ok);
     void controller_IsModelReady(bool ready);
@@ -263,7 +265,7 @@ public slots:
     void destructteardown();
 private slots:
 
-    void projectSaved(bool success, QString filePath);
+    void projectSaved(QString filePath);
     void enableDebugLogging(bool logMode, QString applicationPath="");
 
     void connectViewAndSetupModel(NodeView* view);
@@ -284,7 +286,6 @@ private slots:
     void undo();
     void redo();
 
-    void saveProject(QString filePath);
     void openProject(QString filepath, QString xmlData);
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
@@ -510,7 +511,7 @@ private:
     QString getSysOSVersion();
 
     //Stores the GraphMLKey's used by the Model.
-    QList<Key*> keys;
+    QHash<QString, Key*> keys;
 
     //Stores the list of nodeID's and EdgeID's inside the Hash.
     QList<int> nodeIDs;
@@ -627,7 +628,8 @@ private:
     bool DESTRUCTING_CONTROLLER;
 
 
-    QString projectFileSavePath;
+    QString projectFilePath;
+    bool projectFilePathSet;
 
     bool projectDirty;
 

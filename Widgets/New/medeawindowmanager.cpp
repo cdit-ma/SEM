@@ -26,9 +26,9 @@ MedeaWindowManager* MedeaWindowManager::manager()
     return managerSingleton;
 }
 
-MedeaWindowNew *MedeaWindowManager::constructMainWindow(ViewController* vc, QString title)
+MedeaWindowNew *MedeaWindowManager::constructMainWindow(ViewController* vc)
 {
-    return manager()->_constructMainWindow(vc, title);
+    return manager()->_constructMainWindow(vc);
 }
 
 MedeaWindowNew *MedeaWindowManager::constructSubWindow(QString title)
@@ -126,12 +126,11 @@ MedeaWindowManager::~MedeaWindowManager()
     _destructWindow(mainWindow);
 }
 
-MedeaWindowNew *MedeaWindowManager::_constructMainWindow(ViewController* vc, QString title)
+MedeaWindowNew *MedeaWindowManager::_constructMainWindow(ViewController* vc)
 {
     MedeaMainWindow* window = 0;
     if(!mainWindow){
         window = new MedeaMainWindow(vc);
-        window->setWindowTitle(title);
         mainWindow = window;
         addWindow(window);
     }
@@ -217,9 +216,8 @@ void MedeaWindowManager::addWindow(MedeaWindowNew *window)
         int ID = window->getID();
         if(!windows.contains(ID)){
             windows[ID] = window;
-            qCritical() <<  "MedeaWindowManager::addWindow() - "  << ID << " - Got duplicated MedeaWindow ID.";
         }else{
-            qCritical() << "MedeaWindowManager::addWindow() - Got duplicated MedeaWindow ID.";
+            qCritical() << "MedeaWindowManager::addWindow() " << ID << " - Got duplicated MedeaWindow ID.";
         }
     }
 }

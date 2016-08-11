@@ -37,10 +37,14 @@ private slots:
     void themeChanged();
 
     void updateJenkinsActions();
+    void updateUndoRedo();
 
     QAction* getSettingAction(SETTING_KEY key);
 
+    void updateActions();
 public:
+
+
     SelectionController* selectionController;
     ViewController* viewController;
     QList<RootAction*> allActions;
@@ -140,6 +144,7 @@ public:
     RootAction* toolbar_displayedChildrenOption;
     RootAction* toolbar_addDDSQOSProfile;
 
+    bool _controllerReady;
     bool _modelReady;
     bool _jenkinsValidated;
 

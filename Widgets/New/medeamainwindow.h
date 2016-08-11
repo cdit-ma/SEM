@@ -34,6 +34,7 @@ private slots:
     void toolbarTopLevelChanged(bool a);
 
 public slots:
+    void setModelTitle(QString modelTitle);
     void settingChanged(SETTING_KEY setting, QVariant value);
 
 signals:

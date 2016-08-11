@@ -12,6 +12,7 @@
 #include <QMenuBar>
 #include <QDateTime>
 #include <QApplication>
+#include <QStringBuilder>
 #include "../../Controller/settingscontroller.h"
 #define TOOLBAR_HEIGHT 32
 
@@ -46,8 +47,10 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     show();
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
+
     qCritical() << "MedeaMainWindow in: " <<  time2 - timeStart << "MS";
     qCritical() << "MedeaMainWindow->show() in: " <<  timeFinish - time2 << "MS";
+    setModelTitle("");
 }
 
 MedeaMainWindow::~MedeaMainWindow()
@@ -63,6 +66,10 @@ void MedeaMainWindow::setViewController(ViewController *vc)
 
     connect(controller, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), tableWidget, SLOT(itemActiveSelectionChanged(ViewItem*, bool)));
     connect(vc->getActionController()->view_viewInNewWindow, SIGNAL(triggered(bool)), this, SLOT(spawnSubView()));
+
+    connect(vc, &ViewController::projectModified, this, &MedeaMainWindow::setWindowModified);
+
+    connect(vc, &ViewController::projectPathChanged, this, &MedeaMainWindow::setModelTitle);
 
     //this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
 
@@ -161,19 +168,21 @@ void MedeaMainWindow::spawnSubView()
         QVector<ViewItem*> items = selectionController->getSelection();
 
         if(items.length() == 1){
-            NodeViewNew* nodeView = new NodeViewNew();
-            connectNodeView(nodeView);
+
             ViewItem* item = items.first();
             if(item->isNode()){
-                nodeView->setContainedNodeViewItem((NodeViewItem*)item);
                 MedeaDockWidget *dockWidget = MedeaWindowManager::constructNodeViewDockWidget("SubView", Qt::TopDockWidgetArea);
-                dockWidget->setWidget(nodeView);
                 dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
                 dockWidget->setParent(this);
                 dockWidget->setIcon(item->getIcon());
                 dockWidget->setTitle(item->getData("label").toString());
                 innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockWidget);
-                //Get children.
+
+                NodeViewNew* nodeView = new NodeViewNew(dockWidget);
+                nodeView->setContainedNodeViewItem((NodeViewItem*)item);
+                connectNodeView(nodeView);
+                dockWidget->setWidget(nodeView);
+                nodeView->fitToScreen();
             }
         }
     }
@@ -214,6 +223,15 @@ void MedeaMainWindow::toolbarTopLevelChanged(bool undocked)
         }
         floatingToolbar->parentWidget()->resize(floatingToolbar->sizeHint() +  QSize(12,0));
     }
+}
+
+void MedeaMainWindow::setModelTitle(QString modelTitle)
+{
+    if(!modelTitle.isEmpty()){
+        modelTitle = "- " % modelTitle;
+    }
+    QString title = "MEDEA " % modelTitle % "[*]";
+    setWindowTitle(title);
 }
 
 void MedeaMainWindow::settingChanged(SETTING_KEY setting, QVariant value)

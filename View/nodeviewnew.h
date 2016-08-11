@@ -15,7 +15,7 @@ class NodeViewNew : public QGraphicsView
 {
     Q_OBJECT
 public:
-    NodeViewNew();
+    NodeViewNew(QWidget *parent = 0);
     ~NodeViewNew();
     void setViewController(ViewController* viewController);
     void translate(QPointF point);
@@ -70,7 +70,6 @@ private slots:
     void minimap_Zoom(int delta);
 private:
     void centerOnItems(QList<EntityItemNew*> items);
-    NodeItemNew* getModelItem();
     void centerRect(QRectF rectScene);
     void centerView(QPointF scenePos);
 

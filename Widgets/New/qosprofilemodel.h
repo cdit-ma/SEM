@@ -23,6 +23,7 @@ private slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 private:
+    void removeItem(int ID);
     QStandardItem* rootItem;
     QHash<int, QOSModelItem*> modelItems;
 

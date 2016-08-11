@@ -13,6 +13,7 @@ public:
     static QVariant::Type getTypeFromGraphML(const QString typeString);
 
     Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind);
+    ~Key();
 
     void setProtected(bool protect);
     bool isProtected();
