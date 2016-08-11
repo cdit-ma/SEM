@@ -29,7 +29,6 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-
     resize(1000, 600);
 
     setupTools();
@@ -38,7 +37,6 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*,MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)));
     setViewController(vc);
-
 
     themeChanged();
     qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
@@ -103,7 +101,6 @@ void MedeaMainWindow::themeChanged()
     searchOptionsButton->setIcon(theme->getIcon("Actions", "Settings"));
     popupSearchButton->setIcon(theme->getIcon("Actions", "Search"));
 
-    //restoreAspectsButton->setIcon(theme->getIcon("Actions", "GridSort"));
     restoreAspectsButton->setIcon(theme->getIcon("Actions", "MenuView"));
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
 
@@ -176,10 +173,9 @@ void MedeaMainWindow::popupSearch()
     if (searchBar->isVisible()) {
         searchBar->setFocus();
     } else {
-        QPointF s = QPointF(searchToolbar->sizeHint().width()/2, searchToolbar->height()/2);
-        QPointF p = pos() + innerWindow->pos() + innerWindow->rect().center();
-        p -= s;
-        searchToolbar->move(p.x(), p.y());
+        QPointF centralWidgetCenter = pos() + innerWindow->pos() + innerWindow->rect().center();
+        centralWidgetCenter -= QPointF(searchToolbar->width()/2, searchToolbar->height()/2);
+        searchToolbar->move(centralWidgetCenter.x(), centralWidgetCenter.y());
         searchToolbar->show();
         popupSearchBar->setFocus();
     }
@@ -346,11 +342,10 @@ void MedeaMainWindow::setupInnerWindow()
     qosBrowser = new QOSBrowser(viewController, this);
     qosDockWidget->setWidget(qosBrowser);
     qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-
     qosDockWidget->setProtected(true);
+    qosDockWidget->setVisible(false);
 
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
-    qosDockWidget->setVisible(false);
 
     // connect aspect toggle buttons
     connect(dwInterfaces, SIGNAL(visibilityChanged(bool)), interfaceButton, SLOT(setChecked(bool)));
@@ -487,27 +482,29 @@ void MedeaMainWindow::setupPopupSearchBar()
     popupSearchBar->setPlaceholderText("Search Here...");
     popupSearchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+    int toolbarWidth = 300;
     searchToolbar = new QToolBar(this);
     searchToolbar->setIconSize(QSize(24,24));
-    searchToolbar->setFixedSize(300, 45);
-    searchToolbar->addWidget(popupSearchBar);
-    searchToolbar->addWidget(popupSearchButton);
-
+    searchToolbar->setFixedSize(toolbarWidth, 45);
     searchToolbar->setMovable(false);
     searchToolbar->setFloatable(false);
     searchToolbar->setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
     searchToolbar->setAttribute(Qt::WA_NoSystemBackground, true);
     searchToolbar->setAttribute(Qt::WA_TranslucentBackground, true);
     searchToolbar->setObjectName("POPUP_WIDGET");
+
+    searchToolbar->addWidget(popupSearchBar);
+    searchToolbar->addWidget(popupSearchButton);
     searchToolbar->hide();
 
     searchSuggestions = new SearchSuggestCompletion(popupSearchBar);
-    searchSuggestions->setSize(300, 0, SearchSuggestCompletion::ST_MIN);
-    searchSuggestions->setSize(300, 0, SearchSuggestCompletion::ST_MAX);
+    searchSuggestions->setSize(toolbarWidth, 0, SearchSuggestCompletion::ST_MIN);
+    searchSuggestions->setSize(toolbarWidth, 0, SearchSuggestCompletion::ST_MAX);
 
-    connect(popupSearchBar, SIGNAL(returnPressed()), popupSearchButton, SLOT(click()));
-    connect(popupSearchBar, SIGNAL(textChanged(QString)), viewController, SLOT(searchSuggestionsRequested(QString)));
     connect(viewController, SIGNAL(seachSuggestions(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
+    connect(popupSearchBar, SIGNAL(textChanged(QString)), viewController, SLOT(searchSuggestionsRequested(QString)));
+    connect(popupSearchBar, SIGNAL(returnPressed()), popupSearchButton, SLOT(click()));
+    connect(popupSearchButton, SIGNAL(clicked(bool)), searchToolbar, SLOT(hide()));
 }
 
 void MedeaMainWindow::setupDataTable()

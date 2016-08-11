@@ -106,7 +106,14 @@ void ToolActionController::setupToolActions()
     //createRootAction("APPLY_REPLICATE_COUNT", "Enter Replicate Count", "Actions", "Tick");
 
     // setup menu info actions here
-    createRootAction("NO_EC_DEPLOYMENT_CONNECT", "NONE AVAILABLE", "Actions", "Info");
+    createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no valid nodes available.", "Actions", "Info");
+    createRootAction("INFO_NO_UNIMPLEMENTED_COMPONENTS", "There are no IDL files containing unimplemented Component entities.", "Actions", "Info");
+    createRootAction("INFO_NO_COMPONENTS", "There are no IDL files containing Component entities.", "Actions", "Info");
+    createRootAction("INFO_NO_BLACKBOXES", "There are no IDL files containing BlackBox entities.", "Actions", "Info");
+    createRootAction("INFO_NO_AGGREGATES", "There are no IDL files containing Aggregate entities.", "Actions", "Info");
+    createRootAction("INFO_NO_VECTORS", "There are no IDL files containing initialised Vector entities.", "Actions", "Info");
+    createRootAction("INFO_NO_FUCNTIONS", "There are no available functions.", "Actions", "Info");
+    createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities.", "Actions", "Info");
 }
 
 QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)

@@ -13,6 +13,7 @@
 #include <QWidgetAction>
 #include <QToolButton>
 #include <QSpinBox>
+#include <QRadioButton>
 #include <QVBoxLayout>
 
 class ToolbarWidgetNew : public QWidget
@@ -24,17 +25,18 @@ public:
 signals:
 
 public slots:
-    void addChildNode();
+    void themeChanged();
+
     void showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
     void setVisible(bool visible);
 
-    void themeChanged();
-
     void execMenu();
-    void populateDeploymentMenu();
+    void populateDynamicMenu();
     void menuActionTrigged(QAction* action);
 
     void viewItem_Destructed(int ID, ViewItem* viewItem);
+
+    void addChildNode(QAction* action);
 
 private:
     void setupToolbar();
@@ -58,6 +60,7 @@ private:
     QSize iconSize;
 
     QHash<QAction*, QMenu*> popupMenuHash;
+    QHash<QMenu*, QString> dynamicMenuHash;
     QHash<QString, QMenu*> adoptableKindsSubMenus;
 
     //QHash<int, NodeViewItemAction*> nodeActions;
@@ -73,6 +76,7 @@ private:
     QMenu* addMenu;
     QMenu* hardwareMenu;
     QMenu* replicateMenu;
+    QMenu* hardwareViewOptionMenu;
 
     QAction* addChildAction;
     QAction* connectAction;
@@ -82,10 +86,15 @@ private:
     QAction* implementationAction;
     QAction* instancesAction;
     QAction* connectionsAction;
-
     QAction* replicateCountAction;
+    QAction* hardwareViewOptionAction;
+
     QSpinBox* replicateCount;
     QToolButton* applyReplicateCountButton;
+
+    QRadioButton* allNodes;
+    QRadioButton* connectedNodes;
+    QRadioButton* unconnectedNodes;
 
     QPointF itemPos;
 };

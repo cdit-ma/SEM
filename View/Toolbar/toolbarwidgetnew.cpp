@@ -1,8 +1,8 @@
 #include "toolbarwidgetnew.h"
+#include "../../GUI/actionbutton.h"
+
 #include <QDebug>
 #include <QProxyStyle>
-
-#include "../../GUI/actionbutton.h"
 
 /**
  * @brief The MenuStyle class
@@ -54,23 +54,6 @@ ToolbarWidgetNew::ToolbarWidgetNew(ViewController *vc, QWidget *parent) : QWidge
     themeChanged();
 }
 
-void ToolbarWidgetNew::addChildNode()
-{
-    if(sender()){
-        QString nodeKind = sender()->property("kind").toString();
-        if(toolbarController){
-            toolbarController->addChildNode(nodeKind, itemPos);
-        }
-    }
-}
-
-void ToolbarWidgetNew::showToolbar(QPoint globalPos, QPointF itemPos)
-{
-    move(globalPos);
-    this->itemPos = itemPos;
-    setVisible(true);
-}
-
 
 /**
  * @brief ToolbarWidgetNew::themeChanged
@@ -99,9 +82,23 @@ void ToolbarWidgetNew::themeChanged()
     instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
 
+    //applyReplicateCountButton->setIcon(QIcon(theme->getImage("Actions", "Tick", QSize(32,32))));
     applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
     applyReplicateCountButton->setStyleSheet("QToolButton{ background:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";}"
                                              "QToolButton:pressed{ background:" + theme->getPressedColorHex() + ";}");
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::showToolbar
+ * @param globalPos
+ * @param itemPos
+ */
+void ToolbarWidgetNew::showToolbar(QPoint globalPos, QPointF itemPos)
+{
+    move(globalPos);
+    this->itemPos = itemPos;
+    setVisible(true);
 }
 
 
@@ -150,9 +147,9 @@ void ToolbarWidgetNew::execMenu()
 
 
 /**
- * @brief ToolbarWidgetNew::populateDeploymentMenu
+ * @brief ToolbarWidgetNew::populateDynamicMenu
  */
-void ToolbarWidgetNew::populateDeploymentMenu()
+void ToolbarWidgetNew::populateDynamicMenu()
 {
     QMenu* senderMenu = qobject_cast<QMenu*>(sender());
 
@@ -164,21 +161,46 @@ void ToolbarWidgetNew::populateDeploymentMenu()
     QList<QAction*> actions;
     if (senderMenu == hardwareMenu) {
         actions = toolbarController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT, true);
-        if (actions.isEmpty()) {
-            senderMenu->addAction(getInfoAction("NO_EC_DEPLOYMENT_CONNECT"));
-            return;
-        }
+    } else if (senderMenu == adoptableKindsSubMenus["BlackBoxInstance"]) {
+        actions = toolbarController->getNodeActionsOfKind("BlackBox", true);
+    } else if (senderMenu == adoptableKindsSubMenus["ComponentImpl"]) {
+        //actions = toolbarController->getNodeActionsOfKind("BlackBox", true);
+    } else if (senderMenu == adoptableKindsSubMenus["ComponentInstance"]) {
+        actions = toolbarController->getNodeActionsOfKind("Component", true);
+    } else if (senderMenu == adoptableKindsSubMenus["Component"]) {
+        actions = toolbarController->getNodeActionsOfKind("Aggregate", true);
+    } else if (senderMenu == adoptableKindsSubMenus["OutEventPort"]) {
+        actions = toolbarController->getNodeActionsOfKind("Aggregate", true);
+    } else if (senderMenu == adoptableKindsSubMenus["InEventPortDelegate"]) {
+        actions = toolbarController->getNodeActionsOfKind("Aggregate", true);
+    } else if (senderMenu == adoptableKindsSubMenus["OutEventPortDelegate"]) {
+        actions = toolbarController->getNodeActionsOfKind("Aggregate", true);
+    } else if (senderMenu == adoptableKindsSubMenus["OutEventPortImpl"]) {
+        //actions = toolbarController->getNodeActionsOfKind("BlackBox", true);
+    } else if (senderMenu == adoptableKindsSubMenus["AggregateInstance"]) {
+        actions = toolbarController->getNodeActionsOfKind("Aggregate", true);
+    } else if (senderMenu == adoptableKindsSubMenus["VectorInstance"]) {
+        actions = toolbarController->getNodeActionsOfKind("Vector", true);
+    } else if (senderMenu == adoptableKindsSubMenus["WorkerProcess"]) {
+        //actions = toolbarController->getNodeActionsOfKind("BlackBox", true);
     } else {
-        qWarning() << "ToolbarWidgetNew::populateDeploymentMenu - Sender menu not handled.";
+        qWarning() << "ToolbarWidgetNew::populateDynamicMenu - Sender menu not handled.";
         return;
     }
 
-    senderMenu->addActions(actions);
+    // if the menu is empty, show info action
+    if (actions.isEmpty()) {
+        senderMenu->addAction(getInfoAction(dynamicMenuHash[senderMenu]));
+    } else {
+        senderMenu->addActions(actions);
+    }
 }
 
 
 /**
  * @brief ToolbarWidgetNew::menuActionTrigged
+ * This is called whenever an action without a sub-menu is triggered.
+ * If the action triggered is not an info action, hide the toolbar.
  * @param action
  */
 void ToolbarWidgetNew::menuActionTrigged(QAction* action)
@@ -196,9 +218,22 @@ void ToolbarWidgetNew::menuActionTrigged(QAction* action)
  * @param ID
  * @param viewItem
  */
-void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem *viewItem)
+void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem* viewItem)
 {
 
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::addChildNode
+ * @param action
+ */
+void ToolbarWidgetNew::addChildNode(QAction* action)
+{
+    if (toolbarController) {
+        QString nodeKind = action->property("kind").toString();
+        toolbarController->addChildNode(nodeKind, itemPos);
+    }
 }
 
 
@@ -257,7 +292,7 @@ void ToolbarWidgetNew::setupActions()
     implementationAction = mainGroup->addAction(actionController->view_centerOnImpl->constructSubAction(true));
     instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
     mainGroup->addSeperator();
-    mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
+    hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
     replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
@@ -271,9 +306,10 @@ void ToolbarWidgetNew::setupActions()
     setupSplitMenus();
     toolbar->addActions(mainGroup->actions());
 
-    addChildAction->setText("Add Child Entity");
-    connectAction->setText("Connect Selection");
-    hardwareAction->setText("Deploy Selection");
+    // update the tooltips for certain actions
+    addChildAction->setToolTip("Add Child Entity");
+    connectAction->setToolTip("Connect Selection");
+    hardwareAction->setToolTip("Deploy Selection");
 }
 
 
@@ -284,9 +320,22 @@ void ToolbarWidgetNew::setupMenus()
 {
     setupAddChildMenu();
     setupReplicateCountMenu();
-
+    setupHardwareViewOptionMenu();
     hardwareMenu = constructTopMenu(hardwareAction);
 
+    // this hash is used for clearing dynamic menus and to store their matching info action key
+    dynamicMenuHash[hardwareMenu] = "INFO_NO_VALID_DEPLOYMENT_NODES";
+    dynamicMenuHash[adoptableKindsSubMenus["ComponentImpl"]] = "INFO_NO_UNIMPLEMENTED_COMPONENTS";
+    dynamicMenuHash[adoptableKindsSubMenus["ComponentInstance"]] = "INFO_NO_COMPONENTS";
+    dynamicMenuHash[adoptableKindsSubMenus["BlackBoxInstance"]] = "INFO_NO_BLACKBOXES";
+    dynamicMenuHash[adoptableKindsSubMenus["InEventPort"]] = "INFO_NO_AGGREGATES";
+    dynamicMenuHash[adoptableKindsSubMenus["OutEventPort"]] = "INFO_NO_AGGREGATES";
+    dynamicMenuHash[adoptableKindsSubMenus["InEventPortDelegate"]] = "INFO_NO_AGGREGATES";
+    dynamicMenuHash[adoptableKindsSubMenus["OutEventPortDelegate"]] = "INFO_NO_AGGREGATES";
+    dynamicMenuHash[adoptableKindsSubMenus["OutEventPortImpl"]] = "INFO_NO_OUTEVENTPORTS";
+    dynamicMenuHash[adoptableKindsSubMenus["AggregateInstance"]] = "INFO_NO_AGGREGATES";
+    dynamicMenuHash[adoptableKindsSubMenus["VectorInstance"]] = "INFO_NO_VECTORS";
+    dynamicMenuHash[adoptableKindsSubMenus["WorkerProcess"]] = "INFO_NO_FUCNTIONS";
 }
 
 
@@ -330,14 +379,16 @@ void ToolbarWidgetNew::setupAddChildMenu()
             QMenu* menu = new QMenu(this);
             adoptableKindsSubMenus[kind] = menu;
             action->setMenu(menu);
-        } else {
-            connect(action, SIGNAL(triggered(bool)), this, SLOT(addChildNode()));
+            qDebug() << "Kind: " << kind;
         }
         addMenu->addAction(action);
     }
 }
 
 
+/**
+ * @brief ToolbarWidgetNew::setupReplicateCountMenu
+ */
 void ToolbarWidgetNew::setupReplicateCountMenu()
 {
     replicateCount = new QSpinBox(this);
@@ -346,8 +397,6 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
     replicateCount->setFixedHeight(25);
 
     applyReplicateCountButton = new QToolButton(this);
-    //applyReplicateCountButton->setIcon(QIcon(Theme::theme()->getImage("Actions", "Tick", QSize(), Qt::darkGreen)));
-
     applyReplicateCountButton->setFixedSize(25,25);
     applyReplicateCountButton->setToolTip("Enter Replicate Count");
 
@@ -360,6 +409,28 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
 
     replicateMenu = constructTopMenu(replicateCountAction);
     replicateMenu->addAction(rc);
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::setupHardwareViewOptionMenu
+ */
+void ToolbarWidgetNew::setupHardwareViewOptionMenu()
+{
+    allNodes = new QRadioButton("All", this);
+    connectedNodes = new QRadioButton("Connected", this);
+    unconnectedNodes = new QRadioButton("Unconnected", this);
+    QWidgetAction* a1 = new QWidgetAction(this);
+    QWidgetAction* a2 = new QWidgetAction(this);
+    QWidgetAction* a3 = new QWidgetAction(this);
+    a1->setDefaultWidget(allNodes);
+    a2->setDefaultWidget(connectedNodes);
+    a3->setDefaultWidget(unconnectedNodes);
+
+    hardwareViewOptionMenu = constructTopMenu(hardwareViewOptionAction);
+    hardwareViewOptionMenu->addAction(a1);
+    hardwareViewOptionMenu->addAction(a2);
+    hardwareViewOptionMenu->addAction(a3);
 }
 
 
@@ -380,14 +451,19 @@ void ToolbarWidgetNew::setupConnections()
 
     connect(applyReplicateCountButton, SIGNAL(clicked(bool)), this, SLOT(setVisible(bool)));
     connect(applyReplicateCountButton, SIGNAL(clicked(bool)), replicateMenu, SLOT(setVisible(bool)));
-    //connect(applyReplicateCountButton, SIGNAL(triggered(QAction*)), b, {qDebug() << "replicateMenu: "  << replicateMenu << " " << });
 
-    connect(hardwareMenu, SIGNAL(aboutToShow()), this, SLOT(populateDeploymentMenu()));
+    connect(addMenu, SIGNAL(triggered(QAction*)), this, SLOT(addChildNode(QAction*)));
+    connect(hardwareMenu, SIGNAL(aboutToShow()), this, SLOT(populateDynamicMenu()));
+
+    foreach (QMenu* menu, adoptableKindsSubMenus.values()) {
+        connect(menu, SIGNAL(aboutToShow()), this, SLOT(populateDynamicMenu()));
+    }
 }
 
 
 /**
  * @brief ToolbarWidgetNew::clearDynamicMenus
+ * This clears all dynamically populated menus.
  */
 void ToolbarWidgetNew::clearDynamicMenus()
 {
@@ -400,7 +476,9 @@ void ToolbarWidgetNew::clearDynamicMenus()
 
 /**
  * @brief ToolbarWidgetNew::constructTopMenu
- * @param parentAction
+ * @param parentAction - the action the menu to be constructed is spawned off of
+ * @param instantPopup - if true, the parentAction doesn't show its menu arrow and
+ *                       this menu is executed using the toolbar's execMenu slot
  * @return
  */
 QMenu *ToolbarWidgetNew::constructTopMenu(QAction* parentAction, bool instantPopup)
@@ -428,6 +506,7 @@ QAction* ToolbarWidgetNew::getInfoAction(QString hashKey)
 {
     QAction* infoAction = toolbarController->getToolAction(hashKey, false);
     infoAction->setProperty("action-type", "info");
+    infoAction->blockSignals(true);
     return infoAction;
 }
 
