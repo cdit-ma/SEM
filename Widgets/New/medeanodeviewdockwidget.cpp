@@ -29,6 +29,7 @@ void MedeaNodeViewDockWidget::setWidget(QWidget *widget)
     NodeViewNew* view = qobject_cast<NodeViewNew*>(widget);
     if(view){
         nodeView = view;
+        connect(nodeView, SIGNAL(destroyed(QObject*)), this, SLOT(destruct()));
         MedeaViewDockWidget::setWidget(widget);
     }else{
         qCritical() << "Can't adopt!";

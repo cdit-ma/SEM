@@ -37,10 +37,14 @@ private slots:
     void themeChanged();
 
     void updateJenkinsActions();
+    void updateUndoRedo();
 
     QAction* getSettingAction(SETTING_KEY key);
 
+    void updateActions();
 public:
+
+
     SelectionController* selectionController;
     ViewController* viewController;
     QList<RootAction*> allActions;
@@ -65,6 +69,7 @@ public:
     QAction* toolbar_delete;
     QAction* toolbar_alignVertical;
     QAction* toolbar_alignHorizontal;
+    QAction* toolbar_search;
 
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
@@ -95,7 +100,7 @@ public:
     RootAction* edit_CycleActiveSelectionForward;
     RootAction* edit_CycleActiveSelectionBackward;
 
-    RootAction* view_fitToScreen;
+    RootAction* view_fitView;
     RootAction* view_centerOn;
     RootAction* view_centerOnDefn;
     RootAction* view_centerOnImpl;
@@ -140,6 +145,7 @@ public:
     RootAction* toolbar_displayedChildrenOption;
     RootAction* toolbar_addDDSQOSProfile;
 
+    bool _controllerReady;
     bool _modelReady;
     bool _jenkinsValidated;
 

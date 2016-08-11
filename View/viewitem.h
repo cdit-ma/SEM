@@ -16,6 +16,7 @@ class ViewItem: public QObjectRegistrar
     Q_OBJECT
 public:
     ViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
+    ViewItem();
     ~ViewItem();
 
     AttributeTableModel* getTableModel();
@@ -47,6 +48,7 @@ public:
     void addChild(ViewItem* child);
     void removeChild(ViewItem* child);
     QList<ViewItem *> getChildren();
+    QList<int> getChildrenID();
 
     ViewItem* getParentItem();
     void setParentViewItem(ViewItem* item);

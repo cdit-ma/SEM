@@ -197,6 +197,8 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
     if(selected){
         if(!isItemsAncestorSelected(item)){
             changeCount += unsetItemsDescendants(item);
+            //Register the selection handler
+            item->registerObject(this);
             currentSelection.append(item);
             //If there is only 1 item there can only be 1 active item.
             if(currentSelection.size() == 1){
@@ -207,6 +209,10 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
     }else{
         //Remove it from the map.
         changeCount = currentSelection.removeAll(item);
+        if(changeCount > 0){
+            //Unregister the selection handler
+            item->unregisterObject(this);
+        }
 
         //If there is no items left, there is no active item
         if(currentSelection.isEmpty()){

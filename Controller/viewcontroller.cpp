@@ -10,8 +10,10 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QThreadPool>
+#include <QListIterator>
 
 #include "../Widgets/New/medeawindowmanager.h"
+#include "../Widgets/New/medeanodeviewdockwidget.h"
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
@@ -25,6 +27,8 @@ ViewController::ViewController(){
     controller = 0;
     _modelReady = false;
     _controllerReady = true;
+
+    rootItem = new ViewItem();
 
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     selectionController = new SelectionController(this);
@@ -42,14 +46,19 @@ ViewController::ViewController(){
 
     connect(this, &ViewController::showToolbar, toolbar, &ToolbarWidgetNew::showToolbar);
 
-    connect(this, SIGNAL(modelReady(bool)), actionController, SLOT(modelReady(bool)));
-    emit modelReady(false);
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "SelectionController in: " <<  time1 - timeStart << "MS";
     qCritical() << "ActionController in: " <<  time2 - time1 << "MS";
     qCritical() << "ToolActionController in: " <<  time3 - time2 << "MS";
     qCritical() << "ToolbarWidgetNew in: " <<  time4 - time3 << "MS";
     qCritical() << "ViewController in: " <<  timeFinish - timeStart << "MS";
+
+
+}
+
+ViewController::~ViewController()
+{
+    delete rootItem;
 }
 
 QStringList ViewController::getNodeKinds()
@@ -187,10 +196,78 @@ void ViewController::setController(NewController *c)
     controller = c;
 }
 
+void ViewController::actionFinished(bool success, QString gg)
+{
+    setControllerReady(true);
+}
+
 void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit triggerAction("Table Changed");
     emit setData(ID, key, data);
+}
+
+bool ViewController::isControllerReady()
+{
+    return _controllerReady;
+}
+
+bool ViewController::canUndo()
+{
+    if(controller){
+        return controller->canUndo();
+    }
+    return false;
+}
+
+bool ViewController::canRedo()
+{
+    if(controller){
+        return controller->canRedo();
+    }
+    return false;
+}
+
+bool ViewController::destructViewItem(ViewItem *viewItem)
+{
+    if(viewItem){
+        //Delete children first!
+        destructChildItems(viewItem);
+
+
+
+        int ID = viewItem->getID();
+        QString kind = viewItem->getData("kind").toString();
+        //Unset modelItem
+        if(viewItem == modelItem){
+            modelItem = 0;
+        }
+
+        ViewItem* parentItem = viewItem->getParentItem();
+        if(parentItem){
+            parentItem->removeChild(viewItem);
+        }
+
+        //Remove the item from the Hash
+        viewItems.remove(ID);
+        itemKindLists[kind].removeAll(ID);
+        topLevelItems.removeAll(ID);
+
+        emit viewItemDestructing(ID, viewItem);
+        viewItem->destruct();
+    }
+    return false;
+}
+
+NodeViewNew *ViewController::getActiveNodeView()
+{
+    MedeaViewDockWidget* dock = MedeaWindowManager::manager()->getActiveViewDockWidget();
+    if(dock && dock->isNodeViewDock()){
+        MedeaNodeViewDockWidget* viewDock = (MedeaNodeViewDockWidget*) dock;
+        NodeViewNew* nodeView = viewDock->getNodeView();
+        return nodeView;
+    }
+    return 0;
 }
 
 void ViewController::setModelReady(bool okay)
@@ -199,15 +276,12 @@ void ViewController::setModelReady(bool okay)
         _modelReady = okay;
         emit modelReady(okay);
     }
-
 }
 
 void ViewController::setControllerReady(bool ready)
 {
-    if(ready != _controllerReady){
-        _controllerReady = ready;
-        emit controllerReady(ready);
-    }
+    _controllerReady = ready;
+    emit controllerReady(ready);
 }
 
 void ViewController::deleteSelection()
@@ -228,24 +302,30 @@ void ViewController::constructDDSQOSProfile()
 
 void ViewController::_teardownProject()
 {
-    if (controller) {
-        setModelReady(false);
-        setControllerReady(false);
+    if(isControllerReady()){
+        if (controller) {
+            setModelReady(false);
+            setControllerReady(false);
+            emit projectPathChanged("");
+            emit projectModified(false);
+            destructChildItems(rootItem);
+            itemKindLists.clear();
 
-        clearVisualItems();
-        controller->disconnectViewController(this);
-        controller = 0;
-
+            controller->disconnectViewController(this);
+            controller = 0;
+            setControllerReady(true);
+        }
     }
 }
 
 bool ViewController::_newProject()
 {
-
-    if(!controller){
-        initializeController();
-        emit initializeModel();
-        return true;
+    if(_closeProject()){
+        if(!controller){
+            initializeController();
+            emit initializeModel();
+            return true;
+        }
     }
     return false;
 }
@@ -259,7 +339,9 @@ bool ViewController::_saveProject()
             return _saveAsProject();
         }else{
             QString data = controller->getProjectAsGraphML();
-            FileHandler::writeTextFile(filePath, data);
+            if(FileHandler::writeTextFile(filePath, data)){
+                emit projectSaved(filePath);
+            }
             return true;
         }
     }
@@ -270,68 +352,74 @@ bool ViewController::_saveAsProject()
 {
     if(controller){
         QString fileName = FileHandler::selectFile("Select a *.graphml file to save project as.", QFileDialog::AnyFile, true, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
-        controller->setProjectFilePath(fileName);
-        return _saveProject();
+        if(!fileName.isEmpty()){
+            controller->setProjectFilePath(fileName);
+            return _saveProject();
+        }
     }
     return false;
 }
 
 bool ViewController::_closeProject()
 {
-    if(controller){
-        if(!controller->projectRequiresSaving()){
-            //Ask User to confirm save?
-            QMessageBox msgBox(QMessageBox::Question, "Save Changes",
-                               "Do you want to save the changes made to '" /* + currentProjectFilePath +*/ "' ?",
-                               QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    if(isControllerReady()){
+        if(controller){
+            if(controller->projectRequiresSaving()){
+                QString filePath = controller->getProjectFileName();
+
+                if(filePath == ""){
+                    filePath = "Untitled Project";
+                }
+
+                //Ask User to confirm save?
+                QMessageBox msgBox(QMessageBox::Question, "Save Changes",
+                                   "Do you want to save the changes made to '" + filePath + "' ?",
+                                   QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 
 
-            msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
-            msgBox.setButtonText(QMessageBox::Yes, "Save");
-            msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
+                msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
+                msgBox.setButtonText(QMessageBox::Yes, "Save");
+                msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
 
-            int buttonPressed = msgBox.exec();
+                int buttonPressed = msgBox.exec();
 
-            if(buttonPressed == QMessageBox::Yes){
-                bool saveSuccess = _saveProject();
-                // if failed to save, do nothing
-                if(!saveSuccess){
+                if(buttonPressed == QMessageBox::Yes){
+                    bool saveSuccess = _saveProject();
+                    // if failed to save, do nothing
+                    if(!saveSuccess){
+                        return false;
+                    }
+                }else if(buttonPressed == QMessageBox::No){
+                    //Do Nothing
+                }else{
                     return false;
                 }
-            }else if(buttonPressed == QMessageBox::No){
-                //Do Nothing
-            }else{
-                return false;
             }
         }
         _teardownProject();
+        return true;
+    }else{
+        return false;
     }
-    return true;
 }
 
-bool ViewController::_openProject()
+bool ViewController::_openProject(QString filePath)
 {
-    QString filePath;
-    if(controller){
-        filePath = controller->getProjectFileName();
-    }
-
-    filePath = FileHandler::selectFile("Select Project to Open", QFileDialog::ExistingFile, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, filePath);
-    if(!filePath.isEmpty()){
-        QString fileData = FileHandler::readTextFile(filePath);
-        if(_closeProject() && _newProject()){
+    if(_newProject()){
+        if(filePath.isEmpty()){
+            filePath = FileHandler::selectFile("Select Project to Open", QFileDialog::ExistingFile, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
+        }
+        if(!filePath.isEmpty()){
+            QString fileData = FileHandler::readTextFile(filePath);
             emit vc_openProject(filePath, fileData);
-        }else{
-            return false;
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties)
 {
-
-    //qCritical() << "CREATED: " << ID;
     ViewItem* viewItem = 0;
 
     if(eKind == EK_NODE){
@@ -344,6 +432,9 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         //Attach the node to it's parent
         if(parentItem){
             parentItem->addChild(nodeItem);
+        }else{
+            rootItem->addChild(nodeItem);
+            topLevelItems.append(ID);
         }
     }else if(eKind == EK_EDGE){
         //DO LATER.
@@ -370,27 +461,8 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind)
 {
     ViewItem* viewItem = getViewItem(ID);
+    destructViewItem(viewItem);
 
-    if(viewItem){
-        //Unset modelItem
-        if(viewItem == modelItem){
-            modelItem = 0;
-        }
-
-        ViewItem* parentItem = viewItem->getParentItem();
-        if(parentItem){
-            parentItem->removeChild(viewItem);
-        }
-
-        //Remove the item from the Hash
-        viewItems.remove(ID);
-        itemKindLists[kind].removeAll(ID);
-
-        if(viewItem){
-            emit viewItemDestructing(ID, viewItem);
-            viewItem->destruct();
-        }
-    }
 }
 
 void ViewController::controller_dataChanged(int ID, QString key, QVariant data)
@@ -436,10 +508,7 @@ void ViewController::setClipboardData(QString data)
 
 void ViewController::newProject()
 {
-    if(_closeProject()){
-        _newProject();
-
-    }
+    _newProject();
 }
 
 void ViewController::openProject()
@@ -450,7 +519,6 @@ void ViewController::openProject()
 void ViewController::closeProject()
 {
     _closeProject();
-    setControllerReady(true);
 }
 
 void ViewController::closeMEDEA()
@@ -485,16 +553,26 @@ void ViewController::_importProjects()
     emit importProjects(fileData);
 }
 
-void ViewController::threadDead()
+void ViewController::fitView()
 {
-    qCritical() << "GG";
-    qCritical() << "ACTIVE THREADS: " << QThreadPool::globalInstance()->activeThreadCount();
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->fitToScreen();
+    }
 }
+
+void ViewController::centerSelection()
+{
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->centerSelection();
+    }
+}
+
 
 void ViewController::cut()
 {
     if(selectionController){
-        emit triggerAction("Cutting Selection");
         emit cutEntities(selectionController->getSelectionIDs());
     }
 }
@@ -513,16 +591,21 @@ void ViewController::paste()
     }
 }
 
+void ViewController::replicate()
+{
+    if(selectionController && selectionController->getSelectionCount() > 0){
+        emit replicateEntities(selectionController->getSelectionIDs());
+    }
+
+}
+
 void ViewController::initializeController()
 {
     if(!controller){
         setControllerReady(false);
-
+        setModelReady(false);
         controller = new NewController();
         controller->connectViewController(this);
-
-        //setControllerReady(true);
-        _modelReady = false;
     }
 }
 
@@ -531,11 +614,24 @@ QList<int> ViewController::getIDsOfKind(QString kind)
     return itemKindLists[kind];
 }
 
+bool ViewController::destructChildItems(ViewItem *parent)
+{
+    QListIterator<ViewItem*> it(parent->getChildren());
+
+    it.toBack();
+    while(it.hasPrevious()){
+        destructViewItem(it.previous());
+    }
+    return true;
+}
+
 bool ViewController::clearVisualItems()
 {
-    while(!viewItems.isEmpty()){
-        int ID = viewItems.keys().first();
-        controller_entityDestructed(ID, EK_NODE, "");
+    QListIterator<ViewItem*> it(rootItem->getChildren());
+
+    it.toBack();
+    while(it.hasPrevious()){
+        destructViewItem(it.previous());
     }
 
     itemKindLists.clear();

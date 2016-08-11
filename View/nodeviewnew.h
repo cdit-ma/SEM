@@ -15,7 +15,7 @@ class NodeViewNew : public QGraphicsView
 {
     Q_OBJECT
 public:
-    NodeViewNew();
+    NodeViewNew(QWidget *parent = 0);
     ~NodeViewNew();
     void setViewController(ViewController* viewController);
     void translate(QPointF point);
@@ -28,6 +28,8 @@ public:
     QRectF getViewportRect();
     void viewportChanged();
     SelectionHandler* getSelectionHandler();
+    void fitToScreen();
+    void centerSelection();
 signals:
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
     void viewportChanged(QRectF rect, qreal zoom);
@@ -50,7 +52,6 @@ private slots:
     void themeChanged();
 
 private slots:
-    void fitToScreen();
 
     void item_Selected(ViewItem* item, bool append);
     void item_ActiveSelected(ViewItem* item);
@@ -69,7 +70,6 @@ private slots:
     void minimap_Zoom(int delta);
 private:
     void centerOnItems(QList<EntityItemNew*> items);
-    NodeItemNew* getModelItem();
     void centerRect(QRectF rectScene);
     void centerView(QPointF scenePos);
 
@@ -79,6 +79,8 @@ private:
 
     QList<ViewItem*> getTopLevelViewItems();
     QList<EntityItemNew*> getTopLevelEntityItems();
+
+    QList<EntityItemNew*> getSelectedItems();
 
     NodeItemNew* getParentNodeItem(NodeViewItem* item);
 

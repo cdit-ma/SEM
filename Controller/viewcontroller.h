@@ -10,11 +10,13 @@
 
 class NewController;
 class ToolbarWidgetNew;
+class NodeViewNew;
 class ViewController : public QObject
 {
     Q_OBJECT
 public:
     ViewController();
+    ~ViewController();
 
     QStringList getNodeKinds();
     SelectionController* getSelectionController();
@@ -26,9 +28,18 @@ public:
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
     bool isModelReady();
+    bool isControllerReady();
+
+    bool canUndo();
+    bool canRedo();
+
+    //bool canUndo();
 
     void setController(NewController* c);
 signals:
+    void projectSaved(QString filePath);
+    void projectPathChanged(QString);
+    void projectModified(bool);
     void initializeModel();
     void modelReady(bool);
     void controllerReady(bool);
@@ -48,14 +59,15 @@ signals:
 
 
 
-    void canUndo(bool);
-    void canRedo(bool);
+
+    void undoRedoChanged();
 
 
     void deleteEntities(QList<int> IDs);
     void cutEntities(QList<int> IDs);
     void copyEntities(QList<int> IDs);
     void pasteIntoEntity(int ID, QString data);
+    void replicateEntities(QList<int> IDs);
 
     void constructNode(int parentID, QString kind, QPointF pos = QPointF());
     void importProjects(QStringList fileData);
@@ -64,6 +76,7 @@ signals:
     void seachSuggestions(QStringList suggestions);
 
 public slots:
+    void actionFinished(bool success, QString gg);
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
     void controller_dataChanged(int ID, QString key, QVariant data);
@@ -82,10 +95,14 @@ public slots:
     void saveAsProject();
     void _importProjects();
 
-    void threadDead();
+
+    void fitView();
+    void centerSelection();
+
     void cut();
     void copy();
     void paste();
+    void replicate();
 
     void deleteSelection();
     void constructDDSQOSProfile();
@@ -102,24 +119,35 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+    bool destructViewItem(ViewItem* item);
+
+    NodeViewNew* getActiveNodeView();
     void _teardownProject();
+
+
     bool _newProject();
     bool _saveProject();
     bool _saveAsProject();
     bool _closeProject();
-    bool _openProject();
+    bool _openProject(QString filePath = "");
     QList<int> getIDsOfKind(QString kind);
     bool _modelReady;
+
+
     bool _controllerReady;
 
 
+    bool destructChildItems(ViewItem* parent);
     bool clearVisualItems();
+
 
     ViewItem* getViewItem(int ID);
 
     QHash<QString, QList<int> > itemKindLists;
     QHash<int, ViewItem*> viewItems;
+    QList<int> topLevelItems;
     ViewItem* modelItem;
+    ViewItem* rootItem;
 
     SelectionController* selectionController;
     ActionController* actionController;

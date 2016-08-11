@@ -45,6 +45,7 @@ enum SETTING_KEY{
     SK_TOOLBAR_DELETE,
     SK_TOOLBAR_ALIGN_HORIZONTAL,
     SK_TOOLBAR_ALIGN_VERTICAL,
+    SK_TOOLBAR_SEARCH,
 
     // JENKINS
     SK_JENKINS_URL,
@@ -95,6 +96,7 @@ public:
     bool isThemeSetting() const;
     QString getSettingString() const;
 
+
     void setDefaultValue(QVariant value);
     bool setValue(QVariant value);
     QVariant getValue() const;
@@ -121,6 +123,7 @@ public:
     bool isWriteProtected();
     bool isThemeSetting(SETTING_KEY key);
     QList<Setting*> getSettings();
+    QList<SETTING_KEY> getSettingsKeys(QString category="", QString section="", QString name="");
 
 signals:
     void settingChanged(SETTING_KEY ID, QVariant value);

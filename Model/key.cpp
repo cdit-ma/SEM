@@ -47,6 +47,10 @@ Key::Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind):G
     _isVisual = false;
 }
 
+Key::~Key()
+{
+}
+
 void Key::setProtected(bool protect)
 {
     _isProtected = protect;

@@ -21,7 +21,7 @@ public:
     static void teardown();
 
     //Factory constructor Functions
-    static MedeaWindowNew* constructMainWindow(ViewController* vc, QString title="");
+    static MedeaWindowNew* constructMainWindow(ViewController* vc);
     static MedeaWindowNew* constructSubWindow(QString title="");
     static MedeaWindowNew* constructCentralWindow(QString title="");
     static MedeaNodeViewDockWidget* constructNodeViewDockWidget(QString title="", Qt::DockWidgetArea area = Qt::TopDockWidgetArea);
@@ -48,7 +48,7 @@ private slots:
 
 private:
     //Helper functions
-    MedeaWindowNew* _constructMainWindow(ViewController *vc, QString title);
+    MedeaWindowNew* _constructMainWindow(ViewController *vc);
     MedeaWindowNew* _constructSubWindow(QString title);
     MedeaWindowNew* _constructCentralWindow(QString title);
     MedeaToolDockWidget* _constructToolDockWidget(QString title);

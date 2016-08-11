@@ -38,6 +38,7 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 
 MedeaDockWidget::~MedeaDockWidget()
 {
+
 }
 
 int MedeaDockWidget::getID()
@@ -192,6 +193,11 @@ void MedeaDockWidget::setPopOutToggled(bool toggled)
 void MedeaDockWidget::setProtectToggled(bool toggled)
 {
     setActionToggled(DockTitleBarWidget::DA_PROTECT, toggled);
+}
+
+void MedeaDockWidget::destruct()
+{
+    MedeaWindowManager::destructDockWidget(this);
 }
 
 
