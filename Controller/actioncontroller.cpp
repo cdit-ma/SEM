@@ -37,10 +37,6 @@ void ActionController::connectViewController(ViewController *controller)
         connect(controller, &ViewController::undoRedoChanged, this, &ActionController::updateUndoRedo);
 
 
-
-        //connect(controller, &ViewController::canUndo, edit_undo, &QAction::setEnabled);
-        //connect(controller, &ViewController::canRedo, edit_redo, &QAction::setEnabled);
-
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
         connect(file_openProject, &QAction::triggered, viewController, &ViewController::openProject);
         connect(file_closeProject, &QAction::triggered, viewController, &ViewController::closeProject);
@@ -259,6 +255,8 @@ QAction *ActionController::getSettingAction(SETTING_KEY key)
         return toolbar_alignVertical;
     case SK_TOOLBAR_ALIGN_VERTICAL:
         return toolbar_alignHorizontal;
+    case SK_TOOLBAR_SEARCH:
+        return toolbar_search;
     default:
         return 0;
     }
@@ -566,15 +564,17 @@ void ActionController::setupApplicationToolbar()
     applicationToolbar->addSeperator();
     toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
     toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
+    toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
     applicationToolbar->addSeperator();
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
 
-//#ifdef TARGET_OS_MAC
-    applicationToolbar->addSeperator();
-    applicationToolbar->addAction(edit_search);
-//#endif
 
+    SettingsController* s = SettingsController::settings();
+    foreach(SETTING_KEY key, s->getSettingsKeys("Toolbar", "Visible Buttons")){
+        settingChanged(key, s->getSetting(key));
+    }
+    applicationToolbar->updateSpacers();
 }
 
 void ActionController::setupContextToolbar()

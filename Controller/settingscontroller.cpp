@@ -74,6 +74,31 @@ QList<Setting *> SettingsController::getSettings()
     return s;
 }
 
+QList<SETTING_KEY> SettingsController::getSettingsKeys(QString category, QString section, QString name)
+{
+    QList<SETTING_KEY> keys;
+
+    bool useCat = !category.isEmpty();
+    bool useSect = !section.isEmpty();
+    bool useName = !name.isEmpty();
+
+    foreach(SETTING_KEY key, settingsKeys){
+        Setting* s = _getSetting(key);
+
+        if(s){
+            if(useCat && s->getCategory() != category){
+                continue;
+            }else if(useSect && s->getSection() != section){
+                continue;
+            }else if(useName && s->getName() != name){
+                continue;
+            }
+            keys.append(key);
+        }
+    }
+    return keys;
+}
+
 void SettingsController::intializeSettings()
 {
     //General
@@ -127,9 +152,12 @@ void SettingsController::intializeSettings()
     createSetting(SK_TOOLBAR_CENTER_SELECTION, ST_BOOL, "Toolbar", "Visible Buttons", "Center Selection");
     createSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW, ST_BOOL, "Toolbar", "Visible Buttons", "View In New Window");
     createSetting(SK_TOOLBAR_SORT, ST_BOOL, "Toolbar", "Visible Buttons", "Sort");
+    createSetting(SK_TOOLBAR_SEARCH, ST_BOOL, "Toolbar", "Visible Buttons", "Search");
     createSetting(SK_TOOLBAR_DELETE, ST_BOOL, "Toolbar", "Visible Buttons", "Delete");
     createSetting(SK_TOOLBAR_ALIGN_HORIZONTAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Horizontally");
     createSetting(SK_TOOLBAR_ALIGN_VERTICAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Vertically");
+
+
 
      //Jenkins - Server
     createSetting(SK_JENKINS_URL, ST_STRING, "Jenkins", "Server", "URL");

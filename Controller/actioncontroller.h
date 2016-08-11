@@ -69,6 +69,7 @@ public:
     QAction* toolbar_delete;
     QAction* toolbar_alignVertical;
     QAction* toolbar_alignHorizontal;
+    QAction* toolbar_search;
 
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
