@@ -29,20 +29,23 @@ SearchSuggestCompletion::SearchSuggestCompletion(QLineEdit* parent) : QObject(pa
     popup->header()->hide();
 
     popup->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    //popup->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    //popup->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     popup->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     popup->installEventFilter(this);
+    popup->setFont(QFont(editor->font().family(), 10));
 
+    /*
     QFont guiFont = QFont("Verdana");
     guiFont.setPointSizeF(8.5);
     popup->setFont(guiFont);
+    */
 
     minSize = QSize(0,0);
     maxSize = QSize(editor->size());
 
     connect(popup, SIGNAL(itemClicked(QTreeWidgetItem*,int)), SLOT(doneCompletion()));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
+    themeChanged();
 }
 
 
@@ -143,10 +146,21 @@ void SearchSuggestCompletion::setSize(qreal width, qreal height, SIZE_TYPE sizeT
 void SearchSuggestCompletion::themeChanged()
 {
     Theme* theme = Theme::theme();
-    /*popup->setStyleSheet("QTreeWidget {"
+    QColor txtColor = theme->getTextColor();
+    txtColor.setAlpha(180);
+
+    popup->setStyleSheet("QTreeWidget::item {"
+                         "background:" + theme->getAltBackgroundColorHex() + ";"
+                         "color:" + theme->QColorToHex(txtColor) + ";"
+                         "}"
+                         "QTreeWidget::item:hover {"
+                         "background:" + theme->getDisabledBackgroundColorHex() + ";"
+                         "}"
+                         "QTreeWidget::item:selected {"
                          "background:" + theme->getBackgroundColorHex() + ";"
                          "color:" + theme->getTextColorHex() + ";"
-                         "}");*/
+                         "}"
+                         + theme->getScrollBarStyleSheet());
 }
 
 
@@ -189,7 +203,7 @@ void SearchSuggestCompletion::showCompletion(const QStringList &choices)
     popup->setUpdatesEnabled(true);
 
     popup->move(editor->mapToGlobal(QPoint(0, editor->height())));
-    popup->setFocus();
+    //popup->setFocus();
     popup->show();
 }
 

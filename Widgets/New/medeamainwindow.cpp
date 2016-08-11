@@ -178,7 +178,6 @@ void MedeaMainWindow::popupSearch()
     } else {
         QPointF s = QPointF(searchToolbar->sizeHint().width()/2, searchToolbar->height()/2);
         QPointF p = pos() + innerWindow->pos() + innerWindow->rect().center();
-        //QPointF p = pos() + rect().center();
         p -= s;
         searchToolbar->move(p.x(), p.y());
         searchToolbar->show();
