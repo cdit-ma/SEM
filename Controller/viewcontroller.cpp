@@ -169,9 +169,26 @@ bool ViewController::isModelReady()
     return _modelReady;
 }
 
-QList<ViewItem *> ViewController::search(QString field)
+QList<ViewItem*> ViewController::search(QString searchString)
 {
-    return viewItems.values();
+    QList<ViewItem*> matchedItems = viewItems.values();
+
+    if (showSearchSuggestions) {
+        QStringList matchedDataValues;
+        foreach (ViewItem* item, matchedItems) {
+            matchedDataValues.append(item->getData("label").toString());
+        }
+        emit seachSuggestions(matchedDataValues);
+    }
+
+    return matchedItems;
+}
+
+void ViewController::searchSuggestionsRequested(QString searchString)
+{
+    showSearchSuggestions = true;
+    search(searchString);
+    showSearchSuggestions = false;
 }
 
 void ViewController::setController(NewController *c)
