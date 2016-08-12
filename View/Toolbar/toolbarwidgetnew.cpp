@@ -240,6 +240,9 @@ void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem* viewItem)
  */
 void ToolbarWidgetNew::addChildNode(QAction* action)
 {
+    if (action->property("action-type") == "info") {
+        return;
+    }
     if (toolbarController) {
         QString nodeKind = action->property("kind").toString();
         toolbarController->addChildNode(nodeKind, itemPos);
