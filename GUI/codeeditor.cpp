@@ -98,14 +98,7 @@ void CodeEditor::matchParentheses()
 void CodeEditor::themeChanged()
 {
     Theme* t = Theme::theme();
-
-    selectedColor = t->getHighlightColor();
-    selectedTextColor = t->getTextColor(Theme::CR_SELECTED);
-    textColor = t->getTextColor();
-    altBackgroundColor = t->getAltBackgroundColor();
-
-    setStyleSheet("QPlainTextEdit{background:" + t->getBackgroundColorHex()+";color:"+ t->getTextColorHex()+";}");
-
+    setStyleSheet(t->getWidgetStyleSheet("QPlainTextEdit"));
 }
 
 bool CodeEditor::matchLeftParenthesis(QTextBlock currentBlock, int i, int numLeftParentheses)

@@ -28,7 +28,7 @@ ViewController::ViewController(){
     _modelReady = false;
     _controllerReady = true;
 
-    rootItem = new ViewItem();
+    rootItem = new ViewItem(this);
 
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     selectionController = new SelectionController(this);
@@ -115,13 +115,37 @@ ToolActionController *ViewController::getToolbarController()
     return toolbarController;
 }
 
-QList<int> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
+QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
 {
-    if(selectionController && controller){
-        int ID = selectionController->getFirstSelectedItem()->getID();
-        return controller->getConnectableNodes(ID);
+    QList<ViewItem*> items;
+    if(controller  && selectionController && selectionController->getSelectionCount() == 1){
+        int parentID = selectionController->getFirstSelectedItem()->getID();
+        QList<int> IDs = controller->getConstructableNodeDefinitions(parentID, kind);
+        items = getViewItems(IDs);
     }
-    return QList<int>();
+    return items;
+}
+
+QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
+{
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    QList<ViewItem*> items;
+    int selection = 0;
+    if(selectionController && controller){
+        int i=0;
+        while(i < 100){
+            QList<int> selectedIDs = selectionController->getSelectionIDs();
+            QList<int> IDs = controller->getConnectableNodeIDs(selectedIDs, kind);
+            items = getViewItems(IDs);
+            selection = selectedIDs.count();
+            i++;
+        }
+    }
+
+
+    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "ViewController::getValidEdges(" << kind << ", " << selection << ") = " << items.count() <<"  In : "<<  (timeFinish - timeStart) / 100 << "MS";
+    return items;
 }
 
 QStringList ViewController::getAdoptableNodeKinds()
@@ -131,6 +155,15 @@ QStringList ViewController::getAdoptableNodeKinds()
         return controller->getAdoptableNodeKinds(ID);
     }
     return QStringList();
+}
+
+QStringList ViewController::getValidValuesForKey(int ID, QString keyName)
+{
+    QStringList values;
+    if(controller){
+        values = controller->getValidKeyValues(ID, keyName);
+    }
+    return values;
 }
 
 
@@ -198,6 +231,7 @@ void ViewController::setController(NewController *c)
 
 void ViewController::actionFinished(bool success, QString gg)
 {
+    qCritical() << "actionFinished: " << success;
     setControllerReady(true);
 }
 
@@ -257,6 +291,19 @@ bool ViewController::destructViewItem(ViewItem *viewItem)
         viewItem->destruct();
     }
     return false;
+}
+
+QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
+{
+    QList<ViewItem*> items;
+
+    foreach(int ID, IDs){
+        ViewItem* item = getViewItem(ID);
+        if(item){
+            items.append(item);
+        }
+    }
+    return items;
 }
 
 NodeViewNew *ViewController::getActiveNodeView()
@@ -423,7 +470,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
     ViewItem* viewItem = 0;
 
     if(eKind == EK_NODE){
-        NodeViewItem* nodeItem = new NodeViewItem(ID, eKind, kind, data, properties);
+        NodeViewItem* nodeItem = new NodeViewItem(this, ID, eKind, kind, data, properties);
         viewItem = nodeItem;
         int parentID = nodeItem->getParentID();
 
@@ -438,7 +485,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         }
     }else if(eKind == EK_EDGE){
         //DO LATER.
-        EdgeViewItem* edgeItem = new EdgeViewItem(ID, eKind, kind, data, properties);
+        EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, eKind, kind, data, properties);
         viewItem = edgeItem;
     }
 
@@ -557,14 +604,24 @@ void ViewController::_importProjects()
 
 void ViewController::fitView()
 {
+
+    getValidEdges(Edge::EC_AGGREGATE);
+    getValidEdges(Edge::EC_ASSEMBLY);
+    getValidEdges(Edge::EC_DATA);
+    getValidEdges(Edge::EC_DEFINITION);
+    getValidEdges(Edge::EC_DEPLOYMENT);
+    getValidEdges(Edge::EC_WORKFLOW);
+    getValidEdges(Edge::EC_QOS);
+    /*
     NodeViewNew* view = getActiveNodeView();
     if(view){
         view->fitToScreen();
-    }
+    }*/
 }
 
 void ViewController::centerSelection()
 {
+
     NodeViewNew* view = getActiveNodeView();
     if(view){
         view->centerSelection();

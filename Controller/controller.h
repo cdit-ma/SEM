@@ -158,16 +158,26 @@ public:
     QStringList getAllNodeKinds();
     QStringList getGUIConstructableNodeKinds();
     //Returns a list of Kinds which can be adopted by a Node.
-    QStringList getAdoptableNodeKinds(int ID);
     QList<int> getFunctionIDList();
     //QStringList getAdoptableNodeKinds(Node* parent);
 
     QList<int> getConnectableNodes(int srcID);
     QList<int> getConnectedNodes(int ID);
 
-    QStringList getValidKeyValues(QString keyName, int ID =-1);
-    QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
 
+//LOCKED FUNCTIONS
+    QStringList getAdoptableNodeKinds(int ID);
+    QStringList getValidKeyValues(int ID, QString keyName);
+    QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind);
+    QList<int> getConstructableNodeDefinitions(int parentID, QString instanceNodeKind);
+
+private:
+    QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, Edge::EDGE_CLASS edgeKind);
+
+public:
+
+    //NOT NEEDED
+    QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
     QString getData(int ID, QString key);
 
 
@@ -186,10 +196,11 @@ public:
     bool canRedo();
     bool canLocalDeploy();
 
-    QString getProjectFileName();
+    QString getProjectFileName() const;
+    bool projectRequiresSaving() const;
+
     QString getProjectSaveFile();
 
-    bool projectRequiresSaving();
 
     bool isNodeAncestor(int ID, int ID2);
 
@@ -592,6 +603,9 @@ private:
 
     //List of undeleteable nodes
     QList<Node*> protectedNodes;
+
+    QList<Node*> getAllNodes();
+    QList<Node*> getNodes(QList<int> IDs);
 
 
     QHash<QString, ManagementComponent*> managementComponents;

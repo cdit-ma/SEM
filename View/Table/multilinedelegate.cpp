@@ -6,6 +6,8 @@
 #include <QBoxLayout>
 #include <QDialog>
 #include "View/theme.h"
+#include <QStringBuilder>
+#include <QDebug>
 
 
 AttributeTableDelegate::AttributeTableDelegate(QWidget *parent):QStyledItemDelegate(parent)
@@ -80,8 +82,10 @@ void AttributeTableDelegate::closeDialog()
 
 void AttributeTableDelegate::themeChanged()
 {
-    dialog->setWindowIcon(Theme::theme()->getIcon("Actions", "Popup"));
-    dialog->setStyleSheet(Theme::theme()->getDialogStyleSheet());
+
+    Theme* t = Theme::theme();
+    dialog->setWindowIcon(t->getIcon("Actions", "Popup"));
+    dialog->setStyleSheet(t->getDialogStyleSheet() % t->getPushButtonStyleSheet() );
 }
 
 void AttributeTableDelegate::setupLayout()

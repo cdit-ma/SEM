@@ -16,6 +16,8 @@ class ToolActionController : public QObject
 public:
     ToolActionController(ViewController* viewController);
 
+    QList<QAction*> getDefinitionNodeActions(QString kind);
+
     QList<QAction*> getNodeActionsOfKind(QString kind, bool stealth);
     QAction* getNodeActionOfKind(QString kind, bool stealth);
 

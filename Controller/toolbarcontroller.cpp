@@ -36,6 +36,16 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
 
 }
 
+QList<QAction *> ToolActionController::getDefinitionNodeActions(QString kind)
+{
+    QList<QAction*> list;
+
+    foreach(ViewItem* item, viewController->getConstructableNodeDefinitions(kind)){
+        list.append(actions[item->getID()]->constructSubAction(false));
+    }
+    return list;
+}
+
 void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
 {
     if(viewItem && viewItem->isNode()){
@@ -130,8 +140,8 @@ QList<QAction*> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_CLASS kind
 {
     QList<QAction*> list;
 
-    foreach(int ID, viewController->getValidEdges(kind)){
-        list.append(actions[ID]->constructSubAction(stealth));
+    foreach(ViewItem* item, viewController->getValidEdges(kind)){
+        list.append(actions[item->getID()]->constructSubAction(stealth));
     }
     return list;
 }

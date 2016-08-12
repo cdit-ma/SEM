@@ -534,13 +534,22 @@ QString Theme::getDialogStyleSheet()
                                            "}";
 }
 
-QString Theme::getWidgetStyleSheet()
+QString Theme::getSplitterStyleSheet()
 {
-    return "QDialog {"
+    return  "QSplitter {background: " % getBackgroundColorHex() % ";}"
+            "QSplitter::handle{width:12px;height:12px;}"
+            "QSplitter::handle:pressed {background:" % getAltBackgroundColorHex() % "}"
+            "QSplitter::handle:horizontal {image: url(:/Actions/Menu_Vertical);}"
+            "QSplitter::handle:vertical {image: url(:/Actions/Menu_Horizontal);}"
+            ;
+}
+
+QString Theme::getWidgetStyleSheet(QString widgetName)
+{
+    return widgetName % " {"
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
-                                           "}";
-
+           "}";
 }
 
 QString Theme::getTabbedWidgetStyleSheet()
@@ -761,6 +770,7 @@ QString Theme::getPushButtonStyleSheet()
            "color:" % getTextColorHex() % ";"
            "border-radius: " % getCornerRadius() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "padding: 2px;"
            "}"
            "QPushButton:hover {"
            "background:" % getHighlightColorHex() % ";"

@@ -96,7 +96,8 @@ public:
     QString getWindowStyleSheet();
     QString getScrollBarStyleSheet();
     QString getDialogStyleSheet();
-    QString getWidgetStyleSheet();
+    QString getSplitterStyleSheet();
+    QString getWidgetStyleSheet(QString widgetName="QWidget");
     QString getTabbedWidgetStyleSheet();
     QString getViewStyleSheet();
     QString getDockWidgetStyleSheet();

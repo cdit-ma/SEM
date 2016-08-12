@@ -70,6 +70,7 @@ Node::~Node()
 void Node::setAcceptEdgeClass(Edge::EDGE_CLASS validEdge)
 {
     if(!validEdges.contains(validEdge)){
+        setAcceptsEdgeClass(validEdge);
         validEdges.append(validEdge);
     }
 }
@@ -803,6 +804,11 @@ bool Node::isHardware()
     return nodeType == Node::NT_HARDWARE;
 }
 
+bool Node::canAcceptEdgeClass(Edge::EDGE_CLASS edgeClass)
+{
+    return validEdges2.contains(edgeClass);
+}
+
 void Node::setDefinition(Node *def)
 {
     if(isImpl() || isInstance()){
@@ -989,4 +995,11 @@ QList<Edge *> Node::getOrderedEdges()
 
     return orderedList.values();
 
+}
+
+void Node::setAcceptsEdgeClass(Edge::EDGE_CLASS edgeClass)
+{
+    if(!validEdges2.contains(edgeClass)){
+        validEdges2 << edgeClass;
+    }
 }

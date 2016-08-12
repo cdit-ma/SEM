@@ -161,10 +161,20 @@ void ToolbarWidgetNew::populateDynamicMenu()
     QList<QAction*> actions;
     if (senderMenu == hardwareMenu) {
         actions = toolbarController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT, true);
+
+        foreach(QString kind, toolbarController->getKindsRequiringSubActions()){
+            if(senderMenu == adoptableKindsSubMenus[kind]){
+                actions = toolbarController->getDefinitionNodeActions(kind);
+                break;
+            }
+        }
+
+
+
     } else if (senderMenu == adoptableKindsSubMenus["BlackBoxInstance"]) {
         actions = toolbarController->getNodeActionsOfKind("BlackBox", true);
     } else if (senderMenu == adoptableKindsSubMenus["ComponentImpl"]) {
-        //actions = toolbarController->getNodeActionsOfKind("Component", true);
+        actions = toolbarController->getDefinitionNodeActions("ComponentImpl");
     } else if (senderMenu == adoptableKindsSubMenus["ComponentInstance"]) {
         actions = toolbarController->getNodeActionsOfKind("Component", true);
     } else if (senderMenu == adoptableKindsSubMenus["InEventPort"]) {

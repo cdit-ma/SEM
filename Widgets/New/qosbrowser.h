@@ -22,8 +22,11 @@ private slots:
     void settingSelected(QModelIndex, QModelIndex);
 private:
     void setupLayout();
+
     QListView* profileView;
-    QListView* elementView;
+    QTreeView* elementView;
+    //QListView* profileView;
+    //QListView* elementView;
     QSplitter* horizontalSplitter;
 
     QItemSelectionModel* elementViewSelectionModel;

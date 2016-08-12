@@ -23,8 +23,13 @@ public:
     ActionController* getActionController();
     ToolActionController* getToolbarController();
 
-    QList<int> getValidEdges(Edge::EDGE_CLASS kind);
+    QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
+    QList<ViewItem*> getValidEdges(Edge::EDGE_CLASS kind);
+
+
+
     QStringList getAdoptableNodeKinds();
+    QStringList getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
     bool isModelReady();
@@ -120,6 +125,7 @@ private slots:
 
 private:
     bool destructViewItem(ViewItem* item);
+    QList<ViewItem*> getViewItems(QList<int> IDs);
 
     NodeViewNew* getActiveNodeView();
     void _teardownProject();

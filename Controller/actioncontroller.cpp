@@ -132,8 +132,9 @@ void ActionController::jenkinsValidated(bool success)
 void ActionController::selectionChanged(int selectionSize)
 {
     if(selectionController){
-//        QVector<ViewItem*> selection = selectionController->getSelection();
-
+        if(selectionSize == -1){
+            selectionSize = selectionController->getSelectionCount();
+        }
 
         bool controllerReady = viewController->isControllerReady();
         bool modelReady = viewController->isModelReady();
@@ -143,6 +144,7 @@ void ActionController::selectionChanged(int selectionSize)
         bool gotSingleSelection = modelActions && selectionSize == 1;
         bool gotSelection = modelActions && selectionSize > 0;
         bool gotMultipleSelection = modelActions && selectionSize > 1;
+
 
 
 
@@ -187,11 +189,13 @@ void ActionController::selectionChanged(int selectionSize)
 
 void ActionController::controllerReady(bool ready)
 {
+    qCritical() << "controllerReady: " << ready;
     updateActions();
 }
 
 void ActionController::modelReady(bool ready)
 {
+    qCritical() << "modelReady: " << ready;
     updateActions();
 }
 

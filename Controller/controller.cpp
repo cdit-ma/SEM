@@ -168,6 +168,8 @@ NewController::NewController() :QObject(0)
 
 
 
+
+
 }
 void NewController::connectViewController(ViewController *view)
 {
@@ -238,6 +240,69 @@ void NewController::initializeModel()
     clearHistory();
     //lock.unlock();
     INITIALIZING = false;
+
+
+    Entity* entity = getModel();
+
+
+    int count = 10000000;
+
+    int i = count;
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    while(i > 0){
+        Node* node = qobject_cast<Node*>(entity);
+        QWidget* widget = qobject_cast<QWidget*>(entity);
+        Model* model = qobject_cast<Model*>(entity);
+
+        if(node){
+        }
+        if(widget){
+        }
+        if(model){
+        }
+        i --;
+    }
+
+    qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    i = count;
+    while(i > 0){
+        Node* node = dynamic_cast<Node*>(entity);
+        QWidget* widget = dynamic_cast<QWidget*>(entity);
+        Model* model = dynamic_cast<Model*>(entity);
+
+        if(node){
+        }
+        if(widget){
+        }
+        if(model){
+        }
+
+        i --;
+    }
+
+
+    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    i = count;
+    while(i > 0){
+        int ID = entity->getGraphMLKind();
+
+        if(ID == LIGHTER_SHADE){
+        }
+        if(ID == NORMAL_SHADE){
+        }
+        if(ID == DARKER_SHADE){
+        }
+        i --;
+    }
+
+    qint64 time3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+
+    qCritical() << "qobject_cast(x " << count << "): " << time1 - timeStart << "MS";
+    qCritical() << "dynamic_cast(x " << count << "): " << time2 - time1 << "MS";
+    qCritical() << "enum_compare(x " << count << "): " << time3 - time2 << "MS";
+
+
     emit controller_IsModelReady(true);
 
     emit controller_ModelReady();
@@ -933,6 +998,24 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<Data *> d
     return edge;
 }
 
+QList<Node *> NewController::getAllNodes()
+{
+    return getNodes(nodeIDs);
+}
+
+QList<Node *> NewController::getNodes(QList<int> IDs)
+{
+    QList<Node* > nodes;
+    foreach(int ID, IDs){
+        Node* node = getNodeFromID(ID);
+        if(node){
+            nodes.append(node);
+        }
+    }
+    return nodes;
+
+}
+
 
 void NewController::triggerAction(QString actionName)
 {
@@ -1526,44 +1609,26 @@ long long NewController::getMACAddress()
  */
 QStringList NewController::getAdoptableNodeKinds(int ID)
 {
+    lock.lockForRead();
     QStringList adoptableNodeKinds;
 
     Node* parent = getNodeFromID(ID);
 
-    if(parent){
-        //Ignore all children for read only kind.
-        if(parent->isReadOnly()){
-            return adoptableNodeKinds;
-        }
-
-        QString parentNodeKind = parent->getDataValue("kind").toString();
-
+    //Ignore all children for read only kind.
+    if(parent && !parent->isReadOnly()){
         foreach(QString nodeKind, getGUIConstructableNodeKinds()){
-            //Construct a Node of the Kind nodeKind.
-            bool ignoreKind = false;
             Node* node = constructTypedNode(nodeKind, true);
             if(node){
-                //Ignore AggregateInstance for all kinds except Aggregate's
-                if(nodeKind == "AggregateInstance" || nodeKind == "VectorInstance"){
-                    if(parentNodeKind != "Aggregate" && parentNodeKind != "Variable" && parentNodeKind != "Vector"){
-                        ignoreKind = true;
-                    }
+                if(parent->canAdoptChild(node)){
+                    adoptableNodeKinds.append(nodeKind);
                 }
-
-                if(!ignoreKind && parent->canAdoptChild(node)){
-                    if(!adoptableNodeKinds.contains(nodeKind)){
-                        adoptableNodeKinds.append(nodeKind);
-                    }
-                }
-
-                //If we have made a new Node we should delete it.
-                if(!protectedNodes.contains(node)){
-                    //Clear Memory
-                    delete node;
-                }
+                //Clean up memory.
+                delete node;
             }
         }
     }
+
+    lock.unlock();
     return adoptableNodeKinds;
 }
 
@@ -1581,22 +1646,23 @@ QList<int> NewController::getFunctionIDList()
 
 QList<int> NewController::getConnectableNodes(int srcID)
 {
+    lock.lockForRead();
     QList<int> legalNodes;
+
     Node* src = getNodeFromID(srcID);
     if(src){
-        foreach (int ID, nodeIDs) {
+        foreach (int ID, nodeIDs){
             Node* dst = getNodeFromID(ID);
             if(dst && (ID != srcID)){
-
                 if (src->canConnect(dst) != Edge::EC_NONE){
                     legalNodes << ID;
                 }else if (dst->canConnect(src) != Edge::EC_NONE){
                     legalNodes << ID;
                 }
-
             }
         }
     }
+    lock.unlock();
     return legalNodes;
 }
 
@@ -1620,19 +1686,97 @@ QList<int> NewController::getConnectedNodes(int ID)
     return connectedIDs;
 }
 
-QStringList NewController::getValidKeyValues(QString keyName, int nodeID)
+QList<int> NewController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind)
 {
+    lock.lockForRead();
+
+    QList<int> dstIDs;
+    foreach(Node* dst, _getConnectableNodes(getNodes(srcs), edgeKind)){
+        dstIDs.append(dst->getID());
+    }
+    lock.unlock();
+    return dstIDs;
+}
+
+QList<int> NewController::getConstructableNodeDefinitions(int parentID, QString instanceNodeKind)
+{
+    lock.lockForRead();
+
+    QList<int> dstIDs;
+
+    Node* parentNode = getNodeFromID(parentID);
+    Node* childNode = constructTypedNode(instanceNodeKind, true);
+
+    if(childNode && parentNode){
+        if(parentNode->canAdoptChild(childNode)){
+            parentNode->addChild(childNode);
+
+            QList<Node*> source;
+            source << childNode;
+
+            foreach(Node* dst, _getConnectableNodes(source, Edge::EC_DEFINITION)){
+                dstIDs.append(dst->getID());
+            }
+        }
+    }
+    if(childNode){
+        delete childNode;
+    }
+
+    lock.unlock();
+    return dstIDs;
+}
+
+QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edge::EDGE_CLASS edgeKind)
+{
+    QList<Node*> validNodes;
+
+
+
+
+    foreach(Node* src, sourceNodes){
+        if(!src->canAcceptEdgeClass(edgeKind)){
+            sourceNodes.removeAll(src);
+        }
+    }
+
+    if(!sourceNodes.isEmpty()){
+        //Itterate through all nodes.
+        foreach(Node* dst, getAllNodes()){
+            //Ignore nodes which can't take this edge class.
+            if(dst->canAcceptEdgeClass(edgeKind)){
+                bool accepted = true;
+                foreach(Node* src, sourceNodes){
+                    if(src->canConnect(dst) != edgeKind){
+                        accepted = false;
+                        break;
+                    }
+                }
+                if(accepted){
+                    validNodes.append(dst);
+                }
+            }
+        }
+    }
+    return validNodes;
+}
+
+QStringList NewController::getValidKeyValues(int nodeID, QString keyName)
+{
+    lock.lockForRead();
     QStringList validKeyValues;
     Key* key = getKeyFromName(keyName);
     if(key){
-        QString nodeKind;
+        QString nodeKind = "";
         if(nodeID != -1){
             Node* node = getNodeFromID(nodeID);
             nodeKind = node->getNodeKind();
         }
 
         validKeyValues = key->getValidValues(nodeKind);
+
     }
+    lock.unlock();
     return validKeyValues;
 }
 
@@ -2412,12 +2556,15 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     protectedLabels << "Parameter" << "ManagementComponent";
     protectedLabels.append(dds_QosNodeKinds);
 
+    bool isDDSQOS = dds_QosNodeKinds.contains(nodeKind);
     bool protectLabel = protectedLabels.contains(nodeKind);
+    bool customLabel = isDDSQOS;
 
     Data* labelData = new Data(labelKey);
     labelData->setValue(labelString);
     labelData->setProtected(protectLabel);
-    data.append(labelData);
+
+
 
     data.append(new Data(sortKey, -1));
 
@@ -2610,6 +2757,14 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         Key* max_samples_per_key = constructKey("qos_dds_max_samples_per_instance", QVariant::Int, Entity::EK_NODE);
 
 
+        QString hrLabel = nodeKind;
+        hrLabel = hrLabel.replace("QosPolicy", "");;
+        hrLabel = hrLabel.replace("DDS_", "");
+        hrLabel = hrLabel.replace("_", " ");
+
+        labelData->setValue(hrLabel);
+
+
         if(nodeKind == "DDS_DeadlineQosPolicy"){
             Key* period_key = constructKey("qos_dds_period", QVariant::String, Entity::EK_NODE);
             data.append(new Data(period_key, 1));
@@ -2688,6 +2843,8 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
             data.append(new Data(autodispose_key, true));
         }
     }
+
+    data.append(labelData);
 
     return data;
 }
@@ -5693,7 +5850,7 @@ bool NewController::canLocalDeploy()
     return isDeployable;
 }
 
-QString NewController::getProjectFileName()
+QString NewController::getProjectFileName() const
 {
     return projectFilePath;
 }
@@ -5704,7 +5861,7 @@ QString NewController::getProjectSaveFile()
 }
 
 
-bool NewController::projectRequiresSaving()
+bool NewController::projectRequiresSaving() const
 {
     return projectDirty;
 }

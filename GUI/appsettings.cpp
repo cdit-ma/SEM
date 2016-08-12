@@ -75,7 +75,7 @@ void AppSettings::themeChanged()
     warningLabel->setStyleSheet("color: " + theme->getHighlightColorHex() + "; font-weight:bold;");
 
     setWindowIcon(theme->getImage("Actions", "Settings"));
-    setStyleSheet(theme->getWidgetStyleSheet() % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() %
+    setStyleSheet(theme->getWidgetStyleSheet("AppSettings") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() %
                   "#BACKGROUND_WIDGET {background: " % theme->getBackgroundColorHex() % ";}"
 
                   );

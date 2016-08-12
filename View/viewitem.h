@@ -15,8 +15,8 @@ class ViewItem: public QObjectRegistrar
 
     Q_OBJECT
 public:
-    ViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
-    ViewItem();
+    ViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
+    ViewItem(ViewController* controller);
     ~ViewItem();
 
     AttributeTableModel* getTableModel();
@@ -82,6 +82,7 @@ private:
     ViewItem* _parent;
     AttributeTableModel* tableModel;
     QList<ViewItem*> children;
+    ViewController* controller;
 
     QHash<QString, QVariant> _data;
     QHash<QString, QVariant> _properties;
