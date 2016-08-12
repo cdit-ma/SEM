@@ -820,14 +820,11 @@ QString Theme::getMessageBoxStyleSheet()
 QString Theme::getPopupWidgetStyleSheet()
 {
     return "QWidget#POPUP_WIDGET {"
-           //"background: rgba(70,70,70,0.75);"
            "background:" % getBackgroundColorHex() % ";"
            "border: 1px outset " % getDisabledBackgroundColorHex() % ";"
            "margin: 0px;"
            "padding: 5px;"
-           "}"
-            % getScrollBarStyleSheet();
-            ;
+           "}";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)

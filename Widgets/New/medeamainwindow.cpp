@@ -1,9 +1,10 @@
 #include "medeamainwindow.h"
 #include "medeaviewdockwidget.h"
 #include "medeatooldockwidget.h"
-#include "../../View/theme.h"
 #include "selectioncontroller.h"
 #include "medeanodeviewdockwidget.h"
+#include "../../View/theme.h"
+#include "../../Controller/settingscontroller.h"
 #include "../../Controller/settingscontroller.h"
 
 #include <QDebug>
@@ -14,9 +15,15 @@
 #include <QApplication>
 #include <QStringBuilder>
 #include <QStringListModel>
-#include "../../Controller/settingscontroller.h"
+
 #define TOOLBAR_HEIGHT 32
 
+
+/**
+ * @brief MedeaMainWindow::MedeaMainWindow
+ * @param vc
+ * @param parent
+ */
 MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindowNew(parent, MedeaWindowNew::MAIN_WINDOW)
 {
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
@@ -25,7 +32,7 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     initializeApplication();
 
-    floatingToolbar = 0;
+    applicationToolbar = 0;
     viewController = vc;
 
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
@@ -45,18 +52,26 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     show();
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-
     qCritical() << "MedeaMainWindow in: " <<  time2 - timeStart << "MS";
     qCritical() << "MedeaMainWindow->show() in: " <<  timeFinish - time2 << "MS";
     setModelTitle("");
 }
 
+
+/**
+ * @brief MedeaMainWindow::~MedeaMainWindow
+ */
 MedeaMainWindow::~MedeaMainWindow()
 {
     qCritical() << "~MedeaMainWindow()";
     SettingsController::teardownSettings();
 }
 
+
+/**
+ * @brief MedeaMainWindow::setViewController
+ * @param vc
+ */
 void MedeaMainWindow::setViewController(ViewController *vc)
 {
     viewController = vc;
@@ -66,7 +81,6 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     connect(vc->getActionController()->view_viewInNewWindow, SIGNAL(triggered(bool)), this, SLOT(spawnSubView()));
 
     connect(vc, &ViewController::projectModified, this, &MedeaMainWindow::setWindowModified);
-
     connect(vc, &ViewController::projectPathChanged, this, &MedeaMainWindow::setModelTitle);
 
     //this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
@@ -76,13 +90,20 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     }
 }
 
+
+/**
+ * @brief MedeaMainWindow::showCompletion
+ * @param list
+ */
 void MedeaMainWindow::showCompletion(QStringList list)
 {
-    searchSuggestionsModel->setStringList(list);
-    //QStringListModel* model = new QStringListModel(list, this);
-    //searchCompleter->setModel(model);
+    searchCompleterModel->setStringList(list);
 }
 
+
+/**
+ * @brief MedeaMainWindow::themeChanged
+ */
 void MedeaMainWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
@@ -112,11 +133,8 @@ void MedeaMainWindow::themeChanged()
     viewController->getActionController()->menu_options->setStyleSheet(menuStyle);
 
     searchCompleter->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet());
-   // popupSearchBar->setStyleSheet(theme->getLineEditStyleSheet() % theme->getScrollBarStyleSheet());
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
     searchButton->setIcon(theme->getIcon("Actions", "Search"));
-    searchOptionsButton->setIcon(theme->getIcon("Actions", "Settings"));
-    popupSearchButton->setIcon(theme->getIcon("Actions", "Search"));
 
     restoreAspectsButton->setIcon(theme->getIcon("Actions", "MenuView"));
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
@@ -128,6 +146,11 @@ void MedeaMainWindow::themeChanged()
 }
 
 
+/**
+ * @brief MedeaMainWindow::activeViewDockWidgetChanged
+ * @param viewDock
+ * @param prevDock
+ */
 void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock, MedeaViewDockWidget *prevDock)
 {
     if(viewDock && viewDock->isNodeViewDock()){
@@ -159,6 +182,10 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
     }
 }
 
+
+/**
+ * @brief MedeaMainWindow::spawnSubView
+ */
 void MedeaMainWindow::spawnSubView()
 {
     if(viewController){
@@ -187,44 +214,58 @@ void MedeaMainWindow::spawnSubView()
     }
 }
 
+
+/**
+ * @brief MedeaMainWindow::popupSearch
+ */
 void MedeaMainWindow::popupSearch()
 {
-    if (searchBar->isVisible()) {
-
-        searchBar->setFocus();
-    } else {
-        emit requestSuggestions();
-        QPointF centralWidgetCenter = pos() + innerWindow->pos() + innerWindow->rect().center();
-        centralWidgetCenter -= QPointF(searchToolbar->width()/2, searchToolbar->height()/2);
-        searchToolbar->move(centralWidgetCenter.x(), centralWidgetCenter.y());
-        searchToolbar->show();
-        popupSearchBar->setFocus();
-    }
+    emit requestSuggestions();
+    QPointF centralWidgetCenter = pos() + innerWindow->pos() + innerWindow->rect().center();
+    centralWidgetCenter -= QPointF(searchToolbar->width()/2, searchToolbar->height()/2);
+    searchToolbar->move(centralWidgetCenter.x(), centralWidgetCenter.y());
+    searchToolbar->show();
+    searchBar->setFocus();
 }
 
+
+/**
+ * @brief MedeaMainWindow::toolbarChanged
+ * @param area
+ */
 void MedeaMainWindow::toolbarChanged(Qt::DockWidgetArea area)
 {
     if(area == Qt::TopDockWidgetArea || area == Qt::BottomDockWidgetArea){
-        floatingToolbar->setOrientation(Qt::Horizontal);
-        floatingToolbar->setFixedHeight(QWIDGETSIZE_MAX);
-        floatingToolbar->setFixedWidth(QWIDGETSIZE_MAX);
+        applicationToolbar->setOrientation(Qt::Horizontal);
+        applicationToolbar->setFixedHeight(QWIDGETSIZE_MAX);
+        applicationToolbar->setFixedWidth(QWIDGETSIZE_MAX);
     }else{
-        floatingToolbar->setOrientation(Qt::Vertical);
+        applicationToolbar->setOrientation(Qt::Vertical);
         resizeEvent(0);
     }
 }
 
+
+/**
+ * @brief MedeaMainWindow::toolbarTopLevelChanged
+ * @param undocked
+ */
 void MedeaMainWindow::toolbarTopLevelChanged(bool undocked)
 {
     if(undocked){
-        if(floatingToolbar->orientation() == Qt::Vertical){
-            floatingToolbar->setOrientation(Qt::Horizontal);
-            floatingToolbar->setFixedHeight(QWIDGETSIZE_MAX);
+        if(applicationToolbar->orientation() == Qt::Vertical){
+            applicationToolbar->setOrientation(Qt::Horizontal);
+            applicationToolbar->setFixedHeight(QWIDGETSIZE_MAX);
         }
-        floatingToolbar->parentWidget()->resize(floatingToolbar->sizeHint() +  QSize(12,0));
+        applicationToolbar->parentWidget()->resize(applicationToolbar->sizeHint() +  QSize(12,0));
     }
 }
 
+
+/**
+ * @brief MedeaMainWindow::setModelTitle
+ * @param modelTitle
+ */
 void MedeaMainWindow::setModelTitle(QString modelTitle)
 {
     if(!modelTitle.isEmpty()){
@@ -234,6 +275,12 @@ void MedeaMainWindow::setModelTitle(QString modelTitle)
     setWindowTitle(title);
 }
 
+
+/**
+ * @brief MedeaMainWindow::settingChanged
+ * @param setting
+ * @param value
+ */
 void MedeaMainWindow::settingChanged(SETTING_KEY setting, QVariant value)
 {
     /*
@@ -266,6 +313,9 @@ case SK_WINDOW_TOOLBAR_VISIBLE:
 }
 
 
+/**
+ * @brief MedeaMainWindow::initializeApplication
+ */
 void MedeaMainWindow::initializeApplication()
 {
     //Allow Drops
@@ -289,6 +339,10 @@ void MedeaMainWindow::initializeApplication()
 }
 
 
+/**
+ * @brief MedeaMainWindow::connectNodeView
+ * @param nodeView
+ */
 void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
 {
     if(nodeView && viewController){
@@ -298,18 +352,24 @@ void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
     }
 }
 
+
+/**
+ * @brief MedeaMainWindow::setupTools
+ */
 void MedeaMainWindow::setupTools()
 {
-    //setupMenuAndTitle();
     setupMenuBar();
     setupToolBar();
     setupSearchBar();
-    setupPopupSearchBar();
     setupDataTable();
     setupMinimap();
     setupMainDockWidgetToggles();
 }
 
+
+/**
+ * @brief MedeaMainWindow::setupInnerWindow
+ */
 void MedeaMainWindow::setupInnerWindow()
 {
     innerWindow = MedeaWindowManager::constructCentralWindow();
@@ -389,48 +449,10 @@ void MedeaMainWindow::setupInnerWindow()
     connect(restoreAspectsButton, SIGNAL(clicked(bool)), innerWindow, SLOT(resetDockWidgets()));
 }
 
-void MedeaMainWindow::setupMenuAndTitle()
-{
-    menuButton = new QPushButton(Theme::theme()->getIcon("Actions", "MEDEAIcon"), "", this);
-    menuButton->setFixedSize(30,30);
-    menuButton->setIconSize(menuButton->size() - QSize(2,8));
 
-    projectTitleButton = new QPushButton("Project Title", this);
-    projectTitleButton->setFlat(true);
-    projectTitleButton->setFont(QFont("Verdana", 10));
-    projectTitleButton->setStyleSheet("QPushButton{ border: none; border-radius: 2px; }"
-                                      "QPushButton:!hover{ background: rgba(0,0,0,0); }");
-
-    middlewareButton = new QToolButton(this);
-    middlewareButton->setFixedSize(20,20);
-    middlewareButton->setToolTip("Select Model's Middleware");
-
-    closeProjectButton = new QToolButton(this);
-    closeProjectButton->setFixedSize(20,20);
-    closeProjectButton->setToolTip("Close Active Project");
-
-    QWidget* spacerWidget1 = new QWidget(this);
-    QWidget* spacerWidget2 = new QWidget(this);
-    spacerWidget1->setFixedSize(5, 1);
-    spacerWidget2->setFixedSize(5, 1);
-
-    QToolBar* toolbar = new QToolBar(this);
-    toolbar->addWidget(menuButton);
-    toolbar->addWidget(spacerWidget1);
-    toolbar->addWidget(projectTitleButton);
-    toolbar->addWidget(spacerWidget2);
-    toolbar->addWidget(middlewareButton);
-    toolbar->addWidget(closeProjectButton);
-
-    toolbar->setMovable(false);
-    toolbar->setFloatable(false);
-    toolbar->setFixedHeight(TOOLBAR_HEIGHT);
-    toolbar->setMinimumWidth(toolbar->sizeHint().width());
-    addToolBar(Qt::TopToolBarArea, toolbar);
-
-    //menuButton->setMenu(viewController->getActionController()->mainMenu);
-}
-
+/**
+ * @brief MedeaMainWindow::setupMenuBar
+ */
 void MedeaMainWindow::setupMenuBar()
 {
     menuBar = new QMenuBar(this);
@@ -449,24 +471,28 @@ void MedeaMainWindow::setupMenuBar()
     setMenuBar(menuBar);
 }
 
+
+/**
+ * @brief MedeaMainWindow::setupToolBar
+ */
 void MedeaMainWindow::setupToolBar()
 {
-    floatingToolbar = new QToolBar(this);
-    floatingToolbar->setMovable(false);
-    floatingToolbar->setFloatable(false);
-    floatingToolbar->setIconSize(QSize(20,20));
+    applicationToolbar = new QToolBar(this);
+    applicationToolbar->setMovable(false);
+    applicationToolbar->setFloatable(false);
+    applicationToolbar->setIconSize(QSize(20,20));
 
     QWidget* w1 = new QWidget(this);
     QWidget* w2 = new QWidget(this);
     w1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     w2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    floatingToolbar->addWidget(w1);
-    floatingToolbar->addActions(viewController->getActionController()->applicationToolbar->actions());
-    floatingToolbar->addWidget(w2);
+    applicationToolbar->addWidget(w1);
+    applicationToolbar->addActions(viewController->getActionController()->applicationToolbar->actions());
+    applicationToolbar->addWidget(w2);
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Toolbar");
-    dockWidget->setTitleBarWidget(floatingToolbar);
+    dockWidget->setTitleBarWidget(applicationToolbar);
     dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::LeftDockWidgetArea | Qt::BottomDockWidgetArea);
 
     connect(dockWidget, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(toolbarChanged(Qt::DockWidgetArea)));
@@ -474,48 +500,36 @@ void MedeaMainWindow::setupToolBar()
 
     //Check visibility state.
     dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TOOLBAR_VISIBLE).toBool());
-
     addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
 }
 
-void MedeaMainWindow::setupSearchBar()
-{   
-    searchBar = new QLineEdit(this);
-    searchBar->setFixedWidth(183);
-    searchBar->setPlaceholderText("Search Here...");
-    searchBar->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
+/**
+ * @brief MedeaMainWindow::setupSearchBar
+ */
+void MedeaMainWindow::setupSearchBar()
+{
     searchButton = new QToolButton(this);
     searchButton->setToolTip("Submit Search");
 
-    searchOptionsButton = new QToolButton(this);
-    searchOptionsButton->setToolTip("Search Settings");
+    searchCompleterModel = new QStringListModel(this);
 
-    QToolBar* toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(18,18));
-    toolbar->setFixedHeight(menuBar->height() - 6);
-    toolbar->addWidget(searchBar);
-    toolbar->addWidget(searchButton);
-    toolbar->addWidget(searchOptionsButton);
+    searchCompleter = new QCompleter(this);
+    searchCompleter->setModel(searchCompleterModel);
+    searchCompleter->setFilterMode(Qt::MatchContains);
+    searchCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    searchCompleter->popup()->setItemDelegate(new QStyledItemDelegate(this));
+    searchCompleter->popup()->setFont(QFont(font().family(), 10));
 
-    toolbar->hide();
-    //menuBar->setCornerWidget(toolbar);
-}
+    searchBar = new QLineEdit(this);
+    searchBar->setFont(QFont(font().family(), 13));
+    searchBar->setPlaceholderText("Search Here...");
+    searchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    searchBar->setCompleter(searchCompleter);
 
-void MedeaMainWindow::setupPopupSearchBar()
-{
-    popupSearchButton = new QToolButton(this);
-    popupSearchButton->setToolTip("Submit Search");
-
-    popupSearchBar = new QLineEdit(this);
-    popupSearchBar->setFont(QFont(font().family(), 13));
-    popupSearchBar->setPlaceholderText("Search Here...");
-    popupSearchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    int toolbarWidth = 300;
     searchToolbar = new QToolBar(this);
     searchToolbar->setIconSize(QSize(24,24));
-    searchToolbar->setFixedSize(toolbarWidth, 45);
+    searchToolbar->setFixedSize(300, 45);
     searchToolbar->setMovable(false);
     searchToolbar->setFloatable(false);
     searchToolbar->setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
@@ -523,30 +537,20 @@ void MedeaMainWindow::setupPopupSearchBar()
     searchToolbar->setAttribute(Qt::WA_TranslucentBackground, true);
     searchToolbar->setObjectName("POPUP_WIDGET");
 
-    searchToolbar->addWidget(popupSearchBar);
-    searchToolbar->addWidget(popupSearchButton);
+    searchToolbar->addWidget(searchBar);
+    searchToolbar->addWidget(searchButton);
     searchToolbar->hide();
 
-    searchSuggestionsModel = new QStringListModel(this);
-
-    searchCompleter = new QCompleter(this);
-    searchCompleter->setModel(searchSuggestionsModel);
-    searchCompleter->setFilterMode(Qt::MatchContains);
-    searchCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    searchCompleter->popup()->setItemDelegate(new QStyledItemDelegate(this));
-
-    searchSuggestions = new SearchSuggestCompletion(popupSearchBar);
-    searchSuggestions->setSize(toolbarWidth, 0, SearchSuggestCompletion::ST_MIN);
-    searchSuggestions->setSize(toolbarWidth, 0, SearchSuggestCompletion::ST_MAX);
-
-    popupSearchBar->setCompleter(searchCompleter);
     connect(this, SIGNAL(requestSuggestions()), viewController, SLOT(searchSuggestionsRequested()));
     connect(viewController, SIGNAL(seachSuggestions(QStringList)), this, SLOT(showCompletion(QStringList)));
-
-    connect(popupSearchBar, SIGNAL(returnPressed()), popupSearchButton, SLOT(click()));
-    connect(popupSearchButton, SIGNAL(clicked(bool)), searchToolbar, SLOT(hide()));
+    connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
+    connect(searchButton, SIGNAL(clicked(bool)), searchToolbar, SLOT(hide()));
 }
 
+
+/**
+ * @brief MedeaMainWindow::setupDataTable
+ */
 void MedeaMainWindow::setupDataTable()
 {
     tableWidget = new TableWidget(viewController, this);
@@ -559,6 +563,10 @@ void MedeaMainWindow::setupDataTable()
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
 }
 
+
+/**
+ * @brief MedeaMainWindow::setupMinimap
+ */
 void MedeaMainWindow::setupMinimap()
 {
     minimap = new NodeViewMinimap(this);
@@ -572,6 +580,10 @@ void MedeaMainWindow::setupMinimap()
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
 }
 
+
+/**
+ * @brief MedeaMainWindow::setupMainDockWidgetToggles
+ */
 void MedeaMainWindow::setupMainDockWidgetToggles()
 {
     interfaceButton = new QToolButton(this);
@@ -621,12 +633,17 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     menuBar->setCornerWidget(toolbar);
 }
 
-void MedeaMainWindow::resizeEvent(QResizeEvent *e)
+
+/**
+ * @brief MedeaMainWindow::resizeEvent
+ * @param e
+ */
+void MedeaMainWindow::resizeEvent(QResizeEvent* e)
 {
     if(e){
         QMainWindow::resizeEvent(e);
     }
-    if(floatingToolbar && floatingToolbar->orientation() == Qt::Vertical){
-        floatingToolbar->setFixedHeight(centralWidget()->rect().height());
+    if(applicationToolbar && applicationToolbar->orientation() == Qt::Vertical){
+        applicationToolbar->setFixedHeight(centralWidget()->rect().height());
     }
 }

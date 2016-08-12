@@ -26,13 +26,13 @@ public:
     void setViewController(ViewController* vc);
 
 private slots:
-    void showCompletion(QStringList list);
     void themeChanged();
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevDock);
 
     void spawnSubView();
 
     void popupSearch();
+    void showCompletion(QStringList list);
 
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
@@ -51,46 +51,32 @@ private:
 
     void setupTools();
     void setupInnerWindow();
-    void setupMenuAndTitle();
     void setupMenuBar();
     void setupToolBar();
     void setupSearchBar();
-    void setupPopupSearchBar();
     void setupDataTable();
     void setupMinimap();
     void setupMainDockWidgetToggles();
 
-private:
     MedeaWindowNew* innerWindow;
 
     QMenuBar* menuBar;
-    QPushButton* menuButton;
-    QPushButton* projectTitleButton;
-    QToolButton* middlewareButton;
-    QToolButton* closeProjectButton;
-
-    QLineEdit* searchBar;
-    QToolButton* searchButton;
-    QToolButton* searchOptionsButton;
-    QCompleter* searchCompleter;
-
-    QToolBar* searchToolbar;
-    QLineEdit* popupSearchBar;
-    QToolButton* popupSearchButton;
-    SearchSuggestCompletion* searchSuggestions;
-
-    QStringListModel* searchSuggestionsModel;
-
-    QToolBar* floatingToolbar;
+    QToolBar* applicationToolbar;
     TableWidget* tableWidget;
     NodeViewMinimap* minimap;
 
+    QToolBar* searchToolbar;
+    QLineEdit* searchBar;
+    QToolButton* searchButton;
+    QCompleter* searchCompleter;
+    QStringListModel* searchCompleterModel;
+
+    ViewController* viewController;
     NodeViewNew* nodeView_Interfaces;
     NodeViewNew* nodeView_Behaviour;
     NodeViewNew* nodeView_Assemblies;
     NodeViewNew* nodeView_Hardware;
     QOSBrowser* qosBrowser;
-    ViewController* viewController;
 
     QToolButton* interfaceButton;
     QToolButton* behaviourButton;
@@ -100,7 +86,6 @@ private:
     QToolButton* restoreAspectsButton;
     QToolButton* restoreToolsButton;
 
-    // QWidget interface
 protected:
     void resizeEvent(QResizeEvent *);
 };

@@ -45,7 +45,6 @@ void MedeaViewWindow::themeChanged()
                   theme->getToolBarStyleSheet() %
                   theme->getDockWidgetStyleSheet() %
                   theme->getPushButtonStyleSheet() %
-                  theme->getPopupWidgetStyleSheet() %
                   "QToolButton{ padding: 4px; }"
                   );
 
