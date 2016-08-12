@@ -148,6 +148,24 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
     return items;
 }
 
+QStringList ViewController::getSearchSuggestions()
+{
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    QStringList suggestions;
+
+    foreach(ViewItem* item, viewItems.values()){
+        foreach(QString key, item->getKeys()){
+            QString data = item->getData(key).toString();
+            if(!suggestions.contains(data)){
+                suggestions.append(data);
+            }
+        }
+    }
+    qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "Suggestions: " << time1 - timeStart << " MS";
+    return suggestions;
+}
+
 QStringList ViewController::getAdoptableNodeKinds()
 {
     if(selectionController && controller && selectionController->getSelectionCount() == 1){
@@ -219,6 +237,8 @@ QList<ViewItem*> ViewController::search(QString searchString)
 
 void ViewController::searchSuggestionsRequested(QString searchString)
 {
+    emit seachSuggestions(getSearchSuggestions());
+    return;
     showSearchSuggestions = true;
     search(searchString);
     showSearchSuggestions = false;

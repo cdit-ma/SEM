@@ -431,6 +431,7 @@ void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    qCritical() << _isMouseMoving;
     if(_isMouseMoving){
         _isMouseMoving = false;
         emit req_adjustingPos(false);

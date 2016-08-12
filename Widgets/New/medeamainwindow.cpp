@@ -13,6 +13,7 @@
 #include <QDateTime>
 #include <QApplication>
 #include <QStringBuilder>
+#include <QStringListModel>
 #include "../../Controller/settingscontroller.h"
 #define TOOLBAR_HEIGHT 32
 
@@ -75,6 +76,13 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     }
 }
 
+void MedeaMainWindow::showCompletion(QStringList list)
+{
+    searchSuggestionsModel->setStringList(list);
+    //QStringListModel* model = new QStringListModel(list, this);
+    //searchCompleter->setModel(model);
+}
+
 void MedeaMainWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
@@ -103,6 +111,8 @@ void MedeaMainWindow::themeChanged()
     viewController->getActionController()->menu_window->setStyleSheet(menuStyle);
     viewController->getActionController()->menu_options->setStyleSheet(menuStyle);
 
+    searchCompleter->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet());
+   // popupSearchBar->setStyleSheet(theme->getLineEditStyleSheet() % theme->getScrollBarStyleSheet());
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
     searchButton->setIcon(theme->getIcon("Actions", "Search"));
     searchOptionsButton->setIcon(theme->getIcon("Actions", "Settings"));
@@ -180,8 +190,10 @@ void MedeaMainWindow::spawnSubView()
 void MedeaMainWindow::popupSearch()
 {
     if (searchBar->isVisible()) {
+
         searchBar->setFocus();
     } else {
+        emit requestSuggestions();
         QPointF centralWidgetCenter = pos() + innerWindow->pos() + innerWindow->rect().center();
         centralWidgetCenter -= QPointF(searchToolbar->width()/2, searchToolbar->height()/2);
         searchToolbar->move(centralWidgetCenter.x(), centralWidgetCenter.y());
@@ -515,12 +527,22 @@ void MedeaMainWindow::setupPopupSearchBar()
     searchToolbar->addWidget(popupSearchButton);
     searchToolbar->hide();
 
+    searchSuggestionsModel = new QStringListModel(this);
+
+    searchCompleter = new QCompleter(this);
+    searchCompleter->setModel(searchSuggestionsModel);
+    searchCompleter->setFilterMode(Qt::MatchContains);
+    searchCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    searchCompleter->popup()->setItemDelegate(new QStyledItemDelegate(this));
+
     searchSuggestions = new SearchSuggestCompletion(popupSearchBar);
     searchSuggestions->setSize(toolbarWidth, 0, SearchSuggestCompletion::ST_MIN);
     searchSuggestions->setSize(toolbarWidth, 0, SearchSuggestCompletion::ST_MAX);
 
-    connect(viewController, SIGNAL(seachSuggestions(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
-    connect(popupSearchBar, SIGNAL(textChanged(QString)), viewController, SLOT(searchSuggestionsRequested(QString)));
+    popupSearchBar->setCompleter(searchCompleter);
+    connect(this, SIGNAL(requestSuggestions()), viewController, SLOT(searchSuggestionsRequested()));
+    connect(viewController, SIGNAL(seachSuggestions(QStringList)), this, SLOT(showCompletion(QStringList)));
+
     connect(popupSearchBar, SIGNAL(returnPressed()), popupSearchButton, SLOT(click()));
     connect(popupSearchButton, SIGNAL(clicked(bool)), searchToolbar, SLOT(hide()));
 }

@@ -162,12 +162,13 @@ void ToolbarWidgetNew::populateDynamicMenu()
     if (senderMenu == hardwareMenu) {
         actions = toolbarController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT, true);
 
+        /*
         foreach(QString kind, toolbarController->getKindsRequiringSubActions()){
             if(senderMenu == adoptableKindsSubMenus[kind]){
                 actions = toolbarController->getDefinitionNodeActions(kind);
                 break;
             }
-        }
+        }*/
 
 
 

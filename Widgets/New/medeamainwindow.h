@@ -13,6 +13,8 @@
 #include "qosbrowser.h"
 #include "tablewidget.h"
 #include "../../GUI/searchsuggestcompletion.h"
+#include <QCompleter>
+#include <QStringListModel>
 
 class MedeaMainWindow : public MedeaWindowNew
 {
@@ -24,6 +26,7 @@ public:
     void setViewController(ViewController* vc);
 
 private slots:
+    void showCompletion(QStringList list);
     void themeChanged();
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevDock);
 
@@ -39,6 +42,7 @@ public slots:
     void settingChanged(SETTING_KEY setting, QVariant value);
 
 signals:
+    void requestSuggestions();
     void preloadImages();
 
 private:
@@ -68,11 +72,14 @@ private:
     QLineEdit* searchBar;
     QToolButton* searchButton;
     QToolButton* searchOptionsButton;
+    QCompleter* searchCompleter;
 
     QToolBar* searchToolbar;
     QLineEdit* popupSearchBar;
     QToolButton* popupSearchButton;
     SearchSuggestCompletion* searchSuggestions;
+
+    QStringListModel* searchSuggestionsModel;
 
     QToolBar* floatingToolbar;
     TableWidget* tableWidget;

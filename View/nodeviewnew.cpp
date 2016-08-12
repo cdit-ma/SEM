@@ -298,9 +298,10 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
 
         foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             EntityItemNew* item = getEntityItem(viewItem);
-            if(item){
-                item->setMoving(adjusting);
+            if(!item){
+                continue;
             }
+            item->setMoving(adjusting);
             if(!adjusting){
                 int id = item->getID();
                 QPointF pos = item->pos();

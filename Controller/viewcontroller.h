@@ -26,6 +26,7 @@ public:
     QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
     QList<ViewItem*> getValidEdges(Edge::EDGE_CLASS kind);
 
+    QStringList getSearchSuggestions();
 
 
     QStringList getAdoptableNodeKinds();
@@ -117,7 +118,7 @@ public slots:
     void setControllerReady(bool ready);
 
     QList<ViewItem*> search(QString searchString);
-    void searchSuggestionsRequested(QString searchString);
+    void searchSuggestionsRequested(QString searchString="");
 
 private slots:
     void initializeController();

@@ -825,7 +825,9 @@ QString Theme::getPopupWidgetStyleSheet()
            "border: 1px outset " % getDisabledBackgroundColorHex() % ";"
            "margin: 0px;"
            "padding: 5px;"
-           "}";
+           "}"
+            % getScrollBarStyleSheet();
+            ;
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)

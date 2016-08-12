@@ -771,6 +771,8 @@ void NewController::updateUndoRedoState()
 
 void NewController::constructNode(int parentID, QString kind, QPointF centerPoint)
 {
+    qCritical() << parentID;
+    qCritical() << kind;
     if(kind != ""){
         bool ignore = false;
         Node* parentNode = getNodeFromID(parentID);
