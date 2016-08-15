@@ -146,12 +146,9 @@ void ActionController::selectionChanged(int selectionSize)
         bool gotMultipleSelection = modelActions && selectionSize > 1;
 
 
-
-
         edit_cut->setEnabled(gotSingleSelection);
         edit_copy->setEnabled(gotSingleSelection);
         edit_paste->setEnabled(gotSingleSelection);
-
 
         edit_replicate->setEnabled(gotSelection);
         edit_delete->setEnabled(gotSelection);

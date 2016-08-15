@@ -12,7 +12,6 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
     kindsWithSubActions << "OutEventPort" << "InEventPortDelegate" << "OutEventPortDelegate";
     kindsWithSubActions << "OutEventPortImpl" << "WorkerProcess";
 
-
     //toolbar = new QToolBar();
     //toolbar->setIconSize(QSize(80,80));
     //toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -118,8 +117,6 @@ void ToolActionController::setupToolActions()
 {
     createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
     createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
-
-    //createRootAction("APPLY_REPLICATE_COUNT", "Enter Replicate Count", "Actions", "Tick");
 
     // setup menu info actions here
     createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no valid nodes available.", "Actions", "Info");
