@@ -49,7 +49,9 @@ ToolbarWidgetNew::ToolbarWidgetNew(ViewController *vc, QWidget *parent) : QWidge
 
     setStyle(new MenuStyle);
     setupToolbar();
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    setupConnections();
+
+    themeChanged();
 }
 
 void ToolbarWidgetNew::addChildNode()
@@ -96,11 +98,10 @@ void ToolbarWidgetNew::themeChanged()
     hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
     instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
-    //applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
 
-    //applyReplicateCountButton->setStyleSheet("background:" + theme->getHighlightColorHex() + ";");
-    //applyReplicateCountButton->setStyleSheet(theme->getToolBarStyleSheet());
-    //replicateToolbar->setStyleSheet(theme->getToolBarStyleSheet());
+    applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
+    applyReplicateCountButton->setStyleSheet("QToolButton{ background:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";}"
+                                             "QToolButton:pressed{ background:" + theme->getPressedColorHex() + ";}");
 }
 
 
@@ -221,7 +222,6 @@ void ToolbarWidgetNew::setupToolbar()
 
     setupActions();
     setupMenus();
-    setupConnections();
 }
 
 
@@ -268,8 +268,8 @@ void ToolbarWidgetNew::setupActions()
     mainGroup->addAction(actionController->view_viewInNewWindow->constructSubAction(true));
     mainGroup->addAction(actionController->help_wiki->constructSubAction(true));
 
+    // this needs to be called before the actions are added to the toolbar for the split buttons to work
     setupSplitMenus();
-
     toolbar->addActions(mainGroup->actions());
 
     addChildAction->setText("Add Child Entity");
@@ -346,25 +346,18 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
     replicateCount->setMaximum(100000);
     replicateCount->setFixedHeight(25);
 
-    //applyReplicateCountButton = toolbarController->getToolAction("APPLY_REPLICATE_COUNT", false);
     applyReplicateCountButton = new QToolButton(this);
-    applyReplicateCountButton->setIcon(QIcon(Theme::theme()->getImage("Actions", "Tick", QSize(), Qt::darkGreen)));
-    //applyReplicateCountButton->setStyleSheet("background: rgb(128,255,0);");
-    applyReplicateCountButton->setStyleSheet("background: white;");
-    //applyReplicateCountButton->setStyleSheet("QToolButton:hover{ background: red; }");
+    //applyReplicateCountButton->setIcon(QIcon(Theme::theme()->getImage("Actions", "Tick", QSize(), Qt::darkGreen)));
+
     applyReplicateCountButton->setFixedSize(25,25);
     applyReplicateCountButton->setToolTip("Enter Replicate Count");
 
-    //replicateToolbar = new QToolBar(this);
     QToolBar* replicateToolbar = new QToolBar(this);
-    //replicateToolbar->setStyleSheet("spacing:2px;");
     replicateToolbar->addWidget(replicateCount);
-    //applyReplicateCountAction = replicateToolbar->addWidget(applyReplicateCountButton);
     replicateToolbar->addWidget(applyReplicateCountButton);
 
     QWidgetAction* rc = new QWidgetAction(this);
     rc->setDefaultWidget(replicateToolbar);
-    //rc->sets
 
     replicateMenu = constructTopMenu(replicateCountAction);
     replicateMenu->addAction(rc);
@@ -376,6 +369,8 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
  */
 void ToolbarWidgetNew::setupConnections()
 {
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
     // close the toolbar whenever a toolbutton without a menu is triggered
     foreach (QAction* action, mainGroup->actions()) {
         if (action->menu() || popupMenuHash.contains(action)) {

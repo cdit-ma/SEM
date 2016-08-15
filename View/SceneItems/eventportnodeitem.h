@@ -35,6 +35,9 @@ private:
     QRectF subIconRect() const;
 
     QPolygonF subIconPoly() const;
+    QPolygonF topIconPoly() const;
+
+    QRectF lockedRect() const;
 
     void initPolys();
 
@@ -47,10 +50,11 @@ private:
     QPolygonF rightSubPoly;
     QPolygonF leftSubPoly;
 
+    QPolygonF rightTopPoly;
+    QPolygonF leftTopPoly;
+
     bool iconRight;
 
-
-    // EntityItemNew interface
 private slots:
     void dataChanged(QString keyName, QVariant data);
 };

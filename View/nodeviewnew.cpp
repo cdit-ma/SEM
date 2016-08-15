@@ -10,6 +10,7 @@
 #include "SceneItems/Hardware/hardwarenodeitem.h"
 #include "SceneItems/Assemblies/managementcomponentnodeitem.h"
 #include "SceneItems/eventportnodeitem.h"
+#include "SceneItems/attributenodeitem.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
@@ -49,7 +50,7 @@ NodeViewNew::NodeViewNew():QGraphicsView()
     isAspectView = false;
 
     backgroundFont.setPixelSize(70);
-    backgroundFont.setBold(true);
+    //backgroundFont.setBold(true);
 
 
     rubberband = new QRubberBand(QRubberBand::Rectangle, this);
@@ -87,9 +88,9 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(selectionHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemActiveSelectionChanged(ViewItem*,bool)));
 
         connect(this, &NodeViewNew::toolbarRequested, viewController, &ViewController::showToolbar);
+        connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::triggerAction);
+        connect(this, &NodeViewNew::setData, viewController, &ViewController::setData);
 
-        connect(this, SIGNAL(triggerAction(QString)), viewController, SIGNAL(triggerAction(QString)));
-        connect(this, SIGNAL(dataChanged(int,QString,QVariant)), viewController, SIGNAL(dataChanged(int,QString,QVariant)));
     }
 }
 
@@ -113,32 +114,37 @@ void NodeViewNew::setContainedViewAspect(VIEW_ASPECT aspect)
 
     backgroundText = GET_ASPECT_NAME(aspect).toUpper();
     isAspectView = true;
+    themeChanged();
 }
 
 void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
 {
+    if(containedNodeViewItem){
+        //Unregister
+        containedNodeViewItem->unregisterObject(this);
+        disconnect(containedNodeViewItem, &NodeViewItem::labelChanged, this, &NodeViewNew::viewItem_LabelChanged);
+        viewItem_LabelChanged("DELETED");
+    }
+
     containedNodeViewItem = item;
-    if(item){
-        item->registerObject(this);
+
+    if(containedNodeViewItem){
+        containedNodeViewItem->registerObject(this);
 
         if(containedAspect == VA_NONE){
-            connect(item, SIGNAL(labelChanged(QString)), this, SLOT(viewItem_LabelChanged(QString)));
+            connect(containedNodeViewItem, &NodeViewItem::labelChanged, this, &NodeViewNew::viewItem_LabelChanged);
 
             viewItem_LabelChanged(item->getData("label").toString());
 
-
-
-            containedAspect = item->getViewAspect();
-
-            //Request items from ViewController.
+            containedAspect = containedNodeViewItem->getViewAspect();
 
             viewItem_Constructed(item);
             foreach(ViewItem* item, item->getChildren()){
                 viewItem_Constructed(item);
             }
         }
-        clearSelection();
     }
+    clearSelection();
 }
 
 QColor NodeViewNew::getBackgroundColor()
@@ -170,6 +176,10 @@ void NodeViewNew::viewItem_Destructed(int ID, ViewItem *viewItem)
         topLevelGUIItemIDs.removeAll(ID);
         guiItems.remove(ID);
         delete item;
+    }
+
+    if(viewItem && containedNodeViewItem == viewItem){
+        setContainedNodeViewItem(0);
     }
 }
 
@@ -255,7 +265,7 @@ void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
     if(item){
         int ID = item->getID();
         emit triggerAction("Expanding Selection");
-        emit dataChanged(ID, "isExpanded", expand);
+        emit setData(ID, "isExpanded", expand);
     }
 }
 
@@ -288,8 +298,8 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
                     ignore = nodeItem->isIgnoringPosition();
                 }
                 if(!ignore){
-                    emit dataChanged(id, "x", pos.x());
-                    emit dataChanged(id, "y", pos.y());
+                    emit setData(id, "x", pos.x());
+                    emit setData(id, "y", pos.y());
                 }
             }
         }
@@ -332,8 +342,8 @@ void NodeViewNew::item_ResizeFinished(NodeItemNew *item, RECT_VERTEX vertex)
     int id = item->getID();
     QSizeF size = item->getExpandedSize();
     emit triggerAction("Resizing Item");
-    emit dataChanged(id, "width", size.width());
-    emit dataChanged(id, "height", size.height());
+    emit setData(id, "width", size.width());
+    emit setData(id, "height", size.height());
 }
 
 void NodeViewNew::item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vertex)
@@ -493,6 +503,8 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new EventPortNodeItem(item, parentNode);
             }else if(nodeKind.contains("DDS_")){
                 return;
+            }else if(nodeKind.contains("Attribute")){
+                nodeItem = new AttributeNodeItem(item, parentNode);
             }else{
                 nodeItem = new DefaultNodeItem(item, parentNode);
             }

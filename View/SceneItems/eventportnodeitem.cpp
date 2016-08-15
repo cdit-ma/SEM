@@ -1,4 +1,5 @@
 #include "eventportnodeitem.h"
+#include <QDebug>
 
 EventPortNodeItem::EventPortNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
     :NodeItemNew(viewItem, parentItem, NodeItemNew::DEFAULT_ITEM)
@@ -7,7 +8,7 @@ EventPortNodeItem::EventPortNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     setResizeEnabled(false);
     setExpandEnabled(false);
 
-    height = DEFAULT_SIZE/2.0;
+    height = DEFAULT_SIZE / 2.0;
     width = DEFAULT_SIZE * 1.5;
 
     mainTextFont.setPixelSize(7);
@@ -46,6 +47,7 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->save();
         painter->setBrush(getBodyColor().darker(110));
         painter->drawPolygon(subIconPoly());
+        painter->drawPolygon(topIconPoly());
         painter->restore();
         painter->drawRect(labelBGRect());
         painter->setPen(Qt::black);
@@ -57,6 +59,7 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     QPair<QString, QString> icon = getIconPath();
     paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
     paintPixmap(painter, lod, ER_SECONDARY_ICON, icon.first, icon.second);
+    paintPixmap(painter, lod, ER_LOCKED_STATE, icon.first, icon.second);
     NodeItemNew::paint(painter, option, widget);
 }
 
@@ -67,6 +70,8 @@ QRectF EventPortNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
        return mainIconRect();
    case ER_SECONDARY_ICON:
        return subIconRect();
+   case ER_LOCKED_STATE:
+       return lockedRect();
    default:
        return NodeItemNew::getElementRect(rect);
    }
@@ -80,6 +85,7 @@ QPainterPath EventPortNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect)
         path.setFillRule(Qt::WindingFill);
         path.addPolygon(mainIconPoly());
         path.addPolygon(subIconPoly());
+        path.addPolygon(topIconPoly());
         path.addRect(labelRect());
         return path.simplified();
     }
@@ -172,6 +178,24 @@ QPolygonF EventPortNodeItem::subIconPoly() const
     return iconRight ? rightSubPoly : leftSubPoly;
 }
 
+QPolygonF EventPortNodeItem::topIconPoly() const
+{
+    return iconRight ? rightTopPoly : leftTopPoly;
+}
+
+QRectF EventPortNodeItem::lockedRect() const
+{
+    QRectF rect;
+    rect.setWidth(height/4);
+    rect.setHeight(height/4);
+    if(iconRight){
+        rect.moveTopLeft(topIconPoly().at(0));
+    } else {
+        rect.moveTopRight(topIconPoly().at(1));
+    }
+    return rect;
+}
+
 void EventPortNodeItem::initPolys()
 {
     QRectF rect(mainIconRect());
@@ -203,6 +227,16 @@ void EventPortNodeItem::initPolys()
         rightSubPoly.push_back(rightIconPoly.at(4));
         rightSubPoly.push_back(rightIconPoly.at(3));
         rightSubPoly.push_back(rightIconPoly.at(3) - QPointF(height/2, 0));
+    }
+
+    if(rightTopPoly.isEmpty()){
+        rightTopPoly = leftSubPoly;
+        rightTopPoly.translate(-(width/3 + height/4), -3 * height/4);
+    }
+
+    if(leftTopPoly.isEmpty()){
+        leftTopPoly = rightSubPoly;
+        leftTopPoly.translate(width/3 + height/4, -3 * height/4);
     }
 }
 

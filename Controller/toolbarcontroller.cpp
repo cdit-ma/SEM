@@ -26,6 +26,8 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
 
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    connect(Theme::theme(), SIGNAL(preloadFinished()), this, SLOT(themeChanged()));
+
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
 
     //Connect to the view controller
@@ -36,48 +38,30 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
 
 void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
 {
-    //We only care about NOdes.
     if(viewItem && viewItem->isNode()){
         int ID = viewItem->getID();
 
-        NodeViewItem* item = (NodeViewItem*)viewItem;
+        NodeViewItem* node = (NodeViewItem*)viewItem;
 
-        VIEW_ASPECT aspect = item->getViewAspect();
-/*
-        //We only care about Interfaces and workers.
-        if(aspect == VA_INTERFACES || aspect == VA_WORKERS){
-            QString kind = viewItem->getData("kind").toString();
-            bool ignore = true;
-            if(aspect == VA_WORKERS){
-                if(kind == "Process"){
-                    ignore = false;
+        //VIEW_ASPECT aspect = node->getViewAspect();
+
+        if(!actions.contains(ID)){
+            NodeViewItemAction* action = new NodeViewItemAction(node);
+
+            if(node->getParentItem() && node->getParentItem()->isNode()){
+                int parentID = node->getParentID();
+                if(!actions.contains(parentID)){
+                    //Construct Parent for menus which need depth
+                    NodeViewItemAction* parentAction = new NodeViewItemAction((NodeViewItem*) node->getParentItem());
+                    action->setParentNodeViewItemAction(parentAction);
+
+                    actions[parentID] = parentAction;
+                    actionGroup->addAction(parentAction);
                 }
-            }else if(aspect == VA_INTERFACES){
-               if(kind.endsWith("EventPort")){
-                   ignore = false;
-               }
+                actions[ID] = action;
+                actionGroup->addAction(action);
             }
-            if(!ignore){*/
-                NodeViewItemAction* action = new NodeViewItemAction(item);
-                if(!actions.contains(ID)){
-
-                    if(item->getParentItem() && item->getParentItem()->isNode()){
-                        int parentID = item->getParentID();
-                        if(!actions.contains(parentID)){
-                            //Construct Parent for Menus which need depth
-                            NodeViewItemAction* parentAction = new NodeViewItemAction((NodeViewItem*) item->getParentItem());
-                            action->setParentNodeViewItemAction(parentAction);
-                            actions[item->getParentID()] = parentAction;
-                            actionGroup->addAction(parentAction);
-                            //toolbar->addAction(parentAction);
-                        }
-                    }
-                    actions[ID] = action;
-                    actionGroup->addAction(action);
-                    //toolbar->addAction(action);
-                }
-            //}
-        //}
+        }
     }
 }
 
@@ -111,7 +95,7 @@ void ToolActionController::addChildNode(QString kind, QPointF position)
 
     if(item){
         int ID = item->getID();
-        emit viewController->constructChildNode(ID, kind, position);
+        emit viewController->constructNode(ID, kind, position);
     }
 }
 
@@ -214,6 +198,9 @@ void ToolActionController::themeChanged()
     foreach(RootAction* action, toolActions.values()){
         viewController->getActionController()->updateIcon(action, theme);
     }
+    foreach(RootAction* action, nodeKindActions.values()){
+        viewController->getActionController()->updateIcon(action, theme);
+    }
 }
 
 QStringList ToolActionController::getKindsRequiringSubActions()
@@ -229,7 +216,8 @@ void ToolActionController::setupNodeActions()
 {
     foreach(QString kind, viewController->getNodeKinds()){
         RootAction* action = new RootAction(kind);
-        action->setIcon(Theme::theme()->getIcon("Items", kind));
+        action->setIconPath("Items", kind);
+        //action->setIcon(Theme::theme()->getIcon("Items", kind));
         nodeKindActions[kind]= action;
         adoptableKindsGroup->addAction(action);
     }

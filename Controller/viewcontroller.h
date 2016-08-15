@@ -27,6 +27,8 @@ public:
     ViewItem* getModel();
     bool isModelReady();
 
+    QList<ViewItem*> search(QString field);
+
     void setController(NewController* c);
 signals:
     void initializeModel();
@@ -34,12 +36,12 @@ signals:
     void viewItemConstructed(ViewItem* viewItem);
     void viewItemDestructing(int ID, ViewItem *viewItem);
     void triggerAction(QString action);
-    void dataChanged(int, QString, QVariant);
+    void setData(int, QString, QVariant);
     void showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
 
 
-    void view_undo();
-    void view_redo();
+    void undo();
+    void redo();
 
 
 
@@ -49,7 +51,9 @@ signals:
 
 
     void deleteEntities(QList<int> IDs);
-    void constructChildNode(int parentID, QString kind, QPointF pos = QPointF());
+    void constructNode(int parentID, QString kind, QPointF pos = QPointF());
+    void importProjects(QStringList fileData);
+    void vc_openProject(QString fileName, QString filePath);
 
 public slots:
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
@@ -62,19 +66,27 @@ public slots:
 
 
     void newProject();
-private slots:
-    void initializeController();
+    void openProject();
+    void closeProject();
+    void saveProject();
+    void saveAsProject();
+    void _importProjects();
 
-
-    void table_dataChanged(int ID, QString key, QVariant data);
-
-    void setModelReady(bool okay);
     void deleteSelection();
-
     void constructDDSQOSProfile();
 
+private slots:
+    void initializeController();
+    void table_dataChanged(int ID, QString key, QVariant data);
+    void setModelReady(bool okay);
 
 private:
+    void _teardownProject();
+    bool _newProject();
+    bool _saveProject();
+    bool _saveAsProject();
+    bool _closeProject();
+    bool _openProject();
     QList<int> getIDsOfKind(QString kind);
     bool _modelReady;
 
@@ -89,6 +101,8 @@ private:
 
     ToolbarWidgetNew* toolbar;
     NewController* controller;
+
+
 };
 
 #endif // VIEWCONTROLLER_H

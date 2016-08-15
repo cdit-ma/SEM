@@ -17,7 +17,15 @@ private:
 
     QFont mainTextFont;
 
+    QRectF mainRect() const;
+
     QRectF mainIconRect() const;
+
+    QRectF labelRect() const;
+
+    QRectF topLabelRect() const;
+
+    QRectF subIconRect() const;
 
 
     // QGraphicsItem interface
@@ -28,6 +36,10 @@ public:
 public:
     QRectF getElementRect(ELEMENT_RECT rect) const;
     QPainterPath getElementPath(ELEMENT_RECT rect) const;
+
+    // EntityItemNew interface
+private slots:
+    void dataChanged(QString keyName, QVariant data);
 };
 
 #endif // ATTRIBUTENODEITEM_H

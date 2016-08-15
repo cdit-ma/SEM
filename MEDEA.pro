@@ -230,7 +230,8 @@ HEADERS += \
     Widgets/New/medeanodeviewdockwidget.h \
     Controller/settingscontroller.h \
     View/SceneItems/attributenodeitem.h \
-    Widgets/New/dataeditwidget.h
+    Widgets/New/dataeditwidget.h \
+    Controller/filehandler.h
 
 SOURCES += \
     main.cpp \
@@ -424,7 +425,8 @@ SOURCES += \
     Widgets/New/medeanodeviewdockwidget.cpp \
     Controller/settingscontroller.cpp \
     View/SceneItems/attributenodeitem.cpp \
-    Widgets/New/dataeditwidget.cpp
+    Widgets/New/dataeditwidget.cpp \
+    Controller/filehandler.cpp
 
 RESOURCES += \
     resources.qrc
@@ -513,10 +515,6 @@ linux-g++{
 mac{
     OUTPUT_DIR = Contents/MacOS/
 }
-
-
-
-
 
 CHANGELOG_FILE.files += changelog.txt
 CHANGELOG_FILE.path = $$OUTPUT_DIR/

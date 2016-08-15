@@ -21,6 +21,7 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
     SettingsController::initializeSettings();
+    connect(SettingsController::settings(), SIGNAL(settingChanged(SETTING_KEY,QVariant)), this, SLOT(settingChanged(SETTING_KEY,QVariant)));
 
     initializeApplication();
 
@@ -39,8 +40,8 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     setViewController(vc);
     showNormal();
 
-    emit Theme::theme()->theme_Changed();
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    themeChanged();
     qCritical() << "MedeaMainWindow in: " <<  timeFinish - timeStart << "MS";
 }
 
@@ -92,15 +93,19 @@ void MedeaMainWindow::themeChanged()
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
     searchButton->setIcon(theme->getIcon("Actions", "Search"));
     searchOptionsButton->setIcon(theme->getIcon("Actions", "Settings"));
-    popupSearchBar->setStyleSheet(theme->getLineEditStyleSheet());
     popupSearchButton->setIcon(theme->getIcon("Actions", "Search"));
 
+    /*
     interfaceButton->setIcon(theme->getIcon("Items", "InterfaceDefinitions"));
     behaviourButton->setIcon(theme->getIcon("Items", "BehaviourDefinitions"));
     assemblyButton->setIcon(theme->getIcon("Items", "AssemblyDefinitions"));
     hardwareButton->setIcon(theme->getIcon("Items", "HardwareDefinitions"));
-    //interfaceButton->setIcon(theme->getIcon("Items", "InterfaceDefinitions"));
-    //interfaceButton->setIcon(theme->getIcon("Items", "InterfaceDefinitions"));
+    */
+
+    interfaceButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_INTERFACES));
+    behaviourButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_BEHAVIOUR));
+    assemblyButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_ASSEMBLIES));
+    hardwareButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_HARDWARE));
 }
 
 
@@ -148,10 +153,12 @@ void MedeaMainWindow::spawnSubView()
             ViewItem* item = items.first();
             if(item->isNode()){
                 nodeView->setContainedNodeViewItem((NodeViewItem*)item);
-                MedeaDockWidget *dockWidget = MedeaWindowManager::constructViewDockWidget("SubView", Qt::TopDockWidgetArea);
+                MedeaDockWidget *dockWidget = MedeaWindowManager::constructNodeViewDockWidget("SubView", Qt::TopDockWidgetArea);
                 dockWidget->setWidget(nodeView);
                 dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
                 dockWidget->setParent(this);
+                dockWidget->setIcon(item->getIcon());
+                dockWidget->setTitle(item->getData("label").toString());
                 innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockWidget);
                 //Get children.
             }
@@ -196,15 +203,37 @@ void MedeaMainWindow::toolbarTopLevelChanged(bool undocked)
     }
 }
 
-void MedeaMainWindow::settingChanged(QString group, QString name, QVariant value)
+void MedeaMainWindow::settingChanged(SETTING_KEY setting, QVariant value)
 {
-
+    /*
+    bool boolValue = value.toBool();
+    //Handle stuff.
+    switch(setting){
+case SK_WINDOW_INTERFACES_VISIBLE:{
+        nodeView_Interfaces->parentWidget()->setVisible(boolValue);
+        break;
+    }
+case SK_WINDOW_BEHAVIOUR_VISIBLE:{
+        nodeView_Behaviour->parentWidget()->setVisible(boolValue);
+        break;
+    }
+case SK_WINDOW_ASSEMBLIES_VISIBLE:{
+        nodeView_Assemblies->parentWidget()->setVisible(boolValue);
+        break;
+    }
+case SK_WINDOW_HARDWARE_VISIBLE:{
+        nodeView_Hardware->parentWidget()->setVisible(boolValue);
+        break;
+    }
+case SK_WINDOW_TABLE_VISIBLE:
+case SK_WINDOW_MINIMAP_VISIBLE:
+case SK_WINDOW_BROWSER_VISIBLE:
+case SK_WINDOW_TOOLBAR_VISIBLE:
+    default:
+        break;
+}*/
 }
 
-void MedeaMainWindow::settingsApplied()
-{
-
-}
 
 void MedeaMainWindow::initializeApplication()
 {
@@ -221,7 +250,8 @@ void MedeaMainWindow::initializeApplication()
     //Set Font.
     int opensans_FontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
     QString opensans_fontname = QFontDatabase::applicationFontFamilies(opensans_FontID).at(0);
-    QFont font = QFont(opensans_fontname);
+    //QFont font = QFont(opensans_fontname);
+    QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
@@ -265,32 +295,44 @@ void MedeaMainWindow::setupInnerWindow()
     nodeView_Assemblies->setContainedViewAspect(VA_ASSEMBLIES);
     nodeView_Hardware->setContainedViewAspect(VA_HARDWARE);
 
-    MedeaDockWidget *dockWidget1 = MedeaWindowManager::constructNodeViewDockWidget("Interface", Qt::TopDockWidgetArea);
-    dockWidget1->setWidget(nodeView_Interfaces);
-    dockWidget1->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dockWidget1->setParent(this);
+    MedeaDockWidget *dwInterfaces = MedeaWindowManager::constructNodeViewDockWidget("Interface", Qt::TopDockWidgetArea);
+    dwInterfaces->setWidget(nodeView_Interfaces);
+    dwInterfaces->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    MedeaDockWidget *dockWidget2 = MedeaWindowManager::constructNodeViewDockWidget("Behaviour", Qt::TopDockWidgetArea);
-    dockWidget2->setWidget(nodeView_Behaviour);
-    dockWidget2->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    MedeaDockWidget *dwBehaviour = MedeaWindowManager::constructNodeViewDockWidget("Behaviour", Qt::TopDockWidgetArea);
+    dwBehaviour->setWidget(nodeView_Behaviour);
+    dwBehaviour->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    MedeaDockWidget *dockWidget3 = MedeaWindowManager::constructNodeViewDockWidget("Assemblies", Qt::BottomDockWidgetArea);
-    dockWidget3->setWidget(nodeView_Assemblies);
-    dockWidget3->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    MedeaDockWidget *dwAssemblies = MedeaWindowManager::constructNodeViewDockWidget("Assemblies", Qt::BottomDockWidgetArea);
+    dwAssemblies->setWidget(nodeView_Assemblies);
+    dwAssemblies->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    MedeaDockWidget *dockWidget4 = MedeaWindowManager::constructNodeViewDockWidget("Hardware", Qt::BottomDockWidgetArea);
-    dockWidget4->setWidget(nodeView_Hardware);
-    dockWidget4->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    MedeaDockWidget *dwHardware = MedeaWindowManager::constructNodeViewDockWidget("Hardware", Qt::BottomDockWidgetArea);
+    dwHardware->setWidget(nodeView_Hardware);
+    dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    dockWidget1->setProtected(true);
-    dockWidget2->setProtected(true);
-    dockWidget3->setProtected(true);
-    dockWidget4->setProtected(true);
+    dwInterfaces->setProtected(true);
+    dwBehaviour->setProtected(true);
+    dwAssemblies->setProtected(true);
+    dwHardware->setProtected(true);
 
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockWidget1);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockWidget2);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockWidget3);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dockWidget4);
+    //dwInterfaces->setIcon("Items", "InterfaceDefinitions");
+    //dwBehaviour->setIcon("Items", "BehaviourDefinitions");
+    //dwAssemblies->setIcon("Items", "AssemblyDefinitions");
+    //dwHardware->setIcon("Items", "HardwareDefinitions");
+
+
+    //Check visibility state.
+    SettingsController* settings = SettingsController::settings();
+    dwInterfaces->setVisible(settings->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
+    dwBehaviour->setVisible(settings->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
+    dwAssemblies->setVisible(settings->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
+    dwHardware->setVisible(settings->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
+
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwInterfaces);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
 
     connectNodeView(nodeView_Interfaces);
     connectNodeView(nodeView_Behaviour);
@@ -306,6 +348,7 @@ void MedeaMainWindow::setupInnerWindow()
 
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
     qosDockWidget->setVisible(false);
+
 }
 
 void MedeaMainWindow::setupMenuAndTitle()
@@ -362,6 +405,11 @@ void MedeaMainWindow::setupMenuBar()
     menuBar->addMenu(viewController->getActionController()->menu_options);
     menuBar->addMenu(viewController->getActionController()->menu_help);
 
+    /*
+    QMenu* viewMenu = menuBar->addMenu("Views");
+    viewMenu->addActions(innerWindow->createPopupMenu()->actions());
+    */
+
     // TODO - Find out how to set the height of the menubar items
     menuBar->setFixedHeight(TOOLBAR_HEIGHT);
     setMenuBar(menuBar);
@@ -375,7 +423,6 @@ void MedeaMainWindow::setupToolBar()
     floatingToolbar->setMovable(false);
     floatingToolbar->setFloatable(false);
     floatingToolbar->setIconSize(QSize(20,20));
-    //floatingToolbar->setIconSize(QSize(24,24));
 
     QWidget* w1 = new QWidget(this);
     QWidget* w2 = new QWidget(this);
@@ -393,6 +440,9 @@ void MedeaMainWindow::setupToolBar()
     connect(dockWidget, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(toolbarChanged(Qt::DockWidgetArea)));
     connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(toolbarTopLevelChanged(bool)));
 
+    //Check visibility state.
+    dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TOOLBAR_VISIBLE).toBool());
+
     addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
 }
 
@@ -409,15 +459,15 @@ void MedeaMainWindow::setupSearchBar()
     searchOptionsButton = new QToolButton(this);
     searchOptionsButton->setToolTip("Search Settings");
 
-    QToolBar* searchToolbar = new QToolBar(this);
-    searchToolbar->setIconSize(QSize(18,18));
-    searchToolbar->setFixedHeight(menuBar->height() - 6);
-    searchToolbar->addWidget(searchBar);
-    searchToolbar->addWidget(searchButton);
-    searchToolbar->addWidget(searchOptionsButton);
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->setIconSize(QSize(18,18));
+    toolbar->setFixedHeight(menuBar->height() - 6);
+    toolbar->addWidget(searchBar);
+    toolbar->addWidget(searchButton);
+    toolbar->addWidget(searchOptionsButton);
 
-    //searchToolbar->hide();
-    menuBar->setCornerWidget(searchToolbar);
+    toolbar->hide();
+    //menuBar->setCornerWidget(toolbar);
 }
 
 void MedeaMainWindow::setupPopupSearchBar()
@@ -426,7 +476,7 @@ void MedeaMainWindow::setupPopupSearchBar()
     popupSearchButton->setToolTip("Submit Search");
 
     popupSearchBar = new QLineEdit(this);
-    popupSearchBar->setFont(QFont(font().family(), 14));
+    popupSearchBar->setFont(QFont(font().family(), 13));
     popupSearchBar->setPlaceholderText("Search Here...");
     popupSearchBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -452,6 +502,8 @@ void MedeaMainWindow::setupDataTable()
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Table");
     dockWidget->setWidget(tableWidget);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
+    //Check visibility state.
+    dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
 }
 
@@ -463,6 +515,8 @@ void MedeaMainWindow::setupMinimap()
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Minimap");
     dockWidget->setWidget(minimap);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
+    //Check visibility state.
+    dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_MINIMAP_VISIBLE).toBool());
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
 }
 
@@ -473,23 +527,32 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     assemblyButton = new QToolButton(this);
     hardwareButton = new QToolButton(this);
     qosBrowserButton = new QToolButton(this);
-    restoreDefaultButton = new QToolButton(this);
+    restoreAspectsButton = new QToolButton(this);
+    restoreToolsButton = new QToolButton(this);
+
+    interfaceButton->setCheckable(true);
+    behaviourButton->setCheckable(true);
+    assemblyButton->setCheckable(true);
+    hardwareButton->setCheckable(true);
 
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(QSize(20,20));
     toolbar->setFixedHeight(menuBar->height() - 6);
 
-    toolbar->addWidget(qosBrowserButton);
-    toolbar->addSeparator();
+    qosBrowserButton->hide();
+
+    //toolbar->addWidget(qosBrowserButton);
+    //toolbar->addSeparator();
     toolbar->addWidget(interfaceButton);
-    toolbar->addWidget(behaviourButton);
     toolbar->addWidget(assemblyButton);
+    toolbar->addWidget(behaviourButton);
     toolbar->addWidget(hardwareButton);
     toolbar->addSeparator();
-    toolbar->addWidget(restoreDefaultButton);
+    toolbar->addWidget(restoreAspectsButton);
+    toolbar->addWidget(restoreToolsButton);
 
-    //menuBar->setCornerWidget(toolbar);
-    toolbar->hide();
+    menuBar->setCornerWidget(toolbar);
+    //toolbar->hide();
 }
 
 void MedeaMainWindow::resizeEvent(QResizeEvent *e)

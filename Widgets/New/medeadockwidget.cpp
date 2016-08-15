@@ -102,10 +102,15 @@ MedeaWindowNew *MedeaDockWidget::getCurrentWindow()
     return currentWindow;
 }
 
-void MedeaDockWidget::setIcon(QPixmap icon)
+void MedeaDockWidget::setIcon(QPair<QString, QString> pair)
+{
+    setIcon(pair.first, pair.second);
+}
+
+void MedeaDockWidget::setIcon(QString prefix, QString alias)
 {
     if(titleBar){
-        titleBar->setIcon(icon);
+        titleBar->setIcon(Theme::theme()->getImage(prefix, alias, QSize(16,16)));
     }
 }
 
@@ -193,7 +198,7 @@ void MedeaDockWidget::setProtectToggled(bool toggled)
 void MedeaDockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    titleBar->setLabelStyleSheet("color:" + theme->getTextColorHex(Theme::CR_NORMAL) + ";");
+    titleBar->setLabelStyleSheet("color:" + theme->getTextColorHex(Theme::CR_NORMAL));
     updateActiveStyleSheet();
 
     QAction* closeAction = getAction(DockTitleBarWidget::DA_CLOSE);
@@ -215,7 +220,7 @@ void MedeaDockWidget::themeChanged()
         protectAction->setIcon(theme->getIcon("Actions", "Lock_Open"));
     }
     if(hideAction){
-        hideAction->setIcon(theme->getIcon("Actions", "Close"));
+        hideAction->setIcon(theme->getIcon("Actions", "Invisible"));
     }
 }
 

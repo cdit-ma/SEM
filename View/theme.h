@@ -55,40 +55,41 @@ public:
 
     QColor getActiveWidgetBorderColor();
     QString getActiveWidgetBorderColorHex();
-    void setActiveWidgetBorderColor(QColor color);
-
-    QSize roundQSize(QSize size);
-    void setBackgroundColor(QColor color);
-    void setDisabledBackgroundColor(QColor color);
-    void setAltBackgroundColor(QColor color);
-    void setHighlightColor(QColor color);
 
     QColor getTextColor(COLOR_ROLE role = CR_NORMAL);
     QString getTextColorHex(COLOR_ROLE role = CR_NORMAL);
 
-    void setTextColor(COLOR_ROLE role, QColor color);
-
     QColor getMenuIconColor(COLOR_ROLE role = CR_NORMAL);
     QString getMenuIconColorHex(COLOR_ROLE role = CR_NORMAL);
-    void setMenuIconColor(COLOR_ROLE role, QColor color);
 
-    void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
     QColor getAspectBackgroundColor(VIEW_ASPECT aspect);
     QString getAspectBackgroundColorHex(VIEW_ASPECT aspect);
 
-    void setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName);
-
     QColor getDefaultImageTintColor();
     QString getDefaultImageTintColorHex();
+
+    QIcon getIcon(QPair<QString, QString> icon);
+    QIcon getIcon(QString prefix, QString alias);
+    QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
+
+
+    void setBackgroundColor(QColor color);
+    void setDisabledBackgroundColor(QColor color);
+    void setAltBackgroundColor(QColor color);
+    void setHighlightColor(QColor color);
+    void setActiveWidgetBorderColor(QColor color);
+    void setTextColor(COLOR_ROLE role, QColor color);
+    void setMenuIconColor(COLOR_ROLE role, QColor color);
+    void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
+    void setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName);
     void setDefaultImageTintColor(QColor color);
     void setDefaultImageTintColor(QString prefix, QString alias, QColor color);
 
     void applyTheme();
     bool isValid();
 
-    QIcon getIcon(QPair<QString, QString> icon);
-    QIcon getIcon(QString prefix, QString alias);
-    QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
+
+
 
     // Default StyleSheets
     QString getWindowStyleSheet();
@@ -108,22 +109,20 @@ public:
     QString getMessageBoxStyleSheet();
     QString getPopupWidgetStyleSheet();
 
-    QColor getThemeColor(SETTING_KEY setting, VIEW_THEME theme);
-
+    QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 
 signals:
     void theme_Changed();
-
     void changeSetting(SETTING_KEY setting, QVariant value);
+    void preloadFinished();
+    void _preload();
 public slots:
-    void resetTheme(VIEW_THEME themePreset);
-    void resetAspectTheme(bool colorBlind);
     void preloadImages();
-    void saveTheme();
-
     void settingChanged(SETTING_KEY setting, QVariant value);
 
 private:
+    void resetTheme(VIEW_THEME themePreset);
+    void resetAspectTheme(bool colorBlind);
     void setupIcons();
     void updateValid();
 
@@ -141,8 +140,6 @@ private:
     QHash<COLOR_ROLE, QColor> textColor;
     QHash<COLOR_ROLE, QColor> menuIconColor;
 
-    QColor Theme_white;
-    QColor Theme_black;
 
     QColor deployColor;
     QColor highlightColor;
@@ -166,12 +163,10 @@ public:
     static QString QColorToHex(const QColor color);
     static Theme* theme();
     static void teardownTheme();
-
-signals:
-    void initPreloadImages();
+    static QSize roundQSize(QSize size);
+    static QPair<QString, QString> getIconPair(QString prefix, QString alias);
 private:
     static Theme* themeSingleton;
-    static QThread* themeThread;
 };
 
 #endif // THEME_H

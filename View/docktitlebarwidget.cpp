@@ -7,6 +7,9 @@ DockTitleBarWidget::DockTitleBarWidget(QWidget* parent) : QToolBar(parent)
     setFocusProxy(parent);
     //setMouseTracking(true);
 
+    setContentsMargins(0,0,0,0);
+
+
     //Setting as Custom Context Menu so the parent can catch this signal.
     setContextMenuPolicy(Qt::CustomContextMenu);
     setupToolBar();
@@ -26,6 +29,7 @@ void DockTitleBarWidget::setLabelStyleSheet(QString style)
 void DockTitleBarWidget::setIcon(QPixmap pixmap)
 {
     iconLabel->setPixmap(pixmap);
+    iconAction->setVisible(!pixmap.isNull());
 }
 
 void DockTitleBarWidget::setTitle(QString title, Qt::Alignment alignment)
@@ -52,6 +56,8 @@ QAction *DockTitleBarWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
         return protectAction;
     case DA_HIDE:
         return hideAction;
+    case DA_ICON:
+        return iconAction;
     default:
         return 0;
     }
@@ -60,16 +66,16 @@ QAction *DockTitleBarWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
 void DockTitleBarWidget::setupToolBar()
 {
     iconLabel = new QLabel(this);
-    iconLabel->setVisible(false);
-    iconLabel->setFixedSize(16,16);
+    iconLabel->setFixedSize(18,16);
     iconLabel->setAlignment(Qt::AlignCenter);
+    iconLabel->setStyleSheet("margin-right: 2px;");
 
     titleLabel = new QLabel(this);
     titleLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    addWidget(iconLabel);
+    iconAction = addWidget(iconLabel);
+    iconAction->setVisible(false);
     addWidget(titleLabel);
-    //addWidget(widget);
 
     popOutAction = addAction("Pop Out");
     popOutAction->setVisible(false);
@@ -84,6 +90,6 @@ void DockTitleBarWidget::setupToolBar()
     hideAction = addAction("Hide Window");
     hideAction->setVisible(false);
 
-    setIconSize(QSize(16,16));
+    setIconSize(QSize(16, 16));
 }
 

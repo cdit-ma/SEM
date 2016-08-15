@@ -3,23 +3,48 @@
 #include "../View/edgeviewitem.h"
 #include "../View/Toolbar/toolbarwidgetnew.h"
 #include "controller.h"
+#include "filehandler.h"
+#include <QMessageBox>
 #include <QDebug>
+#include <QDateTime>
+#define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
+#define GRAPHML_FILE_SUFFIX ".graphml"
+#define GME_FILE_EXT "GME Documents (*.xme)"
+#define GME_FILE_SUFFIX ".xme"
+
+#define XMI_FILE_EXT "UML XMI Documents (*.xml)"
+#define XMI_FILE_SUFFIX ".xml"
+
 ViewController::ViewController(){
     modelItem = 0;
-    _modelReady = false;
-    selectionController = new SelectionController(this);
-    actionController = new ActionController(this);
-    actionController->connectViewController(this);
-
-
     controller = 0;
+    _modelReady = false;
 
+
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    selectionController = new SelectionController(this);
+    qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    actionController = new ActionController(this);
+    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     toolbarController = new ToolActionController(this);
+    qint64 time3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     toolbar = new ToolbarWidgetNew(this);
+    qint64 time4 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+
+
+
+
     connect(this, &ViewController::showToolbar, toolbar, &ToolbarWidgetNew::showToolbar);
 
     connect(this, SIGNAL(modelReady(bool)), actionController, SLOT(modelReady(bool)));
     emit modelReady(false);
+    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    qCritical() << "SelectionController in: " <<  time1 - timeStart << "MS";
+    qCritical() << "ActionController in: " <<  time2 - time1 << "MS";
+    qCritical() << "ToolActionController in: " <<  time3 - time2 << "MS";
+    qCritical() << "ToolbarWidgetNew in: " <<  time4 - time3 << "MS";
+    qCritical() << "ViewController in: " <<  timeFinish - timeStart << "MS";
 }
 
 QStringList ViewController::getNodeKinds()
@@ -130,6 +155,11 @@ bool ViewController::isModelReady()
     return _modelReady;
 }
 
+QList<ViewItem *> ViewController::search(QString field)
+{
+    return viewItems.values();
+}
+
 void ViewController::setController(NewController *c)
 {
     controller = c;
@@ -138,7 +168,7 @@ void ViewController::setController(NewController *c)
 void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit triggerAction("Table Changed");
-    emit dataChanged(ID, key, data);
+    emit setData(ID, key, data);
 }
 
 void ViewController::setModelReady(bool okay)
@@ -161,8 +191,102 @@ void ViewController::constructDDSQOSProfile()
 {
     emit triggerAction("Constructing DDS QOS Profile");
     foreach(int ID, getIDsOfKind("AssemblyDefinitions")){
-        emit constructChildNode(ID, "DDS_QOSProfile");
+        emit constructNode(ID, "DDS_QOSProfile");
     }
+}
+
+void ViewController::_teardownProject()
+{
+    if (controller) {
+        delete controller;
+        controller = 0;
+    }
+}
+
+bool ViewController::_newProject()
+{
+    if(!controller){
+        initializeController();
+        emit initializeModel();
+        return true;
+    }
+    return false;
+}
+
+bool ViewController::_saveProject()
+{
+    if(controller){
+        QString filePath = controller->getProjectFileName();
+
+        if(filePath.isEmpty()){
+            return _saveAsProject();
+        }else{
+            QString data = controller->getProjectAsGraphML();
+            FileHandler::writeTextFile(filePath, data);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ViewController::_saveAsProject()
+{
+    if(controller){
+        QString fileName = FileHandler::selectFile("Select a *.graphml file to save project as.", QFileDialog::AnyFile, true, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
+        controller->setProjectFilePath(fileName);
+        return _saveProject();
+    }
+    return false;
+}
+
+bool ViewController::_closeProject()
+{
+    if(controller && controller->projectRequiresSaving()){
+        //Ask User to confirm save?
+        QMessageBox msgBox(QMessageBox::Question, "Save Changes",
+                           "Do you want to save the changes made to '" /* + currentProjectFilePath +*/ "' ?",
+                           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+
+
+        msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
+        msgBox.setButtonText(QMessageBox::Yes, "Save");
+        msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
+
+        int buttonPressed = msgBox.exec();
+
+        if(buttonPressed == QMessageBox::Yes){
+            bool saveSuccess = _saveProject();
+            // if failed to save, do nothing
+            if(!saveSuccess){
+                return false;
+            }
+        }else if(buttonPressed == QMessageBox::No){
+            //Do Nothing
+        }else{
+            return false;
+        }
+    }
+    _teardownProject();
+    return true;
+}
+
+bool ViewController::_openProject()
+{
+    QString filePath;
+    if(controller){
+        filePath = controller->getProjectFileName();
+    }
+
+    filePath = FileHandler::selectFile("Select Project to Open", QFileDialog::ExistingFile, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, filePath);
+    if(!filePath.isEmpty()){
+        QString fileData = FileHandler::readTextFile(filePath);
+        if(_closeProject() && _newProject()){
+            emit vc_openProject(filePath, fileData);
+        }else{
+            return false;
+        }
+    }
+    return true;
 }
 
 void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties)
@@ -267,10 +391,44 @@ void ViewController::controller_propertyRemoved(int ID, QString property)
 
 void ViewController::newProject()
 {
-    if(!controller){
-        initializeController();
-        emit initializeModel();
+    if(_closeProject()){
+        _newProject();
     }
+}
+
+void ViewController::openProject()
+{
+    _openProject();
+}
+
+void ViewController::closeProject()
+{
+    _closeProject();
+
+}
+
+void ViewController::saveProject()
+{
+    _saveProject();
+}
+
+void ViewController::saveAsProject()
+{
+    _saveAsProject();
+}
+
+void ViewController::_importProjects()
+{
+    QStringList files = FileHandler::selectFiles("Select graphML File(s) to import.", QFileDialog::ExistingFiles, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
+
+    QStringList fileData;
+    foreach (QString file, files) {
+        QString data = FileHandler::readTextFile(file);
+        if(data != ""){
+            fileData.append(data);
+        }
+    }
+    emit importProjects(fileData);
 }
 
 void ViewController::initializeController()

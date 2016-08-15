@@ -3,38 +3,29 @@
 #include <QStringBuilder>
 #include <QDirIterator>
 #include <QDateTime>
-#include <QPainter>
 #include <QStringBuilder>
 #include <QtConcurrent/QtConcurrentRun>
 #include <QThreadPool>
 
-
-#include "Controller/settingscontroller.h"
-
 Theme* Theme::themeSingleton = 0;
-QThread* Theme::themeThread = 0;
 
 Theme::Theme():QObject(0)
 {
     preloadedImages = false;
+    themeChanged = false;
     slash = QString("/");
-    updateValid();
-    valid = false;
-    readCount = 0;
 
     //Cadet Blue
-    deployColor.setRed(95);
-    deployColor.setGreen(158);
-    deployColor.setBlue(160);
-
+    deployColor = QColor(95, 158, 160);
     setDefaultImageTintColor(QColor(70,70,70));
 
 
 
     selectedItemBorderColor = Qt::blue;
 
-    Theme_white = QColor(250,250,250);
-    Theme_black = QColor(50,50,50);
+    updateValid();
+    setupIcons();
+
 
     QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
 }
@@ -46,12 +37,12 @@ Theme::~Theme()
 
 QColor Theme::white()
 {
-    return Theme_white;
+    return QColor(250,250,250);
 }
 
 QColor Theme::black()
 {
-    return Theme_black;
+    return QColor(50,50,50);
 }
 
 QColor Theme::getBackgroundColor()
@@ -159,6 +150,14 @@ QSize Theme::roundQSize(QSize size)
     size.setWidth(newWidth);
     size.setHeight(newHeight);
     return size;
+}
+
+QPair<QString, QString> Theme::getIconPair(QString prefix, QString alias)
+{
+    QPair<QString, QString> pair;
+    pair.first = prefix;
+    pair.second = alias;
+    return pair;
 }
 
 void Theme::setBackgroundColor(QColor color)
@@ -295,7 +294,9 @@ void Theme::applyTheme()
 {
     if(themeChanged && valid){
         //PRINT OUT MEMORY USAGE.
+        qCritical() << "Clearing Icon Lookup!"<< iconLookup.size();
         iconLookup.clear();
+        qCritical() << "Cleared Icon Lookup!"<< iconLookup.size();
         emit theme_Changed();
     }
     themeChanged = false;
@@ -319,9 +320,16 @@ QIcon Theme::getIcon(QString prefix, QString alias)
     if(iconLookup.contains(lookupName)){
         return iconLookup[lookupName];
     }else{
-        QIcon icon;
+        if(!imageLookup.contains(lookupName)){
+            //If we haven't loaded the original image we can't tell if it needs tinting!
+            getImage(prefix, alias);
+        }
+
 
         bool isTinted = tintIcon(prefix, alias);
+
+        QIcon icon;
+
         //Set the default states.
         icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
         if(isTinted){
@@ -337,11 +345,11 @@ QIcon Theme::getIcon(QString prefix, QString alias)
                 QString toggledPrefixName = toggledName.mid(0, midSlash);
                 QString toggledAliasName = toggledName.mid(midSlash + 1);
 
-                bool isTinted2 = tintIcon(toggledPrefixName, toggledAliasName);
+                bool isToggledTinted = tintIcon(toggledPrefixName, toggledAliasName);
 
                 //Set the toggled states.
                 icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::On);
-                if(isTinted2){
+                if(isToggledTinted){
                     icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
                     icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
                 }
@@ -526,13 +534,15 @@ QString Theme::getDockWidgetStyleSheet()
            "}"
 
            "DockTitleBarWidget {"
-           "padding: 0px;"
-           "spacing: 0px;"
+           "padding: 0px 2px;"
+           "spacing: 1px;"
            "background: " % getAltBackgroundColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "DockTitleBarWidget QToolButton {"
            "border: 0px;"
+           "padding: 2px;"
+           "margin: 0px;"
            "}";
 }
 
@@ -732,7 +742,7 @@ QString Theme::getLineEditStyleSheet()
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "QLineEdit:focus {"
-           "border: 2px solid " % getHighlightColorHex() % ";"
+           "border: 1px solid " % getHighlightColorHex() % ";"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
            "}";
@@ -763,22 +773,41 @@ QString Theme::getMessageBoxStyleSheet()
 QString Theme::getPopupWidgetStyleSheet()
 {
     return "QWidget#POPUP_WIDGET {"
-           "background: rgba(50,50,50,0.75);"
-           "border-radius: 5px;"
+           //"background: rgba(70,70,70,0.75);"
+           "background:" % getBackgroundColorHex() % ";"
+           "border: 1px outset " % getDisabledBackgroundColorHex() % ";"
            "margin: 0px;"
            "padding: 5px;"
+                                                                     "}";
+}
+
+QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
+{
+    QColor color = getAspectBackgroundColor(aspect).darker(110);
+    QString gradientColor1 = QColorToHex(color.lighter(275));
+    QString gradientColor2 = QColorToHex(color.darker(110));
+
+    return "QAbstractButton {"
+           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "background-color:"
+           "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
+           "stop:0 " % gradientColor1 % ", stop:1.0 " % gradientColor2 + ");"
+           "}"
+           "QAbstractButton:hover {"
+           "border: 2px solid " % QColorToHex(white()) % ";"
+           "}"
+           "QAbstractButton:checked {"
+           "background-color:" % QColorToHex(color) % ";"
+           "}"
+           "QAbstractButton:disabled {"
+           "background-color:" % getDisabledBackgroundColorHex() % ";"
            "}";
 }
-
-QColor Theme::getThemeColor(SETTING_KEY setting, VIEW_THEME theme)
-{
-    return QColor();
-}
-
 
 void Theme::preloadImages()
 {
     if(!preloadedImages){
+        connect(this, &Theme::_preload, Theme::theme(), &Theme::preloadFinished, Qt::QueuedConnection);
         preloadedImages = true;
         qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
         QStringList dirs;
@@ -797,29 +826,8 @@ void Theme::preloadImages()
         //Only Allow once.
         qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
         qCritical() << "Preloaded #" << count << "images in: " <<  timeFinish-timeStart << "MS";
+        emit _preload();
     }
-}
-
-void Theme::saveTheme()
-{
-    /*
-    emit setSetting(THEME_BG_COLOR, getBackgroundColor());
-    emit setSetting(THEME_BG_ALT_COLOR, getAltBackgroundColor());
-    emit setSetting(THEME_DISABLED_BG_COLOR, getDisabledBackgroundColor());
-    emit setSetting(THEME_HIGHLIGHT_COLOR, getHighlightColor());
-
-    emit setSetting(THEME_MENU_TEXT_COLOR, getTextColor(Theme::CR_NORMAL));
-    emit setSetting(THEME_MENU_TEXT_DISABLED_COLOR, getTextColor(Theme::CR_DISABLED));
-    emit setSetting(THEME_MENU_TEXT_SELECTED_COLOR, getTextColor(Theme::CR_SELECTED));
-
-    emit setSetting(THEME_MENU_ICON_COLOR, getMenuIconColor(Theme::CR_NORMAL));
-    emit setSetting(THEME_MENU_ICON_DISABLED_COLOR, getMenuIconColor(Theme::CR_DISABLED));
-    emit setSetting(THEME_MENU_ICON_SELECTED_COLOR, getMenuIconColor(Theme::CR_SELECTED));
-
-    emit setSetting(ASPECT_I_COLOR, getAspectBackgroundColor(VA_INTERFACES));
-    emit setSetting(ASPECT_B_COLOR, getAspectBackgroundColor(VA_BEHAVIOUR));
-    emit setSetting(ASPECT_A_COLOR, getAspectBackgroundColor(VA_ASSEMBLIES));
-    emit setSetting(ASPECT_H_COLOR, getAspectBackgroundColor(VA_HARDWARE));*/
 }
 
 void Theme::settingChanged(SETTING_KEY setting, QVariant value)
@@ -1005,7 +1013,6 @@ void Theme::updateValid()
         gotAllColors = false;
     }
 
-
     valid = gotAllColors;
     themeChanged = true;
 }
@@ -1032,14 +1039,7 @@ QString Theme::QColorToHex(const QColor color)
 Theme *Theme::theme()
 {
     if(!themeSingleton){
-        //themeThread = new QThread();
-        //themeThread->start();
-
         themeSingleton = new Theme();
-        //connect(themeSingleton, SIGNAL(initPreloadImages()), themeSingleton, SLOT(preloadImages()));
-        //connect(themeSingleton, SIGNAL(destroyed(QObject*)), themeThread, SIGNAL(finished()));
-        //Move the JenkinsRequest to the thread
-        //themeSingleton->moveToThread(themeThread);
     }
     return themeSingleton;
 }

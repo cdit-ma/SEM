@@ -2,52 +2,66 @@
 #include "viewcontroller.h"
 #include "../View/theme.h"
 #include <QDebug>
-ActionController::ActionController(QObject *parent) : QObject(parent)
+ActionController::ActionController(ViewController* vc) : QObject(vc)
 {
-    selectionController = 0;
-    viewController = 0;
+    viewController = vc;
+    selectionController = viewController->getSelectionController();
 
 
 
-    _modelReady = true;
+    _modelReady = false;
     _jenkinsValidated = false;
     setupActions();
+
     setupMainMenu();
     setupApplicationToolbar();
     setupContextToolbar();
 
+    connect(SettingsController::settings(), SIGNAL(settingChanged(SETTING_KEY,QVariant)), this, SLOT(settingChanged(SETTING_KEY,QVariant)));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
+    selectionChanged(0);
+    themeChanged();
+    connectViewController(vc);
 }
 
 void ActionController::connectViewController(ViewController *controller)
 {
-    viewController = controller;
-    if(viewController){
-        connect(controller, SIGNAL(canUndo(bool)), edit_undo, SLOT(setEnabled(bool)));
-        connect(controller, SIGNAL(canRedo(bool)), edit_redo, SLOT(setEnabled(bool)));
 
-        connect(edit_undo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_undo()));
-        connect(edit_redo, SIGNAL(triggered(bool)), viewController, SIGNAL(view_redo()));
-        connect(edit_delete, SIGNAL(triggered(bool)), viewController, SLOT(deleteSelection()));
+    if(viewController){
+        connect(controller, &ViewController::canUndo, edit_undo, &QAction::setEnabled);
+        connect(controller, &ViewController::canRedo, edit_redo, &QAction::setEnabled);
 
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
+        connect(file_openProject, &QAction::triggered, viewController, &ViewController::openProject);
+        connect(file_closeProject, &QAction::triggered, viewController, &ViewController::closeProject);
+        connect(file_saveProject, &QAction::triggered, viewController, &ViewController::saveProject);
+        connect(file_saveAsProject, &QAction::triggered, viewController, &ViewController::saveAsProject);
+        connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::_importProjects);
 
-        connect(toolbar_addDDSQOSProfile, SIGNAL(triggered(bool)), viewController, SLOT(constructDDSQOSProfile()));
-        connect(options_settings, SIGNAL(triggered(bool)), SettingsController::settings(), SLOT(showSettingsWidget()));
+        connect(edit_undo, &QAction::triggered, viewController, &ViewController::undo);
+        connect(edit_redo, &QAction::triggered, viewController, &ViewController::redo);
+        connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
+
+        connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
+
+        connect(toolbar_addDDSQOSProfile, &QAction::triggered, viewController, &ViewController::constructDDSQOSProfile);
+
+
+
         connectSelectionController(controller->getSelectionController());
     }
 }
 
 void ActionController::connectSelectionController(SelectionController *controller)
 {
-    selectionController = controller;
-    connect(selectionController, SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
-    connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionForward()));
-    connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
-    connect(edit_selectAll, SIGNAL(triggered(bool)), controller, SIGNAL(selectAll()));
-    connect(edit_clearSelection, SIGNAL(triggered(bool)), controller, SIGNAL(clearSelection()));
-
+    if(selectionController){
+        connect(selectionController, SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
+        connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionForward()));
+        connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
+        connect(edit_selectAll, SIGNAL(triggered(bool)), controller, SIGNAL(selectAll()));
+        connect(edit_clearSelection, SIGNAL(triggered(bool)), controller, SIGNAL(clearSelection()));
+    }
 }
 
 
@@ -80,6 +94,17 @@ RootAction *ActionController::createRootAction(QString name, QString hashKey, QS
     return action;
 }
 
+void ActionController::settingChanged(SETTING_KEY key, QVariant value)
+{
+    bool boolVal = value.toBool();
+
+    QAction* action = getSettingAction(key);
+
+    if(action){
+        action->setVisible(boolVal);
+    }
+}
+
 void ActionController::jenkinsValidated(bool success)
 {
     if(_jenkinsValidated != success){
@@ -97,8 +122,6 @@ void ActionController::selectionChanged(int selectionSize)
         bool emptySelection = selectionSize == 0;
 
 
-
-        if(_modelReady)
         if(emptySelection || !_modelReady){
             edit_cut->setEnabled(false);
             edit_copy->setEnabled(false);
@@ -212,10 +235,46 @@ void ActionController::updateJenkinsActions()
     jenkins_executeJob->setEnabled(_modelReady && _jenkinsValidated);
 }
 
+QAction *ActionController::getSettingAction(SETTING_KEY key)
+{
+    switch(key){
+    case SK_TOOLBAR_CONTEXT:
+        return toolbar_context;
+    case SK_TOOLBAR_UNDO:
+        return toolbar_undo;
+    case SK_TOOLBAR_REDO:
+        return toolbar_redo;
+    case SK_TOOLBAR_CUT:
+        return toolbar_cut;
+    case SK_TOOLBAR_COPY:
+        return toolbar_copy;
+    case SK_TOOLBAR_PASTE:
+        return toolbar_paste;
+    case SK_TOOLBAR_REPLICATE:
+        return toolbar_replicate;
+    case SK_TOOLBAR_FIT_TO_SCREEN:
+        return toolbar_fitToScreen;
+    case SK_TOOLBAR_CENTER_SELECTION:
+        return toolbar_centerOn;
+    case SK_TOOLBAR_VIEW_IN_NEWWINDOW:
+        return toolbar_viewInNewWindow;
+    case SK_TOOLBAR_SORT:
+        return toolbar_sort;
+    case SK_TOOLBAR_DELETE:
+        return toolbar_delete;
+    case SK_TOOLBAR_ALIGN_HORIZONTAL:
+        return toolbar_alignVertical;
+    case SK_TOOLBAR_ALIGN_VERTICAL:
+        return toolbar_alignHorizontal;
+    default:
+        return 0;
+    }
+}
+
 void ActionController::updateIcon(RootAction *action, Theme *theme)
 {
     if(theme && action){
-        action->setIcon(theme->getIcon(action->getIconPath(), action->getIconAlias()));
+        action->setIcon(theme->getIcon(action->getIconPair()));
     }
 }
 
@@ -446,30 +505,30 @@ void ActionController::setupApplicationToolbar()
 {
     applicationToolbar = new ActionGroup(this);
 
-    applicationToolbar->addAction(toolbar_contextToolbar);
+    toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));
     applicationToolbar->addSeperator();
-    applicationToolbar->addAction(edit_undo);
-    applicationToolbar->addAction(edit_redo);
+    toolbar_undo = applicationToolbar->addAction(edit_undo->constructSubAction(false));
+    toolbar_redo = applicationToolbar->addAction(edit_redo->constructSubAction(false));
     applicationToolbar->addSeperator();
-    applicationToolbar->addAction(edit_cut);
-    applicationToolbar->addAction(edit_copy);
-    applicationToolbar->addAction(edit_paste);
-    applicationToolbar->addAction(edit_replicate);
+    toolbar_cut = applicationToolbar->addAction(edit_cut->constructSubAction(false));
+    toolbar_copy = applicationToolbar->addAction(edit_copy->constructSubAction(false));
+    toolbar_paste = applicationToolbar->addAction(edit_paste->constructSubAction(false));
+    toolbar_replicate = applicationToolbar->addAction(edit_replicate->constructSubAction(false));
     applicationToolbar->addSeperator();
-    applicationToolbar->addAction(view_fitToScreen);
-    applicationToolbar->addAction(view_centerOn);
-    applicationToolbar->addAction(view_viewInNewWindow);
+    toolbar_fitToScreen = applicationToolbar->addAction(view_fitToScreen->constructSubAction(false));
+    toolbar_centerOn = applicationToolbar->addAction(view_centerOn->constructSubAction(false));
+    toolbar_viewInNewWindow = applicationToolbar->addAction(view_viewInNewWindow->constructSubAction(false));
     applicationToolbar->addSeperator();
-    applicationToolbar->addAction(edit_sort);
-    applicationToolbar->addAction(edit_delete);
+    toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
+    toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
     applicationToolbar->addSeperator();
-    applicationToolbar->addAction(edit_alignVertical);
-    applicationToolbar->addAction(edit_alignHorizontal);
+    toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
+    toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
 
-#ifdef TARGET_OS_MAC
+//#ifdef TARGET_OS_MAC
     applicationToolbar->addSeperator();
     applicationToolbar->addAction(edit_search);
-#endif
+//#endif
 
 }
 

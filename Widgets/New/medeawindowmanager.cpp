@@ -204,6 +204,7 @@ void MedeaWindowManager::setActiveDockWidget(MedeaDockWidget *dockWidget)
         if(dockWidget && dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
             dockWidget->setActive(true);
         }
+
         activeViewDockWidget = (MedeaViewDockWidget*)dockWidget;
         emit activeViewDockWidgetChanged(activeViewDockWidget, prevDock);
     }
