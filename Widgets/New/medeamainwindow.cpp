@@ -161,7 +161,7 @@ void MedeaMainWindow::themeChanged()
     viewController->getActionController()->menu_window->setStyleSheet(menuStyle);
     viewController->getActionController()->menu_options->setStyleSheet(menuStyle);
 
-    searchCompleter->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet() % "QAbstractItemView::item{ padding: 1px; }");
+    searchCompleter->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet() % "QAbstractItemView::item{ padding: 2px 0px; }");
     searchPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
     searchToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
