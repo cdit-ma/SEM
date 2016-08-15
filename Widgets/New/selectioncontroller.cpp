@@ -85,6 +85,18 @@ ViewItem *SelectionController::getFirstSelectedItem()
     return item;
 }
 
+int SelectionController::getFirstSelectedItemID()
+{
+    int ID = -1;
+    if(currentHandler){
+        ViewItem* item = currentHandler->getFirstSelectedItem();
+        if(item){
+            ID = item->getID();
+        }
+    }
+    return ID;
+}
+
 void SelectionController::activeViewDockWidgetChanged(MedeaViewDockWidget *dockWidget)
 {
 

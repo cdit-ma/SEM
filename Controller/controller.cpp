@@ -190,6 +190,8 @@ void NewController::connectViewController(ViewController *view)
 
     connect(view, &ViewController::setData, this, &NewController::setData);
     connect(view, &ViewController::constructNode, this, &NewController::constructNode);
+    connect(view, &ViewController::constructConnectedNode, this, &NewController::constructConnectedNode);
+
     connect(view, &ViewController::triggerAction, this, &NewController::triggerAction);
 
     connect(view, &ViewController::projectSaved, this, &NewController::projectSaved);
