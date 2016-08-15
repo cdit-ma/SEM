@@ -60,12 +60,8 @@ private:
     QSize iconSize;
 
     QHash<QAction*, QMenu*> popupMenuHash;
-    QHash<QString, QString> menuInfoKeyHash;
-    QHash<QMenu*, QString> dynamicMenuHash;
+    QHash<QMenu*, QString> dynamicMenuKeyHash;
     QHash<QString, QMenu*> adoptableKindsSubMenus;
-
-    //QHash<int, NodeViewItemAction*> nodeActions;
-    //QHash<int, QMenu> nodeActions;
 
     QFrame* mainFrame;
     QFrame* shadowFrame;

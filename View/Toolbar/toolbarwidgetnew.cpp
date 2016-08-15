@@ -427,9 +427,11 @@ void ToolbarWidgetNew::setupHardwareViewOptionMenu()
     allNodes = new QRadioButton("All", this);
     connectedNodes = new QRadioButton("Connected", this);
     unconnectedNodes = new QRadioButton("Unconnected", this);
+
     QWidgetAction* a1 = new QWidgetAction(this);
     QWidgetAction* a2 = new QWidgetAction(this);
     QWidgetAction* a3 = new QWidgetAction(this);
+
     a1->setDefaultWidget(allNodes);
     a2->setDefaultWidget(connectedNodes);
     a3->setDefaultWidget(unconnectedNodes);
