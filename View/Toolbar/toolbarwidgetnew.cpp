@@ -167,7 +167,8 @@ void ToolbarWidgetNew::populateDynamicMenu()
                 if (kind == "WorkerProcess") {
                     // handle differently
                 } else {
-                    actions = toolbarController->getDefinitionNodeActions(kind);
+                    //Create Sub actions and spawn IDS!
+                    //actions = toolbarController->getDefinitionNodeActions(kind);
                 }
                 break;
             }

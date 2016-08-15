@@ -117,6 +117,7 @@ ToolActionController *ViewController::getToolbarController()
 
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
 {
+    qCritical() << kind;
     QList<ViewItem*> items;
     if(controller  && selectionController && selectionController->getSelectionCount() == 1){
         int parentID = selectionController->getFirstSelectedItem()->getID();

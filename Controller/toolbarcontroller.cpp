@@ -36,12 +36,13 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
 
 }
 
-QList<QAction *> ToolActionController::getDefinitionNodeActions(QString kind)
+QList<NodeViewItemAction *> ToolActionController::getDefinitionNodeActions(QString kind)
 {
-    QList<QAction*> list;
+    QList<NodeViewItemAction*> list;
 
     foreach(ViewItem* item, viewController->getConstructableNodeDefinitions(kind)){
-        list.append(actions[item->getID()]->constructSubAction(false));
+        list.append(getNodeViewItemAction(item->getID()));
+
     }
     return list;
 }
@@ -106,6 +107,11 @@ void ToolActionController::addChildNode(QString kind, QPointF position)
         int ID = item->getID();
         emit viewController->constructNode(ID, kind, position);
     }
+}
+
+void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPointF position)
+{
+
 }
 
 void ToolActionController::setupToolActions()
@@ -237,6 +243,14 @@ void ToolActionController::setupNodeActions()
         nodeKindActions[kind]= action;
         adoptableKindsGroup->addAction(action);
     }
+}
+
+NodeViewItemAction *ToolActionController::getNodeViewItemAction(int ID)
+{
+    if(actions.contains(ID)){
+        return actions[ID];
+    }
+    return 0;
 }
 
 RootAction *ToolActionController::createRootAction(QString hashKey, QString actionName, QString iconPath, QString aliasPath)

@@ -38,6 +38,27 @@ NodeViewItemAction *NodeViewItemAction::getParentViewItemAction()
     return parentViewItemAction;
 }
 
+int NodeViewItemAction::getID()
+{
+    if(nodeViewItem){
+        return nodeViewItem->getID();
+    }
+    return -1;
+}
+
+QString NodeViewItemAction::getKind()
+{
+    if(nodeViewItem){
+        return nodeViewItem->getData("kind").toString();
+    }
+    return "";
+}
+
+NodeViewItem *NodeViewItemAction::getNodeViewItem()
+{
+    return nodeViewItem;
+}
+
 void NodeViewItemAction::iconChanged()
 {
     //Update the icon.

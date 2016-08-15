@@ -76,6 +76,7 @@ signals:
     void replicateEntities(QList<int> IDs);
 
     void constructNode(int parentID, QString kind, QPointF pos = QPointF());
+
     void importProjects(QStringList fileData);
     void vc_openProject(QString fileName, QString filePath);
 
