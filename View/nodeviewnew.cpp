@@ -10,6 +10,7 @@
 #include "SceneItems/Hardware/hardwarenodeitem.h"
 #include "SceneItems/Assemblies/managementcomponentnodeitem.h"
 #include "SceneItems/eventportnodeitem.h"
+#include "SceneItems/attributenodeitem.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
@@ -504,6 +505,8 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new EventPortNodeItem(item, parentNode);
             }else if(nodeKind.contains("DDS_")){
                 return;
+            }else if(nodeKind.contains("Attribute")){
+                nodeItem = new AttributeNodeItem(item, parentNode);
             }else{
                 nodeItem = new DefaultNodeItem(item, parentNode);
             }
