@@ -1023,8 +1023,22 @@ void NewController::openProject(QString filePath, QString xmlData)
  */
 void NewController::copy(QList<int> IDs)
 {
-    _copy(IDs);
-    emit controller_ActionFinished();
+
+    lock.lockForWrite();
+    QList<Entity*> selection = getOrderedSelection(IDs);
+
+    bool success = false;
+    if(canCopy(selection)){
+        QString value = _copy(selection);
+
+        if(!value.isEmpty()){
+            emit controller_SetClipboardBuffer(value);
+            success = true;
+        }
+    }
+
+    lock.unlock();
+    emit controller_ActionFinished(success, "Cannot copy selection.");
 }
 
 /**
@@ -1033,7 +1047,6 @@ void NewController::copy(QList<int> IDs)
  */
 void NewController::remove(QList<int> IDs)
 {
-
     lock.lockForWrite();
     QList<Entity*> selection = getOrderedSelection(IDs);
 
@@ -1110,9 +1123,15 @@ void NewController::clear()
  */
 void NewController::replicate(QList<int> IDs)
 {
-    bool success = _replicate(IDs);
-    emit controller_ActionProgressChanged(100);
-    emit controller_ActionFinished(success);
+    lock.lockForWrite();
+    QList<Entity*> selection = getOrderedSelection(IDs);
+
+    bool success = false;
+    if(canReplicate(selection)){
+        success = _replicate(selection);
+    }
+    lock.unlock();
+    emit controller_ActionFinished(success, "Cannot Replicate selection.");
 }
 
 /**
@@ -1121,9 +1140,19 @@ void NewController::replicate(QList<int> IDs)
  */
 void NewController::cut(QList<int> IDs)
 {
-    bool success = _cut(IDs);
-    emit controller_ActionProgressChanged(100);
-    emit controller_ActionFinished(success);
+    lock.lockForWrite();
+    QList<Entity*> selection = getOrderedSelection(IDs);
+
+    bool success = false;
+    if(canCut(selection)){
+        QString data = _copy(selection);
+        emit controller_SetClipboardBuffer(data);
+        emit triggerAction("Cutting Selection");
+        success = _remove(selection);
+    }
+
+    lock.unlock();
+    emit controller_ActionFinished(success, "Cannot cut selection.");
 }
 
 
@@ -1133,11 +1162,17 @@ void NewController::cut(QList<int> IDs)
  * @param ID - The ID of the node to paste into
  * @param xmlData - The GraphML Data to paste.
  */
-void NewController::paste(int ID, QString xmlData)
+void NewController::paste(QList<int> IDs, QString xmlData)
 {
-    bool success = _paste(ID, xmlData);
-    emit controller_ActionProgressChanged(100);
-    emit controller_ActionFinished(success);
+    lock.lockForWrite();
+    QList<Entity*> selection = getOrderedSelection(IDs);
+
+    bool success = false;
+    if(canPaste(selection)){
+        success = _paste(selection.first()->getID(), xmlData);
+    }
+    lock.unlock();
+    emit controller_ActionFinished(success, "Cannot paste into selection");
 }
 
 /**
@@ -1213,7 +1248,7 @@ bool NewController::_copy(QList<int> IDs)
         QString result = _exportGraphMLDocument(IDs, false, true);
 
         //Tell the view to place the resulting GraphML String into the Copy buffer.
-        controller_SetClipboardBuffer(result);
+        emit controller_SetClipboardBuffer(result);
 
         success = true;
     } else {
@@ -1288,6 +1323,20 @@ bool NewController::_remove(int ID, bool addAction)
     QList<int> IDs;
     IDs << ID;
     return _remove(IDs, addAction);
+}
+
+bool NewController::_replicate(QList<Entity *> items)
+{
+    QString data = _copy(items);
+
+    Entity* item = items.first();
+    if(item->isNode()){
+        Node* node = (Node*) item;
+        if(node->getParentNode()){
+           return _paste(node->getParentNodeID(), data);
+        }
+    }
+    return false;
 }
 
 /**
@@ -2514,7 +2563,16 @@ bool NewController::updateProgressNotification()
     if(OPENING_PROJECT || IMPORTING_PROJECT){
            return true;
    }
-   return false;
+    return false;
+}
+
+QList<int> NewController::getIDs(QList<Entity *> items)
+{
+    QList<int> IDs;
+    foreach(Entity* item, items){
+        IDs.append(item->getID());
+    }
+    return IDs;
 }
 
 
@@ -3695,6 +3753,16 @@ void NewController::modelLabelChanged()
     if(model){
         emit controller_ProjectNameChanged(model->getDataValue("label").toString());
     }
+}
+
+QString NewController::_copy(QList<Entity *> selection)
+{
+    QList<int> IDs = getIDs(selection);
+
+    //Export the GraphML for those Nodes.
+    QString result = _exportGraphMLDocument(IDs, false, true);
+
+    return result;
 }
 
 Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QString nodeType, QString nodeLabel)
@@ -5698,6 +5766,79 @@ bool NewController::canReplicate(QList<int> selection)
 bool NewController::canCut(QList<int> selection)
 {
     return canCopy(selection) && canDelete(selection);
+}
+
+bool NewController::canReplicate(QList<Entity *> selection)
+{
+
+    if(!canCut(selection)){
+        return false;
+    }
+
+    Node* parentNode = 0;
+
+    foreach(Entity* item, selection){
+        if(item->isNode()){
+            parentNode = ((Node*)item)->getParentNode();
+            break;
+        }
+    }
+
+    if(parentNode){
+        QList<Entity*> parents;
+        parents << parentNode;
+        if(canPaste(parents)){
+            return true;
+        }
+    }
+    return false;
+
+
+}
+
+bool NewController::canCut(QList<Entity *> selection)
+{
+    return canCopy(selection) && canDelete(selection);
+}
+
+bool NewController::canCopy(QList<Entity *> selection)
+{
+    Node* parent = 0;
+
+    bool valid = !selection.isEmpty();
+
+    foreach(Entity* item, selection){
+        if(item->isNode()){
+            Node* node = (Node*) item;
+            if(!canDeleteNode(node)){
+                valid = false;
+                break;
+            }
+            if(!parent){
+                parent = node->getParentNode();
+            }else if(node->getParentNode() != parent){
+                valid = false;
+                break;
+            }
+        }
+    }
+
+    return valid;
+}
+
+bool NewController::canPaste(QList<Entity *> selection)
+{
+    if(selection.size() == 1){
+        Entity* item = selection.first();
+
+        if(item && item->isNode() && !item->isReadOnly() && item != model){
+            Node* node = (Node*) item;
+            if(!node->isInstance() && !node->isImpl()){
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool NewController::canDelete(QList<Entity *> selection)

@@ -72,7 +72,7 @@ signals:
     void deleteEntities(QList<int> IDs);
     void cutEntities(QList<int> IDs);
     void copyEntities(QList<int> IDs);
-    void pasteIntoEntity(int ID, QString data);
+    void pasteIntoEntity(QList<int> IDs, QString data);
     void replicateEntities(QList<int> IDs);
 
     void constructNode(int parentID, QString kind, QPointF pos = QPointF());

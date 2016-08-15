@@ -190,7 +190,15 @@ public:
     bool canGetCPP(QList<int> selection);
     bool canReplicate(QList<int> selection);
     bool canCut(QList<int> selection);
+
+
+    bool canReplicate(QList<Entity*> selection);
+    bool canCut(QList<Entity*> selection);
+    bool canCopy(QList<Entity*> selection);
+    bool canPaste(QList<Entity*> selection);
     bool canDelete(QList<Entity *> selection);
+
+
     bool canDelete(QList<int> selection);
     bool canPaste(QList<int> selection);
     bool canExportSnippet(QList<int> selection);
@@ -288,9 +296,15 @@ private slots:
     //Clipboard functionality
     void cut(QList<int> IDs);
     void copy(QList<int> IDs);
-    void paste(int ID, QString xmlData);
+    void paste(QList<int> IDs, QString xmlData);
+
+
     void replicate(QList<int> IDs);
+
     void remove(QList<int> IDs);
+
+
+
     void setReadOnly(QList<int> IDs, bool readOnly);
 
     void importSnippet(QList<int> IDs, QString fileName, QString fileData);
@@ -332,6 +346,9 @@ private slots:
     void modelLabelChanged();
 
 private:
+
+    QString _copy(QList<Entity*> selection);
+
     //Helper functions.
     bool _paste(int ID, QString xmlData, bool addAction = true);
     bool _cut(QList<int> IDs, bool addAction = true);
@@ -340,6 +357,7 @@ private:
     bool _remove(QList<int> IDs, bool addAction = true);
     bool _remove(QList<Entity*> items);
     bool _remove(int ID, bool addAction = true);
+    bool _replicate(QList<Entity*> items);
     bool _replicate(QList<int> IDs, bool addAction = true);
     bool _importProjects(QStringList xmlDataList, bool addAction = true);
     bool _importSnippet(QList<int> IDs, QString fileName, QString fileData, bool addAction = true);
@@ -408,7 +426,7 @@ private:
     Node* _constructNode(QList<Data*> data);
 
     bool updateProgressNotification();
-
+    QList<int> getIDs(QList<Entity*> items);
 
 
 

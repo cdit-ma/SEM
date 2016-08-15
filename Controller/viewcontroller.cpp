@@ -678,7 +678,7 @@ void ViewController::copy()
 void ViewController::paste()
 {
     if(selectionController && selectionController->getSelectionCount() == 1){
-        emit pasteIntoEntity(selectionController->getSelectionIDs()[0], QApplication::clipboard()->text());
+        emit pasteIntoEntity(selectionController->getSelectionIDs(), QApplication::clipboard()->text());
     }
 }
 
