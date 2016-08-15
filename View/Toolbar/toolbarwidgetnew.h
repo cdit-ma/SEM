@@ -60,6 +60,7 @@ private:
     QSize iconSize;
 
     QHash<QAction*, QMenu*> popupMenuHash;
+    QHash<QString, QString> menuInfoKeyHash;
     QHash<QMenu*, QString> dynamicMenuHash;
     QHash<QString, QMenu*> adoptableKindsSubMenus;
 
