@@ -12,6 +12,9 @@
 #include "../../GUI/appsettings.h"
 #include "qosbrowser.h"
 #include "tablewidget.h"
+#include "../../GUI/searchsuggestcompletion.h"
+#include <QCompleter>
+#include <QStringListModel>
 
 class MedeaMainWindow : public MedeaWindowNew
 {
@@ -29,14 +32,17 @@ private slots:
     void spawnSubView();
 
     void popupSearch();
+    void showCompletion(QStringList list);
 
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
 
 public slots:
+    void setModelTitle(QString modelTitle);
     void settingChanged(SETTING_KEY setting, QVariant value);
 
 signals:
+    void requestSuggestions();
     void preloadImages();
 
 private:
@@ -45,42 +51,32 @@ private:
 
     void setupTools();
     void setupInnerWindow();
-    void setupMenuAndTitle();
     void setupMenuBar();
     void setupToolBar();
     void setupSearchBar();
-    void setupPopupSearchBar();
     void setupDataTable();
     void setupMinimap();
     void setupMainDockWidgetToggles();
 
-private:
     MedeaWindowNew* innerWindow;
 
     QMenuBar* menuBar;
-    QPushButton* menuButton;
-    QPushButton* projectTitleButton;
-    QToolButton* middlewareButton;
-    QToolButton* closeProjectButton;
-
-    QLineEdit* searchBar;
-    QToolButton* searchButton;
-    QToolButton* searchOptionsButton;
-
-    QToolBar* searchToolbar;
-    QLineEdit* popupSearchBar;
-    QToolButton* popupSearchButton;
-
-    QToolBar* floatingToolbar;
+    QToolBar* applicationToolbar;
     TableWidget* tableWidget;
     NodeViewMinimap* minimap;
 
+    QToolBar* searchToolbar;
+    QLineEdit* searchBar;
+    QToolButton* searchButton;
+    QCompleter* searchCompleter;
+    QStringListModel* searchCompleterModel;
+
+    ViewController* viewController;
     NodeViewNew* nodeView_Interfaces;
     NodeViewNew* nodeView_Behaviour;
     NodeViewNew* nodeView_Assemblies;
     NodeViewNew* nodeView_Hardware;
     QOSBrowser* qosBrowser;
-    ViewController* viewController;
 
     QToolButton* interfaceButton;
     QToolButton* behaviourButton;
@@ -90,7 +86,6 @@ private:
     QToolButton* restoreAspectsButton;
     QToolButton* restoreToolsButton;
 
-    // QWidget interface
 protected:
     void resizeEvent(QResizeEvent *);
 };

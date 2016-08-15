@@ -214,6 +214,11 @@
         <file alias="ImportXME">Resources/Images/Actions/ImportXME.ico</file>
         <file alias="Qt">Resources/Images/Actions/Qt.ico</file>
         <file alias="ImportXMI">Resources/Images/Actions/ImportXMI.png</file>
+        <file alias="Checkbox_True">Resources/Images/Actions/checkbox_checked.png</file>
+        <file alias="Checkbox_Unset">Resources/Images/Actions/checkbox_trinary.png</file>
+        <file alias="Checkbox_False">Resources/Images/Actions/checkbox_unchecked.png</file>
+        <file alias="Splitter">Resources/Images/Actions/splitter.png</file>
+        <file alias="Policies">Resources/Images/Actions/Policies.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

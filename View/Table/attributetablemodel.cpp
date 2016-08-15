@@ -269,6 +269,7 @@ void AttributeTableModel::setupDataBinding()
         connect(entity, SIGNAL(dataAdded(QString, QVariant)), this, SLOT(addData(QString)));
         connect(entity, SIGNAL(dataRemoved(QString)), this, SLOT(removedData(QString)));
         connect(entity, SIGNAL(dataChanged(QString, QVariant)), this, SLOT(updatedData(QString)));
+        connect(entity, SIGNAL(destructing()), this, SLOT(deleteLater()));
     }
 }
 

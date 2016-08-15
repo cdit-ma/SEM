@@ -38,6 +38,7 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 
 MedeaDockWidget::~MedeaDockWidget()
 {
+
 }
 
 int MedeaDockWidget::getID()
@@ -194,6 +195,11 @@ void MedeaDockWidget::setProtectToggled(bool toggled)
     setActionToggled(DockTitleBarWidget::DA_PROTECT, toggled);
 }
 
+void MedeaDockWidget::destruct()
+{
+    MedeaWindowManager::destructDockWidget(this);
+}
+
 
 void MedeaDockWidget::themeChanged()
 {
@@ -237,7 +243,8 @@ void MedeaDockWidget::updateActiveStyleSheet()
         QString activeColor = Theme::theme()->getActiveWidgetBorderColorHex();
         setStyleSheet("QGraphicsView { border: 1px solid " + activeColor + ";}"
                       "DockTitleBarWidget { background:" + activeColor + "; border: 1px solid " + activeColor + ";}"
-                      "DockTitleBarWidget QToolButton::!hover { background:" + activeColor +";}");
+                      "DockTitleBarWidget QToolButton::!hover { background:" + activeColor +";}"
+                      );
     } else {
         setStyleSheet("");
     }

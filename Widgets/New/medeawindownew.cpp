@@ -107,6 +107,10 @@ void MedeaWindowNew::removeDockWidget(QDockWidget *widget)
         }
     }
     QMainWindow::removeDockWidget(widget);
+
+    if(currentDockWidgets.isEmpty()){
+        MedeaWindowManager::destructWindow(this);
+    }
 }
 
 void MedeaWindowNew::setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool maximized)

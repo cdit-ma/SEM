@@ -8,12 +8,13 @@ QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent) : QWidget(parent)
 {
     this->vc = vc;
     qosModel = new QOSProfileModel(this);
-    setStyleSheet("QOSBrowser{padding:5px;margin:0px;}");
+    setStyleSheet("QOSBrowser{padding:0px;margin:0px;}");
 
     connect(vc, SIGNAL(viewItemConstructed(ViewItem*)), qosModel, SLOT(viewItem_Constructed(ViewItem*)));
     connect(vc, SIGNAL(viewItemDestructing(int,ViewItem*)), qosModel, SLOT(viewItem_Destructed(int,ViewItem*)));
 
     setupLayout();
+
 
 
 
@@ -24,6 +25,7 @@ QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent) : QWidget(parent)
 void QOSBrowser::themeChanged()
 {
     Theme* theme = Theme::theme();
+    horizontalSplitter->setStyleSheet(theme->getSplitterStyleSheet());
     profileView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
     elementView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
     tableView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
@@ -49,9 +51,12 @@ void QOSBrowser::setupLayout()
 {
 
     QHBoxLayout* layout = new QHBoxLayout(this);
+    layout->setSpacing(5);
+    layout->setMargin(0);
+
     horizontalSplitter = new QSplitter(this);
     profileView = new QListView(this);
-    elementView = new QListView(this);
+    elementView = new QTreeView(this);
     tableView = new AttributeTableView(this);
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(QSize(20,20));
@@ -61,8 +66,12 @@ void QOSBrowser::setupLayout()
     QWidget* profileWidget = new QWidget(this);
     profileWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     QVBoxLayout* profileLayout = new QVBoxLayout(profileWidget);
+    profileLayout->setSpacing(5);
+    profileLayout->setMargin(0);
     profileLayout->addWidget(profileView, 1);
     profileLayout->addWidget(toolbar, 0, Qt::AlignRight);
+    elementView->header()->setMinimumHeight(25);
+
     horizontalSplitter->addWidget(profileWidget);
     horizontalSplitter->addWidget(elementView);
     horizontalSplitter->addWidget(tableView);

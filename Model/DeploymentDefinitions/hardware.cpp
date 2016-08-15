@@ -3,6 +3,8 @@
 Hardware::Hardware(bool isHardwareNode):Node(Node::NT_HARDWARE)
 {
     hardwareNode = isHardwareNode;
+
+    setAcceptsEdgeClass(Edge::EC_DEPLOYMENT);
 }
 
 bool Hardware::isHardwareNode()

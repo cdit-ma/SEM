@@ -11,6 +11,7 @@
 #include <QPointF>
 #include <QXmlStreamReader>
 #include <QNetworkInterface>
+#include <QReadWriteLock>
 
 #include "../Model/Edges/definitionedge.h"
 #include "../Model/Edges/workflowedge.h"
@@ -138,8 +139,8 @@ public:
     void setExternalWorkerDefinitionPath(QString path);
     void loadWorkerDefinitions();
 
-    void connectView(NodeView* view);
     void connectViewController(ViewController* view);
+    void disconnectViewController(ViewController *view);
 
     //Gets the Model Node.
     Model* getModel();
@@ -157,16 +158,26 @@ public:
     QStringList getAllNodeKinds();
     QStringList getGUIConstructableNodeKinds();
     //Returns a list of Kinds which can be adopted by a Node.
-    QStringList getAdoptableNodeKinds(int ID);
     QList<int> getFunctionIDList();
     //QStringList getAdoptableNodeKinds(Node* parent);
 
     QList<int> getConnectableNodes(int srcID);
     QList<int> getConnectedNodes(int ID);
 
-    QStringList getValidKeyValues(QString keyName, int ID =-1);
-    QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
 
+//LOCKED FUNCTIONS
+    QStringList getAdoptableNodeKinds(int ID);
+    QStringList getValidKeyValues(int ID, QString keyName);
+    QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind);
+    QList<int> getConstructableNodeDefinitions(int parentID, QString instanceNodeKind);
+
+private:
+    QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, Edge::EDGE_CLASS edgeKind);
+
+public:
+
+    //NOT NEEDED
+    QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
     QString getData(int ID, QString key);
 
 
@@ -185,9 +196,11 @@ public:
     bool canRedo();
     bool canLocalDeploy();
 
-    QString getProjectFileName();
+    QString getProjectFileName() const;
+    bool projectRequiresSaving() const;
 
-    bool projectRequiresSaving();
+    QString getProjectSaveFile();
+
 
     bool isNodeAncestor(int ID, int ID2);
 
@@ -206,6 +219,9 @@ public:
 
     void setProjectFilePath(QString filePath);
 signals:
+    void projectModified(bool modified);
+    void initiateTeardown();
+    void controller_dead();
     void entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
 
@@ -219,6 +235,7 @@ signals:
     void controller_ProjectFileChanged(QString);
     void controller_ProjectNameChanged(QString);
 
+    void undoRedoChanged();
     void controller_CanUndo(bool ok);
     void controller_CanRedo(bool ok);
     void controller_IsModelReady(bool ready);
@@ -256,9 +273,10 @@ public slots:
     void initializeModel();
 
     void setData(int parentID, QString keyName, QVariant dataValue);
+    void destructteardown();
 private slots:
 
-    void projectSaved(bool success, QString filePath);
+    void projectSaved(QString filePath);
     void enableDebugLogging(bool logMode, QString applicationPath="");
 
     void connectViewAndSetupModel(NodeView* view);
@@ -279,7 +297,6 @@ private slots:
     void undo();
     void redo();
 
-    void saveProject(QString filePath);
     void openProject(QString filepath, QString xmlData);
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
@@ -505,7 +522,7 @@ private:
     QString getSysOSVersion();
 
     //Stores the GraphMLKey's used by the Model.
-    QList<Key*> keys;
+    QHash<QString, Key*> keys;
 
     //Stores the list of nodeID's and EdgeID's inside the Hash.
     QList<int> nodeIDs;
@@ -587,6 +604,9 @@ private:
     //List of undeleteable nodes
     QList<Node*> protectedNodes;
 
+    QList<Node*> getAllNodes();
+    QList<Node*> getNodes(QList<int> IDs);
+
 
     QHash<QString, ManagementComponent*> managementComponents;
 
@@ -622,9 +642,13 @@ private:
     bool DESTRUCTING_CONTROLLER;
 
 
-    QString projectFileSavePath;
+    QString projectFilePath;
+    bool projectFilePathSet;
 
     bool projectDirty;
+
+    QThread* controllerThread;
+    QReadWriteLock lock;
 
 };
  QDataStream &operator<<(QDataStream &out, const EventAction &action);

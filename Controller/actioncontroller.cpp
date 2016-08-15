@@ -9,6 +9,7 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
 
 
+    _controllerReady = false;
     _modelReady = false;
     _jenkinsValidated = false;
     setupActions();
@@ -20,17 +21,21 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
     connect(SettingsController::settings(), SIGNAL(settingChanged(SETTING_KEY,QVariant)), this, SLOT(settingChanged(SETTING_KEY,QVariant)));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
-    selectionChanged(0);
     themeChanged();
     connectViewController(vc);
+
+    updateActions();
 }
 
 void ActionController::connectViewController(ViewController *controller)
 {
 
     if(viewController){
-        connect(controller, &ViewController::canUndo, edit_undo, &QAction::setEnabled);
-        connect(controller, &ViewController::canRedo, edit_redo, &QAction::setEnabled);
+        connect(controller, &ViewController::controllerReady, this, &ActionController::controllerReady);
+        connect(controller, &ViewController::modelReady, this, &ActionController::modelReady);
+
+        connect(controller, &ViewController::undoRedoChanged, this, &ActionController::updateUndoRedo);
+
 
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
         connect(file_openProject, &QAction::triggered, viewController, &ViewController::openProject);
@@ -38,9 +43,20 @@ void ActionController::connectViewController(ViewController *controller)
         connect(file_saveProject, &QAction::triggered, viewController, &ViewController::saveProject);
         connect(file_saveAsProject, &QAction::triggered, viewController, &ViewController::saveAsProject);
         connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::_importProjects);
+        connect(file_exit, &QAction::triggered, viewController, &ViewController::closeMEDEA);
 
         connect(edit_undo, &QAction::triggered, viewController, &ViewController::undo);
         connect(edit_redo, &QAction::triggered, viewController, &ViewController::redo);
+        connect(edit_cut, &QAction::triggered, viewController, &ViewController::cut);
+        connect(edit_copy, &QAction::triggered, viewController, &ViewController::copy);
+        connect(edit_paste, &QAction::triggered, viewController, &ViewController::paste);
+        connect(edit_replicate, &QAction::triggered, viewController, &ViewController::replicate);
+        connect(view_fitView, &QAction::triggered, viewController, &ViewController::fitView);
+        connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
+
+
+
+
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
 
         connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
@@ -116,106 +132,71 @@ void ActionController::jenkinsValidated(bool success)
 void ActionController::selectionChanged(int selectionSize)
 {
     if(selectionController){
-        QVector<ViewItem*> selection = selectionController->getSelection();
-
-        bool noModel = selectionSize == -1;
-        bool emptySelection = selectionSize == 0;
-
-
-        if(emptySelection || !_modelReady){
-            edit_cut->setEnabled(false);
-            edit_copy->setEnabled(false);
-            edit_paste->setEnabled(false);
-            edit_replicate->setEnabled(false);
-            edit_delete->setEnabled(false);
-            edit_sort->setEnabled(false);
-            edit_alignHorizontal->setEnabled(false);
-            edit_alignVertical->setEnabled(false);
-
-            edit_CycleActiveSelectionForward->setEnabled(false);
-            edit_CycleActiveSelectionBackward->setEnabled(false);
-
-            view_centerOn->setEnabled(false);
-            view_centerOnDefn->setEnabled(false);
-            view_centerOnImpl->setEnabled(false);
-            view_viewInNewWindow->setEnabled(false);
-            view_viewConnections->setEnabled(false);
-
-            file_importSnippet->setEnabled(false);
-            file_exportSnippet->setEnabled(false);
-            edit_clearSelection->setEnabled(false);
-
-            if(_modelReady){
-                edit_selectAll->setEnabled(true);
-            }else{
-                edit_selectAll->setEnabled(false);
-            }
-        }else if(!emptySelection){
-
-            edit_CycleActiveSelectionForward->setEnabled(selectionSize > 1);
-            edit_CycleActiveSelectionBackward->setEnabled(selectionSize > 1);
-
-            if(selectionSize > 1){
-                edit_selectAll->setEnabled(false);
-                edit_CycleActiveSelectionForward->setEnabled(true);
-                edit_CycleActiveSelectionBackward->setEnabled(true);
-            }else if(selectionSize == 1){
-                edit_selectAll->setEnabled(true);
-                edit_clearSelection->setEnabled(true);
-                view_viewInNewWindow->setEnabled(true);
-            }
-            edit_clearSelection->setEnabled(true);
-            view_centerOn->setEnabled(true);
-            edit_cut->setEnabled(true);
-            edit_copy->setEnabled(true);
-            edit_paste->setEnabled(true);
-            edit_replicate->setEnabled(true);
-            edit_delete->setEnabled(true);
-            edit_sort->setEnabled(true);
-            edit_alignHorizontal->setEnabled(true);
-            edit_alignVertical->setEnabled(true);
-
-            // TODO - Only put this here for testing
-            view_centerOnDefn->setEnabled(true);
-            view_centerOnImpl->setEnabled(true);
+        if(selectionSize == -1){
+            selectionSize = selectionController->getSelectionCount();
         }
+
+        bool controllerReady = viewController->isControllerReady();
+        bool modelReady = viewController->isModelReady();
+
+        bool modelActions = controllerReady && modelReady;
+
+        bool gotSingleSelection = modelActions && selectionSize == 1;
+        bool gotSelection = modelActions && selectionSize > 0;
+        bool gotMultipleSelection = modelActions && selectionSize > 1;
+
+
+
+
+        edit_cut->setEnabled(gotSingleSelection);
+        edit_copy->setEnabled(gotSingleSelection);
+        edit_paste->setEnabled(gotSingleSelection);
+
+
+
+        edit_replicate->setEnabled(gotSelection);
+        edit_delete->setEnabled(gotSelection);
+        edit_sort->setEnabled(gotSelection);
+
+
+        edit_alignHorizontal->setEnabled(gotMultipleSelection);
+        edit_alignVertical->setEnabled(gotMultipleSelection);
+
+        edit_CycleActiveSelectionForward->setEnabled(gotMultipleSelection);
+        edit_CycleActiveSelectionBackward->setEnabled(gotMultipleSelection);
+
+        view_fitView->setEnabled(modelActions);
+
+        view_centerOn->setEnabled(gotSelection);
+
+        //EXTRA LOGIC
+        view_centerOnDefn->setEnabled(gotSingleSelection);
+        view_centerOnImpl->setEnabled(gotSingleSelection);
+
+        view_viewInNewWindow->setEnabled(gotSingleSelection);
+
+        view_viewConnections->setEnabled(false);
+        file_importSnippet->setEnabled(false);
+        file_exportSnippet->setEnabled(false);
+
+        edit_clearSelection->setEnabled(gotMultipleSelection);
+        edit_selectAll->setEnabled(gotSingleSelection);
 
 
         applicationToolbar->updateSpacers();
     }
 }
 
+void ActionController::controllerReady(bool ready)
+{
+    qCritical() << "controllerReady: " << ready;
+    updateActions();
+}
+
 void ActionController::modelReady(bool ready)
 {
-    _modelReady = ready;
-    file_importGraphML->setEnabled(ready);
-    file_importXME->setEnabled(ready);
-    file_importXMI->setEnabled(ready);
-    file_saveProject->setEnabled(ready);
-    file_saveAsProject->setEnabled(ready);
-    file_closeProject->setEnabled(ready);
-
-    edit_undo->setEnabled(ready);
-    edit_redo->setEnabled(ready);
-
-    model_validateModel->setEnabled(ready);
-    model_clearModel->setEnabled(ready);
-    model_executeLocalJob->setEnabled(ready);
-
-    edit_search->setEnabled(ready);
-    view_fitToScreen->setEnabled(ready);
-    window_printScreen->setEnabled(ready);
-    jenkins_importNodes->setEnabled(ready);
-    jenkins_executeJob->setEnabled(ready);
-    toolbar_contextToolbar->setEnabled(ready);
-
-    toolbar_addDDSQOSProfile->setEnabled(ready);
-
-    if(!ready){
-        //Update the selection changed with a special thing.
-        selectionChanged(-1);
-    }
-    updateJenkinsActions();
+    qCritical() << "modelReady: " << ready;
+    updateActions();
 }
 
 void ActionController::themeChanged()
@@ -233,6 +214,18 @@ void ActionController::updateJenkinsActions()
 {
     jenkins_importNodes->setEnabled(_modelReady && _jenkinsValidated);
     jenkins_executeJob->setEnabled(_modelReady && _jenkinsValidated);
+}
+
+void ActionController::updateUndoRedo()
+{
+    if(viewController){
+        bool controllerReady = viewController->isControllerReady();
+        bool modelReady = viewController->isModelReady();
+
+        bool modelActions = controllerReady && modelReady;
+        edit_undo->setEnabled(modelActions && viewController->canUndo());
+        edit_redo->setEnabled(modelActions && viewController->canRedo());
+    }
 }
 
 QAction *ActionController::getSettingAction(SETTING_KEY key)
@@ -266,9 +259,54 @@ QAction *ActionController::getSettingAction(SETTING_KEY key)
         return toolbar_alignVertical;
     case SK_TOOLBAR_ALIGN_VERTICAL:
         return toolbar_alignHorizontal;
+    case SK_TOOLBAR_SEARCH:
+        return toolbar_search;
     default:
         return 0;
     }
+}
+
+void ActionController::updateActions()
+{
+    bool controllerReady = viewController->isControllerReady();
+    bool modelReady = viewController->isModelReady();
+
+    bool modelActions = controllerReady && modelReady;
+
+    file_newProject->setEnabled(controllerReady);
+    file_openProject->setEnabled(controllerReady);
+    file_closeProject->setEnabled(controllerReady);
+
+
+
+    file_importGraphML->setEnabled(modelActions);
+    file_importXME->setEnabled(modelActions);
+    file_importXMI->setEnabled(modelActions);
+    file_saveProject->setEnabled(modelActions);
+    file_saveAsProject->setEnabled(modelActions);
+    file_closeProject->setEnabled(modelActions);
+
+    edit_undo->setEnabled(modelActions);
+    edit_redo->setEnabled(modelActions);
+
+    model_validateModel->setEnabled(modelActions);
+    model_clearModel->setEnabled(modelActions);
+    model_executeLocalJob->setEnabled(modelActions);
+
+    edit_search->setEnabled(modelActions);
+    view_fitView->setEnabled(modelActions);
+    window_printScreen->setEnabled(modelActions);
+    jenkins_importNodes->setEnabled(modelActions);
+    jenkins_executeJob->setEnabled(modelActions);
+    toolbar_contextToolbar->setEnabled(modelActions);
+
+    toolbar_addDDSQOSProfile->setEnabled(modelActions);
+
+    //Update the selection changed with a special thing.
+    selectionChanged(-1);
+
+    updateUndoRedo();
+    updateJenkinsActions();
 }
 
 void ActionController::updateIcon(RootAction *action, Theme *theme)
@@ -304,11 +342,11 @@ void ActionController::setupActions()
     file_closeProject->setShortcut(QKeySequence::Close);
 
 
-
-
-
-
     file_importGraphML = createRootAction("Import Project", "", "Actions", "Import");
+    file_importGraphML->setShortcutContext(Qt::ApplicationShortcut);
+    file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
+
+
     file_importXME = createRootAction("Import XME File", "", "Actions", "ImportXME");
     file_importXMI = createRootAction("Import UML XMI File", "", "Actions", "ImportXMI");
     file_importSnippet = createRootAction("Import Snippet", "", "Actions", "ImportSnippet");
@@ -322,15 +360,21 @@ void ActionController::setupActions()
     edit_redo->setShortcut(QKeySequence::Redo);
 
     edit_cut = createRootAction("Cut", "", "Actions", "Cut");
+    edit_cut->setShortcutContext(Qt::ApplicationShortcut);
     edit_cut->setShortcut(QKeySequence::Cut);
 
     edit_copy = createRootAction("Copy", "", "Actions", "Copy");
+    edit_copy->setShortcutContext(Qt::ApplicationShortcut);
     edit_copy->setShortcut(QKeySequence::Copy);
 
     edit_paste = createRootAction("Paste", "", "Actions", "Paste");
+    edit_paste->setShortcutContext(Qt::ApplicationShortcut);
     edit_paste->setShortcut(QKeySequence::Paste);
 
     edit_replicate = createRootAction("Replicate", "", "Actions", "Replicate");
+    edit_replicate->setShortcutContext(Qt::ApplicationShortcut);
+    edit_replicate->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+
     edit_delete = createRootAction("Delete", "Delete", "Actions", "Delete");
     edit_delete->setShortcut(QKeySequence::Delete);
     edit_delete->setShortcutContext(Qt::ApplicationShortcut);
@@ -357,7 +401,10 @@ void ActionController::setupActions()
     edit_clearSelection->setShortcut(QKeySequence(Qt::Key_Escape));
     edit_clearSelection->setShortcutContext(Qt::ApplicationShortcut);
 
-    view_fitToScreen = createRootAction("Fit To Screen", "", "Actions", "FitToScreen");
+    view_fitView = createRootAction("Fit View", "", "Actions", "FitToScreen");
+    view_fitView->setShortcutContext(Qt::ApplicationShortcut);
+    view_fitView->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
+
     view_centerOn = createRootAction("Center On Selection", "", "Actions", "Crosshair");
     view_centerOnDefn = createRootAction("Center On Definition", "", "Actions", "Definition");
     view_centerOnImpl = createRootAction("Center On Implementation", "", "Actions", "Implementation");
@@ -468,7 +515,7 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_CycleActiveSelectionBackward);
 
      // View Menu
-    menu_view->addAction(view_fitToScreen);
+    menu_view->addAction(view_fitView);
     menu_view->addSeparator();
     menu_view->addAction(view_centerOn);
     menu_view->addAction(view_centerOnDefn);
@@ -515,21 +562,23 @@ void ActionController::setupApplicationToolbar()
     toolbar_paste = applicationToolbar->addAction(edit_paste->constructSubAction(false));
     toolbar_replicate = applicationToolbar->addAction(edit_replicate->constructSubAction(false));
     applicationToolbar->addSeperator();
-    toolbar_fitToScreen = applicationToolbar->addAction(view_fitToScreen->constructSubAction(false));
+    toolbar_fitToScreen = applicationToolbar->addAction(view_fitView->constructSubAction(false));
     toolbar_centerOn = applicationToolbar->addAction(view_centerOn->constructSubAction(false));
     toolbar_viewInNewWindow = applicationToolbar->addAction(view_viewInNewWindow->constructSubAction(false));
     applicationToolbar->addSeperator();
     toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
     toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
+    toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
     applicationToolbar->addSeperator();
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
 
-//#ifdef TARGET_OS_MAC
-    applicationToolbar->addSeperator();
-    applicationToolbar->addAction(edit_search);
-//#endif
 
+    SettingsController* s = SettingsController::settings();
+    foreach(SETTING_KEY key, s->getSettingsKeys("Toolbar", "Visible Buttons")){
+        settingChanged(key, s->getSetting(key));
+    }
+    applicationToolbar->updateSpacers();
 }
 
 void ActionController::setupContextToolbar()

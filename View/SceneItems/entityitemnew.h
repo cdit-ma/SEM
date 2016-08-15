@@ -30,6 +30,7 @@ public:
     RENDER_STATE getRenderState(qreal lod) const;
     VIEW_STATE getViewState() const;
     EntityItemNew* getParent() const;
+    void unsetParent();
     bool isTopLevelItem() const;
 
 

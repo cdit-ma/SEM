@@ -4,7 +4,6 @@
 #include <QDebug>
 
 
-
 EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind)
 {
     this->viewItem = 0;
@@ -66,6 +65,12 @@ VIEW_STATE EntityItemNew::getViewState() const
 EntityItemNew *EntityItemNew::getParent() const
 {
     return parentItem;
+}
+
+void EntityItemNew::unsetParent()
+{
+    parentItem = 0;
+    setParentItem(0);
 }
 
 bool EntityItemNew::isTopLevelItem() const
@@ -426,6 +431,7 @@ void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    qCritical() << _isMouseMoving;
     if(_isMouseMoving){
         _isMouseMoving = false;
         emit req_adjustingPos(false);

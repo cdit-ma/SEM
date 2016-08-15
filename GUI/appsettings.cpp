@@ -40,6 +40,7 @@ AppSettings::AppSettings(QWidget *parent):QDialog(parent)
 
     setupLayout();
 
+
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
 }
@@ -70,19 +71,21 @@ void AppSettings::themeChanged()
     Theme* theme = Theme::theme();
     tabWidget->setStyleSheet(theme->getTabbedWidgetStyleSheet());
 
-    setStyleSheet(theme->getWidgetStyleSheet() %
-                  "QGroupBox {background: " % theme->getBackgroundColorHex() % "; color: " % theme->getTextColorHex() + "; border:0;padding:0px;margin:0px;}"
-                  "QGroupBox > QGroupBox {border: 1px solid " % theme->getAltBackgroundColorHex() % ";border-radius: 4px; padding:10px;margin-top:8px;}"
-                  "QGroupBox::title {subcontrol-position: top center;subcontrol-origin: margin; padding: 2px; font-weight:bold;}"
-                  "KeyEditWidget {color: " % theme->getTextColorHex() % ";}"
-                  );
-
-
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
-
     warningLabel->setStyleSheet("color: " + theme->getHighlightColorHex() + "; font-weight:bold;");
 
     setWindowIcon(theme->getImage("Actions", "Settings"));
+    setStyleSheet(theme->getWidgetStyleSheet("AppSettings") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() %
+                  "#BACKGROUND_WIDGET {background: " % theme->getBackgroundColorHex() % ";}"
+
+                  );
+                  /*"QGroupBox {background: " % theme->getBackgroundColorHex() % "; color: " % theme->getTextColorHex() + "; border:0;padding:0px;margin:0px;}"
+                  "QGroupBox > QGroupBox {border: 1px solid " % theme->getAltBackgroundColorHex() % ";border-radius: 3px; padding:10px;margin-top:8px;}"
+                  "QGroupBox::title {subcontrol-position: top center;subcontrol-origin: margin; padding: 2px; font-weight:bold;}"
+                  );*/
+
+
+
 }
 
 void AppSettings::dataValueChanged(QString dataKey, QVariant data)
@@ -182,10 +185,12 @@ void AppSettings::setupLayout()
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setSpacing(0);
     layout->setMargin(0);
-    layout->setContentsMargins(0,0,0,0);
+
+    layout->setContentsMargins(0,5,0,5);
 
 
     tabWidget = new QTabWidget(this);
+    tabWidget->setTabPosition(QTabWidget::West);
     tabWidget->setContentsMargins(QMargins(0,0,0,0));
 
     warningLabel = new QLabel("settings.ini file is read-only! Settings changed won't persist!");
@@ -197,6 +202,7 @@ void AppSettings::setupLayout()
     warningAction = toolbar->addWidget(warningLabel);
     clearSettingsAction = toolbar->addAction("Clear");
     applySettingsAction = toolbar->addAction("Apply");
+    layout->addSpacing(2);
     layout->addWidget(toolbar, 0, Qt::AlignRight);
 
     connect(applySettingsAction, &QAction::triggered, this, &AppSettings::applySettings);
@@ -276,7 +282,8 @@ QVBoxLayout *AppSettings::getCategoryLayout(QString category)
         area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         area->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
-        QGroupBox* widget = new QGroupBox(area);
+        QWidget* widget = new QWidget(area);
+        widget->setObjectName("BACKGROUND_WIDGET");
         area->setWidgetResizable(true);
         area->setWidget(widget);
 

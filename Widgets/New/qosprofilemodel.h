@@ -23,6 +23,7 @@ private slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 private:
+    void removeItem(int ID);
     QStandardItem* rootItem;
     QHash<int, QOSModelItem*> modelItems;
 
@@ -30,6 +31,7 @@ private:
 public:
     QVariant data(const QModelIndex &index, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
 };
 
@@ -43,6 +45,7 @@ public:
     QVariant data(int role) const;
 
     void setData(const QVariant &value, int role);
+
 signals:
     void dataChanged(int, QString, QVariant);
 private slots:

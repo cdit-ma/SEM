@@ -19,13 +19,17 @@
 
 #define ZOOM_INCREMENTOR 1.05
 
-NodeViewNew::NodeViewNew():QGraphicsView()
+NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 {
     QRectF sceneRect;
     sceneRect.setSize(QSize(100000,100000));
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
+    //OPENGL
+    //#include <QOpenGLWidget>
+    //setViewport(new QOpenGLWidget());
+    //setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 
 
     setScene(new QGraphicsScene(this));
@@ -90,7 +94,6 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(this, &NodeViewNew::toolbarRequested, viewController, &ViewController::showToolbar);
         connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::triggerAction);
         connect(this, &NodeViewNew::setData, viewController, &ViewController::setData);
-
     }
 }
 
@@ -111,8 +114,6 @@ void NodeViewNew::scale(qreal sx, qreal sy)
 void NodeViewNew::setContainedViewAspect(VIEW_ASPECT aspect)
 {
     containedAspect = aspect;
-
-    backgroundText = GET_ASPECT_NAME(aspect).toUpper();
     isAspectView = true;
     themeChanged();
 }
@@ -121,9 +122,11 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
 {
     if(containedNodeViewItem){
         //Unregister
-        containedNodeViewItem->unregisterObject(this);
         disconnect(containedNodeViewItem, &NodeViewItem::labelChanged, this, &NodeViewNew::viewItem_LabelChanged);
-        viewItem_LabelChanged("DELETED");
+        containedNodeViewItem->unregisterObject(this);
+        if(!isAspectView){
+            deleteLater();
+        }
     }
 
     containedNodeViewItem = item;
@@ -131,13 +134,13 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
     if(containedNodeViewItem){
         containedNodeViewItem->registerObject(this);
 
-        if(containedAspect == VA_NONE){
-            connect(containedNodeViewItem, &NodeViewItem::labelChanged, this, &NodeViewNew::viewItem_LabelChanged);
+        connect(containedNodeViewItem, &NodeViewItem::labelChanged, this, &NodeViewNew::viewItem_LabelChanged);
 
-            viewItem_LabelChanged(item->getData("label").toString());
+        viewItem_LabelChanged(item->getData("label").toString());
 
-            containedAspect = containedNodeViewItem->getViewAspect();
+        containedAspect = containedNodeViewItem->getViewAspect();
 
+        if(!isAspectView){
             viewItem_Constructed(item);
             foreach(ViewItem* item, item->getChildren()){
                 viewItem_Constructed(item);
@@ -171,10 +174,16 @@ void NodeViewNew::viewItem_Constructed(ViewItem *item)
 
 void NodeViewNew::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
+
+
     EntityItemNew* item = getEntityItem(ID);
     if(item){
         topLevelGUIItemIDs.removeAll(ID);
         guiItems.remove(ID);
+        if(item->scene()){
+            scene()->removeItem(item);
+        }
+
         delete item;
     }
 
@@ -245,6 +254,12 @@ void NodeViewNew::fitToScreen()
     centerRect(scene()->itemsBoundingRect());
 }
 
+void NodeViewNew::centerSelection()
+{
+
+    centerOnItems(getSelectedItems());
+}
+
 void NodeViewNew::item_Selected(ViewItem *item, bool append)
 {
     if(selectionHandler){
@@ -284,9 +299,10 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
 
         foreach(ViewItem* viewItem, selectionHandler->getSelection()){
             EntityItemNew* item = getEntityItem(viewItem);
-            if(item){
-                item->setMoving(adjusting);
+            if(!item){
+                continue;
             }
+            item->setMoving(adjusting);
             if(!adjusting){
                 int id = item->getID();
                 QPointF pos = item->pos();
@@ -413,22 +429,6 @@ void NodeViewNew::centerOnItems(QList<EntityItemNew *> items)
     centerRect(itemsRect);
 }
 
-NodeItemNew *NodeViewNew::getModelItem()
-{
-    NodeItemNew* item = 0;
-    if(viewController){
-        ViewItem* viewItem = viewController->getModel();
-        EntityItemNew* model = 0;
-        if(viewItem){
-            model = getEntityItem(viewItem->getID());
-        }
-        if(model && model->isNodeItem()){
-            item = (NodeItemNew*) model;
-        }
-    }
-    return item;
-}
-
 void NodeViewNew::centerRect(QRectF rectScene)
 {
     //Inflate by 110%
@@ -468,7 +468,8 @@ void NodeViewNew::viewItem_LabelChanged(QString label)
 
 QRectF NodeViewNew::viewportRect()
 {
-    return mapToScene(rect()).boundingRect();
+//    return mapToScene(rect()).boundingRect();
+    return mapToScene(viewport()->rect()).boundingRect();
 }
 
 void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
@@ -555,6 +556,18 @@ QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems()
     foreach(int ID, topLevelGUIItemIDs){
         if(guiItems.contains(ID)){
             items.append(guiItems[ID]);
+        }
+    }
+    return items;
+}
+
+QList<EntityItemNew *> NodeViewNew::getSelectedItems()
+{
+    QList<EntityItemNew*> items;
+    foreach(ViewItem* item, selectionHandler->getSelection()){
+        EntityItemNew* eItem = getEntityItem(item);
+        if(eItem){
+            items.append(eItem);
         }
     }
     return items;

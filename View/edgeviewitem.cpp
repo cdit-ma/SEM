@@ -1,7 +1,7 @@
 #include "edgeviewitem.h"
 
 
-EdgeViewItem::EdgeViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(ID, entityKind, kind, data, properties)
+EdgeViewItem::EdgeViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(controller, ID, entityKind, kind, data, properties)
 {
 }
 

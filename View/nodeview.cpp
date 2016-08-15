@@ -1534,7 +1534,7 @@ void NodeView::showDropDown(GraphMLItem *item, QLineF dropDownPosition, QString 
         int width = topRight.x() - topLeft.x();
 
 
-        QStringList validValues = controller->getValidKeyValues(keyName, item->getID());
+        QStringList validValues = controller->getValidKeyValues(item->getID(), keyName);
         comboBox->clear();
 
         comboBox->addItems(validValues);

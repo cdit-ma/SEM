@@ -9,6 +9,7 @@
 #include <QSysInfo>
 #include <QDir>
 #include <QStringBuilder>
+#include <QReadWriteLock>
 #include "edgeadapter.h"
 #include "nodeadapter.h"
 #include "../Model/tempentity.h"
@@ -18,8 +19,22 @@ bool REDO = false;
 bool SETUP_AS_INSTANCE = true;
 bool SETUP_AS_IMPL = false;
 
-NewController::NewController()
+static int count = 0;
+
+NewController::NewController() :QObject(0)
 {
+    //lock.lockForWrite();
+    projectFilePathSet = false;
+
+    qCritical() << count ++;
+    controllerThread = new QThread(this);
+    moveToThread(controllerThread);
+
+    connect(this, SIGNAL(destroyed(QObject*)), controllerThread, SLOT(terminate()));
+    connect(this, &NewController::initiateTeardown, this, &QObject::deleteLater, Qt::QueuedConnection);
+    controllerThread->start();
+
+
     qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
     qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
     qRegisterMetaType<GraphML::GRAPHML_KIND>("GraphML::GRAPHML_KIND");
@@ -151,94 +166,17 @@ NewController::NewController()
     guiConstructableNodeKinds.removeDuplicates();
     guiConstructableNodeKinds.sort();
 
+
+
+
+
 }
-
-void NewController::connectView(NodeView *view)
-{
-    view->setController(this);
-
-    //Connect SIGNALS to view Slots (ALL VIEWS)
-    connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(constructEntityItem(EntityAdapter*)));
-
-
-    connect(this, SIGNAL(controller_SetViewEnabled(bool)), view, SLOT(setEnabled(bool)));
-
-
-
-    if(view->isMainView()){
-        connect(this, SIGNAL(controller_ProjectFileChanged(QString)), view, SIGNAL(view_ProjectFileChanged(QString)));
-        connect(this, SIGNAL(controller_ProjectNameChanged(QString)), view, SIGNAL(view_ProjectNameChanged(QString)));
-
-
-        connect(view, SIGNAL(view_ConstructWorkerProcessNode(int,QString,QString,QPointF)), this, SLOT(constructWorkerProcessNode(int, QString, QString, QPointF)));
-        connect(this, SIGNAL(controller_CanRedo(bool)), view, SLOT(canRedo(bool)));
-        connect(this, SIGNAL(controller_CanUndo(bool)), view, SLOT(canUndo(bool)));
-        connect(view, SIGNAL(view_constructDestructEdges(QList<int>, int)), this, SLOT(constructDestructMultipleEdges(QList<int>, int)));
-        connect(view, SIGNAL(view_EnableDebugLogging(bool, QString)), this, SLOT(enableDebugLogging(bool, QString)));
-        connect(this, SIGNAL(controller_ProjectRequiresSave(bool)), view, SIGNAL(view_ProjectRequiresSaving(bool)));
-
-
-        connect(view, SIGNAL(view_DestructEdge(int, int)), this, SLOT(destructEdge(int, int)));
-        //Pass Through Signals to GUI.
-        connect(view, SIGNAL(view_ClearHistoryStates()), this, SLOT(clearHistory()));
-        connect(view, SIGNAL(view_Clear()), this, SLOT(clear()));
-        connect(this, SIGNAL(controller_ExportedProject(QString)), view, SIGNAL(view_ExportedProject(QString)));
-
-        connect(this, SIGNAL(controller_SetClipboardBuffer(QString)), view, SIGNAL(view_SetClipboardBuffer(QString)));
-
-
-        connect(this, SIGNAL(controller_ActionProgressChanged(int,QString)), view, SIGNAL(view_updateProgressStatus(int,QString)));
-
-        //Signals to the View.
-        connect(this, SIGNAL(controller_DisplayMessage(MESSAGE_TYPE,QString,QString,QString,int)), view, SLOT(showMessage(MESSAGE_TYPE,QString,QString,QString,int)));
-
-        // Re-added this for now
-
-        connect(this, SIGNAL(controller_ExportedSnippet(QString,QString)), view, SIGNAL(view_ExportedSnippet(QString,QString)));
-
-        connect(this, SIGNAL(controller_AskQuestion(MESSAGE_TYPE, QString, QString, int)), view, SLOT(showQuestion(MESSAGE_TYPE,QString,QString,int)));
-        connect(view, SIGNAL(view_QuestionAnswered(bool)), this, SLOT(gotQuestionAnswer(bool)));
-        connect(this, SIGNAL(controller_ModelReady()), view, SLOT(modelReady()));
-    }
-
-    if(view->isMainView()){
-        connect(this, SIGNAL(controller_ActionFinished()), view, SLOT(actionFinished()));
-        connect(view, SIGNAL(view_Replicate(QList<int>)), this, SLOT(replicate(QList<int>)));
-        //File SLOTS
-        connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
-
-        connect(view, SIGNAL(view_OpenProject(QString, QString)), this, SLOT(openProject(QString, QString)));
-        connect(view, SIGNAL(view_SaveProject(QString)), this, SLOT(saveProject(QString)));
-        connect(this, SIGNAL(controller_SavedProject(QString,QString)), view, SIGNAL(view_SavedProject(QString, QString)));
-        connect(view, SIGNAL(view_ProjectSaved(bool,QString)), this, SLOT(projectSaved(bool,QString)));
-
-        connect(view, SIGNAL(view_ImportedSnippet(QList<int>,QString,QString)), this, SLOT(importSnippet(QList<int>,QString,QString)));
-        connect(view, SIGNAL(view_ExportSnippet(QList<int>)), this, SLOT(exportSnippet(QList<int>)));
-
-        //Edit SLOTS
-        connect(view, SIGNAL(view_Undo()), this, SLOT(undo()));
-        connect(view, SIGNAL(view_Redo()), this, SLOT(redo()));
-        connect(view, SIGNAL(view_Delete(QList<int>)), this, SLOT(remove(QList<int>)));
-        connect(view, SIGNAL(view_Copy(QList<int>)), this, SLOT(copy(QList<int>)));
-        connect(view, SIGNAL(view_Cut(QList<int>)), this, SLOT(cut(QList<int>)));
-        connect(view, SIGNAL(view_SetReadOnly(QList<int>,bool)), this, SLOT(setReadOnly(QList<int>,bool)));
-        connect(view, SIGNAL(view_Paste(int,QString)), this, SLOT(paste(int,QString)));
-
-        //Node Slots
-        connect(view, SIGNAL(view_ConstructEdge(int,int, bool)), this, SLOT(constructEdge(int, int)));
-        connect(view, SIGNAL(view_ConstructNode(int,QString,QPointF)), this, SLOT(_constructNode(int,QString,QPointF)));
-
-
-        connect(view, SIGNAL(view_ConstructConnectedNode(int,int,QString,QPointF)), this, SLOT(constructConnectedNode(int,int,QString,QPointF)));
-
-
-    }
-}
-
 void NewController::connectViewController(ViewController *view)
 {
     connect(this, &NewController::entityConstructed, view, &ViewController::controller_entityConstructed);
     connect(this, &NewController::entityDestructed, view, &ViewController::controller_entityDestructed);
+    connect(view, &ViewController::initializeModel, this, &NewController::initializeModel);
+    connect(this, &NewController::controller_IsModelReady, view, &ViewController::setControllerReady);
 
     connect(this, &NewController::dataChanged, view, &ViewController::controller_dataChanged);
     connect(this, &NewController::dataRemoved, view, &ViewController::controller_dataRemoved);
@@ -246,7 +184,6 @@ void NewController::connectViewController(ViewController *view)
     connect(this, &NewController::propertyChanged, view, &ViewController::controller_propertyChanged);
     connect(this, &NewController::propertyRemoved, view, &ViewController::controller_propertyRemoved);
 
-    connect(view, &ViewController::initializeModel, this, &NewController::initializeModel);
     connect(view, &ViewController::importProjects, this, &NewController::importProjects);
     connect(view, &ViewController::vc_openProject, this, &NewController::openProject);
 
@@ -255,18 +192,43 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::constructNode, this, &NewController::constructNode);
     connect(view, &ViewController::triggerAction, this, &NewController::triggerAction);
 
+    connect(view, &ViewController::projectSaved, this, &NewController::projectSaved);
+
+
+
 
     connect(view, &ViewController::undo, this, &NewController::undo);
     connect(view, &ViewController::redo, this, &NewController::redo);
 
-    connect(this, SIGNAL(controller_IsModelReady(bool)), view, SLOT(setModelReady(bool)));
-    connect(this, SIGNAL(controller_CanRedo(bool)), view, SIGNAL(canRedo(bool)));
-    connect(this, SIGNAL(controller_CanUndo(bool)), view, SIGNAL(canUndo(bool)));
+    connect(view, &ViewController::cutEntities, this, &NewController::cut);
+    connect(view, &ViewController::copyEntities, this, &NewController::copy);
+    connect(view, &ViewController::pasteIntoEntity, this, &NewController::paste);
+    connect(view, &ViewController::replicateEntities, this, &NewController::replicate);
+
+
+
+
+    connect(this, &NewController::projectModified, view, &ViewController::projectModified);
+    connect(this, &NewController::controller_ProjectFileChanged, view, &ViewController::projectPathChanged);
+
+
+    connect(this, &NewController::controller_IsModelReady, view, &ViewController::setModelReady);
+
+    connect(this, &NewController::controller_SetClipboardBuffer, view, &ViewController::setClipboardData);
+    connect(this, &NewController::controller_ActionFinished, view, &ViewController::actionFinished);
+
+    connect(this, &NewController::undoRedoChanged, view, &ViewController::undoRedoChanged);
 
     connect(view, SIGNAL(deleteEntities(QList<int>)), this, SLOT(remove(QList<int>)));
 
-
     view->setController(this);
+}
+
+void NewController::disconnectViewController(ViewController *view)
+{
+    view->disconnect(this);
+    this->disconnect(view);
+    emit initiateTeardown();
 }
 
 
@@ -276,23 +238,91 @@ void NewController::initializeModel()
     setupModel();
     loadWorkerDefinitions();
     clearHistory();
+    //lock.unlock();
     INITIALIZING = false;
+
+
+    Entity* entity = getModel();
+
+
+    int count = 10000000;
+
+    int i = count;
+    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    while(i > 0){
+        Node* node = qobject_cast<Node*>(entity);
+        QWidget* widget = qobject_cast<QWidget*>(entity);
+        Model* model = qobject_cast<Model*>(entity);
+
+        if(node){
+        }
+        if(widget){
+        }
+        if(model){
+        }
+        i --;
+    }
+
+    qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    i = count;
+    while(i > 0){
+        Node* node = dynamic_cast<Node*>(entity);
+        QWidget* widget = dynamic_cast<QWidget*>(entity);
+        Model* model = dynamic_cast<Model*>(entity);
+
+        if(node){
+        }
+        if(widget){
+        }
+        if(model){
+        }
+
+        i --;
+    }
+
+
+    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    i = count;
+    while(i > 0){
+        int ID = entity->getGraphMLKind();
+
+        if(ID == LIGHTER_SHADE){
+        }
+        if(ID == NORMAL_SHADE){
+        }
+        if(ID == DARKER_SHADE){
+        }
+        i --;
+    }
+
+    qint64 time3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+
+    qCritical() << "qobject_cast(x " << count << "): " << time1 - timeStart << "MS";
+    qCritical() << "dynamic_cast(x " << count << "): " << time2 - time1 << "MS";
+    qCritical() << "enum_compare(x " << count << "): " << time3 - time2 << "MS";
+
+
     emit controller_IsModelReady(true);
+
     emit controller_ModelReady();
+
+    emit controller_ProjectFileChanged("Untitled Project");
+    emit projectModified(true);
 }
 
 NewController::~NewController()
 {
-    emit controller_IsModelReady(false);
     enableDebugLogging(false);
 
     DESTRUCTING_CONTROLLER = true;
 
-    destructNode(model);
     destructNode(workerDefinitions);
+    destructNode(model);
+
 
     while(!keys.isEmpty()){
-        delete keys.takeFirst();
+        delete keys.take(keys.keys().first());
     }
 }
 
@@ -343,7 +373,7 @@ void NewController::loadWorkerDefinitions()
                     QString message = "Cannot import worker definition '" + file +"'";
                     emit controller_DisplayMessage(WARNING, message, "Worker Definition Error", "Warning");
                 }else{
-                    qCritical() << "Loaded Worker Definition: " << file;
+                    //qCritical() << "Loaded Worker Definition: " << file;
                 }
             }else{
                 QString message = "Cannot read worker definition '" + file +"'";
@@ -718,7 +748,14 @@ void NewController::setViewSignalsEnabled(bool enabled, bool sendQueuedSignals)
 
 void NewController::updateUndoRedoState()
 {
+    int undos = undoActionStack.size();
+    int redos = undoActionStack.size();
+
+    if(undos <= 1 || redos <= 1){
+        emit undoRedoChanged();
+    }
     if(undoActionStack.isEmpty()){
+
         emit controller_CanUndo(false);
     }else if(undoActionStack.size() == 1){
         emit controller_CanUndo(true);
@@ -734,6 +771,8 @@ void NewController::updateUndoRedoState()
 
 void NewController::constructNode(int parentID, QString kind, QPointF centerPoint)
 {
+    qCritical() << parentID;
+    qCritical() << kind;
     if(kind != ""){
         bool ignore = false;
         Node* parentNode = getNodeFromID(parentID);
@@ -961,6 +1000,24 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<Data *> d
     return edge;
 }
 
+QList<Node *> NewController::getAllNodes()
+{
+    return getNodes(nodeIDs);
+}
+
+QList<Node *> NewController::getNodes(QList<int> IDs)
+{
+    QList<Node* > nodes;
+    foreach(int ID, IDs){
+        Node* node = getNodeFromID(ID);
+        if(node){
+            nodes.append(node);
+        }
+    }
+    return nodes;
+
+}
+
 
 void NewController::triggerAction(QString actionName)
 {
@@ -986,22 +1043,9 @@ void NewController::redo()
     emit controller_ActionFinished();
 }
 
-void NewController::saveProject(QString filePath="")
-{
-    if(model){
-        QString fileData = _exportGraphMLDocument(model);
-
-        if(filePath == ""){
-            //Use current project file path.
-            filePath = projectFileSavePath;
-        }
-        emit controller_SavedProject(filePath, fileData);
-    }
-    emit controller_ActionFinished();
-}
-
 void NewController::openProject(QString filePath, QString xmlData)
 {
+    //lock.lockForWrite();
     OPENING_PROJECT = true;
 
 
@@ -1017,6 +1061,8 @@ void NewController::openProject(QString filePath, QString xmlData)
         //Undo the failed load.
         //undoRedo(true);
     }
+
+
     setProjectFilePath(filePath);
 
     //Clear the Undo/Redo History.
@@ -1028,6 +1074,7 @@ void NewController::openProject(QString filePath, QString xmlData)
     setProjectDirty(false);
 
     emit controller_ActionFinished();
+    //lock.unlock();
 }
 
 
@@ -1564,44 +1611,26 @@ long long NewController::getMACAddress()
  */
 QStringList NewController::getAdoptableNodeKinds(int ID)
 {
+    lock.lockForRead();
     QStringList adoptableNodeKinds;
 
     Node* parent = getNodeFromID(ID);
 
-    if(parent){
-        //Ignore all children for read only kind.
-        if(parent->isReadOnly()){
-            return adoptableNodeKinds;
-        }
-
-        QString parentNodeKind = parent->getDataValue("kind").toString();
-
+    //Ignore all children for read only kind.
+    if(parent && !parent->isReadOnly()){
         foreach(QString nodeKind, getGUIConstructableNodeKinds()){
-            //Construct a Node of the Kind nodeKind.
-            bool ignoreKind = false;
             Node* node = constructTypedNode(nodeKind, true);
             if(node){
-                //Ignore AggregateInstance for all kinds except Aggregate's
-                if(nodeKind == "AggregateInstance" || nodeKind == "VectorInstance"){
-                    if(parentNodeKind != "Aggregate" && parentNodeKind != "Variable" && parentNodeKind != "Vector"){
-                        ignoreKind = true;
-                    }
+                if(parent->canAdoptChild(node)){
+                    adoptableNodeKinds.append(nodeKind);
                 }
-
-                if(!ignoreKind && parent->canAdoptChild(node)){
-                    if(!adoptableNodeKinds.contains(nodeKind)){
-                        adoptableNodeKinds.append(nodeKind);
-                    }
-                }
-
-                //If we have made a new Node we should delete it.
-                if(!protectedNodes.contains(node)){
-                    //Clear Memory
-                    delete node;
-                }
+                //Clean up memory.
+                delete node;
             }
         }
     }
+
+    lock.unlock();
     return adoptableNodeKinds;
 }
 
@@ -1619,22 +1648,23 @@ QList<int> NewController::getFunctionIDList()
 
 QList<int> NewController::getConnectableNodes(int srcID)
 {
+    lock.lockForRead();
     QList<int> legalNodes;
+
     Node* src = getNodeFromID(srcID);
     if(src){
-        foreach (int ID, nodeIDs) {
+        foreach (int ID, nodeIDs){
             Node* dst = getNodeFromID(ID);
             if(dst && (ID != srcID)){
-
                 if (src->canConnect(dst) != Edge::EC_NONE){
                     legalNodes << ID;
                 }else if (dst->canConnect(src) != Edge::EC_NONE){
                     legalNodes << ID;
                 }
-
             }
         }
     }
+    lock.unlock();
     return legalNodes;
 }
 
@@ -1658,19 +1688,97 @@ QList<int> NewController::getConnectedNodes(int ID)
     return connectedIDs;
 }
 
-QStringList NewController::getValidKeyValues(QString keyName, int nodeID)
+QList<int> NewController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind)
 {
+    lock.lockForRead();
+
+    QList<int> dstIDs;
+    foreach(Node* dst, _getConnectableNodes(getNodes(srcs), edgeKind)){
+        dstIDs.append(dst->getID());
+    }
+    lock.unlock();
+    return dstIDs;
+}
+
+QList<int> NewController::getConstructableNodeDefinitions(int parentID, QString instanceNodeKind)
+{
+    lock.lockForRead();
+
+    QList<int> dstIDs;
+
+    Node* parentNode = getNodeFromID(parentID);
+    Node* childNode = constructTypedNode(instanceNodeKind, true);
+
+    if(childNode && parentNode){
+        if(parentNode->canAdoptChild(childNode)){
+            parentNode->addChild(childNode);
+
+            QList<Node*> source;
+            source << childNode;
+
+            foreach(Node* dst, _getConnectableNodes(source, Edge::EC_DEFINITION)){
+                dstIDs.append(dst->getID());
+            }
+        }
+    }
+    if(childNode){
+        delete childNode;
+    }
+
+    lock.unlock();
+    return dstIDs;
+}
+
+QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edge::EDGE_CLASS edgeKind)
+{
+    QList<Node*> validNodes;
+
+
+
+
+    foreach(Node* src, sourceNodes){
+        if(!src->canAcceptEdgeClass(edgeKind)){
+            sourceNodes.removeAll(src);
+        }
+    }
+
+    if(!sourceNodes.isEmpty()){
+        //Itterate through all nodes.
+        foreach(Node* dst, getAllNodes()){
+            //Ignore nodes which can't take this edge class.
+            if(dst->canAcceptEdgeClass(edgeKind)){
+                bool accepted = true;
+                foreach(Node* src, sourceNodes){
+                    if(src->canConnect(dst) != edgeKind){
+                        accepted = false;
+                        break;
+                    }
+                }
+                if(accepted){
+                    validNodes.append(dst);
+                }
+            }
+        }
+    }
+    return validNodes;
+}
+
+QStringList NewController::getValidKeyValues(int nodeID, QString keyName)
+{
+    lock.lockForRead();
     QStringList validKeyValues;
     Key* key = getKeyFromName(keyName);
     if(key){
-        QString nodeKind;
+        QString nodeKind = "";
         if(nodeID != -1){
             Node* node = getNodeFromID(nodeID);
             nodeKind = node->getNodeKind();
         }
 
         validKeyValues = key->getValidValues(nodeKind);
+
     }
+    lock.unlock();
     return validKeyValues;
 }
 
@@ -1770,13 +1878,11 @@ int NewController::getContainedAspect(int ID)
     return -1;
 }
 
-void NewController::projectSaved(bool success, QString filePath)
+void NewController::projectSaved(QString filePath)
 {
-    if(success){
-        setProjectDirty(false);
-        //Update the file save path.
-        setProjectFilePath(filePath);
-    }
+    setProjectDirty(false);
+    //Update the file save path.
+    setProjectFilePath(filePath);
 }
 
 /**
@@ -1785,7 +1891,7 @@ void NewController::projectSaved(bool success, QString filePath)
  */
 void NewController::connectViewAndSetupModel(NodeView *view)
 {
-    connectView(view);
+    //connectView(view);
     initializeModel();
 }
 
@@ -1847,7 +1953,7 @@ QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeI
 
 Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTITY_KIND entityKind)
 {
-    Key* newKey = new Key(name, type, entityKind);
+    Key* newKey = new Key(name, type, Entity::EK_ALL);
 
     //Search for a matching Key. If we find one, remove the newly created Key
     foreach(Key* key, keys){
@@ -1887,12 +1993,6 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         keysValues << "Model";
         validValues << "tao" << "rtidds" << "opensplice" << "coredx" << "tcpip" << "qpidpb" ;
         newKey->addValidValues(validValues, keysValues);
-    }
-
-    if(type == QVariant::Bool){
-        QStringList validValues;
-        validValues << "true" << "false";
-        newKey->addValidValues(validValues);
     }
 
     if (name == "actionOn") {
@@ -2013,8 +2113,13 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
 
     connect(newKey, SIGNAL(validateError(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
     //Add it to the list of Keys.
-    keys.append(newKey);
+    if(keys.contains(name)){
+        qCritical() << "Got Duplicate Keys: " << name;
+    }else{
+        keys[name] = newKey;
+    }
 
+    newKey->setParent(this);
     //Construct an Action to reverse the update
     EventAction action = getEventAction();
     action.ID = newKey->getID();
@@ -2043,7 +2148,7 @@ bool NewController::destructKey(QString name)
 
         addActionToStack(action);
 
-        keys.removeAll(key);
+        keys.remove(name);
         delete key;
         return true;
     }
@@ -2052,10 +2157,8 @@ bool NewController::destructKey(QString name)
 
 Key *NewController::getKeyFromName(QString name)
 {
-    foreach(Key* key, keys){
-        if(key->getName() == name){
-            return key;
-        }
+    if(keys.contains(name)){
+        return keys[name];
     }
     return 0;
 }
@@ -2240,6 +2343,8 @@ void NewController::removeGraphMLFromHash(int ID)
 
     nodeIDs.removeOne(ID);
     edgeIDs.removeOne(ID);
+
+
 
     if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
         qCritical() << "Hash Map Inconsistency detected!";
@@ -2453,12 +2558,15 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     protectedLabels << "Parameter" << "ManagementComponent";
     protectedLabels.append(dds_QosNodeKinds);
 
+    bool isDDSQOS = dds_QosNodeKinds.contains(nodeKind);
     bool protectLabel = protectedLabels.contains(nodeKind);
+    bool customLabel = isDDSQOS;
 
     Data* labelData = new Data(labelKey);
     labelData->setValue(labelString);
     labelData->setProtected(protectLabel);
-    data.append(labelData);
+
+
 
     data.append(new Data(sortKey, -1));
 
@@ -2651,6 +2759,14 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         Key* max_samples_per_key = constructKey("qos_dds_max_samples_per_instance", QVariant::Int, Entity::EK_NODE);
 
 
+        QString hrLabel = nodeKind;
+        hrLabel = hrLabel.replace("QosPolicy", "");;
+        hrLabel = hrLabel.replace("DDS_", "");
+        hrLabel = hrLabel.replace("_", " ");
+
+        labelData->setValue(hrLabel);
+
+
         if(nodeKind == "DDS_DeadlineQosPolicy"){
             Key* period_key = constructKey("qos_dds_period", QVariant::String, Entity::EK_NODE);
             data.append(new Data(period_key, 1));
@@ -2729,6 +2845,8 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
             data.append(new Data(autodispose_key, true));
         }
     }
+
+    data.append(labelData);
 
     return data;
 }
@@ -3051,6 +3169,13 @@ bool NewController::destructNode(Node *node)
 
     removeGraphMLFromHash(ID);
 
+    //node->deleteLater();
+
+    if(model == node){
+        model = 0;
+    }else if(workerDefinitions == node){
+        workerDefinitions = 0;
+    }
     delete node;
     return true;
 }
@@ -4760,6 +4885,12 @@ void NewController::setData(int parentID, QString keyName, QVariant dataValue)
     }
 }
 
+void NewController::destructteardown()
+{
+    qCritical() << "destructteardown: " << QThread::currentThreadId();
+    this->deleteLater();
+}
+
 
 void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
 {
@@ -5431,14 +5562,17 @@ void NewController::setProjectDirty(bool dirty)
 {
     if(projectDirty != dirty){
         projectDirty = dirty;
-        emit controller_ProjectRequiresSave(projectDirty);
+        emit projectModified(dirty);
     }
 }
 
 void NewController::setProjectFilePath(QString filePath)
 {
-    projectFileSavePath = filePath;
-    emit controller_ProjectFileChanged(filePath);
+    if(projectFilePath != filePath){
+        projectFilePathSet = true;
+        projectFilePath = filePath;
+        emit controller_ProjectFileChanged(projectFilePath);
+    }
 }
 
 
@@ -5718,12 +5852,18 @@ bool NewController::canLocalDeploy()
     return isDeployable;
 }
 
-QString NewController::getProjectFileName()
+QString NewController::getProjectFileName() const
 {
-    return projectFileSavePath;
+    return projectFilePath;
 }
 
-bool NewController::projectRequiresSaving()
+QString NewController::getProjectSaveFile()
+{
+    return projectFilePath;
+}
+
+
+bool NewController::projectRequiresSaving() const
 {
     return projectDirty;
 }

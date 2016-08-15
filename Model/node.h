@@ -99,6 +99,8 @@ public:
     bool isImpl();
     bool isHardware();
 
+    bool canAcceptEdgeClass(Edge::EDGE_CLASS edgeClass);
+
     void setDefinition(Node *def);
     Node* getDefinition(bool recurse=false);
 
@@ -153,6 +155,9 @@ private:
     QList<Node*> instances;
     QList<Node*> implementations;
 
+
+    QList<Edge::EDGE_CLASS> validEdges2;
+
     QList<Edge::EDGE_CLASS> validEdges;
     //The list of contained children GraphML elements. (Top level only)
     //QMap<int,Node*> orderedChildren;
@@ -163,9 +168,10 @@ private:
 
     VIEW_ASPECT aspect;
 protected:
+    void setAcceptsEdgeClass(Edge::EDGE_CLASS edgeClass);
     void setAcceptEdgeClass(Edge::EDGE_CLASS edgeClass);
-    bool acceptsEdgeClass(Edge::EDGE_CLASS edgeClass);
 
+    bool acceptsEdgeClass(Edge::EDGE_CLASS edgeClass);
 
 
 };

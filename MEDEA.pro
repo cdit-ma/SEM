@@ -184,7 +184,6 @@ HEADERS += \
     Widgets/New/medeamainwindow.h \
     Widgets/New/medeaviewdockwidget.h \
     Widgets/New/medeatooldockwidget.h \
-    Widgets/New/selectioncontroller.h \
     Controller/qobjectregistrar.h \
     Widgets/New/medeacentralwindow.h \
     Widgets/New/medeasubwindow.h \
@@ -231,7 +230,8 @@ HEADERS += \
     Controller/settingscontroller.h \
     View/SceneItems/attributenodeitem.h \
     Widgets/New/dataeditwidget.h \
-    Controller/filehandler.h
+    Controller/filehandler.h \
+    Widgets/New/selectioncontroller.h
 
 SOURCES += \
     main.cpp \

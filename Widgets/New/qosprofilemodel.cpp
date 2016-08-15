@@ -174,3 +174,14 @@ void QOSModelItem::setData(const QVariant &value, int role)
         }
     }
 }
+
+QVariant QOSProfileModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if(role == Qt::DisplayRole && orientation == Qt::Horizontal){
+        return "Policies";
+    }
+    if(role == Qt::DecorationRole){
+        return Theme::theme()->getImage("Actions", "Policies", QSize(16,16), Theme::theme()->getTextColorHex());
+    }
+    return QVariant();
+}

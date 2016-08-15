@@ -55,6 +55,7 @@ signals:
     void closeWidget();
 
 private slots:
+    void destruct();
     void themeChanged();
     void showContextMenu(const QPoint &point);
 

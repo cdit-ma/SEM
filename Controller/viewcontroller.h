@@ -10,29 +10,45 @@
 
 class NewController;
 class ToolbarWidgetNew;
+class NodeViewNew;
 class ViewController : public QObject
 {
     Q_OBJECT
 public:
     ViewController();
+    ~ViewController();
 
     QStringList getNodeKinds();
     SelectionController* getSelectionController();
     ActionController* getActionController();
     ToolActionController* getToolbarController();
 
-    QList<int> getValidEdges(Edge::EDGE_CLASS kind);
+    QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
+    QList<ViewItem*> getValidEdges(Edge::EDGE_CLASS kind);
+
+    QStringList getSearchSuggestions();
+
+
     QStringList getAdoptableNodeKinds();
+    QStringList getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
     bool isModelReady();
+    bool isControllerReady();
 
-    QList<ViewItem*> search(QString field);
+    bool canUndo();
+    bool canRedo();
+
+    //bool canUndo();
 
     void setController(NewController* c);
 signals:
+    void projectSaved(QString filePath);
+    void projectPathChanged(QString);
+    void projectModified(bool);
     void initializeModel();
     void modelReady(bool);
+    void controllerReady(bool);
     void viewItemConstructed(ViewItem* viewItem);
     void viewItemDestructing(int ID, ViewItem *viewItem);
     void triggerAction(QString action);
@@ -43,19 +59,30 @@ signals:
     void undo();
     void redo();
 
+    void teardown();
 
 
 
-    void canUndo(bool);
-    void canRedo(bool);
+
+
+
+    void undoRedoChanged();
 
 
     void deleteEntities(QList<int> IDs);
+    void cutEntities(QList<int> IDs);
+    void copyEntities(QList<int> IDs);
+    void pasteIntoEntity(int ID, QString data);
+    void replicateEntities(QList<int> IDs);
+
     void constructNode(int parentID, QString kind, QPointF pos = QPointF());
     void importProjects(QStringList fileData);
     void vc_openProject(QString fileName, QString filePath);
 
+    void seachSuggestions(QStringList suggestions);
+
 public slots:
+    void actionFinished(bool success, QString gg);
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
     void controller_dataChanged(int ID, QString key, QVariant data);
@@ -64,36 +91,70 @@ public slots:
     void controller_propertyChanged(int ID, QString property, QVariant data);
     void controller_propertyRemoved(int ID, QString property);
 
+    void setClipboardData(QString data);
 
     void newProject();
     void openProject();
     void closeProject();
+    void closeMEDEA();
     void saveProject();
     void saveAsProject();
     void _importProjects();
 
+
+    void fitView();
+    void centerSelection();
+
+    void cut();
+    void copy();
+    void paste();
+    void replicate();
+
     void deleteSelection();
     void constructDDSQOSProfile();
+
+    void setModelReady(bool okay);
+
+    void setControllerReady(bool ready);
+
+    QList<ViewItem*> search(QString searchString);
+    void searchSuggestionsRequested(QString searchString="");
 
 private slots:
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);
-    void setModelReady(bool okay);
 
 private:
+    bool destructViewItem(ViewItem* item);
+    QList<ViewItem*> getViewItems(QList<int> IDs);
+
+    NodeViewNew* getActiveNodeView();
     void _teardownProject();
+
+
     bool _newProject();
     bool _saveProject();
     bool _saveAsProject();
     bool _closeProject();
-    bool _openProject();
+    bool _openProject(QString filePath = "");
     QList<int> getIDsOfKind(QString kind);
     bool _modelReady;
 
+
+    bool _controllerReady;
+
+
+    bool destructChildItems(ViewItem* parent);
+    bool clearVisualItems();
+
+
     ViewItem* getViewItem(int ID);
+
     QHash<QString, QList<int> > itemKindLists;
     QHash<int, ViewItem*> viewItems;
+    QList<int> topLevelItems;
     ViewItem* modelItem;
+    ViewItem* rootItem;
 
     SelectionController* selectionController;
     ActionController* actionController;
@@ -102,7 +163,7 @@ private:
     ToolbarWidgetNew* toolbar;
     NewController* controller;
 
-
+    bool showSearchSuggestions;
 };
 
 #endif // VIEWCONTROLLER_H

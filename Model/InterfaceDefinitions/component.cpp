@@ -4,6 +4,8 @@
 
 Component::Component(): Node(Node::NT_DEFINITION)
 {
+
+    setAcceptsEdgeClass(Edge::EC_DEFINITION);
 }
 
 Component::~Component()

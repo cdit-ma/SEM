@@ -1,8 +1,10 @@
 #include "viewitem.h"
+#include "../Controller/viewcontroller.h"
 #include <QDebug>
 
-ViewItem::ViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> dataList, QHash<QString, QVariant> properties)
+ViewItem::ViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> dataList, QHash<QString, QVariant> properties)
 {
+    this->controller = controller;
     this->ID = ID;
     this->kind = kind;
     this->entityKind = entityKind;
@@ -15,6 +17,14 @@ ViewItem::ViewItem(int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, 
     currentIcon = defaultIcon;
     _parent = 0 ;
     tableModel = new AttributeTableModel(this);
+}
+
+ViewItem::ViewItem(ViewController *controller)
+{
+    this->controller = controller;
+    this->ID = -2;
+    _parent = 0 ;
+    tableModel = 0;
 }
 
 ViewItem::~ViewItem()
@@ -172,6 +182,16 @@ QList<ViewItem *> ViewItem::getChildren()
     return _children;
 }
 
+QList<int> ViewItem::getChildrenID()
+{
+    QList<int> children;
+
+    foreach(ViewItem* child, getChildren()){
+        children.append(child->getID());
+    }
+    return children;
+}
+
 ViewItem *ViewItem::getParentItem()
 {
     return _parent;
@@ -191,9 +211,9 @@ QStringList ViewItem::getValidValuesForKey(QString keyName) const
 {
     //TODO
     QStringList data;
-    //if(entity){
-    //    data = entity->getValidValuesForKey(keyName);
-    //}
+    if(controller){
+        data = controller->getValidValuesForKey(ID, keyName);
+    }
     return data;
 }
 

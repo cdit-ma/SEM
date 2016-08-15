@@ -86,8 +86,7 @@ void RootAction::copyActionState(QAction *action, bool stealth)
         if(stealth){
             action->setVisible(isEnabled());
         }else{
-            action->setVisible(isVisible());
+            //action->setVisible(isVisible());
         }
     }
 }
-

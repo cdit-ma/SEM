@@ -294,9 +294,7 @@ void Theme::applyTheme()
 {
     if(themeChanged && valid){
         //PRINT OUT MEMORY USAGE.
-        qCritical() << "Clearing Icon Lookup!"<< iconLookup.size();
         iconLookup.clear();
-        qCritical() << "Cleared Icon Lookup!"<< iconLookup.size();
         emit theme_Changed();
     }
     themeChanged = false;
@@ -305,6 +303,11 @@ void Theme::applyTheme()
 bool Theme::isValid()
 {
     return valid;
+}
+
+QString Theme::getCornerRadius()
+{
+    return "2px";
 }
 
 QIcon Theme::getIcon(QPair<QString, QString> icon)
@@ -488,7 +491,39 @@ QString Theme::getWindowStyleSheet()
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
            "background-image: url(:/MEDEA_Watermark2); background-position: center; background-repeat: no-repeat;"
-            "}";
+            "}"
+            ;
+}
+
+QString Theme::getScrollBarStyleSheet()
+{
+    int marginSize = 2;
+    int scrollSize = 16;
+    int buttonSize = scrollSize - (2* marginSize);
+
+    QString margin = QString::number(marginSize) % "px";
+    QString size = QString::number(scrollSize) % "px";
+    QString button = QString::number(buttonSize) % "px";
+
+    return   "QScrollBar{background: " % getAltBackgroundColorHex() % ";border:none;margin:0px;}"
+             "QScrollBar:vertical{width:" % size % ";}"
+             "QScrollBar:horizontal{height:" % size % ";}"
+             "QScrollBar::handle{background: " % getBackgroundColorHex() % " ;}"
+             "QScrollBar::handle:active{background: " % getHighlightColorHex() % ";}"
+             "QScrollBar::add-line, QScrollBar::sub-line{background:none;}" // Up/Down Button holders;
+             "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
+             "QScrollBar::handle{margin:" % margin % ";}" // Allow nice space.
+
+            /* // Have buttons
+             "QScrollBar::handle:vertical{margin:" % size % " " % margin %";}"
+             "QScrollBar::handle:horizontal{margin:" % margin % " " % size %";}"
+             "QScrollBar::up-arrow, QScrollBar::down-arrow{background: " % getBackgroundColorHex() % "; width: " % button %"; height:" % button % "; margin: " % margin % ";}"
+             "QScrollBar::up-arrow:active, QScrollBar::down-arrow:active{background: " % getHighlightColorHex() % ";}"
+
+             "QScrollBar::up-arrow{image: url(:/Actions/Arrow_Up);}"
+             "QScrollBar::down-arrow{image: url(:/Actions/Arrow_Down);}"
+            */
+            ;
 }
 
 QString Theme::getDialogStyleSheet()
@@ -499,22 +534,34 @@ QString Theme::getDialogStyleSheet()
                                            "}";
 }
 
-QString Theme::getWidgetStyleSheet()
+QString Theme::getSplitterStyleSheet()
 {
-    return "QDialog {"
+    return  "QSplitter {background: " % getBackgroundColorHex() % ";}"
+            "QSplitter::handle{width:12px;height:12px;}"
+            "QSplitter::handle:pressed {background:" % getAltBackgroundColorHex() % "}"
+            "QSplitter::handle:horizontal {image: url(:/Actions/Menu_Vertical);}"
+            "QSplitter::handle:vertical {image: url(:/Actions/Menu_Horizontal);}"
+            ;
+}
+
+QString Theme::getWidgetStyleSheet(QString widgetName)
+{
+    return widgetName % " {"
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
-                                           "}";
-
+           "}";
 }
 
 QString Theme::getTabbedWidgetStyleSheet()
 {
     return
-            "QTabWidget::tab-bar {alignment: center;}"
-            "QTabWidget::pane {border: none;background: " % getBackgroundColorHex() % ";color: " % getTextColorHex() % "; }"
-            "QTabBar::tab {background:" % getAltBackgroundColorHex() % ";color:" % getTextColorHex() % ";border: 1px solid " % getBackgroundColorHex() % ";padding:5px; border-radius:4px;}"
-            "QTabBar::tab:selected {background:" % getHighlightColorHex() % ";color:" % getTextColorHex(CR_SELECTED) % ";}"
+
+            "QTabBar::tab:top {padding: 5px 10px;;margin: 5px 1px;}"
+            "QTabBar::tab:right {padding: 10px 5px;margin: 1px 5px;}"
+            "QTabBar::tab {background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % ";border-radius:" % getCornerRadius() % ";}"
+            "QTabBar::tab:selected {background:" % getHighlightColorHex() % "; color: " % getTextColorHex(CR_SELECTED) % ";}"
+            "QTabBar, QTabWidget::tab-bar {alignment: center;}"
+            "QTabWidget::pane,QTabBar::pane {border:none;background:" % getBackgroundColorHex() % "}"
             ;
 }
 
@@ -552,6 +599,7 @@ QString Theme::getMenuBarStyleSheet()
            "padding: 3px;"
            "background:" % getBackgroundColorHex() % ";"
            "border-bottom: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "border-radius:" % getCornerRadius() % ";"
            "}"
            "QMenuBar::item {"
            "background:" % getBackgroundColorHex() % ";"
@@ -561,7 +609,7 @@ QString Theme::getMenuBarStyleSheet()
            "QMenuBar::item:selected {"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "background:" % getHighlightColorHex() % ";"
-           "border-radius: 2px;"
+           "border-radius:" % getCornerRadius() % ";"
            "}";
 }
 
@@ -569,14 +617,14 @@ QString Theme::getMenuStyleSheet()
 {
     return "QMenu {"
            "background:" % getAltBackgroundColorHex() % ";"
-           "border-radius: 5px;"
+           "border-radius:" % getCornerRadius() % ";"
            "margin: 2px; "
            "}"
            "QMenu::item {"
            "padding: 2px 15px 2px 25px;"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
-           "border-radius: 2px;"
+           "border-radius: " % getCornerRadius() % ";"
            "border: 0px;"
            "}"
            "QMenu::item:disabled {"
@@ -709,12 +757,10 @@ QString Theme::getAbstractItemViewStyleSheet()
 
 QString Theme::getGroupBoxStyleSheet()
 {
-    return "QGroupBox {"
-           "background: rgba(0,0,0,0);"
-           "border: 0px;"
-           "margin: 0px;"
-           "padding: 0px;"
-           "}";
+    return
+    "QGroupBox {border:0;padding:0px;margin:0px;background:transparent; color: " % getTextColorHex() % ";}"
+    "QGroupBox {border: 1px solid " % getAltBackgroundColorHex() % ";border-radius: " % getCornerRadius() %"; padding:10px;margin-top:8px;}"
+    "QGroupBox::title {subcontrol-position: top center;subcontrol-origin: margin; padding: 2px; font-weight:bold;}";
 }
 
 QString Theme::getPushButtonStyleSheet()
@@ -722,8 +768,9 @@ QString Theme::getPushButtonStyleSheet()
     return "QPushButton {"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
-           "border-radius: 5px;"
+           "border-radius: " % getCornerRadius() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "padding: 2px;"
            "}"
            "QPushButton:hover {"
            "background:" % getHighlightColorHex() % ";"
@@ -773,12 +820,11 @@ QString Theme::getMessageBoxStyleSheet()
 QString Theme::getPopupWidgetStyleSheet()
 {
     return "QWidget#POPUP_WIDGET {"
-           //"background: rgba(70,70,70,0.75);"
            "background:" % getBackgroundColorHex() % ";"
            "border: 1px outset " % getDisabledBackgroundColorHex() % ";"
            "margin: 0px;"
            "padding: 5px;"
-                                                                     "}";
+           "}";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
@@ -788,15 +834,17 @@ QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
     QString gradientColor2 = QColorToHex(color.darker(110));
 
     return "QAbstractButton {"
+           "color:" % QColorToHex(black()) % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "background-color:"
            "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
            "stop:0 " % gradientColor1 % ", stop:1.0 " % gradientColor2 + ");"
            "}"
            "QAbstractButton:hover {"
-           "border: 2px solid " % QColorToHex(white()) % ";"
+           "color:" % QColorToHex(white()) % ";"
+           "border: 1px solid " % QColorToHex(white()) % ";"
            "}"
-           "QAbstractButton:checked {"
+           "QAbstractButton:!checked {"
            "background-color:" % QColorToHex(color) % ";"
            "}"
            "QAbstractButton:disabled {"

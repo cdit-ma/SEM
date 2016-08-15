@@ -26,9 +26,9 @@ MedeaWindowManager* MedeaWindowManager::manager()
     return managerSingleton;
 }
 
-MedeaWindowNew *MedeaWindowManager::constructMainWindow(ViewController* vc, QString title)
+MedeaWindowNew *MedeaWindowManager::constructMainWindow(ViewController* vc)
 {
-    return manager()->_constructMainWindow(vc, title);
+    return manager()->_constructMainWindow(vc);
 }
 
 MedeaWindowNew *MedeaWindowManager::constructSubWindow(QString title)
@@ -126,12 +126,11 @@ MedeaWindowManager::~MedeaWindowManager()
     _destructWindow(mainWindow);
 }
 
-MedeaWindowNew *MedeaWindowManager::_constructMainWindow(ViewController* vc, QString title)
+MedeaWindowNew *MedeaWindowManager::_constructMainWindow(ViewController* vc)
 {
     MedeaMainWindow* window = 0;
     if(!mainWindow){
         window = new MedeaMainWindow(vc);
-        window->setWindowTitle(title);
         mainWindow = window;
         addWindow(window);
     }
@@ -218,7 +217,7 @@ void MedeaWindowManager::addWindow(MedeaWindowNew *window)
         if(!windows.contains(ID)){
             windows[ID] = window;
         }else{
-            qCritical() << "MedeaWindowManager::addWindow() - Got duplicated MedeaWindow ID.";
+            qCritical() << "MedeaWindowManager::addWindow() " << ID << " - Got duplicated MedeaWindow ID.";
         }
     }
 }
@@ -230,7 +229,7 @@ void MedeaWindowManager::removeWindow(MedeaWindowNew *window)
         if(windows.contains(ID)){
             windows.remove(ID);
         }else{
-            qCritical() << "MedeaWindowManager::removeWindow() - Trying to remove non-hashed MedeaWindow.";
+            qCritical() << "MedeaWindowManager::removeWindow() " << ID << " - Trying to remove non-hashed MedeaWindow.";
         }
     }
 }
@@ -264,6 +263,12 @@ void MedeaWindowManager::removeDockWidget(MedeaDockWidget *dockWidget)
             disconnect(dockWidget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximize(bool)));
             disconnect(dockWidget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Close()));
             dockWidgets.remove(ID);
+
+            QWidget* widget = dockWidget->parentWidget();
+            MedeaWindowNew* window = qobject_cast<MedeaWindowNew*>(widget);
+            if(window){
+                window->removeDockWidget(dockWidget);
+            }
         }else{
             qCritical() << "MedeaWindowManager::removeDockWidget() - Trying to remove non-hashed MedeaDockWidget.";
         }

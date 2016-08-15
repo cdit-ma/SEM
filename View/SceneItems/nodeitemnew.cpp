@@ -49,6 +49,13 @@ NodeItemNew::~NodeItemNew()
     if(getParentNodeItem()){
         getParentNodeItem()->removeChildNode(this);
     }
+
+    //remove children nodes.
+    while(!childNodes.isEmpty()){
+        int key = childNodes.keys().takeFirst();
+        NodeItemNew* child = childNodes[key];
+        removeChildNode(child);
+    }
 }
 
 
@@ -117,6 +124,7 @@ void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
         }
         //Unset child moving.
         setChildNodeMoving(nodeItem, false);
+        nodeItem->unsetParent();
     }
 }
 
