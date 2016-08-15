@@ -153,7 +153,6 @@ void ActionController::selectionChanged(int selectionSize)
         edit_paste->setEnabled(gotSingleSelection);
 
 
-
         edit_replicate->setEnabled(gotSelection);
         edit_delete->setEnabled(gotSelection);
         edit_sort->setEnabled(gotSelection);

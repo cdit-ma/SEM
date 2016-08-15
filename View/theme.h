@@ -8,6 +8,7 @@
 #include <QIcon>
 
 #include <QObject>
+#include <QFuture>
 #include "enumerations.h"
 #include "../Controller/settingscontroller.h"
 
@@ -161,6 +162,9 @@ private:
     bool valid;
 
     bool preloadedImages;
+    bool terminating;
+
+    QFuture<void> preloadThread;
 
 public:
     static QString QColorToHex(const QColor color);

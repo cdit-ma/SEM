@@ -65,6 +65,7 @@ MedeaMainWindow::~MedeaMainWindow()
 {
     qCritical() << "~MedeaMainWindow()";
     SettingsController::teardownSettings();
+    Theme::teardownTheme();
 }
 
 

@@ -39,7 +39,7 @@ public:
     bool canUndo();
     bool canRedo();
 
-    //bool canUndo();
+    QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 
     void setController(NewController* c);
 signals:

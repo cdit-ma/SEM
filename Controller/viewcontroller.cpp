@@ -142,7 +142,6 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
         }
     }
 
-
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "ViewController::getValidEdges(" << kind << ", " << selection << ") = " << items.count() <<"  In : "<<  (timeFinish - timeStart) / 100 << "MS";
     return items;
@@ -150,10 +149,13 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
 
 QStringList ViewController::getSearchSuggestions()
 {
-    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QStringList suggestions;
 
     foreach(ViewItem* item, viewItems.values()){
+        //ID's
+        suggestions.append(QString::number(item->getID()));
+        //Data
         foreach(QString key, item->getKeys()){
             QString data = item->getData(key).toString();
             if(!suggestions.contains(data)){
@@ -161,8 +163,7 @@ QStringList ViewController::getSearchSuggestions()
             }
         }
     }
-    qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Suggestions: " << time1 - timeStart << " MS";
+    //qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     return suggestions;
 }
 
@@ -280,6 +281,17 @@ bool ViewController::canRedo()
         return controller->canRedo();
     }
     return false;
+}
+
+QVector<ViewItem *> ViewController::getOrderedSelection(QList<int> selection)
+{
+    QVector<ViewItem *> items;
+    if(controller){
+        foreach(int ID, controller->getOrderedSelectionIDs(selection)){
+            items.append(getViewItem(ID));
+        }
+    }
+    return items;
 }
 
 bool ViewController::destructViewItem(ViewItem *viewItem)

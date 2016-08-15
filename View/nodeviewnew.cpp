@@ -15,6 +15,7 @@
 #include <QtMath>
 #include <QGraphicsItem>
 #include <QKeyEvent>
+#include <QDateTime>
 
 #define ZOOM_INCREMENTOR 1.05
 
@@ -296,7 +297,7 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
             emit triggerAction("Moving Selection");
         }
 
-        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
             EntityItemNew* item = getEntityItem(viewItem);
             if(!item){
                 continue;
@@ -325,7 +326,7 @@ void NodeViewNew::item_AdjustPos(QPointF delta)
 {
     //Moves the selection.
     if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
             EntityItemNew* item = getEntityItem(viewItem);
             if(item){
                 delta = item->validateAdjustPos(delta);
@@ -337,7 +338,7 @@ void NodeViewNew::item_AdjustPos(QPointF delta)
         }
 
         if(!delta.isNull()){
-            foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+            foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
                 EntityItemNew* item = getEntityItem(viewItem);
                 if(item){
                     //Move!
@@ -636,6 +637,11 @@ void NodeViewNew::selectItemsInRubberband()
 
     QList<ViewItem*> itemsToSelect;
 
+    //Check for aspect selection.
+    if(selectionHandler->getSelection().contains(containedNodeViewItem)){
+        itemsToSelect.append(containedNodeViewItem);
+    }
+
     foreach(QGraphicsItem* i, scene()->items(rubberbandRect,Qt::IntersectsItemShape)){
         EntityItemNew* entityItem = dynamic_cast<EntityItemNew*>(i);
         if(entityItem){
@@ -650,6 +656,7 @@ void NodeViewNew::selectItemsInRubberband()
 
 void NodeViewNew::_selectAll()
 {
+        qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     if(selectionHandler){
         EntityItemNew* guiItem = getEntityItem(selectionHandler->getFirstSelectedItem());
 
@@ -668,7 +675,14 @@ void NodeViewNew::_selectAll()
             itemsToSelect = getTopLevelViewItems();
         }
         if(itemsToSelect.size() > 0){
+
+            qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
             selectionHandler->toggleItemsSelection(itemsToSelect, false);
+            qint64 timeFinish2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+            qCritical() << "NodeViewNew::_selectAll() - 1 In : "<<  (timeFinish - timeStart) << "MS";
+
+            qCritical() << "NodeViewNew::_selectAll() - 2 In : "<<  (timeFinish2 - timeFinish) << "MS";
         }
     }
 }

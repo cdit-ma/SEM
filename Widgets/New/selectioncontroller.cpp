@@ -21,7 +21,7 @@ SelectionHandler *SelectionController::constructSelectionHandler(QObject *object
         qCritical() << "SelectionController::constructSelectionHandler() - Already got Selection Handler for QObject: " << object;
         return selectionHandlers[sID];
     }else{
-        SelectionHandler* handler = new SelectionHandler();
+        SelectionHandler* handler = new SelectionHandler(this);
         connect(handler, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(removeSelectionHandler()));
         connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), handler, SLOT(itemDeleted(int,ViewItem*)));
         selectionHandlers[handler->getID()] = handler;
@@ -151,6 +151,15 @@ void SelectionController::removeSelectionHandler()
             handler->deleteLater();
         }
     }
+}
+
+QVector<ViewItem *> SelectionController::getOrderedSelection(QList<int> selection)
+{
+    QVector<ViewItem*> items;
+    if(viewController){
+        items = viewController->getOrderedSelection(selection);
+    }
+    return items;
 }
 
 void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)

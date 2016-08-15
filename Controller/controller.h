@@ -176,6 +176,10 @@ private:
 
 public:
 
+    QList<int> getOrderedSelectionIDs(QList<int> selection);
+    QList<Entity *> getOrderedSelection(QList<int> selection);
+
+
     //NOT NEEDED
     QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
     QString getData(int ID, QString key);
@@ -186,6 +190,7 @@ public:
     bool canGetCPP(QList<int> selection);
     bool canReplicate(QList<int> selection);
     bool canCut(QList<int> selection);
+    bool canDelete(QList<Entity *> selection);
     bool canDelete(QList<int> selection);
     bool canPaste(QList<int> selection);
     bool canExportSnippet(QList<int> selection);
@@ -333,6 +338,7 @@ private:
     bool _clear();
     bool _copy(QList<int> IDs);
     bool _remove(QList<int> IDs, bool addAction = true);
+    bool _remove(QList<Entity*> items);
     bool _remove(int ID, bool addAction = true);
     bool _replicate(QList<int> IDs, bool addAction = true);
     bool _importProjects(QStringList xmlDataList, bool addAction = true);
@@ -413,6 +419,7 @@ private:
     void constructEdgeGUI(Edge* edge);
 
     bool destructEntity(int ID);
+    bool destructEntity(Entity* item);
     bool destructNode(Node* node);
     bool destructEdge(Edge* edge);
 

@@ -23,7 +23,7 @@ static int count = 0;
 
 NewController::NewController() :QObject(0)
 {
-    //lock.lockForWrite();
+
     projectFilePathSet = false;
 
     qCritical() << count ++;
@@ -235,73 +235,12 @@ void NewController::disconnectViewController(ViewController *view)
 
 void NewController::initializeModel()
 {
+    lock.lockForWrite();
     setupModel();
     loadWorkerDefinitions();
     clearHistory();
-    //lock.unlock();
+    lock.unlock();
     INITIALIZING = false;
-
-
-    Entity* entity = getModel();
-
-
-    int count = 10000000;
-
-    int i = count;
-    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    while(i > 0){
-        Node* node = qobject_cast<Node*>(entity);
-        QWidget* widget = qobject_cast<QWidget*>(entity);
-        Model* model = qobject_cast<Model*>(entity);
-
-        if(node){
-        }
-        if(widget){
-        }
-        if(model){
-        }
-        i --;
-    }
-
-    qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    i = count;
-    while(i > 0){
-        Node* node = dynamic_cast<Node*>(entity);
-        QWidget* widget = dynamic_cast<QWidget*>(entity);
-        Model* model = dynamic_cast<Model*>(entity);
-
-        if(node){
-        }
-        if(widget){
-        }
-        if(model){
-        }
-
-        i --;
-    }
-
-
-    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    i = count;
-    while(i > 0){
-        int ID = entity->getGraphMLKind();
-
-        if(ID == LIGHTER_SHADE){
-        }
-        if(ID == NORMAL_SHADE){
-        }
-        if(ID == DARKER_SHADE){
-        }
-        i --;
-    }
-
-    qint64 time3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
-
-    qCritical() << "qobject_cast(x " << count << "): " << time1 - timeStart << "MS";
-    qCritical() << "dynamic_cast(x " << count << "): " << time2 - time1 << "MS";
-    qCritical() << "enum_compare(x " << count << "): " << time3 - time2 << "MS";
-
 
     emit controller_IsModelReady(true);
 
@@ -1094,16 +1033,18 @@ void NewController::copy(QList<int> IDs)
  */
 void NewController::remove(QList<int> IDs)
 {
-    if(canDelete(IDs)){
-        bool success = _remove(IDs, false);
-        if (!success) {
-            controller_DisplayMessage(WARNING, "Delete Error", "Cannot delete all selected entities.");
-        }
-        emit controller_ActionProgressChanged(100);
-        emit controller_ActionFinished(success);
+
+    lock.lockForWrite();
+    QList<Entity*> selection = getOrderedSelection(IDs);
+
+    if(canDelete(selection)){
+        emit triggerAction("Removing Selection");
+        bool success = _remove(selection);
+        emit controller_ActionFinished(success, "Cannot delete all selected entities.");
     } else {
         emit controller_ActionFinished();
     }
+    lock.unlock();
 }
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
@@ -1318,6 +1259,26 @@ bool NewController::_remove(QList<int> IDs, bool addAction)
         emit controller_ActionProgressChanged(100);
         controller_SetViewEnabled(true);
         //success = true;
+    }
+    return allSuccess;
+}
+
+bool NewController::_remove(QList<Entity *> items)
+{
+    bool allSuccess = true;
+
+    int totalItems = items.size();
+    while(!items.isEmpty()){
+        Entity* item = items.takeFirst();
+
+        if(!destructEntity(item)){
+            allSuccess = false;
+            break;
+        }
+
+        double percentageComplete = (1.0 - (items.size() / totalItems)) * 100;
+
+        emit controller_ActionProgressChanged(percentageComplete);
     }
     return allSuccess;
 }
@@ -1761,6 +1722,74 @@ QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edg
         }
     }
     return validNodes;
+}
+
+QList<int> NewController::getOrderedSelectionIDs(QList<int> selection)
+{
+    QList<int> orderedSelection;
+
+    foreach(Entity* item, getOrderedSelection(selection)){
+        if(item){
+            orderedSelection.append(item->getID());
+        }
+    }
+    return orderedSelection;
+}
+
+QList<Entity*> NewController::getOrderedSelection(QList<int> selection)
+{
+    QList<Entity*> orderedSelection;
+
+    foreach(int ID, selection){
+        Entity* entity = getGraphMLFromID(ID);
+        Node* node = 0;
+        Node* src = 0;
+        Node* dst = 0;
+
+        if(entity->isNode()){
+            node = (Node*) entity;
+        }else if(entity->isEdge()){
+            src = ((Edge*)entity)->getSource();
+            dst = ((Edge*)entity)->getDestination();
+        }
+
+        bool append = true;
+
+        foreach(Entity* item, orderedSelection){
+            Node* selNode = 0;
+            Edge* selEdge = 0;
+            if(item->isNode()){
+                selNode = (Node*) item;
+            }else{
+                selEdge = (Edge*) item;
+            }
+
+            if(node){
+                if(selNode){
+                    if(selNode->isAncestorOf(node)){
+                        //Can't select a child.
+                        append = false;
+                        break;
+                    }else if(node->isAncestorOf(selNode)){
+                        //Remove children
+                        orderedSelection.removeAll(selNode);
+                    }
+                }else if(selEdge){
+                    Node* sSrc = selEdge->getSource();
+                    Node* sDst = selEdge->getDestination();
+                    if(sSrc->isAncestorOf(node) || sDst->isAncestorOf(node)){
+                        //Can't select a child
+                        append = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if(append){
+            orderedSelection.append(entity);
+        }
+    }
+    return orderedSelection;
 }
 
 QStringList NewController::getValidKeyValues(int nodeID, QString keyName)
@@ -3275,11 +3304,16 @@ bool NewController::destructEdge(Edge *edge)
 bool NewController::destructEntity(int ID)
 {
     Entity* entity = getGraphMLFromID(ID);
-    if(entity){
-        if(entity->isNode()){
-            return destructNode((Node*)entity);
-        }else if(entity->isEdge()){
-            return destructEdge((Edge*)entity);
+    return destructEntity(entity);
+}
+
+bool NewController::destructEntity(Entity *item)
+{
+    if(item){
+        if(item->isNode()){
+            return destructNode((Node*)item);
+        }else if(item->isEdge()){
+            return destructEdge((Edge*)item);
         }
     }
     return false;
@@ -5664,6 +5698,58 @@ bool NewController::canReplicate(QList<int> selection)
 bool NewController::canCut(QList<int> selection)
 {
     return canCopy(selection) && canDelete(selection);
+}
+
+bool NewController::canDelete(QList<Entity *> selection)
+{
+    if(selection.isEmpty()){
+        return false;
+    }
+
+    foreach(Entity* entity, selection){
+        Node* node = 0;
+
+        if(entity->isNode()){
+            node = (Node*) entity;
+        }
+
+        if(node){
+            if(!canDeleteNode(node)){
+                return false;
+            }
+
+            if(node->getParentNode()){
+                Parameter* pNode = dynamic_cast<Parameter*>(node);
+                Variable* vNode = dynamic_cast<Variable*>(node->getParentNode());
+                if(pNode){
+                    return false;
+                }
+                if(vNode && node->isInstance()){
+                    //Can't Instance things inside Variables!
+                    return false;
+                }
+                if(node->isImpl() && node->getDefinition()){
+                    if(node->getDataValue("kind") != "OutEventPortImpl"){
+                        return false;
+                    }
+                }
+
+                if(node->isInstance() && node->getParentNode()->isInstance()){
+                    return false;
+                }
+
+                if(node->isReadOnly()){
+                    if(node->getParentNode()->isReadOnly()){
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;
+
+
+
 }
 
 bool NewController::canDelete(QList<int> selection)
