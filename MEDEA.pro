@@ -228,6 +228,7 @@ HEADERS += \
     View/Table/attributetableview.h \
     Widgets/New/medeanodeviewdockwidget.h \
     Controller/settingscontroller.h \
+    View/SceneItems/attributenodeitem.h \
     Widgets/New/dataeditwidget.h \
     Controller/filehandler.h \
     Widgets/New/selectioncontroller.h
@@ -423,6 +424,7 @@ SOURCES += \
     View/Table/attributetableview.cpp \
     Widgets/New/medeanodeviewdockwidget.cpp \
     Controller/settingscontroller.cpp \
+    View/SceneItems/attributenodeitem.cpp \
     Widgets/New/dataeditwidget.cpp \
     Controller/filehandler.cpp
 
