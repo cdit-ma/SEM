@@ -148,7 +148,6 @@ HEADERS += \
     View/Toolbar/toolbarmenuaction.h \
     View/Toolbar/toolbarwidget.h \
     View/Validate/validatedialog.h \
-    View/nodeview.h \
     View/nodeviewminimap.h \
     View/theme.h \
     Widgets/medeawindow.h \
@@ -231,7 +230,8 @@ HEADERS += \
     View/SceneItems/attributenodeitem.h \
     Widgets/New/dataeditwidget.h \
     Controller/filehandler.h \
-    Widgets/New/selectioncontroller.h
+    Widgets/New/selectioncontroller.h \
+    View/nodeview.h
 
 SOURCES += \
     main.cpp \
@@ -343,7 +343,6 @@ SOURCES += \
     View/Toolbar/toolbarmenuaction.cpp \
     View/Toolbar/toolbarwidget.cpp \
     View/Validate/validatedialog.cpp \
-    View/nodeview.cpp \
     View/nodeviewminimap.cpp \
     View/theme.cpp \
     Widgets/medeawindow.cpp \
@@ -426,7 +425,8 @@ SOURCES += \
     Controller/settingscontroller.cpp \
     View/SceneItems/attributenodeitem.cpp \
     Widgets/New/dataeditwidget.cpp \
-    Controller/filehandler.cpp
+    Controller/filehandler.cpp \
+    View/nodeview.cpp
 
 RESOURCES += \
     resources.qrc

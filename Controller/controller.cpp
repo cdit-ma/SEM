@@ -190,6 +190,8 @@ void NewController::connectViewController(ViewController *view)
 
     connect(view, &ViewController::setData, this, &NewController::setData);
     connect(view, &ViewController::constructNode, this, &NewController::constructNode);
+    connect(view, &ViewController::constructConnectedNode, this, &NewController::constructConnectedNode);
+
     connect(view, &ViewController::triggerAction, this, &NewController::triggerAction);
 
     connect(view, &ViewController::projectSaved, this, &NewController::projectSaved);
@@ -277,6 +279,7 @@ void NewController::loadWorkerDefinitions()
 {
     //We will be importing into the workerDefinitions aspect.
     Node* workerDefinition = getWorkerDefinitions();
+
     if(workerDefinition){
         QList<QDir> workerDirectories;
         workerDirectories << QDir(":/WorkerDefinitions");
@@ -454,11 +457,6 @@ QString NewController::_exportGraphMLDocument(Node *node, bool allEdges, bool GU
     QList<int> nodeIDs;
     nodeIDs << node->getID();
     return _exportGraphMLDocument(nodeIDs, allEdges, GUI_USED);
-}
-
-QStringList NewController::getViewAspects()
-{
-    return viewAspects;
 }
 
 QStringList NewController::getAllNodeKinds()

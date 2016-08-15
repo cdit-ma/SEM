@@ -201,7 +201,7 @@ signals:
     void view_ModelDisconnected();
     void view_EnableDebugLogging(bool enable, QString applicationPath="");
 
-	void view_HardwareDockEnabled(bool enabled);
+    void view_HardwareDockEnabled(bool enabled);
     void view_OpenHardwareDock();
     void view_ModelSizeChanged();
     void view_Clear();
