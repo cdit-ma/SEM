@@ -216,18 +216,17 @@ void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem* viewItem)
  */
 void ToolbarWidgetNew::addChildNode(QAction* action)
 {
-    if (action->property("action-type") == "info") {
+    // ignore information actions
+    if (!toolbarController || action->property("action-type") == "info") {
         return;
     }
 
-    if (toolbarController) {
-        QString kind = action->property("kind").toString();
-        QVariant ID = action->property("ID");
-        if (!ID.isValid()) {
-            toolbarController->addChildNode(kind, itemPos);
-        } else {
-            toolbarController->addConnectedChildNode(ID.toInt(), kind, itemPos);
-        }
+    QString kind = action->property("kind").toString();
+    QVariant ID = action->property("ID");
+    if (!ID.isValid()) {
+        toolbarController->addChildNode(kind, itemPos);
+    } else {
+        toolbarController->addConnectedChildNode(ID.toInt(), kind, itemPos);
     }
 }
 
@@ -495,7 +494,7 @@ void ToolbarWidgetNew::clearDynamicMenus()
  *                       this menu is executed using the toolbar's execMenu slot
  * @return
  */
-QMenu *ToolbarWidgetNew::constructTopMenu(QAction* parentAction, bool instantPopup)
+QMenu* ToolbarWidgetNew::constructTopMenu(QAction* parentAction, bool instantPopup)
 {
    QMenu* menu = new QMenu(this);
    connect(menu, SIGNAL(triggered(QAction*)), this, SLOT(menuActionTrigged(QAction*)));

@@ -787,14 +787,14 @@ QString Theme::getPushButtonStyleSheet()
 QString Theme::getLineEditStyleSheet()
 {
     return "QLineEdit {"
+           "padding: 0px;"
            "background:" % getAltBackgroundColorHex() % ";"
-           "color: " % getTextColorHex(CR_NORMAL) % ";"
+           "color: " % getTextColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "border-radius: 0px;"
            "}"
            "QLineEdit:focus {"
            "border: 1px solid " % getHighlightColorHex() % ";"
-           "background:" % getAltBackgroundColorHex() % ";"
-           "color:" % getTextColorHex() % ";"
            "}";
 }
 
@@ -822,11 +822,15 @@ QString Theme::getMessageBoxStyleSheet()
 
 QString Theme::getPopupWidgetStyleSheet()
 {
-    return "QWidget#POPUP_WIDGET {"
-           "background:" % getBackgroundColorHex() % ";"
-           "border: 1px outset " % getDisabledBackgroundColorHex() % ";"
+    QColor bgColor = getBackgroundColor();
+    bgColor.setAlphaF(0.75);
+
+    return "QWidget {"
            "margin: 0px;"
-           "padding: 5px;"
+           "padding: 0px;"
+           "background:" % QColorToHex(bgColor) % ";"
+           "border-radius: 4px;"
+           "border: 1px outset " % getAltBackgroundColorHex() % ";"
            "}";
 }
 

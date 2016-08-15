@@ -4377,7 +4377,6 @@ void MedeaWindow::displayLoadingStatus(bool show, QString displayText)
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
-
     // show progress dialog
     if (!progressDialogVisible) {
         //Centralize
