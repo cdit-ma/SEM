@@ -659,7 +659,6 @@ void NodeViewNew::selectItemsInRubberband()
 
 void NodeViewNew::_selectAll()
 {
-        qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     if(selectionHandler){
         EntityItemNew* guiItem = getEntityItem(selectionHandler->getFirstSelectedItem());
 
@@ -678,14 +677,7 @@ void NodeViewNew::_selectAll()
             itemsToSelect = getTopLevelViewItems();
         }
         if(itemsToSelect.size() > 0){
-
-            qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
             selectionHandler->toggleItemsSelection(itemsToSelect, false);
-            qint64 timeFinish2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-            qCritical() << "NodeViewNew::_selectAll() - 1 In : "<<  (timeFinish - timeStart) << "MS";
-
-            qCritical() << "NodeViewNew::_selectAll() - 2 In : "<<  (timeFinish2 - timeFinish) << "MS";
         }
     }
 }

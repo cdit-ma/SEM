@@ -139,21 +139,20 @@ public:
     void setExternalWorkerDefinitionPath(QString path);
     void loadWorkerDefinitions();
 
+
     void connectViewController(ViewController* view);
     void disconnectViewController(ViewController *view);
-
-    //Gets the Model Node.
-    Model* getModel();
-    WorkerDefinitions* getWorkerDefinitions();
-
 
 
     QString getProjectAsGraphML();
     QString getSelectionAsGraphMLSnippet(QList<int> IDs);
 
+private:
+    //Gets the Model Node.
+    Model* getModel();
+    WorkerDefinitions* getWorkerDefinitions();
 
-    //Get a list of all View Aspects
-    QStringList getViewAspects();
+
 
     QStringList getAllNodeKinds();
     QStringList getGUIConstructableNodeKinds();
@@ -164,7 +163,7 @@ public:
     QList<int> getConnectableNodes(int srcID);
     QList<int> getConnectedNodes(int ID);
 
-
+public:
 //LOCKED FUNCTIONS
     QStringList getAdoptableNodeKinds(int ID);
     QStringList getValidKeyValues(int ID, QString keyName);

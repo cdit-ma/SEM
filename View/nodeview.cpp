@@ -526,7 +526,7 @@ ModelItem *NodeView::getModelItem()
 {
     ModelItem* model = 0;
     if(controller){
-        int ID = controller->getModel()->getID();
+        int ID = 0;//controller->getModel()->getID();
         GraphMLItem* item = getGraphMLItemFromID(ID);
         model = (ModelItem*)item;
     }
@@ -961,7 +961,7 @@ QList<GraphMLItem *> NodeView::getSelectedItems()
 QList<QPair<QString, QString> >  NodeView::getFunctionsList()
 {
     QList<QPair<QString, QString> > functionList;
-    if(controller){
+    /*if(controller){
         foreach(int ID, controller->getFunctionIDList()){
             QPair<QString, QString> functionPair;
             functionPair.first = getData(ID, "worker");
@@ -971,7 +971,7 @@ QList<QPair<QString, QString> >  NodeView::getFunctionsList()
             }
             functionList.append(functionPair);
         }
-    }
+    }*/
     return functionList;
 }
 
@@ -1147,7 +1147,7 @@ QStringList NodeView::getAdoptableNodeList(int ID)
 
 QList<int> NodeView::getConnectableNodes(int ID)
 {
-    return controller->getConnectableNodes(ID);
+    return QList<int>();//controller->getConnectableNodes(ID);
 }
 
 QList<int> NodeView::getConnectableNodes(QList<int> IDs)
@@ -1156,7 +1156,7 @@ QList<int> NodeView::getConnectableNodes(QList<int> IDs)
     QList<int> validComponents;
 
     foreach(int ID, IDs){
-        QList<int> validIDs = controller->getConnectableNodes(ID);
+        QList<int> validIDs;//controller->getConnectableNodes(ID);
 
         if(firstComponent){
             firstComponent = false;
@@ -1182,7 +1182,7 @@ QList<int> NodeView::getConnectableNodes(QList<int> IDs)
 QList<NodeItem *> NodeView::getConnectableNodeItems(int ID)
 {
     QList<NodeItem*> nodeItems;
-    QList<int> IDs = controller->getConnectableNodes(ID);
+    QList<int> IDs;// = controller->getConnectableNodes(ID);
     foreach(int cID, IDs){
         NodeItem* entityItem = getEntityItemFromID(cID);
 
@@ -1236,7 +1236,7 @@ QList<EntityItem*> NodeView::getHardwareList()
 {
     QList<EntityItem*> hardwares;
     if (controller) {
-        Model* model = controller->getModel();
+        Model* model = 0;// = controller->getModel();
         if (model) {
             QList<Node*> clusters = model->getChildrenOfKind("HardwareCluster");
             foreach (Node* c, clusters) {
@@ -3130,6 +3130,7 @@ void NodeView::showConnectedNodes()
     int selectedID = getSelectedID();
     QList<GraphMLItem*> connectedItems;
 
+    /*
     foreach (int cnID, controller->getConnectedNodes(selectedID)) {
         GraphMLItem* item = getGraphMLItemFromID(cnID);
         if (item) {
@@ -3138,7 +3139,7 @@ void NodeView::showConnectedNodes()
             appendToSelection(item);
             connectedItems.append(item);
         }
-    }
+    }*/
 
     if (!connectedItems.isEmpty()) {
         // add the selected node to the list of items to center
@@ -3254,7 +3255,7 @@ NewController *NodeView::getController()
 QList<Node*> NodeView::getFiles()
 {
     QList<Node*> returnList;
-    Model* model = controller->getModel();
+    Model* model = 0;//controller->getModel();
     if (model) {
         returnList = model->getChildrenOfKind("IDL");
     }
@@ -3269,7 +3270,7 @@ QList<Node*> NodeView::getFiles()
 QList<Node*> NodeView::getComponents()
 {
     QList<Node*> returnList;
-    Model* model = controller->getModel();
+    Model* model = 0;//controller->getModel();
     if (model) {
         returnList = model->getChildrenOfKind("Component");
     }
@@ -3284,7 +3285,7 @@ QList<Node*> NodeView::getComponents()
 QList<Node*> NodeView::getBlackBoxes()
 {
     QList<Node*> returnList;
-    Model* model = controller->getModel();
+    Model* model = 0;//controller->getModel();
     if (model) {
         returnList = model->getChildrenOfKind("BlackBox");
     }
@@ -3300,7 +3301,7 @@ QList<Node*> NodeView::getBlackBoxes()
 QStringList NodeView::getGUIConstructableNodeKinds()
 {
     if(controller){
-        return controller->getGUIConstructableNodeKinds();
+       // return controller->getGUIConstructableNodeKinds();
     }
     return QStringList();
 }
@@ -3308,7 +3309,7 @@ QStringList NodeView::getGUIConstructableNodeKinds()
 QStringList NodeView::getAllNodeKinds()
 {
     if(controller){
-        return controller->getAllNodeKinds();
+       // return controller->getAllNodeKinds();
     }
     return QStringList();
 }
@@ -5034,7 +5035,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
         Node* assemblyDefinition = 0;
 
-        Model* model = controller->getModel();
+        Model* model = 0;//controller->getModel();
         if (model) {
             QList<Node*> result = model->getChildrenOfKind("AssemblyDefinitions");
             if(result.size() == 1){
@@ -5333,5 +5334,4 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
         int ID = item->getID();
         noGUIItems[ID] = item;
     }
-
 

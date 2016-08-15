@@ -88,7 +88,7 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
     DockNodeItem* parentItem = dockItem->getParentDockNodeItem();
 
     if (dockItem && parentItem) {
-        getNodeView()->constructWorkerProcessNode(parentItem->getKind(), dockItem->getKind(), 0);
+        //getNodeView()->constructWorkerProcessNode(parentItem->getKind(), dockItem->getKind(), 0);
     }
 }
 

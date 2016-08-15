@@ -60,15 +60,22 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
             NodeViewItemAction* action = new NodeViewItemAction(node);
 
             if(node->getParentItem() && node->getParentItem()->isNode()){
+
                 int parentID = node->getParentID();
                 if(!actions.contains(parentID)){
                     //Construct Parent for menus which need depth
                     NodeViewItemAction* parentAction = new NodeViewItemAction((NodeViewItem*) node->getParentItem());
-                    action->setParentNodeViewItemAction(parentAction);
-
                     actions[parentID] = parentAction;
                     actionGroup->addAction(parentAction);
                 }
+
+                NodeViewItemAction* parentAction = 0;
+                if(actions.contains(parentID)){
+                    parentAction = actions[parentID];
+                }
+
+                action->setParentNodeViewItemAction(parentAction);
+
                 actions[ID] = action;
                 actionGroup->addAction(action);
             }

@@ -158,7 +158,7 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
  */
 void DefinitionsDockScrollArea::dockNodeItemClicked()
 {
-    NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
+    NodeItem* selectedNodeItem = 0;//getNodeView()->getSelectedNodeItem();
     DockNodeItem* dockNodeItem = qobject_cast<DockNodeItem*>(QObject::sender());
 
     if (!selectedNodeItem || !dockNodeItem || dockNodeItem->isDockItemLabel()) {
@@ -168,7 +168,7 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
 
     int selectedNodeID = selectedNodeItem->getID();
     int dockNodeID = dockNodeItem->getID().toInt();
-    getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, sourceDockItemKind, 0);
+    //getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, sourceDockItemKind, 0);
 }
 
 
