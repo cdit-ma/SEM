@@ -76,7 +76,7 @@ signals:
     void vc_replicateEntities(QList<int> IDs);
 
     void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
-    void vc_constructConnectedNode(int parentID, int dstID, QString kind, QPointF pos = QPointF());
+    void vc_constructConnectedNode(int parentID, QString kind, QPointF pos, int dstID);
 
 
     void vc_importProjects(QStringList fileData);

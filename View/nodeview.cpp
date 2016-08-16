@@ -221,7 +221,7 @@ bool NodeView::hasModel()
 bool NodeView::projectRequiresSaving()
 {
     if(controller){
-        return controller->projectRequiresSaving();
+        return controller->isProjectSaved();
     }
     return false;
 }
@@ -253,7 +253,7 @@ QString NodeView::getSelectionAsGraphMLSnippet()
 QString NodeView::getProjectFileName()
 {
     if(controller){
-        return controller->getProjectFileName();
+        return controller->getProjectPath();
     }
     return "";
 }
@@ -1351,12 +1351,13 @@ QList<NodeItem *> NodeView::getEntityItemsOfKind(QString kind, int ID, int depth
     QList<NodeItem*> nodes;
 
     if(controller){
+        /*
         foreach(int childID, controller->getNodesOfKind(kind, ID, depth)){
             EntityItem* child = getEntityItemFromID(childID);
             if(child){
                 nodes.append(child);
             }
-        }
+        }*/
     }
     return nodes;
 }
@@ -3690,9 +3691,9 @@ bool NodeView::isItemsAncestorSelected(GraphMLItem *selectedItem)
 
         if(modelItem && modelItem->isNodeAdapter()){
             if(controller){
-                if(controller->isNodeAncestor(modelItem->getID(), selectedItem->getID())){
-                    return true;
-                }
+               // if(controller->isNodeAncestor(modelItem->getID(), selectedItem->getID())){
+                //    return true;
+                //}
             }
         }
     }
@@ -3717,7 +3718,7 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
 
         bool remove = false;
         if(modelItem && modelItem->isNodeAdapter()){
-            remove = controller->isNodeAncestor(selectedModelItem->getID(), modelItem->getID());
+            remove = false;// controller->isNodeAncestor(selectedModelItem->getID(), modelItem->getID());
         }else if(modelItem && modelItem->isEdgeAdapter()){
             EdgeAdapter* modelEdge = (EdgeAdapter*)modelItem;
             remove = selectedModelItem->getID() == modelEdge->getSourceID() || selectedModelItem->getID() == modelEdge->getDestinationID();
@@ -3731,7 +3732,7 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
 GraphMLItem *NodeView::getSharedEntityItemParent(EntityItem *src, EntityItem *dst)
 {
     if(controller){
-        int ID = controller->getSharedParent(src->getID(), dst->getID());
+        int ID = -1;//controller->getSharedParent(src->getID(), dst->getID());
 
 
         GraphMLItem* node = getGraphMLItemFromID(ID);
@@ -3797,7 +3798,7 @@ QString NodeView::getData(int ID, QString key)
 {
     QString value;
     if(controller){
-        value = controller->getData(ID, key);
+        //value = controller->getData(ID, key);
     }
     return value;
 }
@@ -4790,9 +4791,6 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
         if(isSubView() && controller){
             int ID = item->getID();
-            if(!controller->areIDsInSameBranch(centralizedItemID, ID)){
-                return;
-            }
         }
 
         bool constructed = false;

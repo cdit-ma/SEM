@@ -126,9 +126,6 @@ struct EventAction{
     } Data;
 };
 
-
-class NodeView;
-class GraphMLView;
 class NewController: public QObject
 {
     Q_OBJECT
@@ -137,54 +134,42 @@ public:
     ~NewController();
 
     void setExternalWorkerDefinitionPath(QString path);
-    void loadWorkerDefinitions();
 
 
     void connectViewController(ViewController* view);
     void disconnectViewController(ViewController *view);
 
+    QString getProjectPath() const;
+    void setProjectPath(QString path);
 
+    bool isProjectSaved() const;
+    void setProjectSaved(QString path="");
+
+
+
+    //Public Read/Write Locked Functions
+
+    //READ
     QString getProjectAsGraphML();
     QString getSelectionAsGraphMLSnippet(QList<int> IDs);
 
-private:
-    //Gets the Model Node.
-    Model* getModel();
-    WorkerDefinitions* getWorkerDefinitions();
 
-
-
-    QStringList getAllNodeKinds();
-    QStringList getGUIConstructableNodeKinds();
-    //Returns a list of Kinds which can be adopted by a Node.
-    QList<int> getFunctionIDList();
-    //QStringList getAdoptableNodeKinds(Node* parent);
-
-    QList<int> getConnectableNodes(int srcID);
-    QList<int> getConnectedNodes(int ID);
-
-public:
-//LOCKED FUNCTIONS
     QStringList getAdoptableNodeKinds(int ID);
     QStringList getValidKeyValues(int ID, QString keyName);
     QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind);
     QList<int> getConstructableNodeDefinitions(int parentID, QString instanceNodeKind);
 
-private:
-    QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, Edge::EDGE_CLASS edgeKind);
+    QList<int> getOrderedSelectionIDs(QList<int> selection);
 
+private:
+    void loadWorkerDefinitions();
+    //Gets the Model Node.
+    Model* getModel();
+    WorkerDefinitions* getWorkerDefinitions();
+    QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, Edge::EDGE_CLASS edgeKind);
+    QList<Entity *> getOrderedSelection(QList<int> selection);
 public:
 
-    QList<int> getOrderedSelectionIDs(QList<int> selection);
-    QList<Entity *> getOrderedSelection(QList<int> selection);
-
-
-    //NOT NEEDED
-    QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
-    QString getData(int ID, QString key);
-
-
-    bool isInModel(int ID);
     bool canCopy(QList<int> selection);
     bool canGetCPP(QList<int> selection);
     bool canReplicate(QList<int> selection);
@@ -208,28 +193,17 @@ public:
     bool canRedo();
     bool canLocalDeploy();
 
-    QString getProjectFileName() const;
-    bool projectRequiresSaving() const;
-
-    QString getProjectSaveFile();
-
-
-    bool isNodeAncestor(int ID, int ID2);
-
-    bool areIDsInSameBranch(int mainID, int newID);
 
     int getDefinition(int ID);
     int getImplementation(int ID);
     QList<int> getInstances(int ID);
+
     int getAggregate(int ID);
     int getDeployedHardwareID(int ID);
 
-    int getSharedParent(int ID1, int ID2);
-
-    int getContainedAspect(int ID);
 
 
-    void setProjectFilePath(QString filePath);
+
 signals:
     void projectModified(bool modified);
     void initiateTeardown();
@@ -284,69 +258,65 @@ signals:
 
     void controller_SetViewEnabled(bool);
 public slots:
-    void initializeModel();
-
+    void setupController();
     void setData(int parentID, QString keyName, QVariant dataValue);
-    void destructteardown();
 private slots:
 
-    void projectSaved(QString filePath);
     void enableDebugLogging(bool logMode, QString applicationPath="");
 
-    void connectViewAndSetupModel(NodeView* view);
     //Clipboard functionality
     void cut(QList<int> IDs);
     void copy(QList<int> IDs);
     void paste(QList<int> IDs, QString xmlData);
-
-
     void replicate(QList<int> IDs);
-
     void remove(QList<int> IDs);
+    void undo();
+    void redo();
 
+    void triggerAction(QString actionName);
+
+    void openProject(QString filepath, QString xmlData);
+    void importProjects(QStringList xmlDataList);
 
 
     void setReadOnly(QList<int> IDs, bool readOnly);
-
     void importSnippet(QList<int> IDs, QString fileName, QString fileData);
     void exportSnippet(QList<int> IDs);
+
 
     //Toolbar/Dock Functionality
     void clear();
 
-    void undo();
-    void redo();
 
-    void openProject(QString filepath, QString xmlData);
+    void constructConnectedNode(int parentID, QString kind, QPointF centerPoint, int connectedID);
 
-    void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
-    void constructWorkerProcessNode(int parentID,QString workerName, QString operationName, QPointF position);
+    void constructNode(int parentID, QString kind, QPointF centerPoint);
+
+    void constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass);
+    void destructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass);
+
+    void constructWorkerProcessNode(int parentID, QString workerName, QString operationName, QPointF position);
     void constructDDSQOSProfile(int parentID, QPointF position);
 
-    void constructEdge(int srcID, int dstID);
-    void destructEdge(int srcID, int dstID);
-    void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);
+
+
 
     void constructDestructMultipleEdges(QList<int> srcIDs, int dstID);
     void constructDestructEdges(QList<int> destruct_srcIDs, QList<int> destruct_dstIDs, QList<int> construct_srcIDs, int dstID);
 
-    void triggerAction(QString actionName);
 
 
-    void importProjects(QStringList xmlDataList);
-
-
-    void gotQuestionAnswer(bool answer);
 
 
     //MODEL Functionality
     void displayMessage(QString title, QString message, int ID);
+    void gotQuestionAnswer(bool answer);
 
-    void clearHistory();
 
-    void modelLabelChanged();
+    void _projectNameChanged();
 
 private:
+    void clearHistory();
 
     QString _copy(QList<Entity*> selection);
 
@@ -366,13 +336,9 @@ private:
 
     long long getMACAddress();
 
-
-private:
     void attachData(Entity* parent, Data* data, bool addAction = true);
     bool destructData(Entity* parent, QString keyName, bool addAction = true);
 
-
-private:
     void setViewSignalsEnabled(bool enabled, bool sendQueuedSignals = true);
     void updateUndoRedoState();
     void _setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
@@ -668,7 +634,7 @@ private:
     bool DESTRUCTING_CONTROLLER;
 
 
-    QString projectFilePath;
+    QString projectPath;
     bool projectFilePathSet;
 
     bool projectDirty;

@@ -21,7 +21,7 @@ bool ModelTester::loadTest(QString model, int repeatCount)
     printMemoryUsage("Initial");
 
     NewController* controller = new NewController();
-    controller->initializeModel();
+    controller->setupController();
     connect(this, SIGNAL(importProjects(QStringList)), controller, SLOT(importProjects(QStringList)));
     connect(this, SIGNAL(undo()), controller, SLOT(undo()));
     connect(this, SIGNAL(redo()), controller, SLOT(redo()));

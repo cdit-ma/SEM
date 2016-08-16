@@ -405,7 +405,7 @@ bool ViewController::_newProject()
 bool ViewController::_saveProject()
 {
     if(controller){
-        QString filePath = controller->getProjectFileName();
+        QString filePath = controller->getProjectPath();
 
         if(filePath.isEmpty()){
             return _saveAsProject();
@@ -425,7 +425,7 @@ bool ViewController::_saveAsProject()
     if(controller){
         QString fileName = FileHandler::selectFile("Select a *.graphml file to save project as.", QFileDialog::AnyFile, true, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
         if(!fileName.isEmpty()){
-            controller->setProjectFilePath(fileName);
+            controller->setProjectPath(fileName);
             return _saveProject();
         }
     }
@@ -436,8 +436,8 @@ bool ViewController::_closeProject()
 {
     if(isControllerReady()){
         if(controller){
-            if(controller->projectRequiresSaving()){
-                QString filePath = controller->getProjectFileName();
+            if(controller->isProjectSaved()){
+                QString filePath = controller->getProjectPath();
 
                 if(filePath == ""){
                     filePath = "Untitled Project";

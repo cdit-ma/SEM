@@ -24,8 +24,6 @@ static int count = 0;
 NewController::NewController() :QObject(0)
 {
 
-    projectFilePathSet = false;
-
     qCritical() << count ++;
     controllerThread = new QThread(this);
     moveToThread(controllerThread);
@@ -175,7 +173,7 @@ void NewController::connectViewController(ViewController *view)
 {
     connect(this, &NewController::entityConstructed, view, &ViewController::controller_entityConstructed);
     connect(this, &NewController::entityDestructed, view, &ViewController::controller_entityDestructed);
-    connect(view, &ViewController::vc_setupModel, this, &NewController::initializeModel);
+    connect(view, &ViewController::vc_setupModel, this, &NewController::setupController);
     connect(this, &NewController::controller_IsModelReady, view, &ViewController::setControllerReady);
 
     connect(this, &NewController::dataChanged, view, &ViewController::controller_dataChanged);
@@ -193,7 +191,7 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::vc_constructConnectedNode, this, &NewController::constructConnectedNode);
 
 
-    connect(view, &ViewController::vc_projectSaved, this, &NewController::projectSaved);
+    connect(view, &ViewController::vc_projectSaved, this, &NewController::setProjectSaved);
 
 
 
@@ -237,7 +235,7 @@ void NewController::disconnectViewController(ViewController *view)
 
 
 
-void NewController::initializeModel()
+void NewController::setupController()
 {
     lock.lockForWrite();
     setupModel();
@@ -460,18 +458,6 @@ QString NewController::_exportGraphMLDocument(Node *node, bool allEdges, bool GU
     nodeIDs << node->getID();
     return _exportGraphMLDocument(nodeIDs, allEdges, GUI_USED);
 }
-
-QStringList NewController::getAllNodeKinds()
-{
-    return constructableNodeKinds;
-}
-
-QStringList NewController::getGUIConstructableNodeKinds()
-{
-    return guiConstructableNodeKinds;
-}
-
-
 
 
 bool NewController::_clear()
@@ -771,6 +757,48 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
     emit controller_ActionFinished();
 }
 
+void NewController::constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass)
+{
+    lock.lockForWrite();
+    Node* src = getNodeFromID(srcID);
+    Node* dst = getNodeFromID(dstID);
+
+    bool success = false;
+    if(src && dst){
+        Edge* edge = 0;
+
+        if(src->canConnect(dst) == edgeClass){
+            edge = constructTypedEdge(src, dst, edgeClass);
+        }else if(dst->canConnect(src) == edgeClass){
+            edge = constructTypedEdge(dst, src, edgeClass);
+        }
+
+        success = edge;
+    }
+    lock.unlock();
+
+    emit controller_ActionFinished(success, "Edge couldn't be constructed");
+}
+
+void NewController::destructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass)
+{
+    lock.lockForWrite();
+    Node* src = getNodeFromID(srcID);
+    Node* dst = getNodeFromID(dstID);
+
+    bool success = false;
+    if(src && dst){
+        Edge* edge = src->getEdgeTo(dst);
+
+        if(edge && edge->getEdgeClass() == edgeClass){
+            success = destructEdge(edge);
+        }
+    }
+    lock.unlock();
+
+    emit controller_ActionFinished(success, "Edge couldn't be destructed");
+}
+
 void NewController::constructWorkerProcessNode(int parentID, QString workerName, QString operationName, QPointF position)
 {
     Node* parentNode = getNodeFromID(parentID);
@@ -811,33 +839,8 @@ void NewController::constructDDSQOSProfile(int parentID, QPointF position)
     }
 }
 
-void NewController::constructEdge(int srcID, int dstID)
-{
-    Node* src = getNodeFromID(srcID);
-    Node* dst = getNodeFromID(dstID);
-    if(src && dst){
-        Edge* edge = constructEdgeWithData(src, dst);
-        if(!edge){
-            //Try swap
-            constructEdgeWithData(dst, src);
-        }
-    }
-    emit controller_ActionFinished();
-}
 
-void NewController::destructEdge(int srcID, int dstID)
-{
-    Node* src = getNodeFromID(srcID);
-    Node* dst = getNodeFromID(dstID);
-
-    if(src && dst){
-        Edge* edge = src->getEdgeTo(dst);
-        destructEdge(edge);
-    }
-    emit controller_ActionFinished();
-}
-
-void NewController::constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos)
+void NewController::constructConnectedNode(int parentID, QString kind, QPointF centerPoint, int connectedID)
 {
     Node* parentNode = getNodeFromID(parentID);
     Node* connectedNode = getNodeFromID(connectedID);
@@ -857,11 +860,9 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
                 delete testNode;
 
                 if(edgeOkay){
-                    Node* newNode = constructChildNode(parentNode,constructDataVector(kind));
+                    Node* newNode = constructChildNode(parentNode, constructDataVector(kind, centerPoint));
                     if(newNode){
                         //Update the position
-                        _setData(newNode, "x", relativePos.x());
-                        _setData(newNode, "y", relativePos.y());
 
                         //Attach but don't send a GUI request.
                         attachChildNode(parentNode, newNode);
@@ -995,7 +996,7 @@ void NewController::openProject(QString filePath, QString xmlData)
     lock.unlock();
 
     //Update the project filePath
-    setProjectFilePath(filePath);
+    setProjectPath(filePath);
     //Clear the Undo/Redo History.
     clearHistory();
     //Loading a project means we are in state with the savefile.
@@ -1612,14 +1613,14 @@ long long NewController::getMACAddress()
  */
 QStringList NewController::getAdoptableNodeKinds(int ID)
 {
-    lock.lockForRead();
     QStringList adoptableNodeKinds;
 
+    lock.lockForRead();
     Node* parent = getNodeFromID(ID);
 
     //Ignore all children for read only kind.
     if(parent && !parent->isReadOnly()){
-        foreach(QString nodeKind, getGUIConstructableNodeKinds()){
+        foreach(QString nodeKind, guiConstructableNodeKinds){
             Node* node = constructTypedNode(nodeKind, true);
             if(node){
                 if(parent->canAdoptChild(node)){
@@ -1635,65 +1636,12 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
     return adoptableNodeKinds;
 }
 
-QList<int> NewController::getFunctionIDList()
-{
-    QList<int> IDs;
-    if(workerDefinitions){
-        foreach(Node* node, workerDefinitions->getChildrenOfKind("Process")){
-            IDs.append(node->getID());
-        }
-    }
-    return IDs;
-}
-
-
-QList<int> NewController::getConnectableNodes(int srcID)
-{
-    lock.lockForRead();
-    QList<int> legalNodes;
-
-    Node* src = getNodeFromID(srcID);
-    if(src){
-        foreach (int ID, nodeIDs){
-            Node* dst = getNodeFromID(ID);
-            if(dst && (ID != srcID)){
-                if (src->canConnect(dst) != Edge::EC_NONE){
-                    legalNodes << ID;
-                }else if (dst->canConnect(src) != Edge::EC_NONE){
-                    legalNodes << ID;
-                }
-            }
-        }
-    }
-    lock.unlock();
-    return legalNodes;
-}
-
-/**
- * @brief NewController::getConnectedNodes Gets the list of connected Node IDs to a Node.
- * @param ID
- * @return
- */
-QList<int> NewController::getConnectedNodes(int ID)
-{
-    QList<int> connectedIDs;
-    Node* node = getNodeFromID(ID);
-    if(node){
-        foreach (Edge* edge, node->getEdges(0)) {
-            connectedIDs << edge->getDestination()->getID();
-            connectedIDs << edge->getSource()->getID();
-        }
-    }
-    //Remove the node from it's list of connected items.
-    connectedIDs.removeAll(ID);
-    return connectedIDs;
-}
 
 QList<int> NewController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind)
 {
-    lock.lockForRead();
 
     QList<int> dstIDs;
+    lock.lockForRead();
     foreach(Node* dst, _getConnectableNodes(getNodes(srcs), edgeKind)){
         dstIDs.append(dst->getID());
     }
@@ -1703,10 +1651,10 @@ QList<int> NewController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLAS
 
 QList<int> NewController::getConstructableNodeDefinitions(int parentID, QString instanceNodeKind)
 {
-    lock.lockForRead();
 
     QList<int> dstIDs;
 
+    lock.lockForRead();
     Node* parentNode = getNodeFromID(parentID);
     Node* childNode = constructTypedNode(instanceNodeKind, true);
 
@@ -1834,8 +1782,8 @@ QList<Entity*> NewController::getOrderedSelection(QList<int> selection)
 
 QStringList NewController::getValidKeyValues(int nodeID, QString keyName)
 {
-    lock.lockForRead();
     QStringList validKeyValues;
+    lock.lockForRead();
     Key* key = getKeyFromName(keyName);
     if(key){
         QString nodeKind = "";
@@ -1897,112 +1845,14 @@ int NewController::getDeployedHardwareID(int ID)
     return deplID;
 }
 
-int NewController::getSharedParent(int ID1, int ID2)
-{
-    Node* node1 = getNodeFromID(ID1);
-    Node* node2 = getNodeFromID(ID2);
-    if(node1 && node2){
-        QString treeString;
-        QList<int> node1Tree = node1->getTreeIndex();
-        QList<int> node2Tree = node2->getTreeIndex();
-
-
-        while(!node1Tree.isEmpty() && !node2Tree.isEmpty()){
-            int index1 = node1Tree.takeFirst();
-            int index2 = node2Tree.takeFirst();
-            if(index1 == index2){
-                treeString += QString::number(index1) +",";
-            }else{
-                break;
-            }
-        }
-        if(treeString.endsWith(",")){
-            treeString.chop(1);
-        }
-
-        return treeHash.value(treeString);
-    }
-    return -1;
-}
-
-/**
- * @brief NewController::getContainedAspect - Gets the ID of the aspect
- * @param ID The ID of the aspect
- * @return
- */
-int NewController::getContainedAspect(int ID)
-{
-    Node* node = getNodeFromID(ID);
-    if(node){
-        if(behaviourDefinitions->isAncestorOf(node)){
-            return behaviourDefinitions->getID();
-        }else if(interfaceDefinitions->isAncestorOf(node)){
-            return interfaceDefinitions->getID();
-        }else if(assemblyDefinitions->isAncestorOf(node)){
-            return assemblyDefinitions->getID();
-        }else if(hardwareDefinitions->isAncestorOf(node)){
-            return hardwareDefinitions->getID();
-        }
-    }
-    return -1;
-}
-
-void NewController::projectSaved(QString filePath)
+void NewController::setProjectSaved(QString path)
 {
     setProjectDirty(false);
-    //Update the file save path.
-    setProjectFilePath(filePath);
-}
-
-/**
- * @brief NewController::connectViewAndSetupModel Called
- * @param view
- */
-void NewController::connectViewAndSetupModel(NodeView *view)
-{
-    //connectView(view);
-    initializeModel();
-}
-
-QList<int> NewController::getNodesOfKind(QString kind, int ID, int depth)
-{
-    QList<int> children;
-    if(ID == -1){
-        ID = getModel()->getID();
+    if(path != ""){
+        //Update the file save path.
+        setProjectPath(path);
     }
-    Node* parentNode = getNodeFromID(ID);
-    if(parentNode){
-        foreach(Node* child, parentNode->getChildrenOfKind(kind, depth)){
-            children.append(child->getID());
-        }
-    }
-    return children;
 }
-
-QString NewController::getData(int ID, QString key)
-{
-    Entity* item = getGraphMLFromID(ID);
-    if(item){
-        Data* data = item->getData(key);
-        if(data){
-            return data->getValue().toString();
-        }
-    }
-    return "";
-}
-
-
-
-bool NewController::isInModel(int ID)
-{
-    Entity* item = getGraphMLFromID(ID);
-    if(item){
-        return _isInModel(item);
-    }
-    return false;
-}
-
-
 
 
 QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeID)
@@ -3189,7 +3039,7 @@ bool NewController::destructNode(Node *node)
     if(DESTRUCTING_CONTROLLER){
         //If we are destructing the controller; Don't add an undo state.
         addAction = false;
-    }else if(!isInModel(ID)){
+    }else if(!node->isInModel()){
         //If the item isn't in the Model; Don't add an undo state.
         addAction = false;
     }
@@ -3727,7 +3577,7 @@ void NewController::clearHistory()
     updateUndoRedoState();
 }
 
-void NewController::modelLabelChanged()
+void NewController::_projectNameChanged()
 {
     Model* model = getModel();
     if(model){
@@ -3980,10 +3830,10 @@ void NewController::setupModel()
 
 
     Data* labelData = model->getData("label");
-    connect(labelData, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(modelLabelChanged()));
+    connect(labelData, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(_projectNameChanged()));
 
     //Update the view with the correct Model Label.
-    modelLabelChanged();
+    _projectNameChanged();
 
     //Construct the top level parents.
     interfaceDefinitions = constructChildNode(model, constructDataVector("InterfaceDefinitions", QPointF(-1,-1),"", "Interfaces"));
@@ -4005,10 +3855,6 @@ void NewController::setupModel()
 
     setupManagementComponents();
     setupLocalNode();
-    //Clear the Undo/Redo Stacks
-    undoActionStack.clear();
-    redoActionStack.clear();
-
 }
 
 
@@ -4896,21 +4742,18 @@ WorkerDefinitions *NewController::getWorkerDefinitions()
 
 QString NewController::getProjectAsGraphML()
 {
-    QString data;
-    if(model){
-        data = _exportGraphMLDocument(model);
-    }
+    lock.lockForRead();
+    QString data = _exportGraphMLDocument(model);
+    lock.unlock();
     return data;
 }
 
 QString NewController::getSelectionAsGraphMLSnippet(QList<int> IDs)
 {
-    QString data;
-    if(model){
-        data = _exportSnippet(IDs);
-    }
+    lock.lockForRead();
+    QString data = _exportSnippet(IDs);
+    lock.unlock();
     return data;
-
 }
 
 void NewController::enableDebugLogging(bool logMode, QString applicationPath)
@@ -4965,12 +4808,6 @@ void NewController::setData(int parentID, QString keyName, QVariant dataValue)
     if(graphML){
         _setData(graphML, keyName, dataValue, true);
     }
-}
-
-void NewController::destructteardown()
-{
-    qCritical() << "destructteardown: " << QThread::currentThreadId();
-    this->deleteLater();
 }
 
 
@@ -5457,7 +5294,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                     bool attached = false;
 
-                    if(isInModel(newNode->getID())){
+                    if(newNode->isInModel()){
                         attached = true;
                     }else{
                         //Attach the node to the parentNode
@@ -5665,12 +5502,11 @@ void NewController::setProjectDirty(bool dirty)
     }
 }
 
-void NewController::setProjectFilePath(QString filePath)
+void NewController::setProjectPath(QString path)
 {
-    if(projectFilePath != filePath){
-        projectFilePathSet = true;
-        projectFilePath = filePath;
-        emit controller_ProjectFileChanged(projectFilePath);
+    if(projectPath != path){
+        projectPath = path;
+        emit controller_ProjectFileChanged(projectPath);
     }
 }
 
@@ -6076,80 +5912,18 @@ bool NewController::canLocalDeploy()
     return isDeployable;
 }
 
-QString NewController::getProjectFileName() const
+QString NewController::getProjectPath() const
 {
-    return projectFilePath;
-}
-
-QString NewController::getProjectSaveFile()
-{
-    return projectFilePath;
+    return projectPath;
 }
 
 
-bool NewController::projectRequiresSaving() const
+
+bool NewController::isProjectSaved() const
 {
     return projectDirty;
 }
 
-bool NewController::isNodeAncestor(int ID, int ID2)
-{
-    Node* node = getNodeFromID(ID);
-    Entity* entity = getGraphMLFromID(ID2);
-
-    if(node && entity){
-        return node->isAncestorOf(entity);
-    }
-    return false;
-}
-
-bool NewController::areIDsInSameBranch(int mainID, int newID)
-{
-    Entity* main = getGraphMLFromID(mainID);
-    Entity* other = getGraphMLFromID(newID);
-
-    QList<int> mainTree;
-    QList<int> secondTree;
-    QList<int> thirdTree;
-    bool useThirdTree = false;
-
-    if(main->isNode()){
-        mainTree = ((Node*)main)->getTreeIndex();
-    }
-
-    if(other->isEdge()){
-        Edge* edge = (Edge*)other;
-        Node* src = edge->getSource();
-        Node* dst = edge->getDestination();
-        if(src && dst){
-            secondTree = src->getTreeIndex();
-            thirdTree = dst->getTreeIndex();
-        }
-    }
-    if(other->isNode()){
-        secondTree = ((Node*)other)->getTreeIndex();
-    }
-
-    for(int i = 0; i < mainTree.size(); i++){
-        int one = mainTree.at(i);
-        int two = -1;
-        int three = -1;
-        if(i < secondTree.size()){
-            two = secondTree.at(i);
-        }
-        if(i < thirdTree.size()){
-            three = thirdTree.at(i);
-        }
-
-        if(two == -1 || (three == -1 && useThirdTree)){
-            return true;
-        }
-        if(one != two || (one != three && useThirdTree)){
-            return false;
-        }
-    }
-    return true;
-}
 
 int NewController::getDefinition(int ID)
 {
