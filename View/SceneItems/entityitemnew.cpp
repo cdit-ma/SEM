@@ -11,6 +11,10 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     this->kind = kind;
     connectViewItem(viewItem);
 
+    if(parentItem){
+        connect(parentItem, SIGNAL(scenePosChanged()), this, SIGNAL(scenePosChanged()));
+    }
+
     //Sets the default border to be dark gray
     QPen defaultPen(QColor(50, 50, 50));
     defaultPen.setCosmetic(true);
@@ -88,6 +92,7 @@ void EntityItemNew::setPos(const QPointF &pos)
     if(pos != this->pos()){
        QGraphicsObject::setPos(pos);
        emit positionChanged();
+       emit scenePosChanged();
     }
 }
 
@@ -399,7 +404,9 @@ void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
 
+
     if(event->button() == Qt::LeftButton && getElementPath(ER_SELECTION).contains(event->pos())){
+        qCritical() << "HANDLE SELECTION " << this;
         handleSelection(controlDown);
     }
 
@@ -431,7 +438,6 @@ void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    qCritical() << _isMouseMoving;
     if(_isMouseMoving){
         _isMouseMoving = false;
         emit req_adjustingPos(false);

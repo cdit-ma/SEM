@@ -56,6 +56,12 @@ NodeItemNew::~NodeItemNew()
         NodeItemNew* child = childNodes[key];
         removeChildNode(child);
     }
+
+    //remove children nodes.
+    while(!childEdges.isEmpty()){
+        int key = childEdges.keys().takeFirst();
+        removeChildEdge(key);
+    }
 }
 
 
@@ -175,13 +181,18 @@ void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
 {
     int ID = edgeItem->getID();
     if(!childEdges.contains(ID)){
+        edgeItem->setParentItem(this);
         childEdges[ID] = edgeItem;
     }
 }
 
 void NodeItemNew::removeChildEdge(int ID)
 {
-    childEdges.remove(ID);
+    if(childEdges.contains(ID)){
+        EdgeItemNew* item = childEdges[ID];
+        item->unsetParent();
+        childEdges.remove(ID);
+    }
 }
 
 QList<EdgeItemNew *> NodeItemNew::getChildEdges()

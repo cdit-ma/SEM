@@ -143,6 +143,7 @@ signals:
     //Inform of changes
     void sizeChanged();
     void positionChanged();
+    void scenePosChanged();
 private slots:
     virtual void dataChanged(QString keyName, QVariant data) = 0;
     void destruct();

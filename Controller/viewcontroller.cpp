@@ -295,7 +295,15 @@ bool ViewController::destructViewItem(ViewItem *viewItem)
         //Delete children first!
         destructChildItems(viewItem);
 
+        QString treeKey;
 
+        if(viewItem->isNode()){
+            treeKey = ((NodeViewItem*)viewItem)->getTreeIndex();
+        }
+
+        if(!treeKey.isEmpty() && treeLookup.contains(treeKey)){
+            treeLookup.remove(treeKey);
+        }
 
         int ID = viewItem->getID();
         QString kind = viewItem->getData("kind").toString();
@@ -331,6 +339,50 @@ QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
         }
     }
     return items;
+}
+
+NodeViewItem *ViewController::getNodeViewItem(int ID)
+{
+    ViewItem* item = getViewItem(ID);
+    if(item && item->isNode()){
+        return (NodeViewItem*) item;
+    }
+    return 0;
+}
+
+NodeViewItem *ViewController::getSharedParent(NodeViewItem *node1, NodeViewItem *node2)
+{
+    QString tree1;
+    QString tree2;
+
+    if(node1){
+        tree1 = node1->getTreeIndex();
+    }
+    if(node2){
+        tree2 = node2->getTreeIndex();
+    }
+
+    int i = 0;
+
+    while(true){
+        if(tree1.length() < i || tree2.length() < i){
+            //End of a string
+            break;
+        }
+        if(tree1.at(i) != tree2.at(i)){
+            //Different chars
+            break;
+        }
+        i++;
+    }
+
+    QString parentTree = tree1.left(i);
+
+    if(treeLookup.contains(parentTree)){
+        int ID = treeLookup[parentTree];
+        return getNodeViewItem(ID);
+    }
+    return 0;
 }
 
 NodeViewNew *ViewController::getActiveNodeView()
@@ -501,6 +553,14 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 
         ViewItem* parentItem = getViewItem(parentID);
 
+        QString treeKey = nodeItem->getTreeIndex();
+
+
+
+        if(!treeLookup.contains(treeKey)){
+            treeLookup[treeKey] = ID;
+        }
+
         //Attach the node to it's parent
         if(parentItem){
             parentItem->addChild(nodeItem);
@@ -509,8 +569,20 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             topLevelItems.append(ID);
         }
     }else if(eKind == EK_EDGE){
-        //DO LATER.
-        EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, eKind, kind, data, properties);
+        Edge::EDGE_CLASS edgeClass = (Edge::EDGE_CLASS)properties["edgeClass"].toInt();
+
+        if(!(edgeClass == Edge::EC_ASSEMBLY || edgeClass == Edge::EC_DATA || edgeClass == Edge::EC_WORKFLOW)){
+            return;
+        }
+        int srcID = properties["srcID"].toInt();
+        int dstID = properties["dstID"].toInt();
+        NodeViewItem* source = getNodeViewItem(srcID);
+        NodeViewItem* destination = getNodeViewItem(dstID);
+
+        NodeViewItem* parent = getSharedParent(source, destination);
+
+
+        EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, parent, source, destination, kind, data, properties);
         viewItem = edgeItem;
     }
 

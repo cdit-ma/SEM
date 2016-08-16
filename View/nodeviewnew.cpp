@@ -281,7 +281,6 @@ void NodeViewNew::item_ActiveSelected(ViewItem *item)
 
 void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
 {
-    qCritical() << item << expand;
     if(item){
         int ID = item->getID();
         emit triggerAction("Expanding Selection");
@@ -543,6 +542,33 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
 void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
 {
+    if(!item || !containedNodeViewItem || !containedNodeViewItem->isAncestorOf(item->getParentItem())){
+        return;
+    }
+
+
+    NodeItemNew* parent = getParentNodeItem(item->getParentItem());
+    NodeItemNew* source = getParentNodeItem(item->getSource());
+    NodeItemNew* destination = getParentNodeItem(item->getDestination());
+
+    EdgeItemNew* edgeItem = new EdgeItemNew(item, parent,source,destination);
+
+
+    if(edgeItem){
+        guiItems[item->getID()] = edgeItem;
+        connect(edgeItem, SIGNAL(req_activeSelected(ViewItem*)), this, SLOT(item_ActiveSelected(ViewItem*)));
+        connect(edgeItem, SIGNAL(req_selected(ViewItem*,bool)), this, SLOT(item_Selected(ViewItem*,bool)));
+
+        connect(edgeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(item_SetExpanded(EntityItemNew*,bool)));
+        connect(edgeItem, SIGNAL(req_centerItem(EntityItemNew*)), this, SLOT(item_SetCentered(EntityItemNew*)));
+        connect(edgeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(item_AdjustPos(QPointF)));
+        connect(edgeItem, SIGNAL(req_adjustingPos(bool)), this, SLOT(item_AdjustingPos(bool)));
+
+        if(!scene()->items().contains(edgeItem)){
+            scene()->addItem(edgeItem);
+        }
+    }
+
     //Do nothing.
 }
 

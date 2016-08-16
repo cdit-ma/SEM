@@ -133,6 +133,10 @@ private:
     bool destructViewItem(ViewItem* item);
     QList<ViewItem*> getViewItems(QList<int> IDs);
 
+    NodeViewItem* getNodeViewItem(int ID);
+
+    NodeViewItem* getSharedParent(NodeViewItem* node1, NodeViewItem* node2);
+
     NodeViewNew* getActiveNodeView();
     void _teardownProject();
 
@@ -156,6 +160,7 @@ private:
 
     ViewItem* getViewItem(int ID);
 
+    QHash<QString, int> treeLookup;
     QHash<QString, QList<int> > itemKindLists;
     QHash<int, ViewItem*> viewItems;
     QList<int> topLevelItems;
