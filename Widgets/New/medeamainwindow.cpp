@@ -81,8 +81,8 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     connect(controller, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), tableWidget, SLOT(itemActiveSelectionChanged(ViewItem*, bool)));
     connect(vc->getActionController()->view_viewInNewWindow, SIGNAL(triggered(bool)), this, SLOT(spawnSubView()));
 
-    connect(vc, &ViewController::projectModified, this, &MedeaMainWindow::setWindowModified);
-    connect(vc, &ViewController::projectPathChanged, this, &MedeaMainWindow::setModelTitle);
+    connect(vc, &ViewController::mc_projectModified, this, &MedeaMainWindow::setWindowModified);
+    connect(vc, &ViewController::vc_projectPathChanged, this, &MedeaMainWindow::setModelTitle);
 
     //this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
 
@@ -96,7 +96,7 @@ void MedeaMainWindow::setViewController(ViewController *vc)
  * @brief MedeaMainWindow::showCompletion
  * @param list
  */
-void MedeaMainWindow::showCompletion(QStringList list)
+void MedeaMainWindow::updateSearchSuggestions(QStringList list)
 {
     searchCompleterModel->setStringList(list);
 }
@@ -348,8 +348,7 @@ void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
 {
     if(nodeView && viewController){
         nodeView->setViewController(viewController);
-        connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), nodeView, SLOT(viewItem_Constructed(ViewItem*)));
-        connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), nodeView, SLOT(viewItem_Destructed(int,ViewItem*)));
+
     }
 }
 
@@ -542,8 +541,10 @@ void MedeaMainWindow::setupSearchBar()
     searchToolbar->addWidget(searchButton);
     searchToolbar->hide();
 
-    connect(this, SIGNAL(requestSuggestions()), viewController, SLOT(searchSuggestionsRequested()));
-    connect(viewController, SIGNAL(seachSuggestions(QStringList)), this, SLOT(showCompletion(QStringList)));
+    connect(this, &MedeaMainWindow::requestSuggestions, viewController, &ViewController::requestSearchSuggestions);
+    connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MedeaMainWindow::updateSearchSuggestions);
+
+
     connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
     connect(searchButton, SIGNAL(clicked(bool)), searchToolbar, SLOT(hide()));
 }

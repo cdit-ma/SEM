@@ -31,9 +31,9 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
 
     //Connect to the view controller
-    connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), this, SLOT(viewItem_Constructed(ViewItem*)));
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), this, SLOT(viewItem_Destructed(int,ViewItem*)));
 
+    connect(viewController, &ViewController::vc_viewItemConstructed, this, &ToolActionController::viewItem_Constructed);
+    connect(viewController, &ViewController::vc_viewItemDestructing, this, &ToolActionController::viewItem_Destructed);
 }
 
 QList<NodeViewItemAction *> ToolActionController::getDefinitionNodeActions(QString kind)
@@ -112,7 +112,7 @@ void ToolActionController::addChildNode(QString kind, QPointF position)
 
     if(item){
         int ID = item->getID();
-        emit viewController->constructNode(ID, kind, position);
+        emit viewController->vc_constructNode(ID, kind, position);
     }
 }
 
@@ -120,7 +120,7 @@ void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPoint
 {
     int ID = selectionController->getFirstSelectedItemID();
     if(ID != -1){
-        emit viewController->constructConnectedNode(ID, dstID, kind, position);
+        emit viewController->vc_constructConnectedNode(ID, dstID, kind, position);
     }
 }
 

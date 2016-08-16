@@ -23,7 +23,10 @@ SelectionHandler *SelectionController::constructSelectionHandler(QObject *object
     }else{
         SelectionHandler* handler = new SelectionHandler(this);
         connect(handler, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(removeSelectionHandler()));
-        connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), handler, SLOT(itemDeleted(int,ViewItem*)));
+
+
+        connect(viewController, &ViewController::vc_viewItemDestructing, this, &SelectionHandler::itemDeleted);
+
         selectionHandlers[handler->getID()] = handler;
         registerSelectionHandler(object, handler);
         return handler;

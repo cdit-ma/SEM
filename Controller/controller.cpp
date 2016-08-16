@@ -175,7 +175,7 @@ void NewController::connectViewController(ViewController *view)
 {
     connect(this, &NewController::entityConstructed, view, &ViewController::controller_entityConstructed);
     connect(this, &NewController::entityDestructed, view, &ViewController::controller_entityDestructed);
-    connect(view, &ViewController::initializeModel, this, &NewController::initializeModel);
+    connect(view, &ViewController::vc_setupModel, this, &NewController::initializeModel);
     connect(this, &NewController::controller_IsModelReady, view, &ViewController::setControllerReady);
 
     connect(this, &NewController::dataChanged, view, &ViewController::controller_dataChanged);
@@ -184,34 +184,33 @@ void NewController::connectViewController(ViewController *view)
     connect(this, &NewController::propertyChanged, view, &ViewController::controller_propertyChanged);
     connect(this, &NewController::propertyRemoved, view, &ViewController::controller_propertyRemoved);
 
-    connect(view, &ViewController::importProjects, this, &NewController::importProjects);
+    connect(view, &ViewController::vc_importProjects, this, &NewController::importProjects);
     connect(view, &ViewController::vc_openProject, this, &NewController::openProject);
 
 
-    connect(view, &ViewController::setData, this, &NewController::setData);
-    connect(view, &ViewController::constructNode, this, &NewController::constructNode);
-    connect(view, &ViewController::constructConnectedNode, this, &NewController::constructConnectedNode);
-
-    connect(view, &ViewController::triggerAction, this, &NewController::triggerAction);
-
-    connect(view, &ViewController::projectSaved, this, &NewController::projectSaved);
+    connect(view, &ViewController::vc_setData, this, &NewController::setData);
+    connect(view, &ViewController::vc_constructNode, this, &NewController::constructNode);
+    connect(view, &ViewController::vc_constructConnectedNode, this, &NewController::constructConnectedNode);
 
 
-
-
-    connect(view, &ViewController::undo, this, &NewController::undo);
-    connect(view, &ViewController::redo, this, &NewController::redo);
-
-    connect(view, &ViewController::cutEntities, this, &NewController::cut);
-    connect(view, &ViewController::copyEntities, this, &NewController::copy);
-    connect(view, &ViewController::pasteIntoEntity, this, &NewController::paste);
-    connect(view, &ViewController::replicateEntities, this, &NewController::replicate);
+    connect(view, &ViewController::vc_projectSaved, this, &NewController::projectSaved);
 
 
 
 
-    connect(this, &NewController::projectModified, view, &ViewController::projectModified);
-    connect(this, &NewController::controller_ProjectFileChanged, view, &ViewController::projectPathChanged);
+    connect(view, &ViewController::vc_undo, this, &NewController::undo);
+    connect(view, &ViewController::vc_redo, this, &NewController::redo);
+
+    connect(view, &ViewController::vc_cutEntities, this, &NewController::cut);
+    connect(view, &ViewController::vc_copyEntities, this, &NewController::copy);
+    connect(view, &ViewController::vc_paste, this, &NewController::paste);
+    connect(view, &ViewController::vc_replicateEntities, this, &NewController::replicate);
+
+
+
+
+    connect(this, &NewController::projectModified, view, &ViewController::mc_projectModified);
+    connect(this, &NewController::controller_ProjectFileChanged, view, &ViewController::vc_projectPathChanged);
 
 
     connect(this, &NewController::controller_IsModelReady, view, &ViewController::setModelReady);
@@ -219,7 +218,7 @@ void NewController::connectViewController(ViewController *view)
     connect(this, &NewController::controller_SetClipboardBuffer, view, &ViewController::setClipboardData);
     connect(this, &NewController::controller_ActionFinished, view, &ViewController::actionFinished);
 
-    connect(this, &NewController::undoRedoChanged, view, &ViewController::undoRedoChanged);
+    connect(this, &NewController::undoRedoChanged, view, &ViewController::mc_undoRedoUpdated);
 
     connect(view, SIGNAL(deleteEntities(QList<int>)), this, SLOT(remove(QList<int>)));
 

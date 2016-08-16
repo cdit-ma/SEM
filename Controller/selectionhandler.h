@@ -31,6 +31,9 @@ public:
 
     ViewItem* getFirstSelectedItem();
     ViewItem* getActiveSelectedItem();
+
+
+
 signals:
     void itemSelectionChanged(ViewItem*, bool selected);
     void itemActiveSelectionChanged(ViewItem* item, bool active);
@@ -38,7 +41,6 @@ signals:
     void selectionChanged(int count);
 public slots:
     void clearSelection();
-private slots:
     void itemDeleted(int ID, ViewItem *item);
 private:
     void _selectionChanged(int changes = 0);

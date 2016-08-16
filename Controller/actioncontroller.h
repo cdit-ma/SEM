@@ -24,7 +24,6 @@ public:
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
 
 private:
-    //void connectSelectionController(SelectionController* controller);
     RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 
 private slots:

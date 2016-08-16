@@ -19,7 +19,7 @@ public:
     QOSProfileModel(QObject *parent);
 
     QAbstractTableModel* getTableModel(const QModelIndex &index) const;
-private slots:
+public slots:
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 private:

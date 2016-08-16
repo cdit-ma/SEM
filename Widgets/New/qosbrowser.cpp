@@ -10,8 +10,10 @@ QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent) : QWidget(parent)
     qosModel = new QOSProfileModel(this);
     setStyleSheet("QOSBrowser{padding:0px;margin:0px;}");
 
-    connect(vc, SIGNAL(viewItemConstructed(ViewItem*)), qosModel, SLOT(viewItem_Constructed(ViewItem*)));
-    connect(vc, SIGNAL(viewItemDestructing(int,ViewItem*)), qosModel, SLOT(viewItem_Destructed(int,ViewItem*)));
+
+    connect(vc, &ViewController::vc_viewItemConstructed, qosModel, &QOSProfileModel::viewItem_Constructed);
+    connect(vc, &ViewController::vc_viewItemDestructing, qosModel, &QOSProfileModel::viewItem_Destructed);
+
 
     setupLayout();
 

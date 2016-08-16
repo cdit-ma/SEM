@@ -88,13 +88,17 @@ void NodeViewNew::setViewController(ViewController *viewController)
 {
     this->viewController = viewController;
     if(viewController){
+
+        connect(viewController, &ViewController::vc_viewItemConstructed, this, &NodeViewNew::viewItem_Constructed);
+        connect(viewController, &ViewController::vc_viewItemDestructing, this, &NodeViewNew::viewItem_Destructed);
+
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
         connect(selectionHandler, SIGNAL(itemSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelectionChanged(ViewItem*,bool)));
         connect(selectionHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemActiveSelectionChanged(ViewItem*,bool)));
 
-        connect(this, &NodeViewNew::toolbarRequested, viewController, &ViewController::showToolbar);
-        connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::triggerAction);
-        connect(this, &NodeViewNew::setData, viewController, &ViewController::setData);
+        connect(this, &NodeViewNew::toolbarRequested, viewController, &ViewController::vc_showToolbar);
+        connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::vc_triggerAction);
+        connect(this, &NodeViewNew::setData, viewController, &ViewController::vc_setData);
     }
 }
 
