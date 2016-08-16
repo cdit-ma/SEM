@@ -205,6 +205,7 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::vc_copyEntities, this, &NewController::copy);
     connect(view, &ViewController::vc_paste, this, &NewController::paste);
     connect(view, &ViewController::vc_replicateEntities, this, &NewController::replicate);
+    connect(view, &ViewController::vc_deleteEntities, this, &NewController::remove);
 
 
 
@@ -220,7 +221,9 @@ void NewController::connectViewController(ViewController *view)
 
     connect(this, &NewController::undoRedoChanged, view, &ViewController::mc_undoRedoUpdated);
 
-    connect(view, SIGNAL(deleteEntities(QList<int>)), this, SLOT(remove(QList<int>)));
+    connect(this, &NewController::showProgress, view, &ViewController::mc_showProgress);
+    connect(this, &NewController::progressChanged, view, &ViewController::mc_progressChanged);
+
 
     view->setController(this);
 }
@@ -966,7 +969,9 @@ void NewController::triggerAction(QString actionName)
 void NewController::undo()
 {
     if(canUndo()){
-        undoRedo(UNDO);
+        emit showProgress(true, "Undoing");
+        undoRedo(UNDO, true);
+        emit showProgress(false);
     }
     emit controller_ActionFinished();
 }
@@ -974,43 +979,32 @@ void NewController::undo()
 void NewController::redo()
 {
     if(canRedo()){
-        undoRedo(REDO);
+        emit showProgress(true, "Redoing");
+        undoRedo(REDO, true);
+        emit showProgress(false, "Redoing");
     }
     emit controller_ActionFinished();
 }
 
 void NewController::openProject(QString filePath, QString xmlData)
 {
-    //lock.lockForWrite();
+    lock.lockForWrite();
     OPENING_PROJECT = true;
-
-
-    if(updateProgressNotification()){
-        controller_ActionProgressChanged(0, "Opening document: " + filePath);
-    }
     bool result = _newImportGraphML(xmlData, getModel());
+    OPENING_PROJECT = false;
+    lock.unlock();
 
-
-    if(!result){
-        emit controller_ActionProgressChanged(100);
-        controller_DisplayMessage(CRITICAL, "Open Error", "Cannot fully open document.", "Open", getModel()->getID());
-        //Undo the failed load.
-        //undoRedo(true);
-    }
-
-
+    //Update the project filePath
     setProjectFilePath(filePath);
-
     //Clear the Undo/Redo History.
     clearHistory();
-
-    OPENING_PROJECT = false;
-
     //Loading a project means we are in state with the savefile.
     setProjectDirty(false);
 
-    emit controller_ActionFinished();
-    //lock.unlock();
+    //Hide the progress bar.
+    emit showProgress(false);
+
+    emit controller_ActionFinished(result, "Project couldn't be opened.");
 }
 
 
@@ -3521,7 +3515,7 @@ void NewController::addActionToStack(EventAction action, bool useAction)
     }
 }
 
-void NewController::undoRedo(bool undo)
+void NewController::undoRedo(bool undo, bool updateProgess)
 {
     UNDOING = undo;
     REDOING = !undo;
@@ -3542,9 +3536,6 @@ void NewController::undoRedo(bool undo)
         return;
     }
 
-    //Lock the GUI.
-
-    controller_SetViewEnabled(false);
 
 
     //Get the ID and Name of the top-most action.
@@ -3580,6 +3571,7 @@ void NewController::undoRedo(bool undo)
     QHash<int, int> retryCount;
 
 
+
     previousUndos = actionCount;
     int actionsReversed = 0;
     while(!toReverse.isEmpty()){
@@ -3593,17 +3585,13 @@ void NewController::undoRedo(bool undo)
 
         }else{
             actionsReversed ++;
-            int percentage = (actionsReversed * 100) / actionCount;
-            if(UNDOING){
-                controller_ActionProgressChanged(percentage, "Undoing");
-            }
-            if(REDOING){
-                controller_ActionProgressChanged(percentage, "Redoing");
+
+            if(updateProgess){
+                emit progressChanged((actionsReversed * 100) / actionCount);
             }
         }
     }
     retryCount.clear();
-    controller_ActionProgressChanged(100);
 
 
     if(UNDOING){
@@ -3611,11 +3599,6 @@ void NewController::undoRedo(bool undo)
     }else{
         redoActionStack = actionStack;
     }
-
-
-
-
-    controller_SetViewEnabled(true);
 
     UNDOING = false;
     REDOING = false;
@@ -5071,11 +5054,13 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
  */
 void NewController::importProjects(QStringList xmlDataList)
 {
+    lock.lockForWrite();
+    emit showProgress(true, "Importing Projects");
     IMPORTING_PROJECT = true;
     bool success = _importProjects(xmlDataList);
     IMPORTING_PROJECT = false;
-
-    emit controller_ActionProgressChanged(100);
+    emit showProgress(false);
+    lock.unlock();
     emit controller_ActionFinished(success);
 }
 
@@ -5184,6 +5169,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     //Now we know we have no errors, so read Stream again.
     QXmlStreamReader xml(document);
 
+
     bool linkPreviousID = false;
     bool resetPosition = false;
 
@@ -5201,6 +5187,13 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
 
     TempEntity* currentEntity = topEntity;
+
+
+    if(updateProgressNotification()){
+        emit showProgress(true, "Parsing Project");
+        emit progressChanged(-1);
+    }
+
 
     while(!xml.atEnd()){
         //Read each line of the xml document.
@@ -5397,6 +5390,10 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     float totalEntities = entityHash.size();
     float entitiesMade = 0;
 
+    if(updateProgressNotification()){
+        emit showProgress(true, "Constructing Nodes");
+    }
+
     //Now construct all Nodes.
     while(!nodeIDStack.isEmpty()){
         //Get the String ID of the node.
@@ -5404,7 +5401,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         TempEntity *entity = entityHash[ID];
 
         if(updateProgressNotification()){
-            emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing nodes");
+            emit progressChanged((entitiesMade * 100) / totalEntities);
         }
 
         entitiesMade ++;
@@ -5542,6 +5539,10 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         }
     }
 
+    if(updateProgressNotification()){
+        emit showProgress(true, "Constructing Edges");
+    }
+
     QList<Edge::EDGE_CLASS> edgeOrder;
     edgeOrder << Edge::EC_DEFINITION << Edge::EC_AGGREGATE << Edge::EC_NONE;
 
@@ -5579,7 +5580,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                     if(edge){
                         if(updateProgressNotification()){
-                            emit controller_ActionProgressChanged((entitiesMade* 100) / totalEntities, "Constructing edges");
+                            emit progressChanged((entitiesMade* 100) / totalEntities);
                         }
                         entitiesMade ++;
 
@@ -5607,9 +5608,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     //Clear the topEntity
     delete topEntity;
 
-    if(updateProgressNotification()){
-        emit controller_ActionProgressChanged(100);
-    }
+
+
     return true;
 }
 

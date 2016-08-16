@@ -38,7 +38,7 @@ public slots:
 
     void addChildNode(QAction* action);
 
-private:
+private:    
     void setupToolbar();
     void setupActions();
     void setupMenus();
@@ -53,6 +53,8 @@ private:
 
     QMenu* constructTopMenu(QAction* parentAction, bool instantPopup = true);
     QAction* getInfoAction(QString hashKey);
+
+    QList<QAction*> constructSubMenuActions(QList<NodeViewItemAction*> nviActions);
 
     ViewController* viewController;
     ActionController* actionController;

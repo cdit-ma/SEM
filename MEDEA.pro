@@ -231,7 +231,8 @@ HEADERS += \
     Widgets/New/dataeditwidget.h \
     Controller/filehandler.h \
     Widgets/New/selectioncontroller.h \
-    View/nodeview.h
+    View/nodeview.h \
+    GUI/popupwidget.h
 
 SOURCES += \
     main.cpp \
@@ -426,7 +427,8 @@ SOURCES += \
     View/SceneItems/attributenodeitem.cpp \
     Widgets/New/dataeditwidget.cpp \
     Controller/filehandler.cpp \
-    View/nodeview.cpp
+    View/nodeview.cpp \
+    GUI/popupwidget.cpp
 
 RESOURCES += \
     resources.qrc

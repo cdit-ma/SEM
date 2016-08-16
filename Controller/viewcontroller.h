@@ -51,6 +51,9 @@ signals:
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
     void vc_gotSearchSuggestions(QStringList suggestions);
 
+    void mc_showProgress(bool, QString);
+    void mc_progressChanged(int);
+
 
 
 

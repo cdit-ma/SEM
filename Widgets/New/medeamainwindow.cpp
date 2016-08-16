@@ -103,6 +103,43 @@ void MedeaMainWindow::updateSearchSuggestions(QStringList list)
 
 
 /**
+ * @brief MedeaMainWindow::showProgressBar
+ * @param show
+ * @param description
+ */
+void MedeaMainWindow::showProgressBar(bool show, QString description)
+{
+    progressLabel->setText(description + " Please wait...");
+    progressPopup->setVisible(show);
+    if (show) {
+        QPointF centralWidgetCenter = pos() + innerWindow->pos() + innerWindow->rect().center();
+        centralWidgetCenter -= QPointF(progressPopup->width()/2, progressPopup->height()/2);
+        progressPopup->move(centralWidgetCenter.x(), centralWidgetCenter.y());
+    }else{
+        //Reset back to 0
+        progressBar->reset();
+    }
+}
+
+
+/**
+ * @brief MedeaMainWindow::updateProgressBar
+ * @param value
+ */
+void MedeaMainWindow::updateProgressBar(int value)
+{
+    if (progressPopup->isVisible()) {
+        if(value == -1){
+            progressBar->setRange(0,0);
+        }else{
+            progressBar->setRange(0,100);
+            progressBar->setValue(value);
+        }
+    }
+}
+
+
+/**
  * @brief MedeaMainWindow::themeChanged
  */
 void MedeaMainWindow::themeChanged()
@@ -115,7 +152,6 @@ void MedeaMainWindow::themeChanged()
                   theme->getToolBarStyleSheet() +
                   theme->getDockWidgetStyleSheet() +
                   theme->getPushButtonStyleSheet() +
-                  theme->getPopupWidgetStyleSheet() +
                   theme->getTabbedWidgetStyleSheet() +
                   theme->getScrollBarStyleSheet() +
                   "QToolButton{ padding: 4px; }");
@@ -133,9 +169,18 @@ void MedeaMainWindow::themeChanged()
     viewController->getActionController()->menu_window->setStyleSheet(menuStyle);
     viewController->getActionController()->menu_options->setStyleSheet(menuStyle);
 
-    searchCompleter->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet());
+    searchCompleter->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet() % "QAbstractItemView::item{ padding: 2px 0px; }");
+    searchPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
+    searchToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
     searchButton->setIcon(theme->getIcon("Actions", "Search"));
+
+    progressPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
+    progressLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
+
+
+    progressBar->setStyleSheet(theme->getProgressBarStyleSheet());
+
 
     restoreAspectsButton->setIcon(theme->getIcon("Actions", "MenuView"));
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
@@ -223,10 +268,11 @@ void MedeaMainWindow::popupSearch()
 {
     emit requestSuggestions();
     QPointF centralWidgetCenter = pos() + innerWindow->pos() + innerWindow->rect().center();
-    centralWidgetCenter -= QPointF(searchToolbar->width()/2, searchToolbar->height()/2);
-    searchToolbar->move(centralWidgetCenter.x(), centralWidgetCenter.y());
-    searchToolbar->show();
+    centralWidgetCenter -= QPointF(searchPopup->width()/2, searchPopup->height()/2);
+    searchPopup->move(centralWidgetCenter.x(), centralWidgetCenter.y());
+    searchPopup->show();
     searchBar->setFocus();
+    //showProgressBar(true);
 }
 
 
@@ -236,11 +282,11 @@ void MedeaMainWindow::popupSearch()
  */
 void MedeaMainWindow::toolbarChanged(Qt::DockWidgetArea area)
 {
-    if(area == Qt::TopDockWidgetArea || area == Qt::BottomDockWidgetArea){
+    if (area == Qt::TopDockWidgetArea || area == Qt::BottomDockWidgetArea) {
         applicationToolbar->setOrientation(Qt::Horizontal);
         applicationToolbar->setFixedHeight(QWIDGETSIZE_MAX);
         applicationToolbar->setFixedWidth(QWIDGETSIZE_MAX);
-    }else{
+    } else {
         applicationToolbar->setOrientation(Qt::Vertical);
         resizeEvent(0);
     }
@@ -253,8 +299,8 @@ void MedeaMainWindow::toolbarChanged(Qt::DockWidgetArea area)
  */
 void MedeaMainWindow::toolbarTopLevelChanged(bool undocked)
 {
-    if(undocked){
-        if(applicationToolbar->orientation() == Qt::Vertical){
+    if (undocked) {
+        if (applicationToolbar->orientation() == Qt::Vertical) {
             applicationToolbar->setOrientation(Qt::Horizontal);
             applicationToolbar->setFixedHeight(QWIDGETSIZE_MAX);
         }
@@ -311,6 +357,7 @@ case SK_WINDOW_TOOLBAR_VISIBLE:
     default:
         break;
 }*/
+
 }
 
 
@@ -361,6 +408,7 @@ void MedeaMainWindow::setupTools()
     setupMenuBar();
     setupToolBar();
     setupSearchBar();
+    setupProgressBar();
     setupDataTable();
     setupMinimap();
     setupMainDockWidgetToggles();
@@ -529,24 +577,61 @@ void MedeaMainWindow::setupSearchBar()
 
     searchToolbar = new QToolBar(this);
     searchToolbar->setIconSize(QSize(24,24));
-    searchToolbar->setFixedSize(300, 45);
     searchToolbar->setMovable(false);
     searchToolbar->setFloatable(false);
-    searchToolbar->setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
-    searchToolbar->setAttribute(Qt::WA_NoSystemBackground, true);
-    searchToolbar->setAttribute(Qt::WA_TranslucentBackground, true);
-    searchToolbar->setObjectName("POPUP_WIDGET");
-
     searchToolbar->addWidget(searchBar);
     searchToolbar->addWidget(searchButton);
-    searchToolbar->hide();
+
+    searchPopup = new PopupWidget(false, this);
+    searchPopup->setWidget(searchToolbar);
+    searchPopup->setWidth(300);
 
     connect(this, &MedeaMainWindow::requestSuggestions, viewController, &ViewController::requestSearchSuggestions);
     connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MedeaMainWindow::updateSearchSuggestions);
 
 
     connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
-    connect(searchButton, SIGNAL(clicked(bool)), searchToolbar, SLOT(hide()));
+    connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
+}
+
+
+/**
+ * @brief MedeaMainWindow::setupProgressBar
+ */
+void MedeaMainWindow::setupProgressBar()
+{
+    progressLabel = new QLabel("Please wait...", this);
+    progressLabel->setFont(QFont(font().family(), 11));
+    progressLabel->setFixedHeight(progressLabel->sizeHint().height());
+    progressLabel->setAlignment(Qt::AlignCenter);
+    progressLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    progressBar = new QProgressBar(this);
+    progressBar->setRange(0,100);
+    progressBar->setTextVisible(false);
+
+
+
+
+
+    QWidget* widget = new QWidget(this);
+    widget->setStyleSheet("QWidget{ background: rgba(0,0,0,0); border: 0px; }");
+
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->setSpacing(5);
+    layout->setMargin(0);
+    layout->addWidget(progressLabel);
+    layout->addWidget(progressBar);
+
+    progressPopup = new PopupWidget(true, this);
+    progressPopup->setWidget(widget);
+    progressPopup->setWidth(widget->sizeHint().width() + 200);
+    progressPopup->setHeight(progressLabel->sizeHint().height() + 30);
+    progressPopup->hide();
+
+
+    connect(viewController, &ViewController::mc_showProgress, this, &MedeaMainWindow::showProgressBar);
+    connect(viewController, &ViewController::mc_progressChanged, this, &MedeaMainWindow::updateProgressBar);
 }
 
 

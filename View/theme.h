@@ -112,6 +112,7 @@ public:
     QString getRadioButtonStyleSheet();
     QString getMessageBoxStyleSheet();
     QString getPopupWidgetStyleSheet();
+    QString getProgressBarStyleSheet();
 
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 

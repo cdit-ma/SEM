@@ -167,8 +167,7 @@ void ToolbarWidgetNew::populateDynamicMenu()
                 if (kind == "WorkerProcess") {
                     // handle differently
                 } else {
-                    //Create Sub actions and spawn IDS!
-                    //actions = toolbarController->getDefinitionNodeActions(kind);
+                    actions = constructSubMenuActions(toolbarController->getDefinitionNodeActions(kind));
                 }
                 break;
             }
@@ -217,12 +216,17 @@ void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem* viewItem)
  */
 void ToolbarWidgetNew::addChildNode(QAction* action)
 {
-    if (action->property("action-type") == "info") {
+    // ignore information actions
+    if (!toolbarController || action->property("action-type") == "info") {
         return;
     }
-    if (toolbarController) {
-        QString nodeKind = action->property("kind").toString();
-        toolbarController->addChildNode(nodeKind, itemPos);
+
+    QString kind = action->property("kind").toString();
+    QVariant ID = action->property("ID");
+    if (!ID.isValid()) {
+        toolbarController->addChildNode(kind, itemPos);
+    } else {
+        toolbarController->addConnectedChildNode(ID.toInt(), kind, itemPos);
     }
 }
 
@@ -287,7 +291,8 @@ void ToolbarWidgetNew::setupActions()
     mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
-    connectionsAction = mainGroup->addAction(toolbarController->getConnectedNodesAction(true));
+    //connectionsAction = mainGroup->addAction(toolbarController->getConnectedNodesAction(true));
+    connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_getCPP->constructSubAction(true));
     mainGroup->addAction(actionController->view_viewInNewWindow->constructSubAction(true));
     mainGroup->addAction(actionController->help_wiki->constructSubAction(true));
@@ -359,6 +364,7 @@ void ToolbarWidgetNew::setupAddChildMenu()
 
             QMenu* menu = new QMenu(this);
             action->setMenu(menu);
+            adoptableKindsSubMenus[kind] = menu;
 
             // store each sub-menu's matching info action key
             if (kind == "ComponentImpl") {
@@ -386,9 +392,8 @@ void ToolbarWidgetNew::setupAddChildMenu()
             } else {
                 qWarning() << "ToolbarWidgetNew::setupAddChildMenu - Action kind not handled.";
             }
-
-            adoptableKindsSubMenus[kind] = menu;
         }
+
         addMenu->addAction(action);
     }
 }
@@ -489,7 +494,7 @@ void ToolbarWidgetNew::clearDynamicMenus()
  *                       this menu is executed using the toolbar's execMenu slot
  * @return
  */
-QMenu *ToolbarWidgetNew::constructTopMenu(QAction* parentAction, bool instantPopup)
+QMenu* ToolbarWidgetNew::constructTopMenu(QAction* parentAction, bool instantPopup)
 {
    QMenu* menu = new QMenu(this);
    connect(menu, SIGNAL(triggered(QAction*)), this, SLOT(menuActionTrigged(QAction*)));
@@ -516,5 +521,34 @@ QAction* ToolbarWidgetNew::getInfoAction(QString hashKey)
     infoAction->setProperty("action-type", "info");
     infoAction->blockSignals(true);
     return infoAction;
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::constructSubMenuActions
+ * @param nviActions
+ * @return
+ */
+QList<QAction*> ToolbarWidgetNew::constructSubMenuActions(QList<NodeViewItemAction*> nviActions)
+{
+    QHash<QAction*, QList<QAction*>> parentActionHash;
+    foreach (NodeViewItemAction* action, nviActions) {
+        NodeViewItemAction* parentAction = action->getParentViewItemAction();
+        if (parentAction) {
+            action->setProperty("ID", action->getID());
+            parentActionHash[parentAction].append(action);
+        } else {
+            qWarning() << "ToolbarWidgetNew::constructSubMenuActions - No parent nodeViewItemAction.";
+        }
+    }
+
+    // construct a menu for each parent action
+    foreach (QAction* action, parentActionHash.keys()) {
+        QMenu* menu = new QMenu(this);
+        menu->addActions(parentActionHash[action]);
+        action->setMenu(menu);
+    }
+
+    return parentActionHash.keys();
 }
 

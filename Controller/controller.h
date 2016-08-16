@@ -252,6 +252,8 @@ signals:
     void controller_CanRedo(bool ok);
     void controller_IsModelReady(bool ready);
     void controller_ModelReady();
+    void progressChanged(int);
+    void showProgress(bool, QString = "");
     void controller_ActionProgressChanged(int percent, QString action="");
     void controller_ActionFinished(bool actionSucceeded = true, QString errorCode = "");
 
@@ -499,7 +501,7 @@ private:
     void addActionToStack(EventAction action, bool addAction=true);
 
     //Undo's/Redo's all of the ActionItems in the Stack which have been performed since the last operation.
-    void undoRedo(bool undo=true);
+    void undoRedo(bool undo, bool updateProgess = false);
 
     void logAction(EventAction item);
 

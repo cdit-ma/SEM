@@ -4,6 +4,7 @@
 #include <QTableView>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QProgressBar>
 
 #include "medeawindownew.h"
 #include "../../View/nodeviewnew.h"
@@ -15,6 +16,9 @@
 #include "../../GUI/searchsuggestcompletion.h"
 #include <QCompleter>
 #include <QStringListModel>
+
+#include "../../GUI/popupwidget.h"
+
 
 class MedeaMainWindow : public MedeaWindowNew
 {
@@ -34,12 +38,15 @@ private slots:
     void popupSearch();
     void updateSearchSuggestions(QStringList list);
 
+
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
 
 public slots:
     void setModelTitle(QString modelTitle);
     void settingChanged(SETTING_KEY setting, QVariant value);
+    void showProgressBar(bool show, QString description = "");
+    void updateProgressBar(int value);
 
 signals:
     void requestSuggestions();
@@ -54,6 +61,7 @@ private:
     void setupMenuBar();
     void setupToolBar();
     void setupSearchBar();
+    void setupProgressBar();
     void setupDataTable();
     void setupMinimap();
     void setupMainDockWidgetToggles();
@@ -65,11 +73,16 @@ private:
     TableWidget* tableWidget;
     NodeViewMinimap* minimap;
 
+    PopupWidget* searchPopup;
     QToolBar* searchToolbar;
     QLineEdit* searchBar;
     QToolButton* searchButton;
     QCompleter* searchCompleter;
     QStringListModel* searchCompleterModel;
+
+    PopupWidget* progressPopup;
+    QProgressBar* progressBar;
+    QLabel* progressLabel;
 
     ViewController* viewController;
     NodeViewNew* nodeView_Interfaces;
