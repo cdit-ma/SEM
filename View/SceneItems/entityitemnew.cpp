@@ -274,7 +274,12 @@ QPainterPath EntityItemNew::sceneShape() const
 
 void EntityItemNew::adjustPos(QPointF delta)
 {
-    setPos(pos() + delta);
+    setPos(getPos() + delta);
+}
+
+QPointF EntityItemNew::getPos() const
+{
+    return pos();
 }
 
 QPointF EntityItemNew::validateAdjustPos(QPointF delta)
@@ -582,7 +587,7 @@ int EntityItemNew::getMajorGridCount() const
 
 QPointF EntityItemNew::getSceneCenter() const
 {
-    return mapToScene(getCenterOffset());
+    return mapToScene(getCenter());
 }
 
 QPointF EntityItemNew::getCenterOffset() const
@@ -597,7 +602,7 @@ void EntityItemNew::setCenter(QPointF center)
 
 QPointF EntityItemNew::getCenter() const
 {
-    return pos() + getCenterOffset();
+    return getPos() + getCenterOffset();
 }
 
 QPair<QString, QString> EntityItemNew::getIconPath()
@@ -615,8 +620,7 @@ QPointF EntityItemNew::getNearestGridPoint()
     qreal closestX = qRound(point.x() / gridSize) * gridSize;
     qreal closestY = qRound(point.y() / gridSize) * gridSize;
     QPointF delta = QPointF(closestX, closestY) - point;
-
-    return pos() + getCenterOffset() + delta;
+    return getCenter() + delta;
 }
 
 void EntityItemNew::destruct()

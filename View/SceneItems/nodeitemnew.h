@@ -104,6 +104,8 @@ public:
 
     QPointF getCenterOffset() const;
 
+    virtual QPointF getSceneEdgeTermination(bool left) const;
+
 
     virtual void setPos(const QPointF &pos);
 

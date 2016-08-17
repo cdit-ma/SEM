@@ -226,35 +226,6 @@ QList<EdgeItemNew *> NodeItemNew::getProxyEdges()
     return proxyChildEdges.values();
 }
 
-QRectF NodeItemNew::getNearestGridOutline()
-{
-    //TODO REMOVE FUNCTION?
-
-    QPointF center = getNearestGridPointToCenter();
-    QPointF deltaPos = currentRect().center() - contractedRect().center();
-    center += deltaPos;
-    QRectF outlineRect = currentRect();
-    qreal gridSize = getGridSize();
-
-    qreal width = outlineRect.width() + (gridSize);
-    qreal height = outlineRect.height() + (gridSize);
-    outlineRect.setWidth(width);
-    outlineRect.setHeight(height);
-    outlineRect.moveCenter(center);
-    return outlineRect;
-}
-
-QPointF NodeItemNew::getNearestGridPointToCenter()
-{
-    qreal gridSize = getGridSize();
-    QPointF point = getSceneCenter();
-    qreal closestX = qRound(point.x() / gridSize) * gridSize;
-    qreal closestY = qRound(point.y() / gridSize) * gridSize;
-    QPointF delta = QPointF(closestX, closestY) - point;
-
-    return getCenter() + delta;
-
-}
 
 void NodeItemNew::setGridEnabled(bool enabled)
 {
@@ -322,7 +293,7 @@ void NodeItemNew::setMoving(bool moving)
         parentNodeItem->setChildNodeMoving(this, moving);
     }
     if(!moving){
-        setCenter(getNearestGridPointToCenter());
+        setCenter(getNearestGridPoint());
     }
 }
 
@@ -561,6 +532,13 @@ QPointF NodeItemNew::getCenterOffset() const
     return contractedRect().center();
 }
 
+QPointF NodeItemNew::getSceneEdgeTermination(bool left) const
+{
+    qreal y = contractedRect().center().y();
+    qreal x = left ? currentRect().left() : currentRect().right();
+    return mapToScene(x,y);
+}
+
 
 void NodeItemNew::setPos(const QPointF &pos)
 {
@@ -614,7 +592,7 @@ void NodeItemNew::setExpanded(bool expand)
 
         prepareGeometryChange();
         //Hide/Show Children
-        foreach(NodeItemNew* child, getChildNodes()){
+        foreach(EntityItemNew* child, getChildEntities()){
             child->setVisible(isExpanded());
         }
 

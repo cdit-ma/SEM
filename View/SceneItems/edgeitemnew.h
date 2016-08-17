@@ -17,26 +17,38 @@ public:
     ~EdgeItemNew();
     KIND getEdgeItemKind();
 
+    void setPos(const QPointF &pos);
+    QPointF getPos() const;
+
+    void setCenter(QPointF center);
+    QPointF getCenter() const;
+
+    QRectF boundingRect() const;
+    QRectF currentRect() const;
+
+private:
     QRectF smallRect() const;
     QRectF leftRect() const;
     QRectF centerRect() const;
     QRectF rightRect() const;
+    QRectF handleRect() const;
+
+    NodeItemNew* getVisibleSource();
+    NodeItemNew* getVisibleDestination();
 
     NodeItemNew* getParentItem();
     NodeItemNew* getSourceItem();
     NodeItemNew* getDestinationItem();
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    QRectF getElementRect(ELEMENT_RECT rect) const;
-    QRectF currentRect() const;
-    QRectF boundingRect() const;
-
-    QRectF translatedRect() const;
 
     QPointF getSourcePos() const;
     QPointF getDestinationPos() const;
 
     QPointF getCenterOffset() const;
+    QPointF getInternalOffset() const;
+
+    QPointF getSceneEdgeTermination(bool left) const;
 
     void resetPosition();
 
@@ -44,6 +56,8 @@ public:
 
 
 public slots:
+    void sourceHidden();
+    void destinationHidden();
     void sourceMoved();
     void destinationMoved();
     void centerMoved();
@@ -59,8 +73,13 @@ private:
     NodeItemNew* sourceItem;
     NodeItemNew* destinationItem;
 
+    NodeItemNew* vSrcItem;
+    NodeItemNew* vDstItem;
+
     QPainterPath sourceCurve;
     QPainterPath destinationCurve;
+
+    QPointF itemPos;
 
 
 private slots:
@@ -77,6 +96,9 @@ public:
     // QGraphicsItem interface
 protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+
+    // EntityItemNew interface
+public:
 };
 
 #endif // EDGEITEMNEW_H

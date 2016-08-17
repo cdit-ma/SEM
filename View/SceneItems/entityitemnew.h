@@ -36,6 +36,8 @@ public:
 
     ViewItem* getViewItem() const;
 
+    virtual QPointF getSceneEdgeTermination(bool left) const = 0;
+
 
     QColor getBodyColor() const;
     void setBodyColor(QColor color);
@@ -63,6 +65,7 @@ public:
     QPainterPath sceneShape() const;
 
     void adjustPos(QPointF delta);
+    virtual QPointF getPos() const;
 
     virtual QPointF validateAdjustPos(QPointF delta);
 
@@ -118,11 +121,11 @@ public:
 
     int getGridSize() const;
     int getMajorGridCount() const;
-    QPointF getSceneCenter() const;
+    virtual QPointF getSceneCenter() const;
     virtual QPointF getCenterOffset() const;
 
-    void setCenter(QPointF center);
-    QPointF getCenter() const;
+    virtual void setCenter(QPointF center);
+    virtual QPointF getCenter() const;
 
 
 public:
