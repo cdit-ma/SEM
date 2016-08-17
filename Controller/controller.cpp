@@ -2112,6 +2112,10 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
         }
 
         Edge* edge = constructTypedEdge(source, destination, edgeToMake);
+
+        //Attach X/Y
+        _attachData(edge, constructPositionDataVector(), false);
+
         return edge;
     }else{
         if(!source->gotEdgeTo(destination)){
@@ -2785,8 +2789,8 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
 
 QList<Data *> NewController::constructPositionDataVector(QPointF point)
 {
-    Key* xKey = constructKey("x", QVariant::Double,Entity::EK_NODE);
-    Key* yKey = constructKey("y", QVariant::Double,Entity::EK_NODE);
+    Key* xKey = constructKey("x", QVariant::Double, Entity::EK_ALL);
+    Key* yKey = constructKey("y", QVariant::Double, Entity::EK_ALL);
 
     QList<Data*> position;
     Data* xData = new Data(xKey);
@@ -4674,6 +4678,8 @@ Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS e
         break;
     case Edge::EC_ASSEMBLY:
         returnable = new AssemblyEdge(src, dst);
+
+
         break;
     case Edge::EC_AGGREGATE:
         returnable = new AggregateEdge(src,dst);

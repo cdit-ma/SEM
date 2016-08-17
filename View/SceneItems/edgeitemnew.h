@@ -31,19 +31,36 @@ public:
     QRectF currentRect() const;
     QRectF boundingRect() const;
 
+    QRectF translatedRect() const;
+
+    QPointF getSourcePos() const;
+    QPointF getDestinationPos() const;
+
+    QPointF getCenterOffset() const;
+
+    void resetPosition();
+
+    bool shouldReset();
+
+
 public slots:
     void sourceMoved();
     void destinationMoved();
     void centerMoved();
 private:
+    void recalcSrcCurve(bool reset = false);
+    void recalcDstCurve(bool reset = false);
+
+
+    bool manuallySet;
     KIND edge_kind;
     EdgeViewItem* edgeViewItem;
     NodeItemNew* parentItem;
     NodeItemNew* sourceItem;
     NodeItemNew* destinationItem;
 
-    QGraphicsPathItem* bezierCurve1;
-    QGraphicsPathItem* bezierCurve2;
+    QPainterPath sourceCurve;
+    QPainterPath destinationCurve;
 
 
 private slots:
@@ -56,6 +73,10 @@ public:
     // EntityItemNew interface
 public:
     void setMoving(bool moving);
+
+    // QGraphicsItem interface
+protected:
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 };
 
 #endif // EDGEITEMNEW_H

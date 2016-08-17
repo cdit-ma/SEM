@@ -411,7 +411,7 @@ private:
 
     //Constructs a Vector of basic Data entities required for creating a Node.
     QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1), QString nodeType="", QString nodeLabel="");
-    QList<Data*> constructPositionDataVector(QPointF point);
+    QList<Data*> constructPositionDataVector(QPointF point=QPointF(-1, -1));
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
 
