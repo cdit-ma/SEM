@@ -8,6 +8,7 @@
 #include <QIcon>
 
 #include <QObject>
+#include <QFuture>
 #include "enumerations.h"
 #include "../Controller/settingscontroller.h"
 
@@ -111,6 +112,7 @@ public:
     QString getRadioButtonStyleSheet();
     QString getMessageBoxStyleSheet();
     QString getPopupWidgetStyleSheet();
+    QString getProgressBarStyleSheet();
 
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 
@@ -161,6 +163,9 @@ private:
     bool valid;
 
     bool preloadedImages;
+    bool terminating;
+
+    QFuture<void> preloadThread;
 
 public:
     static QString QColorToHex(const QColor color);

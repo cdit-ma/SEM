@@ -8,6 +8,7 @@ class MedeaViewDockWidget;
 class MedeaNodeViewDockWidget;
 class SelectionController : public QObject
 {
+    friend class SelectionHandler;
     Q_OBJECT
 public:
     SelectionController(ViewController* controller);
@@ -21,6 +22,7 @@ public:
     QList<int> getSelectionIDs();
     int getSelectionCount();
     ViewItem* getFirstSelectedItem();
+    int getFirstSelectedItemID();
 
 signals:
     void itemActiveSelectionChanged(ViewItem* item, bool isActive);
@@ -34,6 +36,7 @@ private slots:
     void cycleActiveSelectionForward();
     void removeSelectionHandler();
 private:
+    QVector<ViewItem *> getOrderedSelection(QList<int> selection);
     void cycleActiveSelectedItem(bool forward);
     void setCurrentViewDockWidget(MedeaViewDockWidget* dock);
     void setCurrentSelectionHandler(SelectionHandler* handler);

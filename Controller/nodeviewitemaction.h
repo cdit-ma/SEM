@@ -11,6 +11,12 @@ public:
     void setParentNodeViewItemAction(NodeViewItemAction* item);
     ~NodeViewItemAction();
     NodeViewItemAction* getParentViewItemAction();
+    int getID();
+    QString getKind();
+
+    NodeViewItem* getNodeViewItem();
+
+
 private slots:
     void iconChanged();
     void labelChanged(QString label);

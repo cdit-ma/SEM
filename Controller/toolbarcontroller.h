@@ -16,7 +16,7 @@ class ToolActionController : public QObject
 public:
     ToolActionController(ViewController* viewController);
 
-    QList<QAction*> getDefinitionNodeActions(QString kind);
+    QList<NodeViewItemAction*> getDefinitionNodeActions(QString kind);
 
     QList<QAction*> getNodeActionsOfKind(QString kind, bool stealth);
     QAction* getNodeActionOfKind(QString kind, bool stealth);
@@ -42,6 +42,7 @@ public:
     QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
 
     void addChildNode(QString kind, QPointF position);
+    void addConnectedChildNode(int dstID, QString kind, QPointF position);
 private slots:
     void themeChanged();
     void viewItem_Constructed(ViewItem* viewItem);
@@ -52,6 +53,7 @@ private slots:
 private:
     void setupToolActions();
     void setupNodeActions();
+    NodeViewItemAction* getNodeViewItemAction(int ID);
 
     RootAction* createRootAction(QString hashKey, QString actionName, QString iconPath="", QString aliasPath="");
 

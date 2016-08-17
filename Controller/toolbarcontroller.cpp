@@ -12,7 +12,6 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
     kindsWithSubActions << "OutEventPort" << "InEventPortDelegate" << "OutEventPortDelegate";
     kindsWithSubActions << "OutEventPortImpl" << "WorkerProcess";
 
-
     //toolbar = new QToolBar();
     //toolbar->setIconSize(QSize(80,80));
     //toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -31,17 +30,18 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
 
     //Connect to the view controller
-    connect(viewController, SIGNAL(viewItemConstructed(ViewItem*)), this, SLOT(viewItem_Constructed(ViewItem*)));
-    connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), this, SLOT(viewItem_Destructed(int,ViewItem*)));
 
+    connect(viewController, &ViewController::vc_viewItemConstructed, this, &ToolActionController::viewItem_Constructed);
+    connect(viewController, &ViewController::vc_viewItemDestructing, this, &ToolActionController::viewItem_Destructed);
 }
 
-QList<QAction *> ToolActionController::getDefinitionNodeActions(QString kind)
+QList<NodeViewItemAction *> ToolActionController::getDefinitionNodeActions(QString kind)
 {
-    QList<QAction*> list;
+    QList<NodeViewItemAction*> list;
 
     foreach(ViewItem* item, viewController->getConstructableNodeDefinitions(kind)){
-        list.append(actions[item->getID()]->constructSubAction(false));
+        list.append(getNodeViewItemAction(item->getID()));
+
     }
     return list;
 }
@@ -59,15 +59,22 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
             NodeViewItemAction* action = new NodeViewItemAction(node);
 
             if(node->getParentItem() && node->getParentItem()->isNode()){
+
                 int parentID = node->getParentID();
                 if(!actions.contains(parentID)){
                     //Construct Parent for menus which need depth
                     NodeViewItemAction* parentAction = new NodeViewItemAction((NodeViewItem*) node->getParentItem());
-                    action->setParentNodeViewItemAction(parentAction);
-
                     actions[parentID] = parentAction;
                     actionGroup->addAction(parentAction);
                 }
+
+                NodeViewItemAction* parentAction = 0;
+                if(actions.contains(parentID)){
+                    parentAction = actions[parentID];
+                }
+
+                action->setParentNodeViewItemAction(parentAction);
+
                 actions[ID] = action;
                 actionGroup->addAction(action);
             }
@@ -104,7 +111,15 @@ void ToolActionController::addChildNode(QString kind, QPointF position)
 
     if(item){
         int ID = item->getID();
-        emit viewController->constructNode(ID, kind, position);
+        emit viewController->vc_constructNode(ID, kind, position);
+    }
+}
+
+void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPointF position)
+{
+    int ID = selectionController->getFirstSelectedItemID();
+    if(ID != -1){
+        emit viewController->vc_constructConnectedNode(ID, kind, position, dstID);
     }
 }
 
@@ -112,8 +127,6 @@ void ToolActionController::setupToolActions()
 {
     createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
     createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
-
-    //createRootAction("APPLY_REPLICATE_COUNT", "Enter Replicate Count", "Actions", "Tick");
 
     // setup menu info actions here
     createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no valid nodes available.", "Actions", "Info");
@@ -237,6 +250,14 @@ void ToolActionController::setupNodeActions()
         nodeKindActions[kind]= action;
         adoptableKindsGroup->addAction(action);
     }
+}
+
+NodeViewItemAction *ToolActionController::getNodeViewItemAction(int ID)
+{
+    if(actions.contains(ID)){
+        return actions[ID];
+    }
+    return 0;
 }
 
 RootAction *ToolActionController::createRootAction(QString hashKey, QString actionName, QString iconPath, QString aliasPath)

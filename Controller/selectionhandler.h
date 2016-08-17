@@ -9,10 +9,11 @@
 class SelectionController;
 class SelectionHandler: public QObjectRegistrar
 {
+
     friend class SelectionController;
     Q_OBJECT
 protected:
-    SelectionHandler();
+    SelectionHandler(SelectionController* controller);
     int getID();
 
 public:
@@ -24,10 +25,15 @@ public:
     void cycleActiveSelectedItem(bool forward = true);
 
     QVector<ViewItem*> getSelection();
+    QVector<ViewItem*> getOrderedSelection();
+    QVector<int> getSelectionIDs();
     int getSelectionCount();
 
     ViewItem* getFirstSelectedItem();
     ViewItem* getActiveSelectedItem();
+
+
+
 signals:
     void itemSelectionChanged(ViewItem*, bool selected);
     void itemActiveSelectionChanged(ViewItem* item, bool active);
@@ -35,7 +41,6 @@ signals:
     void selectionChanged(int count);
 public slots:
     void clearSelection();
-private slots:
     void itemDeleted(int ID, ViewItem *item);
 private:
     void _selectionChanged(int changes = 0);
@@ -54,6 +59,10 @@ private:
     ViewItem* currentActiveSelectedItem;
     ViewItem* newActiveSelectedItem;
     QVector<ViewItem*> currentSelection;
+
+    bool orderedSelectionValid;
+    QVector<ViewItem*> orderedSelection;
+    SelectionController* selectionController;
 };
 
 #endif // SELECTIONHANDLER_H

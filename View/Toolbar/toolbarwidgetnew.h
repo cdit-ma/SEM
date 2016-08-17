@@ -38,7 +38,7 @@ public slots:
 
     void addChildNode(QAction* action);
 
-private:
+private:    
     void setupToolbar();
     void setupActions();
     void setupMenus();
@@ -54,17 +54,16 @@ private:
     QMenu* constructTopMenu(QAction* parentAction, bool instantPopup = true);
     QAction* getInfoAction(QString hashKey);
 
+    QList<QAction*> constructSubMenuActions(QList<NodeViewItemAction*> nviActions);
+
     ViewController* viewController;
     ActionController* actionController;
     ToolActionController* toolbarController;
     QSize iconSize;
 
     QHash<QAction*, QMenu*> popupMenuHash;
-    QHash<QMenu*, QString> dynamicMenuHash;
+    QHash<QMenu*, QString> dynamicMenuKeyHash;
     QHash<QString, QMenu*> adoptableKindsSubMenus;
-
-    //QHash<int, NodeViewItemAction*> nodeActions;
-    //QHash<int, QMenu> nodeActions;
 
     QFrame* mainFrame;
     QFrame* shadowFrame;

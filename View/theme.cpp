@@ -11,6 +11,7 @@ Theme* Theme::themeSingleton = 0;
 
 Theme::Theme():QObject(0)
 {
+    terminating = false;
     preloadedImages = false;
     themeChanged = false;
     slash = QString("/");
@@ -27,12 +28,14 @@ Theme::Theme():QObject(0)
     setupIcons();
 
 
-    QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
+    preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
 }
 
 Theme::~Theme()
 {
-
+    //Terminate!
+    terminating = true;
+    preloadThread.waitForFinished();
 }
 
 QColor Theme::white()
@@ -784,14 +787,14 @@ QString Theme::getPushButtonStyleSheet()
 QString Theme::getLineEditStyleSheet()
 {
     return "QLineEdit {"
+           "padding: 0px;"
            "background:" % getAltBackgroundColorHex() % ";"
-           "color: " % getTextColorHex(CR_NORMAL) % ";"
+           "color: " % getTextColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "border-radius: 0px;"
            "}"
            "QLineEdit:focus {"
            "border: 1px solid " % getHighlightColorHex() % ";"
-           "background:" % getAltBackgroundColorHex() % ";"
-           "color:" % getTextColorHex() % ";"
            "}";
 }
 
@@ -819,12 +822,33 @@ QString Theme::getMessageBoxStyleSheet()
 
 QString Theme::getPopupWidgetStyleSheet()
 {
-    return "QWidget#POPUP_WIDGET {"
-           "background:" % getBackgroundColorHex() % ";"
-           "border: 1px outset " % getDisabledBackgroundColorHex() % ";"
+    QColor bgColor = getBackgroundColor();
+    bgColor.setAlphaF(0.75);
+
+    return "QWidget {"
            "margin: 0px;"
-           "padding: 5px;"
-           "}";
+           "padding: 0px;"
+           "background:" % QColorToHex(bgColor) % ";"
+           "border-radius: " % getCornerRadius() % ";"
+           "border: 1px outset " % getAltBackgroundColorHex() % ";"
+                                                                "}";
+}
+
+QString Theme::getProgressBarStyleSheet()
+{
+
+    return "QProgressBar{"
+            "background: " % getAltBackgroundColorHex() % ";"
+            "border-radius: 0px;"
+            "border: none;"
+            "text-align: center;"
+            "color: " % getTextColorHex() % ";"
+            "}"
+            "QProgressBar::chunk{"
+            "margin:2px;"
+            "border:none;"
+            "background: " % getHighlightColorHex() % ";"
+            "}";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
@@ -863,7 +887,7 @@ void Theme::preloadImages()
         int count = 0;
         foreach(QString dir, dirs){
             QDirIterator it(":/" % dir, QDirIterator::Subdirectories);
-            while (it.hasNext()) {
+            while (it.hasNext() && !terminating) {
                 it.next();
                 QString imageName = it.fileName();
                 if(!getImage(dir, imageName).isNull()){
@@ -873,8 +897,13 @@ void Theme::preloadImages()
         }
         //Only Allow once.
         qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        qCritical() << "Preloaded #" << count << "images in: " <<  timeFinish-timeStart << "MS";
-        emit _preload();
+
+        if(!terminating){
+            qCritical() << "Preloaded #" << count << "images in: " <<  timeFinish-timeStart << "MS";
+            emit _preload();
+        }else{
+            qCritical() << "Preloading Cancelled #" << count << "images in: " <<  timeFinish-timeStart << "MS";
+        }
     }
 }
 

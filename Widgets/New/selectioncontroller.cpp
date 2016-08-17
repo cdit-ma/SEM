@@ -21,9 +21,12 @@ SelectionHandler *SelectionController::constructSelectionHandler(QObject *object
         qCritical() << "SelectionController::constructSelectionHandler() - Already got Selection Handler for QObject: " << object;
         return selectionHandlers[sID];
     }else{
-        SelectionHandler* handler = new SelectionHandler();
+        SelectionHandler* handler = new SelectionHandler(this);
         connect(handler, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(removeSelectionHandler()));
-        connect(viewController, SIGNAL(viewItemDestructing(int,ViewItem*)), handler, SLOT(itemDeleted(int,ViewItem*)));
+
+
+        connect(viewController, &ViewController::vc_viewItemDestructing, handler, &SelectionHandler::itemDeleted);
+
         selectionHandlers[handler->getID()] = handler;
         registerSelectionHandler(object, handler);
         return handler;
@@ -83,6 +86,18 @@ ViewItem *SelectionController::getFirstSelectedItem()
         item = currentHandler->getFirstSelectedItem();
     }
     return item;
+}
+
+int SelectionController::getFirstSelectedItemID()
+{
+    int ID = -1;
+    if(currentHandler){
+        ViewItem* item = currentHandler->getFirstSelectedItem();
+        if(item){
+            ID = item->getID();
+        }
+    }
+    return ID;
 }
 
 void SelectionController::activeViewDockWidgetChanged(MedeaViewDockWidget *dockWidget)
@@ -151,6 +166,15 @@ void SelectionController::removeSelectionHandler()
             handler->deleteLater();
         }
     }
+}
+
+QVector<ViewItem *> SelectionController::getOrderedSelection(QList<int> selection)
+{
+    QVector<ViewItem*> items;
+    if(viewController){
+        items = viewController->getOrderedSelection(selection);
+    }
+    return items;
 }
 
 void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)

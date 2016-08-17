@@ -1,12 +1,16 @@
 #include "selectionhandler.h"
 #include "../View/nodeviewitem.h"
+#include "Widgets/New/selectioncontroller.h"
+
 #include <QDebug>
 int SelectionHandler::_SelectionHandlerID  = 0;
-SelectionHandler::SelectionHandler()
+SelectionHandler::SelectionHandler(SelectionController *controller)
 {
     ID = ++_SelectionHandlerID;
     currentActiveSelectedItem = 0;
     newActiveSelectedItem = 0;
+    selectionController = controller;
+    orderedSelectionValid = true;
 
     //Empty selection will result in destruction.
     connect(this, SIGNAL(lastRegisteredObjectRemoved()), this, SLOT(deleteLater()));
@@ -85,6 +89,25 @@ QVector<ViewItem *> SelectionHandler::getSelection()
     return currentSelection;
 }
 
+QVector<ViewItem *> SelectionHandler::getOrderedSelection()
+{
+    if(!orderedSelectionValid && selectionController){
+        orderedSelection = selectionController->getOrderedSelection(getSelectionIDs().toList());
+        orderedSelectionValid = true;
+    }
+
+    return orderedSelection;
+}
+
+QVector<int> SelectionHandler::getSelectionIDs()
+{
+    QVector<int> IDs;
+    foreach(ViewItem* item, currentSelection){
+        IDs.append(item->getID());
+    }
+    return IDs;
+}
+
 int SelectionHandler::getSelectionCount()
 {
     return currentSelection.count();
@@ -107,6 +130,7 @@ ViewItem *SelectionHandler::getActiveSelectedItem()
 void SelectionHandler::_selectionChanged(int changes)
 {
     if(changes > 0){
+        orderedSelectionValid = false;
         emit selectionChanged(currentSelection.size());
     }
     if(newActiveSelectedItem != currentActiveSelectedItem){
@@ -195,17 +219,14 @@ int SelectionHandler::_setItemSelected(ViewItem *item, bool selected)
 {
     int changeCount = 0;
     if(selected){
-        if(!isItemsAncestorSelected(item)){
-            changeCount += unsetItemsDescendants(item);
-            //Register the selection handler
-            item->registerObject(this);
-            currentSelection.append(item);
-            //If there is only 1 item there can only be 1 active item.
-            if(currentSelection.size() == 1){
-                newActiveSelectedItem = item;
-            }
-            changeCount += 1;
+        //Register the selection handler
+        item->registerObject(this);
+        currentSelection.append(item);
+        //If there is only 1 item there can only be 1 active item.
+        if(currentSelection.size() == 1){
+            newActiveSelectedItem = item;
         }
+        changeCount += 1;
     }else{
         //Remove it from the map.
         changeCount = currentSelection.removeAll(item);

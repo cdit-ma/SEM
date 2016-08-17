@@ -31,10 +31,10 @@ void ActionController::connectViewController(ViewController *controller)
 {
 
     if(viewController){
-        connect(controller, &ViewController::controllerReady, this, &ActionController::controllerReady);
-        connect(controller, &ViewController::modelReady, this, &ActionController::modelReady);
+        connect(controller, &ViewController::vc_controllerReady, this, &ActionController::controllerReady);
+        connect(controller, &ViewController::mc_modelReady, this, &ActionController::modelReady);
 
-        connect(controller, &ViewController::undoRedoChanged, this, &ActionController::updateUndoRedo);
+        connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
 
 
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
@@ -42,22 +42,22 @@ void ActionController::connectViewController(ViewController *controller)
         connect(file_closeProject, &QAction::triggered, viewController, &ViewController::closeProject);
         connect(file_saveProject, &QAction::triggered, viewController, &ViewController::saveProject);
         connect(file_saveAsProject, &QAction::triggered, viewController, &ViewController::saveAsProject);
-        connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::_importProjects);
+        connect(file_importGraphML, &QAction::triggered, viewController, &ViewController::importProjects);
         connect(file_exit, &QAction::triggered, viewController, &ViewController::closeMEDEA);
 
-        connect(edit_undo, &QAction::triggered, viewController, &ViewController::undo);
-        connect(edit_redo, &QAction::triggered, viewController, &ViewController::redo);
+        connect(edit_undo, &QAction::triggered, viewController, &ViewController::vc_undo);
+        connect(edit_redo, &QAction::triggered, viewController, &ViewController::vc_redo);
         connect(edit_cut, &QAction::triggered, viewController, &ViewController::cut);
         connect(edit_copy, &QAction::triggered, viewController, &ViewController::copy);
         connect(edit_paste, &QAction::triggered, viewController, &ViewController::paste);
         connect(edit_replicate, &QAction::triggered, viewController, &ViewController::replicate);
         connect(view_fitView, &QAction::triggered, viewController, &ViewController::fitView);
         connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
-
-
-
-
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
+
+
+
+
 
         connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
 
@@ -146,13 +146,9 @@ void ActionController::selectionChanged(int selectionSize)
         bool gotMultipleSelection = modelActions && selectionSize > 1;
 
 
-
-
-        edit_cut->setEnabled(gotSingleSelection);
-        edit_copy->setEnabled(gotSingleSelection);
+        edit_cut->setEnabled(gotSelection);
+        edit_copy->setEnabled(gotSelection);
         edit_paste->setEnabled(gotSingleSelection);
-
-
 
         edit_replicate->setEnabled(gotSelection);
         edit_delete->setEnabled(gotSelection);

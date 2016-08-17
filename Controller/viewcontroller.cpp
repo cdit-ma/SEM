@@ -44,7 +44,7 @@ ViewController::ViewController(){
 
 
 
-    connect(this, &ViewController::showToolbar, toolbar, &ToolbarWidgetNew::showToolbar);
+    connect(this, &ViewController::vc_showToolbar, toolbar, &ToolbarWidgetNew::showToolbar);
 
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "SelectionController in: " <<  time1 - timeStart << "MS";
@@ -117,6 +117,7 @@ ToolActionController *ViewController::getToolbarController()
 
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
 {
+    qCritical() << kind;
     QList<ViewItem*> items;
     if(controller  && selectionController && selectionController->getSelectionCount() == 1){
         int parentID = selectionController->getFirstSelectedItem()->getID();
@@ -142,18 +143,19 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
         }
     }
 
-
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
     qCritical() << "ViewController::getValidEdges(" << kind << ", " << selection << ") = " << items.count() <<"  In : "<<  (timeFinish - timeStart) / 100 << "MS";
     return items;
 }
 
-QStringList ViewController::getSearchSuggestions()
+QStringList ViewController::_getSearchSuggestions()
 {
-    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QStringList suggestions;
 
     foreach(ViewItem* item, viewItems.values()){
+        //ID's
+        suggestions.append(QString::number(item->getID()));
+        //Data
         foreach(QString key, item->getKeys()){
             QString data = item->getData(key).toString();
             if(!suggestions.contains(data)){
@@ -161,8 +163,6 @@ QStringList ViewController::getSearchSuggestions()
             }
         }
     }
-    qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "Suggestions: " << time1 - timeStart << " MS";
     return suggestions;
 }
 
@@ -229,19 +229,15 @@ QList<ViewItem*> ViewController::search(QString searchString)
         foreach (ViewItem* item, matchedItems) {
             matchedDataValues.append(item->getData("label").toString());
         }
-        emit seachSuggestions(matchedDataValues);
+        emit vc_gotSearchSuggestions(matchedDataValues);
     }
 
     return matchedItems;
 }
 
-void ViewController::searchSuggestionsRequested(QString searchString)
+void ViewController::requestSearchSuggestions()
 {
-    emit seachSuggestions(getSearchSuggestions());
-    return;
-    showSearchSuggestions = true;
-    search(searchString);
-    showSearchSuggestions = false;
+    emit vc_gotSearchSuggestions(_getSearchSuggestions());
 }
 
 void ViewController::setController(NewController *c)
@@ -257,8 +253,8 @@ void ViewController::actionFinished(bool success, QString gg)
 
 void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
-    emit triggerAction("Table Changed");
-    emit setData(ID, key, data);
+    emit vc_triggerAction("Table Changed");
+    emit vc_setData(ID, key, data);
 }
 
 bool ViewController::isControllerReady()
@@ -282,13 +278,32 @@ bool ViewController::canRedo()
     return false;
 }
 
+QVector<ViewItem *> ViewController::getOrderedSelection(QList<int> selection)
+{
+    QVector<ViewItem *> items;
+    if(controller){
+        foreach(int ID, controller->getOrderedSelectionIDs(selection)){
+            items.append(getViewItem(ID));
+        }
+    }
+    return items;
+}
+
 bool ViewController::destructViewItem(ViewItem *viewItem)
 {
     if(viewItem){
         //Delete children first!
         destructChildItems(viewItem);
 
+        QString treeKey;
 
+        if(viewItem->isNode()){
+            treeKey = ((NodeViewItem*)viewItem)->getTreeIndex();
+        }
+
+        if(!treeKey.isEmpty() && treeLookup.contains(treeKey)){
+            treeLookup.remove(treeKey);
+        }
 
         int ID = viewItem->getID();
         QString kind = viewItem->getData("kind").toString();
@@ -307,7 +322,7 @@ bool ViewController::destructViewItem(ViewItem *viewItem)
         itemKindLists[kind].removeAll(ID);
         topLevelItems.removeAll(ID);
 
-        emit viewItemDestructing(ID, viewItem);
+        emit vc_viewItemDestructing(ID, viewItem);
         viewItem->destruct();
     }
     return false;
@@ -326,6 +341,50 @@ QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
     return items;
 }
 
+NodeViewItem *ViewController::getNodeViewItem(int ID)
+{
+    ViewItem* item = getViewItem(ID);
+    if(item && item->isNode()){
+        return (NodeViewItem*) item;
+    }
+    return 0;
+}
+
+NodeViewItem *ViewController::getSharedParent(NodeViewItem *node1, NodeViewItem *node2)
+{
+    QString tree1;
+    QString tree2;
+
+    if(node1){
+        tree1 = node1->getTreeIndex();
+    }
+    if(node2){
+        tree2 = node2->getTreeIndex();
+    }
+
+    int i = 0;
+
+    while(true){
+        if(tree1.length() < i || tree2.length() < i){
+            //End of a string
+            break;
+        }
+        if(tree1.at(i) != tree2.at(i)){
+            //Different chars
+            break;
+        }
+        i++;
+    }
+
+    QString parentTree = tree1.left(i);
+
+    if(treeLookup.contains(parentTree)){
+        int ID = treeLookup[parentTree];
+        return getNodeViewItem(ID);
+    }
+    return 0;
+}
+
 NodeViewNew *ViewController::getActiveNodeView()
 {
     MedeaViewDockWidget* dock = MedeaWindowManager::manager()->getActiveViewDockWidget();
@@ -341,29 +400,27 @@ void ViewController::setModelReady(bool okay)
 {
     if(okay != _modelReady){
         _modelReady = okay;
-        emit modelReady(okay);
+        emit mc_modelReady(okay);
     }
 }
 
 void ViewController::setControllerReady(bool ready)
 {
     _controllerReady = ready;
-    emit controllerReady(ready);
+    emit vc_controllerReady(ready);
 }
 
 void ViewController::deleteSelection()
 {
     if(selectionController){
-        emit triggerAction("Deleting Selection");
-        emit deleteEntities(selectionController->getSelectionIDs());
+        emit vc_deleteEntities(selectionController->getSelectionIDs());
     }
 }
 
 void ViewController::constructDDSQOSProfile()
 {
-    emit triggerAction("Constructing DDS QOS Profile");
     foreach(int ID, getIDsOfKind("AssemblyDefinitions")){
-        emit constructNode(ID, "DDS_QOSProfile");
+        emit vc_constructNode(ID, "DDS_QOSProfile");
     }
 }
 
@@ -373,8 +430,8 @@ void ViewController::_teardownProject()
         if (controller) {
             setModelReady(false);
             setControllerReady(false);
-            emit projectPathChanged("");
-            emit projectModified(false);
+            emit vc_projectPathChanged("");
+            emit mc_projectModified(false);
             destructChildItems(rootItem);
             itemKindLists.clear();
 
@@ -390,7 +447,7 @@ bool ViewController::_newProject()
     if(_closeProject()){
         if(!controller){
             initializeController();
-            emit initializeModel();
+            emit vc_setupModel();
             return true;
         }
     }
@@ -400,14 +457,14 @@ bool ViewController::_newProject()
 bool ViewController::_saveProject()
 {
     if(controller){
-        QString filePath = controller->getProjectFileName();
+        QString filePath = controller->getProjectPath();
 
         if(filePath.isEmpty()){
             return _saveAsProject();
         }else{
             QString data = controller->getProjectAsGraphML();
             if(FileHandler::writeTextFile(filePath, data)){
-                emit projectSaved(filePath);
+                emit vc_projectSaved(filePath);
             }
             return true;
         }
@@ -420,7 +477,7 @@ bool ViewController::_saveAsProject()
     if(controller){
         QString fileName = FileHandler::selectFile("Select a *.graphml file to save project as.", QFileDialog::AnyFile, true, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
         if(!fileName.isEmpty()){
-            controller->setProjectFilePath(fileName);
+            controller->setProjectPath(fileName);
             return _saveProject();
         }
     }
@@ -431,8 +488,8 @@ bool ViewController::_closeProject()
 {
     if(isControllerReady()){
         if(controller){
-            if(controller->projectRequiresSaving()){
-                QString filePath = controller->getProjectFileName();
+            if(controller->isProjectSaved()){
+                QString filePath = controller->getProjectPath();
 
                 if(filePath == ""){
                     filePath = "Untitled Project";
@@ -496,6 +553,14 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 
         ViewItem* parentItem = getViewItem(parentID);
 
+        QString treeKey = nodeItem->getTreeIndex();
+
+
+
+        if(!treeLookup.contains(treeKey)){
+            treeLookup[treeKey] = ID;
+        }
+
         //Attach the node to it's parent
         if(parentItem){
             parentItem->addChild(nodeItem);
@@ -504,8 +569,20 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             topLevelItems.append(ID);
         }
     }else if(eKind == EK_EDGE){
-        //DO LATER.
-        EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, eKind, kind, data, properties);
+        Edge::EDGE_CLASS edgeClass = (Edge::EDGE_CLASS)properties["edgeClass"].toInt();
+
+        if(!(edgeClass == Edge::EC_ASSEMBLY || edgeClass == Edge::EC_DATA || edgeClass == Edge::EC_WORKFLOW)){
+            return;
+        }
+        int srcID = properties["srcID"].toInt();
+        int dstID = properties["dstID"].toInt();
+        NodeViewItem* source = getNodeViewItem(srcID);
+        NodeViewItem* destination = getNodeViewItem(dstID);
+
+        NodeViewItem* parent = getSharedParent(source, destination);
+
+
+        EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, parent, source, destination, kind, data, properties);
         viewItem = edgeItem;
     }
 
@@ -521,7 +598,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         connect(viewItem->getTableModel(), SIGNAL(req_dataChanged(int, QString, QVariant)), this, SLOT(table_dataChanged(int, QString, QVariant)));
 
         //Tell Views
-        emit viewItemConstructed(viewItem);
+        emit vc_viewItemConstructed(viewItem);
     }
 }
 
@@ -583,6 +660,11 @@ void ViewController::openProject()
     _openProject();
 }
 
+void ViewController::importProjects()
+{
+    _importProjects();
+}
+
 void ViewController::closeProject()
 {
     _closeProject();
@@ -617,31 +699,21 @@ void ViewController::_importProjects()
             fileData.append(data);
         }
     }
-    emit importProjects(fileData);
+    emit vc_importProjects(fileData);
 
     // fit the contents in all the view aspects after import when no model has been imported yet?
 }
 
 void ViewController::fitView()
 {
-
-    getValidEdges(Edge::EC_AGGREGATE);
-    getValidEdges(Edge::EC_ASSEMBLY);
-    getValidEdges(Edge::EC_DATA);
-    getValidEdges(Edge::EC_DEFINITION);
-    getValidEdges(Edge::EC_DEPLOYMENT);
-    getValidEdges(Edge::EC_WORKFLOW);
-    getValidEdges(Edge::EC_QOS);
-    /*
     NodeViewNew* view = getActiveNodeView();
     if(view){
         view->fitToScreen();
-    }*/
+    }
 }
 
 void ViewController::centerSelection()
 {
-
     NodeViewNew* view = getActiveNodeView();
     if(view){
         view->centerSelection();
@@ -652,30 +724,29 @@ void ViewController::centerSelection()
 void ViewController::cut()
 {
     if(selectionController){
-        emit cutEntities(selectionController->getSelectionIDs());
+        emit vc_cutEntities(selectionController->getSelectionIDs());
     }
 }
 
 void ViewController::copy()
 {
     if(selectionController){
-        emit copyEntities(selectionController->getSelectionIDs());
+        emit vc_copyEntities(selectionController->getSelectionIDs());
     }
 }
 
 void ViewController::paste()
 {
     if(selectionController && selectionController->getSelectionCount() == 1){
-        emit pasteIntoEntity(selectionController->getSelectionIDs()[0], QApplication::clipboard()->text());
+        emit vc_paste(selectionController->getSelectionIDs(), QApplication::clipboard()->text());
     }
 }
 
 void ViewController::replicate()
 {
     if(selectionController && selectionController->getSelectionCount() > 0){
-        emit replicateEntities(selectionController->getSelectionIDs());
+        emit vc_replicateEntities(selectionController->getSelectionIDs());
     }
-
 }
 
 void ViewController::initializeController()

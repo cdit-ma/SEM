@@ -16,6 +16,7 @@
 #include <QtMath>
 #include <QGraphicsItem>
 #include <QKeyEvent>
+#include <QDateTime>
 
 #define ZOOM_INCREMENTOR 1.05
 
@@ -87,13 +88,17 @@ void NodeViewNew::setViewController(ViewController *viewController)
 {
     this->viewController = viewController;
     if(viewController){
+
+        connect(viewController, &ViewController::vc_viewItemConstructed, this, &NodeViewNew::viewItem_Constructed);
+        connect(viewController, &ViewController::vc_viewItemDestructing, this, &NodeViewNew::viewItem_Destructed);
+
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
         connect(selectionHandler, SIGNAL(itemSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelectionChanged(ViewItem*,bool)));
         connect(selectionHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemActiveSelectionChanged(ViewItem*,bool)));
 
-        connect(this, &NodeViewNew::toolbarRequested, viewController, &ViewController::showToolbar);
-        connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::triggerAction);
-        connect(this, &NodeViewNew::setData, viewController, &ViewController::setData);
+        connect(this, &NodeViewNew::toolbarRequested, viewController, &ViewController::vc_showToolbar);
+        connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::vc_triggerAction);
+        connect(this, &NodeViewNew::setData, viewController, &ViewController::vc_setData);
     }
 }
 
@@ -276,7 +281,6 @@ void NodeViewNew::item_ActiveSelected(ViewItem *item)
 
 void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
 {
-    qCritical() << item << expand;
     if(item){
         int ID = item->getID();
         emit triggerAction("Expanding Selection");
@@ -297,7 +301,7 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
             emit triggerAction("Moving Selection");
         }
 
-        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
             EntityItemNew* item = getEntityItem(viewItem);
             if(!item){
                 continue;
@@ -326,7 +330,7 @@ void NodeViewNew::item_AdjustPos(QPointF delta)
 {
     //Moves the selection.
     if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
             EntityItemNew* item = getEntityItem(viewItem);
             if(item){
                 delta = item->validateAdjustPos(delta);
@@ -338,7 +342,7 @@ void NodeViewNew::item_AdjustPos(QPointF delta)
         }
 
         if(!delta.isNull()){
-            foreach(ViewItem* viewItem, selectionHandler->getSelection()){
+            foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
                 EntityItemNew* item = getEntityItem(viewItem);
                 if(item){
                     //Move!
@@ -538,6 +542,33 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
 void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
 {
+    if(!item || !containedNodeViewItem || !containedNodeViewItem->isAncestorOf(item->getParentItem())){
+        return;
+    }
+
+
+    NodeItemNew* parent = getParentNodeItem(item->getParentItem());
+    NodeItemNew* source = getParentNodeItem(item->getSource());
+    NodeItemNew* destination = getParentNodeItem(item->getDestination());
+
+    EdgeItemNew* edgeItem = new EdgeItemNew(item, parent,source,destination);
+
+
+    if(edgeItem){
+        guiItems[item->getID()] = edgeItem;
+        connect(edgeItem, SIGNAL(req_activeSelected(ViewItem*)), this, SLOT(item_ActiveSelected(ViewItem*)));
+        connect(edgeItem, SIGNAL(req_selected(ViewItem*,bool)), this, SLOT(item_Selected(ViewItem*,bool)));
+
+        connect(edgeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(item_SetExpanded(EntityItemNew*,bool)));
+        connect(edgeItem, SIGNAL(req_centerItem(EntityItemNew*)), this, SLOT(item_SetCentered(EntityItemNew*)));
+        connect(edgeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(item_AdjustPos(QPointF)));
+        connect(edgeItem, SIGNAL(req_adjustingPos(bool)), this, SLOT(item_AdjustingPos(bool)));
+
+        if(!scene()->items().contains(edgeItem)){
+            scene()->addItem(edgeItem);
+        }
+    }
+
     //Do nothing.
 }
 
@@ -638,6 +669,11 @@ void NodeViewNew::selectItemsInRubberband()
     QPolygonF rubberbandRect = mapToScene(rubberband->geometry());
 
     QList<ViewItem*> itemsToSelect;
+
+    //Check for aspect selection.
+    if(selectionHandler->getSelection().contains(containedNodeViewItem)){
+        itemsToSelect.append(containedNodeViewItem);
+    }
 
     foreach(QGraphicsItem* i, scene()->items(rubberbandRect,Qt::IntersectsItemShape)){
         EntityItemNew* entityItem = dynamic_cast<EntityItemNew*>(i);

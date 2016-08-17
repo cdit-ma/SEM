@@ -26,7 +26,7 @@ public:
     QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
     QList<ViewItem*> getValidEdges(Edge::EDGE_CLASS kind);
 
-    QStringList getSearchSuggestions();
+    QStringList _getSearchSuggestions();
 
 
     QStringList getAdoptableNodeKinds();
@@ -39,47 +39,52 @@ public:
     bool canUndo();
     bool canRedo();
 
-    //bool canUndo();
+    QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 
     void setController(NewController* c);
 signals:
-    void projectSaved(QString filePath);
-    void projectPathChanged(QString);
-    void projectModified(bool);
-    void initializeModel();
-    void modelReady(bool);
-    void controllerReady(bool);
-    void viewItemConstructed(ViewItem* viewItem);
-    void viewItemDestructing(int ID, ViewItem *viewItem);
-    void triggerAction(QString action);
-    void setData(int, QString, QVariant);
-    void showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
+    //TO OTHER VIEWS SIGNALS
 
+    void vc_controllerReady(bool);
+    void vc_viewItemConstructed(ViewItem* viewItem);
+    void vc_viewItemDestructing(int ID, ViewItem *viewItem);
+    void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
+    void vc_gotSearchSuggestions(QStringList suggestions);
 
-    void undo();
-    void redo();
-
-    void teardown();
+    void mc_showProgress(bool, QString);
+    void mc_progressChanged(int);
 
 
 
 
+    void mc_modelReady(bool);
+    void mc_projectModified(bool);
+    void mc_undoRedoUpdated();
 
 
-    void undoRedoChanged();
+    //TO CONTROLLER SIGNALS
+
+    void vc_setupModel();
+    void vc_undo();
+    void vc_redo();
+    void vc_triggerAction(QString);
+    void vc_setData(int, QString, QVariant);
+    void vc_deleteEntities(QList<int> IDs);
+    void vc_cutEntities(QList<int> IDs);
+    void vc_copyEntities(QList<int> IDs);
+    void vc_paste(QList<int> IDs, QString data);
+    void vc_replicateEntities(QList<int> IDs);
+
+    void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
+    void vc_constructConnectedNode(int parentID, QString kind, QPointF pos, int dstID);
 
 
-    void deleteEntities(QList<int> IDs);
-    void cutEntities(QList<int> IDs);
-    void copyEntities(QList<int> IDs);
-    void pasteIntoEntity(int ID, QString data);
-    void replicateEntities(QList<int> IDs);
-
-    void constructNode(int parentID, QString kind, QPointF pos = QPointF());
-    void importProjects(QStringList fileData);
+    void vc_importProjects(QStringList fileData);
     void vc_openProject(QString fileName, QString filePath);
 
-    void seachSuggestions(QStringList suggestions);
+    void vc_projectSaved(QString filePath);
+    void vc_projectPathChanged(QString);
+
 
 public slots:
     void actionFinished(bool success, QString gg);
@@ -95,11 +100,11 @@ public slots:
 
     void newProject();
     void openProject();
-    void closeProject();
-    void closeMEDEA();
+    void importProjects();
     void saveProject();
     void saveAsProject();
-    void _importProjects();
+    void closeProject();
+    void closeMEDEA();
 
 
     void fitView();
@@ -109,17 +114,17 @@ public slots:
     void copy();
     void paste();
     void replicate();
-
     void deleteSelection();
+
     void constructDDSQOSProfile();
+    void requestSearchSuggestions();
+
 
     void setModelReady(bool okay);
-
     void setControllerReady(bool ready);
 
-    QList<ViewItem*> search(QString searchString);
-    void searchSuggestionsRequested(QString searchString="");
 
+    QList<ViewItem*> search(QString searchString);
 private slots:
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);
@@ -127,6 +132,10 @@ private slots:
 private:
     bool destructViewItem(ViewItem* item);
     QList<ViewItem*> getViewItems(QList<int> IDs);
+
+    NodeViewItem* getNodeViewItem(int ID);
+
+    NodeViewItem* getSharedParent(NodeViewItem* node1, NodeViewItem* node2);
 
     NodeViewNew* getActiveNodeView();
     void _teardownProject();
@@ -136,6 +145,7 @@ private:
     bool _saveProject();
     bool _saveAsProject();
     bool _closeProject();
+    void _importProjects();
     bool _openProject(QString filePath = "");
     QList<int> getIDsOfKind(QString kind);
     bool _modelReady;
@@ -150,6 +160,7 @@ private:
 
     ViewItem* getViewItem(int ID);
 
+    QHash<QString, int> treeLookup;
     QHash<QString, QList<int> > itemKindLists;
     QHash<int, ViewItem*> viewItems;
     QList<int> topLevelItems;

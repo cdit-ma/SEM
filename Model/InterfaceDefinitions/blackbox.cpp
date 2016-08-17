@@ -3,6 +3,7 @@
 
 BlackBox::BlackBox():Node(Node::NT_DEFINITION)
 {
+    setAcceptsEdgeClass(Edge::EC_DEFINITION);
 }
 
 BlackBox::~BlackBox()
