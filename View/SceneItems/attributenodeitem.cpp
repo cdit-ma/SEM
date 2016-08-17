@@ -28,6 +28,9 @@ AttributeNodeItem::AttributeNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     addRequiredData("value");
 
     reloadRequiredData();
+
+    isInstance = getData("kind").toString().endsWith("Instance");
+
 }
 
 QRectF AttributeNodeItem::mainRect() const
@@ -79,8 +82,12 @@ void AttributeNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->drawRect(mainRect());
 
         painter->setPen(Qt::black);
-        painter->drawText(labelRect(), Qt::AlignCenter, getData("type").toString());
 
+        if(isInstance){
+            painter->drawText(labelRect(), Qt::AlignCenter, getData("value").toString());
+        } else {
+            painter->drawText(labelRect(), Qt::AlignCenter, getData("type").toString());
+        }
         painter->drawText(topLabelRect(), Qt::AlignCenter, getData("label").toString());
 
         painter->restore();
@@ -122,7 +129,7 @@ QPainterPath AttributeNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect)
 void AttributeNodeItem::dataChanged(QString keyName, QVariant data)
 {
     NodeItemNew::dataChanged(keyName, data);
-    if(keyName == "value" || keyName == "type"){
+    if(keyName == "value" || keyName == "type" || keyName == "label"){
         update();
     }
 }

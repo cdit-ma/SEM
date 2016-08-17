@@ -40,26 +40,37 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     if(state > RS_BLOCK) {
         painter->setClipRect(option->exposedRect);
         painter->save();
-        painter->setPen(Qt::NoPen);
 
+        //Draw port poly
+        painter->setPen(Qt::NoPen);
         painter->setBrush(getBodyColor());
         painter->drawPolygon(mainIconPoly());
+
+        //Draw sub-icon polys
         painter->save();
         painter->setBrush(getBodyColor().darker(110));
         painter->drawPolygon(subIconPoly());
         painter->drawPolygon(topIconPoly());
         painter->restore();
-        painter->drawRect(labelBGRect());
-        painter->setPen(Qt::black);
 
+        //Draw label rect
+        painter->drawRect(labelBGRect());
+
+        //Draw text
+        painter->setPen(Qt::black);
         painter->drawText(labelRect(), Qt::AlignCenter, getData("label").toString());
 
         painter->restore();
     }
+
+    //Paint icons.
+    //TODO: update to lock and other sub-icons.
     QPair<QString, QString> icon = getIconPath();
     paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
     paintPixmap(painter, lod, ER_SECONDARY_ICON, icon.first, icon.second);
     paintPixmap(painter, lod, ER_LOCKED_STATE, icon.first, icon.second);
+
+    //Parent class paint
     NodeItemNew::paint(painter, option, widget);
 }
 
@@ -196,8 +207,10 @@ QRectF EventPortNodeItem::lockedRect() const
     return rect;
 }
 
+//Construct a bunch of polys
 void EventPortNodeItem::initPolys()
 {
+    //Ratios ahoy
     QRectF rect(mainIconRect());
     if(leftIconPoly.isEmpty()){
         leftIconPoly.push_back(rect.topLeft());

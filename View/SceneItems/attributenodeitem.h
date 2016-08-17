@@ -14,6 +14,7 @@ public:
 private:
     qreal height;
     qreal width;
+    bool isInstance;
 
     QFont mainTextFont;
 
