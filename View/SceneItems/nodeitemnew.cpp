@@ -554,26 +554,13 @@ qreal NodeItemNew::getHeight() const
     }
 }
 
-QPointF NodeItemNew::getCenter() const
-{
-    return pos() + getCenterOffset();
-}
+
 
 QPointF NodeItemNew::getCenterOffset() const
 {
     return contractedRect().center();
 }
 
-void NodeItemNew::setCenter(QPointF center)
-{
-    center -= getCenterOffset();
-    setPos(center);
-}
-
-QPointF NodeItemNew::getSceneCenter() const
-{
-    return sceneBoundingRect().topLeft() + getCenterOffset();
-}
 
 void NodeItemNew::setPos(const QPointF &pos)
 {
@@ -710,15 +697,7 @@ int NodeItemNew::getResizeArrowRotation(RECT_VERTEX vert) const
     return (imageOffset + getVertexAngle(vert)) % 360;
 }
 
-int NodeItemNew::getGridSize() const
-{
-    return 10;
-}
 
-int NodeItemNew::getMajorGridCount() const
-{
-    return 5;
-}
 
 QPainterPath NodeItemNew::getChildNodePath()
 {

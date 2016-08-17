@@ -17,15 +17,25 @@ public:
     ~EdgeItemNew();
     KIND getEdgeItemKind();
 
+    QRectF smallRect() const;
+    QRectF leftRect() const;
+    QRectF centerRect() const;
+    QRectF rightRect() const;
+
     NodeItemNew* getParentItem();
     NodeItemNew* getSourceItem();
     NodeItemNew* getDestinationItem();
 
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    QRectF getElementRect(ELEMENT_RECT rect) const;
+    QRectF currentRect() const;
+    QRectF boundingRect() const;
+
 public slots:
     void sourceMoved();
     void destinationMoved();
+    void centerMoved();
 private:
-    void updatePosition();
     KIND edge_kind;
     EdgeViewItem* edgeViewItem;
     NodeItemNew* parentItem;
@@ -35,24 +45,17 @@ private:
     QGraphicsPathItem* bezierCurve1;
     QGraphicsPathItem* bezierCurve2;
 
-    // QGraphicsItem interface
-public:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
-    // EntityItemNew interface
-public:
-    QRectF currentRect() const;
 
 private slots:
     void dataChanged(QString keyName, QVariant data);
 
-    // QGraphicsItem interface
+    // EntityItemNew interface
 public:
-    QRectF boundingRect() const;
+    QPointF validateAdjustPos(QPointF delta);
 
     // EntityItemNew interface
 public:
-    QRectF getElementRect(ELEMENT_RECT rect) const;
+    void setMoving(bool moving);
 };
 
 #endif // EDGEITEMNEW_H

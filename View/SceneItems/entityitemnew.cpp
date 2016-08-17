@@ -153,6 +153,11 @@ void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, 
     paintPixmap(painter, imageRect, pixmap);
 }
 
+void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QPair<QString, QString> image, QColor tintColor)
+{
+    paintPixmap(painter, lod, imageRect, image.first, image.second, tintColor);
+}
+
 void EntityItemNew::setTooltip(EntityItemNew::ELEMENT_RECT rect, QString tooltip, QCursor cursor)
 {
     tooltipMap[rect] = tooltip;
@@ -565,12 +570,53 @@ bool EntityItemNew::isMoving() const
     return _isMoving;
 }
 
+int EntityItemNew::getGridSize() const
+{
+    return 10;
+}
+
+int EntityItemNew::getMajorGridCount() const
+{
+    return 5;
+}
+
+QPointF EntityItemNew::getSceneCenter() const
+{
+    return mapToScene(getCenterOffset());
+}
+
+QPointF EntityItemNew::getCenterOffset() const
+{
+    return boundingRect().center();
+}
+
+void EntityItemNew::setCenter(QPointF center)
+{
+    setPos(center - getCenterOffset());
+}
+
+QPointF EntityItemNew::getCenter() const
+{
+    return pos() + getCenterOffset();
+}
+
 QPair<QString, QString> EntityItemNew::getIconPath()
 {
     if(viewItem){
         return viewItem->getIcon();
     }
     return QPair<QString, QString>();
+}
+
+QPointF EntityItemNew::getNearestGridPoint()
+{
+    qreal gridSize = getGridSize();
+    QPointF point = getSceneCenter();
+    qreal closestX = qRound(point.x() / gridSize) * gridSize;
+    qreal closestY = qRound(point.y() / gridSize) * gridSize;
+    QPointF delta = QPointF(closestX, closestY) - point;
+
+    return pos() + getCenterOffset() + delta;
 }
 
 void EntityItemNew::destruct()

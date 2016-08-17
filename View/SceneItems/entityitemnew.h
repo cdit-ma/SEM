@@ -48,6 +48,7 @@ public:
 
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor=QColor(), bool update=false);
     void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QPair<QString, QString> image, QColor tintColor=QColor());
 
     void setTooltip(ELEMENT_RECT rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
 
@@ -74,6 +75,8 @@ public:
     QPen getPen();
     void setDefaultPen(QPen pen);
     QPair<QString, QString> getIconPath();
+
+    QPointF getNearestGridPoint();
 
 public:
     //Model State Get/Setters
@@ -112,6 +115,15 @@ public:
     bool isHovered() const;
     bool isHighlighted() const;
     bool isMoving() const;
+
+    int getGridSize() const;
+    int getMajorGridCount() const;
+    QPointF getSceneCenter() const;
+    virtual QPointF getCenterOffset() const;
+
+    void setCenter(QPointF center);
+    QPointF getCenter() const;
+
 
 public:
     //Feature State Getters
