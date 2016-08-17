@@ -192,8 +192,10 @@ void EdgeItemNew::recalcDstCurve(bool reset)
     }
 
     QPainterPath dstCurve;
-    dstCurve.moveTo(mapFromScene(centerSceneDstPos));
-    dstCurve.cubicTo(mapFromScene(dstControlPoint1), mapFromScene(dstControlPoint2), mapFromScene(dstScenePos));
+    //dstCurve.moveTo(mapFromScene(centerSceneDstPos));
+    //dstCurve.cubicTo(mapFromScene(dstControlPoint1), mapFromScene(dstControlPoint2), mapFromScene(dstScenePos));
+    dstCurve.moveTo(mapFromScene(dstScenePos));
+    dstCurve.cubicTo(mapFromScene(dstControlPoint2), mapFromScene(dstControlPoint1), mapFromScene(centerSceneDstPos));
 
     prepareGeometryChange();
 
