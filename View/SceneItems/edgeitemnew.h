@@ -17,42 +17,89 @@ public:
     ~EdgeItemNew();
     KIND getEdgeItemKind();
 
+    void setPos(const QPointF &pos);
+    QPointF getPos() const;
+
+    void setCenter(QPointF center);
+    QPointF getCenter() const;
+
+    QRectF boundingRect() const;
+    QRectF currentRect() const;
+
+private:
+    QRectF smallRect() const;
+    QRectF leftRect() const;
+    QRectF centerRect() const;
+    QRectF rightRect() const;
+    QRectF handleRect() const;
+    QPolygonF triangle() const;
+
+    NodeItemNew* getVisibleSource();
+    NodeItemNew* getVisibleDestination();
+
     NodeItemNew* getParentItem();
     NodeItemNew* getSourceItem();
     NodeItemNew* getDestinationItem();
 
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
+    QPointF getSourcePos() const;
+    QPointF getDestinationPos() const;
+
+    QPointF getCenterOffset() const;
+    QPointF getInternalOffset() const;
+
+    QPointF getSceneEdgeTermination(bool left) const;
+
+    void resetPosition();
+
+    bool shouldReset();
+
+
 public slots:
+    void sourceHidden();
+    void destinationHidden();
     void sourceMoved();
     void destinationMoved();
+    void centerMoved();
 private:
-    void updatePosition();
+    void recalcSrcCurve(bool reset = false);
+    void recalcDstCurve(bool reset = false);
+
+
+    bool manuallySet;
     KIND edge_kind;
     EdgeViewItem* edgeViewItem;
     NodeItemNew* parentItem;
     NodeItemNew* sourceItem;
     NodeItemNew* destinationItem;
 
-    QGraphicsPathItem* bezierCurve1;
-    QGraphicsPathItem* bezierCurve2;
+    NodeItemNew* vSrcItem;
+    NodeItemNew* vDstItem;
 
-    // QGraphicsItem interface
-public:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    QPainterPath sourceCurve;
+    QPainterPath destinationCurve;
 
-    // EntityItemNew interface
-public:
-    QRectF currentRect() const;
+    QPointF itemPos;
+
 
 private slots:
     void dataChanged(QString keyName, QVariant data);
 
-    // QGraphicsItem interface
+    // EntityItemNew interface
 public:
-    QRectF boundingRect() const;
+    QPointF validateAdjustPos(QPointF delta);
 
     // EntityItemNew interface
 public:
-    QRectF getElementRect(ELEMENT_RECT rect) const;
+    void setMoving(bool moving);
+
+    // QGraphicsItem interface
+protected:
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+
+    // EntityItemNew interface
+public:
 };
 
 #endif // EDGEITEMNEW_H

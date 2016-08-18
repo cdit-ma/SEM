@@ -7,6 +7,7 @@ EventPort::EventPort(bool isInEventPort):Node(Node::NT_DEFINITION)
     inEventPort = isInEventPort;
     aggregate = 0;
     setAcceptEdgeClass(Edge::EC_AGGREGATE);
+    setAcceptEdgeClass(Edge::EC_DEFINITION);
 }
 
 EventPort::~EventPort()

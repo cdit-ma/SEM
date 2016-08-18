@@ -7,6 +7,7 @@
 
 Aggregate::Aggregate(): Node(Node::NT_DEFINITION)
 {
+    setAcceptEdgeClass(Edge::EC_AGGREGATE);
 }
 
 Aggregate::~Aggregate()

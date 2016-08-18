@@ -36,6 +36,8 @@ public:
 
     ViewItem* getViewItem() const;
 
+    virtual QPointF getSceneEdgeTermination(bool left) const = 0;
+
 
     QColor getBodyColor() const;
     void setBodyColor(QColor color);
@@ -48,6 +50,7 @@ public:
 
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor=QColor(), bool update=false);
     void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QPair<QString, QString> image, QColor tintColor=QColor());
 
     void setTooltip(ELEMENT_RECT rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
 
@@ -62,6 +65,7 @@ public:
     QPainterPath sceneShape() const;
 
     void adjustPos(QPointF delta);
+    virtual QPointF getPos() const;
 
     virtual QPointF validateAdjustPos(QPointF delta);
 
@@ -74,6 +78,8 @@ public:
     QPen getPen();
     void setDefaultPen(QPen pen);
     QPair<QString, QString> getIconPath();
+
+    QPointF getNearestGridPoint();
 
 public:
     //Model State Get/Setters
@@ -112,6 +118,15 @@ public:
     bool isHovered() const;
     bool isHighlighted() const;
     bool isMoving() const;
+
+    int getGridSize() const;
+    int getMajorGridCount() const;
+    virtual QPointF getSceneCenter() const;
+    virtual QPointF getCenterOffset() const;
+
+    virtual void setCenter(QPointF center);
+    virtual QPointF getCenter() const;
+
 
 public:
     //Feature State Getters
@@ -154,6 +169,7 @@ public:
     void setSelected(bool selected);
     void setActiveSelected(bool active);
 private:
+    void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
     QPixmap getPixmap(QString imageAlias, QString imageName, QSize requiredSize=QSize(), QColor tintColor=QColor()) const;
     QSize getPixmapSize(QRectF rect, qreal lod) const;

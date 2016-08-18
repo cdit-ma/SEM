@@ -117,11 +117,18 @@ ToolActionController *ViewController::getToolbarController()
 
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
 {
-    qCritical() << kind;
+
+    //
+    Edge::EDGE_CLASS ec = Edge::EC_DEFINITION;
+
+    if(kind.endsWith("Delegate") || kind.endsWith("EventPort")){
+        ec = Edge::EC_AGGREGATE;
+    }
+
     QList<ViewItem*> items;
     if(controller  && selectionController && selectionController->getSelectionCount() == 1){
         int parentID = selectionController->getFirstSelectedItem()->getID();
-        QList<int> IDs = controller->getConstructableNodeDefinitions(parentID, kind);
+        QList<int> IDs = controller->getConstructableConnectableNodes(parentID, kind, ec);
         items = getViewItems(IDs);
     }
     return items;

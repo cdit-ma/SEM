@@ -14,6 +14,7 @@ public:
     explicit DockTitleBarWidget(QWidget *parent=0);
     ~DockTitleBarWidget();
 
+    void setToolBarIconSize(int height);
     void setLabelStyleSheet(QString style);
     void setIcon(QPixmap pixmap);
     void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);

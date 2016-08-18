@@ -65,10 +65,11 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
     //Paint icons.
     //TODO: update to lock and other sub-icons.
-    QPair<QString, QString> icon = getIconPath();
-    paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
-    paintPixmap(painter, lod, ER_SECONDARY_ICON, icon.first, icon.second);
-    paintPixmap(painter, lod, ER_LOCKED_STATE, icon.first, icon.second);
+    if(state > RS_BLOCK){
+        QPair<QString, QString> icon = getIconPath();
+        paintPixmap(painter, lod, ER_SECONDARY_ICON, icon.first, icon.second);
+        paintPixmap(painter, lod, ER_LOCKED_STATE, icon.first, icon.second);
+    }
 
     //Parent class paint
     NodeItemNew::paint(painter, option, widget);

@@ -110,6 +110,7 @@ struct EventAction{
         QString XML;
         QString nodeKind;
         Entity::ENTITY_KIND kind;
+        Edge::EDGE_CLASS edgeClass;
     } Entity;
 
     struct _Key{
@@ -157,7 +158,7 @@ public:
     QStringList getAdoptableNodeKinds(int ID);
     QStringList getValidKeyValues(int ID, QString keyName);
     QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind);
-    QList<int> getConstructableNodeDefinitions(int parentID, QString instanceNodeKind);
+    QList<int> getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_CLASS edgeClass);
 
     QList<int> getOrderedSelectionIDs(QList<int> selection);
 
@@ -411,7 +412,7 @@ private:
 
     //Constructs a Vector of basic Data entities required for creating a Node.
     QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1), QString nodeType="", QString nodeLabel="");
-    QList<Data*> constructPositionDataVector(QPointF point);
+    QList<Data*> constructPositionDataVector(QPointF point=QPointF(-1, -1));
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
 

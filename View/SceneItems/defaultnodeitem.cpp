@@ -92,11 +92,14 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
         painter->setBrush(getBodyColor().darker(105));
         painter->drawRect(headerRect());
         painter->setBrush(Qt::NoBrush);
+    }
 
-        QPair<QString, QString> icon = getIconPath();
-        paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
 
-        paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
+
+
+
+    if(state > RS_MINIMAL){
+
         paintPixmap(painter, lod, ER_STATUS, "Actions", "Computer");
         paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", "Clock");
 
@@ -105,23 +108,28 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
         painter->setBrush(QColor(255,255,255,150));
         painter->drawRect(getElementRect(ER_MAIN_ICON_OVERLAY));
         paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, "Actions", "Key");
-    }
-
-     if(state > RS_BLOCK){
-        QString label = getData("label").toString();
-
-        painter->setPen(Qt::NoPen);
-        painter->setPen(Qt::black);
-        painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignVCenter | Qt::AlignLeft, label);
-        painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, label);
-
-        painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
 
         if(isExpanded()){
             paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Contract");
         }else{
             paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
         }
+    }
+
+     if(state > RS_BLOCK){
+         paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
+        QString label = getData("label").toString();
+
+        painter->setPen(Qt::black);
+        painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignVCenter | Qt::AlignLeft, label);
+        painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, label);
+
+        painter->setPen(Qt::NoPen);
+
+        //Check for disabled?
+        painter->setBrush(Qt::white);
+
+        painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
      }
 
     NodeItemNew::paint(painter, option, widget);

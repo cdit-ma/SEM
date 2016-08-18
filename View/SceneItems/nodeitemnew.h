@@ -101,10 +101,11 @@ public:
     qreal getWidth() const;
     qreal getHeight() const;
 
-    QPointF getCenter() const;
+
     QPointF getCenterOffset() const;
-    void setCenter(QPointF center);
-    QPointF getSceneCenter() const;
+
+    virtual QPointF getSceneEdgeTermination(bool left) const;
+
 
     virtual void setPos(const QPointF &pos);
 
@@ -140,8 +141,7 @@ public slots:
 private:
     void resizeToChildren();
     int getResizeArrowRotation(RECT_VERTEX vert) const;
-    int getGridSize() const;
-    int getMajorGridCount() const;
+
 
     void updateGridLines();
     NodeViewItem* nodeViewItem;

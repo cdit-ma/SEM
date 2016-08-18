@@ -226,35 +226,6 @@ QList<EdgeItemNew *> NodeItemNew::getProxyEdges()
     return proxyChildEdges.values();
 }
 
-QRectF NodeItemNew::getNearestGridOutline()
-{
-    //TODO REMOVE FUNCTION?
-
-    QPointF center = getNearestGridPointToCenter();
-    QPointF deltaPos = currentRect().center() - contractedRect().center();
-    center += deltaPos;
-    QRectF outlineRect = currentRect();
-    qreal gridSize = getGridSize();
-
-    qreal width = outlineRect.width() + (gridSize);
-    qreal height = outlineRect.height() + (gridSize);
-    outlineRect.setWidth(width);
-    outlineRect.setHeight(height);
-    outlineRect.moveCenter(center);
-    return outlineRect;
-}
-
-QPointF NodeItemNew::getNearestGridPointToCenter()
-{
-    qreal gridSize = getGridSize();
-    QPointF point = getSceneCenter();
-    qreal closestX = qRound(point.x() / gridSize) * gridSize;
-    qreal closestY = qRound(point.y() / gridSize) * gridSize;
-    QPointF delta = QPointF(closestX, closestY) - point;
-
-    return getCenter() + delta;
-
-}
 
 void NodeItemNew::setGridEnabled(bool enabled)
 {
@@ -322,7 +293,7 @@ void NodeItemNew::setMoving(bool moving)
         parentNodeItem->setChildNodeMoving(this, moving);
     }
     if(!moving){
-        setCenter(getNearestGridPointToCenter());
+        setCenter(getNearestGridPoint());
     }
 }
 
@@ -554,26 +525,20 @@ qreal NodeItemNew::getHeight() const
     }
 }
 
-QPointF NodeItemNew::getCenter() const
-{
-    return pos() + getCenterOffset();
-}
+
 
 QPointF NodeItemNew::getCenterOffset() const
 {
     return contractedRect().center();
 }
 
-void NodeItemNew::setCenter(QPointF center)
+QPointF NodeItemNew::getSceneEdgeTermination(bool left) const
 {
-    center -= getCenterOffset();
-    setPos(center);
+    qreal y = contractedRect().center().y();
+    qreal x = left ? currentRect().left() : currentRect().right();
+    return mapToScene(x,y);
 }
 
-QPointF NodeItemNew::getSceneCenter() const
-{
-    return sceneBoundingRect().topLeft() + getCenterOffset();
-}
 
 void NodeItemNew::setPos(const QPointF &pos)
 {
@@ -627,7 +592,7 @@ void NodeItemNew::setExpanded(bool expand)
 
         prepareGeometryChange();
         //Hide/Show Children
-        foreach(NodeItemNew* child, getChildNodes()){
+        foreach(EntityItemNew* child, getChildEntities()){
             child->setVisible(isExpanded());
         }
 
@@ -710,15 +675,7 @@ int NodeItemNew::getResizeArrowRotation(RECT_VERTEX vert) const
     return (imageOffset + getVertexAngle(vert)) % 360;
 }
 
-int NodeItemNew::getGridSize() const
-{
-    return 10;
-}
 
-int NodeItemNew::getMajorGridCount() const
-{
-    return 5;
-}
 
 QPainterPath NodeItemNew::getChildNodePath()
 {
@@ -865,12 +822,8 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->restore();
     }
 
-    EntityItemNew::paint(painter, option, widget);
 
-//    QColor red(255,0,0,50);
-//    painter->setBrush(red);
- //   painter->drawRect(childrenRect());
-  //  painter->drawRect(gridRect());
+    EntityItemNew::paint(painter, option, widget);
 }
 
 QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const

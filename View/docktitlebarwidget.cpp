@@ -19,6 +19,12 @@ DockTitleBarWidget::~DockTitleBarWidget()
 {
 }
 
+void DockTitleBarWidget::setToolBarIconSize(int height)
+{
+    setIconSize(QSize(height, height));
+    iconLabel->setFixedSize(height +2,height);
+}
+
 void DockTitleBarWidget::setLabelStyleSheet(QString style)
 {
     if (titleLabel) {
@@ -66,7 +72,6 @@ QAction *DockTitleBarWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
 void DockTitleBarWidget::setupToolBar()
 {
     iconLabel = new QLabel(this);
-    iconLabel->setFixedSize(18,16);
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setStyleSheet("margin-right: 2px;");
 
@@ -90,6 +95,6 @@ void DockTitleBarWidget::setupToolBar()
     hideAction = addAction("Hide Window");
     hideAction->setVisible(false);
 
-    setIconSize(QSize(16, 16));
+    setToolBarIconSize(16);
 }
 
