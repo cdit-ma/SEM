@@ -110,6 +110,7 @@ struct EventAction{
         QString XML;
         QString nodeKind;
         Entity::ENTITY_KIND kind;
+        Edge::EDGE_CLASS edgeClass;
     } Entity;
 
     struct _Key{

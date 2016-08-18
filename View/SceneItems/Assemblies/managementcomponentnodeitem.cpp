@@ -71,6 +71,7 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
 
         painter->setBrush(getBodyColor());
         painter->drawRect(subIconRect());
+
         paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", "Database");
     }
 

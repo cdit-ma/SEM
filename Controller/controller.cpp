@@ -1731,14 +1731,16 @@ QList<Entity*> NewController::getOrderedSelection(QList<int> selection)
     foreach(int ID, selection){
         Entity* entity = getGraphMLFromID(ID);
         Node* node = 0;
+        Edge* edge = 0;
         Node* src = 0;
         Node* dst = 0;
 
         if(entity->isNode()){
             node = (Node*) entity;
         }else if(entity->isEdge()){
-            src = ((Edge*)entity)->getSource();
-            dst = ((Edge*)entity)->getDestination();
+            edge = (Edge*) entity;
+            src = edge->getSource();
+            dst = edge->getDestination();
         }
 
         bool append = true;
@@ -1765,12 +1767,24 @@ QList<Entity*> NewController::getOrderedSelection(QList<int> selection)
                 }else if(selEdge){
                     Node* sSrc = selEdge->getSource();
                     Node* sDst = selEdge->getDestination();
-                    if(sSrc->isAncestorOf(node) || sDst->isAncestorOf(node)){
+                    if(sSrc->isAncestorOf(node) && sDst->isAncestorOf(node)){
+                        //Can't select a child
+                        append = false;
+                        break;
+                    }else if(node->isAncestorOf(sSrc) && node->isAncestorOf(sDst)){
+                        //Remove children
+                        orderedSelection.removeAll(selEdge);
+                    }
+                }
+            }else if(edge){
+                if(selNode){
+                    if(selNode->isAncestorOf(src) && selNode->isAncestorOf(dst)){
                         //Can't select a child
                         append = false;
                         break;
                     }
                 }
+
             }
         }
         if(append){
@@ -2118,6 +2132,7 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
 
         return edge;
     }else{
+        qCritical() << edgeToMake;
         if(!source->gotEdgeTo(destination)){
             qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
         }
@@ -2487,8 +2502,11 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     }
 
     data.append(new Data(kindKey, nodeKind));
-    data.append(new Data(widthKey, -1));
-    data.append(new Data(heightKey, -1));
+
+    if(nodeKind.contains("Edge")){
+        data.append(new Data(widthKey, -1));
+        data.append(new Data(heightKey, -1));
+    }
 
     QStringList protectedLabels;
     protectedLabels << "Parameter" << "ManagementComponent";
@@ -3151,6 +3169,7 @@ bool NewController::destructEdge(Edge *edge)
         action.Action.kind = edge->getGraphMLKind();
         action.Entity.kind = edge->getEntityKind();
         action.Entity.XML = edge->toGraphML(0);
+        action.Entity.edgeClass = edge->getEdgeClass();
         addActionToStack(action);
     }
 

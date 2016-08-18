@@ -538,9 +538,13 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         painter->drawPath(getElementPath(ER_SELECTION));
     }
 
+
+    painter->save();
+    painter->setClipPath(getElementPath(ER_SELECTION));
     //Paint the pixmap!
     QPair<QString, QString> icon = getIconPath();
     paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
+    painter->restore();
 }
 
 QPen EntityItemNew::getPen()

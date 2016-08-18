@@ -120,10 +120,14 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
          paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
         QString label = getData("label").toString();
 
-        painter->setPen(Qt::NoPen);
         painter->setPen(Qt::black);
         painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignVCenter | Qt::AlignLeft, label);
         painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, label);
+
+        painter->setPen(Qt::NoPen);
+
+        //Check for disabled?
+        painter->setBrush(Qt::white);
 
         painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
      }
