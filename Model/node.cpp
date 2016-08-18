@@ -467,7 +467,6 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
 
     //Check if node can connect as an Assembly.
     if(acceptsEdgeClass(Edge::EC_ASSEMBLY)){
-        //qCritical() << "Trying canConnect_AssemblyEdge";
         if(canConnect_AssemblyEdge(node)){
             return Edge::EC_ASSEMBLY;
         }
@@ -978,20 +977,24 @@ QList<Edge *> Node::getOrderedEdges()
     QMap<int, Edge*> orderedList;
 
     foreach(Edge* edge, edges){
+        orderedList.insertMulti(edge->getEdgeClass(), edge);
+    }
+
+    /*
         if(edge->isAggregateLink()){
             orderedList.insertMulti(2,edge);
         }else if(edge->isImplLink()){
             orderedList.insertMulti(1,edge);
-        }else if(edge->isInstanceLink()){
+        }else if(edge->isAggregateEdge()){
             orderedList.insertMulti(0,edge);
-        }else if(edge->isDelegateLink()){
+        }else if(edge->isDel()){
             orderedList.insertMulti(3,edge);
         }else if(edge->isTerminationLink()){
             orderedList.insertMulti(4,edge);
         }else{
             orderedList.insertMulti(5, edge);
         }
-    }
+    }*/
 
     return orderedList.values();
 

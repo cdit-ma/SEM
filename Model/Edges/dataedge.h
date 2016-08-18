@@ -4,6 +4,7 @@
 
 class DataEdge : public Edge
 {
+    Q_OBJECT
 public:
     DataEdge(Node *src, Node *dst);
     ~DataEdge();

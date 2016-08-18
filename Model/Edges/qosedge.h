@@ -4,6 +4,7 @@
 
 class QOSEdge : public Edge
 {
+    Q_OBJECT
 public:
     QOSEdge(Node *src, Node *dst);
     ~QOSEdge();
