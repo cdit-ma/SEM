@@ -822,12 +822,8 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->restore();
     }
 
-    EntityItemNew::paint(painter, option, widget);
 
-//    QColor red(255,0,0,50);
-//    painter->setBrush(red);
- //   painter->drawRect(childrenRect());
-  //  painter->drawRect(gridRect());
+    EntityItemNew::paint(painter, option, widget);
 }
 
 QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const

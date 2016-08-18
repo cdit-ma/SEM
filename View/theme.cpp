@@ -278,6 +278,23 @@ QString Theme::getDefaultImageTintColorHex()
     return Theme::QColorToHex(iconColor);
 }
 
+QColor Theme::getMainImageColor(QString prefix, QString alias)
+{
+    QString key = getResourceName(prefix, alias);
+    if(pixmapTintLookup.contains(key)){
+        return pixmapTintLookup[key];
+    }else if(pixmapMainColorLookup.contains(key)){
+        return pixmapMainColorLookup[key];
+    }else{
+        qCritical() << key << " Doesn't have pixel data?!";
+    }
+}
+
+QColor Theme::getMainImageColor(QPair<QString, QString> path)
+{
+    return getMainImageColor(path.first, path.second);
+}
+
 void Theme::setDefaultImageTintColor(QColor color)
 {
     if(iconColor != color){
@@ -373,7 +390,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
 {
     //Calculate the name of the image.
 
-    QString resourceName = prefix % slash % alias;
+    QString resourceName = getResourceName(prefix, alias);
     QString lookupName = resourceName;
 
     //If we have a tint color check for it.
@@ -426,6 +443,8 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
             image =  QImage(":/" % resourceName);
             //Store it
             imageLookup[resourceName] = image;
+
+            calculateImageColor(resourceName);
         }
 
         if(image.isNull()){
@@ -890,8 +909,9 @@ void Theme::preloadImages()
             while (it.hasNext() && !terminating) {
                 it.next();
                 QString imageName = it.fileName();
-                if(!getImage(dir, imageName).isNull()){
-                    count ++;
+                getImage(dir, imageName);
+                if(imageLookup.contains(getResourceName(dir, imageName))){
+                    count++;
                 }
             }
         }
@@ -994,6 +1014,61 @@ void Theme::settingChanged(SETTING_KEY setting, QVariant value)
     default:
         break;
     }
+}
+
+void Theme::calculateImageColor(QString resourceName)
+{
+    if(imageLookup.contains(resourceName) && !pixmapMainColorLookup.contains(resourceName)){
+        QImage image = imageLookup[resourceName];
+        if(!image.isNull()){
+            int size = 8;
+            image = image.scaled(size, size);
+
+            QHash<QRgb, int> colorCount;
+            int max = 0;
+            QRgb frequentColor;
+
+            int f = 25;
+
+            for(int i =0; i < size * size; i++){
+                int x = i % size;
+                int y = i / size;
+                QRgb pixel = image.pixel(x,y);
+
+                int r = qRed(pixel);
+                int g = qGreen(pixel);
+                int b = qBlue(pixel);
+
+                //Ignore greyish looking cells.
+                if(r >= g - f && r <= g + f){
+                    if(r >= b -f && r <= b + f){
+                        continue;
+                    }
+                }
+
+                if(colorCount.contains(pixel)){
+                    colorCount[pixel] ++;
+                }else{
+                    colorCount[pixel] = 1;
+                }
+
+                int count = colorCount[pixel];
+                if(count > max){
+                    frequentColor = pixel;
+                    max = count;
+                }
+            }
+            QColor c(frequentColor);
+            pixmapMainColorLookup[resourceName] = c;
+        }else{
+            pixmapMainColorLookup[resourceName] = QColor(0,0,0,0);
+        }
+    }
+}
+
+QString Theme::getResourceName(QString prefix, QString alias)
+{
+    return prefix % slash % alias;
 }
 
 void Theme::setupIcons()

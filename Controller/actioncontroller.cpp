@@ -185,13 +185,11 @@ void ActionController::selectionChanged(int selectionSize)
 
 void ActionController::controllerReady(bool ready)
 {
-    qCritical() << "controllerReady: " << ready;
     updateActions();
 }
 
 void ActionController::modelReady(bool ready)
 {
-    qCritical() << "modelReady: " << ready;
     updateActions();
 }
 

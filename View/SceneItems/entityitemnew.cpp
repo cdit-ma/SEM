@@ -127,34 +127,46 @@ void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELE
     QRectF imageRect = getElementRect(pos);
 
     if(!imageRect.isEmpty()){
-        //Get the current Image from the Map
-        QPixmap image = imageMap[pos];
-
+        RENDER_STATE state = getRenderState(lod);
         //Calculate the required size of the image.
         QSize requiredSize = getPixmapSize(imageRect, lod);
 
-        //If the image size is different to what is cached, we should Update, or we have been told to update.
-        if(image.size() != requiredSize || update){
-            image = getPixmap(imageAlias, imageName, requiredSize, tintColor);
-            //Store the image into the map.
-            imageMap[pos] = image;
-        }
+        if(requiredSize.width() <= 8 || state == RS_BLOCK){
+            paintPixmapRect(painter, imageAlias, imageName, imageRect);
+        }else{
+            //Get the current Image from the Map
+            QPixmap image = imageMap[pos];
 
-        //Paint Pixmap
-        paintPixmap(painter, imageRect, image);
+
+            //If the image size is different to what is cached, we should Update, or we have been told to update.
+            if(image.size() != requiredSize || update){
+                image = getPixmap(imageAlias, imageName, requiredSize, tintColor);
+                //Store the image into the map.
+                imageMap[pos] = image;
+            }
+            //Paint Pixmap
+            paintPixmap(painter, imageRect, image);
+        }
     }
 }
 
 void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor)
 {
+    RENDER_STATE state = getRenderState(lod);
     //Calculate the required size of the image.
     QSize requiredSize = getPixmapSize(imageRect, lod);
-    QPixmap pixmap = getPixmap(imageAlias, imageName, requiredSize, tintColor);
-    paintPixmap(painter, imageRect, pixmap);
+
+    if(requiredSize.width() <= 8 || state == RS_BLOCK){
+        paintPixmapRect(painter, imageAlias, imageName, imageRect);
+    }else{
+        QPixmap pixmap = getPixmap(imageAlias, imageName, requiredSize, tintColor);
+        paintPixmap(painter, imageRect, pixmap);
+    }
 }
 
 void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QPair<QString, QString> image, QColor tintColor)
 {
+
     paintPixmap(painter, lod, imageRect, image.first, image.second, tintColor);
 }
 
@@ -168,7 +180,8 @@ void EntityItemNew::setTooltip(EntityItemNew::ELEMENT_RECT rect, QString tooltip
 void EntityItemNew::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap) const
 {
     if(imageRect.isValid()){
-        painter->drawPixmap(imageRect.x(), imageRect.y(), imageRect.width(), imageRect.height(), pixmap);
+
+        painter->drawPixmap(imageRect,pixmap, pixmap.rect());
     }
 }
 
@@ -176,8 +189,8 @@ QSize EntityItemNew::getPixmapSize(QRectF rect, qreal lod) const
 {
     //Calculate the required size of the image.
     QSize requiredSize;
-    requiredSize.setWidth(rect.width() * lod * 2);
-    requiredSize.setHeight(rect.height() * lod * 2);
+    requiredSize.setWidth(rect.width() * 2 * lod);
+    requiredSize.setHeight(rect.height() * 2 * lod);
     requiredSize = Theme::roundQSize(requiredSize);
     return requiredSize;
 }
@@ -416,7 +429,6 @@ void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 
     if(event->button() == Qt::LeftButton && getElementPath(ER_SELECTION).contains(event->pos())){
-        qCritical() << "HANDLE SELECTION " << this;
         handleSelection(controlDown);
     }
 
@@ -519,11 +531,16 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
             brush.setColor(getPen().color());
         }else{
             brush.setColor(getBodyColor());
+            //brush.setColor(Theme::theme()->getMainImageColor(getIconPath()));
         }
         painter->setBrush(brush);
         painter->setPen(Qt::NoPen);
         painter->drawPath(getElementPath(ER_SELECTION));
     }
+
+    //Paint the pixmap!
+    QPair<QString, QString> icon = getIconPath();
+    paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
 }
 
 QPen EntityItemNew::getPen()
@@ -587,7 +604,7 @@ int EntityItemNew::getMajorGridCount() const
 
 QPointF EntityItemNew::getSceneCenter() const
 {
-    return mapToScene(getCenter());
+    return mapToScene(mapFromParent(getCenter()));
 }
 
 QPointF EntityItemNew::getCenterOffset() const
@@ -659,6 +676,15 @@ void EntityItemNew::setActiveSelected(bool active)
         _isActiveSelected = active;
         update();
     }
+}
+
+void EntityItemNew::paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect)
+{
+    painter->save();
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(Theme::theme()->getMainImageColor(imageAlias, imageName));
+    painter->drawRect(rect);
+    painter->restore();
 }
 
 QColor EntityItemNew::getBodyColor() const

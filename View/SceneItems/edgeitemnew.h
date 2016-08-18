@@ -32,6 +32,7 @@ private:
     QRectF centerRect() const;
     QRectF rightRect() const;
     QRectF handleRect() const;
+    QPolygonF triangle() const;
 
     NodeItemNew* getVisibleSource();
     NodeItemNew* getVisibleDestination();

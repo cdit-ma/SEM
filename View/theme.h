@@ -69,6 +69,9 @@ public:
     QColor getDefaultImageTintColor();
     QString getDefaultImageTintColorHex();
 
+    QColor getMainImageColor(QString prefix, QString alias);
+    QColor getMainImageColor(QPair<QString, QString> path);
+
     QIcon getIcon(QPair<QString, QString> icon);
     QIcon getIcon(QString prefix, QString alias);
     QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
@@ -126,6 +129,8 @@ public slots:
     void settingChanged(SETTING_KEY setting, QVariant value);
 
 private:
+    void calculateImageColor(QString resourceName);
+    QString getResourceName(QString prefix, QString alias);
     void resetTheme(VIEW_THEME themePreset);
     void resetAspectTheme(bool colorBlind);
     void setupIcons();
@@ -139,6 +144,7 @@ private:
     QHash<QString, QColor> pixmapTintLookup;
     QHash<QString, QString> iconToggledLookup;
     QHash<QString, QImage> imageLookup;
+    QHash<QString, QColor> pixmapMainColorLookup;
 
     QHash<VIEW_ASPECT, QColor> aspectColor;
 

@@ -2,6 +2,7 @@
 #include "nodeitemnew.h"
 #include <QDebug>
 
+#define ARROW_SIZE 5
 EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeItemNew* source, NodeItemNew* destination, KIND edge_kind):EntityItemNew(edgeViewItem, parent, EntityItemNew::EDGE)
 {
     this->edgeViewItem = edgeViewItem;
@@ -107,6 +108,18 @@ QRectF EdgeItemNew::handleRect() const
     return QRectF(0,0,24,12);
 }
 
+QPolygonF EdgeItemNew::triangle() const
+{
+    QPolygonF triangle;
+
+    //Tip
+    triangle.append(QPointF(ARROW_SIZE/2,0));
+    triangle.append(QPointF(-ARROW_SIZE/2,ARROW_SIZE/2));
+    triangle.append(QPointF(-ARROW_SIZE/2,-ARROW_SIZE/2));
+    triangle.append(QPointF(ARROW_SIZE/2,0));
+    return triangle;
+}
+
 NodeItemNew *EdgeItemNew::getVisibleSource()
 {
     return sourceItem;
@@ -154,7 +167,7 @@ void EdgeItemNew::recalcSrcCurve(bool reset)
 {
     QPointF srcScenePos = getSourcePos();
 
-    QPointF centerSceneSrcPos = mapToScene(currentRect().center() - QPointF(currentRect().width() / 2, 0));
+    QPointF centerSceneSrcPos = getSceneEdgeTermination(true);
 
     QPointF srcControlPoint1(centerSceneSrcPos.x(), srcScenePos.y());
     QPointF srcControlPoint2(srcScenePos.x(), centerSceneSrcPos.y());
@@ -166,8 +179,10 @@ void EdgeItemNew::recalcSrcCurve(bool reset)
     }
 
     QPainterPath srcCurve;
-    srcCurve.moveTo(mapFromScene(srcScenePos));
-    srcCurve.cubicTo(mapFromScene(srcControlPoint1), mapFromScene(srcControlPoint2), mapFromScene(centerSceneSrcPos));
+    //srcCurve.moveTo(mapFromScene(srcScenePos));
+    //srcCurve.cubicTo(mapFromScene(srcControlPoint1), mapFromScene(srcControlPoint2), mapFromScene(centerSceneSrcPos));
+    srcCurve.moveTo(mapFromScene(centerSceneSrcPos));
+    srcCurve.cubicTo(mapFromScene(srcControlPoint2), mapFromScene(srcControlPoint1), mapFromScene(srcScenePos));
 
     prepareGeometryChange();
 
@@ -179,7 +194,7 @@ void EdgeItemNew::recalcSrcCurve(bool reset)
 
 void EdgeItemNew::recalcDstCurve(bool reset)
 {
-    QPointF centerSceneDstPos = mapToScene(currentRect().center() + QPointF(currentRect().width() / 2, 0));
+    QPointF centerSceneDstPos = getSceneEdgeTermination(false);
     QPointF dstScenePos = getDestinationPos();
 
     QPointF dstControlPoint1(dstScenePos.x(), centerSceneDstPos.y());
@@ -192,10 +207,11 @@ void EdgeItemNew::recalcDstCurve(bool reset)
     }
 
     QPainterPath dstCurve;
-    //dstCurve.moveTo(mapFromScene(centerSceneDstPos));
-    //dstCurve.cubicTo(mapFromScene(dstControlPoint1), mapFromScene(dstControlPoint2), mapFromScene(dstScenePos));
-    dstCurve.moveTo(mapFromScene(dstScenePos));
-    dstCurve.cubicTo(mapFromScene(dstControlPoint2), mapFromScene(dstControlPoint1), mapFromScene(centerSceneDstPos));
+    //dstCurve.moveTo(mapFromScene(dstScenePos));
+    //dstCurve.cubicTo(mapFromScene(dstControlPoint2), mapFromScene(dstControlPoint1), mapFromScene(centerSceneDstPos));
+    dstCurve.moveTo(mapFromScene(centerSceneDstPos));
+    dstCurve.cubicTo(mapFromScene(dstControlPoint1), mapFromScene(dstControlPoint2), mapFromScene(dstScenePos));
+
 
     prepareGeometryChange();
 
@@ -228,21 +244,29 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     }
 
     painter->setPen(getPen());
-
-
+    {
+        painter->setBrush(pen.color());
+        painter->save();
+        painter->translate(mapFromScene(getSceneEdgeTermination(true) - QPointF(ARROW_SIZE/2,0)));
+        painter->drawPolygon(triangle());
+        painter->restore();
+        painter->save();
+        painter->translate(mapFromScene(getDestinationPos() - QPointF(ARROW_SIZE/2,0)));
+        painter->drawPolygon(triangle());
+        painter->restore();
+    }
     if(manuallySet){
         painter->setBrush(parentItem->getBodyColor().darker(140));
     }else{
         painter->setBrush(pen.color());
     }
 
-    painter->drawRect(currentRect());
-
     if(state > RS_BLOCK){
-       // paintPixmap(painter, lod, centerRect(), parentItem->getIconPath());
-        paintPixmap(painter, lod, leftRect(), sourceItem->getIconPath());
-        paintPixmap(painter, lod, rightRect(), destinationItem->getIconPath());
+        painter->drawRect(currentRect());
     }
+
+    paintPixmap(painter, lod, leftRect(), sourceItem->getIconPath());
+    paintPixmap(painter, lod, rightRect(), destinationItem->getIconPath());
 }
 
 QRectF EdgeItemNew::currentRect() const
@@ -288,13 +312,13 @@ QPointF EdgeItemNew::validateAdjustPos(QPointF delta)
 
 void EdgeItemNew::setMoving(bool moving)
 {
-    qCritical() << "MOVING!" << moving;
     EntityItemNew::setMoving(moving);
 
     if(!moving){
         setCenter(getNearestGridPoint());
     }
     manuallySet = true;
+    update();
 }
 
 void EdgeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
@@ -353,7 +377,7 @@ QPointF EdgeItemNew::getInternalOffset() const
 QPointF EdgeItemNew::getSceneEdgeTermination(bool left) const
 {
     qreal y = currentRect().center().y();
-    qreal x = left ? currentRect().left() : currentRect().right();
+    qreal x = left ? currentRect().left(): currentRect().right();
     return mapToScene(x,y);
 }
 
@@ -367,6 +391,7 @@ void EdgeItemNew::resetPosition()
     }
     setCenter(newPos);
     manuallySet = false;
+    update();
 }
 
 bool EdgeItemNew::shouldReset()

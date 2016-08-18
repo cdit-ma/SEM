@@ -68,16 +68,11 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
         }
         painter->setBrush(getBodyColor().darker(120));
         painter->drawPolygon(getLeftPoly());
+
+        painter->setBrush(getBodyColor());
+        painter->drawRect(subIconRect());
+        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", "Database");
     }
-
-    QPair<QString, QString> icon = getIconPath();
-    paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
-
-    painter->setBrush(getBodyColor());//.darker(110));
-    painter->drawRect(subIconRect());
-    paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", "Database");
-
-   // paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
 
     NodeItemNew::paint(painter, option, widget);
 }

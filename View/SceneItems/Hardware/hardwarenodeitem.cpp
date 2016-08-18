@@ -129,8 +129,6 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         }
 
 
-        QPair<QString, QString> icon = getIconPath();
-        paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
         if(isExpanded()){
             paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", "ip_address");
         }

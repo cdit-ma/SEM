@@ -169,6 +169,7 @@ public:
     void setSelected(bool selected);
     void setActiveSelected(bool active);
 private:
+    void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
     QPixmap getPixmap(QString imageAlias, QString imageName, QSize requiredSize=QSize(), QColor tintColor=QColor()) const;
     QSize getPixmapSize(QRectF rect, qreal lod) const;
