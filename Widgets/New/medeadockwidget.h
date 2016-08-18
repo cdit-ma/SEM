@@ -23,6 +23,8 @@ public:
     void setSourceWindow(MedeaWindowNew* window);
     MedeaWindowNew* getSourceWindow();
 
+
+    void setTitleBarIconSize(int height);
     bool isProtected();
     void setProtected(bool protect);
     virtual void setWidget(QWidget* widget);

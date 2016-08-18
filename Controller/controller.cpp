@@ -1649,7 +1649,7 @@ QList<int> NewController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLAS
     return dstIDs;
 }
 
-QList<int> NewController::getConstructableNodeDefinitions(int parentID, QString instanceNodeKind)
+QList<int> NewController::getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_CLASS edgeClass)
 {
 
     QList<int> dstIDs;
@@ -1665,7 +1665,7 @@ QList<int> NewController::getConstructableNodeDefinitions(int parentID, QString 
             QList<Node*> source;
             source << childNode;
 
-            foreach(Node* dst, _getConnectableNodes(source, Edge::EC_DEFINITION)){
+            foreach(Node* dst, _getConnectableNodes(source, edgeClass)){
                 dstIDs.append(dst->getID());
             }
         }

@@ -158,7 +158,7 @@ public:
     QStringList getAdoptableNodeKinds(int ID);
     QStringList getValidKeyValues(int ID, QString keyName);
     QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind);
-    QList<int> getConstructableNodeDefinitions(int parentID, QString instanceNodeKind);
+    QList<int> getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_CLASS edgeClass);
 
     QList<int> getOrderedSelectionIDs(QList<int> selection);
 

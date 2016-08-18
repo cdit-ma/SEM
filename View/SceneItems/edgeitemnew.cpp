@@ -226,6 +226,7 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 {
     EntityItemNew::paint(painter, option, widget);
 
+
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 

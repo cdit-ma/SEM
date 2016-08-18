@@ -71,6 +71,13 @@ MedeaWindowNew *MedeaDockWidget::getSourceWindow()
     return sourceWindow;
 }
 
+void MedeaDockWidget::setTitleBarIconSize(int height)
+{
+    if(titleBar){
+        titleBar->setToolBarIconSize(height);
+    }
+}
+
 bool MedeaDockWidget::isProtected()
 {
     return _isProtected;

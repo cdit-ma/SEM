@@ -118,6 +118,7 @@ void ToolActionController::addChildNode(QString kind, QPointF position)
 void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();
+    qCritical() << kind;
     if(ID != -1){
         emit viewController->vc_constructConnectedNode(ID, kind, position, dstID);
     }
