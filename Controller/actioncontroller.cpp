@@ -546,8 +546,6 @@ void ActionController::setupApplicationToolbar()
 {
     applicationToolbar = new ActionGroup(this);
 
-    toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));
-    applicationToolbar->addSeperator();
     toolbar_undo = applicationToolbar->addAction(edit_undo->constructSubAction(false));
     toolbar_redo = applicationToolbar->addAction(edit_redo->constructSubAction(false));
     applicationToolbar->addSeperator();
@@ -561,12 +559,13 @@ void ActionController::setupApplicationToolbar()
     toolbar_viewInNewWindow = applicationToolbar->addAction(view_viewInNewWindow->constructSubAction(false));
     applicationToolbar->addSeperator();
     toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
-    toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
-    toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
-    applicationToolbar->addSeperator();
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
-
+    toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
+    applicationToolbar->addSeperator();
+    toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));
+    toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
+    applicationToolbar->addSeperator();
 
     SettingsController* s = SettingsController::settings();
     foreach(SETTING_KEY key, s->getSettingsKeys("Toolbar", "Visible Buttons")){
