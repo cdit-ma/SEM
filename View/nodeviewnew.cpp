@@ -9,6 +9,7 @@
 #include "SceneItems/defaultnodeitem.h"
 #include "SceneItems/Hardware/hardwarenodeitem.h"
 #include "SceneItems/Assemblies/managementcomponentnodeitem.h"
+#include "SceneItems/Assemblies/componentinstancenodeitem.h"
 #include "SceneItems/eventportnodeitem.h"
 #include "SceneItems/attributenodeitem.h"
 #include "theme.h"
@@ -281,10 +282,12 @@ void NodeViewNew::item_ActiveSelected(ViewItem *item)
 
 void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
 {
+     qCritical() << item << expand;
     if(item){
         int ID = item->getID();
         emit triggerAction("Expanding Selection");
         emit setData(ID, "isExpanded", expand);
+
     }
 }
 
@@ -510,7 +513,10 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 return;
             }else if(nodeKind.contains("Attribute")){
                 nodeItem = new AttributeNodeItem(item, parentNode);
-            }else{
+            }else if(nodeKind == "ComponentInstance"){
+                nodeItem = new ComponentInstanceNodeItem(item, parentNode);
+            }
+            else{
                 nodeItem = new DefaultNodeItem(item, parentNode);
             }
 

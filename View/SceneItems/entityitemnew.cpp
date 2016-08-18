@@ -406,7 +406,6 @@ void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 
     if(event->button() == Qt::LeftButton && getElementPath(ER_SELECTION).contains(event->pos())){
-        qCritical() << "HANDLE SELECTION " << this;
         handleSelection(controlDown);
     }
 

@@ -2092,7 +2092,6 @@ void NodeView::entityItemNew_Select(ViewItem *item, bool select)
 
 void NodeView::entityItemNew_Expand(EntityItemNew *item, bool expand)
 {
-    qCritical() << item << expand;
     item->setExpanded(expand);
 }
 
