@@ -94,7 +94,7 @@ QString Theme::getHighlightColorHex()
 
 QColor Theme::getPressedColor()
 {
-    return highlightColor;
+    return highlightColor.lighter(110);
 }
 
 QString Theme::getPressedColorHex()
@@ -513,8 +513,7 @@ QString Theme::getWindowStyleSheet()
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
            "background-image: url(:/MEDEA_Watermark2); background-position: center; background-repeat: no-repeat;"
-            "}"
-            ;
+            "}" ;
 }
 
 QString Theme::getScrollBarStyleSheet()
@@ -553,7 +552,7 @@ QString Theme::getDialogStyleSheet()
     return "QDialog {"
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
-                                           "}";
+           "}";
 }
 
 QString Theme::getSplitterStyleSheet()
@@ -569,16 +568,14 @@ QString Theme::getSplitterStyleSheet()
 QString Theme::getWidgetStyleSheet(QString widgetName)
 {
     return widgetName % " {"
-           "background: " % getBackgroundColorHex() % ";"
-           "color: " % getTextColorHex() % ";"
+           "background:" % getBackgroundColorHex() % ";"
+           "color:" % getTextColorHex() % ";"
            "}";
 }
 
 QString Theme::getTabbedWidgetStyleSheet()
 {
-    return
-
-            "QTabBar::tab:top {padding: 5px 10px;;margin: 5px 1px;}"
+    return  "QTabBar::tab:top {padding: 5px 10px;;margin: 5px 1px;}"
             "QTabBar::tab:right {padding: 10px 5px;margin: 1px 5px;}"
             "QTabBar::tab {background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % ";border-radius:" % getCornerRadius() % ";}"
             "QTabBar::tab:selected {background:" % getHighlightColorHex() % "; color: " % getTextColorHex(CR_SELECTED) % ";}"
@@ -590,7 +587,7 @@ QString Theme::getTabbedWidgetStyleSheet()
 QString Theme::getViewStyleSheet()
 {
     return "QGraphicsView {"
-           "background: " % getBackgroundColorHex() % ";"
+           "background:" % getBackgroundColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}";
 }
@@ -605,7 +602,7 @@ QString Theme::getDockWidgetStyleSheet()
            "DockTitleBarWidget {"
            "padding: 0px 2px;"
            "spacing: 1px;"
-           "background: " % getAltBackgroundColorHex() % ";"
+           "background:" % getAltBackgroundColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "DockTitleBarWidget QToolButton {"
@@ -732,6 +729,10 @@ QString Theme::getAbstractItemViewStyleSheet()
            "background:" % getBackgroundColorHex() % ";"
            "color:" % getTextColorHex(CR_DISABLED) % ";"
            "}"
+           "QAbstractItemView::item::hover {"
+           "background:" % getPressedColorHex() % ";"
+           "color:" % getTextColorHex(CR_SELECTED) % ";"
+           "}"
            "QAbstractItemView::item::selected {"
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
@@ -808,7 +809,7 @@ QString Theme::getLineEditStyleSheet()
     return "QLineEdit {"
            "padding: 0px;"
            "background:" % getAltBackgroundColorHex() % ";"
-           "color: " % getTextColorHex() % ";"
+           "color:" % getTextColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "border-radius: 0px;"
            "}"
@@ -848,26 +849,25 @@ QString Theme::getPopupWidgetStyleSheet()
            "margin: 0px;"
            "padding: 0px;"
            "background:" % QColorToHex(bgColor) % ";"
-           "border-radius: " % getCornerRadius() % ";"
+           "border-radius:" % getCornerRadius() % ";"
            "border: 1px outset " % getAltBackgroundColorHex() % ";"
-                                                                "}";
+           "}";
 }
 
 QString Theme::getProgressBarStyleSheet()
 {
-
-    return "QProgressBar{"
-            "background: " % getAltBackgroundColorHex() % ";"
-            "border-radius: 0px;"
-            "border: none;"
-            "text-align: center;"
-            "color: " % getTextColorHex() % ";"
-            "}"
-            "QProgressBar::chunk{"
-            "margin:2px;"
-            "border:none;"
-            "background: " % getHighlightColorHex() % ";"
-            "}";
+    return "QProgressBar {"
+           "background:" % getAltBackgroundColorHex() % ";"
+           "border-radius: 0px;"
+           "border: none;"
+           "text-align: center;"
+           "color:" % getTextColorHex() % ";"
+           "}"
+           "QProgressBar::chunk {"
+           "margin: 2px;"
+           "border: none;"
+           "background: " % getHighlightColorHex() % ";"
+           "}";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
@@ -879,19 +879,19 @@ QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
     return "QAbstractButton {"
            "color:" % QColorToHex(black()) % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
-           "background-color:"
-           "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
-           "stop:0 " % gradientColor1 % ", stop:1.0 " % gradientColor2 + ");"
+           "background:" % QColorToHex(color) % ";"
            "}"
            "QAbstractButton:hover {"
            "color:" % QColorToHex(white()) % ";"
            "border: 1px solid " % QColorToHex(white()) % ";"
            "}"
-           "QAbstractButton:!checked {"
-           "background-color:" % QColorToHex(color) % ";"
+           "QAbstractButton:checked {"
+           "background:"
+           "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
+           "stop:0 " % gradientColor1 % ", stop:1.0 " % gradientColor2 + ");"
            "}"
            "QAbstractButton:disabled {"
-           "background-color:" % getDisabledBackgroundColorHex() % ";"
+           "background:" % getDisabledBackgroundColorHex() % ";"
            "}";
 }
 
@@ -1100,7 +1100,6 @@ void Theme::resetTheme(VIEW_THEME themePreset)
         emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, black());
     }else if(themePreset == VT_LIGHT_THEME){
         QColor bgColor = QColor(170,170,170);
-
         emit changeSetting(SK_THEME_BG_COLOR, bgColor);
         emit changeSetting(SK_THEME_BG_ALT_COLOR, bgColor.lighter(130));
         emit changeSetting(SK_THEME_TEXT_COLOR, black());

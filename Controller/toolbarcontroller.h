@@ -62,8 +62,6 @@ private:
     QHash<int, NodeViewItemAction*> actions;
 
 public:
-    //QToolBar* toolbar;
-
     ActionGroup* actionGroup;
     ViewController* viewController;
     SelectionController* selectionController;

@@ -109,13 +109,13 @@ void MedeaMainWindow::updateSearchSuggestions(QStringList list)
  */
 void MedeaMainWindow::showProgressBar(bool show, QString description)
 {
-    progressLabel->setText(description + " Please wait...");
+    progressLabel->setText(description + ". Please wait...");
     progressPopup->setVisible(show);
     if (show) {
         QPointF centralWidgetCenter = pos() + innerWindow->pos() + innerWindow->rect().center();
         centralWidgetCenter -= QPointF(progressPopup->width()/2, progressPopup->height()/2);
         progressPopup->move(centralWidgetCenter.x(), centralWidgetCenter.y());
-    }else{
+    } else {
         //Reset back to 0
         progressBar->reset();
     }
@@ -129,12 +129,23 @@ void MedeaMainWindow::showProgressBar(bool show, QString description)
 void MedeaMainWindow::updateProgressBar(int value)
 {
     if (progressPopup->isVisible()) {
-        if(value == -1){
+        if (value == -1) {
             progressBar->setRange(0,0);
-        }else{
+        } else {
             progressBar->setRange(0,100);
             progressBar->setValue(value);
         }
+    }
+}
+
+
+/**
+ * @brief MedeaMainWindow::resetToolDockWidgets
+ */
+void MedeaMainWindow::resetToolDockWidgets()
+{
+    foreach (MedeaDockWidget* child, getDockWidgets()) {
+        child->setVisible(true);
     }
 }
 
@@ -176,14 +187,12 @@ void MedeaMainWindow::themeChanged()
     searchButton->setIcon(theme->getIcon("Actions", "Search"));
 
     progressPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
-    progressLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
-
-
     progressBar->setStyleSheet(theme->getProgressBarStyleSheet());
-
+    progressLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
 
     restoreAspectsButton->setIcon(theme->getIcon("Actions", "MenuView"));
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
+    restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
 
     interfaceButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_INTERFACES));
     behaviourButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_BEHAVIOUR));
@@ -272,7 +281,6 @@ void MedeaMainWindow::popupSearch()
     searchPopup->move(centralWidgetCenter.x(), centralWidgetCenter.y());
     searchPopup->show();
     searchBar->setFocus();
-    //showProgressBar(true);
 }
 
 
@@ -395,7 +403,6 @@ void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
 {
     if(nodeView && viewController){
         nodeView->setViewController(viewController);
-
     }
 }
 
@@ -411,7 +418,6 @@ void MedeaMainWindow::setupTools()
     setupProgressBar();
     setupDataTable();
     setupMinimap();
-    setupMainDockWidgetToggles();
 }
 
 
@@ -421,7 +427,6 @@ void MedeaMainWindow::setupTools()
 void MedeaMainWindow::setupInnerWindow()
 {
     innerWindow = MedeaWindowManager::constructCentralWindow();
-
     setCentralWidget(innerWindow);
 
     nodeView_Interfaces = new NodeViewNew();
@@ -450,15 +455,17 @@ void MedeaMainWindow::setupInnerWindow()
     dwHardware->setWidget(nodeView_Hardware);
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
+    MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructViewDockWidget("QOS Browser");
+    qosBrowser = new QOSBrowser(viewController, this);
+    qosDockWidget->setWidget(qosBrowser);
+    qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    qosDockWidget->setVisible(false);
+
     dwInterfaces->setProtected(true);
     dwBehaviour->setProtected(true);
     dwAssemblies->setProtected(true);
     dwHardware->setProtected(true);
-
-    //dwInterfaces->setIcon("Items", "InterfaceDefinitions");
-    //dwBehaviour->setIcon("Items", "BehaviourDefinitions");
-    //dwAssemblies->setIcon("Items", "AssemblyDefinitions");
-    //dwHardware->setIcon("Items", "HardwareDefinitions");
+    qosDockWidget->setProtected(true);
 
     SettingsController* settings = SettingsController::settings();
     dwInterfaces->setVisible(settings->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
@@ -466,24 +473,24 @@ void MedeaMainWindow::setupInnerWindow()
     dwAssemblies->setVisible(settings->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     dwHardware->setVisible(settings->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
 
+    //qDebug() << "innerWindow: " << innerWindow;
+    //qDebug() << "innerWindow menu: " << innerWindow->createPopupMenu();
+
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwInterfaces);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
+
+    // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
+    // application if it's called before the dock widgets are added above
+    // This function needs to be called after the code above and before the connections below
+    setupMainDockWidgetToggles();
 
     connectNodeView(nodeView_Interfaces);
     connectNodeView(nodeView_Behaviour);
     connectNodeView(nodeView_Assemblies);
     connectNodeView(nodeView_Hardware);
-
-    MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructViewDockWidget("QOS Browser");
-    qosBrowser = new QOSBrowser(viewController, this);
-    qosDockWidget->setWidget(qosBrowser);
-    qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    qosDockWidget->setProtected(true);
-    qosDockWidget->setVisible(false);
-
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
 
     // connect aspect toggle buttons
     connect(dwInterfaces, SIGNAL(visibilityChanged(bool)), interfaceButton, SLOT(setChecked(bool)));
@@ -588,8 +595,6 @@ void MedeaMainWindow::setupSearchBar()
 
     connect(this, &MedeaMainWindow::requestSuggestions, viewController, &ViewController::requestSearchSuggestions);
     connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MedeaMainWindow::updateSearchSuggestions);
-
-
     connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
 }
@@ -610,16 +615,12 @@ void MedeaMainWindow::setupProgressBar()
     progressBar->setRange(0,100);
     progressBar->setTextVisible(false);
 
-
-
-
-
     QWidget* widget = new QWidget(this);
     widget->setStyleSheet("QWidget{ background: rgba(0,0,0,0); border: 0px; }");
 
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->setSpacing(5);
-    layout->setMargin(0);
+    layout->setMargin(2);
     layout->addWidget(progressLabel);
     layout->addWidget(progressBar);
 
@@ -628,7 +629,6 @@ void MedeaMainWindow::setupProgressBar()
     progressPopup->setWidth(widget->sizeHint().width() + 200);
     progressPopup->setHeight(progressLabel->sizeHint().height() + 30);
     progressPopup->hide();
-
 
     connect(viewController, &ViewController::mc_showProgress, this, &MedeaMainWindow::showProgressBar);
     connect(viewController, &ViewController::mc_progressChanged, this, &MedeaMainWindow::updateProgressBar);
@@ -677,7 +677,6 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     behaviourButton = new QToolButton(this);
     assemblyButton = new QToolButton(this);
     hardwareButton = new QToolButton(this);
-    qosBrowserButton = new QToolButton(this);
     restoreAspectsButton = new QToolButton(this);
     restoreToolsButton = new QToolButton(this);
 
@@ -692,23 +691,27 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     behaviourButton->setToolTip("Toggle Behaviour Aspect");
     assemblyButton->setToolTip("Toggle Assembly Aspect");
     hardwareButton->setToolTip("Toggle Hardware Aspect");
-    restoreAspectsButton->setToolTip("Restore All Aspects");
-    restoreToolsButton->setToolTip("Restore All Tools");
+    restoreAspectsButton->setToolTip("Restore Main Dock Widgets");
+    restoreToolsButton->setToolTip("Restore Tool Dock Widgets");
 
     interfaceButton->setCheckable(true);
     behaviourButton->setCheckable(true);
     assemblyButton->setCheckable(true);
     hardwareButton->setCheckable(true);
 
+    QMenu* menu = createPopupMenu();
+    restoreToolsAction = menu->addAction("Reset Tool Widgets");
+    restoreToolsButton->setMenu(menu);
+    restoreToolsButton->setPopupMode(QToolButton::InstantPopup);
+
+    restoreAspectsButton->setMenu(innerWindow->createPopupMenu());
+    restoreAspectsButton->setPopupMode(QToolButton::InstantPopup);
+
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(QSize(20,20));
     toolbar->setFixedHeight(menuBar->height() - 6);
     toolbar->setStyleSheet("QToolButton{ padding: 2px 4px; }");
 
-    qosBrowserButton->hide();
-
-    //toolbar->addWidget(qosBrowserButton);
-    //toolbar->addSeparator();
     toolbar->addWidget(interfaceButton);
     toolbar->addWidget(behaviourButton);
     toolbar->addWidget(assemblyButton);
@@ -718,6 +721,7 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     toolbar->addWidget(restoreToolsButton);
 
     menuBar->setCornerWidget(toolbar);
+    connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
 }
 
 

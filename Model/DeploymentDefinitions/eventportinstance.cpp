@@ -1,6 +1,7 @@
 #include "eventportinstance.h"
 #include "../InterfaceDefinitions/aggregateinstance.h"
 #include "eventportdelegate.h"
+#include <QDebug>
 
 EventPortInstance::EventPortInstance(bool isInEventPortInstance):Node(Node::NT_INSTANCE)
 {
@@ -71,6 +72,7 @@ bool EventPortInstance::canConnect_AssemblyEdge(Node *node)
 
     EventPort* portDefinition = getEventPortDefinition();
     if(!portDefinition){
+        qCritical() << "NO DEFINITION!";
         //Can only connect assembly edges once this has a definition.
         return false;
     }

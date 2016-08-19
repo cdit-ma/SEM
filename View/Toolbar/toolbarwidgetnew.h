@@ -22,8 +22,6 @@ class ToolbarWidgetNew : public QWidget
 public:
     explicit ToolbarWidgetNew(ViewController *vc, QWidget *parent = 0);
 
-signals:
-
 public slots:
     void themeChanged();
 

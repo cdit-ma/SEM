@@ -379,7 +379,7 @@ private:
     //Returns "" if no Attribute found.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
-    Edge* _constructEdge(Node* source, Node* destination);
+    Edge* _constructEdge(Node* src, Node* dst);
     Edge* constructEdgeWithData(Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash

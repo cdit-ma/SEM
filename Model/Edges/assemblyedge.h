@@ -4,6 +4,7 @@
 
 class AssemblyEdge : public Edge
 {
+    Q_OBJECT
 public:
     AssemblyEdge(Node *src, Node *dst);
     ~AssemblyEdge();

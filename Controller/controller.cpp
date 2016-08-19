@@ -767,12 +767,7 @@ void NewController::constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeCla
     if(src && dst){
         Edge* edge = 0;
 
-        if(src->canConnect(dst) == edgeClass){
-            edge = constructTypedEdge(src, dst, edgeClass);
-        }else if(dst->canConnect(src) == edgeClass){
-            edge = constructTypedEdge(dst, src, edgeClass);
-        }
-
+        edge = _constructEdge(src, dst);
         success = edge;
     }
     lock.unlock();
@@ -2107,37 +2102,39 @@ Key *NewController::getKeyFromID(int ID)
 }
 
 
-Edge *NewController::_constructEdge(Node *source, Node *destination)
+Edge *NewController::_constructEdge(Node *src, Node *dst)
 {
-    if(!source || !destination){
-        qCritical() << "Source or Destination Node is Null!";
-        return 0;
-    }
-    Edge::EDGE_CLASS edgeToMake = source->canConnect(destination);
-    if(edgeToMake != Edge::EC_NONE){
-        QString sourceKind = source->getDataValue("kind").toString();
-        QString destinationKind = destination->getDataValue("kind").toString();
+    if(src && dst){
+        Edge::EDGE_CLASS edgeToMake = src->canConnect(dst);
+        qCritical() << src << dst << edgeToMake;
 
-        if(sourceKind == "InputParameter" || destinationKind == "ReturnParameter"){
-            //Rotate
-            Node* temp = source;
-            source = destination;
-            destination = temp;
+        if(edgeToMake != Edge::EC_NONE){
+            /*
+            QString sourceKind = src->getDataValue("kind").toString();
+            QString destinationKind = dst->getDataValue("kind").toString();
+
+            if(sourceKind == "InputParameter" || destinationKind == "ReturnParameter"){
+                //Rotate
+                Node* temp = source;
+                source = destination;
+                destination = temp;
+            }*/
+
+            Edge* edge = constructTypedEdge(src, dst, edgeToMake);
+
+            //Attach X/Y
+            _attachData(edge, constructPositionDataVector(), false);
+
+            return edge;
+        }else{
+            qCritical() << edgeToMake;
+
+            if(!src->gotEdgeTo(dst)){
+                qCritical() << "Edge: Source: " << src->toString() << " to Destination: " << dst->toString() << " Cannot be created!";
+            }
         }
-
-        Edge* edge = constructTypedEdge(source, destination, edgeToMake);
-
-        //Attach X/Y
-        _attachData(edge, constructPositionDataVector(), false);
-
-        return edge;
-    }else{
-        qCritical() << edgeToMake;
-        if(!source->gotEdgeTo(destination)){
-            qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
-        }
-        return 0;
     }
+    return 0;
 }
 
 void NewController::storeGraphMLInHash(Entity* item)
@@ -3079,26 +3076,27 @@ bool NewController::destructNode(Node *node)
 
 
 
-
-
     //Get a list of dependants.
     QList<Node*> dependants = node->getDependants();
-
-    //Remove all Edges.
-    while(node->hasEdges()){
-        Edge* edge = node->getFirstEdge();
-        destructEdge(edge);
-    }
-
     //Remove all nodes which depend on this.
     while(!dependants.isEmpty()){
         Node* dependant = dependants.takeFirst();
+        qCritical() << "Tearing down Dependants: " << dependant;
         destructNode(dependant);
+    }
+
+    QList<Edge*> edges = node->getEdges();
+    //Remove all Edges.
+    while(!edges.isEmpty()){
+        Edge* edge = edges.takeLast();
+        qCritical() << "Destructing Edge: " << edge;
+        destructEdge(edge);
     }
 
     //Remove all Children.
     while(node->hasChildren()){
         Node* child = node->getFirstChild();
+        qCritical() << "Tearing down Children: " << child;
         destructNode(child);
     }
 
@@ -3122,8 +3120,6 @@ bool NewController::destructNode(Node *node)
     }
 
     removeGraphMLFromHash(ID);
-
-    //node->deleteLater();
 
     if(model == node){
         model = 0;
@@ -3272,10 +3268,6 @@ bool NewController::reverseAction(EventAction action)
             Node* parentNode = getNodeFromID(action.parentID);
             if(parentNode){
                 success = _newImportGraphML(action.Entity.XML, parentNode);
-
-                if(!success){
-                    //qCritical() << action.Entity.XML;
-                }
             }
         }
     }else if(action.Action.kind == GraphML::GK_DATA){
@@ -4245,11 +4237,11 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     }
 
     if(definitionData && valueData){
-        //        if(setup){
-        //            valueData->setParentData(definitionData);
-        //        }else{
-        //            valueData->unsetParentData();
-        //        }
+                /*if(setup){
+                    valueData->setParentData(definitionData);
+                }else{
+                    valueData->unsetParentData();
+                }*/
     }else{
         //return false;
     }
@@ -4697,8 +4689,6 @@ Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS e
         break;
     case Edge::EC_ASSEMBLY:
         returnable = new AssemblyEdge(src, dst);
-
-
         break;
     case Edge::EC_AGGREGATE:
         returnable = new AggregateEdge(src,dst);
@@ -4710,7 +4700,7 @@ Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS e
         returnable = new QOSEdge(src, dst);
         break;
     default:
-        returnable = new Edge(src, dst);
+        qCritical() << "CANNOT CONSTRUCT EDGE OF TYPE GG: " << src << " TO " << dst;
     }
     return returnable;
 }
@@ -5395,7 +5385,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }
                 }
                 if(!inMap){
-                    edgesMap.insertMulti(Edge::EC_NONE, entity);
+                    edgesMap.insertMulti(Edge::EC_UNDEFINED, entity);
                 }
             }else{
                 //Don't construct if we have an error.
@@ -5410,7 +5400,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     }
 
     QList<Edge::EDGE_CLASS> edgeOrder;
-    edgeOrder << Edge::EC_DEFINITION << Edge::EC_AGGREGATE << Edge::EC_NONE;
+    edgeOrder << Edge::EC_DEFINITION << Edge::EC_AGGREGATE << Edge::EC_UNDEFINED;
 
     foreach(Edge::EDGE_CLASS edgeClass, edgeOrder){
         QList<TempEntity*> entityList = edgesMap.values(edgeClass);

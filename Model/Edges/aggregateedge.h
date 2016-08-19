@@ -4,6 +4,7 @@
 
 class AggregateEdge : public Edge
 {
+    Q_OBJECT
 public:
     AggregateEdge(Node *src, Node *dst);
     ~AggregateEdge();

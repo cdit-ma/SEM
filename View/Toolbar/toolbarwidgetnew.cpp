@@ -82,7 +82,6 @@ void ToolbarWidgetNew::themeChanged()
     instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
 
-    //applyReplicateCountButton->setIcon(QIcon(theme->getImage("Actions", "Tick", QSize(32,32))));
     applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
     applyReplicateCountButton->setStyleSheet("QToolButton{ background:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";}"
                                              "QToolButton:pressed{ background:" + theme->getPressedColorHex() + ";}");
@@ -224,6 +223,7 @@ void ToolbarWidgetNew::addChildNode(QAction* action)
     QString kind = action->property("kind").toString();
     QVariant ID = action->property("ID");
     QVariant parentKind = action->property("parent-kind");
+
     if (!ID.isValid() || !parentKind.isValid()) {
         toolbarController->addChildNode(kind, itemPos);
     } else {
