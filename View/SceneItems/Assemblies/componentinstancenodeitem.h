@@ -30,6 +30,8 @@ private:
     QRectF headerRect() const;
     QRectF mainIconRect() const;
 
+    QRectF labelRect() const;
+
 private slots:
     void dataChanged(QString keyName, QVariant data);
 };

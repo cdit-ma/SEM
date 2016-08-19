@@ -53,6 +53,9 @@ void ComponentInstanceNodeItem::paint(QPainter *painter, const QStyleOptionGraph
         painter->setBrush(getBodyColor().darker(110));
         painter->drawRect(headerRect());
 
+        painter->setPen(Qt::black);
+        painter->drawText(labelRect(),Qt::AlignVCenter|Qt::AlignLeft, getData("label").toString());
+
         painter->restore();
 
     }
@@ -68,6 +71,8 @@ QRectF ComponentInstanceNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rec
         return mainRect();
     case ER_MAIN_ICON:
         return mainIconRect();
+    case ER_MAIN_LABEL:
+        return labelRect();
     default:
         return NodeItemNew::getElementRect(rect);
     }
@@ -108,6 +113,14 @@ QRectF ComponentInstanceNodeItem::mainIconRect() const
 {
     QRectF rect(headerRect());
     rect.setWidth(headerRect().height());
+    return rect;
+}
+
+QRectF ComponentInstanceNodeItem::labelRect() const
+{
+    QRectF rect(headerRect());
+    rect.setWidth(width-mainIconRect().width());
+    rect.moveTopLeft(mainIconRect().topRight());
     return rect;
 }
 
