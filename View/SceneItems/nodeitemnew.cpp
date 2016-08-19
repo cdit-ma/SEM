@@ -634,6 +634,11 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
     }
 }
 
+void NodeItemNew::dataRemoved(QString keyName)
+{
+    //Do Nothing
+}
+
 void NodeItemNew::childPosChanged()
 {
     resizeToChildren();

@@ -12,7 +12,7 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
     this->parentItem = parent;
     this->vSrcItem = 0;
     this->vDstItem = 0;
-    manuallySet = false;
+    _hasPosition = false;
 
     setMoveEnabled(true);
     setSelectionEnabled(true);
@@ -22,8 +22,8 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
         parent->addChildEdge(this);
     }
 
-    this->addRequiredData("x");
-    this->addRequiredData("y");
+    addRequiredData("x");
+    addRequiredData("y");
 
     //connect(sourceItem, SIGNAL(scenePosChanged()), this, SLOT(sourceMoved()));
     //connect(destinationItem, SIGNAL(scenePosChanged()), this, SLOT(destinationMoved()));
@@ -45,7 +45,7 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
     }
     sourceHidden();
     destinationHidden();
-    //resetPosition();
+    reloadRequiredData();
 }
 
 EdgeItemNew::~EdgeItemNew()
@@ -187,7 +187,7 @@ void EdgeItemNew::recalcSrcCurve(bool reset)
     prepareGeometryChange();
 
     sourceCurve = srcCurve;
-    if(reset && shouldReset()){
+    if(reset && !hasSetPosition()){
         resetPosition();
     }
 }
@@ -217,9 +217,25 @@ void EdgeItemNew::recalcDstCurve(bool reset)
 
     destinationCurve = dstCurve;
 
-    if(reset && shouldReset()){
+    if(reset && !hasSetPosition()){
         resetPosition();
     }
+}
+
+void EdgeItemNew::setManuallyPositioned(bool value)
+{
+    if(_hasPosition != value){
+       _hasPosition = value;
+       if(!_hasPosition){
+           resetPosition();
+       }
+       update();
+    }
+}
+
+bool EdgeItemNew::hasSetPosition()
+{
+    return _hasPosition || isMoving();
 }
 
 void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -256,7 +272,8 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->drawPolygon(triangle());
         painter->restore();
     }
-    if(manuallySet){
+
+    if(_hasPosition){
         painter->setBrush(parentItem->getBodyColor().darker(140));
     }else{
         painter->setBrush(pen.color());
@@ -279,14 +296,30 @@ QRectF EdgeItemNew::currentRect() const
 
 void EdgeItemNew::dataChanged(QString keyName, QVariant data)
 {
-
     if(keyName == "x" || keyName == "y"){
-        double dbl = data.toDouble();
-        if(dbl != -1){
-            manuallySet = true;
+        qreal value = data.toReal();
+
+        QPointF oldCenter = getCenter();
+        QPointF newCenter = oldCenter;
+
+        if(keyName == "x"){
+            newCenter.setX(value);
+        }else if(keyName == "y"){
+            newCenter.setY(value);
+        }
+        setManuallyPositioned(true);
+
+        if(newCenter != oldCenter){
+            setCenter(newCenter);
         }
     }
+}
 
+void EdgeItemNew::dataRemoved(QString keyName)
+{
+    if(keyName == "x" || keyName == "y"){
+        setManuallyPositioned(hasData("x") && hasData("y"));
+    }
 }
 
 QPointF EdgeItemNew::validateAdjustPos(QPointF delta)
@@ -313,12 +346,11 @@ QPointF EdgeItemNew::validateAdjustPos(QPointF delta)
 
 void EdgeItemNew::setMoving(bool moving)
 {
-    EntityItemNew::setMoving(moving);
-
     if(!moving){
         setCenter(getNearestGridPoint());
     }
-    manuallySet = true;
+
+    EntityItemNew::setMoving(moving);
     update();
 }
 
@@ -391,13 +423,17 @@ void EdgeItemNew::resetPosition()
         newPos = parentItem->mapFromScene(requiredPos);
     }
     setCenter(newPos);
-    manuallySet = false;
-    update();
+
+    if(_hasPosition){
+        emit req_triggerAction("Resetting Edge Position");
+        removeData("x");
+        removeData("y");
+    }
 }
 
 bool EdgeItemNew::shouldReset()
 {
-    return !manuallySet;
+    return !_hasPosition;
 }
 
 void EdgeItemNew::sourceHidden()

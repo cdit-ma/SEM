@@ -187,6 +187,8 @@ void NewController::connectViewController(ViewController *view)
 
 
     connect(view, &ViewController::vc_setData, this, &NewController::setData);
+    connect(view, &ViewController::vc_removeData, this, &NewController::removeData);
+
     connect(view, &ViewController::vc_constructNode, this, &NewController::constructNode);
     connect(view, &ViewController::vc_constructConnectedNode, this, &NewController::constructConnectedNode);
 
@@ -198,6 +200,9 @@ void NewController::connectViewController(ViewController *view)
 
     connect(view, &ViewController::vc_undo, this, &NewController::undo);
     connect(view, &ViewController::vc_redo, this, &NewController::redo);
+    connect(view, &ViewController::vc_triggerAction, this, &NewController::triggerAction);
+
+
 
     connect(view, &ViewController::vc_cutEntities, this, &NewController::cut);
     connect(view, &ViewController::vc_copyEntities, this, &NewController::copy);
@@ -562,7 +567,7 @@ void NewController::_setData(Entity *parent, QString keyName, QVariant dataValue
 
         action.Data.newValue = parent->getDataValue(keyName);
     }else{
-        qCritical() << "view_UpdateData() Doesn't Contain Data for Key: " << keyName;
+        _attachData(parent, keyName, dataValue, true);
         return;
     }
     if(addAction){
@@ -2105,30 +2110,18 @@ Key *NewController::getKeyFromID(int ID)
 Edge *NewController::_constructEdge(Node *src, Node *dst)
 {
     if(src && dst){
-        Edge::EDGE_CLASS edgeToMake = src->canConnect(dst);
-        qCritical() << src << dst << edgeToMake;
+        Edge::EDGE_CLASS edgeClass = src->canConnect(dst);
 
-        if(edgeToMake != Edge::EC_NONE){
-            /*
-            QString sourceKind = src->getDataValue("kind").toString();
-            QString destinationKind = dst->getDataValue("kind").toString();
+        if(edgeClass != Edge::EC_NONE){
+            Edge* edge = constructTypedEdge(src, dst, edgeClass);
 
-            if(sourceKind == "InputParameter" || destinationKind == "ReturnParameter"){
-                //Rotate
-                Node* temp = source;
-                source = destination;
-                destination = temp;
-            }*/
-
-            Edge* edge = constructTypedEdge(src, dst, edgeToMake);
-
-            //Attach X/Y
-            _attachData(edge, constructPositionDataVector(), false);
+            if(edge){
+                //Attach required data.
+                _attachData(edge, constructRequiredEdgeData(edgeClass), false);
+            }
 
             return edge;
         }else{
-            qCritical() << edgeToMake;
-
             if(!src->gotEdgeTo(dst)){
                 qCritical() << "Edge: Source: " << src->toString() << " to Destination: " << dst->toString() << " Cannot be created!";
             }
@@ -2171,6 +2164,13 @@ void NewController::storeGraphMLInHash(Entity* item)
             edge = (Edge*)item;
             edgeIDs.append(ID);
         }
+
+
+        //Connect things!
+        connect(item, &Entity::dataChanged, this, &NewController::dataChanged);
+        connect(item, &Entity::dataRemoved, this, &NewController::dataRemoved);
+        connect(item, &Entity::propertyChanged, this, &NewController::propertyChanged);
+        connect(item, &Entity::propertyRemoved, this, &NewController::propertyRemoved);
 
         QHash<QString, QVariant> data;
         QHash<QString, QVariant> properties;
@@ -2393,10 +2393,7 @@ Node *NewController::_constructNode(QList<Data *> nodeData)
         //Update Data with custom Data!
         _attachData(node, nodeData, inModel);
 
-        connect(node, &Entity::dataChanged, this, &NewController::dataChanged);
-        connect(node, &Entity::dataRemoved, this, &NewController::dataRemoved);
-        connect(node, &Entity::propertyChanged, this, &NewController::propertyChanged);
-        connect(node, &Entity::propertyRemoved, this, &NewController::propertyRemoved);
+
     }
 
     //Delete the Data objects which didn't get adopted to the Node (or if our Node is null)
@@ -2800,6 +2797,54 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     data.append(labelData);
 
     return data;
+}
+
+QList<Data *> NewController::constructRequiredEdgeData(Edge::EDGE_CLASS edgeClass)
+{
+    QList<Data*> dataList;
+
+    Key* kindKey = constructKey("kind", QVariant::String, Entity::EK_ALL);
+    QString kind = Edge::getKind(edgeClass);
+
+    dataList.append(new Data(kindKey, kind));
+
+    QString label;
+
+    switch(edgeClass){
+    case Edge::EC_AGGREGATE:{
+        label = "Uses aggregate";
+        break;
+    }
+    case Edge::EC_ASSEMBLY:{
+        label = "Connected To";
+        break;
+    }
+    case Edge::EC_DATA:{
+        label = "Data linked";
+        break;
+    }
+    case Edge::EC_DEFINITION:{
+        label = "Is dependant on";
+        break;
+    }
+    case Edge::EC_DEPLOYMENT:{
+        label = "Is deployed on";
+        break;
+    }
+    case Edge::EC_QOS:{
+        label = "Uses QOS profile";
+        break;
+    }
+    default:
+        break;
+    }
+
+    if(!label.isEmpty()){
+        Key* labelKey = constructKey("label", QVariant::String, Entity::EK_ALL);
+        dataList.append(new Data(labelKey, label));
+    }
+
+    return dataList;
 }
 
 QList<Data *> NewController::constructPositionDataVector(QPointF point)
@@ -4826,6 +4871,15 @@ void NewController::setData(int parentID, QString keyName, QVariant dataValue)
     Entity* graphML = getGraphMLFromID(parentID);
     if(graphML){
         _setData(graphML, keyName, dataValue, true);
+    }
+}
+
+void NewController::removeData(int parentID, QString keyName)
+{
+    Entity* entity = getGraphMLFromID(parentID);
+    if(entity){
+        qCritical() << "Removing: " << parentID << " " << keyName;
+        destructData(entity, keyName, true);
     }
 }
 

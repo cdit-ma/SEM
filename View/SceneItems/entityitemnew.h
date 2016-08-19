@@ -94,7 +94,8 @@ public:
     void handleHover(bool hovered);
     void handleSelection(bool append);
 
-
+protected:
+    void removeData(QString keyName);
 public:
     //Item State Getters
     bool isNodeItem();
@@ -148,6 +149,7 @@ signals:
     void req_activeSelected(ViewItem*);
 
     void req_setData(ViewItem* item, QString keyName, QVariant data);
+    void req_removeData(ViewItem* item, QString keyName);
 
     void req_triggerAction(QString actionName);
 
@@ -161,6 +163,7 @@ signals:
     void scenePosChanged();
 private slots:
     virtual void dataChanged(QString keyName, QVariant data) = 0;
+    virtual void dataRemoved(QString keyName) = 0;
     void destruct();
 
 public:

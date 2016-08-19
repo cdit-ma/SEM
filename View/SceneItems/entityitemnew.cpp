@@ -342,6 +342,13 @@ void EntityItemNew::handleSelection(bool append)
     }
 }
 
+void EntityItemNew::removeData(QString keyName)
+{
+    if(hasData(keyName)){
+        emit req_removeData(getViewItem(), keyName);
+    }
+}
+
 void EntityItemNew::handleExpand(bool expand)
 {
     if(isExpandEnabled()){
@@ -409,15 +416,20 @@ void EntityItemNew::connectViewItem(ViewItem *viewItem)
     this->viewItem = viewItem;
 
     viewItem->registerObject(this);
-    connect(viewItem, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
-    connect(viewItem, SIGNAL(destructing()), this, SLOT(deleteLater()));
+    connect(viewItem, &ViewItem::dataAdded, this, &EntityItemNew::dataChanged);
+    connect(viewItem, &ViewItem::dataChanged, this, &EntityItemNew::dataChanged);
+    connect(viewItem, &ViewItem::dataRemoved, this, &EntityItemNew::dataRemoved);
+    connect(viewItem, &ViewItem::destructing, this, &EntityItemNew::deleteLater);
 }
 
 void EntityItemNew::disconnectViewItem()
 {
     if(viewItem){
-        disconnect(viewItem, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
-        disconnect(viewItem, SIGNAL(destructing()), this, SLOT(destruct()));
+        disconnect(viewItem, &ViewItem::dataAdded, this, &EntityItemNew::dataChanged);
+        disconnect(viewItem, &ViewItem::dataChanged, this, &EntityItemNew::dataChanged);
+        disconnect(viewItem, &ViewItem::dataRemoved, this, &EntityItemNew::dataRemoved);
+        disconnect(viewItem, &ViewItem::destructing, this, &EntityItemNew::deleteLater);
+
         viewItem->unregisterObject(this);
         viewItem = 0;
     }

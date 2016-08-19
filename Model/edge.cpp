@@ -3,6 +3,47 @@
 #include "data.h"
 #include "node.h"
 #include <QDebug>
+#include <QStringBuilder>
+QString Edge::getKind(Edge::EDGE_CLASS edgeClass)
+{
+    QString suffix = "Edge";
+    QString prefix;
+    switch(edgeClass){
+        case EC_DEFINITION:{
+            prefix = "Definition";
+            break;
+        }
+        case EC_AGGREGATE:{
+            prefix = "Aggregate";
+            break;
+        }
+        case EC_WORKFLOW:{
+            prefix = "Workflow";
+            break;
+        }
+        case EC_ASSEMBLY:{
+            prefix = "Assembly";
+            break;
+        }
+        case EC_DATA:{
+            prefix = "Data";
+            break;
+        }
+        case EC_DEPLOYMENT:{
+            prefix = "Deployment";
+            break;
+        }
+        case EC_QOS:{
+            prefix = "QOS";
+            break;
+        }
+    default:
+        prefix = "Undefined";
+        break;
+    }
+    return suffix % "_" % prefix;
+}
+
 
 Edge::Edge(Node *s, Node *d, EDGE_CLASS edgeClass):Entity(EK_EDGE)
 {

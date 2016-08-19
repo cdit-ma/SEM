@@ -69,6 +69,7 @@ signals:
     void vc_redo();
     void vc_triggerAction(QString);
     void vc_setData(int, QString, QVariant);
+    void vc_removeData(int, QString);
     void vc_deleteEntities(QList<int> IDs);
     void vc_cutEntities(QList<int> IDs);
     void vc_copyEntities(QList<int> IDs);

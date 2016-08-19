@@ -67,7 +67,11 @@ private:
     void recalcDstCurve(bool reset = false);
 
 
-    bool manuallySet;
+    void setManuallyPositioned(bool value);
+    bool hasSetPosition();
+
+    bool _hasPosition;
+
     KIND edge_kind;
     EdgeViewItem* edgeViewItem;
     NodeItemNew* parentItem;
@@ -85,6 +89,7 @@ private:
 
 private slots:
     void dataChanged(QString keyName, QVariant data);
+    void dataRemoved(QString keyName);
 
     // EntityItemNew interface
 public:

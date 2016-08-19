@@ -99,6 +99,7 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(this, &NodeViewNew::toolbarRequested, viewController, &ViewController::vc_showToolbar);
         connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::vc_triggerAction);
         connect(this, &NodeViewNew::setData, viewController, &ViewController::vc_setData);
+        connect(this, &NodeViewNew::removeData, viewController, &ViewController::vc_removeData);
     }
 }
 
@@ -254,6 +255,13 @@ void NodeViewNew::themeChanged()
     update();
 }
 
+void NodeViewNew::item_RemoveData(ViewItem *item, QString keyName)
+{
+    if(item){
+        emit removeData(item->getID(), keyName);
+    }
+}
+
 void NodeViewNew::fitToScreen()
 {
     centerRect(scene()->itemsBoundingRect());
@@ -309,15 +317,16 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
             item->setMoving(adjusting);
             if(!adjusting){
                 int id = item->getID();
-                QPointF pos = item->pos();
+                QPointF pos = item->getCenter();
 
-                bool ignore = false;
+                bool sendRequest = true;
+
                 if(item->isNodeItem()){
                     NodeItemNew* nodeItem = (NodeItemNew*) item;
-                    pos = nodeItem->getCenter();
-                    ignore = nodeItem->isIgnoringPosition();
+                    sendRequest = !nodeItem->isIgnoringPosition();
                 }
-                if(!ignore){
+
+                if(sendRequest){
                     emit setData(id, "x", pos.x());
                     emit setData(id, "y", pos.y());
                 }
@@ -424,6 +433,25 @@ void NodeViewNew::minimap_Zoom(int delta)
     zoom(delta);
 }
 
+void NodeViewNew::setupConnections(EntityItemNew *item)
+{
+    connect(item, &EntityItemNew::req_activeSelected, this, &NodeViewNew::item_ActiveSelected);
+    connect(item, &EntityItemNew::req_selected, this, &NodeViewNew::item_Selected);
+    connect(item, &EntityItemNew::req_expanded, this, &NodeViewNew::item_SetExpanded);
+    connect(item, &EntityItemNew::req_centerItem, this, &NodeViewNew::item_SetCentered);
+    connect(item, &EntityItemNew::req_adjustPos, this, &NodeViewNew::item_AdjustPos);
+    connect(item, &EntityItemNew::req_adjustingPos, this, &NodeViewNew::item_AdjustingPos);
+
+    connect(item, &EntityItemNew::req_triggerAction, this, &NodeViewNew::triggerAction);
+    connect(item, &EntityItemNew::req_removeData, this, &NodeViewNew::item_RemoveData);
+
+    if(item->isNodeItem()){
+        NodeItemNew* node = (NodeItemNew*) item;
+        connect(node, &NodeItemNew::req_adjustSize, this, &NodeViewNew::item_Resize);
+        connect(node, &NodeItemNew::req_adjustSizeFinished, this, &NodeViewNew::item_ResizeFinished);
+    }
+}
+
 void NodeViewNew::centerOnItems(QList<EntityItemNew *> items)
 {
     QRectF itemsRect;
@@ -521,15 +549,9 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 }
 
                 guiItems[ID] = nodeItem;
-                connect(nodeItem, SIGNAL(req_activeSelected(ViewItem*)), this, SLOT(item_ActiveSelected(ViewItem*)));
-                connect(nodeItem, SIGNAL(req_selected(ViewItem*,bool)), this, SLOT(item_Selected(ViewItem*,bool)));
 
-                connect(nodeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(item_SetExpanded(EntityItemNew*,bool)));
-                connect(nodeItem, SIGNAL(req_centerItem(EntityItemNew*)), this, SLOT(item_SetCentered(EntityItemNew*)));
-                connect(nodeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(item_AdjustPos(QPointF)));
-                connect(nodeItem, SIGNAL(req_adjustingPos(bool)), this, SLOT(item_AdjustingPos(bool)));
-                connect(nodeItem, SIGNAL(req_adjustSize(NodeItemNew*,QSizeF, RECT_VERTEX)), this, SLOT(item_Resize(NodeItemNew*,QSizeF, RECT_VERTEX)));
-                connect(nodeItem, SIGNAL(req_adjustSizeFinished(NodeItemNew*, RECT_VERTEX)), this, SLOT(item_ResizeFinished(NodeItemNew*, RECT_VERTEX)));
+                setupConnections(nodeItem);
+
 
                 if(!scene()->items().contains(nodeItem)){
                     scene()->addItem(nodeItem);
@@ -556,20 +578,13 @@ void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
 
     if(edgeItem){
         guiItems[item->getID()] = edgeItem;
-        connect(edgeItem, SIGNAL(req_activeSelected(ViewItem*)), this, SLOT(item_ActiveSelected(ViewItem*)));
-        connect(edgeItem, SIGNAL(req_selected(ViewItem*,bool)), this, SLOT(item_Selected(ViewItem*,bool)));
 
-        connect(edgeItem, SIGNAL(req_expanded(EntityItemNew*,bool)), this, SLOT(item_SetExpanded(EntityItemNew*,bool)));
-        connect(edgeItem, SIGNAL(req_centerItem(EntityItemNew*)), this, SLOT(item_SetCentered(EntityItemNew*)));
-        connect(edgeItem, SIGNAL(req_adjustPos(QPointF)), this, SLOT(item_AdjustPos(QPointF)));
-        connect(edgeItem, SIGNAL(req_adjustingPos(bool)), this, SLOT(item_AdjustingPos(bool)));
+        setupConnections(edgeItem);
 
         if(!scene()->items().contains(edgeItem)){
             scene()->addItem(edgeItem);
         }
     }
-
-    //Do nothing.
 }
 
 QList<ViewItem *> NodeViewNew::getTopLevelViewItems()

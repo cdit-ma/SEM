@@ -261,6 +261,7 @@ signals:
 public slots:
     void setupController();
     void setData(int parentID, QString keyName, QVariant dataValue);
+    void removeData(int parentID, QString keyName);
 private slots:
 
     void enableDebugLogging(bool logMode, QString applicationPath="");
@@ -412,6 +413,7 @@ private:
 
     //Constructs a Vector of basic Data entities required for creating a Node.
     QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1), QString nodeType="", QString nodeLabel="");
+    QList<Data*> constructRequiredEdgeData(Edge::EDGE_CLASS edgeClass);
     QList<Data*> constructPositionDataVector(QPointF point=QPointF(-1, -1));
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
