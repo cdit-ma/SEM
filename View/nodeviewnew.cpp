@@ -9,9 +9,9 @@
 #include "SceneItems/defaultnodeitem.h"
 #include "SceneItems/Hardware/hardwarenodeitem.h"
 #include "SceneItems/Assemblies/managementcomponentnodeitem.h"
-#include "SceneItems/Assemblies/componentinstancenodeitem.h"
 #include "SceneItems/eventportnodeitem.h"
 #include "SceneItems/attributenodeitem.h"
+#include "SceneItems/nodeitemcontainer.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
@@ -505,6 +505,12 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
             if(nodeKind == "HardwareNode"){
                 nodeItem = new HardwareNodeItem(item, parentNode);
+            }else if(nodeKind == "InEventPort" || nodeKind == "OutEventPort" ||
+                     nodeKind == "AggregateInstance" || nodeKind == "IDL" ||
+                     nodeKind == "Aggregate" || nodeKind == "ComponentInstance" ||
+                     nodeKind == "ComponentAssembly" || nodeKind == "Component" ||
+                     nodeKind == "InEventPortImpl" || nodeKind == "OutEventPortImpl"){
+                nodeItem = new NodeItemContainer(item, parentNode);
             }else if(nodeKind == "ManagementComponent"){
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
             }else if(nodeKind.contains("EventPort")){
@@ -513,10 +519,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 return;
             }else if(nodeKind.contains("Attribute")){
                 nodeItem = new AttributeNodeItem(item, parentNode);
-            }else if(nodeKind == "ComponentInstance"){
-                nodeItem = new ComponentInstanceNodeItem(item, parentNode);
-            }
-            else{
+            }else{
                 nodeItem = new DefaultNodeItem(item, parentNode);
             }
 

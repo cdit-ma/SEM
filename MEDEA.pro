@@ -233,7 +233,7 @@ HEADERS += \
     Widgets/New/selectioncontroller.h \
     View/nodeview.h \
     GUI/popupwidget.h \
-    View/SceneItems/Assemblies/componentinstancenodeitem.h
+    View/SceneItems/nodeitemcontainer.h
 
 SOURCES += \
     main.cpp \
@@ -430,7 +430,7 @@ SOURCES += \
     Controller/filehandler.cpp \
     View/nodeview.cpp \
     GUI/popupwidget.cpp \
-    View/SceneItems/Assemblies/componentinstancenodeitem.cpp
+    View/SceneItems/nodeitemcontainer.cpp
 
 RESOURCES += \
     resources.qrc

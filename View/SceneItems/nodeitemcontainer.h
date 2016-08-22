@@ -1,14 +1,14 @@
 #ifndef COMPONENTINSTANCENODEITEM_H
 #define COMPONENTINSTANCENODEITEM_H
 
-#include "../nodeitemnew.h"
+#include "nodeitemnew.h"
 
 
 
-class ComponentInstanceNodeItem : public NodeItemNew
+class NodeItemContainer : public NodeItemNew
 {
 public:
-    ComponentInstanceNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem);
+    NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parentItem);
 
     QRectF bodyRect() const;
     // QGraphicsItem interface
@@ -25,12 +25,19 @@ private:
     qreal height;
     qreal width;
     QFont mainTextFont;
+    bool expanded;
 
     QRectF mainRect() const;
     QRectF headerRect() const;
-    QRectF mainIconRect() const;
+    QRectF outerIconRect() const;
+    QRectF innerIconRect() const;
 
     QRectF labelRect() const;
+    QRectF labelBGRect() const;
+    QRectF kindLabelRect() const;
+    QRectF deployedRect() const;
+    QRectF qosRect() const;
+    QRectF expandStateRect() const;
 
 private slots:
     void dataChanged(QString keyName, QVariant data);

@@ -28,6 +28,8 @@ EventPortNodeItem::EventPortNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
 
     reloadRequiredData();
     iconRight = isOutEventPort();
+    deployed = getData("deployed").toBool();
+    hasQos = !getData("qos").toString().isEmpty();
     initPolys();
 }
 
@@ -49,8 +51,12 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         //Draw sub-icon polys
         painter->save();
         painter->setBrush(getBodyColor().darker(110));
-        painter->drawPolygon(subIconPoly());
-        painter->drawPolygon(topIconPoly());
+        if(getData("deployed").toBool()){
+            painter->drawPolygon(topIconPoly());
+        }
+        if(hasQos){
+            painter->drawPolygon(bottomIconPoly());
+        }
         painter->restore();
 
         //Draw label rect
@@ -68,7 +74,9 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     if(state > RS_BLOCK){
         QPair<QString, QString> icon = getIconPath();
         paintPixmap(painter, lod, ER_SECONDARY_ICON, icon.first, icon.second);
-        paintPixmap(painter, lod, ER_LOCKED_STATE, icon.first, icon.second);
+        if(getData("deployed").toBool()){
+            paintPixmap(painter, lod, ER_DEPLOYED, icon.first, icon.second);
+        }
     }
 
     //Parent class paint
@@ -80,10 +88,12 @@ QRectF EventPortNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
    switch(rect){
    case ER_MAIN_ICON:
        return mainIconRect();
-   case ER_SECONDARY_ICON:
-       return subIconRect();
-   case ER_LOCKED_STATE:
-       return lockedRect();
+   case ER_QOS:
+       return qosRect();
+   case ER_DEPLOYED:
+       return deployedRect();
+   case ER_MAIN_LABEL:
+       return labelRect();
    default:
        return NodeItemNew::getElementRect(rect);
    }
@@ -96,8 +106,12 @@ QPainterPath EventPortNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect)
         QPainterPath path;
         path.setFillRule(Qt::WindingFill);
         path.addPolygon(mainIconPoly());
-        path.addPolygon(subIconPoly());
-        path.addPolygon(topIconPoly());
+        if(deployed){
+            path.addPolygon(topIconPoly());
+        }
+        if(hasQos){
+            path.addPolygon(bottomIconPoly());
+        }
         path.addRect(labelRect());
         return path.simplified();
     }
@@ -172,20 +186,20 @@ QPolygonF EventPortNodeItem::mainIconPoly() const
     return iconRight ? rightIconPoly : leftIconPoly;
 }
 
-QRectF EventPortNodeItem::subIconRect() const
+QRectF EventPortNodeItem::qosRect() const
 {
     QRectF rect;
     rect.setWidth(height/4);
     rect.setHeight(height/4);
     if(iconRight){
-        rect.moveTopRight(subIconPoly().at(1));
+        rect.moveTopRight(bottomIconPoly().at(1));
     } else {
-        rect.moveTopLeft(subIconPoly().at(0));
+        rect.moveTopLeft(bottomIconPoly().at(0));
     }
     return rect;
 }
 
-QPolygonF EventPortNodeItem::subIconPoly() const
+QPolygonF EventPortNodeItem::bottomIconPoly() const
 {
     return iconRight ? rightSubPoly : leftSubPoly;
 }
@@ -195,7 +209,7 @@ QPolygonF EventPortNodeItem::topIconPoly() const
     return iconRight ? rightTopPoly : leftTopPoly;
 }
 
-QRectF EventPortNodeItem::lockedRect() const
+QRectF EventPortNodeItem::deployedRect() const
 {
     QRectF rect;
     rect.setWidth(height/4);
@@ -258,6 +272,15 @@ void EventPortNodeItem::dataChanged(QString keyName, QVariant data)
 {
     if(keyName == "label"){
         update();
+    }
+
+    if(keyName == "deployed"){
+        update();
+        deployed = getData("deployed").toBool();
+    }
+    if(keyName == "qos"){
+        update();
+        hasQos = !getData("qos").toString().isEmpty();
     }
     NodeItemNew::dataChanged(keyName, data);
 }
