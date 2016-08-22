@@ -2,13 +2,18 @@
 #include "parameter.h"
 #include "variable.h"
 
-ReturnParameter:: ReturnParameter(): Parameter(false)
+ReturnParameter:: ReturnParameter(): Parameter(NK_RETURNPARAMETER)
 {
-    setIsDataOutput(true);
+    setDataProducer(true);
+    setDataReciever(false);
 }
 
-ReturnParameter::~ReturnParameter()
+bool ReturnParameter::canAdoptChild(Node *node)
 {
-
+    return false;
 }
 
+bool ReturnParameter::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return Parameter::canAcceptEdge(edgeKind, dst);
+}

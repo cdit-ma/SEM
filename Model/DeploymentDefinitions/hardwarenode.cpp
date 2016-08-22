@@ -1,14 +1,16 @@
 #include "hardwarenode.h"
 
-HardwareNode::HardwareNode():Hardware(true)
+HardwareNode::HardwareNode():Node(NK_HARDWARE_NODE)
 {
-}
-
-HardwareNode::~HardwareNode()
-{
+    setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
 }
 
 bool HardwareNode::canAdoptChild(Node*)
+{
+    return false;
+}
+
+bool HardwareNode::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
     return false;
 }

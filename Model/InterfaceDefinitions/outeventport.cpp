@@ -1,16 +1,16 @@
 #include "outeventport.h"
 
-OutEventPort::OutEventPort():EventPort(false)
+OutEventPort::OutEventPort():EventPort(NK_OUTEVENTPORT)
 {
-}
-
-OutEventPort::~OutEventPort()
-{
-
 }
 
 bool OutEventPort::canAdoptChild(Node *child)
 {
     return EventPort::canAdoptChild(child);
+}
+
+bool OutEventPort::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return EventPort::canAcceptEdge(edgeKind, dst);
 }
 

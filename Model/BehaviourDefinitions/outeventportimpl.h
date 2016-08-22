@@ -7,10 +7,8 @@ class OutEventPortImpl : public EventPortImpl
     Q_OBJECT
 public:
     OutEventPortImpl();
-    ~OutEventPortImpl();
-
-public:
-    bool canConnect_DefinitionEdge(Node *definition);
+    bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // OUTEVENTPORTIMPL_H

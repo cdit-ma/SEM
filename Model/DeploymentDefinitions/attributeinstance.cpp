@@ -1,27 +1,31 @@
 #include "attributeinstance.h"
-#include "../InterfaceDefinitions/attribute.h"
 
-AttributeInstance::AttributeInstance():Node(Node::NT_INSTANCE)
+AttributeInstance::AttributeInstance():Node(Node::NK_ATTRIBUTE_INSTANCE)
 {
-    setAcceptEdgeClass(Edge::EC_DEFINITION);
+    setNodeType(NT_INSTANCE);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
-
-AttributeInstance::~AttributeInstance()
-{
-}
-
 
 bool AttributeInstance::canAdoptChild(Node*)
 {
     return false;
 }
 
-bool AttributeInstance::canConnect_DefinitionEdge(Node *definition)
+bool AttributeInstance::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
-    Attribute* attribute = dynamic_cast<Attribute*>(definition);
-    if(!attribute){
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
-    return Node::canConnect_DefinitionEdge(definition);
+    switch(edgeKind){
+    case Edge::EC_DEFINITION:{
+        if(dst->getNodeKind() != NK_ATTRIBUTE){
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return Node::canAcceptEdge(edgeKind, dst);
 }

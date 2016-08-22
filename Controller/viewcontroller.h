@@ -1,7 +1,6 @@
 #ifndef VIEWCONTROLLER_H
 #define VIEWCONTROLLER_H
 
-#include "entityadapter.h"
 #include "../View/viewitem.h"
 #include "selectionhandler.h"
 #include "../Widgets/New/selectioncontroller.h"
@@ -77,7 +76,7 @@ signals:
     void vc_replicateEntities(QList<int> IDs);
 
     void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
-    void vc_constructConnectedNode(int parentID, QString kind, QPointF pos, int dstID);
+    void vc_constructConnectedNode(int parentID, QString kind, Edge::EDGE_CLASS edgeClass, QPointF pos, int dstID);
 
 
     void vc_importProjects(QStringList fileData);

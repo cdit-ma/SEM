@@ -1,17 +1,15 @@
 #ifndef INEVENTPORTINSTANCE_H
 #define INEVENTPORTINSTANCE_H
-#include "eventportinstance.h"
+#include "eventportdelegate.h"
 
-class InEventPortInstance : public EventPortInstance
+class InEventPortInstance : public EventPortAssembly
 {
     Q_OBJECT
 public:
     InEventPortInstance();
-    ~InEventPortInstance();
 
     bool canAdoptChild(Node*);
-    bool canConnect_DefinitionEdge(Node *definition);
-    bool canConnect_AssemblyEdge(Node *node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // INEVENTPORTINSTANCE_H

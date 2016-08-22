@@ -44,6 +44,26 @@ QString Edge::getKind(Edge::EDGE_CLASS edgeClass)
     return suffix % "_" % prefix;
 }
 
+Edge::EDGE_CLASS Edge::getEdgeClass(QString kind)
+{
+    if(kind == "Edge_Definition"){
+        return Edge::EC_DEFINITION;
+    }else if(kind == "Edge_Aggregate"){
+        return Edge::EC_AGGREGATE;
+    }else if(kind == "Edge_Workflow"){
+        return Edge::EC_WORKFLOW;
+    }else if(kind == "Edge_Assembly"){
+        return Edge::EC_ASSEMBLY;
+    }else if(kind == "Edge_Data"){
+        return Edge::EC_DATA;
+    }else if(kind == "Edge_Deployment"){
+        return Edge::EC_DEPLOYMENT;
+    }else if(kind == "Edge_QOS"){
+        return Edge::EC_QOS;
+    }
+    return Edge::EC_UNDEFINED;
+}
+
 
 Edge::Edge(Node *s, Node *d, EDGE_CLASS edgeClass):Entity(EK_EDGE)
 {
@@ -71,6 +91,7 @@ Edge::~Edge()
         source->removeEdge(this);
     }
 }
+
 
 Node *Edge::getSource()
 {
@@ -211,8 +232,8 @@ Edge::EDGE_CLASS Edge::getEdgeClass()
 
 Edge::EDGE_TYPE Edge::getType()
 {
-    QString srcKind = source->getNodeKind();
-    QString dstKind = destination->getNodeKind();
+    QString srcKind = source->getNodeKindStr();
+    QString dstKind = destination->getNodeKindStr();
 
     if(dstKind.startsWith("Hardware")){
         if(srcKind == "ComponentInstance" || srcKind == "ComponentAssembly" || srcKind == "ManagementComponent" || srcKind == "BlackBoxInstance"){

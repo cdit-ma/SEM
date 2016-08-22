@@ -1,27 +1,28 @@
 #include "process.h"
 #include "parameter.h"
 
-Process::Process():BehaviourNode(){
-    setIsNonWorkflow(true);
-}
-
-Process::~Process(){
+Process::Process():BehaviourNode(NK_PROCESS){
+    setWorkflowProducer(false);
+    setWorkflowReciever(false);
 }
 
 bool Process::canAdoptChild(Node* node)
 {
-    Parameter* parameter = dynamic_cast<Parameter*>(node);
-
-    if(!parameter){
+    if(!node->isNodeofType(NT_PARAMETER)){
         return false;
     }
 
-    foreach(Node* c, getChildren(0)){
-        Parameter* child = dynamic_cast<Parameter*>(c);
-        if(child->isReturnParameter() && parameter->isReturnParameter()){
+    Parameter* parameter = (Parameter*)node;
+
+    if(parameter->isReturnParameter()){
+        if(!getChildrenOfKind(NK_RETURNPARAMETER, 0).isEmpty()){
             return false;
         }
     }
-
     return BehaviourNode::canAdoptChild(node);
+}
+
+bool Process::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return false;
 }

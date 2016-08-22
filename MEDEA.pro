@@ -40,20 +40,13 @@ QMAKE_CFLAGS += -Wunused
 #DEFINES += DEBUG_MODE
 
 HEADERS += \
-    Controller/behaviournodeadapter.h \
     Controller/controller.h \
     Controller/doublehash.h \
-    Controller/edgeadapter.h \
-    Controller/entityadapter.h \
-    Controller/nodeadapter.h \
     GUI/actionbutton.h \
     GUI/appsettings.h \
     GUI/aspecttogglewidget.h \
     GUI/codeeditor.h \
     GUI/keyeditwidget.h \
-    GUI/searchdialog.h \
-    GUI/searchitem.h \
-    GUI/searchsuggestcompletion.h \
     GUI/shortcutdialog.h \
     GUI/syntaxhighlighter.h \
     Model/BehaviourDefinitions/attributeimpl.h \
@@ -82,8 +75,6 @@ HEADERS += \
     Model/DeploymentDefinitions/componentinstance.h \
     Model/DeploymentDefinitions/deploymentdefinitions.h \
     Model/DeploymentDefinitions/eventportdelegate.h \
-    Model/DeploymentDefinitions/eventportinstance.h \
-    Model/DeploymentDefinitions/hardware.h \
     Model/DeploymentDefinitions/hardwarecluster.h \
     Model/DeploymentDefinitions/hardwaredefinitions.h \
     Model/DeploymentDefinitions/hardwarenode.h \
@@ -113,7 +104,6 @@ HEADERS += \
     Model/InterfaceDefinitions/outeventport.h \
     Model/InterfaceDefinitions/vector.h \
     Model/InterfaceDefinitions/vectorinstance.h \
-    Model/blanknode.h \
     Model/data.h \
     Model/edge.h \
     Model/entity.h \
@@ -123,34 +113,10 @@ HEADERS += \
     Model/node.h \
     Model/tempentity.h \
     Model/workerdefinitions.h \
-    View/Dock/definitionsdockscrollarea.h \
-    View/Dock/docknodeitem.h \
-    View/Dock/dockscrollarea.h \
-    View/Dock/docktogglebutton.h \
-    View/Dock/functionsdockscrollarea.h \
-    View/Dock/hardwaredockscrollarea.h \
-    View/Dock/partsdockscrollarea.h \
-    View/GraphicsItems/aspectitem.h \
-    View/GraphicsItems/edgeitem.h \
-    View/GraphicsItems/edgeitemarrow.h \
-    View/GraphicsItems/editabletextitem.h \
-    View/GraphicsItems/entityitem.h \
-    View/GraphicsItems/graphmlitem.h \
-    View/GraphicsItems/inputitem.h \
-    View/GraphicsItems/modelitem.h \
-    View/GraphicsItems/nodeitem.h \
-    View/GraphicsItems/noguiitem.h \
-    View/GraphicsItems/notificationitem.h \
-    View/GraphicsItems/statusitem.h \
     View/Table/attributetablemodel.h \
-    View/Table/comboboxtabledelegate.h \
-    View/Toolbar/toolbarmenu.h \
-    View/Toolbar/toolbarmenuaction.h \
-    View/Toolbar/toolbarwidget.h \
     View/Validate/validatedialog.h \
     View/nodeviewminimap.h \
     View/theme.h \
-    Widgets/medeawindow.h \
     enumerations.h \
     modeltester.h \
     Plugins/CUTS/GUI/cutsexecutionwidget.h \
@@ -198,7 +164,6 @@ HEADERS += \
     View/Table/multilinedelegate.h \
     Widgets/New/qosbrowser.h \
     Widgets/New/qosprofilemodel.h \
-    Model/DeploymentDefinitions/QOS/qosprofile.h \
     Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h \
     Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h \
     Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h \
@@ -231,25 +196,17 @@ HEADERS += \
     Widgets/New/dataeditwidget.h \
     Controller/filehandler.h \
     Widgets/New/selectioncontroller.h \
-    View/nodeview.h \
     GUI/popupwidget.h
 
 SOURCES += \
     main.cpp \
-    Controller/behaviournodeadapter.cpp \
     Controller/controller.cpp \
     Controller/doublehash.cpp \
-    Controller/edgeadapter.cpp \
-    Controller/entityadapter.cpp \
-    Controller/nodeadapter.cpp \
     GUI/actionbutton.cpp \
     GUI/appsettings.cpp \
     GUI/aspecttogglewidget.cpp \
     GUI/codeeditor.cpp \
     GUI/keyeditwidget.cpp \
-    GUI/searchdialog.cpp \
-    GUI/searchitem.cpp \
-    GUI/searchsuggestcompletion.cpp \
     GUI/shortcutdialog.cpp \
     GUI/syntaxhighlighter.cpp \
     Model/BehaviourDefinitions/attributeimpl.cpp \
@@ -278,8 +235,6 @@ SOURCES += \
     Model/DeploymentDefinitions/componentinstance.cpp \
     Model/DeploymentDefinitions/deploymentdefinitions.cpp \
     Model/DeploymentDefinitions/eventportdelegate.cpp \
-    Model/DeploymentDefinitions/eventportinstance.cpp \
-    Model/DeploymentDefinitions/hardware.cpp \
     Model/DeploymentDefinitions/hardwarecluster.cpp \
     Model/DeploymentDefinitions/hardwaredefinitions.cpp \
     Model/DeploymentDefinitions/hardwarenode.cpp \
@@ -309,7 +264,6 @@ SOURCES += \
     Model/InterfaceDefinitions/outeventport.cpp \
     Model/InterfaceDefinitions/vector.cpp \
     Model/InterfaceDefinitions/vectorinstance.cpp \
-    Model/blanknode.cpp \
     Model/data.cpp \
     Model/edge.cpp \
     Model/entity.cpp \
@@ -319,34 +273,10 @@ SOURCES += \
     Model/node.cpp \
     Model/tempentity.cpp \
     Model/workerdefinitions.cpp \
-    View/Dock/definitionsdockscrollarea.cpp \
-    View/Dock/docknodeitem.cpp \
-    View/Dock/dockscrollarea.cpp \
-    View/Dock/docktogglebutton.cpp \
-    View/Dock/functionsdockscrollarea.cpp \
-    View/Dock/hardwaredockscrollarea.cpp \
-    View/Dock/partsdockscrollarea.cpp \
-    View/GraphicsItems/aspectitem.cpp \
-    View/GraphicsItems/edgeitem.cpp \
-    View/GraphicsItems/edgeitemarrow.cpp \
-    View/GraphicsItems/editabletextitem.cpp \
-    View/GraphicsItems/entityitem.cpp \
-    View/GraphicsItems/graphmlitem.cpp \
-    View/GraphicsItems/inputitem.cpp \
-    View/GraphicsItems/modelitem.cpp \
-    View/GraphicsItems/nodeitem.cpp \
-    View/GraphicsItems/noguiitem.cpp \
-    View/GraphicsItems/notificationitem.cpp \
-    View/GraphicsItems/statusitem.cpp \
     View/Table/attributetablemodel.cpp \
-    View/Table/comboboxtabledelegate.cpp \
-    View/Toolbar/toolbarmenu.cpp \
-    View/Toolbar/toolbarmenuaction.cpp \
-    View/Toolbar/toolbarwidget.cpp \
     View/Validate/validatedialog.cpp \
     View/nodeviewminimap.cpp \
     View/theme.cpp \
-    Widgets/medeawindow.cpp \
     enumerations.cpp \
     modeltester.cpp \
     Plugins/CUTS/GUI/cutsexecutionwidget.cpp \
@@ -396,7 +326,6 @@ SOURCES += \
     View/Table/multilinedelegate.cpp \
     Widgets/New/qosbrowser.cpp \
     Widgets/New/qosprofilemodel.cpp \
-    Model/DeploymentDefinitions/QOS/qosprofile.cpp \
     Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.cpp \
     Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp \
     Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp \
@@ -427,7 +356,6 @@ SOURCES += \
     View/SceneItems/attributenodeitem.cpp \
     Widgets/New/dataeditwidget.cpp \
     Controller/filehandler.cpp \
-    View/nodeview.cpp \
     GUI/popupwidget.cpp
 
 RESOURCES += \

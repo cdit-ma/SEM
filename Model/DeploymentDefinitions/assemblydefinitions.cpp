@@ -1,15 +1,8 @@
 #include "assemblydefinitions.h"
-#include "componentassembly.h"
-#include "managementcomponent.h"
-#include "QOS/qosprofile.h"
 
-AssemblyDefinitions::AssemblyDefinitions():Node(Node::NT_ASPECT)
+AssemblyDefinitions::AssemblyDefinitions():Node(Node::NK_ASSEMBLY_DEFINITIONS)
 {
-}
-
-AssemblyDefinitions::~AssemblyDefinitions()
-{
-
+    setNodeType(NT_ASPECT);
 }
 
 VIEW_ASPECT AssemblyDefinitions::getViewAspect()
@@ -19,22 +12,27 @@ VIEW_ASPECT AssemblyDefinitions::getViewAspect()
 
 bool AssemblyDefinitions::canAdoptChild(Node *node)
 {
-    ComponentAssembly* componentAssembly = dynamic_cast<ComponentAssembly *>(node);
-    ManagementComponent* managementComponent = dynamic_cast<ManagementComponent *>(node);
-    QOSProfile* qosProfile = dynamic_cast<QOSProfile *>(node);
-
-    if(!(componentAssembly || managementComponent || qosProfile)){
-        //AssemblyDefinition can only adopt ComponentAssemblies or ManagementComponents
-        return false;
-    }
-
-    if(managementComponent){
-        foreach(Node* child, getChildrenOfKind("ManagementComponent", 0)){
+    switch(node->getNodeKind()){
+    case NK_COMPONENT_ASSEMBLY:
+        break;
+    case NK_MANAGEMENT_COMPONENT:
+        foreach(Node* child, getChildrenOfKind(NK_MANAGEMENT_COMPONENT, 0)){
             if(node->compareData(child, "type")){
                 //AssemblyDefinition can only adopt ManagementComponents with different types.
                 return false;
             }
         }
+        break;
+    default:
+        //Check for QOS profiles.
+        if(!node->isNodeofType(NT_QOS_PROFILE)){
+            return false;
+        }
     }
     return Node::canAdoptChild(node);
+}
+
+bool AssemblyDefinitions::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return false;
 }

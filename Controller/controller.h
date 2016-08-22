@@ -1,9 +1,5 @@
 #ifndef NEWCONTROLLER_H
 #define NEWCONTROLLER_H
-#include "../Model/model.h"
-#include "../Model/workerdefinitions.h"
-#include "entityadapter.h"
-#include "behaviournodeadapter.h"
 
 
 #include <QStack>
@@ -13,17 +9,22 @@
 #include <QNetworkInterface>
 #include <QReadWriteLock>
 
-#include "../Model/Edges/definitionedge.h"
-#include "../Model/Edges/workflowedge.h"
-#include "../Model/Edges/dataedge.h"
-#include "../Model/Edges/assemblyedge.h"
-#include "../Model/Edges/aggregateedge.h"
-#include "../Model/Edges/deploymentedge.h"
-#include "../Model/Edges/qosedge.h"
-#include "../Model/data.h"
+#include "doublehash.h"
 #include "viewcontroller.h"
 
-#include "doublehash.h"
+#include "../Model/model.h"
+#include "../Model/edge.h"
+#include "../Model/node.h"
+#include "../Model/key.h"
+#include "../Model/data.h"
+#include "../Model/workerdefinitions.h"
+
+#include "../Model/InterfaceDefinitions/eventport.h"
+#include "../Model/InterfaceDefinitions/aggregate.h"
+#include "../Model/BehaviourDefinitions/parameter.h"
+#include "../Model/BehaviourDefinitions/process.h"
+#include "../Model/DeploymentDefinitions/managementcomponent.h"
+
 
 #define DANCE_EXECUTION_MANAGER "DANCE_EXECUTION_MANAGER"
 #define DANCE_PLAN_LAUNCHER "DANCE_PLAN_LAUNCHER"
@@ -244,8 +245,6 @@ signals:
     void controller_ExportedSnippet(QString parentName, QString snippetXMLData);
 
     void controller_GraphMLConstructed(Entity*);
-    void controller_EntityConstructed(EntityAdapter*);
-    void controller_EntityDestructed(EntityAdapter*);
 
     void controller_GraphMLDestructed(int ID, GraphML::GRAPHML_KIND kind);
     void test_destruct(int ID);
@@ -290,7 +289,7 @@ private slots:
     void clear();
 
 
-    void constructConnectedNode(int parentID, QString kind, QPointF centerPoint, int connectedID);
+    void constructConnectedNode(int parentID, QString kind,Edge::EDGE_CLASS edgeClass, QPointF centerPoint, int connectedID);
 
     void constructNode(int parentID, QString kind, QPointF centerPoint);
 
@@ -380,8 +379,8 @@ private:
     //Returns "" if no Attribute found.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
-    Edge* _constructEdge(Node* src, Node* dst);
-    Edge* constructEdgeWithData(Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
+    Edge* _constructEdge(Edge::EDGE_CLASS edgeClass, Node* src, Node* dst);
+    Edge* constructEdgeWithData(Edge::EDGE_CLASS edgeClass, Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
     void storeGraphMLInHash(Entity*item);
@@ -428,6 +427,7 @@ private:
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all Data which isn't protected.
     bool setupDependantRelationship(Node* definition, Node* node);
     bool teardownDependantRelationship(Node* definition, Node* node);
+
 
 
 

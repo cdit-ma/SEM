@@ -8,9 +8,9 @@ class Workload: public BehaviourNode
     Q_OBJECT
 public:
     Workload();
-    ~Workload();
-public:
+
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // WORKLOAD_H

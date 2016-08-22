@@ -1,5 +1,4 @@
 #include "controller.h"
-#include "../View/nodeview.h"
 #include <QDebug>
 #include <algorithm>
 #include <QDateTime>
@@ -10,9 +9,106 @@
 #include <QDir>
 #include <QStringBuilder>
 #include <QReadWriteLock>
-#include "edgeadapter.h"
-#include "nodeadapter.h"
+#include <QRegularExpression>
+
 #include "../Model/tempentity.h"
+
+
+
+#include "../Model/Edges/definitionedge.h"
+#include "../Model/Edges/workflowedge.h"
+#include "../Model/Edges/dataedge.h"
+#include "../Model/Edges/assemblyedge.h"
+#include "../Model/Edges/aggregateedge.h"
+#include "../Model/Edges/deploymentedge.h"
+#include "../Model/Edges/qosedge.h"
+
+
+
+#include "../Model/BehaviourDefinitions/behaviourdefinitions.h"
+#include "../Model/BehaviourDefinitions/componentimpl.h"
+#include "../Model/BehaviourDefinitions/ineventportimpl.h"
+#include "../Model/BehaviourDefinitions/outeventportimpl.h"
+#include "../Model/BehaviourDefinitions/attributeimpl.h"
+
+#include "../Model/BehaviourDefinitions/branchstate.h"
+#include "../Model/BehaviourDefinitions/condition.h"
+#include "../Model/BehaviourDefinitions/periodicevent.h"
+#include "../Model/BehaviourDefinitions/process.h"
+#include "../Model/BehaviourDefinitions/termination.h"
+#include "../Model/BehaviourDefinitions/variable.h"
+#include "../Model/BehaviourDefinitions/workload.h"
+#include "../Model/BehaviourDefinitions/whileloop.h"
+
+
+
+
+#include "../Model/BehaviourDefinitions/inputparameter.h"
+#include "../Model/BehaviourDefinitions/returnparameter.h"
+
+#include "../Model/BehaviourDefinitions/periodicevent.h"
+
+#include "../Model/DeploymentDefinitions/deploymentdefinitions.h"
+#include "../Model/DeploymentDefinitions/hardwaredefinitions.h"
+#include "../Model/DeploymentDefinitions/assemblydefinitions.h"
+#include "../Model/DeploymentDefinitions/deploymentdefinitions.h"
+
+
+#include "../Model/DeploymentDefinitions/componentassembly.h"
+
+#include "../Model/DeploymentDefinitions/attributeinstance.h"
+#include "../Model/DeploymentDefinitions/componentinstance.h"
+#include "../Model/DeploymentDefinitions/ineventportinstance.h"
+#include "../Model/DeploymentDefinitions/outeventportinstance.h"
+
+#include "../Model/DeploymentDefinitions/hardwarecluster.h"
+#include "../Model/DeploymentDefinitions/hardwarenode.h"
+#include "../Model/DeploymentDefinitions/managementcomponent.h"
+#include "../Model/DeploymentDefinitions/ineventportdelegate.h"
+#include "../Model/DeploymentDefinitions/outeventportdelegate.h"
+
+#include "../Model/InterfaceDefinitions/interfacedefinitions.h"
+#include "../Model/InterfaceDefinitions/aggregateinstance.h"
+
+#include "../Model/InterfaceDefinitions/memberinstance.h"
+#include "../Model/InterfaceDefinitions/attribute.h"
+#include "../Model/InterfaceDefinitions/component.h"
+#include "../Model/InterfaceDefinitions/outeventport.h"
+#include "../Model/InterfaceDefinitions/ineventport.h"
+#include "../Model/InterfaceDefinitions/idl.h"
+#include "../Model/InterfaceDefinitions/aggregate.h"
+#include "../Model/InterfaceDefinitions/member.h"
+#include "../Model/InterfaceDefinitions/vector.h"
+#include "../Model/InterfaceDefinitions/vectorinstance.h"
+
+#include "../Model/InterfaceDefinitions/blackbox.h"
+#include "../Model/DeploymentDefinitions/blackboxinstance.h"
+
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h"
+
+
 
 bool UNDO = true;
 bool REDO = false;
@@ -772,7 +868,7 @@ void NewController::constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeCla
     if(src && dst){
         Edge* edge = 0;
 
-        edge = _constructEdge(src, dst);
+        edge = _constructEdge(edgeClass, src, dst);
         success = edge;
     }
     lock.unlock();
@@ -840,7 +936,7 @@ void NewController::constructDDSQOSProfile(int parentID, QPointF position)
 }
 
 
-void NewController::constructConnectedNode(int parentID, QString kind, QPointF centerPoint, int connectedID)
+void NewController::constructConnectedNode(int parentID, QString kind, Edge::EDGE_CLASS edgeClass, QPointF centerPoint, int connectedID)
 {
     Node* parentNode = getNodeFromID(parentID);
     Node* connectedNode = getNodeFromID(connectedID);
@@ -868,11 +964,11 @@ void NewController::constructConnectedNode(int parentID, QString kind, QPointF c
                         attachChildNode(parentNode, newNode);
 
                         //Constrct an Edge between the 2 items.
-                        constructEdgeWithData(newNode, connectedNode);
+                        constructEdgeWithData(edgeClass, newNode, connectedNode);
 
                         //Try the alternate connection.
                         if(!newNode->gotEdgeTo(connectedNode)){
-                            constructEdgeWithData(connectedNode, newNode);
+                            constructEdgeWithData(edgeClass, connectedNode, newNode);
                         }
 
 
@@ -918,16 +1014,16 @@ void NewController::constructDestructEdges(QList<int> destruct_srcIDs, QList<int
     foreach (int srcID, construct_srcIDs) {
         Node* src = getNodeFromID(srcID);
         Node* dst = getNodeFromID(dstID);
-        constructEdgeWithData(src, dst);
+        constructEdgeWithData(Edge::EC_NONE, src, dst);
     }
 
     emit controller_ActionFinished();
 }
 
 
-Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<Data *> data, int previousID)
+Edge* NewController::constructEdgeWithData(Edge::EDGE_CLASS edgeClass, Node *src, Node *dst, QList<Data *> data, int previousID)
 {
-    Edge* edge = _constructEdge(src, dst);
+    Edge* edge = _constructEdge(edgeClass, src, dst);
     if(edge){
         _attachData(edge, data, false);
 
@@ -1458,7 +1554,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
         Node* node = getFirstNodeFromList(IDs);
         if(node && node->getParentNode()){
-            parentNodeKind = node->getParentNode()->getNodeKind();
+            parentNodeKind = node->getParentNode()->getNodeKindStr();
         }
 
         bool readOnly = false;
@@ -1803,7 +1899,7 @@ QStringList NewController::getValidKeyValues(int nodeID, QString keyName)
         QString nodeKind = "";
         if(nodeID != -1){
             Node* node = getNodeFromID(nodeID);
-            nodeKind = node->getNodeKind();
+            nodeKind = node->getNodeKindStr();
         }
 
         validKeyValues = key->getValidValues(nodeKind);
@@ -2107,24 +2203,18 @@ Key *NewController::getKeyFromID(int ID)
 }
 
 
-Edge *NewController::_constructEdge(Node *src, Node *dst)
+Edge *NewController::_constructEdge(Edge::EDGE_CLASS edgeClass, Node* src, Node* dst)
 {
     if(src && dst){
-        Edge::EDGE_CLASS edgeClass = src->canConnect(dst);
-
-        if(edgeClass != Edge::EC_NONE){
-            Edge* edge = constructTypedEdge(src, dst, edgeClass);
-
-            if(edge){
-                //Attach required data.
-                _attachData(edge, constructRequiredEdgeData(edgeClass), false);
-            }
-
-            return edge;
-        }else{
-            if(!src->gotEdgeTo(dst)){
-                qCritical() << "Edge: Source: " << src->toString() << " to Destination: " << dst->toString() << " Cannot be created!";
-            }
+        Edge* edge = constructTypedEdge(src, dst, edgeClass);
+        if(edge){
+            //Attach required data.
+            _attachData(edge, constructRequiredEdgeData(edgeClass), false);
+        }
+        return edge;
+    }else{
+        if(!src->gotEdgeTo(dst)){
+            qCritical() << "Edge: Source: " << src->toString() << " to Destination: " << dst->toString() << " Cannot be created!";
         }
     }
     return 0;
@@ -2929,7 +3019,7 @@ int NewController::constructDependantRelative(Node *parent, Node *definition)
         }
 
         if(typeMatched && labelMatched){
-            Edge* connectingEdge = constructEdgeWithData(child, definition);
+            Edge* connectingEdge = constructEdgeWithData(Edge::EC_DEFINITION, child, definition);
 
             if(!connectingEdge){
                 qCritical() << "constructDefinitionRelative(): Couldn't construct Edge between Relative Node and Definition Node.";
@@ -2948,7 +3038,7 @@ int NewController::constructDependantRelative(Node *parent, Node *definition)
             return 0;
         }
 
-        Edge* connectingEdge = constructEdgeWithData(instanceNode, definition);
+        Edge* connectingEdge = constructEdgeWithData(Edge::EC_DEFINITION, instanceNode, definition);
 
         if(!connectingEdge){
             return 0;
@@ -3028,7 +3118,7 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
 
 bool NewController::requiresUniqueLabel(Node *node)
 {
-    if(node->getNodeKind() == "Process"){
+    if(node->getNodeKindStr() == "Process"){
         return false;
     }
     return true;
@@ -3153,7 +3243,7 @@ bool NewController::destructNode(Node *node)
         action.Action.type = DESTRUCTED;
         action.Action.kind = node->getGraphMLKind();
         action.Entity.kind = node->getEntityKind();
-        action.Entity.nodeKind = node->getNodeKind();
+        action.Entity.nodeKind = node->getNodeKindStr();
         action.Entity.XML = _exportGraphMLDocument(node);
         addActionToStack(action);
     }
@@ -3863,12 +3953,12 @@ void NewController::constructNodeGUI(Node *node)
     action.ID = node->getID();
     action.parentID = node->getParentNodeID();
     action.Entity.kind = node->getEntityKind();
-    action.Entity.nodeKind = node->getNodeKind();
+    action.Entity.nodeKind = node->getNodeKindStr();
 
     if(node->getParentNode()){
         //Variable.
         Node* parentNode = node->getParentNode();
-        if(parentNode && parentNode->getNodeKind() == "Variable"){
+        if(parentNode && parentNode->getNodeKindStr() == "Variable"){
             Data* typeData = parentNode->getData("type");
             Data* childType = node->getData("type");
             typeData->setParentData(childType);
@@ -3938,7 +4028,7 @@ void NewController::bindData(Node *definition, Node *child)
     Data* def_Sort = definition->getData("sortOrder");
     Data* child_Sort = child->getData("sortOrder");
 
-    QString childKind = child->getNodeKind();
+    QString childKind = child->getNodeKindStr();
     bool bindTypes = true;
     bool bindLabels = false;
     bool bindSort = false;
@@ -4030,7 +4120,7 @@ bool NewController::setupDependantRelationship(Node *definition, Node *node)
                 //Construct relationships between the children which matched the definitionChild.
                 int instancesConnected = constructDependantRelative(node, child);
 
-                if(instancesConnected == 0 && !node->getNodeKind().endsWith("EventPortInstance")){
+                if(instancesConnected == 0 && !node->getNodeKindStr().endsWith("EventPortInstance")){
                     qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << node->toString();
                     return false;
                 }
@@ -4122,7 +4212,7 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
 
         if(!edge){
             //Construct an Edge between the AggregateInstance an Aggregate
-            constructEdgeWithData(aggregateInstance, aggregate);
+            constructEdgeWithData(Edge::EC_DEFINITION, aggregateInstance, aggregate);
             edge = aggregateInstance->getEdgeTo(aggregate);
         }
 
@@ -4223,7 +4313,7 @@ bool NewController::setupAggregateRelationship(Node *node, Aggregate *aggregate)
     }
 
 
-    EventPortDelegate* eventPortDelegate = dynamic_cast<EventPortDelegate*>(node);
+    EventPortAssembly* eventPortDelegate = dynamic_cast<EventPortAssembly*>(node);
     if(eventPortDelegate){
         eventPortDelegate->setAggregate(aggregate);
     }
@@ -4247,7 +4337,7 @@ bool NewController::teardownAggregateRelationship(Node *node, Aggregate *aggrega
     }
 
 
-    EventPortDelegate* eventPortDelegate = dynamic_cast<EventPortDelegate*>(node);
+    EventPortAssembly* eventPortDelegate = dynamic_cast<EventPortAssembly*>(node);
     if(eventPortDelegate){
         eventPortDelegate->unsetAggregate();
     }
@@ -4263,7 +4353,7 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     QString inputNodeKind;
     if(inputTopParent){
         //If we are connecting to an Variable, we don't want to bind.
-        inputNodeKind = inputTopParent->getNodeKind();
+        inputNodeKind = inputTopParent->getNodeKindStr();
         if(inputNodeKind == "Variable"){
             return true;
         }
@@ -4275,7 +4365,7 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
 
     if(outputTopParent){
         //Bind Parent Label if we are a variable.
-        QString parentNodeKind = outputTopParent->getNodeKind();
+        QString parentNodeKind = outputTopParent->getNodeKindStr();
         if(parentNodeKind == "Variable" || parentNodeKind == "AttributeImpl"){
             definitionData = outputTopParent->getData("label");
         }
@@ -4294,7 +4384,7 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     //Bind special stuffs.
     Node* inputParent = input->getParentNode();
     if(inputParent){
-        QString parentNodeKind = inputParent->getNodeKind();
+        QString parentNodeKind = inputParent->getNodeKindStr();
         if(parentNodeKind == "Process"){
             QString workerName = inputParent->getDataValue("worker").toString();
             QString operationName = inputParent->getDataValue("operation").toString();
@@ -4349,10 +4439,10 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
     if(parameter->isInputParameter()){
         Data* value = parameter->getData("value");
 
-        QString dataKind = data->getNodeKind();
+        QString dataKind = data->getNodeKindStr();
         Node* dataParent = data->getParentNode();
         if(dataKind == "VectorInstance"){
-            if(dataParent->getNodeKind() == "Variable"){
+            if(dataParent->getNodeKindStr() == "Variable"){
                 //Bind the label of the variable to the parameter.
                 Data* label = dataParent->getData("label");
                 value->setParentData(label);
@@ -4402,10 +4492,10 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
 bool NewController::teardownParameterRelationship(Parameter *parameter, Node *data)
 {
     if(parameter->isInputParameter()){
-        QString dataKind = data->getNodeKind();
+        QString dataKind = data->getNodeKindStr();
         Node* dataParent = data->getParentNode();
         if(dataKind == "VectorInstance"){
-            if(dataParent->getNodeKind() == "Variable"){
+            if(dataParent->getNodeKindStr() == "Variable"){
                 //Bind the label of the variable to the parameter.
                 Data* label = dataParent->getData("label");
                 label->unsetParentData();
@@ -4745,8 +4835,9 @@ Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS e
         returnable = new QOSEdge(src, dst);
         break;
     default:
-        qCritical() << "CANNOT CONSTRUCT EDGE OF TYPE GG: " << src << " TO " << dst;
+        break;
     }
+
     return returnable;
 }
 
@@ -4941,10 +5032,10 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
             foreach (int srcID, srcIDs) {
                 Node* src = getNodeFromID(srcID);
 
-                Edge* edge = constructEdgeWithData(src, dst);
+                Edge* edge = constructEdgeWithData(Edge::EC_DEPLOYMENT, src, dst);
                 if(!edge){
                     //Try swap
-                    constructEdgeWithData(dst, src);
+                    constructEdgeWithData(Edge::EC_DEPLOYMENT,dst, src);
                 }
                 if(!src || !src->gotEdgeTo(dst)){
                     QString message = "Cannot connect entity: '" % src->getDataValue("label").toString() % "'' to hardware entity: '" % dst->getDataValue("label").toString() % ".";
@@ -5348,7 +5439,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     Node* newNode = 0;
 
                         //Don't attach model information for anything but Open
-                    if(!OPENING_PROJECT && entity->getNodeKind() == "Model"){
+                    if(!OPENING_PROJECT && entity->getKind() == "Model"){
                         newNode = getModel();
                         //Ignore the construction.
                         entity->setIgnoreConstruction();
@@ -5359,7 +5450,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     }
 
                     if(!newNode){
-                        QString message = "Cannot create Node '" % entity->getNodeKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
+                        QString message = "Cannot create Node '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
                         emit  controller_DisplayMessage(WARNING, message, "Import Error", "Import");
                         entity->setIgnoreConstruction();
                         continue;
@@ -5401,14 +5492,56 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     }
 
 
-    QMap<Edge::EDGE_CLASS, TempEntity*> edgesMap;
+    QMultiMap<Edge::EDGE_CLASS, TempEntity*> edgesMap;
     //Order Edges into map.
     while(!edgeIDStack.isEmpty()){
         //Get the String ID of the node.
         QString ID = edgeIDStack.takeFirst();
-        TempEntity *entity = entityHash[ID];
+        TempEntity* entity = entityHash.value(ID, 0);
 
         if(entity && entity->isEdge()){
+            TempEntity* srcEntity = entityHash.value(entity->getSrcID(), 0);
+            TempEntity* dstEntity = entityHash.value(entity->getDstID(), 0);
+
+            Node* src = 0;
+            Node* dst = 0;
+
+            if(srcEntity && srcEntity->gotActualID()){
+                src = getNodeFromID(srcEntity->getActualID());
+            }else if(entity->getActualSrcID() > 0){
+                src = getNodeFromID(entity->getActualSrcID());
+            }
+
+            if(dstEntity && dstEntity->gotActualID()){
+                dst = getNodeFromID(dstEntity->getActualID());
+            }else if(entity->getActualDstID() > 0){
+                dst = getNodeFromID(entity->getActualDstID());
+            }
+
+            if(src && dst){
+                QString kind = entity->getKind();
+                Edge::EDGE_CLASS edgeClass = Edge::getEdgeClass(kind);
+                edgesMap.insert(edgeClass, entity);
+            }else{
+                //Don't construct if we have an error.
+				entity->setIgnoreConstruction();
+                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error", "Import");
+			}
+        }
+    }
+
+    if(updateProgressNotification()){
+        emit showProgress(true, "Constructing Edges");
+    }
+
+    while(!edgesMap.isEmpty()){
+        TempEntity* entity = edgesMap.values().first();
+        if(entity){
+            QString kind = entity->getKind();
+            Edge::EDGE_CLASS edgeClass = Edge::getEdgeClass(kind);
+            //Remove it from the hash.
+            edgesMap.remove(edgeClass, entity);
+
             TempEntity* srcEntity = entityHash[entity->getSrcID()];
             TempEntity* dstEntity = entityHash[entity->getDstID()];
 
@@ -5428,81 +5561,36 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
             }
 
             if(src && dst){
-                bool inMap = false;
-                if(dst->isDefinition()){
-                    if(src->isInstance() || src->isImpl()){
-                        edgesMap.insertMulti(Edge::EC_DEFINITION, entity);
-                        inMap = true;
-                    }else if(dst->getNodeKind() == "Aggregate"){
-                        edgesMap.insertMulti(Edge::EC_AGGREGATE, entity);
-                        inMap = true;
+                //Try set the Edge class.
+                if(edgeClass == Edge::EC_UNDEFINED){
+                    edgeClass = src->canConnect(dst);
+                }
+
+                Edge* edge = src->getEdgeTo(dst);
+                if(edge){
+                    _attachData(edge, entity->takeDataList());
+                }else{
+                    edge = constructEdgeWithData(edgeClass, src, dst, entity->takeDataList());
+                    qCritical() << edge;
+                    _attachData(edge, entity->takeDataList());
+                }
+
+                if(edge){
+                    if(updateProgressNotification()){
+                        emit progressChanged((entitiesMade* 100) / totalEntities);
                     }
-                }
-                if(!inMap){
-                    edgesMap.insertMulti(Edge::EC_UNDEFINED, entity);
-                }
-            }else{
-                //Don't construct if we have an error.
-				entity->setIgnoreConstruction();
-                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error", "Import");
-			}
-        }
-    }
+                    entitiesMade ++;
 
-    if(updateProgressNotification()){
-        emit showProgress(true, "Constructing Edges");
-    }
-
-    QList<Edge::EDGE_CLASS> edgeOrder;
-    edgeOrder << Edge::EC_DEFINITION << Edge::EC_AGGREGATE << Edge::EC_UNDEFINED;
-
-    foreach(Edge::EDGE_CLASS edgeClass, edgeOrder){
-        QList<TempEntity*> entityList = edgesMap.values(edgeClass);
-
-        while(!entityList.isEmpty()){
-            TempEntity* entity = entityList.takeFirst();
-            if(entity){
-                TempEntity* srcEntity = entityHash[entity->getSrcID()];
-                TempEntity* dstEntity = entityHash[entity->getDstID()];
-
-                Node* src = 0;
-                Node* dst = 0;
-
-                if(srcEntity && srcEntity->gotActualID()){
-                    src = getNodeFromID(srcEntity->getActualID());
-                }else if(entity->getActualSrcID() > 0){
-                    src = getNodeFromID(entity->getActualSrcID());
-                }
-
-                if(dstEntity && dstEntity->gotActualID()){
-                    dst = getNodeFromID(dstEntity->getActualID());
-                }else if(entity->getActualDstID() > 0){
-                    dst = getNodeFromID(entity->getActualDstID());
-                }
-
-                if(src && dst){
-                    Edge* edge = src->getEdgeTo(dst);
-                    if(edge){
-                        _attachData(edge, entity->takeDataList());
-                    }else{
-                        edge = constructEdgeWithData(src, dst, entity->takeDataList());
+                    if(linkPreviousID && entity->hasPrevID()){
+                        //Link the old ID
+                        linkOldIDToID(entity->getPrevID(), edge->getID());
                     }
-
-                    if(edge){
-                        if(updateProgressNotification()){
-                            emit progressChanged((entitiesMade* 100) / totalEntities);
-                        }
-                        entitiesMade ++;
-
-                        if(linkPreviousID && entity->hasPrevID()){
-                            //Link the old ID
-                            linkOldIDToID(entity->getPrevID(), edge->getID());
-                        }
-                    }else{
-                        if(entity->getRetryCount() < 3){
-                            entity->incrementRetryCount();
-                            entityList.append(entity);
-                        }
+                }else{
+                    if(entity->getRetryCount() < 3){
+                        entity->incrementRetryCount();
+                        QString kind = entity->getKind();
+                        Edge::EDGE_CLASS edgeClass = Edge::getEdgeClass(kind);
+                        edgesMap.insertMulti(edgeClass, entity);
                     }
                 }
             }

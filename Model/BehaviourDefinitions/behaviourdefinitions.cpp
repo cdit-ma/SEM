@@ -1,12 +1,8 @@
 #include "behaviourdefinitions.h"
-#include "componentimpl.h"
 
-BehaviourDefinitions::BehaviourDefinitions():Node(Node::NT_ASPECT)
+BehaviourDefinitions::BehaviourDefinitions():Node(Node::NK_BEHAVIOUR_DEFINITIONS)
 {
-}
-
-BehaviourDefinitions::~BehaviourDefinitions()
-{
+    setNodeType(NT_ASPECT);
 }
 
 VIEW_ASPECT BehaviourDefinitions::getViewAspect()
@@ -16,11 +12,17 @@ VIEW_ASPECT BehaviourDefinitions::getViewAspect()
 
 bool BehaviourDefinitions::canAdoptChild(Node *child)
 {
-    ComponentImpl* component = dynamic_cast<ComponentImpl *>(child);
-
-    if(!component){
+    switch(child->getNodeKind()){
+    case Node::NK_COMPONENT_IMPL:{
+        break;
+    }
+    default:
         return false;
     }
-
     return Node::canAdoptChild(child);
+}
+
+bool BehaviourDefinitions::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return false;
 }

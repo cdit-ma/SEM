@@ -116,7 +116,7 @@ void TempEntity::setActualParentID(int ID)
     actualParentID = ID;
 }
 
-QString TempEntity::getNodeKind()
+QString TempEntity::getKind()
 {
     return nodeKind;
 }

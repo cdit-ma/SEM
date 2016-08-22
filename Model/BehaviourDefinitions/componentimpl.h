@@ -7,11 +7,8 @@ class ComponentImpl: public Node
      Q_OBJECT
 public:
     ComponentImpl();
-    ~ComponentImpl();
-    
-public:
     bool canAdoptChild(Node* child);
-    bool canConnect_DefinitionEdge(Node *definition);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // COMPONENTBEHAVIOUR_H

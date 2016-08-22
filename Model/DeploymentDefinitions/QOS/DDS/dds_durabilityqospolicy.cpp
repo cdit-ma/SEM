@@ -1,15 +1,16 @@
 #include "dds_durabilityqospolicy.h"
 
-DDS_DurabilityQosPolicy::DDS_DurabilityQosPolicy():Node(NT_QOS)
+DDS_DurabilityQosPolicy::DDS_DurabilityQosPolicy():Node(NK_QOS_DDS_POLICY_DURABILITY)
 {
-}
-
-DDS_DurabilityQosPolicy::~DDS_DurabilityQosPolicy()
-{
-
+    setNodeType(NT_QOS_DDS_POLICY);
 }
 
 bool DDS_DurabilityQosPolicy::canAdoptChild(Node*)
+{
+    return false;
+}
+
+bool DDS_DurabilityQosPolicy::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
     return false;
 }

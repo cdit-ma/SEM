@@ -1,11 +1,6 @@
 #include "whileloop.h"
 
-WhileLoop::WhileLoop():Branch(){
-
-}
-
-WhileLoop::~WhileLoop(){
-
+WhileLoop::WhileLoop():Branch(NK_WHILELOOP){
 }
 
 bool WhileLoop::canAdoptChild(Node *node)
@@ -14,6 +9,11 @@ bool WhileLoop::canAdoptChild(Node *node)
         return false;
     }
     return Branch::canAdoptChild(node);
+}
+
+bool WhileLoop::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return Branch::canAcceptEdge(edgeKind, dst);
 }
 
 

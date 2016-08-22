@@ -7,8 +7,8 @@ class WhileLoop: public Branch
     Q_OBJECT
 public:
     WhileLoop();
-    ~WhileLoop();
 
     bool canAdoptChild(Node *node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 #endif // WHILELOOP_H

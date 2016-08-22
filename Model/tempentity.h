@@ -33,7 +33,7 @@ public:
     TempEntity* getParentEntity();
     void setParentID(QString ID);
     void setActualParentID(int ID);
-    QString getNodeKind();
+    QString getKind();
 
     QString getParentID();
     int getActualParentID();
@@ -75,6 +75,7 @@ private:
     TempEntity* parent;
     QString ID;
     QString nodeKind;
+
     int actualID;
     int oldID;
     int actualParentID;

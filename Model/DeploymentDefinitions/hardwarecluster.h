@@ -1,15 +1,13 @@
 #ifndef HARDWARECLUSTER_H
 #define HARDWARECLUSTER_H
-#include "hardware.h"
-
-class HardwareCluster : public Hardware
+#include "../node.h"
+class HardwareCluster : public Node
 {
     Q_OBJECT
 public:
     HardwareCluster();
-    ~HardwareCluster();
-
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // HARDWARECLUSTER_H

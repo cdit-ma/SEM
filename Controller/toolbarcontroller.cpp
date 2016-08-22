@@ -120,7 +120,7 @@ void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPoint
     int ID = selectionController->getFirstSelectedItemID();
     qCritical() << kind;
     if(ID != -1){
-        emit viewController->vc_constructConnectedNode(ID, kind, position, dstID);
+        emit viewController->vc_constructConnectedNode(ID, kind, Edge::EC_DEFINITION, position, dstID);
     }
 }
 

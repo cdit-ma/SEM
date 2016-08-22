@@ -3,7 +3,6 @@
 #include <QObject>
 
 #include <QFont>
-#include "Widgets/medeawindow.h"
 #include "Widgets/New/medeamainwindow.h"
 #include "Widgets/New/medeawindowmanager.h"
 #include "Controller/viewcontroller.h"

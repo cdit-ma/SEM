@@ -7,9 +7,8 @@ class DDS_TimeBasedFilterQosPolicy: public Node
     Q_OBJECT
 public:
     DDS_TimeBasedFilterQosPolicy();
-    ~DDS_TimeBasedFilterQosPolicy();
-
     bool canAdoptChild(Node* node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 #endif // DDS_TIMEBASEDFILTERQOSPOLICY_H
 
