@@ -459,8 +459,6 @@ private:
     void enforceUniqueSortOrder(Node* node, int newPosition = -1);
 
 
-    //Returns true if the Model Entities can be connected.
-    bool isEdgeLegal(Node* src, Node* dst);
 
     //Returns true if a nodeKind has been Implemented in the Model.
     bool isNodeKindImplemented(QString nodeKind);

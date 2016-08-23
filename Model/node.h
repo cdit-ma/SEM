@@ -157,25 +157,14 @@ public:
     bool isDescendantOf(Node *node);
 
 
-    virtual bool canConnect(Node* node, Edge::EDGE_CLASS edgeClass);
 
 
 
 
-    Edge::EDGE_CLASS canConnect(Node* node);
-    virtual bool canConnect_AggregateEdge(Node* aggregate);
-    virtual bool canConnect_AssemblyEdge(Node* node);
-    virtual bool canConnect_DataEdge(Node* node);
-    virtual bool canConnect_DefinitionEdge(Node* definition);
-
-
-    virtual bool canConnect_DeploymentEdge(Node* hardware);
-    virtual bool canConnect_WorkflowEdge(Node* node);
-    virtual bool canConnect_QOSEdge(Node* node);
 
     //Gets the edge that is joining the node to this.
     Edge* getEdgeTo(Node* node, Edge::EDGE_CLASS edgeKind = Edge::EC_NONE);
-    bool gotEdgeTo(Node* node);
+    bool gotEdgeTo(Node* node, Edge::EDGE_CLASS edgeKind = Edge::EC_NONE);
     Edge* getEdge(int ID);
     bool isIndirectlyConnected(Node* node);
     bool containsEdgeEndPoints(Edge* edge);

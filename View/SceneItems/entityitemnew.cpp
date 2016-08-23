@@ -29,7 +29,7 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     _hasMouseMoved = false;
 
 
-    _isExpanded = true;
+    _isExpanded = false;
     expandEnabled = false;
     selectEnabled = true;
     moveEnabled = true;

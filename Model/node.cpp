@@ -116,6 +116,21 @@ bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         break;
     }
 
+
+    if(!dst->isInModel()){
+        //Don't allow edges to outside the model.
+        return false;
+    }
+
+    if(dst == this){
+        //Don't allow edges to self.
+        return false;
+    }
+
+    if(gotEdgeTo(dst, edgeKind)){
+        //Don't allow multi edges of the same kind.
+        return false;
+    }
     return true;
 }
 
@@ -549,221 +564,6 @@ bool Node::isDescendantOf(Node *node)
     return true;
 }
 
-Edge::EDGE_CLASS Node::canConnect(Node *node)
-{
-    if(!node->isInModel()){
-        return Edge::EC_NONE;
-    }
-
-    //Don't allow multiple connections.
-    if(gotEdgeTo(node)){
-        return Edge::EC_NONE;
-    }
-
-    //Don't allow connections to parents.
-    if(node->getParentNode() == this || getParentNode() == node){
-        return Edge::EC_NONE;
-    }
-
-    //Don't allow connections to self.
-    if(node == this){
-        return Edge::EC_NONE;
-    }
-
-
-    //Check if node can connect as a definition.
-    if(acceptsEdgeKind(Edge::EC_DEFINITION)){
-        //qCritical() << "Trying canConnect_DefinitionEdge";
-        if(canConnect_DefinitionEdge(node)){
-            return Edge::EC_DEFINITION;
-        }
-    }
-
-    //Check if node can connect as an Aggregate.
-    if(acceptsEdgeKind(Edge::EC_AGGREGATE)){
-        //qCritical() << "Trying canConnect_AggregateEdge";
-        if(canConnect_AggregateEdge(node)){
-            return Edge::EC_AGGREGATE;
-        }
-    }
-
-    //Check if node can connect as an Assembly.
-    if(acceptsEdgeKind(Edge::EC_ASSEMBLY)){
-        if(canConnect_AssemblyEdge(node)){
-            return Edge::EC_ASSEMBLY;
-        }
-    }
-
-    //Check if node can connect as a Data.
-    if(acceptsEdgeKind(Edge::EC_DATA)){
-        //qCritical() << "Trying canConnect_DataEdge";
-        if(canConnect_DataEdge(node)){
-            return Edge::EC_DATA;
-        }
-    }
-
-    //Check if node can connect as a Data.
-    if(acceptsEdgeKind(Edge::EC_DEPLOYMENT)){
-        //qCritical() << "Trying canConnect_DeploymentEdge";
-        if(canConnect_DeploymentEdge(node)){
-            return Edge::EC_DEPLOYMENT;
-        }
-    }
-
-    //Check if node can connect as a Data.
-    if(acceptsEdgeKind(Edge::EC_WORKFLOW)){
-        //qCritical() << "Trying canConnect_WorkflowEdge";
-        if(canConnect_WorkflowEdge(node)){
-            return Edge::EC_WORKFLOW;
-        }
-    }
-
-    if(acceptsEdgeKind(Edge::EC_QOS)){
-        if(canConnect_QOSEdge(node)){
-            return Edge::EC_QOS;
-        }
-    }
-
-    return Edge::EC_NONE;
-}
-
-bool Node::canConnect(Node *node, Edge::EDGE_CLASS edgeClass)
-{
-    //TODO
-    return false;
-}
-
-bool Node::canConnect_AggregateEdge(Node *)
-{
-    return true;
-}
-
-bool Node::canConnect_AssemblyEdge(Node *)
-{
-    return true;
-}
-
-bool Node::canConnect_DataEdge(Node *node)
-{
-    //Check for contained in same Aspect child.
-    Node* componentImpl = getParentNode(getDepthToAspect() - 1);
-    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 1);
-
-    if(componentImpl != nodeComponentImpl){
-        return false;
-    }
-    if(!componentImpl){
-        return false;
-    }
-    if(!nodeComponentImpl){
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * @brief Node::canConnect_DefinitionEdge Returns whether or not this Node can be made an Instance/Impl of the definition node provided
- * @param definition - The node which will be a definition.
- * @return true/false
- */
-bool Node::canConnect_DefinitionEdge(Node *definition)
-{
-    //This must be an Instance/Impl Node Type
-    if(!(isInstance() || isImpl())){
-        return false;
-    }
-
-    //Node must be a Definition Node Type.
-    if(!definition->isDefinition()){
-        return false;
-    }
-
-    //Node cannot already have a Definition.
-    if(getDefinition()){
-        return false;
-    }
-
-
-    //Check parentNode
-    Node* parentNode = getParentNode();
-
-    if(parentNode && (parentNode->isInstance() || parentNode->isImpl())){
-        Node* parentDefinition = parentNode->getDefinition();
-        if(parentDefinition){
-            if(!parentDefinition->isAncestorOf(definition)){
-                //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
-                return false;
-            }
-        }
-    }
-
-    //Check for cyclic stuff
-    foreach(Node* child, definition->getChildren()){
-        if(child->isInstance() && child->getDefinition()){
-            Node* def = child->getDefinition(true);
-
-            if(def){
-                if(def->isAncestorOf(this)){
-                    //Disallow cycles.
-                    return false;
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
-bool Node::canConnect_DeploymentEdge(Node *hardware)
-{
-
-
-    foreach(Edge* edge, getEdges(0)){
-        if(edge->getEdgeClass() == Edge::EC_DEPLOYMENT){
-            //There can only be one Deployment edge.
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool Node::canConnect_WorkflowEdge(Node *node)
-{
-    //Check for contained in same Aspect child.
-    Node* componentImpl = getParentNode(getDepthToAspect() - 1);
-    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 1);
-
-    if(componentImpl != nodeComponentImpl){
-        return false;
-    }
-    if(!componentImpl){
-        return false;
-    }
-    if(!nodeComponentImpl){
-        return false;
-    }
-
-    return true;
-}
-
-bool Node::canConnect_QOSEdge(Node *node)
-{
-    if(node->isNodeOfType(NT_QOS_PROFILE)){
-        //If the node we are trying to connect to isn't a HardwareType, then return false.
-        return false;
-    }
-
-    foreach(Edge* edge, getEdges(0)){
-        if(edge->getEdgeClass() == Edge::EC_QOS){
-            //There can only be one Deployment edge.
-            return false;
-        }
-    }
-    return true;
-}
-
 
 
 Edge* Node::getEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
@@ -777,9 +577,9 @@ Edge* Node::getEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
 }
 
 
-bool Node::gotEdgeTo(Node *node)
+bool Node::gotEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
 {
-    return getEdgeTo(node) != 0;
+    return getEdgeTo(node, edgeKind) != 0;
 }
 
 Edge *Node::getEdge(int ID)

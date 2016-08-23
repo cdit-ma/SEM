@@ -951,7 +951,7 @@ void NewController::constructConnectedNode(int parentID, QString kind, Edge::EDG
             if(parentNode->canAdoptChild(testNode)){
                 parentNode->addChild(testNode);
                 //if we can create an edge to this test node, remove it and recreate a new Node properly
-                bool edgeOkay = testNode->canConnect(connectedNode);
+                bool edgeOkay = testNode->canAcceptEdge(edgeClass, connectedNode);
                 //Remove it.
                 delete testNode;
 
@@ -1794,7 +1794,7 @@ QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edg
             if(dst->canAcceptEdgeClass(edgeKind)){
                 bool accepted = true;
                 foreach(Node* src, sourceNodes){
-                    if(src->canConnect(dst) != edgeKind){
+                    if(src->canAcceptEdge(edgeKind, dst)){
                         accepted = false;
                         break;
                     }
@@ -3376,16 +3376,6 @@ bool NewController::destructEntity(Entity *item)
     return false;
 }
 
-
-
-bool NewController::isEdgeLegal(Node *src, Node *dst)
-{
-    if(src && dst){
-        //Check for dual way connections.
-        return src->canConnect(dst) != Edge::EC_NONE;
-    }
-    return false;
-}
 
 bool NewController::isNodeKindImplemented(QString nodeKind)
 {
