@@ -39,6 +39,7 @@ public slots:
 private:    
     void setupToolbar();
     void setupActions();
+    void setupConnectMenu();
     void setupMenus();
     void setupSplitMenus();
     void setupAddChildMenu();
@@ -74,6 +75,7 @@ private:
     QMenu* hardwareMenu;
     QMenu* replicateMenu;
     QMenu* hardwareViewOptionMenu;
+    QMenu* connectMenu;
 
     QAction* addChildAction;
     QAction* connectAction;

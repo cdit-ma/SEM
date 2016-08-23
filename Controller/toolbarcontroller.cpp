@@ -22,6 +22,7 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
     this->selectionController = viewController->getSelectionController();
     setupNodeActions();
     setupToolActions();
+    setupEdgeActions();
 
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
@@ -150,19 +151,25 @@ QAction *ToolActionController::getNodeActionOfKind(QString kind, bool stealth)
     return new RootAction("Nodes: " + kind);
 }
 
-QList<QAction*> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_CLASS kind, bool stealth)
+QList<QAction*> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_CLASS kind)
 {
     QList<QAction*> list;
 
     foreach(ViewItem* item, viewController->getValidEdges(kind)){
-        list.append(actions[item->getID()]->constructSubAction(stealth));
+        if(item && actions.contains(item->getID())){
+            qCritical() << item;
+            list.append(actions[item->getID()]->constructSubAction());
+        }
     }
     return list;
 }
 
-QAction* ToolActionController::getEdgeActionOfKind(Edge::EDGE_CLASS kind, bool stealth)
+RootAction *ToolActionController::getEdgeActionOfKind(Edge::EDGE_CLASS kind)
 {
-    return new RootAction("Edges: " + kind);
+    if(edgeKindActions.contains(kind)){
+        return edgeKindActions[kind];
+    }
+    return 0;
 }
 
 QList<QAction*> ToolActionController::getAdoptableKindsActions(bool stealth)
@@ -247,9 +254,18 @@ void ToolActionController::setupNodeActions()
     foreach(QString kind, viewController->getNodeKinds()){
         RootAction* action = new RootAction(kind);
         action->setIconPath("Items", kind);
-        //action->setIcon(Theme::theme()->getIcon("Items", kind));
         nodeKindActions[kind]= action;
         adoptableKindsGroup->addAction(action);
+    }
+}
+
+void ToolActionController::setupEdgeActions()
+{
+    foreach(Edge::EDGE_CLASS edgeKind, Edge::getEdgeClasses()){
+        QString edgeName = Edge::getKind(edgeKind);
+        RootAction* action = new RootAction(edgeName);
+        action->setIconPath("Items", edgeName);
+        edgeKindActions[edgeKind] = action;
     }
 }
 
