@@ -147,8 +147,8 @@ bool DataNode::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 
 
 
-        int heightToAncestor = getHeightToCommonAncestor(dst);
-        int heightToComponentImpl = getDepthToAspect() - 1;
+        int heightToAncestor = getDepthFromCommonAncestor(dst);
+        int heightToComponentImpl = getDepthFromAspect() - 1;
 
         if(heightToAncestor > heightToComponentImpl){
             qCritical() << "OUTSIDE COMPONENT";

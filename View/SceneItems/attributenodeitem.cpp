@@ -8,7 +8,7 @@ AttributeNodeItem::AttributeNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     setResizeEnabled(false);
     setExpandEnabled(false);
 
-    height = DEFAULT_SIZE / 4.0;
+    height = DEFAULT_SIZE / 2.0;
     width = DEFAULT_SIZE * 1.5;
 
     mainTextFont.setPixelSize(7);
@@ -20,7 +20,7 @@ AttributeNodeItem::AttributeNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     setExpandedHeight(height);
     setExpanded(true);
 
-    setMargin(QMarginsF(10,15,10,10));
+    setMargin(QMarginsF(10,10,10,10));
     setBodyPadding(QMarginsF(3,3,3,3));
 
     addRequiredData("x");
@@ -49,21 +49,21 @@ QRectF AttributeNodeItem::mainIconRect() const
     return rect;
 }
 
-QRectF AttributeNodeItem::labelRect() const
+QRectF AttributeNodeItem::bottomLabelRect() const
 {
     QRectF rect;
-    rect.setHeight(height);
-    rect.setWidth(5*height);
-    rect.moveTopLeft(mainIconRect().topRight());
+    rect.setHeight(height/2);
+    rect.setWidth(width-mainIconRect().width());
+    rect.moveTopLeft(labelRect().bottomLeft());
     return rect;
 }
 
-QRectF AttributeNodeItem::topLabelRect() const
+QRectF AttributeNodeItem::labelRect() const
 {
     QRectF rect;
-    rect.setWidth(width);
-    rect.setHeight(getMargin().top());
-    rect.moveBottomLeft(mainRect().topLeft());
+    rect.setWidth(width-mainIconRect().width());
+    rect.setHeight(height/2);
+    rect.moveTopLeft(mainIconRect().topRight());
     return rect;
 }
 
@@ -80,15 +80,17 @@ void AttributeNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
         painter->setBrush(getBodyColor());
         painter->drawRect(mainRect());
+        painter->setBrush(getBodyColor().lighter(110));
+        painter->drawRect(bottomLabelRect());
 
         painter->setPen(Qt::black);
 
         if(isInstance){
-            painter->drawText(labelRect(), Qt::AlignCenter, getData("value").toString());
+            painter->drawText(bottomLabelRect(), Qt::AlignCenter, getData("value").toString());
         } else {
-            painter->drawText(labelRect(), Qt::AlignCenter, getData("type").toString());
+            painter->drawText(bottomLabelRect(), Qt::AlignCenter, getData("type").toString());
         }
-        painter->drawText(topLabelRect(), Qt::AlignCenter, getData("label").toString());
+        painter->drawText(labelRect(), Qt::AlignCenter, getData("label").toString());
 
         painter->restore();
     }
@@ -105,9 +107,9 @@ QRectF AttributeNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     case ER_MAIN_ICON:
         return mainIconRect();
     case ER_MAIN_LABEL:
-        return labelRect();
+        return bottomLabelRect();
     case ER_SECONDARY_LABEL:
-        return topLabelRect();
+        return labelRect();
     default:
         return NodeItemNew::getElementRect(rect);
     }

@@ -28,6 +28,19 @@ public:
 
     void setViewController(ViewController* vc);
 
+signals:
+    void requestSuggestions();
+    void preloadImages();
+
+public slots:
+    void setModelTitle(QString modelTitle);
+    void settingChanged(SETTING_KEY setting, QVariant value);
+
+    void showProgressBar(bool show, QString description = "");
+    void updateProgressBar(int value);
+
+    void resetToolDockWidgets();
+
 private slots:
     void themeChanged();
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevDock);
@@ -37,19 +50,8 @@ private slots:
     void popupSearch();
     void updateSearchSuggestions(QStringList list);
 
-
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
-
-public slots:
-    void setModelTitle(QString modelTitle);
-    void settingChanged(SETTING_KEY setting, QVariant value);
-    void showProgressBar(bool show, QString description = "");
-    void updateProgressBar(int value);
-
-signals:
-    void requestSuggestions();
-    void preloadImages();
 
 private:
     void initializeApplication();
@@ -94,9 +96,9 @@ private:
     QToolButton* behaviourButton;
     QToolButton* assemblyButton;
     QToolButton* hardwareButton;
-    QToolButton* qosBrowserButton;
     QToolButton* restoreAspectsButton;
     QToolButton* restoreToolsButton;
+    QAction* restoreToolsAction;
 
 protected:
     void resizeEvent(QResizeEvent *);

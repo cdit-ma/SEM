@@ -30,14 +30,9 @@ QList<int> Node::getTreeIndex()
     return treeIndex;
 }
 
-QString Node::getTreeIndexString()
-{
-    return treeIndexStr;
-}
-
 QString Node::getTreeIndexAlpha()
 {
-    return treeIndexStr2;
+    return treeIndexString;
 }
 
 Node::NODE_KIND Node::getNodeKind() const
@@ -45,15 +40,6 @@ Node::NODE_KIND Node::getNodeKind() const
     return nodeKind;
 }
 
-NODE_CLASS Node::getNodeClass()
-{
-    return nodeClass;
-}
-
-Node::NODE_TYPE Node::getNodeType()
-{
-    return nodeType;
-}
 
 Node::~Node()
 {
@@ -90,7 +76,7 @@ bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         }
 
         //Node must be a Definition Node Type.
-        if(!dst->isDefinition()){
+        if(!dst->isNodeOfType(NT_DEFINITION)){
             //qCritical() << "DST ISNT DEFINITION";
             return false;
         }
@@ -171,16 +157,7 @@ void Node::setAcceptsEdgeKind(Edge::EDGE_CLASS edgeKind)
     }
 }
 
-
-
-
-Node *Node::getContainedAspect()
-{
-    int depth = getDepthToAspect();
-    return getParentNode(depth);
-}
-
-int Node::getDepthToAspect()
+int Node::getDepthFromAspect()
 {
     int depth = 0;
 
@@ -197,7 +174,7 @@ int Node::getDepthToAspect()
 
 Node *Node::getCommonAncestor(Node *dst)
 {
-    int height = getHeightToCommonAncestor(dst);
+    int height = getDepthFromCommonAncestor(dst);
 
     if(height != -1){
         return getParentNode(height);
@@ -205,7 +182,7 @@ Node *Node::getCommonAncestor(Node *dst)
     return 0;
 }
 
-int Node::getHeightToCommonAncestor(Node *dst)
+int Node::getDepthFromCommonAncestor(Node *dst)
 {
     QList<int> tree1 = getTreeIndex();
     QList<int> tree2;
@@ -231,24 +208,8 @@ int Node::getHeightToCommonAncestor(Node *dst)
 
 void Node::setTop(int index)
 {
-    this->treeIndex.append(index);
-    this->treeIndexStr = QString::number(index);
-    this->treeIndexStr2 = QChar('A' + index);
-}
-
-QString Node::toString()
-{
-    Data* kindData = getData("kind");
-    Data* labelData = getData("label");
-    QString kind = "Node";
-    QString label = "Node";
-    if(kindData){
-        kind = kindData->getValue().toString();
-    }
-    if(labelData){
-        label = labelData->getValue().toString();
-    }
-    return QString("[%1]%2 - %3").arg(QString::number(getID()), kind, label);
+    treeIndex.append(index);
+    treeIndexString = QChar('A' + index);
 }
 
 VIEW_ASPECT Node::getViewAspect()
@@ -493,10 +454,6 @@ bool Node::hasEdges()
     return !edges.isEmpty();
 }
 
-int Node::edgeCount()
-{
-    return edges.size();
-}
 
 void Node::removeChild(Node *child)
 {
@@ -582,66 +539,6 @@ bool Node::gotEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
     return getEdgeTo(node, edgeKind) != 0;
 }
 
-Edge *Node::getEdge(int ID)
-{
-    for(int i =0; i < edges.length(); i++){
-        Edge* edge = edges[i];
-        if(edge && edge->getID() == ID){
-            return edge;
-        }
-    }
-    return 0;
-}
-
-QList<Node *> Node::getAllConnectedNodes()
-{
-
-    QList<Node*> currentNodes = getChildren();
-
-
-    foreach(Edge* edge, getEdges()){
-
-        Node* src = edge->getSource();
-        Node* dst = edge->getDestination();
-
-        if(!currentNodes.contains(src)){
-            currentNodes << src;
-        }
-        if(!currentNodes.contains(dst)){
-            currentNodes << dst;
-        }
-
-
-        if(edge->isInstanceLink()){
-            Node* definition = dst->getDefinition();
-            while(definition){
-                if(!currentNodes.contains(definition)){
-                    currentNodes << definition;
-                }
-
-                definition = definition->getDefinition();
-            }
-        }
-    }
-
-    return currentNodes;
-}
-
-bool Node::isIndirectlyConnected(Node *node)
-{
-    return (getAllConnectedNodes().contains(node) || node->getAllConnectedNodes().contains(this) || node == this);
-}
-
-bool Node::containsEdgeEndPoints(Edge *edge)
-{
-    Node* src = edge->getSource();
-    Node* dst = edge->getDestination();
-
-    return isAncestorOf(src) && isAncestorOf(dst);
-}
-
-
-
 bool Node::containsEdge(Edge *edge)
 {
     return edges.contains(edge);
@@ -671,12 +568,6 @@ QList<Key *> Node::getKeys(int depth)
 
     return allKeys;
 }
-
-QString Node::getEntityName()
-{
-    return getNodeKindStr();
-}
-
 
 QString Node::toMD5Hash()
 {
@@ -727,16 +618,10 @@ bool Node::isImpl()
     return isNodeOfType(NT_IMPL);
 }
 
-bool Node::canAcceptEdgeClass(Edge::EDGE_CLASS edgeClass)
-{
-    return validEdges2.contains(edgeClass);
-}
-
 void Node::setDefinition(Node *def)
 {
     if(isImpl() || isInstance()){
         definition = def;
-        emit node_GotDefinition(true);
     }
 
 }
@@ -754,12 +639,11 @@ Node *Node::getDefinition(bool recurse)
 void Node::unsetDefinition()
 {
     definition = 0;
-    emit node_GotDefinition(false);
 }
 
 void Node::addInstance(Node *inst)
 {
-    if(isDefinition()){
+    if(isNodeOfType(NT_DEFINITION)){
         if(!instances.contains(inst)){
             instances.append(inst);
             inst->setDefinition(this);
@@ -774,7 +658,7 @@ QList<Node *> Node::getInstances()
 
 void Node::removeInstance(Node *inst)
 {
-    if(isDefinition()){
+    if(isNodeOfType(NT_DEFINITION)){
         instances.removeAll(inst);
         instances.removeAll(inst);
         inst->unsetDefinition();
@@ -783,7 +667,7 @@ void Node::removeInstance(Node *inst)
 
 void Node::addImplementation(Node *impl)
 {
-    if(isDefinition()){
+    if(isNodeOfType(NT_DEFINITION)){
         if(!implementations.contains(impl)){
             implementations.push_back(impl);
             impl->setDefinition(this);
@@ -806,7 +690,7 @@ QList<Node *> Node::getDependants()
 
 void Node::removeImplementation(Node *impl)
 {
-    if(isDefinition()){
+    if(isNodeOfType(NT_DEFINITION)){
         implementations.removeAll(impl);
         impl->unsetDefinition();
     }
@@ -816,31 +700,25 @@ void Node::removeImplementation(Node *impl)
 
 void Node::addEdge(Edge *edge)
 {
-
-
-
     if(!containsEdge(edge)){
         edges.append(edge);
-        emit node_EdgeAdded(edge->getID(), edge->getEdgeClass());
     }
 }
 
 void Node::removeEdge(Edge *edge)
 {
     edges.removeAll(edge);
-    if(edge){
-        emit node_EdgeRemoved(edge->getID(), edge->getEdgeClass());
-    }
 }
 
 void Node::setParentNode(Node *parent, int index)
 {
-    this->treeIndex = parent->getTreeIndex();
-    this->treeIndexStr = parent->getTreeIndexString() + ",";
-    this->treeIndexStr2 = parent->getTreeIndexAlpha() % QChar('A' + index);
-    this->treeIndex.append(index);
-    parentNode = parent;
     if(parent){
+        treeIndex = parent->getTreeIndex();
+        treeIndex.append(index);
+
+        treeIndexString = parent->getTreeIndexAlpha() % QChar('A' + index);
+        parentNode = parent;
+
         //Set the view Aspect.
         setViewAspect(parent->getViewAspect());
     }else{

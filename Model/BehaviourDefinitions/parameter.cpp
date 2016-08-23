@@ -32,7 +32,7 @@ bool Parameter::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
     case Edge::EC_DATA:{
         if(dst->isNodeOfType(NT_PARAMETER)){
             Parameter* parameter = (Parameter*) dst;
-            if(getHeightToCommonAncestor(dst) <= 1){
+            if(getDepthFromCommonAncestor(dst) <= 1){
                 return false;
             }
             if(parameter->isInputParameter() == parameter->isInputParameter()){

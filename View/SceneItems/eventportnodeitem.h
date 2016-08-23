@@ -32,12 +32,12 @@ private:
 
     QPolygonF mainIconPoly() const;
 
-    QRectF subIconRect() const;
+    QRectF qosRect() const;
 
-    QPolygonF subIconPoly() const;
+    QPolygonF bottomIconPoly() const;
     QPolygonF topIconPoly() const;
 
-    QRectF lockedRect() const;
+    QRectF deployedRect() const;
 
     void initPolys();
 
@@ -54,6 +54,8 @@ private:
     QPolygonF leftTopPoly;
 
     bool iconRight;
+    bool deployed;
+    bool hasQos;
 
 private slots:
     void dataChanged(QString keyName, QVariant data);

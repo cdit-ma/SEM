@@ -70,8 +70,8 @@ bool EventPortAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
             return false;
         }
 
-        int depthToAncestor = getHeightToCommonAncestor(port);
-        int depthToAncestorReverse = port->getHeightToCommonAncestor(this);
+        int depthToAncestor = getDepthFromCommonAncestor(port);
+        int depthToAncestorReverse = port->getDepthFromCommonAncestor(this);
         int difference = abs(depthToAncestor - depthToAncestorReverse);
 
         //Can connect in either the same Assembly or 1 different higher.

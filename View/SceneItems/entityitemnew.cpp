@@ -517,6 +517,7 @@ void EntityItemNew::setExpanded(bool expand)
 {
     if(_isExpanded != expand){
         _isExpanded = expand;
+        emit positionChanged();
     }
 }
 

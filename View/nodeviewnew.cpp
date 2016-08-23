@@ -11,6 +11,7 @@
 #include "SceneItems/Assemblies/managementcomponentnodeitem.h"
 #include "SceneItems/eventportnodeitem.h"
 #include "SceneItems/attributenodeitem.h"
+#include "SceneItems/nodeitemcontainer.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
@@ -289,10 +290,12 @@ void NodeViewNew::item_ActiveSelected(ViewItem *item)
 
 void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
 {
+     qCritical() << item << expand;
     if(item){
         int ID = item->getID();
         emit triggerAction("Expanding Selection");
         emit setData(ID, "isExpanded", expand);
+
     }
 }
 
@@ -530,6 +533,12 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
             if(nodeKind == "HardwareNode"){
                 nodeItem = new HardwareNodeItem(item, parentNode);
+            }else if(nodeKind == "InEventPort" || nodeKind == "OutEventPort" ||
+                     nodeKind == "AggregateInstance" || nodeKind == "IDL" ||
+                     nodeKind == "Aggregate" || nodeKind == "ComponentInstance" ||
+                     nodeKind == "ComponentAssembly" || nodeKind == "Component" ||
+                     nodeKind == "InEventPortImpl" || nodeKind == "OutEventPortImpl"){
+                nodeItem = new NodeItemContainer(item, parentNode);
             }else if(nodeKind == "ManagementComponent"){
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
             }else if(nodeKind.contains("EventPort")){

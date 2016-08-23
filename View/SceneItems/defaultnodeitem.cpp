@@ -13,6 +13,8 @@ DefaultNodeItem::DefaultNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem
     setBodyPadding(QMarginsF(10,10,10,10));
     setMinimumWidth(DEFAULT_SIZE);
     setMinimumHeight(DEFAULT_SIZE);
+    setExpandedHeight(DEFAULT_SIZE);
+    setExpandedWidth(DEFAULT_SIZE);
 
     setHeaderPadding(QMarginsF(INNER_PADDING, INNER_PADDING, INNER_PADDING, INNER_PADDING));
 

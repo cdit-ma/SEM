@@ -1782,7 +1782,7 @@ QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edg
 
 
     foreach(Node* src, sourceNodes){
-        if(!src->canAcceptEdgeClass(edgeKind)){
+        if(!src->acceptsEdgeKind(edgeKind)){
             sourceNodes.removeAll(src);
         }
     }
@@ -1791,7 +1791,7 @@ QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edg
         //Itterate through all nodes.
         foreach(Node* dst, getAllNodes()){
             //Ignore nodes which can't take this edge class.
-            if(dst->canAcceptEdgeClass(edgeKind)){
+            if(dst->acceptsEdgeKind(edgeKind)){
                 bool accepted = true;
                 foreach(Node* src, sourceNodes){
                     if(src->canAcceptEdge(edgeKind, dst)){
@@ -2245,7 +2245,7 @@ void NewController::storeGraphMLInHash(Entity* item)
             kindLookup[kind].append(ID);
             reverseKindLookup[ID] = kind;
 
-            QString treeIndexStr = ((Node*)item)->getTreeIndexString();
+            QString treeIndexStr = ((Node*)item)->getTreeIndexAlpha();
 
             treeHash.insert(treeIndexStr, ID);
 
@@ -4128,7 +4128,7 @@ bool NewController::setupDependantRelationship(Node *definition, Node *node)
     if(isUserAction()){
         //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
         foreach(Node* child, definition->getChildren(0)){
-            if(child && child->isDefinition()){
+            if(child && child->isNodeOfType(Node::NT_DEFINITION)){
                 //Construct relationships between the children which matched the definitionChild.
                 int instancesConnected = constructDependantRelative(node, child);
 
@@ -4359,8 +4359,8 @@ bool NewController::teardownAggregateRelationship(Node *node, Aggregate *aggrega
 
 bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNode *input, bool setup)
 {
-    Node* inputTopParent = input->getParentNode(input->getDepthToAspect() - 2);
-    Node* outputTopParent = output->getParentNode(output->getDepthToAspect() - 2);
+    Node* inputTopParent = input->getParentNode(input->getDepthFromAspect() - 2);
+    Node* outputTopParent = output->getParentNode(output->getDepthFromAspect() - 2);
 
     QString inputNodeKind;
     if(inputTopParent){
