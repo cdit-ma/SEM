@@ -19,7 +19,7 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
 
     setExpanded(false);
 
-    setMargin(QMarginsF(10,10,10,10));
+    setMargin(QMarginsF(10,2,2,2));
     setBodyPadding(QMarginsF(0,0,0,0));
 
     addRequiredData("x");
@@ -216,10 +216,11 @@ QRectF NodeItemContainer::expandStateRect() const
 
 void NodeItemContainer::dataChanged(QString keyName, QVariant data)
 {
+    /*
     if(keyName == "isExpanded"){
         update();
         expanded = getData("isExpanded").toBool();
-    }
+    }*/
     NodeItemNew::dataChanged(keyName, data);
 }
 
