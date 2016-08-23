@@ -8,7 +8,7 @@ Process::Process():BehaviourNode(NK_PROCESS){
 
 bool Process::canAdoptChild(Node* node)
 {
-    if(!node->isNodeofType(NT_PARAMETER)){
+    if(!node->isNodeOfType(NT_PARAMETER)){
         return false;
     }
 

@@ -1,5 +1,4 @@
 #include "periodicevent.h"
-#include "inputparameter.h"
 
 PeriodicEvent::PeriodicEvent():BehaviourNode(NK_PERIODICEVENT){
     //Setup initial settings
@@ -14,5 +13,5 @@ bool PeriodicEvent::canAdoptChild(Node * node)
 
 bool PeriodicEvent::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
-    return false;
+    return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

@@ -1,5 +1,5 @@
 #include "outeventportimpl.h"
-#include "../InterfaceDefinitions/outeventport.h"
+#include <QDebug>
 
 OutEventPortImpl::OutEventPortImpl():EventPortImpl(NK_OUTEVENTPORT_IMPL){
     setWorkflowProducer(true);

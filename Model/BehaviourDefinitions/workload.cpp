@@ -1,6 +1,8 @@
 #include "workload.h"
 
 Workload::Workload():BehaviourNode(NK_WORKLOAD){
+    setWorkflowReciever(true);
+    setWorkflowProducer(true);
 }
 
 bool Workload::canAdoptChild(Node *child)

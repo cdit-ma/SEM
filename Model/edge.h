@@ -10,6 +10,7 @@ class Edge: public Entity{
     Q_OBJECT
 public:
     enum EDGE_CLASS{EC_NONE, EC_DEFINITION, EC_AGGREGATE, EC_WORKFLOW, EC_ASSEMBLY, EC_DATA, EC_DEPLOYMENT, EC_QOS, EC_UNDEFINED};
+    static QList<EDGE_CLASS> getEdgeClasses();
 
     static QString getKind(EDGE_CLASS edgeClass);
     static EDGE_CLASS getEdgeClass(QString kind);

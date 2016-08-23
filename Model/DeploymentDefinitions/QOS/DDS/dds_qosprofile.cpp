@@ -8,7 +8,7 @@ DDS_QOSProfile::DDS_QOSProfile():Node(NK_QOS_DDS_PROFILE)
 
 bool DDS_QOSProfile::canAdoptChild(Node *node)
 {
-    if(!node->isNodeofType(NT_QOS_DDS_POLICY)){
+    if(!node->isNodeOfType(NT_QOS_DDS_POLICY)){
         return false;
     }
 

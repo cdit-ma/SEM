@@ -174,7 +174,7 @@ public:
     virtual bool canConnect_QOSEdge(Node* node);
 
     //Gets the edge that is joining the node to this.
-    Edge* getEdgeTo(Node* node);
+    Edge* getEdgeTo(Node* node, Edge::EDGE_CLASS edgeKind = Edge::EC_NONE);
     bool gotEdgeTo(Node* node);
     Edge* getEdge(int ID);
     bool isIndirectlyConnected(Node* node);
@@ -187,6 +187,7 @@ public:
     QString getEntityName();
     bool isDefinition();
     bool isInstance();
+    bool isInstanceImpl();
     bool isAspect();
     bool isImpl();
 
@@ -282,7 +283,7 @@ protected:
     void setAcceptsEdgeKind(Edge::EDGE_CLASS edgeKind);
 public:
     //static bool isNodeOfType(Node* node, NODE_TYPE type);
-    bool isNodeofType(NODE_TYPE type) const;
+    bool isNodeOfType(NODE_TYPE type) const;
     bool acceptsEdgeKind(Edge::EDGE_CLASS edgeKind) const;
 
 };

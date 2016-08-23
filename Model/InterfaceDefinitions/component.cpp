@@ -2,6 +2,7 @@
 
 Component::Component():Node(Node::NK_COMPONENT)
 {
+    setNodeType(NT_DEFINITION);
 }
 
 bool Component::canAdoptChild(Node *child)

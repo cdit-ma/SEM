@@ -273,7 +273,7 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->restore();
     }
 
-    if(_hasPosition){
+    if(_hasPosition && parentItem){
         painter->setBrush(parentItem->getBodyColor().darker(140));
     }else{
         painter->setBrush(pen.color());
@@ -421,6 +421,8 @@ void EdgeItemNew::resetPosition()
     QPointF newPos;
     if(parentItem){
         newPos = parentItem->mapFromScene(requiredPos);
+    }else{
+        newPos = mapFromScene(requiredPos);
     }
     setCenter(newPos);
 

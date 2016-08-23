@@ -68,12 +68,58 @@ Node::~Node()
  */
 bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
-    //Extend for duplication.
-    //Maybe need to check for duplucation.
-    return acceptsEdgeKind(edgeKind);
+    if(!acceptsEdgeKind(edgeKind)){
+        qCritical() << this << " Doesn't accept Edge" << edgeKind;
+        return false;
+    }
+
+    Node* parentNode = getParentNode();
+    switch(edgeKind){
+        case Edge::EC_DEFINITION:{
+        //This must be an Instance/Impl Node Type
+        if(!(isInstanceImpl())){
+            //qCritical() << "ISN'T AN INSTANCE/IMPL";
+            return false;
+        }
+
+        //Node cannot already have a Definition.
+        if(getDefinition()){
+            //qCritical() << "GOT DEFINITION";
+
+            return false;
+        }
+
+        //Node must be a Definition Node Type.
+        if(!dst->isDefinition()){
+            //qCritical() << "DST ISNT DEFINITION";
+            return false;
+        }
+
+        if(parentNode && parentNode->isInstanceImpl()){
+            Node* pDef = parentNode->getDefinition();
+            if(pDef && !pDef->isAncestorOf(dst)){
+                //qCritical() << "NO BEUNO";
+                //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
+                return false;
+            }
+        }
+
+        //HMM
+
+        break;
+    }
+    case Edge::EC_AGGREGATE:{
+
+
+    }
+    default:
+        break;
+    }
+
+    return true;
 }
 
-bool Node::isNodeofType(Node::NODE_TYPE type) const
+bool Node::isNodeOfType(Node::NODE_TYPE type) const
 {
     return types.contains(type);
 }
@@ -91,9 +137,10 @@ void Node::setNodeType(Node::NODE_TYPE type)
             case Node::NT_IMPL:
             case Node::NT_INSTANCE:
                 setAcceptsEdgeKind(Edge::EC_DEFINITION);
+                break;
             case Node::NT_DATA:
                 setAcceptsEdgeKind(Edge::EC_DATA);
-            break;
+                break;
         default:
             break;
         }
@@ -703,7 +750,7 @@ bool Node::canConnect_WorkflowEdge(Node *node)
 
 bool Node::canConnect_QOSEdge(Node *node)
 {
-    if(node->isNodeofType(NT_QOS_PROFILE)){
+    if(node->isNodeOfType(NT_QOS_PROFILE)){
         //If the node we are trying to connect to isn't a HardwareType, then return false.
         return false;
     }
@@ -719,9 +766,9 @@ bool Node::canConnect_QOSEdge(Node *node)
 
 
 
-Edge* Node::getEdgeTo(Node *node)
+Edge* Node::getEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
 {
-    foreach(Edge* edge, edges){
+    foreach(Edge* edge, getEdges(0, edgeKind)){
         if(edge->contains(node)){
             return edge;
         }
@@ -857,22 +904,27 @@ bool Node::isInModel()
 
 bool Node::isDefinition()
 {
-    return isNodeofType(NT_DEFINITION);
+    return isNodeOfType(NT_DEFINITION);
 }
 
 bool Node::isInstance()
 {
-    return isNodeofType(NT_INSTANCE);
+    return isNodeOfType(NT_INSTANCE);
+}
+
+bool Node::isInstanceImpl()
+{
+    return isInstance() || isImpl();
 }
 
 bool Node::isAspect()
 {
-    return isNodeofType(NT_ASPECT);
+    return isNodeOfType(NT_ASPECT);
 }
 
 bool Node::isImpl()
 {
-    return isNodeofType(NT_IMPL);
+    return isNodeOfType(NT_IMPL);
 }
 
 bool Node::canAcceptEdgeClass(Edge::EDGE_CLASS edgeClass)
@@ -1049,7 +1101,7 @@ QList<Node *> Node::getOrderedChildNodes()
 
 QList<Edge *> Node::getOrderedEdges(Edge::EDGE_CLASS edgeKind)
 {
-    QMap<int, Edge*> orderedList;
+    QMultiMap<Edge::EDGE_CLASS, Edge*> orderedList;
 
     foreach(Edge* edge, edges){
         if(edgeKind == Edge::EK_NONE || edge->getEdgeClass() == edgeKind){

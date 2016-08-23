@@ -4,6 +4,7 @@ AggregateInstance::AggregateInstance():DataNode(Node::NK_AGGREGATE_INSTANCE)
 {
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setNodeType(NT_INSTANCE);
+    setNodeType(NT_DEFINITION);
 
     setDataProducer(true);
     setDataReciever(true);

@@ -2205,7 +2205,7 @@ Key *NewController::getKeyFromID(int ID)
 
 Edge *NewController::_constructEdge(Edge::EDGE_CLASS edgeClass, Node* src, Node* dst)
 {
-    if(src && dst){
+    if(src && dst && src->canAcceptEdge(edgeClass, dst)){
         Edge* edge = constructTypedEdge(src, dst, edgeClass);
         if(edge){
             //Attach required data.
@@ -2214,7 +2214,7 @@ Edge *NewController::_constructEdge(Edge::EDGE_CLASS edgeClass, Node* src, Node*
         return edge;
     }else{
         if(!src->gotEdgeTo(dst)){
-            qCritical() << "Edge: Source: " << src->toString() << " to Destination: " << dst->toString() << " Cannot be created!";
+            //qCritical() << "Edge: Source: " << src->toString() << " to Destination: " << dst->toString() << " Cannot be created!";
         }
     }
     return 0;
@@ -3737,6 +3737,28 @@ void NewController::_projectNameChanged()
     if(model){
         emit controller_ProjectNameChanged(model->getDataValue("label").toString());
     }
+}
+
+Edge::EDGE_CLASS NewController::getValidEdgeClass(Node *src, Node *dst)
+{
+    foreach(Edge::EDGE_CLASS edgeClass, Edge::getEdgeClasses()){
+        if(src->canAcceptEdge(edgeClass, dst)){
+            return edgeClass;
+        }
+    }
+    return Edge::EC_UNDEFINED;
+}
+
+QList<Edge::EDGE_CLASS> NewController::getPotentialEdgeClasses(Node *src, Node *dst)
+{
+    QList<Edge::EDGE_CLASS> edgeKinds;
+
+    foreach(Edge::EDGE_CLASS edgeClass, Edge::getEdgeClasses()){
+        if(src->acceptsEdgeKind(edgeClass) && dst->acceptsEdgeKind(edgeClass)){
+            edgeKinds << edgeClass;
+        }
+    }
+    return edgeKinds;
 }
 
 QString NewController::_copy(QList<Entity *> selection)
@@ -5493,12 +5515,12 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
 
     QMultiMap<Edge::EDGE_CLASS, TempEntity*> edgesMap;
-    //Order Edges into map.
+
     while(!edgeIDStack.isEmpty()){
         //Get the String ID of the node.
         QString ID = edgeIDStack.takeFirst();
-        TempEntity* entity = entityHash.value(ID, 0);
 
+        TempEntity* entity = entityHash.value(ID, 0);
         if(entity && entity->isEdge()){
             TempEntity* srcEntity = entityHash.value(entity->getSrcID(), 0);
             TempEntity* dstEntity = entityHash.value(entity->getDstID(), 0);
@@ -5519,9 +5541,24 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
             }
 
             if(src && dst){
+                //Set destination.
+                entity->setSource(src);
+                entity->setDestination(dst);
+
                 QString kind = entity->getKind();
                 Edge::EDGE_CLASS edgeClass = Edge::getEdgeClass(kind);
-                edgesMap.insert(edgeClass, entity);
+
+                //If the edge class stored in the model is invalid we should try all of the edge classes these items can take, in order.
+                if(edgeClass == Edge::EC_UNDEFINED || edgeClass == Edge::EC_NONE){
+                    foreach(Edge::EDGE_CLASS ec, getPotentialEdgeClasses(src, dst)){
+                        entity->appendEdgeKind(ec);
+                    }
+                }else{
+                    entity->appendEdgeKind(edgeClass);
+                }
+
+                //Insert the item in the lookup
+                edgesMap.insertMulti(entity->getEdgeKind(), entity);
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
@@ -5534,73 +5571,104 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         emit showProgress(true, "Constructing Edges");
     }
 
+    int totalEdges = edgesMap.size();
+    int itterateCount = 0;
+
     while(!edgesMap.isEmpty()){
-        TempEntity* entity = edgesMap.values().first();
-        if(entity){
-            QString kind = entity->getKind();
-            Edge::EDGE_CLASS edgeClass = Edge::getEdgeClass(kind);
-            //Remove it from the hash.
-            edgesMap.remove(edgeClass, entity);
+        QList<TempEntity*> currentEdges;
+        QList<TempEntity*> unconstructedEdges;
 
-            TempEntity* srcEntity = entityHash[entity->getSrcID()];
-            TempEntity* dstEntity = entityHash[entity->getDstID()];
+        Edge::EDGE_CLASS currentKind = Edge::EC_NONE;
+        int constructedEdges = 0;
 
-            Node* src = 0;
-            Node* dst = 0;
-
-            if(srcEntity && srcEntity->gotActualID()){
-                src = getNodeFromID(srcEntity->getActualID());
-            }else if(entity->getActualSrcID() > 0){
-                src = getNodeFromID(entity->getActualSrcID());
+        //Get all the edges, of kind eK, (Break when we get any edges)
+        foreach(Edge::EDGE_CLASS eK, Edge::getEdgeClasses()){
+            if(edgesMap.contains(eK)){
+                currentEdges = edgesMap.values(eK);
+                currentKind = eK;
+                break;
             }
+        }
 
-            if(dstEntity && dstEntity->gotActualID()){
-                dst = getNodeFromID(dstEntity->getActualID());
-            }else if(entity->getActualDstID() > 0){
-                dst = getNodeFromID(entity->getActualDstID());
-            }
+        //If we have edges yet to go, yet we haven't gotten any items in out list to process.
+        if(currentEdges.size() == 0 && edgesMap.size() > 0){
+            emit controller_DisplayMessage(WARNING, "Inconsistant edge kinds in Edge Map!", "Import Error", "Import");
+            break;
+        }
+
+        //Reverse itterate through the list of Entities (QMap inserts in a stack form LIFO)
+        for(int i = currentEdges.size() - 1; i >= 0; i --){
+            itterateCount ++;
+            TempEntity* entity = currentEdges[i];
+            entity->incrementRetryCount();
+
+            //Get the edgeKind
+            Edge::EDGE_CLASS edgeKind = entity->getEdgeKind();
+
+            //Remove it from the map!
+            edgesMap.remove(currentKind, entity);
+
+            Node* src = entity->getSource();
+            Node* dst = entity->getDestination();
 
             if(src && dst){
-                //Try set the Edge class.
-                if(edgeClass == Edge::EC_UNDEFINED){
-                    edgeClass = src->canConnect(dst);
-                }
-
-                Edge* edge = src->getEdgeTo(dst);
+                Edge* edge = src->getEdgeTo(dst, edgeKind);
                 if(edge){
+                    //Attach the Data to the existing edge.
                     _attachData(edge, entity->takeDataList());
                 }else{
-                    edge = constructEdgeWithData(edgeClass, src, dst, entity->takeDataList());
-                    qCritical() << edge;
-                    _attachData(edge, entity->takeDataList());
+                    //Construct an Edge, with the data.
+                    edge = constructEdgeWithData(edgeKind, src, dst, entity->takeDataList());
+
+
                 }
 
                 if(edge){
-                    if(updateProgressNotification()){
-                        emit progressChanged((entitiesMade* 100) / totalEntities);
-                    }
-                    entitiesMade ++;
-
+                    //Link the old ID to the new ID.
                     if(linkPreviousID && entity->hasPrevID()){
-                        //Link the old ID
                         linkOldIDToID(entity->getPrevID(), edge->getID());
                     }
-                }else{
-                    if(entity->getRetryCount() < 3){
-                        entity->incrementRetryCount();
-                        QString kind = entity->getKind();
-                        Edge::EDGE_CLASS edgeClass = Edge::getEdgeClass(kind);
-                        edgesMap.insertMulti(edgeClass, entity);
+
+                    //Update the progress.
+                    if(updateProgressNotification()){
+                        emit progressChanged((entitiesMade * 100) / totalEntities);
+                        entitiesMade ++;
                     }
+                    constructedEdges ++;
+                }else{
+                    //Append this item to the list of unconstructed items
+                    unconstructedEdges.append(entity);
                 }
             }
         }
+
+        //Go through the list of unconstructed edges and do things.
+        foreach(TempEntity* entity, unconstructedEdges){
+            //If no edges were constructed this pass, we by definition, can't construct any.
+            if(constructedEdges == 0){
+                //Remove the current edgeKind, so we can try the next (If it has one)
+                entity->removeEdgeKind(entity->getEdgeKind());
+            }
+
+            if(entity->hasEdgeKind()){
+                //Reinsert back into the map (Goes to the start)
+                edgesMap.insertMulti(entity->getEdgeKind(), entity);
+            }else{
+                //This entity has no more edge kinds to try, therefore can never be constructed.
+                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error", "Import");
+            }
+        }
+    }
+
+    if(totalEdges > 0){
+        qCritical() << "Imported: #" << totalEdges << " Edges in " << itterateCount << " Itterations.";
     }
 
     //Clean up
     foreach(TempEntity* entity, entityHash.values()){
         delete entity;
     }
+
     entityHash.clear();
 
     //Clear the topEntity

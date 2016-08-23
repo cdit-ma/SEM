@@ -22,7 +22,7 @@ bool EventPort::isOutPort() const
 
 void EventPort::setAggregate(Aggregate *aggregate)
 {
-    if(getAggregate()){
+    if(!getAggregate()){
         this->aggregate = aggregate;
     }
 }
@@ -32,7 +32,8 @@ Aggregate *EventPort::getAggregate()
     //Special case.
     if(isInstance()){
         Node* definition = getDefinition(true);
-        if(definition && definition->isNodeofType(NT_EVENTPORT)){
+
+        if(definition && definition->isNodeOfType(NT_EVENTPORT)){
             return ((EventPort*)definition)->getAggregate();
         }
     }
@@ -68,16 +69,20 @@ bool EventPort::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
     }
     switch(edgeKind){
     case Edge::EC_AGGREGATE:{
-        if(isNodeofType(NT_INSTANCE)){
+        if(isNodeOfType(NT_INSTANCE)){
             //Don't allow Instances to have aggregate.
             return false;
         }
+
         if(getAggregate()){
+            //Don't allow multiple instances.
             return false;
         }
+
         if(dst->getNodeKind() != NK_AGGREGATE){
             return false;
         }
+
         break;
     }
     default:

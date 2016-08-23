@@ -317,6 +317,8 @@ private slots:
     void _projectNameChanged();
 
 private:
+    Edge::EDGE_CLASS getValidEdgeClass(Node* src, Node* dst);
+    QList<Edge::EDGE_CLASS> getPotentialEdgeClasses(Node* src, Node* dst);
     void clearHistory();
 
     QString _copy(QList<Entity*> selection);

@@ -20,5 +20,8 @@ private:
     NodeViewItem* source;
     NodeViewItem* destination;
     NodeViewItem* parent;
+
+    int sID;
+    int dID;
 };
 #endif // VIEWITEM_H

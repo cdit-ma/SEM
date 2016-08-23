@@ -4,6 +4,19 @@
 #include "node.h"
 #include <QDebug>
 #include <QStringBuilder>
+QList<Edge::EDGE_CLASS> Edge::getEdgeClasses()
+{
+    QList<Edge::EDGE_CLASS> edges;
+    edges << EC_DEFINITION;
+    edges << EC_AGGREGATE;
+    edges << EC_WORKFLOW;
+    edges << EC_ASSEMBLY;
+    edges << EC_DATA;
+    edges << EC_DEPLOYMENT;
+    edges << EC_QOS;
+    return edges;
+}
+
 QString Edge::getKind(Edge::EDGE_CLASS edgeClass)
 {
     QString suffix = "Edge";

@@ -11,7 +11,7 @@ Branch *Condition::getBranch()
 {
     BehaviourNode* parent = getParentBehaviourNode();
 
-    if(parent && parent->isNodeofType(NT_BRANCH)){
+    if(parent && parent->isNodeOfType(NT_BRANCH)){
         return (Branch*) parent;
     }
     return 0;

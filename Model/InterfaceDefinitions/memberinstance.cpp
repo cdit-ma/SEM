@@ -4,6 +4,9 @@ MemberInstance::MemberInstance():DataNode(NK_MEMBER_INSTANCE)
 {
     setNodeType(NT_DEFINITION);
     setNodeType(NT_INSTANCE);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setDataReciever(true);
+    setDataProducer(true);
 }
 
 bool MemberInstance::canAdoptChild(Node*)

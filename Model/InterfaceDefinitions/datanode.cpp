@@ -1,5 +1,6 @@
 #include "datanode.h"
 #include "vectorinstance.h"
+#include <QDebug>
 
 DataNode::DataNode(Node::NODE_KIND kind):Node(kind)
 {
@@ -119,22 +120,25 @@ bool DataNode::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
     }
     switch(edgeKind){
     case Edge::EC_DATA:{
-        if(!dst->isNodeofType(NT_DATA)){
+        if(!dst->isNodeOfType(NT_DATA)){
             //Cannot connect to a non DataNode type.
             return false;
         }
         DataNode* dataNode = (DataNode*) dst;
 
         if(!isDataProducer()){
+            qCritical() << "Cannot connect from something which can't produce";
             //Cannot connect from something which can't produce
             return false;
         }
         if(!dataNode->isDataReciever()){
+            qCritical() << "Cannot connect to something which can't recieve";
             //Cannot connect to something which can't recieve
             return false;
         }
 
         if(dataNode->hasInputData()){
+            qCritical() << "Cannot have multiple input datas";
             //Cannot have multiple input datas.
             return false;
         }
@@ -147,6 +151,7 @@ bool DataNode::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         int heightToComponentImpl = getDepthToAspect() - 1;
 
         if(heightToAncestor > heightToComponentImpl){
+            qCritical() << "OUTSIDE COMPONENT";
             //Cannot connect to something outside of the same Component.
             return false;
         }
@@ -154,6 +159,7 @@ bool DataNode::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         Node* sharedAncestor = getParentNode(heightToAncestor);
         if(sharedAncestor){
             if(sharedAncestor->getNodeKind() == NK_AGGREGATE_INSTANCE){
+                qCritical() << "CONTAINED IN AGGREGATE?";
                 //Can't data connect if our shared parent is an Aggregate Instance.
                 return false;
             }

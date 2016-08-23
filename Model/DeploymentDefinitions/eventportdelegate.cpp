@@ -1,5 +1,5 @@
 #include "eventportdelegate.h"
-
+#include <QDebug>
 EventPortAssembly::EventPortAssembly(Node::NODE_KIND kind): EventPort(kind)
 {
     setNodeType(NT_EVENTPORT_ASSEMBLY);
@@ -44,18 +44,21 @@ bool EventPortAssembly::canAdoptChild(Node* child)
 bool EventPortAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
+        qCritical() << "CANNOT ACCEPT EDGE TYPE: " << edgeKind;
         return false;
     }
 
     switch(edgeKind){
     case Edge::EC_ASSEMBLY:{
         //Can't connect to something that isn't an EventPortAssembly
-        if(!dst->isNodeofType(NT_EVENTPORT_ASSEMBLY)){
+        if(!dst->isNodeOfType(NT_EVENTPORT_ASSEMBLY)){
+            qCritical() << "NOT EVeNTPORT Assembly";
             return false;
         }
 
         //Can't have an assembly link without an aggregate.
         if(!getAggregate()){
+            qCritical() << "No Aggregate";
             return false;
         }
 
@@ -63,6 +66,7 @@ bool EventPortAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 
         //Can't connect different aggregates
         if(getAggregate() != port->getAggregate()){
+            qCritical() << "Differeny aggregate Aggregate";
             return false;
         }
 
@@ -72,20 +76,21 @@ bool EventPortAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 
         //Can connect in either the same Assembly or 1 different higher.
         if(difference > 1){
+            qCritical() << "Different Depth";
             return false;
         }
 
         //Inter Component Assembly Connections
-        //if(isPortDelegate() && port->isPortDelegate()){
         if(difference == 0 && depthToAncestor == 2){
             //Don't allow connections from the same type, inter assembly.
-            if(port->isInPortDelegate() == isInPortDelegate()){
+            if(isOutPortDelegate() && !port->isInPortDelegate()){
+                qCritical() << "Same Type of delegate";
                 return false;
             }
-            return false;
         }else if(difference == 1 && !(depthToAncestor > 2 || depthToAncestorReverse > 2)){
             //Inside an Assembly only allow Same to same.
             if(port->isInPortDelegate() != port->isInPortDelegate()){
+                qCritical() << "Same Type of delegate2";
                 return false;
             }
         }

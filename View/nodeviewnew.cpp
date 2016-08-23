@@ -568,21 +568,22 @@ void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
         return;
     }
 
-
     NodeItemNew* parent = getParentNodeItem(item->getParentItem());
     NodeItemNew* source = getParentNodeItem(item->getSource());
     NodeItemNew* destination = getParentNodeItem(item->getDestination());
 
-    EdgeItemNew* edgeItem = new EdgeItemNew(item, parent,source,destination);
+    if(source && destination){
+        EdgeItemNew* edgeItem = new EdgeItemNew(item, parent,source,destination);
 
 
-    if(edgeItem){
-        guiItems[item->getID()] = edgeItem;
+        if(edgeItem){
+            guiItems[item->getID()] = edgeItem;
 
-        setupConnections(edgeItem);
+            setupConnections(edgeItem);
 
-        if(!scene()->items().contains(edgeItem)){
-            scene()->addItem(edgeItem);
+            if(!scene()->items().contains(edgeItem)){
+                scene()->addItem(edgeItem);
+            }
         }
     }
 }

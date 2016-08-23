@@ -7,6 +7,8 @@ TempEntity::TempEntity(Entity::ENTITY_KIND entityKind, TempEntity *parent)
     oldID = -1;
     actualSrcID = -1;
     actualDstID = -1;
+    src = 0;
+    dst = 0;
 
     actualParentID = -1;
     ignoreConstruction = false;
@@ -75,6 +77,33 @@ void TempEntity::incrementRetryCount()
     retryCount ++ ;
 }
 
+void TempEntity::resetIncrementCount()
+{
+    retryCount = 0;
+}
+
+void TempEntity::setSource(Node *src)
+{
+    this->src = src;
+}
+
+void TempEntity::setDestination(Node *dst)
+{
+    this->dst = dst;
+
+}
+
+Node *TempEntity::getSource()
+{
+    return src;
+}
+
+Node *TempEntity::getDestination()
+{
+    return dst;
+
+}
+
 void TempEntity::setID(QString ID)
 {
     this->ID = ID;
@@ -98,6 +127,36 @@ int TempEntity::getPrevID()
 void TempEntity::setActualID(int ID)
 {
     actualID = ID;
+}
+
+void TempEntity::appendEdgeKind(Edge::EDGE_CLASS edgeKind)
+{
+    if(!edgeKinds.contains(edgeKind)){
+        edgeKinds.append(edgeKind);
+    }
+}
+
+void TempEntity::removeEdgeKind(Edge::EDGE_CLASS edgeKind)
+{
+    edgeKinds.removeAll(edgeKind);
+}
+
+void TempEntity::printEdgeKinds()
+{
+    qCritical() << "VALID EDGE TYPES FOR: " << this;
+    foreach(Edge::EDGE_CLASS ec, edgeKinds){
+        qCritical() << "Edge: " << Edge::getKind(ec);
+    }
+}
+
+Edge::EDGE_CLASS TempEntity::getEdgeKind()
+{
+    return edgeKinds.first();
+}
+
+bool TempEntity::hasEdgeKind()
+{
+    return !edgeKinds.isEmpty();
 }
 
 TempEntity *TempEntity::getParentEntity()

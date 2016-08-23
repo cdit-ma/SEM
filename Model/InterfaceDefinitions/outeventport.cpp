@@ -2,6 +2,7 @@
 
 OutEventPort::OutEventPort():EventPort(NK_OUTEVENTPORT)
 {
+
 }
 
 bool OutEventPort::canAdoptChild(Node *child)

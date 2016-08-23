@@ -3,12 +3,15 @@
 #include "branch.h"
 #include "parameter.h"
 #include "../InterfaceDefinitions/vectorinstance.h"
+#include <QDebug>
 
 
 BehaviourNode::BehaviourNode(Node::NODE_KIND kind):Node(kind)
 {
     setNodeType(NT_BEHAVIOUR);
     setAcceptsEdgeKind(Edge::EC_WORKFLOW);
+    _isProducer = false;
+    _isReciever = false;
 }
 
 void BehaviourNode::setWorkflowProducer(bool producer)
@@ -42,7 +45,7 @@ BehaviourNode *BehaviourNode::getProducerNode()
                 if(!node){
                     node = source;
                 }
-                if(source->isNodeofType(NT_BRANCH)){
+                if(source->isNodeOfType(NT_BRANCH)){
                     return source;
                 }
             }
@@ -69,7 +72,7 @@ QList<BehaviourNode *> BehaviourNode::getRecieverNodes()
 BehaviourNode *BehaviourNode::getParentBehaviourNode()
 {
     Node* node = getParentNode();
-    if(node && node->isNodeofType(NT_BEHAVIOUR)){
+    if(node && node->isNodeOfType(NT_BEHAVIOUR)){
         return (BehaviourNode*) node;
     }
     return 0;
@@ -130,7 +133,7 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_CLASS edgeClass, Node *dst)
 
     switch(edgeClass){
     case Edge::EC_WORKFLOW:{
-        if(!dst->isNodeofType(NT_BEHAVIOUR)){
+        if(!dst->isNodeOfType(NT_BEHAVIOUR)){
             return false;
         }
 
@@ -158,9 +161,10 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_CLASS edgeClass, Node *dst)
                     return false;
                 }
             }else{
-                if(isNodeofType(NT_BRANCH)){
+                if(isNodeOfType(NT_BRANCH)){
                     Branch* branch = (Branch*) this;
                     if(branch->getTermination()){
+                        qCritical() << "NO TERMINATION?";
                         //Connecting to a non Branch or a Branchw with a Termination isn't allowed.
                         return false;
                     }
@@ -171,11 +175,14 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_CLASS edgeClass, Node *dst)
         }else{
             //Already got a connection in.
             if(bNode->getProducerNode()){
+                qCritical() << "GOT PRODUCER ALREADY";
                 return false;
             }
         }
 
+
         if(isNodeInBehaviourChain(bNode)){
+            qCritical() << " IN CHAIN?E!";
             //Disallow cycles!
             return false;
         }

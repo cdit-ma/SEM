@@ -25,7 +25,7 @@ bool AssemblyDefinitions::canAdoptChild(Node *node)
         break;
     default:
         //Check for QOS profiles.
-        if(!node->isNodeofType(NT_QOS_PROFILE)){
+        if(!node->isNodeOfType(NT_QOS_PROFILE)){
             return false;
         }
     }
