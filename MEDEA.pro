@@ -232,7 +232,9 @@ HEADERS += \
     Controller/filehandler.h \
     Widgets/New/selectioncontroller.h \
     View/nodeview.h \
-    GUI/popupwidget.h
+    GUI/popupwidget.h \
+    View/Dock/docktabwidget.h \
+    View/Dock/dockactionwidget.h
 
 SOURCES += \
     main.cpp \
@@ -428,7 +430,9 @@ SOURCES += \
     Widgets/New/dataeditwidget.cpp \
     Controller/filehandler.cpp \
     View/nodeview.cpp \
-    GUI/popupwidget.cpp
+    GUI/popupwidget.cpp \
+    View/Dock/docktabwidget.cpp \
+    View/Dock/dockactionwidget.cpp
 
 RESOURCES += \
     resources.qrc
