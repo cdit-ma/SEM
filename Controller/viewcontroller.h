@@ -76,6 +76,7 @@ signals:
     void vc_replicateEntities(QList<int> IDs);
 
     void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
+    void vc_constructEdge(QList<int> sourceIDs, int dstID, Edge::EDGE_CLASS edgeKind = Edge::EC_UNDEFINED);
 
     void vc_constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_CLASS edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
 

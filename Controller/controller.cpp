@@ -286,6 +286,8 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::vc_removeData, this, &NewController::removeData);
 
     connect(view, &ViewController::vc_constructNode, this, &NewController::constructNode);
+    connect(view, &ViewController::vc_constructEdge, this, &NewController::constructEdge);
+
     connect(view, &ViewController::vc_constructConnectedNode, this, &NewController::constructConnectedNode);
 
 
@@ -858,6 +860,36 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
     emit controller_ActionFinished();
 }
 
+void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_CLASS edgeClass)
+{
+    qCritical() << "HELLO" << srcIDs;
+    QList<int> validIDs = getConnectableNodeIDs(srcIDs, edgeClass);
+
+    bool success = true;
+    if(validIDs.contains(dstID)){
+
+        lock.lockForWrite();
+        foreach(int srcID, srcIDs){
+            Node* src = getNodeFromID(srcID);
+            Node* dst = getNodeFromID(dstID);
+
+            Edge* edge = constructEdgeWithData(edgeClass, src, dst);
+
+            if(!edge){
+                success = false;
+                break;
+                qCritical() << "ERROR YO!";
+            }
+        }
+        lock.unlock();
+    }else{
+        success = false;
+    }
+    qCritical() << success;
+    emit controller_ActionFinished(success, "Edge couldn't be constructed");
+}
+
+/*
 void NewController::constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass)
 {
     lock.lockForWrite();
@@ -875,7 +907,7 @@ void NewController::constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeCla
 
     emit controller_ActionFinished(success, "Edge couldn't be constructed");
 }
-
+*/
 void NewController::destructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass)
 {
     lock.lockForWrite();

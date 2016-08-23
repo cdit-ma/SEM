@@ -44,6 +44,7 @@ public:
     QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
 
     void addChildNode(QString kind, QPointF position);
+    void addEdge(int dstID, Edge::EDGE_CLASS edgeKind=Edge::EC_UNDEFINED);
     void addConnectedChildNode(int dstID, QString kind, QPointF position);
 private slots:
     void themeChanged();

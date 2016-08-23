@@ -116,6 +116,15 @@ void ToolActionController::addChildNode(QString kind, QPointF position)
     }
 }
 
+void ToolActionController::addEdge(int dstID, Edge::EDGE_CLASS edgeKind)
+{
+    QList<int> IDs = selectionController->getSelectionIDs();
+    if(!IDs.isEmpty()){
+        qCritical() << "TEST";
+        emit viewController->vc_constructEdge(IDs, dstID, edgeKind);
+    }
+}
+
 void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();

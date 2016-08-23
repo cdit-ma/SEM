@@ -293,7 +293,8 @@ private slots:
 
     void constructNode(int parentID, QString kind, QPointF centerPoint);
 
-    void constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass);
+    void constructEdge(QList<int> srcIDs, int dstID,Edge::EDGE_CLASS edgeClass = Edge::EC_UNDEFINED);
+    //void constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass);
     void destructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass);
 
     void constructWorkerProcessNode(int parentID, QString workerName, QString operationName, QPointF position);

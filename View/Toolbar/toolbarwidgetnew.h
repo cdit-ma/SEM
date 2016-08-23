@@ -35,6 +35,7 @@ public slots:
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 
     void addChildNode(QAction* action);
+    void addEdge(QAction* action);
 
 private:    
     void setupToolbar();

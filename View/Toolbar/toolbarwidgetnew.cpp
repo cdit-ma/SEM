@@ -232,6 +232,22 @@ void ToolbarWidgetNew::addChildNode(QAction* action)
     }
 }
 
+void ToolbarWidgetNew::addEdge(QAction *action)
+{
+    // ignore information actions
+    if (!toolbarController || action->property("action-type") == "info") {
+        return;
+    }
+
+    QString kind = action->property("parent-kind").toString();
+    Edge::EDGE_CLASS edgeKind = Edge::getEdgeClass(kind);
+    int ID = action->property("ID").toInt();
+
+
+    qCritical() << ID << kind;
+    toolbarController->addEdge(ID, edgeKind);
+}
+
 
 /**
  * @brief ToolbarWidgetNew::setupToolbar
@@ -488,6 +504,7 @@ void ToolbarWidgetNew::setupConnections()
     }
 
     connect(addMenu, SIGNAL(triggered(QAction*)), this, SLOT(addChildNode(QAction*)));
+    connect(connectMenu, SIGNAL(triggered(QAction*)), this, SLOT(addEdge(QAction*)));
 }
 
 
