@@ -545,10 +545,11 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new EventPortNodeItem(item, parentNode);
             }else if(nodeKind.contains("DDS_")){
                 return;
-            }else if(nodeKind.contains("Attribute")){
-                nodeItem = new AttributeNodeItem(item, parentNode);
+            }else if(nodeKind.contains("Attribute")||nodeKind.contains("Variable") ||
+                     nodeKind.contains("Member")){
+                nodeItem = new NodeItemContainer(item, parentNode);
             }else{
-                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem = new NodeItemContainer(item, parentNode);
             }
 
             if(nodeItem){
