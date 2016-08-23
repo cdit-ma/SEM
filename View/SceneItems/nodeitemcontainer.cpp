@@ -19,7 +19,7 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
 
     setExpanded(false);
 
-    setMargin(QMarginsF(10,15,10,10));
+    setMargin(QMarginsF(10,10,10,10));
     setBodyPadding(QMarginsF(0,0,0,0));
 
     addRequiredData("x");
@@ -56,7 +56,7 @@ void NodeItemContainer::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->save();
 
         if(!getData("locked").toBool()){
-            painter->setBrush(getBodyColor());
+            painter->setBrush(Qt::white);
             painter->drawRect(labelBGRect());
         }
         painter->restore();
@@ -68,7 +68,7 @@ void NodeItemContainer::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
         paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
         paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
-        paintPixmap(painter, lod, ER_QOS, "Actions", "Clock");
+        paintPixmap(painter, lod, ER_QOS, "Actions", "Global");
 
         painter->restore();
 
