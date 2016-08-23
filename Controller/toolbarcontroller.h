@@ -22,7 +22,8 @@ public:
     QList<QAction*> getNodeActionsOfKind(QString kind, bool stealth);
     QAction* getNodeActionOfKind(QString kind, bool stealth);
 
-    QList<QAction*> getEdgeActionsOfKind(Edge::EDGE_CLASS kind);
+    QList<NodeViewItemAction*> getEdgeActionsOfKind(Edge::EDGE_CLASS kind);
+
     RootAction* getEdgeActionOfKind(Edge::EDGE_CLASS kind);
 
     QList<QAction*> getAdoptableKindsActions(bool stealth);

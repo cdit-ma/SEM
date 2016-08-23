@@ -289,7 +289,7 @@ private slots:
     void clear();
 
 
-    void constructConnectedNode(int parentID, QString kind,Edge::EDGE_CLASS edgeClass, QPointF centerPoint, int connectedID);
+    void constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_CLASS edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
 
     void constructNode(int parentID, QString kind, QPointF centerPoint);
 

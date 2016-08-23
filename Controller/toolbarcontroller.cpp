@@ -121,7 +121,7 @@ void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPoint
     int ID = selectionController->getFirstSelectedItemID();
     qCritical() << kind;
     if(ID != -1){
-        emit viewController->vc_constructConnectedNode(ID, kind, Edge::EC_DEFINITION, position, dstID);
+        emit viewController->vc_constructConnectedNode(ID, kind,dstID, Edge::EC_UNDEFINED, position);
     }
 }
 
@@ -151,14 +151,13 @@ QAction *ToolActionController::getNodeActionOfKind(QString kind, bool stealth)
     return new RootAction("Nodes: " + kind);
 }
 
-QList<QAction*> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_CLASS kind)
+QList<NodeViewItemAction *> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_CLASS kind)
 {
-    QList<QAction*> list;
+    QList<NodeViewItemAction*> list;
 
     foreach(ViewItem* item, viewController->getValidEdges(kind)){
         if(item && actions.contains(item->getID())){
-            qCritical() << item;
-            list.append(actions[item->getID()]->constructSubAction());
+            list.append(actions[item->getID()]);
         }
     }
     return list;

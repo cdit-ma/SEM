@@ -94,9 +94,15 @@ bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 
         break;
     }
-    case Edge::EC_AGGREGATE:{
+    case Edge::EC_WORKFLOW:
+    case Edge::EC_DATA:{
+        int depthToAspect = getDepthFromAspect();
+        int depthToCommonParent = getDepthFromCommonAncestor(dst);
 
-
+        if(depthToCommonParent >= depthToAspect){
+            return false;
+        }
+        break;
     }
     default:
         break;

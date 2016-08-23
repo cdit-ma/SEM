@@ -936,27 +936,35 @@ void NewController::constructDDSQOSProfile(int parentID, QPointF position)
 }
 
 
-void NewController::constructConnectedNode(int parentID, QString kind, Edge::EDGE_CLASS edgeClass, QPointF centerPoint, int connectedID)
+void NewController::constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_CLASS edgeKind, QPointF pos)
 {
     Node* parentNode = getNodeFromID(parentID);
-    Node* connectedNode = getNodeFromID(connectedID);
+    Node* connectedNode = getNodeFromID(dstID);
     if(parentNode && connectedNode){
+
+
+
         //Disable the auto send of construct graphml items.
         setViewSignalsEnabled(false);
         triggerAction("Constructed Connected Node");
 
         //Create a test node, without telling the GUI.
-        Node* testNode = _constructNode(constructDataVector(kind));
+        Node* testNode = _constructNode(constructDataVector(nodeKind));
         if(testNode){
             if(parentNode->canAdoptChild(testNode)){
                 parentNode->addChild(testNode);
+
+                if(edgeKind == Edge::EC_UNDEFINED){
+                    edgeKind = getValidEdgeClass(testNode, connectedNode);
+                }
+
                 //if we can create an edge to this test node, remove it and recreate a new Node properly
-                bool edgeOkay = testNode->canAcceptEdge(edgeClass, connectedNode);
+                bool edgeOkay = testNode->canAcceptEdge(edgeKind, connectedNode);
                 //Remove it.
                 delete testNode;
 
                 if(edgeOkay){
-                    Node* newNode = constructChildNode(parentNode, constructDataVector(kind, centerPoint));
+                    Node* newNode = constructChildNode(parentNode, constructDataVector(nodeKind, pos));
                     if(newNode){
                         //Update the position
 
@@ -964,11 +972,11 @@ void NewController::constructConnectedNode(int parentID, QString kind, Edge::EDG
                         attachChildNode(parentNode, newNode);
 
                         //Constrct an Edge between the 2 items.
-                        constructEdgeWithData(edgeClass, newNode, connectedNode);
+                        constructEdgeWithData(edgeKind, newNode, connectedNode);
 
                         //Try the alternate connection.
                         if(!newNode->gotEdgeTo(connectedNode)){
-                            constructEdgeWithData(edgeClass, connectedNode, newNode);
+                            constructEdgeWithData(edgeKind, connectedNode, newNode);
                         }
 
 
@@ -981,7 +989,7 @@ void NewController::constructConnectedNode(int parentID, QString kind, Edge::EDG
                 }
             }else{
                 delete testNode;
-                emit controller_DisplayMessage(WARNING, "Parent cannot adopt entity '" + kind +"'", "Construction Error", "Cancel");
+                emit controller_DisplayMessage(WARNING, "Parent cannot adopt entity '" + nodeKind +"'", "Construction Error", "Cancel");
             }
 
         }
@@ -1794,7 +1802,7 @@ QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edg
             if(dst->acceptsEdgeKind(edgeKind)){
                 bool accepted = true;
                 foreach(Node* src, sourceNodes){
-                    if(src->canAcceptEdge(edgeKind, dst)){
+                    if(!src->canAcceptEdge(edgeKind, dst)){
                         accepted = false;
                         break;
                     }
@@ -4608,7 +4616,7 @@ void NewController::constructEdgeGUI(Edge *edge)
         Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
         if(aggregate){
             EventPort* eventPort = dynamic_cast<EventPort*>(src);
-            if(eventPort){
+            if(eventPort && eventPort->isInstanceImpl()){
                 setupEventPortAggregateRelationship(eventPort, aggregate);
             }else{
                 setupAggregateRelationship(src, aggregate);

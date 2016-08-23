@@ -53,7 +53,7 @@ private:
     QMenu* constructTopMenu(QAction* parentAction, bool instantPopup = true);
     QAction* getInfoAction(QString hashKey);
 
-    QList<QAction*> constructSubMenuActions(QString triggeredActionKind);
+    QList<QAction*> constructSubMenuActions(QList<NodeViewItemAction*> actions, QString triggeredActionKind);
 
     ViewController* viewController;
     ActionController* actionController;

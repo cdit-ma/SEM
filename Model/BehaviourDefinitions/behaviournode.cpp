@@ -180,9 +180,13 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_CLASS edgeClass, Node *dst)
             }
         }
 
+        //Not a reciever!
+        if(!bNode->isWorkflowReciever()){
+            return false;
+        }
+
 
         if(isNodeInBehaviourChain(bNode)){
-            qCritical() << " IN CHAIN?E!";
             //Disallow cycles!
             return false;
         }
