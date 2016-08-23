@@ -1,7 +1,7 @@
 #include "workerdefinitions.h"
 #include "BehaviourDefinitions/workload.h"
 
-WorkerDefinitions::WorkerDefinitions(): Node(Node::NT_ASPECT, NC_WORKER_DEFINITIONS)
+WorkerDefinitions::WorkerDefinitions(): Node(NK_WORKER_DEFINITIONS)
 {
     setTop(1);
 }
@@ -11,11 +11,18 @@ VIEW_ASPECT WorkerDefinitions::getViewAspect()
     return VA_WORKERS;
 }
 
-bool WorkerDefinitions::canAdoptChild(Node *node)
+bool WorkerDefinitions::canAdoptChild(Node *child)
 {
-    Workload* workload = dynamic_cast<Workload*>(node);
-    if(!workload){
+    switch(child->getNodeKind()){
+    case NK_WORKLOAD:
+        break;
+    default:
         return false;
     }
-    return Node::canAdoptChild(node);
+    return Node::canAdoptChild(child);
+}
+
+bool WorkerDefinitions::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return false;
 }

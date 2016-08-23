@@ -1,15 +1,16 @@
 #include "dds_historyqospolicy.h"
 
-DDS_HistoryQosPolicy::DDS_HistoryQosPolicy():Node(NT_QOS)
+DDS_HistoryQosPolicy::DDS_HistoryQosPolicy():Node(NK_QOS_DDS_POLICY_HISTORY)
 {
-}
-
-DDS_HistoryQosPolicy::~DDS_HistoryQosPolicy()
-{
-
+    setNodeType(NT_QOS_DDS_POLICY);
 }
 
 bool DDS_HistoryQosPolicy::canAdoptChild(Node*)
+{
+    return false;
+}
+
+bool DDS_HistoryQosPolicy::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
     return false;
 }

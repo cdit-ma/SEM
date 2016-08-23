@@ -1,50 +1,38 @@
 #include "eventportimpl.h"
-#include "ineventportimpl.h"
-#include "outeventportimpl.h"
-#include "../InterfaceDefinitions/aggregateinstance.h"
 
-EventPortImpl::EventPortImpl(bool isInEventPort):BehaviourNode(Node::NT_IMPL)
+EventPortImpl::EventPortImpl(Node::NODE_KIND kind):BehaviourNode(kind)
 {
-    inEventPort = isInEventPort;
-    setAcceptEdgeClass(Edge::EC_WORKFLOW);
-    setAcceptEdgeClass(Edge::EC_DEFINITION);
+    setNodeType(NT_IMPL);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
 
-EventPortImpl::~EventPortImpl()
+bool EventPortImpl::isInPort()
 {
-
+    return getNodeKind() == NK_INEVENTPORT_IMPL;
 }
 
-bool EventPortImpl::isInEventPort()
+bool EventPortImpl::isOutPort()
 {
-    return inEventPort;
-}
-
-bool EventPortImpl::isOutEventPort()
-{
-    return !inEventPort;
+    return getNodeKind() == NK_OUTEVENTPORT_IMPL;
 }
 
 bool EventPortImpl::canAdoptChild(Node *child)
 {
-    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
-
-    if(!aggregateInstance){
-        //EventPortImpls can only adopt AggregateInstances
-        return false;
-    }
-
+    //Can Only accept 1 child.
     if(hasChildren()){
-        //EventPortImpls can only adopt 1 AggregateInstance
         return false;
     }
 
-    return Node::canAdoptChild(child);
+    //Can only adopt AggregateInstances
+    if(child->getNodeKind() != NK_AGGREGATE_INSTANCE){
+        return false;
+    }
+
+    return BehaviourNode::canAdoptChild(child);
 }
 
-bool EventPortImpl::canConnect_DefinitionEdge(Node *definition)
+bool EventPortImpl::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
-    return Node::canConnect_DefinitionEdge(definition);
+    return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }
-
 

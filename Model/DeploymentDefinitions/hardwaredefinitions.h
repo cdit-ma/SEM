@@ -8,9 +8,8 @@ class HardwareDefinitions: public Node
     Q_OBJECT
 public:
     HardwareDefinitions();
-    ~HardwareDefinitions();
     VIEW_ASPECT getViewAspect();
-
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 #endif // HARDWAREDEFINITIONS_H

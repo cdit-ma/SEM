@@ -13,7 +13,6 @@
 #include "../../GUI/appsettings.h"
 #include "qosbrowser.h"
 #include "tablewidget.h"
-#include "../../GUI/searchsuggestcompletion.h"
 #include <QCompleter>
 #include <QStringListModel>
 

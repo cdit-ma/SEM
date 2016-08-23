@@ -1,20 +1,32 @@
 #include "outeventportimpl.h"
-#include "../InterfaceDefinitions/outeventport.h"
+#include <QDebug>
 
-OutEventPortImpl::OutEventPortImpl():EventPortImpl(false){
+OutEventPortImpl::OutEventPortImpl():EventPortImpl(NK_OUTEVENTPORT_IMPL){
+    setWorkflowProducer(true);
+    setWorkflowReciever(true);
 }
 
-OutEventPortImpl::~OutEventPortImpl(){
-}
-
-bool OutEventPortImpl::canConnect_DefinitionEdge(Node *definition)
+bool OutEventPortImpl::canAdoptChild(Node *child)
 {
-    OutEventPort* outEventPort = dynamic_cast<OutEventPort*>(definition);
+    return EventPortImpl::canAdoptChild(child);
+}
 
-    if(!outEventPort){
+bool OutEventPortImpl::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
-    return EventPortImpl::canConnect_DefinitionEdge(definition);
-}
+    switch(edgeKind){
+    case Edge::EC_DEFINITION:{
+        if(dst->getNodeKind() != NK_OUTEVENTPORT){
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
 
+    return EventPortImpl::canAcceptEdge(edgeKind, dst);
+}

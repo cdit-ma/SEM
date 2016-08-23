@@ -7,10 +7,9 @@ class AttributeInstance : public Node
     Q_OBJECT
 public:
     AttributeInstance();
-    ~AttributeInstance();
 
     bool canAdoptChild(Node* child);
-    bool canConnect_DefinitionEdge(Node *definition);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // ATTRIBUTEINSTANCE_H

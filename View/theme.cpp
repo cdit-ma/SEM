@@ -1021,7 +1021,7 @@ void Theme::calculateImageColor(QString resourceName)
     if(imageLookup.contains(resourceName) && !pixmapMainColorLookup.contains(resourceName)){
         QImage image = imageLookup[resourceName];
         if(!image.isNull()){
-            int size = 8;
+            int size = 32;
             image = image.scaled(size, size);
 
             QHash<QRgb, int> colorCount;
@@ -1039,11 +1039,9 @@ void Theme::calculateImageColor(QString resourceName)
                 int g = qGreen(pixel);
                 int b = qBlue(pixel);
 
-                //Ignore greyish looking cells.
-                if(r >= g - f && r <= g + f){
-                    if(r >= b -f && r <= b + f){
-                        continue;
-                    }
+                //Ignore black
+                if(r < f && g < f && b < f){
+                    continue;
                 }
 
                 if(colorCount.contains(pixel)){
@@ -1059,6 +1057,9 @@ void Theme::calculateImageColor(QString resourceName)
                 }
             }
             QColor c(frequentColor);
+            if(colorCount.isEmpty()){
+                c = iconColor;
+            }
             pixmapMainColorLookup[resourceName] = c;
         }else{
             pixmapMainColorLookup[resourceName] = QColor(0,0,0,0);

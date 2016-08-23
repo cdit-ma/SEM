@@ -2,7 +2,6 @@
 #define NODEVIEWITEM_H
 #include <QObject>
 
-#include "../Controller/nodeadapter.h"
 #include "viewitem.h"
 
 class NodeViewItem: public ViewItem

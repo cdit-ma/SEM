@@ -21,7 +21,12 @@ public:
 
     int getRetryCount();
     void incrementRetryCount();
+    void resetIncrementCount();
 
+    void setSource(Node* src);
+    void setDestination(Node* dst);
+    Node* getSource();
+    Node* getDestination();
 
     void setID(QString ID);
     void setPrevID(int ID);
@@ -29,11 +34,17 @@ public:
     int getPrevID();
     void setActualID(int ID);
 
+    void appendEdgeKind(Edge::EDGE_CLASS edgeKind);
+    void removeEdgeKind(Edge::EDGE_CLASS edgeKind);
+    void printEdgeKinds();
+    Edge::EDGE_CLASS getEdgeKind();
+    bool hasEdgeKind();
+
 
     TempEntity* getParentEntity();
     void setParentID(QString ID);
     void setActualParentID(int ID);
-    QString getNodeKind();
+    QString getKind();
 
     QString getParentID();
     int getActualParentID();
@@ -75,6 +86,7 @@ private:
     TempEntity* parent;
     QString ID;
     QString nodeKind;
+
     int actualID;
     int oldID;
     int actualParentID;
@@ -83,6 +95,11 @@ private:
     QString dstID;
     int actualSrcID;
     int actualDstID;
+
+    Node* src;
+    Node* dst;
+
+    QList<Edge::EDGE_CLASS> edgeKinds;
 
     int retryCount;
     bool ignoreConstruction;

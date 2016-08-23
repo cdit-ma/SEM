@@ -7,8 +7,8 @@ class Process: public BehaviourNode
     Q_OBJECT
 public:
     Process();
-    ~Process();
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 

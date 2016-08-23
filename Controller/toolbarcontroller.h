@@ -7,6 +7,7 @@
 #include "nodeviewitemaction.h"
 #include "../Widgets/New/actiongroup.h"
 #include "rootaction.h"
+#include "../Model/edge.h"
 
 class ViewController;
 class SelectionController;

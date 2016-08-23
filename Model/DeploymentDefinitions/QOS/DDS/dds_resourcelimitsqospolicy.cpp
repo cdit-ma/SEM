@@ -1,14 +1,16 @@
 #include "dds_resourcelimitsqospolicy.h"
 
-DDS_ResourceLimitsQosPolicy::DDS_ResourceLimitsQosPolicy():Node(NT_QOS)
+DDS_ResourceLimitsQosPolicy::DDS_ResourceLimitsQosPolicy():Node(NK_QOS_DDS_POLICY_RESOURCELIMITS)
 {
-}
-
-DDS_ResourceLimitsQosPolicy::~DDS_ResourceLimitsQosPolicy()
-{
+    setNodeType(NT_QOS_DDS_POLICY);
 }
 
 bool DDS_ResourceLimitsQosPolicy::canAdoptChild(Node*)
+{
+    return false;
+}
+
+bool DDS_ResourceLimitsQosPolicy::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
     return false;
 }

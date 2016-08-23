@@ -1,12 +1,10 @@
 #include "ineventportinstance.h"
-#include "../InterfaceDefinitions/ineventport.h"
 
-InEventPortInstance::InEventPortInstance():EventPortInstance(true)
+InEventPortInstance::InEventPortInstance():EventPortAssembly(NK_INEVENTPORT_INSTANCE)
 {
-}
-
-InEventPortInstance::~InEventPortInstance()
-{
+    setNodeType(NT_INSTANCE);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_QOS);
 }
 
 bool InEventPortInstance::canAdoptChild(Node*)
@@ -14,18 +12,22 @@ bool InEventPortInstance::canAdoptChild(Node*)
     return false;
 }
 
-bool InEventPortInstance::canConnect_DefinitionEdge(Node *definition)
+bool InEventPortInstance::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
-    InEventPort* inEventPort = dynamic_cast<InEventPort*>(definition);
-
-    if(!inEventPort){
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
-    return EventPortInstance::canConnect_DefinitionEdge(definition);
-}
-
-bool InEventPortInstance::canConnect_AssemblyEdge(Node*)
-{
-    return false;
+    switch(edgeKind){
+    case Edge::EC_DEFINITION:{
+        //Can only connect a definition edge to an Aggregate/AggregateInstance..
+        if(!(dst->getNodeKind() == NK_INEVENTPORT)){
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return EventPortAssembly::canAcceptEdge(edgeKind, dst);
 }

@@ -37,6 +37,7 @@ signals:
 
     void triggerAction(QString);
     void setData(int, QString, QVariant);
+    void removeData(int, QString);
 
 private slots:
     void viewItem_LabelChanged(QString label);
@@ -53,6 +54,7 @@ private slots:
 
 private slots:
 
+    void item_RemoveData(ViewItem* item, QString keyName);
     void item_Selected(ViewItem* item, bool append);
     void item_ActiveSelected(ViewItem* item);
 
@@ -69,6 +71,8 @@ private slots:
     void minimap_Pan(QPointF delta);
     void minimap_Zoom(int delta);
 private:
+    void setupConnections(EntityItemNew* item);
+
     void centerOnItems(QList<EntityItemNew*> items);
     void centerRect(QRectF rectScene);
     void centerView(QPointF scenePos);

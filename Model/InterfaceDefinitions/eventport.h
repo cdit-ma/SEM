@@ -8,22 +8,19 @@ class EventPort : public Node
 {
     Q_OBJECT
 public:
-    EventPort(bool isInEventPort);
-    ~EventPort();
-
-    bool isInEventPort();
-    bool isOutEventPort();
+    EventPort(Node::NODE_KIND kind);
+    bool isInPort() const;
+    bool isOutPort() const;
 
     void setAggregate(Aggregate *aggregate);
-    void unsetAggregate();
     Aggregate* getAggregate();
+    void unsetAggregate();
 
-    bool canAdoptChild(Node *node);
-    bool canConnect_AggregateEdge(Node *aggregate);
+    virtual bool canAdoptChild(Node *node);
+    virtual bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 
 private:
     Aggregate* aggregate;
-    bool inEventPort;
 };
 
 #endif // EVENTPORT_H

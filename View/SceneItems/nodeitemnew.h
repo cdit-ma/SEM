@@ -137,6 +137,7 @@ signals:
 
 public slots:
     virtual void dataChanged(QString keyName, QVariant data);
+    virtual void dataRemoved(QString keyName);
     void childPosChanged();
 private:
     void resizeToChildren();

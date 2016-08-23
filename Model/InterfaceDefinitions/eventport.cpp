@@ -2,75 +2,91 @@
 #include "aggregate.h"
 #include "aggregateinstance.h"
 
-EventPort::EventPort(bool isInEventPort):Node(Node::NT_DEFINITION)
+EventPort::EventPort(NODE_KIND kind):Node(kind)
 {
-    inEventPort = isInEventPort;
     aggregate = 0;
-    setAcceptEdgeClass(Edge::EC_AGGREGATE);
-    setAcceptEdgeClass(Edge::EC_DEFINITION);
+    setNodeType(NT_EVENTPORT);
+    setNodeType(NT_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_AGGREGATE);
 }
 
-EventPort::~EventPort()
+bool EventPort::isInPort() const
 {
+    return getNodeKind() == NK_INEVENTPORT;
 }
 
-bool EventPort::isInEventPort()
+bool EventPort::isOutPort() const
 {
-    return inEventPort;
-}
-
-bool EventPort::isOutEventPort()
-{
-    return !inEventPort;
+    return getNodeKind() == NK_OUTEVENTPORT;
 }
 
 void EventPort::setAggregate(Aggregate *aggregate)
 {
-    if(getAggregate() != aggregate){
+    if(!getAggregate()){
         this->aggregate = aggregate;
-        aggregate->addEventPort(this);
     }
 }
 
 Aggregate *EventPort::getAggregate()
 {
+    //Special case.
+    if(isInstance()){
+        Node* definition = getDefinition(true);
+
+        if(definition && definition->isNodeOfType(NT_EVENTPORT)){
+            return ((EventPort*)definition)->getAggregate();
+        }
+    }
     return aggregate;
 }
 
 void EventPort::unsetAggregate()
 {
     if(aggregate){
-        aggregate->removeEventPort(this);
         aggregate = 0;
     }
 }
 
-bool EventPort::canConnect_AggregateEdge(Node *node)
-{
-    Aggregate* aggregate = dynamic_cast<Aggregate*>(node);
-
-    if(!aggregate){
-        return false;
-    }
-
-    if(getAggregate()){
-        return false;
-    }
-
-    return Node::canConnect_AggregateEdge(aggregate);
-}
-
 bool EventPort::canAdoptChild(Node *child)
 {
-     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
+    //Can Only accept 1 child.
+    if(hasChildren()){
+        return false;
+    }
 
-     if(!aggregateInstance){
-         return false;
-     }
+    //Can only adopt AggregateInstances
+    if(child->getNodeKind() != NK_AGGREGATE_INSTANCE){
+        return false;
+    }
 
-     if(hasChildren()){
-         return false;
-     }
+    return Node::canAdoptChild(child);
+}
 
-     return Node::canAdoptChild(child);
+bool EventPort::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    if(!acceptsEdgeKind(edgeKind)){
+        return false;
+    }
+    switch(edgeKind){
+    case Edge::EC_AGGREGATE:{
+        if(isNodeOfType(NT_INSTANCE)){
+            //Don't allow Instances to have aggregate.
+            return false;
+        }
+
+        if(getAggregate()){
+            //Don't allow multiple instances.
+            return false;
+        }
+
+        if(dst->getNodeKind() != NK_AGGREGATE){
+            return false;
+        }
+
+        break;
+    }
+    default:
+        break;
+    }
+    return Node::canAcceptEdge(edgeKind, dst);
 }

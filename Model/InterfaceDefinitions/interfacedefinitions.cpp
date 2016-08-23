@@ -1,12 +1,8 @@
 #include "interfacedefinitions.h"
-#include "idl.h"
 
-InterfaceDefinitions::InterfaceDefinitions(): Node(Node::NT_ASPECT)
+InterfaceDefinitions::InterfaceDefinitions(): Node(NK_INTERFACE_DEFINITIONS)
 {
-}
-
-InterfaceDefinitions::~InterfaceDefinitions()
-{
+    setNodeType(NT_ASPECT);
 }
 
 VIEW_ASPECT InterfaceDefinitions::getViewAspect()
@@ -16,11 +12,16 @@ VIEW_ASPECT InterfaceDefinitions::getViewAspect()
 
 bool InterfaceDefinitions::canAdoptChild(Node *child)
 {
-    IDL* idl = dynamic_cast<IDL*>(child);
-
-    if(!idl){
+    switch(child->getNodeKind()){
+    case NK_IDL:
+        break;
+    default:
         return false;
     }
-
     return Node::canAdoptChild(child);
+}
+
+bool InterfaceDefinitions::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return false;
 }

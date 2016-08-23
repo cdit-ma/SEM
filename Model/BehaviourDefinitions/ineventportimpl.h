@@ -7,10 +7,8 @@ class InEventPortImpl : public EventPortImpl
     Q_OBJECT
 public:
     InEventPortImpl();
-    ~InEventPortImpl();
-
-public:
-    bool canConnect_DefinitionEdge(Node *definition);
+    bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 

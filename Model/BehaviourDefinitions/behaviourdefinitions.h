@@ -8,11 +8,10 @@ class BehaviourDefinitions: public Node
     Q_OBJECT
 public:
     BehaviourDefinitions();
-    ~BehaviourDefinitions();
     VIEW_ASPECT getViewAspect();
-
-public:
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+
 };
 
 #endif // BEHAVIOURDEFINITIONS_H

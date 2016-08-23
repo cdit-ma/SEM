@@ -1,49 +1,49 @@
 #include "parameter.h"
-#include "behaviournode.h"
-#include "../InterfaceDefinitions/memberinstance.h"
-#include "variable.h"
-#include "attributeimpl.h"
-#include "../InterfaceDefinitions/vectorinstance.h"
-#include "../InterfaceDefinitions/aggregateinstance.h"
-#include <QDebug>
+#include "../InterfaceDefinitions/datanode.h"
 
-Parameter::Parameter(bool isInput):BehaviourNode()
+Parameter::Parameter(Node::NODE_KIND kind):DataNode(kind)
 {
-    setIsNonWorkflow(true);
-    setAcceptEdgeClass(Edge::EC_DATA);
-    inputParameter = isInput;
+    setNodeType(NT_PARAMETER);
+    setAcceptsEdgeKind(Edge::EC_DATA);
 }
 
-bool Parameter::isInputParameter()
+bool Parameter::isInputParameter() const
 {
-    return inputParameter;
+    return getNodeKind() == NK_INPUTPARAMETER;
 }
 
-bool Parameter::isReturnParameter()
+bool Parameter::isReturnParameter() const
 {
-    return !inputParameter;
+    return getNodeKind() == NK_RETURNPARAMETER;
 }
-
-bool Parameter::hasConnection()
-{
-    return hasEdges();
-}
-
 
 bool Parameter::canAdoptChild(Node*)
 {
     return false;
 }
 
-bool Parameter::canConnect_DataEdge(Node *node)
+bool Parameter::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
-    Parameter* parameter = dynamic_cast<Parameter*>(node);
-    if(parameter){
-        if(parameter->getParentNode() == getParentNode()){
-            //cannot connect 2 Parameters from the same parent.
-            return false;
-        }
+    if(!acceptsEdgeKind(edgeKind)){
+        return false;
     }
-    return BehaviourNode::canConnect_DataEdge(node);
+
+    switch(edgeKind){
+    case Edge::EC_DATA:{
+        if(dst->isNodeOfType(NT_PARAMETER)){
+            Parameter* parameter = (Parameter*) dst;
+            if(getDepthFromCommonAncestor(dst) <= 1){
+                return false;
+            }
+            if(parameter->isInputParameter() == parameter->isInputParameter()){
+                return false;
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return DataNode::canAcceptEdge(edgeKind, dst);
 
 }

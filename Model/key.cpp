@@ -191,7 +191,7 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
     if(parentEntity){
         entityKind = parentEntity->getEntityName();
         if(parentEntity->isNode()){
-            entityNodeKind = ((Node*)parentEntity)->getNodeKind();
+            entityNodeKind = ((Node*)parentEntity)->getNodeKindStr();
         }
 		parentEntityID = parentEntity->getID();
     }

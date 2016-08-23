@@ -1,22 +1,32 @@
 #include "ineventportimpl.h"
-#include "../InterfaceDefinitions/ineventport.h"
-#include <QDebug>
 
-InEventPortImpl::InEventPortImpl():EventPortImpl(true){
-    setIsWorkflowStart(true);
+InEventPortImpl::InEventPortImpl():EventPortImpl(NK_INEVENTPORT_IMPL){
+    setWorkflowProducer(true);
+    setWorkflowReciever(false);
 }
 
-InEventPortImpl::~InEventPortImpl(){
-}
-
-bool InEventPortImpl::canConnect_DefinitionEdge(Node *definition)
+bool InEventPortImpl::canAdoptChild(Node *child)
 {
-    InEventPort* inEventPort = dynamic_cast<InEventPort*>(definition);
+    return EventPortImpl::canAdoptChild(child);
+}
 
-    if(!inEventPort){
+bool InEventPortImpl::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
-    return EventPortImpl::canConnect_DefinitionEdge(definition);
+    switch(edgeKind){
+    case Edge::EC_DEFINITION:{
+        if(dst->getNodeKind() != NK_INEVENTPORT){
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+    return EventPortImpl::canAcceptEdge(edgeKind, dst);
 }
 

@@ -7,9 +7,8 @@ class DDS_UserDataQosPolicy: public Node
     Q_OBJECT
 public:
     DDS_UserDataQosPolicy();
-    ~DDS_UserDataQosPolicy();
-
     bool canAdoptChild(Node* node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 #endif // DDS_USERDATAQOSPOLICY_H
 
