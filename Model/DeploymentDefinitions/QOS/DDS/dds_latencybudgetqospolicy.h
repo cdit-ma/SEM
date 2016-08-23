@@ -7,9 +7,8 @@ class DDS_LatencyBudgetQosPolicy: public Node
     Q_OBJECT
 public:
     DDS_LatencyBudgetQosPolicy();
-    ~DDS_LatencyBudgetQosPolicy();
-
     bool canAdoptChild(Node* node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 #endif // DDS_LATENCYBUDGETQOSPOLICY_H
 

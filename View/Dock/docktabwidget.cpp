@@ -150,8 +150,8 @@ void DockTabWidget::updateDockHeight()
     int totalHeight = 0;
     foreach (QAction* action, partsDock->actions()) {
         if (action->isVisible()) {
-            // apparently the action's geometry changes for some reason; most consistent height is 61
-            qDebug() << action->text() << " height: " << partsDock->actionGeometry(action).height();
+            // apparently the action's geometry changes for some reason; most consistent height is 67
+            //qDebug() << action->text() << " height: " << partsDock->actionGeometry(action).height();
             totalHeight += 67;
             totalHeight += DOCK_SPACING;
         }

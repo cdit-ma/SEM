@@ -1,47 +1,46 @@
 #include "idl.h"
-#include "component.h"
-#include "blackbox.h"
-#include "aggregate.h"
-#include "vector.h"
 
-IDL::IDL(): Node()
-{
-}
-
-IDL::~IDL()
+IDL::IDL(): Node(NK_IDL)
 {
 }
 
 bool IDL::canAdoptChild(Node *item)
 {
-    Aggregate* aggregate = dynamic_cast<Aggregate*>(item);
-    BlackBox* blackBox = dynamic_cast<BlackBox*>(item);
-    Component* component = dynamic_cast<Component*>(item);
-    Vector* vector = dynamic_cast<Vector*>(item);
-
-    if(!(aggregate || blackBox || component || vector)){
+    switch(item->getNodeKind()){
+    case NK_AGGREGATE:
+    case NK_BLACKBOX:
+    case NK_COMPONENT:
+    case NK_VECTOR:
+        break;
+    default:
         return false;
     }
 
-
+    //Can only adopt Aggregate and Vector's in IDL's containing Aggregates/Vectors. Otherwise all children need to match kinds.
     foreach(Node* child, getChildren(0)){
-        QString childKind = child->getNodeKind();
-
-        if(vector || aggregate){
-            if(!(childKind == "Aggregate" || childKind == "Vector")){
+        switch(child->getNodeKind()){
+        case NK_VECTOR:
+        case NK_AGGREGATE:{
+            if(!(item->getNodeKind() == NK_AGGREGATE || item->getNodeKind() == NK_VECTOR)){
                 return false;
             }
+            break;
         }
-        else if(component){
-            if(childKind != "Component"){
+        case NK_COMPONENT:
+        case NK_BLACKBOX:
+            if(child->getNodeKind() != item->getNodeKind()){
                 return false;
             }
-        }else if(blackBox){
-            if(childKind != "BlackBox"){
-                return false;
-            }
+            break;
+        default:
+            break;
         }
     }
 
     return Node::canAdoptChild(item);
+}
+
+bool IDL::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return false;
 }

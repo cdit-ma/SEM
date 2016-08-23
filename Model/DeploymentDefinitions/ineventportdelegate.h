@@ -2,15 +2,14 @@
 #define INEVENTPORTDELEGATE_H
 #include "eventportdelegate.h"
 
-class InEventPortDelegate: public EventPortDelegate
+class InEventPortDelegate: public EventPortAssembly
 {
     Q_OBJECT
 public:
     InEventPortDelegate();
-    ~InEventPortDelegate();
 
     bool canAdoptChild(Node* child);
-    bool canConnect_AssemblyEdge(Node *node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // INEVENTPORTDELEGATE_H

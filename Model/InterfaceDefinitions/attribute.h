@@ -7,9 +7,8 @@ class Attribute : public Node
     Q_OBJECT
 public:
     Attribute();
-    ~Attribute();
-
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // ATTRIBUTE_H

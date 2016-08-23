@@ -7,9 +7,8 @@ class DDS_DestinationOrderQosPolicy: public Node
     Q_OBJECT
 public:
     DDS_DestinationOrderQosPolicy();
-    ~DDS_DestinationOrderQosPolicy();
-
     bool canAdoptChild(Node* node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 #endif // DDS_DESTINATIONORDERQOSPOLICY_H
 

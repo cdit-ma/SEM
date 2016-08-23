@@ -7,9 +7,8 @@ class ManagementComponent : public Node
     Q_OBJECT
 public:
     ManagementComponent();
-    ~ManagementComponent();
-
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // MANAGEMENTCOMPONENT_H

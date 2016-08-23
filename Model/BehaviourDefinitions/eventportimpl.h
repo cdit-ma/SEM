@@ -6,18 +6,13 @@ class EventPortImpl : public BehaviourNode
 {
     Q_OBJECT
 public:
-    EventPortImpl(bool isInEventPort);
-    ~EventPortImpl();
+    EventPortImpl(Node::NODE_KIND kind);
 
-    bool isInEventPort();
-    bool isOutEventPort();
+    bool isInPort();
+    bool isOutPort();
 
-    bool canAdoptChild(Node* child);
-
-    bool canConnect_DefinitionEdge(Node *definition);
-
-private:
-    bool inEventPort;
+    virtual bool canAdoptChild(Node* child);
+    virtual bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // EVENTPORTIMPL_H

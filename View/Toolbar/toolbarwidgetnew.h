@@ -35,10 +35,12 @@ public slots:
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 
     void addChildNode(QAction* action);
+    void addEdge(QAction* action);
 
 private:    
     void setupToolbar();
     void setupActions();
+    void setupConnectMenu();
     void setupMenus();
     void setupSplitMenus();
     void setupAddChildMenu();
@@ -52,7 +54,7 @@ private:
     QMenu* constructTopMenu(QAction* parentAction, bool instantPopup = true);
     QAction* getInfoAction(QString hashKey);
 
-    QList<QAction*> constructSubMenuActions(QString triggeredActionKind);
+    QList<QAction*> constructSubMenuActions(QList<NodeViewItemAction*> actions, QString triggeredActionKind);
 
     ViewController* viewController;
     ActionController* actionController;
@@ -74,6 +76,7 @@ private:
     QMenu* hardwareMenu;
     QMenu* replicateMenu;
     QMenu* hardwareViewOptionMenu;
+    QMenu* connectMenu;
 
     QAction* addChildAction;
     QAction* connectAction;

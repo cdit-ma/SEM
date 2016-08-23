@@ -141,13 +141,11 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
     int selection = 0;
     if(selectionController && controller){
         int i=0;
-        while(i < 100){
-            QList<int> selectedIDs = selectionController->getSelectionIDs();
-            QList<int> IDs = controller->getConnectableNodeIDs(selectedIDs, kind);
-            items = getViewItems(IDs);
-            selection = selectedIDs.count();
-            i++;
-        }
+        QList<int> selectedIDs = selectionController->getSelectionIDs();
+        QList<int> IDs = controller->getConnectableNodeIDs(selectedIDs, kind);
+        items = getViewItems(IDs);
+        selection = selectedIDs.count();
+        i++;
     }
 
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();

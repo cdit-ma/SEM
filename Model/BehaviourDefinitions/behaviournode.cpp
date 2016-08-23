@@ -4,196 +4,87 @@
 #include "parameter.h"
 #include "../InterfaceDefinitions/vectorinstance.h"
 #include <QDebug>
-BehaviourNode::BehaviourNode(Node::NODE_TYPE type):Node(type)
-{
-    //Setup initial sets.
-    _isWorkflowStart = false;
-    _isWorkflowEnd = false;
-    _isNonWorkflow = false;
-    _isDataInput = false;
-    _isDataOutput = false;
 
-    setAcceptEdgeClass(Edge::EC_WORKFLOW);
+
+BehaviourNode::BehaviourNode(Node::NODE_KIND kind):Node(kind)
+{
+    setNodeType(NT_BEHAVIOUR);
+    setAcceptsEdgeKind(Edge::EC_WORKFLOW);
+    _isProducer = false;
+    _isReciever = false;
 }
 
-void BehaviourNode::setIsWorkflowStart(bool start)
+void BehaviourNode::setWorkflowProducer(bool producer)
 {
-    _isWorkflowStart = start;
+    _isProducer = producer;
 }
 
-void BehaviourNode::setIsWorkflowEnd(bool end)
+void BehaviourNode::setWorkflowReciever(bool reciever)
 {
-    _isWorkflowEnd = end;
+    _isReciever = reciever;
 }
 
-void BehaviourNode::setIsNonWorkflow(bool nonWorkflow)
+bool BehaviourNode::isWorkflowProducer() const
 {
-    _isNonWorkflow = nonWorkflow;
+    return _isProducer;
 }
 
-void BehaviourNode::setIsDataInput(bool input)
+bool BehaviourNode::isWorkflowReciever() const
 {
-    _isDataInput = input;
+    return _isReciever;
 }
 
-void BehaviourNode::setIsDataOutput(bool output)
+BehaviourNode *BehaviourNode::getProducerNode()
 {
-    _isDataOutput = output;
-}
-
-bool BehaviourNode::isWorkflowStart()
-{
-    return _isWorkflowStart;
-}
-
-bool BehaviourNode::isWorkflowEnd()
-{
-    return _isWorkflowEnd;
-}
-
-bool BehaviourNode::isNonWorkflow()
-{
-    return _isNonWorkflow;
-}
-
-bool BehaviourNode::isDataInput()
-{
-    return _isDataInput;
-}
-
-bool BehaviourNode::isDataOutput()
-{
-    return _isDataOutput;
-}
-
-bool BehaviourNode::gotDataInput()
-{
-    if(!isDataInput()){
-        return true;
-    }
-    return getInputDataEdge() != 0;
-}
-
-bool BehaviourNode::gotDataOutput()
-{
-    if(!isDataOutput()){
-        return true;
-    }
-    return getOutputDataEdge() != 0;
-}
-
-bool BehaviourNode::gotLeftWorkflowEdge()
-{
-    if(isNonWorkflow() || isWorkflowStart()){
-        return true;
-    }
-    return getLeftWorkflowEdge() != 0;
-}
-
-WorkflowEdge *BehaviourNode::getLeftWorkflowEdge()
-{
-    foreach(Edge* edge, getEdges(0)){
-        if(edge->getEdgeClass() == Edge::EC_WORKFLOW){
+    if(isWorkflowReciever()){
+        //Find Reciving edge;
+        BehaviourNode* node = 0;
+        foreach(Edge* edge, getEdges(0, Edge::EC_WORKFLOW)){
             if(edge->getDestination() == this){
-                return (WorkflowEdge*)edge;
+                BehaviourNode* source = (BehaviourNode*)edge->getSource();
+                if(!node){
+                    node = source;
+                }
+                if(source->isNodeOfType(NT_BRANCH)){
+                    return source;
+                }
             }
         }
+        return node;
     }
     return 0;
 }
 
-WorkflowEdge *BehaviourNode::getRightWorkflowEdge()
+QList<BehaviourNode *> BehaviourNode::getRecieverNodes()
 {
-    foreach(Edge* edge, getEdges(0)){
-        if(edge->getEdgeClass() == Edge::EC_WORKFLOW){
-            if(edge->getSource() == this){
-                return (WorkflowEdge*)edge;
-            }
+    QList<BehaviourNode*> nodes;
+
+    //Find Recieving edge;
+    foreach(Edge* edge, getEdges(0, Edge::EC_WORKFLOW)){
+        if(edge->getSource() == this){
+            nodes.append((BehaviourNode*)edge->getDestination());
         }
     }
-    return 0;
+    return nodes;
 }
 
-DataEdge *BehaviourNode::getInputDataEdge()
-{
-    foreach(Edge* edge, getEdges(0)){
-        if(edge->getEdgeClass() == Edge::EC_DATA){
-            if(edge->getDestination() == this){
-                return (DataEdge*)edge;
-            }
-        }
-    }
-    return 0;
-}
-
-DataEdge *BehaviourNode::getOutputDataEdge()
-{
-    foreach(Edge* edge, getEdges(0)){
-        if(edge->getEdgeClass() == Edge::EC_DATA){
-            if(edge->getSource() == this){
-                return (DataEdge*)edge;
-            }
-        }
-    }
-    return 0;
-}
-
-Node *BehaviourNode::getInputData()
-{
-    DataEdge* edge = getInputDataEdge();
-    if(edge){
-        return edge->getSource();
-    }
-    return 0;
-}
-
-Node *BehaviourNode::getOutputData()
-{
-    DataEdge* edge = getOutputDataEdge();
-    if(edge){
-        return edge->getDestination();
-    }
-    return 0;
-}
-
-BehaviourNode *BehaviourNode::getRightBehaviourNode()
-{
-    WorkflowEdge* edge = getRightWorkflowEdge();
-    if(edge){
-        BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(edge->getDestination());
-        if(behaviourNode){
-            return behaviourNode;
-        }
-    }
-    return 0;
-}
-
-BehaviourNode *BehaviourNode::getLeftBehaviourNode()
-{
-    WorkflowEdge* edge = getLeftWorkflowEdge();
-    if(edge){
-        BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(edge->getSource());
-        if(behaviourNode){
-            return behaviourNode;
-        }
-    }
-    return 0;
-}
 
 BehaviourNode *BehaviourNode::getParentBehaviourNode()
 {
     Node* node = getParentNode();
-    BehaviourNode* parentBehaviour = dynamic_cast<BehaviourNode*>(node);
-    return parentBehaviour;
+    if(node && node->isNodeOfType(NT_BEHAVIOUR)){
+        return (BehaviourNode*) node;
+    }
+    return 0;
 }
 
-bool BehaviourNode::isRelatedToBehaviourNode(BehaviourNode *relative)
+bool BehaviourNode::isNodeInBehaviourChain(BehaviourNode *relative)
 {
     BehaviourNode* node = this;
 
     QList<BehaviourNode*> relatedNodes;
     while(node){
-        BehaviourNode* leftNode = node->getLeftBehaviourNode();
+        BehaviourNode* leftNode = node->getProducerNode();
 
         if(!leftNode){
             leftNode = node->getParentBehaviourNode();
@@ -201,8 +92,8 @@ bool BehaviourNode::isRelatedToBehaviourNode(BehaviourNode *relative)
                 break;
             }
         }
-        relatedNodes << leftNode;
 
+        relatedNodes << leftNode;
         node = leftNode;
     }
     if(relatedNodes.contains(relative)){
@@ -211,241 +102,22 @@ bool BehaviourNode::isRelatedToBehaviourNode(BehaviourNode *relative)
     return false;
 }
 
-
-BehaviourNode *BehaviourNode::getStartOfWorkflowChain()
+BehaviourNode *BehaviourNode::getInitialProducer()
 {
-    BehaviourNode* node = this;
+    BehaviourNode* n = this;
 
-    while(node){
-        BehaviourNode* leftNode = node->getLeftBehaviourNode();
+    while(n){
+        BehaviourNode* pNode = n->getProducerNode();
 
-        if(!leftNode){
-            return node;
-        }
-        node = leftNode;
-    }
-    return 0;
-}
-
-BehaviourNode *BehaviourNode::getEndOfWorkflowChain()
-{
-    BehaviourNode* node = this;
-
-    while(node){
-        BehaviourNode* rightNode = node->getRightBehaviourNode();
-
-        if(!rightNode){
-            return node;
-        }
-        node = rightNode;
-    }
-    return 0;
-}
-
-bool BehaviourNode::gotRightWorkflowEdge()
-{
-    if(isNonWorkflow() || isWorkflowEnd()){
-        return true;
-    }
-    return getRightWorkflowEdge() != 0;
-}
-
-bool BehaviourNode::needEdge()
-{
-    return !(gotLeftWorkflowEdge() && gotRightWorkflowEdge() && gotDataInput() && gotDataOutput());
-}
-
-bool BehaviourNode::compareableTypes(Node *node)
-{
-    QStringList numberTypes;
-    numberTypes << "ShortInteger" << "LongInteger" << "LongLongInteger";
-    numberTypes << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger";
-    numberTypes << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber";
-    numberTypes << "Boolean" << "Byte";
-
-    QStringList stringTypes;
-    stringTypes << "String" << "WideString";
-
-    if(node){
-
-        //Types
-        QString type1 = getDataValue("type").toString();
-        QString type2 = node->getDataValue("type").toString();
-
-        if(type1 == type2 && type1 != ""){
-            //Allow direct matches.
-            return true;
-        }
-        if(numberTypes.contains(type1) && numberTypes.contains(type2)){
-            //Allow matches of numbers
-            return true;
-        }
-        if(stringTypes.contains(type1) && stringTypes.contains(type2)){
-            //Allow matches of Strings
-            return true;
-        }
-        if(type2 == "WE_UTE_Vector"){
-            //Allow Vector Connections to WE_UTE_Vector types
-            VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(this);
-            if(vectorInstance){
-                return true;
-            }
-        }
-        if(type1 == "WE_UTE_Vector"){
-            //Allow Vector Connections from WE_UTE_Vector types to Vectors.
-            VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(node);
-            if(vectorInstance){
-                return true;
-            }
-        }
-
-        if(type1 == "WE_UTE_VariableArguments" || type2 == "WE_UTE_VariableArguments"){
-            //Allow anything to connect into the Variable Argument Type.
-            return true;
-        }
-    }
-    return false;
-
-}
-
-bool BehaviourNode::canConnect_WorkflowEdge(Node *node)
-{
-    BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(node);
-
-    if(!behaviourNode){
-        //Can't connect a workflow edge to a non Behaviour Node
-        return false;
-    }
-    if(!node->isInModel()){
-        return false;
-    }
-
-    if(gotRightWorkflowEdge()){
-        //Cannot connect to an item if we already have a right edge.
-        return false;
-    }
-
-    if(behaviourNode){
-        //Check if the item we are connecting to is a Termination
-        Termination* termination = dynamic_cast<Termination*>(node);
-
-        if(termination){
-            //Get the Branch connected to the Termination
-            Branch* terminationsBranch = termination->getBranch();
-            //Get the Start of this Workflow chain
-            BehaviourNode* chainStart = getStartOfWorkflowChain();
-            Condition* conditionChainStart = dynamic_cast<Condition*>(chainStart);
-
-            if(terminationsBranch){
-                //If we are connecting to a Termination which has a Branch.
-                if(conditionChainStart){
-                    //If we are in a chain connected to a Condition
-                    Branch* conditionBranch = conditionChainStart->getBranch();
-                    if(conditionBranch && conditionBranch->getTermination() != node){
-                        //If the Termiantion of the condition's parent branch isn't the Termination we are trying to connect to, return false.
-                        return false;
-                    }
-                }else{
-                    //The thing we are connecting to isn't contained within a branch. So we should never need a Termiantion.
-                    return false;
-                }
-            }else{
-                //Check if we connecting to an unconnected Termination.
-                Branch* branch = dynamic_cast<Branch*>(this);
-                if(!branch || (branch && branch->getTermination())){
-                    //Connecting to a non Branch or a Branchw with a Termination isn't allowed.
-                    return false;
-                }
-            }
+        if(pNode){
+            n = pNode;
         }else{
-            if(behaviourNode->gotLeftWorkflowEdge()){
-                //Cannot connect to a Behaviour Node which has an Left Edge already.
-                return false;
-            }
-        }
-
-        if(isRelatedToBehaviourNode(behaviourNode)){
-            //Stop Cycles
-            return false;
-        }
-    }
-
-
-
-    return Node::canConnect_WorkflowEdge(node);
-}
-
-bool BehaviourNode::canConnect_DataEdge(Node *node)
-{
-
-    BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(node);
-
-    if(!behaviourNode){
-        //Can't connect a Data edge to a non Behaviour Node
-        return false;
-    }
-
-    if(!isDataOutput()){
-        //Cannot connect Data if we aren't an output.
-        return false;
-    }
-
-    if(behaviourNode){
-        if(!behaviourNode->isDataInput()){
-            return false;
-        }
-
-        if(behaviourNode->getInputData()){
-            return false;
-        }
-    }
-
-
-    if(!compareableTypes(node)){
-        //Different Types
-        return false;
-    }
-
-    if(!Node::canConnect_DataEdge(node)){
-        return false;
-    }
-
-    //Look up for Vectors.
-    Node* parentNode = getParentNode();
-    while(parentNode){
-        QString nodeKind = parentNode->getNodeKind();
-
-        if(nodeKind == "VectorInstance"){
-            //Can't allow connections from children of VectorInstance
-            return false;
-        }else if(nodeKind == "OutEventPortImpl"){
-            //Can't allow connections from children of OutEventPortImpls
-            return false;
-        }else if(parentNode->isAspect()){
-            //If we get to an Aspect, return.
             break;
         }
-        parentNode = parentNode->getParentNode();
     }
-
-    Node* nodeParent = node->getParentNode();
-    while(nodeParent){
-        QString nodeKind = nodeParent->getNodeKind();
-
-        if(nodeKind == "VectorInstance"){
-            //Can't allow connections from children of VectorInstance
-            return false;
-        }else if(nodeKind == "InEventPortImpl"){
-            //Can't allow connections into children of InEventPortImpl
-            return false;
-        }else if(nodeParent->isAspect()){
-            break;
-        }
-        nodeParent = nodeParent->getParentNode();
-    }
-
-    return true;
+    return n;
 }
+
 
 
 bool BehaviourNode::canAdoptChild(Node *child)
@@ -453,3 +125,76 @@ bool BehaviourNode::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
+bool BehaviourNode::canAcceptEdge(Edge::EDGE_CLASS edgeClass, Node *dst)
+{
+    if(!acceptsEdgeKind(edgeClass)){
+        return false;
+    }
+
+    switch(edgeClass){
+    case Edge::EC_WORKFLOW:{
+        if(!dst->isNodeOfType(NT_BEHAVIOUR)){
+            return false;
+        }
+
+        if(!dst->isInModel()){
+            return false;
+        }
+
+        BehaviourNode* bNode = (BehaviourNode*) dst;
+
+        if(bNode->getNodeKind() == NK_TERMINATION){
+            Branch* branch = ((Termination*)bNode)->getBranch();
+            BehaviourNode* initialProducer = getInitialProducer();
+
+            if(branch){
+                if(initialProducer->getNodeKind() == NK_CONDITION){
+                    Condition* condition = (Condition*) initialProducer;
+                    if(condition->gotTermination()){
+                        return false;
+                    }else if(condition->getRequiredTermination() != dst){
+                        //If the Termination of the condition's parent branch isn't the Termination we are trying to connect to, return false.
+                        return false;
+                    }
+                }else{
+                    //The thing we are connecting to isn't contained within a branch. So we should never need a Termiantion.
+                    return false;
+                }
+            }else{
+                if(isNodeOfType(NT_BRANCH)){
+                    Branch* branch = (Branch*) this;
+                    if(branch->getTermination()){
+                        qCritical() << "NO TERMINATION?";
+                        //Connecting to a non Branch or a Branchw with a Termination isn't allowed.
+                        return false;
+                    }
+                }
+            }
+
+
+        }else{
+            //Already got a connection in.
+            if(bNode->getProducerNode()){
+                qCritical() << "GOT PRODUCER ALREADY";
+                return false;
+            }
+        }
+
+        //Not a reciever!
+        if(!bNode->isWorkflowReciever()){
+            return false;
+        }
+
+
+        if(isNodeInBehaviourChain(bNode)){
+            //Disallow cycles!
+            return false;
+        }
+        break;
+        }
+    default:
+        break;
+    }
+
+    return Node::canAcceptEdge(edgeClass, dst);
+}

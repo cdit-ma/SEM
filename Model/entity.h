@@ -53,16 +53,13 @@ public:
     bool removeData(QString keyName);
 
     virtual QString toGraphML(int indentDepth=0) = 0;
-    virtual QString toString() = 0;
+    QString toString();
 signals:
     void dataChanged(int ID, QString keyName, QVariant data);
     void dataRemoved(int ID, QString keyName);
 
     void propertyChanged(int ID, QString propertyName, QVariant data);
     void propertyRemoved(int ID, QString propertyName);
-
-
-
 
     void readOnlySet(int, bool isReadOnly);
     void terminating();

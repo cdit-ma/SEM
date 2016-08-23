@@ -7,6 +7,7 @@
 #include "nodeviewitemaction.h"
 #include "../Widgets/New/actiongroup.h"
 #include "rootaction.h"
+#include "../Model/edge.h"
 
 class ViewController;
 class SelectionController;
@@ -21,8 +22,9 @@ public:
     QList<QAction*> getNodeActionsOfKind(QString kind, bool stealth);
     QAction* getNodeActionOfKind(QString kind, bool stealth);
 
-    QList<QAction*> getEdgeActionsOfKind(Edge::EDGE_CLASS kind, bool stealth);
-    QAction* getEdgeActionOfKind(Edge::EDGE_CLASS kind, bool stealth);
+    QList<NodeViewItemAction*> getEdgeActionsOfKind(Edge::EDGE_CLASS kind);
+
+    RootAction* getEdgeActionOfKind(Edge::EDGE_CLASS kind);
 
     QList<QAction*> getAdoptableKindsActions(bool stealth);
     QAction* getAdoptableKindsAction(bool stealth);
@@ -42,6 +44,7 @@ public:
     QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
 
     void addChildNode(QString kind, QPointF position);
+    void addEdge(int dstID, Edge::EDGE_CLASS edgeKind=Edge::EC_UNDEFINED);
     void addConnectedChildNode(int dstID, QString kind, QPointF position);
 private slots:
     void themeChanged();
@@ -53,12 +56,15 @@ private slots:
 private:
     void setupToolActions();
     void setupNodeActions();
+    void setupEdgeActions();
     NodeViewItemAction* getNodeViewItemAction(int ID);
 
     RootAction* createRootAction(QString hashKey, QString actionName, QString iconPath="", QString aliasPath="");
 
     QHash<QString, RootAction*> toolActions;
     QHash<QString, RootAction*> nodeKindActions;
+    QHash<Edge::EDGE_CLASS, RootAction*> edgeKindActions;
+
     QHash<int, NodeViewItemAction*> actions;
 
 public:

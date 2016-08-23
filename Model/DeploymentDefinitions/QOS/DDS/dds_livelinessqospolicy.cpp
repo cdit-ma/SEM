@@ -1,15 +1,16 @@
 #include "dds_livelinessqospolicy.h"
 
-DDS_LivelinessQosPolicy::DDS_LivelinessQosPolicy():Node(NT_QOS)
+DDS_LivelinessQosPolicy::DDS_LivelinessQosPolicy():Node(NK_QOS_DDS_POLICY_LIVELINESS)
 {
-}
-
-DDS_LivelinessQosPolicy::~DDS_LivelinessQosPolicy()
-{
-
+    setNodeType(NT_QOS_DDS_POLICY);
 }
 
 bool DDS_LivelinessQosPolicy::canAdoptChild(Node*)
+{
+    return false;
+}
+
+bool DDS_LivelinessQosPolicy::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
     return false;
 }

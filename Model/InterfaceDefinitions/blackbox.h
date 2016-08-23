@@ -7,9 +7,9 @@ class BlackBox : public Node
     Q_OBJECT
 public:
     BlackBox();
-    ~BlackBox();
 
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // BLACKBOX_H

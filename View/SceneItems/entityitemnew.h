@@ -21,7 +21,7 @@ class EntityItemNew: public QGraphicsObject
 
 public:
     enum KIND{EDGE, NODE};
-    enum ELEMENT_RECT{ER_MAIN_LABEL, ER_SECONDARY_LABEL, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION};
+    enum ELEMENT_RECT{ER_MAIN_LABEL, ER_SECONDARY_LABEL, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS};
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
     EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind);
@@ -94,7 +94,8 @@ public:
     void handleHover(bool hovered);
     void handleSelection(bool append);
 
-
+protected:
+    void removeData(QString keyName);
 public:
     //Item State Getters
     bool isNodeItem();
@@ -148,6 +149,7 @@ signals:
     void req_activeSelected(ViewItem*);
 
     void req_setData(ViewItem* item, QString keyName, QVariant data);
+    void req_removeData(ViewItem* item, QString keyName);
 
     void req_triggerAction(QString actionName);
 
@@ -161,6 +163,7 @@ signals:
     void scenePosChanged();
 private slots:
     virtual void dataChanged(QString keyName, QVariant data) = 0;
+    virtual void dataRemoved(QString keyName) = 0;
     void destruct();
 
 public:

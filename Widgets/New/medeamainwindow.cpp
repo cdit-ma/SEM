@@ -418,7 +418,7 @@ void MedeaMainWindow::setupTools()
     setupToolBar();
     setupSearchBar();
     setupProgressBar();
-    setupDock();
+    //setupDock();
     setupDataTable();
     setupMinimap();
 }
@@ -430,13 +430,15 @@ void MedeaMainWindow::setupTools()
 void MedeaMainWindow::setupInnerWindow()
 {
     innerWindow = MedeaWindowManager::constructCentralWindow();
-    //setCentralWidget(innerWindow);
+    setCentralWidget(innerWindow);
 
+    /*
     QDockWidget* dockWidget = new QDockWidget(this);
     dockWidget->setTitleBarWidget(new QWidget());
     dockWidget->setWidget(innerWindow);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     centralWindow->addDockWidget(Qt::RightDockWidgetArea, dockWidget);
+    */
 
     nodeView_Interfaces = new NodeViewNew();
     nodeView_Behaviour = new NodeViewNew();

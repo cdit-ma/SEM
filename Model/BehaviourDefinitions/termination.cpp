@@ -1,19 +1,19 @@
 #include "termination.h"
 #include "branch.h"
 #include <QDebug>
-Termination::Termination():BehaviourNode(){
-
+Termination::Termination():BehaviourNode(NK_TERMINATION){
+    setWorkflowProducer(true);
+    setWorkflowReciever(true);
 }
-Termination::~Termination(){
 
-}
 
 Branch *Termination::getBranch()
 {
-    foreach(Edge* edge, getEdges(0)){
-        if(edge->getEdgeClass() == Edge::EC_WORKFLOW){
-            Branch* branch = dynamic_cast<Branch*>(edge->getSource());
-            if(branch && edge->getDestination() == this){
+    foreach(Edge* edge, getEdges(0, Edge::EC_WORKFLOW)){
+        BehaviourNode* source = (BehaviourNode*) edge->getSource();
+        if(source->isNodeOfType(NT_BRANCH)){
+            Branch* branch = (Branch*) source;
+            if(branch->getTermination() == this){
                 return branch;
             }
         }
@@ -26,31 +26,23 @@ bool Termination::canAdoptChild(Node*)
     return false;
 }
 
-/**
- * @brief Termination::getLeftWorkflowEdge Overloaded function to return the Branch state of a termination
- * @return
- */
-WorkflowEdge* Termination::getLeftWorkflowEdge()
+bool Termination::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
-    foreach(Edge* edge, getEdges(0)){
-        if(edge->getEdgeClass() == Edge::EC_WORKFLOW){
-            if(edge->getDestination() == this){
-                Node* src = edge->getSource();
-                Branch* srcB = dynamic_cast<Branch*>(src);
-                if(srcB){
-                    //Only return the left most Branch edge
-                    return (WorkflowEdge*)edge;
-                }
-            }
-        }
-    }
-    return 0;
-}
-
-bool Termination::canConnect_WorkflowEdge(Node *node)
-{
-    if(!getBranch()){
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
-    return BehaviourNode::canConnect_WorkflowEdge(node);
+
+    switch(edgeKind){
+    case Edge::EC_WORKFLOW:{
+        if(!getBranch()){
+            qCritical() << "NO BRANCH";
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }
+

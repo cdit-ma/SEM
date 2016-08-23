@@ -8,13 +8,11 @@ class Termination: public BehaviourNode
     Q_OBJECT
 public:
     Termination();
-    ~Termination();
 
     Branch* getBranch();
-    WorkflowEdge* getLeftWorkflowEdge();
-public:
-    bool canAdoptChild(Node*);
-    bool canConnect_WorkflowEdge(Node *node);
+
+    bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 

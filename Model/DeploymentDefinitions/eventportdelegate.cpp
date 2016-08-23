@@ -1,133 +1,103 @@
-
 #include "eventportdelegate.h"
-#include "eventportinstance.h"
-
-EventPortDelegate::EventPortDelegate(bool inEventPortDelegate):Node()
+#include <QDebug>
+EventPortAssembly::EventPortAssembly(Node::NODE_KIND kind): EventPort(kind)
 {
-    this->inEventPortDelegate = inEventPortDelegate;
-    this->aggregate = 0;
-    setAcceptEdgeClass(Edge::EC_AGGREGATE);
-    setAcceptEdgeClass(Edge::EC_ASSEMBLY);
+    setNodeType(NT_EVENTPORT_ASSEMBLY);
+    setAcceptsEdgeKind(Edge::EC_ASSEMBLY);
 }
 
-EventPortDelegate::~EventPortDelegate()
+bool EventPortAssembly::isInPortDelegate() const
 {
+    return getNodeKind() == NK_INEVENTPORT_DELEGATE;
 }
 
-bool EventPortDelegate::isInEventPortDelegate()
+bool EventPortAssembly::isOutPortDelegate() const
 {
-    return inEventPortDelegate;
+    return getNodeKind() == NK_OUTEVENTPORT_DELEGATE;
 }
 
-bool EventPortDelegate::isOutEventPortDelegate()
+bool EventPortAssembly::isPortDelegate() const
 {
-    return !inEventPortDelegate;
+    return isInPortDelegate() || isOutPortDelegate();
 }
 
-Aggregate *EventPortDelegate::getAggregate()
+bool EventPortAssembly::isPortInstance() const
 {
-    return aggregate;
+    return isInPortInstance() || isOutPortInstance();
 }
 
-bool EventPortDelegate::canAdoptChild(Node*)
+bool EventPortAssembly::isInPortInstance() const
 {
-    return false;
+    return getNodeKind() == NK_INEVENTPORT_INSTANCE;
 }
 
-bool EventPortDelegate::canConnect_AssemblyEdge(Node *node)
+bool EventPortAssembly::isOutPortInstance() const
 {
-    EventPortDelegate* eventPortDelegate = dynamic_cast<EventPortDelegate*>(node);
-    EventPortInstance* eventPortInstance = dynamic_cast<EventPortInstance*>(node);
+    return getNodeKind() == NK_OUTEVENTPORT_INSTANCE;
+}
 
-    if(!getAggregate()){
+bool EventPortAssembly::canAdoptChild(Node* child)
+{
+    return EventPort::canAdoptChild(child);
+}
+
+bool EventPortAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    if(!acceptsEdgeKind(edgeKind)){
+        qCritical() << "CANNOT ACCEPT EDGE TYPE: " << edgeKind;
         return false;
     }
 
-    if(!(eventPortDelegate || eventPortInstance)){
-        return false;
-    }
+    switch(edgeKind){
+    case Edge::EC_ASSEMBLY:{
+        //Can't connect to something that isn't an EventPortAssembly
+        if(!dst->isNodeOfType(NT_EVENTPORT_ASSEMBLY)){
+            qCritical() << "NOT EVeNTPORT Assembly";
+            return false;
+        }
 
-    //Get the ComponentAssembly which contains this.
-    Node* thisParent = getParentNode();
-    Node* thisParentParent = getParentNode(2);
-    Node* nodeParent = node->getParentNode();
-    Node* nodeParentParent = node->getParentNode(2);
+        //Can't have an assembly link without an aggregate.
+        if(!getAggregate()){
+            qCritical() << "No Aggregate";
+            return false;
+        }
 
-    Aggregate* portAggregate = getAggregate();
+        EventPortAssembly* port = (EventPortAssembly*) dst;
 
-    if(eventPortDelegate){
-        if(thisParentParent != nodeParentParent){
-            //Check for 1 layer deep assembly link.
-            if(!(thisParent == nodeParentParent || nodeParent == thisParentParent)){
+        //Can't connect different aggregates
+        if(getAggregate() != port->getAggregate()){
+            qCritical() << "Differeny aggregate Aggregate";
+            return false;
+        }
+
+        int depthToAncestor = getDepthFromCommonAncestor(port);
+        int depthToAncestorReverse = port->getDepthFromCommonAncestor(this);
+        int difference = abs(depthToAncestor - depthToAncestorReverse);
+
+        //Can connect in either the same Assembly or 1 different higher.
+        if(difference > 1){
+            qCritical() << "Different Depth";
+            return false;
+        }
+
+        //Inter Component Assembly Connections
+        if(difference == 0 && depthToAncestor == 2){
+            //Don't allow connections from the same type, inter assembly.
+            if(isOutPortDelegate() && !port->isInPortDelegate()){
+                qCritical() << "Same Type of delegate";
+                return false;
+            }
+        }else if(difference == 1 && !(depthToAncestor > 2 || depthToAncestorReverse > 2)){
+            //Inside an Assembly only allow Same to same.
+            if(port->isInPortDelegate() != port->isInPortDelegate()){
+                qCritical() << "Same Type of delegate2";
                 return false;
             }
         }
-
-        if(thisParent == nodeParent){
-            //Can't chain EventPortDelegates in the same parent assembly together if they are of the same direction.
-            return false;
-        }
-
-        if(!eventPortDelegate->getAggregate()){
-            return false;
-        }
-        if(portAggregate != eventPortDelegate->getAggregate()){
-            //Can't connect to an eventPortDelegate which has a different Aggregate
-            return false;
-        }
-
-        if(eventPortDelegate->getDepthToAspect() == getDepthToAspect()){
-            if(eventPortDelegate->isOutEventPortDelegate() == isOutEventPortDelegate()){
-            //Don't allow connection of delegates to the same type of delegate at the same depth.
-                return false;
-            }
-        }
+        break;
     }
-
-    if(eventPortInstance){
-        if(thisParent != nodeParentParent){
-            //Can only connect to EventPortInstances owned by the same assembly as this parent.
-            return false;
-        }
-        if(portAggregate){
-            if(portAggregate != eventPortInstance->getAggregate()){
-                //Can only connect to EventPortInstances which share the same aggregate.
-                return false;
-            }
-        }
-        if(isInEventPortDelegate() != eventPortInstance->isInEventPortInstance()){
-            //Can only connect to the same type of EventPortInstance as i am delegate.
-            return false;
-        }
+    default:
+        break;
     }
-
-
-    return Node::canConnect_AssemblyEdge(node);
-}
-
-bool EventPortDelegate::canConnect_AggregateEdge(Node *node)
-{
-    Aggregate* aggregate = dynamic_cast<Aggregate*>(node);
-
-    if(!aggregate){
-        return false;
-    }
-
-    if(getAggregate()){
-        return false;
-    }
-
-    return Node::canConnect_AggregateEdge(aggregate);
-}
-
-void EventPortDelegate::setAggregate(Aggregate *aggregate)
-{
-    if(getAggregate() != aggregate){
-        this->aggregate = aggregate;
-    }
-}
-
-void EventPortDelegate::unsetAggregate()
-{
-    aggregate = 0;
+    return EventPort::canAcceptEdge(edgeKind, dst);
 }

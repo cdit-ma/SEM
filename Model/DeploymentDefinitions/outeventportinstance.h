@@ -1,17 +1,15 @@
 #ifndef OUTEVENTPORTINSTANCE_H
 #define OUTEVENTPORTINSTANCE_H
-#include "eventportinstance.h"
+#include "eventportdelegate.h"
 
-class OutEventPortInstance : public EventPortInstance
+class OutEventPortInstance : public EventPortAssembly
 {
     Q_OBJECT
 public:
     OutEventPortInstance();
-    ~OutEventPortInstance();
 
-    bool canAdoptChild(Node* child);
-    bool canConnect_DefinitionEdge(Node *definition);
-    bool canConnect_AssemblyEdge(Node *node);
+    bool canAdoptChild(Node*);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // OUTEVENTPORTINSTANCE_H

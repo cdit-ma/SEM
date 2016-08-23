@@ -2,15 +2,14 @@
 #define OUTEVENTPORTDELEGATE_H
 #include "eventportdelegate.h"
 
-class OutEventPortDelegate: public EventPortDelegate
+class OutEventPortDelegate: public EventPortAssembly
 {
     Q_OBJECT
 public:
     OutEventPortDelegate();
-    ~OutEventPortDelegate();
 
     bool canAdoptChild(Node* child);
-    bool canConnect_AssemblyEdge(Node *node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 

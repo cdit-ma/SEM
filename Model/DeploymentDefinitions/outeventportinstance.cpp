@@ -1,13 +1,10 @@
 #include "outeventportinstance.h"
-#include "../InterfaceDefinitions/outeventport.h"
-#include "eventportdelegate.h"
-
-OutEventPortInstance::OutEventPortInstance():EventPortInstance(false)
+#include <QDebug>
+OutEventPortInstance::OutEventPortInstance():EventPortAssembly(NK_OUTEVENTPORT_INSTANCE)
 {
-}
-
-OutEventPortInstance::~OutEventPortInstance()
-{
+    setNodeType(NT_INSTANCE);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_QOS);
 }
 
 bool OutEventPortInstance::canAdoptChild(Node*)
@@ -15,18 +12,23 @@ bool OutEventPortInstance::canAdoptChild(Node*)
     return false;
 }
 
-bool OutEventPortInstance::canConnect_DefinitionEdge(Node *definition)
+bool OutEventPortInstance::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
-    OutEventPort* outEventPort = dynamic_cast<OutEventPort*>(definition);
-
-    if(!outEventPort){
+    if(!acceptsEdgeKind(edgeKind)){
+        qCritical() << "Cannot accept egge?!";
         return false;
     }
 
-    return EventPortInstance::canConnect_DefinitionEdge(definition);
-}
-
-bool OutEventPortInstance::canConnect_AssemblyEdge(Node *node)
-{
-    return EventPortInstance::canConnect_AssemblyEdge(node);
+    switch(edgeKind){
+    case Edge::EC_DEFINITION:{
+        //Can only connect a definition edge to an Aggregate/AggregateInstance..
+        if(dst->getNodeKind() != NK_OUTEVENTPORT){
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return EventPortAssembly::canAcceptEdge(edgeKind, dst);
 }

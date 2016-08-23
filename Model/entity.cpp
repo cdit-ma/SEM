@@ -371,6 +371,11 @@ bool Entity::removeData(QString keyName)
     return true;
 }
 
+QString Entity::toString()
+{
+    return QString("[%1]%2 - %3").arg(QString::number(getID()), getDataValue("kind").toString() ,getDataValue("label").toString());
+}
+
 void Entity::dataProtected(bool protect)
 {
     emit propertyChanged(getID(), "protectedKeys", getProtectedKeys());

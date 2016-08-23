@@ -7,9 +7,8 @@ class DDS_WriterDataLifecycleQosPolicy: public Node
     Q_OBJECT
 public:
     DDS_WriterDataLifecycleQosPolicy();
-    ~DDS_WriterDataLifecycleQosPolicy();
-
     bool canAdoptChild(Node* node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 #endif // DDS_WRITERDATALIFECYCLEQOSPOLICY_H
 

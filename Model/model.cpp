@@ -1,32 +1,31 @@
 #include "model.h"
 
-Model::Model(): Node()
+Model::Model(): Node(NK_MODEL)
 {
     setTop(0);
 }
 
-Model::~Model()
+bool Model::canAdoptChild(Node *child)
 {
-    //removeEdges();
-    //removeChildren();
-}
 
-bool Model::canAdoptChild(Node *node)
-{
-    InterfaceDefinitions* interfaceDefinitions = dynamic_cast<InterfaceDefinitions*>(node);
-    DeploymentDefinitions* deploymentDefinitions = dynamic_cast<DeploymentDefinitions*>(node);
-    BehaviourDefinitions* behaviourDefinitions = dynamic_cast<BehaviourDefinitions*>(node);
-
-    if(!(behaviourDefinitions || deploymentDefinitions || interfaceDefinitions)){
+    switch(child->getNodeKind()){
+    case NK_INTERFACE_DEFINITIONS:
+    case NK_DEPLOYMENT_DEFINITIONS:
+    case NK_BEHAVIOUR_DEFINITIONS:
+        break;
+    default:
         return false;
     }
 
-    foreach(Node* child, getChildren(0)){
-        if(node->compareData(child, "kind")){
-            //Model can only adopt 1 of each adoptable Definitions
-            return false;
-        }
+
+    if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
+        return false;
     }
 
-    return Node::canAdoptChild(node);
+    return Node::canAdoptChild(child);
+}
+
+bool Model::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+{
+    return false;
 }

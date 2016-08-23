@@ -7,9 +7,8 @@ class AssemblyDefinitions: public Node
     Q_OBJECT
 public:
     AssemblyDefinitions();
-    ~AssemblyDefinitions();
-
     VIEW_ASPECT getViewAspect();
     bool canAdoptChild(Node* node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 #endif // AssemblyDefinitions_H

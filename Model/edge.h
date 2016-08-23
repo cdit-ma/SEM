@@ -10,6 +10,10 @@ class Edge: public Entity{
     Q_OBJECT
 public:
     enum EDGE_CLASS{EC_NONE, EC_DEFINITION, EC_AGGREGATE, EC_WORKFLOW, EC_ASSEMBLY, EC_DATA, EC_DEPLOYMENT, EC_QOS, EC_UNDEFINED};
+    static QList<EDGE_CLASS> getEdgeClasses();
+
+    static QString getKind(EDGE_CLASS edgeClass);
+    static EDGE_CLASS getEdgeClass(QString kind);
 
     //Enum for Node Types
     enum EDGE_TYPE {ET_NORMAL, ET_MATCHINGKINDS, ET_AGGREGATE, ET_DEPLOYMENT, ET_ASSEMBLY, ET_COMPONENT, ET_DELEGATE, ET_TERMINATION, ET_DATALINK};
@@ -17,6 +21,7 @@ public:
     //Constructor
     Edge(Node* source, Node* destination, EDGE_CLASS edgeClass= EC_NONE);
     ~Edge();
+
 
     //Get the source graphml object of this Edge
     Node* getSource();

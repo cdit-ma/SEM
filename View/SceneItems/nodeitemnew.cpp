@@ -101,6 +101,8 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
         resizeToChildren();
 
         nodeItem->setBodyColor(getBodyColor().darker(110));
+
+        nodeItem->setVisible(isExpanded());
     }
 }
 
@@ -183,6 +185,8 @@ void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
     if(!childEdges.contains(ID)){
         edgeItem->setParentItem(this);
         childEdges[ID] = edgeItem;
+
+        edgeItem->setVisible(isExpanded());
     }
 }
 
@@ -632,6 +636,11 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
             setExpanded(boolData);
         }
     }
+}
+
+void NodeItemNew::dataRemoved(QString keyName)
+{
+    //Do Nothing
 }
 
 void NodeItemNew::childPosChanged()

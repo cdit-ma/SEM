@@ -1,15 +1,14 @@
 #ifndef DDS_QOSPROFILE_H
 #define DDS_QOSPROFILE_H
-#include "../qosprofile.h"
+#include "../../../node.h"
 
-class DDS_QOSProfile: public QOSProfile
+class DDS_QOSProfile: public Node
 {
     Q_OBJECT
 public:
     DDS_QOSProfile();
-    ~DDS_QOSProfile();
-
     bool canAdoptChild(Node* node);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 #endif // DDS_QOSPROFILE_H
 

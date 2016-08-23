@@ -7,10 +7,9 @@ class BranchState: public Branch
     Q_OBJECT
 public:
     BranchState();
-    ~BranchState();
 
-public:
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 
 };
 #endif // BRANCHSTATE_H

@@ -22,9 +22,9 @@ private:
 
     QRectF mainIconRect() const;
 
-    QRectF labelRect() const;
+    QRectF bottomLabelRect() const;
 
-    QRectF topLabelRect() const;
+    QRectF labelRect() const;
 
     QRectF subIconRect() const;
 

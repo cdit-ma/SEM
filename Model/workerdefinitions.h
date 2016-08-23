@@ -9,8 +9,9 @@ public:
     WorkerDefinitions();
 
     VIEW_ASPECT getViewAspect();
-public:
+
     bool canAdoptChild(Node *node);
+    virtual bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
 };
 
 #endif // WORKERDEFINITIONS_H

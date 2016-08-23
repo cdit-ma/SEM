@@ -1,25 +1,16 @@
 #include "outeventportdelegate.h"
 
-OutEventPortDelegate::OutEventPortDelegate():EventPortDelegate(false)
+OutEventPortDelegate::OutEventPortDelegate():EventPortAssembly(NK_OUTEVENTPORT_DELEGATE)
 {
 }
 
-OutEventPortDelegate::~OutEventPortDelegate()
-{
-}
-
-bool OutEventPortDelegate::canAdoptChild(Node *)
+bool OutEventPortDelegate::canAdoptChild(Node*)
 {
     return false;
 }
 
-bool OutEventPortDelegate::canConnect_AssemblyEdge(Node *node)
+bool OutEventPortDelegate::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
-    EventPortInstance* eventPortInstance = dynamic_cast<EventPortInstance*>(node);
-    if(eventPortInstance){
-        if(eventPortInstance->isOutEventPortInstance()){
-            return false;
-        }
-    }
-    return EventPortDelegate::canConnect_AssemblyEdge(node);
+    return EventPortAssembly::canAcceptEdge(edgeKind, dst);
 }
+
