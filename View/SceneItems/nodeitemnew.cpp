@@ -86,6 +86,11 @@ NodeItemNew::KIND NodeItemNew::getNodeItemKind()
     return nodeItemKind;
 }
 
+Node::NODE_KIND NodeItemNew::getNodeKind() const
+{
+    return nodeViewItem->getNodeKind();
+}
+
 void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
 {
     int ID = nodeItem->getID();
@@ -136,6 +141,14 @@ void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
     }
 }
 
+int NodeItemNew::getSortOrder() const
+{
+    if(hasData("sortOrder")){
+        return getData("sortOrder").toInt();
+    }
+    return -1;
+}
+
 bool NodeItemNew::hasChildNodes() const
 {
     return !childNodes.isEmpty();
@@ -144,6 +157,20 @@ bool NodeItemNew::hasChildNodes() const
 QList<NodeItemNew *> NodeItemNew::getChildNodes() const
 {
     return childNodes.values();
+}
+
+QList<NodeItemNew *> NodeItemNew::getOrderedChildNodes() const
+{
+    QMap<int, NodeItemNew*> items;
+
+    foreach(NodeItemNew* child, childNodes){
+        int position = items.size();
+        if(child->hasData("sortOrder")){
+            position = child->getData("sortOrder").toInt();
+        }
+        items.insertMulti(position, child);
+    }
+    return items.values();
 }
 
 QList<EntityItemNew *> NodeItemNew::getChildEntities() const

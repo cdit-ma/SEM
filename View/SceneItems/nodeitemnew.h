@@ -19,15 +19,21 @@ public:
     NodeItemNew* getParentNodeItem() const;
     KIND getNodeItemKind();
 
-    void addChildNode(NodeItemNew* nodeItem);
+    Node::NODE_KIND getNodeKind() const;
+
+
+    virtual void addChildNode(NodeItemNew* nodeItem);
 
     void setIgnorePosition(bool ignore);
     bool isIgnoringPosition();
 
     void removeChildNode(NodeItemNew *nodeItem);
 
+    int getSortOrder() const;
+
     bool hasChildNodes() const;
     QList<NodeItemNew*> getChildNodes() const;
+    QList<NodeItemNew*> getOrderedChildNodes() const;
     QList<EntityItemNew*> getChildEntities() const;
 
     QPointF validateAdjustPos(QPointF delta);

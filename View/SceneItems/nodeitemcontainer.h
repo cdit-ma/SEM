@@ -41,6 +41,10 @@ private:
 
 private slots:
     void dataChanged(QString keyName, QVariant data);
+
+    // EntityItemNew interface
+public:
+    QPointF getCenterOffset() const;
 };
 
 #endif // COMPONENTINSTANCENODEITEM_H

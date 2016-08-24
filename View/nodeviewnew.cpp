@@ -12,6 +12,8 @@
 #include "SceneItems/eventportnodeitem.h"
 #include "SceneItems/attributenodeitem.h"
 #include "SceneItems/nodeitemcontainer.h"
+#include "SceneItems/Assemblies/nodeitemcolumncontainer.h"
+#include "SceneItems/Assemblies/nodeitemcolumnitem.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
@@ -531,8 +533,13 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
             bool ignorePosition = containedNodeViewItem == item;
 
+
             if(nodeKind == "HardwareNode"){
                 nodeItem = new HardwareNodeItem(item, parentNode);
+            }else if(item->getNodeKind() == Node::NK_COMPONENT_ASSEMBLY || item->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
+                nodeItem = new NodeItemColumnContainer(item, parentNode);
+            }else if(item->getNodeKind() == Node::NK_INEVENTPORT_INSTANCE || item->getNodeKind() == Node::NK_OUTEVENTPORT_INSTANCE || item->getNodeKind() == Node::NK_ATTRIBUTE_INSTANCE){
+                nodeItem = new NodeItemColumnItem(item, parentNode);
             }else if(nodeKind == "InEventPort" || nodeKind == "OutEventPort" ||
                      nodeKind == "AggregateInstance" || nodeKind == "IDL" ||
                      nodeKind == "Aggregate" || nodeKind == "ComponentInstance" ||

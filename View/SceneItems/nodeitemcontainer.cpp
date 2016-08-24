@@ -17,8 +17,6 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
     setExpandedWidth(width*4);
     setExpandedHeight(height);
 
-    setExpanded(false);
-
     setMargin(QMarginsF(10,2,2,2));
     setBodyPadding(QMarginsF(0,0,0,0));
 
@@ -222,5 +220,10 @@ void NodeItemContainer::dataChanged(QString keyName, QVariant data)
         expanded = getData("isExpanded").toBool();
     }*/
     NodeItemNew::dataChanged(keyName, data);
+}
+
+QPointF NodeItemContainer::getCenterOffset() const
+{
+    return innerIconRect().center();
 }
 

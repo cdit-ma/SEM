@@ -199,7 +199,9 @@ HEADERS += \
 	GUI/popupwidget.h \
 	View/Dock/docktabwidget.h \
 	View/Dock/dockactionwidget.h \
-    View/SceneItems/nodeitemcontainer.h
+    View/SceneItems/nodeitemcontainer.h \
+    View/SceneItems/Assemblies/nodeitemcolumncontainer.h \
+    View/SceneItems/Assemblies/nodeitemcolumnitem.h
 	View/SceneItems/nodeitemcontainer.h \
 
 SOURCES += \
@@ -363,7 +365,9 @@ SOURCES += \
     GUI/popupwidget.cpp \
     View/Dock/docktabwidget.cpp \
     View/Dock/dockactionwidget.cpp \
-    View/SceneItems/nodeitemcontainer.cpp
+    View/SceneItems/nodeitemcontainer.cpp \
+    View/SceneItems/Assemblies/nodeitemcolumncontainer.cpp \
+    View/SceneItems/Assemblies/nodeitemcolumnitem.cpp
 	View/SceneItems/nodeitemcontainer.cpp
 
 RESOURCES += \

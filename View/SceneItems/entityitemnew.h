@@ -84,8 +84,8 @@ public:
 public:
     //Model State Get/Setters
     void setData(QString keyName, QVariant value);
-    QVariant getData(QString keyName);
-    bool hasData(QString keyName);
+    QVariant getData(QString keyName) const;
+    bool hasData(QString keyName) const;
     bool isDataEditable(QString keyName);
 
 public:
