@@ -5,7 +5,7 @@ AssemblyDefinitions::AssemblyDefinitions():Node(Node::NK_ASSEMBLY_DEFINITIONS)
     setNodeType(NT_ASPECT);
 }
 
-VIEW_ASPECT AssemblyDefinitions::getViewAspect()
+VIEW_ASPECT AssemblyDefinitions::getViewAspect() const
 {
     return VA_ASSEMBLIES;
 }

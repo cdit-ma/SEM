@@ -5,7 +5,7 @@ InterfaceDefinitions::InterfaceDefinitions(): Node(NK_INTERFACE_DEFINITIONS)
     setNodeType(NT_ASPECT);
 }
 
-VIEW_ASPECT InterfaceDefinitions::getViewAspect()
+VIEW_ASPECT InterfaceDefinitions::getViewAspect() const
 {
     return VA_INTERFACES;
 }

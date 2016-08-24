@@ -5,6 +5,7 @@ OutEventPortInstance::OutEventPortInstance():EventPortAssembly(NK_OUTEVENTPORT_I
     setNodeType(NT_INSTANCE);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_QOS);
+    removeEdgeKind(Edge::EC_AGGREGATE);
 }
 
 bool OutEventPortInstance::canAdoptChild(Node*)

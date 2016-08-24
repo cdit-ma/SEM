@@ -4,7 +4,7 @@ HardwareDefinitions::HardwareDefinitions():Node(Node::NK_HARDWARE_DEFINITIONS)
 {
 }
 
-VIEW_ASPECT HardwareDefinitions::getViewAspect()
+VIEW_ASPECT HardwareDefinitions::getViewAspect() const
 {
     return VA_HARDWARE;
 }

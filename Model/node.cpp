@@ -12,6 +12,7 @@ Node::Node(Node::NODE_KIND kind):Entity(EK_NODE)
     parentNode = 0;
     childCount = 0;
     definition = 0;
+    aspect = VA_NONE;
 }
 
 QString Node::toGraphML(int indentDepth)
@@ -64,27 +65,22 @@ bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         case Edge::EC_DEFINITION:{
         //This must be an Instance/Impl Node Type
         if(!(isInstanceImpl())){
-            //qCritical() << "ISN'T AN INSTANCE/IMPL";
             return false;
         }
 
         //Node cannot already have a Definition.
         if(getDefinition()){
-            //qCritical() << "GOT DEFINITION";
-
             return false;
         }
 
         //Node must be a Definition Node Type.
         if(!dst->isNodeOfType(NT_DEFINITION)){
-            //qCritical() << "DST ISNT DEFINITION";
             return false;
         }
 
         if(parentNode && parentNode->isInstanceImpl()){
             Node* pDef = parentNode->getDefinition();
             if(pDef && !pDef->isAncestorOf(dst)){
-                //qCritical() << "NO BEUNO";
                 //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
                 return false;
             }
@@ -100,6 +96,12 @@ bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         int depthToCommonParent = getDepthFromCommonAncestor(dst);
 
         if(depthToCommonParent >= depthToAspect){
+            return false;
+        }
+        break;
+    }
+    case Edge::EC_QOS:{
+        if(!dst->isNodeOfType(NT_QOS_PROFILE)){
             return false;
         }
         break;
@@ -133,7 +135,42 @@ bool Node::isNodeOfType(Node::NODE_TYPE type) const
 
 bool Node::acceptsEdgeKind(Edge::EDGE_CLASS edgeKind) const
 {
-    return validEdgeKinds.contains(edgeKind);
+    if(validEdgeKinds.contains(edgeKind)){
+        switch(edgeKind){
+        case Edge::EC_DEFINITION:{
+            if(definition){
+                return false;
+            }
+            if(isDefinition() && !isInstanceImpl()){
+                return false;
+            }
+            break;
+        }
+        case Edge::EC_AGGREGATE:
+        case Edge::EC_DEPLOYMENT:
+
+        case Edge::EC_QOS:{
+            foreach(Edge* edge, edges.values(edgeKind)){
+                if(edge->getSource() == this){
+                    return false;
+                }
+            }
+            break;
+        }
+        case Edge::EC_DATA:{
+            if(getViewAspect() != VA_BEHAVIOUR){
+                return false;
+            }
+        }
+        }
+        return true;
+    }
+    return false;
+}
+
+QList<Edge::EDGE_CLASS> Node::getAcceptedEdgeKinds() const
+{
+    return validEdgeKinds;
 }
 
 void Node::setNodeType(Node::NODE_TYPE type)
@@ -156,11 +193,21 @@ void Node::setNodeType(Node::NODE_TYPE type)
     }
 }
 
+void Node::removeNodeType(Node::NODE_TYPE type)
+{
+    types.removeAll(type);
+}
+
 void Node::setAcceptsEdgeKind(Edge::EDGE_CLASS edgeKind)
 {
     if(!validEdgeKinds.contains(edgeKind)){
         validEdgeKinds.append(edgeKind);
     }
+}
+
+void Node::removeEdgeKind(Edge::EDGE_CLASS edgeKind)
+{
+    validEdgeKinds.removeAll(edgeKind);
 }
 
 int Node::getDepthFromAspect()
@@ -218,7 +265,7 @@ void Node::setTop(int index)
     treeIndexString = QChar('A' + index);
 }
 
-VIEW_ASPECT Node::getViewAspect()
+VIEW_ASPECT Node::getViewAspect() const
 {
     return aspect;
 }
@@ -547,7 +594,10 @@ bool Node::gotEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
 
 bool Node::containsEdge(Edge *edge)
 {
-    return edges.contains(edge);
+    if(edge){
+        return edges.contains(edge->getEdgeClass(), edge);
+    }
+    return false;
 }
 
 
@@ -599,27 +649,27 @@ bool Node::isInModel()
     return false;
 }
 
-bool Node::isDefinition()
+bool Node::isDefinition() const
 {
     return isNodeOfType(NT_DEFINITION);
 }
 
-bool Node::isInstance()
+bool Node::isInstance() const
 {
     return isNodeOfType(NT_INSTANCE);
 }
 
-bool Node::isInstanceImpl()
+bool Node::isInstanceImpl() const
 {
     return isInstance() || isImpl();
 }
 
-bool Node::isAspect()
+bool Node::isAspect() const
 {
     return isNodeOfType(NT_ASPECT);
 }
 
-bool Node::isImpl()
+bool Node::isImpl() const
 {
     return isNodeOfType(NT_IMPL);
 }
@@ -707,13 +757,15 @@ void Node::removeImplementation(Node *impl)
 void Node::addEdge(Edge *edge)
 {
     if(!containsEdge(edge)){
-        edges.append(edge);
+        edges.insertMulti(edge->getEdgeClass(), edge);
     }
 }
 
 void Node::removeEdge(Edge *edge)
 {
-    edges.removeAll(edge);
+    if(edge){
+        edges.remove(edge->getEdgeClass(), edge);
+    }
 }
 
 void Node::setParentNode(Node *parent, int index)
@@ -785,12 +837,9 @@ QList<Node *> Node::getOrderedChildNodes()
 
 QList<Edge *> Node::getOrderedEdges(Edge::EDGE_CLASS edgeKind)
 {
-    QMultiMap<Edge::EDGE_CLASS, Edge*> orderedList;
-
-    foreach(Edge* edge, edges){
-        if(edgeKind == Edge::EK_NONE || edge->getEdgeClass() == edgeKind){
-            orderedList.insertMulti(edge->getEdgeClass(), edge);
-        }
+    if(edgeKind == Edge::EK_NONE){
+        return edges.values();
+    }else{
+        return edges.values(edgeKind);
     }
-    return orderedList.values();
 }

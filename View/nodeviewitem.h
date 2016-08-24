@@ -2,6 +2,7 @@
 #define NODEVIEWITEM_H
 #include <QObject>
 
+#include "../Model/node.h"
 #include "viewitem.h"
 
 class NodeViewItem: public ViewItem
@@ -12,6 +13,7 @@ public:
     ~NodeViewItem();
 
 
+    Node::NODE_KIND getNodeKind() const;
     NodeViewItem* getParentNodeViewItem();
     VIEW_ASPECT getViewAspect();
     int getParentID();
@@ -21,5 +23,8 @@ public:
 
 
     bool isAncestorOf(NodeViewItem* item);
+
+private:
+    Node::NODE_KIND nodeKind;
 };
 #endif // VIEWITEM_H

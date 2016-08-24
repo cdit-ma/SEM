@@ -16,6 +16,17 @@ bool EventPortAssembly::isOutPortDelegate() const
     return getNodeKind() == NK_OUTEVENTPORT_DELEGATE;
 }
 
+bool EventPortAssembly::isInPortAssembly() const
+{
+    return isInPortDelegate() || isInPortInstance();
+}
+
+bool EventPortAssembly::isOutPortAssembly() const
+{
+    return isOutPortDelegate() || isOutPortInstance();
+
+}
+
 bool EventPortAssembly::isPortDelegate() const
 {
     return isInPortDelegate() || isOutPortDelegate();
@@ -52,13 +63,11 @@ bool EventPortAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
     case Edge::EC_ASSEMBLY:{
         //Can't connect to something that isn't an EventPortAssembly
         if(!dst->isNodeOfType(NT_EVENTPORT_ASSEMBLY)){
-            qCritical() << "NOT EVeNTPORT Assembly";
             return false;
         }
 
         //Can't have an assembly link without an aggregate.
         if(!getAggregate()){
-            qCritical() << "No Aggregate";
             return false;
         }
 
@@ -73,27 +82,68 @@ bool EventPortAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         int depthToAncestor = getDepthFromCommonAncestor(port);
         int depthToAncestorReverse = port->getDepthFromCommonAncestor(this);
         int difference = abs(depthToAncestor - depthToAncestorReverse);
+        int totalDepth = depthToAncestor + depthToAncestorReverse;
 
         //Can connect in either the same Assembly or 1 different higher.
         if(difference > 1){
             qCritical() << "Different Depth";
             return false;
         }
+        if(totalDepth > 4){
+            return false;
+        }
 
-        //Inter Component Assembly Connections
-        if(difference == 0 && depthToAncestor == 2){
-            //Don't allow connections from the same type, inter assembly.
-            if(isOutPortDelegate() && !port->isInPortDelegate()){
-                qCritical() << "Same Type of delegate";
-                return false;
+        if(difference == 0){
+            //Different Parents
+            if(depthToAncestor == 2){
+                //Don't allow connections from the same type, inter assembly.
+                if(isOutPortDelegate() && !port->isInPortDelegate()){
+                    qCritical() << "Same Type of delegate";
+                    return false;
+                }
+                if(isOutPortInstance() && !port->isInPortInstance()){
+                    return false;
+                }
+            }else if(depthToAncestor == 1){
+                if(isPortInstance() && port->isPortInstance()){
+                    //Dont allow cycles into the same component
+                    return false;
+                }else if(isPortDelegate() && port->isPortDelegate()){
+                    //No delegate to delegate.
+                    return false;
+                }else{
+                    if(isInPortAssembly() != port->isInPortAssembly()){
+                        return false;
+                    }
+                }
             }
-        }else if(difference == 1 && !(depthToAncestor > 2 || depthToAncestorReverse > 2)){
-            //Inside an Assembly only allow Same to same.
-            if(port->isInPortDelegate() != port->isInPortDelegate()){
+        }else if(difference == 1){
+            if(isInPortAssembly() != port->isInPortAssembly()){
                 qCritical() << "Same Type of delegate2";
                 return false;
             }
         }
+
+        if(isOutPortInstance()){
+            if(!(port->isInPortInstance() || port->isPortDelegate())){
+                return false;
+            }
+        }
+        if(isOutPortDelegate()){
+            if(!(port->isInPortInstance() || port->isPortDelegate())){
+                return false;
+            }
+        }
+        if(isInPortAssembly()){
+            if(port->isInPortAssembly()){
+                if(depthToAncestor >= depthToAncestorReverse){
+                    return false;
+                }
+            }else{
+                return false;
+            }
+        }
+
         break;
     }
     default:

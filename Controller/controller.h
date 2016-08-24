@@ -155,6 +155,7 @@ public:
     QString getProjectAsGraphML();
     QString getSelectionAsGraphMLSnippet(QList<int> IDs);
 
+    QList<Edge::EDGE_CLASS> getValidEdgeKindsForSelection(QList<int> IDs);
 
     QStringList getAdoptableNodeKinds(int ID);
     QStringList getValidKeyValues(int ID, QString keyName);

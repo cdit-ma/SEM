@@ -13,6 +13,9 @@ public:
     bool isInPortDelegate() const;
     bool isOutPortDelegate() const;
 
+    bool isInPortAssembly() const;
+    bool isOutPortAssembly() const;
+
 
     bool isPortInstance() const;
 

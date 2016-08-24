@@ -115,7 +115,7 @@ public:
     QString toGraphML(int indentDepth);
     QString toGraphMLNoVisualData(int indentDepth);
 
-    virtual VIEW_ASPECT getViewAspect();
+    virtual VIEW_ASPECT getViewAspect() const;
     QList<int> getTreeIndex();
     QString getTreeIndexAlpha();
 
@@ -172,11 +172,11 @@ public:
     QList<Edge *> getEdges(int depth=-1, Edge::EDGE_CLASS edgeKind = Edge::EC_NONE);
     QList<Key *> getKeys(int depth=-1);
 
-    bool isDefinition();
-    bool isInstance();
-    bool isInstanceImpl();
-    bool isAspect();
-    bool isImpl();
+    bool isDefinition() const;
+    bool isInstance() const;
+    bool isInstanceImpl() const;
+    bool isAspect() const;
+    bool isImpl() const;
 
     void setDefinition(Node *def);
     Node* getDefinition(bool recurse=false);
@@ -225,17 +225,14 @@ private:
     QList<Node*> implementations;
 
 
-    QList<Edge::EDGE_CLASS> validEdges2;
-
-    QList<Edge::EDGE_CLASS> validEdges;
-
 
 
     //The list of contained children GraphML elements. (Top level only)
     QList<Node*> children;
 
     //The list of contained Edge elements in this graph. (Top level only)
-    QList<Edge *> edges;
+
+    QMultiMap<Edge::EDGE_CLASS, Edge*> edges;
 
 
     VIEW_ASPECT aspect;
@@ -243,16 +240,16 @@ private:
     QList<NODE_TYPE> types;
     QList<Edge::EDGE_CLASS> validEdgeKinds;
 
-    QList<Edge::EDGE_CLASS> acceptableEdges;
-    QList<Edge::EDGE_CLASS> requiredEdges;
-
 protected:
     void setTop(int index = 0);
     void setNodeType(NODE_TYPE type);
+    void removeNodeType(NODE_TYPE type);
     void setAcceptsEdgeKind(Edge::EDGE_CLASS edgeKind);
+    void removeEdgeKind(Edge::EDGE_CLASS edgeKind);
 public:
     bool isNodeOfType(NODE_TYPE type) const;
     bool acceptsEdgeKind(Edge::EDGE_CLASS edgeKind) const;
+    QList<Edge::EDGE_CLASS> getAcceptedEdgeKinds() const;
     virtual bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node* dst);
 };
 

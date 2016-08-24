@@ -2,11 +2,10 @@
 #include "nodeviewitem.h"
 
 
-EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *parent, NodeViewItem *src, NodeViewItem *dst, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(controller, ID, EK_EDGE, kind, data, properties)
+EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *src, NodeViewItem *dst, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(controller, ID, EK_EDGE, kind, data, properties)
 {
     sID = -1;
     dID = -1;
-    this->parent = parent;
 
     this->source = src;
     if(src){
@@ -17,11 +16,20 @@ EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *par
         this->dID = dst->getID();
     }
 
+    edgeKind = Edge::EC_NONE;
+    if(properties.contains("kind")){
+        edgeKind = (Edge::EDGE_CLASS) properties["kind"].toInt();
+    }
 }
 
 EdgeViewItem::~EdgeViewItem()
 {
 
+}
+
+Edge::EDGE_CLASS EdgeViewItem::getEdgeKind() const
+{
+    return edgeKind;
 }
 
 NodeViewItem *EdgeViewItem::getSource()
@@ -36,7 +44,10 @@ NodeViewItem *EdgeViewItem::getDestination()
 
 NodeViewItem *EdgeViewItem::getParentItem()
 {
-    return parent;
+    if(ViewItem::getParentItem()){
+        return (NodeViewItem*) ViewItem::getParentItem();
+    }
+    return 0;
 }
 
 int EdgeViewItem::getSourceID()

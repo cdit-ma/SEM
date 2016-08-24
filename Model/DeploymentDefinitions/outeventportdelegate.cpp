@@ -2,6 +2,8 @@
 
 OutEventPortDelegate::OutEventPortDelegate():EventPortAssembly(NK_OUTEVENTPORT_DELEGATE)
 {
+    removeEdgeKind(Edge::EC_DEFINITION);
+    removeNodeType(NT_DEFINITION);
 }
 
 bool OutEventPortDelegate::canAdoptChild(Node*)

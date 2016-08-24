@@ -139,7 +139,7 @@ QString Edge::toGraphML(qint32 indentationLevel)
 
     QString returnable = tabSpace + QString("<edge id=\"%1\" source=\"%2\" target =\"%3\"").arg(QString::number(getID()), QString::number(getSource()->getID()), QString::number(getDestination()->getID()));
 
-    if(hasData()){
+    if(gotData()){
         returnable += ">\n";
         foreach(Data* data, getData()){
             returnable += data->toGraphML(indentationLevel + 1);

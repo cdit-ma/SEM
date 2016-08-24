@@ -40,21 +40,15 @@ Entity::Entity(Entity::ENTITY_KIND kind):GraphML(GraphML::GK_ENTITY)
 {
     entityKind = kind;
     //Connect to self.
-    //connect(this, SIGNAL(dataAdded(QString,QVariant)), this, SLOT(thisDataChanged(QString)));
-    //connect(this, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(thisDataChanged(QString)));
-    //connect(this, SIGNAL(dataRemoved(QString)), this, SLOT(thisDataChanged(QString)));
 }
 
 Entity::~Entity()
 {
-   // disconnect(this, SLOT(thisDataChanged(QString)));
-   // disconnect(this, SLOT(thisDataChanged(QString)));
-   // disconnect(this, SLOT(thisDataChanged(QString)));
-
     //Clear data.
-    QList<Data*> data = getData();
-    while(!data.isEmpty()){
-        delete data.takeFirst();
+    while(!getData().isEmpty()){
+        Data* data = getData().first();
+        removeData(data);
+        delete data;
     }
 }
 
@@ -89,35 +83,35 @@ bool Entity::addData(Data *data)
         return false;
     }
 
+
     if(getData(key)){
-        //TODO Copy?
         //Can't have multiple data for the same key.
         return false;
     }
 
     ENTITY_KIND keyKind = key->getEntityKind();
-    if(keyKind != EK_ALL && keyKind != getEntityKind()){
+    if(keyKind != getEntityKind() && keyKind != EK_ALL){
         //Can't add data which isn't for this entity kind.
         return false;
     }
+
     if(data->getParent()){
         //Can't add data which has a parent already.
         return false;
     }
 
-    data->setParent(this);
-    int dataID = data->getID();
-    int keyID = key->getID();
     QString keyName = key->getName();
 
-    //Add data to the hashes
-    lookupDataID2Data[dataID] = data;
-    lookupKeyID2DataID[keyID] = dataID;
-    lookupKeyName2KeyID[key->getName()] = keyID;
+    if(!keyLookup.contains(keyName)){
+        keyLookup.insert(keyName, key);
+    }
 
+    if(!dataLookup.contains(key)){
+        dataLookup.insert(key, data);
+    }
 
-    emit dataChanged(getID(), keyName, data->getValue());
-    dataProtected(true);
+    //Attach this.
+    data->setParent(this);
     return true;
 }
 
@@ -138,16 +132,45 @@ bool Entity::addData(QList<Data *> dataList)
     return success;
 }
 
+void Entity::_dataChanged(Data *data)
+{
+    if(data){
+        emit dataChanged(getID(), data->getKeyName(), data->getValue());
+    }
+}
+
+void Entity::_dataRemoved(Data *data)
+{
+    if(data){
+        emit dataRemoved(getID(), data->getKeyName());
+    }
+}
+
+void Entity::_dataProtected(Data *data)
+{
+    if(data){
+        emit propertyChanged(getID(), "protectedKeys", getProtectedKeys());
+    }
+}
+
 /**
  * @brief Entity::getData
  * Gets the Data which has key with name KeyName
  * @param keyName - The name of the Data's key
  * @return The Data, or NULL
  */
-Data *Entity::getData(QString keyName)
+Data *Entity::getData(QString keyName) const
 {
-    int dataID = getDataIDFromKeyName(keyName);
-    return getDataFromDataID(dataID);
+    Key* key = getKey(keyName);
+    return getData(key);
+}
+
+Key *Entity::getKey(QString keyName) const
+{
+    if(keyLookup.contains(keyName)){
+        return keyLookup[keyName];
+    }
+    return 0;
 }
 
 /**
@@ -156,18 +179,12 @@ Data *Entity::getData(QString keyName)
  * @param key - The Data's Key
  * @return  The Data or NULL
  */
-Data *Entity::getData(Key *key)
+Data *Entity::getData(Key *key) const
 {
-    int dataID = -1;
-    if(key){
-        dataID = getDataIDFromKeyID(key->getID());
+    if(key && dataLookup.contains(key)){
+        return dataLookup[key];
     }
-    return getDataFromDataID(dataID);
-}
-
-Data *Entity::getData(int ID)
-{
-    return getDataFromDataID(ID);
+    return 0;
 }
 
 /**
@@ -175,47 +192,41 @@ Data *Entity::getData(int ID)
  * Gets all the Data attached to this entity.
  * @return
  */
-QList<Data *> Entity::getData()
+QList<Data *> Entity::getData() const
 {
-    return lookupDataID2Data.values();
+    return dataLookup.values();
 }
 
-QList<Key *> Entity::getKeys(int)
+QList<Key *> Entity::getKeys() const
 {
-    QList<Key *> keys;
-  foreach(Data* data, getData()){
-      Key* key = data->getKey();
-      if(!keys.contains(key)){
-          keys.append(key);
-      }
-  }
-  return keys;
+    return keyLookup.values();
 }
 
-bool Entity::hasData(QString keyName)
+QStringList Entity::getKeyNames() const
 {
-    if(keyName != ""){
-        return lookupKeyName2KeyID.contains(keyName);
+    return keyLookup.keys();
+}
+
+bool Entity::gotData(QString keyName) const
+{
+    if(keyName.isEmpty()){
+        return !dataLookup.isEmpty();
+    }else{
+        return getData(keyName);
     }
-    return !lookupKeyName2KeyID.isEmpty();
 }
 
-QStringList Entity::getKeyNames()
-{
-    return lookupKeyName2KeyID.keys();
-}
-
-bool Entity::isNode()
+bool Entity::isNode() const
 {
     return entityKind == EK_NODE;
 }
 
-bool Entity::isEdge()
+bool Entity::isEdge() const
 {
     return entityKind == EK_EDGE;
 }
 
-bool Entity::isReadOnly()
+bool Entity::isReadOnly() const
 {
     Data* readOnlyData = getData("readOnly");
     if(readOnlyData){
@@ -224,21 +235,7 @@ bool Entity::isReadOnly()
     return false;
 }
 
-bool Entity::isDataProtected(QString keyName)
-{
-    Data* readOnlyData = getData("dataProtected");
-    if(readOnlyData){
-        if(readOnlyData->getValue().toBool()){
-            Data* data = getData(keyName);
-            if(data && (!data->isVisualData() && keyName != "sortOrder" && keyName != "actionOn")){
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool Entity::isSnippetReadOnly()
+bool Entity::isSnippetReadOnly() const
 {
     if(isReadOnly()){
         if(!getData("snippetID")){
@@ -256,7 +253,7 @@ bool Entity::isSnippetReadOnly()
 
 }
 
-QVariant Entity::getDataValue(QString keyName)
+QVariant Entity::getDataValue(QString keyName) const
 {
     Data* data = getData(keyName);
     if(data){
@@ -265,13 +262,27 @@ QVariant Entity::getDataValue(QString keyName)
     return QVariant();
 }
 
-void Entity::setDataValue(QString keyName, QVariant value)
+QVariant Entity::getDataValue(Key *key) const
 {
-     Data* data = getData(keyName);
+    Data* data = getData(key);
+    if(data){
+        return data->getValue();
+    }
+    return QVariant();
+}
+
+bool Entity::setDataValue(QString keyName, QVariant value)
+{
+    return setDataValue(getKey(keyName), value);
+}
+
+bool Entity::setDataValue(Key *key, QVariant value)
+{
+     Data* data = getData(key);
      if(data){
-        data->setValue(value);
-        emit dataChanged(getID(), keyName, data->getValue());
+        return data->setValue(value);
      }
+     return false;
 }
 
 QStringList Entity::getProtectedKeys()
@@ -290,7 +301,7 @@ bool Entity::removeData(Key *key)
     return removeData(getData(key));
 }
 
-QString Entity::getEntityName()
+QString Entity::getEntityName() const
 {
     return getEntityKindName(entityKind);
 }
@@ -304,34 +315,21 @@ QString Entity::getEntityName()
 bool Entity::removeData(Data *data)
 {
     if(data){
-        if(data->getParent() != this){
-            //Don't remove data which isn't owned by this.
+        if(!dataLookup.values().contains(data)){
             return false;
-        }
-        int dataID = data->getID();
-        Key* key = data->getKey();
 
-        if(lookupDataID2Data.contains(dataID)){
-            //Remove data from Hash
-            lookupDataID2Data.remove(dataID);
         }
+        Key* key = data->getKey();
         if(!key){
             //Can't remove data which doesn't have a valid key.
             return false;
         }
+        int count = 0;
+        count += dataLookup.remove(key);
+        count += keyLookup.remove(key->getName());
 
-        int keyID = key->getID();
-        QString keyName = key->getName();
-        if(lookupKeyID2DataID.contains(keyID)){
-            //Remove keyID lookup
-            lookupKeyID2DataID.remove(keyID);
-        }
-        if(lookupKeyName2KeyID.contains(keyName)){
-            //Remove keyName lookup
-            lookupKeyName2KeyID.remove(keyName);
-        }
-
-        emit dataRemoved(getID(), keyName);
+        data->setParent(0);
+        return count == 2;
     }else{
         //Can't remove null data.
         return false;
@@ -347,100 +345,10 @@ bool Entity::removeData(Data *data)
  */
 bool Entity::removeData(QString keyName)
 {
-    int keyID = getKeyIDFromKeyName(keyName);
-    int dataID = getDataIDFromKeyID(keyID);
-
-    if(dataID == -1){
-        return false;
-    }
-
-    if(lookupDataID2Data.contains(dataID)){
-        //Remove data from Hash
-        lookupDataID2Data.remove(dataID);
-    }
-
-    if(lookupKeyID2DataID.contains(keyID)){
-        //Remove keyID lookup
-        lookupKeyID2DataID.remove(keyID);
-    }
-
-    if(lookupKeyName2KeyID.contains(keyName)){
-        //Remove keyName lookup
-        lookupKeyName2KeyID.remove(keyName);
-    }
-    return true;
+    return removeData(getData(keyName));
 }
 
 QString Entity::toString()
 {
     return QString("[%1]%2 - %3").arg(QString::number(getID()), getDataValue("kind").toString() ,getDataValue("label").toString());
-}
-
-void Entity::dataProtected(bool protect)
-{
-    emit propertyChanged(getID(), "protectedKeys", getProtectedKeys());
-}
-
-void Entity::thisDataChanged(QString keyName)
-{
-    if(keyName == "readOnly"){
-        emit readOnlySet(getID(), isReadOnly());
-    }
-}
-
-/**
- * @brief Entity::getDataIDFromKeyName
- * Gets the ID of the data which has Key with name keyName
- * @param keyName - The name of the Key
- * @return the ID or -1 if failed.
- */
-int Entity::getDataIDFromKeyName(QString keyName)
-{
-    int keyID = getKeyIDFromKeyName(keyName);
-    return getDataIDFromKeyID(keyID);
-}
-
-/**
- * @brief Entity::getKeyIDFromKeyName
- * Gets the ID of the key which has name keyName
- * @param keyName - The name of the key
- * @return the ID or -1 if failed.
- */
-int Entity::getKeyIDFromKeyName(QString keyName)
-{
-    if(keyName != "" && lookupKeyName2KeyID.contains(keyName)){
-        return lookupKeyName2KeyID[keyName];
-    }
-    return -1;
-}
-
-/**
- * @brief Entity::getDataIDFromKeyID
- * Gets the ID of the data which has a key with ID keyID
- * @param keyID - The ID of the key
- * @return  the ID or -1 if failed.
- */
-int Entity::getDataIDFromKeyID(int keyID)
-{
-    int dataID = -1;
-
-    if(keyID != -1 && lookupKeyID2DataID.contains(keyID)){
-        dataID = lookupKeyID2DataID[keyID];
-    }
-
-    return dataID;
-}
-
-/**
- * @brief Entity::getDataFromDataID
- * Gets the Data contained by this Entity, by it's ID
- * @param dataID The ID of the Data
- * @return the Data or NULL
- */
-Data *Entity::getDataFromDataID(int dataID)
-{
-    if(dataID != -1 && lookupDataID2Data.contains(dataID)){
-        return lookupDataID2Data[dataID];
-    }
-    return 0;
 }
