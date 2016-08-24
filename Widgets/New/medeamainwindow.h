@@ -17,6 +17,7 @@
 #include <QStringListModel>
 
 #include "../../GUI/popupwidget.h"
+#include "../../View/Dock/docktabwidget.h"
 
 
 class MedeaMainWindow : public MedeaWindowNew
@@ -63,14 +64,17 @@ private:
     void setupToolBar();
     void setupSearchBar();
     void setupProgressBar();
+    void setupDock();
     void setupDataTable();
     void setupMinimap();
     void setupMainDockWidgetToggles();
 
     MedeaWindowNew* innerWindow;
+    QMainWindow* centralWindow;
 
     QMenuBar* menuBar;
     QToolBar* applicationToolbar;
+    DockTabWidget* dockTabWidget;
     TableWidget* tableWidget;
     NodeViewMinimap* minimap;
 

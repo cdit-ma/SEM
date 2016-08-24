@@ -455,6 +455,8 @@ void ActionController::setupActions()
     toolbar_displayedChildrenOption = createRootAction("Change Displayed Nodes Settings", "", "Actions", "Menu_Vertical");
 
     toolbar_addDDSQOSProfile = createRootAction("Construct new DDS QOS Profile", "", "Actions", "Plus");
+
+    toggleDock = createRootAction("Show/Hide Dock", "", "Actions", "Menu_Vertical");
 }
 
 void ActionController::setupMainMenu()
@@ -545,6 +547,15 @@ void ActionController::setupMainMenu()
 void ActionController::setupApplicationToolbar()
 {
     applicationToolbar = new ActionGroup(this);
+
+    /*
+    toggleDock->setCheckable(true);
+    toggleDock->setChecked(true);
+    //toggleDock->icon().addPixmap(Theme::theme()->getImage("Actions", "Menu_Vertical", QSize(), Qt::red), QIcon::Normal, QIcon::On);
+
+    applicationToolbar->addAction(toggleDock);
+    applicationToolbar->addSeperator();
+    */
 
     toolbar_undo = applicationToolbar->addAction(edit_undo->constructSubAction(false));
     toolbar_redo = applicationToolbar->addAction(edit_redo->constructSubAction(false));

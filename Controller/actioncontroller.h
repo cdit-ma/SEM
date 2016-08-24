@@ -54,6 +54,8 @@ public:
     ActionGroup* applicationToolbar;
     ActionGroup* contextToolbar;
 
+    QAction* toggleDock;
+
     QAction* toolbar_context;
     QAction* toolbar_undo;
     QAction* toolbar_redo;

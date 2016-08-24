@@ -15,6 +15,7 @@
 #include <QApplication>
 #include <QStringBuilder>
 #include <QStringListModel>
+#include <QTabWidget>
 
 #define TOOLBAR_HEIGHT 32
 
@@ -35,6 +36,7 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     applicationToolbar = 0;
     viewController = vc;
 
+    //setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
@@ -416,6 +418,7 @@ void MedeaMainWindow::setupTools()
     setupToolBar();
     setupSearchBar();
     setupProgressBar();
+    //setupDock();
     setupDataTable();
     setupMinimap();
 }
@@ -428,6 +431,14 @@ void MedeaMainWindow::setupInnerWindow()
 {
     innerWindow = MedeaWindowManager::constructCentralWindow();
     setCentralWidget(innerWindow);
+
+    /*
+    QDockWidget* dockWidget = new QDockWidget(this);
+    dockWidget->setTitleBarWidget(new QWidget());
+    dockWidget->setWidget(innerWindow);
+    dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
+    centralWindow->addDockWidget(Qt::RightDockWidgetArea, dockWidget);
+    */
 
     nodeView_Interfaces = new NodeViewNew();
     nodeView_Behaviour = new NodeViewNew();
@@ -542,6 +553,13 @@ void MedeaMainWindow::setupToolBar()
     w1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     w2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+    //QToolButton* b1 = new QToolButton(this);
+    //QToolButton* b2 = new QToolButton(this);
+    //b1->setIcon(Theme::theme()->getIcon("Actions", "Parts"));
+    //b2->setIcon(Theme::theme()->getIcon("Actions", "Computer_DockButton"));
+
+    //applicationToolbar->addWidget(b1);
+    //applicationToolbar->addWidget(b2);
     applicationToolbar->addWidget(w1);
     applicationToolbar->addActions(viewController->getActionController()->applicationToolbar->actions());
     applicationToolbar->addWidget(w2);
@@ -632,6 +650,43 @@ void MedeaMainWindow::setupProgressBar()
 
     connect(viewController, &ViewController::mc_showProgress, this, &MedeaMainWindow::showProgressBar);
     connect(viewController, &ViewController::mc_progressChanged, this, &MedeaMainWindow::updateProgressBar);
+}
+
+
+/**
+ * @brief MedeaMainWindow::setupDock
+ */
+void MedeaMainWindow::setupDock()
+{
+    dockTabWidget = new DockTabWidget(viewController, this);
+    dockTabWidget->setMaximumWidth(200);
+
+    /*
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->setOrientation(Qt::Vertical);
+    toolbar->addActions(viewController->getToolbarController()->getAdoptableKindsActions(true));
+
+    QScrollArea* scrollArea = new QScrollArea(this);
+    scrollArea->setWidget(toolbar);
+    scrollArea->setWidgetResizable(true);
+    */
+
+    MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Dock");
+    dockWidget->setWidget(dockTabWidget);
+    //dockWidget->setTitleBarWidget(dockTabWidget);
+    //dockWidget->setWidget(scrollArea);
+    dockWidget->setAllowedAreas(Qt::LeftDockWidgetArea);
+    //dockWidget->setStyleSheet("QDockWidget{ border: 3px solid red; margin: 2px; }");
+
+    centralWindow = new QMainWindow();
+    centralWindow->addDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Vertical);
+    setCentralWidget(centralWindow);
+    dockWidget->resize(50, centralWindow->height());
+
+    connect(viewController->getActionController()->toggleDock, SIGNAL(triggered(bool)), dockWidget, SLOT(setVisible(bool)));
+
+    //Check visibility state.
+    //dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());
 }
 
 

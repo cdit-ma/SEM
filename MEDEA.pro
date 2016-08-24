@@ -196,8 +196,11 @@ HEADERS += \
     Widgets/New/dataeditwidget.h \
     Controller/filehandler.h \
     Widgets/New/selectioncontroller.h \
-    GUI/popupwidget.h
+	GUI/popupwidget.h \
+	View/Dock/docktabwidget.h \
+	View/Dock/dockactionwidget.h \
     View/SceneItems/nodeitemcontainer.h
+	View/SceneItems/nodeitemcontainer.h \
 
 SOURCES += \
     main.cpp \
@@ -358,7 +361,10 @@ SOURCES += \
     Widgets/New/dataeditwidget.cpp \
     Controller/filehandler.cpp \
     GUI/popupwidget.cpp \
+    View/Dock/docktabwidget.cpp \
+    View/Dock/dockactionwidget.cpp \
     View/SceneItems/nodeitemcontainer.cpp
+	View/SceneItems/nodeitemcontainer.cpp
 
 RESOURCES += \
     resources.qrc
