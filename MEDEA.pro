@@ -44,7 +44,6 @@ HEADERS += \
     Controller/doublehash.h \
     GUI/actionbutton.h \
     GUI/appsettings.h \
-    GUI/aspecttogglewidget.h \
     GUI/codeeditor.h \
     GUI/keyeditwidget.h \
     GUI/shortcutdialog.h \
@@ -212,7 +211,6 @@ SOURCES += \
     Controller/doublehash.cpp \
     GUI/actionbutton.cpp \
     GUI/appsettings.cpp \
-    GUI/aspecttogglewidget.cpp \
     GUI/codeeditor.cpp \
     GUI/keyeditwidget.cpp \
     GUI/shortcutdialog.cpp \
