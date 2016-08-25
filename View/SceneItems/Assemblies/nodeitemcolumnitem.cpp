@@ -9,9 +9,9 @@ NodeItemColumnItem::NodeItemColumnItem(NodeViewItem *viewItem, NodeItemNew *pare
     row = 0;
 
     if(viewItem){
-        if(viewItem->getNodeKind() == Node::NK_OUTEVENTPORT_INSTANCE){
+        if(viewItem->getNodeKind() == Node::NK_OUTEVENTPORT_INSTANCE || viewItem->getNodeKind() == Node::NK_OUTEVENTPORT_DELEGATE){
             column = 2;
-        }else if(viewItem->getNodeKind() == Node::NK_INEVENTPORT_INSTANCE){
+        }else if(viewItem->getNodeKind() == Node::NK_INEVENTPORT_INSTANCE || viewItem->getNodeKind() == Node::NK_INEVENTPORT_DELEGATE){
             column = 0;
         }else if(viewItem->getNodeKind() == Node::NK_ATTRIBUTE_INSTANCE){
             column = 1;
@@ -20,7 +20,7 @@ NodeItemColumnItem::NodeItemColumnItem(NodeViewItem *viewItem, NodeItemNew *pare
 
 
     //This changes our position!
-    setMargin(QMarginsF(0,0,0,0));
+    setMargin(QMarginsF(1,1,1,1));
 
     //Force update
     setPos(QPointF(0,0));

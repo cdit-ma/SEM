@@ -40,7 +40,7 @@ QPointF NodeItemColumnContainer::getPositionForChild(NodeItemNew *child)
     NodeItemColumnItem* nodeItemChild = qobject_cast<NodeItemColumnItem*>(child);
 
     if(nodeItemChild){
-        return getColumnPosition(nodeItemChild->getColumn(), nodeItemChild->getRow()) - QPointF(child->getCenterOffset().x(), 0);
+        return getColumnPosition(nodeItemChild->getColumn(), nodeItemChild->getRow());// - QPointF(child->getCenterOffset().x(), 0);
     }else{
         return QPointF();
     }
@@ -54,4 +54,22 @@ QPoint NodeItemColumnContainer::getIndexForChild(NodeItemColumnItem *child)
     index.setX(childCenter.x() / (columnWidth + columnSpacing));
     index.setY(childCenter.y() / (columnHeight + columnSpacing));
     return index;
+}
+
+void NodeItemColumnContainer::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
+    RENDER_STATE state = getRenderState(lod);
+
+    NodeItemContainer::paint(painter, option, widget);
+    if(state > RS_BLOCK){
+        painter->setClipRect(option->exposedRect);
+
+        if(isGridVisible()){
+            painter->setBrush(Qt::red);
+            painter->drawRect(getColumnRect(0));
+            painter->setBrush(Qt::green);
+            painter->drawRect(getColumnRect(2));
+        }
+    }
 }

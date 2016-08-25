@@ -267,7 +267,16 @@ void NodeViewNew::item_RemoveData(ViewItem *item, QString keyName)
 
 void NodeViewNew::fitToScreen()
 {
-    centerRect(scene()->itemsBoundingRect());
+    //QRectF rect;
+    centerOnItems(getTopLevelEntityItems());
+
+    //foreach(int ID, topLevelGUIItemIDs){
+    //    EntityItemNew* item = guiItems.value(ID, 0);
+    //    if(item){
+    //        rect = rect.united(item->sceneBoundingRect());
+    //    }
+    //}
+    //centerRect(rect);
 }
 
 void NodeViewNew::centerSelection()
@@ -292,12 +301,10 @@ void NodeViewNew::item_ActiveSelected(ViewItem *item)
 
 void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
 {
-     qCritical() << item << expand;
     if(item){
         int ID = item->getID();
         emit triggerAction("Expanding Selection");
         emit setData(ID, "isExpanded", expand);
-
     }
 }
 
@@ -461,7 +468,9 @@ void NodeViewNew::centerOnItems(QList<EntityItemNew *> items)
 {
     QRectF itemsRect;
     foreach(EntityItemNew* item, items){
-        itemsRect = itemsRect.united(item->sceneViewRect());
+        if(item->isVisible()){
+            itemsRect = itemsRect.united(item->sceneViewRect());
+        }
     }
     centerRect(itemsRect);
 }
@@ -529,34 +538,38 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
         if(containedNodeViewItem->isAncestorOf(item)){
             int ID = item->getID();
             NodeItemNew* nodeItem =  0;
-            QString nodeKind = item->getData("kind").toString();
+            Node::NODE_KIND nodeKind = item->getNodeKind();
+            QString nodeKindStr = item->getData("kind").toString();
+
+            //Ignore
+            if(nodeKindStr.contains("DDS")){
+                return;
+            }
 
             bool ignorePosition = containedNodeViewItem == item;
 
 
-            if(nodeKind == "HardwareNode"){
+            switch(nodeKind){
+            case Node::NK_HARDWARE_NODE:
                 nodeItem = new HardwareNodeItem(item, parentNode);
-            }else if(item->getNodeKind() == Node::NK_COMPONENT_ASSEMBLY || item->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
-                nodeItem = new NodeItemColumnContainer(item, parentNode);
-            }else if(item->getNodeKind() == Node::NK_INEVENTPORT_INSTANCE || item->getNodeKind() == Node::NK_OUTEVENTPORT_INSTANCE || item->getNodeKind() == Node::NK_ATTRIBUTE_INSTANCE){
-                nodeItem = new NodeItemColumnItem(item, parentNode);
-            }else if(nodeKind == "InEventPort" || nodeKind == "OutEventPort" ||
-                     nodeKind == "AggregateInstance" || nodeKind == "IDL" ||
-                     nodeKind == "Aggregate" || nodeKind == "ComponentInstance" ||
-                     nodeKind == "ComponentAssembly" || nodeKind == "Component" ||
-                     nodeKind == "InEventPortImpl" || nodeKind == "OutEventPortImpl"){
-                nodeItem = new NodeItemContainer(item, parentNode);
-            }else if(nodeKind == "ManagementComponent"){
+                break;
+            case Node::NK_MANAGEMENT_COMPONENT:
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
-            }else if(nodeKind.contains("EventPort")){
-                nodeItem = new EventPortNodeItem(item, parentNode);
-            }else if(nodeKind.contains("DDS_")){
-                return;
-            }else if(nodeKind.contains("Attribute")||nodeKind.contains("Variable") ||
-                     nodeKind.contains("Member")){
+                break;
+            case Node::NK_INEVENTPORT_INSTANCE:
+            case Node::NK_OUTEVENTPORT_INSTANCE:
+            case Node::NK_INEVENTPORT_DELEGATE:
+            case Node::NK_OUTEVENTPORT_DELEGATE:
+            case Node::NK_ATTRIBUTE_INSTANCE:
+                nodeItem = new NodeItemColumnItem(item, parentNode);
+                break;
+            case Node::NK_COMPONENT_ASSEMBLY:
+            case Node::NK_COMPONENT_INSTANCE:
+                nodeItem = new NodeItemColumnContainer(item, parentNode);
+                break;
+            default:
                 nodeItem = new NodeItemContainer(item, parentNode);
-            }else{
-                nodeItem = new NodeItemContainer(item, parentNode);
+                break;
             }
 
             if(nodeItem){
@@ -618,8 +631,9 @@ QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems()
 {
     QList<EntityItemNew*> items;
     foreach(int ID, topLevelGUIItemIDs){
-        if(guiItems.contains(ID)){
-            items.append(guiItems[ID]);
+        EntityItemNew* item = guiItems.value(ID, 0);
+        if(item){
+            items.append(item);
         }
     }
     return items;

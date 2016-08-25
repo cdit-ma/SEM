@@ -22,6 +22,10 @@ private:
     int columnSpacing;
     int columnHeight;
 
+
+    // QGraphicsItem interface
+public:
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
 #endif // NODEITEMCOLUMNCONTAINER_H
