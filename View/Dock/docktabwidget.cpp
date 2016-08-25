@@ -214,7 +214,7 @@ void DockTabWidget::setupConnections()
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
     connect(partsButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
     connect(hardwareButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
-    connect(partsDock, SIGNAL(dockActionClicked(QAction*,ToolActionController::DOCK_TYPE)), this, SLOT(dockActionClicked(QAction*)));
+    connect(partsDock, SIGNAL(actionClicked(QAction*)), this, SLOT(dockActionClicked(QAction*)));
 }
 
 
@@ -224,6 +224,7 @@ void DockTabWidget::setupConnections()
 void DockTabWidget::updateDockHeight()
 {
     return;
+    /*
     int totalHeight = 0;
     foreach (QAction* action, partsDock->actions()) {
         if (action->isVisible()) {
@@ -235,6 +236,7 @@ void DockTabWidget::updateDockHeight()
     }
     //partsDock->setFixedHeight(totalHeight);
     partsDock->setFixedSize(partsDock->sizeHint().width(), totalHeight + 100);
+    */
 }
 
 

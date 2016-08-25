@@ -880,6 +880,12 @@ QString Theme::getProgressBarStyleSheet()
            "}";
 }
 
+QString Theme::getLabelStyleSheet()
+{
+    return "QLabel{ color:" % getTextColorHex() % ";}"
+           "QLabel:hover{ background: blue; color:red;}";
+}
+
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)
 {
     QColor color = getAspectBackgroundColor(aspect).darker(110);

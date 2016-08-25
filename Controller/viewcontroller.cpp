@@ -117,8 +117,6 @@ ToolActionController *ViewController::getToolbarController()
 
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
 {
-
-    //
     Edge::EDGE_CLASS ec = Edge::EC_DEFINITION;
 
     if(kind.endsWith("Delegate") || kind.endsWith("EventPort")){
@@ -178,6 +176,15 @@ QStringList ViewController::getAdoptableNodeKinds()
         return controller->getAdoptableNodeKinds(ID);
     }
     return QStringList();
+}
+
+QList<Edge::EDGE_CLASS> ViewController::getValidEdgeKindsForSelection()
+{
+    QList<Edge::EDGE_CLASS> edgeKinds;
+    if(selectionController && controller){
+        edgeKinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
+    }
+    return edgeKinds;
 }
 
 QStringList ViewController::getValidValuesForKey(int ID, QString keyName)
@@ -574,11 +581,16 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             topLevelItems.append(ID);
         }
     }else if(eKind == EK_EDGE){
-        Edge::EDGE_CLASS edgeClass = (Edge::EDGE_CLASS)properties["edgeClass"].toInt();
+        Edge::EDGE_CLASS edgeKind = Edge::EC_NONE;
 
-        if(!(edgeClass == Edge::EC_ASSEMBLY || edgeClass == Edge::EC_DATA || edgeClass == Edge::EC_WORKFLOW)){
+        if(properties.contains("kind")){
+            edgeKind = (Edge::EDGE_CLASS)properties["kind"].toInt();
+        }
+
+        if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
             return;
         }
+
         int srcID = properties["srcID"].toInt();
         int dstID = properties["dstID"].toInt();
         NodeViewItem* source = getNodeViewItem(srcID);
@@ -586,8 +598,15 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 
         NodeViewItem* parent = getSharedParent(source, destination);
 
+        EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, source, destination, kind, data, properties);
 
-        EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, parent, source, destination, kind, data, properties);
+        if(parent){
+            parent->addChild(edgeItem);
+        }else{
+            qCritical() << "NO PARENT EDGE" << edgeItem;
+            rootItem->addChild(edgeItem);
+            topLevelItems.append(ID);
+        }
         viewItem = edgeItem;
     }
 

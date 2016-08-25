@@ -29,6 +29,7 @@ public:
 
 
     QStringList getAdoptableNodeKinds();
+    QList<Edge::EDGE_CLASS> getValidEdgeKindsForSelection();
     QStringList getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();

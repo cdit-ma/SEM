@@ -86,6 +86,7 @@ private:
 
     QList<EntityItemNew*> getSelectedItems();
 
+
     NodeItemNew* getParentNodeItem(NodeViewItem* item);
 
     EntityItemNew* getEntityItem(int ID);

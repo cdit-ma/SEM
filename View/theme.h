@@ -116,6 +116,7 @@ public:
     QString getMessageBoxStyleSheet();
     QString getPopupWidgetStyleSheet();
     QString getProgressBarStyleSheet();
+    QString getLabelStyleSheet();
 
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 

@@ -104,6 +104,13 @@ void ToolActionController::selectionChanged(int selected)
     foreach(QAction* action, adoptableKindsGroup->actions()){
         action->setEnabled(validActions.contains(action->text()));
     }
+
+    QList<Edge::EDGE_CLASS> validEdges = viewController->getValidEdgeKindsForSelection();
+
+    foreach(Edge::EDGE_CLASS edgeKind, edgeKindActions.keys()){
+        RootAction* action = edgeKindActions[edgeKind];
+        action->setEnabled(validEdges.contains(edgeKind));
+    }
 }
 
 void ToolActionController::addChildNode(QString kind, QPointF position)
@@ -276,7 +283,7 @@ void ToolActionController::setupEdgeActions()
     foreach(Edge::EDGE_CLASS edgeKind, Edge::getEdgeClasses()){
         QString edgeName = Edge::getKind(edgeKind);
         RootAction* action = new RootAction(edgeName);
-        //action->setIconPath("Items", edgeName);
+        action->setIconPath("Actions", "ConnectTo");
         edgeKindActions[edgeKind] = action;
     }
 }

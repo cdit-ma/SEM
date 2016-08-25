@@ -19,7 +19,7 @@ public:
     ToolActionController::DOCK_TYPE getDockType();
 
 signals:
-    void dockActionClicked(QAction* action, ToolActionController::DOCK_TYPE dockType);
+    void actionClicked(QAction* action);
 
 public slots:
     void dockActionClicked();

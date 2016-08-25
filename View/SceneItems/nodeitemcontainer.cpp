@@ -4,6 +4,7 @@
 NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parentItem)
     :NodeItemNew(viewItem, parentItem, NodeItemNew::DEFAULT_ITEM)
 {
+    rightIcon = false;
     setMoveEnabled(true);
     setExpandEnabled(true);
     setResizeEnabled(true);
@@ -17,8 +18,6 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
     setExpandedWidth(width*4);
     setExpandedHeight(height);
 
-    setExpanded(false);
-
     setMargin(QMarginsF(10,2,2,2));
     setBodyPadding(QMarginsF(0,0,0,0));
 
@@ -26,6 +25,9 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
     addRequiredData("y");
 
     reloadRequiredData();
+    if(viewItem && viewItem->getData("kind").toString().contains("OutEvent")){
+        setRightIcon(true);
+    }
 }
 
 QRectF NodeItemContainer::bodyRect() const
@@ -57,14 +59,14 @@ void NodeItemContainer::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
         if(!getData("locked").toBool()){
             painter->setBrush(Qt::white);
-            painter->drawRect(labelBGRect());
+            painter->drawRect(outerKindRect());
         }
         painter->restore();
 
         painter->setPen(Qt::black);
 
-        painter->drawText(kindLabelRect(), Qt::AlignVCenter|Qt::AlignCenter, getData("kind").toString());
-        painter->drawText(labelRect(),Qt::AlignVCenter|Qt::AlignCenter, getData("label").toString());
+        painter->drawText(innerKindRect(), Qt::AlignVCenter|Qt::AlignCenter, getData("kind").toString());
+        painter->drawText(innerLabelRect(),Qt::AlignVCenter|Qt::AlignCenter, getData("label").toString());
 
         paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
         paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
@@ -88,7 +90,7 @@ QRectF NodeItemContainer::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     case ER_MAIN_ICON:
         return innerIconRect();
     case ER_MAIN_LABEL:
-        return labelRect();
+        return innerLabelRect();
     case ER_LOCKED_STATE:
         return deployedRect();
     case ER_QOS:
@@ -117,9 +119,15 @@ QPainterPath NodeItemContainer::getElementPath(EntityItemNew::ELEMENT_RECT rect)
 
 }
 
+void NodeItemContainer::setRightIcon(bool isRight)
+{
+    rightIcon = isRight;
+    update();
+}
+
 QRectF NodeItemContainer::mainRect() const
 {
-    QRectF mainRect(0,0,getExpandedWidth(), getExpandedHeight()-headerRect().height());
+    QRectF mainRect(0,0,getWidth(), getExpandedHeight()-headerRect().height());
     mainRect.moveTopLeft(headerRect().bottomLeft());
     return mainRect;
 }
@@ -131,10 +139,25 @@ QRectF NodeItemContainer::headerRect() const
     return rect;
 }
 
+QRectF NodeItemContainer::headerTextRect() const
+{
+    QRectF rect(headerRect());
+    if(rightIcon){
+        rect.setRight(headerRect().right() - headerRect().height());
+    }else{
+        rect.setLeft(headerRect().left() + headerRect().height());
+    }
+    return rect;
+}
+
 QRectF NodeItemContainer::outerIconRect() const
 {
     QRectF rect(headerRect());
-    rect.setWidth(headerRect().height());
+    if(rightIcon){
+        rect.setLeft(rect.right()-rect.height());
+    }else{
+        rect.setRight(rect.left()+rect.height());
+    }
     return rect;
 }
 
@@ -146,37 +169,41 @@ QRectF NodeItemContainer::innerIconRect() const
     return rect;
 }
 
-QRectF NodeItemContainer::labelRect() const
+QRectF NodeItemContainer::innerLabelRect() const
 {
-    QRectF rect(labelBGRect());
-    rect.setWidth(rect.width() - getMinimumHeight()/2);
+    QRectF rect(outerLabelRect());
+    rect.setRight(outerLabelRect().right()-outerLabelRect().height());
     return rect;
 }
 
-QRectF NodeItemContainer::labelBGRect() const
+QRectF NodeItemContainer::outerLabelRect() const
 {
-    QRectF rect(headerRect());
-    rect.setWidth(getWidth() - outerIconRect().width());
-    rect.setHeight(getMinimumHeight()/2);
-    rect.moveBottomLeft(outerIconRect().bottomRight());
+    QRectF rect(headerTextRect());
+    rect.setHeight(headerTextRect().height()/2.0);
     return rect;
 }
 
-QRectF NodeItemContainer::kindLabelRect() const
+QRectF NodeItemContainer::innerKindRect() const
 {
-    QRectF rect(headerRect());
-    rect.setWidth(getWidth() - outerIconRect().width() - getMinimumHeight()/2);
-    rect.setHeight(getMinimumHeight()/2);
-    rect.moveTopLeft(outerIconRect().topRight());
+    QRectF rect(outerKindRect());
+    rect.setRight(rect.right()-rect.height());
+    return rect;
+}
+
+QRectF NodeItemContainer::outerKindRect() const
+{
+    QRectF rect(headerTextRect());
+    rect.setHeight(headerTextRect().height()/2.0);
+    rect.moveBottomLeft(headerTextRect().bottomLeft());
     return rect;
 }
 
 QRectF NodeItemContainer::deployedRect() const
 {
-    QRectF rect(headerRect());
-    rect.setHeight(rect.height()/2);
+    QRectF rect(headerTextRect());
+    rect.setHeight(rect.height()/2.0);
     rect.setWidth(rect.height());
-    rect.moveTopRight(headerRect().topRight());
+    rect.moveTopRight(headerTextRect().topRight());
     QPointF center = rect.center();
     rect.setHeight(rect.height() * 5.0/6.0);
     rect.setWidth(rect.width() * 5.0/6.0);
@@ -186,10 +213,10 @@ QRectF NodeItemContainer::deployedRect() const
 
 QRectF NodeItemContainer::qosRect() const
 {
-    QRectF rect(headerRect());
-    rect.setHeight(rect.height()/2);
+    QRectF rect(headerTextRect());
+    rect.setHeight(rect.height()/2.0);
     rect.setWidth(rect.height());
-    rect.moveBottomRight(headerRect().bottomRight());
+    rect.moveBottomRight(headerTextRect().bottomRight());
     QPointF center = rect.center();
     rect.setHeight(rect.height() * 5.0/6.0);
     rect.setWidth(rect.width() * 5.0/6.0);
@@ -199,7 +226,7 @@ QRectF NodeItemContainer::qosRect() const
 
 QRectF NodeItemContainer::expandStateRect() const
 {
-    QRectF rect(mainRect());
+    QRectF rect;
     rect.setHeight(8);
     rect.setWidth(8);
     if(expanded){
@@ -222,5 +249,14 @@ void NodeItemContainer::dataChanged(QString keyName, QVariant data)
         expanded = getData("isExpanded").toBool();
     }*/
     NodeItemNew::dataChanged(keyName, data);
+}
+
+QPointF NodeItemContainer::getCenterOffset() const
+{
+    QPointF point(headerRect().topLeft());
+    QRectF r = headerRect();
+    point = point + QPointF(r.height()/2.0, r.height()/2.0);
+
+    return point;
 }
 

@@ -306,12 +306,12 @@ void EntityItemNew::setData(QString keyName, QVariant value)
     emit req_setData(viewItem, keyName, value);
 }
 
-QVariant EntityItemNew::getData(QString keyName)
+QVariant EntityItemNew::getData(QString keyName) const
 {
     return viewItem->getData(keyName);
 }
 
-bool EntityItemNew::hasData(QString keyName)
+bool EntityItemNew::hasData(QString keyName) const
 {
     return viewItem->hasData(keyName);
 }

@@ -16,7 +16,9 @@ DockActionWidget::DockActionWidget(QAction *action, QWidget *parent) : QPushButt
 
     setupLayout();
     requiresSubAction(false);
+
     actionChanged();
+    themeChanged();
 
     //connect(this, SIGNAL(clicked(bool)), action, SIGNAL(triggered(bool)));
     //connect(action, SIGNAL(toggled(bool)), this, SIGNAL(toggled(bool)));
@@ -72,8 +74,10 @@ void DockActionWidget::actionChanged()
  */
 void DockActionWidget::themeChanged()
 {
-    //Theme* theme = Theme::theme();
-    //setStyleSheet();
+    Theme* theme = Theme::theme();
+    setStyleSheet("QWidget{ color:" + theme->getTextColorHex() + ";}"
+                  "QWidget:hover{ color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}");
+    //textLabel->setStyleSheet(theme->getLabelStyleSheet());
 }
 
 

@@ -4,12 +4,21 @@
 
 NodeViewItem::NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties):ViewItem(controller, ID, entityKind, kind, data, properties)
 {
+    nodeKind = Node::NK_NONE;
 
+    if(properties.contains("kind")){
+        nodeKind = (Node::NODE_KIND) properties["kind"].toInt();
+    }
 }
 
 
 NodeViewItem::~NodeViewItem()
 {
+}
+
+Node::NODE_KIND NodeViewItem::getNodeKind() const
+{
+    return nodeKind;
 }
 
 NodeViewItem *NodeViewItem::getParentNodeViewItem()

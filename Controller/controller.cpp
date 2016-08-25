@@ -638,7 +638,7 @@ void NewController::_setData(Entity *parent, QString keyName, QVariant dataValue
     Data* data = parent->getData(keyName);
 
     Node* node = (Node*) parent;
-    if(parent->hasData(keyName)){
+    if(parent->gotData(keyName)){
         action.ID = parent->getID();
         action.Data.oldValue = parent->getDataValue(keyName);
 
@@ -878,7 +878,6 @@ void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_CLASS
             if(!edge){
                 success = false;
                 break;
-                qCritical() << "ERROR YO!";
             }
         }
         lock.unlock();
@@ -889,25 +888,7 @@ void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_CLASS
     emit controller_ActionFinished(success, "Edge couldn't be constructed");
 }
 
-/*
-void NewController::constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass)
-{
-    lock.lockForWrite();
-    Node* src = getNodeFromID(srcID);
-    Node* dst = getNodeFromID(dstID);
 
-    bool success = false;
-    if(src && dst){
-        Edge* edge = 0;
-
-        edge = _constructEdge(edgeClass, src, dst);
-        success = edge;
-    }
-    lock.unlock();
-
-    emit controller_ActionFinished(success, "Edge couldn't be constructed");
-}
-*/
 void NewController::destructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass)
 {
     lock.lockForWrite();
@@ -970,14 +951,10 @@ void NewController::constructDDSQOSProfile(int parentID, QPointF position)
 
 void NewController::constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_CLASS edgeKind, QPointF pos)
 {
+    lock.lockForWrite();
     Node* parentNode = getNodeFromID(parentID);
     Node* connectedNode = getNodeFromID(dstID);
     if(parentNode && connectedNode){
-
-
-
-        //Disable the auto send of construct graphml items.
-        setViewSignalsEnabled(false);
         triggerAction("Constructed Connected Node");
 
         //Create a test node, without telling the GUI.
@@ -985,6 +962,7 @@ void NewController::constructConnectedNode(int parentID, QString nodeKind, int d
         if(testNode){
             if(parentNode->canAdoptChild(testNode)){
                 parentNode->addChild(testNode);
+
 
                 if(edgeKind == Edge::EC_UNDEFINED){
                     edgeKind = getValidEdgeClass(testNode, connectedNode);
@@ -998,8 +976,6 @@ void NewController::constructConnectedNode(int parentID, QString nodeKind, int d
                 if(edgeOkay){
                     Node* newNode = constructChildNode(parentNode, constructDataVector(nodeKind, pos));
                     if(newNode){
-                        //Update the position
-
                         //Attach but don't send a GUI request.
                         attachChildNode(parentNode, newNode);
 
@@ -1025,9 +1001,8 @@ void NewController::constructConnectedNode(int parentID, QString nodeKind, int d
             }
 
         }
-        setViewSignalsEnabled(true);
-        //If we can't connect destruct the node we created.
     }
+    lock.unlock();
     emit controller_ActionFinished();
 }
 
@@ -1179,13 +1154,14 @@ void NewController::remove(QList<int> IDs)
     QList<Entity*> selection = getOrderedSelection(IDs);
 
     if(canDelete(selection)){
-        emit triggerAction("Removing Selection");
+        triggerAction("Removing Selection");
         bool success = _remove(selection);
         emit controller_ActionFinished(success, "Cannot delete all selected entities.");
     } else {
         emit controller_ActionFinished();
     }
     lock.unlock();
+    qCritical() << "YO!";
 }
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
@@ -1787,7 +1763,6 @@ QList<int> NewController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLAS
 
 QList<int> NewController::getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_CLASS edgeClass)
 {
-
     QList<int> dstIDs;
 
     lock.lockForRead();
@@ -1806,6 +1781,7 @@ QList<int> NewController::getConstructableConnectableNodes(int parentID, QString
             }
         }
     }
+    qCritical() << dstIDs;
     if(childNode){
         delete childNode;
     }
@@ -1831,17 +1807,15 @@ QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edg
         //Itterate through all nodes.
         foreach(Node* dst, getAllNodes()){
             //Ignore nodes which can't take this edge class.
-            if(dst->acceptsEdgeKind(edgeKind)){
-                bool accepted = true;
-                foreach(Node* src, sourceNodes){
-                    if(!src->canAcceptEdge(edgeKind, dst)){
-                        accepted = false;
-                        break;
-                    }
+            bool accepted = true;
+            foreach(Node* src, sourceNodes){
+                if(!src->canAcceptEdge(edgeKind, dst)){
+                    accepted = false;
+                    break;
                 }
-                if(accepted){
-                    validNodes.append(dst);
-                }
+            }
+            if(accepted){
+                validNodes.append(dst);
             }
         }
     }
@@ -2305,18 +2279,19 @@ void NewController::storeGraphMLInHash(Entity* item)
         QHash<QString, QVariant> data;
         QHash<QString, QVariant> properties;
 
-        foreach(QString key, item->getKeyNames()){
-            data[key] = item->getDataValue(key);
+        foreach(Key* key, item->getKeys()){
+            data[key->getName()] = item->getDataValue(key);
         }
 
         if(entityKind == Entity::EK_NODE){
+            properties["kind"] = node->getNodeKind();
             properties["viewAspect"] = node->getViewAspect();
             properties["treeIndex"] = node->getTreeIndexAlpha();
             properties["parentID"] = node->getParentNodeID();
         }else if(entityKind == Entity::EK_EDGE){
+            properties["kind"] = edge->getEdgeClass();
             properties["srcID"] = edge->getSourceID();
             properties["dstID"] = edge->getDestinationID();
-            properties["edgeClass"] = edge->getEdgeClass();
         }
 
         properties["protectedKeys"] = item->getProtectedKeys();
@@ -2456,7 +2431,7 @@ bool NewController::attachChildNode(Node *parentNode, Node *node, bool sendGUIRe
             parentNode->addChild(node);
 
             //Only enforce unique-ness for non-read-only nodes.
-            if(!node->isReadOnly() && node->hasData("label")){
+            if(!node->isReadOnly() && node->gotData("label")){
                 //Force Unique labels
                 enforceUniqueLabel(node);
             }
@@ -3271,7 +3246,6 @@ bool NewController::destructNode(Node *node)
     //Remove all Children.
     while(node->hasChildren()){
         Node* child = node->getFirstChild();
-        qCritical() << "Tearing down Children: " << child;
         destructNode(child);
     }
 
@@ -4232,45 +4206,47 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
 
     //Only auto construct if we are processing a user action.
     if(isUserAction()){
-        //Check for an Existing AggregateInstance in the EventPort.
-        foreach(Node* child, eventPort->getChildren(0)){
-            if(child->getDataValue("kind") == "AggregateInstance"){
-                aggregateInstance = child;
+        if(eventPort->getNodeKind() == Node::NK_INEVENTPORT || eventPort->getNodeKind() == Node::NK_OUTEVENTPORT){
+            //Check for an Existing AggregateInstance in the EventPort.
+            foreach(Node* child, eventPort->getChildren(0)){
+                if(child->getDataValue("kind") == "AggregateInstance"){
+                    aggregateInstance = child;
+                }
             }
-        }
 
-        //If we couldn't find an AggregateInstance in the EventPort, construct one.
-        if(!aggregateInstance){
-            aggregateInstance = constructChildNode(eventPort, constructDataVector("AggregateInstance"));
-        }
+            //If we couldn't find an AggregateInstance in the EventPort, construct one.
+            if(!aggregateInstance){
+                aggregateInstance = constructChildNode(eventPort, constructDataVector("AggregateInstance"));
+            }
 
-        //Check that the AggregateInstance was created.
-        if(!aggregateInstance){
-            qCritical() << "setupAggregateRelationship(): EventPort cannot adopt an AggregateInstance!";
-            return false;
-        }
-        //Check to see if the AggregateInstance has a Definition Yet
-        if(aggregateInstance->getDefinition()){
-            if(aggregateInstance->getDefinition() == aggregate){
-                //qDebug() << "setupAggregateRelationship(): EventPort already contains a correctly defined AggregateInstance!";
-            }else{
-                qCritical() << "setupAggregateRelationship(): EventPort already contains a defined AggregateInstance!";
+            //Check that the AggregateInstance was created.
+            if(!aggregateInstance){
+                qCritical() << "setupAggregateRelationship(): EventPort cannot adopt an AggregateInstance!";
                 return false;
             }
-        }
+            //Check to see if the AggregateInstance has a Definition Yet
+            if(aggregateInstance->getDefinition()){
+                if(aggregateInstance->getDefinition() == aggregate){
+                    //qDebug() << "setupAggregateRelationship(): EventPort already contains a correctly defined AggregateInstance!";
+                }else{
+                    qCritical() << "setupAggregateRelationship(): EventPort already contains a defined AggregateInstance!";
+                    return false;
+                }
+            }
 
-        //Check for connecting Edge.
-        Edge* edge = aggregateInstance->getEdgeTo(aggregate);
+            //Check for connecting Edge.
+            Edge* edge = aggregateInstance->getEdgeTo(aggregate);
 
-        if(!edge){
-            //Construct an Edge between the AggregateInstance an Aggregate
-            constructEdgeWithData(Edge::EC_DEFINITION, aggregateInstance, aggregate);
-            edge = aggregateInstance->getEdgeTo(aggregate);
-        }
+            if(!edge){
+                //Construct an Edge between the AggregateInstance an Aggregate
+                constructEdgeWithData(Edge::EC_DEFINITION, aggregateInstance, aggregate);
+                edge = aggregateInstance->getEdgeTo(aggregate);
+            }
 
-        if(!edge){
-            qCritical() << "setupAggregateRelationship(): Edge between AggregateInstance and Aggregate wasn't constructed!";
-            return false;
+            if(!edge){
+                qCritical() << "setupAggregateRelationship(): Edge between AggregateInstance and Aggregate wasn't constructed!";
+                return false;
+            }
         }
     }
 
@@ -4645,12 +4621,14 @@ void NewController::constructEdgeGUI(Edge *edge)
         break;
     }
     case Edge::EC_AGGREGATE:{
-        Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
-        if(aggregate){
-            EventPort* eventPort = dynamic_cast<EventPort*>(src);
-            if(eventPort && eventPort->isInstanceImpl()){
+        if(dst->getNodeKind() == Node::NK_AGGREGATE){
+            Aggregate* aggregate = (Aggregate*) dst;
+
+            if(src->isNodeOfType(Node::NT_EVENTPORT)){
+                EventPort* eventPort = (EventPort*) src;
                 setupEventPortAggregateRelationship(eventPort, aggregate);
             }else{
+                qCritical() << "OTHER AGGREGATE RELATIONSHIP";
                 setupAggregateRelationship(src, aggregate);
             }
         }
@@ -4961,6 +4939,37 @@ QString NewController::getSelectionAsGraphMLSnippet(QList<int> IDs)
     QString data = _exportSnippet(IDs);
     lock.unlock();
     return data;
+}
+
+QList<Edge::EDGE_CLASS> NewController::getValidEdgeKindsForSelection(QList<int> IDs)
+{
+    lock.lockForRead();
+
+    QList<Entity*> entities = getOrderedSelection(IDs);
+    QList<Edge::EDGE_CLASS> edgeKinds;
+
+    if(!entities.isEmpty()){
+        edgeKinds = Edge::getEdgeClasses();
+    }
+
+    foreach(Entity* entity, entities){
+        if(entity->isNode()){
+            Node* node = (Node*) entity;
+            foreach(Edge::EDGE_CLASS edgeKind, edgeKinds){
+                if(!node->acceptsEdgeKind(edgeKind)){
+                    edgeKinds.removeAll(edgeKind);
+                }
+            }
+        }else{
+            //Is edge, no valid edges.
+            edgeKinds.clear();
+        }
+        if(edgeKinds.isEmpty()){
+            break;
+        }
+    }
+    lock.unlock();
+    return edgeKinds;
 }
 
 void NewController::enableDebugLogging(bool logMode, QString applicationPath)

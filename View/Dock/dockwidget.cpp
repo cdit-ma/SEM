@@ -66,6 +66,6 @@ ToolActionController::DOCK_TYPE DockWidget::getDockType()
 void DockWidget::dockActionClicked()
 {
     DockActionWidget* senderAction = qobject_cast<DockActionWidget*>(sender());
-    emit dockActionClicked(senderAction->getAction(), dockType);
+    emit actionClicked(senderAction->getAction());
 }
 

@@ -44,7 +44,6 @@ HEADERS += \
     Controller/doublehash.h \
     GUI/actionbutton.h \
     GUI/appsettings.h \
-    GUI/aspecttogglewidget.h \
     GUI/codeeditor.h \
     GUI/keyeditwidget.h \
     GUI/shortcutdialog.h \
@@ -200,8 +199,10 @@ HEADERS += \
 	View/Dock/docktabwidget.h \
 	View/Dock/dockactionwidget.h \
     View/SceneItems/nodeitemcontainer.h \
-    View/Dock/dockwidget.h
+    View/SceneItems/Assemblies/nodeitemcolumncontainer.h \
+    View/SceneItems/Assemblies/nodeitemcolumnitem.h \
 	View/SceneItems/nodeitemcontainer.h \
+    View/Dock/dockwidget.h
 
 SOURCES += \
     main.cpp \
@@ -209,7 +210,6 @@ SOURCES += \
     Controller/doublehash.cpp \
     GUI/actionbutton.cpp \
     GUI/appsettings.cpp \
-    GUI/aspecttogglewidget.cpp \
     GUI/codeeditor.cpp \
     GUI/keyeditwidget.cpp \
     GUI/shortcutdialog.cpp \
@@ -365,8 +365,11 @@ SOURCES += \
     View/Dock/docktabwidget.cpp \
     View/Dock/dockactionwidget.cpp \
     View/SceneItems/nodeitemcontainer.cpp \
+    View/SceneItems/Assemblies/nodeitemcolumncontainer.cpp \
+    View/SceneItems/Assemblies/nodeitemcolumnitem.cpp \
+	View/SceneItems/nodeitemcontainer.cpp \
     View/Dock/dockwidget.cpp
-	View/SceneItems/nodeitemcontainer.cpp
+	View/Dock/dockwidget.cpp
 
 RESOURCES += \
     resources.qrc

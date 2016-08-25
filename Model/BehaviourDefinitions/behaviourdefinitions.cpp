@@ -5,7 +5,7 @@ BehaviourDefinitions::BehaviourDefinitions():Node(Node::NK_BEHAVIOUR_DEFINITIONS
     setNodeType(NT_ASPECT);
 }
 
-VIEW_ASPECT BehaviourDefinitions::getViewAspect()
+VIEW_ASPECT BehaviourDefinitions::getViewAspect() const
 {
     return VA_BEHAVIOUR;
 }

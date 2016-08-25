@@ -2,6 +2,8 @@
 
 InEventPortDelegate::InEventPortDelegate():EventPortAssembly(NK_INEVENTPORT_DELEGATE)
 {
+    removeEdgeKind(Edge::EC_DEFINITION);
+    removeNodeType(NT_DEFINITION);
 }
 
 bool InEventPortDelegate::canAdoptChild(Node*)
