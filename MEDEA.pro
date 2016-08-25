@@ -201,7 +201,9 @@ HEADERS += \
 	View/Dock/dockactionwidget.h \
     View/SceneItems/nodeitemcontainer.h \
     View/SceneItems/Assemblies/nodeitemcolumncontainer.h \
-    View/SceneItems/Assemblies/nodeitemcolumnitem.h
+    View/SceneItems/Assemblies/nodeitemcolumnitem.h \
+    View/SceneItems/Assemblies/nodeitemstackcontainer.h \
+    View/SceneItems/Assemblies/nodeitemorderedcontainer.h
 	View/SceneItems/nodeitemcontainer.h \
 
 SOURCES += \
@@ -367,7 +369,9 @@ SOURCES += \
     View/Dock/dockactionwidget.cpp \
     View/SceneItems/nodeitemcontainer.cpp \
     View/SceneItems/Assemblies/nodeitemcolumncontainer.cpp \
-    View/SceneItems/Assemblies/nodeitemcolumnitem.cpp
+    View/SceneItems/Assemblies/nodeitemcolumnitem.cpp \
+    View/SceneItems/Assemblies/nodeitemstackcontainer.cpp \
+    View/SceneItems/Assemblies/nodeitemorderedcontainer.cpp
 	View/SceneItems/nodeitemcontainer.cpp
 
 RESOURCES += \

@@ -12,6 +12,7 @@
 #include "SceneItems/eventportnodeitem.h"
 #include "SceneItems/attributenodeitem.h"
 #include "SceneItems/nodeitemcontainer.h"
+#include "SceneItems/Assemblies/nodeitemstackcontainer.h"
 #include "SceneItems/Assemblies/nodeitemcolumncontainer.h"
 #include "SceneItems/Assemblies/nodeitemcolumnitem.h"
 #include "theme.h"
@@ -566,6 +567,19 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_COMPONENT_ASSEMBLY:
             case Node::NK_COMPONENT_INSTANCE:
                 nodeItem = new NodeItemColumnContainer(item, parentNode);
+                break;
+            case Node::NK_IDL:
+            case Node::NK_COMPONENT:
+            case Node::NK_AGGREGATE:
+            case Node::NK_ATTRIBUTE:
+            case Node::NK_AGGREGATE_INSTANCE:
+            case Node::NK_MEMBER:
+            case Node::NK_MEMBER_INSTANCE:
+            case Node::NK_INEVENTPORT_IMPL:
+            case Node::NK_OUTEVENTPORT_IMPL:
+            case Node::NK_INEVENTPORT:
+            case Node::NK_OUTEVENTPORT:
+                nodeItem = new NodeItemStackContainer(item, parentNode);
                 break;
             default:
                 nodeItem = new NodeItemContainer(item, parentNode);

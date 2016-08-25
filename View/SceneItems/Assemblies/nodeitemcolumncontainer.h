@@ -2,30 +2,24 @@
 #define NODEITEMCOLUMNCONTAINER_H
 
 #include "../nodeitemcontainer.h"
-class NodeItemColumnItem;
-class NodeItemColumnContainer : public NodeItemContainer
+#include "nodeitemorderedcontainer.h"
+
+class NodeItemColumnContainer : public NodeItemOrderedContainer
 {
     Q_OBJECT
 public:
     NodeItemColumnContainer(NodeViewItem *viewItem, NodeItemNew *parentItem);
 
-    void setColumnCount(int count);
-    QPointF getColumnPosition(int x, int y);
-    QRectF getColumnRect(int x);
-    QPointF getPositionForChild(NodeItemNew* child);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    QPointF getFixedPositionForChild(NodeItemOrderedContainer *child);
+    QPoint getIndexPositionForChild(NodeItemOrderedContainer *child);
 
-    QPoint getIndexForChild(NodeItemColumnItem* child);
 private:
-    int getColumnCount();
-    int columnCount;
+    QPointF getColumnPosition(QPoint index) const;
+    QRectF getColumnRect(int x);
     int columnWidth;
     int columnSpacing;
     int columnHeight;
-
-
-    // QGraphicsItem interface
-public:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
 #endif // NODEITEMCOLUMNCONTAINER_H
