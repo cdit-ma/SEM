@@ -96,8 +96,8 @@ void ToolbarWidgetNew::themeChanged()
 void ToolbarWidgetNew::showToolbar(QPoint globalPos, QPointF itemPos)
 {
     move(globalPos);
-    this->itemPos = itemPos;
     setVisible(true);
+    this->itemPos = itemPos;
 }
 
 
@@ -156,25 +156,24 @@ void ToolbarWidgetNew::populateDynamicMenu()
     if (!senderMenu || !senderMenu->isEmpty()) {
         return;
     }
-    QString kind = senderMenu->property("kind").toString();
 
-    QList<NodeViewItemAction *> actions;
+    QString kind = senderMenu->property("kind").toString();
+    QList<NodeViewItemAction*> actions;
+
     if (senderMenu == hardwareMenu) {
         actions = toolbarController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
     } else {
         Edge::EDGE_CLASS edgeClass = Edge::getEdgeClass(kind);
-
-        qCritical() << kind;
-        if(edgeClass == Edge::EC_UNDEFINED){
+        if (edgeClass == Edge::EC_UNDEFINED) {
             actions = toolbarController->getDefinitionNodeActions(kind);
-        }else{
+        } else {
             actions = toolbarController->getEdgeActionsOfKind(edgeClass);
         }
     }
 
     // if the menu is empty, show its info action
     if (actions.isEmpty()) {
-        if(dynamicMenuKeyHash.contains(senderMenu)){
+        if (dynamicMenuKeyHash.contains(senderMenu)) {
             senderMenu->addAction(getInfoAction(dynamicMenuKeyHash[senderMenu]));
         }
     } else {
@@ -232,6 +231,11 @@ void ToolbarWidgetNew::addChildNode(QAction* action)
     }
 }
 
+
+/**
+ * @brief ToolbarWidgetNew::addEdge
+ * @param action
+ */
 void ToolbarWidgetNew::addEdge(QAction *action)
 {
     // ignore information actions
@@ -242,9 +246,6 @@ void ToolbarWidgetNew::addEdge(QAction *action)
     QString kind = action->property("parent-kind").toString();
     Edge::EDGE_CLASS edgeKind = Edge::getEdgeClass(kind);
     int ID = action->property("ID").toInt();
-
-
-    qCritical() << ID << kind;
     toolbarController->addEdge(ID, edgeKind);
 }
 
@@ -277,7 +278,6 @@ void ToolbarWidgetNew::setupToolbar()
 void ToolbarWidgetNew::setupActions()
 {
     connectGroup = new ActionGroup(this);
-
     foreach(Edge::EDGE_CLASS edgeKind, Edge::getEdgeClasses()){
         QAction* action = connectGroup->addAction(toolbarController->getEdgeActionOfKind(edgeKind)->constructSubAction(true));
         action->setProperty("kind", Edge::getKind(edgeKind));
@@ -323,20 +323,6 @@ void ToolbarWidgetNew::setupActions()
     hardwareAction->setToolTip("Deploy Selection");
 }
 
-void ToolbarWidgetNew::setupConnectMenu()
-{
-    connectMenu = constructTopMenu(connectAction);
-
-    foreach(QAction* action, connectGroup->actions()){
-        connectMenu->addAction(action);
-
-        QMenu* menu = new QMenu(this);
-        menu->setProperty("kind", action->property("kind"));
-        action->setMenu(menu);
-        connect(menu, SIGNAL(aboutToShow()), this, SLOT(populateDynamicMenu()));
-    }
-}
-
 
 /**
  * @brief ToolbarWidgetNew::setupMenus
@@ -344,9 +330,9 @@ void ToolbarWidgetNew::setupConnectMenu()
 void ToolbarWidgetNew::setupMenus()
 {
     setupAddChildMenu();
+    setupConnectMenu();
     setupReplicateCountMenu();
     setupHardwareViewOptionMenu();
-    setupConnectMenu();
 
     hardwareMenu = constructTopMenu(hardwareAction);
     dynamicMenuKeyHash[hardwareMenu] = "INFO_NO_VALID_DEPLOYMENT_NODES";
@@ -427,6 +413,23 @@ void ToolbarWidgetNew::setupAddChildMenu()
         }
 
         addMenu->addAction(action);
+    }
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::setupConnectMenu
+ */
+void ToolbarWidgetNew::setupConnectMenu()
+{
+    connectMenu = constructTopMenu(connectAction);
+
+    foreach(QAction* action, connectGroup->actions()){
+        QMenu* menu = new QMenu(this);
+        action->setMenu(menu);
+        menu->setProperty("kind", action->property("kind"));
+        dynamicMenuKeyHash[menu] = "INFO_NO_VALID_EDGE";
+        connectMenu->addAction(action);
     }
 }
 
@@ -517,12 +520,6 @@ void ToolbarWidgetNew::clearDynamicMenus()
     foreach (QMenu* menu, dynamicMenuKeyHash.keys()) {
         menu->clear();
     }
-
-    foreach(QAction* action, connectGroup->actions()){
-        if(action->menu()){
-            action->menu()->clear();
-        }
-    }
 }
 
 
@@ -557,7 +554,7 @@ QMenu* ToolbarWidgetNew::constructTopMenu(QAction* parentAction, bool instantPop
 QAction* ToolbarWidgetNew::getInfoAction(QString hashKey)
 {
     QAction* infoAction = toolbarController->getToolAction(hashKey, false);
-    if(infoAction){
+    if (infoAction) {
         infoAction->setProperty("action-type", "info");
         infoAction->blockSignals(true);
     }

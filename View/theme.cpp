@@ -355,7 +355,7 @@ QIcon Theme::getIcon(QString prefix, QString alias)
 
         //Set the default states.
         icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
-        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Normal, QIcon::On);
+        icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::On);
         if(isTinted){
             icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
             icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::Off);
@@ -803,6 +803,12 @@ QString Theme::getPushButtonStyleSheet()
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "}"
+            /*
+           "QPushButton::checked {"
+           "background:" % getHighlightColorHex() % ";"
+           "color:" % getTextColorHex(CR_SELECTED) % ";"
+           "}"
+           */
            "QPushButton:disabled {"
            "background:" % getDisabledBackgroundColorHex() % ";"
            "}";

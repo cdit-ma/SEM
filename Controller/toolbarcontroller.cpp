@@ -148,6 +148,7 @@ void ToolActionController::setupToolActions()
     createRootAction("INFO_NO_VECTORS", "There are no IDL files containing initialised Vector entities.", "Actions", "Info");
     createRootAction("INFO_NO_FUCNTIONS", "There are no available functions.", "Actions", "Info");
     createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities.", "Actions", "Info");
+    createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to.", "Actions", "Info");
 }
 
 QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)
@@ -246,6 +247,9 @@ void ToolActionController::themeChanged()
     foreach(RootAction* action, nodeKindActions.values()){
         viewController->getActionController()->updateIcon(action, theme);
     }
+    foreach (RootAction* action, edgeKindActions.values()) {
+        viewController->getActionController()->updateIcon(action, theme);
+    }
 }
 
 QStringList ToolActionController::getKindsRequiringSubActions()
@@ -272,7 +276,7 @@ void ToolActionController::setupEdgeActions()
     foreach(Edge::EDGE_CLASS edgeKind, Edge::getEdgeClasses()){
         QString edgeName = Edge::getKind(edgeKind);
         RootAction* action = new RootAction(edgeName);
-        action->setIconPath("Items", edgeName);
+        //action->setIconPath("Items", edgeName);
         edgeKindActions[edgeKind] = action;
     }
 }

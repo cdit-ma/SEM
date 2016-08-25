@@ -2,6 +2,8 @@
 
 RootAction::RootAction(QString text, QObject *parent) : QAction(text, parent)
 {
+    iconPath = "Actions";
+    iconAlias = "Help";
     connect(this, SIGNAL(changed()), this, SLOT(actionChanged()));
 }
 
@@ -41,7 +43,6 @@ QAction* RootAction::constructSubAction(bool stealth)
 
         connect(action, SIGNAL(toggled(bool)), this, SLOT(setChecked(bool)));
         connect(action, SIGNAL(triggered(bool)), this, SLOT(trigger()));
-
         connect(action, SIGNAL(destroyed(QObject*)), this, SLOT(actionRemoved(QObject*)));
     }
     return action;

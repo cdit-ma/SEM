@@ -9,6 +9,8 @@
 #define TAB_PADDING 20
 #define DOCK_SPACING 3
 #define DOCK_SEPARATOR_WIDTH 5
+#define MIN_WIDTH 100
+#define MAX_WIDTH 200
 
 /**
  * @brief DockTabWidget::DockTabWidget
@@ -17,13 +19,13 @@
 DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(parent)
 {
     viewController = vc;
+    toolActionController = viewController->getToolbarController();
 
     setupLayout();
+    setupConnections();
+
     themeChanged();
     selectionChanged();
-
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
 }
 
 
@@ -33,9 +35,16 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
 void DockTabWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
+    setStyleSheet("QPushButton{ background:" + theme->QColorToHex(theme->getAltBackgroundColor().darker(150)) + ";}"
+                  "QPushButton:hover{ border-width: 2px; }"
+                  "QPushButton:hover{ background:" + theme->getHighlightColorHex() + ";}"
+                  "QPushButton:hover::checked{ background:" + theme->getHighlightColorHex() + ";}"
+                  "QPushButton::checked{ background:" + theme->getAltBackgroundColorHex() + ";}"
+                  "QStackedWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + "; background:" + theme->getAltBackgroundColorHex() + ";}"
+                  "QScrollArea{ border: 0px; }");
 
-    partsButton->setIcon(theme->getIcon("Actions", "Plus"));
-    hardwareButton->setIcon(theme->getIcon("Actions", "Computer"));
+    partsButton->setIcon(theme->getImage("Actions", "Plus", QSize(), theme->getTextColor(theme->CR_NORMAL)));
+    hardwareButton->setIcon(theme->getImage("Actions", "Computer", QSize(), theme->getTextColor(theme->CR_NORMAL)));
 }
 
 
@@ -49,6 +58,67 @@ void DockTabWidget::selectionChanged()
 
 
 /**
+ * @brief DockTabWidget::tabClicked
+ * This slot treats the dock buttons like tabs; it toggles between the parts and hardware docks.
+ * @param checked
+ */
+void DockTabWidget::tabClicked(bool checked)
+{
+    QPushButton* senderButton = qobject_cast<QPushButton*>(sender());
+
+    // disallow sender button from being un-checked; ignore action
+    if (!checked) {
+        senderButton->setChecked(true);
+        return;
+    }
+
+    QPushButton* otherButton = 0;
+    DockWidget* dockWidget = 0;
+
+    if (senderButton == partsButton) {
+        otherButton = hardwareButton;
+        dockWidget = partsDock;
+    } else if (senderButton == hardwareButton) {
+        otherButton = partsButton;
+        dockWidget = hardwareDock;
+    } else {
+        qWarning() << "DockTabWidget::tabClicked - Tab button not handled.";
+        return;
+    }
+
+    // if sender button is checked, un-check the other button
+    otherButton->setChecked(false);
+    stackedWidget->setCurrentWidget(dockWidget);
+}
+
+
+/**
+ * @brief DockTabWidget::dockActionClicked
+ * @param action
+ */
+void DockTabWidget::dockActionClicked(QAction* action)
+{
+    DockWidget* dock = qobject_cast<DockWidget*>(sender());
+    ToolActionController::DOCK_TYPE dt = dock->getDockType();
+
+    switch (dt) {
+    case ToolActionController::PARTS:
+        toolActionController->addChildNode(action->property("kind").toString(), QPoint(0,0));
+        break;
+    case ToolActionController::DEFINTIONS:
+
+        break;
+    case ToolActionController::FUCNTIONS:
+
+        break;
+    case ToolActionController::HARDWARE:
+
+        break;
+    }
+}
+
+
+/**
  * @brief DockTabWidget::setupLayout
  */
 void DockTabWidget::setupLayout()
@@ -57,11 +127,15 @@ void DockTabWidget::setupLayout()
     hardwareButton = new QPushButton(this);
     stackedWidget = new QStackedWidget(this);
 
-    partsButton->setCheckable(true);
-    hardwareButton->setCheckable(true);
+    partsButton->setToolTip("Parts Dock");
     partsButton->setIconSize(QSize(24,24));
+    partsButton->setCheckable(true);
+    partsButton->setChecked(true);
+
+    hardwareButton->setToolTip("Hardware Dock");
     hardwareButton->setIconSize(QSize(24,24));
-    //stackedWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    hardwareButton->setCheckable(true);
+    hardwareButton->setChecked(false);
 
     QScrollArea* scrollArea = new QScrollArea(this);
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -82,8 +156,9 @@ void DockTabWidget::setupLayout()
     vLayout->addWidget(scrollArea, 1);
 
     setContentsMargins(1,2,1,1);
-    setMinimumWidth(60);
-    //setupDocks();
+    setMinimumWidth(MIN_WIDTH);
+    setMaximumWidth(MAX_WIDTH);
+    setupDocks();
 }
 
 
@@ -93,51 +168,53 @@ void DockTabWidget::setupLayout()
 void DockTabWidget::setupDocks()
 {
     /*
-    partsDock = new QToolBar();
-    partsDock->setIconSize(QSize(54,54));
-    partsDock->setOrientation(Qt::Vertical);
-    //partsDock->addActions(viewController->getToolbarController()->getAdoptableKindsActions(true));
-    */
-
-    /*
-     * This does what I want =D
-     */
     QWidget* w = new QWidget(this);
-    w->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    w->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     QVBoxLayout* vl = new QVBoxLayout(w);
 
     foreach (QAction* action, viewController->getToolbarController()->getAdoptableKindsActions(true)) {
         DockActionWidget* dockAction = new DockActionWidget(action, this);
-        //partsDock->addWidget(dockAction);
-        vl->addWidget(dockAction, 1, Qt::AlignHCenter);
+        if (viewController->getToolbarController()->kindsWithSubActions.contains(action->text())) {
+            dockAction->requiresSubAction(true);
+        }
+        vl->addWidget(dockAction);
     }
 
-    /*
-    QAction* action = new QAction(Theme::theme()->getIcon("Actions", "Parts"), "Parts", this);
-    DockActionWidget* a = new DockActionWidget(action, this);
-    partsDock->addWidget(a);
-
-    partsDock->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    partsDock->setStyleSheet("QToolButton{ width: 67px; }");
-    */
-
-    //stackedWidget->addWidget(partsDock);
     stackedWidget->addWidget(w);
-
-    /*
-    dockStack = new QStackedWidget(this);
-    dockStack->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    dockStack->addWidget(partsDock);
-    dockStack->setStyleSheet("QStackedWidget{ margin: 0px 0px 0px 15px; }");
-
-    QScrollArea* scrollArea = new QScrollArea(this);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scrollArea->setWidget(dockStack);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    //addTab(scrollArea, "");
     */
+
+    if (!toolActionController) {
+        return;
+    }
+
+    partsDock = new DockWidget(toolActionController, ToolActionController::PARTS, this);
+    definitionsDock = new DockWidget(toolActionController, ToolActionController::DEFINTIONS, this);
+    functionsDock = new DockWidget(toolActionController, ToolActionController::FUCNTIONS, this);
+    hardwareDock = new DockWidget(toolActionController, ToolActionController::HARDWARE, this);
+
+    stackedWidget->addWidget(partsDock);
+    stackedWidget->addWidget(definitionsDock);
+    stackedWidget->addWidget(functionsDock);
+    stackedWidget->addWidget(hardwareDock);
+
+    partsDock->addActions(toolActionController->getAdoptableKindsActions(true));
+
+    QAction* testAction = new QAction(Theme::theme()->getIcon("Actions", "Help"), "", this);
+    hardwareDock->addAction(testAction);
+}
+
+
+/**
+ * @brief DockTabWidget::setupConnections
+ */
+void DockTabWidget::setupConnections()
+{
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
+    connect(partsButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
+    connect(hardwareButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
+    connect(partsDock, SIGNAL(dockActionClicked(QAction*,ToolActionController::DOCK_TYPE)), this, SLOT(dockActionClicked(QAction*)));
 }
 
 

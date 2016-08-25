@@ -15,6 +15,8 @@ class ToolActionController : public QObject
 {
     Q_OBJECT
 public:
+    enum DOCK_TYPE{PARTS, DEFINTIONS, FUCNTIONS, HARDWARE};
+
     ToolActionController(ViewController* viewController);
 
     QList<NodeViewItemAction*> getDefinitionNodeActions(QString kind);
@@ -46,6 +48,7 @@ public:
     void addChildNode(QString kind, QPointF position);
     void addEdge(int dstID, Edge::EDGE_CLASS edgeKind=Edge::EC_UNDEFINED);
     void addConnectedChildNode(int dstID, QString kind, QPointF position);
+
 private slots:
     void themeChanged();
     void viewItem_Constructed(ViewItem* viewItem);
