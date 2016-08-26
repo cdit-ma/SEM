@@ -9,7 +9,7 @@
 #define TAB_PADDING 20
 #define DOCK_SPACING 3
 #define DOCK_SEPARATOR_WIDTH 5
-#define MIN_WIDTH 100
+#define MIN_WIDTH 110
 #define MAX_WIDTH 200
 
 /**
