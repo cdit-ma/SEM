@@ -10,10 +10,10 @@ class ColumnContainerNodeItem : public ContainerNodeItem
 public:
     ColumnContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem);
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QPointF getElementPosition(ContainerElementNodeItem *child);
     QPoint getElementIndex(ContainerElementNodeItem *child);
 
+    void childPosChanged();
 private:
     QPointF getColumnPosition(QPoint index) const;
     QRectF getColumnRect(int x);

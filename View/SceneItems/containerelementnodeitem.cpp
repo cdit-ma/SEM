@@ -33,8 +33,9 @@ void ContainerElementNodeItem::setIndexPosition(QPoint point)
 void ContainerElementNodeItem::setPos(const QPointF &pos)
 {
     if(getContainer()){
-        setIndexPosition(getContainer()->getElementIndex(this));
-        if(!isMoving()){
+        if(isMoving()){
+            setIndexPosition(getContainer()->getElementIndex(this));
+        }else{
             //Force it's position
             EntityItemNew::setPos(getContainer()->getElementPosition(this));
             return;
@@ -48,7 +49,6 @@ void ContainerElementNodeItem::dataChanged(QString keyName, QVariant data)
     NodeItemNew::dataChanged(keyName, data);
 
     if(keyName == "sortOrder" && getContainer() && getContainer()->isSortOrdered()){
-        qCritical() << this << data;
         QPoint index = getIndexPosition();
         index.setY(data.toInt());
         setIndexPosition(index);

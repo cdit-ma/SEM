@@ -19,6 +19,8 @@ AssemblyEventPortNodeItem::AssemblyEventPortNodeItem(NodeViewItem *viewItem, Nod
     setExpanded(true);
     mainTextFont = QFont("Verdana");
     mainTextFont.setPixelSize(20);
+
+
 }
 
 void AssemblyEventPortNodeItem::setRightJustified(bool isRight)

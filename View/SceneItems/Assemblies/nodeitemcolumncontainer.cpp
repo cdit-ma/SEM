@@ -14,7 +14,7 @@ ColumnContainerNodeItem::ColumnContainerNodeItem(NodeViewItem *viewItem, NodeIte
 QPointF ColumnContainerNodeItem::getColumnPosition(QPoint index) const
 {
 
-    return bodyRect().topLeft() + QPointF((columnWidth + columnSpacing) * index.x(), (columnHeight + columnSpacing) * index.y());
+    return bodyRect().topLeft() + QPointF((columnWidth + columnSpacing) * (index.x()), (columnHeight + columnSpacing) * index.y());
 }
 
 QRectF ColumnContainerNodeItem::getColumnRect(int x)
@@ -26,24 +26,6 @@ QRectF ColumnContainerNodeItem::getColumnRect(int x)
     return rect;
 }
 
-void ColumnContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
-    RENDER_STATE state = getRenderState(lod);
-
-    ContainerNodeItem::paint(painter, option, widget);
-    if(state > RS_BLOCK){
-        painter->setClipRect(option->exposedRect);
-
-        if(isGridVisible()){
-            painter->setBrush(Qt::red);
-            painter->drawRect(getColumnRect(0));
-            painter->setBrush(Qt::green);
-            painter->drawRect(getColumnRect(2));
-        }
-    }
-}
-
 QPointF ColumnContainerNodeItem::getElementPosition(ContainerElementNodeItem *child)
 {
     return getColumnPosition(child->getIndexPosition());
@@ -51,10 +33,25 @@ QPointF ColumnContainerNodeItem::getElementPosition(ContainerElementNodeItem *ch
 
 QPoint ColumnContainerNodeItem::getElementIndex(ContainerElementNodeItem *child)
 {
-    QPointF childCenter = child->getCenter() - (bodyRect().topLeft() + QPointF(2,2));
+    QPoint currentIndex = child->getIndexPosition();
+    if(currentIndex.x() == 0){
+        //Initial steup
+        if(child->getNodeKind() == Node::NK_INEVENTPORT_INSTANCE){
+            currentIndex.setX(1);
+        }else if(child->getNodeKind() == Node::NK_OUTEVENTPORT_INSTANCE){
+            currentIndex.setX(3);
+        }else{
+            currentIndex.setX(2);
+        }
+        currentIndex.setY(child->getSortOrder());
+    }else{
+        QPointF childCenter = child->getCenter() - (bodyRect().topLeft() + QPointF(2,2));
+        currentIndex.setX(childCenter.x() / (columnWidth + columnSpacing));
+        currentIndex.setY(childCenter.y() / (columnHeight + columnSpacing));
+    }
+    return currentIndex;
+}
 
-    QPoint index;
-    index.setX(childCenter.x() / (columnWidth + columnSpacing));
-    index.setY(childCenter.y() / (columnHeight + columnSpacing));
-    return index;
+void ColumnContainerNodeItem::childPosChanged()
+{
 }
