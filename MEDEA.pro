@@ -201,7 +201,6 @@ HEADERS += \
     View/SceneItems/nodeitemcontainer.h \
     View/SceneItems/Assemblies/nodeitemcolumncontainer.h \
     View/SceneItems/Assemblies/nodeitemcolumnitem.h \
-	View/SceneItems/nodeitemcontainer.h \
     View/Dock/dockwidget.h
 
 SOURCES += \
@@ -367,7 +366,6 @@ SOURCES += \
     View/SceneItems/nodeitemcontainer.cpp \
     View/SceneItems/Assemblies/nodeitemcolumncontainer.cpp \
     View/SceneItems/Assemblies/nodeitemcolumnitem.cpp \
-	View/SceneItems/nodeitemcontainer.cpp \
     View/Dock/dockwidget.cpp
 	View/Dock/dockwidget.cpp
 

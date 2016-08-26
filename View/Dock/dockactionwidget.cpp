@@ -75,9 +75,9 @@ void DockActionWidget::actionChanged()
 void DockActionWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet("QWidget{ color:" + theme->getTextColorHex() + ";}"
-                  "QWidget:hover{ color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}");
-    //textLabel->setStyleSheet(theme->getLabelStyleSheet());
+    setStyleSheet("QLabel{ border: 0px; color:" + theme->getTextColorHex() + ";}"
+                  "QPushButton{ border: 0px; background:" + theme->getAltBackgroundColorHex() + "; color:" + theme->getTextColorHex() + ";}"
+                  "QPushButton:hover{ background:" + theme->getHighlightColorHex() + ";}"); // color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}");
 }
 
 
@@ -91,12 +91,15 @@ void DockActionWidget::setupLayout()
     iconLabel = new QLabel(this);
     textLabel = new QLabel(this);
 
+    textLabel->setStyleSheet("background: rgba(0,0,0,0);");
+    iconLabel->setStyleSheet("background: rgba(0,0,0,0);");
     iconLabel->setAlignment(Qt::AlignHCenter);
     iconLabel->setMinimumWidth(MIN_BUTTON_SIZE - margin*2);
     iconLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     arrowLabel = new QLabel(this);
     arrowLabel->setAlignment(Qt::AlignRight);
+    arrowLabel->setStyleSheet("background: rgba(0,0,0,0);");
     arrowLabel->setPixmap(Theme::theme()->getImage("Actions", "Arrow_Right", QSize(28,28)));
     //arrowLabel->setStyleSheet("padding: 0px; padding-top:" + QString::number(textLabel->sizeHint().height()) + ";");
     arrowLabel->setFixedWidth(ARROW_WIDTH);
