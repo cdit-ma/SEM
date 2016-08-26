@@ -15,16 +15,16 @@ public:
 private:
     QRectF iconRect() const;
     QRectF textRect() const;
+    QRectF textInnerRect() const;
+    QRectF iconsRect() const;
 
-    QRectF subIconRect() const;
     QRectF topSubIconRect() const;
-    QRectF midSubIconRect() const;
     QRectF bottomSubIconRect() const;
 
     QFont mainTextFont;
 
-    // NodeItemNew interface
-public:
+    QMargins headerPadding;
+    qreal textHeight;
 };
 
 #endif // ASSEMBLYEVENTPORTNODEITEM_H

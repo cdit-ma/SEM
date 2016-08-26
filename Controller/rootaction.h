@@ -13,6 +13,7 @@ public:
     QString getIconAlias();
 
     QAction* constructSubAction(bool stealth=true);
+
 private slots:
     void actionChanged();
     void actionRemoved(QObject* obj);

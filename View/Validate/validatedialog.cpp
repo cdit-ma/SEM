@@ -1,5 +1,4 @@
 #include "validatedialog.h"
-#include "../../Widgets/medeawindow.h"
 
 #include <QDebug>
 /**
@@ -62,11 +61,13 @@ ValidateDialog::ValidateDialog(QWidget *parent)
  */
 void ValidateDialog::connectToWindow(QMainWindow* window)
 {
+    /*
     MedeaWindow* medea = dynamic_cast<MedeaWindow*>(window);
     if (medea) {
         connect(this, SIGNAL(searchItem_centerOnItem(int)), medea, SLOT(on_validationItem_clicked(int)));
         connect(this, SIGNAL(revalidate_Model()), medea, SLOT(executeProjectValidation()));
     }
+    */
 }
 
 void ValidateDialog::setupItemsTable(QStringList items)

@@ -1,20 +1,24 @@
 #include "assemblyeventportnodeitem.h"
 #include <QDebug>
+#include <QFontDatabase>
 
 AssemblyEventPortNodeItem::AssemblyEventPortNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
     :ContainerElementNodeItem(viewItem, parentItem)
 {
-    qreal height = DEFAULT_SIZE  * (4.0/6.0);
-    qreal width = DEFAULT_SIZE * (4.0/6.0);
+    headerPadding = QMargins(2,2,2,2);
+    textHeight = smallIconSize().height() + headerPadding.top();
+    qreal size = iconSize().width() + smallIconSize().width() + headerPadding.left() + headerPadding.right();
+    setMinimumWidth(size);
+    setMinimumHeight(size);;
+    setExpandedWidth(size);
+    setExpandedHeight(size);
 
-    setMinimumWidth(width);
-    setMinimumHeight(height);
-    setExpandedWidth(width);
-    setExpandedHeight(height);
+    setResizeEnabled(false);
+
 
     setExpanded(true);
-
-    mainTextFont.setPointSize(4);
+    mainTextFont = QFont("Verdana");
+    mainTextFont.setPixelSize(20);
 }
 
 void AssemblyEventPortNodeItem::setRightJustified(bool isRight)
@@ -30,13 +34,13 @@ QRectF AssemblyEventPortNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rec
         return iconRect();
     }
     case ER_MAIN_LABEL:{
-        return textRect();
+        return textInnerRect();
     }
     case ER_QOS:{
-        return bottomSubIconRect();//.marginsRemoved(QMargins(2,2,2,2));
+        return bottomSubIconRect();
     }
     case ER_DEPLOYED:{
-        return topSubIconRect();//.marginsRemoved(QMargins(2,2,2,2));
+        return topSubIconRect();
     }
     default:
         break;
@@ -49,7 +53,7 @@ void AssemblyEventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraph
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
-    //painter->setClipRect(option->exposedRect);
+    painter->setClipRect(option->exposedRect);
 
 
     if(isExpanded()){
@@ -65,66 +69,76 @@ void AssemblyEventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraph
         painter->setPen(Qt::black);
 
 
-        paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
-        paintPixmap(painter, lod, ER_QOS, "Actions", "Global");
-        painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignCenter|Qt::TextWrapAnywhere, getData("label").toString());
+        if(state > RS_MINIMAL){
+            paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
+            paintPixmap(painter, lod, ER_QOS, "Actions", "Global");
+        }
+
+        QString text = getData("label").toString();
+        renderText(painter, lod, textInnerRect(), text, 8);
     }
 
     ContainerElementNodeItem::paint(painter, option, widget);
-
-
 }
 
 QRectF AssemblyEventPortNodeItem::iconRect() const
 {
     QRectF r;
-    r.setWidth(getMinimumWidth() * .75);
-    r.setHeight(getMinimumHeight() * .75);
+    r.setSize(iconSize());
 
     if(isRightJustified()){
-        r.moveBottomRight(currentRect().bottomRight());
+        r.moveBottomRight(iconsRect().bottomRight());
     }else{
-        r.moveBottomLeft(currentRect().bottomLeft());
+        r.moveBottomLeft(iconsRect().bottomLeft());
     }
     return r;
 }
 
 QRectF AssemblyEventPortNodeItem::textRect() const
 {
-    QRectF r = currentRect();
-    r.setHeight(getMinimumHeight() / 4);
-
+    QRectF r;
+    r.setHeight(textHeight);
+    r.setWidth(getWidth());
     r.moveTopLeft(currentRect().topLeft());
     return r;
 }
 
-QRectF AssemblyEventPortNodeItem::subIconRect() const
+QRectF AssemblyEventPortNodeItem::textInnerRect() const
 {
-    return QRectF(0, 0, 8, 8);
+    return textRect().adjusted(1, 1, -1, -1);
 }
 
-QRectF AssemblyEventPortNodeItem::topSubIconRect() const
+QRectF AssemblyEventPortNodeItem::iconsRect() const
 {
-    QRectF r = subIconRect();
-    if(isRightJustified()){
-        r.moveTopRight(iconRect().topLeft() + QPointF(2,0));
-    }else{
-        r.moveTopLeft(iconRect().topRight() - QPointF(2,0));
-    }
+    QRectF r;
+
+    r.setWidth(iconSize().width() + smallIconSize().width());
+    r.setHeight(iconSize().height());
+    r.moveTopLeft(currentRect().topLeft() + QPoint(headerPadding.left(), textHeight));
     return r;
 }
 
-QRectF AssemblyEventPortNodeItem::midSubIconRect() const
+
+QRectF AssemblyEventPortNodeItem::topSubIconRect() const
 {
-    QRectF r = topSubIconRect();
-    r.moveTopLeft(topSubIconRect().bottomLeft());
+    QRectF r;
+    r.setSize(smallIconSize());
+    if(isRightJustified()){
+        r.moveTopLeft(iconsRect().topLeft());
+    }else{
+        r.moveTopRight(iconsRect().topRight());
+    }
     return r;
 }
 
 QRectF AssemblyEventPortNodeItem::bottomSubIconRect() const
 {
-    QRectF r = midSubIconRect();
-    r.moveTopLeft(midSubIconRect().bottomLeft());
-    qCritical() << r;
+    QRectF r;
+    r.setSize(smallIconSize());
+    if(isRightJustified()){
+        r.moveBottomLeft(iconsRect().bottomLeft());
+    }else{
+        r.moveBottomRight(iconsRect().bottomRight());
+    }
     return r;
 }

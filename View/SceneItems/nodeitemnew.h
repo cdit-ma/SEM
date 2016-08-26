@@ -21,6 +21,7 @@ public:
 
     Node::NODE_KIND getNodeKind() const;
 
+
     virtual void setRightJustified(bool isRight);
     bool isRightJustified() const;
 
@@ -104,6 +105,7 @@ public:
     void setBodyPadding(QMarginsF bodyPadding);
 
     QPointF getMarginOffset() const;
+    QPointF getBottomRightMarginOffset() const;
     QPointF getTopLeftSceneCoordinate() const;
 
     qreal getWidth() const;
@@ -146,7 +148,7 @@ signals:
 public slots:
     virtual void dataChanged(QString keyName, QVariant data);
     virtual void dataRemoved(QString keyName);
-    void childPosChanged();
+    virtual void childPosChanged();
 private:
     void resizeToChildren();
     int getResizeArrowRotation(RECT_VERTEX vert) const;
@@ -164,6 +166,7 @@ private:
 
     QMarginsF margin;
     QMarginsF bodyPadding;
+
 
 
 

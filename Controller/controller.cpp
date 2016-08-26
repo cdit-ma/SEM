@@ -3179,11 +3179,13 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
 
     int siblingIndex = 0;
     for(int sortOrder = 0; sortOrder < siblings.count() + 1; sortOrder ++){
+
         if(sortOrder != newPosition){
             siblings[siblingIndex]->setDataValue("sortOrder", sortOrder);
             siblingIndex ++;
         }
     }
+    node->setDataValue("sortOrder", newPosition);
 }
 
 /**

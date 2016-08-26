@@ -40,10 +40,10 @@ public slots:
 private:    
     void setupToolbar();
     void setupActions();
-    void setupConnectMenu();
     void setupMenus();
     void setupSplitMenus();
     void setupAddChildMenu();
+    void setupConnectMenu();
     void setupReplicateCountMenu();
     void setupHardwareViewOptionMenu();
     void setupInstancesMenu();

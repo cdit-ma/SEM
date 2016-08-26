@@ -562,13 +562,15 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_OUTEVENTPORT_INSTANCE:
             case Node::NK_INEVENTPORT_DELEGATE:
             case Node::NK_OUTEVENTPORT_DELEGATE:
+            case Node::NK_ATTRIBUTE_INSTANCE:
+                //nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem = new AssemblyEventPortNodeItem(item, parentNode);
                 break;
-            case Node::NK_ATTRIBUTE_INSTANCE:
-            case Node::NK_COMPONENT_ASSEMBLY:
             case Node::NK_COMPONENT_INSTANCE:
                 nodeItem = new ColumnContainerNodeItem(item, parentNode);
+                //nodeItem = new StackContainerNodeItem(item, parentNode);
                 break;
+            case Node::NK_COMPONENT_ASSEMBLY:
             case Node::NK_IDL:
             case Node::NK_COMPONENT:
             case Node::NK_AGGREGATE:
@@ -580,7 +582,12 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_OUTEVENTPORT_IMPL:
             case Node::NK_INEVENTPORT:
             case Node::NK_OUTEVENTPORT:
+            case Node::NK_BRANCH_STATE:
+            case Node::NK_WHILELOOP:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
+                break;
+            case Node::NK_CONDITION:
+                nodeItem = new ContainerElementNodeItem(item, parentNode);
                 break;
             default:
                 nodeItem = new NodeItemContainer(item, parentNode);

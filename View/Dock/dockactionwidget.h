@@ -13,6 +13,7 @@ class DockActionWidget : public QPushButton
 public:
     explicit DockActionWidget(QAction* action, QWidget *parent = 0);
     void requiresSubAction(bool required);
+    QAction* getAction();
 
 signals:
 
@@ -23,10 +24,11 @@ public slots:
 private:
     void setupLayout();
 
-    QHBoxLayout* mainLayout;
+    QVBoxLayout* mainLayout;
     QLabel* textLabel;
     QLabel* iconLabel;
     QLabel* arrowLabel;
+    QLabel* imageLabel;
 
     QAction* dockAction;
     bool subActionRequired;

@@ -16,6 +16,7 @@ public:
     QPoint getIndexPosition() const;
     void setIndexPosition(QPoint point);
     void setPos(const QPointF &pos);
+    void dataChanged(QString keyName, QVariant data);
 private:
     ContainerNodeItem* container;
     QPoint indexPosition;

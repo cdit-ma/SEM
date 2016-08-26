@@ -418,7 +418,7 @@ void MedeaMainWindow::setupTools()
     setupToolBar();
     setupSearchBar();
     setupProgressBar();
-    //setupDock();
+    setupDock();
     setupDataTable();
     setupMinimap();
 }
@@ -430,15 +430,15 @@ void MedeaMainWindow::setupTools()
 void MedeaMainWindow::setupInnerWindow()
 {
     innerWindow = MedeaWindowManager::constructCentralWindow();
-    setCentralWidget(innerWindow);
+    //setCentralWidget(innerWindow);
 
-    /*
+    ///*
     QDockWidget* dockWidget = new QDockWidget(this);
     dockWidget->setTitleBarWidget(new QWidget());
     dockWidget->setWidget(innerWindow);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     centralWindow->addDockWidget(Qt::RightDockWidgetArea, dockWidget);
-    */
+    //*/
 
     nodeView_Interfaces = new NodeViewNew();
     nodeView_Behaviour = new NodeViewNew();
@@ -659,29 +659,15 @@ void MedeaMainWindow::setupProgressBar()
 void MedeaMainWindow::setupDock()
 {
     dockTabWidget = new DockTabWidget(viewController, this);
-    dockTabWidget->setMaximumWidth(200);
-
-    /*
-    QToolBar* toolbar = new QToolBar(this);
-    toolbar->setOrientation(Qt::Vertical);
-    toolbar->addActions(viewController->getToolbarController()->getAdoptableKindsActions(true));
-
-    QScrollArea* scrollArea = new QScrollArea(this);
-    scrollArea->setWidget(toolbar);
-    scrollArea->setWidgetResizable(true);
-    */
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Dock");
     dockWidget->setWidget(dockTabWidget);
-    //dockWidget->setTitleBarWidget(dockTabWidget);
-    //dockWidget->setWidget(scrollArea);
     dockWidget->setAllowedAreas(Qt::LeftDockWidgetArea);
-    //dockWidget->setStyleSheet("QDockWidget{ border: 3px solid red; margin: 2px; }");
 
     centralWindow = new QMainWindow();
     centralWindow->addDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Vertical);
     setCentralWidget(centralWindow);
-    dockWidget->resize(50, centralWindow->height());
+    dockWidget->resize(150, centralWindow->height());
 
     connect(viewController->getActionController()->toggleDock, SIGNAL(triggered(bool)), dockWidget, SLOT(setVisible(bool)));
 

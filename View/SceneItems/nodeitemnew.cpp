@@ -26,7 +26,6 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     hoveredResizeVertex = RV_NONE;
 
 
-
     nodeViewItem = viewItem;
     nodeItemKind = kind;
 
@@ -95,6 +94,8 @@ Node::NODE_KIND NodeItemNew::getNodeKind() const
     return nodeViewItem->getNodeKind();
 }
 
+
+
 void NodeItemNew::setRightJustified(bool isRight)
 {
     _rightJustified = isRight;
@@ -116,12 +117,10 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
         }
-        //Update our position
-        resizeToChildren();
-
         nodeItem->setBodyColor(getBodyColor().darker(110));
 
         nodeItem->setVisible(isExpanded());
+        childPosChanged();
     }
 }
 
@@ -152,6 +151,7 @@ void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
         //Unset child moving.
         setChildNodeMoving(nodeItem, false);
         nodeItem->unsetParent();
+        childPosChanged();
     }
 }
 
@@ -455,7 +455,7 @@ void NodeItemNew::setExpandedWidth(qreal width, bool lockOnChange)
             prepareGeometryChange();
             update();
             emit sizeChanged(getSize());
-            updateGridLines();
+          //  updateGridLines();
         }
         if(lockOnChange){
             horizontalLocked = true;
@@ -469,7 +469,7 @@ void NodeItemNew::setExpandedWidth(qreal width, bool lockOnChange)
 void NodeItemNew::setExpandedHeight(qreal height, bool lockOnChange)
 {
     //Limit by the size of all contained children.
-    qreal minHeight = childrenRect().bottom() - getMarginOffset().y();
+    qreal minHeight = childrenRect().bottom();
     //Can't shrink smaller than minimum
     minHeight = qMax(minHeight, minimumHeight);
     height = qMax(height, minHeight);
@@ -480,7 +480,7 @@ void NodeItemNew::setExpandedHeight(qreal height, bool lockOnChange)
             prepareGeometryChange();
             update();
             emit sizeChanged(getSize());
-            updateGridLines();
+           // updateGridLines();
         }
 
         if(lockOnChange){
@@ -545,6 +545,11 @@ void NodeItemNew::setBodyPadding(QMarginsF padding)
 QPointF NodeItemNew::getMarginOffset() const
 {
     return QPointF(margin.left(), margin.top());
+}
+
+QPointF NodeItemNew::getBottomRightMarginOffset() const
+{
+    return QPointF(margin.right(), margin.bottom());
 }
 
 QPointF NodeItemNew::getTopLeftSceneCoordinate() const
@@ -875,7 +880,6 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
         painter->restore();
     }
-
 
     EntityItemNew::paint(painter, option, widget);
 }

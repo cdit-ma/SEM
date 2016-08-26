@@ -8,6 +8,7 @@
 #include <QPushButton>
 
 #include "../../Controller/viewcontroller.h"
+#include "dockwidget.h"
 
 class DockTabWidget : public QWidget
 {
@@ -19,17 +20,27 @@ public:
 public slots:
     void themeChanged();
     void selectionChanged();
+    void tabClicked(bool checked);
+
+    void dockActionClicked(QAction* action);
 
 private:
     void setupLayout();
     void setupDocks();
+    void setupConnections();
+
     void updateDockHeight();
 
     ViewController* viewController;
+    ToolActionController* toolActionController;
 
     QTabBar* tabBar;
     QStackedWidget* dockStack;
-    QToolBar* partsDock;
+
+    DockWidget* partsDock;
+    DockWidget* definitionsDock;
+    DockWidget* functionsDock;
+    DockWidget* hardwareDock;
 
     QPushButton* partsButton;
     QPushButton* hardwareButton;

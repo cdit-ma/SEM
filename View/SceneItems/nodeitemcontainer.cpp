@@ -25,9 +25,6 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
     addRequiredData("y");
 
     reloadRequiredData();
-    if(viewItem && viewItem->getData("kind").toString().contains("OutEvent")){
-        setRightIcon(true);
-    }
 }
 
 QRectF NodeItemContainer::bodyRect() const
@@ -76,8 +73,6 @@ void NodeItemContainer::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
     }
     NodeItemNew::paint(painter, option, widget);
-    //painter->setBrush(Qt::red);
-    //painter->drawEllipse(getCenterOffset(), 10, 10);
 }
 
 QRectF NodeItemContainer::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
