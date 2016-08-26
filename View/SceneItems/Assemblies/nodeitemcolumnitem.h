@@ -2,7 +2,7 @@
 #define NODEITEMCOLUMNITEM_H
 
 #include "nodeitemcolumncontainer.h"
-class NodeItemColumnItem: public NodeItemColumnContainer
+class NodeItemColumnItem: public ColumnContainerNodeItem
 {
     Q_OBJECT
 public:

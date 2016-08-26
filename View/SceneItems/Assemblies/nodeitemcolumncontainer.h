@@ -4,15 +4,15 @@
 #include "../nodeitemcontainer.h"
 #include "nodeitemorderedcontainer.h"
 
-class NodeItemColumnContainer : public NodeItemOrderedContainer
+class ColumnContainerNodeItem : public ContainerNodeItem
 {
     Q_OBJECT
 public:
-    NodeItemColumnContainer(NodeViewItem *viewItem, NodeItemNew *parentItem);
+    ColumnContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    QPointF getFixedPositionForChild(NodeItemOrderedContainer *child);
-    QPoint getIndexPositionForChild(NodeItemOrderedContainer *child);
+    QPointF getElementPosition(ContainerElementNodeItem *child);
+    QPoint getElementIndex(ContainerElementNodeItem *child);
 
 private:
     QPointF getColumnPosition(QPoint index) const;

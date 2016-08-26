@@ -12,7 +12,7 @@ class NodeItemNew: public EntityItemNew
 {
     Q_OBJECT
 public:
-    enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM, HARDWARE_ITEM};
+    enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM, HARDWARE_ITEM, CONTAINER_ELEMENT_ITEM};
     NodeItemNew(NodeViewItem *viewItem, NodeItemNew* parentItem, KIND kind);
     ~NodeItemNew();
 
@@ -21,6 +21,8 @@ public:
 
     Node::NODE_KIND getNodeKind() const;
 
+    virtual void setRightJustified(bool isRight);
+    bool isRightJustified() const;
 
     virtual void addChildNode(NodeItemNew* nodeItem);
 
@@ -168,6 +170,8 @@ private:
     bool gridEnabled;
     bool gridVisible;
     bool ignorePosition;
+
+    bool _rightJustified;
 
     bool horizontalLocked;
     bool verticalLocked;

@@ -202,7 +202,9 @@ HEADERS += \
     View/SceneItems/Assemblies/nodeitemcolumncontainer.h \
     View/SceneItems/Assemblies/nodeitemcolumnitem.h \
     View/SceneItems/Assemblies/nodeitemstackcontainer.h \
-    View/SceneItems/Assemblies/nodeitemorderedcontainer.h
+    View/SceneItems/Assemblies/nodeitemorderedcontainer.h \
+    View/SceneItems/containerelementnodeitem.h \
+    View/SceneItems/Assemblies/assemblyeventportnodeitem.h
 	View/SceneItems/nodeitemcontainer.h \
 
 SOURCES += \
@@ -369,7 +371,9 @@ SOURCES += \
     View/SceneItems/Assemblies/nodeitemcolumncontainer.cpp \
     View/SceneItems/Assemblies/nodeitemcolumnitem.cpp \
     View/SceneItems/Assemblies/nodeitemstackcontainer.cpp \
-    View/SceneItems/Assemblies/nodeitemorderedcontainer.cpp
+    View/SceneItems/Assemblies/nodeitemorderedcontainer.cpp \
+    View/SceneItems/containerelementnodeitem.cpp \
+    View/SceneItems/Assemblies/assemblyeventportnodeitem.cpp
 	View/SceneItems/nodeitemcontainer.cpp
 
 RESOURCES += \

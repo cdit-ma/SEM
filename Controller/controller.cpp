@@ -5596,8 +5596,10 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     entity->appendEdgeKind(edgeClass);
                 }
 
-                //Insert the item in the lookup
-                edgesMap.insertMulti(entity->getEdgeKind(), entity);
+				if(entity->hasEdgeKind()){
+					//Insert the item in the lookup
+					edgesMap.insertMulti(entity->getEdgeKind(), entity);
+				}
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();

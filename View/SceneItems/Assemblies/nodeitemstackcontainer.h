@@ -3,13 +3,13 @@
 
 #include "nodeitemorderedcontainer.h"
 
-class NodeItemStackContainer: public NodeItemOrderedContainer
+class StackContainerNodeItem: public ContainerNodeItem
 {
 public:
-    NodeItemStackContainer(NodeViewItem *viewItem, NodeItemNew *parentItem);
+    StackContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem);
 
-    QPointF getFixedPositionForChild(NodeItemOrderedContainer *child);
-    QPoint getIndexPositionForChild(NodeItemOrderedContainer *child);
+    QPointF getElementPosition(ContainerElementNodeItem *child);
+    QPoint getElementIndex(ContainerElementNodeItem *child);
 };
 
 #endif // NODEITEMSTACKCONTAINER_H

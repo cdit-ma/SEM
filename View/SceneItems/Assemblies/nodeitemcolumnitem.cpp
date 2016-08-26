@@ -1,6 +1,6 @@
 #include "nodeitemcolumnitem.h"
 #include <QDebug>
-NodeItemColumnItem::NodeItemColumnItem(NodeViewItem *viewItem, NodeItemNew *parentItem):NodeItemColumnContainer(viewItem, parentItem)
+NodeItemColumnItem::NodeItemColumnItem(NodeViewItem *viewItem, NodeItemNew *parentItem):ColumnContainerNodeItem(viewItem, parentItem)
 {
     Node::NODE_KIND nodeKind;
     if(viewItem){

@@ -20,9 +20,12 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     verticalLocked = false;
     horizontalLocked = false;
     ignorePosition = false;
+    _rightJustified = false;
     aspect = VA_NONE;
     selectedResizeVertex = RV_NONE;
     hoveredResizeVertex = RV_NONE;
+
+
 
     nodeViewItem = viewItem;
     nodeItemKind = kind;
@@ -34,6 +37,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     setExpandEnabled(true);
 
     addRequiredData("isExpanded");
+
 
     if(parentItem){
         //Lock child in same aspect as parent
@@ -89,6 +93,16 @@ NodeItemNew::KIND NodeItemNew::getNodeItemKind()
 Node::NODE_KIND NodeItemNew::getNodeKind() const
 {
     return nodeViewItem->getNodeKind();
+}
+
+void NodeItemNew::setRightJustified(bool isRight)
+{
+    _rightJustified = isRight;
+}
+
+bool NodeItemNew::isRightJustified() const
+{
+    return _rightJustified;
 }
 
 void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
@@ -577,6 +591,10 @@ void NodeItemNew::setPos(const QPointF &pos)
     deltaPos = validateAdjustPos(deltaPos);
     if(!deltaPos.isNull()){
         EntityItemNew::setPos(this->pos() + deltaPos);
+
+        if(getParentNodeItem()){
+            setRightJustified(x() > (getParentNodeItem()->getWidth() / 2));
+        }
         updateGridLines();
     }
 }

@@ -18,7 +18,7 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
     setExpandedWidth(width*4);
     setExpandedHeight(height);
 
-    setMargin(QMarginsF(10,2,2,2));
+    setMargin(QMarginsF(height/2,2,2,2));
     setBodyPadding(QMarginsF(0,0,0,0));
 
     addRequiredData("x");
@@ -76,6 +76,8 @@ void NodeItemContainer::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
     }
     NodeItemNew::paint(painter, option, widget);
+    //painter->setBrush(Qt::red);
+    //painter->drawEllipse(getCenterOffset(), 10, 10);
 }
 
 QRectF NodeItemContainer::getElementRect(EntityItemNew::ELEMENT_RECT rect) const

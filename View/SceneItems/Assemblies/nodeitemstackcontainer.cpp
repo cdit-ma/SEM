@@ -1,16 +1,18 @@
 #include "nodeitemstackcontainer.h"
 #include "nodeitemcolumnitem.h"
-NodeItemStackContainer::NodeItemStackContainer(NodeViewItem *viewItem, NodeItemNew *parentItem): NodeItemOrderedContainer(viewItem, parentItem)
+StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem): ContainerNodeItem(viewItem, parentItem)
 {
 }
 
-QPointF NodeItemStackContainer::getFixedPositionForChild(NodeItemOrderedContainer *child)
+QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *child)
 {
     return gridRect().topLeft() + QPointF(10, child->getIndexPosition().y() * child->getHeight());
 }
 
-QPoint NodeItemStackContainer::getIndexPositionForChild(NodeItemOrderedContainer *child)
+QPoint StackContainerNodeItem::getElementIndex(ContainerElementNodeItem *child)
 {
-    return QPoint(0,  (child->getPos().y() - gridRect().top()) / child->getHeight());
+    QPointF childCenter = child->getCenter() - bodyRect().topLeft();
+
+    return QPoint(0,  childCenter.y() / child->getHeight());
 }
 

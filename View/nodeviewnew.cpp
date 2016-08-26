@@ -15,6 +15,7 @@
 #include "SceneItems/Assemblies/nodeitemstackcontainer.h"
 #include "SceneItems/Assemblies/nodeitemcolumncontainer.h"
 #include "SceneItems/Assemblies/nodeitemcolumnitem.h"
+#include "SceneItems/Assemblies/assemblyeventportnodeitem.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
@@ -561,12 +562,12 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_OUTEVENTPORT_INSTANCE:
             case Node::NK_INEVENTPORT_DELEGATE:
             case Node::NK_OUTEVENTPORT_DELEGATE:
-            case Node::NK_ATTRIBUTE_INSTANCE:
-                nodeItem = new NodeItemColumnItem(item, parentNode);
+                nodeItem = new AssemblyEventPortNodeItem(item, parentNode);
                 break;
+            case Node::NK_ATTRIBUTE_INSTANCE:
             case Node::NK_COMPONENT_ASSEMBLY:
             case Node::NK_COMPONENT_INSTANCE:
-                nodeItem = new NodeItemColumnContainer(item, parentNode);
+                nodeItem = new ColumnContainerNodeItem(item, parentNode);
                 break;
             case Node::NK_IDL:
             case Node::NK_COMPONENT:
@@ -579,7 +580,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_OUTEVENTPORT_IMPL:
             case Node::NK_INEVENTPORT:
             case Node::NK_OUTEVENTPORT:
-                nodeItem = new NodeItemStackContainer(item, parentNode);
+                nodeItem = new StackContainerNodeItem(item, parentNode);
                 break;
             default:
                 nodeItem = new NodeItemContainer(item, parentNode);
