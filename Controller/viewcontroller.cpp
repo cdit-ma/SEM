@@ -429,6 +429,16 @@ void ViewController::deleteSelection()
     }
 }
 
+void ViewController::renameActiveSelection()
+{
+    if(selectionController){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+        if(item){
+            emit vc_requestTableEdit(item->getID(), "label");
+        }
+    }
+}
+
 void ViewController::constructDDSQOSProfile()
 {
     foreach(int ID, getIDsOfKind("AssemblyDefinitions")){

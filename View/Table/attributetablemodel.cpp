@@ -193,6 +193,11 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
             return entity->getValidValuesForKey(keyName);
         }
     }
+    if(role == ID_ROLE){
+        if(entity){
+            return entity->getID();
+        }
+    }
 
     return QVariant();
 }

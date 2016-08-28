@@ -608,6 +608,9 @@ void EntityItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             handleExpand(!isExpanded());
         }
     }
+    if(event->button() == Qt::LeftButton && getElementPath(ER_MAIN_LABEL).contains(event->pos())){
+        emit req_editData(viewItem, "label");
+    }
 }
 
 void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

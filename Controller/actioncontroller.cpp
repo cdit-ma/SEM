@@ -54,6 +54,8 @@ void ActionController::connectViewController(ViewController *controller)
         connect(view_fitView, &QAction::triggered, viewController, &ViewController::fitView);
         connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
+        connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::renameActiveSelection);
+
 
 
 
@@ -150,9 +152,11 @@ void ActionController::selectionChanged(int selectionSize)
         edit_copy->setEnabled(gotSelection);
         edit_paste->setEnabled(gotSingleSelection);
 
+
         edit_replicate->setEnabled(gotSelection);
         edit_delete->setEnabled(gotSelection);
         edit_sort->setEnabled(gotSelection);
+        edit_renameActiveSelection->setEnabled(gotSelection);
 
 
         edit_alignHorizontal->setEnabled(gotMultipleSelection);
@@ -373,6 +377,12 @@ void ActionController::setupActions()
     edit_delete->setShortcut(QKeySequence::Delete);
     edit_delete->setShortcutContext(Qt::ApplicationShortcut);
 
+    edit_renameActiveSelection = createRootAction("Rename", "Rename", "Actions", "Rename");
+    edit_renameActiveSelection->setShortcut(QKeySequence(Qt::Key_F2));
+    edit_renameActiveSelection->setShortcutContext(Qt::ApplicationShortcut);
+
+
+
     edit_search = createRootAction("Search", "Root_Search", "Actions", "Search");
     edit_search->setShortcutContext(Qt::ApplicationShortcut);
     edit_search->setShortcut(QKeySequence::Find);
@@ -499,6 +509,8 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_replicate);
     menu_edit->addSeparator();
     menu_edit->addAction(edit_delete);
+    menu_edit->addAction(edit_renameActiveSelection);
+
     menu_edit->addAction(edit_search);
     menu_edit->addSeparator();
     menu_edit->addAction(edit_sort);

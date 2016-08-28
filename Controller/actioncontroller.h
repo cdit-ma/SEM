@@ -100,6 +100,7 @@ public:
     RootAction* edit_alignVertical;
     RootAction* edit_CycleActiveSelectionForward;
     RootAction* edit_CycleActiveSelectionBackward;
+    RootAction* edit_renameActiveSelection;
 
     RootAction* view_fitView;
     RootAction* view_centerOn;

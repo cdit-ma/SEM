@@ -94,7 +94,6 @@ private slots:
     // EntityItemNew interface
 public:
     QPointF validateAdjustPos(QPointF delta);
-
     // EntityItemNew interface
 public:
     void setMoving(bool moving);

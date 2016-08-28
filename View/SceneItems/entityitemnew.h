@@ -158,6 +158,7 @@ signals:
 
     void req_setData(ViewItem* item, QString keyName, QVariant data);
     void req_removeData(ViewItem* item, QString keyName);
+    void req_editData(ViewItem* item, QString keyName);
 
     void req_triggerAction(QString actionName);
 

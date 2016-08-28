@@ -51,6 +51,8 @@ signals:
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
     void vc_gotSearchSuggestions(QStringList suggestions);
 
+    void vc_editTableCell(int ID, QString keyName);
+
     void mc_showProgress(bool, QString);
     void mc_progressChanged(int);
 
@@ -118,6 +120,7 @@ public slots:
     void paste();
     void replicate();
     void deleteSelection();
+    void renameActiveSelection();
 
     void constructDDSQOSProfile();
     void requestSearchSuggestions();

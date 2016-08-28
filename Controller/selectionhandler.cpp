@@ -124,7 +124,7 @@ ViewItem *SelectionHandler::getFirstSelectedItem()
 
 ViewItem *SelectionHandler::getActiveSelectedItem()
 {
-    return getFirstSelectedItem();
+    return currentActiveSelectedItem;
 }
 
 void SelectionHandler::_selectionChanged(int changes)

@@ -105,6 +105,7 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::vc_triggerAction);
         connect(this, &NodeViewNew::setData, viewController, &ViewController::vc_setData);
         connect(this, &NodeViewNew::removeData, viewController, &ViewController::vc_removeData);
+        connect(this, &NodeViewNew::editData, viewController, &ViewController::vc_requestTableEdit);
     }
 }
 
@@ -260,6 +261,14 @@ void NodeViewNew::themeChanged()
     update();
 }
 
+void NodeViewNew::item_EditData(ViewItem *item, QString keyName)
+{
+    if(selectionHandler){
+        selectionHandler->setActiveSelectedItem(item);
+        emit editData(item->getID(), keyName);
+    }
+}
+
 void NodeViewNew::item_RemoveData(ViewItem *item, QString keyName)
 {
     if(item){
@@ -269,16 +278,7 @@ void NodeViewNew::item_RemoveData(ViewItem *item, QString keyName)
 
 void NodeViewNew::fitToScreen()
 {
-    //QRectF rect;
     centerOnItems(getTopLevelEntityItems());
-
-    //foreach(int ID, topLevelGUIItemIDs){
-    //    EntityItemNew* item = guiItems.value(ID, 0);
-    //    if(item){
-    //        rect = rect.united(item->sceneBoundingRect());
-    //    }
-    //}
-    //centerRect(rect);
 }
 
 void NodeViewNew::centerSelection()
@@ -458,6 +458,9 @@ void NodeViewNew::setupConnections(EntityItemNew *item)
 
     connect(item, &EntityItemNew::req_triggerAction, this, &NodeViewNew::triggerAction);
     connect(item, &EntityItemNew::req_removeData, this, &NodeViewNew::item_RemoveData);
+    connect(item, &EntityItemNew::req_editData, this, &NodeViewNew::item_EditData);
+
+
 
     if(item->isNodeItem()){
         NodeItemNew* node = (NodeItemNew*) item;

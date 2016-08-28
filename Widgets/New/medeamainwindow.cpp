@@ -689,6 +689,8 @@ void MedeaMainWindow::setupDataTable()
     //Check visibility state.
     dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+
+
 }
 
 

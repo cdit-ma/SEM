@@ -88,6 +88,15 @@ ViewItem *SelectionController::getFirstSelectedItem()
     return item;
 }
 
+ViewItem *SelectionController::getActiveSelectedItem()
+{
+    ViewItem* item = 0;
+    if(currentHandler){
+        item = currentHandler->getActiveSelectedItem();
+    }
+    return item;
+}
+
 int SelectionController::getFirstSelectedItemID()
 {
     int ID = -1;

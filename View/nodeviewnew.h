@@ -38,8 +38,10 @@ signals:
     void triggerAction(QString);
     void setData(int, QString, QVariant);
     void removeData(int, QString);
+    void editData(int, QString);
 
 private slots:
+
     void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
@@ -53,7 +55,7 @@ private slots:
     void themeChanged();
 
 private slots:
-
+    void item_EditData(ViewItem* item, QString keyName);
     void item_RemoveData(ViewItem* item, QString keyName);
     void item_Selected(ViewItem* item, bool append);
     void item_ActiveSelected(ViewItem* item);
