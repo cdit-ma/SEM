@@ -6,6 +6,7 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
 {
     setSortOrdered(true);
     setResizeEnabled(false);
+    setGridEnabled(false);
 
     leafPen.setWidth(1);
     if(parentItem){
@@ -48,10 +49,10 @@ void StackContainerNodeItem::childPosChanged()
 {
     QList<NodeItemNew*> children = getChildNodes();
     leaves.clear();
-    leaves = QVector<QLineF>(children.size() + 1);
     int stemX = gridRect().x() + 10;
 
     int maxY = 0;
+    int index = 0;
     foreach(NodeItemNew* child, children){
         if(!child->isMoving()){
             child->setPos(QPointF());
@@ -61,7 +62,7 @@ void StackContainerNodeItem::childPosChanged()
         QLineF line;
         line.setP2(center);
         line.setP1(QPointF(stemX,line.p2().y()));
-        leaves  << line;
+        leaves.insert(index++, line);
         if(center.y() > maxY){
             maxY = center.y();
         }
@@ -69,7 +70,7 @@ void StackContainerNodeItem::childPosChanged()
     QLineF stem;
     stem.setP1(QPointF(stemX, gridRect().y()));
     stem.setP2(QPointF(stemX, maxY));
-    leaves.append(stem);
+    leaves.insert(index++, stem);
     NodeItemNew::childPosChanged();
     update();
 }

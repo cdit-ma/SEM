@@ -130,6 +130,17 @@ public:
     QMarginsF getBodyPadding() const;
 
 
+    void setPrimaryTextKey(QString key);
+    void setSecondaryTextKey(QString key);
+    QString getPrimaryTextKey() const;
+    QString getSecondaryTextKey() const;
+    bool gotPrimaryTextKey() const;
+    bool gotSecondaryTextKey() const;
+
+
+    QString getPrimaryText() const;
+    QString getSecondaryText() const;
+
     virtual void setExpanded(bool expand);
 
 
@@ -199,6 +210,9 @@ private:
     QVector<QLineF> gridLines_Minor_Vertical;
     QVector<QLineF> gridLines_Major_Vertical;
 
+    QString primaryTextKey;
+    QString secondaryTextKey;
+
     // QGraphicsItem interface
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -218,5 +232,8 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
+
+
 };
 #endif

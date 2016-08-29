@@ -586,6 +586,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_INEVENTPORT:
             case Node::NK_OUTEVENTPORT:
             case Node::NK_BRANCH_STATE:
+            case Node::NK_HARDWARE_CLUSTER:
             case Node::NK_WHILELOOP:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 break;

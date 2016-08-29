@@ -106,9 +106,9 @@ QRectF AttributeNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     switch(rect){
     case ER_MAIN_ICON:
         return mainIconRect();
-    case ER_MAIN_LABEL:
+    case ER_PRIMARY_TEXT:
         return bottomLabelRect();
-    case ER_SECONDARY_LABEL:
+    case ER_SECONDARY_TEXT:
         return labelRect();
     default:
         return NodeItemNew::getElementRect(rect);

@@ -24,6 +24,8 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
 
     setBodyPadding(QMarginsF(0,0,0,0));
 
+    setPrimaryTextKey("label");
+    //setSecondaryTextKey("sortOrder");
     addRequiredData("x");
     addRequiredData("y");
     reloadRequiredData();
@@ -56,8 +58,10 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return expandStateRect();
     case ER_MAIN_ICON:
         return iconRect();
-    case ER_MAIN_LABEL:
+    case ER_PRIMARY_TEXT:
         return topTextRect();
+    case ER_SECONDARY_TEXT:
+        return bottomTextRect();
     case ER_DEPLOYED:
         return deployedRect();
     case ER_QOS:
@@ -88,16 +92,14 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->drawRect(headerRect());
         painter->save();
 
-        if(!getData("locked").toBool()){
+        if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
             painter->setBrush(Qt::white);
             painter->drawRect(bottomTextRect());
         }
+
         painter->restore();
 
         painter->setPen(Qt::black);
-
-        renderText(painter, lod, topTextRect(), getData("label").toString());
-        renderText(painter, lod, bottomTextRect(), "BOTTOM");
 
         //paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
         paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
@@ -107,9 +109,6 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
     }
     NodeItemNew::paint(painter, option, widget);
-    //painter->setBrush(Qt::red);
-    //painter->drawEllipse(getCenterOffset(), 10, 10);
-
 }
 
 QRectF ContainerNodeItem::headerRect() const

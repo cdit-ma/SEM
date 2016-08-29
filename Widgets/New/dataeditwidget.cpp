@@ -18,6 +18,7 @@ DataEditWidget::DataEditWidget(QString dataKey, QString label, SETTING_TYPE type
     this->dataKey = dataKey;
     this->label = label;
     this->currentData = data;
+    this->newData = data;
     this->type = type;
 
     setContentsMargins(0,0,0,0);
@@ -168,6 +169,11 @@ void DataEditWidget::editFinished()
             lineEdit->setText(currentData.toString());
             return;
         }
+        break;
+    }
+    case ST_STRING:{
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+        dataChanged(lineEdit->text());
         break;
     }
     case ST_FILE:

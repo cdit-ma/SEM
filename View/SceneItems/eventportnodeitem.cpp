@@ -92,7 +92,7 @@ QRectF EventPortNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
        return qosRect();
    case ER_DEPLOYED:
        return deployedRect();
-   case ER_MAIN_LABEL:
+   case ER_PRIMARY_TEXT:
        return labelRect();
    default:
        return NodeItemNew::getElementRect(rect);

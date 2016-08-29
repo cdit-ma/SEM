@@ -1,9 +1,9 @@
 #ifndef HARDWARENODEITEM_H
 #define HARDWARENODEITEM_H
 
-#include "../nodeitemnew.h"
+#include "../containerelementnodeitem.h"
 
-class HardwareNodeItem : public NodeItemNew
+class HardwareNodeItem : public ContainerElementNodeItem
 {
 public:
     HardwareNodeItem(NodeViewItem* viewItem, NodeItemNew* parentItem);

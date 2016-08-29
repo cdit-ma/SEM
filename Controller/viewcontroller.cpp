@@ -257,6 +257,29 @@ void ViewController::setController(NewController *c)
     controller = c;
 }
 
+void ViewController::jenkinsManager_IsBusy(bool busy)
+{
+    emit vc_JenkinsReady(!busy);
+}
+
+void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
+{
+    emit vc_JenkinsReady(success);
+    qCritical() << success << errorString;
+}
+
+void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
+{
+   if(!graphmlData.isEmpty()){
+        emit vc_triggerAction("Loading Jenkins Nodes");
+        QStringList fileData;
+        fileData << graphmlData;
+        emit vc_importProjects(fileData);
+   }else{
+       //Hanlde error!
+   }
+}
+
 void ViewController::actionFinished(bool success, QString gg)
 {
     setControllerReady(true);

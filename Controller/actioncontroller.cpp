@@ -18,7 +18,7 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
     setupApplicationToolbar();
     setupContextToolbar();
 
-    connect(SettingsController::settings(), SIGNAL(settingChanged(SETTING_KEY,QVariant)), this, SLOT(settingChanged(SETTING_KEY,QVariant)));
+    connect(SettingsController::settings(), &SettingsController::settingChanged, this, &ActionController::settingChanged);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
     themeChanged();
@@ -34,6 +34,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(controller, &ViewController::vc_actionFinished, this, &ActionController::actionFinished);
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::controllerReady);
         connect(controller, &ViewController::mc_modelReady, this, &ActionController::modelReady);
+        connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
 
         connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
 
@@ -217,8 +218,10 @@ void ActionController::themeChanged()
 
 void ActionController::updateJenkinsActions()
 {
-    jenkins_importNodes->setEnabled(_modelReady && _jenkinsValidated);
-    jenkins_executeJob->setEnabled(_modelReady && _jenkinsValidated);
+    bool modelReady = viewController->isModelReady();
+
+    jenkins_importNodes->setEnabled(modelReady && _jenkinsValidated);
+    jenkins_executeJob->setEnabled(modelReady && _jenkinsValidated);
 }
 
 void ActionController::updateUndoRedo()

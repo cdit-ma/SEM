@@ -34,6 +34,7 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     initializeApplication();
 
     applicationToolbar = 0;
+    jenkinsManager = 0;
     viewController = vc;
 
     //setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
@@ -44,6 +45,8 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     setupTools();
     setupInnerWindow();
+    setupJenkinsManager();
+
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*,MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)));
@@ -150,6 +153,8 @@ void MedeaMainWindow::resetToolDockWidgets()
         child->setVisible(true);
     }
 }
+
+
 
 
 /**
@@ -432,7 +437,7 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow = MedeaWindowManager::constructCentralWindow();
     //setCentralWidget(innerWindow);
 
-    ///*
+    ///* Cathyln, I really don't like this solution!
     QDockWidget* dockWidget = new QDockWidget(this);
     dockWidget->setTitleBarWidget(new QWidget());
     dockWidget->setWidget(innerWindow);
@@ -765,6 +770,22 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
 
     menuBar->setCornerWidget(toolbar);
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
+}
+
+void MedeaMainWindow::setupJenkinsManager()
+{
+    if(!jenkinsManager){
+        jenkinsManager = new JenkinsManager();
+        connect(jenkinsManager, &JenkinsManager::settingsValidationComplete, viewController, &ViewController::jenkinsManager_SettingsValidated);
+
+        connect(viewController->getActionController()->jenkins_importNodes, &QAction::triggered, jenkinsManager, &JenkinsManager::getJenkinsNodes);
+
+        connect(jenkinsManager, &JenkinsManager::gotJenkinsNodeGraphml, viewController, &ViewController::jenkinsManager_GotJenkinsNodesList);
+        connect(jenkinsManager, &JenkinsManager::jenkinsReady, viewController, &ViewController::vc_JenkinsReady);
+
+
+        jenkinsManager->validateSettings();
+    }
 }
 
 

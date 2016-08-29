@@ -86,7 +86,7 @@ QRectF NodeItemContainer::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return mainRect();
     case ER_MAIN_ICON:
         return innerIconRect();
-    case ER_MAIN_LABEL:
+    case ER_PRIMARY_TEXT:
         return innerLabelRect();
     case ER_LOCKED_STATE:
         return deployedRect();

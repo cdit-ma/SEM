@@ -1,6 +1,6 @@
 #include "hardwarenodeitem.h"
 #include <QDebug>
-HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem):NodeItemNew(viewItem, parentItem, NodeItemNew::HARDWARE_ITEM)
+HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem):ContainerElementNodeItem(viewItem, parentItem)
 {
     setMoveEnabled(true);
     setExpandEnabled(true);
@@ -13,12 +13,10 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentIt
 
     setExpandedWidth(4 * size);
     setExpandedHeight(size);
-    setExpanded(true);
+    setExpanded(false);
 
 
     setDefaultPen(Qt::NoPen);
-    setMargin(QMarginsF(10, 10, 10, 10));
-
     setBodyPadding(QMarginsF(3, 3, 3, 3));
     cornerRadius = 5;
     textHeight = size / 2.0;
@@ -29,6 +27,10 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentIt
 
     addRequiredData("x");
     addRequiredData("y");
+
+    setPrimaryTextKey("label");
+    setSecondaryTextKey("ip_address");
+
     reloadRequiredData();
 }
 
@@ -123,13 +125,6 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         painter->drawRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
 
         if(isExpanded()){
-            painter->setPen(Qt::black);
-            painter->drawText(labelRect(),Qt::AlignCenter, getData("label").toString());
-            painter->drawText(ipTextRect(),Qt::AlignVCenter | Qt::AlignLeft, getData("ip_address").toString());
-        }
-
-
-        if(isExpanded()){
             paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", "ip_address");
         }
     }
@@ -142,6 +137,8 @@ QRectF HardwareNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     switch(rect){
     case ER_MAIN_ICON:
         return mainIconRect();
+    case ER_PRIMARY_TEXT:
+        return labelRect();
     case ER_SECONDARY_ICON:
         return ipIconRect();
     case ER_SECONDARY_TEXT:

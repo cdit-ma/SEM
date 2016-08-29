@@ -2157,7 +2157,7 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
     connect(newKey, SIGNAL(validateError(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
     //Add it to the list of Keys.
     if(keys.contains(name)){
-        qCritical() << "Got Duplicate Keys: " << name;
+        qCritical() << "Duplicate Keys: " << name;
     }else{
         keys[name] = newKey;
     }

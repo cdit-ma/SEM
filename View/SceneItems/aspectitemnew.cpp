@@ -38,7 +38,7 @@ AspectItemNew::AspectItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, VI
 QRectF AspectItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
 {
     switch(rect){
-        case ER_MAIN_LABEL:
+        case ER_PRIMARY_TEXT:
             return getMainTextRect();
         case ER_EXPANDCONTRACT:
             return getCircleRect();

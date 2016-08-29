@@ -123,8 +123,8 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
         QString label = getData("label").toString();
 
         painter->setPen(Qt::black);
-        painter->drawText(getElementRect(ER_MAIN_LABEL), Qt::AlignVCenter | Qt::AlignLeft, label);
-        painter->drawText(getElementRect(ER_SECONDARY_LABEL), Qt::AlignCenter, label);
+        painter->drawText(getElementRect(ER_PRIMARY_TEXT), Qt::AlignVCenter | Qt::AlignLeft, label);
+        painter->drawText(getElementRect(ER_SECONDARY_TEXT), Qt::AlignCenter, label);
 
         painter->setPen(Qt::NoPen);
 
@@ -239,12 +239,10 @@ QRectF DefaultNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return statusIcon(RV_BOTTOMLEFT);
     case ER_MAIN_ICON_OVERLAY:
         return statusIcon(RV_NONE);
-    case ER_SECONDARY_LABEL:
-        return topLabelRect();
-    case ER_MAIN_LABEL:
-        return rightLabelRect();
     case ER_SECONDARY_TEXT:
-        return bottomTextRect();
+        return topLabelRect();
+    case ER_PRIMARY_TEXT:
+        return rightLabelRect();
     case ER_EXPANDED_STATE:
         return expandStateRect();
     case ER_EXPANDCONTRACT:

@@ -45,6 +45,7 @@ public:
 signals:
     //TO OTHER VIEWS SIGNALS
 
+    void vc_JenkinsReady(bool);
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
     void vc_viewItemDestructing(int ID, ViewItem *viewItem);
@@ -93,6 +94,10 @@ signals:
 
 
 public slots:
+    void jenkinsManager_IsBusy(bool busy);
+    void jenkinsManager_SettingsValidated(bool success, QString errorString);
+    void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
+
     void actionFinished(bool success, QString gg);
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);

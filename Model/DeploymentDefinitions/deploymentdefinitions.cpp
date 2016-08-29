@@ -10,7 +10,7 @@ bool DeploymentDefinitions::canAdoptChild(Node *node)
     case NK_ASSEMBLY_DEFINITIONS:
     case NK_HARDWARE_DEFINITIONS:
         foreach(Node* child, getChildren(0)){
-            if(child->getNodeKind() != node->getNodeKind()){
+            if(child->getNodeKind() == node->getNodeKind()){
                 return false;
             }
         }

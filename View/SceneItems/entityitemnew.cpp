@@ -195,6 +195,9 @@ void EntityItemNew::renderText(QPainter *painter, qreal lod, QRectF textRect, QS
     if(fontSize <=0){
         fontSize = this->fontSize;
     }
+
+    painter->setClipRect(boundingRect());
+
     QFont font = textFont;
     font.setPixelSize(fontSize * 2);
 
@@ -204,7 +207,7 @@ void EntityItemNew::renderText(QPainter *painter, qreal lod, QRectF textRect, QS
 
 
     painter->save();
-    painter->setClipRect(textRect);
+    painter->setClipRect(boundingRect());
     painter->setPen(Qt::black);
     painter->setFont(font);
     qreal requiredWidth = painter->fontMetrics().width(text);
@@ -236,7 +239,7 @@ void EntityItemNew::renderText(QPainter *painter, qreal lod, QRectF textRect, QS
     textRect.setHeight(textRect.height() / scale);
     textRect.moveTopLeft(textRect.topLeft() / scale);
 
-    if(renderedFontHeight > 6){
+    if(renderedFontHeight > 4){
         painter->drawText(textRect, Qt::AlignCenter|Qt::TextWrapAnywhere, text);
     }else{
         QRectF rect = painter->fontMetrics().boundingRect(textRect.toRect(), Qt::AlignCenter|Qt::TextWrapAnywhere, text);
@@ -287,6 +290,14 @@ QRectF EntityItemNew::translatedBoundingRect() const
 bool EntityItemNew::intersectsRectInScene(QRectF rectInScene) const
 {
     return rectInScene.contains(sceneBoundingRect());
+}
+
+bool EntityItemNew::isDataProtected(QString keyName) const
+{
+    if(viewItem){
+        return viewItem->isDataProtected(keyName);
+    }
+    return true;
 }
 
 void EntityItemNew::addRequiredData(QString keyName)
@@ -536,6 +547,7 @@ void EntityItemNew::setFontSize(int fontSize)
     this->fontSize = fontSize;
 }
 
+
 void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(_isMouseMoving){
@@ -607,9 +619,6 @@ void EntityItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         if(event->button() == Qt::LeftButton && getElementPath(ER_EXPANDCONTRACT).contains(event->pos())){
             handleExpand(!isExpanded());
         }
-    }
-    if(event->button() == Qt::LeftButton && getElementPath(ER_MAIN_LABEL).contains(event->pos())){
-        emit req_editData(viewItem, "label");
     }
 }
 

@@ -38,6 +38,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     addRequiredData("isExpanded");
 
 
+
     if(parentItem){
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
@@ -657,6 +658,59 @@ void NodeItemNew::setExpanded(bool expand)
 
 
 
+void NodeItemNew::setPrimaryTextKey(QString key)
+{
+    if(primaryTextKey != key){
+        primaryTextKey = key;
+        addRequiredData(key);
+    }
+}
+
+void NodeItemNew::setSecondaryTextKey(QString key)
+{
+    if(secondaryTextKey != key){
+        secondaryTextKey = key;
+        addRequiredData(key);
+    }
+}
+
+QString NodeItemNew::getPrimaryTextKey() const
+{
+    return primaryTextKey;
+}
+
+QString NodeItemNew::getSecondaryTextKey() const
+{
+    return secondaryTextKey;
+}
+
+bool NodeItemNew::gotPrimaryTextKey() const
+{
+    return !primaryTextKey.isEmpty();
+}
+
+bool NodeItemNew::gotSecondaryTextKey() const
+{
+    return !secondaryTextKey.isEmpty();
+}
+
+QString NodeItemNew::getPrimaryText() const
+{
+    if(!primaryTextKey.isEmpty()){
+        return getData(primaryTextKey).toString();
+    }
+    return QString();
+}
+
+QString NodeItemNew::getSecondaryText() const
+{
+    if(!secondaryTextKey.isEmpty()){
+        return getData(secondaryTextKey).toString();
+    }
+    return QString();
+}
+
+
 void NodeItemNew::dataChanged(QString keyName, QVariant data)
 {
     if(getRequiredDataKeys().contains(keyName)){
@@ -684,6 +738,9 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "isExpanded"){
             bool boolData = data.toBool();
             setExpanded(boolData);
+        }
+        if(keyName == primaryTextKey || keyName == secondaryTextKey){
+            update();
         }
     }
 }
@@ -834,21 +891,23 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->drawLines(gridLines_Major_Horizontal);
         painter->drawLines(gridLines_Major_Vertical);
         painter->restore();
-
-        painter->setBrush(Qt::red);
-        foreach(NodeItemNew* child, movingChildren){
-            //QRectF rect = child->getNearestGridOutline();
-            //painter->setBrush(Qt::red);
-            //painter->drawRect(rect);
-        }
     }
 
     if(state > RS_BLOCK){
         painter->setPen(getPen());
         painter->setBrush(Qt::NoBrush);
         painter->drawPath(getElementPath(ER_SELECTION));
-        //painter->drawRect(currentRect());
+
+        painter->setPen(Qt::black);
+
+        if(gotPrimaryTextKey()){
+            renderText(painter, lod, getElementRect(ER_PRIMARY_TEXT), getPrimaryText());
+        }
+        if(gotSecondaryTextKey()){
+            renderText(painter, lod, getElementRect(ER_SECONDARY_TEXT), getSecondaryText());
+        }
     }
+
 
     if(state > RS_BLOCK){
         painter->save();
@@ -1027,4 +1086,19 @@ void NodeItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         update();
     }
     EntityItemNew::hoverLeaveEvent(event);
+}
+
+void NodeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    if(!getPrimaryTextKey().isEmpty()){
+        if(event->button() == Qt::LeftButton && getElementPath(ER_PRIMARY_TEXT).contains(event->pos())){
+            emit req_editData(getViewItem(), getPrimaryTextKey());
+        }
+    }
+    if(!getSecondaryTextKey().isEmpty()){
+        if(event->button() == Qt::LeftButton && getElementPath(ER_SECONDARY_TEXT).contains(event->pos())){
+            emit req_editData(getViewItem(), getSecondaryTextKey());
+        }
+    }
+    EntityItemNew::mouseDoubleClickEvent(event);
 }

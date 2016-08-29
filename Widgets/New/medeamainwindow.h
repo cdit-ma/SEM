@@ -16,6 +16,8 @@
 #include <QCompleter>
 #include <QStringListModel>
 
+#include "../../Plugins/Jenkins/jenkinsmanager.h"
+
 #include "../../GUI/popupwidget.h"
 #include "../../View/Dock/docktabwidget.h"
 
@@ -32,7 +34,7 @@ public:
 signals:
     void requestSuggestions();
     void preloadImages();
-
+    void jenkins_validated(bool);
 public slots:
     void setModelTitle(QString modelTitle);
     void settingChanged(SETTING_KEY setting, QVariant value);
@@ -41,6 +43,7 @@ public slots:
     void updateProgressBar(int value);
 
     void resetToolDockWidgets();
+
 
 private slots:
     void themeChanged();
@@ -68,9 +71,14 @@ private:
     void setupDataTable();
     void setupMinimap();
     void setupMainDockWidgetToggles();
+    void setupJenkinsManager();
 
     MedeaWindowNew* innerWindow;
     QMainWindow* centralWindow;
+
+    JenkinsManager* jenkinsManager;
+
+
 
     QMenuBar* menuBar;
     QToolBar* applicationToolbar;

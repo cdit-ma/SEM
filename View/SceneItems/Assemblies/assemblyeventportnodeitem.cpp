@@ -35,7 +35,7 @@ QRectF AssemblyEventPortNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rec
     case ER_MAIN_ICON:{
         return iconRect();
     }
-    case ER_MAIN_LABEL:{
+    case ER_PRIMARY_TEXT:{
         return textInnerRect();
     }
     case ER_QOS:{
