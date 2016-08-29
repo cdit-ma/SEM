@@ -33,7 +33,7 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
  * @brief DockTabWidget::themeChanged
  */
 void DockTabWidget::themeChanged()
-{
+{    
     Theme* theme = Theme::theme();
     setStyleSheet("QPushButton{ background:" + theme->QColorToHex(theme->getAltBackgroundColor().darker(150)) + ";}"
                   "QPushButton:hover{ border-width: 2px; }"
@@ -53,7 +53,7 @@ void DockTabWidget::themeChanged()
  */
 void DockTabWidget::selectionChanged()
 {
-    updateDockHeight();
+
 }
 
 
@@ -89,6 +89,7 @@ void DockTabWidget::tabClicked(bool checked)
     // if sender button is checked, un-check the other button
     otherButton->setChecked(false);
     stackedWidget->setCurrentWidget(dockWidget);
+    //stackedWidget->resize(dockWidget->sizeHint());
 }
 
 
@@ -96,19 +97,30 @@ void DockTabWidget::tabClicked(bool checked)
  * @brief DockTabWidget::dockActionClicked
  * @param action
  */
-void DockTabWidget::dockActionClicked(QAction* action)
+void DockTabWidget::dockActionClicked(DockActionWidget* action)
 {
     DockWidget* dock = qobject_cast<DockWidget*>(sender());
     ToolActionController::DOCK_TYPE dt = dock->getDockType();
 
     switch (dt) {
     case ToolActionController::PARTS:
-        toolActionController->addChildNode(action->property("kind").toString(), QPoint(0,0));
+    {
+        QString actionKind = action->getProperty("kind").toString();
+        if (action->requiresSubAction()) {
+            if (actionKind == "WorkerProcess") {
+                openRequiredDock(ToolActionController::FUNCTIONS, actionKind);
+            } else {
+                openRequiredDock(ToolActionController::DEFINITIONS, actionKind);
+            }
+        } else {
+            toolActionController->addChildNode(actionKind, QPoint(0,0));
+        }
         break;
-    case ToolActionController::DEFINTIONS:
-
+    }
+    case ToolActionController::DEFINITIONS:
+        //toolbarController->addConnectedChildNode(ID.toInt(), parentKind.toString(), itemPos);
         break;
-    case ToolActionController::FUCNTIONS:
+    case ToolActionController::FUNCTIONS:
 
         break;
     case ToolActionController::HARDWARE:
@@ -167,30 +179,13 @@ void DockTabWidget::setupLayout()
  */
 void DockTabWidget::setupDocks()
 {
-    /*
-    QWidget* w = new QWidget(this);
-    w->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    QVBoxLayout* vl = new QVBoxLayout(w);
-
-    foreach (QAction* action, viewController->getToolbarController()->getAdoptableKindsActions(true)) {
-        DockActionWidget* dockAction = new DockActionWidget(action, this);
-        if (viewController->getToolbarController()->kindsWithSubActions.contains(action->text())) {
-            dockAction->requiresSubAction(true);
-        }
-        vl->addWidget(dockAction);
-    }
-
-    stackedWidget->addWidget(w);
-    */
-
     if (!toolActionController) {
         return;
     }
 
     partsDock = new DockWidget(toolActionController, ToolActionController::PARTS, this);
-    definitionsDock = new DockWidget(toolActionController, ToolActionController::DEFINTIONS, this);
-    functionsDock = new DockWidget(toolActionController, ToolActionController::FUCNTIONS, this);
+    definitionsDock = new DockWidget(toolActionController, ToolActionController::DEFINITIONS, this);
+    functionsDock = new DockWidget(toolActionController, ToolActionController::FUNCTIONS, this);
     hardwareDock = new DockWidget(toolActionController, ToolActionController::HARDWARE, this);
 
     stackedWidget->addWidget(partsDock);
@@ -214,31 +209,35 @@ void DockTabWidget::setupConnections()
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
     connect(partsButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
     connect(hardwareButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
-    connect(partsDock, SIGNAL(actionClicked(QAction*)), this, SLOT(dockActionClicked(QAction*)));
+    connect(partsDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
 }
 
 
 /**
- * @brief DockTabWidget::updateDockHeight
+ * @brief DockTabWidget::openRequiredDock
+ * @param dt
+ * @param action
  */
-void DockTabWidget::updateDockHeight()
+void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt, QString actionKind)
 {
-    return;
-    /*
-    int totalHeight = 0;
-    foreach (QAction* action, partsDock->actions()) {
-        if (action->isVisible()) {
-            // apparently the action's geometry changes for some reason; most consistent height is 67
-            //qDebug() << action->text() << " height: " << partsDock->actionGeometry(action).height();
-            totalHeight += 67;
-            totalHeight += DOCK_SPACING;
+    switch (dt) {
+    case ToolActionController::DEFINITIONS:
+    {
+        QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(actionKind);
+        definitionsDock->clearDock();
+        foreach (NodeViewItemAction* a, actions) {
+            definitionsDock->addAction(qobject_cast<QAction*>(a));
         }
+        stackedWidget->setCurrentWidget(definitionsDock);
+        break;
     }
-    //partsDock->setFixedHeight(totalHeight);
-    partsDock->setFixedSize(partsDock->sizeHint().width(), totalHeight + 100);
-    */
+    case ToolActionController::FUNCTIONS:
+        stackedWidget->setCurrentWidget(functionsDock);
+        break;
+    default:
+        break;
+    }
 }
-
 
 
 

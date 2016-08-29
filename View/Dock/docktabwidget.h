@@ -22,14 +22,14 @@ public slots:
     void selectionChanged();
     void tabClicked(bool checked);
 
-    void dockActionClicked(QAction* action);
+    void dockActionClicked(DockActionWidget *action);
 
 private:
     void setupLayout();
     void setupDocks();
     void setupConnections();
 
-    void updateDockHeight();
+    void openRequiredDock(ToolActionController::DOCK_TYPE dt, QString actionKind = "");
 
     ViewController* viewController;
     ToolActionController* toolActionController;

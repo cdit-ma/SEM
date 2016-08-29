@@ -406,7 +406,7 @@ void ToolbarWidgetNew::setupAddChildMenu()
             } else if (kind == "VectorInstance") {
                 dynamicMenuKeyHash[menu] = "INFO_NO_VECTORS";
             } else if (kind == "WorkerProcess") {
-                dynamicMenuKeyHash[menu] = "INFO_NO_FUCNTIONS";
+                dynamicMenuKeyHash[menu] = "INFO_NO_FUNCTIONS";
             } else {
                 qWarning() << "ToolbarWidgetNew::setupAddChildMenu - Action kind not handled.";
             }
