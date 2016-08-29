@@ -22,12 +22,12 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     }
 
     mainLayout = new QVBoxLayout();
-    //mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
-    //mainLayout->setSpacing(5);
+    mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    mainLayout->setSpacing(5);
 
     alignLayout = new QVBoxLayout(this);
     alignLayout->addLayout(mainLayout);
-    //alignLayout->addStretch();
+    alignLayout->addStretch();
 
     setupHeaderLayout();
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -40,11 +40,13 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
 /**
  * @brief DockWidget::addAction
  * @param action
+ * @return
  */
-void DockWidget::addAction(QAction* action)
+DockActionWidget* DockWidget::addAction(QAction* action)
 {
+    DockActionWidget* dockAction = 0;
     if (action && !childrenActions.contains(action)) {
-        DockActionWidget* dockAction = new DockActionWidget(action, this);
+        dockAction = new DockActionWidget(action, this);
         dockAction->setProperty("kind", action->text());
 
         if (toolActionController->kindsWithSubActions.contains(action->text())) {
@@ -55,6 +57,7 @@ void DockWidget::addAction(QAction* action)
         mainLayout->addWidget(dockAction, 0, Qt::AlignTop);
         connect(dockAction, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
     }
+    return dockAction;
 }
 
 
@@ -80,6 +83,18 @@ void DockWidget::clearDock()
         delete actionWidget;
     }
     childrenActions.clear();
+}
+
+
+/**
+ * @brief DockWidget::updateHeaderText
+ * @param text
+ */
+void DockWidget::updateHeaderText(QString text)
+{
+    if (descriptionLabel) {
+        descriptionLabel->setText("Select to construct a <br/><i>" + text + "</i>");
+    }
 }
 
 
@@ -132,16 +147,15 @@ void DockWidget::setupHeaderLayout()
     descriptionLabel = new QLabel("This is a description for dock type " + QString::number(dockType), this);
     descriptionLabel->setWordWrap(true);
     descriptionLabel->setAlignment(Qt::AlignCenter);
-    //descriptionLabel->setMinimumHeight(100);
-    descriptionLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    //descriptionLabel->setStyleSheet("margin: 0px; padding: 0px;"); // background: red;");
+    descriptionLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    descriptionLabel->setStyleSheet("margin: 5px 0px; padding: 0px;");
+    descriptionLabel->setFont(QFont(font().family(), 8));
 
     headerLayout = new QVBoxLayout();
     headerLayout->setMargin(0);
-    headerLayout->setSpacing(10);
-    headerLayout->addWidget(descriptionLabel, 1);
+    headerLayout->setSpacing(5);
+    headerLayout->addWidget(descriptionLabel);
     headerLayout->addWidget(backButton);
-
     alignLayout->insertLayout(0, headerLayout);
 }
 

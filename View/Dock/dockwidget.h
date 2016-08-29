@@ -13,12 +13,13 @@ class DockWidget : public QWidget
 public:
     explicit DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE type, QWidget *parent = 0);
 
-    void addAction(QAction* action);
+    ToolActionController::DOCK_TYPE getDockType();
+
+    DockActionWidget* addAction(QAction* action);
     void addActions(QList<QAction*> actions);
 
     void clearDock();
-
-    ToolActionController::DOCK_TYPE getDockType();
+    void updateHeaderText(QString text);
 
 signals:
     void actionClicked(DockActionWidget* action);

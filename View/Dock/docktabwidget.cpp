@@ -123,8 +123,12 @@ void DockTabWidget::dockActionClicked(DockActionWidget* action)
         break;
     }
     case ToolActionController::DEFINITIONS:
-        //toolbarController->addConnectedChildNode(ID.toInt(), parentKind.toString(), itemPos);
+    {
+        QVariant ID = action->property("ID");
+        QVariant parentKind = action->property("parent-kind");
+        toolActionController->addConnectedChildNode(ID.toInt(), parentKind.toString(), QPointF());
         break;
+    }
     case ToolActionController::FUNCTIONS:
 
         break;
@@ -229,6 +233,10 @@ void DockTabWidget::setupConnections()
     connect(hardwareButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
 
     connect(partsDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
+    connect(definitionsDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
+    connect(functionsDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
+    connect(hardwareDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
+
     connect(definitionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
     connect(functionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
 }
@@ -247,7 +255,10 @@ void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt, QString
         QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(actionKind);
         definitionsDock->clearDock();
         foreach (NodeViewItemAction* a, actions) {
-            definitionsDock->addAction(qobject_cast<QAction*>(a));
+            DockActionWidget* actionWidget = definitionsDock->addAction(qobject_cast<QAction*>(a));
+            actionWidget->setProperty("ID", a->getID());
+            actionWidget->setProperty("parent-kind", actionKind);
+            definitionsDock->updateHeaderText(actionKind);
         }
         changeDisplayedDockWidget(definitionsDock);
         break;
@@ -263,13 +274,15 @@ void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt, QString
 
 /**
  * @brief DockTabWidget::changeDisplayedDockWidget
+ * This changes the current widget displated in the stack widget and updates the stack widget's height.
+ * If the stack widget's height is not recalculated, the scrollbars remain visible even if they're not needed.
  * @param dockWidget
  */
 void DockTabWidget::changeDisplayedDockWidget(DockWidget* dockWidget)
 {
     if (dockWidget) {
         stackedWidget->setCurrentWidget(dockWidget);
-        stackedWidget->setFixedHeight(dockWidget->sizeHint().height());
+        //stackedWidget->setFixedHeight(dockWidget->sizeHint().height());
     }
 }
 
