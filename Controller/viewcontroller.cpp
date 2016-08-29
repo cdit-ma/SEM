@@ -735,6 +735,17 @@ void ViewController::closeMEDEA()
     }
 }
 
+void ViewController::executeJenkinsJob()
+{
+    if(controller){
+        QString data = controller->getProjectAsGraphML();
+        if(!data.isEmpty()){
+            QString filePath = FileHandler::writeTempTextFile(data, ".graphml");
+            emit vc_executeJenkinsJob(filePath);
+        }
+    }
+}
+
 void ViewController::saveProject()
 {
     _saveProject();

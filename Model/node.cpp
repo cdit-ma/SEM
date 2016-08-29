@@ -106,6 +106,12 @@ bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         }
         break;
     }
+    case Edge::EC_DEPLOYMENT:{
+        if(!dst->isNodeOfType(NT_HARDWARE)){
+            return false;
+        }
+        break;
+    }
     default:
         break;
     }

@@ -58,9 +58,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
         connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::renameActiveSelection);
 
-
-
-
+        connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
 
 
         connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);

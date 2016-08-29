@@ -783,6 +783,10 @@ void MedeaMainWindow::setupJenkinsManager()
         connect(jenkinsManager, &JenkinsManager::gotJenkinsNodeGraphml, viewController, &ViewController::jenkinsManager_GotJenkinsNodesList);
         connect(jenkinsManager, &JenkinsManager::jenkinsReady, viewController, &ViewController::vc_JenkinsReady);
 
+        connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::executeJenkinsJob);
+
+
+
 
         jenkinsManager->validateSettings();
     }

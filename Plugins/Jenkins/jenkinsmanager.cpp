@@ -2,6 +2,7 @@
 #include "jenkinsrequest.h"
 #include "../../Controller/settingscontroller.h"
 #include <QStringBuilder>
+#include "GUI/jenkinsstartjobwidget.h"
 #include <QApplication>
 
 /**
@@ -193,6 +194,15 @@ void JenkinsManager::getJenkinsNodes()
         emit _runGroovyScript(scriptPath % "Jenkins_Construct_GraphMLNodesList.groovy", getJobName());
 
         disconnect(this, &JenkinsManager::_runGroovyScript, jenkinsGS, &JenkinsRequest::runGroovyScript);
+    }
+}
+
+void JenkinsManager::executeJenkinsJob(QString modelFilePath)
+{
+    if(hasValidatedSettings()){
+        qCritical() << modelFilePath;
+        JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(0, this);
+        jenkinsSJ->requestJob(jobName, modelFilePath);
     }
 }
 

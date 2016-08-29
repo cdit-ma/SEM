@@ -2343,7 +2343,11 @@ void NewController::removeGraphMLFromHash(int ID)
 
 
                 if(kind.startsWith("Hardware")){
-                    hardwareEntities.remove(nodeLabel);
+                    QString url = node->getDataValue("url").toString();
+                    if(url == ""){
+                        url = nodeLabel;
+                    }
+                    hardwareEntities.remove(url);
                 }else if(kind == "ManagementComponent"){
                     managementComponents.remove(nodeLabel);
                 }else if(kind == "Process"){

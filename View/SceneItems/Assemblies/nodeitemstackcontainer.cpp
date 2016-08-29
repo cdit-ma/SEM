@@ -19,7 +19,8 @@ QPointF StackContainerNodeItem::getStemAnchorPoint() const
 {
     QPointF offset;
     offset.setY(gridRect().y());
-    offset.setX(getElementRect(ER_MAIN_ICON).center().x());
+
+    offset.setX(25);
     return offset;
 }
 

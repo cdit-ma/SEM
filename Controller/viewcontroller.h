@@ -80,6 +80,8 @@ signals:
     void vc_paste(QList<int> IDs, QString data);
     void vc_replicateEntities(QList<int> IDs);
 
+    void vc_executeJenkinsJob(QString filePath);
+
     void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
     void vc_constructEdge(QList<int> sourceIDs, int dstID, Edge::EDGE_CLASS edgeKind = Edge::EC_UNDEFINED);
 
@@ -116,6 +118,8 @@ public slots:
     void saveAsProject();
     void closeProject();
     void closeMEDEA();
+
+    void executeJenkinsJob();
 
 
     void fitView();

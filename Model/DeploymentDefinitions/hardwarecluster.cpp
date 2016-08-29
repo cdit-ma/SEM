@@ -3,6 +3,7 @@
 HardwareCluster::HardwareCluster():Node(NK_HARDWARE_CLUSTER)
 {
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
+    setNodeType(NT_HARDWARE);
 }
 
 bool HardwareCluster::canAdoptChild(Node *child)

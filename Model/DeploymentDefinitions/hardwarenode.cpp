@@ -3,6 +3,7 @@
 HardwareNode::HardwareNode():Node(NK_HARDWARE_NODE)
 {
     setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
+    setNodeType(NT_HARDWARE);
 }
 
 bool HardwareNode::canAdoptChild(Node*)

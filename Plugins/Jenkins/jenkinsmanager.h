@@ -38,6 +38,7 @@ public:
 public slots:
     void validateSettings();
     void getJenkinsNodes();
+    void executeJenkinsJob(QString modelFilePath);
 signals:
     void gotJenkinsNodeGraphml(QString data);
     void jenkinsReady(bool ready);

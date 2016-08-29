@@ -588,6 +588,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_BRANCH_STATE:
             case Node::NK_HARDWARE_CLUSTER:
             case Node::NK_WHILELOOP:
+            case Node::NK_VARIABLE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 break;
             case Node::NK_CONDITION:
