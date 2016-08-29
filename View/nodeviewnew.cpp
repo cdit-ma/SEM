@@ -565,37 +565,60 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_OUTEVENTPORT_INSTANCE:
             case Node::NK_INEVENTPORT_DELEGATE:
             case Node::NK_OUTEVENTPORT_DELEGATE:
-            case Node::NK_ATTRIBUTE_INSTANCE:
-                //nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem = new AssemblyEventPortNodeItem(item, parentNode);
                 break;
-            case Node::NK_COMPONENT_INSTANCE:
-                nodeItem = new ColumnContainerNodeItem(item, parentNode);
-                //nodeItem = new StackContainerNodeItem(item, parentNode);
-                break;
             case Node::NK_COMPONENT_ASSEMBLY:
+            case Node::NK_COMPONENT_INSTANCE:
+            case Node::NK_COMPONENT_IMPL:
+                nodeItem = new NodeItemContainer(item, parentNode);
+                break;
+            case Node::NK_CONDITION:
+            case Node::NK_ATTRIBUTE_INSTANCE:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("value");
+                break;
             case Node::NK_IDL:
             case Node::NK_COMPONENT:
             case Node::NK_AGGREGATE:
-            case Node::NK_ATTRIBUTE:
-            case Node::NK_AGGREGATE_INSTANCE:
-            case Node::NK_MEMBER:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("sortOrder");
+                break;
+            case Node::NK_PROCESS:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("operation");
+                break;
             case Node::NK_MEMBER_INSTANCE:
+            case Node::NK_ATTRIBUTE:
+            case Node::NK_VARIABLE:
+            case Node::NK_MEMBER:
+            case Node::NK_AGGREGATE_INSTANCE:
             case Node::NK_INEVENTPORT_IMPL:
             case Node::NK_OUTEVENTPORT_IMPL:
             case Node::NK_INEVENTPORT:
+            case Node::NK_ATTRIBUTE_IMPL:
+            case Node::NK_INPUTPARAMETER:
+            case Node::NK_RETURNPARAMETER:
             case Node::NK_OUTEVENTPORT:
-            case Node::NK_BRANCH_STATE:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                break;
             case Node::NK_HARDWARE_CLUSTER:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("ip_address");
+                break;
+            case Node::NK_PERIODICEVENT:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("frequency");
+                break;
+            case Node::NK_BRANCH_STATE:
             case Node::NK_WHILELOOP:
-            case Node::NK_VARIABLE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 break;
-            case Node::NK_CONDITION:
-                nodeItem = new ContainerElementNodeItem(item, parentNode);
+            case Node::NK_WORKLOAD:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
                 break;
             default:
-                nodeItem = new NodeItemContainer(item, parentNode);
+                nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
             }
 

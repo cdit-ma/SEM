@@ -399,7 +399,12 @@ QRectF NodeItemNew::childrenRect() const
 {
     QRectF rect;
     foreach(EntityItemNew* child, getChildEntities()){
-        rect = rect.united(child->translatedBoundingRect());
+        if(child->isNodeItem()){
+            rect = rect.united(child->translatedBoundingRect());
+        }else{
+            //Edges are fine
+            rect = rect.united(child->boundingRect());
+        }
     }
     return rect;
 }
