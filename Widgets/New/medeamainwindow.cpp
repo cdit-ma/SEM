@@ -711,6 +711,8 @@ void MedeaMainWindow::setupMinimap()
 
 /**
  * @brief MedeaMainWindow::setupMainDockWidgetToggles
+ * NOTE: This neeeds to be called after the tool dock widgets
+ * and both the central and inner windows are constructed.
  */
 void MedeaMainWindow::setupMainDockWidgetToggles()
 {
@@ -741,12 +743,27 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     hardwareButton->setCheckable(true);
 
     QMenu* menu = createPopupMenu();
+    if (centralWindow) {
+        foreach (QAction* action, centralWindow->createPopupMenu()->actions()) {
+            if (action->text() == "Dock") {
+                QAction* lastAction = menu->actions().last();
+                if (lastAction->isSeparator()) {
+                    menu->removeAction(lastAction);
+                }
+                menu->addAction(action);
+                menu->addSeparator();
+                break;
+            }
+        }
+    }
     restoreToolsAction = menu->addAction("Reset Tool Widgets");
     restoreToolsButton->setMenu(menu);
     restoreToolsButton->setPopupMode(QToolButton::InstantPopup);
 
-    restoreAspectsButton->setMenu(innerWindow->createPopupMenu());
-    restoreAspectsButton->setPopupMode(QToolButton::InstantPopup);
+    if (innerWindow) {
+        restoreAspectsButton->setMenu(innerWindow->createPopupMenu());
+        restoreAspectsButton->setPopupMode(QToolButton::InstantPopup);
+    }
 
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(QSize(20,20));

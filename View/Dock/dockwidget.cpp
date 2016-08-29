@@ -21,13 +21,19 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
         break;
     }
 
-    mainLayout = new QVBoxLayout();    
+    mainLayout = new QVBoxLayout();
+    //mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    //mainLayout->setSpacing(5);
+
     alignLayout = new QVBoxLayout(this);
     alignLayout->addLayout(mainLayout);
-    alignLayout->addStretch();
+    //alignLayout->addStretch();
 
     setupHeaderLayout();
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 
@@ -88,6 +94,17 @@ ToolActionController::DOCK_TYPE DockWidget::getDockType()
 
 
 /**
+ * @brief DockWidget::themeChanged
+ */
+void DockWidget::themeChanged()
+{
+    if (backButton) {
+        backButton->setIcon(Theme::theme()->getIcon("Actions", "Arrow_Back"));
+    }
+}
+
+
+/**
  * @brief DockWidget::dockActionClicked
  */
 void DockWidget::dockActionClicked()
@@ -109,14 +126,20 @@ void DockWidget::setupHeaderLayout()
         return;
     }
 
-    backButton = new QPushButton(Theme::theme()->getIcon("Actions", "Arrow_Back"), "", this);
+    backButton = new QPushButton(this);
+    connect(backButton, SIGNAL(clicked(bool)), this, SIGNAL(backButtonClicked()));
 
     descriptionLabel = new QLabel("This is a description for dock type " + QString::number(dockType), this);
     descriptionLabel->setWordWrap(true);
+    descriptionLabel->setAlignment(Qt::AlignCenter);
+    //descriptionLabel->setMinimumHeight(100);
+    descriptionLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //descriptionLabel->setStyleSheet("margin: 0px; padding: 0px;"); // background: red;");
 
     headerLayout = new QVBoxLayout();
     headerLayout->setMargin(0);
-    headerLayout->addWidget(descriptionLabel);
+    headerLayout->setSpacing(10);
+    headerLayout->addWidget(descriptionLabel, 1);
     headerLayout->addWidget(backButton);
 
     alignLayout->insertLayout(0, headerLayout);
