@@ -31,6 +31,7 @@ void ActionController::connectViewController(ViewController *controller)
 {
 
     if(viewController){
+        connect(controller, &ViewController::vc_actionFinished, this, &ActionController::actionFinished);
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::controllerReady);
         connect(controller, &ViewController::mc_modelReady, this, &ActionController::modelReady);
 
@@ -74,6 +75,7 @@ void ActionController::connectViewController(ViewController *controller)
 void ActionController::connectSelectionController(SelectionController *controller)
 {
     if(selectionController){
+
         connect(selectionController, SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
         connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionForward()));
         connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
@@ -185,6 +187,11 @@ void ActionController::selectionChanged(int selectionSize)
 
         applicationToolbar->updateSpacers();
     }
+}
+
+void ActionController::actionFinished()
+{
+    selectionChanged(-1);
 }
 
 void ActionController::controllerReady(bool ready)

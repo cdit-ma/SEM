@@ -62,6 +62,7 @@ signals:
     void mc_modelReady(bool);
     void mc_projectModified(bool);
     void mc_undoRedoUpdated();
+    void vc_actionFinished();
 
 
     //TO CONTROLLER SIGNALS

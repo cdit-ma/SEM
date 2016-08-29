@@ -30,6 +30,7 @@ private slots:
     void settingChanged(SETTING_KEY key, QVariant value);
     void jenkinsValidated(bool success);
     void selectionChanged(int selectionSize);
+    void actionFinished();
 
     void controllerReady(bool ready);
     void modelReady(bool ready);

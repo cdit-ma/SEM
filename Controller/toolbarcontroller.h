@@ -55,6 +55,7 @@ private slots:
     void viewItem_Destructed(int ID, ViewItem* viewItem);
 
     void selectionChanged(int selected);
+    void actionFinished();
 
 private:
     void setupToolActions();

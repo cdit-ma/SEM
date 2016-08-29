@@ -259,8 +259,8 @@ void ViewController::setController(NewController *c)
 
 void ViewController::actionFinished(bool success, QString gg)
 {
-    qCritical() << "actionFinished: " << success;
     setControllerReady(true);
+    emit vc_actionFinished();
 }
 
 void ViewController::table_dataChanged(int ID, QString key, QVariant data)
@@ -434,7 +434,7 @@ void ViewController::renameActiveSelection()
     if(selectionController){
         ViewItem* item = selectionController->getActiveSelectedItem();
         if(item){
-            emit vc_requestTableEdit(item->getID(), "label");
+            emit vc_editTableCell(item->getID(), "label");
         }
     }
 }

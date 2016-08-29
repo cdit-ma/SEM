@@ -246,4 +246,5 @@ void Data::updateChildren(bool changed)
     if(getParent()){
         _parent->_dataChanged(this);
     }
+    emit dataChanged(getValue());
 }

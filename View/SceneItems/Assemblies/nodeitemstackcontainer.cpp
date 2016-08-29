@@ -5,6 +5,7 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
     ContainerNodeItem(viewItem, parentItem)
 {
     setSortOrdered(true);
+    setResizeEnabled(false);
 
     leafPen.setWidth(1);
     if(parentItem){

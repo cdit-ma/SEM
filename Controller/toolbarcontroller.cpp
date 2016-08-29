@@ -28,10 +28,10 @@ ToolActionController::ToolActionController(ViewController *viewController):QObje
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(Theme::theme(), SIGNAL(preloadFinished()), this, SLOT(themeChanged()));
 
-    connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
+    connect(selectionController, &SelectionController::selectionChanged, this, &ToolActionController::selectionChanged);
 
     //Connect to the view controller
-
+    connect(viewController, &ViewController::vc_actionFinished, this, &ToolActionController::actionFinished);
     connect(viewController, &ViewController::vc_viewItemConstructed, this, &ToolActionController::viewItem_Constructed);
     connect(viewController, &ViewController::vc_viewItemDestructing, this, &ToolActionController::viewItem_Destructed);
 }
@@ -113,9 +113,16 @@ void ToolActionController::selectionChanged(int selected)
     }
 }
 
+void ToolActionController::actionFinished()
+{
+    if(selectionController){
+        selectionChanged(selectionController->getSelectionCount());
+    }
+}
+
 void ToolActionController::addChildNode(QString kind, QPointF position)
 {
-    ViewItem* item = selectionController->getFirstSelectedItem();
+    ViewItem* item = selectionController->getActiveSelectedItem();
 
     if(item){
         int ID = item->getID();
@@ -127,7 +134,6 @@ void ToolActionController::addEdge(int dstID, Edge::EDGE_CLASS edgeKind)
 {
     QList<int> IDs = selectionController->getSelectionIDs();
     if(!IDs.isEmpty()){
-        qCritical() << "TEST";
         emit viewController->vc_constructEdge(IDs, dstID, edgeKind);
     }
 }
@@ -135,7 +141,6 @@ void ToolActionController::addEdge(int dstID, Edge::EDGE_CLASS edgeKind)
 void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();
-    qCritical() << kind;
     if(ID != -1){
         emit viewController->vc_constructConnectedNode(ID, kind,dstID, Edge::EC_UNDEFINED, position);
     }

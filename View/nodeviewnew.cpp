@@ -105,7 +105,7 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::vc_triggerAction);
         connect(this, &NodeViewNew::setData, viewController, &ViewController::vc_setData);
         connect(this, &NodeViewNew::removeData, viewController, &ViewController::vc_removeData);
-        connect(this, &NodeViewNew::editData, viewController, &ViewController::vc_requestTableEdit);
+        connect(this, &NodeViewNew::editData, viewController, &ViewController::vc_editTableCell);
     }
 }
 

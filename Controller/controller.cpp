@@ -4012,7 +4012,7 @@ void NewController::setupModel()
 
 
     Data* labelData = model->getData("label");
-    connect(labelData, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(_projectNameChanged()));
+    connect(labelData, &Data::dataChanged, this, &NewController::_projectNameChanged);
 
     //Update the view with the correct Model Label.
     _projectNameChanged();

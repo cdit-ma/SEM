@@ -15,7 +15,7 @@ TableWidget::TableWidget(ViewController *controller, QWidget *parent) : QWidget(
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     themeChanged();
 
-    connect(viewController, &ViewController::vc_requestTableEdit, tableView, &AttributeTableView::editDataValue);
+    connect(viewController, &ViewController::vc_editTableCell, tableView, &AttributeTableView::editDataValue);
 }
 
 void TableWidget::itemActiveSelectionChanged(ViewItem *item, bool isActive)
