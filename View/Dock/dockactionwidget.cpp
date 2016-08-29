@@ -1,5 +1,4 @@
 #include "dockactionwidget.h"
-#include "../theme.h"
 
 #define ICON_SIZE 45
 #define MIN_BUTTON_SIZE 75
@@ -13,6 +12,7 @@
 DockActionWidget::DockActionWidget(QAction *action, QWidget *parent) : QPushButton(parent)
 {
     dockAction = action;
+    theme = 0;
 
     setupLayout();
     setSubActionRequired(false);
@@ -110,11 +110,47 @@ void DockActionWidget::actionChanged()
  */
 void DockActionWidget::themeChanged()
 {
-    // TODO - Can't get the text color to change on hover
-    Theme* theme = Theme::theme();
-    setStyleSheet("QLabel{ border: 0px; color:" + theme->getTextColorHex() + ";}"
-                  "QPushButton{ border: 0px; background:" + theme->getAltBackgroundColorHex() + "; color:" + theme->getTextColorHex() + ";}"
-                  "QPushButton:hover{ background:" + theme->getHighlightColorHex() + ";}"); // color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}");
+    theme = Theme::theme();
+    setStyleSheet("QPushButton {"
+                  "border: 0px;"
+                  "background: rgba(0,0,0,0);"
+                  "}"
+                  "QPushButton:hover {"
+                  "background:" + theme->getHighlightColorHex() + ";"
+                  "}");
+
+    textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
+    arrowLabel->setPixmap(Theme::theme()->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
+}
+
+
+/**
+ * @brief DockActionWidget::enterEvent
+ * @param event
+ */
+void DockActionWidget::enterEvent(QEvent* event)
+{
+    if (theme) {
+        QPixmap p = theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor(Theme::CR_SELECTED));
+        arrowLabel->setPixmap(p);
+        textLabel->setStyleSheet("color:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";");
+    }
+    QPushButton::enterEvent(event);
+}
+
+
+/**
+ * @brief DockActionWidget::leaveEvent
+ * @param event
+ */
+void DockActionWidget::leaveEvent(QEvent* event)
+{
+    if (theme) {
+        QPixmap p = theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor());
+        arrowLabel->setPixmap(p);
+        textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
+    }
+    QPushButton::leaveEvent(event);
 }
 
 
@@ -139,8 +175,6 @@ void DockActionWidget::setupLayout()
     arrowLabel = new QLabel(this);
     arrowLabel->setAlignment(Qt::AlignRight);
     arrowLabel->setStyleSheet("background: rgba(0,0,0,0);");
-    arrowLabel->setPixmap(Theme::theme()->getImage("Actions", "Arrow_Right", QSize(28,28)));
-    //arrowLabel->setStyleSheet("padding: 0px; padding-top:" + QString::number(textLabel->sizeHint().height()) + ";");
     arrowLabel->setFixedWidth(ARROW_WIDTH);
     arrowLabel->hide();
 

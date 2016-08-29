@@ -31,7 +31,6 @@ private:
     void setupConnections();
 
     void openRequiredDock(ToolActionController::DOCK_TYPE dt, QString actionKind = "");
-    void changeDisplayedDockWidget(DockWidget* dockWidget);
 
     ViewController* viewController;
     ToolActionController* toolActionController;
@@ -44,7 +43,6 @@ private:
     QPushButton* partsButton;
     QPushButton* hardwareButton;
     QStackedWidget* stackedWidget;
-    QScrollArea* dockScrollArea;
 
 };
 

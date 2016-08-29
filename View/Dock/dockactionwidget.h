@@ -7,6 +7,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
+#include "../theme.h"
+
 class DockActionWidget : public QPushButton
 {
     Q_OBJECT
@@ -27,6 +29,10 @@ public slots:
     void actionChanged();
     void themeChanged();
 
+protected:
+    void enterEvent(QEvent* event);
+    void leaveEvent(QEvent* event);
+
 private:
     void setupLayout();
 
@@ -38,6 +44,8 @@ private:
 
     QAction* dockAction;
     bool subActionRequired;
+
+    Theme* theme;
 
 };
 

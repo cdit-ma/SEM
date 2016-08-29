@@ -41,8 +41,7 @@ void DockTabWidget::themeChanged()
                   "QPushButton:hover{ background:" + theme->getHighlightColorHex() + ";}"
                   "QPushButton:hover::checked{ background:" + theme->getHighlightColorHex() + ";}"
                   "QPushButton::checked{ background:" + theme->getAltBackgroundColorHex() + ";}"
-                  "QStackedWidget{ border: 0px; background:" + theme->getAltBackgroundColorHex() + ";}"
-                  "QScrollArea{ border: 0px; background:" + theme->getAltBackgroundColorHex() + ";}");
+                  "QStackedWidget{ border: 0px; background:" + theme->getAltBackgroundColorHex() + ";}");
 
     partsButton->setIcon(theme->getImage("Actions", "Plus", QSize(), theme->getTextColor(theme->CR_NORMAL)));
     hardwareButton->setIcon(theme->getImage("Actions", "Computer", QSize(), theme->getTextColor(theme->CR_NORMAL)));
@@ -57,7 +56,7 @@ void DockTabWidget::selectionChanged()
     // if either of the definitions or functions list is displayed, close them and re-open the parts list
     if (partsButton->isChecked()) {
         if (stackedWidget->currentWidget() != partsDock) {
-            changeDisplayedDockWidget(partsDock);
+            stackedWidget->setCurrentWidget(partsDock);
         }
     }
 }
@@ -94,7 +93,7 @@ void DockTabWidget::tabClicked(bool checked)
 
     // if sender button is checked, un-check the other button
     otherButton->setChecked(false);
-    changeDisplayedDockWidget(dockWidget);
+    stackedWidget->setCurrentWidget(dockWidget);
 }
 
 
@@ -146,7 +145,7 @@ void DockTabWidget::dockActionClicked(DockActionWidget* action)
  */
 void DockTabWidget::dockBackButtonClicked()
 {
-    changeDisplayedDockWidget(partsDock);
+    stackedWidget->setCurrentWidget(partsDock);
 }
 
 
@@ -169,13 +168,6 @@ void DockTabWidget::setupLayout()
     hardwareButton->setCheckable(true);
     hardwareButton->setChecked(false);
 
-    dockScrollArea = new QScrollArea(this);
-    dockScrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
-    dockScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    dockScrollArea->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    dockScrollArea->setWidget(stackedWidget);
-    dockScrollArea->setWidgetResizable(true);
-
     QHBoxLayout* hLayout = new QHBoxLayout();
     hLayout->setMargin(0);
     hLayout->setSpacing(2);
@@ -186,7 +178,7 @@ void DockTabWidget::setupLayout()
     vLayout->setMargin(0);
     vLayout->setSpacing(2);
     vLayout->addLayout(hLayout);
-    vLayout->addWidget(dockScrollArea, 1);
+    vLayout->addWidget(stackedWidget, 1);
 
     setContentsMargins(1,2,1,1);
     setMinimumWidth(MIN_WIDTH);
@@ -260,34 +252,16 @@ void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt, QString
             actionWidget->setProperty("parent-kind", actionKind);
             definitionsDock->updateHeaderText(actionKind);
         }
-        changeDisplayedDockWidget(definitionsDock);
+        stackedWidget->setCurrentWidget(definitionsDock);
         break;
     }
     case ToolActionController::FUNCTIONS:
-        changeDisplayedDockWidget(functionsDock);
+        stackedWidget->setCurrentWidget(functionsDock);
         break;
     default:
         break;
     }
 }
-
-
-/**
- * @brief DockTabWidget::changeDisplayedDockWidget
- * This changes the current widget displated in the stack widget and updates the stack widget's height.
- * If the stack widget's height is not recalculated, the scrollbars remain visible even if they're not needed.
- * @param dockWidget
- */
-void DockTabWidget::changeDisplayedDockWidget(DockWidget* dockWidget)
-{
-    if (dockWidget) {
-        stackedWidget->setCurrentWidget(dockWidget);
-        //stackedWidget->setFixedHeight(dockWidget->sizeHint().height());
-    }
-}
-
-
-
 
 
 

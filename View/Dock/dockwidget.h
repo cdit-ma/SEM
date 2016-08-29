@@ -1,13 +1,13 @@
 #ifndef DOCKWIDGET_H
 #define DOCKWIDGET_H
 
-#include <QWidget>
+#include <QScrollArea>
 #include <QVBoxLayout>
 
 #include "../../Controller/toolbarcontroller.h"
 #include "dockactionwidget.h"
 
-class DockWidget : public QWidget
+class DockWidget : public QScrollArea
 {
     Q_OBJECT
 public:
@@ -38,6 +38,8 @@ private:
     QVBoxLayout* alignLayout;
     QVBoxLayout* mainLayout;
     QVBoxLayout* headerLayout;
+
+    QWidget* mainWidget;
     QLabel* descriptionLabel;
     QPushButton* backButton;
 

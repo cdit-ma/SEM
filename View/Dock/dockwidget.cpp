@@ -6,7 +6,7 @@
  * @brief DockWidget::DockWidget
  * @param parent
  */
-DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE type, QWidget *parent) : QWidget(parent)
+DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE type, QWidget *parent) : QScrollArea(parent)
 {
     toolActionController = tc;
     dockType = type;
@@ -22,15 +22,23 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     }
 
     mainLayout = new QVBoxLayout();
+    mainLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
     mainLayout->setSpacing(5);
 
-    alignLayout = new QVBoxLayout(this);
+    alignLayout = new QVBoxLayout();
     alignLayout->addLayout(mainLayout);
     alignLayout->addStretch();
 
+    mainWidget = new QWidget(this);
+    mainWidget->setObjectName("DOCKWIDGET_MAIN");
+    mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    mainWidget->setLayout(alignLayout);
+
+    setWidget(mainWidget);
+    setWidgetResizable(true);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setupHeaderLayout();
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
@@ -93,7 +101,8 @@ void DockWidget::clearDock()
 void DockWidget::updateHeaderText(QString text)
 {
     if (descriptionLabel) {
-        descriptionLabel->setText("Select to construct a <br/><i>" + text + "</i>");
+        //descriptionLabel->setText("Select to construct a <br/><i>" + text + "</i>");
+        descriptionLabel->setText("Select to construct a <br/>" + text);
     }
 }
 
@@ -113,8 +122,16 @@ ToolActionController::DOCK_TYPE DockWidget::getDockType()
  */
 void DockWidget::themeChanged()
 {
+    Theme* theme = Theme::theme();
+    setStyleSheet("QWidget#DOCKWIDGET_MAIN{ background: rgba(0,0,0,0); }"
+                  "QScrollArea {"
+                  "border: 0px;"
+                  "background:" + theme->getAltBackgroundColorHex() + ";"
+                  "}");
+
     if (backButton) {
-        backButton->setIcon(Theme::theme()->getIcon("Actions", "Arrow_Back"));
+        backButton->setIcon(theme->getIcon("Actions", "Arrow_Back"));
+        //backButton->setStyleSheet(theme->getPushButtonStyleSheet());
     }
 }
 
