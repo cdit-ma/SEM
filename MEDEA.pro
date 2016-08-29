@@ -205,7 +205,6 @@ HEADERS += \
     View/SceneItems/Assemblies/nodeitemorderedcontainer.h \
     View/SceneItems/containerelementnodeitem.h \
     View/SceneItems/Assemblies/assemblyeventportnodeitem.h \
-    View/SceneItems/nodeitemcontainer.h \
     View/Dock/dockwidget.h
 
 SOURCES += \
@@ -375,7 +374,6 @@ SOURCES += \
     View/SceneItems/Assemblies/nodeitemorderedcontainer.cpp \
     View/SceneItems/containerelementnodeitem.cpp \
     View/SceneItems/Assemblies/assemblyeventportnodeitem.cpp \
-    View/SceneItems/nodeitemcontainer.cpp \
     View/Dock/dockwidget.cpp
 
 RESOURCES += \
