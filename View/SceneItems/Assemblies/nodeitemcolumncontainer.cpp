@@ -1,75 +1,57 @@
 #include "nodeitemcolumncontainer.h"
 #include "nodeitemcolumnitem.h"
 #include <QDebug>
-NodeItemColumnContainer::NodeItemColumnContainer(NodeViewItem *viewItem, NodeItemNew *parentItem):NodeItemContainer(viewItem, parentItem)
+ColumnContainerNodeItem::ColumnContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
+    :ContainerNodeItem(viewItem, parentItem)
 {
-    this->columnCount = 1;
-
-    columnSpacing = 10;
-    columnWidth = DEFAULT_SIZE * 2.5;
-    columnHeight = DEFAULT_SIZE / 2;
-    setMinimumHeight(columnHeight);
-    setExpandedHeight(columnHeight);
-    setBodyPadding(QMarginsF(0,0,0,0));
-    setMargin(QMarginsF(0,0,0,0));
-    setColumnCount(1);
+    columnSpacing = 2;
+    columnWidth = 44;
+    columnHeight = columnWidth;
+    setMinimumWidth(columnWidth * 3);
 }
 
-void NodeItemColumnContainer::setColumnCount(int count)
+
+QPointF ColumnContainerNodeItem::getColumnPosition(QPoint index) const
 {
-    this->columnCount = count;
-    setExpandedWidth(bodyRect().left() + ((columnWidth + columnSpacing) * columnCount));
+
+    return bodyRect().topLeft() + QPointF((columnWidth + columnSpacing) * (index.x()), (columnHeight + columnSpacing) * index.y());
 }
 
-QPointF NodeItemColumnContainer::getColumnPosition(int x, int y)
-{
-    return bodyRect().topLeft() + QPointF((columnWidth + columnSpacing) * x, (columnHeight + columnSpacing) * y);
-}
-
-QRectF NodeItemColumnContainer::getColumnRect(int x)
+QRectF ColumnContainerNodeItem::getColumnRect(int x)
 {
     QRectF rect;
-    rect.setWidth(columnWidth + columnSpacing);
+    rect.setWidth(columnWidth + (2 * columnSpacing));
     rect.setHeight(bodyRect().height());
     rect.moveTopLeft(bodyRect().topLeft() + QPointF(x * rect.width(),0));
     return rect;
 }
 
-QPointF NodeItemColumnContainer::getPositionForChild(NodeItemNew *child)
+QPointF ColumnContainerNodeItem::getElementPosition(ContainerElementNodeItem *child)
 {
-    NodeItemColumnItem* nodeItemChild = qobject_cast<NodeItemColumnItem*>(child);
-
-    if(nodeItemChild){
-        return getColumnPosition(nodeItemChild->getColumn(), nodeItemChild->getRow());// - QPointF(child->getCenterOffset().x(), 0);
-    }else{
-        return QPointF();
-    }
+    return getColumnPosition(child->getIndexPosition());
 }
 
-QPoint NodeItemColumnContainer::getIndexForChild(NodeItemColumnItem *child)
+QPoint ColumnContainerNodeItem::getElementIndex(ContainerElementNodeItem *child)
 {
-    QPointF childCenter = child->getCenter() - bodyRect().topLeft();
-
-    QPoint index;
-    index.setX(childCenter.x() / (columnWidth + columnSpacing));
-    index.setY(childCenter.y() / (columnHeight + columnSpacing));
-    return index;
-}
-
-void NodeItemColumnContainer::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
-    RENDER_STATE state = getRenderState(lod);
-
-    NodeItemContainer::paint(painter, option, widget);
-    if(state > RS_BLOCK){
-        painter->setClipRect(option->exposedRect);
-
-        if(isGridVisible()){
-            painter->setBrush(Qt::red);
-            painter->drawRect(getColumnRect(0));
-            painter->setBrush(Qt::green);
-            painter->drawRect(getColumnRect(2));
+    QPoint currentIndex = child->getIndexPosition();
+    if(currentIndex.x() == 0){
+        //Initial steup
+        if(child->getNodeKind() == Node::NK_INEVENTPORT_INSTANCE){
+            currentIndex.setX(1);
+        }else if(child->getNodeKind() == Node::NK_OUTEVENTPORT_INSTANCE){
+            currentIndex.setX(3);
+        }else{
+            currentIndex.setX(2);
         }
+        currentIndex.setY(child->getSortOrder());
+    }else{
+        QPointF childCenter = child->getCenter() - (bodyRect().topLeft() + QPointF(2,2));
+        currentIndex.setX(childCenter.x() / (columnWidth + columnSpacing));
+        currentIndex.setY(childCenter.y() / (columnHeight + columnSpacing));
     }
+    return currentIndex;
+}
+
+void ColumnContainerNodeItem::childPosChanged()
+{
 }

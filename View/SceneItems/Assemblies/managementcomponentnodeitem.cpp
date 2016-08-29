@@ -45,8 +45,7 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
             painter->save();
 
             //Paint label
-            painter->setPen(Qt::black);
-            painter->drawText(labelRect(), Qt::AlignCenter, getData("label").toString());
+            renderText(painter, lod, labelRect(), getData("label").toString(), 10);
 
             //Paint expanded right poly
             painter->setBrush(getBodyColor());

@@ -29,10 +29,15 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     _hasMouseMoved = false;
 
 
+
     _isExpanded = false;
     expandEnabled = false;
     selectEnabled = true;
     moveEnabled = true;
+
+    textFont = QFont("Verdana");
+    setFontSize(10);
+
 
     //Setup the initial Body color
     bodyColor = QColor(233,234,237).lighter(110);
@@ -89,7 +94,7 @@ ViewItem *EntityItemNew::getViewItem() const
 
 void EntityItemNew::setPos(const QPointF &pos)
 {
-    if(pos != this->pos()){
+    if(pos != getPos()){
        QGraphicsObject::setPos(pos);
        emit positionChanged();
        emit scenePosChanged();
@@ -131,7 +136,7 @@ void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELE
         //Calculate the required size of the image.
         QSize requiredSize = getPixmapSize(imageRect, lod);
 
-        if(requiredSize.width() <= 8 || state == RS_BLOCK){
+        if(state == RS_BLOCK){
             paintPixmapRect(painter, imageAlias, imageName, imageRect);
         }else{
             //Get the current Image from the Map
@@ -185,6 +190,64 @@ void EntityItemNew::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pix
     }
 }
 
+void EntityItemNew::renderText(QPainter *painter, qreal lod, QRectF textRect, QString text, int fontSize) const
+{
+    if(fontSize <=0){
+        fontSize = this->fontSize;
+    }
+    QFont font = textFont;
+    font.setPixelSize(fontSize * 2);
+
+    qreal osfontSize = fontSize * 2;
+    qreal maxFontSize = fontSize;
+    qreal minFontSize = fontSize / 2.0;
+
+
+    painter->save();
+    painter->setClipRect(textRect);
+    painter->setPen(Qt::black);
+    painter->setFont(font);
+    qreal requiredWidth = painter->fontMetrics().width(text);
+
+    qreal actualWidth = textRect.width();
+    qreal actualHeight = textRect.height();
+
+    qreal scale = actualWidth / requiredWidth;
+
+    qreal renderedFontHeight = scale * osfontSize;
+
+    if(renderedFontHeight > actualHeight){
+       scale /= renderedFontHeight / actualHeight;
+    }
+
+    renderedFontHeight = scale * osfontSize;
+
+    if(renderedFontHeight > maxFontSize){
+        scale /= renderedFontHeight / maxFontSize;
+    }
+    if(renderedFontHeight < minFontSize){
+        scale /= renderedFontHeight / minFontSize;
+    }
+    renderedFontHeight = scale * osfontSize * lod;
+
+
+    painter->scale(scale, scale);
+    textRect.setWidth(textRect.width() / scale);
+    textRect.setHeight(textRect.height() / scale);
+    textRect.moveTopLeft(textRect.topLeft() / scale);
+
+    if(renderedFontHeight > 6){
+        painter->drawText(textRect, Qt::AlignCenter|Qt::TextWrapAnywhere, text);
+    }else{
+        QRectF rect = painter->fontMetrics().boundingRect(textRect.toRect(), Qt::AlignCenter|Qt::TextWrapAnywhere, text);
+        painter->setBrush(QColor(120,120,120,120));
+        painter->setPen(Qt::NoPen);
+        rect.moveCenter(textRect.center());
+        painter->drawRect(rect);
+    }
+    painter->restore();
+}
+
 QSize EntityItemNew::getPixmapSize(QRectF rect, qreal lod) const
 {
     //Calculate the required size of the image.
@@ -212,7 +275,7 @@ QPixmap EntityItemNew::getPixmap(QString imageAlias, QString imageName, QSize re
 QRectF EntityItemNew::translatedBoundingRect() const
 {
     QRectF rect = boundingRect();
-    rect.translate(pos());
+    rect.translate(getPos());
     return rect;
 }
 
@@ -273,6 +336,16 @@ QRectF EntityItemNew::sceneViewRect() const
 QRectF EntityItemNew::moveRect() const
 {
     return currentRect();
+}
+
+QSize EntityItemNew::iconSize() const
+{
+    return QSize(32,32);
+}
+
+QSize EntityItemNew::smallIconSize() const
+{
+    return QSize(8,8);
 }
 
 QPainterPath EntityItemNew::shape() const
@@ -455,6 +528,12 @@ void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
         previousMovePoint = event->scenePos();
     }
 
+}
+
+void EntityItemNew::setFontSize(int fontSize)
+{
+    textFont.setPixelSize(fontSize * 2);
+    this->fontSize = fontSize;
 }
 
 void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)

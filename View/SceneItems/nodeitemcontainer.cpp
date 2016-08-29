@@ -18,16 +18,13 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
     setExpandedWidth(width*4);
     setExpandedHeight(height);
 
-    setMargin(QMarginsF(10,2,2,2));
+    setMargin(QMarginsF(height/2,2,2,2));
     setBodyPadding(QMarginsF(0,0,0,0));
 
     addRequiredData("x");
     addRequiredData("y");
 
     reloadRequiredData();
-    if(viewItem && viewItem->getData("kind").toString().contains("OutEvent")){
-        setRightIcon(true);
-    }
 }
 
 QRectF NodeItemContainer::bodyRect() const

@@ -20,9 +20,11 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     verticalLocked = false;
     horizontalLocked = false;
     ignorePosition = false;
+    _rightJustified = false;
     aspect = VA_NONE;
     selectedResizeVertex = RV_NONE;
     hoveredResizeVertex = RV_NONE;
+
 
     nodeViewItem = viewItem;
     nodeItemKind = kind;
@@ -34,6 +36,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     setExpandEnabled(true);
 
     addRequiredData("isExpanded");
+
 
     if(parentItem){
         //Lock child in same aspect as parent
@@ -91,6 +94,18 @@ Node::NODE_KIND NodeItemNew::getNodeKind() const
     return nodeViewItem->getNodeKind();
 }
 
+
+
+void NodeItemNew::setRightJustified(bool isRight)
+{
+    _rightJustified = isRight;
+}
+
+bool NodeItemNew::isRightJustified() const
+{
+    return _rightJustified;
+}
+
 void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
 {
     int ID = nodeItem->getID();
@@ -102,12 +117,10 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
         }
-        //Update our position
-        resizeToChildren();
-
         nodeItem->setBodyColor(getBodyColor().darker(110));
 
         nodeItem->setVisible(isExpanded());
+        childPosChanged();
     }
 }
 
@@ -138,6 +151,7 @@ void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
         //Unset child moving.
         setChildNodeMoving(nodeItem, false);
         nodeItem->unsetParent();
+        childPosChanged();
     }
 }
 
@@ -441,7 +455,7 @@ void NodeItemNew::setExpandedWidth(qreal width, bool lockOnChange)
             prepareGeometryChange();
             update();
             emit sizeChanged(getSize());
-            updateGridLines();
+          //  updateGridLines();
         }
         if(lockOnChange){
             horizontalLocked = true;
@@ -455,7 +469,7 @@ void NodeItemNew::setExpandedWidth(qreal width, bool lockOnChange)
 void NodeItemNew::setExpandedHeight(qreal height, bool lockOnChange)
 {
     //Limit by the size of all contained children.
-    qreal minHeight = childrenRect().bottom() - getMarginOffset().y();
+    qreal minHeight = childrenRect().bottom();
     //Can't shrink smaller than minimum
     minHeight = qMax(minHeight, minimumHeight);
     height = qMax(height, minHeight);
@@ -466,7 +480,7 @@ void NodeItemNew::setExpandedHeight(qreal height, bool lockOnChange)
             prepareGeometryChange();
             update();
             emit sizeChanged(getSize());
-            updateGridLines();
+           // updateGridLines();
         }
 
         if(lockOnChange){
@@ -533,6 +547,11 @@ QPointF NodeItemNew::getMarginOffset() const
     return QPointF(margin.left(), margin.top());
 }
 
+QPointF NodeItemNew::getBottomRightMarginOffset() const
+{
+    return QPointF(margin.right(), margin.bottom());
+}
+
 QPointF NodeItemNew::getTopLeftSceneCoordinate() const
 {
     return sceneBoundingRect().topLeft();
@@ -577,6 +596,10 @@ void NodeItemNew::setPos(const QPointF &pos)
     deltaPos = validateAdjustPos(deltaPos);
     if(!deltaPos.isNull()){
         EntityItemNew::setPos(this->pos() + deltaPos);
+
+        if(getParentNodeItem()){
+            setRightJustified(x() > (getParentNodeItem()->getWidth() / 2));
+        }
         updateGridLines();
     }
 }
@@ -857,7 +880,6 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
         painter->restore();
     }
-
 
     EntityItemNew::paint(painter, option, widget);
 }

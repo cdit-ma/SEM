@@ -61,6 +61,9 @@ public:
     virtual QRectF viewRect() const;
     QRectF sceneViewRect() const;
     virtual QRectF moveRect() const;
+
+    QSize iconSize() const;
+    QSize smallIconSize() const;
     QPainterPath shape() const;
     QPainterPath sceneShape() const;
 
@@ -80,6 +83,11 @@ public:
     QPair<QString, QString> getIconPath();
 
     QPointF getNearestGridPoint();
+
+    void setFontSize(int fontSize);
+private:
+    int fontSize;
+    QFont textFont;
 
 public:
     //Model State Get/Setters
@@ -171,6 +179,8 @@ public:
     void setHighlighted(bool isHighlight);
     void setSelected(bool selected);
     void setActiveSelected(bool active);
+
+    void renderText(QPainter* painter, qreal lod, QRectF textRect, QString text, int fontSize = -1) const;
 private:
     void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;

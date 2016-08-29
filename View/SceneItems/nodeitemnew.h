@@ -12,7 +12,7 @@ class NodeItemNew: public EntityItemNew
 {
     Q_OBJECT
 public:
-    enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM, HARDWARE_ITEM};
+    enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM, HARDWARE_ITEM, CONTAINER_ELEMENT_ITEM};
     NodeItemNew(NodeViewItem *viewItem, NodeItemNew* parentItem, KIND kind);
     ~NodeItemNew();
 
@@ -21,6 +21,9 @@ public:
 
     Node::NODE_KIND getNodeKind() const;
 
+
+    virtual void setRightJustified(bool isRight);
+    bool isRightJustified() const;
 
     virtual void addChildNode(NodeItemNew* nodeItem);
 
@@ -102,6 +105,7 @@ public:
     void setBodyPadding(QMarginsF bodyPadding);
 
     QPointF getMarginOffset() const;
+    QPointF getBottomRightMarginOffset() const;
     QPointF getTopLeftSceneCoordinate() const;
 
     qreal getWidth() const;
@@ -144,7 +148,7 @@ signals:
 public slots:
     virtual void dataChanged(QString keyName, QVariant data);
     virtual void dataRemoved(QString keyName);
-    void childPosChanged();
+    virtual void childPosChanged();
 private:
     void resizeToChildren();
     int getResizeArrowRotation(RECT_VERTEX vert) const;
@@ -165,9 +169,12 @@ private:
 
 
 
+
     bool gridEnabled;
     bool gridVisible;
     bool ignorePosition;
+
+    bool _rightJustified;
 
     bool horizontalLocked;
     bool verticalLocked;

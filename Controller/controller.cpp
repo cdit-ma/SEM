@@ -3179,11 +3179,13 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
 
     int siblingIndex = 0;
     for(int sortOrder = 0; sortOrder < siblings.count() + 1; sortOrder ++){
+
         if(sortOrder != newPosition){
             siblings[siblingIndex]->setDataValue("sortOrder", sortOrder);
             siblingIndex ++;
         }
     }
+    node->setDataValue("sortOrder", newPosition);
 }
 
 /**
@@ -5596,8 +5598,10 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     entity->appendEdgeKind(edgeClass);
                 }
 
-                //Insert the item in the lookup
-                edgesMap.insertMulti(entity->getEdgeKind(), entity);
+				if(entity->hasEdgeKind()){
+					//Insert the item in the lookup
+					edgesMap.insertMulti(entity->getEdgeKind(), entity);
+				}
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
