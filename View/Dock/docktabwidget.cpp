@@ -9,7 +9,7 @@
 #define TAB_PADDING 20
 #define DOCK_SPACING 3
 #define DOCK_SEPARATOR_WIDTH 5
-#define MIN_WIDTH 110
+#define MIN_WIDTH 120
 #define MAX_WIDTH 200
 
 /**
@@ -35,13 +35,14 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
 void DockTabWidget::themeChanged()
 {    
     Theme* theme = Theme::theme();
-    setStyleSheet("QPushButton{ background:" + theme->QColorToHex(theme->getAltBackgroundColor().darker(150)) + ";}"
+    setStyleSheet("QWidget{ color:" + theme->getTextColorHex() + ";}"
+                  "QPushButton{ background:" + theme->QColorToHex(theme->getAltBackgroundColor().darker(150)) + ";}"
                   "QPushButton:hover{ border-width: 2px; }"
                   "QPushButton:hover{ background:" + theme->getHighlightColorHex() + ";}"
                   "QPushButton:hover::checked{ background:" + theme->getHighlightColorHex() + ";}"
                   "QPushButton::checked{ background:" + theme->getAltBackgroundColorHex() + ";}"
-                  "QStackedWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + "; background:" + theme->getAltBackgroundColorHex() + ";}"
-                  "QScrollArea{ border: 0px; }");
+                  "QStackedWidget{ border: 0px; background:" + theme->getAltBackgroundColorHex() + ";}"
+                  "QScrollArea{ border: 0px; background:" + theme->getAltBackgroundColorHex() + ";}");
 
     partsButton->setIcon(theme->getImage("Actions", "Plus", QSize(), theme->getTextColor(theme->CR_NORMAL)));
     hardwareButton->setIcon(theme->getImage("Actions", "Computer", QSize(), theme->getTextColor(theme->CR_NORMAL)));
@@ -53,7 +54,12 @@ void DockTabWidget::themeChanged()
  */
 void DockTabWidget::selectionChanged()
 {
-
+    // if either of the definitions or functions list is displayed, close them and re-open the parts list
+    if (partsButton->isChecked()) {
+        if (stackedWidget->currentWidget() != partsDock) {
+            changeDisplayedDockWidget(partsDock);
+        }
+    }
 }
 
 
@@ -88,8 +94,7 @@ void DockTabWidget::tabClicked(bool checked)
 
     // if sender button is checked, un-check the other button
     otherButton->setChecked(false);
-    stackedWidget->setCurrentWidget(dockWidget);
-    //stackedWidget->resize(dockWidget->sizeHint());
+    changeDisplayedDockWidget(dockWidget);
 }
 
 
@@ -131,6 +136,17 @@ void DockTabWidget::dockActionClicked(DockActionWidget* action)
 
 
 /**
+ * @brief DockTabWidget::dockBackButtonClicked
+ * This is triggered whenever the back button of the definitions or functions dock is clicked.
+ * It returns the list of displayed dock items to the adoptable list.
+ */
+void DockTabWidget::dockBackButtonClicked()
+{
+    changeDisplayedDockWidget(partsDock);
+}
+
+
+/**
  * @brief DockTabWidget::setupLayout
  */
 void DockTabWidget::setupLayout()
@@ -149,11 +165,12 @@ void DockTabWidget::setupLayout()
     hardwareButton->setCheckable(true);
     hardwareButton->setChecked(false);
 
-    QScrollArea* scrollArea = new QScrollArea(this);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scrollArea->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    scrollArea->setWidget(stackedWidget);
-    scrollArea->setWidgetResizable(true);
+    dockScrollArea = new QScrollArea(this);
+    dockScrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
+    dockScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    dockScrollArea->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    dockScrollArea->setWidget(stackedWidget);
+    dockScrollArea->setWidgetResizable(true);
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     hLayout->setMargin(0);
@@ -165,7 +182,7 @@ void DockTabWidget::setupLayout()
     vLayout->setMargin(0);
     vLayout->setSpacing(2);
     vLayout->addLayout(hLayout);
-    vLayout->addWidget(scrollArea, 1);
+    vLayout->addWidget(dockScrollArea, 1);
 
     setContentsMargins(1,2,1,1);
     setMinimumWidth(MIN_WIDTH);
@@ -207,9 +224,13 @@ void DockTabWidget::setupConnections()
 {
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
+
     connect(partsButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
     connect(hardwareButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
+
     connect(partsDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
+    connect(definitionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
+    connect(functionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
 }
 
 
@@ -228,14 +249,27 @@ void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt, QString
         foreach (NodeViewItemAction* a, actions) {
             definitionsDock->addAction(qobject_cast<QAction*>(a));
         }
-        stackedWidget->setCurrentWidget(definitionsDock);
+        changeDisplayedDockWidget(definitionsDock);
         break;
     }
     case ToolActionController::FUNCTIONS:
-        stackedWidget->setCurrentWidget(functionsDock);
+        changeDisplayedDockWidget(functionsDock);
         break;
     default:
         break;
+    }
+}
+
+
+/**
+ * @brief DockTabWidget::changeDisplayedDockWidget
+ * @param dockWidget
+ */
+void DockTabWidget::changeDisplayedDockWidget(DockWidget* dockWidget)
+{
+    if (dockWidget) {
+        stackedWidget->setCurrentWidget(dockWidget);
+        stackedWidget->setFixedHeight(dockWidget->sizeHint().height());
     }
 }
 

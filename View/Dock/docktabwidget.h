@@ -23,6 +23,7 @@ public slots:
     void tabClicked(bool checked);
 
     void dockActionClicked(DockActionWidget *action);
+    void dockBackButtonClicked();
 
 private:
     void setupLayout();
@@ -30,12 +31,10 @@ private:
     void setupConnections();
 
     void openRequiredDock(ToolActionController::DOCK_TYPE dt, QString actionKind = "");
+    void changeDisplayedDockWidget(DockWidget* dockWidget);
 
     ViewController* viewController;
     ToolActionController* toolActionController;
-
-    QTabBar* tabBar;
-    QStackedWidget* dockStack;
 
     DockWidget* partsDock;
     DockWidget* definitionsDock;
@@ -45,6 +44,7 @@ private:
     QPushButton* partsButton;
     QPushButton* hardwareButton;
     QStackedWidget* stackedWidget;
+    QScrollArea* dockScrollArea;
 
 };
 

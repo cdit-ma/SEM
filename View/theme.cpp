@@ -527,7 +527,8 @@ QString Theme::getScrollBarStyleSheet()
     QString size = QString::number(scrollSize) % "px";
     QString button = QString::number(buttonSize) % "px";
 
-    return   "QScrollBar{background: " % getAltBackgroundColorHex() % ";border:none;margin:0px;}"
+    return   //"QScrollBar{background: " % getAltBackgroundColorHex() % ";border:none;margin:0px;}"
+             "QScrollBar{background: " % getAltBackgroundColorHex() % "; border: 1px solid " % getDisabledBackgroundColorHex() % "; margin:0px;}"
              "QScrollBar:vertical{width:" % size % ";}"
              "QScrollBar:horizontal{height:" % size % ";}"
              "QScrollBar::handle{background: " % getBackgroundColorHex() % " ;}"

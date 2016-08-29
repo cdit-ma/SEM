@@ -22,8 +22,10 @@ public:
 
 signals:
     void actionClicked(DockActionWidget* action);
+    void backButtonClicked();
 
 public slots:
+    void themeChanged();
     void dockActionClicked();
 
 private:

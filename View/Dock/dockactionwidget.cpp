@@ -1,7 +1,7 @@
 #include "dockactionwidget.h"
 #include "../theme.h"
 
-#define ICON_SIZE 48
+#define ICON_SIZE 45
 #define MIN_BUTTON_SIZE 75
 #define ARROW_WIDTH 10
 
@@ -129,6 +129,8 @@ void DockActionWidget::setupLayout()
     textLabel = new QLabel(this);
 
     textLabel->setStyleSheet("background: rgba(0,0,0,0);");
+    textLabel->setFont(QFont(font().family(), 8));
+
     iconLabel->setStyleSheet("background: rgba(0,0,0,0);");
     iconLabel->setAlignment(Qt::AlignHCenter);
     iconLabel->setMinimumWidth(MIN_BUTTON_SIZE - margin*2);
