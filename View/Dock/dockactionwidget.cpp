@@ -3,7 +3,7 @@
 
 #define ICON_SIZE 48
 #define MIN_BUTTON_SIZE 75
-#define ARROW_WIDTH 20
+#define ARROW_WIDTH 10
 
 /**
  * @brief DockActionWidget::DockActionWidget
@@ -15,28 +15,13 @@ DockActionWidget::DockActionWidget(QAction *action, QWidget *parent) : QPushButt
     dockAction = action;
 
     setupLayout();
-    requiresSubAction(false);
+    setSubActionRequired(false);
 
     actionChanged();
     themeChanged();
 
-    //connect(this, SIGNAL(clicked(bool)), action, SIGNAL(triggered(bool)));
-    //connect(action, SIGNAL(toggled(bool)), this, SIGNAL(toggled(bool)));
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-}
-
-
-/**
- * @brief DockActionWidget::requiresSubAction
- * @param required
- */
-void DockActionWidget::requiresSubAction(bool required)
-{
-    if (required != subActionRequired) {
-        subActionRequired = required;
-        arrowLabel->setVisible(required);
-    }
 }
 
 
@@ -44,9 +29,60 @@ void DockActionWidget::requiresSubAction(bool required)
  * @brief DockActionWidget::getAction
  * @return
  */
-QAction *DockActionWidget::getAction()
+QAction* DockActionWidget::getAction()
 {
     return dockAction;
+}
+
+
+/**
+ * @brief DockActionWidget::setSubActionRequired
+ * @param required
+ */
+void DockActionWidget::setSubActionRequired(bool required)
+{
+    if (required != subActionRequired) {
+        subActionRequired = required;
+        arrowLabel->setVisible(required);
+        if (required) {
+            iconLabel->setStyleSheet("padding-left:" + QString::number(ARROW_WIDTH) + ";");
+        }
+    }
+}
+
+
+/**
+ * @brief DockActionWidget::requiresSubAction
+ * @return
+ */
+bool DockActionWidget::requiresSubAction()
+{
+    return subActionRequired;
+}
+
+
+/**
+ * @brief DockActionWidget::setProperty
+ * @param name
+ * @param value
+ */
+void DockActionWidget::setProperty(const char *name, const QVariant &value)
+{
+    QPushButton::setProperty(name, value);
+    if (dockAction) {
+        dockAction->setProperty(name, value);
+    }
+}
+
+
+/**
+ * @brief DockActionWidget::getProperty
+ * @param name
+ * @return
+ */
+QVariant DockActionWidget::getProperty(const char *name)
+{
+    return QPushButton::property(name);
 }
 
 
@@ -74,6 +110,7 @@ void DockActionWidget::actionChanged()
  */
 void DockActionWidget::themeChanged()
 {
+    // TODO - Can't get the text color to change on hover
     Theme* theme = Theme::theme();
     setStyleSheet("QLabel{ border: 0px; color:" + theme->getTextColorHex() + ";}"
                   "QPushButton{ border: 0px; background:" + theme->getAltBackgroundColorHex() + "; color:" + theme->getTextColorHex() + ";}"

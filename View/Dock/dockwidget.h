@@ -16,21 +16,30 @@ public:
     void addAction(QAction* action);
     void addActions(QList<QAction*> actions);
 
+    void clearDock();
+
     ToolActionController::DOCK_TYPE getDockType();
 
 signals:
-    void actionClicked(QAction* action);
+    void actionClicked(DockActionWidget* action);
 
 public slots:
     void dockActionClicked();
 
 private:
+    void setupHeaderLayout();
+
     ToolActionController* toolActionController;
     ToolActionController::DOCK_TYPE dockType;
 
     QVBoxLayout* alignLayout;
     QVBoxLayout* mainLayout;
-    QList<QAction*> childrenActions;
+    QVBoxLayout* headerLayout;
+    QLabel* descriptionLabel;
+    QPushButton* backButton;
+
+    QHash<QAction*, DockActionWidget*> childrenActions;
+    bool containsHeader;
 
 };
 

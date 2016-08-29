@@ -1,4 +1,5 @@
 #include "dockwidget.h"
+#include "../theme.h"
 #include <QDebug>
 
 /**
@@ -9,10 +10,23 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
 {
     toolActionController = tc;
     dockType = type;
-    mainLayout = new QVBoxLayout();
+
+    switch (dockType) {
+    case ToolActionController::DEFINITIONS:
+    case ToolActionController::FUNCTIONS:
+        containsHeader = true;
+        break;
+    default:
+        containsHeader = false;
+        break;
+    }
+
+    mainLayout = new QVBoxLayout();    
     alignLayout = new QVBoxLayout(this);
     alignLayout->addLayout(mainLayout);
     alignLayout->addStretch();
+
+    setupHeaderLayout();
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
@@ -24,14 +38,14 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
 void DockWidget::addAction(QAction* action)
 {
     if (action && !childrenActions.contains(action)) {
-        QString kind = action->text();
-        action->setProperty("kind", kind);
-
         DockActionWidget* dockAction = new DockActionWidget(action, this);
+        dockAction->setProperty("kind", action->text());
+
         if (toolActionController->kindsWithSubActions.contains(action->text())) {
-            dockAction->requiresSubAction(true);
+            dockAction->setSubActionRequired(true);
         }
 
+        childrenActions[action] = dockAction;
         mainLayout->addWidget(dockAction, 0, Qt::AlignTop);
         connect(dockAction, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
     }
@@ -51,6 +65,19 @@ void DockWidget::addActions(QList<QAction*> actions)
 
 
 /**
+ * @brief DockWidget::clearDock
+ */
+void DockWidget::clearDock()
+{
+    foreach (DockActionWidget* actionWidget, childrenActions.values()) {
+        mainLayout->removeWidget(actionWidget);
+        delete actionWidget;
+    }
+    childrenActions.clear();
+}
+
+
+/**
  * @brief DockWidget::getDockType
  * @return
  */
@@ -66,6 +93,32 @@ ToolActionController::DOCK_TYPE DockWidget::getDockType()
 void DockWidget::dockActionClicked()
 {
     DockActionWidget* senderAction = qobject_cast<DockActionWidget*>(sender());
-    emit actionClicked(senderAction->getAction());
+    emit actionClicked(senderAction);
+}
+
+
+/**
+ * @brief DockWidget::setupHeaderLayout
+ */
+void DockWidget::setupHeaderLayout()
+{
+    if (!containsHeader) {
+        headerLayout = 0;
+        descriptionLabel = 0;
+        backButton = 0;
+        return;
+    }
+
+    backButton = new QPushButton(Theme::theme()->getIcon("Actions", "Arrow_Back"), "", this);
+
+    descriptionLabel = new QLabel("This is a description for dock type " + QString::number(dockType), this);
+    descriptionLabel->setWordWrap(true);
+
+    headerLayout = new QVBoxLayout();
+    headerLayout->setMargin(0);
+    headerLayout->addWidget(descriptionLabel);
+    headerLayout->addWidget(backButton);
+
+    alignLayout->insertLayout(0, headerLayout);
 }
 

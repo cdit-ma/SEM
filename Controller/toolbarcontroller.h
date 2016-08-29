@@ -15,7 +15,7 @@ class ToolActionController : public QObject
 {
     Q_OBJECT
 public:
-    enum DOCK_TYPE{PARTS, DEFINTIONS, FUCNTIONS, HARDWARE};
+    enum DOCK_TYPE{PARTS, DEFINITIONS, FUNCTIONS, HARDWARE};
 
     ToolActionController(ViewController* viewController);
 

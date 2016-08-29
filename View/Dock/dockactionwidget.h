@@ -12,8 +12,14 @@ class DockActionWidget : public QPushButton
     Q_OBJECT
 public:
     explicit DockActionWidget(QAction* action, QWidget *parent = 0);
-    void requiresSubAction(bool required);
+
     QAction* getAction();
+
+    void setSubActionRequired(bool required);
+    bool requiresSubAction();
+
+    void setProperty(const char *name, const QVariant &value);
+    QVariant getProperty(const char *name);
 
 signals:
 
