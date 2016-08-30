@@ -9,7 +9,7 @@
 #define TAB_PADDING 20
 #define DOCK_SPACING 3
 #define DOCK_SEPARATOR_WIDTH 5
-#define MIN_WIDTH 120
+#define MIN_WIDTH 130
 #define MAX_WIDTH 200
 
 /**
@@ -35,16 +35,14 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
 void DockTabWidget::themeChanged()
 {    
     Theme* theme = Theme::theme();
-    setStyleSheet("QWidget{ color:" + theme->getTextColorHex() + ";}"
-                  "QPushButton{ background:" + theme->QColorToHex(theme->getAltBackgroundColor().darker(150)) + ";}"
-                  "QPushButton:hover{ border-width: 2px; }"
-                  "QPushButton:hover{ background:" + theme->getHighlightColorHex() + ";}"
-                  "QPushButton:hover::checked{ background:" + theme->getHighlightColorHex() + ";}"
-                  "QPushButton::checked{ background:" + theme->getAltBackgroundColorHex() + ";}"
+    setStyleSheet(theme->getToolBarStyleSheet() +
+                  "QWidget{ color:" + theme->getTextColorHex() + ";}"
+                  "QToolButton{ border-radius: 2px; background:" + theme->QColorToHex(theme->getAltBackgroundColor().darker(150)) + ";}"
+                  "QToolButton::checked:!hover{ background:" + theme->getAltBackgroundColorHex() + ";}"
                   "QStackedWidget{ border: 0px; background:" + theme->getAltBackgroundColorHex() + ";}");
 
-    partsButton->setIcon(theme->getImage("Actions", "Plus", QSize(), theme->getTextColor(theme->CR_NORMAL)));
-    hardwareButton->setIcon(theme->getImage("Actions", "Computer", QSize(), theme->getTextColor(theme->CR_NORMAL)));
+    partsButton->setIcon(theme->getIcon("Actions", "Plus"));
+    hardwareButton->setIcon(theme->getIcon("Actions", "Computer"));
 }
 
 
@@ -69,7 +67,7 @@ void DockTabWidget::selectionChanged()
  */
 void DockTabWidget::tabClicked(bool checked)
 {
-    QPushButton* senderButton = qobject_cast<QPushButton*>(sender());
+    QToolButton* senderButton = qobject_cast<QToolButton*>(sender());
 
     // disallow sender button from being un-checked; ignore action
     if (!checked) {
@@ -77,7 +75,7 @@ void DockTabWidget::tabClicked(bool checked)
         return;
     }
 
-    QPushButton* otherButton = 0;
+    QToolButton* otherButton = 0;
     DockWidget* dockWidget = 0;
 
     if (senderButton == partsButton) {
@@ -93,7 +91,7 @@ void DockTabWidget::tabClicked(bool checked)
 
     // if sender button is checked, un-check the other button
     otherButton->setChecked(false);
-    stackedWidget->setCurrentWidget(dockWidget);
+    openRequiredDock(dockWidget->getDockType());
 }
 
 
@@ -105,19 +103,20 @@ void DockTabWidget::dockActionClicked(DockActionWidget* action)
 {
     DockWidget* dock = qobject_cast<DockWidget*>(sender());
     ToolActionController::DOCK_TYPE dt = dock->getDockType();
+    triggeredAdoptableKind = "";
 
     switch (dt) {
     case ToolActionController::PARTS:
     {
-        QString actionKind = action->getProperty("kind").toString();
+        triggeredAdoptableKind = action->getProperty("kind").toString();;
         if (action->requiresSubAction()) {
-            if (actionKind == "WorkerProcess") {
-                openRequiredDock(ToolActionController::FUNCTIONS, actionKind);
+            if (triggeredAdoptableKind == "WorkerProcess") {
+                openRequiredDock(ToolActionController::FUNCTIONS);
             } else {
-                openRequiredDock(ToolActionController::DEFINITIONS, actionKind);
+                openRequiredDock(ToolActionController::DEFINITIONS);
             }
         } else {
-            toolActionController->addChildNode(actionKind, QPoint(0,0));
+            toolActionController->addChildNode(triggeredAdoptableKind, QPoint(0,0));
         }
         break;
     }
@@ -129,11 +128,16 @@ void DockTabWidget::dockActionClicked(DockActionWidget* action)
         break;
     }
     case ToolActionController::FUNCTIONS:
-
+        // construct WorkerProcess
         break;
     case ToolActionController::HARDWARE:
-
+    {
+        QString kind = action->property("parent-kind").toString();
+        Edge::EDGE_CLASS edgeKind = Edge::getEdgeClass(kind);
+        int ID = action->property("ID").toInt();
+        toolActionController->addEdge(ID, edgeKind);
         break;
+    }
     }
 }
 
@@ -154,30 +158,30 @@ void DockTabWidget::dockBackButtonClicked()
  */
 void DockTabWidget::setupLayout()
 {
-    partsButton = new QPushButton(this);
-    hardwareButton = new QPushButton(this);
+    partsButton = new QToolButton(this);
+    hardwareButton = new QToolButton(this);
     stackedWidget = new QStackedWidget(this);
 
+    partsButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     partsButton->setToolTip("Parts Dock");
     partsButton->setIconSize(QSize(24,24));
     partsButton->setCheckable(true);
     partsButton->setChecked(true);
 
+    hardwareButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     hardwareButton->setToolTip("Hardware Dock");
     hardwareButton->setIconSize(QSize(24,24));
     hardwareButton->setCheckable(true);
     hardwareButton->setChecked(false);
 
-    QHBoxLayout* hLayout = new QHBoxLayout();
-    hLayout->setMargin(0);
-    hLayout->setSpacing(2);
-    hLayout->addWidget(partsButton, 1);
-    hLayout->addWidget(hardwareButton, 1);
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->addWidget(partsButton);
+    toolbar->addWidget(hardwareButton);
 
     QVBoxLayout* vLayout = new QVBoxLayout(this);
     vLayout->setMargin(0);
     vLayout->setSpacing(2);
-    vLayout->addLayout(hLayout);
+    vLayout->addWidget(toolbar);
     vLayout->addWidget(stackedWidget, 1);
 
     setContentsMargins(1,2,1,1);
@@ -237,29 +241,74 @@ void DockTabWidget::setupConnections()
 /**
  * @brief DockTabWidget::openRequiredDock
  * @param dt
- * @param action
  */
-void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt, QString actionKind)
+void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt)
+{
+    DockWidget* dockWidget = getDock(dt);
+    if (dockWidget) {
+        switch (dt) {
+        case ToolActionController::DEFINITIONS:
+        {
+            QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(triggeredAdoptableKind);
+            populateDock(dockWidget, actions);
+            break;
+        }
+        case ToolActionController::HARDWARE:
+        {
+            QList<NodeViewItemAction*> actions = toolActionController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
+            populateDock(dockWidget, actions);
+            break;
+        }
+        default:
+            break;
+        }
+        stackedWidget->setCurrentWidget(dockWidget);
+    }
+}
+
+
+/**
+ * @brief DockTabWidget::populateDock
+ * @param dockWidget
+ * @param actions
+ */
+void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions)
+{
+    // clear the dock first
+    dockWidget->clearDock();
+
+    foreach (NodeViewItemAction* action, actions) {
+        DockActionWidget* actionWidget = dockWidget->addAction(action->constructSubAction(false));
+        actionWidget->setProperty("ID", action->getID());
+        if (!triggeredAdoptableKind.isEmpty()) {
+            actionWidget->setProperty("parent-kind", triggeredAdoptableKind);
+        }
+    }
+
+    // update header text; update entity kind to construct
+    dockWidget->updateHeaderText(triggeredAdoptableKind);
+}
+
+
+/**
+ * @brief DockTabWidget::getDock
+ * @param dt
+ * @return
+ */
+DockWidget* DockTabWidget::getDock(ToolActionController::DOCK_TYPE dt)
 {
     switch (dt) {
+    case ToolActionController::PARTS:
+        return partsDock;
     case ToolActionController::DEFINITIONS:
-    {
-        QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(actionKind);
-        definitionsDock->clearDock();
-        foreach (NodeViewItemAction* a, actions) {
-            DockActionWidget* actionWidget = definitionsDock->addAction(qobject_cast<QAction*>(a));
-            actionWidget->setProperty("ID", a->getID());
-            actionWidget->setProperty("parent-kind", actionKind);
-            definitionsDock->updateHeaderText(actionKind);
-        }
-        stackedWidget->setCurrentWidget(definitionsDock);
-        break;
-    }
+        return definitionsDock;
     case ToolActionController::FUNCTIONS:
-        stackedWidget->setCurrentWidget(functionsDock);
-        break;
+        return functionsDock;
+    case ToolActionController::HARDWARE:
+        return hardwareDock;
     default:
-        break;
+        qWarning() << "DockTabWidget::getDock - Dock type is unknown.";
+        return 0;
     }
 }
 

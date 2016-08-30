@@ -177,13 +177,6 @@ void ToolbarWidgetNew::populateDynamicMenu()
             senderMenu->addAction(getInfoAction(dynamicMenuKeyHash[senderMenu]));
         }
     } else {
-        /*
-        QList<NodeViewItemAction*> subActions;
-        foreach (NodeViewItemAction* action, actions) {
-            subActions.append(action->constructSubAction(false));
-        }
-        senderMenu->addActions(constructSubMenuActions(subActions, kind));
-        */
         senderMenu->addActions(constructSubMenuActions(actions, kind));
     }
 }

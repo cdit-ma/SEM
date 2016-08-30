@@ -1,5 +1,6 @@
 #include "dockwidget.h"
 #include "../theme.h"
+
 #include <QDebug>
 
 /**
@@ -56,11 +57,9 @@ DockActionWidget* DockWidget::addAction(QAction* action)
     if (action && !childrenActions.contains(action)) {
         dockAction = new DockActionWidget(action, this);
         dockAction->setProperty("kind", action->text());
-
         if (toolActionController->kindsWithSubActions.contains(action->text())) {
             dockAction->setSubActionRequired(true);
         }
-
         childrenActions[action] = dockAction;
         mainLayout->addWidget(dockAction, 0, Qt::AlignTop);
         connect(dockAction, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
@@ -100,8 +99,7 @@ void DockWidget::clearDock()
  */
 void DockWidget::updateHeaderText(QString text)
 {
-    if (descriptionLabel) {
-        //descriptionLabel->setText("Select to construct a <br/><i>" + text + "</i>");
+    if (descriptionLabel && !text.isEmpty()) {
         descriptionLabel->setText("Select to construct a <br/>" + text);
     }
 }
@@ -131,7 +129,11 @@ void DockWidget::themeChanged()
 
     if (backButton) {
         backButton->setIcon(theme->getIcon("Actions", "Arrow_Back"));
-        //backButton->setStyleSheet(theme->getPushButtonStyleSheet());
+        backButton->setStyleSheet(theme->getToolBarStyleSheet() +
+                                  "QToolButton {"
+                                  "background:" + theme->getBackgroundColorHex() + ";"
+                                  "border-radius: 2px;"
+                                  "}");
     }
 }
 
@@ -158,8 +160,14 @@ void DockWidget::setupHeaderLayout()
         return;
     }
 
-    backButton = new QPushButton(this);
+    backButton = new QToolButton(this);
+    backButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    backButton->setToolTip("Go back to the parts list");
+    backButton->setFixedHeight(23);
     connect(backButton, SIGNAL(clicked(bool)), this, SIGNAL(backButtonClicked()));
+
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->addWidget(backButton);
 
     descriptionLabel = new QLabel("This is a description for dock type " + QString::number(dockType), this);
     descriptionLabel->setWordWrap(true);
@@ -172,7 +180,7 @@ void DockWidget::setupHeaderLayout()
     headerLayout->setMargin(0);
     headerLayout->setSpacing(5);
     headerLayout->addWidget(descriptionLabel);
-    headerLayout->addWidget(backButton);
+    headerLayout->addWidget(toolbar);
     alignLayout->insertLayout(0, headerLayout);
 }
 

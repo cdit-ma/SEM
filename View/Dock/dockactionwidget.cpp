@@ -1,7 +1,10 @@
 #include "dockactionwidget.h"
 
+#include <QToolBar>
+
 #define ICON_SIZE 45
-#define MIN_BUTTON_SIZE 75
+#define MIN_BUTTON_WIDTH 50
+#define MIN_BUTTON_HEIGHT 75
 #define ARROW_WIDTH 10
 
 /**
@@ -12,7 +15,6 @@
 DockActionWidget::DockActionWidget(QAction *action, QWidget *parent) : QPushButton(parent)
 {
     dockAction = action;
-    theme = 0;
 
     setupLayout();
     setSubActionRequired(false);
@@ -98,8 +100,11 @@ void DockActionWidget::actionChanged()
         } else {
             iconLabel->setPixmap(Theme::theme()->getImage("Actions", "Help", QSize(ICON_SIZE, ICON_SIZE)));
         }
-        textLabel->setText(dockAction->text());
-        setToolTip(dockAction->text());
+        QString actionText = dockAction->text();
+        if (actionText != fullActionText) {
+            updateTextLabel(actionText);
+            setToolTip(actionText);
+        }
         setVisible(dockAction->isVisible());
     }
 }
@@ -111,7 +116,7 @@ void DockActionWidget::actionChanged()
 void DockActionWidget::themeChanged()
 {
     theme = Theme::theme();
-    setStyleSheet("QPushButton {"
+    setStyleSheet("QPushButton, QLabel {"
                   "border: 0px;"
                   "background: rgba(0,0,0,0);"
                   "}"
@@ -120,7 +125,7 @@ void DockActionWidget::themeChanged()
                   "}");
 
     textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
-    arrowLabel->setPixmap(Theme::theme()->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
+    arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
 }
 
 
@@ -130,11 +135,8 @@ void DockActionWidget::themeChanged()
  */
 void DockActionWidget::enterEvent(QEvent* event)
 {
-    if (theme) {
-        QPixmap p = theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor(Theme::CR_SELECTED));
-        arrowLabel->setPixmap(p);
-        textLabel->setStyleSheet("color:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";");
-    }
+    textLabel->setStyleSheet("color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";");
+    arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor(theme->CR_SELECTED)));
     QPushButton::enterEvent(event);
 }
 
@@ -145,12 +147,19 @@ void DockActionWidget::enterEvent(QEvent* event)
  */
 void DockActionWidget::leaveEvent(QEvent* event)
 {
-    if (theme) {
-        QPixmap p = theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor());
-        arrowLabel->setPixmap(p);
-        textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
-    }
+    textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
+    arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
     QPushButton::leaveEvent(event);
+}
+
+
+/**
+ * @brief DockActionWidget::resizeEvent
+ */
+void DockActionWidget::resizeEvent(QResizeEvent* event)
+{
+    updateTextLabel();
+    QPushButton::resizeEvent(event);
 }
 
 
@@ -161,22 +170,19 @@ void DockActionWidget::setupLayout()
 {
     int margin = 4;
 
-    iconLabel = new QLabel(this);
     textLabel = new QLabel(this);
-
-    textLabel->setStyleSheet("background: rgba(0,0,0,0);");
+    textLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     textLabel->setFont(QFont(font().family(), 8));
 
-    iconLabel->setStyleSheet("background: rgba(0,0,0,0);");
-    iconLabel->setAlignment(Qt::AlignHCenter);
-    iconLabel->setMinimumWidth(MIN_BUTTON_SIZE - margin*2);
-    iconLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
     arrowLabel = new QLabel(this);
-    arrowLabel->setAlignment(Qt::AlignRight);
-    arrowLabel->setStyleSheet("background: rgba(0,0,0,0);");
+    arrowLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     arrowLabel->setFixedWidth(ARROW_WIDTH);
     arrowLabel->hide();
+
+    iconLabel = new QLabel(this);
+    iconLabel->setAlignment(Qt::AlignHCenter);
+    iconLabel->setMinimumWidth(MIN_BUTTON_WIDTH - margin*2);
+    iconLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     hLayout->setMargin(0);
@@ -184,14 +190,31 @@ void DockActionWidget::setupLayout()
     hLayout->addWidget(iconLabel, 1, Qt::AlignCenter);
     hLayout->addWidget(arrowLabel, 0, Qt::AlignCenter);
 
-    mainLayout = new QVBoxLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(0);
     mainLayout->setSpacing(0);
     mainLayout->addLayout(hLayout, 1);
     mainLayout->addWidget(textLabel, 0, Qt::AlignCenter);
 
     setContentsMargins(margin, margin, margin, margin + 2);
-    setMinimumSize(MIN_BUTTON_SIZE, MIN_BUTTON_SIZE);
+    setMinimumSize(MIN_BUTTON_WIDTH, MIN_BUTTON_HEIGHT);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+}
+
+
+/**
+ * @brief DockActionWidget::updateTextLabel
+ * @param text
+ */
+void DockActionWidget::updateTextLabel(QString text)
+{
+    if (text.isEmpty()) {
+        text = fullActionText;
+    } else {
+        fullActionText = text;
+    }
+    QFontMetrics fm = textLabel->fontMetrics();
+    QString elidedText = fm.elidedText(text, Qt::ElideMiddle, width() - ARROW_WIDTH);
+    textLabel->setText(elidedText);
 }
 

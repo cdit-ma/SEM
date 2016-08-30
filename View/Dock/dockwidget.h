@@ -3,6 +3,7 @@
 
 #include <QScrollArea>
 #include <QVBoxLayout>
+#include <QToolButton>
 
 #include "../../Controller/toolbarcontroller.h"
 #include "dockactionwidget.h"
@@ -41,7 +42,7 @@ private:
 
     QWidget* mainWidget;
     QLabel* descriptionLabel;
-    QPushButton* backButton;
+    QToolButton* backButton;
 
     QHash<QAction*, DockActionWidget*> childrenActions;
     bool containsHeader;

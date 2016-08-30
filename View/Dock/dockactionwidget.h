@@ -32,17 +32,19 @@ public slots:
 protected:
     void enterEvent(QEvent* event);
     void leaveEvent(QEvent* event);
+    void resizeEvent(QResizeEvent* event);
 
 private:
     void setupLayout();
+    void updateTextLabel(QString text = "");
 
-    QVBoxLayout* mainLayout;
     QLabel* textLabel;
     QLabel* iconLabel;
     QLabel* arrowLabel;
     QLabel* imageLabel;
 
     QAction* dockAction;
+    QString fullActionText;
     bool subActionRequired;
 
     Theme* theme;
