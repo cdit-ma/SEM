@@ -11,7 +11,7 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentIt
     setMinimumWidth(size);
     setMinimumHeight(size);
 
-    setExpandedWidth(4 * size);
+    setExpandedWidth(3 * size);
     setExpandedHeight(size);
     setExpanded(false);
 
@@ -91,7 +91,7 @@ QRectF HardwareNodeItem::rightRect() const
 
 QRectF HardwareNodeItem::labelRect() const
 {
-    QPointF topLeft = mainIconRect().topRight();
+    QPointF topLeft = mainIconRect().topRight() + QPointF(2,0);
     QPointF bottomRight = mainRect().topRight() + QPointF(0, textHeight);
     return QRectF(topLeft, bottomRight);
 }

@@ -1,20 +1,20 @@
-#ifndef NODEITEMORDEREDCONTAINER_H
-#define NODEITEMORDEREDCONTAINER_H
+#ifndef NODEITEMSQUARE_H
+#define NODEITEMSQUARE_H
 
 #include "../containerelementnodeitem.h"
 
-class ContainerNodeItem : public ContainerElementNodeItem
+class NodeItemSquare : public ContainerElementNodeItem
 {
     Q_OBJECT
 public:
-    ContainerNodeItem(NodeViewItem* viewItem, NodeItemNew* parentItem);
+    NodeItemSquare(NodeViewItem* viewItem, NodeItemNew* parentItem);
 
     bool isSortOrdered() const;
     void setSortOrdered(bool ordered);
     QRectF bodyRect() const;
     //Pure virtual functions.
-    virtual QPointF getElementPosition(ContainerElementNodeItem* child);
-    virtual QPoint getElementIndex(ContainerElementNodeItem* child);
+    virtual QPointF getElementPosition(ContainerElementNodeItem* child) = 0;
+    virtual QPoint getElementIndex(ContainerElementNodeItem* child) = 0;
 
     // QGraphicsItem interface
 public:
@@ -27,14 +27,9 @@ private:
 
     QRectF headerTextRect() const;
     QRectF iconRect() const;
-    QRectF iconOverlayRect() const;
 
     QRectF topTextRect() const;
     QRectF bottomTextRect() const;
-    QRectF bottomTextOutlineRect() const;
-
-    QRectF bottomIconRect() const;
-    QRectF bottomRect() const;
 
     QRectF deployedRect() const;
     QRectF qosRect() const;
@@ -44,4 +39,4 @@ private:
     QMarginsF headerMargin;
 };
 
-#endif // NODEITEMORDEREDCONTAINER_H
+#endif // NODEITEMSQUARE_H

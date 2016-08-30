@@ -24,6 +24,7 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
     addRequiredData("x");
     addRequiredData("y");
 
+
     reloadRequiredData();
 }
 

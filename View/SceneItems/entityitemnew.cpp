@@ -240,7 +240,7 @@ void EntityItemNew::renderText(QPainter *painter, qreal lod, QRectF textRect, QS
     textRect.moveTopLeft(textRect.topLeft() / scale);
 
     if(renderedFontHeight > 4){
-        painter->drawText(textRect, Qt::AlignCenter|Qt::TextWrapAnywhere, text);
+        painter->drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere, text);
     }else{
         QRectF rect = painter->fontMetrics().boundingRect(textRect.toRect(), Qt::AlignCenter|Qt::TextWrapAnywhere, text);
         painter->setBrush(QColor(120,120,120,120));
@@ -647,6 +647,9 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->setClipPath(getElementPath(ER_SELECTION));
     //Paint the pixmap!
     QPair<QString, QString> icon = getIconPath();
+    //painter->setBrush(Qt::red);
+    //painter->setPen(Qt::NoPen);
+    //painter->drawRect(getElementRect(ER_MAIN_ICON));
     paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
     painter->restore();
 }

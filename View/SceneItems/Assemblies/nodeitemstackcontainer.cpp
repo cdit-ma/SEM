@@ -8,7 +8,7 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
     setResizeEnabled(false);
     setGridEnabled(false);
 
-    leafPen.setWidth(1);
+    leafPen.setWidthF(.5);
     if(parentItem){
         leafPen.setColor(getBodyColor().darker(110));
     }
@@ -17,11 +17,12 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
 
 QPointF StackContainerNodeItem::getStemAnchorPoint() const
 {
-    QPointF offset;
-    offset.setY(gridRect().y());
+    //QPointF offset;
+    return gridRect().topLeft();
+    //offset.setY(gridRect().y());
 
-    offset.setX(25);
-    return offset;
+    //offset.setX(0);
+    //return offset;
 }
 
 QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *child)
@@ -50,7 +51,7 @@ void StackContainerNodeItem::childPosChanged()
 {
     QList<NodeItemNew*> children = getChildNodes();
     leaves.clear();
-    int stemX = gridRect().x() + 10;
+    int stemX = gridRect().x() + 5;
 
     int maxY = 0;
     int index = 0;
@@ -83,10 +84,10 @@ void StackContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphics
     RENDER_STATE state = getRenderState(lod);
 
     ContainerNodeItem::paint(painter, option, widget);
-    if(isExpanded() && state > RS_BLOCK){
+    /*if(isExpanded() && state > RS_BLOCK){
         leafPen.setColor(getBodyColor().darker(150));
         painter->setPen(leafPen);
         painter->drawLines(leaves);
-    }
+    }*/
 }
 

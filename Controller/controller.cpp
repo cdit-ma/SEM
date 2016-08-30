@@ -876,6 +876,9 @@ void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_CLASS
             Edge* edge = constructEdgeWithData(edgeClass, src, dst);
 
             if(!edge){
+                edge = constructEdgeWithData(edgeClass, dst, src);
+            }
+            if(!edge){
                 success = false;
                 break;
             }
@@ -1809,7 +1812,7 @@ QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edg
             //Ignore nodes which can't take this edge class.
             bool accepted = true;
             foreach(Node* src, sourceNodes){
-                if(!src->canAcceptEdge(edgeKind, dst)){
+                if(!(src->canAcceptEdge(edgeKind, dst) || dst->canAcceptEdge(edgeKind, src))){
                     accepted = false;
                     break;
                 }

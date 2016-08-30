@@ -22,12 +22,12 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     }
 
     mainLayout = new QVBoxLayout();
-    //mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
-    //mainLayout->setSpacing(5);
+    mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    mainLayout->setSpacing(5);
 
     alignLayout = new QVBoxLayout(this);
     alignLayout->addLayout(mainLayout);
-    //alignLayout->addStretch();
+    alignLayout->addStretch();
 
     setupHeaderLayout();
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

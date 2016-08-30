@@ -37,7 +37,7 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     jenkinsManager = 0;
     viewController = vc;
 
-    //setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
@@ -420,10 +420,10 @@ void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
 void MedeaMainWindow::setupTools()
 {
     setupMenuBar();
-    setupToolBar();
     setupSearchBar();
     setupProgressBar();
     setupDock();
+    setupToolBar();
     setupDataTable();
     setupMinimap();
 }
@@ -579,6 +579,8 @@ void MedeaMainWindow::setupToolBar()
     //Check visibility state.
     dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TOOLBAR_VISIBLE).toBool());
     addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
+
+
 }
 
 
@@ -678,6 +680,7 @@ void MedeaMainWindow::setupDock()
 
     //Check visibility state.
     //dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());
+    addDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Horizontal);
 }
 
 

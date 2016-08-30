@@ -1,17 +1,20 @@
 #include "containerelementnodeitem.h"
 #include "Assemblies/nodeitemcolumncontainer.h"
+#include "Assemblies/nodeitemstackcontainer.h"
 #include <QDebug>
 
 ContainerElementNodeItem::ContainerElementNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
     : NodeItemNew(viewItem, parentItem, CONTAINER_ELEMENT_ITEM)
 {
-    container = qobject_cast<ContainerNodeItem*>(parentItem);
+    container = qobject_cast<StackContainerNodeItem*>(parentItem);
 
-    setMargin(QMarginsF(2,1,2,1));
+    setMargin(QMarginsF(10,5,10,5));
 
     addRequiredData("sortOrder");
 
-
+    addRequiredData("x");
+    addRequiredData("y");
+    reloadRequiredData();
 }
 
 ContainerNodeItem *ContainerElementNodeItem::getContainer() const

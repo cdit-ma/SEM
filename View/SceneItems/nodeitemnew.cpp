@@ -604,7 +604,7 @@ void NodeItemNew::setPos(const QPointF &pos)
         EntityItemNew::setPos(this->pos() + deltaPos);
 
         if(getParentNodeItem()){
-            setRightJustified(x() > (getParentNodeItem()->getWidth() / 2));
+            //setRightJustified(x() > (getParentNodeItem()->getWidth() / 2));
         }
         updateGridLines();
     }
@@ -909,7 +909,10 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             renderText(painter, lod, getElementRect(ER_PRIMARY_TEXT), getPrimaryText());
         }
         if(gotSecondaryTextKey()){
-            renderText(painter, lod, getElementRect(ER_SECONDARY_TEXT), getSecondaryText());
+            painter->setBrush(Qt::red);
+            painter->setPen(Qt::NoPen);
+            //painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
+            renderText(painter, lod, getElementRect(ER_SECONDARY_TEXT), getSecondaryText(), 5);
         }
     }
 

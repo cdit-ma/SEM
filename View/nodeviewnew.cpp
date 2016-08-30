@@ -561,27 +561,33 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_MANAGEMENT_COMPONENT:
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
                 break;
+            case Node::NK_IDL:
+            case Node::NK_COMPONENT:
+            case Node::NK_COMPONENT_ASSEMBLY:
+            case Node::NK_COMPONENT_INSTANCE:
+            case Node::NK_COMPONENT_IMPL:
+            case Node::NK_TERMINATION:
+                nodeItem = new ContainerNodeItem(item, parentNode);
+                break;
+            case Node::NK_HARDWARE_CLUSTER:
+                nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("ip_address");
+                break;
             case Node::NK_INEVENTPORT_INSTANCE:
             case Node::NK_OUTEVENTPORT_INSTANCE:
             case Node::NK_INEVENTPORT_DELEGATE:
             case Node::NK_OUTEVENTPORT_DELEGATE:
-                nodeItem = new AssemblyEventPortNodeItem(item, parentNode);
-                break;
-            case Node::NK_COMPONENT_ASSEMBLY:
-            case Node::NK_COMPONENT_INSTANCE:
-            case Node::NK_COMPONENT_IMPL:
-                nodeItem = new NodeItemContainer(item, parentNode);
+                nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
                 break;
             case Node::NK_CONDITION:
             case Node::NK_ATTRIBUTE_INSTANCE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 break;
-            case Node::NK_IDL:
-            case Node::NK_COMPONENT:
             case Node::NK_AGGREGATE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("sortOrder");
+               // nodeItem->setSecondaryTextKey("value");
                 break;
             case Node::NK_PROCESS:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
@@ -601,10 +607,6 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_OUTEVENTPORT:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
-                break;
-            case Node::NK_HARDWARE_CLUSTER:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("ip_address");
                 break;
             case Node::NK_PERIODICEVENT:
                 nodeItem = new StackContainerNodeItem(item, parentNode);

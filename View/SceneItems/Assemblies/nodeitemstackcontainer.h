@@ -5,6 +5,7 @@
 
 class StackContainerNodeItem: public ContainerNodeItem
 {
+    Q_OBJECT
 public:
     StackContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem);
 
