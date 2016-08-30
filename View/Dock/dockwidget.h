@@ -6,7 +6,8 @@
 #include <QToolButton>
 
 #include "../../Controller/toolbarcontroller.h"
-#include "dockactionwidget.h"
+#include "dockwidgetactionitem.h"
+#include "dockwidgetitem.h"
 
 class DockWidget : public QScrollArea
 {
@@ -16,14 +17,15 @@ public:
 
     ToolActionController::DOCK_TYPE getDockType();
 
-    DockActionWidget* addAction(QAction* action);
-    void addActions(QList<QAction*> actions);
+    DockWidgetItem* addItem(QString text);
+    DockWidgetActionItem* addActionItem(QAction* action);
+    void addActionItems(QList<QAction*> actions);
 
     void clearDock();
     void updateHeaderText(QString text);
 
 signals:
-    void actionClicked(DockActionWidget* action);
+    void actionClicked(DockWidgetActionItem* action);
     void backButtonClicked();
 
 public slots:
@@ -44,7 +46,7 @@ private:
     QLabel* descriptionLabel;
     QToolButton* backButton;
 
-    QHash<QAction*, DockActionWidget*> childrenActions;
+    QHash<QAction*, DockWidgetActionItem*> childrenActions;
     bool containsHeader;
 
 };

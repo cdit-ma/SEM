@@ -47,15 +47,30 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
 
 
 /**
- * @brief DockWidget::addAction
+ * @brief DockWidget::addItem
+ * @param text
+ * @return
+ */
+DockWidgetItem* DockWidget::addItem(QString text)
+{
+    DockWidgetItem* dockItem = new DockWidgetItem(text, this);
+    mainLayout->addWidget(dockItem);
+    return dockItem;
+}
+
+
+/**
+ * @brief DockWidget::addActionItem
  * @param action
  * @return
  */
-DockActionWidget* DockWidget::addAction(QAction* action)
+DockWidgetActionItem* DockWidget::addActionItem(QAction* action)
 {
-    DockActionWidget* dockAction = 0;
+    DockWidgetActionItem* dockAction = 0;
     if (action && !childrenActions.contains(action)) {
-        dockAction = new DockActionWidget(action, this);
+        dockAction = new DockWidgetActionItem(action, this);
+        dockAction->setToolButtonStyle(Qt::ToolButtonIconOnly);
+
         dockAction->setProperty("kind", action->text());
         if (toolActionController->kindsWithSubActions.contains(action->text())) {
             dockAction->setSubActionRequired(true);
@@ -69,13 +84,13 @@ DockActionWidget* DockWidget::addAction(QAction* action)
 
 
 /**
- * @brief DockWidget::addActions
+ * @brief DockWidget::addActionItems
  * @param actions
  */
-void DockWidget::addActions(QList<QAction*> actions)
+void DockWidget::addActionItems(QList<QAction*> actions)
 {
     foreach (QAction* action, actions) {
-        addAction(action);
+        addActionItem(action);
     }
 }
 
@@ -85,7 +100,7 @@ void DockWidget::addActions(QList<QAction*> actions)
  */
 void DockWidget::clearDock()
 {
-    foreach (DockActionWidget* actionWidget, childrenActions.values()) {
+    foreach (DockWidgetActionItem* actionWidget, childrenActions.values()) {
         mainLayout->removeWidget(actionWidget);
         delete actionWidget;
     }
@@ -143,7 +158,7 @@ void DockWidget::themeChanged()
  */
 void DockWidget::dockActionClicked()
 {
-    DockActionWidget* senderAction = qobject_cast<DockActionWidget*>(sender());
+    DockWidgetActionItem* senderAction = qobject_cast<DockWidgetActionItem*>(sender());
     emit actionClicked(senderAction);
 }
 

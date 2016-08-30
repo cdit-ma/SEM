@@ -1,6 +1,6 @@
 #include "docktabwidget.h"
+#include "dockwidgetactionitem.h"
 #include "../theme.h"
-#include "dockactionwidget.h"
 
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -99,7 +99,7 @@ void DockTabWidget::tabClicked(bool checked)
  * @brief DockTabWidget::dockActionClicked
  * @param action
  */
-void DockTabWidget::dockActionClicked(DockActionWidget* action)
+void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
 {
     DockWidget* dock = qobject_cast<DockWidget*>(sender());
     ToolActionController::DOCK_TYPE dt = dock->getDockType();
@@ -210,10 +210,15 @@ void DockTabWidget::setupDocks()
     stackedWidget->addWidget(functionsDock);
     stackedWidget->addWidget(hardwareDock);
 
-    partsDock->addActions(toolActionController->getAdoptableKindsActions(true));
+    partsDock->addActionItems(toolActionController->getAdoptableKindsActions(true));
 
     QAction* testAction = new QAction(Theme::theme()->getIcon("Actions", "Help"), "", this);
-    hardwareDock->addAction(testAction);
+    hardwareDock->addActionItem(testAction);
+
+    hardwareDock->addItem("Hello");
+    hardwareDock->addItem("Test");
+    hardwareDock->addItem("DockItem");
+    hardwareDock->addItem("gsdgksdjhgsdghgggeEND");
 }
 
 
@@ -228,10 +233,10 @@ void DockTabWidget::setupConnections()
     connect(partsButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
     connect(hardwareButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
 
-    connect(partsDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
-    connect(definitionsDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
-    connect(functionsDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
-    connect(hardwareDock, SIGNAL(actionClicked(DockActionWidget*)), this, SLOT(dockActionClicked(DockActionWidget*)));
+    connect(partsDock, SIGNAL(actionClicked(DockWidgetActionItem*)), this, SLOT(dockActionClicked(DockWidgetActionItem*)));
+    connect(definitionsDock, SIGNAL(actionClicked(DockWidgetActionItem*)), this, SLOT(dockActionClicked(DockWidgetActionItem*)));
+    connect(functionsDock, SIGNAL(actionClicked(DockWidgetActionItem*)), this, SLOT(dockActionClicked(DockWidgetActionItem*)));
+    connect(hardwareDock, SIGNAL(actionClicked(DockWidgetActionItem*)), this, SLOT(dockActionClicked(DockWidgetActionItem*)));
 
     connect(definitionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
     connect(functionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
@@ -255,6 +260,7 @@ void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt)
         }
         case ToolActionController::HARDWARE:
         {
+            break;
             QList<NodeViewItemAction*> actions = toolActionController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
             populateDock(dockWidget, actions);
             break;
@@ -278,7 +284,7 @@ void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemActio
     dockWidget->clearDock();
 
     foreach (NodeViewItemAction* action, actions) {
-        DockActionWidget* actionWidget = dockWidget->addAction(action->constructSubAction(false));
+        DockWidgetActionItem* actionWidget = dockWidget->addActionItem(action->constructSubAction(false));
         actionWidget->setProperty("ID", action->getID());
         if (!triggeredAdoptableKind.isEmpty()) {
             actionWidget->setProperty("parent-kind", triggeredAdoptableKind);

@@ -1,47 +1,49 @@
-#include "dockactionwidget.h"
-
-#include <QToolBar>
+#include "dockwidgetactionitem.h"
 
 #define ICON_SIZE 45
+#define ARROW_WIDTH 10
 #define MIN_BUTTON_WIDTH 50
 #define MIN_BUTTON_HEIGHT 75
-#define ARROW_WIDTH 10
 
 /**
- * @brief DockActionWidget::DockActionWidget
+ * @brief DockWidgetActionItem::DockWidgetActionItem
  * @param action
  * @param parent
  */
-DockActionWidget::DockActionWidget(QAction *action, QWidget *parent) : QPushButton(parent)
+DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
+    DockWidgetItem(action->text(), parent)
 {
     dockAction = action;
 
     setupLayout();
     setSubActionRequired(false);
 
+    updateDisplayedText(getDisplayedText());
+
     actionChanged();
     themeChanged();
 
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    connect(this, SIGNAL(displayedTextChanged(QString)), SLOT(updateDisplayedText(QString)));
 }
 
 
 /**
- * @brief DockActionWidget::getAction
+ * @brief DockWidgetActionItem::getAction
  * @return
  */
-QAction* DockActionWidget::getAction()
+QAction* DockWidgetActionItem::getAction()
 {
     return dockAction;
 }
 
 
 /**
- * @brief DockActionWidget::setSubActionRequired
+ * @brief DockWidgetActionItem::setSubActionRequired
  * @param required
  */
-void DockActionWidget::setSubActionRequired(bool required)
+void DockWidgetActionItem::setSubActionRequired(bool required)
 {
     if (required != subActionRequired) {
         subActionRequired = required;
@@ -54,23 +56,23 @@ void DockActionWidget::setSubActionRequired(bool required)
 
 
 /**
- * @brief DockActionWidget::requiresSubAction
+ * @brief DockWidgetActionItem::requiresSubAction
  * @return
  */
-bool DockActionWidget::requiresSubAction()
+bool DockWidgetActionItem::requiresSubAction()
 {
     return subActionRequired;
 }
 
 
 /**
- * @brief DockActionWidget::setProperty
+ * @brief DockWidgetActionItem::setProperty
  * @param name
  * @param value
  */
-void DockActionWidget::setProperty(const char *name, const QVariant &value)
+void DockWidgetActionItem::setProperty(const char *name, const QVariant &value)
 {
-    QPushButton::setProperty(name, value);
+    QToolButton::setProperty(name, value);
     if (dockAction) {
         dockAction->setProperty(name, value);
     }
@@ -78,20 +80,20 @@ void DockActionWidget::setProperty(const char *name, const QVariant &value)
 
 
 /**
- * @brief DockActionWidget::getProperty
+ * @brief DockWidgetActionItem::getProperty
  * @param name
  * @return
  */
-QVariant DockActionWidget::getProperty(const char *name)
+QVariant DockWidgetActionItem::getProperty(const char *name)
 {
-    return QPushButton::property(name);
+    return QToolButton::property(name);
 }
 
 
 /**
- * @brief DockActionWidget::actionChanged
+ * @brief DockWidgetActionItem::actionChanged
  */
-void DockActionWidget::actionChanged()
+void DockWidgetActionItem::actionChanged()
 {
     if (dockAction) {
         QPixmap iconPixmap = dockAction->icon().pixmap(ICON_SIZE);
@@ -101,8 +103,8 @@ void DockActionWidget::actionChanged()
             iconLabel->setPixmap(Theme::theme()->getImage("Actions", "Help", QSize(ICON_SIZE, ICON_SIZE)));
         }
         QString actionText = dockAction->text();
-        if (actionText != fullActionText) {
-            updateTextLabel(actionText);
+        if (actionText != getText()) {
+            setText(actionText);
             setToolTip(actionText);
         }
         setVisible(dockAction->isVisible());
@@ -111,62 +113,54 @@ void DockActionWidget::actionChanged()
 
 
 /**
- * @brief DockActionWidget::themeChanged
+ * @brief DockWidgetActionItem::themeChanged
  */
-void DockActionWidget::themeChanged()
+void DockWidgetActionItem::themeChanged()
 {
     theme = Theme::theme();
-    setStyleSheet("QPushButton, QLabel {"
-                  "border: 0px;"
-                  "background: rgba(0,0,0,0);"
-                  "}"
-                  "QPushButton:hover {"
-                  "background:" + theme->getHighlightColorHex() + ";"
-                  "}");
-
     textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
     arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
 }
 
 
 /**
- * @brief DockActionWidget::enterEvent
+ * @brief DockWidgetActionItem::updateDisplayedText
+ * @param text
+ */
+void DockWidgetActionItem::updateDisplayedText(QString text)
+{
+    textLabel->setText(text);
+}
+
+
+/**
+ * @brief DockWidgetActionItem::enterEvent
  * @param event
  */
-void DockActionWidget::enterEvent(QEvent* event)
+void DockWidgetActionItem::enterEvent(QEvent* event)
 {
     textLabel->setStyleSheet("color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";");
     arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor(theme->CR_SELECTED)));
-    QPushButton::enterEvent(event);
+    QToolButton::enterEvent(event);
 }
 
 
 /**
- * @brief DockActionWidget::leaveEvent
+ * @brief DockWidgetActionItem::leaveEvent
  * @param event
  */
-void DockActionWidget::leaveEvent(QEvent* event)
+void DockWidgetActionItem::leaveEvent(QEvent* event)
 {
     textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
     arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
-    QPushButton::leaveEvent(event);
+    QToolButton::leaveEvent(event);
 }
 
 
 /**
- * @brief DockActionWidget::resizeEvent
+ * @brief DockWidgetActionItem::setupLayout
  */
-void DockActionWidget::resizeEvent(QResizeEvent* event)
-{
-    updateTextLabel();
-    QPushButton::resizeEvent(event);
-}
-
-
-/**
- * @brief DockActionWidget::setupLayout
- */
-void DockActionWidget::setupLayout()
+void DockWidgetActionItem::setupLayout()
 {
     int margin = 4;
 
@@ -200,21 +194,3 @@ void DockActionWidget::setupLayout()
     setMinimumSize(MIN_BUTTON_WIDTH, MIN_BUTTON_HEIGHT);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 }
-
-
-/**
- * @brief DockActionWidget::updateTextLabel
- * @param text
- */
-void DockActionWidget::updateTextLabel(QString text)
-{
-    if (text.isEmpty()) {
-        text = fullActionText;
-    } else {
-        fullActionText = text;
-    }
-    QFontMetrics fm = textLabel->fontMetrics();
-    QString elidedText = fm.elidedText(text, Qt::ElideMiddle, width() - ARROW_WIDTH);
-    textLabel->setText(elidedText);
-}
-

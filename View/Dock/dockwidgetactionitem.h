@@ -1,19 +1,19 @@
-#ifndef DOCKACTIONWIDGET_H
-#define DOCKACTIONWIDGET_H
+#ifndef DockWidgetActionItem_H
+#define DockWidgetActionItem_H
 
-#include <QPushButton>
 #include <QLabel>
 #include <QAction>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
-#include "../theme.h"
+#include "dockwidgetitem.h"
 
-class DockActionWidget : public QPushButton
+class DockWidgetActionItem : public DockWidgetItem
 {
     Q_OBJECT
+
 public:
-    explicit DockActionWidget(QAction* action, QWidget *parent = 0);
+    explicit DockWidgetActionItem(QAction* action, QWidget* parent = 0);
 
     QAction* getAction();
 
@@ -23,32 +23,27 @@ public:
     void setProperty(const char *name, const QVariant &value);
     QVariant getProperty(const char *name);
 
-signals:
-
 public slots:
     void actionChanged();
     void themeChanged();
+    void updateDisplayedText(QString text);
 
 protected:
     void enterEvent(QEvent* event);
     void leaveEvent(QEvent* event);
-    void resizeEvent(QResizeEvent* event);
 
 private:
     void setupLayout();
-    void updateTextLabel(QString text = "");
+
+    QAction* dockAction;
+    bool subActionRequired;
 
     QLabel* textLabel;
     QLabel* iconLabel;
     QLabel* arrowLabel;
     QLabel* imageLabel;
 
-    QAction* dockAction;
-    QString fullActionText;
-    bool subActionRequired;
-
     Theme* theme;
-
 };
 
-#endif // DOCKACTIONWIDGET_H
+#endif // DockWidgetActionItem_H

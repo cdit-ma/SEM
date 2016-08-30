@@ -22,7 +22,7 @@ public slots:
     void selectionChanged();
     void tabClicked(bool checked);
 
-    void dockActionClicked(DockActionWidget *action);
+    void dockActionClicked(DockWidgetActionItem *action);
     void dockBackButtonClicked();
 
 private:
