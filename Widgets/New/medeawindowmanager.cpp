@@ -126,6 +126,14 @@ MedeaWindowManager::~MedeaWindowManager()
     _destructWindow(mainWindow);
 }
 
+MedeaWindowNew *MedeaWindowManager::getActiveWindow()
+{
+    if(activeViewDockWidget){
+        return (MedeaWindowNew*) activeViewDockWidget->parentWidget();
+    }
+    return centralWindow;
+}
+
 MedeaWindowNew *MedeaWindowManager::_constructMainWindow(ViewController* vc)
 {
     MedeaMainWindow* window = 0;
@@ -209,6 +217,29 @@ void MedeaWindowManager::setActiveDockWidget(MedeaDockWidget *dockWidget)
     }
 }
 
+QList<MedeaViewDockWidget *> MedeaWindowManager::getViewDockWidgets()
+{
+    QList<MedeaViewDockWidget*> views;
+    foreach(int ID, viewDockIDs){
+        MedeaDockWidget* dockWidget = dockWidgets.value(ID, 0);
+        if(dockWidget && dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
+            views.append((MedeaViewDockWidget*)dockWidget);
+        }
+    }
+    return views;
+}
+
+QList<MedeaNodeViewDockWidget *> MedeaWindowManager::getNodeViewDockWidgets()
+{
+    QList<MedeaNodeViewDockWidget*> views;
+    foreach(MedeaViewDockWidget* dock, getViewDockWidgets()){
+        if(dock->isNodeViewDock()){
+            views.append((MedeaNodeViewDockWidget*) dock);
+        }
+    }
+    return views;
+}
+
 
 void MedeaWindowManager::addWindow(MedeaWindowNew *window)
 {
@@ -239,6 +270,9 @@ void MedeaWindowManager::addDockWidget(MedeaDockWidget *dockWidget)
     if(dockWidget){
         int ID = dockWidget->getID();
         if(!dockWidgets.contains(ID)){
+            if(dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
+                viewDockIDs.append(ID);
+            }
             dockWidgets[ID] = dockWidget;
             connect(dockWidget, SIGNAL(popOutWidget()), this, SLOT(dockWidget_PopOut()));
             connect(dockWidget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximize(bool)));
@@ -257,6 +291,10 @@ void MedeaWindowManager::removeDockWidget(MedeaDockWidget *dockWidget)
             //Clear the active flag.
             if(activeViewDockWidget == dockWidget){
                 setActiveDockWidget();
+            }
+
+            if(dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
+                viewDockIDs.removeAll(ID);
             }
 
             disconnect(dockWidget, SIGNAL(popOutWidget()), this, SLOT(dockWidget_PopOut()));

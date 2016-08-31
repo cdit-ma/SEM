@@ -119,7 +119,6 @@ bool EventPortAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
             }
         }else if(difference == 1){
             if(isInPortAssembly() != port->isInPortAssembly()){
-                qCritical() << "Same Type of delegate2";
                 return false;
             }
         }

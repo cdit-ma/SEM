@@ -94,6 +94,8 @@ signals:
     void vc_projectSaved(QString filePath);
     void vc_projectPathChanged(QString);
 
+    void vc_centerItem(int ID);
+    void vc_fitToScreen();
 
 public slots:
     void jenkinsManager_IsBusy(bool busy);
@@ -123,7 +125,16 @@ public slots:
 
 
     void fitView();
+    void fitAllViews();
     void centerSelection();
+
+    void centerImpl();
+    void centerDefinition();
+
+    void popupDefinition();
+    void popupImpl();
+    void popupSelection();
+
 
     void cut();
     void copy();
@@ -146,10 +157,16 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+    void spawnSubView(ViewItem *item );
     bool destructViewItem(ViewItem* item);
     QList<ViewItem*> getViewItems(QList<int> IDs);
 
+    QList<NodeViewNew*> getNodeViewsContainingID(int ID);
+
     NodeViewItem* getNodeViewItem(int ID);
+
+    NodeViewItem* getNodesImpl(int ID);
+    NodeViewItem* getNodesDefinition(int ID);
 
     NodeViewItem* getSharedParent(NodeViewItem* node1, NodeViewItem* node2);
 

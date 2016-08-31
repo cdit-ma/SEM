@@ -197,7 +197,6 @@ HEADERS += \
     Widgets/New/selectioncontroller.h \
     GUI/popupwidget.h \
     View/Dock/docktabwidget.h \
-    View/Dock/dockactionwidget.h \
     View/SceneItems/nodeitemcontainer.h \
     View/SceneItems/Assemblies/nodeitemcolumncontainer.h \
     View/SceneItems/Assemblies/nodeitemcolumnitem.h \
@@ -206,7 +205,9 @@ HEADERS += \
     View/SceneItems/containerelementnodeitem.h \
     View/SceneItems/Assemblies/assemblyeventportnodeitem.h \
     View/Dock/dockwidget.h \
-    View/SceneItems/Assemblies/nodeitemsquare.h
+    View/SceneItems/Assemblies/nodeitemsquare.h \
+    View/Dock/dockwidgetitem.h \
+    View/Dock/dockwidgetactionitem.h
 
 SOURCES += \
     main.cpp \
@@ -367,7 +368,6 @@ SOURCES += \
     Controller/filehandler.cpp \
     GUI/popupwidget.cpp \
     View/Dock/docktabwidget.cpp \
-    View/Dock/dockactionwidget.cpp \
     View/SceneItems/nodeitemcontainer.cpp \
     View/SceneItems/Assemblies/nodeitemcolumncontainer.cpp \
     View/SceneItems/Assemblies/nodeitemcolumnitem.cpp \
@@ -376,7 +376,9 @@ SOURCES += \
     View/SceneItems/containerelementnodeitem.cpp \
     View/SceneItems/Assemblies/assemblyeventportnodeitem.cpp \
     View/Dock/dockwidget.cpp \
-    View/SceneItems/Assemblies/nodeitemsquare.cpp
+    View/SceneItems/Assemblies/nodeitemsquare.cpp \
+    View/Dock/dockwidgetitem.cpp \
+    View/Dock/dockwidgetactionitem.cpp
 
 RESOURCES += \
     resources.qrc

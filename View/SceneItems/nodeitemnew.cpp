@@ -112,7 +112,7 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
     int ID = nodeItem->getID();
     //If we have added a child, and there is only one. emit a signal
     if(!childNodes.contains(ID)){
-        connect(nodeItem, SIGNAL(sizeChanged(QSizeF)), this, SLOT(childPosChanged()));
+        connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(childPosChanged()));
         connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
         childNodes[ID] = nodeItem;
         if(childNodes.count() == 1){
@@ -228,6 +228,9 @@ void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
         edgeItem->setParentItem(this);
         childEdges[ID] = edgeItem;
 
+        edgeItem->setBodyColor(getBodyColor().darker(120));
+
+        connect(edgeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
         edgeItem->setVisible(isExpanded());
     }
 }
@@ -389,11 +392,10 @@ QRectF NodeItemNew::bodyRect() const
     return currentRect();
 }
 
-QRectF NodeItemNew::moveRect() const
+QRectF NodeItemNew::headerRect() const
 {
-    return EntityItemNew::moveRect();
+    return currentRect();
 }
-
 
 QRectF NodeItemNew::childrenRect() const
 {
@@ -429,7 +431,7 @@ void NodeItemNew::setMinimumWidth(qreal width)
         if(!isExpanded()){
             prepareGeometryChange();
             update();
-            emit sizeChanged(getSize());
+            emit sizeChanged();
         }
     }
 }
@@ -441,7 +443,7 @@ void NodeItemNew::setMinimumHeight(qreal height)
         if(!isExpanded()){
             prepareGeometryChange();
             update();
-            emit sizeChanged(getSize());
+            emit sizeChanged();
         }
     }
 }
@@ -460,7 +462,7 @@ void NodeItemNew::setExpandedWidth(qreal width, bool lockOnChange)
         if(isExpanded()){
             prepareGeometryChange();
             update();
-            emit sizeChanged(getSize());
+            emit sizeChanged();
           //  updateGridLines();
         }
         if(lockOnChange){
@@ -485,7 +487,7 @@ void NodeItemNew::setExpandedHeight(qreal height, bool lockOnChange)
         if(isExpanded()){
             prepareGeometryChange();
             update();
-            emit sizeChanged(getSize());
+            emit sizeChanged();
            // updateGridLines();
         }
 
@@ -657,7 +659,7 @@ void NodeItemNew::setExpanded(bool expand)
         }
 
         update();
-        emit sizeChanged(getSize());
+        emit sizeChanged();
     }
 }
 
@@ -953,6 +955,11 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
 QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
 {
+    switch(rect){
+    case ER_MOVE:{
+        return headerRect();
+    }
+    }
     //Just call base class.
     return EntityItemNew::getElementRect(rect);
 }

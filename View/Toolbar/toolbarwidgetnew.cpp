@@ -564,30 +564,37 @@ QAction* ToolbarWidgetNew::getInfoAction(QString hashKey)
 
 /**
  * @brief ToolbarWidgetNew::constructSubMenuActions
+ * @param actions
  * @param triggeredActionKind
  * @return
  */
 QList<QAction*> ToolbarWidgetNew::constructSubMenuActions(QList<NodeViewItemAction*> actions, QString triggeredActionKind)
 {
-    QHash<QAction*, QList<QAction*> > parentActionHash;
-    foreach (NodeViewItemAction* action, actions) {
-        NodeViewItemAction* parentAction = action->getParentViewItemAction();
-        if (parentAction) {
-            action->setProperty("ID", action->getID());
-            action->setProperty("parent-kind", triggeredActionKind);
-            parentActionHash[parentAction].append(action);
+    QHash<NodeViewItemAction*, QList<QAction*> > parentViewItemHash;
+    foreach (NodeViewItemAction* viewItemAction, actions) {
+        NodeViewItemAction* parentViewItemAction = viewItemAction->getParentViewItemAction();
+        if (parentViewItemAction) {
+            // construct a sub-action for each of the nodeviewitemactions
+            QAction* subAction = viewItemAction->constructSubAction(false);
+            subAction->setProperty("ID", viewItemAction->getID());
+            subAction->setProperty("parent-kind", triggeredActionKind);
+            parentViewItemHash[parentViewItemAction].append(subAction);
         } else {
             qWarning() << "ToolbarWidgetNew::constructSubMenuActions - No parent nodeViewItemAction.";
         }
     }
 
     // construct a menu for each parent action
-    foreach (QAction* action, parentActionHash.keys()) {
+    QList<QAction*> parentActions;
+    foreach (NodeViewItemAction* parentViewItemAction, parentViewItemHash.keys()) {
         QMenu* menu = new QMenu(this);
-        menu->addActions(parentActionHash[action]);
-        action->setMenu(menu);
+        menu->addActions(parentViewItemHash.value(parentViewItemAction));
+        // construct a sub-action for the parent nodeviewitemaction
+        QAction* parentAction = parentViewItemAction->constructSubAction(false);
+        parentAction->setMenu(menu);
+        parentActions.append(parentAction);
     }
 
-    return parentActionHash.keys();
+    return parentActions;
 }
 

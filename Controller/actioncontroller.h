@@ -104,9 +104,13 @@ public:
     RootAction* edit_renameActiveSelection;
 
     RootAction* view_fitView;
+    RootAction* view_fitAllViews;
+
     RootAction* view_centerOn;
     RootAction* view_centerOnDefn;
+    RootAction* view_viewDefnInNewWindow;
     RootAction* view_centerOnImpl;
+    RootAction* view_viewImplInNewWindow;
     RootAction* view_viewConnections;
     RootAction* view_viewInNewWindow;
 

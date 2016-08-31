@@ -37,8 +37,11 @@ protected:
 signals:
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevWidget = 0);
 public:
+    MedeaWindowNew* getActiveWindow();
     MedeaViewDockWidget* getActiveViewDockWidget();
     void setActiveDockWidget(MedeaDockWidget *dockWidget = 0);
+    QList<MedeaViewDockWidget*> getViewDockWidgets();
+    QList<MedeaNodeViewDockWidget*> getNodeViewDockWidgets();
 private slots:
     void dockWidget_Close();
     void dockWidget_PopOut();
@@ -73,6 +76,7 @@ private:
     MedeaViewDockWidget* activeViewDockWidget;
     QHash<int, MedeaWindowNew*> windows;
     QHash<int, MedeaDockWidget*> dockWidgets;
+    QList<int> viewDockIDs;
 
 private:
     static MedeaWindowManager* managerSingleton;

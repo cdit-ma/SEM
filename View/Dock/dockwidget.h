@@ -1,27 +1,31 @@
 #ifndef DOCKWIDGET_H
 #define DOCKWIDGET_H
 
-#include <QWidget>
+#include <QScrollArea>
 #include <QVBoxLayout>
+#include <QToolButton>
 
 #include "../../Controller/toolbarcontroller.h"
-#include "dockactionwidget.h"
+#include "dockwidgetactionitem.h"
+#include "dockwidgetitem.h"
 
-class DockWidget : public QWidget
+class DockWidget : public QScrollArea
 {
     Q_OBJECT
 public:
     explicit DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE type, QWidget *parent = 0);
 
-    void addAction(QAction* action);
-    void addActions(QList<QAction*> actions);
-
-    void clearDock();
-
     ToolActionController::DOCK_TYPE getDockType();
 
+    DockWidgetItem* addItem(QString text);
+    DockWidgetActionItem* addActionItem(QAction* action);
+    void addActionItems(QList<QAction*> actions);
+
+    void clearDock();
+    void updateHeaderText(QString text);
+
 signals:
-    void actionClicked(DockActionWidget* action);
+    void actionClicked(DockWidgetActionItem* action);
     void backButtonClicked();
 
 public slots:
@@ -37,10 +41,12 @@ private:
     QVBoxLayout* alignLayout;
     QVBoxLayout* mainLayout;
     QVBoxLayout* headerLayout;
-    QLabel* descriptionLabel;
-    QPushButton* backButton;
 
-    QHash<QAction*, DockActionWidget*> childrenActions;
+    QWidget* mainWidget;
+    QLabel* descriptionLabel;
+    QToolButton* backButton;
+
+    QHash<QAction*, DockWidgetActionItem*> childrenActions;
     bool containsHeader;
 
 };

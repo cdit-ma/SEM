@@ -192,6 +192,9 @@ void EntityItemNew::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pix
 
 void EntityItemNew::renderText(QPainter *painter, qreal lod, QRectF textRect, QString text, int fontSize) const
 {
+    if(!textRect.isValid() || text.isEmpty()){
+        return;
+    }
     if(fontSize <=0){
         fontSize = this->fontSize;
     }
@@ -199,9 +202,9 @@ void EntityItemNew::renderText(QPainter *painter, qreal lod, QRectF textRect, QS
     painter->setClipRect(boundingRect());
 
     QFont font = textFont;
-    font.setPixelSize(fontSize * 2);
+    font.setPixelSize(fontSize * 4);
 
-    qreal osfontSize = fontSize * 2;
+    qreal osfontSize = fontSize * 4;
     qreal maxFontSize = fontSize;
     qreal minFontSize = fontSize / 2.0;
 
@@ -342,11 +345,6 @@ QRectF EntityItemNew::viewRect() const
 QRectF EntityItemNew::sceneViewRect() const
 {
     return mapToScene(viewRect()).boundingRect();
-}
-
-QRectF EntityItemNew::moveRect() const
-{
-    return currentRect();
 }
 
 QSize EntityItemNew::iconSize() const
@@ -532,13 +530,12 @@ void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
         emit req_centerItem(this);
     }
 
-    if(isMoveEnabled() && event->button() == Qt::LeftButton && moveRect().contains(event->pos())){
+    if(isMoveEnabled() && event->button() == Qt::LeftButton && getElementPath(ER_MOVE).contains(event->pos())){
         //Check for movement.
         _isMouseMoving = true;
         _hasMouseMoved = false;
         previousMovePoint = event->scenePos();
     }
-
 }
 
 void EntityItemNew::setFontSize(int fontSize)
@@ -661,7 +658,7 @@ QPen EntityItemNew::getPen()
     QColor penColor = defaultPen.color();
 
     if(isSelected()){
-        pen.setStyle(Qt::SolidLine);
+        //pen.setStyle(Qt::SolidLine);
         pen.setCosmetic(true);
         pen.setWidthF(SELECTED_LINE_WIDTH);
         penColor = Theme::theme()->getSelectedItemBorderColor();

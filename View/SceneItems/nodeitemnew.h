@@ -79,7 +79,7 @@ public:
     QRectF gridRect() const;
     QRectF expandedGridRect() const;
     virtual QRectF bodyRect() const;
-    virtual QRectF moveRect() const;
+    virtual QRectF headerRect() const;
 
     QRectF childrenRect() const;
 
@@ -152,10 +152,6 @@ signals:
     //Inform of Changes
     void gotChildNodes(bool);
     void gotChildProxyEdges(bool);
-
-    void posChanged(QPointF topLeft);
-    void sizeChanged(QSizeF newSize);
-
 public slots:
     virtual void dataChanged(QString keyName, QVariant data);
     virtual void dataRemoved(QString keyName);

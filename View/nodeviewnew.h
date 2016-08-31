@@ -26,11 +26,14 @@ public:
 
     QColor getBackgroundColor();
     QRectF getViewportRect();
+    void resetMinimap();
     void viewportChanged();
     SelectionHandler* getSelectionHandler();
     void fitToScreen();
     void centerSelection();
+    QList<int> getIDsInView();
 signals:
+    void sceneRectChanged(QRectF sceneRect);
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
     void viewportChanged(QRectF rect, qreal zoom);
     void viewFocussed(NodeViewNew* view, bool focussed);
@@ -42,6 +45,7 @@ signals:
 
 private slots:
 
+    void test();
     void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
@@ -49,6 +53,7 @@ private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
     void selectAll();
+    void itemsMoved();
 
     void clearSelection();
 
@@ -72,10 +77,13 @@ private slots:
     void minimap_Panning(bool panning);
     void minimap_Pan(QPointF delta);
     void minimap_Zoom(int delta);
+
+    void centerItem(int ID);
 private:
     void setupConnections(EntityItemNew* item);
 
     void centerOnItems(QList<EntityItemNew*> items);
+    QRectF getSceneBoundingRectOfItems(QList<EntityItemNew*> items);
     void centerRect(QRectF rectScene);
     void centerView(QPointF scenePos);
 
@@ -113,6 +121,7 @@ private:
     ViewController* viewController;
     SelectionHandler* selectionHandler;
 
+    QRectF currentSceneRect;
     QPoint pan_lastPos;
     QPointF pan_lastScenePos;
     qreal pan_distance;

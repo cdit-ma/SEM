@@ -84,7 +84,6 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     SelectionController* controller = vc->getSelectionController();
 
     connect(controller, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), tableWidget, SLOT(itemActiveSelectionChanged(ViewItem*, bool)));
-    connect(vc->getActionController()->view_viewInNewWindow, SIGNAL(triggered(bool)), this, SLOT(spawnSubView()));
 
     connect(vc, &ViewController::mc_projectModified, this, &MedeaMainWindow::setWindowModified);
     connect(vc, &ViewController::vc_projectPathChanged, this, &MedeaMainWindow::setModelTitle);
@@ -226,6 +225,9 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
                 disconnect(minimap, SIGNAL(minimap_Pan(QPointF)), prevView, SLOT(minimap_Pan(QPointF)));
                 disconnect(minimap, SIGNAL(minimap_Panning(bool)), prevView, SLOT(minimap_Panning(bool)));
                 disconnect(minimap, SIGNAL(minimap_Zoom(int)), prevView, SLOT(minimap_Zoom(int)));
+
+                disconnect(prevView, &NodeViewNew::sceneRectChanged, minimap, &NodeViewMinimap::sceneRectChanged);
+
                 disconnect(prevView, SIGNAL(viewportChanged(QRectF, qreal)), minimap, SLOT(viewportRectChanged(QRectF, qreal)));
             }
         }
@@ -238,40 +240,10 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
             connect(minimap, SIGNAL(minimap_Panning(bool)), view, SLOT(minimap_Panning(bool)));
             connect(minimap, SIGNAL(minimap_Zoom(int)), view, SLOT(minimap_Zoom(int)));
             connect(view, SIGNAL(viewportChanged(QRectF, qreal)), minimap, SLOT(viewportRectChanged(QRectF, qreal)));
+            connect(view, &NodeViewNew::sceneRectChanged, minimap, &NodeViewMinimap::sceneRectChanged);
+
 
             view->viewportChanged();
-        }
-    }
-}
-
-
-/**
- * @brief MedeaMainWindow::spawnSubView
- */
-void MedeaMainWindow::spawnSubView()
-{
-    if(viewController){
-        SelectionController* selectionController = viewController->getSelectionController();
-
-        QVector<ViewItem*> items = selectionController->getSelection();
-
-        if(items.length() == 1){
-
-            ViewItem* item = items.first();
-            if(item->isNode()){
-                MedeaDockWidget *dockWidget = MedeaWindowManager::constructNodeViewDockWidget("SubView", Qt::TopDockWidgetArea);
-                dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-                dockWidget->setParent(this);
-                dockWidget->setIcon(item->getIcon());
-                dockWidget->setTitle(item->getData("label").toString());
-                innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockWidget);
-
-                NodeViewNew* nodeView = new NodeViewNew(dockWidget);
-                nodeView->setContainedNodeViewItem((NodeViewItem*)item);
-                connectNodeView(nodeView);
-                dockWidget->setWidget(nodeView);
-                nodeView->fitToScreen();
-            }
         }
     }
 }

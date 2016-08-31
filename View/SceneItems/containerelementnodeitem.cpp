@@ -53,7 +53,7 @@ void ContainerElementNodeItem::dataChanged(QString keyName, QVariant data)
 
     if(keyName == "sortOrder" && getContainer() && getContainer()->isSortOrdered()){
         QPoint index = getIndexPosition();
-        index.setY(data.toInt());
+        index.setY(getSortOrder());
         setIndexPosition(index);
         setPos(QPointF());
     }

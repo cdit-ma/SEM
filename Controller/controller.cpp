@@ -799,8 +799,6 @@ void NewController::updateUndoRedoState()
 
 void NewController::constructNode(int parentID, QString kind, QPointF centerPoint)
 {
-    qCritical() << parentID;
-    qCritical() << kind;
     if(kind != ""){
         bool ignore = false;
         Node* parentNode = getNodeFromID(parentID);
@@ -862,7 +860,6 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
 
 void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_CLASS edgeClass)
 {
-    qCritical() << "HELLO" << srcIDs;
     QList<int> validIDs = getConnectableNodeIDs(srcIDs, edgeClass);
 
     bool success = true;
@@ -887,7 +884,6 @@ void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_CLASS
     }else{
         success = false;
     }
-    qCritical() << success;
     emit controller_ActionFinished(success, "Edge couldn't be constructed");
 }
 
@@ -1158,13 +1154,13 @@ void NewController::remove(QList<int> IDs)
 
     if(canDelete(selection)){
         triggerAction("Removing Selection");
+        qCritical() << "REmoving: " << IDs;
         bool success = _remove(selection);
         emit controller_ActionFinished(success, "Cannot delete all selected entities.");
     } else {
         emit controller_ActionFinished();
     }
     lock.unlock();
-    qCritical() << "YO!";
 }
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
@@ -1412,6 +1408,7 @@ bool NewController::_remove(QList<Entity *> items)
     int totalItems = items.size();
     while(!items.isEmpty()){
         Entity* item = items.takeFirst();
+        qCritical() << item;
 
         if(!destructEntity(item)){
             allSuccess = false;
@@ -1843,18 +1840,22 @@ QList<Entity*> NewController::getOrderedSelection(QList<int> selection)
 
     foreach(int ID, selection){
         Entity* entity = getGraphMLFromID(ID);
+        if(!entity){
+            continue;
+        }
+
         Node* node = 0;
         Edge* edge = 0;
         Node* src = 0;
         Node* dst = 0;
 
-        if(entity->isNode()){
-            node = (Node*) entity;
-        }else if(entity->isEdge()){
-            edge = (Edge*) entity;
-            src = edge->getSource();
-            dst = edge->getDestination();
-        }
+		if(entity->isNode()){
+			node = (Node*) entity;
+		}else if(entity->isEdge()){
+			edge = (Edge*) entity;
+			src = edge->getSource();
+			dst = edge->getDestination();
+		}
 
         bool append = true;
 
@@ -3018,7 +3019,6 @@ int NewController::constructDependantRelative(Node *parent, Node *definition)
     }
 
 
-
     //For each child in parent, check to see if any Nodes match Label/Type
     foreach(Node* child, parent->getChildrenOfKind(dependantKind, 0)){
         Node* childDef = child->getDefinition();
@@ -3161,12 +3161,14 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
         return;
     }
 
+    int minPos = 0;
+    int maxPos = parentNode->childrenCount() - 1;
+
     //If we have been given a position of -1 use the current value of sortOrder.
     if(newPosition == -1){
-        newPosition = node->getDataValue("sortOrder").toInt();
+       newPosition = node->getDataValue("sortOrder").toInt();
     }
 
-    int maxPos = parentNode->childrenCount() - 1;
 
     //If the newPosition is -1 or is bigger than our maxPos, put it last.
     if(newPosition > maxPos || newPosition == -1){
@@ -3174,25 +3176,22 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
     }
 
     //Don't set Below 0
-    if(newPosition < 0){
-        newPosition = 0;
+    if(newPosition < minPos){
+        newPosition = minPos;
     }
 
-    //Set the position
-    node->setDataValue("sortOrder", newPosition);
-
+    //Get the ordered list.
     QList<Node*> siblings = parentNode->getChildren(0);
+    //Remove the node to change.
     siblings.removeAll(node);
 
-    int siblingIndex = 0;
-    for(int sortOrder = 0; sortOrder < siblings.count() + 1; sortOrder ++){
+    //Reinsert in it's correct position
+    siblings.insert(newPosition, node);
 
-        if(sortOrder != newPosition){
-            siblings[siblingIndex]->setDataValue("sortOrder", sortOrder);
-            siblingIndex ++;
-        }
+    //Update the position
+    for(int sortOrder = 0; sortOrder < siblings.count(); sortOrder ++){
+        siblings.at(sortOrder)->setDataValue("sortOrder", sortOrder);
     }
-    node->setDataValue("sortOrder", newPosition);
 }
 
 /**
@@ -4066,7 +4065,11 @@ void NewController::bindData(Node *definition, Node *child)
     QString childKind = child->getNodeKindStr();
     bool bindTypes = true;
     bool bindLabels = false;
+
     bool bindSort = false;
+    if(child->getParentNode()->isInstance()){
+        bindSort = true;
+    }
 
     if(!definition->getDefinition() && !def_Type){
         bindTypes = false;
@@ -4625,8 +4628,8 @@ void NewController::constructEdgeGUI(Edge *edge)
 
     switch(edgeClass){
     case Edge::EC_DEFINITION:{
-        //DefinitionEdge is either an Instance or an Impl
         setupDependantRelationship(dst, src);
+        //DefinitionEdge is either an Instance or an Impl
         break;
     }
     case Edge::EC_AGGREGATE:{
@@ -5039,7 +5042,6 @@ void NewController::removeData(int parentID, QString keyName)
 {
     Entity* entity = getGraphMLFromID(parentID);
     if(entity){
-        qCritical() << "Removing: " << parentID << " " << keyName;
         destructData(entity, keyName, true);
     }
 }
@@ -6206,18 +6208,23 @@ bool NewController::isProjectSaved() const
 
 int NewController::getDefinition(int ID)
 {
+    lock.lockForRead();
     Node* original = getNodeFromID(ID);
+    int defID = -1;
     if(original){
         Node* node = original->getDefinition(true);
         if(node && node != original){
-            return node->getID();
+            defID = node->getID();
         }
     }
-    return -1;
+    lock.unlock();
+    return defID;
 }
 
 int NewController::getImplementation(int ID)
 {
+    lock.lockForRead();
+    int implID = -1;
     Node* original = getNodeFromID(ID);
     if(original){
         int definitionID = getDefinition(ID);
@@ -6229,11 +6236,12 @@ int NewController::getImplementation(int ID)
         if (node && node->getImplementations().size() > 0) {
             Node* impl = node->getImplementations().at(0);
             if (impl != original) {
-                return impl->getID();
+                implID = impl->getID();
             }
         }
     }
-    return -1;
+    lock.unlock();
+    return implID;
 }
 
 Node* NewController::getSharedParent(QList<int> IDs)

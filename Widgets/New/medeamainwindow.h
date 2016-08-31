@@ -49,7 +49,6 @@ private slots:
     void themeChanged();
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevDock);
 
-    void spawnSubView();
 
     void popupSearch();
     void updateSearchSuggestions(QStringList list);

@@ -28,7 +28,7 @@
 NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 {
     QRectF sceneRect;
-    sceneRect.setSize(QSize(100000,100000));
+    sceneRect.setSize(QSize(10000,10000));
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
@@ -67,6 +67,7 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
     viewState = VS_NONE;
     transition();
 
@@ -106,6 +107,10 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(this, &NodeViewNew::setData, viewController, &ViewController::vc_setData);
         connect(this, &NodeViewNew::removeData, viewController, &ViewController::vc_removeData);
         connect(this, &NodeViewNew::editData, viewController, &ViewController::vc_editTableCell);
+
+
+        connect(viewController, &ViewController::vc_centerItem, this, &NodeViewNew::centerItem);
+        connect(viewController, &ViewController::vc_fitToScreen, this, &NodeViewNew::fitToScreen);
     }
 }
 
@@ -173,6 +178,12 @@ QRectF NodeViewNew::getViewportRect()
     return viewportRect();
 }
 
+void NodeViewNew::resetMinimap()
+{
+    emit viewportChanged(viewportRect(), transform().m11());
+    emit sceneRectChanged(currentSceneRect);
+}
+
 void NodeViewNew::viewItem_Constructed(ViewItem *item)
 {
     if(item){
@@ -234,6 +245,15 @@ void NodeViewNew::selectAll()
     _selectAll();
 }
 
+void NodeViewNew::itemsMoved()
+{
+    QRectF newSceneRect = getSceneBoundingRectOfItems(getTopLevelEntityItems());
+    if(newSceneRect != currentSceneRect){
+        currentSceneRect = newSceneRect;
+        emit sceneRectChanged(currentSceneRect);
+    }
+}
+
 void NodeViewNew::clearSelection()
 {
     _clearSelection();
@@ -285,6 +305,17 @@ void NodeViewNew::centerSelection()
 {
 
     centerOnItems(getSelectedItems());
+}
+
+QList<int> NodeViewNew::getIDsInView()
+{
+    return guiItems.keys();
+}
+
+void NodeViewNew::test()
+{
+
+    //scene->setSceneRect(QRectF());
 }
 
 void NodeViewNew::item_Selected(ViewItem *item, bool append)
@@ -447,6 +478,16 @@ void NodeViewNew::minimap_Zoom(int delta)
     zoom(delta);
 }
 
+void NodeViewNew::centerItem(int ID)
+{
+    EntityItemNew* item = getEntityItem(ID);
+    if(item){
+        QList<EntityItemNew*> items;
+        items.append(item);
+        centerOnItems(items);
+    }
+}
+
 void NodeViewNew::setupConnections(EntityItemNew *item)
 {
     connect(item, &EntityItemNew::req_activeSelected, this, &NodeViewNew::item_ActiveSelected);
@@ -469,7 +510,13 @@ void NodeViewNew::setupConnections(EntityItemNew *item)
     }
 }
 
+
 void NodeViewNew::centerOnItems(QList<EntityItemNew *> items)
+{
+    centerRect(getSceneBoundingRectOfItems(items));
+}
+
+QRectF NodeViewNew::getSceneBoundingRectOfItems(QList<EntityItemNew *> items)
 {
     QRectF itemsRect;
     foreach(EntityItemNew* item, items){
@@ -477,7 +524,7 @@ void NodeViewNew::centerOnItems(QList<EntityItemNew *> items)
             itemsRect = itemsRect.united(item->sceneViewRect());
         }
     }
-    centerRect(itemsRect);
+    return itemsRect;
 }
 
 void NodeViewNew::centerRect(QRectF rectScene)
@@ -638,6 +685,10 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 if(!scene()->items().contains(nodeItem)){
                     scene()->addItem(nodeItem);
                     topLevelGUIItemIDs.append(ID);
+
+                    connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(itemsMoved()));
+                    connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(itemsMoved()));
+
                 }
             }
         }

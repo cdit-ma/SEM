@@ -5,7 +5,7 @@
 #include <QStackedWidget>
 #include <QTabBar>
 #include <QScrollArea>
-#include <QPushButton>
+#include <QToolButton>
 
 #include "../../Controller/viewcontroller.h"
 #include "dockwidget.h"
@@ -22,7 +22,7 @@ public slots:
     void selectionChanged();
     void tabClicked(bool checked);
 
-    void dockActionClicked(DockActionWidget *action);
+    void dockActionClicked(DockWidgetActionItem *action);
     void dockBackButtonClicked();
 
 private:
@@ -30,8 +30,9 @@ private:
     void setupDocks();
     void setupConnections();
 
-    void openRequiredDock(ToolActionController::DOCK_TYPE dt, QString actionKind = "");
-    void changeDisplayedDockWidget(DockWidget* dockWidget);
+    void openRequiredDock(ToolActionController::DOCK_TYPE dt);
+    void populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions);
+    DockWidget* getDock(ToolActionController::DOCK_TYPE dt);
 
     ViewController* viewController;
     ToolActionController* toolActionController;
@@ -41,10 +42,11 @@ private:
     DockWidget* functionsDock;
     DockWidget* hardwareDock;
 
-    QPushButton* partsButton;
-    QPushButton* hardwareButton;
+    QToolButton* partsButton;
+    QToolButton* hardwareButton;
     QStackedWidget* stackedWidget;
-    QScrollArea* dockScrollArea;
+
+    QString triggeredAdoptableKind;
 
 };
 

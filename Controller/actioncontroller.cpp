@@ -54,9 +54,18 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_paste, &QAction::triggered, viewController, &ViewController::paste);
         connect(edit_replicate, &QAction::triggered, viewController, &ViewController::replicate);
         connect(view_fitView, &QAction::triggered, viewController, &ViewController::fitView);
+        connect(view_fitAllViews, &QAction::triggered, viewController, &ViewController::fitAllViews);
+
+
         connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
         connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::renameActiveSelection);
+
+        connect(view_centerOnImpl, &QAction::triggered, viewController, &ViewController::centerImpl);
+        connect(view_centerOnDefn, &QAction::triggered, viewController, &ViewController::centerDefinition);
+        connect(view_viewDefnInNewWindow, &QAction::triggered, viewController, &ViewController::popupDefinition);
+        connect(view_viewImplInNewWindow, &QAction::triggered, viewController, &ViewController::popupImpl);
+        connect(view_viewInNewWindow, &QAction::triggered, viewController, &ViewController::popupSelection);
 
         connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
 
@@ -167,12 +176,17 @@ void ActionController::selectionChanged(int selectionSize)
         edit_CycleActiveSelectionBackward->setEnabled(gotMultipleSelection);
 
         view_fitView->setEnabled(modelActions);
+        view_fitAllViews->setEnabled(modelActions);
+
 
         view_centerOn->setEnabled(gotSelection);
 
         //EXTRA LOGIC
         view_centerOnDefn->setEnabled(gotSingleSelection);
         view_centerOnImpl->setEnabled(gotSingleSelection);
+        view_viewDefnInNewWindow->setEnabled(gotSingleSelection);
+        view_viewImplInNewWindow->setEnabled(gotSingleSelection);
+
 
         view_viewInNewWindow->setEnabled(gotSingleSelection);
 
@@ -301,6 +315,9 @@ void ActionController::updateActions()
 
     edit_search->setEnabled(modelActions);
     view_fitView->setEnabled(modelActions);
+    view_fitAllViews->setEnabled(modelActions);
+
+
     window_printScreen->setEnabled(modelActions);
     jenkins_importNodes->setEnabled(modelActions);
     jenkins_executeJob->setEnabled(modelActions);
@@ -417,9 +434,30 @@ void ActionController::setupActions()
     view_fitView->setShortcutContext(Qt::ApplicationShortcut);
     view_fitView->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
 
+    view_fitAllViews = createRootAction("Fit All Views", "", "Actions", "FitToScreen");
+    view_fitAllViews->setShortcutContext(Qt::ApplicationShortcut);
+    view_fitAllViews->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Space));
+
     view_centerOn = createRootAction("Center On Selection", "", "Actions", "Crosshair");
     view_centerOnDefn = createRootAction("Center On Definition", "", "Actions", "Definition");
     view_centerOnImpl = createRootAction("Center On Implementation", "", "Actions", "Implementation");
+
+    view_viewDefnInNewWindow = createRootAction("Show Definition in New Window", "", "Actions", "Implementation");
+    view_viewImplInNewWindow = createRootAction("Show Implementation in New Window", "", "Actions", "Implementation");
+
+    view_centerOnDefn->setShortcutContext(Qt::ApplicationShortcut);
+    view_centerOnDefn->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
+
+    view_centerOnImpl->setShortcutContext(Qt::ApplicationShortcut);
+    view_centerOnImpl->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
+
+    view_viewImplInNewWindow->setShortcutContext(Qt::ApplicationShortcut);
+    view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
+
+    view_viewDefnInNewWindow->setShortcutContext(Qt::ApplicationShortcut);
+    view_viewDefnInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
+
+
     view_viewConnections = createRootAction("View Connections", "", "Actions", "Connections");
     view_viewInNewWindow = createRootAction("View In New Window", "", "Actions", "Popup");
 
@@ -532,11 +570,17 @@ void ActionController::setupMainMenu()
 
      // View Menu
     menu_view->addAction(view_fitView);
+    menu_view->addAction(view_fitAllViews);
     menu_view->addSeparator();
     menu_view->addAction(view_centerOn);
     menu_view->addAction(view_centerOnDefn);
     menu_view->addAction(view_centerOnImpl);
     menu_view->addSeparator();
+    menu_view->addAction(view_viewDefnInNewWindow);
+    menu_view->addAction(view_viewImplInNewWindow);
+
+
+
     menu_view->addAction(view_viewConnections);
     menu_view->addAction(view_viewInNewWindow);
 

@@ -25,17 +25,21 @@ public:
 
     QRectF boundingRect() const;
     QRectF currentRect() const;
+    QRectF rectangleRect() const;
 
 private:
     QRectF smallRect() const;
     QRectF leftRect() const;
-    QRectF centerRect() const;
     QRectF rightRect() const;
     QRectF handleRect() const;
-    QPolygonF triangle() const;
+    QRectF centerRect() const;
 
-    NodeItemNew* getVisibleSource();
-    NodeItemNew* getVisibleDestination();
+    QPolygonF sourceArrowHead() const;
+    QPolygonF destinationArrowHead() const;
+    QPolygonF triangle(QPointF startPoint) const;
+
+    NodeItemNew* getVisibleSource() const;
+    NodeItemNew* getVisibleDestination() const;
 
     NodeItemNew* getParentItem();
     NodeItemNew* getSourceItem();
@@ -44,6 +48,8 @@ private:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     QPointF getSourcePos() const;
+    bool sourceExitsLeft() const;
+    bool destinationEntersLeft() const;
     QPointF getDestinationPos() const;
 
     QPointF getCenterOffset() const;
@@ -68,7 +74,7 @@ private:
 
 
     void setManuallyPositioned(bool value);
-    bool hasSetPosition();
+    bool hasSetPosition() const;
 
     bool _hasPosition;
 
@@ -104,6 +110,10 @@ protected:
 
     // EntityItemNew interface
 public:
+
+    // EntityItemNew interface
+public:
+    QPainterPath getElementPath(ELEMENT_RECT rect) const;
 };
 
 #endif // EDGEITEMNEW_H
