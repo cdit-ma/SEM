@@ -27,6 +27,8 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     _isMoving = false;
     _isMouseMoving = false;
     _hasMouseMoved = false;
+    _hasMoved = false;
+    ignorePosition = false;
 
 
 
@@ -367,8 +369,34 @@ QPainterPath EntityItemNew::sceneShape() const
     return mapToScene(shape());
 }
 
+bool EntityItemNew::hasBeenMoved() const
+{
+    return _hasMoved;
+}
+
+void EntityItemNew::setIgnorePosition(bool ignore)
+{
+    ignorePosition = ignore;
+    if(ignore){
+        removeRequiredData("x");
+        removeRequiredData("y");
+    }else{
+        addRequiredData("x");
+        addRequiredData("y");
+    }
+}
+
+bool EntityItemNew::isIgnoringPosition()
+{
+    return ignorePosition;
+}
+
+
 void EntityItemNew::adjustPos(QPointF delta)
 {
+    if(!delta.isNull()){
+        _hasMoved = true;
+    }
     setPos(getPos() + delta);
 }
 
@@ -458,6 +486,7 @@ void EntityItemNew::setSelectionEnabled(bool enabled)
 
 void EntityItemNew::setMoving(bool moving)
 {
+    _hasMoved = false;
     _isMoving = moving;
     //TODO STUFF WITH PARENT.
 }

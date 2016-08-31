@@ -66,6 +66,7 @@ public:
     QPainterPath shape() const;
     QPainterPath sceneShape() const;
 
+    bool hasBeenMoved() const;
     void adjustPos(QPointF delta);
     virtual QPointF getPos() const;
 
@@ -146,6 +147,9 @@ public:
     bool isMoveEnabled();
     bool isHoverEnabled();
 
+    void setIgnorePosition(bool ignore);
+    bool isIgnoringPosition();
+
 
 
 
@@ -214,6 +218,8 @@ private:
     bool _isActiveSelected;
     bool _isExpanded;
 
+    bool _hasMoved;
+
     bool _isMoving;
     bool _isMouseMoving;
     bool _hasMouseMoved;
@@ -224,6 +230,7 @@ private:
     QColor bodyColor;
 
     KIND kind;
+    bool ignorePosition;
 
 
 

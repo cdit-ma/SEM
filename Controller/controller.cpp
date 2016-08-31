@@ -1917,9 +1917,10 @@ QStringList NewController::getValidKeyValues(int nodeID, QString keyName)
         QString nodeKind = "";
         if(nodeID != -1){
             Node* node = getNodeFromID(nodeID);
-            nodeKind = node->getNodeKindStr();
+			if(node){
+				nodeKind = node->getNodeKindStr();
+			}
         }
-
         validKeyValues = key->getValidValues(nodeKind);
 
     }

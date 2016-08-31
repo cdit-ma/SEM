@@ -125,22 +125,7 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
     }
 }
 
-void NodeItemNew::setIgnorePosition(bool ignore)
-{
-    ignorePosition = ignore;
-    if(ignore){
-        removeRequiredData("x");
-        removeRequiredData("y");
-    }else{
-        addRequiredData("x");
-        addRequiredData("y");
-    }
-}
 
-bool NodeItemNew::isIgnoringPosition()
-{
-    return ignorePosition;
-}
 
 void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
 {

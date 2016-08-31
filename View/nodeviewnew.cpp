@@ -359,17 +359,13 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
             if(!item){
                 continue;
             }
+            bool itemWasMoved = item->hasBeenMoved();
             item->setMoving(adjusting);
             if(!adjusting){
                 int id = item->getID();
                 QPointF pos = item->getCenter();
 
-                bool sendRequest = true;
-
-                if(item->isNodeItem()){
-                    NodeItemNew* nodeItem = (NodeItemNew*) item;
-                    sendRequest = !nodeItem->isIgnoringPosition();
-                }
+                bool sendRequest = itemWasMoved && !item->isIgnoringPosition();
 
                 if(sendRequest){
                     emit setData(id, "x", pos.x());

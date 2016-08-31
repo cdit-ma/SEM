@@ -27,8 +27,7 @@ public:
 
     virtual void addChildNode(NodeItemNew* nodeItem);
 
-    void setIgnorePosition(bool ignore);
-    bool isIgnoringPosition();
+
 
     void removeChildNode(NodeItemNew *nodeItem);
 
