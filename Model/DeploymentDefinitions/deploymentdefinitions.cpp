@@ -6,6 +6,9 @@ DeploymentDefinitions::DeploymentDefinitions():Node(NK_DEPLOYMENT_DEFINITIONS)
 
 bool DeploymentDefinitions::canAdoptChild(Node *node)
 {
+    if(!node->isNodeOfType(NT_ASPECT)){
+        return false;
+    }
     switch(node->getNodeKind()){
     case NK_ASSEMBLY_DEFINITIONS:
     case NK_HARDWARE_DEFINITIONS:

@@ -2,7 +2,7 @@
 
 DDS_PartitionQosPolicy::DDS_PartitionQosPolicy():Node(NK_QOS_DDS_POLICY_PARTITION)
 {
-    setNodeType(NT_QOS_DDS_POLICY);
+    setNodeType(NT_QOS); setNodeType(NT_DDS);
 }
 
 bool DDS_PartitionQosPolicy::canAdoptChild(Node*)

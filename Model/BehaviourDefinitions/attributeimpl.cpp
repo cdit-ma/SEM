@@ -2,7 +2,7 @@
 
 AttributeImpl::AttributeImpl():DataNode(Node::NK_ATTRIBUTE_IMPL)
 {
-    setNodeType(NT_IMPL);
+    setNodeType(NT_IMPLEMENTATION);
     setAcceptsEdgeKind(Edge::EC_DATA);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
 

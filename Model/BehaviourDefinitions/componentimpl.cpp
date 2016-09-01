@@ -1,7 +1,7 @@
 #include "componentimpl.h"
 
 ComponentImpl::ComponentImpl():Node(Node::NK_COMPONENT_IMPL){
-    setNodeType(NT_IMPL);
+    setNodeType(NT_IMPLEMENTATION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
 

@@ -91,21 +91,20 @@ public:
     };
     //Enum for Node Types
     enum NODE_TYPE{
-        NT_NODE,
-        NT_ASPECT,
-        NT_DEFINITION,
-        NT_INSTANCE,
-        NT_IMPL,
-        NT_HARDWARE,
-        NT_QOS,
-        NT_QOS_PROFILE,
-        NT_BEHAVIOUR,
-        NT_DATA,
-        NT_EVENTPORT,
-        NT_EVENTPORT_ASSEMBLY,
-        NT_QOS_DDS_POLICY,
-        NT_BRANCH,
-        NT_PARAMETER
+        NT_DEFINITION           = 1 << 0,   //bin. 0000 0000 0000 0001
+        NT_INSTANCE             = 1 << 1,   //bin. 0000 0000 0000 0010
+        NT_IMPLEMENTATION       = 1 << 2,   //bin. 0000 0000 0000 0100
+        NT_ASPECT               = 1 << 3,   //bin. 0000 0000 0000 1000
+        NT_BEHAVIOUR            = 1 << 4,   //bin. 0000 0000 0001 0000
+        NT_DATA                 = 1 << 5,   //bin. 0000 0000 0010 0000
+        NT_EVENTPORT            = 1 << 6,   //bin. 0000 0000 0100 0000
+        NT_EVENTPORT_ASSEMBLY   = 1 << 7,   //bin. 0000 0000 1000 0000
+        NT_HARDWARE             = 1 << 8,   //bin. 0000 0001 0000 0000
+        NT_QOS                  = 1 << 9,   //bin. 0000 0010 0000 0000
+        NT_QOS_PROFILE          = 1 << 10,  //bin. 0000 0100 0000 0000
+        NT_DDS                  = 1 << 11,  //bin. 0000 1000 0000 0000
+        NT_BRANCH               = 1 << 12,  //bin. 0001 0000 0000 0000
+        NT_PARAMETER            = 1 << 13,  //bin. 0010 0000 0000 0000
     };
 
     //Constuctor
@@ -178,6 +177,8 @@ public:
     bool isAspect() const;
     bool isImpl() const;
 
+    int getTypes() const;
+
     void setDefinition(Node *def);
     Node* getDefinition(bool recurse=false);
     void unsetDefinition();
@@ -202,6 +203,7 @@ private:
 
     void addEdge(Edge *edge);
     void removeEdge(Edge *edge);
+
 
 
     bool ancestorOf(Node *node);
@@ -237,7 +239,7 @@ private:
 
     VIEW_ASPECT aspect;
 
-    QList<NODE_TYPE> types;
+    int types;
     QList<Edge::EDGE_CLASS> validEdgeKinds;
 
 protected:

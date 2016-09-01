@@ -2293,6 +2293,7 @@ void NewController::storeGraphMLInHash(Entity* item)
             properties["viewAspect"] = node->getViewAspect();
             properties["treeIndex"] = node->getTreeIndexAlpha();
             properties["parentID"] = node->getParentNodeID();
+            properties["nodeTypes"] = node->getTypes();
         }else if(entityKind == Entity::EK_EDGE){
             properties["kind"] = edge->getEdgeClass();
             properties["srcID"] = edge->getSourceID();

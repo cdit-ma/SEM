@@ -2,7 +2,7 @@
 
 DDS_ReaderDataLifecycleQosPolicy::DDS_ReaderDataLifecycleQosPolicy():Node(NK_QOS_DDS_POLICY_READERDATALIFECYCLE)
 {
-    setNodeType(NT_QOS_DDS_POLICY);
+    setNodeType(NT_QOS); setNodeType(NT_DDS);
 }
 
 bool DDS_ReaderDataLifecycleQosPolicy::canAdoptChild(Node*)

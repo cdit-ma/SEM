@@ -2,7 +2,7 @@
 
 DDS_EntityFactoryQosPolicy::DDS_EntityFactoryQosPolicy():Node(NK_QOS_DDS_POLICY_ENTITYFACTORY)
 {
-    setNodeType(NT_QOS_DDS_POLICY);
+    setNodeType(NT_QOS); setNodeType(NT_DDS);
 }
 
 bool DDS_EntityFactoryQosPolicy::canAdoptChild(Node*)

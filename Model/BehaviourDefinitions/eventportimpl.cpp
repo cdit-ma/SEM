@@ -2,7 +2,7 @@
 
 EventPortImpl::EventPortImpl(Node::NODE_KIND kind):BehaviourNode(kind)
 {
-    setNodeType(NT_IMPL);
+    setNodeType(NT_IMPLEMENTATION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
 

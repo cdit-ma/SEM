@@ -3,12 +3,20 @@
 DDS_QOSProfile::DDS_QOSProfile():Node(NK_QOS_DDS_PROFILE)
 {
     setNodeType(NT_QOS_PROFILE);
+    setNodeType(NT_QOS);
+    setNodeType(NT_DDS);
     setAcceptsEdgeKind(Edge::EC_QOS);
 }
 
 bool DDS_QOSProfile::canAdoptChild(Node *node)
 {
-    if(!node->isNodeOfType(NT_QOS_DDS_POLICY)){
+    if(!node->isNodeOfType(NT_QOS)){
+        return false;
+    }
+    if(!node->isNodeOfType(NT_DDS)){
+        return false;
+    }
+    if(node->isNodeOfType(NT_QOS_PROFILE)){
         return false;
     }
 

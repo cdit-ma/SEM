@@ -158,6 +158,24 @@ void ActionController::selectionChanged(int selectionSize)
         bool gotMultipleSelection = modelActions && selectionSize > 1;
 
 
+        ViewItem* singleItem = selectionController->getActiveSelectedItem();
+
+        bool hasDefn = false;
+        bool hasImpl = false;
+        if(gotSingleSelection && singleItem && singleItem->isNode()){
+            NodeViewItem* node = (NodeViewItem*) singleItem;
+            hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
+            hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
+
+            qCritical() << hasDefn;
+        }
+        view_centerOnDefn->setEnabled(hasDefn);
+        view_viewDefnInNewWindow->setEnabled(hasDefn);
+
+        view_centerOnImpl->setEnabled(hasImpl);
+        view_viewImplInNewWindow->setEnabled(hasImpl);
+
+
         edit_cut->setEnabled(gotSelection);
         edit_copy->setEnabled(gotSelection);
         edit_paste->setEnabled(gotSingleSelection);
@@ -180,13 +198,6 @@ void ActionController::selectionChanged(int selectionSize)
 
 
         view_centerOn->setEnabled(gotSelection);
-
-        //EXTRA LOGIC
-        view_centerOnDefn->setEnabled(gotSingleSelection);
-        view_centerOnImpl->setEnabled(gotSingleSelection);
-        view_viewDefnInNewWindow->setEnabled(gotSingleSelection);
-        view_viewImplInNewWindow->setEnabled(gotSingleSelection);
-
 
         view_viewInNewWindow->setEnabled(gotSingleSelection);
 
@@ -310,7 +321,6 @@ void ActionController::updateActions()
     edit_redo->setEnabled(modelActions);
 
     model_validateModel->setEnabled(modelActions);
-    model_clearModel->setEnabled(modelActions);
     model_executeLocalJob->setEnabled(modelActions);
 
     edit_search->setEnabled(modelActions);
@@ -442,7 +452,7 @@ void ActionController::setupActions()
     view_centerOnDefn = createRootAction("Center On Definition", "", "Actions", "Definition");
     view_centerOnImpl = createRootAction("Center On Implementation", "", "Actions", "Implementation");
 
-    view_viewDefnInNewWindow = createRootAction("Show Definition in New Window", "", "Actions", "Implementation");
+    view_viewDefnInNewWindow = createRootAction("Show Definition in New Window", "", "Actions", "Definition");
     view_viewImplInNewWindow = createRootAction("Show Implementation in New Window", "", "Actions", "Implementation");
 
     view_centerOnDefn->setShortcutContext(Qt::ApplicationShortcut);
@@ -469,7 +479,6 @@ void ActionController::setupActions()
     window_printScreen = createRootAction("Print Screen", "", "Actions", "PrintScreen");
     window_displayMinimap = createRootAction("Display Minimap", "", "Actions", "Minimap");
 
-    model_clearModel = createRootAction("Clear Model", "", "Actions", "Clear");
     model_validateModel = createRootAction("Validate Model", "", "Actions", "Validate");
     model_executeLocalJob = createRootAction("Launch: Local Deployment", "", "Actions", "Job_Build");
     model_executeLocalJob->setToolTip("Requires Valid CUTS and Windows");
@@ -586,11 +595,9 @@ void ActionController::setupMainMenu()
 
     // Model Menu
     menu_model->addAction(model_validateModel);
-    menu_model->addAction(model_clearModel);
     menu_model->addAction(model_executeLocalJob);
 
     // Jenkins Menu
-    menu_jenkins->addAction(jenkins_importNodes);
     menu_jenkins->addAction(jenkins_executeJob);
 
     // Window Menu

@@ -7,6 +7,7 @@ EventPort::EventPort(NODE_KIND kind):Node(kind)
     aggregate = 0;
     setNodeType(NT_EVENTPORT);
     setNodeType(NT_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_AGGREGATE);
 }
 

@@ -118,7 +118,6 @@ public:
     RootAction* window_displayMinimap;
 
     RootAction* model_validateModel;
-    RootAction* model_clearModel;
     RootAction* model_executeLocalJob;
 
     RootAction* options_settings;

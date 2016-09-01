@@ -12,6 +12,7 @@ Node::Node(Node::NODE_KIND kind):Entity(EK_NODE)
     parentNode = 0;
     childCount = 0;
     definition = 0;
+    types = 0;
     aspect = VA_NONE;
 }
 
@@ -136,7 +137,7 @@ bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 
 bool Node::isNodeOfType(Node::NODE_TYPE type) const
 {
-    return types.contains(type);
+    return type & types;
 }
 
 bool Node::acceptsEdgeKind(Edge::EDGE_CLASS edgeKind) const
@@ -181,27 +182,20 @@ QList<Edge::EDGE_CLASS> Node::getAcceptedEdgeKinds() const
 
 void Node::setNodeType(Node::NODE_TYPE type)
 {
-    if(!types.contains(type)){
-        switch(type){
-            case Node::NT_DEFINITION:
-            case Node::NT_IMPL:
-            case Node::NT_INSTANCE:
-                setAcceptsEdgeKind(Edge::EC_DEFINITION);
-                break;
-            case Node::NT_DATA:
-                setAcceptsEdgeKind(Edge::EC_DATA);
-                break;
-        default:
-            break;
-        }
-
-        types.append(type);
+    int newTypes = types | type;
+    if(newTypes != types){
+        types = newTypes;
+        emit propertyChanged(getID(), "nodeTypes", types);
     }
 }
 
 void Node::removeNodeType(Node::NODE_TYPE type)
 {
-    types.removeAll(type);
+    int newTypes = types & ~type;
+    if(newTypes != types){
+        types = newTypes;
+        emit propertyChanged(getID(), "nodeTypes", types);
+    }
 }
 
 void Node::setAcceptsEdgeKind(Edge::EDGE_CLASS edgeKind)
@@ -677,7 +671,12 @@ bool Node::isAspect() const
 
 bool Node::isImpl() const
 {
-    return isNodeOfType(NT_IMPL);
+    return isNodeOfType(NT_IMPLEMENTATION);
+}
+
+int Node::getTypes() const
+{
+    return types;
 }
 
 void Node::setDefinition(Node *def)
