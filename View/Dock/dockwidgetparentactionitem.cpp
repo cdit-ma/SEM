@@ -23,6 +23,7 @@ DockWidgetParentActionItem::DockWidgetParentActionItem(QAction *action, QWidget 
     setFixedHeight(ITEM_HEIGHT);
 
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
+    connect(action, SIGNAL(destroyed(QObject*)), this, SLOT(deleteLater()));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(this, SIGNAL(toggled(bool)), SLOT(setChildrenVisible(bool)));
 
@@ -106,10 +107,17 @@ void DockWidgetParentActionItem::actionChanged()
 void DockWidgetParentActionItem::themeChanged()
 {
     Theme* theme = Theme::theme();
+    QColor altColor = theme->getBackgroundColor().lighter(130);
+
     setIcon(theme->getIcon("Actions", "Arrow_Down"));
-    setStyleSheet("QToolButton{ border-radius: 5px; padding-left: 5px; background:" + theme->getBackgroundColorHex() + ";}"
-                  "QToolButton::checked{ background:" + theme->getDisabledBackgroundColorHex() + ";}"
-                                                                                                 "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";}");
+    setStyleSheet("QToolButton {"
+                  "border-color:" + theme->getBackgroundColorHex() + ";"
+                  "padding: 2px 0px 2px 7px;"
+                  "background:" + theme->getBackgroundColorHex() + ";}"
+                  "QToolButton::checked {"
+                  "background:" + theme->QColorToHex(altColor) + ";"
+                  "}"
+                  "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";}");
 }
 
 

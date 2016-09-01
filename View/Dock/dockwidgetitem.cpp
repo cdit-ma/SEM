@@ -79,7 +79,7 @@ void DockWidgetItem::displayToolButtonText(bool show)
  */
 void DockWidgetItem::setIconSize(int width, int height)
 {
-    iconWidth = width + 5;
+    iconWidth = width + 7;
     QToolButton::setIconSize(QSize(width, height));
 }
 

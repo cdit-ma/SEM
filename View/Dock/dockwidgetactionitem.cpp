@@ -14,6 +14,7 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     DockWidgetItem(action->text(), parent)
 {
     dockAction = action;
+    theme = 0;
 
     setupLayout();
     setSubActionRequired(false);
@@ -26,6 +27,7 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     themeChanged();
 
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
+    connect(action, SIGNAL(destroyed(QObject*)), this, SLOT(deleteLater()));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(this, SIGNAL(displayedTextChanged(QString)), SLOT(updateDisplayedText(QString)));
 }
@@ -150,8 +152,10 @@ void DockWidgetActionItem::updateDisplayedText(QString text)
  */
 void DockWidgetActionItem::enterEvent(QEvent* event)
 {
-    textLabel->setStyleSheet("color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";");
-    arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor(theme->CR_SELECTED)));
+    if (theme) {
+        textLabel->setStyleSheet("color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";");
+        arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor(theme->CR_SELECTED)));
+    }
     QToolButton::enterEvent(event);
 }
 
@@ -162,8 +166,10 @@ void DockWidgetActionItem::enterEvent(QEvent* event)
  */
 void DockWidgetActionItem::leaveEvent(QEvent* event)
 {
-    textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
-    arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
+    if (theme) {
+        textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
+        arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
+    }
     QToolButton::leaveEvent(event);
 }
 

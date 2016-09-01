@@ -85,7 +85,7 @@ void DockWidget::addItem(DockWidgetItem* item)
 
     QToolBar* toolbar = new QToolBar(this);
     toolbar->addWidget(item);
-    itemToolbars.append(toolbar);
+    itemToolbarHash[item] = toolbar;
     mainLayout->addWidget(toolbar);
 }
 
@@ -123,17 +123,26 @@ void DockWidget::clearDock()
 {
     while (!childrenItems.isEmpty()) {
         DockWidgetItem* item = childrenItems.takeFirst();
-        mainLayout->removeWidget(item);
-        delete item;
+        if (itemToolbarHash.contains(item)) {
+            // if there is a toolbar container for the dock item, delete it
+            QToolBar* tb = itemToolbarHash.take(item);
+            mainLayout->removeWidget(tb);
+            delete tb;
+        } else {
+            mainLayout->removeWidget(item);
+            delete item;
+        }
     }
 
     // TODO - Don't really need to store the toolbars
     // Find another way to remove all items/widgets from a layout
+    /*
     while (!itemToolbars.isEmpty()) {
         QToolBar* toolbar = itemToolbars.takeFirst();
         mainLayout->removeWidget(toolbar);
         delete toolbar;
     }
+    */
 
     /*
     // for some reason, this doesn't delete all the widgets inside of mainLayout
@@ -198,6 +207,17 @@ void DockWidget::dockActionClicked()
 {
     DockWidgetActionItem* senderAction = qobject_cast<DockWidgetActionItem*>(sender());
     emit actionClicked(senderAction);
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::viewItem_Destructed
+ * @param ID
+ * @param viewItem
+ */
+void DockWidget::viewItemDestructed(int ID, ViewItem* viewItem)
+{
+
 }
 
 

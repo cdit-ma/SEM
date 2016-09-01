@@ -199,17 +199,6 @@ void ToolbarWidgetNew::menuActionTrigged(QAction* action)
 
 
 /**
- * @brief ToolbarWidgetNew::viewItem_Destructed
- * @param ID
- * @param viewItem
- */
-void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem* viewItem)
-{
-
-}
-
-
-/**
  * @brief ToolbarWidgetNew::addChildNode
  * @param action
  */

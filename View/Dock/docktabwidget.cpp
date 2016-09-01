@@ -11,7 +11,7 @@
 #define DOCK_SPACING 3
 #define DOCK_SEPARATOR_WIDTH 5
 #define MIN_WIDTH 130
-#define MAX_WIDTH 200
+#define MAX_WIDTH 250
 
 /**
  * @brief DockTabWidget::DockTabWidget
@@ -254,7 +254,6 @@ void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt)
         }
         case ToolActionController::HARDWARE:
         {
-            break;
             QList<NodeViewItemAction*> actions = toolActionController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
             populateDock(dockWidget, actions);
             break;
@@ -285,13 +284,7 @@ void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemActio
         foreach (NodeViewItemAction* action, actions) {
             NodeViewItemAction* parentViewItemAction = action->getParentViewItemAction();
             if (parentViewItemAction) {
-                // construct a sub-action for each of the nodeviewitemactions
-                QAction* subAction = action->constructSubAction(false);
-                DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
-                dockItem->setProperty("ID", action->getID());
-                if (!triggeredAdoptableKind.isEmpty()) {
-                    dockItem->setProperty("parent-kind", triggeredAdoptableKind);
-                }
+                DockWidgetActionItem* dockItem = constructDockActionItem(action);
                 dockItemsHash[parentViewItemAction].append(dockItem);
             }
         }
@@ -305,24 +298,37 @@ void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemActio
                 dockWidget->addItem(item);
                 parentItem->addToChildrenActions(item->getAction());
             }
+            // this initially contracts the parent dock items
             parentItem->setToggledState(false);
         }
 
     } else {
         foreach (NodeViewItemAction* action, actions) {
-            // construct a sub-action for each of the nodeviewitemactions
-            QAction* subAction = action->constructSubAction(false);
-            DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
-            dockItem->setProperty("ID", action->getID());
-            if (!triggeredAdoptableKind.isEmpty()) {
-                dockItem->setProperty("parent-kind", triggeredAdoptableKind);
-            }
+            DockWidgetActionItem* dockItem = constructDockActionItem(action);
             dockWidget->addItem(dockItem);
         }
     }
 
     // update header text; update entity kind to construct
     dockWidget->updateHeaderText(triggeredAdoptableKind);
+}
+
+
+/**
+ * @brief DockTabWidget::constructDockActionItem
+ * @param action
+ * @return
+ */
+DockWidgetActionItem *DockTabWidget::constructDockActionItem(NodeViewItemAction* action)
+{
+    // construct a sub-action for the nodeviewitemaction
+    QAction* subAction = action->constructSubAction(false);
+    DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
+    dockItem->setProperty("ID", action->getID());
+    if (!triggeredAdoptableKind.isEmpty()) {
+        dockItem->setProperty("parent-kind", triggeredAdoptableKind);
+    }
+    return dockItem;
 }
 
 

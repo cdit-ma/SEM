@@ -33,7 +33,7 @@ private:
     void openRequiredDock(ToolActionController::DOCK_TYPE dt);
     void populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions, bool groupByParent = false);
 
-    //void construct
+    DockWidgetActionItem* constructDockActionItem(NodeViewItemAction* action);
 
     DockWidget* getDock(ToolActionController::DOCK_TYPE dt);
 
