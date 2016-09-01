@@ -31,7 +31,10 @@ private:
     void setupConnections();
 
     void openRequiredDock(ToolActionController::DOCK_TYPE dt);
-    void populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions);
+    void populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions, bool groupByParent = false);
+
+    //void construct
+
     DockWidget* getDock(ToolActionController::DOCK_TYPE dt);
 
     ViewController* viewController;

@@ -17,7 +17,9 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
 
     setupLayout();
     setSubActionRequired(false);
+    setEnabled(true);
 
+    displayToolButtonText(false);
     updateDisplayedText(getDisplayedText());
 
     actionChanged();
@@ -36,6 +38,16 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
 QAction* DockWidgetActionItem::getAction()
 {
     return dockAction;
+}
+
+
+/**
+ * @brief DockWidgetActionItem::getItemKind
+ * @return
+ */
+DockWidgetItem::DOCKITEM_KIND DockWidgetActionItem::getItemKind()
+{
+    return ACTION_ITEM;
 }
 
 
@@ -105,7 +117,6 @@ void DockWidgetActionItem::actionChanged()
         QString actionText = dockAction->text();
         if (actionText != getText()) {
             setText(actionText);
-            setToolTip(actionText);
         }
         setVisible(dockAction->isVisible());
     }

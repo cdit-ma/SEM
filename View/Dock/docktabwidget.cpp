@@ -1,5 +1,6 @@
 #include "docktabwidget.h"
 #include "dockwidgetactionitem.h"
+#include "dockwidgetparentactionitem.h"
 #include "../theme.h"
 
 #include <QToolBar>
@@ -26,6 +27,7 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
 
     themeChanged();
     selectionChanged();
+    //resize(150, sizeHint().height());
 }
 
 
@@ -210,15 +212,7 @@ void DockTabWidget::setupDocks()
     stackedWidget->addWidget(functionsDock);
     stackedWidget->addWidget(hardwareDock);
 
-    partsDock->addActionItems(toolActionController->getAdoptableKindsActions(true));
-
-    QAction* testAction = new QAction(Theme::theme()->getIcon("Actions", "Help"), "", this);
-    hardwareDock->addActionItem(testAction);
-
-    hardwareDock->addItem("Hello");
-    hardwareDock->addItem("Test");
-    hardwareDock->addItem("DockItem");
-    hardwareDock->addItem("gsdgksdjhgsdghgggeEND");
+    partsDock->addItems(toolActionController->getAdoptableKindsActions(true));
 }
 
 
@@ -255,7 +249,7 @@ void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt)
         case ToolActionController::DEFINITIONS:
         {
             QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(triggeredAdoptableKind);
-            populateDock(dockWidget, actions);
+            populateDock(dockWidget, actions, true);
             break;
         }
         case ToolActionController::HARDWARE:
@@ -278,16 +272,52 @@ void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt)
  * @param dockWidget
  * @param actions
  */
-void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions)
+void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions, bool groupByParent)
 {
     // clear the dock first
     dockWidget->clearDock();
 
-    foreach (NodeViewItemAction* action, actions) {
-        DockWidgetActionItem* actionWidget = dockWidget->addActionItem(action->constructSubAction(false));
-        actionWidget->setProperty("ID", action->getID());
-        if (!triggeredAdoptableKind.isEmpty()) {
-            actionWidget->setProperty("parent-kind", triggeredAdoptableKind);
+    if (groupByParent) {
+
+        QHash<NodeViewItemAction*, QList<DockWidgetActionItem*> > dockItemsHash;
+
+        // group by the parent view item actions
+        foreach (NodeViewItemAction* action, actions) {
+            NodeViewItemAction* parentViewItemAction = action->getParentViewItemAction();
+            if (parentViewItemAction) {
+                // construct a sub-action for each of the nodeviewitemactions
+                QAction* subAction = action->constructSubAction(false);
+                DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
+                dockItem->setProperty("ID", action->getID());
+                if (!triggeredAdoptableKind.isEmpty()) {
+                    dockItem->setProperty("parent-kind", triggeredAdoptableKind);
+                }
+                dockItemsHash[parentViewItemAction].append(dockItem);
+            }
+        }
+
+        // add the parent item and then its children to the dock
+        foreach (NodeViewItemAction* parentViewItemAction, dockItemsHash.keys()) {
+            QAction* parentAction = parentViewItemAction->constructSubAction(false);
+            DockWidgetParentActionItem* parentItem = new DockWidgetParentActionItem(parentAction, this);
+            dockWidget->addItem(parentItem);
+            foreach (DockWidgetActionItem* item, dockItemsHash.value(parentViewItemAction)) {
+                dockWidget->addItem(item);
+                parentItem->addToChildrenActions(item->getAction());
+            }
+            parentItem->setToggledState(false);
+        }
+
+    } else {
+        foreach (NodeViewItemAction* action, actions) {
+            // construct a sub-action for each of the nodeviewitemactions
+            QAction* subAction = action->constructSubAction(false);
+            DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
+            dockItem->setProperty("ID", action->getID());
+            if (!triggeredAdoptableKind.isEmpty()) {
+                dockItem->setProperty("parent-kind", triggeredAdoptableKind);
+            }
+            dockWidget->addItem(dockItem);
         }
     }
 

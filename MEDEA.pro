@@ -206,7 +206,8 @@ HEADERS += \
     View/SceneItems/Assemblies/assemblyeventportnodeitem.h \
     View/Dock/dockwidget.h \
     View/Dock/dockwidgetitem.h \
-    View/Dock/dockwidgetactionitem.h
+    View/Dock/dockwidgetactionitem.h \
+    View/Dock/dockwidgetparentactionitem.h
 
 SOURCES += \
     main.cpp \
@@ -376,7 +377,8 @@ SOURCES += \
     View/SceneItems/Assemblies/assemblyeventportnodeitem.cpp \
     View/Dock/dockwidget.cpp \
     View/Dock/dockwidgetitem.cpp \
-    View/Dock/dockwidgetactionitem.cpp
+    View/Dock/dockwidgetactionitem.cpp \
+    View/Dock/dockwidgetparentactionitem.cpp
 
 RESOURCES += \
     resources.qrc

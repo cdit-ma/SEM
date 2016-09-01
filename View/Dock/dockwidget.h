@@ -6,6 +6,7 @@
 #include <QToolButton>
 
 #include "../../Controller/toolbarcontroller.h"
+#include "dockwidgetparentactionitem.h"
 #include "dockwidgetactionitem.h"
 #include "dockwidgetitem.h"
 
@@ -17,9 +18,9 @@ public:
 
     ToolActionController::DOCK_TYPE getDockType();
 
-    DockWidgetItem* addItem(QString text);
-    DockWidgetActionItem* addActionItem(QAction* action);
-    void addActionItems(QList<QAction*> actions);
+    void addItem(DockWidgetItem* item);
+    void addItems(QList<DockWidgetItem*> items);
+    void addItems(QList<QAction*> actions);
 
     void clearDock();
     void updateHeaderText(QString text);
@@ -43,10 +44,17 @@ private:
     QVBoxLayout* headerLayout;
 
     QWidget* mainWidget;
-    QLabel* descriptionLabel;
+    DockWidgetItem* kindLabel;
     QToolButton* backButton;
 
-    QHash<QAction*, DockWidgetActionItem*> childrenActions;
+    QList<DockWidgetActionItem*> childrenActions;
+    QList<DockWidgetParentActionItem*> parentActions;
+
+    QList<DockWidgetItem*> childrenItems;
+    QList<QToolBar*> itemToolbars;
+
+    QHash<QAction*, DockWidgetActionItem*> childrenActionHash;
+    QHash<QAction*, DockWidgetActionItem*> parentActionHash;
     bool containsHeader;
 
 };
