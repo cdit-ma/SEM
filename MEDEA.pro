@@ -407,6 +407,7 @@ OTHER_FILES += \
     Resources/Transforms/graphml2ddd.xsl \
     Resources/Transforms/graphml2deployconfig.xsl \
     Resources/Transforms/graphml2dpd.xsl \
+    Resources/Transforms/graphml2dpdold.xsl \
     Resources/Transforms/graphml2dts.xsl \
     Resources/Transforms/graphml2h.xsl \
     Resources/Transforms/graphml2idl.xsl \

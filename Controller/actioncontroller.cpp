@@ -166,8 +166,6 @@ void ActionController::selectionChanged(int selectionSize)
             NodeViewItem* node = (NodeViewItem*) singleItem;
             hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
             hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
-
-            qCritical() << hasDefn;
         }
         view_centerOnDefn->setEnabled(hasDefn);
         view_viewDefnInNewWindow->setEnabled(hasDefn);
