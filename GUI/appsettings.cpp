@@ -119,15 +119,21 @@ void AppSettings::dataValueChanged(QString dataKey, QVariant data)
 void AppSettings::applySettings()
 {
     bool themeChanged = false;
+    bool settingsChanged = false;
     foreach(SETTING_KEY key, changedSettings.keys()){
         if(!themeChanged && SettingsController::settings()->isThemeSetting(key)){
             themeChanged = true;
         }
         emit setSetting(key, changedSettings[key]);
+        settingsChanged = true;
     }
 
     if(themeChanged){
         emit setSetting(SK_THEME_APPLY, true);
+    }
+
+    if(settingsChanged){
+        emit settingsApplied();
     }
 }
 

@@ -38,6 +38,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     addRequiredData("isExpanded");
 
 
+
     if(parentItem){
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
@@ -111,7 +112,7 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
     int ID = nodeItem->getID();
     //If we have added a child, and there is only one. emit a signal
     if(!childNodes.contains(ID)){
-        connect(nodeItem, SIGNAL(sizeChanged(QSizeF)), this, SLOT(childPosChanged()));
+        connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(childPosChanged()));
         connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
         childNodes[ID] = nodeItem;
         if(childNodes.count() == 1){
@@ -124,22 +125,7 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
     }
 }
 
-void NodeItemNew::setIgnorePosition(bool ignore)
-{
-    ignorePosition = ignore;
-    if(ignore){
-        removeRequiredData("x");
-        removeRequiredData("y");
-    }else{
-        addRequiredData("x");
-        addRequiredData("y");
-    }
-}
 
-bool NodeItemNew::isIgnoringPosition()
-{
-    return ignorePosition;
-}
 
 void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
 {
@@ -227,6 +213,9 @@ void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
         edgeItem->setParentItem(this);
         childEdges[ID] = edgeItem;
 
+        edgeItem->setBodyColor(getBodyColor().darker(120));
+
+        connect(edgeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
         edgeItem->setVisible(isExpanded());
     }
 }
@@ -388,17 +377,21 @@ QRectF NodeItemNew::bodyRect() const
     return currentRect();
 }
 
-QRectF NodeItemNew::moveRect() const
+QRectF NodeItemNew::headerRect() const
 {
-    return EntityItemNew::moveRect();
+    return currentRect();
 }
-
 
 QRectF NodeItemNew::childrenRect() const
 {
     QRectF rect;
     foreach(EntityItemNew* child, getChildEntities()){
-        rect = rect.united(child->translatedBoundingRect());
+        if(child->isNodeItem()){
+            rect = rect.united(child->translatedBoundingRect());
+        }else{
+            //Edges are fine
+            rect = rect.united(child->boundingRect());
+        }
     }
     return rect;
 }
@@ -423,7 +416,7 @@ void NodeItemNew::setMinimumWidth(qreal width)
         if(!isExpanded()){
             prepareGeometryChange();
             update();
-            emit sizeChanged(getSize());
+            emit sizeChanged();
         }
     }
 }
@@ -435,7 +428,7 @@ void NodeItemNew::setMinimumHeight(qreal height)
         if(!isExpanded()){
             prepareGeometryChange();
             update();
-            emit sizeChanged(getSize());
+            emit sizeChanged();
         }
     }
 }
@@ -454,7 +447,7 @@ void NodeItemNew::setExpandedWidth(qreal width, bool lockOnChange)
         if(isExpanded()){
             prepareGeometryChange();
             update();
-            emit sizeChanged(getSize());
+            emit sizeChanged();
           //  updateGridLines();
         }
         if(lockOnChange){
@@ -479,7 +472,7 @@ void NodeItemNew::setExpandedHeight(qreal height, bool lockOnChange)
         if(isExpanded()){
             prepareGeometryChange();
             update();
-            emit sizeChanged(getSize());
+            emit sizeChanged();
            // updateGridLines();
         }
 
@@ -598,7 +591,7 @@ void NodeItemNew::setPos(const QPointF &pos)
         EntityItemNew::setPos(this->pos() + deltaPos);
 
         if(getParentNodeItem()){
-            setRightJustified(x() > (getParentNodeItem()->getWidth() / 2));
+            //setRightJustified(x() > (getParentNodeItem()->getWidth() / 2));
         }
         updateGridLines();
     }
@@ -651,10 +644,63 @@ void NodeItemNew::setExpanded(bool expand)
         }
 
         update();
-        emit sizeChanged(getSize());
+        emit sizeChanged();
     }
 }
 
+
+
+void NodeItemNew::setPrimaryTextKey(QString key)
+{
+    if(primaryTextKey != key){
+        primaryTextKey = key;
+        addRequiredData(key);
+    }
+}
+
+void NodeItemNew::setSecondaryTextKey(QString key)
+{
+    if(secondaryTextKey != key){
+        secondaryTextKey = key;
+        addRequiredData(key);
+    }
+}
+
+QString NodeItemNew::getPrimaryTextKey() const
+{
+    return primaryTextKey;
+}
+
+QString NodeItemNew::getSecondaryTextKey() const
+{
+    return secondaryTextKey;
+}
+
+bool NodeItemNew::gotPrimaryTextKey() const
+{
+    return !primaryTextKey.isEmpty();
+}
+
+bool NodeItemNew::gotSecondaryTextKey() const
+{
+    return !secondaryTextKey.isEmpty();
+}
+
+QString NodeItemNew::getPrimaryText() const
+{
+    if(!primaryTextKey.isEmpty()){
+        return getData(primaryTextKey).toString();
+    }
+    return QString();
+}
+
+QString NodeItemNew::getSecondaryText() const
+{
+    if(!secondaryTextKey.isEmpty()){
+        return getData(secondaryTextKey).toString();
+    }
+    return QString();
+}
 
 
 void NodeItemNew::dataChanged(QString keyName, QVariant data)
@@ -684,6 +730,9 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "isExpanded"){
             bool boolData = data.toBool();
             setExpanded(boolData);
+        }
+        if(keyName == primaryTextKey || keyName == secondaryTextKey){
+            update();
         }
     }
 }
@@ -834,21 +883,26 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->drawLines(gridLines_Major_Horizontal);
         painter->drawLines(gridLines_Major_Vertical);
         painter->restore();
-
-        painter->setBrush(Qt::red);
-        foreach(NodeItemNew* child, movingChildren){
-            //QRectF rect = child->getNearestGridOutline();
-            //painter->setBrush(Qt::red);
-            //painter->drawRect(rect);
-        }
     }
 
     if(state > RS_BLOCK){
         painter->setPen(getPen());
         painter->setBrush(Qt::NoBrush);
         painter->drawPath(getElementPath(ER_SELECTION));
-        //painter->drawRect(currentRect());
+
+        painter->setPen(Qt::black);
+
+        if(gotPrimaryTextKey()){
+            renderText(painter, lod, getElementRect(ER_PRIMARY_TEXT), getPrimaryText());
+        }
+        if(gotSecondaryTextKey()){
+            painter->setBrush(Qt::red);
+            painter->setPen(Qt::NoPen);
+            //painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
+            renderText(painter, lod, getElementRect(ER_SECONDARY_TEXT), getSecondaryText(), 5);
+        }
     }
+
 
     if(state > RS_BLOCK){
         painter->save();
@@ -886,6 +940,11 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
 QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
 {
+    switch(rect){
+    case ER_MOVE:{
+        return headerRect();
+    }
+    }
     //Just call base class.
     return EntityItemNew::getElementRect(rect);
 }
@@ -1027,4 +1086,19 @@ void NodeItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         update();
     }
     EntityItemNew::hoverLeaveEvent(event);
+}
+
+void NodeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    if(!getPrimaryTextKey().isEmpty()){
+        if(event->button() == Qt::LeftButton && getElementPath(ER_PRIMARY_TEXT).contains(event->pos())){
+            emit req_editData(getViewItem(), getPrimaryTextKey());
+        }
+    }
+    if(!getSecondaryTextKey().isEmpty()){
+        if(event->button() == Qt::LeftButton && getElementPath(ER_SECONDARY_TEXT).contains(event->pos())){
+            emit req_editData(getViewItem(), getSecondaryTextKey());
+        }
+    }
+    EntityItemNew::mouseDoubleClickEvent(event);
 }

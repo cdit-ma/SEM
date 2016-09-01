@@ -735,7 +735,7 @@ QString Theme::getAbstractItemViewStyleSheet()
            "color:" % getTextColorHex(CR_DISABLED) % ";"
            "}"
            "QAbstractItemView::item::hover {"
-           "background:" % getPressedColorHex() % ";"
+           "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "}"
            "QAbstractItemView::item::selected {"

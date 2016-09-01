@@ -179,6 +179,25 @@ bool NodeViewMinimap::isPanning()
     return _isPanning;
 }
 
+void NodeViewMinimap::sceneRectChanged(QRectF sceneRect)
+{
+    if(!sceneRect.isValid()){
+        sceneRect = this->scene()->itemsBoundingRect();
+    }
+    if(sceneRect.isValid()){
+        QPointF centerPoint = sceneRect.center();
+        qreal width = qMax(1200.0, sceneRect.width());
+        qreal height = qMax(800.0, sceneRect.height());
+
+        sceneRect.setWidth(width);
+        sceneRect.setHeight(height);
+        sceneRect.moveCenter(centerPoint);
+        fitInView(sceneRect, Qt::KeepAspectRatio);
+        centerOn(centerPoint);
+        setSceneRect(sceneRect);
+    }
+}
+
 void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton || event->button() == Qt::RightButton){

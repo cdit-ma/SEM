@@ -8,6 +8,8 @@ class AttributeTableView : public QTableView
 public:
     AttributeTableView(QWidget *parent=0);
     void setModel(QAbstractItemModel *model);
+public slots:
+    void editDataValue(int ID, QString keyName);
 };
 
 #endif // ATTRIBUTETABLEVIEW_H

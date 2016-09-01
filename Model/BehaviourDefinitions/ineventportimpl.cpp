@@ -18,6 +18,9 @@ bool InEventPortImpl::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 
     switch(edgeKind){
     case Edge::EC_DEFINITION:{
+        if(!dst->getImplementations().isEmpty()){
+            return false;
+        }
         if(dst->getNodeKind() != NK_INEVENTPORT){
             return false;
         }

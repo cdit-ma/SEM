@@ -205,6 +205,7 @@ HEADERS += \
     View/SceneItems/containerelementnodeitem.h \
     View/SceneItems/Assemblies/assemblyeventportnodeitem.h \
     View/Dock/dockwidget.h \
+    View/SceneItems/Assemblies/nodeitemsquare.h \
     View/Dock/dockwidgetitem.h \
     View/Dock/dockwidgetactionitem.h \
     View/Dock/dockwidgetparentactionitem.h
@@ -376,6 +377,7 @@ SOURCES += \
     View/SceneItems/containerelementnodeitem.cpp \
     View/SceneItems/Assemblies/assemblyeventportnodeitem.cpp \
     View/Dock/dockwidget.cpp \
+    View/SceneItems/Assemblies/nodeitemsquare.cpp \
     View/Dock/dockwidgetitem.cpp \
     View/Dock/dockwidgetactionitem.cpp \
     View/Dock/dockwidgetparentactionitem.cpp
@@ -407,6 +409,7 @@ OTHER_FILES += \
     Resources/Transforms/graphml2ddd.xsl \
     Resources/Transforms/graphml2deployconfig.xsl \
     Resources/Transforms/graphml2dpd.xsl \
+    Resources/Transforms/graphml2dpdold.xsl \
     Resources/Transforms/graphml2dts.xsl \
     Resources/Transforms/graphml2h.xsl \
     Resources/Transforms/graphml2idl.xsl \

@@ -329,9 +329,6 @@ bool Key::equals(const Key *key) const
     if(_keyName != key->getName()){
         return false;
     }
-    if(_entityKind != key->getEntityKind()){
-        return false;
-    }
     return true;
 }
 

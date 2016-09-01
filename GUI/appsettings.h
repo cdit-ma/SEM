@@ -32,6 +32,7 @@ public:
     QVariant getSetting(QString);
 signals:
     void setSetting(SETTING_KEY key, QVariant data);
+    void settingsApplied();
 public slots:
     void settingChanged(SETTING_KEY key, QVariant data);
 

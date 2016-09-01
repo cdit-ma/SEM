@@ -22,6 +22,9 @@ signals:
     void minimap_Zoom(int delta);
 
 public slots:
+    void sceneRectChanged(QRectF sceneRect);
+
+
     void viewportRectChanged(QRectF viewportRect, qreal zoom);
 
 private:

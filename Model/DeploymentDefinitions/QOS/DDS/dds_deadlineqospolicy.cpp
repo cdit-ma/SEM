@@ -2,7 +2,7 @@
 
 DDS_DeadlineQosPolicy::DDS_DeadlineQosPolicy():Node(NK_QOS_DDS_POLICY_DEADLINE)
 {
-    setNodeType(NT_QOS_DDS_POLICY);
+    setNodeType(NT_QOS); setNodeType(NT_DDS);
 }
 
 bool DDS_DeadlineQosPolicy::canAdoptChild(Node*)

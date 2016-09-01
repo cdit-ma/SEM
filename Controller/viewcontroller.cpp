@@ -2,6 +2,8 @@
 #include "../View/nodeviewitem.h"
 #include "../View/edgeviewitem.h"
 #include "../View/Toolbar/toolbarwidgetnew.h"
+#include "../View/nodeviewnew.h"
+#include "../Widgets/New/medeawindownew.h"
 #include "controller.h"
 #include "filehandler.h"
 #include <QMessageBox>
@@ -147,7 +149,7 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
     }
 
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "ViewController::getValidEdges(" << kind << ", " << selection << ") = " << items.count() <<"  In : "<<  (timeFinish - timeStart) / 100 << "MS";
+    //qCritical() << "ViewController::getValidEdges(" << kind << ", " << selection << ") = " << items.count() <<"  In : "<<  (timeFinish - timeStart) / 100 << "MS";
     return items;
 }
 
@@ -257,16 +259,61 @@ void ViewController::setController(NewController *c)
     controller = c;
 }
 
+void ViewController::jenkinsManager_IsBusy(bool busy)
+{
+    emit vc_JenkinsReady(!busy);
+}
+
+void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
+{
+    emit vc_JenkinsReady(success);
+    qCritical() << success << errorString;
+}
+
+void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
+{
+   if(!graphmlData.isEmpty()){
+        emit vc_triggerAction("Loading Jenkins Nodes");
+        QStringList fileData;
+        fileData << graphmlData;
+        emit vc_importProjects(fileData);
+   }else{
+       //Hanlde error!
+   }
+}
+
 void ViewController::actionFinished(bool success, QString gg)
 {
-    qCritical() << "actionFinished: " << success;
     setControllerReady(true);
+    emit vc_actionFinished();
 }
 
 void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit vc_triggerAction("Table Changed");
     emit vc_setData(ID, key, data);
+}
+
+void ViewController::spawnSubView(ViewItem * item)
+{
+    MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
+
+    if(window && item && item->isNode()){
+        MedeaDockWidget *dockWidget = MedeaWindowManager::constructNodeViewDockWidget("SubView", Qt::TopDockWidgetArea);
+        dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+        dockWidget->setParent(window);
+        dockWidget->setIcon(item->getIcon());
+        dockWidget->setTitle(item->getData("label").toString());
+        window->addDockWidget(Qt::TopDockWidgetArea, dockWidget);
+
+        NodeViewNew* nodeView = new NodeViewNew(dockWidget);
+        nodeView->setContainedNodeViewItem((NodeViewItem*)item);
+        nodeView->setViewController(this);
+        dockWidget->setWidget(nodeView);
+        dockWidget->show();
+        nodeView->show();
+        nodeView->fitToScreen();
+    }
 }
 
 bool ViewController::isControllerReady()
@@ -353,11 +400,45 @@ QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
     return items;
 }
 
+QList<NodeViewNew *> ViewController::getNodeViewsContainingID(int ID)
+{
+    QList<NodeViewNew *> nodeViews;
+
+    foreach(MedeaNodeViewDockWidget* dock, MedeaWindowManager::manager()->getNodeViewDockWidgets()){
+        if(dock){
+            NodeViewNew* view = dock->getNodeView();
+            if(view && view->getIDsInView().contains(ID)){
+                nodeViews.append(view);
+            }
+        }
+    }
+    return nodeViews;
+}
+
+
 NodeViewItem *ViewController::getNodeViewItem(int ID)
 {
     ViewItem* item = getViewItem(ID);
     if(item && item->isNode()){
         return (NodeViewItem*) item;
+    }
+    return 0;
+}
+
+NodeViewItem *ViewController::getNodesImpl(int ID)
+{
+    if(controller){
+        int implID = controller->getImplementation(ID);
+        return getNodeViewItem(implID);
+    }
+    return 0;
+}
+
+NodeViewItem *ViewController::getNodesDefinition(int ID)
+{
+    if(controller){
+        int defID = controller->getDefinition(ID);
+        return getNodeViewItem(defID);
     }
     return 0;
 }
@@ -426,6 +507,16 @@ void ViewController::deleteSelection()
 {
     if(selectionController){
         emit vc_deleteEntities(selectionController->getSelectionIDs());
+    }
+}
+
+void ViewController::renameActiveSelection()
+{
+    if(selectionController){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+        if(item){
+            emit vc_editTableCell(item->getID(), "label");
+        }
     }
 }
 
@@ -702,6 +793,17 @@ void ViewController::closeMEDEA()
     }
 }
 
+void ViewController::executeJenkinsJob()
+{
+    if(controller){
+        QString data = controller->getProjectAsGraphML();
+        if(!data.isEmpty()){
+            QString filePath = FileHandler::writeTempTextFile(data, ".graphml");
+            emit vc_executeJenkinsJob(filePath);
+        }
+    }
+}
+
 void ViewController::saveProject()
 {
     _saveProject();
@@ -736,11 +838,76 @@ void ViewController::fitView()
     }
 }
 
+void ViewController::fitAllViews()
+{
+    emit vc_fitToScreen();
+}
+
 void ViewController::centerSelection()
 {
     NodeViewNew* view = getActiveNodeView();
     if(view){
         view->centerSelection();
+    }
+}
+
+void ViewController::centerImpl()
+{
+    if(selectionController){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+        if(item){
+            NodeViewItem* impl = getNodesImpl(item->getID());
+            if(impl){
+                emit vc_centerItem(impl->getID());
+            }
+        }
+    }
+}
+
+void ViewController::centerDefinition()
+{
+    if(selectionController){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+        if(item){
+            NodeViewItem* def = getNodesDefinition(item->getID());
+            if(def){
+                emit vc_centerItem(def->getID());
+            }
+        }
+    }
+}
+
+void ViewController::popupImpl()
+{
+    if(selectionController){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+        if(item){
+            NodeViewItem* impl = getNodesImpl(item->getID());
+            if(impl){
+                spawnSubView(impl);
+            }
+        }
+    }
+}
+
+void ViewController::popupDefinition()
+{
+    if(selectionController){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+        if(item){
+            NodeViewItem* def = getNodesDefinition(item->getID());
+            if(def){
+                spawnSubView(def);
+            }
+        }
+    }
+}
+
+void ViewController::popupSelection()
+{
+    if(selectionController){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+        spawnSubView(item);
     }
 }
 

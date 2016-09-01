@@ -42,6 +42,7 @@ bool AggregateInstance::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         break;
     }
     case Edge::EC_DEFINITION:{
+
         //Can only connect a definition edge to an Aggregate/AggregateInstance..
         if(!(dst->getNodeKind() == NK_AGGREGATE_INSTANCE || dst->getNodeKind() == NK_AGGREGATE)){
             return false;

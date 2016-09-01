@@ -5,8 +5,10 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
     ContainerNodeItem(viewItem, parentItem)
 {
     setSortOrdered(true);
+    setResizeEnabled(false);
+    setGridEnabled(false);
 
-    leafPen.setWidth(1);
+    leafPen.setWidthF(.5);
     if(parentItem){
         leafPen.setColor(getBodyColor().darker(110));
     }
@@ -15,10 +17,12 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
 
 QPointF StackContainerNodeItem::getStemAnchorPoint() const
 {
-    QPointF offset;
-    offset.setY(gridRect().y());
-    offset.setX(getElementRect(ER_MAIN_ICON).center().x());
-    return offset;
+    //QPointF offset;
+    return gridRect().topLeft();
+    //offset.setY(gridRect().y());
+
+    //offset.setX(0);
+    //return offset;
 }
 
 QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *child)
@@ -47,10 +51,10 @@ void StackContainerNodeItem::childPosChanged()
 {
     QList<NodeItemNew*> children = getChildNodes();
     leaves.clear();
-    leaves = QVector<QLineF>(children.size() + 1);
-    int stemX = gridRect().x() + 10;
+    int stemX = gridRect().x() + 5;
 
     int maxY = 0;
+    int index = 0;
     foreach(NodeItemNew* child, children){
         if(!child->isMoving()){
             child->setPos(QPointF());
@@ -60,7 +64,7 @@ void StackContainerNodeItem::childPosChanged()
         QLineF line;
         line.setP2(center);
         line.setP1(QPointF(stemX,line.p2().y()));
-        leaves  << line;
+        leaves.insert(index++, line);
         if(center.y() > maxY){
             maxY = center.y();
         }
@@ -68,7 +72,7 @@ void StackContainerNodeItem::childPosChanged()
     QLineF stem;
     stem.setP1(QPointF(stemX, gridRect().y()));
     stem.setP2(QPointF(stemX, maxY));
-    leaves.append(stem);
+    leaves.insert(index++, stem);
     NodeItemNew::childPosChanged();
     update();
 }
@@ -80,10 +84,10 @@ void StackContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphics
     RENDER_STATE state = getRenderState(lod);
 
     ContainerNodeItem::paint(painter, option, widget);
-    if(isExpanded() && state > RS_BLOCK){
+    /*if(isExpanded() && state > RS_BLOCK){
         leafPen.setColor(getBodyColor().darker(150));
         painter->setPen(leafPen);
         painter->drawLines(leaves);
-    }
+    }*/
 }
 

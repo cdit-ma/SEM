@@ -12,6 +12,7 @@ public:
     enum ATTRIBUTE_ROLES {
         MULTILINE_ROLE = Qt::UserRole + 1,
         VALID_VALUES_ROLE = Qt::UserRole + 2,
+        ID_ROLE = Qt::UserRole + 3
     };
     AttributeTableModel(ViewItem* item);
     ~AttributeTableModel();

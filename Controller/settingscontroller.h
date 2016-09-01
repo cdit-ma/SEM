@@ -126,6 +126,7 @@ public:
     QList<SETTING_KEY> getSettingsKeys(QString category="", QString section="", QString name="");
 
 signals:
+    void settingsApplied();
     void settingChanged(SETTING_KEY ID, QVariant value);
 public slots:
     void setSetting(SETTING_KEY ID, QVariant value);

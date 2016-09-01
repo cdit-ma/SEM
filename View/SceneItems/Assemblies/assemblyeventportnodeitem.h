@@ -21,7 +21,6 @@ private:
     QRectF topSubIconRect() const;
     QRectF bottomSubIconRect() const;
 
-    QFont mainTextFont;
 
     QMargins headerPadding;
     qreal textHeight;

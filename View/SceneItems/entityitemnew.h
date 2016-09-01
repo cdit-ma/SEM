@@ -21,7 +21,7 @@ class EntityItemNew: public QGraphicsObject
 
 public:
     enum KIND{EDGE, NODE};
-    enum ELEMENT_RECT{ER_MAIN_LABEL, ER_SECONDARY_LABEL, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS};
+    enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE};
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
     EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind);
@@ -60,19 +60,20 @@ public:
     virtual QRectF currentRect() const = 0;
     virtual QRectF viewRect() const;
     QRectF sceneViewRect() const;
-    virtual QRectF moveRect() const;
 
     QSize iconSize() const;
     QSize smallIconSize() const;
     QPainterPath shape() const;
     QPainterPath sceneShape() const;
 
+    bool hasBeenMoved() const;
     void adjustPos(QPointF delta);
     virtual QPointF getPos() const;
 
     virtual QPointF validateAdjustPos(QPointF delta);
 
     bool intersectsRectInScene(QRectF rectInScene) const;
+    bool isDataProtected(QString keyName) const;
 
     void addRequiredData(QString keyName);
     void removeRequiredData(QString keyName);
@@ -85,6 +86,8 @@ public:
     QPointF getNearestGridPoint();
 
     void setFontSize(int fontSize);
+
+
 private:
     int fontSize;
     QFont textFont;
@@ -144,6 +147,9 @@ public:
     bool isMoveEnabled();
     bool isHoverEnabled();
 
+    void setIgnorePosition(bool ignore);
+    bool isIgnoringPosition();
+
 
 
 
@@ -158,6 +164,7 @@ signals:
 
     void req_setData(ViewItem* item, QString keyName, QVariant data);
     void req_removeData(ViewItem* item, QString keyName);
+    void req_editData(ViewItem* item, QString keyName);
 
     void req_triggerAction(QString actionName);
 
@@ -211,6 +218,8 @@ private:
     bool _isActiveSelected;
     bool _isExpanded;
 
+    bool _hasMoved;
+
     bool _isMoving;
     bool _isMouseMoving;
     bool _hasMouseMoved;
@@ -221,6 +230,9 @@ private:
     QColor bodyColor;
 
     KIND kind;
+    bool ignorePosition;
+
+
 
 
 protected:

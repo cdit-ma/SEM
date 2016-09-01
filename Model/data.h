@@ -38,6 +38,8 @@ public:
 protected:
     void addChildData(Data* childData);
     void removeChildData(Data* childData);
+signals:
+    void dataChanged(QVariant data);
 private slots:
     void parentDataChanged(int ID, QString keyName, QVariant data);
 private:

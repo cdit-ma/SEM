@@ -14,6 +14,8 @@
 #include <QNetworkReply>
 #include <QAuthenticator>
 
+#include "../../Controller/settingscontroller.h"
+
 class JenkinsManager: public QObject
 {
     //Define Jenkins Request as friend to enable use of private methods
@@ -21,7 +23,7 @@ class JenkinsManager: public QObject
 
     Q_OBJECT
 public:
-    JenkinsManager(QString cliBinaryPath);
+    JenkinsManager();
     QString getUsername();
 
     void setURL(QString url);
@@ -33,14 +35,23 @@ public:
     bool hasSettings();
     bool hasValidatedSettings();
     JenkinsRequest* getJenkinsRequest(QObject* parent = 0, bool deleteOnCompletion = true);
+public slots:
     void validateSettings();
+    void getJenkinsNodes();
+    void executeJenkinsJob(QString modelFilePath);
 signals:
-    void settingsValidationComplete();
+    void gotJenkinsNodeGraphml(QString data);
+    void jenkinsReady(bool ready);
     void tryValidateSettings();
     void settingsValidationComplete(bool valid, QString message);
+
+    void _runGroovyScript(QString, QString);
 private slots:
+    void _gotJenkinsNodes(QString data = "");
+    void settingChanged(SETTING_KEY key, QVariant value);
     void gotSettingsValidationResponse(bool valid, QString message);
 private:
+    void setJenkinsBusy(bool busy);
     void validateJenkinsSettings();
     void storeJobConfiguration(QString jobName, QJsonDocument json);
     void clearJobConfigurations();
@@ -67,8 +78,8 @@ private:
     QString scriptPath;
     QString jobName;
 
+    bool _jenkinsBusy;
     bool settingsValidated;
-    bool settingsValidating;
     bool urlChanged;
     //A Hash lookup of Jenkins Jobs JSON Documents
     QHash<QString, QJsonDocument> jobsJSON;

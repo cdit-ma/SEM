@@ -11,11 +11,8 @@ class EdgeItemNew : public EntityItemNew{
     Q_OBJECT
 
 public:
-    enum KIND{DEFAULT};
-
-    EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew* parent, NodeItemNew* source, NodeItemNew* destination, KIND edge_kind = DEFAULT);
+    EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew* parent, NodeItemNew* source, NodeItemNew* destination);
     ~EdgeItemNew();
-    KIND getEdgeItemKind();
 
     void setPos(const QPointF &pos);
     QPointF getPos() const;
@@ -27,15 +24,17 @@ public:
     QRectF currentRect() const;
 
 private:
-    QRectF smallRect() const;
-    QRectF leftRect() const;
-    QRectF centerRect() const;
-    QRectF rightRect() const;
-    QRectF handleRect() const;
-    QPolygonF triangle() const;
+    QRectF translatedIconsRect() const;
+    QRectF sourceIconRect() const;
+    QRectF destinationIconRect() const;
+    QRectF itemRect() const;
 
-    NodeItemNew* getVisibleSource();
-    NodeItemNew* getVisibleDestination();
+    QPolygonF sourceArrowHead() const;
+    QPolygonF destinationArrowHead() const;
+    QPolygonF triangle(QPointF startPoint) const;
+
+    NodeItemNew* getVisibleSource() const;
+    NodeItemNew* getVisibleDestination() const;
 
     NodeItemNew* getParentItem();
     NodeItemNew* getSourceItem();
@@ -43,8 +42,10 @@ private:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-    QPointF getSourcePos() const;
-    QPointF getDestinationPos() const;
+    QPointF getSourcePos(QPointF center = QPointF()) const;
+    bool sourceExitsLeft(QPointF center = QPointF()) const;
+    bool destinationEntersLeft(QPointF center = QPointF()) const;
+    QPointF getDestinationPos(QPointF center = QPointF()) const;
 
     QPointF getCenterOffset() const;
     QPointF getInternalOffset() const;
@@ -57,54 +58,49 @@ private:
 
 
 public slots:
-    void sourceHidden();
-    void destinationHidden();
-    void sourceMoved();
-    void destinationMoved();
-    void centerMoved();
+    void sourceParentVisibilityChanged();
+    void destinationParentVisibilityChanged();
+
+    void sourceParentMoved();
+    void destinationParentMoved();
+
+    void centerPointMoved();
 private:
     void recalcSrcCurve(bool reset = false);
     void recalcDstCurve(bool reset = false);
 
 
     void setManuallyPositioned(bool value);
-    bool hasSetPosition();
+    bool hasSetPosition() const;
 
     bool _hasPosition;
+    QPointF itemPos;
 
-    KIND edge_kind;
     EdgeViewItem* edgeViewItem;
-    NodeItemNew* parentItem;
+
     NodeItemNew* sourceItem;
     NodeItemNew* destinationItem;
 
-    NodeItemNew* vSrcItem;
-    NodeItemNew* vDstItem;
+    NodeItemNew* currentSrcItem;
+    NodeItemNew* currentDstItem;
 
     QPainterPath sourceCurve;
     QPainterPath destinationCurve;
 
-    QPointF itemPos;
 
 
 private slots:
     void dataChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);
 
-    // EntityItemNew interface
 public:
+    QPainterPath getElementPath(ELEMENT_RECT rect) const;
     QPointF validateAdjustPos(QPointF delta);
-
-    // EntityItemNew interface
-public:
     void setMoving(bool moving);
 
     // QGraphicsItem interface
 protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
-
-    // EntityItemNew interface
-public:
 };
 
 #endif // EDGEITEMNEW_H

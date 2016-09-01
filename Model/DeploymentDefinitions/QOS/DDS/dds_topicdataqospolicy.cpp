@@ -2,7 +2,7 @@
 
 DDS_TopicDataQosPolicy::DDS_TopicDataQosPolicy():Node(NK_QOS_DDS_POLICY_TOPICDATA)
 {
-    setNodeType(NT_QOS_DDS_POLICY);
+    setNodeType(NT_QOS); setNodeType(NT_DDS);
 }
 bool DDS_TopicDataQosPolicy::canAdoptChild(Node*)
 {

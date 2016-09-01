@@ -142,6 +142,9 @@ void Entity::_dataChanged(Data *data)
 void Entity::_dataRemoved(Data *data)
 {
     if(data){
+        //Remove Key.
+        QString keyName = data->getKeyName();
+        keyLookup.remove(keyName);
         emit dataRemoved(getID(), data->getKeyName());
     }
 }

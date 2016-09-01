@@ -295,6 +295,7 @@ void SettingsController::showSettingsWidget()
         settingsGUI = new AppSettings(0);
         connect(settingsGUI, &AppSettings::setSetting, this, &SettingsController::setSetting);
         connect(this, &SettingsController::settingChanged, settingsGUI, &AppSettings::settingChanged);
+        connect(settingsGUI, &AppSettings::settingsApplied, this, &SettingsController::settingsApplied);
     }
     settingsGUI->show();
 }

@@ -16,7 +16,6 @@ bool OutEventPortInstance::canAdoptChild(Node*)
 bool OutEventPortInstance::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
-        qCritical() << "Cannot accept egge?!";
         return false;
     }
 

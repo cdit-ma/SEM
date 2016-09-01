@@ -2,7 +2,7 @@
 
 DDS_OwnershipStrengthQosPolicy::DDS_OwnershipStrengthQosPolicy():Node(NK_QOS_DDS_POLICY_OWNERSHIPSTRENGTH)
 {
-    setNodeType(NT_QOS_DDS_POLICY);
+    setNodeType(NT_QOS); setNodeType(NT_DDS);
 }
 
 bool DDS_OwnershipStrengthQosPolicy::canAdoptChild(Node*)

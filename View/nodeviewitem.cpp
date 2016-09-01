@@ -11,9 +11,13 @@ NodeViewItem::NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entit
     }
 }
 
-
-NodeViewItem::~NodeViewItem()
+bool NodeViewItem::isNodeOfType(Node::NODE_TYPE type) const
 {
+    if(hasProperty("nodeTypes")){
+        int types = getProperty("nodeTypes").toInt();
+        return types & type;
+    }
+    return false;
 }
 
 Node::NODE_KIND NodeViewItem::getNodeKind() const

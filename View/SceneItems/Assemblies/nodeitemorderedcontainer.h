@@ -13,8 +13,8 @@ public:
     void setSortOrdered(bool ordered);
     QRectF bodyRect() const;
     //Pure virtual functions.
-    virtual QPointF getElementPosition(ContainerElementNodeItem* child) = 0;
-    virtual QPoint getElementIndex(ContainerElementNodeItem* child) = 0;
+    virtual QPointF getElementPosition(ContainerElementNodeItem* child);
+    virtual QPoint getElementIndex(ContainerElementNodeItem* child);
 
     // QGraphicsItem interface
 public:
@@ -27,9 +27,14 @@ private:
 
     QRectF headerTextRect() const;
     QRectF iconRect() const;
+    QRectF iconOverlayRect() const;
 
     QRectF topTextRect() const;
     QRectF bottomTextRect() const;
+    QRectF bottomTextOutlineRect() const;
+
+    QRectF bottomIconRect() const;
+    QRectF bottomRect() const;
 
     QRectF deployedRect() const;
     QRectF qosRect() const;

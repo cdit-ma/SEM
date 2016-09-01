@@ -175,7 +175,7 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_CLASS edgeClass, Node *dst)
         }else{
             //Already got a connection in.
             if(bNode->getProducerNode()){
-                qCritical() << "GOT PRODUCER ALREADY";
+                //qCritical() << "GOT PRODUCER ALREADY";
                 return false;
             }
         }

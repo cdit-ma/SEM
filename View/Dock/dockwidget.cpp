@@ -23,26 +23,26 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     }
 
     mainLayout = new QVBoxLayout();
-    mainLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
-    mainLayout->setSpacing(5);
+       mainLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+       mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
+       mainLayout->setSpacing(5);
 
-    alignLayout = new QVBoxLayout();
-    alignLayout->addLayout(mainLayout);
-    alignLayout->addStretch();
+       alignLayout = new QVBoxLayout();
+       alignLayout->addLayout(mainLayout);
+       alignLayout->addStretch();
 
-    mainWidget = new QWidget(this);
-    mainWidget->setObjectName("DOCKWIDGET_MAIN");
-    mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    mainWidget->setLayout(alignLayout);
+       mainWidget = new QWidget(this);
+       mainWidget->setObjectName("DOCKWIDGET_MAIN");
+       mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+       mainWidget->setLayout(alignLayout);
 
-    setWidget(mainWidget);
-    setWidgetResizable(true);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setupHeaderLayout();
+       setWidget(mainWidget);
+       setWidgetResizable(true);
+       setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+       setupHeaderLayout();
 
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    themeChanged();
+       connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+       themeChanged();
 }
 
 

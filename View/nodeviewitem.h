@@ -10,9 +10,9 @@ class NodeViewItem: public ViewItem
     Q_OBJECT
 public:
     NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
-    ~NodeViewItem();
 
 
+    bool isNodeOfType(Node::NODE_TYPE type) const;
     Node::NODE_KIND getNodeKind() const;
     NodeViewItem* getParentNodeViewItem();
     VIEW_ASPECT getViewAspect();

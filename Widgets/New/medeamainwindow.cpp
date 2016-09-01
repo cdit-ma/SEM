@@ -34,9 +34,10 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     initializeApplication();
 
     applicationToolbar = 0;
+    jenkinsManager = 0;
     viewController = vc;
 
-    //setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
@@ -44,6 +45,8 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     setupTools();
     setupInnerWindow();
+    setupJenkinsManager();
+
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*,MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)));
@@ -81,7 +84,6 @@ void MedeaMainWindow::setViewController(ViewController *vc)
     SelectionController* controller = vc->getSelectionController();
 
     connect(controller, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), tableWidget, SLOT(itemActiveSelectionChanged(ViewItem*, bool)));
-    connect(vc->getActionController()->view_viewInNewWindow, SIGNAL(triggered(bool)), this, SLOT(spawnSubView()));
 
     connect(vc, &ViewController::mc_projectModified, this, &MedeaMainWindow::setWindowModified);
     connect(vc, &ViewController::vc_projectPathChanged, this, &MedeaMainWindow::setModelTitle);
@@ -150,6 +152,8 @@ void MedeaMainWindow::resetToolDockWidgets()
         child->setVisible(true);
     }
 }
+
+
 
 
 /**
@@ -221,6 +225,9 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
                 disconnect(minimap, SIGNAL(minimap_Pan(QPointF)), prevView, SLOT(minimap_Pan(QPointF)));
                 disconnect(minimap, SIGNAL(minimap_Panning(bool)), prevView, SLOT(minimap_Panning(bool)));
                 disconnect(minimap, SIGNAL(minimap_Zoom(int)), prevView, SLOT(minimap_Zoom(int)));
+
+                disconnect(prevView, &NodeViewNew::sceneRectChanged, minimap, &NodeViewMinimap::sceneRectChanged);
+
                 disconnect(prevView, SIGNAL(viewportChanged(QRectF, qreal)), minimap, SLOT(viewportRectChanged(QRectF, qreal)));
             }
         }
@@ -233,40 +240,10 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
             connect(minimap, SIGNAL(minimap_Panning(bool)), view, SLOT(minimap_Panning(bool)));
             connect(minimap, SIGNAL(minimap_Zoom(int)), view, SLOT(minimap_Zoom(int)));
             connect(view, SIGNAL(viewportChanged(QRectF, qreal)), minimap, SLOT(viewportRectChanged(QRectF, qreal)));
+            connect(view, &NodeViewNew::sceneRectChanged, minimap, &NodeViewMinimap::sceneRectChanged);
+
 
             view->viewportChanged();
-        }
-    }
-}
-
-
-/**
- * @brief MedeaMainWindow::spawnSubView
- */
-void MedeaMainWindow::spawnSubView()
-{
-    if(viewController){
-        SelectionController* selectionController = viewController->getSelectionController();
-
-        QVector<ViewItem*> items = selectionController->getSelection();
-
-        if(items.length() == 1){
-
-            ViewItem* item = items.first();
-            if(item->isNode()){
-                MedeaDockWidget *dockWidget = MedeaWindowManager::constructNodeViewDockWidget("SubView", Qt::TopDockWidgetArea);
-                dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-                dockWidget->setParent(this);
-                dockWidget->setIcon(item->getIcon());
-                dockWidget->setTitle(item->getData("label").toString());
-                innerWindow->addDockWidget(Qt::TopDockWidgetArea, dockWidget);
-
-                NodeViewNew* nodeView = new NodeViewNew(dockWidget);
-                nodeView->setContainedNodeViewItem((NodeViewItem*)item);
-                connectNodeView(nodeView);
-                dockWidget->setWidget(nodeView);
-                nodeView->fitToScreen();
-            }
         }
     }
 }
@@ -415,10 +392,10 @@ void MedeaMainWindow::connectNodeView(NodeViewNew *nodeView)
 void MedeaMainWindow::setupTools()
 {
     setupMenuBar();
-    setupToolBar();
     setupSearchBar();
     setupProgressBar();
     setupDock();
+    setupToolBar();
     setupDataTable();
     setupMinimap();
 }
@@ -432,7 +409,7 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow = MedeaWindowManager::constructCentralWindow();
     //setCentralWidget(innerWindow);
 
-    ///*
+    ///* Cathyln, I really don't like this solution!
     QDockWidget* dockWidget = new QDockWidget(this);
     dockWidget->setTitleBarWidget(new QWidget());
     dockWidget->setWidget(innerWindow);
@@ -574,6 +551,8 @@ void MedeaMainWindow::setupToolBar()
     //Check visibility state.
     dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TOOLBAR_VISIBLE).toBool());
     addDockWidget(Qt::TopDockWidgetArea, dockWidget, Qt::Horizontal);
+
+
 }
 
 
@@ -673,6 +652,7 @@ void MedeaMainWindow::setupDock()
 
     //Check visibility state.
     //dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());
+    addDockWidget(Qt::LeftDockWidgetArea, dockWidget, Qt::Horizontal);
 }
 
 
@@ -689,6 +669,8 @@ void MedeaMainWindow::setupDataTable()
     //Check visibility state.
     dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+
+
 }
 
 
@@ -780,6 +762,26 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
 
     menuBar->setCornerWidget(toolbar);
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
+}
+
+void MedeaMainWindow::setupJenkinsManager()
+{
+    if(!jenkinsManager){
+        jenkinsManager = new JenkinsManager();
+        connect(jenkinsManager, &JenkinsManager::settingsValidationComplete, viewController, &ViewController::jenkinsManager_SettingsValidated);
+
+        connect(viewController->getActionController()->jenkins_importNodes, &QAction::triggered, jenkinsManager, &JenkinsManager::getJenkinsNodes);
+
+        connect(jenkinsManager, &JenkinsManager::gotJenkinsNodeGraphml, viewController, &ViewController::jenkinsManager_GotJenkinsNodesList);
+        connect(jenkinsManager, &JenkinsManager::jenkinsReady, viewController, &ViewController::vc_JenkinsReady);
+
+        connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::executeJenkinsJob);
+
+
+
+
+        jenkinsManager->validateSettings();
+    }
 }
 
 

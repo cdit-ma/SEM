@@ -28,7 +28,7 @@
 NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 {
     QRectF sceneRect;
-    sceneRect.setSize(QSize(100000,100000));
+    sceneRect.setSize(QSize(10000,10000));
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
@@ -67,6 +67,7 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
     viewState = VS_NONE;
     transition();
 
@@ -105,6 +106,11 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(this, &NodeViewNew::triggerAction, viewController, &ViewController::vc_triggerAction);
         connect(this, &NodeViewNew::setData, viewController, &ViewController::vc_setData);
         connect(this, &NodeViewNew::removeData, viewController, &ViewController::vc_removeData);
+        connect(this, &NodeViewNew::editData, viewController, &ViewController::vc_editTableCell);
+
+
+        connect(viewController, &ViewController::vc_centerItem, this, &NodeViewNew::centerItem);
+        connect(viewController, &ViewController::vc_fitToScreen, this, &NodeViewNew::fitToScreen);
     }
 }
 
@@ -172,6 +178,12 @@ QRectF NodeViewNew::getViewportRect()
     return viewportRect();
 }
 
+void NodeViewNew::resetMinimap()
+{
+    emit viewportChanged(viewportRect(), transform().m11());
+    emit sceneRectChanged(currentSceneRect);
+}
+
 void NodeViewNew::viewItem_Constructed(ViewItem *item)
 {
     if(item){
@@ -233,6 +245,15 @@ void NodeViewNew::selectAll()
     _selectAll();
 }
 
+void NodeViewNew::itemsMoved()
+{
+    QRectF newSceneRect = getSceneBoundingRectOfItems(getTopLevelEntityItems());
+    if(newSceneRect != currentSceneRect){
+        currentSceneRect = newSceneRect;
+        emit sceneRectChanged(currentSceneRect);
+    }
+}
+
 void NodeViewNew::clearSelection()
 {
     _clearSelection();
@@ -260,6 +281,14 @@ void NodeViewNew::themeChanged()
     update();
 }
 
+void NodeViewNew::item_EditData(ViewItem *item, QString keyName)
+{
+    if(selectionHandler){
+        selectionHandler->setActiveSelectedItem(item);
+        emit editData(item->getID(), keyName);
+    }
+}
+
 void NodeViewNew::item_RemoveData(ViewItem *item, QString keyName)
 {
     if(item){
@@ -269,22 +298,24 @@ void NodeViewNew::item_RemoveData(ViewItem *item, QString keyName)
 
 void NodeViewNew::fitToScreen()
 {
-    //QRectF rect;
     centerOnItems(getTopLevelEntityItems());
-
-    //foreach(int ID, topLevelGUIItemIDs){
-    //    EntityItemNew* item = guiItems.value(ID, 0);
-    //    if(item){
-    //        rect = rect.united(item->sceneBoundingRect());
-    //    }
-    //}
-    //centerRect(rect);
 }
 
 void NodeViewNew::centerSelection()
 {
 
     centerOnItems(getSelectedItems());
+}
+
+QList<int> NodeViewNew::getIDsInView()
+{
+    return guiItems.keys();
+}
+
+void NodeViewNew::test()
+{
+
+    //scene->setSceneRect(QRectF());
 }
 
 void NodeViewNew::item_Selected(ViewItem *item, bool append)
@@ -328,17 +359,13 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
             if(!item){
                 continue;
             }
+            bool itemWasMoved = item->hasBeenMoved();
             item->setMoving(adjusting);
             if(!adjusting){
                 int id = item->getID();
                 QPointF pos = item->getCenter();
 
-                bool sendRequest = true;
-
-                if(item->isNodeItem()){
-                    NodeItemNew* nodeItem = (NodeItemNew*) item;
-                    sendRequest = !nodeItem->isIgnoringPosition();
-                }
+                bool sendRequest = itemWasMoved && !item->isIgnoringPosition();
 
                 if(sendRequest){
                     emit setData(id, "x", pos.x());
@@ -447,6 +474,16 @@ void NodeViewNew::minimap_Zoom(int delta)
     zoom(delta);
 }
 
+void NodeViewNew::centerItem(int ID)
+{
+    EntityItemNew* item = getEntityItem(ID);
+    if(item){
+        QList<EntityItemNew*> items;
+        items.append(item);
+        centerOnItems(items);
+    }
+}
+
 void NodeViewNew::setupConnections(EntityItemNew *item)
 {
     connect(item, &EntityItemNew::req_activeSelected, this, &NodeViewNew::item_ActiveSelected);
@@ -458,6 +495,9 @@ void NodeViewNew::setupConnections(EntityItemNew *item)
 
     connect(item, &EntityItemNew::req_triggerAction, this, &NodeViewNew::triggerAction);
     connect(item, &EntityItemNew::req_removeData, this, &NodeViewNew::item_RemoveData);
+    connect(item, &EntityItemNew::req_editData, this, &NodeViewNew::item_EditData);
+
+
 
     if(item->isNodeItem()){
         NodeItemNew* node = (NodeItemNew*) item;
@@ -466,7 +506,13 @@ void NodeViewNew::setupConnections(EntityItemNew *item)
     }
 }
 
+
 void NodeViewNew::centerOnItems(QList<EntityItemNew *> items)
+{
+    centerRect(getSceneBoundingRectOfItems(items));
+}
+
+QRectF NodeViewNew::getSceneBoundingRectOfItems(QList<EntityItemNew *> items)
 {
     QRectF itemsRect;
     foreach(EntityItemNew* item, items){
@@ -474,7 +520,7 @@ void NodeViewNew::centerOnItems(QList<EntityItemNew *> items)
             itemsRect = itemsRect.united(item->sceneViewRect());
         }
     }
-    centerRect(itemsRect);
+    return itemsRect;
 }
 
 void NodeViewNew::centerRect(QRectF rectScene)
@@ -558,39 +604,66 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_MANAGEMENT_COMPONENT:
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
                 break;
+            case Node::NK_IDL:
+            case Node::NK_COMPONENT:
+            case Node::NK_COMPONENT_ASSEMBLY:
+            case Node::NK_COMPONENT_INSTANCE:
+            case Node::NK_COMPONENT_IMPL:
+            case Node::NK_TERMINATION:
+                nodeItem = new ContainerNodeItem(item, parentNode);
+                break;
+            case Node::NK_HARDWARE_CLUSTER:
+                nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("ip_address");
+                break;
             case Node::NK_INEVENTPORT_INSTANCE:
             case Node::NK_OUTEVENTPORT_INSTANCE:
             case Node::NK_INEVENTPORT_DELEGATE:
             case Node::NK_OUTEVENTPORT_DELEGATE:
+                nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                break;
+            case Node::NK_CONDITION:
             case Node::NK_ATTRIBUTE_INSTANCE:
-                //nodeItem = new StackContainerNodeItem(item, parentNode);
-                nodeItem = new AssemblyEventPortNodeItem(item, parentNode);
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("value");
                 break;
-            case Node::NK_COMPONENT_INSTANCE:
-                nodeItem = new ColumnContainerNodeItem(item, parentNode);
-                //nodeItem = new StackContainerNodeItem(item, parentNode);
-                break;
-            case Node::NK_COMPONENT_ASSEMBLY:
-            case Node::NK_IDL:
-            case Node::NK_COMPONENT:
             case Node::NK_AGGREGATE:
-            case Node::NK_ATTRIBUTE:
-            case Node::NK_AGGREGATE_INSTANCE:
-            case Node::NK_MEMBER:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+               // nodeItem->setSecondaryTextKey("value");
+                break;
+            case Node::NK_PROCESS:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("operation");
+                break;
             case Node::NK_MEMBER_INSTANCE:
+            case Node::NK_ATTRIBUTE:
+            case Node::NK_VARIABLE:
+            case Node::NK_MEMBER:
+            case Node::NK_AGGREGATE_INSTANCE:
             case Node::NK_INEVENTPORT_IMPL:
             case Node::NK_OUTEVENTPORT_IMPL:
             case Node::NK_INEVENTPORT:
+            case Node::NK_ATTRIBUTE_IMPL:
+            case Node::NK_INPUTPARAMETER:
+            case Node::NK_RETURNPARAMETER:
             case Node::NK_OUTEVENTPORT:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                break;
+            case Node::NK_PERIODICEVENT:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("frequency");
+                break;
             case Node::NK_BRANCH_STATE:
             case Node::NK_WHILELOOP:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 break;
-            case Node::NK_CONDITION:
-                nodeItem = new ContainerElementNodeItem(item, parentNode);
+            case Node::NK_WORKLOAD:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
                 break;
             default:
-                nodeItem = new NodeItemContainer(item, parentNode);
+                nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
             }
 
@@ -608,6 +681,10 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 if(!scene()->items().contains(nodeItem)){
                     scene()->addItem(nodeItem);
                     topLevelGUIItemIDs.append(ID);
+
+                    connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(itemsMoved()));
+                    connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(itemsMoved()));
+
                 }
             }
         }

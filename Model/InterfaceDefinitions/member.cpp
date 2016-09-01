@@ -3,6 +3,7 @@
 Member::Member(): Node(NK_MEMBER)
 {
     setNodeType(NT_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
 
 bool Member::canAdoptChild(Node*)

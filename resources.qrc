@@ -219,6 +219,7 @@
         <file alias="Checkbox_False">Resources/Images/Actions/checkbox_unchecked.png</file>
         <file alias="Splitter">Resources/Images/Actions/splitter.png</file>
         <file alias="Policies">Resources/Images/Actions/Policies.png</file>
+        <file alias="Rename">Resources/Images/Actions/Rename.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

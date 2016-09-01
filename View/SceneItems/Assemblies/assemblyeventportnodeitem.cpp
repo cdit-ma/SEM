@@ -15,12 +15,13 @@ AssemblyEventPortNodeItem::AssemblyEventPortNodeItem(NodeViewItem *viewItem, Nod
 
     setResizeEnabled(false);
 
+    setPrimaryTextKey("label");
+
 
     setExpanded(true);
-    mainTextFont = QFont("Verdana");
-    mainTextFont.setPixelSize(20);
-
-
+    addRequiredData("x");
+    addRequiredData("y");
+    reloadRequiredData();
 }
 
 void AssemblyEventPortNodeItem::setRightJustified(bool isRight)
@@ -35,7 +36,7 @@ QRectF AssemblyEventPortNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rec
     case ER_MAIN_ICON:{
         return iconRect();
     }
-    case ER_MAIN_LABEL:{
+    case ER_PRIMARY_TEXT:{
         return textInnerRect();
     }
     case ER_QOS:{
@@ -58,16 +59,14 @@ void AssemblyEventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraph
     painter->setClipRect(option->exposedRect);
 
 
-    if(isExpanded()){
+
+    if(state > RS_BLOCK){
         painter->setBrush(getBodyColor());
         painter->setPen(Qt::NoPen);
         painter->drawRect(currentRect());
-    }
 
-    if(state > RS_BLOCK){
         painter->setBrush(getBodyColor().darker(110));
         painter->drawRect(textRect());
-        painter->setFont(mainTextFont);
         painter->setPen(Qt::black);
 
 
@@ -75,11 +74,7 @@ void AssemblyEventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraph
             paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
             paintPixmap(painter, lod, ER_QOS, "Actions", "Global");
         }
-
-        QString text = getData("label").toString();
-        renderText(painter, lod, textInnerRect(), text, 8);
     }
-
     ContainerElementNodeItem::paint(painter, option, widget);
 }
 

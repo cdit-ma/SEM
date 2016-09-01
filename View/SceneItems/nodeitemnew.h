@@ -27,8 +27,7 @@ public:
 
     virtual void addChildNode(NodeItemNew* nodeItem);
 
-    void setIgnorePosition(bool ignore);
-    bool isIgnoringPosition();
+
 
     void removeChildNode(NodeItemNew *nodeItem);
 
@@ -79,7 +78,7 @@ public:
     QRectF gridRect() const;
     QRectF expandedGridRect() const;
     virtual QRectF bodyRect() const;
-    virtual QRectF moveRect() const;
+    virtual QRectF headerRect() const;
 
     QRectF childrenRect() const;
 
@@ -130,6 +129,17 @@ public:
     QMarginsF getBodyPadding() const;
 
 
+    void setPrimaryTextKey(QString key);
+    void setSecondaryTextKey(QString key);
+    QString getPrimaryTextKey() const;
+    QString getSecondaryTextKey() const;
+    bool gotPrimaryTextKey() const;
+    bool gotSecondaryTextKey() const;
+
+
+    QString getPrimaryText() const;
+    QString getSecondaryText() const;
+
     virtual void setExpanded(bool expand);
 
 
@@ -141,10 +151,6 @@ signals:
     //Inform of Changes
     void gotChildNodes(bool);
     void gotChildProxyEdges(bool);
-
-    void posChanged(QPointF topLeft);
-    void sizeChanged(QSizeF newSize);
-
 public slots:
     virtual void dataChanged(QString keyName, QVariant data);
     virtual void dataRemoved(QString keyName);
@@ -199,6 +205,9 @@ private:
     QVector<QLineF> gridLines_Minor_Vertical;
     QVector<QLineF> gridLines_Major_Vertical;
 
+    QString primaryTextKey;
+    QString secondaryTextKey;
+
     // QGraphicsItem interface
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -218,5 +227,8 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
+
+
 };
 #endif

@@ -30,6 +30,7 @@ private slots:
     void settingChanged(SETTING_KEY key, QVariant value);
     void jenkinsValidated(bool success);
     void selectionChanged(int selectionSize);
+    void actionFinished();
 
     void controllerReady(bool ready);
     void modelReady(bool ready);
@@ -100,11 +101,16 @@ public:
     RootAction* edit_alignVertical;
     RootAction* edit_CycleActiveSelectionForward;
     RootAction* edit_CycleActiveSelectionBackward;
+    RootAction* edit_renameActiveSelection;
 
     RootAction* view_fitView;
+    RootAction* view_fitAllViews;
+
     RootAction* view_centerOn;
     RootAction* view_centerOnDefn;
+    RootAction* view_viewDefnInNewWindow;
     RootAction* view_centerOnImpl;
+    RootAction* view_viewImplInNewWindow;
     RootAction* view_viewConnections;
     RootAction* view_viewInNewWindow;
 
@@ -112,7 +118,6 @@ public:
     RootAction* window_displayMinimap;
 
     RootAction* model_validateModel;
-    RootAction* model_clearModel;
     RootAction* model_executeLocalJob;
 
     RootAction* options_settings;

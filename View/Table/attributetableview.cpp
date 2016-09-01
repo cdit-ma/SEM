@@ -1,6 +1,7 @@
 #include "attributetableview.h"
 #include "multilinedelegate.h"
 #include <QHeaderView>
+#include "attributetablemodel.h"
 AttributeTableView::AttributeTableView(QWidget* parent):QTableView(parent)
 {
 
@@ -20,5 +21,26 @@ AttributeTableView::AttributeTableView(QWidget* parent):QTableView(parent)
 void AttributeTableView::setModel(QAbstractItemModel *model)
 {
     QTableView::setModel(model);
+}
+
+void AttributeTableView::editDataValue(int ID, QString keyName)
+{
+    QAbstractItemModel* m = model();
+    QModelIndex index;
+    if(m){
+        if(m->data(index, AttributeTableModel::ID_ROLE).toInt() == ID){
+            for(int i = 0; i < m->rowCount(); i++){
+                QString rowName = m->headerData(i, Qt::Vertical, Qt::DisplayRole).toString();
+                if(rowName == keyName){
+                    index = m->index(i,0);
+                    break;
+                }
+            }
+
+            if(m->flags(index) & Qt::ItemIsEditable){
+                edit(index);
+            }
+        }
+    }
 }
 

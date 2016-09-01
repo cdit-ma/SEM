@@ -45,11 +45,14 @@ public:
 signals:
     //TO OTHER VIEWS SIGNALS
 
+    void vc_JenkinsReady(bool);
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
     void vc_viewItemDestructing(int ID, ViewItem *viewItem);
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
     void vc_gotSearchSuggestions(QStringList suggestions);
+
+    void vc_editTableCell(int ID, QString keyName);
 
     void mc_showProgress(bool, QString);
     void mc_progressChanged(int);
@@ -60,6 +63,7 @@ signals:
     void mc_modelReady(bool);
     void mc_projectModified(bool);
     void mc_undoRedoUpdated();
+    void vc_actionFinished();
 
 
     //TO CONTROLLER SIGNALS
@@ -76,6 +80,8 @@ signals:
     void vc_paste(QList<int> IDs, QString data);
     void vc_replicateEntities(QList<int> IDs);
 
+    void vc_executeJenkinsJob(QString filePath);
+
     void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
     void vc_constructEdge(QList<int> sourceIDs, int dstID, Edge::EDGE_CLASS edgeKind = Edge::EC_UNDEFINED);
 
@@ -88,8 +94,14 @@ signals:
     void vc_projectSaved(QString filePath);
     void vc_projectPathChanged(QString);
 
+    void vc_centerItem(int ID);
+    void vc_fitToScreen();
 
 public slots:
+    void jenkinsManager_IsBusy(bool busy);
+    void jenkinsManager_SettingsValidated(bool success, QString errorString);
+    void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
+
     void actionFinished(bool success, QString gg);
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
@@ -109,15 +121,27 @@ public slots:
     void closeProject();
     void closeMEDEA();
 
+    void executeJenkinsJob();
+
 
     void fitView();
+    void fitAllViews();
     void centerSelection();
+
+    void centerImpl();
+    void centerDefinition();
+
+    void popupDefinition();
+    void popupImpl();
+    void popupSelection();
+
 
     void cut();
     void copy();
     void paste();
     void replicate();
     void deleteSelection();
+    void renameActiveSelection();
 
     void constructDDSQOSProfile();
     void requestSearchSuggestions();
@@ -133,10 +157,16 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+    void spawnSubView(ViewItem *item );
     bool destructViewItem(ViewItem* item);
     QList<ViewItem*> getViewItems(QList<int> IDs);
 
+    QList<NodeViewNew*> getNodeViewsContainingID(int ID);
+
     NodeViewItem* getNodeViewItem(int ID);
+
+    NodeViewItem* getNodesImpl(int ID);
+    NodeViewItem* getNodesDefinition(int ID);
 
     NodeViewItem* getSharedParent(NodeViewItem* node1, NodeViewItem* node2);
 

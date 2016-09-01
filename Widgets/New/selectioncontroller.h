@@ -22,6 +22,7 @@ public:
     QList<int> getSelectionIDs();
     int getSelectionCount();
     ViewItem* getFirstSelectedItem();
+    ViewItem* getActiveSelectedItem();
     int getFirstSelectedItemID();
 
 signals:

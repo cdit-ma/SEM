@@ -18,7 +18,7 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
     setupApplicationToolbar();
     setupContextToolbar();
 
-    connect(SettingsController::settings(), SIGNAL(settingChanged(SETTING_KEY,QVariant)), this, SLOT(settingChanged(SETTING_KEY,QVariant)));
+    connect(SettingsController::settings(), &SettingsController::settingChanged, this, &ActionController::settingChanged);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
     themeChanged();
@@ -31,8 +31,10 @@ void ActionController::connectViewController(ViewController *controller)
 {
 
     if(viewController){
+        connect(controller, &ViewController::vc_actionFinished, this, &ActionController::actionFinished);
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::controllerReady);
         connect(controller, &ViewController::mc_modelReady, this, &ActionController::modelReady);
+        connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
 
         connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
 
@@ -52,11 +54,20 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_paste, &QAction::triggered, viewController, &ViewController::paste);
         connect(edit_replicate, &QAction::triggered, viewController, &ViewController::replicate);
         connect(view_fitView, &QAction::triggered, viewController, &ViewController::fitView);
+        connect(view_fitAllViews, &QAction::triggered, viewController, &ViewController::fitAllViews);
+
+
         connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
+        connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::renameActiveSelection);
 
+        connect(view_centerOnImpl, &QAction::triggered, viewController, &ViewController::centerImpl);
+        connect(view_centerOnDefn, &QAction::triggered, viewController, &ViewController::centerDefinition);
+        connect(view_viewDefnInNewWindow, &QAction::triggered, viewController, &ViewController::popupDefinition);
+        connect(view_viewImplInNewWindow, &QAction::triggered, viewController, &ViewController::popupImpl);
+        connect(view_viewInNewWindow, &QAction::triggered, viewController, &ViewController::popupSelection);
 
-
+        connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
 
 
         connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);
@@ -72,6 +83,7 @@ void ActionController::connectViewController(ViewController *controller)
 void ActionController::connectSelectionController(SelectionController *controller)
 {
     if(selectionController){
+
         connect(selectionController, SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
         connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionForward()));
         connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
@@ -146,13 +158,31 @@ void ActionController::selectionChanged(int selectionSize)
         bool gotMultipleSelection = modelActions && selectionSize > 1;
 
 
+        ViewItem* singleItem = selectionController->getActiveSelectedItem();
+
+        bool hasDefn = false;
+        bool hasImpl = false;
+        if(gotSingleSelection && singleItem && singleItem->isNode()){
+            NodeViewItem* node = (NodeViewItem*) singleItem;
+            hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
+            hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
+        }
+        view_centerOnDefn->setEnabled(hasDefn);
+        view_viewDefnInNewWindow->setEnabled(hasDefn);
+
+        view_centerOnImpl->setEnabled(hasImpl);
+        view_viewImplInNewWindow->setEnabled(hasImpl);
+
+
         edit_cut->setEnabled(gotSelection);
         edit_copy->setEnabled(gotSelection);
         edit_paste->setEnabled(gotSingleSelection);
 
+
         edit_replicate->setEnabled(gotSelection);
         edit_delete->setEnabled(gotSelection);
         edit_sort->setEnabled(gotSelection);
+        edit_renameActiveSelection->setEnabled(gotSelection);
 
 
         edit_alignHorizontal->setEnabled(gotMultipleSelection);
@@ -162,12 +192,10 @@ void ActionController::selectionChanged(int selectionSize)
         edit_CycleActiveSelectionBackward->setEnabled(gotMultipleSelection);
 
         view_fitView->setEnabled(modelActions);
+        view_fitAllViews->setEnabled(modelActions);
+
 
         view_centerOn->setEnabled(gotSelection);
-
-        //EXTRA LOGIC
-        view_centerOnDefn->setEnabled(gotSingleSelection);
-        view_centerOnImpl->setEnabled(gotSingleSelection);
 
         view_viewInNewWindow->setEnabled(gotSingleSelection);
 
@@ -181,6 +209,11 @@ void ActionController::selectionChanged(int selectionSize)
 
         applicationToolbar->updateSpacers();
     }
+}
+
+void ActionController::actionFinished()
+{
+    selectionChanged(-1);
 }
 
 void ActionController::controllerReady(bool ready)
@@ -206,8 +239,10 @@ void ActionController::themeChanged()
 
 void ActionController::updateJenkinsActions()
 {
-    jenkins_importNodes->setEnabled(_modelReady && _jenkinsValidated);
-    jenkins_executeJob->setEnabled(_modelReady && _jenkinsValidated);
+    bool modelReady = viewController->isModelReady();
+
+    jenkins_importNodes->setEnabled(modelReady && _jenkinsValidated);
+    jenkins_executeJob->setEnabled(modelReady && _jenkinsValidated);
 }
 
 void ActionController::updateUndoRedo()
@@ -284,11 +319,13 @@ void ActionController::updateActions()
     edit_redo->setEnabled(modelActions);
 
     model_validateModel->setEnabled(modelActions);
-    model_clearModel->setEnabled(modelActions);
     model_executeLocalJob->setEnabled(modelActions);
 
     edit_search->setEnabled(modelActions);
     view_fitView->setEnabled(modelActions);
+    view_fitAllViews->setEnabled(modelActions);
+
+
     window_printScreen->setEnabled(modelActions);
     jenkins_importNodes->setEnabled(modelActions);
     jenkins_executeJob->setEnabled(modelActions);
@@ -373,6 +410,12 @@ void ActionController::setupActions()
     edit_delete->setShortcut(QKeySequence::Delete);
     edit_delete->setShortcutContext(Qt::ApplicationShortcut);
 
+    edit_renameActiveSelection = createRootAction("Rename", "Rename", "Actions", "Rename");
+    edit_renameActiveSelection->setShortcut(QKeySequence(Qt::Key_F2));
+    edit_renameActiveSelection->setShortcutContext(Qt::ApplicationShortcut);
+
+
+
     edit_search = createRootAction("Search", "Root_Search", "Actions", "Search");
     edit_search->setShortcutContext(Qt::ApplicationShortcut);
     edit_search->setShortcut(QKeySequence::Find);
@@ -399,9 +442,30 @@ void ActionController::setupActions()
     view_fitView->setShortcutContext(Qt::ApplicationShortcut);
     view_fitView->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
 
+    view_fitAllViews = createRootAction("Fit All Views", "", "Actions", "FitToScreen");
+    view_fitAllViews->setShortcutContext(Qt::ApplicationShortcut);
+    view_fitAllViews->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Space));
+
     view_centerOn = createRootAction("Center On Selection", "", "Actions", "Crosshair");
     view_centerOnDefn = createRootAction("Center On Definition", "", "Actions", "Definition");
     view_centerOnImpl = createRootAction("Center On Implementation", "", "Actions", "Implementation");
+
+    view_viewDefnInNewWindow = createRootAction("Show Definition in New Window", "", "Actions", "Definition");
+    view_viewImplInNewWindow = createRootAction("Show Implementation in New Window", "", "Actions", "Implementation");
+
+    view_centerOnDefn->setShortcutContext(Qt::ApplicationShortcut);
+    view_centerOnDefn->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
+
+    view_centerOnImpl->setShortcutContext(Qt::ApplicationShortcut);
+    view_centerOnImpl->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
+
+    view_viewImplInNewWindow->setShortcutContext(Qt::ApplicationShortcut);
+    view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
+
+    view_viewDefnInNewWindow->setShortcutContext(Qt::ApplicationShortcut);
+    view_viewDefnInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
+
+
     view_viewConnections = createRootAction("View Connections", "", "Actions", "Connections");
     view_viewInNewWindow = createRootAction("View In New Window", "", "Actions", "Popup");
 
@@ -413,7 +477,6 @@ void ActionController::setupActions()
     window_printScreen = createRootAction("Print Screen", "", "Actions", "PrintScreen");
     window_displayMinimap = createRootAction("Display Minimap", "", "Actions", "Minimap");
 
-    model_clearModel = createRootAction("Clear Model", "", "Actions", "Clear");
     model_validateModel = createRootAction("Validate Model", "", "Actions", "Validate");
     model_executeLocalJob = createRootAction("Launch: Local Deployment", "", "Actions", "Job_Build");
     model_executeLocalJob->setToolTip("Requires Valid CUTS and Windows");
@@ -499,6 +562,8 @@ void ActionController::setupMainMenu()
     menu_edit->addAction(edit_replicate);
     menu_edit->addSeparator();
     menu_edit->addAction(edit_delete);
+    menu_edit->addAction(edit_renameActiveSelection);
+
     menu_edit->addAction(edit_search);
     menu_edit->addSeparator();
     menu_edit->addAction(edit_sort);
@@ -512,21 +577,25 @@ void ActionController::setupMainMenu()
 
      // View Menu
     menu_view->addAction(view_fitView);
+    menu_view->addAction(view_fitAllViews);
     menu_view->addSeparator();
     menu_view->addAction(view_centerOn);
     menu_view->addAction(view_centerOnDefn);
     menu_view->addAction(view_centerOnImpl);
     menu_view->addSeparator();
+    menu_view->addAction(view_viewDefnInNewWindow);
+    menu_view->addAction(view_viewImplInNewWindow);
+
+
+
     menu_view->addAction(view_viewConnections);
     menu_view->addAction(view_viewInNewWindow);
 
     // Model Menu
     menu_model->addAction(model_validateModel);
-    menu_model->addAction(model_clearModel);
     menu_model->addAction(model_executeLocalJob);
 
     // Jenkins Menu
-    menu_jenkins->addAction(jenkins_importNodes);
     menu_jenkins->addAction(jenkins_executeJob);
 
     // Window Menu

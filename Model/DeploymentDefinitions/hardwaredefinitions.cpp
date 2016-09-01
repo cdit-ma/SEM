@@ -2,6 +2,7 @@
 
 HardwareDefinitions::HardwareDefinitions():Node(Node::NK_HARDWARE_DEFINITIONS)
 {
+    setNodeType(NT_ASPECT);
 }
 
 VIEW_ASPECT HardwareDefinitions::getViewAspect() const
