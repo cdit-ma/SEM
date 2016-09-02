@@ -216,6 +216,8 @@ void MedeaMainWindow::themeChanged()
                                          "border-radius: 2px;"
                                          "border: 0px; }");
 
+    welcomeWidget->setStyleSheet("QWidget#WELCOME_WIDGET{ background:" + theme->getBackgroundColorHex() + ";}");
+
     /*
     welcomeWidget->setStyleSheet("QToolButton{ background: rgba(0,0,0,0); border:0px; color:" + theme->getTextColorHex() + ";}"
                                  "QToolButton:hover{ color:" + theme->getHighlightColorHex() + ";}");
@@ -579,6 +581,8 @@ void MedeaMainWindow::setupWelcomeScreen()
     recentProjectsLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; padding: 0px;");
 
     welcomeWidget = new QWidget(this);
+    welcomeWidget->setObjectName("WELCOME_WIDGET");
+
     leftWelcomeToolbar = new QToolBar(this);
     bottomWelcomeToolbar = new QToolBar(this);
     recentProjectsToolbar = new QToolBar(this);
@@ -619,11 +623,12 @@ void MedeaMainWindow::setupWelcomeScreen()
     bottomWelcomeToolbar->addAction(ac->file_exit->constructSubAction(false));
 
     QVBoxLayout* vLayout = new QVBoxLayout();
-    vLayout->addStretch(2);
+    vLayout->addStretch();
+    vLayout->addSpacerItem(new QSpacerItem(0, 15));
     vLayout->addWidget(recentProjectsLabel);
     vLayout->addWidget(recentProjectsToolbar, 0, Qt::AlignLeft | Qt::AlignBottom);
     vLayout->addWidget(bottomWelcomeToolbar, 0, Qt::AlignLeft | Qt::AlignTop);
-    vLayout->addStretch(1);
+    vLayout->addStretch();
 
     QHBoxLayout* containerLayout = new QHBoxLayout(welcomeWidget);
     containerLayout->addStretch();
