@@ -43,11 +43,7 @@ public:
 
     void addChildEdge(EdgeItemNew* edgeItem);
     void removeChildEdge(int ID);
-    QList<EdgeItemNew*> getChildEdges();
-
-    void addProxyEdge(EdgeItemNew* edgeItem);
-    void removeProxyEdge(int ID);
-    QList<EdgeItemNew*> getProxyEdges();
+    QList<EdgeItemNew*> getChildEdges() const;
 
     QRectF getNearestGridOutline();
     QPointF getNearestGridPointToCenter();
@@ -90,8 +86,8 @@ public:
     void setMinimumHeight(qreal height);
 
     //Size/Position Functions
-    void setExpandedWidth(qreal width, bool lockOnChange=false);
-    void setExpandedHeight(qreal height, bool lockOnChange=false);
+    void setExpandedWidth(qreal width);
+    void setExpandedHeight(qreal height);
     void setExpandedSize(QSizeF size);
 
     qreal getExpandedWidth() const;
@@ -174,16 +170,15 @@ private:
     QMarginsF bodyPadding;
 
 
+    qreal manuallyAdjustedWidth;
+    qreal manuallyAdjustedHeight;
 
-
+    QRectF _childRect;
     bool gridEnabled;
     bool gridVisible;
     bool ignorePosition;
 
     bool _rightJustified;
-
-    bool horizontalLocked;
-    bool verticalLocked;
 
     bool resizeEnabled;
 
@@ -196,7 +191,6 @@ private:
 
     QHash<int, NodeItemNew*> childNodes;
     QHash<int, EdgeItemNew*> childEdges;
-    QHash<int, EdgeItemNew*> proxyChildEdges;
 
     QVector<NodeItemNew*> movingChildren;
 

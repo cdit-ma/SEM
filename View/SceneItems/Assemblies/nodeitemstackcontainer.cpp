@@ -8,6 +8,8 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
     setResizeEnabled(false);
     setGridEnabled(false);
 
+
+
     leafPen.setWidthF(.5);
     if(parentItem){
         leafPen.setColor(getBodyColor().darker(110));
@@ -19,25 +21,33 @@ QPointF StackContainerNodeItem::getStemAnchorPoint() const
 {
     //QPointF offset;
     return gridRect().topLeft();
-    //offset.setY(gridRect().y());
-
-    //offset.setX(0);
-    //return offset;
 }
 
 QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *child)
 {
     int childPos = child->getSortOrder();
+    int gridSize = getGridSize();
+    //Work out the exact position given the 1
+    //foreach(NodeItemNew* child, getChildNodes()){
+    //    if(child->getSortOrder() < childPos){
+    //        offset.ry() += child->boundingRect().height() + gap;
+    //    }
+    //}
+    //return offset;
 
     QPointF offset = getStemAnchorPoint();
 
-    int gap = 0;
+    qreal y = offset.y();
     //Work out the exact position given the things above us.
     foreach(NodeItemNew* child, getChildNodes()){
         if(child->getSortOrder() < childPos){
-            offset.ry() += child->boundingRect().height() + gap;
+            qreal cY = child->translatedBoundingRect().bottom();
+            if(cY > y){
+                y = cY;
+            }
         }
     }
+    offset.ry() = y + gridSize;
     return offset;
 }
 

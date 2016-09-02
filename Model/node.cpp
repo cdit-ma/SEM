@@ -142,12 +142,18 @@ bool Node::isNodeOfType(Node::NODE_TYPE type) const
 
 bool Node::acceptsEdgeKind(Edge::EDGE_CLASS edgeKind) const
 {
+    return validEdgeKinds.contains(edgeKind);
+}
+
+bool Node::requiresEdgeKind(Edge::EDGE_CLASS edgeKind) const
+{
     if(validEdgeKinds.contains(edgeKind)){
         switch(edgeKind){
         case Edge::EC_DEFINITION:{
             if(definition){
                 return false;
             }
+
             if(isDefinition() && !isInstanceImpl()){
                return false;
             }
@@ -155,7 +161,6 @@ bool Node::acceptsEdgeKind(Edge::EDGE_CLASS edgeKind) const
         }
         case Edge::EC_AGGREGATE:
         case Edge::EC_DEPLOYMENT:
-
         case Edge::EC_QOS:{
             foreach(Edge* edge, edges.values(edgeKind)){
                 if(edge->getSource() == this){

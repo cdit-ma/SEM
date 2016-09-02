@@ -11,6 +11,7 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     _isSortOrdered = false;
 
     headerMargin = QMarginsF(2,2,2,2);
+    setBodyPadding(QMarginsF(10,10,10,10));
 
     qreal height = iconSize().height() + headerMargin.top() + headerMargin.bottom();
     qreal width = DEFAULT_SIZE / 2.0;
@@ -21,8 +22,6 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     setExpandedWidth(width*2);
     setExpandedHeight(height);
 
-
-    setBodyPadding(QMarginsF(0,0,0,0));
     QPen pen;
     pen.setColor(QColor(50,50,50));
     pen.setWidthF(.5);

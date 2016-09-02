@@ -52,7 +52,7 @@ signals:
     void executedCUTS(bool success, QString errorString="");
 
     //Emmited by the slot executeXMETransformation
-    void gotXMETransform(bool success, QString errorString, QString path);
+    void gotXMETransform(QString graphmlPath);
     void gotCPPForComponent(bool success, QString errorString, QString componentName, QString cppCode);
 
     void gotError(QString errorTitle, QString errorString);

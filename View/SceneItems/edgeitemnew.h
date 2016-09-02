@@ -31,7 +31,7 @@ private:
 
     QPolygonF sourceArrowHead() const;
     QPolygonF destinationArrowHead() const;
-    QPolygonF triangle(QPointF startPoint) const;
+    QPolygonF triangle(QPointF startPoint, bool pointRight=true) const;
 
     NodeItemNew* getVisibleSource() const;
     NodeItemNew* getVisibleDestination() const;
@@ -49,6 +49,7 @@ private:
 
     QPointF getCenterOffset() const;
     QPointF getInternalOffset() const;
+    QPointF getArrowOffset(bool onLeft) const;
 
     QPointF getSceneEdgeTermination(bool left) const;
 

@@ -312,8 +312,11 @@ void CUTSManager::executeXMETransform(QString xmePath, QString outputFilePath)
     int code = process->exitCode();
 
     QString commandOutput = process->readAllStandardOutput();
-    QString errorString = process->readAllStandardError();
-    emit gotXMETransform(code==0, errorString, outputFilePath);
+    if(code == 0){
+        emit gotXMETransform(outputFilePath);
+    }else{
+        emit gotError("Transforming XME Failed", process->readAllStandardError());
+    }
 }
 
 void CUTSManager::executeCUTS(QString path, int executionTime)

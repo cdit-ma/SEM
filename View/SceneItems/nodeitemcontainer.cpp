@@ -19,7 +19,7 @@ NodeItemContainer::NodeItemContainer(NodeViewItem *viewItem, NodeItemNew *parent
     setExpandedHeight(height);
 
     setMargin(QMarginsF(height/2,2,2,2));
-    setBodyPadding(QMarginsF(0,0,0,0));
+    //setBodyPadding(QMarginsF(0,0,0,0));
 
     addRequiredData("x");
     addRequiredData("y");

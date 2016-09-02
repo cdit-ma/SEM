@@ -2,7 +2,7 @@
 #include "nodeitemnew.h"
 #include <QDebug>
 
-#define ARROW_SIZE 3.0
+#define ARROW_SIZE 4.0
 EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeItemNew* source, NodeItemNew* destination):EntityItemNew(edgeViewItem, parent, EntityItemNew::EDGE)
 {
     this->edgeViewItem = edgeViewItem;
@@ -116,18 +116,24 @@ QPolygonF EdgeItemNew::sourceArrowHead() const
 
 QPolygonF EdgeItemNew::destinationArrowHead() const
 {
-    return triangle(mapFromScene(getDestinationPos()) - QPointF(ARROW_SIZE, 0));
+    return triangle(mapFromScene(getDestinationPos()), destinationEntersLeft());
 }
 
-QPolygonF EdgeItemNew::triangle(QPointF startPoint) const
+QPolygonF EdgeItemNew::triangle(QPointF startPoint, bool pointRight) const
 {
     QPolygonF triangle;
-    triangle.append(QPointF(ARROW_SIZE,0));
-    triangle.append(QPointF(0, ARROW_SIZE/2));
-    triangle.append(QPointF(0, -ARROW_SIZE/2));
-    triangle.append(QPointF(ARROW_SIZE,0));
+    int x = pointRight ? ARROW_SIZE: -ARROW_SIZE;
 
-    triangle.translate(startPoint);
+    triangle.append(QPointF(x,0));
+
+    QPointF peakPoint = startPoint + QPointF(x,0);
+    QPointF topBasePoint = startPoint - QPointF(0, ARROW_SIZE/2);
+    QPointF botBasePoint = startPoint + QPointF(0, ARROW_SIZE/2);
+
+    triangle.append(peakPoint);
+    triangle.append(topBasePoint);
+    triangle.append(botBasePoint);
+    triangle.append(peakPoint);
     return triangle;
 }
 
@@ -278,8 +284,8 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     if(state > RS_BLOCK){
         painter->setPen(pen);
         painter->setBrush(Qt::NoBrush);
-        painter->strokePath(sourceCurve, QPen(Qt::red));
-        painter->strokePath(destinationCurve, QPen(Qt::blue));
+        painter->strokePath(sourceCurve, pen);
+        painter->strokePath(destinationCurve, pen);
 
         painter->setPen(Qt::NoPen);
         painter->setBrush(pen.color());
@@ -303,18 +309,6 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
     paintPixmap(painter, lod, sourceIconRect(), sourceItem->getIconPath());
     paintPixmap(painter, lod, destinationIconRect(), destinationItem->getIconPath());
-
-    if(state > RS_BLOCK){
-        painter->setPen(pen);
-        painter->setBrush(Qt::NoBrush);
-        painter->strokePath(sourceCurve, QPen(Qt::red));
-        painter->strokePath(destinationCurve, QPen(Qt::blue));
-    }
-
-
-
-
-
 }
 
 QRectF EdgeItemNew::translatedIconsRect() const
@@ -476,7 +470,9 @@ QPointF EdgeItemNew::getDestinationPos(QPointF center) const
 {
     NodeItemNew* item = getVisibleDestination();
     if(item){
-        return item->getSceneEdgeTermination(destinationEntersLeft(center));
+        bool entersLeft = destinationEntersLeft(center);
+        QPointF offset = QPointF(entersLeft? -ARROW_SIZE:ARROW_SIZE, 0);
+        return item->getSceneEdgeTermination(entersLeft) + offset;
     }
     return QPointF();
 }
@@ -515,8 +511,11 @@ void EdgeItemNew::resetPosition()
     QPointF midPoint = (srcCenter + dstCenter) / 2;
     //setCenter(midPoint);
 
-    //Calculate the accurate center position for edge, using our spoofed center point.
-    QPointF requiredPos = (getSourcePos(midPoint) + getDestinationPos(midPoint)) / 2;
+    bool onLeft = destinationEntersLeft(midPoint);
+
+    //Calculate the accurate center position for edge, using our spoofed center point (Take into account the arrows position)
+    QPointF requiredPos = (getSourcePos(midPoint) + getDestinationPos(midPoint) + QPointF(onLeft? ARROW_SIZE:-ARROW_SIZE, 0)) / 2;
+
 
     //Map it back from scene pos
     QPointF newCenterPos = mapFromScene(requiredPos);

@@ -926,11 +926,15 @@ void MedeaMainWindow::setupCUTSManager()
 
         //connect(cutsManager, &CUTSManager::localDeploymentOkay, viewController, &ViewController::cutsManager_DeploymentOkay);
         connect(viewController, &ViewController::vc_getCodeForComponent, cutsManager, &CUTSManager::getCPPForComponent);
+        connect(viewController, &ViewController::vc_importXMETransform, cutsManager, &CUTSManager::executeXMETransform);
+
+
         connect(viewController, &ViewController::vc_validateModel, cutsManager, &CUTSManager::executeXSLValidation);
         connect(viewController, &ViewController::vc_launchLocalDeployment, cutsManager, &CUTSManager::showLocalDeploymentGUI, Qt::DirectConnection);
 
 
         connect(cutsManager, &CUTSManager::gotCodeForComponent, viewController, &ViewController::showCodeViewer);
+        connect(cutsManager, &CUTSManager::gotXMETransform, viewController, &ViewController::importGraphMLFile);
         connect(cutsManager, &CUTSManager::executedXSLValidation, viewController, &ViewController::modelValidated);
     }
 }

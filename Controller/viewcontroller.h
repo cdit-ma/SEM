@@ -106,8 +106,11 @@ signals:
     void vc_validateModel(QString graphmlPath, QString reportPath);
     void vc_launchLocalDeployment(QString graphmlPath);
 
+    void vc_importXMETransform(QString xmePath, QString graphmlPath);
+
 public slots:
     void modelValidated(QString reportPath);
+    void importGraphMLFile(QString graphmlPath);
     void showCodeViewer(QString tabName, QString content);
 
 
@@ -137,6 +140,7 @@ public slots:
     void openProject();
     void openExistingProject(QString file);
     void importProjects();
+    void importXMEProject();
     void saveProject();
     void saveAsProject();
     void closeProject();
@@ -202,6 +206,7 @@ private:
     bool _saveAsProject();
     bool _closeProject();
     void _importProjects();
+    void _importProjectFiles(QStringList fileName);
     bool _openProject(QString filePath = "");
     QList<int> getIDsOfKind(QString kind);
     bool _modelReady;

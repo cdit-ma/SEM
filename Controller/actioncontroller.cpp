@@ -84,6 +84,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_validateModel, &QAction::triggered, viewController, &ViewController::validateModel);
 
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
+        connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
 
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
         connectSelectionController(controller->getSelectionController());

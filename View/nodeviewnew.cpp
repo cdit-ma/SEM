@@ -411,6 +411,7 @@ void NodeViewNew::item_ResizeFinished(NodeItemNew *item, RECT_VERTEX vertex)
 {
     int id = item->getID();
     QSizeF size = item->getExpandedSize();
+
     emit triggerAction("Resizing Item");
     emit setData(id, "width", size.width());
     emit setData(id, "height", size.height());
@@ -419,6 +420,7 @@ void NodeViewNew::item_ResizeFinished(NodeItemNew *item, RECT_VERTEX vertex)
 void NodeViewNew::item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vertex)
 {
     QPointF offset(delta.width(), delta.height());
+
 
     if(vertex == RV_TOP || vertex == RV_BOTTOM){
         delta.setWidth(0);
@@ -584,6 +586,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
     if(containedNodeViewItem){
         if(containedNodeViewItem->isAncestorOf(item)){
+            //qCritical() << "CONSTRUCTING: " << item;
             int ID = item->getID();
             NodeItemNew* nodeItem =  0;
             Node::NODE_KIND nodeKind = item->getNodeKind();

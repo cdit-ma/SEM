@@ -1154,7 +1154,6 @@ void NewController::remove(QList<int> IDs)
 
     if(canDelete(selection)){
         triggerAction("Removing Selection");
-        qCritical() << "REmoving: " << IDs;
         bool success = _remove(selection);
         emit controller_ActionFinished(success, "Cannot delete all selected entities.");
     } else {
@@ -1408,7 +1407,6 @@ bool NewController::_remove(QList<Entity *> items)
     int totalItems = items.size();
     while(!items.isEmpty()){
         Entity* item = items.takeFirst();
-        qCritical() << item;
 
         if(!destructEntity(item)){
             allSuccess = false;
@@ -1794,28 +1792,35 @@ QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edg
 {
     QList<Node*> validNodes;
 
-
-
+    bool tryBackwards = edgeKind == Edge::EC_ASSEMBLY;
 
     foreach(Node* src, sourceNodes){
-        if(!src->acceptsEdgeKind(edgeKind)){
-            sourceNodes.removeAll(src);
+        if(!src->requiresEdgeKind(edgeKind)){
+            if(src->acceptsEdgeKind(edgeKind) && !tryBackwards){
+                return validNodes;
+            }
         }
     }
 
     if(!sourceNodes.isEmpty()){
         //Itterate through all nodes.
         foreach(Node* dst, getAllNodes()){
-            //Ignore nodes which can't take this edge class.
-            bool accepted = true;
-            foreach(Node* src, sourceNodes){
-                if(!(src->canAcceptEdge(edgeKind, dst) || dst->canAcceptEdge(edgeKind, src))){
+            if(dst->acceptsEdgeKind(edgeKind)){
+                //Ignore nodes which can't take this edge class.
+                bool accepted = true;
+                foreach(Node* src, sourceNodes){
+                    if(src->canAcceptEdge(edgeKind, dst)){
+                        continue;
+                        //Do Nothing.
+                    }else if(tryBackwards && dst->canAcceptEdge(edgeKind, src)){
+                        continue;
+                    }
                     accepted = false;
                     break;
                 }
-            }
-            if(accepted){
-                validNodes.append(dst);
+                if(accepted){
+                    validNodes.append(dst);
+                }
             }
         }
     }
@@ -3768,7 +3773,7 @@ QList<Edge::EDGE_CLASS> NewController::getPotentialEdgeClasses(Node *src, Node *
     QList<Edge::EDGE_CLASS> edgeKinds;
 
     foreach(Edge::EDGE_CLASS edgeClass, Edge::getEdgeClasses()){
-        if(src->acceptsEdgeKind(edgeClass) && dst->acceptsEdgeKind(edgeClass)){
+        if(src->acceptsEdgeKind(edgeClass) && dst->acceptsEdgeKind(edgeClass) && src->requiresEdgeKind(edgeClass)){
             edgeKinds << edgeClass;
         }
     }
@@ -4970,7 +4975,7 @@ QList<Edge::EDGE_CLASS> NewController::getValidEdgeKindsForSelection(QList<int> 
         if(entity->isNode()){
             Node* node = (Node*) entity;
             foreach(Edge::EDGE_CLASS edgeKind, edgeKinds){
-                if(!node->acceptsEdgeKind(edgeKind)){
+                if(!node->requiresEdgeKind(edgeKind)){
                     edgeKinds.removeAll(edgeKind);
                 }
             }
@@ -5602,9 +5607,12 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                 //If the edge class stored in the model is invalid we should try all of the edge classes these items can take, in order.
                 if(edgeClass == Edge::EC_UNDEFINED || edgeClass == Edge::EC_NONE){
+                    qCritical() << "Edge Types Between: " << src << " TO " << dst;
                     foreach(Edge::EDGE_CLASS ec, getPotentialEdgeClasses(src, dst)){
+                        qCritical() << "Edge Type: " << Edge::getKind(ec);
                         entity->appendEdgeKind(ec);
                     }
+                    qCritical() << "_______";
                 }else{
                     entity->appendEdgeKind(edgeClass);
                 }
@@ -5708,6 +5716,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 //Reinsert back into the map (Goes to the start)
                 edgesMap.insertMulti(entity->getEdgeKind(), entity);
             }else{
+                qCritical() << "Cannot Construct Edge between: " << entity;
                 //This entity has no more edge kinds to try, therefore can never be constructed.
                 emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error", "Import");
             }

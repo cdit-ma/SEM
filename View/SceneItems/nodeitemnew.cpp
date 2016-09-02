@@ -14,11 +14,11 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     minimumWidth = 0;
     expandedHeight = 0;
     expandedWidth = 0;
+    manuallyAdjustedWidth = 0;
+    manuallyAdjustedHeight = 0;
     gridVisible = false;
     gridEnabled = false;
     resizeEnabled = false;
-    verticalLocked = false;
-    horizontalLocked = false;
     ignorePosition = false;
     _rightJustified = false;
     aspect = VA_NONE;
@@ -38,12 +38,12 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     addRequiredData("isExpanded");
 
 
-
     if(parentItem){
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
         setParentItem(parentItem);
         parentItem->addChildNode(this);
+        setCenter(getNearestGridPoint());
     }
 }
 
@@ -163,7 +163,7 @@ QList<NodeItemNew *> NodeItemNew::getOrderedChildNodes() const
 {
     QMap<int, NodeItemNew*> items;
 
-    foreach(NodeItemNew* child, childNodes){
+    foreach(NodeItemNew* child, getChildNodes()){
         int position = items.size();
         if(child->hasData("sortOrder")){
             position = child->getData("sortOrder").toInt();
@@ -176,10 +176,10 @@ QList<NodeItemNew *> NodeItemNew::getOrderedChildNodes() const
 QList<EntityItemNew *> NodeItemNew::getChildEntities() const
 {
     QList<EntityItemNew*> children;
-    foreach(NodeItemNew* child, childNodes.values()){
+    foreach(NodeItemNew* child, getChildNodes()){
         children.append(child);
     }
-    foreach(EdgeItemNew* child, childEdges.values()){
+    foreach(EdgeItemNew* child, getChildEdges()){
         children.append(child);
     }
     return children;
@@ -229,36 +229,11 @@ void NodeItemNew::removeChildEdge(int ID)
     }
 }
 
-QList<EdgeItemNew *> NodeItemNew::getChildEdges()
+QList<EdgeItemNew *> NodeItemNew::getChildEdges() const
 {
     return childEdges.values();
 }
 
-void NodeItemNew::addProxyEdge(EdgeItemNew *edgeItem)
-{
-    int ID = edgeItem->getID();
-    if(!proxyChildEdges.contains(ID)){
-        proxyChildEdges[ID] = edgeItem;
-
-        if(proxyChildEdges.count() == 1){
-            emit gotChildProxyEdges(true);
-        }
-    }
-}
-
-void NodeItemNew::removeProxyEdge(int ID)
-{
-    if(proxyChildEdges.remove(ID) > 0){
-        if(proxyChildEdges.count() == 0){
-            emit gotChildProxyEdges(false);
-        }
-    }
-}
-
-QList<EdgeItemNew *> NodeItemNew::getProxyEdges()
-{
-    return proxyChildEdges.values();
-}
 
 
 void NodeItemNew::setGridEnabled(bool enabled)
@@ -384,16 +359,8 @@ QRectF NodeItemNew::headerRect() const
 
 QRectF NodeItemNew::childrenRect() const
 {
-    QRectF rect;
-    foreach(EntityItemNew* child, getChildEntities()){
-        if(child->isNodeItem()){
-            rect = rect.united(child->translatedBoundingRect());
-        }else{
-            //Edges are fine
-            rect = rect.united(child->boundingRect());
-        }
-    }
-    return rect;
+    return _childRect;
+
 }
 
 QSizeF NodeItemNew::getSize() const
@@ -433,12 +400,13 @@ void NodeItemNew::setMinimumHeight(qreal height)
     }
 }
 
-void NodeItemNew::setExpandedWidth(qreal width, bool lockOnChange)
+void NodeItemNew::setExpandedWidth(qreal width)
 {
     //Limit by the size of all contained children.
-    qreal minWidth = childrenRect().right() - getMarginOffset().x();;
+    qreal minWidth = childrenRect().right() - getMargin().left();
     //Can't shrink smaller than minimum
     minWidth = qMax(minWidth, minimumWidth);
+    minWidth = qMax(minWidth, manuallyAdjustedWidth);
     width = qMax(width, minWidth);
 
     if(expandedWidth != width){
@@ -448,23 +416,18 @@ void NodeItemNew::setExpandedWidth(qreal width, bool lockOnChange)
             prepareGeometryChange();
             update();
             emit sizeChanged();
-          //  updateGridLines();
-        }
-        if(lockOnChange){
-            horizontalLocked = true;
-        }else{
-            //If we were previously vertically locked, and we are changing position, unset it's vertical locked flag.
-            horizontalLocked = false;
+            updateGridLines();
         }
     }
 }
 
-void NodeItemNew::setExpandedHeight(qreal height, bool lockOnChange)
+void NodeItemNew::setExpandedHeight(qreal height)
 {
     //Limit by the size of all contained children.
-    qreal minHeight = childrenRect().bottom();
+    qreal minHeight = childrenRect().bottom() - getMargin().top();
     //Can't shrink smaller than minimum
     minHeight = qMax(minHeight, minimumHeight);
+    minHeight = qMax(minHeight, manuallyAdjustedHeight);
     height = qMax(height, minHeight);
 
     if(expandedHeight != height){
@@ -473,14 +436,7 @@ void NodeItemNew::setExpandedHeight(qreal height, bool lockOnChange)
             prepareGeometryChange();
             update();
             emit sizeChanged();
-           // updateGridLines();
-        }
-
-        if(lockOnChange){
-            verticalLocked = true;
-        }else{
-            //If we were previously vertically locked, and we are changing position, unset it's vertical locked flag.
-            verticalLocked = false;
+            updateGridLines();
         }
     }
 }
@@ -609,15 +565,25 @@ VIEW_ASPECT NodeItemNew::getAspect()
 
 void NodeItemNew::setManuallyAdjusted(RECT_VERTEX corner)
 {
+    bool adjustingWidth = false;
+    bool adjustingHeight = false;
+
     if(corner == RV_TOPLEFT || corner == RV_TOPRIGHT || corner == RV_BOTTOMRIGHT || corner == RV_BOTTOMLEFT){
-        horizontalLocked = true;
-        verticalLocked = true;
+        adjustingWidth = true;
+        adjustingHeight = true;
     }
     if(corner == RV_RIGHT || corner == RV_LEFT){
-        horizontalLocked = true;
+        adjustingWidth = true;
     }
     if(corner == RV_TOP || corner == RV_BOTTOM){
-        verticalLocked = true;
+        adjustingHeight = true;
+    }
+
+    if(adjustingWidth){
+        manuallyAdjustedWidth = -1;
+    }
+    if(adjustingHeight){
+        manuallyAdjustedHeight = -1;
     }
 }
 
@@ -713,6 +679,7 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
 
             if(keyName == "x"){
                 newCenter.setX(realData);
+
             }else if(keyName == "y"){
                 newCenter.setY(realData);
             }
@@ -723,10 +690,17 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "width" || keyName == "height"){
             qreal realData = data.toReal();
             if(keyName == "width"){
+                manuallyAdjustedWidth = -1;
                 setExpandedWidth(realData);
+                manuallyAdjustedWidth = realData;
+
             }else if(keyName == "height"){
+                manuallyAdjustedHeight = -1;
                 setExpandedHeight(realData);
+                manuallyAdjustedHeight = realData;
             }
+
+
         }else if(keyName == "isExpanded"){
             bool boolData = data.toBool();
             setExpanded(boolData);
@@ -744,8 +718,17 @@ void NodeItemNew::dataRemoved(QString keyName)
 
 void NodeItemNew::childPosChanged()
 {
+    //Update the child rect.
+    QRectF rect;
+    foreach(EntityItemNew* child, getChildEntities()){
+        if(child->isNodeItem()){
+            rect = rect.united(child->translatedBoundingRect());
+        }else if(child->isEdgeItem()){
+            rect = rect.united(child->currentRect());
+        }
+    }
+    _childRect = rect;
     resizeToChildren();
-    //update();
 }
 
 void NodeItemNew::resizeToChildren()
@@ -756,13 +739,6 @@ void NodeItemNew::resizeToChildren()
     QSizeF deltaSize;
     deltaSize.rwidth() += minRect.right() - currentGridRect.right();
     deltaSize.rheight() += minRect.bottom() - currentGridRect.bottom();
-
-    if(horizontalLocked && deltaSize.width() < 0){
-        deltaSize.setWidth(0);
-    }
-    if(verticalLocked && deltaSize.height() < 0){
-        deltaSize.setHeight(0);
-    }
 
     adjustExpandedSize(deltaSize);
 }
@@ -1055,6 +1031,7 @@ void NodeItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     if(selectedResizeVertex != RV_NONE){
         QPointF deltaPos = event->scenePos() - previousResizePoint;
         previousResizePoint = event->scenePos();
+        setManuallyAdjusted(selectedResizeVertex);
         emit req_adjustSize(this, QSizeF(deltaPos.x(), deltaPos.y()), selectedResizeVertex);
     }else{
         EntityItemNew::mouseMoveEvent(event);

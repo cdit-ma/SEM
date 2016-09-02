@@ -8,7 +8,9 @@ ContainerElementNodeItem::ContainerElementNodeItem(NodeViewItem *viewItem, NodeI
 {
     container = qobject_cast<StackContainerNodeItem*>(parentItem);
 
-    setMargin(QMarginsF(10,5,10,5));
+    setMargin(QMarginsF(0,0,0,0));
+
+
 
     addRequiredData("sortOrder");
 

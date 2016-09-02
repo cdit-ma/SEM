@@ -284,6 +284,11 @@ void ViewController::modelValidated(QString reportPath)
     }
 }
 
+void ViewController::importGraphMLFile(QString graphmlPath)
+{
+    _importProjectFiles(QStringList(graphmlPath));
+}
+
 void ViewController::showCodeViewer(QString tabName, QString content)
 {
     if(!codeViewer){
@@ -892,6 +897,18 @@ void ViewController::importProjects()
     _importProjects();
 }
 
+void ViewController::importXMEProject()
+{
+    QStringList files = FileHandler::selectFiles("Select an XME File to import.", QFileDialog::ExistingFile, false, GME_FILE_EXT, GME_FILE_SUFFIX);
+    if(files.length() == 1){
+        QString xmePath = files.first();
+        QFile file(xmePath);
+        QFileInfo fileInfo = QFileInfo(file);
+        QString tempFile = FileHandler::getTempFileName(fileInfo.baseName() + "_FromXME.graphml");
+        emit vc_importXMETransform(xmePath, tempFile);
+    }
+}
+
 void ViewController::closeProject()
 {
     _closeProject();
@@ -929,6 +946,11 @@ void ViewController::saveAsProject()
 void ViewController::_importProjects()
 {
     QStringList files = FileHandler::selectFiles("Select graphML File(s) to import.", QFileDialog::ExistingFiles, false, GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX);
+    _importProjectFiles(files);
+}
+
+void ViewController::_importProjectFiles(QStringList files)
+{
 
     QStringList fileData;
     foreach (QString file, files) {
@@ -937,9 +959,10 @@ void ViewController::_importProjects()
             fileData.append(data);
         }
     }
-    emit vc_importProjects(fileData);
-
-    // fit the contents in all the view aspects after import when no model has been imported yet?
+    if(!fileData.isEmpty()){
+        // fit the contents in all the view aspects after import when no model has been imported yet?
+        emit vc_importProjects(fileData);
+    }
 }
 
 void ViewController::fitView()
