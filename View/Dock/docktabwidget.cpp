@@ -57,6 +57,8 @@ void DockTabWidget::selectionChanged()
     if (partsButton->isChecked()) {
         if (stackedWidget->currentWidget() != partsDock) {
             openRequiredDock(partsDock);
+        } else {
+            partsDock->displayInfoLabel(!adoptableKindAction->isEnabled());
         }
     }
 }
@@ -273,9 +275,7 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
 
         switch (dockWidget->getDockType()) {
         case ToolActionController::PARTS:
-            // TODO - this is apparently not working
-            //showInfoLabel = !adoptableKindAction->isEnabled();
-            showInfoLabel = false;
+            showInfoLabel = !adoptableKindAction->isEnabled();
             break;
         case ToolActionController::DEFINITIONS:
         {
