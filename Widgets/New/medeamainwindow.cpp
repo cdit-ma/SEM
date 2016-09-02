@@ -216,12 +216,7 @@ void MedeaMainWindow::themeChanged()
                                          "border-radius: 2px;"
                                          "border: 0px; }");
 
-    welcomeWidget->setStyleSheet("QWidget#WELCOME_WIDGET{ background:" + theme->getBackgroundColorHex() + ";}");
-
-    /*
-    welcomeWidget->setStyleSheet("QToolButton{ background: rgba(0,0,0,0); border:0px; color:" + theme->getTextColorHex() + ";}"
-                                 "QToolButton:hover{ color:" + theme->getHighlightColorHex() + ";}");
-                                 */
+    welcomeWidget->setStyleSheet("QWidget#WELCOME_WIDGET{ background:" + theme->getBackgroundColorHex() + ";} QToolButton:!hover{ border: 0px; background: rgba(0,0,0,0); }");
 }
 
 
@@ -591,15 +586,14 @@ void MedeaMainWindow::setupWelcomeScreen()
     leftWelcomeToolbar->setOrientation(Qt::Vertical);
     leftWelcomeToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     leftWelcomeToolbar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    leftWelcomeToolbar->setStyleSheet("QToolButton{ width: 150px; }");
-    //leftWelcomeToolbar->setStyleSheet("QToolBar{ background: red; } QToolButton{ width: 150px; }");
+    leftWelcomeToolbar->setStyleSheet("QToolButton{ width: 100px; }");
 
     bottomWelcomeToolbar->setIconSize(iconSize);
     bottomWelcomeToolbar->setOrientation(Qt::Horizontal);
     bottomWelcomeToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     bottomWelcomeToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     bottomWelcomeToolbar->setLayoutDirection(Qt::RightToLeft);
-    //bottomWelcomeToolbar->setStyleSheet("QToolBar{ background: yellow; }");
+    bottomWelcomeToolbar->setStyleSheet("QToolButton{ padding-left: 10px; }");
 
     recentProjectsToolbar->setIconSize(QSize(18, 18));
     recentProjectsToolbar->setOrientation(Qt::Vertical);
@@ -618,9 +612,9 @@ void MedeaMainWindow::setupWelcomeScreen()
         recentProjectsToolbar->addAction(a);
     }
 
-    bottomWelcomeToolbar->addAction(ac->help_wiki->constructSubAction(false));
-    bottomWelcomeToolbar->addAction(ac->help_aboutMedea->constructSubAction(false));
     bottomWelcomeToolbar->addAction(ac->file_exit->constructSubAction(false));
+    bottomWelcomeToolbar->addAction(ac->help_aboutMedea->constructSubAction(false));
+    bottomWelcomeToolbar->addAction(ac->help_wiki->constructSubAction(false));
 
     QVBoxLayout* vLayout = new QVBoxLayout();
     vLayout->addStretch();
