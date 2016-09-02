@@ -23,7 +23,11 @@ public:
     void addItems(QList<QAction*> actions);
 
     void clearDock();
+    bool isEmpty();
+    
     void updateHeaderText(QString text);
+    void updateInfoLabel(QString text);
+    void displayInfoLabel(bool display);
 
 signals:
     void actionClicked(DockWidgetActionItem* action);
@@ -47,6 +51,7 @@ private:
     QWidget* mainWidget;
     DockWidgetItem* kindLabel;
     QToolButton* backButton;
+    QLabel* infoLabel;
     bool containsHeader;
 
     // these lists store the widgets in the main layout

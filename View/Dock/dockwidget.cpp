@@ -22,27 +22,36 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
         break;
     }
 
+    infoLabel = new QLabel(this);
+    infoLabel->setWordWrap(true);
+    infoLabel->setAlignment(Qt::AlignCenter);
+    infoLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    infoLabel->setStyleSheet("margin: 10px 0px 0px 0px; padding: 0px;");
+    infoLabel->setFont(QFont(font().family(), 8));
+
     mainLayout = new QVBoxLayout();
-       mainLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-       mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
-       mainLayout->setSpacing(5);
+    mainLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    mainLayout->setSpacing(5);
 
-       alignLayout = new QVBoxLayout();
-       alignLayout->addLayout(mainLayout);
-       alignLayout->addStretch();
+    alignLayout = new QVBoxLayout();
+    alignLayout->addWidget(infoLabel);
+    alignLayout->addLayout(mainLayout);
+    alignLayout->addStretch();
 
-       mainWidget = new QWidget(this);
-       mainWidget->setObjectName("DOCKWIDGET_MAIN");
-       mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-       mainWidget->setLayout(alignLayout);
+    mainWidget = new QWidget(this);
+    mainWidget->setObjectName("DOCKWIDGET_MAIN");
+    mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    mainWidget->setLayout(alignLayout);
 
-       setWidget(mainWidget);
-       setWidgetResizable(true);
-       setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-       setupHeaderLayout();
+    setWidget(mainWidget);
+    setWidgetResizable(true);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setupHeaderLayout();
+    displayInfoLabel(false);
 
-       connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-       themeChanged();
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 
@@ -58,35 +67,25 @@ void DockWidget::addItem(DockWidgetItem* item)
     }
 
     DockWidgetItem::DOCKITEM_KIND itemKind = item->getItemKind();
-    bool isActionItem = false;
-
-    switch (itemKind) {
-    case DockWidgetItem::ACTION_ITEM:
-        isActionItem = true;
-    case DockWidgetItem::GROUP_ACTION_ITEM:
+    bool isActionItem = itemKind == DockWidgetItem::ACTION_ITEM;
+    bool isParentActionItem = itemKind == DockWidgetItem::GROUP_ACTION_ITEM;
+    if (isActionItem || isParentActionItem) {
         childrenItems.append(item);
-        break;
-    default:
-        break;
     }
 
     if (isActionItem) {
         DockWidgetActionItem* actionItem = (DockWidgetActionItem*)item;
-        if (dockType == ToolActionController::PARTS) {
-            if (toolActionController->kindsWithSubActions.contains(item->getText())) {
-                actionItem->setSubActionRequired(true);
-            }
-        }
         actionItem->setProperty("kind", actionItem->getAction()->text());
         connect(actionItem, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
-        mainLayout->addWidget(actionItem);
-        return;
+        mainLayout->addWidget(actionItem);        
+    } else if (isParentActionItem) {
+        QToolBar* toolbar = new QToolBar(this);
+        toolbar->addWidget(item);
+        itemToolbarHash[item] = toolbar;
+        mainLayout->addWidget(toolbar);
+    } else {
+        mainLayout->addWidget(item);
     }
-
-    QToolBar* toolbar = new QToolBar(this);
-    toolbar->addWidget(item);
-    itemToolbarHash[item] = toolbar;
-    mainLayout->addWidget(toolbar);
 }
 
 
@@ -156,6 +155,16 @@ void DockWidget::clearDock()
 
 
 /**
+ * @brief DockWidget::isEmpty
+ * @return 
+ */
+bool DockWidget::isEmpty()
+{
+    return childrenItems.isEmpty();
+}
+
+
+/**
  * @brief DockWidget::updateHeaderText
  * @param text
  */
@@ -164,6 +173,26 @@ void DockWidget::updateHeaderText(QString text)
     if (kindLabel && !text.isEmpty()) {
         kindLabel->setText(text);
     }
+}
+
+
+/**
+ * @brief DockWidget::updateInfoLabel
+ * @param text
+ */
+void DockWidget::updateInfoLabel(QString text)
+{
+    infoLabel->setText(text);
+}
+
+
+/**
+ * @brief DockWidget::displayInfoLabel
+ * @param display
+ */
+void DockWidget::displayInfoLabel(bool display)
+{
+    infoLabel->setVisible(display);
 }
 
 

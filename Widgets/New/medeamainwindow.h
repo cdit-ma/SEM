@@ -36,6 +36,7 @@ signals:
     void requestSuggestions();
     void preloadImages();
     void jenkins_validated(bool);
+
 public slots:
     void setModelTitle(QString modelTitle);
     void settingChanged(SETTING_KEY setting, QVariant value);
@@ -45,11 +46,9 @@ public slots:
 
     void resetToolDockWidgets();
 
-
 private slots:
     void themeChanged();
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevDock);
-
 
     void popupSearch();
     void updateSearchSuggestions(QStringList list);
@@ -57,12 +56,16 @@ private slots:
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
 
+    void hideWelcomeScreen(QAction *action);
+
 private:
     void initializeApplication();
     void connectNodeView(NodeViewNew* nodeView);
+    void toggleWelcomeScreen(bool on);
 
     void setupTools();
     void setupInnerWindow();
+    void setupWelcomeScreen();
     void setupMenuBar();
     void setupToolBar();
     void setupSearchBar();
@@ -80,8 +83,6 @@ private:
 
     JenkinsManager* jenkinsManager;
     CUTSManager* cutsManager;
-
-
 
     QMenuBar* menuBar;
     QToolBar* applicationToolbar;
@@ -114,6 +115,13 @@ private:
     QToolButton* restoreAspectsButton;
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;
+
+    QWidget* welcomeWidget;
+    QToolBar* leftWelcomeToolbar;
+    QToolBar* bottomWelcomeToolbar;
+    QToolBar* recentProjectsToolbar;
+    QVBoxLayout* holderLayout;
+    bool welcomeScreenOn;
 
 protected:
     void resizeEvent(QResizeEvent *);

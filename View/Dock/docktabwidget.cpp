@@ -56,7 +56,9 @@ void DockTabWidget::selectionChanged()
     // if either of the definitions or functions list is displayed, close them and re-open the parts list
     if (partsButton->isChecked()) {
         if (stackedWidget->currentWidget() != partsDock) {
-            stackedWidget->setCurrentWidget(partsDock);
+            openRequiredDock(partsDock);
+        } else {
+            partsDock->displayInfoLabel(!adoptableKindAction->isEnabled());
         }
     }
 }
@@ -93,12 +95,13 @@ void DockTabWidget::tabClicked(bool checked)
 
     // if sender button is checked, un-check the other button
     otherButton->setChecked(false);
-    openRequiredDock(dockWidget->getDockType());
+    openRequiredDock(dockWidget);
 }
 
 
 /**
  * @brief DockTabWidget::dockActionClicked
+ * This is called when a DockWidgetActionItem is clicked.
  * @param action
  */
 void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
@@ -113,9 +116,9 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
         triggeredAdoptableKind = action->getProperty("kind").toString();;
         if (action->requiresSubAction()) {
             if (triggeredAdoptableKind == "WorkerProcess") {
-                openRequiredDock(ToolActionController::FUNCTIONS);
+                openRequiredDock(functionsDock);
             } else {
-                openRequiredDock(ToolActionController::DEFINITIONS);
+                openRequiredDock(definitionsDock);
             }
         } else {
             toolActionController->addChildNode(triggeredAdoptableKind, QPoint(0,0));
@@ -127,10 +130,15 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
         QVariant ID = action->property("ID");
         QVariant parentKind = action->property("parent-kind");
         toolActionController->addConnectedChildNode(ID.toInt(), parentKind.toString(), QPointF());
+        // re-open the parts dock
+        openRequiredDock(partsDock);
         break;
     }
     case ToolActionController::FUNCTIONS:
         // construct WorkerProcess
+
+        // re-open the parts dock
+        openRequiredDock(partsDock);
         break;
     case ToolActionController::HARDWARE:
     {
@@ -151,7 +159,7 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
  */
 void DockTabWidget::dockBackButtonClicked()
 {
-    stackedWidget->setCurrentWidget(partsDock);
+    openRequiredDock(partsDock);
 }
 
 
@@ -212,7 +220,24 @@ void DockTabWidget::setupDocks()
     stackedWidget->addWidget(functionsDock);
     stackedWidget->addWidget(hardwareDock);
 
-    partsDock->addItems(toolActionController->getAdoptableKindsActions(true));
+    // information shown when the dock is empty
+    partsDock->updateInfoLabel("The selected entity does not have any adoptable entities");
+    functionsDock->updateInfoLabel("No worker definitions has been imported");
+    hardwareDock->updateInfoLabel("There are no available hardware nodes");
+
+    // TODO - populate the parts and the functions docks (and the hardware dock?)
+    /* PARTS DOCK */
+    adoptableKindAction = toolActionController->getAdoptableKindsAction(false);
+    foreach (QAction* action, toolActionController->getAdoptableKindsActions(true)) {
+        DockWidgetActionItem* dockItem = new DockWidgetActionItem(action, this);
+        QString actionKind = action->text();
+        if (toolActionController->kindsWithSubActions.contains(actionKind)) {
+            dockItem->setSubActionRequired(true);
+        }
+        partsDock->addItem(dockItem);
+    }
+
+    /* FUNCTIONS DOCK */
 }
 
 
@@ -239,30 +264,68 @@ void DockTabWidget::setupConnections()
 
 /**
  * @brief DockTabWidget::openRequiredDock
- * @param dt
+ * @param dockWidget
  */
-void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt)
+void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
 {
-    DockWidget* dockWidget = getDock(dt);
     if (dockWidget) {
-        switch (dt) {
+
+        bool isDefinitionsDock = false;
+        bool showInfoLabel = false;
+
+        switch (dockWidget->getDockType()) {
+        case ToolActionController::PARTS:
+            showInfoLabel = !adoptableKindAction->isEnabled();
+            break;
         case ToolActionController::DEFINITIONS:
         {
+            // update header text; update entity kind to construct
+            dockWidget->updateHeaderText(triggeredAdoptableKind);
+            isDefinitionsDock = true;
+
             QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(triggeredAdoptableKind);
             populateDock(dockWidget, actions, true);
+            showInfoLabel = dockWidget->isEmpty();
             break;
         }
+        case ToolActionController::FUNCTIONS:
+            dockWidget->updateHeaderText(triggeredAdoptableKind);
+            showInfoLabel = true;
+            break;
         case ToolActionController::HARDWARE:
         {
             QList<NodeViewItemAction*> actions = toolActionController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
             populateDock(dockWidget, actions);
+            showInfoLabel = dockWidget->isEmpty();
             break;
         }
         default:
             break;
         }
+
+        // if the dock is empty, show its information label
+        if (showInfoLabel && isDefinitionsDock) {
+            QString hashKey = toolActionController->getInfoActionKeyForAdoptableKind(triggeredAdoptableKind);
+            QAction* infoAction = toolActionController->getToolAction(hashKey, true);
+            if (infoAction) {
+                dockWidget->updateInfoLabel(infoAction->text());
+            }
+        }
+        dockWidget->displayInfoLabel(showInfoLabel);
+
+        // set the reuired dock
         stackedWidget->setCurrentWidget(dockWidget);
     }
+}
+
+
+/**
+ * @brief DockTabWidget::openRequiredDock
+ * @param dt
+ */
+void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt)
+{
+    openRequiredDock(getDock(dt));
 }
 
 
@@ -308,9 +371,6 @@ void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemActio
             dockWidget->addItem(dockItem);
         }
     }
-
-    // update header text; update entity kind to construct
-    dockWidget->updateHeaderText(triggeredAdoptableKind);
 }
 
 
