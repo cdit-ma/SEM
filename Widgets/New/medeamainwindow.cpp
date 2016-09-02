@@ -87,12 +87,15 @@ void MedeaMainWindow::setViewController(ViewController *vc)
 {
     viewController = vc;
     SelectionController* controller = vc->getSelectionController();
+    ActionController* actionController = vc->getActionController();
 
-    connect(controller, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), tableWidget, SLOT(itemActiveSelectionChanged(ViewItem*, bool)));
+    connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &TableWidget::itemActiveSelectionChanged);
 
     connect(vc, &ViewController::mc_projectModified, this, &MedeaMainWindow::setWindowModified);
     connect(vc, &ViewController::vc_projectPathChanged, this, &MedeaMainWindow::setModelTitle);
 
+    connect(vc, &ViewController::mc_projectModified, this, &MedeaMainWindow::setWindowModified);
+    connect(actionController, &ActionController::recentProjectsUpdated, this, &MedeaMainWindow::recentProjectsUpdated);
     //this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
 
     if (vc->getActionController()) {
@@ -320,6 +323,16 @@ void MedeaMainWindow::hideWelcomeScreen(QAction* action)
 {
     if (action->text() != "Settings") {
         toggleWelcomeScreen(false);
+    }
+}
+
+void MedeaMainWindow::recentProjectsUpdated()
+{
+    if(recentProjectsToolbar && viewController){
+        recentProjectsToolbar->clear();
+        foreach(RootAction* action,viewController->getActionController()->getRecentProjectActions()){
+            recentProjectsToolbar->addAction(action);
+        }
     }
 }
 
@@ -609,12 +622,6 @@ void MedeaMainWindow::setupWelcomeScreen()
     leftWelcomeToolbar->addAction(ac->file_openProject->constructSubAction(false));
     leftWelcomeToolbar->addAction(ac->options_settings->constructSubAction(false));
 
-    QList<QAction*> actions = viewController->getToolbarController()->getAdoptableKindsActions(false);
-    for (int i = 0; i < 8; i++ ) {
-        QAction* a = actions.at(i);
-        recentProjectsToolbar->addAction(a);
-    }
-
     bottomWelcomeToolbar->addAction(ac->file_exit->constructSubAction(false));
     bottomWelcomeToolbar->addAction(ac->help_aboutMedea->constructSubAction(false));
     bottomWelcomeToolbar->addAction(ac->help_wiki->constructSubAction(false));
@@ -643,6 +650,7 @@ void MedeaMainWindow::setupWelcomeScreen()
     connect(recentProjectsToolbar, SIGNAL(actionTriggered(QAction*)), this, SLOT(hideWelcomeScreen(QAction*)));
 
     welcomeScreenOn = false;
+    recentProjectsUpdated();
 }
 
 

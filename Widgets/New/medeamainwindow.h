@@ -46,6 +46,7 @@ public slots:
 
     void resetToolDockWidgets();
 
+
 private slots:
     void themeChanged();
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevDock);
@@ -57,6 +58,7 @@ private slots:
     void toolbarTopLevelChanged(bool a);
 
     void hideWelcomeScreen(QAction *action);
+    void recentProjectsUpdated();
 
 private:
     void initializeApplication();

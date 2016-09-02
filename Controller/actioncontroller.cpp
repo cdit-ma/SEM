@@ -2,6 +2,7 @@
 #include "viewcontroller.h"
 #include "../View/theme.h"
 #include <QDebug>
+#include "filehandler.h"
 ActionController::ActionController(ViewController* vc) : QObject(vc)
 {
     viewController = vc;
@@ -17,6 +18,9 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
     setupMainMenu();
     setupApplicationToolbar();
     setupContextToolbar();
+
+    setupRecentProjects();
+
 
     connect(SettingsController::settings(), &SettingsController::settingChanged, this, &ActionController::settingChanged);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
@@ -37,6 +41,8 @@ void ActionController::connectViewController(ViewController *controller)
         connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
 
         connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
+
+        connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::updateRecentProjects);
 
 
         connect(file_newProject, &QAction::triggered, viewController, &ViewController::newProject);
@@ -79,8 +85,7 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
 
-
-
+        connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
         connectSelectionController(controller->getSelectionController());
     }
 }
@@ -127,6 +132,29 @@ RootAction *ActionController::createRootAction(QString name, QString hashKey, QS
     return action;
 }
 
+void ActionController::clearRecentProjects()
+{
+    SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, QStringList());
+}
+
+void ActionController::updateRecentProjects(QString filePath)
+{
+    //Sanitize!
+    filePath = FileHandler::sanitizeFilePath(filePath);
+
+    QStringList files = recentProjectKeys;
+
+    //Get the index of the filename opened (if it exists)
+    files.removeAll(filePath);
+    files.insert(0, filePath);
+
+    while(files.size() > 8){
+        files.removeLast();
+    }
+
+    SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, files);
+}
+
 void ActionController::settingChanged(SETTING_KEY key, QVariant value)
 {
     bool boolVal = value.toBool();
@@ -135,6 +163,10 @@ void ActionController::settingChanged(SETTING_KEY key, QVariant value)
 
     if(action){
         action->setVisible(boolVal);
+    }
+
+    if(key == SK_GENERAL_RECENT_PROJECTS){
+        recentProjectsChanged();
     }
 }
 
@@ -244,6 +276,11 @@ void ActionController::themeChanged()
         updateIcon(action, theme);
     }
 
+    foreach(RootAction* action, recentProjectActions.values()){
+        updateIcon(action, theme);
+    }
+
+
     menu_file_recentProjects->setIcon(theme->getIcon("Actions", "Timer"));
 }
 
@@ -350,11 +387,91 @@ void ActionController::updateActions()
     updateJenkinsActions();
 }
 
+void ActionController::createRecentProjectAction(QString fileName)
+{
+    if(!recentProjectActions.contains(fileName)){
+        RootAction* action = new RootAction(fileName, this);
+        action->setIconPath("Actions", "New");
+        updateIcon(action);
+        recentProjectActions.insert(fileName, action);
+        connect(action, &QAction::triggered, recentProjectMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
+        recentProjectMapper->setMapping(action, fileName);
+    }
+}
+
+void ActionController::recentProjectsChanged()
+{
+    recentProjectMapper = new QSignalMapper(this);
+
+    connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped),viewController, &ViewController::openExistingProject);
+
+
+    //Load in the defaults.
+    QStringList list = SettingsController::settings()->getSetting(SK_GENERAL_RECENT_PROJECTS).toStringList();
+
+    QStringList orderedKeys;
+
+    foreach(QString filepath, list){
+        filepath = FileHandler::sanitizeFilePath(filepath);
+        createRecentProjectAction(filepath);
+        orderedKeys.append(filepath);
+    }
+    foreach(QString oldKey, recentProjectKeys){
+        if(orderedKeys.contains(oldKey)){
+            continue;
+        }else{
+            RootAction* action = recentProjectActions.value(oldKey, 0);
+            if(action){
+                recentProjectActions.remove(oldKey);
+                action->deleteLater();
+            }
+        }
+    }
+    if(orderedKeys != recentProjectKeys){
+
+        //Update Menus
+        menu_file_recentProjects->clear();
+
+        foreach(QString key, orderedKeys){
+            RootAction* action = recentProjectActions.value(key, 0);
+            if(action){
+                menu_file_recentProjects->addAction(action);
+            }
+        }
+        //
+        menu_file_recentProjects->addSeparator();
+        menu_file_recentProjects->addAction(file_recentProjects_clearHistory);
+        recentProjectKeys = orderedKeys;
+        emit recentProjectsUpdated();
+    }
+
+}
+
 void ActionController::updateIcon(RootAction *action, Theme *theme)
 {
     if(theme && action){
         action->setIcon(theme->getIcon(action->getIconPair()));
     }
+}
+
+QList<RootAction *> ActionController::getRecentProjectActions()
+{
+    QList<RootAction*> actions;
+
+    foreach(QAction* action, menu_file_recentProjects->actions()){
+        if(action->isSeparator()){
+            continue;
+        }
+        if(action == file_recentProjects_clearHistory){
+            continue;
+        }
+        RootAction* a = qobject_cast<RootAction*>(action);
+        if(a){
+            actions.append(a);
+        }
+    }
+
+    return actions;
 }
 
 void ActionController::setupActions()
@@ -717,5 +834,11 @@ void ActionController::setupContextToolbar()
     contextToolbar->addAction(edit_alignVertical->getStealthAction());
     contextToolbar->addAction(edit_alignHorizontal->getStealthAction());
     */
+}
+
+void ActionController::setupRecentProjects()
+{
+    recentProjects = new ActionGroup(this);
+    recentProjectsChanged();
 }
 

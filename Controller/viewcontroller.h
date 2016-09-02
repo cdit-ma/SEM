@@ -100,6 +100,8 @@ signals:
     void vc_centerItem(int ID);
     void vc_fitToScreen();
 
+    void vc_addProjectToRecentProjects(QString filePath);
+
     void vc_getCodeForComponent(QString graphmlPath, QString componentName);
     void vc_validateModel(QString graphmlPath, QString reportPath);
     void vc_launchLocalDeployment(QString graphmlPath);
@@ -133,6 +135,7 @@ public slots:
 
     void newProject();
     void openProject();
+    void openExistingProject(QString file);
     void importProjects();
     void saveProject();
     void saveAsProject();

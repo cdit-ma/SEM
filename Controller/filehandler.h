@@ -14,10 +14,12 @@ public:
 
     static QString readTextFile(QString filePath);
 
+    static bool isFileReadable(QString filePath);
     static bool writeTextFile(QString filePath, QString fileData);
     static QString writeTempTextFile(QString fileData, QString extension="");
 
     static QString getTempFileName(QString suffix);
+    static QString sanitizeFilePath(QString filePath);
 signals:
     void notification(NOTIFICATION_TYPE type, QString notificationTitle, QString notificationText, QPair<QString, QString> notificationIcon);
 public:
@@ -27,6 +29,7 @@ private:
     static void _notification(NOTIFICATION_TYPE type, QString notificationTitle, QString notificationText, QPair<QString, QString> notificationIcon);
 
     static bool ensureDirectory(QString path);
+
     static QString getTimestamp();
 
     static QFileDialog* getFileDialog();

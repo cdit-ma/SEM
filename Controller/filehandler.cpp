@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QTextStream>
 #include <QStringBuilder>
+#include <QDebug>
 FileHandler* handler = 0;
 
 FileHandler::FileHandler():QObject()
@@ -77,6 +78,13 @@ QString FileHandler::readTextFile(QString filePath)
     return fileData;
 }
 
+bool FileHandler::isFileReadable(QString filePath)
+{
+    QFile file(filePath);
+    QFileInfo fileInfo(file);
+    return fileInfo.exists() && fileInfo.isReadable();
+}
+
 QString FileHandler::writeTempTextFile(QString fileData, QString extension)
 {
     QString path = getTempFileName(extension);
@@ -129,6 +137,12 @@ bool FileHandler::ensureDirectory(QString path)
 QString FileHandler::getTempFileName(QString suffix)
 {
     return QDir::tempPath() + "/" + getTimestamp() + suffix;
+}
+
+QString FileHandler::sanitizeFilePath(QString filePath)
+{
+    filePath = filePath.replace("\\","/");
+    return filePath;
 }
 
 QString FileHandler::getTimestamp()

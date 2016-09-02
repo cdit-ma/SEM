@@ -668,6 +668,7 @@ bool ViewController::_saveProject()
             QString data = controller->getProjectAsGraphML();
             if(FileHandler::writeTextFile(filePath, data)){
                 emit vc_projectSaved(filePath);
+                emit vc_addProjectToRecentProjects(filePath);
             }
             return true;
         }
@@ -739,6 +740,7 @@ bool ViewController::_openProject(QString filePath)
         if(!filePath.isEmpty()){
             QString fileData = FileHandler::readTextFile(filePath);
             emit vc_openProject(filePath, fileData);
+            emit vc_addProjectToRecentProjects(filePath);
             return true;
         }
     }
@@ -873,6 +875,16 @@ void ViewController::newProject()
 void ViewController::openProject()
 {
     _openProject();
+}
+
+void ViewController::openExistingProject(QString file)
+{
+    //Check for file first.
+    if(FileHandler::isFileReadable(file)){
+        _openProject(file);
+    }else{
+        qCritical() << file << "Not openable";
+    }
 }
 
 void ViewController::importProjects()

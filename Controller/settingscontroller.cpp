@@ -119,6 +119,10 @@ void SettingsController::intializeSettings()
     createSetting(SK_GENERAL_SELECT_ON_CREATION, ST_BOOL, "General", "Controls", "Select Entity on creation");
     createSetting(SK_GENERAL_ZOOM_UNDER_MOUSE, ST_BOOL, "General", "Controls", "Zoom to mouse");
 
+    createSetting(SK_GENERAL_RECENT_PROJECTS, ST_STRINGLIST, "General", "", "Recent Projects");
+
+
+
     //Window - Views
     createSetting(SK_WINDOW_INTERFACES_VISIBLE, ST_BOOL, "Window", "Views", "Show Interfaces on launch");
     createSetting(SK_WINDOW_BEHAVIOUR_VISIBLE, ST_BOOL, "Window", "Views", "Show Behaviour on launch");
@@ -232,11 +236,9 @@ void SettingsController::intializeSettings()
     _getSetting(SK_TOOLBAR_ALIGN_HORIZONTAL)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_ALIGN_VERTICAL)->setDefaultValue(true);
 
+    _getSetting(SK_GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
+
     _getSetting(SK_JENKINS_JOBNAME)->setDefaultValue("MEDEA-SEM");
-
-
-
-
 }
 
 void SettingsController::loadSettingsFromFile()

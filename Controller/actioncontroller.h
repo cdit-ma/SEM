@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QAction>
 #include <QMenu>
+#include <QSignalMapper>
 #include "../Widgets/New/actiongroup.h"
 #include "../Widgets/New/selectioncontroller.h"
 #include "rootaction.h"
@@ -22,11 +23,15 @@ public:
     void connectViewController(ViewController* controller);
 
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
-
+    QList<RootAction*> getRecentProjectActions();
 private:
-    RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 
+    RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
+signals:
+    void recentProjectsUpdated();
 private slots:
+    void clearRecentProjects();
+    void updateRecentProjects(QString filePath);
     void settingChanged(SETTING_KEY key, QVariant value);
     void jenkinsValidated(bool success);
     void selectionChanged(int selectionSize);
@@ -54,6 +59,8 @@ public:
 
     ActionGroup* applicationToolbar;
     ActionGroup* contextToolbar;
+
+    ActionGroup* recentProjects;
 
     QAction* toggleDock;
 
@@ -167,11 +174,20 @@ public:
     QMenu* menu_window;
     QMenu* menu_options;
 
+
+
+    QSignalMapper* recentProjectMapper;
+    QHash<QString, RootAction*> recentProjectActions;
+    QStringList recentProjectKeys;
+
 private:
+    void createRecentProjectAction(QString fileName);
+    void recentProjectsChanged();
     void setupActions();
     void setupMainMenu();
     void setupApplicationToolbar();
     void setupContextToolbar();
+    void setupRecentProjects();
 };
 
 #endif // ACTIONCONTROLLER_H

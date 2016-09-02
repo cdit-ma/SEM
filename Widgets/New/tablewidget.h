@@ -16,8 +16,9 @@ class TableWidget : public QWidget
 public:
     TableWidget(ViewController *controller, QWidget *parent = 0);
 
-private slots:
+public slots:
     void itemActiveSelectionChanged(ViewItem* item, bool isActive);
+private slots:
     void themeChanged();
 private:
     void setupLayout();

@@ -228,7 +228,7 @@ void AppSettings::setupSettingsLayouts()
     QHash<QString, QString> nameToCategory;
     foreach(Setting* setting, SettingsController::settings()->getSettings()){
         //Ignore invisible settings.
-        if(setting->getType() == ST_NONE){
+        if(setting->getType() == ST_NONE || setting->getType() == ST_STRINGLIST){
             continue;
         }
 
