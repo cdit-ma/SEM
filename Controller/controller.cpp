@@ -120,13 +120,15 @@ static int count = 0;
 NewController::NewController() :QObject(0)
 {
 
-    qCritical() << count ++;
-    controllerThread = new QThread(this);
+    controllerThread = new QThread();
     moveToThread(controllerThread);
 
-    connect(this, SIGNAL(destroyed(QObject*)), controllerThread, SLOT(terminate()));
     connect(this, &NewController::initiateTeardown, this, &QObject::deleteLater, Qt::QueuedConnection);
+    connect(this, &NewController::initiateTeardown, controllerThread, &QThread::quit, Qt::QueuedConnection);
     controllerThread->start();
+
+
+    qCritical() << count ++;
 
 
     qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
@@ -357,6 +359,7 @@ void NewController::setupController()
 
 NewController::~NewController()
 {
+    qCritical() <<"~NewController()";
     enableDebugLogging(false);
 
     DESTRUCTING_CONTROLLER = true;

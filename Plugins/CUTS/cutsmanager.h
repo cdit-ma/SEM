@@ -32,6 +32,7 @@ public:
     void showLocalDeploymentGUI(QString graphmlPath);
 
 signals:
+    void initiateTeardown();
     void killProcesses();
     void localDeploymentOkay(bool okay);
     //Emitted by the slot queueXSLTransform

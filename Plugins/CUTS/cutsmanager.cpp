@@ -17,13 +17,20 @@
 #include "GUI/cutsexecutionwidget.h"
 #include "../../Controller/settingscontroller.h"
 
-CUTSManager::CUTSManager()
+CUTSManager::CUTSManager():QObject(0)
 {
-    managerThread = new QThread(this);
+    managerThread = new QThread();
     moveToThread(managerThread);
 
-    connect(this, SIGNAL(destroyed(QObject*)), managerThread, SLOT(terminate()));
+    connect(this, SIGNAL(initiateTeardown()), managerThread, SLOT(quit()));
+    //connect(this, SIGNAL(initiateTeardown()), managerThread, SLOT(quit()));
+    //connect(this, SIGNAL(initiateTeardown()), this, SLOT(deleteLater()));
+    //connect(managerThread, SIGNAL(finished()), managerThread, SLOT(deleteLater()), Qt::QueuedConnection);
+    //connect(managerThread, SIGNAL(finished()), this, SLOT(deleteLater()), Qt::QueuedConnection);
+    //connect(this, SIGNAL(destroyed(QObject*)), managerThread, SLOT(terminate()));
+    //connect(this, &CUTSManager::initiateTeardown, this, &QObject::deleteLater, Qt::QueuedConnection);
     managerThread->start();
+
 
     //Initialize starting variables;
     executingProcessCount = 0;
@@ -44,7 +51,8 @@ CUTSManager::CUTSManager()
 
 CUTSManager::~CUTSManager()
 {
-    //Destructor
+    emit initiateTeardown();;
+    qCritical() << "Tearing down thread!";
 }
 
 void CUTSManager::setXalanJPath(QString xalanPath)

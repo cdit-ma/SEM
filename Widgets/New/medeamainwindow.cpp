@@ -73,7 +73,9 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 MedeaMainWindow::~MedeaMainWindow()
 {
     qCritical() << "~MedeaMainWindow()";
+    //emit cutsManager->initiateTeardown();
     cutsManager->deleteLater();
+    //cutsManager = 0;
     SettingsController::teardownSettings();
     Theme::teardownTheme();
 }
