@@ -437,7 +437,7 @@ void MedeaMainWindow::toggleWelcomeScreen(bool on)
     // hide the mneu bar and close all dock widgets
     menuBar->setVisible(!on);
     foreach (QDockWidget* dw, findChildren<QDockWidget*>()) {
-        if (dw->windowTitle() == "QOS Browser") {
+        if (!on && dw->windowTitle() == "QOS Browser") {
             continue;
         }
         dw->setVisible(!on);
