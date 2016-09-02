@@ -79,6 +79,7 @@ void DockWidgetItem::displayToolButtonText(bool show)
  */
 void DockWidgetItem::setIconSize(int width, int height)
 {
+    // 7 is the current padding on the left
     iconWidth = width + 7;
     QToolButton::setIconSize(QSize(width, height));
 }

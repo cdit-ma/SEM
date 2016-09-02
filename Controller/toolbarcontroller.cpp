@@ -7,10 +7,23 @@
 ToolActionController::ToolActionController(ViewController *viewController):QObject(viewController)
 {
     interfaceKinds << "BlackBox" << "Component" << "Aggregate" << "Vector" << "InEventPort" << "OutEventPort";
+
     kindsWithSubActions << "BlackBoxInstance" << "ComponentInstance" << "ComponentImpl";
     kindsWithSubActions << "AggregateInstance" << "VectorInstance" << "InEventPort";
     kindsWithSubActions << "OutEventPort" << "InEventPortDelegate" << "OutEventPortDelegate";
     kindsWithSubActions << "OutEventPortImpl" << "WorkerProcess";
+
+    infoActionKeyHash["BlackBoxInstance"] = "INFO_NO_BLACKBOXES";
+    infoActionKeyHash["ComponentInstance"] = "INFO_NO_COMPONENTS";
+    infoActionKeyHash["ComponentImpl"] = "INFO_NO_UNIMPLEMENTED_COMPONENTS";
+    infoActionKeyHash["AggregateInstance"] = "INFO_NO_AGGREGATES";
+    infoActionKeyHash["VectorInstance"] = "INFO_NO_VECTORS";
+    infoActionKeyHash["InEventPort"] = "INFO_NO_AGGREGATES";
+    infoActionKeyHash["OutEventPort"] = "INFO_NO_AGGREGATES";
+    infoActionKeyHash["InEventPortDelegate"] = "INFO_NO_AGGREGATES";
+    infoActionKeyHash["OutEventPortDelegate"] = "INFO_NO_AGGREGATES";
+    infoActionKeyHash["OutEventPortImpl"] = "INFO_NO_OUTEVENTPORTS";
+    infoActionKeyHash["WorkerProcess"] = "INFO_NO_FUNCTIONS";
 
     //toolbar = new QToolBar();
     //toolbar->setIconSize(QSize(80,80));
@@ -152,15 +165,15 @@ void ToolActionController::setupToolActions()
     createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
 
     // setup menu info actions here
-    createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no valid nodes available.", "Actions", "Info");
-    createRootAction("INFO_NO_UNIMPLEMENTED_COMPONENTS", "There are no IDL files containing unimplemented Component entities.", "Actions", "Info");
-    createRootAction("INFO_NO_COMPONENTS", "There are no IDL files containing Component entities.", "Actions", "Info");
-    createRootAction("INFO_NO_BLACKBOXES", "There are no IDL files containing BlackBox entities.", "Actions", "Info");
-    createRootAction("INFO_NO_AGGREGATES", "There are no IDL files containing Aggregate entities.", "Actions", "Info");
-    createRootAction("INFO_NO_VECTORS", "There are no IDL files containing initialised Vector entities.", "Actions", "Info");
-    createRootAction("INFO_NO_FUNCTIONS", "There are no available functions.", "Actions", "Info");
-    createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities.", "Actions", "Info");
-    createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to.", "Actions", "Info");
+    createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no available hardware nodes", "Actions", "Info");
+    createRootAction("INFO_NO_UNIMPLEMENTED_COMPONENTS", "There are no IDL files containing unimplemented Component entities", "Actions", "Info");
+    createRootAction("INFO_NO_COMPONENTS", "There are no IDL files containing Component entities", "Actions", "Info");
+    createRootAction("INFO_NO_BLACKBOXES", "There are no IDL files containing BlackBox entities", "Actions", "Info");
+    createRootAction("INFO_NO_AGGREGATES", "There are no IDL files containing Aggregate entities", "Actions", "Info");
+    createRootAction("INFO_NO_VECTORS", "There are no IDL files containing initialised Vector entities", "Actions", "Info");
+    createRootAction("INFO_NO_FUNCTIONS", "There are no available functions", "Actions", "Info");
+    createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities", "Actions", "Info");
+    createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to", "Actions", "Info");
 }
 
 QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)
@@ -248,6 +261,20 @@ QAction *ToolActionController::getToolAction(QString hashKey, bool stealth)
 QList<NodeViewItemAction*> ToolActionController::getRequiredSubActionsForKind(QString kind)
 {
     return actions.values();
+}
+
+
+/**
+ * @brief ToolActionController::getInfoActionKeyForAdoptableKind
+ * @param kind
+ * @return
+ */
+QString ToolActionController::getInfoActionKeyForAdoptableKind(QString kind)
+{
+    if (infoActionKeyHash.contains(kind)) {
+        return infoActionKeyHash.value(kind);
+    }
+    return "";
 }
 
 

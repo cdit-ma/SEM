@@ -30,6 +30,7 @@ private:
     void setupDocks();
     void setupConnections();
 
+    void openRequiredDock(DockWidget* dockWidget);
     void openRequiredDock(ToolActionController::DOCK_TYPE dt);
     void populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions, bool groupByParent = false);
 
@@ -50,7 +51,7 @@ private:
     QStackedWidget* stackedWidget;
 
     QString triggeredAdoptableKind;
-
+    QAction* adoptableKindAction;
 };
 
 #endif // DOCKTABWIDGET_H

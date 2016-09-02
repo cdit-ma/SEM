@@ -44,6 +44,8 @@ public:
 
     QStringList getKindsRequiringSubActions();
     QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
+    
+    QString getInfoActionKeyForAdoptableKind(QString kind);
 
     void addChildNode(QString kind, QPointF position);
     void addEdge(int dstID, Edge::EDGE_CLASS edgeKind=Edge::EC_UNDEFINED);
@@ -70,6 +72,8 @@ private:
     QHash<Edge::EDGE_CLASS, RootAction*> edgeKindActions;
 
     QHash<int, NodeViewItemAction*> actions;
+    
+    QHash<QString, QString> infoActionKeyHash;
 
 public:
     ActionGroup* actionGroup;
