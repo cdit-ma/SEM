@@ -74,6 +74,11 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(toolbar_addDDSQOSProfile, &QAction::triggered, viewController, &ViewController::constructDDSQOSProfile);
 
+        connect(model_getCodeForComponent, &QAction::triggered, viewController, &ViewController::getCodeForComponent);
+        connect(model_validateModel, &QAction::triggered, viewController, &ViewController::validateModel);
+
+        connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
+
 
 
         connectSelectionController(controller->getSelectionController());
@@ -162,11 +167,16 @@ void ActionController::selectionChanged(int selectionSize)
 
         bool hasDefn = false;
         bool hasImpl = false;
+        bool hasCode = false;
         if(gotSingleSelection && singleItem && singleItem->isNode()){
             NodeViewItem* node = (NodeViewItem*) singleItem;
             hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
             hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
+            hasCode = node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE || node->getNodeKind() == Node::NK_COMPONENT_IMPL;
         }
+
+        model_getCodeForComponent->setEnabled(hasCode);
+
         view_centerOnDefn->setEnabled(hasDefn);
         view_viewDefnInNewWindow->setEnabled(hasDefn);
 
@@ -478,6 +488,10 @@ void ActionController::setupActions()
     window_displayMinimap = createRootAction("Display Minimap", "", "Actions", "Minimap");
 
     model_validateModel = createRootAction("Validate Model", "", "Actions", "Validate");
+    model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
+    model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
+
+    model_getCodeForComponent = createRootAction("Get Code for Component", "", "Actions", "getCPP");
     model_executeLocalJob = createRootAction("Launch: Local Deployment", "", "Actions", "Job_Build");
     model_executeLocalJob->setToolTip("Requires Valid CUTS and Windows");
 
@@ -508,7 +522,6 @@ void ActionController::setupActions()
     toolbar_popOutDefn = createRootAction("Popout Definition", "", "Actions", "Popup");
     toolbar_popOutImpl = createRootAction("Popout Implementation", "", "Actions", "Popup");
     //toolbar_popOutInst = createRootAction("View Selection's Instance", "", "Actions", "Popup");
-    toolbar_getCPP = createRootAction("Get CPP Code", "", "Actions", "getCPP");
     toolbar_setReadOnly = createRootAction("Set Selection To Read Only", "", "Actions", "Lock_Closed");
     toolbar_unsetReadOnly = createRootAction("Unset Selection From Read Only", "", "Actions", "Lock_Open");
     toolbar_expand = createRootAction("Expand Selection", "", "Actions", "Expand");
@@ -593,6 +606,8 @@ void ActionController::setupMainMenu()
 
     // Model Menu
     menu_model->addAction(model_validateModel);
+    menu_model->addAction(model_getCodeForComponent);
+
     menu_model->addAction(model_executeLocalJob);
 
     // Jenkins Menu
@@ -684,7 +699,7 @@ void ActionController::setupContextToolbar()
     contextToolbar->addAction(toolbar_unsetReadOnly);
     contextToolbar->addSeperator();
     contextToolbar->addAction(view_viewConnections->constructSubAction());
-    contextToolbar->addAction(toolbar_getCPP);
+    contextToolbar->addAction(model_getCodeForComponent->constructSubAction());
     contextToolbar->addAction(view_viewInNewWindow->constructSubAction());
     contextToolbar->addAction(toolbar_wiki);
 

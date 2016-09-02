@@ -13,7 +13,7 @@
  * @param password The password for the Jenkins Server
  * @todo Discover way of removing password from .ini
  */
-JenkinsManager::JenkinsManager()
+JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
 {
     //Register the Types used as parameters JenkinsRequest so signals/slots can be connected.
     qRegisterMetaType<QPair<QByteArray,QByteArray> >();

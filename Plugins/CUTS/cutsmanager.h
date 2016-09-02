@@ -29,16 +29,17 @@ public:
     void setCUTSConfigScriptPath(QString configureScriptPath);
     void setScriptsPath(QString path);
 
+    void showLocalDeploymentGUI(QString graphmlPath);
 
 signals:
     void killProcesses();
-    void localDeploymentOkay();
+    void localDeploymentOkay(bool okay);
     //Emitted by the slot queueXSLTransform
     void fileToGenerate(QString filePath);
     //Emitted by the slot executeProcess
     void fileIsGenerated(QString filePath, bool success);
 
-    void executedXSLValidation(bool success, QString filePath);
+    void executedXSLValidation(QString filePath);
 
     //Emitted bt the slot executeXSLGeneration
     void executedXSLGeneration(bool success, QString errorString="");
@@ -53,6 +54,9 @@ signals:
     //Emmited by the slot executeXMETransformation
     void gotXMETransform(bool success, QString errorString, QString path);
     void gotCPPForComponent(bool success, QString errorString, QString componentName, QString cppCode);
+
+    void gotError(QString errorTitle, QString errorString);
+    void gotCodeForComponent(QString fileName, QString fileData);
     //Used to send live console output from the executeMWCGeneration
     void gotLiveMWCOutput(QString output);
     //Used to send live console output from the executeCPPGeneration
@@ -63,7 +67,7 @@ signals:
     void gotXMIGraphML(bool success, QString errorString, QString outputxml);
 
     void _gotLiveOutput(QString output);
-private slots:
+public slots:
 
     //Validates the model.
     void executeXSLValidation(QString graphmlPath, QString outputFilePath);
@@ -157,6 +161,8 @@ private:
     int xslFailCount;
     int MAX_EXECUTING_PROCESSES;
 
+
+    QThread* managerThread;
 
     //A Hash to keep track of the QProcess' and their output files.
     QHash<QProcess*, QString> processHash;

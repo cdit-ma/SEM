@@ -207,7 +207,9 @@ HEADERS += \
     View/Dock/dockwidget.h \
     View/SceneItems/Assemblies/nodeitemsquare.h \
     View/Dock/dockwidgetitem.h \
-    View/Dock/dockwidgetactionitem.h
+    View/Dock/dockwidgetactionitem.h \
+    View/Dock/dockwidgetparentactionitem.h \
+    GUI/codebrowser.h
 
 SOURCES += \
     main.cpp \
@@ -378,7 +380,9 @@ SOURCES += \
     View/Dock/dockwidget.cpp \
     View/SceneItems/Assemblies/nodeitemsquare.cpp \
     View/Dock/dockwidgetitem.cpp \
-    View/Dock/dockwidgetactionitem.cpp
+    View/Dock/dockwidgetactionitem.cpp \
+    View/Dock/dockwidgetparentactionitem.cpp \
+    GUI/codebrowser.cpp
 
 RESOURCES += \
     resources.qrc

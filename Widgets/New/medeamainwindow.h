@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QProgressBar>
 
+#include "../../Plugins/CUTS/cutsmanager.h"
 #include "medeawindownew.h"
 #include "../../View/nodeviewnew.h"
 #include "../../View/nodeviewminimap.h"
@@ -70,12 +71,15 @@ private:
     void setupDataTable();
     void setupMinimap();
     void setupMainDockWidgetToggles();
+
     void setupJenkinsManager();
+    void setupCUTSManager();
 
     MedeaWindowNew* innerWindow;
     QMainWindow* centralWindow;
 
     JenkinsManager* jenkinsManager;
+    CUTSManager* cutsManager;
 
 
 

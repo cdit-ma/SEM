@@ -11,8 +11,10 @@ public:
     void setParentNodeViewItemAction(NodeViewItemAction* item);
     ~NodeViewItemAction();
     NodeViewItemAction* getParentViewItemAction();
+
     int getID();
     QString getKind();
+    QString getLabel();
 
     NodeViewItem* getNodeViewItem();
 

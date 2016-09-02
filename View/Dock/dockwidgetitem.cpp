@@ -2,7 +2,6 @@
 
 #define MIN_BUTTON_WIDTH 50
 
-
 /**
  * @brief DockWidgetItem::DockWidgetItem
  * @param parent
@@ -10,9 +9,12 @@
 DockWidgetItem::DockWidgetItem(QString text, QWidget* parent) :
     QToolButton(parent)
 {
-    displayToolButtonText(false);
+    iconWidth = 0;
+
+    displayToolButtonText(true);
     setText(text);
 
+    setEnabled(false);
     setMinimumWidth(MIN_BUTTON_WIDTH);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
@@ -29,6 +31,7 @@ void DockWidgetItem::setText(QString text)
 {
     fullText = text;
     updateTextLabel();
+    setToolTip(fullText);
 }
 
 
@@ -54,11 +57,40 @@ QString DockWidgetItem::getDisplayedText()
 
 /**
  * @brief DockWidgetItem::displayToolButtonText
+ * This is the only way to hide the text of the toolbutton.
+ * ToolButtonStyle Qt::ToolButtonIconOnly doesn't hide the text if a text has been set.
  * @param show
  */
 void DockWidgetItem::displayToolButtonText(bool show)
 {
     displayText = show;
+    if (show) {
+        updateTextLabel();
+    } else {
+        QToolButton::setText("");
+    }
+}
+
+
+/**
+ * @brief DockWidgetItem::setIconSize
+ * @param width
+ * @param height
+ */
+void DockWidgetItem::setIconSize(int width, int height)
+{
+    iconWidth = width + 7;
+    QToolButton::setIconSize(QSize(width, height));
+}
+
+
+/**
+ * @brief DockWidgetItem::getItemKind
+ * @return
+ */
+DockWidgetItem::DOCKITEM_KIND DockWidgetItem::getItemKind()
+{
+    return DEFAULT_ITEM;
 }
 
 
@@ -68,7 +100,11 @@ void DockWidgetItem::displayToolButtonText(bool show)
 void DockWidgetItem::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet(theme->getToolBarStyleSheet());
+    setStyleSheet(theme->getToolBarStyleSheet() +
+                  "QToolButton:disabled {"
+                  "border: 0px;"
+                  "background: rgba(0,0,0,0);"
+                  "}");
 }
 
 
@@ -85,11 +121,14 @@ void DockWidgetItem::resizeEvent(QResizeEvent* event)
 
 /**
  * @brief DockWidgetItem::updateTextLabel
+ * This truncates the text to fit the width of the button with a bit of padding.
  */
 void DockWidgetItem::updateTextLabel()
 {
+    int maxTextWidth = width() - iconWidth - 10;
     QFontMetrics fm = fontMetrics();
-    QString elidedText = fm.elidedText(fullText, Qt::ElideMiddle, width() - 10);
+    QString elidedText = fm.elidedText(fullText, Qt::ElideMiddle, maxTextWidth);
+
     if (elidedText != currentText) {
         currentText = elidedText;
         emit displayedTextChanged(elidedText);

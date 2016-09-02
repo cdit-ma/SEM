@@ -35,6 +35,7 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     applicationToolbar = 0;
     jenkinsManager = 0;
+    cutsManager = 0;
     viewController = vc;
 
     setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
@@ -46,6 +47,7 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
     setupTools();
     setupInnerWindow();
     setupJenkinsManager();
+    setupCUTSManager();
 
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
@@ -69,6 +71,7 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 MedeaMainWindow::~MedeaMainWindow()
 {
     qCritical() << "~MedeaMainWindow()";
+    cutsManager->deleteLater();
     SettingsController::teardownSettings();
     Theme::teardownTheme();
 }
@@ -767,7 +770,7 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
 void MedeaMainWindow::setupJenkinsManager()
 {
     if(!jenkinsManager){
-        jenkinsManager = new JenkinsManager();
+        jenkinsManager = new JenkinsManager(this);
         connect(jenkinsManager, &JenkinsManager::settingsValidationComplete, viewController, &ViewController::jenkinsManager_SettingsValidated);
 
         connect(viewController->getActionController()->jenkins_importNodes, &QAction::triggered, jenkinsManager, &JenkinsManager::getJenkinsNodes);
@@ -781,6 +784,22 @@ void MedeaMainWindow::setupJenkinsManager()
 
 
         jenkinsManager->validateSettings();
+    }
+}
+
+void MedeaMainWindow::setupCUTSManager()
+{
+    if(!cutsManager ){
+        cutsManager  = new CUTSManager();
+
+        //connect(cutsManager, &CUTSManager::localDeploymentOkay, viewController, &ViewController::cutsManager_DeploymentOkay);
+        connect(viewController, &ViewController::vc_getCodeForComponent, cutsManager, &CUTSManager::getCPPForComponent);
+        connect(viewController, &ViewController::vc_validateModel, cutsManager, &CUTSManager::executeXSLValidation);
+        connect(viewController, &ViewController::vc_launchLocalDeployment, cutsManager, &CUTSManager::showLocalDeploymentGUI, Qt::DirectConnection);
+
+
+        connect(cutsManager, &CUTSManager::gotCodeForComponent, viewController, &ViewController::showCodeViewer);
+        connect(cutsManager, &CUTSManager::executedXSLValidation, viewController, &ViewController::modelValidated);
     }
 }
 

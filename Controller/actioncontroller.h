@@ -118,6 +118,7 @@ public:
     RootAction* window_displayMinimap;
 
     RootAction* model_validateModel;
+    RootAction* model_getCodeForComponent;
     RootAction* model_executeLocalJob;
 
     RootAction* options_settings;
@@ -132,6 +133,8 @@ public:
     RootAction* jenkins_executeJob;
 
 
+
+
     RootAction* toolbar_contextToolbar;
 
     RootAction* toolbar_addChild;
@@ -141,7 +144,6 @@ public:
     RootAction* toolbar_popOutDefn;
     RootAction* toolbar_popOutImpl;
     //RootAction* toolbar_popOutInst;
-    RootAction* toolbar_getCPP;
     RootAction* toolbar_setReadOnly;
     RootAction* toolbar_unsetReadOnly;
     RootAction* toolbar_expand;

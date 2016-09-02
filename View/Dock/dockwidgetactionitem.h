@@ -16,6 +16,7 @@ public:
     explicit DockWidgetActionItem(QAction* action, QWidget* parent = 0);
 
     QAction* getAction();
+    DOCKITEM_KIND getItemKind();
 
     void setSubActionRequired(bool required);
     bool requiresSubAction();

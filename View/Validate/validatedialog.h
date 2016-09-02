@@ -16,10 +16,9 @@ class ValidateDialog : public QDialog
 public:
     ValidateDialog(QWidget *parent = 0);
 
-    void connectToWindow(QMainWindow* window);
 
-    void setupItemsTable(QStringList items);
 
+    void gotResults(QString filePath);
 signals:
     void searchItem_centerOnItem(int ID);
     void revalidate_Model();
@@ -28,6 +27,7 @@ private slots:
     void cellSelected(int nRow, int nCol);
     void revalidate();
 private:
+    void setupItemsTable(QStringList items);
 
     QStringList itemsID;
     QTableWidget * itemsTable;

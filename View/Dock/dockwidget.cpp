@@ -48,49 +48,70 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
 
 /**
  * @brief DockWidget::addItem
- * @param text
+ * @param item
  * @return
  */
-DockWidgetItem* DockWidget::addItem(QString text)
+void DockWidget::addItem(DockWidgetItem* item)
 {
-    DockWidgetItem* dockItem = new DockWidgetItem(text, this);
-    mainLayout->addWidget(dockItem);
-    return dockItem;
-}
-
-
-/**
- * @brief DockWidget::addActionItem
- * @param action
- * @return
- */
-DockWidgetActionItem* DockWidget::addActionItem(QAction* action)
-{
-    DockWidgetActionItem* dockAction = 0;
-    if (action && !childrenActions.contains(action)) {
-        dockAction = new DockWidgetActionItem(action, this);
-        dockAction->setToolButtonStyle(Qt::ToolButtonIconOnly);
-
-        dockAction->setProperty("kind", action->text());
-        if (toolActionController->kindsWithSubActions.contains(action->text())) {
-            dockAction->setSubActionRequired(true);
-        }
-        childrenActions[action] = dockAction;
-        mainLayout->addWidget(dockAction, 0, Qt::AlignTop);
-        connect(dockAction, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
+    if (childrenItems.contains(item)) {
+        return;
     }
-    return dockAction;
+
+    DockWidgetItem::DOCKITEM_KIND itemKind = item->getItemKind();
+    bool isActionItem = false;
+
+    switch (itemKind) {
+    case DockWidgetItem::ACTION_ITEM:
+        isActionItem = true;
+    case DockWidgetItem::GROUP_ACTION_ITEM:
+        childrenItems.append(item);
+        break;
+    default:
+        break;
+    }
+
+    if (isActionItem) {
+        DockWidgetActionItem* actionItem = (DockWidgetActionItem*)item;
+        if (dockType == ToolActionController::PARTS) {
+            if (toolActionController->kindsWithSubActions.contains(item->getText())) {
+                actionItem->setSubActionRequired(true);
+            }
+        }
+        actionItem->setProperty("kind", actionItem->getAction()->text());
+        connect(actionItem, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
+        mainLayout->addWidget(actionItem);
+        return;
+    }
+
+    QToolBar* toolbar = new QToolBar(this);
+    toolbar->addWidget(item);
+    itemToolbarHash[item] = toolbar;
+    mainLayout->addWidget(toolbar);
 }
 
 
 /**
- * @brief DockWidget::addActionItems
+ * @brief DockWidget::addItems
+ * @param items
+ */
+void DockWidget::addItems(QList<DockWidgetItem*> items)
+{
+    foreach (DockWidgetItem* item, items) {
+        addItem(item);
+    }
+}
+
+
+/**
+ * @brief DockWidget::addItems
  * @param actions
  */
-void DockWidget::addActionItems(QList<QAction*> actions)
+void DockWidget::addItems(QList<QAction*> actions)
 {
     foreach (QAction* action, actions) {
-        addActionItem(action);
+        DockWidgetActionItem* dockAction = new DockWidgetActionItem(action, this);
+        dockAction->setProperty("kind", action->text());
+        addItem(dockAction);
     }
 }
 
@@ -100,11 +121,37 @@ void DockWidget::addActionItems(QList<QAction*> actions)
  */
 void DockWidget::clearDock()
 {
-    foreach (DockWidgetActionItem* actionWidget, childrenActions.values()) {
-        mainLayout->removeWidget(actionWidget);
-        delete actionWidget;
+    while (!childrenItems.isEmpty()) {
+        DockWidgetItem* item = childrenItems.takeFirst();
+        if (itemToolbarHash.contains(item)) {
+            // if there is a toolbar container for the dock item, delete it
+            QToolBar* tb = itemToolbarHash.take(item);
+            mainLayout->removeWidget(tb);
+            delete tb;
+        } else {
+            mainLayout->removeWidget(item);
+            delete item;
+        }
     }
-    childrenActions.clear();
+
+    // TODO - Don't really need to store the toolbars
+    // Find another way to remove all items/widgets from a layout
+    /*
+    while (!itemToolbars.isEmpty()) {
+        QToolBar* toolbar = itemToolbars.takeFirst();
+        mainLayout->removeWidget(toolbar);
+        delete toolbar;
+    }
+    */
+
+    /*
+    // for some reason, this doesn't delete all the widgets inside of mainLayout
+    QList<QWidget*> widgets = mainLayout->findChildren<QWidget*>();
+    foreach (QWidget* w, widgets) {
+        mainLayout->removeWidget(w);
+        delete w;
+    }
+    */
 }
 
 
@@ -114,8 +161,8 @@ void DockWidget::clearDock()
  */
 void DockWidget::updateHeaderText(QString text)
 {
-    if (descriptionLabel && !text.isEmpty()) {
-        descriptionLabel->setText("Select to construct a <br/>" + text);
+    if (kindLabel && !text.isEmpty()) {
+        kindLabel->setText(text);
     }
 }
 
@@ -164,13 +211,24 @@ void DockWidget::dockActionClicked()
 
 
 /**
+ * @brief ToolbarWidgetNew::viewItem_Destructed
+ * @param ID
+ * @param viewItem
+ */
+void DockWidget::viewItemDestructed(int ID, ViewItem* viewItem)
+{
+
+}
+
+
+/**
  * @brief DockWidget::setupHeaderLayout
  */
 void DockWidget::setupHeaderLayout()
 {
     if (!containsHeader) {
         headerLayout = 0;
-        descriptionLabel = 0;
+        kindLabel = 0;
         backButton = 0;
         return;
     }
@@ -184,17 +242,22 @@ void DockWidget::setupHeaderLayout()
     QToolBar* toolbar = new QToolBar(this);
     toolbar->addWidget(backButton);
 
-    descriptionLabel = new QLabel("This is a description for dock type " + QString::number(dockType), this);
+    QLabel* descriptionLabel = new QLabel("Select to construct", this);
     descriptionLabel->setWordWrap(true);
     descriptionLabel->setAlignment(Qt::AlignCenter);
     descriptionLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    descriptionLabel->setStyleSheet("margin: 5px 0px; padding: 0px;");
+    descriptionLabel->setStyleSheet("margin: 5px 0px 0px 0px; padding: 0px;");
     descriptionLabel->setFont(QFont(font().family(), 8));
+
+    kindLabel = new DockWidgetItem("This is a description for kind", this);
+    kindLabel->setFont(QFont(font().family(), 8));
 
     headerLayout = new QVBoxLayout();
     headerLayout->setMargin(0);
-    headerLayout->setSpacing(5);
+    headerLayout->setSpacing(0);
     headerLayout->addWidget(descriptionLabel);
+    headerLayout->addWidget(kindLabel);
+    headerLayout->addSpacerItem(new QSpacerItem(0,5));
     headerLayout->addWidget(toolbar);
     alignLayout->insertLayout(0, headerLayout);
 }

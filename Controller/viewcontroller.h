@@ -6,6 +6,9 @@
 #include "../Widgets/New/selectioncontroller.h"
 #include "actioncontroller.h"
 #include "toolbarcontroller.h"
+#include "../Widgets/New/medeadockwidget.h"
+
+#include "../View/Validate/validatedialog.h"
 
 class NewController;
 class ToolbarWidgetNew;
@@ -97,10 +100,25 @@ signals:
     void vc_centerItem(int ID);
     void vc_fitToScreen();
 
+    void vc_getCodeForComponent(QString graphmlPath, QString componentName);
+    void vc_validateModel(QString graphmlPath, QString reportPath);
+    void vc_launchLocalDeployment(QString graphmlPath);
+
 public slots:
+    void modelValidated(QString reportPath);
+    void showCodeViewer(QString tabName, QString content);
+
+
     void jenkinsManager_IsBusy(bool busy);
     void jenkinsManager_SettingsValidated(bool success, QString errorString);
     void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
+
+
+    void getCodeForComponent();
+    void validateModel();
+    void launchLocalDeployment();
+
+
 
     void actionFinished(bool success, QString gg);
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
@@ -127,6 +145,7 @@ public slots:
     void fitView();
     void fitAllViews();
     void centerSelection();
+    void centerOnID(int ID);
 
     void centerImpl();
     void centerDefinition();
@@ -157,6 +176,7 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+    QString getTempFileForModel();
     void spawnSubView(ViewItem *item );
     bool destructViewItem(ViewItem* item);
     QList<ViewItem*> getViewItems(QList<int> IDs);
@@ -199,6 +219,9 @@ private:
     QList<int> topLevelItems;
     ViewItem* modelItem;
     ViewItem* rootItem;
+
+    MedeaDockWidget *codeViewer;
+    ValidateDialog* validationDialog;
 
     SelectionController* selectionController;
     ActionController* actionController;

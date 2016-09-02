@@ -199,17 +199,6 @@ void ToolbarWidgetNew::menuActionTrigged(QAction* action)
 
 
 /**
- * @brief ToolbarWidgetNew::viewItem_Destructed
- * @param ID
- * @param viewItem
- */
-void ToolbarWidgetNew::viewItem_Destructed(int ID, ViewItem* viewItem)
-{
-
-}
-
-
-/**
  * @brief ToolbarWidgetNew::addChildNode
  * @param action
  */
@@ -309,7 +298,7 @@ void ToolbarWidgetNew::setupActions()
     mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
     connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
-    mainGroup->addAction(actionController->toolbar_getCPP->constructSubAction(true));
+    mainGroup->addAction(actionController->model_getCodeForComponent->constructSubAction(true));
     mainGroup->addAction(actionController->view_viewInNewWindow->constructSubAction(true));
     mainGroup->addAction(actionController->help_wiki->constructSubAction(true));
 

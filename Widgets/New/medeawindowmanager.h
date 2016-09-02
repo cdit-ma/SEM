@@ -20,6 +20,8 @@ public:
     static MedeaWindowManager* manager();
     static void teardown();
 
+    static MedeaWindowNew* getMainWindow();
+
     //Factory constructor Functions
     static MedeaWindowNew* constructMainWindow(ViewController* vc);
     static MedeaWindowNew* constructSubWindow(QString title="");

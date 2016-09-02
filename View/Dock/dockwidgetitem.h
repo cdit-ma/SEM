@@ -9,6 +9,7 @@ class DockWidgetItem : public QToolButton
     Q_OBJECT
 
 public:
+    enum DOCKITEM_KIND{DEFAULT_ITEM, ACTION_ITEM, GROUP_ACTION_ITEM};
     explicit DockWidgetItem(QString text, QWidget* parent = 0);
 
     void setText(QString text);
@@ -16,6 +17,9 @@ public:
     QString getDisplayedText();
 
     void displayToolButtonText(bool show);
+    void setIconSize(int width, int height);
+
+    virtual DOCKITEM_KIND getItemKind();
 
 signals:
     void textChanged();
@@ -34,6 +38,7 @@ private:
     QString fullText;
     QString currentText;
     bool displayText;
+    int iconWidth;
 };
 
 #endif // DOCKWIDGETITEM_H

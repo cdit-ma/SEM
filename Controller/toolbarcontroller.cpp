@@ -250,6 +250,7 @@ QList<NodeViewItemAction*> ToolActionController::getRequiredSubActionsForKind(QS
     return actions.values();
 }
 
+
 void ToolActionController::themeChanged()
 {
     Theme* theme = Theme::theme();

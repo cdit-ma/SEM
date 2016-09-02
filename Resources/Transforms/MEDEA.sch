@@ -19,12 +19,12 @@
 
   <!-- Define global parameters for transform -->
   <let name="selectID" value="'#ALL'"/>
-  <let name="nodeKindKey" value="/gml:graphml/gml:key[@attr.name='kind'][@for='node']/@id"/>
-  <let name="nodeLabelKey" value="/gml:graphml/gml:key[@attr.name='label'][@for='node']/@id"/>
-  <let name="nodeTypeKey" value="/gml:graphml/gml:key[@attr.name='type'][@for='node']/@id"/>
-  <let name="nodeValueKey" value="/gml:graphml/gml:key[@attr.name='value'][@for='node']/@id"/>
-  <let name="nodeKeyMemberKey" value="/gml:graphml/gml:key[@attr.name='key'][@for='node']/@id"/>
-  <let name="nodeMiddlewareKey" value="/gml:graphml/gml:key[@attr.name='middleware'][@for='node']/@id"/>
+  <let name="nodeKindKey" value="/gml:graphml/gml:key[@attr.name='kind']/@id"/>
+  <let name="nodeLabelKey" value="/gml:graphml/gml:key[@attr.name='label']/@id"/>
+  <let name="nodeTypeKey" value="/gml:graphml/gml:key[@attr.name='type']/@id"/>
+  <let name="nodeValueKey" value="/gml:graphml/gml:key[@attr.name='value']/@id"/>
+  <let name="nodeKeyMemberKey" value="/gml:graphml/gml:key[@attr.name='key']/@id"/>
+  <let name="nodeMiddlewareKey" value="/gml:graphml/gml:key[@attr.name='middleware']/@id"/>
   
   <!--  <iso:include href='Predefined.sch' /> cannot use include as this uses the xalan-c unsupported function document() -->
   <let name="PredefinedMemberTypes">

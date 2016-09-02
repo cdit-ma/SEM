@@ -54,6 +54,14 @@ QString NodeViewItemAction::getKind()
     return "";
 }
 
+QString NodeViewItemAction::getLabel()
+{
+    if (nodeViewItem) {
+        return nodeViewItem->getData("label").toString();
+    }
+    return "";
+}
+
 NodeViewItem *NodeViewItemAction::getNodeViewItem()
 {
     return nodeViewItem;

@@ -1,4 +1,5 @@
 #include "validatedialog.h"
+#include <QXmlQuery>
 
 #include <QDebug>
 /**
@@ -55,19 +56,25 @@ ValidateDialog::ValidateDialog(QWidget *parent)
 
 }
 
-/**
- * @brief ValidateDialog::connectToWindow
- * This connects the signals and slots to the MEDEA window.
- */
-void ValidateDialog::connectToWindow(QMainWindow* window)
+
+void ValidateDialog::gotResults(QString reportPath)
 {
-    /*
-    MedeaWindow* medea = dynamic_cast<MedeaWindow*>(window);
-    if (medea) {
-        connect(this, SIGNAL(searchItem_centerOnItem(int)), medea, SLOT(on_validationItem_clicked(int)));
-        connect(this, SIGNAL(revalidate_Model()), medea, SLOT(executeProjectValidation()));
+    QFile xmlFile(reportPath);
+
+    if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
+        //displayNotification("XSL validation failed to produce a report.");
+        return;
     }
-    */
+
+    QXmlQuery query;
+    query.bindVariable("graphmlFile", &xmlFile);
+    const QString queryMessages = QString("declare namespace svrl = \"http://purl.oclc.org/dsdl/svrl\"; doc('file:///%1')//svrl:schematron-output/svrl:failed-assert/string()").arg(xmlFile.fileName());
+    query.setQuery(queryMessages);
+
+    QStringList messagesResult;
+    bool result = query.evaluateTo(&messagesResult);
+    xmlFile.close();
+    setupItemsTable(messagesResult);
 }
 
 void ValidateDialog::setupItemsTable(QStringList items)

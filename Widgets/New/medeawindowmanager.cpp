@@ -98,6 +98,13 @@ void MedeaWindowManager::teardown()
     managerSingleton = 0;
 }
 
+MedeaWindowNew *MedeaWindowManager::getMainWindow()
+{
+    if(managerSingleton){
+        return managerSingleton->mainWindow;
+    }
+}
+
 MedeaWindowManager::MedeaWindowManager():QObject(0)
 {
     activeViewDockWidget = 0;

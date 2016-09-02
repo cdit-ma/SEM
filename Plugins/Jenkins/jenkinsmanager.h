@@ -23,7 +23,7 @@ class JenkinsManager: public QObject
 
     Q_OBJECT
 public:
-    JenkinsManager();
+    JenkinsManager(QObject *parent);
     QString getUsername();
 
     void setURL(QString url);

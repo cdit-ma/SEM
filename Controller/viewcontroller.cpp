@@ -4,6 +4,7 @@
 #include "../View/Toolbar/toolbarwidgetnew.h"
 #include "../View/nodeviewnew.h"
 #include "../Widgets/New/medeawindownew.h"
+#include "../GUI/codebrowser.h"
 #include "controller.h"
 #include "filehandler.h"
 #include <QMessageBox>
@@ -27,6 +28,10 @@
 ViewController::ViewController(){
     modelItem = 0;
     controller = 0;
+
+    codeViewer = 0;
+    validationDialog = 0;
+
     _modelReady = false;
     _controllerReady = true;
 
@@ -60,6 +65,10 @@ ViewController::ViewController(){
 
 ViewController::~ViewController()
 {
+    if(validationDialog){
+        validationDialog->deleteLater();
+    }
+
     delete rootItem;
 }
 
@@ -259,6 +268,44 @@ void ViewController::setController(NewController *c)
     controller = c;
 }
 
+void ViewController::modelValidated(QString reportPath)
+{
+    if(!validationDialog){
+        MedeaWindowNew* window = MedeaWindowManager::manager()->getMainWindow();
+        if(window){
+            validationDialog = new ValidateDialog();
+            connect(validationDialog, &ValidateDialog::revalidate_Model, this, &ViewController::validateModel);
+            connect(validationDialog, &ValidateDialog::searchItem_centerOnItem, this, &ViewController::centerOnID);
+        }
+    }
+    if(validationDialog){
+        validationDialog->gotResults(reportPath);
+        validationDialog->show();
+    }
+}
+
+void ViewController::showCodeViewer(QString tabName, QString content)
+{
+    if(!codeViewer){
+        codeViewer = MedeaWindowManager::constructViewDockWidget("Code Browser");
+        codeViewer->setCloseVisible(false);
+        CodeBrowser* codeBrowser = new CodeBrowser(codeViewer);
+        codeViewer->setWidget(codeBrowser);
+        codeViewer->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+        MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
+        if(window){
+            window->addDockWidget(codeViewer);
+        }
+    }
+    if(codeViewer){
+        CodeBrowser* codeBrowser = qobject_cast<CodeBrowser*>(codeViewer->widget());
+        if(codeBrowser){
+            codeBrowser->showCode(tabName, content, false);
+        }
+        codeViewer->show();
+    }
+}
+
 void ViewController::jenkinsManager_IsBusy(bool busy)
 {
     emit vc_JenkinsReady(!busy);
@@ -282,6 +329,47 @@ void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
    }
 }
 
+void ViewController::getCodeForComponent()
+{
+    if(selectionController && controller){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+        if(item && item->isNode()){
+            NodeViewItem* node = (NodeViewItem*) item;
+
+            if(node->getNodeKind() == Node::NK_COMPONENT_IMPL || node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
+                QString componentName = node->getData("label").toString();
+                qCritical() << componentName;
+                QString filePath = getTempFileForModel();
+                if(!componentName.isEmpty() && !filePath.isEmpty()){
+                    emit vc_getCodeForComponent(filePath, componentName);
+                }
+            }
+        }
+    }
+}
+
+void ViewController::validateModel()
+{
+    if(controller){
+        QString filePath = getTempFileForModel();
+        QString reportPath = FileHandler::getTempFileName("-ValidateReport.xml");
+
+        if(!filePath.isEmpty()){
+            emit vc_validateModel(filePath, reportPath);
+        }
+    }
+}
+
+void ViewController::launchLocalDeployment()
+{
+    if(controller){
+        QString filePath = getTempFileForModel();
+        if(!filePath.isEmpty()){
+            emit vc_launchLocalDeployment(filePath);
+        }
+    }
+}
+
 void ViewController::actionFinished(bool success, QString gg)
 {
     setControllerReady(true);
@@ -292,6 +380,18 @@ void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit vc_triggerAction("Table Changed");
     emit vc_setData(ID, key, data);
+}
+
+QString ViewController::getTempFileForModel()
+{
+    QString filePath;
+    if(controller){
+        QString data = controller->getProjectAsGraphML();
+        if(!data.isEmpty()){
+            filePath = FileHandler::writeTempTextFile(data, ".graphml");
+        }
+    }
+    return filePath;
 }
 
 void ViewController::spawnSubView(ViewItem * item)
@@ -849,6 +949,11 @@ void ViewController::centerSelection()
     if(view){
         view->centerSelection();
     }
+}
+
+void ViewController::centerOnID(int ID)
+{
+    emit vc_centerItem(ID);
 }
 
 void ViewController::centerImpl()

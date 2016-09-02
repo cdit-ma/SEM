@@ -470,6 +470,9 @@
 		<xsl:param name="middlewareKey" />
 		<xsl:param name="ip_addressKey" />
 
+                <xsl:variable name="componentInstanceID" select="@id" />
+
+
 		<!-- Containing Assembly should contain project and container -->
 		<!-- <xsl:variable name="project" select="../../gml:data[@key=$projectKey]/text()" /> -->
 		<xsl:variable name="container" select="../../gml:data[@key=$containerKey]/text()" />
@@ -541,9 +544,9 @@
 					</xsl:call-template>
 				</xsl:for-each>
 				
-				<xsl:variable name="fileInstName" select="concat(translate($longInstName, '.', '%'), '%QoS.dpd')" />
+                                <xsl:variable name="fileInstName" select="concat('ComponentInst_', concat($componentInstanceID, '%QoS.dpd'))" />
 				<xsl:call-template name="participantQosConfigProperty" > 
-					<xsl:with-param name="value" select="substring-after($fileInstName, '%')" />
+                                        <xsl:with-param name="value" select="$fileInstName" />
 				</xsl:call-template>
 				
 				<!-- if middleware is qpidpb and we have QPID_BROKER deployed to a HardwareNode -->
@@ -991,7 +994,7 @@
 		<xsl:param name="attrName" />
 		<xsl:param name="defaultId" />
 		
-		<xsl:variable name="found" select="./gml:key[@attr.name=$attrName][@for='node']" />
+		<xsl:variable name="found" select="./gml:key[@attr.name=$attrName]" />
 		<xsl:choose>
 			<xsl:when test="not($found)">
 				<xsl:value-of select="$defaultId"/>
