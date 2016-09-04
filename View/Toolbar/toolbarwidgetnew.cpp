@@ -420,6 +420,9 @@ void ToolbarWidgetNew::setupConnectMenu()
         dynamicMenuKeyHash[menu] = "INFO_NO_VALID_EDGE";
         connectMenu->addAction(action);
     }
+
+    //connectMenu->addSeparator();
+
 }
 
 

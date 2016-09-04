@@ -281,8 +281,10 @@ void MedeaMainWindow::popupSearch()
         cwCenter -= QPointF(searchPopup->width()/2, searchPopup->height()/2);
         searchPopup->move(cwCenter.x(), cwCenter.y());
     }
-    searchPopup->show();
-    searchBar->setFocus();
+    //searchPopup->show();
+    //searchBar->setFocus();
+
+    notificationPopup->show();
 }
 
 
@@ -474,6 +476,7 @@ void MedeaMainWindow::setupTools()
     setupMenuBar();
     setupSearchBar();
     setupProgressBar();
+    setupNotificationBar();
     setupDock();
     setupToolBar();
     setupDataTable();
@@ -698,7 +701,8 @@ void MedeaMainWindow::setupToolBar()
 
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Toolbar");
     dockWidget->setTitleBarWidget(applicationToolbar);
-    dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::LeftDockWidgetArea | Qt::BottomDockWidgetArea);
+    dockWidget->setAllowedAreas(Qt::TopDockWidgetArea);
+    //dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::LeftDockWidgetArea | Qt::BottomDockWidgetArea);
 
     connect(dockWidget, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(toolbarChanged(Qt::DockWidgetArea)));
     connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(toolbarTopLevelChanged(bool)));
@@ -739,7 +743,7 @@ void MedeaMainWindow::setupSearchBar()
     searchToolbar->addWidget(searchBar);
     searchToolbar->addWidget(searchButton);
 
-    searchPopup = new PopupWidget(false, this);
+    searchPopup = new PopupWidget(PopupWidget::POPUP, this);
     searchPopup->setWidget(searchToolbar);
     searchPopup->setWidth(300);
 
@@ -774,7 +778,7 @@ void MedeaMainWindow::setupProgressBar()
     layout->addWidget(progressLabel);
     layout->addWidget(progressBar);
 
-    progressPopup = new PopupWidget(true, this);
+    progressPopup = new PopupWidget(PopupWidget::DIALOG, this);
     progressPopup->setWidget(widget);
     progressPopup->setWidth(widget->sizeHint().width() + 200);
     progressPopup->setHeight(progressLabel->sizeHint().height() + 30);
@@ -782,6 +786,21 @@ void MedeaMainWindow::setupProgressBar()
 
     connect(viewController, &ViewController::mc_showProgress, this, &MedeaMainWindow::showProgressBar);
     connect(viewController, &ViewController::mc_progressChanged, this, &MedeaMainWindow::updateProgressBar);
+}
+
+
+/**
+ * @brief MedeaMainWindow::setupNotificationBar
+ */
+void MedeaMainWindow::setupNotificationBar()
+{
+    /*
+    QLabel* description = new QLabel("This is a notification.", this);
+    notificationPopup = new PopupWidget(PopupWidget::DIALOG, this);
+    notificationPopup->setWidget(description);
+    notificationPopup->setWidth(400);
+    notificationPopup->hide();
+    */
 }
 
 

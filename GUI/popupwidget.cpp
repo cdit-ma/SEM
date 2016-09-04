@@ -7,16 +7,22 @@
  * @brief PopupWidget::PopupWidget
  * @param parent
  */
-PopupWidget::PopupWidget(bool modal, QWidget* parent) : QDialog(parent)
+PopupWidget::PopupWidget(POPUPWIDGET_TYPE type, QWidget* parent) : QDialog(parent)
 {
     mainFrame = new QFrame(this);
 
     setAttribute(Qt::WA_TranslucentBackground);
-    setModal(modal);
+    setModal(false);
 
-    if (modal) {
+    switch (type) {
+    case DIALOG:
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Dialog);
-    } else {
+        setModal(true);
+        break;
+    case TOOL:
+        setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Tool);
+        break;
+    default:
         setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
     }
 }
