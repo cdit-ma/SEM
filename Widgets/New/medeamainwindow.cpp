@@ -163,8 +163,13 @@ void MedeaMainWindow::updateProgressBar(int value)
 void MedeaMainWindow::showNotification(QString description)
 {
     notificationLabel->setText(description);
-    moveWidget(notificationPopup, Qt::AlignBottom);
+
+    QFontMetrics fm = notificationLabel->fontMetrics();
+    int maxWidth = qMin(innerWindow->width() - 10, fm.width(description) + 20);
+
+    notificationPopup->setSize(maxWidth, fm.height() + 20);
     notificationPopup->show();
+    moveWidget(notificationPopup, Qt::AlignBottom);
 }
 
 
@@ -297,7 +302,7 @@ void MedeaMainWindow::popupSearch()
     searchPopup->show();
     searchBar->setFocus();
 
-    //showNotification("This is a test!!!");
+    //showNotification("This is a testcdsce wcefcercrcrerr evrbtybdvftrhtynrb hraogherkrb vguserkvberbver akubvvbao irestcds cewcefcerc rcrerrevrbtye stcdscewcefcercrcrerrevrbty!!!");
 }
 
 
@@ -808,12 +813,12 @@ void MedeaMainWindow::setupProgressBar()
 void MedeaMainWindow::setupNotificationBar()
 {
     notificationLabel = new QLabel("This is a notification.", this);
+    notificationLabel->setFont(QFont(font().family(), 11));
     notificationLabel->setAlignment(Qt::AlignCenter);
-    notificationLabel->setFont(QFont(font().family(), 10));
+    notificationLabel->setWordWrap(true);
 
     notificationPopup = new PopupWidget(PopupWidget::TOOL, this);
     notificationPopup->setWidget(notificationLabel);
-    notificationPopup->setSize(500, 30);
     notificationPopup->hide();
 }
 
