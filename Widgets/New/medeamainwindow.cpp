@@ -126,9 +126,12 @@ void MedeaMainWindow::showProgressBar(bool show, QString description)
     progressLabel->setText(description + ". Please wait...");
     progressPopup->setVisible(show);
     if (show) {
-        QPointF centralWidgetCenter = pos() + innerWindow->pos() + innerWindow->rect().center();
-        centralWidgetCenter -= QPointF(progressPopup->width()/2, progressPopup->height()/2);
-        progressPopup->move(centralWidgetCenter.x(), centralWidgetCenter.y());
+        QWidget* cw = centralWidget();
+        if (cw) {
+            QPointF cwCenter = pos() + cw->pos() + cw->rect().center();
+            cwCenter -= QPointF(progressPopup->width()/2, progressPopup->height()/2);
+            progressPopup->move(cwCenter.x(), cwCenter.y());
+        }
     } else {
         //Reset back to 0
         progressBar->reset();
@@ -150,6 +153,18 @@ void MedeaMainWindow::updateProgressBar(int value)
             progressBar->setValue(value);
         }
     }
+}
+
+
+/**
+ * @brief MedeaMainWindow::showNotification
+ * @param description
+ */
+void MedeaMainWindow::showNotification(QString description)
+{
+    notificationLabel->setText(description);
+    moveWidget(notificationPopup, Qt::AlignBottom);
+    notificationPopup->show();
 }
 
 
@@ -203,6 +218,9 @@ void MedeaMainWindow::themeChanged()
     progressPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
     progressBar->setStyleSheet(theme->getProgressBarStyleSheet());
     progressLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
+
+    notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
+    notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
 
     restoreAspectsButton->setIcon(theme->getIcon("Actions", "MenuView"));
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
@@ -275,16 +293,11 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
 void MedeaMainWindow::popupSearch()
 {
     emit requestSuggestions();
-    QWidget* cw = centralWidget();
-    if (cw) {
-        QPointF cwCenter = pos() + cw->pos() + cw->rect().center();
-        cwCenter -= QPointF(searchPopup->width()/2, searchPopup->height()/2);
-        searchPopup->move(cwCenter.x(), cwCenter.y());
-    }
-    //searchPopup->show();
-    //searchBar->setFocus();
+    moveWidget(searchPopup);
+    searchPopup->show();
+    searchBar->setFocus();
 
-    notificationPopup->show();
+    showNotification("This is a test!!!");
 }
 
 
@@ -794,13 +807,14 @@ void MedeaMainWindow::setupProgressBar()
  */
 void MedeaMainWindow::setupNotificationBar()
 {
-    /*
-    QLabel* description = new QLabel("This is a notification.", this);
-    notificationPopup = new PopupWidget(PopupWidget::DIALOG, this);
-    notificationPopup->setWidget(description);
-    notificationPopup->setWidth(400);
+    notificationLabel = new QLabel("This is a notification.", this);
+    notificationLabel->setAlignment(Qt::AlignCenter);
+    notificationLabel->setFont(QFont(font().family(), 10));
+
+    notificationPopup = new PopupWidget(PopupWidget::TOOL, this);
+    notificationPopup->setWidget(notificationLabel);
+    notificationPopup->setSize(500, 30);
     notificationPopup->hide();
-    */
 }
 
 
@@ -956,6 +970,29 @@ void MedeaMainWindow::setupCUTSManager()
         connect(cutsManager, &CUTSManager::gotCodeForComponent, viewController, &ViewController::showCodeViewer);
         connect(cutsManager, &CUTSManager::gotXMETransform, viewController, &ViewController::importGraphMLFile);
         connect(cutsManager, &CUTSManager::executedXSLValidation, viewController, &ViewController::modelValidated);
+    }
+}
+
+
+/**
+ * @brief MedeaMainWindow::moveWidget
+ * @param widget
+ * @param alignment
+ */
+void MedeaMainWindow::moveWidget(QWidget* widget, Qt::Alignment alignment)
+{
+    QWidget* cw = centralWidget();
+    if (cw && widget) {
+        QPointF widgetPos = pos() + cw->pos() + cw->rect().center();
+        switch (alignment) {
+        case Qt::AlignBottom:
+            widgetPos += QPoint(0, cw->rect().height()/2);
+            break;
+        default:
+            break;
+        }
+        widgetPos -= QPointF(widget->width()/2, widget->height()/2);
+        widget->move(widgetPos.x(), widgetPos.y());
     }
 }
 

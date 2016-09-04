@@ -44,6 +44,8 @@ public slots:
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);
 
+    void showNotification(QString description);
+
     void resetToolDockWidgets();
 
 private slots:
@@ -80,6 +82,8 @@ private:
     void setupJenkinsManager();
     void setupCUTSManager();
 
+    void moveWidget(QWidget* widget, Qt::Alignment alignment = Qt::AlignCenter);
+
     MedeaWindowNew* innerWindow;
 
     JenkinsManager* jenkinsManager;
@@ -103,6 +107,8 @@ private:
     QLabel* progressLabel;
 
     PopupWidget* notificationPopup;
+    QLabel* notificationLabel;
+    QTimer* notificationTimer;
 
     ViewController* viewController;
     NodeViewNew* nodeView_Interfaces;
