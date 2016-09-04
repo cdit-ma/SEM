@@ -72,6 +72,7 @@ private:
     void setupToolBar();
     void setupSearchBar();
     void setupProgressBar();
+    void setupNotificationBar();
     void setupDock();
     void setupDataTable();
     void setupMinimap();
@@ -103,6 +104,8 @@ private:
     PopupWidget* progressPopup;
     QProgressBar* progressBar;
     QLabel* progressLabel;
+
+    PopupWidget* notificationPopup;
 
     ViewController* viewController;
     NodeViewNew* nodeView_Interfaces;
