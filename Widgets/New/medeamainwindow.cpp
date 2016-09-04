@@ -297,7 +297,7 @@ void MedeaMainWindow::popupSearch()
     searchPopup->show();
     searchBar->setFocus();
 
-    showNotification("This is a test!!!");
+    //showNotification("This is a test!!!");
 }
 
 
