@@ -65,7 +65,7 @@ signals:
     void gotLiveCUTSOutput(QString output);
 
     void gotXMIXML(bool success, QString errorString, QString outputxml);
-    void gotXMIGraphML(bool success, QString errorString, QString outputxml);
+    void gotXMIGraphML(QString outputxml);
 
     void _gotLiveOutput(QString output);
 public slots:

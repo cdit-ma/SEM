@@ -27,14 +27,6 @@ QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *chi
 {
     int childPos = child->getSortOrder();
     int gridSize = getGridSize();
-    //Work out the exact position given the 1
-    //foreach(NodeItemNew* child, getChildNodes()){
-    //    if(child->getSortOrder() < childPos){
-    //        offset.ry() += child->boundingRect().height() + gap;
-    //    }
-    //}
-    //return offset;
-
     QPointF offset = getStemAnchorPoint();
 
     qreal y = offset.y();

@@ -5,6 +5,8 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QProgressBar>
+#include <QCompleter>
+#include <QStringListModel>
 
 #include "../../Plugins/CUTS/cutsmanager.h"
 #include "medeawindownew.h"
@@ -14,10 +16,9 @@
 #include "../../GUI/appsettings.h"
 #include "qosbrowser.h"
 #include "tablewidget.h"
-#include <QCompleter>
-#include <QStringListModel>
 
 #include "../../Plugins/Jenkins/jenkinsmanager.h"
+#include "../../plugins/XMI/xmiimporter.h"
 
 #include "../../GUI/popupwidget.h"
 #include "../../View/Dock/docktabwidget.h"
@@ -81,6 +82,7 @@ private:
 
     void setupJenkinsManager();
     void setupCUTSManager();
+    void setupXMIImporter();
 
     void moveWidget(QWidget* widget, Qt::Alignment alignment = Qt::AlignCenter);
 
@@ -88,6 +90,7 @@ private:
 
     JenkinsManager* jenkinsManager;
     CUTSManager* cutsManager;
+    XMIImporter* xmiImporter;
 
     QMenuBar* menuBar;
     QToolBar* applicationToolbar;

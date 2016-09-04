@@ -41,6 +41,8 @@ public:
 
     bool canUndo();
     bool canRedo();
+    bool canExportSnippet();
+    bool canImportSnippet();
 
     QVector<ViewItem*> getOrderedSelection(QList<int> selection);
 
@@ -106,11 +108,22 @@ signals:
     void vc_validateModel(QString graphmlPath, QString reportPath);
     void vc_launchLocalDeployment(QString graphmlPath);
 
-    void vc_importXMETransform(QString xmePath, QString graphmlPath);
+    void vc_importXMEProject(QString xmePath, QString graphmlPath);
+    void vc_importXMIProject(QString XMIPath);
 
+    void vc_answerQuestion(bool);
+    void vc_exportSnippet(QList<int> IDs);
+    void vc_importSnippet(QList<int> IDs, QString fileName, QString fileData);
 public slots:
+
+    void gotExportedSnippet(QString snippetData);
+    void askQuestion(QString title, QString message, int ID);
+
+
+
     void modelValidated(QString reportPath);
     void importGraphMLFile(QString graphmlPath);
+    void importGraphMLExtract(QString data);
     void showCodeViewer(QString tabName, QString content);
 
 
@@ -141,6 +154,9 @@ public slots:
     void openExistingProject(QString file);
     void importProjects();
     void importXMEProject();
+    void importXMIProject();
+    void importSnippet();
+    void exportSnippet();
     void saveProject();
     void saveAsProject();
     void closeProject();

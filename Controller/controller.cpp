@@ -327,6 +327,18 @@ void NewController::connectViewController(ViewController *view)
     connect(this, &NewController::showProgress, view, &ViewController::mc_showProgress);
     connect(this, &NewController::progressChanged, view, &ViewController::mc_progressChanged);
 
+    connect(this, &NewController::controller_AskQuestion, view, &ViewController::askQuestion);
+    connect(view, &ViewController::vc_answerQuestion, this, &NewController::gotQuestionAnswer);
+    connect(this, &NewController::progressChanged, view, &ViewController::mc_progressChanged);
+
+    connect(view, &ViewController::vc_exportSnippet, this, &NewController::exportSnippet);
+    connect(this, &NewController::controller_ExportedSnippet, view, &ViewController::gotExportedSnippet);
+
+    connect(view, &ViewController::vc_importSnippet, this, &NewController::importSnippet);
+
+
+
+
 
     view->setController(this);
 }
@@ -514,7 +526,7 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
                     exportEdge = false;
                 }else{
                     if(GUI_USED && !copySelectionQuestion){
-                        exportAllEdges = askQuestion(CRITICAL, "Copy Selection?", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", src->getID());
+                        exportAllEdges = askQuestion("Copy Selection?", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", src->getID());
                         copySelectionQuestion = true;
                         GUI_USED = false;
                     }
@@ -568,7 +580,7 @@ QString NewController::_exportGraphMLDocument(Node *node, bool allEdges, bool GU
 
 bool NewController::_clear()
 {
-    bool reply = askQuestion(CRITICAL, "Clear Model?", "Are you sure you want to clear the model? You cannot undo this action.");
+    bool reply = askQuestion("Clear Model?", "Are you sure you want to clear the model? You cannot undo this action.");
     if(reply){
         triggerAction("Clearing Model");
 
@@ -1576,10 +1588,13 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
         bool readOnly = false;
 
+        qCritical() <<this->thread();
         //Check if read only.
         if(parentNodeKind == "InterfaceDefinitions"){
-            readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
+            readOnly = askQuestion("Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
         }
+        qCritical() << this->thread();
+
 
         //Construct the Keys to attach to the nodes to export.
         QList<Node*> nodeList;
@@ -1692,6 +1707,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
             }
         }
     }
+    qCritical() << "YO!";
     return snippetData;
 }
 
@@ -3257,7 +3273,6 @@ bool NewController::destructNode(Node *node)
     //Remove all Edges.
     while(!edges.isEmpty()){
         Edge* edge = edges.takeLast();
-        qCritical() << "Destructing Edge: " << edge;
         destructEdge(edge);
     }
 
@@ -4958,7 +4973,8 @@ QString NewController::getProjectAsGraphML()
 QString NewController::getSelectionAsGraphMLSnippet(QList<int> IDs)
 {
     lock.lockForRead();
-    QString data = _exportSnippet(IDs);
+    QList<int> orderedIDs = getOrderedSelectionIDs(IDs);
+    QString data = _exportSnippet(orderedIDs);
     lock.unlock();
     return data;
 }
@@ -5167,7 +5183,8 @@ void NewController::importSnippet(QList<int> IDs, QString fileName, QString file
  */
 void NewController::exportSnippet(QList<int> IDs)
 {
-    _exportSnippet(IDs);
+    QString data = _exportSnippet(IDs);
+    emit controller_ExportedSnippet(data);
 }
 
 /**
@@ -5186,16 +5203,17 @@ void NewController::clearUndoHistory()
     clearHistory();
 }
 
-bool NewController::askQuestion(MESSAGE_TYPE type, QString questionTitle, QString question, int ID)
+bool NewController::askQuestion(QString questionTitle, QString question, int ID)
 {
     if(!INITIALIZING){
         //Construct a EventLoop which waits for the View to answer the question.
         QEventLoop waitLoop;
         questionAnswer = false;
 
+
         connect(this, SIGNAL(controller_GotQuestionAnswer()), &waitLoop, SLOT(quit()));
 
-        emit controller_AskQuestion(type, questionTitle, question, ID);
+        emit controller_AskQuestion(questionTitle, question, ID);
 
         waitLoop.exec();
         return questionAnswer;
@@ -5426,7 +5444,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                         }
 
                         if(askQ){
-                            importOlder = askQuestion(CRITICAL, "Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", nodeID);
+                            importOlder = askQuestion("Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", nodeID);
                             state.imported = importOlder;
                             olderSnippetsImported << state;
                         }
@@ -5610,12 +5628,9 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                 //If the edge class stored in the model is invalid we should try all of the edge classes these items can take, in order.
                 if(edgeClass == Edge::EC_UNDEFINED || edgeClass == Edge::EC_NONE){
-                    qCritical() << "Edge Types Between: " << src << " TO " << dst;
                     foreach(Edge::EDGE_CLASS ec, getPotentialEdgeClasses(src, dst)){
-                        qCritical() << "Edge Type: " << Edge::getKind(ec);
                         entity->appendEdgeKind(ec);
                     }
-                    qCritical() << "_______";
                 }else{
                     entity->appendEdgeKind(edgeClass);
                 }

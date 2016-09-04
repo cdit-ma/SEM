@@ -81,7 +81,6 @@ bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         if(parentNode && parentNode->isInstanceImpl()){
             Node* pDef = parentNode->getDefinition();
             if(pDef && !pDef->isAncestorOf(dst)){
-                qCritical() << "WIERD RELATION";
                 //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
                 return false;
             }
