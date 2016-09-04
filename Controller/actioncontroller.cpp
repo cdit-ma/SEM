@@ -86,6 +86,8 @@ void ActionController::connectViewController(ViewController *controller)
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
         connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
         connect(file_importXMI, &QAction::triggered, viewController, &ViewController::importXMIProject);
+        connect(file_importSnippet, &QAction::triggered, viewController, &ViewController::importSnippet);
+        connect(file_exportSnippet, &QAction::triggered, viewController, &ViewController::exportSnippet);
 
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
         connectSelectionController(controller->getSelectionController());
@@ -202,12 +204,17 @@ void ActionController::selectionChanged(int selectionSize)
         bool hasDefn = false;
         bool hasImpl = false;
         bool hasCode = false;
+
         if(gotSingleSelection && singleItem && singleItem->isNode()){
             NodeViewItem* node = (NodeViewItem*) singleItem;
             hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
             hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
             hasCode = node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE || node->getNodeKind() == Node::NK_COMPONENT_IMPL;
         }
+
+        file_importSnippet->setEnabled(viewController->canImportSnippet());
+        file_exportSnippet->setEnabled(viewController->canExportSnippet());
+
 
         model_getCodeForComponent->setEnabled(hasCode);
 
@@ -244,8 +251,6 @@ void ActionController::selectionChanged(int selectionSize)
         view_viewInNewWindow->setEnabled(gotSingleSelection);
 
         view_viewConnections->setEnabled(false);
-        file_importSnippet->setEnabled(false);
-        file_exportSnippet->setEnabled(false);
 
         edit_clearSelection->setEnabled(gotMultipleSelection);
         edit_selectAll->setEnabled(gotSingleSelection);
@@ -507,8 +512,8 @@ void ActionController::setupActions()
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
 
 
-    file_importXME = createRootAction("Import XME File", "", "Actions", "ImportXME");
-    file_importXMI = createRootAction("Import UML XMI File", "", "Actions", "ImportXMI");
+    file_importXME = createRootAction("Import XME Project", "", "Actions", "ImportXME");
+    file_importXMI = createRootAction("Import UML XMI Project", "", "Actions", "ImportXMI");
     file_importSnippet = createRootAction("Import Snippet", "", "Actions", "ImportSnippet");
     file_exportSnippet = createRootAction("Export Snippet", "", "Actions", "ExportSnippet");
 

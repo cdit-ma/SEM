@@ -268,6 +268,36 @@ void ViewController::setController(NewController *c)
     controller = c;
 }
 
+void ViewController::gotExportedSnippet(QString snippetData)
+{
+    if(selectionController){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+
+        if(item && item->getParentItem()){
+            QString itemKind = item->getParentItem()->getData("kind").toString();
+
+            QStringList files = FileHandler::selectFiles("Export " + itemKind + ".snippet", QFileDialog::AnyFile,true,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
+            if(files.size() == 1){
+                QString snippetFilePath = files.first();
+                FileHandler::writeTextFile(snippetFilePath, snippetData);
+            }
+        }
+    }
+}
+
+void ViewController::askQuestion(QString title, QString message, int ID)
+{
+    if(ID != -1){
+        emit centerOnID(ID);
+    }
+
+    QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No);
+
+    msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Help").scaled(50,50));
+    int reply = msgBox.exec();
+    emit vc_answerQuestion(reply == QMessageBox::Yes);
+}
+
 void ViewController::modelValidated(QString reportPath)
 {
     if(!validationDialog){
@@ -446,6 +476,22 @@ bool ViewController::canRedo()
 {
     if(controller){
         return controller->canRedo();
+    }
+    return false;
+}
+
+bool ViewController::canExportSnippet()
+{
+    if(controller){
+        return controller->canExportSnippet(selectionController->getSelectionIDs());
+    }
+    return false;
+}
+
+bool ViewController::canImportSnippet()
+{
+    if(controller){
+        return controller->canImportSnippet(selectionController->getSelectionIDs());
     }
     return false;
 }
@@ -913,6 +959,8 @@ void ViewController::importXMEProject()
         QFile file(xmePath);
         QFileInfo fileInfo = QFileInfo(file);
         QString tempFile = FileHandler::getTempFileName(fileInfo.baseName() + "_FromXME.graphml");
+        emit mc_showProgress(true, "Transforming XME Project");
+        emit mc_progressChanged(-1);
         emit vc_importXMEProject(xmePath, tempFile);
     }
 }
@@ -924,6 +972,31 @@ void ViewController::importXMIProject()
         QString xmiPath = files.first();
         emit vc_importXMIProject(xmiPath);
     }
+}
+
+void ViewController::importSnippet()
+{
+    if(getSelectionController() && canImportSnippet()){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+        if(item){
+            QString itemKind = item->getData("kind").toString();
+
+            QStringList files = FileHandler::selectFiles("Import " + itemKind + ".snippet", QFileDialog::ExistingFile, false,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
+            if(files.size() == 1){
+                QString filePath = files.at(0);
+                QString fileData = FileHandler::readTextFile(filePath);
+                emit vc_importSnippet(selectionController->getSelectionIDs(), filePath, fileData);
+            }
+        }
+    }
+}
+
+void ViewController::exportSnippet()
+{
+    if(canExportSnippet() && selectionController){
+        emit vc_exportSnippet(selectionController->getSelectionIDs());
+    }
+
 }
 
 void ViewController::closeProject()

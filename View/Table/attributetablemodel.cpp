@@ -22,7 +22,7 @@ AttributeTableModel::~AttributeTableModel()
 void AttributeTableModel::updatedData(QString keyName)
 {
     int row = getIndex(keyName);
-    if(row != -1){
+    if(row > -1){
         QModelIndex indexA = index(row, 0, QModelIndex());
         QModelIndex indexB = index(row, rowCount(indexA), QModelIndex());
         emit dataChanged(indexA, indexB);
@@ -33,7 +33,7 @@ void AttributeTableModel::removedData(QString keyName)
 {
     //Get the Index of the data to be removed.
     int row = getIndex(keyName);
-    if(row != -1){
+    if(row > -1){
         //Initiate the removal of the row.
         beginRemoveRows(QModelIndex(), row, row);
 

@@ -235,7 +235,7 @@ signals:
     void controller_ActionProgressChanged(int percent, QString action="");
     void controller_ActionFinished(bool actionSucceeded = true, QString errorCode = "");
 
-    void controller_AskQuestion(MESSAGE_TYPE, QString title, QString message, int ID=-1);
+    void controller_AskQuestion(QString title, QString message, int ID=-1);
     void controller_GotQuestionAnswer();
 
     void controller_DisplayMessage(MESSAGE_TYPE, QString messageString, QString messageTitle = "", QString messageIcon = "", int centerID =-1);
@@ -244,7 +244,7 @@ signals:
 
     void controller_ExportedProject(QString);
 
-    void controller_ExportedSnippet(QString parentName, QString snippetXMLData);
+    void controller_ExportedSnippet(QString snippetXMLData);
 
     void controller_GraphMLConstructed(Entity*);
 
@@ -350,7 +350,7 @@ private:
     void _setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
     void clearUndoHistory();
 
-    bool askQuestion(MESSAGE_TYPE type, QString questionTitle, QString question, int ID=-1);
+    bool askQuestion(QString questionTitle, QString question, int ID=-1);
     Node* getSingleNode(QList<int> IDs);
 
 
