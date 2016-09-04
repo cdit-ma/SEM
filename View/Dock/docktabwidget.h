@@ -25,6 +25,10 @@ public slots:
     void dockActionClicked(DockWidgetActionItem *action);
     void dockBackButtonClicked();
 
+    //void viewItemConstructed();
+    //void viewItemDestructed();
+    void onActionFinished();
+
 private:
     void setupLayout();
     void setupDocks();
@@ -33,10 +37,10 @@ private:
     void openRequiredDock(DockWidget* dockWidget);
     void openRequiredDock(ToolActionController::DOCK_TYPE dt);
     void populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions, bool groupByParent = false);
-
-    DockWidgetActionItem* constructDockActionItem(NodeViewItemAction* action);
+    void refreshDock();
 
     DockWidget* getDock(ToolActionController::DOCK_TYPE dt);
+    DockWidgetActionItem* constructDockActionItem(NodeViewItemAction* action);
 
     ViewController* viewController;
     ToolActionController* toolActionController;

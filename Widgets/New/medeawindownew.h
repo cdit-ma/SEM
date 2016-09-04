@@ -14,6 +14,7 @@ public:
 public:
     MedeaWindowNew(QWidget* parent = 0, WindowType type = VIEW_WINDOW);
     ~MedeaWindowNew();
+
 public:
     bool hasDockWidgets();
     QList<MedeaDockWidget*> getDockWidgets();
@@ -29,6 +30,7 @@ public:
     void setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool maximized);
 
     QMenu *createPopupMenu();
+
 private slots:
     void showContextMenu(const QPoint &point);
 

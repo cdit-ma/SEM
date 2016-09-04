@@ -46,7 +46,6 @@ public slots:
 
     void resetToolDockWidgets();
 
-
 private slots:
     void themeChanged();
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevDock);
@@ -81,7 +80,6 @@ private:
     void setupCUTSManager();
 
     MedeaWindowNew* innerWindow;
-    QMainWindow* centralWindow;
 
     JenkinsManager* jenkinsManager;
     CUTSManager* cutsManager;
@@ -118,11 +116,9 @@ private:
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;
 
-    QWidget* welcomeWidget;
-    QToolBar* leftWelcomeToolbar;
-    QToolBar* bottomWelcomeToolbar;
-    QToolBar* recentProjectsToolbar;
     QVBoxLayout* holderLayout;
+    QToolBar* recentProjectsToolbar;
+    QWidget* welcomeWidget;
     bool welcomeScreenOn;
 
 protected:

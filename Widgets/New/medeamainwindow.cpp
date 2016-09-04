@@ -164,8 +164,6 @@ void MedeaMainWindow::resetToolDockWidgets()
 }
 
 
-
-
 /**
  * @brief MedeaMainWindow::themeChanged
  */
@@ -224,7 +222,8 @@ void MedeaMainWindow::themeChanged()
                                          "border-radius: 2px;"
                                          "border: 0px; }");
 
-    welcomeWidget->setStyleSheet("QWidget#WELCOME_WIDGET{ background:" + theme->getBackgroundColorHex() + ";} QToolButton:!hover{ border: 0px; background: rgba(0,0,0,0); }");
+    welcomeWidget->setStyleSheet("QWidget#WELCOME_WIDGET{ background:" + theme->getBackgroundColorHex() + ";}"
+                                 "QToolButton:!hover{ border: 0px; background: rgba(0,0,0,0); }");
 }
 
 
@@ -276,9 +275,12 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
 void MedeaMainWindow::popupSearch()
 {
     emit requestSuggestions();
-    QPointF centralWidgetCenter = pos() + innerWindow->pos() + innerWindow->rect().center();
-    centralWidgetCenter -= QPointF(searchPopup->width()/2, searchPopup->height()/2);
-    searchPopup->move(centralWidgetCenter.x(), centralWidgetCenter.y());
+    QWidget* cw = centralWidget();
+    if (cw) {
+        QPointF cwCenter = pos() + cw->pos() + cw->rect().center();
+        cwCenter -= QPointF(searchPopup->width()/2, searchPopup->height()/2);
+        searchPopup->move(cwCenter.x(), cwCenter.y());
+    }
     searchPopup->show();
     searchBar->setFocus();
 }
@@ -327,6 +329,7 @@ void MedeaMainWindow::hideWelcomeScreen(QAction* action)
         toggleWelcomeScreen(false);
     }
 }
+
 
 void MedeaMainWindow::recentProjectsUpdated()
 {
@@ -449,7 +452,7 @@ void MedeaMainWindow::toggleWelcomeScreen(bool on)
         setCentralWidget(innerWindow);
     }
 
-    // hide the mneu bar and close all dock widgets
+    // show/hide the menu bar and close all dock widgets
     menuBar->setVisible(!on);
     foreach (QDockWidget* dw, findChildren<QDockWidget*>()) {
         if (!on && dw->windowTitle() == "QOS Browser") {
@@ -575,8 +578,6 @@ void MedeaMainWindow::setupWelcomeScreen()
     medeaIcon->setPixmap(pixMap);
 
     QWidget* leftTopWidget = new QWidget(this);
-    //leftTopWidget->setStyleSheet("background:red;");
-
     QVBoxLayout* leftTopLayout = new QVBoxLayout(leftTopWidget);
     leftTopLayout->setSpacing(2);
     leftTopLayout->addWidget(medeaIcon, 0, Qt::AlignCenter);
@@ -591,54 +592,52 @@ void MedeaMainWindow::setupWelcomeScreen()
     recentProjectsLabel->setIcon(Theme::theme()->getIcon("Welcome", "Timer"));
     recentProjectsLabel->setIconSize(iconSize);
     recentProjectsLabel->setEnabled(false);
-    recentProjectsLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; padding: 0px;");
 
-    welcomeWidget = new QWidget(this);
-    welcomeWidget->setObjectName("WELCOME_WIDGET");
+    QToolBar* leftToolbar = new QToolBar(this);
+    leftToolbar->setIconSize(iconSize);
+    leftToolbar->setOrientation(Qt::Vertical);
+    leftToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    leftToolbar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    leftToolbar->setStyleSheet("QToolButton{ width: 110px; }");
 
-    leftWelcomeToolbar = new QToolBar(this);
-    bottomWelcomeToolbar = new QToolBar(this);
+    QToolBar* bottomToolbar = new QToolBar(this);
+    bottomToolbar->setIconSize(iconSize);
+    bottomToolbar->setOrientation(Qt::Horizontal);
+    bottomToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    bottomToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    bottomToolbar->setLayoutDirection(Qt::RightToLeft);
+    bottomToolbar->setStyleSheet("QToolButton{ padding-left: 10px; }");
+
     recentProjectsToolbar = new QToolBar(this);
-
-    leftWelcomeToolbar->setIconSize(iconSize);
-    leftWelcomeToolbar->setOrientation(Qt::Vertical);
-    leftWelcomeToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    leftWelcomeToolbar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    leftWelcomeToolbar->setStyleSheet("QToolButton{ width: 100px; }");
-
-    bottomWelcomeToolbar->setIconSize(iconSize);
-    bottomWelcomeToolbar->setOrientation(Qt::Horizontal);
-    bottomWelcomeToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    bottomWelcomeToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    bottomWelcomeToolbar->setLayoutDirection(Qt::RightToLeft);
-    bottomWelcomeToolbar->setStyleSheet("QToolButton{ padding-left: 10px; }");
-
     recentProjectsToolbar->setIconSize(QSize(18, 18));
     recentProjectsToolbar->setOrientation(Qt::Vertical);
     recentProjectsToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     recentProjectsToolbar->setFixedSize(400, 350);
 
     ActionController* ac = viewController->getActionController();
-    leftWelcomeToolbar->addWidget(leftTopWidget);
-    leftWelcomeToolbar->addAction(ac->file_newProject->constructSubAction(false));
-    leftWelcomeToolbar->addAction(ac->file_openProject->constructSubAction(false));
-    leftWelcomeToolbar->addAction(ac->options_settings->constructSubAction(false));
+    leftToolbar->addWidget(leftTopWidget);
+    leftToolbar->addAction(ac->file_newProject->constructSubAction(false));
+    leftToolbar->addAction(ac->file_openProject->constructSubAction(false));
+    leftToolbar->addAction(ac->options_settings->constructSubAction(false));
 
-    bottomWelcomeToolbar->addAction(ac->file_exit->constructSubAction(false));
-    bottomWelcomeToolbar->addAction(ac->help_aboutMedea->constructSubAction(false));
-    bottomWelcomeToolbar->addAction(ac->help_wiki->constructSubAction(false));
+    bottomToolbar->addAction(ac->file_exit->constructSubAction(false));
+    bottomToolbar->addAction(ac->help_aboutMedea->constructSubAction(false));
+    bottomToolbar->addAction(ac->help_wiki->constructSubAction(false));
 
     QVBoxLayout* vLayout = new QVBoxLayout();
     vLayout->addStretch();
     vLayout->addSpacerItem(new QSpacerItem(0, 15));
     vLayout->addWidget(recentProjectsLabel);
     vLayout->addWidget(recentProjectsToolbar, 0, Qt::AlignLeft | Qt::AlignBottom);
-    vLayout->addWidget(bottomWelcomeToolbar, 0, Qt::AlignLeft | Qt::AlignTop);
+    vLayout->addWidget(bottomToolbar, 0, Qt::AlignLeft | Qt::AlignTop);
     vLayout->addStretch();
+
+    welcomeWidget = new QWidget(this);
+    welcomeWidget->setObjectName("WELCOME_WIDGET");
 
     QHBoxLayout* containerLayout = new QHBoxLayout(welcomeWidget);
     containerLayout->addStretch();
-    containerLayout->addWidget(leftWelcomeToolbar, 0, Qt::AlignVCenter | Qt::AlignRight);
+    containerLayout->addWidget(leftToolbar, 0, Qt::AlignVCenter | Qt::AlignRight);
     containerLayout->addLayout(vLayout);
     containerLayout->addStretch();
 
@@ -648,7 +647,7 @@ void MedeaMainWindow::setupWelcomeScreen()
     holderLayout = new QVBoxLayout(holderWidget);
     holderLayout->addWidget(welcomeWidget);
 
-    connect(leftWelcomeToolbar, SIGNAL(actionTriggered(QAction*)), this, SLOT(hideWelcomeScreen(QAction*)));
+    connect(leftToolbar, SIGNAL(actionTriggered(QAction*)), this, SLOT(hideWelcomeScreen(QAction*)));
     connect(recentProjectsToolbar, SIGNAL(actionTriggered(QAction*)), this, SLOT(hideWelcomeScreen(QAction*)));
 
     welcomeScreenOn = false;

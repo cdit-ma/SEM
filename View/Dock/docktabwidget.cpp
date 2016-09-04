@@ -27,7 +27,6 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
 
     themeChanged();
     selectionChanged();
-    //resize(150, sizeHint().height());
 }
 
 
@@ -53,14 +52,7 @@ void DockTabWidget::themeChanged()
  */
 void DockTabWidget::selectionChanged()
 {
-    // if either of the definitions or functions list is displayed, close them and re-open the parts list
-    if (partsButton->isChecked()) {
-        if (stackedWidget->currentWidget() != partsDock) {
-            openRequiredDock(partsDock);
-        } else {
-            partsDock->displayInfoLabel(!adoptableKindAction->isEnabled());
-        }
-    }
+    refreshDock();
 }
 
 
@@ -142,10 +134,8 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
         break;
     case ToolActionController::HARDWARE:
     {
-        QString kind = action->property("parent-kind").toString();
-        Edge::EDGE_CLASS edgeKind = Edge::getEdgeClass(kind);
         int ID = action->property("ID").toInt();
-        toolActionController->addEdge(ID, edgeKind);
+        toolActionController->addEdge(ID, Edge::EC_DEPLOYMENT);
         break;
     }
     }
@@ -160,6 +150,16 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
 void DockTabWidget::dockBackButtonClicked()
 {
     openRequiredDock(partsDock);
+}
+
+
+/**
+ * @brief DockTabWidget::onActionFinished
+ */
+void DockTabWidget::onActionFinished()
+{
+    // TODO - Check when this slot is being called.
+    refreshDock();
 }
 
 
@@ -222,7 +222,7 @@ void DockTabWidget::setupDocks()
 
     // information shown when the dock is empty
     partsDock->updateInfoLabel("The selected entity does not have any adoptable entities");
-    functionsDock->updateInfoLabel("No worker definitions has been imported");
+    functionsDock->updateInfoLabel("No worker definitions have been imported");
     hardwareDock->updateInfoLabel("There are no available hardware nodes");
 
     // TODO - populate the parts and the functions docks (and the hardware dock?)
@@ -247,6 +247,7 @@ void DockTabWidget::setupDocks()
 void DockTabWidget::setupConnections()
 {
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    connect(viewController, SIGNAL(vc_actionFinished()), this, SLOT(onActionFinished()));
     connect(viewController->getSelectionController(), SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged()));
 
     connect(partsButton, SIGNAL(clicked(bool)), this, SLOT(tabClicked(bool)));
@@ -375,20 +376,22 @@ void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemActio
 
 
 /**
- * @brief DockTabWidget::constructDockActionItem
- * @param action
- * @return
+ * @brief DockTabWidget::refreshDock
  */
-DockWidgetActionItem *DockTabWidget::constructDockActionItem(NodeViewItemAction* action)
+void DockTabWidget::refreshDock()
 {
-    // construct a sub-action for the nodeviewitemaction
-    QAction* subAction = action->constructSubAction(false);
-    DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
-    dockItem->setProperty("ID", action->getID());
-    if (!triggeredAdoptableKind.isEmpty()) {
-        dockItem->setProperty("parent-kind", triggeredAdoptableKind);
+    // if either of the definitions or functions list is displayed, close them and re-open the parts list
+    if (partsButton->isChecked()) {
+        if (stackedWidget->currentWidget() != partsDock) {
+            openRequiredDock(partsDock);
+        } else {
+            partsDock->displayInfoLabel(!adoptableKindAction->isEnabled());
+        }
+    } else {
+        // TODO - update the hardware dock
+        // clear then re-populate?
+
     }
-    return dockItem;
 }
 
 
@@ -413,6 +416,27 @@ DockWidget* DockTabWidget::getDock(ToolActionController::DOCK_TYPE dt)
         return 0;
     }
 }
+
+
+/**
+ * @brief DockTabWidget::constructDockActionItem
+ * @param action
+ * @return
+ */
+DockWidgetActionItem *DockTabWidget::constructDockActionItem(NodeViewItemAction* action)
+{
+    // construct a sub-action for the nodeviewitemaction and use that action for the dock item
+    QAction* subAction = action->constructSubAction(false);
+    DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
+    dockItem->setProperty("ID", action->getID());
+    if (!triggeredAdoptableKind.isEmpty()) {
+        dockItem->setProperty("parent-kind", triggeredAdoptableKind);
+    }
+    return dockItem;
+}
+
+
+
 
 
 

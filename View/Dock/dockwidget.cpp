@@ -122,14 +122,16 @@ void DockWidget::clearDock()
 {
     while (!childrenItems.isEmpty()) {
         DockWidgetItem* item = childrenItems.takeFirst();
-        if (itemToolbarHash.contains(item)) {
-            // if there is a toolbar container for the dock item, delete it
-            QToolBar* tb = itemToolbarHash.take(item);
-            mainLayout->removeWidget(tb);
-            delete tb;
-        } else {
-            mainLayout->removeWidget(item);
-            delete item;
+        if (item) {
+            if (itemToolbarHash.contains(item)) {
+                // if there is a toolbar container for the dock item, delete it
+                QToolBar* tb = itemToolbarHash.take(item);
+                mainLayout->removeWidget(tb);
+                delete tb;
+            } else {
+                mainLayout->removeWidget(item);
+                delete item;
+            }
         }
     }
 
