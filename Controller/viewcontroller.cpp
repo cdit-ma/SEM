@@ -289,6 +289,14 @@ void ViewController::importGraphMLFile(QString graphmlPath)
     _importProjectFiles(QStringList(graphmlPath));
 }
 
+void ViewController::importGraphMLExtract(QString data)
+{
+    if(!data.isEmpty()){
+        // fit the contents in all the view aspects after import when no model has been imported yet?
+        emit vc_importProjects(QStringList(data));
+    }
+}
+
 void ViewController::showCodeViewer(QString tabName, QString content)
 {
     if(!codeViewer){
@@ -905,7 +913,16 @@ void ViewController::importXMEProject()
         QFile file(xmePath);
         QFileInfo fileInfo = QFileInfo(file);
         QString tempFile = FileHandler::getTempFileName(fileInfo.baseName() + "_FromXME.graphml");
-        emit vc_importXMETransform(xmePath, tempFile);
+        emit vc_importXMEProject(xmePath, tempFile);
+    }
+}
+
+void ViewController::importXMIProject()
+{
+    QStringList files = FileHandler::selectFiles("Select an XMI File to import.", QFileDialog::ExistingFile, false, XMI_FILE_EXT, XMI_FILE_SUFFIX);
+    if(files.length() == 1){
+        QString xmiPath = files.first();
+        emit vc_importXMIProject(xmiPath);
     }
 }
 

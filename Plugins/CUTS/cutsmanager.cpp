@@ -765,7 +765,12 @@ void CUTSManager::executeXMI2GraphML(QString XMIPath, QStringList selectedIDs)
     classes << "class_ids";
     classes << selectedIDs.join(",");
     QPair<int, QPair<QString, QString> > result = runLocalTransform(XMIPath, "xmi2graphml.xsl", classes);
-    emit gotXMIGraphML(result.first == 0, result.second.second, result.second.first);
+
+    if(result.first == 0){
+        emit gotXMIGraphML(result.second.first);
+    }else{
+        emit gotError("Transforming XMI Failed", result.second.second);
+    }
 }
 
 void CUTSManager::executeXMI2XML(QString XMIPath)

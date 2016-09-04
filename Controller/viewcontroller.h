@@ -106,11 +106,13 @@ signals:
     void vc_validateModel(QString graphmlPath, QString reportPath);
     void vc_launchLocalDeployment(QString graphmlPath);
 
-    void vc_importXMETransform(QString xmePath, QString graphmlPath);
+    void vc_importXMEProject(QString xmePath, QString graphmlPath);
+    void vc_importXMIProject(QString XMIPath);
 
 public slots:
     void modelValidated(QString reportPath);
     void importGraphMLFile(QString graphmlPath);
+    void importGraphMLExtract(QString data);
     void showCodeViewer(QString tabName, QString content);
 
 
@@ -141,6 +143,7 @@ public slots:
     void openExistingProject(QString file);
     void importProjects();
     void importXMEProject();
+    void importXMIProject();
     void saveProject();
     void saveAsProject();
     void closeProject();

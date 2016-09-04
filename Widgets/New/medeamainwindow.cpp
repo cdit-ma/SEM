@@ -924,10 +924,11 @@ void MedeaMainWindow::setupCUTSManager()
 {
     if(!cutsManager ){
         cutsManager  = new CUTSManager();
+        xmiImporter = new XMIImporter(cutsManager, this);
 
         //connect(cutsManager, &CUTSManager::localDeploymentOkay, viewController, &ViewController::cutsManager_DeploymentOkay);
         connect(viewController, &ViewController::vc_getCodeForComponent, cutsManager, &CUTSManager::getCPPForComponent);
-        connect(viewController, &ViewController::vc_importXMETransform, cutsManager, &CUTSManager::executeXMETransform);
+        connect(viewController, &ViewController::vc_importXMEProject, cutsManager, &CUTSManager::executeXMETransform);
 
 
         connect(viewController, &ViewController::vc_validateModel, cutsManager, &CUTSManager::executeXSLValidation);
@@ -937,8 +938,13 @@ void MedeaMainWindow::setupCUTSManager()
         connect(cutsManager, &CUTSManager::gotCodeForComponent, viewController, &ViewController::showCodeViewer);
         connect(cutsManager, &CUTSManager::gotXMETransform, viewController, &ViewController::importGraphMLFile);
         connect(cutsManager, &CUTSManager::executedXSLValidation, viewController, &ViewController::modelValidated);
+
+        connect(viewController, &ViewController::vc_importXMIProject, xmiImporter, &XMIImporter::importXMI);
+        connect(xmiImporter, &XMIImporter::loadingStatus, this, &MedeaMainWindow::showProgressBar);
+        connect(xmiImporter, &XMIImporter::gotXMIGraphML, viewController, &ViewController::importGraphMLExtract);
     }
 }
+
 
 
 /**
