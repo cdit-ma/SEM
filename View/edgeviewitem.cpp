@@ -18,7 +18,7 @@ EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *src
 
     edgeKind = Edge::EC_NONE;
     if(properties.contains("kind")){
-        edgeKind = (Edge::EDGE_CLASS) properties["kind"].toInt();
+        edgeKind = (Edge::EDGE_KIND) properties["kind"].toInt();
     }
 }
 
@@ -27,7 +27,7 @@ EdgeViewItem::~EdgeViewItem()
 
 }
 
-Edge::EDGE_CLASS EdgeViewItem::getEdgeKind() const
+Edge::EDGE_KIND EdgeViewItem::getEdgeKind() const
 {
     return edgeKind;
 }

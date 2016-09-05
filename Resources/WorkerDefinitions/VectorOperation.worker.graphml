@@ -33,7 +33,7 @@
             <data key="10000">A CUTS worker that provides functions to use and manipulate vector entities.</data>
 			<graph id ="g2094">
 				<node id ="2231">
-					<data key="2">Process</data>
+                                        <data key="2">WorkerProcess</data>
 					<data key="4">54</data>
 					<data key="5">140</data>
 					<data key="7">176</data>
@@ -82,7 +82,7 @@
 					</graph>
 				</node>
 				<node id ="6884">
-					<data key="2">Process</data>
+                                        <data key="2">WorkerProcess</data>
 					<data key="4">454</data>
 					<data key="5">140</data>
 					<data key="7">176</data>
@@ -131,7 +131,7 @@
 					</graph>
 				</node>
 				<node id ="7714">
-					<data key="2">Process</data>
+                                        <data key="2">WorkerProcess</data>
 					<data key="4">654</data>
 					<data key="5">140</data>
 					<data key="7">176</data>
@@ -169,7 +169,7 @@
 					</graph>
 				</node>
 				<node id ="8603">
-					<data key="2">Process</data>
+                                        <data key="2">WorkerProcess</data>
 					<data key="4">654</data>
 					<data key="5">340</data>
 					<data key="7">76</data>
@@ -197,7 +197,7 @@
 					</graph>
 				</node>
 				<node id ="6057">
-					<data key="2">Process</data>
+                                        <data key="2">WorkerProcess</data>
 					<data key="4">254</data>
 					<data key="5">140</data>
 					<data key="7">167.922</data>

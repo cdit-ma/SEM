@@ -26,7 +26,7 @@ bool VectorInstance::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool VectorInstance::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool VectorInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

@@ -133,12 +133,15 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
         openRequiredDock(partsDock);
         break;
     }
-    case ToolActionController::FUNCTIONS:
+    case ToolActionController::FUNCTIONS:{
         // construct WorkerProcess
+        QVariant ID = action->property("ID");
+        toolActionController->addWorkerProcess(ID.toInt(), QPointF());
 
         // re-open the parts dock
         openRequiredDock(partsDock);
         break;
+    }
     case ToolActionController::HARDWARE:
     {
         int ID = action->property("ID").toInt();
@@ -296,10 +299,15 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
             showInfoLabel = dockWidget->isEmpty();
             break;
         }
-        case ToolActionController::FUNCTIONS:
+        case ToolActionController::FUNCTIONS:{
             dockWidget->updateHeaderText(triggeredAdoptableKind);
-            showInfoLabel = true;
+
+            QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
+            populateDock(dockWidget, actions, true);
+
+            showInfoLabel = dockWidget->isEmpty();
             break;
+        }
         case ToolActionController::HARDWARE:
         {
             QList<NodeViewItemAction*> actions = toolActionController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);

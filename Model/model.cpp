@@ -25,7 +25,7 @@ bool Model::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool Model::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool Model::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return false;
 }

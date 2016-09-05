@@ -8,7 +8,7 @@ class HardwareNode : public Node
 public:
     HardwareNode();
     bool canAdoptChild(Node*);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // HARDWARENODE_H

@@ -11,7 +11,7 @@ bool OutEventPortImpl::canAdoptChild(Node *child)
     return EventPortImpl::canAdoptChild(child);
 }
 
-bool OutEventPortImpl::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool OutEventPortImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

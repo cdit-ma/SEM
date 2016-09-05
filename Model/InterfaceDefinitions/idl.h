@@ -8,7 +8,7 @@ class IDL : public Node
 public:
     IDL();
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // IDL_H

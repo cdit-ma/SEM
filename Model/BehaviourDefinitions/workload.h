@@ -10,7 +10,7 @@ public:
     Workload();
 
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // WORKLOAD_H

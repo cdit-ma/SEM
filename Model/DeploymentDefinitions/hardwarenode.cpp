@@ -11,7 +11,7 @@ bool HardwareNode::canAdoptChild(Node*)
     return false;
 }
 
-bool HardwareNode::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool HardwareNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return false;
 }

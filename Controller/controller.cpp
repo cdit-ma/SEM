@@ -39,6 +39,7 @@
 #include "../Model/BehaviourDefinitions/variable.h"
 #include "../Model/BehaviourDefinitions/workload.h"
 #include "../Model/BehaviourDefinitions/whileloop.h"
+#include "../Model/BehaviourDefinitions/workerprocess.h"
 
 
 
@@ -133,8 +134,8 @@ NewController::NewController() :QObject(0)
 
     qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
     qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
-    qRegisterMetaType<GraphML::GRAPHML_KIND>("GraphML::GRAPHML_KIND");
-    qRegisterMetaType<Edge::EDGE_CLASS>("Edge::EDGE_CLASS");
+    qRegisterMetaType<Edge::EDGE_KIND>("Edge::EDGE_KIND");
+    qRegisterMetaType<Node::NODE_KIND>("Node::NODE_KIND");
     qRegisterMetaType<QList<int> >("QList<int>");
     qRegisterMetaType<ReadOnlyState>("ReadOnlyState");
 
@@ -295,6 +296,7 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::vc_constructEdge, this, &NewController::constructEdge);
 
     connect(view, &ViewController::vc_constructConnectedNode, this, &NewController::constructConnectedNode);
+    connect(view, &ViewController::vc_constructWorkerProcess, this, &NewController::constructWorkerProcess);
 
 
     connect(view, &ViewController::vc_projectSaved, this, &NewController::setProjectSaved);
@@ -877,7 +879,7 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
     emit controller_ActionFinished();
 }
 
-void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_CLASS edgeClass)
+void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_KIND edgeClass)
 {
     QList<int> validIDs = getConnectableNodeIDs(srcIDs, edgeClass);
 
@@ -907,7 +909,7 @@ void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_CLASS
 }
 
 
-void NewController::destructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass)
+void NewController::destructEdge(int srcID, int dstID, Edge::EDGE_KIND edgeClass)
 {
     lock.lockForWrite();
     Node* src = getNodeFromID(srcID);
@@ -917,7 +919,7 @@ void NewController::destructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClas
     if(src && dst){
         Edge* edge = src->getEdgeTo(dst);
 
-        if(edge && edge->getEdgeClass() == edgeClass){
+        if(edge && edge->getEdgeKind() == edgeClass){
             success = destructEdge(edge);
         }
     }
@@ -926,29 +928,35 @@ void NewController::destructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClas
     emit controller_ActionFinished(success, "Edge couldn't be destructed");
 }
 
-void NewController::constructWorkerProcessNode(int parentID, QString workerName, QString operationName, QPointF position)
+void NewController::constructWorkerProcess(int parentID, int workerProcessID, QPointF pos)
 {
+    lock.lockForWrite();
+
     Node* parentNode = getNodeFromID(parentID);
+    Node* processNode = getNodeFromID(workerProcessID);
 
-    Process* processDefinition = getWorkerProcess(workerName, operationName);
+    bool success = false;
+    if(parentNode && processNode){
+        triggerAction("Constructing worker Process");
+        CONSTRUCTING_WORKERFUNCTION = true;
+        Node* processFunction = cloneNode(processNode, parentNode);
+        CONSTRUCTING_WORKERFUNCTION = false;
 
+        if(processFunction){
+            processFunction->setDataValue("x", pos.x());
+            processFunction->setDataValue("y", pos.y());
 
-    triggerAction("Constructing worker Process");
-    CONSTRUCTING_WORKERFUNCTION = true;
-    Node* processFunction = cloneNode(processDefinition, parentNode);
-    CONSTRUCTING_WORKERFUNCTION = false;
-
-    if(processFunction){
-        processFunction->setDataValue("x", position.x());
-        processFunction->setDataValue("y", position.y());
-        if(!(workerName == "WE_UTE" && (operationName == "cppCode" || operationName == "cppHeader"))){
-            Key* protectedKey = constructKey("dataProtected", QVariant::Bool, Entity::EK_NODE);
-            attachData(processFunction, new Data(protectedKey, true));
+            QString label = processFunction->getDataValue("label").toString();
+            if(!(label == "cppCode" || label == "cppHeader")){
+                Key* protectedKey = constructKey("dataProtected", QVariant::Bool);
+                attachData(processFunction, new Data(protectedKey, true));
+            }
+            success = true;
         }
     }
+    lock.unlock();
 
-    emit controller_ActionFinished();
-    return;
+    emit controller_ActionFinished(success, "Worker Process Couldn't be constructed!");
 }
 
 void NewController::constructDDSQOSProfile(int parentID, QPointF position)
@@ -967,7 +975,7 @@ void NewController::constructDDSQOSProfile(int parentID, QPointF position)
 }
 
 
-void NewController::constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_CLASS edgeKind, QPointF pos)
+void NewController::constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_KIND edgeKind, QPointF pos)
 {
     lock.lockForWrite();
     Node* parentNode = getNodeFromID(parentID);
@@ -1054,7 +1062,7 @@ void NewController::constructDestructEdges(QList<int> destruct_srcIDs, QList<int
 }
 
 
-Edge* NewController::constructEdgeWithData(Edge::EDGE_CLASS edgeClass, Node *src, Node *dst, QList<Data *> data, int previousID)
+Edge* NewController::constructEdgeWithData(Edge::EDGE_KIND edgeClass, Node *src, Node *dst, QList<Data *> data, int previousID)
 {
     Edge* edge = _constructEdge(edgeClass, src, dst);
     if(edge){
@@ -1185,7 +1193,7 @@ void NewController::remove(QList<int> IDs)
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
 {
-    Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_ALL);
+    Key* readOnlyKey = constructKey("readOnly", QVariant::Bool);
 
 
     QList<Node*> nodeList;
@@ -1611,13 +1619,13 @@ QString NewController::_exportSnippet(QList<int> IDs)
             long long machineID = getMACAddress();
 
             //Construct the Keys for the data we need to attach.
-            Key* readOnlyDefinitionKey = constructKey("readOnlyDefinition", QVariant::Bool, Entity::EK_NODE);
-            Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_NODE);
-            Key* IDKey = constructKey("snippetID", QVariant::Int, Entity::EK_NODE);
+            Key* readOnlyDefinitionKey = constructKey("readOnlyDefinition", QVariant::Bool);
+            Key* readOnlyKey = constructKey("readOnly", QVariant::Bool);
+            Key* IDKey = constructKey("snippetID", QVariant::Int);
 
-            Key* timeKey = constructKey("snippetTime", QVariant::LongLong, Entity::EK_NODE);
-            Key* exportTimeKey = constructKey("exportTime", QVariant::LongLong, Entity::EK_NODE);
-            Key* macKey = constructKey("snippetMAC", QVariant::LongLong, Entity::EK_NODE);
+            Key* timeKey = constructKey("snippetTime", QVariant::LongLong);
+            Key* exportTimeKey = constructKey("exportTime", QVariant::LongLong);
+            Key* macKey = constructKey("snippetMAC", QVariant::LongLong);
 
 
             //Construct a list of Nodes to be snippeted
@@ -1695,8 +1703,8 @@ QString NewController::_exportSnippet(QList<int> IDs)
         snippetData = _exportGraphMLDocument(IDs, false, false, true);
 
         if(readOnly){
-            Key* readOnlyDefinitionKey = constructKey("readOnlyDefinition", QVariant::Bool, Entity::EK_NODE);
-            Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_NODE);
+            Key* readOnlyDefinitionKey = constructKey("readOnlyDefinition", QVariant::Bool);
+            Key* readOnlyKey = constructKey("readOnly", QVariant::Bool);
 
             //Remove attached Data.
             foreach(Node* node, nodeList){
@@ -1772,7 +1780,7 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
 }
 
 
-QList<int> NewController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind)
+QList<int> NewController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_KIND edgeKind)
 {
 
     QList<int> dstIDs;
@@ -1784,7 +1792,7 @@ QList<int> NewController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLAS
     return dstIDs;
 }
 
-QList<int> NewController::getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_CLASS edgeClass)
+QList<int> NewController::getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_KIND edgeClass)
 {
     QList<int> dstIDs;
 
@@ -1813,7 +1821,7 @@ QList<int> NewController::getConstructableConnectableNodes(int parentID, QString
     return dstIDs;
 }
 
-QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edge::EDGE_CLASS edgeKind)
+QList<Node *> NewController::_getConnectableNodes(QList<Node *> sourceNodes, Edge::EDGE_KIND edgeKind)
 {
     QList<Node*> validNodes;
 
@@ -1862,6 +1870,21 @@ QList<int> NewController::getOrderedSelectionIDs(QList<int> selection)
         }
     }
     return orderedSelection;
+}
+
+QList<int> NewController::getWorkerFunctions()
+{
+    QList<int> IDs;
+    lock.lockForRead();
+
+    foreach(Node* process, workerDefinitions->getChildrenOfKind(Node::NK_PROCESS, 2)){
+        int ID = process->getID();
+        if(!IDs.contains(ID)){
+            IDs.append(ID);
+        }
+    }
+    lock.unlock();
+    return IDs;
 }
 
 QList<Entity*> NewController::getOrderedSelection(QList<int> selection)
@@ -2029,7 +2052,7 @@ QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeI
 
 
 
-Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTITY_KIND entityKind)
+Key *NewController::constructKey(QString name, QVariant::Type type)
 {
     Key* newKey = new Key(name, type, Entity::EK_ALL);
 
@@ -2203,7 +2226,6 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
     action.ID = newKey->getID();
     action.Action.type = CONSTRUCTED;
     action.Action.kind = newKey->getGraphMLKind();
-    action.Key.kind = entityKind;
     action.Key.type = type;
 
     addActionToStack(action);
@@ -2221,7 +2243,6 @@ bool NewController::destructKey(QString name)
         action.ID = key->getID();
         action.Action.type = DESTRUCTED;
         action.Action.kind = key->getGraphMLKind();
-        action.Key.kind = key->getEntityKind();
         action.Key.type = key->getType();
 
         addActionToStack(action);
@@ -2252,7 +2273,7 @@ Key *NewController::getKeyFromID(int ID)
 }
 
 
-Edge *NewController::_constructEdge(Edge::EDGE_CLASS edgeClass, Node* src, Node* dst)
+Edge *NewController::_constructEdge(Edge::EDGE_KIND edgeClass, Node* src, Node* dst)
 {
     if(src && dst && src->canAcceptEdge(edgeClass, dst)){
         Edge* edge = constructTypedEdge(src, dst, edgeClass);
@@ -2325,7 +2346,7 @@ void NewController::storeGraphMLInHash(Entity* item)
             properties["parentID"] = node->getParentNodeID();
             properties["nodeTypes"] = node->getTypes();
         }else if(entityKind == Entity::EK_EDGE){
-            properties["kind"] = edge->getEdgeClass();
+            properties["kind"] = edge->getEdgeKind();
             properties["srcID"] = edge->getSourceID();
             properties["dstID"] = edge->getDestinationID();
         }
@@ -2591,8 +2612,11 @@ QList<Data *> NewController::cloneNodesData(Node *original, bool ignoreVisuals)
     //Clone the data from the Definition.
     foreach(Data* data, original->getData()){
         if(!ignoredKeys.contains(data->getKeyName())){
-            //Clone the data.
-            clonedData << Data::clone(data);
+            Data* newData = Data::clone(data);
+            if(newData->getKeyName() == "kind" && data->getValue() == "WorkerProcess"){
+                newData->setValue("Process");
+            }
+            clonedData << newData;
         }
     }
     return clonedData;
@@ -2614,13 +2638,13 @@ Node *NewController::cloneNode(Node *original, Node *parent, bool ignoreVisuals)
 
 QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relativePosition, QString nodeType, QString nodeLabel)
 {
-    Key* kindKey = constructKey("kind", QVariant::String, Entity::EK_NODE);
-    Key* labelKey = constructKey("label", QVariant::String, Entity::EK_NODE);
-    Key* typeKey = constructKey("type", QVariant::String, Entity::EK_NODE);
-    Key* widthKey = constructKey("width", QVariant::Double, Entity::EK_NODE);
-    Key* heightKey = constructKey("height", QVariant::Double, Entity::EK_NODE);
-    Key* sortKey = constructKey("sortOrder", QVariant::Int, Entity::EK_NODE);
-    Key* expandedKey = constructKey("isExpanded", QVariant::Bool, Entity::EK_NODE);
+    Key* kindKey = constructKey("kind", QVariant::String);
+    Key* labelKey = constructKey("label", QVariant::String);
+    Key* typeKey = constructKey("type", QVariant::String);
+    Key* widthKey = constructKey("width", QVariant::Double);
+    Key* heightKey = constructKey("height", QVariant::Double);
+    Key* sortKey = constructKey("sortOrder", QVariant::Int);
+    Key* expandedKey = constructKey("isExpanded", QVariant::Bool);
 
     QList<Data*> data;
 
@@ -2676,13 +2700,13 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         typeData->setProtected(true);
         data.append(typeData);
         if(nodeType == DDS_LOGGING_SERVER){
-            Key* frequencyKey = constructKey("frequency", QVariant::Double, Entity::EK_NODE);
-            Key* localLoggingKey = constructKey("cached_logging", QVariant::Bool, Entity::EK_NODE);
-            Key* processLoggingKey = constructKey("processes_to_log", QVariant::String, Entity::EK_NODE);
-            Key* batchSizeKey = constructKey("sql_batch_size", QVariant::Int, Entity::EK_NODE);
+            Key* frequencyKey = constructKey("frequency", QVariant::Double);
+            Key* localLoggingKey = constructKey("cached_logging", QVariant::Bool);
+            Key* processLoggingKey = constructKey("processes_to_log", QVariant::String);
+            Key* batchSizeKey = constructKey("sql_batch_size", QVariant::Int);
 
-            Key* topicKey = constructKey("topic_name", QVariant::String, Entity::EK_NODE);
-            Key* domainKey = constructKey("domain", QVariant::Int, Entity::EK_NODE);
+            Key* topicKey = constructKey("topic_name", QVariant::String);
+            Key* domainKey = constructKey("domain", QVariant::Int);
 
             //Set Defaults
             Data* freqData = new Data(frequencyKey, 1);
@@ -2711,8 +2735,8 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     }
 
     if(nodeKind == "Model"){
-        Key* middlewareKey = constructKey("middleware", QVariant::String, Entity::EK_NODE);
-        Key* projectUUID = constructKey("projectUUID", QVariant::String, Entity::EK_NODE);
+        Key* middlewareKey = constructKey("middleware", QVariant::String);
+        Key* projectUUID = constructKey("projectUUID", QVariant::String);
         Data* projectData = new Data(projectUUID);
         projectData->setValue(getTimeStamp());
         Data* middlewareData = new Data(middlewareKey);
@@ -2721,7 +2745,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(middlewareData);
     }
     if(nodeKind == "PeriodicEvent"){
-        Key* frequencyKey = constructKey("frequency", QVariant::Double, Entity::EK_NODE);
+        Key* frequencyKey = constructKey("frequency", QVariant::Double);
         Data* freqData = new Data(frequencyKey);
 
         Data* typeData = new Data(typeKey, "Constant");
@@ -2732,19 +2756,19 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(freqData);
     }
     if(nodeKind == "Process"){
-        Key* actionOnKey = constructKey("actionOn", QVariant::String,Entity::EK_NODE);
+        Key* actionOnKey = constructKey("actionOn", QVariant::String);
 
         if(isUserAction() && !CONSTRUCTING_WORKERFUNCTION){
             //If this is a user action, this is a blank process
-            Key* fileKey = constructKey("file", QVariant::String,Entity::EK_NODE);
-            Key* folderKey = constructKey("folder", QVariant::String,Entity::EK_NODE);
-            Key* operationKey = constructKey("operation", QVariant::String,Entity::EK_NODE);
+            Key* fileKey = constructKey("file", QVariant::String);
+            Key* folderKey = constructKey("folder", QVariant::String);
+            Key* operationKey = constructKey("operation", QVariant::String);
 
-            Key* parametersKey = constructKey("parameters", QVariant::String,Entity::EK_NODE);
-            Key* codeKey = constructKey("code", QVariant::String,Entity::EK_NODE);
+            Key* parametersKey = constructKey("parameters", QVariant::String);
+            Key* codeKey = constructKey("code", QVariant::String);
 
-            Key* workerKey = constructKey("worker", QVariant::String,Entity::EK_NODE);
-            Key* workerIDKey = constructKey("workerID", QVariant::String,Entity::EK_NODE);
+            Key* workerKey = constructKey("worker", QVariant::String);
+            Key* workerIDKey = constructKey("workerID", QVariant::String);
 
             data.append(new Data(fileKey, "File"));
             data.append(new Data(folderKey, "Folder"));
@@ -2758,29 +2782,29 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(actionOnKey, "Mainprocess"));
     }
     if(nodeKind == "Condition"){
-        Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+        Key* valueKey = constructKey("value", QVariant::String);
         data.append(new Data(valueKey));
     }
     if(nodeKind == "Member"){
-        Key* keyKey = constructKey("key", QVariant::Bool,Entity::EK_NODE);
+        Key* keyKey = constructKey("key", QVariant::Bool);
         Data* keyData = new Data(keyKey);
         keyData->setValue(false);
         data.append(keyData);
     }
     if(nodeKind == "MemberInstance"){
-        Key* keyKey = constructKey("key", QVariant::Bool,Entity::EK_NODE);
-        Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+        Key* keyKey = constructKey("key", QVariant::Bool);
+        Key* valueKey = constructKey("value", QVariant::String);
         Data* keyData = new Data(keyKey);
         keyData->setValue(false);
         data.append(keyData);
         data.append(new Data(valueKey));
     }
     if(nodeKind == "HardwareNode"){
-        Key* osKey = constructKey("os", QVariant::String,Entity::EK_NODE);
-        Key* osVKey = constructKey("os_version", QVariant::String,Entity::EK_NODE);
-        Key* ipKey = constructKey("ip_address", QVariant::String,Entity::EK_NODE);
-        Key* archKey = constructKey("architecture", QVariant::String,Entity::EK_NODE);
-        Key* descriptionKey = constructKey("description", QVariant::String,Entity::EK_NODE);
+        Key* osKey = constructKey("os", QVariant::String);
+        Key* osVKey = constructKey("os_version", QVariant::String);
+        Key* ipKey = constructKey("ip_address", QVariant::String);
+        Key* archKey = constructKey("architecture", QVariant::String);
+        Key* descriptionKey = constructKey("description", QVariant::String);
         data.append(new Data(osKey));
         data.append(new Data(osVKey));
         data.append(new Data(ipKey));
@@ -2791,28 +2815,28 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(typeKey, "String"));
     }
     if(nodeKind == "ComponentAssembly"){
-        Key* replicationKey = constructKey("replicate_count", QVariant::Int,Entity::EK_NODE);
+        Key* replicationKey = constructKey("replicate_count", QVariant::Int);
         data.append(new Data(replicationKey, "1"));
     }
 
     if(nodeKind == "Vector"){
-        Key* sizeKey = constructKey("max_size", QVariant::Int,Entity::EK_NODE);
+        Key* sizeKey = constructKey("max_size", QVariant::Int);
         data.append(new Data(sizeKey, "0"));
     }
 
     if(nodeKind == "AttributeInstance"){
-        Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+        Key* valueKey = constructKey("value", QVariant::String);
         data.append(new Data(valueKey));
     }
 
 
 
     if(nodeKind == "Variable"){
-        Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+        Key* valueKey = constructKey("value", QVariant::String);
         data.append(new Data(valueKey));
     }
     if(nodeKind == "OutEventPortInstance" || nodeKind == "InEventPortInstance"){
-        Key* topicKey = constructKey("topicName",QVariant::String,Entity::EK_NODE);
+        Key* topicKey = constructKey("topicName",QVariant::String);
         data.append(new Data(topicKey));
     }
 
@@ -2828,7 +2852,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(typeData);
     }
     if(nodeKind == "InEventPort"){
-        Key* asyncKey = constructKey("async", QVariant::Bool,Entity::EK_NODE);
+        Key* asyncKey = constructKey("async", QVariant::Bool);
         data.append(new Data(asyncKey, true));
     }
 
@@ -2836,20 +2860,20 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(typeKey));
 
         if(nodeKind == "InputParameter"){
-            Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+            Key* valueKey = constructKey("value", QVariant::String);
             data.append(new Data(valueKey));
         }
 
     }
 
     if(dds_QosNodeKinds.contains(nodeKind)){
-        Key* duration_key = constructKey("qos_dds_duration", QVariant::Double, Entity::EK_NODE);
-        Key* kind_key = constructKey("qos_dds_kind", QVariant::String, Entity::EK_NODE);
-        Key* int_value_key = constructKey("qos_dds_int_value", QVariant::Int, Entity::EK_NODE);
-        Key* str_value_key = constructKey("qos_dds_str_value", QVariant::String, Entity::EK_NODE);
-        Key* max_samples_key = constructKey("qos_dds_max_samples", QVariant::Int, Entity::EK_NODE);
-        Key* max_instances_key = constructKey("qos_dds_max_instances", QVariant::Int, Entity::EK_NODE);
-        Key* max_samples_per_key = constructKey("qos_dds_max_samples_per_instance", QVariant::Int, Entity::EK_NODE);
+        Key* duration_key = constructKey("qos_dds_duration", QVariant::Double);
+        Key* kind_key = constructKey("qos_dds_kind", QVariant::String);
+        Key* int_value_key = constructKey("qos_dds_int_value", QVariant::Int);
+        Key* str_value_key = constructKey("qos_dds_str_value", QVariant::String);
+        Key* max_samples_key = constructKey("qos_dds_max_samples", QVariant::Int);
+        Key* max_instances_key = constructKey("qos_dds_max_instances", QVariant::Int);
+        Key* max_samples_per_key = constructKey("qos_dds_max_samples_per_instance", QVariant::Int);
 
 
         QString hrLabel = nodeKind;
@@ -2861,16 +2885,16 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
 
 
         if(nodeKind == "DDS_DeadlineQosPolicy"){
-            Key* period_key = constructKey("qos_dds_period", QVariant::String, Entity::EK_NODE);
+            Key* period_key = constructKey("qos_dds_period", QVariant::String);
             data.append(new Data(period_key, 1));
         }else if(nodeKind == "DDS_DestinationOrderQosPolicy"){
             data.append(new Data(kind_key, "BY_RECEPTION_TIMESTAMP_DESTINATIONORDER_QOS"));
         }else if(nodeKind == "DDS_DurabilityQosPolicy"){
             data.append(new Data(kind_key, "VOLATILE_DURABILITY_QOS"));
         }else if(nodeKind == "DDS_DurabilityServiceQosPolicy"){
-            Key* service_key = constructKey("qos_dds_service_cleanup_delay", QVariant::Double, Entity::EK_NODE);
-            Key* history_kind_key = constructKey("qos_dds_history_kind", QVariant::String, Entity::EK_NODE);
-            Key* history_depth_key = constructKey("qos_dds_history_depth", QVariant::Int, Entity::EK_NODE);
+            Key* service_key = constructKey("qos_dds_service_cleanup_delay", QVariant::Double);
+            Key* history_kind_key = constructKey("qos_dds_history_kind", QVariant::String);
+            Key* history_depth_key = constructKey("qos_dds_history_depth", QVariant::Int);
 
             data.append(new Data(service_key, 1.0));
             data.append(new Data(history_kind_key, "KEEP_LAST_HISTORY_QOS"));
@@ -2881,12 +2905,12 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         }else if(nodeKind == "DDS_DurabilityQosPolicy"){
             data.append(new Data(kind_key, "VOLATILE_DURABILITY_QOS"));
         }else if(nodeKind == "DDS_EntityFactoryQosPolicy"){
-            Key* autoenable_key = constructKey("qos_dds_autoenable_created_entities", QVariant::Bool, Entity::EK_NODE);
+            Key* autoenable_key = constructKey("qos_dds_autoenable_created_entities", QVariant::Bool);
             data.append(new Data(autoenable_key, true));
         }else if(nodeKind == "DDS_GroupDataQosPolicy"){
             data.append(new Data(str_value_key));
         }else if(nodeKind == "DDS_HistoryQosPolicy"){
-            Key* depth_key = constructKey("qos_dds_depth", QVariant::Int, Entity::EK_NODE);
+            Key* depth_key = constructKey("qos_dds_depth", QVariant::Int);
             data.append(new Data(kind_key, "KEEP_LAST_HISTORY_QOS"));
             data.append(new Data(depth_key, 1));
         }else if(nodeKind == "DDS_LatencyBudgetQosPolicy"){
@@ -2894,7 +2918,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         }else if(nodeKind == "DDS_LifespanQosPolicy"){
             data.append(new Data(duration_key, 1.0));
         }else if(nodeKind == "DDS_LivelinessQosPolicy"){
-            Key* lease_duration_key = constructKey("qos_dds_lease_duration", QVariant::Double, Entity::EK_NODE);
+            Key* lease_duration_key = constructKey("qos_dds_lease_duration", QVariant::Double);
             data.append(new Data(kind_key, "AUTOMATIC_LIVELINESS_QOS"));
             data.append(new Data(lease_duration_key, 1.0));
         }else if(nodeKind == "DDS_OwnershipQosPolicy"){
@@ -2902,22 +2926,22 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         }else if(nodeKind == "DDS_OwnershipStrengthQosPolicy"){
             data.append(new Data(int_value_key, 0));
         }else if(nodeKind == "DDS_PartitionQosPolicy"){
-            Key* name_key = constructKey("qos_dds_name", QVariant::String, Entity::EK_NODE);
+            Key* name_key = constructKey("qos_dds_name", QVariant::String);
             data.append(new Data(name_key));
         }else if(nodeKind == "DDS_PresentationQosPolicy"){
-            Key* access_scope_key = constructKey("qos_dds_access_scope", QVariant::String, Entity::EK_NODE);
-            Key* coherant_access_key = constructKey("qos_dds_coherent_access", QVariant::Bool, Entity::EK_NODE);
-            Key* ordered_access_key = constructKey("qos_dds_ordered_access", QVariant::Bool, Entity::EK_NODE);
+            Key* access_scope_key = constructKey("qos_dds_access_scope", QVariant::String);
+            Key* coherant_access_key = constructKey("qos_dds_coherent_access", QVariant::Bool);
+            Key* ordered_access_key = constructKey("qos_dds_ordered_access", QVariant::Bool);
             data.append(new Data(access_scope_key, "INSTANCE_PRESENTATION_QOS"));
             data.append(new Data(coherant_access_key, false));
             data.append(new Data(ordered_access_key, false));
         }else if(nodeKind == "DDS_ReaderDataLifecycleQosPolicy"){
-            Key* autopurge_nowriter_key = constructKey("qos_dds_autopurge_nowriter_samples_delay", QVariant::Double, Entity::EK_NODE);
-            Key* autopurge_disposed_key = constructKey("qos_dds_autopurge_disposed_samples_delay", QVariant::Double, Entity::EK_NODE);
+            Key* autopurge_nowriter_key = constructKey("qos_dds_autopurge_nowriter_samples_delay", QVariant::Double);
+            Key* autopurge_disposed_key = constructKey("qos_dds_autopurge_disposed_samples_delay", QVariant::Double);
             data.append(new Data(autopurge_nowriter_key, 1.0));
             data.append(new Data(autopurge_disposed_key, 1.0));
         }else if(nodeKind == "DDS_ReliabilityQosPolicy"){
-            Key* max_blocking_key = constructKey("qos_dds_max_blocking_time", QVariant::Double, Entity::EK_NODE);
+            Key* max_blocking_key = constructKey("qos_dds_max_blocking_time", QVariant::Double);
             data.append(new Data(kind_key, "BEST_EFFORT_RELIABILITY_QOS"));
             data.append(new Data(max_blocking_key, 1.0));
         }else if(nodeKind == "DDS_ResourceLimitsQosPolicy"){
@@ -2925,7 +2949,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
             data.append(new Data(max_instances_key, 1));
             data.append(new Data(max_samples_per_key, 1));
         }else if(nodeKind == "DDS_TimeBasedFilterQosPolicy"){
-            Key* minimum_separation_key = constructKey("qos_dds_minimum_separation", QVariant::Double, Entity::EK_NODE);
+            Key* minimum_separation_key = constructKey("qos_dds_minimum_separation", QVariant::Double);
             data.append(new Data(minimum_separation_key, -1));
         }else if(nodeKind == "DDS_TopicDataQosPolicy"){
             data.append(new Data(str_value_key));
@@ -2934,7 +2958,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         }else if(nodeKind == "DDS_UserDataQosPolicy"){
             data.append(new Data(str_value_key));
         }else if(nodeKind == "DDS_WriterDataLifecycleQosPolicy"){
-            Key* autodispose_key = constructKey("qos_dds_autodispose_unregistered_instances", QVariant::Bool, Entity::EK_NODE);
+            Key* autodispose_key = constructKey("qos_dds_autodispose_unregistered_instances", QVariant::Bool);
             data.append(new Data(autodispose_key, true));
         }
     }
@@ -2944,11 +2968,11 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     return data;
 }
 
-QList<Data *> NewController::constructRequiredEdgeData(Edge::EDGE_CLASS edgeClass)
+QList<Data *> NewController::constructRequiredEdgeData(Edge::EDGE_KIND edgeClass)
 {
     QList<Data*> dataList;
 
-    Key* kindKey = constructKey("kind", QVariant::String, Entity::EK_ALL);
+    Key* kindKey = constructKey("kind", QVariant::String);
     QString kind = Edge::getKind(edgeClass);
 
     dataList.append(new Data(kindKey, kind));
@@ -2985,7 +3009,7 @@ QList<Data *> NewController::constructRequiredEdgeData(Edge::EDGE_CLASS edgeClas
     }
 
     if(!label.isEmpty()){
-        Key* labelKey = constructKey("label", QVariant::String, Entity::EK_ALL);
+        Key* labelKey = constructKey("label", QVariant::String);
         dataList.append(new Data(labelKey, label));
     }
 
@@ -2994,8 +3018,8 @@ QList<Data *> NewController::constructRequiredEdgeData(Edge::EDGE_CLASS edgeClas
 
 QList<Data *> NewController::constructPositionDataVector(QPointF point)
 {
-    Key* xKey = constructKey("x", QVariant::Double, Entity::EK_ALL);
-    Key* yKey = constructKey("y", QVariant::Double, Entity::EK_ALL);
+    Key* xKey = constructKey("x", QVariant::Double);
+    Key* yKey = constructKey("y", QVariant::Double);
 
     QList<Data*> position;
     Data* xData = new Data(xKey);
@@ -3353,12 +3377,12 @@ bool NewController::destructEdge(Edge *edge)
         action.Action.kind = edge->getGraphMLKind();
         action.Entity.kind = edge->getEntityKind();
         action.Entity.XML = edge->toGraphML(0);
-        action.Entity.edgeClass = edge->getEdgeClass();
+        action.Entity.edgeClass = edge->getEdgeKind();
         addActionToStack(action);
     }
 
     //Teardown specific edge classes.
-    Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
+    Edge::EDGE_KIND edgeClass = edge->getEdgeKind();
 
     switch(edgeClass){
     case Edge::EC_DEFINITION:{
@@ -3471,7 +3495,7 @@ bool NewController::reverseAction(EventAction action)
         if(action.Action.type == CONSTRUCTED){
             success = destructKey(action.Key.name);
         }else if(action.Action.type == DESTRUCTED){
-            success = constructKey(action.Key.name, action.Key.type, action.Key.kind);
+            success = constructKey(action.Key.name, action.Key.type);
         }
     }
     return success;
@@ -3528,12 +3552,6 @@ bool NewController::_attachData(Entity *item, QString keyName, QVariant value, b
     return _attachData(item, data, addAction);
 }
 
-Process *NewController::getWorkerProcess(QString workerName, QString operationName)
-{
-    Process* process = 0;
-    process = workerProcesses[workerName+"_"+operationName];
-    return process;
-}
 
 bool NewController::_attachData(Entity *item, Data *data, bool addAction)
 {
@@ -3782,9 +3800,9 @@ void NewController::_projectNameChanged()
     }
 }
 
-Edge::EDGE_CLASS NewController::getValidEdgeClass(Node *src, Node *dst)
+Edge::EDGE_KIND NewController::getValidEdgeClass(Node *src, Node *dst)
 {
-    foreach(Edge::EDGE_CLASS edgeClass, Edge::getEdgeClasses()){
+    foreach(Edge::EDGE_KIND edgeClass, Edge::getEdgeKinds()){
         if(src->canAcceptEdge(edgeClass, dst)){
             return edgeClass;
         }
@@ -3792,11 +3810,11 @@ Edge::EDGE_CLASS NewController::getValidEdgeClass(Node *src, Node *dst)
     return Edge::EC_UNDEFINED;
 }
 
-QList<Edge::EDGE_CLASS> NewController::getPotentialEdgeClasses(Node *src, Node *dst)
+QList<Edge::EDGE_KIND> NewController::getPotentialEdgeClasses(Node *src, Node *dst)
 {
-    QList<Edge::EDGE_CLASS> edgeKinds;
+    QList<Edge::EDGE_KIND> edgeKinds;
 
-    foreach(Edge::EDGE_CLASS edgeClass, Edge::getEdgeClasses()){
+    foreach(Edge::EDGE_KIND edgeClass, Edge::getEdgeKinds()){
         if(src->acceptsEdgeKind(edgeClass) && dst->acceptsEdgeKind(edgeClass) && src->requiresEdgeKind(edgeClass)){
             edgeKinds << edgeClass;
         }
@@ -3932,8 +3950,10 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
         return new PeriodicEvent();
     }else if(nodeKind == "Workload"){
         return new Workload();
-    }else if(nodeKind == "Process" || nodeKind == "WorkerProcess"){
+    }else if(nodeKind == "Process"){
         return new Process();
+    }else if(nodeKind == "WorkerProcess"){
+        return new WorkerProcess();
     }else if(nodeKind == "WhileLoop"){
         return new WhileLoop();
     }else if(nodeKind == "Termination"){
@@ -4202,7 +4222,7 @@ bool NewController::setupDependantRelationship(Node *definition, Node *node)
 
     //Get Connecting Edge.
     Edge* edge = node->getEdgeTo(definition);
-    Key* labelKey = constructKey("label", QVariant::String, Entity::EK_EDGE);
+    Key* labelKey = constructKey("label", QVariant::String);
     QString definitionType = "";
 
     if(!edge){
@@ -4295,7 +4315,7 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
 
     //Check for a connecting Edge between the eventPort and aggregate.
     Edge* edge = eventPort->getEdgeTo(aggregate);
-    Key* labelKey = constructKey("label", QVariant::String, Entity::EK_EDGE);
+    Key* labelKey = constructKey("label", QVariant::String);
 
     //Check for the existance of the Edge constructed.
     if(!edge){
@@ -4355,7 +4375,7 @@ bool NewController::setupAggregateRelationship(Node *node, Aggregate *aggregate)
     Edge* edge = node->getEdgeTo(aggregate);
 
 
-    Key* labelKey = constructKey("label", QVariant::String, Entity::EK_EDGE);
+    Key* labelKey = constructKey("label", QVariant::String);
 
     //Check for the existance of the Edge constructed.
     if(!edge){
@@ -4642,7 +4662,7 @@ void NewController::constructEdgeGUI(Edge *edge)
     action.ID = edge->getID();
     action.Entity.kind = edge->getEntityKind();
 
-    Key* descriptionKey = constructKey("description", QVariant::String, Entity::EK_EDGE);
+    Key* descriptionKey = constructKey("description", QVariant::String);
 
 
     //Get Source and Destination of the Edge.
@@ -4655,7 +4675,7 @@ void NewController::constructEdgeGUI(Edge *edge)
     if(!src || !dst){
         qCritical() << "Source and Desitnation null";
     }
-    Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
+    Edge::EDGE_KIND edgeClass = edge->getEdgeKind();
 
     switch(edgeClass){
     case Edge::EC_DEFINITION:{
@@ -4742,8 +4762,8 @@ void NewController::setupLocalNode()
     //EXECUTION MANAGER
     QList<Data*> localNodeData = constructDataVector("HardwareNode") ;
 
-    Key* localhostKey = constructKey("localhost", QVariant::Bool,Entity::EK_NODE);
-    Key* readOnlyKey = constructKey("readOnly", QVariant::Bool,Entity::EK_NODE);
+    Key* localhostKey = constructKey("localhost", QVariant::Bool);
+    Key* readOnlyKey = constructKey("readOnly", QVariant::Bool);
     Data* localhostData = new Data(localhostKey, true);
     Data* readOnlyData = new Data(readOnlyKey, true);
     localNodeData.append(localhostData);
@@ -4881,7 +4901,7 @@ bool NewController::_isInWorkerDefinitions(Entity *item)
     }
 }
 
-Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS edgeClass)
+Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_KIND edgeClass)
 {
     Edge* returnable = 0;
 
@@ -4985,21 +5005,21 @@ QString NewController::getSelectionAsGraphMLSnippet(QList<int> IDs)
     return data;
 }
 
-QList<Edge::EDGE_CLASS> NewController::getValidEdgeKindsForSelection(QList<int> IDs)
+QList<Edge::EDGE_KIND> NewController::getValidEdgeKindsForSelection(QList<int> IDs)
 {
     lock.lockForRead();
 
     QList<Entity*> entities = getOrderedSelection(IDs);
-    QList<Edge::EDGE_CLASS> edgeKinds;
+    QList<Edge::EDGE_KIND> edgeKinds;
 
     if(!entities.isEmpty()){
-        edgeKinds = Edge::getEdgeClasses();
+        edgeKinds = Edge::getEdgeKinds();
     }
 
     foreach(Entity* entity, entities){
         if(entity->isNode()){
             Node* node = (Node*) entity;
-            foreach(Edge::EDGE_CLASS edgeKind, edgeKinds){
+            foreach(Edge::EDGE_KIND edgeKind, edgeKinds){
                 if(!node->requiresEdgeKind(edgeKind)){
                     edgeKinds.removeAll(edgeKind);
                 }
@@ -5374,12 +5394,10 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                 QString keyName = getXMLAttribute(xml, "attr.name");
                 QString keyTypeStr = getXMLAttribute(xml, "attr.type");
-                QString keyForStr = getXMLAttribute(xml, "for");
 
                 QVariant::Type keyType = Key::getTypeFromGraphML(keyTypeStr);
-                Entity::ENTITY_KIND keyFor = Entity::getEntityKind(keyForStr);
 
-                Key* key = constructKey(keyName, keyType, keyFor);
+                Key* key = constructKey(keyName, keyType);
                 keyHash.insert(ID,key);
             }else if(currentKind == GraphML::GK_DATA){
                 QString keyID = getXMLAttribute(xml, "key");
@@ -5598,7 +5616,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     }
 
 
-    QMultiMap<Edge::EDGE_CLASS, TempEntity*> edgesMap;
+    QMultiMap<Edge::EDGE_KIND, TempEntity*> edgesMap;
 
     while(!edgeIDStack.isEmpty()){
         //Get the String ID of the node.
@@ -5630,11 +5648,11 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 entity->setDestination(dst);
 
                 QString kind = entity->getKind();
-                Edge::EDGE_CLASS edgeClass = Edge::getEdgeClass(kind);
+                Edge::EDGE_KIND edgeClass = Edge::getEdgeKind(kind);
 
                 //If the edge class stored in the model is invalid we should try all of the edge classes these items can take, in order.
                 if(edgeClass == Edge::EC_UNDEFINED || edgeClass == Edge::EC_NONE){
-                    foreach(Edge::EDGE_CLASS ec, getPotentialEdgeClasses(src, dst)){
+                    foreach(Edge::EDGE_KIND ec, getPotentialEdgeClasses(src, dst)){
                         entity->appendEdgeKind(ec);
                     }
                 }else{
@@ -5664,11 +5682,11 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
         QList<TempEntity*> currentEdges;
         QList<TempEntity*> unconstructedEdges;
 
-        Edge::EDGE_CLASS currentKind = Edge::EC_NONE;
+        Edge::EDGE_KIND currentKind = Edge::EC_NONE;
         int constructedEdges = 0;
 
         //Get all the edges, of kind eK, (Break when we get any edges)
-        foreach(Edge::EDGE_CLASS eK, Edge::getEdgeClasses()){
+        foreach(Edge::EDGE_KIND eK, Edge::getEdgeKinds()){
             if(edgesMap.contains(eK)){
                 currentEdges = edgesMap.values(eK);
                 currentKind = eK;
@@ -5689,7 +5707,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
             entity->incrementRetryCount();
 
             //Get the edgeKind
-            Edge::EDGE_CLASS edgeKind = entity->getEdgeKind();
+            Edge::EDGE_KIND edgeKind = entity->getEdgeKind();
 
             //Remove it from the map!
             edgesMap.remove(currentKind, entity);

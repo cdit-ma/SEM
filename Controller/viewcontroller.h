@@ -2,6 +2,8 @@
 #define VIEWCONTROLLER_H
 
 #include "../View/viewitem.h"
+#include "../View/nodeviewitem.h"
+#include "../View/edgeviewitem.h"
 #include "selectionhandler.h"
 #include "../Widgets/New/selectioncontroller.h"
 #include "actioncontroller.h"
@@ -25,14 +27,15 @@ public:
     ActionController* getActionController();
     ToolActionController* getToolbarController();
 
+    QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
-    QList<ViewItem*> getValidEdges(Edge::EDGE_CLASS kind);
+    QList<ViewItem*> getValidEdges(Edge::EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
 
 
     QStringList getAdoptableNodeKinds();
-    QList<Edge::EDGE_CLASS> getValidEdgeKindsForSelection();
+    QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection();
     QStringList getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
@@ -88,9 +91,10 @@ signals:
     void vc_executeJenkinsJob(QString filePath);
 
     void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
-    void vc_constructEdge(QList<int> sourceIDs, int dstID, Edge::EDGE_CLASS edgeKind = Edge::EC_UNDEFINED);
+    void vc_constructEdge(QList<int> sourceIDs, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED);
 
-    void vc_constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_CLASS edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
+    void vc_constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
+    void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
 
 
     void vc_importProjects(QStringList fileData);
@@ -225,7 +229,9 @@ private:
     void _importProjects();
     void _importProjectFiles(QStringList fileName);
     bool _openProject(QString filePath = "");
-    QList<int> getIDsOfKind(QString kind);
+
+    QList<ViewItem*> getItemsOfKind(Node::NODE_KIND kind);
+    QList<ViewItem*> getItemsOfKind(Edge::EDGE_KIND kind);
     bool _modelReady;
 
 
@@ -239,10 +245,11 @@ private:
     ViewItem* getViewItem(int ID);
 
     QHash<QString, int> treeLookup;
-    QHash<QString, QList<int> > itemKindLists;
+    QMultiMap<Node::NODE_KIND, int> nodeKindLookups;
+    QMultiMap<Edge::EDGE_KIND, int> edgeKindLookups;
+
     QHash<int, ViewItem*> viewItems;
     QList<int> topLevelItems;
-    ViewItem* modelItem;
     ViewItem* rootItem;
 
     MedeaDockWidget *codeViewer;

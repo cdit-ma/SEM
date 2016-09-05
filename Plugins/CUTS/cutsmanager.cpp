@@ -20,15 +20,8 @@
 CUTSManager::CUTSManager():QObject(0)
 {
     managerThread = new QThread();
-    moveToThread(managerThread);
-
     connect(this, SIGNAL(initiateTeardown()), managerThread, SLOT(quit()));
-    //connect(this, SIGNAL(initiateTeardown()), managerThread, SLOT(quit()));
-    //connect(this, SIGNAL(initiateTeardown()), this, SLOT(deleteLater()));
-    //connect(managerThread, SIGNAL(finished()), managerThread, SLOT(deleteLater()), Qt::QueuedConnection);
-    //connect(managerThread, SIGNAL(finished()), this, SLOT(deleteLater()), Qt::QueuedConnection);
-    //connect(this, SIGNAL(destroyed(QObject*)), managerThread, SLOT(terminate()));
-    //connect(this, &CUTSManager::initiateTeardown, this, &QObject::deleteLater, Qt::QueuedConnection);
+    moveToThread(managerThread);
     managerThread->start();
 
 
@@ -42,17 +35,13 @@ CUTSManager::CUTSManager():QObject(0)
     //Set instance variables.
     setXalanJPath(QApplication::applicationDirPath() % "/Resources/Binaries/");
     setXSLTransformPath(QApplication::applicationDirPath() % "/Resources/Transforms/");
-    setMaxThreadCount(4);
     setScriptsPath(QApplication::applicationDirPath() % "/Resources/Scripts/");
-
-
-
+    setMaxThreadCount(4);
 }
 
 CUTSManager::~CUTSManager()
 {
-    emit initiateTeardown();;
-    qCritical() << "Tearing down thread!";
+    emit initiateTeardown();
 }
 
 void CUTSManager::setXalanJPath(QString xalanPath)

@@ -35,6 +35,8 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     setResizeEnabled(true);
     setExpandEnabled(true);
 
+    setUpColors();
+
     addRequiredData("isExpanded");
 
 
@@ -95,7 +97,10 @@ Node::NODE_KIND NodeItemNew::getNodeKind() const
     return nodeViewItem->getNodeKind();
 }
 
-
+NodeItemNew::NODE_READ_STATE NodeItemNew::getReadState() const
+{
+    return readState;
+}
 
 void NodeItemNew::setRightJustified(bool isRight)
 {
@@ -731,6 +736,26 @@ void NodeItemNew::childPosChanged()
     resizeToChildren();
 }
 
+void NodeItemNew::setUpColors()
+{
+    qreal blendFactor = 0.2;
+
+    //Brown
+    QColor blendColor = QColor(222,184,135);
+    readOnlyDefinitionColor = EntityItemNew::getBodyColor();
+    readOnlyDefinitionColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * readOnlyDefinitionColor.blue());
+    readOnlyDefinitionColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * readOnlyDefinitionColor.red());
+    readOnlyDefinitionColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * readOnlyDefinitionColor.green());
+
+    //Blue
+    blendColor = QColor(222,184,135);
+    readOnlyInstanceColor = EntityItemNew::getBodyColor();
+    readOnlyInstanceColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * readOnlyInstanceColor.blue());
+    readOnlyInstanceColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * readOnlyInstanceColor.red());
+    readOnlyInstanceColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * readOnlyInstanceColor.green());
+
+}
+
 void NodeItemNew::resizeToChildren()
 {
     QRectF currentGridRect = expandedGridRect();
@@ -1078,4 +1103,18 @@ void NodeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         }
     }
     EntityItemNew::mouseDoubleClickEvent(event);
+}
+
+QColor NodeItemNew::getBodyColor() const
+{
+    switch(getReadState()){
+    case READ_ONLY_DEFINITION:
+        return readOnlyDefinitionColor;
+        break;
+    case READ_ONLY_INSTANCE:
+        return readOnlyInstanceColor;
+        break;
+    default:
+        return EntityItemNew::getBodyColor();
+    }
 }

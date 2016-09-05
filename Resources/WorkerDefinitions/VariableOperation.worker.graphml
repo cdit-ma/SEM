@@ -39,7 +39,7 @@
             <data key="d26">A CUTS worker that provides functions to use and manipulate variable entities.</data>
             <graph id="n0:" edgedefault="directed">
                 <node id="n0::n0">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">15</data>
                     <data key="d6">60</data>
                     <data key="d7">173.512</data>
@@ -76,7 +76,7 @@
                     </graph>
                 </node>
                 <node id="n0::n1">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">615</data>
                     <data key="d6">60</data>
                     <data key="d7">173.512</data>
@@ -114,7 +114,7 @@
                     </graph>
                 </node>
                 <node id="n0::n2">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">317.512</data>
                     <data key="d6">60</data>
                     <data key="d7">76.023</data>
@@ -142,7 +142,7 @@
                     </graph>
                 </node>
                 <node id="n0::n3">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">215</data>
                     <data key="d6">60</data>
                     <data key="d7">76.023</data>
@@ -179,7 +179,7 @@
                     </graph>
                 </node>
                 <node id="n0::n4">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">416.256</data>
                     <data key="d6">60</data>
                     <data key="d7">76.023</data>
@@ -207,7 +207,7 @@
                     </graph>
                 </node>
                 <node id="n0::n5">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">515</data>
                     <data key="d6">60</data>
                     <data key="d7">76.023</data>

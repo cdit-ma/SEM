@@ -9,17 +9,17 @@ class Node;
 class Edge: public Entity{
     Q_OBJECT
 public:
-    enum EDGE_CLASS{EC_NONE, EC_DEFINITION, EC_AGGREGATE, EC_WORKFLOW, EC_ASSEMBLY, EC_DATA, EC_DEPLOYMENT, EC_QOS, EC_UNDEFINED};
-    static QList<EDGE_CLASS> getEdgeClasses();
+    enum EDGE_KIND{EC_NONE, EC_DEFINITION, EC_AGGREGATE, EC_WORKFLOW, EC_ASSEMBLY, EC_DATA, EC_DEPLOYMENT, EC_QOS, EC_UNDEFINED};
+    static QList<EDGE_KIND> getEdgeKinds();
 
-    static QString getKind(EDGE_CLASS edgeClass);
-    static EDGE_CLASS getEdgeClass(QString kind);
+    static QString getKind(EDGE_KIND edgeClass);
+    static EDGE_KIND getEdgeKind(QString kind);
 
     //Enum for Node Types
     enum EDGE_TYPE {ET_NORMAL, ET_MATCHINGKINDS, ET_AGGREGATE, ET_DEPLOYMENT, ET_ASSEMBLY, ET_COMPONENT, ET_DELEGATE, ET_TERMINATION, ET_DATALINK};
 
     //Constructor
-    Edge(Node* source, Node* destination, EDGE_CLASS edgeClass= EC_NONE);
+    Edge(Node* source, Node* destination, EDGE_KIND edgeClass= EC_NONE);
     ~Edge();
 
 
@@ -55,11 +55,11 @@ public:
 
     bool isAggregateEdge();
     bool isDefinitionEdge();
-    EDGE_CLASS getEdgeClass();
+    EDGE_KIND getEdgeKind();
 private:
     EDGE_TYPE getType();
     EDGE_TYPE type;
-    EDGE_CLASS edgeClass;
+    EDGE_KIND edgeClass;
     Node* source;
     Node* destination;
 

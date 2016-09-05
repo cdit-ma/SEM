@@ -8,7 +8,7 @@ class DDS_EntityFactoryQosPolicy: public Node
 public:
     DDS_EntityFactoryQosPolicy();
     bool canAdoptChild(Node* node);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 
 };
 #endif // DDS_ENTITYFACTORYQOSPOLICY_H

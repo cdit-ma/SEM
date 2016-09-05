@@ -163,9 +163,13 @@ void ToolbarWidgetNew::populateDynamicMenu()
     if (senderMenu == hardwareMenu) {
         actions = toolbarController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
     } else {
-        Edge::EDGE_CLASS edgeClass = Edge::getEdgeClass(kind);
+        Edge::EDGE_KIND edgeClass = Edge::getEdgeKind(kind);
         if (edgeClass == Edge::EC_UNDEFINED) {
-            actions = toolbarController->getDefinitionNodeActions(kind);
+            if(kind == "WorkerProcess"){
+                actions = toolbarController->getWorkerFunctions();
+            }else{
+                actions = toolbarController->getDefinitionNodeActions(kind);
+            }
         } else {
             actions = toolbarController->getEdgeActionsOfKind(edgeClass);
         }
@@ -210,13 +214,17 @@ void ToolbarWidgetNew::addChildNode(QAction* action)
     }
 
     QString kind = action->property("kind").toString();
-    QVariant ID = action->property("ID");
-    QVariant parentKind = action->property("parent-kind");
+    int ID = action->property("ID").toInt();
+    QString parentKind = action->property("parent-kind").toString();
 
-    if (!ID.isValid() || !parentKind.isValid()) {
+    if(ID > 0 && !parentKind.isEmpty()){
+        if(parentKind == "WorkerProcess"){
+            toolbarController->addWorkerProcess(ID, itemPos);
+        }else{
+            toolbarController->addConnectedChildNode(ID, parentKind, itemPos);
+        }
+    }else{
         toolbarController->addChildNode(kind, itemPos);
-    } else {
-        toolbarController->addConnectedChildNode(ID.toInt(), parentKind.toString(), itemPos);
     }
 }
 
@@ -233,7 +241,7 @@ void ToolbarWidgetNew::addEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    Edge::EDGE_CLASS edgeKind = Edge::getEdgeClass(kind);
+    Edge::EDGE_KIND edgeKind = Edge::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
     toolbarController->addEdge(ID, edgeKind);
 }
@@ -267,7 +275,7 @@ void ToolbarWidgetNew::setupToolbar()
 void ToolbarWidgetNew::setupActions()
 {
     connectGroup = new ActionGroup(this);
-    foreach(Edge::EDGE_CLASS edgeKind, Edge::getEdgeClasses()){
+    foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
         QAction* action = connectGroup->addAction(toolbarController->getEdgeActionOfKind(edgeKind)->constructSubAction(true));
         action->setProperty("kind", Edge::getKind(edgeKind));
     }

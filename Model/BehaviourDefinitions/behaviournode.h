@@ -25,7 +25,7 @@ public:
 
 
     virtual bool canAdoptChild(Node* child);
-    virtual bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 
 private:
     bool _isReciever;

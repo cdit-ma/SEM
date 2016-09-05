@@ -59,6 +59,7 @@ public:
         NK_RETURNPARAMETER,
         NK_PERIODICEVENT,
         NK_PROCESS,
+        NK_WORKER_PROCESS,
         NK_TERMINATION,
         NK_VARIABLE,
         NK_WHILELOOP,
@@ -144,7 +145,7 @@ public:
     QList<Node *> getChildrenOfKind(Node::NODE_KIND kind, int depth =-1);
 
 
-    QList<int> getEdgeIDs(Edge::EDGE_CLASS edgeClass = Edge::EC_NONE);
+    QList<int> getEdgeIDs(Edge::EDGE_KIND edgeClass = Edge::EC_NONE);
     Node* getFirstChild();
     Edge* getFirstEdge();
 
@@ -165,10 +166,10 @@ public:
     bool isDescendantOf(Node *node);
 
     //Gets the edge that is joining the node to this.
-    Edge* getEdgeTo(Node* node, Edge::EDGE_CLASS edgeKind = Edge::EC_NONE);
-    bool gotEdgeTo(Node* node, Edge::EDGE_CLASS edgeKind = Edge::EC_NONE);
+    Edge* getEdgeTo(Node* node, Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
+    bool gotEdgeTo(Node* node, Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
 
-    QList<Edge *> getEdges(int depth=-1, Edge::EDGE_CLASS edgeKind = Edge::EC_NONE);
+    QList<Edge *> getEdges(int depth=-1, Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
     QList<Key *> getKeys(int depth=-1);
 
     bool isDefinition() const;
@@ -211,7 +212,7 @@ private:
     bool containsEdge(Edge* edge);
 
     QList<Node*> getOrderedChildNodes();
-    QList<Edge*> getOrderedEdges(Edge::EDGE_CLASS edgeKind = Edge::EC_NONE);
+    QList<Edge*> getOrderedEdges(Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
 
     QList<int> treeIndex;
     QString treeIndexString;
@@ -234,26 +235,26 @@ private:
 
     //The list of contained Edge elements in this graph. (Top level only)
 
-    QMultiMap<Edge::EDGE_CLASS, Edge*> edges;
+    QMultiMap<Edge::EDGE_KIND, Edge*> edges;
 
 
     VIEW_ASPECT aspect;
 
     int types;
-    QList<Edge::EDGE_CLASS> validEdgeKinds;
+    QList<Edge::EDGE_KIND> validEdgeKinds;
 
 protected:
     void setTop(int index = 0);
     void setNodeType(NODE_TYPE type);
     void removeNodeType(NODE_TYPE type);
-    void setAcceptsEdgeKind(Edge::EDGE_CLASS edgeKind);
-    void removeEdgeKind(Edge::EDGE_CLASS edgeKind);
+    void setAcceptsEdgeKind(Edge::EDGE_KIND edgeKind);
+    void removeEdgeKind(Edge::EDGE_KIND edgeKind);
 public:
     bool isNodeOfType(NODE_TYPE type) const;
-    bool acceptsEdgeKind(Edge::EDGE_CLASS edgeKind) const;
-    bool requiresEdgeKind(Edge::EDGE_CLASS edgeKind) const;
-    QList<Edge::EDGE_CLASS> getAcceptedEdgeKinds() const;
-    virtual bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node* dst);
+    bool acceptsEdgeKind(Edge::EDGE_KIND edgeKind) const;
+    bool requiresEdgeKind(Edge::EDGE_KIND edgeKind) const;
+    QList<Edge::EDGE_KIND> getAcceptedEdgeKinds() const;
+    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node* dst);
 };
 
 #endif // NODE_H

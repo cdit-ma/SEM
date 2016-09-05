@@ -14,7 +14,7 @@ bool MemberInstance::canAdoptChild(Node*)
     return false;
 }
 
-bool MemberInstance::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool MemberInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
