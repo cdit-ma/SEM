@@ -45,7 +45,6 @@ void DockTabWidget::themeChanged()
     setStyleSheet(theme->getToolBarStyleSheet() +
                   "QWidget{ color:" + theme->getTextColorHex() + ";}"
                   "QToolButton{ border-radius: 2px; background:" + theme->getAltBackgroundColorHex() + ";}"
-                  //"QToolButton::checked:!hover{ border-bottom: 0px; background:" + theme->getBackgroundColorHex() + ";}"
                   "QToolButton::checked:!hover{ background:" + theme->getBackgroundColorHex() + ";}"
                   "QStackedWidget{ border: 0px; background:" + theme->getBackgroundColorHex() + ";}");
 
@@ -137,7 +136,6 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
         // construct WorkerProcess
         QVariant ID = action->getProperty("ID");
         toolActionController->addWorkerProcess(ID.toInt(), QPointF());
-
         // re-open the parts dock
         openRequiredDock(partsDock);
         break;
@@ -248,6 +246,9 @@ void DockTabWidget::setupDocks()
     }
 
     /* FUNCTIONS DOCK */
+
+    /* HARDWARE DOCK */
+
 }
 
 
@@ -270,6 +271,9 @@ void DockTabWidget::setupConnections()
 
     connect(definitionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
     connect(functionsDock, SIGNAL(backButtonClicked()), this, SLOT(dockBackButtonClicked()));
+
+    connect(toolActionController, SIGNAL(hardwareCreated(int)), hardwareDock, SLOT(viewItemConstructed(int)));
+    connect(toolActionController, SIGNAL(hardwareDestructed(int)), hardwareDock, SLOT(viewItemDestructed(int)));
 }
 
 
@@ -310,8 +314,8 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
         }
         case ToolActionController::HARDWARE:
         {
-            QList<NodeViewItemAction*> actions = toolActionController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
-            populateDock(dockWidget, actions);
+            //QList<NodeViewItemAction*> actions = toolActionController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
+            //populateDock(dockWidget, actions);
             showInfoLabel = dockWidget->isEmpty();
             break;
         }
@@ -406,7 +410,6 @@ void DockTabWidget::refreshDock()
     } else {
         // TODO - update the hardware dock
         // clear then re-populate?
-
     }
 }
 

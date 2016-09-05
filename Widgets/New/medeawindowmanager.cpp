@@ -424,6 +424,7 @@ void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
         setActiveDockWidget(dockWidget);
     }
 
+    /*
     QDialog* dialog = new QDialog();
     dialog->setWindowTitle("Select Destination Window");
     //dialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
@@ -436,25 +437,40 @@ void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
 
     QHBoxLayout* layout = new QHBoxLayout(dialog);
     dialog->setLayout(layout);
+    */
 
     /*
      * TODO - Figure out why this doesn't work!
-     *
-    PopupWidget* dialog = new PopupWidget(false, mainWindow);
+     */
     QWidget* widget = new QWidget(mainWindow);
-    QHBoxLayout* layout = new QHBoxLayout(widget);
+    QLabel* titleLabel = new QLabel("Select Destination Window", mainWindow);
+    titleLabel->setAlignment(Qt::AlignCenter);
+
+    QVBoxLayout* vlayout = new QVBoxLayout(widget);
+    vlayout->addWidget(titleLabel);
+
+    QHBoxLayout* layout = new QHBoxLayout();
+    vlayout->addLayout(layout);
+
+    Theme* theme = Theme::theme();
+    PopupWidget* dialog = new PopupWidget(PopupWidget::DIALOG, mainWindow);
     dialog->setWidget(widget);
-    */
+    dialog->setStyleSheet(theme->getPopupWidgetStyleSheet());
+    widget->setStyleSheet("QWidget{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";}"
+                          "QToolButton{ color: black; }");
 
     MedeaWindowNew* currentWindow = dockWidget->getCurrentWindow();
     foreach(MedeaWindowNew* w, windows.values()){
         if(w != currentWindow && w != mainWindow){
             QToolButton* button = constructPopOutWindowButton(dialog, w);
-            layout->addWidget(button);
+            layout->addWidget(button, 0 , Qt::AlignCenter);
         }
     }
     QToolButton* button = constructPopOutWindowButton(dialog, 0);
     layout->addWidget(button);
+
+    dialog->setSize(layout->sizeHint().width() + 50, layout->sizeHint().height() + 50);
+
 
     dialog->exec();
 

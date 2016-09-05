@@ -36,7 +36,9 @@ signals:
 public slots:
     void themeChanged();
     void dockActionClicked();
-    void viewItemDestructed(int ID, ViewItem* viewItem);
+
+    void viewItemConstructed(int ID);
+    void viewItemDestructed(int ID);
 
 private:
     void setupHeaderLayout();
@@ -56,9 +58,10 @@ private:
 
     // these lists store the widgets in the main layout
     QList<DockWidgetItem*> childrenItems;
+    QHash<int, DockWidgetItem*> childrenIDHash;
+
     QList<QToolBar*> itemToolbars;
     QHash<DockWidgetItem*, QToolBar*> itemToolbarHash;
-    QHash<int, DockWidgetItem*> childrenIDHash;
 
 };
 
