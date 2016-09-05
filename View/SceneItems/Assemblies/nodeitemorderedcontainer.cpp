@@ -3,8 +3,6 @@
 ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
     :ContainerElementNodeItem(viewItem, parentItem){
 
-
-
     setMoveEnabled(true);
     setExpandEnabled(true);
     setResizeEnabled(true);

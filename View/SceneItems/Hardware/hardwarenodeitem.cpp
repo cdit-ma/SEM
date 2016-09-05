@@ -13,7 +13,7 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentIt
 
     setExpandedWidth(3 * size);
     setExpandedHeight(size);
-    setExpanded(false);
+    setExpanded(true);
 
 
     setDefaultPen(Qt::NoPen);
