@@ -35,13 +35,6 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
 void DockTabWidget::themeChanged()
 {    
     Theme* theme = Theme::theme();
-    /*
-    setStyleSheet(theme->getToolBarStyleSheet() +
-                  "QWidget{ color:" + theme->getTextColorHex() + ";}"
-                  "QToolButton{ border-radius: 2px; background:" + theme->QColorToHex(theme->getAltBackgroundColor().darker(150)) + ";}"
-                  "QToolButton::checked:!hover{ background:" + theme->getAltBackgroundColorHex() + ";}"
-                  "QStackedWidget{ border: 0px; background:" + theme->getAltBackgroundColorHex() + ";}");
-                  */
     setStyleSheet(theme->getToolBarStyleSheet() +
                   "QWidget{ color:" + theme->getTextColorHex() + ";}"
                   "QToolButton{ border-radius: 2px; background:" + theme->getAltBackgroundColorHex() + ";}"
@@ -233,8 +226,7 @@ void DockTabWidget::setupDocks()
     functionsDock->updateInfoLabel("No worker definitions have been imported");
     hardwareDock->updateInfoLabel("There are no available hardware nodes");
 
-    // TODO - populate the parts and the functions docks (and the hardware dock?)
-    /* PARTS DOCK */
+    // populate the parts dock
     adoptableKindAction = toolActionController->getAdoptableKindsAction(false);
     foreach (QAction* action, toolActionController->getAdoptableKindsActions(true)) {
         DockWidgetActionItem* dockItem = new DockWidgetActionItem(action, this);
@@ -244,11 +236,6 @@ void DockTabWidget::setupDocks()
         }
         partsDock->addItem(dockItem);
     }
-
-    /* FUNCTIONS DOCK */
-
-    /* HARDWARE DOCK */
-
 }
 
 
@@ -297,28 +284,24 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
             // update header text; update entity kind to construct
             dockWidget->updateHeaderText(triggeredAdoptableKind);
             isDefinitionsDock = true;
-
+            // get definitions list from controller
             QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(triggeredAdoptableKind);
             populateDock(dockWidget, actions, true);
             showInfoLabel = dockWidget->isEmpty();
             break;
         }
         case ToolActionController::FUNCTIONS:{
+            // update header text; update entity kind to construct
             dockWidget->updateHeaderText(triggeredAdoptableKind);
-
+            // get functions list from controller
             QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
             populateDock(dockWidget, actions, true);
-
             showInfoLabel = dockWidget->isEmpty();
             break;
         }
         case ToolActionController::HARDWARE:
-        {
-            //QList<NodeViewItemAction*> actions = toolActionController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
-            //populateDock(dockWidget, actions);
             showInfoLabel = dockWidget->isEmpty();
             break;
-        }
         default:
             break;
         }
@@ -409,7 +392,7 @@ void DockTabWidget::refreshDock()
         }
     } else {
         // TODO - update the hardware dock
-        // clear then re-populate?
+        // update highlighted dock item
     }
 }
 
