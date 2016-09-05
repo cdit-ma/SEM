@@ -75,6 +75,11 @@ QList<NodeViewItemAction *> ToolActionController::getWorkerFunctions()
     return list;
 }
 
+NodeViewItemAction *ToolActionController::getNodeAction(int ID)
+{
+    return actions.value(ID, 0);
+}
+
 void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
 {
     if(viewItem && viewItem->isNode()){
@@ -106,6 +111,11 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
 
                 actions[ID] = action;
                 actionGroup->addAction(action);
+
+                if(node->getNodeKind() == Node::NK_HARDWARE_NODE || node->getNodeKind() == Node::NK_HARDWARE_CLUSTER){
+                    hardwareIDs.append(ID);
+                    emit hardwareCreated(ID);
+                }
             }
         }
     }
@@ -114,6 +124,10 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
 void ToolActionController::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
     if(actions.contains(ID)){
+        if(hardwareIDs.contains(ID)){
+            emit hardwareDestructed(ID);
+        }
+
         NodeViewItemAction* action = actions[ID];
         actions.remove(ID);
         actionGroup->removeAction(action);
@@ -180,6 +194,16 @@ void ToolActionController::addWorkerProcess(int processID, QPointF position)
     if(ID != -1){
         emit viewController->vc_constructWorkerProcess(ID, processID, position);
     }
+}
+
+void ToolActionController::actionHoverEnter(int ID)
+{
+    emit viewController->vc_highlightItem(ID, true);
+}
+
+void ToolActionController::actionHoverLeave(int ID)
+{
+    emit viewController->vc_highlightItem(ID, false);
 }
 
 void ToolActionController::setupToolActions()

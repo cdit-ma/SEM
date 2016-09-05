@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QStyleOptionGraphicsItem>
 #include <math.h>
+#include "../theme.h"
 #define RESIZE_RECT_SIZE 5
 
 
@@ -24,6 +25,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     aspect = VA_NONE;
     selectedResizeVertex = RV_NONE;
     hoveredResizeVertex = RV_NONE;
+    readState = NodeItemNew::NORMAL;
 
 
     nodeViewItem = viewItem;
@@ -38,6 +40,10 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     setUpColors();
 
     addRequiredData("isExpanded");
+    addRequiredData("readOnlyDefinition");
+    addRequiredData("snippetID");
+
+
 
 
     if(parentItem){
@@ -123,7 +129,7 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
         }
-        nodeItem->setBodyColor(getBodyColor().darker(110));
+        nodeItem->setBaseBodyColor(getBaseBodyColor().darker(110));
 
         nodeItem->setVisible(isExpanded());
         childPosChanged();
@@ -218,7 +224,7 @@ void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
         edgeItem->setParentItem(this);
         childEdges[ID] = edgeItem;
 
-        edgeItem->setBodyColor(getBodyColor().darker(120));
+        edgeItem->setBaseBodyColor(getBaseBodyColor().darker(120));
 
         connect(edgeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
         edgeItem->setVisible(isExpanded());
@@ -709,6 +715,8 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "isExpanded"){
             bool boolData = data.toBool();
             setExpanded(boolData);
+        }else if(keyName == "readOnlyDefinition" || keyName == "snippetID"){
+            updateReadState();
         }
         if(keyName == primaryTextKey || keyName == secondaryTextKey){
             update();
@@ -716,9 +724,15 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
     }
 }
 
+void NodeItemNew::propertyChanged(QString propertyName, QVariant data)
+{
+}
+
 void NodeItemNew::dataRemoved(QString keyName)
 {
-    //Do Nothing
+    if(keyName == "readOnlyDefinition" || keyName == "snippetID"){
+        updateReadState();
+    }
 }
 
 void NodeItemNew::childPosChanged()
@@ -736,24 +750,35 @@ void NodeItemNew::childPosChanged()
     resizeToChildren();
 }
 
+void NodeItemNew::updateReadState()
+{
+    bool readOnlyDef = getData("readOnlyDefinition").toBool();
+
+    NODE_READ_STATE newState = NORMAL;
+    if(readOnlyDef){
+        newState = READ_ONLY_DEFINITION;
+    }else{
+        bool readOnlyInstance = getData("snippetID").toBool();
+        if(readOnlyInstance){
+            newState = READ_ONLY_INSTANCE;
+        }
+    }
+    if(readState != newState){
+        readState = newState;
+        update();
+    }
+}
+
 void NodeItemNew::setUpColors()
 {
-    qreal blendFactor = 0.2;
+    qreal blendFactor = 0.6;
+    QColor blue = QColor(100,149,237);
+    QColor brown = QColor(222,184,135);
+    QColor originalColor = EntityItemNew::getBodyColor();
 
-    //Brown
-    QColor blendColor = QColor(222,184,135);
-    readOnlyDefinitionColor = EntityItemNew::getBodyColor();
-    readOnlyDefinitionColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * readOnlyDefinitionColor.blue());
-    readOnlyDefinitionColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * readOnlyDefinitionColor.red());
-    readOnlyDefinitionColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * readOnlyDefinitionColor.green());
 
-    //Blue
-    blendColor = QColor(222,184,135);
-    readOnlyInstanceColor = EntityItemNew::getBodyColor();
-    readOnlyInstanceColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * readOnlyInstanceColor.blue());
-    readOnlyInstanceColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * readOnlyInstanceColor.red());
-    readOnlyInstanceColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * readOnlyInstanceColor.green());
-
+    readOnlyDefinitionColor = Theme::blendColors(originalColor, brown, blendFactor);
+    readOnlyInstanceColor = Theme::blendColors(originalColor, blue, blendFactor);
 }
 
 void NodeItemNew::resizeToChildren()
@@ -870,7 +895,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->setClipRect(gridRect());
 
         QPen linePen;
-        linePen.setColor(getBodyColor().darker(150));
+        linePen.setColor(getBaseBodyColor().darker(150));
         linePen.setStyle(Qt::DotLine);
         linePen.setWidthF(.5);
 
@@ -1107,14 +1132,12 @@ void NodeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 QColor NodeItemNew::getBodyColor() const
 {
-    switch(getReadState()){
-    case READ_ONLY_DEFINITION:
+    if(isHighlighted()){
+        //Do nothing
+    }else if(getReadState() == READ_ONLY_DEFINITION){
         return readOnlyDefinitionColor;
-        break;
-    case READ_ONLY_INSTANCE:
+    }else if(getReadState() == READ_ONLY_INSTANCE){
         return readOnlyInstanceColor;
-        break;
-    default:
-        return EntityItemNew::getBodyColor();
     }
+    return EntityItemNew::getBodyColor();
 }

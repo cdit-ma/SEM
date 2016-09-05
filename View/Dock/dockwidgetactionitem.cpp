@@ -20,7 +20,6 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     if (action) {
         dockActionID = action->property("ID").toInt();
     }
-
     setupLayout();
     setSubActionRequired(false);
     setEnabled(true);
@@ -84,6 +83,7 @@ bool DockWidgetActionItem::requiresSubAction()
 }
 
 
+
 /**
  * @brief DockWidgetActionItem::setProperty
  * @param name
@@ -91,12 +91,8 @@ bool DockWidgetActionItem::requiresSubAction()
  */
 void DockWidgetActionItem::setProperty(const char *name, const QVariant &value)
 {
-    QToolButton::setProperty(name, value);
     if (dockAction) {
         dockAction->setProperty(name, value);
-        if (name == "ID") {
-            dockActionID = value.toInt();
-        }
     }
 }
 
@@ -108,7 +104,7 @@ void DockWidgetActionItem::setProperty(const char *name, const QVariant &value)
  */
 QVariant DockWidgetActionItem::getProperty(const char *name)
 {
-    return QToolButton::property(name);
+    return dockAction->property(name);
 }
 
 

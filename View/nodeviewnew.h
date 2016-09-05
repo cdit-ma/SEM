@@ -30,6 +30,7 @@ public:
     void viewportChanged();
     SelectionHandler* getSelectionHandler();
     void fitToScreen();
+
     void centerSelection();
     QList<int> getIDsInView();
 signals:
@@ -49,6 +50,7 @@ private slots:
     void viewItem_LabelChanged(QString label);
     void viewItem_Constructed(ViewItem* viewItem);
     void viewItem_Destructed(int ID, ViewItem* viewItem);
+
 private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
@@ -79,6 +81,7 @@ private slots:
     void minimap_Zoom(int delta);
 
     void centerItem(int ID);
+    void highlightItem(int ID, bool highlighted);
 private:
     void setupConnections(EntityItemNew* item);
 

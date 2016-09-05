@@ -92,6 +92,7 @@ private:
 
 private slots:
     void dataChanged(QString keyName, QVariant data);
+    void propertyChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);
 
 public:

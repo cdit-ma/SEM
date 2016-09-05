@@ -111,6 +111,8 @@ void NodeViewNew::setViewController(ViewController *viewController)
 
         connect(viewController, &ViewController::vc_centerItem, this, &NodeViewNew::centerItem);
         connect(viewController, &ViewController::vc_fitToScreen, this, &NodeViewNew::fitToScreen);
+
+        connect(viewController, &ViewController::vc_highlightItem, this, &NodeViewNew::highlightItem);
     }
 }
 
@@ -486,6 +488,14 @@ void NodeViewNew::centerItem(int ID)
     }
 }
 
+void NodeViewNew::highlightItem(int ID, bool highlighted)
+{
+    EntityItemNew* item = getEntityItem(ID);
+    if(item){
+        item->setHighlighted(highlighted);
+    }
+}
+
 void NodeViewNew::setupConnections(EntityItemNew *item)
 {
     connect(item, &EntityItemNew::req_activeSelected, this, &NodeViewNew::item_ActiveSelected);
@@ -788,7 +798,7 @@ EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item)
 
 void NodeViewNew::zoom(int delta, QPoint anchorScreenPos)
 {
-    if(delta > 0){
+    if(delta != 0){
         QPointF anchorScenePos;
 
         if(!topLevelGUIItemIDs.isEmpty()){

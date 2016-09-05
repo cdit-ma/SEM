@@ -1200,6 +1200,17 @@ bool Theme::tintIcon(QSize size)
     return size.width() % 96 == 0;
 }
 
+QColor Theme::blendColors(const QColor color1, const QColor color2, qreal blendRatio)
+{
+    QColor resultingColor;
+    qreal color1Ratio = blendRatio;
+    qreal color2Ratio = 1 - blendRatio;
+    resultingColor.setBlue(color1Ratio * color1.blue() + color2Ratio * color2.blue());
+    resultingColor.setRed(color1Ratio * color1.red() + color2Ratio * color2.red());
+    resultingColor.setGreen(color1Ratio * color1.green() + color2Ratio * color2.green());
+    return resultingColor;
+}
+
 QString Theme::QColorToHex(const QColor color)
 {
     return color.name(QColor::HexArgb);

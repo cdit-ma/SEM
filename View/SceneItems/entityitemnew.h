@@ -39,8 +39,9 @@ public:
     virtual QPointF getSceneEdgeTermination(bool left) const = 0;
 
 
+    QColor getBaseBodyColor() const;
     virtual QColor getBodyColor() const;
-    void setBodyColor(QColor color);
+    void setBaseBodyColor(QColor color);
 
     virtual void setPos(const QPointF &pos);
     int getID();
@@ -96,6 +97,8 @@ public:
     //Model State Get/Setters
     void setData(QString keyName, QVariant value);
     QVariant getData(QString keyName) const;
+
+    QVariant getProperty(QString propertyName) const;
     bool hasData(QString keyName) const;
     bool isDataEditable(QString keyName);
 
@@ -178,6 +181,7 @@ signals:
     void scenePosChanged();
 private slots:
     virtual void dataChanged(QString keyName, QVariant data) = 0;
+    virtual void propertyChanged(QString propertyName, QVariant data) = 0;
     virtual void dataRemoved(QString keyName) = 0;
     void destruct();
 
@@ -213,7 +217,7 @@ private:
     bool expandEnabled;
 
     bool _isHovered;
-    bool _isHightlighted;
+    bool _isHighlighted;
     bool _isSelected;
     bool _isActiveSelected;
     bool _isExpanded;

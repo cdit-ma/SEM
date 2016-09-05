@@ -125,8 +125,8 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
     }
     case ToolActionController::DEFINITIONS:
     {
-        QVariant ID = action->property("ID");
-        QVariant parentKind = action->property("parent-kind");
+        QVariant ID = action->getProperty("ID");
+        QVariant parentKind = action->getProperty("parent-kind");
         toolActionController->addConnectedChildNode(ID.toInt(), parentKind.toString(), QPointF());
         // re-open the parts dock
         openRequiredDock(partsDock);
@@ -134,7 +134,7 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
     }
     case ToolActionController::FUNCTIONS:{
         // construct WorkerProcess
-        QVariant ID = action->property("ID");
+        QVariant ID = action->getProperty("ID");
         toolActionController->addWorkerProcess(ID.toInt(), QPointF());
 
         // re-open the parts dock
@@ -143,7 +143,7 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
     }
     case ToolActionController::HARDWARE:
     {
-        int ID = action->property("ID").toInt();
+        int ID = action->getProperty("ID").toInt();
         toolActionController->addEdge(ID, Edge::EC_DEPLOYMENT);
         break;
     }
@@ -370,6 +370,7 @@ void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemActio
         // add the parent item and then its children to the dock
         foreach (NodeViewItemAction* parentViewItemAction, dockItemsHash.keys()) {
             QAction* parentAction = parentViewItemAction->constructSubAction(false);
+            parentAction->setProperty("ID", parentViewItemAction->getID());
             DockWidgetParentActionItem* parentItem = new DockWidgetParentActionItem(parentAction, this);
             dockWidget->addItem(parentItem);
             foreach (DockWidgetActionItem* item, dockItemsHash.value(parentViewItemAction)) {
@@ -440,11 +441,11 @@ DockWidgetActionItem *DockTabWidget::constructDockActionItem(NodeViewItemAction*
 {
     // construct a sub-action for the nodeviewitemaction and use that action for the dock item
     QAction* subAction = action->constructSubAction(false);
-    DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
-    dockItem->setProperty("ID", action->getID());
+    subAction->setProperty("ID", action->getID());
     if (!triggeredAdoptableKind.isEmpty()) {
-        dockItem->setProperty("parent-kind", triggeredAdoptableKind);
+        subAction->setProperty("parent-kind", triggeredAdoptableKind);
     }
+    DockWidgetActionItem* dockItem = new DockWidgetActionItem(subAction, this);
     return dockItem;
 }
 

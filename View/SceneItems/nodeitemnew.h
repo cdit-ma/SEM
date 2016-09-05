@@ -152,9 +152,11 @@ signals:
     void gotChildProxyEdges(bool);
 public slots:
     virtual void dataChanged(QString keyName, QVariant data);
+    virtual void propertyChanged(QString propertyName, QVariant data);
     virtual void dataRemoved(QString keyName);
     virtual void childPosChanged();
 private:
+    void updateReadState();
     void setUpColors();
 
     void resizeToChildren();

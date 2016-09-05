@@ -175,6 +175,7 @@ private:
     QFuture<void> preloadThread;
 
 public:
+    static QColor blendColors(const QColor color1, const QColor color2, qreal blendRatio=0.5);
     static QString QColorToHex(const QColor color);
     static Theme* theme();
     static void teardownTheme();

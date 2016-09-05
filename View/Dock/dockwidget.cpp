@@ -80,13 +80,9 @@ void DockWidget::addItem(DockWidgetItem* item)
         actionItem->setProperty("kind", actionItem->getAction()->text());
         childrenIDHash[actionItem->getProperty("ID")] = actionItem;
         connect(actionItem, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
-        connect(actionItem, SIGNAL(hoverEnter(int)), toolActionController, SIGNAL(actionHoverEnter(int)));
-        connect(actionItem, SIGNAL(hoverLeave(int)), toolActionController, SIGNAL(actionHoverLeave(int)));
         mainLayout->addWidget(actionItem);        
     } else if (isParentActionItem) {
         DockWidgetParentActionItem* parentItem = (DockWidgetParentActionItem*)item;
-        connect(parentItem, SIGNAL(hoverEnter(int)), toolActionController, SIGNAL(actionHoverEnter(int)));
-        connect(parentItem, SIGNAL(hoverLeave(int)), toolActionController, SIGNAL(actionHoverLeave(int)));
         QToolBar* toolbar = new QToolBar(this);
         toolbar->addWidget(item);
         childrenIDHash[parentItem->getProperty("ID")] = parentItem;
@@ -94,6 +90,11 @@ void DockWidget::addItem(DockWidgetItem* item)
         mainLayout->addWidget(toolbar);
     } else {
         mainLayout->addWidget(item);
+    }
+
+    if(itemKind != DockWidgetItem::DEFAULT_ITEM){
+        connect(item, &DockWidgetItem::hoverEnter,toolActionController, &ToolActionController::actionHoverEnter);
+        connect(item, &DockWidgetItem::hoverLeave,toolActionController, &ToolActionController::actionHoverLeave);
     }
 }
 

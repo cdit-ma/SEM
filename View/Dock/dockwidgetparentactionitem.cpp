@@ -18,6 +18,7 @@ DockWidgetParentActionItem::DockWidgetParentActionItem(QAction *action, QWidget 
     if (action) {
         dockActionID = action->property("ID").toInt();
     }
+    qCritical() << "SETTING: ID: " << dockActionID;
 
     setEnabled(true);
     setCheckable(true);

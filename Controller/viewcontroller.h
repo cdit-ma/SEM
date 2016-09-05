@@ -118,6 +118,8 @@ signals:
     void vc_answerQuestion(bool);
     void vc_exportSnippet(QList<int> IDs);
     void vc_importSnippet(QList<int> IDs, QString fileName, QString fileData);
+
+    void vc_highlightItem(int ID, bool highlight);
 public slots:
     void projectOpened(bool success);
 
