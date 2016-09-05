@@ -23,7 +23,7 @@ bool AggregateInstance::canAdoptChild(Node *child)
     return DataNode::canAdoptChild(child);
 }
 
-bool AggregateInstance::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool AggregateInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

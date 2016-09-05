@@ -527,16 +527,18 @@ QRectF NodeViewNew::getSceneBoundingRectOfItems(QList<EntityItemNew *> items)
 
 void NodeViewNew::centerRect(QRectF rectScene)
 {
-    //Inflate by 110%
-    QRectF visibleRect = viewportRect();
-    qreal widthRatio = visibleRect.width() / (rectScene.width() * 1.1);
-    qreal heightRatio = visibleRect.height() / (rectScene.height() * 1.1);
+    if(rectScene.isValid()){
+        //Inflate by 110%
+        QRectF visibleRect = viewportRect();
+        qreal widthRatio = visibleRect.width() / (rectScene.width() * 1.1);
+        qreal heightRatio = visibleRect.height() / (rectScene.height() * 1.1);
 
-    qreal scaleRatio = qMin(widthRatio, heightRatio);
+        qreal scaleRatio = qMin(widthRatio, heightRatio);
 
-    //Change the scale.
-    scale(scaleRatio, scaleRatio);
-    centerView(rectScene.center());
+        //Change the scale.
+        scale(scaleRatio, scaleRatio);
+        centerView(rectScene.center());
+    }
 }
 
 void NodeViewNew::centerView(QPointF scenePos)

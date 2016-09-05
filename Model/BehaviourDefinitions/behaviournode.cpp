@@ -125,7 +125,7 @@ bool BehaviourNode::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool BehaviourNode::canAcceptEdge(Edge::EDGE_CLASS edgeClass, Node *dst)
+bool BehaviourNode::canAcceptEdge(Edge::EDGE_KIND edgeClass, Node *dst)
 {
     if(!acceptsEdgeKind(edgeClass)){
         return false;

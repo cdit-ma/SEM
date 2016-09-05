@@ -8,8 +8,9 @@ class PopupWidget : public QDialog
 {
     Q_OBJECT
 public:
+    enum POPUPWIDGET_TYPE{DIALOG, POPUP, TOOL};
     enum SIZE_TYPE{FIXED, MIN, MAX};
-    explicit PopupWidget(bool modal, QWidget* parent = 0);
+    explicit PopupWidget(POPUPWIDGET_TYPE type, QWidget* parent = 0);
 
     void setWidget(QWidget* widget);
     void setWidth(int width, SIZE_TYPE type = FIXED);

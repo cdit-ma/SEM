@@ -4,9 +4,9 @@
 #include "node.h"
 #include <QDebug>
 #include <QStringBuilder>
-QList<Edge::EDGE_CLASS> Edge::getEdgeClasses()
+QList<Edge::EDGE_KIND> Edge::getEdgeKinds()
 {
-    QList<Edge::EDGE_CLASS> edges;
+    QList<Edge::EDGE_KIND> edges;
     edges << EC_DEFINITION;
     edges << EC_AGGREGATE;
     edges << EC_WORKFLOW;
@@ -17,7 +17,7 @@ QList<Edge::EDGE_CLASS> Edge::getEdgeClasses()
     return edges;
 }
 
-QString Edge::getKind(Edge::EDGE_CLASS edgeClass)
+QString Edge::getKind(Edge::EDGE_KIND edgeClass)
 {
     QString suffix = "Edge";
     QString prefix;
@@ -57,7 +57,7 @@ QString Edge::getKind(Edge::EDGE_CLASS edgeClass)
     return suffix % "_" % prefix;
 }
 
-Edge::EDGE_CLASS Edge::getEdgeClass(QString kind)
+Edge::EDGE_KIND Edge::getEdgeKind(QString kind)
 {
     if(kind == "Edge_Definition"){
         return Edge::EC_DEFINITION;
@@ -78,7 +78,7 @@ Edge::EDGE_CLASS Edge::getEdgeClass(QString kind)
 }
 
 
-Edge::Edge(Node *s, Node *d, EDGE_CLASS edgeClass):Entity(EK_EDGE)
+Edge::Edge(Node *s, Node *d, EDGE_KIND edgeClass):Entity(EK_EDGE)
 {
     //Set the instance Variables
     source = s;
@@ -238,7 +238,7 @@ bool Edge::isDefinitionEdge()
     return edgeClass == EC_DEFINITION;
 }
 
-Edge::EDGE_CLASS Edge::getEdgeClass()
+Edge::EDGE_KIND Edge::getEdgeKind()
 {
     return edgeClass;
 }

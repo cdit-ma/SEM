@@ -10,7 +10,7 @@ bool ManagementComponent::canAdoptChild(Node*)
     return false;
 }
 
-bool ManagementComponent::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool ManagementComponent::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return Node::canAcceptEdge(edgeKind, dst);
 }

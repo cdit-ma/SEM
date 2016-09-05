@@ -9,7 +9,7 @@ public:
     AttributeImpl();
 
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // ATTRIBUTEIMPL_H

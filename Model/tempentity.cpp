@@ -129,14 +129,14 @@ void TempEntity::setActualID(int ID)
     actualID = ID;
 }
 
-void TempEntity::appendEdgeKind(Edge::EDGE_CLASS edgeKind)
+void TempEntity::appendEdgeKind(Edge::EDGE_KIND edgeKind)
 {
     if(!edgeKinds.contains(edgeKind)){
         edgeKinds.append(edgeKind);
     }
 }
 
-void TempEntity::removeEdgeKind(Edge::EDGE_CLASS edgeKind)
+void TempEntity::removeEdgeKind(Edge::EDGE_KIND edgeKind)
 {
     edgeKinds.removeAll(edgeKind);
 }
@@ -144,12 +144,12 @@ void TempEntity::removeEdgeKind(Edge::EDGE_CLASS edgeKind)
 void TempEntity::printEdgeKinds()
 {
     qCritical() << "VALID EDGE TYPES FOR: " << this;
-    foreach(Edge::EDGE_CLASS ec, edgeKinds){
+    foreach(Edge::EDGE_KIND ec, edgeKinds){
         qCritical() << "Edge: " << Edge::getKind(ec);
     }
 }
 
-Edge::EDGE_CLASS TempEntity::getEdgeKind()
+Edge::EDGE_KIND TempEntity::getEdgeKind()
 {
     return edgeKinds.first();
 }

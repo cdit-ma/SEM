@@ -18,9 +18,10 @@ signals:
     void requestGraphMLFromXMI(QString XMIPath, QStringList selectedClassIDs);
 
     void importGraphml(QString);
-    void gotXMIGraphML(bool, QString, QString);
-private slots:
+    void gotXMIGraphML(QString);
+public slots:
     void importXMI(QString XMIPath);
+private slots:
     void gotXMIXML(bool success, QString errorString, QString outputxml);
 
     void importSelectedXMI(QStringList selectedClasses);

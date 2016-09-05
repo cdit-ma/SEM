@@ -8,7 +8,7 @@ class InEventPort : public EventPort
 public:
     InEventPort();
     bool canAdoptChild(Node *node);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // INEVENTPORT_H

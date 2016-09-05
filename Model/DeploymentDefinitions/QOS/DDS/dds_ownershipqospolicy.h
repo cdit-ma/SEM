@@ -8,7 +8,7 @@ class DDS_OwnershipQosPolicy: public Node
 public:
     DDS_OwnershipQosPolicy();
     bool canAdoptChild(Node* node);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_OWNERSHIPQOSPOLICY_H
 

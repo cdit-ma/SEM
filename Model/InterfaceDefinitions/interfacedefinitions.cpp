@@ -21,7 +21,7 @@ bool InterfaceDefinitions::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool InterfaceDefinitions::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool InterfaceDefinitions::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return false;
 }

@@ -24,7 +24,7 @@ bool ComponentImpl::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool ComponentImpl::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool ComponentImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

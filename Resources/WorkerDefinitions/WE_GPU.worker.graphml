@@ -32,7 +32,7 @@
 			<data key="9999">true</data>
 			<graph id ="g483">
 				<node id ="519">
-					<data key="2">Process</data>
+					<data key="2">WorkerProcess</data>
 					<data key="4">54</data>
 					<data key="5">140</data>
 					<data key="7">326</data>
@@ -117,7 +117,7 @@
 					</graph>
 				</node>
 				<node id ="725">
-					<data key="2">Process</data>
+					<data key="2">WorkerProcess</data>
 					<data key="4">404</data>
 					<data key="5">140</data>
 					<data key="7">326</data>
@@ -200,7 +200,7 @@
 					</graph>
 				</node>
                                 <node id ="1016">
-					<data key="2">Process</data>
+					<data key="2">WorkerProcess</data>
 					<data key="4">854</data>
 					<data key="5">140</data>
 					<data key="7">76.782</data>
@@ -258,7 +258,7 @@
 					</graph>
 				</node>
 				<node id ="1768">
-					<data key="2">Process</data>
+					<data key="2">WorkerProcess</data>
 					<data key="4">954</data>
 					<data key="5">140</data>
 					<data key="7">76</data>
@@ -303,7 +303,7 @@
 					</graph>
 				</node>
 				<node id ="2867">
-					<data key="2">Process</data>
+					<data key="2">WorkerProcess</data>
 					<data key="4">1054</data>
 					<data key="5">140</data>
 					<data key="7">276.434</data>

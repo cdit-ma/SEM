@@ -63,7 +63,7 @@ bool EventPort::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool EventPort::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool EventPort::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

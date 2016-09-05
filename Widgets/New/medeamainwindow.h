@@ -5,6 +5,8 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QProgressBar>
+#include <QCompleter>
+#include <QStringListModel>
 
 #include "../../Plugins/CUTS/cutsmanager.h"
 #include "medeawindownew.h"
@@ -14,10 +16,9 @@
 #include "../../GUI/appsettings.h"
 #include "qosbrowser.h"
 #include "tablewidget.h"
-#include <QCompleter>
-#include <QStringListModel>
 
 #include "../../Plugins/Jenkins/jenkinsmanager.h"
+#include "../../plugins/XMI/xmiimporter.h"
 
 #include "../../GUI/popupwidget.h"
 #include "../../View/Dock/docktabwidget.h"
@@ -43,6 +44,8 @@ public slots:
 
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);
+
+    void showNotification(QString description);
 
     void resetToolDockWidgets();
 
@@ -71,6 +74,7 @@ private:
     void setupToolBar();
     void setupSearchBar();
     void setupProgressBar();
+    void setupNotificationBar();
     void setupDock();
     void setupDataTable();
     void setupMinimap();
@@ -78,11 +82,15 @@ private:
 
     void setupJenkinsManager();
     void setupCUTSManager();
+    void setupXMIImporter();
+
+    void moveWidget(QWidget* widget, Qt::Alignment alignment = Qt::AlignCenter);
 
     MedeaWindowNew* innerWindow;
 
     JenkinsManager* jenkinsManager;
     CUTSManager* cutsManager;
+    XMIImporter* xmiImporter;
 
     QMenuBar* menuBar;
     QToolBar* applicationToolbar;
@@ -100,6 +108,10 @@ private:
     PopupWidget* progressPopup;
     QProgressBar* progressBar;
     QLabel* progressLabel;
+
+    PopupWidget* notificationPopup;
+    QLabel* notificationLabel;
+    QTimer* notificationTimer;
 
     ViewController* viewController;
     NodeViewNew* nodeView_Interfaces;
@@ -123,6 +135,10 @@ private:
 
 protected:
     void resizeEvent(QResizeEvent *);
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // MEDEAMAINWINDOW_H

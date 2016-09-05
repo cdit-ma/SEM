@@ -420,17 +420,16 @@ void MedeaWindowManager::_reparentDockWidget(MedeaDockWidget *dockWidget, MedeaW
 
 void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
 {
-   if(dockWidget != activeViewDockWidget){
+    if(dockWidget != activeViewDockWidget){
         setActiveDockWidget(dockWidget);
     }
-
 
     QDialog* dialog = new QDialog();
     dialog->setWindowTitle("Select Destination Window");
     //dialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     //dialog->setAttribute(Qt::WA_NoSystemBackground, true);
-    dialog->setAttribute(Qt::WA_TranslucentBackground, true);
-    dialog->setStyleSheet("QDialog{ background: rgba(150,150,150,255); }");
+    //dialog->setAttribute(Qt::WA_TranslucentBackground, true);
+    dialog->setStyleSheet("QDialog{ background:" + Theme::theme()->getBackgroundColorHex() + ";}");
     //dialog->setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
 
     dialog->setModal(true);
@@ -438,33 +437,27 @@ void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
     QHBoxLayout* layout = new QHBoxLayout(dialog);
     dialog->setLayout(layout);
 
+    /*
+     * TODO - Figure out why this doesn't work!
+     *
+    PopupWidget* dialog = new PopupWidget(false, mainWindow);
+    QWidget* widget = new QWidget(mainWindow);
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+    dialog->setWidget(widget);
+    */
 
     MedeaWindowNew* currentWindow = dockWidget->getCurrentWindow();
     foreach(MedeaWindowNew* w, windows.values()){
         if(w != currentWindow && w != mainWindow){
             QToolButton* button = constructPopOutWindowButton(dialog, w);
             layout->addWidget(button);
-
         }
     }
     QToolButton* button = constructPopOutWindowButton(dialog, 0);
     layout->addWidget(button);
 
-    /*
-    QToolButton* cancelButton = new QToolButton(dialog);
-    cancelButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    cancelButton->setIcon(Theme::theme()->getImage("Actions", "Failure", QSize(), QColor(178, 50, 50)));
-    cancelButton->setText("Cancel");
-    cancelButton->setProperty(WINDOW_ID_DATA, -1);
-    cancelButton->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 20px;");
-    cancelButton->setFixedSize(170,170);
-    cancelButton->setIconSize(QSize(175, 80));
-    cancelButton->setFont(QFont("Verdana", 10));
-    connect(cancelButton, SIGNAL(clicked(bool)), dialog, SLOT(reject()));
-    layout->addWidget(cancelButton);
-    */
-
     dialog->exec();
+
     delete dialog;
 }
 

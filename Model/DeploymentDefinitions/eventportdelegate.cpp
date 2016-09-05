@@ -52,7 +52,7 @@ bool EventPortAssembly::canAdoptChild(Node* child)
     return EventPort::canAdoptChild(child);
 }
 
-bool EventPortAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool EventPortAssembly::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         qCritical() << "CANNOT ACCEPT EDGE TYPE: " << edgeKind;

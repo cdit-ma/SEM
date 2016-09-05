@@ -54,7 +54,7 @@ Node::~Node()
  * @brief Node::addValidEdgeType Add's an Edge class as a type of edge this node should check in canConnect()
  * @param validEdge
  */
-bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
@@ -81,7 +81,6 @@ bool Node::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
         if(parentNode && parentNode->isInstanceImpl()){
             Node* pDef = parentNode->getDefinition();
             if(pDef && !pDef->isAncestorOf(dst)){
-                qCritical() << "WIERD RELATION";
                 //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
                 return false;
             }
@@ -140,12 +139,12 @@ bool Node::isNodeOfType(Node::NODE_TYPE type) const
     return type & types;
 }
 
-bool Node::acceptsEdgeKind(Edge::EDGE_CLASS edgeKind) const
+bool Node::acceptsEdgeKind(Edge::EDGE_KIND edgeKind) const
 {
     return validEdgeKinds.contains(edgeKind);
 }
 
-bool Node::requiresEdgeKind(Edge::EDGE_CLASS edgeKind) const
+bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
 {
     if(validEdgeKinds.contains(edgeKind)){
         switch(edgeKind){
@@ -180,7 +179,7 @@ bool Node::requiresEdgeKind(Edge::EDGE_CLASS edgeKind) const
     return false;
 }
 
-QList<Edge::EDGE_CLASS> Node::getAcceptedEdgeKinds() const
+QList<Edge::EDGE_KIND> Node::getAcceptedEdgeKinds() const
 {
     return validEdgeKinds;
 }
@@ -203,14 +202,14 @@ void Node::removeNodeType(Node::NODE_TYPE type)
     }
 }
 
-void Node::setAcceptsEdgeKind(Edge::EDGE_CLASS edgeKind)
+void Node::setAcceptsEdgeKind(Edge::EDGE_KIND edgeKind)
 {
     if(!validEdgeKinds.contains(edgeKind)){
         validEdgeKinds.append(edgeKind);
     }
 }
 
-void Node::removeEdgeKind(Edge::EDGE_CLASS edgeKind)
+void Node::removeEdgeKind(Edge::EDGE_KIND edgeKind)
 {
     validEdgeKinds.removeAll(edgeKind);
 }
@@ -408,7 +407,7 @@ QList<int> Node::getChildrenIDs(int depth)
 
 
 
-QList<Edge *> Node::getEdges(int depth, Edge::EDGE_CLASS edgeKind)
+QList<Edge *> Node::getEdges(int depth, Edge::EDGE_KIND edgeKind)
 {
 
     QList<Edge *> edgeList;
@@ -474,11 +473,11 @@ QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
     return returnableList;
 }
 
-QList<int> Node::getEdgeIDs(Edge::EDGE_CLASS edgeClass)
+QList<int> Node::getEdgeIDs(Edge::EDGE_KIND edgeClass)
 {
     QList<int> returnable;
     foreach(Edge* edge, getEdges(0)){
-        if(edgeClass == Edge::EC_NONE || edge->getEdgeClass() == edgeClass){
+        if(edgeClass == Edge::EC_NONE || edge->getEdgeKind() == edgeClass){
             returnable += edge->getID();
         }
     }
@@ -581,7 +580,7 @@ bool Node::isDescendantOf(Node *node)
 
 
 
-Edge* Node::getEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
+Edge* Node::getEdgeTo(Node *node, Edge::EDGE_KIND edgeKind)
 {
     foreach(Edge* edge, getEdges(0, edgeKind)){
         if(edge->contains(node)){
@@ -592,7 +591,7 @@ Edge* Node::getEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
 }
 
 
-bool Node::gotEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
+bool Node::gotEdgeTo(Node *node, Edge::EDGE_KIND edgeKind)
 {
     return getEdgeTo(node, edgeKind) != 0;
 }
@@ -600,7 +599,7 @@ bool Node::gotEdgeTo(Node *node, Edge::EDGE_CLASS edgeKind)
 bool Node::containsEdge(Edge *edge)
 {
     if(edge){
-        return edges.contains(edge->getEdgeClass(), edge);
+        return edges.contains(edge->getEdgeKind(), edge);
     }
     return false;
 }
@@ -767,14 +766,14 @@ void Node::removeImplementation(Node *impl)
 void Node::addEdge(Edge *edge)
 {
     if(!containsEdge(edge)){
-        edges.insertMulti(edge->getEdgeClass(), edge);
+        edges.insertMulti(edge->getEdgeKind(), edge);
     }
 }
 
 void Node::removeEdge(Edge *edge)
 {
     if(edge){
-        edges.remove(edge->getEdgeClass(), edge);
+        edges.remove(edge->getEdgeKind(), edge);
     }
 }
 
@@ -845,7 +844,7 @@ QList<Node *> Node::getOrderedChildNodes()
     return orderedList.values();
 }
 
-QList<Edge *> Node::getOrderedEdges(Edge::EDGE_CLASS edgeKind)
+QList<Edge *> Node::getOrderedEdges(Edge::EDGE_KIND edgeKind)
 {
     if(edgeKind == Edge::EK_NONE){
         return edges.values();

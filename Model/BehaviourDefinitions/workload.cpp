@@ -9,6 +9,7 @@ bool Workload::canAdoptChild(Node *child)
 {
     switch(child->getNodeKind()){
     case NK_PROCESS:
+    case NK_WORKER_PROCESS:
         break;
     default:
         return false;
@@ -16,7 +17,7 @@ bool Workload::canAdoptChild(Node *child)
     return BehaviourNode::canAdoptChild(child);
 }
 
-bool Workload::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool Workload::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

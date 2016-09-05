@@ -39,7 +39,7 @@
             <data key="d25">A CUTS worker that provides Random Access Memory (RAM) workload functionality.</data>
             <graph id="n0:" edgedefault="directed">
                 <node id="n0::n0">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">15</data>
                     <data key="d6">60</data>
                     <data key="d7">176.673</data>
@@ -71,7 +71,7 @@
                     </graph>
                 </node>
                 <node id="n0::n1">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">212.212</data>
                     <data key="d6">60</data>
                     <data key="d7">176.673</data>
@@ -103,7 +103,7 @@
                     </graph>
                 </node>
                 <node id="n0::n2">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">396.053</data>
                     <data key="d6">60</data>
                     <data key="d7">339.365</data>

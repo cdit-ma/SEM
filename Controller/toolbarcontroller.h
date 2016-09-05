@@ -20,13 +20,14 @@ public:
     ToolActionController(ViewController* viewController);
 
     QList<NodeViewItemAction*> getDefinitionNodeActions(QString kind);
+    QList<NodeViewItemAction*> getWorkerFunctions();
 
     QList<QAction*> getNodeActionsOfKind(QString kind, bool stealth);
     QAction* getNodeActionOfKind(QString kind, bool stealth);
 
-    QList<NodeViewItemAction*> getEdgeActionsOfKind(Edge::EDGE_CLASS kind);
+    QList<NodeViewItemAction*> getEdgeActionsOfKind(Edge::EDGE_KIND kind);
 
-    RootAction* getEdgeActionOfKind(Edge::EDGE_CLASS kind);
+    RootAction* getEdgeActionOfKind(Edge::EDGE_KIND kind);
 
     QList<QAction*> getAdoptableKindsActions(bool stealth);
     QAction* getAdoptableKindsAction(bool stealth);
@@ -48,8 +49,9 @@ public:
     QString getInfoActionKeyForAdoptableKind(QString kind);
 
     void addChildNode(QString kind, QPointF position);
-    void addEdge(int dstID, Edge::EDGE_CLASS edgeKind=Edge::EC_UNDEFINED);
+    void addEdge(int dstID, Edge::EDGE_KIND edgeKind=Edge::EC_UNDEFINED);
     void addConnectedChildNode(int dstID, QString kind, QPointF position);
+    void addWorkerProcess(int processID, QPointF position);
 
 private slots:
     void themeChanged();
@@ -69,7 +71,7 @@ private:
 
     QHash<QString, RootAction*> toolActions;
     QHash<QString, RootAction*> nodeKindActions;
-    QHash<Edge::EDGE_CLASS, RootAction*> edgeKindActions;
+    QHash<Edge::EDGE_KIND, RootAction*> edgeKindActions;
 
     QHash<int, NodeViewItemAction*> actions;
     
