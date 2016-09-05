@@ -8,7 +8,7 @@ class DDS_PresentationQosPolicy: public Node
 public:
     DDS_PresentationQosPolicy();
     bool canAdoptChild(Node* node);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_PRESENTATIONQOSPOLICY_H
 

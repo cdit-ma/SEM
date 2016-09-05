@@ -163,12 +163,12 @@ private:
     int MAX_EXECUTING_PROCESSES;
 
 
-    QThread* managerThread;
 
     //A Hash to keep track of the QProcess' and their output files.
     QHash<QProcess*, QString> processHash;
 
     QProcessEnvironment CUTS_ENVIRONMENT;
+    QThread* managerThread;
 };
 
 #endif //CUTSMANAGER_H

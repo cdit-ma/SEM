@@ -29,7 +29,7 @@ bool Branch::canAdoptChild(Node *child)
     return BehaviourNode::canAdoptChild(child);
 }
 
-bool Branch::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool Branch::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

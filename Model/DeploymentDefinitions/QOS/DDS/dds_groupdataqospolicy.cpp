@@ -10,7 +10,7 @@ bool DDS_GroupDataQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_GroupDataQosPolicy::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool DDS_GroupDataQosPolicy::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return false;
 }

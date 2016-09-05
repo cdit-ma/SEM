@@ -8,7 +8,7 @@ class Component : public Node
 public:
     Component();
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // COMPONENT_H

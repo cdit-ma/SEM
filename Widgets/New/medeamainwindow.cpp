@@ -117,6 +117,28 @@ void MedeaMainWindow::updateSearchSuggestions(QStringList list)
 
 
 /**
+ * @brief MedeaMainWindow::showNotification
+ * @param title
+ * @param message
+ */
+void MedeaMainWindow::showNotification(QString title, QString message)
+{
+    /*
+    notificationLabel->setText(message);
+
+    QFontMetrics fm = notificationLabel->fontMetrics();
+    int maxWidth = qMin(innerWindow->width() - 10, fm.width(message) + 20);
+
+    notificationPopup->setSize(maxWidth, notificationLabel->sizeHint().height());
+    notificationPopup->show();
+    moveWidget(notificationPopup, Qt::AlignBottom);
+    */
+
+    QMessageBox::critical(this, title, message, QMessageBox::Ok, 0);
+}
+
+
+/**
  * @brief MedeaMainWindow::showProgressBar
  * @param show
  * @param description
@@ -153,23 +175,6 @@ void MedeaMainWindow::updateProgressBar(int value)
             progressBar->setValue(value);
         }
     }
-}
-
-
-/**
- * @brief MedeaMainWindow::showNotification
- * @param description
- */
-void MedeaMainWindow::showNotification(QString description)
-{
-    notificationLabel->setText(description);
-
-    QFontMetrics fm = notificationLabel->fontMetrics();
-    int maxWidth = qMin(innerWindow->width() - 10, fm.width(description) + 20);
-
-    notificationPopup->setSize(maxWidth, fm.height() + 20);
-    notificationPopup->show();
-    moveWidget(notificationPopup, Qt::AlignBottom);
 }
 
 
@@ -302,7 +307,7 @@ void MedeaMainWindow::popupSearch()
     searchPopup->show();
     searchBar->setFocus();
 
-    //showNotification("This is a testcdsce wcefcercrcrerr evrbtybdvftrhtynrb hraogherkrb vguserkvberbver akubvvbao irestcds cewcefcerc rcrerrevrbtye stcdscewcefcercrcrerrevrbty!!!");
+    //showNotification("", "This is a testcdsce wcefcercrcrerr evrbtybdvftrhtynrb"); // wcefcercrcrerr evrbtybdvftrhtynrb wcefcercrcrerr evrbtybdvftrhtynrb!!!");
 }
 
 

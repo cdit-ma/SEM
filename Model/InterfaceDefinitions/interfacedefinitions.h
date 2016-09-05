@@ -10,7 +10,7 @@ public:
     VIEW_ASPECT getViewAspect() const;
 
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // INTERFACEDEFINITIONS_H

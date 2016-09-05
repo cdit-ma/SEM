@@ -9,6 +9,6 @@ public:
     WhileLoop();
 
     bool canAdoptChild(Node *node);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 #endif // WHILELOOP_H

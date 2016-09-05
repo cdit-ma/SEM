@@ -13,7 +13,7 @@ bool ReturnParameter::canAdoptChild(Node *node)
     return false;
 }
 
-bool ReturnParameter::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool ReturnParameter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return Parameter::canAcceptEdge(edgeKind, dst);
 }

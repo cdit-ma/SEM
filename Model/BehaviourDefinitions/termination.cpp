@@ -26,7 +26,7 @@ bool Termination::canAdoptChild(Node*)
     return false;
 }
 
-bool Termination::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool Termination::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

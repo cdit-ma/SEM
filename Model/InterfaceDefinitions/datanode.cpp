@@ -113,7 +113,7 @@ bool DataNode::comparableTypes(DataNode *node)
 
 }
 
-bool DataNode::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool DataNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

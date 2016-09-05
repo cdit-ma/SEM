@@ -8,7 +8,7 @@ class PeriodicEvent: public BehaviourNode
 public:
     PeriodicEvent();
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // PERIODICEVENT_H

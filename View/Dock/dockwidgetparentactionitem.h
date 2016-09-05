@@ -24,8 +24,14 @@ public slots:
     void themeChanged();
     void setChildrenVisible(bool visible);
 
+protected:
+    void enterEvent(QEvent* event);
+    void leaveEvent(QEvent* event);
+
 private:
     QAction* dockAction;
+    int dockActionID;
+
     QActionGroup* childrenActionGroup;
 
 };

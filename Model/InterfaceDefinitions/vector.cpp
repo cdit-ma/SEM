@@ -20,7 +20,7 @@ bool Vector::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool Vector::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool Vector::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

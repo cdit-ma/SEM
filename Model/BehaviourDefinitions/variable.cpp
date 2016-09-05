@@ -22,7 +22,7 @@ bool Variable::canAdoptChild(Node* child)
     return DataNode::canAdoptChild(child);
 }
 
-bool Variable::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool Variable::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

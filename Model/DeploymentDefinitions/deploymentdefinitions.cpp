@@ -24,7 +24,7 @@ bool DeploymentDefinitions::canAdoptChild(Node *node)
     return Node::canAdoptChild(node);
 }
 
-bool DeploymentDefinitions::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool DeploymentDefinitions::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return false;
 }

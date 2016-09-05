@@ -9,7 +9,6 @@
 
 #define TAB_PADDING 20
 #define DOCK_SPACING 3
-#define DOCK_SEPARATOR_WIDTH 5
 #define MIN_WIDTH 130
 #define MAX_WIDTH 250
 
@@ -36,11 +35,19 @@ DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(pare
 void DockTabWidget::themeChanged()
 {    
     Theme* theme = Theme::theme();
+    /*
     setStyleSheet(theme->getToolBarStyleSheet() +
                   "QWidget{ color:" + theme->getTextColorHex() + ";}"
                   "QToolButton{ border-radius: 2px; background:" + theme->QColorToHex(theme->getAltBackgroundColor().darker(150)) + ";}"
                   "QToolButton::checked:!hover{ background:" + theme->getAltBackgroundColorHex() + ";}"
                   "QStackedWidget{ border: 0px; background:" + theme->getAltBackgroundColorHex() + ";}");
+                  */
+    setStyleSheet(theme->getToolBarStyleSheet() +
+                  "QWidget{ color:" + theme->getTextColorHex() + ";}"
+                  "QToolButton{ border-radius: 2px; background:" + theme->getAltBackgroundColorHex() + ";}"
+                  //"QToolButton::checked:!hover{ border-bottom: 0px; background:" + theme->getBackgroundColorHex() + ";}"
+                  "QToolButton::checked:!hover{ background:" + theme->getBackgroundColorHex() + ";}"
+                  "QStackedWidget{ border: 0px; background:" + theme->getBackgroundColorHex() + ";}");
 
     partsButton->setIcon(theme->getIcon("Actions", "Plus"));
     hardwareButton->setIcon(theme->getIcon("Actions", "Computer"));
@@ -126,12 +133,15 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
         openRequiredDock(partsDock);
         break;
     }
-    case ToolActionController::FUNCTIONS:
+    case ToolActionController::FUNCTIONS:{
         // construct WorkerProcess
+        QVariant ID = action->property("ID");
+        toolActionController->addWorkerProcess(ID.toInt(), QPointF());
 
         // re-open the parts dock
         openRequiredDock(partsDock);
         break;
+    }
     case ToolActionController::HARDWARE:
     {
         int ID = action->property("ID").toInt();
@@ -289,10 +299,15 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
             showInfoLabel = dockWidget->isEmpty();
             break;
         }
-        case ToolActionController::FUNCTIONS:
+        case ToolActionController::FUNCTIONS:{
             dockWidget->updateHeaderText(triggeredAdoptableKind);
-            showInfoLabel = true;
+
+            QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
+            populateDock(dockWidget, actions, true);
+
+            showInfoLabel = dockWidget->isEmpty();
             break;
+        }
         case ToolActionController::HARDWARE:
         {
             QList<NodeViewItemAction*> actions = toolActionController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);

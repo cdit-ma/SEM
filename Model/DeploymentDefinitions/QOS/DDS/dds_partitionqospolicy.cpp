@@ -10,7 +10,7 @@ bool DDS_PartitionQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_PartitionQosPolicy::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool DDS_PartitionQosPolicy::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return false;
 }

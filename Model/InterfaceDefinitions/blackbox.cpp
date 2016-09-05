@@ -19,7 +19,7 @@ bool BlackBox::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool BlackBox::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool BlackBox::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return false;
 }

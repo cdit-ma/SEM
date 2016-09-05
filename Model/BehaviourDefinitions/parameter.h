@@ -13,7 +13,7 @@ public:
 
 
     virtual bool canAdoptChild(Node *node);
-    virtual bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // PARAMETER_H

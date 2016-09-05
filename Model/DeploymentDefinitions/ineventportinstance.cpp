@@ -13,7 +13,7 @@ bool InEventPortInstance::canAdoptChild(Node*)
     return false;
 }
 
-bool InEventPortInstance::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool InEventPortInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;
