@@ -346,6 +346,10 @@ void EdgeItemNew::dataChanged(QString keyName, QVariant data)
     }
 }
 
+void EdgeItemNew::propertyChanged(QString keyName, QVariant data)
+{
+}
+
 void EdgeItemNew::dataRemoved(QString keyName)
 {
     if(keyName == "x" || keyName == "y"){

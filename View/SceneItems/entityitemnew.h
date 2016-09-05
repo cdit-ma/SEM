@@ -96,6 +96,8 @@ public:
     //Model State Get/Setters
     void setData(QString keyName, QVariant value);
     QVariant getData(QString keyName) const;
+
+    QVariant getProperty(QString propertyName) const;
     bool hasData(QString keyName) const;
     bool isDataEditable(QString keyName);
 
@@ -178,6 +180,7 @@ signals:
     void scenePosChanged();
 private slots:
     virtual void dataChanged(QString keyName, QVariant data) = 0;
+    virtual void propertyChanged(QString propertyName, QVariant data) = 0;
     virtual void dataRemoved(QString keyName) = 0;
     void destruct();
 

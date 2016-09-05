@@ -40,6 +40,7 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     textFont = QFont("Verdana");
     setFontSize(10);
 
+    addRequiredData("readOnly");
 
     //Setup the initial Body color
     bodyColor = QColor(233,234,237).lighter(110);
@@ -391,7 +392,6 @@ bool EntityItemNew::isIgnoringPosition()
     return ignorePosition;
 }
 
-
 void EntityItemNew::adjustPos(QPointF delta)
 {
     if(!delta.isNull()){
@@ -419,6 +419,11 @@ void EntityItemNew::setData(QString keyName, QVariant value)
 QVariant EntityItemNew::getData(QString keyName) const
 {
     return viewItem->getData(keyName);
+}
+
+QVariant EntityItemNew::getProperty(QString propertyName) const
+{
+    return viewItem->getProperty(propertyName);
 }
 
 bool EntityItemNew::hasData(QString keyName) const
@@ -530,6 +535,8 @@ void EntityItemNew::connectViewItem(ViewItem *viewItem)
     connect(viewItem, &ViewItem::dataAdded, this, &EntityItemNew::dataChanged);
     connect(viewItem, &ViewItem::dataChanged, this, &EntityItemNew::dataChanged);
     connect(viewItem, &ViewItem::dataRemoved, this, &EntityItemNew::dataRemoved);
+    connect(viewItem, &ViewItem::propertyChanged, this, &EntityItemNew::propertyChanged);
+
     connect(viewItem, &ViewItem::destructing, this, &EntityItemNew::deleteLater);
 }
 
