@@ -39,7 +39,7 @@ QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *chi
             }
         }
     }
-    offset.ry() = y + gridSize;
+    offset.ry() = y;
     return offset;
 }
 

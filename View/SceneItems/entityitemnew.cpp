@@ -91,6 +91,11 @@ bool EntityItemNew::isTopLevelItem() const
     return parentItem == 0;
 }
 
+bool EntityItemNew::isReadOnly() const
+{
+    return viewItem->isReadOnly();
+}
+
 ViewItem *EntityItemNew::getViewItem() const
 {
     return viewItem;
@@ -665,11 +670,11 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         painter->setClipRect(boundingRect());
         QBrush brush(Qt::SolidPattern);
 
+
         if(isSelected()){
             brush.setColor(getPen().color());
         }else{
-            brush.setColor(getBaseBodyColor());
-            //brush.setColor(Theme::theme()->getMainImageColor(getIconPath()));
+            brush.setColor(getBodyColor());
         }
         painter->setBrush(brush);
         painter->setPen(Qt::NoPen);
@@ -681,9 +686,6 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->setClipPath(getElementPath(ER_SELECTION));
     //Paint the pixmap!
     QPair<QString, QString> icon = getIconPath();
-    //painter->setBrush(Qt::red);
-    //painter->setPen(Qt::NoPen);
-    //painter->drawRect(getElementRect(ER_MAIN_ICON));
     paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
     painter->restore();
 }
@@ -840,7 +842,7 @@ QColor EntityItemNew::getBaseBodyColor() const
 QColor EntityItemNew::getBodyColor() const
 {
     if(isHighlighted()){
-        return QColor(Qt::red);
+        return Theme::theme()->getHighlightColor();
     } else {
         return bodyColor;
     }

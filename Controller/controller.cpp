@@ -873,6 +873,7 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
         }
         if(!ignore){
             triggerAction("Constructing Child Node");
+            setData(parentID, "isExpanded", true);
             constructChildNode(parentNode, data);
         }
     }
@@ -987,6 +988,7 @@ void NewController::constructConnectedNode(int parentID, QString nodeKind, int d
         Node* testNode = _constructNode(constructDataVector(nodeKind));
         if(testNode){
             if(parentNode->canAdoptChild(testNode)){
+                setData(parentID, "isExpanded", true);
                 parentNode->addChild(testNode);
 
 

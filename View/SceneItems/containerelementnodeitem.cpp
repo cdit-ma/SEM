@@ -8,7 +8,7 @@ ContainerElementNodeItem::ContainerElementNodeItem(NodeViewItem *viewItem, NodeI
 {
     container = qobject_cast<StackContainerNodeItem*>(parentItem);
 
-    setMargin(QMarginsF(0,0,0,0));
+    setMargin(QMarginsF(5,5,5,5));
 
 
 

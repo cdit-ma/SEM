@@ -717,6 +717,8 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
             setExpanded(boolData);
         }else if(keyName == "readOnlyDefinition" || keyName == "snippetID"){
             updateReadState();
+        }else if(keyName == "readOnly"){
+            update();
         }
         if(keyName == primaryTextKey || keyName == secondaryTextKey){
             update();
@@ -732,6 +734,8 @@ void NodeItemNew::dataRemoved(QString keyName)
 {
     if(keyName == "readOnlyDefinition" || keyName == "snippetID"){
         updateReadState();
+    }else if(keyName == "readOnly"){
+        update();
     }
 }
 
@@ -926,6 +930,10 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             painter->setPen(Qt::NoPen);
             //painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
             renderText(painter, lod, getElementRect(ER_SECONDARY_TEXT), getSecondaryText(), 5);
+        }
+
+        if(isReadOnly()){
+            paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
         }
     }
 

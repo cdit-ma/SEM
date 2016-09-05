@@ -32,6 +32,7 @@ public:
     EntityItemNew* getParent() const;
     void unsetParent();
     bool isTopLevelItem() const;
+    bool isReadOnly() const;
 
 
     ViewItem* getViewItem() const;
