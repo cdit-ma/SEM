@@ -786,20 +786,21 @@ EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item)
 
 void NodeViewNew::zoom(int delta, QPoint anchorScreenPos)
 {
-    QPointF anchorScenePos;
-
-    if(!topLevelGUIItemIDs.isEmpty()){
-        anchorScenePos = getScenePosOfPoint(anchorScreenPos);
-    }
-
-    //Calculate the zoom change.
-    qreal scaleFactor = pow(ZOOM_INCREMENTOR, (delta / abs(delta)));
-    if(scaleFactor != 1){
-        scale(scaleFactor, scaleFactor);
+    if(delta > 0){
+        QPointF anchorScenePos;
 
         if(!topLevelGUIItemIDs.isEmpty()){
-            QPointF delta = getScenePosOfPoint(anchorScreenPos) - anchorScenePos;
-            translate(delta);
+            anchorScenePos = getScenePosOfPoint(anchorScreenPos);
+        }
+        //Calculate the zoom change.
+        qreal scaleFactor = pow(ZOOM_INCREMENTOR, (delta / abs(delta)));
+        if(scaleFactor != 1){
+            scale(scaleFactor, scaleFactor);
+
+            if(!topLevelGUIItemIDs.isEmpty()){
+                QPointF delta = getScenePosOfPoint(anchorScreenPos) - anchorScenePos;
+                translate(delta);
+            }
         }
     }
 }
