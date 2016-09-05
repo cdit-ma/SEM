@@ -78,7 +78,7 @@ void ToolbarWidgetNew::themeChanged()
 
     addChildAction->setIcon(theme->getIcon("Actions", "Plus"));
     connectAction->setIcon(theme->getIcon("Actions", "ConnectTo"));
-    hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
+    //hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
     instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
 
@@ -160,9 +160,9 @@ void ToolbarWidgetNew::populateDynamicMenu()
     QString kind = senderMenu->property("kind").toString();
     QList<NodeViewItemAction*> actions;
 
-    if (senderMenu == hardwareMenu) {
+    /*if (senderMenu == hardwareMenu) {
         actions = toolbarController->getEdgeActionsOfKind(Edge::EC_DEPLOYMENT);
-    } else {
+    } else {*/
         Edge::EDGE_KIND edgeClass = Edge::getEdgeKind(kind);
         if (edgeClass == Edge::EC_UNDEFINED) {
             if(kind == "WorkerProcess"){
@@ -173,7 +173,7 @@ void ToolbarWidgetNew::populateDynamicMenu()
         } else {
             actions = toolbarController->getEdgeActionsOfKind(edgeClass);
         }
-    }
+    //}
 
     // if the menu is empty, show its info action
     if (actions.isEmpty()) {
@@ -284,14 +284,14 @@ void ToolbarWidgetNew::setupActions()
     addChildAction = mainGroup->addAction(toolbarController->getAdoptableKindsAction(true));
     mainGroup->addAction(actionController->getRootAction("Delete")->constructSubAction(true));
     connectAction = mainGroup->addAction(connectGroup->getGroupVisibilityAction()->constructSubAction(true));
-    hardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_CONNECT", true));
-    disconnectHardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_DISCONNECT", true));
+    //hardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_CONNECT", true));
+    //disconnectHardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_DISCONNECT", true));
     mainGroup->addSeperator();
     mainGroup->addAction(actionController->edit_alignVertical->constructSubAction(true));
     mainGroup->addAction(actionController->edit_alignHorizontal->constructSubAction(true));
     mainGroup->addSeperator();
-    mainGroup->addAction(actionController->toolbar_expand->constructSubAction(true));
-    mainGroup->addAction(actionController->toolbar_contract->constructSubAction(true));
+    //mainGroup->addAction(actionController->toolbar_expand->constructSubAction(true));
+    //mainGroup->addAction(actionController->toolbar_contract->constructSubAction(true));
     mainGroup->addSeperator();
     mainGroup->addAction(actionController->file_importSnippet->constructSubAction(true));
     mainGroup->addAction(actionController->file_exportSnippet->constructSubAction(true));
@@ -302,13 +302,18 @@ void ToolbarWidgetNew::setupActions()
     mainGroup->addSeperator();
     hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
     replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
-    mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
-    mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
+    //mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
+    //mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
     connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
     mainGroup->addAction(actionController->model_getCodeForComponent->constructSubAction(true));
     mainGroup->addAction(actionController->view_viewInNewWindow->constructSubAction(true));
     mainGroup->addAction(actionController->help_wiki->constructSubAction(true));
+
+    //hardwareAction->setVisible(false);
+    //disconnectHardwareAction->setVisible(false);
+    instancesAction->setVisible(false);
+    hardwareViewOptionAction->setVisible(false);
 
     // this needs to be called before the actions are added to the toolbar for the split buttons to work
     setupSplitMenus();
@@ -317,7 +322,7 @@ void ToolbarWidgetNew::setupActions()
     // update the tooltips for certain actions
     addChildAction->setToolTip("Add Child Entity");
     connectAction->setToolTip("Connect Selection");
-    hardwareAction->setToolTip("Deploy Selection");
+    //hardwareAction->setToolTip("Deploy Selection");
 }
 
 
@@ -331,8 +336,10 @@ void ToolbarWidgetNew::setupMenus()
     setupReplicateCountMenu();
     setupHardwareViewOptionMenu();
 
+    /*
     hardwareMenu = constructTopMenu(hardwareAction);
     dynamicMenuKeyHash[hardwareMenu] = "INFO_NO_VALID_DEPLOYMENT_NODES";
+    */
 }
 
 
