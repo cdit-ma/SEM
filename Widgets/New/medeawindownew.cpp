@@ -27,9 +27,6 @@ MedeaWindowNew::MedeaWindowNew(QWidget *parent, MedeaWindowNew::WindowType type)
     connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
             this, SLOT(showContextMenu(const QPoint &)));
 
-
-    //Setup Tab positions
-
 }
 
 MedeaWindowNew::~MedeaWindowNew()
@@ -123,10 +120,7 @@ void MedeaWindowNew::setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool ma
     if(maximized){
         dockwidget->setVisible(maximized);
     }
-
 }
-
-
 
 
 void MedeaWindowNew::closeEvent(QCloseEvent * event)

@@ -23,7 +23,7 @@ bool ComponentAssembly::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool ComponentAssembly::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool ComponentAssembly::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     if(!acceptsEdgeKind(edgeKind)){
         return false;

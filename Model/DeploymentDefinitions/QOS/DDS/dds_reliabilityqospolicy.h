@@ -8,7 +8,7 @@ class DDS_ReliabilityQosPolicy: public Node
 public:
     DDS_ReliabilityQosPolicy();
     bool canAdoptChild(Node* node);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DDS_RELIABILITYQOSPOLICY_H
 

@@ -54,8 +54,23 @@ QList<NodeViewItemAction *> ToolActionController::getDefinitionNodeActions(QStri
     QList<NodeViewItemAction*> list;
 
     foreach(ViewItem* item, viewController->getConstructableNodeDefinitions(kind)){
-        list.append(getNodeViewItemAction(item->getID()));
+        NodeViewItemAction* action = getNodeViewItemAction(item->getID());
+        if(action){
+            list.append(action);
+        }
+    }
+    return list;
+}
 
+QList<NodeViewItemAction *> ToolActionController::getWorkerFunctions()
+{
+    QList<NodeViewItemAction*> list;
+
+    foreach(ViewItem* item, viewController->getWorkerFunctions()){
+        NodeViewItemAction* action = getNodeViewItemAction(item->getID());
+        if(action){
+            list.append(action);
+        }
     }
     return list;
 }
@@ -118,9 +133,9 @@ void ToolActionController::selectionChanged(int selected)
         action->setEnabled(validActions.contains(action->text()));
     }
 
-    QList<Edge::EDGE_CLASS> validEdges = viewController->getValidEdgeKindsForSelection();
+    QList<Edge::EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
 
-    foreach(Edge::EDGE_CLASS edgeKind, edgeKindActions.keys()){
+    foreach(Edge::EDGE_KIND edgeKind, edgeKindActions.keys()){
         RootAction* action = edgeKindActions[edgeKind];
         action->setEnabled(validEdges.contains(edgeKind));
     }
@@ -143,7 +158,7 @@ void ToolActionController::addChildNode(QString kind, QPointF position)
     }
 }
 
-void ToolActionController::addEdge(int dstID, Edge::EDGE_CLASS edgeKind)
+void ToolActionController::addEdge(int dstID, Edge::EDGE_KIND edgeKind)
 {
     QList<int> IDs = selectionController->getSelectionIDs();
     if(!IDs.isEmpty()){
@@ -156,6 +171,14 @@ void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPoint
     int ID = selectionController->getFirstSelectedItemID();
     if(ID != -1){
         emit viewController->vc_constructConnectedNode(ID, kind,dstID, Edge::EC_UNDEFINED, position);
+    }
+}
+
+void ToolActionController::addWorkerProcess(int processID, QPointF position)
+{
+    int ID = selectionController->getFirstSelectedItemID();
+    if(ID != -1){
+        emit viewController->vc_constructWorkerProcess(ID, processID, position);
     }
 }
 
@@ -186,7 +209,7 @@ QAction *ToolActionController::getNodeActionOfKind(QString kind, bool stealth)
     return new RootAction("Nodes: " + kind);
 }
 
-QList<NodeViewItemAction *> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_CLASS kind)
+QList<NodeViewItemAction *> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_KIND kind)
 {
     QList<NodeViewItemAction*> list;
 
@@ -198,7 +221,7 @@ QList<NodeViewItemAction *> ToolActionController::getEdgeActionsOfKind(Edge::EDG
     return list;
 }
 
-RootAction *ToolActionController::getEdgeActionOfKind(Edge::EDGE_CLASS kind)
+RootAction *ToolActionController::getEdgeActionOfKind(Edge::EDGE_KIND kind)
 {
     if(edgeKindActions.contains(kind)){
         return edgeKindActions[kind];
@@ -313,7 +336,7 @@ void ToolActionController::setupNodeActions()
 
 void ToolActionController::setupEdgeActions()
 {
-    foreach(Edge::EDGE_CLASS edgeKind, Edge::getEdgeClasses()){
+    foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
         QString edgeName = Edge::getKind(edgeKind);
         RootAction* action = new RootAction(edgeName);
         action->setIconPath("Actions", "ConnectTo");

@@ -8,7 +8,7 @@ class ManagementComponent : public Node
 public:
     ManagementComponent();
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // MANAGEMENTCOMPONENT_H

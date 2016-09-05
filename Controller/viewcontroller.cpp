@@ -26,7 +26,6 @@
 #define XMI_FILE_SUFFIX ".xml"
 
 ViewController::ViewController(){
-    modelItem = 0;
     controller = 0;
 
     codeViewer = 0;
@@ -126,9 +125,14 @@ ToolActionController *ViewController::getToolbarController()
     return toolbarController;
 }
 
+QList<ViewItem *> ViewController::getWorkerFunctions()
+{
+    return getItemsOfKind(Node::NK_WORKER_PROCESS);
+}
+
 QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
 {
-    Edge::EDGE_CLASS ec = Edge::EC_DEFINITION;
+    Edge::EDGE_KIND ec = Edge::EC_DEFINITION;
 
     if(kind.endsWith("Delegate") || kind.endsWith("EventPort")){
         ec = Edge::EC_AGGREGATE;
@@ -143,7 +147,7 @@ QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
     return items;
 }
 
-QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_CLASS kind)
+QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
 {
     qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     QList<ViewItem*> items;
@@ -189,9 +193,9 @@ QStringList ViewController::getAdoptableNodeKinds()
     return QStringList();
 }
 
-QList<Edge::EDGE_CLASS> ViewController::getValidEdgeKindsForSelection()
+QList<Edge::EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
 {
-    QList<Edge::EDGE_CLASS> edgeKinds;
+    QList<Edge::EDGE_KIND> edgeKinds;
     if(selectionController && controller){
         edgeKinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
     }
@@ -212,7 +216,9 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
     if(viewItem->isNode()){
         QString nodeKind = viewItem->getData("kind").toString();
+        QString nodeLabel = viewItem->getData("label").toString();
         QString imageName = nodeKind;
+        QString aliasPath = "Items";
 
         if(nodeKind == "HardwareNode"){
             bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
@@ -225,17 +231,18 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 imageName = os + "_" + arch;
                 imageName = imageName.remove(" ");
             }
-        }else if(nodeKind == "Process"){
-
-
+        }else if(nodeKind == "WorkerProcess"){
+            aliasPath = "Functions";
+            imageName = nodeLabel;
         }
-        viewItem->setDefaultIcon("Items", imageName);
+        viewItem->setDefaultIcon(aliasPath, imageName);
     }
 }
 
 ViewItem *ViewController::getModel()
 {
-    return modelItem;
+    int ID = nodeKindLookups.value(Node::NK_MODEL, -1);
+    return getViewItem(ID);
 }
 
 bool ViewController::isModelReady()
@@ -521,19 +528,19 @@ bool ViewController::destructViewItem(ViewItem *viewItem)
 
         QString treeKey;
 
+        int ID = viewItem->getID();
         if(viewItem->isNode()){
-            treeKey = ((NodeViewItem*)viewItem)->getTreeIndex();
+            NodeViewItem* nodeItem = (NodeViewItem*)viewItem;
+            treeKey = nodeItem->getTreeIndex();
+            nodeKindLookups.remove(nodeItem->getNodeKind(), ID);
+        }else if(viewItem->isEdge()){
+            EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
+            edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
         }
+
 
         if(!treeKey.isEmpty() && treeLookup.contains(treeKey)){
             treeLookup.remove(treeKey);
-        }
-
-        int ID = viewItem->getID();
-        QString kind = viewItem->getData("kind").toString();
-        //Unset modelItem
-        if(viewItem == modelItem){
-            modelItem = 0;
         }
 
         ViewItem* parentItem = viewItem->getParentItem();
@@ -543,7 +550,9 @@ bool ViewController::destructViewItem(ViewItem *viewItem)
 
         //Remove the item from the Hash
         viewItems.remove(ID);
-        itemKindLists[kind].removeAll(ID);
+
+
+
         topLevelItems.removeAll(ID);
 
         emit vc_viewItemDestructing(ID, viewItem);
@@ -687,8 +696,10 @@ void ViewController::renameActiveSelection()
 
 void ViewController::constructDDSQOSProfile()
 {
-    foreach(int ID, getIDsOfKind("AssemblyDefinitions")){
-        emit vc_constructNode(ID, "DDS_QOSProfile");
+    foreach(ViewItem* item, getItemsOfKind(Node::NK_ASSEMBLY_DEFINITIONS)){
+        if(item){
+            emit vc_constructNode(item->getID(), "DDS_QOSProfile");
+        }
     }
 }
 
@@ -701,7 +712,8 @@ void ViewController::_teardownProject()
             emit vc_projectPathChanged("");
             emit mc_projectModified(false);
             destructChildItems(rootItem);
-            itemKindLists.clear();
+            nodeKindLookups.clear();
+            edgeKindLookups.clear();
 
             controller->disconnectViewController(this);
             controller = 0;
@@ -768,7 +780,6 @@ bool ViewController::_closeProject()
                                "Do you want to save the changes made to '" + filePath + "' ?",
                                QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 
-
             msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
             msgBox.setButtonText(QMessageBox::Yes, "Save");
             msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
@@ -776,19 +787,16 @@ bool ViewController::_closeProject()
             int buttonPressed = msgBox.exec();
 
             if(buttonPressed & QMessageBox::Yes){
-                bool saveSuccess = _saveProject();
-                // if failed to save, do nothing
-                if(!saveSuccess){
+                if(!_saveProject()){
+                    // if failed to save, don't exit!
                     return false;
                 }
             }else if(buttonPressed & QMessageBox::No){
-                //Do Nothing
+                //Do Nothing, and exit.
             }else if(buttonPressed & QMessageBox::Cancel){
-                qCritical() << "Cancelled";
                 return false;
             }
         }
-        qCritical() << "_teardownProject!";
         _teardownProject();
         return true;
     }else{
@@ -812,6 +820,30 @@ bool ViewController::_openProject(QString filePath)
     return false;
 }
 
+QList<ViewItem *> ViewController::getItemsOfKind(Edge::EDGE_KIND kind)
+{
+    QList<ViewItem*> items;
+    foreach(int ID, edgeKindLookups.values(kind)){
+        ViewItem* item = getViewItem(ID);
+        if(item && item->isEdge()){
+            items.append(item);
+        }
+    }
+    return items;
+}
+
+QList<ViewItem *> ViewController::getItemsOfKind(Node::NODE_KIND kind)
+{
+    QList<ViewItem*> items;
+    foreach(int ID, nodeKindLookups.values(kind)){
+        ViewItem* item = getViewItem(ID);
+        if(item && item->isNode()){
+            items.append(item);
+        }
+    }
+    return items;
+}
+
 void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties)
 {
     ViewItem* viewItem = 0;
@@ -825,7 +857,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 
         QString treeKey = nodeItem->getTreeIndex();
 
-
+        nodeKindLookups.insertMulti(nodeItem->getNodeKind(), ID);
 
         if(!treeLookup.contains(treeKey)){
             treeLookup[treeKey] = ID;
@@ -839,10 +871,10 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             topLevelItems.append(ID);
         }
     }else if(eKind == EK_EDGE){
-        Edge::EDGE_CLASS edgeKind = Edge::EC_NONE;
+        Edge::EDGE_KIND edgeKind = Edge::EC_NONE;
 
         if(properties.contains("kind")){
-            edgeKind = (Edge::EDGE_CLASS)properties["kind"].toInt();
+            edgeKind = (Edge::EDGE_KIND)properties["kind"].toInt();
         }
 
         if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
@@ -858,6 +890,8 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 
         EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, source, destination, kind, data, properties);
 
+        edgeKindLookups.insertMulti(edgeItem->getEdgeKind(), ID);
+
         if(parent){
             parent->addChild(edgeItem);
         }else{
@@ -870,14 +904,9 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 
     if(viewItem){
         viewItems[ID] = viewItem;
-        itemKindLists[kind].append(ID);
         setDefaultIcon(viewItem);
 
-        if(kind == "Model"){
-            modelItem = viewItem;
-        }
-
-        connect(viewItem->getTableModel(), SIGNAL(req_dataChanged(int, QString, QVariant)), this, SLOT(table_dataChanged(int, QString, QVariant)));
+        connect(viewItem->getTableModel(), &AttributeTableModel::req_dataChanged, this, &ViewController::table_dataChanged);
 
         //Tell Views
         emit vc_viewItemConstructed(viewItem);
@@ -1012,9 +1041,7 @@ void ViewController::closeProject()
 
 void ViewController::closeMEDEA()
 {
-    qCritical() << "CLOSE MEDEA";
     if(_closeProject()){
-        qCritical() << "Teardown";
         //Destruct main window
         MedeaWindowManager::teardown();
     }
@@ -1188,10 +1215,6 @@ void ViewController::initializeController()
     }
 }
 
-QList<int> ViewController::getIDsOfKind(QString kind)
-{
-    return itemKindLists[kind];
-}
 
 bool ViewController::destructChildItems(ViewItem *parent)
 {
@@ -1213,7 +1236,8 @@ bool ViewController::clearVisualItems()
         destructViewItem(it.previous());
     }
 
-    itemKindLists.clear();
+    nodeKindLookups.clear();
+    edgeKindLookups.clear();
     return true;
 }
 

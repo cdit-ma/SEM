@@ -111,13 +111,12 @@ struct EventAction{
         QString XML;
         QString nodeKind;
         Entity::ENTITY_KIND kind;
-        Edge::EDGE_CLASS edgeClass;
+        Edge::EDGE_KIND edgeClass;
     } Entity;
 
     struct _Key{
         QString name;
         QVariant::Type type;
-        Entity::ENTITY_KIND kind;
     } Key;
 
     struct _Data{
@@ -155,14 +154,16 @@ public:
     QString getProjectAsGraphML();
     QString getSelectionAsGraphMLSnippet(QList<int> IDs);
 
-    QList<Edge::EDGE_CLASS> getValidEdgeKindsForSelection(QList<int> IDs);
+    QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
 
     QStringList getAdoptableNodeKinds(int ID);
     QStringList getValidKeyValues(int ID, QString keyName);
-    QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_CLASS edgeKind);
-    QList<int> getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_CLASS edgeClass);
+    QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_KIND edgeKind);
+    QList<int> getConstructableConnectableNodes(int parentID, QString instanceNodeKind, Edge::EDGE_KIND edgeClass);
 
     QList<int> getOrderedSelectionIDs(QList<int> selection);
+
+    QList<int> getWorkerFunctions();
 
 
 private:
@@ -170,7 +171,7 @@ private:
     //Gets the Model Node.
     Model* getModel();
     WorkerDefinitions* getWorkerDefinitions();
-    QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, Edge::EDGE_CLASS edgeKind);
+    QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, Edge::EDGE_KIND edgeKind);
     QList<Entity *> getOrderedSelection(QList<int> selection);
 public:
 
@@ -292,16 +293,16 @@ private slots:
     void clear();
 
 
-    void constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_CLASS edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
+    void constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
 
     void constructNode(int parentID, QString kind, QPointF centerPoint);
 
-    void constructEdge(QList<int> srcIDs, int dstID,Edge::EDGE_CLASS edgeClass = Edge::EC_UNDEFINED);
+    void constructEdge(QList<int> srcIDs, int dstID,Edge::EDGE_KIND edgeClass = Edge::EC_UNDEFINED);
     //void constructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass);
-    void destructEdge(int srcID, int dstID, Edge::EDGE_CLASS edgeClass);
+    void destructEdge(int srcID, int dstID, Edge::EDGE_KIND edgeClass);
 
-    void constructWorkerProcessNode(int parentID, QString workerName, QString operationName, QPointF position);
     void constructDDSQOSProfile(int parentID, QPointF position);
+    void constructWorkerProcess(int parentID, int workerProcessID, QPointF pos);
 
 
 
@@ -321,8 +322,8 @@ private slots:
     void _projectNameChanged();
 
 private:
-    Edge::EDGE_CLASS getValidEdgeClass(Node* src, Node* dst);
-    QList<Edge::EDGE_CLASS> getPotentialEdgeClasses(Node* src, Node* dst);
+    Edge::EDGE_KIND getValidEdgeClass(Node* src, Node* dst);
+    QList<Edge::EDGE_KIND> getPotentialEdgeClasses(Node* src, Node* dst);
     void clearHistory();
 
     QString _copy(QList<Entity*> selection);
@@ -373,7 +374,7 @@ private:
     QString _exportGraphMLDocument(Node* node, bool allEdges = false, bool GUI_USED=false);
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
-    Key* constructKey(QString name, QVariant::Type type,  Entity::ENTITY_KIND entityKind);
+    Key* constructKey(QString name, QVariant::Type type);
     bool destructKey(QString name);
     Key* getKeyFromName(QString name);
     Key* getKeyFromID(int ID);
@@ -385,8 +386,8 @@ private:
     //Returns "" if no Attribute found.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
-    Edge* _constructEdge(Edge::EDGE_CLASS edgeClass, Node* src, Node* dst);
-    Edge* constructEdgeWithData(Edge::EDGE_CLASS edgeClass, Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
+    Edge* _constructEdge(Edge::EDGE_KIND edgeClass, Node* src, Node* dst);
+    Edge* constructEdgeWithData(Edge::EDGE_KIND edgeClass, Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
     void storeGraphMLInHash(Entity*item);
@@ -418,7 +419,7 @@ private:
 
     //Constructs a Vector of basic Data entities required for creating a Node.
     QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1), QString nodeType="", QString nodeLabel="");
-    QList<Data*> constructRequiredEdgeData(Edge::EDGE_CLASS edgeClass);
+    QList<Data*> constructRequiredEdgeData(Edge::EDGE_KIND edgeClass);
     QList<Data*> constructPositionDataVector(QPointF point=QPointF(-1, -1));
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
@@ -483,7 +484,7 @@ private:
 
     QPair<bool, QString> readFile(QString filePath);
     Node* constructTypedNode(QString nodeKind, bool isTemporary = false, QString nodeType="", QString nodeLabel="");
-    Edge* constructTypedEdge(Node* src, Node* dst, Edge::EDGE_CLASS edgeClass);
+    Edge* constructTypedEdge(Node* src, Node* dst, Edge::EDGE_KIND edgeClass);
 
     //Attach Data('s) to the GraphML item.
     bool _attachData(Entity* item, Data* data, bool addAction = true);
@@ -494,7 +495,6 @@ private:
     
 
 
-    Process* getWorkerProcess(QString workerName, QString operationName);
 
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
     Entity*getGraphMLFromID(int ID);

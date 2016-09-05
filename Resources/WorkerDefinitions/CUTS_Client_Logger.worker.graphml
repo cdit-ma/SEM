@@ -36,7 +36,7 @@
             <data key="d25">A CUTS worker that provides Logging Client that sends log messages through the CIAO middleware</data>
             <graph id="n0:" edgedefault="directed">
                 <node id="n0::n0">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">15</data>
                     <data key="d6">60</data>
                     <data key="d7">325.353</data>
@@ -80,7 +80,7 @@
                     </graph>
                 </node>
                 <node id="n0::n1">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">357.333</data>
                     <data key="d6">60</data>
                     <data key="d7">333.02</data>
@@ -112,7 +112,7 @@
                     </graph>
                 </node>
                 <node id="n0::n2">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">696.179</data>
                     <data key="d6">60</data>
                     <data key="d7">286.02</data>

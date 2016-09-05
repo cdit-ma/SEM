@@ -8,7 +8,7 @@ class InputParameter : public Parameter
 public:
     InputParameter();
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // INPUTPARAMETER_H

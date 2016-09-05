@@ -8,7 +8,7 @@ class OutEventPortImpl : public EventPortImpl
 public:
     OutEventPortImpl();
     bool canAdoptChild(Node* child);
-    bool canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // OUTEVENTPORTIMPL_H

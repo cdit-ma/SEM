@@ -1,7 +1,7 @@
 #include "process.h"
 #include "parameter.h"
 
-Process::Process():BehaviourNode(NK_PROCESS){
+Process::Process(NODE_KIND kind):BehaviourNode(kind){
     setWorkflowProducer(false);
     setWorkflowReciever(false);
 }
@@ -22,7 +22,7 @@ bool Process::canAdoptChild(Node* node)
     return BehaviourNode::canAdoptChild(node);
 }
 
-bool Process::canAcceptEdge(Edge::EDGE_CLASS edgeKind, Node *dst)
+bool Process::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
     return false;
 }
