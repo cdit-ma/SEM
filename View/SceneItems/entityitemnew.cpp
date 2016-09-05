@@ -28,6 +28,7 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     _isMouseMoving = false;
     _hasMouseMoved = false;
     _hasMoved = false;
+    _isHighlighted = false;
     ignorePosition = false;
 
 
@@ -519,7 +520,7 @@ bool EntityItemNew::isActiveSelected() const
 
 bool EntityItemNew::isHighlighted() const
 {
-    return _isHightlighted;
+    return _isHighlighted;
 }
 
 bool EntityItemNew::isHovered() const
@@ -667,7 +668,7 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         if(isSelected()){
             brush.setColor(getPen().color());
         }else{
-            brush.setColor(getBodyColor());
+            brush.setColor(getBaseBodyColor());
             //brush.setColor(Theme::theme()->getMainImageColor(getIconPath()));
         }
         painter->setBrush(brush);
@@ -800,8 +801,8 @@ void EntityItemNew::setHovered(bool isHovered)
 
 void EntityItemNew::setHighlighted(bool isHighlight)
 {
-    if(_isHightlighted != isHighlight){
-        _isHightlighted = isHighlight;
+    if(_isHighlighted != isHighlight){
+        _isHighlighted = isHighlight;
         update();
     }
 }
@@ -831,12 +832,21 @@ void EntityItemNew::paintPixmapRect(QPainter* painter, QString imageAlias, QStri
     painter->restore();
 }
 
-QColor EntityItemNew::getBodyColor() const
+QColor EntityItemNew::getBaseBodyColor() const
 {
     return bodyColor;
 }
 
-void EntityItemNew::setBodyColor(QColor color)
+QColor EntityItemNew::getBodyColor() const
+{
+    if(isHighlighted()){
+        return QColor(Qt::red);
+    } else {
+        return bodyColor;
+    }
+}
+
+void EntityItemNew::setBaseBodyColor(QColor color)
 {
     if(bodyColor != color){
         bodyColor = color;

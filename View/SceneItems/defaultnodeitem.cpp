@@ -146,9 +146,9 @@ void DefaultNodeItem::setupBrushes()
     NodeItemNew* parentNodeItem = getParentNodeItem();
     if(parentNodeItem && parentNodeItem->getNodeItemKind() == DEFAULT_ITEM){
         DefaultNodeItem* parent = (DefaultNodeItem*)parentNodeItem;
-        bodyColor = parent->getBodyColor().darker(110);
+        bodyColor = parent->getBaseBodyColor().darker(110);
     }
-    setBodyColor(bodyColor);
+    setBaseBodyColor(bodyColor);
 }
 
 QRectF DefaultNodeItem::mainIconRect() const

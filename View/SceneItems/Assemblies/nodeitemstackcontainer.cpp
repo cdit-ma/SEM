@@ -12,7 +12,7 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
 
     leafPen.setWidthF(.5);
     if(parentItem){
-        leafPen.setColor(getBodyColor().darker(110));
+        leafPen.setColor(getBaseBodyColor().darker(110));
     }
     reloadRequiredData();
 }

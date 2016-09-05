@@ -42,10 +42,9 @@ public slots:
     void setModelTitle(QString modelTitle);
     void settingChanged(SETTING_KEY setting, QVariant value);
 
+    void showNotification(QString title, QString message);
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);
-
-    void showNotification(QString description);
 
     void resetToolDockWidgets();
 

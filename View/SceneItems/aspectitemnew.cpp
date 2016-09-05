@@ -91,7 +91,7 @@ QRectF AspectItemNew::getMainTextRect() const
 void AspectItemNew::setupBrushes()
 {
     backgroundColor = GET_ASPECT_COLOR(getAspect());
-    setBodyColor(backgroundColor);
+    setBaseBodyColor(backgroundColor);
     mainTextColor = backgroundColor.darker(110);
 
     mainTextFont.setPixelSize(70);

@@ -16,6 +16,10 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     dockAction = action;
     theme = 0;
 
+    dockActionID = -1;
+    if (action) {
+        dockActionID = action->property("ID").toInt();
+    }
     setupLayout();
     setSubActionRequired(false);
     setEnabled(true);
@@ -79,6 +83,7 @@ bool DockWidgetActionItem::requiresSubAction()
 }
 
 
+
 /**
  * @brief DockWidgetActionItem::setProperty
  * @param name
@@ -86,7 +91,6 @@ bool DockWidgetActionItem::requiresSubAction()
  */
 void DockWidgetActionItem::setProperty(const char *name, const QVariant &value)
 {
-    QToolButton::setProperty(name, value);
     if (dockAction) {
         dockAction->setProperty(name, value);
     }
@@ -100,7 +104,7 @@ void DockWidgetActionItem::setProperty(const char *name, const QVariant &value)
  */
 QVariant DockWidgetActionItem::getProperty(const char *name)
 {
-    return QToolButton::property(name);
+    return dockAction->property(name);
 }
 
 
@@ -131,6 +135,7 @@ void DockWidgetActionItem::actionChanged()
 void DockWidgetActionItem::themeChanged()
 {
     theme = Theme::theme();
+    setStyleSheet("QToolButton:!hover{ background: rgba(0,0,0,0); border: 0px; }");
     textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
     arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
 }
@@ -156,6 +161,7 @@ void DockWidgetActionItem::enterEvent(QEvent* event)
         textLabel->setStyleSheet("color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";");
         arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor(theme->CR_SELECTED)));
     }
+    emit hoverEnter(dockActionID);
     QToolButton::enterEvent(event);
 }
 
@@ -170,6 +176,7 @@ void DockWidgetActionItem::leaveEvent(QEvent* event)
         textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
         arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
     }
+    emit hoverLeave(dockActionID);
     QToolButton::leaveEvent(event);
 }
 

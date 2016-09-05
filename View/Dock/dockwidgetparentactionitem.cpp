@@ -14,6 +14,12 @@ DockWidgetParentActionItem::DockWidgetParentActionItem(QAction *action, QWidget 
     dockAction = action;
     childrenActionGroup = new QActionGroup(this);
 
+    dockActionID = -1;
+    if (action) {
+        dockActionID = action->property("ID").toInt();
+    }
+    qCritical() << "SETTING: ID: " << dockActionID;
+
     setEnabled(true);
     setCheckable(true);
     setChecked(true);
@@ -107,10 +113,20 @@ void DockWidgetParentActionItem::actionChanged()
 void DockWidgetParentActionItem::themeChanged()
 {
     Theme* theme = Theme::theme();
-    QColor altColor = theme->getBackgroundColor().lighter(130);
+    QColor altColor = theme->getAltBackgroundColor().darker(120);
+    //QColor altColor = theme->getBackgroundColor().lighter(130);
 
     setIcon(theme->getIcon("Actions", "Arrow_Down"));
     setStyleSheet("QToolButton {"
+                  "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
+                  "padding: 2px 0px 2px 7px;"
+                  "background:" + theme->getAltBackgroundColorHex() + ";}"
+                  "QToolButton::checked {"
+                  "background:" + theme->QColorToHex(altColor) + ";"
+                  "}"
+                  "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";}");
+
+    /*setStyleSheet("QToolButton {"
                   "border-color:" + theme->getBackgroundColorHex() + ";"
                   "padding: 2px 0px 2px 7px;"
                   "background:" + theme->getBackgroundColorHex() + ";}"
@@ -118,6 +134,7 @@ void DockWidgetParentActionItem::themeChanged()
                   "background:" + theme->QColorToHex(altColor) + ";"
                   "}"
                   "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";}");
+                  */
 }
 
 
@@ -128,6 +145,28 @@ void DockWidgetParentActionItem::themeChanged()
 void DockWidgetParentActionItem::setChildrenVisible(bool visible)
 {
     childrenActionGroup->setVisible(visible);
+}
+
+
+/**
+ * @brief DockWidgetParentActionItem::enterEvent
+ * @param event
+ */
+void DockWidgetParentActionItem::enterEvent(QEvent *event)
+{
+    emit hoverEnter(dockActionID);
+    QToolButton::enterEvent(event);
+}
+
+
+/**
+ * @brief DockWidgetParentActionItem::leaveEvent
+ * @param event
+ */
+void DockWidgetParentActionItem::leaveEvent(QEvent *event)
+{
+    emit hoverLeave(dockActionID);
+    QToolButton::leaveEvent(event);
 }
 
 

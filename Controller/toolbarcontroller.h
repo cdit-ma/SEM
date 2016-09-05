@@ -22,6 +22,8 @@ public:
     QList<NodeViewItemAction*> getDefinitionNodeActions(QString kind);
     QList<NodeViewItemAction*> getWorkerFunctions();
 
+    NodeViewItemAction* getNodeAction(int ID);
+
     QList<QAction*> getNodeActionsOfKind(QString kind, bool stealth);
     QAction* getNodeActionOfKind(QString kind, bool stealth);
 
@@ -53,6 +55,14 @@ public:
     void addConnectedChildNode(int dstID, QString kind, QPointF position);
     void addWorkerProcess(int processID, QPointF position);
 
+signals:
+    void hardwareCreated(int ID);
+    void hardwareDestructed(int ID);
+
+public slots:
+    void actionHoverEnter(int ID);
+    void actionHoverLeave(int ID);
+
 private slots:
     void themeChanged();
     void viewItem_Constructed(ViewItem* viewItem);
@@ -74,7 +84,7 @@ private:
     QHash<Edge::EDGE_KIND, RootAction*> edgeKindActions;
 
     QHash<int, NodeViewItemAction*> actions;
-    
+    QList<int> hardwareIDs;
     QHash<QString, QString> infoActionKeyHash;
 
 public:
@@ -90,3 +100,4 @@ public:
 };
 
 #endif // TOOLBARCONTROLLER_H
+

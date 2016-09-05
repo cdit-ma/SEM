@@ -102,9 +102,9 @@ void HardwareNodeItem::setupBrushes()
 
     NodeItemNew* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
-        bodyColor = parentNodeItem->getBodyColor().darker(110);
+        bodyColor = parentNodeItem->getBaseBodyColor().darker(110);
     }
-    setBodyColor(bodyColor);
+    setBaseBodyColor(bodyColor);
 }
 
 void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

@@ -39,8 +39,9 @@ public:
     virtual QPointF getSceneEdgeTermination(bool left) const = 0;
 
 
+    QColor getBaseBodyColor() const;
     virtual QColor getBodyColor() const;
-    void setBodyColor(QColor color);
+    void setBaseBodyColor(QColor color);
 
     virtual void setPos(const QPointF &pos);
     int getID();
@@ -216,7 +217,7 @@ private:
     bool expandEnabled;
 
     bool _isHovered;
-    bool _isHightlighted;
+    bool _isHighlighted;
     bool _isSelected;
     bool _isActiveSelected;
     bool _isExpanded;

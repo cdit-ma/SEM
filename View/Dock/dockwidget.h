@@ -45,7 +45,7 @@ private:
     ToolActionController::DOCK_TYPE dockType;
 
     QVBoxLayout* alignLayout;
-    QVBoxLayout* mainLayout;
+    QVBoxLayout* mainLayout;    
     QVBoxLayout* headerLayout;
 
     QWidget* mainWidget;

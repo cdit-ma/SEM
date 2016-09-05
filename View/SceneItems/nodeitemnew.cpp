@@ -129,7 +129,7 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
         }
-        nodeItem->setBodyColor(EntityItemNew::getBodyColor().darker(110));
+        nodeItem->setBaseBodyColor(getBaseBodyColor().darker(110));
 
         nodeItem->setVisible(isExpanded());
         childPosChanged();
@@ -224,7 +224,7 @@ void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
         edgeItem->setParentItem(this);
         childEdges[ID] = edgeItem;
 
-        edgeItem->setBodyColor(getBodyColor().darker(120));
+        edgeItem->setBaseBodyColor(getBaseBodyColor().darker(120));
 
         connect(edgeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
         edgeItem->setVisible(isExpanded());
@@ -776,6 +776,7 @@ void NodeItemNew::setUpColors()
     QColor brown = QColor(222,184,135);
     QColor originalColor = EntityItemNew::getBodyColor();
 
+
     readOnlyDefinitionColor = Theme::blendColors(originalColor, brown, blendFactor);
     readOnlyInstanceColor = Theme::blendColors(originalColor, blue, blendFactor);
 }
@@ -894,7 +895,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->setClipRect(gridRect());
 
         QPen linePen;
-        linePen.setColor(getBodyColor().darker(150));
+        linePen.setColor(getBaseBodyColor().darker(150));
         linePen.setStyle(Qt::DotLine);
         linePen.setWidthF(.5);
 
@@ -1131,14 +1132,12 @@ void NodeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 QColor NodeItemNew::getBodyColor() const
 {
-    switch(getReadState()){
-    case READ_ONLY_DEFINITION:
+    if(isHighlighted()){
+        //Do nothing
+    }else if(getReadState() == READ_ONLY_DEFINITION){
         return readOnlyDefinitionColor;
-        break;
-    case READ_ONLY_INSTANCE:
+    }else if(getReadState() == READ_ONLY_INSTANCE){
         return readOnlyInstanceColor;
-        break;
-    default:
-        return EntityItemNew::getBodyColor();
     }
+    return EntityItemNew::getBodyColor();
 }
