@@ -36,7 +36,9 @@ signals:
 public slots:
     void themeChanged();
     void dockActionClicked();
-    void viewItemDestructed(int ID, ViewItem* viewItem);
+
+    void viewItemConstructed(int ID);
+    void viewItemDestructed(int ID);
 
 private:
     void setupHeaderLayout();

@@ -78,6 +78,7 @@ void DockWidget::addItem(DockWidgetItem* item)
     if (isActionItem) {
         DockWidgetActionItem* actionItem = (DockWidgetActionItem*)item;
         actionItem->setProperty("kind", actionItem->getAction()->text());
+        childrenIDHash[actionItem->getProperty("ID")] = actionItem;
         connect(actionItem, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
         connect(actionItem, SIGNAL(hoverEnter(int)), toolActionController, SIGNAL(actionHoverEnter(int)));
         connect(actionItem, SIGNAL(hoverLeave(int)), toolActionController, SIGNAL(actionHoverLeave(int)));
@@ -88,6 +89,7 @@ void DockWidget::addItem(DockWidgetItem* item)
         connect(parentItem, SIGNAL(hoverLeave(int)), toolActionController, SIGNAL(actionHoverLeave(int)));
         QToolBar* toolbar = new QToolBar(this);
         toolbar->addWidget(item);
+        childrenIDHash[parentItem->getProperty("ID")] = parentItem;
         itemToolbarHash[item] = toolbar;
         mainLayout->addWidget(toolbar);
     } else {
@@ -251,13 +253,28 @@ void DockWidget::dockActionClicked()
 
 
 /**
+ * @brief DockWidget::viewItemConstructed
+ * @param ID
+ */
+void DockWidget::viewItemConstructed(int ID)
+{
+    // TODO - Only want to check this for the Hardware dock
+   /* if (childrenIDHash.contains(ID)) {
+        chil
+    }*/
+}
+
+
+/**
  * @brief ToolbarWidgetNew::viewItem_Destructed
  * @param ID
- * @param viewItem
  */
-void DockWidget::viewItemDestructed(int ID, ViewItem* viewItem)
+void DockWidget::viewItemDestructed(int ID)
 {
-
+    if (childrenIDHash.contains(ID)) {
+        DockWidgetItem* item = childrenIDHash.take(ID);
+        delete item;
+    }
 }
 
 

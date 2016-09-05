@@ -45,7 +45,6 @@ void DockTabWidget::themeChanged()
     setStyleSheet(theme->getToolBarStyleSheet() +
                   "QWidget{ color:" + theme->getTextColorHex() + ";}"
                   "QToolButton{ border-radius: 2px; background:" + theme->getAltBackgroundColorHex() + ";}"
-                  //"QToolButton::checked:!hover{ border-bottom: 0px; background:" + theme->getBackgroundColorHex() + ";}"
                   "QToolButton::checked:!hover{ background:" + theme->getBackgroundColorHex() + ";}"
                   "QStackedWidget{ border: 0px; background:" + theme->getBackgroundColorHex() + ";}");
 
@@ -405,7 +404,6 @@ void DockTabWidget::refreshDock()
     } else {
         // TODO - update the hardware dock
         // clear then re-populate?
-
     }
 }
 
