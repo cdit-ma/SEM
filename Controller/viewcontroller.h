@@ -115,6 +115,7 @@ signals:
     void vc_exportSnippet(QList<int> IDs);
     void vc_importSnippet(QList<int> IDs, QString fileName, QString fileData);
 public slots:
+    void projectOpened(bool success);
 
     void gotExportedSnippet(QString snippetData);
     void askQuestion(QString title, QString message, int ID);

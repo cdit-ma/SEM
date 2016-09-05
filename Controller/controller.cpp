@@ -283,6 +283,10 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::vc_importProjects, this, &NewController::importProjects);
     connect(view, &ViewController::vc_openProject, this, &NewController::openProject);
 
+    connect(this, &NewController::controller_OpenFinished, view, &ViewController::projectOpened);
+
+
+
 
     connect(view, &ViewController::vc_setData, this, &NewController::setData);
     connect(view, &ViewController::vc_removeData, this, &NewController::removeData);
@@ -1116,6 +1120,7 @@ void NewController::openProject(QString filePath, QString xmlData)
 {
     lock.lockForWrite();
     OPENING_PROJECT = true;
+    emit showProgress(true, "Opening Project");
     bool result = _newImportGraphML(xmlData, getModel());
     OPENING_PROJECT = false;
     lock.unlock();
@@ -1131,6 +1136,7 @@ void NewController::openProject(QString filePath, QString xmlData)
     emit showProgress(false);
 
     emit controller_ActionFinished(result, "Project couldn't be opened.");
+    emit controller_OpenFinished(result);
 }
 
 

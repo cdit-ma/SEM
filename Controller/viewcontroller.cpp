@@ -268,6 +268,11 @@ void ViewController::setController(NewController *c)
     controller = c;
 }
 
+void ViewController::projectOpened(bool success)
+{
+    this->fitAllViews();
+}
+
 void ViewController::gotExportedSnippet(QString snippetData)
 {
     if(selectionController){
@@ -495,6 +500,7 @@ bool ViewController::canImportSnippet()
     }
     return false;
 }
+
 
 QVector<ViewItem *> ViewController::getOrderedSelection(QList<int> selection)
 {
@@ -750,39 +756,39 @@ bool ViewController::_saveAsProject()
 bool ViewController::_closeProject()
 {
     if(isControllerReady()){
-        if(controller){
-            if(controller->isProjectSaved()){
-                QString filePath = controller->getProjectPath();
+        if(controller && controller->isProjectSaved()){
+            QString filePath = controller->getProjectPath();
 
-                if(filePath == ""){
-                    filePath = "Untitled Project";
-                }
+            if(filePath == ""){
+                filePath = "Untitled Project";
+            }
 
-                //Ask User to confirm save?
-                QMessageBox msgBox(QMessageBox::Question, "Save Changes",
-                                   "Do you want to save the changes made to '" + filePath + "' ?",
-                                   QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+            //Ask User to confirm save?
+            QMessageBox msgBox(QMessageBox::Question, "Save Changes",
+                               "Do you want to save the changes made to '" + filePath + "' ?",
+                               QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 
 
-                msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
-                msgBox.setButtonText(QMessageBox::Yes, "Save");
-                msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
+            msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
+            msgBox.setButtonText(QMessageBox::Yes, "Save");
+            msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
 
-                int buttonPressed = msgBox.exec();
+            int buttonPressed = msgBox.exec();
 
-                if(buttonPressed == QMessageBox::Yes){
-                    bool saveSuccess = _saveProject();
-                    // if failed to save, do nothing
-                    if(!saveSuccess){
-                        return false;
-                    }
-                }else if(buttonPressed == QMessageBox::No){
-                    //Do Nothing
-                }else{
+            if(buttonPressed & QMessageBox::Yes){
+                bool saveSuccess = _saveProject();
+                // if failed to save, do nothing
+                if(!saveSuccess){
                     return false;
                 }
+            }else if(buttonPressed & QMessageBox::No){
+                //Do Nothing
+            }else if(buttonPressed & QMessageBox::Cancel){
+                qCritical() << "Cancelled";
+                return false;
             }
         }
+        qCritical() << "_teardownProject!";
         _teardownProject();
         return true;
     }else{
@@ -1006,7 +1012,9 @@ void ViewController::closeProject()
 
 void ViewController::closeMEDEA()
 {
+    qCritical() << "CLOSE MEDEA";
     if(_closeProject()){
+        qCritical() << "Teardown";
         //Destruct main window
         MedeaWindowManager::teardown();
     }

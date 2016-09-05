@@ -129,7 +129,7 @@ void MedeaWindowNew::setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool ma
 
 
 
-void MedeaWindowNew::closeEvent(QCloseEvent *)
+void MedeaWindowNew::closeEvent(QCloseEvent * event)
 {
     MedeaWindowManager::destructWindow(this);
 }

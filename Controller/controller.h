@@ -234,6 +234,7 @@ signals:
     void showProgress(bool, QString = "");
     void controller_ActionProgressChanged(int percent, QString action="");
     void controller_ActionFinished(bool actionSucceeded = true, QString errorCode = "");
+    void controller_OpenFinished(bool success);
 
     void controller_AskQuestion(QString title, QString message, int ID=-1);
     void controller_GotQuestionAnswer();

@@ -135,6 +135,10 @@ private:
 
 protected:
     void resizeEvent(QResizeEvent *);
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // MEDEAMAINWINDOW_H

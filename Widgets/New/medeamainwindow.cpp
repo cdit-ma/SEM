@@ -1021,3 +1021,11 @@ void MedeaMainWindow::resizeEvent(QResizeEvent* e)
         applicationToolbar->setFixedHeight(centralWidget()->rect().height());
     }
 }
+
+void MedeaMainWindow::closeEvent(QCloseEvent *event)
+{
+    if(viewController){
+        viewController->closeMEDEA();
+        event->ignore();
+    }
+}
