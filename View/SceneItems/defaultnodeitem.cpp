@@ -89,9 +89,9 @@ void DefaultNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *o
 
     if(state > RS_BLOCK){
         painter->setPen(Qt::NoPen);
-        painter->setBrush(getBodyColor());
+        painter->setBrush(getBaseBodyColor());
         painter->drawRect(bodyRect());
-        painter->setBrush(getBodyColor().darker(105));
+        painter->setBrush(getBaseBodyColor().darker(105));
         painter->drawRect(headerRect());
         painter->setBrush(Qt::NoBrush);
     }
@@ -146,7 +146,7 @@ void DefaultNodeItem::setupBrushes()
     NodeItemNew* parentNodeItem = getParentNodeItem();
     if(parentNodeItem && parentNodeItem->getNodeItemKind() == DEFAULT_ITEM){
         DefaultNodeItem* parent = (DefaultNodeItem*)parentNodeItem;
-        bodyColor = parent->getBodyColor().darker(110);
+        bodyColor = parent->getBaseBodyColor().darker(110);
     }
     setBodyColor(bodyColor);
 }

@@ -48,7 +48,7 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
             renderText(painter, lod, labelRect(), getData("label").toString(), 10);
 
             //Paint expanded right poly
-            painter->setBrush(getBodyColor());
+            painter->setBrush(getBaseBodyColor());
             painter->setPen(Qt::NoPen);
             painter->drawPolygon(getRightPolyExpanded());
 
@@ -60,15 +60,15 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
         } else {
             painter->save();
             //Paint non expanded right poly
-            painter->setBrush(getBodyColor());
+            painter->setBrush(getBaseBodyColor());
             painter->setPen(Qt::NoPen);
             painter->drawPolygon(getRightPoly());
             painter->restore();
         }
-        painter->setBrush(getBodyColor().darker(120));
+        painter->setBrush(getBaseBodyColor().darker(120));
         painter->drawPolygon(getLeftPoly());
 
-        painter->setBrush(getBodyColor());
+        painter->setBrush(getBaseBodyColor());
         painter->drawRect(subIconRect());
 
         paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", "Database");

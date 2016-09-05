@@ -44,14 +44,14 @@ void NodeItemContainer::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->save();
         if(isExpanded()){
             painter->save();
-            painter->setBrush(getBodyColor());
+            painter->setBrush(getBaseBodyColor());
             painter->setPen(Qt::NoPen);
             painter->drawRect(mainRect());
             painter->restore();
         }
 
         painter->setPen(Qt::NoPen);
-        painter->setBrush(getBodyColor().darker(110));
+        painter->setBrush(getBaseBodyColor().darker(110));
         painter->drawRect(headerRect());
         painter->save();
 

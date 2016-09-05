@@ -102,7 +102,7 @@ void HardwareNodeItem::setupBrushes()
 
     NodeItemNew* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
-        bodyColor = parentNodeItem->getBodyColor().darker(110);
+        bodyColor = parentNodeItem->getBaseBodyColor().darker(110);
     }
     setBodyColor(bodyColor);
 }
@@ -118,10 +118,10 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         painter->setClipRect(option->exposedRect);
         painter->setPen(Qt::NoPen);
         if(isExpanded()){
-            painter->setBrush(getBodyColor());
+            painter->setBrush(getBaseBodyColor());
             painter->drawRoundedRect(rightRect(),cornerRadius, cornerRadius);
         }
-        painter->setBrush(getBodyColor().darker(120));
+        painter->setBrush(getBaseBodyColor().darker(120));
         painter->drawRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
 
         if(isExpanded()){

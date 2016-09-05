@@ -39,6 +39,7 @@ public:
     virtual QPointF getSceneEdgeTermination(bool left) const = 0;
 
 
+    QColor getBaseBodyColor() const;
     virtual QColor getBodyColor() const;
     void setBodyColor(QColor color);
 

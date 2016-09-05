@@ -78,9 +78,9 @@ void AttributeNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->save();
         painter->setPen(Qt::NoPen);
 
-        painter->setBrush(getBodyColor());
+        painter->setBrush(getBaseBodyColor());
         painter->drawRect(mainRect());
-        painter->setBrush(getBodyColor().lighter(110));
+        painter->setBrush(getBaseBodyColor().lighter(110));
         painter->drawRect(bottomLabelRect());
 
         painter->setPen(Qt::black);

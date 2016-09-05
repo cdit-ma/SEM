@@ -25,7 +25,7 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
     //Add the edge to the parent
     if(parent){
         parent->addChildEdge(this);
-        pen.setColor(parent->getBodyColor().darker(300));
+        pen.setColor(parent->getBaseBodyColor().darker(300));
     }
 
     if(edgeViewItem->getEdgeKind() == Edge::EC_DATA){
@@ -294,7 +294,7 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     }
 
 
-    painter->setBrush(getBodyColor());
+    painter->setBrush(getBaseBodyColor());
 
     if(state > RS_BLOCK){
         pen.setStyle(Qt::SolidLine);

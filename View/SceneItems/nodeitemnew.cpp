@@ -123,7 +123,7 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
         if(childNodes.count() == 1){
             emit gotChildNodes(true);
         }
-        nodeItem->setBodyColor(getBodyColor().darker(110));
+        nodeItem->setBodyColor(getBaseBodyColor().darker(110));
 
         nodeItem->setVisible(isExpanded());
         childPosChanged();
@@ -218,7 +218,7 @@ void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
         edgeItem->setParentItem(this);
         childEdges[ID] = edgeItem;
 
-        edgeItem->setBodyColor(getBodyColor().darker(120));
+        edgeItem->setBodyColor(getBaseBodyColor().darker(120));
 
         connect(edgeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
         edgeItem->setVisible(isExpanded());
@@ -742,14 +742,14 @@ void NodeItemNew::setUpColors()
 
     //Brown
     QColor blendColor = QColor(222,184,135);
-    readOnlyDefinitionColor = EntityItemNew::getBodyColor();
+    readOnlyDefinitionColor = EntityItemNew::getBaseBodyColor();
     readOnlyDefinitionColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * readOnlyDefinitionColor.blue());
     readOnlyDefinitionColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * readOnlyDefinitionColor.red());
     readOnlyDefinitionColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * readOnlyDefinitionColor.green());
 
     //Blue
     blendColor = QColor(222,184,135);
-    readOnlyInstanceColor = EntityItemNew::getBodyColor();
+    readOnlyInstanceColor = EntityItemNew::getBaseBodyColor();
     readOnlyInstanceColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * readOnlyInstanceColor.blue());
     readOnlyInstanceColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * readOnlyInstanceColor.red());
     readOnlyInstanceColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * readOnlyInstanceColor.green());
@@ -870,7 +870,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->setClipRect(gridRect());
 
         QPen linePen;
-        linePen.setColor(getBodyColor().darker(150));
+        linePen.setColor(getBaseBodyColor().darker(150));
         linePen.setStyle(Qt::DotLine);
         linePen.setWidthF(.5);
 
@@ -1105,7 +1105,7 @@ void NodeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     EntityItemNew::mouseDoubleClickEvent(event);
 }
 
-QColor NodeItemNew::getBodyColor() const
+QColor NodeItemNew::getBaseBodyColor() const
 {
     switch(getReadState()){
     case READ_ONLY_DEFINITION:
@@ -1115,6 +1115,6 @@ QColor NodeItemNew::getBodyColor() const
         return readOnlyInstanceColor;
         break;
     default:
-        return EntityItemNew::getBodyColor();
+        return EntityItemNew::getBaseBodyColor();
     }
 }

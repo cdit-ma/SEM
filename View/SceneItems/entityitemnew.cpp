@@ -660,7 +660,7 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         if(isSelected()){
             brush.setColor(getPen().color());
         }else{
-            brush.setColor(getBodyColor());
+            brush.setColor(getBaseBodyColor());
             //brush.setColor(Theme::theme()->getMainImageColor(getIconPath()));
         }
         painter->setBrush(brush);
@@ -824,9 +824,18 @@ void EntityItemNew::paintPixmapRect(QPainter* painter, QString imageAlias, QStri
     painter->restore();
 }
 
-QColor EntityItemNew::getBodyColor() const
+QColor EntityItemNew::getBaseBodyColor() const
 {
     return bodyColor;
+}
+
+QColor EntityItemNew::getBodyColor() const
+{
+    if(isHighlighted()){
+        return QColor(Qt::red);
+    } else {
+        return bodyColor;
+    }
 }
 
 void EntityItemNew::setBodyColor(QColor color)

@@ -45,12 +45,12 @@ void EventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
         //Draw port poly
         painter->setPen(Qt::NoPen);
-        painter->setBrush(getBodyColor());
+        painter->setBrush(getBaseBodyColor());
         painter->drawPolygon(mainIconPoly());
 
         //Draw sub-icon polys
         painter->save();
-        painter->setBrush(getBodyColor().darker(110));
+        painter->setBrush(getBaseBodyColor().darker(110));
         if(getData("deployed").toBool()){
             painter->drawPolygon(topIconPoly());
         }

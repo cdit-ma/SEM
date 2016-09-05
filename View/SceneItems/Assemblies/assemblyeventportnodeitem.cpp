@@ -61,11 +61,11 @@ void AssemblyEventPortNodeItem::paint(QPainter *painter, const QStyleOptionGraph
 
 
     if(state > RS_BLOCK){
-        painter->setBrush(getBodyColor());
+        painter->setBrush(getBaseBodyColor());
         painter->setPen(Qt::NoPen);
         painter->drawRect(currentRect());
 
-        painter->setBrush(getBodyColor().darker(110));
+        painter->setBrush(getBaseBodyColor().darker(110));
         painter->drawRect(textRect());
         painter->setPen(Qt::black);
 
