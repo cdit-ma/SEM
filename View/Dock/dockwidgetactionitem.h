@@ -37,6 +37,7 @@ private:
     void setupLayout();
 
     QAction* dockAction;
+    int dockActionID;
     bool subActionRequired;
 
     QLabel* textLabel;

@@ -51,6 +51,10 @@ public:
     void addEdge(int dstID, Edge::EDGE_CLASS edgeKind=Edge::EC_UNDEFINED);
     void addConnectedChildNode(int dstID, QString kind, QPointF position);
 
+signals:
+    void actionHoverEnter(int ID);
+    void actionHoverLeave(int ID);
+
 private slots:
     void themeChanged();
     void viewItem_Constructed(ViewItem* viewItem);

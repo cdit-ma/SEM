@@ -24,6 +24,8 @@ public:
 signals:
     void textChanged();
     void displayedTextChanged(QString);
+    void hoverEnter(int ID = -1);
+    void hoverLeave(int ID = -1);
 
 public slots:
     void themeChanged();

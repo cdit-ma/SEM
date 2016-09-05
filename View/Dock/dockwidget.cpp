@@ -33,10 +33,12 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     mainLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
     mainLayout->setSpacing(5);
+    mainLayout->setMargin(0);
 
     alignLayout = new QVBoxLayout();
     alignLayout->addWidget(infoLabel);
     alignLayout->addLayout(mainLayout);
+    alignLayout->setMargin(0);
     alignLayout->addStretch();
 
     mainWidget = new QWidget(this);
@@ -77,8 +79,13 @@ void DockWidget::addItem(DockWidgetItem* item)
         DockWidgetActionItem* actionItem = (DockWidgetActionItem*)item;
         actionItem->setProperty("kind", actionItem->getAction()->text());
         connect(actionItem, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
+        connect(actionItem, SIGNAL(hoverEnter(int)), toolActionController, SIGNAL(actionHoverEnter(int)));
+        connect(actionItem, SIGNAL(hoverLeave(int)), toolActionController, SIGNAL(actionHoverLeave(int)));
         mainLayout->addWidget(actionItem);        
     } else if (isParentActionItem) {
+        DockWidgetParentActionItem* parentItem = (DockWidgetParentActionItem*)item;
+        connect(parentItem, SIGNAL(hoverEnter(int)), toolActionController, SIGNAL(actionHoverEnter(int)));
+        connect(parentItem, SIGNAL(hoverLeave(int)), toolActionController, SIGNAL(actionHoverLeave(int)));
         QToolBar* toolbar = new QToolBar(this);
         toolbar->addWidget(item);
         itemToolbarHash[item] = toolbar;
@@ -216,15 +223,17 @@ void DockWidget::themeChanged()
     Theme* theme = Theme::theme();
     setStyleSheet("QWidget#DOCKWIDGET_MAIN{ background: rgba(0,0,0,0); }"
                   "QScrollArea {"
-                  "border: 0px;"
-                  "background:" + theme->getAltBackgroundColorHex() + ";"
+                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                  //"border-top: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                  "background:" + theme->getBackgroundColorHex() + ";"
                   "}");
 
     if (backButton) {
         backButton->setIcon(theme->getIcon("Actions", "Arrow_Back"));
         backButton->setStyleSheet(theme->getToolBarStyleSheet() +
                                   "QToolButton {"
-                                  "background:" + theme->getBackgroundColorHex() + ";"
+                                  "background:" + theme->getAltBackgroundColorHex() + ";"
+                                  //"background:" + theme->getBackgroundColorHex() + ";"
                                   "border-radius: 2px;"
                                   "}");
     }
@@ -277,7 +286,7 @@ void DockWidget::setupHeaderLayout()
     descriptionLabel->setWordWrap(true);
     descriptionLabel->setAlignment(Qt::AlignCenter);
     descriptionLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    descriptionLabel->setStyleSheet("margin: 5px 0px 0px 0px; padding: 0px;");
+    descriptionLabel->setStyleSheet("margin: 10px 0px 0px 0px; padding: 0px;");
     descriptionLabel->setFont(QFont(font().family(), 8));
 
     kindLabel = new DockWidgetItem("This is a description for kind", this);
