@@ -13,6 +13,7 @@ class NodeItemNew: public EntityItemNew
     Q_OBJECT
 public:
     enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM, HARDWARE_ITEM, CONTAINER_ELEMENT_ITEM};
+    enum NODE_READ_STATE{NORMAL, READ_ONLY_INSTANCE, READ_ONLY_DEFINITION};
     NodeItemNew(NodeViewItem *viewItem, NodeItemNew* parentItem, KIND kind);
     ~NodeItemNew();
 
@@ -20,6 +21,8 @@ public:
     KIND getNodeItemKind();
 
     Node::NODE_KIND getNodeKind() const;
+
+    NODE_READ_STATE getReadState() const;
 
 
     virtual void setRightJustified(bool isRight);
@@ -152,6 +155,8 @@ public slots:
     virtual void dataRemoved(QString keyName);
     virtual void childPosChanged();
 private:
+    void setUpColors();
+
     void resizeToChildren();
     int getResizeArrowRotation(RECT_VERTEX vert) const;
 
@@ -160,6 +165,7 @@ private:
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
 
+    NODE_READ_STATE readState;
 
     qreal minimumWidth;
     qreal minimumHeight;
@@ -199,6 +205,9 @@ private:
     QVector<QLineF> gridLines_Minor_Vertical;
     QVector<QLineF> gridLines_Major_Vertical;
 
+    QColor readOnlyInstanceColor;
+    QColor readOnlyDefinitionColor;
+
     QString primaryTextKey;
     QString secondaryTextKey;
 
@@ -224,5 +233,9 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
 
+
+    // EntityItemNew interface
+public:
+    QColor getBodyColor() const;
 };
 #endif
