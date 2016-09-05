@@ -19,6 +19,9 @@ public:
     void setToggledState(bool toggled);
     DOCKITEM_KIND getItemKind();
 
+    void setProperty(const char *name, const QVariant &value);
+    QVariant getProperty(const char *name);
+
 public slots:
     void actionChanged();
     void themeChanged();

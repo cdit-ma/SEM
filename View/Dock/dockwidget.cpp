@@ -78,14 +78,14 @@ void DockWidget::addItem(DockWidgetItem* item)
     if (isActionItem) {
         DockWidgetActionItem* actionItem = (DockWidgetActionItem*)item;
         actionItem->setProperty("kind", actionItem->getAction()->text());
-        childrenIDHash[actionItem->getProperty("ID")] = actionItem;
+        childrenIDHash[actionItem->getProperty("ID").toInt()] = actionItem;
         connect(actionItem, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
         mainLayout->addWidget(actionItem);        
     } else if (isParentActionItem) {
         DockWidgetParentActionItem* parentItem = (DockWidgetParentActionItem*)item;
         QToolBar* toolbar = new QToolBar(this);
         toolbar->addWidget(item);
-        childrenIDHash[parentItem->getProperty("ID")] = parentItem;
+        childrenIDHash[parentItem->getProperty("ID").toInt()] = parentItem;
         itemToolbarHash[item] = toolbar;
         mainLayout->addWidget(toolbar);
     } else {
@@ -260,14 +260,17 @@ void DockWidget::dockActionClicked()
 void DockWidget::viewItemConstructed(int ID)
 {
     // TODO - Only want to check this for the Hardware dock
-   /* if (childrenIDHash.contains(ID)) {
-        chil
-    }*/
+    if (!childrenIDHash.contains(ID)) {
+        QAction* itemAction = toolActionController->getNodeAction(ID)->constructSubAction(false);
+        DockWidgetActionItem* dockItem = new DockWidgetActionItem(itemAction, this);
+        dockItem->setProperty("ID", ID);
+        addItem(dockItem);
+    }
 }
 
 
 /**
- * @brief ToolbarWidgetNew::viewItem_Destructed
+ * @brief ToolbarWidgetNew::viewItemDestructed
  * @param ID
  */
 void DockWidget::viewItemDestructed(int ID)

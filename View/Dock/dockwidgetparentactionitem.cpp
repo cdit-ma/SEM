@@ -93,6 +93,30 @@ DockWidgetItem::DOCKITEM_KIND DockWidgetParentActionItem::getItemKind()
 
 
 /**
+ * @brief DockWidgetParentActionItem::setProperty
+ * @param name
+ * @param value
+ */
+void DockWidgetParentActionItem::setProperty(const char *name, const QVariant &value)
+{
+    if (dockAction) {
+        dockAction->setProperty(name, value);
+    }
+}
+
+
+/**
+ * @brief DockWidgetParentActionItem::getProperty
+ * @param name
+ * @return
+ */
+QVariant DockWidgetParentActionItem::getProperty(const char *name)
+{
+    return dockAction->property(name);
+}
+
+
+/**
  * @brief DockWidgetParentActionItem::actionChanged
  */
 void DockWidgetParentActionItem::actionChanged()
