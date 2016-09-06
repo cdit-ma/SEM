@@ -93,6 +93,8 @@ void DockTitleBarWidget::setupToolBar()
     protectAction->setCheckable(true);
     protectAction->setVisible(false);
     hideAction = addAction("Hide Window");
+    hideAction->setCheckable(true);
+    hideAction->setChecked(true);
     hideAction->setVisible(false);
 
     setToolBarIconSize(16);

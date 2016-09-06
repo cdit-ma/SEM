@@ -8,6 +8,7 @@
 #include "medeatooldockwidget.h"
 #include "medeaviewdockwidget.h"
 
+#include "viewmanagerwidget.h"
 #include "medeasubwindow.h"
 #include "medeamainwindow.h"
 #include "medeaviewwindow.h"
@@ -110,6 +111,7 @@ MedeaWindowManager::MedeaWindowManager():QObject(0)
     activeViewDockWidget = 0;
     mainWindow = 0;
     centralWindow = 0;
+    viewManagerWidget = new ViewManagerWidget(this);
 }
 
 MedeaWindowManager::~MedeaWindowManager()
@@ -131,6 +133,11 @@ MedeaWindowManager::~MedeaWindowManager()
     }
     _destructWindow(centralWindow);
     _destructWindow(mainWindow);
+}
+
+ViewManagerWidget *MedeaWindowManager::getViewManagerGUI()
+{
+    return viewManagerWidget;
 }
 
 MedeaWindowNew *MedeaWindowManager::getActiveWindow()
@@ -254,6 +261,8 @@ void MedeaWindowManager::addWindow(MedeaWindowNew *window)
         int ID = window->getID();
         if(!windows.contains(ID)){
             windows[ID] = window;
+
+            emit windowConstructed(window);
         }else{
             qCritical() << "MedeaWindowManager::addWindow() " << ID << " - Got duplicated MedeaWindow ID.";
         }
@@ -279,11 +288,14 @@ void MedeaWindowManager::addDockWidget(MedeaDockWidget *dockWidget)
         if(!dockWidgets.contains(ID)){
             if(dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
                 viewDockIDs.append(ID);
+
+                emit viewDockWidgetConstructed(dockWidget);
             }
+
+
             dockWidgets[ID] = dockWidget;
-            connect(dockWidget, SIGNAL(popOutWidget()), this, SLOT(dockWidget_PopOut()));
-            connect(dockWidget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximize(bool)));
-            connect(dockWidget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Close()));
+            connect(dockWidget, &MedeaDockWidget::req_PopOut, this, &MedeaWindowManager::dockWidget_PopOut);
+            connect(dockWidget, &MedeaDockWidget::req_Close, this, &MedeaWindowManager::dockWidget_Close);
         }else{
             qCritical() << "MedeaWindowManager::addDockWidget() - Got duplicated MedeaDockWidget ID.";
         }
@@ -303,10 +315,8 @@ void MedeaWindowManager::removeDockWidget(MedeaDockWidget *dockWidget)
             if(dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
                 viewDockIDs.removeAll(ID);
             }
-
-            disconnect(dockWidget, SIGNAL(popOutWidget()), this, SLOT(dockWidget_PopOut()));
-            disconnect(dockWidget, SIGNAL(maximizeWidget(bool)), this, SLOT(dockWidget_Maximize(bool)));
-            disconnect(dockWidget, SIGNAL(closeWidget()), this, SLOT(dockWidget_Close()));
+            disconnect(dockWidget, &MedeaDockWidget::req_PopOut, this, &MedeaWindowManager::dockWidget_PopOut);
+            disconnect(dockWidget, &MedeaDockWidget::req_Close, this, &MedeaWindowManager::dockWidget_Close);
             dockWidgets.remove(ID);
 
             QWidget* widget = dockWidget->parentWidget();
@@ -320,10 +330,9 @@ void MedeaWindowManager::removeDockWidget(MedeaDockWidget *dockWidget)
     }
 }
 
-void MedeaWindowManager::dockWidget_Close()
+void MedeaWindowManager::dockWidget_Close(int ID)
 {
-    MedeaDockWidget* dockWidget = qobject_cast<MedeaDockWidget*>(sender());
-
+    MedeaDockWidget* dockWidget = dockWidgets.value(ID, 0);
     if(dockWidget){
         MedeaWindowNew* sourceWindow = dockWidget->getSourceWindow();
         MedeaWindowNew* currentWindow = dockWidget->getCurrentWindow();
@@ -344,22 +353,11 @@ void MedeaWindowManager::dockWidget_Close()
     }
 }
 
-void MedeaWindowManager::dockWidget_PopOut()
+void MedeaWindowManager::dockWidget_PopOut(int ID)
 {
-    MedeaDockWidget* dockWidget = qobject_cast<MedeaDockWidget*>(sender());
+    MedeaDockWidget* dockWidget = dockWidgets.value(ID, 0);
     if(dockWidget){
         showPopOutDialog(dockWidget);
-    }
-}
-
-void MedeaWindowManager::dockWidget_Maximize(bool maximize)
-{
-    MedeaDockWidget* dockWidget = qobject_cast<MedeaDockWidget*>(sender());
-    if(dockWidget){
-        MedeaWindowNew* window = dockWidget->getCurrentWindow();
-        if(window){
-            window->setDockWidgetMaximized(dockWidget, maximize);
-        }
     }
 }
 

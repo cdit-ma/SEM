@@ -3,6 +3,8 @@
 #include "medeatooldockwidget.h"
 #include "selectioncontroller.h"
 #include "medeanodeviewdockwidget.h"
+#include "viewmanagerwidget.h"
+
 #include "../../View/theme.h"
 #include "../../Controller/settingscontroller.h"
 #include "../../Controller/settingscontroller.h"
@@ -503,6 +505,7 @@ void MedeaMainWindow::setupTools()
     setupDock();
     setupToolBar();
     setupDataTable();
+    setupWindowManager();
     setupMinimap();
 }
 
@@ -878,6 +881,14 @@ void MedeaMainWindow::setupMinimap()
 
     //Check visibility state.
     dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_MINIMAP_VISIBLE).toBool());
+    addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+}
+
+void MedeaMainWindow::setupWindowManager()
+{
+    MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("View Manager");
+    dockWidget->setWidget(MedeaWindowManager::manager()->getViewManagerGUI());
+    dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
 }
 

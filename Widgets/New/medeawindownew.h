@@ -27,19 +27,25 @@ public:
     virtual void addDockWidget(Qt::DockWidgetArea area, QDockWidget* widget, Qt::Orientation orientation);
     void removeDockWidget(QDockWidget* widget);
 
-    void setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool maximized);
 
     QMenu *createPopupMenu();
 
+signals:
+    void dockWidgetAdded(MedeaDockWidget* widget);
 private slots:
     void showContextMenu(const QPoint &point);
 
+    void setDockWidgetMaximized(int ID, bool maximized);
+    void setDockWidgetVisibility(int ID, bool visible);
+
 
 private:
+    void updateActions();
 
+    QList<int> previouslyVisibleDockIDs;
     WindowType windowType;
 
-    QList<MedeaDockWidget*> currentDockWidgets;
+    QHash<int, MedeaDockWidget*> currentDockWidgets;
     QList<MedeaDockWidget*> ownedDockWidgets;
 
 protected:

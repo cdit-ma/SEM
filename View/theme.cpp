@@ -694,9 +694,10 @@ QString Theme::getToolBarStyleSheet()
            "QToolButton:pressed {"
            "background:" % getPressedColorHex() % ";"
            "}"
-           "QToolButton::checked {"
+           /* GG
+            * "QToolButton::checked {"
            "background:" % getHighlightColorHex() % ";"
-           "}"
+           "}"*/
            "QToolButton:disabled {"
            "background:" % getDisabledBackgroundColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
@@ -1096,10 +1097,11 @@ void Theme::setupIcons()
     setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
     setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
     setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
-    setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
+    setIconToggledImage("Actions", "Maximize", "Actions", "Minimize");
     setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
-    setIconToggledImage("Actions", "Invisible", "Actions", "Visible");
+    setIconToggledImage("Actions", "Visible", "Actions", "Invisible");
 }
+
 
 void Theme::resetTheme(VIEW_THEME themePreset)
 {

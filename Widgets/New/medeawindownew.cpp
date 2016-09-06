@@ -36,12 +36,14 @@ MedeaWindowNew::~MedeaWindowNew()
         MedeaDockWidget* dockWidget = ownedDockWidgets.takeFirst();
         dockWidget->setSourceWindow(0);
     }
+
     //Clean up current dock widget.
     while(!currentDockWidgets.isEmpty()){
-        MedeaDockWidget* dockWidget = currentDockWidgets.takeFirst();
+        int ID = currentDockWidgets.keys().first();
+        MedeaDockWidget* dockWidget = currentDockWidgets.take(ID);
         if(dockWidget){
             //This should cause MedeaWindowManager to shutdown the widget.
-            emit dockWidget->closeWidget();
+            dockWidget->close();
         }
     }
 }
@@ -53,7 +55,7 @@ bool MedeaWindowNew::hasDockWidgets()
 
 QList<MedeaDockWidget *> MedeaWindowNew::getDockWidgets()
 {
-    return currentDockWidgets;
+    return currentDockWidgets.values();
 }
 
 int MedeaWindowNew::getID()
@@ -80,29 +82,44 @@ void MedeaWindowNew::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget,
 {
     MedeaDockWidget* dockWidget = qobject_cast<MedeaDockWidget*>(widget);
     if(dockWidget){
-        if(!currentDockWidgets.contains(dockWidget)){
+        int ID = dockWidget->getID();
+        if(!currentDockWidgets.contains(ID)){
             if(!dockWidget->getSourceWindow()){
                 //Set the Dock's source window to this.
                 dockWidget->setSourceWindow(this);
                 ownedDockWidgets.append(dockWidget);
             }
             dockWidget->setCurrentWindow(this);
-            currentDockWidgets.append(dockWidget);
+            currentDockWidgets.insert(ID, dockWidget);
+            updateActions();
+
+            connect(dockWidget, &MedeaDockWidget::req_Maximize, this, &MedeaWindowNew::setDockWidgetMaximized);
+            connect(dockWidget, &MedeaDockWidget::req_Visible, this, &MedeaWindowNew::setDockWidgetVisibility);
         }
     }
     QMainWindow::addDockWidget(area, widget, orientation);
+    if(dockWidget){
+        emit dockWidgetAdded(dockWidget);
+    }
 }
 
 void MedeaWindowNew::removeDockWidget(QDockWidget *widget)
 {
     MedeaDockWidget* dockWidget = qobject_cast<MedeaDockWidget*>(widget);
     if(dockWidget){
-        if(currentDockWidgets.contains(dockWidget)){
-            currentDockWidgets.removeAll(dockWidget);
+        int ID = dockWidget->getID();
+        if(currentDockWidgets.contains(ID)){
+            currentDockWidgets.remove(ID);
             //Unset current window
             dockWidget->setCurrentWindow(0);
         }
+        previouslyVisibleDockIDs.removeAll(ID);
+        updateActions();
+
+        disconnect(dockWidget, &MedeaDockWidget::req_Maximize, this, &MedeaWindowNew::setDockWidgetMaximized);
+        disconnect(dockWidget, &MedeaDockWidget::req_Visible, this, &MedeaWindowNew::setDockWidgetVisibility);
     }
+
     QMainWindow::removeDockWidget(widget);
 
     if(currentDockWidgets.isEmpty()){
@@ -110,17 +127,6 @@ void MedeaWindowNew::removeDockWidget(QDockWidget *widget)
     }
 }
 
-void MedeaWindowNew::setDockWidgetMaximized(MedeaDockWidget *dockwidget, bool maximized)
-{
-    foreach(MedeaDockWidget* dw, currentDockWidgets){
-        bool setVisible = !maximized;
-        dw->setVisible(setVisible);
-    }
-
-    if(maximized){
-        dockwidget->setVisible(maximized);
-    }
-}
 
 
 void MedeaWindowNew::closeEvent(QCloseEvent * event)
@@ -138,6 +144,78 @@ void MedeaWindowNew::showContextMenu(const QPoint & point)
 {
     createPopupMenu()->exec(mapToGlobal(point));
 }
+
+void MedeaWindowNew::setDockWidgetMaximized(int ID, bool maximized)
+{
+    if(maximized){
+        //Clear the old list of visible docks
+        previouslyVisibleDockIDs.clear();
+
+        foreach(MedeaDockWidget* dw, currentDockWidgets.values()){
+            int dID = dw->getID();
+            if(dw->isVisible()){
+                //if the dock was visible before maximizing, store it's ID
+                previouslyVisibleDockIDs.append(dID);
+            }
+
+            //The only item which should be visible should be the ID passed.
+            dw->setVisible(dID == ID);
+            //The only item which is maximized is the ID passed.
+            dw->setMaximizeToggled(dID == ID);
+        }
+    }else{
+        //Minimize
+
+        if(!previouslyVisibleDockIDs.contains(ID)){
+            //We should minimize this item
+            previouslyVisibleDockIDs.append(ID);
+        }
+
+
+        foreach(int ID, previouslyVisibleDockIDs){
+            MedeaDockWidget* dw = currentDockWidgets.value(ID, 0);
+            if(dw){
+                dw->setVisible(true);
+                dw->setMaximizeToggled(false);
+            }
+        }
+        previouslyVisibleDockIDs.clear();
+    }
+}
+
+void MedeaWindowNew::setDockWidgetVisibility(int ID, bool visible)
+{
+    //If we are hiding an item, remove it from the list of previously visible items.
+    if(!visible){
+        previouslyVisibleDockIDs.removeAll(ID);
+    }
+
+    MedeaDockWidget* dw = currentDockWidgets.value(ID, 0);
+    if(dw){
+        dw->setVisible(visible);
+    }
+    updateActions();
+}
+
+void MedeaWindowNew::updateActions()
+{
+
+    int visibleCount = 0;
+    MedeaDockWidget* maximizedDW = 0;
+    foreach(MedeaDockWidget* dw, currentDockWidgets.values()){
+        if(dw->isVisible()){
+            if(visibleCount == 0){
+                maximizedDW = dw;
+            }
+            visibleCount ++;
+        }
+        dw->setMaximizeToggled(false);
+    }
+    if(visibleCount == 1 && maximizedDW){
+        maximizedDW->setMaximizeToggled(true);
+    }
+}
+
 QMenu *MedeaWindowNew::createPopupMenu()
 {
     QMenu* menu = QMainWindow::createPopupMenu();

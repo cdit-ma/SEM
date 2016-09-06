@@ -210,7 +210,8 @@ HEADERS += \
     View/Dock/dockwidgetactionitem.h \
     View/Dock/dockwidgetparentactionitem.h \
     GUI/codebrowser.h \
-    Model/BehaviourDefinitions/workerprocess.h
+    Model/BehaviourDefinitions/workerprocess.h \
+    Widgets/New/viewmanagerwidget.h
 
 SOURCES += \
     main.cpp \
@@ -384,7 +385,8 @@ SOURCES += \
     View/Dock/dockwidgetactionitem.cpp \
     View/Dock/dockwidgetparentactionitem.cpp \
     GUI/codebrowser.cpp \
-    Model/BehaviourDefinitions/workerprocess.cpp
+    Model/BehaviourDefinitions/workerprocess.cpp \
+    Widgets/New/viewmanagerwidget.cpp
 
 RESOURCES += \
     resources.qrc

@@ -11,6 +11,7 @@ class MedeaViewDockWidget;
 class MedeaNodeViewDockWidget;
 class MedeaWindowNew;
 class ViewController;
+class ViewManagerWidget;
 
 class MedeaWindowManager : public QObject
 {
@@ -37,17 +38,20 @@ protected:
     MedeaWindowManager();
     ~MedeaWindowManager();
 signals:
+    void windowConstructed(MedeaWindowNew* window);
+    void viewDockWidgetConstructed(MedeaDockWidget* widget);
+
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevWidget = 0);
 public:
+    ViewManagerWidget* getViewManagerGUI();
     MedeaWindowNew* getActiveWindow();
     MedeaViewDockWidget* getActiveViewDockWidget();
     void setActiveDockWidget(MedeaDockWidget *dockWidget = 0);
     QList<MedeaViewDockWidget*> getViewDockWidgets();
     QList<MedeaNodeViewDockWidget*> getNodeViewDockWidgets();
 private slots:
-    void dockWidget_Close();
-    void dockWidget_PopOut();
-    void dockWidget_Maximize(bool maximize);
+    void dockWidget_Close(int ID);
+    void dockWidget_PopOut(int ID);
 
     void reparentDockWidget_ButtonPressed();
 
@@ -76,6 +80,8 @@ private:
     MedeaWindowNew* mainWindow;
     MedeaWindowNew* centralWindow;
     MedeaViewDockWidget* activeViewDockWidget;
+
+    ViewManagerWidget* viewManagerWidget;
     QHash<int, MedeaWindowNew*> windows;
     QHash<int, MedeaDockWidget*> dockWidgets;
     QList<int> viewDockIDs;

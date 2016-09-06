@@ -24,6 +24,7 @@ public:
     MedeaWindowNew* getSourceWindow();
 
 
+    DockTitleBarWidget* getTitleBar();
     void setTitleBarIconSize(int height);
     bool isProtected();
     void setProtected(bool protect);
@@ -39,6 +40,8 @@ public:
     void setActive(bool focussed);
     bool isActive();
 
+    void setMaximized(bool maximized);
+
     void setFocusEnabled(bool enabled);
     bool isFocusEnabled();
     void setCloseVisible(bool visible);
@@ -48,15 +51,26 @@ public:
     void setProtectVisible(bool visible);
 
     void setMaximizeToggled(bool toggled);
+    void setMaximizeEnabled(bool enabled);
     void setPopOutToggled(bool toggled);
     void setProtectToggled(bool toggled);
 
+    void close();
 signals:
-    void maximizeWidget(bool maximize);
-    void popOutWidget();
-    void closeWidget();
-
+    void req_Maximize(int ID, bool maximize);
+    void req_Visible(int ID, bool visible);
+    void req_PopOut(int ID);
+    void req_Close(int ID);
 private slots:
+    void title_Maximize(bool maximize);
+    void title_Visible(bool visible);
+    void title_PopOut(bool);
+    void title_Close(bool);
+
+
+    void _visibilityChanged(bool visible);
+
+
     void destruct();
     void themeChanged();
     void showContextMenu(const QPoint &point);
@@ -65,6 +79,7 @@ private:
     void updateActiveStyleSheet();
     void setActionVisible(DockTitleBarWidget::DOCK_ACTION action, bool visible);
     void setActionToggled(DockTitleBarWidget::DOCK_ACTION action, bool toggled);
+    void setActionEnabled(DockTitleBarWidget::DOCK_ACTION action, bool enabled);
     QAction* getAction(DockTitleBarWidget::DOCK_ACTION action);
 
     DockTitleBarWidget* titleBar;
