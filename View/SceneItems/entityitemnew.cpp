@@ -662,6 +662,7 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     RENDER_STATE state = getRenderState(lod);
 
     if(state == RS_BLOCK){
+        painter->save();
         painter->setClipRect(boundingRect());
         QBrush brush(Qt::SolidPattern);
 
@@ -669,11 +670,11 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
             brush.setColor(getPen().color());
         }else{
             brush.setColor(getBaseBodyColor());
-            //brush.setColor(Theme::theme()->getMainImageColor(getIconPath()));
         }
         painter->setBrush(brush);
         painter->setPen(Qt::NoPen);
         painter->drawPath(getElementPath(ER_SELECTION));
+        painter->restore();
     }
 
 
@@ -681,9 +682,6 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->setClipPath(getElementPath(ER_SELECTION));
     //Paint the pixmap!
     QPair<QString, QString> icon = getIconPath();
-    //painter->setBrush(Qt::red);
-    //painter->setPen(Qt::NoPen);
-    //painter->drawRect(getElementRect(ER_MAIN_ICON));
     paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
     painter->restore();
 }
@@ -695,7 +693,9 @@ QPen EntityItemNew::getPen()
     QColor penColor = defaultPen.color();
 
     if(isSelected()){
-        //pen.setStyle(Qt::SolidLine);
+        if(pen.style() == Qt::NoPen){
+            pen.setStyle(Qt::SolidLine);
+        }
         pen.setCosmetic(true);
         pen.setWidthF(SELECTED_LINE_WIDTH);
         penColor = Theme::theme()->getSelectedItemBorderColor();
