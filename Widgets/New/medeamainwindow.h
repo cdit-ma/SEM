@@ -77,6 +77,7 @@ private:
     void setupDock();
     void setupDataTable();
     void setupMinimap();
+    void setupWindowManager();
     void setupMainDockWidgetToggles();
 
     void setupJenkinsManager();

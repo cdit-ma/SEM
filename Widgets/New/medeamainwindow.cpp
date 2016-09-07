@@ -3,6 +3,8 @@
 #include "medeatooldockwidget.h"
 #include "selectioncontroller.h"
 #include "medeanodeviewdockwidget.h"
+#include "viewmanagerwidget.h"
+
 #include "../../View/theme.h"
 #include "../../Controller/settingscontroller.h"
 #include "../../Controller/settingscontroller.h"
@@ -195,18 +197,6 @@ void MedeaMainWindow::resetToolDockWidgets()
 void MedeaMainWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet(theme->getWindowStyleSheet() +
-                  theme->getViewStyleSheet() +
-                  theme->getMenuBarStyleSheet() +
-                  theme->getMenuStyleSheet() +
-                  theme->getToolBarStyleSheet() +
-                  theme->getDockWidgetStyleSheet() +
-                  theme->getPushButtonStyleSheet() +
-                  theme->getTabbedWidgetStyleSheet() +
-                  theme->getScrollBarStyleSheet() +
-                  "QToolButton{ padding: 4px; }");
-
-    innerWindow->setStyleSheet(theme->getWindowStyleSheet());
 
     QString menuStyle = theme->getMenuStyleSheet();
     viewController->getActionController()->menu_file->setStyleSheet(menuStyle);
@@ -306,7 +296,6 @@ void MedeaMainWindow::popupSearch()
     moveWidget(searchPopup);
     searchPopup->show();
     searchBar->setFocus();
-
     //showNotification("", "This is a testcdsce wcefcercrcrerr evrbtybdvftrhtynrb"); // wcefcercrcrerr evrbtybdvftrhtynrb wcefcercrcrerr evrbtybdvftrhtynrb!!!");
 }
 
@@ -503,6 +492,7 @@ void MedeaMainWindow::setupTools()
     setupDock();
     setupToolBar();
     setupDataTable();
+    setupWindowManager();
     setupMinimap();
 }
 
@@ -512,7 +502,7 @@ void MedeaMainWindow::setupTools()
  */
 void MedeaMainWindow::setupInnerWindow()
 {
-    innerWindow = MedeaWindowManager::constructCentralWindow();
+    innerWindow = MedeaWindowManager::constructCentralWindow("Main Window");
     setCentralWidget(innerWindow);
 
     nodeView_Interfaces = new NodeViewNew();
@@ -585,6 +575,7 @@ void MedeaMainWindow::setupInnerWindow()
     connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setVisible(bool)));
     connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setVisible(bool)));
     connect(restoreAspectsButton, SIGNAL(clicked(bool)), innerWindow, SLOT(resetDockWidgets()));
+
 }
 
 
@@ -881,6 +872,14 @@ void MedeaMainWindow::setupMinimap()
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
 }
 
+void MedeaMainWindow::setupWindowManager()
+{
+    MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("View Manager");
+    dockWidget->setWidget(MedeaWindowManager::manager()->getViewManagerGUI());
+    dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
+    addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
+}
+
 
 /**
  * @brief MedeaMainWindow::setupMainDockWidgetToggles
@@ -940,6 +939,7 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
 
     menuBar->setCornerWidget(toolbar);
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
+
 }
 
 

@@ -33,6 +33,7 @@ public:
 
     QStringList _getSearchSuggestions();
 
+    QMap<QString, ViewItem*> getSearchResults(QString result);
 
     QStringList getAdoptableNodeKinds();
     QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection();
@@ -200,7 +201,6 @@ public slots:
     void setControllerReady(bool ready);
 
 
-    QList<ViewItem*> search(QString searchString);
 private slots:
     void initializeController();
     void table_dataChanged(int ID, QString key, QVariant data);

@@ -16,6 +16,7 @@ public:
 
     QRectF getElementRect(ELEMENT_RECT rect) const;
 
+private:
     QRectF mainRect() const;
 
     QRectF mainIconRect() const;
@@ -26,26 +27,18 @@ public:
 
     QRectF thirdSubIconRect() const;
 
-    QRectF rightRectExpanded() const;
-
     QRectF rightRect() const;
 
     QRectF labelRect() const;
-
-    QPolygonF getRightPolyExpanded() const;
 
     QPolygonF getRightPoly() const;
 
     QPolygonF getLeftPoly() const;
 
-    QRectF expandStateRect() const;
-
-
 private:
     QFont mainTextFont;
     int textHeight;
     QPolygonF leftPoly;
-    QPolygonF rightPoly;
     QPolygonF rightPolyExpanded;
     void setupPolys();
 

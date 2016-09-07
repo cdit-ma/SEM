@@ -159,6 +159,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event);
 
     void drawBackground(QPainter *painter, const QRectF &rect);
+    void drawForeground(QPainter *painter, const QRectF &rect);
 
     // QWidget interface
 protected:

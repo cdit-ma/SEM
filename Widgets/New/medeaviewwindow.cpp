@@ -38,16 +38,6 @@ void MedeaViewWindow::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget
 void MedeaViewWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet(theme->getWindowStyleSheet() %
-                  theme->getViewStyleSheet() %
-                  theme->getMenuBarStyleSheet() %
-                  theme->getMenuStyleSheet() %
-                  theme->getToolBarStyleSheet() %
-                  theme->getDockWidgetStyleSheet() %
-                  theme->getPushButtonStyleSheet() %
-                  "QToolButton{ padding: 4px; }"
-                  );
-
     resetDockedWidgetsAction->setIcon(Theme::theme()->getImage("Actions", "Maximize"));
 }
 

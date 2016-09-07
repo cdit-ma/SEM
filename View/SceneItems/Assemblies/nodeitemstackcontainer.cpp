@@ -27,20 +27,30 @@ QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *chi
 {
     int childPos = child->getSortOrder();
     int gridSize = getGridSize();
-    QPointF offset = getStemAnchorPoint();
+    QPointF offset = gridRect().topLeft();
 
-    qreal y = offset.y();
+    qreal xMod = fmod(offset.x(), getGridSize());
+    qreal yMod = fmod(offset.y(), getGridSize());
+
+    if(xMod > 0){
+        offset.rx() += gridSize - xMod;
+    }
+    if(yMod > 0){
+        offset.ry() += gridSize - yMod;
+    }
     //Work out the exact position given the things above us.
     foreach(NodeItemNew* child, getChildNodes()){
         if(child->getSortOrder() < childPos){
             qreal cY = child->translatedBoundingRect().bottom();
-            if(cY > y){
-                y = cY;
+            cY += gridSize;
+            if(cY > offset.y()){
+                offset.ry ()= cY;
             }
         }
     }
-    offset.ry() = y + gridSize;
     return offset;
+    //offset.ry() = y;
+    //return offset;
 }
 
 QPoint StackContainerNodeItem::getElementIndex(ContainerElementNodeItem *child)
@@ -61,7 +71,7 @@ void StackContainerNodeItem::childPosChanged()
         if(!child->isMoving()){
             child->setPos(QPointF());
         }
-        QPointF center = child->getCenter();
+        QPointF center = child->getPos();
 
         QLineF line;
         line.setP2(center);

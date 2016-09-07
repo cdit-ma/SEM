@@ -14,19 +14,28 @@ public:
     explicit DockTitleBarWidget(QWidget *parent=0);
     ~DockTitleBarWidget();
 
+    void setActive(bool active);
+    QList<QAction*> getToolActions();
+
     void setToolBarIconSize(int height);
-    void setLabelStyleSheet(QString style);
     void setIcon(QPixmap pixmap);
     void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
     QString getTitle();
     QAction* getAction(DOCK_ACTION action);
 
+private slots:
+    void themeChanged();
+    void updateActiveStyle();
 private:
     void setupToolBar();
+    bool isActive();
 
 private:
     QLabel* iconLabel;
     QLabel* titleLabel;
+    bool _isActive;
+
+    QList<QAction*> actions;
 
     QAction* closeAction;
     QAction* maximizeAction;

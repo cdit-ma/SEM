@@ -47,7 +47,6 @@ private:
     bool destinationEntersLeft(QPointF center = QPointF()) const;
     QPointF getDestinationPos(QPointF center = QPointF()) const;
 
-    QPointF getCenterOffset() const;
     QPointF getInternalOffset() const;
     QPointF getArrowOffset(bool onLeft) const;
 
@@ -57,6 +56,7 @@ private:
 
     bool shouldReset();
 
+    QPointF getSceneCenter() const;
 
 public slots:
     void sourceParentVisibilityChanged();
@@ -103,6 +103,10 @@ public:
     // QGraphicsItem interface
 protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+
+    // EntityItemNew interface
+public:
+    QPointF getTopLeftOffset() const;
 };
 
 #endif // EDGEITEMNEW_H

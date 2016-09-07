@@ -220,6 +220,10 @@
         <file alias="Splitter">Resources/Images/Actions/splitter.png</file>
         <file alias="Policies">Resources/Images/Actions/Policies.png</file>
         <file alias="Rename">Resources/Images/Actions/Rename.png</file>
+        <file alias="DANCE_EXECUTION_MANAGER">Resources/Images/Actions/DANCE_EXECUTION_MANAGER.png</file>
+        <file alias="DANCE_PLAN_LAUNCHER">Resources/Images/Actions/DANCE_PLAN_LAUNCHER.png</file>
+        <file alias="DDS_LOGGING_SERVER">Resources/Images/Actions/DDS_LOGGING_SERVER.png</file>
+        <file alias="QPID_BROKER">Resources/Images/Actions/QPID_BROKER.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

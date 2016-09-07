@@ -91,6 +91,11 @@ bool EntityItemNew::isTopLevelItem() const
     return parentItem == 0;
 }
 
+bool EntityItemNew::isReadOnly() const
+{
+    return viewItem->isReadOnly();
+}
+
 ViewItem *EntityItemNew::getViewItem() const
 {
     return viewItem;
@@ -99,7 +104,7 @@ ViewItem *EntityItemNew::getViewItem() const
 void EntityItemNew::setPos(const QPointF &pos)
 {
     if(pos != getPos()){
-       QGraphicsObject::setPos(pos);
+       QGraphicsObject::setPos(pos - getTopLeftOffset());
        emit positionChanged();
        emit scenePosChanged();
     }
@@ -403,7 +408,7 @@ void EntityItemNew::adjustPos(QPointF delta)
 
 QPointF EntityItemNew::getPos() const
 {
-    return pos();
+    return pos() + getTopLeftOffset();
 }
 
 QPointF EntityItemNew::validateAdjustPos(QPointF delta)
@@ -662,18 +667,21 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     RENDER_STATE state = getRenderState(lod);
 
     if(state == RS_BLOCK){
+        painter->save();
         painter->setClipRect(boundingRect());
         QBrush brush(Qt::SolidPattern);
+
 
         if(isSelected()){
             brush.setColor(getPen().color());
         }else{
-            brush.setColor(getBaseBodyColor());
-            //brush.setColor(Theme::theme()->getMainImageColor(getIconPath()));
+            brush.setColor(getBodyColor());
+            //brush.setColor(getBaseBodyColor());
         }
         painter->setBrush(brush);
         painter->setPen(Qt::NoPen);
         painter->drawPath(getElementPath(ER_SELECTION));
+        painter->restore();
     }
 
 
@@ -681,9 +689,6 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->setClipPath(getElementPath(ER_SELECTION));
     //Paint the pixmap!
     QPair<QString, QString> icon = getIconPath();
-    //painter->setBrush(Qt::red);
-    //painter->setPen(Qt::NoPen);
-    //painter->drawRect(getElementRect(ER_MAIN_ICON));
     paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
     painter->restore();
 }
@@ -695,7 +700,9 @@ QPen EntityItemNew::getPen()
     QColor penColor = defaultPen.color();
 
     if(isSelected()){
-        //pen.setStyle(Qt::SolidLine);
+        if(pen.style() == Qt::NoPen){
+            pen.setStyle(Qt::SolidLine);
+        }
         pen.setCosmetic(true);
         pen.setWidthF(SELECTED_LINE_WIDTH);
         penColor = Theme::theme()->getSelectedItemBorderColor();
@@ -747,26 +754,6 @@ int EntityItemNew::getMajorGridCount() const
     return 5;
 }
 
-QPointF EntityItemNew::getSceneCenter() const
-{
-    return mapToScene(mapFromParent(getCenter()));
-}
-
-QPointF EntityItemNew::getCenterOffset() const
-{
-    return boundingRect().center();
-}
-
-void EntityItemNew::setCenter(QPointF center)
-{
-    setPos(center - getCenterOffset());
-}
-
-QPointF EntityItemNew::getCenter() const
-{
-    return getPos() + getCenterOffset();
-}
-
 QPair<QString, QString> EntityItemNew::getIconPath()
 {
     if(viewItem){
@@ -778,11 +765,14 @@ QPair<QString, QString> EntityItemNew::getIconPath()
 QPointF EntityItemNew::getNearestGridPoint()
 {
     qreal gridSize = getGridSize();
-    QPointF point = getSceneCenter();
+    //QPointF point = getSceneCenter();
+    //getSceneCenter
+    QPointF point = mapToScene(mapFromParent(getPos()));
     qreal closestX = qRound(point.x() / gridSize) * gridSize;
     qreal closestY = qRound(point.y() / gridSize) * gridSize;
     QPointF delta = QPointF(closestX, closestY) - point;
-    return getCenter() + delta;
+    //return getCenter() + delta;
+    return getPos() + delta;
 }
 
 void EntityItemNew::destruct()
@@ -811,6 +801,10 @@ void EntityItemNew::setSelected(bool selected)
 {
     if(_isSelected != selected){
         _isSelected = selected;
+        qreal z = zValue();
+        z += (selected ? 1: -1);
+        z = qMax(0.0, z);
+        setZValue(z);
         update();
     }
 }
@@ -840,7 +834,7 @@ QColor EntityItemNew::getBaseBodyColor() const
 QColor EntityItemNew::getBodyColor() const
 {
     if(isHighlighted()){
-        return QColor(Qt::red);
+        return Theme::theme()->getHighlightColor();
     } else {
         return bodyColor;
     }

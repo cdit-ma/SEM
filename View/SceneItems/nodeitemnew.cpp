@@ -15,8 +15,8 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     minimumWidth = 0;
     expandedHeight = 0;
     expandedWidth = 0;
-    manuallyAdjustedWidth = 0;
-    manuallyAdjustedHeight = 0;
+    //manuallyAdjustedWidth = 0;
+    //manuallyAdjustedHeight = 0;
     gridVisible = false;
     gridEnabled = false;
     resizeEnabled = false;
@@ -51,7 +51,9 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
         setAspect(parentItem->getAspect());
         setParentItem(parentItem);
         parentItem->addChildNode(this);
-        setCenter(getNearestGridPoint());
+        //setPos()
+        setPos(getNearestGridPoint());
+        //setCenter(getNearestGridPoint());
     }
 }
 
@@ -313,7 +315,8 @@ void NodeItemNew::setMoving(bool moving)
         parentNodeItem->setChildNodeMoving(this, moving);
     }
     if(!moving){
-        setCenter(getNearestGridPoint());
+        QPointF grid = getNearestGridPoint();// + getMarginOffset();
+        setPos(grid);
     }
 }
 
@@ -417,8 +420,14 @@ void NodeItemNew::setExpandedWidth(qreal width)
     qreal minWidth = childrenRect().right() - getMargin().left();
     //Can't shrink smaller than minimum
     minWidth = qMax(minWidth, minimumWidth);
-    minWidth = qMax(minWidth, manuallyAdjustedWidth);
     width = qMax(width, minWidth);
+
+    //Get the nearest next grid line.
+
+    qreal modulo = fmod(width, getGridSize());
+    if(modulo != 0){
+        width += (getGridSize() - modulo);
+    }
 
     if(expandedWidth != width){
         expandedWidth = width;
@@ -438,8 +447,14 @@ void NodeItemNew::setExpandedHeight(qreal height)
     qreal minHeight = childrenRect().bottom() - getMargin().top();
     //Can't shrink smaller than minimum
     minHeight = qMax(minHeight, minimumHeight);
-    minHeight = qMax(minHeight, manuallyAdjustedHeight);
     height = qMax(height, minHeight);
+
+    //Get the nearest next grid line.
+    qreal modulo = fmod(height, getGridSize());
+    if(modulo != 0){
+        height += (getGridSize() - modulo);
+    }
+
 
     if(expandedHeight != height){
         expandedHeight = height;
@@ -591,10 +606,10 @@ void NodeItemNew::setManuallyAdjusted(RECT_VERTEX corner)
     }
 
     if(adjustingWidth){
-        manuallyAdjustedWidth = -1;
+        //manuallyAdjustedWidth = -1;
     }
     if(adjustingHeight){
-        manuallyAdjustedHeight = -1;
+       // manuallyAdjustedHeight = -1;
     }
 }
 
@@ -685,30 +700,30 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
     if(getRequiredDataKeys().contains(keyName)){
         if(keyName == "x" || keyName == "y"){
             qreal realData = data.toReal();
-            QPointF oldCenter = getCenter();
-            QPointF newCenter = oldCenter;
+            QPointF oldPos = getPos();
+            QPointF newPos = oldPos;
 
             if(keyName == "x"){
-                newCenter.setX(realData);
+                newPos.setX(realData);
 
             }else if(keyName == "y"){
-                newCenter.setY(realData);
+                newPos.setY(realData);
             }
 
-            if(newCenter != oldCenter){
-                setCenter(newCenter);
+            if(newPos != oldPos){
+                setPos(newPos);
             }
         }else if(keyName == "width" || keyName == "height"){
             qreal realData = data.toReal();
             if(keyName == "width"){
-                manuallyAdjustedWidth = -1;
+                //manuallyAdjustedWidth = -1;
                 setExpandedWidth(realData);
-                manuallyAdjustedWidth = realData;
+               // manuallyAdjustedWidth = realData;
 
             }else if(keyName == "height"){
-                manuallyAdjustedHeight = -1;
+               // manuallyAdjustedHeight = -1;
                 setExpandedHeight(realData);
-                manuallyAdjustedHeight = realData;
+               // manuallyAdjustedHeight = realData;
             }
 
 
@@ -717,6 +732,8 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
             setExpanded(boolData);
         }else if(keyName == "readOnlyDefinition" || keyName == "snippetID"){
             updateReadState();
+        }else if(keyName == "readOnly"){
+            update();
         }
         if(keyName == primaryTextKey || keyName == secondaryTextKey){
             update();
@@ -732,6 +749,8 @@ void NodeItemNew::dataRemoved(QString keyName)
 {
     if(keyName == "readOnlyDefinition" || keyName == "snippetID"){
         updateReadState();
+    }else if(keyName == "readOnly"){
+        update();
     }
 }
 
@@ -927,6 +946,10 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             //painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
             renderText(painter, lod, getElementRect(ER_SECONDARY_TEXT), getSecondaryText(), 5);
         }
+
+        if(isReadOnly()){
+            paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
+        }
     }
 
 
@@ -960,7 +983,6 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
         painter->restore();
     }
-
     EntityItemNew::paint(painter, option, widget);
 }
 
@@ -1140,4 +1162,9 @@ QColor NodeItemNew::getBodyColor() const
         return readOnlyInstanceColor;
     }
     return EntityItemNew::getBodyColor();
+}
+
+QPointF NodeItemNew::getTopLeftOffset() const
+{
+    return getMarginOffset();
 }

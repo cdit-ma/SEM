@@ -1,4 +1,5 @@
 #include "medeatooldockwidget.h"
+#include "../../View/theme.h"
 
 MedeaToolDockWidget::MedeaToolDockWidget(QString title) : MedeaDockWidget(MedeaDockWidget::MDW_TOOL)
 {
@@ -8,6 +9,11 @@ MedeaToolDockWidget::MedeaToolDockWidget(QString title) : MedeaDockWidget(MedeaD
 
     setTitleBarIconSize(12);
     setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-    setStyleSheet("DockTitleBarWidget QToolButton {padding:0px;border-radius:2px;}");
+
+    themeChanged();
 }
 
+void MedeaToolDockWidget::themeChanged()
+{
+    setStyleSheet(Theme::theme()->getToolDockWidgetStyleSheet());
+}

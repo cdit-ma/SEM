@@ -3,17 +3,15 @@
 ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
     :ContainerElementNodeItem(viewItem, parentItem){
 
-
-
     setMoveEnabled(true);
     setExpandEnabled(true);
     setResizeEnabled(true);
     _isSortOrdered = false;
 
     headerMargin = QMarginsF(2,2,2,2);
-    setBodyPadding(QMarginsF(10,10,10,10));
+    setBodyPadding(QMarginsF(5,5,5,5));
 
-    qreal height = iconSize().height() + headerMargin.top() + headerMargin.bottom();
+    qreal height = DEFAULT_SIZE / 2.0;//iconSize().height() + headerMargin.top() + headerMargin.bottom();
     qreal width = DEFAULT_SIZE / 2.0;
 
     setMinimumHeight(height);
@@ -79,6 +77,8 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return deployedRect();
     case ER_QOS:
         return qosRect();
+    case ER_LOCKED_STATE:
+        return deployedRect();
     default:
         return ContainerElementNodeItem::getElementRect(rect);
     }

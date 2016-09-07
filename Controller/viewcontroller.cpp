@@ -184,6 +184,31 @@ QStringList ViewController::_getSearchSuggestions()
     return suggestions;
 }
 
+QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
+{
+    QMap<QString, ViewItem*> results;
+
+    foreach(ViewItem* item, viewItems.values()){
+        QString ID = QString::number(item->getID());
+
+        if(ID.contains(query)){
+            results.insertMulti("ID", item);
+        }
+
+        foreach(QString key, item->getKeys()){
+            QString data = item->getData(key).toString();
+            if(data.contains(query)){
+                results.insertMulti(key, item);
+            }
+        }
+    }
+    foreach(QString key, results.uniqueKeys()){
+        qCritical() << "Items Matching: " << key;
+        qCritical() << results.values(key);
+    }
+    return results;
+}
+
 QStringList ViewController::getAdoptableNodeKinds()
 {
     if(selectionController && controller && selectionController->getSelectionCount() == 1){
@@ -250,20 +275,6 @@ bool ViewController::isModelReady()
     return _modelReady;
 }
 
-QList<ViewItem*> ViewController::search(QString searchString)
-{
-    QList<ViewItem*> matchedItems = viewItems.values();
-
-    if (showSearchSuggestions) {
-        QStringList matchedDataValues;
-        foreach (ViewItem* item, matchedItems) {
-            matchedDataValues.append(item->getData("label").toString());
-        }
-        emit vc_gotSearchSuggestions(matchedDataValues);
-    }
-
-    return matchedItems;
-}
 
 void ViewController::requestSearchSuggestions()
 {
@@ -278,6 +289,7 @@ void ViewController::setController(NewController *c)
 void ViewController::projectOpened(bool success)
 {
     this->fitAllViews();
+    getSearchResults("Interface");
 }
 
 void ViewController::gotExportedSnippet(QString snippetData)

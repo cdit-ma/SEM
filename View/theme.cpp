@@ -586,11 +586,11 @@ QString Theme::getTabbedWidgetStyleSheet()
             ;
 }
 
-QString Theme::getViewStyleSheet()
+QString Theme::getNodeViewStyleSheet(bool isActive)
 {
     return "QGraphicsView {"
            "background:" % getBackgroundColorHex() % ";"
-           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "border: 1px solid " % (isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex()) % ";"
            "}";
 }
 
@@ -599,19 +599,41 @@ QString Theme::getDockWidgetStyleSheet()
     return "QDockWidget {"
            "margin: 5px;"
            "background:" % getBackgroundColorHex() % ";"
-           "}"
-
-           "DockTitleBarWidget {"
-           "padding: 0px 2px;"
-           "spacing: 1px;"
-           "background:" % getAltBackgroundColorHex() % ";"
-           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
-           "}"
-           "DockTitleBarWidget QToolButton {"
-           "border: 0px;"
-           "padding: 2px;"
-           "margin: 0px;"
            "}";
+}
+
+QString Theme::getToolDockWidgetStyleSheet()
+{
+    return  getDockWidgetStyleSheet() %
+            "DockTitleBarWidget QToolButton {padding:0px;border-radius:2px;}";
+}
+
+QString Theme::getViewDockWidgetStyleSheet(bool isActive)
+{
+    return  getDockWidgetStyleSheet() %
+            getNodeViewStyleSheet(isActive);
+}
+
+QString Theme::getDockTitleBarStyleSheet(bool isActive, QString widgetName)
+{
+    QString bgColor = isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex();
+    return  widgetName % "{"
+            "padding: 0px 2px;"
+            "spacing: 1px;"
+            "background:" % bgColor % ";"
+            "border: 1px solid " % bgColor % ";"
+            "}"
+            % widgetName % " QLabel {"
+            "color:" % getTextColorHex() % ";"
+            "}"
+            % widgetName % " QToolButton {"
+            "border: 0px;"
+            "padding: 2px;"
+            "margin: 0px;"
+            "}"
+            % widgetName % " QToolButton::!hover {"
+            "background:" % bgColor % ";"
+            "}";
 }
 
 QString Theme::getMenuBarStyleSheet()
@@ -694,9 +716,10 @@ QString Theme::getToolBarStyleSheet()
            "QToolButton:pressed {"
            "background:" % getPressedColorHex() % ";"
            "}"
-           "QToolButton::checked {"
+           /* GG
+            * "QToolButton::checked {"
            "background:" % getHighlightColorHex() % ";"
-           "}"
+           "}"*/
            "QToolButton:disabled {"
            "background:" % getDisabledBackgroundColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
@@ -1096,10 +1119,11 @@ void Theme::setupIcons()
     setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
     setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
     setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
-    setIconToggledImage("Actions", "DockMaximize", "Actions", "Minimize");
+    setIconToggledImage("Actions", "Maximize", "Actions", "Minimize");
     setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
-    setIconToggledImage("Actions", "Invisible", "Actions", "Visible");
+    setIconToggledImage("Actions", "Visible", "Actions", "Invisible");
 }
+
 
 void Theme::resetTheme(VIEW_THEME themePreset)
 {

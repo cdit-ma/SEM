@@ -4,6 +4,7 @@
 #include "medeawindownew.h"
 #include <QDebug>
 #include <QEvent>
+#include <QMouseEvent>
 int MedeaDockWidget::_DockWidgetID = 0;
 MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 {
@@ -18,22 +19,24 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
     titleBar = new DockTitleBarWidget(this);
     setTitleBarWidget(titleBar);
 
+    connect(this, &QDockWidget::visibilityChanged, this, &MedeaDockWidget::_visibilityChanged);
     _isProtected = false;
 
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     if(titleBar){
         //Do connects.
-        connect(titleBar->getAction(DockTitleBarWidget::DA_CLOSE), SIGNAL(triggered(bool)), this, SIGNAL(closeWidget()));
-        connect(titleBar->getAction(DockTitleBarWidget::DA_MAXIMIZE), SIGNAL(triggered(bool)),this, SIGNAL(maximizeWidget(bool)));
-        connect(titleBar->getAction(DockTitleBarWidget::DA_POPOUT), SIGNAL(triggered(bool)),this, SIGNAL(popOutWidget()));
-        connect(titleBar->getAction(DockTitleBarWidget::DA_HIDE), SIGNAL(triggered(bool)),this, SLOT(hide()));
+        connect(titleBar->getAction(DockTitleBarWidget::DA_CLOSE), &QAction::triggered, this, &MedeaDockWidget::title_Close);
+        connect(titleBar->getAction(DockTitleBarWidget::DA_MAXIMIZE), &QAction::triggered, this, &MedeaDockWidget::title_Maximize);
+        connect(titleBar->getAction(DockTitleBarWidget::DA_POPOUT), &QAction::triggered, this, &MedeaDockWidget::title_PopOut);
+        connect(titleBar->getAction(DockTitleBarWidget::DA_HIDE), &QAction::triggered, this, &MedeaDockWidget::title_Visible);
+
         connect(titleBar, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
         titleBar->installEventFilter(this);
     }
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
-    themeChanged();
+    connect(Theme::theme(), &Theme::theme_Changed, this, &MedeaDockWidget::themeChanged);
+    //themeChanged();
 }
 
 MedeaDockWidget::~MedeaDockWidget()
@@ -69,6 +72,11 @@ void MedeaDockWidget::setSourceWindow(MedeaWindowNew *window)
 MedeaWindowNew *MedeaDockWidget::getSourceWindow()
 {
     return sourceWindow;
+}
+
+DockTitleBarWidget *MedeaDockWidget::getTitleBar()
+{
+    return titleBar;
 }
 
 void MedeaDockWidget::setTitleBarIconSize(int height)
@@ -127,6 +135,7 @@ void MedeaDockWidget::setTitle(QString title, Qt::Alignment alignment)
     if(titleBar){
         titleBar->setTitle(title, alignment);
         QDockWidget::setWindowTitle(title);
+        emit titleChanged();
     }
 }
 
@@ -141,15 +150,25 @@ QString MedeaDockWidget::getTitle()
 
 void MedeaDockWidget::setActive(bool active)
 {
+
     if (_isActive != active) {
         _isActive = active;
-        updateActiveStyleSheet();
+        titleBar->setActive(active);
+        themeChanged();
+        emit dockSetActive(active);
     }
 }
 
 bool MedeaDockWidget::isActive()
 {
     return _isActive;
+}
+
+void MedeaDockWidget::setMaximized(bool maximized)
+{
+    setVisible(maximized);
+    setMaximizeToggled(maximized);
+    setMaximizeEnabled(!maximized);
 }
 
 void MedeaDockWidget::setFocusEnabled(bool enabled)
@@ -192,6 +211,12 @@ void MedeaDockWidget::setMaximizeToggled(bool toggled)
     setActionToggled(DockTitleBarWidget::DA_MAXIMIZE, toggled);
 }
 
+void MedeaDockWidget::setMaximizeEnabled(bool enabled)
+{
+    setActionEnabled(DockTitleBarWidget::DA_MAXIMIZE, enabled);
+
+}
+
 void MedeaDockWidget::setPopOutToggled(bool toggled)
 {
     setActionToggled(DockTitleBarWidget::DA_POPOUT, toggled);
@@ -202,39 +227,39 @@ void MedeaDockWidget::setProtectToggled(bool toggled)
     setActionToggled(DockTitleBarWidget::DA_PROTECT, toggled);
 }
 
+void MedeaDockWidget::close()
+{
+    title_Close(true);
+}
+
+void MedeaDockWidget::title_Maximize(bool maximize)
+{
+    emit req_Maximize(ID, maximize);
+}
+
+void MedeaDockWidget::title_Visible(bool visible)
+{
+    emit req_Visible(ID, visible);
+}
+
+void MedeaDockWidget::title_PopOut(bool)
+{
+    emit req_PopOut(ID);
+}
+
+void MedeaDockWidget::title_Close(bool)
+{
+    emit req_Close(ID);
+}
+
+void MedeaDockWidget::_visibilityChanged(bool visible)
+{
+    setActionToggled(DockTitleBarWidget::DA_HIDE, visible);
+}
+
 void MedeaDockWidget::destruct()
 {
     MedeaWindowManager::destructDockWidget(this);
-}
-
-
-void MedeaDockWidget::themeChanged()
-{
-    Theme* theme = Theme::theme();
-    titleBar->setLabelStyleSheet("color:" + theme->getTextColorHex(Theme::CR_NORMAL));
-    updateActiveStyleSheet();
-
-    QAction* closeAction = getAction(DockTitleBarWidget::DA_CLOSE);
-    QAction* maxAction = getAction(DockTitleBarWidget::DA_MAXIMIZE);
-    QAction* popAction = getAction(DockTitleBarWidget::DA_POPOUT);
-    QAction* protectAction = getAction(DockTitleBarWidget::DA_PROTECT);
-    QAction* hideAction = getAction(DockTitleBarWidget::DA_HIDE);
-
-    if(closeAction){
-        closeAction->setIcon(theme->getIcon("Actions", "Close"));
-    }
-    if(maxAction){
-        maxAction->setIcon(theme->getIcon("Actions", "DockMaximize"));
-    }
-    if(popAction){
-        popAction->setIcon(theme->getIcon("Actions", "DockPopOut"));
-    }
-    if(protectAction){
-        protectAction->setIcon(theme->getIcon("Actions", "Lock_Open"));
-    }
-    if(hideAction){
-        hideAction->setIcon(theme->getIcon("Actions", "Invisible"));
-    }
 }
 
 void MedeaDockWidget::showContextMenu(const QPoint &point)
@@ -244,18 +269,16 @@ void MedeaDockWidget::showContextMenu(const QPoint &point)
     }
 }
 
-void MedeaDockWidget::updateActiveStyleSheet()
+void MedeaDockWidget::closeOrHide()
 {
-    if (isActive()) {
-        QString activeColor = Theme::theme()->getActiveWidgetBorderColorHex();
-        setStyleSheet("QGraphicsView { border: 1px solid " + activeColor + ";}"
-                      "DockTitleBarWidget { background:" + activeColor + "; border: 1px solid " + activeColor + ";}"
-                      "DockTitleBarWidget QToolButton::!hover { background:" + activeColor +";}"
-                      );
-    } else {
-        setStyleSheet("");
+    QAction* a = getAction(DockTitleBarWidget::DA_CLOSE);
+    if(a && a->isVisible()){
+        title_Close(false);
+    }else{
+        title_Visible(false);
     }
 }
+
 
 void MedeaDockWidget::setActionVisible(DockTitleBarWidget::DOCK_ACTION action, bool visible)
 {
@@ -273,6 +296,14 @@ void MedeaDockWidget::setActionToggled(DockTitleBarWidget::DOCK_ACTION action, b
     }
 }
 
+void MedeaDockWidget::setActionEnabled(DockTitleBarWidget::DOCK_ACTION action, bool enabled)
+{
+    QAction* a = getAction(action);
+    if(a){
+        a->setEnabled(enabled);
+    }
+}
+
 QAction *MedeaDockWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
 {
     QAction* a = 0;
@@ -287,6 +318,14 @@ bool MedeaDockWidget::eventFilter(QObject *object, QEvent *event)
     if(_isFocusEnabled && event->type() == QEvent::FocusIn){
         MedeaWindowManager::manager()->setActiveDockWidget(this);
     }
-    return QObject::eventFilter(object, event);
 
+    if(object == titleBar && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+        if(mouseEvent->button() == Qt::MiddleButton){
+            closeOrHide();
+            return true;
+        }
+    }
+
+    return QObject::eventFilter(object, event);
 }
