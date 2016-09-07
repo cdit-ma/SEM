@@ -20,6 +20,7 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     if (action) {
         dockActionID = action->property("ID").toInt();
     }
+
     setupLayout();
     setSubActionRequired(false);
     setEnabled(true);
@@ -27,13 +28,13 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     displayToolButtonText(false);
     updateDisplayedText(getDisplayedText());
 
-    actionChanged();
-    themeChanged();
-
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
     connect(action, SIGNAL(destroyed(QObject*)), this, SLOT(deleteLater()));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(this, SIGNAL(displayedTextChanged(QString)), SLOT(updateDisplayedText(QString)));
+
+    actionChanged();
+    themeChanged();
 }
 
 

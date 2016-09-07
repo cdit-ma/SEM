@@ -18,11 +18,10 @@ DockWidgetParentActionItem::DockWidgetParentActionItem(QAction *action, QWidget 
     if (action) {
         dockActionID = action->property("ID").toInt();
     }
-    qCritical() << "SETTING: ID: " << dockActionID;
 
-    setEnabled(true);
     setCheckable(true);
     setChecked(true);
+    setEnabled(true);
     setLayoutDirection(Qt::RightToLeft);
     setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     setIconSize(ARROW_SIZE, ARROW_SIZE);
@@ -138,7 +137,6 @@ void DockWidgetParentActionItem::themeChanged()
 {
     Theme* theme = Theme::theme();
     QColor altColor = theme->getAltBackgroundColor().darker(120);
-    //QColor altColor = theme->getBackgroundColor().lighter(130);
 
     setIcon(theme->getIcon("Actions", "Arrow_Down"));
     setStyleSheet("QToolButton {"
@@ -149,16 +147,6 @@ void DockWidgetParentActionItem::themeChanged()
                   "background:" + theme->QColorToHex(altColor) + ";"
                   "}"
                   "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";}");
-
-    /*setStyleSheet("QToolButton {"
-                  "border-color:" + theme->getBackgroundColorHex() + ";"
-                  "padding: 2px 0px 2px 7px;"
-                  "background:" + theme->getBackgroundColorHex() + ";}"
-                  "QToolButton::checked {"
-                  "background:" + theme->QColorToHex(altColor) + ";"
-                  "}"
-                  "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";}");
-                  */
 }
 
 
@@ -192,5 +180,3 @@ void DockWidgetParentActionItem::leaveEvent(QEvent *event)
     emit hoverLeave(dockActionID);
     QToolButton::leaveEvent(event);
 }
-
-

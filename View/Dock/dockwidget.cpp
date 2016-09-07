@@ -78,8 +78,8 @@ void DockWidget::addItem(DockWidgetItem* item)
     if (isActionItem) {
         DockWidgetActionItem* actionItem = (DockWidgetActionItem*)item;
         actionItem->setProperty("kind", actionItem->getAction()->text());
-        childrenIDHash[actionItem->getProperty("ID").toInt()] = actionItem;
         connect(actionItem, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
+        childrenIDHash[actionItem->getProperty("ID").toInt()] = actionItem;
         mainLayout->addWidget(actionItem);        
     } else if (isParentActionItem) {
         DockWidgetParentActionItem* parentItem = (DockWidgetParentActionItem*)item;
@@ -92,9 +92,9 @@ void DockWidget::addItem(DockWidgetItem* item)
         mainLayout->addWidget(item);
     }
 
-    if(itemKind != DockWidgetItem::DEFAULT_ITEM){
-        connect(item, &DockWidgetItem::hoverEnter,toolActionController, &ToolActionController::actionHoverEnter);
-        connect(item, &DockWidgetItem::hoverLeave,toolActionController, &ToolActionController::actionHoverLeave);
+    if (itemKind != DockWidgetItem::DEFAULT_ITEM) {
+        connect(item, &DockWidgetItem::hoverEnter, toolActionController, &ToolActionController::actionHoverEnter);
+        connect(item, &DockWidgetItem::hoverLeave, toolActionController, &ToolActionController::actionHoverLeave);
     }
 }
 
@@ -144,16 +144,6 @@ void DockWidget::clearDock()
             }
         }
     }
-
-    // TODO - Don't really need to store the toolbars
-    // Find another way to remove all items/widgets from a layout
-    /*
-    while (!itemToolbars.isEmpty()) {
-        QToolBar* toolbar = itemToolbars.takeFirst();
-        mainLayout->removeWidget(toolbar);
-        delete toolbar;
-    }
-    */
 
     /*
     // for some reason, this doesn't delete all the widgets inside of mainLayout
@@ -227,7 +217,6 @@ void DockWidget::themeChanged()
     setStyleSheet("QWidget#DOCKWIDGET_MAIN{ background: rgba(0,0,0,0); }"
                   "QScrollArea {"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  //"border-top: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "background:" + theme->getBackgroundColorHex() + ";"
                   "}");
 
@@ -236,7 +225,6 @@ void DockWidget::themeChanged()
         backButton->setStyleSheet(theme->getToolBarStyleSheet() +
                                   "QToolButton {"
                                   "background:" + theme->getAltBackgroundColorHex() + ";"
-                                  //"background:" + theme->getBackgroundColorHex() + ";"
                                   "border-radius: 2px;"
                                   "}");
     }
@@ -260,6 +248,7 @@ void DockWidget::dockActionClicked()
 void DockWidget::viewItemConstructed(int ID)
 {
     // TODO - Only want to check this for the Hardware dock
+    // can have an action item and a parent action item with the same ID
     if (!childrenIDHash.contains(ID)) {
         QAction* itemAction = toolActionController->getNodeAction(ID)->constructSubAction(false);
         DockWidgetActionItem* dockItem = new DockWidgetActionItem(itemAction, this);
