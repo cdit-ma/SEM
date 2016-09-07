@@ -32,7 +32,13 @@ class DockWindowItem: public QToolBar{
 public:
     DockWindowItem(ViewManagerWidget* manager, MedeaDockWidget* dockWidget);
 private:
+    void themeChanged();
+    void titleChanged();
     void setupLayout();
+    QLabel* iconLabel;
+    QLabel* label;
+    QAction* iconAction;
+    QAction* labelAction;
     ViewManagerWidget* manager;
     MedeaDockWidget* dockWidget;
 };
@@ -47,7 +53,9 @@ public:
 private slots:
     void themeChanged();
     void windowConstructed(MedeaWindowNew* window);
+    void windowDestructed(MedeaWindowNew* window);
     void dockWidgetConstructed(MedeaDockWidget* dockWidget);
+    void dockWidgetDestructed(MedeaDockWidget* dockWidget);
 
 private:
     void setupLayout();

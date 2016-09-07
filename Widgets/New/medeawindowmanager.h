@@ -39,7 +39,9 @@ protected:
     ~MedeaWindowManager();
 signals:
     void windowConstructed(MedeaWindowNew* window);
+    void windowDestructed(MedeaWindowNew* window);
     void viewDockWidgetConstructed(MedeaDockWidget* widget);
+    void viewDockWidgetDestructed(MedeaDockWidget* widget);
 
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevWidget = 0);
 public:

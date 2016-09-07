@@ -103,8 +103,12 @@ public:
     QString getSplitterStyleSheet();
     QString getWidgetStyleSheet(QString widgetName="QWidget");
     QString getTabbedWidgetStyleSheet();
-    QString getViewStyleSheet();
+    QString getNodeViewStyleSheet(bool isActive=false);
     QString getDockWidgetStyleSheet();
+    QString getToolDockWidgetStyleSheet();
+    QString getViewDockWidgetStyleSheet(bool isActive=false);
+
+    QString getDockTitleBarStyleSheet(bool isActive=false, QString widgetName="DockTitleBarWidget");
     QString getMenuBarStyleSheet();
     QString getMenuStyleSheet();
     QString getToolBarStyleSheet();
@@ -117,6 +121,8 @@ public:
     QString getPopupWidgetStyleSheet();
     QString getProgressBarStyleSheet();
     QString getLabelStyleSheet();
+
+
 
     QString getAspectButtonStyleSheet(VIEW_ASPECT aspect);
 

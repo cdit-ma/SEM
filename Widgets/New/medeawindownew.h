@@ -33,6 +33,7 @@ public:
 signals:
     void dockWidgetAdded(MedeaDockWidget* widget);
 private slots:
+    void themeChanged();
     void showContextMenu(const QPoint &point);
 
     void setDockWidgetMaximized(int ID, bool maximized);

@@ -3,6 +3,7 @@
 #include <QMimeData>
 #include <QDragEnterEvent>
 #include <QMenu>
+#include <QStringBuilder>
 #include "../../View/docktitlebarwidget.h"
 #include "../../Widgets/New/medeawindowmanager.h"
 #include "../../View/theme.h"
@@ -24,9 +25,12 @@ MedeaWindowNew::MedeaWindowNew(QWidget *parent, MedeaWindowNew::WindowType type)
     setTabPosition(Qt::TopDockWidgetArea, QTabWidget::North);
     setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::North);
 
+
     connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
             this, SLOT(showContextMenu(const QPoint &)));
 
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 MedeaWindowNew::~MedeaWindowNew()
@@ -221,6 +225,19 @@ QMenu *MedeaWindowNew::createPopupMenu()
     QMenu* menu = QMainWindow::createPopupMenu();
 
     return menu;
+}
+
+void MedeaWindowNew::themeChanged()
+{
+    Theme* theme = Theme::theme();
+    setStyleSheet(theme->getWindowStyleSheet() %
+                  theme->getMenuBarStyleSheet() %
+                  theme->getMenuStyleSheet() %
+                  theme->getToolBarStyleSheet() %
+                  theme->getPushButtonStyleSheet() %
+                  theme->getTabbedWidgetStyleSheet() %
+                  theme->getScrollBarStyleSheet() %
+                  "QToolButton{ padding: 4px; }");
 }
 
 

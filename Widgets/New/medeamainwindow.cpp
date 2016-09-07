@@ -197,18 +197,6 @@ void MedeaMainWindow::resetToolDockWidgets()
 void MedeaMainWindow::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet(theme->getWindowStyleSheet() +
-                  theme->getViewStyleSheet() +
-                  theme->getMenuBarStyleSheet() +
-                  theme->getMenuStyleSheet() +
-                  theme->getToolBarStyleSheet() +
-                  theme->getDockWidgetStyleSheet() +
-                  theme->getPushButtonStyleSheet() +
-                  theme->getTabbedWidgetStyleSheet() +
-                  theme->getScrollBarStyleSheet() +
-                  "QToolButton{ padding: 4px; }");
-
-    innerWindow->setStyleSheet(theme->getWindowStyleSheet());
 
     QString menuStyle = theme->getMenuStyleSheet();
     viewController->getActionController()->menu_file->setStyleSheet(menuStyle);
@@ -515,7 +503,7 @@ void MedeaMainWindow::setupTools()
  */
 void MedeaMainWindow::setupInnerWindow()
 {
-    innerWindow = MedeaWindowManager::constructCentralWindow();
+    innerWindow = MedeaWindowManager::constructCentralWindow("Main Window");
     setCentralWidget(innerWindow);
 
     nodeView_Interfaces = new NodeViewNew();

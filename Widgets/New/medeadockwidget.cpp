@@ -4,6 +4,7 @@
 #include "medeawindownew.h"
 #include <QDebug>
 #include <QEvent>
+#include <QMouseEvent>
 int MedeaDockWidget::_DockWidgetID = 0;
 MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 {
@@ -33,9 +34,9 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
         connect(titleBar, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
         titleBar->installEventFilter(this);
     }
-    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
-    themeChanged();
+    connect(Theme::theme(), &Theme::theme_Changed, this, &MedeaDockWidget::themeChanged);
+    //themeChanged();
 }
 
 MedeaDockWidget::~MedeaDockWidget()
@@ -134,6 +135,7 @@ void MedeaDockWidget::setTitle(QString title, Qt::Alignment alignment)
     if(titleBar){
         titleBar->setTitle(title, alignment);
         QDockWidget::setWindowTitle(title);
+        emit titleChanged();
     }
 }
 
@@ -148,9 +150,12 @@ QString MedeaDockWidget::getTitle()
 
 void MedeaDockWidget::setActive(bool active)
 {
+
     if (_isActive != active) {
         _isActive = active;
-        updateActiveStyleSheet();
+        titleBar->setActive(active);
+        themeChanged();
+        emit dockSetActive(active);
     }
 }
 
@@ -257,38 +262,6 @@ void MedeaDockWidget::destruct()
     MedeaWindowManager::destructDockWidget(this);
 }
 
-
-void MedeaDockWidget::themeChanged()
-{
-    Theme* theme = Theme::theme();
-    if(titleBar){
-        titleBar->setLabelStyleSheet("color:" + theme->getTextColorHex(Theme::CR_NORMAL));
-    }
-    updateActiveStyleSheet();
-
-    QAction* closeAction = getAction(DockTitleBarWidget::DA_CLOSE);
-    QAction* maxAction = getAction(DockTitleBarWidget::DA_MAXIMIZE);
-    QAction* popAction = getAction(DockTitleBarWidget::DA_POPOUT);
-    QAction* protectAction = getAction(DockTitleBarWidget::DA_PROTECT);
-    QAction* hideAction = getAction(DockTitleBarWidget::DA_HIDE);
-
-    if(closeAction){
-        closeAction->setIcon(theme->getIcon("Actions", "Close"));
-    }
-    if(maxAction){
-        maxAction->setIcon(theme->getIcon("Actions", "Maximize"));
-    }
-    if(popAction){
-        popAction->setIcon(theme->getIcon("Actions", "DockPopOut"));
-    }
-    if(protectAction){
-        protectAction->setIcon(theme->getIcon("Actions", "Lock_Open"));
-    }
-    if(hideAction){
-        hideAction->setIcon(theme->getIcon("Actions", "Visible"));
-    }
-}
-
 void MedeaDockWidget::showContextMenu(const QPoint &point)
 {
     if(parentWidget()){
@@ -296,18 +269,16 @@ void MedeaDockWidget::showContextMenu(const QPoint &point)
     }
 }
 
-void MedeaDockWidget::updateActiveStyleSheet()
+void MedeaDockWidget::closeOrHide()
 {
-    if (isActive()) {
-        QString activeColor = Theme::theme()->getActiveWidgetBorderColorHex();
-        setStyleSheet("QGraphicsView { border: 1px solid " + activeColor + ";}"
-                      "DockTitleBarWidget { background:" + activeColor + "; border: 1px solid " + activeColor + ";}"
-                      "DockTitleBarWidget QToolButton::!hover { background:" + activeColor +";}"
-                      );
-    } else {
-        setStyleSheet("");
+    QAction* a = getAction(DockTitleBarWidget::DA_CLOSE);
+    if(a && a->isVisible()){
+        title_Close(false);
+    }else{
+        title_Visible(false);
     }
 }
+
 
 void MedeaDockWidget::setActionVisible(DockTitleBarWidget::DOCK_ACTION action, bool visible)
 {
@@ -347,6 +318,14 @@ bool MedeaDockWidget::eventFilter(QObject *object, QEvent *event)
     if(_isFocusEnabled && event->type() == QEvent::FocusIn){
         MedeaWindowManager::manager()->setActiveDockWidget(this);
     }
-    return QObject::eventFilter(object, event);
 
+    if(object == titleBar && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+        if(mouseEvent->button() == Qt::MiddleButton){
+            closeOrHide();
+            return true;
+        }
+    }
+
+    return QObject::eventFilter(object, event);
 }

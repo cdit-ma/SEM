@@ -7,9 +7,9 @@
 class MedeaWindowNew;
 class MedeaDockWidget : public QDockWidget
 {
+    Q_OBJECT
 public:
     enum DOCKWIDGET_TYPE {MDW_VIEW, MDW_TOOL};
-    Q_OBJECT
     friend class MedeaWindowManager;
 protected:
     MedeaDockWidget(DOCKWIDGET_TYPE type);
@@ -23,6 +23,7 @@ public:
     void setSourceWindow(MedeaWindowNew* window);
     MedeaWindowNew* getSourceWindow();
 
+    virtual void themeChanged() = 0;
 
     DockTitleBarWidget* getTitleBar();
     void setTitleBarIconSize(int height);
@@ -57,6 +58,8 @@ public:
 
     void close();
 signals:
+    void titleChanged();
+    void dockSetActive(bool);
     void req_Maximize(int ID, bool maximize);
     void req_Visible(int ID, bool visible);
     void req_PopOut(int ID);
@@ -70,13 +73,11 @@ private slots:
 
     void _visibilityChanged(bool visible);
 
-
     void destruct();
-    void themeChanged();
     void showContextMenu(const QPoint &point);
 
 private:
-    void updateActiveStyleSheet();
+    void closeOrHide();
     void setActionVisible(DockTitleBarWidget::DOCK_ACTION action, bool visible);
     void setActionToggled(DockTitleBarWidget::DOCK_ACTION action, bool toggled);
     void setActionEnabled(DockTitleBarWidget::DOCK_ACTION action, bool enabled);

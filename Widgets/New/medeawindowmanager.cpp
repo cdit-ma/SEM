@@ -77,6 +77,7 @@ void MedeaWindowManager::_destructWindow(MedeaWindowNew *window)
         if(window->getType() == MedeaWindowNew::MAIN_WINDOW && windows.contains(wID)){
             delete this;
         }else{
+
             removeWindow(window);
             window->deleteLater();
         }
@@ -273,6 +274,7 @@ void MedeaWindowManager::removeWindow(MedeaWindowNew *window)
 {
     if(window){
         int ID = window->getID();
+        emit windowDestructed(window);
         if(windows.contains(ID)){
             windows.remove(ID);
         }else{
@@ -312,9 +314,12 @@ void MedeaWindowManager::removeDockWidget(MedeaDockWidget *dockWidget)
                 setActiveDockWidget();
             }
 
+            emit viewDockWidgetDestructed(dockWidget);
+
             if(dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
                 viewDockIDs.removeAll(ID);
             }
+
             disconnect(dockWidget, &MedeaDockWidget::req_PopOut, this, &MedeaWindowManager::dockWidget_PopOut);
             disconnect(dockWidget, &MedeaDockWidget::req_Close, this, &MedeaWindowManager::dockWidget_Close);
             dockWidgets.remove(ID);
@@ -407,9 +412,10 @@ void MedeaWindowManager::_reparentDockWidget(MedeaDockWidget *dockWidget, MedeaW
         }
 
         window->addDockWidget(dockWidget);
-
-        dockWidget->show();
         window->show();
+        //Make it visible
+        emit dockWidget->req_Visible(dockWidget->getID(), true);
+
         window->activateWindow();
 
         destructWindowIfEmpty(previousWindow);

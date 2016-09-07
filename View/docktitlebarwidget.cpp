@@ -1,7 +1,10 @@
 #include "docktitlebarwidget.h"
 #include <QDebug>
+#include "theme.h"
+
 DockTitleBarWidget::DockTitleBarWidget(QWidget* parent) : QToolBar(parent)
 {
+    _isActive = false;
     //This sets to the parent that everything is okay.
     setFocusPolicy(Qt::ClickFocus);
     setFocusProxy(parent);
@@ -13,23 +16,32 @@ DockTitleBarWidget::DockTitleBarWidget(QWidget* parent) : QToolBar(parent)
     //Setting as Custom Context Menu so the parent can catch this signal.
     setContextMenuPolicy(Qt::CustomContextMenu);
     setupToolBar();
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 DockTitleBarWidget::~DockTitleBarWidget()
 {
 }
 
+void DockTitleBarWidget::setActive(bool active)
+{
+    if(_isActive != active){
+        _isActive = active;
+        updateActiveStyle();
+    }
+}
+
+QList<QAction *> DockTitleBarWidget::getToolActions()
+{
+    return actions;
+}
+
 void DockTitleBarWidget::setToolBarIconSize(int height)
 {
     setIconSize(QSize(height, height));
     iconLabel->setFixedSize(height +2,height);
-}
-
-void DockTitleBarWidget::setLabelStyleSheet(QString style)
-{
-    if (titleLabel) {
-        titleLabel->setStyleSheet(style);
-    }
 }
 
 void DockTitleBarWidget::setIcon(QPixmap pixmap)
@@ -69,6 +81,35 @@ QAction *DockTitleBarWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
     }
 }
 
+void DockTitleBarWidget::themeChanged()
+{
+    updateActiveStyle();
+    Theme* theme = Theme::theme();
+
+    //Update Icons.
+    if(closeAction){
+        closeAction->setIcon(theme->getIcon("Actions", "Close"));
+    }
+    if(maximizeAction){
+        maximizeAction->setIcon(theme->getIcon("Actions", "Maximize"));
+    }
+    if(popOutAction){
+        popOutAction->setIcon(theme->getIcon("Actions", "DockPopOut"));
+    }
+    if(protectAction){
+        protectAction->setIcon(theme->getIcon("Actions", "Lock_Open"));
+    }
+    if(hideAction){
+        hideAction->setIcon(theme->getIcon("Actions", "Visible"));
+    }
+
+}
+
+void DockTitleBarWidget::updateActiveStyle()
+{
+    setStyleSheet(Theme::theme()->getDockTitleBarStyleSheet(isActive()));
+}
+
 void DockTitleBarWidget::setupToolBar()
 {
     iconLabel = new QLabel(this);
@@ -83,20 +124,35 @@ void DockTitleBarWidget::setupToolBar()
     addWidget(titleLabel);
 
     popOutAction = addAction("Pop Out");
+    actions.append(popOutAction);
     popOutAction->setVisible(false);
+
     maximizeAction = addAction("Maximise/Minimise");
+    //actions.append(maximizeAction);
     maximizeAction->setCheckable(true);
     maximizeAction->setVisible(false);
-    closeAction = addAction("Close");
-    closeAction->setVisible(false);
+
     protectAction = addAction("Protect Window");
+    actions.append(protectAction);
     protectAction->setCheckable(true);
     protectAction->setVisible(false);
+
     hideAction = addAction("Hide Window");
+    actions.append(hideAction);
     hideAction->setCheckable(true);
     hideAction->setChecked(true);
     hideAction->setVisible(false);
 
+    closeAction = addAction("Close");
+    actions.append(closeAction);
+    closeAction->setVisible(false);
+
+
     setToolBarIconSize(16);
+}
+
+bool DockTitleBarWidget::isActive()
+{
+    return _isActive;
 }
 
