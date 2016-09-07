@@ -211,7 +211,8 @@ HEADERS += \
     View/Dock/dockwidgetparentactionitem.h \
     GUI/codebrowser.h \
     Model/BehaviourDefinitions/workerprocess.h \
-    Widgets/New/viewmanagerwidget.h
+    Widgets/New/viewmanagerwidget.h \
+    Widgets/New/searchdialog.h
 
 SOURCES += \
     main.cpp \
@@ -386,7 +387,8 @@ SOURCES += \
     View/Dock/dockwidgetparentactionitem.cpp \
     GUI/codebrowser.cpp \
     Model/BehaviourDefinitions/workerprocess.cpp \
-    Widgets/New/viewmanagerwidget.cpp
+    Widgets/New/viewmanagerwidget.cpp \
+    Widgets/New/searchdialog.cpp
 
 RESOURCES += \
     resources.qrc

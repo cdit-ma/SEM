@@ -602,10 +602,10 @@ QString Theme::getDockWidgetStyleSheet()
            "}";
 }
 
-QString Theme::getToolDockWidgetStyleSheet()
+QString Theme::getToolDockWidgetTitleBarStyleSheet()
 {
-    return  getDockWidgetStyleSheet() %
-            "DockTitleBarWidget QToolButton {padding:0px;border-radius:2px;}";
+    return  getDockTitleBarStyleSheet(false) %
+            "DockTitleBarWidget QToolButton { padding: 0px; border-radius:2px; }";
 }
 
 QString Theme::getViewDockWidgetStyleSheet(bool isActive)
@@ -616,12 +616,13 @@ QString Theme::getViewDockWidgetStyleSheet(bool isActive)
 
 QString Theme::getDockTitleBarStyleSheet(bool isActive, QString widgetName)
 {
-    QString bgColor = isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex();
+    QString bgColor = isActive ? getActiveWidgetBorderColorHex() : getAltBackgroundColorHex();
+    QString borderColor = isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex();
     return  widgetName % "{"
             "padding: 0px 2px;"
             "spacing: 1px;"
             "background:" % bgColor % ";"
-            "border: 1px solid " % bgColor % ";"
+            "border: 1px solid " % borderColor % ";"
             "}"
             % widgetName % " QLabel {"
             "color:" % getTextColorHex() % ";"

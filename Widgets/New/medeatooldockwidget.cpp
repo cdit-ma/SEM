@@ -15,5 +15,9 @@ MedeaToolDockWidget::MedeaToolDockWidget(QString title) : MedeaDockWidget(MedeaD
 
 void MedeaToolDockWidget::themeChanged()
 {
-    setStyleSheet(Theme::theme()->getToolDockWidgetStyleSheet());
+    Theme* theme = Theme::theme();
+    setStyleSheet(theme->getDockWidgetStyleSheet());
+    if (getTitleBar()) {
+        getTitleBar()->setStyleSheet(theme->getToolDockWidgetTitleBarStyleSheet());
+    }
 }

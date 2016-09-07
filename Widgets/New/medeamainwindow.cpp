@@ -231,6 +231,8 @@ void MedeaMainWindow::themeChanged()
     assemblyButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_ASSEMBLIES));
     hardwareButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_HARDWARE));
 
+    minimap->setStyleSheet(theme->getNodeViewStyleSheet());
+
     recentProjectsToolbar->setStyleSheet("QToolBar {"
                                          "background:" + theme->getAltBackgroundColorHex() + ";"
                                          "spacing: 0px;"
@@ -761,10 +763,13 @@ void MedeaMainWindow::setupSearchBar()
     searchPopup->setWidget(searchToolbar);
     searchPopup->setWidth(300);
 
+    searchDialog = new SearchDialog(this);
+
     connect(this, &MedeaMainWindow::requestSuggestions, viewController, &ViewController::requestSearchSuggestions);
     connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MedeaMainWindow::updateSearchSuggestions);
     connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
+    //connect(searchButton, SIGNAL(clicked(bool)), searchDialog, SLOT(show()));
 }
 
 

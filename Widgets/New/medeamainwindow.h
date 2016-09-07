@@ -22,6 +22,7 @@
 
 #include "../../GUI/popupwidget.h"
 #include "../../View/Dock/docktabwidget.h"
+#include "../../Widgets/New/searchdialog.h"
 
 
 class MedeaMainWindow : public MedeaWindowNew
@@ -104,6 +105,7 @@ private:
     QToolButton* searchButton;
     QCompleter* searchCompleter;
     QStringListModel* searchCompleterModel;
+    SearchDialog* searchDialog;
 
     PopupWidget* progressPopup;
     QProgressBar* progressBar;

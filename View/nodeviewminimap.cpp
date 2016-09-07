@@ -138,9 +138,6 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     painter->drawRect(infoBox());
     painter->setPen(Qt::white);
 
-
-
-
     painter->drawText(zoomText(), Qt::AlignCenter|Qt::AlignLeft, zoomPercent);
     QRectF imageRect = zoomIcon();
     painter->drawPixmap(imageRect.x(), imageRect.y(), imageRect.width(), imageRect.height(), zoomPixmap);
