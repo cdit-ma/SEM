@@ -3,12 +3,12 @@
 HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem):ContainerElementNodeItem(viewItem, parentItem)
 {
     setMoveEnabled(true);
-    setExpandEnabled(true);
+    setExpandEnabled(false);
     setResizeEnabled(false);
 
 
     qreal size = DEFAULT_SIZE / 2.0;
-    setMinimumWidth(size);
+    setMinimumWidth(3*size);
     setMinimumHeight(size);
 
     setExpandedWidth(3 * size);
@@ -42,9 +42,8 @@ QPainterPath HardwareNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect) 
         QPainterPath path;
         path.setFillRule(Qt::WindingFill);
         path.addRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
-        if(isExpanded()){
-            path.addRoundedRect(rightRect(), cornerRadius, cornerRadius);
-        }
+        path.addRoundedRect(rightRect(), cornerRadius, cornerRadius);
+
         return path.simplified();
     }
     default:
@@ -117,16 +116,14 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     if(state > RS_BLOCK){
         painter->setClipRect(option->exposedRect);
         painter->setPen(Qt::NoPen);
-        if(isExpanded()){
-            painter->setBrush(getBodyColor());
-            painter->drawRoundedRect(rightRect(),cornerRadius, cornerRadius);
-        }
+        painter->setBrush(getBodyColor());
+
+        painter->drawRoundedRect(rightRect(),cornerRadius, cornerRadius);
+
         painter->setBrush(getBodyColor().darker(120));
         painter->drawRoundedRect(mainIconRect(), cornerRadius, cornerRadius);
 
-        if(isExpanded()){
-            paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", "ip_address");
-        }
+        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", "ip_address");
     }
     //Call Base class
     NodeItemNew::paint(painter, option, widget);
@@ -143,8 +140,6 @@ QRectF HardwareNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return ipIconRect();
     case ER_SECONDARY_TEXT:
         return ipTextRect();
-    case ER_EXPANDCONTRACT:
-        return mainIconRect();
     default:
         return NodeItemNew::getElementRect(rect);
     }
