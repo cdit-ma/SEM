@@ -667,6 +667,7 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     RENDER_STATE state = getRenderState(lod);
 
     if(state == RS_BLOCK){
+        painter->save();
         painter->setClipRect(boundingRect());
         QBrush brush(Qt::SolidPattern);
 
@@ -675,10 +676,12 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
             brush.setColor(getPen().color());
         }else{
             brush.setColor(getBodyColor());
+            //brush.setColor(getBaseBodyColor());
         }
         painter->setBrush(brush);
         painter->setPen(Qt::NoPen);
         painter->drawPath(getElementPath(ER_SELECTION));
+        painter->restore();
     }
 
 
@@ -697,7 +700,9 @@ QPen EntityItemNew::getPen()
     QColor penColor = defaultPen.color();
 
     if(isSelected()){
-        //pen.setStyle(Qt::SolidLine);
+        if(pen.style() == Qt::NoPen){
+            pen.setStyle(Qt::SolidLine);
+        }
         pen.setCosmetic(true);
         pen.setWidthF(SELECTED_LINE_WIDTH);
         penColor = Theme::theme()->getSelectedItemBorderColor();
