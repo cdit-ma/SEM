@@ -45,9 +45,9 @@ QPoint ColumnContainerNodeItem::getElementIndex(ContainerElementNodeItem *child)
         }
         currentIndex.setY(child->getSortOrder());
     }else{
-        QPointF childCenter = child->getCenter() - (bodyRect().topLeft() + QPointF(2,2));
-        currentIndex.setX(childCenter.x() / (columnWidth + columnSpacing));
-        currentIndex.setY(childCenter.y() / (columnHeight + columnSpacing));
+        //QPointF childCenter = child->getCenter() - (bodyRect().topLeft() + QPointF(2,2));
+        //currentIndex.setX(childCenter.x() / (columnWidth + columnSpacing));
+        //currentIndex.setY(childCenter.y() / (columnHeight + columnSpacing));
     }
     return currentIndex;
 }

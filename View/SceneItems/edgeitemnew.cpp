@@ -19,8 +19,9 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
 
 
     QPen pen;
-    pen.setWidthF(.5);
+    pen.setWidthF(1);
     pen.setCapStyle(Qt::FlatCap);
+
 
     //Add the edge to the parent
     if(parent){
@@ -28,8 +29,15 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
         pen.setColor(parent->getBaseBodyColor().darker(300));
     }
 
-    if(edgeViewItem->getEdgeKind() == Edge::EC_DATA){
-        pen.setStyle(Qt::DashLine);
+    switch(edgeViewItem->getEdgeKind()){
+        case Edge::EC_DATA:
+            pen.setStyle(Qt::DotLine);
+        break;
+        case Edge::EC_ASSEMBLY:
+            pen.setStyle(Qt::DashLine);
+        break;
+    default:
+        pen.setStyle(Qt::SolidLine);
     }
 
     //Set the Pen.
@@ -57,6 +65,7 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
     sourceParentVisibilityChanged();
     destinationParentVisibilityChanged();
 
+    setZValue(Edge::EC_UNDEFINED - edgeViewItem->getEdgeKind());
     //Listen to the X/Y data
     addRequiredData("x");
     addRequiredData("y");
@@ -88,7 +97,7 @@ QRectF EdgeItemNew::sourceIconRect() const
 {
     QRectF  r;
     r.setSize(smallIconSize());
-    r.moveBottomLeft(translatedIconsRect().bottomLeft());
+    r.moveTopLeft(translatedIconsRect().topLeft() + QPointF(1,1));
     return r;
 }
 
@@ -96,7 +105,7 @@ QRectF EdgeItemNew::destinationIconRect() const
 {
     QRectF  r;
     r.setSize(smallIconSize());
-    r.moveBottomRight(translatedIconsRect().bottomRight());
+    r.moveTopRight(translatedIconsRect().topRight() + QPointF(-1,1));
     return r;
 }
 
@@ -105,7 +114,7 @@ QRectF EdgeItemNew::itemRect() const
 {
     QRectF r;
     //Should be 16x16
-    r.setSize(smallIconSize() * 2);
+    r.setSize(QSizeF(DEFAULT_SIZE /4, DEFAULT_SIZE / 4));//smallIconSize() * 2);
     return r;
 }
 
@@ -314,7 +323,7 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 QRectF EdgeItemNew::translatedIconsRect() const
 {
     QRectF r = currentRect();
-    r.setHeight(smallIconSize().height());
+    r.setHeight(r.height()/2);
     r.moveCenter(currentRect().center());
     return r;
 }
@@ -329,20 +338,21 @@ QRectF EdgeItemNew::currentRect() const
 void EdgeItemNew::dataChanged(QString keyName, QVariant data)
 {
     if(keyName == "x" || keyName == "y"){
-        qreal value = data.toReal();
-
-        QPointF center = getCenter();
-        QPointF newCenter = center;
+        qreal realData = data.toReal();
+        QPointF oldPos = getPos();
+        QPointF newPos = oldPos;
 
         if(keyName == "x"){
-            newCenter.setX(value);
+            newPos.setX(realData);
+
         }else if(keyName == "y"){
-            newCenter.setY(value);
+            newPos.setY(realData);
         }
-        if(!_hasPosition){
-            setManuallyPositioned(true);
+        setManuallyPositioned(true);
+
+        if(newPos != oldPos){
+            setPos(newPos);
         }
-        setCenter(newCenter);
     }
 }
 
@@ -382,7 +392,7 @@ QPointF EdgeItemNew::validateAdjustPos(QPointF delta)
 void EdgeItemNew::setMoving(bool moving)
 {
     if(!moving && hasSetPosition()){
-        setCenter(getNearestGridPoint());
+        setPos(getNearestGridPoint());
     }
     EntityItemNew::setMoving(moving);
 }
@@ -392,6 +402,11 @@ void EdgeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     if(hasSetPosition() && event->button() == Qt::LeftButton && currentRect().contains(event->pos())){
         resetPosition();
     }
+}
+
+QPointF EdgeItemNew::getTopLeftOffset() const
+{
+    return getInternalOffset();
 }
 
 QPainterPath EdgeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
@@ -481,11 +496,6 @@ QPointF EdgeItemNew::getDestinationPos(QPointF center) const
     return QPointF();
 }
 
-QPointF EdgeItemNew::getCenterOffset() const
-{
-    return mapFromParent(itemPos) + getInternalOffset();
-}
-
 QPointF EdgeItemNew::getInternalOffset() const
 {
     return itemRect().center();
@@ -538,6 +548,12 @@ void EdgeItemNew::resetPosition()
 bool EdgeItemNew::shouldReset()
 {
     return !_hasPosition;
+}
+
+QPointF EdgeItemNew::getSceneCenter() const
+{
+    return mapToScene(mapFromParent(getPos())) + getInternalOffset();
+    //return itemPos + getInternalOffset();
 }
 
 void EdgeItemNew::sourceParentVisibilityChanged()

@@ -178,9 +178,6 @@ private:
     QMarginsF bodyPadding;
 
 
-    qreal manuallyAdjustedWidth;
-    qreal manuallyAdjustedHeight;
-
     QRectF _childRect;
     bool gridEnabled;
     bool gridVisible;
@@ -239,5 +236,9 @@ protected:
     // EntityItemNew interface
 public:
     QColor getBodyColor() const;
+
+    // EntityItemNew interface
+public:
+    QPointF getTopLeftOffset() const;
 };
 #endif

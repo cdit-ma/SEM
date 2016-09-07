@@ -12,7 +12,7 @@
 #define ICON_RATIO (4.0 / 6.0)
 #define SMALL_ICON_RATIO (1.0 / 6.0)
 #define LABEL_RATIO (2.5 / 6.0)
-#define DEFAULT_SIZE 72
+#define DEFAULT_SIZE 80
 
 #define SELECTED_LINE_WIDTH 3
 class EntityItemNew: public QGraphicsObject
@@ -137,12 +137,7 @@ public:
 
     int getGridSize() const;
     int getMajorGridCount() const;
-    virtual QPointF getSceneCenter() const;
-    virtual QPointF getCenterOffset() const;
-
-    virtual void setCenter(QPointF center);
-    virtual QPointF getCenter() const;
-
+    virtual QPointF getTopLeftOffset() const = 0;
 
 public:
     //Feature State Getters

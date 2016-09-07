@@ -104,7 +104,7 @@ ViewItem *EntityItemNew::getViewItem() const
 void EntityItemNew::setPos(const QPointF &pos)
 {
     if(pos != getPos()){
-       QGraphicsObject::setPos(pos);
+       QGraphicsObject::setPos(pos - getTopLeftOffset());
        emit positionChanged();
        emit scenePosChanged();
     }
@@ -408,7 +408,7 @@ void EntityItemNew::adjustPos(QPointF delta)
 
 QPointF EntityItemNew::getPos() const
 {
-    return pos();
+    return pos() + getTopLeftOffset();
 }
 
 QPointF EntityItemNew::validateAdjustPos(QPointF delta)
@@ -754,26 +754,6 @@ int EntityItemNew::getMajorGridCount() const
     return 5;
 }
 
-QPointF EntityItemNew::getSceneCenter() const
-{
-    return mapToScene(mapFromParent(getCenter()));
-}
-
-QPointF EntityItemNew::getCenterOffset() const
-{
-    return boundingRect().center();
-}
-
-void EntityItemNew::setCenter(QPointF center)
-{
-    setPos(center - getCenterOffset());
-}
-
-QPointF EntityItemNew::getCenter() const
-{
-    return getPos() + getCenterOffset();
-}
-
 QPair<QString, QString> EntityItemNew::getIconPath()
 {
     if(viewItem){
@@ -785,11 +765,14 @@ QPair<QString, QString> EntityItemNew::getIconPath()
 QPointF EntityItemNew::getNearestGridPoint()
 {
     qreal gridSize = getGridSize();
-    QPointF point = getSceneCenter();
+    //QPointF point = getSceneCenter();
+    //getSceneCenter
+    QPointF point = mapToScene(mapFromParent(getPos()));
     qreal closestX = qRound(point.x() / gridSize) * gridSize;
     qreal closestY = qRound(point.y() / gridSize) * gridSize;
     QPointF delta = QPointF(closestX, closestY) - point;
-    return getCenter() + delta;
+    //return getCenter() + delta;
+    return getPos() + delta;
 }
 
 void EntityItemNew::destruct()
@@ -818,6 +801,10 @@ void EntityItemNew::setSelected(bool selected)
 {
     if(_isSelected != selected){
         _isSelected = selected;
+        qreal z = zValue();
+        z += (selected ? 1: -1);
+        z = qMax(0.0, z);
+        setZValue(z);
         update();
     }
 }

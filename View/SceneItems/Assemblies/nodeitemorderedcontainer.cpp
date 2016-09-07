@@ -11,7 +11,7 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     headerMargin = QMarginsF(2,2,2,2);
     setBodyPadding(QMarginsF(5,5,5,5));
 
-    qreal height = iconSize().height() + headerMargin.top() + headerMargin.bottom();
+    qreal height = DEFAULT_SIZE / 2.0;//iconSize().height() + headerMargin.top() + headerMargin.bottom();
     qreal width = DEFAULT_SIZE / 2.0;
 
     setMinimumHeight(height);

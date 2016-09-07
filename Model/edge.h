@@ -9,7 +9,16 @@ class Node;
 class Edge: public Entity{
     Q_OBJECT
 public:
-    enum EDGE_KIND{EC_NONE, EC_DEFINITION, EC_AGGREGATE, EC_WORKFLOW, EC_ASSEMBLY, EC_DATA, EC_DEPLOYMENT, EC_QOS, EC_UNDEFINED};
+    enum EDGE_KIND{
+        EC_NONE = 0,
+        EC_DEFINITION= 1,
+        EC_AGGREGATE= 2,
+        EC_WORKFLOW= 3,
+        EC_ASSEMBLY= 4,
+        EC_DATA= 5,
+        EC_DEPLOYMENT= 6,
+        EC_QOS= 7,
+        EC_UNDEFINED = 8};
     static QList<EDGE_KIND> getEdgeKinds();
 
     static QString getKind(EDGE_KIND edgeClass);

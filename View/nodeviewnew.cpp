@@ -365,7 +365,7 @@ void NodeViewNew::item_AdjustingPos(bool adjusting)
             item->setMoving(adjusting);
             if(!adjusting){
                 int id = item->getID();
-                QPointF pos = item->getCenter();
+                QPointF pos = item->getPos();
 
                 bool sendRequest = itemWasMoved && !item->isIgnoringPosition();
 
@@ -1156,6 +1156,12 @@ void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)
         }
         painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, backgroundText);
     }
+}
+
+void NodeViewNew::drawForeground(QPainter *painter, const QRectF &rect)
+{
+    //painter->setBrush(Qt::red);
+    //painter->drawRect(rect);
 }
 
 void NodeViewNew::resizeEvent(QResizeEvent *event)
