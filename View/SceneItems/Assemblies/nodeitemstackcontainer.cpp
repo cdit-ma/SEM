@@ -1,6 +1,7 @@
 #include "nodeitemstackcontainer.h"
 #include "nodeitemcolumnitem.h"
 #include <QDebug>
+#include <cmath>
 StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem):
     ContainerNodeItem(viewItem, parentItem)
 {

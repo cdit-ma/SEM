@@ -842,6 +842,7 @@ QString Theme::getPushButtonStyleSheet()
 QString Theme::getLineEditStyleSheet()
 {
     return "QLineEdit {"
+           "margin: 0px;"
            "padding: 0px;"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
