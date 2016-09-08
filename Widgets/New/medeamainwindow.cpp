@@ -769,7 +769,7 @@ void MedeaMainWindow::setupSearchBar()
     connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MedeaMainWindow::updateSearchSuggestions);
     connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
-    connect(searchButton, SIGNAL(clicked(bool)), searchDialog, SLOT(show()));
+    //connect(searchButton, SIGNAL(clicked(bool)), searchDialog, SLOT(show()));
 }
 
 
