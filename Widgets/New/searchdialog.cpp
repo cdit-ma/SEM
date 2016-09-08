@@ -1,12 +1,9 @@
 #include "searchdialog.h"
 #include "../../View/theme.h"
 
-#include <QGroupBox>
-#include <QLabel>
-#include <QLineEdit>
-#include <QComboBox>
 #include <QScrollArea>
-#include <QPushButton>
+
+#define LEFT_PANEL_WIDTH 120
 
 /**
  * @brief SearchDialog::SearchDialog
@@ -26,22 +23,20 @@ SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent)
 void SearchDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
-    //setStyleSheet(theme->getLineEditStyleSheet());
-    searchButton->setIcon(theme->getIcon("Actions", "Search"));
 
-    setStyleSheet("QDialog {"
+    setStyleSheet(theme->getLineEditStyleSheet() + "QDialog {"
                   "background:" + theme->getBackgroundColorHex() + ";"
                   "}"
                   "QLabel {"
-                  "background: rgba(250,0,0,250);"
+                  "padding: 5px 0px;"
+                  "background: rgba(0,0,0,0);"
                   "color:" + theme->getTextColorHex() + ";"
                   "}"
-                  "QGroupBox { padding:0px; margin:0px;border:0px;background: rgba(0,250,0,250); }"
                   "QComboBox {"
                   "background:" + theme->getAltBackgroundColorHex() + ";"
                   "color:" + theme->getTextColorHex() + ";"
-                  "selection-background-color:" + theme->getHighlightColorHex() + ";"
-                  "selection-color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
+                  //"selection-background-color:" + theme->getHighlightColorHex() + ";"
+                  //"selection-color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "padding: 0px 5px;"
                   "margin: 0px;"
@@ -49,16 +44,31 @@ void SearchDialog::themeChanged()
                   "QComboBox::drop-down {"
                   "subcontrol-position: top right;"
                   "padding: 0px;"
-                  "width: 25px;"
+                  "width: 20px;"
                   "}"
-                  "QComboBox::down-arrow{ image: url(Resources/Images/Actions/Arrow_Down.png);}"
-                  "QComboBox QAbstractItemView {"
-                  "background: yellow;"// + theme->getAltBackgroundColorHex() + ";"
+                  //"QComboBox::down-arrow{ image: url(Resources/Images/Actions/Arrow_Down.png); }"
+                  "QComboBox QAbstractItemView::item {"
+                  "background:" + theme->getAltBackgroundColorHex() + ";"
                   "}"
                   "QPushButton {"
                   "padding: 5px 10px;"
                   "}"
                   + theme->getLineEditStyleSheet());
+
+    keysToolBar->setStyleSheet("QToolBar{ padding: 0px; }"
+                               "QToolButton {"
+                               "padding: 5px 10px;"
+                               //"width:" + QString::number(LEFT_PANEL_WIDTH - 25) + "px;"
+                               "width:" + QString::number(maxToolButtonWidth) + "px;"
+                               "border-radius: 2px;"
+                               "}"
+                               "QToolButton::checked {"
+                               "background:" + theme->getHighlightColorHex() + ";"
+                               "color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
+                               "}");
+
+    //searchButton->setIcon(theme->getIcon("Actions", "Search"));
+    queryLabel->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
 }
 
 
@@ -67,110 +77,74 @@ void SearchDialog::themeChanged()
  */
 void SearchDialog::setupLayout()
 {
-    QLabel* searchLabel = new QLabel("Search:", this);
-    QLineEdit* searchLineEdit = new QLineEdit(this);
-    searchButton = new QToolButton(this);
+    QLabel* searchLabel = new QLabel("Search: ", this);
+    scopeLabel = new QLabel("Scope:", this);
+    queryLabel = new QLabel("Searched string Searched string Searched string", this);
 
-    int fieldHeight = 35;
-    searchLineEdit->setStyleSheet("padding:0px; margin:0px;border:0px;");
-    searchLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    QFont labelFont(font().family(), 9);
+    searchLabel->setFont(labelFont);
+    scopeLabel->setFont(labelFont);
+    labelFont.setPointSize(10);
+    queryLabel->setFont(labelFont);
+    queryLabel->setWordWrap(true);
 
-    QLabel* scopeLabel = new QLabel("Scope:", this);
-    QComboBox* scopeComboBox = new QComboBox(this);
+    QHBoxLayout* labelLayout = new QHBoxLayout();
+    labelLayout->setMargin(0);
+    labelLayout->setSpacing(2);
+    labelLayout->addWidget(searchLabel);
+    labelLayout->addWidget(queryLabel, 1);
 
-    scopeComboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    int fieldHeight = 25;
+
+    scopeComboBox = new QComboBox(this);
+    scopeComboBox->setFixedHeight(fieldHeight);
     scopeComboBox->addItem("Entire Model");
     scopeComboBox->addItem("Interfaces");
     scopeComboBox->addItem("Behaviour");
     scopeComboBox->addItem("Assemblies");
     scopeComboBox->addItem("Hardware");
 
-    /*
-    QHBoxLayout* searchLayout = new QHBoxLayout();
-    searchLayout->setMargin(0);
-    searchLayout->setSpacing(5);
-    searchLayout->addWidget(searchLineEdit, 1);
-    searchLayout->addWidget(searchButton);
+    QHBoxLayout* labelLayout2 = new QHBoxLayout();
+    labelLayout2->setMargin(0);
+    labelLayout2->setSpacing(2);
+    labelLayout2->addWidget(scopeLabel);
+    labelLayout2->addWidget(scopeComboBox);
 
-    QVBoxLayout* labelsLayout = new QVBoxLayout();
-    labelsLayout->setMargin(0);
-    labelsLayout->setSpacing(5);
-    labelsLayout->addWidget(searchLabel);
-    labelsLayout->addWidget(scopeLabel);
+    keysActionGroup = new QActionGroup(this);
+    keysActionGroup->setExclusive(true);
 
-    QVBoxLayout* fieldsLayout = new QVBoxLayout();
-    fieldsLayout->setMargin(0);
-    fieldsLayout->setSpacing(5);
-    fieldsLayout->addWidget(searchLineEdit);
-    fieldsLayout->addWidget(scopeComboBox);
+    keysToolBar = new QToolBar(this);
+    keysToolBar->setOrientation(Qt::Vertical);
+    keysToolBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
 
-    QHBoxLayout* topHLayout = new QHBoxLayout();
-    topHLayout->setMargin(0);
-    topHLayout->setSpacing(5);
-    topHLayout->addLayout(labelsLayout);
-    topHLayout->addLayout(fieldsLayout, 1);
-    */
-
-    /*
-    QHBoxLayout* topHLayout = new QHBoxLayout();
-    topHLayout->setMargin(0);
-    topHLayout->setSpacing(2);
-    topHLayout->addWidget(searchLabel);
-    topHLayout->addWidget(searchLineEdit, 1);
-    topHLayout->addWidget(searchButton);
-    topHLayout->addSpacerItem(new QSpacerItem(10, 0));
-    topHLayout->addWidget(scopeLabel);
-    topHLayout->addWidget(scopeComboBox, 1);
-    */
-
-    QGroupBox* searchBox = new QGroupBox(this);
-    QGroupBox* scopeBox = new QGroupBox(this);
-    QHBoxLayout* searchLayout = new QHBoxLayout(searchBox);
-    QHBoxLayout* scopeLayout = new QHBoxLayout(scopeBox);
-
-    searchLayout->setMargin(0);
-    searchLayout->setSpacing(2);
-    searchLayout->addWidget(searchLabel);
-    searchLayout->addWidget(searchLineEdit, 1);
-    searchLayout->addWidget(searchButton);
-
-    scopeLayout->setMargin(0);
-    scopeLayout->setSpacing(2);
-    scopeLayout->addWidget(scopeLabel);
-    scopeLayout->addWidget(scopeComboBox, 1);
-
-    //scopeLabel->setFixedHeight(searchLabel->sizeHint().height());
-
-    QHBoxLayout* topHLayout = new QHBoxLayout();
-    topHLayout->setMargin(0);
-    topHLayout->setSpacing(5);
-    topHLayout->addWidget(searchBox);
-    topHLayout->addWidget(scopeBox);
-
-    searchBox->setFixedHeight(fieldHeight);
-    scopeBox->setFixedHeight(fieldHeight);
-
-    QWidget* keysBox = new QWidget(this);
-    keysLayout = new QVBoxLayout(keysBox);
-    keysLayout->setMargin(0);
-    keysLayout->setSpacing(2);
-
+    constructKeyButton("All");
+    constructKeyButton("Description");
     constructKeyButton("Kind");
-    constructKeyButton("Label");
+    constructKeyButton("Label", true);
     constructKeyButton("Worker");
-    keysLayout->addStretch();
+    constructKeyButton("ID");
+    keysToolBar->setMinimumHeight(keysToolBar->sizeHint().height() + 10);
 
     QScrollArea* displayArea = new QScrollArea(this);
     QHBoxLayout* bottomHLayout = new QHBoxLayout();
     bottomHLayout->setMargin(0);
     bottomHLayout->setSpacing(5);
-    bottomHLayout->addWidget(keysBox);
+    bottomHLayout->addWidget(keysToolBar);
     bottomHLayout->addWidget(displayArea, 1);
+
+    QHBoxLayout* hLayout = new QHBoxLayout();
+    hLayout->setMargin(0);
+    hLayout->setSpacing(5);
+    hLayout->addLayout(labelLayout, 1);
+    hLayout->addSpacerItem(new QSpacerItem(30, 0));
+    hLayout->addLayout(labelLayout2);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(10);
     mainLayout->setSpacing(5);
-    mainLayout->addLayout(topHLayout);
+    mainLayout->addLayout(hLayout);
+    mainLayout->addLayout(labelLayout);
+    mainLayout->addSpacerItem(new QSpacerItem(0, 5));
     mainLayout->addLayout(bottomHLayout, 1);
 }
 
@@ -178,13 +152,15 @@ void SearchDialog::setupLayout()
 /**
  * @brief SearchDialog::constructKeyButton
  * @param key
+ * @param checked
  */
-void SearchDialog::constructKeyButton(QString key)
+void SearchDialog::constructKeyButton(QString key, bool checked)
 {
-    QPushButton* button = new QPushButton(key, this);
-    button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    button->setFixedHeight(25);
-    button->setStyleSheet("padding: 5px 10px;");
-    keysLayout->addWidget(button);
+    QAction* action = new QAction(key, this);
+    action->setCheckable(true);
+    action->setChecked(checked);
+    keysToolBar->addAction(action);
+    keysActionGroup->addAction(action);
+    maxToolButtonWidth = qMax(maxToolButtonWidth, fontMetrics().width(key));
 }
 

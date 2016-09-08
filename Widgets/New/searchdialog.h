@@ -2,8 +2,13 @@
 #define SEARCHDIALOG_H
 
 #include <QDialog>
+#include <QLabel>
+#include <QLineEdit>
+#include <QToolBar>
 #include <QToolButton>
+#include <QComboBox>
 #include <QVBoxLayout>
+#include <QActionGroup>
 
 class SearchDialog : public QDialog
 {
@@ -19,10 +24,20 @@ public slots:
 private:
     void setupLayout();
 
-    void constructKeyButton(QString key);
+    void constructKeyButton(QString key, bool checked = false);
 
+    QLabel* queryLabel;
+    QLabel* scopeLabel;
+
+    QLineEdit* searchLineEdit;
     QToolButton* searchButton;
+    QComboBox* scopeComboBox;
+
+    QToolBar* keysToolBar;
     QVBoxLayout* keysLayout;
+    QActionGroup* keysActionGroup;
+
+    int maxToolButtonWidth;
 };
 
 #endif // SEARCHDIALOG_H
