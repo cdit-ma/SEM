@@ -27,6 +27,8 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     hoveredResizeVertex = RV_NONE;
     readState = NodeItemNew::NORMAL;
 
+    visualEdgeKind = Edge::EC_NONE;
+
 
     nodeViewItem = viewItem;
     nodeItemKind = kind;
@@ -51,9 +53,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
         setAspect(parentItem->getAspect());
         setParentItem(parentItem);
         parentItem->addChildNode(this);
-        //setPos()
         setPos(getNearestGridPoint());
-        //setCenter(getNearestGridPoint());
     }
 }
 
@@ -312,11 +312,6 @@ bool NodeItemNew::setMoveFinished()
     }
     setPos(getNearestGridPoint());
     return EntityItemNew::setMoveFinished();
-}
-
-QRectF NodeItemNew::sceneBoundingRect() const
-{
-    return EntityItemNew::sceneBoundingRect();
 }
 
 QRectF NodeItemNew::boundingRect() const
@@ -652,6 +647,16 @@ void NodeItemNew::setSecondaryTextKey(QString key)
     }
 }
 
+void NodeItemNew::setVisualEdgeKind(Edge::EDGE_KIND kind)
+{
+    visualEdgeKind = kind;
+}
+
+Edge::EDGE_KIND NodeItemNew::getVisualEdgeKind() const
+{
+    return visualEdgeKind;
+}
+
 QString NodeItemNew::getPrimaryTextKey() const
 {
     return primaryTextKey;
@@ -703,6 +708,9 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
             }else if(keyName == "y"){
                 newPos.setY(realData);
             }
+
+            //Get the next grid position.
+            newPos = getNearestGridPoint(newPos);
 
             if(newPos != oldPos){
                 setPos(newPos);
@@ -944,8 +952,11 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         if(isReadOnly()){
             paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
         }
-    }
 
+        if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
+            paintPixmap(painter, lod, ER_CONNECT_OUT, "Actions", "ConnectTo");
+        }
+    }
 
     if(state > RS_BLOCK){
         painter->save();
@@ -977,15 +988,20 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
         painter->restore();
     }
+
+    //painter->setBrush(QColor(255,0,0,120));
+    //painter->drawRect(_childRect);
     EntityItemNew::paint(painter, option, widget);
 }
 
 QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
 {
     switch(rect){
-    case ER_MOVE:{
-        return headerRect();
-    }
+        case ER_MOVE:{
+            return headerRect();
+        }
+        default:
+            break;
     }
     //Just call base class.
     return EntityItemNew::getElementRect(rect);
@@ -1058,7 +1074,13 @@ QRectF NodeItemNew::getResizeArrowRect(RECT_VERTEX vert) const
 void NodeItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool caughtResize = false;
-    if(isResizeEnabled() && isExpanded()){
+
+    if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE && event->button() == Qt::LeftButton && getElementPath(ER_CONNECT_OUT).contains(event->pos())){
+        caughtResize = true;
+        emit req_connectMode(this);
+    }
+
+    if(!caughtResize && isResizeEnabled() && isExpanded()){
         RECT_VERTEX vertex = RV_NONE;
         for(int i = RV_LEFT;i <= RV_BOTTOMLEFT; i++){
             RECT_VERTEX vert = (RECT_VERTEX)i;
@@ -1075,6 +1097,8 @@ void NodeItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
             caughtResize = true;
         }
     }
+
+
 
     if(!caughtResize){
         EntityItemNew::mousePressEvent(event);

@@ -33,6 +33,7 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
+    connectLineItem = 0;
     //OPENGL
     //#include <QOpenGLWidget>
     //setViewport(new QOpenGLWidget());
@@ -282,6 +283,15 @@ void NodeViewNew::themeChanged()
     update();
 }
 
+void NodeViewNew::node_ConnectMode(NodeItemNew *item)
+{
+    if(selectionHandler && selectionHandler->getSelectionCount() == 1){
+        if(item->getViewItem() == selectionHandler->getActiveSelectedItem()){
+            emit trans_InActive2Connecting();
+        }
+    }
+}
+
 void NodeViewNew::item_EditData(ViewItem *item, QString keyName)
 {
     if(selectionHandler){
@@ -496,6 +506,9 @@ void NodeViewNew::setupConnections(EntityItemNew *item)
         NodeItemNew* node = (NodeItemNew*) item;
         connect(node, &NodeItemNew::req_adjustSize, this, &NodeViewNew::item_Resize);
         connect(node, &NodeItemNew::req_adjustSizeFinished, this, &NodeViewNew::item_ResizeFinished);
+        connect(node, &NodeItemNew::req_connectMode, this, &NodeViewNew::node_ConnectMode);
+
+
     }
 }
 
@@ -618,29 +631,41 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_OUTEVENTPORT_DELEGATE:
                 nodeItem = new ContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
+                nodeItem->setVisualEdgeKind(Edge::EC_ASSEMBLY);
                 break;
             case Node::NK_CONDITION:
-            case Node::NK_ATTRIBUTE_INSTANCE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 break;
+            case Node::NK_ATTRIBUTE_INSTANCE:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("value");
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                break;
             case Node::NK_AGGREGATE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
-               // nodeItem->setSecondaryTextKey("value");
                 break;
             case Node::NK_PROCESS:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("operation");
                 break;
             case Node::NK_MEMBER_INSTANCE:
-            case Node::NK_ATTRIBUTE:
             case Node::NK_VARIABLE:
-            case Node::NK_MEMBER:
+            case Node::NK_ATTRIBUTE_IMPL:
             case Node::NK_AGGREGATE_INSTANCE:
+            case Node::NK_MEMBER:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                break;
             case Node::NK_INEVENTPORT_IMPL:
             case Node::NK_OUTEVENTPORT_IMPL:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                break;
+            case Node::NK_ATTRIBUTE:
             case Node::NK_INEVENTPORT:
-            case Node::NK_ATTRIBUTE_IMPL:
             case Node::NK_INPUTPARAMETER:
             case Node::NK_RETURNPARAMETER:
             case Node::NK_OUTEVENTPORT:
@@ -650,13 +675,16 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_PERIODICEVENT:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("frequency");
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_BRANCH_STATE:
             case Node::NK_WHILELOOP:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_WORKLOAD:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             default:
                 nodeItem = new DefaultNodeItem(item, parentNode);
@@ -907,6 +935,10 @@ void NodeViewNew::setupStateMachine()
     state_Active_RubberbandMode->addTransition(this, &NodeViewNew::trans_RubberbandMode2RubberbandMode_Selecting, state_Active_RubberbandMode_Selecting);
     state_Active_RubberbandMode_Selecting->addTransition(this, &NodeViewNew::trans_RubberbandMode2InActive, state_Active_RubberbandMode);
 
+
+    state_InActive->addTransition(this, &NodeViewNew::trans_InActive2Connecting, state_Active_Connecting);
+    state_Active_Connecting->addTransition(this, &NodeViewNew::trans_Connecting2InActive, state_InActive);
+
     //Connect to states.
 
     connect(state_InActive, &QState::entered, this, &NodeViewNew::state_Default_Entered);
@@ -932,12 +964,13 @@ void NodeViewNew::setupStateMachine()
 
 EntityItemNew *NodeViewNew::getEntityAtPos(QPointF scenePos)
 {
-    EntityItemNew* entityItem = 0;
-    QGraphicsItem* item = scene()->itemAt(scenePos, transform());
-    if(item){
-        entityItem = qgraphicsitem_cast<EntityItemNew*>(item);
+    foreach(QGraphicsItem* item, scene()->items(scenePos)){
+        EntityItemNew* entityItem =  dynamic_cast<EntityItemNew*>(item);
+        if(entityItem){
+            return entityItem;
+        }
     }
-    return entityItem;
+    return 0;
 }
 
 void NodeViewNew::state_Moving_Entered()
@@ -1019,12 +1052,56 @@ void NodeViewNew::state_RubberbandMode_Selecting_Exited()
 
 void NodeViewNew::state_Connecting_Entered()
 {
-qCritical() << "state_Connecting_Entered";
+    ViewItem* vi = selectionHandler->getActiveSelectedItem();
+    EntityItemNew* item = getEntityItem(vi);
+    if(item && item->isNodeItem()){
+        NodeItemNew* nodeItem = (NodeItemNew*) item;
+
+        //Highlight things we can connect to
+        QList<ViewItem*> items = viewController->getValidEdges(nodeItem->getVisualEdgeKind());
+        foreach(ViewItem* item, items){
+            highlightItem(item->getID(), true);
+        }
+
+        QPointF lineStart = nodeItem->scenePos();
+        lineStart += nodeItem->getElementRect(EntityItemNew::ER_CONNECT_OUT).center();
+
+        if(!connectLineItem){
+            connectLineItem = scene()->addLine(connectLine);
+        }
+        connectLine.setP1(lineStart);
+        connectLine.setP2(lineStart);
+        connectLineItem->setLine(connectLine);
+        connectLineItem->setVisible(true);
+    }
+    qCritical() << "state_Connecting_Entered";
 }
 
 void NodeViewNew::state_Connecting_Exited()
 {
-    qCritical() << "state_Connecting_Exited";
+    ViewItem* vi = selectionHandler->getActiveSelectedItem();
+    EntityItemNew* item = getEntityItem(vi);
+    if(item && item->isNodeItem()){
+        NodeItemNew* nodeItem = (NodeItemNew*) item;
+
+        Edge::EDGE_KIND edgeKind = nodeItem->getVisualEdgeKind();
+
+        //Unhighlight things we can connect to
+        QList<ViewItem*> items = viewController->getValidEdges(edgeKind);
+        foreach(ViewItem* item, items){
+            highlightItem(item->getID(), false);
+        }
+
+        if(connectLineItem){
+            QPointF scenePos = connectLine.p2();
+            EntityItemNew* otherItem = getEntityAtPos(scenePos);
+            if(otherItem){
+                emit triggerAction("Constructing Edge");
+                emit viewController->vc_constructEdge(selectionHandler->getSelectionIDs().toList(), otherItem->getID(), edgeKind);
+            }
+            connectLineItem->setVisible(false);
+        }
+    }
 }
 
 void NodeViewNew::state_Default_Entered()
@@ -1115,6 +1192,9 @@ void NodeViewNew::mouseMoveEvent(QMouseEvent *event)
     if(state_Active_RubberbandMode_Selecting->active()){
         rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
         handledEvent = true;
+    }else if(state_Active_Connecting->active()){
+        connectLine.setP2(mapToScene(event->pos()));
+        connectLineItem->setLine(connectLine);
     }
 
     //Only pass down if we haven't handled it.
@@ -1150,12 +1230,19 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
         handledEvent = true;
     }
 
-    if(state_Active_RubberbandMode_Selecting->active()){
+    if(state_Active_RubberbandMode_Selecting->active() && event->button() == Qt::LeftButton){
         rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
         selectItemsInRubberband();
         emit trans_RubberbandMode2InActive();
         handledEvent = true;
     }
+
+    if(state_Active_Connecting->active() && event->button() == Qt::LeftButton){
+        emit trans_Connecting2InActive();
+        handledEvent = true;
+    }
+
+
     if(!handledEvent){
         QGraphicsView::mouseReleaseEvent(event);
     }

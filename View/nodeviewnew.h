@@ -81,6 +81,7 @@ private slots:
     void themeChanged();
 
 private slots:
+    void node_ConnectMode(NodeItemNew* item);
     void item_EditData(ViewItem* item, QString keyName);
     void item_RemoveData(ViewItem* item, QString keyName);
     void item_Selected(ViewItem* item, bool append);
@@ -177,6 +178,9 @@ private:
     QState* state_Active_RubberbandMode;
     QState* state_Active_RubberbandMode_Selecting;
     QState* state_Active_Connecting;
+
+    QGraphicsLineItem* connectLineItem;
+    QLineF connectLine;
 
 private slots:
     void state_Moving_Entered();

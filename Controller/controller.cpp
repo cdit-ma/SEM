@@ -882,6 +882,7 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
 
 void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_KIND edgeClass)
 {
+    //Node* dst = getNodeFromID(dstID);
     QList<int> validIDs = getConnectableNodeIDs(srcIDs, edgeClass);
 
     bool success = true;

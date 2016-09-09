@@ -55,6 +55,11 @@ EntityItemNew::~EntityItemNew()
     disconnectViewItem();
 }
 
+int EntityItemNew::type() const
+{
+    return ENTITY_ITEM_KIND;
+}
+
 EntityItemNew::RENDER_STATE EntityItemNew::getRenderState(qreal lod) const
 {
     if(lod >= 1.0){
@@ -289,7 +294,8 @@ QPixmap EntityItemNew::getPixmap(QString imageAlias, QString imageName, QSize re
 QRectF EntityItemNew::translatedBoundingRect() const
 {
     QRectF rect = boundingRect();
-    rect.translate(getPos());
+    //we should use the bounding rect coordinates!
+    rect.translate(pos());
     return rect;
 }
 
@@ -338,11 +344,6 @@ void EntityItemNew::reloadRequiredData()
             dataChanged(keyName, dataValue);
         }
     }
-}
-
-QRectF EntityItemNew::sceneBoundingRect() const
-{
-    return QGraphicsObject::sceneBoundingRect();
 }
 
 QRectF EntityItemNew::viewRect() const
@@ -494,6 +495,7 @@ void EntityItemNew::setMoveStarted()
 
 bool EntityItemNew::setMoveFinished()
 {
+    _isMoving = false;
     return getPos() != positionPreMove;
 }
 
@@ -757,17 +759,17 @@ QPair<QString, QString> EntityItemNew::getIconPath()
     return QPair<QString, QString>();
 }
 
-QPointF EntityItemNew::getNearestGridPoint()
+QPointF EntityItemNew::getNearestGridPoint(QPointF newPos)
 {
+    if(newPos.isNull()){
+        newPos = getPos();
+    }
     qreal gridSize = getGridSize();
-    //QPointF point = getSceneCenter();
-    //getSceneCenter
-    QPointF point = mapToScene(mapFromParent(getPos()));
+    QPointF point = mapToScene(mapFromParent(newPos));
     qreal closestX = qRound(point.x() / gridSize) * gridSize;
     qreal closestY = qRound(point.y() / gridSize) * gridSize;
     QPointF delta = QPointF(closestX, closestY) - point;
-    //return getCenter() + delta;
-    return getPos() + delta;
+    return newPos + delta;
 }
 
 void EntityItemNew::destruct()

@@ -17,6 +17,8 @@ public:
     void setIndexPosition(QPoint point);
     void setPos(const QPointF &pos);
     void dataChanged(QString keyName, QVariant data);
+
+    QPointF getNearestGridPoint(QPointF newPos);
 private:
     ContainerNodeItem* container;
     QPoint indexPosition;

@@ -65,7 +65,6 @@ public:
     void setMoveStarted();
     bool setMoveFinished();
 
-    virtual QRectF sceneBoundingRect() const;
 
 
 
@@ -131,6 +130,9 @@ public:
 
     void setPrimaryTextKey(QString key);
     void setSecondaryTextKey(QString key);
+    void setVisualEdgeKind(Edge::EDGE_KIND kind);
+    Edge::EDGE_KIND getVisualEdgeKind() const;
+
     QString getPrimaryTextKey() const;
     QString getSecondaryTextKey() const;
     bool gotPrimaryTextKey() const;
@@ -145,6 +147,9 @@ public:
 
     int getVertexAngle(RECT_VERTEX vert) const;
 signals:
+    //Request changes
+    void req_connectMode(NodeItemNew* item);
+
     void req_adjustSize(NodeItemNew* item, QSizeF delta, RECT_VERTEX vert);
     void req_adjustSizeFinished(NodeItemNew* item, RECT_VERTEX vert);
 
@@ -167,6 +172,8 @@ private:
     void updateGridLines();
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
+
+    Edge::EDGE_KIND visualEdgeKind;
 
     NODE_READ_STATE readState;
 

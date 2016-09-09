@@ -20,12 +20,17 @@ class EntityItemNew: public QGraphicsObject
     Q_OBJECT
 
 public:
-    enum KIND{EDGE, NODE};
+    static const int ENTITY_ITEM_KIND = UserType + 1;
+    enum KIND{
+        EDGE,
+        NODE,
+    };
     enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE};
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
     EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind);
     ~EntityItemNew();
+    int type() const;
 
     RENDER_STATE getRenderState(qreal lod) const;
     VIEW_STATE getViewState() const;
@@ -57,7 +62,6 @@ public:
     void setTooltip(ELEMENT_RECT rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
 
     QRectF translatedBoundingRect() const;
-    virtual QRectF sceneBoundingRect() const;
     virtual QRectF boundingRect() const = 0;
     virtual QRectF currentRect() const = 0;
     virtual QRectF viewRect() const;
@@ -84,7 +88,7 @@ public:
     void setDefaultPen(QPen pen);
     QPair<QString, QString> getIconPath();
 
-    QPointF getNearestGridPoint();
+    virtual QPointF getNearestGridPoint(QPointF newPos=QPointF());
 
     void setFontSize(int fontSize);
 
@@ -156,6 +160,7 @@ signals:
     //Request changes
     void req_adjustPos(QPointF delta);
     void req_adjustingPos(bool adjusting);
+
 
     //Request changes
     void req_selected(ViewItem*, bool);

@@ -10,8 +10,9 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
 
     headerMargin = QMarginsF(2,2,2,2);
     setBodyPadding(QMarginsF(5,5,5,5));
+    setMargin(QMarginsF(5,5,5,5));
 
-    qreal height = DEFAULT_SIZE / 2.0;//iconSize().height() + headerMargin.top() + headerMargin.bottom();
+    qreal height = DEFAULT_SIZE / 2.0;
     qreal width = DEFAULT_SIZE / 2.0;
 
     setMinimumHeight(height);
@@ -80,10 +81,13 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     case ER_LOCKED_STATE:
         return deployedRect();
     case ER_CONNECT_IN:
+    case ER_CONNECT_OUT:
         return deployedRect();
+        break;
     default:
-        return ContainerElementNodeItem::getElementRect(rect);
+        break;
     }
+    return ContainerElementNodeItem::getElementRect(rect);
 }
 
 void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -117,6 +121,7 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->setPen(Qt::black);
 
         //iconOverlayRect
+
 
         //paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
         //paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
