@@ -77,7 +77,6 @@ void MedeaWindowManager::_destructWindow(MedeaWindowNew *window)
         if(window->getType() == MedeaWindowNew::MAIN_WINDOW && windows.contains(wID)){
             delete this;
         }else{
-
             removeWindow(window);
             window->deleteLater();
         }
@@ -324,8 +323,7 @@ void MedeaWindowManager::removeDockWidget(MedeaDockWidget *dockWidget)
             disconnect(dockWidget, &MedeaDockWidget::req_Close, this, &MedeaWindowManager::dockWidget_Close);
             dockWidgets.remove(ID);
 
-            QWidget* widget = dockWidget->parentWidget();
-            MedeaWindowNew* window = qobject_cast<MedeaWindowNew*>(widget);
+            MedeaWindowNew* window = dockWidget->getCurrentWindow();
             if(window){
                 window->removeDockWidget(dockWidget);
             }
@@ -345,6 +343,7 @@ void MedeaWindowManager::dockWidget_Close(int ID)
         if(currentWindow){
             //Remove it from the current window
             currentWindow->removeDockWidget(dockWidget);
+            dockWidget->setCurrentWindow(0);
         }
 
         if(sourceWindow == currentWindow || sourceWindow == 0){
@@ -354,7 +353,7 @@ void MedeaWindowManager::dockWidget_Close(int ID)
             //Reparent back into source window.
             _reparentDockWidget(dockWidget, sourceWindow);
         }
-        destructWindowIfEmpty(currentWindow);
+        //destructWindowIfEmpty(currentWindow);
     }
 }
 
@@ -408,8 +407,10 @@ void MedeaWindowManager::_reparentDockWidget(MedeaDockWidget *dockWidget, MedeaW
     if(dockWidget && window){
         MedeaWindowNew* previousWindow = dockWidget->getCurrentWindow();
         if(previousWindow){
+            //Remove it from its previousWindow
             previousWindow->removeDockWidget(dockWidget);
         }
+
 
         window->addDockWidget(dockWidget);
         window->show();
@@ -418,7 +419,7 @@ void MedeaWindowManager::_reparentDockWidget(MedeaDockWidget *dockWidget, MedeaW
 
         window->activateWindow();
 
-        destructWindowIfEmpty(previousWindow);
+        //destructWindowIfEmpty(previousWindow);
     }
 }
 

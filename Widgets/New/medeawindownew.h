@@ -41,6 +41,7 @@ private slots:
 
 
 private:
+    void removeAllDockWidgets();
     void updateActions();
 
     QList<int> previouslyVisibleDockIDs;
@@ -53,6 +54,7 @@ protected:
     void closeEvent(QCloseEvent *);
 private:
     int ID;
+    bool terminating;
     static int _WindowID;
 
     // QWidget interface
