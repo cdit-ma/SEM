@@ -74,8 +74,8 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
 
 EdgeItemNew::~EdgeItemNew()
 {
-    if(getParentItem()){
-        getParentItem()->removeChildEdge(getID());
+    if(getParentNodeItem()){
+        getParentNodeItem()->removeChildEdge(getID());
     }
     unsetParent();
 }
@@ -162,9 +162,13 @@ NodeItemNew *EdgeItemNew::getVisibleDestination() const
     return destinationItem;
 }
 
-NodeItemNew *EdgeItemNew::getParentItem()
+NodeItemNew *EdgeItemNew::getParentNodeItem() const
 {
-    return (NodeItemNew*)getParent();
+    EntityItemNew* parent = getParent();
+    if(parent && parent->isNodeItem()){
+        return (NodeItemNew*) parent;
+    }
+    return 0;
 }
 
 NodeItemNew *EdgeItemNew::getSourceItem()
@@ -369,9 +373,9 @@ void EdgeItemNew::dataRemoved(QString keyName)
 
 QPointF EdgeItemNew::validateAdjustPos(QPointF delta)
 {
-    if(getParentItem()){
+    if(getParentNodeItem()){
         QPointF adjustedPos = getPos() + delta;
-        QPointF minPos = getParentItem()->gridRect().topLeft();
+        QPointF minPos = getParentNodeItem()->gridRect().topLeft();
 
         //Minimize on the minimum position this item can go.
         if(adjustedPos.x() < minPos.x()){
@@ -389,13 +393,29 @@ QPointF EdgeItemNew::validateAdjustPos(QPointF delta)
 
 }
 
-void EdgeItemNew::setMoving(bool moving)
+
+void EdgeItemNew::setMoveStarted()
 {
-    if(!moving && hasSetPosition()){
+    NodeItemNew* parentNodeItem = getParentNodeItem();
+    if(parentNodeItem){
+        parentNodeItem->setChildMoving(this, true);
+    }
+    EntityItemNew::setMoveStarted();
+}
+
+bool EdgeItemNew::setMoveFinished()
+{
+    NodeItemNew* parentNodeItem = getParentNodeItem();
+    if(parentNodeItem){
+        parentNodeItem->setChildMoving(this, false);
+    }
+
+    if(hasSetPosition()){
         setPos(getNearestGridPoint());
     }
-    EntityItemNew::setMoving(moving);
+    return EntityItemNew::setMoveFinished();
 }
+
 
 void EdgeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {

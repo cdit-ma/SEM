@@ -68,7 +68,6 @@ public:
     QPainterPath shape() const;
     QPainterPath sceneShape() const;
 
-    bool hasBeenMoved() const;
     void adjustPos(QPointF delta);
     virtual QPointF getPos() const;
 
@@ -124,7 +123,8 @@ public:
     void setExpandEnabled(bool enabled);
     void setSelectionEnabled(bool enabled);
 
-    virtual void setMoving(bool moving);
+    virtual void setMoveStarted();
+    virtual bool setMoveFinished();
 
 public:
     //State Getters
@@ -218,7 +218,7 @@ private:
     bool _isActiveSelected;
     bool _isExpanded;
 
-    bool _hasMoved;
+    QPointF positionPreMove;
 
     bool _isMoving;
     bool _isMouseMoving;

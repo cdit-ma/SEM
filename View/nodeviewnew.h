@@ -8,6 +8,8 @@
 #include "viewitem.h"
 #include "Controller/viewcontroller.h"
 
+#include <QStateMachine>
+
 
 //#include "View/Table/attributetablemodel.h"
 
@@ -34,6 +36,23 @@ public:
     void centerSelection();
     QList<int> getIDsInView();
 signals:
+    void trans_InActive2Moving();
+    void trans_Moving2InActive();
+
+    void trans_InActive2Resizing();
+    void trans_Resizing2InActive();
+
+    void trans_InActive2RubberbandMode();
+    void trans_RubberbandMode2InActive();
+
+    void trans_RubberbandMode2RubberbandMode_Selecting();
+    void trans_RubberbandMode_Selecting2RubberbandMode();
+
+    void trans_InActive2Connecting();
+    void trans_Connecting2InActive();
+
+
+
     void sceneRectChanged(QRectF sceneRect);
     void toolbarRequested(QPoint screenPos, QPointF itemPos);
     void viewportChanged(QRectF rect, qreal zoom);
@@ -112,10 +131,9 @@ private:
     void selectItemsInRubberband();
     void _selectAll();
     void _clearSelection();
-    void setState(VIEW_STATE state);
-    void transition();
     qreal distance(QPoint p1, QPoint p2);
 private:
+    void setupStateMachine();
 
     EntityItemNew* getEntityAtPos(QPointF scenePos);
     QList<int> topLevelGUIItemIDs;
@@ -141,13 +159,45 @@ private:
     VIEW_ASPECT containedAspect;
     NodeViewItem* containedNodeViewItem;
 
-    VIEW_STATE viewState;
+    bool isPanning;
 
     QColor backgroundColor;
     QString backgroundText;
     QFont backgroundFont;
     QColor backgroundFontColor;
     QColor selectedBackgroundFontColor;
+
+
+    QStateMachine* viewStateMachine;
+    QState* state_InActive;
+
+    QState* state_Active;
+    QState* state_Active_Moving;
+    QState* state_Active_Resizing;
+    QState* state_Active_RubberbandMode;
+    QState* state_Active_RubberbandMode_Selecting;
+    QState* state_Active_Connecting;
+
+private slots:
+    void state_Moving_Entered();
+    void state_Moving_Exited();
+
+    void state_Resizing_Entered();
+    void state_Resizing_Exited();
+
+    void state_RubberbandMode_Entered();
+    void state_RubberbandMode_Exited();
+
+    void state_RubberbandMode_Selecting_Entered();
+    void state_RubberbandMode_Selecting_Exited();
+
+    void state_Connecting_Entered();
+    void state_Connecting_Exited();
+
+    void state_Default_Entered();
+
+
+
 
 protected:
     void keyPressEvent(QKeyEvent* event);

@@ -27,6 +27,7 @@
 
 NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 {
+    setupStateMachine();
     QRectF sceneRect;
     sceneRect.setSize(QSize(10000,10000));
     sceneRect.moveCenter(QPointF(0,0));
@@ -53,6 +54,7 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 
+    isPanning = false;
     viewController = 0;
     selectionHandler = 0;
     containedAspect = VA_NONE;
@@ -67,9 +69,6 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-
-    viewState = VS_NONE;
-    transition();
 
     themeChanged();
 }
@@ -350,32 +349,14 @@ void NodeViewNew::item_SetCentered(EntityItemNew *item)
 
 void NodeViewNew::item_AdjustingPos(bool adjusting)
 {
-    if(selectionHandler){
-
-        if(adjusting){
-            emit triggerAction("Moving Selection");
-        }
-
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
-            EntityItemNew* item = getEntityItem(viewItem);
-            if(!item){
-                continue;
-            }
-            bool itemWasMoved = item->hasBeenMoved();
-            item->setMoving(adjusting);
-            if(!adjusting){
-                int id = item->getID();
-                QPointF pos = item->getPos();
-
-                bool sendRequest = itemWasMoved && !item->isIgnoringPosition();
-
-                if(sendRequest){
-                    emit setData(id, "x", pos.x());
-                    emit setData(id, "y", pos.y());
-                }
-            }
-        }
+    if(adjusting){
+        qCritical() << "trans_InActive2Moving";
+        emit trans_InActive2Moving();
+    }else{
+        qCritical() << "trans_Moving2InActive";
+        emit trans_Moving2InActive();
     }
+    return;
 }
 
 void NodeViewNew::item_AdjustPos(QPointF delta)
@@ -888,105 +869,65 @@ void NodeViewNew::_clearSelection()
     }
 }
 
-void NodeViewNew::setState(VIEW_STATE state)
-{
-    VIEW_STATE newState = viewState;
-
-    switch(viewState){
-    case VS_NONE:
-        //Go onto VS_SELECTED
-    case VS_SELECTED:
-        if(state == VS_NONE || state == VS_SELECTED || state == VS_MOVING || state == VS_RESIZING || state == VS_PAN || state == VS_RUBBERBAND || state == VS_CONNECT){
-            newState = state;
-        }
-        break;
-    case VS_MOVING:
-        //Go onto VS_RESIZING state
-    case VS_RESIZING:
-        if(state == VS_NONE || state == VS_SELECTED){
-            newState = state;
-        }
-        break;
-    case VS_RUBBERBAND:
-        //Go onto VS_RUBBERBANDING state
-    case VS_RUBBERBANDING:
-        if(state == VS_NONE || state == VS_SELECTED || state == VS_RUBBERBAND || state == VS_RUBBERBANDING){
-            newState = state;
-        }
-        break;
-    case VS_PAN:
-        //Go Onto VS_PANNING state
-    case VS_PANNING:
-        if(state == VS_NONE || state == VS_SELECTED || state == VS_PANNING){
-            newState = state;
-        }
-        break;
-    case VS_CONNECT:
-    case VS_CONNECTING:
-        if(state == VS_NONE || state == VS_SELECTED || state == VS_CONNECTING){
-            newState = state;
-        }
-        break;
-    default:
-        break;
-    }
-
-    //Transition
-    if(newState != viewState){
-        viewState = newState;
-        transition();
-    }
-
-
-}
-
-void NodeViewNew::transition()
-{
-    switch(viewState){
-    case VS_NONE:
-        //Do the VS_SELECTED case.
-    case VS_SELECTED:
-        //setConnectMode(false);
-        //setRubberBandMode(false);
-        rubberband->setVisible(false);
-        unsetCursor();
-        break;
-    case VS_MOVING:
-        //triggerAction("View: Moving Selection");
-        setCursor(Qt::SizeAllCursor);
-        break;
-    case VS_RESIZING:
-        //triggerAction("View: Resizing Selection");
-        //Cursor is set by EntityItem
-        break;
-    case VS_PAN:
-        setCursor(Qt::ClosedHandCursor);
-        break;
-    case VS_PANNING:
-        //wasPanning = true;
-        break;
-    case VS_RUBBERBAND:
-        setCursor(Qt::CrossCursor);
-        rubberband->setVisible(false);
-        break;
-    case VS_RUBBERBANDING:
-        rubberband->setVisible(true);
-        break;
-    case VS_CONNECT:
-        //setConnectMode(true);
-        setCursor(Qt::CrossCursor);
-        break;
-    case VS_CONNECTING:
-        setCursor(Qt::CrossCursor);
-        break;
-    default:
-        break;
-    }
-}
 
 qreal NodeViewNew::distance(QPoint p1, QPoint p2)
 {
     return qSqrt(qPow(p2.x() - p1.x(), 2) + qPow(p2.y() - p1.y(), 2));
+}
+
+void NodeViewNew::setupStateMachine()
+{
+    viewStateMachine = new QStateMachine(this);
+
+    state_InActive = new QState();
+
+    state_Active_Moving = new QState();
+    state_Active_Resizing = new QState();
+    state_Active_RubberbandMode = new QState();
+    state_Active_RubberbandMode_Selecting = new QState();
+    state_Active_Connecting = new QState();
+
+    //Add States
+    viewStateMachine->addState(state_InActive);
+    viewStateMachine->addState(state_Active_Moving);
+    viewStateMachine->addState(state_Active_Resizing);
+    viewStateMachine->addState(state_Active_RubberbandMode);
+    viewStateMachine->addState(state_Active_RubberbandMode_Selecting);
+    viewStateMachine->addState(state_Active_Connecting);
+
+    viewStateMachine->setInitialState(state_InActive);
+
+    //Setup Transitions
+    state_InActive->addTransition(this, &NodeViewNew::trans_InActive2Moving, state_Active_Moving);
+    state_Active_Moving->addTransition(this, &NodeViewNew::trans_Moving2InActive, state_InActive);
+
+    state_InActive->addTransition(this, &NodeViewNew::trans_InActive2RubberbandMode, state_Active_RubberbandMode);
+    state_Active_RubberbandMode->addTransition(this, &NodeViewNew::trans_RubberbandMode2InActive, state_InActive);
+
+    state_Active_RubberbandMode->addTransition(this, &NodeViewNew::trans_RubberbandMode2RubberbandMode_Selecting, state_Active_RubberbandMode_Selecting);
+    state_Active_RubberbandMode_Selecting->addTransition(this, &NodeViewNew::trans_RubberbandMode2InActive, state_Active_RubberbandMode);
+
+    //Connect to states.
+
+    connect(state_InActive, &QState::entered, this, &NodeViewNew::state_Default_Entered);
+
+
+    connect(state_Active_Moving, &QState::entered, this, &NodeViewNew::state_Moving_Entered);
+    connect(state_Active_Moving, &QState::exited, this, &NodeViewNew::state_Moving_Exited);
+
+    connect(state_Active_Resizing, &QState::entered, this, &NodeViewNew::state_Resizing_Entered);
+    connect(state_Active_Resizing, &QState::exited, this, &NodeViewNew::state_Resizing_Exited);
+
+    connect(state_Active_RubberbandMode, &QState::entered, this, &NodeViewNew::state_RubberbandMode_Entered);
+    connect(state_Active_RubberbandMode, &QState::exited, this, &NodeViewNew::state_RubberbandMode_Exited);
+
+    connect(state_Active_RubberbandMode_Selecting, &QState::entered, this, &NodeViewNew::state_RubberbandMode_Selecting_Entered);
+    connect(state_Active_RubberbandMode_Selecting, &QState::exited, this, &NodeViewNew::state_RubberbandMode_Selecting_Exited);
+
+    connect(state_Active_Connecting, &QState::entered, this, &NodeViewNew::state_Connecting_Entered);
+    connect(state_Active_Connecting, &QState::exited, this, &NodeViewNew::state_Connecting_Exited);
+
+    viewStateMachine->start();
 }
 
 EntityItemNew *NodeViewNew::getEntityAtPos(QPointF scenePos)
@@ -999,13 +940,106 @@ EntityItemNew *NodeViewNew::getEntityAtPos(QPointF scenePos)
     return entityItem;
 }
 
+void NodeViewNew::state_Moving_Entered()
+{
+    setCursor(Qt::SizeAllCursor);
+    if(selectionHandler){
+        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+            EntityItemNew* item = getEntityItem(viewItem);
+            if(item){
+                item->setMoveStarted();
+            }
+        }
+    }
+}
+
+void NodeViewNew::state_Moving_Exited()
+{
+    if(selectionHandler){
+        bool anyMoved = false;
+
+        QVector<ViewItem*> selection = selectionHandler->getOrderedSelection();
+
+        foreach(ViewItem* viewItem, selection){
+            EntityItemNew* item = getEntityItem(viewItem);
+            if(item){
+                if(item->setMoveFinished()){
+                    anyMoved = true;
+                }
+            }
+        }
+
+        if(anyMoved){
+            emit triggerAction("Moving Selection");
+            foreach(ViewItem* viewItem, selection){
+                EntityItemNew* item = getEntityItem(viewItem);
+                if(item){
+                    QPointF pos = item->getPos();
+                    emit setData(item->getID(), "x", pos.x());
+                    emit setData(item->getID(), "y", pos.y());
+                }
+            }
+        }
+    }
+}
+
+void NodeViewNew::state_Resizing_Entered()
+{
+    qCritical() << "state_Moving_Entered";
+}
+
+void NodeViewNew::state_Resizing_Exited()
+{
+    qCritical() << "state_Resizing_Exited";
+}
+
+void NodeViewNew::state_RubberbandMode_Entered()
+{
+    qCritical() << "state_RubberbandMode_Entered";
+    setCursor(Qt::CrossCursor);
+}
+
+void NodeViewNew::state_RubberbandMode_Exited()
+{
+    qCritical() << "state_RubberbandMode_Exited";
+}
+
+void NodeViewNew::state_RubberbandMode_Selecting_Entered()
+{
+    qCritical() << "state_RubberbandMode_Selecting_Entered";
+    rubberband->setVisible(true);
+}
+
+void NodeViewNew::state_RubberbandMode_Selecting_Exited()
+{
+     qCritical() << "state_RubberbandMode_Selecting_Exited";
+    rubberband->setVisible(false);
+    emit trans_RubberbandMode2InActive();
+}
+
+void NodeViewNew::state_Connecting_Entered()
+{
+qCritical() << "state_Connecting_Entered";
+}
+
+void NodeViewNew::state_Connecting_Exited()
+{
+    qCritical() << "state_Connecting_Exited";
+}
+
+void NodeViewNew::state_Default_Entered()
+{
+    qCritical() << "state_Default_Entered";
+    unsetCursor();
+}
+
 void NodeViewNew::keyPressEvent(QKeyEvent *event)
 {
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
     if(CONTROL && SHIFT){
-        setState(VS_RUBBERBAND);
+        emit trans_InActive2RubberbandMode();
     }
 }
 
@@ -1014,8 +1048,8 @@ void NodeViewNew::keyReleaseEvent(QKeyEvent *event)
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-    if((viewState == VS_RUBBERBAND || viewState == VS_RUBBERBAND) && !(CONTROL && SHIFT)){
-        setState(VS_NONE);
+    if(!(CONTROL && SHIFT)){
+        emit trans_RubberbandMode2InActive();
     }
 }
 
@@ -1033,34 +1067,31 @@ void NodeViewNew::mousePressEvent(QMouseEvent *event)
     bool handledEvent = false;
 
     if(event->button() == Qt::RightButton){
-        setState(VS_PAN);
+        isPanning = true;
         pan_lastPos = event->pos();
         pan_lastScenePos = scenePos;
         pan_distance = 0;
         handledEvent = true;
     }
+
     if(event->button() == Qt::LeftButton){
-        switch(viewState){
-            case VS_RUBBERBAND:{
-                setState(VS_RUBBERBANDING);
+        emit trans_RubberbandMode2RubberbandMode_Selecting();
+
+        if(state_Active_RubberbandMode_Selecting->active()){
+            rubberband_lastPos = event->pos();
+            if(rubberband){
+                rubberband->setGeometry(QRect(rubberband_lastPos, rubberband_lastPos));
             }
-            case VS_RUBBERBANDING:{
-                rubberband_lastPos = event->pos();
-                if(rubberband){
-                    rubberband->setGeometry(QRect(rubberband_lastPos, rubberband_lastPos));
-                }
-                handledEvent = true;
-                break;
-            }
-        default:
+            handledEvent = true;
+        }else{
             EntityItemNew* item = getEntityAtPos(scenePos);
             if(!item){
                 clearSelection();
                 handledEvent = true;
             }
-            break;
         }
     }
+
     if(!handledEvent){
         QGraphicsView::mousePressEvent(event);
     }
@@ -1071,12 +1102,7 @@ void NodeViewNew::mouseMoveEvent(QMouseEvent *event)
     QPointF scenePos = mapToScene(event->pos());
     bool handledEvent = false;
 
-    switch(viewState){
-    case VS_PAN:{
-        //Continue on
-        setState(VS_PANNING);
-    }
-    case VS_PANNING:{
+    if(isPanning){
         //Calculate the distance in screen pixels travelled
         pan_distance += distance(event->pos(), pan_lastPos);
         //Pan the Canvas
@@ -1084,16 +1110,11 @@ void NodeViewNew::mouseMoveEvent(QMouseEvent *event)
         pan_lastPos = event->pos();
         pan_lastScenePos = mapToScene(event->pos());
         handledEvent = true;
-        break;
     }
-    case VS_RUBBERBAND:
-    case VS_RUBBERBANDING:{
+
+    if(state_Active_RubberbandMode_Selecting->active()){
         rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
         handledEvent = true;
-        break;
-    }
-    default:
-        break;
     }
 
     //Only pass down if we haven't handled it.
@@ -1107,12 +1128,13 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-    switch(viewState){
-    case VS_PAN:{
-        //Do Nothing
-    }
-    case VS_PANNING:{
-        setState(VS_NONE);
+    bool handledEvent = false;
+
+    //Exit pan mode yo
+    if(isPanning && event->button() == Qt::RightButton){
+        isPanning = false;
+
+        //Popup Toolbar if there is an item.
         if(pan_distance < 10){
             QPointF itemPos = mapToScene(event->pos());
             EntityItemNew* item = getEntityAtPos(itemPos);
@@ -1124,19 +1146,19 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
             }
             //Check for item under mouse.
             emit toolbarRequested(event->globalPos(), itemPos);
-            return;
         }
-        break;
-    }
-    case VS_RUBBERBANDING:
-        selectItemsInRubberband();
-        setState(VS_RUBBERBAND);
-        break;
-    default:
-        break;
+        handledEvent = true;
     }
 
-    QGraphicsView::mouseReleaseEvent(event);
+    if(state_Active_RubberbandMode_Selecting->active()){
+        rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
+        selectItemsInRubberband();
+        emit trans_RubberbandMode2InActive();
+        handledEvent = true;
+    }
+    if(!handledEvent){
+        QGraphicsView::mouseReleaseEvent(event);
+    }
 }
 
 void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)

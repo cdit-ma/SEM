@@ -36,7 +36,7 @@ private:
     NodeItemNew* getVisibleSource() const;
     NodeItemNew* getVisibleDestination() const;
 
-    NodeItemNew* getParentItem();
+    NodeItemNew* getParentNodeItem() const;
     NodeItemNew* getSourceItem();
     NodeItemNew* getDestinationItem();
 
@@ -98,7 +98,8 @@ private slots:
 public:
     QPainterPath getElementPath(ELEMENT_RECT rect) const;
     QPointF validateAdjustPos(QPointF delta);
-    void setMoving(bool moving);
+    void setMoveStarted();
+    bool setMoveFinished();
 
     // QGraphicsItem interface
 protected:

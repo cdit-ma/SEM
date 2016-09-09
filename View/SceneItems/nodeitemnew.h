@@ -60,9 +60,10 @@ public:
     void setResizeEnabled(bool enabled);
     bool isResizeEnabled();
 
-    void setChildNodeMoving(NodeItemNew* child, bool moving);
+    void setChildMoving(EntityItemNew* child, bool moving);
 
-    void setMoving(bool moving);
+    void setMoveStarted();
+    bool setMoveFinished();
 
     virtual QRectF sceneBoundingRect() const;
 
@@ -196,8 +197,6 @@ private:
 
     QHash<int, NodeItemNew*> childNodes;
     QHash<int, EdgeItemNew*> childEdges;
-
-    QVector<NodeItemNew*> movingChildren;
 
     QVector<QLineF> gridLines_Minor_Horizontal;
     QVector<QLineF> gridLines_Major_Horizontal;

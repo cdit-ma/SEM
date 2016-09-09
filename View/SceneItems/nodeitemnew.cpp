@@ -148,7 +148,6 @@ void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
             emit gotChildNodes(false);
         }
         //Unset child moving.
-        setChildNodeMoving(nodeItem, false);
         nodeItem->unsetParent();
         childPosChanged();
     }
@@ -289,35 +288,30 @@ bool NodeItemNew::isResizeEnabled()
     return resizeEnabled;
 }
 
-void NodeItemNew::setChildNodeMoving(NodeItemNew *child, bool moving)
+void NodeItemNew::setChildMoving(EntityItemNew *child, bool moving)
 {
-    if(childNodes.contains(child->getID())){
-        if(moving && !movingChildren.contains(child)){
-            movingChildren.append(child);
-            if(movingChildren.size() == 1){
-                setGridVisible(true);
-            }
-        }else if(!moving && movingChildren.contains(child)){
-            movingChildren.removeAll(child);
-            if(movingChildren.isEmpty()){
-                setGridVisible(false);
-            }
-        }
+    if(child){
+        setGridVisible(moving);
     }
 }
 
-void NodeItemNew::setMoving(bool moving)
+void NodeItemNew::setMoveStarted()
 {
-    EntityItemNew::setMoving(moving);
-
     NodeItemNew* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
-        parentNodeItem->setChildNodeMoving(this, moving);
+        parentNodeItem->setChildMoving(this, true);
     }
-    if(!moving){
-        QPointF grid = getNearestGridPoint();// + getMarginOffset();
-        setPos(grid);
+    EntityItemNew::setMoveStarted();
+}
+
+bool NodeItemNew::setMoveFinished()
+{
+    NodeItemNew* parentNodeItem = getParentNodeItem();
+    if(parentNodeItem){
+        parentNodeItem->setChildMoving(this, false);
     }
+    setPos(getNearestGridPoint());
+    return EntityItemNew::setMoveFinished();
 }
 
 QRectF NodeItemNew::sceneBoundingRect() const
