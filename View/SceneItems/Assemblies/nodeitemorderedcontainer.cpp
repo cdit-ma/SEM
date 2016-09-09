@@ -79,6 +79,8 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return qosRect();
     case ER_LOCKED_STATE:
         return deployedRect();
+    case ER_CONNECT_IN:
+        return deployedRect();
     default:
         return ContainerElementNodeItem::getElementRect(rect);
     }
