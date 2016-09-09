@@ -142,7 +142,7 @@ QRectF ManagementComponentNodeItem::thirdSubIconRect() const
 QRectF ManagementComponentNodeItem::rightRect() const
 {
     QPointF topLeft = mainIconRect().center();
-    QPointF bottomRight = mainRect().bottomRight() - QPointF(0,2);
+    QPointF bottomRight = mainRect().bottomRight() - QPointF(0,6);
     return QRectF(topLeft, bottomRight);
 }
 
