@@ -528,10 +528,10 @@ QString Theme::getScrollBarStyleSheet()
     QString button = QString::number(buttonSize) % "px";
 
     return   //"QScrollBar{background: " % getAltBackgroundColorHex() % ";border:none;margin:0px;}"
-             "QScrollBar{background: " % getAltBackgroundColorHex() % "; border: 1px solid " % getDisabledBackgroundColorHex() % "; margin:0px;}"
+             "QScrollBar{background: " % getBackgroundColorHex() % "; border: 1px solid " % getDisabledBackgroundColorHex() % "; margin:0px;}"
              "QScrollBar:vertical{width:" % size % ";}"
              "QScrollBar:horizontal{height:" % size % ";}"
-             "QScrollBar::handle{background: " % getBackgroundColorHex() % " ;}"
+             "QScrollBar::handle{background: " % getAltBackgroundColorHex() % " ;}"
              "QScrollBar::handle:active{background: " % getHighlightColorHex() % ";}"
              "QScrollBar::add-line, QScrollBar::sub-line{background:none;}" // Up/Down Button holders;
              "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
@@ -908,8 +908,8 @@ QString Theme::getProgressBarStyleSheet()
 
 QString Theme::getLabelStyleSheet()
 {
-    return "QLabel{ color:" % getTextColorHex() % ";}"
-           "QLabel:hover{ background: blue; color:red;}";
+    return "QLabel{ background: rgba(0,0,0,0); color:" % getTextColorHex() % ";}"
+           "QLabel:hover{ background:" % getHighlightColorHex() + "; color:" + getTextColorHex(CR_SELECTED) + ";}";
 }
 
 QString Theme::getAspectButtonStyleSheet(VIEW_ASPECT aspect)

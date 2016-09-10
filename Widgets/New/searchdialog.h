@@ -2,6 +2,7 @@
 #define SEARCHDIALOG_H
 
 #include <QDialog>
+#include <QScrollArea>
 #include <QLabel>
 #include <QLineEdit>
 #include <QToolBar>
@@ -10,32 +11,48 @@
 #include <QVBoxLayout>
 #include <QActionGroup>
 
+#include "../../View/viewitem.h"
+#include "searchitemwidget.h"
+
 class SearchDialog : public QDialog
 {
     Q_OBJECT
 public:
     explicit SearchDialog(QWidget *parent = 0);
 
+    void searchResults(QString query, QMap<QString, ViewItem*> results);
+
 signals:
+    void keyButtonChecked(QString key);
+    void centerOnViewItem(int ID);
 
 public slots:
     void themeChanged();
+    void keyButtonChecked(bool checked);
 
 private:
     void setupLayout();
+    void clear();
 
-    void constructKeyButton(QString key, bool checked = false);
+    SearchItemWidget* constructSearchItem(ViewItem* item);
+    void constructKeyButton(QString key, QString text = "", bool checked = false);
+    void updateKeysToolBarStyleSheet();
 
     QLabel* queryLabel;
     QLabel* scopeLabel;
+    QLabel* infoLabel;
 
     QLineEdit* searchLineEdit;
     QToolButton* searchButton;
     QComboBox* scopeComboBox;
 
+    QScrollArea* keysArea;
     QToolBar* keysToolBar;
     QVBoxLayout* keysLayout;
     QActionGroup* keysActionGroup;
+
+    QVBoxLayout* resultsLayout;
+    QList<SearchItemWidget*> searchItems;
 
     int maxToolButtonWidth;
 };

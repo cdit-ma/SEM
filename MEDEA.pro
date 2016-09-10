@@ -212,7 +212,8 @@ HEADERS += \
     GUI/codebrowser.h \
     Model/BehaviourDefinitions/workerprocess.h \
     Widgets/New/viewmanagerwidget.h \
-    Widgets/New/searchdialog.h
+    Widgets/New/searchdialog.h \
+    Widgets/New/searchitemwidget.h
 
 SOURCES += \
     main.cpp \
@@ -388,7 +389,8 @@ SOURCES += \
     GUI/codebrowser.cpp \
     Model/BehaviourDefinitions/workerprocess.cpp \
     Widgets/New/viewmanagerwidget.cpp \
-    Widgets/New/searchdialog.cpp
+    Widgets/New/searchdialog.cpp \
+    Widgets/New/searchitemwidget.cpp
 
 RESOURCES += \
     resources.qrc
