@@ -519,7 +519,7 @@ QString Theme::getWindowStyleSheet()
 
 QString Theme::getScrollBarStyleSheet()
 {
-    int marginSize = 2;
+    int marginSize = 1;
     int scrollSize = 16;
     int buttonSize = scrollSize - (2* marginSize);
 

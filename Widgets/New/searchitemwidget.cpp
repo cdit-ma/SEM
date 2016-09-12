@@ -19,6 +19,10 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(par
     textLabel = new QLabel(this);
     textLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
+    keyWidgetsConstructed = false;
+    doubleClicked = false;
+    checkedKey = "All";
+
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setMargin(MARGIN);
     layout->setSpacing(0);
@@ -41,16 +45,15 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(par
         iconLabel->setPixmap(itemPixmap);
         iconLabel->setAlignment(Qt::AlignCenter);
 
-        //expandButton = new QPushButton(this);
-        //expandButton->setIconSize(QSize(18, 18));
         expandButton = new QToolButton(this);
         expandButton->setFixedSize(18, 18);
         expandButton->setCheckable(true);
         expandButton->setChecked(false);
-        //expandButton->setFlat(true);
+        expandButton->setToolTip("Show/Hide Matching Data");
 
         centerButton = new QToolButton(this);
         centerButton->setFixedSize(18, 18);
+        centerButton->setToolTip("Center View Aspect On Item");
 
         QToolBar* toolbar = new QToolBar(this);
         toolbar->setIconSize(QSize(18, 18));
@@ -65,8 +68,8 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(par
         topLayout->setSpacing(MARGIN);
         topLayout->addWidget(iconLabel);
         topLayout->addWidget(textLabel, 1);
-        //topLayout->addWidget(expandButton);
         topLayout->addWidget(toolbar);
+        topBarWidget->setMinimumWidth(topLayout->sizeHint().width());
 
         displayWidget = new QWidget(this);
         displayWidget->setVisible(expandButton->isChecked());
@@ -88,7 +91,7 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(par
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
-    updateColor(Theme::CR_NORMAL);
+    //updateColor(Theme::CR_NORMAL);
 }
 
 
@@ -98,34 +101,7 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(par
  */
 void SearchItemWidget::setDisplayKeys(QList<QString> keys)
 {
-    if (!keys.isEmpty()) {
-
-        QVBoxLayout* displayLayout = new QVBoxLayout(displayWidget);
-        displayLayout->setMargin(0);
-        displayLayout->setSpacing(2);
-
-        foreach (QString key, keys) {
-            QWidget* keyWidget = new QWidget(this);
-            keyWidget->setStyleSheet("background: rgba(0,0,0,0);");
-            keyWidgetHash[key] = keyWidget;
-
-            QLabel* keyLabel = new QLabel(key + ":", this);
-            QLabel* valueLabel = new QLabel("ViewItem is null.", this);
-            if (viewItem) {
-                valueLabel->setText(viewItem->getData(key).toString());
-            }
-
-            QHBoxLayout* layout = new QHBoxLayout(keyWidget);
-            layout->setMargin(0);
-            layout->setSpacing(5);
-            if (iconLabel) {
-                layout->addSpacerItem(new QSpacerItem(iconLabel->sizeHint().width() + MARGIN, 0));
-            }
-            layout->addWidget(keyLabel);
-            layout->addWidget(valueLabel, 1);
-            displayLayout->addWidget(keyWidget);
-        }
-    }
+    this->keys = keys;
 }
 
 
@@ -169,6 +145,15 @@ void SearchItemWidget::centerButtonClicked()
 void SearchItemWidget::expandButtonToggled(bool checked)
 {
     hide();
+
+    // construct the key widgets when the item is expanded for the first time
+    // only show the key widgets that match the currently checked key
+    if (!keyWidgetsConstructed) {
+        constructKeyWidgets();
+        toggleKeyWidget(checkedKey);
+        keyWidgetsConstructed = true;
+    }
+
     displayWidget->setVisible(checked);
     show();
 }
@@ -180,24 +165,25 @@ void SearchItemWidget::expandButtonToggled(bool checked)
  */
 void SearchItemWidget::toggleKeyWidget(QString key)
 {
-    bool searchItemVisible = false;
+    checkedKey = key;
+
+    if (!keys.contains(key) && key != "All") {
+        setVisible(false);
+        return;
+    }
+
     if (key == "All") {
         foreach (QWidget* w, keyWidgetHash.values()) {
             w->setVisible(true);
         }
-        searchItemVisible = true;
     } else {
         foreach (QString widgetKey, keyWidgetHash.keys()) {
             QWidget* w = keyWidgetHash.value(widgetKey);
-            if (widgetKey == key) {
-                w->setVisible(true);
-                searchItemVisible = true;
-            } else {
-                w->setVisible(false);
-            }
+            bool showWidget = widgetKey == key;
+            w->setVisible(showWidget);
         }
     }
-    setVisible(searchItemVisible);
+    setVisible(true);
 }
 
 
@@ -235,6 +221,7 @@ void SearchItemWidget::mouseDoubleClickEvent(QMouseEvent *)
 void SearchItemWidget::enterEvent(QEvent *)
 {
     updateColor(Theme::CR_SELECTED);
+    emit hoverEnter(viewItemID);
 }
 
 
@@ -244,6 +231,7 @@ void SearchItemWidget::enterEvent(QEvent *)
 void SearchItemWidget::leaveEvent(QEvent *)
 {
     updateColor(Theme::CR_NORMAL);
+    emit hoverLeave(viewItemID);
 }
 
 
@@ -261,6 +249,42 @@ void SearchItemWidget::updateColor(Theme::COLOR_ROLE colorRole)
         displayWidget->setStyleSheet("color:" + theme->getTextColorHex(colorRole) + ";");
         iconLabel->setPixmap(theme->getImage(iconPath.first, iconPath.second, iconSize, theme->getMenuIconColor(colorRole)));
         //expandButton->setIcon(QIcon(Theme::theme()->getImage("Actions", "Arrow_Down", QSize(), theme->getTextColorHex(colorRole))));
+    }
+}
+
+
+/**
+ * @brief SearchItemWidget::constructKeyWidgets
+ */
+void SearchItemWidget::constructKeyWidgets()
+{
+    if (!keys.isEmpty()) {
+
+        QVBoxLayout* displayLayout = new QVBoxLayout(displayWidget);
+        displayLayout->setMargin(0);
+        displayLayout->setSpacing(2);
+
+        foreach (QString key, keys) {
+            QWidget* keyWidget = new QWidget(this);
+            keyWidget->setStyleSheet("background: rgba(0,0,0,0);");
+            keyWidgetHash[key] = keyWidget;
+
+            QLabel* keyLabel = new QLabel(key + ":", this);
+            QLabel* valueLabel = new QLabel("ViewItem is null.", this);
+            if (viewItem) {
+                valueLabel->setText(viewItem->getData(key).toString());
+            }
+
+            QHBoxLayout* layout = new QHBoxLayout(keyWidget);
+            layout->setMargin(0);
+            layout->setSpacing(5);
+            if (iconLabel) {
+                layout->addSpacerItem(new QSpacerItem(iconLabel->sizeHint().width() + MARGIN, 0));
+            }
+            layout->addWidget(keyLabel);
+            layout->addWidget(valueLabel, 1);
+            displayLayout->addWidget(keyWidget);
+        }
     }
 }
 

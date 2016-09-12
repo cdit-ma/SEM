@@ -381,6 +381,7 @@ void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemActio
 
 /**
  * @brief DockTabWidget::refreshDock
+ * This is called whenever the selection has changed and when actionFinished is called.
  */
 void DockTabWidget::refreshDock()
 {
@@ -392,8 +393,12 @@ void DockTabWidget::refreshDock()
             partsDock->displayInfoLabel(!adoptableKindAction->isEnabled());
         }
     } else {
-        // TODO - update the hardware dock
         // update highlighted dock item
+        QList<ViewItem*> connectedHardwareItems;
+        hardwareDock->highlightItem(); // clear previous highlighted item
+        if (connectedHardwareItems.count() == 1) {
+            hardwareDock->highlightItem(connectedHardwareItems.at(0)->getID());
+        }
     }
 }
 

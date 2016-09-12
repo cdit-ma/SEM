@@ -18,6 +18,8 @@ public:
     void setDisplayKeys(QList<QString> keys);
     
 signals:
+    void hoverEnter(int ID);
+    void hoverLeave(int ID);
     void centerOnViewItem(int ID);
 
 public slots:
@@ -34,6 +36,7 @@ protected:
 
 private:
     void updateColor(Theme::COLOR_ROLE colorRole);
+    void constructKeyWidgets();
 
     ViewItem* viewItem;
     int viewItemID;
@@ -43,12 +46,16 @@ private:
     QPair<QString, QString> iconPath;
 
     QLabel* textLabel;
-    //QPushButton* expandButton;
     QToolButton* expandButton;
     QToolButton* centerButton;
+    //QToolButton* popupButton;
     QWidget* displayWidget;
     
+    QList<QString> keys;
     QHash<QString, QWidget*> keyWidgetHash;
+    QString checkedKey;
+
+    bool keyWidgetsConstructed;
     bool doubleClicked;
 
 };

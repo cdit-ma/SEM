@@ -51,7 +51,6 @@ void QOSBrowser::settingSelected(QModelIndex index1, QModelIndex)
 
 void QOSBrowser::setupLayout()
 {
-
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setSpacing(5);
     layout->setMargin(0);
