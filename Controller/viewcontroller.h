@@ -35,6 +35,9 @@ public:
 
     QMap<QString, ViewItem*> getSearchResults(QString result);
 
+    QList<ViewItem*> getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind);
+
+
     QStringList getAdoptableNodeKinds();
     QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection();
     QStringList getValidValuesForKey(int ID, QString keyName);

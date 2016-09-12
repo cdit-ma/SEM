@@ -17,7 +17,6 @@ public:
     NodeItemNew(NodeViewItem *viewItem, NodeItemNew* parentItem, KIND kind);
     ~NodeItemNew();
 
-    NodeItemNew* getParentNodeItem() const;
     KIND getNodeItemKind();
 
     Node::NODE_KIND getNodeKind() const;
@@ -41,7 +40,6 @@ public:
     QList<NodeItemNew*> getOrderedChildNodes() const;
     QList<EntityItemNew*> getChildEntities() const;
 
-    QPointF validateAdjustPos(QPointF delta);
     QPainterPath getChildNodePath();
 
     void addChildEdge(EdgeItemNew* edgeItem);
@@ -64,6 +62,9 @@ public:
 
     void setMoveStarted();
     bool setMoveFinished();
+
+    void setResizeStarted();
+    bool setResizeFinished();
 
 
 
@@ -115,7 +116,7 @@ public:
     virtual QPointF getSceneEdgeTermination(bool left) const;
 
 
-    virtual void setPos(const QPointF &pos);
+    //virtual void setPos(const QPointF &pos);
 
 
     void setAspect(VIEW_ASPECT aspect);
@@ -145,13 +146,15 @@ public:
     virtual void setExpanded(bool expand);
 
 
+    QSizeF getGridAlignedSize(QSizeF size=QSizeF()) const;
     int getVertexAngle(RECT_VERTEX vert) const;
 signals:
     //Request changes
     void req_connectMode(NodeItemNew* item);
 
-    void req_adjustSize(NodeItemNew* item, QSizeF delta, RECT_VERTEX vert);
-    void req_adjustSizeFinished(NodeItemNew* item, RECT_VERTEX vert);
+    void req_StartResize();
+    void req_Resize(NodeItemNew* item, QSizeF delta, RECT_VERTEX vert);
+    void req_FinishResize();
 
     //Inform of Changes
     void gotChildNodes(bool);
@@ -162,6 +165,8 @@ public slots:
     virtual void dataRemoved(QString keyName);
     virtual void childPosChanged();
 private:
+
+
     void updateReadState();
     void setUpColors();
 
@@ -191,6 +196,11 @@ private:
     bool gridVisible;
     bool ignorePosition;
 
+
+    bool _isResizing;
+    QSizeF sizePreResize;
+
+
     bool _rightJustified;
 
     bool resizeEnabled;
@@ -212,6 +222,9 @@ private:
 
     QColor readOnlyInstanceColor;
     QColor readOnlyDefinitionColor;
+
+    qreal modelWidth;
+    qreal modelHeight;
 
     QString primaryTextKey;
     QString secondaryTextKey;

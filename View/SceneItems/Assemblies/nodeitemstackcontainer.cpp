@@ -43,7 +43,7 @@ QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *chi
         }
     }
 
-    return itemOffset + child->getMarginOffset();
+    return itemOffset;// + child->getMarginOffset();
 }
 
 void StackContainerNodeItem::childPosChanged()

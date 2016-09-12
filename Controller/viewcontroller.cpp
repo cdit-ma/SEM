@@ -209,6 +209,30 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
     return results;
 }
 
+QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind)
+{
+    QList<ViewItem *> list;
+
+    if(selectionController){
+        foreach(ViewItem* item, selectionController->getSelection()){
+            if(item && item->isNode()){
+                NodeViewItem* nodeItem = (NodeViewItem*) item;
+                foreach(EdgeViewItem* edge, nodeItem->getEdges(kind)){
+                    NodeViewItem* src = edge->getSource();
+                    NodeViewItem* other = edge->getDestination();
+                    if(src != item){
+                        other = src;
+                    }
+                    if(list.contains(other)){
+                        list.append(other);
+                    }
+                }
+            }
+        }
+    }
+    return list;
+}
+
 QStringList ViewController::getAdoptableNodeKinds()
 {
     if(selectionController && controller && selectionController->getSelectionCount() == 1){
@@ -902,6 +926,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 
         EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, source, destination, kind, data, properties);
 
+
         edgeKindLookups.insertMulti(edgeItem->getEdgeKind(), ID);
 
         if(parent){
@@ -911,6 +936,10 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             rootItem->addChild(edgeItem);
             topLevelItems.append(ID);
         }
+
+        source->addEdgeItem(edgeItem);
+        destination->addEdgeItem(edgeItem);
+
         viewItem = edgeItem;
     }
 

@@ -15,6 +15,17 @@
 #define DEFAULT_SIZE 80
 
 #define SELECTED_LINE_WIDTH 3
+
+struct ImageMap{
+    QPixmap pixmap;
+    QString imageAlias;
+    QString imageName;
+    QSizeF imageSize;
+};
+
+//Forward class definition
+class NodeItemNew;
+
 class EntityItemNew: public QGraphicsObject
 {
     Q_OBJECT
@@ -35,6 +46,8 @@ public:
     RENDER_STATE getRenderState(qreal lod) const;
     VIEW_STATE getViewState() const;
     EntityItemNew* getParent() const;
+    NodeItemNew* getParentNodeItem() const;
+
     void unsetParent();
     bool isTopLevelItem() const;
     bool isReadOnly() const;
@@ -58,6 +71,7 @@ public:
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor=QColor(), bool update=false);
     void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor=QColor());
     void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QPair<QString, QString> image, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor=QColor());
 
     void setTooltip(ELEMENT_RECT rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
 
@@ -75,7 +89,7 @@ public:
     void adjustPos(QPointF delta);
     virtual QPointF getPos() const;
 
-    virtual QPointF validateAdjustPos(QPointF delta);
+    QPointF validateMove(QPointF delta);
 
     bool intersectsRectInScene(QRectF rectInScene) const;
     bool isDataProtected(QString keyName) const;
@@ -155,11 +169,13 @@ public:
 
 
 
-
+public slots:
+    virtual void dataChanged(QString keyName, QVariant data);
 signals:
     //Request changes
-    void req_adjustPos(QPointF delta);
-    void req_adjustingPos(bool adjusting);
+    void req_Move(QPointF delta);
+    void req_StartMove();
+    void req_FinishMove();
 
 
     //Request changes
@@ -181,9 +197,8 @@ signals:
     void positionChanged();
     void scenePosChanged();
 private slots:
-    virtual void dataChanged(QString keyName, QVariant data) = 0;
-    virtual void propertyChanged(QString propertyName, QVariant data) = 0;
-    virtual void dataRemoved(QString keyName) = 0;
+    virtual void propertyChanged(QString propertyName, QVariant data);
+    virtual void dataRemoved(QString keyName);
     void destruct();
 
 public:
@@ -206,7 +221,8 @@ private:
     ViewItem* viewItem;
     QStringList requiredDataKeys;
 
-    QHash<ELEMENT_RECT, QPixmap> imageMap;
+    QHash<ELEMENT_RECT, ImageMap> imageMap;
+
     QHash<ELEMENT_RECT, QString> tooltipMap;
     QHash<ELEMENT_RECT, QCursor> tooltipCursorMap;
 

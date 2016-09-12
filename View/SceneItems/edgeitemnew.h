@@ -92,12 +92,11 @@ private:
 
 private slots:
     void dataChanged(QString keyName, QVariant data);
-    void propertyChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);
 
 public:
+    QRectF getElementRect(ELEMENT_RECT rect) const;
     QPainterPath getElementPath(ELEMENT_RECT rect) const;
-    QPointF validateAdjustPos(QPointF delta);
     void setMoveStarted();
     bool setMoveFinished();
 

@@ -15,6 +15,8 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     minimumWidth = 0;
     expandedHeight = 0;
     expandedWidth = 0;
+    modelHeight = 0;
+    modelWidth = 0;
     //manuallyAdjustedWidth = 0;
     //manuallyAdjustedHeight = 0;
     gridVisible = false;
@@ -48,10 +50,11 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
 
 
 
+
     if(parentItem){
         //Lock child in same aspect as parent
         setAspect(parentItem->getAspect());
-        setParentItem(parentItem);
+
         parentItem->addChildNode(this);
         setPos(getNearestGridPoint());
     }
@@ -86,15 +89,6 @@ QRectF NodeItemNew::viewRect() const
     return EntityItemNew::viewRect();
 }
 
-NodeItemNew *NodeItemNew::getParentNodeItem() const
-{
-    EntityItemNew* parent = getParent();
-    if(parent && parent->isNodeItem()){
-        return (NodeItemNew*) parent;
-    }
-    return 0;
-}
-
 NodeItemNew::KIND NodeItemNew::getNodeItemKind()
 {
     return nodeItemKind;
@@ -125,6 +119,8 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
     int ID = nodeItem->getID();
     //If we have added a child, and there is only one. emit a signal
     if(!childNodes.contains(ID)){
+        nodeItem->setParentItem(this);
+
         connect(nodeItem, SIGNAL(sizeChanged()), this, SLOT(childPosChanged()));
         connect(nodeItem, SIGNAL(positionChanged()), this, SLOT(childPosChanged()));
         childNodes[ID] = nodeItem;
@@ -188,35 +184,15 @@ QList<NodeItemNew *> NodeItemNew::getOrderedChildNodes() const
 QList<EntityItemNew *> NodeItemNew::getChildEntities() const
 {
     QList<EntityItemNew*> children;
-    foreach(NodeItemNew* child, getChildNodes()){
-        children.append(child);
+    foreach(NodeItemNew* node, getChildNodes()){
+        children.append(node);
     }
-    foreach(EdgeItemNew* child, getChildEdges()){
-        children.append(child);
+    foreach(EdgeItemNew* edge, getChildEdges()){
+        children.append(edge);
     }
     return children;
 }
 
-QPointF NodeItemNew::validateAdjustPos(QPointF delta)
-{
-    if(!isTopLevelItem() && getParentNodeItem()){
-        QPointF adjustedPos = pos() + delta;
-        QPointF minPos = getParentNodeItem()->gridRect().topLeft();
-
-        //Minimize on the minimum position this item can go.
-        if(adjustedPos.x() < minPos.x()){
-            adjustedPos.rx() = minPos.x();
-        }
-        if(adjustedPos.y() < minPos.y()){
-            adjustedPos.ry() = minPos.y();
-        }
-
-        //Offset by the pos() to get the restricted delta.
-        delta = adjustedPos - pos();
-    }
-
-    return EntityItemNew::validateAdjustPos(delta);
-}
 
 void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
 {
@@ -314,6 +290,27 @@ bool NodeItemNew::setMoveFinished()
     return EntityItemNew::setMoveFinished();
 }
 
+void NodeItemNew::setResizeStarted()
+{
+    sizePreResize = getExpandedSize();
+    _isResizing = true;
+
+    NodeItemNew* parentNodeItem = getParentNodeItem();
+    if(parentNodeItem){
+        parentNodeItem->setChildMoving(this, true);
+    }
+}
+
+bool NodeItemNew::setResizeFinished()
+{
+    NodeItemNew* parentNodeItem = getParentNodeItem();
+    if(parentNodeItem){
+        parentNodeItem->setChildMoving(this, false);
+    }
+    _isResizing = false;
+    return getExpandedSize() != sizePreResize;
+}
+
 QRectF NodeItemNew::boundingRect() const
 {
     QRectF rect;
@@ -406,19 +403,20 @@ void NodeItemNew::setMinimumHeight(qreal height)
 void NodeItemNew::setExpandedWidth(qreal width)
 {
     //Limit by the size of all contained children.
-    qreal minWidth = childrenRect().right() - getMargin().left();
+    qreal minWidth = childrenRect().right() - getMargin().left();// - getBodyPadding().left();// getBodyPadding().right();
     //Can't shrink smaller than minimum
+    minWidth = qMax(minWidth, modelWidth);
     minWidth = qMax(minWidth, minimumWidth);
     width = qMax(width, minWidth);
 
-    //Get the nearest next grid line.
 
-    qreal modulo = fmod(width, getGridSize());
-    if(modulo != 0){
-        width += (getGridSize() - modulo);
-    }
+
 
     if(expandedWidth != width){
+        if(width > modelWidth){
+            modelWidth = -1;
+        }
+
         expandedWidth = width;
 
         if(isExpanded()){
@@ -435,17 +433,16 @@ void NodeItemNew::setExpandedHeight(qreal height)
     //Limit by the size of all contained children.
     qreal minHeight = childrenRect().bottom() - getMargin().top();
     //Can't shrink smaller than minimum
+    minHeight = qMax(minHeight, modelHeight);
     minHeight = qMax(minHeight, minimumHeight);
     height = qMax(height, minHeight);
 
-    //Get the nearest next grid line.
-    qreal modulo = fmod(height, getGridSize());
-    if(modulo != 0){
-        height += (getGridSize() - modulo);
-    }
 
 
     if(expandedHeight != height){
+        if(height > modelHeight){
+            modelHeight = -1;
+        }
         expandedHeight = height;
         if(isExpanded()){
             prepareGeometryChange();
@@ -551,21 +548,6 @@ QPointF NodeItemNew::getSceneEdgeTermination(bool left) const
     qreal y = contractedRect().center().y();
     qreal x = left ? currentRect().left() : currentRect().right();
     return mapToScene(x,y);
-}
-
-
-void NodeItemNew::setPos(const QPointF &pos)
-{
-    QPointF deltaPos = pos - this->pos();
-    deltaPos = validateAdjustPos(deltaPos);
-    if(!deltaPos.isNull()){
-        EntityItemNew::setPos(this->pos() + deltaPos);
-
-        if(getParentNodeItem()){
-            //setRightJustified(x() > (getParentNodeItem()->getWidth() / 2));
-        }
-        updateGridLines();
-    }
 }
 
 void NodeItemNew::setAspect(VIEW_ASPECT aspect)
@@ -697,38 +679,19 @@ QString NodeItemNew::getSecondaryText() const
 void NodeItemNew::dataChanged(QString keyName, QVariant data)
 {
     if(getRequiredDataKeys().contains(keyName)){
-        if(keyName == "x" || keyName == "y"){
+        if(keyName == "width" || keyName == "height"){
             qreal realData = data.toReal();
-            QPointF oldPos = getPos();
-            QPointF newPos = oldPos;
 
-            if(keyName == "x"){
-                newPos.setX(realData);
-
-            }else if(keyName == "y"){
-                newPos.setY(realData);
-            }
-
-            //Get the next grid position.
-            newPos = getNearestGridPoint(newPos);
-
-            if(newPos != oldPos){
-                setPos(newPos);
-            }
-        }else if(keyName == "width" || keyName == "height"){
-            qreal realData = data.toReal();
             if(keyName == "width"){
-                //manuallyAdjustedWidth = -1;
+                modelWidth = -1;
                 setExpandedWidth(realData);
-               // manuallyAdjustedWidth = realData;
-
+                modelWidth = getExpandedWidth();
             }else if(keyName == "height"){
-               // manuallyAdjustedHeight = -1;
+                modelHeight = -1;
                 setExpandedHeight(realData);
-               // manuallyAdjustedHeight = realData;
+                modelHeight = getExpandedHeight();
             }
-
-
+            setExpandedSize(getGridAlignedSize());
         }else if(keyName == "isExpanded"){
             bool boolData = data.toBool();
             setExpanded(boolData);
@@ -737,10 +700,12 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "readOnly"){
             update();
         }
+
         if(keyName == primaryTextKey || keyName == secondaryTextKey){
             update();
         }
     }
+    EntityItemNew::dataChanged(keyName, data);
 }
 
 void NodeItemNew::propertyChanged(QString propertyName, QVariant data)
@@ -769,6 +734,26 @@ void NodeItemNew::childPosChanged()
     }
     _childRect = rect;
     resizeToChildren();
+}
+
+QSizeF NodeItemNew::getGridAlignedSize(QSizeF size) const
+{
+    if(size.isEmpty()){
+        size = getExpandedSize();
+    }
+
+    //Get the nearest next grid line.
+    qreal modHeight = fmod(size.height(), getGridSize());
+    qreal modWidth = fmod(size.width(), getGridSize());
+
+    if(modHeight != 0){
+        size.rheight() += (getGridSize() - modHeight);
+    }
+    if(modWidth != 0){
+        size.rwidth() += (getGridSize() - modWidth);
+    }
+
+    return size;
 }
 
 void NodeItemNew::updateReadState()
@@ -804,14 +789,8 @@ void NodeItemNew::setUpColors()
 
 void NodeItemNew::resizeToChildren()
 {
-    QRectF currentGridRect = expandedGridRect();
-    QRectF minRect = childrenRect();
-
-    QSizeF deltaSize;
-    deltaSize.rwidth() += minRect.right() - currentGridRect.right();
-    deltaSize.rheight() += minRect.bottom() - currentGridRect.bottom();
-
-    adjustExpandedSize(deltaSize);
+    setExpandedWidth(-1);
+    setExpandedHeight(-1);
 }
 
 int NodeItemNew::getVertexAngle(RECT_VERTEX vert) const
@@ -943,9 +922,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             renderText(painter, lod, getElementRect(ER_PRIMARY_TEXT), getPrimaryText());
         }
         if(gotSecondaryTextKey()){
-            painter->setBrush(Qt::red);
-            painter->setPen(Qt::NoPen);
-            //painter->drawRect(getElementRect(ER_SECONDARY_TEXT));
+            paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", getSecondaryTextKey());
             renderText(painter, lod, getElementRect(ER_SECONDARY_TEXT), getSecondaryText(), 5);
         }
 
@@ -955,6 +932,9 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
         if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
             paintPixmap(painter, lod, ER_CONNECT_OUT, "Actions", "ConnectTo");
+        }
+        if(isExpandEnabled()){
+            paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", isExpanded() ? "Contract" : "Expand");
         }
     }
 
@@ -988,9 +968,6 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
         painter->restore();
     }
-
-    //painter->setBrush(QColor(255,0,0,120));
-    //painter->drawRect(_childRect);
     EntityItemNew::paint(painter, option, widget);
 }
 
@@ -1093,6 +1070,7 @@ void NodeItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
             if(selectedResizeVertex != RV_NONE){
                 previousResizePoint = event->scenePos();
             }
+            emit req_StartResize();
             update();
             caughtResize = true;
         }
@@ -1108,7 +1086,7 @@ void NodeItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void NodeItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
    if(selectedResizeVertex != RV_NONE){
-       emit req_adjustSizeFinished(this, selectedResizeVertex);
+       emit req_FinishResize();
        selectedResizeVertex = RV_NONE;
        update();
    }else{
@@ -1122,7 +1100,7 @@ void NodeItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QPointF deltaPos = event->scenePos() - previousResizePoint;
         previousResizePoint = event->scenePos();
         setManuallyAdjusted(selectedResizeVertex);
-        emit req_adjustSize(this, QSizeF(deltaPos.x(), deltaPos.y()), selectedResizeVertex);
+        emit req_Resize(this, QSizeF(deltaPos.x(), deltaPos.y()), selectedResizeVertex);
     }else{
         EntityItemNew::mouseMoveEvent(event);
     }
