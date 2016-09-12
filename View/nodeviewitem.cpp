@@ -1,4 +1,5 @@
 #include "nodeviewitem.h"
+#include "edgeviewitem.h"
 #include <QDebug>
 
 
@@ -51,6 +52,36 @@ int NodeViewItem::getParentID()
         ID = getProperty("parentID").toInt();
     }
     return ID;
+}
+
+void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
+{
+    if(edge){
+        Edge::EDGE_KIND kind = edge->getEdgeKind();
+        if(!edges.contains(kind, edge)){
+            edges.insertMulti(kind, edge);
+        }
+    }
+}
+
+void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
+{
+    if(edge){
+        Edge::EDGE_KIND kind = edge->getEdgeKind();
+        if(edges.contains(kind, edge)){
+            edges.remove(kind, edge);
+        }
+    }
+}
+
+QList<EdgeViewItem *> NodeViewItem::getEdges(Edge::EDGE_KIND edgeKind) const
+{
+    return edgeKind == Edge::EC_NONE ? edges.values() : edges.values(edgeKind);
+}
+
+bool NodeViewItem::gotEdge(Edge::EDGE_KIND edgeKind) const
+{
+    return edgeKind == Edge::EC_NONE ? !edges.values().isEmpty() : edges.values(edgeKind).isEmpty();
 }
 
 bool NodeViewItem::isInModel()

@@ -1724,7 +1724,6 @@ QString NewController::_exportSnippet(QList<int> IDs)
             }
         }
     }
-    qCritical() << "YO!";
     return snippetData;
 }
 

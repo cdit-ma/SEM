@@ -77,6 +77,7 @@ EdgeItemNew::~EdgeItemNew()
     if(getParentNodeItem()){
         getParentNodeItem()->removeChildEdge(getID());
     }
+
     unsetParent();
 }
 
@@ -285,14 +286,12 @@ bool EdgeItemNew::hasSetPosition() const
 void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     //Call Base paint
-    EntityItemNew::paint(painter, option, widget);
+    //EntityItemNew::paint(painter, option, widget);
 
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
     QPen pen = getPen();
-
-
 
     if(state > RS_BLOCK){
         painter->setPen(pen);
@@ -320,8 +319,8 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         }
     }
 
-    paintPixmap(painter, lod, sourceIconRect(), sourceItem->getIconPath());
-    paintPixmap(painter, lod, destinationIconRect(), destinationItem->getIconPath());
+    paintPixmap(painter, lod, ER_MAIN_ICON, sourceItem->getIconPath());
+    paintPixmap(painter, lod, ER_SECONDARY_ICON, destinationItem->getIconPath());
 }
 
 QRectF EdgeItemNew::translatedIconsRect() const
@@ -342,26 +341,9 @@ QRectF EdgeItemNew::currentRect() const
 void EdgeItemNew::dataChanged(QString keyName, QVariant data)
 {
     if(keyName == "x" || keyName == "y"){
-        qreal realData = data.toReal();
-        QPointF oldPos = getPos();
-        QPointF newPos = oldPos;
-
-        if(keyName == "x"){
-            newPos.setX(realData);
-
-        }else if(keyName == "y"){
-            newPos.setY(realData);
-        }
         setManuallyPositioned(true);
-
-        if(newPos != oldPos){
-            setPos(newPos);
-        }
     }
-}
-
-void EdgeItemNew::propertyChanged(QString keyName, QVariant data)
-{
+    EntityItemNew::dataChanged(keyName, data);
 }
 
 void EdgeItemNew::dataRemoved(QString keyName)
@@ -371,28 +353,21 @@ void EdgeItemNew::dataRemoved(QString keyName)
     }
 }
 
-QPointF EdgeItemNew::validateAdjustPos(QPointF delta)
+QRectF EdgeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
 {
-    if(getParentNodeItem()){
-        QPointF adjustedPos = getPos() + delta;
-        QPointF minPos = getParentNodeItem()->gridRect().topLeft();
-
-        //Minimize on the minimum position this item can go.
-        if(adjustedPos.x() < minPos.x()){
-            adjustedPos.rx() = minPos.x();
+    switch(rect){
+        case ER_MAIN_ICON:{
+            return sourceIconRect();
         }
-        if(adjustedPos.y() < minPos.y()){
-            adjustedPos.ry() = minPos.y();
+        case ER_SECONDARY_ICON:{
+            return destinationIconRect();
         }
-
-        //Offset by the pos() to get the restricted delta.
-        delta = adjustedPos - getPos();
+        default:
+        break;
     }
-
-    return EntityItemNew::validateAdjustPos(delta);
-
+    //Just call base class.
+    return EntityItemNew::getElementRect(rect);
 }
-
 
 void EdgeItemNew::setMoveStarted()
 {
@@ -572,7 +547,7 @@ bool EdgeItemNew::shouldReset()
 
 QPointF EdgeItemNew::getSceneCenter() const
 {
-    return mapToScene(mapFromParent(getPos())) + getInternalOffset();
+    return mapToScene(getPos() + getInternalOffset());// + getInternalOffset())) ;
     //return itemPos + getInternalOffset();
 }
 

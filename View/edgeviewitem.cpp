@@ -24,6 +24,12 @@ EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *src
 
 EdgeViewItem::~EdgeViewItem()
 {
+    if(source){
+        source->removeEdgeItem(this);
+    }
+    if(destination){
+        destination->removeEdgeItem(this);
+    }
 
 }
 

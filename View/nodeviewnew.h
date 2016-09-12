@@ -89,9 +89,8 @@ private slots:
 
     void item_SetExpanded(EntityItemNew* item, bool expand);
     void item_SetCentered(EntityItemNew* item);
-    void item_AdjustingPos(bool adjusting);
 
-    void item_AdjustPos(QPointF delta);
+    void item_MoveSelection(QPointF delta);
     void item_Resizing(bool resizing);
     void item_ResizeFinished(NodeItemNew* item, RECT_VERTEX vertex);
     void item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vert);
@@ -124,6 +123,7 @@ private:
 
     EntityItemNew* getEntityItem(int ID);
     EntityItemNew* getEntityItem(ViewItem* item);
+    NodeItemNew* getNodeItem(ViewItem* item);
 
     void zoom(int delta, QPoint anchorScreenPos = QPoint());
 
