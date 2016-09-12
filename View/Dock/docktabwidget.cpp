@@ -301,6 +301,7 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
         }
         case ToolActionController::HARDWARE:
             showInfoLabel = dockWidget->isEmpty();
+            dockWidget->highlightItem(287);
             break;
         default:
             break;

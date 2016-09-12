@@ -24,6 +24,8 @@ public:
     void setProperty(const char *name, const QVariant &value);
     QVariant getProperty(const char *name);
 
+    void highlightItem(bool highlight);
+
 public slots:
     void actionChanged();
     void themeChanged();
@@ -35,6 +37,7 @@ protected:
 
 private:
     void setupLayout();
+    void updateStyleSheet();
 
     QAction* dockAction;
     int dockActionID;
@@ -46,6 +49,8 @@ private:
     QLabel* imageLabel;
 
     Theme* theme;
+    QString backgroundColorHex;
+    QString colorHex;
 };
 
 #endif // DockWidgetActionItem_H

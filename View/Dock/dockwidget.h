@@ -37,6 +37,8 @@ public slots:
     void themeChanged();
     void dockActionClicked();
 
+    void highlightItem(int ID = -1);
+
     void viewItemConstructed(int ID);
     void viewItemDestructed(int ID);
 
@@ -55,6 +57,8 @@ private:
     QToolButton* backButton;
     QLabel* infoLabel;
     bool containsHeader;
+
+    int prevHighlightedID;
 
     // these lists store the widgets in the main layout
     QList<DockWidgetItem*> childrenItems;
