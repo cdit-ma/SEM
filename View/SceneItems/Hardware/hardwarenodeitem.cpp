@@ -18,6 +18,7 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentIt
 
     setDefaultPen(Qt::NoPen);
     setBodyPadding(QMarginsF(3, 3, 3, 3));
+    setMargin(QMarginsF(5, 5, 5, 5));
     cornerRadius = 5;
     textHeight = size / 2.0;
 

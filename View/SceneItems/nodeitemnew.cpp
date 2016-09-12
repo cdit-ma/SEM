@@ -965,7 +965,6 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             paintPixmap(painter, lod, arrowRect.translated(-arrowRect.topLeft()), "Actions", "Resize", Qt::black);
             painter->restore();
         }
-
         painter->restore();
     }
     EntityItemNew::paint(painter, option, widget);
