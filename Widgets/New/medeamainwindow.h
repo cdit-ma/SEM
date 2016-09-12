@@ -55,6 +55,7 @@ private slots:
 
     void popupSearch();
     void updateSearchSuggestions(QStringList list);
+    void searchEntered();
 
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);

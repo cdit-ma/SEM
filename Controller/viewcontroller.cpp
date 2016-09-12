@@ -203,8 +203,8 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
         }
     }
     foreach(QString key, results.uniqueKeys()){
-        qCritical() << "Items Matching: " << key;
-        qCritical() << results.values(key);
+        //qCritical() << "Items Matching: " << key;
+        //qCritical() << results.values(key);
     }
     return results;
 }

@@ -119,6 +119,19 @@ void MedeaMainWindow::updateSearchSuggestions(QStringList list)
 
 
 /**
+ * @brief MedeaMainWindow::searchEntered
+ */
+void MedeaMainWindow::searchEntered()
+{
+    QString query = searchBar->text();
+    if (!query.isEmpty()) {
+        searchDialog->searchResults(query, viewController->getSearchResults(query));
+        searchDialog->show();
+    }
+}
+
+
+/**
  * @brief MedeaMainWindow::showNotification
  * @param title
  * @param message
@@ -369,6 +382,8 @@ void MedeaMainWindow::setModelTitle(QString modelTitle)
     }
     QString title = "MEDEA " % modelTitle % "[*]";
     setWindowTitle(title);
+
+    searchDialog->searchResults("ment", viewController->getSearchResults("ment"));
 }
 
 
@@ -769,7 +784,8 @@ void MedeaMainWindow::setupSearchBar()
     connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MedeaMainWindow::updateSearchSuggestions);
     connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
-    //connect(searchButton, SIGNAL(clicked(bool)), searchDialog, SLOT(show()));
+    connect(searchButton, SIGNAL(clicked(bool)), this, SLOT(searchEntered()));
+    connect(searchDialog, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
 }
 
 

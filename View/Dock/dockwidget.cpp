@@ -172,7 +172,7 @@ bool DockWidget::isEmpty()
  */
 void DockWidget::updateHeaderText(QString text)
 {
-    if (kindLabel && !text.isEmpty()) {
+    if (kindLabel) {
         kindLabel->setText(text);
     }
 }
@@ -242,6 +242,25 @@ void DockWidget::dockActionClicked()
 
 
 /**
+ * @brief DockWidget::highlightItem
+ * @param ID
+ */
+void DockWidget::highlightItem(int ID)
+{
+    if (ID == -1) {
+        // remove highlight
+        ((DockWidgetActionItem*) childrenIDHash.value(prevHighlightedID))->highlightItem(false);
+    } else {
+        // highlight item
+        if (childrenIDHash.contains(ID)) {
+            ((DockWidgetActionItem*) childrenIDHash.value(ID))->highlightItem(true);
+        }
+        prevHighlightedID = ID;
+    }
+}
+
+
+/**
  * @brief DockWidget::viewItemConstructed
  * @param ID
  */
@@ -254,6 +273,7 @@ void DockWidget::viewItemConstructed(int ID)
         DockWidgetActionItem* dockItem = new DockWidgetActionItem(itemAction, this);
         dockItem->setProperty("ID", ID);
         addItem(dockItem);
+        qDebug() << "ID: " << ID;
     }
 }
 
