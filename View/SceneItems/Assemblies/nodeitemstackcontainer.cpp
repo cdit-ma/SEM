@@ -25,7 +25,6 @@ QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *chi
 
     QPointF itemOffset = gridRect().topLeft();
 
-    qCritical() << itemOffset;
     qreal xMod = fmod(itemOffset.x(), gridSize);
     qreal yMod = fmod(itemOffset.y(), gridSize);
 

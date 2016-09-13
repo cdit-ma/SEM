@@ -263,7 +263,7 @@ QStringList ViewController::getValidValuesForKey(int ID, QString keyName)
 
 void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
-    if(viewItem->isNode()){
+    if(viewItem){
         QString nodeKind = viewItem->getData("kind").toString();
         QString nodeLabel = viewItem->getData("label").toString();
         QString imageName = nodeKind;
@@ -284,6 +284,8 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             aliasPath = "Functions";
             imageName = nodeLabel;
         }
+
+        viewItem->setDefaultIcon(aliasPath, imageName);
         viewItem->setDefaultIcon(aliasPath, imageName);
     }
 }
@@ -913,9 +915,9 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             edgeKind = (Edge::EDGE_KIND)properties["kind"].toInt();
         }
 
-        if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
-            return;
-        }
+        //if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
+        //    return;
+        //}
 
         int srcID = properties["srcID"].toInt();
         int dstID = properties["dstID"].toInt();

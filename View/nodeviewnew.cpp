@@ -733,9 +733,21 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
 void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
 {
-    if(!item || !containedNodeViewItem || !containedNodeViewItem->isAncestorOf(item->getParentItem())){
+
+    switch(item->getEdgeKind()){
+        case Edge::EC_ASSEMBLY:
+        case Edge::EC_DATA:
+        case Edge::EC_WORKFLOW:
+            break;
+        default:
+            return;
+    }
+
+    if(!containedNodeViewItem || !containedNodeViewItem->isAncestorOf(item->getParentItem())){
         return;
     }
+
+
 
     NodeItemNew* parent = getParentNodeItem(item->getParentItem());
     NodeItemNew* source = getParentNodeItem(item->getSource());

@@ -48,7 +48,10 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     addRequiredData("snippetID");
 
 
-
+    if(nodeViewItem){
+        connect(nodeViewItem, &NodeViewItem::edgeAdded, this, &NodeItemNew::edgeAdded);
+        connect(nodeViewItem, &NodeViewItem::edgeRemoved, this, &NodeItemNew::edgeRemoved);
+    }
 
 
     if(parentItem){
@@ -92,6 +95,11 @@ QRectF NodeItemNew::viewRect() const
 NodeItemNew::KIND NodeItemNew::getNodeItemKind()
 {
     return nodeItemKind;
+}
+
+NodeViewItem *NodeItemNew::getNodeViewItem() const
+{
+    return nodeViewItem;
 }
 
 Node::NODE_KIND NodeItemNew::getNodeKind() const
@@ -736,6 +744,31 @@ void NodeItemNew::childPosChanged()
     resizeToChildren();
 }
 
+void NodeItemNew::edgeAdded(Edge::EDGE_KIND kind)
+{
+    switch(kind){
+        case Edge::EC_DEPLOYMENT:
+        case Edge::EC_QOS:
+            update();
+            break;
+    default:
+        return;
+    }
+}
+
+void NodeItemNew::edgeRemoved(Edge::EDGE_KIND kind)
+{
+    switch(kind){
+        case Edge::EC_DEPLOYMENT:
+        case Edge::EC_QOS:
+            update();
+            break;
+    default:
+        return;
+    }
+
+}
+
 QSizeF NodeItemNew::getGridAlignedSize(QSizeF size) const
 {
     if(size.isEmpty()){
@@ -933,6 +966,14 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
             paintPixmap(painter, lod, ER_CONNECT_OUT, "Actions", "ConnectTo");
         }
+
+        if(getNodeViewItem()->gotEdge(Edge::EC_DEPLOYMENT)){
+            paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "HardwareNode");
+        }
+        if(getNodeViewItem()->gotEdge(Edge::EC_QOS)){
+            paintPixmap(painter, lod, ER_QOS, "Actions", "QOS");
+        }
+
         if(isExpandEnabled()){
             paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", isExpanded() ? "Contract" : "Expand");
         }

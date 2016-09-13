@@ -487,7 +487,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
 
 
         //Tint the pixmap If it's a multiple of 96
-        if(prefix != "Items" && tintIcon(originalSize)){
+        if(tintIcon(originalSize)){
             //qCritical() << originalSize;
             //Replace the image with it's alphaChannel
             image = image.alphaChannel();

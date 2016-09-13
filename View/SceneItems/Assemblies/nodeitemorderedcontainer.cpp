@@ -122,6 +122,7 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
             painter->setBrush(Qt::white);
             painter->drawRect(bottomTextOutlineRect());
         }
+
         if(getData("key").toBool()){
             paintPixmap(painter, lod, iconOverlayRect(), "Actions", "Key");
         }

@@ -56,6 +56,12 @@
         <file alias="WorkerProcess">Resources/Images/Items/WorkerProcess.png</file>
         <file alias="DDS_QOSProfile">Resources/Images/Items/DDS_QOSProfile.png</file>
         <file alias="QOSProfile">Resources/Images/Items/QOSProfile.png</file>
+        <file alias="Edge_Assembly">Resources/Images/Items/Edge_Assembly.png</file>
+        <file alias="Edge_Deployment">Resources/Images/Items/Edge_Deployment.png</file>
+        <file alias="Edge_QOS">Resources/Images/Items/Edge_QOS.png</file>
+        <file alias="Edge_Aggregate">Resources/Images/Items/Edge_Aggregate.png</file>
+        <file alias="Edge_Data">Resources/Images/Items/Edge_Data.png</file>
+        <file alias="Edge_Workflow">Resources/Images/Items/Edge_Workflow.png</file>
     </qresource>
     <qresource prefix="/">
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>

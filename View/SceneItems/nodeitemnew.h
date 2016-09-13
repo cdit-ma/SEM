@@ -18,6 +18,7 @@ public:
     ~NodeItemNew();
 
     KIND getNodeItemKind();
+    NodeViewItem* getNodeViewItem() const;
 
     Node::NODE_KIND getNodeKind() const;
 
@@ -165,6 +166,8 @@ public slots:
     virtual void dataRemoved(QString keyName);
     virtual void childPosChanged();
 private:
+    void edgeAdded(Edge::EDGE_KIND kind);
+    void edgeRemoved(Edge::EDGE_KIND kind);
 
 
     void updateReadState();
