@@ -650,7 +650,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case Node::NK_PROCESS:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("operation");
+                nodeItem->setSecondaryTextKey("worker");
                 break;
             case Node::NK_MEMBER_INSTANCE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);

@@ -264,29 +264,48 @@ QStringList ViewController::getValidValuesForKey(int ID, QString keyName)
 void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
     if(viewItem){
-        QString nodeKind = viewItem->getData("kind").toString();
-        QString nodeLabel = viewItem->getData("label").toString();
-        QString imageName = nodeKind;
-        QString aliasPath = "Items";
+        bool isNode = viewItem->isNode();
+        NodeViewItem* nodeViewItem = (NodeViewItem*)viewItem;
+        NodeViewItem* edgeViewItem = (NodeViewItem*)viewItem;
 
-        if(nodeKind == "HardwareNode"){
-            bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
+        QString kind = viewItem->getData("kind").toString();
+        QString label = viewItem->getData("label").toString();
 
-            if(localhost){
-                imageName = "Localhost";
-            }else{
-                QString os = viewItem->getData("os").toString();
-                QString arch = viewItem->getData("architecture").toString();
-                imageName = os + "_" + arch;
-                imageName = imageName.remove(" ");
+
+        QString alias = "Items";
+        QString image = kind;
+
+        if(isNode){
+            switch(nodeViewItem->getNodeKind()){
+                case Node::NK_HARDWARE_NODE:{
+                    bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
+
+                    if(localhost){
+                        image = "Localhost";
+                    }else{
+                        QString os = viewItem->getData("os").toString();
+                        QString arch = viewItem->getData("architecture").toString();
+                        image = os + "_" + arch;
+                        image = image.remove(" ");
+                    }
+                    break;
+                }
+                case Node::NK_WORKER_PROCESS:{
+                    alias = "Functions";
+                    image = label;
+                    break;
+                }
+            case Node::NK_INPUTPARAMETER:
+            case Node::NK_RETURNPARAMETER:
+                alias = "Data";
+                image = label;
+                break;
+            default:
+                break;
+
             }
-        }else if(nodeKind == "WorkerProcess"){
-            aliasPath = "Functions";
-            imageName = nodeLabel;
         }
-
-        viewItem->setDefaultIcon(aliasPath, imageName);
-        viewItem->setDefaultIcon(aliasPath, imageName);
+        viewItem->setDefaultIcon(alias, image);
     }
 }
 
