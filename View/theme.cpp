@@ -513,7 +513,7 @@ QString Theme::getWindowStyleSheet()
     return "QMainWindow {"
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
-           "background-image: url(:/MEDEA_Watermark2); background-position: center; background-repeat: no-repeat;"
+           "background-image: url(:/MEDEA_Watermark); background-position: center; background-repeat: no-repeat;"
             "}" ;
 }
 
