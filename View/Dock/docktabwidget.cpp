@@ -301,7 +301,7 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
         }
         case ToolActionController::HARDWARE:
             showInfoLabel = dockWidget->isEmpty();
-            dockWidget->highlightItem(287);
+            //dockWidget->highlightItem(287);
             break;
         default:
             break;
@@ -394,10 +394,13 @@ void DockTabWidget::refreshDock()
         }
     } else {
         // update highlighted dock item
-        QList<ViewItem*> connectedHardwareItems;
+        QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(Edge::EC_DEPLOYMENT);
         hardwareDock->highlightItem(); // clear previous highlighted item
         if (connectedHardwareItems.count() == 1) {
+            qDebug() << "Highlight item: " << connectedHardwareItems.at(0)->getID();
             hardwareDock->highlightItem(connectedHardwareItems.at(0)->getID());
+        } else {
+            qDebug() << "No item to highlight";
         }
     }
 }

@@ -118,13 +118,20 @@ QVariant DockWidgetActionItem::getProperty(const char *name)
  */
 void DockWidgetActionItem::highlightItem(bool highlight)
 {
+    qDebug() << "highlight: " << highlight;
+
     if (highlight) {
+        qDebug() << "IF";
         backgroundColorHex = Theme::theme()->getHighlightColorHex();
         colorHex = Theme::theme()->getTextColorHex(Theme::CR_SELECTED);
     } else {
+        qDebug() << "ELSE";
         backgroundColorHex = "rgba(0,0,0,0)";
         colorHex = Theme::theme()->getTextColorHex();
+        //colorHex = "red";
     }
+
+    qDebug() << "HELLO";
     updateStyleSheet();
 }
 
@@ -245,6 +252,8 @@ void DockWidgetActionItem::setupLayout()
  */
 void DockWidgetActionItem::updateStyleSheet()
 {
+    qDebug() << "bg: " << backgroundColorHex;
+    qDebug() << "color: " << colorHex;
     setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border: 0px; }");
     textLabel->setStyleSheet("color:" + colorHex + ";");
 }

@@ -12,6 +12,8 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     toolActionController = tc;
     dockType = type;
 
+    prevHighlightedItem = 0;
+
     switch (dockType) {
     case ToolActionController::DEFINITIONS:
     case ToolActionController::FUNCTIONS:
