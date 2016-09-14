@@ -84,7 +84,7 @@ void SelectionHandler::cycleActiveSelectedItem(bool forward)
     }
 }
 
-QVector<ViewItem *> SelectionHandler::getSelection()
+QVector<ViewItem *> SelectionHandler::getSelection() const
 {
     return currentSelection;
 }

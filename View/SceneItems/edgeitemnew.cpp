@@ -11,6 +11,7 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
     this->destinationItem = destination;
     this->currentDstItem = 0;
 
+    this->margins = QMarginsF(10,10,10,10);
     _hasPosition = false;
 
     setMoveEnabled(true);
@@ -98,7 +99,7 @@ QRectF EdgeItemNew::sourceIconRect() const
 {
     QRectF  r;
     r.setSize(smallIconSize());
-    r.moveTopLeft(translatedIconsRect().topLeft() + QPointF(1,1));
+    r.moveTopLeft(iconsRect().topLeft() + QPointF(1,1));
     return r;
 }
 
@@ -106,7 +107,7 @@ QRectF EdgeItemNew::destinationIconRect() const
 {
     QRectF  r;
     r.setSize(smallIconSize());
-    r.moveTopRight(translatedIconsRect().topRight() + QPointF(-1,1));
+    r.moveTopRight(iconsRect().topRight() + QPointF(-1,1));
     return r;
 }
 
@@ -115,36 +116,31 @@ QRectF EdgeItemNew::itemRect() const
 {
     QRectF r;
     //Should be 16x16
-    r.setSize(QSizeF(DEFAULT_SIZE /4, DEFAULT_SIZE / 4));//smallIconSize() * 2);
+    r.setSize(QSizeF(DEFAULT_SIZE /4, DEFAULT_SIZE / 4));
     return r;
 }
 
-QPolygonF EdgeItemNew::sourceArrowHead() const
+QRectF EdgeItemNew::translatedItemRect() const
 {
-    return triangle(mapFromScene(getSceneEdgeTermination(true)));
+    QRectF r = itemRect();
+    r.moveTopLeft(itemPos);
+    return r;
 }
 
-QPolygonF EdgeItemNew::destinationArrowHead() const
+QPainterPath EdgeItemNew::trianglePath(QPointF startPoint, bool pointRight) const
 {
-    return triangle(mapFromScene(getDestinationPos()), destinationEntersLeft());
-}
+    QPainterPath path;
 
-QPolygonF EdgeItemNew::triangle(QPointF startPoint, bool pointRight) const
-{
-    QPolygonF triangle;
     int x = pointRight ? ARROW_SIZE: -ARROW_SIZE;
-
-    triangle.append(QPointF(x,0));
-
     QPointF peakPoint = startPoint + QPointF(x,0);
     QPointF topBasePoint = startPoint - QPointF(0, ARROW_SIZE/2);
     QPointF botBasePoint = startPoint + QPointF(0, ARROW_SIZE/2);
 
-    triangle.append(peakPoint);
-    triangle.append(topBasePoint);
-    triangle.append(botBasePoint);
-    triangle.append(peakPoint);
-    return triangle;
+    path.moveTo(peakPoint);
+    path.lineTo(topBasePoint);
+    path.lineTo(botBasePoint);
+    path.lineTo(peakPoint);
+    return path;
 }
 
 NodeItemNew *EdgeItemNew::getVisibleSource() const
@@ -172,12 +168,12 @@ NodeItemNew *EdgeItemNew::getParentNodeItem() const
     return 0;
 }
 
-NodeItemNew *EdgeItemNew::getSourceItem()
+NodeItemNew *EdgeItemNew::getSourceItem() const
 {
     return sourceItem;
 }
 
-NodeItemNew *EdgeItemNew::getDestinationItem()
+NodeItemNew *EdgeItemNew::getDestinationItem() const
 {
     return destinationItem;
 }
@@ -223,8 +219,12 @@ void EdgeItemNew::recalcSrcCurve(bool reset)
     srcCurve.moveTo(mapFromScene(centerSceneSrcPos));
     srcCurve.cubicTo(mapFromScene(srcControlPoint2), mapFromScene(srcControlPoint1), mapFromScene(srcScenePos));
 
+
+
+
     if(sourceCurve != srcCurve){
         prepareGeometryChange();
+        sourceArrow = trianglePath(mapFromScene(centerSceneSrcPos), true);
         sourceCurve = srcCurve;
         if(reset && !hasSetPosition()){
             resetPosition();
@@ -260,10 +260,12 @@ void EdgeItemNew::recalcDstCurve(bool reset)
 
     if(destinationCurve != dstCurve){
         prepareGeometryChange();
+        destinationArrow = trianglePath(mapFromScene(dstScenePos), dstLeft);
         destinationCurve = dstCurve;
         if(reset && !hasSetPosition()){
             resetPosition();
         }
+
     }
 }
 
@@ -285,56 +287,59 @@ bool EdgeItemNew::hasSetPosition() const
 
 void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    //Call Base paint
-    //EntityItemNew::paint(painter, option, widget);
-
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
+
+    painter->setClipRect(option->exposedRect);
 
     QPen pen = getPen();
 
     if(state > RS_BLOCK){
         painter->setPen(pen);
         painter->setBrush(Qt::NoBrush);
+
+        //Paint the bezier curves
         painter->strokePath(sourceCurve, pen);
         painter->strokePath(destinationCurve, pen);
 
         painter->setPen(Qt::NoPen);
         painter->setBrush(pen.color());
-        painter->drawPolygon(sourceArrowHead());
-        painter->drawPolygon(destinationArrowHead());
+
+        //Paint the arrow Heads
+        painter->drawPath(sourceArrow);
+        painter->drawPath(destinationArrow);
     }
 
-
-    painter->setBrush(getBodyColor());
-
     if(state > RS_BLOCK){
+        painter->setBrush(getBodyColor());
+
         pen.setStyle(Qt::SolidLine);
         painter->setPen(pen);
 
+        //Draw the center Circle/Rectangle
         if(hasSetPosition()){
-            painter->drawEllipse(currentRect());
+            painter->drawEllipse(translatedItemRect());
         }else{
-            painter->drawRect(translatedIconsRect());
+            painter->drawRect(iconsRect());
         }
     }
-
+    //Draw the icons.
     paintPixmap(painter, lod, ER_MAIN_ICON, sourceItem->getIconPath());
     paintPixmap(painter, lod, ER_SECONDARY_ICON, destinationItem->getIconPath());
 }
 
-QRectF EdgeItemNew::translatedIconsRect() const
+QRectF EdgeItemNew::iconsRect() const
 {
-    QRectF r = currentRect();
-    r.setHeight(r.height()/2);
-    r.moveCenter(currentRect().center());
+    QRectF r = translatedItemRect();
+    r.setHeight(r.height() / 2);
+    r.moveCenter(translatedItemRect().center());
     return r;
 }
 
 QRectF EdgeItemNew::currentRect() const
 {
-    QRectF r = itemRect();
-    r.moveTopLeft(itemPos);
+    QRectF r = translatedItemRect();
+    r = r.marginsAdded(margins);
     return r;
 }
 
@@ -401,22 +406,27 @@ void EdgeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 QPointF EdgeItemNew::getTopLeftOffset() const
 {
-    return getInternalOffset();
+    return itemRect().center();
 }
 
 QPainterPath EdgeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
 {
     switch(rect){
-        case ER_SELECTION:
+        case ER_SELECTION:{
+            QPainterPath path = getElementPath(ER_MOVE);
+            path.addPath(sourceArrow);
+            path.addPath(destinationArrow);
+            return path;
+        }
         case ER_MOVE:{
-         QPainterPath path;
-         path.setFillRule(Qt::WindingFill);
-         path.addRect(translatedIconsRect());
-         if(hasSetPosition()){
-            path.addEllipse(currentRect());
-         }
-         return path;
-    }
+            QPainterPath path;
+            path.setFillRule(Qt::WindingFill);
+            path.addRect(iconsRect());
+            if(hasSetPosition()){
+                path.addEllipse(translatedItemRect());
+            }
+            return path;
+        }
     default:
         break;
     }
@@ -424,23 +434,17 @@ QPainterPath EdgeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
 
 }
 
-void EdgeItemNew::setCenter(QPointF center)
-{
-    setPos(center - getInternalOffset());
-}
-
-QPointF EdgeItemNew::getCenter() const
-{
-    return getPos() + getInternalOffset();
-}
-
+/**
+ * @brief EdgeItemNew::boundingRect - Calculates the Rectangle of this edge by combining all paths together.
+ * @return
+ */
 QRectF EdgeItemNew::boundingRect() const
 {
     QRectF r = currentRect();
-    r = r.united(destinationArrowHead().boundingRect());
-    r = r.united(sourceArrowHead().boundingRect());
-    r = r.united(sourceCurve.boundingRect());
-    r = r.united(destinationCurve.boundingRect());
+    r = r.united(sourceArrow.controlPointRect());
+    r = r.united(sourceCurve.controlPointRect());
+    r = r.united(destinationArrow.controlPointRect());
+    r = r.united(destinationCurve.controlPointRect());
     return r;
 }
 
@@ -491,15 +495,11 @@ QPointF EdgeItemNew::getDestinationPos(QPointF center) const
     return QPointF();
 }
 
-QPointF EdgeItemNew::getInternalOffset() const
-{
-    return itemRect().center();
-}
 
 QPointF EdgeItemNew::getSceneEdgeTermination(bool left) const
 {
-    qreal y = currentRect().center().y();
-    qreal x = left ? currentRect().left() - ARROW_SIZE: currentRect().right();
+    qreal y = translatedItemRect().center().y();
+    qreal x = left ? translatedItemRect().left() - ARROW_SIZE: translatedItemRect().right();
     return mapToScene(x,y);
 }
 
@@ -518,7 +518,6 @@ void EdgeItemNew::resetPosition()
 
     //Get the scene center of the 2 ends points to spoof the location of the center.
     QPointF midPoint = (srcCenter + dstCenter) / 2;
-    //setCenter(midPoint);
 
     bool onLeft = destinationEntersLeft(midPoint);
 
@@ -530,7 +529,8 @@ void EdgeItemNew::resetPosition()
     QPointF newCenterPos = mapFromScene(requiredPos);
 
     //Set it, which will in turn update the edges.
-    setCenter(newCenterPos);
+    setPos(newCenterPos - getTopLeftOffset());
+    //setCenter(newCenterPos);
 
     //Add an undo step, and remove X/Y data.
     if(_hasPosition){
@@ -540,15 +540,9 @@ void EdgeItemNew::resetPosition()
     }
 }
 
-bool EdgeItemNew::shouldReset()
-{
-    return !_hasPosition;
-}
-
 QPointF EdgeItemNew::getSceneCenter() const
 {
-    return mapToScene(getPos() + getInternalOffset());// + getInternalOffset())) ;
-    //return itemPos + getInternalOffset();
+    return mapToScene(getPos() + getTopLeftOffset());
 }
 
 void EdgeItemNew::sourceParentVisibilityChanged()

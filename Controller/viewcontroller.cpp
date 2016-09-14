@@ -1173,6 +1173,24 @@ void ViewController::centerSelection()
     }
 }
 
+void ViewController::alignSelectionVertical()
+{
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->alignVertical();
+    }
+
+}
+
+void ViewController::alignSelectionHorizontal()
+{
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->alignHorizontal();
+    }
+
+}
+
 void ViewController::centerOnID(int ID)
 {
     emit vc_centerItem(ID);

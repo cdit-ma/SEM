@@ -32,6 +32,8 @@ public:
     void viewportChanged();
     SelectionHandler* getSelectionHandler();
     void fitToScreen();
+    void alignHorizontal();
+    void alignVertical();
 
     void centerSelection();
     QList<int> getIDsInView();
@@ -76,6 +78,8 @@ private slots:
     void selectAll();
     void itemsMoved();
 
+
+
     void clearSelection();
 
     void themeChanged();
@@ -91,8 +95,6 @@ private slots:
     void item_SetCentered(EntityItemNew* item);
 
     void item_MoveSelection(QPointF delta);
-    void item_Resizing(bool resizing);
-    void item_ResizeFinished(NodeItemNew* item, RECT_VERTEX vertex);
     void item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vert);
 
     void minimap_Panning(bool panning);
@@ -113,17 +115,17 @@ private:
     void nodeViewItem_Constructed(NodeViewItem* item);
     void edgeViewItem_Constructed(EdgeViewItem* item);
 
-    QList<ViewItem*> getTopLevelViewItems();
-    QList<EntityItemNew*> getTopLevelEntityItems();
-
-    QList<EntityItemNew*> getSelectedItems();
+    QList<ViewItem*> getTopLevelViewItems() const;
+    QList<EntityItemNew*> getTopLevelEntityItems() const;
+    QList<EntityItemNew*> getSelectedItems() const;
+    QList<EntityItemNew*> getOrderedSelectedItems() const;
 
 
     NodeItemNew* getParentNodeItem(NodeViewItem* item);
 
-    EntityItemNew* getEntityItem(int ID);
-    EntityItemNew* getEntityItem(ViewItem* item);
-    NodeItemNew* getNodeItem(ViewItem* item);
+    EntityItemNew* getEntityItem(int ID) const;
+    EntityItemNew* getEntityItem(ViewItem* item) const;
+    NodeItemNew* getNodeItem(ViewItem* item) const;
 
     void zoom(int delta, QPoint anchorScreenPos = QPoint());
 

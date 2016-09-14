@@ -179,6 +179,8 @@ public slots:
     void fitView();
     void fitAllViews();
     void centerSelection();
+    void alignSelectionVertical();
+    void alignSelectionHorizontal();
     void centerOnID(int ID);
 
     void centerImpl();

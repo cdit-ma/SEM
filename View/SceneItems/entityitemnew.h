@@ -155,7 +155,7 @@ public:
 
     int getGridSize() const;
     int getMajorGridCount() const;
-    virtual QPointF getTopLeftOffset() const = 0;
+    virtual QPointF getTopLeftOffset() const;
 
 public:
     //Feature State Getters

@@ -457,6 +457,10 @@ QPointF EntityItemNew::getPos() const
     return pos() + getTopLeftOffset();
 }
 
+QPointF EntityItemNew::getTopLeftOffset() const{
+    return QPointF();
+}
+
 QPointF EntityItemNew::validateMove(QPointF delta)
 {
     if(getParentNodeItem()){
@@ -931,6 +935,7 @@ void EntityItemNew::setExpandEnabled(bool enabled)
             addRequiredData("isExpanded");
         }else{
             removeRequiredData("isExpanded");
+            setExpanded(false);
         }
         expandEnabled = enabled;
     }

@@ -256,6 +256,31 @@ void NodeViewNew::itemsMoved()
     }
 }
 
+void NodeViewNew::alignHorizontal()
+{
+    emit triggerAction("Aligning Selection Horizontally");
+
+    QList<EntityItemNew*> selection = getOrderedSelectedItems();
+    QRectF sceneRect = getSceneBoundingRectOfItems(selection);
+
+
+    foreach(EntityItemNew* item, selection){
+        QPointF pos = item->getPos();
+        item->setMoveStarted();
+        pos.setY(item->mapFromScene(sceneRect.topLeft()).y());
+        item->setPos(pos);
+        item->setMoveFinished();
+        pos = item->getNearestGridPoint();
+        emit setData(item->getID(), "x", pos.x());
+        emit setData(item->getID(), "y", pos.y());
+    }
+}
+
+void NodeViewNew::alignVertical()
+{
+
+}
+
 void NodeViewNew::clearSelection()
 {
     _clearSelection();
@@ -387,20 +412,6 @@ void NodeViewNew::item_MoveSelection(QPointF delta)
             }
         }
     }
-}
-
-void NodeViewNew::item_Resizing(bool resizing)
-{
-}
-
-void NodeViewNew::item_ResizeFinished(NodeItemNew *item, RECT_VERTEX vertex)
-{
-    int id = item->getID();
-    QSizeF size = item->getExpandedSize();
-
-    emit triggerAction("Resizing Item");
-    emit setData(id, "width", size.width());
-    emit setData(id, "height", size.height());
 }
 
 void NodeViewNew::item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vertex)
@@ -621,8 +632,12 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_COMPONENT_ASSEMBLY:
             case Node::NK_COMPONENT_INSTANCE:
             case Node::NK_COMPONENT_IMPL:
+                nodeItem = new ContainerNodeItem(item, parentNode);
+                break;
             case Node::NK_TERMINATION:
                 nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_HARDWARE_CLUSTER:
                 nodeItem = new ContainerNodeItem(item, parentNode);
@@ -634,15 +649,19 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_OUTEVENTPORT_DELEGATE:
                 nodeItem = new ContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
+                nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_ASSEMBLY);
                 break;
             case Node::NK_CONDITION:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("value");
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_ATTRIBUTE_INSTANCE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
+                nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
             case Node::NK_AGGREGATE:
@@ -659,6 +678,10 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
             case Node::NK_VARIABLE:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                break;
             case Node::NK_ATTRIBUTE_IMPL:
             case Node::NK_AGGREGATE_INSTANCE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
@@ -681,9 +704,13 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 break;
-            case Node::NK_INEVENTPORT:
             case Node::NK_INPUTPARAMETER:
             case Node::NK_RETURNPARAMETER:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setSecondaryTextKey("type");
+                break;
+            case Node::NK_INEVENTPORT:
             case Node::NK_OUTEVENTPORT:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
@@ -769,7 +796,7 @@ void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
     }
 }
 
-QList<ViewItem *> NodeViewNew::getTopLevelViewItems()
+QList<ViewItem *> NodeViewNew::getTopLevelViewItems() const
 {
     QList<ViewItem *> items;
     foreach(EntityItemNew* item, getTopLevelEntityItems()){
@@ -778,7 +805,7 @@ QList<ViewItem *> NodeViewNew::getTopLevelViewItems()
     return items;
 }
 
-QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems()
+QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems() const
 {
     QList<EntityItemNew*> items;
     foreach(int ID, topLevelGUIItemIDs){
@@ -790,7 +817,7 @@ QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems()
     return items;
 }
 
-QList<EntityItemNew *> NodeViewNew::getSelectedItems()
+QList<EntityItemNew *> NodeViewNew::getSelectedItems() const
 {
     QList<EntityItemNew*> items;
     foreach(ViewItem* item, selectionHandler->getSelection()){
@@ -800,6 +827,19 @@ QList<EntityItemNew *> NodeViewNew::getSelectedItems()
         }
     }
     return items;
+}
+
+QList<EntityItemNew *> NodeViewNew::getOrderedSelectedItems() const
+{
+    QList<EntityItemNew*> items;
+    foreach(ViewItem* item, selectionHandler->getOrderedSelection()){
+        EntityItemNew* eItem = getEntityItem(item);
+        if(eItem){
+            items.append(eItem);
+        }
+    }
+    return items;
+
 }
 
 NodeItemNew *NodeViewNew::getParentNodeItem(NodeViewItem *item)
@@ -815,7 +855,7 @@ NodeItemNew *NodeViewNew::getParentNodeItem(NodeViewItem *item)
      return 0;
 }
 
-EntityItemNew *NodeViewNew::getEntityItem(int ID)
+EntityItemNew *NodeViewNew::getEntityItem(int ID) const
 {
     EntityItemNew* item = 0;
     if(guiItems.contains(ID)){
@@ -824,7 +864,7 @@ EntityItemNew *NodeViewNew::getEntityItem(int ID)
     return item;
 }
 
-EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item)
+EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item) const
 {
     EntityItemNew* e = 0;
     if(item){
@@ -833,7 +873,7 @@ EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item)
     return e;
 }
 
-NodeItemNew *NodeViewNew::getNodeItem(ViewItem *item)
+NodeItemNew *NodeViewNew::getNodeItem(ViewItem *item) const
 {
     EntityItemNew* e = getEntityItem(item->getID());
     if(e && e->isNodeItem()){
@@ -1079,12 +1119,9 @@ void NodeViewNew::state_Resizing_Exited()
 {
     if(selectionHandler){
         foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
-            qCritical() << viewItem;
             NodeItemNew* item = getNodeItem(viewItem);
 
-            qCritical() << item;
             if(item && item->setResizeFinished()){
-                qCritical() << "RESIZING!";
                 emit triggerAction("Resizing Item");
                 QSizeF size = item->getGridAlignedSize();
                 emit setData(item->getID(), "width", size.width());
@@ -1333,10 +1370,17 @@ void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)
         }
         painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, backgroundText);
     }
+
+
 }
 
 void NodeViewNew::drawForeground(QPainter *painter, const QRectF &rect)
 {
+    painter->resetTransform();
+    QList<EntityItemNew*> selection = getOrderedSelectedItems();
+    QRectF sceneRect = getSceneBoundingRectOfItems(selection);
+    painter->setBrush(QColor(255,0,0,120));
+    painter->drawRect(mapFromScene(sceneRect).boundingRect());
     //painter->setBrush(Qt::red);
     //painter->drawRect(rect);
 }

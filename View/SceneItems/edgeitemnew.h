@@ -17,48 +17,48 @@ public:
     void setPos(const QPointF &pos);
     QPointF getPos() const;
 
-    void setCenter(QPointF center);
-    QPointF getCenter() const;
-
     QRectF boundingRect() const;
     QRectF currentRect() const;
 
+    QPointF getTopLeftOffset() const;
+    QRectF getElementRect(ELEMENT_RECT rect) const;
+    QPainterPath getElementPath(ELEMENT_RECT rect) const;
+    void setMoveStarted();
+    bool setMoveFinished();
+
 private:
-    QRectF translatedIconsRect() const;
+    QRectF itemRect() const;
+    QRectF translatedItemRect() const;
+    QRectF iconsRect() const;
     QRectF sourceIconRect() const;
     QRectF destinationIconRect() const;
-    QRectF itemRect() const;
 
-    QPolygonF sourceArrowHead() const;
-    QPolygonF destinationArrowHead() const;
-    QPolygonF triangle(QPointF startPoint, bool pointRight=true) const;
+    QPainterPath trianglePath(QPointF startPoint, bool pointRight=true) const;
 
     NodeItemNew* getVisibleSource() const;
     NodeItemNew* getVisibleDestination() const;
 
     NodeItemNew* getParentNodeItem() const;
-    NodeItemNew* getSourceItem();
-    NodeItemNew* getDestinationItem();
+
+    NodeItemNew* getSourceItem() const;
+    NodeItemNew* getDestinationItem() const;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     QPointF getSourcePos(QPointF center = QPointF()) const;
     bool sourceExitsLeft(QPointF center = QPointF()) const;
-    bool destinationEntersLeft(QPointF center = QPointF()) const;
-    QPointF getDestinationPos(QPointF center = QPointF()) const;
 
-    QPointF getInternalOffset() const;
-    QPointF getArrowOffset(bool onLeft) const;
+    QPointF getDestinationPos(QPointF center = QPointF()) const;
+    bool destinationEntersLeft(QPointF center = QPointF()) const;
 
     QPointF getSceneEdgeTermination(bool left) const;
 
     void resetPosition();
 
-    bool shouldReset();
 
     QPointF getSceneCenter() const;
 
-public slots:
+private slots:
     void sourceParentVisibilityChanged();
     void destinationParentVisibilityChanged();
 
@@ -87,6 +87,10 @@ private:
 
     QPainterPath sourceCurve;
     QPainterPath destinationCurve;
+    QPainterPath sourceArrow;
+    QPainterPath destinationArrow;
+
+    QMarginsF margins;
 
 
 
@@ -95,18 +99,10 @@ private slots:
     void dataRemoved(QString keyName);
 
 public:
-    QRectF getElementRect(ELEMENT_RECT rect) const;
-    QPainterPath getElementPath(ELEMENT_RECT rect) const;
-    void setMoveStarted();
-    bool setMoveFinished();
 
-    // QGraphicsItem interface
 protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
-    // EntityItemNew interface
-public:
-    QPointF getTopLeftOffset() const;
 };
 
 #endif // EDGEITEMNEW_H
