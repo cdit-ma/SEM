@@ -47,7 +47,6 @@ private:
     QToolButton* searchButton;
     QComboBox* scopeComboBox;
 
-    QScrollArea* keysArea;
     QToolBar* keysToolBar;
     QVBoxLayout* keysLayout;
     QActionGroup* keysActionGroup;

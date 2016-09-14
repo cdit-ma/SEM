@@ -559,7 +559,7 @@ QString Theme::getDialogStyleSheet()
 
 QString Theme::getSplitterStyleSheet()
 {
-    return  "QSplitter {background: " % getBackgroundColorHex() % ";}"
+    return  "QSplitter {background:" % getBackgroundColorHex() % ";}"
             "QSplitter::handle{width:12px;height:12px;}"
             "QSplitter::handle:pressed {background:" % getAltBackgroundColorHex() % "}"
             "QSplitter::handle:horizontal {image: url(:/Actions/Menu_Vertical);}"
@@ -588,9 +588,12 @@ QString Theme::getTabbedWidgetStyleSheet()
 
 QString Theme::getNodeViewStyleSheet(bool isActive)
 {
+    QString activeBorder = "border: 2px solid " % getActiveWidgetBorderColorHex() % ";";
+    QString inActiveBorder = "border: 1px solid " % getDisabledBackgroundColorHex() % ";";
     return "QGraphicsView {"
            "background:" % getBackgroundColorHex() % ";"
-           "border: 1px solid " % (isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex()) % ";"
+           % (isActive ? activeBorder : inActiveBorder) %
+           //"border: 1px solid " % (isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex()) % ";"
            "}";
 }
 
@@ -804,6 +807,33 @@ QString Theme::getAbstractItemViewStyleSheet()
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "border: 0px;"
+           "}";
+}
+
+QString Theme::getComboBoxStyleSheet()
+{
+    return "QComboBox {"
+           "background:" % getAltBackgroundColorHex() % ";"
+           "color:" % getTextColorHex() % ";"
+           "selection-background-color:" % getHighlightColorHex() % ";"
+           "selection-color:" % getTextColorHex(CR_SELECTED) % ";"
+           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "padding: 0px 5px;"
+           "margin: 0px;"
+           "}"
+           "QComboBox:hover {"
+           "background:" % getHighlightColorHex() % ";"
+           "color:" % getTextColorHex(CR_SELECTED) % ";"
+           "}"
+           "QComboBox::drop-down {"
+           "subcontrol-position: top right;"
+           "padding: 0px;"
+           "width: 20px;"
+           "}"
+           //"QComboBox::down-arrow{ image: url(:/Actions/Arrow_Down); }"
+           "QComboBox QAbstractItemView {"
+           "color:" % getTextColorHex() % ";"
+           "background:" % getAltBackgroundColorHex() % ";"
            "}";
 }
 

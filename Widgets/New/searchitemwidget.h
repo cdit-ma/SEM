@@ -6,6 +6,7 @@
 #include <QToolButton>
 #include <QPushButton>
 #include <QLabel>
+#include <QVBoxLayout>
 
 #include "../../View/viewitem.h"
 #include "../../View/theme.h"
@@ -16,6 +17,7 @@ class SearchItemWidget : public QFrame
 public:
     explicit SearchItemWidget(ViewItem* item, QWidget *parent = 0);
     ~SearchItemWidget();
+
     void setDisplayKeys(QList<QString> keys);
     
 signals:
@@ -36,7 +38,7 @@ protected:
     void leaveEvent(QEvent*);
 
 private:
-    void updateColor(Theme::COLOR_ROLE colorRole);
+    void setupLayout(QVBoxLayout* layout);
     void constructKeyWidgets();
 
     ViewItem* viewItem;
@@ -49,7 +51,7 @@ private:
     QLabel* textLabel;
     QToolButton* expandButton;
     QToolButton* centerButton;
-    //QToolButton* popupButton;
+    QToolButton* popupButton;
     QWidget* displayWidget;
     
     QList<QString> keys;

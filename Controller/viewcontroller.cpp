@@ -202,10 +202,6 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
             }
         }
     }
-    foreach(QString key, results.uniqueKeys()){
-        //qCritical() << "Items Matching: " << key;
-        //qCritical() << results.values(key);
-    }
     return results;
 }
 
@@ -217,7 +213,6 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDG
         foreach(ViewItem* item, selectionController->getSelection()){
             if(item && item->isNode()){
                 NodeViewItem* nodeItem = (NodeViewItem*) item;
-                qDebug() << "nodeItem->getEdges(kind): " << nodeItem->getEdges(kind).count();
                 foreach(EdgeViewItem* edge, nodeItem->getEdges(kind)){
                     NodeViewItem* src = edge->getSource();
                     NodeViewItem* other = edge->getDestination();
@@ -230,7 +225,6 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDG
                 }
             }
         }
-        qDebug() << "list: " << list;
     }
     return list;
 }
@@ -1182,6 +1176,7 @@ void ViewController::fitView()
 
 void ViewController::fitAllViews()
 {
+
     emit vc_fitToScreen();
 }
 
