@@ -3,7 +3,7 @@
 #include <QVBoxLayout>
 #include <QToolBar>
 
-#define ICON_SIZE 24
+#define ICON_SIZE 32
 #define MARGIN 5
 
 /**
@@ -14,6 +14,9 @@
 SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(parent)
 {
     viewItem = item;
+    if(item){
+        viewItem->registerObject(this);
+    }
     viewItemID = -1;
 
     textLabel = new QLabel(this);
@@ -92,6 +95,13 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(par
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
     //updateColor(Theme::CR_NORMAL);
+}
+
+SearchItemWidget::~SearchItemWidget()
+{
+    if(viewItem){
+        viewItem->unregisterObject(this);
+    }
 }
 
 

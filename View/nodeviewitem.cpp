@@ -60,6 +60,7 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
         Edge::EDGE_KIND kind = edge->getEdgeKind();
         if(!edges.contains(kind, edge)){
             edges.insertMulti(kind, edge);
+            emit edgeAdded(kind);
         }
     }
 }
@@ -70,6 +71,7 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
         Edge::EDGE_KIND kind = edge->getEdgeKind();
         if(edges.contains(kind, edge)){
             edges.remove(kind, edge);
+            emit edgeRemoved(kind);
         }
     }
 }
@@ -81,7 +83,7 @@ QList<EdgeViewItem *> NodeViewItem::getEdges(Edge::EDGE_KIND edgeKind) const
 
 bool NodeViewItem::gotEdge(Edge::EDGE_KIND edgeKind) const
 {
-    return edgeKind == Edge::EC_NONE ? !edges.values().isEmpty() : edges.values(edgeKind).isEmpty();
+    return edgeKind == Edge::EC_NONE ? !edges.values().isEmpty() : !edges.values(edgeKind).isEmpty();
 }
 
 bool NodeViewItem::isInModel()

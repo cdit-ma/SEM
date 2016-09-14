@@ -18,6 +18,7 @@ public:
     ~NodeItemNew();
 
     KIND getNodeItemKind();
+    NodeViewItem* getNodeViewItem() const;
 
     Node::NODE_KIND getNodeKind() const;
 
@@ -165,6 +166,8 @@ public slots:
     virtual void dataRemoved(QString keyName);
     virtual void childPosChanged();
 private:
+    void edgeAdded(Edge::EDGE_KIND kind);
+    void edgeRemoved(Edge::EDGE_KIND kind);
 
 
     void updateReadState();
@@ -179,6 +182,7 @@ private:
     KIND nodeItemKind;
 
     Edge::EDGE_KIND visualEdgeKind;
+    QString visualEdgeIcon;
 
     NODE_READ_STATE readState;
 
@@ -205,6 +209,7 @@ private:
 
     bool resizeEnabled;
 
+    bool hoveredConnect;
     RECT_VERTEX hoveredResizeVertex;
     RECT_VERTEX selectedResizeVertex;
 
@@ -215,16 +220,14 @@ private:
     QHash<int, NodeItemNew*> childNodes;
     QHash<int, EdgeItemNew*> childEdges;
 
-    QVector<QLineF> gridLines_Minor_Horizontal;
-    QVector<QLineF> gridLines_Major_Horizontal;
-    QVector<QLineF> gridLines_Minor_Vertical;
-    QVector<QLineF> gridLines_Major_Vertical;
+    QPainterPath gridLines;
 
     QColor readOnlyInstanceColor;
     QColor readOnlyDefinitionColor;
 
     qreal modelWidth;
     qreal modelHeight;
+    QPen gridLinePen;
 
     QString primaryTextKey;
     QString secondaryTextKey;

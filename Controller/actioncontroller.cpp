@@ -62,6 +62,9 @@ void ActionController::connectViewController(ViewController *controller)
         connect(view_fitView, &QAction::triggered, viewController, &ViewController::fitView);
         connect(view_fitAllViews, &QAction::triggered, viewController, &ViewController::fitAllViews);
 
+        connect(edit_alignHorizontal, &QAction::triggered, viewController, &ViewController::alignSelectionHorizontal);
+        connect(edit_alignVertical, &QAction::triggered, viewController, &ViewController::alignSelectionVertical);
+
 
         connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);

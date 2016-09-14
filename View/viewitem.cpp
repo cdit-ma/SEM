@@ -120,9 +120,7 @@ void ViewItem::setDefaultIcon(QString iconPrefix, QString iconName)
     if(defaultIcon.first != iconPrefix || defaultIcon.second != iconName){
         defaultIcon.first = iconPrefix;
         defaultIcon.second = iconName;
-        if(currentIcon.first == "" || currentIcon.second == ""){
-            setIcon(iconPrefix, iconName);
-        }
+        setIcon(iconPrefix, iconName);
     }
 }
 

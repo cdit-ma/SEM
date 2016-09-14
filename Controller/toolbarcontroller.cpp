@@ -360,11 +360,11 @@ void ToolActionController::setupNodeActions()
 
 void ToolActionController::setupEdgeActions()
 {
-    foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
-        QString edgeName = Edge::getKind(edgeKind);
-        RootAction* action = new RootAction(edgeName);
-        action->setIconPath("Actions", "ConnectTo");
-        edgeKindActions[edgeKind] = action;
+    foreach(Edge::EDGE_KIND kind, Edge::getEdgeKinds()){
+        QString edgeKind = Edge::getKind(kind);
+        RootAction* action = new RootAction(edgeKind);
+        action->setIconPath("Items", edgeKind);
+        edgeKindActions[kind] = action;
     }
 }
 

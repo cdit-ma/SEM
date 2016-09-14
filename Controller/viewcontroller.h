@@ -108,6 +108,7 @@ signals:
     void vc_projectPathChanged(QString);
 
     void vc_centerItem(int ID);
+
     void vc_fitToScreen();
 
     void vc_addProjectToRecentProjects(QString filePath);
@@ -179,6 +180,8 @@ public slots:
     void fitView();
     void fitAllViews();
     void centerSelection();
+    void alignSelectionVertical();
+    void alignSelectionHorizontal();
     void centerOnID(int ID);
 
     void centerImpl();
@@ -187,6 +190,7 @@ public slots:
     void popupDefinition();
     void popupImpl();
     void popupSelection();
+    void popupItem(int ID);
 
 
     void cut();

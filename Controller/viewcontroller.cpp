@@ -265,28 +265,56 @@ QStringList ViewController::getValidValuesForKey(int ID, QString keyName)
 
 void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
-    if(viewItem->isNode()){
-        QString nodeKind = viewItem->getData("kind").toString();
-        QString nodeLabel = viewItem->getData("label").toString();
-        QString imageName = nodeKind;
-        QString aliasPath = "Items";
+    if(viewItem){
+        bool isNode = viewItem->isNode();
+        NodeViewItem* nodeViewItem = (NodeViewItem*)viewItem;
+        NodeViewItem* edgeViewItem = (NodeViewItem*)viewItem;
 
-        if(nodeKind == "HardwareNode"){
-            bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
+        QString kind = viewItem->getData("kind").toString();
+        QString label = viewItem->getData("label").toString();
 
-            if(localhost){
-                imageName = "Localhost";
-            }else{
-                QString os = viewItem->getData("os").toString();
-                QString arch = viewItem->getData("architecture").toString();
-                imageName = os + "_" + arch;
-                imageName = imageName.remove(" ");
+
+        QString alias = "Items";
+        QString image = kind;
+
+        if(isNode){
+            switch(nodeViewItem->getNodeKind()){
+                case Node::NK_HARDWARE_NODE:{
+                    bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
+
+                    if(localhost){
+                        image = "Localhost";
+                    }else{
+                        QString os = viewItem->getData("os").toString();
+                        QString arch = viewItem->getData("architecture").toString();
+                        image = os % "_" % arch;
+                        image = image.remove(" ");
+                    }
+                    break;
+                }
+                case Node::NK_WORKER_PROCESS:{
+                    alias = "Functions";
+                    image = label;
+                    break;
+                }
+            case Node::NK_INPUTPARAMETER:
+            case Node::NK_RETURNPARAMETER:
+                alias = "Data";
+                image = label;
+                break;
+            case Node::NK_VECTOR:
+            case Node::NK_VECTOR_INSTANCE:
+                foreach(ViewItem* child, viewItem->getChildren()){
+                    image = kind % "_" % child->getData("kind").toString();
+                    break;
+                }
+                break;
+            default:
+                break;
+
             }
-        }else if(nodeKind == "WorkerProcess"){
-            aliasPath = "Functions";
-            imageName = nodeLabel;
         }
-        viewItem->setDefaultIcon(aliasPath, imageName);
+        viewItem->setDefaultIcon(alias, image);
     }
 }
 
@@ -582,8 +610,13 @@ bool ViewController::destructViewItem(ViewItem *viewItem)
         }
 
         ViewItem* parentItem = viewItem->getParentItem();
+        NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
         if(parentItem){
             parentItem->removeChild(viewItem);
+
+            if(parentItem->isNode() && parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE){
+                setDefaultIcon(parentItem);
+            }
         }
 
         //Remove the item from the Hash
@@ -892,6 +925,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         int parentID = nodeItem->getParentID();
 
         ViewItem* parentItem = getViewItem(parentID);
+        NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
 
         QString treeKey = nodeItem->getTreeIndex();
 
@@ -904,6 +938,11 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         //Attach the node to it's parent
         if(parentItem){
             parentItem->addChild(nodeItem);
+
+            //Update the icons for certain types.
+            if(parentItem->isNode() && parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE){
+                setDefaultIcon(parentItem);
+            }
         }else{
             rootItem->addChild(nodeItem);
             topLevelItems.append(ID);
@@ -915,9 +954,9 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             edgeKind = (Edge::EDGE_KIND)properties["kind"].toInt();
         }
 
-        if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
-            return;
-        }
+        //if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
+        //    return;
+        //}
 
         int srcID = properties["srcID"].toInt();
         int dstID = properties["dstID"].toInt();
@@ -1154,6 +1193,24 @@ void ViewController::centerSelection()
     }
 }
 
+void ViewController::alignSelectionVertical()
+{
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->alignVertical();
+    }
+
+}
+
+void ViewController::alignSelectionHorizontal()
+{
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->alignHorizontal();
+    }
+
+}
+
 void ViewController::centerOnID(int ID)
 {
     emit vc_centerItem(ID);
@@ -1217,6 +1274,12 @@ void ViewController::popupSelection()
         ViewItem* item = selectionController->getActiveSelectedItem();
         spawnSubView(item);
     }
+}
+
+void ViewController::popupItem(int ID)
+{
+    ViewItem* item = getViewItem(ID);
+    spawnSubView(item);
 }
 
 
