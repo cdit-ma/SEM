@@ -77,7 +77,7 @@ void SearchItemWidget::themeChanged()
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
                   "QPushButton{ background: rgba(0,0,0,0); border: 0px; }"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
-                  //"QLabel#KEY_LABEL{ color:" + theme->getAltBackgroundColorHex() + ";}"
+                  "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
                   + theme->getToolBarStyleSheet());
 
     if (iconLabel) {
@@ -289,7 +289,7 @@ void SearchItemWidget::constructKeyWidgets()
             displayLayout->addWidget(keyWidget);
         }
 
-        displayLayout->addSpacerItem(new QSpacerItem(0, 2));
+        displayLayout->addSpacerItem(new QSpacerItem(0, MARGIN));
     }
 }
 
