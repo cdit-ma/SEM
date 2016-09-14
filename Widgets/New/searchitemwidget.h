@@ -15,6 +15,7 @@ class SearchItemWidget : public QFrame
     Q_OBJECT
 public:
     explicit SearchItemWidget(ViewItem* item, QWidget *parent = 0);
+    ~SearchItemWidget();
     void setDisplayKeys(QList<QString> keys);
     
 signals:

@@ -1274,6 +1274,12 @@ void ViewController::popupSelection()
     }
 }
 
+void ViewController::popupItem(int ID)
+{
+    ViewItem* item = getViewItem(ID);
+    spawnSubView(item);
+}
+
 
 void ViewController::cut()
 {

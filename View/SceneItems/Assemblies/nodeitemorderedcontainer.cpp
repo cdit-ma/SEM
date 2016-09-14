@@ -133,6 +133,12 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
 
     }
     NodeItemNew::paint(painter, option, widget);
+
+    if(state > RS_BLOCK){
+        if(getData("key").toBool()){
+            paintPixmap(painter, lod, iconOverlayRect(), "Actions", "Key");
+        }
+    }
 }
 
 QRectF ContainerNodeItem::headerRect() const

@@ -238,6 +238,7 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
     searchItems.append(itemWidget);
     if (item) {
         connect(this, SIGNAL(keyButtonChecked(QString)), itemWidget, SLOT(toggleKeyWidget(QString)));
+        //connect(item, SIGNAL(destructing()), itemWidget, SLOT(deleteLater()));
         connect(itemWidget, SIGNAL(centerOnViewItem(int)), this, SIGNAL(centerOnViewItem(int)));
     }
     return itemWidget;
