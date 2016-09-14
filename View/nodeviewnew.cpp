@@ -263,21 +263,52 @@ void NodeViewNew::alignHorizontal()
     QList<EntityItemNew*> selection = getOrderedSelectedItems();
     QRectF sceneRect = getSceneBoundingRectOfItems(selection);
 
-
     foreach(EntityItemNew* item, selection){
-        QPointF pos = item->getPos();
         item->setMoveStarted();
-        pos.setY(item->mapFromScene(sceneRect.topLeft()).y());
+        QPointF pos = item->getPos();
+
+        EntityItemNew* parent = item->getParent();
+        if(!parent){
+            parent = item;
+        }
+
+        pos.setY(parent->mapFromScene(sceneRect.topLeft()).y());
+        pos.ry() += item->getTopLeftOffset().y();
         item->setPos(pos);
-        item->setMoveFinished();
-        pos = item->getNearestGridPoint();
-        emit setData(item->getID(), "x", pos.x());
-        emit setData(item->getID(), "y", pos.y());
+
+        if(item->setMoveFinished()){
+            pos = item->getNearestGridPoint();
+            emit setData(item->getID(), "x", pos.x());
+            emit setData(item->getID(), "y", pos.y());
+        }
     }
 }
 
 void NodeViewNew::alignVertical()
 {
+    emit triggerAction("Aligning Selection Vertically");
+
+    QList<EntityItemNew*> selection = getOrderedSelectedItems();
+    QRectF sceneRect = getSceneBoundingRectOfItems(selection);
+
+    foreach(EntityItemNew* item, selection){
+        item->setMoveStarted();
+        QPointF pos = item->getPos();
+
+        EntityItemNew* parent = item->getParent();
+        if(!parent){
+            parent = item;
+        }
+        pos.setX(parent->mapFromScene(sceneRect.topLeft()).x());
+        pos.rx() += item->getTopLeftOffset().x();
+        item->setPos(pos);
+
+        if(item->setMoveFinished()){
+            pos = item->getNearestGridPoint();
+            emit setData(item->getID(), "x", pos.x());
+            emit setData(item->getID(), "y", pos.y());
+        }
+    }
 
 }
 
@@ -417,15 +448,11 @@ void NodeViewNew::item_MoveSelection(QPointF delta)
 void NodeViewNew::item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vertex)
 {
     if(state_Active_Resizing->active()){
-        QPointF offset(delta.width(), delta.height());
-
 
         if(vertex == RV_TOP || vertex == RV_BOTTOM){
             delta.setWidth(0);
-            offset.setX(0);
         }else if(vertex == RV_LEFT || vertex == RV_RIGHT){
             delta.setHeight(0);
-            offset.setY(0);
         }
 
         if(vertex == RV_TOP || vertex == RV_TOPLEFT || vertex == RV_TOPRIGHT){
@@ -437,24 +464,23 @@ void NodeViewNew::item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX verte
             delta.rwidth() *= -1;
         }
 
-        if(vertex == RV_BOTTOM || vertex == RV_BOTTOMLEFT || vertex == RV_BOTTOMRIGHT){
-            //Ignore the delta Y
-            offset.setY(0);
-        }
-        if(vertex == RV_RIGHT || vertex == RV_BOTTOMRIGHT || vertex == RV_TOPRIGHT){
-            //Ignore the delta X
-            offset.setX(0);
-        }
-
-        if(delta.width() == 0){
-            offset.setX(0);
-        }
-        if(delta.height() == 0){
-            offset.setY(0);
-        }
-
-        item->adjustPos(offset);
+        QSizeF preSize = item->getExpandedSize();
         item->adjustExpandedSize(delta);
+        QSizeF postSize = item->getExpandedSize();
+        if(preSize != postSize){
+            QSizeF deltaSize = preSize - postSize;
+            QPointF offset(deltaSize.width(), deltaSize.height());
+
+            if(vertex == RV_BOTTOM || vertex == RV_BOTTOMLEFT || vertex == RV_BOTTOMRIGHT){
+                //Ignore the delta Y
+                offset.setY(0);
+            }
+            if(vertex == RV_RIGHT || vertex == RV_BOTTOMRIGHT || vertex == RV_TOPRIGHT){
+                //Ignore the delta X
+                offset.setX(0);
+            }
+            item->adjustPos(offset);
+        }
     }
 
 }
@@ -718,6 +744,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_PERIODICEVENT:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("frequency");
+                nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_BRANCH_STATE:
@@ -729,6 +756,16 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
+            case Node::NK_VECTOR:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("max_size");
+                break;
+            case Node::NK_VECTOR_INSTANCE:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setSecondaryTextKey("type");
+                break;
+
             default:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
@@ -1169,7 +1206,7 @@ void NodeViewNew::state_Connecting_Entered()
         }
 
         QPointF lineStart = nodeItem->scenePos();
-        lineStart += nodeItem->getElementRect(EntityItemNew::ER_CONNECT_OUT).center();
+        lineStart += nodeItem->getElementRect(EntityItemNew::ER_EDGE_KIND_ICON).center();
 
         if(!connectLineItem){
             connectLineItem = scene()->addLine(connectLine);
@@ -1355,7 +1392,6 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
 
 void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)
 {
-
     painter->resetTransform();
     painter->setPen(Qt::NoPen);
     painter->setBrush(backgroundColor);
@@ -1370,19 +1406,6 @@ void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)
         }
         painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, backgroundText);
     }
-
-
-}
-
-void NodeViewNew::drawForeground(QPainter *painter, const QRectF &rect)
-{
-    painter->resetTransform();
-    QList<EntityItemNew*> selection = getOrderedSelectedItems();
-    QRectF sceneRect = getSceneBoundingRectOfItems(selection);
-    painter->setBrush(QColor(255,0,0,120));
-    painter->drawRect(mapFromScene(sceneRect).boundingRect());
-    //painter->setBrush(Qt::red);
-    //painter->drawRect(rect);
 }
 
 void NodeViewNew::resizeEvent(QResizeEvent *event)

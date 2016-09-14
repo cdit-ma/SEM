@@ -21,6 +21,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     //manuallyAdjustedHeight = 0;
     gridVisible = false;
     gridEnabled = false;
+    hoveredConnect = false;
     resizeEnabled = false;
     ignorePosition = false;
     _rightJustified = false;
@@ -61,6 +62,11 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
         parentItem->addChildNode(this);
         setPos(getNearestGridPoint());
     }
+
+
+    gridLinePen.setColor(getBaseBodyColor().darker(150));
+    gridLinePen.setStyle(Qt::DotLine);
+    gridLinePen.setWidthF(.5);
 }
 
 NodeItemNew::~NodeItemNew()
@@ -640,6 +646,8 @@ void NodeItemNew::setSecondaryTextKey(QString key)
 void NodeItemNew::setVisualEdgeKind(Edge::EDGE_KIND kind)
 {
     visualEdgeKind = kind;
+    visualEdgeIcon = Edge::getKind(kind);
+    update();
 }
 
 Edge::EDGE_KIND NodeItemNew::getVisualEdgeKind() const
@@ -775,15 +783,16 @@ QSizeF NodeItemNew::getGridAlignedSize(QSizeF size) const
         size = getExpandedSize();
     }
 
+    qreal gridSize = getGridSize();
     //Get the nearest next grid line.
-    qreal modHeight = fmod(size.height(), getGridSize());
-    qreal modWidth = fmod(size.width(), getGridSize());
+    qreal modHeight = fmod(size.height(), gridSize);
+    qreal modWidth = fmod(size.width(), gridSize);
 
     if(modHeight != 0){
-        size.rheight() += (getGridSize() - modHeight);
+        size.rheight() += (gridSize - modHeight);
     }
     if(modWidth != 0){
-        size.rwidth() += (getGridSize() - modWidth);
+        size.rwidth() += (gridSize - modWidth);
     }
 
     return size;
@@ -857,60 +866,39 @@ QPainterPath NodeItemNew::getChildNodePath()
 void NodeItemNew::updateGridLines()
 {
     if(isGridEnabled()){
+        //Clear the old grid lines
+        QPainterPath path;
+
+
         QRectF grid = gridRect();
         int gridSize = getGridSize();
-        int majorGridCount = getMajorGridCount();
 
-        //Clear the old grid lines
-        gridLines_Major_Horizontal.clear();
-        gridLines_Minor_Horizontal.clear();
-        gridLines_Major_Vertical.clear();
-        gridLines_Minor_Vertical.clear();
+        QPointF gridOffset =  grid.topLeft();
 
+        qreal modX = fmod(gridOffset.x(), gridSize);
+        qreal modY = fmod(gridOffset.y(), gridSize);
 
-        QPointF itemsOriginScenePos = getTopLeftSceneCoordinate();
-        QPointF gridRectScenePos =  itemsOriginScenePos + grid.topLeft();
-
-        //Calculate the next grid count.
-        int gridX = ceil(gridRectScenePos.x() / gridSize);
-        int gridY = ceil(gridRectScenePos.y() / gridSize);
-
-        //Calculate the offset from the grid rect for the next gridlines (Item Coordinates)
-        qreal gridOffsetX = (gridX * gridSize) - itemsOriginScenePos.x();
-        qreal gridOffsetY = (gridY * gridSize) - itemsOriginScenePos.y();
-
-        int majorCountX = abs(gridX) % majorGridCount;
-        int majorCountY = abs(gridY) % majorGridCount;
-
-        //Positive Grid lines are counting down since the last grid line, so we have to invert it.
-        if(gridX > 0 && majorCountX > 0){
-            majorCountX = majorGridCount - majorCountX;
-        }
-        if(gridY > 0 && majorCountY > 0){
-            majorCountY = majorGridCount - majorCountY;
+        if(modX != 0){
+            gridOffset.rx() += (gridSize - modX);
         }
 
-        for(qreal x = gridOffsetX; x <= grid.right(); x += gridSize){
-            QLineF line(x, grid.top(), x, grid.bottom());
-
-            if(majorCountX == 0){
-                gridLines_Major_Horizontal.append(line);
-                majorCountX = majorGridCount;
-            }else{
-                gridLines_Minor_Horizontal.append(line);
-            }
-            majorCountX --;
+        if(modY != 0){
+            gridOffset.ry() += (gridSize - modY);
         }
 
-        for(qreal y = gridOffsetY; y <= grid.bottom(); y += gridSize){
-            QLineF line(grid.left(), y, grid.right(), y);
-            if(majorCountY == 0){
-                gridLines_Major_Horizontal.append(line);
-                majorCountY = majorGridCount;
-            }else{
-                gridLines_Minor_Horizontal.append(line);
-            }
-            majorCountY --;
+        for(qreal x = gridOffset.x(); x <= grid.right(); x += gridSize){
+            path.moveTo(x, grid.top());
+            path.lineTo(x, grid.bottom());
+        }
+
+        for(qreal y = gridOffset.y(); y <= grid.bottom(); y += gridSize){
+            path.moveTo(grid.left(), y);
+            path.lineTo(grid.right(), y);
+        }
+
+        if(path != gridLines){
+            gridLines = path;
+            update();
         }
     }
 }
@@ -924,31 +912,12 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     //Paint the grid lines.
     if(isGridVisible()){
         painter->save();
-
         painter->setClipRect(gridRect());
-
-        QPen linePen;
-        linePen.setColor(getBaseBodyColor().darker(150));
-        linePen.setStyle(Qt::DotLine);
-        linePen.setWidthF(.5);
-
-        painter->setBrush(Qt::NoBrush);
-        painter->setPen(linePen);
-        painter->drawLines(gridLines_Minor_Horizontal);
-        painter->drawLines(gridLines_Minor_Vertical);
-
-        linePen.setStyle(Qt::SolidLine);
-        painter->setPen(linePen);
-        painter->drawLines(gridLines_Major_Horizontal);
-        painter->drawLines(gridLines_Major_Vertical);
+        painter->strokePath(gridLines, gridLinePen);
         painter->restore();
     }
 
     if(state > RS_BLOCK){
-        painter->setPen(getPen());
-        painter->setBrush(Qt::NoBrush);
-        painter->drawPath(getElementPath(ER_SELECTION));
-
         painter->setPen(Qt::black);
 
         if(gotPrimaryTextKey()){
@@ -964,12 +933,13 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         }
 
         if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
-            paintPixmap(painter, lod, ER_CONNECT_OUT, "Actions", "ConnectTo");
+            paintPixmap(painter, lod, ER_CONNECT_ICON, "Actions", "ConnectTo");
         }
 
         if(getNodeViewItem()->gotEdge(Edge::EC_DEPLOYMENT)){
             paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "HardwareNode");
         }
+
         if(getNodeViewItem()->gotEdge(Edge::EC_QOS)){
             paintPixmap(painter, lod, ER_QOS, "Actions", "QOS");
         }
@@ -980,7 +950,27 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     }
 
     if(state > RS_BLOCK){
+        if(isSelected() && hoveredConnect){
+            painter->save();
+            QColor resizeColor(255, 255, 255, 130);
+
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(resizeColor);
+            painter->drawRect(getElementRect(ER_CONNECT));
+
+            if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
+                paintPixmap(painter, lod, ER_EDGE_KIND_ICON, "Items", visualEdgeIcon);
+            }
+            painter->restore();
+        }
+    }
+
+    if(state > RS_BLOCK){
         painter->save();
+        painter->setPen(getPen());
+        painter->setBrush(Qt::NoBrush);
+        painter->drawPath(getElementPath(ER_SELECTION));
+
         QColor resizeColor(150, 150, 150, 150);
 
         painter->setPen(Qt::NoPen);
@@ -1092,9 +1082,11 @@ void NodeItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool caughtResize = false;
 
-    if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE && event->button() == Qt::LeftButton && getElementPath(ER_CONNECT_OUT).contains(event->pos())){
-        caughtResize = true;
-        emit req_connectMode(this);
+    if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE && event->button() == Qt::LeftButton){
+        if(getElementPath(ER_CONNECT).contains(event->pos()) || getElementPath(ER_CONNECT_ICON).contains(event->pos())){
+            caughtResize = true;
+            emit req_connectMode(this);
+        }
     }
 
     if(!caughtResize && isResizeEnabled() && isExpanded()){
@@ -1148,7 +1140,16 @@ void NodeItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(isResizeEnabled() && isExpanded()){
+    if(isSelected() && visualEdgeKind != Edge::EC_NONE){
+        bool showHover = getElementRect(ER_CONNECT).contains(event->pos()) || getElementRect(ER_CONNECT_ICON).contains(event->pos());
+
+        if(showHover != hoveredConnect){
+            hoveredConnect = showHover;
+            update();
+        }
+    }
+
+    if(isResizeEnabled() && isExpanded() && hasChildNodes()){
         RECT_VERTEX vertex = RV_NONE;
         for(int i = RV_LEFT;i <= RV_BOTTOMLEFT; i++){
             RECT_VERTEX vert = (RECT_VERTEX)i;
@@ -1166,6 +1167,10 @@ void NodeItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void NodeItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
+    if(hoveredConnect){
+        hoveredConnect = false;
+        update();
+    }
     if(hoveredResizeVertex != RV_NONE){
         hoveredResizeVertex = RV_NONE;
         update();

@@ -213,6 +213,7 @@
         <file alias="DANCE_PLAN_LAUNCHER">Resources/Images/Actions/DANCE_PLAN_LAUNCHER.png</file>
         <file alias="DDS_LOGGING_SERVER">Resources/Images/Actions/DDS_LOGGING_SERVER.png</file>
         <file alias="QPID_BROKER">Resources/Images/Actions/QPID_BROKER.png</file>
+        <file alias="QOS">Resources/Images/Actions/QOS.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

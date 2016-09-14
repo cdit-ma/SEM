@@ -9,6 +9,8 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
     setResizeEnabled(false);
     setGridEnabled(false);
 
+    removeRequiredData("width");
+    removeRequiredData("height");
     reloadRequiredData();
 }
 

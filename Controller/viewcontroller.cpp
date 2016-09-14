@@ -285,7 +285,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     }else{
                         QString os = viewItem->getData("os").toString();
                         QString arch = viewItem->getData("architecture").toString();
-                        image = os + "_" + arch;
+                        image = os % "_" % arch;
                         image = image.remove(" ");
                     }
                     break;
@@ -299,6 +299,13 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             case Node::NK_RETURNPARAMETER:
                 alias = "Data";
                 image = label;
+                break;
+            case Node::NK_VECTOR:
+            case Node::NK_VECTOR_INSTANCE:
+                foreach(ViewItem* child, viewItem->getChildren()){
+                    image = kind % "_" % child->getData("kind").toString();
+                    break;
+                }
                 break;
             default:
                 break;
@@ -601,8 +608,13 @@ bool ViewController::destructViewItem(ViewItem *viewItem)
         }
 
         ViewItem* parentItem = viewItem->getParentItem();
+        NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
         if(parentItem){
             parentItem->removeChild(viewItem);
+
+            if(parentItem->isNode() && parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE){
+                setDefaultIcon(parentItem);
+            }
         }
 
         //Remove the item from the Hash
@@ -911,6 +923,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         int parentID = nodeItem->getParentID();
 
         ViewItem* parentItem = getViewItem(parentID);
+        NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
 
         QString treeKey = nodeItem->getTreeIndex();
 
@@ -923,6 +936,11 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         //Attach the node to it's parent
         if(parentItem){
             parentItem->addChild(nodeItem);
+
+            //Update the icons for certain types.
+            if(parentItem->isNode() && parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE){
+                setDefaultIcon(parentItem);
+            }
         }else{
             rootItem->addChild(nodeItem);
             topLevelItems.append(ID);
