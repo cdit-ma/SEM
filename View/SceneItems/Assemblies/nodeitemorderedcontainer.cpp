@@ -32,6 +32,10 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     addRequiredData("y");
     addRequiredData("width");
     addRequiredData("height");
+
+    if(viewItem->getNodeKind() == Node::NK_MEMBER){
+        addRequiredData("key");
+    }
     reloadRequiredData();
 }
 
@@ -71,6 +75,8 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return expandStateRect();
     case ER_MAIN_ICON:
         return iconRect();
+    case ER_MAIN_ICON_OVERLAY:
+        return iconOverlayRect();
     case ER_SECONDARY_ICON:
         return bottomIconRect();
     case ER_PRIMARY_TEXT:
@@ -101,44 +107,29 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
+    painter->save();
+    painter->setClipRect(option->exposedRect);
     if(state > RS_BLOCK){
-        painter->setClipRect(option->exposedRect);
-        painter->save();
+        painter->setPen(Qt::NoPen);
+
+        //Paint the Body
         if(isExpanded()){
-            painter->save();
             painter->setBrush(getBodyColor());
-            painter->setPen(Qt::NoPen);
             painter->drawRect(currentRect());
-            painter->restore();
         }
 
-        painter->setPen(Qt::NoPen);
+        //Paint the Header
         painter->setBrush(getBodyColor().darker(110));
         painter->drawRect(headerRect());
-        painter->save();
 
+        //Paint the White Background for the text
         if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
             painter->setBrush(Qt::white);
             painter->drawRect(bottomTextOutlineRect());
         }
-
-        if(getData("key").toBool()){
-            paintPixmap(painter, lod, iconOverlayRect(), "Actions", "Key");
-        }
-
-        painter->restore();
-
-        painter->setPen(Qt::black);
-        painter->restore();
-
     }
+    painter->restore();
     NodeItemNew::paint(painter, option, widget);
-
-    if(state > RS_BLOCK){
-        if(getData("key").toBool()){
-            paintPixmap(painter, lod, iconOverlayRect(), "Actions", "Key");
-        }
-    }
 }
 
 QRectF ContainerNodeItem::headerRect() const
@@ -195,7 +186,7 @@ QRectF ContainerNodeItem::iconRect() const
 QRectF ContainerNodeItem::iconOverlayRect() const
 {
     QRectF rect;
-    rect.setSize(smallIconSize());
+    rect.setSize(smallIconSize() * 2);
     rect.moveCenter(iconRect().center());
     return rect;
 }

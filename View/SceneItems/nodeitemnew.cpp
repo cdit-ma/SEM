@@ -325,6 +325,8 @@ bool NodeItemNew::setResizeFinished()
     return getExpandedSize() != sizePreResize;
 }
 
+
+
 QRectF NodeItemNew::boundingRect() const
 {
     QRectF rect;
@@ -715,6 +717,9 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
             updateReadState();
         }else if(keyName == "readOnly"){
             update();
+        }else if(keyName == "key" && getNodeKind() == Node::NK_MEMBER){
+            bool boolData = data.toBool();
+            setIconOverlayVisible(boolData);
         }
 
         if(keyName == primaryTextKey || keyName == secondaryTextKey){

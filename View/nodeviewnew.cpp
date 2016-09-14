@@ -695,7 +695,10 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case Node::NK_PROCESS:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
+                nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
+                nodeItem->setSecondaryIconPath("Functions", item->getData("worker").toString());
                 break;
             case Node::NK_MEMBER_INSTANCE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
@@ -718,6 +721,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("type");
+                nodeItem->setIconOverlay("Actions", "Key");
                 break;
             case Node::NK_INEVENTPORT_IMPL:
             case Node::NK_OUTEVENTPORT_IMPL:

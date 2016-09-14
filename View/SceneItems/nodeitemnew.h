@@ -70,6 +70,8 @@ public:
 
 
 
+
+
     //RECTS
     virtual QRectF viewRect() const;
     virtual QRectF boundingRect() const;
@@ -131,7 +133,7 @@ public:
 
 
     void setPrimaryTextKey(QString key);
-    void setSecondaryTextKey(QString key);
+    void setSecondaryTextKey(QString key);    
     void setVisualEdgeKind(Edge::EDGE_KIND kind);
     Edge::EDGE_KIND getVisualEdgeKind() const;
 
@@ -208,6 +210,7 @@ private:
     bool _rightJustified;
 
     bool resizeEnabled;
+
 
     bool hoveredConnect;
     RECT_VERTEX hoveredResizeVertex;

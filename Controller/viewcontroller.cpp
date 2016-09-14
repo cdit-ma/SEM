@@ -217,7 +217,7 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDG
         foreach(ViewItem* item, selectionController->getSelection()){
             if(item && item->isNode()){
                 NodeViewItem* nodeItem = (NodeViewItem*) item;
-                foreach(EdgeViewItem* edge, nodeItem->getEdges(kind)){Q
+                foreach(EdgeViewItem* edge, nodeItem->getEdges(kind)){
                     NodeViewItem* src = edge->getSource();
                     NodeViewItem* other = edge->getDestination();
                     if(src != item){
