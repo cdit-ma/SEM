@@ -217,13 +217,13 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDG
         foreach(ViewItem* item, selectionController->getSelection()){
             if(item && item->isNode()){
                 NodeViewItem* nodeItem = (NodeViewItem*) item;
-                foreach(EdgeViewItem* edge, nodeItem->getEdges(kind)){
+                foreach(EdgeViewItem* edge, nodeItem->getEdges(kind)){Q
                     NodeViewItem* src = edge->getSource();
                     NodeViewItem* other = edge->getDestination();
                     if(src != item){
                         other = src;
                     }
-                    if(list.contains(other)){
+                    if(!list.contains(other)){
                         list.append(other);
                     }
                 }
@@ -1180,6 +1180,7 @@ void ViewController::fitView()
 
 void ViewController::fitAllViews()
 {
+
     emit vc_fitToScreen();
 }
 
