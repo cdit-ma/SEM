@@ -13,6 +13,7 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     dockType = type;
 
     prevHighlightedItem = 0;
+    prevHighlightedItemID = -1;
 
     switch (dockType) {
     case ToolActionController::DEFINITIONS:
@@ -253,12 +254,15 @@ void DockWidget::highlightItem(int ID)
         // remove highlight
         prevHighlightedItem->highlightItem(false);
         prevHighlightedItem = 0;
+        prevHighlightedItemID = -1;
     } else {
         if (actionItemIDHash.contains(ID)) {
             // highlight item
             DockWidgetActionItem* item = actionItemIDHash.value(ID);
             item->highlightItem(true);
+            ensureWidgetVisible(item);
             prevHighlightedItem = item;
+            prevHighlightedItemID = ID;
         }
     }
 }
@@ -293,6 +297,11 @@ void DockWidget::viewItemDestructed(int ID)
     if (parentActionItemIDHash.contains(ID)) {
         DockWidgetItem* item = parentActionItemIDHash.take(ID);
         delete item;
+    }
+    if (prevHighlightedItemID == ID) {
+        delete prevHighlightedItem;
+        prevHighlightedItem = 0;
+        prevHighlightedItemID = -1;
     }
 }
 

@@ -59,6 +59,7 @@ private:
     bool containsHeader;
 
     DockWidgetActionItem* prevHighlightedItem;
+    int prevHighlightedItemID;
 
     // these lists store the widgets in the main layout
     QList<DockWidgetItem*> childrenItems;

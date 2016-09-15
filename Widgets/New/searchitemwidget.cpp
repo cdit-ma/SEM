@@ -58,6 +58,18 @@ SearchItemWidget::~SearchItemWidget()
 
 
 /**
+ * @brief SearchItemWidget::addDisplayKey
+ * @param key
+ */
+void SearchItemWidget::addDisplayKey(QString key)
+{
+    if (!keys.contains(key)) {
+        keys.append(key);
+    }
+}
+
+
+/**
  * @brief SearchItemWidget::setDisplayKeys
  * @param keys
  */

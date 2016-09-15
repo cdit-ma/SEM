@@ -31,6 +31,7 @@ signals:
 public slots:
     void themeChanged();
     void keyButtonChecked(bool checked);
+    void viewItemDestructed();
 
 private:
     void setupLayout();
@@ -52,7 +53,7 @@ private:
     QActionGroup* keysActionGroup;
 
     QVBoxLayout* resultsLayout;
-    QList<SearchItemWidget*> searchItems;
+    QHash<ViewItem*, SearchItemWidget*> searchItems;
 };
 
 #endif // SEARCHDIALOG_H
