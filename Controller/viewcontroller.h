@@ -146,6 +146,7 @@ public slots:
 
     void getCodeForComponent();
     void validateModel();
+    void selectModel();
     void launchLocalDeployment();
 
 

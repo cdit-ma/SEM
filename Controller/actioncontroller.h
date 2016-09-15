@@ -125,6 +125,7 @@ public:
     RootAction* window_displayMinimap;
 
     RootAction* model_validateModel;
+    RootAction* model_selectModel;
     RootAction* model_getCodeForComponent;
     RootAction* model_executeLocalJob;
 

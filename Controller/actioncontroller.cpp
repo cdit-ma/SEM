@@ -85,6 +85,8 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(model_getCodeForComponent, &QAction::triggered, viewController, &ViewController::getCodeForComponent);
         connect(model_validateModel, &QAction::triggered, viewController, &ViewController::validateModel);
+        connect(model_selectModel, &QAction::triggered, viewController, &ViewController::selectModel);
+
 
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
         connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
@@ -376,6 +378,7 @@ void ActionController::updateActions()
     edit_undo->setEnabled(modelActions);
     edit_redo->setEnabled(modelActions);
 
+    model_selectModel->setEnabled(modelActions);
     model_validateModel->setEnabled(modelActions);
     model_executeLocalJob->setEnabled(modelActions);
 
@@ -615,6 +618,10 @@ void ActionController::setupActions()
     window_printScreen = createRootAction("Print Screen", "", "Actions", "PrintScreen");
     window_displayMinimap = createRootAction("Display Minimap", "", "Actions", "Minimap");
 
+    model_selectModel= createRootAction("Select Model", "", "Actions", "MEDEA");
+    model_selectModel->setShortcutContext(Qt::ApplicationShortcut);
+    model_selectModel->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_M));
+
     model_validateModel = createRootAction("Validate Model", "", "Actions", "Validate");
     model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
@@ -733,6 +740,8 @@ void ActionController::setupMainMenu()
     menu_view->addAction(view_viewInNewWindow);
 
     // Model Menu
+    menu_model->addAction(model_selectModel);
+
     menu_model->addAction(model_validateModel);
     menu_model->addAction(model_getCodeForComponent);
 

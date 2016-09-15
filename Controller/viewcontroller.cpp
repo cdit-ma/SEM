@@ -303,6 +303,10 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     break;
                 }
                 break;
+            case Node::NK_MODEL:
+                alias = "Actions";
+                image = "MEDEA";
+                break;
             default:
                 break;
 
@@ -473,6 +477,11 @@ void ViewController::validateModel()
             emit vc_validateModel(filePath, reportPath);
         }
     }
+}
+
+void ViewController::selectModel()
+{
+    emit selectionController->itemActiveSelectionChanged(getModel(), true);
 }
 
 void ViewController::launchLocalDeployment()
