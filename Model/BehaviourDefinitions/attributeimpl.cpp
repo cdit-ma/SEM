@@ -29,7 +29,7 @@ bool AttributeImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         break;
     }
     case Edge::EC_DATA:{
-        if(dst->getNodeKind() == NK_VARIABLE){
+        if(dst->getNodeKind() == NK_VARIABLE || dst->getNodeKind() == NK_ATTRIBUTE_IMPL){
             return false;
         }
         break;
