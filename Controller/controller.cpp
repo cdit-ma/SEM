@@ -889,6 +889,7 @@ void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_KIND 
     if(validIDs.contains(dstID)){
 
         lock.lockForWrite();
+        triggerAction("Constructing child edge");
         foreach(int srcID, srcIDs){
             Node* src = getNodeFromID(srcID);
             Node* dst = getNodeFromID(dstID);

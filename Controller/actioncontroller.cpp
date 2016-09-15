@@ -265,7 +265,8 @@ void ActionController::selectionChanged(int selectionSize)
 
 void ActionController::actionFinished()
 {
-    selectionChanged(-1);
+    emit selectionController->selectionChanged(-1);
+    //selectionChanged(-1);
 }
 
 void ActionController::controllerReady(bool ready)

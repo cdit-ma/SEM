@@ -81,7 +81,7 @@ private:
 private:
     ViewItem* _parent;
     AttributeTableModel* tableModel;
-    QList<ViewItem*> children;
+    QMultiMap<ENTITY_KIND, ViewItem*> children;
     ViewController* controller;
 
     QHash<QString, QVariant> _data;
