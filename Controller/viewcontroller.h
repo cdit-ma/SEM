@@ -108,7 +108,7 @@ signals:
     void vc_projectPathChanged(QString);
 
     void vc_centerItem(int ID);
-    void vc_centerConnections(ViewItem* item);
+    void vc_selectAndCenterConnectedEntities(ViewItem* item);
 
     void vc_fitToScreen();
 
@@ -186,7 +186,7 @@ public slots:
     void centerSelection();
     void alignSelectionVertical();
     void alignSelectionHorizontal();
-    void viewConnections();
+    void selectAndCenterConnectedEntities();
     void centerOnID(int ID);
 
     void centerImpl();
@@ -203,7 +203,11 @@ public slots:
     void paste();
     void replicate();
     void deleteSelection();
-    void renameActiveSelection();
+
+    void editLabel();
+    void editReplicationCount();
+
+    void setReplicationCount();
 
     void constructDDSQOSProfile();
     void requestSearchSuggestions();
@@ -222,6 +226,7 @@ private:
     void spawnSubView(ViewItem *item );
     bool destructViewItem(ViewItem* item);
     QList<ViewItem*> getViewItems(QList<int> IDs);
+    ViewItem* getActiveSelectedItem() const;
 
     QList<NodeViewNew*> getNodeViewsContainingID(int ID);
 

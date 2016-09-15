@@ -68,14 +68,16 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
-        connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::renameActiveSelection);
+        connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::editLabel);
+        connect(toolbar_replicateCount, &QAction::triggered, viewController, &ViewController::editReplicationCount);
+
 
         connect(view_centerOnImpl, &QAction::triggered, viewController, &ViewController::centerImpl);
         connect(view_centerOnDefn, &QAction::triggered, viewController, &ViewController::centerDefinition);
         connect(view_viewDefnInNewWindow, &QAction::triggered, viewController, &ViewController::popupDefinition);
         connect(view_viewImplInNewWindow, &QAction::triggered, viewController, &ViewController::popupImpl);
         connect(view_viewInNewWindow, &QAction::triggered, viewController, &ViewController::popupSelection);
-        connect(view_viewConnections, &QAction::triggered, viewController, &ViewController::viewConnections);
+        connect(view_viewConnections, &QAction::triggered, viewController, &ViewController::selectAndCenterConnectedEntities);
 
         connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
 
@@ -270,8 +272,7 @@ void ActionController::selectionChanged(int selectionSize)
 
 void ActionController::actionFinished()
 {
-    emit selectionController->selectionChanged(-1);
-    //selectionChanged(-1);
+    selectionChanged(-1);
 }
 
 void ActionController::controllerReady(bool ready)

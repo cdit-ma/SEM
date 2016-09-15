@@ -113,7 +113,7 @@ void NodeViewNew::setViewController(ViewController *viewController)
 
         connect(viewController, &ViewController::vc_centerItem, this, &NodeViewNew::centerItem);
         connect(viewController, &ViewController::vc_fitToScreen, this, &NodeViewNew::fitToScreen);
-        connect(viewController, &ViewController::vc_centerConnections, this, &NodeViewNew::centerConnections);
+        connect(viewController, &ViewController::vc_selectAndCenterConnectedEntities, this, &NodeViewNew::centerConnections);
 
 
         connect(viewController, &ViewController::vc_highlightItem, this, &NodeViewNew::highlightItem);

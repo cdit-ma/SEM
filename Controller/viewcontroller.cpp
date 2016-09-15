@@ -450,18 +450,14 @@ void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 
 void ViewController::getCodeForComponent()
 {
-    if(selectionController && controller){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item && item->isNode()){
-            NodeViewItem* node = (NodeViewItem*) item;
-
-            if(node->getNodeKind() == Node::NK_COMPONENT_IMPL || node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
-                QString componentName = node->getData("label").toString();
-                qCritical() << componentName;
-                QString filePath = getTempFileForModel();
-                if(!componentName.isEmpty() && !filePath.isEmpty()){
-                    emit vc_getCodeForComponent(filePath, componentName);
-                }
+    ViewItem* item = getActiveSelectedItem();
+    if(item && item->isNode()){
+        NodeViewItem* node = (NodeViewItem*) item;
+        if(node->getNodeKind() == Node::NK_COMPONENT_IMPL || node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
+            QString componentName = node->getData("label").toString();
+            QString filePath = getTempFileForModel();
+            if(!componentName.isEmpty() && !filePath.isEmpty()){
+                emit vc_getCodeForComponent(filePath, componentName);
             }
         }
     }
@@ -571,7 +567,7 @@ bool ViewController::canExportSnippet()
 
 bool ViewController::canImportSnippet()
 {
-    if(controller){
+    if(controller && selectionController){
         return controller->canImportSnippet(selectionController->getSelectionIDs());
     }
     return false;
@@ -663,6 +659,14 @@ QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
         }
     }
     return items;
+}
+
+ViewItem *ViewController::getActiveSelectedItem() const
+{
+    if(selectionController){
+        return selectionController->getActiveSelectedItem();
+    }
+    return 0;
 }
 
 QList<NodeViewNew *> ViewController::getNodeViewsContainingID(int ID)
@@ -775,15 +779,23 @@ void ViewController::deleteSelection()
     }
 }
 
-void ViewController::renameActiveSelection()
+void ViewController::editLabel()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            emit vc_editTableCell(item->getID(), "label");
-        }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        emit vc_editTableCell(item->getID(), "label");
     }
 }
+
+void ViewController::editReplicationCount()
+{
+    ViewItem* item = getActiveSelectedItem();
+    qCritical() << item;
+    if(item){
+        emit vc_editTableCell(item->getID(), "replicate_count");
+    }
+}
+
 
 void ViewController::constructDDSQOSProfile()
 {
@@ -1113,17 +1125,14 @@ void ViewController::importXMIProject()
 
 void ViewController::importSnippet()
 {
-    if(getSelectionController() && canImportSnippet()){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            QString itemKind = item->getData("kind").toString();
-
-            QStringList files = FileHandler::selectFiles("Import " + itemKind + ".snippet", QFileDialog::ExistingFile, false,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
-            if(files.size() == 1){
-                QString filePath = files.at(0);
-                QString fileData = FileHandler::readTextFile(filePath);
-                emit vc_importSnippet(selectionController->getSelectionIDs(), filePath, fileData);
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item && canImportSnippet()){
+        QString itemKind = item->getData("kind").toString();
+        QStringList files = FileHandler::selectFiles("Import " + itemKind + ".snippet", QFileDialog::ExistingFile, false,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
+        if(files.size() == 1){
+            QString filePath = files.at(0);
+            QString fileData = FileHandler::readTextFile(filePath);
+            emit vc_importSnippet(selectionController->getSelectionIDs(), filePath, fileData);
         }
     }
 }
@@ -1220,7 +1229,6 @@ void ViewController::alignSelectionVertical()
     if(view){
         view->alignVertical();
     }
-
 }
 
 void ViewController::alignSelectionHorizontal()
@@ -1229,19 +1237,22 @@ void ViewController::alignSelectionHorizontal()
     if(view){
         view->alignHorizontal();
     }
-
 }
 
-void ViewController::viewConnections()
+void ViewController::selectAndCenterConnectedEntities()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-
-        if(item){
-            emit vc_centerConnections(item);
-        }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        emit vc_selectAndCenterConnectedEntities(item);
     }
+}
 
+void ViewController::setReplicationCount()
+{
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        emit vc_editTableCell(item->getID(), "replicate_count");
+    }
 }
 
 void ViewController::centerOnID(int ID)
@@ -1251,60 +1262,52 @@ void ViewController::centerOnID(int ID)
 
 void ViewController::centerImpl()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* impl = getNodesImpl(item->getID());
-            if(impl){
-                emit vc_centerItem(impl->getID());
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* impl = getNodesImpl(item->getID());
+        if(impl){
+            emit vc_centerItem(impl->getID());
         }
     }
 }
 
 void ViewController::centerDefinition()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* def = getNodesDefinition(item->getID());
-            if(def){
-                emit vc_centerItem(def->getID());
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* def = getNodesDefinition(item->getID());
+        if(def){
+            emit vc_centerItem(def->getID());
         }
     }
 }
 
 void ViewController::popupImpl()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* impl = getNodesImpl(item->getID());
-            if(impl){
-                spawnSubView(impl);
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* impl = getNodesImpl(item->getID());
+        if(impl){
+            spawnSubView(impl);
         }
     }
 }
 
 void ViewController::popupDefinition()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* def = getNodesDefinition(item->getID());
-            if(def){
-                spawnSubView(def);
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* def = getNodesDefinition(item->getID());
+        if(def){
+            spawnSubView(def);
         }
     }
 }
 
 void ViewController::popupSelection()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
         spawnSubView(item);
     }
 }
@@ -1312,7 +1315,9 @@ void ViewController::popupSelection()
 void ViewController::popupItem(int ID)
 {
     ViewItem* item = getViewItem(ID);
-    spawnSubView(item);
+    if(item){
+        spawnSubView(item);
+    }
 }
 
 
