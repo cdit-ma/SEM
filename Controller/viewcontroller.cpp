@@ -298,7 +298,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             case Node::NK_VECTOR:
             case Node::NK_VECTOR_INSTANCE:
-                foreach(ViewItem* child, viewItem->getChildren()){
+                foreach(ViewItem* child, viewItem->getDirectChildren()){
                     image = kind % "_" % child->getData("kind").toString();
                     break;
                 }
@@ -580,50 +580,67 @@ QVector<ViewItem *> ViewController::getOrderedSelection(QList<int> selection)
     return items;
 }
 
-bool ViewController::destructViewItem(ViewItem *viewItem)
+bool ViewController::destructViewItem(ViewItem *item)
 {
-    if(viewItem){
-        //Delete children first!
-        destructChildItems(viewItem);
-
-        QString treeKey;
-
+    if(!item){
+        return false;
+    }
+    QList<ViewItem*> children;
+    children.append(item);
+    children.append(item->getNestedChildren());
+    QListIterator<ViewItem*> it(children);
+    it.toBack();
+    while(it.hasPrevious()){
+        ViewItem* viewItem = it.previous();
+        if(!viewItem || viewItem == rootItem){
+            continue;
+        }
         int ID = viewItem->getID();
+
         if(viewItem->isNode()){
+            //Remove node from nodeKind Map
             NodeViewItem* nodeItem = (NodeViewItem*)viewItem;
-            treeKey = nodeItem->getTreeIndex();
             nodeKindLookups.remove(nodeItem->getNodeKind(), ID);
+
+            //Remove Node from tree lookup.
+            QString treeKey = nodeItem->getTreeIndex();
+            if(treeLookup.contains(treeKey)){
+                treeLookup.remove(treeKey);
+            }
         }else if(viewItem->isEdge()){
+            //Remove Edge from edgeKind map
             EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
             edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
         }
 
-
-        if(!treeKey.isEmpty() && treeLookup.contains(treeKey)){
-            treeLookup.remove(treeKey);
-        }
-
         ViewItem* parentItem = viewItem->getParentItem();
-        NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
         if(parentItem){
             parentItem->removeChild(viewItem);
 
-            if(parentItem->isNode() && parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE){
-                setDefaultIcon(parentItem);
+            NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
+
+            if(parentItem->isNode()){
+                //Update the Icon of Vectors!
+                switch(parentNodeItem->getNodeKind()){
+                case Node::NK_VECTOR:
+                case Node::NK_VECTOR_INSTANCE:
+                    setDefaultIcon(parentItem);
+                    break;
+                default:
+                    break;
+                }
             }
         }
 
-        //Remove the item from the Hash
+        //Remove the item from the Hash/TopLevel Hash
         viewItems.remove(ID);
-
-
-
         topLevelItems.removeAll(ID);
 
+        //Tell Views we are destructing!
         emit vc_viewItemDestructing(ID, viewItem);
         viewItem->destruct();
     }
-    return false;
+    return true;
 }
 
 QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
@@ -776,7 +793,7 @@ void ViewController::_teardownProject()
             setControllerReady(false);
             emit vc_projectPathChanged("");
             emit mc_projectModified(false);
-            destructChildItems(rootItem);
+            destructViewItem(rootItem);
             nodeKindLookups.clear();
             edgeKindLookups.clear();
 
@@ -1319,26 +1336,22 @@ void ViewController::initializeController()
 
 bool ViewController::destructChildItems(ViewItem *parent)
 {
-    QListIterator<ViewItem*> it(parent->getChildren());
+    qCritical() << "destructChildItems!";
+    QVectorIterator<ViewItem*> it(parent->getDirectChildren());
+
 
     it.toBack();
     while(it.hasPrevious()){
-        destructViewItem(it.previous());
+        ViewItem* item = it.previous();
+        qCritical() << item->getID() << " : " << item->getData("kind").toString();
+        destructViewItem(item);
     }
     return true;
 }
 
 bool ViewController::clearVisualItems()
 {
-    QListIterator<ViewItem*> it(rootItem->getChildren());
-
-    it.toBack();
-    while(it.hasPrevious()){
-        destructViewItem(it.previous());
-    }
-
-    nodeKindLookups.clear();
-    edgeKindLookups.clear();
+    destructViewItem(rootItem);
     return true;
 }
 

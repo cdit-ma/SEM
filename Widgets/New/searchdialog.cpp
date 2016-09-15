@@ -141,11 +141,11 @@ void SearchDialog::keyButtonChecked(bool checked)
 /**
  * @brief SearchDialog::viewItemDestructed
  */
-void SearchDialog::viewItemDestructed()
+void SearchDialog::viewItemDestructed(int ID)
 {
-    ViewItem* item = qobject_cast<ViewItem*>(sender());
-    if (item) {
-        SearchItemWidget* widget = searchItems.take(item);
+    SearchItemWidget* widget = searchItems.value(ID, 0);
+    if(widget){
+        searchItems.take(ID);
         widget->deleteLater();
     }
 }
@@ -271,17 +271,23 @@ void SearchDialog::clear()
  */
 SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
 {
-    if (searchItems.contains(item)) {
-        return searchItems.value(item);
+    if(!item){
+        return 0;
+    }
+    int ID = item->getID();
+    if (searchItems.contains(ID)) {
+        return searchItems.value(ID);
     }
 
     SearchItemWidget* itemWidget = new SearchItemWidget(item, this);
     resultsLayout->addWidget(itemWidget);
-    searchItems[item] = itemWidget;
+    searchItems.insert(ID, itemWidget);
 
     if (item) {
-        connect(item, SIGNAL(destructing()), this, SLOT(viewItemDestructed()));
+        connect(item, &ViewItem::destructing, this, &SearchDialog::viewItemDestructed);
+
         connect(this, SIGNAL(keyButtonChecked(QString)), itemWidget, SLOT(toggleKeyWidget(QString)));
+
         connect(itemWidget, SIGNAL(centerOnViewItem(int)), this, SIGNAL(centerOnViewItem(int)));
         connect(itemWidget, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
         connect(itemWidget, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));

@@ -147,7 +147,7 @@ QPair<QString, QString> ViewItem::getIcon() const
 void ViewItem::destruct()
 {
     if(hasRegisteredObjects()){
-        emit destructing();
+        emit destructing(ID);
     }else{
         deleteLater();
     }
@@ -156,38 +156,47 @@ void ViewItem::destruct()
 
 void ViewItem::addChild(ViewItem *child)
 {
-    if(!children.contains(child)){
-        children.append(child);
-        child->setParentViewItem(this);
+    if(child){
+        ENTITY_KIND ek = child->getEntityKind();
+        if(!children.contains(ek, child)){
+            children.insertMulti(ek, child);
+            child->setParentViewItem(this);
+        }
     }
 }
 
 void ViewItem::removeChild(ViewItem *child)
 {
-    if(children.contains(child)){
-        children.removeAll(child);
+    if(child){
+        ENTITY_KIND ek = child->getEntityKind();
+        children.remove(ek, child);
     }
 }
 
-QList<ViewItem *> ViewItem::getChildren()
+QVector<ViewItem *> ViewItem::getDirectChildren() const
 {
-    QList<ViewItem*> _children;
-
-    foreach(ViewItem* child, children){
-        _children.append(child);
-        _children.append(child->getChildren());
-    }
-    return _children;
+    return children.values().toVector();
 }
 
-QList<int> ViewItem::getChildrenID()
+QList<ViewItem *> ViewItem::getNestedChildren() const
 {
-    QList<int> children;
+    //Edges Last
+    QList<ViewItem*> nodes;
+    QList<ViewItem*> edges;
 
-    foreach(ViewItem* child, getChildren()){
-        children.append(child->getID());
+    QStack<ViewItem*> items;
+    items.append(getDirectChildren());
+
+    while(!items.isEmpty()){
+        ViewItem* child = items.takeLast();
+        if(child->isNode()){
+            nodes.append(child);
+        }else{
+            edges.append(child);
+        }
+        items.append(child->getDirectChildren());
     }
-    return children;
+    return nodes + edges;
 }
 
 ViewItem *ViewItem::getParentItem()

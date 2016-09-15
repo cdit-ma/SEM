@@ -121,7 +121,7 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
     }
 }
 
-void ToolActionController::viewItem_Destructed(int ID, ViewItem *viewItem)
+void ToolActionController::viewItem_Destructed(int ID, ViewItem *)
 {
     if(actions.contains(ID)){
         if(hardwareIDs.contains(ID)){

@@ -612,8 +612,6 @@ void EntityItemNew::connectViewItem(ViewItem *viewItem)
     connect(viewItem, &ViewItem::dataChanged, this, &EntityItemNew::dataChanged);
     connect(viewItem, &ViewItem::dataRemoved, this, &EntityItemNew::dataRemoved);
     connect(viewItem, &ViewItem::propertyChanged, this, &EntityItemNew::propertyChanged);
-
-    connect(viewItem, &ViewItem::destructing, this, &EntityItemNew::deleteLater);
 }
 
 void EntityItemNew::disconnectViewItem()
@@ -622,8 +620,6 @@ void EntityItemNew::disconnectViewItem()
         disconnect(viewItem, &ViewItem::dataAdded, this, &EntityItemNew::dataChanged);
         disconnect(viewItem, &ViewItem::dataChanged, this, &EntityItemNew::dataChanged);
         disconnect(viewItem, &ViewItem::dataRemoved, this, &EntityItemNew::dataRemoved);
-        disconnect(viewItem, &ViewItem::destructing, this, &EntityItemNew::deleteLater);
-
         viewItem->unregisterObject(this);
         viewItem = 0;
     }

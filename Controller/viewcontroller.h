@@ -60,7 +60,7 @@ signals:
     void vc_JenkinsReady(bool);
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
-    void vc_viewItemDestructing(int ID, ViewItem *viewItem);
+    void vc_viewItemDestructing(int ID, ViewItem* item);
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
     void vc_gotSearchSuggestions(QStringList suggestions);
 

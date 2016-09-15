@@ -77,7 +77,7 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 NodeViewNew::~NodeViewNew()
 {
     if(containedNodeViewItem){
-        QList<ViewItem*> items = containedNodeViewItem->getChildren();
+        QList<ViewItem*> items = containedNodeViewItem->getNestedChildren();
         items.insert(0, containedNodeViewItem);
 
         QListIterator<ViewItem*> it(items);
@@ -161,7 +161,7 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
 
         if(!isAspectView){
             viewItem_Constructed(item);
-            foreach(ViewItem* item, item->getChildren()){
+            foreach(ViewItem* item, item->getNestedChildren()){
                 viewItem_Constructed(item);
             }
         }

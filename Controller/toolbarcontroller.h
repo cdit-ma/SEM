@@ -66,7 +66,7 @@ public slots:
 private slots:
     void themeChanged();
     void viewItem_Constructed(ViewItem* viewItem);
-    void viewItem_Destructed(int ID, ViewItem* viewItem);
+    void viewItem_Destructed(int ID, ViewItem*);
 
     void selectionChanged(int selected);
     void actionFinished();
