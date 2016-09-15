@@ -25,10 +25,12 @@ signals:
     void hoverEnter(int ID);
     void hoverLeave(int ID);
     void centerOnViewItem(int ID);
+    void popupViewItem(int ID);
 
 public slots:
     void themeChanged();
     void centerButtonClicked();
+    void popupButtonClicked();
     void expandButtonToggled(bool checked);
     void toggleKeyWidget(QString key);
     

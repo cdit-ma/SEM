@@ -16,6 +16,7 @@
 SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent)
 {
     setupLayout();
+    setWindowTitle("Search Results");
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
 }
@@ -32,17 +33,12 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
     // clear previous key actions and search result items
     clear();
-
-    //qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
     constructKeyButton("All", "All (" + QString::number(results.count()) + ")", true);
 
     if (results.isEmpty()) {
         infoLabel->show();
     } else {
-
         infoLabel->hide();
-
         foreach (QString key, results.uniqueKeys()) {
             QList<ViewItem*> viewItems = results.values(key);
             foreach (ViewItem* item, viewItems) {
@@ -51,31 +47,6 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
             }
             constructKeyButton(key, key + " (" + QString::number(viewItems.count()) + ")");
         }
-
-        /*
-        QMap<ViewItem*, QString> resultItems;
-
-        // store each item with the keys that match the search
-        foreach (QString key, results.uniqueKeys()) {
-            QList<ViewItem*> viewItems = results.values(key);
-            foreach (ViewItem* item, viewItems) {
-                resultItems.insertMulti(item, key);
-            }
-            constructKeyButton(key, key + " (" + QString::number(viewItems.count()) + ")");
-        }
-
-        //qint64 timeKeys = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
-        foreach (ViewItem* item, resultItems.uniqueKeys()) {
-            SearchItemWidget* searchItem = constructSearchItem(item);
-            searchItem->setDisplayKeys(resultItems.values(item));
-        }
-
-        //qint64 timeValues = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
-        //qCritical() << "Keys in: " <<  timeKeys - timeStart << "MS";
-        //qCritical() << "Values in: " <<  timeValues - timeKeys << "MS";
-        */
     }
 
     // update the keys toolbar/buttons's size
@@ -174,6 +145,14 @@ void SearchDialog::setupLayout()
     labelLayout->addWidget(queryLabel, 1);
 
     int fieldHeight = 25;
+
+    /*
+    searchLineEdit = new QLineEdit(this);
+    searchLineEdit->setFont(QFont(font().family(), 13));
+    searchLineEdit->setPlaceholderText("Search Here...");
+    searchLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    searchLineEdit->setCompleter(searchCompleter);
+    */
 
     scopeComboBox = new QComboBox(this);
     scopeComboBox->setFixedHeight(fieldHeight);
@@ -289,6 +268,7 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
         connect(this, SIGNAL(keyButtonChecked(QString)), itemWidget, SLOT(toggleKeyWidget(QString)));
 
         connect(itemWidget, SIGNAL(centerOnViewItem(int)), this, SIGNAL(centerOnViewItem(int)));
+        connect(itemWidget, SIGNAL(popupViewItem(int)), this, SIGNAL(popupViewItem(int)));
         connect(itemWidget, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
         connect(itemWidget, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
     }

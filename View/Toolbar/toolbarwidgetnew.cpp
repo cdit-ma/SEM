@@ -82,9 +82,9 @@ void ToolbarWidgetNew::themeChanged()
     instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
 
-    applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
-    applyReplicateCountButton->setStyleSheet("QToolButton{ background:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";}"
-                                             "QToolButton:pressed{ background:" + theme->getPressedColorHex() + ";}");
+    //applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
+    //applyReplicateCountButton->setStyleSheet("QToolButton{ background:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";}"
+    //                                         "QToolButton:pressed{ background:" + theme->getPressedColorHex() + ";}");
 }
 
 
@@ -301,7 +301,8 @@ void ToolbarWidgetNew::setupActions()
     instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
     mainGroup->addSeperator();
     hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
-    replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
+    mainGroup->addAction(actionController->toolbar_replicateCount);
+    //replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
@@ -446,6 +447,7 @@ void ToolbarWidgetNew::setupConnectMenu()
  */
 void ToolbarWidgetNew::setupReplicateCountMenu()
 {
+    /*
     replicateCount = new QSpinBox(this);
     replicateCount->setMinimum(1);
     replicateCount->setMaximum(100000);
@@ -464,6 +466,7 @@ void ToolbarWidgetNew::setupReplicateCountMenu()
 
     replicateMenu = constructTopMenu(replicateCountAction);
     replicateMenu->addAction(rc);
+    */
 }
 
 
@@ -505,8 +508,8 @@ void ToolbarWidgetNew::setupConnections()
         }
         connect(action, SIGNAL(triggered(bool)), this, SLOT(setVisible(bool)));
     }
-    connect(applyReplicateCountButton, SIGNAL(clicked(bool)), this, SLOT(setVisible(bool)));
-    connect(applyReplicateCountButton, SIGNAL(clicked(bool)), replicateMenu, SLOT(setVisible(bool)));
+    //connect(applyReplicateCountButton, SIGNAL(clicked(bool)), this, SLOT(setVisible(bool)));
+    //connect(applyReplicateCountButton, SIGNAL(clicked(bool)), replicateMenu, SLOT(setVisible(bool)));
 
     // populate these menus on hover
     foreach (QMenu* menu, dynamicMenuKeyHash.keys()) {

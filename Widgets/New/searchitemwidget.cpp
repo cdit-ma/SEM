@@ -37,6 +37,7 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(par
         iconLabel = 0;
         expandButton = 0;
         centerButton = 0;
+        popupButton = 0;
         displayWidget = 0;
         layout->addWidget(textLabel);
     }
@@ -101,6 +102,9 @@ void SearchItemWidget::themeChanged()
     if (centerButton) {
         centerButton->setIcon(theme->getIcon("Actions", "Crosshair"));
     }
+    if (popupButton) {
+        popupButton->setIcon(theme->getIcon("Actions", "Popup"));
+    }
 }
 
 
@@ -110,6 +114,15 @@ void SearchItemWidget::themeChanged()
 void SearchItemWidget::centerButtonClicked()
 {
     emit centerOnViewItem(viewItemID);
+}
+
+
+/**
+ * @brief SearchItemWidget::popupButtonClicked
+ */
+void SearchItemWidget::popupButtonClicked()
+{
+    emit popupViewItem(viewItemID);
 }
 
 
@@ -228,20 +241,27 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setFixedSize(itemPixmap.size() + QSize(MARGIN, MARGIN));
 
+    QSize toolButtonSize(18, 18);
+
     expandButton = new QToolButton(this);
-    expandButton->setFixedSize(18, 18);
+    expandButton->setFixedSize(toolButtonSize);
     expandButton->setCheckable(true);
     expandButton->setChecked(false);
     expandButton->setToolTip("Show/Hide Matching Data");
 
     centerButton = new QToolButton(this);
-    centerButton->setFixedSize(18, 18);
+    centerButton->setFixedSize(toolButtonSize);
     centerButton->setToolTip("Center View Aspect On Item");
 
+    popupButton = new QToolButton(this);
+    popupButton->setFixedSize(toolButtonSize);
+    popupButton->setToolTip("View Item In New Window");
+
     QToolBar* toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(18, 18));
+    toolbar->setIconSize(toolButtonSize);
     toolbar->addWidget(expandButton);
     toolbar->addWidget(centerButton);
+    toolbar->addWidget(popupButton);
 
     QWidget* topBarWidget = new QWidget(this);
     topBarWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -262,6 +282,7 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
 
     connect(expandButton, SIGNAL(toggled(bool)), this, SLOT(expandButtonToggled(bool)));
     connect(centerButton, SIGNAL(clicked(bool)), this, SLOT(centerButtonClicked()));
+    connect(popupButton, SIGNAL(clicked(bool)), this, SLOT(popupButtonClicked()));
 }
 
 
