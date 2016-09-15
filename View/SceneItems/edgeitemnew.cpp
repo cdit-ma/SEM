@@ -99,31 +99,62 @@ QRectF EdgeItemNew::sourceIconRect() const
 {
     QRectF  r;
     r.setSize(smallIconSize());
-    r.moveTopLeft(iconsRect().topLeft() + QPointF(1,1));
+    r.moveCenter(sourceIconCircle().center());
     return r;
 }
+
+QRectF EdgeItemNew::sourceIconCircle() const
+{
+    QRectF  r;
+    r.setSize(QSizeF(10,10));
+    r.moveCenter(translatedCenterRect().center());
+    r.moveRight(translatedCenterRect().left());
+    return r;
+
+}
+
+QRectF EdgeItemNew::centerIconRect() const
+{
+    QRectF  r;
+    r.setSize(smallIconSize() * 2);
+    r.moveCenter(translatedCenterRect().center());
+    return r;
+}
+
 
 QRectF EdgeItemNew::destinationIconRect() const
 {
     QRectF  r;
     r.setSize(smallIconSize());
-    r.moveTopRight(iconsRect().topRight() + QPointF(-1,1));
+    r.moveCenter(destinationIconCircle().center());
+    return r;
+}
+
+QRectF EdgeItemNew::destinationIconCircle() const
+{
+    QRectF  r;
+    r.setSize(QSizeF(10,10));
+    r.moveCenter(translatedCenterRect().center());
+    r.moveLeft(translatedCenterRect().right());
     return r;
 }
 
 
-QRectF EdgeItemNew::itemRect() const
+QRectF EdgeItemNew::centerRect() const
 {
-    QRectF r;
-    //Should be 16x16
-    r.setSize(QSizeF(DEFAULT_SIZE /4, DEFAULT_SIZE / 4));
+    QRectF  r;
+    if(hasSetPosition()){
+        r.setSize(QSizeF(20,20));
+    }else{
+        r.setSize(QSizeF(16,16));
+    }
     return r;
 }
 
-QRectF EdgeItemNew::translatedItemRect() const
+QRectF EdgeItemNew::translatedCenterRect() const
 {
-    QRectF r = itemRect();
-    r.moveTopLeft(itemPos);
+    QRectF r = centerRect();
+    r.moveCenter(itemPos + QPointF(10,10));
     return r;
 }
 
@@ -312,33 +343,37 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
     if(state > RS_BLOCK){
         painter->setBrush(getBodyColor());
-
         pen.setStyle(Qt::SolidLine);
         painter->setPen(pen);
 
+        QPainterPath path;
+        path.setFillRule(Qt::WindingFill);
+
         //Draw the center Circle/Rectangle
-        if(hasSetPosition()){
-            painter->drawEllipse(translatedItemRect());
-        }else{
-            painter->drawRect(iconsRect());
+        path.addEllipse(translatedCenterRect());
+
+        if(isSelected()){
+            //If we are selected add the circles to the left/right
+            path.addEllipse(sourceIconCircle());
+            path.addEllipse(destinationIconCircle());
         }
+        path = path.simplified();
+
+        //Stroke the path
+        painter->drawPath(path);
     }
     //Draw the icons.
-    paintPixmap(painter, lod, ER_MAIN_ICON, sourceItem->getIconPath());
-    paintPixmap(painter, lod, ER_SECONDARY_ICON, destinationItem->getIconPath());
-}
 
-QRectF EdgeItemNew::iconsRect() const
-{
-    QRectF r = translatedItemRect();
-    r.setHeight(r.height() / 2);
-    r.moveCenter(translatedItemRect().center());
-    return r;
+    paintPixmap(painter, lod, ER_EDGE_KIND_ICON, getIconPath());
+    if(state > RS_BLOCK && isSelected()){
+        paintPixmap(painter, lod, ER_MAIN_ICON, sourceItem->getIconPath());
+        paintPixmap(painter, lod, ER_SECONDARY_ICON, destinationItem->getIconPath());
+    }
 }
 
 QRectF EdgeItemNew::currentRect() const
 {
-    QRectF r = translatedItemRect();
+    QRectF r = translatedCenterRect();
     r = r.marginsAdded(margins);
     return r;
 }
@@ -361,6 +396,9 @@ void EdgeItemNew::dataRemoved(QString keyName)
 QRectF EdgeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
 {
     switch(rect){
+        case ER_EDGE_KIND_ICON:{
+            return centerIconRect();
+        }
         case ER_MAIN_ICON:{
             return sourceIconRect();
         }
@@ -406,7 +444,7 @@ void EdgeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 QPointF EdgeItemNew::getTopLeftOffset() const
 {
-    return itemRect().center();
+    return centerRect().center();
 }
 
 QPainterPath EdgeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
@@ -421,10 +459,7 @@ QPainterPath EdgeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
         case ER_MOVE:{
             QPainterPath path;
             path.setFillRule(Qt::WindingFill);
-            path.addRect(iconsRect());
-            if(hasSetPosition()){
-                path.addEllipse(translatedItemRect());
-            }
+            path.addEllipse(translatedCenterRect());
             return path;
         }
     default:
@@ -498,8 +533,8 @@ QPointF EdgeItemNew::getDestinationPos(QPointF center) const
 
 QPointF EdgeItemNew::getSceneEdgeTermination(bool left) const
 {
-    qreal y = translatedItemRect().center().y();
-    qreal x = left ? translatedItemRect().left() - ARROW_SIZE: translatedItemRect().right();
+    qreal y = translatedCenterRect().center().y();
+    qreal x = left ? translatedCenterRect().left() - ARROW_SIZE: translatedCenterRect().right();
     return mapToScene(x,y);
 }
 
