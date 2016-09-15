@@ -139,7 +139,7 @@ void DockWidgetParentActionItem::actionChanged()
 void DockWidgetParentActionItem::themeChanged()
 {
     Theme* theme = Theme::theme();
-    QColor altColor = theme->getAltBackgroundColor().darker(120);
+    QColor altColor = theme->getAltBackgroundColor().darker(110);
 
     setIcon(theme->getIcon("Actions", "Arrow_Down"));
     setStyleSheet("QToolButton {"

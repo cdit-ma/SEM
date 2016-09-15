@@ -41,7 +41,9 @@ private:
 
     QAction* dockAction;
     int dockActionID;
+
     bool subActionRequired;
+    bool highlighted;
 
     QLabel* textLabel;
     QLabel* iconLabel;

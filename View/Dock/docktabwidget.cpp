@@ -51,6 +51,7 @@ void DockTabWidget::themeChanged()
  */
 void DockTabWidget::selectionChanged()
 {
+    qDebug()<< "SelectionChanged";
     refreshDock();
 }
 
@@ -159,6 +160,7 @@ void DockTabWidget::dockBackButtonClicked()
  */
 void DockTabWidget::onActionFinished()
 {
+    qDebug() << "actionfinished";
     // TODO - Check when this slot is being called.
     refreshDock();
 }
@@ -397,10 +399,9 @@ void DockTabWidget::refreshDock()
         QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(Edge::EC_DEPLOYMENT);
         hardwareDock->highlightItem(); // clear previous highlighted item
         if (connectedHardwareItems.count() == 1) {
-            qDebug() << "Highlight item: " << connectedHardwareItems.at(0)->getID();
-            hardwareDock->highlightItem(connectedHardwareItems.at(0)->getID());
-        } else {
-            qDebug() << "No item to highlight";
+            qDebug() << "highlighted";
+            int connectedItemID = connectedHardwareItems.at(0)->getID();
+            hardwareDock->highlightItem(connectedItemID);
         }
     }
 }

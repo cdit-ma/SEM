@@ -18,6 +18,7 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
 
     backgroundColorHex = "rgba(0,0,0,0)";
     colorHex = Theme::theme()->getTextColorHex();
+    highlighted = false;
 
     dockActionID = -1;
     if (action) {
@@ -127,6 +128,7 @@ void DockWidgetActionItem::highlightItem(bool highlight)
         backgroundColorHex = "rgba(0,0,0,0)";
         colorHex = Theme::theme()->getTextColorHex();
     }
+    highlighted = highlight;
     updateStyleSheet();
 }
 
@@ -159,7 +161,7 @@ void DockWidgetActionItem::themeChanged()
 {
     theme = Theme::theme();
     arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
-    updateStyleSheet();
+    highlightItem(highlighted);
 }
 
 

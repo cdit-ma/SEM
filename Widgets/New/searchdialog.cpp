@@ -42,6 +42,17 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
     } else {
 
         infoLabel->hide();
+
+        foreach (QString key, results.uniqueKeys()) {
+            QList<ViewItem*> viewItems = results.values(key);
+            foreach (ViewItem* item, viewItems) {
+                SearchItemWidget* searchItem = constructSearchItem(item);
+                searchItem->addDisplayKey(key);
+            }
+            constructKeyButton(key, key + " (" + QString::number(viewItems.count()) + ")");
+        }
+
+        /*
         QMap<ViewItem*, QString> resultItems;
 
         // store each item with the keys that match the search
@@ -64,11 +75,12 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
         //qCritical() << "Keys in: " <<  timeKeys - timeStart << "MS";
         //qCritical() << "Values in: " <<  timeValues - timeKeys << "MS";
+        */
     }
 
     // update the keys toolbar/buttons's size
     keysToolBar->setMinimumHeight(keysToolBar->sizeHint().height() + 10);
-    themeChanged();
+    //themeChanged();
 }
 
 
@@ -122,6 +134,19 @@ void SearchDialog::keyButtonChecked(bool checked)
     QAction* action = qobject_cast<QAction*>(sender());
     if (action && checked) {
         emit keyButtonChecked(action->property("key").toString());
+    }
+}
+
+
+/**
+ * @brief SearchDialog::viewItemDestructed
+ */
+void SearchDialog::viewItemDestructed()
+{
+    ViewItem* item = qobject_cast<ViewItem*>(sender());
+    if (item) {
+        SearchItemWidget* widget = searchItems.take(item);
+        widget->deleteLater();
     }
 }
 
@@ -230,11 +255,13 @@ void SearchDialog::clear()
         keysToolBar->removeAction(action);
     }
 
-    while (!searchItems.isEmpty()) {
-        SearchItemWidget* widget = searchItems.takeFirst();
+    QList<SearchItemWidget*> widgets = searchItems.values();
+    while (!widgets.isEmpty()) {
+        SearchItemWidget* widget = widgets.takeFirst();
         resultsLayout->removeWidget(widget);
         delete widget;
     }
+    searchItems.clear();
 }
 
 
@@ -244,16 +271,22 @@ void SearchDialog::clear()
  */
 SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
 {
+    if (searchItems.contains(item)) {
+        return searchItems.value(item);
+    }
+
     SearchItemWidget* itemWidget = new SearchItemWidget(item, this);
     resultsLayout->addWidget(itemWidget);
-    searchItems.append(itemWidget);
+    searchItems[item] = itemWidget;
+
     if (item) {
+        connect(item, SIGNAL(destructing()), this, SLOT(viewItemDestructed()));
         connect(this, SIGNAL(keyButtonChecked(QString)), itemWidget, SLOT(toggleKeyWidget(QString)));
-        //connect(item, SIGNAL(destructing()), itemWidget, SLOT(deleteLater()));
         connect(itemWidget, SIGNAL(centerOnViewItem(int)), this, SIGNAL(centerOnViewItem(int)));
         connect(itemWidget, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
         connect(itemWidget, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
     }
+
     return itemWidget;
 }
 

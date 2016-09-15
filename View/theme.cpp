@@ -1200,7 +1200,7 @@ void Theme::resetTheme(VIEW_THEME themePreset)
         emit changeSetting(SK_THEME_TEXT_SELECTED_COLOR, white());
         emit changeSetting(SK_THEME_ICON_SELECTED_COLOR, white());
         emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, white());
-        setAltTextColor(black().lighter(200));
+        setAltTextColor(black().lighter(180));
     }
 
 }

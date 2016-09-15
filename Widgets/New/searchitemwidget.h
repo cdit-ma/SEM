@@ -18,6 +18,7 @@ public:
     explicit SearchItemWidget(ViewItem* item, QWidget *parent = 0);
     ~SearchItemWidget();
 
+    void addDisplayKey(QString key);
     void setDisplayKeys(QList<QString> keys);
     
 signals:
