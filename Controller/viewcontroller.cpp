@@ -1232,6 +1232,18 @@ void ViewController::alignSelectionHorizontal()
 
 }
 
+void ViewController::viewConnections()
+{
+    if(selectionController){
+        ViewItem* item = selectionController->getActiveSelectedItem();
+
+        if(item){
+            emit vc_centerConnections(item);
+        }
+    }
+
+}
+
 void ViewController::centerOnID(int ID)
 {
     emit vc_centerItem(ID);

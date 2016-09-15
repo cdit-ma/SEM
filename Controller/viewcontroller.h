@@ -108,6 +108,7 @@ signals:
     void vc_projectPathChanged(QString);
 
     void vc_centerItem(int ID);
+    void vc_centerConnections(ViewItem* item);
 
     void vc_fitToScreen();
 
@@ -151,6 +152,8 @@ public slots:
 
 
 
+
+
     void actionFinished(bool success, QString gg);
     void controller_entityConstructed(int ID, ENTITY_KIND eKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> properties);
     void controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind);
@@ -183,6 +186,7 @@ public slots:
     void centerSelection();
     void alignSelectionVertical();
     void alignSelectionHorizontal();
+    void viewConnections();
     void centerOnID(int ID);
 
     void centerImpl();

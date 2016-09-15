@@ -75,6 +75,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(view_viewDefnInNewWindow, &QAction::triggered, viewController, &ViewController::popupDefinition);
         connect(view_viewImplInNewWindow, &QAction::triggered, viewController, &ViewController::popupImpl);
         connect(view_viewInNewWindow, &QAction::triggered, viewController, &ViewController::popupSelection);
+        connect(view_viewConnections, &QAction::triggered, viewController, &ViewController::viewConnections);
 
         connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
 
@@ -94,7 +95,9 @@ void ActionController::connectViewController(ViewController *controller)
         connect(file_importSnippet, &QAction::triggered, viewController, &ViewController::importSnippet);
         connect(file_exportSnippet, &QAction::triggered, viewController, &ViewController::exportSnippet);
 
+
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
+
         connectSelectionController(controller->getSelectionController());
     }
 }
@@ -255,7 +258,7 @@ void ActionController::selectionChanged(int selectionSize)
 
         view_viewInNewWindow->setEnabled(gotSingleSelection);
 
-        view_viewConnections->setEnabled(false);
+        view_viewConnections->setEnabled(gotSelection);
 
         edit_clearSelection->setEnabled(gotMultipleSelection);
         edit_selectAll->setEnabled(gotSingleSelection);
@@ -607,13 +610,12 @@ void ActionController::setupActions()
     view_viewDefnInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
 
 
-    view_viewConnections = createRootAction("View Connections", "", "Actions", "Connections");
-    view_viewInNewWindow = createRootAction("View In New Window", "", "Actions", "Popup");
+    view_viewConnections = createRootAction("Select and Center Items Connections", "", "Actions", "Connections");
+    view_viewConnections->setShortcutContext(Qt::ApplicationShortcut);
+    view_viewConnections->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_E));
 
-    view_viewInNewWindow->setData("Test ID");
-    view_viewInNewWindow->setProperty("ID", 12);
-    view_viewInNewWindow->setProperty("ID2", "HELPP");
-    view_viewInNewWindow->setProperty("ID3",  view_viewInNewWindow->icon());
+
+    view_viewInNewWindow = createRootAction("View In New Window", "", "Actions", "Popup");
 
     window_printScreen = createRootAction("Print Screen", "", "Actions", "PrintScreen");
     window_displayMinimap = createRootAction("Display Minimap", "", "Actions", "Minimap");
