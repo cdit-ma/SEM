@@ -507,6 +507,20 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
     }
 }
 
+QColor Theme::getAltTextColor()
+{
+    return altTextColor;
+}
+
+QString Theme::getAltTextColorHex()
+{
+    return QColorToHex(altTextColor);
+}
+
+void Theme::setAltTextColor(QColor color)
+{
+    altTextColor = color;
+}
 
 QString Theme::getWindowStyleSheet()
 {
@@ -519,7 +533,7 @@ QString Theme::getWindowStyleSheet()
 
 QString Theme::getScrollBarStyleSheet()
 {
-    int marginSize = 2;
+    int marginSize = 1;
     int scrollSize = 16;
     int buttonSize = scrollSize - (2* marginSize);
 
@@ -559,7 +573,7 @@ QString Theme::getDialogStyleSheet()
 
 QString Theme::getSplitterStyleSheet()
 {
-    return  "QSplitter {background: " % getBackgroundColorHex() % ";}"
+    return  "QSplitter {background:" % getBackgroundColorHex() % ";}"
             "QSplitter::handle{width:12px;height:12px;}"
             "QSplitter::handle:pressed {background:" % getAltBackgroundColorHex() % "}"
             "QSplitter::handle:horizontal {image: url(:/Actions/Menu_Vertical);}"
@@ -588,9 +602,12 @@ QString Theme::getTabbedWidgetStyleSheet()
 
 QString Theme::getNodeViewStyleSheet(bool isActive)
 {
+    QString activeBorder = "border: 2px solid " % getActiveWidgetBorderColorHex() % ";";
+    QString inActiveBorder = "border: 1px solid " % getDisabledBackgroundColorHex() % ";";
     return "QGraphicsView {"
            "background:" % getBackgroundColorHex() % ";"
-           "border: 1px solid " % (isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex()) % ";"
+           % (isActive ? activeBorder : inActiveBorder) %
+           //"border: 1px solid " % (isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex()) % ";"
            "}";
 }
 
@@ -804,6 +821,33 @@ QString Theme::getAbstractItemViewStyleSheet()
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "border: 0px;"
+           "}";
+}
+
+QString Theme::getComboBoxStyleSheet()
+{
+    return "QComboBox {"
+           "background:" % getAltBackgroundColorHex() % ";"
+           "color:" % getTextColorHex() % ";"
+           "selection-background-color:" % getHighlightColorHex() % ";"
+           "selection-color:" % getTextColorHex(CR_SELECTED) % ";"
+           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "padding: 0px 5px;"
+           "margin: 0px;"
+           "}"
+           "QComboBox:hover {"
+           "background:" % getHighlightColorHex() % ";"
+           "color:" % getTextColorHex(CR_SELECTED) % ";"
+           "}"
+           "QComboBox::drop-down {"
+           "subcontrol-position: top right;"
+           "padding: 0px;"
+           "width: 20px;"
+           "}"
+           //"QComboBox::down-arrow{ image: url(:/Actions/Arrow_Down); }"
+           "QComboBox QAbstractItemView {"
+           "color:" % getTextColorHex() % ";"
+           "background:" % getAltBackgroundColorHex() % ";"
            "}";
 }
 
@@ -1142,6 +1186,7 @@ void Theme::resetTheme(VIEW_THEME themePreset)
         emit changeSetting(SK_THEME_TEXT_SELECTED_COLOR, black());
         emit changeSetting(SK_THEME_ICON_SELECTED_COLOR, black());
         emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, black());
+        setAltTextColor(white().darker(150));
     }else if(themePreset == VT_LIGHT_THEME){
         QColor bgColor = QColor(170,170,170);
         emit changeSetting(SK_THEME_BG_COLOR, bgColor);
@@ -1155,6 +1200,7 @@ void Theme::resetTheme(VIEW_THEME themePreset)
         emit changeSetting(SK_THEME_TEXT_SELECTED_COLOR, white());
         emit changeSetting(SK_THEME_ICON_SELECTED_COLOR, white());
         emit changeSetting(SK_THEME_VIEW_BORDER_SELECTED_COLOR, white());
+        setAltTextColor(black().lighter(200));
     }
 
 }

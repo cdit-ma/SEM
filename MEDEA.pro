@@ -213,7 +213,8 @@ HEADERS += \
     Model/BehaviourDefinitions/workerprocess.h \
     Widgets/New/viewmanagerwidget.h \
     Widgets/New/searchdialog.h \
-    Widgets/New/searchitemwidget.h
+    Widgets/New/searchitemwidget.h \
+    Widgets/New/welcomescreenwidget.h
 
 SOURCES += \
     main.cpp \
@@ -390,7 +391,8 @@ SOURCES += \
     Model/BehaviourDefinitions/workerprocess.cpp \
     Widgets/New/viewmanagerwidget.cpp \
     Widgets/New/searchdialog.cpp \
-    Widgets/New/searchitemwidget.cpp
+    Widgets/New/searchitemwidget.cpp \
+    Widgets/New/welcomescreenwidget.cpp
 
 RESOURCES += \
     resources.qrc

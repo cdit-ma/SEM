@@ -23,6 +23,8 @@ public:
     void searchResults(QString query, QMap<QString, ViewItem*> results);
 
 signals:
+    void itemHoverEnter(int ID);
+    void itemHoverLeave(int ID);
     void keyButtonChecked(QString key);
     void centerOnViewItem(int ID);
 
@@ -36,7 +38,6 @@ private:
 
     SearchItemWidget* constructSearchItem(ViewItem* item);
     void constructKeyButton(QString key, QString text = "", bool checked = false);
-    void updateKeysToolBarStyleSheet();
 
     QLabel* queryLabel;
     QLabel* scopeLabel;
@@ -46,15 +47,12 @@ private:
     QToolButton* searchButton;
     QComboBox* scopeComboBox;
 
-    QScrollArea* keysArea;
     QToolBar* keysToolBar;
     QVBoxLayout* keysLayout;
     QActionGroup* keysActionGroup;
 
     QVBoxLayout* resultsLayout;
     QList<SearchItemWidget*> searchItems;
-
-    int maxToolButtonWidth;
 };
 
 #endif // SEARCHDIALOG_H

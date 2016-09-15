@@ -100,7 +100,6 @@ void MedeaMainWindow::setViewController(ViewController *vc)
 
     connect(vc, &ViewController::mc_projectModified, this, &MedeaMainWindow::setWindowModified);
     connect(actionController, &ActionController::recentProjectsUpdated, this, &MedeaMainWindow::recentProjectsUpdated);
-    //this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
 
     if (vc->getActionController()) {
         connect(vc->getActionController()->getRootAction("Root_Search"), SIGNAL(triggered(bool)), this, SLOT(popupSearch()));
@@ -125,8 +124,11 @@ void MedeaMainWindow::searchEntered()
 {
     QString query = searchBar->text();
     if (!query.isEmpty()) {
+        qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
         searchDialog->searchResults(query, viewController->getSearchResults(query));
+        qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
         searchDialog->show();
+        qCritical() << "searchEntered in: " <<  timeFinish - timeStart << "MS";
     }
 }
 
@@ -245,18 +247,6 @@ void MedeaMainWindow::themeChanged()
     hardwareButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_HARDWARE));
 
     minimap->setStyleSheet(theme->getNodeViewStyleSheet());
-
-    recentProjectsToolbar->setStyleSheet("QToolBar {"
-                                         "background:" + theme->getAltBackgroundColorHex() + ";"
-                                         "spacing: 0px;"
-                                         "}"
-                                         "QToolButton {"
-                                         "width: 400px;"
-                                         "border-radius: 2px;"
-                                         "border: 0px; }");
-
-    welcomeWidget->setStyleSheet("QWidget#WELCOME_WIDGET{ background:" + theme->getBackgroundColorHex() + ";}"
-                                 "QToolButton:!hover{ border: 0px; background: rgba(0,0,0,0); }");
 }
 
 
@@ -356,17 +346,6 @@ void MedeaMainWindow::hideWelcomeScreen(QAction* action)
 {
     if (action->text() != "Settings") {
         toggleWelcomeScreen(false);
-    }
-}
-
-
-void MedeaMainWindow::recentProjectsUpdated()
-{
-    if(recentProjectsToolbar && viewController){
-        recentProjectsToolbar->clear();
-        foreach(RootAction* action,viewController->getActionController()->getRecentProjectActions()){
-            recentProjectsToolbar->addAction(action);
-        }
     }
 }
 
@@ -474,12 +453,12 @@ void MedeaMainWindow::toggleWelcomeScreen(bool on)
     }
 
     if (on) {
-        holderLayout->removeWidget(welcomeWidget);
+        holderLayout->removeWidget(welcomeScreen);
         holderLayout->addWidget(innerWindow);
-        setCentralWidget(welcomeWidget);
+        setCentralWidget(welcomeScreen);
     } else {
         holderLayout->removeWidget(innerWindow);
-        holderLayout->addWidget(welcomeWidget);
+        holderLayout->addWidget(welcomeScreen);
         setCentralWidget(innerWindow);
     }
 
@@ -601,91 +580,17 @@ void MedeaMainWindow::setupInnerWindow()
  */
 void MedeaMainWindow::setupWelcomeScreen()
 {
-    QLabel* medeaIcon = new QLabel(this);
-    QLabel* medeaLabel = new QLabel("MEDEA");
-    QLabel* medeaVersionLabel = new QLabel("Version 2.0"); // + MEDEA_VERSION);
-    medeaLabel->setStyleSheet("font-size: 32pt; color: white; text-align: center;");
-    medeaVersionLabel->setStyleSheet("font-size: 12pt; color: gray; text-align: center;");
-
-    QPixmap pixMap = Theme::theme()->getImage("Actions", "MEDEA");
-    pixMap = pixMap.scaled(QSize(150,150), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    medeaIcon->setPixmap(pixMap);
-
-    QWidget* leftTopWidget = new QWidget(this);
-    QVBoxLayout* leftTopLayout = new QVBoxLayout(leftTopWidget);
-    leftTopLayout->setSpacing(2);
-    leftTopLayout->addWidget(medeaIcon, 0, Qt::AlignCenter);
-    leftTopLayout->addWidget(medeaLabel, 0, Qt::AlignCenter);
-    leftTopLayout->addWidget(medeaVersionLabel, 0, Qt::AlignCenter);
-
-    QSize iconSize(24,24);
-
-    QToolButton* recentProjectsLabel = new QToolButton(this);
-    recentProjectsLabel->setText("Recent Projects");
-    recentProjectsLabel->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    recentProjectsLabel->setIcon(Theme::theme()->getIcon("Welcome", "Timer"));
-    recentProjectsLabel->setIconSize(iconSize);
-    recentProjectsLabel->setEnabled(false);
-
-    QToolBar* leftToolbar = new QToolBar(this);
-    leftToolbar->setIconSize(iconSize);
-    leftToolbar->setOrientation(Qt::Vertical);
-    leftToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    leftToolbar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    leftToolbar->setStyleSheet("QToolButton{ width: 110px; }");
-
-    QToolBar* bottomToolbar = new QToolBar(this);
-    bottomToolbar->setIconSize(iconSize);
-    bottomToolbar->setOrientation(Qt::Horizontal);
-    bottomToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    bottomToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    bottomToolbar->setLayoutDirection(Qt::RightToLeft);
-    bottomToolbar->setStyleSheet("QToolButton{ padding-left: 10px; }");
-
-    recentProjectsToolbar = new QToolBar(this);
-    recentProjectsToolbar->setIconSize(QSize(18, 18));
-    recentProjectsToolbar->setOrientation(Qt::Vertical);
-    recentProjectsToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    recentProjectsToolbar->setFixedSize(400, 350);
-
-    ActionController* ac = viewController->getActionController();
-    leftToolbar->addWidget(leftTopWidget);
-    leftToolbar->addAction(ac->file_newProject->constructSubAction(false));
-    leftToolbar->addAction(ac->file_openProject->constructSubAction(false));
-    leftToolbar->addAction(ac->options_settings->constructSubAction(false));
-
-    bottomToolbar->addAction(ac->file_exit->constructSubAction(false));
-    bottomToolbar->addAction(ac->help_aboutMedea->constructSubAction(false));
-    bottomToolbar->addAction(ac->help_wiki->constructSubAction(false));
-
-    QVBoxLayout* vLayout = new QVBoxLayout();
-    vLayout->addStretch();
-    vLayout->addSpacerItem(new QSpacerItem(0, 15));
-    vLayout->addWidget(recentProjectsLabel);
-    vLayout->addWidget(recentProjectsToolbar, 0, Qt::AlignLeft | Qt::AlignBottom);
-    vLayout->addWidget(bottomToolbar, 0, Qt::AlignLeft | Qt::AlignTop);
-    vLayout->addStretch();
-
-    welcomeWidget = new QWidget(this);
-    welcomeWidget->setObjectName("WELCOME_WIDGET");
-
-    QHBoxLayout* containerLayout = new QHBoxLayout(welcomeWidget);
-    containerLayout->addStretch();
-    containerLayout->addWidget(leftToolbar, 0, Qt::AlignVCenter | Qt::AlignRight);
-    containerLayout->addLayout(vLayout);
-    containerLayout->addStretch();
+    welcomeScreen = new WelcomeScreenWidget(viewController->getActionController(), this);
+    welcomeScreenOn = false;
 
     QWidget* holderWidget = new QWidget(this);
     holderWidget->hide();
 
     holderLayout = new QVBoxLayout(holderWidget);
-    holderLayout->addWidget(welcomeWidget);
+    holderLayout->addWidget(welcomeScreen);
 
-    connect(leftToolbar, SIGNAL(actionTriggered(QAction*)), this, SLOT(hideWelcomeScreen(QAction*)));
-    connect(recentProjectsToolbar, SIGNAL(actionTriggered(QAction*)), this, SLOT(hideWelcomeScreen(QAction*)));
-
-    welcomeScreenOn = false;
-    recentProjectsUpdated();
+    connect(welcomeScreen, &WelcomeScreenWidget::actionTriggered, this, &MedeaMainWindow::hideWelcomeScreen);
+    connect(this, &MedeaMainWindow::recentProjectsUpdated, welcomeScreen, &WelcomeScreenWidget::recentProjectsUpdated);
 }
 
 
@@ -786,6 +691,8 @@ void MedeaMainWindow::setupSearchBar()
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
     connect(searchButton, SIGNAL(clicked(bool)), this, SLOT(searchEntered()));
     connect(searchDialog, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
+    connect(searchDialog, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
+    connect(searchDialog, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
 }
 
 

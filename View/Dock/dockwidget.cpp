@@ -12,6 +12,8 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     toolActionController = tc;
     dockType = type;
 
+    prevHighlightedItem = 0;
+
     switch (dockType) {
     case ToolActionController::DEFINITIONS:
     case ToolActionController::FUNCTIONS:
@@ -36,9 +38,9 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     mainLayout->setMargin(0);
 
     alignLayout = new QVBoxLayout();
+    alignLayout->setMargin(0);
     alignLayout->addWidget(infoLabel);
     alignLayout->addLayout(mainLayout);
-    alignLayout->setMargin(0);
     alignLayout->addStretch();
 
     mainWidget = new QWidget(this);
@@ -79,13 +81,13 @@ void DockWidget::addItem(DockWidgetItem* item)
         DockWidgetActionItem* actionItem = (DockWidgetActionItem*)item;
         actionItem->setProperty("kind", actionItem->getAction()->text());
         connect(actionItem, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
-        childrenIDHash[actionItem->getProperty("ID").toInt()] = actionItem;
+        actionItemIDHash[actionItem->getProperty("ID").toInt()] = actionItem;
         mainLayout->addWidget(actionItem);        
     } else if (isParentActionItem) {
         DockWidgetParentActionItem* parentItem = (DockWidgetParentActionItem*)item;
         QToolBar* toolbar = new QToolBar(this);
         toolbar->addWidget(item);
-        childrenIDHash[parentItem->getProperty("ID").toInt()] = parentItem;
+        parentActionItemIDHash[parentItem->getProperty("ID").toInt()] = parentItem;
         itemToolbarHash[item] = toolbar;
         mainLayout->addWidget(toolbar);
     } else {
@@ -247,15 +249,17 @@ void DockWidget::dockActionClicked()
  */
 void DockWidget::highlightItem(int ID)
 {
-    if (ID == -1) {
+    if (ID == -1 && prevHighlightedItem) {
         // remove highlight
-        ((DockWidgetActionItem*) childrenIDHash.value(prevHighlightedID))->highlightItem(false);
+        prevHighlightedItem->highlightItem(false);
+        prevHighlightedItem = 0;
     } else {
-        // highlight item
-        if (childrenIDHash.contains(ID)) {
-            ((DockWidgetActionItem*) childrenIDHash.value(ID))->highlightItem(true);
+        if (actionItemIDHash.contains(ID)) {
+            // highlight item
+            DockWidgetActionItem* item = actionItemIDHash.value(ID);
+            item->highlightItem(true);
+            prevHighlightedItem = item;
         }
-        prevHighlightedID = ID;
     }
 }
 
@@ -266,14 +270,12 @@ void DockWidget::highlightItem(int ID)
  */
 void DockWidget::viewItemConstructed(int ID)
 {
-    // TODO - Only want to check this for the Hardware dock
     // can have an action item and a parent action item with the same ID
-    if (!childrenIDHash.contains(ID)) {
+    if (!actionItemIDHash.contains(ID)) {
         QAction* itemAction = toolActionController->getNodeAction(ID)->constructSubAction(false);
         DockWidgetActionItem* dockItem = new DockWidgetActionItem(itemAction, this);
         dockItem->setProperty("ID", ID);
         addItem(dockItem);
-        qDebug() << "ID: " << ID;
     }
 }
 
@@ -284,8 +286,12 @@ void DockWidget::viewItemConstructed(int ID)
  */
 void DockWidget::viewItemDestructed(int ID)
 {
-    if (childrenIDHash.contains(ID)) {
-        DockWidgetItem* item = childrenIDHash.take(ID);
+    if (actionItemIDHash.contains(ID)) {
+        DockWidgetItem* item = actionItemIDHash.take(ID);
+        delete item;
+    }
+    if (parentActionItemIDHash.contains(ID)) {
+        DockWidgetItem* item = parentActionItemIDHash.take(ID);
         delete item;
     }
 }
