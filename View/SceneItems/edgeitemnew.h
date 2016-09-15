@@ -27,11 +27,16 @@ public:
     bool setMoveFinished();
 
 private:
-    QRectF itemRect() const;
-    QRectF translatedItemRect() const;
-    QRectF iconsRect() const;
+    QRectF centerRect() const;
+    QRectF translatedCenterRect() const;
+
+    QRectF centerIconRect() const;
+
     QRectF sourceIconRect() const;
     QRectF destinationIconRect() const;
+
+    QRectF sourceIconCircle() const;
+    QRectF destinationIconCircle() const;
 
     QPainterPath trianglePath(QPointF startPoint, bool pointRight=true) const;
 
