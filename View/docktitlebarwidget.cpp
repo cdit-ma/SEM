@@ -81,6 +81,15 @@ QAction *DockTitleBarWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
     }
 }
 
+void DockTitleBarWidget::addToolAction(QAction* action, Qt::Alignment alignment)
+{
+    if (alignment == Qt::AlignLeft) {
+        insertAction(iconAction, action);
+    } else if (alignment == Qt::AlignRight) {
+        addAction(action);
+    }
+}
+
 void DockTitleBarWidget::themeChanged()
 {
     updateActiveStyle();
@@ -146,7 +155,6 @@ void DockTitleBarWidget::setupToolBar()
     closeAction = addAction("Close");
     actions.append(closeAction);
     closeAction->setVisible(false);
-
 
     setToolBarIconSize(16);
 }

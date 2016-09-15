@@ -27,6 +27,7 @@ signals:
     void itemHoverLeave(int ID);
     void keyButtonChecked(QString key);
     void centerOnViewItem(int ID);
+    void popupViewItem(int ID);
 
 public slots:
     void themeChanged();
