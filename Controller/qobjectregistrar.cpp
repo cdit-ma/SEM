@@ -1,5 +1,5 @@
 #include "qobjectregistrar.h"
-
+#include <QDebug>
 QObjectRegistrar::QObjectRegistrar(QObject *parent) : QObject(parent)
 {
 }
@@ -19,23 +19,18 @@ bool QObjectRegistrar::hasRegisteredObjects()
     return !registeredObjects.isEmpty();
 }
 
-void QObjectRegistrar::unregisterObject()
-{
-    _registerObject(sender());
-}
-
 void QObjectRegistrar::_registerObject(QObject *object)
 {
     if(object && !registeredObjects.contains(object)){
         registeredObjects.append(object);
-        connect(object, SIGNAL(destroyed(QObject*)), this, SLOT(unregisterObject()));
+        connect(object, &QObject::destroyed, this, &QObjectRegistrar::unregisterObject);
     }
 }
 
 void QObjectRegistrar::_unregisterObject(QObject *object)
 {
     if(object && registeredObjects.contains(object)){
-        disconnect(object, SIGNAL(destroyed(QObject*)), this, SLOT(unregisterObject()));
+        disconnect(object, &QObject::destroyed, this, &QObjectRegistrar::unregisterObject);
         registeredObjects.removeAll(object);
         if(registeredObjects.isEmpty()){
             emit lastRegisteredObjectRemoved();

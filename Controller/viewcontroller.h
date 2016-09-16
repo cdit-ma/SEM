@@ -1,16 +1,17 @@
 #ifndef VIEWCONTROLLER_H
 #define VIEWCONTROLLER_H
 
+#include "actioncontroller.h"
+#include "toolbarcontroller.h"
+#include "../Widgets/New/selectioncontroller.h"
+#include "selectionhandler.h"
+
 #include "../View/viewitem.h"
 #include "../View/nodeviewitem.h"
 #include "../View/edgeviewitem.h"
-#include "selectionhandler.h"
-#include "../Widgets/New/selectioncontroller.h"
-#include "actioncontroller.h"
-#include "toolbarcontroller.h"
+#include "../View/Validate/validatedialog.h"
 #include "../Widgets/New/medeadockwidget.h"
 
-#include "../View/Validate/validatedialog.h"
 
 class NewController;
 class ToolbarWidgetNew;
@@ -30,6 +31,7 @@ public:
     QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
     QList<ViewItem*> getValidEdges(Edge::EDGE_KIND kind);
+    QList<ViewItem*> getExistingEdges(Edge::EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
 
@@ -60,7 +62,7 @@ signals:
     void vc_JenkinsReady(bool);
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
-    void vc_viewItemDestructing(int ID, ViewItem *viewItem);
+    void vc_viewItemDestructing(int ID, ViewItem* item);
     void vc_showToolbar(QPoint globalPos, QPointF itemPos = QPointF());
     void vc_gotSearchSuggestions(QStringList suggestions);
 
@@ -108,6 +110,7 @@ signals:
     void vc_projectPathChanged(QString);
 
     void vc_centerItem(int ID);
+    void vc_selectAndCenterConnectedEntities(ViewItem* item);
 
     void vc_fitToScreen();
 
@@ -146,7 +149,10 @@ public slots:
 
     void getCodeForComponent();
     void validateModel();
+    void selectModel();
     void launchLocalDeployment();
+
+
 
 
 
@@ -182,7 +188,12 @@ public slots:
     void centerSelection();
     void alignSelectionVertical();
     void alignSelectionHorizontal();
+    void selectAndCenterConnectedEntities();
     void centerOnID(int ID);
+
+    void showWiki();
+    void reportBug();
+    void showWikiForSelectedItem();
 
     void centerImpl();
     void centerDefinition();
@@ -192,13 +203,19 @@ public slots:
     void popupSelection();
     void popupItem(int ID);
 
+    void aboutQt();
+    void aboutMEDEA();
 
     void cut();
     void copy();
     void paste();
     void replicate();
     void deleteSelection();
-    void renameActiveSelection();
+
+    void editLabel();
+    void editReplicationCount();
+
+    void setReplicationCount();
 
     void constructDDSQOSProfile();
     void requestSearchSuggestions();
@@ -213,10 +230,12 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+    void _showGitHubPage(QString relURL="");
     QString getTempFileForModel();
     void spawnSubView(ViewItem *item );
     bool destructViewItem(ViewItem* item);
     QList<ViewItem*> getViewItems(QList<int> IDs);
+    ViewItem* getActiveSelectedItem() const;
 
     QList<NodeViewNew*> getNodeViewsContainingID(int ID);
 

@@ -1,7 +1,7 @@
 #include "nodeviewitemaction.h"
 #include "../View/theme.h"
 
-NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):RootAction("TEST")
+NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):RootAction("NodeItem", "")
 {
     nodeViewItem = item;
     //Register.
@@ -28,8 +28,6 @@ void NodeViewItemAction::setParentNodeViewItemAction(NodeViewItemAction *item)
 NodeViewItemAction::~NodeViewItemAction()
 {
     //Unregister
-    disconnect(nodeViewItem, SIGNAL(iconChanged()), this, SLOT(iconChanged()));
-    disconnect(nodeViewItem, SIGNAL(labelChanged(QString)), this, SLOT(labelChanged(QString)));
     nodeViewItem->unregisterObject(this);
 }
 

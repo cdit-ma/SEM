@@ -51,7 +51,6 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
     // update the keys toolbar/buttons's size
     keysToolBar->setMinimumHeight(keysToolBar->sizeHint().height() + 10);
-    //themeChanged();
 }
 
 
@@ -67,15 +66,13 @@ void SearchDialog::themeChanged()
                          "color:" + theme->getTextColorHex() + ";"
                          "}";
 
-    setStyleSheet("QDialog{ background:" + theme->getBackgroundColorHex() + "; }"
+    setStyleSheet("QDialog{background:" + theme->getBackgroundColorHex() + ";}"
                   "QFrame{ background:" + theme->getBackgroundColorHex() + "; }"
                   "QScrollArea {"
                   "background: rgba(0,0,0,0);"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "}"
-                  + theme->getComboBoxStyleSheet()
-                  + theme->getSplitterStyleSheet()
-                  + labelStyle);
+                  + theme->getComboBoxStyleSheet());
 
     keysToolBar->setStyleSheet("QToolBar {"
                                "padding: 0px;"
@@ -91,8 +88,12 @@ void SearchDialog::themeChanged()
                                "}");
 
     //searchButton->setIcon(theme->getIcon("Actions", "Search"));
-    queryLabel->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
+    displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
+
     infoLabel->setStyleSheet(labelStyle);
+    searchLabel->setStyleSheet(labelStyle);
+    scopeLabel->setStyleSheet(labelStyle);
+    queryLabel->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
 }
 
 
@@ -112,11 +113,11 @@ void SearchDialog::keyButtonChecked(bool checked)
 /**
  * @brief SearchDialog::viewItemDestructed
  */
-void SearchDialog::viewItemDestructed()
+void SearchDialog::viewItemDestructed(int ID)
 {
-    ViewItem* item = qobject_cast<ViewItem*>(sender());
-    if (item) {
-        SearchItemWidget* widget = searchItems.take(item);
+    SearchItemWidget* widget = searchItems.value(ID, 0);
+    if (widget) {
+        searchItems.take(ID);
         widget->deleteLater();
     }
 }
@@ -127,7 +128,7 @@ void SearchDialog::viewItemDestructed()
  */
 void SearchDialog::setupLayout()
 {
-    QLabel* searchLabel = new QLabel("Search: ", this);
+    searchLabel = new QLabel("Search: ", this);
     scopeLabel = new QLabel("Scope:", this);
     queryLabel = new QLabel("Searched string Searched string Searched string", this);
 
@@ -137,12 +138,6 @@ void SearchDialog::setupLayout()
     labelFont.setPointSize(10);
     queryLabel->setFont(labelFont);
     queryLabel->setWordWrap(true);
-
-    QHBoxLayout* labelLayout = new QHBoxLayout();
-    labelLayout->setMargin(0);
-    labelLayout->setSpacing(2);
-    labelLayout->addWidget(searchLabel);
-    labelLayout->addWidget(queryLabel, 1);
 
     int fieldHeight = 25;
 
@@ -161,12 +156,6 @@ void SearchDialog::setupLayout()
     scopeComboBox->addItem("Behaviour");
     scopeComboBox->addItem("Assemblies");
     scopeComboBox->addItem("Hardware");
-
-    QHBoxLayout* labelLayout2 = new QHBoxLayout();
-    labelLayout2->setMargin(0);
-    labelLayout2->setSpacing(2);
-    labelLayout2->addWidget(scopeLabel);
-    labelLayout2->addWidget(scopeComboBox);
 
     keysToolBar = new QToolBar(this);
     keysToolBar->setOrientation(Qt::Vertical);
@@ -192,12 +181,24 @@ void SearchDialog::setupLayout()
     displayArea->setWidget(displayWidget);
     displayArea->setWidgetResizable(true);
 
-    QSplitter* displaySplitter = new QSplitter(this);
+    displaySplitter = new QSplitter(this);
     displaySplitter->addWidget(keysArea);
     displaySplitter->addWidget(displayArea);
     displaySplitter->setStretchFactor(0, 0);
     displaySplitter->setStretchFactor(1, 1);
     displaySplitter->setSizes(QList<int>() << DEFAULT_KEY_WIDTH << DEFAULT_DISPLAY_WIDTH);
+
+    QHBoxLayout* labelLayout = new QHBoxLayout();
+    labelLayout->setMargin(0);
+    labelLayout->setSpacing(2);
+    labelLayout->addWidget(searchLabel);
+    labelLayout->addWidget(queryLabel, 1);
+
+    QHBoxLayout* labelLayout2 = new QHBoxLayout();
+    labelLayout2->setMargin(0);
+    labelLayout2->setSpacing(2);
+    labelLayout2->addWidget(scopeLabel);
+    labelLayout2->addWidget(scopeComboBox);
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     hLayout->setMargin(0);
@@ -210,7 +211,6 @@ void SearchDialog::setupLayout()
     mainLayout->setMargin(10);
     mainLayout->setSpacing(5);
     mainLayout->addLayout(hLayout);
-    mainLayout->addLayout(labelLayout);
     mainLayout->addSpacerItem(new QSpacerItem(0, 5));
     mainLayout->addWidget(displaySplitter, 1);
 
@@ -250,17 +250,23 @@ void SearchDialog::clear()
  */
 SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
 {
-    if (searchItems.contains(item)) {
-        return searchItems.value(item);
+    if(!item){
+        return 0;
+    }
+    int ID = item->getID();
+    if (searchItems.contains(ID)) {
+        return searchItems.value(ID);
     }
 
     SearchItemWidget* itemWidget = new SearchItemWidget(item, this);
     resultsLayout->addWidget(itemWidget);
-    searchItems[item] = itemWidget;
+    searchItems.insert(ID, itemWidget);
 
     if (item) {
-        connect(item, SIGNAL(destructing()), this, SLOT(viewItemDestructed()));
+        connect(item, &ViewItem::destructing, this, &SearchDialog::viewItemDestructed);
+
         connect(this, SIGNAL(keyButtonChecked(QString)), itemWidget, SLOT(toggleKeyWidget(QString)));
+
         connect(itemWidget, SIGNAL(centerOnViewItem(int)), this, SIGNAL(centerOnViewItem(int)));
         connect(itemWidget, SIGNAL(popupViewItem(int)), this, SIGNAL(popupViewItem(int)));
         connect(itemWidget, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));

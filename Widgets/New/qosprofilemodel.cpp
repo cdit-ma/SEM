@@ -40,7 +40,7 @@ void QOSProfileModel::viewItem_Constructed(ViewItem *viewItem)
     }
 }
 
-void QOSProfileModel::viewItem_Destructed(int ID, ViewItem *viewItem)
+void QOSProfileModel::viewItem_Destructed(int ID, ViewItem *)
 {
     if(modelItems.contains(ID)){
         QOSModelItem* modelItem = modelItems[ID];

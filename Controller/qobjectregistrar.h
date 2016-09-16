@@ -10,12 +10,10 @@ public:
     QObjectRegistrar(QObject *parent = 0);
 
     void registerObject(QObject* object);
-    void unregisterObject(QObject* object);
     bool hasRegisteredObjects();
+    void unregisterObject(QObject* object);
 signals:
     void lastRegisteredObjectRemoved();
-private slots:
-    void unregisterObject();
 private:
     void _registerObject(QObject* object);
     void _unregisterObject(QObject* object);

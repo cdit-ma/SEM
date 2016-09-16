@@ -80,7 +80,7 @@ void ToolbarWidgetNew::themeChanged()
     connectAction->setIcon(theme->getIcon("Actions", "ConnectTo"));
     disconnectAction->setIcon(theme->getIcon("Actions", "Info"));
     //hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
-    instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
+    //instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
 
     //applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
@@ -249,6 +249,26 @@ void ToolbarWidgetNew::addEdge(QAction *action)
 
 
 /**
+ * @brief ToolbarWidgetNew::removeEdge
+ * @param action
+ */
+void ToolbarWidgetNew::removeEdge(QAction *action)
+{
+    // ignore information actions
+    if (!toolbarController || action->property("action-type") == "info") {
+        return;
+    }
+    QString kind = action->property("parent-kind").toString();
+    qDebug() << "remove edge: " << kind;
+    /*
+    Edge::EDGE_KIND edgeKind = Edge::getEdgeKind(kind);
+    int ID = action->property("ID").toInt();
+    toolbarController->addEdge(ID, edgeKind);
+    */
+}
+
+
+/**
  * @brief ToolbarWidgetNew::setupToolbar
  */
 void ToolbarWidgetNew::setupToolbar()
@@ -284,17 +304,19 @@ void ToolbarWidgetNew::setupActions()
     }*/
 
     foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
-        QAction* action = toolbarController->getEdgeActionOfKind(edgeKind)->constructSubAction(true);
-        action->setProperty("kind", Edge::getKind(edgeKind));
-        connectGroup->addAction(action);
-        disconnectGroup->addAction(action);
+        QAction* cAction = toolbarController->getEdgeActionOfKind(edgeKind)->constructSubAction(true);
+        //QAction* dAction = toolbarController->getExistingEdgeActionsOfKind(edgeKind)->constructSubAction(true);
+        cAction->setProperty("kind", Edge::getKind(edgeKind));
+        //dAction->setProperty("kind", Edge::getKind(edgeKind));
+        connectGroup->addAction(cAction);
+        //disconnectGroup->addAction(dAction);
     }
 
     mainGroup = new ActionGroup(this);
     addChildAction = mainGroup->addAction(toolbarController->getAdoptableKindsAction(true));
     mainGroup->addAction(actionController->getRootAction("Delete")->constructSubAction(true));
     connectAction = mainGroup->addAction(connectGroup->getGroupVisibilityAction()->constructSubAction(true));
-    disconnectAction = mainGroup->addAction(connectGroup->getGroupVisibilityAction()->constructSubAction(true));
+    disconnectAction = mainGroup->addAction(disconnectGroup->getGroupVisibilityAction()->constructSubAction(true));
     //hardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_CONNECT", true));
     //disconnectHardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_DISCONNECT", true));
     mainGroup->addSeperator();
@@ -309,10 +331,10 @@ void ToolbarWidgetNew::setupActions()
     mainGroup->addSeperator();
     definitionAction = mainGroup->addAction(actionController->view_centerOnDefn->constructSubAction(true));
     implementationAction = mainGroup->addAction(actionController->view_centerOnImpl->constructSubAction(true));
-    instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
+    //instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
     mainGroup->addSeperator();
     hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
-    mainGroup->addAction(actionController->toolbar_replicateCount);
+    mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     //replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
@@ -320,11 +342,11 @@ void ToolbarWidgetNew::setupActions()
     connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
     mainGroup->addAction(actionController->model_getCodeForComponent->constructSubAction(true));
     mainGroup->addAction(actionController->view_viewInNewWindow->constructSubAction(true));
-    mainGroup->addAction(actionController->help_wiki->constructSubAction(true));
+    mainGroup->addAction(actionController->toolbar_wiki->constructSubAction(true));
 
     //hardwareAction->setVisible(false);
     //disconnectHardwareAction->setVisible(false);
-    instancesAction->setVisible(false);
+    //instancesAction->setVisible(false);
     hardwareViewOptionAction->setVisible(false);
 
     // this needs to be called before the actions are added to the toolbar for the split buttons to work
@@ -334,6 +356,7 @@ void ToolbarWidgetNew::setupActions()
     // update the tooltips for certain actions
     addChildAction->setToolTip("Add Child Entity");
     connectAction->setToolTip("Connect Selection");
+    disconnectAction->setToolTip("Disconnect Selection");
     //hardwareAction->setToolTip("Deploy Selection");
 }
 
@@ -345,6 +368,7 @@ void ToolbarWidgetNew::setupMenus()
 {
     setupAddChildMenu();
     setupConnectMenu();
+    setupDisconnectMenu();
     setupReplicateCountMenu();
     setupHardwareViewOptionMenu();
 
@@ -451,9 +475,9 @@ void ToolbarWidgetNew::setupConnectMenu()
 
 
 /**
- * @brief ToolbarWidgetNew::setupDiconnectMenu
+ * @brief ToolbarWidgetNew::setupDisconnectMenu
  */
-void ToolbarWidgetNew::setupDiconnectMenu()
+void ToolbarWidgetNew::setupDisconnectMenu()
 {
     disconnectMenu = constructTopMenu(disconnectAction);
 
@@ -543,6 +567,7 @@ void ToolbarWidgetNew::setupConnections()
 
     connect(addMenu, SIGNAL(triggered(QAction*)), this, SLOT(addChildNode(QAction*)));
     connect(connectMenu, SIGNAL(triggered(QAction*)), this, SLOT(addEdge(QAction*)));
+    connect(disconnectMenu, SIGNAL(triggered(QAction*)), this, SLOT(addEdge(QAction*)));
 }
 
 

@@ -444,7 +444,7 @@ void EdgeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 QPointF EdgeItemNew::getTopLeftOffset() const
 {
-    return centerRect().center();
+    return QPointF(10,10);//centerRect().center();
 }
 
 QPainterPath EdgeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const

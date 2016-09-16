@@ -25,9 +25,9 @@ public:
     NodeViewItemAction* getNodeAction(int ID);
 
     QList<QAction*> getNodeActionsOfKind(QString kind, bool stealth);
-    QAction* getNodeActionOfKind(QString kind, bool stealth);
 
     QList<NodeViewItemAction*> getEdgeActionsOfKind(Edge::EDGE_KIND kind);
+    QList<NodeViewItemAction*> getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind);
 
     RootAction* getEdgeActionOfKind(Edge::EDGE_KIND kind);
 
@@ -37,11 +37,6 @@ public:
     QList<QAction*> getConnectedNodesActions(bool stealth);
     QAction* getConnectedNodesAction(bool stealth);
 
-    QList<QAction*> getHardwareActions(bool stealth);
-    QAction* getHardwareAction(bool stealth);
-
-    QList<QAction*> getInstancesActions(bool stealth);
-    QAction* getInstancesAction(bool stealth);
 
     QAction* getToolAction(QString hashKey, bool stealth);
 
@@ -66,7 +61,7 @@ public slots:
 private slots:
     void themeChanged();
     void viewItem_Constructed(ViewItem* viewItem);
-    void viewItem_Destructed(int ID, ViewItem* viewItem);
+    void viewItem_Destructed(int ID, ViewItem*);
 
     void selectionChanged(int selected);
     void actionFinished();

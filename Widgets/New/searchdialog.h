@@ -10,6 +10,7 @@
 #include <QComboBox>
 #include <QVBoxLayout>
 #include <QActionGroup>
+#include <QSplitter>
 
 #include "../../View/viewitem.h"
 #include "searchitemwidget.h"
@@ -32,7 +33,7 @@ signals:
 public slots:
     void themeChanged();
     void keyButtonChecked(bool checked);
-    void viewItemDestructed();
+    void viewItemDestructed(int ID);
 
 private:
     void setupLayout();
@@ -42,8 +43,10 @@ private:
     void constructKeyButton(QString key, QString text = "", bool checked = false);
 
     QLabel* queryLabel;
+    QLabel* searchLabel;
     QLabel* scopeLabel;
     QLabel* infoLabel;
+    QSplitter* displaySplitter;
 
     QLineEdit* searchLineEdit;
     QToolButton* searchButton;
@@ -54,7 +57,7 @@ private:
     QActionGroup* keysActionGroup;
 
     QVBoxLayout* resultsLayout;
-    QHash<ViewItem*, SearchItemWidget*> searchItems;
+    QHash<int, SearchItemWidget*> searchItems;
 };
 
 #endif // SEARCHDIALOG_H

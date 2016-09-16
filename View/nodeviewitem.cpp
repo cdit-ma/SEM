@@ -59,6 +59,7 @@ void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
     if(edge){
         Edge::EDGE_KIND kind = edge->getEdgeKind();
         if(!edges.contains(kind, edge)){
+            //this->registerObject(edge);
             edges.insertMulti(kind, edge);
             emit edgeAdded(kind);
         }
@@ -71,7 +72,9 @@ void NodeViewItem::removeEdgeItem(EdgeViewItem *edge)
         Edge::EDGE_KIND kind = edge->getEdgeKind();
         if(edges.contains(kind, edge)){
             edges.remove(kind, edge);
+            //this->unregisterObject(edge);
             emit edgeRemoved(kind);
+            //edge-edge->registerObject(this);
         }
     }
 }
@@ -108,6 +111,9 @@ QString NodeViewItem::getTreeIndex()
 
 bool NodeViewItem::isAncestorOf(NodeViewItem *item)
 {
+	if(!item){
+		return false;
+	}
     QString thisTree = getTreeIndex();
     QString thatTree = item->getTreeIndex();
 

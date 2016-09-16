@@ -42,7 +42,7 @@ private:
     void setupSplitMenus();
     void setupAddChildMenu();
     void setupConnectMenu();
-    void setupDiconnectMenu();
+    void setupDisconnectMenu();
     void setupReplicateCountMenu();
     void setupHardwareViewOptionMenu();
     void setupInstancesMenu();
@@ -86,7 +86,7 @@ private:
     QAction* disconnectHardwareAction;
     QAction* definitionAction;
     QAction* implementationAction;
-    QAction* instancesAction;
+    //QAction* instancesAction;
     QAction* connectionsAction;
     QAction* hardwareViewOptionAction;
 
