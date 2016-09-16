@@ -2,6 +2,7 @@
 #include "../theme.h"
 #include <QPainter>
 #include <QDebug>
+#include "nodeitemnew.h"
 
 
 EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind)
@@ -27,7 +28,6 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     _isMoving = false;
     _isMouseMoving = false;
     _hasMouseMoved = false;
-    _hasMoved = false;
     _isHighlighted = false;
     ignorePosition = false;
 
@@ -56,6 +56,11 @@ EntityItemNew::~EntityItemNew()
     disconnectViewItem();
 }
 
+int EntityItemNew::type() const
+{
+    return ENTITY_ITEM_KIND;
+}
+
 EntityItemNew::RENDER_STATE EntityItemNew::getRenderState(qreal lod) const
 {
     if(lod >= 1.0){
@@ -78,6 +83,14 @@ VIEW_STATE EntityItemNew::getViewState() const
 EntityItemNew *EntityItemNew::getParent() const
 {
     return parentItem;
+}
+
+NodeItemNew *EntityItemNew::getParentNodeItem() const
+{
+    if(parentItem && parentItem->isNodeItem()){
+        return (NodeItemNew*) parentItem;
+    }
+    return 0;
 }
 
 void EntityItemNew::unsetParent()
@@ -104,9 +117,14 @@ ViewItem *EntityItemNew::getViewItem() const
 void EntityItemNew::setPos(const QPointF &pos)
 {
     if(pos != getPos()){
-       QGraphicsObject::setPos(pos - getTopLeftOffset());
-       emit positionChanged();
-       emit scenePosChanged();
+        QPointF deltaPos = pos - this->getPos();
+        deltaPos = validateMove(deltaPos);
+        if(!deltaPos.isNull()){
+            QPointF newPos = getPos() + deltaPos;
+            QGraphicsObject::setPos(newPos - getTopLeftOffset());
+            emit positionChanged();
+            emit scenePosChanged();
+        }
     }
 }
 
@@ -145,21 +163,24 @@ void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELE
         //Calculate the required size of the image.
         QSize requiredSize = getPixmapSize(imageRect, lod);
 
-        if(state == RS_BLOCK){
+        if(state == RS_BLOCK || requiredSize.width() <=4){
             paintPixmapRect(painter, imageAlias, imageName, imageRect);
         }else{
-            //Get the current Image from the Map
-            QPixmap image = imageMap[pos];
-
+            ImageMap image = imageMap[pos];
 
             //If the image size is different to what is cached, we should Update, or we have been told to update.
-            if(image.size() != requiredSize || update){
-                image = getPixmap(imageAlias, imageName, requiredSize, tintColor);
+            if(update || image.imageSize != requiredSize || image.imageAlias != imageAlias || image.imageName != imageName || image.pixmap.isNull()){
+                image.pixmap = getPixmap(imageAlias, imageName, requiredSize, tintColor);
+                image.imageAlias = imageAlias;
+                image.imageName = imageName;
+                image.imageSize = requiredSize;
+
                 //Store the image into the map.
                 imageMap[pos] = image;
             }
+
             //Paint Pixmap
-            paintPixmap(painter, imageRect, image);
+            paintPixmap(painter, imageRect, image.pixmap);
         }
     }
 }
@@ -182,6 +203,11 @@ void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, 
 {
 
     paintPixmap(painter, lod, imageRect, image.first, image.second, tintColor);
+}
+
+void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor)
+{
+    paintPixmap(painter, lod, pos, image.first, image.second, tintColor);
 }
 
 void EntityItemNew::setTooltip(EntityItemNew::ELEMENT_RECT rect, QString tooltip, QCursor cursor)
@@ -290,7 +316,8 @@ QPixmap EntityItemNew::getPixmap(QString imageAlias, QString imageName, QSize re
 QRectF EntityItemNew::translatedBoundingRect() const
 {
     QRectF rect = boundingRect();
-    rect.translate(getPos());
+    //we should use the bounding rect coordinates!
+    rect.translate(pos());
     return rect;
 }
 
@@ -341,11 +368,6 @@ void EntityItemNew::reloadRequiredData()
     }
 }
 
-QRectF EntityItemNew::sceneBoundingRect() const
-{
-    return QGraphicsObject::sceneBoundingRect();
-}
-
 QRectF EntityItemNew::viewRect() const
 {
     return boundingRect();
@@ -376,11 +398,6 @@ QPainterPath EntityItemNew::sceneShape() const
     return mapToScene(shape());
 }
 
-bool EntityItemNew::hasBeenMoved() const
-{
-    return _hasMoved;
-}
-
 void EntityItemNew::setIgnorePosition(bool ignore)
 {
     ignorePosition = ignore;
@@ -398,11 +415,40 @@ bool EntityItemNew::isIgnoringPosition()
     return ignorePosition;
 }
 
+void EntityItemNew::dataChanged(QString keyName, QVariant data)
+{
+    if(getRequiredDataKeys().contains(keyName)){
+        if(keyName == "x" || keyName == "y"){
+            qreal realData = data.toReal();
+            QPointF oldPos = getPos();
+            QPointF newPos = oldPos;
+
+            if(keyName == "x"){
+                newPos.setX(realData);
+            }else if(keyName == "y"){
+                newPos.setY(realData);
+            }
+
+            if(newPos != oldPos){
+                setPos(newPos);
+                setPos(getNearestGridPoint());
+            }
+        }
+    }
+}
+
+void EntityItemNew::propertyChanged(QString propertyName, QVariant data)
+{
+
+}
+
+void EntityItemNew::dataRemoved(QString keyName)
+{
+
+}
+
 void EntityItemNew::adjustPos(QPointF delta)
 {
-    if(!delta.isNull()){
-        _hasMoved = true;
-    }
     setPos(getPos() + delta);
 }
 
@@ -411,8 +457,27 @@ QPointF EntityItemNew::getPos() const
     return pos() + getTopLeftOffset();
 }
 
-QPointF EntityItemNew::validateAdjustPos(QPointF delta)
+QPointF EntityItemNew::getTopLeftOffset() const{
+    return QPointF();
+}
+
+QPointF EntityItemNew::validateMove(QPointF delta)
 {
+    if(getParentNodeItem()){
+        QPointF adjustedPos = getPos() + delta;
+        QPointF minPos = getParentNodeItem()->gridRect().topLeft();
+
+        //Minimize on the minimum position this item can go.
+        if(adjustedPos.x() < minPos.x()){
+            adjustedPos.rx() = minPos.x();
+        }
+        if(adjustedPos.y() < minPos.y()){
+            adjustedPos.ry() = minPos.y();
+        }
+
+        //Offset by the pos() to get the restricted delta.
+        delta = adjustedPos - getPos();
+    }
     return delta;
 }
 
@@ -495,11 +560,16 @@ void EntityItemNew::setSelectionEnabled(bool enabled)
     selectEnabled = enabled;
 }
 
-void EntityItemNew::setMoving(bool moving)
+void EntityItemNew::setMoveStarted()
 {
-    _hasMoved = false;
-    _isMoving = moving;
-    //TODO STUFF WITH PARENT.
+    positionPreMove = getPos();
+    _isMoving = true;
+}
+
+bool EntityItemNew::setMoveFinished()
+{
+    _isMoving = false;
+    return getPos() != positionPreMove;
 }
 
 void EntityItemNew::setHoverEnabled(bool enabled)
@@ -542,8 +612,6 @@ void EntityItemNew::connectViewItem(ViewItem *viewItem)
     connect(viewItem, &ViewItem::dataChanged, this, &EntityItemNew::dataChanged);
     connect(viewItem, &ViewItem::dataRemoved, this, &EntityItemNew::dataRemoved);
     connect(viewItem, &ViewItem::propertyChanged, this, &EntityItemNew::propertyChanged);
-
-    connect(viewItem, &ViewItem::destructing, this, &EntityItemNew::deleteLater);
 }
 
 void EntityItemNew::disconnectViewItem()
@@ -552,8 +620,6 @@ void EntityItemNew::disconnectViewItem()
         disconnect(viewItem, &ViewItem::dataAdded, this, &EntityItemNew::dataChanged);
         disconnect(viewItem, &ViewItem::dataChanged, this, &EntityItemNew::dataChanged);
         disconnect(viewItem, &ViewItem::dataRemoved, this, &EntityItemNew::dataRemoved);
-        disconnect(viewItem, &ViewItem::destructing, this, &EntityItemNew::deleteLater);
-
         viewItem->unregisterObject(this);
         viewItem = 0;
     }
@@ -591,12 +657,12 @@ void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(_isMouseMoving){
         if(!_hasMouseMoved){
-            emit req_adjustingPos(true);
+            emit req_StartMove();
             _hasMouseMoved = true;
         }
         QPointF deltaPos = event->scenePos() - previousMovePoint;
         previousMovePoint = event->scenePos();
-        emit req_adjustPos(deltaPos);
+        emit req_Move(deltaPos);
     }
 }
 
@@ -604,7 +670,7 @@ void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if(_isMouseMoving){
         _isMouseMoving = false;
-        emit req_adjustingPos(false);
+        emit req_FinishMove();
     }
 }
 
@@ -762,17 +828,17 @@ QPair<QString, QString> EntityItemNew::getIconPath()
     return QPair<QString, QString>();
 }
 
-QPointF EntityItemNew::getNearestGridPoint()
+QPointF EntityItemNew::getNearestGridPoint(QPointF newPos)
 {
+    if(newPos.isNull()){
+        newPos = getPos();
+    }
     qreal gridSize = getGridSize();
-    //QPointF point = getSceneCenter();
-    //getSceneCenter
-    QPointF point = mapToScene(mapFromParent(getPos()));
+    QPointF point = mapToScene(mapFromParent(newPos));
     qreal closestX = qRound(point.x() / gridSize) * gridSize;
     qreal closestY = qRound(point.y() / gridSize) * gridSize;
     QPointF delta = QPointF(closestX, closestY) - point;
-    //return getCenter() + delta;
-    return getPos() + delta;
+    return newPos + delta;
 }
 
 void EntityItemNew::destruct()
@@ -865,6 +931,7 @@ void EntityItemNew::setExpandEnabled(bool enabled)
             addRequiredData("isExpanded");
         }else{
             removeRequiredData("isExpanded");
+            setExpanded(false);
         }
         expandEnabled = enabled;
     }

@@ -28,7 +28,10 @@ DockWidgetParentActionItem::DockWidgetParentActionItem(QAction *action, QWidget 
     setFixedHeight(ITEM_HEIGHT);
 
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
-    connect(action, SIGNAL(destroyed(QObject*)), this, SLOT(deleteLater()));
+
+    //This can't be done, you are caching your items in a hash a level up.
+    //This will keep a pointer to the item, even though it's been deleted...
+    //connect(action, SIGNAL(destroyed(QObject*)), this, SLOT(deleteLater()));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(this, SIGNAL(toggled(bool)), SLOT(setChildrenVisible(bool)));
 
@@ -136,7 +139,7 @@ void DockWidgetParentActionItem::actionChanged()
 void DockWidgetParentActionItem::themeChanged()
 {
     Theme* theme = Theme::theme();
-    QColor altColor = theme->getAltBackgroundColor().darker(120);
+    QColor altColor = theme->getAltBackgroundColor().darker(110);
 
     setIcon(theme->getIcon("Actions", "Arrow_Down"));
     setStyleSheet("QToolButton {"

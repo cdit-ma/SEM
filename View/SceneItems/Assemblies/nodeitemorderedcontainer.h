@@ -23,6 +23,8 @@ public:
 
 private:
     QRectF headerRect() const;
+    QRectF connectRect() const;
+    QRectF edgeKindRect() const;
     QRectF innerHeaderRect() const;
 
     QRectF headerTextRect() const;

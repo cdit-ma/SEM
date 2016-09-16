@@ -37,6 +37,8 @@ public slots:
     void themeChanged();
     void dockActionClicked();
 
+    void highlightItem(int ID = -1);
+
     void viewItemConstructed(int ID);
     void viewItemDestructed(int ID);
 
@@ -56,9 +58,13 @@ private:
     QLabel* infoLabel;
     bool containsHeader;
 
+    DockWidgetActionItem* prevHighlightedItem;
+    int prevHighlightedItemID;
+
     // these lists store the widgets in the main layout
     QList<DockWidgetItem*> childrenItems;
-    QHash<int, DockWidgetItem*> childrenIDHash;
+    QHash<int, DockWidgetActionItem*> actionItemIDHash;
+    QHash<int, DockWidgetParentActionItem*> parentActionItemIDHash;
 
     QList<QToolBar*> itemToolbars;
     QHash<DockWidgetItem*, QToolBar*> itemToolbarHash;

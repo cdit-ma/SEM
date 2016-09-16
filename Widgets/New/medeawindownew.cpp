@@ -12,6 +12,7 @@ int MedeaWindowNew::_WindowID = 0;
 
 MedeaWindowNew::MedeaWindowNew(QWidget *parent, MedeaWindowNew::WindowType type):QMainWindow(parent)
 {
+    terminating = false;
     ID = ++_WindowID;
     windowType = type;
 
@@ -35,21 +36,8 @@ MedeaWindowNew::MedeaWindowNew(QWidget *parent, MedeaWindowNew::WindowType type)
 
 MedeaWindowNew::~MedeaWindowNew()
 {
-    //Unset Original flag on all owned DockWidgets.
-    while(!ownedDockWidgets.isEmpty()){
-        MedeaDockWidget* dockWidget = ownedDockWidgets.takeFirst();
-        dockWidget->setSourceWindow(0);
-    }
-
-    //Clean up current dock widget.
-    while(!currentDockWidgets.isEmpty()){
-        int ID = currentDockWidgets.keys().first();
-        MedeaDockWidget* dockWidget = currentDockWidgets.take(ID);
-        if(dockWidget){
-            //This should cause MedeaWindowManager to shutdown the widget.
-            dockWidget->close();
-        }
-    }
+    terminating = true;
+    removeAllDockWidgets();
 }
 
 bool MedeaWindowNew::hasDockWidgets()
@@ -93,6 +81,7 @@ void MedeaWindowNew::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget,
                 dockWidget->setSourceWindow(this);
                 ownedDockWidgets.append(dockWidget);
             }
+
             dockWidget->setCurrentWindow(this);
             currentDockWidgets.insert(ID, dockWidget);
             updateActions();
@@ -114,8 +103,6 @@ void MedeaWindowNew::removeDockWidget(QDockWidget *widget)
         int ID = dockWidget->getID();
         if(currentDockWidgets.contains(ID)){
             currentDockWidgets.remove(ID);
-            //Unset current window
-            dockWidget->setCurrentWindow(0);
         }
         previouslyVisibleDockIDs.removeAll(ID);
         updateActions();
@@ -126,7 +113,7 @@ void MedeaWindowNew::removeDockWidget(QDockWidget *widget)
 
     QMainWindow::removeDockWidget(widget);
 
-    if(currentDockWidgets.isEmpty()){
+    if(!terminating && currentDockWidgets.isEmpty()){
         MedeaWindowManager::destructWindow(this);
     }
 }
@@ -135,6 +122,7 @@ void MedeaWindowNew::removeDockWidget(QDockWidget *widget)
 
 void MedeaWindowNew::closeEvent(QCloseEvent * event)
 {
+    removeAllDockWidgets();
     MedeaWindowManager::destructWindow(this);
 }
 
@@ -199,6 +187,25 @@ void MedeaWindowNew::setDockWidgetVisibility(int ID, bool visible)
         dw->setVisible(visible);
     }
     updateActions();
+}
+
+void MedeaWindowNew::removeAllDockWidgets()
+{
+    //Unset Original flag on all owned DockWidgets.
+    while(!ownedDockWidgets.isEmpty()){
+        MedeaDockWidget* dockWidget = ownedDockWidgets.takeFirst();
+        dockWidget->setSourceWindow(0);
+    }
+
+    //Clean up current dock widget.
+    foreach(int ID, currentDockWidgets.uniqueKeys()){
+        MedeaDockWidget* dockWidget = currentDockWidgets.take(ID);
+        if(dockWidget){
+            //This should cause MedeaWindowManager to shutdown the widget.
+            dockWidget->close();
+        }
+    }
+
 }
 
 void MedeaWindowNew::updateActions()

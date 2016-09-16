@@ -15,21 +15,39 @@
 #define DEFAULT_SIZE 80
 
 #define SELECTED_LINE_WIDTH 3
+
+struct ImageMap{
+    QPixmap pixmap;
+    QString imageAlias;
+    QString imageName;
+    QSizeF imageSize;
+};
+
+//Forward class definition
+class NodeItemNew;
+
 class EntityItemNew: public QGraphicsObject
 {
     Q_OBJECT
 
 public:
-    enum KIND{EDGE, NODE};
-    enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT_IN, ER_CONNECT_OUT, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE};
+    static const int ENTITY_ITEM_KIND = UserType + 1;
+    enum KIND{
+        EDGE,
+        NODE,
+    };
+    enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT, ER_CONNECT_ICON, ER_EDGE_KIND_ICON, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE};
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
     EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind);
     ~EntityItemNew();
+    int type() const;
 
     RENDER_STATE getRenderState(qreal lod) const;
     VIEW_STATE getViewState() const;
     EntityItemNew* getParent() const;
+    NodeItemNew* getParentNodeItem() const;
+
     void unsetParent();
     bool isTopLevelItem() const;
     bool isReadOnly() const;
@@ -53,11 +71,11 @@ public:
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor=QColor(), bool update=false);
     void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor=QColor());
     void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QPair<QString, QString> image, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor=QColor());
 
     void setTooltip(ELEMENT_RECT rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
 
     QRectF translatedBoundingRect() const;
-    virtual QRectF sceneBoundingRect() const;
     virtual QRectF boundingRect() const = 0;
     virtual QRectF currentRect() const = 0;
     virtual QRectF viewRect() const;
@@ -68,11 +86,10 @@ public:
     QPainterPath shape() const;
     QPainterPath sceneShape() const;
 
-    bool hasBeenMoved() const;
     void adjustPos(QPointF delta);
     virtual QPointF getPos() const;
 
-    virtual QPointF validateAdjustPos(QPointF delta);
+    QPointF validateMove(QPointF delta);
 
     bool intersectsRectInScene(QRectF rectInScene) const;
     bool isDataProtected(QString keyName) const;
@@ -85,7 +102,7 @@ public:
     void setDefaultPen(QPen pen);
     QPair<QString, QString> getIconPath();
 
-    QPointF getNearestGridPoint();
+    virtual QPointF getNearestGridPoint(QPointF newPos=QPointF());
 
     void setFontSize(int fontSize);
 
@@ -124,7 +141,8 @@ public:
     void setExpandEnabled(bool enabled);
     void setSelectionEnabled(bool enabled);
 
-    virtual void setMoving(bool moving);
+    virtual void setMoveStarted();
+    virtual bool setMoveFinished();
 
 public:
     //State Getters
@@ -137,7 +155,7 @@ public:
 
     int getGridSize() const;
     int getMajorGridCount() const;
-    virtual QPointF getTopLeftOffset() const = 0;
+    virtual QPointF getTopLeftOffset() const;
 
 public:
     //Feature State Getters
@@ -151,11 +169,14 @@ public:
 
 
 
-
+public slots:
+    virtual void dataChanged(QString keyName, QVariant data);
 signals:
     //Request changes
-    void req_adjustPos(QPointF delta);
-    void req_adjustingPos(bool adjusting);
+    void req_Move(QPointF delta);
+    void req_StartMove();
+    void req_FinishMove();
+
 
     //Request changes
     void req_selected(ViewItem*, bool);
@@ -176,9 +197,8 @@ signals:
     void positionChanged();
     void scenePosChanged();
 private slots:
-    virtual void dataChanged(QString keyName, QVariant data) = 0;
-    virtual void propertyChanged(QString propertyName, QVariant data) = 0;
-    virtual void dataRemoved(QString keyName) = 0;
+    virtual void propertyChanged(QString propertyName, QVariant data);
+    virtual void dataRemoved(QString keyName);
     void destruct();
 
 public:
@@ -201,7 +221,8 @@ private:
     ViewItem* viewItem;
     QStringList requiredDataKeys;
 
-    QHash<ELEMENT_RECT, QPixmap> imageMap;
+    QHash<ELEMENT_RECT, ImageMap> imageMap;
+
     QHash<ELEMENT_RECT, QString> tooltipMap;
     QHash<ELEMENT_RECT, QCursor> tooltipCursorMap;
 
@@ -218,7 +239,7 @@ private:
     bool _isActiveSelected;
     bool _isExpanded;
 
-    bool _hasMoved;
+    QPointF positionPreMove;
 
     bool _isMoving;
     bool _isMouseMoving;

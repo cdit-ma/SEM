@@ -16,6 +16,10 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     dockAction = action;
     theme = 0;
 
+    backgroundColorHex = "rgba(0,0,0,0)";
+    colorHex = Theme::theme()->getTextColorHex();
+    highlighted = false;
+
     dockActionID = -1;
     if (action) {
         dockActionID = action->property("ID").toInt();
@@ -29,7 +33,9 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     updateDisplayedText(getDisplayedText());
 
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
-    connect(action, SIGNAL(destroyed(QObject*)), this, SLOT(deleteLater()));
+    //This can't be done, you are caching your items in a hash a level up.
+    //This will keep a pointer to the item, even though it's been deleted...
+    //connect(action, SIGNAL(destroyed(QObject*)), this, SLOT(deleteLater()));
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(this, SIGNAL(displayedTextChanged(QString)), SLOT(updateDisplayedText(QString)));
 
@@ -110,6 +116,24 @@ QVariant DockWidgetActionItem::getProperty(const char *name)
 
 
 /**
+ * @brief DockWidgetActionItem::highlightItem
+ * @param highlight
+ */
+void DockWidgetActionItem::highlightItem(bool highlight)
+{
+    if (highlight) {
+        backgroundColorHex = Theme::theme()->getHighlightColorHex();
+        colorHex = Theme::theme()->getTextColorHex(Theme::CR_SELECTED);
+    } else {
+        backgroundColorHex = "rgba(0,0,0,0)";
+        colorHex = Theme::theme()->getTextColorHex();
+    }
+    highlighted = highlight;
+    updateStyleSheet();
+}
+
+
+/**
  * @brief DockWidgetActionItem::actionChanged
  */
 void DockWidgetActionItem::actionChanged()
@@ -136,9 +160,8 @@ void DockWidgetActionItem::actionChanged()
 void DockWidgetActionItem::themeChanged()
 {
     theme = Theme::theme();
-    setStyleSheet("QToolButton:!hover{ background: rgba(0,0,0,0); border: 0px; }");
-    textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
     arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
+    highlightItem(highlighted);
 }
 
 
@@ -174,7 +197,7 @@ void DockWidgetActionItem::enterEvent(QEvent* event)
 void DockWidgetActionItem::leaveEvent(QEvent* event)
 {
     if (theme) {
-        textLabel->setStyleSheet("color:" + theme->getTextColorHex() + ";");
+        textLabel->setStyleSheet("color:" + colorHex + ";");
         arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(28,28), theme->getTextColor()));
     }
     emit hoverLeave(dockActionID);
@@ -218,4 +241,14 @@ void DockWidgetActionItem::setupLayout()
     setContentsMargins(margin, margin, margin, margin + 2);
     setMinimumSize(MIN_BUTTON_WIDTH, MIN_BUTTON_HEIGHT);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+}
+
+
+/**
+ * @brief DockWidgetActionItem::updateStyleSheet
+ */
+void DockWidgetActionItem::updateStyleSheet()
+{
+    setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border: 0px; }");
+    textLabel->setStyleSheet("color:" + colorHex + ";");
 }

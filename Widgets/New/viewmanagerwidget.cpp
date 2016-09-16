@@ -122,6 +122,12 @@ WindowItem::WindowItem(ViewManagerWidget *manager, MedeaWindowNew *window)
     connect(window, &MedeaWindowNew::dockWidgetAdded, this, &WindowItem::dockWidgetAdded);
 }
 
+WindowItem::~WindowItem()
+{
+    //Unset all items.
+
+}
+
 
 
 void WindowItem::dockWidgetAdded(MedeaDockWidget *widget)

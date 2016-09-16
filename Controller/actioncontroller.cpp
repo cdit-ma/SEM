@@ -62,16 +62,31 @@ void ActionController::connectViewController(ViewController *controller)
         connect(view_fitView, &QAction::triggered, viewController, &ViewController::fitView);
         connect(view_fitAllViews, &QAction::triggered, viewController, &ViewController::fitAllViews);
 
+        connect(edit_alignHorizontal, &QAction::triggered, viewController, &ViewController::alignSelectionHorizontal);
+        connect(edit_alignVertical, &QAction::triggered, viewController, &ViewController::alignSelectionVertical);
+
 
         connect(view_centerOn, &QAction::triggered, viewController, &ViewController::centerSelection);
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
-        connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::renameActiveSelection);
+        connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::editLabel);
+        connect(toolbar_replicateCount, &QAction::triggered, viewController, &ViewController::editReplicationCount);
+
 
         connect(view_centerOnImpl, &QAction::triggered, viewController, &ViewController::centerImpl);
         connect(view_centerOnDefn, &QAction::triggered, viewController, &ViewController::centerDefinition);
         connect(view_viewDefnInNewWindow, &QAction::triggered, viewController, &ViewController::popupDefinition);
         connect(view_viewImplInNewWindow, &QAction::triggered, viewController, &ViewController::popupImpl);
         connect(view_viewInNewWindow, &QAction::triggered, viewController, &ViewController::popupSelection);
+        connect(view_viewConnections, &QAction::triggered, viewController, &ViewController::selectAndCenterConnectedEntities);
+
+
+        connect(toolbar_wiki, &QAction::triggered, viewController, &ViewController::showWikiForSelectedItem);
+        connect(help_wiki, &QAction::triggered, viewController, &ViewController::showWiki);
+        connect(help_reportBug, &QAction::triggered, viewController, &ViewController::reportBug);
+        connect(help_aboutQt, &QAction::triggered, viewController, &ViewController::aboutQt);
+        connect(help_aboutMedea, &QAction::triggered, viewController, &ViewController::aboutMEDEA);
+
+
 
         connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
 
@@ -82,6 +97,8 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(model_getCodeForComponent, &QAction::triggered, viewController, &ViewController::getCodeForComponent);
         connect(model_validateModel, &QAction::triggered, viewController, &ViewController::validateModel);
+        connect(model_selectModel, &QAction::triggered, viewController, &ViewController::selectModel);
+
 
         connect(model_executeLocalJob, &QAction::triggered, viewController, &ViewController::launchLocalDeployment);
         connect(file_importXME, &QAction::triggered, viewController, &ViewController::importXMEProject);
@@ -89,7 +106,9 @@ void ActionController::connectViewController(ViewController *controller)
         connect(file_importSnippet, &QAction::triggered, viewController, &ViewController::importSnippet);
         connect(file_exportSnippet, &QAction::triggered, viewController, &ViewController::exportSnippet);
 
+
         connect(file_recentProjects_clearHistory, &QAction::triggered, this, &ActionController::clearRecentProjects);
+
         connectSelectionController(controller->getSelectionController());
     }
 }
@@ -204,14 +223,17 @@ void ActionController::selectionChanged(int selectionSize)
         bool hasDefn = false;
         bool hasImpl = false;
         bool hasCode = false;
+        bool hasComponentAssembly = false;
 
         if(gotSingleSelection && singleItem && singleItem->isNode()){
             NodeViewItem* node = (NodeViewItem*) singleItem;
             hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
             hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
             hasCode = node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE || node->getNodeKind() == Node::NK_COMPONENT_IMPL;
+            hasComponentAssembly = node->getNodeKind() == Node::NK_COMPONENT_ASSEMBLY;
         }
 
+        toolbar_wiki->setEnabled(gotSelection);
         file_importSnippet->setEnabled(viewController->canImportSnippet());
         file_exportSnippet->setEnabled(viewController->canExportSnippet());
 
@@ -242,6 +264,8 @@ void ActionController::selectionChanged(int selectionSize)
         edit_CycleActiveSelectionForward->setEnabled(gotMultipleSelection);
         edit_CycleActiveSelectionBackward->setEnabled(gotMultipleSelection);
 
+        toolbar_replicateCount->setEnabled(hasComponentAssembly);
+
         view_fitView->setEnabled(modelActions);
         view_fitAllViews->setEnabled(modelActions);
 
@@ -250,7 +274,7 @@ void ActionController::selectionChanged(int selectionSize)
 
         view_viewInNewWindow->setEnabled(gotSingleSelection);
 
-        view_viewConnections->setEnabled(false);
+        view_viewConnections->setEnabled(gotSelection);
 
         edit_clearSelection->setEnabled(gotMultipleSelection);
         edit_selectAll->setEnabled(gotSingleSelection);
@@ -372,6 +396,7 @@ void ActionController::updateActions()
     edit_undo->setEnabled(modelActions);
     edit_redo->setEnabled(modelActions);
 
+    model_selectModel->setEnabled(modelActions);
     model_validateModel->setEnabled(modelActions);
     model_executeLocalJob->setEnabled(modelActions);
 
@@ -600,16 +625,19 @@ void ActionController::setupActions()
     view_viewDefnInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
 
 
-    view_viewConnections = createRootAction("View Connections", "", "Actions", "Connections");
-    view_viewInNewWindow = createRootAction("View In New Window", "", "Actions", "Popup");
+    view_viewConnections = createRootAction("Select and Center Items Connections", "", "Actions", "Connections");
+    view_viewConnections->setShortcutContext(Qt::ApplicationShortcut);
+    view_viewConnections->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_E));
 
-    view_viewInNewWindow->setData("Test ID");
-    view_viewInNewWindow->setProperty("ID", 12);
-    view_viewInNewWindow->setProperty("ID2", "HELPP");
-    view_viewInNewWindow->setProperty("ID3",  view_viewInNewWindow->icon());
+
+    view_viewInNewWindow = createRootAction("View In New Window", "", "Actions", "Popup");
 
     window_printScreen = createRootAction("Print Screen", "", "Actions", "PrintScreen");
     window_displayMinimap = createRootAction("Display Minimap", "", "Actions", "Minimap");
+
+    model_selectModel= createRootAction("Select Model", "", "Actions", "MEDEA");
+    model_selectModel->setShortcutContext(Qt::ApplicationShortcut);
+    model_selectModel->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_M));
 
     model_validateModel = createRootAction("Validate Model", "", "Actions", "Validate");
     model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
@@ -623,8 +651,14 @@ void ActionController::setupActions()
     jenkins_executeJob = createRootAction("Launch: ", "", "Actions", "Job_Build");
 
     help_shortcuts = createRootAction("App Shortcuts", "", "Actions", "Keyboard");
+
     help_reportBug = createRootAction("Report Bug", "", "Actions", "BugReport");
+
     help_wiki = createRootAction("Wiki", "", "Actions", "Wiki");
+    help_wiki->setShortcutContext(Qt::ApplicationShortcut);
+    help_wiki->setShortcut(QKeySequence::HelpContents);
+
+
     help_aboutMedea = createRootAction("About MEDEA", "", "Actions", "Info");
     help_aboutQt = createRootAction("About Qt", "", "Actions", "Qt");
 
@@ -729,6 +763,8 @@ void ActionController::setupMainMenu()
     menu_view->addAction(view_viewInNewWindow);
 
     // Model Menu
+    menu_model->addAction(model_selectModel);
+
     menu_model->addAction(model_validateModel);
     menu_model->addAction(model_getCodeForComponent);
 

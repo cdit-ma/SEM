@@ -147,11 +147,12 @@ bool DataNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
 
 
+
+
         int heightToAncestor = getDepthFromCommonAncestor(dst);
         int heightToComponentImpl = getDepthFromAspect() - 1;
 
         if(heightToAncestor > heightToComponentImpl){
-            qCritical() << "OUTSIDE COMPONENT";
             //Cannot connect to something outside of the same Component.
             return false;
         }
@@ -159,7 +160,6 @@ bool DataNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         Node* sharedAncestor = getParentNode(heightToAncestor);
         if(sharedAncestor){
             if(sharedAncestor->getNodeKind() == NK_AGGREGATE_INSTANCE){
-                qCritical() << "CONTAINED IN AGGREGATE?";
                 //Can't data connect if our shared parent is an Aggregate Instance.
                 return false;
             }

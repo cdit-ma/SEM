@@ -1,5 +1,5 @@
 #include "nodeitemorderedcontainer.h"
-
+#include <QDebug>
 ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
     :ContainerElementNodeItem(viewItem, parentItem){
 
@@ -9,9 +9,10 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     _isSortOrdered = false;
 
     headerMargin = QMarginsF(2,2,2,2);
-    setBodyPadding(QMarginsF(5,5,5,5));
+    setBodyPadding(QMarginsF(10,10,10,10));
+    setMargin(QMarginsF(10,10,10,10));
 
-    qreal height = DEFAULT_SIZE / 2.0;//iconSize().height() + headerMargin.top() + headerMargin.bottom();
+    qreal height = DEFAULT_SIZE / 2.0;
     qreal width = DEFAULT_SIZE / 2.0;
 
     setMinimumHeight(height);
@@ -26,11 +27,12 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     setDefaultPen(pen);
 
     setPrimaryTextKey("label");
-    //setSecondaryTextKey("sortOrder");
+
     addRequiredData("x");
     addRequiredData("y");
+    addRequiredData("width");
+    addRequiredData("height");
     reloadRequiredData();
-
 }
 
 bool ContainerNodeItem::isSortOrdered() const
@@ -69,6 +71,8 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return expandStateRect();
     case ER_MAIN_ICON:
         return iconRect();
+    case ER_SECONDARY_ICON:
+        return bottomIconRect();
     case ER_PRIMARY_TEXT:
         return topTextRect();
     case ER_SECONDARY_TEXT:
@@ -79,13 +83,22 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return qosRect();
     case ER_LOCKED_STATE:
         return deployedRect();
-    case ER_CONNECT_IN:
+    case ER_EDGE_KIND_ICON:
+        return edgeKindRect();
+    case ER_CONNECT_ICON:
         return deployedRect();
+<<<<<<< HEAD
     case ER_CONNECT_OUT:
         return deployedRect();
+=======
+    case ER_CONNECT:
+        return connectRect();
+        break;
+>>>>>>> 1d4d2030da825a822a1d3a104dc9ac8cdaabe44c
     default:
-        return ContainerElementNodeItem::getElementRect(rect);
+        break;
     }
+    return ContainerElementNodeItem::getElementRect(rect);
 }
 
 void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -114,37 +127,46 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
             painter->drawRect(bottomTextOutlineRect());
         }
 
+        if(getData("key").toBool()){
+            paintPixmap(painter, lod, iconOverlayRect(), "Actions", "Key");
+        }
+
         painter->restore();
 
         painter->setPen(Qt::black);
-
-        //iconOverlayRect
-
-        //paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", "Expand");
-        //paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
-        //paintPixmap(painter, lod, ER_QOS, "Actions", "Global");
-
         painter->restore();
 
     }
     NodeItemNew::paint(painter, option, widget);
-    if(getData("key").toBool()){
-        paintPixmap(painter, lod, iconOverlayRect(), "Actions", "Key");
+
+    if(state > RS_BLOCK){
+        if(getData("key").toBool()){
+            paintPixmap(painter, lod, iconOverlayRect(), "Actions", "Key");
+        }
     }
-    paintPixmap(painter, lod, bottomIconRect(), "Data", "type");
-
-  //  painter->setBrush(Qt::red);
-  //  painter->drawRect(topTextRect());
-  //  painter->setBrush(Qt::blue);
-  //  painter->drawRect(bottomRect());
-
-
 }
 
 QRectF ContainerNodeItem::headerRect() const
 {
     QRectF rect(getMarginOffset(),QSize(getWidth(), getMinimumHeight()));
     return rect;
+}
+
+QRectF ContainerNodeItem::connectRect() const
+{
+    QRectF r = headerRect();
+    r.setLeft(r.right() - (smallIconSize().width() * 2));
+    return r;
+}
+
+QRectF ContainerNodeItem::edgeKindRect() const
+{
+    QRectF r2 = connectRect();
+    QRectF r;
+    r.setSize(QSizeF(r2.width(), r2.width()));
+    r.moveCenter(r2.center());
+    return r;
+
 }
 
 QRectF ContainerNodeItem::innerHeaderRect() const
@@ -156,7 +178,7 @@ QRectF ContainerNodeItem::headerTextRect() const
 {
     QRectF rect(innerHeaderRect());
     if(isRightJustified()){
-        rect.setRight(rect.right() - iconRect().width() -2);
+        rect.setRight((rect.right() - iconRect().width()) -2);
     }else{
         rect.setLeft(rect.left() + iconRect().width() + 2);
     }
@@ -165,12 +187,12 @@ QRectF ContainerNodeItem::headerTextRect() const
 
 QRectF ContainerNodeItem::iconRect() const
 {
-    QRectF rect;
-    rect.setSize(iconSize() + QSize(2,2));
-   if(isRightJustified()){
-        rect.moveTopRight(headerRect().topRight() + QPointF(1,1));
+    QRectF rect = innerHeaderRect();
+    rect.setWidth(rect.height());
+    if(isRightJustified()){
+        rect.moveTopRight(innerHeaderRect().topRight());
     }else{
-        rect.moveTopLeft(headerRect().topLeft() + QPointF(1,1));
+        rect.moveTopLeft(innerHeaderRect().topLeft());
     }
    return rect;
 }
@@ -189,8 +211,7 @@ QRectF ContainerNodeItem::topTextRect() const
     if(gotSecondaryTextKey()){
         rect.setHeight(20);
     }
-    rect.setWidth(rect.width() /*- smallIconSize().width()*/);
-    //rect.setLeft(rect.left());
+    rect.setWidth(rect.width());
     return rect;
 }
 
@@ -220,7 +241,9 @@ QRectF ContainerNodeItem::bottomIconRect() const
     QRectF rect;
     if(bottomRect().isValid()){
         rect.setSize(smallIconSize());
-        rect.moveTopLeft(bottomRect().topLeft());// + QPointF(1,1));
+        //Offset
+        qreal yOffset = (bottomRect().height() - rect.height()) / 2;
+        rect.moveTopLeft(bottomRect().topLeft() + QPointF(0, yOffset));
     }
     return rect;
 
@@ -257,6 +280,7 @@ QRectF ContainerNodeItem::expandStateRect() const
 {
     QRectF rect;
     rect.setSize(smallIconSize() / 2);
-    rect.moveBottomRight(currentRect().bottomRight());
+    QRectF cr = currentRect().marginsRemoved(headerMargin);
+    rect.moveBottomRight(cr.bottomRight());
     return rect;
 }

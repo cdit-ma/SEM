@@ -1,12 +1,15 @@
 #include "viewcontroller.h"
-#include "../View/nodeviewitem.h"
-#include "../View/edgeviewitem.h"
+
+#include "../Widgets/New/medeawindowmanager.h"
+#include "../Widgets/New/medeawindownew.h"
+#include "../Widgets/New/medeanodeviewdockwidget.h"
+
 #include "../View/Toolbar/toolbarwidgetnew.h"
 #include "../View/nodeviewnew.h"
-#include "../Widgets/New/medeawindownew.h"
 #include "../GUI/codebrowser.h"
 #include "controller.h"
 #include "filehandler.h"
+
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
@@ -15,8 +18,6 @@
 #include <QThreadPool>
 #include <QListIterator>
 
-#include "../Widgets/New/medeawindowmanager.h"
-#include "../Widgets/New/medeanodeviewdockwidget.h"
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
@@ -202,11 +203,31 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
             }
         }
     }
-    foreach(QString key, results.uniqueKeys()){
-        qCritical() << "Items Matching: " << key;
-        qCritical() << results.values(key);
-    }
     return results;
+}
+
+QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind)
+{
+    QList<ViewItem *> list;
+
+    if(selectionController){
+        foreach(ViewItem* item, selectionController->getSelection()){
+            if(item && item->isNode()){
+                NodeViewItem* nodeItem = (NodeViewItem*) item;
+                foreach(EdgeViewItem* edge, nodeItem->getEdges(kind)){
+                    NodeViewItem* src = edge->getSource();
+                    NodeViewItem* other = edge->getDestination();
+                    if(src != item){
+                        other = src;
+                    }
+                    if(!list.contains(other)){
+                        list.append(other);
+                    }
+                }
+            }
+        }
+    }
+    return list;
 }
 
 QStringList ViewController::getAdoptableNodeKinds()
@@ -239,28 +260,60 @@ QStringList ViewController::getValidValuesForKey(int ID, QString keyName)
 
 void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
-    if(viewItem->isNode()){
-        QString nodeKind = viewItem->getData("kind").toString();
-        QString nodeLabel = viewItem->getData("label").toString();
-        QString imageName = nodeKind;
-        QString aliasPath = "Items";
+    if(viewItem){
+        bool isNode = viewItem->isNode();
+        NodeViewItem* nodeViewItem = (NodeViewItem*)viewItem;
+        NodeViewItem* edgeViewItem = (NodeViewItem*)viewItem;
 
-        if(nodeKind == "HardwareNode"){
-            bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
+        QString kind = viewItem->getData("kind").toString();
+        QString label = viewItem->getData("label").toString();
 
-            if(localhost){
-                imageName = "Localhost";
-            }else{
-                QString os = viewItem->getData("os").toString();
-                QString arch = viewItem->getData("architecture").toString();
-                imageName = os + "_" + arch;
-                imageName = imageName.remove(" ");
+
+        QString alias = "Items";
+        QString image = kind;
+
+        if(isNode){
+            switch(nodeViewItem->getNodeKind()){
+                case Node::NK_HARDWARE_NODE:{
+                    bool localhost = viewItem->hasData("localhost") && viewItem->getData("localhost").toBool();
+
+                    if(localhost){
+                        image = "Localhost";
+                    }else{
+                        QString os = viewItem->getData("os").toString();
+                        QString arch = viewItem->getData("architecture").toString();
+                        image = os % "_" % arch;
+                        image = image.remove(" ");
+                    }
+                    break;
+                }
+                case Node::NK_WORKER_PROCESS:{
+                    alias = "Functions";
+                    image = label;
+                    break;
+                }
+            case Node::NK_INPUTPARAMETER:
+            case Node::NK_RETURNPARAMETER:
+                alias = "Data";
+                image = label;
+                break;
+            case Node::NK_VECTOR:
+            case Node::NK_VECTOR_INSTANCE:
+                foreach(ViewItem* child, viewItem->getDirectChildren()){
+                    image = kind % "_" % child->getData("kind").toString();
+                    break;
+                }
+                break;
+            case Node::NK_MODEL:
+                alias = "Actions";
+                image = "MEDEA";
+                break;
+            default:
+                break;
+
             }
-        }else if(nodeKind == "WorkerProcess"){
-            aliasPath = "Functions";
-            imageName = nodeLabel;
         }
-        viewItem->setDefaultIcon(aliasPath, imageName);
+        viewItem->setDefaultIcon(alias, image);
     }
 }
 
@@ -398,18 +451,14 @@ void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 
 void ViewController::getCodeForComponent()
 {
-    if(selectionController && controller){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item && item->isNode()){
-            NodeViewItem* node = (NodeViewItem*) item;
-
-            if(node->getNodeKind() == Node::NK_COMPONENT_IMPL || node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
-                QString componentName = node->getData("label").toString();
-                qCritical() << componentName;
-                QString filePath = getTempFileForModel();
-                if(!componentName.isEmpty() && !filePath.isEmpty()){
-                    emit vc_getCodeForComponent(filePath, componentName);
-                }
+    ViewItem* item = getActiveSelectedItem();
+    if(item && item->isNode()){
+        NodeViewItem* node = (NodeViewItem*) item;
+        if(node->getNodeKind() == Node::NK_COMPONENT_IMPL || node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
+            QString componentName = node->getData("label").toString();
+            QString filePath = getTempFileForModel();
+            if(!componentName.isEmpty() && !filePath.isEmpty()){
+                emit vc_getCodeForComponent(filePath, componentName);
             }
         }
     }
@@ -425,6 +474,11 @@ void ViewController::validateModel()
             emit vc_validateModel(filePath, reportPath);
         }
     }
+}
+
+void ViewController::selectModel()
+{
+    emit selectionController->itemActiveSelectionChanged(getModel(), true);
 }
 
 void ViewController::launchLocalDeployment()
@@ -447,6 +501,12 @@ void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit vc_triggerAction("Table Changed");
     emit vc_setData(ID, key, data);
+}
+
+void ViewController::_showGitHubPage(QString relURL)
+{
+    QString URL = APP_URL % relURL;
+    QDesktopServices::openUrl(QUrl(URL));
 }
 
 QString ViewController::getTempFileForModel()
@@ -514,7 +574,7 @@ bool ViewController::canExportSnippet()
 
 bool ViewController::canImportSnippet()
 {
-    if(controller){
+    if(controller && selectionController){
         return controller->canImportSnippet(selectionController->getSelectionIDs());
     }
     return false;
@@ -532,45 +592,67 @@ QVector<ViewItem *> ViewController::getOrderedSelection(QList<int> selection)
     return items;
 }
 
-bool ViewController::destructViewItem(ViewItem *viewItem)
+bool ViewController::destructViewItem(ViewItem *item)
 {
-    if(viewItem){
-        //Delete children first!
-        destructChildItems(viewItem);
-
-        QString treeKey;
-
+    if(!item){
+        return false;
+    }
+    QList<ViewItem*> children;
+    children.append(item);
+    children.append(item->getNestedChildren());
+    QListIterator<ViewItem*> it(children);
+    it.toBack();
+    while(it.hasPrevious()){
+        ViewItem* viewItem = it.previous();
+        if(!viewItem || viewItem == rootItem){
+            continue;
+        }
         int ID = viewItem->getID();
+
         if(viewItem->isNode()){
+            //Remove node from nodeKind Map
             NodeViewItem* nodeItem = (NodeViewItem*)viewItem;
-            treeKey = nodeItem->getTreeIndex();
             nodeKindLookups.remove(nodeItem->getNodeKind(), ID);
+
+            //Remove Node from tree lookup.
+            QString treeKey = nodeItem->getTreeIndex();
+            if(treeLookup.contains(treeKey)){
+                treeLookup.remove(treeKey);
+            }
         }else if(viewItem->isEdge()){
+            //Remove Edge from edgeKind map
             EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
             edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
-        }
-
-
-        if(!treeKey.isEmpty() && treeLookup.contains(treeKey)){
-            treeLookup.remove(treeKey);
         }
 
         ViewItem* parentItem = viewItem->getParentItem();
         if(parentItem){
             parentItem->removeChild(viewItem);
+
+            NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
+
+            if(parentItem->isNode()){
+                //Update the Icon of Vectors!
+                switch(parentNodeItem->getNodeKind()){
+                case Node::NK_VECTOR:
+                case Node::NK_VECTOR_INSTANCE:
+                    setDefaultIcon(parentItem);
+                    break;
+                default:
+                    break;
+                }
+            }
         }
 
-        //Remove the item from the Hash
+        //Remove the item from the Hash/TopLevel Hash
         viewItems.remove(ID);
-
-
-
         topLevelItems.removeAll(ID);
 
+        //Tell Views we are destructing!
         emit vc_viewItemDestructing(ID, viewItem);
         viewItem->destruct();
     }
-    return false;
+    return true;
 }
 
 QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
@@ -584,6 +666,14 @@ QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
         }
     }
     return items;
+}
+
+ViewItem *ViewController::getActiveSelectedItem() const
+{
+    if(selectionController){
+        return selectionController->getActiveSelectedItem();
+    }
+    return 0;
 }
 
 QList<NodeViewNew *> ViewController::getNodeViewsContainingID(int ID)
@@ -696,15 +786,23 @@ void ViewController::deleteSelection()
     }
 }
 
-void ViewController::renameActiveSelection()
+void ViewController::editLabel()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            emit vc_editTableCell(item->getID(), "label");
-        }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        emit vc_editTableCell(item->getID(), "label");
     }
 }
+
+void ViewController::editReplicationCount()
+{
+    ViewItem* item = getActiveSelectedItem();
+    qCritical() << item;
+    if(item){
+        emit vc_editTableCell(item->getID(), "replicate_count");
+    }
+}
+
 
 void ViewController::constructDDSQOSProfile()
 {
@@ -723,7 +821,7 @@ void ViewController::_teardownProject()
             setControllerReady(false);
             emit vc_projectPathChanged("");
             emit mc_projectModified(false);
-            destructChildItems(rootItem);
+            destructViewItem(rootItem);
             nodeKindLookups.clear();
             edgeKindLookups.clear();
 
@@ -866,6 +964,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         int parentID = nodeItem->getParentID();
 
         ViewItem* parentItem = getViewItem(parentID);
+        NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
 
         QString treeKey = nodeItem->getTreeIndex();
 
@@ -878,6 +977,11 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
         //Attach the node to it's parent
         if(parentItem){
             parentItem->addChild(nodeItem);
+
+            //Update the icons for certain types.
+            if(parentItem->isNode() && parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE){
+                setDefaultIcon(parentItem);
+            }
         }else{
             rootItem->addChild(nodeItem);
             topLevelItems.append(ID);
@@ -889,9 +993,9 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             edgeKind = (Edge::EDGE_KIND)properties["kind"].toInt();
         }
 
-        if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
-            return;
-        }
+        //if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
+        //    return;
+        //}
 
         int srcID = properties["srcID"].toInt();
         int dstID = properties["dstID"].toInt();
@@ -902,6 +1006,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 
         EdgeViewItem* edgeItem = new EdgeViewItem(this, ID, source, destination, kind, data, properties);
 
+
         edgeKindLookups.insertMulti(edgeItem->getEdgeKind(), ID);
 
         if(parent){
@@ -911,6 +1016,10 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             rootItem->addChild(edgeItem);
             topLevelItems.append(ID);
         }
+
+        source->addEdgeItem(edgeItem);
+        destination->addEdgeItem(edgeItem);
+
         viewItem = edgeItem;
     }
 
@@ -1023,17 +1132,14 @@ void ViewController::importXMIProject()
 
 void ViewController::importSnippet()
 {
-    if(getSelectionController() && canImportSnippet()){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            QString itemKind = item->getData("kind").toString();
-
-            QStringList files = FileHandler::selectFiles("Import " + itemKind + ".snippet", QFileDialog::ExistingFile, false,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
-            if(files.size() == 1){
-                QString filePath = files.at(0);
-                QString fileData = FileHandler::readTextFile(filePath);
-                emit vc_importSnippet(selectionController->getSelectionIDs(), filePath, fileData);
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item && canImportSnippet()){
+        QString itemKind = item->getData("kind").toString();
+        QStringList files = FileHandler::selectFiles("Import " + itemKind + ".snippet", QFileDialog::ExistingFile, false,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
+        if(files.size() == 1){
+            QString filePath = files.at(0);
+            QString fileData = FileHandler::readTextFile(filePath);
+            emit vc_importSnippet(selectionController->getSelectionIDs(), filePath, fileData);
         }
     }
 }
@@ -1112,6 +1218,7 @@ void ViewController::fitView()
 
 void ViewController::fitAllViews()
 {
+
     emit vc_fitToScreen();
 }
 
@@ -1123,69 +1230,148 @@ void ViewController::centerSelection()
     }
 }
 
+void ViewController::alignSelectionVertical()
+{
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->alignVertical();
+    }
+}
+
+void ViewController::alignSelectionHorizontal()
+{
+    NodeViewNew* view = getActiveNodeView();
+    if(view){
+        view->alignHorizontal();
+    }
+}
+
+void ViewController::selectAndCenterConnectedEntities()
+{
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        emit vc_selectAndCenterConnectedEntities(item);
+    }
+}
+
+void ViewController::setReplicationCount()
+{
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        emit vc_editTableCell(item->getID(), "replicate_count");
+    }
+}
+
 void ViewController::centerOnID(int ID)
 {
     emit vc_centerItem(ID);
 }
 
+void ViewController::showWiki()
+{
+    _showGitHubPage("wiki/");
+}
+
+void ViewController::reportBug()
+{
+    _showGitHubPage("issues/");
+}
+
+void ViewController::showWikiForSelectedItem()
+{
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        QString relURL = "wiki/SEM-MEDEA-ModelEntities#" + item->getData("kind").toString();
+        _showGitHubPage(relURL);
+    }
+}
+
 void ViewController::centerImpl()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* impl = getNodesImpl(item->getID());
-            if(impl){
-                emit vc_centerItem(impl->getID());
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* impl = getNodesImpl(item->getID());
+        if(impl){
+            emit vc_centerItem(impl->getID());
         }
     }
 }
 
 void ViewController::centerDefinition()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* def = getNodesDefinition(item->getID());
-            if(def){
-                emit vc_centerItem(def->getID());
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* def = getNodesDefinition(item->getID());
+        if(def){
+            emit vc_centerItem(def->getID());
         }
     }
 }
 
 void ViewController::popupImpl()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* impl = getNodesImpl(item->getID());
-            if(impl){
-                spawnSubView(impl);
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* impl = getNodesImpl(item->getID());
+        if(impl){
+            spawnSubView(impl);
         }
     }
 }
 
 void ViewController::popupDefinition()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* def = getNodesDefinition(item->getID());
-            if(def){
-                spawnSubView(def);
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* def = getNodesDefinition(item->getID());
+        if(def){
+            spawnSubView(def);
         }
     }
 }
 
 void ViewController::popupSelection()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
         spawnSubView(item);
     }
+}
+
+void ViewController::popupItem(int ID)
+{
+    ViewItem* item = getViewItem(ID);
+    if(item){
+        spawnSubView(item);
+    }
+}
+
+void ViewController::aboutQt()
+{
+    MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
+    QMessageBox::aboutQt(window);
+}
+
+void ViewController::aboutMEDEA()
+{
+    QString aboutString =
+    "<h3>MEDEA " APP_VERSION "</h3>"
+    "<a href=\"" APP_URL "\"><i>Center for Distributed and Intelligent Systems - Model Analysis</i></a><br />"
+    "The University of Adelaide<hr /><br />"
+    "Team:"
+    "<ul>"
+    "<li>Dan Fraser (Lead Programmer)</li>"
+    "<li>Cathlyn Aston (UX Programmer)</li>"
+    "<li>Mitchell Conrad</li>"
+    "</ul>"
+    "Past Members:"
+    "<ul>"
+    "<li>Marianne Rieckmann (XSL Transforms)</li>"
+    "<li>Jackson Michael (CUTS Workers)</li>"
+    "<li>Matthew Hart</li>"
+    "</ul>";
+    MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
+    QMessageBox::about(window, "About MEDEA " APP_VERSION, aboutString);
 }
 
 
@@ -1230,26 +1416,22 @@ void ViewController::initializeController()
 
 bool ViewController::destructChildItems(ViewItem *parent)
 {
-    QListIterator<ViewItem*> it(parent->getChildren());
+    qCritical() << "destructChildItems!";
+    QVectorIterator<ViewItem*> it(parent->getDirectChildren());
+
 
     it.toBack();
     while(it.hasPrevious()){
-        destructViewItem(it.previous());
+        ViewItem* item = it.previous();
+        qCritical() << item->getID() << " : " << item->getData("kind").toString();
+        destructViewItem(item);
     }
     return true;
 }
 
 bool ViewController::clearVisualItems()
 {
-    QListIterator<ViewItem*> it(rootItem->getChildren());
-
-    it.toBack();
-    while(it.hasPrevious()){
-        destructViewItem(it.previous());
-    }
-
-    nodeKindLookups.clear();
-    edgeKindLookups.clear();
+    destructViewItem(rootItem);
     return true;
 }
 

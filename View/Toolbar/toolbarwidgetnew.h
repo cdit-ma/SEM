@@ -84,11 +84,11 @@ private:
     QAction* implementationAction;
     QAction* instancesAction;
     QAction* connectionsAction;
-    QAction* replicateCountAction;
     QAction* hardwareViewOptionAction;
 
-    QSpinBox* replicateCount;
-    QToolButton* applyReplicateCountButton;
+    //QAction* replicateCountAction;
+    //QSpinBox* replicateCount;
+    //QToolButton* applyReplicateCountButton;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;

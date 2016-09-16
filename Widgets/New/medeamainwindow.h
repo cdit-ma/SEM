@@ -23,6 +23,7 @@
 #include "../../GUI/popupwidget.h"
 #include "../../View/Dock/docktabwidget.h"
 #include "../../Widgets/New/searchdialog.h"
+#include "welcomescreenwidget.h"
 
 
 class MedeaMainWindow : public MedeaWindowNew
@@ -38,6 +39,7 @@ signals:
     void requestSuggestions();
     void preloadImages();
     void jenkins_validated(bool);
+    void recentProjectsUpdated();
 
 public slots:
     void setModelTitle(QString modelTitle);
@@ -55,12 +57,12 @@ private slots:
 
     void popupSearch();
     void updateSearchSuggestions(QStringList list);
+    void searchEntered();
 
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
 
     void hideWelcomeScreen(QAction *action);
-    void recentProjectsUpdated();
 
 private:
     void initializeApplication();
@@ -116,11 +118,7 @@ private:
     QTimer* notificationTimer;
 
     ViewController* viewController;
-    NodeViewNew* nodeView_Interfaces;
-    NodeViewNew* nodeView_Behaviour;
-    NodeViewNew* nodeView_Assemblies;
-    NodeViewNew* nodeView_Hardware;
-    QOSBrowser* qosBrowser;
+
 
     QToolButton* interfaceButton;
     QToolButton* behaviourButton;
@@ -130,9 +128,8 @@ private:
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;
 
+    WelcomeScreenWidget* welcomeScreen;
     QVBoxLayout* holderLayout;
-    QToolBar* recentProjectsToolbar;
-    QWidget* welcomeWidget;
     bool welcomeScreenOn;
 
 protected:

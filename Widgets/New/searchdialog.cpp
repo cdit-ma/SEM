@@ -1,9 +1,13 @@
 #include "searchdialog.h"
 #include "../../View/theme.h"
 
-#include <QScrollArea>
+#include <QSplitter>
+#include <QDateTime>
+#include <QDebug>
 
-#define LEFT_PANEL_WIDTH 120
+#define DEFAULT_KEY_WIDTH 120
+#define DEFAULT_DISPLAY_WIDTH 200
+#define MIN_HEIGHT 300
 
 /**
  * @brief SearchDialog::SearchDialog
@@ -12,8 +16,42 @@
 SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent)
 {
     setupLayout();
+    setWindowTitle("Search Results");
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
+}
+
+
+/**
+ * @brief SearchDialog::searchResults
+ * @param query
+ * @param results
+ */
+void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results)
+{
+    queryLabel->setText("\"" + query + "\"");
+
+    // clear previous key actions and search result items
+    clear();
+    constructKeyButton("All", "All (" + QString::number(results.count()) + ")", true);
+
+    if (results.isEmpty()) {
+        infoLabel->show();
+    } else {
+        infoLabel->hide();
+        foreach (QString key, results.uniqueKeys()) {
+            QList<ViewItem*> viewItems = results.values(key);
+            foreach (ViewItem* item, viewItems) {
+                SearchItemWidget* searchItem = constructSearchItem(item);
+                searchItem->addDisplayKey(key);
+            }
+            constructKeyButton(key, key + " (" + QString::number(viewItems.count()) + ")");
+        }
+    }
+
+    // update the keys toolbar/buttons's size
+    keysToolBar->setMinimumHeight(keysToolBar->sizeHint().height() + 10);
+    //themeChanged();
 }
 
 
@@ -23,43 +61,28 @@ SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent)
 void SearchDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
+    QString labelStyle = "QLabel {"
+                         "padding: 5px 0px;"
+                         "background: rgba(0,0,0,0);"
+                         "color:" + theme->getTextColorHex() + ";"
+                         "}";
 
-    setStyleSheet(theme->getLineEditStyleSheet() + "QDialog {"
-                  "background:" + theme->getBackgroundColorHex() + ";"
-                  "}"
-                  "QLabel {"
-                  "padding: 5px 0px;"
+    setStyleSheet("QDialog{ background:" + theme->getBackgroundColorHex() + "; }"
+                  "QFrame{ background:" + theme->getBackgroundColorHex() + "; }"
+                  "QScrollArea {"
                   "background: rgba(0,0,0,0);"
-                  "color:" + theme->getTextColorHex() + ";"
-                  "}"
-                  "QComboBox {"
-                  "background:" + theme->getAltBackgroundColorHex() + ";"
-                  "color:" + theme->getTextColorHex() + ";"
-                  //"selection-background-color:" + theme->getHighlightColorHex() + ";"
-                  //"selection-color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "padding: 0px 5px;"
-                  "margin: 0px;"
                   "}"
-                  "QComboBox::drop-down {"
-                  "subcontrol-position: top right;"
-                  "padding: 0px;"
-                  "width: 20px;"
-                  "}"
-                  //"QComboBox::down-arrow{ image: url(Resources/Images/Actions/Arrow_Down.png); }"
-                  "QComboBox QAbstractItemView::item {"
-                  "background:" + theme->getAltBackgroundColorHex() + ";"
-                  "}"
-                  "QPushButton {"
-                  "padding: 5px 10px;"
-                  "}"
-                  + theme->getLineEditStyleSheet());
+                  + theme->getComboBoxStyleSheet()
+                  + theme->getSplitterStyleSheet()
+                  + labelStyle);
 
-    keysToolBar->setStyleSheet("QToolBar{ padding: 0px; }"
+    keysToolBar->setStyleSheet("QToolBar {"
+                               "padding: 0px;"
+                               "background:" + theme->getBackgroundColorHex() + ";"
+                               "}"
                                "QToolButton {"
                                "padding: 5px 10px;"
-                               //"width:" + QString::number(LEFT_PANEL_WIDTH - 25) + "px;"
-                               "width:" + QString::number(maxToolButtonWidth) + "px;"
                                "border-radius: 2px;"
                                "}"
                                "QToolButton::checked {"
@@ -69,6 +92,33 @@ void SearchDialog::themeChanged()
 
     //searchButton->setIcon(theme->getIcon("Actions", "Search"));
     queryLabel->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
+    infoLabel->setStyleSheet(labelStyle);
+}
+
+
+/**
+ * @brief SearchDialog::keyButtonChecked
+ * @param checked
+ */
+void SearchDialog::keyButtonChecked(bool checked)
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if (action && checked) {
+        emit keyButtonChecked(action->property("key").toString());
+    }
+}
+
+
+/**
+ * @brief SearchDialog::viewItemDestructed
+ */
+void SearchDialog::viewItemDestructed(int ID)
+{
+    SearchItemWidget* widget = searchItems.value(ID, 0);
+    if(widget){
+        searchItems.take(ID);
+        widget->deleteLater();
+    }
 }
 
 
@@ -96,6 +146,14 @@ void SearchDialog::setupLayout()
 
     int fieldHeight = 25;
 
+    /*
+    searchLineEdit = new QLineEdit(this);
+    searchLineEdit->setFont(QFont(font().family(), 13));
+    searchLineEdit->setPlaceholderText("Search Here...");
+    searchLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    searchLineEdit->setCompleter(searchCompleter);
+    */
+
     scopeComboBox = new QComboBox(this);
     scopeComboBox->setFixedHeight(fieldHeight);
     scopeComboBox->addItem("Entire Model");
@@ -110,27 +168,36 @@ void SearchDialog::setupLayout()
     labelLayout2->addWidget(scopeLabel);
     labelLayout2->addWidget(scopeComboBox);
 
-    keysActionGroup = new QActionGroup(this);
-    keysActionGroup->setExclusive(true);
-
     keysToolBar = new QToolBar(this);
     keysToolBar->setOrientation(Qt::Vertical);
     keysToolBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    keysToolBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    constructKeyButton("All");
-    constructKeyButton("Description");
-    constructKeyButton("Kind");
-    constructKeyButton("Label", true);
-    constructKeyButton("Worker");
-    constructKeyButton("ID");
-    keysToolBar->setMinimumHeight(keysToolBar->sizeHint().height() + 10);
+    QScrollArea* keysArea = new QScrollArea(this);
+    keysArea->setWidget(keysToolBar);
+    keysArea->setWidgetResizable(true);
+
+    QFrame* displayWidget = new QFrame(this);
+    resultsLayout = new QVBoxLayout(displayWidget);
+    resultsLayout->setMargin(0);
+    resultsLayout->setSpacing(0);
+    resultsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    resultsLayout->setSizeConstraint(QLayout::SetMinimumSize);
+
+    infoLabel = new QLabel("No Results", this);
+    infoLabel->setFont(QFont(font().family(), 10));
+    resultsLayout->addWidget(infoLabel);
 
     QScrollArea* displayArea = new QScrollArea(this);
-    QHBoxLayout* bottomHLayout = new QHBoxLayout();
-    bottomHLayout->setMargin(0);
-    bottomHLayout->setSpacing(5);
-    bottomHLayout->addWidget(keysToolBar);
-    bottomHLayout->addWidget(displayArea, 1);
+    displayArea->setWidget(displayWidget);
+    displayArea->setWidgetResizable(true);
+
+    QSplitter* displaySplitter = new QSplitter(this);
+    displaySplitter->addWidget(keysArea);
+    displaySplitter->addWidget(displayArea);
+    displaySplitter->setStretchFactor(0, 0);
+    displaySplitter->setStretchFactor(1, 1);
+    displaySplitter->setSizes(QList<int>() << DEFAULT_KEY_WIDTH << DEFAULT_DISPLAY_WIDTH);
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     hLayout->setMargin(0);
@@ -145,22 +212,92 @@ void SearchDialog::setupLayout()
     mainLayout->addLayout(hLayout);
     mainLayout->addLayout(labelLayout);
     mainLayout->addSpacerItem(new QSpacerItem(0, 5));
-    mainLayout->addLayout(bottomHLayout, 1);
+    mainLayout->addWidget(displaySplitter, 1);
+
+    setMinimumSize(mainLayout->sizeHint().width(), MIN_HEIGHT);
+
+    keysActionGroup = new QActionGroup(this);
+    keysActionGroup->setExclusive(true);
+}
+
+
+/**
+ * @brief SearchDialog::clear
+ * Remove all the actions from the keys action group and the keys toolbar and clear search result items.
+ */
+void SearchDialog::clear()
+{
+    QList<QAction*> actions = keysActionGroup->actions();
+    while (!actions.isEmpty()) {
+        QAction* action = actions.takeFirst();
+        keysActionGroup->removeAction(action);
+        keysToolBar->removeAction(action);
+    }
+
+    QList<SearchItemWidget*> widgets = searchItems.values();
+    while (!widgets.isEmpty()) {
+        SearchItemWidget* widget = widgets.takeFirst();
+        resultsLayout->removeWidget(widget);
+        delete widget;
+    }
+    searchItems.clear();
+}
+
+
+/**
+ * @brief SearchDialog::constructSearchItem
+ * @param item
+ */
+SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
+{
+    if(!item){
+        return 0;
+    }
+    int ID = item->getID();
+    if (searchItems.contains(ID)) {
+        return searchItems.value(ID);
+    }
+
+    SearchItemWidget* itemWidget = new SearchItemWidget(item, this);
+    resultsLayout->addWidget(itemWidget);
+    searchItems.insert(ID, itemWidget);
+
+    if (item) {
+        connect(item, &ViewItem::destructing, this, &SearchDialog::viewItemDestructed);
+
+        connect(this, SIGNAL(keyButtonChecked(QString)), itemWidget, SLOT(toggleKeyWidget(QString)));
+
+        connect(itemWidget, SIGNAL(centerOnViewItem(int)), this, SIGNAL(centerOnViewItem(int)));
+        connect(itemWidget, SIGNAL(popupViewItem(int)), this, SIGNAL(popupViewItem(int)));
+        connect(itemWidget, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
+        connect(itemWidget, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));
+    }
+
+    return itemWidget;
 }
 
 
 /**
  * @brief SearchDialog::constructKeyButton
  * @param key
+ * @param text
  * @param checked
  */
-void SearchDialog::constructKeyButton(QString key, bool checked)
+void SearchDialog::constructKeyButton(QString key, QString text, bool checked)
 {
-    QAction* action = new QAction(key, this);
+    QToolButton* button = new QToolButton(this);
+    button->setText(text);
+    button->setCheckable(true);
+    button->setChecked(checked);
+    button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+
+    QAction* action = keysToolBar->addWidget(button);
+    action->setProperty("key", key);
     action->setCheckable(true);
     action->setChecked(checked);
-    keysToolBar->addAction(action);
     keysActionGroup->addAction(action);
-    maxToolButtonWidth = qMax(maxToolButtonWidth, fontMetrics().width(key));
-}
 
+    connect(button, SIGNAL(clicked(bool)), action, SLOT(toggle()));
+    connect(action, SIGNAL(toggled(bool)), this, SLOT(keyButtonChecked(bool)));
+    connect(action, SIGNAL(toggled(bool)), button, SLOT(setChecked(bool)));
+}

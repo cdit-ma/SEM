@@ -2,6 +2,8 @@
 
 Vector::Vector(): Node(Node::NK_VECTOR)
 {
+    setNodeType(NT_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
 
 bool Vector::canAdoptChild(Node *child)

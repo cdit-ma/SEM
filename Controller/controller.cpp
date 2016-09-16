@@ -882,12 +882,14 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
 
 void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_KIND edgeClass)
 {
+    //Node* dst = getNodeFromID(dstID);
     QList<int> validIDs = getConnectableNodeIDs(srcIDs, edgeClass);
 
     bool success = true;
     if(validIDs.contains(dstID)){
 
         lock.lockForWrite();
+        triggerAction("Constructing child edge");
         foreach(int srcID, srcIDs){
             Node* src = getNodeFromID(srcID);
             Node* dst = getNodeFromID(dstID);
@@ -1723,7 +1725,6 @@ QString NewController::_exportSnippet(QList<int> IDs)
             }
         }
     }
-    qCritical() << "YO!";
     return snippetData;
 }
 

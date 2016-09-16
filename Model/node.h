@@ -138,6 +138,8 @@ public:
     void addChild(Node *child);
     QString getNodeKindStr();
 
+    bool indirectlyConnectedTo(Node* node);
+
     bool containsChild(Node* child);
     QList<Node *> getChildren(int depth =-1);
     QList<int> getChildrenIDs(int depth =-1);

@@ -27,11 +27,13 @@
 
 NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 {
+    setupStateMachine();
     QRectF sceneRect;
     sceneRect.setSize(QSize(10000,10000));
     sceneRect.moveCenter(QPointF(0,0));
     setSceneRect(sceneRect);
 
+    connectLineItem = 0;
     //OPENGL
     //#include <QOpenGLWidget>
     //setViewport(new QOpenGLWidget());
@@ -53,6 +55,7 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 
+    isPanning = false;
     viewController = 0;
     selectionHandler = 0;
     containedAspect = VA_NONE;
@@ -68,16 +71,13 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
-    viewState = VS_NONE;
-    transition();
-
     themeChanged();
 }
 
 NodeViewNew::~NodeViewNew()
 {
     if(containedNodeViewItem){
-        QList<ViewItem*> items = containedNodeViewItem->getChildren();
+        QList<ViewItem*> items = containedNodeViewItem->getNestedChildren();
         items.insert(0, containedNodeViewItem);
 
         QListIterator<ViewItem*> it(items);
@@ -109,8 +109,12 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(this, &NodeViewNew::editData, viewController, &ViewController::vc_editTableCell);
 
 
+
+
         connect(viewController, &ViewController::vc_centerItem, this, &NodeViewNew::centerItem);
         connect(viewController, &ViewController::vc_fitToScreen, this, &NodeViewNew::fitToScreen);
+        connect(viewController, &ViewController::vc_selectAndCenterConnectedEntities, this, &NodeViewNew::centerConnections);
+
 
         connect(viewController, &ViewController::vc_highlightItem, this, &NodeViewNew::highlightItem);
     }
@@ -161,7 +165,7 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
 
         if(!isAspectView){
             viewItem_Constructed(item);
-            foreach(ViewItem* item, item->getChildren()){
+            foreach(ViewItem* item, item->getNestedChildren()){
                 viewItem_Constructed(item);
             }
         }
@@ -256,6 +260,62 @@ void NodeViewNew::itemsMoved()
     }
 }
 
+void NodeViewNew::alignHorizontal()
+{
+    emit triggerAction("Aligning Selection Horizontally");
+
+    QList<EntityItemNew*> selection = getOrderedSelectedItems();
+    QRectF sceneRect = getSceneBoundingRectOfItems(selection);
+
+    foreach(EntityItemNew* item, selection){
+        item->setMoveStarted();
+        QPointF pos = item->getPos();
+
+        EntityItemNew* parent = item->getParent();
+        if(!parent){
+            parent = item;
+        }
+
+        pos.setY(parent->mapFromScene(sceneRect.topLeft()).y());
+        pos.ry() += item->getTopLeftOffset().y();
+        item->setPos(pos);
+
+        if(item->setMoveFinished()){
+            pos = item->getNearestGridPoint();
+            emit setData(item->getID(), "x", pos.x());
+            emit setData(item->getID(), "y", pos.y());
+        }
+    }
+}
+
+void NodeViewNew::alignVertical()
+{
+    emit triggerAction("Aligning Selection Vertically");
+
+    QList<EntityItemNew*> selection = getOrderedSelectedItems();
+    QRectF sceneRect = getSceneBoundingRectOfItems(selection);
+
+    foreach(EntityItemNew* item, selection){
+        item->setMoveStarted();
+        QPointF pos = item->getPos();
+
+        EntityItemNew* parent = item->getParent();
+        if(!parent){
+            parent = item;
+        }
+        pos.setX(parent->mapFromScene(sceneRect.topLeft()).x());
+        pos.rx() += item->getTopLeftOffset().x();
+        item->setPos(pos);
+
+        if(item->setMoveFinished()){
+            pos = item->getNearestGridPoint();
+            emit setData(item->getID(), "x", pos.x());
+            emit setData(item->getID(), "y", pos.y());
+        }
+    }
+
+}
+
 void NodeViewNew::clearSelection()
 {
     _clearSelection();
@@ -283,6 +343,15 @@ void NodeViewNew::themeChanged()
     update();
 }
 
+void NodeViewNew::node_ConnectMode(NodeItemNew *item)
+{
+    if(selectionHandler && selectionHandler->getSelectionCount() == 1){
+        if(item->getViewItem() == selectionHandler->getActiveSelectedItem()){
+            emit trans_InActive2Connecting();
+        }
+    }
+}
+
 void NodeViewNew::item_EditData(ViewItem *item, QString keyName)
 {
     if(selectionHandler){
@@ -307,6 +376,53 @@ void NodeViewNew::centerSelection()
 {
 
     centerOnItems(getSelectedItems());
+}
+
+void NodeViewNew::centerConnections(ViewItem* item)
+{
+    if(item){
+        QList<EdgeViewItem*> edges;
+        if(item->isNode()){
+            edges = ((NodeViewItem*)item)->getEdges();
+        }else if(item->isEdge()){
+            edges.append((EdgeViewItem*)item);
+        }
+
+        QList<ViewItem*> toSelect;
+        QList<EntityItemNew*> toCenter;
+
+        foreach(EdgeViewItem* e, edges){
+            ViewItem* s = e->getSource();
+            ViewItem* d = e->getDestination();
+
+            EntityItemNew* src = getEntityItem(s);
+            EntityItemNew* dst = getEntityItem(d);
+            EntityItemNew* edge = getEntityItem(e);
+
+            if(src && !toSelect.contains(s)){
+                toCenter.append(src);
+                toSelect.append(s);
+            }
+
+            if(dst && !toSelect.contains(d)){
+                toCenter.append(dst);
+                toSelect.append(d);
+            }
+
+            if(edge && !toSelect.contains(e)){
+                toCenter.append(edge);
+                toSelect.append(e);
+            }
+        }
+        if(!toSelect.isEmpty()){
+            if(selectionHandler){
+                selectionHandler->toggleItemsSelection(toSelect);
+            }
+            centerOnItems(toCenter);
+        }else{
+            clearSelection();
+        }
+    }
 }
 
 QList<int> NodeViewNew::getIDsInView()
@@ -348,117 +464,75 @@ void NodeViewNew::item_SetCentered(EntityItemNew *item)
     centerRect(item->sceneViewRect());
 }
 
-void NodeViewNew::item_AdjustingPos(bool adjusting)
+void NodeViewNew::item_MoveSelection(QPointF delta)
 {
-    if(selectionHandler){
+    //Only when we are in the moving state.
+    if(state_Active_Moving->active()){
+        //Moves the selection.
+        if(selectionHandler){
 
-        if(adjusting){
-            emit triggerAction("Moving Selection");
-        }
-
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
-            EntityItemNew* item = getEntityItem(viewItem);
-            if(!item){
-                continue;
-            }
-            bool itemWasMoved = item->hasBeenMoved();
-            item->setMoving(adjusting);
-            if(!adjusting){
-                int id = item->getID();
-                QPointF pos = item->getPos();
-
-                bool sendRequest = itemWasMoved && !item->isIgnoringPosition();
-
-                if(sendRequest){
-                    emit setData(id, "x", pos.x());
-                    emit setData(id, "y", pos.y());
-                }
-            }
-        }
-    }
-}
-
-void NodeViewNew::item_AdjustPos(QPointF delta)
-{
-    //Moves the selection.
-    if(selectionHandler){
-        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
-            EntityItemNew* item = getEntityItem(viewItem);
-            if(item){
-                delta = item->validateAdjustPos(delta);
-                //If delta is 0,0 we should ignore.
-                if(delta.isNull()){
-                    break;
-                }
-            }
-        }
-
-        if(!delta.isNull()){
+            //Validate the move for the entire selection.
             foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
                 EntityItemNew* item = getEntityItem(viewItem);
                 if(item){
-                    //Move!
-                    item->adjustPos(delta);
+                    delta = item->validateMove(delta);
+                    //If delta is 0,0 we should ignore.
+                    if(delta.isNull()){
+                        break;
+                    }
+                }
+            }
+
+            if(!delta.isNull()){
+                foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+                    EntityItemNew* item = getEntityItem(viewItem);
+                    if(item){
+                        //Move!
+                        item->adjustPos(delta);
+                    }
                 }
             }
         }
     }
-}
-
-void NodeViewNew::item_Resizing(bool resizing)
-{
-}
-
-void NodeViewNew::item_ResizeFinished(NodeItemNew *item, RECT_VERTEX vertex)
-{
-    int id = item->getID();
-    QSizeF size = item->getExpandedSize();
-
-    emit triggerAction("Resizing Item");
-    emit setData(id, "width", size.width());
-    emit setData(id, "height", size.height());
 }
 
 void NodeViewNew::item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vertex)
 {
-    QPointF offset(delta.width(), delta.height());
+    if(state_Active_Resizing->active()){
 
+        if(vertex == RV_TOP || vertex == RV_BOTTOM){
+            delta.setWidth(0);
+        }else if(vertex == RV_LEFT || vertex == RV_RIGHT){
+            delta.setHeight(0);
+        }
 
-    if(vertex == RV_TOP || vertex == RV_BOTTOM){
-        delta.setWidth(0);
-        offset.setX(0);
-    }else if(vertex == RV_LEFT || vertex == RV_RIGHT){
-        delta.setHeight(0);
-        offset.setY(0);
-    }
+        if(vertex == RV_TOP || vertex == RV_TOPLEFT || vertex == RV_TOPRIGHT){
+            //Invert the H
+            delta.rheight() *= -1;
+        }
+        if(vertex == RV_TOPLEFT || vertex == RV_LEFT || vertex == RV_BOTTOMLEFT){
+            //Invert the W
+            delta.rwidth() *= -1;
+        }
 
-    if(vertex == RV_TOP || vertex == RV_TOPLEFT || vertex == RV_TOPRIGHT){
-        //Invert the H
-        delta.rheight() *= -1;
-    }
-    if(vertex == RV_TOPLEFT || vertex == RV_LEFT || vertex == RV_BOTTOMLEFT){
-        //Invert the W
-        delta.rwidth() *= -1;
-    }
+        QSizeF preSize = item->getExpandedSize();
+        item->adjustExpandedSize(delta);
+        QSizeF postSize = item->getExpandedSize();
+        if(preSize != postSize){
+            QSizeF deltaSize = preSize - postSize;
+            QPointF offset(deltaSize.width(), deltaSize.height());
 
-    if(vertex == RV_BOTTOM || vertex == RV_BOTTOMLEFT || vertex == RV_BOTTOMRIGHT){
-        //Ignore the delta Y
-        offset.setY(0);
+            if(vertex == RV_BOTTOM || vertex == RV_BOTTOMLEFT || vertex == RV_BOTTOMRIGHT){
+                //Ignore the delta Y
+                offset.setY(0);
+            }
+            if(vertex == RV_RIGHT || vertex == RV_BOTTOMRIGHT || vertex == RV_TOPRIGHT){
+                //Ignore the delta X
+                offset.setX(0);
+            }
+            item->adjustPos(offset);
+        }
     }
-    if(vertex == RV_RIGHT || vertex == RV_BOTTOMRIGHT || vertex == RV_TOPRIGHT){
-        //Ignore the delta X
-        offset.setX(0);
-    }
-
-    if(delta.width() == 0){
-        offset.setX(0);
-    }
-    if(delta.height() == 0){
-        offset.setY(0);
-    }
-
-    item->adjustPos(offset);
-    item->adjustExpandedSize(delta);
 
 }
 
@@ -502,8 +576,11 @@ void NodeViewNew::setupConnections(EntityItemNew *item)
     connect(item, &EntityItemNew::req_selected, this, &NodeViewNew::item_Selected);
     connect(item, &EntityItemNew::req_expanded, this, &NodeViewNew::item_SetExpanded);
     connect(item, &EntityItemNew::req_centerItem, this, &NodeViewNew::item_SetCentered);
-    connect(item, &EntityItemNew::req_adjustPos, this, &NodeViewNew::item_AdjustPos);
-    connect(item, &EntityItemNew::req_adjustingPos, this, &NodeViewNew::item_AdjustingPos);
+
+    connect(item, &EntityItemNew::req_StartMove, this, &NodeViewNew::trans_InActive2Moving);
+    connect(item, &EntityItemNew::req_Move, this, &NodeViewNew::item_MoveSelection);
+    connect(item, &EntityItemNew::req_FinishMove, this, &NodeViewNew::trans_Moving2InActive);
+
 
     connect(item, &EntityItemNew::req_triggerAction, this, &NodeViewNew::triggerAction);
     connect(item, &EntityItemNew::req_removeData, this, &NodeViewNew::item_RemoveData);
@@ -513,8 +590,16 @@ void NodeViewNew::setupConnections(EntityItemNew *item)
 
     if(item->isNodeItem()){
         NodeItemNew* node = (NodeItemNew*) item;
-        connect(node, &NodeItemNew::req_adjustSize, this, &NodeViewNew::item_Resize);
-        connect(node, &NodeItemNew::req_adjustSizeFinished, this, &NodeViewNew::item_ResizeFinished);
+
+        connect(node, &NodeItemNew::req_StartResize, this, &NodeViewNew::trans_InActive2Resizing);
+        connect(node, &NodeItemNew::req_Resize, this, &NodeViewNew::item_Resize);
+        connect(node, &NodeItemNew::req_FinishResize, this, &NodeViewNew::trans_Resizing2InActive);
+
+        //connect(node, &NodeItemNew::req_adjustSize, this, &NodeViewNew::item_Resize);
+        //connect(node, &NodeItemNew::req_adjustSizeFinished, this, &NodeViewNew::item_ResizeFinished);
+        connect(node, &NodeItemNew::req_connectMode, this, &NodeViewNew::node_ConnectMode);
+
+
     }
 }
 
@@ -624,8 +709,12 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_COMPONENT_ASSEMBLY:
             case Node::NK_COMPONENT_INSTANCE:
             case Node::NK_COMPONENT_IMPL:
+                nodeItem = new ContainerNodeItem(item, parentNode);
+                break;
             case Node::NK_TERMINATION:
                 nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_HARDWARE_CLUSTER:
                 nodeItem = new ContainerNodeItem(item, parentNode);
@@ -637,31 +726,68 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_OUTEVENTPORT_DELEGATE:
                 nodeItem = new ContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_ASSEMBLY);
                 break;
             case Node::NK_CONDITION:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setSecondaryTextKey("value");
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                break;
             case Node::NK_ATTRIBUTE_INSTANCE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
             case Node::NK_AGGREGATE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
-               // nodeItem->setSecondaryTextKey("value");
                 break;
             case Node::NK_PROCESS:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("operation");
+                nodeItem->setSecondaryTextKey("worker");
                 break;
             case Node::NK_MEMBER_INSTANCE:
-            case Node::NK_ATTRIBUTE:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                break;
             case Node::NK_VARIABLE:
-            case Node::NK_MEMBER:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                break;
+            case Node::NK_ATTRIBUTE_IMPL:
             case Node::NK_AGGREGATE_INSTANCE:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                break;
+            case Node::NK_MEMBER:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setSecondaryTextKey("type");
+                break;
             case Node::NK_INEVENTPORT_IMPL:
             case Node::NK_OUTEVENTPORT_IMPL:
-            case Node::NK_INEVENTPORT:
-            case Node::NK_ATTRIBUTE_IMPL:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                break;
+            case Node::NK_ATTRIBUTE:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setExpandEnabled(false);
+                break;
             case Node::NK_INPUTPARAMETER:
             case Node::NK_RETURNPARAMETER:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setSecondaryTextKey("type");
+                break;
+            case Node::NK_INEVENTPORT:
             case Node::NK_OUTEVENTPORT:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
@@ -669,14 +795,28 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_PERIODICEVENT:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("frequency");
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_BRANCH_STATE:
             case Node::NK_WHILELOOP:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_WORKLOAD:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
+            case Node::NK_VECTOR:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("max_size");
+                break;
+            case Node::NK_VECTOR_INSTANCE:
+                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setSecondaryTextKey("type");
+                break;
+
             default:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
@@ -708,9 +848,21 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
 
 void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
 {
-    if(!item || !containedNodeViewItem || !containedNodeViewItem->isAncestorOf(item->getParentItem())){
+
+    switch(item->getEdgeKind()){
+        case Edge::EC_ASSEMBLY:
+        case Edge::EC_DATA:
+        case Edge::EC_WORKFLOW:
+            break;
+        default:
+            return;
+    }
+
+    if(!containedNodeViewItem || !containedNodeViewItem->isAncestorOf(item->getParentItem())){
         return;
     }
+
+
 
     NodeItemNew* parent = getParentNodeItem(item->getParentItem());
     NodeItemNew* source = getParentNodeItem(item->getSource());
@@ -732,7 +884,7 @@ void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
     }
 }
 
-QList<ViewItem *> NodeViewNew::getTopLevelViewItems()
+QList<ViewItem *> NodeViewNew::getTopLevelViewItems() const
 {
     QList<ViewItem *> items;
     foreach(EntityItemNew* item, getTopLevelEntityItems()){
@@ -741,7 +893,7 @@ QList<ViewItem *> NodeViewNew::getTopLevelViewItems()
     return items;
 }
 
-QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems()
+QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems() const
 {
     QList<EntityItemNew*> items;
     foreach(int ID, topLevelGUIItemIDs){
@@ -753,7 +905,7 @@ QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems()
     return items;
 }
 
-QList<EntityItemNew *> NodeViewNew::getSelectedItems()
+QList<EntityItemNew *> NodeViewNew::getSelectedItems() const
 {
     QList<EntityItemNew*> items;
     foreach(ViewItem* item, selectionHandler->getSelection()){
@@ -763,6 +915,19 @@ QList<EntityItemNew *> NodeViewNew::getSelectedItems()
         }
     }
     return items;
+}
+
+QList<EntityItemNew *> NodeViewNew::getOrderedSelectedItems() const
+{
+    QList<EntityItemNew*> items;
+    foreach(ViewItem* item, selectionHandler->getOrderedSelection()){
+        EntityItemNew* eItem = getEntityItem(item);
+        if(eItem){
+            items.append(eItem);
+        }
+    }
+    return items;
+
 }
 
 NodeItemNew *NodeViewNew::getParentNodeItem(NodeViewItem *item)
@@ -778,7 +943,7 @@ NodeItemNew *NodeViewNew::getParentNodeItem(NodeViewItem *item)
      return 0;
 }
 
-EntityItemNew *NodeViewNew::getEntityItem(int ID)
+EntityItemNew *NodeViewNew::getEntityItem(int ID) const
 {
     EntityItemNew* item = 0;
     if(guiItems.contains(ID)){
@@ -787,13 +952,22 @@ EntityItemNew *NodeViewNew::getEntityItem(int ID)
     return item;
 }
 
-EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item)
+EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item) const
 {
     EntityItemNew* e = 0;
     if(item){
         e = getEntityItem(item->getID());
     }
     return e;
+}
+
+NodeItemNew *NodeViewNew::getNodeItem(ViewItem *item) const
+{
+    EntityItemNew* e = getEntityItem(item->getID());
+    if(e && e->isNodeItem()){
+        return (NodeItemNew*) e;
+    }
+    return 0;
 }
 
 void NodeViewNew::zoom(int delta, QPoint anchorScreenPos)
@@ -888,115 +1062,245 @@ void NodeViewNew::_clearSelection()
     }
 }
 
-void NodeViewNew::setState(VIEW_STATE state)
-{
-    VIEW_STATE newState = viewState;
-
-    switch(viewState){
-    case VS_NONE:
-        //Go onto VS_SELECTED
-    case VS_SELECTED:
-        if(state == VS_NONE || state == VS_SELECTED || state == VS_MOVING || state == VS_RESIZING || state == VS_PAN || state == VS_RUBBERBAND || state == VS_CONNECT){
-            newState = state;
-        }
-        break;
-    case VS_MOVING:
-        //Go onto VS_RESIZING state
-    case VS_RESIZING:
-        if(state == VS_NONE || state == VS_SELECTED){
-            newState = state;
-        }
-        break;
-    case VS_RUBBERBAND:
-        //Go onto VS_RUBBERBANDING state
-    case VS_RUBBERBANDING:
-        if(state == VS_NONE || state == VS_SELECTED || state == VS_RUBBERBAND || state == VS_RUBBERBANDING){
-            newState = state;
-        }
-        break;
-    case VS_PAN:
-        //Go Onto VS_PANNING state
-    case VS_PANNING:
-        if(state == VS_NONE || state == VS_SELECTED || state == VS_PANNING){
-            newState = state;
-        }
-        break;
-    case VS_CONNECT:
-    case VS_CONNECTING:
-        if(state == VS_NONE || state == VS_SELECTED || state == VS_CONNECTING){
-            newState = state;
-        }
-        break;
-    default:
-        break;
-    }
-
-    //Transition
-    if(newState != viewState){
-        viewState = newState;
-        transition();
-    }
-
-
-}
-
-void NodeViewNew::transition()
-{
-    switch(viewState){
-    case VS_NONE:
-        //Do the VS_SELECTED case.
-    case VS_SELECTED:
-        //setConnectMode(false);
-        //setRubberBandMode(false);
-        rubberband->setVisible(false);
-        unsetCursor();
-        break;
-    case VS_MOVING:
-        //triggerAction("View: Moving Selection");
-        setCursor(Qt::SizeAllCursor);
-        break;
-    case VS_RESIZING:
-        //triggerAction("View: Resizing Selection");
-        //Cursor is set by EntityItem
-        break;
-    case VS_PAN:
-        setCursor(Qt::ClosedHandCursor);
-        break;
-    case VS_PANNING:
-        //wasPanning = true;
-        break;
-    case VS_RUBBERBAND:
-        setCursor(Qt::CrossCursor);
-        rubberband->setVisible(false);
-        break;
-    case VS_RUBBERBANDING:
-        rubberband->setVisible(true);
-        break;
-    case VS_CONNECT:
-        //setConnectMode(true);
-        setCursor(Qt::CrossCursor);
-        break;
-    case VS_CONNECTING:
-        setCursor(Qt::CrossCursor);
-        break;
-    default:
-        break;
-    }
-}
 
 qreal NodeViewNew::distance(QPoint p1, QPoint p2)
 {
     return qSqrt(qPow(p2.x() - p1.x(), 2) + qPow(p2.y() - p1.y(), 2));
 }
 
+void NodeViewNew::setupStateMachine()
+{
+    viewStateMachine = new QStateMachine(this);
+
+    state_InActive = new QState();
+
+    state_Active_Moving = new QState();
+    state_Active_Resizing = new QState();
+    state_Active_RubberbandMode = new QState();
+    state_Active_RubberbandMode_Selecting = new QState();
+    state_Active_Connecting = new QState();
+
+    //Add States
+    viewStateMachine->addState(state_InActive);
+    viewStateMachine->addState(state_Active_Moving);
+    viewStateMachine->addState(state_Active_Resizing);
+    viewStateMachine->addState(state_Active_RubberbandMode);
+    viewStateMachine->addState(state_Active_RubberbandMode_Selecting);
+    viewStateMachine->addState(state_Active_Connecting);
+
+    viewStateMachine->setInitialState(state_InActive);
+
+    //Setup Transitions
+    state_InActive->addTransition(this, &NodeViewNew::trans_InActive2Moving, state_Active_Moving);
+    state_Active_Moving->addTransition(this, &NodeViewNew::trans_Moving2InActive, state_InActive);
+
+    state_InActive->addTransition(this, &NodeViewNew::trans_InActive2RubberbandMode, state_Active_RubberbandMode);
+    state_Active_RubberbandMode->addTransition(this, &NodeViewNew::trans_RubberbandMode2InActive, state_InActive);
+
+    state_Active_RubberbandMode->addTransition(this, &NodeViewNew::trans_RubberbandMode2RubberbandMode_Selecting, state_Active_RubberbandMode_Selecting);
+    state_Active_RubberbandMode_Selecting->addTransition(this, &NodeViewNew::trans_RubberbandMode2InActive, state_Active_RubberbandMode);
+
+    state_InActive->addTransition(this, &NodeViewNew::trans_InActive2Resizing, state_Active_Resizing);
+    state_Active_Resizing->addTransition(this, &NodeViewNew::trans_Resizing2InActive, state_InActive);
+
+
+    state_InActive->addTransition(this, &NodeViewNew::trans_InActive2Connecting, state_Active_Connecting);
+    state_Active_Connecting->addTransition(this, &NodeViewNew::trans_Connecting2InActive, state_InActive);
+
+    //Connect to states.
+
+    connect(state_InActive, &QState::entered, this, &NodeViewNew::state_Default_Entered);
+
+
+    connect(state_Active_Moving, &QState::entered, this, &NodeViewNew::state_Moving_Entered);
+    connect(state_Active_Moving, &QState::exited, this, &NodeViewNew::state_Moving_Exited);
+
+    connect(state_Active_Resizing, &QState::entered, this, &NodeViewNew::state_Resizing_Entered);
+    connect(state_Active_Resizing, &QState::exited, this, &NodeViewNew::state_Resizing_Exited);
+
+    connect(state_Active_RubberbandMode, &QState::entered, this, &NodeViewNew::state_RubberbandMode_Entered);
+    connect(state_Active_RubberbandMode, &QState::exited, this, &NodeViewNew::state_RubberbandMode_Exited);
+
+    connect(state_Active_RubberbandMode_Selecting, &QState::entered, this, &NodeViewNew::state_RubberbandMode_Selecting_Entered);
+    connect(state_Active_RubberbandMode_Selecting, &QState::exited, this, &NodeViewNew::state_RubberbandMode_Selecting_Exited);
+
+    connect(state_Active_Connecting, &QState::entered, this, &NodeViewNew::state_Connecting_Entered);
+    connect(state_Active_Connecting, &QState::exited, this, &NodeViewNew::state_Connecting_Exited);
+
+    viewStateMachine->start();
+}
+
 EntityItemNew *NodeViewNew::getEntityAtPos(QPointF scenePos)
 {
-    EntityItemNew* entityItem = 0;
-    QGraphicsItem* item = scene()->itemAt(scenePos, transform());
-    if(item){
-        entityItem = qgraphicsitem_cast<EntityItemNew*>(item);
+    foreach(QGraphicsItem* item, scene()->items(scenePos)){
+        EntityItemNew* entityItem =  dynamic_cast<EntityItemNew*>(item);
+        if(entityItem){
+            return entityItem;
+        }
     }
-    return entityItem;
+    return 0;
+}
+
+void NodeViewNew::state_Moving_Entered()
+{
+    setCursor(Qt::SizeAllCursor);
+    if(selectionHandler){
+        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+            EntityItemNew* item = getEntityItem(viewItem);
+            if(item){
+                item->setMoveStarted();
+            }
+        }
+    }
+}
+
+void NodeViewNew::state_Moving_Exited()
+{
+    if(selectionHandler){
+        bool anyMoved = false;
+
+        QVector<ViewItem*> selection = selectionHandler->getOrderedSelection();
+
+        foreach(ViewItem* viewItem, selection){
+            EntityItemNew* item = getEntityItem(viewItem);
+            if(item){
+                if(item->setMoveFinished()){
+                    anyMoved = true;
+                }
+            }
+        }
+
+        if(anyMoved){
+            emit triggerAction("Moving Selection");
+            foreach(ViewItem* viewItem, selection){
+                EntityItemNew* item = getEntityItem(viewItem);
+                if(item){
+                    QPointF pos = item->getNearestGridPoint();
+                    emit setData(item->getID(), "x", pos.x());
+                    emit setData(item->getID(), "y", pos.y());
+                }
+            }
+        }
+    }
+}
+
+void NodeViewNew::state_Resizing_Entered()
+{
+    qCritical() << "state_Resizing_Entered";
+    if(selectionHandler){
+        if(selectionHandler->getSelectionCount() != 1){
+            emit trans_Resizing2InActive();
+            return;
+        }
+
+        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+            NodeItemNew* item = getNodeItem(viewItem);
+            if(item){
+                item->setResizeStarted();
+            }
+        }
+        setCursor(Qt::SizeAllCursor);
+    }
+}
+
+void NodeViewNew::state_Resizing_Exited()
+{
+    if(selectionHandler){
+        foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
+            NodeItemNew* item = getNodeItem(viewItem);
+
+            if(item && item->setResizeFinished()){
+                emit triggerAction("Resizing Item");
+                QSizeF size = item->getGridAlignedSize();
+                emit setData(item->getID(), "width", size.width());
+                emit setData(item->getID(), "height", size.height());
+            }
+        }
+    }
+}
+
+void NodeViewNew::state_RubberbandMode_Entered()
+{
+    qCritical() << "state_RubberbandMode_Entered";
+    setCursor(Qt::CrossCursor);
+}
+
+void NodeViewNew::state_RubberbandMode_Exited()
+{
+    qCritical() << "state_RubberbandMode_Exited";
+}
+
+void NodeViewNew::state_RubberbandMode_Selecting_Entered()
+{
+    qCritical() << "state_RubberbandMode_Selecting_Entered";
+    rubberband->setVisible(true);
+}
+
+void NodeViewNew::state_RubberbandMode_Selecting_Exited()
+{
+     qCritical() << "state_RubberbandMode_Selecting_Exited";
+    rubberband->setVisible(false);
+    emit trans_RubberbandMode2InActive();
+}
+
+void NodeViewNew::state_Connecting_Entered()
+{
+    ViewItem* vi = selectionHandler->getActiveSelectedItem();
+    EntityItemNew* item = getEntityItem(vi);
+    if(item && item->isNodeItem()){
+        NodeItemNew* nodeItem = (NodeItemNew*) item;
+
+        //Highlight things we can connect to
+        QList<ViewItem*> items = viewController->getValidEdges(nodeItem->getVisualEdgeKind());
+        foreach(ViewItem* item, items){
+            highlightItem(item->getID(), true);
+        }
+
+        QPointF lineStart = nodeItem->scenePos();
+        lineStart += nodeItem->getElementRect(EntityItemNew::ER_EDGE_KIND_ICON).center();
+
+        if(!connectLineItem){
+            connectLineItem = scene()->addLine(connectLine);
+        }
+        connectLine.setP1(lineStart);
+        connectLine.setP2(lineStart);
+        connectLineItem->setLine(connectLine);
+        connectLineItem->setVisible(true);
+    }
+    qCritical() << "state_Connecting_Entered";
+}
+
+void NodeViewNew::state_Connecting_Exited()
+{
+    ViewItem* vi = selectionHandler->getActiveSelectedItem();
+    EntityItemNew* item = getEntityItem(vi);
+    if(item && item->isNodeItem()){
+        NodeItemNew* nodeItem = (NodeItemNew*) item;
+
+        Edge::EDGE_KIND edgeKind = nodeItem->getVisualEdgeKind();
+
+        //Unhighlight things we can connect to
+        QList<ViewItem*> items = viewController->getValidEdges(edgeKind);
+        foreach(ViewItem* item, items){
+            highlightItem(item->getID(), false);
+        }
+
+        if(connectLineItem){
+            QPointF scenePos = connectLine.p2();
+            EntityItemNew* otherItem = getEntityAtPos(scenePos);
+            if(otherItem){
+                emit triggerAction("Constructing Edge");
+                emit viewController->vc_constructEdge(selectionHandler->getSelectionIDs().toList(), otherItem->getID(), edgeKind);
+            }
+            connectLineItem->setVisible(false);
+        }
+    }
+}
+
+void NodeViewNew::state_Default_Entered()
+{
+    qCritical() << "state_Default_Entered";
+    unsetCursor();
 }
 
 void NodeViewNew::keyPressEvent(QKeyEvent *event)
@@ -1005,7 +1309,7 @@ void NodeViewNew::keyPressEvent(QKeyEvent *event)
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
     if(CONTROL && SHIFT){
-        setState(VS_RUBBERBAND);
+        emit trans_InActive2RubberbandMode();
     }
 }
 
@@ -1014,8 +1318,8 @@ void NodeViewNew::keyReleaseEvent(QKeyEvent *event)
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-    if((viewState == VS_RUBBERBAND || viewState == VS_RUBBERBAND) && !(CONTROL && SHIFT)){
-        setState(VS_NONE);
+    if(!(CONTROL && SHIFT)){
+        emit trans_RubberbandMode2InActive();
     }
 }
 
@@ -1033,34 +1337,31 @@ void NodeViewNew::mousePressEvent(QMouseEvent *event)
     bool handledEvent = false;
 
     if(event->button() == Qt::RightButton){
-        setState(VS_PAN);
+        isPanning = true;
         pan_lastPos = event->pos();
         pan_lastScenePos = scenePos;
         pan_distance = 0;
         handledEvent = true;
     }
+
     if(event->button() == Qt::LeftButton){
-        switch(viewState){
-            case VS_RUBBERBAND:{
-                setState(VS_RUBBERBANDING);
+        emit trans_RubberbandMode2RubberbandMode_Selecting();
+
+        if(state_Active_RubberbandMode_Selecting->active()){
+            rubberband_lastPos = event->pos();
+            if(rubberband){
+                rubberband->setGeometry(QRect(rubberband_lastPos, rubberband_lastPos));
             }
-            case VS_RUBBERBANDING:{
-                rubberband_lastPos = event->pos();
-                if(rubberband){
-                    rubberband->setGeometry(QRect(rubberband_lastPos, rubberband_lastPos));
-                }
-                handledEvent = true;
-                break;
-            }
-        default:
+            handledEvent = true;
+        }else{
             EntityItemNew* item = getEntityAtPos(scenePos);
             if(!item){
                 clearSelection();
                 handledEvent = true;
             }
-            break;
         }
     }
+
     if(!handledEvent){
         QGraphicsView::mousePressEvent(event);
     }
@@ -1071,12 +1372,7 @@ void NodeViewNew::mouseMoveEvent(QMouseEvent *event)
     QPointF scenePos = mapToScene(event->pos());
     bool handledEvent = false;
 
-    switch(viewState){
-    case VS_PAN:{
-        //Continue on
-        setState(VS_PANNING);
-    }
-    case VS_PANNING:{
+    if(isPanning){
         //Calculate the distance in screen pixels travelled
         pan_distance += distance(event->pos(), pan_lastPos);
         //Pan the Canvas
@@ -1084,16 +1380,14 @@ void NodeViewNew::mouseMoveEvent(QMouseEvent *event)
         pan_lastPos = event->pos();
         pan_lastScenePos = mapToScene(event->pos());
         handledEvent = true;
-        break;
     }
-    case VS_RUBBERBAND:
-    case VS_RUBBERBANDING:{
+
+    if(state_Active_RubberbandMode_Selecting->active()){
         rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
         handledEvent = true;
-        break;
-    }
-    default:
-        break;
+    }else if(state_Active_Connecting->active()){
+        connectLine.setP2(mapToScene(event->pos()));
+        connectLineItem->setLine(connectLine);
     }
 
     //Only pass down if we haven't handled it.
@@ -1107,12 +1401,13 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-    switch(viewState){
-    case VS_PAN:{
-        //Do Nothing
-    }
-    case VS_PANNING:{
-        setState(VS_NONE);
+    bool handledEvent = false;
+
+    //Exit pan mode yo
+    if(isPanning && event->button() == Qt::RightButton){
+        isPanning = false;
+
+        //Popup Toolbar if there is an item.
         if(pan_distance < 10){
             QPointF itemPos = mapToScene(event->pos());
             EntityItemNew* item = getEntityAtPos(itemPos);
@@ -1124,24 +1419,30 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
             }
             //Check for item under mouse.
             emit toolbarRequested(event->globalPos(), itemPos);
-            return;
         }
-        break;
-    }
-    case VS_RUBBERBANDING:
-        selectItemsInRubberband();
-        setState(VS_RUBBERBAND);
-        break;
-    default:
-        break;
+        handledEvent = true;
     }
 
-    QGraphicsView::mouseReleaseEvent(event);
+    if(state_Active_RubberbandMode_Selecting->active() && event->button() == Qt::LeftButton){
+        rubberband->setGeometry(QRect(rubberband_lastPos, event->pos()).normalized());
+        selectItemsInRubberband();
+        emit trans_RubberbandMode2InActive();
+        handledEvent = true;
+    }
+
+    if(state_Active_Connecting->active() && event->button() == Qt::LeftButton){
+        emit trans_Connecting2InActive();
+        handledEvent = true;
+    }
+
+
+    if(!handledEvent){
+        QGraphicsView::mouseReleaseEvent(event);
+    }
 }
 
 void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)
 {
-
     painter->resetTransform();
     painter->setPen(Qt::NoPen);
     painter->setBrush(backgroundColor);
@@ -1156,12 +1457,6 @@ void NodeViewNew::drawBackground(QPainter *painter, const QRectF &r)
         }
         painter->drawText(rect(), Qt::AlignHCenter | Qt::AlignBottom, backgroundText);
     }
-}
-
-void NodeViewNew::drawForeground(QPainter *painter, const QRectF &rect)
-{
-    //painter->setBrush(Qt::red);
-    //painter->drawRect(rect);
 }
 
 void NodeViewNew::resizeEvent(QResizeEvent *event)

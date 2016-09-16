@@ -10,17 +10,15 @@ QT       += gui
 QT       += widgets
 QT       += xmlpatterns
 
-
-VERSION = 1.5.2
+VERSION = 2.0.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+DEFINES += APP_URL=\\\"https://github.com/cdit-ma/MEDEA/\\\"
 
 QMAKE_TARGET_COMPANY = CDIT-MA
 QMAKE_TARGET_PRODUCT = MEDEA
 QMAKE_TARGET_DESCRIPTION = MEDEA
 
-
 TARGET = MEDEA
-
 TEMPLATE = app
 
 win32{
@@ -212,7 +210,9 @@ HEADERS += \
     GUI/codebrowser.h \
     Model/BehaviourDefinitions/workerprocess.h \
     Widgets/New/viewmanagerwidget.h \
-    Widgets/New/searchdialog.h
+    Widgets/New/searchdialog.h \
+    Widgets/New/searchitemwidget.h \
+    Widgets/New/welcomescreenwidget.h
 
 SOURCES += \
     main.cpp \
@@ -388,7 +388,9 @@ SOURCES += \
     GUI/codebrowser.cpp \
     Model/BehaviourDefinitions/workerprocess.cpp \
     Widgets/New/viewmanagerwidget.cpp \
-    Widgets/New/searchdialog.cpp
+    Widgets/New/searchdialog.cpp \
+    Widgets/New/searchitemwidget.cpp \
+    Widgets/New/welcomescreenwidget.cpp
 
 RESOURCES += \
     resources.qrc

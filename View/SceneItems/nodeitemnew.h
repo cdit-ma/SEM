@@ -17,8 +17,8 @@ public:
     NodeItemNew(NodeViewItem *viewItem, NodeItemNew* parentItem, KIND kind);
     ~NodeItemNew();
 
-    NodeItemNew* getParentNodeItem() const;
     KIND getNodeItemKind();
+    NodeViewItem* getNodeViewItem() const;
 
     Node::NODE_KIND getNodeKind() const;
 
@@ -41,7 +41,6 @@ public:
     QList<NodeItemNew*> getOrderedChildNodes() const;
     QList<EntityItemNew*> getChildEntities() const;
 
-    QPointF validateAdjustPos(QPointF delta);
     QPainterPath getChildNodePath();
 
     void addChildEdge(EdgeItemNew* edgeItem);
@@ -60,11 +59,14 @@ public:
     void setResizeEnabled(bool enabled);
     bool isResizeEnabled();
 
-    void setChildNodeMoving(NodeItemNew* child, bool moving);
+    void setChildMoving(EntityItemNew* child, bool moving);
 
-    void setMoving(bool moving);
+    void setMoveStarted();
+    bool setMoveFinished();
 
-    virtual QRectF sceneBoundingRect() const;
+    void setResizeStarted();
+    bool setResizeFinished();
+
 
 
 
@@ -115,7 +117,7 @@ public:
     virtual QPointF getSceneEdgeTermination(bool left) const;
 
 
-    virtual void setPos(const QPointF &pos);
+    //virtual void setPos(const QPointF &pos);
 
 
     void setAspect(VIEW_ASPECT aspect);
@@ -130,6 +132,9 @@ public:
 
     void setPrimaryTextKey(QString key);
     void setSecondaryTextKey(QString key);
+    void setVisualEdgeKind(Edge::EDGE_KIND kind);
+    Edge::EDGE_KIND getVisualEdgeKind() const;
+
     QString getPrimaryTextKey() const;
     QString getSecondaryTextKey() const;
     bool gotPrimaryTextKey() const;
@@ -142,10 +147,15 @@ public:
     virtual void setExpanded(bool expand);
 
 
+    QSizeF getGridAlignedSize(QSizeF size=QSizeF()) const;
     int getVertexAngle(RECT_VERTEX vert) const;
 signals:
-    void req_adjustSize(NodeItemNew* item, QSizeF delta, RECT_VERTEX vert);
-    void req_adjustSizeFinished(NodeItemNew* item, RECT_VERTEX vert);
+    //Request changes
+    void req_connectMode(NodeItemNew* item);
+
+    void req_StartResize();
+    void req_Resize(NodeItemNew* item, QSizeF delta, RECT_VERTEX vert);
+    void req_FinishResize();
 
     //Inform of Changes
     void gotChildNodes(bool);
@@ -156,6 +166,10 @@ public slots:
     virtual void dataRemoved(QString keyName);
     virtual void childPosChanged();
 private:
+    void edgeAdded(Edge::EDGE_KIND kind);
+    void edgeRemoved(Edge::EDGE_KIND kind);
+
+
     void updateReadState();
     void setUpColors();
 
@@ -166,6 +180,9 @@ private:
     void updateGridLines();
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
+
+    Edge::EDGE_KIND visualEdgeKind;
+    QString visualEdgeIcon;
 
     NODE_READ_STATE readState;
 
@@ -183,10 +200,16 @@ private:
     bool gridVisible;
     bool ignorePosition;
 
+
+    bool _isResizing;
+    QSizeF sizePreResize;
+
+
     bool _rightJustified;
 
     bool resizeEnabled;
 
+    bool hoveredConnect;
     RECT_VERTEX hoveredResizeVertex;
     RECT_VERTEX selectedResizeVertex;
 
@@ -197,15 +220,14 @@ private:
     QHash<int, NodeItemNew*> childNodes;
     QHash<int, EdgeItemNew*> childEdges;
 
-    QVector<NodeItemNew*> movingChildren;
-
-    QVector<QLineF> gridLines_Minor_Horizontal;
-    QVector<QLineF> gridLines_Major_Horizontal;
-    QVector<QLineF> gridLines_Minor_Vertical;
-    QVector<QLineF> gridLines_Major_Vertical;
+    QPainterPath gridLines;
 
     QColor readOnlyInstanceColor;
     QColor readOnlyDefinitionColor;
+
+    qreal modelWidth;
+    qreal modelHeight;
+    QPen gridLinePen;
 
     QString primaryTextKey;
     QString secondaryTextKey;

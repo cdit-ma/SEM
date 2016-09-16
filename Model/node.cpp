@@ -5,6 +5,7 @@
 #include <QCryptographicHash>
 #include <QStringBuilder>
 #include <QByteArray>
+#include <QStack>
 
 Node::Node(Node::NODE_KIND kind):Entity(EK_NODE)
 {
@@ -77,16 +78,26 @@ bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         if(!dst->isNodeOfType(NT_DEFINITION)){
             return false;
         }
-
-        if(parentNode && parentNode->isInstanceImpl()){
-            Node* pDef = parentNode->getDefinition();
-            if(pDef && !pDef->isAncestorOf(dst)){
-                //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
-                return false;
+        if(parentNode){
+            if(parentNode->isInstanceImpl()){
+                Node* pDef = parentNode->getDefinition();
+                if(pDef && !pDef->isAncestorOf(dst)){
+                    //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
+                    return false;
+                }
+            }else{
+                if(dst->getDefinition()){
+                    return false;
+                }
             }
         }
 
+        if(indirectlyConnectedTo(dst)){
+            return false;
+        }
+
         //HMM
+        //if(isDescendantOf())
 
         break;
     }
@@ -372,6 +383,37 @@ void Node::addChild(Node *child)
 QString Node::getNodeKindStr()
 {
     return getDataValue("kind").toString();
+}
+
+bool Node::indirectlyConnectedTo(Node *node)
+{
+    Node* parent = getParentNode();
+
+    QStack<Node*> items;
+    items.append(node);
+    while(!items.isEmpty()){
+        Node* item = items.takeFirst();
+
+        if(item == parent){
+            return true;
+        }
+        Node* itemDef = item->getDefinition(true);
+        if(itemDef){
+            if(itemDef == parent){
+                return true;
+            }
+
+            if(itemDef == parent->getDefinition(true)){
+                return true;
+            }
+        }
+
+        foreach(Node* node, item->getChildren(0)){
+            items.append(node);
+        }
+    }
+
+    return false;
 }
 
 bool Node::containsChild(Node *child)

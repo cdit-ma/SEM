@@ -47,8 +47,8 @@ public:
 
     void addChild(ViewItem* child);
     void removeChild(ViewItem* child);
-    QList<ViewItem *> getChildren();
-    QList<int> getChildrenID();
+    QVector<ViewItem *> getDirectChildren() const;
+    QList<ViewItem* > getNestedChildren() const;
 
     ViewItem* getParentItem();
     void setParentViewItem(ViewItem* item);
@@ -66,7 +66,7 @@ signals:
     void propertyChanged(QString propertyName, QVariant data);
     void propertyRemoved(QString propertyName);
 
-    void destructing();
+    void destructing(int ID);
 private:
     QStringList getProtectedKeys() const;
     void changeData(QString keyName, QVariant data);
@@ -81,7 +81,7 @@ private:
 private:
     ViewItem* _parent;
     AttributeTableModel* tableModel;
-    QList<ViewItem*> children;
+    QMultiMap<ENTITY_KIND, ViewItem*> children;
     ViewController* controller;
 
     QHash<QString, QVariant> _data;

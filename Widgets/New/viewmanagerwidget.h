@@ -14,6 +14,7 @@ class WindowItem : public QWidget{
     Q_OBJECT
 public:
     WindowItem(ViewManagerWidget* manager, MedeaWindowNew* window);
+    ~WindowItem();
 private slots:
 
     void dockWidgetAdded(MedeaDockWidget* widget);

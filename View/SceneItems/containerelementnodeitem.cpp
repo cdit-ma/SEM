@@ -8,12 +8,7 @@ ContainerElementNodeItem::ContainerElementNodeItem(NodeViewItem *viewItem, NodeI
 {
     container = qobject_cast<StackContainerNodeItem*>(parentItem);
 
-    //setMargin(QMarginsF(5,5,5,5));
-
-
-
     addRequiredData("sortOrder");
-
     addRequiredData("x");
     addRequiredData("y");
     reloadRequiredData();
@@ -35,15 +30,13 @@ void ContainerElementNodeItem::setIndexPosition(QPoint point)
 
 }
 
-void ContainerElementNodeItem::setPos(const QPointF &pos)
+void ContainerElementNodeItem::setPos(const QPointF &p)
 {
+    QPointF pos = p;
     if(getContainer()){
-        if(isMoving()){
-            setIndexPosition(getContainer()->getElementIndex(this));
-        }else{
-            //Force it's position
-            EntityItemNew::setPos(getContainer()->getElementPosition(this));
-            return;
+        if(!isMoving()){
+            //Force it's position if it isn't moving!
+            pos = getContainer()->getElementPosition(this);
         }
     }
     NodeItemNew::setPos(pos);
@@ -59,5 +52,13 @@ void ContainerElementNodeItem::dataChanged(QString keyName, QVariant data)
         setIndexPosition(index);
         setPos(QPointF());
     }
+}
+
+QPointF ContainerElementNodeItem::getNearestGridPoint(QPointF newPos)
+{
+    if(getContainer()){
+        return getContainer()->getElementPosition(this);
+    }
+    return NodeItemNew::getNearestGridPoint(newPos);
 }
 

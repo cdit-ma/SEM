@@ -51,6 +51,7 @@ void DockTabWidget::themeChanged()
  */
 void DockTabWidget::selectionChanged()
 {
+    qDebug()<< "SelectionChanged";
     refreshDock();
 }
 
@@ -159,6 +160,7 @@ void DockTabWidget::dockBackButtonClicked()
  */
 void DockTabWidget::onActionFinished()
 {
+    qDebug() << "actionfinished";
     // TODO - Check when this slot is being called.
     refreshDock();
 }
@@ -301,6 +303,7 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
         }
         case ToolActionController::HARDWARE:
             showInfoLabel = dockWidget->isEmpty();
+            //dockWidget->highlightItem(287);
             break;
         default:
             break;
@@ -380,6 +383,7 @@ void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemActio
 
 /**
  * @brief DockTabWidget::refreshDock
+ * This is called whenever the selection has changed and when actionFinished is called.
  */
 void DockTabWidget::refreshDock()
 {
@@ -391,8 +395,14 @@ void DockTabWidget::refreshDock()
             partsDock->displayInfoLabel(!adoptableKindAction->isEnabled());
         }
     } else {
-        // TODO - update the hardware dock
         // update highlighted dock item
+        QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(Edge::EC_DEPLOYMENT);
+        hardwareDock->highlightItem(); // clear previous highlighted item
+        if (connectedHardwareItems.count() == 1) {
+            qDebug() << "highlighted";
+            int connectedItemID = connectedHardwareItems.at(0)->getID();
+            hardwareDock->highlightItem(connectedItemID);
+        }
     }
 }
 

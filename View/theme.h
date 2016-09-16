@@ -76,6 +76,9 @@ public:
     QIcon getIcon(QString prefix, QString alias);
     QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
 
+    QColor getAltTextColor();
+    QString getAltTextColorHex();
+    void setAltTextColor(QColor color);
 
     void setBackgroundColor(QColor color);
     void setDisabledBackgroundColor(QColor color);
@@ -112,6 +115,7 @@ public:
     QString getMenuStyleSheet();
     QString getToolBarStyleSheet();
     QString getAbstractItemViewStyleSheet();
+    QString getComboBoxStyleSheet();
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();
     QString getLineEditStyleSheet();
@@ -163,6 +167,7 @@ private:
     QColor iconColor;
     QColor selectedItemBorderColor;
     QColor selectedWidgetBorderColor;
+    QColor altTextColor;
 
     QString slash;
 
