@@ -118,11 +118,7 @@ private:
     QTimer* notificationTimer;
 
     ViewController* viewController;
-    NodeViewNew* nodeView_Interfaces;
-    NodeViewNew* nodeView_Behaviour;
-    NodeViewNew* nodeView_Assemblies;
-    NodeViewNew* nodeView_Hardware;
-    QOSBrowser* qosBrowser;
+
 
     QToolButton* interfaceButton;
     QToolButton* behaviourButton;

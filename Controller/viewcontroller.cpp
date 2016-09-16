@@ -1,12 +1,15 @@
 #include "viewcontroller.h"
-#include "../View/nodeviewitem.h"
-#include "../View/edgeviewitem.h"
+
+#include "../Widgets/New/medeawindowmanager.h"
+#include "../Widgets/New/medeawindownew.h"
+#include "../Widgets/New/medeanodeviewdockwidget.h"
+
 #include "../View/Toolbar/toolbarwidgetnew.h"
 #include "../View/nodeviewnew.h"
-#include "../Widgets/New/medeawindownew.h"
 #include "../GUI/codebrowser.h"
 #include "controller.h"
 #include "filehandler.h"
+
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
@@ -15,8 +18,6 @@
 #include <QThreadPool>
 #include <QListIterator>
 
-#include "../Widgets/New/medeawindowmanager.h"
-#include "../Widgets/New/medeanodeviewdockwidget.h"
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
@@ -500,6 +501,12 @@ void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit vc_triggerAction("Table Changed");
     emit vc_setData(ID, key, data);
+}
+
+void ViewController::_showGitHubPage(QString relURL)
+{
+    QString URL = APP_URL % relURL;
+    QDesktopServices::openUrl(QUrl(URL));
 }
 
 QString ViewController::getTempFileForModel()
@@ -1260,6 +1267,25 @@ void ViewController::centerOnID(int ID)
     emit vc_centerItem(ID);
 }
 
+void ViewController::showWiki()
+{
+    _showGitHubPage("wiki/");
+}
+
+void ViewController::reportBug()
+{
+    _showGitHubPage("issues/");
+}
+
+void ViewController::showWikiForSelectedItem()
+{
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        QString relURL = "wiki/SEM-MEDEA-ModelEntities#" + item->getData("kind").toString();
+        _showGitHubPage(relURL);
+    }
+}
+
 void ViewController::centerImpl()
 {
     ViewItem* item = getActiveSelectedItem();
@@ -1318,6 +1344,34 @@ void ViewController::popupItem(int ID)
     if(item){
         spawnSubView(item);
     }
+}
+
+void ViewController::aboutQt()
+{
+    MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
+    QMessageBox::aboutQt(window);
+}
+
+void ViewController::aboutMEDEA()
+{
+    QString aboutString =
+    "<h3>MEDEA " APP_VERSION "</h3>"
+    "<a href=\"" APP_URL "\"><i>Center for Distributed and Intelligent Systems - Model Analysis</i></a><br />"
+    "The University of Adelaide<hr /><br />"
+    "Team:"
+    "<ul>"
+    "<li>Dan Fraser (Lead Programmer)</li>"
+    "<li>Cathlyn Aston (UX Programmer)</li>"
+    "<li>Mitchell Conrad</li>"
+    "</ul>"
+    "Past Members:"
+    "<ul>"
+    "<li>Marianne Rieckmann (XSL Transforms)</li>"
+    "<li>Jackson Michael (CUTS Workers)</li>"
+    "<li>Matthew Hart</li>"
+    "</ul>";
+    MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
+    QMessageBox::about(window, "About MEDEA " APP_VERSION, aboutString);
 }
 
 

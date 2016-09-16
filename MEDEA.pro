@@ -10,17 +10,15 @@ QT       += gui
 QT       += widgets
 QT       += xmlpatterns
 
-
-VERSION = 1.5.2
+VERSION = 2.0.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+DEFINES += APP_URL=\\\"https://github.com/cdit-ma/MEDEA/\\\"
 
 QMAKE_TARGET_COMPANY = CDIT-MA
 QMAKE_TARGET_PRODUCT = MEDEA
 QMAKE_TARGET_DESCRIPTION = MEDEA
 
-
 TARGET = MEDEA
-
 TEMPLATE = app
 
 win32{

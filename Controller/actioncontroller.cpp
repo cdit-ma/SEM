@@ -79,6 +79,15 @@ void ActionController::connectViewController(ViewController *controller)
         connect(view_viewInNewWindow, &QAction::triggered, viewController, &ViewController::popupSelection);
         connect(view_viewConnections, &QAction::triggered, viewController, &ViewController::selectAndCenterConnectedEntities);
 
+
+        connect(toolbar_wiki, &QAction::triggered, viewController, &ViewController::showWikiForSelectedItem);
+        connect(help_wiki, &QAction::triggered, viewController, &ViewController::showWiki);
+        connect(help_reportBug, &QAction::triggered, viewController, &ViewController::reportBug);
+        connect(help_aboutQt, &QAction::triggered, viewController, &ViewController::aboutQt);
+        connect(help_aboutMedea, &QAction::triggered, viewController, &ViewController::aboutMEDEA);
+
+
+
         connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
 
 
@@ -214,14 +223,17 @@ void ActionController::selectionChanged(int selectionSize)
         bool hasDefn = false;
         bool hasImpl = false;
         bool hasCode = false;
+        bool hasComponentAssembly = false;
 
         if(gotSingleSelection && singleItem && singleItem->isNode()){
             NodeViewItem* node = (NodeViewItem*) singleItem;
             hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
             hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
             hasCode = node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE || node->getNodeKind() == Node::NK_COMPONENT_IMPL;
+            hasComponentAssembly = node->getNodeKind() == Node::NK_COMPONENT_ASSEMBLY;
         }
 
+        toolbar_wiki->setEnabled(gotSelection);
         file_importSnippet->setEnabled(viewController->canImportSnippet());
         file_exportSnippet->setEnabled(viewController->canExportSnippet());
 
@@ -251,6 +263,8 @@ void ActionController::selectionChanged(int selectionSize)
 
         edit_CycleActiveSelectionForward->setEnabled(gotMultipleSelection);
         edit_CycleActiveSelectionBackward->setEnabled(gotMultipleSelection);
+
+        toolbar_replicateCount->setEnabled(hasComponentAssembly);
 
         view_fitView->setEnabled(modelActions);
         view_fitAllViews->setEnabled(modelActions);
@@ -637,8 +651,14 @@ void ActionController::setupActions()
     jenkins_executeJob = createRootAction("Launch: ", "", "Actions", "Job_Build");
 
     help_shortcuts = createRootAction("App Shortcuts", "", "Actions", "Keyboard");
+
     help_reportBug = createRootAction("Report Bug", "", "Actions", "BugReport");
+
     help_wiki = createRootAction("Wiki", "", "Actions", "Wiki");
+    help_wiki->setShortcutContext(Qt::ApplicationShortcut);
+    help_wiki->setShortcut(QKeySequence::HelpContents);
+
+
     help_aboutMedea = createRootAction("About MEDEA", "", "Actions", "Info");
     help_aboutQt = createRootAction("About Qt", "", "Actions", "Qt");
 

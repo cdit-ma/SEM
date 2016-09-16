@@ -415,14 +415,15 @@ void MedeaMainWindow::initializeApplication()
     //Set QApplication information.
     QApplication::setApplicationName("MEDEA");
     QApplication::setApplicationVersion(APP_VERSION);
-    QApplication::setOrganizationName("Defence Information Group");
-    QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
+    QApplication::setOrganizationName("CDIT-MA");
+    QApplication::setOrganizationDomain("https://github.com/cdit-ma/");
     QApplication::setWindowIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
 
     //Set Font.
-    int opensans_FontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
-    QString opensans_fontname = QFontDatabase::applicationFontFamilies(opensans_FontID).at(0);
+    //int opensans_FontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
+    //QString opensans_fontname = QFontDatabase::applicationFontFamilies(opensans_FontID).at(0);
     //QFont font = QFont(opensans_fontname);
+
     QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPointSizeF(8.5);
@@ -464,10 +465,8 @@ void MedeaMainWindow::toggleWelcomeScreen(bool on)
 
     // show/hide the menu bar and close all dock widgets
     menuBar->setVisible(!on);
-    foreach (QDockWidget* dw, findChildren<QDockWidget*>()) {
-        if (!on && dw->windowTitle() == "QOS Browser") {
-            continue;
-        }
+    //Only hide the MedeaToo
+    foreach (QDockWidget* dw, findChildren<MedeaToolDockWidget*>()) {
         dw->setVisible(!on);
     }
 
@@ -501,10 +500,12 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow = MedeaWindowManager::constructCentralWindow("Main Window");
     setCentralWidget(innerWindow);
 
-    nodeView_Interfaces = new NodeViewNew();
-    nodeView_Behaviour = new NodeViewNew();
-    nodeView_Assemblies = new NodeViewNew();
-    nodeView_Hardware = new NodeViewNew();
+
+    NodeViewNew* nodeView_Interfaces = new NodeViewNew();
+    NodeViewNew* nodeView_Behaviour = new NodeViewNew();
+    NodeViewNew* nodeView_Assemblies = new NodeViewNew();
+    NodeViewNew* nodeView_Hardware = new NodeViewNew();
+    QOSBrowser* qosBrowser = new QOSBrowser(viewController, this);
 
     nodeView_Interfaces->setContainedViewAspect(VA_INTERFACES);
     nodeView_Behaviour->setContainedViewAspect(VA_BEHAVIOUR);
@@ -528,7 +529,6 @@ void MedeaMainWindow::setupInnerWindow()
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructViewDockWidget("QOS Browser");
-    qosBrowser = new QOSBrowser(viewController, this);
     qosDockWidget->setWidget(qosBrowser);
     qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     qosDockWidget->setVisible(false);

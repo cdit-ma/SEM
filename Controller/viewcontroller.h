@@ -1,16 +1,17 @@
 #ifndef VIEWCONTROLLER_H
 #define VIEWCONTROLLER_H
 
+#include "actioncontroller.h"
+#include "toolbarcontroller.h"
+#include "../Widgets/New/selectioncontroller.h"
+#include "selectionhandler.h"
+
 #include "../View/viewitem.h"
 #include "../View/nodeviewitem.h"
 #include "../View/edgeviewitem.h"
-#include "selectionhandler.h"
-#include "../Widgets/New/selectioncontroller.h"
-#include "actioncontroller.h"
-#include "toolbarcontroller.h"
+#include "../View/Validate/validatedialog.h"
 #include "../Widgets/New/medeadockwidget.h"
 
-#include "../View/Validate/validatedialog.h"
 
 class NewController;
 class ToolbarWidgetNew;
@@ -189,6 +190,10 @@ public slots:
     void selectAndCenterConnectedEntities();
     void centerOnID(int ID);
 
+    void showWiki();
+    void reportBug();
+    void showWikiForSelectedItem();
+
     void centerImpl();
     void centerDefinition();
 
@@ -197,6 +202,8 @@ public slots:
     void popupSelection();
     void popupItem(int ID);
 
+    void aboutQt();
+    void aboutMEDEA();
 
     void cut();
     void copy();
@@ -222,6 +229,7 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+    void _showGitHubPage(QString relURL="");
     QString getTempFileForModel();
     void spawnSubView(ViewItem *item );
     bool destructViewItem(ViewItem* item);

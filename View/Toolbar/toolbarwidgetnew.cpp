@@ -301,7 +301,7 @@ void ToolbarWidgetNew::setupActions()
     instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
     mainGroup->addSeperator();
     hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
-    mainGroup->addAction(actionController->toolbar_replicateCount);
+    mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     //replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
@@ -309,7 +309,7 @@ void ToolbarWidgetNew::setupActions()
     connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
     mainGroup->addAction(actionController->model_getCodeForComponent->constructSubAction(true));
     mainGroup->addAction(actionController->view_viewInNewWindow->constructSubAction(true));
-    mainGroup->addAction(actionController->help_wiki->constructSubAction(true));
+    mainGroup->addAction(actionController->toolbar_wiki->constructSubAction(true));
 
     //hardwareAction->setVisible(false);
     //disconnectHardwareAction->setVisible(false);

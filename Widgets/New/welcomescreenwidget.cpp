@@ -63,14 +63,14 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
 
     if (ac) {
         leftToolbar->addWidget(leftTopWidget);
-        leftToolbar->addAction(ac->file_newProject->constructSubAction(false));
-        leftToolbar->addAction(ac->file_openProject->constructSubAction(false));
-        leftToolbar->addAction(ac->options_settings->constructSubAction(false));
+        leftToolbar->addAction(ac->file_newProject);
+        leftToolbar->addAction(ac->file_openProject);
+        leftToolbar->addAction(ac->options_settings);
     }
 
-    bottomToolbar->addAction(ac->file_exit->constructSubAction(false));
-    bottomToolbar->addAction(ac->help_aboutMedea->constructSubAction(false));
-    bottomToolbar->addAction(ac->help_wiki->constructSubAction(false));
+    bottomToolbar->addAction(ac->file_exit);
+    bottomToolbar->addAction(ac->help_aboutMedea);
+    bottomToolbar->addAction(ac->help_wiki);
 
     QVBoxLayout* vLayout = new QVBoxLayout();
     vLayout->addStretch();
