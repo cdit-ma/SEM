@@ -53,7 +53,6 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
         painter->drawPolygon(getRightPoly());
 
         painter->setPen(Qt::black);
-        paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
 
         painter->restore();
 
