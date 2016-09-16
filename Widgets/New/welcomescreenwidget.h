@@ -4,6 +4,7 @@
 #include "../../Controller/actioncontroller.h"
 
 #include <QWidget>
+#include <QToolButton>
 #include <QToolBar>
 
 class WelcomeScreenWidget : public QWidget
@@ -21,6 +22,7 @@ public slots:
 
 private:
     ActionController* actionController;
+    QToolButton* recentProjectsLabel;
     QToolBar* recentProjectsToolbar;
 };
 

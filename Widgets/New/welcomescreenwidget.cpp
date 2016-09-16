@@ -1,7 +1,6 @@
 #include "welcomescreenwidget.h"
 
 #include <QLabel>
-#include <QToolButton>
 #include <QVBoxLayout>
 
 
@@ -33,7 +32,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
 
     QSize iconSize(24,24);
 
-    QToolButton* recentProjectsLabel = new QToolButton(this);
+    recentProjectsLabel = new QToolButton(this);
     recentProjectsLabel->setText("Recent Projects");
     recentProjectsLabel->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     recentProjectsLabel->setIcon(Theme::theme()->getIcon("Welcome", "Timer"));
@@ -110,6 +109,7 @@ void WelcomeScreenWidget::themeChanged()
     setStyleSheet("QWidget#WELCOME_WIDGET{ background:" + theme->getBackgroundColorHex() + ";}"
                   "QToolButton:!hover{ border: 0px; background: rgba(0,0,0,0); }");
 
+    recentProjectsLabel->setIcon(theme->getIcon("Actions", "Timer"));
     recentProjectsToolbar->setStyleSheet("QToolBar {"
                                          "background:" +theme->getAltBackgroundColorHex() + ";"
                                          "spacing: 0px;"
