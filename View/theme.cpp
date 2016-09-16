@@ -389,8 +389,6 @@ QIcon Theme::getIcon(QString prefix, QString alias)
 
 QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintColor)
 {
-    //Calculate the name of the image.
-
     QString resourceName = getResourceName(prefix, alias);
     QString lookupName = resourceName;
 
@@ -1159,6 +1157,8 @@ void Theme::calculateImageColor(QString resourceName)
 
 QString Theme::getResourceName(QString prefix, QString alias)
 {
+    //UNCOMMENT FOR TROLLS
+    //return "lol.jpg";
     return prefix % slash % alias;
 }
 
