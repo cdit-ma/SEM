@@ -180,6 +180,8 @@ void SettingsController::intializeSettings()
     createSetting(SK_THEME_BG_COLOR, ST_COLOR, "Theme", "Default Colors", "Background");
     createSetting(SK_THEME_BG_ALT_COLOR, ST_COLOR, "Theme", "Default Colors", "Alternative Background");
     createSetting(SK_THEME_TEXT_COLOR, ST_COLOR, "Theme", "Default Colors", "Text");
+    createSetting(SK_THEME_ALTERNATE_TEXT_COLOR, ST_COLOR, "Theme", "Default Colors", "Alternate Text");
+
     createSetting(SK_THEME_ICON_COLOR, ST_COLOR, "Theme", "Default Colors", "Icon");
 
     //Theme - Disabled Colors

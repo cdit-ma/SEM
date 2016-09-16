@@ -167,6 +167,11 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
     return items;
 }
 
+QList<ViewItem *> ViewController::getExistingEdges(Edge::EDGE_KIND kind)
+{
+    return QList<ViewItem* >();
+}
+
 QStringList ViewController::_getSearchSuggestions()
 {
     QStringList suggestions;
@@ -244,6 +249,15 @@ QList<Edge::EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
     QList<Edge::EDGE_KIND> edgeKinds;
     if(selectionController && controller){
         edgeKinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
+    }
+    return edgeKinds;
+}
+
+QList<Edge::EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
+{
+    QList<Edge::EDGE_KIND> edgeKinds;
+    if(selectionController && controller){
+        edgeKinds = controller->getExistingEdgeKindsForSelection(selectionController->getSelectionIDs());
     }
     return edgeKinds;
 }
@@ -342,7 +356,7 @@ void ViewController::setController(NewController *c)
 void ViewController::projectOpened(bool success)
 {
     this->fitAllViews();
-    getSearchResults("Interface");
+    //getSearchResults("Interface");
 }
 
 void ViewController::gotExportedSnippet(QString snippetData)

@@ -5039,6 +5039,28 @@ QList<Edge::EDGE_KIND> NewController::getValidEdgeKindsForSelection(QList<int> I
     return edgeKinds;
 }
 
+QList<Edge::EDGE_KIND> NewController::getExistingEdgeKindsForSelection(QList<int> IDs)
+{
+    lock.lockForRead();
+
+    QList<Entity*> entities = getOrderedSelection(IDs);
+    QList<Edge::EDGE_KIND> edgeKinds;
+
+    foreach(Entity* entity, entities){
+        if(entity->isNode()){
+            Node* node = (Node*) entity;
+            foreach(Edge* edge, node->getEdges(0)){
+                if(!edgeKinds.contains(edge->getEdgeKind())){
+                    edgeKinds.append(edge->getEdgeKind());
+                }
+            }
+        }
+    }
+    lock.unlock();
+    return edgeKinds;
+
+}
+
 void NewController::enableDebugLogging(bool logMode, QString applicationPath)
 {
     if(logMode){

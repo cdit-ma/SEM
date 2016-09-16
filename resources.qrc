@@ -72,6 +72,7 @@
         <file alias="Graphml.ico">Resources/Images/Graphml.ico</file>
         <file alias="UML">Resources/Images/UML.png</file>
         <file alias="MEDEA_Watermark">Resources/Images/MEDEA_Watermark.png</file>
+        <file>../lol.jpg</file>
     </qresource>
     <qresource prefix="/Actions">
         <file alias="Add">Resources/Images/Actions/Add.png</file>
@@ -213,6 +214,10 @@
         <file alias="DDS_LOGGING_SERVER">Resources/Images/Actions/DDS_LOGGING_SERVER.png</file>
         <file alias="QPID_BROKER">Resources/Images/Actions/QPID_BROKER.png</file>
         <file alias="QOS">Resources/Images/Actions/QOS.png</file>
+        <file alias="Model">Resources/Images/Actions/Model.png</file>
+        <file alias="Project">Resources/Images/Actions/Project.png</file>
+        <file alias="Selection">Resources/Images/Actions/Selection.png</file>
+        <file alias="View">Resources/Images/Actions/View.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

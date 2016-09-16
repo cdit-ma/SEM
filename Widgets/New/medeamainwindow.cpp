@@ -46,8 +46,8 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     resize(1000, 600);
 
-    setupTools();
-    setupInnerWindow();
+    setupTools(); //861MS
+    setupInnerWindow(); //718
     setupJenkinsManager();
     setupCUTSManager();
 
@@ -479,16 +479,38 @@ void MedeaMainWindow::toggleWelcomeScreen(bool on)
  */
 void MedeaMainWindow::setupTools()
 {
+    qint64 t1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupWelcomeScreen();
+    qint64 t2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupMenuBar();
+    qint64 t3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupSearchBar();
+    qint64 t4 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupProgressBar();
+    qint64 t5 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupNotificationBar();
+    qint64 t6 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupDock();
+    qint64 t7 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupToolBar();
+    qint64 t8 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupDataTable();
+    qint64 t9 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupWindowManager();
+    qint64 t10 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupMinimap();
+    qint64 t11 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+    qCritical() << "setupWelcomeScreen in: " <<  t2 - t1 << "MS";
+    qCritical() << "setupMenuBar in: " <<  t3 - t2 << "MS";
+    qCritical() << "setupSearchBar in: " <<  t4 - t3 << "MS";
+    qCritical() << "setupProgressBar in: " <<  t5 - t4 << "MS";
+    qCritical() << "setupNotificationBar in: " <<  t6 - t5 << "MS";
+    qCritical() << "setupDock in: " <<  t7 - t6 << "MS";
+    qCritical() << "setupToolBar in: " <<  t8 - t7 << "MS";
+    qCritical() << "setupDataTable in: " <<  t9 - t8 << "MS";
+    qCritical() << "setupWindowManager in: " <<  t10 - t9 << "MS";
+    qCritical() << "setupMinimap in: " <<  t11 - t10 << "MS";
 }
 
 

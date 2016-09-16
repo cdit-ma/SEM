@@ -25,11 +25,12 @@ public:
     NodeViewItemAction* getNodeAction(int ID);
 
     QList<QAction*> getNodeActionsOfKind(QString kind, bool stealth);
-    QAction* getNodeActionOfKind(QString kind, bool stealth);
 
     QList<NodeViewItemAction*> getEdgeActionsOfKind(Edge::EDGE_KIND kind);
+    QList<NodeViewItemAction*> getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind);
 
-    RootAction* getEdgeActionOfKind(Edge::EDGE_KIND kind);
+    RootAction* getConnectEdgeActionOfKind(Edge::EDGE_KIND kind);
+    RootAction* getDisconnectEdgeActionOfKind(Edge::EDGE_KIND kind);
 
     QList<QAction*> getAdoptableKindsActions(bool stealth);
     QAction* getAdoptableKindsAction(bool stealth);
@@ -37,11 +38,6 @@ public:
     QList<QAction*> getConnectedNodesActions(bool stealth);
     QAction* getConnectedNodesAction(bool stealth);
 
-    QList<QAction*> getHardwareActions(bool stealth);
-    QAction* getHardwareAction(bool stealth);
-
-    QList<QAction*> getInstancesActions(bool stealth);
-    QAction* getInstancesAction(bool stealth);
 
     QAction* getToolAction(QString hashKey, bool stealth);
 
@@ -81,7 +77,8 @@ private:
 
     QHash<QString, RootAction*> toolActions;
     QHash<QString, RootAction*> nodeKindActions;
-    QHash<Edge::EDGE_KIND, RootAction*> edgeKindActions;
+    QHash<Edge::EDGE_KIND, RootAction*> connectEdgeKindActions;
+    QHash<Edge::EDGE_KIND, RootAction*> disconnectEdgeKindActions;
 
     QHash<int, NodeViewItemAction*> actions;
     QList<int> hardwareIDs;

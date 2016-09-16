@@ -31,6 +31,7 @@ public:
     QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
     QList<ViewItem*> getValidEdges(Edge::EDGE_KIND kind);
+    QList<ViewItem*> getExistingEdges(Edge::EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
 
@@ -41,6 +42,8 @@ public:
 
     QStringList getAdoptableNodeKinds();
     QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection();
+    QList<Edge::EDGE_KIND> getExistingEdgeKindsForSelection();
+
     QStringList getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
     ViewItem* getModel();
