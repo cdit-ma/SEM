@@ -294,6 +294,8 @@ void NewController::connectViewController(ViewController *view)
 
     connect(view, &ViewController::vc_constructNode, this, &NewController::constructNode);
     connect(view, &ViewController::vc_constructEdge, this, &NewController::constructEdge);
+    connect(view, &ViewController::vc_destructEdges, this, &NewController::destructEdges);
+
 
     connect(view, &ViewController::vc_constructConnectedNode, this, &NewController::constructConnectedNode);
     connect(view, &ViewController::vc_constructWorkerProcess, this, &NewController::constructWorkerProcess);
@@ -911,25 +913,28 @@ void NewController::constructEdge(QList<int> srcIDs, int dstID, Edge::EDGE_KIND 
     emit controller_ActionFinished(success, "Edge couldn't be constructed");
 }
 
-
-void NewController::destructEdge(int srcID, int dstID, Edge::EDGE_KIND edgeClass)
+void NewController::destructEdges(QList<int> srcIDs, int dstID, Edge::EDGE_KIND edgeClass)
 {
     lock.lockForWrite();
-    Node* src = getNodeFromID(srcID);
+
+    bool success = true;
+    triggerAction("Destructing edges");
     Node* dst = getNodeFromID(dstID);
-
-    bool success = false;
-    if(src && dst){
-        Edge* edge = src->getEdgeTo(dst);
-
-        if(edge && edge->getEdgeKind() == edgeClass){
-            success = destructEdge(edge);
+    foreach(int srcID, srcIDs){
+        Node* src = getNodeFromID(srcID);
+        foreach(Edge* edge, src->getEdges(0, edgeClass)){
+            if(!dst || edge->getSource() == dst || edge->getDestination() == dst){
+                if(!destructEdge(edge)){
+                    success = false;
+                    break;
+                }
+            }
         }
     }
     lock.unlock();
-
     emit controller_ActionFinished(success, "Edge couldn't be destructed");
 }
+
 
 void NewController::constructWorkerProcess(int parentID, int workerProcessID, QPointF pos)
 {

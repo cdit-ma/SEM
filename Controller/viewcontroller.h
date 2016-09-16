@@ -31,7 +31,6 @@ public:
     QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
     QList<ViewItem*> getValidEdges(Edge::EDGE_KIND kind);
-    QList<ViewItem*> getExistingEdges(Edge::EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
 
@@ -102,6 +101,7 @@ signals:
 
     void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
     void vc_constructEdge(QList<int> sourceIDs, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED);
+    void vc_destructEdges(QList<int> sourceIDs, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED);
 
     void vc_constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
     void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);

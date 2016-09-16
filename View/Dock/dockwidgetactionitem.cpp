@@ -132,6 +132,11 @@ void DockWidgetActionItem::highlightItem(bool highlight)
     updateStyleSheet();
 }
 
+bool DockWidgetActionItem::isHighlighted()
+{
+    return highlighted;
+}
+
 
 /**
  * @brief DockWidgetActionItem::actionChanged

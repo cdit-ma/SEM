@@ -167,10 +167,6 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
     return items;
 }
 
-QList<ViewItem *> ViewController::getExistingEdges(Edge::EDGE_KIND kind)
-{
-    return QList<ViewItem* >();
-}
 
 QStringList ViewController::_getSearchSuggestions()
 {
@@ -508,6 +504,7 @@ void ViewController::launchLocalDeployment()
 
 void ViewController::actionFinished(bool success, QString gg)
 {
+    qCritical() << "ACTION DONE!";
     setControllerReady(true);
     emit vc_actionFinished();
 }
@@ -637,6 +634,7 @@ bool ViewController::destructViewItem(ViewItem *item)
         }else if(viewItem->isEdge()){
             //Remove Edge from edgeKind map
             EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
+            edgeItem->disconnectEdge();
             edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
         }
 
@@ -1072,6 +1070,8 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind)
 {
     ViewItem* viewItem = getViewItem(ID);
+    qCritical() << "ID: " << ID;
+    qCritical() << viewItem << "DESTRUCTING!";
     destructViewItem(viewItem);
 
 }

@@ -136,7 +136,11 @@ void DockTabWidget::dockActionClicked(DockWidgetActionItem* action)
     case ToolActionController::HARDWARE:
     {
         int ID = action->getProperty("ID").toInt();
-        toolActionController->addEdge(ID, Edge::EC_DEPLOYMENT);
+        toolActionController->removeEdge(-1, Edge::EC_DEPLOYMENT);
+
+        if(!action->isHighlighted()){
+            toolActionController->addEdge(ID, Edge::EC_DEPLOYMENT);
+        }
         break;
     }
     }
@@ -398,7 +402,6 @@ void DockTabWidget::refreshDock()
         QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(Edge::EC_DEPLOYMENT);
         hardwareDock->highlightItem(); // clear previous highlighted item
         if (connectedHardwareItems.count() == 1) {
-            qDebug() << "highlighted";
             int connectedItemID = connectedHardwareItems.at(0)->getID();
             hardwareDock->highlightItem(connectedItemID);
         }

@@ -186,6 +186,14 @@ void ToolActionController::addEdge(int dstID, Edge::EDGE_KIND edgeKind)
     }
 }
 
+void ToolActionController::removeEdge(int dstID, Edge::EDGE_KIND edgeKind)
+{
+    QList<int> IDs = selectionController->getSelectionIDs();
+    if(!IDs.isEmpty()){
+        emit viewController->vc_destructEdges(IDs, dstID, edgeKind);
+    }
+}
+
 void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();
@@ -250,7 +258,7 @@ QList<NodeViewItemAction *> ToolActionController::getEdgeActionsOfKind(Edge::EDG
 QList<NodeViewItemAction *> ToolActionController::getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind)
 {
     QList<NodeViewItemAction*> list;
-    foreach(ViewItem* item, viewController->getExistingEdges(kind)){
+    foreach(ViewItem* item, viewController->getExistingEdgeEndPointsForSelection(kind)){
         if(item && actions.contains(item->getID())){
             list.append(actions[item->getID()]);
         }

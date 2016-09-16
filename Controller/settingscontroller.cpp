@@ -26,8 +26,7 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
 
 
     //Place defaults in case nothing is set.
-    //emit settingChanged(SK_THEME_SETTHEME_DARKTHEME, true);
-    emit settingChanged(SK_THEME_SETTHEME_LIGHTHEME, true);
+    emit settingChanged(SK_THEME_SETTHEME_DARKTHEME, true);
     emit settingChanged(SK_THEME_SETASPECT_COLORBLIND, true);
 
     loadSettingsFromFile();

@@ -48,6 +48,7 @@ public:
 
     void addChildNode(QString kind, QPointF position);
     void addEdge(int dstID, Edge::EDGE_KIND edgeKind=Edge::EC_UNDEFINED);
+    void removeEdge(int dstID, Edge::EDGE_KIND edgeKind=Edge::EC_UNDEFINED);
     void addConnectedChildNode(int dstID, QString kind, QPointF position);
     void addWorkerProcess(int processID, QPointF position);
 
