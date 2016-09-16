@@ -79,7 +79,7 @@ void ToolbarWidgetNew::themeChanged()
     addChildAction->setIcon(theme->getIcon("Actions", "Plus"));
     connectAction->setIcon(theme->getIcon("Actions", "ConnectTo"));
     //hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
-    instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
+    //instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
 
     //applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
@@ -298,7 +298,7 @@ void ToolbarWidgetNew::setupActions()
     mainGroup->addSeperator();
     definitionAction = mainGroup->addAction(actionController->view_centerOnDefn->constructSubAction(true));
     implementationAction = mainGroup->addAction(actionController->view_centerOnImpl->constructSubAction(true));
-    instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
+    //instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
     mainGroup->addSeperator();
     hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
@@ -313,7 +313,7 @@ void ToolbarWidgetNew::setupActions()
 
     //hardwareAction->setVisible(false);
     //disconnectHardwareAction->setVisible(false);
-    instancesAction->setVisible(false);
+    //instancesAction->setVisible(false);
     hardwareViewOptionAction->setVisible(false);
 
     // this needs to be called before the actions are added to the toolbar for the split buttons to work

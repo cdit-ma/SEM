@@ -67,15 +67,16 @@ void SearchDialog::themeChanged()
                          "color:" + theme->getTextColorHex() + ";"
                          "}";
 
-    setStyleSheet("QDialog{ background:" + theme->getBackgroundColorHex() + "; }"
+
+    setStyleSheet("QDialog{background:" + theme->getBackgroundColorHex() + ";}"
                   "QFrame{ background:" + theme->getBackgroundColorHex() + "; }"
                   "QScrollArea {"
                   "background: rgba(0,0,0,0);"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "}"
-                  + theme->getComboBoxStyleSheet()
-                  + theme->getSplitterStyleSheet()
-                  + labelStyle);
+                  + theme->getComboBoxStyleSheet() + labelStyle);
+
+    displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
 
     keysToolBar->setStyleSheet("QToolBar {"
                                "padding: 0px;"
@@ -92,6 +93,9 @@ void SearchDialog::themeChanged()
 
     //searchButton->setIcon(theme->getIcon("Actions", "Search"));
     queryLabel->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
+
+    scopeLabel->setStyleSheet(labelStyle);
+    //searchLabel->setStyleSheet(labelStyle);
     infoLabel->setStyleSheet(labelStyle);
 }
 
@@ -127,7 +131,7 @@ void SearchDialog::viewItemDestructed(int ID)
  */
 void SearchDialog::setupLayout()
 {
-    QLabel* searchLabel = new QLabel("Search: ", this);
+    searchLabel = new QLabel("Search: ", 0);
     scopeLabel = new QLabel("Scope:", this);
     queryLabel = new QLabel("Searched string Searched string Searched string", this);
 
@@ -192,7 +196,7 @@ void SearchDialog::setupLayout()
     displayArea->setWidget(displayWidget);
     displayArea->setWidgetResizable(true);
 
-    QSplitter* displaySplitter = new QSplitter(this);
+    displaySplitter = new QSplitter(this);
     displaySplitter->addWidget(keysArea);
     displaySplitter->addWidget(displayArea);
     displaySplitter->setStretchFactor(0, 0);
@@ -210,7 +214,6 @@ void SearchDialog::setupLayout()
     mainLayout->setMargin(10);
     mainLayout->setSpacing(5);
     mainLayout->addLayout(hLayout);
-    mainLayout->addLayout(labelLayout);
     mainLayout->addSpacerItem(new QSpacerItem(0, 5));
     mainLayout->addWidget(displaySplitter, 1);
 
@@ -218,6 +221,9 @@ void SearchDialog::setupLayout()
 
     keysActionGroup = new QActionGroup(this);
     keysActionGroup->setExclusive(true);
+
+
+
 }
 
 

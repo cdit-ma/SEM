@@ -228,16 +228,22 @@ QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool st
     return QList<QAction*>();
 }
 
-QAction *ToolActionController::getNodeActionOfKind(QString kind, bool stealth)
-{
-    return new RootAction("Nodes: " + kind);
-}
-
 QList<NodeViewItemAction *> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_KIND kind)
 {
     QList<NodeViewItemAction*> list;
 
     foreach(ViewItem* item, viewController->getValidEdges(kind)){
+        if(item && actions.contains(item->getID())){
+            list.append(actions[item->getID()]);
+        }
+    }
+    return list;
+}
+
+QList<NodeViewItemAction *> ToolActionController::getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind)
+{
+    QList<NodeViewItemAction*> list;
+    foreach(ViewItem* item, viewController->getExistingEdges(kind)){
         if(item && actions.contains(item->getID())){
             list.append(actions[item->getID()]);
         }
@@ -267,35 +273,7 @@ QAction* ToolActionController::getAdoptableKindsAction(bool stealth)
     return adoptableKindsGroup->getGroupVisibilityAction()->constructSubAction(stealth);
 }
 
-QList<QAction*> ToolActionController::getConnectedNodesActions(bool stealth)
-{
-    return QList<QAction*>();
-}
 
-QAction* ToolActionController::getConnectedNodesAction(bool stealth)
-{
-    return new RootAction("Connections");
-}
-
-QList<QAction *> ToolActionController::getHardwareActions(bool stealth)
-{
-    return QList<QAction*>();
-}
-
-QAction *ToolActionController::getHardwareAction(bool stealth)
-{
-    return new RootAction("Hardware");
-}
-
-QList<QAction *> ToolActionController::getInstancesActions(bool stealth)
-{
-    return QList<QAction*>();
-}
-
-QAction *ToolActionController::getInstancesAction(bool stealth)
-{
-    return new RootAction("Instances");
-}
 
 QAction *ToolActionController::getToolAction(QString hashKey, bool stealth)
 {
@@ -351,7 +329,7 @@ QStringList ToolActionController::getKindsRequiringSubActions()
 void ToolActionController::setupNodeActions()
 {
     foreach(QString kind, viewController->getNodeKinds()){
-        RootAction* action = new RootAction(kind);
+        RootAction* action = new RootAction("Node", kind);
         action->setIconPath("Items", kind);
         nodeKindActions[kind]= action;
         adoptableKindsGroup->addAction(action);
@@ -362,7 +340,7 @@ void ToolActionController::setupEdgeActions()
 {
     foreach(Edge::EDGE_KIND kind, Edge::getEdgeKinds()){
         QString edgeKind = Edge::getKind(kind);
-        RootAction* action = new RootAction(edgeKind);
+        RootAction* action = new RootAction("Edge", edgeKind);
         action->setIconPath("Items", edgeKind);
         edgeKindActions[kind] = action;
     }
@@ -379,7 +357,7 @@ NodeViewItemAction *ToolActionController::getNodeViewItemAction(int ID)
 RootAction *ToolActionController::createRootAction(QString hashKey, QString actionName, QString iconPath, QString aliasPath)
 {
     if(!toolActions.contains(hashKey)){
-        RootAction* action = new RootAction(actionName, this);
+        RootAction* action = new RootAction("ToolActionController", actionName, this);
         action->setIconPath(iconPath, aliasPath);
         toolActions[hashKey] = action;
     }

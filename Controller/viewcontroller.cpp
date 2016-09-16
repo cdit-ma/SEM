@@ -167,6 +167,12 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
     return items;
 }
 
+QList<ViewItem *> ViewController::getExistingEdges(Edge::EDGE_KIND kind)
+{
+    return QList<ViewItem* >();
+
+}
+
 QStringList ViewController::_getSearchSuggestions()
 {
     QStringList suggestions;
@@ -342,7 +348,7 @@ void ViewController::setController(NewController *c)
 void ViewController::projectOpened(bool success)
 {
     this->fitAllViews();
-    getSearchResults("Interface");
+    //getSearchResults("Interface");
 }
 
 void ViewController::gotExportedSnippet(QString snippetData)

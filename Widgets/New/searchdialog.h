@@ -10,6 +10,7 @@
 #include <QComboBox>
 #include <QVBoxLayout>
 #include <QActionGroup>
+#include <QSplitter>
 
 #include "../../View/viewitem.h"
 #include "searchitemwidget.h"
@@ -42,8 +43,10 @@ private:
     void constructKeyButton(QString key, QString text = "", bool checked = false);
 
     QLabel* queryLabel;
+    QLabel* searchLabel;
     QLabel* scopeLabel;
     QLabel* infoLabel;
+    QSplitter* displaySplitter;
 
     QLineEdit* searchLineEdit;
     QToolButton* searchButton;

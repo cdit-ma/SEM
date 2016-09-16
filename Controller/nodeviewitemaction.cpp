@@ -1,7 +1,7 @@
 #include "nodeviewitemaction.h"
 #include "../View/theme.h"
 
-NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):RootAction("TEST")
+NodeViewItemAction::NodeViewItemAction(NodeViewItem *item):RootAction("NodeItem", "")
 {
     nodeViewItem = item;
     //Register.

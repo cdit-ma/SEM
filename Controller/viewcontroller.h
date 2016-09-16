@@ -31,6 +31,7 @@ public:
     QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
     QList<ViewItem*> getValidEdges(Edge::EDGE_KIND kind);
+    QList<ViewItem*> getExistingEdges(Edge::EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
 

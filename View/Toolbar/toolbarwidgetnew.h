@@ -82,7 +82,7 @@ private:
     QAction* disconnectHardwareAction;
     QAction* definitionAction;
     QAction* implementationAction;
-    QAction* instancesAction;
+    //QAction* instancesAction;
     QAction* connectionsAction;
     QAction* hardwareViewOptionAction;
 
