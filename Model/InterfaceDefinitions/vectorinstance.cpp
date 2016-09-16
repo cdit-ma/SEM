@@ -7,6 +7,7 @@ VectorInstance::VectorInstance(): DataNode(Node::NK_VECTOR_INSTANCE)
     setDataReciever(true);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setNodeType(NT_INSTANCE);
+    setNodeType(NT_DEFINITION);
 }
 
 bool VectorInstance::canAdoptChild(Node *child)

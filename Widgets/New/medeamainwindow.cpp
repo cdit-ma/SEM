@@ -54,18 +54,18 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(MedeaWindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(MedeaViewDockWidget*,MedeaViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(MedeaViewDockWidget*, MedeaViewDockWidget*)));
-    //setViewController(vc);
+    setViewController(vc);
 
-    //themeChanged();
+    themeChanged();
     qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     show();
     qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-    //toggleWelcomeScreen(true);
+    toggleWelcomeScreen(true);
 
     qCritical() << "MedeaMainWindow in: " <<  time2 - timeStart << "MS";
     qCritical() << "MedeaMainWindow->show() in: " <<  timeFinish - time2 << "MS";
-    //setModelTitle("");
+    setModelTitle("");
 }
 
 

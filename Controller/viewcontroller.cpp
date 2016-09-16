@@ -170,7 +170,6 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
 QList<ViewItem *> ViewController::getExistingEdges(Edge::EDGE_KIND kind)
 {
     return QList<ViewItem* >();
-
 }
 
 QStringList ViewController::_getSearchSuggestions()
@@ -250,6 +249,15 @@ QList<Edge::EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
     QList<Edge::EDGE_KIND> edgeKinds;
     if(selectionController && controller){
         edgeKinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
+    }
+    return edgeKinds;
+}
+
+QList<Edge::EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
+{
+    QList<Edge::EDGE_KIND> edgeKinds;
+    if(selectionController && controller){
+        edgeKinds = controller->getExistingEdgeKindsForSelection(selectionController->getSelectionIDs());
     }
     return edgeKinds;
 }

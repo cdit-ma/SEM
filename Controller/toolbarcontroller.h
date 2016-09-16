@@ -29,7 +29,8 @@ public:
     QList<NodeViewItemAction*> getEdgeActionsOfKind(Edge::EDGE_KIND kind);
     QList<NodeViewItemAction*> getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind);
 
-    RootAction* getEdgeActionOfKind(Edge::EDGE_KIND kind);
+    RootAction* getConnectEdgeActionOfKind(Edge::EDGE_KIND kind);
+    RootAction* getDisconnectEdgeActionOfKind(Edge::EDGE_KIND kind);
 
     QList<QAction*> getAdoptableKindsActions(bool stealth);
     QAction* getAdoptableKindsAction(bool stealth);
@@ -76,7 +77,8 @@ private:
 
     QHash<QString, RootAction*> toolActions;
     QHash<QString, RootAction*> nodeKindActions;
-    QHash<Edge::EDGE_KIND, RootAction*> edgeKindActions;
+    QHash<Edge::EDGE_KIND, RootAction*> connectEdgeKindActions;
+    QHash<Edge::EDGE_KIND, RootAction*> disconnectEdgeKindActions;
 
     QHash<int, NodeViewItemAction*> actions;
     QList<int> hardwareIDs;

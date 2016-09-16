@@ -276,7 +276,7 @@ void ToolbarWidgetNew::setupActions()
 {
     connectGroup = new ActionGroup(this);
     foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
-        QAction* action = connectGroup->addAction(toolbarController->getEdgeActionOfKind(edgeKind)->constructSubAction(true));
+        QAction* action = connectGroup->addAction(toolbarController->getConnectEdgeActionOfKind(edgeKind)->constructSubAction(true));
         action->setProperty("kind", Edge::getKind(edgeKind));
     }
 
