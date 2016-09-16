@@ -799,7 +799,9 @@ void MedeaMainWindow::setupDataTable()
     dockWidget->setWidget(tableWidget);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
 
-    dockWidget->getTitleBar()->addToolAction(viewController->getActionController()->model_selectModel, Qt::AlignLeft);
+    QAction* modelAction = viewController->getActionController()->model_selectModel;
+    modelAction->setToolTip("Show Model's Table");
+    dockWidget->getTitleBar()->addToolAction(modelAction, Qt::AlignLeft);
 
     //Check visibility state.
     dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());

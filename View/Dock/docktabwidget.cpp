@@ -51,7 +51,6 @@ void DockTabWidget::themeChanged()
  */
 void DockTabWidget::selectionChanged()
 {
-    qDebug()<< "SelectionChanged";
     refreshDock();
 }
 
@@ -303,7 +302,7 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
         }
         case ToolActionController::HARDWARE:
             showInfoLabel = dockWidget->isEmpty();
-            //dockWidget->highlightItem(287);
+            refreshDock(); // this should update the highlighted item
             break;
         default:
             break;
