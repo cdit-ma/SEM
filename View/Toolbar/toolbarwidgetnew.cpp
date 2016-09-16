@@ -304,12 +304,12 @@ void ToolbarWidgetNew::setupActions()
     }*/
 
     foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
-        QAction* cAction = toolbarController->getEdgeActionOfKind(edgeKind)->constructSubAction(true);
-        //QAction* dAction = toolbarController->getExistingEdgeActionsOfKind(edgeKind)->constructSubAction(true);
+        QAction* cAction = toolbarController->getConnectEdgeActionOfKind(edgeKind)->constructSubAction(true);
+        QAction* dAction = toolbarController->getDisconnectEdgeActionOfKind(edgeKind)->constructSubAction(true);
         cAction->setProperty("kind", Edge::getKind(edgeKind));
-        //dAction->setProperty("kind", Edge::getKind(edgeKind));
+        dAction->setProperty("kind", Edge::getKind(edgeKind));
         connectGroup->addAction(cAction);
-        //disconnectGroup->addAction(dAction);
+        disconnectGroup->addAction(dAction);
     }
 
     mainGroup = new ActionGroup(this);
@@ -567,7 +567,7 @@ void ToolbarWidgetNew::setupConnections()
 
     connect(addMenu, SIGNAL(triggered(QAction*)), this, SLOT(addChildNode(QAction*)));
     connect(connectMenu, SIGNAL(triggered(QAction*)), this, SLOT(addEdge(QAction*)));
-    connect(disconnectMenu, SIGNAL(triggered(QAction*)), this, SLOT(addEdge(QAction*)));
+    connect(disconnectMenu, SIGNAL(triggered(QAction*)), this, SLOT((QAction*)));
 }
 
 

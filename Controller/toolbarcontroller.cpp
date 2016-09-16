@@ -148,10 +148,16 @@ void ToolActionController::selectionChanged(int selected)
     }
 
     QList<Edge::EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
+    QList<Edge::EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
 
-    foreach(Edge::EDGE_KIND edgeKind, edgeKindActions.keys()){
-        RootAction* action = edgeKindActions[edgeKind];
+
+    foreach(Edge::EDGE_KIND edgeKind, connectEdgeKindActions.keys()){
+        RootAction* action = connectEdgeKindActions[edgeKind];
         action->setEnabled(validEdges.contains(edgeKind));
+    }
+    foreach(Edge::EDGE_KIND edgeKind, disconnectEdgeKindActions.keys()){
+        RootAction* action = disconnectEdgeKindActions[edgeKind];
+        action->setEnabled(existingEdges.contains(edgeKind));
     }
 }
 
@@ -252,10 +258,18 @@ QList<NodeViewItemAction *> ToolActionController::getExistingEdgeActionsOfKind(E
     return list;
 }
 
-RootAction *ToolActionController::getEdgeActionOfKind(Edge::EDGE_KIND kind)
+RootAction *ToolActionController::getConnectEdgeActionOfKind(Edge::EDGE_KIND kind)
 {
-    if(edgeKindActions.contains(kind)){
-        return edgeKindActions[kind];
+    if(connectEdgeKindActions.contains(kind)){
+        return connectEdgeKindActions[kind];
+    }
+    return 0;
+}
+
+RootAction *ToolActionController::getDisconnectEdgeActionOfKind(Edge::EDGE_KIND kind)
+{
+    if(disconnectEdgeKindActions.contains(kind)){
+        return disconnectEdgeKindActions[kind];
     }
     return 0;
 }
@@ -313,9 +327,13 @@ void ToolActionController::themeChanged()
     foreach(RootAction* action, nodeKindActions.values()){
         viewController->getActionController()->updateIcon(action, theme);
     }
-    foreach (RootAction* action, edgeKindActions.values()) {
+    foreach (RootAction* action, connectEdgeKindActions.values()) {
         viewController->getActionController()->updateIcon(action, theme);
     }
+    foreach (RootAction* action, disconnectEdgeKindActions.values()) {
+        viewController->getActionController()->updateIcon(action, theme);
+    }
+
 }
 
 QStringList ToolActionController::getKindsRequiringSubActions()
@@ -341,9 +359,12 @@ void ToolActionController::setupEdgeActions()
 {
     foreach(Edge::EDGE_KIND kind, Edge::getEdgeKinds()){
         QString edgeKind = Edge::getKind(kind);
-        RootAction* action = new RootAction("Edge", edgeKind);
-        action->setIconPath("Items", edgeKind);
-        edgeKindActions[kind] = action;
+        RootAction* connectAction = new RootAction("Edge", edgeKind);
+        RootAction* disconnectAction = new RootAction("Edge", edgeKind);
+        connectAction->setIconPath("Items", edgeKind);
+        disconnectAction->setIconPath("Items", edgeKind);
+        connectEdgeKindActions[kind] = connectAction;
+        disconnectEdgeKindActions[kind] = disconnectAction;
     }
 }
 

@@ -34,6 +34,7 @@ public slots:
 
     void addChildNode(QAction* action);
     void addEdge(QAction* action);
+    void removeEdge(QAction* action);
 
 private:    
     void setupToolbar();

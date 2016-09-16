@@ -781,13 +781,13 @@ void ActionController::setupActions()
     model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
 
 
-    jenkins_importNodes = createRootAction("Model", "Import Jenkins Nodes", "", "Actions", "Computer");
+    jenkins_importNodes = createRootAction("Model", "Import Jenkins Nodes", "", "Items", "HardwareNode");
     jenkins_importNodes->setToolTip("Imports the nodes from the Jenkins Server.");
     jenkins_importNodes->setShortcutContext(Qt::ApplicationShortcut);
     jenkins_importNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
 
 
-    jenkins_executeJob = createRootAction("Model: ", "Launch: ", "Actions", "Job_Build");
+    jenkins_executeJob = createRootAction("Model", "Launch: Jenkins Job", "Actions", "Job_Build");
     jenkins_executeJob->setToolTip("Executes the current project on the Jenkins Server.");
     jenkins_executeJob->setShortcutContext(Qt::ApplicationShortcut);
     jenkins_executeJob->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B));
@@ -915,7 +915,10 @@ void ActionController::setupMainMenu()
     menu_model->addAction(model_executeLocalJob);
 
     // Jenkins Menu
+
+    menu_jenkins->addAction(jenkins_importNodes);
     menu_jenkins->addAction(jenkins_executeJob);
+
 
     // Window Menu
     menu_window->addAction(window_printScreen);
