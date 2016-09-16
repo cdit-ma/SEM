@@ -1158,7 +1158,7 @@ void Theme::calculateImageColor(QString resourceName)
 QString Theme::getResourceName(QString prefix, QString alias)
 {
     //UNCOMMENT FOR TROLLS
-    //return "lol.jpg";
+    //return ":/Actions/Cage.jpg";
     return prefix % slash % alias;
 }
 
