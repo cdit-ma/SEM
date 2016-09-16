@@ -4,7 +4,6 @@
 #include <QFrame>
 #include <QWidget>
 #include <QToolButton>
-#include <QPushButton>
 #include <QLabel>
 #include <QVBoxLayout>
 
@@ -20,17 +19,16 @@ public:
 
     void addDisplayKey(QString key);
     void setDisplayKeys(QList<QString> keys);
+
+    void setSelected(bool selected);
     
 signals:
     void hoverEnter(int ID);
     void hoverLeave(int ID);
-    void centerOnViewItem(int ID);
-    void popupViewItem(int ID);
+    void itemSelected(int ID);
 
 public slots:
     void themeChanged();
-    void centerButtonClicked();
-    void popupButtonClicked();
     void expandButtonToggled(bool checked);
     void toggleKeyWidget(QString key);
     
@@ -43,6 +41,7 @@ protected:
 private:
     void setupLayout(QVBoxLayout* layout);
     void constructKeyWidgets();
+    void updateStyleSheet();
 
     ViewItem* viewItem;
     int viewItemID;
@@ -53,16 +52,18 @@ private:
 
     QLabel* textLabel;
     QToolButton* expandButton;
-    QToolButton* centerButton;
-    QToolButton* popupButton;
     QWidget* displayWidget;
     
     QList<QString> keys;
     QHash<QString, QWidget*> keyWidgetHash;
     QString checkedKey;
 
+    QString backgroundColor;
+    QString hoverColor;
+
     bool keyWidgetsConstructed;
     bool doubleClicked;
+    bool selected;
 
 };
 

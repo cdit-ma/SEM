@@ -164,19 +164,18 @@ void ToolbarWidgetNew::populateDynamicMenu()
 
     Edge::EDGE_KIND edgeClass = Edge::getEdgeKind(kind);
     if (edgeClass == Edge::EC_UNDEFINED) {
-        if(kind == "WorkerProcess"){
+        if (kind == "WorkerProcess") {
             actions = toolbarController->getWorkerFunctions();
-        }else{
+        } else {
             actions = toolbarController->getDefinitionNodeActions(kind);
         }
     } else {
-        if(isConnect){
+        if (isConnect) {
             actions = toolbarController->getEdgeActionsOfKind(edgeClass);
-        }else{
+        } else {
             actions = toolbarController->getExistingEdgeActionsOfKind(edgeClass);
         }
     }
-    //}
 
     // if the menu is empty, show its info action
     if (actions.isEmpty()) {
@@ -221,13 +220,13 @@ void ToolbarWidgetNew::addChildNode(QAction* action)
     int ID = action->property("ID").toInt();
     QString parentKind = action->property("parent-kind").toString();
 
-    if(ID > 0 && !parentKind.isEmpty()){
-        if(parentKind == "WorkerProcess"){
+    if (ID > 0 && !parentKind.isEmpty()) {
+        if (parentKind == "WorkerProcess") {
             toolbarController->addWorkerProcess(ID, itemPos);
-        }else{
+        } else {
             toolbarController->addConnectedChildNode(ID, parentKind, itemPos);
         }
-    }else{
+    } else {
         toolbarController->addChildNode(kind, itemPos);
     }
 }
@@ -261,6 +260,7 @@ void ToolbarWidgetNew::removeEdge(QAction *action)
     if (!toolbarController || action->property("action-type") == "info") {
         return;
     }
+
     QString kind = action->property("parent-kind").toString();
     Edge::EDGE_KIND edgeKind = Edge::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
@@ -298,11 +298,10 @@ void ToolbarWidgetNew::setupActions()
     connectGroup = new ActionGroup(this);
     disconnectGroup = new ActionGroup(this);
 
-    foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
+    foreach (Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()) {
         bool constructConnectAction = true;
         bool constructDisconnectAction = true;
-
-        switch(edgeKind){
+        switch (edgeKind) {
             case Edge::EC_AGGREGATE:
                 constructDisconnectAction = false;
                 break;
@@ -313,14 +312,13 @@ void ToolbarWidgetNew::setupActions()
             default:
                 break;
         }
-
-        if(constructConnectAction){
+        if (constructConnectAction) {
             QAction* cAction = toolbarController->getConnectEdgeActionOfKind(edgeKind)->constructSubAction(true);
             cAction->setProperty("kind", Edge::getKind(edgeKind));
             cAction->setProperty("connect", true);
             connectGroup->addAction(cAction);
         }
-        if(constructDisconnectAction){
+        if (constructDisconnectAction) {
             QAction* dAction = toolbarController->getDisconnectEdgeActionOfKind(edgeKind)->constructSubAction(true);
             dAction->setProperty("kind", Edge::getKind(edgeKind));
             dAction->setProperty("connect", false);
@@ -485,7 +483,6 @@ void ToolbarWidgetNew::setupConnectMenu()
         action->setMenu(menu);
         menu->setProperty("kind", action->property("kind"));
         menu->setProperty("connect", action->property("connect"));
-
         dynamicMenuKeyHash[menu] = "INFO_NO_VALID_EDGE";
         connectMenu->addAction(action);
     }    

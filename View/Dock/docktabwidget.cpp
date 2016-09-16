@@ -163,8 +163,6 @@ void DockTabWidget::dockBackButtonClicked()
  */
 void DockTabWidget::onActionFinished()
 {
-    qDebug() << "actionfinished";
-    // TODO - Check when this slot is being called.
     refreshDock();
 }
 
@@ -277,10 +275,11 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
 {
     if (dockWidget) {
 
+        ToolActionController::DOCK_TYPE dockType = dockWidget->getDockType();
         bool isDefinitionsDock = false;
         bool showInfoLabel = false;
 
-        switch (dockWidget->getDockType()) {
+        switch (dockType) {
         case ToolActionController::PARTS:
             showInfoLabel = !adoptableKindAction->isEnabled();
             break;
@@ -306,7 +305,7 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
         }
         case ToolActionController::HARDWARE:
             showInfoLabel = dockWidget->isEmpty();
-            refreshDock(); // this should update the highlighted item
+            refreshDock(hardwareDock);
             break;
         default:
             break;
@@ -322,19 +321,9 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
         }
         dockWidget->displayInfoLabel(showInfoLabel);
 
-        // set the reuired dock
+        // set the required dock
         stackedWidget->setCurrentWidget(dockWidget);
     }
-}
-
-
-/**
- * @brief DockTabWidget::openRequiredDock
- * @param dt
- */
-void DockTabWidget::openRequiredDock(ToolActionController::DOCK_TYPE dt)
-{
-    openRequiredDock(getDock(dt));
 }
 
 
@@ -387,20 +376,30 @@ void DockTabWidget::populateDock(DockWidget* dockWidget, QList<NodeViewItemActio
 /**
  * @brief DockTabWidget::refreshDock
  * This is called whenever the selection has changed and when actionFinished is called.
+ * It's also used to update the hardware dock when it is opened.
+ * @param dockWidget
  */
-void DockTabWidget::refreshDock()
+void DockTabWidget::refreshDock(DockWidget* dockWidget)
 {
-    // if either of the definitions or functions list is displayed, close them and re-open the parts list
-    if (partsButton->isChecked()) {
+    bool updatePartsDock = false;
+    if (dockWidget) {
+        updatePartsDock = dockWidget == partsDock;
+    } else {
+        updatePartsDock = partsButton->isChecked();
+    }
+
+    if (updatePartsDock) {
+        // if either of the definitions or functions list is displayed, close them and re-open the parts list
         if (stackedWidget->currentWidget() != partsDock) {
             openRequiredDock(partsDock);
         } else {
             partsDock->displayInfoLabel(!adoptableKindAction->isEnabled());
         }
     } else {
-        // update highlighted dock item
+        // update hardware dock; update highlighted dock item
         QList<ViewItem*> connectedHardwareItems = viewController->getExistingEdgeEndPointsForSelection(Edge::EC_DEPLOYMENT);
-        hardwareDock->highlightItem(); // clear previous highlighted item
+        // clear previous highlighted item
+        hardwareDock->highlightItem();
         if (connectedHardwareItems.count() == 1) {
             int connectedItemID = connectedHardwareItems.at(0)->getID();
             hardwareDock->highlightItem(connectedItemID);

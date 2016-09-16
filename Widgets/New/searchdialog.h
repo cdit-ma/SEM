@@ -33,7 +33,12 @@ signals:
 public slots:
     void themeChanged();
     void keyButtonChecked(bool checked);
+
+    void searchItemSelected(int ID);
     void viewItemDestructed(int ID);
+
+    void centerOnSelectedItem();
+    void popupSelectedItem();
 
 private:
     void setupLayout();
@@ -48,6 +53,9 @@ private:
     QLabel* infoLabel;
     QSplitter* displaySplitter;
 
+    QToolButton* centerOnButton;
+    QToolButton* popupButton;
+
     QLineEdit* searchLineEdit;
     QToolButton* searchButton;
     QComboBox* scopeComboBox;
@@ -58,6 +66,8 @@ private:
 
     QVBoxLayout* resultsLayout;
     QHash<int, SearchItemWidget*> searchItems;
+
+    int selectedSearchItemID;
 };
 
 #endif // SEARCHDIALOG_H

@@ -713,6 +713,7 @@ void MedeaMainWindow::setupSearchBar()
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
     connect(searchButton, SIGNAL(clicked(bool)), this, SLOT(searchEntered()));
     connect(searchDialog, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
+    connect(searchDialog, SIGNAL(popupViewItem(int)), viewController, SLOT(popupItem(int)));
     connect(searchDialog, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
     connect(searchDialog, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
 }
