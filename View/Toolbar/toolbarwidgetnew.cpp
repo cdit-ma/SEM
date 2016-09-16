@@ -78,6 +78,7 @@ void ToolbarWidgetNew::themeChanged()
 
     addChildAction->setIcon(theme->getIcon("Actions", "Plus"));
     connectAction->setIcon(theme->getIcon("Actions", "ConnectTo"));
+    disconnectAction->setIcon(theme->getIcon("Actions", "Info"));
     //hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
     instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
@@ -275,15 +276,25 @@ void ToolbarWidgetNew::setupToolbar()
 void ToolbarWidgetNew::setupActions()
 {
     connectGroup = new ActionGroup(this);
-    foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
+    disconnectGroup = new ActionGroup(this);
+
+    /*foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
         QAction* action = connectGroup->addAction(toolbarController->getEdgeActionOfKind(edgeKind)->constructSubAction(true));
         action->setProperty("kind", Edge::getKind(edgeKind));
+    }*/
+
+    foreach(Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()){
+        QAction* action = toolbarController->getEdgeActionOfKind(edgeKind)->constructSubAction(true);
+        action->setProperty("kind", Edge::getKind(edgeKind));
+        connectGroup->addAction(action);
+        disconnectGroup->addAction(action);
     }
 
     mainGroup = new ActionGroup(this);
     addChildAction = mainGroup->addAction(toolbarController->getAdoptableKindsAction(true));
     mainGroup->addAction(actionController->getRootAction("Delete")->constructSubAction(true));
     connectAction = mainGroup->addAction(connectGroup->getGroupVisibilityAction()->constructSubAction(true));
+    disconnectAction = mainGroup->addAction(connectGroup->getGroupVisibilityAction()->constructSubAction(true));
     //hardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_CONNECT", true));
     //disconnectHardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_DISCONNECT", true));
     mainGroup->addSeperator();
@@ -435,10 +446,24 @@ void ToolbarWidgetNew::setupConnectMenu()
         menu->setProperty("kind", action->property("kind"));
         dynamicMenuKeyHash[menu] = "INFO_NO_VALID_EDGE";
         connectMenu->addAction(action);
+    }    
+}
+
+
+/**
+ * @brief ToolbarWidgetNew::setupDiconnectMenu
+ */
+void ToolbarWidgetNew::setupDiconnectMenu()
+{
+    disconnectMenu = constructTopMenu(disconnectAction);
+
+    foreach(QAction* action, disconnectGroup->actions()){
+        QMenu* menu = new QMenu(this);
+        action->setMenu(menu);
+        menu->setProperty("kind", action->property("kind"));
+        dynamicMenuKeyHash[menu] = "INFO_NO_EDGE_TO_DISCONNECT";
+        disconnectMenu->addAction(action);
     }
-
-    //connectMenu->addSeparator();
-
 }
 
 
