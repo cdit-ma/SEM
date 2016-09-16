@@ -232,6 +232,7 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDG
             }
         }
     }
+    qCritical() << list;
     return list;
 }
 
@@ -797,6 +798,26 @@ void ViewController::deleteSelection()
 {
     if(selectionController){
         emit vc_deleteEntities(selectionController->getSelectionIDs());
+    }
+}
+
+void ViewController::expandSelection()
+{
+    if(selectionController && selectionController->getSelectionCount() > 0){
+        emit vc_triggerAction("Expand Selection");
+        foreach(int ID, selectionController->getSelectionIDs()){
+            emit vc_setData(ID, "isExpanded", true);
+        }
+    }
+}
+
+void ViewController::contractSelection()
+{
+    if(selectionController && selectionController->getSelectionCount() > 0){
+        emit vc_triggerAction("Expand Selection");
+        foreach(int ID, selectionController->getSelectionIDs()){
+            emit vc_setData(ID, "isExpanded", false);
+        }
     }
 }
 

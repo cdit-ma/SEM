@@ -287,9 +287,9 @@ void ToolbarWidgetNew::setupActions()
     //hardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_CONNECT", true));
     //disconnectHardwareAction = mainGroup->addAction(toolbarController->getToolAction("EC_DEPLOYMENT_DISCONNECT", true));
     mainGroup->addSeperator();
-    mainGroup->addAction(actionController->edit_alignVertical->constructSubAction(true));
-    mainGroup->addAction(actionController->edit_alignHorizontal->constructSubAction(true));
-    mainGroup->addSeperator();
+    //mainGroup->addAction(actionController->edit_alignVertical->constructSubAction(true));
+    //mainGroup->addAction(actionController->edit_alignHorizontal->constructSubAction(true));
+    //mainGroup->addSeperator();
     //mainGroup->addAction(actionController->toolbar_expand->constructSubAction(true));
     //mainGroup->addAction(actionController->toolbar_contract->constructSubAction(true));
     mainGroup->addSeperator();

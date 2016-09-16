@@ -162,6 +162,11 @@ void SettingsController::intializeSettings()
     createSetting(SK_TOOLBAR_ALIGN_HORIZONTAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Horizontally");
     createSetting(SK_TOOLBAR_ALIGN_VERTICAL, ST_BOOL, "Toolbar", "Visible Buttons", "Align Vertically");
 
+    createSetting(SK_TOOLBAR_CONTRACT, ST_BOOL, "Toolbar", "Visible Buttons", "Expand Selection");
+    createSetting(SK_TOOLBAR_EXPAND, ST_BOOL, "Toolbar", "Visible Buttons", "Contract Selection");
+
+
+
 
 
      //Jenkins - Server
@@ -224,7 +229,8 @@ void SettingsController::intializeSettings()
     _getSetting(SK_WINDOW_BROWSER_VISIBLE)->setDefaultValue(true);
     _getSetting(SK_WINDOW_TOOLBAR_VISIBLE)->setDefaultValue(true);
 
-    _getSetting(SK_TOOLBAR_CONTEXT)->setDefaultValue(true);
+    _getSetting(SK_TOOLBAR_CONTEXT)->setDefaultValue(false);
+    _getSetting(SK_TOOLBAR_SEARCH)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_UNDO)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_REDO)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_CUT)->setDefaultValue(true);
@@ -234,10 +240,12 @@ void SettingsController::intializeSettings()
     _getSetting(SK_TOOLBAR_FIT_TO_SCREEN)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_CENTER_SELECTION)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_VIEW_IN_NEWWINDOW)->setDefaultValue(true);
-    _getSetting(SK_TOOLBAR_SORT)->setDefaultValue(true);
+    _getSetting(SK_TOOLBAR_SORT)->setDefaultValue(false);
     _getSetting(SK_TOOLBAR_DELETE)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_ALIGN_HORIZONTAL)->setDefaultValue(true);
     _getSetting(SK_TOOLBAR_ALIGN_VERTICAL)->setDefaultValue(true);
+    _getSetting(SK_TOOLBAR_EXPAND)->setDefaultValue(true);
+    _getSetting(SK_TOOLBAR_CONTRACT)->setDefaultValue(true);
 
     _getSetting(SK_GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
 

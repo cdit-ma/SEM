@@ -37,12 +37,14 @@ public:
 
     QMap<QString, ViewItem*> getSearchResults(QString result);
 
-    QList<ViewItem*> getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind);
 
 
     QStringList getAdoptableNodeKinds();
+
     QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection();
+
     QList<Edge::EDGE_KIND> getExistingEdgeKindsForSelection();
+    QList<ViewItem*> getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind);
 
     QStringList getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
@@ -213,6 +215,8 @@ public slots:
     void paste();
     void replicate();
     void deleteSelection();
+    void expandSelection();
+    void contractSelection();
 
     void editLabel();
     void editReplicationCount();

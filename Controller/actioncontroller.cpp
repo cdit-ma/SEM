@@ -89,6 +89,11 @@ void ActionController::connectViewController(ViewController *controller)
         connect(help_aboutMedea, &QAction::triggered, viewController, &ViewController::aboutMEDEA);
 
 
+        connect(edit_expand, &QAction::triggered, viewController, &ViewController::expandSelection);
+        connect(edit_contract, &QAction::triggered, viewController, &ViewController::contractSelection);
+
+
+
 
         connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
 
@@ -323,6 +328,10 @@ void ActionController::selectionChanged(int selectionSize)
         }
 
         toolbar_wiki->setEnabled(gotSelection);
+
+        edit_expand->setEnabled(gotSelection);
+        edit_contract->setEnabled(gotSelection);
+
         file_importSnippet->setEnabled(viewController->canImportSnippet());
         file_exportSnippet->setEnabled(viewController->canExportSnippet());
 
@@ -457,6 +466,10 @@ QAction *ActionController::getSettingAction(SETTING_KEY key)
         return toolbar_alignHorizontal;
     case SK_TOOLBAR_SEARCH:
         return toolbar_search;
+    case SK_TOOLBAR_CONTRACT:
+        return toolbar_contract;
+    case SK_TOOLBAR_EXPAND:
+        return toolbar_expand;
     default:
         return 0;
     }
@@ -732,6 +745,9 @@ void ActionController::setupActions()
 
     view_centerOn = createRootAction("View", "Center Selection", "", "Actions", "Crosshair");
 
+    edit_expand = createRootAction("Toolbar", "Expand Selection", "", "Actions", "Expand");
+    edit_contract = createRootAction("Toolbar", "Contract Selection", "", "Actions", "Contract");
+
     view_centerOnDefn = createRootAction("View", "Center On Definition", "", "Actions", "Definition");
     view_centerOnDefn->setToolTip("Center selected entity's Definition.");
     view_centerOnDefn->setShortcutContext(Qt::ApplicationShortcut);
@@ -826,8 +842,8 @@ void ActionController::setupActions()
     //toolbar_popOutInst = createRootAction("View Selection's Instance", "", "Actions", "Popup");
     toolbar_setReadOnly = createRootAction("Toolbar", "Set Selection To Read Only", "", "Actions", "Lock_Closed");
     toolbar_unsetReadOnly = createRootAction("Toolbar", "Unset Selection From Read Only", "", "Actions", "Lock_Open");
-    toolbar_expand = createRootAction("Toolbar", "Expand Selection", "", "Actions", "Expand");
-    toolbar_contract = createRootAction("Toolbar", "Contract Selection", "", "Actions", "Contract");
+
+
     toolbar_wiki = createRootAction("Toolbar", "View Wiki Page For Selected Entity", "", "Actions", "Wiki");
     toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Count", "", "Actions", "Replicate_Count");
     toolbar_displayedChildrenOption = createRootAction("Toolbar", "Change Displayed Nodes Settings", "", "Actions", "Menu_Vertical");
@@ -963,8 +979,10 @@ void ActionController::setupApplicationToolbar()
     toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
-    toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
+    toolbar_expand = applicationToolbar->addAction(edit_expand->constructSubAction(false));
+    toolbar_contract = applicationToolbar->addAction(edit_contract->constructSubAction(false));
     applicationToolbar->addSeperator();
+    toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
     toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));
     toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
     applicationToolbar->addSeperator();
@@ -985,20 +1003,11 @@ void ActionController::setupContextToolbar()
     contextToolbar->addAction(toolbar_hardware);
     contextToolbar->addAction(toolbar_disconnectHardware);
     contextToolbar->addSeperator();
-    contextToolbar->addAction(edit_alignVertical->constructSubAction());
-    contextToolbar->addAction(edit_alignHorizontal->constructSubAction());
-    contextToolbar->addSeperator();
-    contextToolbar->addAction(toolbar_expand);
-    contextToolbar->addAction(toolbar_contract);
-    contextToolbar->addSeperator();
     contextToolbar->addAction(file_importSnippet->constructSubAction());
     contextToolbar->addAction(file_exportSnippet->constructSubAction());
     contextToolbar->addSeperator();
     contextToolbar->addAction(view_centerOnDefn->constructSubAction());
     contextToolbar->addAction(view_centerOnImpl->constructSubAction());
-    //contextToolbar->addAction(toolbar_popOutDefn);
-    //contextToolbar->addAction(toolbar_popOutImpl);
-    //contextToolbar->addAction(toolbar_popOutInst);
     contextToolbar->addSeperator();
     contextToolbar->addAction(toolbar_displayedChildrenOption);
     contextToolbar->addAction(toolbar_replicateCount);
