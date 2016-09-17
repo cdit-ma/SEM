@@ -221,7 +221,7 @@ public slots:
     void editLabel();
     void editReplicationCount();
 
-    void setReplicationCount();
+    void setSelectionReadOnly(bool locked);
 
     void constructDDSQOSProfile();
     void requestSearchSuggestions();

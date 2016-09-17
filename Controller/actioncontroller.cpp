@@ -8,6 +8,8 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 {
     viewController = vc;
     shortcutDialog = 0;
+    recentProjectMapper = 0;
+
     selectionController = viewController->getSelectionController();
 
 
@@ -118,6 +120,8 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(help_shortcuts, &QAction::triggered, this, &ActionController::showShortcutDialog);
 
+        connect(readOnlyMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),viewController, &ViewController::setSelectionReadOnly);
+
         connectSelectionController(controller->getSelectionController());
     }
 }
@@ -188,64 +192,7 @@ void ActionController::showShortcutDialog()
             }
         }
         shortcutDialog->resizeTable();
-
-        /*
-        addTitle("Global", Theme::theme()->getImage("Actions", "Global"));
-
-        addShortcut("F1", "Opens the Shortcut window.");
-        addShortcut("F3", "Sets the focus into the search box.");
-        addShortcut("F10", "Opens the settings window.");
-        addShortcut("CTRL + SHIFT + F", "Toggles fullscreen mode.");
-        addShortcut("F12", "Takes a screenshot.");
-        addShortcut("CTRL + SHIFT + M", "Toggles minimap visibility.");
-        addShortcut("ARROW KEYS", "Nudges the viewport by a small amount.");
-        addShortcut("SHIFT + ARROW KEYS", "Nudges the viewport by a larger amount.");
-
-        addTitle("Project", Theme::theme()->getImage("Actions", "New"));
-        addShortcut("CTRL + N", "Constructs a new project.");
-        addShortcut("CTRL + O", "Opens an existing project.");
-        addShortcut("CTRL + S", "Saves the current project.");
-        addShortcut("CTRL + SHIFT + S", "Saves the current project as another file.");
-        addShortcut("CTRL + I", "Imports a Graphml document into current project.");
-        addShortcut("CTRL + SHIFT + V", "Validates the current project.");
-        addShortcut("CTRL + W", "Closes the current Project.");
-        addShortcut("CTRL + Z", "Undoes the last change in the model.");
-        addShortcut("CTRL + Y", "Redoes the last Undo.");
-        addShortcut("CTRL + SPACE", "Fits the entire model into the view.");
-        addShortcut("CTRL + J", "Imports the Nodes from the Jenkins Server.");
-        addShortcut("CTRL + SHIFT + B", "Executes the current project on the Jenkins Server.");
-
-        addTitle("Selection", Theme::theme()->getImage("Actions", "SelectAll"));
-        addShortcut("ESC", "Clears the current selection / Closes current dialog window.");
-        addShortcut("F2", "Renames the current (singular) selection.");
-        addShortcut("CTRL + A", "Selects all children of currently selected entity.");
-        addShortcut("CTRL + C", "Copies the currently selected entities.");
-        addShortcut("CTRL + D", "Replicates the currently selected entities.");
-        addShortcut("CTRL + X", "Cuts the currently selected entities.");
-        addShortcut("CTRL + V", "Pastes the data from the clipboard into the current selected entity.");
-        addShortcut("CTRL", "Holding control allows multiple selection.");
-        addShortcut("DELETE", "Deletes all selected entities.");
-        addShortcut("SHIFT + D", "Centers on the (singular) selected entity's definition.");
-        addShortcut("SHIFT + I", "Centers on the (singular) selected entity's implementation.");
-        addShortcut("TAB", "Sets the next entity in the selection as the active selection.");
-        addShortcut("SHIFT + TAB", "Sets the previous entity in the selection as the active selection.");
-
-
-        addTitle("Mouse", Theme::theme()->getImage("Actions", "Mouse"));
-        addShortcut("L MOUSE", "Selects the entity under the cursor.");
-        addShortcut("R MOUSE", "Opens the toolbar for the selection.");
-        addShortcut("M MOUSE", "Centers the entity under the cursor.");
-
-        addShortcut("SCROLL UP", "Zooms in view.");
-        addShortcut("SCROLL DOWN", "Zooms out view.");
-
-        addShortcut("L MOUSE + DRAG", "Moves the selected entities.");
-        addShortcut("R MOUSE + DRAG", "Pans the view.");
-        //addShortcut("CTRL + M MOUSE", "Sorts the children of the entity under the cursor.");
-        addShortcut("CTRL + SHIFT", "Turns on rubberband selection mode.");
-        */
     }
-
     shortcutDialog->show();
 }
 
@@ -376,6 +323,9 @@ void ActionController::selectionChanged(int selectionSize)
 
         edit_clearSelection->setEnabled(gotMultipleSelection);
         edit_selectAll->setEnabled(gotSingleSelection);
+
+        toolbar_setReadOnly->setEnabled(gotSelection);
+        toolbar_unsetReadOnly->setEnabled(gotSelection);
 
 
         applicationToolbar->updateSpacers();
@@ -535,10 +485,10 @@ void ActionController::createRecentProjectAction(QString fileName)
 
 void ActionController::recentProjectsChanged()
 {
-    recentProjectMapper = new QSignalMapper(this);
-
-    connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped),viewController, &ViewController::openExistingProject);
-
+    if(!recentProjectMapper){
+        recentProjectMapper = new QSignalMapper(this);
+        connect(recentProjectMapper, static_cast<void(QSignalMapper::*)(const QString &)>(&QSignalMapper::mapped),viewController, &ViewController::openExistingProject);
+    }
 
     //Load in the defaults.
     QStringList list = SettingsController::settings()->getSetting(SK_GENERAL_RECENT_PROJECTS).toStringList();
@@ -572,7 +522,7 @@ void ActionController::recentProjectsChanged()
                 menu_file_recentProjects->addAction(action);
             }
         }
-        //
+
         menu_file_recentProjects->addSeparator();
         menu_file_recentProjects->addAction(file_recentProjects_clearHistory);
         recentProjectKeys = orderedKeys;
@@ -842,6 +792,16 @@ void ActionController::setupActions()
     //toolbar_popOutInst = createRootAction("View Selection's Instance", "", "Actions", "Popup");
     toolbar_setReadOnly = createRootAction("Toolbar", "Set Selection To Read Only", "", "Actions", "Lock_Closed");
     toolbar_unsetReadOnly = createRootAction("Toolbar", "Unset Selection From Read Only", "", "Actions", "Lock_Open");
+
+
+    readOnlyMapper = new QSignalMapper(this);
+
+
+    connect(toolbar_setReadOnly, &QAction::triggered, readOnlyMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
+    connect(toolbar_unsetReadOnly, &QAction::triggered, readOnlyMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
+
+    readOnlyMapper->setMapping(toolbar_setReadOnly, 1);
+    readOnlyMapper->setMapping(toolbar_unsetReadOnly, 0);
 
 
     toolbar_wiki = createRootAction("Toolbar", "View Wiki Page For Selected Entity", "", "Actions", "Wiki");

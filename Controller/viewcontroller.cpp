@@ -830,7 +830,6 @@ void ViewController::editLabel()
 void ViewController::editReplicationCount()
 {
     ViewItem* item = getActiveSelectedItem();
-    qCritical() << item;
     if(item){
         emit vc_editTableCell(item->getID(), "replicate_count");
     }
@@ -1289,11 +1288,11 @@ void ViewController::selectAndCenterConnectedEntities()
     }
 }
 
-void ViewController::setReplicationCount()
+void ViewController::setSelectionReadOnly(bool locked)
 {
-    ViewItem* item = getActiveSelectedItem();
-    if(item){
-        emit vc_editTableCell(item->getID(), "replicate_count");
+    if(controller && selectionController){
+        emit vc_triggerAction("Set Selection Locked");
+        controller->setReadOnly(selectionController->getSelectionIDs(), locked);
     }
 }
 

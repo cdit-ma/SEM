@@ -350,8 +350,9 @@ void ToolbarWidgetNew::setupActions()
     hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     //replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
-    //mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
-    //mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
+
+    mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
+    mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
     connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
     mainGroup->addAction(actionController->model_getCodeForComponent->constructSubAction(true));

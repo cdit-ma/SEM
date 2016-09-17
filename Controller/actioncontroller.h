@@ -186,6 +186,7 @@ public:
 
 
     QSignalMapper* recentProjectMapper;
+    QSignalMapper* readOnlyMapper;
     QHash<QString, RootAction*> recentProjectActions;
     QStringList recentProjectKeys;
 

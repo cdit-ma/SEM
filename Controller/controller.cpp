@@ -243,8 +243,8 @@ NewController::NewController() :QObject(0)
     constructableNodeKinds << "OutEventPortInstance" << "OutEventPortImpl" << "HardwareNode";
     constructableNodeKinds << "QOSProfile";
 
-    snippetableParentKinds << "ComponentImpl" << "InterfaceDefinitions";
-    nonSnippetableKinds << "OutEventPortImpl" << "InEventPortImpl";
+    snippetableParentKinds << Node::NK_COMPONENT_IMPL << Node::NK_INTERFACE_DEFINITIONS;
+    nonSnippetableKinds << Node::NK_OUTEVENTPORT_IMPL << Node::NK_INEVENTPORT_IMPL;
 
     constructableNodeKinds.append(definitionNodeKinds);
     constructableNodeKinds.append(behaviourNodeKinds);
@@ -1190,7 +1190,8 @@ void NewController::remove(QList<int> IDs)
     lock.lockForWrite();
     QList<Entity*> selection = getOrderedSelection(IDs);
 
-    if(canDelete(selection)){
+    if(canRemove(selection)){
+
         triggerAction("Removing Selection");
         bool success = _remove(selection);
         emit controller_ActionFinished(success, "Cannot delete all selected entities.");
@@ -1202,20 +1203,26 @@ void NewController::remove(QList<int> IDs)
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
 {
+    lock.lockForWrite();
     Key* readOnlyKey = constructKey("readOnly", QVariant::Bool);
 
 
-    QList<Node*> nodeList;
+    QList<Entity*> items;
     //Construct a list of Nodes to be snippeted
-    foreach(int ID, IDs){
-        Node* node = getNodeFromID(ID);
-        if(node){
-            if(!nodeList.contains(node)){
-                nodeList += node;
-            }
-            foreach(Node* child, node->getChildren()){
-                if(!nodeList.contains(child)){
-                    nodeList += child;
+    foreach(Entity* item, getOrderedSelection(IDs)){
+        if(!items.contains(item)){
+            items.append(item);
+            if(item->isNode()){
+                Node* node = (Node*) item;
+                foreach(Node* child, node->getChildren()){
+                    if(!items.contains(child)){
+                        items += child;
+                    }
+                }
+                foreach(Edge* edge, node->getEdges()){
+                    if(!items.contains(edge)){
+                        items += edge;
+                    }
                 }
             }
         }
@@ -1224,27 +1231,25 @@ void NewController::setReadOnly(QList<int> IDs, bool readOnly)
 
     bool displayWarning = true;
     //Attach read only Data.
-    foreach(Node* node, nodeList){
-        if(node->isSnippetReadOnly() || node->getData("readOnlyDefinition")){
+    foreach(Entity* item, items){
+        if(item->isSnippetReadOnly() || item->gotData("readOnlyDefinition")){
             if(displayWarning){
                 displayWarning = false;
-                emit controller_DisplayMessage(WARNING, "Entity in selection is a read-only snippet. Cannot modify read-only state.", "Cannot Modify Read-Only Snippet", "Snippet", node->getID());
+                emit controller_DisplayMessage(WARNING, "Entity in selection is a read-only snippet. Cannot modify read-only state.", "Cannot Modify Read-Only Snippet", "Snippet", item->getID());
             }
             continue;
         }
-        Data* readOnlyData = node->getData(readOnlyKey);
+        Data* readOnlyData = item->getData(readOnlyKey);
 
         if(!readOnlyData){
             readOnlyData = new Data(readOnlyKey, readOnly);
-            attachData(node, readOnlyData);
+            attachData(item, readOnlyData);
         }else{
-            _setData(node, "readOnly", readOnly);
+            _setData(item, "readOnly", readOnly);
         }
     }
-
-
-
-    emit controller_ActionFinished();
+    lock.unlock();
+    emit controller_ActionFinished(true);
 }
 
 /**
@@ -2605,6 +2610,11 @@ QList<int> NewController::getIDs(QList<Entity *> items)
         IDs.append(item->getID());
     }
     return IDs;
+}
+
+QList<Entity *> NewController::getEntities(QList<int> IDs)
+{
+    return getOrderedSelection(IDs);
 }
 
 
@@ -5875,94 +5885,31 @@ void NewController::setProjectPath(QString path)
 }
 
 
-bool NewController::canCopy(QList<int> IDs)
+bool NewController::canCopy(QList<int> selection)
 {
-    Node* parent = 0;
-    if(IDs.length() == 0){
-        return false;
-    }
-    bool gotNode = false;
-
-    foreach(int ID, IDs){
-        Node* node = getNodeFromID(ID);
-
-        if(!node){
-            //Probably an Edge!
-            continue;
-        }
-        gotNode = true;
-        if(!canDeleteNode(node)){
-            return false;
-        }
-        if(!parent){
-            //Set the firstParent to the first Nodes parent.
-            parent = node->getParentNode();
-        }
-
-        if(node->getParentNode() != parent){
-            //controller_DisplayMessage(WARNING, "Error", "Can only copy or cut entities which share the same parent.", ID);
-            return false;
-        }
-    }
-    return gotNode;
-}
-
-bool NewController::canGetCPP(QList<int> IDs)
-{
-    if(IDs.length() != 1){
-        return false;
-    }
-
-    foreach(int ID, IDs){
-        Node* node = getNodeFromID(ID);
-        ComponentImpl* componentImpl = dynamic_cast<ComponentImpl*>(node);
-        if(componentImpl){
-            return true;
-        }
-    }
-    return false;
+    lock.lockForRead();
+    QList<Entity*> items = getOrderedSelection(selection);
+    bool result = canCopy(items);
+    lock.unlock();
+    return result;
 }
 
 bool NewController::canReplicate(QList<int> selection)
 {
-    //Uses can cut for the moment to try catch replication of implemenations.
-    if(!canCut(selection)){
-        return false;
-    }
-
-    //Find selections parent, to see if paste would work
-    Node* parentNode = 0;
-
-    foreach(int ID, selection){
-        Node* node = getNodeFromID(ID);
-
-        if(!node){
-            //Probably an Edge!
-            continue;
-        }
-        if(node->getParentNode()){
-            if(!parentNode){
-                parentNode = node->getParentNode();
-            }
-            if(parentNode != node->getParentNode()){
-                return false;
-            }
-        }
-    }
-
-    if(parentNode){
-        QList<int> parentID;
-        parentID << parentNode->getID();
-        if(!canPaste(parentID)){
-            return false;
-        }
-    }
-    return true;
+    lock.lockForRead();
+    QList<Entity*> items = getOrderedSelection(selection);
+    bool result = canReplicate(items);
+    lock.unlock();
+    return result;
 }
 
 bool NewController::canCut(QList<int> selection)
 {
-    return canCopy(selection) && canDelete(selection);
+    lock.lockForRead();
+    QList<Entity*> items = getOrderedSelection(selection);
+    bool result = canCopy(items) && canCopy(items);
+    lock.unlock();
+    return result;
 }
 
 bool NewController::canReplicate(QList<Entity *> selection)
@@ -5995,14 +5942,14 @@ bool NewController::canReplicate(QList<Entity *> selection)
 
 bool NewController::canCut(QList<Entity *> selection)
 {
-    return canCopy(selection) && canDelete(selection);
+    return canCopy(selection) && canRemove(selection);
 }
 
 bool NewController::canCopy(QList<Entity *> selection)
 {
-    Node* parent = 0;
 
     bool valid = !selection.isEmpty();
+    Node* parent = 0;
 
     foreach(Entity* item, selection){
         if(item->isNode()){
@@ -6038,49 +5985,57 @@ bool NewController::canPaste(QList<Entity *> selection)
     return false;
 }
 
-bool NewController::canDelete(QList<Entity *> selection)
+bool NewController::canRemove(QList<Entity *> selection)
 {
     if(selection.isEmpty()){
         return false;
     }
 
     foreach(Entity* entity, selection){
-        Node* node = 0;
-
         if(entity->isNode()){
-            node = (Node*) entity;
-        }
+            Node* node = (Node*) entity;
+            Node* parentNode = node->getParentNode();
 
-        if(node){
             if(!canDeleteNode(node)){
                 return false;
             }
+            if(parentNode){
+                switch(node->getNodeKind()){
+                    case Node::NK_VARIABLE:{
+                        if(node->isInstance()){
+                            return false;
+                        }
+                        break;
+                    }
+                    case Node::NK_INPUTPARAMETER:
+                    case Node::NK_RETURNPARAMETER:{
+                        return false;
+                        break;
+                    }
+                    default:
+                        break;
+                }
 
-            if(node->getParentNode()){
-                Parameter* pNode = dynamic_cast<Parameter*>(node);
-                Variable* vNode = dynamic_cast<Variable*>(node->getParentNode());
-                if(pNode){
-                    return false;
-                }
-                if(vNode && node->isInstance()){
-                    //Can't Instance things inside Variables!
-                    return false;
-                }
                 if(node->isImpl() && node->getDefinition()){
-                    if(node->getDataValue("kind") != "OutEventPortImpl"){
+                    //Only allowed to delete OutEventPortImpls
+                    if(node->getNodeKind() != Node::NK_OUTEVENTPORT_IMPL){
                         return false;
                     }
                 }
 
-                if(node->isInstance() && node->getParentNode()->isInstance()){
+                if(node->isInstance() && parentNode->isInstance()){
                     return false;
                 }
 
-                if(node->isReadOnly()){
-                    if(node->getParentNode()->isReadOnly()){
-                        return false;
-                    }
+                if(node->isReadOnly() && parentNode->isReadOnly()){
+                    return false;
                 }
+            }
+        }else if(entity->isEdge()){
+            Edge* edge = (Edge*) entity;
+
+            if(edge->isReadOnly()){
+                return false;
             }
         }
     }
@@ -6090,152 +6045,129 @@ bool NewController::canDelete(QList<Entity *> selection)
 
 }
 
-bool NewController::canDelete(QList<int> selection)
+bool NewController::canSetReadOnly(QList<Entity *> selection)
 {
-    if(selection.size() == 0){
-        return false;
-    }
-    foreach(int ID, selection){
-        Node* node = getNodeFromID(ID);
-        if(!node){
-            continue;
-        }
-        if(!canDeleteNode(node)){
-            return false;
-        }
-        if(node->getParentNode()){
-            Parameter* pNode = dynamic_cast<Parameter*>(node);
-            Variable* vNode = dynamic_cast<Variable*>(node->getParentNode());
-            if(pNode){
-                return false;
-            }
-            if(vNode && node->isInstance()){
-                //Can't Instance things inside Variables!
-                return false;
-            }
-            if(node->isImpl() && node->getDefinition()){
-                if(node->getDataValue("kind") != "OutEventPortImpl"){
-                    return false;
-                }
-            }
-
-            if(node->isInstance() && node->getParentNode()->isInstance()){
-                return false;
-            }
-
-            if(node->isReadOnly()){
-                if(node->getParentNode()->isReadOnly()){
-                    return false;
-                }
-            }
-        }
-
-    }
-    return true;
-}
-
-bool NewController::canPaste(QList<int> selection)
-{
-    if(selection.size() == 1){
-        Entity* graphml = getGraphMLFromID(selection[0]);\
-        if(graphml && graphml->isNode() && graphml != model){
-            Node* node = (Node*)graphml;
-            if(node->isReadOnly()){
-                return false;
-            }
-            if(node->isInstance() || node->isImpl()){
-                return false;
-            }
+    foreach(Entity* item, selection){
+        if(!item->isReadOnly()){
             return true;
         }
     }
     return false;
 }
 
-bool NewController::canExportSnippet(QList<int> IDs)
+bool NewController::canUnsetReadOnly(QList<Entity *> selection)
 {
-    Node* parent = 0;
-    if(IDs.length() == 0){
+    foreach(Entity* item, selection){
+        if(item->isReadOnly()){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool NewController::canExportSnippet(QList<Entity *> selection)
+{
+    if(selection.isEmpty()){
         return false;
     }
 
-    foreach(int ID, IDs){
-        Node* node = getNodeFromID(ID);
-        Edge* edge = getEdgeFromID(ID);
-        if(!node && !edge){
-            return false;
-        }
-        if(edge){
-            continue;
-        }
-        if(nonSnippetableKinds.contains(node->getDataValue("kind").toString())){
-            return false;
-        }
-        Data* readOnlyData = node->getData("readOnly");
-        if(readOnlyData && readOnlyData->getValue().toBool()){
-            //Can't Export Read-Only Stuffs.
-            return false;
-        }
-        if(!parent){
-            //Set the firstParent to the first Nodes parent.
-            parent = node->getParentNode();
+    Node* parent = 0;
+    foreach(Entity* item, selection){
+        if(item->isNode()){
+            Node* node = (Node*) item;
+
+            if(nonSnippetableKinds.contains(node->getNodeKind())){
+                return false;
+            }
+
+            if(node->gotData("readOnly") && node->getDataValue("readOnly").toBool()){
+                //Can't Export Read-Only Stuffs.
+                return false;
+            }
+
             if(!parent){
-                return false;
+                parent = node->getParentNode();
+
+                if(!parent || !snippetableParentKinds.contains(parent->getNodeKind())){
+                    return false;
+                }
+            }else{
+                if(node->getParentNode() != parent){
+                    //Must share parents.
+                    return false;
+                }
             }
-            if(!snippetableParentKinds.contains(parent->getDataValue("kind").toString())){
-                return false;
-            }
-        }else if(node->getParentNode() != parent){
-            return false;
         }
     }
     return true;
 }
 
-bool NewController::canImportSnippet(QList<int> selection)
+bool NewController::canImportSnippet(QList<Entity *> selection)
 {
-    if(selection.length() != 1){
-        return false;
-    }
-    Node* parent = getNodeFromID(selection[0]);
-    if(!parent){
-        return false;
-    }
-
-    if(snippetableParentKinds.contains(parent->getDataValue("kind").toString())){
-        return true;
+    if(selection.length() == 1){
+        Entity* item = selection.at(0);
+        if(item->isNode()){
+            Node* node = (Node*) item;
+            if(snippetableParentKinds.contains(node->getNodeKind())){
+                return true;
+            }
+        }
     }
     return false;
 }
 
-bool NewController::canSetReadOnly(QList<int> IDs)
+bool NewController::canRemove(QList<int> selection)
 {
-    bool gotAnyNonReadOnly=false;
-    foreach(int ID, IDs){
-        Entity* entity = getGraphMLFromID(ID);
-        if(entity){
-            if(!entity->isReadOnly()){
-                gotAnyNonReadOnly = true;
-                break;
-            }
-        }
-    }
-    return gotAnyNonReadOnly;
+    lock.lockForRead();
+    QList<Entity*> items = getOrderedSelection(selection);
+    bool result = canRemove(items);
+    lock.unlock();
+    return result;
 }
 
-bool NewController::canUnsetReadOnly(QList<int> IDs)
+bool NewController::canPaste(QList<int> selection)
 {
-    bool gotAnyReadOnly=false;
-    foreach(int ID, IDs){
-        Entity* entity = getGraphMLFromID(ID);
-        if(entity){
-            if(entity->isReadOnly()){
-                gotAnyReadOnly = true;
-                break;
-            }
-        }
-    }
-    return gotAnyReadOnly;
+    lock.lockForRead();
+    QList<Entity*> items = getOrderedSelection(selection);
+    bool result = canPaste(items);
+    lock.unlock();
+    return result;
+}
+
+bool NewController::canExportSnippet(QList<int> selection)
+{
+    lock.lockForRead();
+    QList<Entity*> items = getOrderedSelection(selection);
+    bool result = canExportSnippet(items);
+    lock.unlock();
+    return result;
+}
+
+bool NewController::canImportSnippet(QList<int> selection)
+{
+    lock.lockForRead();
+    QList<Entity*> items = getOrderedSelection(selection);
+    bool result = canImportSnippet(items);
+    lock.unlock();
+    return result;
+}
+
+bool NewController::canSetReadOnly(QList<int> selection)
+{
+    lock.lockForRead();
+    QList<Entity*> items = getOrderedSelection(selection);
+    bool result = canSetReadOnly(items);
+    lock.unlock();
+    return result;
+}
+
+bool NewController::canUnsetReadOnly(QList<int> selection)
+{
+    lock.lockForRead();
+    QList<Entity*> items = getOrderedSelection(selection);
+    bool result = canUnsetReadOnly(items);
+    lock.unlock();
+    return result;
 }
 
 bool NewController::canUndo()
@@ -6255,25 +6187,24 @@ bool NewController::canRedo()
  */
 bool NewController::canLocalDeploy()
 {
-    if(!assemblyDefinitions){
-        return false;
-    }
-    bool isDeployable = false;
+    lock.lockForRead();
 
-    //Check to see if all nodes in the assembly definitions are deployed to the localhost node.
-    foreach(Node* node, assemblyDefinitions->getChildren()){
-        foreach(Edge* edge, node->getEdges(0)){
-            if(edge->isDeploymentLink()){
-                if(!edge->contains(localhostNode)){
-                    return false;
-                }else{
-                    isDeployable = true;
-                }
+    bool result = true;
+    if(assemblyDefinitions){
+        int count = 0;
+        //Check to see if all nodes in the assembly definitions are deployed to the localhost node.
+        foreach(Edge* edge, assemblyDefinitions->getEdges(-1, Edge::EC_DEPLOYMENT)){
+            if(edge->contains(localhostNode)){
+                count ++;
+            }else{
+                count = 0;
                 break;
             }
         }
+        result = count > 0;
     }
-    return isDeployable;
+    lock.unlock();
+    return result;
 }
 
 QString NewController::getProjectPath() const
