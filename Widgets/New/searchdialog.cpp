@@ -98,7 +98,7 @@ void SearchDialog::themeChanged()
 
     infoLabel->setStyleSheet(labelStyle);
     searchLabel->setStyleSheet(labelStyle);
-    scopeLabel->setStyleSheet(labelStyle);
+    //scopeLabel->setStyleSheet(labelStyle);
     queryLabel->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
 }
 
@@ -174,12 +174,12 @@ void SearchDialog::popupSelectedItem()
 void SearchDialog::setupLayout()
 {
     searchLabel = new QLabel("Search: ", this);
-    scopeLabel = new QLabel("Scope:", this);
+    //scopeLabel = new QLabel("Scope:", this);
     queryLabel = new QLabel("Searched string Searched string Searched string", this);
 
     QFont labelFont(font().family(), 9);
     searchLabel->setFont(labelFont);
-    scopeLabel->setFont(labelFont);
+    //scopeLabel->setFont(labelFont);
     labelFont.setPointSize(10);
     queryLabel->setFont(labelFont);
     queryLabel->setWordWrap(true);
@@ -194,6 +194,9 @@ void SearchDialog::setupLayout()
     searchLineEdit->setCompleter(searchCompleter);
     */
 
+    /*
+     * This is going to be used for filtering via view aspects.
+     *
     scopeComboBox = new QComboBox(this);
     scopeComboBox->setFixedHeight(fieldHeight);
     scopeComboBox->addItem("Entire Model");
@@ -201,6 +204,7 @@ void SearchDialog::setupLayout()
     scopeComboBox->addItem("Behaviour");
     scopeComboBox->addItem("Assemblies");
     scopeComboBox->addItem("Hardware");
+    */
 
     centerOnButton = new QToolButton(this);
     centerOnButton->setFixedSize(QSize(fieldHeight, fieldHeight));
@@ -253,25 +257,28 @@ void SearchDialog::setupLayout()
     labelLayout->addWidget(searchLabel);
     labelLayout->addWidget(queryLabel, 1);
 
+    /*
     QHBoxLayout* labelLayout2 = new QHBoxLayout();
     labelLayout2->setMargin(0);
     labelLayout2->setSpacing(2);
     labelLayout2->addWidget(scopeLabel);
     labelLayout2->addWidget(scopeComboBox);
+    */
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     hLayout->setMargin(0);
     hLayout->setSpacing(5);
     hLayout->addLayout(labelLayout, 1);
     hLayout->addSpacerItem(new QSpacerItem(30, 0));
-    hLayout->addLayout(labelLayout2);
+    //hLayout->addLayout(labelLayout2);
+    hLayout->addWidget(buttonsToolbar);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(10);
     mainLayout->setSpacing(5);
     mainLayout->addLayout(hLayout);
     mainLayout->addSpacerItem(new QSpacerItem(0, 5));
-    mainLayout->addWidget(buttonsToolbar, 1, Qt::AlignRight);
+    //mainLayout->addWidget(buttonsToolbar, 1, Qt::AlignRight);
     mainLayout->addSpacerItem(new QSpacerItem(0, 5));
     mainLayout->addWidget(displaySplitter, 1);
 

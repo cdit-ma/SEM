@@ -152,6 +152,7 @@ void MedeaMainWindow::showNotification(QString title, QString message)
     */
 
     QMessageBox::critical(this, title, message, QMessageBox::Ok, 0);
+    notificationDialog->addListItem(message);
 }
 
 
@@ -241,6 +242,8 @@ void MedeaMainWindow::themeChanged()
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
     restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
 
+    notificationsButton->setIcon(theme->getIcon("Actions", "Exclamation"));
+
     interfaceButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_INTERFACES));
     behaviourButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_BEHAVIOUR));
     assemblyButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_ASSEMBLIES));
@@ -301,6 +304,8 @@ void MedeaMainWindow::popupSearch()
     moveWidget(searchPopup);
     searchPopup->show();
     searchBar->setFocus();
+
+    //notificationDialog->show();
     //showNotification("", "This is a testcdsce wcefcercrcrerr evrbtybdvftrhtynrb"); // wcefcercrcrerr evrbtybdvftrhtynrb wcefcercrcrerr evrbtybdvftrhtynrb!!!");
 }
 
@@ -521,7 +526,6 @@ void MedeaMainWindow::setupInnerWindow()
 {
     innerWindow = MedeaWindowManager::constructCentralWindow("Main Window");
     setCentralWidget(innerWindow);
-
 
     NodeViewNew* nodeView_Interfaces = new NodeViewNew();
     NodeViewNew* nodeView_Behaviour = new NodeViewNew();
@@ -767,6 +771,8 @@ void MedeaMainWindow::setupNotificationBar()
     notificationPopup = new PopupWidget(PopupWidget::TOOL, this);
     notificationPopup->setWidget(notificationLabel);
     notificationPopup->hide();
+
+    notificationDialog = new NotificationDialog(this);
 }
 
 
@@ -850,6 +856,9 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     restoreAspectsButton = new QToolButton(this);
     restoreToolsButton = new QToolButton(this);
 
+    notificationsButton = new QToolButton(this);
+    notificationsButton->setToolTip("Show Notifications Dialog");
+
     /*
     interfaceButton->setText("I");
     behaviourButton->setText("B");
@@ -884,6 +893,8 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     toolbar->setFixedHeight(menuBar->height() - 6);
     toolbar->setStyleSheet("QToolButton{ padding: 2px 4px; }");
 
+    toolbar->addWidget(notificationsButton);
+    toolbar->addSeparator();
     toolbar->addWidget(interfaceButton);
     toolbar->addWidget(behaviourButton);
     toolbar->addWidget(assemblyButton);
@@ -895,6 +906,7 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     menuBar->setCornerWidget(toolbar);
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
 
+    connect(notificationsButton, SIGNAL(clicked(bool)), notificationDialog, SLOT(show()));
 }
 
 
@@ -948,13 +960,17 @@ void MedeaMainWindow::setupCUTSManager()
 /**
  * @brief MedeaMainWindow::moveWidget
  * @param widget
+ * @param parentWidget
  * @param alignment
  */
-void MedeaMainWindow::moveWidget(QWidget* widget, Qt::Alignment alignment)
+void MedeaMainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignment alignment)
 {
-    QWidget* cw = centralWidget();
+    QWidget* cw = parentWidget;
+    if (cw == 0) {
+        cw = QApplication::activeWindow();
+    }
     if (cw && widget) {
-        QPointF widgetPos = pos() + cw->pos() + cw->rect().center();
+        QPointF widgetPos = cw->geometry().center();
         switch (alignment) {
         case Qt::AlignBottom:
             widgetPos += QPoint(0, cw->rect().height()/2);

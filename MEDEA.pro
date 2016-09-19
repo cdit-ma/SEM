@@ -212,7 +212,8 @@ HEADERS += \
     Widgets/New/viewmanagerwidget.h \
     Widgets/New/searchdialog.h \
     Widgets/New/searchitemwidget.h \
-    Widgets/New/welcomescreenwidget.h
+    Widgets/New/welcomescreenwidget.h \
+    Widgets/New/notificationdialog.h
 
 SOURCES += \
     main.cpp \
@@ -390,7 +391,8 @@ SOURCES += \
     Widgets/New/viewmanagerwidget.cpp \
     Widgets/New/searchdialog.cpp \
     Widgets/New/searchitemwidget.cpp \
-    Widgets/New/welcomescreenwidget.cpp
+    Widgets/New/welcomescreenwidget.cpp \
+    Widgets/New/notificationdialog.cpp
 
 RESOURCES += \
     resources.qrc

@@ -23,6 +23,7 @@
 #include "../../GUI/popupwidget.h"
 #include "../../View/Dock/docktabwidget.h"
 #include "../../Widgets/New/searchdialog.h"
+#include "../../Widgets/New/notificationdialog.h"
 #include "welcomescreenwidget.h"
 
 
@@ -87,7 +88,7 @@ private:
     void setupCUTSManager();
     void setupXMIImporter();
 
-    void moveWidget(QWidget* widget, Qt::Alignment alignment = Qt::AlignCenter);
+    void moveWidget(QWidget* widget, QWidget* parentWidget = 0, Qt::Alignment alignment = Qt::AlignCenter);
 
     MedeaWindowNew* innerWindow;
 
@@ -116,10 +117,12 @@ private:
     PopupWidget* notificationPopup;
     QLabel* notificationLabel;
     QTimer* notificationTimer;
+    NotificationDialog* notificationDialog;
 
     ViewController* viewController;
 
 
+    QToolButton* notificationsButton;
     QToolButton* interfaceButton;
     QToolButton* behaviourButton;
     QToolButton* assemblyButton;
