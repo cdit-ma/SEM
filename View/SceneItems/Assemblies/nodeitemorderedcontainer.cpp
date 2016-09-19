@@ -87,14 +87,9 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         return edgeKindRect();
     case ER_CONNECT_ICON:
         return deployedRect();
-<<<<<<< HEAD
-    case ER_CONNECT_OUT:
-        return deployedRect();
-=======
     case ER_CONNECT:
         return connectRect();
         break;
->>>>>>> 1d4d2030da825a822a1d3a104dc9ac8cdaabe44c
     default:
         break;
     }
