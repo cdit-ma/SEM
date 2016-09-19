@@ -407,11 +407,11 @@ void ToolbarWidgetNew::setupSplitMenus()
 
     QMenu* menu = constructTopMenu(definitionAction, false);
     menu->addAction(actionController->view_centerOnDefn);
-    menu->addAction(actionController->toolbar_popOutDefn);
+    menu->addAction(actionController->view_viewDefnInNewWindow);
 
     QMenu* menu2 = constructTopMenu(implementationAction, false);
     menu2->addAction(actionController->view_centerOnImpl);
-    menu2->addAction(actionController->toolbar_popOutImpl);
+    menu2->addAction(actionController->view_viewImplInNewWindow);
 }
 
 
