@@ -186,6 +186,14 @@ void ToolActionController::addEdge(int dstID, Edge::EDGE_KIND edgeKind)
     }
 }
 
+void ToolActionController::removeEdge(int dstID, Edge::EDGE_KIND edgeKind)
+{
+    QList<int> IDs = selectionController->getSelectionIDs();
+    if(!IDs.isEmpty()){
+        emit viewController->vc_destructEdges(IDs, dstID, edgeKind);
+    }
+}
+
 void ToolActionController::addConnectedChildNode(int dstID, QString kind, QPointF position)
 {
     int ID = selectionController->getFirstSelectedItemID();
@@ -227,6 +235,7 @@ void ToolActionController::setupToolActions()
     createRootAction("INFO_NO_FUNCTIONS", "There are no available functions", "Actions", "Info");
     createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities", "Actions", "Info");
     createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to", "Actions", "Info");
+    createRootAction("INFO_NO_EDGE_TO_DISCONNECT", "There are no edges to disconnect", "Actions", "Info");
 }
 
 QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)
@@ -249,7 +258,7 @@ QList<NodeViewItemAction *> ToolActionController::getEdgeActionsOfKind(Edge::EDG
 QList<NodeViewItemAction *> ToolActionController::getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind)
 {
     QList<NodeViewItemAction*> list;
-    foreach(ViewItem* item, viewController->getExistingEdges(kind)){
+    foreach(ViewItem* item, viewController->getExistingEdgeEndPointsForSelection(kind)){
         if(item && actions.contains(item->getID())){
             list.append(actions[item->getID()]);
         }

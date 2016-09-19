@@ -866,39 +866,46 @@ QPainterPath NodeItemNew::getChildNodePath()
 void NodeItemNew::updateGridLines()
 {
     if(isGridEnabled()){
-        //Clear the old grid lines
-        QPainterPath path;
-
-
         QRectF grid = gridRect();
-        int gridSize = getGridSize();
+        QRectF drawnGrid = gridLines.boundingRect();
 
-        QPointF gridOffset =  grid.topLeft();
+        if(grid.width() > drawnGrid.width() || grid.height() > drawnGrid.height()){
+            //Go to double the width of the grid.
+            grid.setWidth(grid.width() * 2);
+            grid.setHeight(grid.height() * 2);
 
-        qreal modX = fmod(gridOffset.x(), gridSize);
-        qreal modY = fmod(gridOffset.y(), gridSize);
+            QPainterPath path;
 
-        if(modX != 0){
-            gridOffset.rx() += (gridSize - modX);
-        }
 
-        if(modY != 0){
-            gridOffset.ry() += (gridSize - modY);
-        }
+            int gridSize = getGridSize();
 
-        for(qreal x = gridOffset.x(); x <= grid.right(); x += gridSize){
-            path.moveTo(x, grid.top());
-            path.lineTo(x, grid.bottom());
-        }
+            QPointF gridOffset =  grid.topLeft();
 
-        for(qreal y = gridOffset.y(); y <= grid.bottom(); y += gridSize){
-            path.moveTo(grid.left(), y);
-            path.lineTo(grid.right(), y);
-        }
+            qreal modX = fmod(gridOffset.x(), gridSize);
+            qreal modY = fmod(gridOffset.y(), gridSize);
 
-        if(path != gridLines){
-            gridLines = path;
-            update();
+            if(modX != 0){
+                gridOffset.rx() += (gridSize - modX);
+            }
+
+            if(modY != 0){
+                gridOffset.ry() += (gridSize - modY);
+            }
+
+            for(qreal x = gridOffset.x(); x <= grid.right(); x += gridSize){
+                path.moveTo(x, grid.top());
+                path.lineTo(x, grid.bottom());
+            }
+
+            for(qreal y = gridOffset.y(); y <= grid.bottom(); y += gridSize){
+                path.moveTo(grid.left(), y);
+                path.lineTo(grid.right(), y);
+            }
+
+            if(path != gridLines){
+                gridLines = path;
+                update();
+            }
         }
     }
 }

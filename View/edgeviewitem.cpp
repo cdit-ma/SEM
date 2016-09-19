@@ -24,13 +24,7 @@ EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *src
 
 EdgeViewItem::~EdgeViewItem()
 {
-    if(source){
-        source->removeEdgeItem(this);
-    }
-    if(destination){
-        destination->removeEdgeItem(this);
-    }
-
+    disconnectEdge();
 }
 
 Edge::EDGE_KIND EdgeViewItem::getEdgeKind() const
@@ -64,4 +58,16 @@ int EdgeViewItem::getSourceID()
 int EdgeViewItem::getDestinationID()
 {
     return dID;
+}
+
+void EdgeViewItem::disconnectEdge()
+{
+    if(source){
+        source->removeEdgeItem(this);
+        source = 0;
+    }
+    if(destination){
+        destination->removeEdgeItem(this);
+        destination = 0;
+    }
 }

@@ -713,6 +713,7 @@ void MedeaMainWindow::setupSearchBar()
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
     connect(searchButton, SIGNAL(clicked(bool)), this, SLOT(searchEntered()));
     connect(searchDialog, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
+    connect(searchDialog, SIGNAL(popupViewItem(int)), viewController, SLOT(popupItem(int)));
     connect(searchDialog, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
     connect(searchDialog, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
 }
@@ -799,7 +800,9 @@ void MedeaMainWindow::setupDataTable()
     dockWidget->setWidget(tableWidget);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
 
-    dockWidget->getTitleBar()->addToolAction(viewController->getActionController()->model_selectModel, Qt::AlignLeft);
+    QAction* modelAction = viewController->getActionController()->model_selectModel;
+    modelAction->setToolTip("Show Model's Table");
+    dockWidget->getTitleBar()->addToolAction(modelAction, Qt::AlignLeft);
 
     //Check visibility state.
     dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());

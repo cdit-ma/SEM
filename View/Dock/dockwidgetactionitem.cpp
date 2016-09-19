@@ -134,6 +134,16 @@ void DockWidgetActionItem::highlightItem(bool highlight)
 
 
 /**
+ * @brief DockWidgetActionItem::isHighlighted
+ * @return
+ */
+bool DockWidgetActionItem::isHighlighted()
+{
+    return highlighted;
+}
+
+
+/**
  * @brief DockWidgetActionItem::actionChanged
  */
 void DockWidgetActionItem::actionChanged()

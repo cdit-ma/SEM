@@ -292,14 +292,14 @@ void DockWidget::viewItemDestructed(int ID)
 {
     if (actionItemIDHash.contains(ID)) {
         DockWidgetItem* item = actionItemIDHash.take(ID);
-        delete item;
+        item->deleteLater();
     }
     if (parentActionItemIDHash.contains(ID)) {
         DockWidgetItem* item = parentActionItemIDHash.take(ID);
-        delete item;
+        item->deleteLater();
     }
-    if (prevHighlightedItemID == ID) {
-        delete prevHighlightedItem;
+    if (prevHighlightedItem && prevHighlightedItemID == ID) {
+        prevHighlightedItem->deleteLater();
         prevHighlightedItem = 0;
         prevHighlightedItemID = -1;
     }

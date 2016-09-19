@@ -51,9 +51,7 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
         painter->setBrush(getBodyColor());
         painter->setPen(Qt::NoPen);
         painter->drawPolygon(getRightPoly());
-
         painter->setPen(Qt::black);
-
         painter->restore();
 
         painter->setBrush(getBodyColor().darker(120));

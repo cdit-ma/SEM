@@ -167,10 +167,6 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
     return items;
 }
 
-QList<ViewItem *> ViewController::getExistingEdges(Edge::EDGE_KIND kind)
-{
-    return QList<ViewItem* >();
-}
 
 QStringList ViewController::_getSearchSuggestions()
 {
@@ -232,6 +228,7 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDG
             }
         }
     }
+    qCritical() << list;
     return list;
 }
 
@@ -507,6 +504,7 @@ void ViewController::launchLocalDeployment()
 
 void ViewController::actionFinished(bool success, QString gg)
 {
+    qCritical() << "ACTION DONE!";
     setControllerReady(true);
     emit vc_actionFinished();
 }
@@ -636,6 +634,7 @@ bool ViewController::destructViewItem(ViewItem *item)
         }else if(viewItem->isEdge()){
             //Remove Edge from edgeKind map
             EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
+            edgeItem->disconnectEdge();
             edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
         }
 
@@ -800,6 +799,26 @@ void ViewController::deleteSelection()
     }
 }
 
+void ViewController::expandSelection()
+{
+    if(selectionController && selectionController->getSelectionCount() > 0){
+        emit vc_triggerAction("Expand Selection");
+        foreach(int ID, selectionController->getSelectionIDs()){
+            emit vc_setData(ID, "isExpanded", true);
+        }
+    }
+}
+
+void ViewController::contractSelection()
+{
+    if(selectionController && selectionController->getSelectionCount() > 0){
+        emit vc_triggerAction("Expand Selection");
+        foreach(int ID, selectionController->getSelectionIDs()){
+            emit vc_setData(ID, "isExpanded", false);
+        }
+    }
+}
+
 void ViewController::editLabel()
 {
     ViewItem* item = getActiveSelectedItem();
@@ -811,7 +830,6 @@ void ViewController::editLabel()
 void ViewController::editReplicationCount()
 {
     ViewItem* item = getActiveSelectedItem();
-    qCritical() << item;
     if(item){
         emit vc_editTableCell(item->getID(), "replicate_count");
     }
@@ -1051,6 +1069,8 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind)
 {
     ViewItem* viewItem = getViewItem(ID);
+    qCritical() << "ID: " << ID;
+    qCritical() << viewItem << "DESTRUCTING!";
     destructViewItem(viewItem);
 
 }
@@ -1268,11 +1288,11 @@ void ViewController::selectAndCenterConnectedEntities()
     }
 }
 
-void ViewController::setReplicationCount()
+void ViewController::setSelectionReadOnly(bool locked)
 {
-    ViewItem* item = getActiveSelectedItem();
-    if(item){
-        emit vc_editTableCell(item->getID(), "replicate_count");
+    if(controller && selectionController){
+        emit vc_triggerAction("Set Selection Locked");
+        controller->setReadOnly(selectionController->getSelectionIDs(), locked);
     }
 }
 

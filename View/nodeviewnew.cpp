@@ -785,6 +785,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_RETURNPARAMETER:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 nodeItem->setSecondaryTextKey("type");
                 break;
             case Node::NK_INEVENTPORT:

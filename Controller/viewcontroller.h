@@ -31,18 +31,19 @@ public:
     QList<ViewItem*> getWorkerFunctions();
     QList<ViewItem*> getConstructableNodeDefinitions(QString kind);
     QList<ViewItem*> getValidEdges(Edge::EDGE_KIND kind);
-    QList<ViewItem*> getExistingEdges(Edge::EDGE_KIND kind);
 
     QStringList _getSearchSuggestions();
 
     QMap<QString, ViewItem*> getSearchResults(QString result);
 
-    QList<ViewItem*> getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind);
 
 
     QStringList getAdoptableNodeKinds();
+
     QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection();
+
     QList<Edge::EDGE_KIND> getExistingEdgeKindsForSelection();
+    QList<ViewItem*> getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind);
 
     QStringList getValidValuesForKey(int ID, QString keyName);
     void setDefaultIcon(ViewItem* viewItem);
@@ -100,6 +101,7 @@ signals:
 
     void vc_constructNode(int parentID, QString kind, QPointF pos = QPointF());
     void vc_constructEdge(QList<int> sourceIDs, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED);
+    void vc_destructEdges(QList<int> sourceIDs, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED);
 
     void vc_constructConnectedNode(int parentID, QString nodeKind, int dstID, Edge::EDGE_KIND edgeKind = Edge::EC_UNDEFINED, QPointF pos=QPointF());
     void vc_constructWorkerProcess(int parentID, int dstID, QPointF point);
@@ -213,11 +215,13 @@ public slots:
     void paste();
     void replicate();
     void deleteSelection();
+    void expandSelection();
+    void contractSelection();
 
     void editLabel();
     void editReplicationCount();
 
-    void setReplicationCount();
+    void setSelectionReadOnly(bool locked);
 
     void constructDDSQOSProfile();
     void requestSearchSuggestions();

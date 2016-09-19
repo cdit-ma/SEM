@@ -36,12 +36,11 @@ SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(par
     } else {
         iconLabel = 0;
         expandButton = 0;
-        centerButton = 0;
-        popupButton = 0;
         displayWidget = 0;
         layout->addWidget(textLabel);
     }
 
+    setSelected(false);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
 }
@@ -81,17 +80,35 @@ void SearchItemWidget::setDisplayKeys(QList<QString> keys)
 
 
 /**
+ * @brief SearchItemWidget::setSelected
+ * @param selected
+ */
+void SearchItemWidget::setSelected(bool selected)
+{
+    if (this->selected == selected) {
+        return;
+    }
+    this->selected = selected;
+    if (selected) {
+        emit itemSelected(viewItemID);
+        //backgroundColor =  Theme::theme()->getHighlightColorHex();
+        backgroundColor =  Theme::theme()->getDisabledBackgroundColorHex();
+        hoverColor = backgroundColor;
+    } else {
+        backgroundColor =  Theme::theme()->getBackgroundColorHex();
+        hoverColor = Theme::theme()->getDisabledBackgroundColorHex();
+    }
+    updateStyleSheet();
+}
+
+
+/**
  * @brief SearchItemWidget::themeChanged
  */
 void SearchItemWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet("QFrame{ background:" + theme->getBackgroundColorHex() + "; color:" + theme->getTextColorHex() + "; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QPushButton{ background: rgba(0,0,0,0); border: 0px; }"
-                  "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
-                  "QLabel#KEY_LABEL{color:" + theme->getAltTextColorHex() + ";}"
-                  + theme->getToolBarStyleSheet());
+    updateStyleSheet();
 
     if (iconLabel) {
         iconLabel->setPixmap(theme->getImage(iconPath.first, iconPath.second, iconSize, theme->getMenuIconColor()));
@@ -99,30 +116,6 @@ void SearchItemWidget::themeChanged()
     if (expandButton) {
         expandButton->setIcon(theme->getIcon("Actions", "Arrow_Down"));
     }
-    if (centerButton) {
-        centerButton->setIcon(theme->getIcon("Actions", "Crosshair"));
-    }
-    if (popupButton) {
-        popupButton->setIcon(theme->getIcon("Actions", "Popup"));
-    }
-}
-
-
-/**
- * @brief SearchItemWidget::centerButtonClicked
- */
-void SearchItemWidget::centerButtonClicked()
-{
-    emit centerOnViewItem(viewItemID);
-}
-
-
-/**
- * @brief SearchItemWidget::popupButtonClicked
- */
-void SearchItemWidget::popupButtonClicked()
-{
-    emit popupViewItem(viewItemID);
 }
 
 
@@ -189,7 +182,7 @@ void SearchItemWidget::mouseReleaseEvent(QMouseEvent *)
         }
         doubleClicked = false;
     } else {
-        //emit centerOnViewItem(viewItemID);
+        setSelected(true);
     }
 }
 
@@ -241,7 +234,8 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setFixedSize(itemPixmap.size() + QSize(MARGIN, MARGIN));
 
-    QSize toolButtonSize(18, 18);
+    //QSize toolButtonSize(18, 18);
+    QSize toolButtonSize(20, 20);
 
     expandButton = new QToolButton(this);
     expandButton->setFixedSize(toolButtonSize);
@@ -249,19 +243,9 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
     expandButton->setChecked(false);
     expandButton->setToolTip("Show/Hide Matching Data");
 
-    centerButton = new QToolButton(this);
-    centerButton->setFixedSize(toolButtonSize);
-    centerButton->setToolTip("Center View Aspect On Item");
-
-    popupButton = new QToolButton(this);
-    popupButton->setFixedSize(toolButtonSize);
-    popupButton->setToolTip("View Item In New Window");
-
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(toolButtonSize);
     toolbar->addWidget(expandButton);
-    toolbar->addWidget(centerButton);
-    toolbar->addWidget(popupButton);
 
     QWidget* topBarWidget = new QWidget(this);
     topBarWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -281,8 +265,6 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
     layout->addWidget(displayWidget);
 
     connect(expandButton, SIGNAL(toggled(bool)), this, SLOT(expandButtonToggled(bool)));
-    connect(centerButton, SIGNAL(clicked(bool)), this, SLOT(centerButtonClicked()));
-    connect(popupButton, SIGNAL(clicked(bool)), this, SLOT(popupButtonClicked()));
 }
 
 
@@ -295,7 +277,7 @@ void SearchItemWidget::constructKeyWidgets()
 
         QVBoxLayout* displayLayout = new QVBoxLayout(displayWidget);
         displayLayout->setMargin(MARGIN);
-        displayLayout->setSpacing(2);
+        displayLayout->setSpacing(MARGIN*2);
 
         foreach (QString key, keys) {
             QWidget* keyWidget = new QWidget(this);
@@ -313,7 +295,7 @@ void SearchItemWidget::constructKeyWidgets()
 
             QHBoxLayout* layout = new QHBoxLayout(keyWidget);
             layout->setMargin(0);
-            layout->setSpacing(5);
+            layout->setSpacing(MARGIN);
             if (iconLabel) {
                 layout->addSpacerItem(new QSpacerItem(iconLabel->sizeHint().width(), 0));
             }
@@ -324,5 +306,19 @@ void SearchItemWidget::constructKeyWidgets()
 
         displayLayout->addSpacerItem(new QSpacerItem(0, MARGIN));
     }
+}
+
+
+/**
+ * @brief SearchItemWidget::updateStyleSheet
+ */
+void SearchItemWidget::updateStyleSheet()
+{
+    Theme* theme = Theme::theme();
+    setStyleSheet("QFrame{ background:" + backgroundColor + "; color:" + theme->getTextColorHex() + "; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
+                  "QFrame:hover { background:" + hoverColor + ";}"
+                  "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
+                  "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
+                  + theme->getToolBarStyleSheet());
 }
 

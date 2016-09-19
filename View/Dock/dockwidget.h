@@ -22,8 +22,8 @@ public:
     void addItems(QList<DockWidgetItem*> items);
     void addItems(QList<QAction*> actions);
 
-    void clearDock();
     bool isEmpty();
+    void clearDock();
     
     void updateHeaderText(QString text);
     void updateInfoLabel(QString text);

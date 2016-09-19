@@ -82,6 +82,8 @@ public:
     QAction* toolbar_alignVertical;
     QAction* toolbar_alignHorizontal;
     QAction* toolbar_search;
+    QAction* toolbar_contract;
+    QAction* toolbar_expand;
 
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
@@ -112,6 +114,8 @@ public:
     RootAction* edit_CycleActiveSelectionForward;
     RootAction* edit_CycleActiveSelectionBackward;
     RootAction* edit_renameActiveSelection;
+    RootAction* edit_expand;
+    RootAction* edit_contract;
 
     RootAction* view_fitView;
     RootAction* view_fitAllViews;
@@ -156,8 +160,7 @@ public:
     RootAction* toolbar_popOutImpl;
     RootAction* toolbar_setReadOnly;
     RootAction* toolbar_unsetReadOnly;
-    RootAction* toolbar_expand;
-    RootAction* toolbar_contract;
+
     RootAction* toolbar_wiki;
     RootAction* toolbar_replicateCount;
     RootAction* toolbar_displayedChildrenOption;
@@ -183,6 +186,7 @@ public:
 
 
     QSignalMapper* recentProjectMapper;
+    QSignalMapper* readOnlyMapper;
     QHash<QString, RootAction*> recentProjectActions;
     QStringList recentProjectKeys;
 
