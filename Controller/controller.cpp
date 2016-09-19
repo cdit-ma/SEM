@@ -2360,10 +2360,13 @@ void NewController::storeGraphMLInHash(Entity* item)
             properties["treeIndex"] = node->getTreeIndexAlpha();
             properties["parentID"] = node->getParentNodeID();
             properties["nodeTypes"] = node->getTypes();
+            properties["inModel"] = node->isInModel();
+
         }else if(entityKind == Entity::EK_EDGE){
             properties["kind"] = edge->getEdgeKind();
             properties["srcID"] = edge->getSourceID();
             properties["dstID"] = edge->getDestinationID();
+            properties["inModel"] = edge->isInModel();
         }
 
         properties["protectedKeys"] = item->getProtectedKeys();
@@ -5070,6 +5073,18 @@ QList<Edge::EDGE_KIND> NewController::getExistingEdgeKindsForSelection(QList<int
     lock.unlock();
     return edgeKinds;
 
+}
+
+QStringList NewController::getVisualKeys()
+{
+    QStringList visualKeys;
+    visualKeys << "x";
+    visualKeys << "y";
+    visualKeys << "width";
+    visualKeys << "height";
+    visualKeys << "isExpanded";
+    visualKeys << "readOnly";
+    return visualKeys;
 }
 
 void NewController::enableDebugLogging(bool logMode, QString applicationPath)

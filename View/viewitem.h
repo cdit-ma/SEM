@@ -25,6 +25,7 @@ public:
     ENTITY_KIND getEntityKind() const;
     bool isNode() const;
     bool isEdge() const;
+    bool isInModel() const;
 
     QVariant getData(QString keyName) const;
     QVariant getProperty(QString propertyName) const;

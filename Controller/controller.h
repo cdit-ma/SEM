@@ -131,6 +131,8 @@ class NewController: public QObject
 {
     Q_OBJECT
 public:
+    static QStringList getVisualKeys();
+
     NewController();
     ~NewController();
 

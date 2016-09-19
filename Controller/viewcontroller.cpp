@@ -172,14 +172,16 @@ QStringList ViewController::_getSearchSuggestions()
 {
     QStringList suggestions;
 
+    QStringList visualKeys = NewController::getVisualKeys();
+
     foreach(ViewItem* item, viewItems.values()){
-        //ID's
-        suggestions.append(QString::number(item->getID()));
-        //Data
-        foreach(QString key, item->getKeys()){
-            QString data = item->getData(key).toString();
-            if(!suggestions.contains(data)){
-                suggestions.append(data);
+        if(item->isInModel()){
+            //ID's
+            suggestions.append(QString::number(item->getID()));
+            foreach(QString key, item->getKeys()){
+                if(!visualKeys.contains(key)){
+                    suggestions.append(item->getData(key).toString());
+                }
             }
         }
     }
@@ -190,17 +192,23 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
 {
     QMap<QString, ViewItem*> results;
 
+    QStringList visualKeys = NewController::getVisualKeys();
+
     foreach(ViewItem* item, viewItems.values()){
-        QString ID = QString::number(item->getID());
+        if(item->isInModel()){
+            QString ID = QString::number(item->getID());
 
-        if(ID.contains(query)){
-            results.insertMulti("ID", item);
-        }
+            if(ID.contains(query)){
+                results.insertMulti("ID", item);
+            }
 
-        foreach(QString key, item->getKeys()){
-            QString data = item->getData(key).toString();
-            if(data.contains(query)){
-                results.insertMulti(key, item);
+            foreach(QString key, item->getKeys()){
+                if(!visualKeys.contains(key)){
+                    QString data = item->getData(key).toString();
+                    if(data.contains(query)){
+                        results.insertMulti(key, item);
+                    }
+                }
             }
         }
     }

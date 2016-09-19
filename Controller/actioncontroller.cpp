@@ -285,7 +285,7 @@ void ActionController::selectionChanged(int selectionSize)
         edit_expand->setEnabled(gotSelection);
         edit_contract->setEnabled(gotSelection);
 
-        toolbar_setReadOnly->setEnabled(canLock);
+        toolbar_setReadOnly->setEnabled(!canLock);
         toolbar_unsetReadOnly->setEnabled(canLock);
 
         file_importSnippet->setEnabled(viewController->canImportSnippet());

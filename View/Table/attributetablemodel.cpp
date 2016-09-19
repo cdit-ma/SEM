@@ -53,12 +53,6 @@ void AttributeTableModel::addData(QString keyName)
         return;
     }
 
-    //Ignore visual data
-    if(entity->isDataVisual(keyName)){
-        ignoredKeys.append(keyName);
-        return;
-    }
-
     bool locked = entity->isDataProtected(keyName);
 
     int insertIndex = 0;
