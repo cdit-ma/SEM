@@ -939,8 +939,8 @@ void ActionController::setupApplicationToolbar()
     toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
-    toolbar_expand = applicationToolbar->addAction(edit_expand->constructSubAction(false));
     toolbar_contract = applicationToolbar->addAction(edit_contract->constructSubAction(false));
+    toolbar_expand = applicationToolbar->addAction(edit_expand->constructSubAction(false));
     applicationToolbar->addSeperator();
     toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
     toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));

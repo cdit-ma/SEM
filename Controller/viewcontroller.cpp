@@ -228,7 +228,6 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDG
             }
         }
     }
-    qCritical() << list;
     return list;
 }
 
@@ -504,7 +503,6 @@ void ViewController::launchLocalDeployment()
 
 void ViewController::actionFinished(bool success, QString gg)
 {
-    qCritical() << "ACTION DONE!";
     setControllerReady(true);
     emit vc_actionFinished();
 }
@@ -1069,8 +1067,6 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind)
 {
     ViewItem* viewItem = getViewItem(ID);
-    qCritical() << "ID: " << ID;
-    qCritical() << viewItem << "DESTRUCTING!";
     destructViewItem(viewItem);
 
 }
@@ -1450,14 +1446,10 @@ void ViewController::initializeController()
 
 bool ViewController::destructChildItems(ViewItem *parent)
 {
-    qCritical() << "destructChildItems!";
     QVectorIterator<ViewItem*> it(parent->getDirectChildren());
-
-
     it.toBack();
     while(it.hasPrevious()){
         ViewItem* item = it.previous();
-        qCritical() << item->getID() << " : " << item->getData("kind").toString();
         destructViewItem(item);
     }
     return true;

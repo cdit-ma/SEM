@@ -163,7 +163,18 @@ void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELE
         //Calculate the required size of the image.
         QSize requiredSize = getPixmapSize(imageRect, lod);
 
-        if(state == RS_BLOCK || requiredSize.width() <=4){
+        if(state == RS_BLOCK){
+            switch(pos){
+            case ER_MAIN_ICON:
+                break;
+            case ER_SECONDARY_ICON:
+                break;
+            case ER_EDGE_KIND_ICON:
+                break;
+            default:
+                return;
+            }
+
             paintPixmapRect(painter, imageAlias, imageName, imageRect);
         }else{
             ImageMap image = imageMap[pos];
@@ -277,13 +288,15 @@ void EntityItemNew::renderText(QPainter *painter, qreal lod, QRectF textRect, QS
     textRect.setHeight(textRect.height() / scale);
     textRect.moveTopLeft(textRect.topLeft() / scale);
 
-    if(renderedFontHeight > 4){
-        painter->drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere, text);
+    int options = Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere;
+    if(renderedFontHeight > 5){
+        painter->drawText(textRect, options, text);
     }else{
-        QRectF rect = painter->fontMetrics().boundingRect(textRect.toRect(), Qt::AlignCenter|Qt::TextWrapAnywhere, text);
+        QRectF rect = painter->fontMetrics().boundingRect(textRect.toRect(), options, text);
         painter->setBrush(QColor(120,120,120,120));
         painter->setPen(Qt::NoPen);
         rect.moveCenter(textRect.center());
+        rect.moveLeft(textRect.left());
         painter->drawRect(rect);
     }
     painter->restore();

@@ -935,9 +935,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             renderText(painter, lod, getElementRect(ER_SECONDARY_TEXT), getSecondaryText(), 5);
         }
 
-        if(isReadOnly()){
-            paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
-        }
+
 
         if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
             paintPixmap(painter, lod, ER_CONNECT_ICON, "Actions", "ConnectTo");
@@ -1006,6 +1004,11 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->restore();
     }
     EntityItemNew::paint(painter, option, widget);
+    if(state > RS_BLOCK){
+        if(isReadOnly()){
+            paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
+        }
+    }
 }
 
 QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
