@@ -265,19 +265,28 @@ void ActionController::selectionChanged(int selectionSize)
         bool hasImpl = false;
         bool hasCode = false;
         bool hasComponentAssembly = false;
+        bool canLock = false;
 
         if(gotSingleSelection && singleItem && singleItem->isNode()){
             NodeViewItem* node = (NodeViewItem*) singleItem;
+            Node::NODE_KIND kind = node->getNodeKind();
+
+
             hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
             hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
-            hasCode = node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE || node->getNodeKind() == Node::NK_COMPONENT_IMPL;
-            hasComponentAssembly = node->getNodeKind() == Node::NK_COMPONENT_ASSEMBLY;
+            canLock = !(node->isNodeOfType(Node::NT_ASPECT) || kind == Node::NK_MODEL);
+
+            hasCode = kind == Node::NK_COMPONENT || kind == Node::NK_COMPONENT_INSTANCE || kind == Node::NK_COMPONENT_IMPL;
+            hasComponentAssembly = kind == Node::NK_COMPONENT_ASSEMBLY;
         }
 
         toolbar_wiki->setEnabled(gotSelection);
 
         edit_expand->setEnabled(gotSelection);
         edit_contract->setEnabled(gotSelection);
+
+        toolbar_setReadOnly->setEnabled(canLock);
+        toolbar_unsetReadOnly->setEnabled(canLock);
 
         file_importSnippet->setEnabled(viewController->canImportSnippet());
         file_exportSnippet->setEnabled(viewController->canExportSnippet());
@@ -939,8 +948,8 @@ void ActionController::setupApplicationToolbar()
     toolbar_sort = applicationToolbar->addAction(edit_sort->constructSubAction(false));
     toolbar_alignVertical = applicationToolbar->addAction(edit_alignVertical->constructSubAction(false));
     toolbar_alignHorizontal = applicationToolbar->addAction(edit_alignHorizontal->constructSubAction(false));
-    toolbar_expand = applicationToolbar->addAction(edit_expand->constructSubAction(false));
     toolbar_contract = applicationToolbar->addAction(edit_contract->constructSubAction(false));
+    toolbar_expand = applicationToolbar->addAction(edit_expand->constructSubAction(false));
     applicationToolbar->addSeperator();
     toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
     toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));

@@ -467,102 +467,107 @@ void NewController::loadWorkerDefinitions()
     //Once we have loaded in workers, we should keep a dictionary lookup for them.
 }
 
-QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges, bool GUI_USED, bool ignoreVisuals)
+QString NewController::_exportGraphMLDocument(QList<int> entityIDs, bool allEdges, bool GUI_USED, bool ignoreVisuals)
 {
     bool exportAllEdges = allEdges;
 
     QString keyXML, edgeXML, nodeXML;
-    QList<Node*> containedNodes;
     QList<Key*> containedKeys;
+
+    QList<Entity*> containedEntities;
+    QList<Node*> topLevelNodes;
+    QList<Entity*> topLevelEntities;
     QList<Edge*> containedEdges;
 
 
-    //Get all Children and Edges.
-    foreach(int ID, nodeIDs){
-        Node* node = getNodeFromID(ID);
-        if(node){
-            if(containedNodes.contains(node) == false){
-                containedNodes.append(node);
+    foreach(Entity* entity, getOrderedSelection(entityIDs)){
+        foreach(Key* key, entity->getKeys()){
+            if(!containedKeys.contains(key)){
+                containedKeys.append(key);
             }
+        }
 
+        Node* node = (Node*) entity;
+        Edge* edge = (Edge*) entity;
 
-            //Get all keys used by this node.
-            foreach(Key* key, node->getKeys())
-            {
-                //Add the <key> tag to the list of Keys contained.
-                if(!containedKeys.contains(key)){
-                    containedKeys.append(key);
-                    keyXML += key->toGraphML(1);
+        if(topLevelEntities.contains(entity)){
+            topLevelEntities += entity;
+        }
+
+        if(entity->isNode()){
+            if(!topLevelNodes.contains(node)){
+                topLevelNodes.append(node);
+            }
+            foreach(Node* child, node->getChildren()){
+                if(!containedEntities.contains(child)){
+                    containedEntities.append(child);
                 }
             }
-
-            //Get all Children in this node.
-            foreach(Node* childNode, node->getChildren()){
-                if(childNode && (containedNodes.contains(childNode) == false)){
-                    containedNodes.append(childNode);
+            foreach(Edge* childEdge, node->getEdges()){
+                if(!containedEntities.contains(childEdge)){
+                    containedEdges.append(childEdge);
                 }
+                if(!containedEdges.contains(childEdge)){
+                    containedEdges.append(childEdge);
+                }
+            }
+        }else{
+            if(!containedEdges.contains(edge)){
+                containedEdges.append(edge);
             }
         }
     }
 
-
-    bool copySelectionQuestion = false;
-    foreach(int ID, nodeIDs){
-        Node* node = getNodeFromID(ID);
-        if(!node){
-            continue;
-        }
-        foreach(Edge* edge, node->getEdges()){
-            Node* src = edge->getSource();
-            Node* dst = edge->getDestination();
-
-            //If the source and destination for all edges are inside the selection, then copy it.
-            bool containsSrc = containedNodes.contains(src);
-            bool containsDst = containedNodes.contains(dst);
-            bool exportEdge = false;
-
-
-            if(containsSrc && containsDst){
-                exportEdge = true;
-            }else{
-                //One or the other.
-                if(edge->isAssemblyLevelLink()){
-                    exportEdge = true;
-                }else if(edge->isAggregateLink() || edge->isInstanceLink()){
-                    exportEdge = true;
-                }else if(edge->isImplLink()){
-                    exportEdge = false;
-                }else{
-                    if(GUI_USED && !copySelectionQuestion){
-                        exportAllEdges = askQuestion("Copy Selection?", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", src->getID());
-                        copySelectionQuestion = true;
-                        GUI_USED = false;
-                    }
-                    if(exportAllEdges){
-                        exportEdge = true;
-                    }
-                }
+    foreach(Entity* entity, containedEntities){
+        foreach(Key* key, entity->getKeys()){
+            if(!containedKeys.contains(key)){
+                containedKeys.append(key);
             }
-
-            if(exportEdge && !containedEdges.contains(edge)){
-                containedEdges.append(edge);
-                edgeXML += edge->toGraphML(2);
-
-                //Get the Keys related to this edge.
-                foreach(Key* key, edge->getKeys()){
-                    if(!containedKeys.contains(key)){
-                        containedKeys.append(key);
-                        keyXML += key->toGraphML(1);
-                    }
-                }
-            }
-
         }
-        //Export the XML for this node
+    }
+
+    //Export the XML for this node
+    foreach(Key* key, containedKeys){
+        keyXML += key->toGraphML(2);
+    }
+
+    foreach(Node* node, topLevelNodes){
         if(!ignoreVisuals){
             nodeXML += node->toGraphML(2);
         }else{
             nodeXML += node->toGraphMLNoVisualData(2);
+        }
+    }
+
+    foreach(Edge* edge, containedEdges){
+        Node* src = edge->getSource();
+        Node* dst = edge->getDestination();
+
+        bool exportEdge = false;
+        if(exportAllEdges || containedEntities.contains(src) && containedEntities.contains(dst)){
+            exportEdge = true;
+        }else{
+            switch(edge->getEdgeKind()){
+                case Edge::EC_AGGREGATE:
+                case Edge::EC_ASSEMBLY:
+                case Edge::EC_DEPLOYMENT:
+                    exportEdge = true;
+                    break;
+                case Edge::EC_DEFINITION:{
+                    if(!edge->isImplLink()){
+                        exportEdge = true;
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+
+        if(exportEdge){
+            //Export the XML for this node
+            edgeXML += edge->toGraphML(2);
         }
     }
 
@@ -1616,12 +1621,10 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
         bool readOnly = false;
 
-        qCritical() <<this->thread();
         //Check if read only.
         if(parentNodeKind == "InterfaceDefinitions"){
             readOnly = askQuestion("Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
         }
-        qCritical() << this->thread();
 
 
         //Construct the Keys to attach to the nodes to export.
@@ -1825,7 +1828,6 @@ QList<int> NewController::getConstructableConnectableNodes(int parentID, QString
             }
         }
     }
-    qCritical() << dstIDs;
     if(childNode){
         delete childNode;
     }
@@ -3307,22 +3309,26 @@ bool NewController::destructNode(Node *node)
 
 
 
-
-    //Get a list of dependants.
-    QList<Node*> dependants = node->getDependants();
-    //Remove all nodes which depend on this.
-    while(!dependants.isEmpty()){
-        Node* dependant = dependants.takeFirst();
-        qCritical() << "Tearing down Dependants: " << dependant;
-        destructNode(dependant);
-    }
+    //Get Dependants first.
+    QList<Node*> dependants = node->getNestedDependants();
 
     QList<Edge*> edges = node->getEdges();
     //Remove all Edges.
     while(!edges.isEmpty()){
+        //Go backwards to ensure that we can reconstruct the edges.
         Edge* edge = edges.takeLast();
+        //qCritical() << "Destructing Edge: " << edge->toString();
         destructEdge(edge);
     }
+
+
+    //Remove all nodes which depend on this.
+    while(!dependants.isEmpty()){
+        Node* dependant = dependants.takeFirst();
+        //qCritical(    ) << "Tearing down Dependants: " << dependant;
+        destructNode(dependant);
+    }
+
 
     //Remove all Children.
     while(node->hasChildren()){
@@ -3394,7 +3400,9 @@ bool NewController::destructEdge(Edge *edge)
         action.Action.type = DESTRUCTED;
         action.Action.kind = edge->getGraphMLKind();
         action.Entity.kind = edge->getEntityKind();
-        action.Entity.XML = edge->toGraphML(0);
+        QList<int> IDs;
+        IDs << ID;
+        action.Entity.XML = _exportGraphMLDocument(IDs, true);
         action.Entity.edgeClass = edge->getEdgeKind();
         addActionToStack(action);
     }
@@ -4454,11 +4462,9 @@ bool NewController::teardownAggregateRelationship(Node *node, Aggregate *aggrega
 
 bool NewController::setupDataEdgeRelationship(DataNode *output, DataNode *input, bool setup)
 {
-    qCritical() << output << input;
     Node* inputTopParent = input->getParentNode(input->getDepthFromAspect() - 2);
     Node* outputTopParent = output->getParentNode(output->getDepthFromAspect() - 2);
 
-    QString inputNodeKind;
     if(inputTopParent){
         //If we are connecting to an Variable, we don't want to bind.
         if(inputTopParent->getNodeKind() == Node::NK_VARIABLE){
@@ -4507,7 +4513,6 @@ bool NewController::setupDataEdgeRelationship(DataNode *output, DataNode *input,
 
 
                 if(bindableFunctionTypes.contains(operationName)){
-                    //Find return Parameter;
                     foreach(Node* child, inputParent->getChildren(0)){
                         if(child->isNodeOfType(Node::NT_PARAMETER)){
                             Parameter* parameter = (Parameter*) child;
@@ -4519,7 +4524,6 @@ bool NewController::setupDataEdgeRelationship(DataNode *output, DataNode *input,
                                     parameterType->unsetParentData();
                                     parameterType->clearValue();
                                 }
-
                             }
                         }
                     }
@@ -5694,7 +5698,9 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 				if(entity->hasEdgeKind()){
 					//Insert the item in the lookup
 					edgesMap.insertMulti(entity->getEdgeKind(), entity);
-				}
+                }else{
+                    qCritical() << "GG";
+                }
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
@@ -5755,8 +5761,6 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 }else{
                     //Construct an Edge, with the data.
                     edge = constructEdgeWithData(edgeKind, src, dst, entity->takeDataList());
-
-
                 }
 
                 if(edge){
@@ -5775,6 +5779,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                     //Append this item to the list of unconstructed items
                     unconstructedEdges.append(entity);
                 }
+            }else{
+                qCritical() << "Cannot Find Src Dst: " << src << " " << dst;
             }
         }
 

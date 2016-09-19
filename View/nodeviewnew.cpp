@@ -1302,7 +1302,6 @@ void NodeViewNew::state_Connecting_Exited()
 
 void NodeViewNew::state_Default_Entered()
 {
-    qCritical() << "state_Default_Entered";
     unsetCursor();
 }
 

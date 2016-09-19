@@ -380,7 +380,7 @@ private:
 
 
     //Exports a Selection of Containers to export into GraphML
-    QString _exportGraphMLDocument(QList<int> nodeIDs, bool allEdges = false, bool GUI_USED=false, bool ignoreVisuals=false);
+    QString _exportGraphMLDocument(QList<int> entityIDs, bool allEdges = false, bool GUI_USED=false, bool ignoreVisuals=false);
     QString _exportGraphMLDocument(Node* node, bool allEdges = false, bool GUI_USED=false);
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
