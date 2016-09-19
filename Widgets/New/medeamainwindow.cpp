@@ -152,7 +152,7 @@ void MedeaMainWindow::showNotification(QString title, QString message)
     */
 
     QMessageBox::critical(this, title, message, QMessageBox::Ok, 0);
-    notificationDialog->addListItem(message);
+    //notificationDialog->addListItem(message);
 }
 
 

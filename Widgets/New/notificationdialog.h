@@ -8,15 +8,13 @@
 #include <QComboBox>
 #include <QActionGroup>
 
+#include "enumerations.h"
+
 class NotificationDialog : public QDialog
 {
     Q_OBJECT
 public:
-    enum NOTIFICATION_TYPE{INFO, WARNING, CRITICAL};
     explicit NotificationDialog(QWidget *parent = 0);
-
-    void addListItem(QString description, NOTIFICATION_TYPE type = INFO);
-    void addListAction(QString description, NOTIFICATION_TYPE type = INFO);
 
 signals:
 
@@ -25,21 +23,28 @@ public slots:
     void displayTypeChanged(int type);
 
     void clearAll();
-    void removeListItem(QListWidgetItem* item);
+    void clearSelected();
+
+    void addNotificationItem(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath);
 
     void listItemClicked(QListWidgetItem* item);
 
 private:
-    QToolButton* clearButton;
+    void addListAction(QString description, NOTIFICATION_TYPE type = NT_INFO);
+    void addListItem(NOTIFICATION_TYPE type, QIcon icon, QString title, QString description);
+    void removeListItem(QListWidgetItem* item);
+
+    QToolButton* clearSelectedButton;
+    QToolButton* clearAllButton;
+
     QComboBox* typeComboBox;
+
     QListWidget* listWidget;
-    QListWidget* closeButtonListWidget;
+    QListWidget* typeIconListWidget;
 
     QActionGroup* infoActionGroup;
     QActionGroup* warningActionGroup;
     QActionGroup* criticalActionGroup;
-
-    QMap<QActionGroup*, QListWidgetItem*> closeButtons;
 };
 
 #endif // NOTIFICATIONDIALOG_H
