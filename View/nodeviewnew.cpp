@@ -708,7 +708,9 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_COMPONENT:
             case Node::NK_COMPONENT_ASSEMBLY:
             case Node::NK_COMPONENT_INSTANCE:
+            case Node::NK_BLACKBOX:
             case Node::NK_COMPONENT_IMPL:
+            case Node::NK_BLACKBOX_INSTANCE:
                 nodeItem = new ContainerNodeItem(item, parentNode);
                 break;
             case Node::NK_TERMINATION:
@@ -785,6 +787,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_RETURNPARAMETER:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 nodeItem->setSecondaryTextKey("type");
                 break;
             case Node::NK_INEVENTPORT:
@@ -1299,7 +1302,6 @@ void NodeViewNew::state_Connecting_Exited()
 
 void NodeViewNew::state_Default_Entered()
 {
-    qCritical() << "state_Default_Entered";
     unsetCursor();
 }
 

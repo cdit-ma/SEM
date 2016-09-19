@@ -131,6 +131,8 @@ class NewController: public QObject
 {
     Q_OBJECT
 public:
+    static QStringList getVisualKeys();
+
     NewController();
     ~NewController();
 
@@ -148,6 +150,7 @@ public:
 
 
 
+    void setReadOnly(QList<int> IDs, bool readOnly);
     //Public Read/Write Locked Functions
 
     //READ
@@ -175,30 +178,22 @@ private:
     QList<Node*> _getConnectableNodes(QList<Node*> sourceNodes, Edge::EDGE_KIND edgeKind);
     QList<Entity *> getOrderedSelection(QList<int> selection);
 public:
-
-    bool canCopy(QList<int> selection);
-    bool canGetCPP(QList<int> selection);
-    bool canReplicate(QList<int> selection);
-    bool canCut(QList<int> selection);
-
-
-    bool canReplicate(QList<Entity*> selection);
-    bool canCut(QList<Entity*> selection);
-    bool canCopy(QList<Entity*> selection);
-    bool canPaste(QList<Entity*> selection);
-    bool canDelete(QList<Entity *> selection);
-
-
-    bool canDelete(QList<int> selection);
-    bool canPaste(QList<int> selection);
-    bool canExportSnippet(QList<int> selection);
-    bool canImportSnippet(QList<int> selection);
-    bool canSetReadOnly(QList<int> selection);
-    bool canUnsetReadOnly(QList<int> selection);
     bool canUndo();
     bool canRedo();
     bool canLocalDeploy();
 
+
+    bool canCut(QList<int> selection);
+    bool canCopy(QList<int> selection);
+    bool canReplicate(QList<int> selection);
+    bool canRemove(QList<int> selection);
+    bool canPaste(QList<int> selection);
+
+    bool canSetReadOnly(QList<int> selection);
+    bool canUnsetReadOnly(QList<int> selection);
+
+    bool canExportSnippet(QList<int> selection);
+    bool canImportSnippet(QList<int> selection);
 
     int getDefinition(int ID);
     int getImplementation(int ID);
@@ -206,6 +201,24 @@ public:
 
     int getAggregate(int ID);
     int getDeployedHardwareID(int ID);
+
+
+private:
+    bool canReplicate(QList<Entity*> selection);
+    bool canCut(QList<Entity*> selection);
+    bool canCopy(QList<Entity*> selection);
+    bool canPaste(QList<Entity*> selection);
+    bool canRemove(QList<Entity *> selection);
+    bool canSetReadOnly(QList<Entity* > selection);
+    bool canUnsetReadOnly(QList<Entity* > selection);
+
+    bool canExportSnippet(QList<Entity*> selection);
+    bool canImportSnippet(QList<Entity*> selection);
+
+
+
+
+
 
 
 
@@ -285,7 +298,6 @@ private slots:
     void importProjects(QStringList xmlDataList);
 
 
-    void setReadOnly(QList<int> IDs, bool readOnly);
     void importSnippet(QList<int> IDs, QString fileName, QString fileData);
     void exportSnippet(QList<int> IDs);
 
@@ -370,7 +382,7 @@ private:
 
 
     //Exports a Selection of Containers to export into GraphML
-    QString _exportGraphMLDocument(QList<int> nodeIDs, bool allEdges = false, bool GUI_USED=false, bool ignoreVisuals=false);
+    QString _exportGraphMLDocument(QList<int> entityIDs, bool allEdges = false, bool GUI_USED=false, bool ignoreVisuals=false);
     QString _exportGraphMLDocument(Node* node, bool allEdges = false, bool GUI_USED=false);
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
@@ -402,6 +414,7 @@ private:
 
     bool updateProgressNotification();
     QList<int> getIDs(QList<Entity*> items);
+    QList<Entity*> getEntities(QList<int> IDs);
 
 
 
@@ -446,7 +459,7 @@ private:
     bool setupAggregateRelationship(Node* node, Aggregate* aggregate);
     bool teardownAggregateRelationship(Node* node, Aggregate* aggregate);
 
-    bool setupDataEdgeRelationship(BehaviourNode* outputNode, BehaviourNode* inputNode, bool setup = true);
+    bool setupDataEdgeRelationship(DataNode *outputNode, DataNode *inputNode, bool setup = true);
     bool teardownDataEdgeRelationship(BehaviourNode* outputNode, BehaviourNode* inputNode);
 
     bool setupParameterRelationship(Parameter* parameter, Node* data);
@@ -570,8 +583,8 @@ private:
     QStringList constructableNodeKinds;
     QStringList guiConstructableNodeKinds;
 
-    QStringList snippetableParentKinds;
-    QStringList nonSnippetableKinds;
+    QList<Node::NODE_KIND> snippetableParentKinds;
+    QList<Node::NODE_KIND> nonSnippetableKinds;
 
     QStringList behaviourNodeKinds;
     QStringList definitionNodeKinds;

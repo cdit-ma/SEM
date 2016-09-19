@@ -647,6 +647,9 @@ QString Theme::getDockTitleBarStyleSheet(bool isActive, QString widgetName)
             "padding: 2px;"
             "margin: 0px;"
             "}"
+            % widgetName % " QToolButton::hover {"
+            "background:" % getHighlightColorHex() % ";"
+            "}"
             % widgetName % " QToolButton::!hover {"
             "background:" % bgColor % ";"
             "}";

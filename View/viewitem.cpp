@@ -56,6 +56,15 @@ bool ViewItem::isEdge() const
     return getEntityKind() == EK_EDGE;
 }
 
+bool ViewItem::isInModel() const
+{
+    if(hasProperty("inModel")){
+        return getProperty("inModel").toBool();
+    }
+    return false;
+
+}
+
 QVariant ViewItem::getData(QString keyName) const
 {
     if(_data.contains(keyName)){
@@ -71,6 +80,7 @@ QVariant ViewItem::getProperty(QString propertyName) const
     }
     return QVariant();
 }
+
 
 QStringList ViewItem::getKeys() const
 {
@@ -103,6 +113,7 @@ bool ViewItem::isDataProtected(QString keyName) const
 
 bool ViewItem::isDataVisual(QString keyName) const
 {
+
     return false;
 }
 

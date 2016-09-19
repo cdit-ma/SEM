@@ -31,14 +31,13 @@ bool AggregateInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     switch(edgeKind){
     case Edge::EC_DATA:{
         //Can only connect to an AggregateInstance.
-        if(dst->getNodeKind() != NK_AGGREGATE_INSTANCE){
-            return false;
+        if(dst->getNodeKind() == NK_AGGREGATE_INSTANCE){
+            //Can only connect to an AggregateInstance with the same definition.
+            if(!getDefinition(true) || getDefinition(true) != dst->getDefinition(true)){
+                return false;
+            }
         }
 
-        //Can only connect to an AggregateInstance with the same definition.
-        if(getDefinition(true) != dst->getDefinition(true)){
-            return false;
-        }
         break;
     }
     case Edge::EC_DEFINITION:{

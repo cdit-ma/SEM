@@ -12,14 +12,6 @@ NodeViewItem::NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entit
     }
 }
 
-bool NodeViewItem::isNodeOfType(Node::NODE_TYPE type) const
-{
-    if(hasProperty("nodeTypes")){
-        int types = getProperty("nodeTypes").toInt();
-        return types & type;
-    }
-    return false;
-}
 
 Node::NODE_KIND NodeViewItem::getNodeKind() const
 {
@@ -52,6 +44,15 @@ int NodeViewItem::getParentID()
         ID = getProperty("parentID").toInt();
     }
     return ID;
+}
+
+bool NodeViewItem::isNodeOfType(Node::NODE_TYPE type) const
+{
+    if(hasProperty("nodeTypes")){
+        int types = getProperty("nodeTypes").toInt();
+        return types & type;
+    }
+    return false;
 }
 
 void NodeViewItem::addEdgeItem(EdgeViewItem *edge)
@@ -87,15 +88,6 @@ QList<EdgeViewItem *> NodeViewItem::getEdges(Edge::EDGE_KIND edgeKind) const
 bool NodeViewItem::gotEdge(Edge::EDGE_KIND edgeKind) const
 {
     return edgeKind == Edge::EC_NONE ? !edges.values().isEmpty() : !edges.values(edgeKind).isEmpty();
-}
-
-bool NodeViewItem::isInModel()
-{
-    bool inModel = false;
-    if(hasProperty("inModel")){
-        inModel = getProperty("inModel").toBool();
-    }
-    return inModel;
 }
 
 QString NodeViewItem::getTreeIndex()

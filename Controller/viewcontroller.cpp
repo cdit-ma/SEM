@@ -172,14 +172,16 @@ QStringList ViewController::_getSearchSuggestions()
 {
     QStringList suggestions;
 
+    QStringList visualKeys = NewController::getVisualKeys();
+
     foreach(ViewItem* item, viewItems.values()){
-        //ID's
-        suggestions.append(QString::number(item->getID()));
-        //Data
-        foreach(QString key, item->getKeys()){
-            QString data = item->getData(key).toString();
-            if(!suggestions.contains(data)){
-                suggestions.append(data);
+        if(item->isInModel()){
+            //ID's
+            suggestions.append(QString::number(item->getID()));
+            foreach(QString key, item->getKeys()){
+                if(!visualKeys.contains(key)){
+                    suggestions.append(item->getData(key).toString());
+                }
             }
         }
     }
@@ -190,17 +192,23 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
 {
     QMap<QString, ViewItem*> results;
 
+    QStringList visualKeys = NewController::getVisualKeys();
+
     foreach(ViewItem* item, viewItems.values()){
-        QString ID = QString::number(item->getID());
+        if(item->isInModel()){
+            QString ID = QString::number(item->getID());
 
-        if(ID.contains(query)){
-            results.insertMulti("ID", item);
-        }
+            if(ID.contains(query)){
+                results.insertMulti("ID", item);
+            }
 
-        foreach(QString key, item->getKeys()){
-            QString data = item->getData(key).toString();
-            if(data.contains(query)){
-                results.insertMulti(key, item);
+            foreach(QString key, item->getKeys()){
+                if(!visualKeys.contains(key)){
+                    QString data = item->getData(key).toString();
+                    if(data.contains(query)){
+                        results.insertMulti(key, item);
+                    }
+                }
             }
         }
     }
@@ -228,7 +236,6 @@ QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDG
             }
         }
     }
-    qCritical() << list;
     return list;
 }
 
@@ -504,7 +511,6 @@ void ViewController::launchLocalDeployment()
 
 void ViewController::actionFinished(bool success, QString gg)
 {
-    qCritical() << "ACTION DONE!";
     setControllerReady(true);
     emit vc_actionFinished();
 }
@@ -830,7 +836,6 @@ void ViewController::editLabel()
 void ViewController::editReplicationCount()
 {
     ViewItem* item = getActiveSelectedItem();
-    qCritical() << item;
     if(item){
         emit vc_editTableCell(item->getID(), "replicate_count");
     }
@@ -1070,8 +1075,6 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
 void ViewController::controller_entityDestructed(int ID, ENTITY_KIND eKind, QString kind)
 {
     ViewItem* viewItem = getViewItem(ID);
-    qCritical() << "ID: " << ID;
-    qCritical() << viewItem << "DESTRUCTING!";
     destructViewItem(viewItem);
 
 }
@@ -1289,11 +1292,11 @@ void ViewController::selectAndCenterConnectedEntities()
     }
 }
 
-void ViewController::setReplicationCount()
+void ViewController::setSelectionReadOnly(bool locked)
 {
-    ViewItem* item = getActiveSelectedItem();
-    if(item){
-        emit vc_editTableCell(item->getID(), "replicate_count");
+    if(controller && selectionController){
+        emit vc_triggerAction("Set Selection Locked");
+        controller->setReadOnly(selectionController->getSelectionIDs(), locked);
     }
 }
 
@@ -1451,14 +1454,10 @@ void ViewController::initializeController()
 
 bool ViewController::destructChildItems(ViewItem *parent)
 {
-    qCritical() << "destructChildItems!";
     QVectorIterator<ViewItem*> it(parent->getDirectChildren());
-
-
     it.toBack();
     while(it.hasPrevious()){
         ViewItem* item = it.previous();
-        qCritical() << item->getID() << " : " << item->getData("kind").toString();
         destructViewItem(item);
     }
     return true;

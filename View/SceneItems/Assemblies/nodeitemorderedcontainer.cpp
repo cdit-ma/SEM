@@ -82,7 +82,7 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     case ER_QOS:
         return qosRect();
     case ER_LOCKED_STATE:
-        return deployedRect();
+        return lockedRect();
     case ER_EDGE_KIND_ICON:
         return edgeKindRect();
     case ER_CONNECT_ICON:
@@ -259,6 +259,14 @@ QRectF ContainerNodeItem::deployedRect() const
     QRectF rect;
     rect.setSize(smallIconSize());
     rect.moveTopRight(headerTextRect().topRight());
+    return rect;
+}
+
+QRectF ContainerNodeItem::lockedRect() const
+{
+    QRectF rect;
+    rect.setSize(smallIconSize());
+    rect.moveTopLeft(innerHeaderRect().topLeft());
     return rect;
 }
 

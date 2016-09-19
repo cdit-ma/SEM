@@ -39,12 +39,13 @@ protected:
     ~MedeaWindowManager();
 signals:
     void windowConstructed(MedeaWindowNew* window);
-    void windowDestructed(MedeaWindowNew* window);
+    void windowDestructed(int ID);
     void viewDockWidgetConstructed(MedeaDockWidget* widget);
-    void viewDockWidgetDestructed(MedeaDockWidget* widget);
+    void viewDockWidgetDestructed(int ID);
 
     void activeViewDockWidgetChanged(MedeaViewDockWidget* widget, MedeaViewDockWidget* prevWidget = 0);
 public:
+    MedeaWindowNew* getCentralWindow();
     ViewManagerWidget* getViewManagerGUI();
     MedeaWindowNew* getActiveWindow();
     MedeaViewDockWidget* getActiveViewDockWidget();

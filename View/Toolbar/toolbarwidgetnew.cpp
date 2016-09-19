@@ -350,8 +350,9 @@ void ToolbarWidgetNew::setupActions()
     hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     //replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
-    //mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
-    //mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
+
+    mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
+    mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
     connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
     mainGroup->addAction(actionController->model_getCodeForComponent->constructSubAction(true));
@@ -406,11 +407,11 @@ void ToolbarWidgetNew::setupSplitMenus()
 
     QMenu* menu = constructTopMenu(definitionAction, false);
     menu->addAction(actionController->view_centerOnDefn);
-    menu->addAction(actionController->toolbar_popOutDefn);
+    menu->addAction(actionController->view_viewDefnInNewWindow);
 
     QMenu* menu2 = constructTopMenu(implementationAction, false);
     menu2->addAction(actionController->view_centerOnImpl);
-    menu2->addAction(actionController->toolbar_popOutImpl);
+    menu2->addAction(actionController->view_viewImplInNewWindow);
 }
 
 

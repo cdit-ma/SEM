@@ -10,7 +10,7 @@ AttributeTableModel::AttributeTableModel(ViewItem *item)
     entity->registerObject(this);
 
     multiLineKeys << "processes_to_log" << "code";
-    ignoredKeys << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
+    //ignoredKeys << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
     setupDataBinding();
 }
 
@@ -50,12 +50,6 @@ void AttributeTableModel::addData(QString keyName)
     //If we haven't seen this Data Before.
 
     if(editableKeys.contains(keyName) || lockedKeys.contains(keyName) || ignoredKeys.contains(keyName)){
-        return;
-    }
-
-    //Ignore visual data
-    if(entity->isDataVisual(keyName)){
-        ignoredKeys.append(keyName);
         return;
     }
 
