@@ -294,8 +294,6 @@ void MedeaWindowManager::removeWindow(MedeaWindowNew *window)
                 centralWindow = 0 ;
             }
             windows.remove(ID);
-        }else{
-            qCritical() << "NON HASHED";
         }
     }
 }

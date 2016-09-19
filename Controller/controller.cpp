@@ -1621,12 +1621,10 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
         bool readOnly = false;
 
-        qCritical() <<this->thread();
         //Check if read only.
         if(parentNodeKind == "InterfaceDefinitions"){
             readOnly = askQuestion("Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
         }
-        qCritical() << this->thread();
 
 
         //Construct the Keys to attach to the nodes to export.
@@ -1830,7 +1828,6 @@ QList<int> NewController::getConstructableConnectableNodes(int parentID, QString
             }
         }
     }
-    qCritical() << dstIDs;
     if(childNode){
         delete childNode;
     }
@@ -4465,11 +4462,9 @@ bool NewController::teardownAggregateRelationship(Node *node, Aggregate *aggrega
 
 bool NewController::setupDataEdgeRelationship(DataNode *output, DataNode *input, bool setup)
 {
-    qCritical() << output << input;
     Node* inputTopParent = input->getParentNode(input->getDepthFromAspect() - 2);
     Node* outputTopParent = output->getParentNode(output->getDepthFromAspect() - 2);
 
-    QString inputNodeKind;
     if(inputTopParent){
         //If we are connecting to an Variable, we don't want to bind.
         if(inputTopParent->getNodeKind() == Node::NK_VARIABLE){
