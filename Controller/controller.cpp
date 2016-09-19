@@ -4479,9 +4479,9 @@ bool NewController::setupDataEdgeRelationship(DataNode *output, DataNode *input,
 
     if(definitionData && valueData){
         if(setup){
-            //valueData->setParentData(definitionData);
+            valueData->setParentData(definitionData);
         }else{
-            //valueData->unsetParentData();
+            valueData->unsetParentData();
         }
     }
 
