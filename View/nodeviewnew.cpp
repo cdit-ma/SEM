@@ -708,7 +708,9 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_COMPONENT:
             case Node::NK_COMPONENT_ASSEMBLY:
             case Node::NK_COMPONENT_INSTANCE:
+            case Node::NK_BLACKBOX:
             case Node::NK_COMPONENT_IMPL:
+            case Node::NK_BLACKBOX_INSTANCE:
                 nodeItem = new ContainerNodeItem(item, parentNode);
                 break;
             case Node::NK_TERMINATION:
