@@ -457,7 +457,7 @@ private:
     bool setupAggregateRelationship(Node* node, Aggregate* aggregate);
     bool teardownAggregateRelationship(Node* node, Aggregate* aggregate);
 
-    bool setupDataEdgeRelationship(BehaviourNode* outputNode, BehaviourNode* inputNode, bool setup = true);
+    bool setupDataEdgeRelationship(DataNode *outputNode, DataNode *inputNode, bool setup = true);
     bool teardownDataEdgeRelationship(BehaviourNode* outputNode, BehaviourNode* inputNode);
 
     bool setupParameterRelationship(Parameter* parameter, Node* data);

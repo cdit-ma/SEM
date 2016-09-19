@@ -75,6 +75,7 @@ void MedeaWindowManager::_destructWindow(MedeaWindowNew *window)
 
         //Teardown
         if(window->getType() == MedeaWindowNew::MAIN_WINDOW && windows.contains(wID)){
+            qCritical() << "DELETING MYSELF!";
             delete this;
         }else{
             removeWindow(window);
@@ -131,8 +132,17 @@ MedeaWindowManager::~MedeaWindowManager()
             _destructWindow(window);
         }
     }
-    _destructWindow(centralWindow);
-    _destructWindow(mainWindow);
+	if(centralWindow){
+		_destructWindow(centralWindow);
+	}
+	if(mainWindow){
+		_destructWindow(mainWindow);
+    }
+}
+
+MedeaWindowNew *MedeaWindowManager::getCentralWindow()
+{
+    return centralWindow;
 }
 
 ViewManagerWidget *MedeaWindowManager::getViewManagerGUI()
@@ -273,11 +283,19 @@ void MedeaWindowManager::removeWindow(MedeaWindowNew *window)
 {
     if(window){
         int ID = window->getID();
-        emit windowDestructed(window);
+        emit windowDestructed(ID);
+        qCritical() << "MedeaWindowManager::removeWindow() " << ID;
         if(windows.contains(ID)){
+
+            if(mainWindow == window){
+                mainWindow = 0;
+            }
+            if(centralWindow == window){
+                centralWindow = 0 ;
+            }
             windows.remove(ID);
         }else{
-            qCritical() << "MedeaWindowManager::removeWindow() " << ID << " - Trying to remove non-hashed MedeaWindow.";
+            qCritical() << "NON HASHED";
         }
     }
 }
@@ -313,7 +331,7 @@ void MedeaWindowManager::removeDockWidget(MedeaDockWidget *dockWidget)
                 setActiveDockWidget();
             }
 
-            emit viewDockWidgetDestructed(dockWidget);
+            emit viewDockWidgetDestructed(ID);
 
             if(dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
                 viewDockIDs.removeAll(ID);

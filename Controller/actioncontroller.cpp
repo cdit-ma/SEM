@@ -265,19 +265,28 @@ void ActionController::selectionChanged(int selectionSize)
         bool hasImpl = false;
         bool hasCode = false;
         bool hasComponentAssembly = false;
+        bool canLock = false;
 
         if(gotSingleSelection && singleItem && singleItem->isNode()){
             NodeViewItem* node = (NodeViewItem*) singleItem;
+            Node::NODE_KIND kind = node->getNodeKind();
+
+
             hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
             hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
-            hasCode = node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE || node->getNodeKind() == Node::NK_COMPONENT_IMPL;
-            hasComponentAssembly = node->getNodeKind() == Node::NK_COMPONENT_ASSEMBLY;
+            canLock = !(node->isNodeOfType(Node::NT_ASPECT) || kind == Node::NK_MODEL);
+
+            hasCode = kind == Node::NK_COMPONENT || kind == Node::NK_COMPONENT_INSTANCE || kind == Node::NK_COMPONENT_IMPL;
+            hasComponentAssembly = kind == Node::NK_COMPONENT_ASSEMBLY;
         }
 
         toolbar_wiki->setEnabled(gotSelection);
 
         edit_expand->setEnabled(gotSelection);
         edit_contract->setEnabled(gotSelection);
+
+        toolbar_setReadOnly->setEnabled(canLock);
+        toolbar_unsetReadOnly->setEnabled(canLock);
 
         file_importSnippet->setEnabled(viewController->canImportSnippet());
         file_exportSnippet->setEnabled(viewController->canExportSnippet());

@@ -3440,10 +3440,8 @@ bool NewController::destructEdge(Edge *edge)
         break;
     }
     case Edge::EC_DATA:{
-        BehaviourNode* outputNode = dynamic_cast<BehaviourNode*>(src);
-        BehaviourNode* inputNode = dynamic_cast<BehaviourNode*>(dst);
-        if(inputNode && outputNode){
-            setupDataEdgeRelationship(outputNode, inputNode, false);
+        if(dst->isNodeOfType(Node::NT_DATA) && src->isNodeOfType(Node::NT_DATA)){
+            setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, true);
         }
         break;
     }
@@ -4465,16 +4463,16 @@ bool NewController::teardownAggregateRelationship(Node *node, Aggregate *aggrega
     return true;
 }
 
-bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNode *input, bool setup)
+bool NewController::setupDataEdgeRelationship(DataNode *output, DataNode *input, bool setup)
 {
+    qCritical() << output << input;
     Node* inputTopParent = input->getParentNode(input->getDepthFromAspect() - 2);
     Node* outputTopParent = output->getParentNode(output->getDepthFromAspect() - 2);
 
     QString inputNodeKind;
     if(inputTopParent){
         //If we are connecting to an Variable, we don't want to bind.
-        inputNodeKind = inputTopParent->getNodeKindStr();
-        if(inputNodeKind == "Variable"){
+        if(inputTopParent->getNodeKind() == Node::NK_VARIABLE){
             return true;
         }
     }
@@ -4485,27 +4483,23 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
 
     if(outputTopParent){
         //Bind Parent Label if we are a variable.
-        QString parentNodeKind = outputTopParent->getNodeKindStr();
-        if(parentNodeKind == "Variable" || parentNodeKind == "AttributeImpl"){
+        if(outputTopParent->getNodeKind() == Node::NK_VARIABLE || outputTopParent->getNodeKind() == Node::NK_ATTRIBUTE_IMPL){
             definitionData = outputTopParent->getData("label");
         }
     }
 
     if(definitionData && valueData){
-                /*if(setup){
-                    valueData->setParentData(definitionData);
-                }else{
-                    valueData->unsetParentData();
-                }*/
-    }else{
-        //return false;
+        if(setup){
+            //valueData->setParentData(definitionData);
+        }else{
+            //valueData->unsetParentData();
+        }
     }
 
     //Bind special stuffs.
     Node* inputParent = input->getParentNode();
     if(inputParent){
-        QString parentNodeKind = inputParent->getNodeKindStr();
-        if(parentNodeKind == "Process"){
+        if(inputParent->getNodeKind() == Node::NK_PROCESS){
             QString workerName = inputParent->getDataValue("worker").toString();
             QString operationName = inputParent->getDataValue("operation").toString();
             QString parameterLabel = input->getDataValue("label").toString();
@@ -4524,26 +4518,24 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
 
 
                 if(bindableFunctionTypes.contains(operationName)){
-                    //Find return Parameter;
-                    foreach(Node* child, inputParent->getChildren()){
-                        Parameter* parameter = dynamic_cast<Parameter*>(child);
-                        if(parameter && parameter->getDataValue("label") == "value"){
-                            Data* parameterType = parameter->getData("type");
-                            if(setup){
-                                parameterType->setParentData(vectorType);
-                            }else{
-                                parameterType->unsetParentData();
-                                parameterType->clearValue();
+                    foreach(Node* child, inputParent->getChildren(0)){
+                        if(child->isNodeOfType(Node::NT_PARAMETER)){
+                            Parameter* parameter = (Parameter*) child;
+                            if(parameter && parameter->getDataValue("label") == "value"){
+                                Data* parameterType = parameter->getData("type");
+                                if(setup){
+                                    parameterType->setParentData(vectorType);
+                                }else{
+                                    parameterType->unsetParentData();
+                                    parameterType->clearValue();
+                                }
                             }
                         }
                     }
                 }
             }
-
         }
     }
-
-
     return true;
 }
 
@@ -4742,10 +4734,8 @@ void NewController::constructEdgeGUI(Edge *edge)
         break;
     }
     case Edge::EC_DATA:{
-        BehaviourNode* inputNode = dynamic_cast<BehaviourNode*>(dst);
-        BehaviourNode* outputNode = dynamic_cast<BehaviourNode*>(src);
-        if(inputNode && outputNode){
-            setupDataEdgeRelationship(outputNode, inputNode, true);
+        if(dst->isNodeOfType(Node::NT_DATA) && src->isNodeOfType(Node::NT_DATA)){
+            setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, true);
         }
         break;
     }
@@ -5811,7 +5801,6 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 //Reinsert back into the map (Goes to the start)
                 edgesMap.insertMulti(entity->getEdgeKind(), entity);
             }else{
-                qCritical() << entity->getSource() << entity->getDestination();
                 qCritical() << "Cannot Construct Edge between: " << entity;
                 //This entity has no more edge kinds to try, therefore can never be constructed.
                 emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error", "Import");
