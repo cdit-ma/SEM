@@ -27,6 +27,10 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     typeIconListWidget->setSelectionMode(QListWidget::NoSelection);
     typeIconListWidget->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
     typeIconListWidget->setFixedWidth(ICON_SIZE + 10);
+    typeIconListWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    typeIconListWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    //listWidget->sc
 
     clearAllButton = new QToolButton(this);
     clearAllButton->setText("Clear All");
