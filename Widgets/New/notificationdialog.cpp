@@ -72,12 +72,14 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
 
     setWindowTitle("Notifications");
     setMinimumSize(toolbar->sizeHint().width()*2.5, 300);
-    themeChanged();
 
     connect(listWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(listItemClicked(QListWidgetItem*)));
     connect(clearAllButton, SIGNAL(clicked(bool)), this, SLOT(clearAll()));
     connect(clearSelectedButton, SIGNAL(clicked(bool)), this, SLOT(clearSelected()));
     //connect(typeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(displayTypeChanged(int)));
+
+    connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+    themeChanged();
 }
 
 

@@ -108,6 +108,15 @@ void SearchItemWidget::setSelected(bool selected)
 void SearchItemWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
+
+    if (selected) {
+        backgroundColor =  Theme::theme()->getDisabledBackgroundColorHex();
+        hoverColor = backgroundColor;
+    } else {
+        backgroundColor =  Theme::theme()->getBackgroundColorHex();
+        hoverColor = Theme::theme()->getDisabledBackgroundColorHex();
+    }
+
     updateStyleSheet();
 
     if (iconLabel) {
