@@ -3011,12 +3011,16 @@ QList<Data *> NewController::constructRequiredEdgeData(Edge::EDGE_KIND edgeClass
         label = "Connected To";
         break;
     }
+    case Edge::EC_WORKFLOW:{
+        label = "Workflow Edge";
+        break;
+    }
     case Edge::EC_DATA:{
-        label = "Data linked";
+        label = "Data Edge";
         break;
     }
     case Edge::EC_DEFINITION:{
-        label = "Is dependant on";
+        label = "Definition Edge";
         break;
     }
     case Edge::EC_DEPLOYMENT:{
