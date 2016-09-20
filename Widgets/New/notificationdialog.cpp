@@ -3,6 +3,7 @@
 
 #include <QVBoxLayout>
 #include <QToolBar>
+#include <QScrollArea>
 
 #define ICON_SIZE 24
 
@@ -13,9 +14,17 @@
  */
 NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
 {
+    /*
+    QWidget* scrollableWidget = new QWidget(this);
+    QScrollArea* scrollArea = new QScrollArea(this);
+    scrollArea->setWidget(scrollableWidget);
+    scrollArea->setWidgetResizable(true);
+    */
+
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     QHBoxLayout* topHLayout = new QHBoxLayout();
     QHBoxLayout* bottomHLayout = new QHBoxLayout();
+    //QHBoxLayout* bottomHLayout = new QHBoxLayout(scrollableWidget);
 
     listWidget = new QListWidget(this);
     typeIconListWidget = new QListWidget(this);
@@ -29,8 +38,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     typeIconListWidget->setFixedWidth(ICON_SIZE + 10);
     typeIconListWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     typeIconListWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-    //listWidget->sc
+    typeIconListWidget->hide();
 
     clearAllButton = new QToolButton(this);
     clearAllButton->setText("Clear All");
@@ -59,6 +67,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
 
     mainLayout->addLayout(topHLayout);
     mainLayout->addLayout(bottomHLayout, 1);
+    //mainLayout->addWidget(scrollArea, 1);
 
     topHLayout->addWidget(toolbar, 1, Qt::AlignRight);
 
@@ -66,6 +75,12 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     bottomHLayout->addWidget(typeIconListWidget);
     bottomHLayout->addWidget(listWidget, 1);
 
+    addNotificationItem(NT_INFO, "", "This is an info message", QPair<QString, QString>());
+    addNotificationItem(NT_WARNING, "", "This is a warning message", QPair<QString, QString>());
+    addNotificationItem(NT_ERROR, "", "This is a critical message", QPair<QString, QString>());
+    addNotificationItem(NT_INFO, "", "This is an info message", QPair<QString, QString>());
+    addNotificationItem(NT_WARNING, "", "This is a warning message", QPair<QString, QString>());
+    addNotificationItem(NT_ERROR, "", "This is a critical message", QPair<QString, QString>());
     addNotificationItem(NT_INFO, "", "This is an info message", QPair<QString, QString>());
     addNotificationItem(NT_WARNING, "", "This is a warning message", QPair<QString, QString>());
     addNotificationItem(NT_ERROR, "", "This is a critical message", QPair<QString, QString>());
@@ -131,11 +146,32 @@ void NotificationDialog::themeChanged()
                               "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";"
                               "color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}";
 
-    setStyleSheet("background:" + theme->getBackgroundColorHex() + "; color:" + theme->getTextColorHex() + ";");
+    //setStyleSheet("background:" + theme->getBackgroundColorHex() + "; color:" + theme->getTextColorHex() + ";");
     //setStyleSheet(theme->getAbstractItemViewStyleSheet());
 
     clearAllButton->setStyleSheet(toolButtonStyle);
     clearSelectedButton->setStyleSheet(toolButtonStyle);
+
+    setStyleSheet("QDialog{background:" + theme->getBackgroundColorHex() + ";}"
+                  "QListWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
+                  "QListWidget::focus{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
+                  "QAbstractItemView {"
+                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                  "background:" + theme->getBackgroundColorHex() + ";"
+                  "}"
+                  "QAbstractItemView::item {"
+                  "background:" + theme->getBackgroundColorHex() + ";"
+                  "color:" + theme->getTextColorHex() + ";"
+                  "}"
+                  "QAbstractItemView::item:selected {"
+                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                  "background:" + theme->getDisabledBackgroundColorHex() + ";"
+                  "}"
+                  "QAbstractItemView::item:hover {"
+                  "background:" + theme->getDisabledBackgroundColorHex() + ";"
+                  "}");
+
+    //listWidget->setStyleSheet("border: 10px solid red;");
 }
 
 
@@ -216,7 +252,7 @@ void NotificationDialog::addListItem(NOTIFICATION_TYPE type, QIcon icon, QString
 {
     QListWidgetItem* listItem = new QListWidgetItem;
     listItem->setText(description);
-    listItem->setIcon(icon);
+    //listItem->setIcon(icon);
     listItem->setData(Qt::UserRole, QVariant(type));
     listWidget->addItem(listItem);
 
@@ -238,6 +274,7 @@ void NotificationDialog::addListItem(NOTIFICATION_TYPE type, QIcon icon, QString
         typeIcon = Theme::theme()->getIcon("Actions", "Help");
         break;
     }
+    listItem->setIcon(typeIcon);
 
     QListWidgetItem* iconItem = new QListWidgetItem;
     iconItem->setIcon(typeIcon);

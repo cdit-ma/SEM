@@ -773,6 +773,7 @@ void MedeaMainWindow::setupNotificationBar()
     notificationPopup->hide();
 
     notificationDialog = new NotificationDialog(this);
+    notificationDialog->show();
 }
 
 
