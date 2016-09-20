@@ -14,6 +14,19 @@
  */
 NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
 {
+    notificationMapper = new QSignalMapper(this);
+
+    foreach(NOTIFICATION_TYPE type, getNotificationTypes()){
+        QAction* action = new QAction(this);
+        action->setCheckable(true);
+        action->setChecked(true);
+
+        connect(action, &QAction::toggled, notificationMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
+
+        notificationMapper->setMapping(action, type);
+        typeActionHash.insert(type, action);
+    }
+
     /*
     QWidget* scrollableWidget = new QWidget(this);
     QScrollArea* scrollArea = new QScrollArea(this);
@@ -63,6 +76,14 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     //toolbar->addWidget(typeComboBox);
     //toolbar->addWidget(stretcher);
+
+    foreach(NOTIFICATION_TYPE type, getNotificationTypes()){
+        toolbar->addAction(typeActionHash.value(type, 0));
+    }
+    QWidget* stretchWidget = new QWidget(this);
+    stretchWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    toolbar->addWidget(stretchWidget);
+
     toolbar->addWidget(clearSelectedButton);
     //toolbar->addWidget(clearAllButton);
 
@@ -70,7 +91,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     mainLayout->addLayout(bottomHLayout, 1);
     //mainLayout->addWidget(scrollArea, 1);
 
-    topHLayout->addWidget(toolbar, 1, Qt::AlignRight);
+    topHLayout->addWidget(toolbar);//, 1, Qt::AlignRight);
 
     bottomHLayout->setSpacing(0);
     bottomHLayout->addWidget(typeIconListWidget);
@@ -97,8 +118,23 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
 
     //connect(typeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(displayTypeChanged(int)));
 
+    connect(notificationMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),this, &NotificationDialog::notificationActionTriggered);
+
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
+}
+
+void NotificationDialog::notificationActionTriggered(int t)
+{
+    NOTIFICATION_TYPE type = (NOTIFICATION_TYPE) t;
+    QAction* action = typeActionHash.value(type, 0);
+    if(action){
+        bool visible = action->isChecked();
+        foreach(QListWidgetItem* item, notificationHash.values(type)){
+            int row = listWidget->row(item);
+            listWidget->setRowHidden(row, !visible);
+        }
+    }
 }
 
 
@@ -179,6 +215,15 @@ void NotificationDialog::themeChanged()
     foreach (QListWidgetItem* item, icons.keys()) {
         item->setIcon(theme->getIcon(icons.value(item)));
     }
+
+    foreach(NOTIFICATION_TYPE type, getNotificationTypes()){
+        QAction* action = typeActionHash.value(type, 0);
+        if(action){
+             QPair<QString, QString> iconPath = getActionIcon(type);
+             action->setIcon(theme->getIcon(iconPath));
+        }
+    }
+
 }
 
 
@@ -227,6 +272,8 @@ void NotificationDialog::clearSelected()
     QList<QListWidgetItem*> selectedItems = listWidget->selectedItems();
     while (!selectedItems.isEmpty()) {
        QListWidgetItem* item = selectedItems.takeFirst();
+       NOTIFICATION_TYPE t = (NOTIFICATION_TYPE) item->data(Qt::UserRole).toInt();
+       notificationHash.remove(t, item);
        removeListItem(item);
     }
 }
@@ -258,32 +305,24 @@ void NotificationDialog::addListItem(NOTIFICATION_TYPE type, QIcon icon, QString
     QListWidgetItem* listItem = new QListWidgetItem();
     listItem->setText("[" + title + "] " + description);
     listItem->setData(Qt::UserRole, QVariant(type));
+    QAction* action = typeActionHash.value(type, 0);
     listWidget->insertItem(0,listItem);
 
-    QPair<QString, QString> iconPath;
-    iconPath.first = "Actions";
-
-    switch (type) {
-    case NT_INFO:
-        iconPath.second = "Info";
-        break;
-    case NT_WARNING:
-        iconPath.second = "Warning";
-        break;
-    case NT_CRITICAL:
-        iconPath.second = "Critical";
-        break;
-    case NT_ERROR:
-        iconPath.second = "Failure";
-        break;
-    default:
-        iconPath.second = "Help";
-        break;
+    if(action){
+        listWidget->setRowHidden(0, !action->isChecked());
     }
+
+    QPair<QString, QString> iconPath = getActionIcon(type);
 
     if(icon.isNull()){
         icon = Theme::theme()->getIcon(iconPath);
     }
+
+
+
+    notificationHash.insertMulti(type, listItem);
+
+
     listItem->setIcon(icon);
     icons[listItem] = iconPath;
 
@@ -306,6 +345,31 @@ void NotificationDialog::removeListItem(QListWidgetItem* item)
     int row = listWidget->row(item);
     delete listWidget->takeItem(row);
     delete typeIconListWidget->takeItem(row);
+}
+
+QPair<QString, QString> NotificationDialog::getActionIcon(NOTIFICATION_TYPE type)
+{
+    QPair<QString, QString> iconPath;
+    iconPath.first = "Actions";
+
+    switch (type) {
+    case NT_INFO:
+        iconPath.second = "Info";
+        break;
+    case NT_WARNING:
+        iconPath.second = "Warning";
+        break;
+    case NT_CRITICAL:
+        iconPath.second = "Critical";
+        break;
+    case NT_ERROR:
+        iconPath.second = "Failure";
+        break;
+    default:
+        iconPath.second = "Help";
+        break;
+    }
+    return iconPath;
 }
 
 

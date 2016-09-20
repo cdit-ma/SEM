@@ -7,7 +7,7 @@
 #include <QToolButton>
 #include <QComboBox>
 #include <QActionGroup>
-
+#include <QSignalMapper>
 #include "enumerations.h"
 
 class NotificationDialog : public QDialog
@@ -20,6 +20,7 @@ signals:
     void notificationAdded();
 
 public slots:
+    void notificationActionTriggered(int type);
     void themeChanged();
     void displayTypeChanged(int type);
 
@@ -35,17 +36,19 @@ private:
     void addListItem(NOTIFICATION_TYPE type, QIcon icon, QString title, QString description);
     void removeListItem(QListWidgetItem* item);
 
+    QPair<QString, QString> getActionIcon(NOTIFICATION_TYPE type);
+
     QToolButton* clearSelectedButton;
     QToolButton* clearAllButton;
 
     QComboBox* typeComboBox;
 
+    QSignalMapper* notificationMapper;
     QListWidget* listWidget;
     QListWidget* typeIconListWidget;
 
-    QActionGroup* infoActionGroup;
-    QActionGroup* warningActionGroup;
-    QActionGroup* criticalActionGroup;
+    QMultiMap<NOTIFICATION_TYPE, QListWidgetItem*> notificationHash;
+    QHash<NOTIFICATION_TYPE, QAction*> typeActionHash;
 
     QHash<QListWidgetItem*, QPair<QString, QString>> icons;
 

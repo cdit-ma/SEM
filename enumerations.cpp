@@ -388,3 +388,14 @@ RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect)
     }
     return RV_NONE;
 }
+
+
+QList<NOTIFICATION_TYPE> getNotificationTypes()
+{
+    QList<NOTIFICATION_TYPE> list;
+    list << NT_INFO;
+    list << NT_WARNING;
+    list << NT_ERROR;
+    list << NT_CRITICAL;
+    return list;
+}
