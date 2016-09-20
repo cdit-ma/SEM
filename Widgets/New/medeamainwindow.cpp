@@ -156,17 +156,22 @@ void MedeaMainWindow::searchEntered()
  */
 void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath)
 {
-    /*
+    notificationTimer->stop();
+
+    notificationDialog->addNotificationItem(type, title, description, iconPath);
+
     notificationLabel->setText(description);
+    notificationIconLabel->setPixmap(Theme::theme()->getImage(iconPath.first, iconPath.second, QSize(32,32)));
 
-    QFontMetrics fm = notificationLabel->fontMetrics();
-    int maxWidth = qMin(innerWindow->width() - 10, fm.width(description) + 20);
+    //QFontMetrics fm = notificationLabel->fontMetrics();
+    //int maxWidth = qMin(innerWindow->width() - 10, fm.width(description) + 20);
+    //notificationPopup->setSize(maxWidth, notificationWidget->sizeHint().height());
 
-    notificationPopup->setSize(maxWidth, notificationLabel->sizeHint().height());
+    notificationPopup->setSize(notificationWidget->sizeHint().width() + 20, notificationWidget->sizeHint().height() + 20);
     notificationPopup->show();
     moveWidget(notificationPopup, this, Qt::AlignBottom);
-    */
-    notificationDialog->addNotificationItem(type, title, description, iconPath);
+
+    notificationTimer->start(5000);
 }
 
 
@@ -317,8 +322,7 @@ void MedeaMainWindow::popupSearch()
     searchPopup->show();
     searchBar->setFocus();
 
-    //notificationDialog->show();
-    //showNotification("", "This is a testcdsce wcefcercrcrerr evrbtybdvftrhtynrb"); // wcefcercrcrerr evrbtybdvftrhtynrb wcefcercrcrerr evrbtybdvftrhtynrb!!!");
+    //showNotification(NT_INFO, "", "This is a testcdsce wcefcercrcrerr evrbtybdvftrhtynrb", Theme::theme()->getIconPair("Actions", "Help"));
 }
 
 
@@ -798,17 +802,28 @@ void MedeaMainWindow::setupProgressBar()
  */
 void MedeaMainWindow::setupNotificationBar()
 {
+    notificationIconLabel = new QLabel(this);
+    notificationTimer = new QTimer(this);
+
     notificationLabel = new QLabel("This is a notification.", this);
     notificationLabel->setFont(QFont(font().family(), 11));
     notificationLabel->setAlignment(Qt::AlignCenter);
-    notificationLabel->setWordWrap(true);
+    //notificationLabel->setWordWrap(true);
+
+    notificationWidget = new QWidget(this);
+    QHBoxLayout* layout = new QHBoxLayout(notificationWidget);
+    layout->setMargin(0);
+    layout->setSpacing(5);
+    layout->addWidget(notificationIconLabel);
+    layout->addWidget(notificationLabel);
 
     notificationPopup = new PopupWidget(PopupWidget::TOOL, this);
-    notificationPopup->setWidget(notificationLabel);
+    notificationPopup->setWidget(notificationWidget);
     notificationPopup->hide();
 
     notificationDialog = new NotificationDialog(this);
-    //notificationDialog->show();
+
+    connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
 }
 
 

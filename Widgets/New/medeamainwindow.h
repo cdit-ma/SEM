@@ -116,6 +116,8 @@ private:
     QLabel* progressLabel;
 
     PopupWidget* notificationPopup;
+    QWidget* notificationWidget;
+    QLabel* notificationIconLabel;
     QLabel* notificationLabel;
     QTimer* notificationTimer;
     NotificationDialog* notificationDialog;
