@@ -39,6 +39,7 @@ private:
     QRectF bottomRect() const;
 
     QRectF deployedRect() const;
+    QRectF lockedRect() const;
     QRectF qosRect() const;
     QRectF expandStateRect() const;
 

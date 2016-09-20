@@ -25,6 +25,7 @@ public:
     QVariant getProperty(const char *name);
 
     void highlightItem(bool highlight);
+    bool isHighlighted();
 
 public slots:
     void actionChanged();
@@ -41,7 +42,9 @@ private:
 
     QAction* dockAction;
     int dockActionID;
+
     bool subActionRequired;
+    bool highlighted;
 
     QLabel* textLabel;
     QLabel* iconLabel;

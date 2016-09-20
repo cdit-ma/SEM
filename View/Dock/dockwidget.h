@@ -22,8 +22,8 @@ public:
     void addItems(QList<DockWidgetItem*> items);
     void addItems(QList<QAction*> actions);
 
-    void clearDock();
     bool isEmpty();
+    void clearDock();
     
     void updateHeaderText(QString text);
     void updateInfoLabel(QString text);
@@ -58,11 +58,13 @@ private:
     QLabel* infoLabel;
     bool containsHeader;
 
-    int prevHighlightedID;
+    DockWidgetActionItem* prevHighlightedItem;
+    int prevHighlightedItemID;
 
     // these lists store the widgets in the main layout
     QList<DockWidgetItem*> childrenItems;
-    QHash<int, DockWidgetItem*> childrenIDHash;
+    QHash<int, DockWidgetActionItem*> actionItemIDHash;
+    QHash<int, DockWidgetParentActionItem*> parentActionItemIDHash;
 
     QList<QToolBar*> itemToolbars;
     QHash<DockWidgetItem*, QToolBar*> itemToolbarHash;

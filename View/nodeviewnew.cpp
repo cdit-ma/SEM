@@ -77,7 +77,7 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 NodeViewNew::~NodeViewNew()
 {
     if(containedNodeViewItem){
-        QList<ViewItem*> items = containedNodeViewItem->getChildren();
+        QList<ViewItem*> items = containedNodeViewItem->getNestedChildren();
         items.insert(0, containedNodeViewItem);
 
         QListIterator<ViewItem*> it(items);
@@ -109,8 +109,12 @@ void NodeViewNew::setViewController(ViewController *viewController)
         connect(this, &NodeViewNew::editData, viewController, &ViewController::vc_editTableCell);
 
 
+
+
         connect(viewController, &ViewController::vc_centerItem, this, &NodeViewNew::centerItem);
         connect(viewController, &ViewController::vc_fitToScreen, this, &NodeViewNew::fitToScreen);
+        connect(viewController, &ViewController::vc_selectAndCenterConnectedEntities, this, &NodeViewNew::centerConnections);
+
 
         connect(viewController, &ViewController::vc_highlightItem, this, &NodeViewNew::highlightItem);
     }
@@ -161,7 +165,7 @@ void NodeViewNew::setContainedNodeViewItem(NodeViewItem *item)
 
         if(!isAspectView){
             viewItem_Constructed(item);
-            foreach(ViewItem* item, item->getChildren()){
+            foreach(ViewItem* item, item->getNestedChildren()){
                 viewItem_Constructed(item);
             }
         }
@@ -372,6 +376,53 @@ void NodeViewNew::centerSelection()
 {
 
     centerOnItems(getSelectedItems());
+}
+
+void NodeViewNew::centerConnections(ViewItem* item)
+{
+    if(item){
+        QList<EdgeViewItem*> edges;
+        if(item->isNode()){
+            edges = ((NodeViewItem*)item)->getEdges();
+        }else if(item->isEdge()){
+            edges.append((EdgeViewItem*)item);
+        }
+
+        QList<ViewItem*> toSelect;
+        QList<EntityItemNew*> toCenter;
+
+        foreach(EdgeViewItem* e, edges){
+            ViewItem* s = e->getSource();
+            ViewItem* d = e->getDestination();
+
+            EntityItemNew* src = getEntityItem(s);
+            EntityItemNew* dst = getEntityItem(d);
+            EntityItemNew* edge = getEntityItem(e);
+
+            if(src && !toSelect.contains(s)){
+                toCenter.append(src);
+                toSelect.append(s);
+            }
+
+            if(dst && !toSelect.contains(d)){
+                toCenter.append(dst);
+                toSelect.append(d);
+            }
+
+            if(edge && !toSelect.contains(e)){
+                toCenter.append(edge);
+                toSelect.append(e);
+            }
+        }
+        if(!toSelect.isEmpty()){
+            if(selectionHandler){
+                selectionHandler->toggleItemsSelection(toSelect);
+            }
+            centerOnItems(toCenter);
+        }else{
+            clearSelection();
+        }
+    }
 }
 
 QList<int> NodeViewNew::getIDsInView()
@@ -657,7 +708,9 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_COMPONENT:
             case Node::NK_COMPONENT_ASSEMBLY:
             case Node::NK_COMPONENT_INSTANCE:
+            case Node::NK_BLACKBOX:
             case Node::NK_COMPONENT_IMPL:
+            case Node::NK_BLACKBOX_INSTANCE:
                 nodeItem = new ContainerNodeItem(item, parentNode);
                 break;
             case Node::NK_TERMINATION:
@@ -738,6 +791,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_RETURNPARAMETER:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 nodeItem->setSecondaryTextKey("type");
                 break;
             case Node::NK_INEVENTPORT:
@@ -1252,7 +1306,6 @@ void NodeViewNew::state_Connecting_Exited()
 
 void NodeViewNew::state_Default_Entered()
 {
-    qCritical() << "state_Default_Entered";
     unsetCursor();
 }
 

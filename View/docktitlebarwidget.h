@@ -23,6 +23,8 @@ public:
     QString getTitle();
     QAction* getAction(DOCK_ACTION action);
 
+    void addToolAction(QAction* action, Qt::Alignment alignment);
+
 private slots:
     void themeChanged();
     void updateActiveStyle();

@@ -38,7 +38,8 @@ private slots:
 
     void setDockWidgetMaximized(int ID, bool maximized);
     void setDockWidgetVisibility(int ID, bool visible);
-
+public slots:
+    void tryClose();
 
 private:
     void removeAllDockWidgets();

@@ -46,7 +46,6 @@
         <file alias="Vector">Resources/Images/Items/Vector.png</file>
         <file alias="Localhost">Resources/Images/Items/Localhost.png</file>
         <file alias="VectorInstance">Resources/Images/Items/VectorInstance.png</file>
-        <file alias="VectorOperation">Resources/Images/Items/VectorOperation.png</file>
         <file alias="InputParameter">Resources/Images/Items/InputParameter.png</file>
         <file alias="ReturnParameter">Resources/Images/Items/ReturnParameter.png</file>
         <file alias="Vector_AggregateInstance">Resources/Images/Items/Vector_AggregateInstance.png</file>
@@ -214,6 +213,11 @@
         <file alias="DDS_LOGGING_SERVER">Resources/Images/Actions/DDS_LOGGING_SERVER.png</file>
         <file alias="QPID_BROKER">Resources/Images/Actions/QPID_BROKER.png</file>
         <file alias="QOS">Resources/Images/Actions/QOS.png</file>
+        <file alias="Model">Resources/Images/Actions/Model.png</file>
+        <file alias="Project">Resources/Images/Actions/Project.png</file>
+        <file alias="Selection">Resources/Images/Actions/Selection.png</file>
+        <file alias="View">Resources/Images/Actions/View.png</file>
+        <file>Resources/Images/Actions/Cage.jpg</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

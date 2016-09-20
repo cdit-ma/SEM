@@ -121,7 +121,7 @@ void ToolActionController::viewItem_Constructed(ViewItem *viewItem)
     }
 }
 
-void ToolActionController::viewItem_Destructed(int ID, ViewItem *viewItem)
+void ToolActionController::viewItem_Destructed(int ID, ViewItem *)
 {
     if(actions.contains(ID)){
         if(hardwareIDs.contains(ID)){
@@ -148,10 +148,16 @@ void ToolActionController::selectionChanged(int selected)
     }
 
     QList<Edge::EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
+    QList<Edge::EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
 
-    foreach(Edge::EDGE_KIND edgeKind, edgeKindActions.keys()){
-        RootAction* action = edgeKindActions[edgeKind];
+
+    foreach(Edge::EDGE_KIND edgeKind, connectEdgeKindActions.keys()){
+        RootAction* action = connectEdgeKindActions[edgeKind];
         action->setEnabled(validEdges.contains(edgeKind));
+    }
+    foreach(Edge::EDGE_KIND edgeKind, disconnectEdgeKindActions.keys()){
+        RootAction* action = disconnectEdgeKindActions[edgeKind];
+        action->setEnabled(existingEdges.contains(edgeKind));
     }
 }
 
@@ -177,6 +183,14 @@ void ToolActionController::addEdge(int dstID, Edge::EDGE_KIND edgeKind)
     QList<int> IDs = selectionController->getSelectionIDs();
     if(!IDs.isEmpty()){
         emit viewController->vc_constructEdge(IDs, dstID, edgeKind);
+    }
+}
+
+void ToolActionController::removeEdge(int dstID, Edge::EDGE_KIND edgeKind)
+{
+    QList<int> IDs = selectionController->getSelectionIDs();
+    if(!IDs.isEmpty()){
+        emit viewController->vc_destructEdges(IDs, dstID, edgeKind);
     }
 }
 
@@ -221,16 +235,12 @@ void ToolActionController::setupToolActions()
     createRootAction("INFO_NO_FUNCTIONS", "There are no available functions", "Actions", "Info");
     createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities", "Actions", "Info");
     createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to", "Actions", "Info");
+    createRootAction("INFO_NO_EDGE_TO_DISCONNECT", "There are no edges to disconnect", "Actions", "Info");
 }
 
 QList<QAction*> ToolActionController::getNodeActionsOfKind(QString kind, bool stealth)
 {
     return QList<QAction*>();
-}
-
-QAction *ToolActionController::getNodeActionOfKind(QString kind, bool stealth)
-{
-    return new RootAction("Nodes: " + kind);
 }
 
 QList<NodeViewItemAction *> ToolActionController::getEdgeActionsOfKind(Edge::EDGE_KIND kind)
@@ -245,10 +255,29 @@ QList<NodeViewItemAction *> ToolActionController::getEdgeActionsOfKind(Edge::EDG
     return list;
 }
 
-RootAction *ToolActionController::getEdgeActionOfKind(Edge::EDGE_KIND kind)
+QList<NodeViewItemAction *> ToolActionController::getExistingEdgeActionsOfKind(Edge::EDGE_KIND kind)
 {
-    if(edgeKindActions.contains(kind)){
-        return edgeKindActions[kind];
+    QList<NodeViewItemAction*> list;
+    foreach(ViewItem* item, viewController->getExistingEdgeEndPointsForSelection(kind)){
+        if(item && actions.contains(item->getID())){
+            list.append(actions[item->getID()]);
+        }
+    }
+    return list;
+}
+
+RootAction *ToolActionController::getConnectEdgeActionOfKind(Edge::EDGE_KIND kind)
+{
+    if(connectEdgeKindActions.contains(kind)){
+        return connectEdgeKindActions[kind];
+    }
+    return 0;
+}
+
+RootAction *ToolActionController::getDisconnectEdgeActionOfKind(Edge::EDGE_KIND kind)
+{
+    if(disconnectEdgeKindActions.contains(kind)){
+        return disconnectEdgeKindActions[kind];
     }
     return 0;
 }
@@ -267,35 +296,7 @@ QAction* ToolActionController::getAdoptableKindsAction(bool stealth)
     return adoptableKindsGroup->getGroupVisibilityAction()->constructSubAction(stealth);
 }
 
-QList<QAction*> ToolActionController::getConnectedNodesActions(bool stealth)
-{
-    return QList<QAction*>();
-}
 
-QAction* ToolActionController::getConnectedNodesAction(bool stealth)
-{
-    return new RootAction("Connections");
-}
-
-QList<QAction *> ToolActionController::getHardwareActions(bool stealth)
-{
-    return QList<QAction*>();
-}
-
-QAction *ToolActionController::getHardwareAction(bool stealth)
-{
-    return new RootAction("Hardware");
-}
-
-QList<QAction *> ToolActionController::getInstancesActions(bool stealth)
-{
-    return QList<QAction*>();
-}
-
-QAction *ToolActionController::getInstancesAction(bool stealth)
-{
-    return new RootAction("Instances");
-}
 
 QAction *ToolActionController::getToolAction(QString hashKey, bool stealth)
 {
@@ -334,9 +335,13 @@ void ToolActionController::themeChanged()
     foreach(RootAction* action, nodeKindActions.values()){
         viewController->getActionController()->updateIcon(action, theme);
     }
-    foreach (RootAction* action, edgeKindActions.values()) {
+    foreach (RootAction* action, connectEdgeKindActions.values()) {
         viewController->getActionController()->updateIcon(action, theme);
     }
+    foreach (RootAction* action, disconnectEdgeKindActions.values()) {
+        viewController->getActionController()->updateIcon(action, theme);
+    }
+
 }
 
 QStringList ToolActionController::getKindsRequiringSubActions()
@@ -351,7 +356,7 @@ QStringList ToolActionController::getKindsRequiringSubActions()
 void ToolActionController::setupNodeActions()
 {
     foreach(QString kind, viewController->getNodeKinds()){
-        RootAction* action = new RootAction(kind);
+        RootAction* action = new RootAction("Node", kind);
         action->setIconPath("Items", kind);
         nodeKindActions[kind]= action;
         adoptableKindsGroup->addAction(action);
@@ -362,9 +367,12 @@ void ToolActionController::setupEdgeActions()
 {
     foreach(Edge::EDGE_KIND kind, Edge::getEdgeKinds()){
         QString edgeKind = Edge::getKind(kind);
-        RootAction* action = new RootAction(edgeKind);
-        action->setIconPath("Items", edgeKind);
-        edgeKindActions[kind] = action;
+        RootAction* connectAction = new RootAction("Edge", edgeKind);
+        RootAction* disconnectAction = new RootAction("Edge", edgeKind);
+        connectAction->setIconPath("Items", edgeKind);
+        disconnectAction->setIconPath("Items", edgeKind);
+        connectEdgeKindActions[kind] = connectAction;
+        disconnectEdgeKindActions[kind] = disconnectAction;
     }
 }
 
@@ -379,7 +387,7 @@ NodeViewItemAction *ToolActionController::getNodeViewItemAction(int ID)
 RootAction *ToolActionController::createRootAction(QString hashKey, QString actionName, QString iconPath, QString aliasPath)
 {
     if(!toolActions.contains(hashKey)){
-        RootAction* action = new RootAction(actionName, this);
+        RootAction* action = new RootAction("ToolActionController", actionName, this);
         action->setIconPath(iconPath, aliasPath);
         toolActions[hashKey] = action;
     }

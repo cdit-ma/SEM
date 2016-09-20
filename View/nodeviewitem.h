@@ -13,18 +13,17 @@ public:
     NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
 
 
-    bool isNodeOfType(Node::NODE_TYPE type) const;
     Node::NODE_KIND getNodeKind() const;
     NodeViewItem* getParentNodeViewItem();
     VIEW_ASPECT getViewAspect();
     int getParentID();
+    bool isNodeOfType(Node::NODE_TYPE type) const;
 
     void addEdgeItem(EdgeViewItem* edge);
     void removeEdgeItem(EdgeViewItem* edge);
     QList<EdgeViewItem*> getEdges(Edge::EDGE_KIND edgeKind = Edge::EC_NONE) const;
     bool gotEdge(Edge::EDGE_KIND edgeKind = Edge::EC_NONE) const;
 
-    bool isInModel();
     QString getTreeIndex();
 
 

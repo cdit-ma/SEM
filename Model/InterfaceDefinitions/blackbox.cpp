@@ -3,6 +3,8 @@
 BlackBox::BlackBox():Node(NK_BLACKBOX)
 {
     setNodeType(NT_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+
 }
 
 bool BlackBox::canAdoptChild(Node *child)

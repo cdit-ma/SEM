@@ -122,8 +122,7 @@ void MedeaWindowNew::removeDockWidget(QDockWidget *widget)
 
 void MedeaWindowNew::closeEvent(QCloseEvent * event)
 {
-    removeAllDockWidgets();
-    MedeaWindowManager::destructWindow(this);
+    tryClose();
 }
 
 bool MedeaWindowNew::focusNextPrevChild(bool)
@@ -187,6 +186,12 @@ void MedeaWindowNew::setDockWidgetVisibility(int ID, bool visible)
         dw->setVisible(visible);
     }
     updateActions();
+}
+
+void MedeaWindowNew::tryClose()
+{
+    removeAllDockWidgets();
+    MedeaWindowManager::destructWindow(this);
 }
 
 void MedeaWindowNew::removeAllDockWidgets()

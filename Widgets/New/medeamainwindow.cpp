@@ -46,8 +46,8 @@ MedeaMainWindow::MedeaMainWindow(ViewController *vc, QWidget* parent):MedeaWindo
 
     resize(1000, 600);
 
-    setupTools();
-    setupInnerWindow();
+    setupTools(); //861MS
+    setupInnerWindow(); //718
     setupJenkinsManager();
     setupCUTSManager();
 
@@ -100,7 +100,6 @@ void MedeaMainWindow::setViewController(ViewController *vc)
 
     connect(vc, &ViewController::mc_projectModified, this, &MedeaMainWindow::setWindowModified);
     connect(actionController, &ActionController::recentProjectsUpdated, this, &MedeaMainWindow::recentProjectsUpdated);
-    //this->addToolBar(Qt::BottomToolBarArea, viewController->getToolbarController()->toolbar);
 
     if (vc->getActionController()) {
         connect(vc->getActionController()->getRootAction("Root_Search"), SIGNAL(triggered(bool)), this, SLOT(popupSearch()));
@@ -125,8 +124,11 @@ void MedeaMainWindow::searchEntered()
 {
     QString query = searchBar->text();
     if (!query.isEmpty()) {
+        qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
         searchDialog->searchResults(query, viewController->getSearchResults(query));
+        qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
         searchDialog->show();
+        qCritical() << "searchEntered in: " <<  timeFinish - timeStart << "MS";
     }
 }
 
@@ -150,6 +152,7 @@ void MedeaMainWindow::showNotification(QString title, QString message)
     */
 
     QMessageBox::critical(this, title, message, QMessageBox::Ok, 0);
+    //notificationDialog->addListItem(message);
 }
 
 
@@ -239,24 +242,14 @@ void MedeaMainWindow::themeChanged()
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
     restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
 
+    notificationsButton->setIcon(theme->getIcon("Actions", "Exclamation"));
+
     interfaceButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_INTERFACES));
     behaviourButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_BEHAVIOUR));
     assemblyButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_ASSEMBLIES));
     hardwareButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_HARDWARE));
 
     minimap->setStyleSheet(theme->getNodeViewStyleSheet());
-
-    recentProjectsToolbar->setStyleSheet("QToolBar {"
-                                         "background:" + theme->getAltBackgroundColorHex() + ";"
-                                         "spacing: 0px;"
-                                         "}"
-                                         "QToolButton {"
-                                         "width: 400px;"
-                                         "border-radius: 2px;"
-                                         "border: 0px; }");
-
-    welcomeWidget->setStyleSheet("QWidget#WELCOME_WIDGET{ background:" + theme->getBackgroundColorHex() + ";}"
-                                 "QToolButton:!hover{ border: 0px; background: rgba(0,0,0,0); }");
 }
 
 
@@ -311,6 +304,8 @@ void MedeaMainWindow::popupSearch()
     moveWidget(searchPopup);
     searchPopup->show();
     searchBar->setFocus();
+
+    //notificationDialog->show();
     //showNotification("", "This is a testcdsce wcefcercrcrerr evrbtybdvftrhtynrb"); // wcefcercrcrerr evrbtybdvftrhtynrb wcefcercrcrerr evrbtybdvftrhtynrb!!!");
 }
 
@@ -356,17 +351,6 @@ void MedeaMainWindow::hideWelcomeScreen(QAction* action)
 {
     if (action->text() != "Settings") {
         toggleWelcomeScreen(false);
-    }
-}
-
-
-void MedeaMainWindow::recentProjectsUpdated()
-{
-    if(recentProjectsToolbar && viewController){
-        recentProjectsToolbar->clear();
-        foreach(RootAction* action,viewController->getActionController()->getRecentProjectActions()){
-            recentProjectsToolbar->addAction(action);
-        }
     }
 }
 
@@ -436,14 +420,15 @@ void MedeaMainWindow::initializeApplication()
     //Set QApplication information.
     QApplication::setApplicationName("MEDEA");
     QApplication::setApplicationVersion(APP_VERSION);
-    QApplication::setOrganizationName("Defence Information Group");
-    QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
+    QApplication::setOrganizationName("CDIT-MA");
+    QApplication::setOrganizationDomain("https://github.com/cdit-ma/");
     QApplication::setWindowIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
 
     //Set Font.
-    int opensans_FontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
-    QString opensans_fontname = QFontDatabase::applicationFontFamilies(opensans_FontID).at(0);
+    //int opensans_FontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
+    //QString opensans_fontname = QFontDatabase::applicationFontFamilies(opensans_FontID).at(0);
     //QFont font = QFont(opensans_fontname);
+
     QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPointSizeF(8.5);
@@ -474,21 +459,19 @@ void MedeaMainWindow::toggleWelcomeScreen(bool on)
     }
 
     if (on) {
-        holderLayout->removeWidget(welcomeWidget);
+        holderLayout->removeWidget(welcomeScreen);
         holderLayout->addWidget(innerWindow);
-        setCentralWidget(welcomeWidget);
+        setCentralWidget(welcomeScreen);
     } else {
         holderLayout->removeWidget(innerWindow);
-        holderLayout->addWidget(welcomeWidget);
+        holderLayout->addWidget(welcomeScreen);
         setCentralWidget(innerWindow);
     }
 
     // show/hide the menu bar and close all dock widgets
     menuBar->setVisible(!on);
-    foreach (QDockWidget* dw, findChildren<QDockWidget*>()) {
-        if (!on && dw->windowTitle() == "QOS Browser") {
-            continue;
-        }
+    //Only hide the MedeaToo
+    foreach (QDockWidget* dw, findChildren<MedeaToolDockWidget*>()) {
         dw->setVisible(!on);
     }
 
@@ -501,16 +484,38 @@ void MedeaMainWindow::toggleWelcomeScreen(bool on)
  */
 void MedeaMainWindow::setupTools()
 {
+    qint64 t1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupWelcomeScreen();
+    qint64 t2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupMenuBar();
+    qint64 t3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupSearchBar();
+    qint64 t4 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupProgressBar();
+    qint64 t5 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupNotificationBar();
+    qint64 t6 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupDock();
+    qint64 t7 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupToolBar();
+    qint64 t8 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupDataTable();
+    qint64 t9 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupWindowManager();
+    qint64 t10 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupMinimap();
+    qint64 t11 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+
+    qCritical() << "setupWelcomeScreen in: " <<  t2 - t1 << "MS";
+    qCritical() << "setupMenuBar in: " <<  t3 - t2 << "MS";
+    qCritical() << "setupSearchBar in: " <<  t4 - t3 << "MS";
+    qCritical() << "setupProgressBar in: " <<  t5 - t4 << "MS";
+    qCritical() << "setupNotificationBar in: " <<  t6 - t5 << "MS";
+    qCritical() << "setupDock in: " <<  t7 - t6 << "MS";
+    qCritical() << "setupToolBar in: " <<  t8 - t7 << "MS";
+    qCritical() << "setupDataTable in: " <<  t9 - t8 << "MS";
+    qCritical() << "setupWindowManager in: " <<  t10 - t9 << "MS";
+    qCritical() << "setupMinimap in: " <<  t11 - t10 << "MS";
 }
 
 
@@ -522,10 +527,11 @@ void MedeaMainWindow::setupInnerWindow()
     innerWindow = MedeaWindowManager::constructCentralWindow("Main Window");
     setCentralWidget(innerWindow);
 
-    nodeView_Interfaces = new NodeViewNew();
-    nodeView_Behaviour = new NodeViewNew();
-    nodeView_Assemblies = new NodeViewNew();
-    nodeView_Hardware = new NodeViewNew();
+    NodeViewNew* nodeView_Interfaces = new NodeViewNew();
+    NodeViewNew* nodeView_Behaviour = new NodeViewNew();
+    NodeViewNew* nodeView_Assemblies = new NodeViewNew();
+    NodeViewNew* nodeView_Hardware = new NodeViewNew();
+    QOSBrowser* qosBrowser = new QOSBrowser(viewController, this);
 
     nodeView_Interfaces->setContainedViewAspect(VA_INTERFACES);
     nodeView_Behaviour->setContainedViewAspect(VA_BEHAVIOUR);
@@ -549,7 +555,6 @@ void MedeaMainWindow::setupInnerWindow()
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructViewDockWidget("QOS Browser");
-    qosBrowser = new QOSBrowser(viewController, this);
     qosDockWidget->setWidget(qosBrowser);
     qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     qosDockWidget->setVisible(false);
@@ -601,91 +606,17 @@ void MedeaMainWindow::setupInnerWindow()
  */
 void MedeaMainWindow::setupWelcomeScreen()
 {
-    QLabel* medeaIcon = new QLabel(this);
-    QLabel* medeaLabel = new QLabel("MEDEA");
-    QLabel* medeaVersionLabel = new QLabel("Version 2.0"); // + MEDEA_VERSION);
-    medeaLabel->setStyleSheet("font-size: 32pt; color: white; text-align: center;");
-    medeaVersionLabel->setStyleSheet("font-size: 12pt; color: gray; text-align: center;");
-
-    QPixmap pixMap = Theme::theme()->getImage("Actions", "MEDEA");
-    pixMap = pixMap.scaled(QSize(150,150), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    medeaIcon->setPixmap(pixMap);
-
-    QWidget* leftTopWidget = new QWidget(this);
-    QVBoxLayout* leftTopLayout = new QVBoxLayout(leftTopWidget);
-    leftTopLayout->setSpacing(2);
-    leftTopLayout->addWidget(medeaIcon, 0, Qt::AlignCenter);
-    leftTopLayout->addWidget(medeaLabel, 0, Qt::AlignCenter);
-    leftTopLayout->addWidget(medeaVersionLabel, 0, Qt::AlignCenter);
-
-    QSize iconSize(24,24);
-
-    QToolButton* recentProjectsLabel = new QToolButton(this);
-    recentProjectsLabel->setText("Recent Projects");
-    recentProjectsLabel->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    recentProjectsLabel->setIcon(Theme::theme()->getIcon("Welcome", "Timer"));
-    recentProjectsLabel->setIconSize(iconSize);
-    recentProjectsLabel->setEnabled(false);
-
-    QToolBar* leftToolbar = new QToolBar(this);
-    leftToolbar->setIconSize(iconSize);
-    leftToolbar->setOrientation(Qt::Vertical);
-    leftToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    leftToolbar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    leftToolbar->setStyleSheet("QToolButton{ width: 110px; }");
-
-    QToolBar* bottomToolbar = new QToolBar(this);
-    bottomToolbar->setIconSize(iconSize);
-    bottomToolbar->setOrientation(Qt::Horizontal);
-    bottomToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    bottomToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    bottomToolbar->setLayoutDirection(Qt::RightToLeft);
-    bottomToolbar->setStyleSheet("QToolButton{ padding-left: 10px; }");
-
-    recentProjectsToolbar = new QToolBar(this);
-    recentProjectsToolbar->setIconSize(QSize(18, 18));
-    recentProjectsToolbar->setOrientation(Qt::Vertical);
-    recentProjectsToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    recentProjectsToolbar->setFixedSize(400, 350);
-
-    ActionController* ac = viewController->getActionController();
-    leftToolbar->addWidget(leftTopWidget);
-    leftToolbar->addAction(ac->file_newProject->constructSubAction(false));
-    leftToolbar->addAction(ac->file_openProject->constructSubAction(false));
-    leftToolbar->addAction(ac->options_settings->constructSubAction(false));
-
-    bottomToolbar->addAction(ac->file_exit->constructSubAction(false));
-    bottomToolbar->addAction(ac->help_aboutMedea->constructSubAction(false));
-    bottomToolbar->addAction(ac->help_wiki->constructSubAction(false));
-
-    QVBoxLayout* vLayout = new QVBoxLayout();
-    vLayout->addStretch();
-    vLayout->addSpacerItem(new QSpacerItem(0, 15));
-    vLayout->addWidget(recentProjectsLabel);
-    vLayout->addWidget(recentProjectsToolbar, 0, Qt::AlignLeft | Qt::AlignBottom);
-    vLayout->addWidget(bottomToolbar, 0, Qt::AlignLeft | Qt::AlignTop);
-    vLayout->addStretch();
-
-    welcomeWidget = new QWidget(this);
-    welcomeWidget->setObjectName("WELCOME_WIDGET");
-
-    QHBoxLayout* containerLayout = new QHBoxLayout(welcomeWidget);
-    containerLayout->addStretch();
-    containerLayout->addWidget(leftToolbar, 0, Qt::AlignVCenter | Qt::AlignRight);
-    containerLayout->addLayout(vLayout);
-    containerLayout->addStretch();
+    welcomeScreen = new WelcomeScreenWidget(viewController->getActionController(), this);
+    welcomeScreenOn = false;
 
     QWidget* holderWidget = new QWidget(this);
     holderWidget->hide();
 
     holderLayout = new QVBoxLayout(holderWidget);
-    holderLayout->addWidget(welcomeWidget);
+    holderLayout->addWidget(welcomeScreen);
 
-    connect(leftToolbar, SIGNAL(actionTriggered(QAction*)), this, SLOT(hideWelcomeScreen(QAction*)));
-    connect(recentProjectsToolbar, SIGNAL(actionTriggered(QAction*)), this, SLOT(hideWelcomeScreen(QAction*)));
-
-    welcomeScreenOn = false;
-    recentProjectsUpdated();
+    connect(welcomeScreen, &WelcomeScreenWidget::actionTriggered, this, &MedeaMainWindow::hideWelcomeScreen);
+    connect(this, &MedeaMainWindow::recentProjectsUpdated, welcomeScreen, &WelcomeScreenWidget::recentProjectsUpdated);
 }
 
 
@@ -786,6 +717,9 @@ void MedeaMainWindow::setupSearchBar()
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
     connect(searchButton, SIGNAL(clicked(bool)), this, SLOT(searchEntered()));
     connect(searchDialog, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
+    connect(searchDialog, SIGNAL(popupViewItem(int)), viewController, SLOT(popupItem(int)));
+    connect(searchDialog, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
+    connect(searchDialog, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
 }
 
 
@@ -837,6 +771,8 @@ void MedeaMainWindow::setupNotificationBar()
     notificationPopup = new PopupWidget(PopupWidget::TOOL, this);
     notificationPopup->setWidget(notificationLabel);
     notificationPopup->hide();
+
+    notificationDialog = new NotificationDialog(this);
 }
 
 
@@ -869,6 +805,10 @@ void MedeaMainWindow::setupDataTable()
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("Table");
     dockWidget->setWidget(tableWidget);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
+
+    QAction* modelAction = viewController->getActionController()->model_selectModel;
+    modelAction->setToolTip("Show Model's Table");
+    dockWidget->getTitleBar()->addToolAction(modelAction, Qt::AlignLeft);
 
     //Check visibility state.
     dockWidget->setVisible(SettingsController::settings()->getSetting(SK_WINDOW_TABLE_VISIBLE).toBool());
@@ -916,6 +856,9 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     restoreAspectsButton = new QToolButton(this);
     restoreToolsButton = new QToolButton(this);
 
+    notificationsButton = new QToolButton(this);
+    notificationsButton->setToolTip("Show Notifications Dialog");
+
     /*
     interfaceButton->setText("I");
     behaviourButton->setText("B");
@@ -950,6 +893,8 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     toolbar->setFixedHeight(menuBar->height() - 6);
     toolbar->setStyleSheet("QToolButton{ padding: 2px 4px; }");
 
+    toolbar->addWidget(notificationsButton);
+    toolbar->addSeparator();
     toolbar->addWidget(interfaceButton);
     toolbar->addWidget(behaviourButton);
     toolbar->addWidget(assemblyButton);
@@ -961,6 +906,7 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     menuBar->setCornerWidget(toolbar);
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
 
+    connect(notificationsButton, SIGNAL(clicked(bool)), notificationDialog, SLOT(show()));
 }
 
 
@@ -1014,13 +960,17 @@ void MedeaMainWindow::setupCUTSManager()
 /**
  * @brief MedeaMainWindow::moveWidget
  * @param widget
+ * @param parentWidget
  * @param alignment
  */
-void MedeaMainWindow::moveWidget(QWidget* widget, Qt::Alignment alignment)
+void MedeaMainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignment alignment)
 {
-    QWidget* cw = centralWidget();
+    QWidget* cw = parentWidget;
+    if (cw == 0) {
+        cw = QApplication::activeWindow();
+    }
     if (cw && widget) {
-        QPointF widgetPos = pos() + cw->pos() + cw->rect().center();
+        QPointF widgetPos = cw->geometry().center();
         switch (alignment) {
         case Qt::AlignBottom:
             widgetPos += QPoint(0, cw->rect().height()/2);

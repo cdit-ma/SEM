@@ -16,11 +16,13 @@ public:
     WindowItem(ViewManagerWidget* manager, MedeaWindowNew* window);
     ~WindowItem();
 private slots:
+    void themeChanged();
 
     void dockWidgetAdded(MedeaDockWidget* widget);
 private:
 
     void setupLayout();
+    QAction* closeAction;
     ViewManagerWidget* manager;
     MedeaWindowNew* window;
     QWidget* dockContainer;
@@ -38,6 +40,7 @@ private:
     void setupLayout();
     QLabel* iconLabel;
     QLabel* label;
+
     QAction* iconAction;
     QAction* labelAction;
     ViewManagerWidget* manager;
@@ -54,15 +57,16 @@ public:
 private slots:
     void themeChanged();
     void windowConstructed(MedeaWindowNew* window);
-    void windowDestructed(MedeaWindowNew* window);
+    void windowDestructed(int ID);
     void dockWidgetConstructed(MedeaDockWidget* dockWidget);
-    void dockWidgetDestructed(MedeaDockWidget* dockWidget);
+    void dockWidgetDestructed(int ID);
 
 private:
     void setupLayout();
     QScrollArea* scrollArea;
     QWidget* windowArea;
     QVBoxLayout* scrollLayout;
+
 
     QHash<int, WindowItem*> windows;
     QHash<int, DockWindowItem*> dockWidgets;

@@ -9,6 +9,7 @@
 #include "../Widgets/New/selectioncontroller.h"
 #include "rootaction.h"
 #include "../view/theme.h"
+#include "../GUI/shortcutdialog.h"
 class ViewController;
 class ActionController : public QObject
 {
@@ -26,10 +27,11 @@ public:
     QList<RootAction*> getRecentProjectActions();
 private:
 
-    RootAction* createRootAction(QString name, QString actionHash, QString iconPath="", QString aliasPath="");
+    RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");
 signals:
     void recentProjectsUpdated();
 private slots:
+    void showShortcutDialog();
     void clearRecentProjects();
     void updateRecentProjects(QString filePath);
     void settingChanged(SETTING_KEY key, QVariant value);
@@ -54,6 +56,7 @@ public:
     ViewController* viewController;
     QList<RootAction*> allActions;
     QHash<QString, RootAction*> actionHash;
+    QMultiMap<QString, RootAction*> actionCategoryMap;
 
     QHash<ACTION, RootAction*> rootActionHash;
 
@@ -79,6 +82,8 @@ public:
     QAction* toolbar_alignVertical;
     QAction* toolbar_alignHorizontal;
     QAction* toolbar_search;
+    QAction* toolbar_contract;
+    QAction* toolbar_expand;
 
     RootAction* file_recentProjects_clearHistory;
     RootAction* file_newProject;
@@ -109,6 +114,8 @@ public:
     RootAction* edit_CycleActiveSelectionForward;
     RootAction* edit_CycleActiveSelectionBackward;
     RootAction* edit_renameActiveSelection;
+    RootAction* edit_expand;
+    RootAction* edit_contract;
 
     RootAction* view_fitView;
     RootAction* view_fitAllViews;
@@ -125,6 +132,7 @@ public:
     RootAction* window_displayMinimap;
 
     RootAction* model_validateModel;
+    RootAction* model_selectModel;
     RootAction* model_getCodeForComponent;
     RootAction* model_executeLocalJob;
 
@@ -150,11 +158,9 @@ public:
     RootAction* toolbar_disconnectHardware;
     RootAction* toolbar_popOutDefn;
     RootAction* toolbar_popOutImpl;
-    //RootAction* toolbar_popOutInst;
     RootAction* toolbar_setReadOnly;
     RootAction* toolbar_unsetReadOnly;
-    RootAction* toolbar_expand;
-    RootAction* toolbar_contract;
+
     RootAction* toolbar_wiki;
     RootAction* toolbar_replicateCount;
     RootAction* toolbar_displayedChildrenOption;
@@ -174,9 +180,13 @@ public:
     QMenu* menu_window;
     QMenu* menu_options;
 
+    ShortcutDialog* shortcutDialog;
+
+
 
 
     QSignalMapper* recentProjectMapper;
+    QSignalMapper* readOnlyMapper;
     QHash<QString, RootAction*> recentProjectActions;
     QStringList recentProjectKeys;
 

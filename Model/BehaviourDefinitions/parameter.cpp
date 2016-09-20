@@ -1,6 +1,6 @@
 #include "parameter.h"
 #include "../InterfaceDefinitions/datanode.h"
-
+#include <QDebug>
 Parameter::Parameter(Node::NODE_KIND kind):DataNode(kind)
 {
     setNodeType(NT_PARAMETER);
@@ -32,10 +32,10 @@ bool Parameter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     case Edge::EC_DATA:{
         if(dst->isNodeOfType(NT_PARAMETER)){
             Parameter* parameter = (Parameter*) dst;
-            if(getDepthFromCommonAncestor(dst) <= 1){
+            if(getDepthFromCommonAncestor(dst) == 1){
                 return false;
             }
-            if(parameter->isInputParameter() == parameter->isInputParameter()){
+            if(isInputParameter() == parameter->isInputParameter()){
                 return false;
             }
         }

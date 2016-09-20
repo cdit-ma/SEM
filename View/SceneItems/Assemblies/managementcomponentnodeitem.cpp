@@ -51,16 +51,13 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
         painter->setBrush(getBodyColor());
         painter->setPen(Qt::NoPen);
         painter->drawPolygon(getRightPoly());
-
         painter->setPen(Qt::black);
-        paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "Computer");
-
         painter->restore();
 
         painter->setBrush(getBodyColor().darker(120));
         painter->drawPolygon(getLeftPoly());
 
-        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", getData("type").toString());
+        paintPixmap(painter, lod, getElementRect(ER_SECONDARY_ICON), "Actions", getData("type").toString());
     }
 
     NodeItemNew::paint(painter, option, widget);
@@ -93,6 +90,8 @@ QRectF ManagementComponentNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT r
        return subIconRect();
    case ER_DEPLOYED:
        return secondSubIconRect();
+   case ER_LOCKED_STATE:
+       return thirdSubIconRect();
    default:
        return NodeItemNew::getElementRect(rect);
    }

@@ -22,8 +22,8 @@ ViewManagerWidget::ViewManagerWidget(MedeaWindowManager *manager) : QWidget(0)
 
 void ViewManagerWidget::themeChanged()
 {
-    //setStyleSheet("QScrollArea{background: red;}");
-    //windowArea->setStyleSheet(Theme::theme()->getWidgetStyleSheet());
+    setStyleSheet(Theme::theme()->getWidgetStyleSheet("ViewManagerWidget"));
+    scrollArea->setStyleSheet("background:#00000000;");
 }
 
 DockWindowItem *ViewManagerWidget::getDockWindowItem(int ID)
@@ -49,17 +49,13 @@ void ViewManagerWidget::windowConstructed(MedeaWindowNew *window)
     }
 }
 
-void ViewManagerWidget::windowDestructed(MedeaWindowNew *window)
+void ViewManagerWidget::windowDestructed(int ID)
 {
-    if(window){
-        int ID = window->getID();
-        WindowItem* item = windows.value(ID, 0);
-
-        if(item){
-            item->deleteLater();
-        }
+    WindowItem* item = windows.value(ID, 0);
+    if(item){
+        windows.remove(ID);
+        item->deleteLater();
     }
-
 }
 
 void ViewManagerWidget::dockWidgetConstructed(MedeaDockWidget *dockWidget)
@@ -72,32 +68,24 @@ void ViewManagerWidget::dockWidgetConstructed(MedeaDockWidget *dockWidget)
     }
 }
 
-void ViewManagerWidget::dockWidgetDestructed(MedeaDockWidget *dockWidget)
+void ViewManagerWidget::dockWidgetDestructed(int ID)
 {
-    if(dockWidget){
-        int ID = dockWidget->getID();
-        DockWindowItem* item = dockWidgets.value(ID, 0);
-
-        if(item){
-            item->deleteLater();
-        }
+    DockWindowItem* item = dockWidgets.value(ID, 0);
+    if(item){
+        dockWidgets.remove(ID);
+        item->deleteLater();
     }
 }
 
 void ViewManagerWidget::setupLayout()
 {
     QVBoxLayout* layout = new QVBoxLayout(this);
-
-
     windowArea = new QWidget(this);
 
     scrollLayout = new QVBoxLayout();
     windowArea->setLayout(scrollLayout);
     scrollLayout->setContentsMargins(0,0,0,0);
-    //windowArea->setContentsMargins(0,0,0,0);
     layout->setContentsMargins(0,0,0,0);
-
-
 
     scrollArea = new QScrollArea();
     scrollArea->setWidgetResizable(true);
@@ -120,12 +108,24 @@ WindowItem::WindowItem(ViewManagerWidget *manager, MedeaWindowNew *window)
     setContentsMargins(0,0,0,0);
 
     connect(window, &MedeaWindowNew::dockWidgetAdded, this, &WindowItem::dockWidgetAdded);
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &WindowItem::themeChanged);
+
+    themeChanged();
 }
 
 WindowItem::~WindowItem()
 {
     //Unset all items.
 
+}
+
+void WindowItem::themeChanged()
+{
+    windowToolbar->setStyleSheet(Theme::theme()->getDockTitleBarStyleSheet(false, "#WINDOW_TOOLBAR"));
+    if(closeAction){
+        closeAction->setIcon(Theme::theme()->getIcon("Actions", "Close"));
+    }
 }
 
 
@@ -140,13 +140,31 @@ void WindowItem::dockWidgetAdded(MedeaDockWidget *widget)
 void WindowItem::setupLayout()
 {
     QVBoxLayout* layout = new QVBoxLayout();
+    layout->setContentsMargins(5,5,5,5);
     dockContainerLayout = new QVBoxLayout();
+    dockContainerLayout->setContentsMargins(10,1,1,1);
     windowToolbar = new QToolBar(this);
+    windowToolbar->setObjectName("WINDOW_TOOLBAR");
 
-    windowToolbar->addWidget(new QLabel(window->windowTitle(), this));
+    QLabel* label = new QLabel(this);
+    label->setText(window->windowTitle());
+    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+
+    windowToolbar->addWidget(label);
     dockContainer = new QWidget(this);
     dockContainer->setLayout(dockContainerLayout);
 
+
+    closeAction = 0;
+    closeAction = new QAction(this);
+    connect(closeAction, &QAction::triggered, window, &MedeaWindowNew::tryClose);
+
+    closeAction->setEnabled(window != MedeaWindowManager::manager()->getCentralWindow());
+    windowToolbar->addAction(closeAction);
+
+    windowToolbar->setIconSize(QSize(16,16));
+    windowToolbar->setContentsMargins(0,0,0,0);
     layout->addWidget(windowToolbar);
     layout->addWidget(dockContainer);
     setLayout(layout);

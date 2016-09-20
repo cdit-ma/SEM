@@ -6,11 +6,12 @@ class RootAction : public QAction
 {
     Q_OBJECT
 public:
-    RootAction(QString text, QObject* parent = 0);
+    RootAction(QString category, QString text, QObject* parent = 0);
     void setIconPath(QString path, QString alias);
-    QPair<QString, QString> getIconPair();
-    QString getIconPath();
-    QString getIconAlias();
+    QPair<QString, QString> getIconPair() const;
+    QString getIconPath() const;
+    QString getIconAlias() const;
+    QString getCategory() const;
 
     QAction* constructSubAction(bool stealth=true);
 
@@ -23,6 +24,7 @@ private:
     QList<QAction*> stealthActions;
 
     QString iconPath;
+    QString category;
     QString iconAlias;
 };
 

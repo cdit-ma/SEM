@@ -18,7 +18,11 @@ public:
 
 public slots:
     void itemActiveSelectionChanged(ViewItem* item, bool isActive);
+
+
 private slots:
+    void activeItem_IconChanged();
+    void activeItem_LabelChanged();
     void themeChanged();
 private:
     void setupLayout();

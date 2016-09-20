@@ -421,7 +421,7 @@ bool Node::containsChild(Node *child)
     return children.contains(child);
 }
 
-QList<Node *> Node::getChildren(int depth)
+QList<Node *> Node::getChildren(int depth) const
 {
     QList<Node *> childList = getOrderedChildNodes();
 
@@ -449,24 +449,34 @@ QList<int> Node::getChildrenIDs(int depth)
 
 
 
-QList<Edge *> Node::getEdges(int depth, Edge::EDGE_KIND edgeKind)
+QList<Edge *> Node::getEdges(int depth, Edge::EDGE_KIND edgeKind) const
 {
+    QList<Edge*> edgesToMap;
 
-    QList<Edge *> edgeList;
+    if(edgeKind == Edge::EC_NONE){
+        edgesToMap += edges.values();
+    }else{
+        edgesToMap += edges.values(edgeKind);
+    }
 
-    edgeList += getOrderedEdges(edgeKind);
     //While we still have Children, Recurse
     if(depth != 0){
         //Add children's children.
         foreach(Node* child, getChildren(0)){
             foreach(Edge* edge, child->getEdges(depth - 1, edgeKind)){
-                if(!edgeList.contains(edge)){
-                    edgeList += edge;
+                if(!edgesToMap.contains(edge)){
+                    edgesToMap += edge;
                 }
             }
         }
     }
-    return edgeList;
+
+    QMap<Edge::EDGE_KIND, Edge *> edgeMap;
+    foreach(Edge* edge, edgesToMap){
+        edgeMap.insertMulti(edge->getEdgeKind(), edge);
+    }
+
+    return edgeMap.values();
 }
 
 
@@ -475,10 +485,6 @@ Node *Node::getFirstChild()
     return getOrderedChildNodes().first();
 }
 
-Edge *Node::getFirstEdge()
-{
-    return getOrderedEdges().first();
-}
 
 QList<Node *> Node::getSiblings()
 {
@@ -638,6 +644,8 @@ bool Node::gotEdgeTo(Node *node, Edge::EDGE_KIND edgeKind)
     return getEdgeTo(node, edgeKind) != 0;
 }
 
+
+
 bool Node::containsEdge(Edge *edge)
 {
     if(edge){
@@ -758,7 +766,7 @@ void Node::addInstance(Node *inst)
     }
 }
 
-QList<Node *> Node::getInstances()
+QList<Node *> Node::getInstances() const
 {
     return instances;
 }
@@ -782,12 +790,28 @@ void Node::addImplementation(Node *impl)
     }
 }
 
-QList<Node *> Node::getImplementations()
+QList<Node *> Node::getImplementations() const
 {
     return implementations;
 }
 
-QList<Node *> Node::getDependants()
+QList<Node *> Node::getNestedDependants() const
+{
+    QList<Node*> nodes;
+    foreach(Node* child, getChildren(0)){
+        nodes += child->getDependants();
+    }
+    nodes += implementations;
+    nodes += instances;
+
+    return nodes;
+}
+
+/**
+ * @brief Node::getDependants - Gets the Dependants.
+ * @return
+ */
+QList<Node *> Node::getDependants() const
 {
     QList<Node*> nodes;
     nodes += implementations;
@@ -875,7 +899,7 @@ QString Node::_toGraphML(int indentDepth, bool ignoreVisuals)
     return xml;
 }
 
-QList<Node *> Node::getOrderedChildNodes()
+QList<Node *> Node::getOrderedChildNodes() const
 {
     QMap<int, Node*> orderedList;
 
@@ -884,13 +908,4 @@ QList<Node *> Node::getOrderedChildNodes()
         orderedList.insertMulti(sortID, child);
     }
     return orderedList.values();
-}
-
-QList<Edge *> Node::getOrderedEdges(Edge::EDGE_KIND edgeKind)
-{
-    if(edgeKind == Edge::EK_NONE){
-        return edges.values();
-    }else{
-        return edges.values(edgeKind);
-    }
 }

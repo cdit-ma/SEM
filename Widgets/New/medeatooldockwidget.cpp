@@ -20,4 +20,6 @@ void MedeaToolDockWidget::themeChanged()
     if (getTitleBar()) {
         getTitleBar()->setStyleSheet(theme->getToolDockWidgetTitleBarStyleSheet());
     }
+
+
 }

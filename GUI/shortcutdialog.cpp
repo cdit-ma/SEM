@@ -5,7 +5,12 @@
 #include <QBrush>
 #include <QDebug>
 #include "../View/theme.h"
+#include <QStringBuilder>
 #define WIDTH 550
+
+#define IMAGE_PREFIX QTableWidgetItem::UserType + 1
+#define IMAGE_NAME QTableWidgetItem::UserType + 2
+
 #define HEIGHT 650
 
 ShortcutDialog::ShortcutDialog(QWidget *parent) :
@@ -19,64 +24,12 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     resize(WIDTH, HEIGHT);
 
     setupLayout();
-    addTitle("Global", Theme::theme()->getImage("Actions", "Global"));
 
-    addShortcut("F1", "Opens the Shortcut window.");
-    addShortcut("F3", "Sets the focus into the search box.");
-    addShortcut("F10", "Opens the settings window.");
-    addShortcut("CTRL + SHIFT + F", "Toggles fullscreen mode.");
-    addShortcut("F12", "Takes a screenshot.");
-    addShortcut("CTRL + SHIFT + M", "Toggles minimap visibility.");
-    addShortcut("ARROW KEYS", "Nudges the viewport by a small amount.");
-    addShortcut("SHIFT + ARROW KEYS", "Nudges the viewport by a larger amount.");
+    connect(Theme::theme(), &Theme::theme_Changed, this, &ShortcutDialog::themeChanged);
 
-    addTitle("Project", Theme::theme()->getImage("Actions", "New"));
-    addShortcut("CTRL + N", "Constructs a new project.");
-    addShortcut("CTRL + O", "Opens an existing project.");
-    addShortcut("CTRL + S", "Saves the current project.");
-    addShortcut("CTRL + SHIFT + S", "Saves the current project as another file.");
-    addShortcut("CTRL + I", "Imports a Graphml document into current project.");
-    addShortcut("CTRL + SHIFT + V", "Validates the current project.");
-    addShortcut("CTRL + W", "Closes the current Project.");
-    addShortcut("CTRL + Z", "Undoes the last change in the model.");
-    addShortcut("CTRL + Y", "Redoes the last Undo.");
-    addShortcut("CTRL + SPACE", "Fits the entire model into the view.");
-    addShortcut("CTRL + J", "Imports the Nodes from the Jenkins Server.");
-    addShortcut("CTRL + SHIFT + B", "Executes the current project on the Jenkins Server.");
-
-    addTitle("Selection", Theme::theme()->getImage("Actions", "SelectAll"));
-    addShortcut("ESC", "Clears the current selection / Closes current dialog window.");
-    addShortcut("F2", "Renames the current (singular) selection.");
-    addShortcut("CTRL + A", "Selects all children of currently selected entity.");
-    addShortcut("CTRL + C", "Copies the currently selected entities.");
-    addShortcut("CTRL + D", "Replicates the currently selected entities.");
-    addShortcut("CTRL + X", "Cuts the currently selected entities.");
-    addShortcut("CTRL + V", "Pastes the data from the clipboard into the current selected entity.");
-    addShortcut("CTRL", "Holding control allows multiple selection.");
-    addShortcut("DELETE", "Deletes all selected entities.");
-    addShortcut("SHIFT + D", "Centers on the (singular) selected entity's definition.");
-    addShortcut("SHIFT + I", "Centers on the (singular) selected entity's implementation.");
-    addShortcut("TAB", "Sets the next entity in the selection as the active selection.");
-    addShortcut("SHIFT + TAB", "Sets the previous entity in the selection as the active selection.");
-
-
-    addTitle("Mouse", Theme::theme()->getImage("Actions", "Mouse"));
-    addShortcut("L MOUSE", "Selects the entity under the cursor.");
-    addShortcut("R MOUSE", "Opens the toolbar for the selection.");
-    addShortcut("M MOUSE", "Centers the entity under the cursor.");
-
-    addShortcut("SCROLL UP", "Zooms in view.");
-    addShortcut("SCROLL DOWN", "Zooms out view.");
-
-    addShortcut("L MOUSE + DRAG", "Moves the selected entities.");
-    addShortcut("R MOUSE + DRAG", "Pans the view.");
-    //addShortcut("CTRL + M MOUSE", "Sorts the children of the entity under the cursor.");
-    addShortcut("CTRL + SHIFT", "Turns on rubberband selection mode.");
-
-    tableWidget->resizeColumnsToContents();
 }
 
-void ShortcutDialog::addShortcut(QString shortcut, QString description)
+void ShortcutDialog::addShortcut(QString shortcut, QString description, QString alias, QString image)
 {
     QFont boldFont;
     QFont italicFont;
@@ -94,14 +47,11 @@ void ShortcutDialog::addShortcut(QString shortcut, QString description)
     QTableWidgetItem * shortcutR = new QTableWidgetItem(shortcut);
     QTableWidgetItem * descriptionR = new QTableWidgetItem(description);
 
-    shortcutR->setTextAlignment(Qt::AlignCenter);
-    shortcutR->setFont(boldFont);
+    descriptionR->setData(IMAGE_PREFIX, alias);
+    descriptionR->setData(IMAGE_NAME, image);
+
     descriptionR->setFont(italicFont);
-
-    shortcutR->setForeground(QColor(90,90,90));
-    descriptionR->setForeground(QColor(90,90,90));
-
-    descriptionR->setFlags(descriptionR->flags() ^ Qt::ItemIsEditable);
+    descriptionR->setTextAlignment(Qt::AlignCenter | Qt::AlignRight);
     shortcutR->setFlags(shortcutR->flags() ^ Qt::ItemIsEditable);
 
 
@@ -109,11 +59,11 @@ void ShortcutDialog::addShortcut(QString shortcut, QString description)
         int insertLocation = tableWidget->rowCount();
         tableWidget->insertRow(insertLocation);
         tableWidget->setItem(insertLocation, 0, shortcutR);
-        tableWidget->setItem(insertLocation, 1, descriptionR);
+        tableWidget->setVerticalHeaderItem(insertLocation, descriptionR);
     }
 }
 
-void ShortcutDialog::addTitle(QString label, QIcon icon)
+void ShortcutDialog::addTitle(QString label, QString alias, QString image)
 {
     if(tableWidget){
         QFont boldFont;
@@ -122,17 +72,42 @@ void ShortcutDialog::addTitle(QString label, QIcon icon)
 
         QTableWidgetItem * titleRow = new QTableWidgetItem(label);
         titleRow->setFlags(titleRow->flags() ^ Qt::ItemIsEditable);
-        titleRow->setIcon(icon);
+        titleRow->setData(IMAGE_PREFIX, alias);
+        titleRow->setData(IMAGE_NAME, image);
 
-        titleRow->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+        titleRow->setTextAlignment(Qt::AlignCenter);
         titleRow->setFont(boldFont);
-        titleRow->setBackgroundColor(palette().color(QPalette::Base));
-
 
         int insertLocation = tableWidget->rowCount();
         tableWidget->insertRow(insertLocation);
-        tableWidget->setItem(insertLocation, 0, titleRow);
-        tableWidget->setSpan(insertLocation, 0, 1, 2);
+        tableWidget->setItem(insertLocation, 0 , 0);
+        tableWidget->setVerticalHeaderItem(insertLocation, titleRow);
+    }
+}
+
+void ShortcutDialog::resizeTable()
+{
+    themeChanged();
+}
+
+void ShortcutDialog::themeChanged()
+{
+
+    Theme* theme = Theme::theme();
+    this->setStyleSheet(theme->getWindowStyleSheet() % theme->getScrollBarStyleSheet());
+    tableWidget->setStyleSheet(theme->getAbstractItemViewStyleSheet());
+    this->tableWidget->verticalHeader()->setStyleSheet(theme->getAbstractItemViewStyleSheet());
+
+    for (int row = 0 ; row < tableWidget->rowCount() ; ++row) {
+        QTableWidgetItem* header = tableWidget->verticalHeaderItem(row);
+        if(header){
+            QString prefix = header->data(IMAGE_PREFIX).toString();
+            QString image = header->data(IMAGE_NAME).toString();
+            if(!prefix.isEmpty() && !image.isEmpty()){
+                header->setIcon(theme->getIcon(prefix, image));
+            }
+        }
     }
 }
 
@@ -142,25 +117,13 @@ void ShortcutDialog::setupLayout()
 {
     layout = new QVBoxLayout();
     this->setLayout(layout);
-    tableWidget = new QTableWidget(0, 2, this);
-    tableWidget->verticalHeader()->setVisible(false);
+    tableWidget = new QTableWidget(0, 1, this);
+    tableWidget->verticalHeader()->setVisible(true);
+    tableWidget->verticalHeader()->setHighlightSections(false);
     tableWidget->horizontalHeader()->setVisible(false);
-
     tableWidget->horizontalHeader()->setStretchLastSection(true);
+    tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     tableWidget->setShowGrid(false);
-    tableWidget->setAlternatingRowColors(true);
     tableWidget->setEnabled(true);
-
-    /*
-    QTableWidgetItem * shortcutTitle = new QTableWidgetItem(QIcon(":/Actions/Keyboard.png"), "Shortcut");
-    shortcutTitle->setTextAlignment(Qt::AlignHCenter);
-    QTableWidgetItem * descriptionTitle = new QTableWidgetItem(QIcon(":/Actions/Notes.png"), "Description");
-    descriptionTitle->setTextAlignment(Qt::AlignHCenter);
-
-    tableWidget->setHorizontalHeaderItem(0, shortcutTitle);
-    tableWidget->setHorizontalHeaderItem(1, descriptionTitle);
-    */
-
-
     layout->addWidget(tableWidget);
 }

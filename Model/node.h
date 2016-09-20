@@ -141,7 +141,7 @@ public:
     bool indirectlyConnectedTo(Node* node);
 
     bool containsChild(Node* child);
-    QList<Node *> getChildren(int depth =-1);
+    QList<Node *> getChildren(int depth =-1) const;
     QList<int> getChildrenIDs(int depth =-1);
     QList<Node *> getChildrenOfKind(QString kindStr, int depth =-1);
     QList<Node *> getChildrenOfKind(Node::NODE_KIND kind, int depth =-1);
@@ -149,7 +149,6 @@ public:
 
     QList<int> getEdgeIDs(Edge::EDGE_KIND edgeClass = Edge::EC_NONE);
     Node* getFirstChild();
-    Edge* getFirstEdge();
 
     QList<Node *> getSiblings();
 
@@ -171,7 +170,7 @@ public:
     Edge* getEdgeTo(Node* node, Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
     bool gotEdgeTo(Node* node, Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
 
-    QList<Edge *> getEdges(int depth=-1, Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
+    QList<Edge *> getEdges(int depth=-1, Edge::EDGE_KIND edgeKind = Edge::EC_NONE) const;
     QList<Key *> getKeys(int depth=-1);
 
     bool isDefinition() const;
@@ -187,12 +186,13 @@ public:
     void unsetDefinition();
 
     void addInstance(Node* inst);
-    QList<Node*> getInstances();
+    QList<Node*> getInstances() const;
     void removeInstance(Node* inst);
 
     void addImplementation(Node* impl);
-    QList<Node*> getImplementations();
-    QList<Node*> getDependants();
+    QList<Node*> getImplementations() const;
+    QList<Node*> getNestedDependants() const;
+    QList<Node*> getDependants() const;
 
     void removeImplementation(Node* impl);
 
@@ -213,8 +213,7 @@ private:
     bool ancestorOf(Edge* edge);
     bool containsEdge(Edge* edge);
 
-    QList<Node*> getOrderedChildNodes();
-    QList<Edge*> getOrderedEdges(Edge::EDGE_KIND edgeKind = Edge::EC_NONE);
+    QList<Node*> getOrderedChildNodes() const;
 
     QList<int> treeIndex;
     QString treeIndexString;

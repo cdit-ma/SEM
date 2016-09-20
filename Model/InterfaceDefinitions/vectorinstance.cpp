@@ -7,6 +7,7 @@ VectorInstance::VectorInstance(): DataNode(Node::NK_VECTOR_INSTANCE)
     setDataReciever(true);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setNodeType(NT_INSTANCE);
+    setNodeType(NT_DEFINITION);
 }
 
 bool VectorInstance::canAdoptChild(Node *child)
@@ -40,11 +41,10 @@ bool VectorInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         break;
     }
     case Edge::EC_DATA:{
-        if(dst->getNodeKind() != NK_VECTOR_INSTANCE){
-            return false;
-        }
-        if(dst->getDefinition(true) != getDefinition(true)){
-            return false;
+        if(dst->getNodeKind() == NK_VECTOR_INSTANCE){
+            if(getDefinition(true) && dst->getDefinition(true) != getDefinition(true)){
+                return false;
+            }
         }
         break;
     }

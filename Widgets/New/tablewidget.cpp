@@ -8,6 +8,7 @@
 
 TableWidget::TableWidget(ViewController *controller, QWidget *parent) : QWidget(parent)
 {
+    activeItem = 0;
     viewController = controller;
     multilineDelegate = new AttributeTableDelegate(this);
     setupLayout();
@@ -21,23 +22,43 @@ TableWidget::TableWidget(ViewController *controller, QWidget *parent) : QWidget(
 void TableWidget::itemActiveSelectionChanged(ViewItem *item, bool isActive)
 {
     QAbstractItemModel* model = 0;
-    if(item){
+    if(activeItem){
+        disconnect(activeItem, &ViewItem::iconChanged, this, &TableWidget::activeItem_IconChanged);
+        disconnect(activeItem, &ViewItem::labelChanged, this, &TableWidget::activeItem_LabelChanged);
+    }
+    if(item && isActive){
+        connect(item, &ViewItem::iconChanged, this, &TableWidget::activeItem_IconChanged);
+        connect(item, &ViewItem::labelChanged, this, &TableWidget::activeItem_LabelChanged);
         activeItem = item;
         model = item->getTableModel();
-
-        QPair<QString, QString> iconPath = item->getIcon();
-
-        QPixmap icon = Theme::theme()->getImage(iconPath.first, iconPath.second, QSize(32,32));
-        iconLabel->setPixmap(icon);
-        label->setText(item->getData("label").toString());
     }else{
-        iconLabel->setPixmap(QPixmap());
-        iconLabel->setText("");
-        label->setText("");
+        activeItem = 0;
     }
+    activeItem_IconChanged();
+    activeItem_LabelChanged();
 
     if (tableView) {
         tableView->setModel(model);
+    }
+}
+
+void TableWidget::activeItem_IconChanged()
+{
+    if(activeItem){
+        QPair<QString, QString> iconPath = activeItem->getIcon();
+        QPixmap icon = Theme::theme()->getImage(iconPath.first, iconPath.second, QSize(32,32));
+        iconLabel->setPixmap(icon);
+    }else{
+        iconLabel->clear();
+    }
+}
+
+void TableWidget::activeItem_LabelChanged()
+{
+    if(activeItem){
+        label->setText(activeItem->getData("label").toString());
+    }else{
+        label->clear();
     }
 }
 

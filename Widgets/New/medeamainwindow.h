@@ -23,6 +23,8 @@
 #include "../../GUI/popupwidget.h"
 #include "../../View/Dock/docktabwidget.h"
 #include "../../Widgets/New/searchdialog.h"
+#include "../../Widgets/New/notificationdialog.h"
+#include "welcomescreenwidget.h"
 
 
 class MedeaMainWindow : public MedeaWindowNew
@@ -38,6 +40,7 @@ signals:
     void requestSuggestions();
     void preloadImages();
     void jenkins_validated(bool);
+    void recentProjectsUpdated();
 
 public slots:
     void setModelTitle(QString modelTitle);
@@ -61,7 +64,6 @@ private slots:
     void toolbarTopLevelChanged(bool a);
 
     void hideWelcomeScreen(QAction *action);
-    void recentProjectsUpdated();
 
 private:
     void initializeApplication();
@@ -86,7 +88,7 @@ private:
     void setupCUTSManager();
     void setupXMIImporter();
 
-    void moveWidget(QWidget* widget, Qt::Alignment alignment = Qt::AlignCenter);
+    void moveWidget(QWidget* widget, QWidget* parentWidget = 0, Qt::Alignment alignment = Qt::AlignCenter);
 
     MedeaWindowNew* innerWindow;
 
@@ -115,14 +117,12 @@ private:
     PopupWidget* notificationPopup;
     QLabel* notificationLabel;
     QTimer* notificationTimer;
+    NotificationDialog* notificationDialog;
 
     ViewController* viewController;
-    NodeViewNew* nodeView_Interfaces;
-    NodeViewNew* nodeView_Behaviour;
-    NodeViewNew* nodeView_Assemblies;
-    NodeViewNew* nodeView_Hardware;
-    QOSBrowser* qosBrowser;
 
+
+    QToolButton* notificationsButton;
     QToolButton* interfaceButton;
     QToolButton* behaviourButton;
     QToolButton* assemblyButton;
@@ -131,9 +131,8 @@ private:
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;
 
+    WelcomeScreenWidget* welcomeScreen;
     QVBoxLayout* holderLayout;
-    QToolBar* recentProjectsToolbar;
-    QWidget* welcomeWidget;
     bool welcomeScreenOn;
 
 protected:

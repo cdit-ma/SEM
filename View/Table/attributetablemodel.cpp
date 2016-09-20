@@ -10,12 +10,13 @@ AttributeTableModel::AttributeTableModel(ViewItem *item)
     entity->registerObject(this);
 
     multiLineKeys << "processes_to_log" << "code";
-    ignoredKeys << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
+    //ignoredKeys << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
     setupDataBinding();
 }
 
 AttributeTableModel::~AttributeTableModel()
 {
+    //qCritical() << "~AttributeTableModel";
     entity->unregisterObject(this);
 }
 
@@ -49,12 +50,6 @@ void AttributeTableModel::addData(QString keyName)
     //If we haven't seen this Data Before.
 
     if(editableKeys.contains(keyName) || lockedKeys.contains(keyName) || ignoredKeys.contains(keyName)){
-        return;
-    }
-
-    //Ignore visual data
-    if(entity->isDataVisual(keyName)){
-        ignoredKeys.append(keyName);
         return;
     }
 
@@ -270,11 +265,12 @@ void AttributeTableModel::setupDataBinding()
         foreach(QString key, entity->getKeys()){
             addData(key);
         }
+        connect(entity, &ViewItem::dataAdded, this, &AttributeTableModel::addData);
+        connect(entity, &ViewItem::dataRemoved, this, &AttributeTableModel::removedData);
+        connect(entity, &ViewItem::dataChanged, this, &AttributeTableModel::updatedData);
 
-        connect(entity, SIGNAL(dataAdded(QString, QVariant)), this, SLOT(addData(QString)));
-        connect(entity, SIGNAL(dataRemoved(QString)), this, SLOT(removedData(QString)));
-        connect(entity, SIGNAL(dataChanged(QString, QVariant)), this, SLOT(updatedData(QString)));
-        connect(entity, SIGNAL(destructing()), this, SLOT(deleteLater()));
+
+        connect(entity, &ViewItem::destructing, this, &AttributeTableModel::deleteLater);
     }
 }
 

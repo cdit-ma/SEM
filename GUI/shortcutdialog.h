@@ -10,9 +10,12 @@ class ShortcutDialog : public QDialog
     Q_OBJECT
 public:
     explicit ShortcutDialog(QWidget *parent = 0);
-    void addShortcut(QString shortcut, QString description="");
-    void addTitle(QString label, QIcon icon);
+    void addShortcut(QString shortcut, QString description, QString alias="", QString image="");
+    void addTitle(QString label, QString alias="", QString image="");
+    void resizeTable();
 
+private slots:
+    void themeChanged();
 private:
     void setupLayout();
 

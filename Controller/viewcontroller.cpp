@@ -1,12 +1,15 @@
 #include "viewcontroller.h"
-#include "../View/nodeviewitem.h"
-#include "../View/edgeviewitem.h"
+
+#include "../Widgets/New/medeawindowmanager.h"
+#include "../Widgets/New/medeawindownew.h"
+#include "../Widgets/New/medeanodeviewdockwidget.h"
+
 #include "../View/Toolbar/toolbarwidgetnew.h"
 #include "../View/nodeviewnew.h"
-#include "../Widgets/New/medeawindownew.h"
 #include "../GUI/codebrowser.h"
 #include "controller.h"
 #include "filehandler.h"
+
 #include <QMessageBox>
 #include <QDebug>
 #include <QDateTime>
@@ -15,8 +18,6 @@
 #include <QThreadPool>
 #include <QListIterator>
 
-#include "../Widgets/New/medeawindowmanager.h"
-#include "../Widgets/New/medeanodeviewdockwidget.h"
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
@@ -166,18 +167,21 @@ QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
     return items;
 }
 
+
 QStringList ViewController::_getSearchSuggestions()
 {
     QStringList suggestions;
 
+    QStringList visualKeys = NewController::getVisualKeys();
+
     foreach(ViewItem* item, viewItems.values()){
-        //ID's
-        suggestions.append(QString::number(item->getID()));
-        //Data
-        foreach(QString key, item->getKeys()){
-            QString data = item->getData(key).toString();
-            if(!suggestions.contains(data)){
-                suggestions.append(data);
+        if(item->isInModel()){
+            //ID's
+            suggestions.append(QString::number(item->getID()));
+            foreach(QString key, item->getKeys()){
+                if(!visualKeys.contains(key)){
+                    suggestions.append(item->getData(key).toString());
+                }
             }
         }
     }
@@ -188,23 +192,25 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
 {
     QMap<QString, ViewItem*> results;
 
+    QStringList visualKeys = NewController::getVisualKeys();
+
     foreach(ViewItem* item, viewItems.values()){
-        QString ID = QString::number(item->getID());
+        if(item->isInModel()){
+            QString ID = QString::number(item->getID());
 
-        if(ID.contains(query)){
-            results.insertMulti("ID", item);
-        }
+            if(ID.contains(query)){
+                results.insertMulti("ID", item);
+            }
 
-        foreach(QString key, item->getKeys()){
-            QString data = item->getData(key).toString();
-            if(data.contains(query)){
-                results.insertMulti(key, item);
+            foreach(QString key, item->getKeys()){
+                if(!visualKeys.contains(key)){
+                    QString data = item->getData(key).toString();
+                    if(data.contains(query)){
+                        results.insertMulti(key, item);
+                    }
+                }
             }
         }
-    }
-    foreach(QString key, results.uniqueKeys()){
-        //qCritical() << "Items Matching: " << key;
-        //qCritical() << results.values(key);
     }
     return results;
 }
@@ -247,6 +253,15 @@ QList<Edge::EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
     QList<Edge::EDGE_KIND> edgeKinds;
     if(selectionController && controller){
         edgeKinds = controller->getValidEdgeKindsForSelection(selectionController->getSelectionIDs());
+    }
+    return edgeKinds;
+}
+
+QList<Edge::EDGE_KIND> ViewController::getExistingEdgeKindsForSelection()
+{
+    QList<Edge::EDGE_KIND> edgeKinds;
+    if(selectionController && controller){
+        edgeKinds = controller->getExistingEdgeKindsForSelection(selectionController->getSelectionIDs());
     }
     return edgeKinds;
 }
@@ -302,10 +317,14 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             case Node::NK_VECTOR:
             case Node::NK_VECTOR_INSTANCE:
-                foreach(ViewItem* child, viewItem->getChildren()){
+                foreach(ViewItem* child, viewItem->getDirectChildren()){
                     image = kind % "_" % child->getData("kind").toString();
                     break;
                 }
+                break;
+            case Node::NK_MODEL:
+                alias = "Actions";
+                image = "MEDEA";
                 break;
             default:
                 break;
@@ -341,7 +360,7 @@ void ViewController::setController(NewController *c)
 void ViewController::projectOpened(bool success)
 {
     this->fitAllViews();
-    getSearchResults("Interface");
+    //getSearchResults("Interface");
 }
 
 void ViewController::gotExportedSnippet(QString snippetData)
@@ -450,18 +469,14 @@ void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 
 void ViewController::getCodeForComponent()
 {
-    if(selectionController && controller){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item && item->isNode()){
-            NodeViewItem* node = (NodeViewItem*) item;
-
-            if(node->getNodeKind() == Node::NK_COMPONENT_IMPL || node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
-                QString componentName = node->getData("label").toString();
-                qCritical() << componentName;
-                QString filePath = getTempFileForModel();
-                if(!componentName.isEmpty() && !filePath.isEmpty()){
-                    emit vc_getCodeForComponent(filePath, componentName);
-                }
+    ViewItem* item = getActiveSelectedItem();
+    if(item && item->isNode()){
+        NodeViewItem* node = (NodeViewItem*) item;
+        if(node->getNodeKind() == Node::NK_COMPONENT_IMPL || node->getNodeKind() == Node::NK_COMPONENT || node->getNodeKind() == Node::NK_COMPONENT_INSTANCE){
+            QString componentName = node->getData("label").toString();
+            QString filePath = getTempFileForModel();
+            if(!componentName.isEmpty() && !filePath.isEmpty()){
+                emit vc_getCodeForComponent(filePath, componentName);
             }
         }
     }
@@ -477,6 +492,11 @@ void ViewController::validateModel()
             emit vc_validateModel(filePath, reportPath);
         }
     }
+}
+
+void ViewController::selectModel()
+{
+    emit selectionController->itemActiveSelectionChanged(getModel(), true);
 }
 
 void ViewController::launchLocalDeployment()
@@ -499,6 +519,12 @@ void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit vc_triggerAction("Table Changed");
     emit vc_setData(ID, key, data);
+}
+
+void ViewController::_showGitHubPage(QString relURL)
+{
+    QString URL = APP_URL % relURL;
+    QDesktopServices::openUrl(QUrl(URL));
 }
 
 QString ViewController::getTempFileForModel()
@@ -566,7 +592,7 @@ bool ViewController::canExportSnippet()
 
 bool ViewController::canImportSnippet()
 {
-    if(controller){
+    if(controller && selectionController){
         return controller->canImportSnippet(selectionController->getSelectionIDs());
     }
     return false;
@@ -584,50 +610,68 @@ QVector<ViewItem *> ViewController::getOrderedSelection(QList<int> selection)
     return items;
 }
 
-bool ViewController::destructViewItem(ViewItem *viewItem)
+bool ViewController::destructViewItem(ViewItem *item)
 {
-    if(viewItem){
-        //Delete children first!
-        destructChildItems(viewItem);
-
-        QString treeKey;
-
+    if(!item){
+        return false;
+    }
+    QList<ViewItem*> children;
+    children.append(item);
+    children.append(item->getNestedChildren());
+    QListIterator<ViewItem*> it(children);
+    it.toBack();
+    while(it.hasPrevious()){
+        ViewItem* viewItem = it.previous();
+        if(!viewItem || viewItem == rootItem){
+            continue;
+        }
         int ID = viewItem->getID();
+
         if(viewItem->isNode()){
+            //Remove node from nodeKind Map
             NodeViewItem* nodeItem = (NodeViewItem*)viewItem;
-            treeKey = nodeItem->getTreeIndex();
             nodeKindLookups.remove(nodeItem->getNodeKind(), ID);
+
+            //Remove Node from tree lookup.
+            QString treeKey = nodeItem->getTreeIndex();
+            if(treeLookup.contains(treeKey)){
+                treeLookup.remove(treeKey);
+            }
         }else if(viewItem->isEdge()){
+            //Remove Edge from edgeKind map
             EdgeViewItem* edgeItem = (EdgeViewItem*)viewItem;
+            edgeItem->disconnectEdge();
             edgeKindLookups.remove(edgeItem->getEdgeKind(), ID);
         }
 
-
-        if(!treeKey.isEmpty() && treeLookup.contains(treeKey)){
-            treeLookup.remove(treeKey);
-        }
-
         ViewItem* parentItem = viewItem->getParentItem();
-        NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
         if(parentItem){
             parentItem->removeChild(viewItem);
 
-            if(parentItem->isNode() && parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE){
-                setDefaultIcon(parentItem);
+            NodeViewItem* parentNodeItem = (NodeViewItem*) parentItem;
+
+            if(parentItem->isNode()){
+                //Update the Icon of Vectors!
+                switch(parentNodeItem->getNodeKind()){
+                case Node::NK_VECTOR:
+                case Node::NK_VECTOR_INSTANCE:
+                    setDefaultIcon(parentItem);
+                    break;
+                default:
+                    break;
+                }
             }
         }
 
-        //Remove the item from the Hash
+        //Remove the item from the Hash/TopLevel Hash
         viewItems.remove(ID);
-
-
-
         topLevelItems.removeAll(ID);
 
+        //Tell Views we are destructing!
         emit vc_viewItemDestructing(ID, viewItem);
         viewItem->destruct();
     }
-    return false;
+    return true;
 }
 
 QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
@@ -641,6 +685,14 @@ QList<ViewItem *> ViewController::getViewItems(QList<int> IDs)
         }
     }
     return items;
+}
+
+ViewItem *ViewController::getActiveSelectedItem() const
+{
+    if(selectionController){
+        return selectionController->getActiveSelectedItem();
+    }
+    return 0;
 }
 
 QList<NodeViewNew *> ViewController::getNodeViewsContainingID(int ID)
@@ -753,15 +805,42 @@ void ViewController::deleteSelection()
     }
 }
 
-void ViewController::renameActiveSelection()
+void ViewController::expandSelection()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            emit vc_editTableCell(item->getID(), "label");
+    if(selectionController && selectionController->getSelectionCount() > 0){
+        emit vc_triggerAction("Expand Selection");
+        foreach(int ID, selectionController->getSelectionIDs()){
+            emit vc_setData(ID, "isExpanded", true);
         }
     }
 }
+
+void ViewController::contractSelection()
+{
+    if(selectionController && selectionController->getSelectionCount() > 0){
+        emit vc_triggerAction("Expand Selection");
+        foreach(int ID, selectionController->getSelectionIDs()){
+            emit vc_setData(ID, "isExpanded", false);
+        }
+    }
+}
+
+void ViewController::editLabel()
+{
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        emit vc_editTableCell(item->getID(), "label");
+    }
+}
+
+void ViewController::editReplicationCount()
+{
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        emit vc_editTableCell(item->getID(), "replicate_count");
+    }
+}
+
 
 void ViewController::constructDDSQOSProfile()
 {
@@ -780,7 +859,7 @@ void ViewController::_teardownProject()
             setControllerReady(false);
             emit vc_projectPathChanged("");
             emit mc_projectModified(false);
-            destructChildItems(rootItem);
+            destructViewItem(rootItem);
             nodeKindLookups.clear();
             edgeKindLookups.clear();
 
@@ -1091,17 +1170,14 @@ void ViewController::importXMIProject()
 
 void ViewController::importSnippet()
 {
-    if(getSelectionController() && canImportSnippet()){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            QString itemKind = item->getData("kind").toString();
-
-            QStringList files = FileHandler::selectFiles("Import " + itemKind + ".snippet", QFileDialog::ExistingFile, false,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
-            if(files.size() == 1){
-                QString filePath = files.at(0);
-                QString fileData = FileHandler::readTextFile(filePath);
-                emit vc_importSnippet(selectionController->getSelectionIDs(), filePath, fileData);
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item && canImportSnippet()){
+        QString itemKind = item->getData("kind").toString();
+        QStringList files = FileHandler::selectFiles("Import " + itemKind + ".snippet", QFileDialog::ExistingFile, false,"GraphML " + itemKind + " Snippet (*." + itemKind+ ".snippet)", "." + itemKind + ".snippet");
+        if(files.size() == 1){
+            QString filePath = files.at(0);
+            QString fileData = FileHandler::readTextFile(filePath);
+            emit vc_importSnippet(selectionController->getSelectionIDs(), filePath, fileData);
         }
     }
 }
@@ -1198,7 +1274,6 @@ void ViewController::alignSelectionVertical()
     if(view){
         view->alignVertical();
     }
-
 }
 
 void ViewController::alignSelectionHorizontal()
@@ -1207,7 +1282,22 @@ void ViewController::alignSelectionHorizontal()
     if(view){
         view->alignHorizontal();
     }
+}
 
+void ViewController::selectAndCenterConnectedEntities()
+{
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        emit vc_selectAndCenterConnectedEntities(item);
+    }
+}
+
+void ViewController::setSelectionReadOnly(bool locked)
+{
+    if(controller && selectionController){
+        emit vc_triggerAction("Set Selection Locked");
+        controller->setReadOnly(selectionController->getSelectionIDs(), locked);
+    }
 }
 
 void ViewController::centerOnID(int ID)
@@ -1215,62 +1305,73 @@ void ViewController::centerOnID(int ID)
     emit vc_centerItem(ID);
 }
 
+void ViewController::showWiki()
+{
+    _showGitHubPage("wiki/");
+}
+
+void ViewController::reportBug()
+{
+    _showGitHubPage("issues/");
+}
+
+void ViewController::showWikiForSelectedItem()
+{
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        QString relURL = "wiki/SEM-MEDEA-ModelEntities#" + item->getData("kind").toString();
+        _showGitHubPage(relURL);
+    }
+}
+
 void ViewController::centerImpl()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* impl = getNodesImpl(item->getID());
-            if(impl){
-                emit vc_centerItem(impl->getID());
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* impl = getNodesImpl(item->getID());
+        if(impl){
+            emit vc_centerItem(impl->getID());
         }
     }
 }
 
 void ViewController::centerDefinition()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* def = getNodesDefinition(item->getID());
-            if(def){
-                emit vc_centerItem(def->getID());
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* def = getNodesDefinition(item->getID());
+        if(def){
+            emit vc_centerItem(def->getID());
         }
     }
 }
 
 void ViewController::popupImpl()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* impl = getNodesImpl(item->getID());
-            if(impl){
-                spawnSubView(impl);
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* impl = getNodesImpl(item->getID());
+        if(impl){
+            spawnSubView(impl);
         }
     }
 }
 
 void ViewController::popupDefinition()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
-        if(item){
-            NodeViewItem* def = getNodesDefinition(item->getID());
-            if(def){
-                spawnSubView(def);
-            }
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
+        NodeViewItem* def = getNodesDefinition(item->getID());
+        if(def){
+            spawnSubView(def);
         }
     }
 }
 
 void ViewController::popupSelection()
 {
-    if(selectionController){
-        ViewItem* item = selectionController->getActiveSelectedItem();
+    ViewItem* item = getActiveSelectedItem();
+    if(item){
         spawnSubView(item);
     }
 }
@@ -1278,7 +1379,37 @@ void ViewController::popupSelection()
 void ViewController::popupItem(int ID)
 {
     ViewItem* item = getViewItem(ID);
-    spawnSubView(item);
+    if(item){
+        spawnSubView(item);
+    }
+}
+
+void ViewController::aboutQt()
+{
+    MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
+    QMessageBox::aboutQt(window);
+}
+
+void ViewController::aboutMEDEA()
+{
+    QString aboutString =
+    "<h3>MEDEA " APP_VERSION "</h3>"
+    "<a href=\"" APP_URL "\"><i>Center for Distributed and Intelligent Systems - Model Analysis</i></a><br />"
+    "The University of Adelaide<hr /><br />"
+    "Team:"
+    "<ul>"
+    "<li>Dan Fraser (Lead Programmer)</li>"
+    "<li>Cathlyn Aston (UX Programmer)</li>"
+    "<li>Mitchell Conrad</li>"
+    "</ul>"
+    "Past Members:"
+    "<ul>"
+    "<li>Marianne Rieckmann (XSL Transforms)</li>"
+    "<li>Jackson Michael (CUTS Workers)</li>"
+    "<li>Matthew Hart</li>"
+    "</ul>";
+    MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
+    QMessageBox::about(window, "About MEDEA " APP_VERSION, aboutString);
 }
 
 
@@ -1323,26 +1454,18 @@ void ViewController::initializeController()
 
 bool ViewController::destructChildItems(ViewItem *parent)
 {
-    QListIterator<ViewItem*> it(parent->getChildren());
-
+    QVectorIterator<ViewItem*> it(parent->getDirectChildren());
     it.toBack();
     while(it.hasPrevious()){
-        destructViewItem(it.previous());
+        ViewItem* item = it.previous();
+        destructViewItem(item);
     }
     return true;
 }
 
 bool ViewController::clearVisualItems()
 {
-    QListIterator<ViewItem*> it(rootItem->getChildren());
-
-    it.toBack();
-    while(it.hasPrevious()){
-        destructViewItem(it.previous());
-    }
-
-    nodeKindLookups.clear();
-    edgeKindLookups.clear();
+    destructViewItem(rootItem);
     return true;
 }
 

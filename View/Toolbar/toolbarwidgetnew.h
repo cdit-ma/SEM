@@ -34,6 +34,7 @@ public slots:
 
     void addChildNode(QAction* action);
     void addEdge(QAction* action);
+    void removeEdge(QAction* action);
 
 private:    
     void setupToolbar();
@@ -42,6 +43,7 @@ private:
     void setupSplitMenus();
     void setupAddChildMenu();
     void setupConnectMenu();
+    void setupDisconnectMenu();
     void setupReplicateCountMenu();
     void setupHardwareViewOptionMenu();
     void setupInstancesMenu();
@@ -69,26 +71,29 @@ private:
 
     ActionGroup* mainGroup;
     ActionGroup* connectGroup;
+    ActionGroup* disconnectGroup;
 
     QMenu* addMenu;
     QMenu* hardwareMenu;
     QMenu* replicateMenu;
     QMenu* hardwareViewOptionMenu;
     QMenu* connectMenu;
+    QMenu* disconnectMenu;
 
     QAction* addChildAction;
     QAction* connectAction;
+    QAction* disconnectAction;
     QAction* hardwareAction;
     QAction* disconnectHardwareAction;
     QAction* definitionAction;
     QAction* implementationAction;
-    QAction* instancesAction;
+    //QAction* instancesAction;
     QAction* connectionsAction;
-    QAction* replicateCountAction;
     QAction* hardwareViewOptionAction;
 
-    QSpinBox* replicateCount;
-    QToolButton* applyReplicateCountButton;
+    //QAction* replicateCountAction;
+    //QSpinBox* replicateCount;
+    //QToolButton* applyReplicateCountButton;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;

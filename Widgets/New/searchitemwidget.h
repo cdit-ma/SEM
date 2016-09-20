@@ -4,8 +4,8 @@
 #include <QFrame>
 #include <QWidget>
 #include <QToolButton>
-#include <QPushButton>
 #include <QLabel>
+#include <QVBoxLayout>
 
 #include "../../View/viewitem.h"
 #include "../../View/theme.h"
@@ -16,14 +16,19 @@ class SearchItemWidget : public QFrame
 public:
     explicit SearchItemWidget(ViewItem* item, QWidget *parent = 0);
     ~SearchItemWidget();
+
+    void addDisplayKey(QString key);
     void setDisplayKeys(QList<QString> keys);
+
+    void setSelected(bool selected);
     
 signals:
-    void centerOnViewItem(int ID);
+    void hoverEnter(int ID);
+    void hoverLeave(int ID);
+    void itemSelected(int ID);
 
 public slots:
     void themeChanged();
-    void centerButtonClicked();
     void expandButtonToggled(bool checked);
     void toggleKeyWidget(QString key);
     
@@ -34,7 +39,9 @@ protected:
     void leaveEvent(QEvent*);
 
 private:
-    void updateColor(Theme::COLOR_ROLE colorRole);
+    void setupLayout(QVBoxLayout* layout);
+    void constructKeyWidgets();
+    void updateStyleSheet();
 
     ViewItem* viewItem;
     int viewItemID;
@@ -44,13 +51,19 @@ private:
     QPair<QString, QString> iconPath;
 
     QLabel* textLabel;
-    //QPushButton* expandButton;
     QToolButton* expandButton;
-    QToolButton* centerButton;
     QWidget* displayWidget;
     
+    QList<QString> keys;
     QHash<QString, QWidget*> keyWidgetHash;
+    QString checkedKey;
+
+    QString backgroundColor;
+    QString hoverColor;
+
+    bool keyWidgetsConstructed;
     bool doubleClicked;
+    bool selected;
 
 };
 

@@ -147,6 +147,8 @@ bool DataNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 
 
 
+
+
         int heightToAncestor = getDepthFromCommonAncestor(dst);
         int heightToComponentImpl = getDepthFromAspect() - 1;
 

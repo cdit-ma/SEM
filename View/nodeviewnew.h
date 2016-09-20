@@ -36,6 +36,7 @@ public:
     void alignVertical();
 
     void centerSelection();
+
     QList<int> getIDsInView();
 signals:
     void trans_InActive2Moving();
@@ -102,6 +103,7 @@ private slots:
     void minimap_Zoom(int delta);
 
     void centerItem(int ID);
+    void centerConnections(ViewItem *item);
     void highlightItem(int ID, bool highlighted);
 private:
     void setupConnections(EntityItemNew* item);

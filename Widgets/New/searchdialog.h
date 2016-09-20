@@ -10,6 +10,7 @@
 #include <QComboBox>
 #include <QVBoxLayout>
 #include <QActionGroup>
+#include <QSplitter>
 
 #include "../../View/viewitem.h"
 #include "searchitemwidget.h"
@@ -23,12 +24,21 @@ public:
     void searchResults(QString query, QMap<QString, ViewItem*> results);
 
 signals:
+    void itemHoverEnter(int ID);
+    void itemHoverLeave(int ID);
     void keyButtonChecked(QString key);
     void centerOnViewItem(int ID);
+    void popupViewItem(int ID);
 
 public slots:
     void themeChanged();
     void keyButtonChecked(bool checked);
+
+    void searchItemSelected(int ID);
+    void viewItemDestructed(int ID);
+
+    void centerOnSelectedItem();
+    void popupSelectedItem();
 
 private:
     void setupLayout();
@@ -36,25 +46,28 @@ private:
 
     SearchItemWidget* constructSearchItem(ViewItem* item);
     void constructKeyButton(QString key, QString text = "", bool checked = false);
-    void updateKeysToolBarStyleSheet();
 
     QLabel* queryLabel;
+    QLabel* searchLabel;
     QLabel* scopeLabel;
     QLabel* infoLabel;
+    QSplitter* displaySplitter;
+
+    QToolButton* centerOnButton;
+    QToolButton* popupButton;
 
     QLineEdit* searchLineEdit;
     QToolButton* searchButton;
     QComboBox* scopeComboBox;
 
-    QScrollArea* keysArea;
     QToolBar* keysToolBar;
     QVBoxLayout* keysLayout;
     QActionGroup* keysActionGroup;
 
     QVBoxLayout* resultsLayout;
-    QList<SearchItemWidget*> searchItems;
+    QHash<int, SearchItemWidget*> searchItems;
 
-    int maxToolButtonWidth;
+    int selectedSearchItemID;
 };
 
 #endif // SEARCHDIALOG_H

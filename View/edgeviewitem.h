@@ -18,6 +18,7 @@ public:
     NodeViewItem* getParentItem();
     int getSourceID();
     int getDestinationID();
+    void disconnectEdge();
 private:
     NodeViewItem* source;
     NodeViewItem* destination;
