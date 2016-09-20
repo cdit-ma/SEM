@@ -128,8 +128,7 @@ public:
     RootAction* view_viewConnections;
     RootAction* view_viewInNewWindow;
 
-    RootAction* window_printScreen;
-    RootAction* window_displayMinimap;
+    RootAction* window_showNotifications;
 
     RootAction* model_validateModel;
     RootAction* model_selectModel;

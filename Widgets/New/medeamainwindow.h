@@ -123,7 +123,6 @@ private:
     ViewController* viewController;
 
 
-    QToolButton* notificationsButton;
     QToolButton* interfaceButton;
     QToolButton* behaviourButton;
     QToolButton* assemblyButton;

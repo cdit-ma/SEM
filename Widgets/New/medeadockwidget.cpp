@@ -24,7 +24,6 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 
     setContextMenuPolicy(Qt::CustomContextMenu);
 
-
     if(titleBar){
         //Do connects.
         connect(titleBar->getAction(DockTitleBarWidget::DA_CLOSE), &QAction::triggered, this, &MedeaDockWidget::title_Close);
@@ -44,6 +43,7 @@ MedeaDockWidget::~MedeaDockWidget()
 {
 
 }
+
 
 int MedeaDockWidget::getID()
 {
@@ -73,6 +73,11 @@ void MedeaDockWidget::setSourceWindow(MedeaWindowNew *window)
 MedeaWindowNew *MedeaDockWidget::getSourceWindow()
 {
     return sourceWindow;
+}
+
+QPair<QString, QString> MedeaDockWidget::getIcon()
+{
+    return titleIcon;
 }
 
 DockTitleBarWidget *MedeaDockWidget::getTitleBar()
@@ -127,8 +132,12 @@ void MedeaDockWidget::setIcon(QPair<QString, QString> pair)
 void MedeaDockWidget::setIcon(QString prefix, QString alias)
 {
     if(titleBar){
+        titleIcon.first = prefix;
+        titleIcon.second = alias;
         titleBar->setIcon(Theme::theme()->getImage(prefix, alias, QSize(16,16)));
+        emit iconChanged();
     }
+
 }
 
 void MedeaDockWidget::setTitle(QString title, Qt::Alignment alignment)
@@ -180,6 +189,11 @@ void MedeaDockWidget::setFocusEnabled(bool enabled)
 bool MedeaDockWidget::isFocusEnabled()
 {
     return _isFocusEnabled;
+}
+
+void MedeaDockWidget::setIconVisible(bool visible)
+{
+    setActionVisible(DockTitleBarWidget::DA_ICON, visible);
 }
 
 void MedeaDockWidget::setCloseVisible(bool visible)

@@ -30,7 +30,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     typeIconListWidget = new QListWidget(this);
 
     listWidget->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
-    listWidget->setSortingEnabled(true);
+    //listWidget->setSortingEnabled(true);
     listWidget->setUniformItemSizes(true);
 
     typeIconListWidget->setSelectionMode(QListWidget::NoSelection);
@@ -42,6 +42,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
 
     clearAllButton = new QToolButton(this);
     clearAllButton->setText("Clear All");
+    clearAllButton->hide();
 
     clearSelectedButton = new QToolButton(this);
     clearSelectedButton->setText("Clear Selected");
@@ -63,7 +64,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     //toolbar->addWidget(typeComboBox);
     //toolbar->addWidget(stretcher);
     toolbar->addWidget(clearSelectedButton);
-    toolbar->addWidget(clearAllButton);
+    //toolbar->addWidget(clearAllButton);
 
     mainLayout->addLayout(topHLayout);
     mainLayout->addLayout(bottomHLayout, 1);
@@ -259,7 +260,7 @@ void NotificationDialog::addNotificationItem(NOTIFICATION_TYPE type, QString tit
 void NotificationDialog::addListItem(NOTIFICATION_TYPE type, QIcon icon, QString title, QString description)
 {
     QListWidgetItem* listItem = new QListWidgetItem;
-    listItem->setText(description);
+    listItem->setText("[" + title + "] " + description);
     //listItem->setIcon(icon);
     listItem->setData(Qt::UserRole, QVariant(type));
     listWidget->addItem(listItem);

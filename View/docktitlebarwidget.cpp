@@ -50,6 +50,11 @@ void DockTitleBarWidget::setIcon(QPixmap pixmap)
     iconAction->setVisible(!pixmap.isNull());
 }
 
+QPixmap DockTitleBarWidget::getIcon()
+{
+    return *iconLabel->pixmap();
+}
+
 void DockTitleBarWidget::setTitle(QString title, Qt::Alignment alignment)
 {
     titleLabel->setText(title);

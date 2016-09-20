@@ -6,7 +6,6 @@
 
 ViewManagerWidget::ViewManagerWidget(MedeaWindowManager *manager) : QWidget(0)
 {
-    setMinimumHeight(200);
     setContentsMargins(0,0,0,0);
 
     setupLayout();
@@ -22,8 +21,7 @@ ViewManagerWidget::ViewManagerWidget(MedeaWindowManager *manager) : QWidget(0)
 
 void ViewManagerWidget::themeChanged()
 {
-    setStyleSheet(Theme::theme()->getWidgetStyleSheet("ViewManagerWidget"));
-    scrollArea->setStyleSheet("background:#00000000;");
+    setStyleSheet(Theme::theme()->getWidgetStyleSheet("ViewManagerWidget") + "QScrollArea{ background:#00000000; border: 0px; }");
 }
 
 DockWindowItem *ViewManagerWidget::getDockWindowItem(int ID)
@@ -81,13 +79,14 @@ void ViewManagerWidget::setupLayout()
 {
     QVBoxLayout* layout = new QVBoxLayout(this);
     windowArea = new QWidget(this);
+    windowArea->setStyleSheet("background: rgba(0,0,0,0);");
 
     scrollLayout = new QVBoxLayout();
     windowArea->setLayout(scrollLayout);
     scrollLayout->setContentsMargins(0,0,0,0);
     layout->setContentsMargins(0,0,0,0);
 
-    scrollArea = new QScrollArea();
+    scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
 
     scrollArea->setWidget(windowArea);
@@ -122,12 +121,13 @@ WindowItem::~WindowItem()
 
 void WindowItem::themeChanged()
 {
-    windowToolbar->setStyleSheet(Theme::theme()->getDockTitleBarStyleSheet(false, "#WINDOW_TOOLBAR"));
-    if(closeAction){
-        closeAction->setIcon(Theme::theme()->getIcon("Actions", "Close"));
-    }
-}
+    windowToolbar->setStyleSheet(Theme::theme()->getDockTitleBarStyleSheet(false, "#WINDOW_TOOLBAR") +
+                                 "#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background: rgba(0,0,0,0); }"
+                                 "#WINDOW_TOOLBAR QToolButton::!hover{ background: rgba(0,0,0,0); }");
 
+    closeAction->setIcon(Theme::theme()->getIcon("Actions", "Close"));
+
+}
 
 
 void WindowItem::dockWidgetAdded(MedeaDockWidget *widget)
@@ -185,7 +185,17 @@ DockWindowItem::DockWindowItem(ViewManagerWidget *manager, MedeaDockWidget *dock
     connect(Theme::theme(), &Theme::theme_Changed, this, &DockWindowItem::themeChanged);
     connect(dockWidget, &MedeaDockWidget::dockSetActive, this, &DockWindowItem::themeChanged);
     connect(dockWidget, &MedeaDockWidget::titleChanged, this, &DockWindowItem::titleChanged);
+    connect(dockWidget, &MedeaDockWidget::iconChanged, this, &DockWindowItem::updateIcon);
     themeChanged();
+}
+
+void DockWindowItem::updateIcon()
+{
+    if(iconLabel && dockWidget){
+        QPair<QString, QString> icon = dockWidget->getIcon();
+        iconLabel->setPixmap(Theme::theme()->getImage(icon.first, icon.second, QSize(16,16)));
+    }
+
 }
 
 void DockWindowItem::themeChanged()
@@ -206,12 +216,14 @@ void DockWindowItem::setupLayout()
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setStyleSheet("margin-right: 2px;");
 
+
+
     label = new QLabel(this);
     label->setText(titleBar->getTitle());
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     iconAction = addWidget(iconLabel);
-    iconAction->setVisible(false);
+    iconAction->setVisible(true);
 
     labelAction = addWidget(label);
 
@@ -219,4 +231,5 @@ void DockWindowItem::setupLayout()
         addActions(titleBar->getToolActions());
     }
     setIconSize(QSize(16,16));
+    updateIcon();
 }

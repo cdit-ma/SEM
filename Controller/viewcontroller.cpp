@@ -429,6 +429,7 @@ void ViewController::showCodeViewer(QString tabName, QString content)
         codeViewer->setCloseVisible(false);
         CodeBrowser* codeBrowser = new CodeBrowser(codeViewer);
         codeViewer->setWidget(codeBrowser);
+        codeViewer->setIcon("Functions", "cppCode");
         codeViewer->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
         MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
         if(window){

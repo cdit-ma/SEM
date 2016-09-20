@@ -526,7 +526,7 @@ QString Theme::getWindowStyleSheet()
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
            "background-image: url(:/MEDEA_Watermark); background-position: center; background-repeat: no-repeat;"
-            "}" ;
+            "}";
 }
 
 QString Theme::getScrollBarStyleSheet()
@@ -601,7 +601,7 @@ QString Theme::getTabbedWidgetStyleSheet()
 QString Theme::getNodeViewStyleSheet(bool isActive)
 {
     QString activeBorder = "border: 2px solid " % getActiveWidgetBorderColorHex() % ";";
-    QString inActiveBorder = "border: 1px solid " % getDisabledBackgroundColorHex() % ";";
+    QString inActiveBorder = "border: 2px solid " % getDisabledBackgroundColorHex() % ";";
     return "QGraphicsView {"
            "background:" % getBackgroundColorHex() % ";"
            % (isActive ? activeBorder : inActiveBorder) %
@@ -612,6 +612,7 @@ QString Theme::getNodeViewStyleSheet(bool isActive)
 QString Theme::getDockWidgetStyleSheet()
 {
     return "QDockWidget {"
+           "border: 4px solid red;"
            "margin: 5px;"
            "background:" % getBackgroundColorHex() % ";"
            "}";

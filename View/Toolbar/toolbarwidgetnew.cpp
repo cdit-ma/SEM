@@ -347,7 +347,7 @@ void ToolbarWidgetNew::setupActions()
     implementationAction = mainGroup->addAction(actionController->view_centerOnImpl->constructSubAction(true));
     //instancesAction = mainGroup->addAction(toolbarController->getInstancesAction(true));
     mainGroup->addSeperator();
-    hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
+    //hardwareViewOptionAction = mainGroup->addAction(actionController->toolbar_displayedChildrenOption->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
     //replicateCountAction = mainGroup->addAction(actionController->toolbar_replicateCount->constructSubAction(true));
 
@@ -362,7 +362,7 @@ void ToolbarWidgetNew::setupActions()
     //hardwareAction->setVisible(false);
     //disconnectHardwareAction->setVisible(false);
     //instancesAction->setVisible(false);
-    hardwareViewOptionAction->setVisible(false);
+    //hardwareViewOptionAction->setVisible(false);
 
     // this needs to be called before the actions are added to the toolbar for the split buttons to work
     setupSplitMenus();
@@ -552,11 +552,12 @@ void ToolbarWidgetNew::setupHardwareViewOptionMenu()
     a1->setDefaultWidget(allNodes);
     a2->setDefaultWidget(connectedNodes);
     a3->setDefaultWidget(unconnectedNodes);
-
+    /*
     hardwareViewOptionMenu = constructTopMenu(hardwareViewOptionAction);
     hardwareViewOptionMenu->addAction(a1);
     hardwareViewOptionMenu->addAction(a2);
     hardwareViewOptionMenu->addAction(a3);
+    */
 }
 
 

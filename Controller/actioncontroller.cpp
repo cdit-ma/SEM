@@ -467,7 +467,6 @@ void ActionController::updateActions()
     view_fitAllViews->setEnabled(modelActions);
 
 
-    window_printScreen->setEnabled(modelActions);
     jenkins_importNodes->setEnabled(modelActions);
     jenkins_executeJob->setEnabled(modelActions);
     toolbar_contextToolbar->setEnabled(modelActions);
@@ -728,18 +727,20 @@ void ActionController::setupActions()
     view_viewImplInNewWindow->setShortcutContext(Qt::ApplicationShortcut);
     view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
+    window_showNotifications = createRootAction("View", "Show Implementation in New Window", "", "Actions", "Exclamation");
+    window_showNotifications->setToolTip("Show Notification Dialog.");
+    window_showNotifications->setShortcutContext(Qt::ApplicationShortcut);
+    window_showNotifications->setShortcut(QKeySequence(Qt::Key_F11));
+
 
     view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Actions", "Connections");
-    view_viewConnections->setToolTip("Center selected entity's connected entities..");
+    view_viewConnections->setToolTip("Center selected entity's connected entities.");
     view_viewConnections->setShortcutContext(Qt::ApplicationShortcut);
     view_viewConnections->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_E));
 
 
     view_viewInNewWindow = createRootAction("View", "View In New Window", "", "Actions", "Popup");
     view_viewInNewWindow->setToolTip("Popout selected entity.");
-
-    window_printScreen = createRootAction("View", "Print Screen", "", "Actions", "PrintScreen");
-    window_displayMinimap = createRootAction("Windows", "Display Minimap", "", "Actions", "Minimap");
 
     model_selectModel= createRootAction("Selection", "Select Model", "", "Actions", "MEDEA");
     model_selectModel->setToolTip("Select the Model entity.");
@@ -908,8 +909,7 @@ void ActionController::setupMainMenu()
 
 
     // Window Menu
-    menu_window->addAction(window_printScreen);
-    menu_window->addAction(window_displayMinimap);
+    menu_window->addAction(window_showNotifications);
 
     // Options Menu
     menu_options->addAction(options_settings);

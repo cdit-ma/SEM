@@ -256,8 +256,6 @@ void MedeaMainWindow::themeChanged()
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
     restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
 
-    notificationsButton->setIcon(theme->getIcon("Actions", "Exclamation"));
-
     interfaceButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_INTERFACES));
     behaviourButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_BEHAVIOUR));
     assemblyButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_ASSEMBLIES));
@@ -564,22 +562,31 @@ void MedeaMainWindow::setupInnerWindow()
     MedeaDockWidget *dwInterfaces = MedeaWindowManager::constructNodeViewDockWidget("Interface", Qt::TopDockWidgetArea);
     dwInterfaces->setWidget(nodeView_Interfaces);
     dwInterfaces->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    dwInterfaces->setIcon("Items", "InterfaceDefinitions");
+    dwInterfaces->setIconVisible(false);
 
     MedeaDockWidget *dwBehaviour = MedeaWindowManager::constructNodeViewDockWidget("Behaviour", Qt::TopDockWidgetArea);
     dwBehaviour->setWidget(nodeView_Behaviour);
     dwBehaviour->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    dwBehaviour->setIcon("Items", "BehaviourDefinitions");
+    dwBehaviour->setIconVisible(false);
 
     MedeaDockWidget *dwAssemblies = MedeaWindowManager::constructNodeViewDockWidget("Assemblies", Qt::BottomDockWidgetArea);
     dwAssemblies->setWidget(nodeView_Assemblies);
     dwAssemblies->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    dwAssemblies->setIcon("Items", "AssemblyDefinitions");
+    dwAssemblies->setIconVisible(false);
 
     MedeaDockWidget *dwHardware = MedeaWindowManager::constructNodeViewDockWidget("Hardware", Qt::BottomDockWidgetArea);
     dwHardware->setWidget(nodeView_Hardware);
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    dwHardware->setIcon("Items", "HardwareDefinitions");
+    dwHardware->setIconVisible(false);
 
     MedeaDockWidget *qosDockWidget = MedeaWindowManager::constructViewDockWidget("QOS Browser");
     qosDockWidget->setWidget(qosBrowser);
     qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    qosDockWidget->setIcon("Items", "QOSProfile");
 
 
 
@@ -886,8 +893,6 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     restoreAspectsButton = new QToolButton(this);
     restoreToolsButton = new QToolButton(this);
 
-    notificationsButton = new QToolButton(this);
-    notificationsButton->setToolTip("Show Notifications Dialog");
 
     /*
     interfaceButton->setText("I");
@@ -923,7 +928,7 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     toolbar->setFixedHeight(menuBar->height() - 6);
     toolbar->setStyleSheet("QToolButton{ padding: 2px 4px; }");
 
-    toolbar->addWidget(notificationsButton);
+    toolbar->addAction(viewController->getActionController()->window_showNotifications);
     toolbar->addSeparator();
     toolbar->addWidget(interfaceButton);
     toolbar->addWidget(behaviourButton);
@@ -934,9 +939,11 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     toolbar->addWidget(restoreToolsButton);
 
     menuBar->setCornerWidget(toolbar);
+
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
 
-    connect(notificationsButton, SIGNAL(clicked(bool)), notificationDialog, SLOT(show()));
+
+    connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::show);
 }
 
 

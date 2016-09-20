@@ -35,6 +35,7 @@ class DockWindowItem: public QToolBar{
 public:
     DockWindowItem(ViewManagerWidget* manager, MedeaDockWidget* dockWidget);
 private:
+    void updateIcon();
     void themeChanged();
     void titleChanged();
     void setupLayout();

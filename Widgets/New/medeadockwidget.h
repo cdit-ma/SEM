@@ -16,6 +16,7 @@ protected:
     ~MedeaDockWidget();
 
 public:
+    void setTitleIcon(QString path, QString alias);
     int getID();
     DOCKWIDGET_TYPE getDockType();
     Qt::DockWidgetArea getDockWidgetArea();
@@ -25,6 +26,7 @@ public:
 
     virtual void themeChanged() = 0;
 
+    QPair<QString, QString> getIcon();
     DockTitleBarWidget* getTitleBar();
     void setTitleBarIconSize(int height);
     bool isProtected();
@@ -34,7 +36,7 @@ public:
     MedeaWindowNew* getCurrentWindow();
 
     void setIcon(QPair<QString, QString> pair);
-    void setIcon(QString prefix, QString alias);
+    void setIcon(QString, QString);
     void setTitle(QString title, Qt::Alignment alignment = Qt::AlignLeft);
     QString getTitle();
 
@@ -45,6 +47,8 @@ public:
 
     void setFocusEnabled(bool enabled);
     bool isFocusEnabled();
+    void setIconVisible(bool visible);
+
     void setCloseVisible(bool visible);
     void setHideVisible(bool visible);
     void setMaximizeVisible(bool visible);
@@ -58,6 +62,7 @@ public:
 
     void close();
 signals:
+    void iconChanged();
     void titleChanged();
     void dockSetActive(bool);
     void req_Maximize(int ID, bool maximize);
@@ -88,6 +93,8 @@ private:
 
     MedeaWindowNew* sourceWindow;
     MedeaWindowNew* currentWindow;
+
+    QPair<QString, QString> titleIcon;
 
 protected:
     bool eventFilter(QObject *object, QEvent *event);

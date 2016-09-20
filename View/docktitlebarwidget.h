@@ -4,7 +4,7 @@
 #include <QToolBar>
 #include <QLabel>
 #include <QAction>
-
+#include <QPixmap>
 class DockTitleBarWidget : public QToolBar
 {
     Q_OBJECT
@@ -19,6 +19,7 @@ public:
 
     void setToolBarIconSize(int height);
     void setIcon(QPixmap pixmap);
+    QPixmap getIcon();
     void setTitle(QString title, Qt::Alignment alignment=Qt::AlignCenter);
     QString getTitle();
     QAction* getAction(DOCK_ACTION action);
