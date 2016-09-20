@@ -75,12 +75,6 @@ EntityItemNew::RENDER_STATE EntityItemNew::getRenderState(qreal lod) const
     }
 }
 
-VIEW_STATE EntityItemNew::getViewState() const
-{
-    //TODO
-    return VIEW_STATE::VS_NONE;
-}
-
 EntityItemNew *EntityItemNew::getParent() const
 {
     return parentItem;
@@ -246,7 +240,7 @@ void EntityItemNew::setIconOverlay(QString alias, QString imageName)
     }
 }
 
-bool EntityItemNew::setIconOverlayVisible(bool visible)
+void EntityItemNew::setIconOverlayVisible(bool visible)
 {
     if(paintIconOverlay != visible){
         paintIconOverlay = visible;

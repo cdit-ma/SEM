@@ -205,7 +205,7 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
             foreach(QString key, item->getKeys()){
                 if(!visualKeys.contains(key)){
                     QString data = item->getData(key).toString();
-                    if(data.contains(query)){
+                    if(data.contains(query, Qt::CaseInsensitive)){
                         results.insertMulti(key, item);
                     }
                 }

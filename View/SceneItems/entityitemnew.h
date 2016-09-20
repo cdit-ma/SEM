@@ -44,7 +44,6 @@ public:
     int type() const;
 
     RENDER_STATE getRenderState(qreal lod) const;
-    VIEW_STATE getViewState() const;
     EntityItemNew* getParent() const;
     NodeItemNew* getParentNodeItem() const;
 
@@ -109,7 +108,7 @@ public:
     void setFontSize(int fontSize);
 
     void setIconOverlay(QString iconAlias, QString iconPath);
-    bool setIconOverlayVisible(bool visible);
+    void setIconOverlayVisible(bool visible);
 
 
 private:
