@@ -10,6 +10,7 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     this->viewItem = 0;
     this->parentItem = parentItem;
     this->kind = kind;
+    paintIconOverlay = false;
     connectViewItem(viewItem);
 
     if(parentItem){
@@ -235,6 +236,24 @@ void EntityItemNew::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pix
         painter->drawPixmap(imageRect,pixmap, pixmap.rect());
     }
 }
+
+void EntityItemNew::setIconOverlay(QString alias, QString imageName)
+{
+    if(!paintIconOverlay || iconOverlayIconPath.first != alias || iconOverlayIconPath.second != imageName){
+        iconOverlayIconPath.first = alias;
+        iconOverlayIconPath.second = imageName;
+        update();
+    }
+}
+
+bool EntityItemNew::setIconOverlayVisible(bool visible)
+{
+    if(paintIconOverlay != visible){
+        paintIconOverlay = visible;
+        update();
+    }
+}
+
 
 void EntityItemNew::renderText(QPainter *painter, qreal lod, QRectF textRect, QString text, int fontSize) const
 {
@@ -770,6 +789,10 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     QPair<QString, QString> icon = getIconPath();
     paintPixmap(painter, lod, ER_MAIN_ICON, icon.first, icon.second);
     painter->restore();
+
+    if(state > RS_BLOCK && paintIconOverlay){
+        paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, iconOverlayIconPath.first, iconOverlayIconPath.second);
+    }
 }
 
 QPen EntityItemNew::getPen()

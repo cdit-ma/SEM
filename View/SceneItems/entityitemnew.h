@@ -102,9 +102,14 @@ public:
     void setDefaultPen(QPen pen);
     QPair<QString, QString> getIconPath();
 
+
+
     virtual QPointF getNearestGridPoint(QPointF newPos=QPointF());
 
     void setFontSize(int fontSize);
+
+    void setIconOverlay(QString iconAlias, QString iconPath);
+    bool setIconOverlayVisible(bool visible);
 
 
 private:
@@ -220,6 +225,11 @@ private:
     EntityItemNew* parentItem;
     ViewItem* viewItem;
     QStringList requiredDataKeys;
+
+    bool paintIconOverlay;
+    QPair<QString, QString> iconOverlayIconPath;
+    QPair<QString, QString> secondaryIconPath;
+
 
     QHash<ELEMENT_RECT, ImageMap> imageMap;
 
