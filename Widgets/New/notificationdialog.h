@@ -45,6 +45,8 @@ private:
     QActionGroup* infoActionGroup;
     QActionGroup* warningActionGroup;
     QActionGroup* criticalActionGroup;
+
+    QHash<QListWidgetItem*, QPair<QString, QString>> icons;
 };
 
 #endif // NOTIFICATIONDIALOG_H

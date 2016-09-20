@@ -75,6 +75,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     bottomHLayout->addWidget(typeIconListWidget);
     bottomHLayout->addWidget(listWidget, 1);
 
+    /*
     addNotificationItem(NT_INFO, "", "This is an info message", QPair<QString, QString>());
     addNotificationItem(NT_WARNING, "", "This is a warning message", QPair<QString, QString>());
     addNotificationItem(NT_ERROR, "", "This is a critical message", QPair<QString, QString>());
@@ -84,6 +85,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     addNotificationItem(NT_INFO, "", "This is an info message", QPair<QString, QString>());
     addNotificationItem(NT_WARNING, "", "This is a warning message", QPair<QString, QString>());
     addNotificationItem(NT_ERROR, "", "This is a critical message", QPair<QString, QString>());
+    */
 
     setWindowTitle("Notifications");
     setMinimumSize(toolbar->sizeHint().width()*2.5, 300);
@@ -146,20 +148,19 @@ void NotificationDialog::themeChanged()
                               "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";"
                               "color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}";
 
-    //setStyleSheet("background:" + theme->getBackgroundColorHex() + "; color:" + theme->getTextColorHex() + ";");
-    //setStyleSheet(theme->getAbstractItemViewStyleSheet());
-
     clearAllButton->setStyleSheet(toolButtonStyle);
     clearSelectedButton->setStyleSheet(toolButtonStyle);
 
     setStyleSheet("QDialog{background:" + theme->getBackgroundColorHex() + ";}"
                   "QListWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QListWidget::focus{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
+                  //"QListWidget::focus{ border: 0px; }"
                   "QAbstractItemView {"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "background:" + theme->getBackgroundColorHex() + ";"
                   "}"
                   "QAbstractItemView::item {"
+                  "outline: none;"
+                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "background:" + theme->getBackgroundColorHex() + ";"
                   "color:" + theme->getTextColorHex() + ";"
                   "}"
@@ -172,6 +173,10 @@ void NotificationDialog::themeChanged()
                   "}");
 
     //listWidget->setStyleSheet("border: 10px solid red;");
+
+    foreach (QListWidgetItem* item, icons.keys()) {
+        item->setIcon(theme->getIcon(icons.value(item)));
+    }
 }
 
 
@@ -208,6 +213,7 @@ void NotificationDialog::clearAll()
 {
     listWidget->clear();
     typeIconListWidget->clear();
+    icons.clear();
 }
 
 
@@ -235,7 +241,9 @@ void NotificationDialog::addNotificationItem(NOTIFICATION_TYPE type, QString tit
 {
     QIcon icon = Theme::theme()->getIcon(iconPath);
     if (icon.isNull()) {
-        icon = Theme::theme()->getIcon("Actions", "Help");
+        iconPath.first = "Actions";
+        iconPath.second = "Help";
+        icon = Theme::theme()->getIcon(iconPath);
     }
     addListItem(type, icon, title, description);
 }
@@ -256,28 +264,32 @@ void NotificationDialog::addListItem(NOTIFICATION_TYPE type, QIcon icon, QString
     listItem->setData(Qt::UserRole, QVariant(type));
     listWidget->addItem(listItem);
 
-    QIcon typeIcon;
+    QPair<QString, QString> iconPath;
+    iconPath.first = "Actions";
+
     switch (type) {
     case NT_INFO:
-        typeIcon = Theme::theme()->getIcon("Actions", "Info");
+        iconPath.second = "Info";
         break;
     case NT_WARNING:
-        typeIcon = Theme::theme()->getIcon("Actions", "Warning");
+        iconPath.second = "Warning";
         break;
     case NT_CRITICAL:
-        typeIcon = Theme::theme()->getIcon("Actions", "Critical");
+        iconPath.second = "Critical";
         break;
     case NT_ERROR:
-        typeIcon = Theme::theme()->getIcon("Actions", "Failure");
+        iconPath.second = "Failure";
         break;
     default:
-        typeIcon = Theme::theme()->getIcon("Actions", "Help");
+        iconPath.second = "Help";
         break;
     }
-    listItem->setIcon(typeIcon);
+
+    listItem->setIcon(Theme::theme()->getIcon(iconPath));
+    icons[listItem] = iconPath;
 
     QListWidgetItem* iconItem = new QListWidgetItem;
-    iconItem->setIcon(typeIcon);
+    //iconItem->setIcon(typeIcon);
     typeIconListWidget->addItem(iconItem);
 }
 
@@ -288,6 +300,9 @@ void NotificationDialog::addListItem(NOTIFICATION_TYPE type, QIcon icon, QString
  */
 void NotificationDialog::removeListItem(QListWidgetItem* item)
 {
+    if (icons.contains(item)) {
+        icons.remove(item);
+    }
     int row = listWidget->row(item);
     delete listWidget->takeItem(row);
     delete typeIconListWidget->takeItem(row);
