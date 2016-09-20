@@ -236,7 +236,6 @@ void ActionController::settingChanged(SETTING_KEY key, QVariant value)
 
 void ActionController::jenkinsValidated(bool success)
 {
-    qCritical() << "VALIDATED";
     if(_jenkinsValidated != success){
         _jenkinsValidated = success;
         updateJenkinsActions();
