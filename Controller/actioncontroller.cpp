@@ -122,6 +122,10 @@ void ActionController::connectViewController(ViewController *controller)
 
         connect(readOnlyMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),viewController, &ViewController::setSelectionReadOnly);
 
+
+        connect(window_showNotifications, &QAction::triggered, viewController, &ViewController::notificationsSeen);
+
+
         connectSelectionController(controller->getSelectionController());
     }
 }
@@ -727,10 +731,12 @@ void ActionController::setupActions()
     view_viewImplInNewWindow->setShortcutContext(Qt::ApplicationShortcut);
     view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
-    window_showNotifications = createRootAction("View", "Show Implementation in New Window", "", "Actions", "Exclamation");
-    window_showNotifications->setToolTip("Show Notification Dialog.");
+    window_showNotifications = createRootAction("View", "Show Notifications", "", "Actions", "Exclamation");
+    window_showNotifications->setToolTip("Show Notifications Panel.");
     window_showNotifications->setShortcutContext(Qt::ApplicationShortcut);
     window_showNotifications->setShortcut(QKeySequence(Qt::Key_F11));
+    //window_showNotifications->setCheckable(true);
+    //window_showNotifications->setChecked(false);
 
 
     view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Actions", "Connections");

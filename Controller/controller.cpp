@@ -132,8 +132,8 @@ NewController::NewController() :QObject(0)
     qCritical() << count ++;
 
 
+
     qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
-    qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
     qRegisterMetaType<Edge::EDGE_KIND>("Edge::EDGE_KIND");
     qRegisterMetaType<Node::NODE_KIND>("Node::NODE_KIND");
     qRegisterMetaType<QList<int> >("QList<int>");
@@ -345,6 +345,14 @@ void NewController::connectViewController(ViewController *view)
     connect(view, &ViewController::vc_importSnippet, this, &NewController::importSnippet);
 
 
+    connect(this, &NewController::controller_showNotification, view, &ViewController::vc_showNotification);
+
+
+    connect(view, &ViewController::vc_importSnippet, this, &NewController::importSnippet);
+
+
+
+
 
 
 
@@ -439,13 +447,13 @@ void NewController::loadWorkerDefinitions()
 
                 if(!success){
                     QString message = "Cannot import worker definition '" + file +"'";
-                    emit controller_DisplayMessage(WARNING, message, "Worker Definition Error", "Warning");
+                    emit controller_showNotification(NT_WARNING, "Worker Definition Error", message);
                 }else{
                     //qCritical() << "Loaded Worker Definition: " << file;
                 }
             }else{
                 QString message = "Cannot read worker definition '" + file +"'";
-                emit controller_DisplayMessage(WARNING, message, "Worker Definition Error", "Warning");
+                emit controller_showNotification(NT_WARNING, "Worker Definition Error", message);
             }
         }
 
@@ -458,7 +466,7 @@ void NewController::loadWorkerDefinitions()
                     workerProcesses[longName] = process;
                 }else{
                     QString message = "2 Worker Operations with the same name, Using only the first.";
-                    emit controller_DisplayMessage(WARNING, message, "Worker Definition Error", "Warning");
+                    emit controller_showNotification(NT_WARNING, "Worker Definition Error", message);
                 }
             }
         }
@@ -1033,11 +1041,13 @@ void NewController::constructConnectedNode(int parentID, QString nodeKind, int d
                         }
                     }
                 }else{
-                    emit controller_DisplayMessage(WARNING, "Cannot construct edge; Cycle detected.", "Construction Error", "ConnectTo");
+                    QString message = "Cannot construct edge; Cycle detected.";
+                    emit controller_showNotification(NT_ERROR, "Construct Connected Node", message,"","", parentID);
                 }
             }else{
                 delete testNode;
-                emit controller_DisplayMessage(WARNING, "Parent cannot adopt entity '" + nodeKind +"'", "Construction Error", "Cancel");
+                QString message = "Parent cannot adopt entity '" + nodeKind +"'";
+                emit controller_showNotification(NT_ERROR, "Construct Connected Node", message,"","", parentID);
             }
 
         }
@@ -1048,32 +1058,6 @@ void NewController::constructConnectedNode(int parentID, QString nodeKind, int d
 
 
 
-/**
- * @brief NewController::constructDestructEdges
- * @param srcIDs
- * @param dstID
- * @param construct
- */
-void NewController::constructDestructEdges(QList<int> destruct_srcIDs, QList<int> destruct_dstIDs, QList<int> construct_srcIDs, int dstID)
-{
-    if (destruct_srcIDs.count() == destruct_dstIDs.count()) {
-        for (int i = 0; i < destruct_srcIDs.count(); i++) {
-            Node* src = getNodeFromID(destruct_srcIDs[i]);
-            Node* dst = getNodeFromID(destruct_dstIDs[i]);
-            if (src && dst) {
-                destructEdge(src->getEdgeTo(dst));
-            }
-        }
-    }
-
-    foreach (int srcID, construct_srcIDs) {
-        Node* src = getNodeFromID(srcID);
-        Node* dst = getNodeFromID(dstID);
-        constructEdgeWithData(Edge::EC_NONE, src, dst);
-    }
-
-    emit controller_ActionFinished();
-}
 
 
 Edge* NewController::constructEdgeWithData(Edge::EDGE_KIND edgeClass, Node *src, Node *dst, QList<Data *> data, int previousID)
@@ -1240,7 +1224,8 @@ void NewController::setReadOnly(QList<int> IDs, bool readOnly)
         if(item->isSnippetReadOnly() || item->gotData("readOnlyDefinition")){
             if(displayWarning){
                 displayWarning = false;
-                emit controller_DisplayMessage(WARNING, "Entity in selection is a read-only snippet. Cannot modify read-only state.", "Cannot Modify Read-Only Snippet", "Snippet", item->getID());
+
+                emit controller_showNotification(NT_WARNING, "Read-Only", "Entity in selection is a read-only snippet. Cannot modify read-only state.", "", "", item->getID());
             }
             continue;
         }
@@ -1338,7 +1323,7 @@ bool NewController::_paste(int ID, QString xmlData, bool addAction)
 
     Node* parentNode = getNodeFromID(ID);
     if(!parentNode){
-        controller_DisplayMessage(WARNING, "Paste Error" ,"Please select an entity to paste into.", "Critical");
+        emit controller_showNotification(NT_INFO, "Paste", "No entity selected to paste into.");
         success = false;
     }else{
         if(isGraphMLValid(xmlData) && xmlData != ""){
@@ -1402,7 +1387,7 @@ bool NewController::_copy(QList<int> IDs)
 
         success = true;
     } else {
-        emit controller_DisplayMessage(WARNING, "Cannot copy selection", "Copy Error", "Warning");
+        emit controller_showNotification(NT_INFO, "Copy", "Cannot copy selection.");
     }
     return success;
 }
@@ -1542,7 +1527,7 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
             //bool result = _importGraphMLXML(xmlData, getModel());
             bool result = _newImportGraphML(xmlData, getModel());
             if(!result){
-                controller_DisplayMessage(CRITICAL, "Cannot import document", "Import Error", "Critical", getModel()->getID());
+                emit controller_showNotification(NT_CRITICAL, "Import Project", "Cannot Import Project");
                 success = false;
             }
         }
@@ -3452,7 +3437,7 @@ bool NewController::destructEdge(Edge *edge)
     case Edge::EC_DEPLOYMENT:{
         if(isUserAction()){
             QString message = "Disconnected '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
-            emit controller_DisplayMessage(MESSAGE, message, "Deployment Changed", "Clear");
+            emit controller_showNotification(NT_INFO, "Deployment Changed", message, "Actions", "Clear", src->getID());
         }
     }
     default:
@@ -4743,8 +4728,8 @@ void NewController::constructEdgeGUI(Edge *edge)
     }
     case Edge::EC_DEPLOYMENT:{
         if(isUserAction()){
-            QString message = "Deployed '" % src->getDataValue("label").toString() % "' to '" % dst->getDataValue("label").toString() % "'";
-            emit controller_DisplayMessage(MESSAGE, message, "Deployment Changed", "ConnectTo");
+            QString message = "Deployed '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
+            emit controller_showNotification(NT_INFO, "Deployment Changed", message, "Actions", "ConnectTo", src->getID());
         }
         break;
     }
@@ -5102,7 +5087,7 @@ void NewController::enableDebugLogging(bool logMode, QString applicationPath)
 
         if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
             QString message = "Cannot open log file: '" % filePath % "'. Logging disabled.";
-            emit controller_DisplayMessage(WARNING,message, "Log Error", "Warning");
+            emit controller_showNotification(NT_WARNING, "Log Error", message);
             USE_LOGGING = false;
         }else{
             USE_LOGGING = true;
@@ -5128,7 +5113,7 @@ void NewController::enableDebugLogging(bool logMode, QString applicationPath)
 void NewController::displayMessage(QString title, QString message, int ID)
 {
     //Emit a signal to the view.
-    emit controller_DisplayMessage(MODEL, message, title, "Critical", ID);
+    emit controller_showNotification(NT_INFO, title, message, "", "", ID);
 }
 
 /**
@@ -5153,79 +5138,6 @@ void NewController::removeData(int parentID, QString keyName)
     }
 }
 
-
-void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
-{
-
-    QList<Edge*> edgesToDelete;
-    bool allAlreadyDeployed = true;
-    bool disconnectOnly = dstID == -1;
-
-    Node* dst = getNodeFromID(dstID);
-    //Look for destructs
-    foreach(int ID, srcIDs){
-        int deployedID = getDeployedHardwareID(ID);
-
-        if(disconnectOnly || dstID != deployedID){
-            allAlreadyDeployed = false;
-            if(deployedID != -1){
-                Node* src = getNodeFromID(ID);
-                Node* hDst = getNodeFromID(deployedID);
-                Edge* edge = src->getEdgeTo(hDst);
-                if(edge){
-                    edgesToDelete << edge;;
-                }
-            }
-        }
-    }
-
-    QString message = "Deploying Multiple Entities to singular Hardware Entity.";
-    if(disconnectOnly){
-        message = "Disconnecting Multiple Entities from shared Hardware Entity";
-    }
-    triggerAction(message);
-
-    //Have to delete all edges.
-    if(allAlreadyDeployed){
-        foreach (int srcID, srcIDs) {
-            Node* src = getNodeFromID(srcID);
-            if(src){
-                Edge* edge =  src->getEdgeTo(dst);
-                if(edge){
-                    destructEdge(edge);
-                }
-            }
-        }
-    }else{
-        //Destruct old deployment edges.
-        while(!edgesToDelete.isEmpty()){
-            Edge *edge = edgesToDelete.takeFirst();
-            if(edge){
-                destructEdge(edge);
-            }
-        }
-
-
-        if(!disconnectOnly){
-        //Construct new edges.
-            foreach (int srcID, srcIDs) {
-                Node* src = getNodeFromID(srcID);
-
-                Edge* edge = constructEdgeWithData(Edge::EC_DEPLOYMENT, src, dst);
-                if(!edge){
-                    //Try swap
-                    constructEdgeWithData(Edge::EC_DEPLOYMENT,dst, src);
-                }
-                if(!src || !src->gotEdgeTo(dst)){
-                    QString message = "Cannot connect entity: '" % src->getDataValue("label").toString() % "'' to hardware entity: '" % dst->getDataValue("label").toString() % ".";
-                    emit controller_DisplayMessage(WARNING, message, "Deployment Failed", "Failure" , srcID);
-                }
-            }
-        }
-    }
-
-    emit controller_ActionFinished();
-}
 
 
 /**
@@ -5338,13 +5250,14 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
     if(parent->isInstance() || parent->isImpl()){
         if(!(UNDOING || REDOING)){
             QString message =  "Cannot import/paste into an Instance.";
-            emit controller_DisplayMessage(WARNING, message, "Import Error", "Warning" , parent->getID());
+            emit controller_showNotification(NT_WARNING, "Import Error", message);
             return false;
         }
     }
 
     if(!isGraphMLValid(document)){
-        emit controller_DisplayMessage(CRITICAL, "Cannot import, invalid GraphML document.", "Import Error", "Critical");
+        QString message =  "Invalid GraphML Project";
+        emit controller_showNotification(NT_WARNING, "Import Error", message);
         return false;
     }
 
@@ -5630,7 +5543,7 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
                     if(!newNode){
                         QString message = "Cannot create Node '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
-                        emit  controller_DisplayMessage(WARNING, message, "Import Error", "Import");
+                        emit  controller_showNotification(NT_WARNING, "Import Error", message, "", "", parentNode->getID());
                         entity->setIgnoreConstruction();
                         continue;
                     }
@@ -5723,7 +5636,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
-                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error", "Import");
+                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".";
+                emit  controller_showNotification(NT_ERROR, "Import Error", message);
 			}
         }
     }
@@ -5753,7 +5667,6 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 
         //If we have edges yet to go, yet we haven't gotten any items in out list to process.
         if(currentEdges.size() == 0 && edgesMap.size() > 0){
-            emit controller_DisplayMessage(WARNING, "Inconsistant edge kinds in Edge Map!", "Import Error", "Import");
             break;
         }
 
@@ -5816,8 +5729,10 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
                 edgesMap.insertMulti(entity->getEdgeKind(), entity);
             }else{
                 qCritical() << "Cannot Construct Edge between: " << entity;
+
                 //This entity has no more edge kinds to try, therefore can never be constructed.
-                emit  controller_DisplayMessage(WARNING, "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".", "Import Error", "Import");
+                QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".";
+                emit  controller_showNotification(NT_ERROR, "Import Error", message);
             }
         }
     }

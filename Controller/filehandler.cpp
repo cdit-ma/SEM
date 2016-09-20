@@ -70,10 +70,10 @@ QString FileHandler::readTextFile(QString filePath)
             fileData = fileStream.readAll();
             file.close();
         }else{
-            _notification(NT_CRITICAL, "File Read Error", "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", Theme::getIconPair("Actions", "File"));
+            _notification(NT_CRITICAL, "File Read Error", "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
         }
     }else{
-        _notification(NT_CRITICAL, "File Read Error", "File: '" % fileInfo.absoluteFilePath() % "' doesnt' exist!", Theme::getIconPair("Actions", "File"));
+        _notification(NT_CRITICAL, "File Read Error", "File: '" % fileInfo.absoluteFilePath() % "' doesn't be read!", "Actions", "File");
     }
     return fileData;
 }
@@ -107,14 +107,13 @@ bool FileHandler::writeTextFile(QString filePath, QString fileData)
             out << fileData;
             file.close();
         }else{
-
-            _notification(NT_CRITICAL, "File Write Error", "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", Theme::getIconPair("Actions", "Save"));
+            _notification(NT_CRITICAL, "File Write Error", "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Actions", "Save");
             return false;
         }
     }else{
         return false;
     }
-    _notification(NT_INFO, "File Written", "File: '" % fileInfo.absoluteFilePath() % "' written!", Theme::getIconPair("Actions", "Save"));
+    _notification(NT_CRITICAL, "File Write Error", "File: '" % fileInfo.absoluteFilePath() % "' written!", "Actions", "Save");
     return true;
 }
 
@@ -125,9 +124,9 @@ bool FileHandler::ensureDirectory(QString path)
     QDir dir = fileInfo.dir();
     if (!dir.exists()) {
         if(dir.mkpath(".")){
-            _notification(NT_INFO, "Directory", "Dir: '" % dir.absolutePath() % "' constructed!", Theme::getIconPair("Actions", "Open"));
+            _notification(NT_INFO, "Directory", "Dir: '" % dir.absolutePath() % "' constructed!", "Actions", "Open");
         }else{
-            _notification(NT_CRITICAL, "Directory", "Dir: '" % dir.absolutePath() % "' cannot be constructed!", Theme::getIconPair("Actions", "Open"));
+            _notification(NT_CRITICAL, "Directory", "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Actions", "Open");
             return false;
         }
     }
@@ -169,7 +168,7 @@ FileHandler *FileHandler::getFileHandler()
     return handler;
 }
 
-void FileHandler::_notification(NOTIFICATION_TYPE type, QString notificationTitle, QString notificationText, QPair<QString, QString> notificationIcon)
+void FileHandler::_notification(NOTIFICATION_TYPE type, QString notificationTitle, QString notificationText, QString iconPath, QString iconName)
 {
-    emit getFileHandler()->notification(type, notificationTitle, notificationText, notificationIcon);
+    emit getFileHandler()->notification(type, notificationTitle, notificationText, iconPath, iconName, -1);
 }

@@ -46,7 +46,7 @@ public slots:
     void setModelTitle(QString modelTitle);
     void settingChanged(SETTING_KEY setting, QVariant value);
 
-    void showNotification(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath);
+    void showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int ID);
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);
 

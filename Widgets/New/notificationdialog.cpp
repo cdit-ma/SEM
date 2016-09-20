@@ -94,6 +94,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
     connect(listWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(listItemClicked(QListWidgetItem*)));
     connect(clearAllButton, SIGNAL(clicked(bool)), this, SLOT(clearAll()));
     connect(clearSelectedButton, SIGNAL(clicked(bool)), this, SLOT(clearSelected()));
+
     //connect(typeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(displayTypeChanged(int)));
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
@@ -241,11 +242,6 @@ void NotificationDialog::clearSelected()
 void NotificationDialog::addNotificationItem(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath)
 {
     QIcon icon = Theme::theme()->getIcon(iconPath);
-    if (icon.isNull()) {
-        iconPath.first = "Actions";
-        iconPath.second = "Help";
-        icon = Theme::theme()->getIcon(iconPath);
-    }
     addListItem(type, icon, title, description);
 }
 
@@ -259,11 +255,10 @@ void NotificationDialog::addNotificationItem(NOTIFICATION_TYPE type, QString tit
  */
 void NotificationDialog::addListItem(NOTIFICATION_TYPE type, QIcon icon, QString title, QString description)
 {
-    QListWidgetItem* listItem = new QListWidgetItem;
+    QListWidgetItem* listItem = new QListWidgetItem();
     listItem->setText("[" + title + "] " + description);
-    //listItem->setIcon(icon);
     listItem->setData(Qt::UserRole, QVariant(type));
-    listWidget->addItem(listItem);
+    listWidget->insertItem(0,listItem);
 
     QPair<QString, QString> iconPath;
     iconPath.first = "Actions";
@@ -286,12 +281,16 @@ void NotificationDialog::addListItem(NOTIFICATION_TYPE type, QIcon icon, QString
         break;
     }
 
-    listItem->setIcon(Theme::theme()->getIcon(iconPath));
+    if(icon.isNull()){
+        icon = Theme::theme()->getIcon(iconPath);
+    }
+    listItem->setIcon(icon);
     icons[listItem] = iconPath;
 
     QListWidgetItem* iconItem = new QListWidgetItem;
     //iconItem->setIcon(typeIcon);
     typeIconListWidget->addItem(iconItem);
+    emit notificationAdded();
 }
 
 

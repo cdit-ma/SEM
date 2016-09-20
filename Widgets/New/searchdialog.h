@@ -61,6 +61,7 @@ private:
     QComboBox* scopeComboBox;
 
     QToolBar* keysToolBar;
+    QToolBar* buttonsToolBar;
     QVBoxLayout* keysLayout;
     QActionGroup* keysActionGroup;
 

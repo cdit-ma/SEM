@@ -113,7 +113,7 @@ signals:
     void vc_projectSaved(QString filePath);
     void vc_projectPathChanged(QString);
 
-    void vc_showNotification(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath);
+    void vc_showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
 
     void vc_centerItem(int ID);
     void vc_selectAndCenterConnectedEntities(ViewItem* item);
@@ -135,6 +135,9 @@ signals:
 
     void vc_highlightItem(int ID, bool highlight);
 public slots:
+    void notificationAdded();
+    void notificationsSeen();
+
     void projectOpened(bool success);
 
     void gotExportedSnippet(QString snippetData);

@@ -154,7 +154,7 @@ void MedeaMainWindow::searchEntered()
  * @param title
  * @param message
  */
-void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath)
+void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int ID)
 {
     /*
     notificationLabel->setText(description);
@@ -166,7 +166,7 @@ void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QS
     notificationPopup->show();
     moveWidget(notificationPopup, this, Qt::AlignBottom);
     */
-    notificationDialog->addNotificationItem(type, title, description, iconPath);
+    notificationDialog->addNotificationItem(type, title, description, QPair<QString, QString>(iconPath, iconName));
 }
 
 
@@ -808,7 +808,8 @@ void MedeaMainWindow::setupNotificationBar()
     notificationPopup->hide();
 
     notificationDialog = new NotificationDialog(this);
-    //notificationDialog->show();
+    connect(notificationDialog, &NotificationDialog::notificationAdded, viewController, &ViewController::notificationAdded);
+    connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::show);
 }
 
 
@@ -943,7 +944,7 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
 
 
-    connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::show);
+
 }
 
 

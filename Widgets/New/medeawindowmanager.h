@@ -61,7 +61,7 @@ private slots:
 private:
     //Helper functions
     MedeaWindowNew* _constructMainWindow(ViewController *vc);
-    MedeaWindowNew* _constructSubWindow(QString title);
+    MedeaWindowNew* _constructSubWindow(QString title="");
     MedeaWindowNew* _constructCentralWindow(QString title);
     MedeaToolDockWidget* _constructToolDockWidget(QString title);
     MedeaViewDockWidget* _constructViewDockWidget(QString title, Qt::DockWidgetArea area);

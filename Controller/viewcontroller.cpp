@@ -27,6 +27,7 @@
 #define XMI_FILE_SUFFIX ".xml"
 
 ViewController::ViewController(){
+    qRegisterMetaType<NOTIFICATION_TYPE>("NOTIFICATION_TYPE");
     controller = 0;
 
     codeViewer = 0;
@@ -357,6 +358,20 @@ void ViewController::setController(NewController *c)
     controller = c;
 }
 
+void ViewController::notificationAdded()
+{
+    qCritical() << "Notification Added!";
+    actionController->window_showNotifications->setCheckable(true);
+    actionController->window_showNotifications->setChecked(true);
+    qCritical() << actionController->window_showNotifications->isChecked();
+}
+
+void ViewController::notificationsSeen()
+{
+    actionController->window_showNotifications->setChecked(false);
+    actionController->window_showNotifications->setCheckable(false);
+}
+
 void ViewController::projectOpened(bool success)
 {
     this->fitAllViews();
@@ -456,7 +471,7 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
     NOTIFICATION_TYPE type = success ? NT_INFO : NT_ERROR;
     QString title = "Jenkins Settings Validation";
     QString message = success ? "Settings validated successfully" : errorString;
-    emit vc_showNotification(type, title, message, QPair<QString, QString>("Actions", "Jenkins_Icon"));
+    emit vc_showNotification(type, title, message, "Actions", "Jenkins_Icon");
 }
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
@@ -548,7 +563,7 @@ void ViewController::spawnSubView(ViewItem * item)
     MedeaWindowNew* window = MedeaWindowManager::manager()->getActiveWindow();
 
     if(window && item && item->isNode()){
-        MedeaDockWidget *dockWidget = MedeaWindowManager::constructNodeViewDockWidget("SubView", Qt::TopDockWidgetArea);
+        MedeaDockWidget *dockWidget = MedeaWindowManager::constructNodeViewDockWidget();
         dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
         dockWidget->setParent(window);
         dockWidget->setIcon(item->getIcon());

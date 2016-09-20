@@ -90,6 +90,8 @@ void SearchDialog::themeChanged()
                                "color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
                                "}");
 
+    buttonsToolBar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{padding:4px;}");
+
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
 
     //searchButton->setIcon(theme->getIcon("Actions", "Search"));
@@ -184,7 +186,7 @@ void SearchDialog::setupLayout()
     queryLabel->setFont(labelFont);
     queryLabel->setWordWrap(true);
 
-    int fieldHeight = 25;
+    int fieldHeight = 32;
 
     /*
     searchLineEdit = new QLineEdit(this);
@@ -214,11 +216,12 @@ void SearchDialog::setupLayout()
     popupButton->setFixedSize(QSize(fieldHeight, fieldHeight));
     popupButton->setToolTip("View Selected Item In New Window");
 
-    QToolBar* buttonsToolbar = new QToolBar(this);
-    //buttonsToolbar->setIconSize(QSize(fieldHeight, fieldHeight));
+    buttonsToolBar = new QToolBar(this);
+
+    buttonsToolBar->setIconSize(QSize(20, 20));
     //buttonsToolbar->setFixedHeight(fieldHeight);
-    buttonsToolbar->addWidget(centerOnButton);
-    buttonsToolbar->addWidget(popupButton);
+    buttonsToolBar->addWidget(centerOnButton);
+    buttonsToolBar->addWidget(popupButton);
 
     keysToolBar = new QToolBar(this);
     keysToolBar->setOrientation(Qt::Vertical);
@@ -271,13 +274,13 @@ void SearchDialog::setupLayout()
     hLayout->addLayout(labelLayout, 1);
     hLayout->addSpacerItem(new QSpacerItem(30, 0));
     //hLayout->addLayout(labelLayout2);
-    hLayout->addWidget(buttonsToolbar);
+    hLayout->addWidget(buttonsToolBar);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(10);
     mainLayout->setSpacing(5);
     mainLayout->addLayout(hLayout);
-    mainLayout->addSpacerItem(new QSpacerItem(0, 5));
+    //mainLayout->addSpacerItem(new QSpacerItem(0, 5));
     //mainLayout->addWidget(buttonsToolbar, 1, Qt::AlignRight);
     mainLayout->addSpacerItem(new QSpacerItem(0, 5));
     mainLayout->addWidget(displaySplitter, 1);

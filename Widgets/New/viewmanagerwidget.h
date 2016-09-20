@@ -17,11 +17,13 @@ public:
     ~WindowItem();
 private slots:
     void themeChanged();
+    void titleChanged(QString title="");
 
     void dockWidgetAdded(MedeaDockWidget* widget);
 private:
 
     void setupLayout();
+    QLabel* label;
     QAction* closeAction;
     ViewManagerWidget* manager;
     MedeaWindowNew* window;

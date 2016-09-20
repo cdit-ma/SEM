@@ -17,6 +17,7 @@ public:
     explicit NotificationDialog(QWidget *parent = 0);
 
 signals:
+    void notificationAdded();
 
 public slots:
     void themeChanged();
@@ -47,6 +48,7 @@ private:
     QActionGroup* criticalActionGroup;
 
     QHash<QListWidgetItem*, QPair<QString, QString>> icons;
+
 };
 
 #endif // NOTIFICATIONDIALOG_H

@@ -391,7 +391,8 @@ void MedeaWindowManager::reparentDockWidget_ButtonPressed()
             MedeaWindowNew* window = 0;
 
             if(wID == -1){
-                window = _constructSubWindow("Sub Window");
+                window = _constructSubWindow();
+                window->setWindowTitle("Sub Window #" + QString::number(window->getID() - 2));
             }else{
                 if(windows.contains(wID)){
                     window = windows[wID];

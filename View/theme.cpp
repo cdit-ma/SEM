@@ -736,10 +736,9 @@ QString Theme::getToolBarStyleSheet()
            "QToolButton:pressed {"
            "background:" % getPressedColorHex() % ";"
            "}"
-           /*
            "QToolButton::checked {"
            "background:" % getHighlightColorHex() % ";"
-           "}"*/
+           "}"
            "QToolButton:disabled {"
            "background:" % getDisabledBackgroundColorHex() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"

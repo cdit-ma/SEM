@@ -6,7 +6,7 @@
 
 ViewManagerWidget::ViewManagerWidget(MedeaWindowManager *manager) : QWidget(0)
 {
-    setContentsMargins(0,0,0,0);
+    setContentsMargins(5,5,5,5);
 
     setupLayout();
     connect(manager, &MedeaWindowManager::windowConstructed, this, &ViewManagerWidget::windowConstructed);
@@ -84,6 +84,7 @@ void ViewManagerWidget::setupLayout()
     scrollLayout = new QVBoxLayout();
     windowArea->setLayout(scrollLayout);
     scrollLayout->setContentsMargins(0,0,0,0);
+    scrollLayout->setSpacing(5);
     layout->setContentsMargins(0,0,0,0);
 
     scrollArea = new QScrollArea(this);
@@ -107,6 +108,7 @@ WindowItem::WindowItem(ViewManagerWidget *manager, MedeaWindowNew *window)
     setContentsMargins(0,0,0,0);
 
     connect(window, &MedeaWindowNew::dockWidgetAdded, this, &WindowItem::dockWidgetAdded);
+    connect(window, &MedeaWindowNew::windowTitleChanged, this, &WindowItem::titleChanged);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &WindowItem::themeChanged);
 
@@ -129,6 +131,11 @@ void WindowItem::themeChanged()
 
 }
 
+void WindowItem::titleChanged(QString)
+{
+    label->setText(window->windowTitle());
+}
+
 
 void WindowItem::dockWidgetAdded(MedeaDockWidget *widget)
 {
@@ -140,18 +147,30 @@ void WindowItem::dockWidgetAdded(MedeaDockWidget *widget)
 void WindowItem::setupLayout()
 {
     QVBoxLayout* layout = new QVBoxLayout();
-    layout->setContentsMargins(5,5,5,5);
+    //layout->setContentsMargins(5,5,5,5);
+    layout->setSpacing(5);
+    layout->setMargin(0);
+
     dockContainerLayout = new QVBoxLayout();
-    dockContainerLayout->setContentsMargins(10,1,1,1);
+    dockContainerLayout->setContentsMargins(10,0,0,0);
+    dockContainerLayout->setSpacing(5);
     windowToolbar = new QToolBar(this);
     windowToolbar->setObjectName("WINDOW_TOOLBAR");
 
-    QLabel* label = new QLabel(this);
-    label->setText(window->windowTitle());
-    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    label = new QLabel(this);
+
+    QWidget* labelWidget = new QWidget(this);
+    QHBoxLayout* labelWidgetLayout = new QHBoxLayout(labelWidget);
+    labelWidgetLayout->setMargin(0);
+    labelWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+    labelWidgetLayout->addWidget(label);
+    labelWidgetLayout->addStretch();
 
 
-    windowToolbar->addWidget(label);
+
+
+    windowToolbar->addWidget(labelWidget);
+
     dockContainer = new QWidget(this);
     dockContainer->setLayout(dockContainerLayout);
 
@@ -168,6 +187,8 @@ void WindowItem::setupLayout()
     layout->addWidget(windowToolbar);
     layout->addWidget(dockContainer);
     setLayout(layout);
+
+    titleChanged();
 }
 
 
@@ -180,6 +201,7 @@ DockWindowItem::DockWindowItem(ViewManagerWidget *manager, MedeaDockWidget *dock
     setFocusProxy(dockWidget);
 
     setContentsMargins(0,0,0,0);
+    setIconSize(QSize(16,16));
     setupLayout();
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &DockWindowItem::themeChanged);
@@ -216,20 +238,23 @@ void DockWindowItem::setupLayout()
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setStyleSheet("margin-right: 2px;");
 
-
-
     label = new QLabel(this);
-    label->setText(titleBar->getTitle());
-    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    QWidget* labelWidget = new QWidget(this);
+    QHBoxLayout* labelWidgetLayout = new QHBoxLayout(labelWidget);
+    labelWidgetLayout->setMargin(0);
+    labelWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+    labelWidgetLayout->addWidget(label);
+    labelWidgetLayout->addStretch();
+
 
     iconAction = addWidget(iconLabel);
-    iconAction->setVisible(true);
-
-    labelAction = addWidget(label);
+    labelAction = addWidget(labelWidget);
 
     if(titleBar){
         addActions(titleBar->getToolActions());
     }
-    setIconSize(QSize(16,16));
+
+    titleChanged();
     updateIcon();
 }

@@ -32,7 +32,6 @@
 #define DDS_LOGGING_SERVER "DDS_LOGGING_SERVER"
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
-enum MESSAGE_TYPE{CRITICAL, WARNING, MESSAGE, MODEL};
 
 struct EdgeTemp
 {
@@ -254,7 +253,7 @@ signals:
     void controller_AskQuestion(QString title, QString message, int ID=-1);
     void controller_GotQuestionAnswer();
 
-    void controller_DisplayMessage(MESSAGE_TYPE, QString messageString, QString messageTitle = "", QString messageIcon = "", int centerID =-1);
+    void controller_showNotification(NOTIFICATION_TYPE type, QString title, QString message, QString iconPath="", QString iconName="", int centerID =-1);
 
     void controller_SavedProject(QString filePath, QString dat);
 
@@ -315,12 +314,6 @@ private slots:
 
     void constructDDSQOSProfile(int parentID, QPointF position);
     void constructWorkerProcess(int parentID, int workerProcessID, QPointF pos);
-
-
-
-
-    void constructDestructMultipleEdges(QList<int> srcIDs, int dstID);
-    void constructDestructEdges(QList<int> destruct_srcIDs, QList<int> destruct_dstIDs, QList<int> construct_srcIDs, int dstID);
 
 
 
