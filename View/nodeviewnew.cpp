@@ -698,7 +698,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
                 nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
-                nodeItem->setSecondaryIconPath("Functions", item->getData("worker").toString());
+
                 break;
             case Node::NK_MEMBER_INSTANCE:
                 nodeItem = new StackContainerNodeItem(item, parentNode);
