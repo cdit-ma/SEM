@@ -46,7 +46,7 @@ public slots:
     void setModelTitle(QString modelTitle);
     void settingChanged(SETTING_KEY setting, QVariant value);
 
-    void showNotification(QString title, QString message);
+    void showNotification(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath);
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);
 
@@ -69,6 +69,7 @@ private:
     void initializeApplication();
     void connectNodeView(NodeViewNew* nodeView);
     void toggleWelcomeScreen(bool on);
+    void saveSettings();
 
     void setupTools();
     void setupInnerWindow();

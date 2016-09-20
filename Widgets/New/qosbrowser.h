@@ -16,10 +16,14 @@ class QOSBrowser : public QWidget
     Q_OBJECT
 public:
     explicit QOSBrowser(ViewController *vc, QWidget *parent = 0);
+
 private slots:
     void themeChanged();
     void profileSelected(QModelIndex, QModelIndex);
     void settingSelected(QModelIndex, QModelIndex);
+
+    void removeSelectedProfile();
+
 private:
     void setupLayout();
 
@@ -28,6 +32,7 @@ private:
     //QListView* profileView;
     //QListView* elementView;
     QSplitter* horizontalSplitter;
+    QAction* removeSelection;
 
     QItemSelectionModel* elementViewSelectionModel;
     AttributeTableView* tableView;

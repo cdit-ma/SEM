@@ -60,6 +60,11 @@ MedeaWindowNew::WindowType MedeaWindowNew::getType()
     return windowType;
 }
 
+void MedeaWindowNew::setDockWidgetsVisible(bool visible)
+{
+    setDockWidgetMaximized(-1, !visible);
+}
+
 void MedeaWindowNew::addDockWidget(MedeaDockWidget *widget)
 {
     addDockWidget(widget->getDockWidgetArea(), widget, Qt::Horizontal);
@@ -87,7 +92,7 @@ void MedeaWindowNew::addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget,
             updateActions();
 
             connect(dockWidget, &MedeaDockWidget::req_Maximize, this, &MedeaWindowNew::setDockWidgetMaximized);
-            connect(dockWidget, &MedeaDockWidget::req_Visible, this, &MedeaWindowNew::setDockWidgetVisibility);
+            connect(dockWidget, &MedeaDockWidget::req_Visible, this, &MedeaWindowNew::_setDockWidgetVisibility);
         }
     }
     QMainWindow::addDockWidget(area, widget, orientation);
@@ -108,13 +113,20 @@ void MedeaWindowNew::removeDockWidget(QDockWidget *widget)
         updateActions();
 
         disconnect(dockWidget, &MedeaDockWidget::req_Maximize, this, &MedeaWindowNew::setDockWidgetMaximized);
-        disconnect(dockWidget, &MedeaDockWidget::req_Visible, this, &MedeaWindowNew::setDockWidgetVisibility);
+        disconnect(dockWidget, &MedeaDockWidget::req_Visible, this, &MedeaWindowNew::_setDockWidgetVisibility);
     }
 
     QMainWindow::removeDockWidget(widget);
 
     if(!terminating && currentDockWidgets.isEmpty()){
         MedeaWindowManager::destructWindow(this);
+    }
+}
+
+void MedeaWindowNew::setDockWidgetVisibility(MedeaDockWidget *widget, bool visible)
+{
+    if(widget){
+        _setDockWidgetVisibility(widget->getID(), visible);
     }
 }
 
@@ -174,7 +186,7 @@ void MedeaWindowNew::setDockWidgetMaximized(int ID, bool maximized)
     }
 }
 
-void MedeaWindowNew::setDockWidgetVisibility(int ID, bool visible)
+void MedeaWindowNew::_setDockWidgetVisibility(int ID, bool visible)
 {
     //If we are hiding an item, remove it from the list of previously visible items.
     if(!visible){

@@ -20,12 +20,14 @@ enum SETTING_KEY{
     SK_GENERAL_SELECT_ON_CREATION,
     SK_GENERAL_ZOOM_UNDER_MOUSE,
     SK_GENERAL_RECENT_PROJECTS,
+    SK_GENERAL_RESET_SETTINGS,
 
     // WINDOW
     SK_WINDOW_INTERFACES_VISIBLE,
     SK_WINDOW_BEHAVIOUR_VISIBLE,
     SK_WINDOW_ASSEMBLIES_VISIBLE,
     SK_WINDOW_HARDWARE_VISIBLE,
+    SK_WINDOW_QOS_VISIBLE,
     SK_WINDOW_TABLE_VISIBLE,
     SK_WINDOW_MINIMAP_VISIBLE,
     SK_WINDOW_BROWSER_VISIBLE,
@@ -102,6 +104,7 @@ public:
 
 
     void setDefaultValue(QVariant value);
+    bool resetValue();
     bool setValue(QVariant value);
     QVariant getValue() const;
 private:
@@ -135,6 +138,7 @@ signals:
 public slots:
     void setSetting(SETTING_KEY ID, QVariant value);
     void showSettingsWidget();
+    void resetSettings();
 
 
     void saveSettings();

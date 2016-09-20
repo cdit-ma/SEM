@@ -24,6 +24,7 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 
     setContextMenuPolicy(Qt::CustomContextMenu);
 
+
     if(titleBar){
         //Do connects.
         connect(titleBar->getAction(DockTitleBarWidget::DA_CLOSE), &QAction::triggered, this, &MedeaDockWidget::title_Close);
@@ -36,7 +37,7 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
     }
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &MedeaDockWidget::themeChanged);
-    //themeChanged();
+    visibilityChanged(false);
 }
 
 MedeaDockWidget::~MedeaDockWidget()

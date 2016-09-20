@@ -62,7 +62,58 @@ void DataEditWidget::setLabelWidth(int width)
 void DataEditWidget::setValue(QVariant data)
 {
     dataChanged(data);
-    editFinished();
+
+    switch(type){
+    case ST_BOOL:{
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(editWidget_1);
+        if(checkBox){
+            checkBox->setChecked(newData.toBool());
+        }
+        break;
+    }
+    case ST_INT:{
+        QSpinBox* spinBox = qobject_cast<QSpinBox*>(editWidget_1);
+        if(spinBox){
+            spinBox->setValue(newData.toInt());
+        }
+        break;
+    }
+    case ST_COLOR:{
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+
+        //Validate color;
+        QColor color(newData.toString());
+        if(color.isValid()){
+            if(lineEdit){
+                lineEdit->setText(newData.toString());
+            }
+            themeChanged();
+        }
+        break;
+    }
+    case ST_STRING:{
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+        if(lineEdit){
+            lineEdit->setText(newData.toString());
+        }
+        break;
+    }
+    case ST_FILE:
+    case ST_PATH:{
+        //Do the same things.
+        QLineEdit* lineEdit = qobject_cast<QLineEdit*>(editWidget_1);
+        if(lineEdit){
+            lineEdit->setText(newData.toString());
+        }
+        break;
+    }
+    default:
+        break;
+
+    }
+
+    currentData = newData;
+    emit valueChanged(dataKey, newData);
 }
 
 void DataEditWidget::themeChanged()
@@ -340,11 +391,8 @@ void DataEditWidget::setupLayout()
         editLabel = 0;
         break;
     }
-    default:{
-
-
-
-    }
+    default:
+        break;
     }
 
     if(editWidget_1){
@@ -353,7 +401,4 @@ void DataEditWidget::setupLayout()
     if(editWidget_2){
         editWidget_2->setFixedHeight(SMALL_SQUARE);
     }
-
-
-
 }

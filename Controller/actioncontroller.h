@@ -164,7 +164,10 @@ public:
     RootAction* toolbar_wiki;
     RootAction* toolbar_replicateCount;
     RootAction* toolbar_displayedChildrenOption;
+
+
     RootAction* toolbar_addDDSQOSProfile;
+    RootAction* toolbar_removeDDSQOSProfile;
 
     bool _controllerReady;
     bool _modelReady;

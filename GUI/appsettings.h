@@ -65,6 +65,7 @@ private:
     QAction* applySettingsAction;
     QAction* clearSettingsAction;
     QAction* warningAction;
+    QAction* resetSettings;
 
 };
 

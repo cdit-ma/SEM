@@ -21,13 +21,14 @@ public:
     int getID();
     WindowType getType();
 
+    void setDockWidgetsVisible(bool visible);
     void addDockWidget(MedeaDockWidget *widget);
 
     void addDockWidget(Qt::DockWidgetArea area, QDockWidget *widget);
     virtual void addDockWidget(Qt::DockWidgetArea area, QDockWidget* widget, Qt::Orientation orientation);
     void removeDockWidget(QDockWidget* widget);
 
-
+    void setDockWidgetVisibility(MedeaDockWidget* widget, bool visible);
     QMenu *createPopupMenu();
 
 signals:
@@ -37,7 +38,7 @@ private slots:
     void showContextMenu(const QPoint &point);
 
     void setDockWidgetMaximized(int ID, bool maximized);
-    void setDockWidgetVisibility(int ID, bool visible);
+    void _setDockWidgetVisibility(int ID, bool visible);
 public slots:
     void tryClose();
 

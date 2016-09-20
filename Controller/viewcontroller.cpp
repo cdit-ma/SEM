@@ -60,7 +60,7 @@ ViewController::ViewController(){
     qCritical() << "ToolbarWidgetNew in: " <<  time4 - time3 << "MS";
     qCritical() << "ViewController in: " <<  timeFinish - timeStart << "MS";
 
-
+    connect(FileHandler::getFileHandler(), &FileHandler::notification, this, &ViewController::vc_showNotification);
 }
 
 ViewController::~ViewController()
@@ -452,7 +452,10 @@ void ViewController::jenkinsManager_IsBusy(bool busy)
 void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
 {
     emit vc_JenkinsReady(success);
-    qCritical() << success << errorString;
+    NOTIFICATION_TYPE type = success ? NT_INFO : NT_ERROR;
+    QString title = "Jenkins Settings Validation";
+    QString message = success ? "Settings validated successfully" : errorString;
+    emit vc_showNotification(type, title, message, QPair<QString, QString>("Actions", "Jenkins_Icon"));
 }
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)

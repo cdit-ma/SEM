@@ -42,11 +42,27 @@ void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex index2)
     }else{
         elementView->setModel(0);
     }
+    qCritical() << index1;
+    removeSelection->setEnabled(index1.isValid());
 }
 
 void QOSBrowser::settingSelected(QModelIndex index1, QModelIndex)
 {
     tableView->setModel(qosModel->getTableModel(index1));
+}
+
+void QOSBrowser::removeSelectedProfile()
+{
+    QList<int> IDs;
+    foreach(QModelIndex index, profileView->selectionModel()->selectedIndexes()){
+        int ID = index.data(QOSProfileModel::ID_ROLE).toInt();
+        if(ID > 0){
+            IDs.append(ID);
+        }
+    }
+    if(!IDs.isEmpty()){
+        vc->vc_deleteEntities(IDs);
+    }
 }
 
 void QOSBrowser::setupLayout()
@@ -61,8 +77,14 @@ void QOSBrowser::setupLayout()
     tableView = new AttributeTableView(this);
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(QSize(20,20));
-    toolbar->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+
     toolbar->addAction(vc->getActionController()->toolbar_addDDSQOSProfile);
+    removeSelection = vc->getActionController()->toolbar_removeDDSQOSProfile;
+
+    toolbar->addAction(removeSelection);
+    connect(removeSelection, &QAction::triggered, this, &QOSBrowser::removeSelectedProfile);
+    removeSelection->setEnabled(false);
+
 
     QWidget* profileWidget = new QWidget(this);
     profileWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);

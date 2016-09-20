@@ -1,7 +1,6 @@
 #include "qosprofilemodel.h"
 
 #include <QDebug>
-#define ID_DATA -1
 #include "../../View/theme.h"
 
 

@@ -251,11 +251,8 @@ void JenkinsManager::gotSettingsValidationResponse(bool valid, QString message)
         clearJobConfigurations();
         urlChanged = false;
     }
-    if(!valid){
-        emit settingsValidationComplete(valid, message);
-    }
-
     setJenkinsBusy(false);
+    emit settingsValidationComplete(valid, message);
 }
 
 void JenkinsManager::setJenkinsBusy(bool busy)

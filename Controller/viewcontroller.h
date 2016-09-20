@@ -113,6 +113,8 @@ signals:
     void vc_projectSaved(QString filePath);
     void vc_projectPathChanged(QString);
 
+    void vc_showNotification(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath);
+
     void vc_centerItem(int ID);
     void vc_selectAndCenterConnectedEntities(ViewItem* item);
 

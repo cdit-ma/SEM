@@ -29,6 +29,7 @@ SettingsController::SettingsController(QObject *parent) : QObject(parent)
     emit settingChanged(SK_THEME_SETTHEME_DARKTHEME, true);
     emit settingChanged(SK_THEME_SETASPECT_COLORBLIND, true);
 
+
     loadSettingsFromFile();
 }
 
@@ -65,11 +66,10 @@ bool SettingsController::isThemeSetting(SETTING_KEY key)
 QList<Setting *> SettingsController::getSettings()
 {
     QList<Setting*> s;
-
     foreach(SETTING_KEY key, settingsKeys){
-        if(settingsHash.contains(key)){
-            s.append(settingsHash[key]);
-        }
+       if(settingsHash.contains(key)){
+           s.append(settingsHash[key]);
+       }
     }
     return s;
 }
@@ -121,6 +121,8 @@ void SettingsController::intializeSettings()
 
     createSetting(SK_GENERAL_RECENT_PROJECTS, ST_STRINGLIST, "General", "", "Recent Projects");
 
+    createSetting(SK_GENERAL_RESET_SETTINGS, ST_BUTTON, "General", "", "Reset All Settings");
+
 
 
     //Window - Views
@@ -128,6 +130,8 @@ void SettingsController::intializeSettings()
     createSetting(SK_WINDOW_BEHAVIOUR_VISIBLE, ST_BOOL, "Window", "Views", "Show Behaviour on launch");
     createSetting(SK_WINDOW_ASSEMBLIES_VISIBLE, ST_BOOL, "Window", "Views", "Show Assemblies on launch");
     createSetting(SK_WINDOW_HARDWARE_VISIBLE, ST_BOOL, "Window", "Views", "Show Hardware on launch");
+    createSetting(SK_WINDOW_QOS_VISIBLE, ST_BOOL, "Window", "Views", "Show QOS Browser on launch");
+
 
 
 
@@ -211,17 +215,25 @@ void SettingsController::intializeSettings()
 
 
     createSetting(SK_THEME_APPLY, ST_NONE, "Theme", "Theme", "Apply Theme");
-            \
+
+
+
     _getSetting(SK_GENERAL_WIDTH)->setDefaultValue(1200);
-    _getSetting(SK_GENERAL_HEIGHT)->setDefaultValue(800);
+
+    _getSetting(SK_GENERAL_HEIGHT)->setDefaultValue(600);
     _getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SK_GENERAL_SELECT_ON_CREATION)->setDefaultValue(true);
     _getSetting(SK_GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
+    _getSetting(SK_GENERAL_DEBUG_LOGGING)->setDefaultValue(false);
+    _getSetting(SK_GENERAL_MAXIMIZED)->setDefaultValue(false);
+
 
     _getSetting(SK_WINDOW_INTERFACES_VISIBLE)->setDefaultValue(true);
     _getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE)->setDefaultValue(true);
     _getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE)->setDefaultValue(true);
     _getSetting(SK_WINDOW_HARDWARE_VISIBLE)->setDefaultValue(true);
+    _getSetting(SK_WINDOW_QOS_VISIBLE)->setDefaultValue(false);
+
 
     _getSetting(SK_WINDOW_TABLE_VISIBLE)->setDefaultValue(true);
     _getSetting(SK_WINDOW_MINIMAP_VISIBLE)->setDefaultValue(true);
@@ -249,6 +261,7 @@ void SettingsController::intializeSettings()
     _getSetting(SK_GENERAL_RECENT_PROJECTS)->setDefaultValue(QStringList());
 
     _getSetting(SK_JENKINS_JOBNAME)->setDefaultValue("MEDEA-SEM");
+
 }
 
 void SettingsController::loadSettingsFromFile()
@@ -277,7 +290,12 @@ void SettingsController::_setSetting(Setting *setting, QVariant value)
 {
     if(setting && setting->setValue(value)){
         emit settingChanged(setting->getID(), setting->getValue());
+
+        if(setting->getID() == SK_GENERAL_RESET_SETTINGS){
+            resetSettings();
+        }
     }
+
 }
 
 Setting *SettingsController::createSetting(SETTING_KEY ID, SETTING_TYPE type, QString category, QString section, QString name)
@@ -310,6 +328,25 @@ void SettingsController::showSettingsWidget()
         connect(settingsGUI, &AppSettings::settingsApplied, this, &SettingsController::settingsApplied);
     }
     settingsGUI->show();
+}
+
+void SettingsController::resetSettings()
+{
+    foreach(SETTING_KEY sk, settingsKeys){
+        Setting* setting = _getSetting(sk);
+        if(setting){
+            if(setting->getType() == ST_BUTTON || setting->getType() == ST_NONE){
+                continue;
+            }
+            //Reset to default
+            _setSetting(setting, setting->getDefaultValue());
+        }
+    }
+    //Reset Settings
+    emit settingChanged(SK_THEME_SETTHEME_DARKTHEME, true);
+    emit settingChanged(SK_THEME_SETASPECT_COLORBLIND, true);
+    emit settingChanged(SK_THEME_APPLY, true);
+    emit settingsApplied();
 }
 
 void SettingsController::saveSettings()
@@ -423,6 +460,11 @@ void Setting::setDefaultValue(QVariant value)
         defaultValue = value;
         setValue(defaultValue);
     }
+}
+
+bool Setting::resetValue()
+{
+    return setValue(defaultValue);
 }
 
 bool Setting::setValue(QVariant value)

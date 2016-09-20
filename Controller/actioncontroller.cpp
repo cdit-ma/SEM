@@ -236,6 +236,7 @@ void ActionController::settingChanged(SETTING_KEY key, QVariant value)
 
 void ActionController::jenkinsValidated(bool success)
 {
+    qCritical() << "VALIDATED";
     if(_jenkinsValidated != success){
         _jenkinsValidated = success;
         updateJenkinsActions();
@@ -348,7 +349,8 @@ void ActionController::actionFinished()
 
 void ActionController::controllerReady(bool ready)
 {
-    updateActions();
+    //Do we need to do this?
+    //updateActions();
 }
 
 void ActionController::modelReady(bool ready)
@@ -817,7 +819,8 @@ void ActionController::setupActions()
     toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Count", "", "Actions", "Replicate_Count");
     toolbar_displayedChildrenOption = createRootAction("Toolbar", "Change Displayed Nodes Settings", "", "Actions", "Menu_Vertical");
 
-    toolbar_addDDSQOSProfile = createRootAction("Toolbar", "Construct new DDS QOS Profile", "", "Actions", "Plus");
+    toolbar_addDDSQOSProfile = createRootAction("Toolbar", "Add Profile", "", "Actions", "Plus");
+    toolbar_removeDDSQOSProfile = createRootAction("Toolbar", "Remove Profile", "", "Actions", "Delete");
 
     toggleDock = createRootAction("Misc", "Show/Hide Dock", "", "Actions", "Menu_Vertical");
 }
