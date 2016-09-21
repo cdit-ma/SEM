@@ -286,7 +286,8 @@ QList<QAction*> ToolActionController::getAdoptableKindsActions(bool stealth)
 {
     QList<QAction*> actions;
     foreach(RootAction* action, adoptableKindsGroup->getRootActions()){
-        actions.append(action->constructSubAction(stealth));
+        QAction* subAction = action->constructSubAction(stealth);
+        actions.append(subAction);
     }
     return actions;
 }

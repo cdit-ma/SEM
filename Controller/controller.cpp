@@ -377,12 +377,11 @@ void NewController::setupController()
     lock.unlock();
     INITIALIZING = false;
 
-    emit controller_IsModelReady(true);
-
-    emit controller_ModelReady();
-
     emit controller_ProjectFileChanged("Untitled Project");
     emit projectModified(true);
+
+    emit controller_IsModelReady(true);
+    emit controller_ActionFinished();
 }
 
 NewController::~NewController()

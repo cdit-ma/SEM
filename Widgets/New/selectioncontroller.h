@@ -17,7 +17,6 @@ public:
     void registerSelectionHandler(QObject* object, SelectionHandler* handler);
     void unregisterSelectionHandler(QObject* object, SelectionHandler* handler);
 
-
     QVector<ViewItem*> getSelection();
     QList<int> getSelectionIDs();
     int getSelectionCount();

@@ -243,7 +243,6 @@ signals:
     void controller_CanUndo(bool ok);
     void controller_CanRedo(bool ok);
     void controller_IsModelReady(bool ready);
-    void controller_ModelReady();
     void progressChanged(int);
     void showProgress(bool, QString = "");
     void controller_ActionProgressChanged(int percent, QString action="");

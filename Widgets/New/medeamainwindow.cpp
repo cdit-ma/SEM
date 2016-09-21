@@ -114,6 +114,7 @@ void MedeaMainWindow::setViewController(ViewController *vc)
 
 
 
+    connect(vc, &ViewController::vc_showWelcomeScreen, this, &MedeaMainWindow::toggleWelcomeScreen);
     connect(vc, &ViewController::mc_projectModified, this, &MedeaMainWindow::setWindowModified);
     connect(actionController, &ActionController::recentProjectsUpdated, this, &MedeaMainWindow::recentProjectsUpdated);
 
@@ -158,7 +159,7 @@ void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QS
 {
     notificationTimer->stop();
 
-    notificationDialog->addNotificationItem(type, title, description, QPair<QString, QString>(iconPath, iconName));
+    notificationDialog->addNotificationItem(type, title, description, QPair<QString, QString>(iconPath, iconName), ID);
 
     notificationLabel->setText(description);
     notificationIconLabel->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32)));
@@ -181,16 +182,15 @@ void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QS
  */
 void MedeaMainWindow::showProgressBar(bool show, QString description)
 {
-    progressLabel->setText(description + ". Please wait...");
+    progressLabel->setText(description);
+    bool wasVisible = progressPopup->isVisible();
     progressPopup->setVisible(show);
-    if (show) {
-        QWidget* cw = centralWidget();
-        if (cw) {
-            QPointF cwCenter = pos() + cw->pos() + cw->rect().center();
-            cwCenter -= QPointF(progressPopup->width()/2, progressPopup->height()/2);
-            progressPopup->move(cwCenter.x(), cwCenter.y());
+
+    if(show){
+        if(!wasVisible){
+            moveWidget(progressPopup, innerWindow);
         }
-    } else {
+    }else{
         //Reset back to 0
         progressBar->reset();
     }
@@ -766,7 +766,7 @@ void MedeaMainWindow::setupSearchBar()
  */
 void MedeaMainWindow::setupProgressBar()
 {
-    progressLabel = new QLabel("Please wait...", this);
+    progressLabel = new QLabel("", this);
     progressLabel->setFont(QFont(font().family(), 11));
     progressLabel->setFixedHeight(progressLabel->sizeHint().height());
     progressLabel->setAlignment(Qt::AlignCenter);
@@ -822,7 +822,7 @@ void MedeaMainWindow::setupNotificationBar()
 
     notificationDialog = new NotificationDialog(this);
     connect(notificationDialog, &NotificationDialog::notificationAdded, viewController, &ViewController::notificationAdded);
-    connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::show);
+    connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::toggleVisibility);
     connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
 }
 

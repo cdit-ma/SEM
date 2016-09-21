@@ -62,6 +62,7 @@ public:
 signals:
     //TO OTHER VIEWS SIGNALS
 
+    void vc_showWelcomeScreen(bool);
     void vc_JenkinsReady(bool);
     void vc_controllerReady(bool);
     void vc_viewItemConstructed(ViewItem* viewItem);
@@ -264,7 +265,7 @@ private:
     bool _newProject();
     bool _saveProject();
     bool _saveAsProject();
-    bool _closeProject();
+    bool _closeProject(bool showWelcome=false);
     void _importProjects();
     void _importProjectFiles(QStringList fileName);
     bool _openProject(QString filePath = "");

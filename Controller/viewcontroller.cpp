@@ -360,22 +360,23 @@ void ViewController::setController(NewController *c)
 
 void ViewController::notificationAdded()
 {
-    qCritical() << "Notification Added!";
-    actionController->window_showNotifications->setCheckable(true);
-    actionController->window_showNotifications->setChecked(true);
-    qCritical() << actionController->window_showNotifications->isChecked();
+    if(!actionController->window_showNotifications->isCheckable()){
+        actionController->window_showNotifications->setCheckable(true);
+        actionController->window_showNotifications->setChecked(true);
+    }
 }
 
 void ViewController::notificationsSeen()
 {
-    actionController->window_showNotifications->setChecked(false);
-    actionController->window_showNotifications->setCheckable(false);
+    if(actionController->window_showNotifications->isCheckable()){
+        actionController->window_showNotifications->setCheckable(false);
+        actionController->window_showNotifications->setChecked(false);
+    }
 }
 
 void ViewController::projectOpened(bool success)
 {
-    this->fitAllViews();
-    //getSearchResults("Interface");
+    fitAllViews();
 }
 
 void ViewController::gotExportedSnippet(QString snippetData)
@@ -530,6 +531,7 @@ void ViewController::launchLocalDeployment()
 
 void ViewController::actionFinished(bool success, QString gg)
 {
+    qCritical() << "Action Finished" << success;
     setControllerReady(true);
     emit vc_actionFinished();
 }
@@ -807,6 +809,9 @@ void ViewController::setModelReady(bool okay)
 {
     if(okay != _modelReady){
         _modelReady = okay;
+        if(_modelReady){
+            fitAllViews();
+        }
         emit mc_modelReady(okay);
     }
 }
@@ -876,6 +881,9 @@ void ViewController::_teardownProject()
         if (controller) {
             setModelReady(false);
             setControllerReady(false);
+            emit selectionController->clearSelection();
+
+            emit vc_actionFinished();
             emit vc_projectPathChanged("");
             emit mc_projectModified(false);
             destructViewItem(rootItem);
@@ -932,7 +940,7 @@ bool ViewController::_saveAsProject()
     return false;
 }
 
-bool ViewController::_closeProject()
+bool ViewController::_closeProject(bool showWelcome)
 {
     if(isControllerReady()){
         if(controller && controller->isProjectSaved()){
@@ -963,6 +971,9 @@ bool ViewController::_closeProject()
             }else if(buttonPressed & QMessageBox::Cancel){
                 return false;
             }
+        }
+        if(showWelcome){
+            emit vc_showWelcomeScreen(true);
         }
         _teardownProject();
         return true;
@@ -1211,12 +1222,12 @@ void ViewController::exportSnippet()
 
 void ViewController::closeProject()
 {
-    _closeProject();
+    _closeProject(true);
 }
 
 void ViewController::closeMEDEA()
 {
-    if(_closeProject()){
+    if(_closeProject(true)){
         //Destruct main window
         MedeaWindowManager::teardown();
     }

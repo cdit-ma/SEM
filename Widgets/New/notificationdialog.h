@@ -8,50 +8,58 @@
 #include <QComboBox>
 #include <QActionGroup>
 #include <QSignalMapper>
+#include <QToolBar>
 #include "enumerations.h"
 
 class NotificationDialog : public QDialog
 {
+    enum ITEM_ROLES{
+        IR_TYPE = Qt::UserRole + 1,
+        IR_ICONPATH = Qt::UserRole + 2,
+        IR_ICONNAME = Qt::UserRole + 3,
+        IR_ID = Qt::UserRole + 4
+    };
+
     Q_OBJECT
 public:
     explicit NotificationDialog(QWidget *parent = 0);
 
+    void addNotificationItem(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath, int ID);
 signals:
     void notificationAdded();
-
+    void centerOn(int ID);
 public slots:
-    void notificationActionTriggered(int type);
+    void toggleVisibility();
+private slots:
     void themeChanged();
-    void displayTypeChanged(int type);
+
+    void typeActionToggled(int type);
 
     void clearAll();
-    void clearSelected();
+    void clearVisible();
 
-    void addNotificationItem(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath);
 
-    void listItemClicked(QListWidgetItem* item);
+
+    void notificationItemClicked(QListWidgetItem* item);
 
 private:
-    void addListAction(QString description, NOTIFICATION_TYPE type = NT_INFO);
-    void addListItem(NOTIFICATION_TYPE type, QIcon icon, QString title, QString description);
-    void removeListItem(QListWidgetItem* item);
+    void updateTypeAction(NOTIFICATION_TYPE type);
+    void setupLayout();
 
-    QPair<QString, QString> getActionIcon(NOTIFICATION_TYPE type);
+    void removeItem(QListWidgetItem* item);
 
-    QToolButton* clearSelectedButton;
-    QToolButton* clearAllButton;
+    QAction* getTypeAction(NOTIFICATION_TYPE type) const;
+    QPair<QString, QString> getActionIcon(NOTIFICATION_TYPE type) const;
 
-    QComboBox* typeComboBox;
-
-    QSignalMapper* notificationMapper;
+    QSignalMapper* typeActionMapper;
     QListWidget* listWidget;
-    QListWidget* typeIconListWidget;
+    QToolBar* toolbar;
+
+    QAction* clearAllAction;
+    QAction* clearVisibleAction;
 
     QMultiMap<NOTIFICATION_TYPE, QListWidgetItem*> notificationHash;
     QHash<NOTIFICATION_TYPE, QAction*> typeActionHash;
-
-    QHash<QListWidgetItem*, QPair<QString, QString>> icons;
-
 };
 
 #endif // NOTIFICATIONDIALOG_H
