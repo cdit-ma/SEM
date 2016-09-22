@@ -25,28 +25,33 @@ public:
     explicit NotificationDialog(QWidget *parent = 0);
 
     void addNotificationItem(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath, int ID);
+
 signals:
     void notificationAdded();
     void centerOn(int ID);
+
 public slots:
     void toggleVisibility();
+
 private slots:
     void themeChanged();
+    void listSelectionChanged();
 
     void typeActionToggled(int type);
 
-    void clearAll();
+    void clearSelected();
     void clearVisible();
-
-
 
     void notificationItemClicked(QListWidgetItem* item);
 
 private:
-    void updateTypeAction(NOTIFICATION_TYPE type);
     void setupLayout();
+    void updateVisibilityCount(int val, bool set = false);
 
     void removeItem(QListWidgetItem* item);
+
+    void updateTypeActions(QList<NOTIFICATION_TYPE> types);
+    void updateTypeAction(NOTIFICATION_TYPE type);
 
     QAction* getTypeAction(NOTIFICATION_TYPE type) const;
     QPair<QString, QString> getActionIcon(NOTIFICATION_TYPE type) const;
@@ -55,11 +60,14 @@ private:
     QListWidget* listWidget;
     QToolBar* toolbar;
 
-    QAction* clearAllAction;
+    QAction* clearSelectedAction;
     QAction* clearVisibleAction;
 
     QMultiMap<NOTIFICATION_TYPE, QListWidgetItem*> notificationHash;
     QHash<NOTIFICATION_TYPE, QAction*> typeActionHash;
+
+    int totalCount;
+    int visibleCount;
 };
 
 #endif // NOTIFICATIONDIALOG_H

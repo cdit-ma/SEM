@@ -157,15 +157,14 @@ void MedeaMainWindow::searchEntered()
 void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int ID)
 {
     notificationDialog->addNotificationItem(type, title, description, QPair<QString, QString>(iconPath, iconName), ID);
+    notificationTimer->stop();
 
-    if(welcomeScreenOn){
-        notificationTimer->stop();
-
+    if (!welcomeScreenOn) {
         notificationLabel->setText(description);
         notificationIconLabel->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32)));
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 30, notificationWidget->sizeHint().height() + 10);
-        notificationPopup->show();
         moveWidget(notificationPopup, this, Qt::AlignBottom);
+        notificationPopup->show();
         notificationTimer->start(5000);
     }
 }
@@ -178,14 +177,14 @@ void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QS
  */
 void MedeaMainWindow::showProgressBar(bool show, QString description)
 {
-    if(show && progressLabel->text() != description){
+    if (show && progressLabel->text() != description) {
         progressLabel->setText(description);
     }
 
-    if(show){
+    if (show) {
         Qt::Alignment alignment = welcomeScreenOn ? Qt::AlignBottom : Qt::AlignCenter;
         moveWidget(progressPopup, this, alignment);
-    }else{
+    } else {
         progressBar->reset();
     }
 
@@ -576,8 +575,6 @@ void MedeaMainWindow::setupInnerWindow()
     qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     qosDockWidget->setIcon("Items", "QOSProfile");
 
-
-
     dwInterfaces->setProtected(true);
     dwBehaviour->setProtected(true);
     dwAssemblies->setProtected(true);
@@ -586,13 +583,11 @@ void MedeaMainWindow::setupInnerWindow()
 
     SettingsController* s = SettingsController::settings();
 
-
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwInterfaces);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
-
 
     innerWindow->setDockWidgetVisibility(dwInterfaces,   s->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwBehaviour,    s->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
@@ -796,7 +791,7 @@ void MedeaMainWindow::setupNotificationBar()
     notificationWidget = new QWidget(this);
     QHBoxLayout* layout = new QHBoxLayout(notificationWidget);
     layout->setMargin(0);
-    layout->setSpacing(5);
+    layout->setSpacing(2);
     layout->addWidget(notificationIconLabel);
     layout->addWidget(notificationLabel);
 
@@ -805,6 +800,7 @@ void MedeaMainWindow::setupNotificationBar()
     notificationPopup->hide();
 
     notificationDialog = new NotificationDialog(this);
+
     connect(notificationDialog, &NotificationDialog::notificationAdded, viewController, &ViewController::notificationAdded);
     connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::toggleVisibility);
     connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
@@ -867,6 +863,10 @@ void MedeaMainWindow::setupMinimap()
     setDockWidgetVisibility(dockWidget, SettingsController::settings()->getSetting(SK_WINDOW_MINIMAP_VISIBLE).toBool());
 }
 
+
+/**
+ * @brief MedeaMainWindow::setupWindowManager
+ */
 void MedeaMainWindow::setupWindowManager()
 {
     MedeaDockWidget* dockWidget = MedeaWindowManager::constructToolDockWidget("View Manager");
@@ -892,7 +892,6 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     restoreAspectsButton = new QToolButton(this);
     restoreToolsButton = new QToolButton(this);
 
-
     /*
     interfaceButton->setText("I");
     behaviourButton->setText("B");
@@ -907,13 +906,15 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     restoreAspectsButton->setToolTip("Restore Main Dock Widgets");
     restoreToolsButton->setToolTip("Restore Tool Dock Widgets");
 
+    restoreAspectsButton->hide();
+
     interfaceButton->setCheckable(true);
     behaviourButton->setCheckable(true);
     assemblyButton->setCheckable(true);
     hardwareButton->setCheckable(true);
 
     QMenu* menu = createPopupMenu();
-    restoreToolsAction = menu->addAction("Reset Tool Widgets");
+    restoreToolsAction = menu->addAction("Show All Tool Widgets");
     restoreToolsButton->setMenu(menu);
     restoreToolsButton->setPopupMode(QToolButton::InstantPopup);
 
@@ -940,12 +941,12 @@ void MedeaMainWindow::setupMainDockWidgetToggles()
     menuBar->setCornerWidget(toolbar);
 
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
-
-
-
 }
 
 
+/**
+ * @brief MedeaMainWindow::setupJenkinsManager
+ */
 void MedeaMainWindow::setupJenkinsManager()
 {
     if(!jenkinsManager){
@@ -959,13 +960,14 @@ void MedeaMainWindow::setupJenkinsManager()
 
         connect(viewController, &ViewController::vc_executeJenkinsJob, jenkinsManager, &JenkinsManager::executeJenkinsJob);
 
-
-
-
         jenkinsManager->validateSettings();
     }
 }
 
+
+/**
+ * @brief MedeaMainWindow::setupCUTSManager
+ */
 void MedeaMainWindow::setupCUTSManager()
 {
     if(!cutsManager ){
@@ -976,10 +978,8 @@ void MedeaMainWindow::setupCUTSManager()
         connect(viewController, &ViewController::vc_getCodeForComponent, cutsManager, &CUTSManager::getCPPForComponent);
         connect(viewController, &ViewController::vc_importXMEProject, cutsManager, &CUTSManager::executeXMETransform);
 
-
         connect(viewController, &ViewController::vc_validateModel, cutsManager, &CUTSManager::executeXSLValidation);
         connect(viewController, &ViewController::vc_launchLocalDeployment, cutsManager, &CUTSManager::showLocalDeploymentGUI, Qt::DirectConnection);
-
 
         connect(cutsManager, &CUTSManager::gotCodeForComponent, viewController, &ViewController::showCodeViewer);
         connect(cutsManager, &CUTSManager::gotXMETransform, viewController, &ViewController::importGraphMLFile);
@@ -990,7 +990,6 @@ void MedeaMainWindow::setupCUTSManager()
         connect(xmiImporter, &XMIImporter::gotXMIGraphML, viewController, &ViewController::importGraphMLExtract);
     }
 }
-
 
 
 /**
@@ -1034,9 +1033,14 @@ void MedeaMainWindow::resizeEvent(QResizeEvent* e)
     }
 }
 
+
+/**
+ * @brief MedeaMainWindow::closeEvent
+ * @param event
+ */
 void MedeaMainWindow::closeEvent(QCloseEvent *event)
 {
-    if(viewController){
+    if (viewController) {
         viewController->closeMEDEA();
         event->ignore();
     }
