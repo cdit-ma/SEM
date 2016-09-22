@@ -124,12 +124,6 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         painter->drawRect(headerRect());
 
         //Paint the White Background for the text
-        if(gotPrimaryTextKey() && !isDataProtected(getPrimaryTextKey())){
-            painter->setBrush(getBodyColor());
-            painter->drawRect(topTextRect());
-        }
-
-        //Paint the White Background for the text
         if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
             painter->setBrush(getBodyColor());
             painter->drawRect(bottomTextOutlineRect());
