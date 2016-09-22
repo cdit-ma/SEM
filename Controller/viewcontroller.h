@@ -242,6 +242,7 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+    void welcomeActionFinished();
     void _showGitHubPage(QString relURL="");
     QString getTempFileForModel();
     void spawnSubView(ViewItem *item );
@@ -260,6 +261,9 @@ private:
 
     NodeViewNew* getActiveNodeView();
     void _teardownProject();
+
+
+    bool newProjectUsed;
 
 
     bool _newProject();

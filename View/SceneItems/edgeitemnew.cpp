@@ -364,6 +364,9 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     }
     //Draw the icons.
 
+    if(state == RS_BLOCK){
+        painter->setClipPath(getElementPath(ER_SELECTION));
+    }
     paintPixmap(painter, lod, ER_EDGE_KIND_ICON, getIconPath());
     if(state > RS_BLOCK && isSelected()){
         paintPixmap(painter, lod, ER_MAIN_ICON, sourceItem->getIconPath());

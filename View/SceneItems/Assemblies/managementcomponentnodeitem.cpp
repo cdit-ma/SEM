@@ -21,6 +21,7 @@ ManagementComponentNodeItem::ManagementComponentNodeItem(NodeViewItem *viewItem,
 
     mainTextFont.setPixelSize(size / 3.5);
 
+    setPrimaryTextKey("label");
     setupPolys();
 
     addRequiredData("x");
@@ -35,29 +36,20 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
     RENDER_STATE state = getRenderState(lod);
 
 
-    painter->setFont(mainTextFont);
+    painter->setClipRect(option->exposedRect);
 
     if(state > RS_BLOCK){
-        painter->setClipRect(option->exposedRect);
-        painter->setPen(Qt::NoPen);
-
-
         painter->save();
-
-        //Paint label
-        renderText(painter, lod, labelRect(), getData("label").toString(), 10);
-
-        //Paint expanded right poly
-        painter->setBrush(getBodyColor());
         painter->setPen(Qt::NoPen);
+
+        painter->setBrush(getBodyColor());
         painter->drawPolygon(getRightPoly());
-        painter->setPen(Qt::black);
-        painter->restore();
 
         painter->setBrush(getBodyColor().darker(120));
         painter->drawPolygon(getLeftPoly());
 
-        paintPixmap(painter, lod, getElementRect(ER_SECONDARY_ICON), "Actions", getData("type").toString());
+        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", getData("type").toString());
+        painter->restore();
     }
 
     NodeItemNew::paint(painter, option, widget);
@@ -92,6 +84,8 @@ QRectF ManagementComponentNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT r
        return secondSubIconRect();
    case ER_LOCKED_STATE:
        return thirdSubIconRect();
+   case ER_PRIMARY_TEXT:
+       return labelRect();
    default:
        return NodeItemNew::getElementRect(rect);
    }
@@ -112,11 +106,10 @@ QRectF ManagementComponentNodeItem::mainRect() const
 QRectF ManagementComponentNodeItem::subIconRect() const
 {
     QRectF returnRect(rightRect());
-    returnRect.setSize(QSize(16,16));
+    returnRect.setSize(smallIconSize() * 2);
     returnRect.setTopLeft(rightRect().topLeft());
-
     //move one icon width left + 1 (padding) and 1 down (padding)
-    returnRect.translate(QPointF(17,1));
+    returnRect.translate(QPoint(returnRect.width(), 0));
 
     return returnRect;
 }
@@ -124,9 +117,8 @@ QRectF ManagementComponentNodeItem::subIconRect() const
 QRectF ManagementComponentNodeItem::secondSubIconRect() const
 {
     QRectF returnRect(subIconRect());
-    returnRect.translate(subIconRect().width()+2, 0);
+    returnRect.translate(subIconRect().width() + 1, 0);
     returnRect.setSize(smallIconSize());
-
     return returnRect;
 }
 
@@ -166,8 +158,6 @@ void ManagementComponentNodeItem::setupPolys()
 {
     if(leftPoly.isEmpty()){
         QRectF icon_rect = mainIconRect();
-        icon_rect.setSize(QSizeF(36,36));
-        icon_rect.moveCenter(icon_rect.center() - QPointF(2,2));
         leftPoly.push_back(QPointF((icon_rect.left()+icon_rect.width()/2), icon_rect.top()));
         leftPoly.push_back(QPointF(icon_rect.right(), icon_rect.top()+icon_rect.height()/2));
         leftPoly.push_back(QPointF(icon_rect.left()+icon_rect.width()/2, icon_rect.bottom()));
@@ -177,8 +167,8 @@ void ManagementComponentNodeItem::setupPolys()
     if(rightPolyExpanded.isEmpty()){
         rightPolyExpanded.push_back(mainIconRect().center());
         rightPolyExpanded.push_back(rightRect().topRight());
-        rightPolyExpanded.push_back(rightRect().bottomRight() - QPointF(rightRect().height(), 0));
-        rightPolyExpanded.push_back(getLeftPoly().at(2).toPoint());
+        rightPolyExpanded.push_back(getLeftPoly().at(2) + QPointF(rightRect().width() - rightRect().height(), 0 ));
+        rightPolyExpanded.push_back(getLeftPoly().at(2));
     }
 }
 

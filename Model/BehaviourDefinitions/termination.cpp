@@ -35,7 +35,6 @@ bool Termination::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     switch(edgeKind){
     case Edge::EC_WORKFLOW:{
         if(!getBranch()){
-            qCritical() << "NO BRANCH";
             return false;
         }
         break;

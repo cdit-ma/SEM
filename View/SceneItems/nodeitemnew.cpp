@@ -919,6 +919,9 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
 
+    //Clip yo!
+    //painter->setClipRect(option->exposedRect);
+
     RENDER_STATE state = getRenderState(lod);
 
     //Paint the grid lines.
@@ -929,19 +932,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->restore();
     }
 
-    if(state > RS_BLOCK){
-        painter->setPen(Qt::black);
-
-        if(gotPrimaryTextKey()){
-            renderText(painter, lod, getElementRect(ER_PRIMARY_TEXT), getPrimaryText());
-        }
-        if(gotSecondaryTextKey()){
-            paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", getSecondaryTextKey());
-            renderText(painter, lod, getElementRect(ER_SECONDARY_TEXT), getSecondaryText(), 5);
-        }
-
-
-
+    if(state > RS_MINIMAL){
         if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
             paintPixmap(painter, lod, ER_CONNECT_ICON, "Actions", "ConnectTo");
         }
@@ -957,11 +948,16 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         if(isExpandEnabled()){
             paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", isExpanded() ? "Contract" : "Expand");
         }
+
+        if(gotSecondaryTextKey()){
+            paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", getSecondaryTextKey());
+        }
     }
 
     if(state > RS_BLOCK){
         if(isSelected() && hoveredConnect){
             painter->save();
+
             QColor resizeColor(255, 255, 255, 130);
 
             painter->setPen(Qt::NoPen);
@@ -977,6 +973,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
     if(state > RS_BLOCK){
         painter->save();
+
         painter->setPen(getPen());
         painter->setBrush(Qt::NoBrush);
         painter->drawPath(getElementPath(ER_SELECTION));
@@ -998,22 +995,30 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
             //Rotate
             painter->save();
             painter->translate(arrowRect.center());
-
             painter->rotate(getResizeArrowRotation(hoveredResizeVertex));
-
             painter->translate(-(arrowRect.width() / 2), - (arrowRect.height() / 2));
-
-            paintPixmap(painter, lod, arrowRect.translated(-arrowRect.topLeft()), "Actions", "Resize", Qt::black);
+            //paintPixmap(painter, lod, arrowRect.translated(-arrowRect.topLeft()), "Actions", "Resize", Qt::black);
             painter->restore();
         }
         painter->restore();
     }
+
     EntityItemNew::paint(painter, option, widget);
+
     if(state > RS_BLOCK){
         if(isReadOnly()){
             paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
         }
+
     }
+    if(gotPrimaryTextKey()){
+        renderText(painter, lod, ER_PRIMARY_TEXT, getPrimaryText());
+    }
+
+    if(gotSecondaryTextKey()){
+        renderText(painter, lod, ER_SECONDARY_TEXT, getSecondaryText());
+    }
+
 }
 
 QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
@@ -1218,6 +1223,11 @@ QColor NodeItemNew::getBodyColor() const
         return readOnlyInstanceColor;
     }
     return EntityItemNew::getBodyColor();
+}
+
+QColor NodeItemNew::getHeaderColor() const
+{
+    return getBodyColor().darker(120);
 }
 
 QPointF NodeItemNew::getTopLeftOffset() const

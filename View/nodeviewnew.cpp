@@ -4,24 +4,16 @@
 #include "SceneItems/nodeitemnew.h"
 #include "SceneItems/edgeitemnew.h"
 
-#include "SceneItems/aspectitemnew.h"
-#include "SceneItems/modelitemnew.h"
-#include "SceneItems/defaultnodeitem.h"
 #include "SceneItems/Hardware/hardwarenodeitem.h"
 #include "SceneItems/Assemblies/managementcomponentnodeitem.h"
-#include "SceneItems/eventportnodeitem.h"
-#include "SceneItems/attributenodeitem.h"
-#include "SceneItems/nodeitemcontainer.h"
 #include "SceneItems/Assemblies/nodeitemstackcontainer.h"
-#include "SceneItems/Assemblies/nodeitemcolumncontainer.h"
-#include "SceneItems/Assemblies/nodeitemcolumnitem.h"
-#include "SceneItems/Assemblies/assemblyeventportnodeitem.h"
 #include "theme.h"
 #include <QDebug>
 #include <QtMath>
 #include <QGraphicsItem>
 #include <QKeyEvent>
 #include <QDateTime>
+#include <QOpenGLWidget>
 
 #define ZOOM_INCREMENTOR 1.05
 
@@ -35,7 +27,6 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
 
     connectLineItem = 0;
     //OPENGL
-    //#include <QOpenGLWidget>
     //setViewport(new QOpenGLWidget());
     //setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 
@@ -47,8 +38,10 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
     setDragMode(NoDrag);
     setAcceptDrops(true);
     setTransformationAnchor(QGraphicsView::NoAnchor);
-    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
+    setViewportUpdateMode(QGraphicsView::MinimalViewportUpdate);
+    setRenderHint(QPainter::Antialiasing, true);
+    setRenderHint(QPainter::SmoothPixmapTransform, true);
+
 
     //Turn off the Scroll bars.
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -63,11 +56,8 @@ NodeViewNew::NodeViewNew(QWidget* parent):QGraphicsView(parent)
     isAspectView = false;
 
     backgroundFont.setPixelSize(70);
-    //backgroundFont.setBold(true);
-
 
     rubberband = new QRubberBand(QRubberBand::Rectangle, this);
-
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
@@ -825,7 +815,8 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
 
             default:
-                nodeItem = new DefaultNodeItem(item, parentNode);
+
+                //nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
             }
 

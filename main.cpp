@@ -33,17 +33,18 @@ int launchMEDEA(int argc, char *argv[]){
 
     //Fixes MacOS QIcon resolution.
     a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
-    QString graphmlFilePath = "";
-    if (argc == 2) {
-        graphmlFilePath = QString::fromUtf8(argv[1]);
-    }
-
-
 
     ViewController* vc = new ViewController();
-    MedeaMainWindow* w2 = (MedeaMainWindow*) MedeaWindowManager::constructMainWindow(vc);
+    MedeaMainWindow* window = (MedeaMainWindow*) MedeaWindowManager::constructMainWindow(vc);
 
-    a.setActiveWindow(w2);
+    if (argc == 2) {
+        QString projectPath = QString::fromUtf8(argv[1]);
+        if(!projectPath.isEmpty()){
+            vc->openExistingProject(projectPath);
+        }
+    }
+
+    a.setActiveWindow(window);
     return a.exec();
 }
 

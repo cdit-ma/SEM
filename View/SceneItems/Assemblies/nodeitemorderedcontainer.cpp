@@ -9,8 +9,9 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     _isSortOrdered = false;
 
     headerMargin = QMarginsF(2,2,2,2);
-    setBodyPadding(QMarginsF(10,10,10,10));
-    setMargin(QMarginsF(10,10,10,10));
+    int s = getGridSize();
+    setBodyPadding(QMarginsF(s,s,s,s));
+    setMargin(QMarginsF(s,s,s,s));
 
     qreal height = DEFAULT_SIZE / 2.0;
     qreal width = DEFAULT_SIZE / 2.0;
@@ -107,8 +108,8 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
-    painter->save();
     painter->setClipRect(option->exposedRect);
+
     if(state > RS_BLOCK){
         painter->setPen(Qt::NoPen);
 
@@ -119,16 +120,21 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
         }
 
         //Paint the Header
-        painter->setBrush(getBodyColor().darker(110));
+        painter->setBrush(getHeaderColor());
         painter->drawRect(headerRect());
 
         //Paint the White Background for the text
+        if(gotPrimaryTextKey() && !isDataProtected(getPrimaryTextKey())){
+            painter->setBrush(getBodyColor());
+            painter->drawRect(topTextRect());
+        }
+
+        //Paint the White Background for the text
         if(gotSecondaryTextKey() && !isDataProtected(getSecondaryTextKey())){
-            painter->setBrush(Qt::white);
+            painter->setBrush(getBodyColor());
             painter->drawRect(bottomTextOutlineRect());
         }
     }
-    painter->restore();
     NodeItemNew::paint(painter, option, widget);
 }
 

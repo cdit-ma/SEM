@@ -1,5 +1,4 @@
 #include "containerelementnodeitem.h"
-#include "Assemblies/nodeitemcolumncontainer.h"
 #include "Assemblies/nodeitemstackcontainer.h"
 #include <QDebug>
 

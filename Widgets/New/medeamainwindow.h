@@ -34,7 +34,6 @@ public:
     MedeaMainWindow(ViewController* vc, QWidget *parent=0);
     ~MedeaMainWindow();
 
-    void setViewController(ViewController* vc);
 
 signals:
     void requestSuggestions();
@@ -63,9 +62,9 @@ private slots:
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
 
-    void hideWelcomeScreen(QAction *action);
 
 private:
+    void setViewController(ViewController* vc);
     void initializeApplication();
     void connectNodeView(NodeViewNew* nodeView);
     void toggleWelcomeScreen(bool on);

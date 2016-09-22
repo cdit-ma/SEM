@@ -13,14 +13,35 @@
 #define SMALL_ICON_RATIO (1.0 / 6.0)
 #define LABEL_RATIO (2.5 / 6.0)
 #define DEFAULT_SIZE 80
+#define MAX_FONT_SIZE (DEFAULT_SIZE / 8.0)
+#define MIN_FONT_SIZE (MAX_FONT_SIZE / 2.5)
 
 #define SELECTED_LINE_WIDTH 3
 
 struct ImageMap{
     QPixmap pixmap;
-    QString imageAlias;
+    QString imagePath;
     QString imageName;
     QSizeF imageSize;
+    QColor tintColor;
+};
+
+struct TextMap{
+    QString text;
+    int textOptions;
+
+    QFont font;
+    QColor rectColor;
+    QSizeF boundingSize;
+    QRectF boundingRect;
+    QRectF textBoundingRect;
+
+    bool maximumSize;
+
+    QPixmap pixmap_DOUBLE;
+    QPixmap pixmap_FULL;
+    QPixmap pixmap_MINIMAL;
+    QPixmap pixmap_REDUCED;
 };
 
 //Forward class definition
@@ -37,7 +58,7 @@ public:
         NODE,
     };
     enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT, ER_CONNECT_ICON, ER_EDGE_KIND_ICON, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE};
-    enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
+    enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL, RS_DOUBLE};
 
     EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind);
     ~EntityItemNew();
@@ -67,10 +88,12 @@ public:
     virtual QRectF getElementRect(ELEMENT_RECT rect) const;
     virtual QPainterPath getElementPath(ELEMENT_RECT rect) const;
 
-    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imageAlias, QString imageName, QColor tintColor=QColor(), bool update=false);
-    void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QString imageAlias, QString imageName, QColor tintColor=QColor());
-    void paintPixmap(QPainter *painter, qreal lod, QRectF imageRect, QPair<QString, QString> image, QColor tintColor=QColor());
     void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor=QColor());
+    void paintPixmap(QPainter *painter, qreal lod, ELEMENT_RECT pos, QString imagePath, QString imageName, QColor tintColor=QColor());
+
+private:
+public:
+    void renderText(QPainter* painter, qreal lod, ELEMENT_RECT pos, QString text, int textOptions = Qt::AlignVCenter | Qt::AlignLeft | Qt::TextWrapAnywhere);
 
     void setTooltip(ELEMENT_RECT rect, QString tooltip, QCursor cursor = Qt::ArrowCursor);
 
@@ -158,7 +181,6 @@ public:
     bool isMoving() const;
 
     int getGridSize() const;
-    int getMajorGridCount() const;
     virtual QPointF getTopLeftOffset() const;
 
 public:
@@ -211,7 +233,6 @@ public:
     void setSelected(bool selected);
     void setActiveSelected(bool active);
 
-    void renderText(QPainter* painter, qreal lod, QRectF textRect, QString text, int fontSize = -1) const;
 private:
     void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
@@ -231,6 +252,7 @@ private:
 
 
     QHash<ELEMENT_RECT, ImageMap> imageMap;
+    QHash<ELEMENT_RECT, TextMap> textMap;
 
     QHash<ELEMENT_RECT, QString> tooltipMap;
     QHash<ELEMENT_RECT, QCursor> tooltipCursorMap;

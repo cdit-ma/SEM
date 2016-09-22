@@ -95,7 +95,6 @@ MedeaMainWindow::~MedeaMainWindow()
     Theme::teardownTheme();
 }
 
-
 /**
  * @brief MedeaMainWindow::setViewController
  * @param vc
@@ -157,21 +156,18 @@ void MedeaMainWindow::searchEntered()
  */
 void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int ID)
 {
-    notificationTimer->stop();
-
     notificationDialog->addNotificationItem(type, title, description, QPair<QString, QString>(iconPath, iconName), ID);
 
-    notificationLabel->setText(description);
-    notificationIconLabel->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32)));
+    if(welcomeScreenOn){
+        notificationTimer->stop();
 
-    //QFontMetrics fm = notificationLabel->fontMetrics();
-    //int maxWidth = qMin(innerWindow->width() - 10, fm.width(description) + 20);
-    //notificationPopup->setSize(maxWidth, notificationWidget->sizeHint().height());
-
-    notificationPopup->setSize(notificationWidget->sizeHint().width() + 30, notificationWidget->sizeHint().height() + 10);
-    notificationPopup->show();
-    moveWidget(notificationPopup, this, Qt::AlignBottom);
-    notificationTimer->start(5000);
+        notificationLabel->setText(description);
+        notificationIconLabel->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32)));
+        notificationPopup->setSize(notificationWidget->sizeHint().width() + 30, notificationWidget->sizeHint().height() + 10);
+        notificationPopup->show();
+        moveWidget(notificationPopup, this, Qt::AlignBottom);
+        notificationTimer->start(5000);
+    }
 }
 
 
@@ -182,18 +178,18 @@ void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QS
  */
 void MedeaMainWindow::showProgressBar(bool show, QString description)
 {
-    progressLabel->setText(description);
-    bool wasVisible = progressPopup->isVisible();
-    progressPopup->setVisible(show);
+    if(show && progressLabel->text() != description){
+        progressLabel->setText(description);
+    }
 
     if(show){
-        if(!wasVisible){
-            moveWidget(progressPopup, innerWindow);
-        }
+        Qt::Alignment alignment = welcomeScreenOn ? Qt::AlignBottom : Qt::AlignCenter;
+        moveWidget(progressPopup, this, alignment);
     }else{
-        //Reset back to 0
         progressBar->reset();
     }
+
+    progressPopup->setVisible(show);
 }
 
 
@@ -359,18 +355,6 @@ void MedeaMainWindow::toolbarTopLevelChanged(bool undocked)
 
 
 /**
- * @brief MedeaMainWindow::hideWelcomeScreen
- * @param action
- */
-void MedeaMainWindow::hideWelcomeScreen(QAction* action)
-{
-    if (action->text() != "Settings") {
-        toggleWelcomeScreen(false);
-    }
-}
-
-
-/**
  * @brief MedeaMainWindow::setModelTitle
  * @param modelTitle
  */
@@ -473,6 +457,10 @@ void MedeaMainWindow::toggleWelcomeScreen(bool on)
         return;
     }
 
+    menuBar->setVisible(!on);
+    // show/hide the menu bar and close all dock widgets
+    setDockWidgetsVisible(!on);
+
     if (on) {
         holderLayout->removeWidget(welcomeScreen);
         holderLayout->addWidget(innerWindow);
@@ -483,9 +471,6 @@ void MedeaMainWindow::toggleWelcomeScreen(bool on)
         setCentralWidget(innerWindow);
     }
 
-    // show/hide the menu bar and close all dock widgets
-    menuBar->setVisible(!on);
-    setDockWidgetsVisible(!on);
 
     welcomeScreenOn = on;
 }
@@ -653,7 +638,6 @@ void MedeaMainWindow::setupWelcomeScreen()
     holderLayout = new QVBoxLayout(holderWidget);
     holderLayout->addWidget(welcomeScreen);
 
-    connect(welcomeScreen, &WelcomeScreenWidget::actionTriggered, this, &MedeaMainWindow::hideWelcomeScreen);
     connect(this, &MedeaMainWindow::recentProjectsUpdated, welcomeScreen, &WelcomeScreenWidget::recentProjectsUpdated);
 }
 

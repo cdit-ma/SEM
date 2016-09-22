@@ -112,10 +112,9 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
 
-    painter->setFont(mainTextFont);
+    painter->setClipRect(option->exposedRect);
     //Set Clip Rectangle
     if(state > RS_BLOCK){
-        painter->setClipRect(option->exposedRect);
         painter->setPen(Qt::NoPen);
         painter->setBrush(getBodyColor());
 

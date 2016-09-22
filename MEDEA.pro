@@ -130,12 +130,9 @@ HEADERS += \
     Controller/viewcontroller.h \
     View/nodeviewitem.h \
     View/edgeviewitem.h \
-    View/SceneItems/defaultnodeitem.h \
     View/SceneItems/edgeitemnew.h \
     View/SceneItems/entityitemnew.h \
     View/SceneItems/nodeitemnew.h \
-    View/SceneItems/aspectitemnew.h \
-    View/SceneItems/modelitemnew.h \
     View/nodeviewnew.h \
     Controller/selectionhandler.h \
     View/SceneItems/Hardware/hardwarenodeitem.h \
@@ -185,25 +182,18 @@ HEADERS += \
     Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h \
     Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h \
     Model/Edges/qosedge.h \
-    View/SceneItems/eventportnodeitem.h \
     View/Table/attributetableview.h \
     Widgets/New/medeanodeviewdockwidget.h \
     Controller/settingscontroller.h \
-    View/SceneItems/attributenodeitem.h \
     Widgets/New/dataeditwidget.h \
     Controller/filehandler.h \
     Widgets/New/selectioncontroller.h \
     GUI/popupwidget.h \
     View/Dock/docktabwidget.h \
-    View/SceneItems/nodeitemcontainer.h \
-    View/SceneItems/Assemblies/nodeitemcolumncontainer.h \
-    View/SceneItems/Assemblies/nodeitemcolumnitem.h \
     View/SceneItems/Assemblies/nodeitemstackcontainer.h \
     View/SceneItems/Assemblies/nodeitemorderedcontainer.h \
     View/SceneItems/containerelementnodeitem.h \
-    View/SceneItems/Assemblies/assemblyeventportnodeitem.h \
     View/Dock/dockwidget.h \
-    View/SceneItems/Assemblies/nodeitemsquare.h \
     View/Dock/dockwidgetitem.h \
     View/Dock/dockwidgetactionitem.h \
     View/Dock/dockwidgetparentactionitem.h \
@@ -309,12 +299,9 @@ SOURCES += \
     Controller/viewcontroller.cpp \
     View/nodeviewitem.cpp \
     View/edgeviewitem.cpp \
-    View/SceneItems/defaultnodeitem.cpp \
     View/SceneItems/edgeitemnew.cpp \
     View/SceneItems/entityitemnew.cpp \
     View/SceneItems/nodeitemnew.cpp \
-    View/SceneItems/aspectitemnew.cpp \
-    View/SceneItems/modelitemnew.cpp \
     View/nodeviewnew.cpp \
     Controller/selectionhandler.cpp \
     View/SceneItems/Hardware/hardwarenodeitem.cpp \
@@ -338,7 +325,6 @@ SOURCES += \
     View/SceneItems/Assemblies/managementcomponentnodeitem.cpp \
     Controller/toolbarcontroller.cpp \
     Controller/nodeviewitemaction.cpp \
-    View/SceneItems/eventportnodeitem.cpp \
     View/Table/multilinedelegate.cpp \
     Widgets/New/qosbrowser.cpp \
     Widgets/New/qosprofilemodel.cpp \
@@ -369,20 +355,14 @@ SOURCES += \
     View/Table/attributetableview.cpp \
     Widgets/New/medeanodeviewdockwidget.cpp \
     Controller/settingscontroller.cpp \
-    View/SceneItems/attributenodeitem.cpp \
     Widgets/New/dataeditwidget.cpp \
     Controller/filehandler.cpp \
     GUI/popupwidget.cpp \
     View/Dock/docktabwidget.cpp \
-    View/SceneItems/nodeitemcontainer.cpp \
-    View/SceneItems/Assemblies/nodeitemcolumncontainer.cpp \
-    View/SceneItems/Assemblies/nodeitemcolumnitem.cpp \
     View/SceneItems/Assemblies/nodeitemstackcontainer.cpp \
     View/SceneItems/Assemblies/nodeitemorderedcontainer.cpp \
     View/SceneItems/containerelementnodeitem.cpp \
-    View/SceneItems/Assemblies/assemblyeventportnodeitem.cpp \
     View/Dock/dockwidget.cpp \
-    View/SceneItems/Assemblies/nodeitemsquare.cpp \
     View/Dock/dockwidgetitem.cpp \
     View/Dock/dockwidgetactionitem.cpp \
     View/Dock/dockwidgetparentactionitem.cpp \

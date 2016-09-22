@@ -4,7 +4,7 @@
 #include <QPen>
 #include <QDebug>
 #include "theme.h"
-
+#include <QTimer>
 NodeViewMinimap::NodeViewMinimap(QObject*)
 {
     _isPanning = false;
@@ -14,9 +14,16 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
     setInteractive(false);
     setMouseTracking(true);
 
+    QTimer* updateTimer = new QTimer(this);
+    updateTimer->setInterval(500);
+    updateTimer->start();
+
+
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(update()));
+
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
 
     zoomPixmap = Theme::theme()->getImage("Actions", "Search", QSize(16, 16), Qt::white);
 }

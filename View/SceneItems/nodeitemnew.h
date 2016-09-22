@@ -261,6 +261,7 @@ protected:
     // EntityItemNew interface
 public:
     QColor getBodyColor() const;
+    QColor getHeaderColor() const;
 
     // EntityItemNew interface
 public:

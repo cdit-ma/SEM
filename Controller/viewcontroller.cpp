@@ -33,6 +33,7 @@ ViewController::ViewController(){
     codeViewer = 0;
     validationDialog = 0;
 
+    newProjectUsed = false;
     _modelReady = false;
     _controllerReady = true;
 
@@ -376,7 +377,7 @@ void ViewController::notificationsSeen()
 
 void ViewController::projectOpened(bool success)
 {
-    fitAllViews();
+    welcomeActionFinished();
 }
 
 void ViewController::gotExportedSnippet(QString snippetData)
@@ -540,6 +541,13 @@ void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit vc_triggerAction("Table Changed");
     emit vc_setData(ID, key, data);
+}
+
+void ViewController::welcomeActionFinished()
+{
+     fitAllViews();
+     emit vc_showWelcomeScreen(false);
+     newProjectUsed = false;
 }
 
 void ViewController::_showGitHubPage(QString relURL)
@@ -809,10 +817,11 @@ void ViewController::setModelReady(bool okay)
 {
     if(okay != _modelReady){
         _modelReady = okay;
-        if(_modelReady){
-            fitAllViews();
-        }
+
         emit mc_modelReady(okay);
+        if(_modelReady && newProjectUsed){
+            welcomeActionFinished();
+        }
     }
 }
 
@@ -901,6 +910,7 @@ bool ViewController::_newProject()
 {
     if(_closeProject()){
         if(!controller){
+
             initializeController();
             emit vc_setupModel();
             return true;
@@ -1152,6 +1162,7 @@ void ViewController::setClipboardData(QString data)
 
 void ViewController::newProject()
 {
+    newProjectUsed = true;
     _newProject();
 }
 

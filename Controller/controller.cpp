@@ -5630,7 +5630,8 @@ bool NewController::_newImportGraphML(QString document, Node *parent)
 					//Insert the item in the lookup
 					edgesMap.insertMulti(entity->getEdgeKind(), entity);
                 }else{
-                    qCritical() << "GG";
+                    QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".";
+                    emit  controller_showNotification(NT_ERROR, "Import Error", message);
                 }
             }else{
                 //Don't construct if we have an error.
