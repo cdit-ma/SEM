@@ -147,6 +147,7 @@ void DockWidgetParentActionItem::themeChanged()
                   "padding: 2px 0px 2px 7px;"
                   "background:" + theme->getAltBackgroundColorHex() + ";}"
                   "QToolButton::checked {"
+                  "color:" + theme->getTextColorHex() + ";"
                   "background:" + theme->QColorToHex(altColor) + ";"
                   "}"
                   "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";}");

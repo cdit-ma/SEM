@@ -613,7 +613,7 @@ QString Theme::getDockWidgetStyleSheet()
 {
     return "QDockWidget {"
            "border: 4px solid red;"
-           "margin: 5px;"
+           "margin: 3px;"
            "background:" % getBackgroundColorHex() % ";"
            "}";
 }

@@ -92,8 +92,7 @@ void NotificationDialog::themeChanged()
                   "color:" + theme->getTextColorHex() + ";"
                   "}"
                   "QAbstractItemView::item:selected {"
-                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "background:" + theme->getDisabledBackgroundColorHex() + ";"
+                  "background:" + theme->getAltBackgroundColorHex() + ";"
                   "}"
                   "QAbstractItemView::item:hover {"
                   "background:" + theme->getDisabledBackgroundColorHex() + ";"
@@ -347,7 +346,11 @@ void NotificationDialog::setupLayout()
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     foreach(NOTIFICATION_TYPE type, getNotificationTypes()){
-        toolbar->addAction(typeActionHash.value(type, 0));
+        QAction* action = typeActionHash.value(type, 0);
+        if (action) {
+            toolbar->addAction(action);
+            action->setToolTip("Show/Hide " + GET_NOTIFICATION_TYPE_STRING(type) + " Notifications");
+        }
     }
 
     QWidget* stretchWidget = new QWidget(this);
@@ -359,6 +362,8 @@ void NotificationDialog::setupLayout()
 
     clearSelectedAction = toolbar2->addAction("Clear Selected");
     clearVisibleAction = toolbar2->addAction("Clear Visible");
+    clearSelectedAction->setToolTip("Clear Selected Items");
+    clearVisibleAction->setToolTip("Clear Visible Items");
     clearSelectedAction->setEnabled(false);
     clearVisibleAction->setEnabled(false);
 

@@ -399,3 +399,20 @@ QList<NOTIFICATION_TYPE> getNotificationTypes()
     list << NT_CRITICAL;
     return list;
 }
+
+
+QString GET_NOTIFICATION_TYPE_STRING(NOTIFICATION_TYPE type)
+{
+    switch (type) {
+    case NT_INFO:
+        return "Information";
+    case NT_WARNING:
+        return "Warning";
+    case NT_ERROR:
+        return "Error";
+    case NT_CRITICAL:
+        return "Critical";
+    default:
+        return "";
+    }
+}

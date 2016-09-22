@@ -96,6 +96,8 @@ private:
 
     QPair<QString, QString> titleIcon;
 
+    QFrame* borderFrame;
+
 protected:
     bool eventFilter(QObject *object, QEvent *event);
 
@@ -108,6 +110,10 @@ private:
     int ID;
     static int _DockWidgetID;
 
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *);
 };
 
 
