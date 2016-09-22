@@ -66,7 +66,7 @@ int EntityItemNew::type() const
 
 EntityItemNew::RENDER_STATE EntityItemNew::getRenderState(qreal lod) const
 {
-    if(lod >= 2.0){
+    if(lod >= 2.0 && !_isMoving){
         return RS_DOUBLE;
     }else if(lod >= 1.0){
         return RS_FULL;
@@ -210,6 +210,7 @@ void EntityItemNew::renderText(QPainter *painter, qreal lod, EntityItemNew::ELEM
 
     RENDER_STATE state = getRenderState(lod);
     if(textM.text != text || textM.textOptions != textOptions || (textM.maximumSize == false && (textM.boundingSize != rectSize)) || textM.maximumSize == true && (rectSize.width() < textM.boundingSize.width())){
+        qCritical() << "UPDATING TEXT!";
         textM.boundingRect = rect;
         textM.boundingSize = rectSize;
         textM.rectColor = getBodyColor().darker(130);

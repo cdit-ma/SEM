@@ -812,22 +812,10 @@ void NewController::setViewSignalsEnabled(bool enabled, bool sendQueuedSignals)
 void NewController::updateUndoRedoState()
 {
     int undos = undoActionStack.size();
-    int redos = undoActionStack.size();
+    int redos = redoActionStack.size();
 
     if(undos <= 1 || redos <= 1){
         emit undoRedoChanged();
-    }
-    if(undoActionStack.isEmpty()){
-
-        emit controller_CanUndo(false);
-    }else if(undoActionStack.size() == 1){
-        emit controller_CanUndo(true);
-    }
-
-    if(redoActionStack.isEmpty()){
-        emit controller_CanRedo(false);
-    }else if(redoActionStack.size() == 1){
-        emit controller_CanRedo(true);
     }
 }
 

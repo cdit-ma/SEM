@@ -20,6 +20,7 @@ MedeaWindowNew::MedeaWindowNew(QWidget *parent, MedeaWindowNew::WindowType type)
     setContextMenuPolicy(Qt::CustomContextMenu);
     setFocusPolicy(Qt::ClickFocus);
 
+    setMinimumSize(550,350);
 
     setTabPosition(Qt::RightDockWidgetArea, QTabWidget::North);
     setTabPosition(Qt::LeftDockWidgetArea, QTabWidget::North);

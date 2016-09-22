@@ -78,7 +78,7 @@ private:
     void destructWindowIfEmpty(MedeaWindowNew* window);
 
     void showPopOutDialog(MedeaDockWidget* dw);
-    QToolButton* constructPopOutWindowButton(QDialog *parent, MedeaWindowNew* window=0);
+    QAction* constructPopOutWindowAction(QDialog *parent, MedeaWindowNew* window=0);
 
     MedeaWindowNew* mainWindow;
     MedeaWindowNew* centralWindow;

@@ -240,8 +240,6 @@ signals:
     void controller_ProjectNameChanged(QString);
 
     void undoRedoChanged();
-    void controller_CanUndo(bool ok);
-    void controller_CanRedo(bool ok);
     void controller_IsModelReady(bool ready);
     void progressChanged(int);
     void showProgress(bool, QString = "");

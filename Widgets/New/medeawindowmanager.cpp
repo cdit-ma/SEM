@@ -390,9 +390,13 @@ void MedeaWindowManager::reparentDockWidget_ButtonPressed()
         if(isInt){
             MedeaWindowNew* window = 0;
 
-            if(wID == -1){
+            bool newWindow = wID == -1;
+            if(newWindow){
                 window = _constructSubWindow();
                 window->setWindowTitle("Sub Window #" + QString::number(window->getID() - 2));
+                window->show();
+                window->activateWindow();
+
             }else{
                 if(windows.contains(wID)){
                     window = windows[wID];
@@ -403,6 +407,7 @@ void MedeaWindowManager::reparentDockWidget_ButtonPressed()
             if(activeViewDockWidget && window){
                 _reparentDockWidget(activeViewDockWidget, window);
             }
+
         }
     }
 }
@@ -429,14 +434,10 @@ void MedeaWindowManager::_reparentDockWidget(MedeaDockWidget *dockWidget, MedeaW
         }
 
 
+
         window->addDockWidget(dockWidget);
-        window->show();
-        //Make it visible
         emit dockWidget->req_Visible(dockWidget->getID(), true);
-
-        window->activateWindow();
-
-        //destructWindowIfEmpty(previousWindow);
+        window->raise();
     }
 }
 
@@ -446,52 +447,47 @@ void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
         setActiveDockWidget(dockWidget);
     }
 
-    /*
-    QDialog* dialog = new QDialog();
-    dialog->setWindowTitle("Select Destination Window");
-    //dialog->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-    //dialog->setAttribute(Qt::WA_NoSystemBackground, true);
-    //dialog->setAttribute(Qt::WA_TranslucentBackground, true);
-    dialog->setStyleSheet("QDialog{ background:" + Theme::theme()->getBackgroundColorHex() + ";}");
-    //dialog->setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
-
-    dialog->setModal(true);
-
-    QHBoxLayout* layout = new QHBoxLayout(dialog);
-    dialog->setLayout(layout);
-    */
-
+    PopupWidget* dialog = new PopupWidget(PopupWidget::DIALOG, mainWindow);
     /*
      * TODO - Figure out why this doesn't work!
      */
+
+    QFont titleFont;
+    titleFont.setPixelSize(15);
     QWidget* widget = new QWidget(mainWindow);
     QLabel* titleLabel = new QLabel("Select Destination Window", mainWindow);
     titleLabel->setAlignment(Qt::AlignCenter);
+    titleLabel->setFont(titleFont);
 
     QVBoxLayout* vlayout = new QVBoxLayout(widget);
     vlayout->addWidget(titleLabel);
 
-    QHBoxLayout* layout = new QHBoxLayout();
-    vlayout->addLayout(layout);
+    QToolBar* toolbar = new QToolBar(widget);
+    toolbar->setIconSize(QSize(150,100));
+    toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+
+    vlayout->addWidget(toolbar);
 
     Theme* theme = Theme::theme();
-    PopupWidget* dialog = new PopupWidget(PopupWidget::DIALOG, mainWindow);
-    dialog->setWidget(widget);
-    dialog->setStyleSheet(theme->getPopupWidgetStyleSheet());
-    widget->setStyleSheet("QWidget{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";}"
-                          "QToolButton{ color: black; }");
+
 
     MedeaWindowNew* currentWindow = dockWidget->getCurrentWindow();
+
+
     foreach(MedeaWindowNew* w, windows.values()){
         if(w != currentWindow && w != mainWindow){
-            QToolButton* button = constructPopOutWindowButton(dialog, w);
-            layout->addWidget(button, 0 , Qt::AlignCenter);
+            QAction* action = constructPopOutWindowAction(dialog, w);
+            toolbar->addAction(action);
         }
     }
-    QToolButton* button = constructPopOutWindowButton(dialog, 0);
-    layout->addWidget(button);
 
-    dialog->setSize(layout->sizeHint().width() + 50, layout->sizeHint().height() + 50);
+    toolbar->addAction(constructPopOutWindowAction(dialog));
+
+    dialog->setWidget(widget);
+    dialog->setStyleSheet(theme->getPopupWidgetStyleSheet());
+
+    titleLabel->setStyleSheet("border:none; background:rgba(0,0,0,0);color:" + theme->getTextColorHex() + ";}");
+    //toolbar->setStyleSheet("QToolButton{text-align:right;}");
 
 
     dialog->exec();
@@ -499,36 +495,27 @@ void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
     delete dialog;
 }
 
-QToolButton *MedeaWindowManager::constructPopOutWindowButton(QDialog *parent, MedeaWindowNew *window)
+QAction *MedeaWindowManager::constructPopOutWindowAction(QDialog *parent, MedeaWindowNew *window)
 {
-    QToolButton* button = new QToolButton(parent);
-    button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    button->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 10px;");
-    button->setFont(mainWindow->font());
-
-    QFont guiFont = QFont("Verdana", 10);
-    button->setFont(guiFont);
-    button->setFixedSize(200, 170);
-    button->setIconSize(QSize(175, 80));
+    QAction* action = new QAction(this);
+    //button->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 10px;");
+    //button->setFont(mainWindow->font());
 
     if(window){
-        button->setIcon(QIcon(window->grab()));
+        action->setIcon(QIcon(window->grab()));
         QString text = window->windowTitle();
-        if(text == ""){
-            text = "MEDEA - Main Window";
-        }
-        button->setText(text);
-        button->setProperty(WINDOW_ID_DATA, window->getID());
+        action->setText(text);
+        action->setProperty(WINDOW_ID_DATA, window->getID());
     }else{
-        button->setIcon(Theme::theme()->getImage("Actions", "Add", QSize(), QColor(50, 128, 50)));
-        button->setText("New Window");
-        button->setProperty(WINDOW_ID_DATA, -1);
-        button->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 20px;");
-        button->setFixedWidth(170);
+        action->setIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
+        action->setText("New Window");
+        action->setProperty(WINDOW_ID_DATA, -1);
+        //button->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 20px;");
+        //button->setFixedWidth(170);
     }
 
-    connect(button, SIGNAL(clicked(bool)), this, SLOT(reparentDockWidget_ButtonPressed()));
-    connect(button, SIGNAL(clicked(bool)), parent, SLOT(accept()));
-    return button;
+    connect(action, SIGNAL(triggered(bool)), parent, SLOT(accept()));
+    connect(action, SIGNAL(triggered(bool)), this, SLOT(reparentDockWidget_ButtonPressed()));
+    return action;
 }
 
