@@ -366,7 +366,7 @@ void NotificationDialog::setupLayout()
     mainLayout->addWidget(listWidget, 1);
     mainLayout->addWidget(toolbar2, 0, Qt::AlignRight);
 
-    setMinimumSize(mainLayout->sizeHint().width() + 50, 300);
+    setMinimumSize(mainLayout->sizeHint().width() + 100, 250);
 }
 
 
