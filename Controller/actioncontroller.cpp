@@ -962,7 +962,6 @@ void ActionController::setupApplicationToolbar()
     toolbar_delete = applicationToolbar->addAction(edit_delete->constructSubAction(false));
     toolbar_context = applicationToolbar->addAction(toolbar_contextToolbar->constructSubAction(false));
     toolbar_search = applicationToolbar->addAction(edit_search->constructSubAction(false));
-    applicationToolbar->addSeperator();
 
     SettingsController* s = SettingsController::settings();
     foreach(SETTING_KEY key, s->getSettingsKeys("Toolbar", "Visible Buttons")){

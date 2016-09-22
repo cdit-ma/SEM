@@ -30,10 +30,10 @@
 class MedeaMainWindow : public MedeaWindowNew
 {
     Q_OBJECT
+
 public:
     MedeaMainWindow(ViewController* vc, QWidget *parent=0);
     ~MedeaMainWindow();
-
 
 signals:
     void requestSuggestions();
@@ -62,7 +62,6 @@ private slots:
     void toolbarChanged(Qt::DockWidgetArea area);
     void toolbarTopLevelChanged(bool a);
 
-
 private:
     void setViewController(ViewController* vc);
     void initializeApplication();
@@ -88,6 +87,7 @@ private:
     void setupCUTSManager();
     void setupXMIImporter();
 
+    void resizeToolWidgets();
     void moveWidget(QWidget* widget, QWidget* parentWidget = 0, Qt::Alignment alignment = Qt::AlignCenter);
 
     MedeaWindowNew* innerWindow;
@@ -101,6 +101,7 @@ private:
     DockTabWidget* dockTabWidget;
     TableWidget* tableWidget;
     NodeViewMinimap* minimap;
+    ViewManagerWidget* viewManager;
 
     PopupWidget* searchPopup;
     QToolBar* searchToolbar;
@@ -123,7 +124,6 @@ private:
 
     ViewController* viewController;
 
-
     QToolButton* interfaceButton;
     QToolButton* behaviourButton;
     QToolButton* assemblyButton;
@@ -138,10 +138,8 @@ private:
 
 protected:
     void resizeEvent(QResizeEvent *);
-
-    // QWidget interface
-protected:
     void closeEvent(QCloseEvent *event);
+
 };
 
 #endif // MEDEAMAINWINDOW_H

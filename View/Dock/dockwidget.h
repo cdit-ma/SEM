@@ -43,6 +43,7 @@ public slots:
     void viewItemDestructed(int ID);
 
 private:
+    void setupLayout();
     void setupHeaderLayout();
 
     ToolActionController* toolActionController;
@@ -56,7 +57,6 @@ private:
     DockWidgetItem* kindLabel;
     QToolButton* backButton;
     QLabel* infoLabel;
-    bool containsHeader;
 
     DockWidgetActionItem* prevHighlightedItem;
     int prevHighlightedItemID;

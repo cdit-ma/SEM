@@ -7,7 +7,7 @@
 
 #define DEFAULT_KEY_WIDTH 120
 #define DEFAULT_DISPLAY_WIDTH 200
-#define MIN_HEIGHT 300
+#define MIN_HEIGHT 250
 
 /**
  * @brief SearchDialog::SearchDialog
@@ -285,7 +285,7 @@ void SearchDialog::setupLayout()
     mainLayout->addSpacerItem(new QSpacerItem(0, 5));
     mainLayout->addWidget(displaySplitter, 1);
 
-    setMinimumSize(mainLayout->sizeHint().width(), MIN_HEIGHT);
+    setMinimumSize(mainLayout->sizeHint().width() + 50, MIN_HEIGHT);
 
     keysActionGroup = new QActionGroup(this);
     keysActionGroup->setExclusive(true);

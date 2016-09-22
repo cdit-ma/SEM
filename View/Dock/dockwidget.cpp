@@ -15,45 +15,20 @@ DockWidget::DockWidget(ToolActionController* tc, ToolActionController::DOCK_TYPE
     prevHighlightedItem = 0;
     prevHighlightedItemID = -1;
 
+    setupLayout();
+    displayInfoLabel(false);
+
     switch (dockType) {
     case ToolActionController::DEFINITIONS:
     case ToolActionController::FUNCTIONS:
-        containsHeader = true;
+        setupHeaderLayout();
         break;
     default:
-        containsHeader = false;
+        headerLayout = 0;
+        kindLabel = 0;
+        backButton = 0;
         break;
     }
-
-    infoLabel = new QLabel(this);
-    infoLabel->setWordWrap(true);
-    infoLabel->setAlignment(Qt::AlignCenter);
-    infoLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    infoLabel->setStyleSheet("margin: 10px 0px 0px 0px; padding: 0px;");
-    infoLabel->setFont(QFont(font().family(), 8));
-
-    mainLayout = new QVBoxLayout();
-    mainLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
-    mainLayout->setSpacing(5);
-    mainLayout->setMargin(0);
-
-    alignLayout = new QVBoxLayout();
-    alignLayout->setMargin(0);
-    alignLayout->addWidget(infoLabel);
-    alignLayout->addLayout(mainLayout);
-    alignLayout->addStretch();
-
-    mainWidget = new QWidget(this);
-    mainWidget->setObjectName("DOCKWIDGET_MAIN");
-    mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    mainWidget->setLayout(alignLayout);
-
-    setWidget(mainWidget);
-    setWidgetResizable(true);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setupHeaderLayout();
-    displayInfoLabel(false);
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
@@ -307,17 +282,45 @@ void DockWidget::viewItemDestructed(int ID)
 
 
 /**
+ * @brief DockWidget::setupLayout
+ */
+void DockWidget::setupLayout()
+{
+    infoLabel = new QLabel(this);
+    infoLabel->setWordWrap(true);
+    infoLabel->setAlignment(Qt::AlignCenter);
+    infoLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    infoLabel->setStyleSheet("margin: 10px 2px 0px 2px; padding: 0px;");
+    infoLabel->setFont(QFont(font().family(), 8));
+
+    mainLayout = new QVBoxLayout();
+    mainLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    mainLayout->setSpacing(5);
+    mainLayout->setMargin(0);
+
+    alignLayout = new QVBoxLayout();
+    alignLayout->setMargin(0);
+    alignLayout->addWidget(infoLabel);
+    alignLayout->addLayout(mainLayout);
+    alignLayout->addStretch();
+
+    mainWidget = new QWidget(this);
+    mainWidget->setObjectName("DOCKWIDGET_MAIN");
+    mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    mainWidget->setLayout(alignLayout);
+
+    setWidget(mainWidget);
+    setWidgetResizable(true);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+}
+
+
+/**
  * @brief DockWidget::setupHeaderLayout
  */
 void DockWidget::setupHeaderLayout()
 {
-    if (!containsHeader) {
-        headerLayout = 0;
-        kindLabel = 0;
-        backButton = 0;
-        return;
-    }
-
     backButton = new QToolButton(this);
     backButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     backButton->setToolTip("Go back to the parts list");

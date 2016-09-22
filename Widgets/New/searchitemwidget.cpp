@@ -124,6 +124,7 @@ void SearchItemWidget::themeChanged()
     }
     if (expandButton) {
         expandButton->setIcon(theme->getIcon("Actions", "Arrow_Down"));
+        expandButton->setStyleSheet("QToolButton::checked:!hover{ background:" + theme->getAltBackgroundColorHex() + ";}");
     }
 }
 

@@ -6,7 +6,9 @@
 
 ViewManagerWidget::ViewManagerWidget(MedeaWindowManager *manager) : QWidget(0)
 {
-    setContentsMargins(5,5,5,5);
+    //setContentsMargins(5,5,2,5);
+    //setContentsMargins(0,0,0,0);
+    setContentsMargins(0,3,0,0);
 
     setupLayout();
     connect(manager, &MedeaWindowManager::windowConstructed, this, &ViewManagerWidget::windowConstructed);
@@ -21,7 +23,10 @@ ViewManagerWidget::ViewManagerWidget(MedeaWindowManager *manager) : QWidget(0)
 
 void ViewManagerWidget::themeChanged()
 {
-    setStyleSheet(Theme::theme()->getWidgetStyleSheet("ViewManagerWidget") + "QScrollArea{ background:#00000000; border: 0px; }");
+    Theme* theme = Theme::theme();
+    setStyleSheet(theme->getWidgetStyleSheet("ViewManagerWidget"));
+    //scrollArea->setStyleSheet("QScrollArea{ background: rgba(0,0,0,0); padding: 2px; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}");
+    scrollArea->setStyleSheet("QScrollArea{ background: rgba(0,0,0,0); padding: 2px; border: 0px; }");
 }
 
 DockWindowItem *ViewManagerWidget::getDockWindowItem(int ID)
@@ -81,8 +86,7 @@ void ViewManagerWidget::setupLayout()
     windowArea = new QWidget(this);
     windowArea->setStyleSheet("background: rgba(0,0,0,0);");
 
-    scrollLayout = new QVBoxLayout();
-    windowArea->setLayout(scrollLayout);
+    scrollLayout = new QVBoxLayout(windowArea);
     scrollLayout->setContentsMargins(0,0,0,0);
     scrollLayout->setSpacing(5);
     layout->setContentsMargins(0,0,0,0);
@@ -93,7 +97,6 @@ void ViewManagerWidget::setupLayout()
     scrollArea->setWidget(windowArea);
     layout->addWidget(scrollArea, 1);
     scrollLayout->addStretch(1);
-    setLayout(layout);
 }
 
 
@@ -124,7 +127,8 @@ WindowItem::~WindowItem()
 void WindowItem::themeChanged()
 {
     windowToolbar->setStyleSheet(Theme::theme()->getDockTitleBarStyleSheet(false, "#WINDOW_TOOLBAR") +
-                                 "#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background: rgba(0,0,0,0); }"
+                                 //"#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background: rgba(0,0,0,0); }"
+                                 "#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background:" + Theme::theme()->getDisabledBackgroundColorHex() + "; }"
                                  "#WINDOW_TOOLBAR QToolButton::!hover{ background: rgba(0,0,0,0); }");
 
     closeAction->setIcon(Theme::theme()->getIcon("Actions", "Close"));

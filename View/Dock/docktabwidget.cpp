@@ -41,8 +41,8 @@ void DockTabWidget::themeChanged()
                   "QToolButton::checked:!hover{ background:" + theme->getBackgroundColorHex() + ";}"
                   "QStackedWidget{ border: 0px; background:" + theme->getBackgroundColorHex() + ";}");
 
-    partsButton->setIcon(theme->getIcon("Actions", "Plus"));
-    hardwareButton->setIcon(theme->getIcon("Actions", "Computer"));
+    partsButton->setIcon(theme->getImage("Actions", "Plus", QSize(), theme->getTextColorHex()));
+    hardwareButton->setIcon(theme->getImage("Actions", "Computer", QSize(), theme->getTextColorHex()));
 }
 
 
@@ -199,10 +199,9 @@ void DockTabWidget::setupLayout()
     vLayout->addWidget(stackedWidget, 1);
 
     setContentsMargins(1,2,1,1);
-    setFixedWidth(MIN_WIDTH);
+    setMinimumWidth(MIN_WIDTH);
+    setMaximumWidth(MAX_WIDTH);
 
-    //setMaximumWidth(MIN_WIDTH);
-    //setMaximumWidth(MAX_WIDTH);
     setupDocks();
 }
 
