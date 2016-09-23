@@ -1039,14 +1039,21 @@ void MedeaMainWindow::resizeToolWidgets()
 void MedeaMainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignment alignment)
 {
     QWidget* cw = parentWidget;
+    QPointF widgetPos;
     if (cw == 0) {
         cw = QApplication::activeWindow();
     }
+    if (cw == this) {
+        cw = centralWidget();
+        widgetPos = pos();
+    }
     if (cw && widget) {
-        QPointF widgetPos = cw->geometry().center();
+        //QPointF widgetPos = cw->geometry().center();
+        widgetPos += cw->geometry().center();
         switch (alignment) {
         case Qt::AlignBottom:
-            widgetPos.ry() += cw->height() / 2 - widget->height();
+            //widgetPos.ry() += cw->height() / 2 - widget->height();
+            widgetPos.ry() += cw->height() / 2;
             break;
         default:
             break;
