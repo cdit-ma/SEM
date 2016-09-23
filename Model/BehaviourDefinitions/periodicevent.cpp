@@ -8,6 +8,7 @@ PeriodicEvent::PeriodicEvent():BehaviourNode(NK_PERIODICEVENT){
 
 bool PeriodicEvent::canAdoptChild(Node * node)
 {
+    Q_UNUSED(node);
     return false;
 }
 

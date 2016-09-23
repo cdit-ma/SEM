@@ -14,8 +14,9 @@
 #include <QThread>
 #include <QApplication>
 #include <QStringBuilder>
-#include "GUI/cutsexecutionwidget.h"
-#include "../../Controller/settingscontroller.h"
+
+#include "Widgets/cutsexecutionwidget.h"
+#include "../../Controllers/SettingsController/settingscontroller.h"
 
 CUTSManager::CUTSManager():QObject(0)
 {

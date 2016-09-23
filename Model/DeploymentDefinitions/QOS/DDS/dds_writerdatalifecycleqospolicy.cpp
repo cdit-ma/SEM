@@ -10,7 +10,7 @@ bool DDS_WriterDataLifecycleQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_WriterDataLifecycleQosPolicy::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool DDS_WriterDataLifecycleQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

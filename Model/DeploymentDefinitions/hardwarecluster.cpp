@@ -17,7 +17,7 @@ bool HardwareCluster::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool HardwareCluster::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool HardwareCluster::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

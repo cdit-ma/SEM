@@ -10,6 +10,7 @@ ReturnParameter:: ReturnParameter(): Parameter(NK_RETURNPARAMETER)
 
 bool ReturnParameter::canAdoptChild(Node *node)
 {
+    Q_UNUSED(node);
     return false;
 }
 

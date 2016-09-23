@@ -14,7 +14,7 @@
 #include <QNetworkReply>
 #include <QAuthenticator>
 
-#include "../../Controller/settingscontroller.h"
+#include "../../Controllers/SettingsController/settingscontroller.h"
 
 class JenkinsManager: public QObject
 {

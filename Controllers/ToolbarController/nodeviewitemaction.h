@@ -1,0 +1,31 @@
+#ifndef NODEVIEWITEMACTION_H
+#define NODEVIEWITEMACTION_H
+
+#include "../../Utils/rootaction.h"
+#include "../ViewController/nodeviewitem.h"
+
+class NodeViewItemAction : public RootAction
+{
+    Q_OBJECT
+public:
+    NodeViewItemAction(NodeViewItem* item);
+    void setParentNodeViewItemAction(NodeViewItemAction* item);
+    ~NodeViewItemAction();
+    NodeViewItemAction* getParentViewItemAction();
+
+    int getID();
+    QString getKind();
+    QString getLabel();
+
+    NodeViewItem* getNodeViewItem();
+
+
+private slots:
+    void iconChanged();
+    void labelChanged(QString label);
+private:
+    NodeViewItem* nodeViewItem;
+    NodeViewItemAction* parentViewItemAction;
+};
+
+#endif // NODEVIEWITEMACTION_H

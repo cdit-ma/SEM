@@ -1,4 +1,5 @@
 #include "xmiimporter.h"
+
 #include <QTreeView>
 #include <QStandardItem>
 #include <QXmlStreamReader>
@@ -8,9 +9,10 @@
 #include <QVBoxLayout>
 #include <QDialog>
 #include <QDebug>
-#include "../../View/theme.h"
-#include "GUI/XMITreeViewDialog.h"
 #include <QStringBuilder>
+
+#include "../../theme.h"
+#include "Widgets/XMITreeViewDialog.h"
 
 XMIImporter::XMIImporter(CUTSManager *cutsManager, QWidget *parent):QObject(parent)
 {
@@ -34,6 +36,9 @@ void XMIImporter::importXMI(QString XMIPath)
 
 void XMIImporter::gotXMIXML(bool success, QString errorString, QString outputxml)
 {
+    Q_UNUSED(success);
+    Q_UNUSED(errorString);
+
     emit loadingStatus(false);
 
     QXmlStreamReader xml(outputxml);

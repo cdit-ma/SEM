@@ -6,7 +6,7 @@ InputParameter::InputParameter(): Parameter(NK_INPUTPARAMETER)
     setDataProducer(false);
 }
 
-bool InputParameter::canAdoptChild(Node *node)
+bool InputParameter::canAdoptChild(Node *)
 {
     return false;
 }

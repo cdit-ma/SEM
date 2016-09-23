@@ -32,7 +32,7 @@ bool AssemblyDefinitions::canAdoptChild(Node *node)
     return Node::canAdoptChild(node);
 }
 
-bool AssemblyDefinitions::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool AssemblyDefinitions::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

@@ -10,7 +10,7 @@ bool DDS_EntityFactoryQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_EntityFactoryQosPolicy::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool DDS_EntityFactoryQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

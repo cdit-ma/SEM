@@ -10,7 +10,7 @@ bool DDS_TransportPriorityQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_TransportPriorityQosPolicy::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool DDS_TransportPriorityQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }
