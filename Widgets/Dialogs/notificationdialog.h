@@ -32,6 +32,7 @@ signals:
 
 public slots:
     void toggleVisibility();
+    void resetDialog();
 
 private slots:
     void themeChanged();
@@ -49,6 +50,7 @@ private:
     void updateVisibilityCount(int val, bool set = false);
 
     void removeItem(QListWidgetItem* item);
+    void clearAll();
 
     void updateTypeActions(QList<NOTIFICATION_TYPE> types);
     void updateTypeAction(NOTIFICATION_TYPE type);
@@ -66,7 +68,6 @@ private:
     QMultiMap<NOTIFICATION_TYPE, QListWidgetItem*> notificationHash;
     QHash<NOTIFICATION_TYPE, QAction*> typeActionHash;
 
-    int totalCount;
     int visibleCount;
 };
 

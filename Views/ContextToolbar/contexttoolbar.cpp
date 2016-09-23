@@ -76,7 +76,7 @@ void ContextToolbar::themeChanged()
     shadowFrame->setStyleSheet("background:" + shadowColorStr + "; border-radius: 8px;");
     addChildAction->setIcon(theme->getIcon("Actions", "Plus"));
     connectAction->setIcon(theme->getIcon("Actions", "ConnectTo"));
-    disconnectAction->setIcon(theme->getIcon("Actions", "Info"));
+    disconnectAction->setIcon(theme->getIcon("Actions", "Disconnect"));
     //hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
     //instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
     connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));

@@ -17,7 +17,6 @@
 NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
 {
     typeActionMapper = new QSignalMapper(this);
-    totalCount = 0;
 
     foreach(NOTIFICATION_TYPE type, getNotificationTypes()){
         QAction* action = new QAction(this);
@@ -108,7 +107,6 @@ void NotificationDialog::themeChanged()
         }
     }
 
-
     foreach (NOTIFICATION_TYPE type, getNotificationTypes()) {
         QAction* action = typeActionHash.value(type, 0);
         if (action) {
@@ -116,7 +114,6 @@ void NotificationDialog::themeChanged()
              action->setIcon(theme->getIcon(iconPath));
         }
     }
-
 }
 
 
@@ -138,6 +135,16 @@ void NotificationDialog::listSelectionChanged()
 void NotificationDialog::toggleVisibility()
 {
     setVisible(!isVisible());
+}
+
+
+/**
+ * @brief NotificationDialog::resetDialog
+ */
+void NotificationDialog::resetDialog()
+{
+    hide();
+    clearAll();
 }
 
 
@@ -178,6 +185,23 @@ void NotificationDialog::clearVisible()
     }
     updateVisibilityCount(0, true);
     updateTypeActions(removedTypes);
+}
+
+
+/**
+ * @brief NotificationDialog::clearAll
+ */
+void NotificationDialog::clearAll()
+{
+    /*
+    QList<QListWidgetItem*> items = notificationHash.values();
+    foreach (QListWidgetItem* item, items) {
+        removeItem(item);
+    }
+    */
+    notificationHash.clear();
+    listWidget->clear();
+    updateTypeActions(getNotificationTypes());
 }
 
 
@@ -224,8 +248,6 @@ void NotificationDialog::addNotificationItem(NOTIFICATION_TYPE type, QString tit
     }
 
     emit notificationAdded();
-
-    totalCount++;
 }
 
 
@@ -242,7 +264,6 @@ void NotificationDialog::removeItem(QListWidgetItem* item)
         //Remove from the hash
         notificationHash.remove(type, item);
         delete listWidget->takeItem(row);
-        totalCount--;
     }
 }
 

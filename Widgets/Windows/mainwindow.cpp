@@ -159,7 +159,11 @@ void MainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QString
 
     if (!welcomeScreenOn) {
         notificationLabel->setText(description);
-        notificationIconLabel->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32)));
+        QPixmap pixmap = Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32));
+        if (pixmap.isNull()) {
+            pixmap = Theme::theme()->getIcon("Actions", "Info").pixmap(QSize(32,32));
+        }
+        notificationIconLabel->setPixmap(pixmap);
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
         moveWidget(notificationPopup, this, Qt::AlignBottom);
         notificationPopup->show();
@@ -709,6 +713,8 @@ void MainWindow::setupSearchBar()
 
     connect(this, &MainWindow::requestSuggestions, viewController, &ViewController::requestSearchSuggestions);
     connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MainWindow::updateSearchSuggestions);
+    connect(viewController, &ViewController::vc_setupModel, searchDialog, &SearchDialog::resetDialog);
+
     connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
     connect(searchButton, SIGNAL(clicked(bool)), this, SLOT(searchEntered()));
@@ -767,7 +773,6 @@ void MainWindow::setupNotificationBar()
     notificationLabel = new QLabel("This is a notification.", this);
     notificationLabel->setFont(QFont(font().family(), 11));
     notificationLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    //notificationLabel->setAlignment(Qt::AlignCenter);
     //notificationLabel->setWordWrap(true);
 
     notificationWidget = new QWidget(this);
@@ -786,6 +791,8 @@ void MainWindow::setupNotificationBar()
     notificationDialog = new NotificationDialog(this);
 
     connect(notificationDialog, &NotificationDialog::notificationAdded, viewController, &ViewController::notificationAdded);
+    connect(viewController, &ViewController::vc_setupModel, viewController, &ViewController::notificationsSeen);
+    connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
     connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::toggleVisibility);
     connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
 }
@@ -1002,14 +1009,21 @@ void MainWindow::resizeToolWidgets()
 void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignment alignment)
 {
     QWidget* cw = parentWidget;
+    QPointF widgetPos;
     if (cw == 0) {
         cw = QApplication::activeWindow();
     }
+    if (cw == this) {
+        cw = centralWidget();
+        widgetPos = pos();
+    }
     if (cw && widget) {
-        QPointF widgetPos = cw->geometry().center();
+        //QPointF widgetPos = cw->geometry().center();
+        widgetPos += cw->geometry().center();
         switch (alignment) {
         case Qt::AlignBottom:
-            widgetPos.ry() += cw->height() / 2 - widget->height();
+            //widgetPos.ry() += cw->height() / 2 - widget->height();
+            widgetPos.ry() += cw->height() / 2;
             break;
         default:
             break;

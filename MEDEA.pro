@@ -503,3 +503,6 @@ mac{
 
 FORMS += \
     installer/packages/cditma.MEDEA/meta/registerfilecheckboxform.ui
+
+DISTFILES += \
+    Resources/Images/Actions/Disconnect.png

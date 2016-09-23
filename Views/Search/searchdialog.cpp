@@ -173,6 +173,16 @@ void SearchDialog::popupSelectedItem()
 
 
 /**
+ * @brief SearchDialog::resetDialog
+ */
+void SearchDialog::resetDialog()
+{
+    hide();
+    clear();
+}
+
+
+/**
  * @brief SearchDialog::setupLayout
  */
 void SearchDialog::setupLayout()

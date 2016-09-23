@@ -218,6 +218,7 @@
         <file alias="Selection">Resources/Images/Actions/Selection.png</file>
         <file alias="View">Resources/Images/Actions/View.png</file>
         <file>Resources/Images/Actions/Cage.jpg</file>
+        <file alias="Disconnect">Resources/Images/Actions/Disconnect.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

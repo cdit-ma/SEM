@@ -1234,6 +1234,7 @@ void ViewController::exportSnippet()
 void ViewController::closeProject()
 {
     _closeProject(true);
+    emit vc_projectClosed();
 }
 
 void ViewController::closeMEDEA()

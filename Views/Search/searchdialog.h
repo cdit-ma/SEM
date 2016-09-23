@@ -42,6 +42,8 @@ public slots:
     void centerOnSelectedItem();
     void popupSelectedItem();
 
+    void resetDialog();
+
 private:
     void setupLayout();
     void clear();
