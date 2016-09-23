@@ -530,7 +530,6 @@ void ViewController::launchLocalDeployment()
 
 void ViewController::actionFinished(bool success, QString gg)
 {
-    qCritical() << "Action Finished" << success;
     setControllerReady(true);
     emit vc_actionFinished();
 }
