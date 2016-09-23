@@ -2,10 +2,11 @@
 #define NODEVIEWNEW_H
 
 #include <QGraphicsView>
-//#include <QObject>
 
-#include "SceneItems/nodeitemnew.h"
 #include "viewitem.h"
+#include "SceneItems/entityitem.h"
+#include "SceneItems/Node/nodeitem.h"
+#include "SceneItems/Edge/edgeitem.h"
 #include "Controller/viewcontroller.h"
 
 #include <QStateMachine>
@@ -86,17 +87,17 @@ private slots:
     void themeChanged();
 
 private slots:
-    void node_ConnectMode(NodeItemNew* item);
+    void node_ConnectMode(NodeItem* item);
     void item_EditData(ViewItem* item, QString keyName);
     void item_RemoveData(ViewItem* item, QString keyName);
     void item_Selected(ViewItem* item, bool append);
     void item_ActiveSelected(ViewItem* item);
 
-    void item_SetExpanded(EntityItemNew* item, bool expand);
-    void item_SetCentered(EntityItemNew* item);
+    void item_SetExpanded(EntityItem* item, bool expand);
+    void item_SetCentered(EntityItem* item);
 
     void item_MoveSelection(QPointF delta);
-    void item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vert);
+    void item_Resize(NodeItem *item, QSizeF delta, RECT_VERTEX vert);
 
     void minimap_Panning(bool panning);
     void minimap_Pan(QPointF delta);
@@ -106,10 +107,10 @@ private slots:
     void centerConnections(ViewItem *item);
     void highlightItem(int ID, bool highlighted);
 private:
-    void setupConnections(EntityItemNew* item);
+    void setupConnections(EntityItem* item);
 
-    void centerOnItems(QList<EntityItemNew*> items);
-    QRectF getSceneBoundingRectOfItems(QList<EntityItemNew*> items);
+    void centerOnItems(QList<EntityItem*> items);
+    QRectF getSceneBoundingRectOfItems(QList<EntityItem*> items);
     void centerRect(QRectF rectScene);
     void centerView(QPointF scenePos);
 
@@ -118,16 +119,16 @@ private:
     void edgeViewItem_Constructed(EdgeViewItem* item);
 
     QList<ViewItem*> getTopLevelViewItems() const;
-    QList<EntityItemNew*> getTopLevelEntityItems() const;
-    QList<EntityItemNew*> getSelectedItems() const;
-    QList<EntityItemNew*> getOrderedSelectedItems() const;
+    QList<EntityItem*> getTopLevelEntityItems() const;
+    QList<EntityItem*> getSelectedItems() const;
+    QList<EntityItem*> getOrderedSelectedItems() const;
 
 
-    NodeItemNew* getParentNodeItem(NodeViewItem* item);
+    NodeItem* getParentNodeItem(NodeViewItem* item);
 
-    EntityItemNew* getEntityItem(int ID) const;
-    EntityItemNew* getEntityItem(ViewItem* item) const;
-    NodeItemNew* getNodeItem(ViewItem* item) const;
+    EntityItem* getEntityItem(int ID) const;
+    EntityItem* getEntityItem(ViewItem* item) const;
+    NodeItem* getNodeItem(ViewItem* item) const;
 
     void zoom(int delta, QPoint anchorScreenPos = QPoint());
 
@@ -140,9 +141,9 @@ private:
 private:
     void setupStateMachine();
 
-    EntityItemNew* getEntityAtPos(QPointF scenePos);
+    EntityItem* getEntityAtPos(QPointF scenePos);
     QList<int> topLevelGUIItemIDs;
-    QHash<int, EntityItemNew*> guiItems;
+    QHash<int, EntityItem*> guiItems;
 
     ViewController* viewController;
     SelectionHandler* selectionHandler;

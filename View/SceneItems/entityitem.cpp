@@ -1,13 +1,13 @@
-#include "entityitemnew.h"
-#include "../theme.h"
+#include "entityitem.h"
+
 #include <QPainter>
 #include <QtMath>
-#include <QDebug>
-#include <QFontDatabase>
-#include "nodeitemnew.h"
+
+#include "Node/nodeitem.h"
+#include "../theme.h"
 
 
-EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind)
+EntityItem::EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind)
 {
     this->viewItem = 0;
     this->parentItem = parentItem;
@@ -54,17 +54,17 @@ EntityItemNew::EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND
     setFlag(QGraphicsItem::ItemIsSelectable, false);
 }
 
-EntityItemNew::~EntityItemNew()
+EntityItem::~EntityItem()
 {
     disconnectViewItem();
 }
 
-int EntityItemNew::type() const
+int EntityItem::type() const
 {
     return ENTITY_ITEM_KIND;
 }
 
-EntityItemNew::RENDER_STATE EntityItemNew::getRenderState(qreal lod) const
+EntityItem::RENDER_STATE EntityItem::getRenderState(qreal lod) const
 {
     if(lod >= 2.0 && !_isMoving){
         return RS_DOUBLE;
@@ -79,41 +79,41 @@ EntityItemNew::RENDER_STATE EntityItemNew::getRenderState(qreal lod) const
     }
 }
 
-EntityItemNew *EntityItemNew::getParent() const
+EntityItem *EntityItem::getParent() const
 {
     return parentItem;
 }
 
-NodeItemNew *EntityItemNew::getParentNodeItem() const
+NodeItem *EntityItem::getParentNodeItem() const
 {
     if(parentItem && parentItem->isNodeItem()){
-        return (NodeItemNew*) parentItem;
+        return (NodeItem*) parentItem;
     }
     return 0;
 }
 
-void EntityItemNew::unsetParent()
+void EntityItem::unsetParent()
 {
     parentItem = 0;
     setParentItem(0);
 }
 
-bool EntityItemNew::isTopLevelItem() const
+bool EntityItem::isTopLevelItem() const
 {
     return parentItem == 0;
 }
 
-bool EntityItemNew::isReadOnly() const
+bool EntityItem::isReadOnly() const
 {
     return viewItem->isReadOnly();
 }
 
-ViewItem *EntityItemNew::getViewItem() const
+ViewItem *EntityItem::getViewItem() const
 {
     return viewItem;
 }
 
-void EntityItemNew::setPos(const QPointF &pos)
+void EntityItem::setPos(const QPointF &pos)
 {
     if(pos != getPos()){
         QPointF deltaPos = pos - this->getPos();
@@ -127,12 +127,12 @@ void EntityItemNew::setPos(const QPointF &pos)
     }
 }
 
-int EntityItemNew::getID()
+int EntityItem::getID()
 {
     return viewItem->getID();
 }
 
-QRectF EntityItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
+QRectF EntityItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 {
     QRectF r;
 
@@ -146,14 +146,14 @@ QRectF EntityItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     return r;
 }
 
-QPainterPath EntityItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
+QPainterPath EntityItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
 {
     QPainterPath region;
     region.addRect(getElementRect(rect));
     return region;
 }
 
-void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELEMENT_RECT pos, QString imagePath, QString imageName, QColor tintColor)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString imagePath, QString imageName, QColor tintColor)
 {
     QRectF imageRect = getElementRect(pos);
 
@@ -197,12 +197,12 @@ void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELE
     }
 }
 
-void EntityItemNew::paintPixmap(QPainter *painter, qreal lod, EntityItemNew::ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor)
+void EntityItem::paintPixmap(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QPair<QString, QString> image, QColor tintColor)
 {
     paintPixmap(painter, lod, pos, image.first, image.second, tintColor);
 }
 
-void EntityItemNew::renderText(QPainter *painter, qreal lod, EntityItemNew::ELEMENT_RECT pos, QString text, int textOptions)
+void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RECT pos, QString text, int textOptions)
 {
     TextMap textM = textMap[pos];
     QRectF rect = getElementRect(pos);
@@ -326,14 +326,14 @@ void EntityItemNew::renderText(QPainter *painter, qreal lod, EntityItemNew::ELEM
     }
 }
 
-void EntityItemNew::setTooltip(EntityItemNew::ELEMENT_RECT rect, QString tooltip, QCursor cursor)
+void EntityItem::setTooltip(EntityItem::ELEMENT_RECT rect, QString tooltip, QCursor cursor)
 {
     tooltipMap[rect] = tooltip;
     tooltipCursorMap[rect] = cursor;
 }
 
 
-void EntityItemNew::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap) const
+void EntityItem::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pixmap) const
 {
     if(imageRect.isValid()){
         //Paint Bounding Rects!
@@ -344,7 +344,7 @@ void EntityItemNew::paintPixmap(QPainter *painter, QRectF imageRect, QPixmap pix
     }
 }
 
-void EntityItemNew::setIconOverlay(QString alias, QString imageName)
+void EntityItem::setIconOverlay(QString alias, QString imageName)
 {
     if(!paintIconOverlay || iconOverlayIconPath.first != alias || iconOverlayIconPath.second != imageName){
         iconOverlayIconPath.first = alias;
@@ -353,7 +353,7 @@ void EntityItemNew::setIconOverlay(QString alias, QString imageName)
     }
 }
 
-void EntityItemNew::setIconOverlayVisible(bool visible)
+void EntityItem::setIconOverlayVisible(bool visible)
 {
     if(paintIconOverlay != visible){
         paintIconOverlay = visible;
@@ -361,7 +361,7 @@ void EntityItemNew::setIconOverlayVisible(bool visible)
     }
 }
 
-QSize EntityItemNew::getPixmapSize(QRectF rect, qreal lod) const
+QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
 {
     //Calculate the required size of the image.
     QSize requiredSize;
@@ -371,7 +371,7 @@ QSize EntityItemNew::getPixmapSize(QRectF rect, qreal lod) const
     return requiredSize;
 }
 
-QPixmap EntityItemNew::getPixmap(QString imageAlias, QString imageName, QSize requiredSize, QColor tintColor) const
+QPixmap EntityItem::getPixmap(QString imageAlias, QString imageName, QSize requiredSize, QColor tintColor) const
 {
     Theme* theme = Theme::theme();
     QPixmap image = theme->getImage(imageAlias, imageName, requiredSize, tintColor);
@@ -383,7 +383,7 @@ QPixmap EntityItemNew::getPixmap(QString imageAlias, QString imageName, QSize re
 }
 
 
-QRectF EntityItemNew::translatedBoundingRect() const
+QRectF EntityItem::translatedBoundingRect() const
 {
     QRectF rect = boundingRect();
     //we should use the bounding rect coordinates!
@@ -396,12 +396,12 @@ QRectF EntityItemNew::translatedBoundingRect() const
  * @param rectInScene - A rectangle in scene coordinate space
  * @return
  */
-bool EntityItemNew::intersectsRectInScene(QRectF rectInScene) const
+bool EntityItem::intersectsRectInScene(QRectF rectInScene) const
 {
     return rectInScene.contains(sceneBoundingRect());
 }
 
-bool EntityItemNew::isDataProtected(QString keyName) const
+bool EntityItem::isDataProtected(QString keyName) const
 {
     if(viewItem){
         return viewItem->isDataProtected(keyName);
@@ -409,26 +409,26 @@ bool EntityItemNew::isDataProtected(QString keyName) const
     return true;
 }
 
-void EntityItemNew::addRequiredData(QString keyName)
+void EntityItem::addRequiredData(QString keyName)
 {
     if(!requiredDataKeys.contains(keyName)){
         requiredDataKeys.append(keyName);
     }
 }
 
-void EntityItemNew::removeRequiredData(QString keyName)
+void EntityItem::removeRequiredData(QString keyName)
 {
     if(requiredDataKeys.contains(keyName)){
         requiredDataKeys.removeAll(keyName);
     }
 }
 
-QStringList EntityItemNew::getRequiredDataKeys()
+QStringList EntityItem::getRequiredDataKeys()
 {
     return requiredDataKeys;
 }
 
-void EntityItemNew::reloadRequiredData()
+void EntityItem::reloadRequiredData()
 {
     foreach(QString keyName, requiredDataKeys){
         QVariant dataValue = viewItem->getData(keyName);
@@ -438,37 +438,37 @@ void EntityItemNew::reloadRequiredData()
     }
 }
 
-QRectF EntityItemNew::viewRect() const
+QRectF EntityItem::viewRect() const
 {
     return boundingRect();
 }
 
-QRectF EntityItemNew::sceneViewRect() const
+QRectF EntityItem::sceneViewRect() const
 {
     return mapToScene(viewRect()).boundingRect();
 }
 
-QSize EntityItemNew::iconSize() const
+QSize EntityItem::iconSize() const
 {
     return QSize(32,32);
 }
 
-QSize EntityItemNew::smallIconSize() const
+QSize EntityItem::smallIconSize() const
 {
     return QSize(8,8);
 }
 
-QPainterPath EntityItemNew::shape() const
+QPainterPath EntityItem::shape() const
 {
     return getElementPath(ER_SELECTION);
 }
 
-QPainterPath EntityItemNew::sceneShape() const
+QPainterPath EntityItem::sceneShape() const
 {
     return mapToScene(shape());
 }
 
-void EntityItemNew::setIgnorePosition(bool ignore)
+void EntityItem::setIgnorePosition(bool ignore)
 {
     ignorePosition = ignore;
     if(ignore){
@@ -480,12 +480,12 @@ void EntityItemNew::setIgnorePosition(bool ignore)
     }
 }
 
-bool EntityItemNew::isIgnoringPosition()
+bool EntityItem::isIgnoringPosition()
 {
     return ignorePosition;
 }
 
-void EntityItemNew::dataChanged(QString keyName, QVariant data)
+void EntityItem::dataChanged(QString keyName, QVariant data)
 {
     if(getRequiredDataKeys().contains(keyName)){
         if(keyName == "x" || keyName == "y"){
@@ -507,31 +507,31 @@ void EntityItemNew::dataChanged(QString keyName, QVariant data)
     }
 }
 
-void EntityItemNew::propertyChanged(QString propertyName, QVariant data)
+void EntityItem::propertyChanged(QString propertyName, QVariant data)
 {
 
 }
 
-void EntityItemNew::dataRemoved(QString keyName)
+void EntityItem::dataRemoved(QString keyName)
 {
 
 }
 
-void EntityItemNew::adjustPos(QPointF delta)
+void EntityItem::adjustPos(QPointF delta)
 {
     setPos(getPos() + delta);
 }
 
-QPointF EntityItemNew::getPos() const
+QPointF EntityItem::getPos() const
 {
     return pos() + getTopLeftOffset();
 }
 
-QPointF EntityItemNew::getTopLeftOffset() const{
+QPointF EntityItem::getTopLeftOffset() const{
     return QPointF();
 }
 
-QPointF EntityItemNew::validateMove(QPointF delta)
+QPointF EntityItem::validateMove(QPointF delta)
 {
     if(getParentNodeItem()){
         QPointF adjustedPos = getPos() + delta;
@@ -552,33 +552,33 @@ QPointF EntityItemNew::validateMove(QPointF delta)
 }
 
 
-void EntityItemNew::setData(QString keyName, QVariant value)
+void EntityItem::setData(QString keyName, QVariant value)
 {
     emit req_setData(viewItem, keyName, value);
 }
 
-QVariant EntityItemNew::getData(QString keyName) const
+QVariant EntityItem::getData(QString keyName) const
 {
     return viewItem->getData(keyName);
 }
 
-QVariant EntityItemNew::getProperty(QString propertyName) const
+QVariant EntityItem::getProperty(QString propertyName) const
 {
     return viewItem->getProperty(propertyName);
 }
 
-bool EntityItemNew::hasData(QString keyName) const
+bool EntityItem::hasData(QString keyName) const
 {
     return viewItem->hasData(keyName);
 }
 
-bool EntityItemNew::isDataEditable(QString keyName)
+bool EntityItem::isDataEditable(QString keyName)
 {
     //TODO Get view to handle this!
     return false;
 }
 
-void EntityItemNew::handleSelection(bool append)
+void EntityItem::handleSelection(bool append)
 {
     if(isSelectionEnabled()){
         bool setActive = false;
@@ -598,14 +598,14 @@ void EntityItemNew::handleSelection(bool append)
     }
 }
 
-void EntityItemNew::removeData(QString keyName)
+void EntityItem::removeData(QString keyName)
 {
     if(hasData(keyName)){
         emit req_removeData(getViewItem(), keyName);
     }
 }
 
-void EntityItemNew::handleExpand(bool expand)
+void EntityItem::handleExpand(bool expand)
 {
     if(isExpandEnabled()){
         if(expand != _isExpanded){
@@ -615,7 +615,7 @@ void EntityItemNew::handleExpand(bool expand)
 
 }
 
-void EntityItemNew::handleHover(bool hovered)
+void EntityItem::handleHover(bool hovered)
 {
     if(isHoverEnabled()){
         if(hovered != _isHovered){
@@ -625,77 +625,77 @@ void EntityItemNew::handleHover(bool hovered)
     }
 }
 
-void EntityItemNew::setSelectionEnabled(bool enabled)
+void EntityItem::setSelectionEnabled(bool enabled)
 {
     selectEnabled = enabled;
 }
 
-void EntityItemNew::setMoveStarted()
+void EntityItem::setMoveStarted()
 {
     positionPreMove = getPos();
     _isMoving = true;
 }
 
-bool EntityItemNew::setMoveFinished()
+bool EntityItem::setMoveFinished()
 {
     _isMoving = false;
     return getPos() != positionPreMove;
 }
 
-void EntityItemNew::setHoverEnabled(bool enabled)
+void EntityItem::setHoverEnabled(bool enabled)
 {
     setAcceptHoverEvents(enabled);
     hoverEnabled = enabled;
 }
 
-bool EntityItemNew::isHoverEnabled()
+bool EntityItem::isHoverEnabled()
 {
     return hoverEnabled;
 }
 
-bool EntityItemNew::isSelected() const
+bool EntityItem::isSelected() const
 {
     return _isSelected;
 }
 
-bool EntityItemNew::isActiveSelected() const
+bool EntityItem::isActiveSelected() const
 {
     return _isActiveSelected;
 }
 
-bool EntityItemNew::isHighlighted() const
+bool EntityItem::isHighlighted() const
 {
     return _isHighlighted;
 }
 
-bool EntityItemNew::isHovered() const
+bool EntityItem::isHovered() const
 {
     return _isHovered;
 }
 
-void EntityItemNew::connectViewItem(ViewItem *viewItem)
+void EntityItem::connectViewItem(ViewItem *viewItem)
 {
     this->viewItem = viewItem;
 
     viewItem->registerObject(this);
-    connect(viewItem, &ViewItem::dataAdded, this, &EntityItemNew::dataChanged);
-    connect(viewItem, &ViewItem::dataChanged, this, &EntityItemNew::dataChanged);
-    connect(viewItem, &ViewItem::dataRemoved, this, &EntityItemNew::dataRemoved);
-    connect(viewItem, &ViewItem::propertyChanged, this, &EntityItemNew::propertyChanged);
+    connect(viewItem, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
+    connect(viewItem, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
+    connect(viewItem, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
+    connect(viewItem, &ViewItem::propertyChanged, this, &EntityItem::propertyChanged);
 }
 
-void EntityItemNew::disconnectViewItem()
+void EntityItem::disconnectViewItem()
 {
     if(viewItem){
-        disconnect(viewItem, &ViewItem::dataAdded, this, &EntityItemNew::dataChanged);
-        disconnect(viewItem, &ViewItem::dataChanged, this, &EntityItemNew::dataChanged);
-        disconnect(viewItem, &ViewItem::dataRemoved, this, &EntityItemNew::dataRemoved);
+        disconnect(viewItem, &ViewItem::dataAdded, this, &EntityItem::dataChanged);
+        disconnect(viewItem, &ViewItem::dataChanged, this, &EntityItem::dataChanged);
+        disconnect(viewItem, &ViewItem::dataRemoved, this, &EntityItem::dataRemoved);
         viewItem->unregisterObject(this);
         viewItem = 0;
     }
 }
 
-void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool controlDown = event->modifiers().testFlag(Qt::ControlModifier);
 
@@ -716,14 +716,14 @@ void EntityItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-void EntityItemNew::setFontSize(int fontSize)
+void EntityItem::setFontSize(int fontSize)
 {
     textFont.setPixelSize(fontSize * 2);
     this->fontSize = fontSize;
 }
 
 
-void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(_isMouseMoving){
         if(!_hasMouseMoved){
@@ -736,7 +736,7 @@ void EntityItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void EntityItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if(_isMouseMoving){
         _isMouseMoving = false;
@@ -746,7 +746,7 @@ void EntityItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 
 
-void EntityItemNew::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void EntityItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     bool inItem = getElementPath(ER_SELECTION).contains(event->pos());
     if(isHovered() && !inItem){
@@ -756,7 +756,7 @@ void EntityItemNew::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void EntityItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     bool inItem = getElementPath(ER_SELECTION).contains(event->pos());
     if(isHovered() && !inItem){
@@ -766,7 +766,7 @@ void EntityItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     }
 }
 
-void EntityItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void EntityItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(isHovered()){
         handleHover(false);
@@ -774,12 +774,12 @@ void EntityItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 }
 
 
-bool EntityItemNew::isExpanded() const
+bool EntityItem::isExpanded() const
 {
     return _isExpanded;
 }
 
-void EntityItemNew::setExpanded(bool expand)
+void EntityItem::setExpanded(bool expand)
 {
     if(_isExpanded != expand){
         _isExpanded = expand;
@@ -788,7 +788,7 @@ void EntityItemNew::setExpanded(bool expand)
 }
 
 
-void EntityItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     if(isExpandEnabled()){
         if(event->button() == Qt::LeftButton && getElementPath(ER_EXPANDCONTRACT).contains(event->pos())){
@@ -797,7 +797,7 @@ void EntityItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
@@ -826,7 +826,7 @@ void EntityItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     }
 }
 
-QPen EntityItemNew::getPen()
+QPen EntityItem::getPen()
 {
     QPen pen = defaultPen;
     pen.setJoinStyle(Qt::MiterJoin);
@@ -857,32 +857,32 @@ QPen EntityItemNew::getPen()
     return pen;
 }
 
-void EntityItemNew::setDefaultPen(QPen pen)
+void EntityItem::setDefaultPen(QPen pen)
 {
     defaultPen = pen;
 }
 
-bool EntityItemNew::isNodeItem()
+bool EntityItem::isNodeItem()
 {
-    return kind == EntityItemNew::NODE;
+    return kind == EntityItem::NODE;
 }
 
-bool EntityItemNew::isEdgeItem()
+bool EntityItem::isEdgeItem()
 {
-    return kind == EntityItemNew::EDGE;
+    return kind == EntityItem::EDGE;
 }
 
-bool EntityItemNew::isMoving() const
+bool EntityItem::isMoving() const
 {
     return _isMoving;
 }
 
-int EntityItemNew::getGridSize() const
+int EntityItem::getGridSize() const
 {
     return 10;
 }
 
-QPair<QString, QString> EntityItemNew::getIconPath()
+QPair<QString, QString> EntityItem::getIconPath()
 {
     if(viewItem){
         return viewItem->getIcon();
@@ -890,7 +890,7 @@ QPair<QString, QString> EntityItemNew::getIconPath()
     return QPair<QString, QString>();
 }
 
-QPointF EntityItemNew::getNearestGridPoint(QPointF newPos)
+QPointF EntityItem::getNearestGridPoint(QPointF newPos)
 {
     if(newPos.isNull()){
         newPos = getPos();
@@ -903,13 +903,13 @@ QPointF EntityItemNew::getNearestGridPoint(QPointF newPos)
     return newPos + delta;
 }
 
-void EntityItemNew::destruct()
+void EntityItem::destruct()
 {
     disconnectViewItem();
     delete this;
 }
 
-void EntityItemNew::setHovered(bool isHovered)
+void EntityItem::setHovered(bool isHovered)
 {
     if(_isHovered != isHovered){
         _isHovered = isHovered;
@@ -917,7 +917,7 @@ void EntityItemNew::setHovered(bool isHovered)
     }
 }
 
-void EntityItemNew::setHighlighted(bool isHighlight)
+void EntityItem::setHighlighted(bool isHighlight)
 {
     if(_isHighlighted != isHighlight){
         _isHighlighted = isHighlight;
@@ -925,7 +925,7 @@ void EntityItemNew::setHighlighted(bool isHighlight)
     }
 }
 
-void EntityItemNew::setSelected(bool selected)
+void EntityItem::setSelected(bool selected)
 {
     if(_isSelected != selected){
         _isSelected = selected;
@@ -937,7 +937,7 @@ void EntityItemNew::setSelected(bool selected)
     }
 }
 
-void EntityItemNew::setActiveSelected(bool active)
+void EntityItem::setActiveSelected(bool active)
 {
     if(_isActiveSelected != active){
         _isActiveSelected = active;
@@ -945,7 +945,7 @@ void EntityItemNew::setActiveSelected(bool active)
     }
 }
 
-void EntityItemNew::paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect)
+void EntityItem::paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect)
 {
     painter->save();
     painter->setPen(Qt::NoPen);
@@ -954,12 +954,12 @@ void EntityItemNew::paintPixmapRect(QPainter* painter, QString imageAlias, QStri
     painter->restore();
 }
 
-QColor EntityItemNew::getBaseBodyColor() const
+QColor EntityItem::getBaseBodyColor() const
 {
     return bodyColor;
 }
 
-QColor EntityItemNew::getBodyColor() const
+QColor EntityItem::getBodyColor() const
 {
     if(isHighlighted()){
         return Theme::theme()->getHighlightColor();
@@ -968,7 +968,7 @@ QColor EntityItemNew::getBodyColor() const
     }
 }
 
-void EntityItemNew::setBaseBodyColor(QColor color)
+void EntityItem::setBaseBodyColor(QColor color)
 {
     if(bodyColor != color){
         bodyColor = color;
@@ -976,17 +976,17 @@ void EntityItemNew::setBaseBodyColor(QColor color)
     }
 }
 
-bool EntityItemNew::isSelectionEnabled()
+bool EntityItem::isSelectionEnabled()
 {
     return selectEnabled;
 }
 
-bool EntityItemNew::isExpandEnabled()
+bool EntityItem::isExpandEnabled()
 {
     return expandEnabled;
 }
 
-void EntityItemNew::setExpandEnabled(bool enabled)
+void EntityItem::setExpandEnabled(bool enabled)
 {
     if(expandEnabled != enabled){
         if(enabled){
@@ -999,14 +999,14 @@ void EntityItemNew::setExpandEnabled(bool enabled)
     }
 }
 
-void EntityItemNew::setMoveEnabled(bool enabled)
+void EntityItem::setMoveEnabled(bool enabled)
 {
     if(moveEnabled != enabled){
         moveEnabled = enabled;
     }
 }
 
-bool EntityItemNew::isMoveEnabled()
+bool EntityItem::isMoveEnabled()
 {
     return moveEnabled;
 }

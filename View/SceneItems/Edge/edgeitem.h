@@ -1,18 +1,16 @@
-#ifndef EDGEITEMNEW_H
-#define EDGEITEMNEW_H
+#ifndef EDGEITEM_H
+#define EDGEITEM_H
 
-#include "../edgeviewitem.h"
+#include "../../edgeviewitem.h"
+#include "../entityitem.h"
 
-#include "entityitemnew.h"
-
-class NodeItemNew;
-
-class EdgeItemNew : public EntityItemNew{
+class NodeItem;
+class EdgeItem : public EntityItem{
     Q_OBJECT
 
 public:
-    EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew* parent, NodeItemNew* source, NodeItemNew* destination);
-    ~EdgeItemNew();
+    EdgeItem(EdgeViewItem* edgeViewItem, NodeItem* parent, NodeItem* source, NodeItem* destination);
+    ~EdgeItem();
 
     void setPos(const QPointF &pos);
     QPointF getPos() const;
@@ -40,13 +38,13 @@ private:
 
     QPainterPath trianglePath(QPointF startPoint, bool pointRight=true) const;
 
-    NodeItemNew* getVisibleSource() const;
-    NodeItemNew* getVisibleDestination() const;
+    NodeItem* getVisibleSource() const;
+    NodeItem* getVisibleDestination() const;
 
-    NodeItemNew* getParentNodeItem() const;
+    NodeItem* getParentNodeItem() const;
 
-    NodeItemNew* getSourceItem() const;
-    NodeItemNew* getDestinationItem() const;
+    NodeItem* getSourceItem() const;
+    NodeItem* getDestinationItem() const;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
@@ -84,11 +82,11 @@ private:
 
     EdgeViewItem* edgeViewItem;
 
-    NodeItemNew* sourceItem;
-    NodeItemNew* destinationItem;
+    NodeItem* sourceItem;
+    NodeItem* destinationItem;
 
-    NodeItemNew* currentSrcItem;
-    NodeItemNew* currentDstItem;
+    NodeItem* currentSrcItem;
+    NodeItem* currentDstItem;
 
     QPainterPath sourceCurve;
     QPainterPath destinationCurve;

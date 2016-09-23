@@ -42,7 +42,6 @@ void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex index2)
     }else{
         elementView->setModel(0);
     }
-    qCritical() << index1;
     removeSelection->setEnabled(index1.isValid());
 }
 

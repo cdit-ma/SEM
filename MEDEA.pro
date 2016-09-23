@@ -130,12 +130,8 @@ HEADERS += \
     Controller/viewcontroller.h \
     View/nodeviewitem.h \
     View/edgeviewitem.h \
-    View/SceneItems/edgeitemnew.h \
-    View/SceneItems/entityitemnew.h \
-    View/SceneItems/nodeitemnew.h \
     View/nodeviewnew.h \
     Controller/selectionhandler.h \
-    View/SceneItems/Hardware/hardwarenodeitem.h \
     View/docktitlebarwidget.h \
     Widgets/New/medeawindownew.h \
     Widgets/New/medeadockwidget.h \
@@ -152,7 +148,6 @@ HEADERS += \
     Widgets/New/actiongroup.h \
     Controller/rootaction.h \
     View/Toolbar/toolbarwidgetnew.h \
-    View/SceneItems/Assemblies/managementcomponentnodeitem.h \
     Controller/toolbarcontroller.h \
     Controller/nodeviewitemaction.h \
     View/Table/multilinedelegate.h \
@@ -190,9 +185,6 @@ HEADERS += \
     Widgets/New/selectioncontroller.h \
     GUI/popupwidget.h \
     View/Dock/docktabwidget.h \
-    View/SceneItems/Assemblies/nodeitemstackcontainer.h \
-    View/SceneItems/Assemblies/nodeitemorderedcontainer.h \
-    View/SceneItems/containerelementnodeitem.h \
     View/Dock/dockwidget.h \
     View/Dock/dockwidgetitem.h \
     View/Dock/dockwidgetactionitem.h \
@@ -203,7 +195,15 @@ HEADERS += \
     Widgets/New/searchdialog.h \
     Widgets/New/searchitemwidget.h \
     Widgets/New/welcomescreenwidget.h \
-    Widgets/New/notificationdialog.h
+    Widgets/New/notificationdialog.h \
+    View/SceneItems/Edge/edgeitem.h \
+    View/SceneItems/Node/basicnodeitem.h \
+    View/SceneItems/Node/defaultnodeitem.h \
+    View/SceneItems/Node/hardwarenodeitem.h \
+    View/SceneItems/Node/managementcomponentnodeitem.h \
+    View/SceneItems/Node/nodeitem.h \
+    View/SceneItems/Node/stacknodeitem.h \
+    View/SceneItems/entityitem.h
 
 SOURCES += \
     main.cpp \
@@ -299,12 +299,8 @@ SOURCES += \
     Controller/viewcontroller.cpp \
     View/nodeviewitem.cpp \
     View/edgeviewitem.cpp \
-    View/SceneItems/edgeitemnew.cpp \
-    View/SceneItems/entityitemnew.cpp \
-    View/SceneItems/nodeitemnew.cpp \
     View/nodeviewnew.cpp \
     Controller/selectionhandler.cpp \
-    View/SceneItems/Hardware/hardwarenodeitem.cpp \
     View/docktitlebarwidget.cpp \
     Widgets/New/medeawindownew.cpp \
     Widgets/New/medeadockwidget.cpp \
@@ -322,7 +318,6 @@ SOURCES += \
     Widgets/New/actiongroup.cpp \
     Controller/rootaction.cpp \
     View/Toolbar/toolbarwidgetnew.cpp \
-    View/SceneItems/Assemblies/managementcomponentnodeitem.cpp \
     Controller/toolbarcontroller.cpp \
     Controller/nodeviewitemaction.cpp \
     View/Table/multilinedelegate.cpp \
@@ -359,9 +354,6 @@ SOURCES += \
     Controller/filehandler.cpp \
     GUI/popupwidget.cpp \
     View/Dock/docktabwidget.cpp \
-    View/SceneItems/Assemblies/nodeitemstackcontainer.cpp \
-    View/SceneItems/Assemblies/nodeitemorderedcontainer.cpp \
-    View/SceneItems/containerelementnodeitem.cpp \
     View/Dock/dockwidget.cpp \
     View/Dock/dockwidgetitem.cpp \
     View/Dock/dockwidgetactionitem.cpp \
@@ -372,7 +364,15 @@ SOURCES += \
     Widgets/New/searchdialog.cpp \
     Widgets/New/searchitemwidget.cpp \
     Widgets/New/welcomescreenwidget.cpp \
-    Widgets/New/notificationdialog.cpp
+    Widgets/New/notificationdialog.cpp \
+    View/SceneItems/Edge/edgeitem.cpp \
+    View/SceneItems/Node/basicnodeitem.cpp \
+    View/SceneItems/Node/defaultnodeitem.cpp \
+    View/SceneItems/Node/hardwarenodeitem.cpp \
+    View/SceneItems/Node/managementcomponentnodeitem.cpp \
+    View/SceneItems/Node/nodeitem.cpp \
+    View/SceneItems/Node/stacknodeitem.cpp \
+    View/SceneItems/entityitem.cpp
 
 RESOURCES += \
     resources.qrc

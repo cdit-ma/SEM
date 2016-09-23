@@ -1,20 +1,30 @@
-#ifndef NODEITEMORDEREDCONTAINER_H
-#define NODEITEMORDEREDCONTAINER_H
+#ifndef BASICNODEITEM_H
+#define BASICNODEITEM_H
 
-#include "../containerelementnodeitem.h"
+#include "nodeitem.h"
 
-class ContainerNodeItem : public ContainerElementNodeItem
+class BasicNodeItem : public NodeItem
 {
     Q_OBJECT
 public:
-    ContainerNodeItem(NodeViewItem* viewItem, NodeItemNew* parentItem);
+    BasicNodeItem(NodeViewItem* viewItem, NodeItem* parentItem);
 
     bool isSortOrdered() const;
     void setSortOrdered(bool ordered);
     QRectF bodyRect() const;
     //Pure virtual functions.
-    virtual QPointF getElementPosition(ContainerElementNodeItem* child);
-    virtual QPoint getElementIndex(ContainerElementNodeItem* child);
+    virtual QPointF getElementPosition(BasicNodeItem* child);
+    virtual QPoint getElementIndex(BasicNodeItem* child);
+
+    BasicNodeItem* getParentContainer() const;
+
+    QPoint getIndexPosition() const;
+    void setIndexPosition(QPoint point);
+
+    void dataChanged(QString keyName, QVariant data);
+
+    void setPos(const QPointF &pos);
+    QPointF getNearestGridPoint(QPointF newPos);
 
     // QGraphicsItem interface
 public:
@@ -43,8 +53,10 @@ private:
     QRectF qosRect() const;
     QRectF expandStateRect() const;
 
+    BasicNodeItem* parentContainer;
     bool _isSortOrdered;
     QMarginsF headerMargin;
+    QPoint indexPosition;
 };
 
-#endif // NODEITEMORDEREDCONTAINER_H
+#endif // BASICNODEITEM_H

@@ -113,7 +113,7 @@ private:
 
     // QWidget interface
 protected:
-    void resizeEvent(QResizeEvent *);
+    void resizeEvent(QResizeEvent *event);
 };
 
 

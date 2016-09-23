@@ -1,9 +1,8 @@
-#include "edgeitemnew.h"
-#include "nodeitemnew.h"
-#include <QDebug>
+#include "edgeitem.h"
+#include "../Node/nodeitem.h"
 
 #define ARROW_SIZE 4.0
-EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeItemNew* source, NodeItemNew* destination):EntityItemNew(edgeViewItem, parent, EntityItemNew::EDGE)
+EdgeItem::EdgeItem(EdgeViewItem* edgeViewItem, NodeItem * parent, NodeItem* source, NodeItem* destination):EntityItem(edgeViewItem, parent, EntityItem::EDGE)
 {
     this->edgeViewItem = edgeViewItem;
     this->sourceItem = source;
@@ -45,18 +44,18 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
     setDefaultPen(pen);
 
     //Bind all the source's ancestors all the way to the shared parent.
-    NodeItemNew* srcParent = sourceItem;
+    NodeItem* srcParent = sourceItem;
     while(srcParent && srcParent != parent){
-        connect(srcParent, &EntityItemNew::visibleChanged, this, &EdgeItemNew::sourceParentVisibilityChanged);
-        connect(srcParent, &EntityItemNew::positionChanged, this, &EdgeItemNew::sourceParentMoved);
+        connect(srcParent, &EntityItem::visibleChanged, this, &EdgeItem::sourceParentVisibilityChanged);
+        connect(srcParent, &EntityItem::positionChanged, this, &EdgeItem::sourceParentMoved);
         srcParent = srcParent->getParentNodeItem();
     }
 
     //Bind all the destinations's ancestors all the way to the shared parent.
-    NodeItemNew* dstParent = destinationItem;
+    NodeItem* dstParent = destinationItem;
     while(dstParent && dstParent != parent){
-        connect(dstParent, &EntityItemNew::visibleChanged, this, &EdgeItemNew::destinationParentVisibilityChanged);
-        connect(dstParent, &EntityItemNew::positionChanged, this, &EdgeItemNew::destinationParentMoved);
+        connect(dstParent, &EntityItem::visibleChanged, this, &EdgeItem::destinationParentVisibilityChanged);
+        connect(dstParent, &EntityItem::positionChanged, this, &EdgeItem::destinationParentMoved);
         dstParent = dstParent->getParentNodeItem();
     }
 
@@ -73,7 +72,7 @@ EdgeItemNew::EdgeItemNew(EdgeViewItem* edgeViewItem, NodeItemNew * parent, NodeI
     reloadRequiredData();
 }
 
-EdgeItemNew::~EdgeItemNew()
+EdgeItem::~EdgeItem()
 {
     if(getParentNodeItem()){
         getParentNodeItem()->removeChildEdge(getID());
@@ -82,7 +81,7 @@ EdgeItemNew::~EdgeItemNew()
     unsetParent();
 }
 
-void EdgeItemNew::setPos(const QPointF &pos)
+void EdgeItem::setPos(const QPointF &pos)
 {
     if(itemPos != pos){
         itemPos = pos;
@@ -90,12 +89,12 @@ void EdgeItemNew::setPos(const QPointF &pos)
     }
 }
 
-QPointF EdgeItemNew::getPos() const
+QPointF EdgeItem::getPos() const
 {
     return itemPos;
 }
 
-QRectF EdgeItemNew::sourceIconRect() const
+QRectF EdgeItem::sourceIconRect() const
 {
     QRectF  r;
     r.setSize(smallIconSize());
@@ -103,7 +102,7 @@ QRectF EdgeItemNew::sourceIconRect() const
     return r;
 }
 
-QRectF EdgeItemNew::sourceIconCircle() const
+QRectF EdgeItem::sourceIconCircle() const
 {
     QRectF  r;
     r.setSize(QSizeF(10,10));
@@ -113,7 +112,7 @@ QRectF EdgeItemNew::sourceIconCircle() const
 
 }
 
-QRectF EdgeItemNew::centerIconRect() const
+QRectF EdgeItem::centerIconRect() const
 {
     QRectF  r;
     r.setSize(smallIconSize() * 2);
@@ -122,7 +121,7 @@ QRectF EdgeItemNew::centerIconRect() const
 }
 
 
-QRectF EdgeItemNew::destinationIconRect() const
+QRectF EdgeItem::destinationIconRect() const
 {
     QRectF  r;
     r.setSize(smallIconSize());
@@ -130,7 +129,7 @@ QRectF EdgeItemNew::destinationIconRect() const
     return r;
 }
 
-QRectF EdgeItemNew::destinationIconCircle() const
+QRectF EdgeItem::destinationIconCircle() const
 {
     QRectF  r;
     r.setSize(QSizeF(10,10));
@@ -140,7 +139,7 @@ QRectF EdgeItemNew::destinationIconCircle() const
 }
 
 
-QRectF EdgeItemNew::centerRect() const
+QRectF EdgeItem::centerRect() const
 {
     QRectF  r;
     if(hasSetPosition()){
@@ -151,14 +150,14 @@ QRectF EdgeItemNew::centerRect() const
     return r;
 }
 
-QRectF EdgeItemNew::translatedCenterRect() const
+QRectF EdgeItem::translatedCenterRect() const
 {
     QRectF r = centerRect();
     r.moveCenter(itemPos + QPointF(10,10));
     return r;
 }
 
-QPainterPath EdgeItemNew::trianglePath(QPointF startPoint, bool pointRight) const
+QPainterPath EdgeItem::trianglePath(QPointF startPoint, bool pointRight) const
 {
     QPainterPath path;
 
@@ -174,7 +173,7 @@ QPainterPath EdgeItemNew::trianglePath(QPointF startPoint, bool pointRight) cons
     return path;
 }
 
-NodeItemNew *EdgeItemNew::getVisibleSource() const
+NodeItem *EdgeItem::getVisibleSource() const
 {
     if(currentSrcItem){
         return currentSrcItem;
@@ -182,7 +181,7 @@ NodeItemNew *EdgeItemNew::getVisibleSource() const
     return sourceItem;
 }
 
-NodeItemNew *EdgeItemNew::getVisibleDestination() const
+NodeItem *EdgeItem::getVisibleDestination() const
 {
     if(currentDstItem){
         return currentDstItem;
@@ -190,42 +189,42 @@ NodeItemNew *EdgeItemNew::getVisibleDestination() const
     return destinationItem;
 }
 
-NodeItemNew *EdgeItemNew::getParentNodeItem() const
+NodeItem *EdgeItem::getParentNodeItem() const
 {
-    EntityItemNew* parent = getParent();
+    EntityItem* parent = getParent();
     if(parent && parent->isNodeItem()){
-        return (NodeItemNew*) parent;
+        return (NodeItem*) parent;
     }
     return 0;
 }
 
-NodeItemNew *EdgeItemNew::getSourceItem() const
+NodeItem *EdgeItem::getSourceItem() const
 {
     return sourceItem;
 }
 
-NodeItemNew *EdgeItemNew::getDestinationItem() const
+NodeItem *EdgeItem::getDestinationItem() const
 {
     return destinationItem;
 }
 
-void EdgeItemNew::sourceParentMoved()
+void EdgeItem::sourceParentMoved()
 {
     recalcSrcCurve(true);
 }
 
-void EdgeItemNew::destinationParentMoved()
+void EdgeItem::destinationParentMoved()
 {
     recalcDstCurve(true);
 }
 
-void EdgeItemNew::centerPointMoved()
+void EdgeItem::centerPointMoved()
 {
     recalcSrcCurve(false);
     recalcDstCurve(true);
 }
 
-void EdgeItemNew::recalcSrcCurve(bool reset)
+void EdgeItem::recalcSrcCurve(bool reset)
 {
     QPointF srcScenePos = getSourcePos();
     bool srcLeft = sourceExitsLeft();
@@ -263,7 +262,7 @@ void EdgeItemNew::recalcSrcCurve(bool reset)
     }
 }
 
-void EdgeItemNew::recalcDstCurve(bool reset)
+void EdgeItem::recalcDstCurve(bool reset)
 {
     QPointF dstScenePos = getDestinationPos();
     bool dstLeft = destinationEntersLeft();
@@ -300,7 +299,7 @@ void EdgeItemNew::recalcDstCurve(bool reset)
     }
 }
 
-void EdgeItemNew::setManuallyPositioned(bool value)
+void EdgeItem::setManuallyPositioned(bool value)
 {
     if(_hasPosition != value){
        _hasPosition = value;
@@ -311,12 +310,12 @@ void EdgeItemNew::setManuallyPositioned(bool value)
     }
 }
 
-bool EdgeItemNew::hasSetPosition() const
+bool EdgeItem::hasSetPosition() const
 {
     return _hasPosition || isMoving();
 }
 
-void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
@@ -374,29 +373,29 @@ void EdgeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     }
 }
 
-QRectF EdgeItemNew::currentRect() const
+QRectF EdgeItem::currentRect() const
 {
     QRectF r = translatedCenterRect();
     r = r.marginsAdded(margins);
     return r;
 }
 
-void EdgeItemNew::dataChanged(QString keyName, QVariant data)
+void EdgeItem::dataChanged(QString keyName, QVariant data)
 {
     if(keyName == "x" || keyName == "y"){
         setManuallyPositioned(true);
     }
-    EntityItemNew::dataChanged(keyName, data);
+    EntityItem::dataChanged(keyName, data);
 }
 
-void EdgeItemNew::dataRemoved(QString keyName)
+void EdgeItem::dataRemoved(QString keyName)
 {
     if(keyName == "x" || keyName == "y"){
         setManuallyPositioned(hasData("x") && hasData("y"));
     }
 }
 
-QRectF EdgeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
+QRectF EdgeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 {
     switch(rect){
         case ER_EDGE_KIND_ICON:{
@@ -412,21 +411,21 @@ QRectF EdgeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
         break;
     }
     //Just call base class.
-    return EntityItemNew::getElementRect(rect);
+    return EntityItem::getElementRect(rect);
 }
 
-void EdgeItemNew::setMoveStarted()
+void EdgeItem::setMoveStarted()
 {
-    NodeItemNew* parentNodeItem = getParentNodeItem();
+    NodeItem* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
         parentNodeItem->setChildMoving(this, true);
     }
-    EntityItemNew::setMoveStarted();
+    EntityItem::setMoveStarted();
 }
 
-bool EdgeItemNew::setMoveFinished()
+bool EdgeItem::setMoveFinished()
 {
-    NodeItemNew* parentNodeItem = getParentNodeItem();
+    NodeItem* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
         parentNodeItem->setChildMoving(this, false);
     }
@@ -434,23 +433,23 @@ bool EdgeItemNew::setMoveFinished()
     if(hasSetPosition()){
         setPos(getNearestGridPoint());
     }
-    return EntityItemNew::setMoveFinished();
+    return EntityItem::setMoveFinished();
 }
 
 
-void EdgeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     if(hasSetPosition() && event->button() == Qt::LeftButton && currentRect().contains(event->pos())){
         resetPosition();
     }
 }
 
-QPointF EdgeItemNew::getTopLeftOffset() const
+QPointF EdgeItem::getTopLeftOffset() const
 {
     return QPointF(10,10);//centerRect().center();
 }
 
-QPainterPath EdgeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
+QPainterPath EdgeItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
 {
     switch(rect){
         case ER_SELECTION:{
@@ -468,7 +467,7 @@ QPainterPath EdgeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
     default:
         break;
     }
-    return EntityItemNew::getElementPath(rect);
+    return EntityItem::getElementPath(rect);
 
 }
 
@@ -476,7 +475,7 @@ QPainterPath EdgeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
  * @brief EdgeItemNew::boundingRect - Calculates the Rectangle of this edge by combining all paths together.
  * @return
  */
-QRectF EdgeItemNew::boundingRect() const
+QRectF EdgeItem::boundingRect() const
 {
     QRectF r = currentRect();
     r = r.united(sourceArrow.controlPointRect());
@@ -487,18 +486,18 @@ QRectF EdgeItemNew::boundingRect() const
 }
 
 
-QPointF EdgeItemNew::getSourcePos(QPointF center) const
+QPointF EdgeItem::getSourcePos(QPointF center) const
 {
-    NodeItemNew* item = getVisibleSource();
+    NodeItem* item = getVisibleSource();
     if(item){
         return item->getSceneEdgeTermination(sourceExitsLeft(center));
     }
     return QPointF();
 }
 
-bool EdgeItemNew::sourceExitsLeft(QPointF center) const
+bool EdgeItem::sourceExitsLeft(QPointF center) const
 {
-    NodeItemNew* item = getVisibleSource();
+    NodeItem* item = getVisibleSource();
     if(item){
         if(center.isNull()){
             center = getSceneCenter();
@@ -509,9 +508,9 @@ bool EdgeItemNew::sourceExitsLeft(QPointF center) const
     return false;
 }
 
-bool EdgeItemNew::destinationEntersLeft(QPointF center) const
+bool EdgeItem::destinationEntersLeft(QPointF center) const
 {
-    NodeItemNew* item = getVisibleDestination();
+    NodeItem* item = getVisibleDestination();
     if(item){
         if(center.isNull()){
             center = getSceneCenter();
@@ -522,9 +521,9 @@ bool EdgeItemNew::destinationEntersLeft(QPointF center) const
     return false;
 }
 
-QPointF EdgeItemNew::getDestinationPos(QPointF center) const
+QPointF EdgeItem::getDestinationPos(QPointF center) const
 {
-    NodeItemNew* item = getVisibleDestination();
+    NodeItem* item = getVisibleDestination();
     if(item){
         bool entersLeft = destinationEntersLeft(center);
         QPointF offset = QPointF(entersLeft? -ARROW_SIZE:ARROW_SIZE, 0);
@@ -534,14 +533,14 @@ QPointF EdgeItemNew::getDestinationPos(QPointF center) const
 }
 
 
-QPointF EdgeItemNew::getSceneEdgeTermination(bool left) const
+QPointF EdgeItem::getSceneEdgeTermination(bool left) const
 {
     qreal y = translatedCenterRect().center().y();
     qreal x = left ? translatedCenterRect().left() - ARROW_SIZE: translatedCenterRect().right();
     return mapToScene(x,y);
 }
 
-void EdgeItemNew::resetPosition()
+void EdgeItem::resetPosition()
 {
     QPointF srcCenter;
     QPointF dstCenter;
@@ -578,16 +577,16 @@ void EdgeItemNew::resetPosition()
     }
 }
 
-QPointF EdgeItemNew::getSceneCenter() const
+QPointF EdgeItem::getSceneCenter() const
 {
     return mapToScene(getPos() + getTopLeftOffset());
 }
 
-void EdgeItemNew::sourceParentVisibilityChanged()
+void EdgeItem::sourceParentVisibilityChanged()
 {
     //Unset the size changed variable.
     if(currentSrcItem){
-        disconnect(currentSrcItem, &EntityItemNew::sizeChanged, this, &EdgeItemNew::sourceParentMoved);
+        disconnect(currentSrcItem, &EntityItem::sizeChanged, this, &EdgeItem::sourceParentMoved);
     }
 
     //Find the first visible parent from sourceItem
@@ -599,17 +598,17 @@ void EdgeItemNew::sourceParentVisibilityChanged()
         currentSrcItem = currentSrcItem->getParentNodeItem();
     }
     if(currentSrcItem){
-        connect(currentSrcItem, &EntityItemNew::sizeChanged, this, &EdgeItemNew::sourceParentMoved);
+        connect(currentSrcItem, &EntityItem::sizeChanged, this, &EdgeItem::sourceParentMoved);
         //Recalculate the source curve.
         recalcSrcCurve(true);
     }
 }
 
-void EdgeItemNew::destinationParentVisibilityChanged()
+void EdgeItem::destinationParentVisibilityChanged()
 {
     //Unset the size changed variable.
     if(currentDstItem){
-        disconnect(currentDstItem, &EntityItemNew::sizeChanged, this, &EdgeItemNew::destinationParentMoved);
+        disconnect(currentDstItem, &EntityItem::sizeChanged, this, &EdgeItem::destinationParentMoved);
     }
 
     //Find the first visible parent from destinationItem
@@ -622,7 +621,7 @@ void EdgeItemNew::destinationParentVisibilityChanged()
     }
 
     if(currentDstItem){
-        connect(currentDstItem, &EntityItemNew::sizeChanged, this, &EdgeItemNew::destinationParentMoved);
+        connect(currentDstItem, &EntityItem::sizeChanged, this, &EdgeItem::destinationParentMoved);
         //Recalculate the destination curve.
         recalcDstCurve(true);
     }

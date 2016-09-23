@@ -1,19 +1,20 @@
 #include "nodeviewnew.h"
 
-#include "SceneItems/entityitemnew.h"
-#include "SceneItems/nodeitemnew.h"
-#include "SceneItems/edgeitemnew.h"
-
-#include "SceneItems/Hardware/hardwarenodeitem.h"
-#include "SceneItems/Assemblies/managementcomponentnodeitem.h"
-#include "SceneItems/Assemblies/nodeitemstackcontainer.h"
-#include "theme.h"
 #include <QDebug>
 #include <QtMath>
 #include <QGraphicsItem>
 #include <QKeyEvent>
 #include <QDateTime>
 #include <QOpenGLWidget>
+
+#include "SceneItems/Node/defaultnodeitem.h"
+#include "SceneItems/Node/stacknodeitem.h"
+#include "SceneItems/Node/managementcomponentnodeitem.h"
+#include "SceneItems/Node/hardwarenodeitem.h"
+
+#include "SceneItems/Edge/edgeitem.h"
+#include "theme.h"
+
 
 #define ZOOM_INCREMENTOR 1.05
 
@@ -195,7 +196,7 @@ void NodeViewNew::viewItem_Destructed(int ID, ViewItem *viewItem)
 {
 
 
-    EntityItemNew* item = getEntityItem(ID);
+    EntityItem* item = getEntityItem(ID);
     if(item){
         topLevelGUIItemIDs.removeAll(ID);
         guiItems.remove(ID);
@@ -214,7 +215,7 @@ void NodeViewNew::viewItem_Destructed(int ID, ViewItem *viewItem)
 void NodeViewNew::selectionHandler_ItemSelectionChanged(ViewItem *item, bool selected)
 {
     if(item){
-        EntityItemNew* e = getEntityItem(item->getID());
+        EntityItem* e = getEntityItem(item->getID());
         if(e){
             e->setSelected(selected);
         }
@@ -228,7 +229,7 @@ void NodeViewNew::selectionHandler_ItemSelectionChanged(ViewItem *item, bool sel
 void NodeViewNew::selectionHandler_ItemActiveSelectionChanged(ViewItem *item, bool isActive)
 {
     if(item){
-        EntityItemNew* e = getEntityItem(item->getID());
+        EntityItem* e = getEntityItem(item->getID());
         if(e){
             e->setActiveSelected(isActive);
         }
@@ -254,14 +255,14 @@ void NodeViewNew::alignHorizontal()
 {
     emit triggerAction("Aligning Selection Horizontally");
 
-    QList<EntityItemNew*> selection = getOrderedSelectedItems();
+    QList<EntityItem*> selection = getOrderedSelectedItems();
     QRectF sceneRect = getSceneBoundingRectOfItems(selection);
 
-    foreach(EntityItemNew* item, selection){
+    foreach(EntityItem* item, selection){
         item->setMoveStarted();
         QPointF pos = item->getPos();
 
-        EntityItemNew* parent = item->getParent();
+        EntityItem* parent = item->getParent();
         if(!parent){
             parent = item;
         }
@@ -282,14 +283,14 @@ void NodeViewNew::alignVertical()
 {
     emit triggerAction("Aligning Selection Vertically");
 
-    QList<EntityItemNew*> selection = getOrderedSelectedItems();
+    QList<EntityItem*> selection = getOrderedSelectedItems();
     QRectF sceneRect = getSceneBoundingRectOfItems(selection);
 
-    foreach(EntityItemNew* item, selection){
+    foreach(EntityItem* item, selection){
         item->setMoveStarted();
         QPointF pos = item->getPos();
 
-        EntityItemNew* parent = item->getParent();
+        EntityItem* parent = item->getParent();
         if(!parent){
             parent = item;
         }
@@ -333,7 +334,7 @@ void NodeViewNew::themeChanged()
     update();
 }
 
-void NodeViewNew::node_ConnectMode(NodeItemNew *item)
+void NodeViewNew::node_ConnectMode(NodeItem *item)
 {
     if(selectionHandler && selectionHandler->getSelectionCount() == 1){
         if(item->getViewItem() == selectionHandler->getActiveSelectedItem()){
@@ -379,15 +380,15 @@ void NodeViewNew::centerConnections(ViewItem* item)
         }
 
         QList<ViewItem*> toSelect;
-        QList<EntityItemNew*> toCenter;
+        QList<EntityItem*> toCenter;
 
         foreach(EdgeViewItem* e, edges){
             ViewItem* s = e->getSource();
             ViewItem* d = e->getDestination();
 
-            EntityItemNew* src = getEntityItem(s);
-            EntityItemNew* dst = getEntityItem(d);
-            EntityItemNew* edge = getEntityItem(e);
+            EntityItem* src = getEntityItem(s);
+            EntityItem* dst = getEntityItem(d);
+            EntityItem* edge = getEntityItem(e);
 
             if(src && !toSelect.contains(s)){
                 toCenter.append(src);
@@ -440,7 +441,7 @@ void NodeViewNew::item_ActiveSelected(ViewItem *item)
     }
 }
 
-void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
+void NodeViewNew::item_SetExpanded(EntityItem *item, bool expand)
 {
     if(item){
         int ID = item->getID();
@@ -449,7 +450,7 @@ void NodeViewNew::item_SetExpanded(EntityItemNew *item, bool expand)
     }
 }
 
-void NodeViewNew::item_SetCentered(EntityItemNew *item)
+void NodeViewNew::item_SetCentered(EntityItem *item)
 {
     centerRect(item->sceneViewRect());
 }
@@ -463,7 +464,7 @@ void NodeViewNew::item_MoveSelection(QPointF delta)
 
             //Validate the move for the entire selection.
             foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
-                EntityItemNew* item = getEntityItem(viewItem);
+                EntityItem* item = getEntityItem(viewItem);
                 if(item){
                     delta = item->validateMove(delta);
                     //If delta is 0,0 we should ignore.
@@ -475,7 +476,7 @@ void NodeViewNew::item_MoveSelection(QPointF delta)
 
             if(!delta.isNull()){
                 foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
-                    EntityItemNew* item = getEntityItem(viewItem);
+                    EntityItem* item = getEntityItem(viewItem);
                     if(item){
                         //Move!
                         item->adjustPos(delta);
@@ -486,7 +487,7 @@ void NodeViewNew::item_MoveSelection(QPointF delta)
     }
 }
 
-void NodeViewNew::item_Resize(NodeItemNew *item, QSizeF delta, RECT_VERTEX vertex)
+void NodeViewNew::item_Resize(NodeItem *item, QSizeF delta, RECT_VERTEX vertex)
 {
     if(state_Active_Resizing->active()){
 
@@ -544,9 +545,9 @@ void NodeViewNew::minimap_Zoom(int delta)
 
 void NodeViewNew::centerItem(int ID)
 {
-    EntityItemNew* item = getEntityItem(ID);
+    EntityItem* item = getEntityItem(ID);
     if(item){
-        QList<EntityItemNew*> items;
+        QList<EntityItem*> items;
         items.append(item);
         centerOnItems(items);
     }
@@ -554,55 +555,55 @@ void NodeViewNew::centerItem(int ID)
 
 void NodeViewNew::highlightItem(int ID, bool highlighted)
 {
-    EntityItemNew* item = getEntityItem(ID);
+    EntityItem* item = getEntityItem(ID);
     if(item){
         item->setHighlighted(highlighted);
     }
 }
 
-void NodeViewNew::setupConnections(EntityItemNew *item)
+void NodeViewNew::setupConnections(EntityItem *item)
 {
-    connect(item, &EntityItemNew::req_activeSelected, this, &NodeViewNew::item_ActiveSelected);
-    connect(item, &EntityItemNew::req_selected, this, &NodeViewNew::item_Selected);
-    connect(item, &EntityItemNew::req_expanded, this, &NodeViewNew::item_SetExpanded);
-    connect(item, &EntityItemNew::req_centerItem, this, &NodeViewNew::item_SetCentered);
+    connect(item, &EntityItem::req_activeSelected, this, &NodeViewNew::item_ActiveSelected);
+    connect(item, &EntityItem::req_selected, this, &NodeViewNew::item_Selected);
+    connect(item, &EntityItem::req_expanded, this, &NodeViewNew::item_SetExpanded);
+    connect(item, &EntityItem::req_centerItem, this, &NodeViewNew::item_SetCentered);
 
-    connect(item, &EntityItemNew::req_StartMove, this, &NodeViewNew::trans_InActive2Moving);
-    connect(item, &EntityItemNew::req_Move, this, &NodeViewNew::item_MoveSelection);
-    connect(item, &EntityItemNew::req_FinishMove, this, &NodeViewNew::trans_Moving2InActive);
+    connect(item, &EntityItem::req_StartMove, this, &NodeViewNew::trans_InActive2Moving);
+    connect(item, &EntityItem::req_Move, this, &NodeViewNew::item_MoveSelection);
+    connect(item, &EntityItem::req_FinishMove, this, &NodeViewNew::trans_Moving2InActive);
 
 
-    connect(item, &EntityItemNew::req_triggerAction, this, &NodeViewNew::triggerAction);
-    connect(item, &EntityItemNew::req_removeData, this, &NodeViewNew::item_RemoveData);
-    connect(item, &EntityItemNew::req_editData, this, &NodeViewNew::item_EditData);
+    connect(item, &EntityItem::req_triggerAction, this, &NodeViewNew::triggerAction);
+    connect(item, &EntityItem::req_removeData, this, &NodeViewNew::item_RemoveData);
+    connect(item, &EntityItem::req_editData, this, &NodeViewNew::item_EditData);
 
 
 
     if(item->isNodeItem()){
-        NodeItemNew* node = (NodeItemNew*) item;
+        NodeItem* node = (NodeItem*) item;
 
-        connect(node, &NodeItemNew::req_StartResize, this, &NodeViewNew::trans_InActive2Resizing);
-        connect(node, &NodeItemNew::req_Resize, this, &NodeViewNew::item_Resize);
-        connect(node, &NodeItemNew::req_FinishResize, this, &NodeViewNew::trans_Resizing2InActive);
+        connect(node, &NodeItem::req_StartResize, this, &NodeViewNew::trans_InActive2Resizing);
+        connect(node, &NodeItem::req_Resize, this, &NodeViewNew::item_Resize);
+        connect(node, &NodeItem::req_FinishResize, this, &NodeViewNew::trans_Resizing2InActive);
 
         //connect(node, &NodeItemNew::req_adjustSize, this, &NodeViewNew::item_Resize);
         //connect(node, &NodeItemNew::req_adjustSizeFinished, this, &NodeViewNew::item_ResizeFinished);
-        connect(node, &NodeItemNew::req_connectMode, this, &NodeViewNew::node_ConnectMode);
+        connect(node, &NodeItem::req_connectMode, this, &NodeViewNew::node_ConnectMode);
 
 
     }
 }
 
 
-void NodeViewNew::centerOnItems(QList<EntityItemNew *> items)
+void NodeViewNew::centerOnItems(QList<EntityItem *> items)
 {
     centerRect(getSceneBoundingRectOfItems(items));
 }
 
-QRectF NodeViewNew::getSceneBoundingRectOfItems(QList<EntityItemNew *> items)
+QRectF NodeViewNew::getSceneBoundingRectOfItems(QList<EntityItem *> items)
 {
     QRectF itemsRect;
-    foreach(EntityItemNew* item, items){
+    foreach(EntityItem* item, items){
         if(item->isVisible()){
             itemsRect = itemsRect.united(item->sceneViewRect());
         }
@@ -661,7 +662,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
         return;
     }
 
-    NodeItemNew* parentNode = getParentNodeItem(item);
+    NodeItem* parentNode = getParentNodeItem(item);
 
     if(!containedNodeViewItem && item->getViewAspect() == containedAspect){
         setContainedNodeViewItem(item);
@@ -675,7 +676,7 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
         if(containedNodeViewItem->isAncestorOf(item)){
             //qCritical() << "CONSTRUCTING: " << item;
             int ID = item->getID();
-            NodeItemNew* nodeItem =  0;
+            NodeItem* nodeItem =  0;
             Node::NODE_KIND nodeKind = item->getNodeKind();
             QString nodeKindStr = item->getData("kind").toString();
 
@@ -701,122 +702,122 @@ void NodeViewNew::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_BLACKBOX:
             case Node::NK_COMPONENT_IMPL:
             case Node::NK_BLACKBOX_INSTANCE:
-                nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem = new DefaultNodeItem(item, parentNode);
                 break;
             case Node::NK_TERMINATION:
-                nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_HARDWARE_CLUSTER:
-                nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("ip_address");
                 break;
             case Node::NK_INEVENTPORT_INSTANCE:
             case Node::NK_OUTEVENTPORT_INSTANCE:
             case Node::NK_INEVENTPORT_DELEGATE:
             case Node::NK_OUTEVENTPORT_DELEGATE:
-                nodeItem = new ContainerNodeItem(item, parentNode);
+                nodeItem = new DefaultNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_ASSEMBLY);
                 break;
             case Node::NK_CONDITION:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_ATTRIBUTE_INSTANCE:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("value");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
             case Node::NK_AGGREGATE:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 break;
             case Node::NK_PROCESS:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
                 nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
 
                 break;
             case Node::NK_MEMBER_INSTANCE:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
             case Node::NK_VARIABLE:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
             case Node::NK_ATTRIBUTE_IMPL:
             case Node::NK_AGGREGATE_INSTANCE:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
             case Node::NK_MEMBER:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setIconOverlay("Actions", "Key");
                 break;
             case Node::NK_INEVENTPORT_IMPL:
             case Node::NK_OUTEVENTPORT_IMPL:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_ATTRIBUTE:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 break;
             case Node::NK_INPUTPARAMETER:
             case Node::NK_RETURNPARAMETER:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 nodeItem->setSecondaryTextKey("type");
                 break;
             case Node::NK_INEVENTPORT:
             case Node::NK_OUTEVENTPORT:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 break;
             case Node::NK_PERIODICEVENT:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("frequency");
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_BRANCH_STATE:
             case Node::NK_WHILELOOP:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_WORKLOAD:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
             case Node::NK_VECTOR:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("max_size");
                 break;
             case Node::NK_VECTOR_INSTANCE:
-                nodeItem = new StackContainerNodeItem(item, parentNode);
+                nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 nodeItem->setSecondaryTextKey("type");
                 break;
 
             default:
 
-                //nodeItem = new DefaultNodeItem(item, parentNode);
+                //nodeItem = new StackNodeItem(item, parentNode);
                 break;
             }
 
@@ -862,12 +863,12 @@ void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
 
 
 
-    NodeItemNew* parent = getParentNodeItem(item->getParentItem());
-    NodeItemNew* source = getParentNodeItem(item->getSource());
-    NodeItemNew* destination = getParentNodeItem(item->getDestination());
+    NodeItem* parent = getParentNodeItem(item->getParentItem());
+    NodeItem* source = getParentNodeItem(item->getSource());
+    NodeItem* destination = getParentNodeItem(item->getDestination());
 
     if(source && destination){
-        EdgeItemNew* edgeItem = new EdgeItemNew(item, parent,source,destination);
+        EdgeItem* edgeItem = new EdgeItem(item, parent,source,destination);
 
 
         if(edgeItem){
@@ -885,17 +886,17 @@ void NodeViewNew::edgeViewItem_Constructed(EdgeViewItem *item)
 QList<ViewItem *> NodeViewNew::getTopLevelViewItems() const
 {
     QList<ViewItem *> items;
-    foreach(EntityItemNew* item, getTopLevelEntityItems()){
+    foreach(EntityItem* item, getTopLevelEntityItems()){
         items.append(item->getViewItem());
     }
     return items;
 }
 
-QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems() const
+QList<EntityItem *> NodeViewNew::getTopLevelEntityItems() const
 {
-    QList<EntityItemNew*> items;
+    QList<EntityItem*> items;
     foreach(int ID, topLevelGUIItemIDs){
-        EntityItemNew* item = guiItems.value(ID, 0);
+        EntityItem* item = guiItems.value(ID, 0);
         if(item){
             items.append(item);
         }
@@ -903,11 +904,11 @@ QList<EntityItemNew *> NodeViewNew::getTopLevelEntityItems() const
     return items;
 }
 
-QList<EntityItemNew *> NodeViewNew::getSelectedItems() const
+QList<EntityItem *> NodeViewNew::getSelectedItems() const
 {
-    QList<EntityItemNew*> items;
+    QList<EntityItem*> items;
     foreach(ViewItem* item, selectionHandler->getSelection()){
-        EntityItemNew* eItem = getEntityItem(item);
+        EntityItem* eItem = getEntityItem(item);
         if(eItem){
             items.append(eItem);
         }
@@ -915,11 +916,11 @@ QList<EntityItemNew *> NodeViewNew::getSelectedItems() const
     return items;
 }
 
-QList<EntityItemNew *> NodeViewNew::getOrderedSelectedItems() const
+QList<EntityItem *> NodeViewNew::getOrderedSelectedItems() const
 {
-    QList<EntityItemNew*> items;
+    QList<EntityItem*> items;
     foreach(ViewItem* item, selectionHandler->getOrderedSelection()){
-        EntityItemNew* eItem = getEntityItem(item);
+        EntityItem* eItem = getEntityItem(item);
         if(eItem){
             items.append(eItem);
         }
@@ -928,12 +929,12 @@ QList<EntityItemNew *> NodeViewNew::getOrderedSelectedItems() const
 
 }
 
-NodeItemNew *NodeViewNew::getParentNodeItem(NodeViewItem *item)
+NodeItem *NodeViewNew::getParentNodeItem(NodeViewItem *item)
 {
      while(item){
         int ID = item->getID();
         if(guiItems.contains(ID)){
-            return (NodeItemNew*)guiItems[ID];
+            return (NodeItem*)guiItems[ID];
         }else{
             item = item->getParentNodeViewItem();
         }
@@ -941,29 +942,29 @@ NodeItemNew *NodeViewNew::getParentNodeItem(NodeViewItem *item)
      return 0;
 }
 
-EntityItemNew *NodeViewNew::getEntityItem(int ID) const
+EntityItem *NodeViewNew::getEntityItem(int ID) const
 {
-    EntityItemNew* item = 0;
+    EntityItem* item = 0;
     if(guiItems.contains(ID)){
         item = guiItems[ID];
     }
     return item;
 }
 
-EntityItemNew *NodeViewNew::getEntityItem(ViewItem *item) const
+EntityItem *NodeViewNew::getEntityItem(ViewItem *item) const
 {
-    EntityItemNew* e = 0;
+    EntityItem* e = 0;
     if(item){
         e = getEntityItem(item->getID());
     }
     return e;
 }
 
-NodeItemNew *NodeViewNew::getNodeItem(ViewItem *item) const
+NodeItem *NodeViewNew::getNodeItem(ViewItem *item) const
 {
-    EntityItemNew* e = getEntityItem(item->getID());
+    EntityItem* e = getEntityItem(item->getID());
     if(e && e->isNodeItem()){
-        return (NodeItemNew*) e;
+        return (NodeItem*) e;
     }
     return 0;
 }
@@ -1010,7 +1011,7 @@ void NodeViewNew::selectItemsInRubberband()
     }
 
     foreach(QGraphicsItem* i, scene()->items(rubberbandRect,Qt::IntersectsItemShape)){
-        EntityItemNew* entityItem = dynamic_cast<EntityItemNew*>(i);
+        EntityItem* entityItem = dynamic_cast<EntityItem*>(i);
         if(entityItem){
             itemsToSelect.append(entityItem->getViewItem());
         }
@@ -1024,15 +1025,15 @@ void NodeViewNew::selectItemsInRubberband()
 void NodeViewNew::_selectAll()
 {
     if(selectionHandler){
-        EntityItemNew* guiItem = getEntityItem(selectionHandler->getFirstSelectedItem());
+        EntityItem* guiItem = getEntityItem(selectionHandler->getFirstSelectedItem());
 
         QList<ViewItem*> itemsToSelect;
 
         if(guiItem){
             if(selectionHandler->getSelectionCount() == 1 && guiItem->isNodeItem()){
-                NodeItemNew* nodeItem = (NodeItemNew*) guiItem;
+                NodeItem* nodeItem = (NodeItem*) guiItem;
 
-                foreach(NodeItemNew* child, nodeItem->getChildNodes()){
+                foreach(NodeItem* child, nodeItem->getChildNodes()){
                     itemsToSelect.append(child->getViewItem());
                 }
             }
@@ -1128,10 +1129,10 @@ void NodeViewNew::setupStateMachine()
     viewStateMachine->start();
 }
 
-EntityItemNew *NodeViewNew::getEntityAtPos(QPointF scenePos)
+EntityItem *NodeViewNew::getEntityAtPos(QPointF scenePos)
 {
     foreach(QGraphicsItem* item, scene()->items(scenePos)){
-        EntityItemNew* entityItem =  dynamic_cast<EntityItemNew*>(item);
+        EntityItem* entityItem =  dynamic_cast<EntityItem*>(item);
         if(entityItem){
             return entityItem;
         }
@@ -1144,7 +1145,7 @@ void NodeViewNew::state_Moving_Entered()
     setCursor(Qt::SizeAllCursor);
     if(selectionHandler){
         foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
-            EntityItemNew* item = getEntityItem(viewItem);
+            EntityItem* item = getEntityItem(viewItem);
             if(item){
                 item->setMoveStarted();
             }
@@ -1160,7 +1161,7 @@ void NodeViewNew::state_Moving_Exited()
         QVector<ViewItem*> selection = selectionHandler->getOrderedSelection();
 
         foreach(ViewItem* viewItem, selection){
-            EntityItemNew* item = getEntityItem(viewItem);
+            EntityItem* item = getEntityItem(viewItem);
             if(item){
                 if(item->setMoveFinished()){
                     anyMoved = true;
@@ -1171,7 +1172,7 @@ void NodeViewNew::state_Moving_Exited()
         if(anyMoved){
             emit triggerAction("Moving Selection");
             foreach(ViewItem* viewItem, selection){
-                EntityItemNew* item = getEntityItem(viewItem);
+                EntityItem* item = getEntityItem(viewItem);
                 if(item){
                     QPointF pos = item->getNearestGridPoint();
                     emit setData(item->getID(), "x", pos.x());
@@ -1192,7 +1193,7 @@ void NodeViewNew::state_Resizing_Entered()
         }
 
         foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
-            NodeItemNew* item = getNodeItem(viewItem);
+            NodeItem* item = getNodeItem(viewItem);
             if(item){
                 item->setResizeStarted();
             }
@@ -1205,7 +1206,7 @@ void NodeViewNew::state_Resizing_Exited()
 {
     if(selectionHandler){
         foreach(ViewItem* viewItem, selectionHandler->getOrderedSelection()){
-            NodeItemNew* item = getNodeItem(viewItem);
+            NodeItem* item = getNodeItem(viewItem);
 
             if(item && item->setResizeFinished()){
                 emit triggerAction("Resizing Item");
@@ -1244,9 +1245,9 @@ void NodeViewNew::state_RubberbandMode_Selecting_Exited()
 void NodeViewNew::state_Connecting_Entered()
 {
     ViewItem* vi = selectionHandler->getActiveSelectedItem();
-    EntityItemNew* item = getEntityItem(vi);
+    EntityItem* item = getEntityItem(vi);
     if(item && item->isNodeItem()){
-        NodeItemNew* nodeItem = (NodeItemNew*) item;
+        NodeItem* nodeItem = (NodeItem*) item;
 
         //Highlight things we can connect to
         QList<ViewItem*> items = viewController->getValidEdges(nodeItem->getVisualEdgeKind());
@@ -1255,7 +1256,7 @@ void NodeViewNew::state_Connecting_Entered()
         }
 
         QPointF lineStart = nodeItem->scenePos();
-        lineStart += nodeItem->getElementRect(EntityItemNew::ER_EDGE_KIND_ICON).center();
+        lineStart += nodeItem->getElementRect(EntityItem::ER_EDGE_KIND_ICON).center();
 
         if(!connectLineItem){
             connectLineItem = scene()->addLine(connectLine);
@@ -1271,9 +1272,9 @@ void NodeViewNew::state_Connecting_Entered()
 void NodeViewNew::state_Connecting_Exited()
 {
     ViewItem* vi = selectionHandler->getActiveSelectedItem();
-    EntityItemNew* item = getEntityItem(vi);
+    EntityItem* item = getEntityItem(vi);
     if(item && item->isNodeItem()){
-        NodeItemNew* nodeItem = (NodeItemNew*) item;
+        NodeItem* nodeItem = (NodeItem*) item;
 
         Edge::EDGE_KIND edgeKind = nodeItem->getVisualEdgeKind();
 
@@ -1285,7 +1286,7 @@ void NodeViewNew::state_Connecting_Exited()
 
         if(connectLineItem){
             QPointF scenePos = connectLine.p2();
-            EntityItemNew* otherItem = getEntityAtPos(scenePos);
+            EntityItem* otherItem = getEntityAtPos(scenePos);
             if(otherItem){
                 emit triggerAction("Constructing Edge");
                 emit viewController->vc_constructEdge(selectionHandler->getSelectionIDs().toList(), otherItem->getID(), edgeKind);
@@ -1351,7 +1352,7 @@ void NodeViewNew::mousePressEvent(QMouseEvent *event)
             }
             handledEvent = true;
         }else{
-            EntityItemNew* item = getEntityAtPos(scenePos);
+            EntityItem* item = getEntityAtPos(scenePos);
             if(!item){
                 clearSelection();
                 handledEvent = true;
@@ -1407,7 +1408,7 @@ void NodeViewNew::mouseReleaseEvent(QMouseEvent *event)
         //Popup Toolbar if there is an item.
         if(pan_distance < 10){
             QPointF itemPos = mapToScene(event->pos());
-            EntityItemNew* item = getEntityAtPos(itemPos);
+            EntityItem* item = getEntityAtPos(itemPos);
             if(item){
                 itemPos = item->mapFromScene(itemPos);
                 if(!item->isSelected()){

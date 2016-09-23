@@ -1,18 +1,17 @@
 #ifndef MANAGEMENTCOMPONENTNODEITEM_H
 #define MANAGEMENTCOMPONENTNODEITEM_H
 
-
-#include "../nodeitemnew.h"
+#include "nodeitem.h"
 #include <QDebug>
 
-class ManagementComponentNodeItem : public NodeItemNew
+class ManagementComponentNodeItem : public NodeItem
 {
 public:
-    ManagementComponentNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem);
+    ManagementComponentNodeItem(NodeViewItem *viewItem, NodeItem *parentItem);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-    QPainterPath getElementPath(EntityItemNew::ELEMENT_RECT rect) const;
+    QPainterPath getElementPath(EntityItem::ELEMENT_RECT rect) const;
 
     QRectF getElementRect(ELEMENT_RECT rect) const;
 

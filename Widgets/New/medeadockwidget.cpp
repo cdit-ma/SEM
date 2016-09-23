@@ -45,6 +45,7 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
     // this adds a border to the dock widgets when they are floating
     borderFrame = new QFrame(this);
     borderFrame->setStyleSheet("border-radius: " + Theme::theme()->getSharpCornerRadius() + "; border: 1px outset gray;");
+    borderFrame->setAttribute(Qt::WA_TransparentForMouseEvents, true);
     borderFrame->hide();
     connect(this, &MedeaDockWidget::topLevelChanged, borderFrame, &QFrame::setVisible);
 }
@@ -351,7 +352,8 @@ bool MedeaDockWidget::eventFilter(QObject *object, QEvent *event)
     return QObject::eventFilter(object, event);
 }
 
-void MedeaDockWidget::resizeEvent(QResizeEvent *)
+void MedeaDockWidget::resizeEvent(QResizeEvent *event)
 {
     borderFrame->setFixedSize(this->size());
+    QDockWidget::resizeEvent(event);
 }

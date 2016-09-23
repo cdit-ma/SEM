@@ -1,11 +1,10 @@
-#ifndef ENTITYITEMNEW_H
-#define ENTITYITEMNEW_H
+#ifndef ENTITYITEM_H
+#define ENTITYITEM_H
 
 #include "../viewitem.h"
 #include <QGraphicsObject>
 #include <QGraphicsSceneHoverEvent>
 #include <QPen>
-
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 
@@ -45,9 +44,9 @@ struct TextMap{
 };
 
 //Forward class definition
-class NodeItemNew;
+class NodeItem;
 
-class EntityItemNew: public QGraphicsObject
+class EntityItem: public QGraphicsObject
 {
     Q_OBJECT
 
@@ -60,13 +59,13 @@ public:
     enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT, ER_CONNECT_ICON, ER_EDGE_KIND_ICON, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE};
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL, RS_DOUBLE};
 
-    EntityItemNew(ViewItem *viewItem, EntityItemNew* parentItem, KIND kind);
-    ~EntityItemNew();
+    EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind);
+    ~EntityItem();
     int type() const;
 
     RENDER_STATE getRenderState(qreal lod) const;
-    EntityItemNew* getParent() const;
-    NodeItemNew* getParentNodeItem() const;
+    EntityItem* getParent() const;
+    NodeItem* getParentNodeItem() const;
 
     void unsetParent();
     bool isTopLevelItem() const;
@@ -214,9 +213,9 @@ signals:
 
     void req_triggerAction(QString actionName);
 
-    void req_centerItem(EntityItemNew* entityItem);
-    void req_hovered(EntityItemNew*, bool);
-    void req_expanded(EntityItemNew*, bool);
+    void req_centerItem(EntityItem* entityItem);
+    void req_hovered(EntityItem*, bool);
+    void req_expanded(EntityItem*, bool);
 
     //Inform of changes
     void sizeChanged();
@@ -242,7 +241,7 @@ private:
     void connectViewItem(ViewItem* viewItem);
     void disconnectViewItem();
 
-    EntityItemNew* parentItem;
+    EntityItem* parentItem;
     ViewItem* viewItem;
     QStringList requiredDataKeys;
 
@@ -302,4 +301,4 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
-#endif // GRAPHMLITEM_H
+#endif // ENTITYITEM_H

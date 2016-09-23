@@ -1,12 +1,13 @@
-#include "nodeitemorderedcontainer.h"
+#include "basicnodeitem.h"
 #include <QDebug>
-ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
-    :ContainerElementNodeItem(viewItem, parentItem){
-
+BasicNodeItem::BasicNodeItem(NodeViewItem *viewItem, NodeItem *parentItem) :NodeItem(viewItem, parentItem, CONTAINER_ITEM)
+{
     setMoveEnabled(true);
     setExpandEnabled(true);
     setResizeEnabled(true);
     _isSortOrdered = false;
+
+    parentContainer = qobject_cast<BasicNodeItem*>(parentItem);
 
     headerMargin = QMarginsF(2,2,2,2);
     int s = getGridSize();
@@ -29,10 +30,10 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
 
     setPrimaryTextKey("label");
 
+    addRequiredData("sortOrder");
     addRequiredData("x");
     addRequiredData("y");
-    addRequiredData("width");
-    addRequiredData("height");
+
 
     if(viewItem->getNodeKind() == Node::NK_MEMBER){
         addRequiredData("key");
@@ -40,34 +41,81 @@ ContainerNodeItem::ContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parent
     reloadRequiredData();
 }
 
-bool ContainerNodeItem::isSortOrdered() const
+bool BasicNodeItem::isSortOrdered() const
 {
     return _isSortOrdered;
 }
 
-void ContainerNodeItem::setSortOrdered(bool ordered)
+void BasicNodeItem::setSortOrdered(bool ordered)
 {
     _isSortOrdered = ordered;
 }
 
-QRectF ContainerNodeItem::bodyRect() const
+QRectF BasicNodeItem::bodyRect() const
 {
     QRectF rect = currentRect();
     rect.setTop(rect.top() + getMinimumHeight());
     return rect;
 }
 
-QPointF ContainerNodeItem::getElementPosition(ContainerElementNodeItem *child)
+QPointF BasicNodeItem::getElementPosition(BasicNodeItem *child)
 {
     return child->getPos();
 }
 
-QPoint ContainerNodeItem::getElementIndex(ContainerElementNodeItem *child)
+QPoint BasicNodeItem::getElementIndex(BasicNodeItem *child)
 {
     return child->getIndexPosition();
 }
 
-QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
+BasicNodeItem *BasicNodeItem::getParentContainer() const
+{
+    return parentContainer;
+}
+
+QPoint BasicNodeItem::getIndexPosition() const
+{
+    return indexPosition;
+}
+
+void BasicNodeItem::setIndexPosition(QPoint point)
+{
+    indexPosition = point;
+}
+
+void BasicNodeItem::dataChanged(QString keyName, QVariant data)
+{
+    NodeItem::dataChanged(keyName, data);
+
+    if(keyName == "sortOrder" && getParentContainer() && getParentContainer()->isSortOrdered()){
+        QPoint index = getIndexPosition();
+        index.setY(getSortOrder());
+        setIndexPosition(index);
+        setPos(QPointF());
+    }
+}
+
+void BasicNodeItem::setPos(const QPointF &p)
+{
+    QPointF pos = p;
+    if(getParentContainer() && getParentContainer()->isSortOrdered()){
+        if(!isMoving()){
+            //Force it's position if it isn't moving!
+            pos = getParentContainer()->getElementPosition(this);
+        }
+    }
+    NodeItem::setPos(pos);
+}
+
+QPointF BasicNodeItem::getNearestGridPoint(QPointF newPos)
+{
+    if(getParentContainer() && getParentContainer()->isSortOrdered()){
+        return getParentContainer()->getElementPosition(this);
+    }
+    return NodeItem::getNearestGridPoint(newPos);
+}
+
+QRectF BasicNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 {
     switch(rect){
     case ER_EXPANDCONTRACT:
@@ -100,10 +148,10 @@ QRectF ContainerNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     default:
         break;
     }
-    return ContainerElementNodeItem::getElementRect(rect);
+    return NodeItem::getElementRect(rect);
 }
 
-void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void BasicNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     RENDER_STATE state = getRenderState(lod);
@@ -129,23 +177,23 @@ void ContainerNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
             painter->drawRect(bottomTextOutlineRect());
         }
     }
-    NodeItemNew::paint(painter, option, widget);
+    NodeItem::paint(painter, option, widget);
 }
 
-QRectF ContainerNodeItem::headerRect() const
+QRectF BasicNodeItem::headerRect() const
 {
     QRectF rect(getMarginOffset(),QSize(getWidth(), getMinimumHeight()));
     return rect;
 }
 
-QRectF ContainerNodeItem::connectRect() const
+QRectF BasicNodeItem::connectRect() const
 {
     QRectF r = headerRect();
     r.setLeft(r.right() - (smallIconSize().width() * 2));
     return r;
 }
 
-QRectF ContainerNodeItem::edgeKindRect() const
+QRectF BasicNodeItem::edgeKindRect() const
 {
     QRectF r2 = connectRect();
     QRectF r;
@@ -155,12 +203,12 @@ QRectF ContainerNodeItem::edgeKindRect() const
 
 }
 
-QRectF ContainerNodeItem::innerHeaderRect() const
+QRectF BasicNodeItem::innerHeaderRect() const
 {
     return headerRect().marginsRemoved(headerMargin);
 }
 
-QRectF ContainerNodeItem::headerTextRect() const
+QRectF BasicNodeItem::headerTextRect() const
 {
     QRectF rect(innerHeaderRect());
     if(isRightJustified()){
@@ -171,7 +219,7 @@ QRectF ContainerNodeItem::headerTextRect() const
     return rect;
 }
 
-QRectF ContainerNodeItem::iconRect() const
+QRectF BasicNodeItem::iconRect() const
 {
     QRectF rect = innerHeaderRect();
     rect.setWidth(rect.height());
@@ -183,7 +231,7 @@ QRectF ContainerNodeItem::iconRect() const
    return rect;
 }
 
-QRectF ContainerNodeItem::iconOverlayRect() const
+QRectF BasicNodeItem::iconOverlayRect() const
 {
     QRectF rect;
     rect.setSize(smallIconSize() * 2);
@@ -191,7 +239,7 @@ QRectF ContainerNodeItem::iconOverlayRect() const
     return rect;
 }
 
-QRectF ContainerNodeItem::topTextRect() const
+QRectF BasicNodeItem::topTextRect() const
 {
     QRectF rect(headerTextRect());
     if(gotSecondaryTextKey()){
@@ -201,7 +249,7 @@ QRectF ContainerNodeItem::topTextRect() const
     return rect;
 }
 
-QRectF ContainerNodeItem::bottomTextRect() const
+QRectF BasicNodeItem::bottomTextRect() const
 {
     QRectF rect;
     if(bottomTextOutlineRect().isValid()){
@@ -211,7 +259,7 @@ QRectF ContainerNodeItem::bottomTextRect() const
     return rect;
 }
 
-QRectF ContainerNodeItem::bottomTextOutlineRect() const
+QRectF BasicNodeItem::bottomTextOutlineRect() const
 {
     QRectF rect;
     if(bottomRect().isValid()){
@@ -222,7 +270,7 @@ QRectF ContainerNodeItem::bottomTextOutlineRect() const
 
 }
 
-QRectF ContainerNodeItem::bottomIconRect() const
+QRectF BasicNodeItem::bottomIconRect() const
 {
     QRectF rect;
     if(bottomRect().isValid()){
@@ -235,7 +283,7 @@ QRectF ContainerNodeItem::bottomIconRect() const
 
 }
 
-QRectF ContainerNodeItem::bottomRect() const
+QRectF BasicNodeItem::bottomRect() const
 {
     if(!gotSecondaryTextKey()){
         return QRectF();
@@ -245,7 +293,7 @@ QRectF ContainerNodeItem::bottomRect() const
     return rect;
 }
 
-QRectF ContainerNodeItem::deployedRect() const
+QRectF BasicNodeItem::deployedRect() const
 {
     QRectF rect;
     rect.setSize(smallIconSize());
@@ -253,7 +301,7 @@ QRectF ContainerNodeItem::deployedRect() const
     return rect;
 }
 
-QRectF ContainerNodeItem::lockedRect() const
+QRectF BasicNodeItem::lockedRect() const
 {
     QRectF rect;
     rect.setSize(smallIconSize());
@@ -261,7 +309,7 @@ QRectF ContainerNodeItem::lockedRect() const
     return rect;
 }
 
-QRectF ContainerNodeItem::qosRect() const
+QRectF BasicNodeItem::qosRect() const
 {
     QRectF rect;
     rect.setSize(smallIconSize());
@@ -270,7 +318,7 @@ QRectF ContainerNodeItem::qosRect() const
 
 }
 
-QRectF ContainerNodeItem::expandStateRect() const
+QRectF BasicNodeItem::expandStateRect() const
 {
     QRectF rect;
     rect.setSize(smallIconSize() / 2);

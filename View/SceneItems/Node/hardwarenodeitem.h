@@ -1,12 +1,12 @@
 #ifndef HARDWARENODEITEM_H
 #define HARDWARENODEITEM_H
 
-#include "../containerelementnodeitem.h"
+#include "stacknodeitem.h"
 
-class HardwareNodeItem : public ContainerElementNodeItem
+class HardwareNodeItem : public BasicNodeItem
 {
 public:
-    HardwareNodeItem(NodeViewItem* viewItem, NodeItemNew* parentItem);
+    HardwareNodeItem(NodeViewItem* viewItem, NodeItem* parentItem);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF getElementRect(ELEMENT_RECT rect) const;
 

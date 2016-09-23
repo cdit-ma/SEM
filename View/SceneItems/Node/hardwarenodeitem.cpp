@@ -1,6 +1,6 @@
 #include "hardwarenodeitem.h"
 #include <QDebug>
-HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem):ContainerElementNodeItem(viewItem, parentItem)
+HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItem *parentItem):BasicNodeItem(viewItem, parentItem)
 {
     setMoveEnabled(true);
     setExpandEnabled(false);
@@ -35,7 +35,7 @@ HardwareNodeItem::HardwareNodeItem(NodeViewItem *viewItem, NodeItemNew *parentIt
     reloadRequiredData();
 }
 
-QPainterPath HardwareNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
+QPainterPath HardwareNodeItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
 {
     switch(rect){
     case ER_SELECTION:{
@@ -50,7 +50,7 @@ QPainterPath HardwareNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect) 
     default:
         break;
     }
-    return NodeItemNew::getElementPath(rect);
+    return NodeItem::getElementPath(rect);
 }
 
 QRectF HardwareNodeItem::mainIconRect() const
@@ -100,7 +100,7 @@ void HardwareNodeItem::setupBrushes()
 {
     QColor bodyColor = QColor(233,234,237).lighter(110);
 
-    NodeItemNew* parentNodeItem = getParentNodeItem();
+    NodeItem* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
         bodyColor = parentNodeItem->getBaseBodyColor().darker(110);
     }
@@ -126,10 +126,10 @@ void HardwareNodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", "ip_address");
     }
     //Call Base class
-    NodeItemNew::paint(painter, option, widget);
+    NodeItem::paint(painter, option, widget);
 }
 
-QRectF HardwareNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
+QRectF HardwareNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 {
     switch(rect){
     case ER_MAIN_ICON:
@@ -141,7 +141,7 @@ QRectF HardwareNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
     case ER_SECONDARY_TEXT:
         return ipTextRect();
     default:
-        return NodeItemNew::getElementRect(rect);
+        return NodeItem::getElementRect(rect);
     }
 
 }

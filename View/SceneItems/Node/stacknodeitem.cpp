@@ -1,8 +1,10 @@
-#include "nodeitemstackcontainer.h"
+#include "stacknodeitem.h"
+
 #include <QDebug>
 #include <cmath>
-StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem):
-    ContainerNodeItem(viewItem, parentItem)
+
+StackNodeItem::StackNodeItem(NodeViewItem *viewItem, NodeItem *parentItem):
+    BasicNodeItem(viewItem, parentItem)
 {
     setSortOrdered(true);
     setResizeEnabled(false);
@@ -13,13 +15,13 @@ StackContainerNodeItem::StackContainerNodeItem(NodeViewItem *viewItem, NodeItemN
     reloadRequiredData();
 }
 
-QPointF StackContainerNodeItem::getStemAnchorPoint() const
+QPointF StackNodeItem::getStemAnchorPoint() const
 {
     //QPointF offset;
     return gridRect().topLeft();
 }
 
-QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *child)
+QPointF StackNodeItem::getElementPosition(BasicNodeItem *child)
 {
     int childPos = child->getSortOrder();
     int gridSize = getGridSize();
@@ -37,7 +39,7 @@ QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *chi
     }
 
     //Work out the exact position given the things above us.
-    foreach(NodeItemNew* c, getChildNodes()){
+    foreach(NodeItem* c, getChildNodes()){
         if(c->getSortOrder() < childPos){
             //Add a grid space gap
             itemOffset.ry() += c->currentRect().height() + gridSize;
@@ -47,14 +49,14 @@ QPointF StackContainerNodeItem::getElementPosition(ContainerElementNodeItem *chi
     return itemOffset;// + child->getMarginOffset();
 }
 
-void StackContainerNodeItem::childPosChanged()
+void StackNodeItem::childPosChanged()
 {
-    QList<NodeItemNew*> children = getChildNodes();
-    foreach(NodeItemNew* child, children){
+    QList<NodeItem*> children = getChildNodes();
+    foreach(NodeItem* child, children){
         if(!child->isMoving()){
             child->setPos(QPointF());
         }
     }
-    NodeItemNew::childPosChanged();
+    NodeItem::childPosChanged();
     update();
 }

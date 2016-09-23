@@ -1,21 +1,18 @@
-#ifndef NODEITEMNEW_H
-#define NODEITEMNEW_H
+#ifndef NODEITEM_H
+#define NODEITEM_H
 
-#include "entityitemnew.h"
-#include "../nodeviewitem.h"
-#include "edgeitemnew.h"
-#include <QRectF>
-#include <QMarginsF>
-#include <QPainter>
-#include <QPointF>
-class NodeItemNew: public EntityItemNew
+#include "../entityitem.h"
+#include "../../nodeviewitem.h"
+#include "../Edge/edgeitem.h"
+
+class NodeItem: public EntityItem
 {
     Q_OBJECT
 public:
-    enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM, HARDWARE_ITEM, CONTAINER_ELEMENT_ITEM};
+    enum KIND{DEFAULT_ITEM, MODEL_ITEM, ASPECT_ITEM, PARAMETER_ITEM, QOS_ITEM, HARDWARE_ITEM, CONTAINER_ITEM};
     enum NODE_READ_STATE{NORMAL, READ_ONLY_INSTANCE, READ_ONLY_DEFINITION};
-    NodeItemNew(NodeViewItem *viewItem, NodeItemNew* parentItem, KIND kind);
-    ~NodeItemNew();
+    NodeItem(NodeViewItem *viewItem, NodeItem* parentItem, KIND kind);
+    ~NodeItem();
 
     KIND getNodeItemKind();
     NodeViewItem* getNodeViewItem() const;
@@ -28,24 +25,24 @@ public:
     virtual void setRightJustified(bool isRight);
     bool isRightJustified() const;
 
-    virtual void addChildNode(NodeItemNew* nodeItem);
+    virtual void addChildNode(NodeItem* nodeItem);
 
 
 
-    void removeChildNode(NodeItemNew *nodeItem);
+    void removeChildNode(NodeItem *nodeItem);
 
     int getSortOrder() const;
 
     bool hasChildNodes() const;
-    QList<NodeItemNew*> getChildNodes() const;
-    QList<NodeItemNew*> getOrderedChildNodes() const;
-    QList<EntityItemNew*> getChildEntities() const;
+    QList<NodeItem*> getChildNodes() const;
+    QList<NodeItem*> getOrderedChildNodes() const;
+    QList<EntityItem*> getChildEntities() const;
 
     QPainterPath getChildNodePath();
 
-    void addChildEdge(EdgeItemNew* edgeItem);
+    void addChildEdge(EdgeItem* edgeItem);
     void removeChildEdge(int ID);
-    QList<EdgeItemNew*> getChildEdges() const;
+    QList<EdgeItem*> getChildEdges() const;
 
     QRectF getNearestGridOutline();
     QPointF getNearestGridPointToCenter();
@@ -59,7 +56,7 @@ public:
     void setResizeEnabled(bool enabled);
     bool isResizeEnabled();
 
-    void setChildMoving(EntityItemNew* child, bool moving);
+    void setChildMoving(EntityItem* child, bool moving);
 
     void setMoveStarted();
     bool setMoveFinished();
@@ -153,10 +150,10 @@ public:
     int getVertexAngle(RECT_VERTEX vert) const;
 signals:
     //Request changes
-    void req_connectMode(NodeItemNew* item);
+    void req_connectMode(NodeItem* item);
 
     void req_StartResize();
-    void req_Resize(NodeItemNew* item, QSizeF delta, RECT_VERTEX vert);
+    void req_Resize(NodeItem* item, QSizeF delta, RECT_VERTEX vert);
     void req_FinishResize();
 
     //Inform of Changes
@@ -220,8 +217,8 @@ private:
     QPointF previousResizePoint;
     VIEW_ASPECT aspect;
 
-    QHash<int, NodeItemNew*> childNodes;
-    QHash<int, EdgeItemNew*> childEdges;
+    QHash<int, NodeItem*> childNodes;
+    QHash<int, EdgeItem*> childEdges;
 
     QPainterPath gridLines;
 
@@ -267,4 +264,4 @@ public:
 public:
     QPointF getTopLeftOffset() const;
 };
-#endif
+#endif //NODEITEM_H

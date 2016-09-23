@@ -1,7 +1,7 @@
 #include "managementcomponentnodeitem.h"
 
-ManagementComponentNodeItem::ManagementComponentNodeItem(NodeViewItem *viewItem, NodeItemNew *parentItem)
-    :NodeItemNew(viewItem, parentItem, NodeItemNew::HARDWARE_ITEM)
+ManagementComponentNodeItem::ManagementComponentNodeItem(NodeViewItem *viewItem, NodeItem *parentItem)
+    :NodeItem(viewItem, parentItem, NodeItem::HARDWARE_ITEM)
 {
     setMoveEnabled(true);
     setExpandEnabled(false);
@@ -52,10 +52,10 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
         painter->restore();
     }
 
-    NodeItemNew::paint(painter, option, widget);
+    NodeItem::paint(painter, option, widget);
 }
 
-QPainterPath ManagementComponentNodeItem::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
+QPainterPath ManagementComponentNodeItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
 {
     switch(rect){
     case ER_SELECTION:{
@@ -70,10 +70,10 @@ QPainterPath ManagementComponentNodeItem::getElementPath(EntityItemNew::ELEMENT_
         break;
     }
 
-    return NodeItemNew::getElementPath(rect);
+    return NodeItem::getElementPath(rect);
 }
 
-QRectF ManagementComponentNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
+QRectF ManagementComponentNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 {
    switch(rect){
    case ER_MAIN_ICON:
@@ -87,7 +87,7 @@ QRectF ManagementComponentNodeItem::getElementRect(EntityItemNew::ELEMENT_RECT r
    case ER_PRIMARY_TEXT:
        return labelRect();
    default:
-       return NodeItemNew::getElementRect(rect);
+       return NodeItem::getElementRect(rect);
    }
 }
 

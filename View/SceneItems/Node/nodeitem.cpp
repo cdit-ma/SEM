@@ -1,15 +1,16 @@
-#include "nodeitemnew.h"
-#include "entityitemnew.h"
+#include "nodeitem.h"
 
-#include <QDebug>
-#include <QStyleOptionGraphicsItem>
 #include <math.h>
-#include "../theme.h"
+#include <QStyleOptionGraphicsItem>
+
+#include "../entityitem.h"
+#include "../../theme.h"
+
 #define RESIZE_RECT_SIZE 5
 
 
 
-NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeItemNew::KIND kind):EntityItemNew(viewItem, parentItem, EntityItemNew::NODE)
+NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND kind):EntityItem(viewItem, parentItem, EntityItem::NODE)
 {
     minimumHeight = 0;
     minimumWidth = 0;
@@ -28,7 +29,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     aspect = VA_NONE;
     selectedResizeVertex = RV_NONE;
     hoveredResizeVertex = RV_NONE;
-    readState = NodeItemNew::NORMAL;
+    readState = NodeItem::NORMAL;
 
     visualEdgeKind = Edge::EC_NONE;
 
@@ -50,8 +51,8 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
 
 
     if(nodeViewItem){
-        connect(nodeViewItem, &NodeViewItem::edgeAdded, this, &NodeItemNew::edgeAdded);
-        connect(nodeViewItem, &NodeViewItem::edgeRemoved, this, &NodeItemNew::edgeRemoved);
+        connect(nodeViewItem, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
+        connect(nodeViewItem, &NodeViewItem::edgeRemoved, this, &NodeItem::edgeRemoved);
     }
 
 
@@ -69,7 +70,7 @@ NodeItemNew::NodeItemNew(NodeViewItem *viewItem, NodeItemNew *parentItem, NodeIt
     gridLinePen.setWidthF(.5);
 }
 
-NodeItemNew::~NodeItemNew()
+NodeItem::~NodeItem()
 {
     //Unset
     if(getParentNodeItem()){
@@ -79,7 +80,7 @@ NodeItemNew::~NodeItemNew()
     //remove children nodes.
     while(!childNodes.isEmpty()){
         int key = childNodes.keys().takeFirst();
-        NodeItemNew* child = childNodes[key];
+        NodeItem* child = childNodes[key];
         removeChildNode(child);
     }
 
@@ -93,42 +94,42 @@ NodeItemNew::~NodeItemNew()
 
 
 
-QRectF NodeItemNew::viewRect() const
+QRectF NodeItem::viewRect() const
 {
-    return EntityItemNew::viewRect();
+    return EntityItem::viewRect();
 }
 
-NodeItemNew::KIND NodeItemNew::getNodeItemKind()
+NodeItem::KIND NodeItem::getNodeItemKind()
 {
     return nodeItemKind;
 }
 
-NodeViewItem *NodeItemNew::getNodeViewItem() const
+NodeViewItem *NodeItem::getNodeViewItem() const
 {
     return nodeViewItem;
 }
 
-Node::NODE_KIND NodeItemNew::getNodeKind() const
+Node::NODE_KIND NodeItem::getNodeKind() const
 {
     return nodeViewItem->getNodeKind();
 }
 
-NodeItemNew::NODE_READ_STATE NodeItemNew::getReadState() const
+NodeItem::NODE_READ_STATE NodeItem::getReadState() const
 {
     return readState;
 }
 
-void NodeItemNew::setRightJustified(bool isRight)
+void NodeItem::setRightJustified(bool isRight)
 {
     _rightJustified = isRight;
 }
 
-bool NodeItemNew::isRightJustified() const
+bool NodeItem::isRightJustified() const
 {
     return _rightJustified;
 }
 
-void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
+void NodeItem::addChildNode(NodeItem *nodeItem)
 {
     int ID = nodeItem->getID();
     //If we have added a child, and there is only one. emit a signal
@@ -150,7 +151,7 @@ void NodeItemNew::addChildNode(NodeItemNew *nodeItem)
 
 
 
-void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
+void NodeItem::removeChildNode(NodeItem* nodeItem)
 {
     //If we have removed a child, and there is no children left. emit a signal
     if(childNodes.remove(nodeItem->getID()) > 0){
@@ -163,7 +164,7 @@ void NodeItemNew::removeChildNode(NodeItemNew* nodeItem)
     }
 }
 
-int NodeItemNew::getSortOrder() const
+int NodeItem::getSortOrder() const
 {
     if(hasData("sortOrder")){
         return getData("sortOrder").toInt();
@@ -171,21 +172,21 @@ int NodeItemNew::getSortOrder() const
     return -1;
 }
 
-bool NodeItemNew::hasChildNodes() const
+bool NodeItem::hasChildNodes() const
 {
     return !childNodes.isEmpty();
 }
 
-QList<NodeItemNew *> NodeItemNew::getChildNodes() const
+QList<NodeItem *> NodeItem::getChildNodes() const
 {
     return childNodes.values();
 }
 
-QList<NodeItemNew *> NodeItemNew::getOrderedChildNodes() const
+QList<NodeItem *> NodeItem::getOrderedChildNodes() const
 {
-    QMap<int, NodeItemNew*> items;
+    QMap<int, NodeItem*> items;
 
-    foreach(NodeItemNew* child, getChildNodes()){
+    foreach(NodeItem* child, getChildNodes()){
         int position = items.size();
         if(child->hasData("sortOrder")){
             position = child->getData("sortOrder").toInt();
@@ -195,20 +196,20 @@ QList<NodeItemNew *> NodeItemNew::getOrderedChildNodes() const
     return items.values();
 }
 
-QList<EntityItemNew *> NodeItemNew::getChildEntities() const
+QList<EntityItem *> NodeItem::getChildEntities() const
 {
-    QList<EntityItemNew*> children;
-    foreach(NodeItemNew* node, getChildNodes()){
+    QList<EntityItem*> children;
+    foreach(NodeItem* node, getChildNodes()){
         children.append(node);
     }
-    foreach(EdgeItemNew* edge, getChildEdges()){
+    foreach(EdgeItem* edge, getChildEdges()){
         children.append(edge);
     }
     return children;
 }
 
 
-void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
+void NodeItem::addChildEdge(EdgeItem *edgeItem)
 {
     int ID = edgeItem->getID();
     if(!childEdges.contains(ID)){
@@ -222,23 +223,23 @@ void NodeItemNew::addChildEdge(EdgeItemNew *edgeItem)
     }
 }
 
-void NodeItemNew::removeChildEdge(int ID)
+void NodeItem::removeChildEdge(int ID)
 {
     if(childEdges.contains(ID)){
-        EdgeItemNew* item = childEdges[ID];
+        EdgeItem* item = childEdges[ID];
         item->unsetParent();
         childEdges.remove(ID);
     }
 }
 
-QList<EdgeItemNew *> NodeItemNew::getChildEdges() const
+QList<EdgeItem *> NodeItem::getChildEdges() const
 {
     return childEdges.values();
 }
 
 
 
-void NodeItemNew::setGridEnabled(bool enabled)
+void NodeItem::setGridEnabled(bool enabled)
 {
     if(gridEnabled != enabled){
         gridEnabled = enabled;
@@ -248,12 +249,12 @@ void NodeItemNew::setGridEnabled(bool enabled)
     }
 }
 
-bool NodeItemNew::isGridEnabled() const
+bool NodeItem::isGridEnabled() const
 {
     return gridEnabled;
 }
 
-void NodeItemNew::setGridVisible(bool visible)
+void NodeItem::setGridVisible(bool visible)
 {
     if(gridVisible != visible){
         gridVisible = visible;
@@ -261,63 +262,63 @@ void NodeItemNew::setGridVisible(bool visible)
     }
 }
 
-bool NodeItemNew::isGridVisible() const
+bool NodeItem::isGridVisible() const
 {
     return isGridEnabled() && gridVisible;
 }
 
-void NodeItemNew::setResizeEnabled(bool enabled)
+void NodeItem::setResizeEnabled(bool enabled)
 {
     if(resizeEnabled != enabled){
         resizeEnabled = enabled;
     }
 }
 
-bool NodeItemNew::isResizeEnabled()
+bool NodeItem::isResizeEnabled()
 {
     return resizeEnabled;
 }
 
-void NodeItemNew::setChildMoving(EntityItemNew *child, bool moving)
+void NodeItem::setChildMoving(EntityItem *child, bool moving)
 {
     if(child){
         setGridVisible(moving);
     }
 }
 
-void NodeItemNew::setMoveStarted()
+void NodeItem::setMoveStarted()
 {
-    NodeItemNew* parentNodeItem = getParentNodeItem();
+    NodeItem* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
         parentNodeItem->setChildMoving(this, true);
     }
-    EntityItemNew::setMoveStarted();
+    EntityItem::setMoveStarted();
 }
 
-bool NodeItemNew::setMoveFinished()
+bool NodeItem::setMoveFinished()
 {
-    NodeItemNew* parentNodeItem = getParentNodeItem();
+    NodeItem* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
         parentNodeItem->setChildMoving(this, false);
     }
     setPos(getNearestGridPoint());
-    return EntityItemNew::setMoveFinished();
+    return EntityItem::setMoveFinished();
 }
 
-void NodeItemNew::setResizeStarted()
+void NodeItem::setResizeStarted()
 {
     sizePreResize = getExpandedSize();
     _isResizing = true;
 
-    NodeItemNew* parentNodeItem = getParentNodeItem();
+    NodeItem* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
         parentNodeItem->setChildMoving(this, true);
     }
 }
 
-bool NodeItemNew::setResizeFinished()
+bool NodeItem::setResizeFinished()
 {
-    NodeItemNew* parentNodeItem = getParentNodeItem();
+    NodeItem* parentNodeItem = getParentNodeItem();
     if(parentNodeItem){
         parentNodeItem->setChildMoving(this, false);
     }
@@ -327,7 +328,7 @@ bool NodeItemNew::setResizeFinished()
 
 
 
-QRectF NodeItemNew::boundingRect() const
+QRectF NodeItem::boundingRect() const
 {
     QRectF rect;
     rect.setWidth(margin.left() + margin.right() + getWidth());
@@ -336,50 +337,50 @@ QRectF NodeItemNew::boundingRect() const
 }
 
 
-QRectF NodeItemNew::contractedRect() const
+QRectF NodeItem::contractedRect() const
 {
     return QRectF(boundingRect().topLeft() + getMarginOffset(), QSizeF(getMinimumWidth(), getMinimumHeight()));
 }
 
-QRectF NodeItemNew::expandedRect() const
+QRectF NodeItem::expandedRect() const
 {
     return QRectF(boundingRect().topLeft() + getMarginOffset(), QSizeF(getExpandedWidth(), getExpandedHeight()));
 }
 
-QRectF NodeItemNew::currentRect() const
+QRectF NodeItem::currentRect() const
 {
 
     return QRectF(boundingRect().topLeft() + getMarginOffset(), QSizeF(getWidth(), getHeight()));
 }
 
 
-QRectF NodeItemNew::gridRect() const
+QRectF NodeItem::gridRect() const
 {
     return bodyRect().marginsRemoved(getBodyPadding());
 }
 
-QRectF NodeItemNew::expandedGridRect() const
+QRectF NodeItem::expandedGridRect() const
 {
     return expandedRect().marginsRemoved(getBodyPadding());
 }
 
-QRectF NodeItemNew::bodyRect() const
+QRectF NodeItem::bodyRect() const
 {
     return currentRect();
 }
 
-QRectF NodeItemNew::headerRect() const
+QRectF NodeItem::headerRect() const
 {
     return currentRect();
 }
 
-QRectF NodeItemNew::childrenRect() const
+QRectF NodeItem::childrenRect() const
 {
     return _childRect;
 
 }
 
-QSizeF NodeItemNew::getSize() const
+QSizeF NodeItem::getSize() const
 {
     QSizeF size;
     size.setWidth(getWidth());
@@ -387,12 +388,12 @@ QSizeF NodeItemNew::getSize() const
     return size;
 }
 
-void NodeItemNew::adjustExpandedSize(QSizeF delta)
+void NodeItem::adjustExpandedSize(QSizeF delta)
 {
     setExpandedSize(getExpandedSize() + delta);
 }
 
-void NodeItemNew::setMinimumWidth(qreal width)
+void NodeItem::setMinimumWidth(qreal width)
 {
     if(minimumWidth != width){
         minimumWidth = width;
@@ -404,7 +405,7 @@ void NodeItemNew::setMinimumWidth(qreal width)
     }
 }
 
-void NodeItemNew::setMinimumHeight(qreal height)
+void NodeItem::setMinimumHeight(qreal height)
 {
     if(minimumHeight != height){
         minimumHeight = height;
@@ -416,7 +417,7 @@ void NodeItemNew::setMinimumHeight(qreal height)
     }
 }
 
-void NodeItemNew::setExpandedWidth(qreal width)
+void NodeItem::setExpandedWidth(qreal width)
 {
     //Limit by the size of all contained children.
     qreal minWidth = childrenRect().right() - getMargin().left();// - getBodyPadding().left();// getBodyPadding().right();
@@ -444,7 +445,7 @@ void NodeItemNew::setExpandedWidth(qreal width)
     }
 }
 
-void NodeItemNew::setExpandedHeight(qreal height)
+void NodeItem::setExpandedHeight(qreal height)
 {
     //Limit by the size of all contained children.
     qreal minHeight = childrenRect().bottom() - getMargin().top();
@@ -469,7 +470,7 @@ void NodeItemNew::setExpandedHeight(qreal height)
     }
 }
 
-void NodeItemNew::setExpandedSize(QSizeF size)
+void NodeItem::setExpandedSize(QSizeF size)
 {
 
     setExpandedWidth(size.width());
@@ -477,32 +478,32 @@ void NodeItemNew::setExpandedSize(QSizeF size)
 }
 
 
-qreal NodeItemNew::getExpandedWidth() const
+qreal NodeItem::getExpandedWidth() const
 {
     return expandedWidth;
 }
 
-qreal NodeItemNew::getExpandedHeight() const
+qreal NodeItem::getExpandedHeight() const
 {
     return expandedHeight;
 }
 
-QSizeF NodeItemNew::getExpandedSize() const
+QSizeF NodeItem::getExpandedSize() const
 {
     return QSizeF(expandedWidth, expandedHeight);
 }
 
-qreal NodeItemNew::getMinimumWidth() const
+qreal NodeItem::getMinimumWidth() const
 {
     return minimumWidth;
 }
 
-qreal NodeItemNew::getMinimumHeight() const
+qreal NodeItem::getMinimumHeight() const
 {
     return minimumHeight;
 }
 
-void NodeItemNew::setMargin(QMarginsF margin)
+void NodeItem::setMargin(QMarginsF margin)
 {
     if(this->margin != margin){
         prepareGeometryChange();
@@ -511,7 +512,7 @@ void NodeItemNew::setMargin(QMarginsF margin)
     }
 }
 
-void NodeItemNew::setBodyPadding(QMarginsF padding)
+void NodeItem::setBodyPadding(QMarginsF padding)
 {
     if(this->bodyPadding != padding){
         this->bodyPadding = padding;
@@ -519,22 +520,22 @@ void NodeItemNew::setBodyPadding(QMarginsF padding)
     }
 }
 
-QPointF NodeItemNew::getMarginOffset() const
+QPointF NodeItem::getMarginOffset() const
 {
     return QPointF(margin.left(), margin.top());
 }
 
-QPointF NodeItemNew::getBottomRightMarginOffset() const
+QPointF NodeItem::getBottomRightMarginOffset() const
 {
     return QPointF(margin.right(), margin.bottom());
 }
 
-QPointF NodeItemNew::getTopLeftSceneCoordinate() const
+QPointF NodeItem::getTopLeftSceneCoordinate() const
 {
     return sceneBoundingRect().topLeft();
 }
 
-qreal NodeItemNew::getWidth() const
+qreal NodeItem::getWidth() const
 {
     if(isExpanded()){
         return getExpandedWidth();
@@ -543,7 +544,7 @@ qreal NodeItemNew::getWidth() const
     }
 }
 
-qreal NodeItemNew::getHeight() const
+qreal NodeItem::getHeight() const
 {
     if(isExpanded()){
         return getExpandedHeight();
@@ -554,29 +555,29 @@ qreal NodeItemNew::getHeight() const
 
 
 
-QPointF NodeItemNew::getCenterOffset() const
+QPointF NodeItem::getCenterOffset() const
 {
     return contractedRect().center();
 }
 
-QPointF NodeItemNew::getSceneEdgeTermination(bool left) const
+QPointF NodeItem::getSceneEdgeTermination(bool left) const
 {
     qreal y = contractedRect().center().y();
     qreal x = left ? currentRect().left() : currentRect().right();
     return mapToScene(x,y);
 }
 
-void NodeItemNew::setAspect(VIEW_ASPECT aspect)
+void NodeItem::setAspect(VIEW_ASPECT aspect)
 {
     this->aspect = aspect;
 }
 
-VIEW_ASPECT NodeItemNew::getAspect()
+VIEW_ASPECT NodeItem::getAspect()
 {
     return aspect;
 }
 
-void NodeItemNew::setManuallyAdjusted(RECT_VERTEX corner)
+void NodeItem::setManuallyAdjusted(RECT_VERTEX corner)
 {
     bool adjustingWidth = false;
     bool adjustingHeight = false;
@@ -600,25 +601,25 @@ void NodeItemNew::setManuallyAdjusted(RECT_VERTEX corner)
     }
 }
 
-QMarginsF NodeItemNew::getMargin() const
+QMarginsF NodeItem::getMargin() const
 {
     return margin;
 }
 
-QMarginsF NodeItemNew::getBodyPadding() const
+QMarginsF NodeItem::getBodyPadding() const
 {
     return bodyPadding;
 }
 
-void NodeItemNew::setExpanded(bool expand)
+void NodeItem::setExpanded(bool expand)
 {
     if(isExpanded() != expand){
         //Call the base class
-        EntityItemNew::setExpanded(expand);
+        EntityItem::setExpanded(expand);
 
         prepareGeometryChange();
         //Hide/Show Children
-        foreach(EntityItemNew* child, getChildEntities()){
+        foreach(EntityItem* child, getChildEntities()){
             child->setVisible(isExpanded());
         }
 
@@ -629,7 +630,7 @@ void NodeItemNew::setExpanded(bool expand)
 
 
 
-void NodeItemNew::setPrimaryTextKey(QString key)
+void NodeItem::setPrimaryTextKey(QString key)
 {
     if(primaryTextKey != key){
         primaryTextKey = key;
@@ -637,7 +638,7 @@ void NodeItemNew::setPrimaryTextKey(QString key)
     }
 }
 
-void NodeItemNew::setSecondaryTextKey(QString key)
+void NodeItem::setSecondaryTextKey(QString key)
 {
     if(secondaryTextKey != key){
         secondaryTextKey = key;
@@ -645,39 +646,39 @@ void NodeItemNew::setSecondaryTextKey(QString key)
     }
 }
 
-void NodeItemNew::setVisualEdgeKind(Edge::EDGE_KIND kind)
+void NodeItem::setVisualEdgeKind(Edge::EDGE_KIND kind)
 {
     visualEdgeKind = kind;
     visualEdgeIcon = Edge::getKind(kind);
     update();
 }
 
-Edge::EDGE_KIND NodeItemNew::getVisualEdgeKind() const
+Edge::EDGE_KIND NodeItem::getVisualEdgeKind() const
 {
     return visualEdgeKind;
 }
 
-QString NodeItemNew::getPrimaryTextKey() const
+QString NodeItem::getPrimaryTextKey() const
 {
     return primaryTextKey;
 }
 
-QString NodeItemNew::getSecondaryTextKey() const
+QString NodeItem::getSecondaryTextKey() const
 {
     return secondaryTextKey;
 }
 
-bool NodeItemNew::gotPrimaryTextKey() const
+bool NodeItem::gotPrimaryTextKey() const
 {
     return !primaryTextKey.isEmpty();
 }
 
-bool NodeItemNew::gotSecondaryTextKey() const
+bool NodeItem::gotSecondaryTextKey() const
 {
     return !secondaryTextKey.isEmpty();
 }
 
-QString NodeItemNew::getPrimaryText() const
+QString NodeItem::getPrimaryText() const
 {
     if(!primaryTextKey.isEmpty()){
         return getData(primaryTextKey).toString();
@@ -685,7 +686,7 @@ QString NodeItemNew::getPrimaryText() const
     return QString();
 }
 
-QString NodeItemNew::getSecondaryText() const
+QString NodeItem::getSecondaryText() const
 {
     if(!secondaryTextKey.isEmpty()){
         return getData(secondaryTextKey).toString();
@@ -694,7 +695,7 @@ QString NodeItemNew::getSecondaryText() const
 }
 
 
-void NodeItemNew::dataChanged(QString keyName, QVariant data)
+void NodeItem::dataChanged(QString keyName, QVariant data)
 {
     if(getRequiredDataKeys().contains(keyName)){
         if(keyName == "width" || keyName == "height"){
@@ -726,14 +727,14 @@ void NodeItemNew::dataChanged(QString keyName, QVariant data)
             update();
         }
     }
-    EntityItemNew::dataChanged(keyName, data);
+    EntityItem::dataChanged(keyName, data);
 }
 
-void NodeItemNew::propertyChanged(QString propertyName, QVariant data)
+void NodeItem::propertyChanged(QString propertyName, QVariant data)
 {
 }
 
-void NodeItemNew::dataRemoved(QString keyName)
+void NodeItem::dataRemoved(QString keyName)
 {
     if(keyName == "readOnlyDefinition" || keyName == "snippetID"){
         updateReadState();
@@ -742,11 +743,11 @@ void NodeItemNew::dataRemoved(QString keyName)
     }
 }
 
-void NodeItemNew::childPosChanged()
+void NodeItem::childPosChanged()
 {
     //Update the child rect.
     QRectF rect;
-    foreach(EntityItemNew* child, getChildEntities()){
+    foreach(EntityItem* child, getChildEntities()){
         if(child->isNodeItem()){
             rect = rect.united(child->translatedBoundingRect());
         }else if(child->isEdgeItem()){
@@ -757,7 +758,7 @@ void NodeItemNew::childPosChanged()
     resizeToChildren();
 }
 
-void NodeItemNew::edgeAdded(Edge::EDGE_KIND kind)
+void NodeItem::edgeAdded(Edge::EDGE_KIND kind)
 {
     switch(kind){
         case Edge::EC_DEPLOYMENT:
@@ -769,7 +770,7 @@ void NodeItemNew::edgeAdded(Edge::EDGE_KIND kind)
     }
 }
 
-void NodeItemNew::edgeRemoved(Edge::EDGE_KIND kind)
+void NodeItem::edgeRemoved(Edge::EDGE_KIND kind)
 {
     switch(kind){
         case Edge::EC_DEPLOYMENT:
@@ -782,7 +783,7 @@ void NodeItemNew::edgeRemoved(Edge::EDGE_KIND kind)
 
 }
 
-QSizeF NodeItemNew::getGridAlignedSize(QSizeF size) const
+QSizeF NodeItem::getGridAlignedSize(QSizeF size) const
 {
     if(size.isEmpty()){
         size = getExpandedSize();
@@ -803,7 +804,7 @@ QSizeF NodeItemNew::getGridAlignedSize(QSizeF size) const
     return size;
 }
 
-void NodeItemNew::updateReadState()
+void NodeItem::updateReadState()
 {
     bool readOnlyDef = getData("readOnlyDefinition").toBool();
 
@@ -822,25 +823,25 @@ void NodeItemNew::updateReadState()
     }
 }
 
-void NodeItemNew::setUpColors()
+void NodeItem::setUpColors()
 {
     qreal blendFactor = 0.6;
     QColor blue = QColor(100,149,237);
     QColor brown = QColor(222,184,135);
-    QColor originalColor = EntityItemNew::getBodyColor();
+    QColor originalColor = EntityItem::getBodyColor();
 
 
     readOnlyDefinitionColor = Theme::blendColors(originalColor, brown, blendFactor);
     readOnlyInstanceColor = Theme::blendColors(originalColor, blue, blendFactor);
 }
 
-void NodeItemNew::resizeToChildren()
+void NodeItem::resizeToChildren()
 {
     setExpandedWidth(-1);
     setExpandedHeight(-1);
 }
 
-int NodeItemNew::getVertexAngle(RECT_VERTEX vert) const
+int NodeItem::getVertexAngle(RECT_VERTEX vert) const
 {
     //Bottom Left is 360 and 0, going clockwise
     //Bottom left is technically 225 degrees from 0
@@ -849,7 +850,7 @@ int NodeItemNew::getVertexAngle(RECT_VERTEX vert) const
     return (initial + (vert * interval)) % 360;
 }
 
-int NodeItemNew::getResizeArrowRotation(RECT_VERTEX vert) const
+int NodeItem::getResizeArrowRotation(RECT_VERTEX vert) const
 {
     //Image starts Facing Bottom. which is 180
     int imageOffset = 180;
@@ -858,17 +859,17 @@ int NodeItemNew::getResizeArrowRotation(RECT_VERTEX vert) const
 
 
 
-QPainterPath NodeItemNew::getChildNodePath()
+QPainterPath NodeItem::getChildNodePath()
 {
     QPainterPath path;
-    foreach(NodeItemNew* child, childNodes.values()){
+    foreach(NodeItem* child, childNodes.values()){
         path.addRect(child->translatedBoundingRect());
     }
     return path;
 }
 
 
-void NodeItemNew::updateGridLines()
+void NodeItem::updateGridLines()
 {
     if(isGridEnabled()){
         QRectF grid = gridRect();
@@ -915,7 +916,7 @@ void NodeItemNew::updateGridLines()
     }
 }
 
-void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
 
@@ -1003,7 +1004,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
         painter->restore();
     }
 
-    EntityItemNew::paint(painter, option, widget);
+    EntityItem::paint(painter, option, widget);
 
     if(state > RS_BLOCK){
         if(isReadOnly()){
@@ -1021,7 +1022,7 @@ void NodeItemNew::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
 }
 
-QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
+QRectF NodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 {
     switch(rect){
         case ER_MOVE:{
@@ -1031,15 +1032,15 @@ QRectF NodeItemNew::getElementRect(EntityItemNew::ELEMENT_RECT rect) const
             break;
     }
     //Just call base class.
-    return EntityItemNew::getElementRect(rect);
+    return EntityItem::getElementRect(rect);
 }
 
-QPainterPath NodeItemNew::getElementPath(EntityItemNew::ELEMENT_RECT rect) const
+QPainterPath NodeItem::getElementPath(EntityItem::ELEMENT_RECT rect) const
 {
-    return EntityItemNew::getElementPath(rect);
+    return EntityItem::getElementPath(rect);
 }
 
-QRectF NodeItemNew::getResizeRect(RECT_VERTEX vert) const
+QRectF NodeItem::getResizeRect(RECT_VERTEX vert) const
 {
     QRectF rect;
 
@@ -1091,14 +1092,14 @@ QRectF NodeItemNew::getResizeRect(RECT_VERTEX vert) const
     return rect;
 }
 
-QRectF NodeItemNew::getResizeArrowRect(RECT_VERTEX vert) const
+QRectF NodeItem::getResizeArrowRect(RECT_VERTEX vert) const
 {
     QRectF rect(0, 0, 2 * RESIZE_RECT_SIZE, 2 * RESIZE_RECT_SIZE);
     rect.moveCenter(getResizeRect(vert).center());
     return rect;
 }
 
-void NodeItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     bool caughtResize = false;
 
@@ -1131,22 +1132,22 @@ void NodeItemNew::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 
     if(!caughtResize){
-        EntityItemNew::mousePressEvent(event);
+        EntityItem::mousePressEvent(event);
     }
 }
 
-void NodeItemNew::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
    if(selectedResizeVertex != RV_NONE){
        emit req_FinishResize();
        selectedResizeVertex = RV_NONE;
        update();
    }else{
-       EntityItemNew::mouseReleaseEvent(event);
+       EntityItem::mouseReleaseEvent(event);
    }
 }
 
-void NodeItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(selectedResizeVertex != RV_NONE){
         QPointF deltaPos = event->scenePos() - previousResizePoint;
@@ -1154,11 +1155,11 @@ void NodeItemNew::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         setManuallyAdjusted(selectedResizeVertex);
         emit req_Resize(this, QSizeF(deltaPos.x(), deltaPos.y()), selectedResizeVertex);
     }else{
-        EntityItemNew::mouseMoveEvent(event);
+        EntityItem::mouseMoveEvent(event);
     }
 }
 
-void NodeItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(isSelected() && visualEdgeKind != Edge::EC_NONE){
         bool showHover = getElementRect(ER_CONNECT).contains(event->pos()) || getElementRect(ER_CONNECT_ICON).contains(event->pos());
@@ -1182,10 +1183,10 @@ void NodeItemNew::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
             update();
         }
     }
-    EntityItemNew::hoverMoveEvent(event);
+    EntityItem::hoverMoveEvent(event);
 }
 
-void NodeItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(hoveredConnect){
         hoveredConnect = false;
@@ -1195,10 +1196,10 @@ void NodeItemNew::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         hoveredResizeVertex = RV_NONE;
         update();
     }
-    EntityItemNew::hoverLeaveEvent(event);
+    EntityItem::hoverLeaveEvent(event);
 }
 
-void NodeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     if(!getPrimaryTextKey().isEmpty()){
         if(event->button() == Qt::LeftButton && getElementPath(ER_PRIMARY_TEXT).contains(event->pos())){
@@ -1210,10 +1211,10 @@ void NodeItemNew::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             emit req_editData(getViewItem(), getSecondaryTextKey());
         }
     }
-    EntityItemNew::mouseDoubleClickEvent(event);
+    EntityItem::mouseDoubleClickEvent(event);
 }
 
-QColor NodeItemNew::getBodyColor() const
+QColor NodeItem::getBodyColor() const
 {
     if(isHighlighted()){
         //Do nothing
@@ -1222,15 +1223,15 @@ QColor NodeItemNew::getBodyColor() const
     }else if(getReadState() == READ_ONLY_INSTANCE){
         return readOnlyInstanceColor;
     }
-    return EntityItemNew::getBodyColor();
+    return EntityItem::getBodyColor();
 }
 
-QColor NodeItemNew::getHeaderColor() const
+QColor NodeItem::getHeaderColor() const
 {
     return getBodyColor().darker(120);
 }
 
-QPointF NodeItemNew::getTopLeftOffset() const
+QPointF NodeItem::getTopLeftOffset() const
 {
     return getMarginOffset();
 }
