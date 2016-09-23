@@ -164,7 +164,7 @@ void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QS
         }
         notificationIconLabel->setPixmap(pixmap);
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
-        moveWidget(notificationPopup, 0, Qt::AlignBottom);
+        moveWidget(notificationPopup, this, Qt::AlignBottom);
         notificationPopup->show();
         notificationTimer->start(5000);
     }
@@ -1042,9 +1042,7 @@ void MedeaMainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Ali
     QPointF widgetPos;
     if (cw == 0) {
         cw = QApplication::activeWindow();
-        qDebug() << "active: " << cw;
-        cw = MedeaWindowManager::manager()->getActiveWindow();
-        //widgetPos = pos();
+        //cw = MedeaWindowManager::manager()->getActiveWindow();
     }
     if (cw == this) {
         cw = centralWidget();
