@@ -43,7 +43,7 @@ bool Aggregate::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool Aggregate::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool Aggregate::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

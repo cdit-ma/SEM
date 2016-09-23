@@ -12,5 +12,7 @@ bool DDS_DeadlineQosPolicy::canAdoptChild(Node*)
 
 bool DDS_DeadlineQosPolicy::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
+    Q_UNUSED(edgeKind);
+    Q_UNUSED(dst);
     return false;
 }

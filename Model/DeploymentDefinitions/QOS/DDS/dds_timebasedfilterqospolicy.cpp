@@ -10,7 +10,7 @@ bool DDS_TimeBasedFilterQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_TimeBasedFilterQosPolicy::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool DDS_TimeBasedFilterQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

@@ -22,7 +22,7 @@ bool WorkerDefinitions::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
-bool WorkerDefinitions::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool WorkerDefinitions::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

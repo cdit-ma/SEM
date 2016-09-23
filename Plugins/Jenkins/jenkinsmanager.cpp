@@ -1,9 +1,12 @@
 #include "jenkinsmanager.h"
 #include "jenkinsrequest.h"
-#include "../../Controller/settingscontroller.h"
+
 #include <QStringBuilder>
-#include "GUI/jenkinsstartjobwidget.h"
 #include <QApplication>
+
+#include "../../Controllers/SettingsController/settingscontroller.h"
+#include "Widgets/jenkinsstartjobwidget.h"
+
 
 /**
  * @brief JenkinsManager::JenkinsManager JenkinsManager Constructor. Constructs a Manager to spawn JenkinsRequest threads. Handles the server information of the Jenkins Server for the request.

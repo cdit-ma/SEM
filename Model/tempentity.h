@@ -1,10 +1,11 @@
 #ifndef TEMPENTITY_H
 #define TEMPENTITY_H
 
-#include <QObject>
+#include "../Controllers/modelcontroller.h"
 #include "data.h"
 #include "entity.h"
-#include "Controller/controller.h"
+
+#include <QObject>
 
 class TempEntity
 {

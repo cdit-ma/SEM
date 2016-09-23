@@ -40,7 +40,7 @@ bool IDL::canAdoptChild(Node *item)
     return Node::canAdoptChild(item);
 }
 
-bool IDL::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool IDL::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

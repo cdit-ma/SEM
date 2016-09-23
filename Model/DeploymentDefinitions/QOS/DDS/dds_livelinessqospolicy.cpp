@@ -10,7 +10,7 @@ bool DDS_LivelinessQosPolicy::canAdoptChild(Node*)
     return false;
 }
 
-bool DDS_LivelinessQosPolicy::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool DDS_LivelinessQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

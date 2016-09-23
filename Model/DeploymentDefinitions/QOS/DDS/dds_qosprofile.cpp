@@ -27,7 +27,7 @@ bool DDS_QOSProfile::canAdoptChild(Node *node)
     return Node::canAdoptChild(node);
 }
 
-bool DDS_QOSProfile::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+bool DDS_QOSProfile::canAcceptEdge(Edge::EDGE_KIND , Node *)
 {
     return false;
 }
