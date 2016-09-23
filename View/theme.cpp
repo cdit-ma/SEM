@@ -925,7 +925,7 @@ QString Theme::getMessageBoxStyleSheet()
 QString Theme::getPopupWidgetStyleSheet()
 {
     QColor bgColor = getBackgroundColor();
-    bgColor.setAlphaF(0.75);
+    bgColor.setAlphaF(0.85);
 
     return "QWidget {"
            "margin: 0px;"
