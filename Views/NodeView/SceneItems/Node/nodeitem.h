@@ -80,6 +80,7 @@ public:
     virtual QRectF bodyRect() const;
     virtual QRectF headerRect() const;
 
+
     QRectF childrenRect() const;
 
     QSizeF getSize() const;
@@ -224,6 +225,7 @@ private:
 
     QColor readOnlyInstanceColor;
     QColor readOnlyDefinitionColor;
+    QColor resizeColor;
 
     qreal modelWidth;
     qreal modelHeight;
@@ -241,7 +243,7 @@ public:
     virtual QRectF getElementRect(ELEMENT_RECT rect) const;
     virtual QPainterPath getElementPath(ELEMENT_RECT rect) const;
     virtual QRectF getResizeRect(RECT_VERTEX vert) const;
-    virtual QRectF getResizeArrowRect(RECT_VERTEX vert) const;
+    virtual QRectF getResizeArrowRect() const;
 
 
     // QGraphicsItem interface

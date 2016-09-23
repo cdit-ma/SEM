@@ -4728,10 +4728,10 @@ void ModelController::constructEdgeGUI(Edge *edge)
 void ModelController::setupManagementComponents()
 {
     //EXECUTION MANAGER
-    QList<Data*> executionManagerData = constructDataVector("ManagementComponent", QPointF(-1, -1), DANCE_EXECUTION_MANAGER, DANCE_EXECUTION_MANAGER);
-    QList<Data*> dancePlanLauncherData = constructDataVector("ManagementComponent", QPointF(-1, -1), DANCE_PLAN_LAUNCHER, DANCE_PLAN_LAUNCHER);
-    QList<Data*> ddsLoggingServerData = constructDataVector("ManagementComponent", QPointF(-1, -1), DDS_LOGGING_SERVER, DDS_LOGGING_SERVER);
-    QList<Data*> qpidBrokerData = constructDataVector("ManagementComponent", QPointF(-1, -1), QPID_BROKER, QPID_BROKER);
+    QList<Data*> executionManagerData = constructDataVector("ManagementComponent", QPointF(0, 0), DANCE_EXECUTION_MANAGER, "Execution Manager");
+    QList<Data*> dancePlanLauncherData = constructDataVector("ManagementComponent", QPointF(90, 0), DANCE_PLAN_LAUNCHER, "Plan Launcher");
+    QList<Data*> ddsLoggingServerData = constructDataVector("ManagementComponent", QPointF(0, 40), DDS_LOGGING_SERVER, "DDS Logging Server");
+    QList<Data*> qpidBrokerData = constructDataVector("ManagementComponent", QPointF(90, 40), QPID_BROKER, "QPID Broker");
 
 
     protectedNodes << constructChildNode(assemblyDefinitions, executionManagerData);

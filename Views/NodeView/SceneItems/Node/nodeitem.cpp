@@ -5,7 +5,7 @@
 
 #include "../entityitem.h"
 
-#define RESIZE_RECT_SIZE 5
+#define RESIZE_RECT_SIZE 4
 
 
 
@@ -45,15 +45,14 @@ NodeItem::NodeItem(NodeViewItem *viewItem, NodeItem *parentItem, NodeItem::KIND 
     setUpColors();
 
     addRequiredData("isExpanded");
+
     addRequiredData("readOnlyDefinition");
     addRequiredData("snippetID");
-
 
     if(nodeViewItem){
         connect(nodeViewItem, &NodeViewItem::edgeAdded, this, &NodeItem::edgeAdded);
         connect(nodeViewItem, &NodeViewItem::edgeRemoved, this, &NodeItem::edgeRemoved);
     }
-
 
     if(parentItem){
         //Lock child in same aspect as parent
@@ -372,6 +371,7 @@ QRectF NodeItem::headerRect() const
 {
     return currentRect();
 }
+
 
 QRectF NodeItem::childrenRect() const
 {
@@ -832,6 +832,9 @@ void NodeItem::setUpColors()
 
     readOnlyDefinitionColor = Theme::blendColors(originalColor, brown, blendFactor);
     readOnlyInstanceColor = Theme::blendColors(originalColor, blue, blendFactor);
+
+    resizeColor = originalColor.darker(140);
+    resizeColor.setAlpha(120);
 }
 
 void NodeItem::resizeToChildren()
@@ -945,7 +948,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             paintPixmap(painter, lod, ER_QOS, "Actions", "QOS");
         }
 
-        if(isExpandEnabled()){
+        if(isExpandEnabled() && hasChildNodes()){
             paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", isExpanded() ? "Contract" : "Expand");
         }
 
@@ -974,31 +977,39 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(state > RS_BLOCK){
         painter->save();
 
+        //Paint the selection path.
         painter->setPen(getPen());
         painter->setBrush(Qt::NoBrush);
         painter->drawPath(getElementPath(ER_SELECTION));
 
-        QColor resizeColor(150, 150, 150, 150);
-
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(resizeColor);
-
-
+        //Paint the selected section.
         if(selectedResizeVertex != RV_NONE){
-            painter->drawRect(getResizeRect(selectedResizeVertex));
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(resizeColor);
+            painter->drawRect(getResizeRect(hoveredResizeVertex));
         }
 
+        //Paint the hovered section.
         if(hoveredResizeVertex != RV_NONE){
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(resizeColor);
             painter->drawRect(getResizeRect(hoveredResizeVertex));
 
-            QRectF arrowRect = getResizeArrowRect(hoveredResizeVertex);
-            //Rotate
-            painter->save();
-            painter->translate(arrowRect.center());
-            painter->rotate(getResizeArrowRotation(hoveredResizeVertex));
-            painter->translate(-(arrowRect.width() / 2), - (arrowRect.height() / 2));
-            //paintPixmap(painter, lod, arrowRect.translated(-arrowRect.topLeft()), "Actions", "Resize", Qt::black);
-            painter->restore();
+            if(hoveredResizeVertex != RV_NONE){
+                //Rotate
+                painter->save();
+                QRectF arrowRect = getElementRect(ER_RESIZE_ARROW);
+                //Move to Center.
+                painter->translate(arrowRect.center());
+                //Rotate the Image
+                painter->rotate(getResizeArrowRotation(hoveredResizeVertex));
+                //Move back to top left.
+                painter->translate(-arrowRect.center());
+
+                //Paint the resize section
+                paintPixmap(painter, lod, ER_RESIZE_ARROW, "Actions", "Resize");
+                painter->restore();
+            }
         }
         painter->restore();
     }
@@ -1009,8 +1020,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         if(isReadOnly()){
             paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
         }
-
     }
+
     if(gotPrimaryTextKey()){
         renderText(painter, lod, ER_PRIMARY_TEXT, getPrimaryText());
     }
@@ -1018,7 +1029,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(gotSecondaryTextKey()){
         renderText(painter, lod, ER_SECONDARY_TEXT, getSecondaryText());
     }
-
 }
 
 QRectF NodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
@@ -1026,6 +1036,9 @@ QRectF NodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
     switch(rect){
         case ER_MOVE:{
             return headerRect();
+        }
+        case ER_RESIZE_ARROW:{
+            return getResizeArrowRect();
         }
         default:
             break;
@@ -1091,10 +1104,13 @@ QRectF NodeItem::getResizeRect(RECT_VERTEX vert) const
     return rect;
 }
 
-QRectF NodeItem::getResizeArrowRect(RECT_VERTEX vert) const
+QRectF NodeItem::getResizeArrowRect() const
 {
-    QRectF rect(0, 0, 2 * RESIZE_RECT_SIZE, 2 * RESIZE_RECT_SIZE);
-    rect.moveCenter(getResizeRect(vert).center());
+    QRectF rect;
+    if(hoveredResizeVertex != RV_NONE){
+        rect.setSize(QSize(2 * RESIZE_RECT_SIZE, 2 * RESIZE_RECT_SIZE));
+        rect.moveCenter(getResizeRect(hoveredResizeVertex).center());
+    }
     return rect;
 }
 
