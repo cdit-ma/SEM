@@ -158,7 +158,11 @@ void MedeaMainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QS
 
     if (!welcomeScreenOn) {
         notificationLabel->setText(description);
-        notificationIconLabel->setPixmap(Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32)));
+        QPixmap pixmap = Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32));
+        if (pixmap.isNull()) {
+            pixmap = Theme::theme()->getIcon("Actions", "Info").pixmap(QSize(32,32));
+        }
+        notificationIconLabel->setPixmap(pixmap);
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
         moveWidget(notificationPopup, this, Qt::AlignBottom);
         notificationPopup->show();
@@ -740,6 +744,7 @@ void MedeaMainWindow::setupSearchBar()
 
     connect(this, &MedeaMainWindow::requestSuggestions, viewController, &ViewController::requestSearchSuggestions);
     connect(viewController, &ViewController::vc_gotSearchSuggestions, this, &MedeaMainWindow::updateSearchSuggestions);
+    connect(viewController, &ViewController::mc_modelReady, searchDialog, &SearchDialog::resetDialog);
     connect(searchBar, SIGNAL(returnPressed()), searchButton, SLOT(click()));
     connect(searchButton, SIGNAL(clicked(bool)), searchPopup, SLOT(hide()));
     connect(searchButton, SIGNAL(clicked(bool)), this, SLOT(searchEntered()));
@@ -798,7 +803,6 @@ void MedeaMainWindow::setupNotificationBar()
     notificationLabel = new QLabel("This is a notification.", this);
     notificationLabel->setFont(QFont(font().family(), 11));
     notificationLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    //notificationLabel->setAlignment(Qt::AlignCenter);
     //notificationLabel->setWordWrap(true);
 
     notificationWidget = new QWidget(this);
@@ -817,6 +821,8 @@ void MedeaMainWindow::setupNotificationBar()
     notificationDialog = new NotificationDialog(this);
 
     connect(notificationDialog, &NotificationDialog::notificationAdded, viewController, &ViewController::notificationAdded);
+    connect(viewController, &ViewController::mc_modelReady, viewController, &ViewController::notificationsSeen);
+    connect(viewController, &ViewController::mc_modelReady, notificationDialog, &NotificationDialog::resetDialog);
     connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::toggleVisibility);
     connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
 }

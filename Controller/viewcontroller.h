@@ -83,6 +83,8 @@ signals:
     void mc_undoRedoUpdated();
     void vc_actionFinished();
 
+    void vc_projectClosed();
+
 
     //TO CONTROLLER SIGNALS
 

@@ -43,9 +43,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(controller, &ViewController::vc_controllerReady, this, &ActionController::controllerReady);
         connect(controller, &ViewController::mc_modelReady, this, &ActionController::modelReady);
         connect(controller, &ViewController::vc_JenkinsReady, this, &ActionController::jenkinsValidated);
-
         connect(controller, &ViewController::mc_undoRedoUpdated, this, &ActionController::updateUndoRedo);
-
         connect(controller, &ViewController::vc_addProjectToRecentProjects, this, &ActionController::updateRecentProjects);
 
 
@@ -74,7 +72,6 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_delete, &QAction::triggered, viewController, &ViewController::deleteSelection);
         connect(edit_renameActiveSelection, &QAction::triggered, viewController, &ViewController::editLabel);
         connect(toolbar_replicateCount, &QAction::triggered, viewController, &ViewController::editReplicationCount);
-
 
         connect(view_centerOnImpl, &QAction::triggered, viewController, &ViewController::centerImpl);
         connect(view_centerOnDefn, &QAction::triggered, viewController, &ViewController::centerDefinition);
