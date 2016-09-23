@@ -7,9 +7,6 @@ DockTitleBarWidget::DockTitleBarWidget(QWidget* parent) : QToolBar(parent)
     _isActive = false;
     //This sets to the parent that everything is okay.
     setFocusPolicy(Qt::ClickFocus);
-    setFocusProxy(parent);
-    //setMouseTracking(true);
-
     setContentsMargins(0,0,0,0);
 
 
@@ -140,6 +137,9 @@ void DockTitleBarWidget::setupToolBar()
     popOutAction = addAction("Pop Out");
     actions.append(popOutAction);
     popOutAction->setVisible(false);
+    popOutAction->setShortcutContext(Qt::WindowShortcut);
+    popOutAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_T));
+
 
     maximizeAction = addAction("Maximise/Minimise");
     //actions.append(maximizeAction);
@@ -151,7 +151,8 @@ void DockTitleBarWidget::setupToolBar()
     protectAction->setCheckable(true);
     protectAction->setVisible(false);
 
-    hideAction = addAction("Hide Window");
+    hideAction = addAction("Show/Hide Window");
+    addAction(hideAction);
     actions.append(hideAction);
     hideAction->setCheckable(true);
     hideAction->setChecked(true);

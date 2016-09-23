@@ -75,7 +75,6 @@ void ToolbarWidgetNew::themeChanged()
 
     mainFrame->setStyleSheet("background:" + mainBackgroundColor + "; border-radius: 6px;");
     shadowFrame->setStyleSheet("background:" + shadowColorStr + "; border-radius: 8px;");
-
     addChildAction->setIcon(theme->getIcon("Actions", "Plus"));
     connectAction->setIcon(theme->getIcon("Actions", "ConnectTo"));
     disconnectAction->setIcon(theme->getIcon("Actions", "Info"));

@@ -2,7 +2,8 @@
 #define MEDEAWINDOWMANAGER_H
 
 #include <QObject>
-#include <QToolButton>
+#include <QSignalMapper>
+#include <QAction>
 
 //Forward Class Declarations
 class MedeaDockWidget;
@@ -50,13 +51,17 @@ public:
     MedeaWindowNew* getActiveWindow();
     MedeaViewDockWidget* getActiveViewDockWidget();
     void setActiveDockWidget(MedeaDockWidget *dockWidget = 0);
+    void setActiveDockWidget(int ID);
     QList<MedeaViewDockWidget*> getViewDockWidgets();
     QList<MedeaNodeViewDockWidget*> getNodeViewDockWidgets();
 private slots:
+    void focusChanged(QWidget *old, QWidget *now);
     void dockWidget_Close(int ID);
     void dockWidget_PopOut(int ID);
 
-    void reparentDockWidget_ButtonPressed();
+    void reparentDockWidgetAction(int windowID);
+
+    void activeDockWidgetVisibilityChanged();
 
 private:
     //Helper functions
@@ -78,15 +83,17 @@ private:
     void destructWindowIfEmpty(MedeaWindowNew* window);
 
     void showPopOutDialog(MedeaDockWidget* dw);
-    QAction* constructPopOutWindowAction(QDialog *parent, MedeaWindowNew* window=0);
+    QAction* constructPopOutWindowAction(QSignalMapper* mapper, MedeaWindowNew* window=0);
 
     MedeaWindowNew* mainWindow;
     MedeaWindowNew* centralWindow;
     MedeaViewDockWidget* activeViewDockWidget;
 
+
     ViewManagerWidget* viewManagerWidget;
     QHash<int, MedeaWindowNew*> windows;
     QHash<int, MedeaDockWidget*> dockWidgets;
+    QList<int> windowIDs;
     QList<int> viewDockIDs;
 
 private:

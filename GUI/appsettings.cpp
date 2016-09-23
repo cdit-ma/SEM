@@ -79,11 +79,6 @@ void AppSettings::themeChanged()
                   "#BACKGROUND_WIDGET {background: " % theme->getBackgroundColorHex() % ";}"
 
                   );
-                  /*"QGroupBox {background: " % theme->getBackgroundColorHex() % "; color: " % theme->getTextColorHex() + "; border:0;padding:0px;margin:0px;}"
-                  "QGroupBox > QGroupBox {border: 1px solid " % theme->getAltBackgroundColorHex() % ";border-radius: 3px; padding:10px;margin-top:8px;}"
-                  "QGroupBox::title {subcontrol-position: top center;subcontrol-origin: margin; padding: 2px; font-weight:bold;}"
-                  );*/
-
 
 
 }

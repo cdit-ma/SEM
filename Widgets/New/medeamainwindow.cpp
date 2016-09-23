@@ -268,9 +268,14 @@ void MedeaMainWindow::themeChanged()
  */
 void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock, MedeaViewDockWidget *prevDock)
 {
-    if(viewDock && viewDock->isNodeViewDock()){
-        MedeaNodeViewDockWidget* nodeViewDock = (MedeaNodeViewDockWidget*) viewDock;
-        NodeViewNew* view = nodeViewDock->getNodeView();
+    if(viewDock){
+        MedeaNodeViewDockWidget* nodeViewDock = 0;
+        NodeViewNew* view = 0;
+
+        if(viewDock->isNodeViewDock()){
+            nodeViewDock = (MedeaNodeViewDockWidget*) viewDock;
+            view = nodeViewDock->getNodeView();
+        }
 
         if(prevDock && prevDock->isNodeViewDock()){
             MedeaNodeViewDockWidget* prevNodeViewDock = (MedeaNodeViewDockWidget*) prevDock;
@@ -297,6 +302,9 @@ void MedeaMainWindow::activeViewDockWidgetChanged(MedeaViewDockWidget *viewDock,
             connect(view, &NodeViewNew::sceneRectChanged, minimap, &NodeViewMinimap::sceneRectChanged);
 
             view->viewportChanged();
+        }else{
+            minimap->setBackgroundColor(QColor(0,0,0));
+            minimap->setScene(0);
         }
     }
 }

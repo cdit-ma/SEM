@@ -5,6 +5,7 @@
 #include <QBoxLayout>
 #include <QObject>
 
+
 #include "medeatooldockwidget.h"
 #include "medeaviewdockwidget.h"
 
@@ -75,11 +76,12 @@ void MedeaWindowManager::_destructWindow(MedeaWindowNew *window)
 
         //Teardown
         if(window->getType() == MedeaWindowNew::MAIN_WINDOW && windows.contains(wID)){
-            qCritical() << "DELETING MYSELF!";
             delete this;
         }else{
-            removeWindow(window);
-            window->deleteLater();
+            if(centralWindow != window){
+                removeWindow(window);
+                window->deleteLater();
+            }
         }
     }
 }
@@ -113,15 +115,23 @@ MedeaWindowManager::MedeaWindowManager():QObject(0)
     mainWindow = 0;
     centralWindow = 0;
     viewManagerWidget = new ViewManagerWidget(this);
+
+    QApplication* a = (QApplication*) QApplication::instance();
+
+    connect(a, &QApplication::focusChanged, this, &MedeaWindowManager::focusChanged);
 }
 
 MedeaWindowManager::~MedeaWindowManager()
 {
     if(centralWindow){
-        windows.remove(centralWindow->getID());
+        int ID = centralWindow->getID();
+        windows.remove(ID);
+        windowIDs.removeAll(ID);
     }
     if(mainWindow){
-        windows.remove(mainWindow->getID());
+        int ID = mainWindow->getID();
+        windows.remove(ID);
+        windowIDs.removeAll(ID);
     }
 
     //Delete all subwindows.
@@ -224,20 +234,33 @@ void MedeaWindowManager::setActiveDockWidget(MedeaDockWidget *dockWidget)
 {
     if(dockWidget != activeViewDockWidget){
         MedeaViewDockWidget* prevDock = activeViewDockWidget;
+        activeViewDockWidget = 0;
 
         //Unset the old
-        if(activeViewDockWidget){
-            activeViewDockWidget->setActive(false);
-            activeViewDockWidget = 0;
+        if(prevDock){
+            prevDock->setActive(false);
+            disconnect(prevDock, &MedeaDockWidget::visibilityChanged, this, &MedeaWindowManager::activeDockWidgetVisibilityChanged);
         }
+
+        activeViewDockWidget = (MedeaViewDockWidget*) dockWidget;
 
         //Set the New.
         if(dockWidget && dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW){
             dockWidget->setActive(true);
+
+            connect(activeViewDockWidget, &MedeaDockWidget::visibilityChanged, this, &MedeaWindowManager::activeDockWidgetVisibilityChanged);
         }
 
-        activeViewDockWidget = (MedeaViewDockWidget*)dockWidget;
+
         emit activeViewDockWidgetChanged(activeViewDockWidget, prevDock);
+    }
+}
+
+void MedeaWindowManager::setActiveDockWidget(int ID)
+{
+    MedeaDockWidget* dockWidget = dockWidgets.value(ID, 0);
+    if(dockWidget && dockWidget != activeViewDockWidget && dockWidget->isFocusEnabled()){
+        setActiveDockWidget(dockWidget);
     }
 }
 
@@ -262,6 +285,25 @@ QList<MedeaNodeViewDockWidget *> MedeaWindowManager::getNodeViewDockWidgets()
         }
     }
     return views;
+}
+
+void MedeaWindowManager::focusChanged(QWidget*, QWidget* now)
+{
+    if(now){
+        bool okay;
+        int ID = now->property("ID").toInt(&okay);
+        if(okay){
+            setActiveDockWidget(ID);
+            return;
+        }
+        QWidget* parent = now->parentWidget();
+        if(parent){
+            ID = parent->property("ID").toInt(&okay);
+            if(okay){
+                setActiveDockWidget(ID);
+            }
+        }
+    }
 }
 
 
@@ -381,33 +423,43 @@ void MedeaWindowManager::dockWidget_PopOut(int ID)
     }
 }
 
-void MedeaWindowManager::reparentDockWidget_ButtonPressed()
+void MedeaWindowManager::reparentDockWidgetAction(int wID)
 {
-    if(sender()){
-        bool isInt = false;
-        //Get the
-        int wID = sender()->property(WINDOW_ID_DATA).toInt(&isInt);
-        if(isInt){
-            MedeaWindowNew* window = 0;
+    MedeaWindowNew* window = 0;
+    bool newWindow = wID == -1;
+    if(newWindow){
+        window = _constructSubWindow();
+        window->setWindowTitle("Sub Window #" + QString::number(window->getID() - 2));
+        window->show();
+        window->activateWindow();
+    }else{
+        if(windows.contains(wID)){
+            window = windows[wID];
+        }else{
+            qCritical() << "MedeaWindowManager::reparentDockWidget_ButtonPressed() - Can't find MedeaWindow with ID: " << wID;
+        }
+    }
+    if(activeViewDockWidget && window){
+        _reparentDockWidget(activeViewDockWidget, window);
+    }
+}
 
-            bool newWindow = wID == -1;
-            if(newWindow){
-                window = _constructSubWindow();
-                window->setWindowTitle("Sub Window #" + QString::number(window->getID() - 2));
-                window->show();
-                window->activateWindow();
 
-            }else{
-                if(windows.contains(wID)){
-                    window = windows[wID];
-                }else{
-                    qCritical() << "MedeaWindowManager::reparentDockWidget_ButtonPressed() - Can't find MedeaWindow with ID: " << wID;
+void MedeaWindowManager::activeDockWidgetVisibilityChanged()
+{
+
+    if(activeViewDockWidget && !activeViewDockWidget->isVisible()){
+        //Look for next widget.
+        MedeaWindowNew* parent = activeViewDockWidget->getCurrentWindow();
+        if(parent){
+            MedeaDockWidget* nextVisible = 0;
+            foreach(MedeaDockWidget* dockWidget, parent->getDockWidgets()){
+                if(dockWidget && dockWidget->getDockType() == MedeaDockWidget::MDW_VIEW && dockWidget->isVisible()){
+                    nextVisible = dockWidget;
+                    break;
                 }
             }
-            if(activeViewDockWidget && window){
-                _reparentDockWidget(activeViewDockWidget, window);
-            }
-
+            setActiveDockWidget(nextVisible);
         }
     }
 }
@@ -447,75 +499,111 @@ void MedeaWindowManager::showPopOutDialog(MedeaDockWidget *dockWidget)
         setActiveDockWidget(dockWidget);
     }
 
-    PopupWidget* dialog = new PopupWidget(PopupWidget::DIALOG, mainWindow);
-    /*
-     * TODO - Figure out why this doesn't work!
-     */
+
+    Theme* theme = Theme::theme();
+
+    PopupWidget* popupDialog = new PopupWidget(PopupWidget::DIALOG, dockWidget->getCurrentWindow());
 
     QFont titleFont;
     titleFont.setPixelSize(15);
-    QWidget* widget = new QWidget(mainWindow);
+
+    QWidget* widget = new QWidget(popupDialog);
+
+    QPushButton* invisAcceptButton = new QPushButton(widget);
+    invisAcceptButton->setFixedSize(1,1);
+    invisAcceptButton->setDefault(true);
+
+
+    QVBoxLayout* vlayout = new QVBoxLayout(widget);
+    QHBoxLayout* topLayout = new QHBoxLayout();
+    vlayout->addLayout(topLayout);
+
     QLabel* titleLabel = new QLabel("Select Destination Window", mainWindow);
     titleLabel->setAlignment(Qt::AlignCenter);
     titleLabel->setFont(titleFont);
 
-    QVBoxLayout* vlayout = new QVBoxLayout(widget);
-    vlayout->addWidget(titleLabel);
+    QToolBar* topToolbar = new QToolBar(widget);
+    topLayout->addWidget(titleLabel, 1);
+    topLayout->addWidget(topToolbar);
 
-    QToolBar* toolbar = new QToolBar(widget);
-    toolbar->setIconSize(QSize(150,100));
-    toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    QAction* cancelAction = topToolbar->addAction(theme->getIcon("Actions", "Close"), "Cancel");
 
-    vlayout->addWidget(toolbar);
 
-    Theme* theme = Theme::theme();
+    QWidget* toolbarContainer = new QWidget(widget);
+    toolbarContainer->setMaximumWidth(1220);
+    QHBoxLayout* toolbarLayout = new QHBoxLayout(toolbarContainer);
 
+    QToolBar* windowToolbar = new QToolBar(widget);
+
+    QWidget* leftSpacer = new QWidget(windowToolbar);
+    QWidget* rightSpacer = new QWidget(windowToolbar);
+
+    leftSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    rightSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    windowToolbar->setIconSize(QSize(150,100));
+    windowToolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+
+    vlayout->addWidget(toolbarContainer);
+
+    toolbarLayout->addWidget(leftSpacer);
+    toolbarLayout->addWidget(invisAcceptButton);
+    toolbarLayout->addWidget(windowToolbar);
+
+    QSignalMapper* windowActionMapper = new QSignalMapper(popupDialog);
 
     MedeaWindowNew* currentWindow = dockWidget->getCurrentWindow();
-
-
+    //Construct buttons for all of the windows.
     foreach(MedeaWindowNew* w, windows.values()){
         if(w != currentWindow && w != mainWindow){
-            QAction* action = constructPopOutWindowAction(dialog, w);
-            toolbar->addAction(action);
+            QAction* wAction = constructPopOutWindowAction(windowActionMapper, w);
+            windowToolbar->addAction(wAction);
         }
     }
 
-    toolbar->addAction(constructPopOutWindowAction(dialog));
+    //Construct a new Window Action
+    QAction* wAction = constructPopOutWindowAction(windowActionMapper);
+    connect(invisAcceptButton, &QPushButton::clicked, wAction, &QAction::trigger);
+    windowToolbar->addAction(wAction);
 
-    dialog->setWidget(widget);
-    dialog->setStyleSheet(theme->getPopupWidgetStyleSheet());
+    toolbarLayout->addWidget(rightSpacer);
 
-    titleLabel->setStyleSheet("border:none; background:rgba(0,0,0,0);color:" + theme->getTextColorHex() + ";}");
-    //toolbar->setStyleSheet("QToolButton{text-align:right;}");
+    //Accept the dialog and then reparent
+    connect(cancelAction, &QAction::triggered, popupDialog, &QDialog::reject);
+    connect(windowActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped), popupDialog, &QDialog::accept);
+    connect(windowActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped), this, &MedeaWindowManager::reparentDockWidgetAction);
+
+    popupDialog->setWidget(widget);
 
 
-    dialog->exec();
+    popupDialog->setStyleSheet(theme->getPopupWidgetStyleSheet());
+    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + " QToolButton::!hover{background:rgba(0,0,0,0);border:none;}");
+    titleLabel->setStyleSheet("border:none; background:rgba(0,0,0,0); color:" + theme->getTextColorHex() + ";");
 
-    delete dialog;
+    popupDialog->exec();
+    delete popupDialog;
 }
 
-QAction *MedeaWindowManager::constructPopOutWindowAction(QDialog *parent, MedeaWindowNew *window)
+QAction *MedeaWindowManager::constructPopOutWindowAction(QSignalMapper *mapper, MedeaWindowNew *window)
 {
-    QAction* action = new QAction(this);
-    //button->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 10px;");
-    //button->setFont(mainWindow->font());
+    QAction* action = new QAction(mapper);
 
+    int wID = -1;
     if(window){
         action->setIcon(QIcon(window->grab()));
         QString text = window->windowTitle();
         action->setText(text);
-        action->setProperty(WINDOW_ID_DATA, window->getID());
+        wID = window->getID();
     }else{
         action->setIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
         action->setText("New Window");
-        action->setProperty(WINDOW_ID_DATA, -1);
-        //button->setStyleSheet("margin: 10px; border-radius: 5px; border: 1px solid gray; background: white; padding-top: 20px;");
-        //button->setFixedWidth(170);
     }
 
-    connect(action, SIGNAL(triggered(bool)), parent, SLOT(accept()));
-    connect(action, SIGNAL(triggered(bool)), this, SLOT(reparentDockWidget_ButtonPressed()));
+    if(mapper){
+        connect(action, &QAction::triggered, mapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
+        mapper->setMapping(action, wID);
+    }
+
     return action;
 }
 

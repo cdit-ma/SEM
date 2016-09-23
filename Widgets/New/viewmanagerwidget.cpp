@@ -202,7 +202,7 @@ DockWindowItem::DockWindowItem(ViewManagerWidget *manager, MedeaDockWidget *dock
     this->dockWidget = dockWidget;
 
     setFocusPolicy(Qt::ClickFocus);
-    setFocusProxy(dockWidget);
+    setProperty("ID", dockWidget->getID());
 
     setContentsMargins(0,0,0,0);
     setIconSize(QSize(16,16));

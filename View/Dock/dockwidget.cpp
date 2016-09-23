@@ -203,7 +203,7 @@ void DockWidget::themeChanged()
         backButton->setStyleSheet(theme->getToolBarStyleSheet() +
                                   "QToolButton {"
                                   "background:" + theme->getAltBackgroundColorHex() + ";"
-                                  "border-radius: 2px;"
+                                  "border-radius: " + theme->getSharpCornerRadius() + ";"
                                   "}");
     }
 }

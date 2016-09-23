@@ -83,7 +83,7 @@ void SearchDialog::themeChanged()
                                "}"
                                "QToolButton {"
                                "padding: 5px 10px;"
-                               "border-radius: 2px;"
+                               + theme->getSharpCornerRadius() + ";"
                                "}"
                                "QToolButton::checked {"
                                "background:" + theme->getHighlightColorHex() + ";"

@@ -201,6 +201,8 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
 
             selectionCount = currentHandler->getSelectionCount();
             emit itemActiveSelectionChanged(currentHandler->getActiveSelectedItem(), true);
+        }else{
+            emit itemActiveSelectionChanged(0, true);
         }
         emit selectionChanged(selectionCount);
     }

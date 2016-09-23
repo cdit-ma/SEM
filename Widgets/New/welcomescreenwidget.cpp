@@ -116,7 +116,7 @@ void WelcomeScreenWidget::themeChanged()
                                          "}"
                                          "QToolButton {"
                                          "width: 400px;"
-                                         "border-radius: 2px;"
+                                         "border-radius: " + theme->getSharpCornerRadius() + ";"
                                          "border: 0px; }");
 }
 

@@ -100,6 +100,7 @@ public:
 
     // Default StyleSheets
     QString getCornerRadius();
+    QString getSharpCornerRadius();
     QString getWindowStyleSheet();
     QString getScrollBarStyleSheet();
     QString getDialogStyleSheet();

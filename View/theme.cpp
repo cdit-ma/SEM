@@ -327,6 +327,11 @@ bool Theme::isValid()
 
 QString Theme::getCornerRadius()
 {
+    return "4px";
+}
+
+QString Theme::getSharpCornerRadius()
+{
     return "2px";
 }
 
@@ -621,7 +626,7 @@ QString Theme::getDockWidgetStyleSheet()
 QString Theme::getToolDockWidgetTitleBarStyleSheet()
 {
     return  getDockTitleBarStyleSheet(false) %
-            "DockTitleBarWidget QToolButton { padding: 0px; border-radius:2px; }";
+            "DockTitleBarWidget QToolButton { padding: 0px; border-radius: " % getCornerRadius() % /*2px*/ "; }";
 }
 
 QString Theme::getViewDockWidgetStyleSheet(bool isActive)
@@ -724,7 +729,8 @@ QString Theme::getToolBarStyleSheet()
 
            "QToolButton {"
            "padding: 2px;"
-           "border-radius: 5px;"
+            "border-radius: " % getCornerRadius() % ";"
+           /*"border-radius: 5px;"*/
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"

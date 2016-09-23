@@ -9,6 +9,8 @@ int MedeaDockWidget::_DockWidgetID = 0;
 MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 {
     ID = ++_DockWidgetID;
+
+    setProperty("ID", ID);
     this->type = type;
     sourceWindow = 0;
     currentWindow = 0;
@@ -21,6 +23,8 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 
     connect(this, &QDockWidget::visibilityChanged, this, &MedeaDockWidget::_visibilityChanged);
     _isProtected = false;
+
+    //setWindowFlags(Qt::WindowStaysOnTopHint);
 
     setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -40,7 +44,7 @@ MedeaDockWidget::MedeaDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
 
     // this adds a border to the dock widgets when they are floating
     borderFrame = new QFrame(this);
-    borderFrame->setStyleSheet("border-radius: 2px; border: 1px outset gray;");
+    borderFrame->setStyleSheet("border-radius: " + Theme::theme()->getSharpCornerRadius() + "; border: 1px outset gray;");
     borderFrame->hide();
     connect(this, &MedeaDockWidget::topLevelChanged, borderFrame, &QFrame::setVisible);
 }
@@ -336,10 +340,6 @@ QAction *MedeaDockWidget::getAction(DockTitleBarWidget::DOCK_ACTION action)
 
 bool MedeaDockWidget::eventFilter(QObject *object, QEvent *event)
 {
-    if(_isFocusEnabled && event->type() == QEvent::FocusIn){
-        MedeaWindowManager::manager()->setActiveDockWidget(this);
-    }
-
     if(object == titleBar && event->type() == QEvent::MouseButtonPress) {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
         if(mouseEvent->button() == Qt::MiddleButton){
