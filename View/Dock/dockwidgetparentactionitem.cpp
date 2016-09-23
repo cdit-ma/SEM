@@ -150,7 +150,10 @@ void DockWidgetParentActionItem::themeChanged()
                   "color:" + theme->getTextColorHex() + ";"
                   "background:" + theme->QColorToHex(altColor) + ";"
                   "}"
-                  "QToolButton:hover{ background:" + theme->getHighlightColorHex() + ";}");
+                  "QToolButton:hover {"
+                  "background:" + theme->getHighlightColorHex() + ";"
+                  "color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
+                  "}");
 }
 
 
