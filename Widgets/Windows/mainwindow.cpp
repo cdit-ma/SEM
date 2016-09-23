@@ -165,7 +165,7 @@ void MainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QString
         }
         notificationIconLabel->setPixmap(pixmap);
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
-        moveWidget(notificationPopup, this, Qt::AlignBottom);
+        moveWidget(notificationPopup, 0, Qt::AlignBottom);
         notificationPopup->show();
         notificationTimer->start(5000);
     }
@@ -1011,19 +1011,16 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
     QWidget* cw = parentWidget;
     QPointF widgetPos;
     if (cw == 0) {
-        cw = QApplication::activeWindow();
-        //cw = MedeaWindowManager::manager()->getActiveWindow();
+        cw = WindowManager::manager()->getActiveWindow();
+        widgetPos.ry() -= widget->height()/2 + 8;
     }
-    if (cw == this) {
-        cw = centralWidget();
+    if (cw == innerWindow) {
         widgetPos = pos();
     }
     if (cw && widget) {
-        //QPointF widgetPos = cw->geometry().center();
         widgetPos += cw->geometry().center();
         switch (alignment) {
         case Qt::AlignBottom:
-            //widgetPos.ry() += cw->height() / 2 - widget->height();
             widgetPos.ry() += cw->height() / 2;
             break;
         default:
