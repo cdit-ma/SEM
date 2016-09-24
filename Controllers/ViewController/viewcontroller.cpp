@@ -417,9 +417,8 @@ void ViewController::askQuestion(QString title, QString message, int ID)
         emit centerOnID(ID);
     }
 
-    QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No);
-
-    msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Help").scaled(50,50));
+    QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No, WindowManager::manager()->getMainWindow());
+    msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Help", QSize(50,50), Theme::theme()->getMenuIconColor()));
     int reply = msgBox.exec();
     emit vc_answerQuestion(reply == QMessageBox::Yes);
 }
@@ -1004,9 +1003,9 @@ bool ViewController::_closeProject(bool showWelcome)
             //Ask User to confirm save?
             QMessageBox msgBox(QMessageBox::Question, "Save Changes",
                                "Do you want to save the changes made to '" + filePath + "' ?",
-                               QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-
-            msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
+                               QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+                               WindowManager::manager()->getMainWindow());
+            msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save", QSize(50,50), Theme::theme()->getMenuIconColor()));
             msgBox.setButtonText(QMessageBox::Yes, "Save");
             msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
 
