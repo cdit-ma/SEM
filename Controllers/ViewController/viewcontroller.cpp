@@ -1465,7 +1465,7 @@ void ViewController::aboutMEDEA()
 {
     QString aboutString =
     "<h3>MEDEA " APP_VERSION "</h3>"
-    "<a href=\"" APP_URL "\"><i>Center for Distributed and Intelligent Systems - Model Analysis</i></a><br />"
+    "<a href=\"" APP_URL "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %";\">Center for Distributed and Intelligent Systems - Model Analysis</a><br />"
     "The University of Adelaide<hr /><br />"
     "Team:"
     "<ul>"
