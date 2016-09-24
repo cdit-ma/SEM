@@ -747,7 +747,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case Node::NK_VARIABLE:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("type");
+                nodeItem->setSecondaryTextKey("value");
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
                 break;
             case Node::NK_ATTRIBUTE_IMPL:
@@ -778,6 +778,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setTertiaryIcon("Items", nodeKindStr);
+                nodeItem->setTertiaryIconVisible(true);
                 nodeItem->setSecondaryTextKey("type");
                 break;
             case Node::NK_INEVENTPORT:

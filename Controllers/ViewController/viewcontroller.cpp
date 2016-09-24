@@ -309,26 +309,42 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     image = label;
                     break;
                 }
-            case Node::NK_INPUTPARAMETER:
-            case Node::NK_RETURNPARAMETER:
-                alias = "Data";
-                image = label;
-                break;
-            case Node::NK_VECTOR:
-            case Node::NK_VECTOR_INSTANCE:
-                foreach(ViewItem* child, viewItem->getDirectChildren()){
-                    image = kind % "_" % child->getData("kind").toString();
+                case Node::NK_WORKLOAD:{
+                    if(!nodeViewItem->isInModel()){
+                        //Workload from a Workload Definition.
+                        alias = "Functions";
+                        image = label;
+                    }
                     break;
                 }
-                break;
-            case Node::NK_MODEL:
-                alias = "Actions";
-                image = "MEDEA";
-                break;
-            default:
-                break;
 
-            }
+                case Node::NK_INPUTPARAMETER:
+                case Node::NK_RETURNPARAMETER:{
+                        QString type = nodeViewItem->getData("type").toString();
+                        if(type == "WE_UTE_Vector" || type == "WE_UTE_VariableArguments"){
+                            alias = "Data";
+                            image = type;
+                        }else{
+                            alias = "Data";
+                            image = label;
+                        }
+                        break;
+                }
+                case Node::NK_VECTOR:
+                case Node::NK_VECTOR_INSTANCE:
+                    foreach(ViewItem* child, viewItem->getDirectChildren()){
+                        image = kind % "_" % child->getData("kind").toString();
+                        break;
+                    }
+                    break;
+                case Node::NK_MODEL:
+                    alias = "Actions";
+                    image = "MEDEA";
+                    break;
+                default:
+                    break;
+
+                }
         }
         viewItem->setDefaultIcon(alias, image);
     }

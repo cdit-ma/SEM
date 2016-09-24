@@ -41,7 +41,6 @@ private:
     QPolygonF rightPolyExpanded;
     void setupPolys();
 
-    bool isLogger();
     bool isDeployed();
 };
 

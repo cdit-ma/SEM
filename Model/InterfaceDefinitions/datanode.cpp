@@ -127,18 +127,18 @@ bool DataNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         DataNode* dataNode = (DataNode*) dst;
 
         if(!isDataProducer()){
-            qCritical() << "Cannot connect from something which can't produce";
+            //qCritical() << "Cannot connect from something which can't produce";
             //Cannot connect from something which can't produce
             return false;
         }
         if(!dataNode->isDataReciever()){
-            qCritical() << "Cannot connect to something which can't recieve";
+            //qCritical() << "Cannot connect to something which can't recieve";
             //Cannot connect to something which can't recieve
             return false;
         }
 
         if(dataNode->hasInputData()){
-            qCritical() << "Cannot have multiple input datas";
+            //qCritical() << "Cannot have multiple input datas";
             //Cannot have multiple input datas.
             return false;
         }

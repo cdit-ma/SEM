@@ -144,7 +144,8 @@ QRectF BasicNodeItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
         return deployedRect();
     case ER_CONNECT:
         return connectRect();
-        break;
+    case ER_TERTIARY_ICON:
+        return tertiaryIconRect();
     default:
         break;
     }
@@ -216,6 +217,14 @@ QRectF BasicNodeItem::headerTextRect() const
     }else{
         rect.setLeft(rect.left() + iconRect().width() + 2);
     }
+    return rect;
+}
+
+QRectF BasicNodeItem::tertiaryIconRect() const
+{
+    QRectF rect;
+    rect.setSize(smallIconSize());
+    rect.moveTopLeft(iconRect().topRight());
     return rect;
 }
 

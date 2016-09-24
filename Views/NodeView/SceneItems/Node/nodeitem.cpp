@@ -645,6 +645,8 @@ void NodeItem::setSecondaryTextKey(QString key)
     }
 }
 
+
+
 void NodeItem::setVisualEdgeKind(Edge::EDGE_KIND kind)
 {
     visualEdgeKind = kind;
@@ -1015,13 +1017,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 
     EntityItem::paint(painter, option, widget);
-
-    if(state > RS_BLOCK){
-        if(isReadOnly()){
-            paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
-        }
-    }
-
     if(gotPrimaryTextKey()){
         renderText(painter, lod, ER_PRIMARY_TEXT, getPrimaryText());
     }

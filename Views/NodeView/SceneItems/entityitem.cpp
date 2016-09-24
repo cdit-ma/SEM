@@ -14,6 +14,7 @@ EntityItem::EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind)
     this->parentItem = parentItem;
     this->kind = kind;
     paintIconOverlay = false;
+    paintTertiaryIcon = false;
     connectViewItem(viewItem);
 
     if(parentItem){
@@ -63,6 +64,29 @@ EntityItem::~EntityItem()
 int EntityItem::type() const
 {
     return ENTITY_ITEM_KIND;
+}
+
+void EntityItem::setTertiaryIcon(QString path, QString image)
+{
+    tertiaryIconPath.first = path;
+    tertiaryIconPath.second = image;
+    update();
+}
+
+void EntityItem::setTertiaryIconVisible(bool visible)
+{
+    paintTertiaryIcon = visible;
+    update();
+}
+
+bool EntityItem::isTertiaryIconVisible() const
+{
+    return paintTertiaryIcon;
+}
+
+QPair<QString, QString> EntityItem::getTertiaryIcon() const
+{
+    return tertiaryIconPath;
 }
 
 EntityItem::RENDER_STATE EntityItem::getRenderState(qreal lod) const
@@ -222,8 +246,7 @@ void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RE
         font.setFamily("Open Sans");
         font.setPixelSize(MAX_FONT_SIZE);
         painter->setFont(font);
-        //QRect tR = painter->fontMetrics().boundingRect(rect.toRect(), 0, textM.text);// /*+ "W"*/);
-        QRect tR = painter->fontMetrics().boundingRect(textM.text);// /*+ "W"*/);
+        QRect tR = painter->fontMetrics().boundingRect(textM.text + "W");
 
         qreal width = tR.width();
         qreal height = tR.height();
@@ -360,6 +383,11 @@ void EntityItem::setIconOverlayVisible(bool visible)
         paintIconOverlay = visible;
         update();
     }
+}
+
+bool EntityItem::isIconOverlayVisible() const
+{
+    return paintIconOverlay;
 }
 
 QSize EntityItem::getPixmapSize(QRectF rect, qreal lod) const
@@ -815,15 +843,21 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         painter->setBrush(brush);
         painter->setPen(Qt::NoPen);
         painter->drawPath(getElementPath(ER_SELECTION));
-
-        //painter->setClipPath(getElementPath(ER_SELECTION));
     }
 
     //Paint the pixmap!
     paintPixmap(painter, lod, ER_MAIN_ICON, getIconPath());
 
-    if(state > RS_BLOCK && paintIconOverlay){
-        paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, iconOverlayIconPath.first, iconOverlayIconPath.second);
+    if(state > RS_BLOCK){
+        if(paintIconOverlay){
+            paintPixmap(painter, lod, ER_MAIN_ICON_OVERLAY, iconOverlayIconPath);
+        }
+        if(paintTertiaryIcon){
+            paintPixmap(painter, lod, ER_TERTIARY_ICON, tertiaryIconPath);
+        }
+        if(isReadOnly()){
+            paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
+        }
     }
 }
 

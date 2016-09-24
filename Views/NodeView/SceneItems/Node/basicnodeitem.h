@@ -38,6 +38,7 @@ private:
     QRectF innerHeaderRect() const;
 
     QRectF headerTextRect() const;
+    QRectF tertiaryIconRect() const;
     QRectF iconRect() const;
     QRectF iconOverlayRect() const;
 

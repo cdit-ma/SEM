@@ -131,7 +131,8 @@ public:
 
 
     void setPrimaryTextKey(QString key);
-    void setSecondaryTextKey(QString key);    
+    void setSecondaryTextKey(QString key);
+
     void setVisualEdgeKind(Edge::EDGE_KIND kind);
     Edge::EDGE_KIND getVisualEdgeKind() const;
 
@@ -234,6 +235,7 @@ private:
     QString primaryTextKey;
     QString secondaryTextKey;
 
+    QPair<QString, QString> tertiaryIcon;
     // QGraphicsItem interface
 public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

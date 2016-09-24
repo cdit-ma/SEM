@@ -54,7 +54,7 @@ public:
         EDGE,
         NODE,
     };
-    enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT, ER_CONNECT_ICON, ER_EDGE_KIND_ICON, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE, ER_RESIZE_ARROW};
+    enum ELEMENT_RECT{ER_PRIMARY_TEXT, ER_SECONDARY_TEXT, ER_MAIN_ICON, ER_MAIN_ICON_OVERLAY, ER_SECONDARY_ICON, ER_EXPANDED_STATE, ER_LOCKED_STATE, ER_STATUS, ER_CONNECT, ER_CONNECT_ICON, ER_EDGE_KIND_ICON, ER_INFORMATION, ER_NOTIFICATION, ER_EXPANDCONTRACT, ER_SELECTION, ER_DEPLOYED, ER_QOS, ER_MOVE, ER_RESIZE_ARROW, ER_TERTIARY_ICON};
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL, RS_DOUBLE};
 
     EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind);
@@ -129,6 +129,12 @@ public:
 
     void setIconOverlay(QString iconAlias, QString iconPath);
     void setIconOverlayVisible(bool visible);
+    bool isIconOverlayVisible() const;
+
+    void setTertiaryIcon(QString path, QString image);
+    void setTertiaryIconVisible(bool visible);
+    bool isTertiaryIconVisible() const;
+    QPair<QString, QString> getTertiaryIcon() const;
 
 
 private:
@@ -246,6 +252,8 @@ private:
     bool paintIconOverlay;
     QPair<QString, QString> iconOverlayIconPath;
     QPair<QString, QString> secondaryIconPath;
+    QPair<QString, QString> tertiaryIconPath;
+    bool paintTertiaryIcon;
 
 
     QHash<ELEMENT_RECT, ImageMap> imageMap;

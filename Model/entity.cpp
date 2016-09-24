@@ -89,12 +89,6 @@ bool Entity::addData(Data *data)
         return false;
     }
 
-    ENTITY_KIND keyKind = key->getEntityKind();
-    if(keyKind != getEntityKind() && keyKind != EK_ALL){
-        //Can't add data which isn't for this entity kind.
-        return false;
-    }
-
     if(data->getParent()){
         //Can't add data which has a parent already.
         return false;

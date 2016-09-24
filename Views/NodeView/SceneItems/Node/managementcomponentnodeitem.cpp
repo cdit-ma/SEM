@@ -172,11 +172,6 @@ void ManagementComponentNodeItem::setupPolys()
     }
 }
 
-bool ManagementComponentNodeItem::isLogger()
-{
-    return getData("label").toString() == "DDS_LOGGING_SERVER";
-}
-
 bool ManagementComponentNodeItem::isDeployed()
 {
     return true;

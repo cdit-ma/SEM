@@ -129,10 +129,6 @@ ModelController::ModelController() :QObject(0)
     controllerThread->start();
 
 
-    qCritical() << count ++;
-
-
-
     qRegisterMetaType<ENTITY_KIND>("ENTITY_KIND");
     qRegisterMetaType<Edge::EDGE_KIND>("Edge::EDGE_KIND");
     qRegisterMetaType<Node::NODE_KIND>("Node::NODE_KIND");
@@ -696,6 +692,8 @@ void ModelController::_setData(Entity *parent, QString keyName, QVariant dataVal
         if(need2Set){
             parent->setDataValue(keyName, dataValue);
         }
+
+
 
         action.Data.newValue = parent->getDataValue(keyName);
     }else{
@@ -2530,24 +2528,22 @@ Node *ModelController::_constructNode(QList<Data *> nodeData)
     Node* node = constructTypedNode(childNodeKind, false, childNodeType, childUniqueID);
 
     //Enforce Default Data!
-    QList<Data*> requiredData = constructDataVector(childNodeKind);
+    QList<Data*> requiredData;
 
-
-    bool inModel = _isInModel(node);
+    bool inModel = node->isInModel();
     if(node){
+        requiredData = constructDataVector(childNodeKind);
+
         //Attach Default Data.
         _attachData(node, requiredData, inModel);
 
         //Update Data with custom Data!
         _attachData(node, nodeData, inModel);
-
-
     }
 
     //Delete the Data objects which didn't get adopted to the Node (or if our Node is null)
     while(!requiredData.isEmpty()){
         Data* data = requiredData.takeFirst();
-
         if(!node || data->getParent() != node){
             delete data;
         }
@@ -2561,6 +2557,7 @@ Node *ModelController::_constructNode(QList<Data *> nodeData)
             delete data;
         }
     }
+
     return node;
 }
 
@@ -3500,15 +3497,13 @@ bool ModelController::_attachData(Entity *item, QList<Data *> dataList, bool add
         return false;
     }
 
-    bool isParameter = dynamic_cast<Parameter*>(item) != 0;
+    bool isParameter = item->isNode() && ((Node*)item)->isNodeOfType(Node::NT_PARAMETER);
 
     foreach(Data* data, dataList){
         QString keyName = data->getKeyName();
         //Check if the item has a Data already.
         if(item->getData(keyName)){
             if((keyName == "x" || keyName == "y") && (data->getValue() == "" || data->getValue() == "-1")){
-                //Skip bad values
-                continue;
             }
             _setData(item, keyName, data->getValue(), addAction);
         }else{
@@ -3889,8 +3884,8 @@ Node *ModelController::constructTypedNode(QString nodeKind, bool isTemporary, QS
             return managementComponents[nodeType];
         }else{
             ManagementComponent* mC = new ManagementComponent();
-            if(storeNode && nodeLabel != ""){
-                managementComponents[nodeLabel] = mC;
+            if(storeNode && nodeType != ""){
+                managementComponents[nodeType] = mC;
             }
             return mC;
         }
@@ -4052,7 +4047,7 @@ void ModelController::constructNodeGUI(Node *node)
 
 void ModelController::setupModel()
 {
-    model = dynamic_cast<Model*>(constructTypedNode("Model"));
+    model = (Model*) (constructTypedNode("Model"));
     _attachData(model, constructDataVector("Model"));
     constructNodeGUI(model);
 
@@ -5514,7 +5509,6 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                         entity->setIgnoreConstruction();
                     }else{
                         QList<Data*> dataList = entity->takeDataList();
-
                         newNode = _constructNode(dataList);
                     }
 
@@ -5728,8 +5722,6 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
 
     //Clear the topEntity
     delete topEntity;
-
-
 
     return true;
 }
