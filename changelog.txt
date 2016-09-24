@@ -1,3 +1,96 @@
+# Version 2.0.0
+## New Features:
+
+### General
+* MEDEA's GUI/UX has been redesigned with modular dock widgets used to contain views and tools.
+ * The dock widgets can be resized, moved and undocked to provide user with complete freedom for tool layouts.
+* Redesigned MEDEA's MVC connections between the Model Controller and the View
+* Implemented XMI/UML Import functionality for loading datastructures
+* Implemented QoS modelling for DDS based middlewares
+* Implemented a Notification Panel which keeps track of notifications after they have been toasted to the user.
+
+### View
+* Each Aspect now has it's own view, contained in a dock widget.
+ * Each dock widget has it's own selection. All tools will update based on the current active view.
+* Sub Views are now fully editable and have the same functionality as the aspect views.
+* NodeView has been overhauled, with efforts to improve the render performance of large systems.
+* Zoom based render-quality has been further improved, with text and icon mipmapping occurs/
+
+### Tools
+* The Data Table, View Minimap, View Manager, Dock and Application Toolbar all use modular dock widgets.
+
+# Version 1.5.2
+## New Features:
+### Jenkins
+* MEDEA can now run a job indefinately, by setting a duration of 0 seconds.
+** A special button now appears in the Jenkins Job Monitor to terminate the job
+* Jenkins Job Monitor uses a monospaced font for better readability.
+* Jenkins Job Monitor now provides a URL link for the Jenkins page relative to the job and job number.
+
+# Version 1.5.1
+## New Features:
+
+### General
+* Updated the DDS_Logging_Server Management component to support new DIG-SLC logging capabilities
+* Updated the WE_GPU worker definition to match updates to worker
+* Implemented smarter caching of Images in the Theme class
+
+### View
+* Processes now show a smaller icon for their action inside the original Process icon
+* Updated the InputParameter and ReturnParameter icons
+* Extended the **getCPP** functionality to provide both header file and cpp file in a tabbed widget
+* Entity items' hover highlight now exist at all zoom level
+
+### Jenkins
+* Jenkins settings are validated on Launch
+* Jenkins settings are also validated after these settings have been changed/applied.
+* MEDEA now informs the user via notification whether or not Jenkins settings have been validated (And what settings are invalid)
+* Implemented the ability to close tabs in the JenkinsJobMonitorWidget (Which stops the flow of data from the Jenkins CLI)
+
+### Dock
+* Dock will now remain open if the selection changes; it still closes if there is no selection
+* Added a new entity Worker Process to replace previous Process
+* Process now constructs a **legacy** Process for using non-integrated workers
+* Added functionality to swap the Hardware Dock from deploy mode to center on mode (swaps automatically based on selection)
+* Fixed visual bug with switching from the Definitions Dock to the Nodes dock
+
+### Toolbar
+* Added functionality to modify the **replicate_count** for a selection of ComponentAssemblies
+* Added functionality to un-deploy a selection of deployed entities
+* Added functionality to launch the wiki page describing the current selected entity.
+* Added functionality to set/unset a selection as read-only. Read-Only mode will only allow visual changes, not functional/model changes.
+* Extended the **Connect** tool button to allow multiple selected entites to connect to a shared legal entity
+* Fixed the missing **View Connections** tool button
+
+### Selection
+* Implemented the ability to have an **Active Selected Item** in a multiple item selection
+ * Added the ability to Tab/Shift+Tab to change the currently active selected item.
+ * The active selected item will have the table shown
+ * The active selected item will have a dark blue outline, whilst the other items in the current selection have a lighter blue border.
+ * Clicking on an item whilst it's selected will set that item as the active selected item.
+
+## Bug Fixes
+* MEDEA now properly disables the Jenkins functionality if incorrect settings are applied, or validation cannot be run
+* Fixed a bug in which Notifications where not being hidden after timeout had expired in certain circumstances
+* Fixed a bug in which changing the sort order of an entity resulted in maligned sort orders
+* Fixed bugs around the detection of non-unique labels
+* Added Delete support for MacOSX
+
+## GitHub Issues Resolved:
+* #66
+* #64
+* #60 
+* #59 
+* #58 
+* #57 
+* #56 
+* #55 
+* #54
+* #53 
+* #52 
+* #39 
+* #34 
+
 # Version 1.5.0
 ## New Features:
 
