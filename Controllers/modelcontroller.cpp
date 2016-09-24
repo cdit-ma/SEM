@@ -1768,6 +1768,7 @@ QList<int> ModelController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_KI
 
     QList<int> dstIDs;
     lock.lockForRead();
+
     foreach(Node* dst, _getConnectableNodes(getNodes(srcs), edgeKind)){
         dstIDs.append(dst->getID());
     }
@@ -1811,7 +1812,7 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> sourceNodes, E
 
     foreach(Node* src, sourceNodes){
         if(!src->requiresEdgeKind(edgeKind)){
-            if(src->acceptsEdgeKind(edgeKind) && !tryBackwards){
+            if(!src->acceptsEdgeKind(edgeKind) && !tryBackwards){
                 return validNodes;
             }
         }
@@ -3400,7 +3401,7 @@ bool ModelController::destructEdge(Edge *edge)
     }
     case Edge::EC_DATA:{
         if(dst->isNodeOfType(Node::NT_DATA) && src->isNodeOfType(Node::NT_DATA)){
-            setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, true);
+            setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, false);
         }
         break;
     }
@@ -4493,6 +4494,7 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
     }
     return true;
 }
+
 
 
 bool ModelController::setupParameterRelationship(Parameter *parameter, Node *data)

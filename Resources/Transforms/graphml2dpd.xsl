@@ -236,7 +236,7 @@
 
         <entity_factory
             xmlns="http://cuts.cs.iupui.edu/iccm"
-            auto_enable_created_entities="{$auto_enable_created_entities}"
+            autoenable_created_entities="{$auto_enable_created_entities}"
         />
     </xsl:template>
 
