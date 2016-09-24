@@ -581,17 +581,21 @@ void ViewController::_showWebpage(QString URL)
 void ViewController::_showWiki(ViewItem *item)
 {
     QString wikiURL = SettingsController::settings()->getSetting(SK_GENERAL_MEDEA_WIKI_URL).toString();
+    QString url = wikiURL;
 
     bool isGitWiki = wikiURL.contains("github.com", Qt::CaseInsensitive);
 
-    QString url = wikiURL;
+    if(!isGitWiki){
+        url += "/SEM/MEDEA";
+    }
+
     if(item){
         QString kind = item->getData("kind").toString();
         if(isGitWiki){
             //GIT USES FLAT STRUCTURE
-            url += "ModelEntities-" + kind;
+            url += "/ModelEntities-" + kind;
         }else{
-            url += "/SEM/MEDEA/ModelEntities#" + kind;
+            url += "/ModelEntities/" + kind;
         }
     }
     _showWebpage(url);
