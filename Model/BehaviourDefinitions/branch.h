@@ -7,11 +7,11 @@ class Branch: public BehaviourNode
 {
     Q_OBJECT
 public:
-    Branch();
+    Branch(NODE_KIND kind);
     Termination* getTermination();
 
     virtual bool canAdoptChild(Node *node);
-    bool canConnect_WorkflowEdge(Node *node);
+    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // BRANCH_H

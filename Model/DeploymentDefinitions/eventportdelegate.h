@@ -1,30 +1,29 @@
 #ifndef EVENTPORTDELEGATE_H
 #define EVENTPORTDELEGATE_H
-#include "../node.h"
-#include "eventportinstance.h"
-#include "../InterfaceDefinitions/aggregate.h"
+#include "../InterfaceDefinitions/eventport.h"
 
-class EventPortDelegate: public Node
+class EventPortAssembly: public EventPort
 {
     Q_OBJECT
 public:
-    EventPortDelegate(bool inEventPortDelegate);
-    ~EventPortDelegate();
+    EventPortAssembly(Node::NODE_KIND kind);
 
-    bool isInEventPortDelegate();
-    bool isOutEventPortDelegate();
+    bool isPortDelegate() const;
+
+    bool isInPortDelegate() const;
+    bool isOutPortDelegate() const;
+
+    bool isInPortAssembly() const;
+    bool isOutPortAssembly() const;
 
 
-    bool canAdoptChild(Node*);
-    bool canConnect_AssemblyEdge(Node *node);
-    bool canConnect_AggregateEdge(Node *aggregate);
+    bool isPortInstance() const;
 
-    void setAggregate(Aggregate *aggregate);
-    void unsetAggregate();
-    Aggregate *getAggregate();
-private:
-    Aggregate* aggregate;
-    bool inEventPortDelegate;
+    bool isInPortInstance() const;
+    bool isOutPortInstance() const;
+
+    virtual bool canAdoptChild(Node*);
+    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // EVENTPORTDELEGATE_H

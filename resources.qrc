@@ -46,7 +46,6 @@
         <file alias="Vector">Resources/Images/Items/Vector.png</file>
         <file alias="Localhost">Resources/Images/Items/Localhost.png</file>
         <file alias="VectorInstance">Resources/Images/Items/VectorInstance.png</file>
-        <file alias="VectorOperation">Resources/Images/Items/VectorOperation.png</file>
         <file alias="InputParameter">Resources/Images/Items/InputParameter.png</file>
         <file alias="ReturnParameter">Resources/Images/Items/ReturnParameter.png</file>
         <file alias="Vector_AggregateInstance">Resources/Images/Items/Vector_AggregateInstance.png</file>
@@ -54,6 +53,14 @@
         <file alias="VectorInstance_AggregateInstance">Resources/Images/Items/VectorInstance_AggregateInstance.png</file>
         <file alias="VectorInstance_Member">Resources/Images/Items/VectorInstance_Member.png</file>
         <file alias="WorkerProcess">Resources/Images/Items/WorkerProcess.png</file>
+        <file alias="DDS_QOSProfile">Resources/Images/Items/DDS_QOSProfile.png</file>
+        <file alias="QOSProfile">Resources/Images/Items/QOSProfile.png</file>
+        <file alias="Edge_Assembly">Resources/Images/Items/Edge_Assembly.png</file>
+        <file alias="Edge_Deployment">Resources/Images/Items/Edge_Deployment.png</file>
+        <file alias="Edge_QOS">Resources/Images/Items/Edge_QOS.png</file>
+        <file alias="Edge_Aggregate">Resources/Images/Items/Edge_Aggregate.png</file>
+        <file alias="Edge_Data">Resources/Images/Items/Edge_Data.png</file>
+        <file alias="Edge_Workflow">Resources/Images/Items/Edge_Workflow.png</file>
     </qresource>
     <qresource prefix="/">
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>
@@ -63,34 +70,30 @@
         <file>Resources/Fonts/OpenSans-Regular.ttf</file>
         <file alias="MEDEABanner.png">Resources/Images/MEDEA_Banner.png</file>
         <file alias="Graphml.ico">Resources/Images/Graphml.ico</file>
+        <file alias="UML">Resources/Images/UML.png</file>
+        <file alias="MEDEA_Watermark">Resources/Images/MEDEA_Watermark.png</file>
     </qresource>
     <qresource prefix="/Actions">
         <file alias="Add">Resources/Images/Actions/Add.png</file>
         <file alias="Align_Horizontal">Resources/Images/Actions/Align_Horizontal.png</file>
         <file alias="Align_Vertical">Resources/Images/Actions/Align_Vertical.png</file>
-        <file alias="AlignToGrid">Resources/Images/Actions/AlignToGrid.png</file>
         <file alias="Arrow_Back">Resources/Images/Actions/Arrow_Back.png</file>
         <file alias="Arrow_Down">Resources/Images/Actions/Arrow_Down.png</file>
         <file alias="Arrow_Forward">Resources/Images/Actions/Arrow_Forward.png</file>
         <file alias="Arrow_Left">Resources/Images/Actions/Arrow_Left.png</file>
         <file alias="Arrow_Right">Resources/Images/Actions/Arrow_Right.png</file>
         <file alias="Arrow_Up">Resources/Images/Actions/Arrow_Up.png</file>
-        <file alias="Backward">Resources/Images/Actions/Backward.png</file>
         <file alias="Build">Resources/Images/Actions/Build.png</file>
         <file alias="Cancel">Resources/Images/Actions/Cancel.png</file>
-        <file alias="Center">Resources/Images/Actions/Center.png</file>
         <file alias="Clear">Resources/Images/Actions/Clear.png</file>
         <file alias="Code">Resources/Images/Actions/Code.png</file>
         <file alias="Comment">Resources/Images/Actions/Comment.png</file>
-        <file alias="Connect">Resources/Images/Actions/Connect.png</file>
-        <file alias="ConnectHardware">Resources/Images/Actions/ConnectHardware.png</file>
         <file alias="Connections">Resources/Images/Actions/Connections.png</file>
         <file alias="Copy">Resources/Images/Actions/Copy.png</file>
         <file alias="CPU">Resources/Images/Actions/CPU.png</file>
         <file alias="Crosshair">Resources/Images/Actions/Crosshair.png</file>
         <file alias="Cut">Resources/Images/Actions/Cut.png</file>
         <file alias="CutIcon">Resources/Images/Actions/CutIcon.png</file>
-        <file alias="Database">Resources/Images/Actions/Database.png</file>
         <file alias="Definition">Resources/Images/Actions/Definition.png</file>
         <file alias="Delete">Resources/Images/Actions/Delete.png</file>
         <file alias="Download">Resources/Images/Actions/Download.png</file>
@@ -99,7 +102,6 @@
         <file alias="ExportSnippet">Resources/Images/Actions/ExportSnippet.png</file>
         <file alias="Failure">Resources/Images/Actions/Failure.png</file>
         <file alias="FitToScreen">Resources/Images/Actions/FitToScreen.png</file>
-        <file alias="Forward">Resources/Images/Actions/Forward.png</file>
         <file alias="Generate">Resources/Images/Actions/Generate.png</file>
         <file alias="Goto">Resources/Images/Actions/Goto.png</file>
         <file alias="Grid_Off">Resources/Images/Actions/Grid_Off.png</file>
@@ -169,20 +171,15 @@
         <file alias="Mouse">Resources/Images/Actions/Mouse.png</file>
         <file alias="Contract">Resources/Images/Actions/Contract.png</file>
         <file alias="Expand">Resources/Images/Actions/Expand.png</file>
-        <file alias="ConnectNode">Resources/Images/Actions/ConnectNode.png</file>
         <file alias="ComboArrow">Resources/Images/Actions/ComboArrow.png</file>
         <file alias="Key">Resources/Images/Actions/Key.png</file>
         <file alias="Fullscreen">Resources/Images/Actions/Fullscreen.png</file>
-        <file alias="Function">Resources/Images/Actions/Function.png</file>
         <file alias="getCPP">Resources/Images/Actions/getCPP.png</file>
         <file alias="Close">Resources/Images/Actions/Close.png</file>
         <file alias="Critical">Resources/Images/Actions/Critical.png</file>
         <file alias="Cross">Resources/Images/Actions/Cross.png</file>
         <file alias="Exclamation">Resources/Images/Actions/Exclamation.png</file>
         <file alias="BugReport">Resources/Images/Actions/BugReport.png</file>
-        <file alias="Loading.gif">Resources/Images/Actions/Loading.gif</file>
-        <file alias="DisconnectAggregate">Resources/Images/Actions/DisconnectAggregate.png</file>
-        <file alias="DisconnectHardwareNode">Resources/Images/Actions/DisconnectHardwareNode.png</file>
         <file alias="PrintScreen">Resources/Images/Actions/PrintScreen.png</file>
         <file alias="Timer">Resources/Images/Actions/Timer.png</file>
         <file alias="Wiki">Resources/Images/Actions/Wiki.png</file>
@@ -199,6 +196,29 @@
         <file alias="Computer_Cross">Resources/Images/Actions/Computer_Cross.png</file>
         <file alias="Replicate_Count">Resources/Images/Actions/Replicate_Count.png</file>
         <file alias="getH">Resources/Images/Actions/getH.png</file>
+        <file alias="Resize">Resources/Images/Actions/Resize.png</file>
+        <file alias="Square">Resources/Images/Actions/Square.png</file>
+        <file alias="Maximize">Resources/Images/Actions/Maximize.png</file>
+        <file alias="Minimize">Resources/Images/Actions/Minimize.png</file>
+        <file alias="DockMaximize">Resources/Images/Actions/DockMaximize.png</file>
+        <file alias="DockPopOut">Resources/Images/Actions/DockPopOut.png</file>
+        <file alias="ImportXME">Resources/Images/Actions/ImportXME.ico</file>
+        <file alias="Qt">Resources/Images/Actions/Qt.ico</file>
+        <file alias="ImportXMI">Resources/Images/Actions/ImportXMI.png</file>
+        <file alias="Splitter">Resources/Images/Actions/splitter.png</file>
+        <file alias="Policies">Resources/Images/Actions/Policies.png</file>
+        <file alias="Rename">Resources/Images/Actions/Rename.png</file>
+        <file alias="DANCE_EXECUTION_MANAGER">Resources/Images/Actions/DANCE_EXECUTION_MANAGER.png</file>
+        <file alias="DANCE_PLAN_LAUNCHER">Resources/Images/Actions/DANCE_PLAN_LAUNCHER.png</file>
+        <file alias="DDS_LOGGING_SERVER">Resources/Images/Actions/DDS_LOGGING_SERVER.png</file>
+        <file alias="QPID_BROKER">Resources/Images/Actions/QPID_BROKER.png</file>
+        <file alias="QOS">Resources/Images/Actions/QOS.png</file>
+        <file alias="Model">Resources/Images/Actions/Model.png</file>
+        <file alias="Project">Resources/Images/Actions/Project.png</file>
+        <file alias="Selection">Resources/Images/Actions/Selection.png</file>
+        <file alias="View">Resources/Images/Actions/View.png</file>
+        <file>Resources/Images/Actions/Cage.jpg</file>
+        <file alias="Disconnect">Resources/Images/Actions/Disconnect.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>
@@ -277,19 +297,7 @@
         <file alias="WE_UTE.worker.graphml">Resources/WorkerDefinitions/WE_UTE.worker.graphml</file>
         <file alias="VariableOperation.worker.graphml">Resources/WorkerDefinitions/VariableOperation.worker.graphml</file>
     </qresource>
-    <qresource prefix="/Sounds">
-        <file alias="click">Resources/Sounds/click.wav</file>
-    </qresource>
     <qresource prefix="/Gifs">
         <file alias="Loading">Resources/Gifs/Loading.gif</file>
-    </qresource>
-    <qresource prefix="/Welcome">
-        <file alias="Help">Resources/Images/Welcome/Help.png</file>
-        <file alias="New">Resources/Images/Welcome/New.png</file>
-        <file alias="Open">Resources/Images/Welcome/Open.png</file>
-        <file alias="Timer">Resources/Images/Welcome/Timer.png</file>
-        <file alias="Wiki">Resources/Images/Welcome/Wiki.png</file>
-        <file alias="Settings">Resources/Images/Welcome/Settings.png</file>
-        <file alias="Close">Resources/Images/Welcome/Close.png</file>
     </qresource>
 </RCC>

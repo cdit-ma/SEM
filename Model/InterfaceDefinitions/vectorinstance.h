@@ -1,19 +1,15 @@
 #ifndef VECTORINSTANCE_H
 #define VECTORINSTANCE_H
-#include "../node.h"
-#include "../BehaviourDefinitions/behaviournode.h"
-#include "eventport.h"
+#include "datanode.h"
 
-class VectorInstance : public BehaviourNode
+class VectorInstance : public DataNode
 {
     Q_OBJECT
 public:
     VectorInstance();
-    ~VectorInstance();
 
     bool canAdoptChild(Node* child);
-    bool canConnect_DefinitionEdge(Node *definition);
-    bool canConnect_DataEdge(Node *node);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 

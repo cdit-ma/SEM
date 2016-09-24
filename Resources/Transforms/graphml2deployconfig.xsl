@@ -53,7 +53,7 @@
 	<xsl:template match="gml:graphml">
 		<!-- Assign the transform node keys for Label and Kind from existing keys -->
 		
-		<xsl:variable name="labelnodeFound" select="./gml:key[@attr.name='label'][@for='node']" />
+		<xsl:variable name="labelnodeFound" select="./gml:key[@attr.name='label']" />
 		<xsl:variable name="transformNodeLabelKey">
 			<xsl:choose>
 				<xsl:when test="not($labelnodeFound)">
@@ -65,7 +65,7 @@
 			</xsl:choose>
 		</xsl:variable>
 
-		<xsl:variable name="typenodeFound" select="./gml:key[@attr.name='type'][@for='node']" />
+		<xsl:variable name="typenodeFound" select="./gml:key[@attr.name='type']" />
 		<xsl:variable name="transformNodeTypeKey">
 			<xsl:choose>
 				<xsl:when test="not($typenodeFound)">
@@ -77,7 +77,7 @@
 			</xsl:choose>
 		</xsl:variable>
 		
-		<xsl:variable name="kindnodeFound" select="./gml:key[@attr.name='kind'][@for='node']" />
+		<xsl:variable name="kindnodeFound" select="./gml:key[@attr.name='kind']" />
 		<xsl:variable name="transformNodeKindKey">
 			<xsl:choose>
 				<xsl:when test="not($kindnodeFound)">
@@ -89,7 +89,7 @@
 			</xsl:choose>
 		</xsl:variable>	
 	
-		<xsl:variable name="ipnodeFound" select="./gml:key[@attr.name='ip_address'][@for='node']" />
+		<xsl:variable name="ipnodeFound" select="./gml:key[@attr.name='ip_address']" />
 		<xsl:variable name="transformNodeIp_addressKey">
 			<xsl:choose>
 				<xsl:when test="not($ipnodeFound)">
@@ -101,7 +101,7 @@
 			</xsl:choose>
 		</xsl:variable>		
 
-		<xsl:variable name="sharednodeFound" select="./gml:key[@attr.name='shared_directory'][@for='node']" />
+		<xsl:variable name="sharednodeFound" select="./gml:key[@attr.name='shared_directory']" />
 		<xsl:variable name="transformNodeShared_directoryKey">
 			<xsl:choose>
 				<xsl:when test="not($sharednodeFound)">
@@ -113,7 +113,7 @@
 			</xsl:choose>
 		</xsl:variable>	
 		
-		<xsl:variable name="middlewarenodeFound" select="./gml:key[@attr.name='middleware'][@for='node']" />
+		<xsl:variable name="middlewarenodeFound" select="./gml:key[@attr.name='middleware']" />
 		<xsl:variable name="transformNodeMiddlewareKey">
 			<xsl:choose>
 				<xsl:when test="not($middlewarenodeFound)">

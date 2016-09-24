@@ -1,10 +1,17 @@
 #include "inputparameter.h"
 
-InputParameter::InputParameter(): Parameter(true)
+InputParameter::InputParameter(): Parameter(NK_INPUTPARAMETER)
 {
-    setIsDataInput(true);
+    setDataReciever(true);
+    setDataProducer(false);
 }
 
-InputParameter::~InputParameter()
+bool InputParameter::canAdoptChild(Node *)
 {
+    return false;
+}
+
+bool InputParameter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+{
+    return Parameter::canAcceptEdge(edgeKind, dst);
 }

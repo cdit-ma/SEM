@@ -1,65 +1,59 @@
-#include <QDebug>
 #include "vectorinstance.h"
-#include "aggregateinstance.h"
-#include "memberinstance.h"
-#include "vector.h"
-#include "../BehaviourDefinitions/inputparameter.h"
 
-VectorInstance::VectorInstance(): BehaviourNode(Node::NT_DEFINSTANCE)
+VectorInstance::VectorInstance(): DataNode(Node::NK_VECTOR_INSTANCE)
 {
-    setIsNonWorkflow(true);
-    setIsDataInput(true);
-    setIsDataOutput(true);
-
-    setAcceptEdgeClass(Edge::EC_DEFINITION);
-    setAcceptEdgeClass(Edge::EC_DATA);
+    //Can be both an input/output for data.
+    setDataProducer(true);
+    setDataReciever(true);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setNodeType(NT_INSTANCE);
+    setNodeType(NT_DEFINITION);
 }
-
-VectorInstance::~VectorInstance()
-{
-}
-
 
 bool VectorInstance::canAdoptChild(Node *child)
 {
-    MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(child);
-    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
-
-    if(!(aggregateInstance || memberInstance)){
-        return false;
+    //Can only adopt a MemberInstance/AggregateInstance
+    switch(child->getNodeKind()){
+    case NK_MEMBER_INSTANCE:
+    case NK_AGGREGATE_INSTANCE:{
+        if(hasChildren()){
+            return false;
+        }
+        break;
     }
-    if(hasChildren()){
+    default:
         return false;
     }
 
     return Node::canAdoptChild(child);
 }
 
-bool VectorInstance::canConnect_DefinitionEdge(Node *definition)
+bool VectorInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
-    VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(definition);
-    Vector* vector = dynamic_cast<Vector*>(definition);
-
-    if(!(vector || vectorInstance)){
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
-
-    if(getDefinition()){
-        return false;
-    }
-
-    return Node::canConnect_DefinitionEdge(definition);
-}
-
-bool VectorInstance::canConnect_DataEdge(Node *node)
-{
-    VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(node);
-    if(vectorInstance){
-        if(getDefinition(true) != vectorInstance->getDefinition(true)){
+    switch(edgeKind){
+    case Edge::EC_DEFINITION:{
+        if(!(dst->getNodeKind() == NK_VECTOR_INSTANCE || dst->getNodeKind() == NK_VECTOR)){
             return false;
         }
+        if(!dst->hasChildren()){
+            return false;
+        }
+        break;
     }
+    case Edge::EC_DATA:{
+        if(dst->getNodeKind() == NK_VECTOR_INSTANCE){
+            if(getDefinition(true) && dst->getDefinition(true) != getDefinition(true)){
+                return false;
+            }
+        }
 
-
-    return BehaviourNode::canConnect_DataEdge(node);
+        break;
+    }
+    default:
+        break;
+    }
+    return DataNode::canAcceptEdge(edgeKind, dst);
 }

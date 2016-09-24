@@ -148,9 +148,9 @@
 <axsl:template match="/">
 <svrl:schematron-output xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" schemaVersion="ISO19757-3" title="ISO schematron file for MEDEA graphml format">
 <axsl:comment>
-<axsl:value-of select="$archiveDirParameter"/>   
-		 <axsl:value-of select="$archiveNameParameter"/>  
-		 <axsl:value-of select="$fileNameParameter"/>  
+<axsl:value-of select="$archiveDirParameter"/>   
+		 <axsl:value-of select="$archiveNameParameter"/>  
+		 <axsl:value-of select="$fileNameParameter"/>  
 		 <axsl:value-of select="$fileDirParameter"/>
 </axsl:comment>
 <svrl:ns-prefix-in-attribute-values prefix="gml" uri="http://graphml.graphdrawing.org/xmlns"/>
@@ -269,12 +269,12 @@
 <!--SCHEMATRON PATTERNS-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">ISO schematron file for MEDEA graphml format</svrl:text>
 <axsl:param select="'#ALL'" name="selectID"/>
-<axsl:param select="/gml:graphml/gml:key[@attr.name='kind'][@for='node']/@id" name="nodeKindKey"/>
-<axsl:param select="/gml:graphml/gml:key[@attr.name='label'][@for='node']/@id" name="nodeLabelKey"/>
-<axsl:param select="/gml:graphml/gml:key[@attr.name='type'][@for='node']/@id" name="nodeTypeKey"/>
-<axsl:param select="/gml:graphml/gml:key[@attr.name='value'][@for='node']/@id" name="nodeValueKey"/>
-<axsl:param select="/gml:graphml/gml:key[@attr.name='key'][@for='node']/@id" name="nodeKeyMemberKey"/>
-<axsl:param select="/gml:graphml/gml:key[@attr.name='middleware'][@for='node']/@id" name="nodeMiddlewareKey"/>
+<axsl:param select="/gml:graphml/gml:key[@attr.name='kind']/@id" name="nodeKindKey"/>
+<axsl:param select="/gml:graphml/gml:key[@attr.name='label']/@id" name="nodeLabelKey"/>
+<axsl:param select="/gml:graphml/gml:key[@attr.name='type']/@id" name="nodeTypeKey"/>
+<axsl:param select="/gml:graphml/gml:key[@attr.name='value']/@id" name="nodeValueKey"/>
+<axsl:param select="/gml:graphml/gml:key[@attr.name='key']/@id" name="nodeKeyMemberKey"/>
+<axsl:param select="/gml:graphml/gml:key[@attr.name='middleware']/@id" name="nodeMiddlewareKey"/>
 <axsl:variable name="PredefinedMemberTypes">
     <Predefined xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" nodeKind="Member" keyName="type" keyType="#ALL">
 		<value>Boolean</value>

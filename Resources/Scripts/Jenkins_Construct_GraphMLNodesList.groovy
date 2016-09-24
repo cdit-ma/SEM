@@ -85,7 +85,7 @@ OUTPUT <<= '<key attr.name="architecture" attr.type="string" for="node" id="k8"/
 OUTPUT <<= '<key attr.name="os_version" attr.type="string" for="node" id="k9"/>\n';
 OUTPUT <<= '<key attr.name="shared_directory" attr.type="string" for="node" id="k10"/>\n';
 OUTPUT <<= '<key attr.name="readOnly" attr.type="boolean" for="node" id="k11"/>\n';
-OUTPUT <<= '<key attr.name="sortOrder" attr.type="string" for="node" id="k12"/>\n';
+OUTPUT <<= '<key attr.name="sortOrder" attr.type="int" for="node" id="k12"/>\n';
 OUTPUT <<= '<key attr.name="root_path" attr.type="string" for="node" id="k13"/>\n';
 OUTPUT <<= '<key attr.name="load_time" attr.type="string" for="node" id="k14"/>\n';
 OUTPUT <<= '<key attr.name="is_online" attr.type="boolean" for="node" id="k15"/>\n';
@@ -148,6 +148,7 @@ for(slave in SLAVES){
     OUTPUT <<= '\t\t\t\t\t\t<data key="k1">HardwareNode</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k20">' + x + '</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k21">' + y + '</data>\n';
+    OUTPUT <<= '\t\t\t\t\t\t<data key="k22">true</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k3">' + slave.getNodeName() + '</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k4">' + slave.getLabelString() + '</data>\n';
     OUTPUT <<= '\t\t\t\t\t\t<data key="k18">' + hostname + '</data>\n';

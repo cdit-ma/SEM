@@ -3,19 +3,18 @@
 #include "edge.h"
 #include <QDebug>
 #include <QCryptographicHash>
+#include <QStringBuilder>
 #include <QByteArray>
+#include <QStack>
 
-Node::Node(NODE_TYPE type, NODE_CLASS nClass) : Entity(EK_NODE)
+Node::Node(Node::NODE_KIND kind):Entity(EK_NODE)
 {
-    //Set the Node Type.
-    nodeType = type;
-
-    //Initialize Instance Variables.
-    definition = 0;
+    this->nodeKind = kind;
     parentNode = 0;
     childCount = 0;
-
-    nodeClass = nClass;
+    definition = 0;
+    types = 0;
+    aspect = VA_NONE;
 }
 
 QString Node::toGraphML(int indentDepth)
@@ -34,15 +33,16 @@ QList<int> Node::getTreeIndex()
     return treeIndex;
 }
 
-QString Node::getTreeIndexString()
+QString Node::getTreeIndexAlpha()
 {
-    return treeIndexStr;
+    return treeIndexString;
 }
 
-NODE_CLASS Node::getNodeClass()
+Node::NODE_KIND Node::getNodeKind() const
 {
-    return nodeClass;
+    return nodeKind;
 }
+
 
 Node::~Node()
 {
@@ -55,25 +55,177 @@ Node::~Node()
  * @brief Node::addValidEdgeType Add's an Edge class as a type of edge this node should check in canConnect()
  * @param validEdge
  */
-void Node::setAcceptEdgeClass(Edge::EDGE_CLASS validEdge)
+bool Node::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
-    if(!validEdges.contains(validEdge)){
-        validEdges.append(validEdge);
+    if(!acceptsEdgeKind(edgeKind)){
+        return false;
+    }
+
+    Node* parentNode = getParentNode();
+    switch(edgeKind){
+        case Edge::EC_DEFINITION:{
+        //This must be an Instance/Impl Node Type
+        if(!(isInstanceImpl())){
+            return false;
+        }
+
+        //Node cannot already have a Definition.
+        if(getDefinition()){
+            return false;
+        }
+
+        //Node must be a Definition Node Type.
+        if(!dst->isNodeOfType(NT_DEFINITION)){
+            return false;
+        }
+        if(parentNode){
+            if(parentNode->isInstanceImpl()){
+                Node* pDef = parentNode->getDefinition();
+                if(pDef && !pDef->isAncestorOf(dst)){
+                    //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
+                    return false;
+                }
+            }else{
+                if(dst->getDefinition()){
+                    return false;
+                }
+            }
+        }
+
+        if(indirectlyConnectedTo(dst)){
+            return false;
+        }
+
+        //HMM
+        //if(isDescendantOf())
+
+        break;
+    }
+    case Edge::EC_WORKFLOW:
+    case Edge::EC_DATA:{
+        int depthToAspect = getDepthFromAspect();
+        int depthToCommonParent = getDepthFromCommonAncestor(dst);
+
+        if(depthToCommonParent >= depthToAspect){
+            return false;
+        }
+        break;
+    }
+    case Edge::EC_QOS:{
+        if(!dst->isNodeOfType(NT_QOS_PROFILE)){
+            return false;
+        }
+        break;
+    }
+    case Edge::EC_DEPLOYMENT:{
+        if(!dst->isNodeOfType(NT_HARDWARE)){
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+
+    if(!dst->isInModel()){
+        //Don't allow edges to outside the model.
+        return false;
+    }
+
+    if(dst == this){
+        //Don't allow edges to self.
+        return false;
+    }
+
+    if(gotEdgeTo(dst, edgeKind)){
+        //Don't allow multi edges of the same kind.
+        return false;
+    }
+    return true;
+}
+
+bool Node::isNodeOfType(Node::NODE_TYPE type) const
+{
+    return type & types;
+}
+
+bool Node::acceptsEdgeKind(Edge::EDGE_KIND edgeKind) const
+{
+    return validEdgeKinds.contains(edgeKind);
+}
+
+bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
+{
+    if(validEdgeKinds.contains(edgeKind)){
+        switch(edgeKind){
+        case Edge::EC_DEFINITION:{
+            if(definition){
+                return false;
+            }
+
+            if(isDefinition() && !isInstanceImpl()){
+               return false;
+            }
+            break;
+        }
+        case Edge::EC_AGGREGATE:
+        case Edge::EC_DEPLOYMENT:
+        case Edge::EC_QOS:{
+            foreach(Edge* edge, edges.values(edgeKind)){
+                if(edge->getSource() == this){
+                    return false;
+                }
+            }
+            break;
+        }
+        case Edge::EC_DATA:{
+            if(getViewAspect() != VA_BEHAVIOUR){
+                return false;
+            }
+        }
+        }
+        return true;
+    }
+    return false;
+}
+
+QList<Edge::EDGE_KIND> Node::getAcceptedEdgeKinds() const
+{
+    return validEdgeKinds;
+}
+
+void Node::setNodeType(Node::NODE_TYPE type)
+{
+    int newTypes = types | type;
+    if(newTypes != types){
+        types = newTypes;
+        emit propertyChanged(getID(), "nodeTypes", types);
     }
 }
 
-bool Node::acceptsEdgeClass(Edge::EDGE_CLASS edgeClass)
+void Node::removeNodeType(Node::NODE_TYPE type)
 {
-    return validEdges.contains(edgeClass);
+    int newTypes = types & ~type;
+    if(newTypes != types){
+        types = newTypes;
+        emit propertyChanged(getID(), "nodeTypes", types);
+    }
 }
 
-Node *Node::getContainedAspect()
+void Node::setAcceptsEdgeKind(Edge::EDGE_KIND edgeKind)
 {
-    int depth = getDepthToAspect();
-    return getParentNode(depth);
+    if(!validEdgeKinds.contains(edgeKind)){
+        validEdgeKinds.append(edgeKind);
+    }
 }
 
-int Node::getDepthToAspect()
+void Node::removeEdgeKind(Edge::EDGE_KIND edgeKind)
+{
+    validEdgeKinds.removeAll(edgeKind);
+}
+
+int Node::getDepthFromAspect()
 {
     int depth = 0;
 
@@ -88,26 +240,49 @@ int Node::getDepthToAspect()
     return -1;
 }
 
+Node *Node::getCommonAncestor(Node *dst)
+{
+    int height = getDepthFromCommonAncestor(dst);
+
+    if(height != -1){
+        return getParentNode(height);
+    }
+    return 0;
+}
+
+int Node::getDepthFromCommonAncestor(Node *dst)
+{
+    QList<int> tree1 = getTreeIndex();
+    QList<int> tree2;
+
+    if(dst){
+        tree2 = dst->getTreeIndex();
+    }else{
+        return -1;
+    }
+
+    int i = 0;
+    for(i = 0; i < tree1.size() && i <tree2.size(); i++){
+        if(tree1.at(i) != tree2.at(i)){
+            break;
+        }
+    }
+    //Get invert of the size
+    i = tree1.size() - i;
+
+    return i;
+}
+
 
 void Node::setTop(int index)
 {
-    this->treeIndex.append(index);
-    this->treeIndexStr = QString::number(index);
+    treeIndex.append(index);
+    treeIndexString = QChar('A' + index);
 }
 
-QString Node::toString()
+VIEW_ASPECT Node::getViewAspect() const
 {
-    Data* kindData = getData("kind");
-    Data* labelData = getData("label");
-    QString kind = "Node";
-    QString label = "Node";
-    if(kindData){
-        kind = kindData->getValue().toString();
-    }
-    if(labelData){
-        label = labelData->getValue().toString();
-    }
-    return QString("[%1]%2 - %3").arg(QString::number(getID()), kind, label);
+    return aspect;
 }
 
 Node *Node::getParentNode(int depth)
@@ -192,6 +367,11 @@ bool Node::compareData(Node *node, QStringList keys)
     return true;
 }
 
+void Node::setViewAspect(VIEW_ASPECT aspect)
+{
+    this->aspect = aspect;
+}
+
 void Node::addChild(Node *child)
 {
     if(child && !containsChild(child)){
@@ -200,9 +380,40 @@ void Node::addChild(Node *child)
     }
 }
 
-QString Node::getNodeKind()
+QString Node::getNodeKindStr()
 {
     return getDataValue("kind").toString();
+}
+
+bool Node::indirectlyConnectedTo(Node *node)
+{
+    Node* parent = getParentNode();
+
+    QStack<Node*> items;
+    items.append(node);
+    while(!items.isEmpty()){
+        Node* item = items.takeFirst();
+
+        if(item == parent){
+            return true;
+        }
+        Node* itemDef = item->getDefinition(true);
+        if(itemDef){
+            if(itemDef == parent){
+                return true;
+            }
+
+            if(itemDef == parent->getDefinition(true)){
+                return true;
+            }
+        }
+
+        foreach(Node* node, item->getChildren(0)){
+            items.append(node);
+        }
+    }
+
+    return false;
 }
 
 bool Node::containsChild(Node *child)
@@ -210,7 +421,7 @@ bool Node::containsChild(Node *child)
     return children.contains(child);
 }
 
-QList<Node *> Node::getChildren(int depth)
+QList<Node *> Node::getChildren(int depth) const
 {
     QList<Node *> childList = getOrderedChildNodes();
 
@@ -238,24 +449,34 @@ QList<int> Node::getChildrenIDs(int depth)
 
 
 
-QList<Edge *> Node::getEdges(int depth)
+QList<Edge *> Node::getEdges(int depth, Edge::EDGE_KIND edgeKind) const
 {
+    QList<Edge*> edgesToMap;
 
-    QList<Edge *> edgeList;
+    if(edgeKind == Edge::EC_NONE){
+        edgesToMap += edges.values();
+    }else{
+        edgesToMap += edges.values(edgeKind);
+    }
 
-    edgeList += getOrderedEdges();
     //While we still have Children, Recurse
     if(depth != 0){
         //Add children's children.
         foreach(Node* child, getChildren(0)){
-            foreach(Edge* edge, child->getEdges(depth - 1)){
-                if(!edgeList.contains(edge)){
-                    edgeList += edge;
+            foreach(Edge* edge, child->getEdges(depth - 1, edgeKind)){
+                if(!edgesToMap.contains(edge)){
+                    edgesToMap += edge;
                 }
             }
         }
     }
-    return edgeList;
+
+    QMap<Edge::EDGE_KIND, Edge *> edgeMap;
+    foreach(Edge* edge, edgesToMap){
+        edgeMap.insertMulti(edge->getEdgeKind(), edge);
+    }
+
+    return edgeMap.values();
 }
 
 
@@ -264,10 +485,6 @@ Node *Node::getFirstChild()
     return getOrderedChildNodes().first();
 }
 
-Edge *Node::getFirstEdge()
-{
-    return getOrderedEdges().first();
-}
 
 QList<Node *> Node::getSiblings()
 {
@@ -284,8 +501,6 @@ QList<Node *> Node::getSiblings()
 
 QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
 {
-    QList<Node *> childList = getChildren(depth);
-
     QList<Node*> returnableList;
     foreach(Node* childNode, getChildren(depth)){
         if(childNode->getDataValue("kind") == kindStr){
@@ -295,11 +510,22 @@ QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
     return returnableList;
 }
 
-QList<int> Node::getEdgeIDs(Edge::EDGE_CLASS edgeClass)
+QList<Node *> Node::getChildrenOfKind(NODE_KIND kind, int depth)
+{
+    QList<Node*> returnableList;
+    foreach(Node* childNode, getChildren(depth)){
+        if(childNode->getNodeKind() == kind){
+            returnableList.append(childNode);
+        }
+    }
+    return returnableList;
+}
+
+QList<int> Node::getEdgeIDs(Edge::EDGE_KIND edgeClass)
 {
     QList<int> returnable;
     foreach(Edge* edge, getEdges(0)){
-        if(edgeClass == Edge::EC_NONE || edge->getEdgeClass() == edgeClass){
+        if(edgeClass == Edge::EC_NONE || edge->getEdgeKind() == edgeClass){
             returnable += edge->getID();
         }
     }
@@ -333,10 +559,6 @@ bool Node::hasEdges()
     return !edges.isEmpty();
 }
 
-int Node::edgeCount()
-{
-    return edges.size();
-}
 
 void Node::removeChild(Node *child)
 {
@@ -384,6 +606,7 @@ bool Node::isAncestorOf(GraphML *item)
     return false;
 }
 
+
 bool Node::isDescendantOf(Node *node)
 {
     QList<int> otherTree = node->getTreeIndex();
@@ -403,199 +626,11 @@ bool Node::isDescendantOf(Node *node)
     return true;
 }
 
-Edge::EDGE_CLASS Node::canConnect(Node *node)
+
+
+Edge* Node::getEdgeTo(Node *node, Edge::EDGE_KIND edgeKind)
 {
-    //Don't allow multiple connections.
-    if(gotEdgeTo(node)){
-        return Edge::EC_NONE;
-    }
-
-    //Don't allow connections to parents.
-    if(node->getParentNode() == this || getParentNode() == node){
-        return Edge::EC_NONE;
-    }
-
-    //Don't allow connections to self.
-    if(node == this){
-        return Edge::EC_NONE;
-    }
-
-
-    //Check if node can connect as a definition.
-    if(acceptsEdgeClass(Edge::EC_DEFINITION)){
-        //qCritical() << "Trying canConnect_DefinitionEdge";
-        if(canConnect_DefinitionEdge(node)){
-            return Edge::EC_DEFINITION;
-        }
-    }
-
-    //Check if node can connect as an Aggregate.
-    if(acceptsEdgeClass(Edge::EC_AGGREGATE)){
-        //qCritical() << "Trying canConnect_AggregateEdge";
-        if(canConnect_AggregateEdge(node)){
-            return Edge::EC_AGGREGATE;
-        }
-    }
-
-    //Check if node can connect as an Assembly.
-    if(acceptsEdgeClass(Edge::EC_ASSEMBLY)){
-        //qCritical() << "Trying canConnect_AssemblyEdge";
-        if(canConnect_AssemblyEdge(node)){
-            return Edge::EC_ASSEMBLY;
-        }
-    }
-
-    //Check if node can connect as a Data.
-    if(acceptsEdgeClass(Edge::EC_DATA)){
-        //qCritical() << "Trying canConnect_DataEdge";
-        if(canConnect_DataEdge(node)){
-            return Edge::EC_DATA;
-        }
-    }
-
-    //Check if node can connect as a Data.
-    if(acceptsEdgeClass(Edge::EC_DEPLOYMENT)){
-        //qCritical() << "Trying canConnect_DeploymentEdge";
-        if(canConnect_DeploymentEdge(node)){
-            return Edge::EC_DEPLOYMENT;
-        }
-    }
-
-    //Check if node can connect as a Data.
-    if(acceptsEdgeClass(Edge::EC_WORKFLOW)){
-        //qCritical() << "Trying canConnect_WorkflowEdge";
-        if(canConnect_WorkflowEdge(node)){
-            return Edge::EC_WORKFLOW;
-        }
-    }
-
-    return Edge::EC_NONE;
-}
-
-bool Node::canConnect_AggregateEdge(Node *)
-{
-    return true;
-}
-
-bool Node::canConnect_AssemblyEdge(Node *)
-{
-    return true;
-}
-
-bool Node::canConnect_DataEdge(Node *node)
-{
-    //Check for contained in same Aspect child.
-    Node* componentImpl = getParentNode(getDepthToAspect() - 1);
-    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 1);
-
-    if(componentImpl != nodeComponentImpl){
-        return false;
-    }
-    if(!componentImpl){
-        return false;
-    }
-    if(!nodeComponentImpl){
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * @brief Node::canConnect_DefinitionEdge Returns whether or not this Node can be made an Instance/Impl of the definition node provided
- * @param definition - The node which will be a definition.
- * @return true/false
- */
-bool Node::canConnect_DefinitionEdge(Node *definition)
-{
-    //This must be an Instance/Impl Node Type
-    if(!(isInstance() || isImpl())){
-        return false;
-    }
-
-    //Node must be a Definition Node Type.
-    if(!definition->isDefinition()){
-        return false;
-    }
-
-    //Node cannot already have a Definition.
-    if(getDefinition()){
-        return false;
-    }
-
-
-    //Check parentNode
-    Node* parentNode = getParentNode();
-
-    if(parentNode && (parentNode->isInstance() || parentNode->isImpl())){
-        Node* parentDefinition = parentNode->getDefinition();
-        if(parentDefinition){
-            if(!parentDefinition->isAncestorOf(definition)){
-                //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
-                return false;
-            }
-        }
-    }
-
-    //Check for cyclic stuff
-    foreach(Node* child, definition->getChildren()){
-        if(child->isInstance() && child->getDefinition()){
-            Node* def = child->getDefinition(true);
-
-            if(def){
-                if(def->isAncestorOf(this)){
-                    //Disallow cycles.
-                    return false;
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
-bool Node::canConnect_DeploymentEdge(Node *hardware)
-{
-
-    if(!hardware->isHardware()){
-        //If the node we are trying to connect to isn't a HardwareType, then return false.
-        return false;
-    }
-
-    foreach(Edge* edge, getEdges(0)){
-        if(edge->getEdgeClass() == Edge::EC_DEPLOYMENT){
-            //There can only be one Deployment edge.
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool Node::canConnect_WorkflowEdge(Node *node)
-{
-    //Check for contained in same Aspect child.
-    Node* componentImpl = getParentNode(getDepthToAspect() - 1);
-    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 1);
-
-    if(componentImpl != nodeComponentImpl){
-        return false;
-    }
-    if(!componentImpl){
-        return false;
-    }
-    if(!nodeComponentImpl){
-        return false;
-    }
-
-    return true;
-}
-
-
-
-Edge* Node::getEdgeTo(Node *node)
-{
-    foreach(Edge* edge, edges){
+    foreach(Edge* edge, getEdges(0, edgeKind)){
         if(edge->contains(node)){
             return edge;
         }
@@ -604,74 +639,19 @@ Edge* Node::getEdgeTo(Node *node)
 }
 
 
-bool Node::gotEdgeTo(Node *node)
+bool Node::gotEdgeTo(Node *node, Edge::EDGE_KIND edgeKind)
 {
-    return getEdgeTo(node) != 0;
-}
-
-Edge *Node::getEdge(int ID)
-{
-    for(int i =0; i < edges.length(); i++){
-        Edge* edge = edges[i];
-        if(edge && edge->getID() == ID){
-            return edge;
-        }
-    }
-    return 0;
-}
-
-QList<Node *> Node::getAllConnectedNodes()
-{
-
-    QList<Node*> currentNodes = getChildren();
-
-
-    foreach(Edge* edge, getEdges()){
-
-        Node* src = edge->getSource();
-        Node* dst = edge->getDestination();
-
-        if(!currentNodes.contains(src)){
-            currentNodes << src;
-        }
-        if(!currentNodes.contains(dst)){
-            currentNodes << dst;
-        }
-
-
-        if(edge->isInstanceLink()){
-            Node* definition = dst->getDefinition();
-            while(definition){
-                if(!currentNodes.contains(definition)){
-                    currentNodes << definition;
-                }
-
-                definition = definition->getDefinition();
-            }
-        }
-    }
-
-    return currentNodes;
-}
-
-bool Node::isIndirectlyConnected(Node *node)
-{
-    return (getAllConnectedNodes().contains(node) || node->getAllConnectedNodes().contains(this) || node == this);
-}
-
-bool Node::containsEdgeEndPoints(Edge *edge)
-{
-    Node* src = edge->getSource();
-    Node* dst = edge->getDestination();
-
-    return isAncestorOf(src) && isAncestorOf(dst);
+    return getEdgeTo(node, edgeKind) != 0;
 }
 
 
 
 bool Node::containsEdge(Edge *edge)
 {
-    return edges.contains(edge);
+    if(edge){
+        return edges.contains(edge->getEdgeKind(), edge);
+    }
+    return false;
 }
 
 
@@ -699,12 +679,6 @@ QList<Key *> Node::getKeys(int depth)
     return allKeys;
 }
 
-QString Node::getEntityName()
-{
-    return getNodeKind();
-}
-
-
 QString Node::toMD5Hash()
 {
     QStringList includedKeys;
@@ -729,36 +703,40 @@ bool Node::isInModel()
     return false;
 }
 
-bool Node::isDefinition()
+bool Node::isDefinition() const
 {
-    return nodeType == Node::NT_DEFINITION || nodeType == Node::NT_DEFINSTANCE;
+    return isNodeOfType(NT_DEFINITION);
 }
 
-bool Node::isInstance()
+bool Node::isInstance() const
 {
-    return nodeType == Node::NT_INSTANCE || nodeType == Node::NT_DEFINSTANCE;
+    return isNodeOfType(NT_INSTANCE);
 }
 
-bool Node::isAspect()
+bool Node::isInstanceImpl() const
 {
-    return nodeType == Node::NT_ASPECT;
+    return isInstance() || isImpl();
 }
 
-bool Node::isImpl()
+bool Node::isAspect() const
 {
-    return nodeType == Node::NT_IMPL;
+    return isNodeOfType(NT_ASPECT);
 }
 
-bool Node::isHardware()
+bool Node::isImpl() const
 {
-    return nodeType == Node::NT_HARDWARE;
+    return isNodeOfType(NT_IMPLEMENTATION);
+}
+
+int Node::getTypes() const
+{
+    return types;
 }
 
 void Node::setDefinition(Node *def)
 {
     if(isImpl() || isInstance()){
         definition = def;
-        emit node_GotDefinition(true);
     }
 
 }
@@ -776,12 +754,11 @@ Node *Node::getDefinition(bool recurse)
 void Node::unsetDefinition()
 {
     definition = 0;
-    emit node_GotDefinition(false);
 }
 
 void Node::addInstance(Node *inst)
 {
-    if(isDefinition()){
+    if(isNodeOfType(NT_DEFINITION)){
         if(!instances.contains(inst)){
             instances.append(inst);
             inst->setDefinition(this);
@@ -789,14 +766,14 @@ void Node::addInstance(Node *inst)
     }
 }
 
-QList<Node *> Node::getInstances()
+QList<Node *> Node::getInstances() const
 {
     return instances;
 }
 
 void Node::removeInstance(Node *inst)
 {
-    if(isDefinition()){
+    if(isNodeOfType(NT_DEFINITION)){
         instances.removeAll(inst);
         instances.removeAll(inst);
         inst->unsetDefinition();
@@ -805,7 +782,7 @@ void Node::removeInstance(Node *inst)
 
 void Node::addImplementation(Node *impl)
 {
-    if(isDefinition()){
+    if(isNodeOfType(NT_DEFINITION)){
         if(!implementations.contains(impl)){
             implementations.push_back(impl);
             impl->setDefinition(this);
@@ -813,12 +790,28 @@ void Node::addImplementation(Node *impl)
     }
 }
 
-QList<Node *> Node::getImplementations()
+QList<Node *> Node::getImplementations() const
 {
     return implementations;
 }
 
-QList<Node *> Node::getDependants()
+QList<Node *> Node::getNestedDependants() const
+{
+    QList<Node*> nodes;
+    foreach(Node* child, getChildren(0)){
+        nodes += child->getDependants();
+    }
+    nodes += implementations;
+    nodes += instances;
+
+    return nodes;
+}
+
+/**
+ * @brief Node::getDependants - Gets the Dependants.
+ * @return
+ */
+QList<Node *> Node::getDependants() const
 {
     QList<Node*> nodes;
     nodes += implementations;
@@ -828,7 +821,7 @@ QList<Node *> Node::getDependants()
 
 void Node::removeImplementation(Node *impl)
 {
-    if(isDefinition()){
+    if(isNodeOfType(NT_DEFINITION)){
         implementations.removeAll(impl);
         impl->unsetDefinition();
     }
@@ -839,26 +832,31 @@ void Node::removeImplementation(Node *impl)
 void Node::addEdge(Edge *edge)
 {
     if(!containsEdge(edge)){
-        edges.append(edge);
-        emit node_EdgeAdded(edge->getID(), edge->getEdgeClass());
+        edges.insertMulti(edge->getEdgeKind(), edge);
     }
 }
 
 void Node::removeEdge(Edge *edge)
 {
-    edges.removeAll(edge);
     if(edge){
-        emit node_EdgeRemoved(edge->getID(), edge->getEdgeClass());
+        edges.remove(edge->getEdgeKind(), edge);
     }
 }
 
 void Node::setParentNode(Node *parent, int index)
 {
-    this->treeIndex = parent->getTreeIndex();
-    this->treeIndexStr = parent->getTreeIndexString() + ",";
-    this->treeIndexStr += QString::number(index);
-    this->treeIndex.append(index);
-    parentNode = parent;
+    if(parent){
+        treeIndex = parent->getTreeIndex();
+        treeIndex.append(index);
+
+        treeIndexString = parent->getTreeIndexAlpha() % QChar('A' + index);
+        parentNode = parent;
+
+        //Set the view Aspect.
+        setViewAspect(parent->getViewAspect());
+    }else{
+        setViewAspect(VA_NONE);
+    }
 }
 
 QString Node::_toGraphML(int indentDepth, bool ignoreVisuals)
@@ -901,7 +899,7 @@ QString Node::_toGraphML(int indentDepth, bool ignoreVisuals)
     return xml;
 }
 
-QList<Node *> Node::getOrderedChildNodes()
+QList<Node *> Node::getOrderedChildNodes() const
 {
     QMap<int, Node*> orderedList;
 
@@ -910,28 +908,4 @@ QList<Node *> Node::getOrderedChildNodes()
         orderedList.insertMulti(sortID, child);
     }
     return orderedList.values();
-}
-
-QList<Edge *> Node::getOrderedEdges()
-{
-    QMap<int, Edge*> orderedList;
-
-    foreach(Edge* edge, edges){
-        if(edge->isAggregateLink()){
-            orderedList.insertMulti(2,edge);
-        }else if(edge->isImplLink()){
-            orderedList.insertMulti(1,edge);
-        }else if(edge->isInstanceLink()){
-            orderedList.insertMulti(0,edge);
-        }else if(edge->isDelegateLink()){
-            orderedList.insertMulti(3,edge);
-        }else if(edge->isTerminationLink()){
-            orderedList.insertMulti(4,edge);
-        }else{
-            orderedList.insertMulti(5, edge);
-        }
-    }
-
-    return orderedList.values();
-
 }

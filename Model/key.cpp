@@ -47,6 +47,10 @@ Key::Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind):G
     _isVisual = false;
 }
 
+Key::~Key()
+{
+}
+
 void Key::setProtected(bool protect)
 {
     _isProtected = protect;
@@ -187,7 +191,7 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
     if(parentEntity){
         entityKind = parentEntity->getEntityName();
         if(parentEntity->isNode()){
-            entityNodeKind = ((Node*)parentEntity)->getNodeKind();
+            entityNodeKind = ((Node*)parentEntity)->getNodeKindStr();
         }
 		parentEntityID = parentEntity->getID();
     }
@@ -323,9 +327,6 @@ bool Key::equals(const Key *key) const
         return false;
     }
     if(_keyName != key->getName()){
-        return false;
-    }
-    if(_entityKind != key->getEntityKind()){
         return false;
     }
     return true;

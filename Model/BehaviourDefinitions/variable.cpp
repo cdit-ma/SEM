@@ -1,50 +1,42 @@
 #include "variable.h"
-#include "../InterfaceDefinitions/aggregateinstance.h"
-#include "../InterfaceDefinitions/vectorinstance.h"
-#include "attributeimpl.h"
 
-Variable::Variable():BehaviourNode()
+Variable::Variable():DataNode(NK_VARIABLE)
 {
-    setIsNonWorkflow(true);
-    setIsDataInput(true);
-    setIsDataOutput(true);
-    setAcceptEdgeClass(Edge::EC_DATA);
-}
-
-Variable::~Variable()
-{
+    setDataProducer(true);
+    setDataReciever(true);
 }
 
 bool Variable::canAdoptChild(Node* child)
 {
-    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
-    VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(child);
-
-    if(!(aggregateInstance || vectorInstance)){
-        //Variable can only adopt a VectorInstance or an AggregateInstance
+    switch(child->getNodeKind()){
+    case NK_AGGREGATE_INSTANCE:
+    case NK_VECTOR_INSTANCE:
+        break;
+    default:
         return false;
     }
-
     if(hasChildren()){
-        //Variable can only adopt 1 child.
         return false;
     }
 
-    return BehaviourNode::canAdoptChild(child);
+    return DataNode::canAdoptChild(child);
 }
 
-bool Variable::canConnect_DataEdge(Node *node)
+bool Variable::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
-    AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(node);
-    Variable* variable = dynamic_cast<Variable*>(node);
+    if(!acceptsEdgeKind(edgeKind)){
+        return false;
+    }
 
-    if(attributeImpl){
-        //Cannot data connect an Attribute to an Attribute.
-        return false;
+    switch(edgeKind){
+    case Edge::EC_DATA:{
+        if(dst->getNodeKind() == NK_VARIABLE || dst->getNodeKind() == NK_ATTRIBUTE_IMPL){
+            return false;
+        }
+        break;
     }
-    if(variable){
-        //Cannot data connect to a Variable.
-        return false;
+    default:
+        break;
     }
-    return BehaviourNode::canConnect_DataEdge(node);
+    return DataNode::canAcceptEdge(edgeKind, dst);
 }

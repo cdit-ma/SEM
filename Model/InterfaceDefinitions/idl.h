@@ -7,9 +7,8 @@ class IDL : public Node
     Q_OBJECT
 public:
     IDL();
-    ~IDL();
-
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // IDL_H

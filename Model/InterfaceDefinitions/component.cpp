@@ -1,23 +1,25 @@
 #include "component.h"
-#include "attribute.h"
-#include "eventport.h"
 
-Component::Component(): Node(Node::NT_DEFINITION)
+Component::Component():Node(Node::NK_COMPONENT)
 {
-}
-
-Component::~Component()
-{
+    setNodeType(NT_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
 
 bool Component::canAdoptChild(Node *child)
 {
-    Attribute* attribute  = dynamic_cast<Attribute*>(child);
-    EventPort* eventPort  = dynamic_cast<EventPort*>(child);
-
-    if(!(attribute || eventPort)){
+    switch(child->getNodeKind()){
+    case NK_ATTRIBUTE:
+    case NK_INEVENTPORT:
+    case NK_OUTEVENTPORT:
+        break;
+    default:
         return false;
     }
-
     return Node::canAdoptChild(child);
+}
+
+bool Component::canAcceptEdge(Edge::EDGE_KIND, Node *)
+{
+    return false;
 }

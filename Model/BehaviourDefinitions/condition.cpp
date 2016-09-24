@@ -2,30 +2,38 @@
 #include "termination.h"
 #include "branch.h"
 
-Condition::Condition():BehaviourNode(){
-    setIsWorkflowStart(true);
+Condition::Condition():BehaviourNode(NK_CONDITION){
+    setWorkflowProducer(true);
+    setWorkflowReciever(false);
 }
-
-Condition::~Condition(){}
 
 Branch *Condition::getBranch()
 {
-    Branch* parent = dynamic_cast<Branch*>(getParentNode());
-    return parent;
+    BehaviourNode* parent = getParentBehaviourNode();
+
+    if(parent && parent->isNodeOfType(NT_BRANCH)){
+        return (Branch*) parent;
+    }
+    return 0;
 }
 
-Termination *Condition::getTermination()
+Termination *Condition::getRequiredTermination()
 {
     Branch* branch = getBranch();
     if(branch){
-        Termination* termination = branch->getTermination();
-        if(termination){
-            if(termination->gotEdgeTo(this)){
-                return termination;
-            }
-        }
+        return branch->getTermination();
     }
     return 0;
+}
+
+bool Condition::gotTermination()
+{
+    Termination* t = getRequiredTermination();
+
+    if(t && t->isNodeInBehaviourChain(this)){
+        return true;
+    }
+    return false;
 }
 
 bool Condition::canAdoptChild(Node*)
@@ -33,27 +41,10 @@ bool Condition::canAdoptChild(Node*)
     return false;
 }
 
-bool Condition::canConnect_WorkflowEdge(Node *node)
+bool Condition::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
-    Termination* termination = dynamic_cast<Termination*>(node);
-
-    Branch* parentBranch = getBranch();
-
-    if(parentBranch){
-        if(termination){
-            if(!parentBranch->getTermination()){
-                //If a Conditions Parent Branch Doesn't have a Termination attached, don't allow connection to a Termination yet.
-                return false;
-            }
-        }else{
-            //If the node isn't a termination, check to stop indirect chains.
-            if(parentBranch->isIndirectlyConnected(node)){
-                //Don't allow conditions to connect to chains already connected to.
-                return false;
-            }
-        }
-    }
-    return BehaviourNode::canConnect_WorkflowEdge(node);
+    return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }
+
 
 

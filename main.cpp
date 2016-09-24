@@ -1,53 +1,45 @@
 #include <QApplication>
 #include <QtDebug>
 #include <QObject>
-
 #include <QFont>
-#include "Widgets/medeawindow.h"
-#include "modeltester.h"
-
 #include <QString>
 #include <QRegExp>
 #include <QDebug>
 #include <QProcess>
-
 #include <QList>
 #include <QPair>
 #include <QApplication>
 #include <string>
-#include "View/theme.h"
 
-void testModel(){
-    ModelTester *t = new ModelTester();
-    t->loadTest("/home/dig/Desktop/HelloWorld(2).graphml");
-    delete t;
-}
+#include "Controllers/ViewController/viewcontroller.h"
+#include "Controllers/WindowManager/windowmanager.h"
+#include "Widgets/Windows/mainwindow.h"
+
+
+// taskkill
+// /F /fi "IMAGENAME eq medea.exe"
 
 int launchMEDEA(int argc, char *argv[]){
     //Construct a QApplication
     QApplication a(argc, argv);
-
-
     //Fixes MacOS QIcon resolution.
     a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
-    QString graphmlFilePath = "";
+
+    ViewController* vc = new ViewController();
+    MainWindow* window = (MainWindow*) WindowManager::constructMainWindow(vc);
+
     if (argc == 2) {
-        graphmlFilePath = QString::fromUtf8(argv[1]);
+        QString projectPath = QString::fromUtf8(argv[1]);
+        if(!projectPath.isEmpty()){
+            vc->openExistingProject(projectPath);
+        }
     }
 
-    MedeaWindow *w = new MedeaWindow(graphmlFilePath);
-    a.setActiveWindow(w);
+    a.setActiveWindow(window);
     return a.exec();
 }
 
-/**
- * @brief main
- * @param argc
- * @param argv
- * @return
- */
 int main(int argc, char *argv[])
 {
     launchMEDEA(argc, argv);
-    //testModel();
 }

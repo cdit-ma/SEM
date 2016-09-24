@@ -7,7 +7,8 @@ class InputParameter : public Parameter
     Q_OBJECT
 public:
     InputParameter();
-    ~InputParameter();
+    bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // INPUTPARAMETER_H

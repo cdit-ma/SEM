@@ -79,4 +79,5 @@
 	<xsl:variable name="nodeMaxSizeKey">d49</xsl:variable>
 	
 	<xsl:variable name="nodeReplicateCountKey">d50</xsl:variable>	
+	<xsl:variable name="nodeOriginalTypeKey">d51</xsl:variable>
 </xsl:stylesheet>

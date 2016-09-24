@@ -1,25 +1,23 @@
 #include "workload.h"
 
-#include "process.h"
-#include "variable.h"
-#include "parameter.h"
-
-Workload::Workload():BehaviourNode(){
-
-}
-
-Workload::~Workload(){
-
+Workload::Workload():BehaviourNode(NK_WORKLOAD){
+    setWorkflowReciever(true);
+    setWorkflowProducer(true);
 }
 
 bool Workload::canAdoptChild(Node *child)
 {
-    Process* process = dynamic_cast<Process*>(child);
-   // Variable* variable = dynamic_cast<Variable*>(child);
-
-    if(!process/* && !variable*/){
+    switch(child->getNodeKind()){
+    case NK_PROCESS:
+    case NK_WORKER_PROCESS:
+        break;
+    default:
         return false;
     }
-
     return BehaviourNode::canAdoptChild(child);
+}
+
+bool Workload::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+{
+    return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

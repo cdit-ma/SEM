@@ -1,28 +1,33 @@
 #include "componentassembly.h"
-#include "blackboxinstance.h"
-#include "componentinstance.h"
-#include "eventportdelegate.h"
-#include "hardware.h"
 
-ComponentAssembly::ComponentAssembly():Node()
+ComponentAssembly::ComponentAssembly():Node(NK_COMPONENT_ASSEMBLY)
 {
-    setAcceptEdgeClass(Edge::EC_DEPLOYMENT);
-}
-
-ComponentAssembly::~ComponentAssembly()
-{
+    setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
+    setAcceptsEdgeKind(Edge::EC_QOS);
 }
 
 bool ComponentAssembly::canAdoptChild(Node *child)
 {
-    BlackBoxInstance* blackBoxInstance = dynamic_cast<BlackBoxInstance*> (child);
-    ComponentAssembly* componentAssembly = dynamic_cast<ComponentAssembly*>(child);
-    ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*>(child);
-    EventPortDelegate* eventPortDelegate = dynamic_cast<EventPortDelegate*>(child);
-
-    if(!(blackBoxInstance || componentAssembly || componentInstance || eventPortDelegate)){
+    //Can Only adopt EventPort Instances
+    switch(child->getNodeKind()){
+    case NK_BLACKBOX_INSTANCE:
+    case NK_COMPONENT_ASSEMBLY:
+    case NK_COMPONENT_INSTANCE:
+    case NK_INEVENTPORT_DELEGATE:
+    case NK_OUTEVENTPORT_DELEGATE:
+        break;
+    default:
         return false;
     }
 
     return Node::canAdoptChild(child);
+}
+
+bool ComponentAssembly::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+{
+    if(!acceptsEdgeKind(edgeKind)){
+        return false;
+    }
+
+    return Node::canAcceptEdge(edgeKind, dst);
 }

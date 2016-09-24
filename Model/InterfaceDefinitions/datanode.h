@@ -1,14 +1,30 @@
 #ifndef DATANODE_H
 #define DATANODE_H
-#include "../BehaviourDefinitions/behaviournode.h"
+#include "../node.h"
 
-class DataNode : public BehaviourNode
+class DataNode : public Node
 {
 public:
-    DataNode(NODE_TYPE type);
-    ~DataNode();
+    DataNode(NODE_KIND kind);
 
-    bool canConnect_DataEdge(Node *node);
+    bool hasInputData();
+    bool hasOutputData();
+
+    DataNode* getInputData();
+    DataNode* getOutputData();
+
+    void setDataProducer(bool producer);
+    void setDataReciever(bool reciever);
+    bool isDataProducer() const;
+    bool isDataReciever() const;
+
+    bool comparableTypes(DataNode* node);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst) = 0;
+private:
+
+    bool _isProducer;
+    bool _isReciever;
+
 };
 
 #endif // DATANODE_H

@@ -1,25 +1,14 @@
 #ifndef AGGREGATE_H
 #define AGGREGATE_H
 #include "../node.h"
-#include "eventport.h"
-#include <QVector>
 
 class Aggregate : public Node
 {
     Q_OBJECT
 public:
     Aggregate();
-    ~Aggregate();
-
-
-    void addEventPort(EventPort* node);
-    void removeEventPort(EventPort* node);
-    QVector<EventPort*> getEventPorts();
-
     bool canAdoptChild(Node* child);
-
-private:
-    QVector<EventPort*> attachedEventPorts;
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 

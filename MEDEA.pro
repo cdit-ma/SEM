@@ -10,17 +10,15 @@ QT       += gui
 QT       += widgets
 QT       += xmlpatterns
 
-
-VERSION = 1.5.2
+VERSION = 2.0.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+DEFINES += APP_URL=\\\"https://github.com/cdit-ma/MEDEA/\\\"
 
 QMAKE_TARGET_COMPANY = CDIT-MA
 QMAKE_TARGET_PRODUCT = MEDEA
 QMAKE_TARGET_DESCRIPTION = MEDEA
 
-
 TARGET = MEDEA
-
 TEMPLATE = app
 
 win32{
@@ -40,29 +38,18 @@ QMAKE_CFLAGS += -Wunused
 #DEFINES += DEBUG_MODE
 
 HEADERS += \
-    Controller/behaviournodeadapter.h \
-    Controller/controller.h \
-    Controller/doublehash.h \
-    Controller/edgeadapter.h \
-    Controller/entityadapter.h \
-    Controller/nodeadapter.h \
-    CUTS/GUI/cutsexecutionwidget.h \
-    CUTS/cutsmanager.h \
-    GUI/actionbutton.h \
-    GUI/appsettings.h \
-    GUI/aspecttogglewidget.h \
-    GUI/codeeditor.h \
-    GUI/keyeditwidget.h \
-    GUI/searchdialog.h \
-    GUI/searchitem.h \
-    GUI/searchsuggestcompletion.h \
-    GUI/shortcutdialog.h \
-    GUI/syntaxhighlighter.h \
-    Jenkins/GUI/jenkinsjobmonitorwidget.h \
-    Jenkins/GUI/jenkinsloadingwidget.h \
-    Jenkins/GUI/jenkinsstartjobwidget.h \
-    Jenkins/jenkinsmanager.h \
-    Jenkins/jenkinsrequest.h \
+    Controllers/ActionController/actioncontroller.h \
+    Controllers/SelectionController/selectioncontroller.h \
+    Controllers/SelectionController/selectionhandler.h \
+    Controllers/ToolbarController/nodeviewitemaction.h \
+    Controllers/ToolbarController/toolbarcontroller.h \
+    Controllers/ViewController/edgeviewitem.h \
+    Controllers/ViewController/nodeviewitem.h \
+    Controllers/ViewController/viewcontroller.h \
+    Controllers/ViewController/viewitem.h \
+    Controllers/modelcontroller.h \
+    Controllers/SettingsController/settingscontroller.h \
+    Controllers/SettingsController/setting.h \
     Model/BehaviourDefinitions/attributeimpl.h \
     Model/BehaviourDefinitions/behaviourdefinitions.h \
     Model/BehaviourDefinitions/behaviournode.h \
@@ -81,7 +68,31 @@ HEADERS += \
     Model/BehaviourDefinitions/termination.h \
     Model/BehaviourDefinitions/variable.h \
     Model/BehaviourDefinitions/whileloop.h \
+    Model/BehaviourDefinitions/workerprocess.h \
     Model/BehaviourDefinitions/workload.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h \
+    Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h \
     Model/DeploymentDefinitions/assemblydefinitions.h \
     Model/DeploymentDefinitions/attributeinstance.h \
     Model/DeploymentDefinitions/blackboxinstance.h \
@@ -89,8 +100,6 @@ HEADERS += \
     Model/DeploymentDefinitions/componentinstance.h \
     Model/DeploymentDefinitions/deploymentdefinitions.h \
     Model/DeploymentDefinitions/eventportdelegate.h \
-    Model/DeploymentDefinitions/eventportinstance.h \
-    Model/DeploymentDefinitions/hardware.h \
     Model/DeploymentDefinitions/hardwarecluster.h \
     Model/DeploymentDefinitions/hardwaredefinitions.h \
     Model/DeploymentDefinitions/hardwarenode.h \
@@ -104,6 +113,7 @@ HEADERS += \
     Model/Edges/dataedge.h \
     Model/Edges/definitionedge.h \
     Model/Edges/deploymentedge.h \
+    Model/Edges/qosedge.h \
     Model/Edges/workflowedge.h \
     Model/InterfaceDefinitions/aggregate.h \
     Model/InterfaceDefinitions/aggregateinstance.h \
@@ -120,7 +130,6 @@ HEADERS += \
     Model/InterfaceDefinitions/outeventport.h \
     Model/InterfaceDefinitions/vector.h \
     Model/InterfaceDefinitions/vectorinstance.h \
-    Model/blanknode.h \
     Model/data.h \
     Model/edge.h \
     Model/entity.h \
@@ -130,65 +139,88 @@ HEADERS += \
     Model/node.h \
     Model/tempentity.h \
     Model/workerdefinitions.h \
-    View/Dock/definitionsdockscrollarea.h \
-    View/Dock/docknodeitem.h \
-    View/Dock/dockscrollarea.h \
-    View/Dock/docktogglebutton.h \
-    View/Dock/functionsdockscrollarea.h \
-    View/Dock/hardwaredockscrollarea.h \
-    View/Dock/partsdockscrollarea.h \
-    View/GraphicsItems/aspectitem.h \
-    View/GraphicsItems/edgeitem.h \
-    View/GraphicsItems/edgeitemarrow.h \
-    View/GraphicsItems/editabletextitem.h \
-    View/GraphicsItems/entityitem.h \
-    View/GraphicsItems/graphmlitem.h \
-    View/GraphicsItems/inputitem.h \
-    View/GraphicsItems/modelitem.h \
-    View/GraphicsItems/nodeitem.h \
-    View/GraphicsItems/noguiitem.h \
-    View/GraphicsItems/notificationitem.h \
-    View/GraphicsItems/statusitem.h \
-    View/Table/attributetablemodel.h \
-    View/Table/comboboxtabledelegate.h \
-    View/Toolbar/toolbarmenu.h \
-    View/Toolbar/toolbarmenuaction.h \
-    View/Toolbar/toolbarwidget.h \
-    View/Validate/validatedialog.h \
-    View/nodeview.h \
-    View/nodeviewminimap.h \
-    View/theme.h \
-    Widgets/medeasubwindow.h \
-    Widgets/medeawindow.h \
+    Plugins/CUTS/Widgets/cutsexecutionwidget.h \
+    Plugins/CUTS/cutsmanager.h \
+    Plugins/Jenkins/Widgets/jenkinsjobmonitorwidget.h \
+    Plugins/Jenkins/Widgets/jenkinsloadingwidget.h \
+    Plugins/Jenkins/Widgets/jenkinsstartjobwidget.h \
+    Plugins/Jenkins/jenkinsmanager.h \
+    Plugins/Jenkins/jenkinsrequest.h \
+    Plugins/XMI/Widgets/XMITreeViewDialog.h \
+    Plugins/XMI/xmiimporter.h \
+    Plugins/XMI/xmitreemodel.h \
+    Utils/actiongroup.h \
+    Utils/filehandler.h \
+    Utils/qobjectregistrar.h \
+    Views/ContextToolbar/contexttoolbar.h \
+    Views/Dock/docktabwidget.h \
+    Views/Dock/dockwidget.h \
+    Views/Dock/dockwidgetactionitem.h \
+    Views/Dock/dockwidgetitem.h \
+    Views/Dock/dockwidgetparentactionitem.h \
+    Views/NodeView/SceneItems/Edge/edgeitem.h \
+    Views/NodeView/SceneItems/Node/basicnodeitem.h \
+    Views/NodeView/SceneItems/Node/defaultnodeitem.h \
+    Views/NodeView/SceneItems/Node/hardwarenodeitem.h \
+    Views/NodeView/SceneItems/Node/managementcomponentnodeitem.h \
+    Views/NodeView/SceneItems/Node/nodeitem.h \
+    Views/NodeView/SceneItems/Node/stacknodeitem.h \
+    Views/NodeView/SceneItems/entityitem.h \
+    Views/NodeView/nodeview.h \
+    Views/NodeView/nodeviewminimap.h \
+    Views/QOSBrowser/qosbrowser.h \
+    Views/QOSBrowser/qosprofilemodel.h \
+    Views/Search/searchdialog.h \
+    Views/Search/searchitemwidget.h \
+    Views/Table/datatablemodel.h \
+    Views/Table/datatableview.h \
+    Views/Table/datatablewidget.h \
+    Widgets/CodeEditor/codebrowser.h \
+    Widgets/CodeEditor/codeeditor.h \
+    Widgets/CodeEditor/syntaxhighlighter.h \
+    Widgets/Dialogs/appsettings.h \
+    Widgets/Dialogs/modelvalidationdialog.h \
+    Widgets/Dialogs/notificationdialog.h \
+    Widgets/Dialogs/popupwidget.h \
+    Widgets/Dialogs/shortcutdialog.h \
+    Widgets/ViewManager/viewmanagerwidget.h \
+    Widgets/Windows/welcomescreenwidget.h \
+    Widgets/dataeditwidget.h \
+    Widgets/keyeditwidget.h \
     enumerations.h \
-    modeltester.h
+    theme.h \
+    Widgets/Windows/centralwindow.h \
+    Widgets/Windows/mainwindow.h \
+    Widgets/Windows/subwindow.h \
+    Widgets/Windows/basewindow.h \
+    Widgets/Windows/viewwindow.h \
+    Widgets/DockWidgets/basedockwidget.h \
+    Widgets/DockWidgets/docktitlebar.h \
+    Widgets/DockWidgets/nodeviewdockwidget.h \
+    Widgets/DockWidgets/tooldockwidget.h \
+    Widgets/DockWidgets/viewdockwidget.h \
+    Utils/rootaction.h \
+    Utils/doublehash.h \
+    Controllers/WindowManager/windowmanager.h \
+    Views/Table/datatabledelegate.h \
+    Widgets/ViewManager/windowitem.h \
+    Widgets/ViewManager/dockitem.h
 
 
 SOURCES += \
-    main.cpp \
-    Controller/behaviournodeadapter.cpp \
-    Controller/controller.cpp \
-    Controller/doublehash.cpp \
-    Controller/edgeadapter.cpp \
-    Controller/entityadapter.cpp \
-    Controller/nodeadapter.cpp \
-    CUTS/GUI/cutsexecutionwidget.cpp \
-    CUTS/cutsmanager.cpp \
-    GUI/actionbutton.cpp \
-    GUI/appsettings.cpp \
-    GUI/aspecttogglewidget.cpp \
-    GUI/codeeditor.cpp \
-    GUI/keyeditwidget.cpp \
-    GUI/searchdialog.cpp \
-    GUI/searchitem.cpp \
-    GUI/searchsuggestcompletion.cpp \
-    GUI/shortcutdialog.cpp \
-    GUI/syntaxhighlighter.cpp \
-    Jenkins/GUI/jenkinsjobmonitorwidget.cpp \
-    Jenkins/GUI/jenkinsloadingwidget.cpp \
-    Jenkins/GUI/jenkinsstartjobwidget.cpp \
-    Jenkins/jenkinsmanager.cpp \
-    Jenkins/jenkinsrequest.cpp \
+    Controllers/ActionController/actioncontroller.cpp \
+    Controllers/SelectionController/selectioncontroller.cpp \
+    Controllers/SelectionController/selectionhandler.cpp \
+    Controllers/ToolbarController/nodeviewitemaction.cpp \
+    Controllers/ToolbarController/toolbarcontroller.cpp \
+    Controllers/ViewController/edgeviewitem.cpp \
+    Controllers/ViewController/nodeviewitem.cpp \
+    Controllers/ViewController/viewcontroller.cpp \
+    Controllers/ViewController/viewitem.cpp \
+    Controllers/WindowManager/windowmanager.cpp \
+    Controllers/modelcontroller.cpp \
+    Controllers/SettingsController/settingscontroller.cpp \
+    Controllers/SettingsController/setting.cpp \
     Model/BehaviourDefinitions/attributeimpl.cpp \
     Model/BehaviourDefinitions/behaviourdefinitions.cpp \
     Model/BehaviourDefinitions/behaviournode.cpp \
@@ -207,7 +239,31 @@ SOURCES += \
     Model/BehaviourDefinitions/termination.cpp \
     Model/BehaviourDefinitions/variable.cpp \
     Model/BehaviourDefinitions/whileloop.cpp \
+    Model/BehaviourDefinitions/workerprocess.cpp \
     Model/BehaviourDefinitions/workload.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp \
+    Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp \
     Model/DeploymentDefinitions/assemblydefinitions.cpp \
     Model/DeploymentDefinitions/attributeinstance.cpp \
     Model/DeploymentDefinitions/blackboxinstance.cpp \
@@ -215,8 +271,6 @@ SOURCES += \
     Model/DeploymentDefinitions/componentinstance.cpp \
     Model/DeploymentDefinitions/deploymentdefinitions.cpp \
     Model/DeploymentDefinitions/eventportdelegate.cpp \
-    Model/DeploymentDefinitions/eventportinstance.cpp \
-    Model/DeploymentDefinitions/hardware.cpp \
     Model/DeploymentDefinitions/hardwarecluster.cpp \
     Model/DeploymentDefinitions/hardwaredefinitions.cpp \
     Model/DeploymentDefinitions/hardwarenode.cpp \
@@ -230,6 +284,7 @@ SOURCES += \
     Model/Edges/dataedge.cpp \
     Model/Edges/definitionedge.cpp \
     Model/Edges/deploymentedge.cpp \
+    Model/Edges/qosedge.cpp \
     Model/Edges/workflowedge.cpp \
     Model/InterfaceDefinitions/aggregate.cpp \
     Model/InterfaceDefinitions/aggregateinstance.cpp \
@@ -246,7 +301,6 @@ SOURCES += \
     Model/InterfaceDefinitions/outeventport.cpp \
     Model/InterfaceDefinitions/vector.cpp \
     Model/InterfaceDefinitions/vectorinstance.cpp \
-    Model/blanknode.cpp \
     Model/data.cpp \
     Model/edge.cpp \
     Model/entity.cpp \
@@ -256,38 +310,71 @@ SOURCES += \
     Model/node.cpp \
     Model/tempentity.cpp \
     Model/workerdefinitions.cpp \
-    View/Dock/definitionsdockscrollarea.cpp \
-    View/Dock/docknodeitem.cpp \
-    View/Dock/dockscrollarea.cpp \
-    View/Dock/docktogglebutton.cpp \
-    View/Dock/functionsdockscrollarea.cpp \
-    View/Dock/hardwaredockscrollarea.cpp \
-    View/Dock/partsdockscrollarea.cpp \
-    View/GraphicsItems/aspectitem.cpp \
-    View/GraphicsItems/edgeitem.cpp \
-    View/GraphicsItems/edgeitemarrow.cpp \
-    View/GraphicsItems/editabletextitem.cpp \
-    View/GraphicsItems/entityitem.cpp \
-    View/GraphicsItems/graphmlitem.cpp \
-    View/GraphicsItems/inputitem.cpp \
-    View/GraphicsItems/modelitem.cpp \
-    View/GraphicsItems/nodeitem.cpp \
-    View/GraphicsItems/noguiitem.cpp \
-    View/GraphicsItems/notificationitem.cpp \
-    View/GraphicsItems/statusitem.cpp \
-    View/Table/attributetablemodel.cpp \
-    View/Table/comboboxtabledelegate.cpp \
-    View/Toolbar/toolbarmenu.cpp \
-    View/Toolbar/toolbarmenuaction.cpp \
-    View/Toolbar/toolbarwidget.cpp \
-    View/Validate/validatedialog.cpp \
-    View/nodeview.cpp \
-    View/nodeviewminimap.cpp \
-    View/theme.cpp \
-    Widgets/medeasubwindow.cpp \
-    Widgets/medeawindow.cpp \
+    Plugins/CUTS/Widgets/cutsexecutionwidget.cpp \
+    Plugins/CUTS/cutsmanager.cpp \
+    Plugins/Jenkins/Widgets/jenkinsjobmonitorwidget.cpp \
+    Plugins/Jenkins/Widgets/jenkinsloadingwidget.cpp \
+    Plugins/Jenkins/Widgets/jenkinsstartjobwidget.cpp \
+    Plugins/Jenkins/jenkinsmanager.cpp \
+    Plugins/Jenkins/jenkinsrequest.cpp \
+    Plugins/XMI/Widgets/XMITreeViewDialog.cpp \
+    Plugins/XMI/xmiimporter.cpp \
+    Plugins/XMI/xmitreemodel.cpp \
+    Utils/actiongroup.cpp \
+    Utils/filehandler.cpp \
+    Utils/qobjectregistrar.cpp \
+    Views/ContextToolbar/contexttoolbar.cpp \
+    Views/Dock/docktabwidget.cpp \
+    Views/Dock/dockwidget.cpp \
+    Views/Dock/dockwidgetactionitem.cpp \
+    Views/Dock/dockwidgetitem.cpp \
+    Views/Dock/dockwidgetparentactionitem.cpp \
+    Views/NodeView/SceneItems/Edge/edgeitem.cpp \
+    Views/NodeView/SceneItems/Node/basicnodeitem.cpp \
+    Views/NodeView/SceneItems/Node/defaultnodeitem.cpp \
+    Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp \
+    Views/NodeView/SceneItems/Node/managementcomponentnodeitem.cpp \
+    Views/NodeView/SceneItems/Node/nodeitem.cpp \
+    Views/NodeView/SceneItems/Node/stacknodeitem.cpp \
+    Views/NodeView/SceneItems/entityitem.cpp \
+    Views/NodeView/nodeview.cpp \
+    Views/NodeView/nodeviewminimap.cpp \
+    Views/QOSBrowser/qosbrowser.cpp \
+    Views/QOSBrowser/qosprofilemodel.cpp \
+    Views/Search/searchdialog.cpp \
+    Views/Search/searchitemwidget.cpp \
+    Views/Table/datatablemodel.cpp \
+    Views/Table/datatableview.cpp \
+    Views/Table/datatablewidget.cpp \
+    Widgets/CodeEditor/codebrowser.cpp \
+    Widgets/CodeEditor/codeeditor.cpp \
+    Widgets/CodeEditor/syntaxhighlighter.cpp \
+    Widgets/Dialogs/appsettings.cpp \
+    Widgets/Dialogs/modelvalidationdialog.cpp \
+    Widgets/Dialogs/notificationdialog.cpp \
+    Widgets/Dialogs/popupwidget.cpp \
+    Widgets/Dialogs/shortcutdialog.cpp \
+    Widgets/ViewManager/viewmanagerwidget.cpp \
+    Widgets/Windows/welcomescreenwidget.cpp \
+    Widgets/dataeditwidget.cpp \
+    Widgets/keyeditwidget.cpp \
     enumerations.cpp \
-    modeltester.cpp
+    main.cpp \
+    theme.cpp \
+    Widgets/Windows/centralwindow.cpp \
+    Widgets/Windows/mainwindow.cpp \
+    Widgets/Windows/subwindow.cpp \
+    Widgets/Windows/viewwindow.cpp \
+    Widgets/Windows/basewindow.cpp \
+    Widgets/DockWidgets/docktitlebar.cpp \
+    Widgets/DockWidgets/basedockwidget.cpp \
+    Widgets/DockWidgets/nodeviewdockwidget.cpp \
+    Widgets/DockWidgets/viewdockwidget.cpp \
+    Widgets/DockWidgets/tooldockwidget.cpp \
+    Utils/rootaction.cpp \
+    Views/Table/datatabledelegate.cpp \
+    Widgets/ViewManager/windowitem.cpp \
+    Widgets/ViewManager/dockitem.cpp
 
 
 RESOURCES += \
@@ -295,8 +382,6 @@ RESOURCES += \
 
 OTHER_FILES += \
     doxygen.config \
-    settings.ini \
-    defaultSettings.ini \
     changelog.txt \
     Resources/Scripts/jenkins-cli.jar \
     Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy \
@@ -319,6 +404,7 @@ OTHER_FILES += \
     Resources/Transforms/graphml2ddd.xsl \
     Resources/Transforms/graphml2deployconfig.xsl \
     Resources/Transforms/graphml2dpd.xsl \
+    Resources/Transforms/graphml2dpdold.xsl \
     Resources/Transforms/graphml2dts.xsl \
     Resources/Transforms/graphml2h.xsl \
     Resources/Transforms/graphml2idl.xsl \
@@ -355,7 +441,8 @@ OTHER_FILES += \
     installer/config/config.xml \
     installer/packages/cditma.MEDEA/meta/package.xml \
     installer/packages/cditma.MEDEA/meta/license.txt \
-    installer/packages/cditma.MEDEA/meta/installscript.qs
+    installer/packages/cditma.MEDEA/meta/installscript.qs \
+    Resources/Transforms/umi2xml.xsl
 
 
 
@@ -379,18 +466,6 @@ mac{
     OUTPUT_DIR = Contents/MacOS/
 }
 
-
-
-
-equals($$DEPLOY, "true") {
-    SETTINGS_FILE.files += settings.ini
-    SETTINGS_FILE.path = $$OUTPUT_DIR/
-}else{
-    SETTINGS_FILE.files += settings.ini
-    SETTINGS_FILE.path = $$OUTPUT_DIR/
-}
-
-
 CHANGELOG_FILE.files += changelog.txt
 CHANGELOG_FILE.path = $$OUTPUT_DIR/
 
@@ -405,7 +480,6 @@ TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/
 
 #Copy files for Windows and Linux
 linux-g++ | win32{
-    INSTALLS += SETTINGS_FILE
     INSTALLS += CHANGELOG_FILE
     INSTALLS += SCRIPTS_FILES
     INSTALLS += BINARIES_FILES
@@ -420,7 +494,6 @@ mac{
     TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/Transforms/
     WORKER_FILES.path = $$OUTPUT_DIR/Resources/WorkerDefinitions/
 
-    QMAKE_BUNDLE_DATA += SETTINGS_FILE
     QMAKE_BUNDLE_DATA += CHANGELOG_FILE
     QMAKE_BUNDLE_DATA += SCRIPTS_FILES
     QMAKE_BUNDLE_DATA += BINARIES_FILES
@@ -430,3 +503,6 @@ mac{
 
 FORMS += \
     installer/packages/cditma.MEDEA/meta/registerfilecheckboxform.ui
+
+DISTFILES += \
+    Resources/Images/Actions/Disconnect.png

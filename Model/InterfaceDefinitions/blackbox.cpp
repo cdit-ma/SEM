@@ -1,22 +1,27 @@
 #include "blackbox.h"
-#include "eventport.h"
 
-BlackBox::BlackBox():Node(Node::NT_DEFINITION)
+BlackBox::BlackBox():Node(NK_BLACKBOX)
 {
-}
+    setNodeType(NT_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
 
-BlackBox::~BlackBox()
-{
 }
-
 
 bool BlackBox::canAdoptChild(Node *child)
 {
-    EventPort* eventPort  = dynamic_cast<EventPort*>(child);
-
-    if(!eventPort){
+    //Can Only adopt EventPort Definitions
+    switch(child->getNodeKind()){
+    case NK_INEVENTPORT:
+    case NK_OUTEVENTPORT:
+        break;
+    default:
         return false;
     }
 
     return Node::canAdoptChild(child);
+}
+
+bool BlackBox::canAcceptEdge(Edge::EDGE_KIND, Node *)
+{
+    return false;
 }

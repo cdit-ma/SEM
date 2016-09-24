@@ -619,7 +619,7 @@
 		<xsl:param name="attrName" />
 		<xsl:param name="defaultId" />
 		
-		<xsl:variable name="found" select="/gml:graphml/gml:key[@attr.name=$attrName][@for='node']" />
+		<xsl:variable name="found" select="/gml:graphml/gml:key[@attr.name=$attrName]" />
 		<xsl:choose>
 			<xsl:when test="not($found)">
 				<xsl:value-of select="$defaultId"/>
