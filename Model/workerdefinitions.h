@@ -8,7 +8,7 @@ class WorkerDefinitions : public Node
 public:
     WorkerDefinitions();
 
-    VIEW_ASPECT getViewAspect();
+    VIEW_ASPECT getViewAspect() const;
 
     bool canAdoptChild(Node *node);
     virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);

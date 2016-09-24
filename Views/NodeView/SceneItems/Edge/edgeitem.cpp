@@ -1,6 +1,8 @@
 #include "edgeitem.h"
 #include "../Node/nodeitem.h"
 
+#include <cmath>
+
 #define ARROW_SIZE 4.0
 EdgeItem::EdgeItem(EdgeViewItem* edgeViewItem, NodeItem * parent, NodeItem* source, NodeItem* destination):EntityItem(edgeViewItem, parent, EntityItem::EDGE)
 {
@@ -234,7 +236,7 @@ void EdgeItem::recalcSrcCurve(bool reset)
     QPointF srcControlPoint1(centerSceneSrcPos.x(), srcScenePos.y());
     QPointF srcControlPoint2(srcScenePos.x(), centerSceneSrcPos.y());
 
-    qreal offset = abs(srcScenePos.y() - centerSceneSrcPos.y());
+    qreal offset = fabs(srcScenePos.y() - centerSceneSrcPos.y());
 
     if(srcLeft){
         srcControlPoint1.rx() = qMin(srcScenePos.x(), centerSceneSrcPos.x()) - offset;
@@ -272,7 +274,7 @@ void EdgeItem::recalcDstCurve(bool reset)
     QPointF dstControlPoint1(dstScenePos.x(), centerSceneDstPos.y());
     QPointF dstControlPoint2(centerSceneDstPos.x(), dstScenePos.y());
 
-    qreal offset = abs(dstScenePos.y() - centerSceneDstPos.y());
+    qreal offset = fabs(dstScenePos.y() - centerSceneDstPos.y());
 
     //Both into right
     if(!dstLeft){

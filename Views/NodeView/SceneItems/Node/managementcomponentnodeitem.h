@@ -36,7 +36,6 @@ private:
 
 private:
     QFont mainTextFont;
-    int textHeight;
     QPolygonF leftPoly;
     QPolygonF rightPolyExpanded;
     void setupPolys();
