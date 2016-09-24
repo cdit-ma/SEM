@@ -570,7 +570,31 @@ void ViewController::welcomeActionFinished()
 void ViewController::_showGitHubPage(QString relURL)
 {
     QString URL = APP_URL % relURL;
+    _showWebpage(URL);
+}
+
+void ViewController::_showWebpage(QString URL)
+{
     QDesktopServices::openUrl(QUrl(URL));
+}
+
+void ViewController::_showWiki(ViewItem *item)
+{
+    QString wikiURL = SettingsController::settings()->getSetting(SK_GENERAL_MEDEA_WIKI_URL).toString();
+
+    bool isGitWiki = wikiURL.contains("github.com", Qt::CaseInsensitive);
+
+    QString url = wikiURL;
+    if(item){
+        QString kind = item->getData("kind").toString();
+        if(isGitWiki){
+            //GIT USES FLAT STRUCTURE
+            url += "ModelEntities-" + kind;
+        }else{
+            url += "/SEM/MEDEA/ModelEntities#" + kind;
+        }
+    }
+    _showWebpage(url);
 }
 
 QString ViewController::getTempFileForModel()
@@ -1368,7 +1392,7 @@ void ViewController::centerOnID(int ID)
 
 void ViewController::showWiki()
 {
-    _showGitHubPage("wiki/");
+    _showWiki(0);
 }
 
 void ViewController::reportBug()
@@ -1378,11 +1402,8 @@ void ViewController::reportBug()
 
 void ViewController::showWikiForSelectedItem()
 {
-    ViewItem* item = getActiveSelectedItem();
-    if(item){
-        QString relURL = "wiki/SEM-MEDEA-ModelEntities#" + item->getData("kind").toString();
-        _showGitHubPage(relURL);
-    }
+    _showWiki(getActiveSelectedItem());
+
 }
 
 void ViewController::centerImpl()

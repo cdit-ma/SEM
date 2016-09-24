@@ -108,6 +108,10 @@ void SettingsController::intializeSettings()
     createSetting(SK_GENERAL_MODEL_PATH, ST_PATH, "General", "", "Default Model path");
     createSetting(SK_GENERAL_CUTS_CONFIGURE_PATH, ST_FILE, "General", "", "CUTS configure script file path");
 
+    createSetting(SK_GENERAL_MEDEA_WIKI_URL, ST_STRING, "General", "", "MEDEA Wiki URL");
+
+
+
     //General - Window
     createSetting(SK_GENERAL_WIDTH, ST_INT, "General", "Window", "Initial MEDEA window width");
     createSetting(SK_GENERAL_HEIGHT, ST_INT, "General", "Window", "Initial MEDEA window height");
@@ -220,6 +224,8 @@ void SettingsController::intializeSettings()
 
 
     _getSetting(SK_GENERAL_WIDTH)->setDefaultValue(1200);
+    _getSetting(SK_GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
+
 
     _getSetting(SK_GENERAL_HEIGHT)->setDefaultValue(600);
     _getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
