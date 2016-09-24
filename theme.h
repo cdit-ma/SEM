@@ -75,6 +75,10 @@ public:
 
     QIcon getIcon(QPair<QString, QString> icon);
     QIcon getIcon(QString prefix, QString alias);
+
+private:
+    QPixmap _getImage(QString resourceName, QSize size = QSize(), QColor tintColor = QColor());
+public:
     QPixmap getImage(QString prefix, QString alias, QSize size = QSize(), QColor tintColor = QColor());
 
     QColor getAltTextColor();
@@ -151,6 +155,7 @@ private:
 
     bool tintIcon(QString prefix, QString alias);
     bool tintIcon(QSize size);
+    QHash<QString, bool> imageExistsHash;
     QHash<QString, QPixmap> pixmapLookup;
     QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QIcon> iconLookup;
