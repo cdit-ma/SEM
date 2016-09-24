@@ -228,7 +228,7 @@ ModelController::ModelController() :QObject(0)
 
 
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
-    behaviourNodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
+    behaviourNodeKinds << "WhileLoop" << "InputParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
 
 
     //Append Kinds which can't be constructed by the GUI.

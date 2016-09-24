@@ -346,7 +346,11 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 
                 }
         }
-        viewItem->setDefaultIcon(alias, image);
+        if(Theme::theme()->gotImage(alias, image)){
+            viewItem->setDefaultIcon(alias, image);
+        }else{
+            viewItem->setDefaultIcon("Actions", "Help");
+        }
     }
 }
 

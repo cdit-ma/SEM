@@ -326,6 +326,17 @@ bool Theme::isValid()
     return valid;
 }
 
+bool Theme::gotImage(QPair<QString, QString> icon) const
+{
+    return gotImage(icon.first, icon.second);
+}
+
+bool Theme::gotImage(QString path, QString alias) const
+{
+    QString resourceName = getResourceName(path, alias);
+    return pixmapSizeLookup.contains(resourceName);
+}
+
 QString Theme::getCornerRadius()
 {
     return "4px";
@@ -1166,11 +1177,16 @@ void Theme::calculateImageColor(QString resourceName)
     }
 }
 
-QString Theme::getResourceName(QString prefix, QString alias)
+QString Theme::getResourceName(QString prefix, QString alias) const
 {
     //UNCOMMENT FOR TROLLS
     //return ":/Actions/Cage.jpg";
     return prefix % slash % alias;
+}
+
+QString Theme::getResourceName(QPair<QString, QString> icon) const
+{
+    return getResourceName(icon.first, icon.second);
 }
 
 void Theme::setupIcons()

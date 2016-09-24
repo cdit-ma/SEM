@@ -96,6 +96,9 @@ public:
     void applyTheme();
     bool isValid();
 
+    bool gotImage(QPair<QString, QString> icon) const;
+    bool gotImage(QString, QString) const;
+
 
 
 
@@ -139,7 +142,8 @@ public slots:
 
 private:
     void calculateImageColor(QString resourceName);
-    QString getResourceName(QString prefix, QString alias);
+    QString getResourceName(QString prefix, QString alias) const;
+    QString getResourceName(QPair<QString, QString> icon) const;
     void resetTheme(VIEW_THEME themePreset);
     void resetAspectTheme(bool colorBlind);
     void setupIcons();

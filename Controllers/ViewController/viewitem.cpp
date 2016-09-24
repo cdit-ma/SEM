@@ -108,6 +108,7 @@ bool ViewItem::isDataProtected(QString keyName) const
     if(isReadOnly()){
         return true;
     }else{
+
         return getProtectedKeys().contains(keyName);
     }
 }
@@ -126,6 +127,7 @@ bool ViewItem::isReadOnly() const
     }
     return readOnly;
 }
+
 void ViewItem::setDefaultIcon(QString iconPrefix, QString iconName)
 {
     //If the icon is different to what we have currently, update and send signal.
