@@ -116,8 +116,6 @@ bool REDO = false;
 bool SETUP_AS_INSTANCE = true;
 bool SETUP_AS_IMPL = false;
 
-static int count = 0;
-
 ModelController::ModelController() :QObject(0)
 {
 
@@ -548,7 +546,7 @@ QString ModelController::_exportGraphMLDocument(QList<int> entityIDs, bool allEd
         Node* dst = edge->getDestination();
 
         bool exportEdge = false;
-        if(exportAllEdges || containedEntities.contains(src) && containedEntities.contains(dst)){
+        if(exportAllEdges || (containedEntities.contains(src) && containedEntities.contains(dst))){
             exportEdge = true;
         }else{
             switch(edge->getEdgeKind()){
@@ -2367,13 +2365,11 @@ void ModelController::removeGraphMLFromHash(int ID)
             QString kind = item->getDataValue("kind").toString();
 
             Node* node = 0;
-            Edge* edge = 0;
 
             ENTITY_KIND ek = EK_NODE;
             if(item->isNode()){
                 node = (Node*) item;
             }else{
-                edge = (Edge*) item;
                 ek = EK_EDGE;
             }
 

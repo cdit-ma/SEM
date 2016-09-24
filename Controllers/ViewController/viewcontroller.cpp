@@ -155,14 +155,10 @@ QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
 QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
 {
     QList<ViewItem*> items;
-    int selection = 0;
     if(selectionController && controller){
-        int i=0;
         QList<int> selectedIDs = selectionController->getSelectionIDs();
         QList<int> IDs = controller->getConnectableNodeIDs(selectedIDs, kind);
         items = getViewItems(IDs);
-        selection = selectedIDs.count();
-        i++;
     }
     return items;
 }
@@ -548,7 +544,7 @@ void ViewController::launchLocalDeployment()
     }
 }
 
-void ViewController::actionFinished(bool success, QString gg)
+void ViewController::actionFinished(bool, QString)
 {
     setControllerReady(true);
     emit vc_actionFinished();
@@ -1102,7 +1098,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             parentItem->addChild(nodeItem);
 
             //Update the icons for certain types.
-            if(parentItem->isNode() && parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE){
+            if(parentItem->isNode() && (parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE)){
                 setDefaultIcon(parentItem);
             }
         }else{
@@ -1110,16 +1106,6 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             topLevelItems.append(ID);
         }
     }else if(eKind == EK_EDGE){
-        Edge::EDGE_KIND edgeKind = Edge::EC_NONE;
-
-        if(properties.contains("kind")){
-            edgeKind = (Edge::EDGE_KIND)properties["kind"].toInt();
-        }
-
-        //if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
-        //    return;
-        //}
-
         int srcID = properties["srcID"].toInt();
         int dstID = properties["dstID"].toInt();
         NodeViewItem* source = getNodeViewItem(srcID);

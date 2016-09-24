@@ -42,7 +42,6 @@ public:
     QAction* getToolAction(QString hashKey, bool stealth);
 
     QStringList getKindsRequiringSubActions();
-    QList<NodeViewItemAction*> getRequiredSubActionsForKind(QString kind);
     
     QString getInfoActionKeyForAdoptableKind(QString kind);
 

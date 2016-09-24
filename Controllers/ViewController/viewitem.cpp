@@ -113,9 +113,8 @@ bool ViewItem::isDataProtected(QString keyName) const
     }
 }
 
-bool ViewItem::isDataVisual(QString keyName) const
+bool ViewItem::isDataVisual(QString) const
 {
-
     return false;
 }
 

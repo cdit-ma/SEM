@@ -184,6 +184,8 @@ bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
                 return false;
             }
         }
+        default:
+            return false;
         }
         return true;
     }
