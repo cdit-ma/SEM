@@ -304,11 +304,6 @@ QAction *ToolbarController::getToolAction(QString hashKey, bool stealth)
     return 0;
 }
 
-QList<NodeViewItemAction*> ToolbarController::getRequiredSubActionsForKind(QString kind)
-{
-    return actions.values();
-}
-
 
 /**
  * @brief ToolActionController::getInfoActionKeyForAdoptableKind

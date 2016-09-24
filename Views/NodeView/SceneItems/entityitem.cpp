@@ -234,7 +234,7 @@ void EntityItem::renderText(QPainter *painter, qreal lod, EntityItem::ELEMENT_RE
     QSizeF rectSize = rect.size();
 
     RENDER_STATE state = getRenderState(lod);
-    if(textM.text != text || textM.textOptions != textOptions || (textM.maximumSize == false && (textM.boundingSize != rectSize)) || textM.maximumSize == true && (rectSize.width() < textM.boundingSize.width())){
+    if(textM.text != text || textM.textOptions != textOptions || (textM.maximumSize == false && textM.boundingSize != rectSize) || (textM.maximumSize == true && rectSize.width() < textM.boundingSize.width())){
         textM.boundingRect = rect;
         textM.boundingSize = rectSize;
         textM.rectColor = getBodyColor().darker(130);
@@ -536,12 +536,11 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
     }
 }
 
-void EntityItem::propertyChanged(QString propertyName, QVariant data)
+void EntityItem::propertyChanged(QString, QVariant)
 {
-
 }
 
-void EntityItem::dataRemoved(QString keyName)
+void EntityItem::dataRemoved(QString)
 {
 
 }
@@ -599,12 +598,6 @@ QVariant EntityItem::getProperty(QString propertyName) const
 bool EntityItem::hasData(QString keyName) const
 {
     return viewItem->hasData(keyName);
-}
-
-bool EntityItem::isDataEditable(QString keyName)
-{
-    //TODO Get view to handle this!
-    return false;
 }
 
 void EntityItem::handleSelection(bool append)

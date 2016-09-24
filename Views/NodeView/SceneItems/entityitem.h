@@ -148,7 +148,6 @@ public:
 
     QVariant getProperty(QString propertyName) const;
     bool hasData(QString keyName) const;
-    bool isDataEditable(QString keyName);
 
 public:
     //State Handlers

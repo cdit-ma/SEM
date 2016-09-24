@@ -731,7 +731,7 @@ void NodeItem::dataChanged(QString keyName, QVariant data)
     EntityItem::dataChanged(keyName, data);
 }
 
-void NodeItem::propertyChanged(QString propertyName, QVariant data)
+void NodeItem::propertyChanged(QString, QVariant)
 {
 }
 
@@ -1120,7 +1120,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }
     }
 
-    if(!caughtResize && isResizeEnabled() && isExpanded()){
+    if(isSelected() && !caughtResize && isResizeEnabled() && isExpanded()){
         RECT_VERTEX vertex = RV_NONE;
         for(int i = RV_LEFT;i <= RV_BOTTOMLEFT; i++){
             RECT_VERTEX vert = (RECT_VERTEX)i;
@@ -1180,7 +1180,7 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         }
     }
 
-    if(isResizeEnabled() && isExpanded() && hasChildNodes()){
+    if(isSelected() && isResizeEnabled() && isExpanded() && hasChildNodes()){
         RECT_VERTEX vertex = RV_NONE;
         for(int i = RV_LEFT;i <= RV_BOTTOMLEFT; i++){
             RECT_VERTEX vert = (RECT_VERTEX)i;
