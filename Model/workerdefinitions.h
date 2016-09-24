@@ -7,8 +7,11 @@ class WorkerDefinitions : public Node
     Q_OBJECT
 public:
     WorkerDefinitions();
-public:
+
+    VIEW_ASPECT getViewAspect();
+
     bool canAdoptChild(Node *node);
+    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // WORKERDEFINITIONS_H

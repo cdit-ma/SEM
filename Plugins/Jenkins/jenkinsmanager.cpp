@@ -1,6 +1,13 @@
 #include "jenkinsmanager.h"
 #include "jenkinsrequest.h"
 
+#include <QStringBuilder>
+#include <QApplication>
+
+#include "../../Controllers/SettingsController/settingscontroller.h"
+#include "Widgets/jenkinsstartjobwidget.h"
+
+
 /**
  * @brief JenkinsManager::JenkinsManager JenkinsManager Constructor. Constructs a Manager to spawn JenkinsRequest threads. Handles the server information of the Jenkins Server for the request.
  * @param cliPath The Path in which the jenkins-cli.jar file originates.
@@ -9,17 +16,32 @@
  * @param password The password for the Jenkins Server
  * @todo Discover way of removing password from .ini
  */
-JenkinsManager::JenkinsManager(QString cliBinaryPath)
+JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
 {
     //Register the Types used as parameters JenkinsRequest so signals/slots can be connected.
     qRegisterMetaType<QPair<QByteArray,QByteArray> >();
     qRegisterMetaType<Jenkins_JobParameters>("Jenkins_JobParameters");
     qRegisterMetaType<JOB_STATE>("JOB_STATE");
 
+
+
     //Set instance variables.
-    this->cliBinaryPath = cliBinaryPath;
-    settingsValidating = false;
+    cliBinaryPath = QApplication::applicationDirPath() % "/Resources/Binaries/";
+    scriptPath = QApplication::applicationDirPath() % "/Resources/Scripts/";
     urlChanged = false;
+    _jenkinsBusy = false;
+    settingsValidated = false;
+
+
+    //Load Jenkins settings
+    SettingsController* settings = SettingsController::settings();
+    connect(settings, &SettingsController::settingChanged, this, &JenkinsManager::settingChanged);
+    connect(settings, &SettingsController::settingsApplied, this, &JenkinsManager::validateSettings);
+
+
+    foreach(SETTING_KEY key, settings->getSettingsKeys("Jenkins")){
+        settingChanged(key, settings->getSetting(key));
+    }
 }
 
 QString JenkinsManager::getUsername()
@@ -120,7 +142,7 @@ bool JenkinsManager::hasValidatedSettings()
  */
 JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOnCompletion)
 {
-    if(!settingsValidated && !settingsValidating){
+    if(!settingsValidated){
         validateJenkinsSettings();
     }
     //Construct and start a new QThread
@@ -159,14 +181,72 @@ JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOn
 
 void JenkinsManager::validateSettings()
 {
-    if(!settingsValidating){
+    if(hasSettings() && !hasValidatedSettings()){
         validateJenkinsSettings();
+    }
+}
+
+void JenkinsManager::getJenkinsNodes()
+{
+    if(!_jenkinsBusy){
+        setJenkinsBusy(true);
+        JenkinsRequest* jenkinsGS = getJenkinsRequest(this);
+        connect(this, &JenkinsManager::_runGroovyScript, jenkinsGS, &JenkinsRequest::runGroovyScript);
+        connect(jenkinsGS, &JenkinsRequest::gotGroovyScriptOutput, this, &JenkinsManager::_gotJenkinsNodes);
+        connect(jenkinsGS, &JenkinsRequest::requestFailed, this, &JenkinsManager::_gotJenkinsNodes);
+        emit _runGroovyScript(scriptPath % "Jenkins_Construct_GraphMLNodesList.groovy", getJobName());
+
+        disconnect(this, &JenkinsManager::_runGroovyScript, jenkinsGS, &JenkinsRequest::runGroovyScript);
+    }
+}
+
+void JenkinsManager::executeJenkinsJob(QString modelFilePath)
+{
+    if(hasValidatedSettings()){
+        qCritical() << modelFilePath;
+        JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(0, this);
+        jenkinsSJ->requestJob(jobName, modelFilePath);
+    }
+}
+
+void JenkinsManager::_gotJenkinsNodes(QString data)
+{
+    emit gotJenkinsNodeGraphml(data);
+    setJenkinsBusy(false);
+}
+
+void JenkinsManager::settingChanged(SETTING_KEY key, QVariant value)
+{
+    QString strValue = value.toString();
+
+    switch(key){
+    case SK_JENKINS_API:{
+        setToken(strValue);
+        break;
+    }
+    case SK_JENKINS_JOBNAME:{
+        setJobName(strValue);
+        break;
+    }
+    case SK_JENKINS_USER:{
+        setUsername(strValue);
+        break;
+    }
+    case SK_JENKINS_PASSWORD:{
+        setPassword(strValue);
+        break;
+    }
+    case SK_JENKINS_URL:{
+        setURL(strValue);
+        break;
+    }
+    default:
+        break;
     }
 }
 
 void JenkinsManager::gotSettingsValidationResponse(bool valid, QString message)
 {
-    settingsValidating  = false;
     settingsValidated = valid;
 
     if(urlChanged && valid){
@@ -174,10 +254,16 @@ void JenkinsManager::gotSettingsValidationResponse(bool valid, QString message)
         clearJobConfigurations();
         urlChanged = false;
     }
-
-    //Make a Window
-    //Tell Jenkins Requests that we are validated.
+    setJenkinsBusy(false);
     emit settingsValidationComplete(valid, message);
+}
+
+void JenkinsManager::setJenkinsBusy(bool busy)
+{
+    if(_jenkinsBusy != busy){
+        _jenkinsBusy = busy;
+        emit jenkinsReady(!_jenkinsBusy && settingsValidated);
+    }
 }
 
 /**
@@ -185,14 +271,16 @@ void JenkinsManager::gotSettingsValidationResponse(bool valid, QString message)
  */
 void JenkinsManager::validateJenkinsSettings()
 {
-    settingsValidating = true;
+    if(!_jenkinsBusy){
+        setJenkinsBusy(true);
 
-    JenkinsRequest* jR = getJenkinsRequest();
-    connect(this, SIGNAL(tryValidateSettings()), jR, SLOT(validateJenkinsSettings()));
-    connect(jR, SIGNAL(gotSettingsValidationResponse(bool,QString)), this, SLOT(gotSettingsValidationResponse(bool,QString)));
+        JenkinsRequest* jR = getJenkinsRequest();
+        connect(this, SIGNAL(tryValidateSettings()), jR, SLOT(validateJenkinsSettings()));
+        connect(jR, SIGNAL(gotSettingsValidationResponse(bool,QString)), this, SLOT(gotSettingsValidationResponse(bool,QString)));
 
-    emit tryValidateSettings();
-    disconnect(this, SIGNAL(tryValidateSettings()), jR, SLOT(validateJenkinsSettings()));
+        emit tryValidateSettings();
+        disconnect(this, SIGNAL(tryValidateSettings()), jR, SLOT(validateJenkinsSettings()));
+    }
 }
 
 

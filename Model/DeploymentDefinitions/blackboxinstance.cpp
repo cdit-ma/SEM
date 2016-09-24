@@ -1,34 +1,40 @@
 #include "blackboxinstance.h"
-#include "../InterfaceDefinitions/blackbox.h"
-#include "eventportinstance.h"
 
-BlackBoxInstance::BlackBoxInstance():Node(Node::NT_INSTANCE)
+BlackBoxInstance::BlackBoxInstance():Node(Node::NK_BLACKBOX_INSTANCE)
 {
-    setAcceptEdgeClass(Edge::EC_DEPLOYMENT);
-    setAcceptEdgeClass(Edge::EC_DEFINITION);
-}
-
-BlackBoxInstance::~BlackBoxInstance()
-{
+    setNodeType(NT_INSTANCE);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
 }
 
 bool BlackBoxInstance::canAdoptChild(Node *child)
 {
-    EventPortInstance* eventPortInstance = dynamic_cast<EventPortInstance*>(child);
-
-    if(!eventPortInstance){
+    //Can Only adopt EventPort Instances
+    switch(child->getNodeKind()){
+    case NK_INEVENTPORT_INSTANCE:
+    case NK_OUTEVENTPORT_INSTANCE:
+        break;
+    default:
         return false;
     }
 
     return Node::canAdoptChild(child);
 }
 
-bool BlackBoxInstance::canConnect_DefinitionEdge(Node *definition)
+bool BlackBoxInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
-    BlackBox* blackBox = dynamic_cast<BlackBox*>(definition);
-
-    if(!blackBox){
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
-    return Node::canConnect_DefinitionEdge(definition);
+    switch(edgeKind){
+    case Edge::EC_DEFINITION:{
+        if(dst->getNodeKind() != NK_BLACKBOX){
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return Node::canAcceptEdge(edgeKind, dst);
 }

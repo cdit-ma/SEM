@@ -7,8 +7,8 @@ class DeploymentDefinitions: public Node
     Q_OBJECT
 public:
     DeploymentDefinitions();
-    ~DeploymentDefinitions();
 
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 #endif // DEPLOYMENTDEFINITIONS_H

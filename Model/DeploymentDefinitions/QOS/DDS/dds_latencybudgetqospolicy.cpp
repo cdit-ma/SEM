@@ -1,0 +1,16 @@
+#include "dds_latencybudgetqospolicy.h"
+
+DDS_LatencyBudgetQosPolicy::DDS_LatencyBudgetQosPolicy():Node(NK_QOS_DDS_POLICY_LATENCYBUDGET)
+{
+    setNodeType(NT_QOS); setNodeType(NT_DDS);
+}
+
+bool DDS_LatencyBudgetQosPolicy::canAdoptChild(Node*)
+{
+    return false;
+}
+
+bool DDS_LatencyBudgetQosPolicy::canAcceptEdge(Edge::EDGE_KIND, Node *)
+{
+    return false;
+}

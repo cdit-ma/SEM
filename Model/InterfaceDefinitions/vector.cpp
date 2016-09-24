@@ -1,45 +1,44 @@
-#include <QDebug>
-#include "aggregate.h"
 #include "vector.h"
-#include "member.h"
-#include "aggregateinstance.h"
-#include "vectorinstance.h"
 
-Vector::Vector(): Node(Node::NT_DEFINITION)
+Vector::Vector(): Node(Node::NK_VECTOR)
 {
-}
-
-Vector::~Vector()
-{
+    setNodeType(NT_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
 
 bool Vector::canAdoptChild(Node *child)
 {
-
-    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
-    Member* member = dynamic_cast<Member*>(child);
-
-    if(!(aggregateInstance || member)){
+    //Can Only adopt 1x Member/AggregateInstance
+    switch(child->getNodeKind()){
+    case NK_MEMBER:
+    case NK_AGGREGATE_INSTANCE:
+        if(hasChildren()){
+            return false;
+        }
+        break;
+    default:
         return false;
     }
-    if(hasChildren()){
-        return false;
-    }
-
     return Node::canAdoptChild(child);
 }
 
-bool Vector::canConnect_AggregateEdge(Node *node)
+bool Vector::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
-    Aggregate* aggregate = dynamic_cast<Aggregate*>(node);
-
-    if(!aggregate){
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
-
-    if(hasChildren()){
-        return false;
+    switch(edgeKind){
+    case Edge::EC_AGGREGATE:{
+        if(dst->getNodeKind() != NK_AGGREGATE){
+            return false;
+        }
+        if(hasChildren()){
+            return false;
+        }
+        break;
     }
-    return Node::canConnect_AggregateEdge(aggregate);
-
+    default:
+        break;
+    }
+    return Node::canAcceptEdge(edgeKind, dst);
 }

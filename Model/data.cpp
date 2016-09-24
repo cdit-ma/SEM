@@ -24,7 +24,7 @@ Data::Data(Key *key, QVariant value, bool protect):GraphML(GK_DATA)
 Data::~Data()
 {
     //Unset the parent
-    setParent(0);
+    //setParent(0);
 
     if(_parentData){
         //Unset Parent Data.
@@ -55,16 +55,15 @@ Data *Data::clone(Data *data)
 
 void Data::setParent(Entity *parent)
 {
-    if(parent){
-        connect(this, SIGNAL(dataChanged(int,QString,QVariant)), parent, SLOT(dataChanged(int, QString,QVariant)));
-        //Set the ID
-        setID();
-    }
     if(_parent){
-        disconnect(this, SIGNAL(dataChanged(int,QString,QVariant)), _parent, SLOT(dataChanged(int, QString,QVariant)));
+        _parent->_dataRemoved(this);
     }
 
-
+    if(parent){
+        setID();
+        parent->_dataChanged(this);
+        parent->_dataProtected(this);
+    }
     _parent = parent;
 }
 
@@ -76,6 +75,9 @@ Entity *Data::getParent()
 void Data::setProtected(bool protect)
 {
     _isProtected = protect;
+    if(getParent()){
+        _parent->_dataProtected(this);
+    }
 }
 
 bool Data::isProtected() const
@@ -97,15 +99,14 @@ bool Data::setValue(QVariant value)
         _value = newValue;
     }
 
-    //Send a signal saying the data changed, regardless of whether it did.
-    emit dataChanged(getID(), getKeyName(), _value);
+    updateChildren(_dataChanged);
+
     return _dataChanged;
 }
 
 void Data::setParentData(Data *parentData, bool protect)
 {
     unsetParentData();
-
 
     if(parentData){
         parentData->addChildData(this);
@@ -134,7 +135,7 @@ void Data::unsetParentData()
 void Data::clearValue()
 {
     _value = QVariant();
-    emit dataChanged(getID(), getKeyName(), _value);
+    updateChildren();
 }
 
 bool Data::compare(const Data *data) const
@@ -164,7 +165,7 @@ Key *Data::getKey()
     return _key;
 }
 
-QString Data::getKeyName()
+QString Data::getKeyName() const
 {
     return _keyName;
 }
@@ -210,7 +211,6 @@ void Data::addChildData(Data *childData)
         if(!_childData.contains(ID)){
             _childData[ID] = childData;
         }
-        connect(this, SIGNAL(dataChanged(int,QString,QVariant)), childData, SLOT(parentDataChanged(int, QString, QVariant)));
         //Update.
         childData->setValue(getValue());
     }
@@ -223,7 +223,6 @@ void Data::removeChildData(Data *childData)
         if(_childData.contains(ID)){
             _childData.remove(ID);
         }
-        disconnect(this, SIGNAL(dataChanged(int, QString, QVariant)), childData, SLOT(parentDataChanged(int, QString, QVariant)));
         childData->clearValue();
     }
 }
@@ -234,4 +233,18 @@ void Data::parentDataChanged(int ID, QString, QVariant data)
         //If this signal is coming from our parent, update our value
         setValue(data);
     }
+}
+
+void Data::updateChildren(bool changed)
+{
+    //Send a signal saying the data changed, regardless of whether it did.
+    if(changed){
+        foreach(Data* data, _childData.values()){
+            data->setValue(getValue());
+        }
+    }
+    if(getParent()){
+        _parent->_dataChanged(this);
+    }
+    emit dataChanged(getValue());
 }

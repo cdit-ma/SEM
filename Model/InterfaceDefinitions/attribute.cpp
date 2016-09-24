@@ -1,14 +1,16 @@
 #include "attribute.h"
 
-Attribute::Attribute():Node(Node::NT_DEFINITION)
+Attribute::Attribute():Node(Node::NK_ATTRIBUTE)
 {
-}
-
-Attribute::~Attribute()
-{
+    setNodeType(NT_DEFINITION);
 }
 
 bool Attribute::canAdoptChild(Node*)
+{
+    return false;
+}
+
+bool Attribute::canAcceptEdge(Edge::EDGE_KIND, Node *)
 {
     return false;
 }

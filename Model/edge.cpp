@@ -3,8 +3,82 @@
 #include "data.h"
 #include "node.h"
 #include <QDebug>
+#include <QStringBuilder>
+QList<Edge::EDGE_KIND> Edge::getEdgeKinds()
+{
+    QList<Edge::EDGE_KIND> edges;
+    edges << EC_DEFINITION;
+    edges << EC_AGGREGATE;
+    edges << EC_WORKFLOW;
+    edges << EC_ASSEMBLY;
+    edges << EC_DATA;
+    edges << EC_DEPLOYMENT;
+    edges << EC_QOS;
+    return edges;
+}
 
-Edge::Edge(Node *s, Node *d, EDGE_CLASS edgeClass):Entity(EK_EDGE)
+QString Edge::getKind(Edge::EDGE_KIND edgeClass)
+{
+    QString suffix = "Edge";
+    QString prefix;
+    switch(edgeClass){
+        case EC_DEFINITION:{
+            prefix = "Definition";
+            break;
+        }
+        case EC_AGGREGATE:{
+            prefix = "Aggregate";
+            break;
+        }
+        case EC_WORKFLOW:{
+            prefix = "Workflow";
+            break;
+        }
+        case EC_ASSEMBLY:{
+            prefix = "Assembly";
+            break;
+        }
+        case EC_DATA:{
+            prefix = "Data";
+            break;
+        }
+        case EC_DEPLOYMENT:{
+            prefix = "Deployment";
+            break;
+        }
+        case EC_QOS:{
+            prefix = "QOS";
+            break;
+        }
+    default:
+        prefix = "Undefined";
+        break;
+    }
+    return suffix % "_" % prefix;
+}
+
+Edge::EDGE_KIND Edge::getEdgeKind(QString kind)
+{
+    if(kind == "Edge_Definition"){
+        return Edge::EC_DEFINITION;
+    }else if(kind == "Edge_Aggregate"){
+        return Edge::EC_AGGREGATE;
+    }else if(kind == "Edge_Workflow"){
+        return Edge::EC_WORKFLOW;
+    }else if(kind == "Edge_Assembly"){
+        return Edge::EC_ASSEMBLY;
+    }else if(kind == "Edge_Data"){
+        return Edge::EC_DATA;
+    }else if(kind == "Edge_Deployment"){
+        return Edge::EC_DEPLOYMENT;
+    }else if(kind == "Edge_QOS"){
+        return Edge::EC_QOS;
+    }
+    return Edge::EC_UNDEFINED;
+}
+
+
+Edge::Edge(Node *s, Node *d, EDGE_KIND edgeClass):Entity(EK_EDGE)
 {
     //Set the instance Variables
     source = s;
@@ -30,6 +104,7 @@ Edge::~Edge()
         source->removeEdge(this);
     }
 }
+
 
 Node *Edge::getSource()
 {
@@ -64,7 +139,7 @@ QString Edge::toGraphML(qint32 indentationLevel)
 
     QString returnable = tabSpace + QString("<edge id=\"%1\" source=\"%2\" target =\"%3\"").arg(QString::number(getID()), QString::number(getSource()->getID()), QString::number(getDestination()->getID()));
 
-    if(hasData()){
+    if(gotData()){
         returnable += ">\n";
         foreach(Data* data, getData()){
             returnable += data->toGraphML(indentationLevel + 1);
@@ -163,15 +238,15 @@ bool Edge::isDefinitionEdge()
     return edgeClass == EC_DEFINITION;
 }
 
-Edge::EDGE_CLASS Edge::getEdgeClass()
+Edge::EDGE_KIND Edge::getEdgeKind()
 {
     return edgeClass;
 }
 
 Edge::EDGE_TYPE Edge::getType()
 {
-    QString srcKind = source->getNodeKind();
-    QString dstKind = destination->getNodeKind();
+    QString srcKind = source->getNodeKindStr();
+    QString dstKind = destination->getNodeKindStr();
 
     if(dstKind.startsWith("Hardware")){
         if(srcKind == "ComponentInstance" || srcKind == "ComponentAssembly" || srcKind == "ManagementComponent" || srcKind == "BlackBoxInstance"){

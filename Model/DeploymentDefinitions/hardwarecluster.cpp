@@ -1,21 +1,23 @@
 #include "hardwarecluster.h"
-#include "hardwarenode.h"
 
-HardwareCluster::HardwareCluster():Hardware(false)
+HardwareCluster::HardwareCluster():Node(NK_HARDWARE_CLUSTER)
 {
-}
-
-HardwareCluster::~HardwareCluster()
-{
+    setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
+    setNodeType(NT_HARDWARE);
 }
 
 bool HardwareCluster::canAdoptChild(Node *child)
 {
-    HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (child);
-
-    if(!hardwareNode){
+    switch(child->getNodeKind()){
+    case NK_HARDWARE_NODE:
+        break;
+    default:
         return false;
     }
+    return Node::canAdoptChild(child);
+}
 
-    return Hardware::canAdoptChild(child);
+bool HardwareCluster::canAcceptEdge(Edge::EDGE_KIND, Node *)
+{
+    return false;
 }

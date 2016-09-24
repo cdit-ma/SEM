@@ -1,21 +1,28 @@
 #include "hardwaredefinitions.h"
-#include "hardware.h"
 
-HardwareDefinitions::HardwareDefinitions():Node(Node::NT_ASPECT)
+HardwareDefinitions::HardwareDefinitions():Node(Node::NK_HARDWARE_DEFINITIONS)
 {
+    setNodeType(NT_ASPECT);
 }
 
-HardwareDefinitions::~HardwareDefinitions()
+VIEW_ASPECT HardwareDefinitions::getViewAspect() const
 {
+    return VA_HARDWARE;
 }
 
 bool HardwareDefinitions::canAdoptChild(Node *child)
 {
-    Hardware* hardware = dynamic_cast<Hardware*>(child);
-
-    if(!hardware){
+    switch(child->getNodeKind()){
+    case NK_HARDWARE_CLUSTER:
+    case NK_HARDWARE_NODE:
+        break;
+    default:
         return false;
     }
-
     return Node::canAdoptChild(child);
+}
+
+bool HardwareDefinitions::canAcceptEdge(Edge::EDGE_KIND, Node *)
+{
+    return false;
 }

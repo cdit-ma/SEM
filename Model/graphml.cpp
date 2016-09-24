@@ -44,7 +44,7 @@ void GraphML::setID()
  * Returns the unique ID of this object.
  * @return
  */
-int GraphML::getID()
+int GraphML::getID() const
 {
     return id;
 }

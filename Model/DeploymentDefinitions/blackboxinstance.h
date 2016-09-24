@@ -7,10 +7,9 @@ class BlackBoxInstance: public Node
     Q_OBJECT
 public:
     BlackBoxInstance();
-    ~BlackBoxInstance();
 
     bool canAdoptChild(Node* child);
-    bool canConnect_DefinitionEdge(Node *definition);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // BLACKBOXINSTANCE_H

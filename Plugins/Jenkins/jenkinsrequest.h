@@ -28,6 +28,7 @@ typedef QList<Jenkins_Job_Parameter> Jenkins_JobParameters;
 
 class JenkinsManager;
 class JenkinsRequest: public QObject{
+    friend class JenkinsManager;
     Q_OBJECT
 public:
     //Constructor
@@ -51,7 +52,7 @@ signals:
     void gotGroovyScriptOutput(QString consoleOutput);
 
     //Emitted, by any slot which deems the request to have failed.
-    void requestFailed();
+    void requestFailed(QString data="");
     //Emitted, by ALL slots once a slot has finished it's function.
     void requestFinished();
     //Emitted, if the JenkinsManager is destroyed.

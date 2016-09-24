@@ -6,9 +6,9 @@ class Process: public BehaviourNode
 {
     Q_OBJECT
 public:
-    Process();
-    ~Process();
+    Process(Node::NODE_KIND kind = Node::NK_PROCESS);
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 

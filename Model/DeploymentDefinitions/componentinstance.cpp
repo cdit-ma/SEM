@@ -1,36 +1,43 @@
 #include "componentinstance.h"
-#include "attributeinstance.h"
-#include "eventportinstance.h"
-#include "../InterfaceDefinitions/component.h"
 
-ComponentInstance::ComponentInstance():Node(Node::NT_INSTANCE)
+ComponentInstance::ComponentInstance():Node(Node::NK_COMPONENT_INSTANCE)
 {
-    setAcceptEdgeClass(Edge::EC_DEPLOYMENT);
-    setAcceptEdgeClass(Edge::EC_DEFINITION);
-}
-
-ComponentInstance::~ComponentInstance()
-{
+    setNodeType(NT_INSTANCE);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEPLOYMENT);
+    setAcceptsEdgeKind(Edge::EC_QOS);
 }
 
 bool ComponentInstance::canAdoptChild(Node *child)
 {
-    AttributeInstance* attributeInstance = dynamic_cast<AttributeInstance*>(child);
-    EventPortInstance* eventPortInstance = dynamic_cast<EventPortInstance*>(child);
 
-    if(!(attributeInstance || eventPortInstance)){
-        //ComponentInstance can only adopt AttributeInstance/EventPortInstance
+    switch(child->getNodeKind()){
+    case NK_ATTRIBUTE_INSTANCE:
+    case NK_INEVENTPORT_INSTANCE:
+    case NK_OUTEVENTPORT_INSTANCE:
+        break;
+    default:
         return false;
     }
-
     return Node::canAdoptChild(child);
 }
 
-bool ComponentInstance::canConnect_DefinitionEdge(Node *definition)
+bool ComponentInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
-    Component* component = dynamic_cast<Component*>(definition);
-    if(!component){
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
-    return Node::canConnect_DefinitionEdge(definition);
+
+    switch(edgeKind){
+    case Edge::EC_DEFINITION:{
+        if(dst->getNodeKind() != NK_COMPONENT){
+            return false;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    return Node::canAcceptEdge(edgeKind, dst);
+
 }

@@ -7,9 +7,8 @@ class Component : public Node
     Q_OBJECT
 public:
     Component();
-    ~Component();
-
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // COMPONENT_H

@@ -370,3 +370,49 @@ QColor GET_HARDWARE_HIGHLIGHT_COLOR()
     //return QColor(102,0,51);
     return QColor(178,34,34);
 }
+
+
+RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect)
+{
+    switch(aspect){
+    case VA_INTERFACES:
+        return RV_TOPLEFT;
+    case VA_BEHAVIOUR:
+        return RV_TOPRIGHT;
+    case VA_ASSEMBLIES:
+        return RV_BOTTOMLEFT;
+    case VA_HARDWARE:
+        return RV_BOTTOMRIGHT;
+    default:
+        break;
+    }
+    return RV_NONE;
+}
+
+
+QList<NOTIFICATION_TYPE> getNotificationTypes()
+{
+    QList<NOTIFICATION_TYPE> list;
+    list << NT_INFO;
+    list << NT_WARNING;
+    list << NT_ERROR;
+    list << NT_CRITICAL;
+    return list;
+}
+
+
+QString GET_NOTIFICATION_TYPE_STRING(NOTIFICATION_TYPE type)
+{
+    switch (type) {
+    case NT_INFO:
+        return "Information";
+    case NT_WARNING:
+        return "Warning";
+    case NT_ERROR:
+        return "Error";
+    case NT_CRITICAL:
+        return "Critical";
+    default:
+        return "";
+    }
+}

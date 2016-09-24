@@ -35,12 +35,12 @@
 			<!--    convention is to have id="d0..." but yEd or MEDEA may reassign ... -->
 			
 			<!-- Default yEd data keys, keep original file ids if already existing -->
-			<xsl:variable name="urlnodeFound" select="./gml:graphml/gml:key[@attr.name='url'][@for='node']" />
+			<xsl:variable name="urlnodeFound" select="./gml:graphml/gml:key[@attr.name='url']" />
 			<xsl:if test="not($urlnodeFound)">
 				<key attr.name="url" attr.type="string" for="node" id="{$nodeURLKey}"/>
 			</xsl:if>
 			
-			<xsl:variable name="descriptionnodeFound" select="./gml:graphml/gml:key[@attr.name='description'][@for='node']" />
+			<xsl:variable name="descriptionnodeFound" select="./gml:graphml/gml:key[@attr.name='description']" />
 			<xsl:if test="not($descriptionnodeFound)">
 				<key attr.name="description" attr.type="string" for="node" id="{$nodeDescriptionKey}"/>
 			</xsl:if>
@@ -88,7 +88,7 @@
 	
 	<xsl:template match="gml:graphml">
 		<!-- Assign the transform node key ids for X Y Width and Height from existing keys -->
-		<xsl:variable name="xnodeFound" select="./gml:key[@attr.name='x'][@for='node']" />
+		<xsl:variable name="xnodeFound" select="./gml:key[@attr.name='x']" />
 		<xsl:variable name="transformNodeXKey">
 			<xsl:choose>
 				<xsl:when test="not($xnodeFound)">
@@ -100,7 +100,7 @@
 			</xsl:choose>
 		</xsl:variable>
 			
-		<xsl:variable name="ynodeFound" select="./gml:key[@attr.name='y'][@for='node']" />
+		<xsl:variable name="ynodeFound" select="./gml:key[@attr.name='y']" />
 		<xsl:variable name="transformNodeYKey">
 			<xsl:choose>
 				<xsl:when test="not($ynodeFound)">
@@ -112,7 +112,7 @@
 			</xsl:choose>
 		</xsl:variable>
 
-		<xsl:variable name="widthnodeFound" select="./gml:key[@attr.name='width'][@for='node']" />
+		<xsl:variable name="widthnodeFound" select="./gml:key[@attr.name='width']" />
 		<xsl:variable name="transformNodeWidthKey">
 			<xsl:choose>
 				<xsl:when test="not($widthnodeFound)">
@@ -124,7 +124,7 @@
 			</xsl:choose>
 		</xsl:variable>
 
-		<xsl:variable name="heightnodeFound" select="./gml:key[@attr.name='height'][@for='node']" />
+		<xsl:variable name="heightnodeFound" select="./gml:key[@attr.name='height']" />
 		<xsl:variable name="transformNodeHeightKey">
 			<xsl:choose>
 				<xsl:when test="not($heightnodeFound)">

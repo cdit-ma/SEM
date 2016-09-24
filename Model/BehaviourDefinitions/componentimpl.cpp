@@ -1,54 +1,47 @@
 #include "componentimpl.h"
 
-#include "../InterfaceDefinitions/component.h"
-
-#include "attributeimpl.h"
-#include "branchstate.h"
-#include "ineventportimpl.h"
-#include "outeventportimpl.h"
-#include "periodicevent.h"
-#include "termination.h"
-#include "variable.h"
-#include "workload.h"
-#include "whileloop.h"
-
-ComponentImpl::ComponentImpl():Node(Node::NT_IMPL){
-    setAcceptEdgeClass(Edge::EC_DEFINITION);
+ComponentImpl::ComponentImpl():Node(Node::NK_COMPONENT_IMPL){
+    setNodeType(NT_IMPLEMENTATION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
 }
-
-ComponentImpl::~ComponentImpl(){}
 
 bool ComponentImpl::canAdoptChild(Node *child)
 {
-    AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(child);
-    BranchState* branchState = dynamic_cast<BranchState*>(child);
-    InEventPortImpl* inEventPortImpl = dynamic_cast<InEventPortImpl*>(child);
-    OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(child);
-    PeriodicEvent* periodicEvent = dynamic_cast<PeriodicEvent*>(child);
-    Termination* termination = dynamic_cast<Termination*>(child);
-    Variable* variable = dynamic_cast<Variable*>(child);
-    Workload* workload = dynamic_cast<Workload*>(child);
-    WhileLoop* whileLoop = dynamic_cast<WhileLoop*>(child);
-
-    if(!(attributeImpl || branchState || inEventPortImpl || outEventPortImpl || periodicEvent || termination || variable || workload || whileLoop)){
+    switch(child->getNodeKind()){
+        case Node::NK_ATTRIBUTE_IMPL:
+        case Node::NK_INEVENTPORT_IMPL:
+        case Node::NK_OUTEVENTPORT_IMPL:
+        case Node::NK_BRANCH_STATE:
+        case Node::NK_PERIODICEVENT:
+        case Node::NK_TERMINATION:
+        case Node::NK_VARIABLE:
+        case Node::NK_WORKLOAD:
+        case Node::NK_WHILELOOP:
+            break;
+    default:
         return false;
     }
-
     return Node::canAdoptChild(child);
 }
 
-bool ComponentImpl::canConnect_DefinitionEdge(Node *definition)
+bool ComponentImpl::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
-    Component* component = dynamic_cast<Component*>(definition);
-
-    if(!component){
+    if(!acceptsEdgeKind(edgeKind)){
         return false;
     }
 
-    if(!component->getImplementations().isEmpty()){
-        return false;
+    switch(edgeKind){
+    case Edge::EC_DEFINITION:{
+        if(!dst->getImplementations().isEmpty()){
+            return false;
+        }
+        if(dst->getNodeKind() != NK_COMPONENT){
+            return false;
+        }
+        break;
     }
-
-    return Node::canConnect_DefinitionEdge(definition);
+    default:
+        break;
+    }
+    return Node::canAcceptEdge(edgeKind, dst);
 }
-

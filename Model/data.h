@@ -30,7 +30,7 @@ public:
     bool isVisualData();
 
     Key* getKey();
-    QString getKeyName();
+    QString getKeyName() const;
     QVariant getValue() const;
 
     QString toGraphML(int indentDepth);
@@ -38,11 +38,12 @@ public:
 protected:
     void addChildData(Data* childData);
     void removeChildData(Data* childData);
+signals:
+    void dataChanged(QVariant data);
 private slots:
     void parentDataChanged(int ID, QString keyName, QVariant data);
-signals:
-    void dataChanged(int ID, QString keyName, QVariant data);
 private:
+    void updateChildren(bool changed = true);
     Entity* _parent;
     Key* _key;
     Data* _parentData;

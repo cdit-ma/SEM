@@ -1,78 +1,36 @@
 #ifndef BEHAVIOURNODE_H
 #define BEHAVIOURNODE_H
 #include "../node.h"
-#include <QHash>
-#include <QList>
-#include "../Edges/workflowedge.h"
-#include "../Edges/dataedge.h"
-class Parameter;
-
 
 class BehaviourNode : public Node
 {
     Q_OBJECT
 public:
-    BehaviourNode(Node::NODE_TYPE type = NT_NODE);
-    bool requiresParameters();
+    BehaviourNode(NODE_KIND kind);
 
-    void setIsWorkflowStart(bool start);
-    void setIsWorkflowEnd(bool end);
-    void setIsNonWorkflow(bool nonWorkflow);
+    void setWorkflowProducer(bool producer);
+    void setWorkflowReciever(bool reciever);
 
-    void setIsDataInput(bool input);
-    void setIsDataOutput(bool output);
+    bool isWorkflowProducer() const;
+    bool isWorkflowReciever() const;
 
-
-    bool isWorkflowStart();
-    bool isWorkflowEnd();
-    bool isNonWorkflow();
-
-    bool isDataInput();
-    bool isDataOutput();
-
-    bool gotDataInput();
-    bool gotDataOutput();
-
-    bool gotLeftWorkflowEdge();
-    bool gotRightWorkflowEdge();
-
-    virtual WorkflowEdge* getLeftWorkflowEdge();
-    WorkflowEdge* getRightWorkflowEdge();
-
-    DataEdge* getInputDataEdge();
-    DataEdge* getOutputDataEdge();
-
-    Node* getInputData();
-    Node* getOutputData();
-
-    BehaviourNode* getRightBehaviourNode();
-    BehaviourNode* getLeftBehaviourNode();
+    BehaviourNode* getProducerNode();
+    QList<BehaviourNode*> getRecieverNodes();
 
     BehaviourNode* getParentBehaviourNode();
+    BehaviourNode* getInitialProducer();
 
-    bool isRelatedToBehaviourNode(BehaviourNode* node);
-
-
-    BehaviourNode* getStartOfWorkflowChain();
-    BehaviourNode* getEndOfWorkflowChain();
+    bool isNodeInBehaviourChain(BehaviourNode* node);
 
 
-    bool needEdge();
 
-
-    bool compareableTypes(Node* node);
-
-public:
-    bool canConnect_WorkflowEdge(Node *node);
-    bool canConnect_DataEdge(Node *node);
     virtual bool canAdoptChild(Node* child);
+    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 
 private:
-    bool _isWorkflowStart;
-    bool _isWorkflowEnd;
-    bool _isNonWorkflow;
-    bool _isDataInput;
-    bool _isDataOutput;
+    bool _isReciever;
+    bool _isProducer;
+
 };
 
 #endif // BEHAVIOURNODE_H

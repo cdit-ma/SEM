@@ -1,26 +1,19 @@
 #ifndef PARAMETER_H
 #define PARAMETER_H
-#include "behaviournode.h"
-class BehaviourNode;
+#include "../InterfaceDefinitions/datanode.h"
 
-class Parameter: public BehaviourNode
+class Parameter: public DataNode
 {
     Q_OBJECT
 public:
-    Parameter(bool isInput=false);
+    Parameter(NODE_KIND kind);
 
-    bool isInputParameter();
-    bool isReturnParameter();
-    bool hasConnection();
+    bool isInputParameter() const;
+    bool isReturnParameter() const;
 
-    bool compareableTypes(Node* node);
 
-    // Node interface
-public:
-    bool canAdoptChild(Node *node);
-    bool canConnect_DataEdge(Node *node);
-private:
-    bool inputParameter;
+    virtual bool canAdoptChild(Node *node);
+    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // PARAMETER_H

@@ -1,21 +1,27 @@
 #include "interfacedefinitions.h"
-#include "idl.h"
 
-InterfaceDefinitions::InterfaceDefinitions(): Node(Node::NT_ASPECT)
+InterfaceDefinitions::InterfaceDefinitions(): Node(NK_INTERFACE_DEFINITIONS)
 {
+    setNodeType(NT_ASPECT);
 }
 
-InterfaceDefinitions::~InterfaceDefinitions()
+VIEW_ASPECT InterfaceDefinitions::getViewAspect() const
 {
+    return VA_INTERFACES;
 }
 
 bool InterfaceDefinitions::canAdoptChild(Node *child)
 {
-    IDL* idl = dynamic_cast<IDL*>(child);
-
-    if(!idl){
+    switch(child->getNodeKind()){
+    case NK_IDL:
+        break;
+    default:
         return false;
     }
-
     return Node::canAdoptChild(child);
+}
+
+bool InterfaceDefinitions::canAcceptEdge(Edge::EDGE_KIND, Node *)
+{
+    return false;
 }

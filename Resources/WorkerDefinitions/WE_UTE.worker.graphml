@@ -31,7 +31,7 @@
             <data key="d25">A CUTS worker that provides utility functions for use in workload.</data>
             <graph id="n0:" edgedefault="directed">
                 <node id="n0::n0">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">15</data>
                     <data key="d6">60</data>
                     <data key="d7">378.374</data>
@@ -88,7 +88,7 @@
                     </graph>
                 </node>
                 <node id="n0::n1">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">409.009</data>
                     <data key="d6">60</data>
                     <data key="d7">257.02</data>
@@ -132,7 +132,7 @@
                     </graph>
                 </node>
                 <node id="n0::n2">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">409.009</data>
                     <data key="d6">60</data>
                     <data key="d7">257.02</data>
@@ -148,7 +148,7 @@
                     <data key="d14">WE_UTE</data>
                 </node>
                 <node id="n0::n3">
-                    <data key="d4">Process</data>
+                    <data key="d4">WorkerProcess</data>
                     <data key="d5">409.009</data>
                     <data key="d6">60</data>
                     <data key="d7">257.02</data>

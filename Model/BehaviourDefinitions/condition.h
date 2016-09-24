@@ -4,19 +4,19 @@
 
 class Termination;
 class Branch;
+
 class Condition: public BehaviourNode
 {
     Q_OBJECT
 public:
     Condition();
-    ~Condition();
 
     Branch* getBranch();
-    Termination* getTermination();
+    Termination* getRequiredTermination();
+    bool gotTermination();
 
-public:
     bool canAdoptChild(Node*);
-    bool canConnect_WorkflowEdge(Node *node);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // CONDITION_H

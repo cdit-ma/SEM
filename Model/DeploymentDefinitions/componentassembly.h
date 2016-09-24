@@ -7,9 +7,9 @@ class ComponentAssembly : public Node
     Q_OBJECT
 public:
     ComponentAssembly();
-    ~ComponentAssembly();
-public:
+
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // COMPONENTASSEMBLY_H

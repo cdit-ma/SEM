@@ -1,7 +1,8 @@
 #include "xmitreemodel.h"
 #include <QDebug>
-#include "../../View/theme.h"
 #include <QStack>
+
+#include "../../theme.h"
 
 XMITreeModel::XMITreeModel(QObject* parent):QStandardItemModel(parent)
 {
@@ -139,7 +140,7 @@ QList<QModelIndex> XMITreeModel::getChildren(const QModelIndex &ind, int depth) 
     return descendants;
 }
 
-QVariant XMITreeModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant XMITreeModel::headerData(int, Qt::Orientation orientation, int role) const
 {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         return "UMI Element";

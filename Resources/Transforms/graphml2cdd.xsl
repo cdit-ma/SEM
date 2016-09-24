@@ -47,7 +47,7 @@
 	<xsl:template match="gml:graphml">
 		<!-- Assign the transform node keys for Label and Kind from existing keys -->
 
-		<xsl:variable name="projectUUIDFound" select="./gml:key[@attr.name='projectUUID'][@for='node']" />
+		<xsl:variable name="projectUUIDFound" select="./gml:key[@attr.name='projectUUID']" />
 		<xsl:variable name="transformNodeProjectUUIDKey">
 			<xsl:choose>
 				<xsl:when test="not($projectUUIDFound)">
@@ -59,7 +59,7 @@
 			</xsl:choose>
 		</xsl:variable>	
 		
-		<xsl:variable name="labelnodeFound" select="./gml:key[@attr.name='label'][@for='node']" />
+		<xsl:variable name="labelnodeFound" select="./gml:key[@attr.name='label']" />
 		<xsl:variable name="transformNodeLabelKey">
 			<xsl:choose>
 				<xsl:when test="not($labelnodeFound)">
@@ -71,7 +71,7 @@
 			</xsl:choose>
 		</xsl:variable>
 		
-		<xsl:variable name="kindnodeFound" select="./gml:key[@attr.name='kind'][@for='node']" />
+		<xsl:variable name="kindnodeFound" select="./gml:key[@attr.name='kind']" />
 		<xsl:variable name="transformNodeKindKey">
 			<xsl:choose>
 				<xsl:when test="not($kindnodeFound)">
@@ -83,7 +83,7 @@
 			</xsl:choose>
 		</xsl:variable>	
 	
-		<xsl:variable name="ipnodeFound" select="./gml:key[@attr.name='ip_address'][@for='node']" />
+		<xsl:variable name="ipnodeFound" select="./gml:key[@attr.name='ip_address']" />
 		<xsl:variable name="transformNodeIp_addressKey">
 			<xsl:choose>
 				<xsl:when test="not($ipnodeFound)">

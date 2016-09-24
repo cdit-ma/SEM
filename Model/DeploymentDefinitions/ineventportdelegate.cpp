@@ -1,11 +1,9 @@
 #include "ineventportdelegate.h"
 
-InEventPortDelegate::InEventPortDelegate():EventPortDelegate(true)
+InEventPortDelegate::InEventPortDelegate():EventPortAssembly(NK_INEVENTPORT_DELEGATE)
 {
-}
-
-InEventPortDelegate::~InEventPortDelegate()
-{
+    removeEdgeKind(Edge::EC_DEFINITION);
+    removeNodeType(NT_DEFINITION);
 }
 
 bool InEventPortDelegate::canAdoptChild(Node*)
@@ -13,8 +11,8 @@ bool InEventPortDelegate::canAdoptChild(Node*)
     return false;
 }
 
-bool InEventPortDelegate::canConnect_AssemblyEdge(Node *node)
+bool InEventPortDelegate::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
 {
-    return EventPortDelegate::canConnect_AssemblyEdge(node);
+    return EventPortAssembly::canAcceptEdge(edgeKind, dst);
 }
 

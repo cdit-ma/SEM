@@ -7,7 +7,8 @@ class ReturnParameter : public Parameter
     Q_OBJECT
 public:
     ReturnParameter();
-    ~ReturnParameter();
+    bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // RETURNPARAMETER_H

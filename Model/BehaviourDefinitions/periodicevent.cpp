@@ -1,21 +1,18 @@
 #include "periodicevent.h"
-#include "inputparameter.h"
 
-PeriodicEvent::PeriodicEvent():BehaviourNode(){
+PeriodicEvent::PeriodicEvent():BehaviourNode(NK_PERIODICEVENT){
     //Setup initial settings
-    setIsWorkflowStart(true);
-}
-
-PeriodicEvent::~PeriodicEvent(){
+    setWorkflowProducer(true);
+    setWorkflowReciever(false);
 }
 
 bool PeriodicEvent::canAdoptChild(Node * node)
 {
-    InputParameter* inputParameter = dynamic_cast<InputParameter*>(node);
+    Q_UNUSED(node);
+    return false;
+}
 
-    if(!inputParameter){
-        return false;
-    }
-
-    return BehaviourNode::canAdoptChild(node);
+bool PeriodicEvent::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+{
+    return BehaviourNode::canAcceptEdge(edgeKind, dst);
 }

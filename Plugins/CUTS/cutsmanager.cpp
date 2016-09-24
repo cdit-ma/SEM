@@ -12,19 +12,37 @@
 #include <QMessageBox>
 #include <QTime>
 #include <QThread>
-CUTSManager::CUTSManager()
+#include <QApplication>
+#include <QStringBuilder>
+
+#include "Widgets/cutsexecutionwidget.h"
+#include "../../Controllers/SettingsController/settingscontroller.h"
+
+CUTSManager::CUTSManager():QObject(0)
 {
+    managerThread = new QThread();
+    connect(this, SIGNAL(initiateTeardown()), managerThread, SLOT(quit()));
+    moveToThread(managerThread);
+    managerThread->start();
+
+
     //Initialize starting variables;
     executingProcessCount = 0;
     xslFailCount = 0;
     MAX_EXECUTING_PROCESSES = 1;
 
     gotCPPCompiler = checkForCPPCompiler();
+
+    //Set instance variables.
+    setXalanJPath(QApplication::applicationDirPath() % "/Resources/Binaries/");
+    setXSLTransformPath(QApplication::applicationDirPath() % "/Resources/Transforms/");
+    setScriptsPath(QApplication::applicationDirPath() % "/Resources/Scripts/");
+    setMaxThreadCount(4);
 }
 
 CUTSManager::~CUTSManager()
 {
-    //Destructor
+    emit initiateTeardown();
 }
 
 void CUTSManager::setXalanJPath(QString xalanPath)
@@ -55,9 +73,11 @@ void CUTSManager::setCUTSConfigScriptPath(QString configureScriptPath)
             //get the environment for the mwc generation
             CUTS_ENVIRONMENT = getEnvFromScript(configureScriptPath);
             if(!CUTS_ENVIRONMENT.isEmpty() && gotCPPCompiler){
-                emit localDeploymentOkay();
+                emit localDeploymentOkay(true);
+                return;
             }
         }
+        emit localDeploymentOkay(false);
     }
 }
 
@@ -66,10 +86,18 @@ void CUTSManager::setScriptsPath(QString path)
     scriptsPath = path;
 }
 
+void CUTSManager::showLocalDeploymentGUI(QString graphmlPath)
+{
+    CUTSExecutionWidget cWidget(0,this);
+    cWidget.setGraphMLPath(graphmlPath);
+    cWidget.setOutputPath("");
+    cWidget.exec();
+}
+
 void CUTSManager::executeXSLValidation(QString graphmlPath, QString outputFilePath)
 {
     if(!isFileReadable(graphmlPath)){
-        emit executedXSLValidation(false, "");
+        emit gotError("Cannot run XSL Validation", "File: '" % graphmlPath %"' Unreadable!");
         return;
     }
 
@@ -98,8 +126,11 @@ void CUTSManager::executeXSLValidation(QString graphmlPath, QString outputFilePa
 
     //QString commandOutput = process->readAllStandardOutput();
     //QString errorString = process->readAllStandardError();
-
-    emit executedXSLValidation(code == 0, outputFilePath);
+    if(code == 0){
+        emit executedXSLValidation(outputFilePath);
+    }else{
+        emit gotError("Cannot run XSL Validation", "Unknown Error!");
+    }
 }
 
 
@@ -219,14 +250,22 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 
 void CUTSManager::getCPPForComponent(QString graphmlPath, QString component)
 {
+    qCritical() << graphmlPath << component;
     QStringList cppArgs, hArgs;
     cppArgs << "File" << component + "Impl.cpp";
     hArgs << "File" << component + "Impl.h";
     QPair<int, QPair<QString, QString> > cppCode = runLocalTransform(graphmlPath, "graphml2cpp.xsl", cppArgs);
     QPair<int, QPair<QString, QString> > hCode = runLocalTransform(graphmlPath, "graphml2h.xsl", hArgs);
 
-    emit gotCPPForComponent(cppCode.first == 0, cppCode.second.second, component + "Impl.cpp", cppCode.second.first);
-    emit gotCPPForComponent(hCode.first == 0, hCode.second.second, component + "Impl.h", hCode.second.first);
+    if(cppCode.first == 0 && hCode.first == 0){
+        emit gotCodeForComponent(component + "Impl.cpp", cppCode.second.first);
+        emit gotCodeForComponent(component + "Impl.h", hCode.second.first);
+    }else{
+        qCritical() << "ERROR:";
+        qCritical() << cppCode.second.second;
+        qCritical() << hCode.second.second;
+        emit gotError("Getting Code for Component Failed", cppCode.second.second % hCode.second.second);
+    }
 }
 
 void CUTSManager::executeXMETransform(QString xmePath, QString outputFilePath)
@@ -271,8 +310,11 @@ void CUTSManager::executeXMETransform(QString xmePath, QString outputFilePath)
     int code = process->exitCode();
 
     QString commandOutput = process->readAllStandardOutput();
-    QString errorString = process->readAllStandardError();
-    emit gotXMETransform(code==0, errorString, outputFilePath);
+    if(code == 0){
+        emit gotXMETransform(outputFilePath);
+    }else{
+        emit gotError("Transforming XME Failed", process->readAllStandardError());
+    }
 }
 
 void CUTSManager::executeCUTS(QString path, int executionTime)
@@ -346,6 +388,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 
     QStringList deployedComponents;
     QStringList deployedComponentInstances;
+    QStringList deployedComponentInstanceIDs;
     QStringList hardwareIDs;
     QStringList IDLs;
 
@@ -354,7 +397,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 
 
     //Get the id and attr.name attributes of each <key> entities from the graphml
-    QXmlResultItems* keysXML = evaluateQuery2List(query, "doc($doc)//gml:graphml/gml:key[@for='node']");
+    QXmlResultItems* keysXML = evaluateQuery2List(query, "doc($doc)//gml:graphml/gml:key");
     QXmlItem keyXML = keysXML->next();
 
     while(!keyXML.isNull()){
@@ -438,6 +481,10 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
         bool isDeployed = false;
 
         QString instanceID = evaluateQuery2String(query, "@id/string()", &componentInstanceXML);
+
+        if(!deployedComponentInstanceIDs.contains(instanceID)){
+            deployedComponentInstanceIDs.append(instanceID);
+        }
 
         //Find the connected Component definition for this instance.
         QPair<QString,QString> edge;
@@ -530,7 +577,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 
 
     queueComponentGeneration(processedGraphmlPath, deployedComponents, outputPath);
-    queueComponentInstanceGeneration(processedGraphmlPath, deployedComponentInstances, outputPath);
+    queueComponentInstanceGeneration(processedGraphmlPath, deployedComponentInstanceIDs, outputPath);
     queueIDLGeneration(processedGraphmlPath, IDLs, outputPath);
     queueDeploymentGeneration(processedGraphmlPath, mpcFiles, outputPath);
     queueHardwareGeneration(processedGraphmlPath, hardwareNodes, outputPath);
@@ -708,7 +755,12 @@ void CUTSManager::executeXMI2GraphML(QString XMIPath, QStringList selectedIDs)
     classes << "class_ids";
     classes << selectedIDs.join(",");
     QPair<int, QPair<QString, QString> > result = runLocalTransform(XMIPath, "xmi2graphml.xsl", classes);
-    emit gotXMIGraphML(result.first == 0, result.second.second, result.second.first);
+
+    if(result.first == 0){
+        emit gotXMIGraphML(result.second.first);
+    }else{
+        emit gotError("Transforming XMI Failed", result.second.second);
+    }
 }
 
 void CUTSManager::executeXMI2XML(QString XMIPath)
@@ -874,8 +926,8 @@ void CUTSManager::queueComponentInstanceGeneration(QString graphmlPath, QStringL
     foreach(QString componentInstance, componentInstances){
         //Construct the parameters
         QStringList parameters;
-        parameters << "ComponentInstance" << componentInstance;
-        QString outputFile = libPath + componentInstance + "%QoS.dpd";
+        parameters << "ComponentInstanceID" << componentInstance;
+        QString outputFile = libPath + "ComponentInst_" + componentInstance + "%QoS.dpd";
         QString xslFile = XSLTransformPath + "graphml2dpd.xsl";
 
         //Queue the XSL Transform
@@ -1105,7 +1157,7 @@ QString CUTSManager::getProjectNameFromFile(QString file)
     QHash<QString, QString> keys;
 
     //Get the id and attr.name attributes of each <key> entities from the graphml
-    QXmlResultItems* keysXML = evaluateQuery2List(query, "doc($doc)//gml:graphml/gml:key[@for='node']");
+    QXmlResultItems* keysXML = evaluateQuery2List(query, "doc($doc)//gml:graphml/gml:key");
     QXmlItem keyXML = keysXML->next();
 
     while(!keyXML.isNull()){

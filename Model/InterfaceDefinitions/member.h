@@ -7,9 +7,8 @@ class Member : public Node
     Q_OBJECT
 public:
     Member();
-    ~Member();
-
     bool canAdoptChild(Node* child);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // MEMBER_H

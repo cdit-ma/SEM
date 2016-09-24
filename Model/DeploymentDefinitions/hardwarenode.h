@@ -1,15 +1,14 @@
 #ifndef HARDWARENODE_H
 #define HARDWARENODE_H
-#include "hardware.h"
+#include "../node.h"
 
-class HardwareNode : public Hardware
+class HardwareNode : public Node
 {
     Q_OBJECT
 public:
     HardwareNode();
-    ~HardwareNode();
-
     bool canAdoptChild(Node*);
+    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // HARDWARENODE_H

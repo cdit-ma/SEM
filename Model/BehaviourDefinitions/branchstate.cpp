@@ -1,17 +1,15 @@
 #include "branchstate.h"
 #include "condition.h"
 
-BranchState::BranchState():Branch(){
-    //Check Branch for connection rules.
+BranchState::BranchState():Branch(NK_BRANCH_STATE){
 }
-
-BranchState::~BranchState(){}
 
 bool BranchState::canAdoptChild(Node *child)
 {
-    Condition* condition = dynamic_cast<Condition*>(child);
-    if(!condition){
-        return false;
-    }
     return Branch::canAdoptChild(child);
+}
+
+bool BranchState::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
+{
+    return Branch::canAcceptEdge(edgeKind, dst);
 }

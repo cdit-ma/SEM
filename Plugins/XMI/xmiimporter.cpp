@@ -1,4 +1,5 @@
 #include "xmiimporter.h"
+
 #include <QTreeView>
 #include <QStandardItem>
 #include <QXmlStreamReader>
@@ -8,20 +9,20 @@
 #include <QVBoxLayout>
 #include <QDialog>
 #include <QDebug>
-#include "../../View/theme.h"
-#include "GUI/XMITreeViewDialog.h"
 #include <QStringBuilder>
+
+#include "../../theme.h"
+#include "Widgets/XMITreeViewDialog.h"
 
 XMIImporter::XMIImporter(CUTSManager *cutsManager, QWidget *parent):QObject(parent)
 {
     parentWidget = parent;
     this->cutsManager = cutsManager;
 
-    connect(this, SIGNAL(requestXMLFromXMI(QString)), cutsManager, SLOT(executeXMI2XML(QString)));
-    connect(cutsManager, SIGNAL(gotXMIXML(bool,QString,QString)), this, SLOT(gotXMIXML(bool,QString,QString)));
-
-    connect(this, SIGNAL(requestGraphMLFromXMI(QString,QStringList)), cutsManager, SLOT(executeXMI2GraphML(QString,QStringList)));
-    connect(cutsManager, SIGNAL(gotXMIGraphML(bool,QString,QString)), this, SIGNAL(gotXMIGraphML(bool,QString,QString)));
+    connect(this, &XMIImporter::requestXMLFromXMI, cutsManager, &CUTSManager::executeXMI2XML);
+    connect(this, &XMIImporter::requestGraphMLFromXMI, cutsManager, &CUTSManager::executeXMI2GraphML);
+    connect(cutsManager, &CUTSManager::gotXMIGraphML, this, &XMIImporter::gotXMIGraphML);
+    connect(cutsManager, &CUTSManager::gotXMIXML, this, &XMIImporter::gotXMIXML);
 
 }
 
@@ -35,6 +36,9 @@ void XMIImporter::importXMI(QString XMIPath)
 
 void XMIImporter::gotXMIXML(bool success, QString errorString, QString outputxml)
 {
+    Q_UNUSED(success);
+    Q_UNUSED(errorString);
+
     emit loadingStatus(false);
 
     QXmlStreamReader xml(outputxml);

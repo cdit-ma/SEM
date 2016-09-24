@@ -1,53 +1,27 @@
 #include "aggregate.h"
 
-#include "aggregateinstance.h"
-#include "member.h"
-#include "vectorinstance.h"
-#include "eventport.h"
-
-Aggregate::Aggregate(): Node(Node::NT_DEFINITION)
+Aggregate::Aggregate(): Node(Node::NK_AGGREGATE)
 {
+    setNodeType(Node::NT_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_DEFINITION);
+    setAcceptsEdgeKind(Edge::EC_AGGREGATE);
 }
-
-Aggregate::~Aggregate()
-{
-}
-
-void Aggregate::addEventPort(EventPort *node)
-{
-    if(!attachedEventPorts.contains(node)){
-        attachedEventPorts.append(node);
-        node->setAggregate(this);
-    }
-}
-
-void Aggregate::removeEventPort(EventPort *node)
-{
-    int index = attachedEventPorts.indexOf(node);
-    if(index != -1){
-        attachedEventPorts.remove(index);
-    }
-}
-
-QVector<EventPort *> Aggregate::getEventPorts()
-{
-    return attachedEventPorts;
-}
-
 
 bool Aggregate::canAdoptChild(Node *child)
 {
-    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
-    VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(child);
-    Member* member = dynamic_cast<Member*>(child);
-
-    if(!(aggregateInstance || member || vectorInstance)){
+    if(!child){
         return false;
     }
 
-    //TODO may not need.
-    if(vectorInstance){
-        Node* vector = vectorInstance->getDefinition();
+    Node::NODE_KIND kind = child->getNodeKind();
+
+    switch(kind){
+    case NK_AGGREGATE_INSTANCE:
+        break;
+    case NK_MEMBER:
+        break;
+    case NK_VECTOR_INSTANCE:{
+        Node* vector = child->getDefinition();
         if(vector && vector->hasChildren()){
             //Check first child of vector.
             Node* vectorChild = vector->getChildren(0)[0];
@@ -60,7 +34,16 @@ bool Aggregate::canAdoptChild(Node *child)
                }
             }
         }
+        break;
+    }
+    default:
+        return false;
     }
 
     return Node::canAdoptChild(child);
+}
+
+bool Aggregate::canAcceptEdge(Edge::EDGE_KIND, Node *)
+{
+    return false;
 }
