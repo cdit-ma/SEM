@@ -89,14 +89,7 @@
 			    <scheduling_priority_kind kind="PRIORITY_ABSOLUTE"/>
 		    </listener_scheduling>
 
-            <!-- Generate Publisher and Subscriber -->
-                <xsl:call-template name="generate_publisher">
-                    <xsl:with-param name="qos" select="$qos_profile" />
-                </xsl:call-template>
 
-                <xsl:call-template name="generate_subscriber">
-                    <xsl:with-param name="qos" select="$qos_profile" />
-                </xsl:call-template>
 
             <!-- Generate Topics -->
             <xsl:for-each select="./gml:graph/gml:node/gml:data[@key=$kind_key_id][contains(text(), 'EventPortInstance')]/..">
@@ -138,6 +131,15 @@
                     <xsl:with-param name="qos" select="$port_qos_profile" />
                 </xsl:call-template>
             </xsl:for-each>
+
+            <!-- Generate Publisher and Subscriber -->
+            <xsl:call-template name="generate_publisher">
+                <xsl:with-param name="qos" select="$qos_profile" />
+            </xsl:call-template>
+
+            <xsl:call-template name="generate_subscriber">
+                <xsl:with-param name="qos" select="$qos_profile" />
+            </xsl:call-template>
 
             
 
@@ -416,9 +418,9 @@
         <xsl:param name="qos" />
 
         <publisher name="{$name}" xmlns="http://cuts.cs.iupui.edu/iccm">
-            <xsl:call-template name="generate_presentation">
+            <!-- <xsl:call-template name="generate_presentation">
                 <xsl:with-param name="qos" select="$qos" />
-            </xsl:call-template>
+            </xsl:call-template> -->
         </publisher>
     </xsl:template>
 
@@ -427,9 +429,9 @@
         <xsl:param name="qos" />
 
         <subscriber name="{$name}" xmlns="http://cuts.cs.iupui.edu/iccm">
-            <xsl:call-template name="generate_presentation">
+            <!-- <xsl:call-template name="generate_presentation">
                 <xsl:with-param name="qos" select="$qos" />
-            </xsl:call-template>
+            </xsl:call-template> -->
         </subscriber>
     </xsl:template>
     
