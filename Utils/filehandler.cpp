@@ -73,10 +73,10 @@ QString FileHandler::readTextFile(QString filePath)
             fileData = fileStream.readAll();
             file.close();
         }else{
-            _notification(NT_CRITICAL, "File Read Error", "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
+            _notification(NT_CRITICAL, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
         }
     }else{
-        _notification(NT_CRITICAL, "File Read Error", "File: '" % fileInfo.absoluteFilePath() % "' doesn't be read!", "Actions", "File");
+        _notification(NT_CRITICAL, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' doesn't be read!", "Actions", "File");
     }
     return fileData;
 }
@@ -110,13 +110,13 @@ bool FileHandler::writeTextFile(QString filePath, QString fileData)
             out << fileData;
             file.close();
         }else{
-            _notification(NT_CRITICAL, "File Write Error", "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Actions", "Save");
+            _notification(NT_CRITICAL, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Actions", "Save");
             return false;
         }
     }else{
         return false;
     }
-    _notification(NT_CRITICAL, "File Write Error", "File: '" % fileInfo.absoluteFilePath() % "' written!", "Actions", "Save");
+    _notification(NT_CRITICAL, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' written!", "Actions", "Save");
     return true;
 }
 
@@ -127,9 +127,9 @@ bool FileHandler::ensureDirectory(QString path)
     QDir dir = fileInfo.dir();
     if (!dir.exists()) {
         if(dir.mkpath(".")){
-            _notification(NT_INFO, "Directory", "Dir: '" % dir.absolutePath() % "' constructed!", "Actions", "Open");
+            _notification(NT_INFO, "File Handler", "Dir: '" % dir.absolutePath() % "' constructed!", "Actions", "Open");
         }else{
-            _notification(NT_CRITICAL, "Directory", "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Actions", "Open");
+            _notification(NT_CRITICAL, "File Handler", "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Actions", "Open");
             return false;
         }
     }
