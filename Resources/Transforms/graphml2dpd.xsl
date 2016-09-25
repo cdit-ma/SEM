@@ -731,7 +731,7 @@
                 <xsl:with-param name="qos" select="$qos" />
                 <xsl:with-param name="policy_kind" select="$policy_kind" />
                 <xsl:with-param name="key_kind" select="'qos_dds_duration'" />
-                <xsl:with-param name="default_value" select="'1'" />
+                <xsl:with-param name="default_value" select="'1.0'" />
             </xsl:call-template>
         </xsl:variable>
 
@@ -750,7 +750,7 @@
                 <xsl:with-param name="qos" select="$qos" />
                 <xsl:with-param name="policy_kind" select="$policy_kind" />
                 <xsl:with-param name="key_kind" select="'qos_dds_kind'" />
-                <xsl:with-param name="default_value" select="'1.0'" />
+                <xsl:with-param name="default_value" select="'SHARED_OWNERSHIP_QOS'" />
             </xsl:call-template>
         </xsl:variable>
 
