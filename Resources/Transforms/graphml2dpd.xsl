@@ -45,6 +45,13 @@
         </xsl:call-template>	
     </xsl:variable>
 
+    <xsl:variable name="type_key_id">
+        <xsl:call-template name="findNodeKey">
+            <xsl:with-param name="attrName" select="'type'" />
+            <xsl:with-param name="defaultId" select="$nodeLabelKey" />
+        </xsl:call-template>
+    </xsl:variable>
+
     <xsl:variable name="topic_key_id">
         <xsl:call-template name="findNodeKey">
             <xsl:with-param name="attrName" select="'topicName'" />
@@ -112,7 +119,7 @@
                 
                 
                 <!-- Default topic name to port name -->
-                <xsl:variable name="topic_name" select="./gml:data[@key=$label_key_id]" />
+                <xsl:variable name="topic_name" select="./gml:data[@key=$type_key_id]" />
 
                 <!-- Default topic name to port name 
                 <xsl:variable name="topic_name">
