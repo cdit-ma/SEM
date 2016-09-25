@@ -769,7 +769,7 @@
                 <xsl:with-param name="qos" select="$qos" />
                 <xsl:with-param name="policy_kind" select="$policy_kind" />
                 <xsl:with-param name="key_kind" select="'qos_dds_int_value'" />
-                <xsl:with-param name="default_value" select="'1.0'" />
+                <xsl:with-param name="default_value" select="'1'" />
             </xsl:call-template>
         </xsl:variable>
 
