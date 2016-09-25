@@ -688,7 +688,7 @@
                 <xsl:with-param name="qos" select="$qos" />
                 <xsl:with-param name="policy_kind" select="$policy_kind" />
                 <xsl:with-param name="key_kind" select="'qos_dds_max_samples_per_instance'" />
-                <xsl:with-param name="default_value" select="'KEEP_LAST_HISTORY_QOS'" />
+                <xsl:with-param name="default_value" select="'1'" />
             </xsl:call-template>
         </xsl:variable>
 
