@@ -1017,19 +1017,20 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
         widgetPos.ry() -= widget->height()/2 + 8;
     }
     if (cw == innerWindow) {
-        widgetPos = pos();
+        widgetPos = pos() - QPointF(0, 8);
     }
     if (cw && widget) {
         widgetPos += cw->geometry().center();
         switch (alignment) {
         case Qt::AlignBottom:
-            widgetPos.ry() += cw->height() / 2;
+            widgetPos.ry() += cw->height()/2;
             break;
         default:
             break;
         }
         widgetPos -= QPointF(widget->width()/2, widget->height()/2);
         widget->move(widgetPos.x(), widgetPos.y());
+        cw->activateWindow();
     }
 }
 
