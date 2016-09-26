@@ -118,23 +118,12 @@
 
                 
                 
-                <!-- Default topic name to port name -->
-                <xsl:variable name="topic_name" select="./gml:data[@key=$type_key_id]" />
+                <!-- Default topic to port type -->
+                <xsl:variable name="topic" select="./gml:data[@key=$type_key_id]" />
 
-                <!-- Default topic name to port name 
-                <xsl:variable name="topic_name">
-                    <xsl:choose>
-				        <xsl:when test="./gml:data[@key=$topic_key_id] = ''">
-                            <xsl:value-of select="./gml:data[@key=$label_key_id]" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="./gml:data[@key=$topic_key_id]" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable> -->
                 
                  <xsl:call-template name="generate_topic">
-                    <xsl:with-param name="topic_name" select="$topic_name" />
+                    <xsl:with-param name="topic_name" select="$topic" />
                     <xsl:with-param name="qos" select="$port_qos_profile" />
                 </xsl:call-template>
             </xsl:for-each>
@@ -169,10 +158,13 @@
 
                 <xsl:variable name="port_name" select="./gml:data[@key=$label_key_id]" />
 
+                <!-- Default topic to port type -->
+                <xsl:variable name="topic" select="./gml:data[@key=$type_key_id]" />
+
                 <!-- Default topic name to port name -->
                 <xsl:variable name="topic_name">
                     <xsl:choose>
-				        <xsl:when test="./gml:data[@key=$topic_key_id] = ''">
+                            <xsl:when test="./gml:data[@key=$topic_key_id] = ''">
                             <xsl:value-of select="$port_name" />
                         </xsl:when>
                         <xsl:otherwise>
@@ -183,6 +175,7 @@
 
                  <xsl:call-template name="generate_datawriter">
                     <xsl:with-param name="port_name" select="$port_name" />
+                    <xsl:with-param name="topic" select="$topic" />
                     <xsl:with-param name="topic_name" select="$topic_name" />
                     <xsl:with-param name="qos" select="$port_qos_profile" />
                 </xsl:call-template>
@@ -253,6 +246,7 @@
     
     <xsl:template name="generate_datawriter">
          <xsl:param name="port_name" />
+         <xsl:param name="topic" />
          <xsl:param name="topic_name" />
          <xsl:param name="qos" />
 
@@ -261,7 +255,7 @@
             isinstance="false"
             isprivate="false"
             name="{$port_name}"
-            topic="{$port_name}"
+            topic="{$topic}"
             topic_name="{$topic_name}">
             <xsl:call-template name="generate_durability">
                 <xsl:with-param name="qos" select="$qos" />
