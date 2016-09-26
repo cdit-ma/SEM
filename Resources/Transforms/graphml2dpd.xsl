@@ -199,22 +199,11 @@
                 </xsl:choose>
 
                 <xsl:variable name="port_name" select="./gml:data[@key=$label_key_id]" />
-
-                <!-- Default topic name to port name -->
-                <xsl:variable name="topic_name">
-                    <xsl:choose>
-				        <xsl:when test="./gml:data[@key=$topic_key_id] = ''">
-                            <xsl:value-of select="$port_name" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="./gml:data[@key=$topic_key_id]" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable> 
+                <xsl:variable name="topic" select="./gml:data[@key=$type_key_id]" />
 
                  <xsl:call-template name="generate_datareader">
                     <xsl:with-param name="port_name" select="$port_name" />
-                    <xsl:with-param name="topic_name" select="$topic_name" />
+                    <xsl:with-param name="topic" select="$topic" />
                     <xsl:with-param name="qos" select="$port_qos_profile" />
                 </xsl:call-template>
             </xsl:for-each>
@@ -314,7 +303,7 @@
 
     <xsl:template name="generate_datareader">
          <xsl:param name="port_name" />
-         <xsl:param name="topic_name" />
+         <xsl:param name="topic" />
          <xsl:param name="subscriber" select="'NoDefaultSubscriber'" />
          <xsl:param name="qos" />
 
@@ -323,7 +312,7 @@
             isprivate="true"
             name="{$port_name}"
             subscriber="{$subscriber}"
-            topic="{$topic_name}">
+            topic="{$topic}">
             <xsl:call-template name="generate_durability">
                 <xsl:with-param name="qos" select="$qos" />
             </xsl:call-template>
