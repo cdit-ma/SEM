@@ -617,19 +617,20 @@ void MainWindow::setupWelcomeScreen()
 void MainWindow::setupMenuBar()
 {
     menuBar = new QMenuBar(this);
-    menuBar->addMenu(viewController->getActionController()->menu_file);
-    menuBar->addMenu(viewController->getActionController()->menu_edit);
-    menuBar->addMenu(viewController->getActionController()->menu_view);
-    menuBar->addMenu(viewController->getActionController()->menu_model);
-    menuBar->addMenu(viewController->getActionController()->menu_jenkins);
-    menuBar->addMenu(viewController->getActionController()->menu_window);
-    menuBar->addMenu(viewController->getActionController()->menu_options);
-    menuBar->addMenu(viewController->getActionController()->menu_help);
-
-    // TODO - Find out how to set the height of the menubar items
     menuBar->setFixedHeight(TOOLBAR_HEIGHT);
     menuBar->setNativeMenuBar(false);
     setMenuBar(menuBar);
+
+    ActionController* ac = viewController->getActionController();
+
+    menuBar->addMenu(ac->menu_file);
+    menuBar->addMenu(ac->menu_edit);
+    menuBar->addMenu(ac->menu_view);
+    menuBar->addMenu(ac->menu_model);
+    menuBar->addMenu(ac->menu_jenkins);
+    menuBar->addMenu(ac->menu_window);
+    menuBar->addMenu(ac->menu_options);
+    menuBar->addMenu(ac->menu_help);
 }
 
 
