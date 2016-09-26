@@ -76,7 +76,7 @@ QString FileHandler::readTextFile(QString filePath)
             _notification(NT_CRITICAL, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
         }
     }else{
-        _notification(NT_CRITICAL, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' doesn't be read!", "Actions", "File");
+        _notification(NT_CRITICAL, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
     }
     return fileData;
 }
