@@ -247,7 +247,10 @@ void WindowManager::setActiveDockWidget(BaseDockWidget *dockWidget)
             disconnect(prevDock, &BaseDockWidget::visibilityChanged, this, &WindowManager::activeDockWidgetVisibilityChanged);
         }
 
-        activeViewDockWidget = (ViewDockWidget*) dockWidget;
+        if(dockWidget){
+            activeViewDockWidget = (ViewDockWidget*) dockWidget;
+        }
+
 
         //Set the New.
         if(dockWidget && dockWidget->getDockType() == BaseDockWidget::MDW_VIEW){

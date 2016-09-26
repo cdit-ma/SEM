@@ -132,8 +132,7 @@ void ActionController::connectViewController(ViewController *controller)
 void ActionController::connectSelectionController(SelectionController *controller)
 {
     if(selectionController){
-
-        connect(selectionController, SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
+        connect(selectionController, &SelectionController::selectionChanged, this, &ActionController::selectionChanged);
         connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionForward()));
         connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
         connect(edit_selectAll, SIGNAL(triggered(bool)), controller, SIGNAL(selectAll()));
