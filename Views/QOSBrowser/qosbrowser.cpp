@@ -33,6 +33,7 @@ void QOSBrowser::themeChanged()
     profileView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
     elementView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
     tableView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
+    profileLabelButton->setStyleSheet("text-align: left; border-radius: 0px; background:" + theme->getAltBackgroundColorHex() + ";");
 }
 
 void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex)
@@ -79,6 +80,9 @@ void QOSBrowser::setupLayout()
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(QSize(20,20));
 
+    //profileView->setFocusPolicy(Qt::NoFocus);
+    //elementView->setFocusPolicy(Qt::NoFocus);
+
     toolbar->addAction(vc->getActionController()->toolbar_addDDSQOSProfile);
     removeSelection = vc->getActionController()->toolbar_removeDDSQOSProfile;
 
@@ -86,12 +90,17 @@ void QOSBrowser::setupLayout()
     connect(removeSelection, &QAction::triggered, this, &QOSBrowser::removeSelectedProfile);
     removeSelection->setEnabled(false);
 
+    profileLabelButton = new QPushButton("Profiles", this);
+    profileLabelButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    profileLabelButton->setEnabled(false);
+    profileLabelButton->setFixedHeight(elementView->header()->height() - 5);
 
     QWidget* profileWidget = new QWidget(this);
     profileWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     QVBoxLayout* profileLayout = new QVBoxLayout(profileWidget);
     profileLayout->setSpacing(5);
     profileLayout->setMargin(0);
+    profileLayout->addWidget(profileLabelButton);
     profileLayout->addWidget(profileView, 1);
     profileLayout->addWidget(toolbar, 0, Qt::AlignRight);
     elementView->header()->setMinimumHeight(25);

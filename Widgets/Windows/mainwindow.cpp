@@ -791,6 +791,7 @@ void MainWindow::setupNotificationBar()
     notificationDialog = new NotificationDialog(this);
 
     connect(notificationDialog, &NotificationDialog::notificationAdded, viewController, &ViewController::notificationAdded);
+    connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
     connect(viewController, &ViewController::vc_setupModel, viewController, &ViewController::notificationsSeen);
     connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
     connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::toggleVisibility);
