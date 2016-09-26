@@ -15,8 +15,10 @@ DataTableView::DataTableView(QWidget* parent):QTableView(parent)
     horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     //Setup the Header on the Left.
-    verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     verticalHeader()->setHighlightSections(false);
+
+    setFocusPolicy(Qt::NoFocus);
 }
 
 void DataTableView::setModel(QAbstractItemModel *model)
