@@ -5,7 +5,7 @@
 #include <QBrush>
 #include <QDebug>
 #include <QStringBuilder>
-#define WIDTH 550
+#define WIDTH 450
 
 #define IMAGE_PREFIX QTableWidgetItem::UserType + 1
 #define IMAGE_NAME QTableWidgetItem::UserType + 2
@@ -27,7 +27,6 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     setupLayout();
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ShortcutDialog::themeChanged);
-
 }
 
 void ShortcutDialog::addShortcut(QString shortcut, QString description, QString alias, QString image)
@@ -38,7 +37,6 @@ void ShortcutDialog::addShortcut(QString shortcut, QString description, QString 
     italicFont.setItalic(true);
     boldFont.setPointSize(boldFont.pointSize() - 2);
     italicFont.setPointSize(italicFont.pointSize() - 1);
-
 
     #ifdef Q_OS_DARWIN
         //Replace shortcut with Command.
@@ -51,16 +49,19 @@ void ShortcutDialog::addShortcut(QString shortcut, QString description, QString 
     descriptionR->setData(IMAGE_PREFIX, alias);
     descriptionR->setData(IMAGE_NAME, image);
 
+    descriptionR->setFlags(shortcutR->flags() ^ Qt::ItemIsEditable);
+    descriptionR->setTextAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     descriptionR->setFont(italicFont);
-    descriptionR->setTextAlignment(Qt::AlignCenter | Qt::AlignRight);
-    shortcutR->setFlags(shortcutR->flags() ^ Qt::ItemIsEditable);
 
+    shortcutR->setFlags(shortcutR->flags() ^ Qt::ItemIsEditable);
+    shortcutR->setTextAlignment(Qt::AlignCenter);
 
     if(tableWidget){
         int insertLocation = tableWidget->rowCount();
         tableWidget->insertRow(insertLocation);
-        tableWidget->setItem(insertLocation, 0, shortcutR);
-        tableWidget->setVerticalHeaderItem(insertLocation, descriptionR);
+        tableWidget->setItem(insertLocation, 0, descriptionR);
+        tableWidget->setVerticalHeaderItem(insertLocation, shortcutR);
+        tableWidget->resizeColumnsToContents();
     }
 }
 
@@ -71,18 +72,18 @@ void ShortcutDialog::addTitle(QString label, QString alias, QString image)
         boldFont.setBold(true);
         boldFont.setPointSize(boldFont.pointSize() + 1);
 
-        QTableWidgetItem * titleRow = new QTableWidgetItem(label);
+        QTableWidgetItem * titleRow = new QTableWidgetItem();
         titleRow->setFlags(titleRow->flags() ^ Qt::ItemIsEditable);
-        titleRow->setData(IMAGE_PREFIX, alias);
-        titleRow->setData(IMAGE_NAME, image);
-
-
-        titleRow->setTextAlignment(Qt::AlignCenter);
         titleRow->setFont(boldFont);
+
+        QTableWidgetItem* textItem = new QTableWidgetItem(label);
+        textItem->setFlags(textItem->flags() ^ Qt::ItemIsEditable);
+        textItem->setTextAlignment(Qt::AlignCenter);
+        textItem->setFont(boldFont);
 
         int insertLocation = tableWidget->rowCount();
         tableWidget->insertRow(insertLocation);
-        tableWidget->setItem(insertLocation, 0 , 0);
+        tableWidget->setItem(insertLocation, 0, textItem);
         tableWidget->setVerticalHeaderItem(insertLocation, titleRow);
     }
 }
@@ -97,11 +98,14 @@ void ShortcutDialog::themeChanged()
 
     Theme* theme = Theme::theme();
     this->setStyleSheet(theme->getWindowStyleSheet() % theme->getScrollBarStyleSheet());
-    tableWidget->setStyleSheet(theme->getAbstractItemViewStyleSheet());
+    tableWidget->setStyleSheet(theme->getAbstractItemViewStyleSheet() +  "QAbstractItemView::item {"
+                                                                         "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                                                                         "}");
     this->tableWidget->verticalHeader()->setStyleSheet(theme->getAbstractItemViewStyleSheet());
 
     for (int row = 0 ; row < tableWidget->rowCount() ; ++row) {
-        QTableWidgetItem* header = tableWidget->verticalHeaderItem(row);
+        //QTableWidgetItem* header = tableWidget->verticalHeaderItem(row);
+        QTableWidgetItem* header = tableWidget->item(row, 0);
         if(header){
             QString prefix = header->data(IMAGE_PREFIX).toString();
             QString image = header->data(IMAGE_NAME).toString();
@@ -111,8 +115,6 @@ void ShortcutDialog::themeChanged()
         }
     }
 }
-
-
 
 void ShortcutDialog::setupLayout()
 {
@@ -126,5 +128,7 @@ void ShortcutDialog::setupLayout()
     tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     tableWidget->setShowGrid(false);
     tableWidget->setEnabled(true);
+    tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
+    tableWidget->setFocusPolicy(Qt::NoFocus);
     layout->addWidget(tableWidget);
 }
