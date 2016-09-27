@@ -597,12 +597,14 @@ QAction *WindowManager::constructPopOutWindowAction(QSignalMapper *mapper, BaseW
 
     int wID = -1;
     if(window){
-        action->setIcon(QIcon(window->grab()));
+        QPixmap image = window->grab();
+        action->setIcon(QIcon(image.scaledToHeight(100)));
         QString text = window->windowTitle();
         action->setText(text);
         wID = window->getID();
     }else{
-        action->setIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
+        QPixmap image = Theme::theme()->getImage("Actions", "MEDEA");
+        action->setIcon(QIcon(image.scaledToHeight(100)));
         action->setText("New Window");
     }
 

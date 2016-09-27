@@ -756,7 +756,7 @@ void MainWindow::setupNotificationBar()
     layout->addWidget(notificationIconLabel, 0, Qt::AlignCenter);
     layout->addWidget(notificationLabel, 1, Qt::AlignCenter);
 
-    notificationPopup = new PopupWidget(PopupWidget::TOOL, this);
+    notificationPopup = new PopupWidget(PopupWidget::TOOL, 0);
     notificationPopup->setWidget(notificationWidget);
     notificationPopup->hide();
 
@@ -841,7 +841,7 @@ void MainWindow::setupViewManager()
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
 
     addDockWidget(Qt::RightDockWidgetArea, dockWidget, Qt::Vertical);
-    setDockWidgetVisibility(dockWidget, SettingsController::settings()->getSetting(SK_WINDOW_BROWSER_VISIBLE).toBool());
+    setDockWidgetVisibility(dockWidget, SettingsController::settings()->getSetting(SK_WINDOW_VIEW_MANAGER_VISIBLE).toBool());
 }
 
 
@@ -1001,7 +1001,7 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
         }
         widgetPos -= QPointF(widget->width()/2, widget->height()/2);
         widget->move(widgetPos.x(), widgetPos.y());
-        cw->activateWindow();
+        //cw->activateWindow();
     }
 }
 
