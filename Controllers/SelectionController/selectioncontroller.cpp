@@ -12,7 +12,7 @@ SelectionController::SelectionController(ViewController *vc):QObject(vc)
     currentViewDockWidget = 0;
     viewController = vc;
 
-    connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*)));
+    connect(WindowManager::manager(), &WindowManager::activeViewDockWidgetChanged, this, &SelectionController::activeViewDockWidgetChanged);
 }
 
 SelectionHandler *SelectionController::constructSelectionHandler(QObject *object)
@@ -112,7 +112,6 @@ int SelectionController::getFirstSelectedItemID()
 
 void SelectionController::activeViewDockWidgetChanged(ViewDockWidget *dockWidget)
 {
-
     setCurrentViewDockWidget(dockWidget);
 }
 
@@ -191,14 +190,14 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
 {
     if(currentHandler != handler){
         if(currentHandler){
-            disconnect(currentHandler, SIGNAL(selectionChanged(int)), this, SIGNAL(selectionChanged(int)));
-            disconnect(currentHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)), this, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)));
+            disconnect(currentHandler, &SelectionHandler::selectionChanged, this, &SelectionController::selectionChanged);
+            disconnect(currentHandler, &SelectionHandler::itemActiveSelectionChanged, this, &SelectionController::itemActiveSelectionChanged);
         }
         currentHandler = handler;
         int selectionCount = 0;
-        if(handler){
-            connect(currentHandler, SIGNAL(selectionChanged(int)), this, SIGNAL(selectionChanged(int)));
-            connect(currentHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)), this, SIGNAL(itemActiveSelectionChanged(ViewItem*, bool)));
+        if(currentHandler){
+            connect(currentHandler, &SelectionHandler::selectionChanged, this, &SelectionController::selectionChanged);
+            connect(currentHandler, &SelectionHandler::itemActiveSelectionChanged, this, &SelectionController::itemActiveSelectionChanged);
 
             selectionCount = currentHandler->getSelectionCount();
             emit itemActiveSelectionChanged(currentHandler->getActiveSelectedItem(), true);
@@ -206,6 +205,7 @@ void SelectionController::setCurrentSelectionHandler(SelectionHandler *handler)
             emit itemActiveSelectionChanged(0, true);
         }
         emit selectionChanged(selectionCount);
+
     }
 }
 

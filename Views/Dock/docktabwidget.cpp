@@ -44,8 +44,16 @@ void DockTabWidget::themeChanged()
                   "QToolButton::checked:!hover{ background:" + theme->getBackgroundColorHex() + ";}"
                   "QStackedWidget{ border: 0px; background:" + theme->getBackgroundColorHex() + ";}");
 
-    partsButton->setIcon(theme->getImage("Actions", "Plus", QSize(), theme->getTextColorHex()));
-    hardwareButton->setIcon(theme->getImage("Actions", "Computer", QSize(), theme->getTextColorHex()));
+    QIcon partIcon;
+    partIcon.addPixmap(theme->getImage("Actions", "Plus", QSize(), theme->getMenuIconColor()));
+    partIcon.addPixmap(theme->getImage("Actions", "Plus", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
+
+    QIcon hardwareIcon;
+    hardwareIcon.addPixmap(theme->getImage("Actions", "Computer", QSize(), theme->getMenuIconColor()));
+    hardwareIcon.addPixmap(theme->getImage("Actions", "Computer", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
+
+    partsButton->setIcon(partIcon);
+    hardwareButton->setIcon(hardwareIcon);
 }
 
 

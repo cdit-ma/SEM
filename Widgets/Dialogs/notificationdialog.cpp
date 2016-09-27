@@ -362,6 +362,7 @@ void NotificationDialog::setupLayout()
     listWidget = new QListWidget(this);
     listWidget->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
     listWidget->setUniformItemSizes(true);
+    listWidget->setFocusPolicy(Qt::NoFocus);
 
     toolbar = new QToolBar(this);
     toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

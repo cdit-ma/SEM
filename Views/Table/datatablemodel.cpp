@@ -11,13 +11,12 @@ DataTableModel::DataTableModel(ViewItem *item)
     entity->registerObject(this);
 
     multiLineKeys << "processes_to_log" << "code";
-    //ignoredKeys << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
+    ignoredKeys << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
     setupDataBinding();
 }
 
 DataTableModel::~DataTableModel()
 {
-    //qCritical() << "~AttributeTableModel";
     entity->unregisterObject(this);
 }
 

@@ -334,7 +334,7 @@ bool Theme::gotImage(QPair<QString, QString> icon) const
 bool Theme::gotImage(QString path, QString alias) const
 {
     QString resourceName = getResourceName(path, alias);
-    return pixmapSizeLookup.contains(resourceName);
+    return imageExistsHash.contains(resourceName);
 }
 
 QString Theme::getCornerRadius()
@@ -404,9 +404,8 @@ QIcon Theme::getIcon(QString prefix, QString alias)
     }
 }
 
-QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintColor)
+QPixmap Theme::_getImage(QString resourceName, QSize size, QColor tintColor)
 {
-    QString resourceName = getResourceName(prefix, alias);
     QString lookupName = resourceName;
 
     //If we have a tint color check for it.
@@ -444,7 +443,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
             //If the size we want is bigger than the original size, return the exact original image.
             if(size.width() > originalSize.width()){
                 //Request the image at max size.
-                return getImage(prefix, alias, originalSize, tintColor);
+                return _getImage(resourceName, originalSize, tintColor);
             }
         }
 
@@ -492,7 +491,7 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
         //If the size we want is bigger than the original.
         if(size.width() > originalSize.width()){
             //Request the image at the original size.
-            return getImage(prefix, alias, originalSize, tintColor);
+            return _getImage(resourceName, originalSize, tintColor);
         }else{
             if(size.isValid() && originalSize.isValid()){
                 //Scale the image to the required size.
@@ -520,6 +519,12 @@ QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintCo
         pixmapLookup[lookupName] = pixmap;
         return pixmap;
     }
+
+}
+
+QPixmap Theme::getImage(QString prefix, QString alias, QSize size, QColor tintColor)
+{
+    return _getImage(getResourceName(prefix, alias), size, tintColor);
 }
 
 QColor Theme::getAltTextColor()
@@ -629,7 +634,7 @@ QString Theme::getNodeViewStyleSheet(bool isActive)
 QString Theme::getDockWidgetStyleSheet()
 {
     return "QDockWidget {"
-           "border: 4px solid red;"
+           "border: 0px;"
            "margin: 3px;"
            "background:" % getBackgroundColorHex() % ";"
            "}";
@@ -1010,17 +1015,24 @@ void Theme::preloadImages()
         QStringList dirs;
         dirs << "Actions" << "Data" << "Functions" << "Items" << "Welcome";
         int count = 0;
+        QStringList imageList;
         foreach(QString dir, dirs){
             QDirIterator it(":/" % dir, QDirIterator::Subdirectories);
             while (it.hasNext() && !terminating) {
                 it.next();
-                QString imageName = it.fileName();
-                getImage(dir, imageName);
-                if(imageLookup.contains(getResourceName(dir, imageName))){
-                    count++;
-                }
+
+                QString resourceName = getResourceName(dir, it.fileName());
+                imageExistsHash.insert(resourceName, true);
+                imageList.append(resourceName);
             }
         }
+
+
+        foreach(QString resource, imageList){
+            _getImage(resource);
+            count ++;
+        }
+
         //Only Allow once.
         qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
 

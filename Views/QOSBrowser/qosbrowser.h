@@ -35,6 +35,8 @@ private:
     QSplitter* horizontalSplitter;
     QAction* removeSelection;
 
+    QPushButton* profileLabelButton;
+
     QItemSelectionModel* elementViewSelectionModel;
     DataTableView* tableView;
     ViewController* vc;

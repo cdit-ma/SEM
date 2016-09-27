@@ -21,7 +21,7 @@ public:
     enum ACTION{};
     explicit ActionController(ViewController* vc);
 
-    void connectSelectionController(SelectionController* controller);
+    void connectSelectionController();
 
     RootAction* getRootAction(QString actionKey);
     void connectViewController(ViewController* controller);

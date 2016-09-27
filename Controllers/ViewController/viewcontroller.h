@@ -248,6 +248,8 @@ private slots:
 private:
     void welcomeActionFinished();
     void _showGitHubPage(QString relURL="");
+    void _showWebpage(QString URL);
+    void _showWiki(ViewItem* item=0);
     QString getTempFileForModel();
     void spawnSubView(ViewItem *item );
     bool destructViewItem(ViewItem* item);

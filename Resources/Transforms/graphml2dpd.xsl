@@ -45,6 +45,13 @@
         </xsl:call-template>	
     </xsl:variable>
 
+    <xsl:variable name="type_key_id">
+        <xsl:call-template name="findNodeKey">
+            <xsl:with-param name="attrName" select="'type'" />
+            <xsl:with-param name="defaultId" select="$nodeLabelKey" />
+        </xsl:call-template>
+    </xsl:variable>
+
     <xsl:variable name="topic_key_id">
         <xsl:call-template name="findNodeKey">
             <xsl:with-param name="attrName" select="'topicName'" />
@@ -89,14 +96,7 @@
 			    <scheduling_priority_kind kind="PRIORITY_ABSOLUTE"/>
 		    </listener_scheduling>
 
-            <!-- Generate Publisher and Subscriber -->
-                <xsl:call-template name="generate_publisher">
-                    <xsl:with-param name="qos" select="$qos_profile" />
-                </xsl:call-template>
 
-                <xsl:call-template name="generate_subscriber">
-                    <xsl:with-param name="qos" select="$qos_profile" />
-                </xsl:call-template>
 
             <!-- Generate Topics -->
             <xsl:for-each select="./gml:graph/gml:node/gml:data[@key=$kind_key_id][contains(text(), 'EventPortInstance')]/..">
@@ -118,26 +118,24 @@
 
                 
                 
-                <!-- Default topic name to port name -->
-                <xsl:variable name="topic_name" select="./gml:data[@key=$label_key_id]" />
+                <!-- Default topic to port type -->
+                <xsl:variable name="topic" select="./gml:data[@key=$type_key_id]" />
 
-                <!-- Default topic name to port name 
-                <xsl:variable name="topic_name">
-                    <xsl:choose>
-				        <xsl:when test="./gml:data[@key=$topic_key_id] = ''">
-                            <xsl:value-of select="./gml:data[@key=$label_key_id]" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="./gml:data[@key=$topic_key_id]" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable> -->
                 
                  <xsl:call-template name="generate_topic">
-                    <xsl:with-param name="topic_name" select="$topic_name" />
+                    <xsl:with-param name="topic_name" select="$topic" />
                     <xsl:with-param name="qos" select="$port_qos_profile" />
                 </xsl:call-template>
             </xsl:for-each>
+
+            <!-- Generate Publisher and Subscriber -->
+            <xsl:call-template name="generate_publisher">
+                <xsl:with-param name="qos" select="$qos_profile" />
+            </xsl:call-template>
+
+            <xsl:call-template name="generate_subscriber">
+                <xsl:with-param name="qos" select="$qos_profile" />
+            </xsl:call-template>
 
             
 
@@ -160,10 +158,13 @@
 
                 <xsl:variable name="port_name" select="./gml:data[@key=$label_key_id]" />
 
+                <!-- Default topic to port type -->
+                <xsl:variable name="topic" select="./gml:data[@key=$type_key_id]" />
+
                 <!-- Default topic name to port name -->
                 <xsl:variable name="topic_name">
                     <xsl:choose>
-				        <xsl:when test="./gml:data[@key=$topic_key_id] = ''">
+                            <xsl:when test="./gml:data[@key=$topic_key_id] = ''">
                             <xsl:value-of select="$port_name" />
                         </xsl:when>
                         <xsl:otherwise>
@@ -174,6 +175,7 @@
 
                  <xsl:call-template name="generate_datawriter">
                     <xsl:with-param name="port_name" select="$port_name" />
+                    <xsl:with-param name="topic" select="$topic" />
                     <xsl:with-param name="topic_name" select="$topic_name" />
                     <xsl:with-param name="qos" select="$port_qos_profile" />
                 </xsl:call-template>
@@ -197,22 +199,11 @@
                 </xsl:choose>
 
                 <xsl:variable name="port_name" select="./gml:data[@key=$label_key_id]" />
-
-                <!-- Default topic name to port name -->
-                <xsl:variable name="topic_name">
-                    <xsl:choose>
-				        <xsl:when test="./gml:data[@key=$topic_key_id] = ''">
-                            <xsl:value-of select="$port_name" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="./gml:data[@key=$topic_key_id]" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:variable> 
+                <xsl:variable name="topic" select="./gml:data[@key=$type_key_id]" />
 
                  <xsl:call-template name="generate_datareader">
                     <xsl:with-param name="port_name" select="$port_name" />
-                    <xsl:with-param name="topic_name" select="$topic_name" />
+                    <xsl:with-param name="topic" select="$topic" />
                     <xsl:with-param name="qos" select="$port_qos_profile" />
                 </xsl:call-template>
             </xsl:for-each>
@@ -236,7 +227,7 @@
 
         <entity_factory
             xmlns="http://cuts.cs.iupui.edu/iccm"
-            auto_enable_created_entities="{$auto_enable_created_entities}"
+            autoenable_created_entities="{$auto_enable_created_entities}"
         />
     </xsl:template>
 
@@ -244,6 +235,7 @@
     
     <xsl:template name="generate_datawriter">
          <xsl:param name="port_name" />
+         <xsl:param name="topic" />
          <xsl:param name="topic_name" />
          <xsl:param name="qos" />
 
@@ -252,7 +244,7 @@
             isinstance="false"
             isprivate="false"
             name="{$port_name}"
-            topic="{$port_name}"
+            topic="{$topic}"
             topic_name="{$topic_name}">
             <xsl:call-template name="generate_durability">
                 <xsl:with-param name="qos" select="$qos" />
@@ -311,7 +303,7 @@
 
     <xsl:template name="generate_datareader">
          <xsl:param name="port_name" />
-         <xsl:param name="topic_name" />
+         <xsl:param name="topic" />
          <xsl:param name="subscriber" select="'NoDefaultSubscriber'" />
          <xsl:param name="qos" />
 
@@ -320,7 +312,7 @@
             isprivate="true"
             name="{$port_name}"
             subscriber="{$subscriber}"
-            topic="{$topic_name}">
+            topic="{$topic}">
             <xsl:call-template name="generate_durability">
                 <xsl:with-param name="qos" select="$qos" />
             </xsl:call-template>
@@ -416,9 +408,9 @@
         <xsl:param name="qos" />
 
         <publisher name="{$name}" xmlns="http://cuts.cs.iupui.edu/iccm">
-            <xsl:call-template name="generate_presentation">
+            <!-- <xsl:call-template name="generate_presentation">
                 <xsl:with-param name="qos" select="$qos" />
-            </xsl:call-template>
+            </xsl:call-template> -->
         </publisher>
     </xsl:template>
 
@@ -427,9 +419,9 @@
         <xsl:param name="qos" />
 
         <subscriber name="{$name}" xmlns="http://cuts.cs.iupui.edu/iccm">
-            <xsl:call-template name="generate_presentation">
+            <!-- <xsl:call-template name="generate_presentation">
                 <xsl:with-param name="qos" select="$qos" />
-            </xsl:call-template>
+            </xsl:call-template> -->
         </subscriber>
     </xsl:template>
     
@@ -679,7 +671,7 @@
                 <xsl:with-param name="qos" select="$qos" />
                 <xsl:with-param name="policy_kind" select="$policy_kind" />
                 <xsl:with-param name="key_kind" select="'qos_dds_max_samples_per_instance'" />
-                <xsl:with-param name="default_value" select="'KEEP_LAST_HISTORY_QOS'" />
+                <xsl:with-param name="default_value" select="'1'" />
             </xsl:call-template>
         </xsl:variable>
 
@@ -741,7 +733,7 @@
                 <xsl:with-param name="qos" select="$qos" />
                 <xsl:with-param name="policy_kind" select="$policy_kind" />
                 <xsl:with-param name="key_kind" select="'qos_dds_kind'" />
-                <xsl:with-param name="default_value" select="'1.0'" />
+                <xsl:with-param name="default_value" select="'SHARED_OWNERSHIP_QOS'" />
             </xsl:call-template>
         </xsl:variable>
 
@@ -760,7 +752,7 @@
                 <xsl:with-param name="qos" select="$qos" />
                 <xsl:with-param name="policy_kind" select="$policy_kind" />
                 <xsl:with-param name="key_kind" select="'qos_dds_int_value'" />
-                <xsl:with-param name="default_value" select="'1.0'" />
+                <xsl:with-param name="default_value" select="'1'" />
             </xsl:call-template>
         </xsl:variable>
 
@@ -800,7 +792,7 @@
                 <xsl:with-param name="qos" select="$qos" />
                 <xsl:with-param name="policy_kind" select="$policy_kind" />
                 <xsl:with-param name="key_kind" select="'qos_dds_autopurge_nowriter_samples_delay'" />
-                <xsl:with-param name="default_value" select="'true'" />
+                <xsl:with-param name="default_value" select="'1.0'" />
             </xsl:call-template>
         </xsl:variable>
 
@@ -809,7 +801,7 @@
                 <xsl:with-param name="qos" select="$qos" />
                 <xsl:with-param name="policy_kind" select="$policy_kind" />
                 <xsl:with-param name="key_kind" select="'qos_dds_autopurge_disposed_samples_delay'" />
-                <xsl:with-param name="default_value" select="'true'" />
+                <xsl:with-param name="default_value" select="'1.0'" />
             </xsl:call-template>
         </xsl:variable>
 

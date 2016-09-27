@@ -116,8 +116,6 @@ bool REDO = false;
 bool SETUP_AS_INSTANCE = true;
 bool SETUP_AS_IMPL = false;
 
-static int count = 0;
-
 ModelController::ModelController() :QObject(0)
 {
 
@@ -382,7 +380,6 @@ void ModelController::setupController()
 
 ModelController::~ModelController()
 {
-    qCritical() <<"~NewController()";
     enableDebugLogging(false);
 
     DESTRUCTING_CONTROLLER = true;
@@ -548,7 +545,7 @@ QString ModelController::_exportGraphMLDocument(QList<int> entityIDs, bool allEd
         Node* dst = edge->getDestination();
 
         bool exportEdge = false;
-        if(exportAllEdges || containedEntities.contains(src) && containedEntities.contains(dst)){
+        if(exportAllEdges || (containedEntities.contains(src) && containedEntities.contains(dst))){
             exportEdge = true;
         }else{
             switch(edge->getEdgeKind()){
@@ -1770,6 +1767,7 @@ QList<int> ModelController::getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_KI
 
     QList<int> dstIDs;
     lock.lockForRead();
+
     foreach(Node* dst, _getConnectableNodes(getNodes(srcs), edgeKind)){
         dstIDs.append(dst->getID());
     }
@@ -1813,7 +1811,7 @@ QList<Node *> ModelController::_getConnectableNodes(QList<Node *> sourceNodes, E
 
     foreach(Node* src, sourceNodes){
         if(!src->requiresEdgeKind(edgeKind)){
-            if(src->acceptsEdgeKind(edgeKind) && !tryBackwards){
+            if(!src->acceptsEdgeKind(edgeKind) && !tryBackwards){
                 return validNodes;
             }
         }
@@ -2367,13 +2365,11 @@ void ModelController::removeGraphMLFromHash(int ID)
             QString kind = item->getDataValue("kind").toString();
 
             Node* node = 0;
-            Edge* edge = 0;
 
             ENTITY_KIND ek = EK_NODE;
             if(item->isNode()){
                 node = (Node*) item;
             }else{
-                edge = (Edge*) item;
                 ek = EK_EDGE;
             }
 
@@ -3404,7 +3400,7 @@ bool ModelController::destructEdge(Edge *edge)
     }
     case Edge::EC_DATA:{
         if(dst->isNodeOfType(Node::NT_DATA) && src->isNodeOfType(Node::NT_DATA)){
-            setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, true);
+            setupDataEdgeRelationship((DataNode*)src, (DataNode*)dst, false);
         }
         break;
     }
@@ -4497,6 +4493,7 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
     }
     return true;
 }
+
 
 
 bool ModelController::setupParameterRelationship(Parameter *parameter, Node *data)

@@ -264,7 +264,18 @@ void BaseWindow::themeChanged()
                   theme->getPushButtonStyleSheet() %
                   theme->getTabbedWidgetStyleSheet() %
                   theme->getScrollBarStyleSheet() %
-                  "QToolButton{ padding: 4px; }");
+                  "QToolButton{ padding: 4px; }"
+                  "QMessageBox {"
+                  "background:" + theme->getBackgroundColorHex() + ";"
+                  "color:" + theme->getTextColorHex() + ";"
+                  "}"
+                  "QMessageBox QLabel {"
+                  "background:" + theme->getBackgroundColorHex() + ";"
+                  "color:" + theme->getTextColorHex() + ";"
+                  "}"
+                  "QMessageBox QPushButton {"
+                  "padding: 5px;"
+                  "}");
 }
 
 

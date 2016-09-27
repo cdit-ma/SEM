@@ -142,9 +142,6 @@ QVariant QOSModelItem::data(int role) const
         if(role == Qt::DisplayRole|| role == Qt::EditRole || role == Qt::ToolTipRole){
             return item->getData("label");
         }
-        if(role == Qt::DecorationRole){
-            return Theme::theme()->getIcon(item->getIcon());
-        }
     }
     if(role == QOSProfileModel::ID_ROLE){
         return ID;

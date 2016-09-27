@@ -1,6 +1,16 @@
 # MEDEA
-Requirements:
-* Java Runtime
-* > QT 5.5 Binaries (Bundled with MEDEA release binaries)
-* Microsoft Visual C++ 2010 SP1 Redistributable Package (Windows Only)
-* Windows, MacOSX or Linux
+##About MEDEA (Modelling, Experiment DEsign and Analysis)
+MEDEA is a tool that can be used to design and analyse performance of Distributed Real-time and Embedded (DRE) systems. The tool is designed to facilitate the creation of a representative model of a distributed system, as well as providing System Execution Modelling (SEM) and performance analysis.
+
+##Supported Operating Systems:
+* Windows 7 (Or Newer)
+* MacOSX 10.10 (Or Newer)
+* Ubuntu 14.04 (or Newer)
+
+##Minimum Software Requirements:
+* [Qt 5.5.0](https://www.qt.io/)
+* [Qt Creator 3](https://www.qt.io/ide/)
+* [Oracle Java 7 Runtime](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* [Microsoft Visual C++ 2010 SP1 Redistributable Package (Windows Only)](https://www.microsoft.com/en-au/download/details.aspx?id=8328)
+
+

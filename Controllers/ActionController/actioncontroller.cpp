@@ -8,13 +8,12 @@
 
 ActionController::ActionController(ViewController* vc) : QObject(vc)
 {
+
     viewController = vc;
     shortcutDialog = 0;
     recentProjectMapper = 0;
 
     selectionController = viewController->getSelectionController();
-
-
 
     _controllerReady = false;
     _modelReady = false;
@@ -33,6 +32,7 @@ ActionController::ActionController(ViewController* vc) : QObject(vc)
 
     themeChanged();
     connectViewController(vc);
+    connectSelectionController();
 
     updateActions();
 }
@@ -125,19 +125,18 @@ void ActionController::connectViewController(ViewController *controller)
         connect(window_showNotifications, &QAction::triggered, viewController, &ViewController::notificationsSeen);
 
 
-        connectSelectionController(controller->getSelectionController());
+
     }
 }
 
-void ActionController::connectSelectionController(SelectionController *controller)
+void ActionController::connectSelectionController()
 {
     if(selectionController){
-
-        connect(selectionController, SIGNAL(selectionChanged(int)), this, SLOT(selectionChanged(int)));
-        connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionForward()));
-        connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), controller, SLOT(cycleActiveSelectionBackward()));
-        connect(edit_selectAll, SIGNAL(triggered(bool)), controller, SIGNAL(selectAll()));
-        connect(edit_clearSelection, SIGNAL(triggered(bool)), controller, SIGNAL(clearSelection()));
+        connect(selectionController, &SelectionController::selectionChanged, this, &ActionController::selectionChanged);
+        connect(edit_CycleActiveSelectionForward, SIGNAL(triggered(bool)), selectionController, SLOT(cycleActiveSelectionForward()));
+        connect(edit_CycleActiveSelectionBackward, SIGNAL(triggered(bool)), selectionController, SLOT(cycleActiveSelectionBackward()));
+        connect(edit_selectAll, SIGNAL(triggered(bool)), selectionController, SIGNAL(selectAll()));
+        connect(edit_clearSelection, SIGNAL(triggered(bool)), selectionController, SIGNAL(clearSelection()));
     }
 }
 
@@ -257,9 +256,9 @@ void ActionController::selectionChanged(int selectionSize)
 
         bool modelActions = controllerReady && modelReady;
 
-        bool gotSingleSelection = modelActions && selectionSize == 1;
-        bool gotSelection = modelActions && selectionSize > 0;
-        bool gotMultipleSelection = modelActions && selectionSize > 1;
+        bool gotSingleSelection = modelActions && (selectionSize == 1);
+        bool gotSelection = modelActions && (selectionSize > 0);
+        bool gotMultipleSelection = modelActions && (selectionSize > 1);
 
 
         ViewItem* singleItem = selectionController->getActiveSelectedItem();
@@ -273,7 +272,6 @@ void ActionController::selectionChanged(int selectionSize)
         if(gotSingleSelection && singleItem && singleItem->isNode()){
             NodeViewItem* node = (NodeViewItem*) singleItem;
             Node::NODE_KIND kind = node->getNodeKind();
-
 
             hasDefn = node->isNodeOfType(Node::NT_INSTANCE) || node->isNodeOfType(Node::NT_IMPLEMENTATION);
             hasImpl = hasDefn || node->isNodeOfType(Node::NT_DEFINITION);
@@ -304,15 +302,17 @@ void ActionController::selectionChanged(int selectionSize)
         view_viewImplInNewWindow->setEnabled(hasImpl);
 
 
+
         edit_cut->setEnabled(gotSelection);
         edit_copy->setEnabled(gotSelection);
         edit_paste->setEnabled(gotSingleSelection);
-
 
         edit_replicate->setEnabled(gotSelection);
         edit_delete->setEnabled(gotSelection);
         edit_sort->setEnabled(gotSelection);
         edit_renameActiveSelection->setEnabled(gotSelection);
+        edit_clearSelection->setEnabled(gotMultipleSelection);
+        edit_selectAll->setEnabled(gotSingleSelection);
 
 
         edit_alignHorizontal->setEnabled(gotMultipleSelection);
@@ -333,8 +333,7 @@ void ActionController::selectionChanged(int selectionSize)
 
         view_viewConnections->setEnabled(gotSelection);
 
-        edit_clearSelection->setEnabled(gotMultipleSelection);
-        edit_selectAll->setEnabled(gotSingleSelection);
+
 
         toolbar_setReadOnly->setEnabled(gotSelection);
         toolbar_unsetReadOnly->setEnabled(gotSelection);
@@ -626,6 +625,7 @@ void ActionController::setupActions()
     edit_redo->setShortcutContext(Qt::ApplicationShortcut);
     edit_redo->setShortcut(QKeySequence::Redo);
 
+
     edit_cut = createRootAction("Edit", "Cut", "", "Actions", "Cut");
     edit_cut->setToolTip("Cut selection.");
     edit_cut->setShortcutContext(Qt::ApplicationShortcut);
@@ -834,6 +834,7 @@ void ActionController::setupMainMenu()
 {
     menu_file = new QMenu("File");
     menu_edit = new QMenu("Edit");
+    //menu_edit->setPlatformMenu();
     menu_view = new QMenu("View");
     menu_model = new QMenu("Model");
     menu_jenkins = new QMenu("Jenkins");

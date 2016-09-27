@@ -44,26 +44,12 @@ ViewController::ViewController(){
     //Initialize Settings
     SettingsController::initializeSettings();
 
-    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     selectionController = new SelectionController(this);
-    qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     actionController = new ActionController(this);
-    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     toolbarController = new ToolbarController(this);
-    qint64 time3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     toolbar = new ContextToolbar(this);
-    qint64 time4 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
 
     connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
-
-    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "SelectionController in: " <<  time1 - timeStart << "MS";
-    qCritical() << "ActionController in: " <<  time2 - time1 << "MS";
-    qCritical() << "ToolActionController in: " <<  time3 - time2 << "MS";
-    qCritical() << "ToolbarWidgetNew in: " <<  time4 - time3 << "MS";
-    qCritical() << "ViewController in: " <<  timeFinish - timeStart << "MS";
-
     connect(FileHandler::getFileHandler(), &FileHandler::notification, this, &ViewController::vc_showNotification);
 }
 
@@ -155,14 +141,10 @@ QList<ViewItem *> ViewController::getConstructableNodeDefinitions(QString kind)
 QList<ViewItem*> ViewController::getValidEdges(Edge::EDGE_KIND kind)
 {
     QList<ViewItem*> items;
-    int selection = 0;
     if(selectionController && controller){
-        int i=0;
         QList<int> selectedIDs = selectionController->getSelectionIDs();
         QList<int> IDs = controller->getConnectableNodeIDs(selectedIDs, kind);
         items = getViewItems(IDs);
-        selection = selectedIDs.count();
-        i++;
     }
     return items;
 }
@@ -421,9 +403,8 @@ void ViewController::askQuestion(QString title, QString message, int ID)
         emit centerOnID(ID);
     }
 
-    QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No);
-
-    msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Help").scaled(50,50));
+    QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No, WindowManager::manager()->getMainWindow());
+    msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Help", QSize(50,50), Theme::theme()->getMenuIconColor()));
     int reply = msgBox.exec();
     emit vc_answerQuestion(reply == QMessageBox::Yes);
 }
@@ -548,7 +529,7 @@ void ViewController::launchLocalDeployment()
     }
 }
 
-void ViewController::actionFinished(bool success, QString gg)
+void ViewController::actionFinished(bool, QString)
 {
     setControllerReady(true);
     emit vc_actionFinished();
@@ -570,7 +551,35 @@ void ViewController::welcomeActionFinished()
 void ViewController::_showGitHubPage(QString relURL)
 {
     QString URL = APP_URL % relURL;
+    _showWebpage(URL);
+}
+
+void ViewController::_showWebpage(QString URL)
+{
     QDesktopServices::openUrl(QUrl(URL));
+}
+
+void ViewController::_showWiki(ViewItem *item)
+{
+    QString wikiURL = SettingsController::settings()->getSetting(SK_GENERAL_MEDEA_WIKI_URL).toString();
+    QString url = wikiURL;
+
+    bool isGitWiki = wikiURL.contains("github.com", Qt::CaseInsensitive);
+
+    if(!isGitWiki){
+        url += "/SEM/MEDEA";
+    }
+
+    if(item){
+        QString kind = item->getData("kind").toString();
+        if(isGitWiki){
+            //GIT USES FLAT STRUCTURE
+            url += "/ModelEntities-" + kind;
+        }else{
+            url += "/ModelEntities/" + kind;
+        }
+    }
+    _showWebpage(url);
 }
 
 QString ViewController::getTempFileForModel()
@@ -980,9 +989,9 @@ bool ViewController::_closeProject(bool showWelcome)
             //Ask User to confirm save?
             QMessageBox msgBox(QMessageBox::Question, "Save Changes",
                                "Do you want to save the changes made to '" + filePath + "' ?",
-                               QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-
-            msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save"));
+                               QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
+                               WindowManager::manager()->getMainWindow());
+            msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save", QSize(50,50), Theme::theme()->getMenuIconColor()));
             msgBox.setButtonText(QMessageBox::Yes, "Save");
             msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
 
@@ -1074,7 +1083,7 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             parentItem->addChild(nodeItem);
 
             //Update the icons for certain types.
-            if(parentItem->isNode() && parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE){
+            if(parentItem->isNode() && (parentNodeItem->getNodeKind() == Node::NK_VECTOR || parentNodeItem->getNodeKind() == Node::NK_VECTOR_INSTANCE)){
                 setDefaultIcon(parentItem);
             }
         }else{
@@ -1082,16 +1091,6 @@ void ViewController::controller_entityConstructed(int ID, ENTITY_KIND eKind, QSt
             topLevelItems.append(ID);
         }
     }else if(eKind == EK_EDGE){
-        Edge::EDGE_KIND edgeKind = Edge::EC_NONE;
-
-        if(properties.contains("kind")){
-            edgeKind = (Edge::EDGE_KIND)properties["kind"].toInt();
-        }
-
-        //if(!(edgeKind == Edge::EC_ASSEMBLY || edgeKind == Edge::EC_DATA || edgeKind == Edge::EC_WORKFLOW)){
-        //    return;
-        //}
-
         int srcID = properties["srcID"].toInt();
         int dstID = properties["dstID"].toInt();
         NodeViewItem* source = getNodeViewItem(srcID);
@@ -1368,7 +1367,7 @@ void ViewController::centerOnID(int ID)
 
 void ViewController::showWiki()
 {
-    _showGitHubPage("wiki/");
+    _showWiki(0);
 }
 
 void ViewController::reportBug()
@@ -1378,11 +1377,8 @@ void ViewController::reportBug()
 
 void ViewController::showWikiForSelectedItem()
 {
-    ViewItem* item = getActiveSelectedItem();
-    if(item){
-        QString relURL = "wiki/SEM-MEDEA-ModelEntities#" + item->getData("kind").toString();
-        _showGitHubPage(relURL);
-    }
+    _showWiki(getActiveSelectedItem());
+
 }
 
 void ViewController::centerImpl()
@@ -1455,7 +1451,7 @@ void ViewController::aboutMEDEA()
 {
     QString aboutString =
     "<h3>MEDEA " APP_VERSION "</h3>"
-    "<a href=\"" APP_URL "\"><i>Center for Distributed and Intelligent Systems - Model Analysis</i></a><br />"
+    "<a href=\"" APP_URL "\" style=\"color:" % Theme::theme()->getHighlightColorHex() %";\">Center for Distributed and Intelligent Systems - Model Analysis</a><br />"
     "The University of Adelaide<hr /><br />"
     "Team:"
     "<ul>"
