@@ -227,7 +227,7 @@ void SettingsController::intializeSettings()
     _getSetting(SK_GENERAL_MEDEA_WIKI_URL)->setDefaultValue("https://github.com/cdit-ma/MEDEA/wiki");
 
 
-    _getSetting(SK_GENERAL_HEIGHT)->setDefaultValue(600);
+    _getSetting(SK_GENERAL_HEIGHT)->setDefaultValue(700);
     _getSetting(SK_GENERAL_SAVE_WINDOW_ON_EXIT)->setDefaultValue(true);
     _getSetting(SK_GENERAL_SELECT_ON_CREATION)->setDefaultValue(true);
     _getSetting(SK_GENERAL_ZOOM_UNDER_MOUSE)->setDefaultValue(true);
