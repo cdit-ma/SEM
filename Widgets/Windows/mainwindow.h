@@ -45,7 +45,7 @@ signals:
     void recentProjectsUpdated();
 
 public slots:
-    void setModelTitle(QString modelTitle);
+    void setModelTitle(QString modelTitle="");
 
     void showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int ID);
     void showProgressBar(bool show, QString description = "");
@@ -82,7 +82,7 @@ private:
     void setupDock();
     void setupDataTable();
     void setupMinimap();
-    void setupWindowManager();
+    void setupViewManager();
     void setupMainDockWidgetToggles();
 
     void setupJenkinsManager();

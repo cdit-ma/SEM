@@ -1217,24 +1217,20 @@ void NodeView::state_Resizing_Exited()
 
 void NodeView::state_RubberbandMode_Entered()
 {
-    qCritical() << "state_RubberbandMode_Entered";
     setCursor(Qt::CrossCursor);
 }
 
 void NodeView::state_RubberbandMode_Exited()
 {
-    qCritical() << "state_RubberbandMode_Exited";
 }
 
 void NodeView::state_RubberbandMode_Selecting_Entered()
 {
-    qCritical() << "state_RubberbandMode_Selecting_Entered";
     rubberband->setVisible(true);
 }
 
 void NodeView::state_RubberbandMode_Selecting_Exited()
 {
-     qCritical() << "state_RubberbandMode_Selecting_Exited";
     rubberband->setVisible(false);
     emit trans_RubberbandMode2InActive();
 }

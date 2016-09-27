@@ -145,7 +145,7 @@ void SettingsController::intializeSettings()
     //Window - Tools
     createSetting(SK_WINDOW_TABLE_VISIBLE, ST_BOOL, "Window", "Tools", "Show Table on launch");
     createSetting(SK_WINDOW_MINIMAP_VISIBLE, ST_BOOL, "Window", "Tools", "Show Minimap on launch");
-    createSetting(SK_WINDOW_BROWSER_VISIBLE, ST_BOOL, "Window", "Tools", "Show View Browser on launch");
+    createSetting(SK_WINDOW_VIEW_MANAGER_VISIBLE, ST_BOOL, "Window", "Tools", "Show View Manager on launch");
     createSetting(SK_WINDOW_TOOLBAR_VISIBLE, ST_BOOL, "Window", "Tools", "Show Toolbar on launch");
 
 
@@ -244,7 +244,7 @@ void SettingsController::intializeSettings()
 
     _getSetting(SK_WINDOW_TABLE_VISIBLE)->setDefaultValue(true);
     _getSetting(SK_WINDOW_MINIMAP_VISIBLE)->setDefaultValue(true);
-    _getSetting(SK_WINDOW_BROWSER_VISIBLE)->setDefaultValue(true);
+    _getSetting(SK_WINDOW_VIEW_MANAGER_VISIBLE)->setDefaultValue(true);
     _getSetting(SK_WINDOW_TOOLBAR_VISIBLE)->setDefaultValue(true);
 
     _getSetting(SK_TOOLBAR_CONTEXT)->setDefaultValue(false);
