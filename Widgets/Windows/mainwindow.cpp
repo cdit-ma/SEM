@@ -250,8 +250,8 @@ void MainWindow::themeChanged()
     progressBar->setStyleSheet(theme->getProgressBarStyleSheet());
     progressLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
 
-    notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
-    notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
+    notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet() + "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; }");
+    //notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
 
     restoreAspectsButton->setIcon(theme->getIcon("Actions", "MenuView"));
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
@@ -778,6 +778,7 @@ void MainWindow::setupNotificationBar()
 
     notificationWidget = new QWidget(this);
     notificationWidget->setContentsMargins(5, 2, 5, 2);
+    notificationWidget->setStyleSheet("background: rgba(0,0,0,0); border: 0px;");
 
     QHBoxLayout* layout = new QHBoxLayout(notificationWidget);
     layout->setMargin(0);
@@ -785,7 +786,7 @@ void MainWindow::setupNotificationBar()
     layout->addWidget(notificationIconLabel, 0, Qt::AlignCenter);
     layout->addWidget(notificationLabel, 1, Qt::AlignCenter);
 
-    notificationPopup = new PopupWidget(PopupWidget::TOOL, this);
+    notificationPopup = new PopupWidget(PopupWidget::TOOL, 0);
     notificationPopup->setWidget(notificationWidget);
     notificationPopup->hide();
 
@@ -1030,7 +1031,7 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
         }
         widgetPos -= QPointF(widget->width()/2, widget->height()/2);
         widget->move(widgetPos.x(), widgetPos.y());
-        cw->activateWindow();
+        //cw->activateWindow();
     }
 }
 
