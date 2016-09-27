@@ -334,7 +334,6 @@ void WindowManager::removeWindow(BaseWindow *window)
     if(window){
         int ID = window->getID();
         emit windowDestructed(ID);
-        qCritical() << "MedeaWindowManager::removeWindow() " << ID;
         if(windows.contains(ID)){
 
             if(mainWindow == window){

@@ -31,9 +31,6 @@
  */
 MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, BaseWindow::MAIN_WINDOW)
 {
-    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
-
     initializeApplication();
 
     applicationToolbar = 0;
@@ -41,43 +38,33 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     cutsManager = 0;
     viewController = vc;
 
-    setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
-    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
-    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-
-    setupTools(); //861MS
-    setupInnerWindow(); //718
+    setupTools();
+    setupInnerWindow();
     setupJenkinsManager();
     setupCUTSManager();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
+
     setViewController(vc);
 
     themeChanged();
-    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
     SettingsController* s = SettingsController::settings();
 
     int width = s->getSetting(SK_GENERAL_WIDTH).toInt();
     int height = s->getSetting(SK_GENERAL_HEIGHT).toInt();
     resize(width, height);
+    resizeToolWidgets();
 
-    if(SettingsController::settings()->getSetting(SK_GENERAL_MAXIMIZED).toBool()){
+    setModelTitle();
+    if(s->getSetting(SK_GENERAL_MAXIMIZED).toBool()){
         showMaximized();
     }else{
         showNormal();
     }
 
-    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
     toggleWelcomeScreen(true);
-
-    qCritical() << "MedeaMainWindow in: " <<  time2 - timeStart << "MS";
-    qCritical() << "MedeaMainWindow->show() in: " <<  timeFinish - time2 << "MS";
-    setModelTitle("");
-
-    resizeToolWidgets();
 }
 
 
@@ -230,15 +217,17 @@ void MainWindow::themeChanged()
     Theme* theme = Theme::theme();
 
     QString menuStyle = theme->getMenuStyleSheet();
-    viewController->getActionController()->menu_file->setStyleSheet(menuStyle);
-    viewController->getActionController()->menu_file_recentProjects->setStyleSheet(menuStyle);
-    viewController->getActionController()->menu_edit->setStyleSheet(menuStyle);
-    viewController->getActionController()->menu_view->setStyleSheet(menuStyle);
-    viewController->getActionController()->menu_model->setStyleSheet(menuStyle);
-    viewController->getActionController()->menu_jenkins->setStyleSheet(menuStyle);
-    viewController->getActionController()->menu_help->setStyleSheet(menuStyle);
-    viewController->getActionController()->menu_window->setStyleSheet(menuStyle);
-    viewController->getActionController()->menu_options->setStyleSheet(menuStyle);
+    ActionController* actionController = viewController->getActionController();
+
+    actionController->menu_file->setStyleSheet(menuStyle);
+    actionController->menu_file_recentProjects->setStyleSheet(menuStyle);
+    actionController->menu_edit->setStyleSheet(menuStyle);
+    actionController->menu_view->setStyleSheet(menuStyle);
+    actionController->menu_model->setStyleSheet(menuStyle);
+    actionController->menu_jenkins->setStyleSheet(menuStyle);
+    actionController->menu_help->setStyleSheet(menuStyle);
+    actionController->menu_window->setStyleSheet(menuStyle);
+    actionController->menu_options->setStyleSheet(menuStyle);
 
     searchCompleter->popup()->setStyleSheet(theme->getAbstractItemViewStyleSheet() % theme->getScrollBarStyleSheet() % "QAbstractItemView::item{ padding: 2px 0px; }");
     searchPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
@@ -403,6 +392,10 @@ void MainWindow::initializeApplication()
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
+
+    setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 }
 
 
@@ -467,38 +460,16 @@ void MainWindow::saveSettings()
  */
 void MainWindow::setupTools()
 {
-    qint64 t1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupWelcomeScreen();
-    qint64 t2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupMenuBar();
-    qint64 t3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupSearchBar();
-    qint64 t4 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupProgressBar();
-    qint64 t5 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupNotificationBar();
-    qint64 t6 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupDock();
-    qint64 t7 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupToolBar();
-    qint64 t8 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     setupDataTable();
-    qint64 t9 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    setupWindowManager();
-    qint64 t10 = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    setupViewManager();
     setupMinimap();
-    qint64 t11 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
-    qCritical() << "setupWelcomeScreen in: " <<  t2 - t1 << "MS";
-    qCritical() << "setupMenuBar in: " <<  t3 - t2 << "MS";
-    qCritical() << "setupSearchBar in: " <<  t4 - t3 << "MS";
-    qCritical() << "setupProgressBar in: " <<  t5 - t4 << "MS";
-    qCritical() << "setupNotificationBar in: " <<  t6 - t5 << "MS";
-    qCritical() << "setupDock in: " <<  t7 - t6 << "MS";
-    qCritical() << "setupToolBar in: " <<  t8 - t7 << "MS";
-    qCritical() << "setupDataTable in: " <<  t9 - t8 << "MS";
-    qCritical() << "setupWindowManager in: " <<  t10 - t9 << "MS";
-    qCritical() << "setupMinimap in: " <<  t11 - t10 << "MS";
 }
 
 
@@ -860,7 +831,7 @@ void MainWindow::setupMinimap()
 /**
  * @brief MedeaMainWindow::setupWindowManager
  */
-void MainWindow::setupWindowManager()
+void MainWindow::setupViewManager()
 {
     viewManager = WindowManager::manager()->getViewManagerGUI();
     viewManager->setMinimumHeight(210);
@@ -997,8 +968,8 @@ void MainWindow::resizeToolWidgets()
     int defaultWidth = 500;
     tableWidget->resize(defaultWidth, windowHeight/2);
     tableWidget->updateGeometry();
-    minimap->parentWidget()->resize(defaultWidth, windowHeight/4);
-    viewManager->parentWidget()->resize(defaultWidth, windowHeight/4);
+    minimap->parentWidget()->resize(defaultWidth, windowHeight / 4);
+    viewManager->parentWidget()->resize(defaultWidth, windowHeight / 4);
 }
 
 

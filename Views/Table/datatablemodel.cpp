@@ -17,7 +17,6 @@ DataTableModel::DataTableModel(ViewItem *item)
 
 DataTableModel::~DataTableModel()
 {
-    //qCritical() << "~AttributeTableModel";
     entity->unregisterObject(this);
 }
 

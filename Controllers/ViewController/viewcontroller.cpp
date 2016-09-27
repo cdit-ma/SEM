@@ -44,26 +44,12 @@ ViewController::ViewController(){
     //Initialize Settings
     SettingsController::initializeSettings();
 
-    qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
     selectionController = new SelectionController(this);
-    qint64 time1 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     actionController = new ActionController(this);
-    qint64 time2 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     toolbarController = new ToolbarController(this);
-    qint64 time3 = QDateTime::currentDateTime().toMSecsSinceEpoch();
     toolbar = new ContextToolbar(this);
-    qint64 time4 = QDateTime::currentDateTime().toMSecsSinceEpoch();
-
 
     connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
-
-    qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-    qCritical() << "SelectionController in: " <<  time1 - timeStart << "MS";
-    qCritical() << "ActionController in: " <<  time2 - time1 << "MS";
-    qCritical() << "ToolActionController in: " <<  time3 - time2 << "MS";
-    qCritical() << "ToolbarWidgetNew in: " <<  time4 - time3 << "MS";
-    qCritical() << "ViewController in: " <<  timeFinish - timeStart << "MS";
-
     connect(FileHandler::getFileHandler(), &FileHandler::notification, this, &ViewController::vc_showNotification);
 }
 

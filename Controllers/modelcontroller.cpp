@@ -380,7 +380,6 @@ void ModelController::setupController()
 
 ModelController::~ModelController()
 {
-    qCritical() <<"~NewController()";
     enableDebugLogging(false);
 
     DESTRUCTING_CONTROLLER = true;
