@@ -83,6 +83,9 @@ void QOSBrowser::setupLayout()
     //profileView->setFocusPolicy(Qt::NoFocus);
     //elementView->setFocusPolicy(Qt::NoFocus);
 
+    profileView->setAttribute(Qt::WA_MacShowFocusRect, false);
+    elementView->setAttribute(Qt::WA_MacShowFocusRect, false);
+
     toolbar->addAction(vc->getActionController()->toolbar_addDDSQOSProfile);
     removeSelection = vc->getActionController()->toolbar_removeDDSQOSProfile;
 
