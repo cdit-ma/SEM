@@ -71,7 +71,7 @@ void SearchDialog::themeChanged()
                          "color:" + theme->getTextColorHex() + ";"
                          "}";
 
-    setStyleSheet("QDialog{background:" + theme->getBackgroundColorHex() + ";}"
+    setStyleSheet("QDialog{ background:" + theme->getBackgroundColorHex() + "; }"
                   "QFrame{ background:" + theme->getBackgroundColorHex() + "; }"
                   "QScrollArea {"
                   "background: rgba(0,0,0,0);"

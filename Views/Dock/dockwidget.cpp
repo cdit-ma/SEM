@@ -194,11 +194,11 @@ ToolbarController::DOCK_TYPE DockWidget::getDockType()
 void DockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet("QWidget#DOCKWIDGET_MAINWIDGET {"
-                  //"background: blue;"// + theme->getBackgroundColorHex() + ";"
+    setStyleSheet("#DOCKWIDGET_MAINWIDGET {"
+                  "background:" + theme->getBackgroundColorHex() + ";"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "}"
-                  "QWidget#DOCKWIDGET_SCROLLWIDGET {"
+                  "#DOCKWIDGET_SCROLLWIDGET {"
                   "background: rgba(0,0,0,0);"
                   "border: 0px;"
                   "}"
@@ -206,7 +206,17 @@ void DockWidget::themeChanged()
                   "background: rgba(0,0,0,0);"
                   "border: 0px;"
                   "}");
+/*
+    mainWidget->setStyleSheet("#DOCKWIDGET_SCROLLWIDGET {"
+                              "background: rgba(0,0,0,0);"
+                              "border: 0px;"
+                              "}");
 
+   scrollArea->setStyleSheet("QScrollArea {"
+                             "background: rgba(0,0,0,0);"
+                             "border: 0px;"
+                             "}");
+*/
     if (backButton) {
         backButton->setIcon(theme->getIcon("Actions", "Arrow_Back"));
         backButton->setStyleSheet(theme->getToolBarStyleSheet() +
@@ -295,6 +305,8 @@ void DockWidget::viewItemDestructed(int ID)
  */
 void DockWidget::setupLayout()
 {
+    setObjectName("DOCKWIDGET_MAINWIDGET");
+
     infoLabel = new QLabel(this);
     infoLabel->setWordWrap(true);
     infoLabel->setAlignment(Qt::AlignCenter);
@@ -326,8 +338,6 @@ void DockWidget::setupLayout()
     mainLayout = new QVBoxLayout(this);
     mainLayout->setMargin(0);
     mainLayout->addWidget(scrollArea);
-
-    setObjectName("DOCKWIDGET_MAINWIDGET");
 }
 
 
