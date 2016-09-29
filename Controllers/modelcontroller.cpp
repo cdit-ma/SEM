@@ -2526,8 +2526,9 @@ Node *ModelController::_constructNode(QList<Data *> nodeData)
     //Enforce Default Data!
     QList<Data*> requiredData;
 
-    bool inModel = node->isInModel();
+    bool inModel = false;
     if(node){
+		inModel = node->isInModel();
         requiredData = constructDataVector(childNodeKind);
 
         //Attach Default Data.
