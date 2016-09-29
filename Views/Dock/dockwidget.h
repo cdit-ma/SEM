@@ -1,6 +1,7 @@
 #ifndef DOCKWIDGET_H
 #define DOCKWIDGET_H
 
+#include <QWidget>
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QToolButton>
@@ -10,7 +11,7 @@
 #include "dockwidgetactionitem.h"
 #include "dockwidgetitem.h"
 
-class DockWidget : public QScrollArea
+class DockWidget : public QWidget
 {
     Q_OBJECT
 public:
@@ -49,10 +50,10 @@ private:
     ToolbarController* toolActionController;
     ToolbarController::DOCK_TYPE dockType;
 
-    QVBoxLayout* alignLayout;
-    QVBoxLayout* mainLayout;    
-    QVBoxLayout* headerLayout;
+    QVBoxLayout* mainLayout;
+    QVBoxLayout* itemsLayout;
 
+    QScrollArea* scrollArea;
     QWidget* mainWidget;
     DockWidgetItem* kindLabel;
     QToolButton* backButton;

@@ -3,11 +3,14 @@
 
 #include <QDebug>
 
+
 /**
  * @brief DockWidget::DockWidget
+ * @param tc
+ * @param type
  * @param parent
  */
-DockWidget::DockWidget(ToolbarController* tc, ToolbarController::DOCK_TYPE type, QWidget *parent) : QScrollArea(parent)
+DockWidget::DockWidget(ToolbarController* tc, ToolbarController::DOCK_TYPE type, QWidget *parent) : QWidget(parent)
 {
     toolActionController = tc;
     dockType = type;
@@ -24,7 +27,6 @@ DockWidget::DockWidget(ToolbarController* tc, ToolbarController::DOCK_TYPE type,
         setupHeaderLayout();
         break;
     default:
-        headerLayout = 0;
         kindLabel = 0;
         backButton = 0;
         break;
@@ -38,7 +40,6 @@ DockWidget::DockWidget(ToolbarController* tc, ToolbarController::DOCK_TYPE type,
 /**
  * @brief DockWidget::addItem
  * @param item
- * @return
  */
 void DockWidget::addItem(DockWidgetItem* item)
 {
@@ -58,7 +59,7 @@ void DockWidget::addItem(DockWidgetItem* item)
         actionItem->setProperty("kind", actionItem->getAction()->text());
         connect(actionItem, SIGNAL(clicked(bool)), this, SLOT(dockActionClicked()));
         actionItemIDHash[actionItem->getProperty("ID").toInt()] = actionItem;
-        mainLayout->addWidget(actionItem);        
+        itemsLayout->addWidget(actionItem);
     } else if (isParentActionItem) {
         DockWidgetParentActionItem* parentItem = (DockWidgetParentActionItem*)item;
         QToolBar* toolbar = new QToolBar(this);
@@ -66,9 +67,9 @@ void DockWidget::addItem(DockWidgetItem* item)
         toolbar->setIconSize(QSize(16,16));
         parentActionItemIDHash[parentItem->getProperty("ID").toInt()] = parentItem;
         itemToolbarHash[item] = toolbar;
-        mainLayout->addWidget(toolbar);
+        itemsLayout->addWidget(toolbar);
     } else {
-        mainLayout->addWidget(item);
+        itemsLayout->addWidget(item);
     }
 
     if (itemKind != DockWidgetItem::DEFAULT_ITEM) {
@@ -115,10 +116,10 @@ void DockWidget::clearDock()
             if (itemToolbarHash.contains(item)) {
                 // if there is a toolbar container for the dock item, delete it
                 QToolBar* tb = itemToolbarHash.take(item);
-                mainLayout->removeWidget(tb);
+                itemsLayout->removeWidget(tb);
                 delete tb;
             } else {
-                mainLayout->removeWidget(item);
+                itemsLayout->removeWidget(item);
                 delete item;
             }
         }
@@ -193,10 +194,17 @@ ToolbarController::DOCK_TYPE DockWidget::getDockType()
 void DockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet("QWidget#DOCKWIDGET_MAIN{ background: rgba(0,0,0,0); }"
-                  "QScrollArea {"
+    setStyleSheet("QWidget#DOCKWIDGET_MAINWIDGET {"
+                  //"background: blue;"// + theme->getBackgroundColorHex() + ";"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "background:" + theme->getBackgroundColorHex() + ";"
+                  "}"
+                  "QWidget#DOCKWIDGET_SCROLLWIDGET {"
+                  "background: rgba(0,0,0,0);"
+                  "border: 0px;"
+                  "}"
+                  "QScrollArea {"
+                  "background: rgba(0,0,0,0);"
+                  "border: 0px;"
                   "}");
 
     if (backButton) {
@@ -236,7 +244,7 @@ void DockWidget::highlightItem(int ID)
             // highlight item
             DockWidgetActionItem* item = actionItemIDHash.value(ID);
             item->highlightItem(true);
-            ensureWidgetVisible(item);
+            scrollArea->ensureWidgetVisible(item);
             prevHighlightedItem = item;
             prevHighlightedItemID = ID;
         }
@@ -294,26 +302,32 @@ void DockWidget::setupLayout()
     infoLabel->setStyleSheet("margin: 10px 2px 0px 2px; padding: 0px;");
     infoLabel->setFont(QFont(font().family(), 8));
 
-    mainLayout = new QVBoxLayout();
-    mainLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    mainLayout->setSizeConstraint(QLayout::SetMinimumSize);
-    mainLayout->setSpacing(5);
-    mainLayout->setMargin(0);
-
-    alignLayout = new QVBoxLayout();
-    alignLayout->setMargin(0);
-    alignLayout->addWidget(infoLabel);
-    alignLayout->addLayout(mainLayout);
-    alignLayout->addStretch();
+    itemsLayout = new QVBoxLayout();
+    itemsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    itemsLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    itemsLayout->setSpacing(5);
+    itemsLayout->setMargin(0);
 
     mainWidget = new QWidget(this);
-    mainWidget->setObjectName("DOCKWIDGET_MAIN");
+    mainWidget->setObjectName("DOCKWIDGET_SCROLLWIDGET");
     mainWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    mainWidget->setLayout(alignLayout);
 
-    setWidget(mainWidget);
-    setWidgetResizable(true);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    QVBoxLayout* scrollLayout = new QVBoxLayout(mainWidget);
+    scrollLayout->setMargin(0);
+    scrollLayout->addWidget(infoLabel);
+    scrollLayout->addLayout(itemsLayout);
+    scrollLayout->addStretch();
+
+    scrollArea = new QScrollArea(this);
+    scrollArea->setWidget(mainWidget);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    mainLayout = new QVBoxLayout(this);
+    mainLayout->setMargin(0);
+    mainLayout->addWidget(scrollArea);
+
+    setObjectName("DOCKWIDGET_MAINWIDGET");
 }
 
 
@@ -341,13 +355,14 @@ void DockWidget::setupHeaderLayout()
     kindLabel = new DockWidgetItem("This is a description for kind", this);
     kindLabel->setFont(QFont(font().family(), 8));
 
-    headerLayout = new QVBoxLayout();
+    QVBoxLayout* headerLayout = new QVBoxLayout();
     headerLayout->setMargin(0);
     headerLayout->setSpacing(0);
     headerLayout->addWidget(descriptionLabel);
     headerLayout->addWidget(kindLabel);
     headerLayout->addSpacerItem(new QSpacerItem(0,5));
     headerLayout->addWidget(toolbar);
-    alignLayout->insertLayout(0, headerLayout);
+
+    mainLayout->insertLayout(0, headerLayout);
 }
 

@@ -15,8 +15,10 @@
 #define MIN_WIDTH 130
 #define MAX_WIDTH 250
 
+
 /**
  * @brief DockTabWidget::DockTabWidget
+ * @param vc
  * @param parent
  */
 DockTabWidget::DockTabWidget(ViewController *vc, QWidget* parent) : QWidget(parent)
