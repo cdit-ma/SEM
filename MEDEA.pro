@@ -10,7 +10,7 @@ QT       += gui
 QT       += widgets
 QT       += xmlpatterns
 
-VERSION = 2.0.0
+VERSION = 2.0.1
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 DEFINES += APP_URL=\\\"https://github.com/cdit-ma/MEDEA/\\\"
 
