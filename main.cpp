@@ -25,14 +25,14 @@ int launchMEDEA(int argc, char *argv[]){
     //Fixes MacOS QIcon resolution.
     a.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
 
+    QStringList arguments = a.arguments();
+
     ViewController* vc = new ViewController();
     MainWindow* window = (MainWindow*) WindowManager::constructMainWindow(vc);
 
-    if (argc == 2) {
-        QString projectPath = QString::fromUtf8(argv[1]);
-        if(!projectPath.isEmpty()){
-            vc->openExistingProject(projectPath);
-        }
+
+    if (arguments.length() == 2) {
+        vc->openExistingProject(arguments.at(1));
     }
 
     a.setActiveWindow(window);
