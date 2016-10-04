@@ -21,9 +21,14 @@ void ToolDockWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
     setStyleSheet(theme->getDockWidgetStyleSheet());
+
+    /*
+    if (focusProxy()) {
+        focusProxy()->setStyleSheet("QWidget:focus{ background: red; }");
+    }
+    */
+
     if (getTitleBar()) {
         getTitleBar()->setStyleSheet(theme->getToolDockWidgetTitleBarStyleSheet());
     }
-
-
 }
