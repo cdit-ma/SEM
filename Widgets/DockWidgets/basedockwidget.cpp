@@ -46,11 +46,11 @@ BaseDockWidget::BaseDockWidget(DOCKWIDGET_TYPE type):QDockWidget()
     visibilityChanged(false);
 
     // this adds a border to the dock widgets when they are floating
-    //borderFrame = new QFrame(this);
-    //borderFrame->setStyleSheet("border-radius: " + Theme::theme()->getSharpCornerRadius() + "; border: 1px outset gray;");
-    //borderFrame->setAttribute(Qt::WA_TransparentForMouseEvents, true);
-    //borderFrame->hide();
-    //connect(this, &BaseDockWidget::topLevelChanged, borderFrame, &QFrame::setVisible);
+    borderFrame = new QFrame(this);
+    borderFrame->setStyleSheet("border-radius: " + Theme::theme()->getSharpCornerRadius() + "; border: 1px outset gray;");
+    borderFrame->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    borderFrame->hide();
+    connect(this, &BaseDockWidget::topLevelChanged, borderFrame, &QFrame::setVisible);
 }
 
 BaseDockWidget::~BaseDockWidget()
@@ -357,6 +357,6 @@ bool BaseDockWidget::eventFilter(QObject *object, QEvent *event)
 
 void BaseDockWidget::resizeEvent(QResizeEvent *event)
 {
-    //borderFrame->setFixedSize(this->size());
+    borderFrame->setFixedSize(this->size());
     QDockWidget::resizeEvent(event);
 }

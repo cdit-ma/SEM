@@ -554,7 +554,7 @@ QString Theme::getWindowStyleSheet()
 QString Theme::getScrollBarStyleSheet()
 {
     int marginSize = 1;
-    int scrollSize = 16;
+    int scrollSize = 14;
     int buttonSize = scrollSize - (2* marginSize);
 
     QString margin = QString::number(marginSize) % "px";

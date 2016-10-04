@@ -343,7 +343,8 @@ void MainWindow::toolbarTopLevelChanged(bool undocked)
         //applicationToolbar->parentWidget()->resize(applicationToolbar->sizeHint() +  QSize(12,0));
         QWidget* topWidget =  applicationToolbar->parentWidget()->parentWidget();
         if (topWidget) {
-            topWidget->resize(applicationToolbar->sizeHint() + QSize(15,0));
+            //topWidget->resize(applicationToolbar->sizeHint() + QSize(15,0));
+            topWidget->resize(applicationToolbar->sizeHint() + QSize(6,0));
             topWidget->updateGeometry();
         }
     }
