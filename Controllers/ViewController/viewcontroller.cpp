@@ -34,6 +34,7 @@ ViewController::ViewController(){
 
     codeViewer = 0;
     validationDialog = 0;
+    validationDialog2 = 0;
 
     newProjectUsed = false;
     _modelReady = false;
@@ -417,11 +418,18 @@ void ViewController::modelValidated(QString reportPath)
             validationDialog = new ModelValidationDialog();
             connect(validationDialog, &ModelValidationDialog::revalidate_Model, this, &ViewController::validateModel);
             connect(validationDialog, &ModelValidationDialog::searchItem_centerOnItem, this, &ViewController::centerOnID);
+            validationDialog2 = new ValidationDialog();
+            connect(validationDialog2, &ValidationDialog::revalidateModel, this, &ViewController::validateModel);
+            connect(validationDialog2, &ValidationDialog::centerOnItem, this, &ViewController::centerOnID);
         }
     }
     if(validationDialog){
         validationDialog->gotResults(reportPath);
-        validationDialog->show();
+        //validationDialog->show();
+    }
+    if (validationDialog2) {
+        validationDialog2->gotResults(reportPath);
+        validationDialog2->show();
     }
 }
 

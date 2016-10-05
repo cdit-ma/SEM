@@ -11,6 +11,7 @@
 #include "edgeviewitem.h"
 
 #include "../../Widgets/Dialogs/modelvalidationdialog.h"
+#include "../../Widgets/Dialogs/validationdialog.h"
 
 //#include "../Widgets/New/medeadockwidget.h"
 
@@ -304,6 +305,7 @@ private:
 
     BaseDockWidget *codeViewer;
     ModelValidationDialog* validationDialog;
+    ValidationDialog* validationDialog2;
 
     SelectionController* selectionController;
     ActionController* actionController;

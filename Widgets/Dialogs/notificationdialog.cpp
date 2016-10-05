@@ -78,8 +78,8 @@ void NotificationDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
 
-    setStyleSheet("QDialog{background:" + theme->getBackgroundColorHex() + ";}"
-                  "QListWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
+    setStyleSheet("QDialog{ background:" + theme->getBackgroundColorHex() + "; }"
+                  "QListWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + "; }"
                   //"QListWidget::focus{ border: 0px; }"
                   "QAbstractItemView {"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
