@@ -10,7 +10,6 @@
 #include "nodeviewitem.h"
 #include "edgeviewitem.h"
 
-#include "../../Widgets/Dialogs/modelvalidationdialog.h"
 #include "../../Widgets/Dialogs/validationdialog.h"
 
 //#include "../Widgets/New/medeadockwidget.h"
@@ -304,8 +303,7 @@ private:
     ViewItem* rootItem;
 
     BaseDockWidget *codeViewer;
-    ModelValidationDialog* validationDialog;
-    ValidationDialog* validationDialog2;
+    ValidationDialog* validationDialog;
 
     SelectionController* selectionController;
     ActionController* actionController;

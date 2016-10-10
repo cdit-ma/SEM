@@ -2,6 +2,7 @@
 #include "viewcontroller.h"
 
 #include <QDebug>
+#include <QStack>
 
 ViewItem::ViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> dataList, QHash<QString, QVariant> properties)
 {

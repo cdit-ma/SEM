@@ -737,7 +737,6 @@ QString Theme::getToolBarStyleSheet()
            "padding: 1px;"
            "margin: 0px;"
            "background: rgba(0,0,0,0);"
-           //"background:" % getBackgroundColorHex() % ";"
            "}"
            "QToolBar::separator {"
            "width: 5px;"
@@ -745,9 +744,9 @@ QString Theme::getToolBarStyleSheet()
            "}"
 
            "QToolButton {"
-           "padding: 2px;"
-            "border-radius: " % getCornerRadius() % ";"
-           /*"border-radius: 5px;"*/
+           //"padding: 2px;"
+           "padding: 3px;"
+           "border-radius: " % getCornerRadius() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
@@ -794,7 +793,7 @@ QString Theme::getAbstractItemViewStyleSheet()
            "}"
 
            "QAbstractItemView::item {"
-           "padding:5px 0px;"
+           "padding: 5px 0px;"
            "}"
            "QAbstractItemView::item::disabled {"
            "background:" % getBackgroundColorHex() % ";"
@@ -808,6 +807,7 @@ QString Theme::getAbstractItemViewStyleSheet()
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "}"
+
            "QHeaderView {"
            "background:" % getBackgroundColorHex() %";"
            "border: 0px;"
@@ -815,7 +815,8 @@ QString Theme::getAbstractItemViewStyleSheet()
            "}"
            "QHeaderView::section {"
            "background:" % getAltBackgroundColorHex() % ";"
-           "border: 1px solid " % getBackgroundColorHex() % ";"
+           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "border-width: 0px 0px 1px 0px;"
            "padding: 0px 0px 0px 3px;"
            "}"
            "QHeaderView::section:hover {"
@@ -846,6 +847,40 @@ QString Theme::getAbstractItemViewStyleSheet()
            "background:" % getHighlightColorHex() % ";"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "border: 0px;"
+           "}";
+}
+
+QString Theme::getAltAbstractItemViewStyleSheet()
+{
+    return "QAbstractItemView {"
+           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "background:" % getBackgroundColorHex() % ";"
+           "}"
+           "QAbstractItemView::item {"
+           "border-style: solid;"
+           "border-width: 0px 0px 1px 0px;"
+           "border-color:" % getDisabledBackgroundColorHex() % ";"
+           "color:" % getTextColorHex() % ";"
+           "padding: 2px 2px 3px 2px;"
+           "}"
+           "QAbstractItemView::item:selected {"
+           "background:" % getAltBackgroundColorHex() % ";"
+           "}"
+           "QAbstractItemView::item:hover {"
+           "background:" % getDisabledBackgroundColorHex() % ";"
+           "}"
+
+           "QHeaderView {"
+           "background:" % getBackgroundColorHex() % ";"
+           "border: 0px;"
+           "color:" % getTextColorHex() % ";"
+           "}"
+           "QHeaderView::section {"
+           "border-style: solid;"
+           "border-width: 0px 0px 1px 0px;"
+           "border-color:" % getDisabledBackgroundColorHex() % ";"
+           "background:" % getAltBackgroundColorHex() % ";"
+           "padding: 0px 5px;"
            "}";
 }
 
@@ -891,7 +926,8 @@ QString Theme::getPushButtonStyleSheet()
            "color:" % getTextColorHex() % ";"
            "border-radius: " % getCornerRadius() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
-           "padding: 2px;"
+           //"padding: 2px;"
+           "padding: 3px;"
            "}"
            "QPushButton:hover {"
            "background:" % getHighlightColorHex() % ";"

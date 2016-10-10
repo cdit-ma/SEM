@@ -124,6 +124,7 @@ public:
     QString getMenuStyleSheet();
     QString getToolBarStyleSheet();
     QString getAbstractItemViewStyleSheet();
+    QString getAltAbstractItemViewStyleSheet();
     QString getComboBoxStyleSheet();
     QString getGroupBoxStyleSheet();
     QString getPushButtonStyleSheet();

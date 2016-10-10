@@ -31,11 +31,8 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
 
 void ShortcutDialog::addShortcut(QString shortcut, QString description, QString alias, QString image)
 {
-    QFont boldFont;
     QFont italicFont;
-    boldFont.setBold(true);
     italicFont.setItalic(true);
-    boldFont.setPointSize(boldFont.pointSize() - 2);
     italicFont.setPointSize(italicFont.pointSize() - 1);
 
     #ifdef Q_OS_DARWIN
@@ -72,10 +69,6 @@ void ShortcutDialog::addTitle(QString label, QString alias, QString image)
         boldFont.setBold(true);
         boldFont.setPointSize(boldFont.pointSize() + 1);
 
-        QTableWidgetItem * titleRow = new QTableWidgetItem();
-        titleRow->setFlags(titleRow->flags() ^ Qt::ItemIsEditable);
-        titleRow->setFont(boldFont);
-
         QTableWidgetItem* textItem = new QTableWidgetItem(label);
         textItem->setFlags(textItem->flags() ^ Qt::ItemIsEditable);
         textItem->setTextAlignment(Qt::AlignCenter);
@@ -84,7 +77,7 @@ void ShortcutDialog::addTitle(QString label, QString alias, QString image)
         int insertLocation = tableWidget->rowCount();
         tableWidget->insertRow(insertLocation);
         tableWidget->setItem(insertLocation, 0, textItem);
-        tableWidget->setVerticalHeaderItem(insertLocation, titleRow);
+        tableWidget->setVerticalHeaderItem(insertLocation, new QTableWidgetItem());
     }
 }
 
@@ -95,13 +88,14 @@ void ShortcutDialog::resizeTable()
 
 void ShortcutDialog::themeChanged()
 {
-
     Theme* theme = Theme::theme();
-    this->setStyleSheet(theme->getWindowStyleSheet() % theme->getScrollBarStyleSheet());
-    tableWidget->setStyleSheet(theme->getAbstractItemViewStyleSheet() +  "QAbstractItemView::item {"
-                                                                         "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                                                                         "}");
-    this->tableWidget->verticalHeader()->setStyleSheet(theme->getAbstractItemViewStyleSheet());
+
+    setStyleSheet(theme->getWindowStyleSheet() % theme->getScrollBarStyleSheet() % theme->getDialogStyleSheet());
+    tableWidget->verticalHeader()->setStyleSheet(theme->getAbstractItemViewStyleSheet());
+    tableWidget->setStyleSheet(theme->getAbstractItemViewStyleSheet() %
+                               "QAbstractItemView::item {"
+                               "border: 1px solid " % theme->getDisabledBackgroundColorHex() % ";"
+                               "}");
 
     for (int row = 0 ; row < tableWidget->rowCount() ; ++row) {
         //QTableWidgetItem* header = tableWidget->verticalHeaderItem(row);

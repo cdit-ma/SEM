@@ -19,6 +19,8 @@
 #include <QClipboard>
 #include <QThreadPool>
 #include <QListIterator>
+#include <QStringBuilder>
+#include <QDesktopServices>
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
@@ -34,7 +36,6 @@ ViewController::ViewController(){
 
     codeViewer = 0;
     validationDialog = 0;
-    validationDialog2 = 0;
 
     newProjectUsed = false;
     _modelReady = false;
@@ -415,21 +416,14 @@ void ViewController::modelValidated(QString reportPath)
     if(!validationDialog){
         BaseWindow* window = WindowManager::manager()->getMainWindow();
         if(window){
-            validationDialog = new ModelValidationDialog();
-            connect(validationDialog, &ModelValidationDialog::revalidate_Model, this, &ViewController::validateModel);
-            connect(validationDialog, &ModelValidationDialog::searchItem_centerOnItem, this, &ViewController::centerOnID);
-            validationDialog2 = new ValidationDialog();
-            connect(validationDialog2, &ValidationDialog::revalidateModel, this, &ViewController::validateModel);
-            connect(validationDialog2, &ValidationDialog::centerOnItem, this, &ViewController::centerOnID);
+            validationDialog = new ValidationDialog();
+            connect(validationDialog, &ValidationDialog::revalidateModel, this, &ViewController::validateModel);
+            connect(validationDialog, &ValidationDialog::centerOnItem, this, &ViewController::centerOnID);
         }
     }
-    if(validationDialog){
+    if (validationDialog) {
         validationDialog->gotResults(reportPath);
-        //validationDialog->show();
-    }
-    if (validationDialog2) {
-        validationDialog2->gotResults(reportPath);
-        validationDialog2->show();
+        validationDialog->showDialog();
     }
 }
 

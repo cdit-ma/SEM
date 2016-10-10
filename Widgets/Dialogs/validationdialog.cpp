@@ -57,40 +57,26 @@ void ValidationDialog::gotResults(QString filePath)
 
 
 /**
+ * @brief ValidationDialog::showDialog
+ */
+void ValidationDialog::showDialog()
+{
+    show();
+    raise();
+}
+
+
+/**
  * @brief ValidationDialog::themeChanged
  */
 void ValidationDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet("QDialog{ background:" + theme->getBackgroundColorHex() + ";}"
-                  "QAbstractItemView {"
-                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "background:" + theme->getBackgroundColorHex() + ";"
-                  "}"
-                  "QAbstractItemView::item {"
-                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  //"padding: 10px 0px 0px 0px;"
-                  "padding: 3px 0px;"
-                  "color:" + theme->getTextColorHex() + ";"
-                  "}"
-                  "QAbstractItemView::item:selected {"
-                  "background:" + theme->getAltBackgroundColorHex() + ";"
-                  "}"
-                  "QAbstractItemView::item:hover {"
-                  "background:" + theme->getDisabledBackgroundColorHex() + ";"
-                  "}"
-                  "QHeaderView {"
-                  "background:" + theme->getBackgroundColorHex() + ";"
-                  "border: 0px;"
-                  "color:" + theme->getTextColorHex() + ";"
-                  "}"
-                  "QHeaderView::section {"
-                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "background:" + theme->getAltBackgroundColorHex() + ";"
-                  "padding: 0px 5px;"
-                  "}"
-                  "QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex() + ";}"
+    setStyleSheet("QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex() + ";}"
+                  + theme->getAltAbstractItemViewStyleSheet()
+                  + theme->getDialogStyleSheet()
                   + theme->getScrollBarStyleSheet()
+                  //+ theme->getLabelStyleSheet()
                   + theme->getPushButtonStyleSheet() + "QPushButton{ padding: 5px; }");
 }
 
@@ -135,13 +121,13 @@ void ValidationDialog::cellSelected(int nRow, int nCol)
 void ValidationDialog::setupLayout()
 {
     itemsTable = new QTableWidget(1, 1, this);
-    itemsTable->horizontalHeader()->setVisible(false);
+    itemsTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     itemsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    itemsTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    itemsTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    itemsTable->horizontalHeader()->setVisible(false);
     itemsTable->setSelectionMode(QAbstractItemView::SingleSelection);
     itemsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     itemsTable->setFocusPolicy(Qt::NoFocus);
+    itemsTable->setShowGrid(false);
 
     loadingMovie = new QMovie(this);
     loadingMovie->setScaledSize(QSize(32, 32));
@@ -150,8 +136,10 @@ void ValidationDialog::setupLayout()
     //loadingMovie->setFileName(":/Gifs/Loading");
 
     statusIcon = new QLabel(this);
+
     label = new QLabel("Validation Report", this);
-    label->setFont(QFont(font().family(), 14, 1));
+    label->setFont(QFont(font().family(), 13, 1));
+    label->setWordWrap(true);
 
     QHBoxLayout* titleLayout = new QHBoxLayout();
     titleLayout->addWidget(statusIcon);
@@ -170,7 +158,7 @@ void ValidationDialog::setupLayout()
     mainLayout->addLayout(titleLayout, 0, 0);
     mainLayout->addWidget(itemsTable, 1, 0);
     mainLayout->addLayout(buttonLayout, 2, 0);
-    mainLayout->setRowStretch(1, 1);
+    mainLayout->setColumnStretch(0, 1);
 }
 
 
@@ -187,27 +175,29 @@ void ValidationDialog::setupItemsTable(QStringList items)
         itemsTable->removeRow(row);
     }
 
-    /* populate table with validation messages */
-    for (int row = 0; row < items.count(); ++row) {
-        QString reportMessage = items[row];
-        QString message = reportMessage.split(']').last();
-        QString id = reportMessage.split('[').last().split(']').first();
-        itemsID.append(id);
+    bool succeeded = items.isEmpty();
 
-        QTableWidgetItem* name = new QTableWidgetItem(message);
-        name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-        //name->setTextAlignment(Qt::AlignVCenter);
-        name->setTextAlignment(Qt::AlignBottom);
+    if (succeeded) {
 
-        itemsTable->insertRow(row);
-        itemsTable->setItem(row, 0, name);
-    }
-
-    if (items.count() == 0) {
         label->setText("Validation Succeeded");
         QPixmap successPixmap(Theme::theme()->getImage("Actions", "Job_Built"));
         statusIcon->setPixmap(successPixmap);
+
     } else {
+
+        /* populate table with validation messages */
+        for (int row = 0; row < items.count(); ++row) {
+            QString reportMessage = items[row];
+            QString message = reportMessage.split(']').last();
+            QString id = reportMessage.split('[').last().split(']').first();
+            itemsID.append(id);
+
+            QTableWidgetItem* name = new QTableWidgetItem(message);
+            name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+            itemsTable->insertRow(row);
+            itemsTable->setItem(row, 0, name);
+        }
+
         label->setText("Validation Failed: " + QString::number(items.count()) + " Issue(s)");
         QPixmap failPixmap(Theme::theme()->getImage("Actions", "Job_Failed"));
         statusIcon->setPixmap(failPixmap);

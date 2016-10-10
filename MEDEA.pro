@@ -179,7 +179,6 @@ HEADERS += \
     Widgets/CodeEditor/codeeditor.h \
     Widgets/CodeEditor/syntaxhighlighter.h \
     Widgets/Dialogs/appsettings.h \
-    Widgets/Dialogs/modelvalidationdialog.h \
     Widgets/Dialogs/notificationdialog.h \
     Widgets/Dialogs/popupwidget.h \
     Widgets/Dialogs/shortcutdialog.h \
@@ -351,7 +350,6 @@ SOURCES += \
     Widgets/CodeEditor/codeeditor.cpp \
     Widgets/CodeEditor/syntaxhighlighter.cpp \
     Widgets/Dialogs/appsettings.cpp \
-    Widgets/Dialogs/modelvalidationdialog.cpp \
     Widgets/Dialogs/notificationdialog.cpp \
     Widgets/Dialogs/popupwidget.cpp \
     Widgets/Dialogs/shortcutdialog.cpp \

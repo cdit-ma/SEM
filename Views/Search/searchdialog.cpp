@@ -71,30 +71,28 @@ void SearchDialog::themeChanged()
                          "color:" + theme->getTextColorHex() + ";"
                          "}";
 
-    setStyleSheet("QDialog{ background:" + theme->getBackgroundColorHex() + "; }"
-                  "QFrame{ background:" + theme->getBackgroundColorHex() + "; }"
+    setStyleSheet("QFrame{ background:" + theme->getBackgroundColorHex() + "; }"
                   "QScrollArea {"
                   "background: rgba(0,0,0,0);"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "}"
+                  + theme->getDialogStyleSheet()
                   + theme->getComboBoxStyleSheet());
 
+    displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
+    buttonsToolBar->setStyleSheet(theme->getToolBarStyleSheet());
     keysToolBar->setStyleSheet("QToolBar {"
                                "padding: 0px;"
                                "background:" + theme->getBackgroundColorHex() + ";"
                                "}"
                                "QToolButton {"
                                "padding: 5px 10px;"
-                               + theme->getSharpCornerRadius() + ";"
+                               "border-radius:" + theme->getSharpCornerRadius() + ";"
                                "}"
                                "QToolButton::checked {"
                                "background:" + theme->getHighlightColorHex() + ";"
                                "color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
                                "}");
-
-    buttonsToolBar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{padding:4px;}");
-
-    displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
 
     //searchButton->setIcon(theme->getIcon("Actions", "Search"));
     centerOnButton->setIcon(theme->getIcon("Actions", "Crosshair"));
@@ -229,7 +227,6 @@ void SearchDialog::setupLayout()
     popupButton->setToolTip("View Selected Item In New Window");
 
     buttonsToolBar = new QToolBar(this);
-
     buttonsToolBar->setIconSize(QSize(20, 20));
     //buttonsToolbar->setFixedHeight(fieldHeight);
     buttonsToolBar->addWidget(centerOnButton);

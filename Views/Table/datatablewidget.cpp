@@ -65,7 +65,11 @@ void DataTableWidget::activeItem_LabelChanged()
 void DataTableWidget::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet(Theme::theme()->getAbstractItemViewStyleSheet());
+    setStyleSheet(Theme::theme()->getAbstractItemViewStyleSheet() +
+                  "QAbstractItemView::item {"
+                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                  "border-width: 0px 0px 1px 0px;"
+                  "}");
     label->setStyleSheet("QLabel{color: " % theme->getTextColorHex() % ";font-weight:bold;}");
     toolbar->setStyleSheet("QToolBar{ border: 1px solid " % theme->getDisabledBackgroundColorHex() % "; border-bottom: 0px; }");
 }

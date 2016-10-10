@@ -15,6 +15,7 @@ public:
     explicit ValidationDialog(QWidget *parent = 0);
 
     void gotResults(QString filePath);
+    void showDialog();
 
 signals:
     void centerOnItem(int ID);
