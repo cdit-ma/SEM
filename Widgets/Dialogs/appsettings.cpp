@@ -32,9 +32,9 @@
 
 AppSettings::AppSettings(QWidget *parent):QDialog(parent)
 {
-    setMinimumWidth(SETTINGS_WIDTH);
-    setMinimumHeight(SETTINGS_HEIGHT);
-    setModal(true);
+    //setMinimumWidth(SETTINGS_WIDTH);
+    //setMinimumHeight(SETTINGS_HEIGHT);
+    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
     QString title = "App Settings";
     setWindowTitle(title);
@@ -42,7 +42,6 @@ AppSettings::AppSettings(QWidget *parent):QDialog(parent)
     setModal(true);
 
     setupLayout();
-
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
@@ -72,7 +71,7 @@ void AppSettings::settingChanged(SETTING_KEY key, QVariant data)
 void AppSettings::themeChanged()
 {
     Theme* theme = Theme::theme();
-    tabWidget->setStyleSheet(theme->getTabbedWidgetStyleSheet());
+    tabWidget->setStyleSheet(theme->getTabbedWidgetStyleSheet() + "QTabBar::tab:top{ margin-top: 2px; }");
 
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
     warningLabel->setStyleSheet("color: " + theme->getHighlightColorHex() + "; font-weight:bold;");
@@ -80,10 +79,7 @@ void AppSettings::themeChanged()
     setWindowIcon(theme->getImage("Actions", "Settings"));
     setStyleSheet(theme->getWidgetStyleSheet("AppSettings") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() %
                   "#BACKGROUND_WIDGET {background: " % theme->getBackgroundColorHex() % ";}"
-
                   );
-
-
 }
 
 void AppSettings::dataValueChanged(QString dataKey, QVariant data)
@@ -187,14 +183,16 @@ DataEditWidget *AppSettings::getDataWidget(SETTING_KEY key)
 void AppSettings::setupLayout()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setSpacing(0);
-    layout->setMargin(0);
+    //layout->setSpacing(0);
+    //layout->setMargin(0);
+    //layout->setContentsMargins(0,5,0,5);
 
-    layout->setContentsMargins(0,5,0,5);
-
+    layout->setSpacing(DIALOG_SPACING);
+    layout->setMargin(DIALOG_MARGIN);
 
     tabWidget = new QTabWidget(this);
-    tabWidget->setTabPosition(QTabWidget::West);
+    //tabWidget->setTabPosition(QTabWidget::West);
+    tabWidget->setTabPosition(QTabWidget::North);
     tabWidget->setContentsMargins(QMargins(0,0,0,0));
 
     warningLabel = new QLabel("settings.ini file is read-only! Settings changed won't persist!");
@@ -206,7 +204,7 @@ void AppSettings::setupLayout()
     warningAction = toolbar->addWidget(warningLabel);
     clearSettingsAction = toolbar->addAction("Clear");
     applySettingsAction = toolbar->addAction("Apply");
-    layout->addSpacing(2);
+    //layout->addSpacing(2);
     layout->addWidget(toolbar, 0, Qt::AlignRight);
 
     connect(applySettingsAction, &QAction::triggered, this, &AppSettings::applySettings);

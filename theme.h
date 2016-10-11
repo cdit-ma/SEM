@@ -104,11 +104,11 @@ public:
     bool gotImage(QString, QString) const;
 
 
-
-
-    // Default StyleSheets
+    QString getBorderWidth();
     QString getCornerRadius();
     QString getSharpCornerRadius();
+
+    // Default StyleSheets
     QString getWindowStyleSheet();
     QString getScrollBarStyleSheet();
     QString getDialogStyleSheet();

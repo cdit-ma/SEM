@@ -337,6 +337,11 @@ bool Theme::gotImage(QString path, QString alias) const
     return imageExistsHash.contains(resourceName);
 }
 
+QString Theme::getBorderWidth()
+{
+    return "1px";
+}
+
 QString Theme::getCornerRadius()
 {
     return "4px";
@@ -561,15 +566,18 @@ QString Theme::getScrollBarStyleSheet()
     QString size = QString::number(scrollSize) % "px";
     QString button = QString::number(buttonSize) % "px";
 
-    return   //"QScrollBar{background: " % getAltBackgroundColorHex() % ";border:none;margin:0px;}"
-             "QScrollBar{background: " % getBackgroundColorHex() % "; border: 1px solid " % getDisabledBackgroundColorHex() % "; margin:0px;}"
-             "QScrollBar:vertical{width:" % size % ";}"
-             "QScrollBar:horizontal{height:" % size % ";}"
-             "QScrollBar::handle{background: " % getAltBackgroundColorHex() % " ;}"
-             "QScrollBar::handle:active{background: " % getHighlightColorHex() % ";}"
-             "QScrollBar::add-line, QScrollBar::sub-line{background:none;}" // Up/Down Button holders;
-             "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
-             "QScrollBar::handle{margin:" % margin % ";}" // Allow nice space.
+    return "QScrollBar {"
+           "background: " % getDisabledBackgroundColorHex() % ";"
+           "border: 0px;"
+           "margin: 0px;"
+           "}"
+           "QScrollBar:vertical{width:" % size % "; padding-left: 1px;}"
+           "QScrollBar:horizontal{height:" % size % "; padding-top: 1px;}"
+           "QScrollBar::handle{background: " % getAltBackgroundColorHex() % " ;}"
+           "QScrollBar::handle:active{background: " % getHighlightColorHex() % ";}"
+           "QScrollBar::add-line, QScrollBar::sub-line{background:none;}" // Up/Down Button holders;
+           "QScrollBar::add-page, QScrollBar::sub-page{background:none;}" // Space between Handle and Up/Down Buttons
+           "QScrollBar::handle{margin:" % margin % ";}" // Allow nice space.
 
             /* // Have buttons
              "QScrollBar::handle:vertical{margin:" % size % " " % margin %";}"
@@ -613,10 +621,10 @@ QString Theme::getTabbedWidgetStyleSheet()
 {
     return  "QTabBar::tab:top {padding: 5px 10px;;margin: 5px 1px;}"
             "QTabBar::tab:right {padding: 10px 5px;margin: 1px 5px;}"
-            "QTabBar::tab {background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % ";border-radius:" % getCornerRadius() % ";}"
+            "QTabBar::tab {background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % ";border-radius:" % getSharpCornerRadius() % ";}"
             "QTabBar::tab:selected {background:" % getHighlightColorHex() % "; color: " % getTextColorHex(CR_SELECTED) % ";}"
             "QTabBar, QTabWidget::tab-bar {alignment: center;}"
-            "QTabWidget::pane,QTabBar::pane {border:none;background:" % getBackgroundColorHex() % "}"
+            "QTabWidget::pane,QTabBar::pane { border:0px; background:" % getBackgroundColorHex() % "}"
             ;
 }
 
@@ -627,7 +635,6 @@ QString Theme::getNodeViewStyleSheet(bool isActive)
     return "QGraphicsView {"
            "background:" % getBackgroundColorHex() % ";"
            % (isActive ? activeBorder : inActiveBorder) %
-           //"border: 1px solid " % (isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex()) % ";"
            "}";
 }
 
@@ -852,13 +859,14 @@ QString Theme::getAbstractItemViewStyleSheet()
 
 QString Theme::getAltAbstractItemViewStyleSheet()
 {
+    QString borderWidth = getBorderWidth();
     return "QAbstractItemView {"
-           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
+           "border:" % borderWidth % " solid " % getDisabledBackgroundColorHex() % ";"
            "background:" % getBackgroundColorHex() % ";"
            "}"
            "QAbstractItemView::item {"
            "border-style: solid;"
-           "border-width: 0px 0px 1px 0px;"
+           "border-width: 0px 0px " % borderWidth % " 0px;"
            "border-color:" % getDisabledBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
            "padding: 2px 2px 3px 2px;"
@@ -877,7 +885,7 @@ QString Theme::getAltAbstractItemViewStyleSheet()
            "}"
            "QHeaderView::section {"
            "border-style: solid;"
-           "border-width: 0px 0px 1px 0px;"
+           "border-width: 0px " % borderWidth % " " % borderWidth % " 0px;"
            "border-color:" % getDisabledBackgroundColorHex() % ";"
            "background:" % getAltBackgroundColorHex() % ";"
            "padding: 0px 5px;"

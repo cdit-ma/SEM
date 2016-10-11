@@ -1,12 +1,10 @@
 #include "notificationdialog.h"
+#include "../../theme.h"
 
 #include <QVBoxLayout>
 #include <QToolBar>
 #include <QScrollArea>
 #include <QStringBuilder>
-
-
-#include "../../theme.h"
 
 #define ICON_SIZE 24
 
@@ -82,7 +80,7 @@ void NotificationDialog::themeChanged()
                   + theme->getAltAbstractItemViewStyleSheet()
                   + theme->getDialogStyleSheet());
 
-    topToolbar->setStyleSheet(theme->getToolBarStyleSheet());
+    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolButton{ padding: 2px; border-radius:" + theme->getSharpCornerRadius() + ";}");
     bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet());
 
     for (int i = 0; i < listWidget->count(); i++) {
@@ -345,6 +343,7 @@ void NotificationDialog::updateTypeAction(NOTIFICATION_TYPE type)
 void NotificationDialog::setupLayout()
 {
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->setSpacing(DIALOG_SPACING);
 
     listWidget = new QListWidget(this);
     listWidget->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
@@ -354,6 +353,7 @@ void NotificationDialog::setupLayout()
     topToolbar = new QToolBar(this);
     topToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     topToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    //topToolbar->setOrientation(Qt::Vertical);
 
     foreach(NOTIFICATION_TYPE type, getNotificationTypes()){
         QAction* action = typeActionHash.value(type, 0);
@@ -363,9 +363,11 @@ void NotificationDialog::setupLayout()
         }
     }
 
+    /*
     QWidget* stretchWidget = new QWidget(this);
     stretchWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     topToolbar->addWidget(stretchWidget);
+    */
 
     bottomToolbar = new QToolBar(this);
     bottomToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -377,11 +379,20 @@ void NotificationDialog::setupLayout()
     clearSelectedAction->setEnabled(false);
     clearVisibleAction->setEnabled(false);
 
-    mainLayout->addWidget(topToolbar);
+    mainLayout->addWidget(topToolbar, 0, Qt::AlignHCenter);
     mainLayout->addWidget(listWidget, 1);
     mainLayout->addWidget(bottomToolbar, 0, Qt::AlignRight);
 
-    setMinimumSize(mainLayout->sizeHint().width() + 100, 250);
+    /*
+    QHBoxLayout* hLayout = new QHBoxLayout();
+    hLayout->addWidget(topToolbar);
+    hLayout->addWidget(listWidget, 1);
+    mainLayout->addLayout(hLayout, 1);
+    mainLayout->addWidget(bottomToolbar, 0, Qt::AlignRight);
+    */
+
+    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
+    //setMinimumSize(mainLayout->sizeHint().width() + 100, 250);
 }
 
 

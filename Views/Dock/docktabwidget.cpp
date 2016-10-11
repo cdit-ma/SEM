@@ -42,8 +42,8 @@ void DockTabWidget::themeChanged()
     Theme* theme = Theme::theme();
     setStyleSheet(theme->getToolBarStyleSheet() +
                   "QWidget{ color:" + theme->getTextColorHex() + ";}"
-                  "QToolButton{ border-radius: 0px; background:" + theme->getAltBackgroundColorHex() + ";}"
-                  //"QToolButton{ border-radius: " % theme->getSharpCornerRadius() % "; background:" + theme->getAltBackgroundColorHex() + ";}"
+                  //"QToolButton{ border-radius: 0px; background:" + theme->getAltBackgroundColorHex() + ";}"
+                  "QToolButton{ border-radius: " + theme->getSharpCornerRadius() + "; background:" + theme->getAltBackgroundColorHex() + ";}"
                   "QToolButton::checked:!hover{ background:" + theme->getBackgroundColorHex() + ";}"
                   //"QToolButton::checked:!hover{ border-bottom: 0px; background:" + theme->getBackgroundColorHex() + ";}"
                   "QStackedWidget{ border: 0px; background:" + theme->getBackgroundColorHex() + ";}");

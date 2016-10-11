@@ -17,14 +17,14 @@
 ShortcutDialog::ShortcutDialog(QWidget *parent) :
     QDialog(parent)
 {
-    setWindowTitle("MEDEA - Shortcuts");
+    setWindowTitle("App Shortcuts");
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
     setWindowIcon(Theme::theme()->getImage("Actions", "Keyboard"));
     setModal(false);
 
-    resize(WIDTH, HEIGHT);
-
     setupLayout();
+    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
+    resize(WIDTH, HEIGHT);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &ShortcutDialog::themeChanged);
 }
@@ -112,8 +112,7 @@ void ShortcutDialog::themeChanged()
 
 void ShortcutDialog::setupLayout()
 {
-    layout = new QVBoxLayout();
-    this->setLayout(layout);
+    layout = new QVBoxLayout(this);
     tableWidget = new QTableWidget(0, 1, this);
     tableWidget->verticalHeader()->setVisible(true);
     tableWidget->verticalHeader()->setHighlightSections(false);

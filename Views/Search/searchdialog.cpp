@@ -9,7 +9,6 @@
 
 #define DEFAULT_KEY_WIDTH 120
 #define DEFAULT_DISPLAY_WIDTH 200
-#define MIN_HEIGHT 250
 
 /**
  * @brief SearchDialog::SearchDialog
@@ -73,7 +72,7 @@ void SearchDialog::themeChanged()
 
     setStyleSheet("QFrame{ background:" + theme->getBackgroundColorHex() + "; }"
                   "QScrollArea {"
-                  "background: rgba(0,0,0,0);"
+                  "background:" + theme->getBackgroundColorHex() + ";"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "}"
                   + theme->getDialogStyleSheet()
@@ -228,7 +227,6 @@ void SearchDialog::setupLayout()
 
     buttonsToolBar = new QToolBar(this);
     buttonsToolBar->setIconSize(QSize(20, 20));
-    //buttonsToolbar->setFixedHeight(fieldHeight);
     buttonsToolBar->addWidget(centerOnButton);
     buttonsToolBar->addWidget(popupButton);
 
@@ -242,6 +240,7 @@ void SearchDialog::setupLayout()
     keysArea->setWidgetResizable(true);
 
     QFrame* displayWidget = new QFrame(this);
+    displayWidget->setStyleSheet("QFrame{ background: rgba(0,0,0,0); }");
     resultsLayout = new QVBoxLayout(displayWidget);
     resultsLayout->setMargin(0);
     resultsLayout->setSpacing(0);
@@ -286,15 +285,14 @@ void SearchDialog::setupLayout()
     hLayout->addWidget(buttonsToolBar);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setMargin(10);
-    mainLayout->setSpacing(5);
+    mainLayout->setMargin(DIALOG_MARGIN);
+    mainLayout->setSpacing(DIALOG_MARGIN);
+    //mainLayout->setSpacing(DIALOG_SPACING);
     mainLayout->addLayout(hLayout);
-    //mainLayout->addSpacerItem(new QSpacerItem(0, 5));
-    //mainLayout->addWidget(buttonsToolbar, 1, Qt::AlignRight);
-    mainLayout->addSpacerItem(new QSpacerItem(0, 5));
     mainLayout->addWidget(displaySplitter, 1);
 
-    setMinimumSize(mainLayout->sizeHint().width() + 50, MIN_HEIGHT);
+    //setMinimumSize(mainLayout->sizeHint().width() + 50, MIN_HEIGHT);
+    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
     keysActionGroup = new QActionGroup(this);
     keysActionGroup->setExclusive(true);
@@ -348,9 +346,7 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
 
     if (item) {
         connect(item, &ViewItem::destructing, this, &SearchDialog::viewItemDestructed);
-
         connect(this, SIGNAL(keyButtonChecked(QString)), itemWidget, SLOT(toggleKeyWidget(QString)));
-
         connect(itemWidget, SIGNAL(itemSelected(int)), this, SLOT(searchItemSelected(int)));
         connect(itemWidget, SIGNAL(hoverEnter(int)), this, SIGNAL(itemHoverEnter(int)));
         connect(itemWidget, SIGNAL(hoverLeave(int)), this, SIGNAL(itemHoverLeave(int)));

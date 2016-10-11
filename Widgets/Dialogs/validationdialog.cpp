@@ -14,7 +14,7 @@ ValidationDialog::ValidationDialog(QWidget *parent)
     : QDialog(parent)
 {
     setupLayout();
-    setMinimumSize(300, 200);
+    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
     Qt::WindowFlags flags = 0;
     flags |= Qt::WindowMaximizeButtonHint;
@@ -73,10 +73,9 @@ void ValidationDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
     setStyleSheet("QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex() + ";}"
-                  + theme->getAltAbstractItemViewStyleSheet()
                   + theme->getDialogStyleSheet()
                   + theme->getScrollBarStyleSheet()
-                  //+ theme->getLabelStyleSheet()
+                  + theme->getAltAbstractItemViewStyleSheet()
                   + theme->getPushButtonStyleSheet() + "QPushButton{ padding: 5px; }");
 }
 
@@ -121,6 +120,7 @@ void ValidationDialog::cellSelected(int nRow, int nCol)
 void ValidationDialog::setupLayout()
 {
     itemsTable = new QTableWidget(1, 1, this);
+    itemsTable->verticalHeader()->setDefaultAlignment(Qt::AlignCenter);
     itemsTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     itemsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     itemsTable->horizontalHeader()->setVisible(false);
@@ -154,6 +154,7 @@ void ValidationDialog::setupLayout()
     buttonLayout->addWidget(revalidateButton, 0, Qt::AlignRight);
 
     QGridLayout* mainLayout = new QGridLayout(this);
+    mainLayout->setSpacing(DIALOG_SPACING);
     mainLayout->setSizeConstraint(QLayout::SetNoConstraint);
     mainLayout->addLayout(titleLayout, 0, 0);
     mainLayout->addWidget(itemsTable, 1, 0);
