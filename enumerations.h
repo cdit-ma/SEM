@@ -95,7 +95,6 @@ enum COLOR_SHADE{LIGHTER_SHADE, NORMAL_SHADE, DARKER_SHADE};
 #define JENKINS_JOB "06-04-MEDEA_Jobname"
 #define JENKINS_TOKEN "06-05-API_Token"
 
-
 #define THEME_SETTINGS "07-Theme"
 #define THEME_SET_LIGHT_THEME "07-00-Set_Light_Theme"
 #define THEME_SET_DARK_THEME "07-00-Set_Dark_Theme"

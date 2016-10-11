@@ -255,6 +255,7 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
     expandButton->setCheckable(true);
     expandButton->setChecked(false);
     expandButton->setEnabled(false);
+    expandButton->setAttribute(Qt::WA_TransparentForMouseEvents, true);
     expandButton->setToolTip("Double-Click To Show/Hide Matching Data");
 
     QToolBar* toolbar = new QToolBar(this);
