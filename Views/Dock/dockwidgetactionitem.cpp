@@ -17,6 +17,7 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
 
     theme = Theme::theme();
 
+    borderStr = "0px";
     backgroundColorHex = "rgba(0,0,0,0)";
     colorHex = theme->getTextColorHex();
     highlighted = false;
@@ -34,9 +35,6 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     updateDisplayedText(getDisplayedText());
 
     connect(action, SIGNAL(changed()), this, SLOT(actionChanged()));
-    //This can't be done, you are caching your items in a hash a level up.
-    //This will keep a pointer to the item, even though it's been deleted...
-    //connect(action, SIGNAL(destroyed(QObject*)), this, SLOT(deleteLater()));
     connect(theme, SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(this, SIGNAL(displayedTextChanged(QString)), SLOT(updateDisplayedText(QString)));
 
@@ -122,13 +120,20 @@ QVariant DockWidgetActionItem::getProperty(const char *name)
  */
 void DockWidgetActionItem::highlightItem(bool highlight)
 {
+    if (highlight == highlighted) {
+        return;
+    }
+
     if (highlight) {
         backgroundColorHex = theme->getHighlightColorHex();
         colorHex = theme->getTextColorHex(Theme::CR_SELECTED);
+        borderStr = "1px solid " + theme->getDisabledBackgroundColorHex();
     } else {
         backgroundColorHex = "rgba(0,0,0,0)";
         colorHex = theme->getTextColorHex();
+        borderStr = "0px";
     }
+
     highlighted = highlight;
     updateStyleSheet();
 }
@@ -171,7 +176,7 @@ void DockWidgetActionItem::actionChanged()
 void DockWidgetActionItem::themeChanged()
 {
     arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(16,16), theme->getTextColor()));
-    highlightItem(highlighted);
+    updateStyleSheet();
 }
 
 
@@ -260,6 +265,6 @@ void DockWidgetActionItem::setupLayout()
  */
 void DockWidgetActionItem::updateStyleSheet()
 {
-    setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border: 0px; }");
+    setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border:" + borderStr + ";}");
     textLabel->setStyleSheet("color:" + colorHex + ";");
 }

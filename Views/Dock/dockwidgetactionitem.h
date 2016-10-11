@@ -55,6 +55,7 @@ private:
     Theme* theme;
     QString backgroundColorHex;
     QString colorHex;
+    QString borderStr;
 };
 
 #endif // DockWidgetActionItem_H

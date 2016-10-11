@@ -627,7 +627,6 @@ QString Theme::getNodeViewStyleSheet(bool isActive)
     return "QGraphicsView {"
            "background:" % getBackgroundColorHex() % ";"
            % (isActive ? activeBorder : inActiveBorder) %
-           //"border: 1px solid " % (isActive ? getActiveWidgetBorderColorHex() : getDisabledBackgroundColorHex()) % ";"
            "}";
 }
 
@@ -746,8 +745,7 @@ QString Theme::getToolBarStyleSheet()
 
            "QToolButton {"
            "padding: 2px;"
-            "border-radius: " % getCornerRadius() % ";"
-           /*"border-radius: 5px;"*/
+           "border-radius: " % getCornerRadius() % ";"
            "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
@@ -765,7 +763,6 @@ QString Theme::getToolBarStyleSheet()
            "}"
            "QToolButton:disabled {"
            "background:" % getDisabledBackgroundColorHex() % ";"
-           "border: 1px solid " % getDisabledBackgroundColorHex() % ";"
            "}"
            "QToolButton[popupMode=\"1\"] {"
            "padding-right: 15px;"
