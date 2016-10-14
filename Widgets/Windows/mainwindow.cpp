@@ -89,14 +89,18 @@ MainWindow::~MainWindow()
 void MainWindow::setViewController(ViewController *vc)
 {
     viewController = vc;
+
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
+    NotificationManager* notificationManager = new NotificationManager(viewController, this);
+
+    connect(notificationManager, &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
+    connect(vc, &ViewController::vc_setupModel, notificationManager, &NotificationManager::notificationsSeen);
 
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
     connect(vc, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
     connect(vc, &ViewController::vc_projectPathChanged, this, &MainWindow::setModelTitle);
-    connect(vc, &ViewController::vc_showNotification, this, &MainWindow::showNotification);
 
     connect(vc, &ViewController::vc_showWelcomeScreen, this, &MainWindow::toggleWelcomeScreen);
     connect(vc, &ViewController::mc_projectModified, this, &MainWindow::setWindowModified);
@@ -135,13 +139,13 @@ void MainWindow::searchEntered()
 
 
 /**
- * @brief MedeaMainWindow::showNotification
- * @param title
- * @param message
+ * @brief MainWindow::popupNotification
+ * @param iconPath
+ * @param iconName
+ * @param description
  */
-void MainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int ID)
+void MainWindow::popupNotification(QString iconPath, QString iconName, QString description)
 {
-    notificationDialog->addNotificationItem(type, title, description, QPair<QString, QString>(iconPath, iconName), ID);
     notificationTimer->stop();
 
     if (!welcomeScreenOn) {
@@ -154,6 +158,7 @@ void MainWindow::showNotification(NOTIFICATION_TYPE type, QString title, QString
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
         moveWidget(notificationPopup, 0, Qt::AlignBottom);
         notificationPopup->show();
+        notificationPopup->raise();
         notificationTimer->start(5000);
     }
 }
@@ -738,8 +743,6 @@ void MainWindow::setupProgressBar()
  */
 void MainWindow::setupNotificationBar()
 {
-    notificationTimer = new QTimer(this);
-
     notificationIconLabel = new QLabel(this);
     notificationIconLabel->setAlignment(Qt::AlignCenter);
 
@@ -762,13 +765,7 @@ void MainWindow::setupNotificationBar()
     notificationPopup->setWidget(notificationWidget);
     notificationPopup->hide();
 
-    notificationDialog = new NotificationDialog(this);
-
-    connect(notificationDialog, &NotificationDialog::notificationAdded, viewController, &ViewController::notificationAdded);
-    connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
-    connect(viewController, &ViewController::vc_setupModel, viewController, &ViewController::notificationsSeen);
-    connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
-    connect(viewController->getActionController()->window_showNotifications, &QAction::triggered, notificationDialog, &NotificationDialog::toggleVisibility);
+    notificationTimer = new QTimer(this);
     connect(notificationTimer, &QTimer::timeout, notificationPopup, &QDialog::hide);
 }
 

@@ -14,7 +14,7 @@
 
 //#include "../Widgets/New/medeadockwidget.h"
 
-
+//class NotificationManager;
 class ModelController;
 class ContextToolbar;
 class NodeView;
@@ -139,9 +139,8 @@ signals:
     void vc_importSnippet(QList<int> IDs, QString fileName, QString fileData);
 
     void vc_highlightItem(int ID, bool highlight);
+
 public slots:
-    void notificationAdded();
-    void notificationsSeen();
 
     void projectOpened(bool success);
 
@@ -308,6 +307,7 @@ private:
     SelectionController* selectionController;
     ActionController* actionController;
     ToolbarController* toolbarController;
+    //NotificationManager* notificationManager;
 
     ContextToolbar* toolbar;
     ModelController* controller;

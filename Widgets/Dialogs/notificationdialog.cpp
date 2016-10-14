@@ -200,6 +200,7 @@ void NotificationDialog::clearAll()
     }
     */
     notificationHash.clear();
+    notificationIDHash.clear();
     listWidget->clear();
     updateTypeActions(getNotificationTypes());
 }
@@ -234,8 +235,9 @@ void NotificationDialog::addNotificationItem(NOTIFICATION_TYPE type, QString tit
     //Insert in the listWidget at 0
     listWidget->insertItem(0, listItem);
 
-    //Put in the multimap
+    //Put in the multimap and hash
     notificationHash.insertMulti(type, listItem);
+    notificationIDHash[ID] = listItem;
 
     QAction* typeAction = getTypeAction(type);
     if (typeAction) {
@@ -246,13 +248,26 @@ void NotificationDialog::addNotificationItem(NOTIFICATION_TYPE type, QString tit
             updateVisibilityCount(1);
         }
     }
+}
 
-    emit notificationAdded();
+
+/**
+ * @brief NotificationDialog::removeNotificationItem
+ * Remove the notification item with the provided ID from the list widget and the hash.
+ * @param ID
+ */
+void NotificationDialog::removeNotificationItem(int ID)
+{
+    if (notificationIDHash.contains(ID)) {
+        QListWidgetItem* item = notificationIDHash.take(ID);
+        removeItem(item);
+    }
 }
 
 
 /**
  * @brief NotificationDialog::removeItem
+ * Remove item from the list widget and the hash and then delete it.
  * @param item
  */
 void NotificationDialog::removeItem(QListWidgetItem* item)
@@ -260,8 +275,6 @@ void NotificationDialog::removeItem(QListWidgetItem* item)
     if (listWidget && item) {
         int row = listWidget->row(item);
         NOTIFICATION_TYPE type = (NOTIFICATION_TYPE) item->data(IR_TYPE).toInt();
-
-        //Remove from the hash
         notificationHash.remove(type, item);
         delete listWidget->takeItem(row);
     }

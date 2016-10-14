@@ -18,14 +18,16 @@
 
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Views/NodeView/nodeviewminimap.h"
+
 #include "../../Controllers/ViewController/viewcontroller.h"
+#include "../../Controllers/NotificationManager/notificationmanager.h"
 
 #include "../../Plugins/CUTS/cutsmanager.h"
 #include "../../Plugins/Jenkins/jenkinsmanager.h"
 #include "../../Plugins/XMI/xmiimporter.h"
 
 #include "../../Widgets/Dialogs/popupwidget.h"
-#include "../../Widgets/Dialogs/notificationdialog.h"
+//#include "../../Widgets/Dialogs/notificationdialog.h"
 
 
 
@@ -47,7 +49,8 @@ signals:
 public slots:
     void setModelTitle(QString modelTitle="");
 
-    void showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int ID);
+    void popupNotification(QString iconPath, QString iconName, QString description);
+
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);
 
@@ -122,7 +125,7 @@ private:
     QLabel* notificationIconLabel;
     QLabel* notificationLabel;
     QTimer* notificationTimer;
-    NotificationDialog* notificationDialog;
+    //NotificationDialog* notificationDialog;
 
     ViewController* viewController;
 

@@ -1,6 +1,7 @@
 #include "viewcontroller.h"
 
 #include "../WindowManager/windowmanager.h"
+//#include "../NotificationManager/notificationmanager.h"
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
 #include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
@@ -44,6 +45,7 @@ ViewController::ViewController(){
     //Initialize Settings
     SettingsController::initializeSettings();
 
+    //notificationManager = new NotificationManager(this, this);
     selectionController = new SelectionController(this);
     actionController = new ActionController(this);
     toolbarController = new ToolbarController(this);
@@ -356,22 +358,6 @@ void ViewController::requestSearchSuggestions()
 void ViewController::setController(ModelController *c)
 {
     controller = c;
-}
-
-void ViewController::notificationAdded()
-{
-    if(!actionController->window_showNotifications->isCheckable()){
-        actionController->window_showNotifications->setCheckable(true);
-        actionController->window_showNotifications->setChecked(true);
-    }
-}
-
-void ViewController::notificationsSeen()
-{
-    if(actionController->window_showNotifications->isCheckable()){
-        actionController->window_showNotifications->setCheckable(false);
-        actionController->window_showNotifications->setChecked(false);
-    }
 }
 
 void ViewController::projectOpened(bool success)

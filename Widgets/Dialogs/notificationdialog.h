@@ -25,10 +25,11 @@ public:
     explicit NotificationDialog(QWidget *parent = 0);
 
     void addNotificationItem(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath, int ID);
+    void removeNotificationItem(int ID);
 
 signals:
-    void notificationAdded();
     void centerOn(int ID);
+    void itemDeleted(int ID);
 
 public slots:
     void toggleVisibility();
@@ -66,6 +67,7 @@ private:
     QAction* clearVisibleAction;
 
     QMultiMap<NOTIFICATION_TYPE, QListWidgetItem*> notificationHash;
+    QHash<int, QListWidgetItem*> notificationIDHash;
     QHash<NOTIFICATION_TYPE, QAction*> typeActionHash;
 
     int visibleCount;

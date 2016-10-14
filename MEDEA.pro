@@ -204,7 +204,8 @@ HEADERS += \
     Controllers/WindowManager/windowmanager.h \
     Views/Table/datatabledelegate.h \
     Widgets/ViewManager/windowitem.h \
-    Widgets/ViewManager/dockitem.h
+    Widgets/ViewManager/dockitem.h \
+    Controllers/NotificationManager/notificationmanager.h
 
 
 SOURCES += \
@@ -374,7 +375,8 @@ SOURCES += \
     Utils/rootaction.cpp \
     Views/Table/datatabledelegate.cpp \
     Widgets/ViewManager/windowitem.cpp \
-    Widgets/ViewManager/dockitem.cpp
+    Widgets/ViewManager/dockitem.cpp \
+    Controllers/NotificationManager/notificationmanager.cpp
 
 
 RESOURCES += \

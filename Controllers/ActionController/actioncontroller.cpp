@@ -122,7 +122,7 @@ void ActionController::connectViewController(ViewController *controller)
         connect(readOnlyMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),viewController, &ViewController::setSelectionReadOnly);
 
 
-        connect(window_showNotifications, &QAction::triggered, viewController, &ViewController::notificationsSeen);
+        //connect(window_showNotifications, &QAction::triggered, viewController, &ViewController::notificationsSeen);
 
 
 
