@@ -1,12 +1,10 @@
 #include "notificationdialog.h"
+#include "../../theme.h"
 
 #include <QVBoxLayout>
 #include <QToolBar>
 #include <QScrollArea>
 #include <QStringBuilder>
-
-
-#include "../../theme.h"
 
 #define ICON_SIZE 24
 
@@ -18,7 +16,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
 {
     typeActionMapper = new QSignalMapper(this);
 
-    foreach(NOTIFICATION_TYPE type, getNotificationTypes()){
+    foreach (NOTIFICATION_TYPE type, GET_NOTIFICATION_TYPES()) {
         QAction* action = new QAction(this);
         action->setCheckable(true);
         action->setChecked(true);
@@ -80,7 +78,6 @@ void NotificationDialog::themeChanged()
 
     setStyleSheet("QDialog{background:" + theme->getBackgroundColorHex() + ";}"
                   "QListWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
-                  //"QListWidget::focus{ border: 0px; }"
                   "QAbstractItemView {"
                   "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
                   "background:" + theme->getBackgroundColorHex() + ";"
@@ -107,7 +104,7 @@ void NotificationDialog::themeChanged()
         }
     }
 
-    foreach (NOTIFICATION_TYPE type, getNotificationTypes()) {
+    foreach (NOTIFICATION_TYPE type, GET_NOTIFICATION_TYPES()) {
         QAction* action = typeActionHash.value(type, 0);
         if (action) {
              QPair<QString, QString> iconPath = getActionIcon(type);
@@ -193,16 +190,10 @@ void NotificationDialog::clearVisible()
  */
 void NotificationDialog::clearAll()
 {
-    /*
-    QList<QListWidgetItem*> items = notificationHash.values();
-    foreach (QListWidgetItem* item, items) {
-        removeItem(item);
-    }
-    */
     notificationHash.clear();
     notificationIDHash.clear();
     listWidget->clear();
-    updateTypeActions(getNotificationTypes());
+    updateTypeActions(GET_NOTIFICATION_TYPES());
 }
 
 
@@ -273,10 +264,21 @@ void NotificationDialog::removeNotificationItem(int ID)
 void NotificationDialog::removeItem(QListWidgetItem* item)
 {
     if (listWidget && item) {
-        int row = listWidget->row(item);
+
+        // remove from notifications hash
         NOTIFICATION_TYPE type = (NOTIFICATION_TYPE) item->data(IR_TYPE).toInt();
         notificationHash.remove(type, item);
+
+        // remove from IDs hash
+        int ID = item->data(IR_ID).toInt();
+        if (notificationIDHash.contains(ID)) {
+            notificationIDHash.remove(ID);
+        }
+
+        // remove from list widget then delete item
+        int row = listWidget->row(item);
         delete listWidget->takeItem(row);
+        emit itemDeleted(ID);
     }
 }
 
@@ -361,6 +363,7 @@ void NotificationDialog::updateTypeAction(NOTIFICATION_TYPE type)
         int count = notificationHash.values(type).length();
         QString text = "(" % QString::number(count) % ")";
         typeAction->setText(text);
+        emit updateTypeCount(type, count);
     }
 }
 
@@ -381,7 +384,7 @@ void NotificationDialog::setupLayout()
     toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
-    foreach(NOTIFICATION_TYPE type, getNotificationTypes()){
+    foreach(NOTIFICATION_TYPE type, GET_NOTIFICATION_TYPES()){
         QAction* action = typeActionHash.value(type, 0);
         if (action) {
             toolbar->addAction(action);

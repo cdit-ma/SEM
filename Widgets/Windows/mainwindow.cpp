@@ -92,7 +92,11 @@ void MainWindow::setViewController(ViewController *vc)
 
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
+
     NotificationManager* notificationManager = new NotificationManager(viewController, this);
+    if (cornerToolbar) {
+        cornerToolbar->insertWidget(beforeAction, notificationManager->getNotificationWidget());
+    }
 
     connect(notificationManager, &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
     connect(vc, &ViewController::vc_setupModel, notificationManager, &NotificationManager::notificationsSeen);
@@ -247,14 +251,10 @@ void MainWindow::themeChanged()
     notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet() + "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; }");
     //notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
 
-    restoreAspectsButton->setIcon(theme->getIcon("Actions", "MenuView"));
+    cornerToolbar->setStyleSheet("QToolButton{ padding: 2px 4px; border-top-left-radius: 0px; border-bottom-left-radius: 0px; } QLabel{ background:" + theme->getAltBackgroundColorHex() + ";}");
+
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
     restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
-
-    interfaceButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_INTERFACES));
-    behaviourButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_BEHAVIOUR));
-    assemblyButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_ASSEMBLIES));
-    hardwareButton->setStyleSheet(theme->getAspectButtonStyleSheet(VA_HARDWARE));
 
     minimap->setStyleSheet(theme->getNodeViewStyleSheet());
 }
@@ -550,7 +550,7 @@ void MainWindow::setupInnerWindow()
     // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
     // application if it's called before the dock widgets are added above
     // This function needs to be called after the code above and before the connections below
-    setupMainDockWidgetToggles();
+    setupMenuCornerWidget();
 
     connectNodeView(nodeView_Interfaces);
     connectNodeView(nodeView_Behaviour);
@@ -558,6 +558,7 @@ void MainWindow::setupInnerWindow()
     connectNodeView(nodeView_Hardware);
 
     // connect aspect toggle buttons
+    /*
     connect(dwInterfaces, SIGNAL(visibilityChanged(bool)), interfaceButton, SLOT(setChecked(bool)));
     connect(dwBehaviour, SIGNAL(visibilityChanged(bool)), behaviourButton, SLOT(setChecked(bool)));
     connect(dwAssemblies, SIGNAL(visibilityChanged(bool)), assemblyButton, SLOT(setChecked(bool)));
@@ -567,6 +568,7 @@ void MainWindow::setupInnerWindow()
     connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setVisible(bool)));
     connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setVisible(bool)));
     connect(restoreAspectsButton, SIGNAL(clicked(bool)), innerWindow, SLOT(resetDockWidgets()));
+    */
 }
 
 
@@ -845,66 +847,29 @@ void MainWindow::setupViewManager()
 
 
 /**
- * @brief MedeaMainWindow::setupMainDockWidgetToggles
+ * @brief MedeaMainWindow::setupMenuCornerWidget
  * NOTE: This neeeds to be called after the tool dock widgets
  * and both the central and inner windows are constructed.
  */
-void MainWindow::setupMainDockWidgetToggles()
+void MainWindow::setupMenuCornerWidget()
 {
-    interfaceButton = new QToolButton(this);
-    behaviourButton = new QToolButton(this);
-    assemblyButton = new QToolButton(this);
-    hardwareButton = new QToolButton(this);
-    restoreAspectsButton = new QToolButton(this);
-    restoreToolsButton = new QToolButton(this);
-
-    /*
-    interfaceButton->setText("I");
-    behaviourButton->setText("B");
-    assemblyButton->setText("A");
-    hardwareButton->setText("H");
-    */
-
-    interfaceButton->setToolTip("Toggle Interface Aspect");
-    behaviourButton->setToolTip("Toggle Behaviour Aspect");
-    assemblyButton->setToolTip("Toggle Assembly Aspect");
-    hardwareButton->setToolTip("Toggle Hardware Aspect");
-    restoreAspectsButton->setToolTip("Restore Main Dock Widgets");
-    restoreToolsButton->setToolTip("Restore Tool Dock Widgets");
-
-    restoreAspectsButton->hide();
-
-    interfaceButton->setCheckable(true);
-    behaviourButton->setCheckable(true);
-    assemblyButton->setCheckable(true);
-    hardwareButton->setCheckable(true);
-
     QMenu* menu = createPopupMenu();
     restoreToolsAction = menu->addAction("Show All Tool Widgets");
+
+    restoreToolsButton = new QToolButton(this);
+    restoreToolsButton->setToolTip("Restore Tool Dock Widgets");
     restoreToolsButton->setMenu(menu);
     restoreToolsButton->setPopupMode(QToolButton::InstantPopup);
+    restoreToolsButton->setStyleSheet("border-radius: 4px;");
 
-    if (innerWindow) {
-        restoreAspectsButton->setMenu(innerWindow->createPopupMenu());
-        restoreAspectsButton->setPopupMode(QToolButton::InstantPopup);
-    }
+    cornerToolbar = new QToolBar(this);
+    cornerToolbar->setIconSize(QSize(20, 20));
+    cornerToolbar->setFixedHeight(menuBar->height() - 6);
 
-    QToolBar* toolbar = new QToolBar(this);
-    toolbar->setIconSize(QSize(20,20));
-    toolbar->setFixedHeight(menuBar->height() - 6);
-    toolbar->setStyleSheet("QToolButton{ padding: 2px 4px; }");
+    beforeAction = cornerToolbar->addSeparator();
+    cornerToolbar->addWidget(restoreToolsButton);
 
-    toolbar->addAction(viewController->getActionController()->window_showNotifications);
-    toolbar->addSeparator();
-    toolbar->addWidget(interfaceButton);
-    toolbar->addWidget(behaviourButton);
-    toolbar->addWidget(assemblyButton);
-    toolbar->addWidget(hardwareButton);
-    toolbar->addSeparator();
-    toolbar->addWidget(restoreAspectsButton);
-    toolbar->addWidget(restoreToolsButton);
-
-    menuBar->setCornerWidget(toolbar);
+    menuBar->setCornerWidget(cornerToolbar);
 
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
 }

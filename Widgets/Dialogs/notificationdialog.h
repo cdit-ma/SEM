@@ -30,6 +30,7 @@ public:
 signals:
     void centerOn(int ID);
     void itemDeleted(int ID);
+    void updateTypeCount(NOTIFICATION_TYPE type, int count);
 
 public slots:
     void toggleVisibility();

@@ -390,7 +390,7 @@ RECT_VERTEX GET_ASPECT_VERTEX(VIEW_ASPECT aspect)
 }
 
 
-QList<NOTIFICATION_TYPE> getNotificationTypes()
+QList<NOTIFICATION_TYPE> GET_NOTIFICATION_TYPES()
 {
     QList<NOTIFICATION_TYPE> list;
     list << NT_INFO;
@@ -414,5 +414,20 @@ QString GET_NOTIFICATION_TYPE_STRING(NOTIFICATION_TYPE type)
         return "Critical";
     default:
         return "";
+    }
+}
+
+
+QString GET_NOTIFICATION_TYPE_COLORSTR(NOTIFICATION_TYPE type)
+{
+    switch (type) {
+    case NT_WARNING:
+        return "yellow";
+    case NT_ERROR:
+        return "red";
+    case NT_CRITICAL:
+        return "orange";
+    default:
+        return "white";
     }
 }

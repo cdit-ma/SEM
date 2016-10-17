@@ -86,7 +86,7 @@ private:
     void setupDataTable();
     void setupMinimap();
     void setupViewManager();
-    void setupMainDockWidgetToggles();
+    void setupMenuCornerWidget();
 
     void setupJenkinsManager();
     void setupCUTSManager();
@@ -94,6 +94,8 @@ private:
 
     void resizeToolWidgets();
     void moveWidget(QWidget* widget, QWidget* parentWidget = 0, Qt::Alignment alignment = Qt::AlignCenter);
+
+    ViewController* viewController;
 
     BaseWindow* innerWindow;
 
@@ -125,15 +127,9 @@ private:
     QLabel* notificationIconLabel;
     QLabel* notificationLabel;
     QTimer* notificationTimer;
-    //NotificationDialog* notificationDialog;
 
-    ViewController* viewController;
-
-    QToolButton* interfaceButton;
-    QToolButton* behaviourButton;
-    QToolButton* assemblyButton;
-    QToolButton* hardwareButton;
-    QToolButton* restoreAspectsButton;
+    QToolBar* cornerToolbar;
+    QAction* beforeAction;
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;
 

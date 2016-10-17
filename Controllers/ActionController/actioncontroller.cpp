@@ -730,8 +730,9 @@ void ActionController::setupActions()
     view_viewImplInNewWindow->setShortcutContext(Qt::ApplicationShortcut);
     view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
-    window_showNotifications = createRootAction("View", "Show Notifications", "", "Actions", "Exclamation");
-    window_showNotifications->setToolTip("Show Notifications Panel.");
+    //window_showNotifications = createRootAction("View", "Show Notifications", "", "Actions", "Exclamation");
+    window_showNotifications = createRootAction("View", "Show Notifications", "", "Actions", "Popup");
+    window_showNotifications->setToolTip("Show Notifications Panel");
     window_showNotifications->setShortcutContext(Qt::ApplicationShortcut);
     window_showNotifications->setShortcut(QKeySequence(Qt::Key_F11));
     //window_showNotifications->setCheckable(true);
