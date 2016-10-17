@@ -50,7 +50,8 @@ QToolBar* NotificationManager::getNotificationWidget()
 void NotificationManager::themeChanged()
 {
     Theme* theme = Theme::theme();
-    notificationWidget->setStyleSheet("QToolBar{ padding: 0px; }");
+    notificationWidget->setStyleSheet("QToolBar{ spacing: 0px; padding: 0px; border-radius: 4px; background:" + theme->getAltBackgroundColorHex() + ";}"
+                                      "QToolBar::separator{ width: 3px; background:" + theme->getBackgroundColorHex() + ";}");
     notificationIcon = theme->getIcon("Actions", "Exclamation");
     if (!loadingGifDisplayed) {
         showLastNotificationButton->setIcon(notificationIcon);
@@ -209,6 +210,7 @@ void NotificationManager::constructNotificationWidget()
     showLastNotificationButton->setStyleSheet("border-radius: 0px; border-top-left-radius: 4px; border-bottom-left-radius: 4px;");
 
     showLastNotificationAction = notificationWidget->addWidget(showLastNotificationButton);
+    notificationWidget->addSeparator();
 
     connect(showLastNotificationButton, SIGNAL(clicked(bool)), showLastNotificationAction, SLOT(trigger()));
     connect(showLastNotificationAction, SIGNAL(triggered(bool)), this, SLOT(notificationsSeen()));
@@ -227,6 +229,14 @@ void NotificationManager::constructNotificationWidget()
             label->setToolTip(GET_NOTIFICATION_TYPE_STRING(t) + " Count");
             label->setStyleSheet("QLabel{ color:" + GET_NOTIFICATION_TYPE_COLORSTR(t) + ";}");
             notificationWidget->addWidget(label);
+            notificationWidget->addSeparator();
+
+            // add shadow to the labels
+            QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect(this);
+            effect->setBlurRadius(0);
+            effect->setColor(Qt::black);
+            effect->setOffset(1,1);
+            label->setGraphicsEffect(effect);
         }
     }
 

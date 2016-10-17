@@ -251,7 +251,11 @@ void MainWindow::themeChanged()
     notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet() + "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; }");
     //notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
 
-    cornerToolbar->setStyleSheet("QToolButton{ padding: 2px 4px; border-top-left-radius: 0px; border-bottom-left-radius: 0px; } QLabel{ background:" + theme->getAltBackgroundColorHex() + ";}");
+    cornerToolbar->setStyleSheet("QToolButton{ padding: 2px 4px; border-top-left-radius: 0px; border-bottom-left-radius: 0px; }"
+                                 //"QLabel{ background: rgba(0,0,0,0); border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}");
+                                 "QLabel{ background: rgba(0,0,0,0); }");
+                                 //"QLabel{ background: rgba(0,0,0,0); border: 1px solid " + theme->getDisabledBackgroundColorHex() + "; border-width: 0px 1px; }");
+                                 //"QLabel{ background:" + theme->getAltBackgroundColorHex() + ";}");
 
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
     restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
