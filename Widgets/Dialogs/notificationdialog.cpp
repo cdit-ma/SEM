@@ -408,6 +408,7 @@ void NotificationDialog::enterEvent(QEvent* event)
     }
 }
 
+
 /**
  * @brief NotificationDialog::listItemClicked
  * @param item
@@ -462,8 +463,6 @@ void NotificationDialog::setupLayout()
     listWidget->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
     listWidget->setUniformItemSizes(true);
     listWidget->setFocusPolicy(Qt::NoFocus);
-
-    //listWidget->item(0)->;
 
     toolbar = new QToolBar(this);
     toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

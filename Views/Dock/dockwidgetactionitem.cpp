@@ -16,10 +16,6 @@ DockWidgetActionItem::DockWidgetActionItem(QAction* action, QWidget *parent) :
     dockAction = action;
 
     theme = Theme::theme();
-
-    borderStr = "0px";
-    backgroundColorHex = "rgba(0,0,0,0)";
-    colorHex = theme->getTextColorHex();
     highlighted = false;
 
     dockActionID = -1;
@@ -120,22 +116,10 @@ QVariant DockWidgetActionItem::getProperty(const char *name)
  */
 void DockWidgetActionItem::highlightItem(bool highlight)
 {
-    if (highlight == highlighted) {
-        return;
+    if (highlighted != highlight) {
+        highlighted = highlight;
+        updateStyleSheet();
     }
-
-    if (highlight) {
-        backgroundColorHex = theme->getHighlightColorHex();
-        colorHex = theme->getTextColorHex(Theme::CR_SELECTED);
-        borderStr = "1px solid " + theme->getDisabledBackgroundColorHex();
-    } else {
-        backgroundColorHex = "rgba(0,0,0,0)";
-        colorHex = theme->getTextColorHex();
-        borderStr = "0px";
-    }
-
-    highlighted = highlight;
-    updateStyleSheet();
 }
 
 
@@ -265,6 +249,15 @@ void DockWidgetActionItem::setupLayout()
  */
 void DockWidgetActionItem::updateStyleSheet()
 {
+    if (highlighted) {
+        backgroundColorHex = theme->getHighlightColorHex();
+        colorHex = theme->getTextColorHex(Theme::CR_SELECTED);
+        borderStr = "1px solid " + theme->getDisabledBackgroundColorHex();
+    } else {
+        backgroundColorHex = "rgba(0,0,0,0)";
+        colorHex = theme->getTextColorHex();
+        borderStr = "0px";
+    }
     setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border:" + borderStr + ";}");
     textLabel->setStyleSheet("color:" + colorHex + ";");
 }
