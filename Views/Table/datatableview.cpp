@@ -19,6 +19,7 @@ DataTableView::DataTableView(QWidget* parent):QTableView(parent)
     verticalHeader()->setHighlightSections(false);
 
     setFocusPolicy(Qt::NoFocus);
+    setShowGrid(false);
 }
 
 void DataTableView::setModel(QAbstractItemModel *model)

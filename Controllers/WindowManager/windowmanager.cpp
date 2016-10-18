@@ -4,6 +4,7 @@
 #include <QPushButton>
 #include <QBoxLayout>
 #include <QObject>
+#include <QApplication>
 
 
 #include "../../Widgets/Windows/basewindow.h"

@@ -1,14 +1,12 @@
 #include "viewcontroller.h"
 
 #include "../WindowManager/windowmanager.h"
-//#include "../NotificationManager/notificationmanager.h"
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
 #include "../../Widgets/DockWidgets/nodeviewdockwidget.h"
 #include "../../Views/ContextToolbar/contexttoolbar.h"
 #include "../../Views/NodeView/nodeview.h"
 #include "../../Widgets/CodeEditor/codebrowser.h"
-
 
 #include "../modelcontroller.h"
 #include "../../Utils/filehandler.h"
@@ -20,6 +18,8 @@
 #include <QClipboard>
 #include <QThreadPool>
 #include <QListIterator>
+#include <QStringBuilder>
+#include <QDesktopServices>
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
@@ -400,14 +400,14 @@ void ViewController::modelValidated(QString reportPath)
     if(!validationDialog){
         BaseWindow* window = WindowManager::manager()->getMainWindow();
         if(window){
-            validationDialog = new ModelValidationDialog();
-            connect(validationDialog, &ModelValidationDialog::revalidate_Model, this, &ViewController::validateModel);
-            connect(validationDialog, &ModelValidationDialog::searchItem_centerOnItem, this, &ViewController::centerOnID);
+            validationDialog = new ValidationDialog();
+            connect(validationDialog, &ValidationDialog::revalidateModel, this, &ViewController::validateModel);
+            connect(validationDialog, &ValidationDialog::centerOnItem, this, &ViewController::centerOnID);
         }
     }
-    if(validationDialog){
+    if (validationDialog) {
         validationDialog->gotResults(reportPath);
-        validationDialog->show();
+        validationDialog->showDialog();
     }
 }
 

@@ -10,7 +10,8 @@
  * @param item
  * @param parent
  */
-SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent) : QFrame(parent)
+SearchItemWidget::SearchItemWidget(ViewItem* item, QWidget *parent)
+    : QFrame(parent)
 {
     viewItem = item;
     viewItemID = -1;
@@ -88,16 +89,16 @@ void SearchItemWidget::setSelected(bool selected)
     if (this->selected == selected) {
         return;
     }
+
     this->selected = selected;
+
     if (selected) {
         emit itemSelected(viewItemID);
-        //backgroundColor =  Theme::theme()->getHighlightColorHex();
-        backgroundColor =  Theme::theme()->getDisabledBackgroundColorHex();
-        hoverColor = backgroundColor;
+        backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
     } else {
         backgroundColor =  Theme::theme()->getBackgroundColorHex();
-        hoverColor = Theme::theme()->getDisabledBackgroundColorHex();
     }
+
     updateStyleSheet();
 }
 
@@ -110,11 +111,9 @@ void SearchItemWidget::themeChanged()
     Theme* theme = Theme::theme();
 
     if (selected) {
-        backgroundColor =  Theme::theme()->getDisabledBackgroundColorHex();
-        hoverColor = backgroundColor;
+        backgroundColor =  theme->getAltBackgroundColorHex();
     } else {
-        backgroundColor =  Theme::theme()->getBackgroundColorHex();
-        hoverColor = Theme::theme()->getDisabledBackgroundColorHex();
+        backgroundColor = theme->getBackgroundColorHex();
     }
 
     updateStyleSheet();
@@ -122,9 +121,13 @@ void SearchItemWidget::themeChanged()
     if (iconLabel) {
         iconLabel->setPixmap(theme->getImage(iconPath.first, iconPath.second, iconSize, theme->getMenuIconColor()));
     }
+
     if (expandButton) {
-        expandButton->setIcon(theme->getIcon("Actions", "Arrow_Down"));
-        expandButton->setStyleSheet("QToolButton::checked:!hover{ background:" + theme->getAltBackgroundColorHex() + ";}");
+        QIcon arrowIcon;
+        arrowIcon.addPixmap(theme->getImage("Actions", "Arrow_Down", QSize(), theme->getMenuIconColor()));
+        arrowIcon.addPixmap(theme->getImage("Actions", "Arrow_Up", QSize(), theme->getMenuIconColor()), QIcon::Normal, QIcon::On);
+        expandButton->setIcon(arrowIcon);
+        expandButton->setStyleSheet("QToolButton{ background: rgba(0,0,0,0); border: 0px; }");
     }
 }
 
@@ -245,13 +248,15 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
     iconLabel->setFixedSize(itemPixmap.size() + QSize(MARGIN, MARGIN));
 
     //QSize toolButtonSize(18, 18);
-    QSize toolButtonSize(20, 20);
+    QSize toolButtonSize(24, 24);
 
     expandButton = new QToolButton(this);
     expandButton->setFixedSize(toolButtonSize);
     expandButton->setCheckable(true);
     expandButton->setChecked(false);
-    expandButton->setToolTip("Show/Hide Matching Data");
+    expandButton->setEnabled(false);
+    expandButton->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    expandButton->setToolTip("Double-Click To Show/Hide Matching Data");
 
     QToolBar* toolbar = new QToolBar(this);
     toolbar->setIconSize(toolButtonSize);
@@ -273,8 +278,6 @@ void SearchItemWidget::setupLayout(QVBoxLayout* layout)
 
     layout->addWidget(topBarWidget);
     layout->addWidget(displayWidget);
-
-    connect(expandButton, SIGNAL(toggled(bool)), this, SLOT(expandButtonToggled(bool)));
 }
 
 
@@ -325,8 +328,14 @@ void SearchItemWidget::constructKeyWidgets()
 void SearchItemWidget::updateStyleSheet()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet("QFrame{ background:" + backgroundColor + "; color:" + theme->getTextColorHex() + "; border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QFrame:hover { background:" + hoverColor + ";}"
+    setStyleSheet("QFrame {"
+                  "border-style: solid;"
+                  "border-width: 0px 0px 1px 0px;"
+                  "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
+                  "background:" + backgroundColor + ";"
+                  "color:" + theme->getTextColorHex() + ";"
+                  "}"
+                  "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
                   "QLabel#KEY_LABEL{ color:" + theme->getAltTextColorHex() + ";}"
                   + theme->getToolBarStyleSheet());

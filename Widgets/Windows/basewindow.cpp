@@ -29,7 +29,6 @@ BaseWindow::BaseWindow(QWidget *parent, BaseWindow::WindowType type):QMainWindow
     setTabPosition(Qt::TopDockWidgetArea, QTabWidget::North);
     setTabPosition(Qt::BottomDockWidgetArea, QTabWidget::North);
 
-
     connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
             this, SLOT(showContextMenu(const QPoint &)));
 

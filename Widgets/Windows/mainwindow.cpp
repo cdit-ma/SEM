@@ -637,15 +637,11 @@ void MainWindow::setupToolBar()
     layout->addWidget(applicationToolbar);
     layout->addWidget(w2);
 
-    //applicationToolbar->addWidget(w1);
     applicationToolbar->addActions(viewController->getActionController()->applicationToolbar->actions());
-    //applicationToolbar->addWidget(w2);
 
     BaseDockWidget* dockWidget = WindowManager::constructToolDockWidget("Toolbar");
-    //dockWidget->setTitleBarWidget(applicationToolbar);
     dockWidget->setTitleBarWidget(frame);
     dockWidget->setAllowedAreas(Qt::TopDockWidgetArea);
-    //dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::LeftDockWidgetArea | Qt::BottomDockWidgetArea);
 
     connect(dockWidget, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(toolbarChanged(Qt::DockWidgetArea)));
     connect(dockWidget, SIGNAL(topLevelChanged(bool)), this, SLOT(toolbarTopLevelChanged(bool)));

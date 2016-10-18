@@ -36,6 +36,8 @@ private:
     QAction* removeSelection;
 
     QPushButton* profileLabelButton;
+    QPushButton* policyLabelButton;
+    QPushButton* attributeLabelButton;
 
     QItemSelectionModel* elementViewSelectionModel;
     DataTableView* tableView;

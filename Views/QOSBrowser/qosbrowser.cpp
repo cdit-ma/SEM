@@ -32,8 +32,19 @@ void QOSBrowser::themeChanged()
     horizontalSplitter->setStyleSheet(theme->getSplitterStyleSheet());
     profileView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
     elementView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
-    tableView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
+    tableView->setStyleSheet(theme->getAbstractItemViewStyleSheet() +
+                             "QAbstractItemView::item {"
+                             "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                             "border-width: 0px 0px 1px 0px;"
+                             "}");
+
     profileLabelButton->setStyleSheet("text-align: left; border-radius: 0px; background:" + theme->getAltBackgroundColorHex() + ";");
+    policyLabelButton->setStyleSheet("text-align: left; border-radius: 0px; background:" + theme->getAltBackgroundColorHex() + ";");
+    attributeLabelButton->setStyleSheet("text-align: left; border-radius: 0px; background:" + theme->getAltBackgroundColorHex() + ";");
+
+    profileLabelButton->setIcon(theme->getImage("Actions", "QOS", QSize(16,16), theme->getMenuIconColorHex()));
+    policyLabelButton->setIcon(theme->getImage("Actions", "Policies", QSize(16,16), theme->getMenuIconColorHex()));
+    attributeLabelButton->setIcon(theme->getImage("Actions", "Edit", QSize(16,16), theme->getMenuIconColorHex()));
 }
 
 void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex)
@@ -93,10 +104,22 @@ void QOSBrowser::setupLayout()
     connect(removeSelection, &QAction::triggered, this, &QOSBrowser::removeSelectedProfile);
     removeSelection->setEnabled(false);
 
+    int labelButtonHeight = elementView->header()->height() - 5;
+
     profileLabelButton = new QPushButton("Profiles", this);
     profileLabelButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     profileLabelButton->setEnabled(false);
-    profileLabelButton->setFixedHeight(elementView->header()->height() - 5);
+    profileLabelButton->setFixedHeight(labelButtonHeight);
+
+    policyLabelButton = new QPushButton("Policies", this);
+    policyLabelButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    policyLabelButton->setEnabled(false);
+    policyLabelButton->setFixedHeight(labelButtonHeight);
+
+    attributeLabelButton = new QPushButton("Attributes", this);
+    attributeLabelButton->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    attributeLabelButton->setEnabled(false);
+    attributeLabelButton->setFixedHeight(labelButtonHeight);
 
     QWidget* profileWidget = new QWidget(this);
     profileWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
@@ -106,11 +129,31 @@ void QOSBrowser::setupLayout()
     profileLayout->addWidget(profileLabelButton);
     profileLayout->addWidget(profileView, 1);
     profileLayout->addWidget(toolbar, 0, Qt::AlignRight);
-    elementView->header()->setMinimumHeight(25);
+
+    QWidget* policyWidget = new QWidget(this);
+    policyWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    QVBoxLayout* policyLayout = new QVBoxLayout(policyWidget);
+    policyLayout->setSpacing(5);
+    policyLayout->setMargin(0);
+    policyLayout->addWidget(policyLabelButton);
+    policyLayout->addWidget(elementView, 1);
+
+    QWidget* attributeWidget = new QWidget(this);
+    attributeWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    QVBoxLayout* attributeLayout = new QVBoxLayout(attributeWidget);
+    attributeLayout->setSpacing(5);
+    attributeLayout->setMargin(0);
+    attributeLayout->addWidget(attributeLabelButton);
+    attributeLayout->addWidget(tableView, 1);
+
+    //elementView->header()->setMinimumHeight(25);
+    elementView->header()->setVisible(false);
 
     horizontalSplitter->addWidget(profileWidget);
-    horizontalSplitter->addWidget(elementView);
-    horizontalSplitter->addWidget(tableView);
+    horizontalSplitter->addWidget(policyWidget);
+    horizontalSplitter->addWidget(attributeWidget);
+    //horizontalSplitter->addWidget(elementView);
+    //horizontalSplitter->addWidget(tableView);
     layout->addWidget(horizontalSplitter);
 
     profileView->setModel(qosModel);

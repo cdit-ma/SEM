@@ -11,6 +11,7 @@
 #include <QToolBar>
 #include <QToolButton>
 #include <QLabel>
+#include <QMovie>
 
 class NotificationManager : public QObject
 {

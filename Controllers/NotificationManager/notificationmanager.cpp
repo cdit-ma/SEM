@@ -3,6 +3,8 @@
 #include "../../Widgets/Windows/mainwindow.h"
 #include "theme.h"
 
+#include <QGraphicsDropShadowEffect>
+
 int NotificationManager::_NotificationID  = 0;
 
 /**

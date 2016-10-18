@@ -179,7 +179,6 @@ HEADERS += \
     Widgets/CodeEditor/codeeditor.h \
     Widgets/CodeEditor/syntaxhighlighter.h \
     Widgets/Dialogs/appsettings.h \
-    Widgets/Dialogs/modelvalidationdialog.h \
     Widgets/Dialogs/notificationdialog.h \
     Widgets/Dialogs/popupwidget.h \
     Widgets/Dialogs/shortcutdialog.h \
@@ -205,7 +204,9 @@ HEADERS += \
     Views/Table/datatabledelegate.h \
     Widgets/ViewManager/windowitem.h \
     Widgets/ViewManager/dockitem.h \
-    Controllers/NotificationManager/notificationmanager.h
+    Controllers/NotificationManager/notificationmanager.h \
+    Widgets/Dialogs/validationdialog.h
+	Widgets/Dialogs/validationdialog.h
 
 
 SOURCES += \
@@ -351,7 +352,6 @@ SOURCES += \
     Widgets/CodeEditor/codeeditor.cpp \
     Widgets/CodeEditor/syntaxhighlighter.cpp \
     Widgets/Dialogs/appsettings.cpp \
-    Widgets/Dialogs/modelvalidationdialog.cpp \
     Widgets/Dialogs/notificationdialog.cpp \
     Widgets/Dialogs/popupwidget.cpp \
     Widgets/Dialogs/shortcutdialog.cpp \
@@ -375,8 +375,10 @@ SOURCES += \
     Utils/rootaction.cpp \
     Views/Table/datatabledelegate.cpp \
     Widgets/ViewManager/windowitem.cpp \
-    Widgets/ViewManager/dockitem.cpp \
-    Controllers/NotificationManager/notificationmanager.cpp
+	Widgets/ViewManager/dockitem.cpp \
+	Controllers/NotificationManager/notificationmanager.cpp \
+    Widgets/Dialogs/validationdialog.cpp
+	Widgets/Dialogs/validationdialog.cpp
 
 
 RESOURCES += \

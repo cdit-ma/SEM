@@ -6,15 +6,12 @@
 #include "../SelectionController/selectioncontroller.h"
 #include "../SelectionController/selectionhandler.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
+#include "../../Widgets/Dialogs/validationdialog.h"
 #include "viewitem.h"
 #include "nodeviewitem.h"
 #include "edgeviewitem.h"
 
-#include "../../Widgets/Dialogs/modelvalidationdialog.h"
-
-//#include "../Widgets/New/medeadockwidget.h"
-
-//class NotificationManager;
+//class ValidationDialog;
 class ModelController;
 class ContextToolbar;
 class NodeView;
@@ -302,7 +299,7 @@ private:
     ViewItem* rootItem;
 
     BaseDockWidget *codeViewer;
-    ModelValidationDialog* validationDialog;
+    ValidationDialog* validationDialog;
 
     SelectionController* selectionController;
     ActionController* actionController;

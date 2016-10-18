@@ -7,6 +7,7 @@
 #include <QProgressBar>
 #include <QCompleter>
 #include <QStringListModel>
+#include <QTimer>
 
 #include "basewindow.h"
 #include "welcomescreenwidget.h"

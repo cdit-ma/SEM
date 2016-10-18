@@ -59,7 +59,6 @@ private:
     QString checkedKey;
 
     QString backgroundColor;
-    QString hoverColor;
 
     bool keyWidgetsConstructed;
     bool doubleClicked;

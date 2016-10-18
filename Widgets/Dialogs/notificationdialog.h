@@ -69,7 +69,8 @@ private:
 
     QSignalMapper* typeActionMapper;
     QListWidget* listWidget;
-    QToolBar* toolbar;
+    QToolBar* topToolbar;
+    QToolBar* bottomToolbar;
 
     QAction* clearSelectedAction;
     QAction* clearVisibleAction;

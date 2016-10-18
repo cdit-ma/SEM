@@ -72,25 +72,15 @@ void NotificationDialog::typeActionToggled(int t)
 void NotificationDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
+    setStyleSheet("QListWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + "; }"
+                  + theme->getAltAbstractItemViewStyleSheet()
+                  + theme->getDialogStyleSheet());
 
-    setStyleSheet("QDialog{background:" + theme->getBackgroundColorHex() + ";}"
-                  "QListWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";}"
-                  "QAbstractItemView {"
-                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "background:" + theme->getBackgroundColorHex() + ";"
-                  "}"
-                  "QAbstractItemView::item {"
-                  "outline: none;"
-                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                  "background:" + theme->getBackgroundColorHex() + ";"
-                  "color:" + theme->getTextColorHex() + ";"
-                  "}"
-                  "QAbstractItemView::item:selected {"
-                  "background:" + theme->getAltBackgroundColorHex() + ";"
-                  "}"
-                  "QAbstractItemView::item:hover {"
-                  "background:" + theme->getDisabledBackgroundColorHex() + ";"
-                  "}");
+    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                              "QToolButton{ padding: 2px; border-radius:" + theme->getSharpCornerRadius() + "; color:" + theme->getTextColorHex() + ";}"
+                              "QToolButton::checked{ background:" + theme->getPressedColorHex() + ";color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}"
+                              "QToolButton:hover{ background:" + theme->getHighlightColorHex() + "; color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}");
+    bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet());
 
     for (int i = 0; i < listWidget->count(); i++) {
         QListWidgetItem* item = listWidget->item(i);
@@ -106,6 +96,7 @@ void NotificationDialog::themeChanged()
         if (action) {
              QPair<QString, QString> iconPath = getActionIcon(type);
              action->setIcon(theme->getIcon(iconPath));
+             //action->setIcon(theme->getImage(iconPath.first, iconPath.second, QSize(), theme->getMenuIconColor()));
         }
     }
 }
@@ -458,35 +449,32 @@ void NotificationDialog::updateTypeAction(NOTIFICATION_TYPE type)
 void NotificationDialog::setupLayout()
 {
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->setSpacing(DIALOG_SPACING);
 
     listWidget = new QListWidget(this);
     listWidget->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
     listWidget->setUniformItemSizes(true);
     listWidget->setFocusPolicy(Qt::NoFocus);
 
-    toolbar = new QToolBar(this);
-    toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    topToolbar = new QToolBar(this);
+    topToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    topToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     foreach(NOTIFICATION_TYPE type, GET_NOTIFICATION_TYPES()){
         QAction* action = typeActionHash.value(type, 0);
         if (action) {
-            toolbar->addAction(action);
+            topToolbar->addAction(action);
             action->setToolTip("Show/Hide " + GET_NOTIFICATION_TYPE_STRING(type) + " Notifications");
         }
     }
 
-    QWidget* stretchWidget = new QWidget(this);
-    stretchWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    toolbar->addWidget(stretchWidget);
+    bottomToolbar = new QToolBar(this);
+    bottomToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    QToolBar* toolbar2 = new QToolBar(this);
-    toolbar2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    clearSelectedAction = toolbar2->addAction("Clear Selected");
-    clearVisibleAction = toolbar2->addAction("Clear Visible");
-    clearInformations = toolbar2->addAction("Clear Informations");
-    clearWarnings = toolbar2->addAction("Clear Warnings");
+    clearSelectedAction = bottomToolbar->addAction("Clear Selected");
+    clearVisibleAction = bottomToolbar->addAction("Clear Visible");
+    clearInformations = bottomToolbar->addAction("Clear Informations");
+    clearWarnings = bottomToolbar->addAction("Clear Warnings");
 
     clearSelectedAction->setToolTip("Clear Selected Items");
     clearVisibleAction->setToolTip("Clear Visible Items");
@@ -500,11 +488,9 @@ void NotificationDialog::setupLayout()
     clearInformations->setVisible(false);
     clearWarnings->setVisible(false);
 
-    mainLayout->addWidget(toolbar);
+    mainLayout->addWidget(topToolbar, 0, Qt::AlignHCenter);
     mainLayout->addWidget(listWidget, 1);
-    mainLayout->addWidget(toolbar2, 0, Qt::AlignRight);
-
-    setMinimumSize(mainLayout->sizeHint().width() + 100, 250);
+    mainLayout->addWidget(bottomToolbar, 0, Qt::AlignRight);
 
     connect(listWidget, &QListWidget::itemSelectionChanged, this, &NotificationDialog::listSelectionChanged);
     connect(listWidget, &QListWidget::itemClicked, this, &NotificationDialog::notificationItemClicked);
@@ -512,6 +498,8 @@ void NotificationDialog::setupLayout()
     connect(clearVisibleAction, &QAction::triggered, this, &NotificationDialog::clearVisible);
     connect(clearInformations, &QAction::triggered, this, &NotificationDialog::clearNotifications);
     connect(clearWarnings, &QAction::triggered, this, &NotificationDialog::clearNotifications);
+
+    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 }
 
 
