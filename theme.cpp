@@ -633,7 +633,7 @@ QString Theme::getTabbedWidgetStyleSheet()
            ;
            */
 
-    return "QTabBar::tab{ background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % "; border-radius:" % getSharpCornerRadius() % "; border: 1px solid " % getBackgroundColorHex() % ";}"
+    return "QTabBar::tab{ background:" % getAltBackgroundColorHex() % "; color: " % getTextColorHex() % "; border-radius:" % getCornerRadius() % "; border: 1px solid " % getBackgroundColorHex() % ";}"
            "QTabBar::tab:top{ border-bottom-left-radius: 0px; border-bottom-right-radius: 0px; margin: 1px 0px; padding: 5px 10px; }"
            "QTabBar::tab:right{ border-top-right-radius: 0px; border-bottom-right-radius: 0px; margin: 0px 1px; padding: 10px 5px; }"
            "QTabBar::tab:selected{ background:" % getActiveWidgetBorderColorHex() % "; border-color:" % getDisabledBackgroundColorHex() % ";}"
@@ -716,7 +716,8 @@ QString Theme::getMenuBarStyleSheet()
            "QMenuBar::item:selected {"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "background:" % getHighlightColorHex() % ";"
-           "border-radius:" % getCornerRadius() % ";"
+           "border-radius:" % getSharpCornerRadius() % ";"
+           //"border-radius:" % getCornerRadius() % ";"
            "}";
 }
 
@@ -724,14 +725,16 @@ QString Theme::getMenuStyleSheet()
 {
     return "QMenu {"
            "background:" % getAltBackgroundColorHex() % ";"
-           "border-radius:" % getCornerRadius() % ";"
+           //"border-radius:" % getCornerRadius() % ";"
+           "border-radius:" % getSharpCornerRadius() % ";"
            "margin: 2px; "
            "}"
            "QMenu::item {"
            "padding: 2px 15px 2px 25px;"
            "background:" % getAltBackgroundColorHex() % ";"
            "color:" % getTextColorHex() % ";"
-           "border-radius: " % getCornerRadius() % ";"
+           //"border-radius: " % getCornerRadius() % ";"
+           "border-radius: " % getSharpCornerRadius() % ";"
            "border: 0px;"
            "}"
            "QMenu::item:disabled {"

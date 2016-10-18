@@ -15,7 +15,6 @@
 #define MIN_WIDTH 130
 #define MAX_WIDTH 250
 
-
 /**
  * @brief DockTabWidget::DockTabWidget
  * @param vc
@@ -46,6 +45,9 @@ void DockTabWidget::themeChanged()
                   "background:" + theme->getAltBackgroundColorHex() + ";"
                   "border-color:" + theme->getBackgroundColorHex() + ";"
                   "border-radius: " + theme->getSharpCornerRadius() + ";"
+                  "}"
+                  "QToolButton#DOCK_BUTTON {"
+                  "border-radius: " + theme->getCornerRadius() + ";"
                   "border-bottom-left-radius: 0px;"
                   "border-bottom-right-radius: 0px;"
                   "}"
@@ -203,14 +205,17 @@ void DockTabWidget::setupLayout()
     partsButton->setIconSize(QSize(24,24));
     partsButton->setCheckable(true);
     partsButton->setChecked(true);
+    partsButton->setObjectName("DOCK_BUTTON");
 
     hardwareButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     hardwareButton->setToolTip("Hardware Dock");
     hardwareButton->setIconSize(QSize(24,24));
     hardwareButton->setCheckable(true);
     hardwareButton->setChecked(false);
+    hardwareButton->setObjectName("DOCK_BUTTON");
 
     QToolBar* toolbar = new QToolBar(this);
+    toolbar->setStyleSheet("QToolBar{ spacing: 1px; padding: 0px; }");
     toolbar->addWidget(partsButton);
     toolbar->addWidget(hardwareButton);
 
