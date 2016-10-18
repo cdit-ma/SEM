@@ -17,20 +17,25 @@ class NotificationDialog : public QDialog
         IR_TYPE = Qt::UserRole + 1,
         IR_ICONPATH = Qt::UserRole + 2,
         IR_ICONNAME = Qt::UserRole + 3,
-        IR_ID = Qt::UserRole + 4
+        IR_ENTITYID = Qt::UserRole + 4,
+        IR_ID = Qt::UserRole + 5
     };
 
     Q_OBJECT
 public:
     explicit NotificationDialog(QWidget *parent = 0);
 
-    void addNotificationItem(NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath, int ID);
+    void addNotificationItem(int ID, NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath, int entityID);
     void removeNotificationItem(int ID);
+    int getTopNotificationID();
 
 signals:
-    void centerOn(int ID);
+    void centerOn(int entityID);
     void itemDeleted(int ID);
+
     void updateTypeCount(NOTIFICATION_TYPE type, int count);
+
+    void mouseEntered();
 
 public slots:
     void toggleVisibility();
@@ -44,6 +49,7 @@ private slots:
 
     void clearSelected();
     void clearVisible();
+    void clearNotifications();
 
     void notificationItemClicked(QListWidgetItem* item);
 
@@ -52,6 +58,7 @@ private:
     void updateVisibilityCount(int val, bool set = false);
 
     void removeItem(QListWidgetItem* item);
+    void clearNotificationsOfType(NOTIFICATION_TYPE type);
     void clearAll();
 
     void updateTypeActions(QList<NOTIFICATION_TYPE> types);
@@ -66,12 +73,18 @@ private:
 
     QAction* clearSelectedAction;
     QAction* clearVisibleAction;
+    QAction* clearInformations;
+    QAction* clearWarnings;
 
     QMultiMap<NOTIFICATION_TYPE, QListWidgetItem*> notificationHash;
     QHash<int, QListWidgetItem*> notificationIDHash;
     QHash<NOTIFICATION_TYPE, QAction*> typeActionHash;
 
     int visibleCount;
+
+protected:
+    void enterEvent(QEvent* event);
+
 };
 
 #endif // NOTIFICATIONDIALOG_H

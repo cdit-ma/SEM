@@ -33,6 +33,7 @@ public slots:
 
     void displayLoadingGif(bool show);
     void updateIconFrame(int);
+    void updateButtonIcon();
     void updateTypeCount(NOTIFICATION_TYPE type, int count);
 
 private:
@@ -44,8 +45,11 @@ private:
         QString description;
         QString iconPath;
         QString iconName;
+        int entityID;
         int ID;
     };
+
+    static int _NotificationID;
 
     ViewController* viewController;
 
@@ -57,14 +61,16 @@ private:
     QToolButton* showLastNotificationButton;
     QAction* showLastNotificationAction;
 
+    QIcon defaultIcon;
     QIcon notificationIcon;
     QMovie* loadingGif;
     bool loadingGifDisplayed;
 
+    Notification lastNotification;
+
     QHash<int, Notification> notifications;
     QHash<NOTIFICATION_TYPE, QLabel*> typeCount;
 
-    Notification lastNotification;
 };
 
 #endif // NOTIFICATIONMANAGER_H

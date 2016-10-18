@@ -422,11 +422,9 @@ QString GET_NOTIFICATION_TYPE_COLORSTR(NOTIFICATION_TYPE type)
 {
     switch (type) {
     case NT_WARNING:
-        return "rgb(255,215,0)";
+        return "rgb(255,200,0)";
     case NT_ERROR:
-        return "red";
-    case NT_CRITICAL:
-        return "rgb(200,0,0)";
+        return "rgb(255,50,50)";
     default:
         return "white";
     }

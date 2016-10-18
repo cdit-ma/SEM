@@ -3,6 +3,8 @@
 #include "../../Widgets/Windows/mainwindow.h"
 #include "theme.h"
 
+int NotificationManager::_NotificationID  = 0;
+
 /**
  * @brief NotificationManager::NotificationManager
  * @param vc
@@ -28,6 +30,7 @@ NotificationManager::NotificationManager(ViewController *vc, QWidget *parent) : 
     connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
     connect(toggleNotificationsDialog, &QAction::triggered, notificationDialog, &NotificationDialog::toggleVisibility);
     connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationManager::notificationsSeen);
+    connect(notificationDialog, &NotificationDialog::mouseEntered, this, &NotificationManager::notificationsSeen);
     connect(notificationDialog, &NotificationDialog::updateTypeCount, this, &NotificationManager::updateTypeCount);
     connect(notificationDialog, &NotificationDialog::itemDeleted, this, &NotificationManager::deleteNotification);
     connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
@@ -55,10 +58,10 @@ void NotificationManager::themeChanged()
                                       "QToolButton{ border-top-left-radius: 0px; border-bottom-left-radius: 0px; }"
                                       "QLabel{ background: rgba(0,0,0,0); }");
 
-    notificationIcon = theme->getIcon("Actions", "Exclamation");
-    if (!loadingGifDisplayed) {
-        showLastNotificationButton->setIcon(notificationIcon);
-    }
+    //defaultIcon = theme->getIcon("Actions", "Exclamation");
+    defaultIcon = theme->getIcon("Actions", "Timer");
+    notificationIcon = theme->getIcon(lastNotification.iconPath, lastNotification.iconName);
+    updateButtonIcon();
 }
 
 
@@ -74,8 +77,7 @@ void NotificationManager::themeChanged()
 void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int ID)
 {
     if (notifications.contains(ID)) {
-        // TODO - At the moment, some (or all?) notifications with the same type share the same ID
-        //return;
+        return;
     }
 
     // store notification in hash
@@ -85,18 +87,29 @@ void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString t
     n.description = description;
     n.iconPath = iconPath;
     n.iconName = iconName;
-    n.ID = ID;
-    notifications[ID] = n;
+    n.entityID = ID;
+    n.ID = ++_NotificationID;
+
+    notifications[n.ID] = n;
     lastNotification = n;
 
     // add notification to dialog
-    notificationDialog->addNotificationItem(type, title, description, QPair<QString, QString>(iconPath, iconName), ID);
+    notificationDialog->addNotificationItem(n.ID, type, title, description, QPair<QString, QString>(iconPath, iconName), ID);
+
+    // re-enable notification button
+    if (!showLastNotificationButton->isEnabled()) {
+        showLastNotificationButton->setEnabled(true);
+    }
 
     // highlight notification button
     if (!showLastNotificationButton->isCheckable()) {
         showLastNotificationButton->setCheckable(true);
         showLastNotificationButton->setChecked(true);
     }
+
+    // update notification button's icon
+    notificationIcon = Theme::theme()->getIcon(iconPath, iconName);
+    updateButtonIcon();
 
     // send signal to main window to display notification toast
     emit notificationAdded(iconPath, iconName, description);
@@ -112,6 +125,7 @@ void NotificationManager::notificationsSeen()
     if (showLastNotificationButton->isCheckable()) {
         showLastNotificationButton->setCheckable(false);
         showLastNotificationButton->setChecked(false);
+        updateButtonIcon();
     }
 }
 
@@ -135,19 +149,25 @@ void NotificationManager::showLastNotification()
  */
 void NotificationManager::deleteNotification(int ID)
 {
-    if (notifications.contains(ID)) {        
+    // if the sender object is not the dialog, remove item from dialog
+    if (sender() != notificationDialog) {
+        notificationDialog->removeNotificationItem(ID);
+        return;
+    }
 
-        // if the sender object is the dialog, it means that the item has already been removed from it
-        if (QObject::sender() != notificationDialog) {
-            notificationDialog->removeNotificationItem(ID);
-        }
+    // remove from hash
+    notifications.remove(ID);
 
-        // remove from hash
-        notifications.remove(ID);
-
-        // update last notification
-        if ((lastNotification.ID == ID) && !notifications.isEmpty()) {
-            lastNotification = notifications.values().last();
+    // check if the deleted notification is the last notification
+    if (lastNotification.ID == ID) {
+        int topNotificationID = notificationDialog->getTopNotificationID();
+        if (topNotificationID == -1) {
+            // if top ID is -1, it means that the notifications list is empty
+            showLastNotificationButton->setEnabled(false);
+        } else {
+            // remove highlight from the button when the last notification is deleted
+            notificationsSeen();
+            lastNotification = notifications.value(topNotificationID);
         }
     }
 }
@@ -196,6 +216,21 @@ void NotificationManager::updateIconFrame(int)
 
 
 /**
+ * @brief NotificationManager::updateButtonIcon
+ */
+void NotificationManager::updateButtonIcon()
+{
+    if (!loadingGifDisplayed) {
+        if (showLastNotificationButton->isChecked()) {
+            showLastNotificationButton->setIcon(notificationIcon);
+        } else {
+            showLastNotificationButton->setIcon(defaultIcon);
+        }
+    }
+}
+
+
+/**
  * @brief NotificationManager::constructNotificationWidget
  */
 void NotificationManager::constructNotificationWidget()
@@ -205,12 +240,13 @@ void NotificationManager::constructNotificationWidget()
 
     // create a label for the following types of notifications
     typeCount[NT_WARNING] = new QLabel("0", parentWidget);
-    typeCount[NT_ERROR] = new QLabel("0", parentWidget);
-    typeCount[NT_CRITICAL] = new QLabel("0", parentWidget);
+    typeCount[NT_ERROR] = new QLabel("150", parentWidget);
+    //typeCount[NT_CRITICAL] = new QLabel("0", parentWidget);
 
     showLastNotificationButton = new QToolButton(parentWidget);
-    showLastNotificationButton->setToolTip("Show Last Notification");
+    showLastNotificationButton->setToolTip("Show Most Recent Notification");
     showLastNotificationButton->setStyleSheet("border-radius: 0px; border-top-left-radius: 4px; border-bottom-left-radius: 4px;");
+    showLastNotificationButton->setEnabled(false);
 
     showLastNotificationAction = notificationWidget->addWidget(showLastNotificationButton);
     notificationWidget->addSeparator();
@@ -220,8 +256,8 @@ void NotificationManager::constructNotificationWidget()
     connect(showLastNotificationAction, SIGNAL(triggered(bool)), this, SLOT(showLastNotification()));
     connect(showLastNotificationAction, SIGNAL(toggled(bool)), showLastNotificationButton, SLOT(setChecked(bool)));
 
-    QFont labelFont(QFont(parentWidget->font().family(), 12));
-    int labelWidth = 25;
+    QFont labelFont(QFont(parentWidget->font().family(), 11, 1));
+    int labelWidth = 30;
 
     foreach (NOTIFICATION_TYPE t, GET_NOTIFICATION_TYPES()) {
         QLabel* label = typeCount.value(t, 0);
@@ -230,12 +266,12 @@ void NotificationManager::constructNotificationWidget()
             label->setMinimumWidth(labelWidth);
             label->setAlignment(Qt::AlignCenter);
             label->setToolTip(GET_NOTIFICATION_TYPE_STRING(t) + " Count");
-            label->setStyleSheet("QLabel{ color:" + GET_NOTIFICATION_TYPE_COLORSTR(t) + ";}");
+            label->setStyleSheet("QLabel{ padding: 0px 5px; color:" + GET_NOTIFICATION_TYPE_COLORSTR(t) + ";}");
             notificationWidget->addWidget(label);
             notificationWidget->addSeparator();
 
             // add shadow to the label's text
-            QGraphicsDropShadowEffect *effect = new QGraphicsDropShadowEffect(this);
+            QGraphicsDropShadowEffect* effect = new QGraphicsDropShadowEffect(this);
             effect->setBlurRadius(0);
             effect->setColor(Theme::theme()->black());
             effect->setOffset(1,1);
