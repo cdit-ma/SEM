@@ -296,6 +296,11 @@ QList<NodeViewDockWidget *> WindowManager::getNodeViewDockWidgets()
     return views;
 }
 
+void WindowManager::reparentDockWidget(BaseDockWidget *dockWidget)
+{
+    showPopOutDialog(dockWidget);
+}
+
 void WindowManager::focusChanged(QWidget*, QWidget* now)
 {
     if(now){
@@ -503,14 +508,13 @@ void WindowManager::_reparentDockWidget(BaseDockWidget *dockWidget, BaseWindow *
 
 void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
 {
+    BaseWindow* window = getActiveWindow();
+
     if(dockWidget != activeViewDockWidget){
         setActiveDockWidget(dockWidget);
     }
-
-
     Theme* theme = Theme::theme();
-
-    PopupWidget* popupDialog = new PopupWidget(PopupWidget::DIALOG, dockWidget->getCurrentWindow());
+    PopupWidget* popupDialog = new PopupWidget(PopupWidget::DIALOG, window);
 
     QFont titleFont;
     titleFont.setPixelSize(15);

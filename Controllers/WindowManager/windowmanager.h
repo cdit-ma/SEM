@@ -54,6 +54,8 @@ public:
     void setActiveDockWidget(int ID);
     QList<ViewDockWidget*> getViewDockWidgets();
     QList<NodeViewDockWidget*> getNodeViewDockWidgets();
+
+    void reparentDockWidget(BaseDockWidget *dockWidget);
 private slots:
     void focusChanged(QWidget *old, QWidget *now);
     void dockWidget_Close(int ID);

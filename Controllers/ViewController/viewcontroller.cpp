@@ -586,22 +586,20 @@ QString ViewController::getTempFileForModel()
 
 void ViewController::spawnSubView(ViewItem * item)
 {
-    BaseWindow* window = WindowManager::manager()->getActiveWindow();
-
-    if(window && item && item->isNode()){
+    if(item && item->isNode()){
         BaseDockWidget *dockWidget = WindowManager::constructNodeViewDockWidget();
         dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-        dockWidget->setParent(window);
         dockWidget->setIcon(item->getIcon());
         dockWidget->setTitle(item->getData("label").toString());
-        window->addDockWidget(Qt::TopDockWidgetArea, dockWidget);
 
         NodeView* nodeView = new NodeView(dockWidget);
-        nodeView->setContainedNodeViewItem((NodeViewItem*)item);
         nodeView->setViewController(this);
+
+        nodeView->setContainedNodeViewItem((NodeViewItem*)item);
         dockWidget->setWidget(nodeView);
-        dockWidget->show();
-        nodeView->show();
+
+        //Reparent
+        WindowManager::manager()->reparentDockWidget(dockWidget);
         nodeView->fitToScreen();
     }
 }

@@ -90,8 +90,8 @@ void NodeView::setViewController(ViewController *viewController)
         connect(viewController, &ViewController::vc_viewItemDestructing, this, &NodeView::viewItem_Destructed);
 
         selectionHandler = viewController->getSelectionController()->constructSelectionHandler(this);
-        connect(selectionHandler, SIGNAL(itemSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemSelectionChanged(ViewItem*,bool)));
-        connect(selectionHandler, SIGNAL(itemActiveSelectionChanged(ViewItem*,bool)), this, SLOT(selectionHandler_ItemActiveSelectionChanged(ViewItem*,bool)));
+        connect(selectionHandler, &SelectionHandler::itemSelectionChanged, this, &NodeView::selectionHandler_ItemSelectionChanged);
+        connect(selectionHandler, &SelectionHandler::itemActiveSelectionChanged, this, &NodeView::selectionHandler_ItemActiveSelectionChanged);
 
         connect(this, &NodeView::toolbarRequested, viewController, &ViewController::vc_showToolbar);
         connect(this, &NodeView::triggerAction, viewController, &ViewController::vc_triggerAction);
