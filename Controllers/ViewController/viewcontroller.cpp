@@ -317,7 +317,11 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 case Node::NK_VECTOR:
                 case Node::NK_VECTOR_INSTANCE:
                     foreach(ViewItem* child, viewItem->getDirectChildren()){
-                        image = kind % "_" % child->getData("kind").toString();
+                        QString childNodeKind = child->getData("kind").toString();
+                        if(childNodeKind == "MemberInstance"){
+                            childNodeKind = "Member";
+                        }
+                        image = kind % "_" % childNodeKind;
                         break;
                     }
                     break;

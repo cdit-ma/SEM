@@ -92,8 +92,8 @@ void MainWindow::setViewController(ViewController *vc)
 
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
+NotificationManager* notificationManager = new NotificationManager(viewController, this);
 
-    NotificationManager* notificationManager = new NotificationManager(viewController, this);
     if (cornerToolbar) {
         cornerToolbar->insertWidget(beforeAction, notificationManager->getNotificationWidget());
     }
