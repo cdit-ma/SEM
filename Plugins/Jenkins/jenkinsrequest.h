@@ -48,6 +48,7 @@ signals:
     void gotJobStateChange(QString jobName, int buildNumber, QString activeConfiguration, JOB_STATE jobState);
     //Emitted, Once by the slot validateJenkinsSettings
     void gotSettingsValidationResponse(bool settingsValid, QString responseMessage);
+
     //Emitted, Once by the slot runGroovyScript
     void gotGroovyScriptOutput(QString consoleOutput);
 

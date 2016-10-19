@@ -42,8 +42,11 @@ public slots:
 signals:
     void gotJenkinsNodeGraphml(QString data);
     void jenkinsReady(bool ready);
+
     void tryValidateSettings();
+    void checkForJava();
     void settingsValidationComplete(bool valid, QString message);
+    void gotValidJava(bool valid, QString javaVersion);
 
     void _runGroovyScript(QString, QString);
 private slots:
@@ -51,8 +54,10 @@ private slots:
     void settingChanged(SETTING_KEY key, QVariant value);
     void gotSettingsValidationResponse(bool valid, QString message);
 private:
+
     void setJenkinsBusy(bool busy);
     void validateJenkinsSettings();
+    void _checkForJava();
     void storeJobConfiguration(QString jobName, QJsonDocument json);
     void clearJobConfigurations();
     QNetworkRequest getAuthenticatedRequest(QString url, bool auth =true);
@@ -80,6 +85,7 @@ private:
 
     bool _jenkinsBusy;
     bool settingsValidated;
+    bool _gotJava;
     bool urlChanged;
     //A Hash lookup of Jenkins Jobs JSON Documents
     QHash<QString, QJsonDocument> jobsJSON;

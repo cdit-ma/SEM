@@ -465,6 +465,14 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
     emit vc_showNotification(type, title, message, "Actions", "Jenkins_Icon");
 }
 
+void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
+{
+    NOTIFICATION_TYPE type = java ? NT_INFO : NT_ERROR;
+    QString title = "Checking for Java";
+    QString message = java ? "Got Java: '" + javaVersion + "'": "Can't find java";
+    emit vc_showNotification(type, title, message, "Actions", "Java");
+}
+
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 {
    if(!graphmlData.isEmpty()){

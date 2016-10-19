@@ -1,6 +1,6 @@
 #include "jenkinsmanager.h"
 #include "jenkinsrequest.h"
-
+#include <QProcess>
 #include <QStringBuilder>
 #include <QApplication>
 
@@ -31,6 +31,7 @@ JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
     urlChanged = false;
     _jenkinsBusy = false;
     settingsValidated = false;
+    _gotJava = false;
 
 
     //Load Jenkins settings
@@ -42,6 +43,7 @@ JenkinsManager::JenkinsManager(QObject* parent):QObject(parent)
     foreach(SETTING_KEY key, settings->getSettingsKeys("Jenkins")){
         settingChanged(key, settings->getSetting(key));
     }
+
 }
 
 QString JenkinsManager::getUsername()
@@ -184,6 +186,7 @@ void JenkinsManager::validateSettings()
     if(hasSettings() && !hasValidatedSettings()){
         validateJenkinsSettings();
     }
+    //_checkForJava();
 }
 
 void JenkinsManager::getJenkinsNodes()
@@ -247,6 +250,7 @@ void JenkinsManager::settingChanged(SETTING_KEY key, QVariant value)
 
 void JenkinsManager::gotSettingsValidationResponse(bool valid, QString message)
 {
+    _checkForJava();
     settingsValidated = valid;
 
     if(urlChanged && valid){
@@ -271,6 +275,7 @@ void JenkinsManager::setJenkinsBusy(bool busy)
  */
 void JenkinsManager::validateJenkinsSettings()
 {
+
     if(!_jenkinsBusy){
         setJenkinsBusy(true);
 
@@ -280,6 +285,23 @@ void JenkinsManager::validateJenkinsSettings()
 
         emit tryValidateSettings();
         disconnect(this, SIGNAL(tryValidateSettings()), jR, SLOT(validateJenkinsSettings()));
+    }
+}
+
+void JenkinsManager::_checkForJava()
+{
+    if(!_gotJava){
+        //Construct and setup the process
+        QProcess process;
+        process.start("java -version");
+        process.waitForFinished(1000);
+        QString output(process.readAllStandardOutput());
+        QString error(process.readAllStandardError());
+
+        if(process.error() == QProcess::UnknownError && process.exitStatus() == QProcess::NormalExit){
+            _gotJava = true;
+        }
+        emit gotValidJava(_gotJava, error);
     }
 }
 

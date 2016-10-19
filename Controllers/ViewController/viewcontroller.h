@@ -154,6 +154,7 @@ public slots:
 
     void jenkinsManager_IsBusy(bool busy);
     void jenkinsManager_SettingsValidated(bool success, QString errorString);
+    void jenkinsManager_GotJava(bool java, QString javaVersion);
     void jenkinsManager_GotJenkinsNodesList(QString graphmlData);
 
 

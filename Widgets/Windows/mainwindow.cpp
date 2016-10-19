@@ -92,7 +92,7 @@ void MainWindow::setViewController(ViewController *vc)
 
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
-NotificationManager* notificationManager = new NotificationManager(viewController, this);
+    NotificationManager* notificationManager = new NotificationManager(viewController, this);
 
     if (cornerToolbar) {
         cornerToolbar->insertWidget(beforeAction, notificationManager->getNotificationWidget());
@@ -880,6 +880,8 @@ void MainWindow::setupJenkinsManager()
     if(!jenkinsManager){
         jenkinsManager = new JenkinsManager(this);
         connect(jenkinsManager, &JenkinsManager::settingsValidationComplete, viewController, &ViewController::jenkinsManager_SettingsValidated);
+        connect(jenkinsManager, &JenkinsManager::gotValidJava, viewController, &ViewController::jenkinsManager_GotJava);
+
 
         connect(viewController->getActionController()->jenkins_importNodes, &QAction::triggered, jenkinsManager, &JenkinsManager::getJenkinsNodes);
 

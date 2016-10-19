@@ -215,6 +215,8 @@ QPair<int, QByteArray> JenkinsRequest::runProcess(QString command)
     process->setWorkingDirectory(manager->getCLIPath());
     process->start(command);
 
+
+
     bool processing = true;
     while(processing){
         qint64 bytesAvailable = process->bytesAvailable();
@@ -265,9 +267,10 @@ QPair<int, QByteArray> JenkinsRequest::runProcess(QString command)
         }
     }
 
-
-    int returnCode = process->exitCode();
-    //Free the memory of the Process
+    int returnCode = -1;
+    if(process->error() == QProcess::UnknownError && process->exitStatus() == QProcess::NormalExit){
+        returnCode = process->exitCode();
+    }
     delete process;
     //Return the byte Array.
     return QPair<int, QByteArray>(returnCode, byteArray);
@@ -522,6 +525,7 @@ void JenkinsRequest::validateJenkinsSettings()
     emit gotSettingsValidationResponse(vError.isEmpty(), vError);
     emit requestFinished();
 }
+
 
 void JenkinsRequest::waitForJobNumber(QString jobName, int buildNumber, QString activeConfiguration, QString outputChunk)
 {
@@ -813,6 +817,10 @@ QString JenkinsRequest::validate()
     if(error == QNetworkReply::AuthenticationRequiredError){
         return "API User/Token Authentication Failed";
     }
+
+
+
+
 
     //Try CLI stuff.
     QPair<int, QByteArray> response = runProcess(manager->getCLICommand("login"));
