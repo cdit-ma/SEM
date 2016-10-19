@@ -27,6 +27,8 @@ ValidationDialog::ValidationDialog(QWidget *parent)
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
+
+    connect(itemsTable, &QTableWidget::cellDoubleClicked, this, &ValidationDialog::cellSelected);
 }
 
 
