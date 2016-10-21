@@ -80,7 +80,12 @@ void NotificationDialog::themeChanged()
                               "QToolButton{ padding: 2px; border-radius:" + theme->getSharpCornerRadius() + "; color:" + theme->getTextColorHex() + ";}"
                               "QToolButton::checked{ background:" + theme->getPressedColorHex() + ";color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}"
                               "QToolButton:hover{ background:" + theme->getHighlightColorHex() + "; color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}");
+
     bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet());
+    iconOnlyToolbar->setStyleSheet(theme->getToolBarStyleSheet());
+
+    clearSelectedAction->setIcon(theme->getIcon("Actions", "Delete"));
+    clearVisibleAction->setIcon(theme->getIcon("Actions", "Clear"));
 
     for (int i = 0; i < listWidget->count(); i++) {
         QListWidgetItem* item = listWidget->item(i);
@@ -96,7 +101,6 @@ void NotificationDialog::themeChanged()
         if (action) {
              QPair<QString, QString> iconPath = getActionIcon(type);
              action->setIcon(theme->getIcon(iconPath));
-             //action->setIcon(theme->getImage(iconPath.first, iconPath.second, QSize(), theme->getMenuIconColor()));
         }
     }
 }
@@ -459,20 +463,38 @@ void NotificationDialog::setupLayout()
     topToolbar = new QToolBar(this);
     topToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     topToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    topToolbar->hide();
+
+    //QWidget* w = new QWidget(this);
+    //w->setStyleSheet("background: rgba(0,0,0,0);");
+    //w->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    bottomToolbar = new QToolBar(this);
+    //bottomToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    bottomToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    bottomToolbar->setIconSize(QSize(20,20));
 
     foreach(NOTIFICATION_TYPE type, GET_NOTIFICATION_TYPES()){
         QAction* action = typeActionHash.value(type, 0);
         if (action) {
-            topToolbar->addAction(action);
+            //topToolbar->addAction(action);
+            bottomToolbar->addAction(action);
             action->setToolTip("Show/Hide " + GET_NOTIFICATION_TYPE_STRING(type) + " Notifications");
         }
     }
 
-    bottomToolbar = new QToolBar(this);
-    bottomToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //bottomToolbar->addWidget(w);
 
-    clearSelectedAction = bottomToolbar->addAction("Clear Selected");
-    clearVisibleAction = bottomToolbar->addAction("Clear Visible");
+    iconOnlyToolbar = new QToolBar(this);
+    iconOnlyToolbar->setIconSize(QSize(20,20));
+    clearSelectedAction = iconOnlyToolbar->addAction("Clear Selected");
+    clearVisibleAction = iconOnlyToolbar->addAction("Clear Visible");
+
+    //bottomToolbar->addAction(clearSelectedAction);
+    //bottomToolbar->addAction(clearVisibleAction);
+
+    //clearSelectedAction = bottomToolbar->addAction("Clear Selected");
+    //clearVisibleAction = bottomToolbar->addAction("Clear Visible");
     clearInformations = bottomToolbar->addAction("Clear Informations");
     clearWarnings = bottomToolbar->addAction("Clear Warnings");
 
@@ -488,9 +510,15 @@ void NotificationDialog::setupLayout()
     clearInformations->setVisible(false);
     clearWarnings->setVisible(false);
 
+    QHBoxLayout* bottomLayout = new QHBoxLayout();
+    bottomLayout->addWidget(bottomToolbar, 1);
+    bottomLayout->addWidget(iconOnlyToolbar);
+
     mainLayout->addWidget(topToolbar, 0, Qt::AlignHCenter);
     mainLayout->addWidget(listWidget, 1);
-    mainLayout->addWidget(bottomToolbar, 0, Qt::AlignRight);
+    mainLayout->addLayout(bottomLayout);
+    //mainLayout->addWidget(bottomToolbar);
+    //mainLayout->addWidget(bottomToolbar, 0, Qt::AlignRight);
 
     connect(listWidget, &QListWidget::itemSelectionChanged, this, &NotificationDialog::listSelectionChanged);
     connect(listWidget, &QListWidget::itemClicked, this, &NotificationDialog::notificationItemClicked);
@@ -521,4 +549,3 @@ void NotificationDialog::updateVisibilityCount(int val, bool set)
         clearVisibleAction->setEnabled(enableAction);
     }
 }
-

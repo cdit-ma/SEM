@@ -71,6 +71,7 @@ private:
     QListWidget* listWidget;
     QToolBar* topToolbar;
     QToolBar* bottomToolbar;
+    QToolBar* iconOnlyToolbar;
 
     QAction* clearSelectedAction;
     QAction* clearVisibleAction;
