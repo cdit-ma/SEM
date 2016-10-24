@@ -3,7 +3,10 @@
 
 #include <QVBoxLayout>
 #include <QToolBar>
+#include <QLabel>
+#include <QFrame>
 #include <QScrollArea>
+#include <QTime>
 #include <QStringBuilder>
 #include <QApplication>
 
@@ -74,7 +77,8 @@ void NotificationDialog::themeChanged()
     Theme* theme = Theme::theme();
     setStyleSheet("QListWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + "; }"
                   + theme->getAltAbstractItemViewStyleSheet()
-                  + theme->getDialogStyleSheet());
+                  + theme->getDialogStyleSheet()
+                  + "QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex()+ ";}");
 
     topToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
                               "QToolButton{ padding: 2px; border-radius:" + theme->getSharpCornerRadius() + "; color:" + theme->getTextColorHex() + ";}"
@@ -266,12 +270,26 @@ void NotificationDialog::addNotificationItem(int ID, NOTIFICATION_TYPE type, QSt
     listItem->setData(IR_ENTITYID, entityID);
     listItem->setData(IR_ID, ID);
 
+    /*
+    QLabel* textLabel = new QLabel("[" % title % "] " % description, this);
+    QLabel* timeLabel = new QLabel((new QTime())->currentTime().toString(), this);
+
+    QFrame* itemFrame = new QFrame(this);
+    QHBoxLayout* frameLayout = new QHBoxLayout(itemFrame);
+    frameLayout->setMargin(0);
+    frameLayout->addWidget(textLabel, 1);
+    frameLayout->addWidget(timeLabel);
+
+    listItem->setSizeHint(itemFrame->sizeHint());
+    */
+
     //Set the Icon and Text
     listItem->setText("[" % title % "] " % description);
     listItem->setIcon(Theme::theme()->getIcon(iconPath));
 
     //Insert in the listWidget at 0
     listWidget->insertItem(0, listItem);
+    //listWidget->setItemWidget(listItem, itemFrame);
 
     //Put in the multimap and hash
     notificationHash.insertMulti(type, listItem);
