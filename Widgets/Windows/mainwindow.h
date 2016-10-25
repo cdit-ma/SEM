@@ -28,6 +28,7 @@
 #include "../../Plugins/XMI/xmiimporter.h"
 
 #include "../../Widgets/Dialogs/popupwidget.h"
+#include "../../Views/Notification/notificationtoolbar.h"
 //#include "../../Widgets/Dialogs/notificationdialog.h"
 
 
@@ -129,8 +130,7 @@ private:
     QLabel* notificationLabel;
     QTimer* notificationTimer;
 
-    QToolBar* cornerToolbar;
-    QAction* beforeAction;
+    NotificationToolbar* notificationToolbar;
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;
 

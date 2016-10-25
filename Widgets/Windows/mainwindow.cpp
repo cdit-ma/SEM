@@ -94,12 +94,18 @@ void MainWindow::setViewController(ViewController *vc)
     ActionController* actionController = vc->getActionController();
     NotificationManager* notificationManager = new NotificationManager(viewController, this);
 
-    if (cornerToolbar) {
-        cornerToolbar->insertWidget(beforeAction, notificationManager->getNotificationWidget());
-    }
-
     connect(notificationManager, &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
-    connect(vc, &ViewController::vc_setupModel, notificationManager, &NotificationManager::notificationsSeen);
+    connect(viewController, &ViewController::vc_setupModel, notificationToolbar, &NotificationToolbar::notificationsSeen);
+    connect(viewController, &ViewController::vc_showNotification, notificationManager, &NotificationManager::notificationReceived);
+    //connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
+    //connect(notificationDialog, &NotificationDialog::updateTypeCount, this, &NotificationManager::updateTypeCount);
+    //connect(notificationDialog, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
+    //connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
+    //connect(notificationDialog, &NotificationDialog::itemDeleted, this, &NotificationManager::deleteNotification);
+    connect(notificationManager, &NotificationManager::notificationAdded, notificationToolbar, &NotificationToolbar::notificationReceived);
+    connect(notificationManager, &NotificationManager::notificationSeen, notificationToolbar, &NotificationToolbar::notificationsSeen);
+    connect(notificationManager, &NotificationManager::lastNotificationDeleted, notificationToolbar, &NotificationToolbar::lastNotificationDeleted);
+    connect(viewController, &ViewController::vc_showNotification, notificationManager, &NotificationManager::notificationReceived);
 
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
@@ -250,9 +256,6 @@ void MainWindow::themeChanged()
 
     notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet() + "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; }");
     //notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
-
-    //cornerToolbar->setStyleSheet("QToolButton{ padding: 2px 4px; border-top-left-radius: 0px; border-bottom-left-radius: 0px; }");
-    cornerToolbar->setStyleSheet("QToolButton{ padding: 2px 4px; }");
 
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
     restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
@@ -827,7 +830,7 @@ void MainWindow::setupMinimap()
 
 
 /**
- * @brief MedeaMainWindow::setupWindowManager
+ * @brief MedeaMainWindow::setupViewManager
  */
 void MainWindow::setupViewManager()
 {
@@ -859,16 +862,26 @@ void MainWindow::setupMenuCornerWidget()
     restoreToolsButton->setPopupMode(QToolButton::InstantPopup);
     restoreToolsButton->setStyleSheet("border-radius: 4px;");
 
-    cornerToolbar = new QToolBar(this);
-    cornerToolbar->setIconSize(QSize(20, 20));
-    cornerToolbar->setFixedHeight(menuBar->height() - 6);
+    notificationToolbar = new NotificationToolbar(viewController, this);
 
-    beforeAction = cornerToolbar->addSeparator();
-    cornerToolbar->addWidget(restoreToolsButton);
+    QToolBar* tb = new QToolBar(this);
+    tb->setStyleSheet("QToolBar{ padding: 0px; } QToolButton{ padding: 3px 2px; }");
+    tb->addWidget(restoreToolsButton);
 
-    menuBar->setCornerWidget(cornerToolbar);
+    QWidget* w = new QWidget(this);
+    w->setFixedHeight(menuBar->height() - 6);
+
+    QHBoxLayout* hLayout = new QHBoxLayout(w);
+    hLayout->setMargin(0);
+    hLayout->addWidget(notificationToolbar);
+    hLayout->addSpacerItem(new QSpacerItem(3,0));
+    hLayout->addWidget(tb);
+
+    menuBar->setCornerWidget(w);
 
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
+    //connect(notificationToolbar, &NotificationToolbar::toggleDialog, notificationDialog, &NotificationDialog::toggleVisibility);
+    //connect(notificationDialog, &NotificationDialog::updateTypeCount, this, &NotificationManager::updateTypeCount);
 }
 
 
