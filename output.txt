@@ -1,0 +1,873 @@
+On branch testing
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	new file:   Testing/medeatest.cpp
+	new file:   Testing/medeatest.h
+	new file:   Testing/medeatest.pro
+	deleted:    changelog.txt
+	deleted:    installer/config/MEDEABanner.png
+	modified:   installer/config/config.xml
+	new file:   lib/Jenkins/LICENSE.txt
+	new file:   lib/Jenkins/jenkins-cli.jar
+	new file:   lib/Xalan/LICENSE-2.0.txt
+	new file:   lib/Xalan/serializer.jar
+	new file:   lib/Xalan/xalan.jar
+	new file:   lib/Xerces/LICENSE-2.0.txt
+	new file:   lib/Xerces/xercesImpl.jar
+	new file:   lib/Xerces/xml-apis.jar
+	new file:   lib/lib.pro
+	new file:   scripts/Jenkins_Construct_GraphMLNodesList.groovy
+	new file:   scripts/runCuts.pl
+	new file:   scripts/scripts.pro
+	new file:   test/Resources/Models/HelloWorld.graphml
+	new file:   test/main.cpp
+	new file:   test/resources.qrc
+	new file:   transforms/Absolute2Relative.xsl
+	new file:   transforms/Deploy.xsl
+	new file:   transforms/ExtractSchFromRNG.xsl
+	new file:   transforms/ExtractSchFromXSD.xsl
+	new file:   transforms/IconPalette/Aggregate.png
+	new file:   transforms/IconPalette/Assembly.png
+	new file:   transforms/IconPalette/Attribute.png
+	new file:   transforms/IconPalette/BranchState.png
+	new file:   transforms/IconPalette/Callback.png
+	new file:   transforms/IconPalette/Complexity.png
+	new file:   transforms/IconPalette/Component.png
+	new file:   transforms/IconPalette/Condition.png
+	new file:   transforms/IconPalette/Event.png
+	new file:   transforms/IconPalette/HardwareCluster.png
+	new file:   transforms/IconPalette/HardwareNode.png
+	new file:   transforms/IconPalette/IDL.png
+	new file:   transforms/IconPalette/InEventPort.png
+	new file:   transforms/IconPalette/InputParameter.png
+	new file:   transforms/IconPalette/Member.png
+	new file:   transforms/IconPalette/OutEventPort.png
+	new file:   transforms/IconPalette/PaletteOrg.graphml
+	new file:   transforms/IconPalette/PeriodicTask.png
+	new file:   transforms/IconPalette/Process.png
+	new file:   transforms/IconPalette/ProvidedRequestPort.png
+	new file:   transforms/IconPalette/RequiredRequestPort.png
+	new file:   transforms/IconPalette/ReturnParameter.png
+	new file:   transforms/IconPalette/Termination.png
+	new file:   transforms/IconPalette/Variable.png
+	new file:   transforms/IconPalette/Vector.png
+	new file:   transforms/IconPalette/WEDMLpalette.graphml
+	new file:   transforms/IconPalette/WhileLoop.png
+	new file:   transforms/IconPalette/Workload.png
+	new file:   transforms/IconPalette/cpu.png
+	new file:   transforms/IconPalette/db.png
+	new file:   transforms/IconPalette/hdd.png
+	new file:   transforms/IconPalette/log.png
+	new file:   transforms/IconPalette/ram.png
+	new file:   transforms/MEDEA.sch
+	new file:   transforms/MEDEA.xsl
+	new file:   transforms/OARIS PSM XMI.xml
+	new file:   transforms/PreprocessIDL.xsl
+	new file:   transforms/README.txt
+	new file:   transforms/Relative2Absolute.xsl
+	new file:   transforms/Replicate.xsl
+	new file:   transforms/Scale.xsl
+	new file:   transforms/SchematronBuild.txt
+	new file:   transforms/SchematronReadme.txt
+	new file:   transforms/graphml.dtd
+	new file:   transforms/graphml2cdd.xsl
+	new file:   transforms/graphml2cdp.xsl
+	new file:   transforms/graphml2cpp.xsl
+	new file:   transforms/graphml2ddd.xsl
+	new file:   transforms/graphml2deployconfig.xsl
+	new file:   transforms/graphml2dpd.xsl
+	new file:   transforms/graphml2dpdold.xsl
+	new file:   transforms/graphml2dts.xsl
+	new file:   transforms/graphml2h.xsl
+	new file:   transforms/graphml2idl.xsl
+	new file:   transforms/graphml2mpc.xsl
+	new file:   transforms/graphml2mwc.xsl
+	new file:   transforms/graphml2testconfig.xsl
+	new file:   transforms/graphmlKeyAttributes.xsl
+	new file:   transforms/graphmlKeyVariables.xsl
+	new file:   transforms/iso_abstract_expand.xsl
+	new file:   transforms/iso_dsdl_include.xsl
+	new file:   transforms/iso_schematron_message.xsl
+	new file:   transforms/iso_schematron_skeleton_for_xslt1.xsl
+	new file:   transforms/iso_svrl_for_xslt1.xsl
+	new file:   transforms/mga.dtd
+	new file:   transforms/picml2graphml.xsl
+	new file:   transforms/schematron-skeleton-api.htm
+	new file:   transforms/transforms.pro
+	new file:   transforms/xmi2graphml.xsl
+	new file:   transforms/xmi2xml.xsl
+	new file:   transforms/yEdAdd.xsl
+	new file:   transforms/yEdDelete.xsl
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	deleted:    Controllers/ActionController/actioncontroller.cpp
+	deleted:    Controllers/ActionController/actioncontroller.h
+	deleted:    Controllers/NotificationManager/notificationmanager.cpp
+	deleted:    Controllers/NotificationManager/notificationmanager.h
+	deleted:    Controllers/SelectionController/selectioncontroller.cpp
+	deleted:    Controllers/SelectionController/selectioncontroller.h
+	deleted:    Controllers/SelectionController/selectionhandler.cpp
+	deleted:    Controllers/SelectionController/selectionhandler.h
+	deleted:    Controllers/SettingsController/setting.cpp
+	deleted:    Controllers/SettingsController/setting.h
+	deleted:    Controllers/SettingsController/settingscontroller.cpp
+	deleted:    Controllers/SettingsController/settingscontroller.h
+	deleted:    Controllers/ToolbarController/nodeviewitemaction.cpp
+	deleted:    Controllers/ToolbarController/nodeviewitemaction.h
+	deleted:    Controllers/ToolbarController/toolbarcontroller.cpp
+	deleted:    Controllers/ToolbarController/toolbarcontroller.h
+	deleted:    Controllers/ViewController/edgeviewitem.cpp
+	deleted:    Controllers/ViewController/edgeviewitem.h
+	deleted:    Controllers/ViewController/nodeviewitem.cpp
+	deleted:    Controllers/ViewController/nodeviewitem.h
+	deleted:    Controllers/ViewController/viewcontroller.cpp
+	deleted:    Controllers/ViewController/viewcontroller.h
+	deleted:    Controllers/ViewController/viewitem.cpp
+	deleted:    Controllers/ViewController/viewitem.h
+	deleted:    Controllers/WindowManager/windowmanager.cpp
+	deleted:    Controllers/WindowManager/windowmanager.h
+	deleted:    Controllers/modelcontroller.cpp
+	deleted:    Controllers/modelcontroller.h
+	modified:   MEDEA.pro
+	deleted:    Model/BehaviourDefinitions/attributeimpl.cpp
+	deleted:    Model/BehaviourDefinitions/attributeimpl.h
+	deleted:    Model/BehaviourDefinitions/behaviourdefinitions.cpp
+	deleted:    Model/BehaviourDefinitions/behaviourdefinitions.h
+	deleted:    Model/BehaviourDefinitions/behaviournode.cpp
+	deleted:    Model/BehaviourDefinitions/behaviournode.h
+	deleted:    Model/BehaviourDefinitions/branch.cpp
+	deleted:    Model/BehaviourDefinitions/branch.h
+	deleted:    Model/BehaviourDefinitions/branchstate.cpp
+	deleted:    Model/BehaviourDefinitions/branchstate.h
+	deleted:    Model/BehaviourDefinitions/componentimpl.cpp
+	deleted:    Model/BehaviourDefinitions/componentimpl.h
+	deleted:    Model/BehaviourDefinitions/condition.cpp
+	deleted:    Model/BehaviourDefinitions/condition.h
+	deleted:    Model/BehaviourDefinitions/eventportimpl.cpp
+	deleted:    Model/BehaviourDefinitions/eventportimpl.h
+	deleted:    Model/BehaviourDefinitions/ineventportimpl.cpp
+	deleted:    Model/BehaviourDefinitions/ineventportimpl.h
+	deleted:    Model/BehaviourDefinitions/inputparameter.cpp
+	deleted:    Model/BehaviourDefinitions/inputparameter.h
+	deleted:    Model/BehaviourDefinitions/outeventportimpl.cpp
+	deleted:    Model/BehaviourDefinitions/outeventportimpl.h
+	deleted:    Model/BehaviourDefinitions/parameter.cpp
+	deleted:    Model/BehaviourDefinitions/parameter.h
+	deleted:    Model/BehaviourDefinitions/periodicevent.cpp
+	deleted:    Model/BehaviourDefinitions/periodicevent.h
+	deleted:    Model/BehaviourDefinitions/process.cpp
+	deleted:    Model/BehaviourDefinitions/process.h
+	deleted:    Model/BehaviourDefinitions/returnparameter.cpp
+	deleted:    Model/BehaviourDefinitions/returnparameter.h
+	deleted:    Model/BehaviourDefinitions/termination.cpp
+	deleted:    Model/BehaviourDefinitions/termination.h
+	deleted:    Model/BehaviourDefinitions/variable.cpp
+	deleted:    Model/BehaviourDefinitions/variable.h
+	deleted:    Model/BehaviourDefinitions/whileloop.cpp
+	deleted:    Model/BehaviourDefinitions/whileloop.h
+	deleted:    Model/BehaviourDefinitions/workerprocess.cpp
+	deleted:    Model/BehaviourDefinitions/workerprocess.h
+	deleted:    Model/BehaviourDefinitions/workload.cpp
+	deleted:    Model/BehaviourDefinitions/workload.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.cpp
+	deleted:    Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h
+	deleted:    Model/DeploymentDefinitions/assemblydefinitions.cpp
+	deleted:    Model/DeploymentDefinitions/assemblydefinitions.h
+	deleted:    Model/DeploymentDefinitions/attributeinstance.cpp
+	deleted:    Model/DeploymentDefinitions/attributeinstance.h
+	deleted:    Model/DeploymentDefinitions/blackboxinstance.cpp
+	deleted:    Model/DeploymentDefinitions/blackboxinstance.h
+	deleted:    Model/DeploymentDefinitions/componentassembly.cpp
+	deleted:    Model/DeploymentDefinitions/componentassembly.h
+	deleted:    Model/DeploymentDefinitions/componentinstance.cpp
+	deleted:    Model/DeploymentDefinitions/componentinstance.h
+	deleted:    Model/DeploymentDefinitions/deploymentdefinitions.cpp
+	deleted:    Model/DeploymentDefinitions/deploymentdefinitions.h
+	deleted:    Model/DeploymentDefinitions/eventportdelegate.cpp
+	deleted:    Model/DeploymentDefinitions/eventportdelegate.h
+	deleted:    Model/DeploymentDefinitions/hardwarecluster.cpp
+	deleted:    Model/DeploymentDefinitions/hardwarecluster.h
+	deleted:    Model/DeploymentDefinitions/hardwaredefinitions.cpp
+	deleted:    Model/DeploymentDefinitions/hardwaredefinitions.h
+	deleted:    Model/DeploymentDefinitions/hardwarenode.cpp
+	deleted:    Model/DeploymentDefinitions/hardwarenode.h
+	deleted:    Model/DeploymentDefinitions/ineventportdelegate.cpp
+	deleted:    Model/DeploymentDefinitions/ineventportdelegate.h
+	deleted:    Model/DeploymentDefinitions/ineventportinstance.cpp
+	deleted:    Model/DeploymentDefinitions/ineventportinstance.h
+	deleted:    Model/DeploymentDefinitions/managementcomponent.cpp
+	deleted:    Model/DeploymentDefinitions/managementcomponent.h
+	deleted:    Model/DeploymentDefinitions/outeventportdelegate.cpp
+	deleted:    Model/DeploymentDefinitions/outeventportdelegate.h
+	deleted:    Model/DeploymentDefinitions/outeventportinstance.cpp
+	deleted:    Model/DeploymentDefinitions/outeventportinstance.h
+	deleted:    Model/Edges/aggregateedge.cpp
+	deleted:    Model/Edges/aggregateedge.h
+	deleted:    Model/Edges/assemblyedge.cpp
+	deleted:    Model/Edges/assemblyedge.h
+	deleted:    Model/Edges/dataedge.cpp
+	deleted:    Model/Edges/dataedge.h
+	deleted:    Model/Edges/definitionedge.cpp
+	deleted:    Model/Edges/definitionedge.h
+	deleted:    Model/Edges/deploymentedge.cpp
+	deleted:    Model/Edges/deploymentedge.h
+	deleted:    Model/Edges/qosedge.cpp
+	deleted:    Model/Edges/qosedge.h
+	deleted:    Model/Edges/workflowedge.cpp
+	deleted:    Model/Edges/workflowedge.h
+	deleted:    Model/InterfaceDefinitions/aggregate.cpp
+	deleted:    Model/InterfaceDefinitions/aggregate.h
+	deleted:    Model/InterfaceDefinitions/aggregateinstance.cpp
+	deleted:    Model/InterfaceDefinitions/aggregateinstance.h
+	deleted:    Model/InterfaceDefinitions/attribute.cpp
+	deleted:    Model/InterfaceDefinitions/attribute.h
+	deleted:    Model/InterfaceDefinitions/blackbox.cpp
+	deleted:    Model/InterfaceDefinitions/blackbox.h
+	deleted:    Model/InterfaceDefinitions/component.cpp
+	deleted:    Model/InterfaceDefinitions/component.h
+	deleted:    Model/InterfaceDefinitions/datanode.cpp
+	deleted:    Model/InterfaceDefinitions/datanode.h
+	deleted:    Model/InterfaceDefinitions/eventport.cpp
+	deleted:    Model/InterfaceDefinitions/eventport.h
+	deleted:    Model/InterfaceDefinitions/idl.cpp
+	deleted:    Model/InterfaceDefinitions/idl.h
+	deleted:    Model/InterfaceDefinitions/ineventport.cpp
+	deleted:    Model/InterfaceDefinitions/ineventport.h
+	deleted:    Model/InterfaceDefinitions/interfacedefinitions.cpp
+	deleted:    Model/InterfaceDefinitions/interfacedefinitions.h
+	deleted:    Model/InterfaceDefinitions/member.cpp
+	deleted:    Model/InterfaceDefinitions/member.h
+	deleted:    Model/InterfaceDefinitions/memberinstance.cpp
+	deleted:    Model/InterfaceDefinitions/memberinstance.h
+	deleted:    Model/InterfaceDefinitions/outeventport.cpp
+	deleted:    Model/InterfaceDefinitions/outeventport.h
+	deleted:    Model/InterfaceDefinitions/vector.cpp
+	deleted:    Model/InterfaceDefinitions/vector.h
+	deleted:    Model/InterfaceDefinitions/vectorinstance.cpp
+	deleted:    Model/InterfaceDefinitions/vectorinstance.h
+	deleted:    Model/data.cpp
+	deleted:    Model/data.h
+	deleted:    Model/edge.cpp
+	deleted:    Model/edge.h
+	deleted:    Model/entity.cpp
+	deleted:    Model/entity.h
+	deleted:    Model/graphml.cpp
+	deleted:    Model/graphml.h
+	deleted:    Model/key.cpp
+	deleted:    Model/key.h
+	deleted:    Model/model.cpp
+	deleted:    Model/model.h
+	deleted:    Model/node.cpp
+	deleted:    Model/node.h
+	deleted:    Model/tempentity.cpp
+	deleted:    Model/tempentity.h
+	deleted:    Model/workerdefinitions.cpp
+	deleted:    Model/workerdefinitions.h
+	deleted:    Plugins/CUTS/Widgets/cutsexecutionwidget.cpp
+	deleted:    Plugins/CUTS/Widgets/cutsexecutionwidget.h
+	deleted:    Plugins/CUTS/cutsmanager.cpp
+	deleted:    Plugins/CUTS/cutsmanager.h
+	deleted:    Plugins/Jenkins/Widgets/jenkinsjobmonitorwidget.cpp
+	deleted:    Plugins/Jenkins/Widgets/jenkinsjobmonitorwidget.h
+	deleted:    Plugins/Jenkins/Widgets/jenkinsloadingwidget.cpp
+	deleted:    Plugins/Jenkins/Widgets/jenkinsloadingwidget.h
+	deleted:    Plugins/Jenkins/Widgets/jenkinsstartjobwidget.cpp
+	deleted:    Plugins/Jenkins/Widgets/jenkinsstartjobwidget.h
+	deleted:    Plugins/Jenkins/jenkinsmanager.cpp
+	deleted:    Plugins/Jenkins/jenkinsmanager.h
+	deleted:    Plugins/Jenkins/jenkinsrequest.cpp
+	deleted:    Plugins/Jenkins/jenkinsrequest.h
+	deleted:    Plugins/XMI/Widgets/XMITreeViewDialog.cpp
+	deleted:    Plugins/XMI/Widgets/XMITreeViewDialog.h
+	deleted:    Plugins/XMI/xmiimporter.cpp
+	deleted:    Plugins/XMI/xmiimporter.h
+	deleted:    Plugins/XMI/xmitreemodel.cpp
+	deleted:    Plugins/XMI/xmitreemodel.h
+	deleted:    Resources/Binaries/jenkins-cli.jar
+	deleted:    Resources/Binaries/serializer.jar
+	deleted:    Resources/Binaries/xalan.jar
+	deleted:    Resources/Binaries/xercesImpl.jar
+	deleted:    Resources/Binaries/xml-apis.jar
+	deleted:    Resources/Fonts/OpenSans-Regular.ttf
+	deleted:    Resources/Gifs/Loading.gif
+	deleted:    Resources/Images/Actions/Add.png
+	deleted:    Resources/Images/Actions/Align_Horizontal.png
+	deleted:    Resources/Images/Actions/Align_Vertical.png
+	deleted:    Resources/Images/Actions/Arrow_Back.png
+	deleted:    Resources/Images/Actions/Arrow_Down.png
+	deleted:    Resources/Images/Actions/Arrow_Forward.png
+	deleted:    Resources/Images/Actions/Arrow_Left.png
+	deleted:    Resources/Images/Actions/Arrow_Right.png
+	deleted:    Resources/Images/Actions/Arrow_Up.png
+	deleted:    Resources/Images/Actions/BugReport.png
+	deleted:    Resources/Images/Actions/Build.png
+	deleted:    Resources/Images/Actions/CPU.png
+	deleted:    Resources/Images/Actions/Cage.jpg
+	deleted:    Resources/Images/Actions/Cancel.png
+	deleted:    Resources/Images/Actions/Clear.png
+	deleted:    Resources/Images/Actions/Clock.png
+	deleted:    Resources/Images/Actions/Close.png
+	deleted:    Resources/Images/Actions/Code.png
+	deleted:    Resources/Images/Actions/ComboArrow.png
+	deleted:    Resources/Images/Actions/Comment.png
+	deleted:    Resources/Images/Actions/Computer.png
+	deleted:    Resources/Images/Actions/Computer_Cross.png
+	deleted:    Resources/Images/Actions/Computer_DockButton.png
+	deleted:    Resources/Images/Actions/ConnectTo.png
+	deleted:    Resources/Images/Actions/Connections.png
+	deleted:    Resources/Images/Actions/Contract.png
+	deleted:    Resources/Images/Actions/Copy.png
+	deleted:    Resources/Images/Actions/Critical.png
+	deleted:    Resources/Images/Actions/Cross.png
+	deleted:    Resources/Images/Actions/Crosshair.png
+	deleted:    Resources/Images/Actions/Cut.png
+	deleted:    Resources/Images/Actions/CutIcon.png
+	deleted:    Resources/Images/Actions/DANCE_EXECUTION_MANAGER.png
+	deleted:    Resources/Images/Actions/DANCE_PLAN_LAUNCHER.png
+	deleted:    Resources/Images/Actions/DDS_LOGGING_SERVER.png
+	deleted:    Resources/Images/Actions/Definition.png
+	deleted:    Resources/Images/Actions/Delete.png
+	deleted:    Resources/Images/Actions/Disconnect.png
+	deleted:    Resources/Images/Actions/DockMaximize.png
+	deleted:    Resources/Images/Actions/DockPopOut.png
+	deleted:    Resources/Images/Actions/Download.png
+	deleted:    Resources/Images/Actions/Edit.png
+	deleted:    Resources/Images/Actions/Exclamation.png
+	deleted:    Resources/Images/Actions/Expand.png
+	deleted:    Resources/Images/Actions/Export.png
+	deleted:    Resources/Images/Actions/ExportSnippet.png
+	deleted:    Resources/Images/Actions/Failure.png
+	deleted:    Resources/Images/Actions/FitToScreen.png
+	deleted:    Resources/Images/Actions/Fullscreen.png
+	deleted:    Resources/Images/Actions/Generate.png
+	deleted:    Resources/Images/Actions/Global.png
+	deleted:    Resources/Images/Actions/Goto.png
+	deleted:    Resources/Images/Actions/GridLayout.png
+	deleted:    Resources/Images/Actions/GridSort.png
+	deleted:    Resources/Images/Actions/Grid_Off.png
+	deleted:    Resources/Images/Actions/Grid_On.png
+	deleted:    Resources/Images/Actions/HardwareNode.png
+	deleted:    Resources/Images/Actions/Help.png
+	deleted:    Resources/Images/Actions/Implementation.png
+	deleted:    Resources/Images/Actions/Import.png
+	deleted:    Resources/Images/Actions/ImportSnippet.png
+	deleted:    Resources/Images/Actions/ImportXME.ico
+	deleted:    Resources/Images/Actions/ImportXMI.png
+	deleted:    Resources/Images/Actions/Info.png
+	deleted:    Resources/Images/Actions/Instance.png
+	deleted:    Resources/Images/Actions/Invisible.png
+	deleted:    Resources/Images/Actions/Jenkins_Icon.png
+	deleted:    Resources/Images/Actions/Jenkins_Text.png
+	deleted:    Resources/Images/Actions/Job_Aborted.png
+	deleted:    Resources/Images/Actions/Job_Build.png
+	deleted:    Resources/Images/Actions/Job_Building.gif
+	deleted:    Resources/Images/Actions/Job_Built.png
+	deleted:    Resources/Images/Actions/Job_Failed.png
+	deleted:    Resources/Images/Actions/Job_Stop.png
+	deleted:    Resources/Images/Actions/Key.png
+	deleted:    Resources/Images/Actions/Keyboard.png
+	deleted:    Resources/Images/Actions/Lock_Closed.png
+	deleted:    Resources/Images/Actions/Lock_Open.png
+	deleted:    Resources/Images/Actions/Log.png
+	deleted:    Resources/Images/Actions/MEDEA.png
+	deleted:    Resources/Images/Actions/MEDEAIcon.png
+	deleted:    Resources/Images/Actions/Maximize.png
+	deleted:    Resources/Images/Actions/Menu.png
+	deleted:    Resources/Images/Actions/MenuCluster.png
+	deleted:    Resources/Images/Actions/MenuModel.png
+	deleted:    Resources/Images/Actions/MenuView.png
+	deleted:    Resources/Images/Actions/Menu_Horizontal.png
+	deleted:    Resources/Images/Actions/Menu_Vertical.png
+	deleted:    Resources/Images/Actions/Minimap.png
+	deleted:    Resources/Images/Actions/Minimize.png
+	deleted:    Resources/Images/Actions/Model.png
+	deleted:    Resources/Images/Actions/Mouse.png
+	deleted:    Resources/Images/Actions/Move.png
+	deleted:    Resources/Images/Actions/New.png
+	deleted:    Resources/Images/Actions/Notes.png
+	deleted:    Resources/Images/Actions/Open.png
+	deleted:    Resources/Images/Actions/Parts.png
+	deleted:    Resources/Images/Actions/Paste.png
+	deleted:    Resources/Images/Actions/Plus.png
+	deleted:    Resources/Images/Actions/Policies.png
+	deleted:    Resources/Images/Actions/Popup.png
+	deleted:    Resources/Images/Actions/Power.png
+	deleted:    Resources/Images/Actions/PrintScreen.png
+	deleted:    Resources/Images/Actions/Project.png
+	deleted:    Resources/Images/Actions/QOS.png
+	deleted:    Resources/Images/Actions/QPID_BROKER.png
+	deleted:    Resources/Images/Actions/Qt.ico
+	deleted:    Resources/Images/Actions/Redo.png
+	deleted:    Resources/Images/Actions/Refresh.png
+	deleted:    Resources/Images/Actions/Reload.png
+	deleted:    Resources/Images/Actions/Remove.png
+	deleted:    Resources/Images/Actions/Rename.png
+	deleted:    Resources/Images/Actions/Replicate.png
+	deleted:    Resources/Images/Actions/Replicate_Count.png
+	deleted:    Resources/Images/Actions/Resize.png
+	deleted:    Resources/Images/Actions/Save.png
+	deleted:    Resources/Images/Actions/Search.png
+	deleted:    Resources/Images/Actions/SearchOptions.png
+	deleted:    Resources/Images/Actions/Search_Folder.png
+	deleted:    Resources/Images/Actions/Security.png
+	deleted:    Resources/Images/Actions/SelectAll.png
+	deleted:    Resources/Images/Actions/Selection.png
+	deleted:    Resources/Images/Actions/Settings.png
+	deleted:    Resources/Images/Actions/Snippet.png
+	deleted:    Resources/Images/Actions/Sort.png
+	deleted:    Resources/Images/Actions/Square.png
+	deleted:    Resources/Images/Actions/Success.png
+	deleted:    Resources/Images/Actions/Tag.png
+	deleted:    Resources/Images/Actions/Tick.png
+	deleted:    Resources/Images/Actions/Timer.png
+	deleted:    Resources/Images/Actions/Toolbar.png
+	deleted:    Resources/Images/Actions/Undo.png
+	deleted:    Resources/Images/Actions/Upload.png
+	deleted:    Resources/Images/Actions/Validate.png
+	deleted:    Resources/Images/Actions/View.png
+	deleted:    Resources/Images/Actions/Visible.png
+	deleted:    Resources/Images/Actions/Waiting.gif
+	deleted:    Resources/Images/Actions/Warning.png
+	deleted:    Resources/Images/Actions/Wiki.png
+	deleted:    Resources/Images/Actions/ZoomIn.png
+	deleted:    Resources/Images/Actions/ZoomOut.png
+	deleted:    Resources/Images/Actions/ZoomToFit.png
+	deleted:    Resources/Images/Actions/getCPP.png
+	deleted:    Resources/Images/Actions/getH.png
+	deleted:    Resources/Images/Actions/java.jpg
+	deleted:    Resources/Images/Actions/splitter.png
+	deleted:    Resources/Images/Data/WE_UTE_VariableArguments.png
+	deleted:    Resources/Images/Data/WE_UTE_Vector.png
+	deleted:    Resources/Images/Data/blocking.png
+	deleted:    Resources/Images/Data/bytes.png
+	deleted:    Resources/Images/Data/client.png
+	deleted:    Resources/Images/Data/complexityFunction.png
+	deleted:    Resources/Images/Data/component.png
+	deleted:    Resources/Images/Data/domain.png
+	deleted:    Resources/Images/Data/failure.png
+	deleted:    Resources/Images/Data/forceCopy.png
+	deleted:    Resources/Images/Data/format.png
+	deleted:    Resources/Images/Data/frequency.png
+	deleted:    Resources/Images/Data/function.png
+	deleted:    Resources/Images/Data/gpunum.png
+	deleted:    Resources/Images/Data/index.png
+	deleted:    Resources/Images/Data/ip_address.png
+	deleted:    Resources/Images/Data/kilobytes.png
+	deleted:    Resources/Images/Data/length.png
+	deleted:    Resources/Images/Data/max_size.png
+	deleted:    Resources/Images/Data/message.png
+	deleted:    Resources/Images/Data/operations.png
+	deleted:    Resources/Images/Data/opsPerThread.png
+	deleted:    Resources/Images/Data/parameter.png
+	deleted:    Resources/Images/Data/replicate_count.png
+	deleted:    Resources/Images/Data/result.png
+	deleted:    Resources/Images/Data/severity.png
+	deleted:    Resources/Images/Data/size.png
+	deleted:    Resources/Images/Data/sortOrder.png
+	deleted:    Resources/Images/Data/success.png
+	deleted:    Resources/Images/Data/topic.png
+	deleted:    Resources/Images/Data/type.png
+	deleted:    Resources/Images/Data/value.png
+	deleted:    Resources/Images/Data/worker.png
+	deleted:    Resources/Images/Functions/CUTS_Client_Logger.png
+	deleted:    Resources/Images/Functions/DIG_LogMessage_Worker.png
+	deleted:    Resources/Images/Functions/FFT.png
+	deleted:    Resources/Images/Functions/VariableOperation.png
+	deleted:    Resources/Images/Functions/VectorOperation.png
+	deleted:    Resources/Images/Functions/WE_CPU.png
+	deleted:    Resources/Images/Functions/WE_GPU.png
+	deleted:    Resources/Images/Functions/WE_RAM.png
+	deleted:    Resources/Images/Functions/WE_UTE.png
+	deleted:    Resources/Images/Functions/allocate.png
+	deleted:    Resources/Images/Functions/bufferData.png
+	deleted:    Resources/Images/Functions/clear.png
+	deleted:    Resources/Images/Functions/connect.png
+	deleted:    Resources/Images/Functions/counter.png
+	deleted:    Resources/Images/Functions/cppCode.png
+	deleted:    Resources/Images/Functions/cppHeader.png
+	deleted:    Resources/Images/Functions/deallocate.png
+	deleted:    Resources/Images/Functions/debugMessage.png
+	deleted:    Resources/Images/Functions/disconnect.png
+	deleted:    Resources/Images/Functions/evaluateComplexity.png
+	deleted:    Resources/Images/Functions/get.png
+	deleted:    Resources/Images/Functions/length.png
+	deleted:    Resources/Images/Functions/log.png
+	deleted:    Resources/Images/Functions/matrixMult.png
+	deleted:    Resources/Images/Functions/releaseData.png
+	deleted:    Resources/Images/Functions/remove.png
+	deleted:    Resources/Images/Functions/runParallel.png
+	deleted:    Resources/Images/Functions/set.png
+	deleted:    Resources/Images/Functions/setKernelComplexity.png
+	deleted:    Resources/Images/Functions/switch_topic.png
+	deleted:    Resources/Images/GME.ico
+	deleted:    Resources/Images/Graphml.ico
+	deleted:    Resources/Images/Items/Aggregate.png
+	deleted:    Resources/Images/Items/AggregateInstance.png
+	deleted:    Resources/Images/Items/AssemblyDefinitions.png
+	deleted:    Resources/Images/Items/Attribute.png
+	deleted:    Resources/Images/Items/AttributeImpl.png
+	deleted:    Resources/Images/Items/AttributeInstance.png
+	deleted:    Resources/Images/Items/BehaviourDefinitions.png
+	deleted:    Resources/Images/Items/BlackBox.png
+	deleted:    Resources/Images/Items/BlackBoxInstance.png
+	deleted:    Resources/Images/Items/BranchState.png
+	deleted:    Resources/Images/Items/Component.png
+	deleted:    Resources/Images/Items/ComponentAssembly.png
+	deleted:    Resources/Images/Items/ComponentImpl.png
+	deleted:    Resources/Images/Items/ComponentInstance.png
+	deleted:    Resources/Images/Items/Condition.png
+	deleted:    Resources/Images/Items/DDS_QOSProfile.png
+	deleted:    Resources/Images/Items/Edge_Aggregate.png
+	deleted:    Resources/Images/Items/Edge_Assembly.png
+	deleted:    Resources/Images/Items/Edge_Data.png
+	deleted:    Resources/Images/Items/Edge_Deployment.png
+	deleted:    Resources/Images/Items/Edge_QOS.png
+	deleted:    Resources/Images/Items/Edge_Workflow.png
+	deleted:    Resources/Images/Items/HardwareCluster.png
+	deleted:    Resources/Images/Items/HardwareDefinitions.png
+	deleted:    Resources/Images/Items/HardwareNode.png
+	deleted:    Resources/Images/Items/IDL.png
+	deleted:    Resources/Images/Items/InEventPort.png
+	deleted:    Resources/Images/Items/InEventPortDelegate.png
+	deleted:    Resources/Images/Items/InEventPortImpl.png
+	deleted:    Resources/Images/Items/InEventPortInstance.png
+	deleted:    Resources/Images/Items/InputParameter.png
+	deleted:    Resources/Images/Items/InterfaceDefinitions.png
+	deleted:    Resources/Images/Items/Linux_amd64.png
+	deleted:    Resources/Images/Items/Linux_arm.png
+	deleted:    Resources/Images/Items/Linux_x86.png
+	deleted:    Resources/Images/Items/Localhost.png
+	deleted:    Resources/Images/Items/ManagementComponent.png
+	deleted:    Resources/Images/Items/Member.png
+	deleted:    Resources/Images/Items/MemberInstance.png
+	deleted:    Resources/Images/Items/OutEventPort.png
+	deleted:    Resources/Images/Items/OutEventPortDelegate.png
+	deleted:    Resources/Images/Items/OutEventPortImpl.png
+	deleted:    Resources/Images/Items/OutEventPortInstance.png
+	deleted:    Resources/Images/Items/PeriodicEvent.png
+	deleted:    Resources/Images/Items/Process.png
+	deleted:    Resources/Images/Items/QOSProfile.png
+	deleted:    Resources/Images/Items/ReturnParameter.png
+	deleted:    Resources/Images/Items/Termination.png
+	deleted:    Resources/Images/Items/Variable.png
+	deleted:    Resources/Images/Items/Vector.png
+	deleted:    Resources/Images/Items/VectorInstance.png
+	deleted:    Resources/Images/Items/VectorInstance_AggregateInstance.png
+	deleted:    Resources/Images/Items/VectorInstance_Member.png
+	deleted:    Resources/Images/Items/Vector_AggregateInstance.png
+	deleted:    Resources/Images/Items/Vector_Member.png
+	deleted:    Resources/Images/Items/WhileLoop.png
+	deleted:    Resources/Images/Items/Windows7_amd64.png
+	deleted:    Resources/Images/Items/Windows7_arm.png
+	deleted:    Resources/Images/Items/Windows7_x86.png
+	deleted:    Resources/Images/Items/WorkerProcess.png
+	deleted:    Resources/Images/Items/Workload.png
+	deleted:    Resources/Images/Items/cpp.png
+	deleted:    Resources/Images/MEDEA_Banner.png
+	deleted:    Resources/Images/MEDEA_Watermark.png
+	deleted:    Resources/Images/MedeaIcon.icns
+	deleted:    Resources/Images/MedeaIcon.ico
+	deleted:    Resources/Images/Photoshop/Aggregate.psd
+	deleted:    Resources/Images/Photoshop/AssemblyDefinitions.xcf
+	deleted:    Resources/Images/Photoshop/BehaviourDefinitions.xcf
+	deleted:    Resources/Images/Photoshop/BlackBox.psd
+	deleted:    Resources/Images/Photoshop/BranchState.xcf
+	deleted:    Resources/Images/Photoshop/Edge_Assembly.xcf
+	deleted:    Resources/Images/Photoshop/Edge_Data.xcf
+	deleted:    Resources/Images/Photoshop/Edge_Deployment.xcf
+	deleted:    Resources/Images/Photoshop/Edge_QOS.xcf
+	deleted:    Resources/Images/Photoshop/Edge_Workflow.xcf
+	deleted:    Resources/Images/Photoshop/File.psd
+	deleted:    Resources/Images/Photoshop/Graphml.xcf
+	deleted:    Resources/Images/Photoshop/HardwareCluster.psd
+	deleted:    Resources/Images/Photoshop/HardwareDefinitions.xcf
+	deleted:    Resources/Images/Photoshop/HardwareNodeLinux.psd
+	deleted:    Resources/Images/Photoshop/HardwareNodeWindow.psd
+	deleted:    Resources/Images/Photoshop/InEventPort.psd
+	deleted:    Resources/Images/Photoshop/InterfaceDefinitions.xcf
+	deleted:    Resources/Images/Photoshop/MEDEA.psd
+	deleted:    Resources/Images/Photoshop/MEDEA2.psd
+	deleted:    Resources/Images/Photoshop/MEDEABanner.xcf
+	deleted:    Resources/Images/Photoshop/ManagementComponents.psd
+	deleted:    Resources/Images/Photoshop/MaximizeMinimizeIcon.xcf
+	deleted:    Resources/Images/Photoshop/OutEventPort.psd
+	deleted:    Resources/Images/Photoshop/PeriodicEvent.xcf
+	deleted:    Resources/Images/Photoshop/QOSProfile.xcf
+	deleted:    Resources/Images/Photoshop/Termination.xcf
+	deleted:    Resources/Images/Photoshop/Vector.xcf
+	deleted:    Resources/Images/Photoshop/WhileLoop.xcf
+	deleted:    Resources/Images/Photoshop/Workload.xcf
+	deleted:    Resources/Images/Photoshop/t2.psd
+	deleted:    Resources/Images/Photoshop/test.psd
+	deleted:    Resources/Images/Qt.ico
+	deleted:    Resources/Images/UML.png
+	deleted:    Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy
+	deleted:    Resources/Scripts/runCuts.pl
+	deleted:    Resources/Transforms/Absolute2Relative.xsl
+	deleted:    Resources/Transforms/Deploy.xsl
+	deleted:    Resources/Transforms/ExtractSchFromRNG.xsl
+	deleted:    Resources/Transforms/ExtractSchFromXSD.xsl
+	deleted:    Resources/Transforms/IconPalette/Aggregate.png
+	deleted:    Resources/Transforms/IconPalette/Assembly.png
+	deleted:    Resources/Transforms/IconPalette/Attribute.png
+	deleted:    Resources/Transforms/IconPalette/BranchState.png
+	deleted:    Resources/Transforms/IconPalette/Callback.png
+	deleted:    Resources/Transforms/IconPalette/Complexity.png
+	deleted:    Resources/Transforms/IconPalette/Component.png
+	deleted:    Resources/Transforms/IconPalette/Condition.png
+	deleted:    Resources/Transforms/IconPalette/Event.png
+	deleted:    Resources/Transforms/IconPalette/HardwareCluster.png
+	deleted:    Resources/Transforms/IconPalette/HardwareNode.png
+	deleted:    Resources/Transforms/IconPalette/IDL.png
+	deleted:    Resources/Transforms/IconPalette/InEventPort.png
+	deleted:    Resources/Transforms/IconPalette/InputParameter.png
+	deleted:    Resources/Transforms/IconPalette/Member.png
+	deleted:    Resources/Transforms/IconPalette/OutEventPort.png
+	deleted:    Resources/Transforms/IconPalette/PaletteOrg.graphml
+	deleted:    Resources/Transforms/IconPalette/PeriodicTask.png
+	deleted:    Resources/Transforms/IconPalette/Process.png
+	deleted:    Resources/Transforms/IconPalette/ProvidedRequestPort.png
+	deleted:    Resources/Transforms/IconPalette/RequiredRequestPort.png
+	deleted:    Resources/Transforms/IconPalette/ReturnParameter.png
+	deleted:    Resources/Transforms/IconPalette/Termination.png
+	deleted:    Resources/Transforms/IconPalette/Variable.png
+	deleted:    Resources/Transforms/IconPalette/Vector.png
+	deleted:    Resources/Transforms/IconPalette/WEDMLpalette.graphml
+	deleted:    Resources/Transforms/IconPalette/WhileLoop.png
+	deleted:    Resources/Transforms/IconPalette/Workload.png
+	deleted:    Resources/Transforms/IconPalette/cpu.png
+	deleted:    Resources/Transforms/IconPalette/db.png
+	deleted:    Resources/Transforms/IconPalette/hdd.png
+	deleted:    Resources/Transforms/IconPalette/log.png
+	deleted:    Resources/Transforms/IconPalette/ram.png
+	deleted:    Resources/Transforms/MEDEA.sch
+	deleted:    Resources/Transforms/MEDEA.xsl
+	deleted:    Resources/Transforms/OARIS PSM XMI.xml
+	deleted:    Resources/Transforms/PreprocessIDL.xsl
+	deleted:    Resources/Transforms/README.txt
+	deleted:    Resources/Transforms/Relative2Absolute.xsl
+	deleted:    Resources/Transforms/Replicate.xsl
+	deleted:    Resources/Transforms/Scale.xsl
+	deleted:    Resources/Transforms/SchematronBuild.txt
+	deleted:    Resources/Transforms/SchematronReadme.txt
+	deleted:    Resources/Transforms/graphml.dtd
+	deleted:    Resources/Transforms/graphml2cdd.xsl
+	deleted:    Resources/Transforms/graphml2cdp.xsl
+	deleted:    Resources/Transforms/graphml2cpp.xsl
+	deleted:    Resources/Transforms/graphml2ddd.xsl
+	deleted:    Resources/Transforms/graphml2deployconfig.xsl
+	deleted:    Resources/Transforms/graphml2dpd.xsl
+	deleted:    Resources/Transforms/graphml2dpdold.xsl
+	deleted:    Resources/Transforms/graphml2dts.xsl
+	deleted:    Resources/Transforms/graphml2h.xsl
+	deleted:    Resources/Transforms/graphml2idl.xsl
+	deleted:    Resources/Transforms/graphml2mpc.xsl
+	deleted:    Resources/Transforms/graphml2mwc.xsl
+	deleted:    Resources/Transforms/graphml2testconfig.xsl
+	deleted:    Resources/Transforms/graphmlKeyAttributes.xsl
+	deleted:    Resources/Transforms/graphmlKeyVariables.xsl
+	deleted:    Resources/Transforms/iso_abstract_expand.xsl
+	deleted:    Resources/Transforms/iso_dsdl_include.xsl
+	deleted:    Resources/Transforms/iso_schematron_message.xsl
+	deleted:    Resources/Transforms/iso_schematron_skeleton_for_xslt1.xsl
+	deleted:    Resources/Transforms/iso_svrl_for_xslt1.xsl
+	deleted:    Resources/Transforms/mga.dtd
+	deleted:    Resources/Transforms/picml2graphml.xsl
+	deleted:    Resources/Transforms/schematron-skeleton-api.htm
+	deleted:    Resources/Transforms/serializer.jar
+	deleted:    Resources/Transforms/xalan.jar
+	deleted:    Resources/Transforms/xercesImpl.jar
+	deleted:    Resources/Transforms/xmi2graphml.xsl
+	deleted:    Resources/Transforms/xmi2xml.xsl
+	deleted:    Resources/Transforms/xml-apis.jar
+	deleted:    Resources/Transforms/yEdAdd.xsl
+	deleted:    Resources/Transforms/yEdDelete.xsl
+	deleted:    Resources/WorkerDefinitions/CUTS_Client_Logger.worker.graphml
+	deleted:    Resources/WorkerDefinitions/DIG_LogMessage_Worker.worker.graphml
+	deleted:    Resources/WorkerDefinitions/VariableOperation.worker.graphml
+	deleted:    Resources/WorkerDefinitions/VectorOperation.worker.graphml
+	deleted:    Resources/WorkerDefinitions/WE_CPU.worker.graphml
+	deleted:    Resources/WorkerDefinitions/WE_GPU.worker.graphml
+	deleted:    Resources/WorkerDefinitions/WE_RAM.worker.graphml
+	deleted:    Resources/WorkerDefinitions/WE_UTE.worker.graphml
+	deleted:    Testing/medeatest.cpp
+	deleted:    Testing/medeatest.h
+	deleted:    Testing/medeatest.pro
+	deleted:    Utils/actiongroup.cpp
+	deleted:    Utils/actiongroup.h
+	deleted:    Utils/doublehash.h
+	deleted:    Utils/filehandler.cpp
+	deleted:    Utils/filehandler.h
+	deleted:    Utils/qobjectregistrar.cpp
+	deleted:    Utils/qobjectregistrar.h
+	deleted:    Utils/rootaction.cpp
+	deleted:    Utils/rootaction.h
+	deleted:    Views/ContextToolbar/contexttoolbar.cpp
+	deleted:    Views/ContextToolbar/contexttoolbar.h
+	deleted:    Views/Dock/docktabwidget.cpp
+	deleted:    Views/Dock/docktabwidget.h
+	deleted:    Views/Dock/dockwidget.cpp
+	deleted:    Views/Dock/dockwidget.h
+	deleted:    Views/Dock/dockwidgetactionitem.cpp
+	deleted:    Views/Dock/dockwidgetactionitem.h
+	deleted:    Views/Dock/dockwidgetitem.cpp
+	deleted:    Views/Dock/dockwidgetitem.h
+	deleted:    Views/Dock/dockwidgetparentactionitem.cpp
+	deleted:    Views/Dock/dockwidgetparentactionitem.h
+	deleted:    Views/NodeView/SceneItems/Edge/edgeitem.cpp
+	deleted:    Views/NodeView/SceneItems/Edge/edgeitem.h
+	deleted:    Views/NodeView/SceneItems/Node/basicnodeitem.cpp
+	deleted:    Views/NodeView/SceneItems/Node/basicnodeitem.h
+	deleted:    Views/NodeView/SceneItems/Node/defaultnodeitem.cpp
+	deleted:    Views/NodeView/SceneItems/Node/defaultnodeitem.h
+	deleted:    Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp
+	deleted:    Views/NodeView/SceneItems/Node/hardwarenodeitem.h
+	deleted:    Views/NodeView/SceneItems/Node/managementcomponentnodeitem.cpp
+	deleted:    Views/NodeView/SceneItems/Node/managementcomponentnodeitem.h
+	deleted:    Views/NodeView/SceneItems/Node/nodeitem.cpp
+	deleted:    Views/NodeView/SceneItems/Node/nodeitem.h
+	deleted:    Views/NodeView/SceneItems/Node/stacknodeitem.cpp
+	deleted:    Views/NodeView/SceneItems/Node/stacknodeitem.h
+	deleted:    Views/NodeView/SceneItems/entityitem.cpp
+	deleted:    Views/NodeView/SceneItems/entityitem.h
+	deleted:    Views/NodeView/nodeview.cpp
+	deleted:    Views/NodeView/nodeview.h
+	deleted:    Views/NodeView/nodeviewminimap.cpp
+	deleted:    Views/NodeView/nodeviewminimap.h
+	deleted:    Views/QOSBrowser/qosbrowser.cpp
+	deleted:    Views/QOSBrowser/qosbrowser.h
+	deleted:    Views/QOSBrowser/qosprofilemodel.cpp
+	deleted:    Views/QOSBrowser/qosprofilemodel.h
+	deleted:    Views/Search/searchdialog.cpp
+	deleted:    Views/Search/searchdialog.h
+	deleted:    Views/Search/searchitemwidget.cpp
+	deleted:    Views/Search/searchitemwidget.h
+	deleted:    Views/Table/datatabledelegate.cpp
+	deleted:    Views/Table/datatabledelegate.h
+	deleted:    Views/Table/datatablemodel.cpp
+	deleted:    Views/Table/datatablemodel.h
+	deleted:    Views/Table/datatableview.cpp
+	deleted:    Views/Table/datatableview.h
+	deleted:    Views/Table/datatablewidget.cpp
+	deleted:    Views/Table/datatablewidget.h
+	deleted:    Widgets/CodeEditor/codebrowser.cpp
+	deleted:    Widgets/CodeEditor/codebrowser.h
+	deleted:    Widgets/CodeEditor/codeeditor.cpp
+	deleted:    Widgets/CodeEditor/codeeditor.h
+	deleted:    Widgets/CodeEditor/syntaxhighlighter.cpp
+	deleted:    Widgets/CodeEditor/syntaxhighlighter.h
+	deleted:    Widgets/Dialogs/appsettings.cpp
+	deleted:    Widgets/Dialogs/appsettings.h
+	deleted:    Widgets/Dialogs/notificationdialog.cpp
+	deleted:    Widgets/Dialogs/notificationdialog.h
+	deleted:    Widgets/Dialogs/popupwidget.cpp
+	deleted:    Widgets/Dialogs/popupwidget.h
+	deleted:    Widgets/Dialogs/shortcutdialog.cpp
+	deleted:    Widgets/Dialogs/shortcutdialog.h
+	deleted:    Widgets/Dialogs/validationdialog.cpp
+	deleted:    Widgets/Dialogs/validationdialog.h
+	deleted:    Widgets/DockWidgets/basedockwidget.cpp
+	deleted:    Widgets/DockWidgets/basedockwidget.h
+	deleted:    Widgets/DockWidgets/docktitlebar.cpp
+	deleted:    Widgets/DockWidgets/docktitlebar.h
+	deleted:    Widgets/DockWidgets/nodeviewdockwidget.cpp
+	deleted:    Widgets/DockWidgets/nodeviewdockwidget.h
+	deleted:    Widgets/DockWidgets/tooldockwidget.cpp
+	deleted:    Widgets/DockWidgets/tooldockwidget.h
+	deleted:    Widgets/DockWidgets/viewdockwidget.cpp
+	deleted:    Widgets/DockWidgets/viewdockwidget.h
+	deleted:    Widgets/ViewManager/dockitem.cpp
+	deleted:    Widgets/ViewManager/dockitem.h
+	deleted:    Widgets/ViewManager/viewmanagerwidget.cpp
+	deleted:    Widgets/ViewManager/viewmanagerwidget.h
+	deleted:    Widgets/ViewManager/windowitem.cpp
+	deleted:    Widgets/ViewManager/windowitem.h
+	deleted:    Widgets/Windows/basewindow.cpp
+	deleted:    Widgets/Windows/basewindow.h
+	deleted:    Widgets/Windows/centralwindow.cpp
+	deleted:    Widgets/Windows/centralwindow.h
+	deleted:    Widgets/Windows/mainwindow.cpp
+	deleted:    Widgets/Windows/mainwindow.h
+	deleted:    Widgets/Windows/subwindow.cpp
+	deleted:    Widgets/Windows/subwindow.h
+	deleted:    Widgets/Windows/viewwindow.cpp
+	deleted:    Widgets/Windows/viewwindow.h
+	deleted:    Widgets/Windows/welcomescreenwidget.cpp
+	deleted:    Widgets/Windows/welcomescreenwidget.h
+	deleted:    Widgets/dataeditwidget.cpp
+	deleted:    Widgets/dataeditwidget.h
+	deleted:    Widgets/keyeditwidget.cpp
+	deleted:    Widgets/keyeditwidget.h
+	deleted:    enumerations.cpp
+	deleted:    enumerations.h
+	modified:   installer/config/config.xml
+	deleted:    lib/lib.pro
+	deleted:    main.cpp
+	deleted:    resources.qrc
+	deleted:    scripts/scripts.pro
+	modified:   test/main.cpp
+	modified:   test/resources.qrc
+	deleted:    theme.cpp
+	deleted:    theme.h
+	deleted:    transforms/transforms.pro
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	MEDEA.pro.user
+	app/
+	defaults.pri
+	output.txt
+	src/
+	test/modelcontrollertests.cpp
+	test/modelcontrollertests.h
+	test/test.pro
+
