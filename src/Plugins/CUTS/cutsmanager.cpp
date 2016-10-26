@@ -34,9 +34,9 @@ CUTSManager::CUTSManager():QObject(0)
     gotCPPCompiler = checkForCPPCompiler();
 
     //Set instance variables.
-    setXalanJPath(QApplication::applicationDirPath() % "/Resources/Binaries/");
-    setXSLTransformPath(QApplication::applicationDirPath() % "/Resources/Transforms/");
-    setScriptsPath(QApplication::applicationDirPath() % "/Resources/Scripts/");
+    setXalanJPath(QApplication::applicationDirPath() % "/resources/lib/Xalan/");
+    setXSLTransformPath(QApplication::applicationDirPath() % "/resources/transforms/");
+    setScriptsPath(QApplication::applicationDirPath() % "/resources/scripts/");
     setMaxThreadCount(4);
 }
 

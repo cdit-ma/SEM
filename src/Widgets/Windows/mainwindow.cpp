@@ -391,11 +391,6 @@ void MainWindow::initializeApplication()
     QApplication::setOrganizationDomain("https://github.com/cdit-ma/");
     QApplication::setWindowIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
 
-    //Set Font.
-    //int opensans_FontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
-    //QString opensans_fontname = QFontDatabase::applicationFontFamilies(opensans_FontID).at(0);
-    //QFont font = QFont(opensans_fontname);
-
     QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
     font.setPointSizeF(8.5);
