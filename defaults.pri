@@ -1,4 +1,4 @@
-VERSION = 2.0.2
+VERSION = 2.0.1
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 DEFINES += APP_URL=\\\"https://github.com/cdit-ma/MEDEA/\\\"
 
