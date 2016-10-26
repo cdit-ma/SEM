@@ -4,8 +4,8 @@ CONFIG += ordered
 
 SUBDIRS = \
         src \
-        app \
-        test
+        test \
+        app
 
 # Both app/test depends on source
 app.depends = src

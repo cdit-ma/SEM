@@ -12,11 +12,11 @@ LIBS += -lMEDEA_lib
 
 
 
-REL_LIB_PATH = $$DESTDIR/../src/MEDEA_lib
+REL_LIB_PATH = $$DESTDIR/../src/
 win32{
-    REL_LIB_PATH = $${REL_LIB_PATH}.lib
+    REL_LIB_PATH = $${REL_LIB_PATH}MEDEA_lib.lib
 }linux-g++ | macx{
-    REL_LIB_PATH = $${REL_LIB_PATH}.a
+    REL_LIB_PATH = $${REL_LIB_PATH}libMEDEA_lib.a
 }
 
 #Setting this forces a relink as part of compilation
