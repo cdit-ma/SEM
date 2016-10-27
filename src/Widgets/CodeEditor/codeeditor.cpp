@@ -12,10 +12,8 @@ CodeEditor::CodeEditor(QWidget *parent) : QPlainTextEdit(parent)
     highlighter = new SyntaxHighlighter(document());
 
     QAction* gotoLine = new QAction("Go to Line", this);
-    //gotoLine->setShortcutContext(Qt::Widget);
     gotoLine->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
     connect(gotoLine, SIGNAL(triggered(bool)), this, SLOT(gotoLine()));
-
 
     addAction(gotoLine);
 
