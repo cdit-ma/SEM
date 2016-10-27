@@ -17,6 +17,13 @@ private slots:
     //Tests
     void initializeControllerTest();
     void loadHelloWorldTest();
+
+private:
+    void actionCompleted(bool success, QString result);
+    bool actionPassed;
+    QString actionResult;
+
+
 };
 
 #endif //MODELCONTROLLERTESTS_H
