@@ -88,8 +88,6 @@ void DataTableWidget::setupLayout()
     toolbar->setIconSize(QSize(20,20));
     tableView = new DataTableView(this);
 
-    tableView->addAction(viewController->getActionController()->edit_renameActiveSelection);
-
     iconLabel = new QLabel(this);
     label = new QLabel(this);
 

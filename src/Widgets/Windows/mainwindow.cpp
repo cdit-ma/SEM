@@ -770,7 +770,7 @@ void MainWindow::setupDataTable()
     dockWidget->setWidget(tableWidget);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
 
-
+    //Add the rename action to the dockwidget so that it'll handle rename shortcut
     dockWidget->addAction(viewController->getActionController()->edit_renameActiveSelection);
 
     QAction* modelAction = viewController->getActionController()->model_selectModel;
