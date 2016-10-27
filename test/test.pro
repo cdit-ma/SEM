@@ -10,10 +10,20 @@ HEADERS += \
 SOURCES += \
     main.cpp \
     modelcontrollertests.cpp
-	
+
 #Link against the MEDEA_lib
 LIBS += -L../src
 LIBS += -lMEDEA_lib
+
+REL_LIB_PATH = ../src/
+win32{
+    REL_LIB_PATH = $${REL_LIB_PATH}MEDEA_lib.lib
+}linux-g++ | macx{
+    REL_LIB_PATH = $${REL_LIB_PATH}libMEDEA_lib.a
+}
+
+#Setting this forces a relink as part of compilation
+PRE_TARGETDEPS += $$REL_LIB_PATH
 
 RESOURCES += \
     resources.qrc
