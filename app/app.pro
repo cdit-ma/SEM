@@ -122,7 +122,11 @@ DISTFILES += \
     ../transforms/SchematronBuild.txt \
     ../transforms/SchematronReadme.txt \
     ../scripts/runCuts.pl \
-    ../scripts/Jenkins_Construct_GraphMLNodesList.groovy
+    ../scripts/Jenkins_Construct_GraphMLNodesList.groovy \
+    ../installer/config/config.xml \
+    ../installer/packages/cditma.MEDEA/meta/package.xml \
+    ../installer/packages/cditma.MEDEA/meta/license.txt \
+    ../installer/packages/cditma.MEDEA/meta/installscript.qs
 
 
 #Combine the Output Directory and the target directory.
@@ -163,4 +167,7 @@ macx{
     QMAKE_BUNDLE_DATA += LIB_FILES
     QMAKE_BUNDLE_DATA += TRANSFORMS_FILES
 }
+
+FORMS += \
+    ../installer/packages/cditma.MEDEA/meta/registerfilecheckboxform.ui
 

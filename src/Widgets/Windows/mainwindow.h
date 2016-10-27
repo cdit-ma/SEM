@@ -71,7 +71,6 @@ private slots:
 private:
     void setViewController(ViewController* vc);
     void initializeApplication();
-    void connectNodeView(NodeView* nodeView);
     void toggleWelcomeScreen(bool on);
     void saveSettings();
 

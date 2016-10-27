@@ -569,6 +569,17 @@ QList<RootAction *> ActionController::getRecentProjectActions()
     return actions;
 }
 
+QList<QAction *> ActionController::getNodeViewActions()
+{
+    QList<QAction*> actions;
+    foreach(RootAction* action, allActions){
+        if(action && action->shortcutContext() == Qt::WidgetWithChildrenShortcut){
+            actions.append(action);
+        }
+    }
+    return actions;
+}
+
 void ActionController::setupActions()
 {
     file_newProject = createRootAction("Project", "New Project", "", "Actions", "New");
@@ -628,33 +639,33 @@ void ActionController::setupActions()
 
     edit_cut = createRootAction("Edit", "Cut", "", "Actions", "Cut");
     edit_cut->setToolTip("Cut selection.");
-    edit_cut->setShortcutContext(Qt::ApplicationShortcut);
+    edit_cut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_cut->setShortcut(QKeySequence::Cut);
 
     edit_copy = createRootAction("Edit", "Copy", "", "Actions", "Copy");
     edit_copy->setToolTip("Copy selection.");
-    edit_copy->setShortcutContext(Qt::ApplicationShortcut);
+    edit_copy->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_copy->setShortcut(QKeySequence::Copy);
 
     edit_paste = createRootAction("Edit", "Paste", "", "Actions", "Paste");
     edit_paste->setToolTip("Paste clipboard into selected entity.");
-    edit_paste->setShortcutContext(Qt::ApplicationShortcut);
+    edit_paste->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_paste->setShortcut(QKeySequence::Paste);
 
     edit_replicate = createRootAction("Edit", "Replicate", "", "Actions", "Replicate");
     edit_replicate->setToolTip("Replicate the selected entities.");
-    edit_replicate->setShortcutContext(Qt::ApplicationShortcut);
+    edit_replicate->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_replicate->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
 
     edit_delete = createRootAction("Edit", "Delete", "Delete", "Actions", "Delete");
     edit_delete->setToolTip("Delete the selected entities.");
     edit_delete->setShortcut(QKeySequence::Delete);
-    edit_delete->setShortcutContext(Qt::ApplicationShortcut);
+    edit_delete->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     edit_renameActiveSelection = createRootAction("Edit", "Rename", "Rename", "Actions", "Rename");
     edit_renameActiveSelection->setToolTip("Rename the selected entity.");
     edit_renameActiveSelection->setShortcut(QKeySequence(Qt::Key_F2));
-    edit_renameActiveSelection->setShortcutContext(Qt::ApplicationShortcut);
+    edit_renameActiveSelection->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
 
 
@@ -688,16 +699,16 @@ void ActionController::setupActions()
     edit_selectAll = createRootAction("Selection", "Select All", "", "Actions", "SelectAll");
     edit_selectAll->setToolTip("Select all child entities of selection.");
     edit_selectAll->setShortcut(QKeySequence::SelectAll);
-    edit_selectAll->setShortcutContext(Qt::ApplicationShortcut);
+    edit_selectAll->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     edit_clearSelection = createRootAction("Selection", "Clear Selection", "", "Actions", "Clear");
     edit_clearSelection->setToolTip("Clear selection.");
     edit_clearSelection->setShortcut(QKeySequence(Qt::Key_Escape));
-    edit_clearSelection->setShortcutContext(Qt::ApplicationShortcut);
+    edit_clearSelection->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     view_fitView = createRootAction("View", "Fit View", "", "Actions", "FitToScreen");
     view_fitView->setToolTip("Center all entities in active view.");
-    view_fitView->setShortcutContext(Qt::ApplicationShortcut);
+    view_fitView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_fitView->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
 
     view_fitAllViews = createRootAction("View", "Fit All Views", "", "Actions", "FitToScreen");
@@ -712,22 +723,22 @@ void ActionController::setupActions()
 
     view_centerOnDefn = createRootAction("View", "Center On Definition", "", "Actions", "Definition");
     view_centerOnDefn->setToolTip("Center selected entity's Definition.");
-    view_centerOnDefn->setShortcutContext(Qt::ApplicationShortcut);
+    view_centerOnDefn->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_centerOnDefn->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
 
     view_centerOnImpl = createRootAction("View", "Center On Implementation", "", "Actions", "Implementation");
     view_centerOnImpl->setToolTip("Center selected entity's Implementation.");
-    view_centerOnImpl->setShortcutContext(Qt::ApplicationShortcut);
+    view_centerOnImpl->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_centerOnImpl->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
 
     view_viewDefnInNewWindow = createRootAction("View", "Show Definition in New Window", "", "Actions", "Definition");
     view_viewDefnInNewWindow->setToolTip("Popout selected entity's Definition.");
-    view_viewDefnInNewWindow->setShortcutContext(Qt::ApplicationShortcut);
+    view_viewDefnInNewWindow->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewDefnInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
 
     view_viewImplInNewWindow = createRootAction("View", "Show Implementation in New Window", "", "Actions", "Implementation");
     view_viewImplInNewWindow->setToolTip("Popout selected entity's Implementation.");
-    view_viewImplInNewWindow->setShortcutContext(Qt::ApplicationShortcut);
+    view_viewImplInNewWindow->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
     //window_showNotifications = createRootAction("View", "Show Notifications", "", "Actions", "Exclamation");
@@ -741,7 +752,7 @@ void ActionController::setupActions()
 
     view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Actions", "Connections");
     view_viewConnections->setToolTip("Center selected entity's connected entities.");
-    view_viewConnections->setShortcutContext(Qt::ApplicationShortcut);
+    view_viewConnections->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewConnections->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_E));
 
 

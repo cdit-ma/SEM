@@ -75,16 +75,13 @@ private slots:
 private slots:
     void selectionHandler_ItemSelectionChanged(ViewItem* item, bool selected);
     void selectionHandler_ItemActiveSelectionChanged(ViewItem* item, bool isActive);
-    void selectAll();
     void itemsMoved();
-
-
-
-    void clearSelection();
-
     void themeChanged();
 
 public slots:
+    void selectAll();
+    void clearSelection();
+
     void minimap_Pan(QPointF delta);
     void minimap_Zoom(int delta);
 private slots:

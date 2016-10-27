@@ -28,6 +28,8 @@ public:
 
     void updateIcon(RootAction* action, Theme* theme = Theme::theme());
     QList<RootAction*> getRecentProjectActions();
+
+    QList<QAction*> getNodeViewActions();
 private:
 
     RootAction* createRootAction(QString category, QString name, QString actionHash, QString iconPath="", QString aliasPath="");

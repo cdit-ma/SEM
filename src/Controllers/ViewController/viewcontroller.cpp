@@ -199,6 +199,23 @@ QMap<QString, ViewItem *> ViewController::getSearchResults(QString query)
     return results;
 }
 
+NodeViewDockWidget *ViewController::constructNodeViewDockWidget(QString label)
+{
+    BaseDockWidget *dw = WindowManager::constructNodeViewDockWidget(label);
+    NodeView* nodeView = new NodeView(dw);
+    dw->setWidget(nodeView);
+
+    if(actionController){
+        //Add all actions which need focus!
+        dw->addActions(actionController->getNodeViewActions());
+    }
+
+    //Setup NodeView
+    nodeView->setViewController(this);
+
+    return (NodeViewDockWidget*)dw;
+}
+
 QList<ViewItem *> ViewController::getExistingEdgeEndPointsForSelection(Edge::EDGE_KIND kind)
 {
     QList<ViewItem *> list;
@@ -595,20 +612,21 @@ QString ViewController::getTempFileForModel()
 void ViewController::spawnSubView(ViewItem * item)
 {
     if(item && item->isNode()){
-        BaseDockWidget *dockWidget = WindowManager::constructNodeViewDockWidget();
+        NodeViewDockWidget* dockWidget = constructNodeViewDockWidget();
+
+        //Setup Dock Widget
         dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
         dockWidget->setIcon(item->getIcon());
         dockWidget->setTitle(item->getData("label").toString());
 
-        NodeView* nodeView = new NodeView(dockWidget);
-        nodeView->setViewController(this);
+        //Set the NodeView to be contained on this NodeViewItem
+        dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
 
-        nodeView->setContainedNodeViewItem((NodeViewItem*)item);
-        dockWidget->setWidget(nodeView);
-
-        //Reparent
+        //Show the reparent DockWidget Widget
         WindowManager::manager()->reparentDockWidget(dockWidget);
-        nodeView->fitToScreen();
+
+        //Fit the contents of the dockwidget to screen
+        dockWidget->getNodeView()->fitToScreen();
     }
 }
 

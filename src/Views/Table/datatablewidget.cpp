@@ -16,6 +16,7 @@ DataTableWidget::DataTableWidget(ViewController *controller, QWidget *parent) : 
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     themeChanged();
 
+
     connect(viewController, &ViewController::vc_editTableCell, tableView, &DataTableView::editDataValue);
 }
 
@@ -83,8 +84,11 @@ void DataTableWidget::setupLayout()
 
     toolbar = new QToolBar(this);
     toolbar->setFixedHeight(32);
+
     toolbar->setIconSize(QSize(20,20));
     tableView = new DataTableView(this);
+
+    tableView->addAction(viewController->getActionController()->edit_renameActiveSelection);
 
     iconLabel = new QLabel(this);
     label = new QLabel(this);

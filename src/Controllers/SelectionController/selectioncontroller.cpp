@@ -143,8 +143,8 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *d)
     if(newDock != currentViewDockWidget){
         if(currentViewDockWidget){
             NodeView* nodeView = currentViewDockWidget->getNodeView();
-            disconnect(this, SIGNAL(clearSelection()), nodeView, SLOT(clearSelection()));
-            disconnect(this, SIGNAL(selectAll()), nodeView, SLOT(selectAll()));
+            disconnect(this, &SelectionController::clearSelection, nodeView, &NodeView::clearSelection);
+            disconnect(this, &SelectionController::selectAll, nodeView, &NodeView::selectAll);
         }
         currentViewDockWidget = newDock;
 
@@ -152,8 +152,8 @@ void SelectionController::setCurrentViewDockWidget(ViewDockWidget *d)
         if(currentViewDockWidget){
             selectionHandler = currentViewDockWidget->getSelectionHandler();
             NodeView* nodeView = currentViewDockWidget->getNodeView();
-            connect(this, SIGNAL(clearSelection()), nodeView, SLOT(clearSelection()));
-            connect(this, SIGNAL(selectAll()), nodeView, SLOT(selectAll()));
+            connect(this, &SelectionController::clearSelection, nodeView, &NodeView::clearSelection);
+            connect(this, &SelectionController::selectAll, nodeView, &NodeView::selectAll);
         }
 
         setCurrentSelectionHandler(selectionHandler);

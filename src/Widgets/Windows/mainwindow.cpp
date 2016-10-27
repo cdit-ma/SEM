@@ -403,18 +403,6 @@ void MainWindow::initializeApplication()
 
 
 /**
- * @brief MedeaMainWindow::connectNodeView
- * @param nodeView
- */
-void MainWindow::connectNodeView(NodeView *nodeView)
-{
-    if(nodeView && viewController){
-        nodeView->setViewController(viewController);
-    }
-}
-
-
-/**
  * @brief MedeaMainWindow::toggleWelcomeScreen
  * @param on
  */
@@ -484,51 +472,56 @@ void MainWindow::setupInnerWindow()
     innerWindow = WindowManager::constructCentralWindow("Main Window");
     setCentralWidget(innerWindow);
 
-    NodeView* nodeView_Interfaces = new NodeView();
-    NodeView* nodeView_Behaviour = new NodeView();
-    NodeView* nodeView_Assemblies = new NodeView();
-    NodeView* nodeView_Hardware = new NodeView();
-    QOSBrowser* qosBrowser = new QOSBrowser(viewController, this);
 
-    nodeView_Interfaces->setContainedViewAspect(VA_INTERFACES);
-    nodeView_Behaviour->setContainedViewAspect(VA_BEHAVIOUR);
-    nodeView_Assemblies->setContainedViewAspect(VA_ASSEMBLIES);
-    nodeView_Hardware->setContainedViewAspect(VA_HARDWARE);
+    //Construct dockWidgets.
+    NodeViewDockWidget* dwInterfaces = viewController->constructNodeViewDockWidget("Interface");
+    NodeViewDockWidget* dwBehaviour = viewController->constructNodeViewDockWidget("Behaviour");
+    NodeViewDockWidget* dwAssemblies = viewController->constructNodeViewDockWidget("Assemblies");
+    NodeViewDockWidget* dwHardware = viewController->constructNodeViewDockWidget("Hardware");
 
-    BaseDockWidget *dwInterfaces = WindowManager::constructNodeViewDockWidget("Interface", Qt::TopDockWidgetArea);
-    dwInterfaces->setWidget(nodeView_Interfaces);
+    BaseDockWidget *dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
+    dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
+
+    //Set each NodeView with there contained aspects
+    dwInterfaces->getNodeView()->setContainedViewAspect(VA_INTERFACES);
+    dwBehaviour->getNodeView()->setContainedViewAspect(VA_BEHAVIOUR);
+    dwAssemblies->getNodeView()->setContainedViewAspect(VA_ASSEMBLIES);
+    dwHardware->getNodeView()->setContainedViewAspect(VA_HARDWARE);
+
+    //Set allowed areas
     dwInterfaces->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dwInterfaces->setIcon("Items", "InterfaceDefinitions");
-    dwInterfaces->setIconVisible(false);
-
-    BaseDockWidget *dwBehaviour = WindowManager::constructNodeViewDockWidget("Behaviour", Qt::TopDockWidgetArea);
-    dwBehaviour->setWidget(nodeView_Behaviour);
     dwBehaviour->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dwBehaviour->setIcon("Items", "BehaviourDefinitions");
-    dwBehaviour->setIconVisible(false);
-
-    BaseDockWidget *dwAssemblies = WindowManager::constructNodeViewDockWidget("Assemblies", Qt::BottomDockWidgetArea);
-    dwAssemblies->setWidget(nodeView_Assemblies);
     dwAssemblies->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dwAssemblies->setIcon("Items", "AssemblyDefinitions");
-    dwAssemblies->setIconVisible(false);
-
-    BaseDockWidget *dwHardware = WindowManager::constructNodeViewDockWidget("Hardware", Qt::BottomDockWidgetArea);
-    dwHardware->setWidget(nodeView_Hardware);
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+
+    //Set initial area
+    dwInterfaces->setDockWidgetArea(Qt::TopDockWidgetArea);
+    dwBehaviour->setDockWidgetArea(Qt::TopDockWidgetArea);
+    dwAssemblies->setDockWidgetArea(Qt::BottomDockWidgetArea);
+    dwHardware->setDockWidgetArea(Qt::BottomDockWidgetArea);
+    dwQOSBrowser->setDockWidgetArea(Qt::TopDockWidgetArea);
+
+    //Set Icons
+    dwInterfaces->setIcon("Items", "InterfaceDefinitions");
+    dwBehaviour->setIcon("Items", "BehaviourDefinitions");
+    dwAssemblies->setIcon("Items", "AssemblyDefinitions");
     dwHardware->setIcon("Items", "HardwareDefinitions");
+    dwQOSBrowser->setIcon("Items", "QOSProfile");
+
+    //Set Icon Visibility
+    dwInterfaces->setIconVisible(false);
+    dwBehaviour->setIconVisible(false);
+    dwAssemblies->setIconVisible(false);
     dwHardware->setIconVisible(false);
+    dwQOSBrowser->setIconVisible(true);
 
-    BaseDockWidget *qosDockWidget = WindowManager::constructViewDockWidget("QOS Browser");
-    qosDockWidget->setWidget(qosBrowser);
-    qosDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    qosDockWidget->setIcon("Items", "QOSProfile");
-
+    //Protected from deletion
     dwInterfaces->setProtected(true);
     dwBehaviour->setProtected(true);
     dwAssemblies->setProtected(true);
     dwHardware->setProtected(true);
-    qosDockWidget->setProtected(true);
+    dwQOSBrowser->setProtected(true);
 
     SettingsController* s = SettingsController::settings();
 
@@ -536,36 +529,18 @@ void MainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, qosDockWidget);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
 
     innerWindow->setDockWidgetVisibility(dwInterfaces,   s->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwBehaviour,    s->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwAssemblies,   s->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwHardware,     s->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
-    innerWindow->setDockWidgetVisibility(qosDockWidget,  s->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
+    innerWindow->setDockWidgetVisibility(dwQOSBrowser,  s->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
 
     // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
     // application if it's called before the dock widgets are added above
     // This function needs to be called after the code above and before the connections below
     setupMenuCornerWidget();
-
-    connectNodeView(nodeView_Interfaces);
-    connectNodeView(nodeView_Behaviour);
-    connectNodeView(nodeView_Assemblies);
-    connectNodeView(nodeView_Hardware);
-
-    // connect aspect toggle buttons
-    /*
-    connect(dwInterfaces, SIGNAL(visibilityChanged(bool)), interfaceButton, SLOT(setChecked(bool)));
-    connect(dwBehaviour, SIGNAL(visibilityChanged(bool)), behaviourButton, SLOT(setChecked(bool)));
-    connect(dwAssemblies, SIGNAL(visibilityChanged(bool)), assemblyButton, SLOT(setChecked(bool)));
-    connect(dwHardware, SIGNAL(visibilityChanged(bool)), hardwareButton, SLOT(setChecked(bool)));
-    connect(interfaceButton, SIGNAL(clicked(bool)), dwInterfaces, SLOT(setVisible(bool)));
-    connect(behaviourButton, SIGNAL(clicked(bool)), dwBehaviour, SLOT(setVisible(bool)));
-    connect(assemblyButton, SIGNAL(clicked(bool)), dwAssemblies, SLOT(setVisible(bool)));
-    connect(hardwareButton, SIGNAL(clicked(bool)), dwHardware, SLOT(setVisible(bool)));
-    connect(restoreAspectsButton, SIGNAL(clicked(bool)), innerWindow, SLOT(resetDockWidgets()));
-    */
 }
 
 
@@ -789,11 +764,14 @@ void MainWindow::setupDock()
  */
 void MainWindow::setupDataTable()
 {
-    tableWidget = new DataTableWidget(viewController, this);
 
     BaseDockWidget* dockWidget = WindowManager::constructToolDockWidget("Table");
+    tableWidget = new DataTableWidget(viewController, dockWidget);
     dockWidget->setWidget(tableWidget);
     dockWidget->setAllowedAreas(Qt::RightDockWidgetArea);
+
+
+    dockWidget->addAction(viewController->getActionController()->edit_renameActiveSelection);
 
     QAction* modelAction = viewController->getActionController()->model_selectModel;
     modelAction->setToolTip("Show Model's Table");

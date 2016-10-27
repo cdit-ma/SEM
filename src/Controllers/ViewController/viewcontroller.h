@@ -35,7 +35,7 @@ public:
 
     QMap<QString, ViewItem*> getSearchResults(QString result);
 
-
+    NodeViewDockWidget* constructNodeViewDockWidget(QString label="");
 
     QStringList getAdoptableNodeKinds();
 

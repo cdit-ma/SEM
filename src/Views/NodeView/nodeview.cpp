@@ -63,6 +63,7 @@ NodeView::NodeView(QWidget* parent):QGraphicsView(parent)
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
     themeChanged();
+
 }
 
 NodeView::~NodeView()
@@ -1048,7 +1049,7 @@ void NodeView::_clearSelection()
 {
     if(selectionHandler){
         //Depending on the type of NodeView we are.
-        if(isAspectView && containedNodeViewItem){
+        if(containedNodeViewItem){
             //If we are the aspect select the aspect.
             selectionHandler->toggleItemsSelection(containedNodeViewItem);
         }else{
