@@ -66,6 +66,11 @@ int EntityItem::type() const
     return ENTITY_ITEM_KIND;
 }
 
+bool EntityItem::isHidden() const
+{
+    return !isVisible();
+}
+
 void EntityItem::setTertiaryIcon(QString path, QString image)
 {
     tertiaryIconPath.first = path;
@@ -163,6 +168,9 @@ QRectF EntityItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 
     switch(rect){
         case ER_SELECTION:
+            r = currentRect();
+            break;
+        case ER_MOVE:
             r = currentRect();
             break;
         default:

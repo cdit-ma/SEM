@@ -13,6 +13,7 @@
 #include "SceneItems/Node/hardwarenodeitem.h"
 
 #include "SceneItems/Edge/edgeitem.h"
+#include "SceneItems/Edge/edgeitem2.h"
 #include "theme.h"
 
 
@@ -866,7 +867,7 @@ void NodeView::edgeViewItem_Constructed(EdgeViewItem *item)
     NodeItem* destination = getParentNodeItem(item->getDestination());
 
     if(source && destination){
-        EdgeItem* edgeItem = new EdgeItem(item, parent,source,destination);
+        EdgeItem2* edgeItem = new EdgeItem2(item, parent,source,destination);
 
 
         if(edgeItem){

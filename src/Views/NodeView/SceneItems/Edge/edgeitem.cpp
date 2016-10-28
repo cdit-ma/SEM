@@ -27,7 +27,7 @@ EdgeItem::EdgeItem(EdgeViewItem* edgeViewItem, NodeItem * parent, NodeItem* sour
 
     //Add the edge to the parent
     if(parent){
-        parent->addChildEdge(this);
+        //parent->addChildEdge(this);
         pen.setColor(parent->getBaseBodyColor().darker(300));
     }
 

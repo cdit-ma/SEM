@@ -180,7 +180,8 @@ HEADERS += \
 	Widgets/ViewManager/dockitem.h \
 	Controllers/NotificationManager/notificationmanager.h \
 	Widgets/Dialogs/validationdialog.h \
-	Widgets/Dialogs/validationdialog.h
+	Widgets/Dialogs/validationdialog.h \
+    Views/NodeView/SceneItems/Edge/edgeitem2.h
 
 
 SOURCES += \
@@ -351,7 +352,8 @@ SOURCES += \
 	Widgets/ViewManager/dockitem.cpp \
 	Controllers/NotificationManager/notificationmanager.cpp \
 	Widgets/Dialogs/validationdialog.cpp \
-	Widgets/Dialogs/validationdialog.cpp
+	Widgets/Dialogs/validationdialog.cpp \
+    Views/NodeView/SceneItems/Edge/edgeitem2.cpp
 
 RESOURCES += \
 	resources.qrc

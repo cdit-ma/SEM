@@ -61,6 +61,8 @@ public:
     ~EntityItem();
     int type() const;
 
+    bool isHidden() const;
+
     RENDER_STATE getRenderState(qreal lod) const;
     EntityItem* getParent() const;
     NodeItem* getParentNodeItem() const;

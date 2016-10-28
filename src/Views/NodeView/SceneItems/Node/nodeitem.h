@@ -3,7 +3,7 @@
 
 #include "../entityitem.h"
 #include "../../../../Controllers/ViewController/nodeviewitem.h"
-#include "../Edge/edgeitem.h"
+#include "../Edge/edgeitem2.h"
 
 class NodeItem: public EntityItem
 {
@@ -40,9 +40,9 @@ public:
 
     QPainterPath getChildNodePath();
 
-    void addChildEdge(EdgeItem* edgeItem);
+    void addChildEdge(EdgeItem2* edgeItem);
     void removeChildEdge(int ID);
-    QList<EdgeItem*> getChildEdges() const;
+    QList<EdgeItem2*> getChildEdges() const;
 
     QRectF getNearestGridOutline();
     QPointF getNearestGridPointToCenter();
@@ -220,7 +220,7 @@ private:
     VIEW_ASPECT aspect;
 
     QHash<int, NodeItem*> childNodes;
-    QHash<int, EdgeItem*> childEdges;
+    QHash<int, EdgeItem2*> childEdges;
 
     QPainterPath gridLines;
 
