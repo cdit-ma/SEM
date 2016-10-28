@@ -132,7 +132,6 @@ HEADERS += \
 	Views/Dock/dockwidgetactionitem.h \
 	Views/Dock/dockwidgetitem.h \
 	Views/Dock/dockwidgetparentactionitem.h \
-	Views/NodeView/SceneItems/Edge/edgeitem.h \
 	Views/NodeView/SceneItems/Node/basicnodeitem.h \
 	Views/NodeView/SceneItems/Node/defaultnodeitem.h \
 	Views/NodeView/SceneItems/Node/hardwarenodeitem.h \
@@ -181,7 +180,7 @@ HEADERS += \
 	Controllers/NotificationManager/notificationmanager.h \
 	Widgets/Dialogs/validationdialog.h \
 	Widgets/Dialogs/validationdialog.h \
-    Views/NodeView/SceneItems/Edge/edgeitem2.h
+        Views/NodeView/SceneItems/Edge/edgeitem.h
 
 
 SOURCES += \
@@ -306,7 +305,6 @@ SOURCES += \
 	Views/Dock/dockwidgetactionitem.cpp \
 	Views/Dock/dockwidgetitem.cpp \
 	Views/Dock/dockwidgetparentactionitem.cpp \
-	Views/NodeView/SceneItems/Edge/edgeitem.cpp \
 	Views/NodeView/SceneItems/Node/basicnodeitem.cpp \
 	Views/NodeView/SceneItems/Node/defaultnodeitem.cpp \
 	Views/NodeView/SceneItems/Node/hardwarenodeitem.cpp \
@@ -353,7 +351,7 @@ SOURCES += \
 	Controllers/NotificationManager/notificationmanager.cpp \
 	Widgets/Dialogs/validationdialog.cpp \
 	Widgets/Dialogs/validationdialog.cpp \
-    Views/NodeView/SceneItems/Edge/edgeitem2.cpp
+    Views/NodeView/SceneItems/Edge/edgeitem.cpp
 
 RESOURCES += \
 	resources.qrc

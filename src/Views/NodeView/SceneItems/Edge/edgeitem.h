@@ -16,96 +16,99 @@ public:
     QPointF getPos() const;
 
     QRectF boundingRect() const;
+    QPointF getSceneEdgeTermination(bool left) const;
     QRectF currentRect() const;
 
-    QPointF getTopLeftOffset() const;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF getElementRect(ELEMENT_RECT rect) const;
     QPainterPath getElementPath(ELEMENT_RECT rect) const;
+
     void setMoveStarted();
     bool setMoveFinished();
 
-private:
-    QRectF centerRect() const;
-    QRectF translatedCenterRect() const;
-
-    QRectF centerIconRect() const;
-
-    QRectF sourceIconRect() const;
-    QRectF destinationIconRect() const;
-
-    QRectF sourceIconCircle() const;
-    QRectF destinationIconCircle() const;
-
-    QPainterPath trianglePath(QPointF startPoint, bool pointRight=true) const;
-
-    NodeItem* getVisibleSource() const;
-    NodeItem* getVisibleDestination() const;
-
-    NodeItem* getParentNodeItem() const;
-
-    NodeItem* getSourceItem() const;
-    NodeItem* getDestinationItem() const;
-
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
-    QPointF getSourcePos(QPointF center = QPointF()) const;
-    bool sourceExitsLeft(QPointF center = QPointF()) const;
-
-    QPointF getDestinationPos(QPointF center = QPointF()) const;
-    bool destinationEntersLeft(QPointF center = QPointF()) const;
-
-    QPointF getSceneEdgeTermination(bool left) const;
-
-    void resetPosition();
-
-
-    QPointF getSceneCenter() const;
+protected:
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
 private slots:
-    void sourceParentVisibilityChanged();
-    void destinationParentVisibilityChanged();
+    void dataChanged(QString keyName, QVariant data);
+    void dataRemoved(QString keyName);
 
-    void sourceParentMoved();
-    void destinationParentMoved();
-
-    void centerPointMoved();
 private:
-    void recalcSrcCurve(bool reset = false);
-    void recalcDstCurve(bool reset = false);
+    QPainterPath trianglePath(QPointF startPoint, bool pointRight=true) const;
+
+    QRectF srcIconRect() const;
+    QRectF centerIconRect() const;
+    QRectF dstIconRect() const;
+
+    QRectF srcIconCircle() const;
+    QRectF dstIconCircle() const;
 
 
-    void setManuallyPositioned(bool value);
-    bool hasSetPosition() const;
+    QPointF getCenterCircleTermination(bool left, QPointF center = QPointF()) const;
+    QRectF centerCircleRect() const;
+    QRectF translatedCenterCircleRect(QPointF center = QPointF()) const;
+    QRectF sceneCenterCircleRect() const;
 
-    bool _hasPosition;
-    QPointF itemPos;
 
-    EdgeViewItem* edgeViewItem;
+    bool srcExitsLeft(QPointF center = QPointF()) const;
+    bool dstExitsLeft(QPointF center = QPointF()) const;
+    bool srcLeftOfDst() const;
 
-    NodeItem* sourceItem;
-    NodeItem* destinationItem;
 
-    NodeItem* currentSrcItem;
-    NodeItem* currentDstItem;
+    void srcParentVisibilityChanged();
+    void dstParentVisibilityChanged();
+
+    void srcParentMoved();
+    void dstParentMoved();
+    void centerMoved();
+
+    void recalcSrcCurve();
+    void recalcDstCurve();
+    void recalculateEdgeDirections();
+
+    void resetCenter();
+
+    NodeItem* getFirstVisibleParent(NodeItem* item);
+
+
+
+    NodeItem* src;
+    NodeItem* dst;
+
 
     QPainterPath sourceCurve;
     QPainterPath destinationCurve;
     QPainterPath sourceArrow;
     QPainterPath destinationArrow;
 
+
+
+    QPointF srcCurveP1;
+    QPointF srcCurveP2;
+    bool srcCurveP1Left;
+    bool srcCurveP2Left;
+
+    QPointF dstCurveP1;
+    QPointF dstCurveP2;
+    bool dstCurveP1Left;
+    bool dstCurveP2Left;
+
+
+    bool dstLeft;
+
     QMarginsF margins;
+    NodeItem* vSrc;
+    NodeItem* vDst;
+
+    bool isCentered() const;
+
+    void setCentered(bool centered);
 
 
-
-private slots:
-    void dataChanged(QString keyName, QVariant data);
-    void dataRemoved(QString keyName);
-
-public:
-
-protected:
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
-
+    bool _isCentered;
+    QPointF _centerPoint;
 };
 
-#endif // EDGEITEMNEW_H
+
+
+#endif // EDGEITEM_H

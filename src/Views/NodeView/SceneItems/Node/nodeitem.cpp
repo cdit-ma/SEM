@@ -200,14 +200,14 @@ QList<EntityItem *> NodeItem::getChildEntities() const
     foreach(NodeItem* node, getChildNodes()){
         children.append(node);
     }
-    foreach(EdgeItem2* edge, getChildEdges()){
+    foreach(EdgeItem* edge, getChildEdges()){
         children.append(edge);
     }
     return children;
 }
 
 
-void NodeItem::addChildEdge(EdgeItem2 *edgeItem)
+void NodeItem::addChildEdge(EdgeItem *edgeItem)
 {
     int ID = edgeItem->getID();
     if(!childEdges.contains(ID)){
@@ -224,13 +224,13 @@ void NodeItem::addChildEdge(EdgeItem2 *edgeItem)
 void NodeItem::removeChildEdge(int ID)
 {
     if(childEdges.contains(ID)){
-        EdgeItem2* item = childEdges[ID];
+        EdgeItem* item = childEdges[ID];
         item->unsetParent();
         childEdges.remove(ID);
     }
 }
 
-QList<EdgeItem2 *> NodeItem::getChildEdges() const
+QList<EdgeItem *> NodeItem::getChildEdges() const
 {
     return childEdges.values();
 }
