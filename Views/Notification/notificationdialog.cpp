@@ -16,7 +16,8 @@
  * @brief NotificationDialog::NotificationDialog
  * @param parent
  */
-NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
+NotificationDialog::NotificationDialog(QWidget *parent) :
+    QDialog(parent)
 {
     typeActionMapper = new QSignalMapper(this);
 
@@ -35,6 +36,9 @@ NotificationDialog::NotificationDialog(QWidget *parent) : QDialog(parent)
 
     connect(typeActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),this, &NotificationDialog::typeActionToggled);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
+
+
+    connect(this, &NotificationDialog::itemDeleted, NotificationManager::manager(), &NotificationManager::deleteNotification);
 
     themeChanged();
     updateVisibilityCount(0, true);
@@ -206,6 +210,16 @@ void NotificationDialog::clearNotifications()
     } else if (senderObj == clearWarnings){
         clearNotificationsOfType(NT_WARNING);
     }
+}
+
+
+/**
+ * @brief NotificationDialog::notificationItemAdded
+ * @param item
+ */
+void NotificationDialog::notificationItemAdded(NotificationItem *item)
+{
+
 }
 
 
@@ -451,6 +465,7 @@ void NotificationDialog::updateTypeActions(QList<NOTIFICATION_TYPE> types)
 
 /**
  * @brief NotificationDialog::updateTypeAction
+ * This updates the text (displaying the items count) in the button for the particular type.
  * @param type
  */
 void NotificationDialog::updateTypeAction(NOTIFICATION_TYPE type)
@@ -565,5 +580,58 @@ void NotificationDialog::updateVisibilityCount(int val, bool set)
     bool enableAction = visibleCount > 0;
     if (enableAction != clearVisibleAction->isEnabled()) {
         clearVisibleAction->setEnabled(enableAction);
+    }
+}
+
+
+
+void NotificationDialog::constructNotificationItem(int ID, NOTIFICATION_TYPE type, QString title, QString description, QPair<QString, QString> iconPath, int entityID)
+{
+    if (iconPath.first.isEmpty() || iconPath.second.isEmpty()) {
+        iconPath = getActionIcon(type);
+    }
+
+    QListWidgetItem* listItem = new QListWidgetItem();
+
+    //Set Data to item.
+    listItem->setData(IR_TYPE, type);
+    listItem->setData(IR_ICONPATH, iconPath.first);
+    listItem->setData(IR_ICONNAME, iconPath.second);
+    listItem->setData(IR_ENTITYID, entityID);
+    listItem->setData(IR_ID, ID);
+
+    /*
+    QLabel* textLabel = new QLabel("[" % title % "] " % description, this);
+    QLabel* timeLabel = new QLabel((new QTime())->currentTime().toString(), this);
+
+    QFrame* itemFrame = new QFrame(this);
+    QHBoxLayout* frameLayout = new QHBoxLayout(itemFrame);
+    frameLayout->setMargin(0);
+    frameLayout->addWidget(textLabel, 1);
+    frameLayout->addWidget(timeLabel);
+
+    listItem->setSizeHint(itemFrame->sizeHint());
+    */
+
+    //Set the Icon and Text
+    listItem->setText("[" % title % "] " % description);
+    listItem->setIcon(Theme::theme()->getIcon(iconPath));
+
+    //Insert in the listWidget at 0
+    listWidget->insertItem(0, listItem);
+    //listWidget->setItemWidget(listItem, itemFrame);
+
+    //Put in the multimap and hash
+    notificationHash.insertMulti(type, listItem);
+    notificationIDHash[ID] = listItem;
+
+    QAction* typeAction = getTypeAction(type);
+    if (typeAction) {
+        bool actionVisible = typeAction->isChecked();
+        listWidget->setRowHidden(0, !actionVisible);
+        updateTypeAction(type);
+        if (actionVisible) {
+            updateVisibilityCount(1);
+        }
     }
 }

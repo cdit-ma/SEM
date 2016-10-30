@@ -9,7 +9,10 @@
 #include <QActionGroup>
 #include <QSignalMapper>
 #include <QToolBar>
+
 #include "enumerations.h"
+#include "../../Controllers/NotificationManager/notificationmanager.h"
+//#include "notificationitem.h"
 
 class NotificationDialog : public QDialog
 {
@@ -51,6 +54,7 @@ private slots:
     void clearVisible();
     void clearNotifications();
 
+    void notificationItemAdded(NotificationItem* item);
     void notificationItemClicked(QListWidgetItem* item);
 
 private:

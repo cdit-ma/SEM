@@ -1,10 +1,10 @@
 #include "notificationmanager.h"
 #include "../WindowManager/windowmanager.h"
 #include "../../Widgets/Windows/mainwindow.h"
+#include "../../Views/Notification/notificationitem.h"
 
 
 NotificationManager* NotificationManager::managerSingleton = 0;
-int NotificationManager::_NotificationID  = 0;
 
 
 /**
@@ -14,7 +14,7 @@ int NotificationManager::_NotificationID  = 0;
 NotificationManager* NotificationManager::manager()
 {
     if (!managerSingleton) {
-        //managerSingleton = new NotificationManager();
+        managerSingleton = new NotificationManager();
     }
     return managerSingleton;
 }
@@ -33,47 +33,23 @@ void NotificationManager::tearDown()
 
 
 /**
- * @brief NotificationManager::NotificationManager
- * @param vc
- * @param parent
- */
-NotificationManager::NotificationManager(ViewController *vc, QWidget *parent) : QObject(parent)
-{
-    viewController = vc;
-    notificationDialog = new NotificationDialog(parent);
-}
-
-
-/**
  * @brief NotificationManager::notificationReceived
  * @param type
  * @param title
  * @param description
  * @param iconPath
  * @param iconName
- * @param ID
+ * @param entityID
  */
-void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int ID)
+void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int entityID)
 {
-    if (notifications.contains(ID)) {
-        return;
-    }
+    // construct notification item
+    NotificationItem* item = new NotificationItem(title, description, iconPath, iconName, entityID, NT_MODEL, NC_NONE, NS_INFO, this);
+    notificationItems[item->ID()] = item;
+    lastNotificationItem = item;
 
-    // store notification in hash
-    Notification n;
-    n.type = type;
-    n.title = title;
-    n.description = description;
-    n.iconPath = iconPath;
-    n.iconName = iconName;
-    n.entityID = ID;
-    n.ID = ++_NotificationID;
-
-    notifications[n.ID] = n;
-    lastNotification = n;
-
-    // add notification to dialog
-    notificationDialog->addNotificationItem(n.ID, type, title, description, QPair<QString, QString>(iconPath, iconName), ID);
+    // send signal to notification dialog
+    emit notificationItemAdded(item);
 
     // send signal to main window to display notification toast
     emit notificationAdded(iconPath, iconName, description);
@@ -86,8 +62,8 @@ void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString t
  */
 void NotificationManager::showLastNotification()
 {
-    if (!notifications.isEmpty()) {
-        emit notificationAdded(lastNotification.iconPath, lastNotification.iconName, lastNotification.description);
+    if (!notificationItems.isEmpty()) {
+        emit notificationAdded(lastNotificationItem->iconPath(), lastNotificationItem->iconName(), lastNotificationItem->description());
     }
 }
 
@@ -99,17 +75,11 @@ void NotificationManager::showLastNotification()
  */
 void NotificationManager::deleteNotification(int ID)
 {
-    // if the sender object is not the dialog, remove item from dialog
-    if (sender() != notificationDialog) {
-        notificationDialog->removeNotificationItem(ID);
-        return;
-    }
-
     // remove from hash
-    notifications.remove(ID);
+    notificationItems.remove(ID);
 
     // check if the deleted notification is the last notification
-    if (lastNotification.ID == ID) {
+    if (lastNotificationItem->ID() == ID) {
         int topNotificationID = notificationDialog->getTopNotificationID();
         if (topNotificationID == -1) {
             // if top ID is -1, it means that the notifications list is empty
@@ -117,7 +87,7 @@ void NotificationManager::deleteNotification(int ID)
         } else {
             // remove highlight from the button when the last notification is deleted
             emit notificationSeen();
-            lastNotification = notifications.value(topNotificationID);
+            lastNotificationItem = notificationItems.value(topNotificationID);
         }
     }
 }

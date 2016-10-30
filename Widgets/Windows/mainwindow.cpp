@@ -45,6 +45,7 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
+    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
 
     setViewController(vc);
 
@@ -92,20 +93,8 @@ void MainWindow::setViewController(ViewController *vc)
 
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
-    NotificationManager* notificationManager = new NotificationManager(viewController, this);
 
-    connect(notificationManager, &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
-    connect(viewController, &ViewController::vc_setupModel, notificationToolbar, &NotificationToolbar::notificationsSeen);
-    connect(viewController, &ViewController::vc_showNotification, notificationManager, &NotificationManager::notificationReceived);
-    //connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
-    //connect(notificationDialog, &NotificationDialog::updateTypeCount, this, &NotificationManager::updateTypeCount);
-    //connect(notificationDialog, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
-    //connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
-    //connect(notificationDialog, &NotificationDialog::itemDeleted, this, &NotificationManager::deleteNotification);
-    connect(notificationManager, &NotificationManager::notificationAdded, notificationToolbar, &NotificationToolbar::notificationReceived);
-    connect(notificationManager, &NotificationManager::notificationSeen, notificationToolbar, &NotificationToolbar::notificationsSeen);
-    connect(notificationManager, &NotificationManager::lastNotificationDeleted, notificationToolbar, &NotificationToolbar::lastNotificationDeleted);
-    connect(viewController, &ViewController::vc_showNotification, notificationManager, &NotificationManager::notificationReceived);
+    connect(viewController, &ViewController::vc_showNotification, NotificationManager::manager(), &NotificationManager::notificationReceived);
 
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
@@ -863,6 +852,7 @@ void MainWindow::setupMenuCornerWidget()
     restoreToolsButton->setStyleSheet("border-radius: 4px;");
 
     notificationToolbar = new NotificationToolbar(viewController, this);
+    notificationDialog = new NotificationDialog(this);
 
     QToolBar* tb = new QToolBar(this);
     tb->setStyleSheet("QToolBar{ padding: 0px; } QToolButton{ padding: 3px 2px; }");
@@ -880,8 +870,12 @@ void MainWindow::setupMenuCornerWidget()
     menuBar->setCornerWidget(w);
 
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
-    //connect(notificationToolbar, &NotificationToolbar::toggleDialog, notificationDialog, &NotificationDialog::toggleVisibility);
-    //connect(notificationDialog, &NotificationDialog::updateTypeCount, this, &NotificationManager::updateTypeCount);
+    connect(viewController, &ViewController::vc_setupModel, notificationToolbar, &NotificationToolbar::notificationsSeen);
+    connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
+    connect(notificationToolbar, &NotificationToolbar::toggleDialog, notificationDialog, &NotificationDialog::toggleVisibility);
+    connect(notificationDialog, &NotificationDialog::updateTypeCount, notificationToolbar, &NotificationToolbar::updateTypeCount);
+    connect(notificationDialog, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
+    connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
 }
 
 

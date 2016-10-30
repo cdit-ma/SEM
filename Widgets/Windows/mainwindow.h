@@ -131,6 +131,8 @@ private:
     QTimer* notificationTimer;
 
     NotificationToolbar* notificationToolbar;
+    NotificationDialog* notificationDialog;
+
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;
 

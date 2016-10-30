@@ -1,5 +1,6 @@
 #include "notificationtoolbar.h"
 #include "../../theme.h"
+#include "../../Controllers/NotificationManager/notificationmanager.h"
 
 #include <QGraphicsDropShadowEffect>
 
@@ -19,6 +20,11 @@ NotificationToolbar::NotificationToolbar(ViewController* vc, QWidget *parent) :
 
     connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
     connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::toggleDialog);
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationToolbar::themeChanged);
+    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &NotificationToolbar::notificationReceived);
+    connect(NotificationManager::manager(), &NotificationManager::notificationSeen, this, &NotificationToolbar::notificationsSeen);
+    connect(NotificationManager::manager(), &NotificationManager::lastNotificationDeleted, this, &NotificationToolbar::lastNotificationDeleted);
 }
 
 
