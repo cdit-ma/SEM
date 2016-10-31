@@ -94,7 +94,9 @@ void MainWindow::setViewController(ViewController *vc)
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
 
+    //connect(viewController, &ViewController::vc_newNotification, NotificationManager::manager(), &NotificationManager::newNotification);
     connect(viewController, &ViewController::vc_showNotification, NotificationManager::manager(), &NotificationManager::notificationReceived);
+    connect(viewController, &ViewController::vc_modelValidated, NotificationManager::manager(), &NotificationManager::modelValidated);
 
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
@@ -145,6 +147,7 @@ void MainWindow::searchEntered()
  */
 void MainWindow::popupNotification(QString iconPath, QString iconName, QString description)
 {
+    notificationPopup->hide();
     notificationTimer->stop();
 
     if (!welcomeScreenOn) {
@@ -870,6 +873,8 @@ void MainWindow::setupMenuCornerWidget()
     menuBar->setCornerWidget(w);
 
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
+    connect(viewController, &ViewController::vc_backgroundProcessStarted, notificationToolbar, &NotificationToolbar::displayLoadingGif);
+    connect(viewController, &ViewController::vc_backgroundProcessFinished, notificationToolbar, &NotificationToolbar::displayLoadingGif);
     connect(viewController, &ViewController::vc_setupModel, notificationToolbar, &NotificationToolbar::notificationsSeen);
     connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
     connect(notificationToolbar, &NotificationToolbar::toggleDialog, notificationDialog, &NotificationDialog::toggleVisibility);

@@ -4,15 +4,13 @@
 #include <QDialog>
 #include <QListWidget>
 #include <QListWidgetItem>
-#include <QToolButton>
-#include <QComboBox>
 #include <QActionGroup>
 #include <QSignalMapper>
 #include <QToolBar>
 
 #include "enumerations.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Views/Notification/notificationitem.h"
+#include "../../Views/Notification/notificationobject.h"
 
 class NotificationDialog : public QDialog
 {
@@ -22,22 +20,24 @@ class NotificationDialog : public QDialog
         IR_ICONPATH = Qt::UserRole + 3,
         IR_ICONNAME = Qt::UserRole + 4,
         IR_ENTITYID = Qt::UserRole + 5,
+        IR_TIMESTAMP = Qt::UserRole + 6
     };
 
     Q_OBJECT
 public:
     explicit NotificationDialog(QWidget *parent = 0);
 
-    void addNotificationItem(int ID, NotificationManager::NOTIFICATION_SEVERITY severity, QString title, QString description, QPair<QString, QString> iconPath, int entityID);
     void removeNotificationItem(int ID);
 
 signals:
     void centerOn(int entityID);
+    void popup(int entityID);
+
     void itemDeleted(int ID);
 
     void lastNotificationID(int ID);
 
-    void updateSeverityCount(NotificationManager::NOTIFICATION_SEVERITY severity, int count);
+    void updateSeverityCount(NOTIFICATION_SEVERITY severity, int count);
 
     void mouseEntered();
 
@@ -52,10 +52,12 @@ private slots:
 
     void severityActionToggled(int actionSeverity);
 
+    void displaySelection();
+
     void clearSelected();
     void clearVisible();
 
-    void notificationItemAdded(NotificationItem* item);
+    void notificationItemAdded(NotificationObject* item);
     void notificationItemClicked(QListWidgetItem* item);
 
 private:
@@ -63,29 +65,34 @@ private:
 
     void updateVisibilityCount(int val, bool set = false);
 
-    void constructNotificationItem(int ID, NotificationManager::NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID);
+    void constructNotificationItem(int ID, NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID);
     void removeItem(QListWidgetItem* item);
 
-    void clearNotificationsOfSeverity(NotificationManager::NOTIFICATION_SEVERITY severity);
+    void clearNotificationsOfSeverity(NOTIFICATION_SEVERITY severity);
     void clearAll();
 
-    void updateSeverityActions(QList<NotificationManager::NOTIFICATION_SEVERITY> severities);
-    void updateSeverityAction(NotificationManager::NOTIFICATION_SEVERITY severity);
+    void updateSeverityActions(QList<NOTIFICATION_SEVERITY> severities);
+    void updateSeverityAction(NOTIFICATION_SEVERITY severity);
 
-    QAction* getSeverityAction(NotificationManager::NOTIFICATION_SEVERITY severity) const;
-    QPair<QString, QString> getActionIcon(NotificationManager::NOTIFICATION_SEVERITY severity) const;
+    QAction* getSeverityAction(NOTIFICATION_SEVERITY severity) const;
+    QPair<QString, QString> getActionIcon(NOTIFICATION_SEVERITY severity) const;
 
     QSignalMapper* severityActionMapper;
+
     QListWidget* listWidget;
     QToolBar* topToolbar;
     QToolBar* bottomToolbar;
     QToolBar* iconOnlyToolbar;
 
+    QAction* sortTimeAction;
+    QAction* sortSeverityAction;
+    QAction* centerOnAction;
+    QAction* popupAction;
     QAction* clearSelectedAction;
     QAction* clearVisibleAction;
 
-    QHash<NotificationManager::NOTIFICATION_SEVERITY, QAction*> severityActionHash;
-    QMultiMap<NotificationManager::NOTIFICATION_SEVERITY, QListWidgetItem*> notificationHash;
+    QHash<NOTIFICATION_SEVERITY, QAction*> severityActionHash;
+    QMultiMap<NOTIFICATION_SEVERITY, QListWidgetItem*> notificationHash;
     QHash<int, QListWidgetItem*> notificationIDHash;
 
     int visibleCount;

@@ -1,13 +1,14 @@
 #include "notificationmanager.h"
 #include "../WindowManager/windowmanager.h"
 #include "../../Widgets/Windows/mainwindow.h"
-#include "../../Views/Notification/notificationitem.h"
-
+#include "../../Views/Notification/notificationobject.h"
+#include "../ViewController/viewcontroller.h"
 
 NotificationManager* NotificationManager::managerSingleton = 0;
-NotificationItem* NotificationManager::lastNotificationItem = 0;
-QHash<int, NotificationItem*> NotificationManager::notificationItems;
+NotificationObject* NotificationManager::lastNotificationItem = 0;
 
+QTime* NotificationManager::projectRunTime = new QTime();
+QHash<int, NotificationObject*> NotificationManager::notificationItems;
 
 /**
  * @brief NotificationManager::manager
@@ -17,8 +18,20 @@ NotificationManager* NotificationManager::manager()
 {
     if (!managerSingleton) {
         managerSingleton = new NotificationManager();
+        projectRunTime->start();
     }
     return managerSingleton;
+}
+
+
+/**
+ * @brief NotificationManager::resetManager
+ */
+void NotificationManager::resetManager()
+{
+    projectRunTime->restart();
+    lastNotificationItem = 0;
+    notificationItems.clear();
 }
 
 
@@ -31,7 +44,17 @@ void NotificationManager::tearDown()
         delete managerSingleton;
     }
     managerSingleton = 0;
-    lastNotificationItem = 0;
+    resetManager();
+}
+
+
+/**
+ * @brief NotificationManager::projectTime
+ * @return
+ */
+QTime* NotificationManager::projectTime()
+{
+    return projectRunTime;
 }
 
 
@@ -39,7 +62,7 @@ void NotificationManager::tearDown()
  * @brief NotificationManager::getNotificationItems
  * @return
  */
-QList<NotificationItem*> NotificationManager::getNotificationItems()
+QList<NotificationObject*> NotificationManager::getNotificationItems()
 {
     return notificationItems.values();
 }
@@ -49,9 +72,9 @@ QList<NotificationItem*> NotificationManager::getNotificationItems()
  * @brief NotificationManager::getNotificationSeverities
  * @return
  */
-QList<NotificationManager::NOTIFICATION_SEVERITY> NotificationManager::getNotificationSeverities()
+QList<NOTIFICATION_SEVERITY> NotificationManager::getNotificationSeverities()
 {
-    QList<NotificationManager::NOTIFICATION_SEVERITY> severities;
+    QList<NOTIFICATION_SEVERITY> severities;
     severities.append(NS_INFO);
     severities.append(NS_WARNING);
     severities.append(NS_ERROR);
@@ -98,6 +121,34 @@ QString NotificationManager::getNotificationSeverityColorStr(NOTIFICATION_SEVERI
 
 
 /**
+ * @brief NotificationManager::newNotification
+ * @param description
+ * @param iconPath
+ * @param iconName
+ * @param entityID
+ * @param s
+ * @param t
+ * @param c
+ */
+void NotificationManager::newNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c)
+{
+    // construct notification item
+    NotificationObject* item = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, this);
+    notificationItems[item->ID()] = item;
+    lastNotificationItem = item;
+
+    // send signal to the notifications widget; highlight showMostRecentNotification button
+    emit notificationAlert();
+
+    // send signal to the notification dialog; add notification item
+    emit notificationItemAdded(item);
+
+    // send signal to main window; display notification toast
+    emit notificationAdded(iconPath, iconName, description);
+}
+
+
+/**
  * @brief NotificationManager::notificationReceived
  * @param type
  * @param title
@@ -108,18 +159,34 @@ QString NotificationManager::getNotificationSeverityColorStr(NOTIFICATION_SEVERI
  */
 void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int entityID)
 {
+    // TODO - This can be removed when we delete the NOTIFICATION_TYPE enum from enumerations
+    NOTIFICATION_SEVERITY s = NS_INFO;
+    if (type != NT_INFO) {
+        switch(type) {
+        case NT_WARNING:
+            s = NS_WARNING;
+            break;
+        case NT_ERROR:
+            s = NS_ERROR;
+            break;
+        default:
+             break;
+        }
+    }
+
     // construct notification item
-    NotificationItem* item = new NotificationItem(title, description, iconPath, iconName, entityID, NT_MODEL, NC_NONE, NS_INFO, this);
+    NotificationObject* item = new NotificationObject(title, description, iconPath, iconName, entityID, s, NT_MODEL, NC_NOCATEGORY, this);
     notificationItems[item->ID()] = item;
     lastNotificationItem = item;
 
-    // send signal to notification dialog
+    // send signal to the notifications widget; highlight showMostRecentNotification button
+    emit notificationAlert();
+
+    // send signal to the notification dialog; add notification item
     emit notificationItemAdded(item);
 
-    // send signal to main window to display notification toast
+    // send signal to main window; display notification toast
     emit notificationAdded(iconPath, iconName, description);
-
-    qDebug() << "Notification Received: " << description;
 }
 
 
@@ -131,6 +198,21 @@ void NotificationManager::showLastNotification()
 {
     if (lastNotificationItem) {
         emit notificationAdded(lastNotificationItem->iconPath(), lastNotificationItem->iconName(), lastNotificationItem->description());
+    }
+}
+
+
+/**
+ * @brief NotificationManager::modelValidated
+ * @param report
+ */
+void NotificationManager::modelValidated(QStringList report)
+{
+    foreach (QString message, report) {
+        QString description = message.split(']').last();
+        QString eID = message.split('[').last().split(']').first();
+        notificationReceived(NT_WARNING, "Model Validation", description, "", "", eID.toInt());
+        //newNotification(description, "", "", eID.toInt(), NS_WARNING, NT_MODEL, NC_VALIDATION);
     }
 }
 

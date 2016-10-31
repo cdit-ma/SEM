@@ -21,7 +21,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) :
 {
     severityActionMapper = new QSignalMapper(this);
 
-    foreach (NotificationManager::NOTIFICATION_SEVERITY severity, NotificationManager::getNotificationSeverities()) {
+    foreach (NOTIFICATION_SEVERITY severity, NotificationManager::getNotificationSeverities()) {
         QAction* action = new QAction(this);
         action->setCheckable(true);
         action->setChecked(true);
@@ -46,7 +46,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) :
     updateVisibilityCount(0, true);
 
     // construct items for notifications that were received before this dialog was constructed
-    foreach (NotificationItem* item, NotificationManager::getNotificationItems()) {
+    foreach (NotificationObject* item, NotificationManager::getNotificationItems()) {
         notificationItemAdded(item);
     }
 }
@@ -58,7 +58,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) :
  */
 void NotificationDialog::severityActionToggled(int actionSeverity)
 {
-    NotificationManager::NOTIFICATION_SEVERITY severity = (NotificationManager::NOTIFICATION_SEVERITY) actionSeverity;
+    NOTIFICATION_SEVERITY severity = (NOTIFICATION_SEVERITY) actionSeverity;
     QAction* action = severityActionHash.value(severity, 0);
     bool clearSelection = false;
     if (action) {
@@ -76,6 +76,27 @@ void NotificationDialog::severityActionToggled(int actionSeverity)
     }
     if (clearSelection) {
         listWidget->clearSelection();
+    }
+}
+
+
+/**
+ * @brief NotificationDialog::displaySelection
+ */
+void NotificationDialog::displaySelection()
+{
+    qDebug() << "HERE";
+    int numSelectedItems = listWidget->selectedItems().count();
+    if (numSelectedItems != 1) {
+        return;
+    }
+
+    QListWidgetItem* selectedItem = listWidget->selectedItems().at(0);
+    int eID = selectedItem->data(IR_ENTITYID).toInt();
+    if (sender() == centerOnAction) {
+        emit centerOn(eID);
+    } else if (sender() == popupAction) {
+        emit popup(eID);
     }
 }
 
@@ -101,6 +122,10 @@ void NotificationDialog::themeChanged()
     bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     iconOnlyToolbar->setStyleSheet(theme->getToolBarStyleSheet());
 
+    sortTimeAction->setIcon(theme->getIcon("Actions", "Clock"));
+    sortSeverityAction->setIcon(theme->getIcon("Actions", "Sort"));
+    centerOnAction->setIcon(theme->getIcon("Actions", "Crosshair"));
+    popupAction->setIcon(theme->getIcon("Actions", "Popup"));
     clearSelectedAction->setIcon(theme->getIcon("Actions", "Delete"));
     clearVisibleAction->setIcon(theme->getIcon("Actions", "Clear"));
 
@@ -113,7 +138,7 @@ void NotificationDialog::themeChanged()
         }
     }
 
-    foreach (NotificationManager::NOTIFICATION_SEVERITY severity, NotificationManager::getNotificationSeverities()) {
+    foreach (NOTIFICATION_SEVERITY severity, NotificationManager::getNotificationSeverities()) {
         QAction* action = severityActionHash.value(severity, 0);
         if (action) {
              QPair<QString, QString> iconPath = getActionIcon(severity);
@@ -129,8 +154,11 @@ void NotificationDialog::themeChanged()
 void NotificationDialog::listSelectionChanged()
 {
     bool csEnabled = clearSelectedAction->isEnabled();
-    if (csEnabled != (!listWidget->selectedItems().isEmpty())) {
-        clearSelectedAction->setEnabled(!csEnabled);
+    bool selectionExists = !listWidget->selectedItems().isEmpty();
+    if (csEnabled != selectionExists) {
+        clearSelectedAction->setEnabled(selectionExists);
+        centerOnAction->setEnabled(selectionExists);
+        popupAction->setEnabled(selectionExists);
     }
 }
 
@@ -174,12 +202,12 @@ void NotificationDialog::getLastNotificationID()
 void NotificationDialog::clearSelected()
 {
     QList<QListWidgetItem*> selectedItems = listWidget->selectedItems();
-    QList<NotificationManager::NOTIFICATION_SEVERITY> removedSeverities;
+    QList<NOTIFICATION_SEVERITY> removedSeverities;
 
     // delete selected items
     while (!selectedItems.isEmpty()) {
         QListWidgetItem* item = selectedItems.takeFirst();
-        NotificationManager::NOTIFICATION_SEVERITY severity = (NotificationManager::NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
+        NOTIFICATION_SEVERITY severity = (NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
         if (severity != NT_ERROR) {
             if (!removedSeverities.contains(severity)) {
                 removedSeverities.append(severity);
@@ -198,12 +226,12 @@ void NotificationDialog::clearSelected()
 void NotificationDialog::clearVisible()
 {
     QList<QListWidgetItem*> visibleItems;
-    QList<NotificationManager::NOTIFICATION_SEVERITY> removedSeverities;
+    QList<NOTIFICATION_SEVERITY> removedSeverities;
 
     for (int i = 0; i < listWidget->count(); i++) {
         if (!listWidget->isRowHidden(i)) {
             QListWidgetItem* item = listWidget->item(i);
-            NotificationManager::NOTIFICATION_SEVERITY severity = (NotificationManager::NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
+            NOTIFICATION_SEVERITY severity = (NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
             if (severity != NT_ERROR) {
                 visibleItems.append(item);
                 if (!removedSeverities.contains(severity)) {
@@ -226,7 +254,7 @@ void NotificationDialog::clearVisible()
  * @brief NotificationDialog::notificationItemAdded
  * @param item
  */
-void NotificationDialog::notificationItemAdded(NotificationItem* item)
+void NotificationDialog::notificationItemAdded(NotificationObject* item)
 {
     if (item) {
         constructNotificationItem(item->ID(), item->severity(), item->title(), item->description(), item->iconPath(), item->iconName(), item->entityID());
@@ -238,12 +266,12 @@ void NotificationDialog::notificationItemAdded(NotificationItem* item)
  * @brief NotificationDialog::clearNotificationsOfSeverity
  * @param severity
  */
-void NotificationDialog::clearNotificationsOfSeverity(NotificationManager::NOTIFICATION_SEVERITY severity)
+void NotificationDialog::clearNotificationsOfSeverity(NOTIFICATION_SEVERITY severity)
 {
     QList<QListWidgetItem*> itemsOfSeverity;
     for (int i = 0; i < listWidget->count(); i++) {
         QListWidgetItem* item = listWidget->item(i);
-        NotificationManager::NOTIFICATION_SEVERITY itemSeverity = (NotificationManager::NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
+        NOTIFICATION_SEVERITY itemSeverity = (NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
         if (itemSeverity == severity) {
             itemsOfSeverity.append(item);
         }
@@ -272,67 +300,6 @@ void NotificationDialog::clearAll()
 
 
 /**
- * @brief NotificationDialog::addNotificationItem
- * @param ID
- * @param severity
- * @param title
- * @param description
- * @param iconPath
- * @param entityID
- */
-void NotificationDialog::addNotificationItem(int ID, NotificationManager::NOTIFICATION_SEVERITY severity, QString title, QString description, QPair<QString, QString> iconPath, int entityID)
-{
-    if (iconPath.first.isEmpty() || iconPath.second.isEmpty()) {
-        iconPath = getActionIcon(severity);
-    }
-
-    QListWidgetItem* listItem = new QListWidgetItem();
-
-    //Set Data to item.
-    listItem->setData(IR_SEVERITY, severity);
-    listItem->setData(IR_ICONPATH, iconPath.first);
-    listItem->setData(IR_ICONNAME, iconPath.second);
-    listItem->setData(IR_ENTITYID, entityID);
-    listItem->setData(IR_ID, ID);
-
-    /*
-    QLabel* textLabel = new QLabel("[" % title % "] " % description, this);
-    QLabel* timeLabel = new QLabel((new QTime())->currentTime().toString(), this);
-
-    QFrame* itemFrame = new QFrame(this);
-    QHBoxLayout* frameLayout = new QHBoxLayout(itemFrame);
-    frameLayout->setMargin(0);
-    frameLayout->addWidget(textLabel, 1);
-    frameLayout->addWidget(timeLabel);
-
-    listItem->setSizeHint(itemFrame->sizeHint());
-    */
-
-    //Set the Icon and Text
-    listItem->setText("[" % title % "] " % description);
-    listItem->setIcon(Theme::theme()->getIcon(iconPath));
-
-    //Insert in the listWidget at 0
-    listWidget->insertItem(0, listItem);
-    //listWidget->setItemWidget(listItem, itemFrame);
-
-    //Put in the multimap and hash
-    notificationHash.insertMulti(severity, listItem);
-    notificationIDHash[ID] = listItem;
-
-    QAction* severityAction = getSeverityAction(severity);
-    if (severityAction) {
-        bool actionVisible = severityAction->isChecked();
-        listWidget->setRowHidden(0, !actionVisible);
-        updateSeverityAction(severity);
-        if (actionVisible) {
-            updateVisibilityCount(1);
-        }
-    }
-}
-
-
-/**
  * @brief NotificationDialog::removeNotificationItem
  * Remove the notification item with the provided ID from the list widget and the hash.
  * @param ID
@@ -356,7 +323,7 @@ void NotificationDialog::removeItem(QListWidgetItem* item)
     if (listWidget && item) {
 
         // remove from notifications hash
-        NotificationManager::NOTIFICATION_SEVERITY severity = (NotificationManager::NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
+        NOTIFICATION_SEVERITY severity = (NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
         notificationHash.remove(severity, item);
 
         // remove from IDs hash
@@ -382,7 +349,7 @@ void NotificationDialog::removeItem(QListWidgetItem* item)
  * @param severity
  * @return
  */
-QAction* NotificationDialog::getSeverityAction(NotificationManager::NOTIFICATION_SEVERITY severity) const
+QAction* NotificationDialog::getSeverityAction(NOTIFICATION_SEVERITY severity) const
 {
     return severityActionHash.value(severity, 0);
 }
@@ -393,19 +360,19 @@ QAction* NotificationDialog::getSeverityAction(NotificationManager::NOTIFICATION
  * @param severity
  * @return
  */
-QPair<QString, QString> NotificationDialog::getActionIcon(NotificationManager::NOTIFICATION_SEVERITY severity) const
+QPair<QString, QString> NotificationDialog::getActionIcon(NOTIFICATION_SEVERITY severity) const
 {
     QPair<QString, QString> iconPath;
     iconPath.first = "Actions";
 
     switch (severity) {
-    case NotificationManager::NS_INFO:
+    case NS_INFO:
         iconPath.second = "Info";
         break;
-    case NotificationManager::NS_WARNING:
+    case NS_WARNING:
         iconPath.second = "Warning";
         break;
-    case NotificationManager::NS_ERROR:
+    case NS_ERROR:
         iconPath.second = "Failure";
         break;
     default:
@@ -437,12 +404,14 @@ void NotificationDialog::enterEvent(QEvent* event)
  */
 void NotificationDialog::notificationItemClicked(QListWidgetItem* item)
 {
+    /*
     if (item) {
         int entityID = item->data(IR_ENTITYID).toInt();
         if (entityID > 0) {
             emit centerOn(entityID);
         }
     }
+    */
 }
 
 
@@ -450,9 +419,9 @@ void NotificationDialog::notificationItemClicked(QListWidgetItem* item)
  * @brief NotificationDialog::updateSeverityActions
  * @param severities
  */
-void NotificationDialog::updateSeverityActions(QList<NotificationManager::NOTIFICATION_SEVERITY> severities)
+void NotificationDialog::updateSeverityActions(QList<NOTIFICATION_SEVERITY> severities)
 {
-    foreach (NotificationManager::NOTIFICATION_SEVERITY severity, severities) {
+    foreach (NOTIFICATION_SEVERITY severity, severities) {
         updateSeverityAction(severity);
     }
 }
@@ -463,7 +432,7 @@ void NotificationDialog::updateSeverityActions(QList<NotificationManager::NOTIFI
  * This updates the text (displaying the items count) in the button for the particular severity.
  * @param severity
  */
-void NotificationDialog::updateSeverityAction(NotificationManager::NOTIFICATION_SEVERITY severity)
+void NotificationDialog::updateSeverityAction(NOTIFICATION_SEVERITY severity)
 {
     QAction* severityAction = getSeverityAction(severity);
     if (severityAction) {
@@ -488,11 +457,22 @@ void NotificationDialog::setupLayout()
     listWidget->setUniformItemSizes(true);
     listWidget->setFocusPolicy(Qt::NoFocus);
 
+    topToolbar = new QToolBar(this);
+    topToolbar->setIconSize(QSize(20,20));
+
+    centerOnAction = topToolbar->addAction("");
+    centerOnAction->setToolTip("Center View Aspect On Selected Item");
+    centerOnAction->setEnabled(false);
+
+    popupAction = topToolbar->addAction("");
+    popupAction->setToolTip("View Selected Item In New Window");
+    popupAction->setEnabled(false);
+
     bottomToolbar = new QToolBar(this);
     bottomToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     bottomToolbar->setIconSize(QSize(20,20));
 
-    foreach(NotificationManager::NOTIFICATION_SEVERITY severity, NotificationManager::getNotificationSeverities()){
+    foreach(NOTIFICATION_SEVERITY severity, NotificationManager::getNotificationSeverities()){
         QAction* action = severityActionHash.value(severity, 0);
         if (action) {
             bottomToolbar->addAction(action);
@@ -502,24 +482,51 @@ void NotificationDialog::setupLayout()
 
     iconOnlyToolbar = new QToolBar(this);
     iconOnlyToolbar->setIconSize(QSize(20,20));
+
+    sortTimeAction = iconOnlyToolbar->addAction("");
+    sortTimeAction->setToolTip("Sort Notifications By Time");
+    sortTimeAction->setCheckable(true);
+    sortTimeAction->setChecked(true);
+
+    sortSeverityAction = iconOnlyToolbar->addAction("");
+    sortSeverityAction->setToolTip("Sort Notifications By Severity");
+    sortSeverityAction->setCheckable(true);
+    sortSeverityAction->setChecked(false);
+
+    iconOnlyToolbar->addSeparator();
+
     clearSelectedAction = iconOnlyToolbar->addAction("Clear Selected");
-    clearVisibleAction = iconOnlyToolbar->addAction("Clear Visible");
-
     clearSelectedAction->setToolTip("Clear Selected Items");
-    clearVisibleAction->setToolTip("Clear Visible Items");
-
     clearSelectedAction->setEnabled(false);
+
+    clearVisibleAction = iconOnlyToolbar->addAction("Clear Visible");
+    clearVisibleAction->setToolTip("Clear Visible Items");
     clearVisibleAction->setEnabled(false);
+
+    QActionGroup* sortGroup = new QActionGroup(this);
+    sortGroup->setExclusive(true);
+    sortGroup->addAction(sortTimeAction);
+    sortGroup->addAction(sortSeverityAction);
+
+    QWidget* holderWidget = new QWidget(this);
+    holderWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    QHBoxLayout* topLayout = new QHBoxLayout();
+    topLayout->addWidget(holderWidget);
+    topLayout->addWidget(topToolbar);
 
     QHBoxLayout* bottomLayout = new QHBoxLayout();
     bottomLayout->addWidget(bottomToolbar, 1);
     bottomLayout->addWidget(iconOnlyToolbar);
 
+    mainLayout->addLayout(topLayout);
     mainLayout->addWidget(listWidget, 1);
     mainLayout->addLayout(bottomLayout);
 
     connect(listWidget, &QListWidget::itemSelectionChanged, this, &NotificationDialog::listSelectionChanged);
-    connect(listWidget, &QListWidget::itemClicked, this, &NotificationDialog::notificationItemClicked);
+    //connect(listWidget, &QListWidget::itemClicked, this, &NotificationDialog::notificationItemClicked);
+    connect(centerOnAction, &QAction::triggered, this, &NotificationDialog::displaySelection);
+    connect(popupAction, &QAction::triggered, this, &NotificationDialog::displaySelection);
     connect(clearSelectedAction, &QAction::triggered, this, &NotificationDialog::clearSelected);
     connect(clearVisibleAction, &QAction::triggered, this, &NotificationDialog::clearVisible);
 
@@ -557,7 +564,7 @@ void NotificationDialog::updateVisibilityCount(int val, bool set)
  * @param iconName
  * @param entityID
  */
-void NotificationDialog::constructNotificationItem(int ID, NotificationManager::NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID)
+void NotificationDialog::constructNotificationItem(int ID, NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID)
 {
     if (iconPath.isEmpty() || iconName.isEmpty()) {
         iconPath = getActionIcon(severity).first;
@@ -565,6 +572,7 @@ void NotificationDialog::constructNotificationItem(int ID, NotificationManager::
     }
 
     QListWidgetItem* listItem = new QListWidgetItem();
+    int elapsedTime = NotificationManager::projectTime()->msecsTo((new QTime)->currentTime());
 
     // set item data
     listItem->setData(IR_ID, ID);
@@ -572,14 +580,15 @@ void NotificationDialog::constructNotificationItem(int ID, NotificationManager::
     listItem->setData(IR_ICONPATH, iconPath);
     listItem->setData(IR_ICONNAME, iconName);
     listItem->setData(IR_ENTITYID, entityID);
+    listItem->setData(IR_TIMESTAMP, elapsedTime);
 
-    QLabel* textLabel = new QLabel("[" % title % "] " % description, this);
-    QLabel* timeLabel = new QLabel((new QTime())->currentTime().toString(), this);
+    QLabel* textLabel = new QLabel(" [" % title % "] " % description, this);
+    QLabel* timeLabel = new QLabel(QString::number(elapsedTime), this);
 
     QFrame* itemFrame = new QFrame(this);
     QHBoxLayout* frameLayout = new QHBoxLayout(itemFrame);
     frameLayout->setMargin(0);
-    //frameLayout->addSpacerItem(new QSpacerItem(2,0));
+    //frameLayout->addSpacerItem(new QSpacerItem(5,0));
     frameLayout->addWidget(textLabel, 1);
     frameLayout->addWidget(timeLabel);
 
@@ -588,7 +597,7 @@ void NotificationDialog::constructNotificationItem(int ID, NotificationManager::
     listWidget->insertItem(0, listItem);
     listWidget->setItemWidget(listItem, itemFrame);
 
-    //Put in the multimap and hash
+    // store in map and hash
     notificationHash.insertMulti(severity, listItem);
     notificationIDHash[ID] = listItem;
 

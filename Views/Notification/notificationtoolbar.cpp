@@ -21,7 +21,7 @@ NotificationToolbar::NotificationToolbar(ViewController* vc, QWidget *parent) :
     connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::toggleDialog);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationToolbar::themeChanged);
-    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &NotificationToolbar::notificationReceived);
+    connect(NotificationManager::manager(), &NotificationManager::notificationAlert, this, &NotificationToolbar::notificationReceived);
     connect(NotificationManager::manager(), &NotificationManager::notificationSeen, this, &NotificationToolbar::notificationsSeen);
     connect(NotificationManager::manager(), &NotificationManager::lastNotificationDeleted, this, &NotificationToolbar::lastNotificationDeleted);
 }
@@ -33,9 +33,14 @@ NotificationToolbar::NotificationToolbar(ViewController* vc, QWidget *parent) :
 void NotificationToolbar::themeChanged()
 {
     Theme* theme = Theme::theme();
+    QString borderRadiusLeft = "border-top-right-radius: 0px; border-bottom-right-radius: 0px; ";
+    QString borderRadiusRight = "border-top-left-radius: 0px; border-bottom-left-radius: 0px;";
+
     setStyleSheet("QToolBar{ spacing: 0px; padding: 0px; border-radius: 4px; background:" + theme->getAltBackgroundColorHex() + ";}"
                   "QToolBar::separator{ width: 3px; background:" + theme->getBackgroundColorHex() + ";}"
-                  "QToolButton{ border-top-left-radius: 0px; border-bottom-left-radius: 0px; padding: 2px; }"
+                  "QToolButton{ padding: 2px; }"
+                  "QToolButton#LEFT_ACTION{" + borderRadiusLeft + "}"
+                  "QToolButton#RIGHT_ACTION{" + borderRadiusRight + "}"
                   "QLabel{ background: rgba(0,0,0,0); }");
 
     //defaultIcon = theme->getIcon("Actions", "Exclamation");
@@ -50,20 +55,20 @@ void NotificationToolbar::themeChanged()
 /**
  * @brief NotificationToolbar::notificationReceived
  * This slot is called when a new notification is received.
- * It highlights the showMostRecentButton and updates its icon.
+ * It highlights the showMostRecentAction and updates its icon.
  */
 void NotificationToolbar::notificationReceived()
 {
     // re-enable notification button
-    if (!showMostRecentButton->isEnabled()) {
-        showMostRecentButton->setEnabled(true);
+    if (!showMostRecentAction->isEnabled()) {
+        showMostRecentAction->setEnabled(true);
     }
 
     // highlight notification button
-    if (!showMostRecentButton->isCheckable()) {
-        showMostRecentButton->setCheckable(true);
-        showMostRecentButton->setChecked(true);
+    if (!showMostRecentAction->isCheckable()) {
+        showMostRecentAction->setCheckable(true);
     }
+    showMostRecentAction->setChecked(true);
 
     // update notification button's icon
     //notificationIcon = Theme::theme()->getIcon(iconPath, iconName);
@@ -73,14 +78,14 @@ void NotificationToolbar::notificationReceived()
 
 /**
  * @brief NotificationToolbar::notificationsSeen
- * This slot is called when either the showMostRecentButton is triggered or when the dialog is opened.
- * It removes the highlight from the showMostRecentButton.
+ * This slot is called when either the showMostRecentActionn is triggered or when the dialog is opened.
+ * It removes the highlight from the showMostRecentAction.
  */
 void NotificationToolbar::notificationsSeen()
 {
-    if (showMostRecentButton->isCheckable()) {
-        showMostRecentButton->setCheckable(false);
-        showMostRecentButton->setChecked(false);
+    if (showMostRecentAction->isCheckable()) {
+        showMostRecentAction->setCheckable(false);
+        showMostRecentAction->setChecked(false);
         updateButtonIcon();
     }
 }
@@ -88,12 +93,12 @@ void NotificationToolbar::notificationsSeen()
 
 /**
  * @brief NotificationToolbar::lastNotificationDeleted
- * This slot disables the showMostRecentButton when there are no notifications in the dialog.
+ * This slot disables the showMostRecentAction when there are no notifications in the dialog.
  */
 void NotificationToolbar::lastNotificationDeleted()
 {
-    showMostRecentButton->setIcon(defaultIcon);
-    showMostRecentButton->setEnabled(false);
+    showMostRecentAction->setIcon(defaultIcon);
+    showMostRecentAction->setEnabled(false);
 }
 
 
@@ -109,7 +114,7 @@ void NotificationToolbar::displayLoadingGif(bool show)
             connect(loadingGif, SIGNAL(frameChanged(int)), this, SLOT(updateIconFrame(int)));
         } else {
             disconnect(loadingGif, SIGNAL(frameChanged(int)), this, SLOT(updateIconFrame(int)));
-            showMostRecentButton->setIcon(notificationIcon);
+            showMostRecentAction->setIcon(notificationIcon);
         }
         loadingGifDisplayed = show;
     }
@@ -121,7 +126,7 @@ void NotificationToolbar::displayLoadingGif(bool show)
  */
 void NotificationToolbar::updateIconFrame(int)
 {
-    showMostRecentButton->setIcon(QIcon(loadingGif->currentPixmap()));
+    showMostRecentAction->setIcon(QIcon(loadingGif->currentPixmap()));
 }
 
 
@@ -131,7 +136,7 @@ void NotificationToolbar::updateIconFrame(int)
  * @param severity
  * @param count
  */
-void NotificationToolbar::updateSeverityCount(NotificationManager::NOTIFICATION_SEVERITY severity, int count)
+void NotificationToolbar::updateSeverityCount(NOTIFICATION_SEVERITY severity, int count)
 {
     QLabel* countLabel = severityCount.value(severity, 0);
     if (countLabel) {
@@ -146,26 +151,23 @@ void NotificationToolbar::updateSeverityCount(NotificationManager::NOTIFICATION_
 void NotificationToolbar::setupLayout()
 {
     // create a label for the following severities of notifications
-    severityCount[NotificationManager::NS_WARNING] = new QLabel("0", this);
-    severityCount[NotificationManager::NS_ERROR] = new QLabel("0", this);
+    severityCount[NS_WARNING] = new QLabel("0", this);
+    severityCount[NS_ERROR] = new QLabel("0", this);
 
-    showMostRecentButton = new QToolButton(this);
-    showMostRecentButton->setToolTip("Show Most Recent Notification");
-    showMostRecentButton->setStyleSheet("border-radius: 0px; border-top-left-radius: 4px; border-bottom-left-radius: 4px;");
-    showMostRecentButton->setEnabled(false);
-
-    showMostRecentAction = addWidget(showMostRecentButton);
+    showMostRecentAction = addAction("");
+    showMostRecentAction->setToolTip("Show Most Recent Notification");
+    showMostRecentAction->setCheckable(true);
+    showMostRecentAction->setChecked(false);
+    showMostRecentAction->setEnabled(false);
     addSeparator();
 
-    connect(showMostRecentButton, &QToolButton::clicked, showMostRecentAction, &QAction::trigger);
-    connect(showMostRecentAction, &QAction::toggled, showMostRecentButton, &QToolButton::setChecked);
     connect(showMostRecentAction, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
     connect(showMostRecentAction, &QAction::triggered, NotificationManager::manager(), &NotificationManager::showLastNotification);
 
     QFont labelFont(QFont(font().family(), 11, 1));
     int labelWidth = 30;
 
-    foreach (NotificationManager::NOTIFICATION_SEVERITY s, NotificationManager::getNotificationSeverities()) {
+    foreach (NOTIFICATION_SEVERITY s, NotificationManager::getNotificationSeverities()) {
         QLabel* label = severityCount.value(s, 0);
         if (label) {
             label->setFont(labelFont);
@@ -187,6 +189,10 @@ void NotificationToolbar::setupLayout()
 
     addAction(toggleNotificationsDialog);
 
+    // set object names for the two actions - used in the stylesheet
+    widgetForAction(showMostRecentAction)->setObjectName("LEFT_ACTION");
+    widgetForAction(toggleNotificationsDialog)->setObjectName("RIGHT_ACTION");
+
     QAction* testAction = addAction("T");
     testAction->setCheckable(true);
     testAction->setVisible(false);
@@ -200,16 +206,16 @@ void NotificationToolbar::setupLayout()
 
 /**
  * @brief NotificationToolbar::updateButtonIcon
- * This updates the showMostRecentButton's icon based on whether
+ * This updates the showMostRecentAction's icon based on whether
  * it is checked or not or if the loading gif is currently displayed.
  */
 void NotificationToolbar::updateButtonIcon()
 {
     if (!loadingGifDisplayed) {
-        if (showMostRecentButton->isChecked()) {
-            showMostRecentButton->setIcon(notificationIcon);
+        if (showMostRecentAction->isChecked()) {
+            showMostRecentAction->setIcon(notificationIcon);
         } else {
-            showMostRecentButton->setIcon(defaultIcon);
+            showMostRecentAction->setIcon(defaultIcon);
         }
     }
 }

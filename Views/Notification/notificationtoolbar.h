@@ -6,7 +6,6 @@
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 
 #include <QToolBar>
-#include <QToolButton>
 #include <QLabel>
 #include <QMovie>
 
@@ -28,9 +27,9 @@ public slots:
 
     void lastNotificationDeleted();
 
-    void displayLoadingGif(bool show);
+    void displayLoadingGif(bool show = true);
     void updateIconFrame(int);
-    void updateSeverityCount(NotificationManager::NOTIFICATION_SEVERITY severity, int count);
+    void updateSeverityCount(NOTIFICATION_SEVERITY severity, int count);
 
 private:
     void setupLayout();
@@ -38,14 +37,13 @@ private:
 
     QAction* toggleNotificationsDialog;
     QAction* showMostRecentAction;
-    QToolButton* showMostRecentButton;
 
     QIcon defaultIcon;
     QIcon notificationIcon;
     QMovie* loadingGif;
     bool loadingGifDisplayed;
 
-    QHash<NotificationManager::NOTIFICATION_SEVERITY, QLabel*> severityCount;
+    QHash<NOTIFICATION_SEVERITY, QLabel*> severityCount;
 
 };
 

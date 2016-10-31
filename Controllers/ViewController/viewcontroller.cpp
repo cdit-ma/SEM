@@ -1,5 +1,6 @@
 #include "viewcontroller.h"
 
+//#include "../NotificationManager/notificationmanager.h"
 #include "../WindowManager/windowmanager.h"
 #include "../../Widgets/Windows/basewindow.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
@@ -20,6 +21,8 @@
 #include <QListIterator>
 #include <QStringBuilder>
 #include <QDesktopServices>
+#include <QXmlQuery>
+#include <QFile>
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GRAPHML_FILE_SUFFIX ".graphml"
@@ -34,7 +37,6 @@ ViewController::ViewController(){
     controller = 0;
 
     codeViewer = 0;
-    validationDialog = 0;
 
     newProjectUsed = false;
     _modelReady = false;
@@ -57,10 +59,6 @@ ViewController::ViewController(){
 
 ViewController::~ViewController()
 {
-    if(validationDialog){
-        validationDialog->deleteLater();
-    }
-
     delete rootItem;
 }
 
@@ -401,18 +399,31 @@ void ViewController::askQuestion(QString title, QString message, int ID)
 
 void ViewController::modelValidated(QString reportPath)
 {
-    if(!validationDialog){
-        BaseWindow* window = WindowManager::manager()->getMainWindow();
-        if(window){
-            validationDialog = new ValidationDialog();
-            connect(validationDialog, &ValidationDialog::revalidateModel, this, &ViewController::validateModel);
-            connect(validationDialog, &ValidationDialog::centerOnItem, this, &ViewController::centerOnID);
-        }
+    QFile xmlFile(reportPath);
+    if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
+        return;
     }
-    if (validationDialog) {
-        validationDialog->gotResults(reportPath);
-        validationDialog->showDialog();
+
+    QXmlQuery query;
+    query.bindVariable("graphmlFile", &xmlFile);
+    const QString queryMessages = QString("declare namespace svrl = \"http://purl.oclc.org/dsdl/svrl\"; doc('file:///%1')//svrl:schematron-output/svrl:failed-assert/string()").arg(xmlFile.fileName());
+    query.setQuery(queryMessages);
+
+    QStringList reportMessages;
+    query.evaluateTo(&reportMessages);
+    xmlFile.close();
+
+    emit vc_modelValidated(reportMessages);
+    emit vc_backgroundProcessFinished();
+
+    /*
+    foreach (QString message, reportMessages) {
+        QString description = message.split(']').last();
+        QString eID = message.split('[').last().split(']').first();
+        emit vc_showNotification(NT_WARNING, "Model Validation", description, "", "", eID.toInt());
+        //emit vc_newNotification(description, "", "", eID.toInt(), NS_WARNING, NT_MODEL, NC_VALIDATION);
     }
+    */
 }
 
 void ViewController::importGraphMLFile(QString graphmlPath)
@@ -509,6 +520,7 @@ void ViewController::validateModel()
 
         if(!filePath.isEmpty()){
             emit vc_validateModel(filePath, reportPath);
+            emit vc_backgroundProcessStarted();
         }
     }
 }
@@ -907,6 +919,7 @@ void ViewController::constructDDSQOSProfile()
     }
 }
 
+
 void ViewController::_teardownProject()
 {
     if(isControllerReady()){
@@ -926,6 +939,9 @@ void ViewController::_teardownProject()
             controller = 0;
             setControllerReady(true);
         }
+
+        // reset the notification manager
+        NotificationManager::resetManager();
     }
 }
 

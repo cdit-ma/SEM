@@ -5,13 +5,13 @@
 #include "../ToolbarController/toolbarcontroller.h"
 #include "../SelectionController/selectioncontroller.h"
 #include "../SelectionController/selectionhandler.h"
+#include "../NotificationManager/notificationmanager.h"
 #include "../../Widgets/DockWidgets/basedockwidget.h"
-#include "../../Widgets/Dialogs/validationdialog.h"
 #include "viewitem.h"
 #include "nodeviewitem.h"
 #include "edgeviewitem.h"
 
-//class ValidationDialog;
+//class NotificationManager;
 class ModelController;
 class ContextToolbar;
 class NodeView;
@@ -115,6 +115,7 @@ signals:
     void vc_projectSaved(QString filePath);
     void vc_projectPathChanged(QString);
 
+    void vc_newNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c);
     void vc_showNotification(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath="", QString iconName="", int ID=-1);
 
     void vc_centerItem(int ID);
@@ -126,7 +127,11 @@ signals:
 
     void vc_getCodeForComponent(QString graphmlPath, QString componentName);
     void vc_validateModel(QString graphmlPath, QString reportPath);
+    void vc_modelValidated(QStringList report);
     void vc_launchLocalDeployment(QString graphmlPath);
+
+    void vc_backgroundProcessStarted(bool show = true);
+    void vc_backgroundProcessFinished(bool show = false);
 
     void vc_importXMEProject(QString xmePath, QString graphmlPath);
     void vc_importXMIProject(QString XMIPath);
@@ -300,12 +305,10 @@ private:
     ViewItem* rootItem;
 
     BaseDockWidget *codeViewer;
-    ValidationDialog* validationDialog;
 
     SelectionController* selectionController;
     ActionController* actionController;
     ToolbarController* toolbarController;
-    //NotificationManager* notificationManager;
 
     ContextToolbar* toolbar;
     ModelController* controller;

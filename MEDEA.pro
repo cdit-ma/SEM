@@ -204,11 +204,9 @@ HEADERS += \
     Widgets/ViewManager/windowitem.h \
     Widgets/ViewManager/dockitem.h \
     Controllers/NotificationManager/notificationmanager.h \
-    Widgets/Dialogs/validationdialog.h \
-    Views/Notification/notificationitem.h \
     Views/Notification/notificationtoolbar.h \
-    Views/Notification/notificationdialog.h
-	Widgets/Dialogs/validationdialog.h
+    Views/Notification/notificationdialog.h \
+    Views/Notification/notificationobject.h
 
 
 SOURCES += \
@@ -378,11 +376,9 @@ SOURCES += \
     Widgets/ViewManager/windowitem.cpp \
 	Widgets/ViewManager/dockitem.cpp \
 	Controllers/NotificationManager/notificationmanager.cpp \
-    Widgets/Dialogs/validationdialog.cpp \
-    Views/Notification/notificationitem.cpp \
     Views/Notification/notificationtoolbar.cpp \
-    Views/Notification/notificationdialog.cpp
-	Widgets/Dialogs/validationdialog.cpp
+    Views/Notification/notificationdialog.cpp \
+    Views/Notification/notificationobject.cpp
 
 
 RESOURCES += \
