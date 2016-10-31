@@ -29,7 +29,7 @@
 
 #include "../../Widgets/Dialogs/popupwidget.h"
 #include "../../Views/Notification/notificationtoolbar.h"
-//#include "../../Widgets/Dialogs/notificationdialog.h"
+#include "../../Views/Notification/notificationdialog.h"
 
 
 

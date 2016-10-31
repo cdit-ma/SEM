@@ -4,8 +4,6 @@
 #include "enumerations.h"
 #include "../ViewController/viewcontroller.h"
 #include "../ActionController/actioncontroller.h"
-#include "../../Widgets/Dialogs/notificationdialog.h"
-//#include "../../Views/Notification/notificationitem.h"
 
 #include <QObject>
 
@@ -21,41 +19,31 @@ public:
     static NotificationManager* manager();
     static void tearDown();
 
+    static QList<NotificationItem*> getNotificationItems();
+
+    static QList<NOTIFICATION_SEVERITY> getNotificationSeverities();
+    static QString getNotificationSeverityString(NOTIFICATION_SEVERITY severity);
+    static QString getNotificationSeverityColorStr(NOTIFICATION_SEVERITY severity);
+
 signals:
     void notificationAdded(QString iconPath, QString iconName, QString description);
     void notificationItemAdded(NotificationItem* item);
     void notificationSeen();
+
     void lastNotificationDeleted();
+    void req_lastNotificationID();
 
 public slots:
     void notificationReceived(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int entityID);
     void deleteNotification(int ID);
+
+    void setLastNotificationItem(int ID);
     void showLastNotification();
 
 private:
-    struct Notification {
-        NOTIFICATION_TYPE2 type;
-        QString title;
-        QString description;
-        QString iconPath;
-        QString iconName;
-        int entityID;
-        int ID;
-    };
-
     static NotificationManager* managerSingleton;
-    static int _NotificationID;
-
-    ViewController* viewController;
-
-    NotificationDialog* notificationDialog;
-    Notification lastNotification;
-
-    QHash<int, Notification> notifications;
-    QHash<NOTIFICATION_TYPE2, QLabel*> typeCount;
-
-    QHash<int, NotificationItem*> notificationItems;
-    NotificationItem* lastNotificationItem;
+    static NotificationItem* lastNotificationItem;
+    static QHash<int, NotificationItem*> notificationItems;
 
 };
 

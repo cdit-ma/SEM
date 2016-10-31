@@ -873,7 +873,7 @@ void MainWindow::setupMenuCornerWidget()
     connect(viewController, &ViewController::vc_setupModel, notificationToolbar, &NotificationToolbar::notificationsSeen);
     connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
     connect(notificationToolbar, &NotificationToolbar::toggleDialog, notificationDialog, &NotificationDialog::toggleVisibility);
-    connect(notificationDialog, &NotificationDialog::updateTypeCount, notificationToolbar, &NotificationToolbar::updateTypeCount);
+    connect(notificationDialog, &NotificationDialog::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
     connect(notificationDialog, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
     connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
 }

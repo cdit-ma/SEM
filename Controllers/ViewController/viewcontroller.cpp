@@ -462,6 +462,7 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
     NOTIFICATION_TYPE type = success ? NT_INFO : NT_ERROR;
     QString title = "Jenkins Settings Validation";
     QString message = success ? "Settings validated successfully" : errorString;
+    qDebug() << "Validated Jenkins";
     emit vc_showNotification(type, title, message, "Actions", "Jenkins_Icon");
 }
 

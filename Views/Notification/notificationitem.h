@@ -1,11 +1,10 @@
 #ifndef NOTIFICATIONITEM_H
 #define NOTIFICATIONITEM_H
 
-#include "../../Controllers/NotificationManager/notificationmanager.h"
-
 #include <QObject>
 
-//class NotificationManager;
+#include "../../Controllers/NotificationManager/notificationmanager.h"
+
 class NotificationItem : public QObject
 {
     Q_OBJECT

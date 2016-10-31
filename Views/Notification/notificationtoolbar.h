@@ -3,6 +3,7 @@
 
 #include "enumerations.h"
 #include "../../Controllers/ViewController/viewcontroller.h"
+#include "../../Controllers/NotificationManager/notificationmanager.h"
 
 #include <QToolBar>
 #include <QToolButton>
@@ -17,7 +18,6 @@ public:
     explicit NotificationToolbar(ViewController* vc, QWidget *parent = 0);
 
 signals:
-    void showMostRecentNotification();
     void toggleDialog();
 
 public slots:
@@ -30,7 +30,7 @@ public slots:
 
     void displayLoadingGif(bool show);
     void updateIconFrame(int);
-    void updateTypeCount(NOTIFICATION_TYPE type, int count);
+    void updateSeverityCount(NotificationManager::NOTIFICATION_SEVERITY severity, int count);
 
 private:
     void setupLayout();
@@ -45,7 +45,7 @@ private:
     QMovie* loadingGif;
     bool loadingGifDisplayed;
 
-    QHash<NOTIFICATION_TYPE, QLabel*> typeCount;
+    QHash<NotificationManager::NOTIFICATION_SEVERITY, QLabel*> severityCount;
 
 };
 

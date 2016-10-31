@@ -1,6 +1,5 @@
 #include "notificationtoolbar.h"
 #include "../../theme.h"
-#include "../../Controllers/NotificationManager/notificationmanager.h"
 
 #include <QGraphicsDropShadowEffect>
 
@@ -93,6 +92,7 @@ void NotificationToolbar::notificationsSeen()
  */
 void NotificationToolbar::lastNotificationDeleted()
 {
+    showMostRecentButton->setIcon(defaultIcon);
     showMostRecentButton->setEnabled(false);
 }
 
@@ -126,14 +126,14 @@ void NotificationToolbar::updateIconFrame(int)
 
 
 /**
- * @brief NotificationToolbar::updateTypeCount
- * This slot updates the number displayed on the notification label for the specified type.
- * @param type
+ * @brief NotificationToolbar::updateSeverityCount
+ * This slot updates the number displayed on the notification label for the specified severity.
+ * @param severity
  * @param count
  */
-void NotificationToolbar::updateTypeCount(NOTIFICATION_TYPE type, int count)
+void NotificationToolbar::updateSeverityCount(NotificationManager::NOTIFICATION_SEVERITY severity, int count)
 {
-    QLabel* countLabel = typeCount.value(type, 0);
+    QLabel* countLabel = severityCount.value(severity, 0);
     if (countLabel) {
         countLabel->setText(QString::number(count));
     }
@@ -145,9 +145,9 @@ void NotificationToolbar::updateTypeCount(NOTIFICATION_TYPE type, int count)
  */
 void NotificationToolbar::setupLayout()
 {
-    // create a label for the following types of notifications
-    typeCount[NT_WARNING] = new QLabel("0", this);
-    typeCount[NT_ERROR] = new QLabel("0", this);
+    // create a label for the following severities of notifications
+    severityCount[NotificationManager::NS_WARNING] = new QLabel("0", this);
+    severityCount[NotificationManager::NS_ERROR] = new QLabel("0", this);
 
     showMostRecentButton = new QToolButton(this);
     showMostRecentButton->setToolTip("Show Most Recent Notification");
@@ -157,22 +157,22 @@ void NotificationToolbar::setupLayout()
     showMostRecentAction = addWidget(showMostRecentButton);
     addSeparator();
 
-    connect(showMostRecentButton, SIGNAL(clicked(bool)), showMostRecentAction, SLOT(trigger()));
-    connect(showMostRecentAction, SIGNAL(triggered(bool)), this, SLOT(notificationsSeen()));
-    connect(showMostRecentAction, SIGNAL(triggered(bool)), this, SIGNAL(showMostRecentNotification()));
-    connect(showMostRecentAction, SIGNAL(toggled(bool)), showMostRecentButton, SLOT(setChecked(bool)));
+    connect(showMostRecentButton, &QToolButton::clicked, showMostRecentAction, &QAction::trigger);
+    connect(showMostRecentAction, &QAction::toggled, showMostRecentButton, &QToolButton::setChecked);
+    connect(showMostRecentAction, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
+    connect(showMostRecentAction, &QAction::triggered, NotificationManager::manager(), &NotificationManager::showLastNotification);
 
     QFont labelFont(QFont(font().family(), 11, 1));
     int labelWidth = 30;
 
-    foreach (NOTIFICATION_TYPE t, GET_NOTIFICATION_TYPES()) {
-        QLabel* label = typeCount.value(t, 0);
+    foreach (NotificationManager::NOTIFICATION_SEVERITY s, NotificationManager::getNotificationSeverities()) {
+        QLabel* label = severityCount.value(s, 0);
         if (label) {
             label->setFont(labelFont);
             label->setMinimumWidth(labelWidth);
             label->setAlignment(Qt::AlignCenter);
-            label->setToolTip(GET_NOTIFICATION_TYPE_STRING(t) + " Count");
-            label->setStyleSheet("QLabel{ padding: 0px 5px; color:" + GET_NOTIFICATION_TYPE_COLORSTR(t) + ";}");
+            label->setToolTip(NotificationManager::getNotificationSeverityString(s) + " Count");
+            label->setStyleSheet("QLabel{ padding: 0px 5px; color:" + NotificationManager::getNotificationSeverityColorStr(s) + ";}");
             addWidget(label);
             addSeparator();
 

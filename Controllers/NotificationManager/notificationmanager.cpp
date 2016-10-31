@@ -5,6 +5,8 @@
 
 
 NotificationManager* NotificationManager::managerSingleton = 0;
+NotificationItem* NotificationManager::lastNotificationItem = 0;
+QHash<int, NotificationItem*> NotificationManager::notificationItems;
 
 
 /**
@@ -29,6 +31,69 @@ void NotificationManager::tearDown()
         delete managerSingleton;
     }
     managerSingleton = 0;
+    lastNotificationItem = 0;
+}
+
+
+/**
+ * @brief NotificationManager::getNotificationItems
+ * @return
+ */
+QList<NotificationItem*> NotificationManager::getNotificationItems()
+{
+    return notificationItems.values();
+}
+
+
+/**
+ * @brief NotificationManager::getNotificationSeverities
+ * @return
+ */
+QList<NotificationManager::NOTIFICATION_SEVERITY> NotificationManager::getNotificationSeverities()
+{
+    QList<NotificationManager::NOTIFICATION_SEVERITY> severities;
+    severities.append(NS_INFO);
+    severities.append(NS_WARNING);
+    severities.append(NS_ERROR);
+    return severities;
+}
+
+
+/**
+ * @brief NotificationManager::getNotificationSeverityString
+ * @param s
+ * @return
+ */
+QString NotificationManager::getNotificationSeverityString(NOTIFICATION_SEVERITY severity)
+{
+    switch (severity) {
+    case NS_INFO:
+        return "Information";
+    case NS_WARNING:
+        return "Warning";
+    case NS_ERROR:
+        return "Error";
+    default:
+        return "Unknown Severity";
+    }
+}
+
+
+/**
+ * @brief NotificationManager::getNotificationSeverityColorStr
+ * @param severity
+ * @return
+ */
+QString NotificationManager::getNotificationSeverityColorStr(NOTIFICATION_SEVERITY severity)
+{
+    switch (severity) {
+    case NS_WARNING:
+        return "rgb(255,200,0)";
+    case NS_ERROR:
+        return "rgb(255,50,50)";
+    default:
+        return "white";
+    }
 }
 
 
@@ -53,6 +118,8 @@ void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString t
 
     // send signal to main window to display notification toast
     emit notificationAdded(iconPath, iconName, description);
+
+    qDebug() << "Notification Received: " << description;
 }
 
 
@@ -62,7 +129,7 @@ void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString t
  */
 void NotificationManager::showLastNotification()
 {
-    if (!notificationItems.isEmpty()) {
+    if (lastNotificationItem) {
         emit notificationAdded(lastNotificationItem->iconPath(), lastNotificationItem->iconName(), lastNotificationItem->description());
     }
 }
@@ -79,17 +146,27 @@ void NotificationManager::deleteNotification(int ID)
     notificationItems.remove(ID);
 
     // check if the deleted notification is the last notification
-    if (lastNotificationItem->ID() == ID) {
-        int topNotificationID = notificationDialog->getTopNotificationID();
-        if (topNotificationID == -1) {
-            // if top ID is -1, it means that the notifications list is empty
+    if (lastNotificationItem && lastNotificationItem->ID() == ID) {
+        if (notificationItems.isEmpty()) {
+            // if the notifications list is empty, disable showMostRectNotification button
             emit lastNotificationDeleted();
+            lastNotificationItem = 0;
         } else {
-            // remove highlight from the button when the last notification is deleted
+            // remove highlight from the showMostRectNotification button and update lastNotificationItem
+            emit req_lastNotificationID();
             emit notificationSeen();
-            lastNotificationItem = notificationItems.value(topNotificationID);
         }
     }
+}
+
+
+/**
+ * @brief NotificationManager::setLastNotificationItem
+ * @param item
+ */
+void NotificationManager::setLastNotificationItem(int ID)
+{
+    lastNotificationItem = notificationItems.value(ID, 0);
 }
 
 
