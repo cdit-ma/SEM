@@ -24,6 +24,101 @@
 #include "../Model/BehaviourDefinitions/process.h"
 #include "../Model/DeploymentDefinitions/managementcomponent.h"
 
+#include "../Model/Edges/definitionedge.h"
+#include "../Model/Edges/workflowedge.h"
+#include "../Model/Edges/dataedge.h"
+#include "../Model/Edges/assemblyedge.h"
+#include "../Model/Edges/aggregateedge.h"
+#include "../Model/Edges/deploymentedge.h"
+#include "../Model/Edges/qosedge.h"
+
+
+
+#include "../Model/BehaviourDefinitions/behaviourdefinitions.h"
+#include "../Model/BehaviourDefinitions/componentimpl.h"
+#include "../Model/BehaviourDefinitions/ineventportimpl.h"
+#include "../Model/BehaviourDefinitions/outeventportimpl.h"
+#include "../Model/BehaviourDefinitions/attributeimpl.h"
+
+#include "../Model/BehaviourDefinitions/branchstate.h"
+#include "../Model/BehaviourDefinitions/condition.h"
+#include "../Model/BehaviourDefinitions/periodicevent.h"
+#include "../Model/BehaviourDefinitions/process.h"
+#include "../Model/BehaviourDefinitions/termination.h"
+#include "../Model/BehaviourDefinitions/variable.h"
+#include "../Model/BehaviourDefinitions/workload.h"
+#include "../Model/BehaviourDefinitions/whileloop.h"
+#include "../Model/BehaviourDefinitions/workerprocess.h"
+
+
+
+
+#include "../Model/BehaviourDefinitions/inputparameter.h"
+#include "../Model/BehaviourDefinitions/returnparameter.h"
+
+#include "../Model/BehaviourDefinitions/periodicevent.h"
+
+#include "../Model/DeploymentDefinitions/deploymentdefinitions.h"
+#include "../Model/DeploymentDefinitions/hardwaredefinitions.h"
+#include "../Model/DeploymentDefinitions/assemblydefinitions.h"
+#include "../Model/DeploymentDefinitions/deploymentdefinitions.h"
+
+
+#include "../Model/DeploymentDefinitions/componentassembly.h"
+
+#include "../Model/DeploymentDefinitions/attributeinstance.h"
+#include "../Model/DeploymentDefinitions/componentinstance.h"
+#include "../Model/DeploymentDefinitions/ineventportinstance.h"
+#include "../Model/DeploymentDefinitions/outeventportinstance.h"
+
+#include "../Model/DeploymentDefinitions/hardwarecluster.h"
+#include "../Model/DeploymentDefinitions/hardwarenode.h"
+#include "../Model/DeploymentDefinitions/managementcomponent.h"
+#include "../Model/DeploymentDefinitions/ineventportdelegate.h"
+#include "../Model/DeploymentDefinitions/outeventportdelegate.h"
+
+#include "../Model/InterfaceDefinitions/interfacedefinitions.h"
+#include "../Model/InterfaceDefinitions/aggregateinstance.h"
+
+#include "../Model/InterfaceDefinitions/memberinstance.h"
+#include "../Model/InterfaceDefinitions/attribute.h"
+#include "../Model/InterfaceDefinitions/component.h"
+#include "../Model/InterfaceDefinitions/outeventport.h"
+#include "../Model/InterfaceDefinitions/ineventport.h"
+#include "../Model/InterfaceDefinitions/idl.h"
+#include "../Model/InterfaceDefinitions/aggregate.h"
+#include "../Model/InterfaceDefinitions/member.h"
+#include "../Model/InterfaceDefinitions/vector.h"
+#include "../Model/InterfaceDefinitions/vectorinstance.h"
+
+#include "../Model/InterfaceDefinitions/blackbox.h"
+#include "../Model/DeploymentDefinitions/blackboxinstance.h"
+
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_durabilityqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_durabilityserviceqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_entityfactoryqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_groupdataqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_historyqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_latencybudgetqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_lifespanqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_livelinessqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_ownershipqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_ownershipstrengthqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_partitionqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_presentationqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_readerdatalifecycleqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_reliabilityqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_resourcelimitsqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_timebasedfilterqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_topicdataqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_transportpriorityqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_userdataqospolicy.h"
+#include "../Model/DeploymentDefinitions/QOS/DDS/dds_writerdatalifecycleqospolicy.h"
+
+
 #include "../Utils/doublehash.h"
 
 
