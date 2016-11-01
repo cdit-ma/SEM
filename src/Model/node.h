@@ -253,8 +253,9 @@ protected:
 public:
     bool isNodeOfType(NODE_TYPE type) const;
     bool acceptsEdgeKind(Edge::EDGE_KIND edgeKind) const;
-    bool requiresEdgeKind(Edge::EDGE_KIND edgeKind) const;
+
     QList<Edge::EDGE_KIND> getAcceptedEdgeKinds() const;
+    virtual bool requiresEdgeKind(Edge::EDGE_KIND edgeKind) const;
     virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node* dst);
 };
 

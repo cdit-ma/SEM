@@ -33,12 +33,12 @@ public:
 
 
     //Get the source graphml object of this Edge
-    Node* getSource();
+    Node* getSource() const;
     int getSourceID();
     int getDestinationID();
 
     //Get the destination graphml object of this Edge
-    Node* getDestination();
+    Node* getDestination() const;
 
     //Return the graphml representation of this
     QString toGraphML(qint32 indentationLevel=0);

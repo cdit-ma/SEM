@@ -29,12 +29,11 @@ protected:
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
 
 private slots:
+    void gotoLine();
     void updateLineNumberAreaWidth(int newBlockCount);
     void updateLineNumberArea(const QRect &, int);
 
-    void highlightCurrentLine();
     void matchParentheses();
-
     void themeChanged();
 
 private:
@@ -45,8 +44,9 @@ private:
     QColor selectedTextColor;
     QColor altBackgroundColor;
 
-    bool matchLeftParenthesis(QTextBlock currentBlock, int index, int numRightParentheses);
-    bool matchRightParenthesis(QTextBlock currentBlock, int index, int numLeftParentheses);
+    bool matchOtherParenthesis(ParenthesisInfo* p, QTextBlock currentBlock, int index, int openCount=0);
+
+
     void createParenthesisSelection(int pos);
 
     QList<QTextEdit::ExtraSelection> highlights;

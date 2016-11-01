@@ -13,6 +13,7 @@
 #include "SceneItems/Node/hardwarenodeitem.h"
 
 #include "SceneItems/Edge/edgeitem.h"
+#include "SceneItems/Edge/edgeitem.h"
 #include "theme.h"
 
 
@@ -1254,13 +1255,14 @@ void NodeView::state_Connecting_Entered()
 
         if(!connectLineItem){
             connectLineItem = scene()->addLine(connectLine);
+            connectLineItem->setPen(Qt::DashLine);
+            connectLineItem->setZValue(1);
         }
         connectLine.setP1(lineStart);
         connectLine.setP2(lineStart);
         connectLineItem->setLine(connectLine);
         connectLineItem->setVisible(true);
     }
-    qCritical() << "state_Connecting_Entered";
 }
 
 void NodeView::state_Connecting_Exited()

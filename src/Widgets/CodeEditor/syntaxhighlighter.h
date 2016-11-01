@@ -15,6 +15,10 @@ struct ParenthesisInfo
 {
     char character;
     int position;
+    int actualPosition;
+    bool isOpening() const;
+    bool isClosing() const;
+    char getMatching() const;
 };
 
 class TextBlockData : public QTextBlockUserData
@@ -40,10 +44,11 @@ public:
 
 protected:
     void highlightBlock(const QString &text);
-    void highlightParenthesis(const QString &text);
+    void highlightParenthesis(const QString &text);\
 
 
 private:
+    void themeChanged();
     struct HighlightingRule
     {
         QRegExp pattern;

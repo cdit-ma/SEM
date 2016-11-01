@@ -1,6 +1,7 @@
 #include <QtGui>
 
 #include "syntaxhighlighter.h"
+#include "../../theme.h"
 
 TextBlockData::TextBlockData()
 {
@@ -23,50 +24,12 @@ void TextBlockData::insert(ParenthesisInfo *info)
 }
 
 
-
+//asdasd
 SyntaxHighlighter::SyntaxHighlighter(QTextDocument *parent) : QSyntaxHighlighter(parent)
 {
-    HighlightingRule rule;
+    connect(Theme::theme(), &Theme::theme_Changed, this, &SyntaxHighlighter::themeChanged);
 
-    keywordFormat.setForeground(Qt::darkBlue);
-    keywordFormat.setFontWeight(QFont::Bold);
-    QStringList keywordPatterns;
-    keywordPatterns << "\\bchar\\b" << "\\bclass\\b" << "\\bconst\\b"
-                    << "\\bdouble\\b" << "\\benum\\b" << "\\bexplicit\\b"
-                    << "\\bfriend\\b" << "\\binline\\b" << "\\bint\\b"
-                    << "\\blong\\b" << "\\bnamespace\\b" << "\\boperator\\b"
-                    << "\\bprivate\\b" << "\\bprotected\\b" << "\\bpublic\\b"
-                    << "\\bshort\\b" << "\\bsignals\\b" << "\\bsigned\\b"
-                    << "\\bslots\\b" << "\\bstatic\\b" << "\\bstruct\\b"
-                    << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
-                    << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvirtual\\b"
-                    << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bfloat\\b";
-    foreach (const QString &pattern, keywordPatterns) {
-        rule.pattern = QRegExp(pattern);
-        rule.format = keywordFormat;
-        highlightingRules.append(rule);
-    }
-
-    singleLineCommentFormat.setForeground(Qt::red);
-    rule.pattern = QRegExp("//[^\n]*");
-    rule.format = singleLineCommentFormat;
-    highlightingRules.append(rule);
-
-    multiLineCommentFormat.setForeground(Qt::red);
-
-    quotationFormat.setForeground(Qt::darkGreen);
-    rule.pattern = QRegExp("\".*\"");
-    rule.format = quotationFormat;
-    highlightingRules.append(rule);
-
-    functionFormat.setFontItalic(true);
-    functionFormat.setForeground(Qt::darkMagenta);
-    rule.pattern = QRegExp("\\b[A-Za-z0-9_]+(?=\\()");
-    rule.format = functionFormat;
-    highlightingRules.append(rule);
-
-    commentStartExpression = QRegExp("/\\*");
-    commentEndExpression = QRegExp("\\*/");
+    themeChanged();
 }
 
 void SyntaxHighlighter::highlightBlock(const QString &text)
@@ -106,26 +69,121 @@ void SyntaxHighlighter::highlightBlock(const QString &text)
 void SyntaxHighlighter::highlightParenthesis(const QString &text) {
     TextBlockData *data = new TextBlockData;
 
-    int leftPos = text.indexOf('(');
-    while (leftPos != -1) {
-        ParenthesisInfo *info = new ParenthesisInfo;
-        info->character = '(';
-        info->position = leftPos;
 
-        data->insert(info);
-        leftPos = text.indexOf('(', leftPos + 1);
+    QRegExp rx("\\(|\\)|\\{|\\}|\\[|\\]|\\<|\\>");
+    int pos = 0;
+    while(true){
+        pos = text.indexOf(rx, pos);
+        if(pos != -1){
+            ParenthesisInfo* info = new ParenthesisInfo();
+            info->character = text.at(pos).toLatin1();
+            //qCritical() << info->character;
+            //qCritical() << pos;
+            info->position = pos;
+
+            data->insert(info);
+            pos ++;
+        }else{
+            break;
+        }
     }
-
-    int rightPos = text.indexOf(')');
-    while (rightPos != -1) {
-        ParenthesisInfo *info = new ParenthesisInfo;
-        info->character = ')';
-        info->position = rightPos;
-
-        data->insert(info);
-
-        rightPos = text.indexOf(')', rightPos +1);
-    }
-
     setCurrentBlockUserData(data);
 }
+
+void SyntaxHighlighter::themeChanged()
+{
+    highlightingRules.clear();
+
+    quotationFormat.setForeground(Theme::theme()->getTextColor(Theme::CR_DISABLED));
+    singleLineCommentFormat.setForeground(Theme::theme()->getTextColor(Theme::CR_DISABLED));
+    multiLineCommentFormat.setForeground(Theme::theme()->getTextColor(Theme::CR_DISABLED));
+
+
+    //singleLineCommentFormat.setForeground(Theme::theme()->getHighlightColor());
+    //multiLineCommentFormat.setForeground(Theme::theme()->getHighlightColor());
+    functionFormat.setForeground(Theme::theme()->getHighlightColor());
+    keywordFormat.setForeground(Theme::theme()->getHighlightColor());
+
+    keywordFormat.setFontWeight(QFont::Bold);
+    HighlightingRule rule;
+    QStringList keywordPatterns;
+    keywordPatterns << "\\bchar\\b" << "\\bclass\\b" << "\\bconst\\b"
+                    << "\\bdouble\\b" << "\\benum\\b" << "\\bexplicit\\b"
+                    << "\\bfriend\\b" << "\\binline\\b" << "\\bint\\b"
+                    << "\\blong\\b" << "\\bnamespace\\b" << "\\boperator\\b"
+                    << "\\bprivate\\b" << "\\bprotected\\b" << "\\bpublic\\b"
+                    << "\\bshort\\b" << "\\bsignals\\b" << "\\bsigned\\b"
+                    << "\\bslots\\b" << "\\bstatic\\b" << "\\bstruct\\b"
+                    << "\\btemplate\\b" << "\\btypedef\\b" << "\\btypename\\b"
+                    << "\\bunion\\b" << "\\bunsigned\\b" << "\\bvirtual\\b"
+                    << "\\bvoid\\b" << "\\bvolatile\\b" << "\\bfloat\\b" << "\\bextern\\b"
+                    << "\\b#include\\b" << "\\bvirtual\\b";
+    foreach (const QString &pattern, keywordPatterns) {
+        rule.pattern = QRegExp(pattern);
+        rule.format = keywordFormat;
+        highlightingRules.append(rule);
+    }
+
+    rule.pattern = QRegExp("//[^\n]*");
+    rule.format = singleLineCommentFormat;
+    highlightingRules.append(rule);
+
+    //multiLineCommentFormat.setForeground(Theme::theme()->getTextColor(Theme::CR_DISABLED));
+
+
+    //quotationFormat.setForeground(Theme::theme()->getTextColor(Theme::CR_SELECTED));
+    //quotationFormat.setForeground(Theme::theme()->getHighlightColor());
+    rule.pattern = QRegExp("\".*\"");
+    rule.format = quotationFormat;
+    highlightingRules.append(rule);
+
+    functionFormat.setFontItalic(true);
+
+    rule.pattern = QRegExp("\\b[A-Za-z0-9_]+(?=\\()");
+    rule.format = functionFormat;
+    highlightingRules.append(rule);
+
+    commentStartExpression = QRegExp("/\\*");
+    commentEndExpression = QRegExp("\\*/");
+
+
+}
+
+bool ParenthesisInfo::isOpening() const
+{
+    return character == '(' || character == '{' || character == '[' || character == '<';
+
+}
+
+bool ParenthesisInfo::isClosing() const
+{
+    return character == ')' || character == '}' || character == ']' || character == '>';
+}
+
+char ParenthesisInfo::getMatching() const
+{
+    switch(character){
+    case '(':
+        return ')';
+    case ')':
+        return '(';
+    case '[':
+        return ']';
+    case ']':
+        return '[';
+    case '{':
+        return '}';
+    case '}':
+        return '{';
+    case '<':
+        return '>';
+    case '>':
+        return '<';
+    default:
+        return character;
+    }
+}
+
+
+
+

@@ -10,6 +10,7 @@
 
 EntityItem::EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind)
 {
+    this->defaultZValue = 0;
     this->viewItem = 0;
     this->parentItem = parentItem;
     this->kind = kind;
@@ -54,6 +55,7 @@ EntityItem::EntityItem(ViewItem *viewItem, EntityItem* parentItem, KIND kind)
 
     setHoverEnabled(true);
     setFlag(QGraphicsItem::ItemIsSelectable, false);
+    setDefaultZValue(1);
 }
 
 EntityItem::~EntityItem()
@@ -64,6 +66,11 @@ EntityItem::~EntityItem()
 int EntityItem::type() const
 {
     return ENTITY_ITEM_KIND;
+}
+
+bool EntityItem::isHidden() const
+{
+    return !isVisible();
 }
 
 void EntityItem::setTertiaryIcon(QString path, QString image)
@@ -163,6 +170,9 @@ QRectF EntityItem::getElementRect(EntityItem::ELEMENT_RECT rect) const
 
     switch(rect){
         case ER_SELECTION:
+            r = currentRect();
+            break;
+        case ER_MOVE:
             r = currentRect();
             break;
         default:
@@ -600,6 +610,11 @@ bool EntityItem::hasData(QString keyName) const
     return viewItem->hasData(keyName);
 }
 
+qreal EntityItem::getDefaultZValue() const
+{
+    return defaultZValue;
+}
+
 void EntityItem::handleSelection(bool append)
 {
     if(isSelectionEnabled()){
@@ -625,6 +640,12 @@ void EntityItem::removeData(QString keyName)
     if(hasData(keyName)){
         emit req_removeData(getViewItem(), keyName);
     }
+}
+
+void EntityItem::setDefaultZValue(qreal z)
+{
+    defaultZValue = z;
+    setZValue(z);
 }
 
 void EntityItem::handleExpand(bool expand)
@@ -959,11 +980,8 @@ void EntityItem::setSelected(bool selected)
 {
     if(_isSelected != selected){
         _isSelected = selected;
-        qreal z = zValue();
-        z += (selected ? 1: -1);
-        z = qMax(0.0, z);
-        setZValue(z);
-        update();
+
+        updateZValue();
     }
 }
 
@@ -971,7 +989,28 @@ void EntityItem::setActiveSelected(bool active)
 {
     if(_isActiveSelected != active){
         _isActiveSelected = active;
+        updateZValue();
         update();
+    }
+}
+
+void EntityItem::updateZValue(bool childSelected)
+{
+    //Raise
+    bool raise = childSelected || isSelected();
+
+    qreal z = fabs(getDefaultZValue());
+
+    z *= raise ? 1: -1;
+
+    if(isActiveSelected()){
+        z *= 2;
+    }
+
+    setZValue(z);
+
+    if(getParent()){
+        getParent()->updateZValue(raise);
     }
 }
 

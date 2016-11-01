@@ -61,6 +61,8 @@ public:
     ~EntityItem();
     int type() const;
 
+    bool isHidden() const;
+
     RENDER_STATE getRenderState(qreal lod) const;
     EntityItem* getParent() const;
     NodeItem* getParentNodeItem() const;
@@ -149,6 +151,7 @@ public:
     QVariant getProperty(QString propertyName) const;
     bool hasData(QString keyName) const;
 
+    qreal getDefaultZValue() const;
 public:
     //State Handlers
     void handleExpand(bool expand);
@@ -157,6 +160,7 @@ public:
 
 protected:
     void removeData(QString keyName);
+    void setDefaultZValue(qreal z);
 public:
     //Item State Getters
     bool isNodeItem();
@@ -234,7 +238,7 @@ public:
     void setHighlighted(bool isHighlight);
     void setSelected(bool selected);
     void setActiveSelected(bool active);
-
+    void updateZValue(bool childSelected = true);
 private:
     void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
@@ -287,6 +291,8 @@ private:
 
     KIND kind;
     bool ignorePosition;
+
+    qreal defaultZValue;
 
 
 protected:
