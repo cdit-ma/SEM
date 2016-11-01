@@ -63,7 +63,7 @@ EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *sourc
     srcAncestorVisibilityChanged();
     dstAncestorVisibilityChanged();
 
-    setZValue(Edge::EC_UNDEFINED - edgeViewItem->getEdgeKind());
+    setDefaultZValue(Edge::EC_UNDEFINED - edgeViewItem->getEdgeKind());
 
     //When ever the center point changes we should update the curves.
     connect(this, &EntityItem::positionChanged, this, &EdgeItem::updateEdge);
@@ -630,12 +630,14 @@ void EdgeItem::resetCenter()
 
         //Get the scene center of the 2 ends points to spoof the location of the center.
         QPointF center = (srcCenter + dstCenter) / 2;
+        //Get the center coordinate in local coordinates
+        center = mapFromScene(center);
 
         //Determine if, given the spoofed center, we should use the left or right or
         bool useSrcLeft = srcExitsLeft(center);
         bool useDstLeft = dstExitsLeft(center);
 
-        //Get the s
+        //Get the positions
         srcCenter = vSrc->getSceneEdgeTermination(useSrcLeft);
         dstCenter = vDst->getSceneEdgeTermination(useDstLeft);
 

@@ -169,6 +169,12 @@ bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
             }
             break;
         }
+        case Edge::EC_ASSEMBLY:
+            //Can always have more assembly edges
+            return true;
+        case Edge::EC_WORKFLOW:
+            //Handled by BehaviourNode
+            return true;
         case Edge::EC_AGGREGATE:
         case Edge::EC_DEPLOYMENT:
         case Edge::EC_QOS:{
@@ -180,7 +186,9 @@ bool Node::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
             break;
         }
         case Edge::EC_DATA:{
-            if(getViewAspect() != VA_BEHAVIOUR){
+            if(getViewAspect() == VA_BEHAVIOUR){
+                return true;
+            }else{
                 return false;
             }
         }

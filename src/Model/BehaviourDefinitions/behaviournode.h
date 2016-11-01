@@ -14,8 +14,8 @@ public:
     bool isWorkflowProducer() const;
     bool isWorkflowReciever() const;
 
-    BehaviourNode* getProducerNode();
-    QList<BehaviourNode*> getRecieverNodes();
+    BehaviourNode* getProducerNode() const;
+    QList<BehaviourNode*> getRecieverNodes() const;
 
     BehaviourNode* getParentBehaviourNode();
     BehaviourNode* getInitialProducer();
@@ -26,6 +26,7 @@ public:
 
     virtual bool canAdoptChild(Node* child);
     virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    bool requiresEdgeKind(Edge::EDGE_KIND edgeKind) const;
 
 private:
     bool _isReciever;

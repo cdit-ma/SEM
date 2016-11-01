@@ -34,7 +34,7 @@ bool BehaviourNode::isWorkflowReciever() const
     return _isReciever;
 }
 
-BehaviourNode *BehaviourNode::getProducerNode()
+BehaviourNode *BehaviourNode::getProducerNode() const
 {
     if(isWorkflowReciever()){
         //Find Reciving edge;
@@ -55,7 +55,7 @@ BehaviourNode *BehaviourNode::getProducerNode()
     return 0;
 }
 
-QList<BehaviourNode *> BehaviourNode::getRecieverNodes()
+QList<BehaviourNode *> BehaviourNode::getRecieverNodes() const
 {
     QList<BehaviourNode*> nodes;
 
@@ -197,4 +197,23 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_KIND edgeClass, Node *dst)
     }
 
     return Node::canAcceptEdge(edgeClass, dst);
+}
+
+bool BehaviourNode::requiresEdgeKind(Edge::EDGE_KIND edgeKind) const
+{
+    if(getAcceptedEdgeKinds().contains(edgeKind)){
+        switch(edgeKind){
+        case Edge::EC_WORKFLOW:{
+            bool needOutput = isWorkflowProducer() && getRecieverNodes().isEmpty();
+            bool needInput = isWorkflowReciever() && !getProducerNode();
+            if(!needOutput && !needInput){
+                //Don't require a Workflow Edge
+                return false;
+            }
+        }
+        default:
+            break;
+        }
+    }
+    return Node::requiresEdgeKind(edgeKind);
 }

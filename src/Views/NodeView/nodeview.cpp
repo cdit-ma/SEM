@@ -1255,6 +1255,8 @@ void NodeView::state_Connecting_Entered()
 
         if(!connectLineItem){
             connectLineItem = scene()->addLine(connectLine);
+            connectLineItem->setPen(Qt::DashLine);
+            connectLineItem->setZValue(1);
         }
         connectLine.setP1(lineStart);
         connectLine.setP2(lineStart);

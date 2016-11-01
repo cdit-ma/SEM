@@ -106,7 +106,7 @@ Edge::~Edge()
 }
 
 
-Node *Edge::getSource()
+Node *Edge::getSource() const
 {
     return source;
 }
@@ -127,7 +127,7 @@ int Edge::getDestinationID()
     return -1;
 }
 
-Node *Edge::getDestination()
+Node *Edge::getDestination() const
 {
     return destination;
 }
