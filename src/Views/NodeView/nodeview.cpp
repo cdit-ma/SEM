@@ -671,7 +671,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
 
     if(containedNodeViewItem){
         if(containedNodeViewItem->isAncestorOf(item)){
-            //qCritical() << "CONSTRUCTING: " << item;
             int ID = item->getID();
             NodeItem* nodeItem =  0;
             Node::NODE_KIND nodeKind = item->getNodeKind();
@@ -1184,7 +1183,6 @@ void NodeView::state_Moving_Exited()
 
 void NodeView::state_Resizing_Entered()
 {
-    qCritical() << "state_Resizing_Entered";
     if(selectionHandler){
         if(selectionHandler->getSelectionCount() != 1){
             emit trans_Resizing2InActive();
