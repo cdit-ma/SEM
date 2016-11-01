@@ -152,8 +152,6 @@ void ToolbarController::selectionChanged(int selected)
     QList<Edge::EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
     QList<Edge::EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
 
-    qCritical() << validEdges;
-
     foreach(Edge::EDGE_KIND edgeKind, connectEdgeKindActions.keys()){
         RootAction* action = connectEdgeKindActions[edgeKind];
         action->setEnabled(validEdges.contains(edgeKind));

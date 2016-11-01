@@ -1263,7 +1263,6 @@ void NodeView::state_Connecting_Entered()
         connectLineItem->setLine(connectLine);
         connectLineItem->setVisible(true);
     }
-    qCritical() << "state_Connecting_Entered";
 }
 
 void NodeView::state_Connecting_Exited()
