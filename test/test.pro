@@ -5,11 +5,15 @@ QT += widgets testlib
 CONFIG -= debug_and_release debug_and_release_target
 
 HEADERS += \
-    modelcontrollertests.h
+    modelcontrollertests.h \
+    viewcontrollertests.h \
+    modelelementtests.h
 
 SOURCES += \
     main.cpp \
-    modelcontrollertests.cpp
+    modelcontrollertests.cpp \
+    viewcontrollertests.cpp \
+    modelelementtests.cpp
 
 #Link against the MEDEA_lib
 LIBS += -L../src
