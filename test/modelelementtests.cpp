@@ -32,8 +32,7 @@ void ModelElementTests::modelCreationTest(){
                                  Node::NK_BEHAVIOUR_DEFINITIONS,
                                  Node::NK_DEPLOYMENT_DEFINITIONS,
                                  Node::NK_ASSEMBLY_DEFINITIONS,
-                                 Node::NK_HARDWARE_DEFINITIONS,
-                                 Node::NK_AGGREGATE});
+                                 Node::NK_HARDWARE_DEFINITIONS});
 
     //Check that only required nodes were created
     //Use qverify to bail out of testing early
@@ -66,7 +65,6 @@ void ModelElementTests::componentImplTest(){
     QCOMPARE(bd->canAdoptChild(ci), true);
 }
 
-
 Model* ModelElementTests::setupModel(){
     Model* model = new Model();
     InterfaceDefinitions* id = new InterfaceDefinitions();
@@ -83,3 +81,5 @@ Model* ModelElementTests::setupModel(){
 
     return model;
 }
+
+
