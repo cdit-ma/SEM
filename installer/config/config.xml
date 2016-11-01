@@ -6,10 +6,10 @@
 	<Publisher>CDIT-MA</Publisher>
 	<StartMenuDir>MEDEA</StartMenuDir>
         <TargetDir>@RootDir@/MEDEA</TargetDir>
-	<InstallerWindowIcon>../../Resources/Images/Actions/MEDEA.png</InstallerWindowIcon>
-	<InstallerApplicationIcon>../../Resources/Images/MedeaIcon</InstallerApplicationIcon>
+	<InstallerWindowIcon>../../src/Resources/Images/Actions/MEDEA.png</InstallerWindowIcon>
+	<InstallerApplicationIcon>../../src/Resources/Images/MedeaIcon</InstallerApplicationIcon>
         <WizardStyle>Modern</WizardStyle>
-        <Banner>../../Resources/Images/MEDEA_Banner.png</Banner>
+        <Banner>../../src/Resources/Images/MEDEA_Banner.png</Banner>
         <WizardDefaultHeight>450</WizardDefaultHeight>
 	<ProductUrl>https://github.com/cdit-ma/MEDEA</ProductUrl>
 	<RunProgram>@TargetDir@/MEDEA</RunProgram>
