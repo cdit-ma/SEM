@@ -25,6 +25,16 @@ NotificationManager* NotificationManager::manager()
 
 
 /**
+ * @brief NotificationManager::projectTime
+ * @return
+ */
+QTime* NotificationManager::projectTime()
+{
+    return projectRunTime;
+}
+
+
+/**
  * @brief NotificationManager::resetManager
  */
 void NotificationManager::resetManager()
@@ -49,12 +59,18 @@ void NotificationManager::tearDown()
 
 
 /**
- * @brief NotificationManager::projectTime
- * @return
+ * @brief NotificationManager::displayNotification
+ * @param description
+ * @param iconPath
+ * @param iconName
+ * @param entityID
+ * @param s
+ * @param t
+ * @param c
  */
-QTime* NotificationManager::projectTime()
+void NotificationManager::displayNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c)
 {
-    return projectRunTime;
+    addNotification(description, iconPath, iconName, entityID, s, t, c);
 }
 
 
@@ -121,34 +137,6 @@ QString NotificationManager::getNotificationSeverityColorStr(NOTIFICATION_SEVERI
 
 
 /**
- * @brief NotificationManager::newNotification
- * @param description
- * @param iconPath
- * @param iconName
- * @param entityID
- * @param s
- * @param t
- * @param c
- */
-void NotificationManager::newNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c)
-{
-    // construct notification item
-    NotificationObject* item = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, this);
-    notificationItems[item->ID()] = item;
-    lastNotificationItem = item;
-
-    // send signal to the notifications widget; highlight showMostRecentNotification button
-    emit notificationAlert();
-
-    // send signal to the notification dialog; add notification item
-    emit notificationItemAdded(item);
-
-    // send signal to main window; display notification toast
-    emit notificationAdded(iconPath, iconName, description);
-}
-
-
-/**
  * @brief NotificationManager::notificationReceived
  * @param type
  * @param title
@@ -208,11 +196,47 @@ void NotificationManager::showLastNotification()
  */
 void NotificationManager::modelValidated(QStringList report)
 {
-    foreach (QString message, report) {
-        QString description = message.split(']').last();
-        QString eID = message.split('[').last().split(']').first();
-        notificationReceived(NT_WARNING, "Model Validation", description, "", "", eID.toInt());
-        //newNotification(description, "", "", eID.toInt(), NS_WARNING, NT_MODEL, NC_VALIDATION);
+    qDebug() << "MODEL VALIDATED";
+    QString status = "Failed";
+    if (report.isEmpty()) {
+        status = "Succeeded";
+    } else {
+        foreach (QString message, report) {
+            QString description = message.split(']').last().trimmed();
+            QString eID = message.split('[').last().split(']').first();
+            addNotification(description, "", "", eID.toInt(), NS_WARNING, NT_MODEL, NC_VALIDATION, false);
+        }
+    }
+    addNotification("Model Validation " + status, "Action", "Validate", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
+}
+
+
+/**
+ * @brief NotificationManager::addNotification
+ * @param description
+ * @param iconPath
+ * @param iconName
+ * @param entityID
+ * @param s
+ * @param t
+ * @param c
+ */
+void NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c, bool toast)
+{
+    // construct notification item
+    NotificationObject* item = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, this);
+    notificationItems[item->ID()] = item;
+    lastNotificationItem = item;
+
+    // send signal to the notifications widget; highlight showMostRecentNotification button
+    emit notificationAlert();
+
+    // send signal to the notification dialog; add notification item
+    emit notificationItemAdded(item);
+
+    // send signal to main window; display notification toast
+    if (toast) {
+        emit notificationAdded(iconPath, iconName, description);
     }
 }
 

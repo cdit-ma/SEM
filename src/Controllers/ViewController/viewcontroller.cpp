@@ -416,6 +416,7 @@ void ViewController::askQuestion(QString title, QString message, int ID)
 
 void ViewController::modelValidated(QString reportPath)
 {
+    qDebug() << "MODEL VALIDATED";
     QFile xmlFile(reportPath);
     if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
         return;
@@ -431,7 +432,7 @@ void ViewController::modelValidated(QString reportPath)
     xmlFile.close();
 
     emit vc_modelValidated(reportMessages);
-    emit vc_backgroundProcessFinished();
+    emit vc_backgroundProcess(false);
 
     /*
     foreach (QString message, reportMessages) {
@@ -537,7 +538,8 @@ void ViewController::validateModel()
 
         if(!filePath.isEmpty()){
             emit vc_validateModel(filePath, reportPath);
-            emit vc_backgroundProcessStarted();
+            emit vc_backgroundProcess(true);
+            qDebug() << "Validation Started";
         }
     }
 }
