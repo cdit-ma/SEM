@@ -46,6 +46,7 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     connect(WindowManager::manager(), SIGNAL(activeViewDockWidgetChanged(ViewDockWidget*,ViewDockWidget*)), this, SLOT(activeViewDockWidgetChanged(ViewDockWidget*, ViewDockWidget*)));
+    connect(NotificationManager::manager(), &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
 
     setViewController(vc);
 
@@ -93,14 +94,10 @@ void MainWindow::setViewController(ViewController *vc)
 
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
-    NotificationManager* notificationManager = new NotificationManager(viewController, this);
 
-    if (cornerToolbar) {
-        cornerToolbar->insertWidget(beforeAction, notificationManager->getNotificationWidget());
-    }
-
-    connect(notificationManager, &NotificationManager::notificationAdded, this, &MainWindow::popupNotification);
-    connect(vc, &ViewController::vc_setupModel, notificationManager, &NotificationManager::notificationsSeen);
+    //connect(viewController, &ViewController::vc_newNotification, NotificationManager::manager(), &NotificationManager::newNotification);
+    connect(viewController, &ViewController::vc_showNotification, NotificationManager::manager(), &NotificationManager::notificationReceived);
+    connect(viewController, &ViewController::vc_modelValidated, NotificationManager::manager(), &NotificationManager::modelValidated);
 
     connect(controller, &SelectionController::itemActiveSelectionChanged, tableWidget, &DataTableWidget::itemActiveSelectionChanged);
 
@@ -151,6 +148,7 @@ void MainWindow::searchEntered()
  */
 void MainWindow::popupNotification(QString iconPath, QString iconName, QString description)
 {
+    notificationPopup->hide();
     notificationTimer->stop();
 
     if (!welcomeScreenOn) {
@@ -251,9 +249,6 @@ void MainWindow::themeChanged()
 
     notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet() + "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; }");
     //notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
-
-    //cornerToolbar->setStyleSheet("QToolButton{ padding: 2px 4px; border-top-left-radius: 0px; border-bottom-left-radius: 0px; }");
-    cornerToolbar->setStyleSheet("QToolButton{ padding: 2px 4px; }");
 
     restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
     restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
@@ -801,7 +796,7 @@ void MainWindow::setupMinimap()
 
 
 /**
- * @brief MedeaMainWindow::setupWindowManager
+ * @brief MedeaMainWindow::setupViewManager
  */
 void MainWindow::setupViewManager()
 {
@@ -833,16 +828,33 @@ void MainWindow::setupMenuCornerWidget()
     restoreToolsButton->setPopupMode(QToolButton::InstantPopup);
     restoreToolsButton->setStyleSheet("border-radius: 4px;");
 
-    cornerToolbar = new QToolBar(this);
-    cornerToolbar->setIconSize(QSize(20, 20));
-    cornerToolbar->setFixedHeight(menuBar->height() - 6);
+    notificationToolbar = new NotificationToolbar(viewController, this);
+    notificationDialog = new NotificationDialog(this);
 
-    beforeAction = cornerToolbar->addSeparator();
-    cornerToolbar->addWidget(restoreToolsButton);
+    QToolBar* tb = new QToolBar(this);
+    tb->setStyleSheet("QToolBar{ padding: 0px; } QToolButton{ padding: 3px 2px; }");
+    tb->addWidget(restoreToolsButton);
 
-    menuBar->setCornerWidget(cornerToolbar);
+    QWidget* w = new QWidget(this);
+    w->setFixedHeight(menuBar->height() - 6);
+
+    QHBoxLayout* hLayout = new QHBoxLayout(w);
+    hLayout->setMargin(0);
+    hLayout->addWidget(notificationToolbar);
+    hLayout->addSpacerItem(new QSpacerItem(3,0));
+    hLayout->addWidget(tb);
+
+    menuBar->setCornerWidget(w);
 
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
+    connect(viewController, &ViewController::vc_backgroundProcessStarted, notificationToolbar, &NotificationToolbar::displayLoadingGif);
+    connect(viewController, &ViewController::vc_backgroundProcessFinished, notificationToolbar, &NotificationToolbar::displayLoadingGif);
+    connect(viewController, &ViewController::vc_setupModel, notificationToolbar, &NotificationToolbar::notificationsSeen);
+    connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
+    connect(notificationToolbar, &NotificationToolbar::toggleDialog, notificationDialog, &NotificationDialog::toggleVisibility);
+    connect(notificationDialog, &NotificationDialog::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
+    connect(notificationDialog, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
+    connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
 }
 
 

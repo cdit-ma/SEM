@@ -150,7 +150,6 @@ HEADERS += \
 	Widgets/CodeEditor/codeeditor.h \
 	Widgets/CodeEditor/syntaxhighlighter.h \
 	Widgets/Dialogs/appsettings.h \
-	Widgets/Dialogs/notificationdialog.h \
 	Widgets/Dialogs/popupwidget.h \
 	Widgets/Dialogs/shortcutdialog.h \
 	Widgets/ViewManager/viewmanagerwidget.h \
@@ -176,9 +175,10 @@ HEADERS += \
 	Widgets/ViewManager/windowitem.h \
 	Widgets/ViewManager/dockitem.h \
 	Controllers/NotificationManager/notificationmanager.h \
-	Widgets/Dialogs/validationdialog.h \
-	Widgets/Dialogs/validationdialog.h \
-        Views/NodeView/SceneItems/Edge/edgeitem.h
+	Views/NodeView/SceneItems/Edge/edgeitem.h \
+    Views/Notification/notificationdialog.h \
+    Views/Notification/notificationobject.h \
+    Views/Notification/notificationtoolbar.h
 
 
 SOURCES += \
@@ -323,7 +323,6 @@ SOURCES += \
 	Widgets/CodeEditor/codeeditor.cpp \
 	Widgets/CodeEditor/syntaxhighlighter.cpp \
 	Widgets/Dialogs/appsettings.cpp \
-	Widgets/Dialogs/notificationdialog.cpp \
 	Widgets/Dialogs/popupwidget.cpp \
 	Widgets/Dialogs/shortcutdialog.cpp \
 	Widgets/ViewManager/viewmanagerwidget.cpp \
@@ -347,9 +346,10 @@ SOURCES += \
 	Widgets/ViewManager/windowitem.cpp \
 	Widgets/ViewManager/dockitem.cpp \
 	Controllers/NotificationManager/notificationmanager.cpp \
-	Widgets/Dialogs/validationdialog.cpp \
-	Widgets/Dialogs/validationdialog.cpp \
-    Views/NodeView/SceneItems/Edge/edgeitem.cpp
+    Views/NodeView/SceneItems/Edge/edgeitem.cpp \
+    Views/Notification/notificationdialog.cpp \
+    Views/Notification/notificationobject.cpp \
+    Views/Notification/notificationtoolbar.cpp
 
 RESOURCES += \
 	resources.qrc

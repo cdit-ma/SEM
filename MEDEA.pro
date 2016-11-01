@@ -10,4 +10,3 @@ SUBDIRS = \
 # Both app/test depends on source
 app.depends = src
 test.depends = src
-
