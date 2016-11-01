@@ -26,16 +26,20 @@ public:
     void setMoveStarted();
     bool setMoveFinished();
 
+    bool isCentered() const;
+    void resetCenter();
+    void setCentered(bool centered);
 protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
 private slots:
     void dataChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);
-
+    void updateEdge();
+    void srcAncestorVisibilityChanged();
+    void dstAncestorVisibilityChanged();
 private:
-    QPainterPath trianglePath(QPointF startPoint, bool pointRight=true) const;
-
+    //Rectangle helpers
     QRectF srcIconRect() const;
     QRectF centerIconRect() const;
     QRectF dstIconRect() const;
@@ -43,11 +47,11 @@ private:
     QRectF srcIconCircle() const;
     QRectF dstIconCircle() const;
 
+    QRectF centerCircleRect() const;
+    QRectF sceneCenterCircleRect() const;
+    QRectF translatedCenterCircleRect(QPointF center = QPointF()) const;
 
     QPointF getCenterCircleTermination(bool left, QPointF center = QPointF()) const;
-    QRectF centerCircleRect() const;
-    QRectF translatedCenterCircleRect(QPointF center = QPointF()) const;
-    QRectF sceneCenterCircleRect() const;
 
 
     bool srcExitsLeft(QPointF center = QPointF()) const;
@@ -55,55 +59,30 @@ private:
     bool srcLeftOfDst() const;
 
 
-    void srcParentVisibilityChanged();
-    void dstParentVisibilityChanged();
+    void updateSrcCurve(QPointF srcP, QPointF ctrP, bool srcP_Left, bool ctrP_Left);
+    void updateDstCurve(QPointF dstP, QPointF ctrP, bool dstP_Left, bool ctrP_Left);
 
-    void srcParentMoved();
-    void dstParentMoved();
-    void centerMoved();
+    QPainterPath calculateArrowHead(QPointF startPoint, bool pointLeft) const;
+    QPainterPath calculateBezierCurve(QPointF P1, QPointF P2, bool P1_Left, bool P2_Left) const;
 
-    void recalcSrcCurve();
-    void recalcDstCurve();
-    void recalculateEdgeDirections();
-
-    void resetCenter();
 
     NodeItem* getFirstVisibleParent(NodeItem* item);
 
 
-
     NodeItem* src;
     NodeItem* dst;
-
-
-    QPainterPath sourceCurve;
-    QPainterPath destinationCurve;
-    QPainterPath sourceArrow;
-    QPainterPath destinationArrow;
-
-
-
-    QPointF srcCurveP1;
-    QPointF srcCurveP2;
-    bool srcCurveP1Left;
-    bool srcCurveP2Left;
-
-    QPointF dstCurveP1;
-    QPointF dstCurveP2;
-    bool dstCurveP1Left;
-    bool dstCurveP2Left;
-
-
-    bool dstLeft;
-
-    QMarginsF margins;
     NodeItem* vSrc;
     NodeItem* vDst;
 
-    bool isCentered() const;
 
-    void setCentered(bool centered);
+    QPainterPath srcCurve;
+    QPainterPath dstCurve;
+    QPainterPath srcArrow;
+    QPainterPath dstArrow;
 
+    bool srcCurveEntersCenterLeft;
+
+    QMarginsF margins;
 
     bool _isCentered;
     QPointF _centerPoint;
