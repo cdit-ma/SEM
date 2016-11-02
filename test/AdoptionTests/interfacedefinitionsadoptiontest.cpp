@@ -33,6 +33,7 @@ void InterfaceDefinitionsAdoptionTest::test_data(){
     QTest::newRow("InterfaceDefinitions<-InEventPort")
             << (Node*)id << (Node*) new InEventPort << false;
 
-
+    QTest::newRow("InterfaceDefinitions<-OutEventPort")
+            << (Node*)id << (Node*) new OutEventPort << false;
 
 }

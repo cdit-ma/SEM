@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/Models">
         <file alias="HelloWorld.graphml">Resources/Models/HelloWorld.graphml</file>
+        <file alias="MCMS.graphml">Resources/Models/MCMS.graphml</file>
     </qresource>
 </RCC>

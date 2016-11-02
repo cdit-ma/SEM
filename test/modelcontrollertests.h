@@ -17,6 +17,7 @@ private slots:
     //Tests
     void initializeControllerTest();
     void loadHelloWorldTest();
+    void loadMCMSTest();
 
 private:
     void actionCompleted(bool success, QString result);
