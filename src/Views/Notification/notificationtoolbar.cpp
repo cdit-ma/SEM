@@ -17,7 +17,7 @@ NotificationToolbar::NotificationToolbar(ViewController* vc, QWidget *parent) :
     setupLayout();
     themeChanged();
 
-    connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
+    //connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::notificationsSeen);
     connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::toggleDialog);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationToolbar::themeChanged);
@@ -192,11 +192,6 @@ void NotificationToolbar::setupLayout()
     // set object names for the two actions - used in the stylesheet
     widgetForAction(showMostRecentAction)->setObjectName("LEFT_ACTION");
     widgetForAction(toggleNotificationsDialog)->setObjectName("RIGHT_ACTION");
-
-    QAction* testAction = addAction("T");
-    testAction->setCheckable(true);
-    testAction->setVisible(false);
-    connect(testAction, &QAction::triggered, this, &NotificationToolbar::displayLoadingGif);
 
     loadingGif = new QMovie(this);
     loadingGif->setFileName(":/Actions/Waiting");

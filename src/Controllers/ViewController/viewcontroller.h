@@ -130,8 +130,7 @@ signals:
     void vc_modelValidated(QStringList report);
     void vc_launchLocalDeployment(QString graphmlPath);
 
-    void vc_backgroundProcessStarted(bool show = true);
-    void vc_backgroundProcessFinished(bool show = false);
+    void vc_backgroundProcess(bool inProgress);
 
     void vc_importXMEProject(QString xmePath, QString graphmlPath);
     void vc_importXMIProject(QString XMIPath);

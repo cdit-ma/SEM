@@ -847,8 +847,7 @@ void MainWindow::setupMenuCornerWidget()
     menuBar->setCornerWidget(w);
 
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
-    connect(viewController, &ViewController::vc_backgroundProcessStarted, notificationToolbar, &NotificationToolbar::displayLoadingGif);
-    connect(viewController, &ViewController::vc_backgroundProcessFinished, notificationToolbar, &NotificationToolbar::displayLoadingGif);
+    //connect(viewController, &ViewController::vc_backgroundProcess, notificationToolbar, &NotificationToolbar::displayLoadingGif);
     connect(viewController, &ViewController::vc_setupModel, notificationToolbar, &NotificationToolbar::notificationsSeen);
     connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::resetDialog);
     connect(notificationToolbar, &NotificationToolbar::toggleDialog, notificationDialog, &NotificationDialog::toggleVisibility);
