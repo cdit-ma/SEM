@@ -238,7 +238,7 @@ public:
     void setHighlighted(bool isHighlight);
     void setSelected(bool selected);
     void setActiveSelected(bool active);
-    void updateZValue(bool childSelected = true, bool childActive = false);
+    void updateZValue(bool childSelected = false, bool childActive = false);
 private:
     void paintPixmapRect(QPainter* painter, QString imageAlias, QString imageName, QRectF rect);
     void paintPixmap(QPainter* painter, QRectF imageRect, QPixmap pixmap) const;
