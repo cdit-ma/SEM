@@ -3,12 +3,11 @@
 DeploymentEdge::DeploymentEdge(Node *src, Node *dst) : Edge(src, dst, Edge::EC_DEPLOYMENT)
 {}
 
-DeploymentEdge::~DeploymentEdge()
+DeploymentEdge *DeploymentEdge::createDeploymentEdge(Node *src, Node *dst)
 {
-}
-
-
-QString DeploymentEdge::toString()
-{
-    return QString("DeploymentEdge[%1]: [" + getSource()->toString() +"] <-> [" + getDestination()->toString() + "]").arg(this->getID());
+    DeploymentEdge* edge = 0;
+    if(src->canAcceptEdge(Edge::EC_DEPLOYMENT, dst)){
+        edge = new DeploymentEdge(src, dst);
+    }
+    return edge;
 }

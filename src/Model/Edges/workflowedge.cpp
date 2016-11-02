@@ -5,12 +5,12 @@ WorkflowEdge::WorkflowEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_WORKFLO
 {
 }
 
-
-WorkflowEdge::~WorkflowEdge()
+WorkflowEdge *WorkflowEdge::createWorkflowEdge(Node *src, Node *dst)
 {
+    WorkflowEdge* edge = 0;
+    if(src->canAcceptEdge(Edge::EC_WORKFLOW, dst)){
+        edge = new WorkflowEdge(src, dst);
+    }
+    return edge;
 }
 
-QString WorkflowEdge::toString()
-{
-    return QString("WorkflowEdge[%1]: [" + getSource()->toString() +"] <-> [" + getDestination()->toString() + "]").arg(this->getID());
-}

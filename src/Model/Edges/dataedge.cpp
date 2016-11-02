@@ -5,13 +5,11 @@ DataEdge::DataEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_DATA)
 {
 }
 
-DataEdge::~DataEdge()
+DataEdge *DataEdge::createDataEdge(Node *src, Node *dst)
 {
-
+    DataEdge* edge = 0;
+    if(src->canAcceptEdge(Edge::EC_DATA, dst)){
+        edge = new DataEdge(src, dst);
+    }
+    return edge;
 }
-
-QString DataEdge::toString()
-{
-    return QString("DataEdge[%1]: [" + getSource()->toString() +"] <-> [" + getDestination()->toString() + "]").arg(this->getID());
-}
-

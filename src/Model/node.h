@@ -182,7 +182,7 @@ public:
     int getTypes() const;
 
     void setDefinition(Node *def);
-    Node* getDefinition(bool recurse=false);
+    Node* getDefinition(bool recurse=false) const;
     void unsetDefinition();
 
     void addInstance(Node* inst);

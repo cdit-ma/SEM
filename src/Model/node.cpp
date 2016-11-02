@@ -753,7 +753,7 @@ void Node::setDefinition(Node *def)
 
 }
 
-Node *Node::getDefinition(bool recurse)
+Node *Node::getDefinition(bool recurse) const
 {
     Node* def = definition;
 

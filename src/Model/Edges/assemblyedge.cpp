@@ -5,13 +5,13 @@ AssemblyEdge::AssemblyEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_ASSEMBL
 {
 }
 
-AssemblyEdge::~AssemblyEdge()
+AssemblyEdge *AssemblyEdge::createAssemblyEdge(Node *src, Node *dst)
 {
+    AssemblyEdge* edge = 0;
+    if(src->canAcceptEdge(Edge::EC_ASSEMBLY, dst)){
+        edge = new AssemblyEdge(src, dst);
+    }
+    return edge;
 
-}
-
-QString AssemblyEdge::toString()
-{
-    return QString("AssemblyEdge[%1]: [" + getSource()->toString() +"] <-> [" + getDestination()->toString() + "]").arg(this->getID());
 }
 

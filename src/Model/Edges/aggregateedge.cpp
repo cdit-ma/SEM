@@ -5,13 +5,11 @@ AggregateEdge::AggregateEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_AGGRE
 {
 }
 
-AggregateEdge::~AggregateEdge()
+AggregateEdge *AggregateEdge::createAggregateEdge(Node *src, Node *dst)
 {
-
+    AggregateEdge* edge = 0;
+    if(src->canAcceptEdge(Edge::EC_AGGREGATE, dst)){
+        edge = new AggregateEdge(src, dst);
+    }
+    return edge;
 }
-
-QString AggregateEdge::toString()
-{
-    return QString("AggregateEdge[%1]: [" + getSource()->toString() +"] <-> [" + getDestination()->toString() + "]").arg(this->getID());
-}
-

@@ -37,7 +37,6 @@ public:
 
     void appendEdgeKind(Edge::EDGE_KIND edgeKind);
     void removeEdgeKind(Edge::EDGE_KIND edgeKind);
-    void printEdgeKinds();
     Edge::EDGE_KIND getEdgeKind();
     bool hasEdgeKind();
 

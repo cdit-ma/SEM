@@ -724,6 +724,17 @@ NodeItem *EdgeItem::getFirstVisibleParent(NodeItem *item)
     return item;
 }
 
+void EdgeItem::updateZValue(bool childSelected, bool childActive)
+{
+    EntityItem::updateZValue(childSelected, childActive);
+
+    if(vSrc && vDst){
+        vSrc->updateZValue(isSelected(), isActiveSelected());
+        vDst->updateZValue(isSelected(), isActiveSelected());
+    }
+
+}
+
 /**
  * @brief EdgeItem::isCentered Returns whether or not the EdgeItem is auto-centered or manually positioned.
  * @return

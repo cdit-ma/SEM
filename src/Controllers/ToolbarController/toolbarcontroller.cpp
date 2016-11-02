@@ -357,8 +357,8 @@ void ToolbarController::setupNodeActions()
 
 void ToolbarController::setupEdgeActions()
 {
-    foreach(Edge::EDGE_KIND kind, Edge::getEdgeKinds()){
-        QString edgeKind = Edge::getKind(kind);
+    foreach(Edge::EDGE_KIND kind, EdgeFactory::getEdgeKinds()){
+        QString edgeKind = EdgeFactory::getEdgeKindString(kind);
         RootAction* connectAction = new RootAction("Edge", edgeKind);
         RootAction* disconnectAction = new RootAction("Edge", edgeKind);
         connectAction->setIconPath("Items", edgeKind);
