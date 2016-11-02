@@ -645,7 +645,7 @@ void EntityItem::removeData(QString keyName)
 void EntityItem::setDefaultZValue(qreal z)
 {
     defaultZValue = z;
-    setZValue(z);
+    updateZValue();
 }
 
 void EntityItem::handleExpand(bool expand)
@@ -994,23 +994,24 @@ void EntityItem::setActiveSelected(bool active)
     }
 }
 
-void EntityItem::updateZValue(bool childSelected)
+void EntityItem::updateZValue(bool childSelected, bool childActive)
 {
-    //Raise
     bool raise = childSelected || isSelected();
+    childActive |= isActiveSelected();
 
     qreal z = fabs(getDefaultZValue());
 
-    z *= raise ? 1: -1;
-
-    if(isActiveSelected()){
-        z *= 2;
+    if(z == 0 && raise){
+        z = 1;
     }
+
+    z *= raise ? 1: -1;
+    z *= childActive ? 2 : 1;
 
     setZValue(z);
 
     if(getParent()){
-        getParent()->updateZValue(raise);
+        getParent()->updateZValue(raise, childActive);
     }
 }
 
