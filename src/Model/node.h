@@ -135,7 +135,7 @@ public:
     //Returns whether or not this Node can Adopt the child Node.
     virtual bool canAdoptChild(Node *node);
     //Adds the Node provided to the list of children.
-    void addChild(Node *child);
+    bool addChild(Node *child);
     QString getNodeKindStr();
 
     bool indirectlyConnectedTo(Node* node);

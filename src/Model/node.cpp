@@ -382,12 +382,14 @@ void Node::setViewAspect(VIEW_ASPECT aspect)
     this->aspect = aspect;
 }
 
-void Node::addChild(Node *child)
+bool Node::addChild(Node *child)
 {
-    if(child && !containsChild(child)){
+    if(child && !containsChild(child) && canAdoptChild(child)){
         children << child;
         child->setParentNode(this, childCount++);
+        return true;
     }
+    return false;
 }
 
 QString Node::getNodeKindStr()

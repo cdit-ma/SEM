@@ -989,9 +989,8 @@ void ModelController::constructConnectedNode(int parentID, QString nodeKind, int
         //Create a test node, without telling the GUI.
         Node* testNode = _constructNode(constructDataVector(nodeKind));
         if(testNode){
-            if(parentNode->canAdoptChild(testNode)){
+            if(parentNode->addChild(testNode)){
                 setData(parentID, "isExpanded", true);
-                parentNode->addChild(testNode);
 
 
                 if(edgeKind == Edge::EC_UNDEFINED){
@@ -1784,10 +1783,9 @@ QList<int> ModelController::getConstructableConnectableNodes(int parentID, QStri
     Node* parentNode = getNodeFromID(parentID);
     Node* childNode = constructTypedNode(instanceNodeKind, true);
 
-    if(childNode && parentNode){
-        if(parentNode->canAdoptChild(childNode)){
-            parentNode->addChild(childNode);
 
+    if(childNode && parentNode){
+        if(parentNode->addChild(childNode)){
             QList<Node*> source;
             source << childNode;
 
@@ -2464,10 +2462,7 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool sendGUI
     bool inModel = _isInModel(node);
 
     if(!inModel){
-        if(parentNode->canAdoptChild(node)){
-            //Attach new node to parent.
-            parentNode->addChild(node);
-
+        if(parentNode->addChild(node)){
             //Only enforce unique-ness for non-read-only nodes.
             if(!node->isReadOnly() && node->gotData("label")){
                 //Force Unique labels
