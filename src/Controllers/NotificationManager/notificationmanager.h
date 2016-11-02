@@ -20,16 +20,23 @@ class NotificationManager : public QObject
     Q_OBJECT
 public:
     static NotificationManager* manager();
+    static QTime* projectTime();
+
     static void resetManager();
     static void tearDown();
 
-    static QTime* projectTime();
-
     static QList<NotificationObject*> getNotificationItems();
-
     static QList<NOTIFICATION_SEVERITY> getNotificationSeverities();
     static QString getNotificationSeverityString(NOTIFICATION_SEVERITY severity);
     static QString getNotificationSeverityColorStr(NOTIFICATION_SEVERITY severity);
+
+    void displayNotification(QString description,
+                             QString iconPath,
+                             QString iconName,
+                             int entityID,
+                             NOTIFICATION_SEVERITY s = NS_INFO,
+                             NOTIFICATION_TYPE2 t = NT_MODEL,
+                             NOTIFICATION_CATEGORY c = NC_NOCATEGORY);
 
 signals:
     void notificationAlert();
@@ -42,11 +49,6 @@ signals:
     void req_lastNotificationID();
 
 public slots:
-    void newNotification(QString description, QString iconPath, QString iconName, int entityID,
-                         NOTIFICATION_SEVERITY s = NS_INFO,
-                         NOTIFICATION_TYPE2 t = NT_MODEL,
-                         NOTIFICATION_CATEGORY c = NC_NOCATEGORY);
-
     void notificationReceived(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int entityID);
     void deleteNotification(int ID);
 
@@ -56,6 +58,15 @@ public slots:
     void modelValidated(QStringList report);
 
 private:
+    void addNotification(QString description,
+                         QString iconPath,
+                         QString iconName,
+                         int entityID,
+                         NOTIFICATION_SEVERITY s,
+                         NOTIFICATION_TYPE2 t,
+                         NOTIFICATION_CATEGORY c,
+                         bool toast = true);
+
     static NotificationManager* managerSingleton;
     static QTime* projectRunTime;
 

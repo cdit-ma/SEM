@@ -168,7 +168,21 @@ void NotificationDialog::listSelectionChanged()
  */
 void NotificationDialog::toggleVisibility()
 {
+    /*
+    if (isVisible()) {
+        if (QApplication::activeWindow() != this) {
+            raise();
+            return;
+        }
+    }
+    */
+
     setVisible(!isVisible());
+
+    // if the dialog was just made visible, send this signal to mark new notifications as seen
+    if (isVisible()) {
+        emit mouseEntered();
+    }
 }
 
 
@@ -208,7 +222,7 @@ void NotificationDialog::clearSelected()
     while (!selectedItems.isEmpty()) {
         QListWidgetItem* item = selectedItems.takeFirst();
         NOTIFICATION_SEVERITY severity = (NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
-        if (severity != NT_ERROR) {
+        if (severity != NS_ERROR) {
             if (!removedSeverities.contains(severity)) {
                 removedSeverities.append(severity);
             }
@@ -232,7 +246,7 @@ void NotificationDialog::clearVisible()
         if (!listWidget->isRowHidden(i)) {
             QListWidgetItem* item = listWidget->item(i);
             NOTIFICATION_SEVERITY severity = (NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
-            if (severity != NT_ERROR) {
+            if (severity != NS_ERROR) {
                 visibleItems.append(item);
                 if (!removedSeverities.contains(severity)) {
                     removedSeverities.append(severity);
