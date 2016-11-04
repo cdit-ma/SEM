@@ -6,6 +6,9 @@
 #include "../../Views/Table/datatablemodel.h"
 #include "../../Utils/qobjectregistrar.h"
 
+#include "../../Model/edgefactory.h"
+#include "../../Model/nodefactory.h"
+
 //Forward declaration.
 class ViewController;
 

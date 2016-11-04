@@ -5,9 +5,9 @@
 class AssemblyEdge : public Edge
 {
     Q_OBJECT
-public:
+protected:
     AssemblyEdge(Node *src, Node *dst);
-    ~AssemblyEdge();
-    QString toString();
+public:
+    static AssemblyEdge* createAssemblyEdge(Node* src, Node* dst);
 };
 #endif // ASSEMBLYEDGE_H

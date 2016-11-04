@@ -582,7 +582,6 @@ private:
 
     QPair<bool, QString> readFile(QString filePath);
     Node* constructTypedNode(QString nodeKind, bool isTemporary = false, QString nodeType="", QString nodeLabel="");
-    Edge* constructTypedEdge(Node* src, Node* dst, Edge::EDGE_KIND edgeClass);
 
     //Attach Data('s) to the GraphML item.
     bool _attachData(Entity* item, Data* data, bool addAction = true);

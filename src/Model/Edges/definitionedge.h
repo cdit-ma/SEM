@@ -4,16 +4,17 @@
 
 class DefinitionEdge: public Edge{
     Q_OBJECT
-public:
+
+protected:
     //Constructor
     DefinitionEdge(Node* src, Node* dst);
-    ~DefinitionEdge();
 
-    bool isImplEdge();
-    bool isInstanceEdge();
-    bool isInterInstanceEdge();
+public:
+    static DefinitionEdge* createDefinitionEdge(Node* src, Node* dst);
 
-    QString toString();
+    bool isImplEdge() const;
+    bool isInstanceEdge() const;
+    bool isInterInstanceEdge() const;
 };
 
 #endif // EDGE_H

@@ -4,78 +4,7 @@
 #include "node.h"
 #include <QDebug>
 #include <QStringBuilder>
-QList<Edge::EDGE_KIND> Edge::getEdgeKinds()
-{
-    QList<Edge::EDGE_KIND> edges;
-    edges << EC_DEFINITION;
-    edges << EC_AGGREGATE;
-    edges << EC_WORKFLOW;
-    edges << EC_ASSEMBLY;
-    edges << EC_DATA;
-    edges << EC_DEPLOYMENT;
-    edges << EC_QOS;
-    return edges;
-}
 
-QString Edge::getKind(Edge::EDGE_KIND edgeClass)
-{
-    QString suffix = "Edge";
-    QString prefix;
-    switch(edgeClass){
-        case EC_DEFINITION:{
-            prefix = "Definition";
-            break;
-        }
-        case EC_AGGREGATE:{
-            prefix = "Aggregate";
-            break;
-        }
-        case EC_WORKFLOW:{
-            prefix = "Workflow";
-            break;
-        }
-        case EC_ASSEMBLY:{
-            prefix = "Assembly";
-            break;
-        }
-        case EC_DATA:{
-            prefix = "Data";
-            break;
-        }
-        case EC_DEPLOYMENT:{
-            prefix = "Deployment";
-            break;
-        }
-        case EC_QOS:{
-            prefix = "QOS";
-            break;
-        }
-    default:
-        prefix = "Undefined";
-        break;
-    }
-    return suffix % "_" % prefix;
-}
-
-Edge::EDGE_KIND Edge::getEdgeKind(QString kind)
-{
-    if(kind == "Edge_Definition"){
-        return Edge::EC_DEFINITION;
-    }else if(kind == "Edge_Aggregate"){
-        return Edge::EC_AGGREGATE;
-    }else if(kind == "Edge_Workflow"){
-        return Edge::EC_WORKFLOW;
-    }else if(kind == "Edge_Assembly"){
-        return Edge::EC_ASSEMBLY;
-    }else if(kind == "Edge_Data"){
-        return Edge::EC_DATA;
-    }else if(kind == "Edge_Deployment"){
-        return Edge::EC_DEPLOYMENT;
-    }else if(kind == "Edge_QOS"){
-        return Edge::EC_QOS;
-    }
-    return Edge::EC_UNDEFINED;
-}
 
 
 Edge::Edge(Node *s, Node *d, EDGE_KIND edgeClass):Entity(EK_EDGE)
@@ -104,7 +33,6 @@ Edge::~Edge()
         source->removeEdge(this);
     }
 }
-
 
 Node *Edge::getSource() const
 {

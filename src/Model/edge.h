@@ -8,6 +8,9 @@ class Node;
 //Base class of an edge object (Treated as Class for extended Node Types). Extends the GraphML Abstract Base Class.
 class Edge: public Entity{
     Q_OBJECT
+
+    //The factory can access protected constructors
+    friend class EdgeFactory;
 public:
     enum EDGE_KIND{
         EC_NONE = 0,
@@ -19,18 +22,15 @@ public:
         EC_DEPLOYMENT= 6,
         EC_QOS= 7,
         EC_UNDEFINED = 8};
-    static QList<EDGE_KIND> getEdgeKinds();
-
-    static QString getKind(EDGE_KIND edgeClass);
-    static EDGE_KIND getEdgeKind(QString kind);
-
     //Enum for Node Types
     enum EDGE_TYPE {ET_NORMAL, ET_MATCHINGKINDS, ET_AGGREGATE, ET_DEPLOYMENT, ET_ASSEMBLY, ET_COMPONENT, ET_DELEGATE, ET_TERMINATION, ET_DATALINK};
 
     //Constructor
-    Edge(Node* source, Node* destination, EDGE_KIND edgeClass= EC_NONE);
-    ~Edge();
+protected:
+    Edge(Node* source, Node* destination, EDGE_KIND edgeClass = EC_NONE);
 
+public:
+    ~Edge();
 
     //Get the source graphml object of this Edge
     Node* getSource() const;

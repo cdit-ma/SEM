@@ -141,14 +141,6 @@ void TempEntity::removeEdgeKind(Edge::EDGE_KIND edgeKind)
     edgeKinds.removeAll(edgeKind);
 }
 
-void TempEntity::printEdgeKinds()
-{
-    qCritical() << "VALID EDGE TYPES FOR: " << this;
-    foreach(Edge::EDGE_KIND ec, edgeKinds){
-        qCritical() << "Edge: " << Edge::getKind(ec);
-    }
-}
-
 Edge::EDGE_KIND TempEntity::getEdgeKind()
 {
     return edgeKinds.first();

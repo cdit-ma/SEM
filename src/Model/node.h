@@ -135,7 +135,7 @@ public:
     //Returns whether or not this Node can Adopt the child Node.
     virtual bool canAdoptChild(Node *node);
     //Adds the Node provided to the list of children.
-    void addChild(Node *child);
+    bool addChild(Node *child);
     QString getNodeKindStr();
 
     bool indirectlyConnectedTo(Node* node);
@@ -182,7 +182,7 @@ public:
     int getTypes() const;
 
     void setDefinition(Node *def);
-    Node* getDefinition(bool recurse=false);
+    Node* getDefinition(bool recurse=false) const;
     void unsetDefinition();
 
     void addInstance(Node* inst);

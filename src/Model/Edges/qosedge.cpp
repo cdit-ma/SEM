@@ -4,11 +4,11 @@ QOSEdge::QOSEdge(Node *src, Node *dst):Edge(src, dst, Edge::EC_QOS)
 {
 }
 
-QOSEdge::~QOSEdge()
+QOSEdge *QOSEdge::createQOSEdge(Node *src, Node *dst)
 {
-}
-
-QString QOSEdge::toString()
-{
-    return QString("QOSEdge[%1]: [" + getSource()->toString() +"] <-> [" + getDestination()->toString() + "]").arg(this->getID());
+    QOSEdge* edge = 0;
+    if(src->canAcceptEdge(Edge::EC_QOS, dst)){
+        edge = new QOSEdge(src, dst);
+    }
+    return edge;
 }

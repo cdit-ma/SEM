@@ -86,6 +86,10 @@ private:
 
     bool _isCentered;
     QPointF _centerPoint;
+
+    // EntityItem interface
+public:
+    void updateZValue(bool childSelected, bool childActive);
 };
 
 

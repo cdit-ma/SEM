@@ -5,9 +5,11 @@
 class AggregateEdge : public Edge
 {
     Q_OBJECT
-public:
+
+protected:
     AggregateEdge(Node *src, Node *dst);
-    ~AggregateEdge();
-    QString toString();
+
+public:
+    static AggregateEdge* createAggregateEdge(Node* src, Node* dst);
 };
 #endif // AGGREGATEEDGE_H
