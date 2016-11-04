@@ -12,8 +12,6 @@
 #include <QActionGroup>
 #include <QSplitter>
 
-
-
 #include "../../Controllers/ViewController/viewitem.h"
 #include "searchitemwidget.h"
 
@@ -64,8 +62,8 @@ private:
     QToolButton* searchButton;
     QComboBox* scopeComboBox;
 
-    QToolBar* keysToolBar;
-    QToolBar* buttonsToolBar;
+    QToolBar* keysToolbar;
+    QToolBar* buttonsToolbar;
     QVBoxLayout* keysLayout;
     QActionGroup* keysActionGroup;
 

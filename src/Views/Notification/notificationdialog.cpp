@@ -85,7 +85,6 @@ void NotificationDialog::severityActionToggled(int actionSeverity)
  */
 void NotificationDialog::displaySelection()
 {
-    qDebug() << "HERE";
     int numSelectedItems = listWidget->selectedItems().count();
     if (numSelectedItems != 1) {
         return;
@@ -545,6 +544,43 @@ void NotificationDialog::setupLayout()
     connect(clearVisibleAction, &QAction::triggered, this, &NotificationDialog::clearVisible);
 
     setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
+}
+
+
+/**
+ * @brief NotificationDialog::constructFilterButton
+ * @param role
+ * @param roleVal
+ * @param label
+ * @param iconPath
+ * @param iconName
+ */
+void NotificationDialog::constructFilterButton(NotificationDialog::ITEM_ROLES role, int roleVal, QString label, QString iconPath, QString iconName)
+{
+    QActionGroup* group = filterGroups.value(role, 0);
+    if (!group) {
+        group = new QActionGroup(this);
+        filterGroups[role] = group;
+        //connect(group, &QActionGroup::triggered, this, &NotificationDialog::filterToggled);
+    }
+
+    QAction* action = filtersToolbar->addAction(label);
+    filtersToolbar->widgetForAction(action)->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    group->addAction(action);
+
+    severityActionMapper = new QSignalMapper(this);
+
+    foreach (NOTIFICATION_SEVERITY severity, NotificationManager::getNotificationSeverities()) {
+        QAction* action = new QAction(this);
+        action->setCheckable(true);
+        action->setChecked(true);
+        connect(action, &QAction::toggled, severityActionMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
+        severityActionMapper->setMapping(action, severity);
+        severityActionHash.insert(severity, action);
+        updateSeverityAction(severity);
+    }
+
+    connect(severityActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),this, &NotificationDialog::severityActionToggled);
 }
 
 

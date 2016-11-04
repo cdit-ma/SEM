@@ -7,6 +7,8 @@
 #include <QActionGroup>
 #include <QSignalMapper>
 #include <QToolBar>
+#include <QSplitter>
+#include <QPushButton>
 
 #include "enumerations.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
@@ -52,6 +54,8 @@ private slots:
 
     void severityActionToggled(int actionSeverity);
 
+    //void filterToggled();
+
     void displaySelection();
 
     void clearSelected();
@@ -62,6 +66,7 @@ private slots:
 
 private:
     void setupLayout();
+    void constructFilterButton(ITEM_ROLES role, int roleVal, QString label, QString iconPath, QString iconName);
 
     void updateVisibilityCount(int val, bool set = false);
 
@@ -78,6 +83,12 @@ private:
     QPair<QString, QString> getActionIcon(NOTIFICATION_SEVERITY severity) const;
 
     QSignalMapper* severityActionMapper;
+
+    QSplitter* displaySplitter;
+    QToolBar* filtersToolbar;
+    QPushButton* filterButton;
+
+    QHash<ITEM_ROLES, QActionGroup*> filterGroups;
 
     QListWidget* listWidget;
     QToolBar* topToolbar;
