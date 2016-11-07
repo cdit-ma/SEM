@@ -178,7 +178,9 @@ HEADERS += \
 	Views/NodeView/SceneItems/Edge/edgeitem.h \
     Views/Notification/notificationdialog.h \
     Views/Notification/notificationobject.h \
-    Views/Notification/notificationtoolbar.h
+    Views/Notification/notificationtoolbar.h \
+    Model/nodefactory.h \
+    Model/edgefactory.h
 
 
 SOURCES += \
@@ -349,7 +351,9 @@ SOURCES += \
     Views/NodeView/SceneItems/Edge/edgeitem.cpp \
     Views/Notification/notificationdialog.cpp \
     Views/Notification/notificationobject.cpp \
-    Views/Notification/notificationtoolbar.cpp
+    Views/Notification/notificationtoolbar.cpp \
+    Model/nodefactory.cpp \
+    Model/edgefactory.cpp
 
 RESOURCES += \
 	resources.qrc

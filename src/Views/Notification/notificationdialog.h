@@ -7,6 +7,9 @@
 #include <QActionGroup>
 #include <QSignalMapper>
 #include <QToolBar>
+#include <QToolButton>
+#include <QSplitter>
+#include <QPushButton>
 
 #include "enumerations.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
@@ -16,11 +19,13 @@ class NotificationDialog : public QDialog
 {
     enum ITEM_ROLES{
         IR_ID = Qt::UserRole + 1,
-        IR_SEVERITY = Qt::UserRole + 2,
-        IR_ICONPATH = Qt::UserRole + 3,
-        IR_ICONNAME = Qt::UserRole + 4,
-        IR_ENTITYID = Qt::UserRole + 5,
-        IR_TIMESTAMP = Qt::UserRole + 6
+        IR_ICONPATH = Qt::UserRole + 2,
+        IR_ICONNAME = Qt::UserRole + 3,
+        IR_ENTITYID = Qt::UserRole + 4,
+        IR_TYPE = Qt::UserRole + 5,
+        IR_CATEGORY = Qt::UserRole + 6,
+        IR_SEVERITY = Qt::UserRole + 7,
+        IR_TIMESTAMP = Qt::UserRole + 8
     };
 
     Q_OBJECT
@@ -52,6 +57,8 @@ private slots:
 
     void severityActionToggled(int actionSeverity);
 
+    //void filterToggled();
+
     void displaySelection();
 
     void clearSelected();
@@ -62,6 +69,9 @@ private slots:
 
 private:
     void setupLayout();
+    void setupLayout2();
+
+    void constructFilterButton(ITEM_ROLES role, int roleVal, QString label = "", QString iconPath = "", QString iconName = "");
 
     void updateVisibilityCount(int val, bool set = false);
 
@@ -77,7 +87,11 @@ private:
     QAction* getSeverityAction(NOTIFICATION_SEVERITY severity) const;
     QPair<QString, QString> getActionIcon(NOTIFICATION_SEVERITY severity) const;
 
-    QSignalMapper* severityActionMapper;
+    QSplitter* displaySplitter;
+    QToolBar* filtersToolbar;
+    QPushButton* filterButton;
+
+    QHash<ITEM_ROLES, QActionGroup*> filterGroups;
 
     QListWidget* listWidget;
     QToolBar* topToolbar;
@@ -91,7 +105,12 @@ private:
     QAction* clearSelectedAction;
     QAction* clearVisibleAction;
 
+    QHash<NOTIFICATION_TYPE2, QAction*> typeActionHash;
+    QHash<NOTIFICATION_CATEGORY, QAction*> categoryActionHash;
     QHash<NOTIFICATION_SEVERITY, QAction*> severityActionHash;
+
+    QHash<QAction*, QToolButton*> filterButtonHash;
+
     QMultiMap<NOTIFICATION_SEVERITY, QListWidgetItem*> notificationHash;
     QHash<int, QListWidgetItem*> notificationIDHash;
 

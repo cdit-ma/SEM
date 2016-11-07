@@ -11,6 +11,8 @@
 #include <QReadWriteLock>
 #include <QRegularExpression>
 
+#include "../Model/edgefactory.h"
+
 #include "../Model/tempentity.h"
 
 
@@ -989,9 +991,8 @@ void ModelController::constructConnectedNode(int parentID, QString nodeKind, int
         //Create a test node, without telling the GUI.
         Node* testNode = _constructNode(constructDataVector(nodeKind));
         if(testNode){
-            if(parentNode->canAdoptChild(testNode)){
+            if(parentNode->addChild(testNode)){
                 setData(parentID, "isExpanded", true);
-                parentNode->addChild(testNode);
 
 
                 if(edgeKind == Edge::EC_UNDEFINED){
@@ -1784,10 +1785,9 @@ QList<int> ModelController::getConstructableConnectableNodes(int parentID, QStri
     Node* parentNode = getNodeFromID(parentID);
     Node* childNode = constructTypedNode(instanceNodeKind, true);
 
-    if(childNode && parentNode){
-        if(parentNode->canAdoptChild(childNode)){
-            parentNode->addChild(childNode);
 
+    if(childNode && parentNode){
+        if(parentNode->addChild(childNode)){
             QList<Node*> source;
             source << childNode;
 
@@ -2258,19 +2258,13 @@ Key *ModelController::getKeyFromID(int ID)
 
 Edge *ModelController::_constructEdge(Edge::EDGE_KIND edgeClass, Node* src, Node* dst)
 {
-    if(src && dst && src->canAcceptEdge(edgeClass, dst)){
-        Edge* edge = constructTypedEdge(src, dst, edgeClass);
-        if(edge){
-            //Attach required data.
-            _attachData(edge, constructRequiredEdgeData(edgeClass), false);
-        }
-        return edge;
-    }else{
-        if(!src->gotEdgeTo(dst)){
-            //qCritical() << "Edge: Source: " << src->toString() << " to Destination: " << dst->toString() << " Cannot be created!";
-        }
+    Edge* edge = EdgeFactory::createEdge(src, dst, edgeClass);
+
+    if(edge){
+        //Attach required data.
+        _attachData(edge, constructRequiredEdgeData(edgeClass), false);
     }
-    return 0;
+    return edge;
 }
 
 void ModelController::storeGraphMLInHash(Entity* item)
@@ -2464,10 +2458,7 @@ bool ModelController::attachChildNode(Node *parentNode, Node *node, bool sendGUI
     bool inModel = _isInModel(node);
 
     if(!inModel){
-        if(parentNode->canAdoptChild(node)){
-            //Attach new node to parent.
-            parentNode->addChild(node);
-
+        if(parentNode->addChild(node)){
             //Only enforce unique-ness for non-read-only nodes.
             if(!node->isReadOnly() && node->gotData("label")){
                 //Force Unique labels
@@ -2953,7 +2944,7 @@ QList<Data *> ModelController::constructRequiredEdgeData(Edge::EDGE_KIND edgeCla
     QList<Data*> dataList;
 
     Key* kindKey = constructKey("kind", QVariant::String);
-    QString kind = Edge::getKind(edgeClass);
+    QString kind = EdgeFactory::getEdgeKindString(edgeClass);
 
     dataList.append(new Data(kindKey, kind));
 
@@ -3788,7 +3779,7 @@ void ModelController::_projectNameChanged()
 
 Edge::EDGE_KIND ModelController::getValidEdgeClass(Node *src, Node *dst)
 {
-    foreach(Edge::EDGE_KIND edgeClass, Edge::getEdgeKinds()){
+    foreach(Edge::EDGE_KIND edgeClass, EdgeFactory::getEdgeKinds()){
         if(src->canAcceptEdge(edgeClass, dst)){
             return edgeClass;
         }
@@ -3800,7 +3791,7 @@ QList<Edge::EDGE_KIND> ModelController::getPotentialEdgeClasses(Node *src, Node 
 {
     QList<Edge::EDGE_KIND> edgeKinds;
 
-    foreach(Edge::EDGE_KIND edgeClass, Edge::getEdgeKinds()){
+    foreach(Edge::EDGE_KIND edgeClass, EdgeFactory::getEdgeKinds()){
         if(src->acceptsEdgeKind(edgeClass) && dst->acceptsEdgeKind(edgeClass) && src->requiresEdgeKind(edgeClass)){
             edgeKinds << edgeClass;
         }
@@ -4878,38 +4869,6 @@ bool ModelController::_isInWorkerDefinitions(Entity *item)
     }
 }
 
-Edge *ModelController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_KIND edgeClass)
-{
-    Edge* returnable = 0;
-
-    switch(edgeClass){
-    case Edge::EC_DEFINITION:
-        returnable = new DefinitionEdge(src, dst);
-        break;
-    case Edge::EC_WORKFLOW:
-        returnable = new WorkflowEdge(src, dst);
-        break;
-    case Edge::EC_DATA:
-        returnable = new DataEdge(src, dst);
-        break;
-    case Edge::EC_ASSEMBLY:
-        returnable = new AssemblyEdge(src, dst);
-        break;
-    case Edge::EC_AGGREGATE:
-        returnable = new AggregateEdge(src,dst);
-        break;
-    case Edge::EC_DEPLOYMENT:
-        returnable = new DeploymentEdge(src, dst);
-        break;
-    case Edge::EC_QOS:
-        returnable = new QOSEdge(src, dst);
-        break;
-    default:
-        break;
-    }
-
-    return returnable;
-}
 
 QString ModelController::getSysOS()
 {
@@ -4990,7 +4949,7 @@ QList<Edge::EDGE_KIND> ModelController::getValidEdgeKindsForSelection(QList<int>
     QList<Edge::EDGE_KIND> edgeKinds;
 
     if(!entities.isEmpty()){
-        edgeKinds = Edge::getEdgeKinds();
+        edgeKinds = EdgeFactory::getEdgeKinds();
     }
 
     foreach(Entity* entity, entities){
@@ -5586,7 +5545,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
                 entity->setDestination(dst);
 
                 QString kind = entity->getKind();
-                Edge::EDGE_KIND edgeClass = Edge::getEdgeKind(kind);
+                Edge::EDGE_KIND edgeClass = EdgeFactory::getEdgeKind(kind);
 
                 //If the edge class stored in the model is invalid we should try all of the edge classes these items can take, in order.
                 if(edgeClass == Edge::EC_UNDEFINED || edgeClass == Edge::EC_NONE){
@@ -5628,7 +5587,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
         int constructedEdges = 0;
 
         //Get all the edges, of kind eK, (Break when we get any edges)
-        foreach(Edge::EDGE_KIND eK, Edge::getEdgeKinds()){
+        foreach(Edge::EDGE_KIND eK, EdgeFactory::getEdgeKinds()){
             if(edgesMap.contains(eK)){
                 currentEdges = edgesMap.values(eK);
                 currentKind = eK;

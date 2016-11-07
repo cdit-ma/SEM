@@ -160,7 +160,7 @@ void ContextToolbar::populateDynamicMenu()
     bool isConnect = senderMenu->property("connect").toBool();
     QList<NodeViewItemAction*> actions;
 
-    Edge::EDGE_KIND edgeClass = Edge::getEdgeKind(kind);
+    Edge::EDGE_KIND edgeClass = EdgeFactory::getEdgeKind(kind);
     if (edgeClass == Edge::EC_UNDEFINED) {
         if (kind == "WorkerProcess") {
             actions = toolbarController->getWorkerFunctions();
@@ -242,7 +242,7 @@ void ContextToolbar::addEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    Edge::EDGE_KIND edgeKind = Edge::getEdgeKind(kind);
+    Edge::EDGE_KIND edgeKind = EdgeFactory::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
     toolbarController->addEdge(ID, edgeKind);
 }
@@ -260,7 +260,7 @@ void ContextToolbar::removeEdge(QAction *action)
     }
 
     QString kind = action->property("parent-kind").toString();
-    Edge::EDGE_KIND edgeKind = Edge::getEdgeKind(kind);
+    Edge::EDGE_KIND edgeKind = EdgeFactory::getEdgeKind(kind);
     int ID = action->property("ID").toInt();
     toolbarController->removeEdge(ID, edgeKind);
 }
@@ -296,7 +296,7 @@ void ContextToolbar::setupActions()
     connectGroup = new ActionGroup(this);
     disconnectGroup = new ActionGroup(this);
 
-    foreach (Edge::EDGE_KIND edgeKind, Edge::getEdgeKinds()) {
+    foreach (Edge::EDGE_KIND edgeKind, EdgeFactory::getEdgeKinds()) {
         bool constructConnectAction = true;
         bool constructDisconnectAction = true;
         switch (edgeKind) {
@@ -312,13 +312,13 @@ void ContextToolbar::setupActions()
         }
         if (constructConnectAction) {
             QAction* cAction = toolbarController->getConnectEdgeActionOfKind(edgeKind)->constructSubAction(true);
-            cAction->setProperty("kind", Edge::getKind(edgeKind));
+            cAction->setProperty("kind", EdgeFactory::getEdgeKindString(edgeKind));
             cAction->setProperty("connect", true);
             connectGroup->addAction(cAction);
         }
         if (constructDisconnectAction) {
             QAction* dAction = toolbarController->getDisconnectEdgeActionOfKind(edgeKind)->constructSubAction(true);
-            dAction->setProperty("kind", Edge::getKind(edgeKind));
+            dAction->setProperty("kind", EdgeFactory::getEdgeKindString(edgeKind));
             dAction->setProperty("connect", false);
             disconnectGroup->addAction(dAction);
         }

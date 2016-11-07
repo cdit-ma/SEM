@@ -5,10 +5,10 @@
 class QOSEdge : public Edge
 {
     Q_OBJECT
-public:
+protected:
     QOSEdge(Node *src, Node *dst);
-    ~QOSEdge();
-    QString toString();
+public:
+    static QOSEdge* createQOSEdge(Node* src, Node* dst);
 };
 
 #endif // QOSEDGE_H

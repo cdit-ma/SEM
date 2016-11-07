@@ -26,9 +26,13 @@ public:
     static void tearDown();
 
     static QList<NotificationObject*> getNotificationItems();
+    static QList<NOTIFICATION_TYPE2> getNotificationTypes();
+    static QList<NOTIFICATION_CATEGORY> getNotificationCategories();
     static QList<NOTIFICATION_SEVERITY> getNotificationSeverities();
-    static QString getNotificationSeverityString(NOTIFICATION_SEVERITY severity);
-    static QString getNotificationSeverityColorStr(NOTIFICATION_SEVERITY severity);
+    static QString getTypeString(NOTIFICATION_TYPE2 type);
+    static QString getCategoryString(NOTIFICATION_CATEGORY category);
+    static QString getSeverityString(NOTIFICATION_SEVERITY severity);
+    static QString getSeverityColorStr(NOTIFICATION_SEVERITY severity);
 
     void displayNotification(QString description,
                              QString iconPath,

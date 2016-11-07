@@ -5,6 +5,7 @@
 
 #include "../entityitem.h"
 
+
 #define RESIZE_RECT_SIZE 4
 
 
@@ -650,7 +651,7 @@ void NodeItem::setSecondaryTextKey(QString key)
 void NodeItem::setVisualEdgeKind(Edge::EDGE_KIND kind)
 {
     visualEdgeKind = kind;
-    visualEdgeIcon = Edge::getKind(kind);
+    visualEdgeIcon = EdgeFactory::getEdgeKindString(kind);
     update();
 }
 

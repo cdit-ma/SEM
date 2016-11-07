@@ -5,10 +5,10 @@
 class DataEdge : public Edge
 {
     Q_OBJECT
-public:
+protected:
     DataEdge(Node *src, Node *dst);
-    ~DataEdge();
-    QString toString();
+public:
+    static DataEdge* createDataEdge(Node* src, Node* dst);
 };
 
 #endif // DATAEDGE_H

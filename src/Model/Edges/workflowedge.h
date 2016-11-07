@@ -3,11 +3,13 @@
 #include "../edge.h"
 class WorkflowEdge: public Edge{
     Q_OBJECT
-public:
+protected:
     //Constructor
     WorkflowEdge(Node* src, Node* dst);
-    ~WorkflowEdge();
-    QString toString();
+
+public:
+    static WorkflowEdge* createWorkflowEdge(Node* src, Node* dst);
+
 };
 
 

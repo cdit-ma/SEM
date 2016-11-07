@@ -173,8 +173,8 @@ void NotificationToolbar::setupLayout()
             label->setFont(labelFont);
             label->setMinimumWidth(labelWidth);
             label->setAlignment(Qt::AlignCenter);
-            label->setToolTip(NotificationManager::getNotificationSeverityString(s) + " Count");
-            label->setStyleSheet("QLabel{ padding: 0px 5px; color:" + NotificationManager::getNotificationSeverityColorStr(s) + ";}");
+            label->setToolTip(NotificationManager::getSeverityString(s) + " Count");
+            label->setStyleSheet("QLabel{ padding: 0px 5px; color:" + NotificationManager::getSeverityColorStr(s) + ";}");
             addWidget(label);
             addSeparator();
 

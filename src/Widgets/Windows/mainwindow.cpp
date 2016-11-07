@@ -854,6 +854,7 @@ void MainWindow::setupMenuCornerWidget()
     connect(notificationDialog, &NotificationDialog::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
     connect(notificationDialog, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
     connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
+    connect(notificationDialog, &NotificationDialog::popup, viewController, &ViewController::popupItem);
 }
 
 

@@ -4,11 +4,10 @@
 
 class DeploymentEdge: public Edge{
     Q_OBJECT
-public:
-    //Constructor
+protected:
     DeploymentEdge(Node* src, Node* dst);
-    ~DeploymentEdge();
-    QString toString();
+public:
+    static DeploymentEdge* createDeploymentEdge(Node* src, Node* dst);
 };
 
 
