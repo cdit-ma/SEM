@@ -85,6 +85,35 @@ QList<NotificationObject*> NotificationManager::getNotificationItems()
 
 
 /**
+ * @brief NotificationManager::getNotificationTypes
+ * @return
+ */
+QList<NOTIFICATION_TYPE2> NotificationManager::getNotificationTypes()
+{
+    QList<NOTIFICATION_TYPE2> types;
+    types.append(NT_MODEL);
+    types.append(NT_APPLICATION);
+    return types;
+}
+
+
+/**
+ * @brief NotificationManager::getNotificationCategories
+ * @return
+ */
+QList<NOTIFICATION_CATEGORY> NotificationManager::getNotificationCategories()
+{
+    QList<NOTIFICATION_CATEGORY> categories;
+    categories.append(NC_NOCATEGORY);
+    categories.append(NC_DEPLOYMENT);
+    categories.append(NC_FILE);
+    categories.append(NC_JENKINS);
+    categories.append(NC_VALIDATION);
+    return categories;
+}
+
+
+/**
  * @brief NotificationManager::getNotificationSeverities
  * @return
  */
@@ -99,11 +128,51 @@ QList<NOTIFICATION_SEVERITY> NotificationManager::getNotificationSeverities()
 
 
 /**
- * @brief NotificationManager::getNotificationSeverityString
- * @param s
+ * @brief NotificationManager::getTypeString
+ * @param type
  * @return
  */
-QString NotificationManager::getNotificationSeverityString(NOTIFICATION_SEVERITY severity)
+QString NotificationManager::getTypeString(NOTIFICATION_TYPE2 type)
+{
+    switch (type) {
+    case NT_MODEL:
+        return "Model";
+    case NT_APPLICATION:
+        return "Application";
+    default:
+        return "Unknown Type";
+    }
+}
+
+
+/**
+ * @brief NotificationManager::getCategoryString
+ * @param category
+ * @return
+ */
+QString NotificationManager::getCategoryString(NOTIFICATION_CATEGORY category)
+{
+    switch (category) {
+    case NC_DEPLOYMENT:
+        return "Deployment";
+    case NC_FILE:
+        return "File";
+    case NC_JENKINS:
+        return "Jenkins";
+    case NC_VALIDATION:
+        return "Validation";
+    default:
+        return "No/Unknown Category";
+    }
+}
+
+
+/**
+ * @brief NotificationManager::getSeverityString
+ * @param severity
+ * @return
+ */
+QString NotificationManager::getSeverityString(NOTIFICATION_SEVERITY severity)
 {
     switch (severity) {
     case NS_INFO:
@@ -119,11 +188,11 @@ QString NotificationManager::getNotificationSeverityString(NOTIFICATION_SEVERITY
 
 
 /**
- * @brief NotificationManager::getNotificationSeverityColorStr
+ * @brief NotificationManager::getSeverityColorStr
  * @param severity
  * @return
  */
-QString NotificationManager::getNotificationSeverityColorStr(NOTIFICATION_SEVERITY severity)
+QString NotificationManager::getSeverityColorStr(NOTIFICATION_SEVERITY severity)
 {
     switch (severity) {
     case NS_WARNING:

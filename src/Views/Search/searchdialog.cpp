@@ -85,6 +85,8 @@ void SearchDialog::themeChanged()
                                //"padding: 5px 10px;"
                                "padding: 5px;"
                                "border-radius:" + theme->getSharpCornerRadius() + ";"
+                               "}"
+                               );/*
                                "color:" + theme->getTextColorHex() + ";"
                                "}"
                                "QToolButton::checked {"
@@ -94,7 +96,7 @@ void SearchDialog::themeChanged()
                                "QToolButton:hover {"
                                "background:" + theme->getHighlightColorHex() + ";"
                                "color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
-                               "}");
+                               "}");*/
 
     //searchButton->setIcon(theme->getIcon("Actions", "Search"));
     centerOnButton->setIcon(theme->getIcon("Actions", "Crosshair"));
@@ -371,15 +373,13 @@ void SearchDialog::constructKeyButton(QString key, QString text, bool checked)
     button->setText(text);
     button->setCheckable(true);
     button->setChecked(checked);
-    //button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 
     QAction* action = keysToolbar->addWidget(button);
     action->setProperty("key", key);
     action->setCheckable(true);
     action->setChecked(checked);
     keysActionGroup->addAction(action);
-
-    keysToolbar->widgetForAction(action)->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     connect(button, SIGNAL(clicked(bool)), action, SLOT(toggle()));
     connect(action, SIGNAL(toggled(bool)), this, SLOT(keyButtonChecked(bool)));
