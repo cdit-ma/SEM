@@ -11,6 +11,7 @@ public:
 
 private slots:
     void test();
+    void portTest();
     void test_data();
 };
 

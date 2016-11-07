@@ -40,4 +40,6 @@ void ModelAdoptionTest::test_data()
 
     QTest::newRow("model<-IDL")
             << (Node*)model << (Node*) new IDL() << false;
+
+
 }

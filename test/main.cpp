@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     InterfaceDefinitionsAdoptionTest idaTest;
 
     int results = 0;
-    results += QTest::qExec(&mcTests, argc, argv);
+    //results += QTest::qExec(&mcTests, argc, argv);
     results += QTest::qExec(&meTests, argc, argv);
     results += QTest::qExec(&vcTests, argc, argv);
     results += QTest::qExec(&maTest, argc, argv);
