@@ -136,6 +136,10 @@ void NotificationDialog::themeChanged()
     clearSelectedAction->setIcon(theme->getIcon("Actions", "Delete"));
     clearVisibleAction->setIcon(theme->getIcon("Actions", "Clear"));
 
+    //filterButton->setIcon(theme->getIcon("Actions", "Sort"));
+    filterButton->setStyleSheet("QPushButton{ image: url(:/Actions/Sort); }"
+                                "QPushButton:hover{ image: url(:/Actions/Cut); }");
+
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
 
     //*
@@ -144,7 +148,7 @@ void NotificationDialog::themeChanged()
         QPair<QString, QString> iconPath = getActionIcon(s);
         QToolButton* button = filterButtonHash.value(action, 0);
         if (button) {
-            button->setIcon(theme->getIcon(iconPath));
+            //button->setIcon(theme->getIcon(iconPath));
         }
     }
     //*/
@@ -483,11 +487,11 @@ void NotificationDialog::updateSeverityAction(NOTIFICATION_SEVERITY severity)
  */
 void NotificationDialog::setupLayout()
 {
-    //QWidget* w = new QWidget(this);
-    //w->setVisible(false);
+    QWidget* w = new QWidget(this);
+    w->setVisible(false);
 
-    //QVBoxLayout* mainLayout = new QVBoxLayout(w);
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(w);
+    //QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(DIALOG_SPACING);
 
     listWidget = new QListWidget(this);
@@ -613,13 +617,20 @@ void NotificationDialog::setupLayout2()
     displaySplitter->setStretchFactor(1, 1);
     displaySplitter->setSizes(QList<int>() << 120 << 200);
 
-    QWidget* w = new QWidget(this);
-    w->setVisible(false);
+    filterButton = new QPushButton("", this);
+    filterButton->setIconSize(QSize(20,20));
 
-    QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->setMargin(DIALOG_MARGIN);
-    layout->setSpacing(DIALOG_SPACING);
-    layout->addWidget(displaySplitter);
+    //QWidget* w = new QWidget(this);
+    //w->setVisible(false);
+
+    QHBoxLayout* hLayout = new QHBoxLayout(this);
+    hLayout->setMargin(DIALOG_MARGIN);
+    hLayout->setSpacing(DIALOG_SPACING);
+    hLayout->addWidget(filterButton);
+    hLayout->addWidget(displaySplitter, 1);
+
+    //QVBoxLayout* layout = new QVBoxLayout();
+    //layout->addWidget(displaySplitter);
 
     filterGroups.value(IR_TYPE)->setVisible(false);
     filterGroups.value(IR_CATEGORY)->setVisible(false);
@@ -645,9 +656,10 @@ void NotificationDialog::constructFilterButton(NotificationDialog::ITEM_ROLES ro
     }
 
     QToolButton* button = new QToolButton(this);
-    button->setText(label);
     button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    button->setText(label);
+    button->setIcon(Theme::theme()->getIcon("Actions", "Cut"));
 
     QAction* action = filtersToolbar->addWidget(button);
     group->addAction(action);
