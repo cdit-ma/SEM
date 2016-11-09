@@ -500,6 +500,7 @@ void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
     NOTIFICATION_TYPE type = java ? NT_INFO : NT_ERROR;
     QString title = "Checking for Java";
     QString message = java ? "Got Java: '" + javaVersion + "'": "Can't find java";
+    qDebug() << "Got Java";
     emit vc_showNotification(type, title, message, "Actions", "Java");
 }
 

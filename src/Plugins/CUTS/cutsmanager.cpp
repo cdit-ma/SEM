@@ -96,9 +96,7 @@ void CUTSManager::showLocalDeploymentGUI(QString graphmlPath)
 
 void CUTSManager::executeXSLValidation(QString graphmlPath, QString outputFilePath)
 {
-    qDebug() << "EXECUTE";
     if(!isFileReadable(graphmlPath)){
-        qDebug() << "File not readable";
         emit gotError("Cannot run XSL Validation", "File: '" % graphmlPath %"' Unreadable!");
         return;
     }
@@ -107,8 +105,6 @@ void CUTSManager::executeXSLValidation(QString graphmlPath, QString outputFilePa
     QProcess* process = new QProcess();
     process->setWorkingDirectory(XSLTransformPath);
 
-    qDebug() << "1";
-
     //Construct the arguments for the xsl transform
     QStringList arguments;
     arguments << "-jar" << xalanJPath + "xalan.jar";
@@ -116,23 +112,17 @@ void CUTSManager::executeXSLValidation(QString graphmlPath, QString outputFilePa
     arguments << "-xsl" << XSLTransformPath + "MEDEA.xsl";
     arguments << "-out" << outputFilePath;
 
-    qDebug() << "2";
-
     //Construct a wait loop to make sure this transform happens first.
     QEventLoop waitLoop;
     connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
 
     //Execute the QProcess
     process->start("java", arguments);
-    qDebug() << "3";
 
     //Wait for The process to exit the loop.
     waitLoop.exec();
-    qDebug() << "4";
 
     int code = process->exitCode();
-
-    qDebug() << "CUTS MANAGER: " << (code == 0);
 
     //QString commandOutput = process->readAllStandardOutput();
     //QString errorString = process->readAllStandardError();

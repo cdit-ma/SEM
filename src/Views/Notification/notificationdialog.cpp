@@ -1,4 +1,5 @@
 #include "notificationdialog.h"
+#include "notificationitem.h"
 #include "../../theme.h"
 
 #include <QVBoxLayout>
@@ -36,6 +37,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) :
     connect(severityActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),this, &NotificationDialog::severityActionToggled);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
+    connect(NotificationManager::manager(), &NotificationManager::showNotificationDialog, this, &NotificationDialog::showDialog);
     connect(NotificationManager::manager(), &NotificationManager::notificationItemAdded, this, &NotificationDialog::notificationItemAdded);
     connect(NotificationManager::manager(), &NotificationManager::req_lastNotificationID, this, &NotificationDialog::getLastNotificationID);
     connect(this, &NotificationDialog::lastNotificationID, NotificationManager::manager(), &NotificationManager::setLastNotificationItem);
@@ -207,6 +209,16 @@ void NotificationDialog::toggleVisibility()
     if (isVisible()) {
         emit mouseEntered();
     }
+}
+
+
+/**
+ * @brief NotificationDialog::showDialog
+ */
+void NotificationDialog::showDialog()
+{
+    show();
+    raise();
 }
 
 
@@ -596,7 +608,6 @@ void NotificationDialog::setupLayout2()
     NotificationManager* manager = NotificationManager::manager();
     foreach (NOTIFICATION_SEVERITY severity, manager->getNotificationSeverities()) {
         constructFilterButton(IR_SEVERITY, severity, manager->getSeverityString(severity));
-        qDebug() << manager->getSeverityString(severity);
     }
     foreach (NOTIFICATION_TYPE2 type, manager->getNotificationTypes()) {
         constructFilterButton(IR_TYPE, type, manager->getTypeString(type));
@@ -605,14 +616,24 @@ void NotificationDialog::setupLayout2()
         constructFilterButton(IR_CATEGORY, category, manager->getCategoryString(category));
     }
 
+    /*
     QListWidget* listWidget2 = new QListWidget(this);
     listWidget2->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
     listWidget2->setUniformItemSizes(true);
     listWidget2->setFocusPolicy(Qt::NoFocus);
+    */
+
+    QWidget* itemsContainer = new QWidget(this);
+    itemsLayout = new QVBoxLayout(itemsContainer);
+    itemsLayout->setMargin(0);
+    itemsLayout->setSpacing(0);
+    itemsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    itemsLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
     displaySplitter = new QSplitter(this);
     displaySplitter->addWidget(filtersArea);
-    displaySplitter->addWidget(listWidget2);
+    //displaySplitter->addWidget(listWidget2);
+    displaySplitter->addWidget(itemsContainer);
     displaySplitter->setStretchFactor(0, 0);
     displaySplitter->setStretchFactor(1, 1);
     displaySplitter->setSizes(QList<int>() << 120 << 200);
@@ -758,4 +779,7 @@ void NotificationDialog::constructNotificationItem(int ID, NOTIFICATION_SEVERITY
             updateVisibilityCount(1);
         }
     }
+
+    NotificationItem* item = new NotificationItem(ID, description, iconPath, iconName, entityID, severity, NT_MODEL, NC_NOCATEGORY, this);
+    itemsLayout->addWidget(item);
 }

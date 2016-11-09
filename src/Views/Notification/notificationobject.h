@@ -1,5 +1,5 @@
-#ifndef NOTIFICATIONITEM_H
-#define NOTIFICATIONITEM_H
+#ifndef NOTIFICATIONOBJECT_H
+#define NOTIFICATIONOBJECT_H
 
 #include <QObject>
 
@@ -51,4 +51,4 @@ private:
 
 };
 
-#endif // NOTIFICATIONITEM_H
+#endif // NOTIFICATIONOBJECT_H

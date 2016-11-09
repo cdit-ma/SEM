@@ -11,10 +11,13 @@
 #include <QSplitter>
 #include <QPushButton>
 
-#include "enumerations.h"
+//#include "enumerations.h"
+#include "../../enumerations.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
-#include "../../Views/Notification/notificationobject.h"
+#include "notificationobject.h"
+//#include "notificationitem.h"
 
+class NotificationItem;
 class NotificationDialog : public QDialog
 {
     enum ITEM_ROLES{
@@ -48,6 +51,7 @@ signals:
 
 public slots:
     void toggleVisibility();
+    void showDialog();
     void resetDialog();
     void getLastNotificationID();
 
@@ -90,6 +94,8 @@ private:
     QSplitter* displaySplitter;
     QToolBar* filtersToolbar;
     QPushButton* filterButton;
+
+    QVBoxLayout* itemsLayout;
 
     QHash<ITEM_ROLES, QActionGroup*> filterGroups;
 

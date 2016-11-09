@@ -265,7 +265,6 @@ void NotificationManager::showLastNotification()
  */
 void NotificationManager::modelValidated(QStringList report)
 {
-    qDebug() << "MODEL VALIDATED";
     QString status = "Failed";
     if (report.isEmpty()) {
         status = "Succeeded";
@@ -275,6 +274,7 @@ void NotificationManager::modelValidated(QStringList report)
             QString eID = message.split('[').last().split(']').first();
             addNotification(description, "", "", eID.toInt(), NS_WARNING, NT_MODEL, NC_VALIDATION, false);
         }
+        emit showNotificationDialog();
     }
     addNotification("Model Validation " + status, "Action", "Validate", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
 }

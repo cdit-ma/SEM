@@ -180,7 +180,8 @@ HEADERS += \
     Views/Notification/notificationobject.h \
     Views/Notification/notificationtoolbar.h \
     Model/nodefactory.h \
-    Model/edgefactory.h
+    Model/edgefactory.h \
+    Views/Notification/notificationitem.h
 
 
 SOURCES += \
@@ -353,7 +354,8 @@ SOURCES += \
     Views/Notification/notificationobject.cpp \
     Views/Notification/notificationtoolbar.cpp \
     Model/nodefactory.cpp \
-    Model/edgefactory.cpp
+    Model/edgefactory.cpp \
+    Views/Notification/notificationitem.cpp
 
 RESOURCES += \
 	resources.qrc
