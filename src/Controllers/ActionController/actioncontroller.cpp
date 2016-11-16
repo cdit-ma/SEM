@@ -796,7 +796,7 @@ void ActionController::setupActions()
     help_wiki->setShortcut(QKeySequence::HelpContents);
 
 
-    help_aboutMedea = createRootAction("Help", "About MEDEA", "", "Actions", "Info");
+    help_aboutMedea = createRootAction("Help", "About MEDEA", "", "Actions", "Information");
     help_aboutQt = createRootAction("Help", "About Qt", "", "Actions", "Qt");
 
     options_settings = createRootAction("Help", "Settings", "", "Actions", "Settings");

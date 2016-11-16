@@ -797,8 +797,18 @@ QString Theme::getToolBarStyleSheet()
            "QToolButton[popupMode=\"1\"]:hover {"
            "color:" % getTextColorHex(CR_SELECTED) % ";"
            "}"
-           "QToolButton::menu-indicator {"
-           "image: none;"
+           "QToolButton[popupMode=\"1\"]:pressed {"
+           "color:" % getTextColorHex(CR_SELECTED) % ";"
+           "}"
+           "QToolButton[popupMode=\"2\"] {"
+           "padding-right: 15px;"
+           "color:" % getTextColorHex() % ";"
+           "}"
+           "QToolButton[popupMode=\"2\"]:hover {"
+           "color:" % getTextColorHex(CR_SELECTED) % ";"
+           "}"
+           "QToolButton[popupMode=\"2\"]:pressed {"
+           "color:" % getTextColorHex(CR_SELECTED) % ";"
            "}"
            "QToolButton::menu-button {"
            "border-left: 1px solid rgb(150,150,150);"
@@ -1264,7 +1274,7 @@ QString Theme::getResourceName(QPair<QString, QString> icon) const
 void Theme::setupIcons()
 {
     setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
-    setIconToggledImage("Actions", "Fullscreen", "Actions", "Failure");
+    setIconToggledImage("Actions", "Fullscreen", "Actions", "Error");
     setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
     setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
     setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");

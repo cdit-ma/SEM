@@ -162,7 +162,7 @@ QString NotificationManager::getCategoryString(NOTIFICATION_CATEGORY category)
     case NC_VALIDATION:
         return "Validation";
     default:
-        return "No/Unknown Category";
+        return "No Category";
     }
 }
 
@@ -183,6 +183,24 @@ QString NotificationManager::getSeverityString(NOTIFICATION_SEVERITY severity)
         return "Error";
     default:
         return "Unknown Severity";
+    }
+}
+
+
+/**
+ * @brief NotificationManager::getSeverityColor
+ * @param severity
+ * @return
+ */
+QColor NotificationManager::getSeverityColor(NOTIFICATION_SEVERITY severity)
+{
+    switch (severity) {
+    case NS_WARNING:
+        return QColor(255,200,0);
+    case NS_ERROR:
+        return QColor(255,50,50);
+    default:
+        return Qt::white;
     }
 }
 
@@ -276,7 +294,7 @@ void NotificationManager::modelValidated(QStringList report)
         }
         emit showNotificationDialog();
     }
-    addNotification("Model Validation " + status, "Action", "Validate", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
+    addNotification("Model Validation " + status, "Actions", "Validate", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
 }
 
 

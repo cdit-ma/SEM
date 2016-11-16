@@ -99,7 +99,7 @@
         <file alias="Edit">Resources/Images/Actions/Edit.png</file>
         <file alias="Export">Resources/Images/Actions/Export.png</file>
         <file alias="ExportSnippet">Resources/Images/Actions/ExportSnippet.png</file>
-        <file alias="Failure">Resources/Images/Actions/Failure.png</file>
+        <file alias="Error">Resources/Images/Actions/Failure.png</file>
         <file alias="FitToScreen">Resources/Images/Actions/FitToScreen.png</file>
         <file alias="Generate">Resources/Images/Actions/Generate.png</file>
         <file alias="Goto">Resources/Images/Actions/Goto.png</file>
@@ -110,7 +110,7 @@
         <file alias="Implementation">Resources/Images/Actions/Implementation.png</file>
         <file alias="Import">Resources/Images/Actions/Import.png</file>
         <file alias="ImportSnippet">Resources/Images/Actions/ImportSnippet.png</file>
-        <file alias="Info">Resources/Images/Actions/Info.png</file>
+        <file alias="Information">Resources/Images/Actions/Info.png</file>
         <file alias="Instance">Resources/Images/Actions/Instance.png</file>
         <file alias="Jenkins_Icon">Resources/Images/Actions/Jenkins_Icon.png</file>
         <file alias="Jenkins_Text">Resources/Images/Actions/Jenkins_Text.png</file>

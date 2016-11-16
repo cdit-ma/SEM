@@ -82,6 +82,78 @@ void NotificationDialog::severityActionToggled(int actionSeverity)
 
 
 /**
+ * @brief NotificationDialog::filterMenuTriggered
+ * @param action
+ */
+void NotificationDialog::filterMenuTriggered(QAction* action)
+{
+    ITEM_ROLES role = (ITEM_ROLES) action->property("ITEM_ROLE").toInt();
+    int index = indexMap.value(role, -1);
+    if (index == -1) {
+        return;
+    }
+
+    QActionGroup* group = actionGroups.value(index, 0);
+    bool showGroup = action->isChecked();
+    if (group) {
+        group->setVisible(showGroup);
+    }
+
+    QAction* separator = groupSeparators.value(index, 0);
+    bool showSeparator = showGroup;
+
+    /*
+    for (int i = index - 1; i > 0; i--) {
+
+    }
+    */
+
+    if (showGroup) {
+        // check if group before is visible
+        int topIndex = index - 1;
+        QActionGroup* topGroup = actionGroups.value(topIndex, 0);
+        if (topGroup && !topGroup->isVisible()) {
+            showSeparator = false;
+        }
+    } else {
+        // check if group after is visible
+        if (!separator || (separator && !separator->isVisible())) {
+            int bottomIndex = index + 1;
+            QActionGroup* bottomGroup = actionGroups.value(bottomIndex, 0);
+            if (bottomGroup && bottomGroup->isVisible()) {
+                separator = groupSeparators.value(bottomIndex, 0);
+                showSeparator = false;
+            }
+        }
+    }
+
+    /*
+    QActionGroup* group = actionGroups.value(index, 0);
+    if (group) {
+        group->setVisible(showGroup);
+    }
+
+    if (role == topRole) {
+        foreach (QActionGroup* ag, actionGroups) {
+            int currentIndex = actionGroups.indexOf(ag);
+            if (currentIndex == index) {
+                continue;
+            }
+            if (ag->isVisible()) {
+                separator = groupSeparators.value(currentIndex, 0);
+                break;
+            }
+        }
+    }
+    */
+
+    if (separator) {
+        separator->setVisible(showGroup);
+    }
+}
+
+
+/**
  * @brief NotificationDialog::displaySelection
  */
 void NotificationDialog::displaySelection()
@@ -126,10 +198,21 @@ void NotificationDialog::themeChanged()
     bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     iconOnlyToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                                  "QToolBar::separator {"
+                                  "margin: 2px 0px;"
+                                  "height: 4px;"
+                                  "background:" + theme->getDisabledBackgroundColorHex() + ";"
+                                  "}"
                                   "QToolButton {"
                                   "padding: 5px;"
                                   "border-radius:" + theme->getSharpCornerRadius() + ";"
                                   "}");
+
+    filtersMenu->setStyleSheet("QMenu::item{ padding: 5px 15px 5px 25px; }");
+    filtersButton->setStyleSheet("QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}"
+                                 "QToolButton:!hover{ background: rgba(0,0,0,0); }"
+                                 "QToolButton:pressed{ background:" + theme->getPressedColorHex() + ";}"
+                                 "QToolButton::menu-indicator{ subcontrol-position: right center; }");
 
     sortTimeAction->setIcon(theme->getIcon("Actions", "Clock"));
     sortSeverityAction->setIcon(theme->getIcon("Actions", "Sort"));
@@ -138,22 +221,13 @@ void NotificationDialog::themeChanged()
     clearSelectedAction->setIcon(theme->getIcon("Actions", "Delete"));
     clearVisibleAction->setIcon(theme->getIcon("Actions", "Clear"));
 
-    //filterButton->setIcon(theme->getIcon("Actions", "Sort"));
-    filterButton->setStyleSheet("QPushButton{ image: url(:/Actions/Sort); }"
-                                "QPushButton:hover{ image: url(:/Actions/Cut); }");
-
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
 
-    //*
-    foreach (QAction* action, filterGroups.value(IR_SEVERITY)->actions()) {
-        NOTIFICATION_SEVERITY s = (NOTIFICATION_SEVERITY) action->data().toInt();
-        QPair<QString, QString> iconPath = getActionIcon(s);
-        QToolButton* button = filterButtonHash.value(action, 0);
-        if (button) {
-            //button->setIcon(theme->getIcon(iconPath));
-        }
+    foreach (QToolButton* button, filterButtonHash.values()) {
+        QString iconPath = button->property("iconPath").toString();
+        QString iconName = button->property("iconName").toString();
+        button->setIcon(theme->getIcon(iconPath, iconName));
     }
-    //*/
 
     for (int i = 0; i < listWidget->count(); i++) {
         QListWidgetItem* item = listWidget->item(i);
@@ -417,13 +491,13 @@ QPair<QString, QString> NotificationDialog::getActionIcon(NOTIFICATION_SEVERITY 
 
     switch (severity) {
     case NS_INFO:
-        iconPath.second = "Info";
+        iconPath.second = "Information";
         break;
     case NS_WARNING:
         iconPath.second = "Warning";
         break;
     case NS_ERROR:
-        iconPath.second = "Failure";
+        iconPath.second = "Error";
         break;
     default:
         iconPath.second = "Help";
@@ -595,6 +669,25 @@ void NotificationDialog::setupLayout()
  */
 void NotificationDialog::setupLayout2()
 {
+    filtersMenu = new QMenu(this);
+    filtersMenu->addAction("Severity")->setProperty("ITEM_ROLE", IR_SEVERITY);
+    filtersMenu->addAction("Source")->setProperty("ITEM_ROLE", IR_TYPE);
+    filtersMenu->addAction("Category")->setProperty("ITEM_ROLE", IR_CATEGORY);
+    connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
+
+    foreach (QAction* action, filtersMenu->actions()) {
+        action->setCheckable(true);
+        action->setChecked(true);
+    }
+
+    topButtonsToolbar = new QToolBar(this);
+    filtersButton = new QToolButton(this);
+    filtersButton->setPopupMode(QToolButton::InstantPopup);
+    filtersButton->setFont(QFont(font().family(), 10));
+    filtersButton->setText("Filters");
+    filtersButton->setMenu(filtersMenu);
+    topButtonsToolbar->addWidget(filtersButton);
+
     filtersToolbar = new QToolBar(this);
     filtersToolbar->setOrientation(Qt::Vertical);
     filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -606,57 +699,78 @@ void NotificationDialog::setupLayout2()
     filtersArea->setWidgetResizable(true);
 
     NotificationManager* manager = NotificationManager::manager();
+
+    // this is the first/top group of actions that is added into the filters toolbar
+    topRole = IR_SEVERITY;
+
+    /*
+     *  SEVERITY
+     */
     foreach (NOTIFICATION_SEVERITY severity, manager->getNotificationSeverities()) {
-        constructFilterButton(IR_SEVERITY, severity, manager->getSeverityString(severity));
+        QString iconName = manager->getSeverityString(severity);
+        constructFilterButton(IR_SEVERITY, severity, manager->getSeverityString(severity), "", iconName);
     }
+    /*
+     *  TYPE
+     */
     foreach (NOTIFICATION_TYPE2 type, manager->getNotificationTypes()) {
-        constructFilterButton(IR_TYPE, type, manager->getTypeString(type));
+        QString iconName;
+        if (type == NT_MODEL) {
+            iconName = "Model";
+        } else if (type == NT_APPLICATION) {
+            iconName = "Rename";
+        }
+        constructFilterButton(IR_TYPE, type, manager->getTypeString(type), "", iconName);
     }
+    /*
+     *  CATEGORY
+     */
     foreach (NOTIFICATION_CATEGORY category, manager->getNotificationCategories()) {
         constructFilterButton(IR_CATEGORY, category, manager->getCategoryString(category));
     }
 
-    /*
-    QListWidget* listWidget2 = new QListWidget(this);
-    listWidget2->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
-    listWidget2->setUniformItemSizes(true);
-    listWidget2->setFocusPolicy(Qt::NoFocus);
-    */
-
-    QWidget* itemsContainer = new QWidget(this);
-    itemsLayout = new QVBoxLayout(itemsContainer);
+    QFrame* displayWidget = new QFrame(this);
+    displayWidget->setStyleSheet("QFrame{ background: rgba(0,0,0,0); }");
+    itemsLayout = new QVBoxLayout(displayWidget);
     itemsLayout->setMargin(0);
     itemsLayout->setSpacing(0);
     itemsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     itemsLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
+    QScrollArea* displayArea = new QScrollArea(this);
+    displayArea->setWidget(displayWidget);
+    displayArea->setWidgetResizable(true);
+
     displaySplitter = new QSplitter(this);
     displaySplitter->addWidget(filtersArea);
-    //displaySplitter->addWidget(listWidget2);
-    displaySplitter->addWidget(itemsContainer);
+    displaySplitter->addWidget(displayArea);
     displaySplitter->setStretchFactor(0, 0);
     displaySplitter->setStretchFactor(1, 1);
-    displaySplitter->setSizes(QList<int>() << 120 << 200);
-
-    filterButton = new QPushButton("", this);
-    filterButton->setIconSize(QSize(20,20));
+    displaySplitter->setSizes(QList<int>() << 150 << 200);
 
     //QWidget* w = new QWidget(this);
     //w->setVisible(false);
 
-    QHBoxLayout* hLayout = new QHBoxLayout(this);
-    hLayout->setMargin(DIALOG_MARGIN);
-    hLayout->setSpacing(DIALOG_SPACING);
-    hLayout->addWidget(filterButton);
-    hLayout->addWidget(displaySplitter, 1);
+    filterButton = new QPushButton("", this);
+    //filterButton->setMenu(filtersMenu);
+    filterButton->hide();
+
+    QVBoxLayout* vLayout = new QVBoxLayout(this);
+    vLayout->setMargin(DIALOG_MARGIN);
+    vLayout->setSpacing(DIALOG_SPACING);
+    //vLayout->addWidget(filterButton);
+    vLayout->addWidget(topButtonsToolbar);
+    vLayout->addWidget(displaySplitter, 1);
 
     //QVBoxLayout* layout = new QVBoxLayout();
     //layout->addWidget(displaySplitter);
 
-    filterGroups.value(IR_TYPE)->setVisible(false);
-    filterGroups.value(IR_CATEGORY)->setVisible(false);
-    filtersToolbar->setMinimumHeight(filtersToolbar->sizeHint().height() + 10);
+    //filterGroups.value(IR_TYPE)->setVisible(false);
+    //filterGroups.value(IR_CATEGORY)->setVisible(false);
 
+    //hLayout->invalidate();
+    //hLayout->activate();
+    //filtersToolbar->setFixedHeight(filtersToolbar->sizeHint().height() + 10);
 }
 
 
@@ -670,17 +784,36 @@ void NotificationDialog::setupLayout2()
  */
 void NotificationDialog::constructFilterButton(NotificationDialog::ITEM_ROLES role, int roleVal, QString label, QString iconPath, QString iconName)
 {
-    QActionGroup* group = filterGroups.value(role, 0);
+    int index = indexMap.value(role, -1);
+    QActionGroup* group = actionGroups.value(index, 0);
+
+    // action group and separator combo doesn't exist yet
     if (!group) {
         group = new QActionGroup(this);
-        filterGroups[role] = group;
+        QAction* s = 0;
+        if (role != topRole) {
+            s = filtersToolbar->addSeparator();
+        }
+        index = indexMap.size();
+        indexMap[role] = index;
+        actionGroups.insert(index, group);
+        groupSeparators.insert(index, s);
+    }
+
+    // set default icon
+    if (iconPath.isEmpty()) {
+        iconPath = "Actions";
+    }
+    if (iconName.isEmpty()) {
+        iconName = "Help";
     }
 
     QToolButton* button = new QToolButton(this);
     button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     button->setText(label);
-    button->setIcon(Theme::theme()->getIcon("Actions", "Cut"));
+    button->setProperty("iconPath", iconPath);
+    button->setProperty("iconName", iconName);
 
     QAction* action = filtersToolbar->addWidget(button);
     group->addAction(action);

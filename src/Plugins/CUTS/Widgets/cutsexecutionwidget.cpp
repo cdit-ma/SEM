@@ -558,7 +558,7 @@ QString CUTSExecutionWidget::getDirectory(QString filePath)
 
 void CUTSExecutionWidget::setIconSuccess(QLabel *label, bool success)
 {
-    QString fileName = "Failure";
+    QString fileName = "Error";
     if(success){
         fileName = "Success";
     }

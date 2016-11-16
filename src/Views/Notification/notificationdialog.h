@@ -10,12 +10,12 @@
 #include <QToolButton>
 #include <QSplitter>
 #include <QPushButton>
+#include <QMenu>
 
 //#include "enumerations.h"
 #include "../../enumerations.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "notificationobject.h"
-//#include "notificationitem.h"
 
 class NotificationItem;
 class NotificationDialog : public QDialog
@@ -53,6 +53,7 @@ public slots:
     void toggleVisibility();
     void showDialog();
     void resetDialog();
+
     void getLastNotificationID();
 
 private slots:
@@ -61,6 +62,7 @@ private slots:
 
     void severityActionToggled(int actionSeverity);
 
+    void filterMenuTriggered(QAction* action);
     //void filterToggled();
 
     void displaySelection();
@@ -91,13 +93,22 @@ private:
     QAction* getSeverityAction(NOTIFICATION_SEVERITY severity) const;
     QPair<QString, QString> getActionIcon(NOTIFICATION_SEVERITY severity) const;
 
-    QSplitter* displaySplitter;
-    QToolBar* filtersToolbar;
+    QToolBar* topButtonsToolbar;
+    QToolButton* filtersButton;
+    QMenu* filtersMenu;
     QPushButton* filterButton;
+    QToolBar* filtersToolbar;
+    QSplitter* displaySplitter;
 
     QVBoxLayout* itemsLayout;
 
+    QHash<ITEM_ROLES, int> indexMap;
+    QList<QActionGroup*> actionGroups;
+    QList<QAction*> groupSeparators;
+    ITEM_ROLES topRole;
+
     QHash<ITEM_ROLES, QActionGroup*> filterGroups;
+    QHash<ITEM_ROLES, QAction*> separators;
 
     QListWidget* listWidget;
     QToolBar* topToolbar;

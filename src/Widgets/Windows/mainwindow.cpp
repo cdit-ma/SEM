@@ -155,7 +155,7 @@ void MainWindow::popupNotification(QString iconPath, QString iconName, QString d
         notificationLabel->setText(description);
         QPixmap pixmap = Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32));
         if (pixmap.isNull()) {
-            pixmap = Theme::theme()->getIcon("Actions", "Info").pixmap(QSize(32,32));
+            pixmap = Theme::theme()->getIcon("Actions", "Information").pixmap(QSize(32,32));
         }
         notificationIconLabel->setPixmap(pixmap);
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
@@ -826,7 +826,8 @@ void MainWindow::setupMenuCornerWidget()
     restoreToolsButton->setToolTip("Restore Tool Dock Widgets");
     restoreToolsButton->setMenu(menu);
     restoreToolsButton->setPopupMode(QToolButton::InstantPopup);
-    restoreToolsButton->setStyleSheet("border-radius: 4px;");
+    restoreToolsButton->setStyleSheet("QToolButton{ border-radius: 4px; }"
+                                      "QToolButton::menu-indicator{ image: none; }");
 
     notificationToolbar = new NotificationToolbar(viewController, this);
     notificationDialog = new NotificationDialog(this);

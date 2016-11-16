@@ -33,6 +33,7 @@ public:
     static QString getTypeString(NOTIFICATION_TYPE2 type);
     static QString getCategoryString(NOTIFICATION_CATEGORY category);
     static QString getSeverityString(NOTIFICATION_SEVERITY severity);
+    static QColor getSeverityColor(NOTIFICATION_SEVERITY severity);
     static QString getSeverityColorStr(NOTIFICATION_SEVERITY severity);
 
     void displayNotification(QString description,

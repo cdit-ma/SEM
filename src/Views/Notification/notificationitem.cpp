@@ -34,11 +34,13 @@ NotificationItem::NotificationItem(int ID, QString description, QString iconPath
 
     descriptionLabel = new QLabel(description, this);
     iconLabel = new QLabel(this);
-    iconLabel->setPixmap(Theme::theme()->getImage(iconPath, iconName, QSize(32,32)));
 
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->addWidget(iconLabel);
     layout->addWidget(descriptionLabel, 1);
+
+    connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
+    themeChanged();
 }
 
 
@@ -54,6 +56,11 @@ void NotificationItem::themeChanged()
         backgroundColor = theme->getBackgroundColorHex();
     }
     updateStyleSheet();
+
+    QColor tintColor = NotificationManager::getSeverityColor(severity);
+    QString path = property("iconPath").toString();
+    QString name = property("iconName").toString();
+    iconLabel->setPixmap(theme->getImage(path, name, QSize(28,28), tintColor));
 }
 
 
