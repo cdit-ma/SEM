@@ -49,6 +49,9 @@ signals:
 
     void mouseEntered();
 
+    void filtersCleared();
+    void filterButtonToggled(NOTIFICATION_FILTER filter, int filterVal, bool checked);
+
 public slots:
     void toggleVisibility();
     void showDialog();
@@ -63,9 +66,9 @@ private slots:
     void severityActionToggled(int actionSeverity);
 
     void filterMenuTriggered(QAction* action);
-    //void filterToggled();
+    void filterToggled(bool checked);
 
-    void displaySelection();
+    void viewSelection();
 
     void clearSelected();
     void clearVisible();
@@ -93,6 +96,8 @@ private:
     QAction* getSeverityAction(NOTIFICATION_SEVERITY severity) const;
     QPair<QString, QString> getActionIcon(NOTIFICATION_SEVERITY severity) const;
 
+    NOTIFICATION_FILTER getNotificationFilter(ITEM_ROLES role);
+
     QToolBar* topButtonsToolbar;
     QToolButton* filtersButton;
     QMenu* filtersMenu;
@@ -102,9 +107,10 @@ private:
 
     QVBoxLayout* itemsLayout;
 
-    QHash<ITEM_ROLES, int> indexMap;
     QList<QActionGroup*> actionGroups;
     QList<QAction*> groupSeparators;
+    QHash<QAction*, int> prevGroupIndex;
+    QHash<ITEM_ROLES, int> indexMap;
     ITEM_ROLES topRole;
 
     QHash<ITEM_ROLES, QActionGroup*> filterGroups;
@@ -127,6 +133,7 @@ private:
     QHash<NOTIFICATION_SEVERITY, QAction*> severityActionHash;
 
     QHash<QAction*, QToolButton*> filterButtonHash;
+    QList<QAction*> checkedActions;
 
     QMultiMap<NOTIFICATION_SEVERITY, QListWidgetItem*> notificationHash;
     QHash<int, QListWidgetItem*> notificationIDHash;

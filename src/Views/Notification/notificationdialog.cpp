@@ -11,6 +11,8 @@
 #include <QApplication>
 
 #define ICON_SIZE 24
+#define ROLE "ITEM_ROLE"
+#define ROLE_VAL "ITEM_ROLE_VALUE"
 
 /**
  * @brief NotificationDialog::NotificationDialog
@@ -83,80 +85,79 @@ void NotificationDialog::severityActionToggled(int actionSeverity)
 
 /**
  * @brief NotificationDialog::filterMenuTriggered
+ * This is called when an action in the filter menu is triggered.
+ * It adds/removes filters from the filter panel.
  * @param action
  */
 void NotificationDialog::filterMenuTriggered(QAction* action)
 {
-    ITEM_ROLES role = (ITEM_ROLES) action->property("ITEM_ROLE").toInt();
+    ITEM_ROLES role = (ITEM_ROLES) action->property(ROLE).toInt();
     int index = indexMap.value(role, -1);
     if (index == -1) {
         return;
     }
 
+    // show/hide filter group
     QActionGroup* group = actionGroups.value(index, 0);
-    bool showGroup = action->isChecked();
+    bool show = action->isChecked();
     if (group) {
-        group->setVisible(showGroup);
-    }
-
-    QAction* separator = groupSeparators.value(index, 0);
-    bool showSeparator = showGroup;
-
-    /*
-    for (int i = index - 1; i > 0; i--) {
-
-    }
-    */
-
-    if (showGroup) {
-        // check if group before is visible
-        int topIndex = index - 1;
-        QActionGroup* topGroup = actionGroups.value(topIndex, 0);
-        if (topGroup && !topGroup->isVisible()) {
-            showSeparator = false;
-        }
+        group->setVisible(show);
     } else {
-        // check if group after is visible
-        if (!separator || (separator && !separator->isVisible())) {
-            int bottomIndex = index + 1;
-            QActionGroup* bottomGroup = actionGroups.value(bottomIndex, 0);
-            if (bottomGroup && bottomGroup->isVisible()) {
-                separator = groupSeparators.value(bottomIndex, 0);
-                showSeparator = false;
-            }
+        return;
+    }
+
+    // update visibility of separators accordingly
+    for (int i = indexMap.size() - 1; i >= 0; i--) {
+        QActionGroup* groupI = actionGroups.at(i);
+        QAction* sI = groupSeparators.at(i);
+        if (!groupI || !sI) {
+            return;
         }
-    }
-
-    /*
-    QActionGroup* group = actionGroups.value(index, 0);
-    if (group) {
-        group->setVisible(showGroup);
-    }
-
-    if (role == topRole) {
-        foreach (QActionGroup* ag, actionGroups) {
-            int currentIndex = actionGroups.indexOf(ag);
-            if (currentIndex == index) {
-                continue;
+        if (groupI->isVisible()) {
+            bool showSeparator = false;
+            for (int j = i - 1; j >= 0; j--) {
+                QActionGroup* groupJ = actionGroups.at(j);
+                if (groupJ && groupJ->isVisible()) {
+                    showSeparator = true;
+                    break;
+                }
             }
-            if (ag->isVisible()) {
-                separator = groupSeparators.value(currentIndex, 0);
-                break;
-            }
+            sI->setVisible(showSeparator);
+        } else {
+            sI->setVisible(false);
         }
-    }
-    */
-
-    if (separator) {
-        separator->setVisible(showGroup);
     }
 }
 
 
 /**
- * @brief NotificationDialog::displaySelection
+ * @brief NotificationDialog::filterToggled
+ * @param checked
  */
-void NotificationDialog::displaySelection()
+void NotificationDialog::filterToggled(bool checked)
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if (action) {
+        if (checked) {
+            checkedActions.append(action);
+        } else {
+            checkedActions.removeAll(action);
+        }
+        if (checkedActions.isEmpty()) {
+            emit filtersCleared();
+        } else {
+            NOTIFICATION_FILTER f = getNotificationFilter((ITEM_ROLES)action->property(ROLE).toInt());
+            int fVal = action->property(ROLE_VAL).toInt();
+            emit filterButtonToggled(f, fVal, checked);
+        }
+    }
+}
+
+
+/**
+ * @brief NotificationDialog::viewSelection
+ */
+void NotificationDialog::viewSelection()
 {
     int numSelectedItems = listWidget->selectedItems().count();
     if (numSelectedItems != 1) {
@@ -418,6 +419,7 @@ void NotificationDialog::clearAll()
     notificationHash.clear();
     notificationIDHash.clear();
     listWidget->clear();
+    checkedActions.clear();
     updateSeverityActions(NotificationManager::getNotificationSeverities());
     updateVisibilityCount(0, true);
 }
@@ -505,6 +507,26 @@ QPair<QString, QString> NotificationDialog::getActionIcon(NOTIFICATION_SEVERITY 
     }
 
     return iconPath;
+}
+
+
+/**
+ * @brief NotificationDialog::getNotificationFilter
+ * @param role
+ * @return
+ */
+NOTIFICATION_FILTER NotificationDialog::getNotificationFilter(NotificationDialog::ITEM_ROLES role)
+{
+    switch (role) {
+    case IR_SEVERITY:
+        return NF_SEVERITY;
+    case IR_TYPE:
+        return NF_TYPE;
+    case IR_CATEGORY:
+        return NF_CATEGORY;
+    default:
+        return NF_NOFILTER;
+    }
 }
 
 
@@ -655,8 +677,8 @@ void NotificationDialog::setupLayout()
 
     connect(listWidget, &QListWidget::itemSelectionChanged, this, &NotificationDialog::listSelectionChanged);
     //connect(listWidget, &QListWidget::itemClicked, this, &NotificationDialog::notificationItemClicked);
-    connect(centerOnAction, &QAction::triggered, this, &NotificationDialog::displaySelection);
-    connect(popupAction, &QAction::triggered, this, &NotificationDialog::displaySelection);
+    connect(centerOnAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
+    connect(popupAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
     connect(clearSelectedAction, &QAction::triggered, this, &NotificationDialog::clearSelected);
     connect(clearVisibleAction, &QAction::triggered, this, &NotificationDialog::clearVisible);
 
@@ -670,9 +692,9 @@ void NotificationDialog::setupLayout()
 void NotificationDialog::setupLayout2()
 {
     filtersMenu = new QMenu(this);
-    filtersMenu->addAction("Severity")->setProperty("ITEM_ROLE", IR_SEVERITY);
-    filtersMenu->addAction("Source")->setProperty("ITEM_ROLE", IR_TYPE);
-    filtersMenu->addAction("Category")->setProperty("ITEM_ROLE", IR_CATEGORY);
+    filtersMenu->addAction("Severity")->setProperty(ROLE, IR_SEVERITY);
+    filtersMenu->addAction("Source")->setProperty(ROLE, IR_TYPE);
+    filtersMenu->addAction("Category")->setProperty(ROLE, IR_CATEGORY);
     connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
 
     foreach (QAction* action, filtersMenu->actions()) {
@@ -790,14 +812,16 @@ void NotificationDialog::constructFilterButton(NotificationDialog::ITEM_ROLES ro
     // action group and separator combo doesn't exist yet
     if (!group) {
         group = new QActionGroup(this);
-        QAction* s = 0;
+        group->setExclusive(false);
+        QAction* separator = 0;
         if (role != topRole) {
-            s = filtersToolbar->addSeparator();
+            separator = filtersToolbar->addSeparator();
         }
         index = indexMap.size();
         indexMap[role] = index;
         actionGroups.insert(index, group);
-        groupSeparators.insert(index, s);
+        groupSeparators.insert(index, separator);
+        prevGroupIndex[separator] = index - 1;
     }
 
     // set default icon
@@ -812,14 +836,24 @@ void NotificationDialog::constructFilterButton(NotificationDialog::ITEM_ROLES ro
     button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     button->setText(label);
+    button->setCheckable(true);
+    button->setChecked(false);
     button->setProperty("iconPath", iconPath);
     button->setProperty("iconName", iconName);
 
     QAction* action = filtersToolbar->addWidget(button);
     group->addAction(action);
     action->setData(roleVal);
+    action->setCheckable(true);
+    action->setChecked(false);
+    action->setProperty(ROLE, role);
+    action->setProperty(ROLE_VAL, roleVal);
 
     filterButtonHash[action] = button;
+
+    connect(button, SIGNAL(clicked(bool)), action, SLOT(toggle()));
+    connect(action, SIGNAL(toggled(bool)), this, SLOT(filterToggled(bool)));
+    connect(action, SIGNAL(toggled(bool)), button, SLOT(setChecked(bool)));
 
     /*
     QSignalMapper* severityActionMapper = new QSignalMapper(this);
@@ -915,4 +949,7 @@ void NotificationDialog::constructNotificationItem(int ID, NOTIFICATION_SEVERITY
 
     NotificationItem* item = new NotificationItem(ID, description, iconPath, iconName, entityID, severity, NT_MODEL, NC_NOCATEGORY, this);
     itemsLayout->addWidget(item);
+
+    connect(this, &NotificationDialog::filterButtonToggled, item, &NotificationItem::filterButtonToggled);
+    connect(this, &NotificationDialog::filtersCleared, item, &NotificationItem::show);
 }
