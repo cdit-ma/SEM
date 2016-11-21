@@ -1,6 +1,6 @@
 #include "zmqmessagewriter.h"
 #include <iostream>
-#include "SystemStatus.pb.h"
+#include "systemstatus.pb.h"
 ZMQMessageWriter::ZMQMessageWriter(){
     context = new zmq::context_t(1);
     socket = new zmq::socket_t(*context, ZMQ_PUB);

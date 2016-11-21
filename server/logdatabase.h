@@ -1,7 +1,7 @@
 #ifndef LOGDATABASE_H
 #define LOGDATABASE_H
 
-#include "SystemStatus.pb.h"
+#include "systemstatus.pb.h"
 #include "sqlitedatabase.h"
 
 class LogDatabase : public SQLiteDatabase{
