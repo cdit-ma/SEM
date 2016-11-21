@@ -50,8 +50,6 @@ signals:
     void mouseEntered();
 
     void filtersCleared();
-    //void filterButtonToggled(NOTIFICATION_FILTER filter, int filterVal, bool checked);
-
     void severityFiltersChanged(QHash<NOTIFICATION_SEVERITY, bool> states);
     void typeFiltersChanged(QHash<NOTIFICATION_TYPE2, bool> states);
     void categoryFiltersChanged(QHash<NOTIFICATION_CATEGORY, bool> states);
@@ -71,6 +69,7 @@ private slots:
 
     void filterMenuTriggered(QAction* action);
     void filterToggled(bool checked);
+    void clearFilters();
 
     void viewSelection();
 
@@ -85,14 +84,16 @@ private:
     void setupLayout2();
 
     void constructFilterButton(ITEM_ROLES role, int roleVal, QString label = "", QString iconPath = "", QString iconName = "");
-
-    void updateVisibilityCount(int val, bool set = false);
+    QAction* constructFilterButtonAction(QToolButton* button);
+    void setActionButtonChecked(QAction *action, bool checked);
 
     void constructNotificationItem(int ID, NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID);
     void removeItem(QListWidgetItem* item);
 
     void clearNotificationsOfSeverity(NOTIFICATION_SEVERITY severity);
     void clearAll();
+
+    void updateVisibilityCount(int val, bool set = false);
 
     void updateSeverityActions(QList<NOTIFICATION_SEVERITY> severities);
     void updateSeverityAction(NOTIFICATION_SEVERITY severity);
@@ -105,7 +106,6 @@ private:
     QToolBar* topButtonsToolbar;
     QToolButton* filtersButton;
     QMenu* filtersMenu;
-    QPushButton* filterButton;
     QToolBar* filtersToolbar;
     QSplitter* displaySplitter;
 
@@ -116,6 +116,8 @@ private:
     QHash<QAction*, int> prevGroupIndex;
     QHash<ITEM_ROLES, int> indexMap;
     ITEM_ROLES topRole;
+
+    QAction* allAction;
 
     QHash<ITEM_ROLES, QActionGroup*> filterGroups;
     QHash<ITEM_ROLES, QAction*> separators;
