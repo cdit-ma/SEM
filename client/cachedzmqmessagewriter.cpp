@@ -1,7 +1,7 @@
 #include "cachedzmqmessagewriter.h"
 #define WRITE_QUEUE 20
 
-#include "SystemStatus.pb.h"
+#include "systemstatus.pb.h"
 
 #include <iostream>
 #include <fstream>
