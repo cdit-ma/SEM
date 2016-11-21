@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 2.6)
 #Set output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
+project(logan)
 #Add Options for building projects, default to build everything
 option(BUILD_SERVER "Build logan_server" ON)
 option(BUILD_CLIENT "Build logan_client" ON)

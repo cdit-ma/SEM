@@ -798,7 +798,13 @@ bool SigarSystemInfo::stringInString(const std::string haystack, const std::stri
     auto match = std::search(
         haystack.begin(), haystack.end(),
         needle.begin(), needle.end(),
-        [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+        [](char ch1, char ch2) {
+        #if _WIN32
+		return toupper(ch1) == toupper(ch2);
+        #else
+		return std::toupper(ch1) == std::toupper(ch2);
+        #endif
+        }
     );
     return (match != haystack.end() );   
 }
