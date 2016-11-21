@@ -85,6 +85,21 @@ QList<NotificationObject*> NotificationManager::getNotificationItems()
 
 
 /**
+ * @brief NotificationManager::getNotificationFilters
+ * @return
+ */
+QList<NOTIFICATION_FILTER> NotificationManager::getNotificationFilters()
+{
+    QList<NOTIFICATION_FILTER> filters;
+    filters.append(NF_NOFILTER);
+    filters.append(NF_SEVERITY);
+    filters.append(NF_TYPE);
+    filters.append(NF_CATEGORY);
+    return filters;
+}
+
+
+/**
  * @brief NotificationManager::getNotificationTypes
  * @return
  */

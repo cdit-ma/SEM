@@ -50,7 +50,11 @@ signals:
     void mouseEntered();
 
     void filtersCleared();
-    void filterButtonToggled(NOTIFICATION_FILTER filter, int filterVal, bool checked);
+    //void filterButtonToggled(NOTIFICATION_FILTER filter, int filterVal, bool checked);
+
+    void severityFiltersChanged(QHash<NOTIFICATION_SEVERITY, bool> states);
+    void typeFiltersChanged(QHash<NOTIFICATION_TYPE2, bool> states);
+    void categoryFiltersChanged(QHash<NOTIFICATION_CATEGORY, bool> states);
 
 public slots:
     void toggleVisibility();
@@ -131,6 +135,10 @@ private:
     QHash<NOTIFICATION_TYPE2, QAction*> typeActionHash;
     QHash<NOTIFICATION_CATEGORY, QAction*> categoryActionHash;
     QHash<NOTIFICATION_SEVERITY, QAction*> severityActionHash;
+
+    QHash<NOTIFICATION_SEVERITY, bool> severityCheckedStates;
+    QHash<NOTIFICATION_TYPE2, bool> typeCheckedStates;
+    QHash<NOTIFICATION_CATEGORY, bool> categoryCheckedStates;
 
     QHash<QAction*, QToolButton*> filterButtonHash;
     QList<QAction*> checkedActions;

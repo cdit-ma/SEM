@@ -27,6 +27,7 @@ public:
     static void tearDown();
 
     static QList<NotificationObject*> getNotificationItems();
+    static QList<NOTIFICATION_FILTER> getNotificationFilters();
     static QList<NOTIFICATION_TYPE2> getNotificationTypes();
     static QList<NOTIFICATION_CATEGORY> getNotificationCategories();
     static QList<NOTIFICATION_SEVERITY> getNotificationSeverities();

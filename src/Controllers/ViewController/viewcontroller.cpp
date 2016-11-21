@@ -488,20 +488,20 @@ void ViewController::jenkinsManager_IsBusy(bool busy)
 void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
 {
     emit vc_JenkinsReady(success);
-    NOTIFICATION_TYPE type = success ? NT_INFO : NT_ERROR;
     QString title = "Jenkins Settings Validation";
     QString message = success ? "Settings validated successfully" : errorString;
-    qDebug() << "Validated Jenkins";
-    emit vc_showNotification(type, title, message, "Actions", "Jenkins_Icon");
+    NOTIFICATION_SEVERITY severity = success ? NS_INFO : NS_ERROR;
+    qCritical() << "GOT JENKINS: " << success;
+    emit vc_newNotification(message, "Actions", "Jenkins", -1, severity, NT_APPLICATION, NC_JENKINS);
 }
 
 void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 {
-    NOTIFICATION_TYPE type = java ? NT_INFO : NT_ERROR;
+    NOTIFICATION_SEVERITY severity = java ? NS_INFO : NS_ERROR;
     QString title = "Checking for Java";
     QString message = java ? "Got Java: '" + javaVersion + "'": "Can't find java";
-    qDebug() << "Got Java";
-    emit vc_showNotification(type, title, message, "Actions", "Java");
+    qCritical() << "GOT JAVA: " << java;
+    emit vc_newNotification(message, "Actions", "Java", -1, severity, NT_APPLICATION, NC_NOCATEGORY);
 }
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)

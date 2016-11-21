@@ -57,42 +57,50 @@ void NotificationItem::themeChanged()
     }
     updateStyleSheet();
 
-    QColor tintColor = NotificationManager::getSeverityColor(severity);
     QString path = property("iconPath").toString();
     QString name = property("iconName").toString();
+    ///*
+    QColor tintColor = NotificationManager::getSeverityColor(severity);
     iconLabel->setPixmap(theme->getImage(path, name, QSize(28,28), tintColor));
+    //*/
+    //iconLabel->setPixmap(theme->getImage(path, name, QSize(28,28), theme->getMenuIconColor()));
 }
 
 
 /**
- * @brief NotificationItem::filterButtonToggled
- * @param filter
- * @param filterVal
- * @param checked
+ * @brief NotificationItem::severityFilterToggled
+ * @param checkedStates
  */
-void NotificationItem::filterButtonToggled(NOTIFICATION_FILTER filter, int filterVal, bool checked)
+void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates)
 {
-    if (checked && isVisible()) {
-        return;
+    bool visible = checkedStates.value(severity, false);
+    if (isVisible() != visible) {
+        setVisible(visible);
     }
+}
 
-    int itemVal = -1;
-    switch (filter) {
-    case NF_SEVERITY:
-        itemVal = severity;
-        break;
-    case NF_TYPE:
-        itemVal = type;
-        break;
-    case NF_CATEGORY:
-        itemVal = category;
-        break;
-    default:
-        return;
+
+/**
+ * @brief NotificationItem::typeFilterToggled
+ * @param checkedStates
+ */
+void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checkedStates)
+{
+    bool visible = checkedStates.value(type, false);
+    if (isVisible() != visible) {
+        setVisible(visible);
     }
+}
 
-    bool visible = checked && (itemVal == filterVal);
-    if (visible != isVisible()) {
+
+/**
+ * @brief NotificationItem::categoryFilterToggled
+ * @param checkedStates
+ */
+void NotificationItem::categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates)
+{
+    bool visible = checkedStates.value(category, false);
+    if (isVisible() != visible) {
         setVisible(visible);
     }
 }

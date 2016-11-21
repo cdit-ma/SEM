@@ -25,7 +25,10 @@ signals:
 
 public slots:
     void themeChanged();
-    void filterButtonToggled(NOTIFICATION_FILTER filter, int filterVal, bool checked);
+
+    void severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates);
+    void typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checkedStates);
+    void categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates);
 
 protected:
     void mouseReleaseEvent(QMouseEvent *event);

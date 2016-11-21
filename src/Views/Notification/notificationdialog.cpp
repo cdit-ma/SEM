@@ -138,11 +138,45 @@ void NotificationDialog::filterToggled(bool checked)
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if (action) {
+
         if (checked) {
             checkedActions.append(action);
         } else {
             checkedActions.removeAll(action);
         }
+
+        NOTIFICATION_FILTER f = getNotificationFilter((ITEM_ROLES)action->property(ROLE).toInt());
+        switch (f) {
+        case NF_SEVERITY:
+        {
+            NOTIFICATION_SEVERITY s = (NOTIFICATION_SEVERITY)action->property(ROLE_VAL).toInt();
+            severityCheckedStates[s] = checked;
+            emit severityFiltersChanged(severityCheckedStates);
+            break;
+        }
+        case NF_TYPE:
+        {
+            NOTIFICATION_TYPE2 t = (NOTIFICATION_TYPE2)action->property(ROLE_VAL).toInt();
+            typeCheckedStates[t] = checked;
+            emit typeFiltersChanged(typeCheckedStates);
+            break;
+        }
+        case NF_CATEGORY:
+        {
+            NOTIFICATION_CATEGORY c = (NOTIFICATION_CATEGORY)action->property(ROLE_VAL).toInt();
+            categoryCheckedStates[c] = checked;
+            emit categoryFiltersChanged(categoryCheckedStates);
+            break;
+        }
+        default:
+            break;
+        }
+
+        if (checkedActions.isEmpty()) {
+            emit filtersCleared();
+        }
+
+        /*
         if (checkedActions.isEmpty()) {
             emit filtersCleared();
         } else {
@@ -150,6 +184,7 @@ void NotificationDialog::filterToggled(bool checked)
             int fVal = action->property(ROLE_VAL).toInt();
             emit filterButtonToggled(f, fVal, checked);
         }
+        */
     }
 }
 
@@ -725,12 +760,15 @@ void NotificationDialog::setupLayout2()
     // this is the first/top group of actions that is added into the filters toolbar
     topRole = IR_SEVERITY;
 
+    //QAction* allAction = filtersToolbar->addAction("All");
+
     /*
      *  SEVERITY
      */
     foreach (NOTIFICATION_SEVERITY severity, manager->getNotificationSeverities()) {
         QString iconName = manager->getSeverityString(severity);
         constructFilterButton(IR_SEVERITY, severity, manager->getSeverityString(severity), "", iconName);
+        severityCheckedStates[severity] = false;
     }
     /*
      *  TYPE
@@ -743,12 +781,14 @@ void NotificationDialog::setupLayout2()
             iconName = "Rename";
         }
         constructFilterButton(IR_TYPE, type, manager->getTypeString(type), "", iconName);
+        typeCheckedStates[type] = false;
     }
     /*
      *  CATEGORY
      */
     foreach (NOTIFICATION_CATEGORY category, manager->getNotificationCategories()) {
         constructFilterButton(IR_CATEGORY, category, manager->getCategoryString(category));
+        categoryCheckedStates[category] = false;
     }
 
     QFrame* displayWidget = new QFrame(this);
@@ -950,6 +990,9 @@ void NotificationDialog::constructNotificationItem(int ID, NOTIFICATION_SEVERITY
     NotificationItem* item = new NotificationItem(ID, description, iconPath, iconName, entityID, severity, NT_MODEL, NC_NOCATEGORY, this);
     itemsLayout->addWidget(item);
 
-    connect(this, &NotificationDialog::filterButtonToggled, item, &NotificationItem::filterButtonToggled);
+    //connect(this, &NotificationDialog::filterButtonToggled, item, &NotificationItem::filterButtonToggled);
     connect(this, &NotificationDialog::filtersCleared, item, &NotificationItem::show);
+    connect(this, &NotificationDialog::severityFiltersChanged, item, &NotificationItem::severityFilterToggled);
+    connect(this, &NotificationDialog::typeFiltersChanged, item, &NotificationItem::typeFilterToggled);
+    connect(this, &NotificationDialog::categoryFiltersChanged, item, &NotificationItem::categoryFilterToggled);
 }
