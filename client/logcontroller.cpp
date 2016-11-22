@@ -27,39 +27,35 @@ LogController::LogController(double frequency, std::vector<std::string> processe
 }
 
 void LogController::LogThread(){
-    int i = 0;
-
+    //Construct our SystemInfo class
     SystemInfo* system_info = new SigarSystemInfo();
 
+
+    //Subscribe to our desired process names
     for(std::string process_name : processes_){
         system_info->monitor_processes(process_name);
     }
-
-    system_info->monitor_processes("LoggerClient");
 
     //Update loop.
     while(!terminate_){
         //Sleep for period
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_));
         if(system_info->update()){
+            //Get a new filled protobuf message
             SystemStatus* status = GetSystemStatus(system_info);
-            //Lock the Queue
+            
+            //Lock the Queue, and notify the writer queue.
             std::unique_lock<std::mutex> lock(queue_mutex_);
             message_queue_.push(status);
             queue_lock_condition_.notify_all();
-        }else{
-            //Don't update more than 10 times a second.
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
-    std::cout << "Logging thread killed" << std::endl;
+    std::cout << "Logging thread terminated." << std::endl;
 }
 
 void LogController::WriteThread(){
-    int count = 0;
     while(!terminate_){
         std::queue<SystemStatus*> replace_queue;
-        
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -73,12 +69,11 @@ void LogController::WriteThread(){
 
         //Empty our write queue
         while(!replace_queue.empty()){
-            count ++;
             writer_->push_message(replace_queue.front());
             replace_queue.pop();
         }
     }
-    std::cout << "Writing thread killed" << std::endl;
+    std::cout << "Writer thread terminated." << std::endl;
 }
 
 void LogController::Terminate(){
@@ -88,27 +83,34 @@ void LogController::Terminate(){
 }
 
 SystemStatus* LogController::GetSystemStatus(SystemInfo* info){
+    //Construct a protobuf message to fill with information
     SystemStatus* status = new SystemStatus();
 
     status->set_hostname(info->get_hostname());
     status->set_timestamp(info->get_update_timestamp());
+    
     //Increment the message_id
     status->set_message_id(++message_id_);
 
+    //Send the SystemInfo once
     if(!seen_hostnames_.count(info->get_hostname())){
-        //send onetime info
-        status->mutable_info()->set_os_name(info->get_os_name());
-        status->mutable_info()->set_os_arch(info->get_os_arch());
-        status->mutable_info()->set_os_description(info->get_os_description());
-        status->mutable_info()->set_os_version(info->get_os_version());
-        status->mutable_info()->set_os_vendor(info->get_os_vendor());
-        status->mutable_info()->set_os_vendor_name(info->get_os_vendor_name());
+        SystemStatus::SystemInfo* sys_info = status->mutable_info();
 
-        status->mutable_info()->set_cpu_model(info->get_cpu_model());
-        status->mutable_info()->set_cpu_vendor(info->get_cpu_vendor());
-        status->mutable_info()->set_cpu_frequency(info->get_cpu_frequency());
+        //Send OS Info
+        sys_info->set_os_name(info->get_os_name());
+        sys_info->set_os_arch(info->get_os_arch());
+        sys_info->set_os_description(info->get_os_description());
+        sys_info->set_os_version(info->get_os_version());
+        sys_info->set_os_vendor(info->get_os_vendor());
+        sys_info->set_os_vendor_name(info->get_os_vendor_name());
 
-        status->mutable_info()->set_physical_memory(info->get_phys_mem());
+        //Send Hardware Info
+        sys_info->set_cpu_model(info->get_cpu_model());
+        sys_info->set_cpu_vendor(info->get_cpu_vendor());
+        sys_info->set_cpu_frequency(info->get_cpu_frequency());
+        sys_info->set_physical_memory(info->get_phys_mem());
+
+        //Store the hostname
         seen_hostnames_.insert(info->get_hostname());
     }
     
@@ -201,31 +203,4 @@ SystemStatus* LogController::GetSystemStatus(SystemInfo* info){
     }
 
     return status;
-}
-
-void LogController::WriteThread(){
-    int count = 0;
-    while(true){
-        std::queue<SystemStatus*> replace_queue;
-        
-        {
-            //Obtain lock for the queue
-            std::unique_lock<std::mutex> lock(queue_mutex_);
-            //Wait for notify
-            queue_lock_condition_.wait(lock);
-            //Swap our queues
-            if(!message_queue_.empty()){
-                message_queue_.swap(replace_queue);
-            }
-        }
-
-        //Empty our write queue
-        while(!replace_queue.empty()){
-            count ++;
-            writer_->push_message(replace_queue.front());
-            replace_queue.pop();
-        }
-    }
-
-
 }
