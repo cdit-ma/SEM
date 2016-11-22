@@ -169,17 +169,20 @@ SystemStatus* LogController::GetSystemStatus(SystemInfo* info){
 
     int fs_count = info->get_fs_count();
     for(int i = 0; i < fs_count; i++){
-        FileSystemStatus* fss = status->add_file_systems();
-        
-        if(!seen_fs_.count(info->get_fs_name(i))){
-            //send onetime info
-            fss->mutable_info()->set_type((FileSystemStatus::FileSystemInfo::Type)info->get_fs_type(i));
-            fss->mutable_info()->set_size(info->get_fs_size(i));
-            seen_fs_.insert(info->get_fs_name(i));
+        if(info->get_fs_name(i) != ""){
+
+            FileSystemStatus* fss = status->add_file_systems();
+            
+            if(!seen_fs_.count(info->get_fs_name(i))){
+                //send onetime info
+                fss->mutable_info()->set_type((FileSystemStatus::FileSystemInfo::Type)info->get_fs_type(i));
+                fss->mutable_info()->set_size(info->get_fs_size(i));
+                seen_fs_.insert(info->get_fs_name(i));
+            }
+            
+            fss->set_name(info->get_fs_name(i));
+            fss->set_utilization(info->get_fs_utilization(i));
         }
-        
-        fss->set_name(info->get_fs_name(i));
-        fss->set_utilization(info->get_fs_utilization(i));
     }
 
     int interface_count = info->get_interface_count();
