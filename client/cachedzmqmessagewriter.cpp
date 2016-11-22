@@ -80,6 +80,8 @@ bool CachedZMQMessageWriter::writeQueue(){
             std::cout << "FAILED WRITING?!" << std::endl;
             return false;
         }
+        //Clean up memory!
+        delete message;
     }
     delete raw_out;
     file.close();

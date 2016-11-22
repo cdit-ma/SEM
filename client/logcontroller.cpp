@@ -169,7 +169,7 @@ SystemStatus* LogController::GetSystemStatus(SystemInfo* info){
 
     int fs_count = info->get_fs_count();
     for(int i = 0; i < fs_count; i++){
-        if(info->get_fs_name(i) != ""){
+        //if(info->get_fs_name(i) != ""){
 
             FileSystemStatus* fss = status->add_file_systems();
             
@@ -182,29 +182,31 @@ SystemStatus* LogController::GetSystemStatus(SystemInfo* info){
             
             fss->set_name(info->get_fs_name(i));
             fss->set_utilization(info->get_fs_utilization(i));
-        }
+        //}
     }
 
     int interface_count = info->get_interface_count();
-    for(int i = 0; i < interface_count; i++){
-        InterfaceStatus* is = status->add_interfaces();
-        
-        if(!seen_if_.count(info->get_interface_name(i))){
-            //get onetime info
-            is->mutable_info()->set_type(info->get_interface_type(i));
-            is->mutable_info()->set_description(info->get_interface_description(i));
-            is->mutable_info()->set_ipv4_addr(info->get_interface_ipv4(i));
-            is->mutable_info()->set_ipv6_addr(info->get_interface_ipv6(i));
-            is->mutable_info()->set_mac_addr(info->get_interface_mac(i));
-            is->mutable_info()->set_speed(info->get_interface_speed(i));
-            seen_if_.insert(info->get_interface_name(i));
-        }
+    for(int i = 0; i < interface_count; i++){ 
+        if(info->get_interface_state(i, SystemInfo::InterfaceState::UP)){
+            InterfaceStatus* is = status->add_interfaces();
+            
+            if(!seen_if_.count(info->get_interface_name(i))){
+                //get onetime info
+                is->mutable_info()->set_type(info->get_interface_type(i));
+                is->mutable_info()->set_description(info->get_interface_description(i));
+                is->mutable_info()->set_ipv4_addr(info->get_interface_ipv4(i));
+                is->mutable_info()->set_ipv6_addr(info->get_interface_ipv6(i));
+                is->mutable_info()->set_mac_addr(info->get_interface_mac(i));
+                is->mutable_info()->set_speed(info->get_interface_speed(i));
+                seen_if_.insert(info->get_interface_name(i));
+            }
 
-        is->set_name(info->get_interface_name(i));
-        is->set_rx_bytes(info->get_interface_rx_bytes(i));
-        is->set_rx_packets(info->get_interface_rx_packets(i));
-        is->set_tx_bytes(info->get_interface_tx_bytes(i));
-        is->set_tx_packets(info->get_interface_tx_packets(i));
+            is->set_name(info->get_interface_name(i));
+            is->set_rx_bytes(info->get_interface_rx_bytes(i));
+            is->set_rx_packets(info->get_interface_rx_packets(i));
+            is->set_tx_bytes(info->get_interface_tx_bytes(i));
+            is->set_tx_packets(info->get_interface_tx_packets(i));
+        }
     }
 
     return status;

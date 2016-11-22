@@ -247,7 +247,6 @@ bool SigarSystemInfo::update_filesystems(){
                 //Ignore
                 continue;
         }
-        validCount ++;
         //Get the latest usage
         if(!sigar || (sigar_file_system_usage_get(sigar, fs.system.dir_name, &fs.usage) != SIGAR_OK)){
             return false;
@@ -255,7 +254,9 @@ bool SigarSystemInfo::update_filesystems(){
 
         //Update our filesystem list
         filesystems_[validCount] = fs;
+        validCount ++;
     }
+
     filesystems_.resize(validCount);
 
     sigar_file_system_list_destroy(sigar, &fs_list);
@@ -678,7 +679,7 @@ bool SigarSystemInfo::update_processes(){
         }
 
         //Require State
-        if(sigar_proc_state_get(sigar, process_list.data[i], &process->state) != SIGAR_OK){
+        if(sigar_proc_state_get(sigar, pid, &(process->state)) != SIGAR_OK){
             continue;
         }
         
@@ -691,11 +692,11 @@ bool SigarSystemInfo::update_processes(){
         if(!seenPIDBefore){
             //we dont have any records of this process yet.
             //Add process name and args to struct
-            if(sigar_proc_exe_get(sigar, process_list.data[i], &process->exe) != SIGAR_OK){
+            if(sigar_proc_exe_get(sigar, pid, &(process->exe)) != SIGAR_OK){
                 //continue;
             }
 
-            if(sigar_proc_args_get(sigar, process_list.data[i], &process->args) != SIGAR_OK){
+            if(sigar_proc_args_get(sigar, pid, &(process->args)) != SIGAR_OK){
                 //continue;
             }
 
@@ -724,16 +725,17 @@ bool SigarSystemInfo::update_processes(){
             
             //If we have this pid already and more than 1 second has elapsed
             if(difference.count() >= 1){
-                if(sigar_proc_cpu_get(sigar, process_list.data[i], &process->cpu) != SIGAR_OK){
-                //continue;
-                }
-                if(sigar_proc_mem_get(sigar, process_list.data[i], &process->mem) != SIGAR_OK){
+                if(sigar_proc_cpu_get(sigar, pid, &(process->cpu)) != SIGAR_OK){
                     //continue;
                 }
-                if(sigar_proc_disk_io_get(sigar, process_list.data[i], &process->disk) != SIGAR_OK){
+                if(sigar_proc_mem_get(sigar, pid, &(process->mem)) != SIGAR_OK){
+                    //continue;
+                }
+                if(sigar_proc_disk_io_get(sigar, pid, &(process->disk)) != SIGAR_OK){
                     //continue;
                 }
             }
+    
             process->lastUpdated_ = t;
         }
 

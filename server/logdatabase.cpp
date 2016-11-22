@@ -356,7 +356,7 @@ void LogDatabase::process_status(SystemStatus* status){
             sqlite3_bind_text(ifinfo, 8, ifstat.info().ipv6_addr().c_str(), ifstat.info().ipv6_addr().size(), SQLITE_TRANSIENT);
             sqlite3_bind_text(ifinfo, 9, ifstat.info().mac_addr().c_str(), ifstat.info().mac_addr().size(), SQLITE_TRANSIENT);
             sqlite3_bind_int(ifinfo, 10, ifstat.info().speed());
-            //queue_sql_statement(ifinfo);
+            queue_sql_statement(ifinfo);
         }
         sqlite3_bind_text(ifstatement, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
         sqlite3_bind_int(ifstatement, 2, message_id);
