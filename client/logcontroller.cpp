@@ -30,10 +30,8 @@ LogController::~LogController(){
     terminate_ = true;
     logging_thread_->join();
     delete logging_thread_;
-    std::cout << "Killed logging thread" << std::endl;
     writer_thread_->join();
-    delete writer_thread_;
-    std::cout << "Killed writing thread" << std::endl;    
+    delete writer_thread_;    
 }
 
 void LogController::LogThread(){
