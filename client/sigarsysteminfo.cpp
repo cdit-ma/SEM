@@ -36,8 +36,11 @@ bool SigarSystemInfo::close_sigar(){
 }
 
 double SigarSystemInfo::get_update_timestamp() const{
-    double time = lastUpdate_.count() / 1000.0;
-    return time;
+    return get_timestamp(lastUpdate_);
+}
+
+double SigarSystemInfo::get_timestamp(const std::chrono::milliseconds t) const{
+    return t.count() / 1000;
 }
 
 std::string SigarSystemInfo::get_hostname() const{
@@ -790,6 +793,13 @@ void SigarSystemInfo::ignore_processes(const std::string processName){
 
 std::vector<std::string> SigarSystemInfo::get_monitored_processes_names() const{
     return tracked_process_names_;
+}
+
+double SigarSystemInfo::get_monitored_process_update_time(const int pid) const{
+    if(processes_.count(pid)){
+        return get_timestamp(processes_.at(pid)->lastUpdated_);
+    }
+    return -1;
 }
         
  
