@@ -8,36 +8,79 @@
 #include "sigarsysteminfo.h"
 #include "cachedzmqmessagewriter.h"
 
-LogController::LogController(){
-    writer = new ZMQMessageWriter();
-    writer->bind_publisher_socket("tcp://*:5555");
+LogController::LogController(double frequency, std::vector<std::string> processes, bool cached){
+    writer_ = new ZMQMessageWriter();
+    writer_->bind_publisher_socket("tcp://*:5555");
 
-    loggingThread_ = new std::thread(&LogController::log_thread, this);
-    writerThread_ = new std::thread(&LogController::write_thread, this);
+    logging_thread_ = new std::thread(&LogController::LogThread, this);
+    writer_thread_ = new std::thread(&LogController::WriteThread, this);
     message_id_ = 0;
 
+    //Zero check before division
+    if(frequency <= 0){
+        frequency = 1;
+    }
+    //Convert frequency to period
+    sleep_time_ = (1 / frequency) * 1000;
+    processes_ = processes;
 }
 
-void LogController::log_thread(){
+void LogController::LogThread(){
     int i = 0;
 
-    SystemInfo* systemInfo = new SigarSystemInfo();
-    systemInfo->monitor_processes("LoggerClient");
+    SystemInfo* system_info = new SigarSystemInfo();
 
+    for(std::string process_name : processes_){
+        system_info->monitor_processes(process_name);
+    }
+
+    system_info->monitor_processes("LoggerClient");
+
+    //Update loop.
     while(true){
-        if(systemInfo->update()){
-            SystemStatus* status = getSystemStatus(systemInfo);
+        //Sleep for period
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_));
+        if(system_info->update()){
+            SystemStatus* status = GetSystemStatus(system_info);
             //Lock the Queue
-            std::unique_lock<std::mutex> lock(queueMutex_);
-            messageQueue_.push(status);
-            queueLockCondition_.notify_all();
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            message_queue_.push(status);
+            queue_lock_condition_.notify_all();
         }else{
+            //Don't update more than 10 times a second.
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 }
 
-SystemStatus* LogController::getSystemStatus(SystemInfo* info){
+void LogController::WriteThread(){
+    int count = 0;
+    while(true){
+        std::queue<SystemStatus*> replace_queue;
+        
+        {
+            //Obtain lock for the queue
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            //Wait for notify
+            queue_lock_condition_.wait(lock);
+            //Swap our queues
+            if(!message_queue_.empty()){
+                message_queue_.swap(replace_queue);
+            }
+        }
+
+        //Empty our write queue
+        while(!replace_queue.empty()){
+            count ++;
+            writer_->push_message(replace_queue.front());
+            replace_queue.pop();
+        }
+    }
+
+
+}
+
+SystemStatus* LogController::GetSystemStatus(SystemInfo* info){
     message_id_++;
     SystemStatus* status = new SystemStatus();
     status->set_hostname(info->get_hostname());
@@ -132,35 +175,4 @@ SystemStatus* LogController::getSystemStatus(SystemInfo* info){
     }
 
     return status;
-}
-void LogController::write_thread(){
-    int count = 0;
-    while(true){
-        std::queue<SystemStatus*> mQueue;
-        
-        {
-            //Obtain lock for the queue
-            std::unique_lock<std::mutex> lock(queueMutex_);
-            //Wait for notify
-            queueLockCondition_.wait(lock);
-            //Swap our queues
-            if(!messageQueue_.empty()){
-                messageQueue_.swap(mQueue);
-            }
-        }
-
-        //Empty our write queue
-        while(!mQueue.empty()){
-            count ++;
-            writer->push_message(mQueue.front());
-            mQueue.pop();
-        }
-
-        //Terminate case!
-        if(count > 99){
-            writer->terminate();
-            exit(1);
-            break;
-        }
-    }
 }
