@@ -11,9 +11,10 @@
 LogController::LogController(double frequency, std::vector<std::string> processes, bool cached){
     writer_ = new ZMQMessageWriter();
     writer_->bind_publisher_socket("tcp://*:5555");
-
-    logging_thread_ = new std::thread(&LogController::LogThread, this);
+	
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     writer_thread_ = new std::thread(&LogController::WriteThread, this);
+    logging_thread_ = new std::thread(&LogController::LogThread, this);
     message_id_ = 0;
 
     //Zero check before division
