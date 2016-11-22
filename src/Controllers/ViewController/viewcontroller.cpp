@@ -488,20 +488,16 @@ void ViewController::jenkinsManager_IsBusy(bool busy)
 void ViewController::jenkinsManager_SettingsValidated(bool success, QString errorString)
 {
     emit vc_JenkinsReady(success);
-    QString title = "Jenkins Settings Validation";
     QString message = success ? "Settings validated successfully" : errorString;
     NOTIFICATION_SEVERITY severity = success ? NS_INFO : NS_ERROR;
-    qCritical() << "GOT JENKINS: " << success;
-    emit vc_newNotification(message, "Actions", "Jenkins", -1, severity, NT_APPLICATION, NC_JENKINS);
+    NotificationManager::manager()->displayNotification(message, "Actions", "Jenkins_Icon", -1, severity, NT_APPLICATION, NC_JENKINS);
 }
 
 void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 {
     NOTIFICATION_SEVERITY severity = java ? NS_INFO : NS_ERROR;
-    QString title = "Checking for Java";
     QString message = java ? "Got Java: '" + javaVersion + "'": "Can't find java";
-    qCritical() << "GOT JAVA: " << java;
-    emit vc_newNotification(message, "Actions", "Java", -1, severity, NT_APPLICATION, NC_NOCATEGORY);
+    NotificationManager::manager()->displayNotification(message, "Actions", "Java", -1, severity, NT_APPLICATION);
 }
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
@@ -962,7 +958,7 @@ void ViewController::_teardownProject()
         }
 
         // reset the notification manager
-        NotificationManager::resetManager();
+        NotificationManager::manager()->resetManager();
     }
 }
 

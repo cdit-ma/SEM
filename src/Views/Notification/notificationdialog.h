@@ -55,9 +55,10 @@ signals:
     void categoryFiltersChanged(QHash<NOTIFICATION_CATEGORY, bool> states);
 
 public slots:
-    void toggleVisibility();
-    void showDialog();
+    void initialiseDialog();
     void resetDialog();
+    void showDialog();
+    void toggleVisibility();
 
     void getLastNotificationID();
 
@@ -75,6 +76,7 @@ private slots:
 
     void clearSelected();
     void clearVisible();
+    void clearNotifications(NOTIFICATION_FILTER filter, int filterVal);
 
     void notificationItemAdded(NotificationObject* item);
     void notificationItemClicked(QListWidgetItem* item);
@@ -133,6 +135,8 @@ private:
     QAction* popupAction;
     QAction* clearSelectedAction;
     QAction* clearVisibleAction;
+
+    QHash<int, NotificationItem*> notificationItems;
 
     QHash<NOTIFICATION_TYPE2, QAction*> typeActionHash;
     QHash<NOTIFICATION_CATEGORY, QAction*> categoryActionHash;

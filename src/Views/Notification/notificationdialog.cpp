@@ -39,6 +39,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) :
     connect(severityActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),this, &NotificationDialog::severityActionToggled);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
+    connect(NotificationManager::manager(), &NotificationManager::clearNotifications, this, &NotificationDialog::showDialog);
     connect(NotificationManager::manager(), &NotificationManager::showNotificationDialog, this, &NotificationDialog::showDialog);
     connect(NotificationManager::manager(), &NotificationManager::notificationItemAdded, this, &NotificationDialog::notificationItemAdded);
     connect(NotificationManager::manager(), &NotificationManager::req_lastNotificationID, this, &NotificationDialog::getLastNotificationID);
@@ -47,11 +48,6 @@ NotificationDialog::NotificationDialog(QWidget *parent) :
 
     themeChanged();
     updateVisibilityCount(0, true);
-
-    // construct items for notifications that were received before this dialog was constructed
-    foreach (NotificationObject* item, NotificationManager::getNotificationItems()) {
-        notificationItemAdded(item);
-    }
 }
 
 
@@ -112,49 +108,52 @@ void NotificationDialog::filterMenuTriggered(QAction* action)
 
 /**
  * @brief NotificationDialog::filterToggled
+ * This slot is called when any of the filter buttons has been clicked/triggered.
  * @param checked
  */
 void NotificationDialog::filterToggled(bool checked)
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if (action) {
+
+        // if triggered action is allAction, either clear the filters or re-check the button
         if (action == allAction) {
-            qDebug() << "allAction->cliked: " << allAction->isChecked();
             if (checked) {
-                qDebug() << "checked";
-                if (!allAction->isChecked()) {
-                    qDebug() << "update checked state to true";
-                    setActionButtonChecked(allAction, true);
-                } else {
-                    qDebug() << "clear filters";
-                    clearFilters();
-                }
+                clearFilters();
             } else {
-                qDebug() << "!checked - re-check";
-                //allAction->setChecked(true);
-                //filterButtonHash[allAction]->click();
-                //allAction->triggered(true);
-                //allAction->trigger();
-                //setActionButtonChecked(allAction, true);
+                /*
+                 * For some reason, calling click() changes the checked state of the action
+                 * and button as desired, but the visible checked state is unchanged.
+                 * However, animateClick() works when they should be sending the same signals.
+                 * filterButtonHash[allAction]->click();
+                 */
+                filterButtonHash[allAction]->animateClick(1);
             }
             return;
         }
 
-        if (allAction->isChecked()) {
-            setActionButtonChecked(allAction, false);
-        }
-
+        // add/remove action from the checked actions list
         if (checked) {
             checkedActions.append(action);
         } else {
             checkedActions.removeAll(action);
         }
 
+        // if there are no checked actions, send no filters signal and re-check allAction
+        // otherwise, if at least one filter action is checked, un-check allAction
+        if (checkedActions.isEmpty()) {
+            setActionButtonChecked(allAction, true);
+            emit filtersCleared();
+            return;
+        } else if (allAction->isChecked()) {
+            setActionButtonChecked(allAction, false);
+        }
+
+        // send signal of updated list of the triggered filter to the notification items
         NOTIFICATION_FILTER f = getNotificationFilter((ITEM_ROLES)action->property(ROLE).toInt());
         switch (f) {
         case NF_SEVERITY:
         {
-            qDebug() << "NF_SEVERITY";
             NOTIFICATION_SEVERITY s = (NOTIFICATION_SEVERITY)action->property(ROLE_VAL).toInt();
             severityCheckedStates[s] = checked;
             emit severityFiltersChanged(severityCheckedStates);
@@ -162,7 +161,6 @@ void NotificationDialog::filterToggled(bool checked)
         }
         case NF_TYPE:
         {
-            qDebug() << "NF_TYPE";
             NOTIFICATION_TYPE2 t = (NOTIFICATION_TYPE2)action->property(ROLE_VAL).toInt();
             typeCheckedStates[t] = checked;
             emit typeFiltersChanged(typeCheckedStates);
@@ -170,7 +168,6 @@ void NotificationDialog::filterToggled(bool checked)
         }
         case NF_CATEGORY:
         {
-            qDebug() << "NF_CATEGORY";
             NOTIFICATION_CATEGORY c = (NOTIFICATION_CATEGORY)action->property(ROLE_VAL).toInt();
             categoryCheckedStates[c] = checked;
             emit categoryFiltersChanged(categoryCheckedStates);
@@ -178,11 +175,6 @@ void NotificationDialog::filterToggled(bool checked)
         }
         default:
             break;
-        }
-
-        if (checkedActions.isEmpty()) {
-            setActionButtonChecked(allAction, true);
-            emit filtersCleared();
         }
     }
 }
@@ -193,11 +185,13 @@ void NotificationDialog::filterToggled(bool checked)
  */
 void NotificationDialog::clearFilters()
 {
-    foreach (QAction* action, checkedActions) {
-        setActionButtonChecked(action, false);
+    if (!checkedActions.isEmpty()) {
+        foreach (QAction* action, checkedActions) {
+            setActionButtonChecked(action, false);
+        }
+        checkedActions.clear();
+        emit filtersCleared();
     }
-    checkedActions.clear();
-    emit filtersCleared();
 }
 
 
@@ -423,6 +417,47 @@ void NotificationDialog::clearVisible()
 
 
 /**
+ * @brief NotificationDialog::clearNotifications
+ * @param filter
+ * @param filterVal
+ */
+void NotificationDialog::clearNotifications(NOTIFICATION_FILTER filter, int filterVal)
+{
+    QList<NotificationItem*> itemsToDelete;
+    foreach (NotificationItem* item, notificationItems.values()) {
+        switch (filter) {
+        case NF_SEVERITY:
+        {
+            if (item->getSeverity() == (NOTIFICATION_SEVERITY)filterVal) {
+                itemsToDelete.append(item);
+            }
+            break;
+        }
+        case NF_TYPE:
+        {
+            if (item->getType() == (NOTIFICATION_TYPE2)filterVal) {
+                itemsToDelete.append(item);
+            }
+            break;
+        }
+        case NF_CATEGORY:
+        {
+            if (item->getCategory() == (NOTIFICATION_CATEGORY)filterVal) {
+                itemsToDelete.append(item);
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    foreach (NotificationItem* item, itemsToDelete) {
+        // TODO - delete item here
+    }
+}
+
+
+/**
  * @brief NotificationDialog::notificationItemAdded
  * @param item
  */
@@ -484,6 +519,28 @@ void NotificationDialog::removeNotificationItem(int ID)
     if (notificationIDHash.contains(ID)) {
         QListWidgetItem* item = notificationIDHash.take(ID);
         removeItem(item);
+    }
+}
+
+
+/**
+ * @brief NotificationDialog::initialiseDialog
+ * Construct items for notifications that were received before this dialog was constructed.
+ * Show highlight alert and toast for the last notification item in the list.
+ */
+void NotificationDialog::initialiseDialog()
+{
+    resetDialog();
+
+    QList<NotificationObject*> notifications = NotificationManager::getNotificationItems();
+    if (!notifications.isEmpty()) {
+        foreach (NotificationObject* item, notifications) {
+            notificationItemAdded(item);
+        }
+        NotificationManager::manager()->notificationAlert();
+        NotificationManager::manager()->showLastNotification();
+    } else {
+        NotificationManager::manager()->notificationSeen();
     }
 }
 
@@ -911,7 +968,10 @@ void NotificationDialog::setActionButtonChecked(QAction* action, bool checked)
     if (action && button) {
         action->setChecked(checked);
         button->setChecked(checked);
-        qDebug() << "SETTING: " << checked;
+        //qDebug() << "action.isChecked: " << action->isChecked();
+        //qDebug() << "button.isChecked: " << button->isChecked();
+        //button->updateGeometry();
+        //button->update();
     }
 }
 
@@ -995,6 +1055,8 @@ void NotificationDialog::constructNotificationItem(int ID, NOTIFICATION_SEVERITY
 
     NotificationItem* item = new NotificationItem(ID, description, iconPath, iconName, entityID, severity, NT_MODEL, NC_NOCATEGORY, this);
     itemsLayout->addWidget(item);
+
+    notificationItems[ID] = item;
 
     connect(this, &NotificationDialog::filtersCleared, item, &NotificationItem::show);
     connect(this, &NotificationDialog::severityFiltersChanged, item, &NotificationItem::severityFilterToggled);

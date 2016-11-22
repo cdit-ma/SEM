@@ -17,6 +17,11 @@
 NotificationItem::NotificationItem(int ID, QString description, QString iconPath, QString iconName, int eID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c, QWidget *parent)
     : QFrame(parent)
 {
+    if (iconPath.isEmpty() || iconName.isEmpty()) {
+        iconPath = "Actions";
+        iconName = "Help";
+    }
+
     setProperty("ID", ID);
     setProperty("description", description);
     setProperty("iconPath", iconPath);
@@ -41,6 +46,36 @@ NotificationItem::NotificationItem(int ID, QString description, QString iconPath
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
     themeChanged();
+}
+
+
+/**
+ * @brief NotificationItem::getSeverity
+ * @return
+ */
+NOTIFICATION_SEVERITY NotificationItem::getSeverity()
+{
+    return severity;
+}
+
+
+/**
+ * @brief NotificationItem::getType
+ * @return
+ */
+NOTIFICATION_TYPE2 NotificationItem::getType()
+{
+    return type;
+}
+
+
+/**
+ * @brief NotificationItem::getCategory
+ * @return
+ */
+NOTIFICATION_CATEGORY NotificationItem::getCategory()
+{
+    return category;
 }
 
 

@@ -20,6 +20,10 @@ public:
                               NOTIFICATION_CATEGORY c,
                               QWidget *parent = 0);
 
+    NOTIFICATION_SEVERITY getSeverity();
+    NOTIFICATION_TYPE2 getType();
+    NOTIFICATION_CATEGORY getCategory();
+
 signals:
     void itemSelected(int ID, bool append = false);
 

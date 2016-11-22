@@ -39,9 +39,19 @@ QTime* NotificationManager::projectTime()
  */
 void NotificationManager::resetManager()
 {
+    // only clear NT_MODEL notifications
+    QList<NotificationObject*> modelNotifications;
+    foreach (NotificationObject* obj, getNotificationItems()) {
+        if (obj->type() == NT_MODEL) {
+            modelNotifications.append(obj);
+        }
+    }
+    foreach (NotificationObject* m_obj, modelNotifications) {
+        deleteNotification(m_obj->ID());
+    }
+
     projectRunTime->restart();
-    lastNotificationItem = 0;
-    notificationItems.clear();
+    emit clearNotifications(NF_TYPE, NT_MODEL);
 }
 
 
@@ -210,6 +220,8 @@ QString NotificationManager::getSeverityString(NOTIFICATION_SEVERITY severity)
 QColor NotificationManager::getSeverityColor(NOTIFICATION_SEVERITY severity)
 {
     switch (severity) {
+    case NS_INFO:
+        return QColor(0,180,180);
     case NS_WARNING:
         return QColor(255,200,0);
     case NS_ERROR:
@@ -228,6 +240,8 @@ QColor NotificationManager::getSeverityColor(NOTIFICATION_SEVERITY severity)
 QString NotificationManager::getSeverityColorStr(NOTIFICATION_SEVERITY severity)
 {
     switch (severity) {
+    case NS_INFO:
+        return "rgb(0,180,180)";
     case NS_WARNING:
         return "rgb(255,200,0)";
     case NS_ERROR:
@@ -288,6 +302,8 @@ void NotificationManager::showLastNotification()
 {
     if (lastNotificationItem) {
         emit notificationAdded(lastNotificationItem->iconPath(), lastNotificationItem->iconName(), lastNotificationItem->description());
+    } else {
+        qDebug() << "LAST NOTIFICATION IS NULL : " << getNotificationItems().size();
     }
 }
 
@@ -326,7 +342,7 @@ void NotificationManager::modelValidated(QStringList report)
 void NotificationManager::addNotification(QString description, QString iconPath, QString iconName, int entityID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c, bool toast)
 {
     // construct notification item
-    NotificationObject* item = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, this);
+    NotificationObject* item = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, 0);
     notificationItems[item->ID()] = item;
     lastNotificationItem = item;
 

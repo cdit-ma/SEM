@@ -23,9 +23,6 @@ public:
     static NotificationManager* manager();
     static QTime* projectTime();
 
-    static void resetManager();
-    static void tearDown();
-
     static QList<NotificationObject*> getNotificationItems();
     static QList<NOTIFICATION_FILTER> getNotificationFilters();
     static QList<NOTIFICATION_TYPE2> getNotificationTypes();
@@ -36,6 +33,9 @@ public:
     static QString getSeverityString(NOTIFICATION_SEVERITY severity);
     static QColor getSeverityColor(NOTIFICATION_SEVERITY severity);
     static QString getSeverityColorStr(NOTIFICATION_SEVERITY severity);
+
+    void resetManager();
+    void tearDown();
 
     void displayNotification(QString description,
                              QString iconPath,
@@ -56,6 +56,8 @@ signals:
     void req_lastNotificationID();
 
     void showNotificationDialog();
+
+    void clearNotifications(NOTIFICATION_FILTER filter = NF_NOFILTER, int filterVal = -1);
 
 public slots:
     void notificationReceived(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int entityID);
