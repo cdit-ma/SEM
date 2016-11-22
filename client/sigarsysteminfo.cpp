@@ -692,19 +692,13 @@ bool SigarSystemInfo::update_processes(){
         if(!seenPIDBefore){
             //we dont have any records of this process yet.
             //Add process name and args to struct
-            if(sigar_proc_exe_get(sigar, pid, &(process->exe)) != SIGAR_OK){
-                //continue;
-            }
-
-            if(sigar_proc_args_get(sigar, pid, &(process->args)) != SIGAR_OK){
-                //continue;
-            }
+            sigar_proc_exe_get(sigar, pid, &(process->exe));
+            sigar_proc_args_get(sigar, pid, &(process->args));
 
             //Trim the Path out of the name
             std::string procName = std::string(process->exe.name);
 			procName = procName.substr(procName.find_last_of(slash) + 1, std::string::npos);
             process->proc_name = procName;
-            
         }
 
         if(force_process_name_check){
