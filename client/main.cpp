@@ -5,6 +5,7 @@
 #include <chrono>
 
 #include "logcontroller.h"
+#include <signal.h>
 
 static int s_interrupted = 0;
 static void s_signal_handler (int signal_value)
@@ -30,7 +31,7 @@ int main(int, char**){
     //TODO: take command line options
     std::vector<std::string> processes;
     processes.push_back("logan_client");
-    LogController* logController = new LogController(1, processes, false);
+    LogController* logController = new LogController(10, processes, false);
 
 
     while(!s_interrupted){

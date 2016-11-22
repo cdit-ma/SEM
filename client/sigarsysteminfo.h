@@ -76,6 +76,7 @@ class SigarSystemInfo: public SystemInfo{
         int get_monitored_process_thread_count(const int pid) const;
         time_t get_monitored_process_start_time(const int pid) const;
         time_t get_monitored_process_total_time(const int pid) const;
+        double get_monitored_process_update_time(const int pid) const;
 
         long long get_monitored_process_disk_written(const int pid) const;
         long long get_monitored_process_disk_read(const int pid) const;
@@ -106,6 +107,7 @@ class SigarSystemInfo: public SystemInfo{
         bool update();
 
     private:
+        double get_timestamp(const std::chrono::milliseconds t) const; 
         bool open_sigar();
         bool close_sigar();
         sigar_t *sigar;
