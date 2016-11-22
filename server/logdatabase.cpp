@@ -1,6 +1,7 @@
 #include "logdatabase.h"
 #include <iostream>
 LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFilepath){
+    //Construct all of our tables
     queue_sql_statement(get_sql_statement(get_system_status_table_string()));
     queue_sql_statement(get_sql_statement(get_system_info_table_string()));
     queue_sql_statement(get_sql_statement(get_cpu_table_string()));
@@ -11,6 +12,7 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     queue_sql_statement(get_sql_statement(get_process_table_string()));
     queue_sql_statement(get_sql_statement(get_process_info_table_string()));
     
+    //Force the queue to be written.
     flush();
 }
 
@@ -301,7 +303,6 @@ void LogDatabase::process_status(SystemStatus* status){
     }
 
     for(int i = 0; i < status->processes_size(); i++){
-
         sqlite3_stmt *procstmt = get_sql_statement(get_process_insert_query());
         ProcessStatus proc = status->processes(i);
 
