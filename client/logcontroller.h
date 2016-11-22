@@ -33,6 +33,8 @@ class LogController{
     std::set<std::string> seen_fs_;
     std::set<std::string> seen_if_; 
 
+    std::map<int, double> pid_update_times_;
+
     ZMQMessageWriter* writer;
 };
 

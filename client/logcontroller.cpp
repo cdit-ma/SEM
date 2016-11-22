@@ -38,11 +38,13 @@ void LogController::log_thread(){
 }
 
 SystemStatus* LogController::getSystemStatus(SystemInfo* info){
-    message_id_++;
+    //Construct a new protobuf message
     SystemStatus* status = new SystemStatus();
+
     status->set_hostname(info->get_hostname());
     status->set_timestamp(info->get_update_timestamp());
-    status->set_message_id(message_id_);
+    //Increment the message_id
+    status->set_message_id(++message_id_);
 
     if(!seen_hostnames_.count(info->get_hostname())){
         //send onetime info
@@ -70,28 +72,44 @@ SystemStatus* LogController::getSystemStatus(SystemInfo* info){
     
     std::vector<int> pids = info->get_monitored_pids();
     for(int i = 0; i < pids.size(); i++){
+        int pid = pid;
+
+        double last_updated_time = info->get_monitored_process_update_time(pid);
+
+        bool seen_pid = pid_updated_times_.count(pid);
+        bool send_pid_update = !seen_pid;
         
-        ProcessStatus* ps = status->add_processes();
-        ps->set_pid(pids[i]);
-
-        ps->set_state((ProcessStatus::State)info->get_process_state(pids[i]));
-
-        if(!seen_pids_.count(pids[i])){
-            //send onetime info
-            ps->mutable_info()->set_name(info->get_process_name(pids[i]));
-            ps->mutable_info()->set_args(info->get_process_arguments(pids[i]));
-            ps->mutable_info()->set_start_time(info->get_monitored_process_start_time(pids[i]));
-            seen_pids_.insert(pids[i]);
+        if(!seen_pid){
+            double last_sent_time = pid_updated_times_.at(pid);
+            
+            if(last_updated_time > last_sent_time){
+                send_pid_update = true;
+            }
         }
+        
+        if(send_pid_update){
+            ProcessStatus* ps = status->add_processes();
+            ps->set_pid(pid);
 
-        ps->set_cpu_core_id(info->get_monitored_process_cpu(pids[i]));
-        ps->set_cpu_utilization(info->get_monitored_process_cpu_utilization(pids[i]));
-        ps->set_phys_mem_utilization(info->get_monitored_process_phys_mem_utilization(pids[i]));
-        ps->set_thread_count(info->get_monitored_process_thread_count(pids[i]));
-        ps->set_disk_read(info->get_monitored_process_disk_read(pids[i]));
-        ps->set_disk_written(info->get_monitored_process_disk_written(pids[i]));
-        ps->set_disk_total(info->get_monitored_process_disk_total(pids[i]));
-                
+            ps->set_state((ProcessStatus::State)info->get_process_state(pid));
+
+            if(!seen_pid){
+                //send onetime info
+                ps->mutable_info()->set_name(info->get_process_name(pid));
+                ps->mutable_info()->set_args(info->get_process_arguments(pid));
+                ps->mutable_info()->set_start_time(info->get_monitored_process_start_time(pid));
+            }
+            ps->set_cpu_core_id(info->get_monitored_process_cpu(pid));
+            ps->set_cpu_utilization(info->get_monitored_process_cpu_utilization(pid));
+            ps->set_phys_mem_utilization(info->get_monitored_process_phys_mem_utilization(pid));
+            ps->set_thread_count(info->get_monitored_process_thread_count(pid));
+            ps->set_disk_read(info->get_monitored_process_disk_read(pid));
+            ps->set_disk_written(info->get_monitored_process_disk_written(pid));
+            ps->set_disk_total(info->get_monitored_process_disk_total(pid));
+            
+            //Update our Map to include this PID
+            pid_updated_times_[pid] = last_updated_time;
+        }
     }
 
     int fs_count = info->get_fs_count();
