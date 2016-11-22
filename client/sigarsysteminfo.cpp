@@ -717,26 +717,17 @@ bool SigarSystemInfo::update_processes(){
             }
         }
 
-        processes_[pid] = process;
-
         //If we care about tracking this PID
         if(tracked_pids_.count(pid)){
             auto difference = std::chrono::duration_cast<std::chrono::seconds>(t - process->lastUpdated_);
             
             //If we have this pid already and more than 1 second has elapsed
             if(difference.count() >= 1){
-                if(sigar_proc_cpu_get(sigar, pid, &(process->cpu)) != SIGAR_OK){
-                    //continue;
-                }
-                if(sigar_proc_mem_get(sigar, pid, &(process->mem)) != SIGAR_OK){
-                    //continue;
-                }
-                if(sigar_proc_disk_io_get(sigar, pid, &(process->disk)) != SIGAR_OK){
-                    //continue;
-                }
+                sigar_proc_cpu_get(sigar, pid, &process->cpu);
+                sigar_proc_mem_get(sigar, pid, &process->mem);
+                sigar_proc_disk_io_get(sigar, pid, &process->disk);
+                process->lastUpdated_ = t;
             }
-    
-            process->lastUpdated_ = t;
         }
 
         processes_[pid] = process;
