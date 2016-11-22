@@ -33,11 +33,12 @@ int main(int, char**){
     processes.push_back("logan_client");
     LogController* logController = new LogController(10, processes, false);
 
-    //TODO: terminate correctly
 
-    while(true){
-	std::this_thread::sleep_for(std::chrono::seconds(15));
+    while(!s_interrupted){
+	    std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+
+    logController->Terminate();
 
     return 0;
 }
