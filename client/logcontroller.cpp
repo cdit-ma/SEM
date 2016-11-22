@@ -23,6 +23,7 @@ LogController::LogController(double frequency, std::vector<std::string> processe
     //Convert frequency to period
     sleep_time_ = (1 / frequency) * 1000;
     processes_ = processes;
+    terminate_ = false;
 }
 
 void LogController::LogThread(){
@@ -37,7 +38,7 @@ void LogController::LogThread(){
     system_info->monitor_processes("LoggerClient");
 
     //Update loop.
-    while(true){
+    while(!terminate_){
         //Sleep for period
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_));
         if(system_info->update()){
@@ -51,11 +52,12 @@ void LogController::LogThread(){
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
+    std::cout << "Logging thread killed" << std::endl;
 }
 
 void LogController::WriteThread(){
     int count = 0;
-    while(true){
+    while(!terminate_){
         std::queue<SystemStatus*> replace_queue;
         
         {
@@ -76,8 +78,13 @@ void LogController::WriteThread(){
             replace_queue.pop();
         }
     }
+    std::cout << "Writing thread killed" << std::endl;
+}
 
-
+void LogController::Terminate(){
+    terminate_ = true;
+    logging_thread_->join();
+    writer_thread_->join();
 }
 
 SystemStatus* LogController::GetSystemStatus(SystemInfo* info){

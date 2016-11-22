@@ -15,6 +15,7 @@ class LogController{
         LogController(double frequency, std::vector<std::string> processes, bool cached = false);
         void LogThread();
         void WriteThread();
+        void Terminate();
     private:
         SystemStatus* GetSystemStatus(SystemInfo* systemInfo);
      
@@ -37,6 +38,8 @@ class LogController{
     std::set<std::string> seen_if_;
 
     ZMQMessageWriter* writer_;
+
+    bool terminate_;
 };
 
 #endif //LOGCONTROLLER_H
