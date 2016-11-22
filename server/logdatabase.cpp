@@ -14,6 +14,7 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     
     //Force the queue to be written.
     flush();
+    
 }
 
 std::string LogDatabase::get_system_status_table_string() const{
@@ -23,7 +24,7 @@ std::string LogDatabase::get_system_status_table_string() const{
             "message_id INTEGER,"                           //2
             "timeofday DECIMAL,"                            //3
             "cpu_utilization DECIMAL,"                      //4
-            "phys_mem_utilization DECIMAL,"                 //5
+            "phys_mem_utilization DECIMAL"                  //5
             ");";
 }
 
@@ -33,7 +34,7 @@ std::string LogDatabase::get_system_status_insert_query() const{
             "message_id,"                                   //2
             "timeofday,"                                    //3
             "cpu_utilization,"                              //4
-            "phys_mem_utilization,"                         //5
+            "phys_mem_utilization"                          //5
             ") VALUES (?1, ?2, ?3, ?4, ?5);";
 }
 
@@ -52,7 +53,7 @@ std::string LogDatabase::get_system_info_table_string() const{
             "cpu_model VARCHAR,"                            //10
             "cpu_vendor VARCHAR,"                           //11
             "cpu_frequency INTEGER,"                        //12
-            "physical_memory INTEGER,"                      //13
+            "physical_memory INTEGER"                       //13
             ");";
 }
 
@@ -70,7 +71,7 @@ std::string LogDatabase::get_system_info_insert_query() const{
             "cpu_model,"                                    //10
             "cpu_vendor,"                                   //11
             "cpu_frequency,"                                //12
-            "physical_memory,"                              //13
+            "physical_memory"                               //13
             ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13);";
 }
 
@@ -81,7 +82,7 @@ std::string LogDatabase::get_cpu_table_string() const{
             "message_id INTEGER,"                           //2
             "timeofday DECIMAL,"                            //3
             "core_id INTEGER,"                              //4
-            "core_utilization DECIMAL,"                     //5
+            "core_utilization DECIMAL"                      //5
             ");";
 }
 
@@ -91,7 +92,7 @@ std::string LogDatabase::get_cpu_insert_query() const{
             "message_id,"                                   //2
             "timeofday,"                                    //3
             "core_id,"                                      //4
-            "core_utilization,"                             //5
+            "core_utilization"                              //5
             ") VALUES (?1, ?2, ?3, ?4, ?5);";
 }
 
@@ -102,7 +103,7 @@ std::string LogDatabase::get_fs_table_string() const{
             "message_id INTEGER,"                           //2
             "timeofday DECIMAL,"                            //3
             "name VARCHAR,"                                 //4
-            "utilization DECIMAL,"                          //5
+            "utilization DECIMAL"                           //5
             ");";
 }
 
@@ -112,7 +113,7 @@ std::string LogDatabase::get_fs_insert_query() const{
             "message_id,"                                   //2
             "timeofday,"                                    //3
             "name,"                                         //4
-            "utilization,"                                  //5
+            "utilization"                                   //5
             ") VALUES (?1, ?2, ?3, ?4, ?5);";
 }
 
@@ -124,7 +125,7 @@ std::string LogDatabase::get_fs_info_table_string() const{
             "timeofday DECIMAL,"                            //3
             "name VARCHAR,"                                 //4
             "type VARCHAR,"                                 //5
-            "size INTEGER,"                                 //6
+            "size INTEGER"                                  //6
             ");";
 }
 std::string LogDatabase::get_fs_info_insert_query() const{
@@ -134,7 +135,7 @@ std::string LogDatabase::get_fs_info_insert_query() const{
             "timeofday,"                                    //3
             "name,"                                         //4
             "type,"                                         //5
-            "size,"                                         //6
+            "size"                                          //6
             ") VALUES (?1, ?2, ?3, ?4, ?5, ?6);";
 }
 
@@ -148,7 +149,7 @@ std::string LogDatabase::get_interface_table_string() const{
             "rx_packets INTEGER,"                           //5
             "rx_bytes INTEGER,"                             //6
             "tx_packets INTEGER,"                           //7
-            "tx_bytes INTEGER,"                             //8
+            "tx_bytes INTEGER"                              //8
             ");";
 }
 
@@ -161,7 +162,7 @@ std::string LogDatabase::get_interface_insert_query() const{
             "rx_packets,"                                   //5
             "rx_bytes,"                                     //6
             "tx_packets,"                                   //7
-            "tx_bytes,"                                     //8
+            "tx_bytes"                                      //8
             ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);";
 }
 
@@ -177,7 +178,7 @@ std::string LogDatabase::get_interface_info_table_string() const{
             "ipv4_addr VARCHAR,"                            //7
             "ipv6_addr VARCHAR,"                            //8
             "mac_addr VARCHAR,"                             //9
-            "speed INTEGER,"                                //10
+            "speed INTEGER"                                 //10
             ");";
 }
 
@@ -210,7 +211,7 @@ std::string LogDatabase::get_process_table_string() const{
             "disk_read INTEGER,"                            //9
             "disk_written INTEGER,"                         //10
             "disk_total INTEGER,"                           //11
-            "state VARCHAR,"                                //12
+            "state VARCHAR"                                 //12
             ");";
 }
 
@@ -227,7 +228,7 @@ std::string LogDatabase::get_process_insert_query() const{
             "disk_read,"                                    //9
             "disk_written,"                                 //10
             "disk_total,"                                   //11
-            "state,"                                        //12
+            "state"                                         //12
             ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12);";
 }
 
@@ -240,7 +241,7 @@ std::string LogDatabase::get_process_info_table_string() const{
             "pid INTEGER,"                                  //4
             "name VARCHAR,"                                 //5
             "args VARCHAR,"                                 //6
-            "start_time INTEGER,"                           //7
+            "start_time INTEGER"                            //7
             ");";
 }
 
@@ -252,7 +253,7 @@ std::string LogDatabase::get_process_info_insert_query() const{
             "pid,"                                          //4
             "name,"                                         //5
             "args,"                                         //6 
-            "start_time,"                                   //7
+            "start_time"                                    //7
             ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
 }
 
@@ -340,7 +341,7 @@ void LogDatabase::process_status(SystemStatus* status){
     for(int i = 0; i < status->interfaces_size(); i++){
         sqlite3_stmt *ifstatement = get_sql_statement(get_interface_insert_query());
         InterfaceStatus ifstat = status->interfaces(i);
-        std::cout << ifstat.rx_bytes() << std::endl;
+        //std::cout << ifstat.rx_bytes() << std::endl;
 
         if(ifstat.has_info()){
             sqlite3_stmt *ifinfo = get_sql_statement(get_interface_info_insert_query());
@@ -392,7 +393,7 @@ void LogDatabase::process_status(SystemStatus* status){
 
 }
 
-std::string LogDatabase::process_state_to_string(ProcessStatus::State state){
+std::string LogDatabase::process_state_to_string(const ProcessStatus::State state) const{
     switch(state){
         case ProcessStatus::PROC_ERROR:
             return "ERROR";
@@ -413,7 +414,7 @@ std::string LogDatabase::process_state_to_string(ProcessStatus::State state){
     }
 }
 
-std::string LogDatabase::fs_type_to_string(FileSystemStatus::FileSystemInfo::Type type){
+std::string LogDatabase::fs_type_to_string(const FileSystemStatus::FileSystemInfo::Type type) const{
     switch(type){
         case FileSystemStatus::FileSystemInfo::FS_UNKNOWN:
             return "UNKNOWN";

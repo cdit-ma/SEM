@@ -43,8 +43,8 @@ class LogDatabase : public SQLiteDatabase{
     std::string get_process_info_insert_query() const;
 
     private:
-    std::string process_state_to_string(ProcessStatus::State state);
-    std::string fs_type_to_string(FileSystemStatus::FileSystemInfo::Type type);
+    std::string process_state_to_string(const ProcessStatus::State state) const;
+    std::string fs_type_to_string(const FileSystemStatus::FileSystemInfo::Type type) const;
 
 };
 

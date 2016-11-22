@@ -38,7 +38,7 @@ void SQLiteDatabase::queue_sql_statement(sqlite3_stmt *sql){
     std::unique_lock<std::mutex> lock(queueMutex_);
     sqlQueue_.push(sql);
 
-    if(sqlQueue_.size() > 20){
+    if(sqlQueue_.size() > 1){
         queueLockCondition_.notify_all();
     }
     }
