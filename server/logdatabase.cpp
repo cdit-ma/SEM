@@ -385,7 +385,7 @@ void LogDatabase::process_status(SystemStatus* status){
         sqlite3_bind_int(fsstatement, 2, message_id);
         sqlite3_bind_double(fsstatement, 3, timestamp);
         sqlite3_bind_text(fsstatement, 4, fss.name().c_str(), fss.name().size(), SQLITE_TRANSIENT);
-        sqlite3_bind_int(fsstatement, 5, fss.utilization());
+        sqlite3_bind_double(fsstatement, 5, fss.utilization());
         queue_sql_statement(fsstatement);
     }
 
