@@ -18,6 +18,7 @@ int main()
 
     //Multicast listen.
 	//socket.bind("tcp://*:5555");
+	//TODO: Connect based on command line args or input file
     socket.connect("tcp://192.168.111.187:5555");
     socket.connect("tcp://192.168.111.246:5555");
 	socket.connect("tcp://192.168.111.247:5555");
@@ -27,6 +28,7 @@ int main()
     int count = 0;
 
 	//Construct a new log database.
+	//TODO: take commandline option
 	LogDatabase* db = new LogDatabase("test.sql");
 
 	zmq::message_t *data = new zmq::message_t();

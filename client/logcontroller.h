@@ -12,30 +12,33 @@
 
 class LogController{
     public:
-        LogController();
-        void log_thread();
-        void write_thread();
+        LogController(double frequency, std::vector<std::string> processes, bool cached = false);
+        void LogThread();
+        void WriteThread();
     private:
-        SystemStatus* getSystemStatus(SystemInfo* systemInfo);
+        SystemStatus* GetSystemStatus(SystemInfo* systemInfo);
      
-    std::condition_variable queueLockCondition_;
-    std::mutex queueMutex_;
-    std::queue<SystemStatus*> messageQueue_; 
-    std::thread* loggingThread_;
-    std::thread* writerThread_;
+    std::condition_variable queue_lock_condition_;
+    std::mutex queue_mutex_;
+    std::queue<SystemStatus*> message_queue_; 
+    std::thread* logging_thread_;
+    std::thread* writer_thread_;
     int message_id_;
 
+    bool cached_mode_;
+    int sleep_time_;
+    std::vector<std::string> processes_;
 
     //set of seen pids
     //don't send onetime info for any contained pids
-    std::set<int> seen_pids_;
     std::set<std::string> seen_hostnames_;
     std::set<std::string> seen_fs_;
-    std::set<std::string> seen_if_; 
+    std::set<std::string> seen_if_;
 
-    std::map<int, double> pid_update_times_;
 
-    ZMQMessageWriter* writer;
+    std::map<int, double> pid_updated_times_;
+    ZMQMessageWriter* writer_;
+
 };
 
 #endif //LOGCONTROLLER_H
