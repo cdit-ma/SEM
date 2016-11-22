@@ -13,6 +13,7 @@
 class LogController{
     public:
         LogController(double frequency, std::vector<std::string> processes, bool cached = false);
+        ~LogController();
         void LogThread();
         void WriteThread();
         void Terminate();

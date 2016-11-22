@@ -26,6 +26,6 @@ class SQLiteDatabase{
         std::queue<sqlite3_stmt*> sqlQueue_;
         std::mutex queueMutex_;
         std::condition_variable queueLockCondition_;
-        bool terminate;
+        bool terminate_;
 };
 #endif

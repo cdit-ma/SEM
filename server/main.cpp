@@ -1,9 +1,26 @@
 #include <iostream>
+#include <signal.h>
 
 #include "zmq.hpp"
 #include "systemstatus.pb.h"
 
 #include "logdatabase.h"
+
+static int s_interrupted = 0;
+static void s_signal_handler (int signal_value)
+{
+    s_interrupted = 1;
+}
+
+static void s_catch_signals (void)
+{
+    struct sigaction action;
+    action.sa_handler = s_signal_handler;
+    action.sa_flags = 0;
+    sigemptyset (&action.sa_mask);
+    sigaction (SIGINT, &action, NULL);
+    sigaction (SIGTERM, &action, NULL);
+}
 
 int main()
 {
@@ -32,7 +49,7 @@ int main()
 	LogDatabase* db = new LogDatabase("test.sql");
 
 	zmq::message_t *data = new zmq::message_t();
-    while(true){
+    while(!s_interrupted){
 		//Recieve the next data element
 		socket.recv(data);
 
@@ -45,5 +62,6 @@ int main()
 			std::cout << data->size() << std::endl;
 		}
     }
+
 	delete db;
 }

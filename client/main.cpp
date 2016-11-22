@@ -37,7 +37,6 @@ int main(int, char**){
 	    std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    logController->Terminate();
-
+    delete logController;
     return 0;
 }

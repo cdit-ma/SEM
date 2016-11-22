@@ -26,6 +26,16 @@ LogController::LogController(double frequency, std::vector<std::string> processe
     terminate_ = false;
 }
 
+LogController::~LogController(){
+    terminate_ = true;
+    logging_thread_->join();
+    delete logging_thread_;
+    std::cout << "Killed logging thread" << std::endl;
+    writer_thread_->join();
+    delete writer_thread_;
+    std::cout << "Killed writing thread" << std::endl;    
+}
+
 void LogController::LogThread(){
     int i = 0;
 
@@ -52,7 +62,6 @@ void LogController::LogThread(){
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
-    std::cout << "Logging thread killed" << std::endl;
 }
 
 void LogController::WriteThread(){
@@ -78,13 +87,6 @@ void LogController::WriteThread(){
             replace_queue.pop();
         }
     }
-    std::cout << "Writing thread killed" << std::endl;
-}
-
-void LogController::Terminate(){
-    terminate_ = true;
-    logging_thread_->join();
-    writer_thread_->join();
 }
 
 SystemStatus* LogController::GetSystemStatus(SystemInfo* info){

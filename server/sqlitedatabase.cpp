@@ -6,7 +6,7 @@
 
 SQLiteDatabase::SQLiteDatabase(std::string dbFilepath){
     database = 0;
-    terminate = false;
+    terminate_ = false;
 
     int result = sqlite3_open_v2(dbFilepath.c_str(), &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 
@@ -21,7 +21,7 @@ SQLiteDatabase::SQLiteDatabase(std::string dbFilepath){
 SQLiteDatabase::~SQLiteDatabase(){
     {
         std::unique_lock<std::mutex> lock(queueMutex_);
-        terminate = true;
+        terminate_ = true;
         queueLockCondition_.notify_all();
     }
     writerThread_->join();
@@ -32,7 +32,6 @@ SQLiteDatabase::~SQLiteDatabase(){
         std::cerr << "SQLite failed to close database" << std::endl;
     }
 }
-     
 
 void SQLiteDatabase::queue_sql_statement(sqlite3_stmt *sql){
     {
@@ -106,7 +105,7 @@ void SQLiteDatabase::process_queue(){
         if(result != SQLITE_OK){
             throw std::runtime_error("SQLite Failed to END TRANSACTION");
         }
-        if(terminate) break;
+        if(terminate_) break;
 	}
 }
 
