@@ -40,8 +40,9 @@ double SigarSystemInfo::get_update_timestamp() const{
 }
 
 double SigarSystemInfo::get_timestamp(const std::chrono::milliseconds t) const{
-    return t.count() / 1000;
+    return t.count() / 1000.0;
 }
+
 
 std::string SigarSystemInfo::get_hostname() const{
     return std::string(net.host_name);
