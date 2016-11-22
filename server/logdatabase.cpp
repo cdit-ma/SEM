@@ -279,6 +279,7 @@ void LogDatabase::process_status(SystemStatus* status){
     for(int i = 0; i < status->interfaces_size(); i++){
         sqlite3_stmt *ifstatement = get_sql_statement(get_interface_insert_query());
         InterfaceStatus ifstat = status->interfaces(i);
+        std::cout << ifstat.rx_bytes() << std::endl;
 
         if(ifstat.has_info()){
             sqlite3_stmt *ifinfo = get_sql_statement(get_interface_info_insert_query());
@@ -298,10 +299,10 @@ void LogDatabase::process_status(SystemStatus* status){
         sqlite3_bind_int(ifstatement, 2, message_id);
         sqlite3_bind_double(ifstatement, 3, timestamp);
         sqlite3_bind_text(ifstatement, 4, ifstat.name().c_str(), ifstat.name().size(), SQLITE_TRANSIENT);
-        sqlite3_bind_int(ifstatement, 3, ifstat.rx_packets());
-        sqlite3_bind_int(ifstatement, 3, ifstat.rx_bytes());
-        sqlite3_bind_int(ifstatement, 3, ifstat.tx_packets());
-        sqlite3_bind_int(ifstatement, 3, ifstat.tx_bytes());
+        sqlite3_bind_int(ifstatement, 5, ifstat.rx_packets());
+        sqlite3_bind_int(ifstatement, 6, ifstat.rx_bytes());
+        sqlite3_bind_int(ifstatement, 7, ifstat.tx_packets());
+        sqlite3_bind_int(ifstatement, 8, ifstat.tx_bytes());
         queue_sql_statement(ifstatement);
     }
 
