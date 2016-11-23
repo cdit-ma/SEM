@@ -1,5 +1,5 @@
 #include "cachedzmqmessagewriter.h"
-#define WRITE_QUEUE 20
+#define WRITE_QUEUE 50
 
 #include "systemstatus.pb.h"
 
@@ -10,13 +10,15 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
 
-CachedZMQMessageWriter::CachedZMQMessageWriter(){
+CachedZMQMessageWriter::CachedZMQMessageWriter() : ZMQMessageWriter(){
+    std::cout << "CachedZMQMessageWriter()" << std::endl;
     count = 0;
     writeCount = 0;
 }   
 
 CachedZMQMessageWriter::~CachedZMQMessageWriter(){
-
+    terminate();
+    std::cout << "~CachedZMQMessageWriter()" << std::endl;
 }
 
 bool CachedZMQMessageWriter::push_message(google::protobuf::MessageLite* message){
@@ -39,20 +41,23 @@ bool CachedZMQMessageWriter::terminate(){
     //writeQueue();
     std::cout << "TERMINATING: " << count << " write Count: " << writeCount << std::endl;
     std::queue<google::protobuf::MessageLite*> messages = readFromFile();
-
+    int count = 0;
     while(!messages.empty()){
         if(!ZMQMessageWriter::push_message(messages.front())){
             std::cerr << "FAILED:!" << std::endl;
         }
+        count ++;
         messages.pop();
+        
     }
     while(!writeQueue_.empty()){
         if(!ZMQMessageWriter::push_message(writeQueue_.front())){
             std::cerr << "FAILED:!" << std::endl;
         }
+        count ++;
         writeQueue_.pop();
     }
-    std::cout << "FINISHED BRUH" << std::endl;
+    std::cout << "Written: " << count << std::endl;
     return true;
 }
 
