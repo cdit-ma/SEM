@@ -24,6 +24,7 @@ static void s_catch_signals (void)
 
 int main()
 {
+	s_catch_signals();
     SystemStatus message;
 
     //Prepare our context and socket
@@ -54,16 +55,24 @@ int main()
 	zmq::message_t *data = new zmq::message_t();
     while(!s_interrupted){
 		//Recieve the next data element
-		socket.recv(data);
 
-		std::string msg_str(static_cast<char *>(data->data()), data->size());
+		try{
+			socket.recv(data);
+			std::string msg_str(static_cast<char *>(data->data()), data->size());
 
-		if (message.ParseFromString(msg_str)){
-			db->process_status(&message);
-		}else{
-			std::cout << data->size() << std::endl;
+			if (message.ParseFromString(msg_str)){
+				db->process_status(&message);
+			}else{
+				std::cout << data->size() << std::endl;
+			}
 		}
+		catch(zmq::error_t ex){
+			continue;
+		}
+
+		
     }
+
 
 	delete db;
 }

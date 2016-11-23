@@ -11,7 +11,7 @@
 class SQLiteDatabase{
     public:
         SQLiteDatabase(std::string databaseFilepath);
-        ~SQLiteDatabase();
+        virtual ~SQLiteDatabase();
         
         void queue_sql_statement(sqlite3_stmt * statement);
         void flush();
