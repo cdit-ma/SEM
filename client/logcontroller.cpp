@@ -2,9 +2,8 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-
-
 #include <list>
+
 #include "sigarsysteminfo.h"
 #include "cachedzmqmessagewriter.h"
 
@@ -16,6 +15,7 @@ LogController::LogController(double frequency, std::vector<std::string> processe
     system_info_ = new SigarSystemInfo();
 	
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    
     writer_thread_ = new std::thread(&LogController::WriteThread, this);
     logging_thread_ = new std::thread(&LogController::LogThread, this);
     message_id_ = 0;
@@ -24,6 +24,7 @@ LogController::LogController(double frequency, std::vector<std::string> processe
     if(frequency <= 0){
         frequency = 1;
     }
+    
     //Convert frequency to period
     sleep_time_ = (1 / frequency) * 1000;
     processes_ = processes;
