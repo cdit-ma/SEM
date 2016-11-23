@@ -8,7 +8,11 @@
 #include "cachedzmqmessagewriter.h"
 
 LogController::LogController(double frequency, std::vector<std::string> processes, bool cached){
-    writer_ = new ZMQMessageWriter();
+    if(cached){
+        writer_ = new CachedZMQMessageWriter();
+    }else{
+        writer_ = new ZMQMessageWriter();
+    }
     writer_->bind_publisher_socket("tcp://*:5555");
 
     //Construct our SystemInfo class
@@ -95,6 +99,7 @@ void LogController::WriteThread(){
         //Empty our write queue
         while(!replace_queue.empty()){
             writer_->push_message(replace_queue.front());
+            
             replace_queue.pop();
         }
     }

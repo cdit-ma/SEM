@@ -9,6 +9,8 @@ ZMQMessageWriter::ZMQMessageWriter(){
 }
 
 ZMQMessageWriter::~ZMQMessageWriter(){
+    std::cout << "~ZMQMessageWriter()" << std::endl;
+    
     delete socket;
     delete context;
 }

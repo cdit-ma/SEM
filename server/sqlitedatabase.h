@@ -18,7 +18,6 @@ class SQLiteDatabase{
         
         sqlite3_stmt* get_sql_statement(std::string query);
     private:
-        int bind_string(sqlite3_stmt* stmnt, int pos, std::string str);
         void process_queue();
         sqlite3 *database;
 

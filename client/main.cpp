@@ -31,7 +31,7 @@ int main(int, char**){
     //TODO: take command line options
     std::vector<std::string> processes;
     processes.push_back("logan_client");
-    LogController* logController = new LogController(10, processes, false);
+    LogController* logController = new LogController(10, processes, true);
 
 
     while(!s_interrupted){

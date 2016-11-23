@@ -7,7 +7,7 @@
 class ZMQMessageWriter{
     public:
         ZMQMessageWriter();
-        ~ZMQMessageWriter();
+        virtual ~ZMQMessageWriter();
 
         bool bind_publisher_socket(std::string endpoint);
 
