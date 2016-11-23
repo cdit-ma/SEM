@@ -32,6 +32,7 @@ SQLiteDatabase::~SQLiteDatabase(){
     //Join and then delete the thread
     writerThread_->join();
     delete writerThread_;
+    std::cout << "Writer thread terminated." << std::endl;
     
     int result = sqlite3_close_v2(database);
     if(result != SQLITE_OK){
@@ -91,9 +92,9 @@ void SQLiteDatabase::process_queue(){
 
             
             if(result != SQLITE_DONE){
+                std::cout << sqlite3_sql(statement) << std::endl;
                 std::cout << "ERROR NO: " << result << std::endl;
                 char  error[100];
-                std::cout << sqlite3_sql(statement) << std::endl;
                 sprintf(error, "SQLite Failed to step statement %d\n", result);
                 
                 throw std::runtime_error(error);
