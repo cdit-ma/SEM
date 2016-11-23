@@ -44,7 +44,7 @@ int main()
 		std::string connect_addr = address_str + std::to_string(address) + ":" + std::to_string(port);
 		socket.connect(connect_addr.c_str());
 	}
-	
+		//socket.bind("tcp://*:5555");
 	
     int count = 0;
 
@@ -65,13 +65,14 @@ int main()
 			}else{
 				std::cout << data->size() << std::endl;
 			}
+			count++;
 		}
 		catch(zmq::error_t ex){
 			continue;
 		}
-
-		
     }
+
+	std::cout << "Got messages: " << count << std::endl;
 
 
 	delete db;
