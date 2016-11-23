@@ -11,14 +11,13 @@
 #include <google/protobuf/io/coded_stream.h>
 
 CachedZMQMessageWriter::CachedZMQMessageWriter() : ZMQMessageWriter(){
-    std::cout << "CachedZMQMessageWriter()" << std::endl;
     count = 0;
     writeCount = 0;
 }   
 
 CachedZMQMessageWriter::~CachedZMQMessageWriter(){
+    //Call terminate to read then send all of the messages
     terminate();
-    std::cout << "~CachedZMQMessageWriter()" << std::endl;
 }
 
 bool CachedZMQMessageWriter::push_message(google::protobuf::MessageLite* message){

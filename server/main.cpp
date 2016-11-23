@@ -35,15 +35,16 @@ int main()
     socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
     //Multicast listen.
-	//socket.bind("tcp://*:5555");
+	socket.bind("tcp://*:5555");
 	
+	/*
 	int port = 5555;
 	std::string address_str("tcp://192.168.111.");
 	int address;
 	for (address = 1; address < 255; address++){
 		std::string connect_addr = address_str + std::to_string(address) + ":" + std::to_string(port);
 		socket.connect(connect_addr.c_str());
-	}
+	}*/
 	
 	
     int count = 0;

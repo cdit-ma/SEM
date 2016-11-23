@@ -1,16 +1,19 @@
 #include "zmqmessagewriter.h"
 #include <iostream>
 #include "systemstatus.pb.h"
+#include <chrono>
+#include <thread>
 ZMQMessageWriter::ZMQMessageWriter(){
     context = new zmq::context_t(1);
     socket = new zmq::socket_t(*context, ZMQ_PUB);
+    
     //Increase the HighWaterMark to 10,000 to make sure we don't lose messages
     socket->setsockopt(ZMQ_SNDHWM, 10000);
+    //socket->setsockopt(ZMQ_LINGER, 10000);
 }
 
 ZMQMessageWriter::~ZMQMessageWriter(){
-    std::cout << "~ZMQMessageWriter()" << std::endl;
-    
+    terminate();
     delete socket;
     delete context;
 }

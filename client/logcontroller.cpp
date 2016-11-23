@@ -13,6 +13,8 @@ LogController::LogController(double frequency, std::vector<std::string> processe
     }else{
         writer_ = new ZMQMessageWriter();
     }
+
+    //writer_->bind_publisher_socket("tcp://192.168.111.247:5555");
     writer_->bind_publisher_socket("tcp://*:5555");
 
     //Construct our SystemInfo class
