@@ -17,7 +17,6 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     
 }
 
-
 std::string LogDatabase::get_system_status_table_string() const{
     return  "CREATE TABLE IF NOT EXISTS SystemStatus (" 
             "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -349,7 +348,6 @@ void LogDatabase::process_status(SystemStatus* status){
     for(int i = 0; i < status->interfaces_size(); i++){
         sqlite3_stmt *ifstatement = get_sql_statement(get_interface_insert_query());
         InterfaceStatus ifstat = status->interfaces(i);
-        //std::cout << ifstat.rx_bytes() << std::endl;
 
         if(ifstat.has_info()){
             sqlite3_stmt *ifinfo = get_sql_statement(get_interface_info_insert_query());

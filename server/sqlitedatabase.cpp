@@ -3,6 +3,8 @@
 #include <iostream>
 #include <stdio.h>
 
+#define SQL_BATCH_SIZE 100
+
 SQLiteDatabase::SQLiteDatabase(std::string dbFilepath){
     database = 0;
     terminate_ = false;
@@ -19,6 +21,7 @@ SQLiteDatabase::SQLiteDatabase(std::string dbFilepath){
 }
 
 SQLiteDatabase::~SQLiteDatabase(){
+    flush();
     {
         //Gain the lock so we can notify and set our terminate flag.
         std::unique_lock<std::mutex> lock(queueMutex_);
@@ -43,7 +46,7 @@ void SQLiteDatabase::queue_sql_statement(sqlite3_stmt *sql){
     sqlQueue_.push(sql);
 
     //Only notify the queue above a certain size
-    if(sqlQueue_.size() > 20){
+    if(sqlQueue_.size() > SQL_BATCH_SIZE){
         queueLockCondition_.notify_all();
     }
 }
