@@ -202,6 +202,8 @@ SystemStatus* LogController::GetSystemStatus(SystemInfo* info){
                 seen_if_.insert(info->get_interface_name(i));
             }
 
+            std::cout << info->get_interface_speed(i) << std::endl;
+
             is->set_name(info->get_interface_name(i));
             is->set_rx_bytes(info->get_interface_rx_bytes(i));
             is->set_rx_packets(info->get_interface_rx_packets(i));
