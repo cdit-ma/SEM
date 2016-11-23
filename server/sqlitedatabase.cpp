@@ -3,11 +3,11 @@
 #include <iostream>
 #include <stdio.h>
 
-
 SQLiteDatabase::SQLiteDatabase(std::string dbFilepath){
     database = 0;
     terminate_ = false;
 
+    //Open Database, create it if it's not there
     int result = sqlite3_open_v2(dbFilepath.c_str(), &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 
     if(result != SQLITE_OK){
@@ -20,40 +20,43 @@ SQLiteDatabase::SQLiteDatabase(std::string dbFilepath){
 
 SQLiteDatabase::~SQLiteDatabase(){
     {
+        //Gain the lock so we can notify and set our terminate flag.
         std::unique_lock<std::mutex> lock(queueMutex_);
         terminate_ = true;
         queueLockCondition_.notify_all();
     }
+
+    //Join and then delete the thread
     writerThread_->join();
     delete writerThread_;
+    
     int result = sqlite3_close_v2(database);
-
     if(result != SQLITE_OK){
         std::cerr << "SQLite failed to close database" << std::endl;
     }
 }
 
 void SQLiteDatabase::queue_sql_statement(sqlite3_stmt *sql){
-    {
+    //Gain the conditional lock
     std::unique_lock<std::mutex> lock(queueMutex_);
+    //Add statement to the queue to process.
     sqlQueue_.push(sql);
 
-    if(sqlQueue_.size() > 1){
+    //Only notify the queue above a certain size
+    if(sqlQueue_.size() > 20){
         queueLockCondition_.notify_all();
     }
-    }
-    //std::cout <<"DOING STATEMENT" << std::endl;
-    //sleep(2);
 }
 
 void SQLiteDatabase::flush(){
-    //Even
+    //Gain the conditional lock
     std::unique_lock<std::mutex> lock(queueMutex_);
+    //Notify the sql thread
     queueLockCondition_.notify_all();
 }
 
 void SQLiteDatabase::process_queue(){
-    while(true){
+    while(!terminate_){
         std::queue<sqlite3_stmt*> sQueue;
         {
             //Wait for condition, if we don't have any SQL Statements.
@@ -80,8 +83,10 @@ void SQLiteDatabase::process_queue(){
 		//Execute Statements
 		while(!sQueue.empty()){
             sqlite3_stmt* statement = sQueue.front();
+            //Attempt to run the statement
             result = sqlite3_step(statement);
 
+            
             if(result != SQLITE_DONE){
                 std::cout << "ERROR NO: " << result << std::endl;
                 char  error[100];
@@ -100,12 +105,13 @@ void SQLiteDatabase::process_queue(){
 			sQueue.pop();
 		}
 
+
+        //End the transaction
         result = sqlite3_exec(database, "END TRANSACTION", NULL, NULL, NULL);
 
         if(result != SQLITE_OK){
             throw std::runtime_error("SQLite Failed to END TRANSACTION");
         }
-        if(terminate_) break;
 	}
 }
 

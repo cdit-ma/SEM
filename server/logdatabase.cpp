@@ -17,6 +17,7 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     
 }
 
+
 std::string LogDatabase::get_system_status_table_string() const{
     return  "CREATE TABLE IF NOT EXISTS SystemStatus (" 
             "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -257,6 +258,9 @@ std::string LogDatabase::get_process_info_insert_query() const{
             ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
 }
 
+int LogDatabase::bind_string(sqlite3_stmt* stmnt, int pos, std::string str){
+    return sqlite3_bind_text(stmnt, pos, str.c_str(), str.size(), SQLITE_TRANSIENT);
+}
 
 void LogDatabase::process_status(SystemStatus* status){
     sqlite3_stmt *stmt = get_sql_statement(get_system_status_insert_query());
@@ -266,7 +270,7 @@ void LogDatabase::process_status(SystemStatus* status){
     double timestamp = status->timestamp();
     
 
-    sqlite3_bind_text(stmt, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
+    bind_string(stmt, 1, hostname);
     sqlite3_bind_int(stmt, 2, message_id);
     sqlite3_bind_double(stmt, 3, timestamp);
     sqlite3_bind_double(stmt, 4, status->cpu_utilization());
@@ -275,18 +279,22 @@ void LogDatabase::process_status(SystemStatus* status){
 
     if(status->has_info() != 0){
         sqlite3_stmt *infostmt = get_sql_statement(get_system_info_insert_query());
-        sqlite3_bind_text(infostmt, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
+        bind_string(infostmt, 1, hostname);
         sqlite3_bind_int(infostmt, 2, message_id);
         sqlite3_bind_double(infostmt, 3, timestamp);
+        
+        
         SystemStatus::SystemInfo info = status->info();
-        sqlite3_bind_text(infostmt, 4, info.os_name().c_str(), info.os_name().size(), SQLITE_TRANSIENT);
-        sqlite3_bind_text(infostmt, 5, info.os_arch().c_str(), info.os_arch().size(), SQLITE_TRANSIENT);
-        sqlite3_bind_text(infostmt, 6, info.os_description().c_str(), info.os_description().size(), SQLITE_TRANSIENT);
-        sqlite3_bind_text(infostmt, 7, info.os_version().c_str(), info.os_version().size(), SQLITE_TRANSIENT);
-        sqlite3_bind_text(infostmt, 8, info.os_vendor().c_str(), info.os_vendor().size(), SQLITE_TRANSIENT);
-        sqlite3_bind_text(infostmt, 9, info.os_vendor_name().c_str(), info.os_vendor_name().size(), SQLITE_TRANSIENT);
-        sqlite3_bind_text(infostmt, 10, info.cpu_model().c_str(), info.cpu_model().size(), SQLITE_TRANSIENT);
-        sqlite3_bind_text(infostmt, 11, info.cpu_vendor().c_str(), info.cpu_vendor().size(), SQLITE_TRANSIENT);
+        
+        
+        bind_string(infostmt, 4, info.os_name());
+        bind_string(infostmt, 5, info.os_arch());
+        bind_string(infostmt, 6, info.os_description());
+        bind_string(infostmt, 7, info.os_version());
+        bind_string(infostmt, 8, info.os_vendor());
+        bind_string(infostmt, 9, info.os_vendor_name());
+        bind_string(infostmt, 10, info.cpu_model());
+        bind_string(infostmt, 11, info.cpu_vendor());
         sqlite3_bind_int(infostmt, 12, info.cpu_frequency());
         sqlite3_bind_int(infostmt, 13, info.physical_memory());
         queue_sql_statement(infostmt);
@@ -295,7 +303,7 @@ void LogDatabase::process_status(SystemStatus* status){
 
     for(int i = 0; i < status->cpu_core_utilization_size(); i++){
         sqlite3_stmt *cpustmt = get_sql_statement(get_cpu_insert_query());
-        sqlite3_bind_text(cpustmt, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
+        bind_string(cpustmt, 1, hostname);
         sqlite3_bind_int(cpustmt, 2, message_id);
         sqlite3_bind_double(cpustmt, 3, timestamp);
         sqlite3_bind_int(cpustmt, 4, i);
@@ -309,16 +317,16 @@ void LogDatabase::process_status(SystemStatus* status){
 
         if(proc.has_info()){
             sqlite3_stmt *procinfo = get_sql_statement(get_process_info_insert_query());
-            sqlite3_bind_text(procinfo, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
+            bind_string(procinfo, 1, hostname);
             sqlite3_bind_int(procinfo, 2, message_id);
             sqlite3_bind_double(procinfo, 3, timestamp);
             sqlite3_bind_int(procinfo, 4, proc.pid());
-            sqlite3_bind_text(procinfo, 5, proc.info().name().c_str(), proc.info().name().size(), SQLITE_TRANSIENT);
-            sqlite3_bind_text(procinfo, 6, proc.info().args().c_str(), proc.info().args().size(), SQLITE_TRANSIENT);
+            bind_string(procinfo, 5, proc.info().name());
+            bind_string(procinfo, 6, proc.info().args());
             sqlite3_bind_int(procinfo, 7, proc.info().start_time());    
             queue_sql_statement(procinfo);
         }
-        sqlite3_bind_text(procstmt, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
+        bind_string(procstmt, 1, hostname);
         sqlite3_bind_int(procstmt, 2, message_id);
         sqlite3_bind_double(procstmt, 3, timestamp);
         sqlite3_bind_int(procstmt, 4, proc.pid());
@@ -334,7 +342,7 @@ void LogDatabase::process_status(SystemStatus* status){
         sqlite3_bind_int(procstmt, 11, proc.disk_total());
         
         std::string procstate = process_state_to_string(proc.state());
-        sqlite3_bind_text(procstmt, 12, procstate.c_str(), procstate.size(), SQLITE_TRANSIENT);
+        bind_string(procstmt, 12, procstate);
         queue_sql_statement(procstmt);
     }
 
@@ -346,22 +354,22 @@ void LogDatabase::process_status(SystemStatus* status){
         if(ifstat.has_info()){
             sqlite3_stmt *ifinfo = get_sql_statement(get_interface_info_insert_query());
             
-            sqlite3_bind_text(ifinfo, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
+            bind_string(ifinfo, 1, hostname);
             sqlite3_bind_int(ifinfo, 2, message_id);
             sqlite3_bind_double(ifinfo, 3, timestamp);
-            sqlite3_bind_text(ifinfo, 4, ifstat.name().c_str(), ifstat.name().size(), SQLITE_TRANSIENT);
-            sqlite3_bind_text(ifinfo, 5, ifstat.info().type().c_str(), ifstat.info().type().size(), SQLITE_TRANSIENT);
-            sqlite3_bind_text(ifinfo, 6, ifstat.info().description().c_str(), ifstat.info().description().size(), SQLITE_TRANSIENT);
-            sqlite3_bind_text(ifinfo, 7, ifstat.info().ipv4_addr().c_str(), ifstat.info().ipv4_addr().size(), SQLITE_TRANSIENT);
-            sqlite3_bind_text(ifinfo, 8, ifstat.info().ipv6_addr().c_str(), ifstat.info().ipv6_addr().size(), SQLITE_TRANSIENT);
-            sqlite3_bind_text(ifinfo, 9, ifstat.info().mac_addr().c_str(), ifstat.info().mac_addr().size(), SQLITE_TRANSIENT);
+            bind_string(ifinfo, 4, ifstat.name());
+            bind_string(ifinfo, 5, ifstat.info().type());
+            bind_string(ifinfo, 6, ifstat.info().description());
+            bind_string(ifinfo, 7, ifstat.info().ipv4_addr());
+            bind_string(ifinfo, 8, ifstat.info().ipv6_addr());
+            bind_string(ifinfo, 9, ifstat.info().mac_addr());
             sqlite3_bind_int(ifinfo, 10, ifstat.info().speed());
             queue_sql_statement(ifinfo);
         }
-        sqlite3_bind_text(ifstatement, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
+        bind_string(ifstatement, 1, hostname);
         sqlite3_bind_int(ifstatement, 2, message_id);
         sqlite3_bind_double(ifstatement, 3, timestamp);
-        sqlite3_bind_text(ifstatement, 4, ifstat.name().c_str(), ifstat.name().size(), SQLITE_TRANSIENT);
+        bind_string(ifstatement, 4, ifstat.name());
         sqlite3_bind_int(ifstatement, 5, ifstat.rx_packets());
         sqlite3_bind_int(ifstatement, 6, ifstat.rx_bytes());
         sqlite3_bind_int(ifstatement, 7, ifstat.tx_packets());
@@ -375,19 +383,19 @@ void LogDatabase::process_status(SystemStatus* status){
 
         if(fss.has_info()){
             sqlite3_stmt *fsinfo = get_sql_statement(get_fs_info_insert_query());
-            sqlite3_bind_text(fsinfo, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
+            bind_string(fsinfo, 1, hostname);
             sqlite3_bind_int(fsinfo, 2, message_id);
             sqlite3_bind_double(fsinfo, 3, timestamp);
-            sqlite3_bind_text(fsinfo, 4, fss.name().c_str(), fss.name().size(), SQLITE_TRANSIENT);
+            bind_string(fsinfo, 4, fss.name());
             std::string type = fs_type_to_string(fss.info().type());
-            sqlite3_bind_text(fsinfo, 5, type.c_str(), type.size(), SQLITE_TRANSIENT);
+            bind_string(fsinfo, 5, type);
             sqlite3_bind_int(fsinfo, 6, fss.info().size());
             queue_sql_statement(fsinfo);
         }
-        sqlite3_bind_text(fsstatement, 1, hostname.c_str(), hostname.size(), SQLITE_TRANSIENT);
+        bind_string(fsstatement, 1, hostname);
         sqlite3_bind_int(fsstatement, 2, message_id);
         sqlite3_bind_double(fsstatement, 3, timestamp);
-        sqlite3_bind_text(fsstatement, 4, fss.name().c_str(), fss.name().size(), SQLITE_TRANSIENT);
+        bind_string(fsstatement, 4, fss.name());
         sqlite3_bind_double(fsstatement, 5, fss.utilization());
         queue_sql_statement(fsstatement);
     }
