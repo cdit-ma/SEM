@@ -35,12 +35,15 @@ int main()
 
     //Multicast listen.
 	//socket.bind("tcp://*:5555");
-	//TODO: Connect based on command line args or input file
-    socket.connect("tcp://192.168.111.187:5555");
-    socket.connect("tcp://192.168.111.246:5555");
-	socket.connect("tcp://192.168.111.247:5555");
-	socket.connect("tcp://192.168.111.80:5555");
-	socket.connect("tcp://192.168.111.81:5555");
+	
+	int port = 5555;
+	std::string address_str("tcp://192.168.111.");
+	int address;
+	for (address = 1; address < 255; address++){
+		std::string connect_addr = address_str + std::to_string(address) + ":" + std::to_string(port);
+		socket.connect(connect_addr.c_str());
+	}
+	
 	
     int count = 0;
 
@@ -56,7 +59,6 @@ int main()
 		std::string msg_str(static_cast<char *>(data->data()), data->size());
 
 		if (message.ParseFromString(msg_str)){
-			//std::cout << message.ByteSize() << std::endl;
 			db->process_status(&message);
 		}else{
 			std::cout << data->size() << std::endl;
