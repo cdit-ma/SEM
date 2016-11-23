@@ -17,7 +17,7 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../common/systemstatus.proto)
 
 #Link our Server against all the Cpps
-add_executable(${PROJ_NAME} main.cpp systemstatus.pb.cc logdatabase.cpp sqlitedatabase.cpp sqlite3.c)
+add_executable(${PROJ_NAME} main.cpp sqlcontroller.cpp systemstatus.pb.cc logdatabase.cpp sqlitedatabase.cpp sqlite3.c)
 
 
 if (MSVC)
