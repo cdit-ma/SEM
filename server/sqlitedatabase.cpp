@@ -90,6 +90,7 @@ void SQLiteDatabase::process_queue(){
             if(result != SQLITE_DONE){
                 std::cout << "ERROR NO: " << result << std::endl;
                 char  error[100];
+                std::cout << sqlite3_sql(statement) << std::endl;
                 sprintf(error, "SQLite Failed to step statement %d\n", result);
                 
                 throw std::runtime_error(error);

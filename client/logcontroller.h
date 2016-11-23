@@ -19,6 +19,8 @@ class LogController{
         void LogThread();
         void WriteThread();
 
+        SystemInfo* system_info_;
+
         std::thread* logging_thread_;
         std::thread* writer_thread_;
 
