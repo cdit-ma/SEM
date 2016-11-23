@@ -40,7 +40,10 @@ LogController::~LogController(){
     logging_thread_->join();
     delete logging_thread_;
     writer_thread_->join();
-    delete writer_thread_;    
+    delete writer_thread_;
+
+    delete system_info_;
+    delete writer_;
 }
 
 void LogController::LogThread(){
