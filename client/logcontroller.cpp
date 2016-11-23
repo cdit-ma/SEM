@@ -11,6 +11,9 @@
 LogController::LogController(double frequency, std::vector<std::string> processes, bool cached){
     writer_ = new ZMQMessageWriter();
     writer_->bind_publisher_socket("tcp://*:5555");
+
+    //Construct our SystemInfo class
+    system_info_ = new SigarSystemInfo();
 	
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     writer_thread_ = new std::thread(&LogController::WriteThread, this);
@@ -28,7 +31,12 @@ LogController::LogController(double frequency, std::vector<std::string> processe
 }
 
 LogController::~LogController(){
-    terminate_ = true;
+    {
+        //Gain the lock so we can notify and set our terminate flag.
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        terminate_ = true;
+        queue_lock_condition_.notify_all();
+    }
     logging_thread_->join();
     delete logging_thread_;
     writer_thread_->join();
@@ -36,28 +44,32 @@ LogController::~LogController(){
 }
 
 void LogController::LogThread(){
-    //Construct our SystemInfo class
-    SystemInfo* system_info = new SigarSystemInfo();
-
 
     //Subscribe to our desired process names
     for(std::string process_name : processes_){
-        system_info->monitor_processes(process_name);
+        system_info_->monitor_processes(process_name);
     }
 
     //Update loop.
     while(!terminate_){
         //Sleep for period
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_));
-        if(system_info->update()){
+        auto before_time = 
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+
+        if(system_info_->update()){
             //Get a new filled protobuf message
-            SystemStatus* status = GetSystemStatus(system_info);
+            SystemStatus* status = GetSystemStatus(system_info_);
             
             //Lock the Queue, and notify the writer queue.
             std::unique_lock<std::mutex> lock(queue_mutex_);
             message_queue_.push(status);
             queue_lock_condition_.notify_all();
         }
+        auto after_time = 
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+        auto duration = after_time - before_time;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_)-std::chrono::milliseconds(duration));
     }
     std::cout << "Logging thread terminated." << std::endl;
 }
