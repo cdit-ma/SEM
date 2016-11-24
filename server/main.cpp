@@ -1,41 +1,39 @@
-#include <iostream>
 #include <signal.h>
-#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <iostream>
 
-#include "zmq.hpp"
 #include "sqlcontroller.h"
 
-zmq::socket_t* term_socket = 0;
-
-void terminate_zmq(){
-	if(term_socket){
-		//Send a blank message to terminate
-		zmq::message_t data("",0);
-		term_socket->send(data);
-	}
-}
+std::condition_variable lock_condition_;
+std::mutex mutex_;
 
 void signal_handler (int signal_value)
 {
-	terminate_zmq();
+	std::cout << "SIGNAL: " << signal_value << std::endl;
+	//Gain the lock so we can notify to terminate
+	std::unique_lock<std::mutex> lock(mutex_);
+	lock_condition_.notify_all();
 }
 
 int main()
 {
 	//Handle the interupt signal
 	signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
 
-	//Construct ZMQ context
-	zmq::context_t* context = new zmq::context_t(1);
-	//Construct a terminate socket
-	term_socket = new zmq::socket_t(*context, ZMQ_PUB);
-	term_socket->connect("inproc://term_signal");
-	
-	SQLController* sql_controller = new SQLController(context);
-    std::thread* reciever_thread_ = new std::thread(&SQLController::RecieverThread, sql_controller);
-	//Wait for the reciever_thread to finish
-	reciever_thread_->join();
-	delete reciever_thread_;
+	SQLController* sql_controller = new SQLController();
+
+	{ 			
+		std::unique_lock<std::mutex> lock(mutex_);
+		//Wait for the signal_handler to notify for exit
+		lock_condition_.wait(lock);
+	}
+
+	//Terminate the reciever and reciever thread
+	sql_controller->terminate_reciever();
+
+    //Teardown the SQL Controller which will write the remaining queued messages
 	delete sql_controller;
     return 0;
 }

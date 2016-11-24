@@ -13,15 +13,19 @@
 
 class SQLController{
     public:
-        SQLController(zmq::context_t *context);
+        SQLController();
         ~SQLController();
-        void RecieverThread();
+        
+        void terminate_reciever();
         
     private:
+        void RecieverThread();
         void SQLThread();
 
         std::thread* reciever_thread_;
         std::thread* sql_thread_;
+
+        zmq::socket_t *term_socket;
 
         LogDatabase* log_database;
         zmq::context_t *context_;

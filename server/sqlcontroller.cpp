@@ -2,12 +2,27 @@
 #include "zmq.hpp"
 #include <iostream>
 
-SQLController::SQLController(zmq::context_t *context){
+SQLController::SQLController(){
+    context_ = new zmq::context_t(1);;
     
-    context_ = context;
+	
+	
+    
+
     terminate_ = false;
     log_database = new LogDatabase("test.sql");
+    reciever_thread_ = new std::thread(&SQLController::RecieverThread, this);
     sql_thread_ = new std::thread(&SQLController::SQLThread, this);
+
+    
+    term_socket = new zmq::socket_t(*context_, ZMQ_PUB);
+	term_socket->connect("inproc://term_signal");
+}
+void SQLController::terminate_reciever(){
+    zmq::message_t data("",0);
+    term_socket->send(data);
+
+    reciever_thread_->join();
 }
 
 SQLController::~SQLController(){
