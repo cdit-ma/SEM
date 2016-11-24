@@ -2,11 +2,11 @@
 #include "zmq.hpp"
 #include <iostream>
 
-SQLController::SQLController(){
-    context = new zmq::context_t(1);
+SQLController::SQLController(zmq::context_t *context){
+    
+    context_ = context;
     terminate_ = false;
     log_database = new LogDatabase("test.sql");
-    reciever_thread_ = new std::thread(&SQLController::RecieverThread, this);
     sql_thread_ = new std::thread(&SQLController::SQLThread, this);
 }
 
@@ -18,11 +18,6 @@ SQLController::~SQLController(){
         terminate_ = true;
         queue_lock_condition_.notify_all();
     }
-    delete context;
-    //Stop recieving messages
-    //reciever_thread_->terminate();
-    reciever_thread_->join();
-    delete reciever_thread_;
 
     std::cout << "3" << std::endl;
     //Process messages
@@ -39,10 +34,12 @@ SQLController::~SQLController(){
 void SQLController::RecieverThread(){
     
     
-    zmq::socket_t socket(*context, ZMQ_SUB);
+    zmq::socket_t socket(*context_, ZMQ_SUB);
 	
 	//Subscribe to everything
     socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+    socket.bind("inproc://term_signal");
 
     int port = 5555;
 	std::string address_str("tcp://192.168.111.");
@@ -60,8 +57,11 @@ void SQLController::RecieverThread(){
 
 		try{
 			socket.recv(data);
+            std::cout << data->size() << std::endl;
+            if(data->size() == 0){
+                break;
+            }
 			std::string msg_str(static_cast<char *>(data->data()), data->size());
-
             {
                 //Gain the lock so we can notify and set our terminate flag.
                 std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -76,6 +76,7 @@ void SQLController::RecieverThread(){
 			continue;
         }
     }
+    delete data;
 }
 
 
