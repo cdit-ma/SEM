@@ -32,7 +32,6 @@ SQLiteDatabase::~SQLiteDatabase(){
     //Join and then delete the thread
     writerThread_->join();
     delete writerThread_;
-    std::cout << "Writer thread terminated." << std::endl;
     
     int result = sqlite3_close_v2(database);
     if(result != SQLITE_OK){

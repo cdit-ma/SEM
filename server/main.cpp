@@ -1,7 +1,6 @@
 #include <signal.h>
 #include <mutex>
 #include <condition_variable>
-#include <iostream>
 
 #include "sqlcontroller.h"
 
@@ -10,7 +9,6 @@ std::mutex mutex_;
 
 void signal_handler (int signal_value)
 {
-	std::cout << "SIGNAL: " << signal_value << std::endl;
 	//Gain the lock so we can notify to terminate
 	std::unique_lock<std::mutex> lock(mutex_);
 	lock_condition_.notify_all();
@@ -18,7 +16,7 @@ void signal_handler (int signal_value)
 
 int main()
 {
-	//Handle the interupt signal
+	//Handle the SIGINT/SIGTERM signal
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 

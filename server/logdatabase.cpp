@@ -1,5 +1,6 @@
 #include "logdatabase.h"
 #include <iostream>
+
 LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFilepath){
     //Construct all of our tables
     queue_sql_statement(get_sql_statement(get_system_status_table_string()));
@@ -12,9 +13,8 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     queue_sql_statement(get_sql_statement(get_process_table_string()));
     queue_sql_statement(get_sql_statement(get_process_info_table_string()));
     
-    //Force the queue to be written.
+    //Force the tables to be constructed
     flush();
-    
 }
 
 std::string LogDatabase::get_system_status_table_string() const{
