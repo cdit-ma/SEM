@@ -1,6 +1,6 @@
-#include <signal.h>
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
+#include <signal.h>
 
 #include "sqlcontroller.h"
 
@@ -19,6 +19,8 @@ int main()
 	//Handle the SIGINT/SIGTERM signal
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
+
+	//TODO: take command line args
 
 	SQLController* sql_controller = new SQLController();
 

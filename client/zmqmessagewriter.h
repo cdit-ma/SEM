@@ -14,8 +14,8 @@ class ZMQMessageWriter{
         virtual bool push_message(google::protobuf::MessageLite* message);
         virtual bool terminate();
     private:
-        zmq::context_t* context;
         zmq::socket_t* socket;
+        zmq::context_t* context;
 };
 
 #endif //MESSAGEWRITER_H

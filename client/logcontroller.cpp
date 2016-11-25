@@ -17,6 +17,7 @@ LogController::LogController(double frequency, std::vector<std::string> processe
     //writer_->bind_publisher_socket("tcp://192.168.111.247:5555");
     writer_->bind_publisher_socket("tcp://*:5555");
 
+
     //Construct our SystemInfo class
     system_info_ = new SigarSystemInfo();
 	
@@ -24,7 +25,6 @@ LogController::LogController(double frequency, std::vector<std::string> processe
     
     writer_thread_ = new std::thread(&LogController::WriteThread, this);
     logging_thread_ = new std::thread(&LogController::LogThread, this);
-    message_id_ = 0;
 
     //Zero check before division
     if(frequency <= 0){
@@ -34,21 +34,36 @@ LogController::LogController(double frequency, std::vector<std::string> processe
     //Convert frequency to period
     sleep_time_ = (1 / frequency) * 1000;
     processes_ = processes;
-    terminate_ = false;
 }
 
-LogController::~LogController(){
+void LogController::Terminate(){
+    TerminateLogger();
+    TerminateWriter();
+}
+
+void LogController::TerminateLogger(){
     {
         //Gain the lock so we can notify and set our terminate flag.
         std::unique_lock<std::mutex> lock(queue_mutex_);
-        terminate_ = true;
+        logger_terminate_ = true;
         queue_lock_condition_.notify_all();
     }
     logging_thread_->join();
-    delete logging_thread_;
-    writer_thread_->join();
-    delete writer_thread_;
+}
 
+void LogController::TerminateWriter(){
+    {
+        //Gain the lock so we can notify and set our terminate flag.
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        writer_terminate_ = true;
+        queue_lock_condition_.notify_all();
+    }
+    writer_thread_->join();
+}
+
+LogController::~LogController(){
+    delete logging_thread_;
+    delete writer_thread_;
     delete system_info_;
     delete writer_;
 }
@@ -60,11 +75,12 @@ void LogController::LogThread(){
         system_info_->monitor_processes(process_name);
     }
 
+    namespace s_c = std::chrono;
+
     //Update loop.
-    while(!terminate_){
-        //Sleep for period
+    while(!logger_terminate_){
         auto before_time = 
-            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+            s_c::duration_cast<s_c::milliseconds>(s_c::system_clock::now().time_since_epoch());
 
         if(system_info_->update()){
             //Get a new filled protobuf message
@@ -76,16 +92,16 @@ void LogController::LogThread(){
             queue_lock_condition_.notify_all();
         }
         auto after_time = 
-            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+            s_c::duration_cast<s_c::milliseconds>(s_c::system_clock::now().time_since_epoch());
         auto duration = after_time - before_time;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_)-std::chrono::milliseconds(duration));
+        std::this_thread::sleep_for(s_c::milliseconds(sleep_time_)-s_c::milliseconds(duration));
     }
     std::cout << "Logging thread terminated." << std::endl;
 }
 
 void LogController::WriteThread(){
-    while(!terminate_){
+    while(!writer_terminate_){
         std::queue<SystemStatus*> replace_queue;
         {
             //Obtain lock for the queue

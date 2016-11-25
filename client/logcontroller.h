@@ -14,27 +14,36 @@ class LogController{
     public:
         LogController(double frequency, std::vector<std::string> processes, bool cached = false);
         ~LogController();
+
+        void Terminate();
         
     private:
         void LogThread();
         void WriteThread();
+        void TerminateLogger();
+        void TerminateWriter();
+
+        SystemStatus* GetSystemStatus(SystemInfo* systemInfo);
+
 
         SystemInfo* system_info_;
 
         std::thread* logging_thread_;
         std::thread* writer_thread_;
 
-        SystemStatus* GetSystemStatus(SystemInfo* systemInfo);
+        zmq::context_t* context_;
+        ZMQMessageWriter* writer_;
+
      
         std::condition_variable queue_lock_condition_;
         std::mutex queue_mutex_;
         std::queue<SystemStatus*> message_queue_; 
         
         
-        int message_id_;
+        int message_id_ = 0;
 
-        bool cached_mode_;
-        int sleep_time_;
+        bool cached_mode_ = false;
+        int sleep_time_ = 1000;
         
         std::vector<std::string> processes_;
 
@@ -44,11 +53,10 @@ class LogController{
         std::set<std::string> seen_fs_;
         std::set<std::string> seen_if_;
 
-
         std::map<int, double> pid_updated_times_;
-        ZMQMessageWriter* writer_;
 
-        bool terminate_;
+        bool logger_terminate_ = false;
+        bool writer_terminate_ = false;
 };
 
 #endif //LOGCONTROLLER_H

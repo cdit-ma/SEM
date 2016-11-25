@@ -5,6 +5,7 @@
 #include <thread>
 ZMQMessageWriter::ZMQMessageWriter(){
     context = new zmq::context_t(1);
+
     socket = new zmq::socket_t(*context, ZMQ_PUB);
     
     //Increase the HighWaterMark to 10,000 to make sure we don't lose messages

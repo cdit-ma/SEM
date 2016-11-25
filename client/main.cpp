@@ -1,42 +1,43 @@
-#include "sigarsysteminfo.h"
-
-#include <iostream> //stdcout
-#include <thread>
 #include <chrono>
-
-#include "logcontroller.h"
+#include <iostream>
 #include <signal.h>
+#include <thread>
 
-static int s_interrupted = 0;
-static void s_signal_handler (int signal_value)
+#include "sigarsysteminfo.h"
+#include "logcontroller.h"
+
+std::condition_variable lock_condition_;
+std::mutex mutex_;
+
+void signal_handler (int signal_value)
 {
-    s_interrupted = 1;
+	//Gain the lock so we can notify to terminate
+	std::unique_lock<std::mutex> lock(mutex_);
+	lock_condition_.notify_all();
 }
 
-static void s_catch_signals (void)
-{
-    struct sigaction action;
-    action.sa_handler = s_signal_handler;
-    action.sa_flags = 0;
-    sigemptyset (&action.sa_mask);
-    sigaction (SIGINT, &action, NULL);
-    sigaction (SIGTERM, &action, NULL);
-}
-
-//g++ main.cpp sigarsysteminfo.cpp -lsigar -I/Users/dan/Desktop/sigar/include/
 int main(int, char**){
 
-    s_catch_signals();
+	//Handle the SIGINT/SIGTERM signal
+	signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
 
     //TODO: take command line options
     std::vector<std::string> processes;
     processes.push_back("logan_client");
-    LogController* logController = new LogController(10, processes, true);
+    processes.push_back("logan_server");
+    LogController* logController = new LogController(10, processes, false);
 
+	{
+		std::unique_lock<std::mutex> lock(mutex_);
+		//Wait for the signal_handler to notify for exit
+		lock_condition_.wait(lock);
+	}
 
-    while(!s_interrupted){
-	    std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
+    //Blocking terminate call.
+    //Will wait for logging and writing threads to complete
+    logController->Terminate();
+
 
     delete logController;
     return 0;
