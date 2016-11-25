@@ -31,7 +31,7 @@ int main()
 	}
 
 	//Terminate the reciever and reciever thread
-	sql_controller->terminate_reciever();
+	sql_controller->TerminateReceiver();
 
     //Teardown the SQL Controller which will write the remaining queued messages
 	delete sql_controller;

@@ -17,7 +17,7 @@ SQLController::SQLController(){
     sql_thread_ = new std::thread(&SQLController::SQLThread, this);
 }
 
-void SQLController::terminate_reciever(){
+void SQLController::TerminateReceiver(){
     //Set our terminate
     terminate_reciever_ = true;
 

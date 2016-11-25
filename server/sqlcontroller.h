@@ -16,7 +16,7 @@ class SQLController{
         SQLController();
         ~SQLController();
 
-        void terminate_reciever();
+        void TerminateReceiver();
         
     private:
         void RecieverThread();

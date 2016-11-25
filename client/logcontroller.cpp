@@ -14,8 +14,8 @@ LogController::LogController(double frequency, std::vector<std::string> processe
         writer_ = new ZMQMessageWriter();
     }
 
-    //writer_->bind_publisher_socket("tcp://192.168.111.247:5555");
-    writer_->bind_publisher_socket("tcp://*:5555");
+    //writer_->BindPublisherSocket("tcp://192.168.111.247:5555");
+    writer_->BindPublisherSocket("tcp://*:5555");
 
 
     //Construct our SystemInfo class
@@ -116,7 +116,7 @@ void LogController::WriteThread(){
 
         //Empty our write queue
         while(!replace_queue.empty()){
-            writer_->push_message(replace_queue.front());
+            writer_->PushMessage(replace_queue.front());
             
             replace_queue.pop();
         }

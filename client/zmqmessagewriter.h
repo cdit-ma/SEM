@@ -9,13 +9,13 @@ class ZMQMessageWriter{
         ZMQMessageWriter();
         virtual ~ZMQMessageWriter();
 
-        bool bind_publisher_socket(std::string endpoint);
+        bool BindPublisherSocket(std::string endpoint);
 
-        virtual bool push_message(google::protobuf::MessageLite* message);
-        virtual bool terminate();
+        virtual bool PushMessage(google::protobuf::MessageLite* message);
+        virtual bool Terminate();
     private:
-        zmq::socket_t* socket;
-        zmq::context_t* context;
+        zmq::socket_t* socket_;
+        zmq::context_t* context_;
 };
 
 #endif //MESSAGEWRITER_H

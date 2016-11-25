@@ -3,18 +3,18 @@
 
 LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFilepath){
     //Construct all of our tables
-    queue_sql_statement(get_sql_statement(get_system_status_table_string()));
-    queue_sql_statement(get_sql_statement(get_system_info_table_string()));
-    queue_sql_statement(get_sql_statement(get_cpu_table_string()));
-    queue_sql_statement(get_sql_statement(get_fs_table_string()));
-    queue_sql_statement(get_sql_statement(get_fs_info_table_string()));
-    queue_sql_statement(get_sql_statement(get_interface_table_string()));
-    queue_sql_statement(get_sql_statement(get_interface_info_table_string()));
-    queue_sql_statement(get_sql_statement(get_process_table_string()));
-    queue_sql_statement(get_sql_statement(get_process_info_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_system_status_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_system_info_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_cpu_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_fs_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_fs_info_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_interface_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_interface_info_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_process_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_process_info_table_string()));
     
     //Force the tables to be constructed
-    flush();
+    Flush();
 }
 
 std::string LogDatabase::get_system_status_table_string() const{
@@ -262,7 +262,7 @@ int LogDatabase::bind_string(sqlite3_stmt* stmnt, int pos, std::string str){
 }
 
 void LogDatabase::process_status(SystemStatus* status){
-    sqlite3_stmt *stmt = get_sql_statement(get_system_status_insert_query());
+    sqlite3_stmt *stmt = GetSqlStatement(get_system_status_insert_query());
 
     std::string hostname = status->hostname().c_str();
     int message_id = status->message_id();
@@ -274,10 +274,10 @@ void LogDatabase::process_status(SystemStatus* status){
     sqlite3_bind_double(stmt, 3, timestamp);
     sqlite3_bind_double(stmt, 4, status->cpu_utilization());
     sqlite3_bind_double(stmt, 5, status->phys_mem_utilization());
-    queue_sql_statement(stmt);
+    QueueSqlStatement(stmt);
 
     if(status->has_info() != 0){
-        sqlite3_stmt *infostmt = get_sql_statement(get_system_info_insert_query());
+        sqlite3_stmt *infostmt = GetSqlStatement(get_system_info_insert_query());
         bind_string(infostmt, 1, hostname);
         sqlite3_bind_int(infostmt, 2, message_id);
         sqlite3_bind_double(infostmt, 3, timestamp);
@@ -296,26 +296,26 @@ void LogDatabase::process_status(SystemStatus* status){
         bind_string(infostmt, 11, info.cpu_vendor());
         sqlite3_bind_int(infostmt, 12, info.cpu_frequency());
         sqlite3_bind_int(infostmt, 13, info.physical_memory());
-        queue_sql_statement(infostmt);
+        QueueSqlStatement(infostmt);
     }
 
 
     for(int i = 0; i < status->cpu_core_utilization_size(); i++){
-        sqlite3_stmt *cpustmt = get_sql_statement(get_cpu_insert_query());
+        sqlite3_stmt *cpustmt = GetSqlStatement(get_cpu_insert_query());
         bind_string(cpustmt, 1, hostname);
         sqlite3_bind_int(cpustmt, 2, message_id);
         sqlite3_bind_double(cpustmt, 3, timestamp);
         sqlite3_bind_int(cpustmt, 4, i);
         sqlite3_bind_double(cpustmt, 5, status->cpu_core_utilization(i));
-        queue_sql_statement(cpustmt);
+        QueueSqlStatement(cpustmt);
     }
 
     for(int i = 0; i < status->processes_size(); i++){
-        sqlite3_stmt *procstmt = get_sql_statement(get_process_insert_query());
+        sqlite3_stmt *procstmt = GetSqlStatement(get_process_insert_query());
         ProcessStatus proc = status->processes(i);
 
         if(proc.has_info()){
-            sqlite3_stmt *procinfo = get_sql_statement(get_process_info_insert_query());
+            sqlite3_stmt *procinfo = GetSqlStatement(get_process_info_insert_query());
             bind_string(procinfo, 1, hostname);
             sqlite3_bind_int(procinfo, 2, message_id);
             sqlite3_bind_double(procinfo, 3, timestamp);
@@ -323,7 +323,7 @@ void LogDatabase::process_status(SystemStatus* status){
             bind_string(procinfo, 5, proc.info().name());
             bind_string(procinfo, 6, proc.info().args());
             sqlite3_bind_int(procinfo, 7, proc.info().start_time());    
-            queue_sql_statement(procinfo);
+            QueueSqlStatement(procinfo);
         }
         bind_string(procstmt, 1, hostname);
         sqlite3_bind_int(procstmt, 2, message_id);
@@ -342,15 +342,15 @@ void LogDatabase::process_status(SystemStatus* status){
         
         std::string procstate = process_state_to_string(proc.state());
         bind_string(procstmt, 12, procstate);
-        queue_sql_statement(procstmt);
+        QueueSqlStatement(procstmt);
     }
 
     for(int i = 0; i < status->interfaces_size(); i++){
-        sqlite3_stmt *ifstatement = get_sql_statement(get_interface_insert_query());
+        sqlite3_stmt *ifstatement = GetSqlStatement(get_interface_insert_query());
         InterfaceStatus ifstat = status->interfaces(i);
 
         if(ifstat.has_info()){
-            sqlite3_stmt *ifinfo = get_sql_statement(get_interface_info_insert_query());
+            sqlite3_stmt *ifinfo = GetSqlStatement(get_interface_info_insert_query());
             
             bind_string(ifinfo, 1, hostname);
             sqlite3_bind_int(ifinfo, 2, message_id);
@@ -362,7 +362,7 @@ void LogDatabase::process_status(SystemStatus* status){
             bind_string(ifinfo, 8, ifstat.info().ipv6_addr());
             bind_string(ifinfo, 9, ifstat.info().mac_addr());
             sqlite3_bind_int(ifinfo, 10, ifstat.info().speed());
-            queue_sql_statement(ifinfo);
+            QueueSqlStatement(ifinfo);
         }
         bind_string(ifstatement, 1, hostname);
         sqlite3_bind_int(ifstatement, 2, message_id);
@@ -372,15 +372,15 @@ void LogDatabase::process_status(SystemStatus* status){
         sqlite3_bind_int(ifstatement, 6, ifstat.rx_bytes());
         sqlite3_bind_int(ifstatement, 7, ifstat.tx_packets());
         sqlite3_bind_int(ifstatement, 8, ifstat.tx_bytes());
-        queue_sql_statement(ifstatement);
+        QueueSqlStatement(ifstatement);
     }
 
     for(int i = 0; i < status->file_systems_size(); i++){
-        sqlite3_stmt *fsstatement = get_sql_statement(get_fs_insert_query());
+        sqlite3_stmt *fsstatement = GetSqlStatement(get_fs_insert_query());
         FileSystemStatus fss = status->file_systems(i);
 
         if(fss.has_info()){
-            sqlite3_stmt *fsinfo = get_sql_statement(get_fs_info_insert_query());
+            sqlite3_stmt *fsinfo = GetSqlStatement(get_fs_info_insert_query());
             bind_string(fsinfo, 1, hostname);
             sqlite3_bind_int(fsinfo, 2, message_id);
             sqlite3_bind_double(fsinfo, 3, timestamp);
@@ -388,14 +388,14 @@ void LogDatabase::process_status(SystemStatus* status){
             std::string type = fs_type_to_string(fss.info().type());
             bind_string(fsinfo, 5, type);
             sqlite3_bind_int(fsinfo, 6, fss.info().size());
-            queue_sql_statement(fsinfo);
+            QueueSqlStatement(fsinfo);
         }
         bind_string(fsstatement, 1, hostname);
         sqlite3_bind_int(fsstatement, 2, message_id);
         sqlite3_bind_double(fsstatement, 3, timestamp);
         bind_string(fsstatement, 4, fss.name());
         sqlite3_bind_double(fsstatement, 5, fss.utilization());
-        queue_sql_statement(fsstatement);
+        QueueSqlStatement(fsstatement);
     }
 
 }

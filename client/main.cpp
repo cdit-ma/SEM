@@ -26,7 +26,7 @@ int main(int, char**){
     std::vector<std::string> processes;
     processes.push_back("logan_client");
     processes.push_back("logan_server");
-    LogController* logController = new LogController(10, processes, false);
+    LogController* log_controller = new LogController(10, processes, false);
 
 	{
 		std::unique_lock<std::mutex> lock(mutex_);
@@ -36,9 +36,8 @@ int main(int, char**){
 
     //Blocking terminate call.
     //Will wait for logging and writing threads to complete
-    logController->Terminate();
+    log_controller->Terminate();
 
-
-    delete logController;
+    delete log_controller;
     return 0;
 }

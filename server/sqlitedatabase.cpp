@@ -6,69 +6,66 @@
 #define SQL_BATCH_SIZE 100
 
 SQLiteDatabase::SQLiteDatabase(std::string dbFilepath){
-    database = 0;
-    terminate_ = false;
-
     //Open Database, create it if it's not there
-    int result = sqlite3_open_v2(dbFilepath.c_str(), &database, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    int result = sqlite3_open_v2(dbFilepath.c_str(), &database_, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 
     if(result != SQLITE_OK){
         throw std::runtime_error("SQLite Failed to Open Database");
     }
 
     //Start a writer thread
-    writerThread_ = new std::thread(&SQLiteDatabase::process_queue, this);
+    writer_thread_ = new std::thread(&SQLiteDatabase::ProcessQueue, this);
 }
 
 SQLiteDatabase::~SQLiteDatabase(){
-    flush();
+    Flush();
     {
         //Gain the lock so we can notify and set our terminate flag.
-        std::unique_lock<std::mutex> lock(queueMutex_);
+        std::unique_lock<std::mutex> lock(queue_mutex_);
         terminate_ = true;
-        queueLockCondition_.notify_all();
+        queue_lock_condition_.notify_all();
     }
 
     //Join and then delete the thread
-    writerThread_->join();
-    delete writerThread_;
+    writer_thread_->join();
+    delete writer_thread_;
     
-    int result = sqlite3_close_v2(database);
+    int result = sqlite3_close_v2(database_);
     if(result != SQLITE_OK){
         std::cerr << "SQLite failed to close database" << std::endl;
     }
 }
 
-void SQLiteDatabase::queue_sql_statement(sqlite3_stmt *sql){
+void SQLiteDatabase::QueueSqlStatement(sqlite3_stmt *sql){
     //Gain the conditional lock
-    std::unique_lock<std::mutex> lock(queueMutex_);
+    std::unique_lock<std::mutex> lock(queue_mutex_);
     //Add statement to the queue to process.
-    sqlQueue_.push(sql);
+    sql_queue_.push(sql);
 
     //Only notify the queue above a certain size
-    if(sqlQueue_.size() > SQL_BATCH_SIZE){
-        queueLockCondition_.notify_all();
+    if(sql_queue_.size() > SQL_BATCH_SIZE){
+        queue_lock_condition_.notify_all();
     }
 }
 
-void SQLiteDatabase::flush(){
+void SQLiteDatabase::Flush(){
     //Gain the conditional lock
-    std::unique_lock<std::mutex> lock(queueMutex_);
+    std::unique_lock<std::mutex> lock(queue_mutex_);
     //Notify the sql thread
-    queueLockCondition_.notify_all();
+    queue_lock_condition_.notify_all();
 }
 
-void SQLiteDatabase::process_queue(){
+void SQLiteDatabase::ProcessQueue(){
     while(!terminate_){
         std::queue<sqlite3_stmt*> sQueue;
         {
             //Wait for condition, if we don't have any SQL Statements.
-            std::unique_lock<std::mutex> lock(queueMutex_);
-            queueLockCondition_.wait(lock);
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            queue_lock_condition_.wait(lock);
             
-            if(!sqlQueue_.empty()){
+            if(!sql_queue_.empty()){
                 //Swap our queues, and release our lock
-                sqlQueue_.swap(sQueue);
+                sql_queue_.swap(sQueue);
             }
 		}
 
@@ -77,7 +74,7 @@ void SQLiteDatabase::process_queue(){
             continue;
         }
 
-        int result = sqlite3_exec(database, "BEGIN TRANSACTION", NULL, NULL, NULL);
+        int result = sqlite3_exec(database_, "BEGIN TRANSACTION", NULL, NULL, NULL);
         
         if(result != SQLITE_OK){
             throw std::runtime_error("SQLite Failed to BEGIN TRANSACTION");
@@ -111,7 +108,7 @@ void SQLiteDatabase::process_queue(){
 
 
         //End the transaction
-        result = sqlite3_exec(database, "END TRANSACTION", NULL, NULL, NULL);
+        result = sqlite3_exec(database_, "END TRANSACTION", NULL, NULL, NULL);
 
         if(result != SQLITE_OK){
             throw std::runtime_error("SQLite Failed to END TRANSACTION");
@@ -120,9 +117,9 @@ void SQLiteDatabase::process_queue(){
 }
 
 
-sqlite3_stmt* SQLiteDatabase::get_sql_statement(std::string query){
+sqlite3_stmt* SQLiteDatabase::GetSqlStatement(std::string query){
     sqlite3_stmt *statement;
-    int result = sqlite3_prepare_v2(database, query.c_str(), -1, &statement, NULL);
+    int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
     if(result == SQLITE_OK){
         return statement;
     }
