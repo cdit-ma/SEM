@@ -4,7 +4,12 @@
 #include "../interfaces.h"
 
 class test_txMessage: public txMessageInt{
-    void txMessage(Message* message);
+    public:
+        test_txMessage(txMessageInt* component, rxMessageInt* rxMessage);
+        void txMessage(Message* message);
+    private:
+        rxMessageInt* rmMessage_;
+        txMessageInt* component_;
 };
 
 

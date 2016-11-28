@@ -14,7 +14,8 @@ class txMessageInt{
 
 class rxMessageInt{
     public:
-    virtual void rxMessage(Message* message) = 0;
+        virtual void rxMessage(Message* message) = 0;
+    
 };
 
 class SenderInt: public txMessageInt{
@@ -35,6 +36,7 @@ class RecieverInt: public rxMessageInt{
     public:
         //Pure virtualize our Compositions
         virtual void rxMessage(Message* message) = 0;
+        
 
         //Attributes
         std::string instName();

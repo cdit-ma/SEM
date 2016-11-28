@@ -4,7 +4,13 @@
 #include "../interfaces.h"
 
 class test_rxMessage: public rxMessageInt{
-    void rxMessage(Message* message);
+
+    public:
+        test_rxMessage(rxMessageInt* component);
+        void rxMessage(Message* message);
+    private:
+        rxMessageInt* component_;
+
 };
 
 
