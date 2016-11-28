@@ -962,7 +962,7 @@ void NotificationDialog::setupLayout2()
         displayedSeparatorFrame = displaySeparator;
     }
 
-    //displayedSeparatorFrame->hide();
+    displayedSeparatorFrame->hide();
 
     itemsLayout = new QVBoxLayout();
     itemsLayout->setMargin(0);
@@ -1032,7 +1032,7 @@ void NotificationDialog::setupBackgroundProcessItems()
 
         QFrame* frame = new QFrame(this);
         frame->setStyleSheet("border: 1px 0px;");
-        //frame->hide();
+        frame->hide();
 
         QHBoxLayout* layout = new QHBoxLayout(frame);
         layout->addWidget(iconLabel);
