@@ -1,5 +1,5 @@
 #include "cachedzmqmessagewriter.h"
-#define WRITE_QUEUE 20
+#define WRITE_QUEUE 50
 
 #include "systemstatus.pb.h"
 
@@ -10,53 +10,55 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
 
-CachedZMQMessageWriter::CachedZMQMessageWriter(){
-    count = 0;
-    writeCount = 0;
+CachedZMQMessageWriter::CachedZMQMessageWriter() : ZMQMessageWriter(){
 }   
 
 CachedZMQMessageWriter::~CachedZMQMessageWriter(){
-
+    //Call terminate to read then send all of the messages
+    Terminate();
 }
 
-bool CachedZMQMessageWriter::push_message(google::protobuf::MessageLite* message){
-    writeQueue_.push(message);
-    count++;
+bool CachedZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
+    write_queue_.push(message);
+    count_++;
     //Check size of Queue
-    if(writeQueue_.size() >= WRITE_QUEUE){
+    if(write_queue_.size() >= WRITE_QUEUE){
         //Write stuff bruh
         std::cout << "Writing Messages" << std::endl;
-        writeQueue();
+        WriteQueue();
     }
 
     //Try Read
     return true;
 }
 
-bool CachedZMQMessageWriter::terminate(){
+bool CachedZMQMessageWriter::Terminate(){
 
     //read in all messages
     //writeQueue();
-    std::cout << "TERMINATING: " << count << " write Count: " << writeCount << std::endl;
-    std::queue<google::protobuf::MessageLite*> messages = readFromFile();
-
+    std::cout << "TERMINATING: " << count_ << " write Count: " << write_count_ << std::endl;
+    std::queue<google::protobuf::MessageLite*> messages = ReadFromFile();
+    int count = 0;
     while(!messages.empty()){
-        if(!ZMQMessageWriter::push_message(messages.front())){
+        if(!ZMQMessageWriter::PushMessage(messages.front())){
             std::cerr << "FAILED:!" << std::endl;
         }
+        count++;
         messages.pop();
+        
     }
-    while(!writeQueue_.empty()){
-        if(!ZMQMessageWriter::push_message(writeQueue_.front())){
+    while(!write_queue_.empty()){
+        if(!ZMQMessageWriter::PushMessage(write_queue_.front())){
             std::cerr << "FAILED:!" << std::endl;
         }
-        writeQueue_.pop();
+        count++;
+        write_queue_.pop();
     }
-    std::cout << "FINISHED BRUH" << std::endl;
+    std::cout << "Written: " << count << std::endl;
     return true;
 }
 
-bool CachedZMQMessageWriter::writeQueue(){
+bool CachedZMQMessageWriter::WriteQueue(){
     std::cout << "writeQueue" << std::endl;
     //open a fstream
     std::fstream file("test.out", std::ios::out | std::ios::app | std::ios::binary);
@@ -69,24 +71,26 @@ bool CachedZMQMessageWriter::writeQueue(){
     ::google::protobuf::io::ZeroCopyOutputStream *raw_out = new ::google::protobuf::io::OstreamOutputStream(&file);
 
     //Write the messages bro!
-    while(!writeQueue_.empty()){
-        google::protobuf::MessageLite* message = writeQueue_.front();
+    while(!write_queue_.empty()){
+        google::protobuf::MessageLite* message = write_queue_.front();
 
-        if(writeDelimitedTo(*message, raw_out)){
-            writeCount++;
+        if(WriteDelimitedTo(*message, raw_out)){
+            write_count_++;
             
-            writeQueue_.pop();
+            write_queue_.pop();
         }else{
             std::cout << "FAILED WRITING?!" << std::endl;
             return false;
         }
+        //Clean up memory!
+        delete message;
     }
     delete raw_out;
     file.close();
     return true;
 }
 
-std::queue<google::protobuf::MessageLite*> CachedZMQMessageWriter::readFromFile(){
+std::queue<google::protobuf::MessageLite*> CachedZMQMessageWriter::ReadFromFile(){
     std::queue<google::protobuf::MessageLite*> queue;
 
     //open a fstream
@@ -101,7 +105,7 @@ std::queue<google::protobuf::MessageLite*> CachedZMQMessageWriter::readFromFile(
     while(true){
         google::protobuf::MessageLite* message = new SystemStatus();
         
-        if(readDelimitedFrom(raw_in, message)){
+        if(ReadDelimitedFrom(raw_in, message)){
             queue.push(message);
         }else{
             //Free the memory
@@ -124,7 +128,7 @@ std::queue<google::protobuf::MessageLite*> CachedZMQMessageWriter::readFromFile(
 
 
 
-bool CachedZMQMessageWriter::writeDelimitedTo(
+bool CachedZMQMessageWriter::WriteDelimitedTo(
     const google::protobuf::MessageLite& message,
     google::protobuf::io::ZeroCopyOutputStream* rawOutput) {
   // We create a new coded stream for each message.  Don't worry, this is fast.
@@ -149,7 +153,7 @@ bool CachedZMQMessageWriter::writeDelimitedTo(
 }
 
 
-bool CachedZMQMessageWriter::readDelimitedFrom(
+bool CachedZMQMessageWriter::ReadDelimitedFrom(
     google::protobuf::io::ZeroCopyInputStream* rawInput,
     google::protobuf::MessageLite* message) {
   // We create a new coded stream for each message.  Don't worry, this is fast,

@@ -10,19 +10,19 @@ class CachedZMQMessageWriter : public ZMQMessageWriter{
         CachedZMQMessageWriter();
         ~CachedZMQMessageWriter();
 
-        bool push_message(google::protobuf::MessageLite* message);
-        bool terminate();
+        bool PushMessage(google::protobuf::MessageLite* message);
+        bool Terminate();
     private:
-        bool writeQueue();
-        std::queue<google::protobuf::MessageLite*> readFromFile();
+        bool WriteQueue();
+        std::queue<google::protobuf::MessageLite*> ReadFromFile();
 
 
-        bool writeDelimitedTo(const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* rawOutput);
-        bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput, google::protobuf::MessageLite* message);
+        bool WriteDelimitedTo(const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* rawOutput);
+        bool ReadDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput, google::protobuf::MessageLite* message);
 
-        int count;
-        int writeCount;
-        std::queue<google::protobuf::MessageLite*> writeQueue_;        
+        int count_ = 0;
+        int write_count_ = 0;
+        std::queue<google::protobuf::MessageLite*> write_queue_;        
 };
 
 #endif //CACHEDZMQMESSAGEWRITER_H

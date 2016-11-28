@@ -11,21 +11,21 @@
 class SQLiteDatabase{
     public:
         SQLiteDatabase(std::string databaseFilepath);
-        ~SQLiteDatabase();
+        virtual ~SQLiteDatabase();
         
-        void queue_sql_statement(sqlite3_stmt * statement);
-        void flush();
+        void QueueSqlStatement(sqlite3_stmt * statement);
+        void Flush();
         
-        sqlite3_stmt* get_sql_statement(std::string query);
+        sqlite3_stmt* GetSqlStatement(std::string query);
     private:
-        void process_queue();
-        sqlite3 *database;
+        void ProcessQueue();
+        sqlite3 *database_ = 0;
 
-        std::thread* writerThread_;
+        std::thread* writer_thread_;
 
-        std::queue<sqlite3_stmt*> sqlQueue_;
-        std::mutex queueMutex_;
-        std::condition_variable queueLockCondition_;
-        bool terminate;
+        std::queue<sqlite3_stmt*> sql_queue_;
+        std::mutex queue_mutex_;
+        std::condition_variable queue_lock_condition_;
+        bool terminate_ = false;
 };
 #endif

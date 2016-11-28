@@ -27,11 +27,20 @@
 *.exe
 *.out
 *.app
+bin
 
+# CMake
 CMakeCache.txt
 CMakeFiles
 Makefile
 cmake_install.cmake
+
+#Cached
 .DS_Store
 .vscode
-bin
+
+#Protobuf
+*.pb.*
+
+#SQL
+*.sql

@@ -1,47 +1,39 @@
-#include <iostream>
+#include <condition_variable>
+#include <mutex>
+#include <signal.h>
 
-#include "zmq.hpp"
-#include "systemstatus.pb.h"
+#include "sqlcontroller.h"
 
-#include "logdatabase.h"
+std::condition_variable lock_condition_;
+std::mutex mutex_;
+
+void signal_handler (int signal_value)
+{
+	//Gain the lock so we can notify to terminate
+	std::unique_lock<std::mutex> lock(mutex_);
+	lock_condition_.notify_all();
+}
 
 int main()
 {
-    SystemStatus message;
+	//Handle the SIGINT/SIGTERM signal
+	signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
 
-    //Prepare our context and socket
-    zmq::context_t context(1);
-    zmq::socket_t socket(context, ZMQ_SUB);
-	
-	//Subscribe to everything
-    socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+	//TODO: take command line args
 
-    //Multicast listen.
-	//socket.bind("tcp://*:5555");
-    socket.connect("tcp://192.168.111.187:5555");
-    socket.connect("tcp://192.168.111.246:5555");
-	socket.connect("tcp://192.168.111.247:5555");
-	socket.connect("tcp://192.168.111.80:5555");
-	socket.connect("tcp://192.168.111.81:5555");
-	
-    int count = 0;
+	SQLController* sql_controller = new SQLController();
 
-	//Construct a new log database.
-	LogDatabase* db = new LogDatabase("test.sql");
+	{ 			
+		std::unique_lock<std::mutex> lock(mutex_);
+		//Wait for the signal_handler to notify for exit
+		lock_condition_.wait(lock);
+	}
 
-	zmq::message_t *data = new zmq::message_t();
-    while(true){
-		//Recieve the next data element
-		socket.recv(data);
+	//Terminate the reciever and reciever thread
+	sql_controller->TerminateReceiver();
 
-		std::string msg_str(static_cast<char *>(data->data()), data->size());
-
-		if (message.ParseFromString(msg_str)){
-			//std::cout << message.ByteSize() << std::endl;
-			db->process_status(&message);
-		}else{
-			std::cout << data->size() << std::endl;
-		}
-    }
-	delete db;
+    //Teardown the SQL Controller which will write the remaining queued messages
+	delete sql_controller;
+    return 0;
 }

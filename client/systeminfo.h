@@ -113,6 +113,7 @@ enum class InterfaceState{
         virtual int get_monitored_process_thread_count(const int pid) const = 0;
         virtual time_t get_monitored_process_start_time(const int pid) const = 0;
         virtual time_t get_monitored_process_total_time(const int pid) const = 0;
+        virtual double get_monitored_process_update_time(const int pid) const = 0;
 
         virtual long long get_monitored_process_disk_written(const int pid) const = 0;
         virtual long long get_monitored_process_disk_read(const int pid) const = 0;
