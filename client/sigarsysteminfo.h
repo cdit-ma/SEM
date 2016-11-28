@@ -110,7 +110,7 @@ class SigarSystemInfo: public SystemInfo{
         double get_timestamp(const std::chrono::milliseconds t) const; 
         bool open_sigar();
         bool close_sigar();
-        sigar_t *sigar;
+        sigar_t *sigar_ = 0;
 
         void update_timestamp();
         bool initial_update();
@@ -172,7 +172,7 @@ class SigarSystemInfo: public SystemInfo{
         std::set<int> current_pids_;
         std::set<int> tracked_pids_;
         std::vector<std::string> tracked_process_names_;
-        bool force_process_name_check;
+        bool force_process_name_check_ = false;
         
 
         bool stringInString(const std::string haystack, const std::string needle) const;

@@ -6,8 +6,6 @@
 #include <algorithm>
 
 SigarSystemInfo::SigarSystemInfo(){
-    sigar = 0;
-    force_process_name_check = false;
     open_sigar();
     
     initial_update();
@@ -18,19 +16,19 @@ SigarSystemInfo::~SigarSystemInfo(){
 }
 
 bool SigarSystemInfo::open_sigar(){
-    if(sigar_open(&sigar) == SIGAR_OK){
+    if(sigar_open(&sigar_) == SIGAR_OK){
         return true;
     }else{
-        sigar = 0;
+        sigar_ = 0;
         return false;
     }
 }
 
 bool SigarSystemInfo::close_sigar(){
-    if(sigar_close(sigar) == SIGAR_OK){
+    if(sigar_close(sigar_) == SIGAR_OK){
         return true;
     }else{
-        sigar = 0;
+        sigar_ = 0;
         return false;
     }
 }
@@ -114,15 +112,15 @@ double SigarSystemInfo::get_phys_mem_utilization() const{
 
 
 bool SigarSystemInfo::update_cpu_list(sigar_cpu_list_t * cpu_list){
-    return sigar && (sigar_cpu_list_get(sigar, cpu_list) == SIGAR_OK);
+    return sigar_ && (sigar_cpu_list_get(sigar_, cpu_list) == SIGAR_OK);
 }
 
 bool SigarSystemInfo::update_cpu_info_list(sigar_cpu_info_list_t* cpu_info_list){
-    return sigar && (sigar_cpu_info_list_get(sigar, cpu_info_list) == SIGAR_OK);
+    return sigar_ && (sigar_cpu_info_list_get(sigar_, cpu_info_list) == SIGAR_OK);
 }
 
 bool SigarSystemInfo::update_phys_mem(sigar_mem_t* mem){
-    return sigar && (sigar_mem_get(sigar, mem) == SIGAR_OK);
+    return sigar_ && (sigar_mem_get(sigar_, mem) == SIGAR_OK);
 }
 
 bool SigarSystemInfo::update_cpu(){
@@ -159,7 +157,7 @@ bool SigarSystemInfo::update_cpu(){
         }
 
         //Free the memory?
-        sigar_cpu_info_list_destroy(sigar, &cpu_info_list);
+        sigar_cpu_info_list_destroy(sigar_, &cpu_info_list);
     }
 
     CPU cpu;
@@ -177,7 +175,7 @@ bool SigarSystemInfo::update_cpu(){
     }
 
     //Free the memory
-    sigar_cpu_list_destroy(sigar, &cpu_list);
+    sigar_cpu_list_destroy(sigar_, &cpu_list);
 	
 
     return true;
@@ -221,7 +219,7 @@ bool SigarSystemInfo::update_filesystems(){
     sigar_file_system_list_t fs_list = sigar_file_system_list_t();
 
     //Get the current list of filesystems
-    if(!sigar || (sigar_file_system_list_get(sigar, &fs_list) != SIGAR_OK)){
+    if(!sigar_ || (sigar_file_system_list_get(sigar_, &fs_list) != SIGAR_OK)){
         return false; 
     }
 
@@ -248,7 +246,7 @@ bool SigarSystemInfo::update_filesystems(){
                 continue;
         }
         //Get the latest usage
-        if(!sigar || (sigar_file_system_usage_get(sigar, fs.system.dir_name, &fs.usage) != SIGAR_OK)){
+        if(!sigar_ || (sigar_file_system_usage_get(sigar_, fs.system.dir_name, &fs.usage) != SIGAR_OK)){
             return false;
         }
 
@@ -259,7 +257,7 @@ bool SigarSystemInfo::update_filesystems(){
 
     filesystems_.resize(validCount);
 
-    sigar_file_system_list_destroy(sigar, &fs_list);
+    sigar_file_system_list_destroy(sigar_, &fs_list);
     return true;
 }
 
@@ -268,7 +266,7 @@ bool SigarSystemInfo::update_interfaces(){
     sigar_net_interface_list_t interface_list = sigar_net_interface_list_t();
     
     //Get the current list of network interfaces
-    if(!sigar || (sigar_net_interface_list_get(sigar, &interface_list) != SIGAR_OK)){
+    if(!sigar_ || (sigar_net_interface_list_get(sigar_, &interface_list) != SIGAR_OK)){
         return false; 
     }
 
@@ -283,19 +281,19 @@ bool SigarSystemInfo::update_interfaces(){
         interface.name = interface_list.data[i];
 
         //Get the latest stats
-        if(!sigar || (sigar_net_interface_stat_get(sigar, interface.name, &interface.stats) != SIGAR_OK)){
+        if(!sigar_ || (sigar_net_interface_stat_get(sigar_, interface.name, &interface.stats) != SIGAR_OK)){
             return false;
         }
 
         //Get the latest config
-        if(!sigar || (sigar_net_interface_config_get(sigar, interface.name, &interface.config) != SIGAR_OK)){
+        if(!sigar_ || (sigar_net_interface_config_get(sigar_, interface.name, &interface.config) != SIGAR_OK)){
             return false;
         }
 
         //Update our interface list
         interfaces_[i] = interface;
     }
-    sigar_net_interface_list_destroy(sigar, &interface_list);
+    sigar_net_interface_list_destroy(sigar_, &interface_list);
     return true;
 }
 
@@ -388,7 +386,7 @@ std::string SigarSystemInfo::get_interface_ipv4(const int interface_index) const
         //Max Length: 15 + 1
         char addr_str[16];
         sigar_net_address_t  adt = interfaces_[interface_index].config.address;
-        if(sigar_net_address_to_string(sigar, &adt , addr_str) == SIGAR_OK){
+        if(sigar_net_address_to_string(sigar_, &adt , addr_str) == SIGAR_OK){
             return std::string(addr_str);
         }
     }
@@ -403,7 +401,7 @@ std::string SigarSystemInfo::get_interface_ipv6(const int interface_index) const
         char addr_str[46];
         sigar_net_address_t  adt = interfaces_[interface_index].config.address6;
         
-        if(sigar_net_address_to_string(sigar, &adt , addr_str) == SIGAR_OK){
+        if(sigar_net_address_to_string(sigar_, &adt , addr_str) == SIGAR_OK){
             return std::string(addr_str);
         }
     }
@@ -416,7 +414,7 @@ std::string SigarSystemInfo::get_interface_mac(const int interface_index) const{
         //00:00:00:00:00:00
         char addr_str[16];
         sigar_net_address_t  adt = interfaces_[interface_index].config.hwaddr;
-        if(sigar_net_address_to_string(sigar, &adt , addr_str) == SIGAR_OK){
+        if(sigar_net_address_to_string(sigar_, &adt , addr_str) == SIGAR_OK){
             return std::string(addr_str);
         }
     }
@@ -449,10 +447,10 @@ std::string SigarSystemInfo::get_os_version() const{
 }
 
 bool SigarSystemInfo::onetime_update_sys_info(){
-    if(sigar_sys_info_get(sigar, &sys) != SIGAR_OK){
+    if(sigar_sys_info_get(sigar_, &sys) != SIGAR_OK){
         return false;
     }
-    if(sigar_net_info_get(sigar, &net) != SIGAR_OK){
+    if(sigar_net_info_get(sigar_, &net) != SIGAR_OK){
         return false;
     }
 
@@ -657,7 +655,7 @@ bool SigarSystemInfo::update_processes(){
 
     sigar_proc_list_t process_list = sigar_proc_list_t();
 
-    if(sigar_proc_list_get(sigar, &process_list) != SIGAR_OK){
+    if(sigar_proc_list_get(sigar_, &process_list) != SIGAR_OK){
         return false;
     }
 
@@ -679,7 +677,7 @@ bool SigarSystemInfo::update_processes(){
         }
 
         //Require State
-        if(sigar_proc_state_get(sigar, pid, &(process->state)) != SIGAR_OK){
+        if(sigar_proc_state_get(sigar_, pid, &(process->state)) != SIGAR_OK){
             continue;
         }
         
@@ -692,8 +690,8 @@ bool SigarSystemInfo::update_processes(){
         if(!seenPIDBefore){
             //we dont have any records of this process yet.
             //Add process name and args to struct
-            sigar_proc_exe_get(sigar, pid, &(process->exe));
-            sigar_proc_args_get(sigar, pid, &(process->args));
+            sigar_proc_exe_get(sigar_, pid, &(process->exe));
+            sigar_proc_args_get(sigar_, pid, &(process->args));
 
             //Trim the Path out of the name
             std::string procName = std::string(process->exe.name);
@@ -701,7 +699,7 @@ bool SigarSystemInfo::update_processes(){
             process->proc_name = procName;
         }
 
-        if(force_process_name_check){
+        if(force_process_name_check_){
             for(std::string query: tracked_process_names_){
                 if(stringInString(process->proc_name, query)){
                     //Monitor the process
@@ -717,9 +715,9 @@ bool SigarSystemInfo::update_processes(){
             
             //If we have this pid already and more than 1 second has elapsed
             if(difference.count() >= 1){
-                sigar_proc_cpu_get(sigar, pid, &process->cpu);
-                sigar_proc_mem_get(sigar, pid, &process->mem);
-                sigar_proc_disk_io_get(sigar, pid, &process->disk);
+                sigar_proc_cpu_get(sigar_, pid, &process->cpu);
+                sigar_proc_mem_get(sigar_, pid, &process->mem);
+                sigar_proc_disk_io_get(sigar_, pid, &process->disk);
                 process->lastUpdated_ = t;
             }
         }
@@ -741,10 +739,10 @@ bool SigarSystemInfo::update_processes(){
         }
     }
 
-    sigar_proc_list_destroy(sigar, &process_list);
+    sigar_proc_list_destroy(sigar_, &process_list);
     
     //Unset our flag
-    force_process_name_check = false;
+    force_process_name_check_ = false;
     
 
     return true;
@@ -767,7 +765,7 @@ void SigarSystemInfo::monitor_processes(const std::string processName){
     //If can't find
     if(std::find(tracked_process_names_.begin(), tracked_process_names_.end(), processName) == tracked_process_names_.end()){
         tracked_process_names_.push_back(processName);
-        force_process_name_check = true;
+        force_process_name_check_ = true;
     }
 }
 

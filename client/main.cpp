@@ -9,8 +9,7 @@
 std::condition_variable lock_condition_;
 std::mutex mutex_;
 
-void signal_handler (int signal_value)
-{
+void signal_handler (int signal_value){
 	//Gain the lock so we can notify to terminate
 	std::unique_lock<std::mutex> lock(mutex_);
 	lock_condition_.notify_all();
@@ -26,6 +25,7 @@ int main(int, char**){
     std::vector<std::string> processes;
     processes.push_back("logan_client");
     processes.push_back("logan_server");
+
     LogController* log_controller = new LogController(10, processes, false);
 
 	{

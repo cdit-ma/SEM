@@ -10,7 +10,6 @@ ZMQMessageWriter::ZMQMessageWriter(){
     
     //Increase the HighWaterMark to 10,000 to make sure we don't lose messages
     socket_->setsockopt(ZMQ_SNDHWM, 10000);
-    //socket->setsockopt(ZMQ_LINGER, 10000);
 }
 
 ZMQMessageWriter::~ZMQMessageWriter(){

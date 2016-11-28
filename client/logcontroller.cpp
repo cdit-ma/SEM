@@ -14,9 +14,9 @@ LogController::LogController(double frequency, std::vector<std::string> processe
         writer_ = new ZMQMessageWriter();
     }
 
-    //writer_->BindPublisherSocket("tcp://192.168.111.247:5555");
+    //TODO: take port # as constructor arg
     writer_->BindPublisherSocket("tcp://*:5555");
-
+    //writer_->BindPublisherSocket("tcp://192.168.111.247:5555");
 
     //Construct our SystemInfo class
     system_info_ = new SigarSystemInfo();
