@@ -78,21 +78,24 @@ private slots:
     void clearVisible();
     void clearNotifications(NOTIFICATION_FILTER filter, int filterVal);
 
-    void notificationItemAdded(NotificationObject* item);
+    void notificationItemAdded(NotificationObject* obj);
     void notificationItemClicked(QListWidgetItem* item);
+
+    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
 
 private:
     void setupLayout();
     void setupLayout2();
+    void setupBackgroundProcessItems();
 
     void constructFilterButton(ITEM_ROLES role, int roleVal, QString label = "", QString iconPath = "", QString iconName = "");
     QAction* constructFilterButtonAction(QToolButton* button);
     void setActionButtonChecked(QAction *action, bool checked);
 
-    void constructNotificationItem(int ID, NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID);
+    void constructNotificationItem(int ID, NOTIFICATION_SEVERITY severity, NOTIFICATION_TYPE2 type, NOTIFICATION_CATEGORY category, QString title, QString description, QString iconPath, QString iconName, int entityID);
     void removeItem(QListWidgetItem* item);
+    void removeItem2(int ID);
 
-    void clearNotificationsOfSeverity(NOTIFICATION_SEVERITY severity);
     void clearAll();
 
     void updateVisibilityCount(int val, bool set = false);
@@ -111,13 +114,13 @@ private:
     QToolBar* filtersToolbar;
     QSplitter* displaySplitter;
 
+    QVBoxLayout* processLayout;
     QVBoxLayout* itemsLayout;
 
     QList<QActionGroup*> actionGroups;
     QList<QAction*> groupSeparators;
     QHash<QAction*, int> prevGroupIndex;
     QHash<ITEM_ROLES, int> indexMap;
-    ITEM_ROLES topRole;
 
     QAction* allAction;
 
@@ -137,6 +140,10 @@ private:
     QAction* clearVisibleAction;
 
     QHash<int, NotificationItem*> notificationItems;
+    QHash<BACKGROUND_PROCESS, QFrame*> backgroundProcesses;
+
+    QFrame* displayedSeparatorFrame;
+    QFrame* displaySeparator;
 
     QHash<NOTIFICATION_TYPE2, QAction*> typeActionHash;
     QHash<NOTIFICATION_CATEGORY, QAction*> categoryActionHash;
@@ -153,6 +160,7 @@ private:
     QHash<int, QListWidgetItem*> notificationIDHash;
 
     int visibleCount;
+    int visibleProcessCount;
 
 protected:
     void enterEvent(QEvent* event);

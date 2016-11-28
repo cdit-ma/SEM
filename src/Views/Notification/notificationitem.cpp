@@ -50,6 +50,16 @@ NotificationItem::NotificationItem(int ID, QString description, QString iconPath
 
 
 /**
+ * @brief NotificationItem::getID
+ * @return
+ */
+int NotificationItem::getID()
+{
+    return property("ID").toInt();
+}
+
+
+/**
  * @brief NotificationItem::getSeverity
  * @return
  */
@@ -151,7 +161,7 @@ void NotificationItem::mouseReleaseEvent(QMouseEvent *event)
     if (event->modifiers().testFlag(Qt::ControlModifier)) {
         append = true;
     }
-    setSelected(true, append);
+    setSelected(!selected, append);
 }
 
 

@@ -130,7 +130,7 @@ signals:
     void vc_modelValidated(QStringList report);
     void vc_launchLocalDeployment(QString graphmlPath);
 
-    void vc_backgroundProcess(bool inProgress);
+    void vc_backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BP_UNKNOWN);
 
     void vc_importXMEProject(QString xmePath, QString graphmlPath);
     void vc_importXMIProject(QString XMIPath);
@@ -195,8 +195,8 @@ public slots:
     void closeProject();
     void closeMEDEA();
 
+    void importJenkinsNodes();
     void executeJenkinsJob();
-
 
     void fitView();
     void fitAllViews();

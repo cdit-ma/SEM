@@ -94,9 +94,8 @@ void ActionController::connectViewController(ViewController *controller)
         connect(edit_contract, &QAction::triggered, viewController, &ViewController::contractSelection);
 
 
-
-
         connect(jenkins_executeJob, &QAction::triggered, viewController, &ViewController::executeJenkinsJob);
+        connect(jenkins_importNodes, &QAction::triggered, viewController, &ViewController::importJenkinsNodes);
 
 
         connect(options_settings, &QAction::triggered, SettingsController::settings(), &SettingsController::showSettingsWidget);

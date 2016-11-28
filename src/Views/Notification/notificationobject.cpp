@@ -29,7 +29,7 @@ NotificationObject::NotificationObject(QString title, QString description, QStri
     _severity = severity;
     _iconPath = iconPath;
     _iconName = iconName;
-    }
+}
 
 
 /**

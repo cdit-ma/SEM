@@ -7,12 +7,14 @@
 #include <QFrame>
 #include <QScrollArea>
 #include <QTime>
+#include <QMovie>
 #include <QStringBuilder>
 #include <QApplication>
 
-#define ICON_SIZE 24
 #define ROLE "ITEM_ROLE"
 #define ROLE_VAL "ITEM_ROLE_VALUE"
+#define ICON_SIZE 24
+#define SHOW_SEPARATOR_MARGIN false
 
 /**
  * @brief NotificationDialog::NotificationDialog
@@ -34,13 +36,15 @@ NotificationDialog::NotificationDialog(QWidget *parent) :
 
     setupLayout();
     setupLayout2();
+    setupBackgroundProcessItems();
     setWindowTitle("Notifications");
 
     connect(severityActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped),this, &NotificationDialog::severityActionToggled);
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
 
-    connect(NotificationManager::manager(), &NotificationManager::clearNotifications, this, &NotificationDialog::showDialog);
+    connect(NotificationManager::manager(), &NotificationManager::clearNotifications, this, &NotificationDialog::clearNotifications);
     connect(NotificationManager::manager(), &NotificationManager::showNotificationDialog, this, &NotificationDialog::showDialog);
+    connect(NotificationManager::manager(), &NotificationManager::backgroundProcess, this, &NotificationDialog::backgroundProcess);
     connect(NotificationManager::manager(), &NotificationManager::notificationItemAdded, this, &NotificationDialog::notificationItemAdded);
     connect(NotificationManager::manager(), &NotificationManager::req_lastNotificationID, this, &NotificationDialog::getLastNotificationID);
     connect(this, &NotificationDialog::lastNotificationID, NotificationManager::manager(), &NotificationManager::setLastNotificationItem);
@@ -48,6 +52,7 @@ NotificationDialog::NotificationDialog(QWidget *parent) :
 
     themeChanged();
     updateVisibilityCount(0, true);
+    initialiseDialog();
 }
 
 
@@ -182,21 +187,37 @@ void NotificationDialog::filterToggled(bool checked)
 
 /**
  * @brief NotificationDialog::clearFilters
+ * Un-check all checked filter actions/buttons and send a signal to show all notification items.
  */
 void NotificationDialog::clearFilters()
 {
+    // un-check all currently checked filter actions/buttons
     if (!checkedActions.isEmpty()) {
         foreach (QAction* action, checkedActions) {
             setActionButtonChecked(action, false);
         }
         checkedActions.clear();
-        emit filtersCleared();
     }
+
+    // reset checked-states lists
+    foreach (NOTIFICATION_SEVERITY s, severityCheckedStates.keys()) {
+        severityCheckedStates[s] = false;
+    }
+    foreach (NOTIFICATION_TYPE2 t, typeCheckedStates.keys()) {
+        typeCheckedStates[t] = false;
+    }
+    foreach (NOTIFICATION_CATEGORY c, categoryCheckedStates.keys()) {
+        categoryCheckedStates[c] = false;
+    }
+
+    // send signal to show all notification items
+    emit filtersCleared();
 }
 
 
 /**
  * @brief NotificationDialog::viewSelection
+ * Center on or popout the corresponding entity for the selected notification item.
  */
 void NotificationDialog::viewSelection()
 {
@@ -230,13 +251,6 @@ void NotificationDialog::themeChanged()
                     "}"
                   + "QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex()+ ";}");
 
-    /*
-    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
-                              "QToolButton{ padding: 2px; border-radius:" + theme->getSharpCornerRadius() + "; color:" + theme->getTextColorHex() + ";}"
-                              "QToolButton::checked{ background:" + theme->getPressedColorHex() + ";color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}"
-                              "QToolButton:hover{ background:" + theme->getHighlightColorHex() + "; color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";}");
-                              */
-
     bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     iconOnlyToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
@@ -264,6 +278,7 @@ void NotificationDialog::themeChanged()
     clearVisibleAction->setIcon(theme->getIcon("Actions", "Clear"));
 
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
+    displaySeparator->setStyleSheet("color:" + theme->getDisabledBackgroundColorHex() + ";");
 
     foreach (QToolButton* button, filterButtonHash.values()) {
         QString iconPath = button->property("iconPath").toString();
@@ -292,6 +307,7 @@ void NotificationDialog::themeChanged()
 
 /**
  * @brief NotificationDialog::listSelectionChanged
+ * Update the enabled states of single selection tool buttons.
  */
 void NotificationDialog::listSelectionChanged()
 {
@@ -307,6 +323,8 @@ void NotificationDialog::listSelectionChanged()
 
 /**
  * @brief NotificationDialog::toggleVisibility
+ * Toggle this dialog's visibility.
+ * TODO - If already visible, find a way to keep dialog visible and raise it to the top.
  */
 void NotificationDialog::toggleVisibility()
 {
@@ -330,6 +348,7 @@ void NotificationDialog::toggleVisibility()
 
 /**
  * @brief NotificationDialog::showDialog
+ * Force show and raise this dialog.
  */
 void NotificationDialog::showDialog()
 {
@@ -350,6 +369,7 @@ void NotificationDialog::resetDialog()
 
 /**
  * @brief NotificationDialog::getLastNotificationID
+ * Send a signal with the top most notification item's ID.
  */
 void NotificationDialog::getLastNotificationID()
 {
@@ -452,7 +472,7 @@ void NotificationDialog::clearNotifications(NOTIFICATION_FILTER filter, int filt
         }
     }
     foreach (NotificationItem* item, itemsToDelete) {
-        // TODO - delete item here
+        removeItem2(item->getID());
     }
 }
 
@@ -461,35 +481,53 @@ void NotificationDialog::clearNotifications(NOTIFICATION_FILTER filter, int filt
  * @brief NotificationDialog::notificationItemAdded
  * @param item
  */
-void NotificationDialog::notificationItemAdded(NotificationObject* item)
+void NotificationDialog::notificationItemAdded(NotificationObject* obj)
 {
+    /*
     if (item) {
         constructNotificationItem(item->ID(), item->severity(), item->title(), item->description(), item->iconPath(), item->iconName(), item->entityID());
     }
-}
+    */
 
-
-/**
- * @brief NotificationDialog::clearNotificationsOfSeverity
- * @param severity
- */
-void NotificationDialog::clearNotificationsOfSeverity(NOTIFICATION_SEVERITY severity)
-{
-    QList<QListWidgetItem*> itemsOfSeverity;
-    for (int i = 0; i < listWidget->count(); i++) {
-        QListWidgetItem* item = listWidget->item(i);
-        NOTIFICATION_SEVERITY itemSeverity = (NOTIFICATION_SEVERITY) item->data(IR_SEVERITY).toInt();
-        if (itemSeverity == severity) {
-            itemsOfSeverity.append(item);
-        }
+    if (!obj) {
+        return;
     }
 
-    // delete items of the provided severity
-    while (!itemsOfSeverity.isEmpty()) {
-        removeItem(itemsOfSeverity.takeFirst());
+    NOTIFICATION_SEVERITY severity = obj->severity();
+    QString iconPath = obj->iconPath();
+    QString iconName = obj->iconName();
+    int ID = obj->ID();
+
+    if (iconPath.isEmpty() || iconName.isEmpty()) {
+        iconPath = getActionIcon(severity).first;
+        iconName = getActionIcon(severity).second;
     }
 
-    updateSeverityAction(severity);
+    NotificationItem* item = new NotificationItem(ID,
+                                                  obj->description(),
+                                                  iconPath,
+                                                  iconName,
+                                                  obj->entityID(),
+                                                  severity,
+                                                  obj->type(),
+                                                  obj->category(),
+                                                  this);
+
+    //itemsLayout->addWidget(item);
+    itemsLayout->insertWidget(0, item);
+    notificationItems[ID] = item;
+
+    connect(this, &NotificationDialog::filtersCleared, item, &NotificationItem::show);
+    connect(this, &NotificationDialog::severityFiltersChanged, item, &NotificationItem::severityFilterToggled);
+    connect(this, &NotificationDialog::typeFiltersChanged, item, &NotificationItem::typeFilterToggled);
+    connect(this, &NotificationDialog::categoryFiltersChanged, item, &NotificationItem::categoryFilterToggled);
+
+    // update the item's visibility depending on the currently checked filters
+    if (!checkedActions.isEmpty()) {
+        emit severityFiltersChanged(severityCheckedStates);
+        emit typeFiltersChanged(typeCheckedStates);
+        emit categoryFiltersChanged(categoryCheckedStates);
+    }
 }
 
 
@@ -501,11 +539,15 @@ void NotificationDialog::clearAll()
     notificationHash.clear();
     notificationIDHash.clear();
     listWidget->clear();
-    checkedActions.clear();
-    updateSeverityActions(NotificationManager::getNotificationSeverities());
+
+    visibleProcessCount = 0;
     updateVisibilityCount(0, true);
-    // TODO - Need to clear notification items here!!!
-    // and update filter lists for checked states
+    updateSeverityActions(NotificationManager::getNotificationSeverities());
+
+    notificationItems.clear();
+
+    // reset checked filter buttons and checked filter lists
+    clearFilters();
 }
 
 
@@ -572,6 +614,21 @@ void NotificationDialog::removeItem(QListWidgetItem* item)
         // remove from list widget then delete item
         delete listWidget->takeItem(row);
         emit itemDeleted(ID);
+    }
+}
+
+
+/**
+ * @brief NotificationDialog::removeItem2
+ * Remove notification item with the provided ID from the hash and the items layout.
+ * @param ID
+ */
+void NotificationDialog::removeItem2(int ID)
+{
+    if (notificationItems.contains(ID)) {
+        NotificationItem* item = notificationItems.take(ID);
+        itemsLayout->removeWidget(item);
+        delete item;
     }
 }
 
@@ -664,6 +721,33 @@ void NotificationDialog::notificationItemClicked(QListWidgetItem* item)
         }
     }
     */
+}
+
+
+/**
+ * @brief NotificationDialog::backgroundProcess
+ * @param inProgress
+ * @param process
+ */
+void NotificationDialog::backgroundProcess(bool inProgress, BACKGROUND_PROCESS process)
+{
+    QFrame* processItem = backgroundProcesses.value(process, 0);
+    if (!processItem) {
+        qWarning() << "NotificationDialog::backgroundProcess - Background process has not been setup.";
+        return;
+    }
+    if (inProgress != processItem->isVisible()) {
+        processItem->setVisible(inProgress);
+        if (inProgress) {
+            visibleProcessCount++;
+        } else {
+            visibleProcessCount--;
+        }
+        bool showSeparator = visibleProcessCount > 0;
+        if (showSeparator != displayedSeparatorFrame->isVisible()) {
+            displayedSeparatorFrame->setVisible(showSeparator);
+        }
+    }
 }
 
 
@@ -857,13 +941,44 @@ void NotificationDialog::setupLayout2()
         categoryCheckedStates[category] = false;
     }
 
-    QFrame* displayWidget = new QFrame(this);
-    displayWidget->setStyleSheet("QFrame{ background: rgba(0,0,0,0); }");
-    itemsLayout = new QVBoxLayout(displayWidget);
+    processLayout = new QVBoxLayout();
+    processLayout->setMargin(0);
+    processLayout->setSpacing(0);
+
+    displaySeparator = new QFrame(this);
+    displaySeparator->setLineWidth(5);
+    displaySeparator->setFixedHeight(4);
+    displaySeparator->setFrameShape(QFrame::HLine);
+
+    if (SHOW_SEPARATOR_MARGIN) {
+        QFrame* displaySeparatorFrame = new QFrame(this);
+        displaySeparatorFrame->setFixedHeight(15);
+        QVBoxLayout* separatorLayout = new QVBoxLayout(displaySeparatorFrame);
+        separatorLayout->setContentsMargins(0, 2, 0, 0);
+        separatorLayout->setMargin(0);
+        separatorLayout->addWidget(displaySeparator);
+        displayedSeparatorFrame = displaySeparatorFrame;
+    } else {
+        displayedSeparatorFrame = displaySeparator;
+    }
+
+    //displayedSeparatorFrame->hide();
+
+    itemsLayout = new QVBoxLayout();
     itemsLayout->setMargin(0);
     itemsLayout->setSpacing(0);
     itemsLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     itemsLayout->setSizeConstraint(QLayout::SetMinimumSize);
+
+    QFrame* displayWidget = new QFrame(this);
+    displayWidget->setStyleSheet("QFrame{ background: rgba(0,0,0,0); }");
+
+    QVBoxLayout* displayLayout = new QVBoxLayout(displayWidget);
+    displayLayout->setMargin(0);
+    displayLayout->setSpacing(0);
+    displayLayout->addLayout(processLayout);
+    displayLayout->addWidget(displayedSeparatorFrame);
+    displayLayout->addLayout(itemsLayout, 1);
 
     QScrollArea* displayArea = new QScrollArea(this);
     displayArea->setWidget(displayWidget);
@@ -881,6 +996,54 @@ void NotificationDialog::setupLayout2()
     vLayout->setSpacing(DIALOG_SPACING);
     vLayout->addWidget(topButtonsToolbar);
     vLayout->addWidget(displaySplitter, 1);
+
+    // initially hide the category filters
+    filtersMenu->actions().last()->trigger();
+}
+
+
+/**
+ * @brief NotificationDialog::setupBackgroundProcessItems
+ */
+void NotificationDialog::setupBackgroundProcessItems()
+{
+    foreach (BACKGROUND_PROCESS process, NotificationManager::getBackgroundProcesses()) {
+        QString description;
+        switch (process) {
+        case BP_VALIDATION:
+            description = "Validating Model ...";
+            break;
+        case BP_IMPORT_JENKINS:
+            description = "Importing Jenkins Nodes ...";
+            break;
+        default:
+            description = "Background Process In Progress ...";
+            break;
+        }
+
+        QMovie* loadingGif = new QMovie(this);
+        loadingGif->setFileName(":/Actions/Waiting");
+        loadingGif->start();
+
+        //QLabel* textLabel = new QLabel("<i>" + description + "</i>", this);
+        QLabel* textLabel = new QLabel(description, this);
+        QLabel* iconLabel = new QLabel(this);
+        iconLabel->setMovie(loadingGif);
+
+        QFrame* frame = new QFrame(this);
+        frame->setStyleSheet("border: 1px 0px;");
+        //frame->hide();
+
+        QHBoxLayout* layout = new QHBoxLayout(frame);
+        layout->addWidget(iconLabel);
+        layout->addSpacerItem(new QSpacerItem(5,0));
+        layout->addWidget(textLabel, 1);
+
+        processLayout->addWidget(frame);
+        backgroundProcesses[process] = frame;
+    }
+
+    visibleProcessCount = 0;
 }
 
 
@@ -968,10 +1131,6 @@ void NotificationDialog::setActionButtonChecked(QAction* action, bool checked)
     if (action && button) {
         action->setChecked(checked);
         button->setChecked(checked);
-        //qDebug() << "action.isChecked: " << action->isChecked();
-        //qDebug() << "button.isChecked: " << button->isChecked();
-        //button->updateGeometry();
-        //button->update();
     }
 }
 
@@ -1000,14 +1159,18 @@ void NotificationDialog::updateVisibilityCount(int val, bool set)
  * @brief NotificationDialog::constructNotificationItem
  * @param ID
  * @param severity
+ * @param type
+ * @param category
  * @param title
  * @param description
  * @param iconPath
  * @param iconName
  * @param entityID
  */
-void NotificationDialog::constructNotificationItem(int ID, NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID)
+void NotificationDialog::constructNotificationItem(int ID, NOTIFICATION_SEVERITY severity, NOTIFICATION_TYPE2 type, NOTIFICATION_CATEGORY category, QString title, QString description, QString iconPath, QString iconName, int entityID)
 {
+    /*
+    qDebug() << "CONSTRUCTING ITEM OF TYPE: " << ;
     if (iconPath.isEmpty() || iconName.isEmpty()) {
         iconPath = getActionIcon(severity).first;
         iconName = getActionIcon(severity).second;
@@ -1062,4 +1225,5 @@ void NotificationDialog::constructNotificationItem(int ID, NOTIFICATION_SEVERITY
     connect(this, &NotificationDialog::severityFiltersChanged, item, &NotificationItem::severityFilterToggled);
     connect(this, &NotificationDialog::typeFiltersChanged, item, &NotificationItem::typeFilterToggled);
     connect(this, &NotificationDialog::categoryFiltersChanged, item, &NotificationItem::categoryFilterToggled);
+    */
 }

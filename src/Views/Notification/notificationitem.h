@@ -20,6 +20,7 @@ public:
                               NOTIFICATION_CATEGORY c,
                               QWidget *parent = 0);
 
+    int getID();
     NOTIFICATION_SEVERITY getSeverity();
     NOTIFICATION_TYPE2 getType();
     NOTIFICATION_CATEGORY getCategory();

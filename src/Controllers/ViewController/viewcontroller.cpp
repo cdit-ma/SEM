@@ -416,7 +416,6 @@ void ViewController::askQuestion(QString title, QString message, int ID)
 
 void ViewController::modelValidated(QString reportPath)
 {
-    qDebug() << "MODEL VALIDATED";
     QFile xmlFile(reportPath);
     if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
         return;
@@ -432,16 +431,7 @@ void ViewController::modelValidated(QString reportPath)
     xmlFile.close();
 
     emit vc_modelValidated(reportMessages);
-    emit vc_backgroundProcess(false);
-
-    /*
-    foreach (QString message, reportMessages) {
-        QString description = message.split(']').last();
-        QString eID = message.split('[').last().split(']').first();
-        emit vc_showNotification(NT_WARNING, "Model Validation", description, "", "", eID.toInt());
-        //emit vc_newNotification(description, "", "", eID.toInt(), NS_WARNING, NT_MODEL, NC_VALIDATION);
-    }
-    */
+    emit vc_backgroundProcess(false, BP_VALIDATION);
 }
 
 void ViewController::importGraphMLFile(QString graphmlPath)
@@ -502,14 +492,23 @@ void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
 {
-   if(!graphmlData.isEmpty()){
+    bool hasData = !graphmlData.isEmpty();
+    NOTIFICATION_SEVERITY severity = hasData ? NS_INFO : NS_ERROR;
+    QString message = hasData ? "Imported Jenkins nodes successfully" : "Failed to import Jenkins nodes";
+
+    if(hasData){
         emit vc_triggerAction("Loading Jenkins Nodes");
         QStringList fileData;
         fileData << graphmlData;
         emit vc_importProjects(fileData);
-   }else{
-       //Hanlde error!
-   }
+    }else{
+        //Hanlde error!
+    }
+
+    emit vc_backgroundProcess(false, BP_IMPORT_JENKINS);
+
+    // MODEL or APPLICATION type?
+    NotificationManager::manager()->displayNotification(message, "Actions", "Jenkins_Icon", -1, severity, NT_MODEL, NC_JENKINS);
 }
 
 void ViewController::getCodeForComponent()
@@ -535,8 +534,7 @@ void ViewController::validateModel()
 
         if(!filePath.isEmpty()){
             emit vc_validateModel(filePath, reportPath);
-            emit vc_backgroundProcess(true);
-            qDebug() << "Validation Started";
+            emit vc_backgroundProcess(true, BP_VALIDATION);
         }
     }
 }
@@ -1291,6 +1289,11 @@ void ViewController::closeMEDEA()
         //Destruct main window
         WindowManager::teardown();
     }
+}
+
+void ViewController::importJenkinsNodes()
+{
+    emit vc_backgroundProcess(true, BP_IMPORT_JENKINS);
 }
 
 void ViewController::executeJenkinsJob()

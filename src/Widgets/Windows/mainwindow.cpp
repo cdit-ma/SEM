@@ -95,7 +95,8 @@ void MainWindow::setViewController(ViewController *vc)
     SelectionController* controller = vc->getSelectionController();
     ActionController* actionController = vc->getActionController();
 
-    //connect(viewController, &ViewController::vc_newNotification, NotificationManager::manager(), &NotificationManager::newNotification);
+    connect(viewController, &ViewController::vc_backgroundProcess, NotificationManager::manager(), &NotificationManager::backgroundProcess);
+
     connect(viewController, &ViewController::vc_showNotification, NotificationManager::manager(), &NotificationManager::notificationReceived);
     connect(viewController, &ViewController::vc_modelValidated, NotificationManager::manager(), &NotificationManager::modelValidated);
 
@@ -848,7 +849,7 @@ void MainWindow::setupMenuCornerWidget()
     menuBar->setCornerWidget(w);
 
     connect(restoreToolsAction, SIGNAL(triggered(bool)), this, SLOT(resetToolDockWidgets()));
-    connect(viewController, &ViewController::vc_backgroundProcess, notificationToolbar, &NotificationToolbar::displayLoadingGif);
+    //connect(viewController, &ViewController::vc_backgroundProcess, notificationToolbar, &NotificationToolbar::displayLoadingGif);
     //connect(viewController, &ViewController::vc_setupModel, notificationToolbar, &NotificationToolbar::notificationsSeen);
     //connect(viewController, &ViewController::vc_setupModel, notificationDialog, &NotificationDialog::initialiseDialog);
     //connect(viewController, &ViewController::vc_setupNotificationManager, notificationDialog, &NotificationDialog::initialiseDialog);

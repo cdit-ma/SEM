@@ -21,6 +21,7 @@ NotificationToolbar::NotificationToolbar(ViewController* vc, QWidget *parent) :
     connect(toggleNotificationsDialog, &QAction::triggered, this, &NotificationToolbar::toggleDialog);
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationToolbar::themeChanged);
+    connect(NotificationManager::manager(), &NotificationManager::backgroundProcess, this, &NotificationToolbar::displayLoadingGif);
     connect(NotificationManager::manager(), &NotificationManager::notificationAlert, this, &NotificationToolbar::notificationReceived);
     connect(NotificationManager::manager(), &NotificationManager::notificationSeen, this, &NotificationToolbar::notificationsSeen);
     connect(NotificationManager::manager(), &NotificationManager::lastNotificationDeleted, this, &NotificationToolbar::lastNotificationDeleted);

@@ -95,6 +95,20 @@ QList<NotificationObject*> NotificationManager::getNotificationItems()
 
 
 /**
+ * @brief NotificationManager::getBackgroundProcesses
+ * @return
+ */
+QList<BACKGROUND_PROCESS> NotificationManager::getBackgroundProcesses()
+{
+    QList<BACKGROUND_PROCESS> processes;
+    processes.append(BP_UNKNOWN);
+    processes.append(BP_VALIDATION);
+    processes.append(BP_IMPORT_JENKINS);
+    return processes;
+}
+
+
+/**
  * @brief NotificationManager::getNotificationFilters
  * @return
  */
@@ -302,8 +316,6 @@ void NotificationManager::showLastNotification()
 {
     if (lastNotificationItem) {
         emit notificationAdded(lastNotificationItem->iconPath(), lastNotificationItem->iconName(), lastNotificationItem->description());
-    } else {
-        qDebug() << "LAST NOTIFICATION IS NULL : " << getNotificationItems().size();
     }
 }
 

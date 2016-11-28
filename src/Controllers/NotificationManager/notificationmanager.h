@@ -16,6 +16,8 @@ enum NOTIFICATION_CATEGORY{NC_NOCATEGORY, NC_FILE, NC_JENKINS, NC_DEPLOYMENT, NC
 enum NOTIFICATION_SEVERITY{NS_INFO, NS_WARNING, NS_ERROR};
 enum NOTIFICATION_FILTER{NF_NOFILTER, NF_SEVERITY, NF_TYPE, NF_CATEGORY};
 
+enum BACKGROUND_PROCESS{BP_UNKNOWN, BP_VALIDATION, BP_IMPORT_JENKINS};
+
 class NotificationManager : public QObject
 {
     Q_OBJECT
@@ -24,6 +26,7 @@ public:
     static QTime* projectTime();
 
     static QList<NotificationObject*> getNotificationItems();
+    static QList<BACKGROUND_PROCESS> getBackgroundProcesses();
     static QList<NOTIFICATION_FILTER> getNotificationFilters();
     static QList<NOTIFICATION_TYPE2> getNotificationTypes();
     static QList<NOTIFICATION_CATEGORY> getNotificationCategories();
@@ -51,6 +54,8 @@ signals:
 
     void notificationAdded(QString iconPath, QString iconName, QString description);
     void notificationItemAdded(NotificationObject* item);
+
+    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BP_UNKNOWN);
 
     void lastNotificationDeleted();
     void req_lastNotificationID();
