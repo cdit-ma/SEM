@@ -17,6 +17,7 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/basemessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interfaces.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/recieverimpl.cpp
 	)
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/test")
