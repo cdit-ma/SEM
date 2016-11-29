@@ -16,15 +16,8 @@ void zmq_txMessage::txMessage(Message* message){
      
 
     if(m->SerializeToString(&str)){
-        zmq::message_t topic("A", 1);
-        zmq::message_t topic2("B", 1);
         //Construct a message and send it
         zmq::message_t data(str.c_str(), str.size());
-        zmq::message_t data2(str.c_str(), str.size());
-        socket_->send(topic, ZMQ_SNDMORE);
         socket_->send(data);
-
-        socket_->send(topic2, ZMQ_SNDMORE);
-        socket_->send(data2);
     }
 }
