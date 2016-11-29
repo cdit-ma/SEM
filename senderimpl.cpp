@@ -1,11 +1,12 @@
 #include "senderimpl.h"
 #include <iostream>
-
+int i = 0;
 void SenderImpl::periodic_event(){
     Message* msg = new Message();
     msg->set_content("Test");
     msg->set_instName("Poop");
-    std::cout << msg->get_base_message_id() << std::endl;
+    msg->set_time(i++);
+    std::cout << "SenderImpl::periodic_event(): Message: " << msg->time() << std::endl;
     txMessage(msg);
 }
 

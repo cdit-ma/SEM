@@ -3,5 +3,5 @@
 
 
 void RecieverImpl::rxMessage(Message* message){
-    std::cout << "RecieverImpl GOT: " << message->get_base_message_id() << std::endl;
+    std::cout << "RecieverImpl InstName: " << message->instName() << " Content: " << message->content() << " Time: " << message->time() << std::endl;
 }

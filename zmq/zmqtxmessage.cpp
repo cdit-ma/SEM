@@ -6,18 +6,18 @@ zmq_txMessage::zmq_txMessage(txMessageInt* component, zmq::context_t* context, s
     this->context_ = context;
     //Construct a socket!
     this->socket_ = new zmq::socket_t(*context, ZMQ_PUB);
-    this->socket_->bind(endpoint);
+    this->socket_->bind(endpoint.c_str());
 }
 
 
-void txMessage(Message* message){
+void zmq_txMessage::txMessage(Message* message){
     std::string str;
-    auto m = message_to_proto(message);
+    auto m = proto::message_to_proto(message);
      
 
     if(m->SerializeToString(&str)){
         //Construct a message and send it
-        std::cout << "Sending :"  << str << std::endl;
         zmq::message_t data(str.c_str(), str.size());
+        socket_->send(data);
     }
 }

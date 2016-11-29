@@ -3,20 +3,21 @@
 
 #include "../interfaces.h"
 #include "zmq.hpp"
-
+#include "convert.h"
 #include <thread>
 
 class zmq_rxMessage: public rxMessageInt{
     public:
-        zmq_txMessage(txMessageInt* component, zmq::context_t* context, std::string endpoint);
+        zmq_rxMessage(rxMessageInt* component, zmq::context_t* context, std::string endpoint);
         void rxMessage(Message* message);
     private:
         void recieve();
 
         std::thread* rec_thread_;
-        txMessageInt* component_;
+        rxMessageInt* component_;
         zmq::context_t* context_;
         zmq::socket_t* socket_;
+        std::string endpoint_;
 };
 
 
