@@ -1,5 +1,5 @@
 syntax="proto3";
-
+package proto;
 message Message{
     double time = 1;
     string instName = 2;
