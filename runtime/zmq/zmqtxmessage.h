@@ -4,6 +4,8 @@
 #include "../interfaces.h"
 #include "zmq.hpp"
 
+#include "convert.h"
+
 class zmq_txMessage: public txMessageInt{
     public:
         zmq_txMessage(txMessageInt* component, zmq::context_t* context, std::string endpoint);
