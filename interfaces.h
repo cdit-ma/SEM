@@ -25,9 +25,12 @@ class SenderInt: public txMessageInt{
 
         //Attributes
         std::string instName();
+        std::string message();
         void set_instName(const std::string val);
+        void set_message(const std::string val);
     private:
         std::string instName_;
+        std::string message_;
 };
 
 

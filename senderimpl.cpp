@@ -3,10 +3,9 @@
 int i = 0;
 void SenderImpl::periodic_event(){
     Message* msg = new Message();
-    msg->set_content("Test");
-    msg->set_instName("Poop");
-    msg->set_time(i++);
-    std::cout << "SenderImpl::periodic_event(): Message: " << msg->time() << std::endl;
+    msg->set_time(this->sentCount_ ++);
+    msg->set_instName(this->instName());
+    msg->set_content(this->message());
     txMessage(msg);
 }
 

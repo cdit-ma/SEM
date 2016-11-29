@@ -11,6 +11,9 @@ class SenderImpl: public SenderInt{
     public:
         void txMessage(Message* message);
         txMessageInt* txMessage_;
+
+    private:
+        int sentCount_;
 };
 
 #endif //SENDERIMPL_H
