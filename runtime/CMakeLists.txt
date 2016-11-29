@@ -10,7 +10,6 @@ set(PROJ_NAME test_runtime)
 
 project (${PROJ_NAME})
 
-
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/message.cpp
@@ -21,7 +20,7 @@ set(SOURCE
 	)
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/test")
-#add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
+add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
@@ -33,3 +32,5 @@ else()
 	#Unix needs to include pthread
 	target_link_libraries(${PROJ_NAME} pthread dl)
 endif()
+
+
