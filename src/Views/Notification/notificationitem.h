@@ -21,12 +21,17 @@ public:
                               QWidget *parent = 0);
 
     int getID();
+    int getEntityID();
+    QString getIconPath();
+    QString getIconName();
     NOTIFICATION_SEVERITY getSeverity();
     NOTIFICATION_TYPE2 getType();
     NOTIFICATION_CATEGORY getCategory();
 
+    void setSelected(bool select);
+
 signals:
-    void itemSelected(int ID, bool append = false);
+    void itemClicked(NotificationItem* item, bool currentState, bool controlDown);
 
 public slots:
     void themeChanged();
@@ -36,12 +41,9 @@ public slots:
     void categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates);
 
 protected:
-    void mouseReleaseEvent(QMouseEvent *event);
-    //void enterEvent(QEvent *event);
-    //void leaveEvent(QEvent *event);
+    void mouseReleaseEvent(QMouseEvent* event);
 
 private:
-    void setSelected(bool select, bool append = false);
     void updateStyleSheet();
 
     QLabel* iconLabel;
@@ -52,8 +54,8 @@ private:
     NOTIFICATION_CATEGORY category;
 
     QString backgroundColor;
-    bool expanded;
     bool selected;
+    //bool expanded;
 };
 
 #endif // NOTIFICATIONITEM_H

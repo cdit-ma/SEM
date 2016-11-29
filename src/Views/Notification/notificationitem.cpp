@@ -32,7 +32,7 @@ NotificationItem::NotificationItem(int ID, QString description, QString iconPath
     type = t;
     category = c;
 
-    expanded = false;
+    //expanded = false;
     selected = true;
 
     setSelected(false);
@@ -56,6 +56,36 @@ NotificationItem::NotificationItem(int ID, QString description, QString iconPath
 int NotificationItem::getID()
 {
     return property("ID").toInt();
+}
+
+
+/**
+ * @brief NotificationItem::getEntityID
+ * @return
+ */
+int NotificationItem::getEntityID()
+{
+    return property("entityID").toInt();
+}
+
+
+/**
+ * @brief NotificationItem::getIconPath
+ * @return
+ */
+QString NotificationItem::getIconPath()
+{
+    return property("iconPath").toString();
+}
+
+
+/**
+ * @brief NotificationItem::getIconName
+ * @return
+ */
+QString NotificationItem::getIconName()
+{
+    return property("iconName").toString();
 }
 
 
@@ -102,12 +132,10 @@ void NotificationItem::themeChanged()
     }
     updateStyleSheet();
 
-    QString path = property("iconPath").toString();
-    QString name = property("iconName").toString();
-    ///*
+    QString path = getIconPath();
+    QString name = getIconName();
     QColor tintColor = NotificationManager::getSeverityColor(severity);
     iconLabel->setPixmap(theme->getImage(path, name, QSize(28,28), tintColor));
-    //*/
     //iconLabel->setPixmap(theme->getImage(path, name, QSize(28,28), theme->getMenuIconColor()));
 }
 
@@ -155,25 +183,21 @@ void NotificationItem::categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> 
  * @brief NotificationItem::mouseReleaseEvent
  * @param event
  */
-void NotificationItem::mouseReleaseEvent(QMouseEvent *event)
+void NotificationItem::mouseReleaseEvent(QMouseEvent* event)
 {
-    bool append = false;
-    if (event->modifiers().testFlag(Qt::ControlModifier)) {
-        append = true;
-    }
-    setSelected(!selected, append);
+    emit itemClicked(this, selected, event->modifiers().testFlag(Qt::ControlModifier));
 }
 
 
 /**
  * @brief NotificationItem::setSelected
+ * @param select
  */
-void NotificationItem::setSelected(bool select, bool append)
+void NotificationItem::setSelected(bool select)
 {
     if (selected != select) {
         selected = select;
         if (selected) {
-            emit itemSelected(property("ID").toInt(), append);
             backgroundColor =  Theme::theme()->getAltBackgroundColorHex();
         } else {
             backgroundColor =  Theme::theme()->getBackgroundColorHex();

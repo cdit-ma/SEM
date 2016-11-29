@@ -35,14 +35,11 @@ class NotificationDialog : public QDialog
 public:
     explicit NotificationDialog(QWidget *parent = 0);
 
-    void removeNotificationItem(int ID);
-
 signals:
     void centerOn(int entityID);
     void popup(int entityID);
 
     void itemDeleted(int ID);
-
     void lastNotificationID(int ID);
 
     void updateSeverityCount(NOTIFICATION_SEVERITY severity, int count);
@@ -64,14 +61,12 @@ public slots:
 
 private slots:
     void themeChanged();
-    void listSelectionChanged();
-
-    void severityActionToggled(int actionSeverity);
 
     void filterMenuTriggered(QAction* action);
     void filterToggled(bool checked);
     void clearFilters();
 
+    void updateSelection(NotificationItem* item, bool selected, bool controlDown);
     void viewSelection();
 
     void clearSelected();
@@ -79,7 +74,7 @@ private slots:
     void clearNotifications(NOTIFICATION_FILTER filter, int filterVal);
 
     void notificationItemAdded(NotificationObject* obj);
-    void notificationItemClicked(QListWidgetItem* item);
+    void notificationItemDeleted(int ID, NOTIFICATION_SEVERITY severity);
 
     void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
 
@@ -92,20 +87,17 @@ private:
     QAction* constructFilterButtonAction(QToolButton* button);
     void setActionButtonChecked(QAction *action, bool checked);
 
-    void constructNotificationItem(int ID, NOTIFICATION_SEVERITY severity, NOTIFICATION_TYPE2 type, NOTIFICATION_CATEGORY category, QString title, QString description, QString iconPath, QString iconName, int entityID);
-    void removeItem(QListWidgetItem* item);
-    void removeItem2(int ID);
+    void removeItem(int ID);
 
     void clearAll();
+    void clearSelection();
 
     void updateVisibilityCount(int val, bool set = false);
 
     void updateSeverityActions(QList<NOTIFICATION_SEVERITY> severities);
     void updateSeverityAction(NOTIFICATION_SEVERITY severity);
 
-    QAction* getSeverityAction(NOTIFICATION_SEVERITY severity) const;
     QPair<QString, QString> getActionIcon(NOTIFICATION_SEVERITY severity) const;
-
     NOTIFICATION_FILTER getNotificationFilter(ITEM_ROLES role);
 
     QToolBar* topButtonsToolbar;
@@ -119,19 +111,13 @@ private:
 
     QList<QActionGroup*> actionGroups;
     QList<QAction*> groupSeparators;
-    QHash<QAction*, int> prevGroupIndex;
     QHash<ITEM_ROLES, int> indexMap;
 
-    QAction* allAction;
-
-    QHash<ITEM_ROLES, QActionGroup*> filterGroups;
-    QHash<ITEM_ROLES, QAction*> separators;
-
-    QListWidget* listWidget;
     QToolBar* topToolbar;
     QToolBar* bottomToolbar;
     QToolBar* iconOnlyToolbar;
 
+    QAction* allAction;
     QAction* sortTimeAction;
     QAction* sortSeverityAction;
     QAction* centerOnAction;
@@ -139,25 +125,21 @@ private:
     QAction* clearSelectedAction;
     QAction* clearVisibleAction;
 
-    QHash<int, NotificationItem*> notificationItems;
-    QHash<BACKGROUND_PROCESS, QFrame*> backgroundProcesses;
-
     QFrame* displayedSeparatorFrame;
     QFrame* displaySeparator;
 
-    QHash<NOTIFICATION_TYPE2, QAction*> typeActionHash;
-    QHash<NOTIFICATION_CATEGORY, QAction*> categoryActionHash;
-    QHash<NOTIFICATION_SEVERITY, QAction*> severityActionHash;
+    QHash<BACKGROUND_PROCESS, QFrame*> backgroundProcesses;
+    QHash<int, NotificationItem*> notificationItems;
+    QList<NotificationItem*> selectedItems;
+
+    QHash<NOTIFICATION_SEVERITY, int> severityItemsCount;
 
     QHash<NOTIFICATION_SEVERITY, bool> severityCheckedStates;
     QHash<NOTIFICATION_TYPE2, bool> typeCheckedStates;
     QHash<NOTIFICATION_CATEGORY, bool> categoryCheckedStates;
 
     QHash<QAction*, QToolButton*> filterButtonHash;
-    QList<QAction*> checkedActions;
-
-    QMultiMap<NOTIFICATION_SEVERITY, QListWidgetItem*> notificationHash;
-    QHash<int, QListWidgetItem*> notificationIDHash;
+    QList<QAction*> checkedFilterActions;
 
     int visibleCount;
     int visibleProcessCount;

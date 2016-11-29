@@ -374,12 +374,21 @@ void NotificationManager::addNotification(QString description, QString iconPath,
 /**
  * @brief NotificationManager::deleteNotification
  * Remove notification with the provided ID from the hash and the notification dialog.
+ * Send a signal to update the warning/error counbt in the notification toolbar.
  * @param ID
  */
 void NotificationManager::deleteNotification(int ID)
 {
-    // remove from hash
-    notificationItems.remove(ID);
+    if (!notificationItems.contains(ID)) {
+        return;
+    }
+
+    // remove from hash, update notification toolbar's severity count and then delete the object
+    NotificationObject* obj = notificationItems.take(ID);
+    if (obj) {
+        emit notificationDeleted(ID, obj->severity());
+        delete obj;
+    }
 
     // check if the deleted notification is the last notification
     if (lastNotificationItem && lastNotificationItem->ID() == ID) {

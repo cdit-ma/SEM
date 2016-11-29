@@ -53,7 +53,8 @@ signals:
     void notificationSeen();
 
     void notificationAdded(QString iconPath, QString iconName, QString description);
-    void notificationItemAdded(NotificationObject* item);
+    void notificationItemAdded(NotificationObject* obj);
+    void notificationDeleted(int ID, NOTIFICATION_SEVERITY severity);
 
     void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BP_UNKNOWN);
 
