@@ -18,10 +18,14 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS message.proto)
 
 set(SOURCE
 	${PROTO_SRCS}
+	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.cpp
 	)
 
 set(PROTO_HDRS
 	${PROTO_SRCS}
+	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.h
+	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.h
 	)
 
 
