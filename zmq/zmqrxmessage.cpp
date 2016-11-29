@@ -17,19 +17,25 @@ void zmq_rxMessage::rxMessage(Message* message){
 
 void zmq_rxMessage::recieve(){
     this->socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
-    this->socket_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+    this->socket_->setsockopt(ZMQ_SUBSCRIBE, "A", 1);
     
     
     this->socket_->connect(endpoint_.c_str());
 
+    zmq::message_t *topic = new zmq::message_t();
     zmq::message_t *data = new zmq::message_t();
     
     while(true){
 		try{
             std::cout << "WAITING FOR MESSAGE: " << std::endl;
             //Wait for next message
-			socket_->recv(data);
+			socket_->recv(topic);
+            socket_->recv(data);
 
+            std::string topic_str(static_cast<char *>(topic->data()), topic->size());
+
+            std::cout << "GOT TOPIC: " <<topic_str  << std::endl;
+            
             //If we have a valid message
             if(data->size() > 0){
                 //Construct a string out of the zmq data

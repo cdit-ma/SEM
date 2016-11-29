@@ -20,12 +20,12 @@ int main(int argc, char** argv){
     RecieverImpl* reciever_impl = new RecieverImpl();
     
     //Construct Ports
-    rxMessageInt* rxMessage = new test_rxMessage(reciever_impl);
-    txMessageInt* txMessage = new test_txMessage(sender_impl, rxMessage);
+    //rxMessageInt* rxMessage = new test_rxMessage(reciever_impl);
+    //txMessageInt* txMessage = new test_txMessage(sender_impl, rxMessage);
 
-    //zmq::context_t * context = new zmq::context_t(1);
-    //txMessageInt* txMessage = new zmq_txMessage(sender_impl, context, std::string("tcp://*:6000"));
-    //rxMessageInt* rxMessage = new zmq_rxMessage(reciever_impl, context, std::string("tcp://192.168.111.187:6000"));
+    zmq::context_t * context = new zmq::context_t(1);
+    txMessageInt* txMessage = new zmq_txMessage(sender_impl, context, std::string("tcp://*:6000"));
+    rxMessageInt* rxMessage = new zmq_rxMessage(reciever_impl, context, std::string("tcp://192.168.111.187:6000"));
     
     //Attach Ports
     sender_impl->txMessage_ = txMessage;
