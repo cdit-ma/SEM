@@ -1,12 +1,10 @@
 #include "convert.h"
-
+#include <iostream>
 test_dds::Message* message_to_dds(::Message* message){
         test_dds::Message* out = test_dds::Message::TypeSupport::create_data();
-
         out->time = message->time();
-        strncpy(out->instName, message->instName().c_str(), message->instName().length()+1);
-        strncpy(out->content, message->content().c_str(), message->content().length()+1);
-
+        out->instName = DDS_String_dup(message->instName().c_str());
+        out->content = DDS_String_dup(message->content().c_str());
         return out;
 }
 
