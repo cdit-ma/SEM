@@ -17,6 +17,8 @@ include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ddstxmessage.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ddsrxmessage.cpp
 )
 
 set(HEADERS

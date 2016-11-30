@@ -22,6 +22,7 @@ set(SOURCE
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/test")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
+add_subdirectory("${PROJECT_SOURCE_DIR}/dds")
 
 
 
@@ -55,3 +56,4 @@ target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
 
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} zmq_library)
+target_link_libraries(${PROJ_NAME} dds_library)
