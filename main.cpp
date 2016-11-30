@@ -24,6 +24,10 @@ void setupDDS(){
                         NULL,   /* Listener */
                         DDS_STATUS_MASK_NONE);
 
+
+
+
+
 }
 
 int main(int argc, char** argv){
