@@ -37,9 +37,11 @@ void dds_rxMessage::recieve(){
             //if we have valid data, use it.
             Message* m = dds_to_message(out);
             rxMessage(m);
+
         }
         //Clean up
         test_dds::Message::TypeSupport::delete_data(out);
+         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
 }
