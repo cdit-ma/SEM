@@ -16,8 +16,6 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS message.proto)
 
-
-
 set(SOURCE
 	${PROTO_SRCS}
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.cpp
@@ -25,13 +23,12 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
 	)
 
-set(PROTO_HDRS
-	${PROTO_SRCS}
+set(HEADERS
+	${PROTO_HDRS}
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/convert.h
 	)
-
 
 add_library(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
