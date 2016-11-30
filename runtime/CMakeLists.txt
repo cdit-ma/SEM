@@ -23,9 +23,17 @@ set(SOURCE
 add_subdirectory("${PROJECT_SOURCE_DIR}/test")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 
+
+
 find_package(ZeroMQ REQUIRED)
 include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/dds/cmake/modules")
+find_package(DDS REQUIRED)
+include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
+
+set(CMAKE_CXX_FLAGS "-Wl,--no-as-needed")
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
@@ -36,6 +44,14 @@ else()
 	#Unix needs to include pthread
 	target_link_libraries(${PROJ_NAME} pthread dl)
 endif()
+
+
+
+target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_LINUX -DRTI_64BIT)
+
+link_libraries(${PROJ_NAME} ${CMAKE_DL_LIBS})
+
+target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
 
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} zmq_library)
