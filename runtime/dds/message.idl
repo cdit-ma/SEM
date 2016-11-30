@@ -1,6 +1,8 @@
+module test_dds{
 
 struct Message{
     long time;
     string instName;
     string content;
+};
 };

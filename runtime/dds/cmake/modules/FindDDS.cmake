@@ -27,7 +27,7 @@ find_path(DDS_INCLUDE_DIR ndds/ndds_cpp.h
     HINTS ${DDS_ROOT}/include $ENV{DDS_ROOT}/include
     $ENV{NDDSHOME}/include)
 
-    MESSAGE(${DDS_INCLUDE_DIR})
+MESSAGE(${DDS_INCLUDE_DIR})
 
 if(NOT DDS_HOST)
     set(DDS_HOST "x64Linux2.6gcc4.4.5")
