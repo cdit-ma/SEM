@@ -1,0 +1,6 @@
+
+struct Message{
+    long time;
+    string instName;
+    string content;
+};
