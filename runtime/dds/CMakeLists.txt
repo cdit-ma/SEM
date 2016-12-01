@@ -27,10 +27,14 @@ set(HEADERS
 
 set(DDS_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/message.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/messageImpl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.h
 )
 
 set(DDS_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/message.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/messageImpl.cxx
+    ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.cxx
 )
 
 
