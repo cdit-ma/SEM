@@ -26,15 +26,11 @@ set(HEADERS
 )
 
 set(DDS_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/message.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageSupport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/messagePlugin.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/message.hpp
 )
 
 set(DDS_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/message.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageSupport.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/messagePlugin.cxx
 )
 
 

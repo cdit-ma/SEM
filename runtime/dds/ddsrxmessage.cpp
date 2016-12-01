@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-dds_rxMessage::dds_rxMessage(rxMessageInt* component, DDSSubscriber* subscriber, DDSTopic* topic){
+dds_rxMessage::dds_rxMessage(rxMessageInt* component, dds::sub::Subscriber* subscriber, dds::topic::Topic<test_dds::Message>* topic){
     this->component_ = component;
     this->subscriber_ = subscriber;
     this->topic_ = topic;
@@ -17,31 +17,23 @@ void dds_rxMessage::rxMessage(Message* message){
 }
 
 void dds_rxMessage::recieve(){
-    DDS_DataReaderQos reader_qos;
-    subscriber_->get_participant()->get_default_datareader_qos(reader_qos);
 
-    reader_ = (test_dds::MessageDataReader* ) subscriber_->create_datareader(topic_,
-                                                        reader_qos, 
-                                                        NULL,
-                                                        DDS_STATUS_MASK_ALL);
+    reader_ = new dds::sub::DataReader<test_dds::Message>(*subscriber_, *topic_);
     while(true){
-        //https://community.rti.com/kb/how-implement-generic-read-and-write-methods-using-cpp-templates
-        DDS_SampleInfo info;
         
         //Construct Data
-        test_dds::Message* out = test_dds::Message::TypeSupport::create_data();
+        test_dds::Message* out = new test_dds::Message();
 
-        //Take the data.        
-        DDS_ReturnCode_t result = reader_->take_next_sample(*out, info);
-        if (result == DDS_RETCODE_OK && info.valid_data) {
-            //if we have valid data, use it.
+        //Take the data.
+        if(reader_->take(*out)){
             Message* m = dds_to_message(out);
             rxMessage(m);
 
         }
+        
         //Clean up
-        test_dds::Message::TypeSupport::delete_data(out);
-         std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        delete out;
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
 }
