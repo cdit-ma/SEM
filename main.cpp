@@ -6,19 +6,19 @@
 #include "senderimpl.h"
 #include "recieverimpl.h"
 
-#include "test/testtxmessage.h"
-#include "test/testrxmessage.h"
-#include "zmq/zmqrxmessage.h"
-#include "zmq/zmqtxmessage.h"
-//#include "dds/ddstxmessage.h"
-//#include "dds/ddsrxmessage.h"
-//#include "ndds/ndds_cpp.h"
-//#include "dds/messageSupport.h"
+//#include "test/testtxmessage.h"
+//#include "test/testrxmessage.h"
+//#include "zmq/zmqrxmessage.h"
+//#include "zmq/zmqtxmessage.h"
+#include "dds/ddstxmessage.h"
+#include "dds/ddsrxmessage.h"
+#include "ndds/ndds_cpp.h"
+#include "dds/messageSupport.h"
 
 #include "zmq.hpp"
 
 int main(int argc, char** argv){
-/*
+
 
     DDSDomainParticipant *participant = DDSDomainParticipantFactory::get_instance()->
                         create_participant(
@@ -49,13 +49,13 @@ test_dds::MessageTypeSupport::register_type(participant, type_name);
             DDSTopic* topic = participant->create_topic("TOPIC", type_name,
                                       topic_qos, NULL,
                                       DDS_STATUS_MASK_ALL);
-*/
+
     SenderImpl* sender_impl = new SenderImpl();
     //RecieverImpl* reciever_impl = new RecieverImpl();
     
     //Construct Ports
     //rxMessageInt* rxMessage = new dds_rxMessage(reciever_impl, subscriber, topic);
-  //  txMessageInt* txMessage = new dds_txMessage(sender_impl, publisher, topic);
+    txMessageInt* txMessage = new dds_txMessage(sender_impl, publisher, topic);
 
     //zmq::context_t * context = new zmq::context_t(1);
     //txMessageInt* txMessage = new zmq_txMessage(sender_impl, context, std::string("tcp://*:6000"));
@@ -63,7 +63,7 @@ test_dds::MessageTypeSupport::register_type(participant, type_name);
     //rxMessageInt* rxMessage = new zmq_rxMessage(reciever_impl, context, std::string("tcp://192.168.111.187:6000"));
     
     //Attach Ports
-  //  sender_impl->txMessage_ = txMessage;
+    sender_impl->txMessage_ = txMessage;
     //reciever_impl->rxMessage_ = rxMessage;
 
     sender_impl->set_instName("SenderImpl");
