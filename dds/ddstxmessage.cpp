@@ -1,26 +1,20 @@
-#include "convert.h"
-#include <iostream>
 #include "ddstxmessage.h"
+#include "convert.h"
 
-dds_txMessage::dds_txMessage(txMessageInt* component, DDSPublisher* publisher, DDSTopic* topic){
+#include <iostream>
+
+
+dds_txMessage::dds_txMessage(txMessageInt* component, dds::pub::Publisher* publisher, dds::topic::Topic<test_dds::Message>* topic){
     this->component_ = component;
     this->publisher_ = publisher;
-
-    DDS_DataWriterQos writerQos;
-
-    publisher->get_participant()->get_default_datawriter_qos(writerQos);
-
-    //Construct DataWriter
-    writer_ = (test_dds::MessageDataWriter*) publisher_->create_datawriter(topic, writerQos, NULL, DDS_STATUS_MASK_ALL);
-
-
-
+    
+    writer_ = new dds::pub::DataWriter<test_dds::Message>(*publisher_, *topic);
 }
 
 
 void dds_txMessage::txMessage(Message* message){
     test_dds::Message* m = message_to_dds(message);
     
-    writer_->write(*m, DDS_HANDLE_NIL);
+    writer_->write(*m);
     std::cout << "WRITING MESSAGE: " << message->time() << std::endl;
 }

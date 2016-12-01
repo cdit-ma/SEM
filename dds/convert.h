@@ -1,8 +1,8 @@
 #ifndef DDS_CONVERT_H
 #define DDS_CONVERT_H
 
-#include "message.h"
-#include "messageSupport.h"
+#include "message.hpp"
+
 
 #include "../message.h"
 
