@@ -1,7 +1,6 @@
 #include "ddsrxmessage.h"
 #include "convert.h"
 
-
 #include <iostream>
 
 dds_rxMessage::dds_rxMessage(rxMessageInt* component, dds::sub::Subscriber* subscriber, dds::topic::Topic<test_dds::Message>* topic){
@@ -17,23 +16,17 @@ void dds_rxMessage::rxMessage(Message* message){
 }
 
 void dds_rxMessage::recieve(){
-
     reader_ = new dds::sub::DataReader<test_dds::Message>(*subscriber_, *topic_);
-    while(true){
-        
-        //Construct Data
-        test_dds::Message* out = new test_dds::Message();
+    while(true){ 
+        auto samples = reader_->take();
 
-        //Take the data.
-        if(reader_->take(*out)){
-            Message* m = dds_to_message(out);
-            rxMessage(m);
-
+        for(auto sample_it = samples.begin(); sample_it != samples.end(); ++sample_it){
+            if(sample_it->info().valid()){
+                Message* m = dds_to_message(sample_it->data());
+                rxMessage(m);
+            }
         }
-        
-        //Clean up
-        delete out;
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    }
 
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
 }
