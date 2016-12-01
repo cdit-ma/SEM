@@ -41,6 +41,6 @@ set(DDS_SOURCE
 add_library(${PROJ_NAME} ${SOURCE} ${HEADERS}  ${DDS_SOURCE} ${DDS_HEADERS})
 
 #add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT)
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_LINUX -DRTI_64BIT)
+target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT)
 
 target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
