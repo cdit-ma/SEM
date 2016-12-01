@@ -1,0 +1,8 @@
+module ospl{
+    struct Message{
+        long time;
+        string instName;
+        string content;
+    };
+    #pragma keylist Message instName
+};
