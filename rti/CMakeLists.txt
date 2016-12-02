@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
-set(PROJ_NAME dds_library)
+set(PROJ_NAME rti_library)
 project (${PROJ_NAME})
 
 find_package(DDS REQUIRED)
