@@ -23,19 +23,28 @@ set(SOURCE
 #add_subdirectory("${PROJECT_SOURCE_DIR}/test")
 #add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
 
 
+#find OSPL
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/opensplice/cmake")
+#find_package(OpenSplice REQUIRED)
+#include_directories(${PROJ_NAME} ${OpenSplice_INCLUDE_DIRS})
 
+#find ZMQ
 #find_package(ZeroMQ REQUIRED)
 #include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 
+#find RTIDDS
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/dds/cmake/modules")
+#find_package(DDS REQUIRED)
+#include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/rti/cmake/modules")
 
 find_package(DDS REQUIRED)
 include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
 
-#set(CMAKE_CXX_FLAGS "-Wl -lnsl")
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
@@ -51,8 +60,11 @@ endif()
 #target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
 target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT)
 
-target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
-
 #target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
+#target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})
+
 #target_link_libraries(${PROJ_NAME} zmq_library)
 target_link_libraries(${PROJ_NAME} rti_library)
+#target_link_libraries(${PROJ_NAME} ospl_library)
+
