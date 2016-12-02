@@ -12,20 +12,21 @@ project (${PROJ_NAME})
 find_package(OpenSplice REQUIRED)
 include_directories(${PROJ_NAME} ${OpenSplice_INCLUDE_DIRS})
 
-
-
-
 set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.cpp
 )
 
 set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/convert.h
 )
 
 set(DDS_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/message_DCPS.hpp
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/message.h
     ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps.h
     ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps_impl.h
@@ -33,16 +34,13 @@ set(DDS_HEADERS
 )
 
 set(DDS_SOURCE
-     ${CMAKE_CURRENT_SOURCE_DIR}/message.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/message.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps_impl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/messageSplDcps.cpp
 )
 
 
-add_library(${PROJ_NAME} ${SOURCE} ${HEADERS})
-
-#add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT)
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT)
+add_library(${PROJ_NAME} ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})

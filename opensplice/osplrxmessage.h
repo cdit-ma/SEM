@@ -1,28 +1,27 @@
 #ifndef OSPLRXMESSAGE_H
 #define OSPLRXMESSAGE_H
 
-#include "../interfaces.h"
+#include "dds/dds.hpp"
 #include <thread>
-#include <dds/core/ddscore.hpp>
 
-#include "message.h"
-#include "messageDcps.h"
-//#include "messageSplDcps.h"
+#include "../interfaces.h"
+#include "message_DCPS.hpp"
+
 
 class ospl_rxMessage: public rxMessageInt{
     public:
-        ospl_rxMessage(rxMessageInt* component, DDSSubscriber* subscriber, DDSTopic* topic);
+        ospl_rxMessage(rxMessageInt* component, dds::sub::Subscriber subscriber, std::string topic_name);
         void rxMessage(Message* message);
     private:
         void recieve();
 
-
         std::thread* rec_thread_;
         rxMessageInt* component_;
-        DDSSubscriber* subscriber_;
-        test_ospl::MessageDataReader* reader_;
-        DDSTopic* topic_;
+
+        //Magic DDS stuff
+        dds::sub::Subscriber subscriber_ = dds::sub::Subscriber(dds::core::null);        
+        dds::sub::DataReader<test_dds::Message> reader_ = dds::sub::DataReader<test_dds::Message>(dds::core::null);
 };
 
 
-#endif //osplRXMESSAGE_H
+#endif //OSPLRXMESSAGE_H

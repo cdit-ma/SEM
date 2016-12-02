@@ -39,6 +39,11 @@ find_library(DDS_C_LIBRARY nddsc
 find_library(DDS_CPP_LIBRARY nddscpp
     HINTS ${DDS_ROOT}/lib $ENV{DDS_ROOT}/lib $ENV{NDDSHOME}/lib
     PATH_SUFFIXES ${DDS_HOST})
+
+find_library(DDS_CPP2_LIBRARY nddscpp2
+    HINTS ${DDS_ROOT}/lib $ENV{DDS_ROOT}/lib $ENV{NDDSHOME}/lib
+    PATH_SUFFIXES ${DDS_HOST})
+
 find_library(DDS_CORE_LIBRARY nddscore
     HINTS ${DDS_ROOT}/lib $ENV{DDS_ROOT}/lib $ENV{NDDSHOME}/lib
     PATH_SUFFIXES ${DDS_HOST})
@@ -57,9 +62,9 @@ else(WIN32)
     set(DDS_DEFINITIONS -DRTI_UNIX -m64)
 endif(WIN32)
 
-set(DDS_INCLUDE_DIRS ${DDS_INCLUDE_DIR} ${DDS_INCLUDE_DIR}/ndds)
+set(DDS_INCLUDE_DIRS ${DDS_INCLUDE_DIR} ${DDS_INCLUDE_DIR}/ndds ${DDS_INCLUDE_DIR}/ndds/hpp)
 set(DDS_LIBRARIES ${DDS_C_LIBRARY} ${DDS_CPP_LIBRARY} ${DDS_CORE_LIBRARY}
-    ${DDS_EXTRA_LIBRARIES})
+    ${DDS_EXTRA_LIBRARIES} ${DDS_CPP2_LIBRARY})
 
 file(GLOB DDS_VERSION_FILE ${DDS_ROOT}/rev_target_rtidds.*
     $ENV{DDS_ROOT}/rev_target_rtidds.*

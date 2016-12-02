@@ -48,8 +48,8 @@ else()
 endif()
 
 
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
-
+#target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
+target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT)
 
 target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
 
