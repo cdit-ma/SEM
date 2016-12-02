@@ -10,9 +10,11 @@
 //#include "test/testrxmessage.h"
 //#include "zmq/zmqrxmessage.h"
 //#include "zmq/zmqtxmessage.h"
-#include "dds/ddstxmessage.h"
-#include "dds/ddsrxmessage.h"
-#include "dds/message.hpp"
+
+//RTI DDS
+#include "rti/ddstxmessage.h"
+#include "rti/ddsrxmessage.h"
+#include "rti/message.hpp"
 
 #include <dds/dds.hpp>
 
@@ -50,10 +52,10 @@ int main(int argc, char** argv){
     sender_impl->set_message("Hello, World!");
 
 
-    int i = 60;
+    int i = 600;
     while(i-- > 0){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        sender_impl->periodic_event();
+        //sender_impl->periodic_event();
     }
 
     return -1;

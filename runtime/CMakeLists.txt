@@ -22,7 +22,7 @@ set(SOURCE
 
 #add_subdirectory("${PROJECT_SOURCE_DIR}/test")
 #add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
-add_subdirectory("${PROJECT_SOURCE_DIR}/dds")
+add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
 
 
 
@@ -30,7 +30,7 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/dds")
 #include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/dds/cmake/modules")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/rti/cmake/modules")
 
 find_package(DDS REQUIRED)
 include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
@@ -55,4 +55,4 @@ target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
 
 #target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 #target_link_libraries(${PROJ_NAME} zmq_library)
-target_link_libraries(${PROJ_NAME} dds_library)
+target_link_libraries(${PROJ_NAME} rti_library)
