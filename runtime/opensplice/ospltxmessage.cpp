@@ -1,26 +1,22 @@
+#include "ospltxmessage.h"
 #include "convert.h"
-#include <iostream>
-#include "ddstxmessage.h"
 
-dds_txMessage::dds_txMessage(txMessageInt* component, DDSPublisher* publisher, DDSTopic* topic){
+#include <iostream>
+
+ospl_txMessage::ospl_txMessage(txMessageInt* component, dds::pub::Publisher publisher, std::string topic_name)
+:publisher_(dds::core::null),
+writer_(dds::core::null)
+{
     this->component_ = component;
     this->publisher_ = publisher;
 
-    DDS_DataWriterQos writerQos;
+    dds::topic::Topic<test_dds::Message> topic(publisher_.participant(), topic_name);
 
-    publisher->get_participant()->get_default_datawriter_qos(writerQos);
-
-    //Construct DataWriter
-    writer_ = (test_dds::MessageDataWriter*) publisher_->create_datawriter(topic, writerQos, NULL, DDS_STATUS_MASK_ALL);
-
-
-
+    //construct a DDS writer
+    writer_ = dds::pub::DataWriter<test_dds::Message>(publisher_, topic);
 }
 
-
-void dds_txMessage::txMessage(Message* message){
-    test_dds::Message* m = message_to_dds(message);
-    
-    writer_->write(*m, DDS_HANDLE_NIL);
-    std::cout << "WRITING MESSAGE: " << message->time() << std::endl;
+void ospl_txMessage::txMessage(Message* message){
+    test_dds::Message m = opensplice::message_to_opensplice(message);
+    writer_.write(m);
 }

@@ -2,21 +2,21 @@
 #define DDSTXMESSAGE_H
 
 #include "../interfaces.h"
-#include "ndds/ndds_cpp.h"
-#include "message.h"
-#include "messageSupport.h"
-#include "messagePlugin.h"
+
+#include <dds/dds.hpp>
+#include "message.hpp"
 
 
 class dds_txMessage: public txMessageInt{
     public:
-        dds_txMessage(txMessageInt* component, DDSPublisher* publisher, DDSTopic* topic);
+        dds_txMessage(txMessageInt* component, dds::pub::Publisher* publisher, dds::topic::Topic<test_dds::Message>* topic);
         void txMessage(Message* message);
     private:
         txMessageInt* component_;
-        DDSPublisher* publisher_;
-        std::string topic_;
-        test_dds::MessageDataWriter* writer_;
+        dds::pub::Publisher* publisher_;
+
+        dds::pub::DataWriter<test_dds::Message>* writer_;
+        dds::topic::Topic<test_dds::Message>* topic_;
 };
 
 

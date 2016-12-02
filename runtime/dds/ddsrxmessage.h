@@ -2,26 +2,26 @@
 #define DDSRXMESSAGE_H
 
 #include "../interfaces.h"
-#include <thread>
-#include "ndds/ndds_cpp.h"
 
-#include "message.h"
-#include "messageSupport.h"
-#include "messagePlugin.h"
+#include <thread>
+#include <dds/dds.hpp>
+
+#include "message.hpp"
 
 class dds_rxMessage: public rxMessageInt{
     public:
-        dds_rxMessage(rxMessageInt* component, DDSSubscriber* subscriber, DDSTopic* topic);
+        dds_rxMessage(rxMessageInt* component, dds::sub::Subscriber* subscriber, dds::topic::Topic<test_dds::Message>* topic);
         void rxMessage(Message* message);
     private:
         void recieve();
 
-
         std::thread* rec_thread_;
         rxMessageInt* component_;
-        DDSSubscriber* subscriber_;
-        test_dds::MessageDataReader* reader_;
-        DDSTopic* topic_;
+
+        //Magic DDS stuff
+        dds::sub::Subscriber* subscriber_;
+        dds::sub::DataReader<test_dds::Message>* reader_;
+        dds::topic::Topic<test_dds::Message>* topic_;
 };
 
 
