@@ -13,6 +13,7 @@
 
 
 test_dds::Message convert_message(::Message *m);
+
 namespace rti{
     class TxMessage: public txMessageInt{
         public:
