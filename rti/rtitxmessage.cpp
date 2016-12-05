@@ -3,23 +3,22 @@
 
 #include <iostream>
 
-rti::TxMessage::TxMessage(txMessageInt* component, dds::pub::Publisher publisher, std::string topic_name){
-    this->component_ = component;
-    this->publisher_ = publisher;
+test_dds::Message convert_message(::Message *m){
+        test_dds::Message out;
 
-    //Try find first
-    auto topic = dds::topic::find<dds::topic::Topic<test_dds::Message> >(publisher_.participant(), topic_name);
-    if(topic == dds::core::null){
-        //Construct
-        topic = dds::topic::Topic<test_dds::Message>(publisher_.participant(), topic_name); 
-    }
+        out.time(m->time());
+        out.instName(m->instName());
+        out.content(m->content());
 
-    //construct a DDS writer
-    writer_ = dds::pub::DataWriter<test_dds::Message>(publisher_, topic);
+        return out;
 }
 
+rti::TxMessage::TxMessage(txMessageInt* component, dds::pub::Publisher publisher, std::string topic_name){
+    this->component_ = component;
+    
+    tx_ = new DDS_TX_Interface<test_dds::Message, ::Message>(publisher, topic_name);
+}
 
 void rti::TxMessage::txMessage(Message* message){
-    test_dds::Message m = message_to_dds(message);
-    writer_.write(m);
+    tx_->push_message(message);
 }

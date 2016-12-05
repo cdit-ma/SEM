@@ -3,9 +3,16 @@
 
 #include <dds/dds.hpp>
 
+#include "ddstxinterface.h"
+
 #include "../interfaces.h"
 #include "message.hpp"
 
+
+
+
+
+test_dds::Message convert_message(::Message *m);
 namespace rti{
     class TxMessage: public txMessageInt{
         public:
@@ -14,9 +21,8 @@ namespace rti{
             void txMessage(Message* message);
         private:
             txMessageInt* component_;
-            
-            dds::pub::Publisher publisher_ = dds::pub::Publisher(dds::core::null);
-            dds::pub::DataWriter<test_dds::Message> writer_ = dds::pub::DataWriter<test_dds::Message>(dds::core::null);
+
+            DDS_TX_Interface<test_dds::Message, ::Message>* tx_;
     };
 };
 
