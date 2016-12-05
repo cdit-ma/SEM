@@ -45,6 +45,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/rti/cmak
 find_package(DDS REQUIRED)
 include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
 
+set(CMAKE_CXX_FLAGS "-Wl,--no-as-needed")
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
@@ -53,15 +54,15 @@ if (MSVC)
         set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 else()
 	#Unix needs to include pthread
-	target_link_libraries(${PROJ_NAME} pthread dl)
+	target_link_libraries(${PROJ_NAME} pthread dl nsl rt)
 endif()
 
 
-#target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT)
+target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_LINUX -DRTI_64BIT -D_GLIBCXX_USE_CXX11_ABI=0)
+#target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT)
 
 #target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
-#target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
 #target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})
 
 #target_link_libraries(${PROJ_NAME} zmq_library)

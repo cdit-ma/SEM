@@ -20,7 +20,8 @@
 
 //RTI DDS
 #include "rti/rtitxmessage.h"
-#include "rti/rtirxmessage.h"
+
+//#include "rti/rtirxmessage.h"
 
 //OPENSPLICE
 //#include "opensplice/osplrxmessage.h"
@@ -37,8 +38,10 @@ int main(int argc, char** argv){
     RecieverImpl* reciever_impl = new RecieverImpl();
     
     //Construct Ports
-    txMessageInt* txMessage = new rti::TxMessage(sender_impl, publisher, "Test2");
-    rxMessageInt* rxMessage = new rti::RxMessage(reciever_impl, subscriber, "Test2");
+    std::string topic("TEST");
+     new rti::TxMessage(sender_impl, publisher, topic);
+    //txMessageInt* txMessage = new rti::TxMessage(sender_impl, publisher, "Test2");
+    //rxMessageInt* rxMessage = new rti::RxMessage(reciever_impl, subscriber, "Test2");
 
     //txMessageInt* txMessage = new ospl::TxMessage(sender_impl, publisher, "Test2");
     //rxMessageInt* rxMessage = new ospl::RxMessage(reciever_impl, subscriber, "Test2");
@@ -50,8 +53,8 @@ int main(int argc, char** argv){
     
     
     //Attach Ports
-    sender_impl->txMessage_ = txMessage;
-    reciever_impl->rxMessage_ = rxMessage;
+    //sender_impl->txMessage_ = txMessage;
+    //reciever_impl->rxMessage_ = rxMessage;
 
     sender_impl->set_instName("SenderImpl");
     sender_impl->set_message("Hello, World!");

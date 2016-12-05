@@ -30,8 +30,8 @@ find_path(DDS_INCLUDE_DIR ndds/ndds_cpp.h
 MESSAGE(${DDS_INCLUDE_DIR})
 
 if(NOT DDS_HOST)
-    #set(DDS_HOST "x64Linux3gcc4.8.2")
-    set(DDS_HOST "x64Darwin15clang7.0")
+    set(DDS_HOST "x64Linux3gcc4.8.2")
+    #set(DDS_HOST "x64Darwin15clang7.0")
 endif(NOT DDS_HOST)
 find_library(DDS_C_LIBRARY nddsc
     HINTS ${DDS_ROOT}/lib $ENV{DDS_ROOT}/lib $ENV{NDDSHOME}/lib
@@ -64,7 +64,7 @@ endif(WIN32)
 
 set(DDS_INCLUDE_DIRS ${DDS_INCLUDE_DIR} ${DDS_INCLUDE_DIR}/ndds ${DDS_INCLUDE_DIR}/ndds/hpp)
 set(DDS_LIBRARIES ${DDS_C_LIBRARY} ${DDS_CPP_LIBRARY} ${DDS_CORE_LIBRARY}
-    ${DDS_EXTRA_LIBRARIES} ${DDS_CPP2_LIBRARY})
+    ${DDS_EXTRA_LIBRARIES} ${DDS_CPP2_LIBRARY} dl pthread rt)
 
 file(GLOB DDS_VERSION_FILE ${DDS_ROOT}/rev_target_rtidds.*
     $ENV{DDS_ROOT}/rev_target_rtidds.*
