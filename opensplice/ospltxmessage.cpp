@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-ospl_txMessage::ospl_txMessage(txMessageInt* component, dds::pub::Publisher publisher, std::string topic_name){
+ospl::TxMessage::TxMessage(txMessageInt* component, dds::pub::Publisher publisher, std::string topic_name){
     this->component_ = component;
     this->publisher_ = publisher;
 
@@ -18,7 +18,7 @@ ospl_txMessage::ospl_txMessage(txMessageInt* component, dds::pub::Publisher publ
     writer_ = dds::pub::DataWriter<test_dds::Message>(publisher_, topic);
 }
 
-void ospl_txMessage::txMessage(Message* message){
+void ospl::TxMessage::txMessage(Message* message){
     test_dds::Message m = opensplice::message_to_opensplice(message);
     writer_.write(m);
 }
