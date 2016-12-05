@@ -62,7 +62,7 @@ target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64
 
 #target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 #target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})
+#target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})
 
 #target_link_libraries(${PROJ_NAME} zmq_library)
 target_link_libraries(${PROJ_NAME} rti_library)
