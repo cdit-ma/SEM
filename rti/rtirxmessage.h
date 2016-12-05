@@ -12,7 +12,7 @@ namespace rti{
 
 class RxMessage: public rxMessageInt{
     public:
-        RxMessage(rxMessageInt* component, dds::sub::Subscriber subscriber, std::string topic_name);
+        RxMessage(rxMessageInt* component, dds::sub::Subscriber sub, std::string topic_name);
         void rxMessage(Message* message);
     private:
         void recieve();
