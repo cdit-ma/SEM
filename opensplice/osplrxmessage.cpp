@@ -7,7 +7,7 @@
 #include "osplhelper.h"
 
 
-::Message* ospl::translate(test_dds::Message m){
+::Message* ospl::translate(ospl::Message m){
     auto message = new ::Message();
     message->set_instName(m.instName());
     message->set_time(m.time());
@@ -27,12 +27,12 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
 
     auto participant = ospl::get_participant(domain_id);
     auto subscriber = ospl::get_subscriber(participant, this->subscriber_name);
-    auto topic = ospl::get_topic<test_dds::Message>(participant, this->topic_name);
+    auto topic = ospl::get_topic<ospl::Message>(participant, this->topic_name);
    
     rec_thread_ = new std::thread(&RxMessage::recieve, this);
 }
 
-void ospl::RxMessage::rxMessage(Message* message){
+void ospl::RxMessage::rxMessage(::Message* message){
     component_->rxMessage(message);
 }
 
@@ -40,14 +40,15 @@ void ospl::RxMessage::recieve(){
     
     auto participant = ospl::get_participant(domain_id);
     auto subscriber = ospl::get_subscriber(participant, subscriber_name);
-    auto topic = ospl::get_topic<test_dds::Message>(participant, topic_name);
-    auto reader = ospl::get_data_reader<test_dds::Message>(subscriber,topic, reader_name);
+    auto topic = ospl::get_topic<ospl::Message>(participant, topic_name);
+    auto reader = ospl::get_data_reader<ospl::Message>(subscriber,topic, reader_name);
     while(true){ 
         auto samples = reader.take();
 
         for(auto sample_it = samples.begin(); sample_it != samples.end(); ++sample_it){
             if(sample_it->info().valid()){
-                Message* m = ospl::translate(sample_it->data());
+                
+                ::Message* m = ospl::translate(sample_it->data());
                 rxMessage(m);
             }
         }

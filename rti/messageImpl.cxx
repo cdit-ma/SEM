@@ -28,15 +28,15 @@ or consult the RTI Connext manual.
 #include "messageImpl.h"
 
 /* ========================================================================= */
-const char *rti_test_dds_Message_cTYPENAME = "rti_test_dds::Message";
+const char *rti_Message_cTYPENAME = "rti::Message";
 
-DDS_TypeCode* rti_test_dds_Message_c_get_typecode()
+DDS_TypeCode* rti_Message_c_get_typecode()
 {
     static RTIBool is_initialized = RTI_FALSE;
 
-    static DDS_TypeCode rti_test_dds_Message_c_g_tc_instName_string = DDS_INITIALIZE_STRING_TYPECODE((255));
-    static DDS_TypeCode rti_test_dds_Message_c_g_tc_content_string = DDS_INITIALIZE_STRING_TYPECODE((255));
-    static DDS_TypeCode_Member rti_test_dds_Message_c_g_tc_members[3]=
+    static DDS_TypeCode rti_Message_c_g_tc_instName_string = DDS_INITIALIZE_STRING_TYPECODE((255));
+    static DDS_TypeCode rti_Message_c_g_tc_content_string = DDS_INITIALIZE_STRING_TYPECODE((255));
+    static DDS_TypeCode_Member rti_Message_c_g_tc_members[3]=
     {
 
         {
@@ -92,43 +92,43 @@ DDS_TypeCode* rti_test_dds_Message_c_get_typecode()
         }
     };
 
-    static DDS_TypeCode rti_test_dds_Message_c_g_tc =
+    static DDS_TypeCode rti_Message_c_g_tc =
     {{
             DDS_TK_STRUCT,/* Kind */
             DDS_BOOLEAN_FALSE, /* Ignored */
             -1, /*Ignored*/
-            (char *)"rti_test_dds::Message", /* Name */
+            (char *)"rti::Message", /* Name */
             NULL, /* Ignored */      
             0, /* Ignored */
             0, /* Ignored */
             NULL, /* Ignored */
             3, /* Number of members */
-            rti_test_dds_Message_c_g_tc_members, /* Members */
+            rti_Message_c_g_tc_members, /* Members */
             DDS_VM_NONE  /* Ignored */         
-        }}; /* Type code for rti_test_dds_Message_c*/
+        }}; /* Type code for rti_Message_c*/
 
     if (is_initialized) {
-        return &rti_test_dds_Message_c_g_tc;
+        return &rti_Message_c_g_tc;
     }
 
-    rti_test_dds_Message_c_g_tc_members[0]._representation._typeCode = (RTICdrTypeCode *)&DDS_g_tc_long;
+    rti_Message_c_g_tc_members[0]._representation._typeCode = (RTICdrTypeCode *)&DDS_g_tc_long;
 
-    rti_test_dds_Message_c_g_tc_members[1]._representation._typeCode = (RTICdrTypeCode *)&rti_test_dds_Message_c_g_tc_instName_string;
+    rti_Message_c_g_tc_members[1]._representation._typeCode = (RTICdrTypeCode *)&rti_Message_c_g_tc_instName_string;
 
-    rti_test_dds_Message_c_g_tc_members[2]._representation._typeCode = (RTICdrTypeCode *)&rti_test_dds_Message_c_g_tc_content_string;
+    rti_Message_c_g_tc_members[2]._representation._typeCode = (RTICdrTypeCode *)&rti_Message_c_g_tc_content_string;
 
     is_initialized = RTI_TRUE;
 
-    return &rti_test_dds_Message_c_g_tc;
+    return &rti_Message_c_g_tc;
 }
 
-RTIBool rti_test_dds_Message_c_initialize(
-    rti_test_dds_Message_c* sample) {
-    return rti_test_dds_Message_c_initialize_ex(sample,RTI_TRUE,RTI_TRUE);
+RTIBool rti_Message_c_initialize(
+    rti_Message_c* sample) {
+    return rti_Message_c_initialize_ex(sample,RTI_TRUE,RTI_TRUE);
 }
 
-RTIBool rti_test_dds_Message_c_initialize_ex(
-    rti_test_dds_Message_c* sample,RTIBool allocatePointers, RTIBool allocateMemory)
+RTIBool rti_Message_c_initialize_ex(
+    rti_Message_c* sample,RTIBool allocatePointers, RTIBool allocateMemory)
 {
 
     struct DDS_TypeAllocationParams_t allocParams =
@@ -137,13 +137,13 @@ RTIBool rti_test_dds_Message_c_initialize_ex(
     allocParams.allocate_pointers =  (DDS_Boolean)allocatePointers;
     allocParams.allocate_memory = (DDS_Boolean)allocateMemory;
 
-    return rti_test_dds_Message_c_initialize_w_params(
+    return rti_Message_c_initialize_w_params(
         sample,&allocParams);
 
 }
 
-RTIBool rti_test_dds_Message_c_initialize_w_params(
-    rti_test_dds_Message_c* sample, const struct DDS_TypeAllocationParams_t * allocParams)
+RTIBool rti_Message_c_initialize_w_params(
+    rti_Message_c* sample, const struct DDS_TypeAllocationParams_t * allocParams)
 {
 
     if (allocParams) {} /* To avoid warnings */
@@ -179,15 +179,15 @@ RTIBool rti_test_dds_Message_c_initialize_w_params(
     return RTI_TRUE;
 }
 
-void rti_test_dds_Message_c_finalize(
-    rti_test_dds_Message_c* sample)
+void rti_Message_c_finalize(
+    rti_Message_c* sample)
 {
 
-    rti_test_dds_Message_c_finalize_ex(sample,RTI_TRUE);
+    rti_Message_c_finalize_ex(sample,RTI_TRUE);
 }
 
-void rti_test_dds_Message_c_finalize_ex(
-    rti_test_dds_Message_c* sample,RTIBool deletePointers)
+void rti_Message_c_finalize_ex(
+    rti_Message_c* sample,RTIBool deletePointers)
 {
     struct DDS_TypeDeallocationParams_t deallocParams =
     DDS_TYPE_DEALLOCATION_PARAMS_DEFAULT;
@@ -198,12 +198,12 @@ void rti_test_dds_Message_c_finalize_ex(
 
     deallocParams.delete_pointers = (DDS_Boolean)deletePointers;
 
-    rti_test_dds_Message_c_finalize_w_params(
+    rti_Message_c_finalize_w_params(
         sample,&deallocParams);
 }
 
-void rti_test_dds_Message_c_finalize_w_params(
-    rti_test_dds_Message_c* sample,const struct DDS_TypeDeallocationParams_t * deallocParams)
+void rti_Message_c_finalize_w_params(
+    rti_Message_c* sample,const struct DDS_TypeDeallocationParams_t * deallocParams)
 {
 
     if (sample==NULL) {
@@ -223,8 +223,8 @@ void rti_test_dds_Message_c_finalize_w_params(
     }
 }
 
-void rti_test_dds_Message_c_finalize_optional_members(
-    rti_test_dds_Message_c* sample, RTIBool deletePointers)
+void rti_Message_c_finalize_optional_members(
+    rti_Message_c* sample, RTIBool deletePointers)
 {
     struct DDS_TypeDeallocationParams_t deallocParamsTmp =
     DDS_TYPE_DEALLOCATION_PARAMS_DEFAULT;
@@ -241,9 +241,9 @@ void rti_test_dds_Message_c_finalize_optional_members(
 
 }
 
-RTIBool rti_test_dds_Message_c_copy(
-    rti_test_dds_Message_c* dst,
-    const rti_test_dds_Message_c* src)
+RTIBool rti_Message_c_copy(
+    rti_Message_c* dst,
+    const rti_Message_c* src)
 {
 
     if (!RTICdrType_copyLong (
@@ -269,13 +269,13 @@ RTIBool rti_test_dds_Message_c_copy(
 *
 * Defines:  TSeq, T
 *
-* Configure and implement 'rti_test_dds_Message_c' sequence class.
+* Configure and implement 'rti_Message_c' sequence class.
 */
-#define T rti_test_dds_Message_c
-#define TSeq rti_test_dds_Message_cSeq
-#define T_initialize_w_params rti_test_dds_Message_c_initialize_w_params
-#define T_finalize_w_params   rti_test_dds_Message_c_finalize_w_params
-#define T_copy       rti_test_dds_Message_c_copy
+#define T rti_Message_c
+#define TSeq rti_Message_cSeq
+#define T_initialize_w_params rti_Message_c_initialize_w_params
+#define T_finalize_w_params   rti_Message_c_finalize_w_params
+#define T_copy       rti_Message_c_copy
 
 #ifndef NDDS_STANDALONE_TYPE
 #include "dds_c/generic/dds_c_sequence_TSeq.gen"

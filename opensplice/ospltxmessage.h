@@ -4,18 +4,18 @@
 #include "../interfaces.h"
 #include "../message.h"
 
-namespace test_dds{
+namespace ospl{
     class Message;
 };
 
 namespace ospl{
-    test_dds::Message translate(::Message *m);
+    ospl::Message translate(::Message *m);
 
     class TxMessage: public txMessageInt{
         public:
             TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string writer_name, std::string topic_name);
             
-            void txMessage(Message* message);
+            void txMessage(::Message* message);
         private:
             txMessageInt* component_;
             

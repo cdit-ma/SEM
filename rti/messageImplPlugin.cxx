@@ -49,23 +49,23 @@ or consult the RTI Connext manual.
 #include "messageImplPlugin.h"
 
 /* ----------------------------------------------------------------------------
-*  Type rti_test_dds_Message_c
+*  Type rti_Message_c
 * -------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
 Support functions:
 * -------------------------------------------------------------------------- */
 
-rti_test_dds_Message_c*
-rti_test_dds_Message_cPluginSupport_create_data_w_params(
+rti_Message_c*
+rti_Message_cPluginSupport_create_data_w_params(
     const struct DDS_TypeAllocationParams_t * alloc_params){
-    rti_test_dds_Message_c *sample = NULL;
+    rti_Message_c *sample = NULL;
 
     RTIOsapiHeap_allocateStructure(
-        &sample, rti_test_dds_Message_c);
+        &sample, rti_Message_c);
 
     if(sample != NULL) {
-        if (!rti_test_dds_Message_c_initialize_w_params(sample,alloc_params)) {
+        if (!rti_Message_c_initialize_w_params(sample,alloc_params)) {
             RTIOsapiHeap_freeStructure(sample);
             return NULL;
         }
@@ -73,15 +73,15 @@ rti_test_dds_Message_cPluginSupport_create_data_w_params(
     return sample; 
 } 
 
-rti_test_dds_Message_c *
-rti_test_dds_Message_cPluginSupport_create_data_ex(RTIBool allocate_pointers){
-    rti_test_dds_Message_c *sample = NULL;
+rti_Message_c *
+rti_Message_cPluginSupport_create_data_ex(RTIBool allocate_pointers){
+    rti_Message_c *sample = NULL;
 
     RTIOsapiHeap_allocateStructure(
-        &sample, rti_test_dds_Message_c);
+        &sample, rti_Message_c);
 
     if(sample != NULL) {
-        if (!rti_test_dds_Message_c_initialize_ex(sample,allocate_pointers, RTI_TRUE)) {
+        if (!rti_Message_c_initialize_ex(sample,allocate_pointers, RTI_TRUE)) {
             RTIOsapiHeap_freeStructure(sample);
             return NULL;
         }
@@ -89,50 +89,50 @@ rti_test_dds_Message_cPluginSupport_create_data_ex(RTIBool allocate_pointers){
     return sample; 
 }
 
-rti_test_dds_Message_c *
-rti_test_dds_Message_cPluginSupport_create_data(void)
+rti_Message_c *
+rti_Message_cPluginSupport_create_data(void)
 {
-    return rti_test_dds_Message_cPluginSupport_create_data_ex(RTI_TRUE);
+    return rti_Message_cPluginSupport_create_data_ex(RTI_TRUE);
 }
 
 void 
-rti_test_dds_Message_cPluginSupport_destroy_data_w_params(
-    rti_test_dds_Message_c *sample,
+rti_Message_cPluginSupport_destroy_data_w_params(
+    rti_Message_c *sample,
     const struct DDS_TypeDeallocationParams_t * dealloc_params) {
 
-    rti_test_dds_Message_c_finalize_w_params(sample,dealloc_params);
+    rti_Message_c_finalize_w_params(sample,dealloc_params);
 
     RTIOsapiHeap_freeStructure(sample);
 }
 
 void 
-rti_test_dds_Message_cPluginSupport_destroy_data_ex(
-    rti_test_dds_Message_c *sample,RTIBool deallocate_pointers) {
+rti_Message_cPluginSupport_destroy_data_ex(
+    rti_Message_c *sample,RTIBool deallocate_pointers) {
 
-    rti_test_dds_Message_c_finalize_ex(sample,deallocate_pointers);
+    rti_Message_c_finalize_ex(sample,deallocate_pointers);
 
     RTIOsapiHeap_freeStructure(sample);
 }
 
 void 
-rti_test_dds_Message_cPluginSupport_destroy_data(
-    rti_test_dds_Message_c *sample) {
+rti_Message_cPluginSupport_destroy_data(
+    rti_Message_c *sample) {
 
-    rti_test_dds_Message_cPluginSupport_destroy_data_ex(sample,RTI_TRUE);
+    rti_Message_cPluginSupport_destroy_data_ex(sample,RTI_TRUE);
 
 }
 
 RTIBool 
-rti_test_dds_Message_cPluginSupport_copy_data(
-    rti_test_dds_Message_c *dst,
-    const rti_test_dds_Message_c *src)
+rti_Message_cPluginSupport_copy_data(
+    rti_Message_c *dst,
+    const rti_Message_c *src)
 {
-    return rti_test_dds_Message_c_copy(dst,src);
+    return rti_Message_c_copy(dst,src);
 }
 
 void 
-rti_test_dds_Message_cPluginSupport_print_data(
-    const rti_test_dds_Message_c *sample,
+rti_Message_cPluginSupport_print_data(
+    const rti_Message_c *sample,
     const char *desc,
     unsigned int indent_level)
 {
@@ -170,37 +170,37 @@ rti_test_dds_Message_cPluginSupport_print_data(
     }
 
 }
-rti_test_dds_Message_c *
-rti_test_dds_Message_cPluginSupport_create_key_ex(RTIBool allocate_pointers){
-    rti_test_dds_Message_c *key = NULL;
+rti_Message_c *
+rti_Message_cPluginSupport_create_key_ex(RTIBool allocate_pointers){
+    rti_Message_c *key = NULL;
 
     RTIOsapiHeap_allocateStructure(
-        &key, rti_test_dds_Message_cKeyHolder);
+        &key, rti_Message_cKeyHolder);
 
-    rti_test_dds_Message_c_initialize_ex(key,allocate_pointers, RTI_TRUE);
+    rti_Message_c_initialize_ex(key,allocate_pointers, RTI_TRUE);
     return key;
 }
 
-rti_test_dds_Message_c *
-rti_test_dds_Message_cPluginSupport_create_key(void)
+rti_Message_c *
+rti_Message_cPluginSupport_create_key(void)
 {
-    return  rti_test_dds_Message_cPluginSupport_create_key_ex(RTI_TRUE);
+    return  rti_Message_cPluginSupport_create_key_ex(RTI_TRUE);
 }
 
 void 
-rti_test_dds_Message_cPluginSupport_destroy_key_ex(
-    rti_test_dds_Message_cKeyHolder *key,RTIBool deallocate_pointers)
+rti_Message_cPluginSupport_destroy_key_ex(
+    rti_Message_cKeyHolder *key,RTIBool deallocate_pointers)
 {
-    rti_test_dds_Message_c_finalize_ex(key,deallocate_pointers);
+    rti_Message_c_finalize_ex(key,deallocate_pointers);
 
     RTIOsapiHeap_freeStructure(key);
 }
 
 void 
-rti_test_dds_Message_cPluginSupport_destroy_key(
-    rti_test_dds_Message_cKeyHolder *key) {
+rti_Message_cPluginSupport_destroy_key(
+    rti_Message_cKeyHolder *key) {
 
-    rti_test_dds_Message_cPluginSupport_destroy_key_ex(key,RTI_TRUE);
+    rti_Message_cPluginSupport_destroy_key_ex(key,RTI_TRUE);
 
 }
 
@@ -209,7 +209,7 @@ Callback functions:
 * ---------------------------------------------------------------------------- */
 
 PRESTypePluginParticipantData 
-rti_test_dds_Message_cPlugin_on_participant_attached(
+rti_Message_cPlugin_on_participant_attached(
     void *registration_data,
     const struct PRESTypePluginParticipantInfo *participant_info,
     RTIBool top_level_registration,
@@ -227,7 +227,7 @@ rti_test_dds_Message_cPlugin_on_participant_attached(
 }
 
 void 
-rti_test_dds_Message_cPlugin_on_participant_detached(
+rti_Message_cPlugin_on_participant_detached(
     PRESTypePluginParticipantData participant_data)
 {
 
@@ -235,7 +235,7 @@ rti_test_dds_Message_cPlugin_on_participant_detached(
 }
 
 PRESTypePluginEndpointData
-rti_test_dds_Message_cPlugin_on_endpoint_attached(
+rti_Message_cPlugin_on_endpoint_attached(
     PRESTypePluginParticipantData participant_data,
     const struct PRESTypePluginEndpointInfo *endpoint_info,
     RTIBool top_level_registration, 
@@ -254,18 +254,18 @@ rti_test_dds_Message_cPlugin_on_endpoint_attached(
         participant_data,
         endpoint_info,
         (PRESTypePluginDefaultEndpointDataCreateSampleFunction)
-        rti_test_dds_Message_cPluginSupport_create_data,
+        rti_Message_cPluginSupport_create_data,
         (PRESTypePluginDefaultEndpointDataDestroySampleFunction)
-        rti_test_dds_Message_cPluginSupport_destroy_data,
+        rti_Message_cPluginSupport_destroy_data,
         (PRESTypePluginDefaultEndpointDataCreateKeyFunction)
-        rti_test_dds_Message_cPluginSupport_create_key ,            
+        rti_Message_cPluginSupport_create_key ,            
         (PRESTypePluginDefaultEndpointDataDestroyKeyFunction)
-        rti_test_dds_Message_cPluginSupport_destroy_key);
+        rti_Message_cPluginSupport_destroy_key);
 
     if (epd == NULL) {
         return NULL;
     } 
-    serializedKeyMaxSize =  rti_test_dds_Message_cPlugin_get_serialized_key_max_size(
+    serializedKeyMaxSize =  rti_Message_cPlugin_get_serialized_key_max_size(
         epd,RTI_FALSE,RTI_CDR_ENCAPSULATION_ID_CDR_BE,0);
 
     if(!PRESTypePluginDefaultEndpointData_createMD5StreamWithInfo(
@@ -276,7 +276,7 @@ rti_test_dds_Message_cPlugin_on_endpoint_attached(
     }
 
     if (endpoint_info->endpointKind == PRES_TYPEPLUGIN_ENDPOINT_WRITER) {
-        serializedSampleMaxSize = rti_test_dds_Message_cPlugin_get_serialized_sample_max_size(
+        serializedSampleMaxSize = rti_Message_cPlugin_get_serialized_sample_max_size(
             epd,RTI_FALSE,RTI_CDR_ENCAPSULATION_ID_CDR_BE,0);
 
         PRESTypePluginDefaultEndpointData_setMaxSizeSerializedSample(epd, serializedSampleMaxSize);
@@ -285,9 +285,9 @@ rti_test_dds_Message_cPlugin_on_endpoint_attached(
             epd,
             endpoint_info,
             (PRESTypePluginGetSerializedSampleMaxSizeFunction)
-            rti_test_dds_Message_cPlugin_get_serialized_sample_max_size, epd,
+            rti_Message_cPlugin_get_serialized_sample_max_size, epd,
             (PRESTypePluginGetSerializedSampleSizeFunction)
-            rti_test_dds_Message_cPlugin_get_serialized_sample_size,
+            rti_Message_cPlugin_get_serialized_sample_size,
             epd) == RTI_FALSE) {
             PRESTypePluginDefaultEndpointData_delete(epd);
             return NULL;
@@ -298,7 +298,7 @@ rti_test_dds_Message_cPlugin_on_endpoint_attached(
 }
 
 void 
-rti_test_dds_Message_cPlugin_on_endpoint_detached(
+rti_Message_cPlugin_on_endpoint_detached(
     PRESTypePluginEndpointData endpoint_data)
 {  
 
@@ -306,42 +306,42 @@ rti_test_dds_Message_cPlugin_on_endpoint_detached(
 }
 
 void    
-rti_test_dds_Message_cPlugin_return_sample(
+rti_Message_cPlugin_return_sample(
     PRESTypePluginEndpointData endpoint_data,
-    rti_test_dds_Message_c *sample,
+    rti_Message_c *sample,
     void *handle)
 {
 
-    rti_test_dds_Message_c_finalize_optional_members(sample, RTI_TRUE);
+    rti_Message_c_finalize_optional_members(sample, RTI_TRUE);
 
     PRESTypePluginDefaultEndpointData_returnSample(
         endpoint_data, sample, handle);
 }
 
 RTIBool 
-rti_test_dds_Message_cPlugin_copy_sample(
+rti_Message_cPlugin_copy_sample(
     PRESTypePluginEndpointData endpoint_data,
-    rti_test_dds_Message_c *dst,
-    const rti_test_dds_Message_c *src)
+    rti_Message_c *dst,
+    const rti_Message_c *src)
 {
     if (endpoint_data) {} /* To avoid warnings */
-    return rti_test_dds_Message_cPluginSupport_copy_data(dst,src);
+    return rti_Message_cPluginSupport_copy_data(dst,src);
 }
 
 /* ----------------------------------------------------------------------------
 (De)Serialize functions:
 * ------------------------------------------------------------------------- */
 unsigned int 
-rti_test_dds_Message_cPlugin_get_serialized_sample_max_size(
+rti_Message_cPlugin_get_serialized_sample_max_size(
     PRESTypePluginEndpointData endpoint_data,
     RTIBool include_encapsulation,
     RTIEncapsulationId encapsulation_id,
     unsigned int current_alignment);
 
 RTIBool 
-rti_test_dds_Message_cPlugin_serialize(
+rti_Message_cPlugin_serialize(
     PRESTypePluginEndpointData endpoint_data,
-    const rti_test_dds_Message_c *sample, 
+    const rti_Message_c *sample, 
     struct RTICdrStream *stream,    
     RTIBool serialize_encapsulation,
     RTIEncapsulationId encapsulation_id,
@@ -389,9 +389,9 @@ rti_test_dds_Message_cPlugin_serialize(
 }
 
 RTIBool 
-rti_test_dds_Message_cPlugin_deserialize_sample(
+rti_Message_cPlugin_deserialize_sample(
     PRESTypePluginEndpointData endpoint_data,
-    rti_test_dds_Message_c *sample,
+    rti_Message_c *sample,
     struct RTICdrStream *stream,   
     RTIBool deserialize_encapsulation,
     RTIBool deserialize_sample, 
@@ -414,7 +414,7 @@ rti_test_dds_Message_cPlugin_deserialize_sample(
     }
     if(deserialize_sample) {
 
-        rti_test_dds_Message_c_initialize_ex(sample, RTI_FALSE, RTI_FALSE);
+        rti_Message_c_initialize_ex(sample, RTI_FALSE, RTI_FALSE);
 
         if (!RTICdrStream_deserializeLong(
             stream, &sample->time)) {
@@ -445,10 +445,10 @@ rti_test_dds_Message_cPlugin_deserialize_sample(
 }
 
 RTIBool
-rti_test_dds_Message_cPlugin_serialize_to_cdr_buffer(
+rti_Message_cPlugin_serialize_to_cdr_buffer(
     char * buffer,
     unsigned int * length,
-    const rti_test_dds_Message_c *sample)
+    const rti_Message_c *sample)
 {
     struct RTICdrStream stream;
     struct PRESTypePluginDefaultEndpointData epd;
@@ -459,12 +459,12 @@ rti_test_dds_Message_cPlugin_serialize_to_cdr_buffer(
     }
 
     epd._maxSizeSerializedSample =
-    rti_test_dds_Message_cPlugin_get_serialized_sample_max_size(
+    rti_Message_cPlugin_get_serialized_sample_max_size(
         NULL, RTI_TRUE, RTI_CDR_ENCAPSULATION_ID_CDR_NATIVE, 0);
 
     if (buffer == NULL) {
         *length = 
-        rti_test_dds_Message_cPlugin_get_serialized_sample_size(
+        rti_Message_cPlugin_get_serialized_sample_size(
             (PRESTypePluginEndpointData)&epd,
             RTI_TRUE,
             RTI_CDR_ENCAPSULATION_ID_CDR_NATIVE,
@@ -481,7 +481,7 @@ rti_test_dds_Message_cPlugin_serialize_to_cdr_buffer(
     RTICdrStream_init(&stream);
     RTICdrStream_set(&stream, (char *)buffer, *length);
 
-    result = rti_test_dds_Message_cPlugin_serialize(
+    result = rti_Message_cPlugin_serialize(
         (PRESTypePluginEndpointData)&epd, sample, &stream, 
         RTI_TRUE, RTI_CDR_ENCAPSULATION_ID_CDR_NATIVE, 
         RTI_TRUE, NULL);  
@@ -491,8 +491,8 @@ rti_test_dds_Message_cPlugin_serialize_to_cdr_buffer(
 }
 
 RTIBool
-rti_test_dds_Message_cPlugin_deserialize_from_cdr_buffer(
-    rti_test_dds_Message_c *sample,
+rti_Message_cPlugin_deserialize_from_cdr_buffer(
+    rti_Message_c *sample,
     const char * buffer,
     unsigned int length)
 {
@@ -501,16 +501,16 @@ rti_test_dds_Message_cPlugin_deserialize_from_cdr_buffer(
     RTICdrStream_init(&stream);
     RTICdrStream_set(&stream, (char *)buffer, length);
 
-    return rti_test_dds_Message_cPlugin_deserialize_sample( 
+    return rti_Message_cPlugin_deserialize_sample( 
         NULL, sample,
         &stream, RTI_TRUE, RTI_TRUE, 
         NULL);
 }
 
 RTIBool 
-rti_test_dds_Message_cPlugin_deserialize(
+rti_Message_cPlugin_deserialize(
     PRESTypePluginEndpointData endpoint_data,
-    rti_test_dds_Message_c **sample,
+    rti_Message_c **sample,
     RTIBool * drop_sample,
     struct RTICdrStream *stream,   
     RTIBool deserialize_encapsulation,
@@ -522,7 +522,7 @@ rti_test_dds_Message_cPlugin_deserialize(
     if (drop_sample) {} /* To avoid warnings */
 
     stream->_xTypesState.unassignable = RTI_FALSE;
-    result= rti_test_dds_Message_cPlugin_deserialize_sample( 
+    result= rti_Message_cPlugin_deserialize_sample( 
         endpoint_data, (sample != NULL)?*sample:NULL,
         stream, deserialize_encapsulation, deserialize_sample, 
         endpoint_plugin_qos);
@@ -536,7 +536,7 @@ rti_test_dds_Message_cPlugin_deserialize(
 
 }
 
-RTIBool rti_test_dds_Message_cPlugin_skip(
+RTIBool rti_Message_cPlugin_skip(
     PRESTypePluginEndpointData endpoint_data,
     struct RTICdrStream *stream,   
     RTIBool skip_encapsulation,
@@ -586,7 +586,7 @@ RTIBool rti_test_dds_Message_cPlugin_skip(
 }
 
 unsigned int 
-rti_test_dds_Message_cPlugin_get_serialized_sample_max_size_ex(
+rti_Message_cPlugin_get_serialized_sample_max_size_ex(
     PRESTypePluginEndpointData endpoint_data,
     RTIBool * overflow,
     RTIBool include_encapsulation,
@@ -628,7 +628,7 @@ rti_test_dds_Message_cPlugin_get_serialized_sample_max_size_ex(
 }
 
 unsigned int 
-rti_test_dds_Message_cPlugin_get_serialized_sample_max_size(
+rti_Message_cPlugin_get_serialized_sample_max_size(
     PRESTypePluginEndpointData endpoint_data,
     RTIBool include_encapsulation,
     RTIEncapsulationId encapsulation_id,
@@ -637,7 +637,7 @@ rti_test_dds_Message_cPlugin_get_serialized_sample_max_size(
     unsigned int size;
     RTIBool overflow = RTI_FALSE;
 
-    size = rti_test_dds_Message_cPlugin_get_serialized_sample_max_size_ex(
+    size = rti_Message_cPlugin_get_serialized_sample_max_size_ex(
         endpoint_data,&overflow,include_encapsulation,encapsulation_id,current_alignment);
 
     if (overflow) {
@@ -648,7 +648,7 @@ rti_test_dds_Message_cPlugin_get_serialized_sample_max_size(
 }
 
 unsigned int 
-rti_test_dds_Message_cPlugin_get_serialized_sample_min_size(
+rti_Message_cPlugin_get_serialized_sample_min_size(
     PRESTypePluginEndpointData endpoint_data,
     RTIBool include_encapsulation,
     RTIEncapsulationId encapsulation_id,
@@ -692,12 +692,12 @@ rti_test_dds_Message_cPlugin_get_serialized_sample_min_size(
 * encapsulation flags.
 */
 unsigned int
-rti_test_dds_Message_cPlugin_get_serialized_sample_size(
+rti_Message_cPlugin_get_serialized_sample_size(
     PRESTypePluginEndpointData endpoint_data,
     RTIBool include_encapsulation,
     RTIEncapsulationId encapsulation_id,
     unsigned int current_alignment,
-    const rti_test_dds_Message_c * sample) 
+    const rti_Message_c * sample) 
 {
 
     unsigned int initial_alignment = current_alignment;
@@ -738,15 +738,15 @@ Key Management functions:
 * -------------------------------------------------------------------------------------- */
 
 PRESTypePluginKeyKind 
-rti_test_dds_Message_cPlugin_get_key_kind(void)
+rti_Message_cPlugin_get_key_kind(void)
 {
     return PRES_TYPEPLUGIN_USER_KEY;
 }
 
 RTIBool 
-rti_test_dds_Message_cPlugin_serialize_key(
+rti_Message_cPlugin_serialize_key(
     PRESTypePluginEndpointData endpoint_data,
-    const rti_test_dds_Message_c *sample, 
+    const rti_Message_c *sample, 
     struct RTICdrStream *stream,    
     RTIBool serialize_encapsulation,
     RTIEncapsulationId encapsulation_id,
@@ -782,9 +782,9 @@ rti_test_dds_Message_cPlugin_serialize_key(
     return RTI_TRUE;
 }
 
-RTIBool rti_test_dds_Message_cPlugin_deserialize_key_sample(
+RTIBool rti_Message_cPlugin_deserialize_key_sample(
     PRESTypePluginEndpointData endpoint_data,
-    rti_test_dds_Message_c *sample, 
+    rti_Message_c *sample, 
     struct RTICdrStream *stream,
     RTIBool deserialize_encapsulation,
     RTIBool deserialize_key,
@@ -818,9 +818,9 @@ RTIBool rti_test_dds_Message_cPlugin_deserialize_key_sample(
     return RTI_TRUE;
 }
 
-RTIBool rti_test_dds_Message_cPlugin_deserialize_key(
+RTIBool rti_Message_cPlugin_deserialize_key(
     PRESTypePluginEndpointData endpoint_data,
-    rti_test_dds_Message_c **sample, 
+    rti_Message_c **sample, 
     RTIBool * drop_sample,
     struct RTICdrStream *stream,
     RTIBool deserialize_encapsulation,
@@ -830,7 +830,7 @@ RTIBool rti_test_dds_Message_cPlugin_deserialize_key(
     RTIBool result;
     if (drop_sample) {} /* To avoid warnings */
     stream->_xTypesState.unassignable = RTI_FALSE;
-    result= rti_test_dds_Message_cPlugin_deserialize_key_sample(
+    result= rti_Message_cPlugin_deserialize_key_sample(
         endpoint_data, (sample != NULL)?*sample:NULL, stream,
         deserialize_encapsulation, deserialize_key, endpoint_plugin_qos);
     if (result) {
@@ -844,7 +844,7 @@ RTIBool rti_test_dds_Message_cPlugin_deserialize_key(
 }
 
 unsigned int
-rti_test_dds_Message_cPlugin_get_serialized_key_max_size_ex(
+rti_Message_cPlugin_get_serialized_key_max_size_ex(
     PRESTypePluginEndpointData endpoint_data,
     RTIBool * overflow,
     RTIBool include_encapsulation,
@@ -880,7 +880,7 @@ rti_test_dds_Message_cPlugin_get_serialized_key_max_size_ex(
 }
 
 unsigned int
-rti_test_dds_Message_cPlugin_get_serialized_key_max_size(
+rti_Message_cPlugin_get_serialized_key_max_size(
     PRESTypePluginEndpointData endpoint_data,
     RTIBool include_encapsulation,
     RTIEncapsulationId encapsulation_id,
@@ -889,7 +889,7 @@ rti_test_dds_Message_cPlugin_get_serialized_key_max_size(
     unsigned int size;
     RTIBool overflow = RTI_FALSE;
 
-    size = rti_test_dds_Message_cPlugin_get_serialized_key_max_size_ex(
+    size = rti_Message_cPlugin_get_serialized_key_max_size_ex(
         endpoint_data,&overflow,include_encapsulation,encapsulation_id,current_alignment);
 
     if (overflow) {
@@ -900,9 +900,9 @@ rti_test_dds_Message_cPlugin_get_serialized_key_max_size(
 }
 
 RTIBool 
-rti_test_dds_Message_cPlugin_serialized_sample_to_key(
+rti_Message_cPlugin_serialized_sample_to_key(
     PRESTypePluginEndpointData endpoint_data,
-    rti_test_dds_Message_c *sample,
+    rti_Message_c *sample,
     struct RTICdrStream *stream, 
     RTIBool deserialize_encapsulation,  
     RTIBool deserialize_key, 
@@ -963,10 +963,10 @@ rti_test_dds_Message_cPlugin_serialized_sample_to_key(
 }
 
 RTIBool 
-rti_test_dds_Message_cPlugin_instance_to_key(
+rti_Message_cPlugin_instance_to_key(
     PRESTypePluginEndpointData endpoint_data,
-    rti_test_dds_Message_cKeyHolder *dst, 
-    const rti_test_dds_Message_c *src)
+    rti_Message_cKeyHolder *dst, 
+    const rti_Message_c *src)
 {
 
     if (endpoint_data) {} /* To avoid warnings */   
@@ -980,10 +980,10 @@ rti_test_dds_Message_cPlugin_instance_to_key(
 }
 
 RTIBool 
-rti_test_dds_Message_cPlugin_key_to_instance(
+rti_Message_cPlugin_key_to_instance(
     PRESTypePluginEndpointData endpoint_data,
-    rti_test_dds_Message_c *dst, const
-    rti_test_dds_Message_cKeyHolder *src)
+    rti_Message_c *dst, const
+    rti_Message_cKeyHolder *src)
 {
 
     if (endpoint_data) {} /* To avoid warnings */   
@@ -996,10 +996,10 @@ rti_test_dds_Message_cPlugin_key_to_instance(
 }
 
 RTIBool 
-rti_test_dds_Message_cPlugin_instance_to_keyhash(
+rti_Message_cPlugin_instance_to_keyhash(
     PRESTypePluginEndpointData endpoint_data,
     DDS_KeyHash_t *keyhash,
-    const rti_test_dds_Message_c *instance)
+    const rti_Message_c *instance)
 {
     struct RTICdrStream * md5Stream = NULL;
     struct RTICdrStreamState cdrState;
@@ -1015,14 +1015,14 @@ rti_test_dds_Message_cPlugin_instance_to_keyhash(
     RTICdrStream_resetPosition(md5Stream);
     RTICdrStream_setDirtyBit(md5Stream, RTI_TRUE);
 
-    if (!rti_test_dds_Message_cPlugin_serialize_key(
+    if (!rti_Message_cPlugin_serialize_key(
         endpoint_data,instance,md5Stream, RTI_FALSE, RTI_CDR_ENCAPSULATION_ID_CDR_BE, RTI_TRUE,NULL)) {
 
         int size;
 
         RTICdrStream_pushState(md5Stream, &cdrState, -1);
 
-        size = (int)rti_test_dds_Message_cPlugin_get_serialized_sample_size(
+        size = (int)rti_Message_cPlugin_get_serialized_sample_size(
             endpoint_data,
             RTI_FALSE,
             RTI_CDR_ENCAPSULATION_ID_CDR_BE,
@@ -1047,7 +1047,7 @@ rti_test_dds_Message_cPlugin_instance_to_keyhash(
             RTICdrStream_getBufferLength(md5Stream));
         RTICdrStream_resetPosition(md5Stream);
         RTICdrStream_setDirtyBit(md5Stream, RTI_TRUE);
-        if (!rti_test_dds_Message_cPlugin_serialize_key(
+        if (!rti_Message_cPlugin_serialize_key(
             endpoint_data,instance,md5Stream, RTI_FALSE, RTI_CDR_ENCAPSULATION_ID_CDR_BE, RTI_TRUE,NULL)) 
         {
             RTICdrStream_popState(md5Stream, &cdrState);
@@ -1076,7 +1076,7 @@ rti_test_dds_Message_cPlugin_instance_to_keyhash(
 }
 
 RTIBool 
-rti_test_dds_Message_cPlugin_serialized_sample_to_keyhash(
+rti_Message_cPlugin_serialized_sample_to_keyhash(
     PRESTypePluginEndpointData endpoint_data,
     struct RTICdrStream *stream, 
     DDS_KeyHash_t *keyhash,
@@ -1087,7 +1087,7 @@ rti_test_dds_Message_cPlugin_serialized_sample_to_keyhash(
 
     RTIBool done = RTI_FALSE;
     RTIBool error = RTI_FALSE;
-    rti_test_dds_Message_c * sample=NULL;
+    rti_Message_c * sample=NULL;
 
     if (endpoint_plugin_qos) {} /* To avoid warnings */
     if (stream == NULL) {
@@ -1103,7 +1103,7 @@ rti_test_dds_Message_cPlugin_serialized_sample_to_keyhash(
         position = RTICdrStream_resetAlignment(stream);
     }
 
-    sample = (rti_test_dds_Message_c *)
+    sample = (rti_Message_c *)
     PRESTypePluginDefaultEndpointData_getTempSample(endpoint_data);
 
     if (sample == NULL) {
@@ -1133,7 +1133,7 @@ rti_test_dds_Message_cPlugin_serialized_sample_to_keyhash(
         RTICdrStream_restoreAlignment(stream,position);
     }
 
-    if (!rti_test_dds_Message_cPlugin_instance_to_keyhash(
+    if (!rti_Message_cPlugin_instance_to_keyhash(
         endpoint_data, keyhash, sample)) {
         return RTI_FALSE;
     }
@@ -1144,7 +1144,7 @@ rti_test_dds_Message_cPlugin_serialized_sample_to_keyhash(
 /* ------------------------------------------------------------------------
 * Plug-in Installation Methods
 * ------------------------------------------------------------------------ */
-struct PRESTypePlugin *rti_test_dds_Message_cPlugin_new(void) 
+struct PRESTypePlugin *rti_Message_cPlugin_new(void) 
 { 
     struct PRESTypePlugin *plugin = NULL;
     const struct PRESTypePluginVersion PLUGIN_VERSION = 
@@ -1161,107 +1161,107 @@ struct PRESTypePlugin *rti_test_dds_Message_cPlugin_new(void)
     /* set up parent's function pointers */
     plugin->onParticipantAttached =
     (PRESTypePluginOnParticipantAttachedCallback)
-    rti_test_dds_Message_cPlugin_on_participant_attached;
+    rti_Message_cPlugin_on_participant_attached;
     plugin->onParticipantDetached =
     (PRESTypePluginOnParticipantDetachedCallback)
-    rti_test_dds_Message_cPlugin_on_participant_detached;
+    rti_Message_cPlugin_on_participant_detached;
     plugin->onEndpointAttached =
     (PRESTypePluginOnEndpointAttachedCallback)
-    rti_test_dds_Message_cPlugin_on_endpoint_attached;
+    rti_Message_cPlugin_on_endpoint_attached;
     plugin->onEndpointDetached =
     (PRESTypePluginOnEndpointDetachedCallback)
-    rti_test_dds_Message_cPlugin_on_endpoint_detached;
+    rti_Message_cPlugin_on_endpoint_detached;
 
     plugin->copySampleFnc =
     (PRESTypePluginCopySampleFunction)
-    rti_test_dds_Message_cPlugin_copy_sample;
+    rti_Message_cPlugin_copy_sample;
     plugin->createSampleFnc =
     (PRESTypePluginCreateSampleFunction)
-    rti_test_dds_Message_cPlugin_create_sample;
+    rti_Message_cPlugin_create_sample;
     plugin->destroySampleFnc =
     (PRESTypePluginDestroySampleFunction)
-    rti_test_dds_Message_cPlugin_destroy_sample;
+    rti_Message_cPlugin_destroy_sample;
 
     plugin->serializeFnc =
     (PRESTypePluginSerializeFunction)
-    rti_test_dds_Message_cPlugin_serialize;
+    rti_Message_cPlugin_serialize;
     plugin->deserializeFnc =
     (PRESTypePluginDeserializeFunction)
-    rti_test_dds_Message_cPlugin_deserialize;
+    rti_Message_cPlugin_deserialize;
     plugin->getSerializedSampleMaxSizeFnc =
     (PRESTypePluginGetSerializedSampleMaxSizeFunction)
-    rti_test_dds_Message_cPlugin_get_serialized_sample_max_size;
+    rti_Message_cPlugin_get_serialized_sample_max_size;
     plugin->getSerializedSampleMinSizeFnc =
     (PRESTypePluginGetSerializedSampleMinSizeFunction)
-    rti_test_dds_Message_cPlugin_get_serialized_sample_min_size;
+    rti_Message_cPlugin_get_serialized_sample_min_size;
 
     plugin->getSampleFnc =
     (PRESTypePluginGetSampleFunction)
-    rti_test_dds_Message_cPlugin_get_sample;
+    rti_Message_cPlugin_get_sample;
     plugin->returnSampleFnc =
     (PRESTypePluginReturnSampleFunction)
-    rti_test_dds_Message_cPlugin_return_sample;
+    rti_Message_cPlugin_return_sample;
 
     plugin->getKeyKindFnc =
     (PRESTypePluginGetKeyKindFunction)
-    rti_test_dds_Message_cPlugin_get_key_kind;
+    rti_Message_cPlugin_get_key_kind;
 
     plugin->getSerializedKeyMaxSizeFnc =   
     (PRESTypePluginGetSerializedKeyMaxSizeFunction)
-    rti_test_dds_Message_cPlugin_get_serialized_key_max_size;
+    rti_Message_cPlugin_get_serialized_key_max_size;
     plugin->serializeKeyFnc =
     (PRESTypePluginSerializeKeyFunction)
-    rti_test_dds_Message_cPlugin_serialize_key;
+    rti_Message_cPlugin_serialize_key;
     plugin->deserializeKeyFnc =
     (PRESTypePluginDeserializeKeyFunction)
-    rti_test_dds_Message_cPlugin_deserialize_key;
+    rti_Message_cPlugin_deserialize_key;
     plugin->deserializeKeySampleFnc =
     (PRESTypePluginDeserializeKeySampleFunction)
-    rti_test_dds_Message_cPlugin_deserialize_key_sample;
+    rti_Message_cPlugin_deserialize_key_sample;
 
     plugin-> instanceToKeyHashFnc = 
     (PRESTypePluginInstanceToKeyHashFunction)
-    rti_test_dds_Message_cPlugin_instance_to_keyhash;
+    rti_Message_cPlugin_instance_to_keyhash;
     plugin->serializedSampleToKeyHashFnc = 
     (PRESTypePluginSerializedSampleToKeyHashFunction)
-    rti_test_dds_Message_cPlugin_serialized_sample_to_keyhash;
+    rti_Message_cPlugin_serialized_sample_to_keyhash;
 
     plugin->getKeyFnc =
     (PRESTypePluginGetKeyFunction)
-    rti_test_dds_Message_cPlugin_get_key;
+    rti_Message_cPlugin_get_key;
     plugin->returnKeyFnc =
     (PRESTypePluginReturnKeyFunction)
-    rti_test_dds_Message_cPlugin_return_key;
+    rti_Message_cPlugin_return_key;
 
     plugin->instanceToKeyFnc =
     (PRESTypePluginInstanceToKeyFunction)
-    rti_test_dds_Message_cPlugin_instance_to_key;
+    rti_Message_cPlugin_instance_to_key;
     plugin->keyToInstanceFnc =
     (PRESTypePluginKeyToInstanceFunction)
-    rti_test_dds_Message_cPlugin_key_to_instance;
+    rti_Message_cPlugin_key_to_instance;
     plugin->serializedKeyToKeyHashFnc = NULL; /* Not supported yet */
-    plugin->typeCode =  (struct RTICdrTypeCode *)rti_test_dds_Message_c_get_typecode();
+    plugin->typeCode =  (struct RTICdrTypeCode *)rti_Message_c_get_typecode();
 
     plugin->languageKind = PRES_TYPEPLUGIN_CPP_LANG;
 
     /* Serialized buffer */
     plugin->getBuffer = 
     (PRESTypePluginGetBufferFunction)
-    rti_test_dds_Message_cPlugin_get_buffer;
+    rti_Message_cPlugin_get_buffer;
     plugin->returnBuffer = 
     (PRESTypePluginReturnBufferFunction)
-    rti_test_dds_Message_cPlugin_return_buffer;
+    rti_Message_cPlugin_return_buffer;
     plugin->getSerializedSampleSizeFnc =
     (PRESTypePluginGetSerializedSampleSizeFunction)
-    rti_test_dds_Message_cPlugin_get_serialized_sample_size;
+    rti_Message_cPlugin_get_serialized_sample_size;
 
-    plugin->endpointTypeName = rti_test_dds_Message_cTYPENAME;
+    plugin->endpointTypeName = rti_Message_cTYPENAME;
 
     return plugin;
 }
 
 void
-rti_test_dds_Message_cPlugin_delete(struct PRESTypePlugin *plugin)
+rti_Message_cPlugin_delete(struct PRESTypePlugin *plugin)
 {
     RTIOsapiHeap_freeStructure(plugin);
 } 

@@ -5,8 +5,10 @@
 dds::domain::DomainParticipant rti::get_participant(int domain){
     dds::domain::DomainParticipant p = dds::domain::find(domain);
     if(p == dds::core::null){
+        dds::domain::qos::DomainParticipantQos qos;
+        qos->transport_builtin.mask(rti::core::policy::TransportBuiltinMask::udpv4());
         std::cout << "RTI CONSTRUCTING: " << domain << std::endl;
-        p = dds::domain::DomainParticipant(domain);
+        p = dds::domain::DomainParticipant(domain, qos);
         p.retain();
     }
     return p;
