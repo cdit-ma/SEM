@@ -14,14 +14,18 @@ include_directories(${PROJ_NAME} ${OpenSplice_INCLUDE_DIRS})
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/../message.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../basemessage.cpp
 )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/convert.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.h
+
 )
 
 set(DDS_HEADERS
