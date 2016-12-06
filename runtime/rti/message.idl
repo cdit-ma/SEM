@@ -1,9 +1,8 @@
-module rti_test_dds{
-
-struct Message{
-    long time;
-    string instName;//@key
-    string content;
-};
-
+module rti{
+    struct Message{
+        long time;
+        string instName; //@key
+        string content;
+    };
+    #pragma keylist Message instName
 };

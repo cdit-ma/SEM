@@ -50,10 +50,10 @@ int main(int argc, char** argv){
     
 
     rti::TxMessage* txMessage_r = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
-    rti::RxMessage* rxMessage_r = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
+    //rti::RxMessage* rxMessage_r = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
 
-    ospl::TxMessage* txMessage_o = new ospl::TxMessage(sender_impl2, 0, pub_name2, writer_name2, topic_name2);
-    ospl::RxMessage* rxMessage_o = new ospl::RxMessage(reciever_impl2, 0, sub_name2, reader_name2, topic_name2);
+    //ospl::TxMessage* txMessage_o = new ospl::TxMessage(sender_impl2, 0, pub_name2, writer_name2, topic_name2);
+    ospl::RxMessage* rxMessage_o = new ospl::RxMessage(reciever_impl2, 0, sub_name2, reader_name2, topic_name);
 
     //ZMQ
     //zmq::context_t * context = new zmq::context_t(1);
@@ -63,12 +63,12 @@ int main(int argc, char** argv){
     
     //Attach Ports
     sender_impl->txMessage_ = txMessage_r;
-    reciever_impl->rxMessage_ = rxMessage_r;
+    //reciever_impl->rxMessage_ = rxMessage_r;
 
     sender_impl->set_instName("tx_rti");
     //sender_impl->set_message("1");
     
-    sender_impl2->txMessage_ = txMessage_o;
+    //sender_impl2->txMessage_ = txMessage_o;
     reciever_impl2->rxMessage_ = rxMessage_o;
 
     //sender_impl2->set_instName("rx_ospl");
@@ -94,9 +94,9 @@ int main(int argc, char** argv){
         txMessage_r->txMessage(msg);
         txMessage_o->txMessage(msg2);*/
 
-        
+        //std::cout << "Waiting for message" << std::endl;
         sender_impl->periodic_event();
-        sender_impl2->periodic_event();
+        //sender_impl2->periodic_event();
     }
 
     return -1;

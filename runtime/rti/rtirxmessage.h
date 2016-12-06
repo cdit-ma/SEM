@@ -6,17 +6,17 @@
 #include "../interfaces.h"
 #include "../message.h"
 
-namespace rti_test_dds{
+namespace rti{
     class Message;
 };
 
 
 namespace rti{
-    ::Message* translate(rti_test_dds::Message m); 
+    ::Message* translate(rti::Message m); 
     class RxMessage: public rxMessageInt{
         public:
             RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name);
-            void rxMessage(Message* message);
+            void rxMessage(::Message* message);
         private:
             void recieve();
 
