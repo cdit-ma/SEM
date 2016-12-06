@@ -1,26 +1,25 @@
 #include "ospltxmessage.h"
+#include <chrono>
 
-#include <dds/domain/DomainParticipant.hpp>
-#include <dds/sub/Subscriber.hpp>
-#include <dds/pub/Publisher.hpp>
-#include <dds/sub/DataReader.hpp>
-#include <dds/topic/Topic.hpp>
+
 
 #include "message_DCPS.hpp"
+#include <dds/dds.hpp>
 
-#include "message.hpp"
+#include "osplhelper.h"
 
 test_dds::Message ospl::translate(::Message *m){
         auto message = test_dds::Message();
-
-        message.time(m->time());
+        int t = m->time();
+        message.time(t);
+        //message.time(m->time());
         message.instName(m->instName());
         message.content(m->content());
 
         return message;
 }
 
-ospl::TxMessage::TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string writer_name, std::string topic_name){
+ospl::TxMessage::TxMessage(txMessageInt* component, int domain_id, std::string  publisher_name, std::string  writer_name, std::string  topic_name){
     this->component_ = component;
 
     this->domain_id = domain_id;
@@ -29,9 +28,9 @@ ospl::TxMessage::TxMessage(txMessageInt* component, int domain_id, std::string p
     this->topic_name = topic_name;
     
     auto participant = ospl::get_participant(domain_id);
-    auto publisher = ospl::get_publisher(participant, publisher_name);
-    auto topic = ospl::get_topic<test_dds::Message>(participant, topic_name);
-    auto writer = ospl::get_data_writer<test_dds::Message>(publisher, topic, writer_name);
+    auto publisher = ospl::get_publisher(participant, this->publisher_name);
+    auto topic = ospl::get_topic<test_dds::Message>(participant, this->topic_name);
+    auto writer = ospl::get_data_writer<test_dds::Message>(publisher, topic, this->writer_name);
 }
 
 void ospl::TxMessage::txMessage(Message* message){

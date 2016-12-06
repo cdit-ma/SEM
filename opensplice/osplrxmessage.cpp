@@ -1,15 +1,10 @@
 #include "osplrxmessage.h"
-#include "convert.h"
 
 #include <iostream>
 
+#include <dds/dds.hpp>
 #include "message_DCPS.hpp"
-
-#include <dds/domain/DomainParticipant.hpp>
-#include <dds/sub/Subscriber.hpp>
-#include <dds/pub/Publisher.hpp>
-#include <dds/sub/DataReader.hpp>
-#include <dds/topic/Topic.hpp>
+#include "osplhelper.h"
 
 
 ::Message* ospl::translate(test_dds::Message m){
@@ -20,7 +15,7 @@
     return message;
 }
 
-ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name){
+ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name,std::string reader_name, std::string  topic_name){
     this->component_ = component;
 
     this->domain_id = domain_id;
@@ -31,8 +26,8 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
 
 
     auto participant = ospl::get_participant(domain_id);
-    auto subscriber = ospl::get_subscriber(participant, subscriber_name);
-    auto topic = ospl::get_topic<test_dds::Message>(participant, topic_name);
+    auto subscriber = ospl::get_subscriber(participant, this->subscriber_name);
+    auto topic = ospl::get_topic<test_dds::Message>(participant, this->topic_name);
    
     rec_thread_ = new std::thread(&RxMessage::recieve, this);
 }
