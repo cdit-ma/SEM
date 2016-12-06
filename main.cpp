@@ -54,8 +54,8 @@ int main(int argc, char** argv){
     sender_impl->txMessage_ = txMessage;
     reciever_impl->rxMessage_ = rxMessage;
 
-    sender_impl->set_instName("SenderImpl");
-    sender_impl->set_message("Hello, World!");
+    sender_impl->set_instName("Dans SenderImpl");
+    sender_impl->set_message("Get Rekt");
     
     //sender_impl2->txMessage_ = txMessage2;
     //sender_impl2->set_instName("SenderImpl2");

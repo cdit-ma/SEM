@@ -3,9 +3,10 @@
 
 #include <iostream>
 #include <string>
-#include <rti/rti.hpp>
 
-namespace rti{
+#include <dds/dds.hpp>
+
+namespace ospl{
     dds::domain::DomainParticipant get_participant(int domain);
 
     dds::pub::Publisher get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name);    
@@ -30,7 +31,7 @@ template<class M> dds::pub::DataWriter<M> get_data_writer(dds::pub::Publisher pu
     if(writer == dds::core::null){
         std::cout << "Constructing DataWriter: " << writer_name << std::endl;
         dds::pub::qos::DataWriterQos qos;
-        qos << rti::core::policy::EntityName(writer_name);
+        qos << dds::core::policy::Partition(writer_name);
         writer = dds::pub::DataWriter<M>(publisher, topic, qos);
         writer.retain();
     }
@@ -42,7 +43,7 @@ template<class M> dds::sub::DataReader<M> get_data_reader(dds::sub::Subscriber s
     if(reader == dds::core::null){
         std::cout << "Constructing DataReader: " << reader_name << std::endl;
         dds::sub::qos::DataReaderQos qos;
-        qos << rti::core::policy::EntityName(reader_name);
+        qos << dds::core::policy::Partition(reader_name);
         reader = dds::sub::DataReader<M>(subscriber, topic, qos);
         reader.retain();
     }
