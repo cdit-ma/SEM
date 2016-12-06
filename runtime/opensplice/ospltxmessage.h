@@ -8,7 +8,7 @@ namespace test_dds{
     class Message;
 };
 
-namespace rti{
+namespace ospl{
     test_dds::Message translate(::Message *m);
 
     class TxMessage: public txMessageInt{

@@ -1,5 +1,5 @@
-#ifndef RTIHELPER_H
-#define RTIHELPER_H
+#ifndef OSPLHELPER_H
+#define OSPLHELPER_H
 
 #include <iostream>
 #include <string>
@@ -27,27 +27,27 @@ template<class M> dds::topic::Topic<M> get_topic(dds::domain::DomainParticipant 
 };
 
 template<class M> dds::pub::DataWriter<M> get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string writer_name){
-    dds::pub::DataWriter<M> writer = rti::pub::find_datawriter_by_name<dds::pub::DataWriter<M> >(publisher, writer_name);
+    dds::pub::DataWriter<M> writer = dds::core::null;//rti::pub::find_datawriter_by_name<dds::pub::DataWriter<M> >(publisher, writer_name);
     if(writer == dds::core::null){
         std::cout << "Constructing DataWriter: " << writer_name << std::endl;
-        dds::pub::qos::DataWriterQos qos;
-        qos << dds::core::policy::Partition(writer_name);
-        writer = dds::pub::DataWriter<M>(publisher, topic, qos);
+        //dds::pub::qos::DataWriterQos qos;
+        //qos << dds::core::policy::Partition(writer_name);
+        writer = dds::pub::DataWriter<M>(publisher, topic);
         writer.retain();
     }
     return writer;
 };
 
 template<class M> dds::sub::DataReader<M> get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string reader_name){
-    dds::sub::DataReader<M> reader = rti::sub::find_datareader_by_name<dds::sub::DataReader<M> >(subscriber, reader_name);
+    dds::sub::DataReader<M> reader = dds::core::null;//rti::sub::find_datareader_by_name<dds::sub::DataReader<M> >(subscriber, reader_name);
     if(reader == dds::core::null){
         std::cout << "Constructing DataReader: " << reader_name << std::endl;
-        dds::sub::qos::DataReaderQos qos;
-        qos << dds::core::policy::Partition(reader_name);
-        reader = dds::sub::DataReader<M>(subscriber, topic, qos);
+        //dds::sub::qos::DataReaderQos qos;
+        //qos << dds::core::policy::Partition(reader_name);
+        reader = dds::sub::DataReader<M>(subscriber, topic);
         reader.retain();
     }
     return reader;
 };
 };
-#endif //RTIHELPER_H
+#endif //OSPLHELPER_H
