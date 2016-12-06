@@ -16,7 +16,6 @@
 //#include "zmq/zmqtxmessage.h"
 
 
-#include <dds/dds.hpp>
 
 //RTI DDS
 #include "rti/rtitxmessage.h"
@@ -28,17 +27,17 @@
 
 
 int main(int argc, char** argv){
-    dds::domain::DomainParticipant participant(0); 
-    dds::pub::Publisher publisher(participant);
-    dds::sub::Subscriber subscriber(participant);
-
-
+    
     SenderImpl* sender_impl = new SenderImpl();
     RecieverImpl* reciever_impl = new RecieverImpl();
     
     //Construct Ports
-    txMessageInt* txMessage = new rti::TxMessage(sender_impl, publisher, "Test2");
-    rxMessageInt* rxMessage = new rti::RxMessage(reciever_impl, subscriber, "Test2");
+
+    
+    std::string topic_name("TEST");
+    txMessageInt* txMessage = new rti::TxMessage(sender_impl, 0, "Test_Pub", "Test_writer", topic_name);
+    rxMessageInt* rxMessage = new rti::RxMessage(reciever_impl, 0, "Test_Sub", "Test_Reader", topic_name);
+    txMessageInt* txMessage2 = new rti::TxMessage(sender_impl, 0, "Test_Pub", "Test_writer2", "NEW TOPIC");
 
     //txMessageInt* txMessage = new ospl::TxMessage(sender_impl, publisher, "Test2");
     //rxMessageInt* rxMessage = new ospl::RxMessage(reciever_impl, subscriber, "Test2");

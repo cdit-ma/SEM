@@ -40,10 +40,10 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
 #find_package(DDS REQUIRED)
 #include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/rti/cmake/modules")
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/rti/cmake/modules")
 
-find_package(DDS REQUIRED)
-include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
+#find_package(DDS REQUIRED)
+#include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
 
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
@@ -58,7 +58,7 @@ endif()
 
 
 #target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT)
+target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT -D_GLIBCXX_USE_CXX11_ABI=0)
 
 #target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 #target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})

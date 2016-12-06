@@ -1,28 +1,29 @@
 #ifndef DDSTXMESSAGE_H
 #define DDSTXMESSAGE_H
 
-#include <dds/dds.hpp>
-
-#include "ddstxinterface.h"
-
 #include "../interfaces.h"
-#include "message.hpp"
+#include "../message.h"
 
+namespace test_dds{
+    class Message;
+};
 
-
-
-
-test_dds::Message convert_message(::Message *m);
 namespace rti{
+    test_dds::Message translate(::Message *m);
+
     class TxMessage: public txMessageInt{
         public:
-            TxMessage(txMessageInt* component, dds::pub::Publisher publisher, std::string topic_name);
+            TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string writer_name, std::string topic_name);
             
             void txMessage(Message* message);
         private:
             txMessageInt* component_;
+            
+            int domain_id;
+            std::string publisher_name;
+            std::string writer_name;
+            std::string topic_name;
 
-            DDS_TX_Interface<test_dds::Message, ::Message>* tx_;
     };
 };
 
