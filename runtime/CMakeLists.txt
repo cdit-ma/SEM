@@ -23,7 +23,7 @@ set(SOURCE
 #add_subdirectory("${PROJECT_SOURCE_DIR}/test")
 #add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
-#add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
+add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
 
 
 #find OSPL
