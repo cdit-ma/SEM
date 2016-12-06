@@ -41,6 +41,7 @@ set(DDS_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.cxx
 )
 
+
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
 target_compile_features(${PROJ_NAME} PRIVATE cxx_range_for)
 

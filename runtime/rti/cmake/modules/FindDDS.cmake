@@ -30,7 +30,7 @@ find_path(DDS_INCLUDE_DIR ndds/ndds_cpp.h
 MESSAGE(${DDS_INCLUDE_DIR})
 
 if(NOT DDS_HOST)
-    #set(DDS_HOST "x64Linux2.6gcc4.4.5")
+    #set(DDS_HOST "x64Linux3gcc4.8.2")
     set(DDS_HOST "x64Darwin15clang7.0")
 endif(NOT DDS_HOST)
 find_library(DDS_C_LIBRARY nddsc
@@ -52,8 +52,13 @@ if(WIN32)
     set(DDS_EXTRA_LIBRARIES netapi32 advapi32 user32 ws2_32)
     set(DDS_DEFINITIONS -DRTI_WIN32 -DNDDS_DLL_VARIABLE /MD)
 else(WIN32)
+    
     #set(DDS_EXTRA_LIBRARIES dl nsl m pthread rt)
-    set(DDS_EXTRA_LIBRARIES dl m pthread)
+    if(NOT APPLE)
+        Message("NOT APPLE")
+        set(DDS_EXTRA_LIBRARIES dl nsl m pthread rt)
+    endif(NOT APPLE)
+    
     if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
         set(bits_flag -m64)
     else(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
