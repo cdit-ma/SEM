@@ -12,9 +12,7 @@ namespace test_dds{
 
 
 namespace rti{
-
     ::Message* translate(test_dds::Message m); 
-
     class RxMessage: public rxMessageInt{
         public:
             RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name);

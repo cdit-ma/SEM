@@ -19,6 +19,7 @@
 
 //RTI DDS
 #include "rti/rtitxmessage.h"
+
 #include "rti/rtirxmessage.h"
 
 //OPENSPLICE
@@ -32,6 +33,7 @@ int main(int argc, char** argv){
     RecieverImpl* reciever_impl = new RecieverImpl();
     
     //Construct Ports
+
 
     
     std::string topic_name("TEST");
