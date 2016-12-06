@@ -46,6 +46,6 @@ add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS
 target_compile_features(${PROJ_NAME} PRIVATE cxx_range_for)
 
 #add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT)
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT -D_GLIBCXX_USE_CXX11_ABI=0)
+target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT)# -D_GLIBCXX_USE_CXX11_ABI=0)
 
 target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})

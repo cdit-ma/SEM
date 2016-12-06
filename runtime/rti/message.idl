@@ -1,4 +1,4 @@
-module test_dds{
+module rti_test_dds{
 
 struct Message{
     long time;

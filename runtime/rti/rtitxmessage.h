@@ -4,12 +4,12 @@
 #include "../interfaces.h"
 #include "../message.h"
 
-namespace test_dds{
+namespace rti_test_dds{
     class Message;
 };
 
 namespace rti{
-    test_dds::Message translate(::Message *m);
+    rti_test_dds::Message translate(::Message *m);
 
     class TxMessage: public txMessageInt{
         public:
