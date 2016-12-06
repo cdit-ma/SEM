@@ -9,8 +9,8 @@ For more information, type 'rtiddsgen -help' at a command shell
 or consult the RTI Connext manual.
 */
 
-#ifndef message_874241052_hpp
-#define message_874241052_hpp
+#ifndef message_874241056_hpp
+#define message_874241056_hpp
 
 #include <iosfwd>
 #include "messageImpl.h"
@@ -54,7 +54,7 @@ or consult the RTI Connext manual.
 #define NDDSUSERDllExport __declspec(dllexport)
 #endif
 
-namespace test_dds {
+namespace rti_test_dds {
 
     class NDDSUSERDllExport Message {
 
@@ -108,33 +108,33 @@ namespace test_dds {
 
     NDDSUSERDllExport std::ostream& operator << (std::ostream& o,const Message& sample);
 
-} // namespace test_dds  
+} // namespace rti_test_dds  
 namespace dds { 
     namespace topic {
 
         template<>
-        struct topic_type_name<test_dds::Message> {
+        struct topic_type_name<rti_test_dds::Message> {
             NDDSUSERDllExport static std::string value() {
-                return "test_dds::Message";
+                return "rti_test_dds::Message";
             }
         };
 
         template<>
-        struct is_topic_type<test_dds::Message> : public dds::core::true_type {};
+        struct is_topic_type<rti_test_dds::Message> : public dds::core::true_type {};
 
         template<>
-        struct topic_type_support<test_dds::Message> {
+        struct topic_type_support<rti_test_dds::Message> {
 
-            NDDSUSERDllExport static void initialize_sample(test_dds::Message& sample);
+            NDDSUSERDllExport static void initialize_sample(rti_test_dds::Message& sample);
 
             NDDSUSERDllExport static void register_type(
                 dds::domain::DomainParticipant& participant,
                 const std::string & type_name);
 
             NDDSUSERDllExport static std::vector<char>& to_cdr_buffer(
-                std::vector<char>& buffer, const test_dds::Message& sample);
+                std::vector<char>& buffer, const rti_test_dds::Message& sample);
 
-            NDDSUSERDllExport static void from_cdr_buffer(test_dds::Message& sample, const std::vector<char>& buffer);
+            NDDSUSERDllExport static void from_cdr_buffer(rti_test_dds::Message& sample, const std::vector<char>& buffer);
         };
 
     }
@@ -143,14 +143,14 @@ namespace dds {
 namespace rti { 
     namespace topic {
         template<>
-        struct dynamic_type<test_dds::Message> {
+        struct dynamic_type<rti_test_dds::Message> {
             typedef dds::core::xtypes::StructType type;
             NDDSUSERDllExport static const dds::core::xtypes::StructType& get();
         };
 
         template<>
-        struct impl_type<test_dds::Message> {
-            typedef test_dds_Message_c type;
+        struct impl_type<rti_test_dds::Message> {
+            typedef rti_test_dds_Message_c type;
         };
 
     }
@@ -163,5 +163,5 @@ namespace rti {
 #define NDDSUSERDllExport
 #endif
 
-#endif // message_874241052_hpp
+#endif // message_874241056_hpp
 

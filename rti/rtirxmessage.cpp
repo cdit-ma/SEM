@@ -11,7 +11,7 @@
 #include "message.hpp"
 #include "rtihelper.h"
 
-::Message* rti::translate(test_dds::Message m){
+::Message* rti::translate(rti_test_dds::Message m){
     auto message = new ::Message();
     message->set_instName(m.instName());
     message->set_time(m.time());
@@ -31,7 +31,7 @@ rti::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string su
 
     auto participant = rti::get_participant(domain_id);
     auto subscriber = rti::get_subscriber(participant, subscriber_name);
-    auto topic = rti::get_topic<test_dds::Message>(participant, topic_name);
+    auto topic = rti::get_topic<rti_test_dds::Message>(participant, topic_name);
    
     rec_thread_ = new std::thread(&RxMessage::recieve, this);
 }
@@ -44,8 +44,8 @@ void rti::RxMessage::recieve(){
     
     auto participant = rti::get_participant(domain_id);
     auto subscriber = rti::get_subscriber(participant, subscriber_name);
-    auto topic = rti::get_topic<test_dds::Message>(participant, topic_name);
-    auto reader = rti::get_data_reader<test_dds::Message>(subscriber,topic, reader_name);
+    auto topic = rti::get_topic<rti_test_dds::Message>(participant, topic_name);
+    auto reader = rti::get_data_reader<rti_test_dds::Message>(subscriber,topic, reader_name);
     while(true){ 
         auto samples = reader.take();
 

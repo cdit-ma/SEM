@@ -19,30 +19,41 @@
 
 //RTI DDS
 #include "rti/rtitxmessage.h"
-
 #include "rti/rtirxmessage.h"
 
 //OPENSPLICE
-//#include "opensplice/osplrxmessage.h"
-//#include "opensplice/ospltxmessage.h"
+#include "opensplice/osplrxmessage.h"
+#include "opensplice/ospltxmessage.h"
 
 
 int main(int argc, char** argv){
     
     SenderImpl* sender_impl = new SenderImpl();
     RecieverImpl* reciever_impl = new RecieverImpl();
+
+    SenderImpl* sender_impl2 = new SenderImpl();
+    RecieverImpl* reciever_impl2 = new RecieverImpl();
     
-    //Construct Ports
-
-
     
     std::string topic_name("TEST");
-    txMessageInt* txMessage = new rti::TxMessage(sender_impl, 0, "Test_Pub", "Test_writer", topic_name);
-    rxMessageInt* rxMessage = new rti::RxMessage(reciever_impl, 0, "Test_Sub", "Test_Reader", topic_name);
-    txMessageInt* txMessage2 = new rti::TxMessage(sender_impl, 0, "Test_Pub", "Test_writer2", "NEW TOPIC");
+    std::string topic_name2("TEST2");
 
-    //txMessageInt* txMessage = new ospl::TxMessage(sender_impl, publisher, "Test2");
-    //rxMessageInt* rxMessage = new ospl::RxMessage(reciever_impl, subscriber, "Test2");
+    std::string pub_name("pub");
+    std::string sub_name("sub");
+    std::string writer_name("writer");
+    std::string reader_name("reader");
+
+    std::string pub_name2("pub2");
+    std::string sub_name2("sub2");
+    std::string writer_name2("writer2");
+    std::string reader_name2("reader2");
+    
+
+    rti::TxMessage* txMessage_r = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
+    rti::RxMessage* rxMessage_r = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
+
+    ospl::TxMessage* txMessage_o = new ospl::TxMessage(sender_impl2, 0, pub_name2, writer_name2, topic_name2);
+    ospl::RxMessage* rxMessage_o = new ospl::RxMessage(reciever_impl2, 0, sub_name2, reader_name2, topic_name2);
 
     //ZMQ
     //zmq::context_t * context = new zmq::context_t(1);
@@ -51,22 +62,41 @@ int main(int argc, char** argv){
     
     
     //Attach Ports
-    sender_impl->txMessage_ = txMessage;
-    reciever_impl->rxMessage_ = rxMessage;
+    sender_impl->txMessage_ = txMessage_r;
+    reciever_impl->rxMessage_ = rxMessage_r;
 
-    sender_impl->set_instName("Dans SenderImpl");
-    sender_impl->set_message("Get Rekt");
+    sender_impl->set_instName("tx_rti");
+    //sender_impl->set_message("1");
     
-    //sender_impl2->txMessage_ = txMessage2;
-    //sender_impl2->set_instName("SenderImpl2");
+    sender_impl2->txMessage_ = txMessage_o;
+    reciever_impl2->rxMessage_ = rxMessage_o;
+
+    //sender_impl2->set_instName("rx_ospl");
     //sender_impl2->set_message("Hello, World2!");
 
+    reciever_impl->set_instName("rx_rti");
+    reciever_impl2->set_instName("rx_ospl");
+    
+
+
+
+    
 
     int i = 600;
     while(i-- > 0){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        /* Message* msg = new Message();
+         Message* msg2 = new Message();
+         msg->set_time(i);
+            msg2->set_time(i);
+        //txMessage_r->txMessage(msg);
+        //txMessage_r->txMessage(msg);
+        txMessage_r->txMessage(msg);
+        txMessage_o->txMessage(msg2);*/
+
+        
         sender_impl->periodic_event();
-        //sender_impl2->periodic_event();
+        sender_impl2->periodic_event();
     }
 
     return -1;

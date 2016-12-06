@@ -14,7 +14,7 @@ or consult the RTI Connext manual.
 #include "message.hpp"
 #include "messageImplPlugin.h"
 
-namespace test_dds {
+namespace rti_test_dds {
 
     // ---- Message: 
 
@@ -75,35 +75,35 @@ namespace test_dds {
     }
 
     // --- Getters and Setters: -------------------------------------------------
-    int32_t test_dds::Message::time() const OMG_NOEXCEPT{
+    int32_t rti_test_dds::Message::time() const OMG_NOEXCEPT{
         return m_time_;
     }
 
-    void test_dds::Message::time(int32_t value) {
+    void rti_test_dds::Message::time(int32_t value) {
         m_time_ = value;
     }
 
-    dds::core::string& test_dds::Message::instName() OMG_NOEXCEPT {
+    dds::core::string& rti_test_dds::Message::instName() OMG_NOEXCEPT {
         return m_instName_;
     }
 
-    const dds::core::string& test_dds::Message::instName() const OMG_NOEXCEPT {
+    const dds::core::string& rti_test_dds::Message::instName() const OMG_NOEXCEPT {
         return m_instName_;
     }
 
-    void test_dds::Message::instName(const dds::core::string& value) {
+    void rti_test_dds::Message::instName(const dds::core::string& value) {
         m_instName_ = value;
     }
 
-    dds::core::string& test_dds::Message::content() OMG_NOEXCEPT {
+    dds::core::string& rti_test_dds::Message::content() OMG_NOEXCEPT {
         return m_content_;
     }
 
-    const dds::core::string& test_dds::Message::content() const OMG_NOEXCEPT {
+    const dds::core::string& rti_test_dds::Message::content() const OMG_NOEXCEPT {
         return m_content_;
     }
 
-    void test_dds::Message::content(const dds::core::string& value) {
+    void rti_test_dds::Message::content(const dds::core::string& value) {
         m_content_ = value;
     }
 
@@ -117,18 +117,18 @@ namespace test_dds {
         return o;
     }
 
-} // namespace test_dds  
+} // namespace rti_test_dds  
 
 // --- Type traits: -------------------------------------------------
 
 namespace rti { 
     namespace topic {
 
-        const dds::core::xtypes::StructType& dynamic_type<test_dds::Message>::get()
+        const dds::core::xtypes::StructType& dynamic_type<rti_test_dds::Message>::get()
         {
             return static_cast<const dds::core::xtypes::StructType&>(
                 rti::core::native_conversions::cast_from_native<dds::core::xtypes::DynamicType>(
-                    *(test_dds_Message_c_get_typecode())));
+                    *(rti_test_dds_Message_c_get_typecode())));
         }
 
     }
@@ -136,47 +136,47 @@ namespace rti {
 
 namespace dds { 
     namespace topic {
-        void topic_type_support<test_dds::Message>:: register_type(
+        void topic_type_support<rti_test_dds::Message>:: register_type(
             dds::domain::DomainParticipant& participant,
             const std::string& type_name){
 
             rti::domain::register_type_plugin(
                 participant,
                 type_name,
-                test_dds_Message_cPlugin_new,
-                test_dds_Message_cPlugin_delete);
+                rti_test_dds_Message_cPlugin_new,
+                rti_test_dds_Message_cPlugin_delete);
         }
 
-        void topic_type_support<test_dds::Message>::initialize_sample(test_dds::Message& sample){
+        void topic_type_support<rti_test_dds::Message>::initialize_sample(rti_test_dds::Message& sample){
 
-            test_dds_Message_c* native_sample=reinterpret_cast<test_dds_Message_c*> (&sample);
+            rti_test_dds_Message_c* native_sample=reinterpret_cast<rti_test_dds_Message_c*> (&sample);
 
             struct DDS_TypeDeallocationParams_t deAllocParams = {RTI_FALSE, RTI_FALSE};
-            test_dds_Message_c_finalize_w_params(native_sample,&deAllocParams);
+            rti_test_dds_Message_c_finalize_w_params(native_sample,&deAllocParams);
 
             struct DDS_TypeAllocationParams_t allocParams = {RTI_FALSE, RTI_FALSE, RTI_TRUE}; 
-            RTIBool ok=test_dds_Message_c_initialize_w_params(native_sample,&allocParams);
+            RTIBool ok=rti_test_dds_Message_c_initialize_w_params(native_sample,&allocParams);
             rti::core::check_return_code(
                 ok ? DDS_RETCODE_OK : DDS_RETCODE_ERROR,
                 "Failed to initialize_w_params");
 
         } 
 
-        std::vector<char>& topic_type_support<test_dds::Message>::to_cdr_buffer(
-            std::vector<char>& buffer, const test_dds::Message& sample)
+        std::vector<char>& topic_type_support<rti_test_dds::Message>::to_cdr_buffer(
+            std::vector<char>& buffer, const rti_test_dds::Message& sample)
         {
             // First get the length of the buffer
             unsigned int length = 0;
-            RTIBool ok = test_dds_Message_cPlugin_serialize_to_cdr_buffer(
-                NULL, &length,reinterpret_cast<const test_dds_Message_c*>(&sample));
+            RTIBool ok = rti_test_dds_Message_cPlugin_serialize_to_cdr_buffer(
+                NULL, &length,reinterpret_cast<const rti_test_dds_Message_c*>(&sample));
             rti::core::check_return_code(
                 ok ? DDS_RETCODE_OK : DDS_RETCODE_ERROR,
                 "Failed to calculate cdr buffer size");
 
             // Create a vector with that size and copy the cdr buffer into it
             buffer.resize(length);
-            ok = test_dds_Message_cPlugin_serialize_to_cdr_buffer(
-                &buffer[0], &length, reinterpret_cast<const test_dds_Message_c*>(&sample));
+            ok = rti_test_dds_Message_cPlugin_serialize_to_cdr_buffer(
+                &buffer[0], &length, reinterpret_cast<const rti_test_dds_Message_c*>(&sample));
             rti::core::check_return_code(
                 ok ? DDS_RETCODE_OK : DDS_RETCODE_ERROR,
                 "Failed to copy cdr buffer");
@@ -185,16 +185,16 @@ namespace dds {
 
         }
 
-        void topic_type_support<test_dds::Message>::from_cdr_buffer(test_dds::Message& sample, 
+        void topic_type_support<rti_test_dds::Message>::from_cdr_buffer(rti_test_dds::Message& sample, 
         const std::vector<char>& buffer)
         {
 
-            RTIBool ok  = test_dds_Message_cPlugin_deserialize_from_cdr_buffer(
-                reinterpret_cast<test_dds_Message_c*> (&sample), &buffer[0], 
+            RTIBool ok  = rti_test_dds_Message_cPlugin_deserialize_from_cdr_buffer(
+                reinterpret_cast<rti_test_dds_Message_c*> (&sample), &buffer[0], 
                 static_cast<unsigned int>(buffer.size()));
             rti::core::check_return_code(
                 ok ? DDS_RETCODE_OK : DDS_RETCODE_ERROR,
-                "Failed to create test_dds::Message from cdr buffer");
+                "Failed to create rti_test_dds::Message from cdr buffer");
         }
 
     }

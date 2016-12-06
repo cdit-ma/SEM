@@ -3,5 +3,5 @@
 
 
 void RecieverImpl::rxMessage(Message* message){
-    std::cout << "Recieved Message: "  << message->content() << " From: " << message->instName() << std::endl; 
+    std::cout << instName() << "RX Message: "  << message->content() << " From: " << message->instName() << std::endl; 
 }
