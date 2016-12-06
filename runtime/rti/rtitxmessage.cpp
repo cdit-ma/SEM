@@ -1,24 +1,51 @@
 #include "rtitxmessage.h"
-#include "convert.h"
 
-#include <iostream>
+#include <rti/rti.hpp>
+#include <dds/domain/DomainParticipant.hpp>
+#include <dds/sub/Subscriber.hpp>
+#include <dds/pub/Publisher.hpp>
+#include <dds/sub/DataReader.hpp>
+#include <dds/topic/Topic.hpp>
 
-test_dds::Message convert_message(::Message *m){
-        test_dds::Message out;
 
-        out.time(m->time());
-        out.instName(m->instName());
-        out.content(m->content());
+#include "message.hpp"
+#include "rtihelper.h"
 
-        return out;
+test_dds::Message rti::translate(::Message *m){
+        auto message = test_dds::Message();
+
+        message.time(m->time());
+        message.instName(m->instName());
+        message.content(m->content());
+
+        return message;
 }
 
-rti::TxMessage::TxMessage(txMessageInt* component, dds::pub::Publisher publisher, std::string topic_name){
+rti::TxMessage::TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string writer_name, std::string topic_name){
     this->component_ = component;
+
+    this->domain_id = domain_id;
+    this->publisher_name = publisher_name;
+    this->writer_name = writer_name;
+    this->topic_name = topic_name;
     
-    tx_ = new DDS_TX_Interface<test_dds::Message, ::Message>(publisher, topic_name);
+    auto participant = rti::get_participant(domain_id);
+    auto publisher = rti::get_publisher(participant, publisher_name);
+    auto topic = rti::get_topic<test_dds::Message>(participant, topic_name);
+    auto writer = rti::get_data_writer<test_dds::Message>(publisher, topic, writer_name);
 }
 
 void rti::TxMessage::txMessage(Message* message){
-    tx_->push_message(message);
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    
+
+    auto participant = rti::get_participant(domain_id);
+    auto publisher = rti::get_publisher(participant, publisher_name);
+    auto topic = rti::get_topic<test_dds::Message>(participant, topic_name);
+    auto writer = rti::get_data_writer<test_dds::Message>(publisher, topic, writer_name);
+    std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
+    
+    std::cout << "TOOK: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << std::endl;
+    writer.write(translate(message)); 
 }

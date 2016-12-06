@@ -13,21 +13,20 @@ find_package(DDS REQUIRED)
 include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
 
 
-
-
 set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/rtihelper.cpp	
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/rtitxmessage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rtirxmessage.cpp
-
     
-    
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/../message.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../basemessage.cpp
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/convert.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/ddstxinterface.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/rtihelper.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../message.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../basemessage.h
 )
 
 set(DDS_HEADERS
@@ -42,10 +41,10 @@ set(DDS_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.cxx
 )
 
-
-add_library(${PROJ_NAME} ${SOURCE} ${HEADERS}  ${DDS_SOURCE} ${DDS_HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
+target_compile_features(${PROJ_NAME} PRIVATE cxx_range_for)
 
 #add_definitions(-DRTI_UNIX -DRTI_LINUX -DRTI_64BIT)
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT)
+target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT -D_GLIBCXX_USE_CXX11_ABI=0)
 
 target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
