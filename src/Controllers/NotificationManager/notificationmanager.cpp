@@ -267,6 +267,35 @@ QString NotificationManager::getSeverityColorStr(NOTIFICATION_SEVERITY severity)
 
 
 /**
+ * @brief NotificationManager::getSeverityIcon
+ * @param severity
+ * @return
+ */
+QPair<QString, QString> NotificationManager::getSeverityIcon(NOTIFICATION_SEVERITY severity)
+{
+    QPair<QString, QString> iconPath;
+    iconPath.first = "Actions";
+
+    switch (severity) {
+    case NS_INFO:
+        iconPath.second = "Information";
+        break;
+    case NS_WARNING:
+        iconPath.second = "Warning";
+        break;
+    case NS_ERROR:
+        iconPath.second = "Error";
+        break;
+    default:
+        iconPath.second = "Help";
+        break;
+    }
+
+    return iconPath;
+}
+
+
+/**
  * @brief NotificationManager::notificationReceived
  * @param type
  * @param title

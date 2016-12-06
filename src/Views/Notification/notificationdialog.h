@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QListWidget>
 #include <QListWidgetItem>
-#include <QActionGroup>
+//#include <QActionGroup>
 #include <QSignalMapper>
 #include <QToolBar>
 #include <QToolButton>
@@ -15,6 +15,7 @@
 //#include "enumerations.h"
 #include "../../enumerations.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
+#include "../../Utils/actiongroup.h"
 #include "notificationobject.h"
 
 class NotificationItem;
@@ -47,6 +48,7 @@ signals:
     void mouseEntered();
 
     void filtersCleared();
+    void filterCleared(NOTIFICATION_FILTER filter);
     void severityFiltersChanged(QHash<NOTIFICATION_SEVERITY, bool> states);
     void typeFiltersChanged(QHash<NOTIFICATION_TYPE2, bool> states);
     void categoryFiltersChanged(QHash<NOTIFICATION_CATEGORY, bool> states);
@@ -55,8 +57,8 @@ public slots:
     void initialiseDialog();
     void resetDialog();
     void showDialog();
-    void toggleVisibility();
 
+    void toggleVisibility();
     void getLastNotificationID();
 
 private slots:
@@ -64,7 +66,6 @@ private slots:
 
     void filterMenuTriggered(QAction* action);
     void filterToggled(bool checked);
-    void clearFilters();
 
     void updateSelection(NotificationItem* item, bool selected, bool controlDown);
     void viewSelection();
@@ -80,11 +81,9 @@ private slots:
 
 private:
     void setupLayout();
-    void setupLayout2();
     void setupBackgroundProcessItems();
 
-    void constructFilterButton(ITEM_ROLES role, int roleVal, QString label = "", QString iconPath = "", QString iconName = "");
-    QAction* constructFilterButtonAction(QToolButton* button);
+    QAction* constructFilterButtonAction(ITEM_ROLES role, int roleVal, QString label = "", QString iconPath = "", QString iconName = "", bool addToGroup = true);
     void setActionButtonChecked(QAction *action, bool checked);
 
     void removeItem(int ID);
@@ -92,12 +91,14 @@ private:
     void clearAll();
     void clearSelection();
 
+    void clearFilter(NOTIFICATION_FILTER filter);
+    void clearFilters();
+
     void updateVisibilityCount(int val, bool set = false);
 
     void updateSeverityActions(QList<NOTIFICATION_SEVERITY> severities);
     void updateSeverityAction(NOTIFICATION_SEVERITY severity);
 
-    QPair<QString, QString> getActionIcon(NOTIFICATION_SEVERITY severity) const;
     NOTIFICATION_FILTER getNotificationFilter(ITEM_ROLES role);
 
     QToolBar* topButtonsToolbar;
@@ -109,12 +110,7 @@ private:
     QVBoxLayout* processLayout;
     QVBoxLayout* itemsLayout;
 
-    QList<QActionGroup*> actionGroups;
-    QList<QAction*> groupSeparators;
-    QHash<ITEM_ROLES, int> indexMap;
-
     QToolBar* topToolbar;
-    QToolBar* bottomToolbar;
     QToolBar* iconOnlyToolbar;
 
     QAction* allAction;
@@ -128,21 +124,26 @@ private:
     QFrame* displayedSeparatorFrame;
     QFrame* displaySeparator;
 
-    QHash<BACKGROUND_PROCESS, QFrame*> backgroundProcesses;
-    QHash<int, NotificationItem*> notificationItems;
+    QList<ActionGroup*> actionGroups;
+    QList<QAction*> groupSeparators;
+    QHash<ITEM_ROLES, int> indexMap;
+
+    QHash<ITEM_ROLES, ActionGroup*> filterGroups;
+    QHash<QAction*, QToolButton*> filterButtonHash;
+
+    QList<QAction*> checkedFilterActions;
     QList<NotificationItem*> selectedItems;
 
-    QHash<NOTIFICATION_SEVERITY, int> severityItemsCount;
-
-    QHash<NOTIFICATION_SEVERITY, bool> severityCheckedStates;
     QHash<NOTIFICATION_TYPE2, bool> typeCheckedStates;
     QHash<NOTIFICATION_CATEGORY, bool> categoryCheckedStates;
+    QHash<NOTIFICATION_SEVERITY, bool> severityCheckedStates;
 
-    QHash<QAction*, QToolButton*> filterButtonHash;
-    QList<QAction*> checkedFilterActions;
-
+    QHash<NOTIFICATION_SEVERITY, int> severityItemsCount;
     int visibleCount;
     int visibleProcessCount;
+
+    QHash<int, NotificationItem*> notificationItems;
+    QHash<BACKGROUND_PROCESS, QFrame*> backgroundProcesses;
 
 protected:
     void enterEvent(QEvent* event);

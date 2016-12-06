@@ -36,6 +36,7 @@ public:
     static QString getSeverityString(NOTIFICATION_SEVERITY severity);
     static QColor getSeverityColor(NOTIFICATION_SEVERITY severity);
     static QString getSeverityColorStr(NOTIFICATION_SEVERITY severity);
+    static QPair<QString, QString> getSeverityIcon(NOTIFICATION_SEVERITY severity);
 
     void resetManager();
     void tearDown();

@@ -6,6 +6,7 @@ ActionGroup::ActionGroup(QObject* parent) : QActionGroup(parent)
 {
     setExclusive(false);
     masterAction = 0;
+    checkedActionCount = 0;
 }
 
 RootAction *ActionGroup::getGroupVisibilityAction()
@@ -71,11 +72,11 @@ void ActionGroup::updateSpacers()
 
 QAction* ActionGroup::addAction(QAction *a)
 {
-
     if(a->isVisible()){
         updateMasterAction();
     }
     connect(a, SIGNAL(changed()), this, SLOT(updateMasterAction()));
+    connect(a, SIGNAL(toggled(bool)), this, SLOT(actionToggled(bool)));
     return QActionGroup::addAction(a);
 }
 
@@ -86,7 +87,13 @@ void ActionGroup::removeAction(QAction *a)
         updateMasterAction();
     }
     disconnect(a, SIGNAL(changed()), this, SLOT(updateMasterAction()));
+    disconnect(a, SIGNAL(toggled(bool)), this, SLOT(actionToggled(bool)));
     QActionGroup::removeAction(a);
+}
+
+bool ActionGroup::containsCheckedActions()
+{
+    return checkedActionCount > 0;
 }
 
 /**
@@ -104,5 +111,19 @@ void ActionGroup::updateMasterAction()
             }
         }
         masterAction->setEnabled(anyEnabled);
+    }
+}
+
+
+/**
+ * @brief ActionGroup::actionToggled
+ * @param toggled
+ */
+void ActionGroup::actionToggled(bool toggled)
+{
+    if (toggled) {
+        checkedActionCount++;
+    } else {
+        checkedActionCount--;
     }
 }

@@ -4,45 +4,40 @@
 
 /**
  * @brief NotificationItem::NotificationItem
- * @param ID
- * @param description
- * @param iconPath
- * @param iconName
- * @param eID
- * @param s
- * @param t
- * @param c
+ * @param obj
  * @param parent
  */
-NotificationItem::NotificationItem(int ID, QString description, QString iconPath, QString iconName, int eID, NOTIFICATION_SEVERITY s, NOTIFICATION_TYPE2 t, NOTIFICATION_CATEGORY c, QWidget *parent)
+NotificationItem::NotificationItem(NotificationObject* obj, QWidget *parent)
     : QFrame(parent)
 {
-    if (iconPath.isEmpty() || iconName.isEmpty()) {
-        iconPath = "Actions";
-        iconName = "Help";
-    }
-
-    setProperty("ID", ID);
-    setProperty("description", description);
-    setProperty("iconPath", iconPath);
-    setProperty("iconName", iconName);
-    setProperty("entityID", eID);
-
-    severity = s;
-    type = t;
-    category = c;
-
-    //expanded = false;
+    notificationObject = obj;
     selected = true;
-
     setSelected(false);
 
-    descriptionLabel = new QLabel(description, this);
+    if (!obj) {
+        qWarning() << "NotificationItem::NotificationItem - Notification object is null.";
+        return;
+    }
+
+    iconPath = obj->iconPath();
+    iconName = obj->iconName();
+    if (iconPath.isEmpty() || iconName.isEmpty()) {
+        QPair<QString, QString> severityIcon = NotificationManager::getSeverityIcon(getSeverity());
+        iconPath = severityIcon.first;
+        iconName = severityIcon.second;
+    }
+
+    descriptionLabel = new QLabel(obj->description(), this);
     iconLabel = new QLabel(this);
 
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->addWidget(iconLabel);
     layout->addWidget(descriptionLabel, 1);
+
+    // this item is visible by default - initialise all filter visibility to true
+    foreach (NOTIFICATION_FILTER filter, NotificationManager::getNotificationFilters()) {
+        filterVisibility[filter] = true;
+    }
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &NotificationItem::themeChanged);
     themeChanged();
@@ -55,7 +50,10 @@ NotificationItem::NotificationItem(int ID, QString description, QString iconPath
  */
 int NotificationItem::getID()
 {
-    return property("ID").toInt();
+    if (notificationObject) {
+        return notificationObject->ID();
+    }
+    return -1;
 }
 
 
@@ -65,7 +63,10 @@ int NotificationItem::getID()
  */
 int NotificationItem::getEntityID()
 {
-    return property("entityID").toInt();
+    if (notificationObject) {
+        return notificationObject->entityID();
+    }
+    return -1;
 }
 
 
@@ -75,7 +76,7 @@ int NotificationItem::getEntityID()
  */
 QString NotificationItem::getIconPath()
 {
-    return property("iconPath").toString();
+    return iconPath;
 }
 
 
@@ -85,7 +86,7 @@ QString NotificationItem::getIconPath()
  */
 QString NotificationItem::getIconName()
 {
-    return property("iconName").toString();
+    return iconName;
 }
 
 
@@ -95,7 +96,10 @@ QString NotificationItem::getIconName()
  */
 NOTIFICATION_SEVERITY NotificationItem::getSeverity()
 {
-    return severity;
+    if (notificationObject) {
+        return notificationObject->severity();
+    }
+    return NS_INFO;
 }
 
 
@@ -105,7 +109,10 @@ NOTIFICATION_SEVERITY NotificationItem::getSeverity()
  */
 NOTIFICATION_TYPE2 NotificationItem::getType()
 {
-    return type;
+    if (notificationObject) {
+        return notificationObject->type();
+    }
+    return NT_MODEL;
 }
 
 
@@ -115,7 +122,10 @@ NOTIFICATION_TYPE2 NotificationItem::getType()
  */
 NOTIFICATION_CATEGORY NotificationItem::getCategory()
 {
-    return category;
+    if (notificationObject) {
+        return notificationObject->category();
+    }
+    return NC_NOCATEGORY;
 }
 
 
@@ -132,11 +142,30 @@ void NotificationItem::themeChanged()
     }
     updateStyleSheet();
 
-    QString path = getIconPath();
-    QString name = getIconName();
-    QColor tintColor = NotificationManager::getSeverityColor(severity);
-    iconLabel->setPixmap(theme->getImage(path, name, QSize(28,28), tintColor));
-    //iconLabel->setPixmap(theme->getImage(path, name, QSize(28,28), theme->getMenuIconColor()));
+    QColor tintColor = NotificationManager::getSeverityColor(getSeverity());
+    iconLabel->setPixmap(theme->getImage(getIconPath(), getIconName(), QSize(28,28), tintColor));
+}
+
+
+/**
+ * @brief NotificationItem::showItem
+ */
+void NotificationItem::showItem()
+{
+    foreach (NOTIFICATION_FILTER filter, filterVisibility.keys()) {
+        filterVisibility[filter] = true;
+    }
+    show();
+}
+
+
+/**
+ * @brief NotificationItem::filterCleared
+ * @param filter
+ */
+void NotificationItem::filterCleared(NOTIFICATION_FILTER filter)
+{
+    updateVisibility(filter, true);
 }
 
 
@@ -146,10 +175,8 @@ void NotificationItem::themeChanged()
  */
 void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> checkedStates)
 {
-    bool visible = checkedStates.value(severity, false);
-    if (isVisible() != visible) {
-        setVisible(visible);
-    }
+    bool visible = checkedStates.value(getSeverity(), false);
+    updateVisibility(NF_SEVERITY, visible);
 }
 
 
@@ -159,10 +186,8 @@ void NotificationItem::severityFilterToggled(QHash<NOTIFICATION_SEVERITY, bool> 
  */
 void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checkedStates)
 {
-    bool visible = checkedStates.value(type, false);
-    if (isVisible() != visible) {
-        setVisible(visible);
-    }
+    bool visible = checkedStates.value(getType(), false);
+    updateVisibility(NF_TYPE, visible);
 }
 
 
@@ -172,10 +197,8 @@ void NotificationItem::typeFilterToggled(QHash<NOTIFICATION_TYPE2, bool> checked
  */
 void NotificationItem::categoryFilterToggled(QHash<NOTIFICATION_CATEGORY, bool> checkedStates)
 {
-    bool visible = checkedStates.value(category, false);
-    if (isVisible() != visible) {
-        setVisible(visible);
-    }
+    bool visible = checkedStates.value(getCategory(), false);
+    updateVisibility(NF_CATEGORY, visible);
 }
 
 
@@ -223,4 +246,32 @@ void NotificationItem::updateStyleSheet()
                   "QFrame:hover { background:" + theme->getDisabledBackgroundColorHex() + ";}"
                   "QLabel{ background: rgba(0,0,0,0); border: 0px; }"
                   + theme->getToolBarStyleSheet());
+}
+
+
+/**
+ * @brief NotificationItem::updateVisibility
+ * @param filter
+ * @param visible
+ */
+void NotificationItem::updateVisibility(NOTIFICATION_FILTER filter, bool visible)
+{
+    if (!filterVisibility.contains(filter)) {
+        return;
+    }
+
+    filterVisibility[filter] = visible;
+
+    if (isVisible() != visible) {
+        bool allVisible = true;
+        foreach (bool visible, filterVisibility.values()) {
+            if (!visible) {
+                allVisible = false;
+                break;
+            }
+        }
+        if (isVisible() != allVisible) {
+            setVisible(allVisible);
+        }
+    }
 }
