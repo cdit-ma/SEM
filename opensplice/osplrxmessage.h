@@ -2,27 +2,32 @@
 #define OSPLRXMESSAGE_H
 
 #include <thread>
-#include <dds/dds.hpp>
 
 #include "../interfaces.h"
-#include "message_DCPS.hpp"
+#include "../message.h"
+
+namespace test_dds{
+    class Message;
+};
+
 
 namespace ospl{
+    ::Message* translate(test_dds::Message m); 
     class RxMessage: public rxMessageInt{
         public:
-            RxMessage(rxMessageInt* component, dds::sub::Subscriber subscriber, std::string topic_name);
+            RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name);
             void rxMessage(Message* message);
         private:
             void recieve();
 
+            int domain_id;
+            std::string subscriber_name;
+            std::string reader_name;
+            std::string topic_name;
+
             std::thread* rec_thread_;
             rxMessageInt* component_;
-
-            //Magic DDS stuff
-            dds::sub::Subscriber subscriber_ = dds::sub::Subscriber(dds::core::null);        
-            dds::sub::DataReader<test_dds::Message> reader_ = dds::sub::DataReader<test_dds::Message>(dds::core::null);
     };
 };
-
 
 #endif //OSPLRXMESSAGE_H

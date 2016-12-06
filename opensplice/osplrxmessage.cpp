@@ -3,19 +3,37 @@
 
 #include <iostream>
 
-ospl::RxMessage::RxMessage(rxMessageInt* component, dds::sub::Subscriber subscriber, std::string topic_name){
+#include "message_DCPS.hpp"
+
+#include <dds/domain/DomainParticipant.hpp>
+#include <dds/sub/Subscriber.hpp>
+#include <dds/pub/Publisher.hpp>
+#include <dds/sub/DataReader.hpp>
+#include <dds/topic/Topic.hpp>
+
+
+::Message* ospl::translate(test_dds::Message m){
+    auto message = new ::Message();
+    message->set_instName(m.instName());
+    message->set_time(m.time());
+    message->set_content(m.content());
+    return message;
+}
+
+ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name){
     this->component_ = component;
-    this->subscriber_ = subscriber;
-     
-    //Try find first
-    auto topic = dds::topic::find<dds::topic::Topic<test_dds::Message> >(subscriber_.participant(), topic_name);
-    if(topic == dds::core::null){
-        //Construct
-        topic = dds::topic::Topic<test_dds::Message>(subscriber_.participant(), topic_name); 
-    }
 
-    reader_ = dds::sub::DataReader<test_dds::Message>(subscriber_, topic);
+    this->domain_id = domain_id;
+    this->subscriber_name = subscriber_name;
+    this->reader_name = reader_name;
+    this->topic_name = topic_name;
+    
 
+
+    auto participant = ospl::get_participant(domain_id);
+    auto subscriber = ospl::get_subscriber(participant, subscriber_name);
+    auto topic = ospl::get_topic<test_dds::Message>(participant, topic_name);
+   
     rec_thread_ = new std::thread(&RxMessage::recieve, this);
 }
 
@@ -24,15 +42,21 @@ void ospl::RxMessage::rxMessage(Message* message){
 }
 
 void ospl::RxMessage::recieve(){
+    
+    auto participant = ospl::get_participant(domain_id);
+    auto subscriber = ospl::get_subscriber(participant, subscriber_name);
+    auto topic = ospl::get_topic<test_dds::Message>(participant, topic_name);
+    auto reader = ospl::get_data_reader<test_dds::Message>(subscriber,topic, reader_name);
     while(true){ 
-        auto samples = reader_.take();
+        auto samples = reader.take();
 
         for(auto sample_it = samples.begin(); sample_it != samples.end(); ++sample_it){
             if(sample_it->info().valid()){
-                Message* m = opensplice::opensplice_to_message(sample_it->data());
+                Message* m = ospl::translate(sample_it->data());
                 rxMessage(m);
             }
         }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }

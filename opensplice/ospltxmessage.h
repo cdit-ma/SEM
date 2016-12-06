@@ -1,23 +1,30 @@
 #ifndef OSPLTXMESSAGE_H
 #define OSPLTXMESSAGE_H
 
-#include <dds/dds.hpp>
-
 #include "../interfaces.h"
-#include "message_DCPS.hpp"
+#include "../message.h"
 
-namespace ospl{
+namespace test_dds{
+    class Message;
+};
+
+namespace rti{
+    test_dds::Message translate(::Message *m);
+
     class TxMessage: public txMessageInt{
         public:
-            TxMessage(txMessageInt* component, dds::pub::Publisher publisher, std::string topic_name);
+            TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string writer_name, std::string topic_name);
             
             void txMessage(Message* message);
         private:
             txMessageInt* component_;
+            
+            int domain_id;
+            std::string publisher_name;
+            std::string writer_name;
+            std::string topic_name;
 
-            dds::pub::Publisher publisher_ = dds::pub::Publisher(dds::core::null);
-            dds::pub::DataWriter<test_dds::Message> writer_ = dds::pub::DataWriter<test_dds::Message>(dds::core::null);
     };
 };
 
-#endif //OSPLTXMESSAGE_
+#endif //OSPLTXMESSAGE_H
