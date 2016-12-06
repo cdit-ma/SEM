@@ -203,6 +203,9 @@ void NotificationDialog::clearFilters()
 
     // send signal to show all notification items
     emit filtersCleared();
+
+    // update visible items count
+    updateVisibilityCount(notificationItems.count(), true);
 }
 
 
@@ -242,6 +245,7 @@ void NotificationDialog::themeChanged()
                     "}"
                   + "QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex()+ ";}");
 
+    topToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     iconOnlyToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
                                   "QToolBar::separator {"
@@ -274,7 +278,6 @@ void NotificationDialog::themeChanged()
         QString iconPath = button->property("iconPath").toString();
         QString iconName = button->property("iconName").toString();
         button->setIcon(theme->getIcon(iconPath, iconName));
-        //qDebug() << "button[" << button->text() << "]: " << iconPath << "," << iconName;
     }
 }
 
@@ -402,7 +405,13 @@ void NotificationDialog::clearSelected()
             removeItem(item->getID());
         }
     }
+
     updateSeverityActions(removedSeverities);
+
+    // disable selection based buttons/actions
+    clearSelectedAction->setEnabled(false);
+    centerOnAction->setEnabled(false);
+    popupAction->setEnabled(false);
 }
 
 
@@ -415,12 +424,15 @@ void NotificationDialog::clearVisible()
     QList<NOTIFICATION_SEVERITY> removedSeverities;
 
     foreach (NotificationItem* item, notificationItems) {
+        if (!item->isVisible()) {
+            continue;
+        }
         NOTIFICATION_SEVERITY severity = item->getSeverity();
         if (severity != NS_ERROR) {
-            visibleItems.append(item);
             if (!removedSeverities.contains(severity)) {
                 removedSeverities.append(severity);
             }
+            visibleItems.append(item);
         }
     }
 
@@ -428,6 +440,7 @@ void NotificationDialog::clearVisible()
     while (!visibleItems.isEmpty()) {
         removeItem(visibleItems.takeFirst()->getID());
     }
+
     updateSeverityActions(removedSeverities);
 }
 
@@ -509,6 +522,12 @@ void NotificationDialog::notificationItemAdded(NotificationObject* obj)
         emit typeFiltersChanged(typeCheckedStates);
         emit categoryFiltersChanged(categoryCheckedStates);
     }
+
+    if (item->isVisible()) {
+        updateVisibilityCount(1);
+    } else {
+        updateVisibilityCount(-1);
+    }
 }
 
 
@@ -529,13 +548,15 @@ void NotificationDialog::notificationItemDeleted(int ID, NOTIFICATION_SEVERITY s
  */
 void NotificationDialog::clearAll()
 {
-    // remove widgets from the items and process layouts
+    // remove widgets from the items layout
     QLayoutItem* child;
     while ((child = itemsLayout->takeAt(0)) != 0) {
         delete child;
     }
-    while ((child = processLayout->takeAt(0)) != 0) {
-        delete child;
+
+    // hide background process items
+    foreach (BACKGROUND_PROCESS process, backgroundProcesses.keys()) {
+        backgroundProcess(false, process);
     }
 
     // clear the severity items count; the values here are sent to the notification toolbar
@@ -544,7 +565,6 @@ void NotificationDialog::clearAll()
     }
 
     notificationItems.clear();
-    backgroundProcesses.clear();
     selectedItems.clear();
 
     visibleProcessCount = 0;
@@ -702,17 +722,37 @@ void NotificationDialog::updateSeverityAction(NOTIFICATION_SEVERITY severity)
  */
 void NotificationDialog::setupLayout()
 {
-    QWidget* w = new QWidget(this);
-    w->setVisible(false);
+    // setup and populate the filters menu
+    filtersMenu = new QMenu(this);
+    filtersMenu->addAction("Severity")->setProperty(ROLE, IR_SEVERITY);
+    filtersMenu->addAction("Source")->setProperty(ROLE, IR_TYPE);
+    filtersMenu->addAction("Category")->setProperty(ROLE, IR_CATEGORY);
+    connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(w);
-    //QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setSpacing(DIALOG_SPACING);
+    // initially check all of the filter groups in the menu
+    foreach (QAction* action, filtersMenu->actions()) {
+        action->setCheckable(true);
+        action->setChecked(true);
+    }
 
-    topToolbar = new QToolBar(this);
-    topToolbar->setIconSize(QSize(20,20));
+    filtersButton = new QToolButton(this);
+    filtersButton->setPopupMode(QToolButton::InstantPopup);
+    filtersButton->setFont(QFont(font().family(), 10));
+    filtersButton->setText("Filters");
+    filtersButton->setMenu(filtersMenu);
 
     /*
+     * TOP TOOLBAR
+     */
+    topToolbar = new QToolBar(this);
+    topToolbar->setIconSize(QSize(20,20));
+    topToolbar->addWidget(filtersButton);
+
+    QWidget* stretchWidget = new QWidget(this);
+    stretchWidget->setStyleSheet("background: rgba(0,0,0,0);");
+    stretchWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    topToolbar->addWidget(stretchWidget);
+
     centerOnAction = topToolbar->addAction("");
     centerOnAction->setToolTip("Center View Aspect On Selected Item");
     centerOnAction->setEnabled(false);
@@ -720,8 +760,13 @@ void NotificationDialog::setupLayout()
     popupAction = topToolbar->addAction("");
     popupAction->setToolTip("View Selected Item In New Window");
     popupAction->setEnabled(false);
-    */
 
+    connect(centerOnAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
+    connect(popupAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
+
+    /*
+     * BOTTOM TOOLBAR
+     */
     iconOnlyToolbar = new QToolBar(this);
     iconOnlyToolbar->setIconSize(QSize(20,20));
 
@@ -745,69 +790,19 @@ void NotificationDialog::setupLayout()
 
     clearVisibleAction = iconOnlyToolbar->addAction("Clear Visible");
     clearVisibleAction->setToolTip("Clear Visible Items");
-    clearVisibleAction->setEnabled(false);
+    //clearVisibleAction->setEnabled(false);
+
+    connect(clearSelectedAction, &QAction::triggered, this, &NotificationDialog::clearSelected);
+    connect(clearVisibleAction, &QAction::triggered, this, &NotificationDialog::clearVisible);
 
     QActionGroup* sortGroup = new QActionGroup(this);
     sortGroup->setExclusive(true);
     sortGroup->addAction(sortTimeAction);
     sortGroup->addAction(sortSeverityAction);
 
-    QWidget* holderWidget = new QWidget(this);
-    holderWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    QHBoxLayout* topLayout = new QHBoxLayout();
-    topLayout->addWidget(holderWidget);
-    topLayout->addWidget(topToolbar);
-
-    QHBoxLayout* bottomLayout = new QHBoxLayout();
-    bottomLayout->addWidget(iconOnlyToolbar);
-
-    mainLayout->addLayout(topLayout);
-    mainLayout->addLayout(bottomLayout);
-
-    //connect(centerOnAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
-    //connect(popupAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
-    connect(clearSelectedAction, &QAction::triggered, this, &NotificationDialog::clearSelected);
-    connect(clearVisibleAction, &QAction::triggered, this, &NotificationDialog::clearVisible);
-
-    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
-    
-    // setup and populate the filters menu
-    filtersMenu = new QMenu(this);
-    filtersMenu->addAction("Severity")->setProperty(ROLE, IR_SEVERITY);
-    filtersMenu->addAction("Source")->setProperty(ROLE, IR_TYPE);
-    filtersMenu->addAction("Category")->setProperty(ROLE, IR_CATEGORY);
-    connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
-
-    // initially check all of the filter groups in the menu
-    foreach (QAction* action, filtersMenu->actions()) {
-        action->setCheckable(true);
-        action->setChecked(true);
-    }
-
-    filtersButton = new QToolButton(this);
-    filtersButton->setPopupMode(QToolButton::InstantPopup);
-    filtersButton->setFont(QFont(font().family(), 10));
-    filtersButton->setText("Filters");
-    filtersButton->setMenu(filtersMenu);
-
-    topButtonsToolbar = new QToolBar(this);
-    topButtonsToolbar->setIconSize(QSize(20,20));
-    topButtonsToolbar->addWidget(filtersButton);
-
-    QWidget* stretchWidget = new QWidget(this);
-    stretchWidget->setStyleSheet("background: rgba(0,0,0,0);");
-    stretchWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    topButtonsToolbar->addWidget(stretchWidget);
-
-    centerOnAction = topButtonsToolbar->addAction("");
-    centerOnAction->setToolTip("Center View Aspect On Selected Item");
-    centerOnAction->setEnabled(false);
-
-    popupAction = topButtonsToolbar->addAction("");
-    popupAction->setToolTip("View Selected Item In New Window");
-    popupAction->setEnabled(false);
-
+    /*
+     * FILTERS (LEFT) TOOLBAR
+     */
     filtersToolbar = new QToolBar(this);
     filtersToolbar->setOrientation(Qt::Vertical);
     filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -843,6 +838,9 @@ void NotificationDialog::setupLayout()
         categoryCheckedStates[category] = false;
     }
 
+    /*
+     * DISPLAY SECTION
+     */
     processLayout = new QVBoxLayout();
     processLayout->setMargin(0);
     processLayout->setSpacing(0);
@@ -896,8 +894,11 @@ void NotificationDialog::setupLayout()
     QVBoxLayout* vLayout = new QVBoxLayout(this);
     vLayout->setMargin(DIALOG_MARGIN);
     vLayout->setSpacing(DIALOG_SPACING);
-    vLayout->addWidget(topButtonsToolbar);
+    vLayout->addWidget(topToolbar);
     vLayout->addWidget(displaySplitter, 1);
+    vLayout->addWidget(iconOnlyToolbar, 0, Qt::AlignRight);
+
+    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
     // initially hide the category filters
     filtersMenu->actions().last()->trigger();
@@ -1050,6 +1051,6 @@ void NotificationDialog::updateVisibilityCount(int val, bool set)
     }
     bool enableAction = visibleCount > 0;
     if (enableAction != clearVisibleAction->isEnabled()) {
-        clearVisibleAction->setEnabled(enableAction);
+        //clearVisibleAction->setEnabled(enableAction);
     }
 }

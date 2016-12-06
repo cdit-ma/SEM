@@ -101,17 +101,15 @@ private:
 
     NOTIFICATION_FILTER getNotificationFilter(ITEM_ROLES role);
 
-    QToolBar* topButtonsToolbar;
     QToolButton* filtersButton;
     QMenu* filtersMenu;
     QToolBar* filtersToolbar;
+    QToolBar* topToolbar;
+    QToolBar* iconOnlyToolbar;
     QSplitter* displaySplitter;
 
     QVBoxLayout* processLayout;
     QVBoxLayout* itemsLayout;
-
-    QToolBar* topToolbar;
-    QToolBar* iconOnlyToolbar;
 
     QAction* allAction;
     QAction* sortTimeAction;
