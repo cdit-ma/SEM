@@ -22,7 +22,7 @@ NAMES
 ccpp_dds_dcps.h
 #dds_dcps.idl
 PATHS
-$ENV{OSPL_HOME}/include/dcps/C++/SACPP
+$ENV{OSPL_HOME}/include/dcps/C++/isocpp
 #$ENV{OSPL_HOME}/etc/idl/
 )
 

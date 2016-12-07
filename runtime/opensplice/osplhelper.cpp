@@ -5,9 +5,10 @@
 dds::domain::DomainParticipant ospl::get_participant(int domain){
     dds::domain::DomainParticipant p = dds::domain::find(domain);
     if(p == dds::core::null){
-        std::cout << "Constructing Domain Participant : " << domain << std::endl;
+        std::cout << "OSPL Domain Participant : " << domain << std::endl;
         dds::domain::qos::DomainParticipantQos qos;
         p = dds::domain::DomainParticipant(domain, qos);
+        std::cout << " CONSTRUCTED DOMAIN PART" << std::endl;
         p.retain();
     }
     return p;

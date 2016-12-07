@@ -18,6 +18,11 @@ ospl::Message ospl::translate(::Message *m){
 
         return message;
 }
+namespace ospl{
+    dds::pub::DataWriter<ospl::Message> writer(dds::core::null);
+};
+
+
 
 ospl::TxMessage::TxMessage(txMessageInt* component, int domain_id, std::string  publisher_name, std::string  writer_name, std::string  topic_name){
     this->component_ = component;
@@ -41,9 +46,10 @@ void ospl::TxMessage::txMessage(::Message* message){
     auto participant = ospl::get_participant(domain_id);
     auto publisher = ospl::get_publisher(participant, publisher_name);
     auto topic = ospl::get_topic<ospl::Message>(participant, topic_name);
-    auto writer = ospl::get_data_writer<ospl::Message>(publisher, topic, writer_name);
+    auto writer_ = ospl::get_data_writer<ospl::Message>(publisher, topic, writer_name);
     std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
     
-    std::cout << "TOOK: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << std::endl;
-    writer.write(translate(message)); 
+    std::cout << "OSPL TX !!  TOOK: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << std::endl;
+    
+    writer_.write(translate(message)); 
 }
