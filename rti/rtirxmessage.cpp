@@ -1,5 +1,6 @@
 #include "rtirxmessage.h"
 
+
 #include <rti/rti.hpp>
 #include <dds/domain/DomainParticipant.hpp>
 #include <dds/sub/Subscriber.hpp>
@@ -7,8 +8,9 @@
 #include <dds/sub/DataReader.hpp>
 #include <dds/topic/Topic.hpp>
 
-
 #include "message.hpp"
+
+
 #include "rtihelper.h"
 
 ::Message* rti::translate(rti::Message m){

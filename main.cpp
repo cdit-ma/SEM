@@ -8,22 +8,13 @@
 #include "senderimpl.h"
 #include "recieverimpl.h"
 
-//#include "test/testtxmessage.h"
-//#include "test/testrxmessage.h"
-
-//#include "zmq.hpp"
-//#include "zmq/zmqrxmessage.h"
-//#include "zmq/zmqtxmessage.h"
-
-
-
 //RTI DDS
 #include "rti/rtitxmessage.h"
 #include "rti/rtirxmessage.h"
 
 //OPENSPLICE
-#include "opensplice/osplrxmessage.h"
-#include "opensplice/ospltxmessage.h"
+//#include "opensplice/osplrxmessage.h"
+//#include "opensplice/ospltxmessage.h"
 
 
 int main(int argc, char** argv){
@@ -54,10 +45,10 @@ int main(int argc, char** argv){
     rxMessageInt* ospl_rx = 0;
 
     rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
-    rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
+    //rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
 
-    ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name, topic_name);
-    ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name);
+    //ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name, topic_name);
+    //ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name);
 
     //ZMQ
     //zmq::context_t * context = new zmq::context_t(1);

@@ -5,10 +5,9 @@
 
 #include "../interfaces.h"
 #include "../message.h"
-
-namespace rti{
-    class Message;
-};
+    namespace rti{
+        class Message;
+    };
 
 
 namespace rti{
