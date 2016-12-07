@@ -10,5 +10,7 @@ void SenderImpl::periodic_event(){
 }
 
 void SenderImpl::txMessage(Message* message){
-    this->txMessage_->txMessage(message);
+    if(txMessage_){
+        this->txMessage_->txMessage(message);
+    }
 }

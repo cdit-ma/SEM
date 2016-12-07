@@ -48,12 +48,16 @@ int main(int argc, char** argv){
     std::string writer_name2("writer2");
     std::string reader_name2("reader2");
     
+    txMessageInt* rti_tx = 0;
+    rxMessageInt* rti_rx = 0;
+    txMessageInt* ospl_tx = 0;
+    rxMessageInt* ospl_rx = 0;
 
-    rti::TxMessage* txMessage_r = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
-    //rti::RxMessage* rxMessage_r = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
+    rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
+    rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
 
-    //ospl::TxMessage* txMessage_o = new ospl::TxMessage(sender_impl2, 0, pub_name2, writer_name2, topic_name2);
-    ospl::RxMessage* rxMessage_o = new ospl::RxMessage(reciever_impl2, 0, sub_name2, reader_name2, topic_name);
+    ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name, topic_name);
+    ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name);
 
     //ZMQ
     //zmq::context_t * context = new zmq::context_t(1);
@@ -62,17 +66,17 @@ int main(int argc, char** argv){
     
     
     //Attach Ports
-    sender_impl->txMessage_ = txMessage_r;
-    //reciever_impl->rxMessage_ = rxMessage_r;
+    sender_impl->txMessage_ = rti_tx;
+    reciever_impl->rxMessage_ = rti_rx;
 
     sender_impl->set_instName("tx_rti");
-    //sender_impl->set_message("1");
+    sender_impl->set_message("1");
     
-    //sender_impl2->txMessage_ = txMessage_o;
-    reciever_impl2->rxMessage_ = rxMessage_o;
+    sender_impl2->txMessage_ = ospl_tx;
+    reciever_impl2->rxMessage_ = ospl_rx;
 
-    //sender_impl2->set_instName("rx_ospl");
-    //sender_impl2->set_message("Hello, World2!");
+    sender_impl2->set_instName("rx_ospl");
+    sender_impl2->set_message("2");
 
     reciever_impl->set_instName("rx_rti");
     reciever_impl2->set_instName("rx_ospl");
@@ -96,7 +100,7 @@ int main(int argc, char** argv){
 
         //std::cout << "Waiting for message" << std::endl;
         sender_impl->periodic_event();
-        //sender_impl2->periodic_event();
+        sender_impl2->periodic_event();
     }
 
     return -1;
