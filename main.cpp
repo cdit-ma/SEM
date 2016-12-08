@@ -83,9 +83,14 @@ int main(int argc, char** argv){
     while(i-- > 0){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-        //std::cout << "Waiting for message" << std::endl;
+        if(i % 2 == 0){
+            sender_impl->txMessage_ = rti_tx;
+        }else{
+            sender_impl->txMessage_ = ospl_tx;
+        }
+            //std::cout << "Waiting for message" << std::endl;
         sender_impl->periodic_event();
-        sender_impl2->periodic_event();
+        //sender_impl2->periodic_event();
     }
 
     return -1;
