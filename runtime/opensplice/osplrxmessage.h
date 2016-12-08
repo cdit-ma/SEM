@@ -17,7 +17,7 @@ namespace dds{
 
 namespace ospl{ 
     class DataReaderListener;
-    
+
     class RxMessage: public rxMessageInt{
         public:
             RxMessage(rxMessageInt* component, int domain_id, std::string  subscriber_name, std::string  reader_name, std::string  topic_name);
@@ -28,7 +28,6 @@ namespace ospl{
             std::thread* rec_thread_;
             rxMessageInt* component_;
             dds::sub::AnyDataReader* reader_;
-            DataReaderListener* listener_;
     };
 };
 
