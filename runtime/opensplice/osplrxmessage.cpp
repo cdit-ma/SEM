@@ -1,5 +1,6 @@
 #include "osplrxmessage.h"
 #include "osplhelper.h"
+#include "message_DCPS.hpp"
 
 ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name,std::string reader_name, std::string  topic_name){
     this->component_ = component;

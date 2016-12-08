@@ -1,7 +1,6 @@
 #include "messageconvert.h"
 
 #include "message_DCPS.hpp"
-#include "../message.h"
 
 
 ospl::Message* ospl::translate(::Message *m){

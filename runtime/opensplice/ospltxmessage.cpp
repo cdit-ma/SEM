@@ -1,7 +1,8 @@
 #include "ospltxmessage.h"
 #include "osplhelper.h"
+#include "message_DCPS.hpp"
 
-#include "messageconvert.h"
+
 
 ospl::TxMessage::TxMessage(txMessageInt* component, int domain_id, std::string  publisher_name, std::string  writer_name, std::string  topic_name){
     this->component_ = component;
