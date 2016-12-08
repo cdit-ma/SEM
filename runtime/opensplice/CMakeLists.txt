@@ -14,7 +14,7 @@ include_directories(${PROJ_NAME} ${OpenSplice_INCLUDE_DIRS})
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/osplouteventport.cpp
+    
 
     ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.cpp
@@ -26,6 +26,7 @@ set(SOURCE
 )
 
 set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/ospldatareaderlistener.h
     ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.h
