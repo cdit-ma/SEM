@@ -4,15 +4,15 @@
 #include <thread>
 
 #include "../interfaces.h"
-#include "../message.h"
 
-namespace ospl{
-    class Message;
+//Forward declare the AnyDataReader so that it can be linked without the <dds/dds.hpp> being linked.
+namespace dds{
+    namespace sub{
+        class AnyDataReader;
+    };
 };
 
-
-namespace ospl{
-    ::Message* translate(ospl::Message m); 
+namespace ospl{ 
     class RxMessage: public rxMessageInt{
         public:
             RxMessage(rxMessageInt* component, int domain_id, std::string  subscriber_name, std::string  reader_name, std::string  topic_name);
@@ -27,6 +27,7 @@ namespace ospl{
 
             std::thread* rec_thread_;
             rxMessageInt* component_;
+            dds::sub::AnyDataReader* reader_;
     };
 };
 
