@@ -3,7 +3,6 @@
 
 #include "../message.h"
 
-class Message;
 namespace ospl{
     class Message;
 
