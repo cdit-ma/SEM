@@ -23,11 +23,11 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     this->reader_name = reader_name;
     this->topic_name = topic_name;
     
-
-
-    auto participant = ospl::get_participant(domain_id);
-    auto subscriber = ospl::get_subscriber(participant, this->subscriber_name);
-    auto topic = ospl::get_topic<ospl::Message>(participant, this->topic_name);
+    auto helper = ospl::OsplHelper::get_ospl_helper();
+    
+    auto participant = helper->get_participant(domain_id);
+    auto subscriber = helper->get_subscriber(participant, this->subscriber_name);
+    auto topic = helper->get_topic<ospl::Message>(participant, this->topic_name);
    
     rec_thread_ = new std::thread(&RxMessage::recieve, this);
 }
@@ -37,11 +37,12 @@ void ospl::RxMessage::rxMessage(::Message* message){
 }
 
 void ospl::RxMessage::recieve(){
+    auto helper = ospl::OsplHelper::get_ospl_helper();
     
-    auto participant = ospl::get_participant(domain_id);
-    auto subscriber = ospl::get_subscriber(participant, subscriber_name);
-    auto topic = ospl::get_topic<ospl::Message>(participant, topic_name);
-    auto reader = ospl::get_data_reader<ospl::Message>(subscriber,topic, reader_name);
+    auto participant = helper->get_participant(domain_id);
+    auto subscriber = helper->get_subscriber(participant, this->subscriber_name);
+    auto topic = helper->get_topic<ospl::Message>(participant, this->topic_name);
+    auto reader = helper->get_data_reader<ospl::Message>(subscriber,topic, reader_name);
     while(true){ 
         auto samples = reader.take();
 

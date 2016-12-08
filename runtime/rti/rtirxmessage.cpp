@@ -30,10 +30,10 @@ rti::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string su
     this->topic_name = topic_name;
     
 
-
-    auto participant = rti::get_participant(domain_id);
-    auto subscriber = rti::get_subscriber(participant, subscriber_name);
-    auto topic = rti::get_topic<rti::Message>(participant, topic_name);
+    auto helper = rti::RtiHelper::get_rti_helper();
+    auto participant = helper->get_participant(domain_id);
+    auto subscriber = helper->get_subscriber(participant, subscriber_name);
+    auto topic = helper->get_topic<rti::Message>(participant, topic_name);
    
     rec_thread_ = new std::thread(&RxMessage::recieve, this);
 }
@@ -44,10 +44,11 @@ void rti::RxMessage::rxMessage(::Message* message){
 
 void rti::RxMessage::recieve(){
     
-    auto participant = rti::get_participant(domain_id);
-    auto subscriber = rti::get_subscriber(participant, subscriber_name);
-    auto topic = rti::get_topic<rti::Message>(participant, topic_name);
-    auto reader = rti::get_data_reader<rti::Message>(subscriber,topic, reader_name);
+    auto helper = rti::RtiHelper::get_rti_helper();
+    auto participant = helper->get_participant(domain_id);
+    auto subscriber = helper->get_subscriber(participant, subscriber_name);
+    auto topic = helper->get_topic<rti::Message>(participant, topic_name);
+    auto reader = helper->get_data_reader<rti::Message>(subscriber,topic, reader_name);
     while(true){ 
         auto samples = reader.take();
 

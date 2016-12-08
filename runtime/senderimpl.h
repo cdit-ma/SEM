@@ -2,7 +2,6 @@
 #define SENDERIMPL_H
 
 #include "interfaces.h"
-//#include "message.h"
 
 class SenderImpl: public SenderInt{
     public:
