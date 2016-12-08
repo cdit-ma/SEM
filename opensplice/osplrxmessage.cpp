@@ -4,6 +4,8 @@
 #include "osplhelper.h"
 #include "message_DCPS.hpp"
 
+
+
 ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name,std::string reader_name, std::string  topic_name){
     this->component_ = component;
 
@@ -19,7 +21,7 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     //Set our local writer
     
 
-    listener_ = new DataReaderListener(this);
+    auto listener_ = new DataReaderListener<ospl::Message>(this);
 
     //Only listen to data-available
     reader.listener(listener_, dds::core::status::StatusMask::data_available());
