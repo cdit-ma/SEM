@@ -8,7 +8,7 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     this->component_ = component;
 
     //Get the dds helper
-    auto helper = ospl::get_dds_helper();
+    auto helper = OsplHelper::get_dds_helper();
 
     //Construct/get the domain participant, subscriber, topic and reader
     auto participant = helper->get_participant(domain_id);
