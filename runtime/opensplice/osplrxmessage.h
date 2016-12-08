@@ -3,6 +3,9 @@
 
 #include <thread>
 
+//Includes the ::Message and ospl::Message
+#include "messageconvert.h"
+
 #include "../interfaces.h"
 
 //Forward declare the AnyDataReader so that it can be linked without the <dds/dds.hpp> being linked.
