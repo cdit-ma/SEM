@@ -29,11 +29,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.h
-    
     ${CMAKE_CURRENT_SOURCE_DIR}/messageconvert.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/instantiations.hpp
-
-
 )
 
 set(DDS_HEADERS
