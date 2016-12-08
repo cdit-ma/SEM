@@ -9,7 +9,7 @@
 namespace ospl{
     class DataReaderListener: public dds::sub::AnyDataReaderListener{
         public:
-            DataReaderListener(InEventPort* port){this->port_ = port};
+            DataReaderListener(InEventPort* port){this->port_ = port;};
 
             void on_data_available (dds::sub::AnyDataReader &reader){port_->recieve();};
             void on_liveliness_changed (dds::sub::AnyDataReader &reader, const dds::core::status::LivelinessChangedStatus &status){};
