@@ -5,7 +5,7 @@
 
 #include <dds/dds.hpp>
 
-template class<class T> DataReaderListener: public dds::sub::NoOpDataReaderListener<T>
+template <class T> class DataReaderListener: public dds::sub::NoOpDataReaderListener<T>
 {
 public:
     DataReaderListener(InEventPort* port) {this->port_ = port;};
@@ -16,7 +16,7 @@ public:
     void on_requested_incompatible_qos(dds::sub::DataReader<T> &reader, const dds::core::status::RequestedIncompatibleQosStatus &status){};
     void on_requested_deadline_missed(dds::sub::DataReader<T> &reader, const dds::core::status::RequestedDeadlineMissedStatus &status){};
     void on_liveliness_changed(dds::sub::DataReader<T> &reader, const dds::core::status::LivelinessChangedStatus &status){};
-    void on_data_available(dds::sub::DataReader<T> &reader){this->port_->recieve()};
+    void on_data_available(dds::sub::DataReader<T> &reader){this->port_->recieve();};
 private:
     InEventPort* port_;
 };
