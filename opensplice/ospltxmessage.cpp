@@ -7,7 +7,7 @@ ospl::TxMessage::TxMessage(txMessageInt* component, int domain_id, std::string  
     this->component_ = component;
 
     //Get the opensplice helper
-    auto helper = get_dds_helper();
+    auto helper = ospl::get_dds_helper();
 
     //Construct/get the domain participant, publisher, topic and writer
     auto participant = helper->get_participant(domain_id);

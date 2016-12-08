@@ -8,7 +8,7 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     this->component_ = component;
 
     //Get the dds helper
-    auto helper = get_dds_helper();
+    auto helper = ospl::get_dds_helper();
 
     //Construct/get the domain participant, subscriber, topic and reader
     auto participant = helper->get_participant(domain_id);
@@ -22,7 +22,7 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     listener_ = new DataReaderListener(this);
 
     //Only listen to data-available
-    reader.listener(listener_, dds::core::status::StatusMask::data_available()));
+    reader.listener(listener_, dds::core::status::StatusMask::data_available());
       
 
     reader_ = new dds::sub::AnyDataReader(reader);   
@@ -36,17 +36,13 @@ void ospl::RxMessage::rxMessage(::Message* message){
 void ospl::RxMessage::recieve(){
     //Get our typed reader
     auto reader = reader_->get<ospl::Message>();
+    auto samples = reader.take();
 
-    while(true){         
-        auto samples = reader.take();
-
-        for(auto sample_it = samples.begin(); sample_it != samples.end(); ++sample_it){
-            //Recieve our valid samples
-            if(sample_it->info().valid()){
-                auto m = translate(&sample_it->data());
-                rxMessage(m);
-            }
+    for(auto sample_it = samples.begin(); sample_it != samples.end(); ++sample_it){
+        //Recieve our valid samples
+        if(sample_it->info().valid()){
+            auto m = translate(&sample_it->data());
+            rxMessage(m);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
