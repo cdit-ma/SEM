@@ -2,6 +2,7 @@
 #define INTERFACES_H
 
 #include "message.h"
+#include "globalinterfaces.h"
 
 /*
     Port Interfaces
@@ -9,13 +10,13 @@
 
 class txMessageInt{
     public:
-    virtual void txMessage(Message* message) = 0;
+        virtual void txMessage(Message* message) = 0;
 };
 
-class rxMessageInt{
+class rxMessageInt : public InEventPort{
     public:
         virtual void rxMessage(Message* message) = 0;
-    
+        virtual void recieve(){};
 };
 
 class SenderInt: public txMessageInt{

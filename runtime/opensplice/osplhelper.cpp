@@ -5,7 +5,7 @@
 ospl::OsplHelper* ospl::OsplHelper::singleton_ = 0;
 
 
-ospl::OsplHelper* ospl::OsplHelper::get_ospl_helper(){
+ospl::OsplHelper* ospl::OsplHelper::get_dds_helper(){
     if(singleton_ == 0){
         singleton_ = new OsplHelper();
     }
