@@ -2,7 +2,16 @@
 #include <iostream>
 
 
-dds::domain::DomainParticipant rti::get_participant(int domain){
+rti::RtiHelper* rti::RtiHelper::singleton_ = 0;
+
+rti::RtiHelper* rti::RtiHelper::get_rti_helper(){
+    if(singleton_ == 0){
+        singleton_ = new RtiHelper();
+    }
+    return singleton_;
+}
+
+dds::domain::DomainParticipant rti::RtiHelper::get_participant(int domain){
     dds::domain::DomainParticipant p = dds::domain::find(domain);
     if(p == dds::core::null){
         dds::domain::qos::DomainParticipantQos qos;
@@ -14,7 +23,7 @@ dds::domain::DomainParticipant rti::get_participant(int domain){
     return p;
 }
 
-dds::pub::Publisher rti::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
+dds::pub::Publisher rti::RtiHelper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
     dds::pub::Publisher pub = rti::pub::find_publisher(participant, publisher_name);
     if(pub == dds::core::null){
         std::cout << "RTI CONSTRUCTING PUB: " << publisher_name << std::endl;                
@@ -29,7 +38,7 @@ dds::pub::Publisher rti::get_publisher(dds::domain::DomainParticipant participan
     return pub;
 }
 
-dds::sub::Subscriber rti::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
+dds::sub::Subscriber rti::RtiHelper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
     dds::sub::Subscriber sub = rti::sub::find_subscriber(participant, subscriber_name);
     if(sub == dds::core::null){
         std::cout << "RTI CONSTRUCTING SUB: " << subscriber_name << std::endl;        

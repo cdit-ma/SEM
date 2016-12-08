@@ -24,6 +24,12 @@ int main(int argc, char** argv){
 
     SenderImpl* sender_impl2 = new SenderImpl();
     RecieverImpl* reciever_impl2 = new RecieverImpl();
+
+    sender_impl2->set_instName("tx_ospl");
+    sender_impl2->set_message("2");
+    
+    reciever_impl->set_instName("rx_rti");
+    reciever_impl2->set_instName("rx_ospl");
     
     
     std::string topic_name("TEST");
@@ -39,16 +45,17 @@ int main(int argc, char** argv){
     std::string writer_name2("writer2");
     std::string reader_name2("reader2");
     
-    txMessageInt* rti_tx = 0;
-    rxMessageInt* rti_rx = 0;
+    txMessageInt* rti_tx  = 0;
+    rxMessageInt* rti_rx  = 0;
     txMessageInt* ospl_tx = 0;
     rxMessageInt* ospl_rx = 0;
 
     rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
     rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
 
-    ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name, topic_name);
-    ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name);
+    //ospl_tx = new ospl::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
+    ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name2, topic_name2);
+    ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name2);
 
     //txMessageInt* ospl_tx2  = new ospl::TxMessage(sender_impl2, 1, pub_name, writer_name, topic_name2);
 
@@ -68,13 +75,6 @@ int main(int argc, char** argv){
     sender_impl2->txMessage_ = ospl_tx;
     reciever_impl2->rxMessage_ = ospl_rx;
 
-    sender_impl2->set_instName("rx_ospl");
-    sender_impl2->set_message("2");
-
-    reciever_impl->set_instName("rx_rti");
-    reciever_impl2->set_instName("rx_ospl");
-    
-
 
 
     
@@ -82,14 +82,6 @@ int main(int argc, char** argv){
     int i = 600;
     while(i-- > 0){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        /* Message* msg = new Message();
-         Message* msg2 = new Message();
-         msg->set_time(i);
-            msg2->set_time(i);
-        //txMessage_r->txMessage(msg);
-        //txMessage_r->txMessage(msg);
-        txMessage_r->txMessage(msg);
-        txMessage_o->txMessage(msg2);*/
 
         //std::cout << "Waiting for message" << std::endl;
         sender_impl->periodic_event();

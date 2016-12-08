@@ -13,23 +13,32 @@ find_package(OpenSplice REQUIRED)
 include_directories(${PROJ_NAME} ${OpenSplice_INCLUDE_DIRS})
 
 set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/osplouteventport.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.cpp
+    
 
     ${CMAKE_CURRENT_SOURCE_DIR}/../message.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../basemessage.cpp
+    
 )
 
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.h
+    
+    ${CMAKE_CURRENT_SOURCE_DIR}/messageconvert.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/instantiations.hpp
+
 
 )
 
 set(DDS_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/message_DCPS.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/messageconvert.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/message.h
     ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps.h
