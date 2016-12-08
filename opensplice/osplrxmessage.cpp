@@ -18,17 +18,12 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     auto topic = helper->get_topic<ospl::Message>(participant, topic_name);
     auto reader = helper->get_data_reader<ospl::Message>(subscriber,topic, reader_name);
 
-    //Set our local writer
-    
-
+    //Set our local writer_
     auto listener_ = new DataReaderListener<ospl::Message>(this);
 
     //Only listen to data-available
     reader.listener(listener_, dds::core::status::StatusMask::data_available());
-      
-
     reader_ = new dds::sub::AnyDataReader(reader);   
-    //rec_thread_ = new std::thread(&RxMessage::recieve, this);
 }
 
 void ospl::RxMessage::rxMessage(::Message* message){
