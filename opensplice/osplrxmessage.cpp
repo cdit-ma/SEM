@@ -1,12 +1,14 @@
 #include "osplrxmessage.h"
+
+#include "ospldatareaderlistener.h"
 #include "osplhelper.h"
 #include "message_DCPS.hpp"
 
 ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name,std::string reader_name, std::string  topic_name){
     this->component_ = component;
 
-    //Get the opensplice helper
-    auto helper = ospl::OsplHelper::get_ospl_helper();
+    //Get the dds helper
+    auto helper = get_dds_helper();
 
     //Construct/get the domain participant, subscriber, topic and reader
     auto participant = helper->get_participant(domain_id);
@@ -15,9 +17,16 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     auto reader = helper->get_data_reader<ospl::Message>(subscriber,topic, reader_name);
 
     //Set our local writer
-    reader_ = new dds::sub::AnyDataReader(reader);
+    
 
-    rec_thread_ = new std::thread(&RxMessage::recieve, this);
+    listener_ = new DataReaderListener(this);
+
+    //Only listen to data-available
+    reader.listener(listener_, dds::core::status::StatusMask::data_available()));
+      
+
+    reader_ = new dds::sub::AnyDataReader(reader);   
+    //rec_thread_ = new std::thread(&RxMessage::recieve, this);
 }
 
 void ospl::RxMessage::rxMessage(::Message* message){

@@ -1,14 +1,13 @@
 #include "ospltxmessage.h"
 #include "osplhelper.h"
+
 #include "message_DCPS.hpp"
-
-
 
 ospl::TxMessage::TxMessage(txMessageInt* component, int domain_id, std::string  publisher_name, std::string  writer_name, std::string  topic_name){
     this->component_ = component;
 
     //Get the opensplice helper
-    auto helper = ospl::OsplHelper::get_ospl_helper();
+    auto helper = get_dds_helper();
 
     //Construct/get the domain participant, publisher, topic and writer
     auto participant = helper->get_participant(domain_id);

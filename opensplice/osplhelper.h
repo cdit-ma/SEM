@@ -10,7 +10,7 @@
 namespace ospl{
     class OsplHelper{
         public:
-            static OsplHelper* get_ospl_helper();
+            static OsplHelper* get_dds_helper();
 
             dds::domain::DomainParticipant get_participant(int domain);
             dds::pub::Publisher get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name);    
