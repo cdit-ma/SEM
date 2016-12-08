@@ -16,7 +16,6 @@ namespace dds{
 };
 
 namespace ospl{ 
-    class DataReaderListener;
 
     class RxMessage: public rxMessageInt{
         public:
