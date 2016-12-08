@@ -12,7 +12,7 @@ namespace ospl{
             DataReaderListener(InEventPort* port){this->port_ = port};
 
             void on_data_available (dds::sub::AnyDataReader &reader){port_->recieve();};
-            void on_liveliness_changed (dds::sub::AnyDataReader &reader, const LivelinessChangedStatus &status){};
+            void on_liveliness_changed (dds::sub::AnyDataReader &reader, const dds::core::status::LivelinessChangedStatus &status){};
             void on_requested_deadline_missed (dds::sub::AnyDataReader &reader, const dds::core::status::RequestedDeadlineMissedStatus &status);
             void on_requested_incompatible_qos (dds::sub::AnyDataReader &reader, const dds::core::status::RequestedIncompatibleQosStatus &status){};
             void on_sample_lost (dds::sub::AnyDataReader &reader, const dds::core::status::SampleLostStatus &status){};
