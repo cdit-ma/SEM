@@ -23,8 +23,8 @@ ospl::TxMessage::TxMessage(txMessageInt* component, int domain_id, std::string  
 void ospl::TxMessage::txMessage(::Message* message){
     auto writer = writer_->get<ospl::Message>();
     //Call the translate function
-    auto m = *translate(message);
+    auto m = translate(message);
     //De-reference the message and send
-    writer.write(m);
+    writer.write(*m);
     delete m; 
 }

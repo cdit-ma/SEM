@@ -7,7 +7,7 @@ namespace ospl{
     class Message;
 
     ospl::Message* translate(::Message *m);
-    ::Message* translate(ospl::Message *m);
+    ::Message* translate(const ospl::Message *m);
 };
 
 #endif //OSPLMESSAGECONVERT_H

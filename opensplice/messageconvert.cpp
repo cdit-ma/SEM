@@ -12,7 +12,7 @@ ospl::Message* ospl::translate(::Message *m){
         return message;
 }
 
-::Message* ospl::translate(ospl::Message *m){
+::Message* ospl::translate(const ospl::Message *m){
         auto message = new ::Message();
         int t = m->time();
         message->set_time(t);
