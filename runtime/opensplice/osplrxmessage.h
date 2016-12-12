@@ -2,6 +2,7 @@
 #define OSPLRXMESSAGE_H
 
 #include <thread>
+#include <condition_variable>
 
 #include "../interfaces.h"
 
@@ -19,12 +20,17 @@ namespace ospl{
 
     class RxMessage: public rxMessageInt{
         public:
-            RxMessage(rxMessageInt* component, int domain_id, std::string  subscriber_name, std::string  reader_name, std::string  topic_name);
+            RxMessage(rxMessageInt* component, int domain_id, std::string  subscriber_name, std::string  reader_name, std::string topic_name);
             void rxMessage(::Message* message);
         private:
-            void recieve();
-
+            void notify();
+            void recieve_loop();
+            
             std::thread* rec_thread_;
+            
+            std::mutex notify_mutex_;
+            std::condition_variable notify_lock_condition_;
+            
             rxMessageInt* component_;
             dds::sub::AnyDataReader* reader_;
     };
