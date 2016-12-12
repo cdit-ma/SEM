@@ -4,15 +4,15 @@
 #include <QDialog>
 #include <QListWidget>
 #include <QListWidgetItem>
-//#include <QActionGroup>
 #include <QSignalMapper>
 #include <QToolBar>
 #include <QToolButton>
 #include <QSplitter>
 #include <QPushButton>
 #include <QMenu>
+#include <QLabel>
+#include <QTimer>
 
-//#include "enumerations.h"
 #include "../../enumerations.h"
 #include "../../Controllers/NotificationManager/notificationmanager.h"
 #include "../../Utils/actiongroup.h"
@@ -79,12 +79,16 @@ private slots:
 
     void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
 
+    void intervalTimeout();
+
 private:
     void setupLayout();
     void setupBackgroundProcessItems();
 
     QAction* constructFilterButtonAction(ITEM_ROLES role, int roleVal, QString label = "", QString iconPath = "", QString iconName = "", bool addToGroup = true);
     void setActionButtonChecked(QAction *action, bool checked);
+
+    void blinkInfoLabel(bool blink = true);
 
     void removeItem(int ID);
 
@@ -93,8 +97,6 @@ private:
 
     void clearFilter(NOTIFICATION_FILTER filter);
     void clearFilters();
-
-    void updateVisibilityCount(int val, bool set = false);
 
     void updateSeverityActions(QList<NOTIFICATION_SEVERITY> severities);
     void updateSeverityAction(NOTIFICATION_SEVERITY severity);
@@ -107,6 +109,11 @@ private:
     QToolBar* topToolbar;
     QToolBar* iconOnlyToolbar;
     QSplitter* displaySplitter;
+
+    QLabel* infoLabel;
+    QAction* infoAction;
+    QTimer* blinkTimer;
+    int intervalTime;
 
     QVBoxLayout* processLayout;
     QVBoxLayout* itemsLayout;
@@ -137,7 +144,6 @@ private:
     QHash<NOTIFICATION_SEVERITY, bool> severityCheckedStates;
 
     QHash<NOTIFICATION_SEVERITY, int> severityItemsCount;
-    int visibleCount;
     int visibleProcessCount;
 
     QHash<int, NotificationItem*> notificationItems;

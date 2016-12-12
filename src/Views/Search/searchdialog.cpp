@@ -318,6 +318,7 @@ void SearchDialog::clear()
         QAction* action = actions.takeFirst();
         keysActionGroup->removeAction(action);
         keysToolbar->removeAction(action);
+        delete action;
     }
 
     QList<SearchItemWidget*> widgets = searchItems.values();

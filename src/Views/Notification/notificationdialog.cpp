@@ -13,8 +13,14 @@
 
 #define ROLE "ITEM_ROLE"
 #define ROLE_VAL "ITEM_ROLE_VALUE"
+
 #define ICON_SIZE 24
 #define SHOW_SEPARATOR_MARGIN false
+
+//#define BLINK_INTERVAL 1000
+//#define BLINK_TIME 5000
+#define BLINK_INTERVAL 0
+#define BLINK_TIME 3000
 
 /**
  * @brief NotificationDialog::NotificationDialog
@@ -203,9 +209,6 @@ void NotificationDialog::clearFilters()
 
     // send signal to show all notification items
     emit filtersCleared();
-
-    // update visible items count
-    updateVisibilityCount(notificationItems.count(), true);
 }
 
 
@@ -216,7 +219,12 @@ void NotificationDialog::clearFilters()
 void NotificationDialog::viewSelection()
 {
     int numSelectedItems = selectedItems.count();
+
     if (numSelectedItems != 1) {
+        if (selectedItems.isEmpty()) {
+            infoLabel->setText("Please select <u>one</u> notification...");
+            blinkInfoLabel();
+        }
         return;
     }
 
@@ -284,9 +292,9 @@ void NotificationDialog::themeChanged()
 
 /**
  * @brief NotificationDialog::updateSelection
- * @param item
- * @param selected
- * @param controlDown
+ * @param item - the notification item that was clicked
+ * @param selected - the item's current selected state
+ * @param controlDown - control key's down state
  */
 void NotificationDialog::updateSelection(NotificationItem* item, bool selected, bool controlDown)
 {
@@ -294,30 +302,22 @@ void NotificationDialog::updateSelection(NotificationItem* item, bool selected, 
         return;
     }
 
-    if (selected) {
-        if (controlDown) {
-            item->setSelected(false);
-            selectedItems.removeAll(item);
-        } else {
-            clearSelection();
-            item->setSelected(true);
-            selectedItems.append(item);
+    bool selectItem = !selected;
+    if (!controlDown) {
+        if (selectedItems.count() > 1) {
+            selectItem = true;
         }
-    } else {
-        item->setSelected(true);
-        if (!controlDown) {
-           clearSelection();
-        }
-        selectedItems.append(item);
+        clearSelection();
     }
 
-    bool selectionExists = !selectedItems.isEmpty();
-    bool currentState = clearSelectedAction->isEnabled();
-    if (currentState != selectionExists) {
-        clearSelectedAction->setEnabled(selectionExists);
-        centerOnAction->setEnabled(selectionExists);
-        popupAction->setEnabled(selectionExists);
+    if (selectItem) {
+        selectedItems.append(item);
+    } else {
+        selectedItems.removeAll(item);
     }
+
+    item->setSelected(selectItem);
+    blinkInfoLabel(false);
 }
 
 
@@ -394,6 +394,13 @@ void NotificationDialog::clearSelected()
 {
     QList<NOTIFICATION_SEVERITY> removedSeverities;
 
+    // start/restart timer
+    if (selectedItems.isEmpty()) {
+        infoLabel->setText("Please select at least one notification...");
+        blinkInfoLabel();
+        return;
+    }
+
     // delete selected items
     while (!selectedItems.isEmpty()) {
         NotificationItem* item = selectedItems.takeFirst();
@@ -408,10 +415,12 @@ void NotificationDialog::clearSelected()
 
     updateSeverityActions(removedSeverities);
 
+    /*
     // disable selection based buttons/actions
     clearSelectedAction->setEnabled(false);
     centerOnAction->setEnabled(false);
     popupAction->setEnabled(false);
+    */
 }
 
 
@@ -522,12 +531,6 @@ void NotificationDialog::notificationItemAdded(NotificationObject* obj)
         emit typeFiltersChanged(typeCheckedStates);
         emit categoryFiltersChanged(categoryCheckedStates);
     }
-
-    if (item->isVisible()) {
-        updateVisibilityCount(1);
-    } else {
-        updateVisibilityCount(-1);
-    }
 }
 
 
@@ -568,7 +571,6 @@ void NotificationDialog::clearAll()
     selectedItems.clear();
 
     visibleProcessCount = 0;
-    updateVisibilityCount(0, true);
     updateSeverityActions(NotificationManager::getNotificationSeverities());
 
     // reset checked filter buttons and checked filter lists
@@ -620,9 +622,6 @@ void NotificationDialog::removeItem(int ID)
     if (notificationItems.contains(ID)) {
         NotificationItem* item = notificationItems.take(ID);
         NOTIFICATION_SEVERITY severity = item->getSeverity();
-        if (item->isVisible()) {
-            updateVisibilityCount(-1);
-        }
         if (severityItemsCount.contains(severity)) {
             severityItemsCount[severity]--;
         }
@@ -695,6 +694,40 @@ void NotificationDialog::backgroundProcess(bool inProgress, BACKGROUND_PROCESS p
 
 
 /**
+ * @brief NotificationDialog::blinkInfoLabel
+ * @param blink
+ */
+void NotificationDialog::blinkInfoLabel(bool blink)
+{
+    if (blink) {
+        intervalTime = 0;
+        blinkTimer->start();
+    } else {
+        blinkTimer->stop();
+    }
+    infoAction->setVisible(blink);
+}
+
+
+/**
+ * @brief NotificationDialog::intervalTimeout
+ */
+void NotificationDialog::intervalTimeout()
+{
+    if (BLINK_INTERVAL == 0) {
+        blinkInfoLabel(false);
+    }  else {
+        intervalTime += BLINK_INTERVAL;
+        if (intervalTime == BLINK_TIME) {
+            blinkInfoLabel(false);
+        } else {
+            infoAction->setVisible(!infoAction->isVisible());
+        }
+    }
+}
+
+
+/**
  * @brief NotificationDialog::updateSeverityActions
  * @param severities
  */
@@ -755,11 +788,9 @@ void NotificationDialog::setupLayout()
 
     centerOnAction = topToolbar->addAction("");
     centerOnAction->setToolTip("Center View Aspect On Selected Item");
-    centerOnAction->setEnabled(false);
 
     popupAction = topToolbar->addAction("");
     popupAction->setToolTip("View Selected Item In New Window");
-    popupAction->setEnabled(false);
 
     connect(centerOnAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
     connect(popupAction, &QAction::triggered, this, &NotificationDialog::viewSelection);
@@ -769,6 +800,25 @@ void NotificationDialog::setupLayout()
      */
     iconOnlyToolbar = new QToolBar(this);
     iconOnlyToolbar->setIconSize(QSize(20,20));
+    iconOnlyToolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+    infoLabel = new QLabel(this);
+    infoLabel->setFont(QFont(font().family(), font().pointSizeF(), QFont::Normal, true));
+    infoAction = iconOnlyToolbar->addWidget(infoLabel);
+    infoAction->setVisible(false);
+
+    blinkTimer = new QTimer(this);
+    blinkTimer->setTimerType(Qt::PreciseTimer);
+    blinkTimer->setInterval(BLINK_INTERVAL);
+    if (BLINK_INTERVAL == 0) {
+        blinkTimer->setInterval(BLINK_TIME);
+    }
+    connect(blinkTimer, &QTimer::timeout, this, &NotificationDialog::intervalTimeout);
+
+    QWidget* stretchWidget2 = new QWidget(this);
+    stretchWidget2->setStyleSheet("background: rgba(0,0,0,0);");
+    stretchWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    iconOnlyToolbar->addWidget(stretchWidget2);
 
     sortTimeAction = iconOnlyToolbar->addAction("");
     sortTimeAction->setToolTip("Sort Notifications By Time");
@@ -786,11 +836,9 @@ void NotificationDialog::setupLayout()
 
     clearSelectedAction = iconOnlyToolbar->addAction("Clear Selected");
     clearSelectedAction->setToolTip("Clear Selected Items");
-    clearSelectedAction->setEnabled(false);
 
     clearVisibleAction = iconOnlyToolbar->addAction("Clear Visible");
     clearVisibleAction->setToolTip("Clear Visible Items");
-    //clearVisibleAction->setEnabled(false);
 
     connect(clearSelectedAction, &QAction::triggered, this, &NotificationDialog::clearSelected);
     connect(clearVisibleAction, &QAction::triggered, this, &NotificationDialog::clearVisible);
@@ -896,7 +944,8 @@ void NotificationDialog::setupLayout()
     vLayout->setSpacing(DIALOG_SPACING);
     vLayout->addWidget(topToolbar);
     vLayout->addWidget(displaySplitter, 1);
-    vLayout->addWidget(iconOnlyToolbar, 0, Qt::AlignRight);
+    vLayout->addWidget(iconOnlyToolbar);
+    //vLayout->addWidget(iconOnlyToolbar, 0, Qt::AlignRight);
 
     setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
@@ -1032,25 +1081,5 @@ void NotificationDialog::setActionButtonChecked(QAction* action, bool checked)
     if (action && button) {
         action->setChecked(checked);
         button->setChecked(checked);
-    }
-}
-
-
-/**
- * @brief NotificationDialog::updateVisibilityCount
- * This enables/disables the clearVisible button.
- * @param val
- * @param set
- */
-void NotificationDialog::updateVisibilityCount(int val, bool set)
-{
-    if (set) {
-        visibleCount = val;
-    } else {
-        visibleCount += val;
-    }
-    bool enableAction = visibleCount > 0;
-    if (enableAction != clearVisibleAction->isEnabled()) {
-        //clearVisibleAction->setEnabled(enableAction);
     }
 }

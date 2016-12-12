@@ -272,6 +272,10 @@ void NotificationItem::updateVisibility(NOTIFICATION_FILTER filter, bool visible
         }
         if (isVisible() != allVisible) {
             setVisible(allVisible);
+            // de-select this item if it is hidden
+            if (!allVisible && selected) {
+                emit itemClicked(this, selected, true);
+            }
         }
     }
 }
