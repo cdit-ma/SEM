@@ -6,12 +6,8 @@
 class SenderImpl: public SenderInt{
     public:
         void periodic_event();
-
-    public:
-        void txMessage(Message* message);
-        txMessageInt* txMessage_;
-
     private:
+        //Variable
         int sentCount_;
 };
 
