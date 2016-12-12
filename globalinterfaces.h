@@ -3,7 +3,7 @@
 
 class InEventPort{
     public:
-        virtual void recieve() = 0;
+        virtual void notify() = 0;
 };
 
 #endif //GLOBALINTERFACES_H

@@ -16,7 +16,7 @@ class txMessageInt{
 class rxMessageInt : public InEventPort{
     public:
         virtual void rxMessage(Message* message) = 0;
-        virtual void recieve(){};
+        virtual void notify(){};
 };
 
 class SenderInt: public txMessageInt{

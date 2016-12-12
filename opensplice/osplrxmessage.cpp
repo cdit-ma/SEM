@@ -1,5 +1,7 @@
 #include "osplrxmessage.h"
 
+#include <mutex>
+
 #include "ospldatareaderlistener.h"
 #include "osplhelper.h"
 #include "message_DCPS.hpp"
@@ -24,22 +26,39 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     //Only listen to data-available
     reader.listener(listener_, dds::core::status::StatusMask::data_available());
     reader_ = new dds::sub::AnyDataReader(reader);   
-}
+
+    //Setup Thread
+    rec_thread_ = new std::thread(&RxMessage::recieve_loop, this);
+}4
 
 void ospl::RxMessage::rxMessage(::Message* message){
     component_->rxMessage(message);
 }
 
-void ospl::RxMessage::recieve(){
+void ospl::RxMessage::notify(){
+    //Notify thread
+    std::unique_lock<std::mutex> lock(notify_mutex_);
+    notify_lock_condition_.notify_all();
+}
+
+void ospl::RxMessage::recieve_loop(){
     //Get our typed reader
     auto reader = reader_->get<ospl::Message>();
-    auto samples = reader.take();
+    
+    while(true){
+        {
+            //Wait for next message
+            std::unique_lock<std::mutex> lock(notify_mutex_);
+            notify_lock_condition_.wait(lock);
+        }
 
-    for(auto sample_it = samples.begin(); sample_it != samples.end(); ++sample_it){
-        //Recieve our valid samples
-        if(sample_it->info().valid()){
-            auto m = translate(&sample_it->data());
-            rxMessage(m);
+        auto samples = reader.take();
+        for(auto sample_it = samples.begin(); sample_it != samples.end(); ++sample_it){
+            //Recieve our valid samples
+            if(sample_it->info().valid()){
+                auto m = translate(&sample_it->data());
+                rxMessage(m);
+            }
         }
     }
 }
