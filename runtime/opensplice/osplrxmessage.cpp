@@ -29,7 +29,7 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
 
     //Setup Thread
     rec_thread_ = new std::thread(&RxMessage::recieve_loop, this);
-}4
+}
 
 void ospl::RxMessage::rxMessage(::Message* message){
     component_->rxMessage(message);
