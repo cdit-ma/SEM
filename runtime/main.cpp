@@ -65,20 +65,20 @@ int main(int argc, char** argv){
     //rxMessageInt* rxMessage = new zmq_rxMessage(reciever_impl, context, std::string("tcp://192.168.111.187:6000"));
     
     
-    //Attach Ports
-    sender_impl->txMessage_ = rti_tx;
-    reciever_impl->rxMessage_ = rti_rx;
-
     sender_impl->set_instName("tx_rti");
     sender_impl->set_message("1");
+
+    sender_impl2->set_instName("tx_ospl");
+    sender_impl2->set_message("2");
+
+    //Attach Ports
+    sender_impl->_set_txMessage(rti_tx);
+    reciever_impl->_set_rxMessage(rti_rx);
     
-    sender_impl2->txMessage_ = ospl_tx;
-    reciever_impl2->rxMessage_ = ospl_rx;
-
-
-
+    sender_impl2->_set_txMessage(ospl_tx);
+    reciever_impl2->_set_rxMessage(ospl_rx);
     
-
+    
     int i = 600;
     while(i-- > 0){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
