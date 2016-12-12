@@ -12,7 +12,7 @@ public:
         this->port_ = port;
     };
     void on_data_available(dds::sub::DataReader<T> &reader){
-        port_->recieve();
+        port_->notify();
     };
 private:
     InEventPort* port_;
