@@ -9,8 +9,8 @@
 #include "recieverimpl.h"
 
 //RTI DDS
-//#include "rti/rtitxmessage.h"
-//#include "rti/rtirxmessage.h"
+#include "rti/rtitxmessage.h"
+#include "rti/rtirxmessage.h"
 
 //OPENSPLICE
 #include "opensplice/osplrxmessage.h"
@@ -36,8 +36,8 @@ int main(int argc, char** argv){
     reciever_impl2->set_instName("rx_ospl");
     
     
-    std::string topic_name("TEST");
-    std::string topic_name2("TEST2");
+    std::string topic_name("bye");
+    std::string topic_name2("TEST232");
 
     std::string pub_name("pub");
     std::string sub_name("sub");
@@ -54,18 +54,17 @@ int main(int argc, char** argv){
     txMessageInt* ospl_tx = 0;
     rxMessageInt* ospl_rx = 0;
 
-    //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
-    //rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
-
-    ospl_tx = new ospl::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
-    //ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name2, topic_name2);
-    ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name);
+    rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
+    rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
+    
+    //ospl_tx = new ospl::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
+    //ospl_rx = new ospl::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
 
     //txMessageInt* ospl_tx2  = new ospl::TxMessage(sender_impl2, 1, pub_name, writer_name, topic_name2);
 
     //ZMQ
-    rti_tx = new zmq::TxMessage(sender_impl, std::string("tcp://*:6000"));
-    rti_rx = new zmq::RxMessage(reciever_impl, std::string("tcp://192.168.111.187:6000"));
+    //ospl_tx = new zmq::TxMessage(sender_impl, std::string("tcp://*:6000"));
+    //ospl_rx = new zmq::RxMessage(reciever_impl, std::string("tcp://192.168.111.83:6000"));
     
     
     sender_impl->set_instName("tx_rti");
@@ -86,8 +85,6 @@ int main(int argc, char** argv){
     while(i-- > 0){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-        
-            //std::cout << "Waiting for message" << std::endl;
         sender_impl->periodic_event();
         sender_impl2->periodic_event();
     }

@@ -20,7 +20,7 @@ namespace ospl{
             void rx_(::Message* message);
         private:
             //This is the concrete event port
-            Ospl_InEventPort<::Message, ospl::Message> * event_port_;
+            Ospl_InEventPort<::Message, ospl::Message> *event_port_;
 
             rxMessageInt* component_;
     };

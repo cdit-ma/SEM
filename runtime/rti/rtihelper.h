@@ -9,7 +9,7 @@ namespace rti{
 
     class RtiHelper{
         public:
-            static RtiHelper* get_rti_helper();
+            static RtiHelper* get_dds_helper();
             dds::domain::DomainParticipant get_participant(int domain);
             dds::pub::Publisher get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name);
             dds::sub::Subscriber get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name);

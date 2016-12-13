@@ -4,7 +4,7 @@
 
 rti::RtiHelper* rti::RtiHelper::singleton_ = 0;
 
-rti::RtiHelper* rti::RtiHelper::get_rti_helper(){
+rti::RtiHelper* rti::RtiHelper::get_dds_helper(){
     if(singleton_ == 0){
         singleton_ = new RtiHelper();
     }
