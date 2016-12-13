@@ -1,13 +1,15 @@
-#ifndef OSPLMESSAGECONVERT_H
-#define OSPLMESSAGECONVERT_H
+#ifndef OSPL_MESSAGECONVERT_H
+#define OSPL_MESSAGECONVERT_H
 
 #include "../message.h"
 
-namespace ospl{
+namespace cdit{
     class Message;
+}
 
-    ospl::Message* translate(::Message *m);
-    ::Message* translate(const ospl::Message *m);
+namespace ospl{
+    cdit::Message* translate(::Message *m);
+    ::Message* translate(const cdit::Message *m);
 };
 
-#endif //OSPLMESSAGECONVERT_H
+#endif //OSPL_MESSAGECONVERT_H
