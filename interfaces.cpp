@@ -16,7 +16,7 @@ void SenderInt::set_message(const std::string val){
     this->message_ = val;
 };
 
-void SenderInt::_set_rxMessage(txMessageInt* port){
+void SenderInt::_set_txMessage(txMessageInt* port){
     this->txMessageInt_ = port;
 };
 
@@ -38,6 +38,6 @@ void RecieverInt::set_instName(const std::string val){
 };
 
 
-void RecieverInt::_set_rxMessage(rxMessageInt* port){}
+void RecieverInt::_set_rxMessage(rxMessageInt* port){
     this->rxMessageInt_ = port;
 };
