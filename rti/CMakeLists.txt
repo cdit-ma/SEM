@@ -15,12 +15,16 @@ include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/rtihelper.cpp	
-    
+    ${CMAKE_CURRENT_SOURCE_DIR}/rtiineventport.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/rtiouteventport.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/messageconvert.cpp
+ 
+ 
     ${CMAKE_CURRENT_SOURCE_DIR}/rtitxmessage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rtirxmessage.cpp
     
+
     ${CMAKE_CURRENT_SOURCE_DIR}/../message.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../basemessage.cpp
 )
 
 set(HEADERS

@@ -38,7 +38,7 @@ zmq::Zmq_OutEventPort<T, S>::Zmq_OutEventPort(::OutEventPort<T>* port, std::vect
     this->socket_ = helper->get_publisher_socket();
     
     for(auto end_point: end_points_){
-        //std::cout << "Binding To: " << end_point << std::endl;
+        std::cout << "Binding To: " << end_point << std::endl;
         //Connect to the publisher
         this->socket_->bind(end_point.c_str());   
     }
