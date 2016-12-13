@@ -14,27 +14,35 @@ include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 find_package(ZeroMQ REQUIRED)
 include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS message.proto)
+
+#add_subdirectory("${PROJECT_SOURCE_DIR}/../proto")
 
 set(SOURCE
-	${PROTO_SRCS}
+	${CMAKE_CURRENT_SOURCE_DIR}/zmqineventport.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.cpp
+	
+	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.h
 	)
 
 set(HEADERS
-	${PROTO_HDRS}
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.h
-	${CMAKE_CURRENT_SOURCE_DIR}/convert.h
-	)
+	${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.h
+)
 
 add_library(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
 
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
+#target_link_libraries(${PROJ_NAME} proto_library)
+
 target_link_libraries(${PROJ_NAME} pthread dl)
 
 
