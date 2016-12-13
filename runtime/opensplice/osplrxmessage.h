@@ -2,6 +2,7 @@
 #define OSPLRXMESSAGE_H
 
 #include <thread>
+#include <mutex>
 #include <condition_variable>
 
 #include "../interfaces.h"

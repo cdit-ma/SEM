@@ -14,7 +14,7 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     //Get the dds helper
     auto helper = OsplHelper::get_dds_helper();
 
-    //Construct/get the domain participant, subscriber, topic and reader
+    //Construct/get the domain participant, subscriber, topic and reader template <class T> class DataReaderListener<T>;
     auto participant = helper->get_participant(domain_id);
     auto subscriber = helper->get_subscriber(participant, subscriber_name);
     auto topic = helper->get_topic<ospl::Message>(participant, topic_name);
