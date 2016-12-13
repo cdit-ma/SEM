@@ -1,10 +1,10 @@
 #include "messageconvert.h"
 
-#include "message.hpp"
+#include "message_DCPS.hpp"
 
 
-rti::Message* rti::translate(::Message *m){
-        auto message = new rti::Message();
+ospl::Message* ospl::translate(::Message *m){
+        auto message = new ospl::Message();
         int t = m->time();
         message->time(t);
         message->instName(m->instName());
@@ -12,7 +12,7 @@ rti::Message* rti::translate(::Message *m){
         return message;
 }
 
-::Message* rti::translate(const rti::Message *m){
+::Message* ospl::translate(const ospl::Message *m){
         auto message = new ::Message();
         int t = m->time();
         message->set_time(t);
