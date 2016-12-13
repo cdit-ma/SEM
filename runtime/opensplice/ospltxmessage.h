@@ -8,6 +8,9 @@
 #include "messageconvert.h"
 
 namespace ospl{
+    //Forward declare the Middleware specific EventPort
+    template <class T, class S> class Ospl_OutEventPort;
+
     class TxMessage: public txMessageInt{
         public:
             TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string writer_name, std::string topic_name);

@@ -13,8 +13,8 @@
 //#include "rti/rtirxmessage.h"
 
 //OPENSPLICE
-//#include "opensplice/osplrxmessage.h"
-//#include "opensplice/ospltxmessage.h"
+#include "opensplice/osplrxmessage.h"
+#include "opensplice/ospltxmessage.h"
 
 //ZMQ
 #include "zmq/zmqrxmessage.h"
@@ -57,9 +57,9 @@ int main(int argc, char** argv){
     //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
     //rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
 
-    //ospl_tx = new ospl::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
+    ospl_tx = new ospl::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
     //ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name2, topic_name2);
-    //ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name2);
+    ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name);
 
     //txMessageInt* ospl_tx2  = new ospl::TxMessage(sender_impl2, 1, pub_name, writer_name, topic_name2);
 
@@ -89,7 +89,7 @@ int main(int argc, char** argv){
         
             //std::cout << "Waiting for message" << std::endl;
         sender_impl->periodic_event();
-        //sender_impl2->periodic_event();
+        sender_impl2->periodic_event();
     }
 
     return -1;

@@ -26,7 +26,9 @@ set(SOURCE
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/ospldatareaderlistener.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/osplineventport.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/osplouteventport.hpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/ospldatareaderlistener.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.h

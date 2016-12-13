@@ -11,29 +11,30 @@
 #include <string>
 
 #include "osplhelper.h"
-#include "datareaderlistener.hpp"
+#include "ospldatareaderlistener.hpp"
 
 namespace ospl{
-     template <class T, class S> class Ospl_InEventPort: public ::OutEventPort<T>{
+     template <class T, class S> class Ospl_InEventPort: public ::InEventPort<T>{
         public:
             Ospl_InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name);
+            void notify();
             void rx_(T* message);
         private:
-            void reciever_loop();
+            void recieve_loop();
             
             std::thread* rec_thread_;
             std::mutex notify_mutex_;
             std::condition_variable notify_lock_condition_;
             
 
-            DataReaderListener<T, S> listener_;
-            dds::sub::DataReader<S> reader_;
-            ::OutEventPort<T>* port_;
+            DataReaderListener<T,S>* listener_;
+            dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
+            ::InEventPort<T>* port_;
     }; 
 };
 
 template <class T, class S>
-void ospl::Ospl_InEventPort<T, S>::tx_(T* message){
+void ospl::Ospl_InEventPort<T, S>::rx_(T* message){
     if(port_){
         port_->rx_(message);
     }
@@ -48,26 +49,26 @@ void ospl::Ospl_InEventPort<T, S>::notify(){
 
 
 template <class T, class S>
-ospl::OutEventPort<T, S>::Ospl_InEventPort(::OutEventPort<T>* port, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name){
+ospl::Ospl_InEventPort<T, S>::Ospl_InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name){
     this->port_ = port;
     
-    auto helper = OsplHelper::get_ospl_helper();   
+    auto helper = OsplHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id);
     auto subscriber = helper->get_subscriber(participant, subscriber_name);
     auto topic = helper->get_topic<S>(participant, topic_name);
     reader_ = helper->get_data_reader<S>(subscriber, topic, reader_name);
 
-    listener_ = new DataReaderListener<T, S>(this);
+    listener_ = new ospl::DataReaderListener<T, S>(this);
 
     //Only listen to data-available
     reader_.listener(listener_, dds::core::status::StatusMask::data_available());
 
     //Setup Thread
-    rec_thread_ = new std::thread(&RxMessage::recieve_loop, this);
+    rec_thread_ = new std::thread(&Ospl_InEventPort::recieve_loop, this);
 };
 
 template <class T, class S>
-ospl::OutEventPort<T, S>::recieve_loop(){  
+void ospl::Ospl_InEventPort<T, S>::recieve_loop(){  
     while(true){
         {
             //Wait for next message
@@ -75,7 +76,7 @@ ospl::OutEventPort<T, S>::recieve_loop(){
             notify_lock_condition_.wait(lock);
         }
 
-        auto samples = reader.take();
+        auto samples = reader_.take();
         for(auto sample_it = samples.begin(); sample_it != samples.end(); ++sample_it){
             //Recieve our valid samples
             if(sample_it->info().valid()){
