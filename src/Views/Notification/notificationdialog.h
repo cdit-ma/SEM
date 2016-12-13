@@ -40,7 +40,7 @@ signals:
     void centerOn(int entityID);
     void popup(int entityID);
 
-    void itemDeleted(int ID);
+    void deleteNotification(int ID);
     void lastNotificationID(int ID);
 
     void updateSeverityCount(NOTIFICATION_SEVERITY severity, int count);
@@ -56,7 +56,7 @@ signals:
 public slots:
     void initialiseDialog();
     void resetDialog();
-    void showDialog();
+    void showDialog(bool visible);
 
     void toggleVisibility();
     void getLastNotificationID();
@@ -74,8 +74,8 @@ private slots:
     void clearVisible();
     void clearNotifications(NOTIFICATION_FILTER filter, int filterVal);
 
-    void notificationItemAdded(NotificationObject* obj);
-    void notificationItemDeleted(int ID, NOTIFICATION_SEVERITY severity);
+    void notificationAdded(NotificationObject* obj);
+    void notificationDeleted(int ID);
 
     void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process);
 
@@ -88,9 +88,10 @@ private:
     QAction* constructFilterButtonAction(ITEM_ROLES role, int roleVal, QString label = "", QString iconPath = "", QString iconName = "", bool addToGroup = true);
     void setActionButtonChecked(QAction *action, bool checked);
 
+    void updateSelectionBasedButtons();
     void blinkInfoLabel(bool blink = true);
 
-    void removeItem(int ID);
+    void removeItem(NotificationItem* item);
 
     void clearAll();
     void clearSelection();
@@ -107,8 +108,10 @@ private:
     QMenu* filtersMenu;
     QToolBar* filtersToolbar;
     QToolBar* topToolbar;
-    QToolBar* iconOnlyToolbar;
+    QToolBar* bottomToolbar;
     QSplitter* displaySplitter;
+    QFrame* displayedSeparatorFrame;
+    QFrame* displaySeparator;
 
     QLabel* infoLabel;
     QAction* infoAction;
@@ -125,9 +128,6 @@ private:
     QAction* popupAction;
     QAction* clearSelectedAction;
     QAction* clearVisibleAction;
-
-    QFrame* displayedSeparatorFrame;
-    QFrame* displaySeparator;
 
     QList<ActionGroup*> actionGroups;
     QList<QAction*> groupSeparators;

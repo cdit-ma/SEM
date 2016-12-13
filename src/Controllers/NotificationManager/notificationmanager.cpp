@@ -5,10 +5,10 @@
 #include "../ViewController/viewcontroller.h"
 
 NotificationManager* NotificationManager::managerSingleton = 0;
-NotificationObject* NotificationManager::lastNotificationItem = 0;
+NotificationObject* NotificationManager::lastNotificationObject = 0;
 
 QTime* NotificationManager::projectRunTime = new QTime();
-QHash<int, NotificationObject*> NotificationManager::notificationItems;
+QHash<int, NotificationObject*> NotificationManager::notificationObjects;
 
 /**
  * @brief NotificationManager::manager
@@ -50,8 +50,11 @@ void NotificationManager::resetManager()
         deleteNotification(m_obj->ID());
     }
 
+    //lastNotificationObject = 0;
     projectRunTime->restart();
-    emit clearNotifications(NF_TYPE, NT_MODEL);
+
+    //emit notificationSeen();
+    emit showNotificationDialog(false);
 }
 
 
@@ -90,7 +93,7 @@ void NotificationManager::displayNotification(QString description, QString iconP
  */
 QList<NotificationObject*> NotificationManager::getNotificationItems()
 {
-    return notificationItems.values();
+    return notificationObjects.values();
 }
 
 
@@ -323,8 +326,8 @@ void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString t
 
     // construct notification item
     NotificationObject* item = new NotificationObject(title, description, iconPath, iconName, entityID, s, NT_MODEL, NC_NOCATEGORY, this);
-    notificationItems[item->ID()] = item;
-    lastNotificationItem = item;
+    notificationObjects[item->ID()] = item;
+    lastNotificationObject = item;
 
     // send signal to the notifications widget; highlight showMostRecentNotification button
     emit notificationAlert();
@@ -343,8 +346,8 @@ void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString t
  */
 void NotificationManager::showLastNotification()
 {
-    if (lastNotificationItem) {
-        emit notificationAdded(lastNotificationItem->iconPath(), lastNotificationItem->iconName(), lastNotificationItem->description());
+    if (lastNotificationObject) {
+        emit notificationAdded(lastNotificationObject->iconPath(), lastNotificationObject->iconName(), lastNotificationObject->description());
     }
 }
 
@@ -384,8 +387,8 @@ void NotificationManager::addNotification(QString description, QString iconPath,
 {
     // construct notification item
     NotificationObject* item = new NotificationObject("", description, iconPath, iconName, entityID, s, t, c, 0);
-    notificationItems[item->ID()] = item;
-    lastNotificationItem = item;
+    notificationObjects[item->ID()] = item;
+    lastNotificationObject = item;
 
     // send signal to the notifications widget; highlight showMostRecentNotification button
     emit notificationAlert();
@@ -408,29 +411,43 @@ void NotificationManager::addNotification(QString description, QString iconPath,
  */
 void NotificationManager::deleteNotification(int ID)
 {
-    if (!notificationItems.contains(ID)) {
+    if (!notificationObjects.contains(ID)) {
+        qWarning() << "NotificationManager::deleteNotification - Requesting to delete a notification item that's not contained in the hash.";
         return;
     }
 
-    // remove from hash, update notification toolbar's severity count and then delete the object
-    NotificationObject* obj = notificationItems.take(ID);
-    if (obj) {
-        emit notificationDeleted(ID, obj->severity());
-        delete obj;
-    }
+    // send a signal to update the notification toolbar's severity count and to delete the item
+    // from the notification dialog, then remove item from hash before deleting it
+    emit notificationDeleted(ID);
+    delete notificationObjects.take(ID);
 
-    // check if the deleted notification is the last notification
-    if (lastNotificationItem && lastNotificationItem->ID() == ID) {
-        if (notificationItems.isEmpty()) {
-            // if the notifications list is empty, disable showMostRectNotification button
-            emit lastNotificationDeleted();
-            lastNotificationItem = 0;
-        } else {
-            // remove highlight from the showMostRectNotification button and update lastNotificationItem
+    if (notificationObjects.isEmpty()) {
+        lastNotificationObject = 0;
+        emit notificationSeen();
+        emit lastNotificationDeleted();
+    } else {
+        if (lastNotificationObject && lastNotificationObject->ID() == ID) {
             emit req_lastNotificationID();
-            emit notificationSeen();
         }
     }
+
+    /*
+    if (lastNotificationObject && lastNotificationObject->ID() == ID) {
+
+        // if the deleted notification is the last (most recent) notification, remove
+        // showMostRectNotification button's highlight and update the last notification item
+        lastNotificationObject = 0;
+        emit notificationSeen();
+
+        if (notificationObjects.isEmpty()) {
+            // if the notifications list is empty, disable showMostRectNotification button
+            emit lastNotificationDeleted();
+        } else {
+            // update lastNotificationItem; request the new top notification item's ID from the dialog
+            emit req_lastNotificationID();
+        }
+    }
+    */
 }
 
 
@@ -440,7 +457,7 @@ void NotificationManager::deleteNotification(int ID)
  */
 void NotificationManager::setLastNotificationItem(int ID)
 {
-    lastNotificationItem = notificationItems.value(ID, 0);
+    lastNotificationObject = notificationObjects.value(ID, 0);
 }
 
 

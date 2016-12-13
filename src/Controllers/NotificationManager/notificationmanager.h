@@ -55,14 +55,14 @@ signals:
 
     void notificationAdded(QString iconPath, QString iconName, QString description);
     void notificationItemAdded(NotificationObject* obj);
-    void notificationDeleted(int ID, NOTIFICATION_SEVERITY severity);
+    void notificationDeleted(int ID);
 
     void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BP_UNKNOWN);
 
     void lastNotificationDeleted();
     void req_lastNotificationID();
 
-    void showNotificationDialog();
+    void showNotificationDialog(bool show = true);
 
     void clearNotifications(NOTIFICATION_FILTER filter = NF_NOFILTER, int filterVal = -1);
 
@@ -88,8 +88,8 @@ private:
     static NotificationManager* managerSingleton;
     static QTime* projectRunTime;
 
-    static NotificationObject* lastNotificationItem;
-    static QHash<int, NotificationObject*> notificationItems;
+    static NotificationObject* lastNotificationObject;
+    static QHash<int, NotificationObject*> notificationObjects;
 
 };
 
