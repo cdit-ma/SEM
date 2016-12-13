@@ -16,6 +16,9 @@
 #include "opensplice/osplrxmessage.h"
 #include "opensplice/ospltxmessage.h"
 
+//QPID
+#include "qpid/qpidrxmessage.h"
+#include "qpid/qpidtxmessage.h"
 
 int main(int argc, char** argv){
     
@@ -50,6 +53,14 @@ int main(int argc, char** argv){
     txMessageInt* ospl_tx = 0;
     rxMessageInt* ospl_rx = 0;
 
+    txMessageInt* qpid_tx = 0;
+    rxMessageInt* qpid_rx = 0;
+
+
+
+    qpid_tx = new qpid_txMessage(sender_impl, "localhost:5672", "amq.topic");
+    qpid_rx = new qpid_rxMessage(reciever_impl, "localhost:5672",  "amq.topic");
+
     rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
     rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
 
@@ -82,15 +93,7 @@ int main(int argc, char** argv){
     int i = 600;
     while(i-- > 0){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        if(i % 2 == 0){
-            sender_impl->txMessage_ = rti_tx;
-        }else{
-            sender_impl->txMessage_ = ospl_tx;
-        }
-            //std::cout << "Waiting for message" << std::endl;
         sender_impl->periodic_event();
-        //sender_impl2->periodic_event();
     }
 
     return -1;
