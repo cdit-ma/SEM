@@ -56,8 +56,9 @@ set(DDS_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/messageSplDcps.cpp
 )
 
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
 target_compile_features(${PROJ_NAME} PRIVATE cxx_range_for)
 
 #target_compile_definitions(${PROJ_NAME} PRIVATE -D_GLIBCXX_USE_CXX11_ABI=0)

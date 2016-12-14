@@ -7,10 +7,7 @@
 namespace cdit{
     class Message;
 }
-
 namespace ospl{
-    
-    
     cdit::Message* translate(::Message *m);
     ::Message* translate(const cdit::Message *m);
 };

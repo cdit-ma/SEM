@@ -16,7 +16,7 @@
 namespace ospl{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name);
+            InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string topic_name);
             void notify();
             void rx_(T* message);
         private:
@@ -27,7 +27,7 @@ namespace ospl{
             std::condition_variable notify_lock_condition_;
             
 
-            DataReaderListener<T,S>* listener_;
+            ospl::DataReaderListener<T,S>* listener_;
             dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
             ::InEventPort<T>* port_;
     }; 
@@ -49,14 +49,14 @@ void ospl::InEventPort<T, S>::notify(){
 
 
 template <class T, class S>
-ospl::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name){
+ospl::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string topic_name){
     this->port_ = port;
     
     auto helper = DdsHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id);
     auto subscriber = helper->get_subscriber(participant, subscriber_name);
     auto topic = helper->get_topic<S>(participant, topic_name);
-    reader_ = helper->get_data_reader<S>(subscriber, topic, reader_name);
+    reader_ = helper->get_data_reader<S>(subscriber, topic);
 
     listener_ = new ospl::DataReaderListener<T, S>(this);
 
