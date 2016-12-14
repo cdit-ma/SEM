@@ -49,6 +49,7 @@ qpid::OutEventPort<T, S>::OutEventPort(::OutEventPort<T>* port, std::string brok
     //auto helper = QpidHelper::get_qpid_helper();
 
     connection_ = qpid::messaging::Connection(broker);
+    connection_.open();
     session_ = connection_.createSession();
     std::string tn = "amq.topic/" + topic;
     sender_ = session_.createSender(tn);
