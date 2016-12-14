@@ -2,22 +2,24 @@
 #define QPIDRXMESSAGE_H
 
 #include "../interfaces.h"
-#include <thread>
+#include "../proto/messageconvert.h"
 
+namespace qpid{
+    //Forward declare the Middleware specific EventPort
+    template <class T, class S> class InEventPort;
 
-class qpid_rxMessage: public rxMessageInt{
-    public:
-        qpid_rxMessage(rxMessageInt* component, std::string broker, std::string topic);
-        void rxMessage(Message* message);
-    private:
-        void recieve();
+    class RxMessage: public rxMessageInt{
+        public:
+            RxMessage(rxMessageInt* component, std::string broker, std::string topic);
+            void rxMessage(::Message* message);
+            void rx_(::Message* message);
+        private:
+            //This is the concrete event_port
+            qpid::InEventPort<::Message, proto::Message> * event_port_;
 
-        std::thread* rec_thread_;
-        rxMessageInt* component_;
-        std::string broker_;
-
-        std::string topic_;
+            //This is the Component this port should call into
+            rxMessageInt* component_;        
+    };
 };
-
 
 #endif //QPIDRXMESSAGE_H

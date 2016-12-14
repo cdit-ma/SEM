@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 11)
 #Set our module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
 
+set(RUNTIME_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../includes/)
+include_directories(${PROJ_NAME} ${RUNTIME_INCLUDE}/)
 
 set(PROJ_NAME qpid_library)
 project (${PROJ_NAME})
@@ -25,7 +27,6 @@ set(SOURCE
 	${PROTO_SRCS}
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidtxmessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxmessage.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/qpidhelper.cpp
 
 	)
 
@@ -33,7 +34,6 @@ set(HEADERS
 	${PROTO_HDRS}
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidtxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxmessage.h
-	${CMAKE_CURRENT_SOURCE_DIR}/qpidhelper.h	
 
 	)
 

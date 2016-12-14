@@ -2,18 +2,20 @@
 #define QPIDTXMESSAGE_H
 
 #include "../interfaces.h"
-#include "../message.h"
+#include "../proto/messageconvert.h"
 
-class qpid_txMessage: public txMessageInt{
-    public:
-        qpid_txMessage(txMessageInt* component, std::string broker, std::string topic);
-        void txMessage(Message* message);
-    private:
-        txMessageInt* component_;
-        std::string broker_;
+namespace qpid{
+    template <class T, class S> class OutEventPort;
+    class TxMessage: public txMessageInt{
+        public:
+            TxMessage(txMessageInt* component, std::string broker, std::string topic);
+            void txMessage(::Message* message);
+            void tx_(::Message* message){};
+        private:
+            qpid::OutEventPort<::Message, proto::Message> * event_port_;
 
-        std::string topic_;
+            txMessageInt* component_;
+    };
 };
-
 
 #endif //QPIDTXMESSAGE_H
