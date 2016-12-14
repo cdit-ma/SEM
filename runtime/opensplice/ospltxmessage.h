@@ -9,7 +9,7 @@
 
 namespace ospl{
     //Forward declare the Middleware specific EventPort
-    template <class T, class S> class Ospl_OutEventPort;
+    template <class T, class S> class OutEventPort;
 
     class TxMessage: public txMessageInt{
         public:
@@ -18,7 +18,7 @@ namespace ospl{
             void tx_(::Message* message){};
         private:
             //This is the concrete event port
-            Ospl_OutEventPort<::Message, ospl::Message> * event_port_;
+            ospl::OutEventPort<::Message, ospl::cdit::Message> * event_port_;
 
             //This is the Component this port should call into
             txMessageInt* component_;        

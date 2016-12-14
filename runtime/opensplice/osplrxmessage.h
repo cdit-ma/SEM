@@ -11,7 +11,7 @@
 
 namespace ospl{
     //Forward declare the Middleware specific EventPort
-    template <class T, class S> class Ospl_InEventPort;
+    template <class T, class S> class InEventPort;
 
     class RxMessage: public rxMessageInt{
         public:
@@ -20,7 +20,7 @@ namespace ospl{
             void rx_(::Message* message);
         private:
             //This is the concrete event port
-            Ospl_InEventPort<::Message, ospl::Message> *event_port_;
+            ospl::InEventPort<::Message, ospl::cdit::Message> *event_port_;
 
             rxMessageInt* component_;
     };

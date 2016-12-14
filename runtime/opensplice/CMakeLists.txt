@@ -12,27 +12,31 @@ project (${PROJ_NAME})
 find_package(OpenSplice REQUIRED)
 include_directories(${PROJ_NAME} ${OpenSplice_INCLUDE_DIRS})
 
+set(RUNTIME_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../includes/)
+include_directories(${PROJ_NAME} ${RUNTIME_INCLUDE}/)
+
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.cpp
-    
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.cpp
+    #Port Implementations
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.cpp
-    
+    ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.cpp
 
+    #Message Conversion
+    ${CMAKE_CURRENT_SOURCE_DIR}/messageconvert.cpp
+
+    #include the message type
     ${CMAKE_CURRENT_SOURCE_DIR}/../message.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../basemessage.cpp
-    
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/osplineventport.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/osplouteventport.hpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/ospldatareaderlistener.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.h
+    #Port Implementations
     ${CMAKE_CURRENT_SOURCE_DIR}/ospltxmessage.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/osplhelper.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/osplrxmessage.h
+
+    #Message Conversion
     ${CMAKE_CURRENT_SOURCE_DIR}/messageconvert.h
+
+    #include the message type
+    ${CMAKE_CURRENT_SOURCE_DIR}/../message.h
 )
 
 set(DDS_HEADERS
