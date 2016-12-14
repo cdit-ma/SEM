@@ -3,7 +3,7 @@
 #include "message.hpp"
 
 
-rti::cdit::Message* rti::translate(::Message *m){
+cdit::Message* rti::translate(::Message *m){
         auto message = new cdit::Message();
         int t = m->time();
         message->time(t);
@@ -12,7 +12,7 @@ rti::cdit::Message* rti::translate(::Message *m){
         return message;
 }
 
-::Message* rti::translate(const rti::cdit::Message *m){
+::Message* rti::translate(const cdit::Message *m){
         auto message = new ::Message();
         int t = m->time();
         message->set_time(t);

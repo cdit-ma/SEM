@@ -9,7 +9,7 @@ rti::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string su
     this->component_ = component;
 
      //Construct a concrete Ospl InEventPort linked to callback into this.
-    this->event_port_ = new rti::InEventPort<::Message, rti::cdit::Message>(this, domain_id, subscriber_name, reader_name, topic_name);
+    this->event_port_ = new rti::InEventPort<::Message, cdit::Message>(this, domain_id, subscriber_name, reader_name, topic_name);
 }
 
 void rti::RxMessage::rxMessage(::Message* message){

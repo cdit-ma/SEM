@@ -4,11 +4,12 @@
 #include "../message.h"
 
 
+namespace cdit{
+    class Message;
+}
 
 namespace ospl{
-    namespace cdit{
-        class Message;
-    }
+    
     
     cdit::Message* translate(::Message *m);
     ::Message* translate(const cdit::Message *m);
