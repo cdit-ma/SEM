@@ -3,7 +3,7 @@
 #include "message_DCPS.hpp"
 
 //Include the templated OutEventPort Implementation for OSPL
-#include "osplineventport.hpp"
+#include "opensplice/ineventport.hpp"
 
 
 
@@ -11,7 +11,7 @@ ospl::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string s
     this->component_ = component;
 
      //Construct a concrete Ospl InEventPort linked to callback into this.
-    this->event_port_ = new ospl::Ospl_InEventPort<::Message, ospl::Message>(this, domain_id, subscriber_name, reader_name, topic_name);
+    this->event_port_ = new ospl::InEventPort<::Message, cdit::Message>(this, domain_id, subscriber_name, reader_name, topic_name);
 }
 
 void ospl::RxMessage::rxMessage(::Message* message){

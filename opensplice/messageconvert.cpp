@@ -3,8 +3,8 @@
 #include "message_DCPS.hpp"
 
 
-cdit::Message* ospl::translate(::Message *m){
-        auto message = new cdit::Message();
+ospl::cdit::Message* ospl::translate(::Message *m){
+        auto message = new ospl::cdit::Message();
         int t = m->time();
         message->time(t);
         message->instName(m->instName());
@@ -12,7 +12,7 @@ cdit::Message* ospl::translate(::Message *m){
         return message;
 }
 
-::Message* ospl::translate(const cdit::Message *m){
+::Message* ospl::translate(const ospl::cdit::Message *m){
         auto message = new ::Message();
         int t = m->time();
         message->set_time(t);
