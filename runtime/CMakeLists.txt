@@ -77,10 +77,4 @@ target_link_libraries(${PROJ_NAME} rti_library)
 target_link_libraries(${PROJ_NAME} ospl_library)
 target_link_libraries(${PROJ_NAME} qpid_library)
 target_link_libraries(${PROJ_NAME} zmq_library)
-<<<<<<< HEAD
-
-=======
-target_link_libraries(${PROJ_NAME} rti_library)
-target_link_libraries(${PROJ_NAME} ospl_library)
->>>>>>> e308175b6cbf8f42b54f8f8e231b5ca2fba97239
 
