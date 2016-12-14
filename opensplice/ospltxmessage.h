@@ -18,7 +18,7 @@ namespace ospl{
             void tx_(::Message* message){};
         private:
             //This is the concrete event port
-            ospl::OutEventPort<::Message, ospl::cdit::Message> * event_port_;
+            ospl::OutEventPort<::Message, cdit::Message> * event_port_;
 
             //This is the Component this port should call into
             txMessageInt* component_;        

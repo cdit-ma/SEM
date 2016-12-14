@@ -19,7 +19,7 @@ namespace rti{
             void rx_(::Message* message);
         private:
             //This is the concrete event port
-            rti::InEventPort<::Message, rti::cdit::Message> * event_port_;
+            rti::InEventPort<::Message, cdit::Message> * event_port_;
 
             rxMessageInt* component_;
     };

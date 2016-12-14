@@ -22,11 +22,9 @@ namespace ospl{
 
 template <class T, class S>
 void ospl::OutEventPort<T, S>::tx_(T* message){
-    //Call the translate function
     auto m = translate(message);
     //De-reference the message and send
     writer_.write(*m);
-    //delete m;
 };
 
 template <class T, class S>

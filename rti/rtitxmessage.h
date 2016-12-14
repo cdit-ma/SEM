@@ -18,7 +18,7 @@ namespace rti{
             void tx_(::Message* message){};
         private:
             //This is the concrete event port
-            rti::OutEventPort<::Message, rti::cdit::Message> * event_port_;
+            rti::OutEventPort<::Message, cdit::Message> * event_port_;
 
             //This is the Component this port should call into
             txMessageInt* component_;        

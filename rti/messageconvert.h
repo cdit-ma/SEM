@@ -3,14 +3,13 @@
 
 #include "../message.h"
 
-
-
-namespace rti{
-    namespace cdit{
+namespace cdit{
     class Message;
-}
-    rti::cdit::Message* translate(::Message *m);
-    ::Message* translate(const rti::cdit::Message *m);
+};
+namespace rti{
+    
+    cdit::Message* translate(::Message *m);
+    ::Message* translate(const cdit::Message *m);
 };
 
 #endif //RTI_MESSAGECONVERT_H
