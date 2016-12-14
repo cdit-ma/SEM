@@ -1,23 +1,20 @@
 #include "zmqtxmessage.h"
-#include <iostream>
 
-zmq_txMessage::zmq_txMessage(txMessageInt* component, zmq::context_t* context, std::string endpoint){
+//Include the templated OutEventPort Implementation for ZMQ
+#include "zmqouteventport.hpp"
+
+zmq::TxMessage::TxMessage(txMessageInt* component, std::string end_point){
     this->component_ = component;
-    this->context_ = context;
-    //Construct a socket!
-    this->socket_ = new zmq::socket_t(*context, ZMQ_PUB);
-    this->socket_->bind(endpoint.c_str());
+    
+    //Construct a vector of the end_points this port should connect to.
+    std::vector<std::string> v;
+    v.push_back(end_point);
+
+    //Construct a concrete ZMQ InEventPort linked to callback into this.
+    this->event_port_ = new zmq::Zmq_OutEventPort<::Message, proto::Message>(this, v);
 }
 
-
-void zmq_txMessage::txMessage(Message* message){
-    std::string str;
-    auto m = proto::message_to_proto(message);
-     
-
-    if(m->SerializeToString(&str)){
-        //Construct a message and send it
-        zmq::message_t data(str.c_str(), str.size());
-        socket_->send(data);
-    }
+void zmq::TxMessage::txMessage(Message* message){
+    //Call into the port
+    event_port_->tx_(message);
 }

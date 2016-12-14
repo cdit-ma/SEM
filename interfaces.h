@@ -5,23 +5,32 @@
 #include "globalinterfaces.h"
 
 /*
-    Port Interfaces
+    Concrete Port Interfaces
 */
 
-class txMessageInt{
+class txMessageInt : public OutEventPort<::Message>{
     public:
-        virtual void txMessage(Message* message) = 0;
+        virtual void txMessage(::Message* message) = 0;
+   // protected:
+        virtual void tx_(::Message* message){};
 };
 
-class rxMessageInt : public InEventPort{
+class rxMessageInt : public InEventPort<::Message>{
     public:
-        virtual void rxMessage(Message* message) = 0;
-        virtual void notify(){};
+        virtual void rxMessage(::Message* message) = 0;
+    //protected:
+        virtual void rx_(::Message* message){};
 };
+
+
+/*
+    Concrete Component Interfaces
+*/
+
 
 class SenderInt: public txMessageInt{
     protected:
-        //Pure virtualize our Compositions
+        //Implement our 
         void txMessage(Message* message);
 
     public:
@@ -33,12 +42,10 @@ class SenderInt: public txMessageInt{
 
         void _set_txMessage(txMessageInt* port);
     private:
-
         txMessageInt* txMessageInt_ = 0;
         std::string instName_;
         std::string message_;
 };
-
 
 
 class RecieverInt: public rxMessageInt{

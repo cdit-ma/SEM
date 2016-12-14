@@ -1,51 +1,26 @@
 #include "zmqrxmessage.h"
 
-#include <iostream>
+//Include the templated InEventPort Implementation for ZMQ
+#include "zmqineventport.hpp"
 
-zmq_rxMessage::zmq_rxMessage(rxMessageInt* component, zmq::context_t* context, std::string endpoint){
+zmq::RxMessage::RxMessage(rxMessageInt* component, std::string end_point){
+    //Store the component this port belongs too
     this->component_ = component;
-    this->context_ = context;
-    this->endpoint_ = endpoint;
-    //Construct a socket!
-    
-    rec_thread_ = new std::thread(&zmq_rxMessage::recieve, this);
+
+    //Construct a vector of the end_points this port should connect to.
+    std::vector<std::string> v;
+    v.push_back(end_point);
+
+    //Construct a concrete ZMQ InEventPort linked to callback into this.
+    this->event_port_ = new zmq::Zmq_InEventPort<::Message, proto::Message>(this, v);
 }
 
-void zmq_rxMessage::rxMessage(Message* message){
+void zmq::RxMessage::rxMessage(Message* message){
+    //Call back into the component.
     component_->rxMessage(message);
 }
 
-void zmq_rxMessage::recieve(){
-    this->socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
-    this->socket_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
-    
-    
-    this->socket_->connect(endpoint_.c_str());
-
-    zmq::message_t *data = new zmq::message_t();
-    
-    while(true){
-		try{
-            //Wait for next message
-            socket_->recv(data);
-            
-            //If we have a valid message
-            if(data->size() > 0){
-                //Construct a string out of the zmq data
-                std::string msg_str(static_cast<char *>(data->data()), data->size());
-                
-                //Construct a Protobuf object
-                proto::Message* message = new proto::Message();
-
-                if (message->ParseFromString(msg_str)){
-                    Message* modelMessage = proto::proto_to_message(message);
-                    this->rxMessage(modelMessage);
-                }
-            }
-        }catch(zmq::error_t ex){
-            //Do nothing with an error.
-			continue;
-        }
-    }
-
+void zmq::RxMessage::rx_(::Message* message){
+    //Call back into the component.
+    rxMessage(message);
 }

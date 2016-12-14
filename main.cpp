@@ -9,12 +9,16 @@
 #include "recieverimpl.h"
 
 //RTI DDS
-#include "rti/rtitxmessage.h"
-#include "rti/rtirxmessage.h"
+//#include "rti/rtitxmessage.h"
+//#include "rti/rtirxmessage.h"
 
 //OPENSPLICE
-#include "opensplice/osplrxmessage.h"
-#include "opensplice/ospltxmessage.h"
+//#include "opensplice/osplrxmessage.h"
+//#include "opensplice/ospltxmessage.h"
+
+//ZMQ
+#include "zmq/zmqrxmessage.h"
+#include "zmq/zmqtxmessage.h"
 
 //QPID
 #include "qpid/qpidrxmessage.h"
@@ -65,15 +69,14 @@ int main(int argc, char** argv){
     rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
 
     //ospl_tx = new ospl::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
-    ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name2, topic_name2);
-    ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name2);
+    //ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name2, topic_name2);
+    //ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name, reader_name, topic_name2);
 
     //txMessageInt* ospl_tx2  = new ospl::TxMessage(sender_impl2, 1, pub_name, writer_name, topic_name2);
 
     //ZMQ
-    //zmq::context_t * context = new zmq::context_t(1);
-    //txMessageInt* txMessage = new zmq_txMessage(sender_impl, context, std::string("tcp://*:6000"));
-    //rxMessageInt* rxMessage = new zmq_rxMessage(reciever_impl, context, std::string("tcp://192.168.111.187:6000"));
+    rti_tx = new zmq::TxMessage(sender_impl, std::string("tcp://*:6000"));
+    rti_rx = new zmq::RxMessage(reciever_impl, std::string("tcp://192.168.111.187:6000"));
     
     
     sender_impl->set_instName("tx_rti");
@@ -89,10 +92,11 @@ int main(int argc, char** argv){
     sender_impl2->_set_txMessage(ospl_tx);
     reciever_impl2->_set_rxMessage(ospl_rx);
     
-    
+
     int i = 600;
     while(i-- > 0){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            //std::cout << "Waiting for message" << std::endl;
         sender_impl->periodic_event();
     }
 
