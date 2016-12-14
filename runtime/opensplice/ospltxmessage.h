@@ -1,6 +1,8 @@
 #ifndef OSPLTXMESSAGE_H
 #define OSPLTXMESSAGE_H
 
+#define EXPORTED __attribute__((visibility("default")))
+
 //Include the concrete port interfaces
 #include "../interfaces.h"
 
@@ -13,7 +15,7 @@ namespace ospl{
 
     class TxMessage: public txMessageInt{
         public:
-            TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string writer_name, std::string topic_name);
+            EXPORTED TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string topic_name);
             void txMessage(::Message* message);
             void tx_(::Message* message){};
         private:

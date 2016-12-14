@@ -17,7 +17,7 @@
 namespace rti{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name);
+            InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string topic_name);
             void notify();
             void rx_(T* message);
         private:
@@ -28,7 +28,7 @@ namespace rti{
             std::condition_variable notify_lock_condition_;
             
 
-            DataReaderListener<T,S>* listener_;
+            rti::DataReaderListener<T,S>* listener_;
             dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
             ::InEventPort<T>* port_;
     }; 
@@ -50,16 +50,16 @@ void rti::InEventPort<T, S>::notify(){
 
 
 template <class T, class S>
-rti::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name){
+rti::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string topic_name){
     this->port_ = port;
     
     auto helper = DdsHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id);
     auto subscriber = helper->get_subscriber(participant, subscriber_name);
     auto topic = helper->get_topic<S>(participant, topic_name);
-    reader_ = helper->get_data_reader<S>(subscriber, topic, reader_name);
+    reader_ = helper->get_data_reader<S>(subscriber, topic);
 
-    listener_ = new DataReaderListener<T, S>(this);
+    listener_ = new rti::DataReaderListener<T, S>(this);
 
     //Only listen to data-available
     reader_.listener(listener_, dds::core::status::StatusMask::data_available());
