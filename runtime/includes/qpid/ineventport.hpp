@@ -60,6 +60,7 @@ qpid::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, std::string broker,
     this->port_ = port;
 
     connection_ = qpid::messaging::Connection(broker);
+    connection_.open();
     session_ = connection_.createSession();
     //TODO: fix this to use actual topic name
     std::string tn = "amq.topic/" + topic;

@@ -11,8 +11,8 @@ include_directories(${PROJ_NAME} ${RUNTIME_INCLUDE}/)
 set(PROJ_NAME qpid_library)
 project (${PROJ_NAME})
 
-#find_package(Protobuf REQUIRED)
-#include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
+find_package(Protobuf REQUIRED)
+include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
 find_package(Qpid REQUIRED)
 include_directories(${PROJ_NAME} ${Qpid_INCLUDE_DIRS})
@@ -27,21 +27,23 @@ set(SOURCE
 	${PROTO_SRCS}
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidtxmessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxmessage.cpp
-
 	)
 
 set(HEADERS
 	${PROTO_HDRS}
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidtxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxmessage.h
-
+	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.h
+	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.h
 	)
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 message(${Qpid_INCLUDE_DIRS})
 
-#target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Qpid_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Proton_LIBRARIES})
 target_link_libraries(${PROJ_NAME} pthread dl)
