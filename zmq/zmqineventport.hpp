@@ -68,7 +68,7 @@ void zmq::Zmq_InEventPort<T, S>::zmq_loop(){
     auto socket = helper->get_subscriber_socket();
 
     for(auto end_point: end_points_){
-        //std::cout << "Binding To: " << end_point << std::endl;
+        std::cout << "Binding To: " << end_point << std::endl;
         //Connect to the publisher
         socket->connect(end_point.c_str());   
     }

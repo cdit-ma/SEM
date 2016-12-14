@@ -1,32 +1,28 @@
-#ifndef DDSRXMESSAGE_H
-#define DDSRXMESSAGE_H
+#ifndef RTI_RXMESSAGE_H
+#define RTI_RXMESSAGE_H
 
-#include <thread>
 
+//Include the concrete port interfaces
 #include "../interfaces.h"
-#include "../message.h"
-    namespace rti{
-        class Message;
-    };
 
+//Includes the ::Message and rti::Message
+#include "messageconvert.h"
 
 namespace rti{
-    ::Message* translate(rti::Message m); 
+    //Forward declare the Middleware specific EventPort
+    template <class T, class S> class InEventPort;
+
     class RxMessage: public rxMessageInt{
         public:
-            RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name, std::string reader_name, std::string topic_name);
+            RxMessage(rxMessageInt* component, int domain_id, std::string  subscriber_name, std::string  reader_name, std::string topic_name);
             void rxMessage(::Message* message);
+            void rx_(::Message* message);
         private:
-            void recieve();
+            //This is the concrete event port
+            rti::InEventPort<::Message, cdit::Message> * event_port_;
 
-            int domain_id;
-            std::string subscriber_name;
-            std::string reader_name;
-            std::string topic_name;
-
-            std::thread* rec_thread_;
             rxMessageInt* component_;
     };
 };
 
-#endif //DDSRXMESSAGE_H
+#endif //RTI_RXMESSAGE_H
