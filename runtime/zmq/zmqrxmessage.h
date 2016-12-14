@@ -1,24 +1,28 @@
 #ifndef ZMQRXMESSAGE_H
 #define ZMQRXMESSAGE_H
 
+//Include the concrete port interfaces
 #include "../interfaces.h"
-#include "zmq.hpp"
-#include "convert.h"
-#include <thread>
 
-class zmq_rxMessage: public rxMessageInt{
-    public:
-        zmq_rxMessage(rxMessageInt* component, zmq::context_t* context, std::string endpoint);
-        void rxMessage(Message* message);
-    private:
-        void recieve();
+//Includes the ::Message and proto::Message
+#include "../proto/messageconvert.h"
 
-        std::thread* rec_thread_;
-        rxMessageInt* component_;
-        zmq::context_t* context_;
-        zmq::socket_t* socket_;
-        std::string endpoint_;
+namespace zmq{
+    //Forward declare the Middleware specific EventPort
+    template <class T, class S> class Zmq_InEventPort;
+
+    class RxMessage: public rxMessageInt{
+        public:
+            RxMessage(rxMessageInt* component, std::string end_point);
+            void rxMessage(::Message* message);
+            void rx_(::Message* message);
+        private:
+            //This is the concrete event_port
+            Zmq_InEventPort<::Message, proto::Message> * event_port_;
+
+            //This is the Component this port should call into
+            rxMessageInt* component_;        
+    };
 };
-
 
 #endif //ZMQRXMESSAGE_H

@@ -1,38 +1,26 @@
 #ifndef OSPLRXMESSAGE_H
 #define OSPLRXMESSAGE_H
 
-#include <thread>
-#include <condition_variable>
 
+//Include the concrete port interfaces
 #include "../interfaces.h"
 
 //Includes the ::Message and ospl::Message
 #include "messageconvert.h"
 
-//Forward declare the AnyDataReader so that it can be linked without the <dds/dds.hpp> being linked.
-namespace dds{
-    namespace sub{
-        class AnyDataReader;
-    };
-};
-
-namespace ospl{ 
+namespace ospl{
+    //Forward declare the Middleware specific EventPort
+    template <class T, class S> class Ospl_OutEventPort;
 
     class RxMessage: public rxMessageInt{
         public:
             RxMessage(rxMessageInt* component, int domain_id, std::string  subscriber_name, std::string  reader_name, std::string topic_name);
             void rxMessage(::Message* message);
         private:
-            void notify();
-            void recieve_loop();
-            
-            std::thread* rec_thread_;
-            
-            std::mutex notify_mutex_;
-            std::condition_variable notify_lock_condition_;
-            
+            //This is the concrete event port
+            Ospl_OutEventPort<::Message, ospl::Message> * event_port_;
+
             rxMessageInt* component_;
-            dds::sub::AnyDataReader* reader_;
     };
 };
 
