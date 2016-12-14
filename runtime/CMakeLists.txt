@@ -28,8 +28,6 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
 add_subdirectory("${PROJECT_SOURCE_DIR}/qpid")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 
-
-
 #find OSPL
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/opensplice/cmake")
 #find_package(OpenSplice REQUIRED)
@@ -79,5 +77,10 @@ target_link_libraries(${PROJ_NAME} rti_library)
 target_link_libraries(${PROJ_NAME} ospl_library)
 target_link_libraries(${PROJ_NAME} qpid_library)
 target_link_libraries(${PROJ_NAME} zmq_library)
+<<<<<<< HEAD
 
+=======
+target_link_libraries(${PROJ_NAME} rti_library)
+target_link_libraries(${PROJ_NAME} ospl_library)
+>>>>>>> e308175b6cbf8f42b54f8f8e231b5ca2fba97239
 

@@ -1,18 +1,15 @@
-#ifndef OSPL_MESSAGECONVERT_H
-#define OSPL_MESSAGECONVERT_H
+#ifndef RTI_MESSAGECONVERT_H
+#define RTI_MESSAGECONVERT_H
 
 #include "../message.h"
 
-
 namespace cdit{
     class Message;
-}
-
-namespace ospl{
-    
+};
+namespace rti{
     
     cdit::Message* translate(::Message *m);
     ::Message* translate(const cdit::Message *m);
 };
 
-#endif //OSPL_MESSAGECONVERT_H
+#endif //RTI_MESSAGECONVERT_H

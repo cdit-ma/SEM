@@ -23,20 +23,20 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.cpp
 	
-	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.h
-	)
+)
 
 set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.h
+
 	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.h
 )
 
-add_library(${PROJ_NAME} ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})

@@ -1,30 +1,28 @@
-#ifndef DDSTXMESSAGE_H
-#define DDSTXMESSAGE_H
+#ifndef RTI_TXMESSAGE_H
+#define RTI_TXMESSAGE_H
 
+//Include the concrete port interfaces
 #include "../interfaces.h"
-#include "../message.h"
+
+//Includes the ::Message and ospl::Message
+#include "messageconvert.h"
 
 namespace rti{
-    class Message;
-};
-
-namespace rti{
-    rti::Message translate(::Message *m);
+    //Forward declare the Middleware specific EventPort
+    template <class T, class S> class OutEventPort;
 
     class TxMessage: public txMessageInt{
         public:
             TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string writer_name, std::string topic_name);
-            
             void txMessage(::Message* message);
+            void tx_(::Message* message){};
         private:
-            txMessageInt* component_;
-            
-            int domain_id;
-            std::string publisher_name;
-            std::string writer_name;
-            std::string topic_name;
+            //This is the concrete event port
+            rti::OutEventPort<::Message, cdit::Message> * event_port_;
 
+            //This is the Component this port should call into
+            txMessageInt* component_;        
     };
 };
 
-#endif //DDSTXMESSAGE_H
+#endif //RTI_TXMESSAGE_H
