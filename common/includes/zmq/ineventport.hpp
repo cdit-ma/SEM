@@ -104,6 +104,9 @@ zmq::Zmq_InEventPort<T, S>::Zmq_InEventPort(::InEventPort<T>* port, std::vector<
     this->port_ = port;
     this->end_points_ = end_points;
 
+    auto helper = ZmqHelper::get_zmq_helper();
+    //auto context = helper->get_context();
+
     zmq_thread_ = new std::thread(&zmq::Zmq_InEventPort<T, S>::zmq_loop, this);
     rec_thread_ = new std::thread(&zmq::Zmq_InEventPort<T, S>::receive_loop, this);
 };
