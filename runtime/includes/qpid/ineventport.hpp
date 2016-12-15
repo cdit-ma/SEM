@@ -17,7 +17,6 @@
 #include <qpid/messaging/Receiver.h>
 #include <qpid/messaging/Session.h>
 
-//#include "helper.hpp"
 
 namespace qpid{
     template <class T, class S> class InEventPort: public ::InEventPort<T>{
@@ -28,16 +27,20 @@ namespace qpid{
 
         private:
             void receive_loop();
+            void qpid_loop();
 
             qpid::messaging::Connection connection_;
             qpid::messaging::Session session_;
             qpid::messaging::Receiver receiver_;
 
             std::thread* receive_thread_;
+            std::thread* qpid_thread_;
             std::mutex notify_mutex_;
             std::condition_variable notify_lock_condition_;
-            ::InEventPort<T>* port_;
 
+            std::queue<std::string> message_queue_;
+
+            ::InEventPort<T>* port_;
     };
 };
 
@@ -47,12 +50,6 @@ void qpid::InEventPort<T, S>::rx_(T* message){
     if(port_){
         port_->rx_(message);
     }
-};
-
-template <class T, class S>
-void qpid::InEventPort<T, S>::notify(){
-    std::unique_lock<std::mutex> lock(notify_mutex_);
-    notify_lock_condition_.notify_all();
 };
 
 template <class T, class S>
@@ -66,17 +63,41 @@ qpid::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, std::string broker,
     std::string tn = "amq.topic/" + topic;
     receiver_ = session_.createReceiver(tn);
 
+    qpid_thread_ = new std::thread(&qpid::InEventPort<T,S>::qpid_loop, this);
     receive_thread_ = new std::thread(&qpid::InEventPort<T,S>::receive_loop, this);
 };
 
 template <class T, class S>
-void qpid::InEventPort<T, S>::receive_loop(){
+void qpid::InEventPort<T, S>::qpid_loop(){
     while(true){
         auto sample = receiver_.fetch();
         std::string str = sample.getContent();
-        auto message = proto::decode(str);
-        rx_(message);
+        {
+            //Gain mutex lock and append message
+            std::unique_lock<std::mutex> lock(notify_mutex_);
+            message_queue_.push(str);
+            notify_lock_condition_.notify_all();
+        }
     }
-}
+};
+
+template <class T, class S>
+void qpid::InEventPort<T, S>::receive_loop(){
+    std::queue<std::string> queue_;
+    while(true){
+        {
+            //Wait for next message
+            std::unique_lock<std::mutex> lock(notify_mutex_);
+            notify_lock_condition_.wait(lock);
+            //Swap out the queue's and release the mutex
+            message_queue_.swap(queue_);
+        }
+        while(!queue_.empty()){
+            auto message = proto::decode(queue_.front());
+            rx_(message);
+            queue_.pop();
+        }
+    }
+};
 
 #endif
