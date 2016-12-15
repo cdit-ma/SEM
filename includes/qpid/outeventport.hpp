@@ -5,7 +5,6 @@
 #include <vector>
 #include <iostream>
 #include <string>
-//#include "qpid/helper.hpp"
 
 #include <qpid/messaging/Address.h>
 #include <qpid/messaging/Connection.h>

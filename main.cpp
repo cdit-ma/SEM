@@ -9,16 +9,16 @@
 #include "recieverimpl.h"
 
 //RTI DDS
-#include "rti/rtitxmessage.h"
-#include "rti/rtirxmessage.h"
+//#include "rti/rtitxmessage.h"
+//#include "rti/rtirxmessage.h"
 
 //OPENSPLICE
-#include "opensplice/osplrxmessage.h"
-#include "opensplice/ospltxmessage.h"
+//#include "opensplice/osplrxmessage.h"
+//#include "opensplice/ospltxmessage.h"
 
 //ZMQ
-#include "zmq/zmqrxmessage.h"
-#include "zmq/zmqtxmessage.h"
+//#include "zmq/zmqrxmessage.h"
+//#include "zmq/zmqtxmessage.h"
 
 //QPID
 #include "qpid/qpidrxmessage.h"
@@ -52,21 +52,22 @@ int main(int argc, char** argv){
     std::string writer_name2("writer2");
     std::string reader_name2("reader2");
     
+/*  
     txMessageInt* rti_tx  = 0;
     rxMessageInt* rti_rx  = 0;
     txMessageInt* ospl_tx = 0;
     rxMessageInt* ospl_rx = 0;
-
+*/
     txMessageInt* qpid_tx = 0;
     rxMessageInt* qpid_rx = 0;
 
 
 
-    qpid_tx = new qpid_txMessage(sender_impl, "localhost:5672", "amq.topic");
-    qpid_rx = new qpid_rxMessage(reciever_impl, "localhost:5672",  "amq.topic");
+    qpid_tx = new qpid::TxMessage(sender_impl, "localhost:5672", "a");
+    qpid_rx = new qpid::RxMessage(reciever_impl, "localhost:5672",  "a");
 
-    rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
-    rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
+    //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
+    //rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
 
     //ospl_tx = new ospl::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
     //ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, writer_name2, topic_name2);
@@ -81,25 +82,24 @@ int main(int argc, char** argv){
     
     
     sender_impl->set_instName("tx_rti");
-    sender_impl->set_message("1");
 
-    sender_impl2->set_instName("tx_ospl");
-    sender_impl2->set_message("2");
+    //sender_impl2->set_instName("tx_ospl");
+    //sender_impl2->set_message("2");
 
     //Attach Ports
-    sender_impl->_set_txMessage(rti_tx);
-    reciever_impl->_set_rxMessage(rti_rx);
+    sender_impl->_set_txMessage(qpid_tx);
+    reciever_impl->_set_rxMessage(qpid_rx);
     
-    sender_impl2->_set_txMessage(ospl_tx);
-    reciever_impl2->_set_rxMessage(ospl_rx);
+    //sender_impl2->_set_txMessage(ospl_tx);
+    //reciever_impl2->_set_rxMessage(ospl_rx);
     
 
     int i = 600;
     while(i-- > 0){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+        sender_impl->set_message(std::to_string(i));
         sender_impl->periodic_event();
-        sender_impl2->periodic_event();
         std::cout << std::endl;
     }
 
