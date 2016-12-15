@@ -55,10 +55,10 @@ int main(int argc, char** argv){
     rxMessageInt* ospl_rx = 0;
 
     ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name2, topic_name);
-    //ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name2, topic_name);
+    ospl_rx = new ospl::RxMessage(reciever_impl2, 0, sub_name2, topic_name);
 
 
-    //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, topic_name);
+    rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, topic_name);
     rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, topic_name);
 
     //txMessageInt* ospl_tx2  = new ospl::TxMessage(sender_impl2, 1, pub_name, writer_name, topic_name2);
