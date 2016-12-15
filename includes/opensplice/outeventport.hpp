@@ -3,7 +3,6 @@
 
 #include "../globalinterfaces.h"
 
-#include <iostream>
 #include <string>
 
 #include "helper.hpp"
@@ -12,7 +11,6 @@ namespace ospl{
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
             OutEventPort(::OutEventPort<T>* port, int domain_id, std::string publisher_name, std::string topic_name);
-            void notify();
             void tx_(T* message);
         private:
             dds::pub::DataWriter<S> writer_ = dds::pub::DataWriter<S>(dds::core::null);
@@ -22,19 +20,21 @@ namespace ospl{
 
 template <class T, class S>
 void ospl::OutEventPort<T, S>::tx_(T* message){
-    auto m = translate(message);
     if(writer_ != dds::core::null){
-        std::cout << "Sending!" << std::endl;
+        auto m = translate(message);
         //De-reference the message and send
         writer_.write(*m);
+        delete m;
+    }else{
+        //No writer
     }
-    delete m;
 };
 
 template <class T, class S>
 ospl::OutEventPort<T, S>::OutEventPort(::OutEventPort<T>* port, int domain_id, std::string publisher_name, std::string topic_name){
     this->port_ = port;
     
+    //Construct a DDS Participant, Publisher, Topic and Writer
     auto helper = DdsHelper::get_dds_helper();   
     auto participant = helper->get_participant(domain_id);
     auto publisher = helper->get_publisher(participant, publisher_name);
