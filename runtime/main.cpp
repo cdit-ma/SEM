@@ -42,15 +42,15 @@ int main(int argc, char** argv){
     sender_impl3->set_instName("ZMQ_SENDER");
     sender_impl4->set_instName("QPID_SENDER");
     
-    sender_impl->set_message("YO");
-    sender_impl2->set_message("YO");
-    sender_impl3->set_message("YO");
-    sender_impl4->set_message("YO");
+    sender_impl->set_message("RTI");
+    sender_impl2->set_message("OSPL");
+    sender_impl3->set_message("ZMQ");
+    sender_impl4->set_message("QPID");
     
-    receiver_impl->set_instName("RTI_receiveR");
-    receiver_impl2->set_instName("OSPL_receiveR");
-    receiver_impl3->set_instName("zmq_receiveR");
-    receiver_impl4->set_instName("qpid_receiveR");
+    receiver_impl->set_instName("RTI_Receiver");
+    receiver_impl2->set_instName("OSPL_Receiver");
+    receiver_impl3->set_instName("ZMQ_Receiver");
+    receiver_impl4->set_instName("QPID_Receiver");
     
     std::string topic_name("Topic1");
     std::string topic_name2("Topic2");
@@ -99,8 +99,8 @@ int main(int argc, char** argv){
 
 
     int i = 600;
-    while(i-- > 0){
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    while(i > 0){
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         sender_impl->periodic_event();
         sender_impl2->periodic_event();
