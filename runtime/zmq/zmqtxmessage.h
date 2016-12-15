@@ -3,10 +3,7 @@
 
 //Include the concrete port interfaces
 #include "../interfaces.h"
-
-namespace proto{
-    class Message;
-};
+#include "../proto/messageconvert.h"
 
 namespace zmq{
     //Forward declare the Middleware specific EventPort
@@ -14,7 +11,7 @@ namespace zmq{
 
     class TxMessage: public txMessageInt{
         public:
-            TxMessage(txMessageInt* component, std::string endpoint);
+            EXPORT_FUNC TxMessage(txMessageInt* component, std::string endpoint);
             void txMessage(::Message* message);
             void tx_(::Message* message){};
         private:

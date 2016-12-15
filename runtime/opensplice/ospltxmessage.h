@@ -15,7 +15,7 @@ namespace ospl{
 
     class TxMessage: public txMessageInt{
         public:
-            EXPORTED TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string topic_name);
+            EXPORT_FUNC TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string topic_name);
             void txMessage(::Message* message);
             void tx_(::Message* message){};
         private:

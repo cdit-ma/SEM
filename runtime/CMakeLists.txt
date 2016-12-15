@@ -17,14 +17,16 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/basemessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interfaces.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/recieverimpl.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/receiverimpl.cpp
 	)
 
 
+#add_subdirectory("${PROJECT_SOURCE_DIR}/test")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
+add_subdirectory("${PROJECT_SOURCE_DIR}/qpid")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
-add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
-add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
-
 
 #find OSPL
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/opensplice/cmake")
@@ -71,7 +73,8 @@ target_compile_features(${PROJ_NAME} PRIVATE cxx_range_for)
 #target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
 #target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})
 
+#target_link_libraries(${PROJ_NAME} rti_library)
+#target_link_libraries(${PROJ_NAME} ospl_library)
+target_link_libraries(${PROJ_NAME} qpid_library)
 target_link_libraries(${PROJ_NAME} zmq_library)
-target_link_libraries(${PROJ_NAME} rti_library)
-target_link_libraries(${PROJ_NAME} ospl_library)
 

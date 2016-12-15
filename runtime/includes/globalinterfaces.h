@@ -1,6 +1,8 @@
 #ifndef GLOBALINTERFACES_H
 #define GLOBALINTERFACES_H
 
+#define EXPORT_FUNC __attribute__((visibility("default")))
+
 //Interface for a standard In Event Port
 template <class T> class InEventPort{
     public:

@@ -5,7 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
-#include "zmqhelper.h"
+#include "helper.hpp"
 
 namespace zmq{
      template <class T, class S> class Zmq_OutEventPort: public ::OutEventPort<T>{
