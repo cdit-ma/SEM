@@ -79,7 +79,6 @@ void zmq::Zmq_InEventPort<T, S>::zmq_loop(){
     while(true){
 		try{
             //Wait for next message
-            std::cout <<"waiting" << std::endl;
             socket->recv(data);
             std::cout << "Got Message:" << std::endl;
             
