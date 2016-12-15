@@ -23,7 +23,7 @@ set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/messageconvert.h
 	)
 
-add_library(${PROJ_NAME} ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 

@@ -11,8 +11,10 @@ include_directories(${PROJ_NAME} ${RUNTIME_INCLUDE}/)
 set(PROJ_NAME zmq_library)
 project (${PROJ_NAME})
 
-find_package(Protobuf REQUIRED)
-include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../proto" "${CMAKE_CURRENT_BINARY_DIR}/proto/")
+
+#find_package(Protobuf REQUIRED)
+#include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
 find_package(ZeroMQ REQUIRED)
 include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
@@ -29,20 +31,21 @@ set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.cc
-	${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.h
+	#${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.cc
+	#${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.h
 )
 
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/.)
 
-target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
+#target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 #target_link_libraries(${PROJ_NAME} proto_library)
 
 target_link_libraries(${PROJ_NAME} pthread dl)
-
+target_link_libraries(${PROJ_NAME} proto_library)
 

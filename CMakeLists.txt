@@ -20,6 +20,7 @@ set(SOURCE
 	)
 
 
+add_subdirectory("${PROJECT_SOURCE_DIR}/proto")
 add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
 add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
 add_subdirectory("${PROJECT_SOURCE_DIR}/qpid")
@@ -43,4 +44,4 @@ target_link_libraries(${PROJ_NAME} rti_library)
 target_link_libraries(${PROJ_NAME} ospl_library)
 target_link_libraries(${PROJ_NAME} qpid_library)
 target_link_libraries(${PROJ_NAME} zmq_library)
-
+#target_link_libraries(${PROJ_NAME} proto_library)
