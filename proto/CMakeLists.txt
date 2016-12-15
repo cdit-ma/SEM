@@ -14,7 +14,7 @@ project (${PROJ_NAME})
 find_package(Protobuf REQUIRED)
 include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS message.proto)
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../message.proto)
 
 set(SOURCE
 	${PROTO_SRCS}

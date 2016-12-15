@@ -80,7 +80,6 @@ void zmq::Zmq_InEventPort<T, S>::zmq_loop(){
 		try{
             //Wait for next message
             socket->recv(data);
-            std::cout << "Got Message:" << std::endl;
             
             //If we have a valid message
             if(data->size() > 0){
