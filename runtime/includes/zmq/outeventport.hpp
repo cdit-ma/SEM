@@ -26,7 +26,6 @@ void zmq::Zmq_OutEventPort<T, S>::tx_(T* message){
     if(socket_){
         zmq::message_t data(str.c_str(), str.size());
         socket_->send(data);
-        std::cout << "sent" << std::endl;
     }
 };
 
