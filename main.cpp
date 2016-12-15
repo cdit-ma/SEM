@@ -17,8 +17,8 @@
 //#include "opensplice/ospltxmessage.h"
 
 //ZMQ
-//#include "zmq/zmqrxmessage.h"
-//#include "zmq/zmqtxmessage.h"
+#include "zmq/zmqrxmessage.h"
+#include "zmq/zmqtxmessage.h"
 
 //QPID
 #include "qpid/qpidrxmessage.h"
@@ -52,19 +52,19 @@ int main(int argc, char** argv){
     std::string writer_name2("writer2");
     std::string reader_name2("reader2");
     
-/*  
+  
     txMessageInt* rti_tx  = 0;
     rxMessageInt* rti_rx  = 0;
     txMessageInt* ospl_tx = 0;
     rxMessageInt* ospl_rx = 0;
-*/
+
     txMessageInt* qpid_tx = 0;
     rxMessageInt* qpid_rx = 0;
 
 
 
-    qpid_tx = new qpid::TxMessage(sender_impl, "localhost:5672", "a");
-    qpid_rx = new qpid::RxMessage(reciever_impl, "localhost:5672",  "a");
+    //qpid_tx = new qpid::TxMessage(sender_impl, "localhost:5672", "a");
+    //qpid_rx = new qpid::RxMessage(reciever_impl, "localhost:5672",  "a");
 
     //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, writer_name, topic_name);
     //rti_rx = new rti::RxMessage(reciever_impl, 0, sub_name, reader_name, topic_name);
@@ -77,8 +77,8 @@ int main(int argc, char** argv){
     //txMessageInt* ospl_tx2  = new ospl::TxMessage(sender_impl2, 1, pub_name, writer_name, topic_name2);
 
     //ZMQ
-    //ospl_tx = new zmq::TxMessage(sender_impl, std::string("tcp://*:6000"));
-    //ospl_rx = new zmq::RxMessage(reciever_impl, std::string("tcp://192.168.111.83:6000"));
+    ospl_tx = new zmq::TxMessage(sender_impl, std::string("tcp://*:6000"));
+    ospl_rx = new zmq::RxMessage(reciever_impl, std::string("tcp://localhost:6000"));
     
     
     sender_impl->set_instName("tx_rti");
@@ -87,8 +87,8 @@ int main(int argc, char** argv){
     //sender_impl2->set_message("2");
 
     //Attach Ports
-    sender_impl->_set_txMessage(qpid_tx);
-    reciever_impl->_set_rxMessage(qpid_rx);
+    sender_impl->_set_txMessage(ospl_tx);
+    reciever_impl->_set_rxMessage(ospl_rx);
     
     //sender_impl2->_set_txMessage(ospl_tx);
     //reciever_impl2->_set_rxMessage(ospl_rx);

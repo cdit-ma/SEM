@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 11)
 #Set our module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../client/cmake/modules/")
 
+set(RUNTIME_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../includes/)
+include_directories(${PROJ_NAME} ${RUNTIME_INCLUDE}/)
+
 set(PROJ_NAME zmq_library)
 project (${PROJ_NAME})
 
@@ -18,18 +21,13 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 #add_subdirectory("${PROJECT_SOURCE_DIR}/../proto")
 
 set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/zmqineventport.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.cpp
-	
 )
 
 set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.h
-	${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.h
-
 	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.h
 	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../proto/message.pb.cc

@@ -4,7 +4,7 @@
 #include "../proto/messageconvert.h"
 
 //Include the templated OutEventPort Implementation for ZMQ
-#include "zmqouteventport.hpp"
+#include "zmq/outeventport.hpp"
 
 zmq::TxMessage::TxMessage(txMessageInt* component, std::string end_point){
     this->component_ = component;
