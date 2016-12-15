@@ -48,7 +48,7 @@ class SenderInt: public txMessageInt{
 };
 
 
-class receiverInt: public rxMessageInt{
+class ReceiverInt: public rxMessageInt{
     protected:
         //Pure virtualize our Compositions
         virtual void rxMessage(Message* message) = 0;

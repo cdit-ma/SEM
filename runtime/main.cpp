@@ -9,12 +9,12 @@
 #include "receiverimpl.h"
 
 //RTI DDS
-//#include "rti/rtitxmessage.h"
-//#include "rti/rtirxmessage.h"
+#include "rti/rtitxmessage.h"
+#include "rti/rtirxmessage.h"
 
 //OPENSPLICE
-//#include "opensplice/osplrxmessage.h"
-//#include "opensplice/ospltxmessage.h"
+#include "opensplice/osplrxmessage.h"
+#include "opensplice/ospltxmessage.h"
 
 //ZMQ
 #include "zmq/zmqrxmessage.h"
@@ -27,10 +27,10 @@
 int main(int argc, char** argv){
     
     SenderImpl* sender_impl = new SenderImpl();
-    receiverImpl* receiver_impl = new receiverImpl();
+    ReceiverImpl* receiver_impl = new ReceiverImpl();
 
     SenderImpl* sender_impl2 = new SenderImpl();
-    receiverImpl* receiver_impl2 = new receiverImpl();
+    ReceiverImpl* receiver_impl2 = new ReceiverImpl();
 
     sender_impl->set_instName("RTI_SENDER");
     sender_impl2->set_instName("OSPL_SENDER");
@@ -59,8 +59,8 @@ int main(int argc, char** argv){
     rxMessageInt* zmq_rx = 0;
 
     //RTI DDS
-    rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, topic_name);
-    rti_rx = new rti::RxMessage(receiver_impl, 0, sub_name, topic_name);
+    //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, topic_name);
+    //rti_rx = new rti::RxMessage(receiver_impl, 0, sub_name, topic_name);
 
     //OpenSplice DDS
     ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, topic_name);
@@ -78,8 +78,8 @@ int main(int argc, char** argv){
     sender_impl->_set_txMessage(rti_tx);
     receiver_impl->_set_rxMessage(rti_rx);
 
-    sender2_impl->_set_txMessage(ospl_tx);
-    receiver2_impl->_set_rxMessage(ospl_rx);
+    sender_impl2->_set_txMessage(ospl_tx);
+    receiver_impl2->_set_rxMessage(ospl_rx);
 
 
     int i = 600;
@@ -88,6 +88,8 @@ int main(int argc, char** argv){
 
         sender_impl->set_message(std::to_string(i));
         sender_impl->periodic_event();
+        sender_impl2->set_message(std::to_string(i));
+        sender_impl2->periodic_event();
     }
 
     return -1;
