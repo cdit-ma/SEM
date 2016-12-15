@@ -9,7 +9,7 @@
 #include <condition_variable>
 #include <queue>
 #include <string>
-#include "zmqhelper.h"
+#include "helper.hpp"
 
 namespace zmq{
      template <class T, class S> class Zmq_InEventPort: public ::InEventPort<T>{

@@ -1,8 +1,6 @@
 #ifndef RTI_TXMESSAGE_H
 #define RTI_TXMESSAGE_H
 
-#define EXPORTED __attribute__((visibility("default")))
-
 //Include the concrete port interfaces
 #include "../interfaces.h"
 
@@ -15,9 +13,9 @@ namespace rti{
 
     class TxMessage: public txMessageInt{
         public:
-            EXPORTED TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string topic_name);
-            void EXPORTED txMessage(::Message* message);
-            void EXPORTED tx_(::Message* message){};
+            EXPORT_FUNC TxMessage(txMessageInt* component, int domain_id, std::string publisher_name, std::string topic_name);
+            void txMessage(::Message* message);
+            void tx_(::Message* message){};
         private:
             //This is the concrete event port
             rti::OutEventPort<::Message, cdit::Message> * event_port_;

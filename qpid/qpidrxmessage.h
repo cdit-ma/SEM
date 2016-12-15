@@ -1,26 +1,25 @@
-#ifndef ZMQRXMESSAGE_H
-#define ZMQRXMESSAGE_H
+#ifndef QPIDRXMESSAGE_H
+#define QPIDRXMESSAGE_H
 
-//Include the concrete port interfaces
 #include "../interfaces.h"
 #include "../proto/messageconvert.h"
 
-namespace zmq{
+namespace qpid{
     //Forward declare the Middleware specific EventPort
-    template <class T, class S> class Zmq_InEventPort;
+    template <class T, class S> class InEventPort;
 
     class RxMessage: public rxMessageInt{
         public:
-            EXPORT_FUNC RxMessage(rxMessageInt* component, std::string end_point);
+            EXPORT_FUNC RxMessage(rxMessageInt* component, std::string broker, std::string topic);
             void rxMessage(::Message* message);
             void rx_(::Message* message);
         private:
             //This is the concrete event_port
-            Zmq_InEventPort<::Message, proto::Message> * event_port_;
+            qpid::InEventPort<::Message, proto::Message> * event_port_;
 
             //This is the Component this port should call into
             rxMessageInt* component_;        
     };
 };
 
-#endif //ZMQRXMESSAGE_H
+#endif //QPIDRXMESSAGE_H

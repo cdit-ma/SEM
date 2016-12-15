@@ -1,11 +1,11 @@
-#ifndef RECIEVERIMPL_H
-#define RECIEVERIMPL_H
+#ifndef receiveRIMPL_H
+#define receiveRIMPL_H
 
 #include "interfaces.h"
 
-class RecieverImpl: public RecieverInt{
+class receiverImpl: public receiverInt{
     public:
         void rxMessage(Message* message);
 };
 
-#endif //RECIEVERIMPL_H
+#endif //receiveRIMPL_H

@@ -66,7 +66,7 @@ class ComponentMW : ComponentInterface{
             this->rxMessage_ = new rxMessage_ZMQ();
         }
 
-        //Recievers should be pure virtual so they are implemented by the impl.
+        //receivers should be pure virtual so they are implemented by the impl.
         virtual void rxMessage(Message* message) = 0;
 
         void txMessage(Message* message)

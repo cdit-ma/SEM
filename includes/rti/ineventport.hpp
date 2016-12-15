@@ -18,7 +18,7 @@ namespace rti{
             void notify();
             void rx_(T* message);
         private:
-            void recieve_loop();
+            void receive_loop();
             
             std::thread* rec_thread_;
             std::mutex notify_mutex_;
@@ -63,12 +63,12 @@ rti::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, int domain_id, std::
     //Attach listener to only respond to data_available()
     reader_.listener(listener_, dds::core::status::StatusMask::data_available());
 
-    //Setup a reciever thread, so that we don't tie up the middlewares callback thread
-    rec_thread_ = new std::thread(&rti::InEventPort<T,S>::recieve_loop, this);
+    //Setup a receiver thread, so that we don't tie up the middlewares callback thread
+    rec_thread_ = new std::thread(&rti::InEventPort<T,S>::receive_loop, this);
 };
 
 template <class T, class S>
-void rti::InEventPort<T, S>::recieve_loop(){  
+void rti::InEventPort<T, S>::receive_loop(){  
     while(true){
         {
             //Wait for next message
@@ -79,7 +79,7 @@ void rti::InEventPort<T, S>::recieve_loop(){
         ///Read all our samples
         auto samples = reader_.take();
         for(auto sample : samples){
-            //Translate and callback into the component for each valid message we recieve
+            //Translate and callback into the component for each valid message we receive
             if(sample->info().valid()){
                 auto m = translate(&sample->data());
                 rx_(m);
