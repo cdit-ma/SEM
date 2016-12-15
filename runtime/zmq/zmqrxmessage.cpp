@@ -4,7 +4,7 @@
 #include "../proto/messageconvert.h"
 
 //Include the templated InEventPort Implementation for ZMQ
-#include "zmqineventport.hpp"
+#include "zmq/ineventport.hpp"
 
 zmq::RxMessage::RxMessage(rxMessageInt* component, std::string end_point){
     //Store the component this port belongs too
