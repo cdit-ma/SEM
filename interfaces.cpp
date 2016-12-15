@@ -29,15 +29,15 @@ void SenderInt::txMessage(Message* message){
 
 void txMessage(Message* message);
 
-std::string receiverInt::instName(){
+std::string ReceiverInt::instName(){
     return instName_;
 };
 
-void receiverInt::set_instName(const std::string val){
+void ReceiverInt::set_instName(const std::string val){
     this->instName_ = val;
 };
 
 
-void receiverInt::_set_rxMessage(rxMessageInt* port){
+void ReceiverInt::_set_rxMessage(rxMessageInt* port){
     this->rxMessageInt_ = port;
 };
