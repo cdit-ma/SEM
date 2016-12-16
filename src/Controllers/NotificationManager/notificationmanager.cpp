@@ -50,7 +50,6 @@ void NotificationManager::resetManager()
         deleteNotification(m_obj->ID());
     }
 
-    //lastNotificationObject = 0;
     projectRunTime->restart();
 
     //emit notificationSeen();
@@ -416,38 +415,27 @@ void NotificationManager::deleteNotification(int ID)
         return;
     }
 
+    // if the deleted notification is the top-most currently, update the lastNotification object
+    bool topNotificationDeleted = false;
+    if (lastNotificationObject && (lastNotificationObject->ID() == ID)) {
+        lastNotificationObject = 0;
+        topNotificationDeleted = true;
+        emit notificationSeen();
+    }
+
     // send a signal to update the notification toolbar's severity count and to delete the item
     // from the notification dialog, then remove item from hash before deleting it
     emit notificationDeleted(ID);
     delete notificationObjects.take(ID);
 
     if (notificationObjects.isEmpty()) {
-        lastNotificationObject = 0;
-        emit notificationSeen();
         emit lastNotificationDeleted();
     } else {
-        if (lastNotificationObject && lastNotificationObject->ID() == ID) {
+        if (topNotificationDeleted) {
+            // request the new top-most notification's ID
             emit req_lastNotificationID();
         }
     }
-
-    /*
-    if (lastNotificationObject && lastNotificationObject->ID() == ID) {
-
-        // if the deleted notification is the last (most recent) notification, remove
-        // showMostRectNotification button's highlight and update the last notification item
-        lastNotificationObject = 0;
-        emit notificationSeen();
-
-        if (notificationObjects.isEmpty()) {
-            // if the notifications list is empty, disable showMostRectNotification button
-            emit lastNotificationDeleted();
-        } else {
-            // update lastNotificationItem; request the new top notification item's ID from the dialog
-            emit req_lastNotificationID();
-        }
-    }
-    */
 }
 
 
@@ -458,6 +446,11 @@ void NotificationManager::deleteNotification(int ID)
 void NotificationManager::setLastNotificationItem(int ID)
 {
     lastNotificationObject = notificationObjects.value(ID, 0);
+
+    // if there is no last notification, disable the showMostRecentNotification button in the toolbar
+    if (!lastNotificationObject) {
+        emit lastNotificationDeleted();
+    }
 }
 
 

@@ -37,7 +37,7 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     connect(NotificationManager::manager(), &NotificationManager::showNotificationDialog, this, &NotificationDialog::showDialog);
     connect(NotificationManager::manager(), &NotificationManager::req_lastNotificationID, this, &NotificationDialog::getLastNotificationID);
     connect(NotificationManager::manager(), &NotificationManager::backgroundProcess, this, &NotificationDialog::backgroundProcess);
-    connect(NotificationManager::manager(), &NotificationManager::clearNotifications, this, &NotificationDialog::clearNotifications);
+    //connect(NotificationManager::manager(), &NotificationManager::clearNotifications, this, &NotificationDialog::clearNotifications);
     connect(NotificationManager::manager(), &NotificationManager::notificationItemAdded, this, &NotificationDialog::notificationAdded);
     connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &NotificationDialog::notificationDeleted);
     connect(this, &NotificationDialog::deleteNotification, NotificationManager::manager(), &NotificationManager::deleteNotification);
@@ -394,7 +394,7 @@ void NotificationDialog::getLastNotificationID()
     if (!notificationItems.isEmpty()) {
         QLayoutItem* topItem = itemsLayout->itemAt(0);
         if (topItem) {
-            NotificationItem* item = dynamic_cast<NotificationItem*>(topItem);
+            NotificationItem* item = qobject_cast<NotificationItem*>(topItem->widget());
             if (item) {
                 emit lastNotificationID(item->getID());
                 return;
@@ -410,8 +410,6 @@ void NotificationDialog::getLastNotificationID()
  */
 void NotificationDialog::clearSelected()
 {
-    QList<NOTIFICATION_SEVERITY> removedSeverities;
-
     // start/restart timer
     if (selectedItems.isEmpty()) {
         infoLabel->setText("Please select at least one notification...");
@@ -421,17 +419,8 @@ void NotificationDialog::clearSelected()
 
     // delete selected items
     while (!selectedItems.isEmpty()) {
-        NotificationItem* item = selectedItems.takeFirst();
-        NOTIFICATION_SEVERITY severity = (NOTIFICATION_SEVERITY) item->getSeverity();
-        if (severity != NS_ERROR) {
-            if (!removedSeverities.contains(severity)) {
-                removedSeverities.append(severity);
-            }
-            removeItem(item);
-        }
+        removeItem(selectedItems.takeFirst());
     }
-
-    updateSeverityActions(removedSeverities);
 }
 
 
@@ -441,27 +430,17 @@ void NotificationDialog::clearSelected()
 void NotificationDialog::clearVisible()
 {
     QList<NotificationItem*> visibleItems;
-    QList<NOTIFICATION_SEVERITY> removedSeverities;
-
     foreach (NotificationItem* item, notificationItems) {
         if (!item->isVisible()) {
             continue;
         }
-        NOTIFICATION_SEVERITY severity = item->getSeverity();
-        if (severity != NS_ERROR) {
-            if (!removedSeverities.contains(severity)) {
-                removedSeverities.append(severity);
-            }
-            visibleItems.append(item);
-        }
+        visibleItems.append(item);
     }
 
     // delete visible items
     while (!visibleItems.isEmpty()) {
         removeItem(visibleItems.takeFirst());
     }
-
-    updateSeverityActions(removedSeverities);
 }
 
 
@@ -501,15 +480,9 @@ void NotificationDialog::clearNotifications(NOTIFICATION_FILTER filter, int filt
         }
     }
 
-    QList<NOTIFICATION_SEVERITY> removedSeverities;
     foreach (NotificationItem* item, itemsToDelete) {
-        NOTIFICATION_SEVERITY severity = item->getSeverity();
-        if (!removedSeverities.contains(severity)) {
-            removedSeverities.append(severity);
-        }
         removeItem(item);
     }
-    updateSeverityActions(removedSeverities);
 }
 
 
@@ -572,6 +545,7 @@ void NotificationDialog::notificationDeleted(int ID)
 
 /**
  * @brief NotificationDialog::clearAll
+ * NOTE: This function is the only one that doesn't use notificationDeleted to delete items.
  */
 void NotificationDialog::clearAll()
 {
