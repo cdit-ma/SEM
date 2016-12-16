@@ -1,5 +1,6 @@
 #include "messageconvert.h"
-
+#include "message.pb.h"
+#include <iostream>
 proto::Message* proto::translate(::Message* message){
         proto::Message* out = new proto::Message();
         out->set_time(message->time());
@@ -16,7 +17,7 @@ proto::Message* proto::translate(::Message* message){
         return out;
 }
 
-::Message* proto::decode(std::string message){
+::Message* proto::decode(std::string message, proto::Message* m2){
         auto pb = new proto::Message();
         pb->ParseFromString(message);
         auto m = translate(pb);

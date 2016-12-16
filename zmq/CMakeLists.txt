@@ -16,17 +16,17 @@ include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
 find_package(ZeroMQ REQUIRED)
 include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 
+
+include_directories(${PROJ_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../proto")
+
 set(SOURCE
-	${PROTO_SRCS}
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxvectormessage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxvectormessage.cpp
 	)
 
 set(HEADERS
-	${PROTO_HDRS}
-	${CMAKE_CURRENT_SOURCE_DIR}/zmqtxmessage.h
-	${CMAKE_CURRENT_SOURCE_DIR}/zmqrxmessage.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.h
 	)
 
 #Set symbols in dynamic library to be default hidden
@@ -36,4 +36,5 @@ add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} pthread)
-target_link_libraries(${PROJ_NAME} proto_library)
+target_link_libraries(${PROJ_NAME} proto_message_library)
+target_link_libraries(${PROJ_NAME} proto_vectormessage_library)

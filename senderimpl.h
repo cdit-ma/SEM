@@ -6,6 +6,7 @@
 class SenderImpl: public SenderInt{
     public:
         void periodic_event();
+        void periodic_event_v();
     private:
         //Variable
         int sentCount_;

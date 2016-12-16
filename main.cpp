@@ -19,10 +19,12 @@
 //ZMQ
 #include "zmq/zmqrxmessage.h"
 #include "zmq/zmqtxmessage.h"
+#include "zmq/zmqtxvectormessage.h"
+#include "zmq/zmqrxvectormessage.h"
 
 //QPID
-#include "qpid/qpidrxmessage.h"
-#include "qpid/qpidtxmessage.h"
+//#include "qpid/qpidrxmessage.h"
+//#include "qpid/qpidtxmessage.h"
 
 int main(int argc, char** argv){
     
@@ -69,43 +71,54 @@ int main(int argc, char** argv){
     txMessageInt* zmq_tx = 0;
     rxMessageInt* zmq_rx = 0;
 
+    txVectorMessageInt* zmq_v_tx = 0;
+    rxVectorMessageInt* zmq_v_rx = 0;
+
     //RTI DDS
-    rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, topic_name);
-    rti_rx = new rti::RxMessage(receiver_impl, 0, sub_name, topic_name);
+    //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, topic_name);
+    //rti_rx = new rti::RxMessage(receiver_impl, 0, sub_name, topic_name);
 
     //OpenSplice DDS
-    ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, topic_name);
-    ospl_rx = new ospl::RxMessage(receiver_impl2, 0, sub_name, topic_name);
+    //ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, topic_name);
+    //ospl_rx = new ospl::RxMessage(receiver_impl2, 0, sub_name, topic_name);
 
     //ZMQ
     zmq_tx = new zmq::TxMessage(sender_impl3, std::string("tcp://*:6000"));
     zmq_rx = new zmq::RxMessage(receiver_impl3, std::string("tcp://localhost:6000"));
-
+    zmq_v_tx = new zmq::TxVectorMessage(sender_impl3, std::string("tcp://*:6001"));
+    zmq_v_rx = new zmq::RxVectorMessage(receiver_impl3, std::string("tcp://localhost:6001"));
     //QPID
-    qpid_tx = new qpid::TxMessage(sender_impl4, "localhost:5672", "a");
-    qpid_rx = new qpid::RxMessage(receiver_impl4, "localhost:5672",  "a");
+    //qpid_tx = new qpid::TxMessage(sender_impl4, "localhost:5672", "a");
+    //qpid_rx = new qpid::RxMessage(receiver_impl4, "localhost:5672",  "a");
     
     
     //Attach Ports
     sender_impl->_set_txMessage(rti_tx);
     sender_impl2->_set_txMessage(ospl_tx);
     sender_impl3->_set_txMessage(zmq_tx);
+    sender_impl3->_set_txVectorMessage(zmq_v_tx);
+
+    
     sender_impl4->_set_txMessage(qpid_tx);
 
     receiver_impl->_set_rxMessage(rti_rx);
     receiver_impl2->_set_rxMessage(ospl_rx);
     receiver_impl3->_set_rxMessage(zmq_rx);
+    receiver_impl3->_set_rxVectorMessage(zmq_v_rx);
     receiver_impl4->_set_rxMessage(qpid_rx);
 
 
     int i = 600;
     while(i > 0){
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         sender_impl->periodic_event();
-        sender_impl2->periodic_event();
-        sender_impl3->periodic_event();
-        sender_impl4->periodic_event();
+        sender_impl3->periodic_event_v();
+        std::cout << std::endl;
+
+        //sender_impl2->periodic_event();
+        //sender_impl3->periodic_event();
+        //sender_impl4->periodic_event();
     }
 
     return -1;

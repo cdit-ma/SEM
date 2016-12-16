@@ -3,7 +3,11 @@
 
 //Include the concrete port interfaces
 #include "../interfaces.h"
-#include "../proto/messageconvert.h"
+
+
+namespace proto{
+    class Message;
+};
 
 namespace zmq{
     //Forward declare the Middleware specific EventPort

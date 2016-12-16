@@ -1,7 +1,7 @@
 #include "zmqtxmessage.h"
 
 //Includes the ::Message and proto::Message
-#include "../proto/messageconvert.h"
+#include "../proto/message/messageconvert.h"
 
 //Include the templated OutEventPort Implementation for ZMQ
 #include "zmq/outeventport.hpp"

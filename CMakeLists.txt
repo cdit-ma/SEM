@@ -13,6 +13,8 @@ include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/message.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/vectormessage.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/basemessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interfaces.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
@@ -20,10 +22,11 @@ set(SOURCE
 	)
 
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/proto")
-add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
-add_subdirectory("${PROJECT_SOURCE_DIR}/qpid")
-add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
+add_subdirectory("${PROJECT_SOURCE_DIR}/proto/message")
+add_subdirectory("${PROJECT_SOURCE_DIR}/proto/vectormessage")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/qpid")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
@@ -33,8 +36,9 @@ if (MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 endif()
 
-target_link_libraries(${PROJ_NAME} ospl_library)
-target_link_libraries(${PROJ_NAME} proto_library)
-target_link_libraries(${PROJ_NAME} qpid_library)
-target_link_libraries(${PROJ_NAME} rti_library)
+#target_link_libraries(${PROJ_NAME} ospl_library)
+target_link_libraries(${PROJ_NAME} proto_vectormessage_library)
+target_link_libraries(${PROJ_NAME} proto_message_library)
+#target_link_libraries(${PROJ_NAME} qpid_library)
+#target_link_libraries(${PROJ_NAME} rti_library)
 target_link_libraries(${PROJ_NAME} zmq_library)
