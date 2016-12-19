@@ -3,8 +3,6 @@
 //Includes the ::Message and proto::Message
 #include "../proto/message/messageconvert.h"
 
-#include "../proto/message/message.pb.h"
-
 //Include the templated InEventPort Implementation for ZMQ
 #include "zmq/ineventport.hpp"
 

@@ -93,7 +93,7 @@ void qpid::InEventPort<T, S>::receive_loop(){
             message_queue_.swap(queue_);
         }
         while(!queue_.empty()){
-            auto message = proto::decode(queue_.front());
+            auto message = proto::decode<S>(queue_.front());
             rx_(message);
             queue_.pop();
         }
