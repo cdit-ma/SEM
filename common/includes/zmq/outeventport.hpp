@@ -8,9 +8,9 @@
 #include "helper.hpp"
 
 namespace zmq{
-     template <class T, class S> class Zmq_OutEventPort: public ::OutEventPort<T>{
+     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
-            Zmq_OutEventPort(::OutEventPort<T>* port, std::vector<std::string> end_points);
+            OutEventPort(::OutEventPort<T>* port, std::vector<std::string> end_points);
             void tx_(T* message);
         private:
 
@@ -21,7 +21,7 @@ namespace zmq{
 };
 
 template <class T, class S>
-void zmq::Zmq_OutEventPort<T, S>::tx_(T* message){
+void zmq::OutEventPort<T, S>::tx_(T* message){
     std::string str = proto::encode(message);
     if(socket_){
         zmq::message_t data(str.c_str(), str.size());
@@ -30,7 +30,7 @@ void zmq::Zmq_OutEventPort<T, S>::tx_(T* message){
 };
 
 template <class T, class S>
-zmq::Zmq_OutEventPort<T, S>::Zmq_OutEventPort(::OutEventPort<T>* port, std::vector<std::string> end_points){
+zmq::OutEventPort<T, S>::OutEventPort(::OutEventPort<T>* port, std::vector<std::string> end_points){
     this->port_ = port;
     this->end_points_ = end_points;
 

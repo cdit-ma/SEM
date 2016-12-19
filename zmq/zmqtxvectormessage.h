@@ -10,7 +10,7 @@ namespace cdit{
 
 namespace zmq{
     //Forward declare the Middleware specific EventPort
-    template <class T, class S> class Zmq_OutEventPort;
+    template <class T, class S> class OutEventPort;
 
     class TxVectorMessage: public txVectorMessageInt{
         public:
@@ -19,7 +19,7 @@ namespace zmq{
             void tx_(::VectorMessage* message){};
         private:
             //This is the concrete event port
-            Zmq_OutEventPort<::VectorMessage, cdit::VectorMessage> * event_port_;
+            zmq::OutEventPort<::VectorMessage, cdit::VectorMessage> * event_port_;
 
             //This is the Component this port should call into
             txVectorMessageInt* component_;        

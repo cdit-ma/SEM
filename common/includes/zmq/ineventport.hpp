@@ -12,9 +12,9 @@
 #include "helper.hpp"
 
 namespace zmq{
-     template <class T, class S> class Zmq_InEventPort: public ::InEventPort<T>{
+     template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            Zmq_InEventPort(::InEventPort<T>* port, std::vector<std::string> end_points);
+            InEventPort(::InEventPort<T>* port, std::vector<std::string> end_points);
             void rx_(T* message);
         private:
             void receive_loop();
@@ -35,14 +35,14 @@ namespace zmq{
 };
 
 template <class T, class S>
-void zmq::Zmq_InEventPort<T, S>::rx_(T* message){
+void zmq::InEventPort<T, S>::rx_(T* message){
     if(port_){
         port_->rx_(message);
     }
 };
 
 template <class T, class S>
-void zmq::Zmq_InEventPort<T, S>::receive_loop(){
+void zmq::InEventPort<T, S>::receive_loop(){
     std::queue<std::string> queue_;
 
     while(true){
@@ -66,7 +66,7 @@ void zmq::Zmq_InEventPort<T, S>::receive_loop(){
 };
 
 template <class T, class S>
-void zmq::Zmq_InEventPort<T, S>::zmq_loop(){
+void zmq::InEventPort<T, S>::zmq_loop(){
     auto helper = ZmqHelper::get_zmq_helper();
     auto socket = helper->get_subscriber_socket();
 
@@ -103,15 +103,15 @@ void zmq::Zmq_InEventPort<T, S>::zmq_loop(){
 };
 
 template <class T, class S>
-zmq::Zmq_InEventPort<T, S>::Zmq_InEventPort(::InEventPort<T>* port, std::vector<std::string> end_points){
+zmq::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, std::vector<std::string> end_points){
     this->port_ = port;
     this->end_points_ = end_points;
 
     auto helper = ZmqHelper::get_zmq_helper();
     //auto context = helper->get_context();
 
-    zmq_thread_ = new std::thread(&zmq::Zmq_InEventPort<T, S>::zmq_loop, this);
-    rec_thread_ = new std::thread(&zmq::Zmq_InEventPort<T, S>::receive_loop, this);
+    zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
+    rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);
 };
 
 #endif //ZMQ_INEVENTPORT_H
