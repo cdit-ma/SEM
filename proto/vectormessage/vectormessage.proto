@@ -1,0 +1,6 @@
+syntax="proto3";
+package cdit;
+message VectorMessage{
+    repeated int64 data =1;
+    string dataName = 2;
+}
