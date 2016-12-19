@@ -13,8 +13,13 @@ namespace proto{
     //Special helpers
 
 
-    ::VectorMessage* decode(std::string message, cdit::VectorMessage* m);
+    template <class T> ::VectorMessage* decode(std::string message);
     std::string encode(::VectorMessage* message);
+
+
+      
+    template <> ::VectorMessage* decode <cdit::VectorMessage>(std::string message);
+
 };
 
 #endif //PROTO_VECTORMESSAGE_CONVERT_H

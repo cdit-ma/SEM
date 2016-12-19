@@ -17,7 +17,8 @@ proto::Message* proto::translate(::Message* message){
         return out;
 }
 
-::Message* proto::decode(std::string message, proto::Message* m2){
+template <>
+::Message* proto::decode<proto::Message>(std::string message){
         auto pb = new proto::Message();
         pb->ParseFromString(message);
         auto m = translate(pb);

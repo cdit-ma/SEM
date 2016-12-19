@@ -56,8 +56,8 @@ void zmq::Zmq_InEventPort<T, S>::receive_loop(){
 
         while(!queue_.empty()){
             std::string str = queue_.front();
-            auto s = new S();
-            auto m = proto::decode(str, s);
+            //auto s = new S();
+            auto m = proto::decode<S>(str);
             //delete s;
             rx_(m);
             queue_.pop();

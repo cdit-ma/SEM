@@ -25,7 +25,8 @@ cdit::VectorMessage* proto::translate(::VectorMessage* message){
         return out;
 }
 
-::VectorMessage* proto::decode(std::string message, cdit::VectorMessage* m2){
+template <>
+::VectorMessage* proto::decode <cdit::VectorMessage>(std::string message){
         auto pb = new cdit::VectorMessage();
         pb->ParseFromString(message);
         auto m = translate(pb);
