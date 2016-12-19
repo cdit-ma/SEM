@@ -10,7 +10,7 @@ namespace proto{
 
 namespace zmq{
     //Forward declare the Middleware specific EventPort
-    template <class T, class S> class Zmq_InEventPort;
+    template <class T, class S> class InEventPort;
 
     class RxMessage: public rxMessageInt{
         public:
@@ -19,7 +19,7 @@ namespace zmq{
             void rx_(::Message* message);
         private:
             //This is the concrete event_port
-            Zmq_InEventPort<::Message, proto::Message> * event_port_;
+            zmq::InEventPort<::Message, proto::Message> * event_port_;
 
             //This is the Component this port should call into
             rxMessageInt* component_;        

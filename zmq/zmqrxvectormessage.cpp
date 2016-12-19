@@ -15,7 +15,7 @@ zmq::RxVectorMessage::RxVectorMessage(rxVectorMessageInt* component, std::string
     v.push_back(end_point);
 
     //Construct a concrete ZMQ InEventPort linked to callback into this.
-    this->event_port_ = new zmq::Zmq_InEventPort<::VectorMessage, cdit::VectorMessage>(this, v);
+    this->event_port_ = new zmq::InEventPort<::VectorMessage, cdit::VectorMessage>(this, v);
 }
 
 void zmq::RxVectorMessage::rxVectorMessage(VectorMessage* message){
