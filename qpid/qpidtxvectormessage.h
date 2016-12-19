@@ -14,12 +14,12 @@ namespace qpid{
 
     class TxVectorMessage: public txVectorMessageInt{
         public:
-            EXPORT_FUNC TxVectorMessage(txVectorMessageInt* component, std::string endpoint);
+            EXPORT_FUNC TxVectorMessage(txVectorMessageInt* component, std::string broker, std::string topic);
             void txVectorMessage(::VectorMessage* message);
             void tx_(::VectorMessage* message){};
         private:
             //This is the concrete event port
-            OutEventPort<::VectorMessage, cdit::VectorMessage> * event_port_;
+            qpid::OutEventPort<::VectorMessage, cdit::VectorMessage> * event_port_;
 
             //This is the Component this port should call into
             txVectorMessageInt* component_;        

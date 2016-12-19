@@ -1,5 +1,7 @@
 #include "qpidrxmessage.h"
+#include "../proto/message/messageconvert.h"
 #include "qpid/ineventport.hpp"
+
 
 
 qpid::RxMessage::RxMessage(rxMessageInt* component, std::string broker, std::string topic){

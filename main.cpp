@@ -23,8 +23,10 @@
 #include "zmq/zmqrxvectormessage.h"
 
 //QPID
-//#include "qpid/qpidrxmessage.h"
-//#include "qpid/qpidtxmessage.h"
+#include "qpid/qpidrxmessage.h"
+#include "qpid/qpidtxmessage.h"
+#include "qpid/qpidrxvectormessage.h"
+#include "qpid/qpidtxvectormessage.h"
 
 int main(int argc, char** argv){
     
@@ -74,6 +76,9 @@ int main(int argc, char** argv){
     txVectorMessageInt* zmq_v_tx = 0;
     rxVectorMessageInt* zmq_v_rx = 0;
 
+    txVectorMessageInt* qpid_v_tx = 0;
+    rxVectorMessageInt* qpid_v_rx = 0;
+
     //RTI DDS
     //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, topic_name);
     //rti_rx = new rti::RxMessage(receiver_impl, 0, sub_name, topic_name);
@@ -88,9 +93,12 @@ int main(int argc, char** argv){
     zmq_v_tx = new zmq::TxVectorMessage(sender_impl3, std::string("tcp://*:6001"));
     zmq_v_rx = new zmq::RxVectorMessage(receiver_impl3, std::string("tcp://localhost:6001"));
     //QPID
-    //qpid_tx = new qpid::TxMessage(sender_impl4, "localhost:5672", "a");
-    //qpid_rx = new qpid::RxMessage(receiver_impl4, "localhost:5672",  "a");
+    qpid_tx = new qpid::TxMessage(sender_impl4, "localhost:5672", "a");
+    qpid_rx = new qpid::RxMessage(receiver_impl4, "localhost:5672",  "a");
     
+    qpid_v_tx = new qpid::TxVectorMessage(sender_impl4, "localhost:5672", "b");
+    qpid_v_rx = new qpid::RxVectorMessage(receiver_impl4, "localhost:5672",  "b");
+
     
     //Attach Ports
     sender_impl->_set_txMessage(rti_tx);
@@ -100,12 +108,14 @@ int main(int argc, char** argv){
 
     
     sender_impl4->_set_txMessage(qpid_tx);
+    sender_impl4->_set_txVectorMessage(qpid_v_tx);
 
     receiver_impl->_set_rxMessage(rti_rx);
     receiver_impl2->_set_rxMessage(ospl_rx);
     receiver_impl3->_set_rxMessage(zmq_rx);
     receiver_impl3->_set_rxVectorMessage(zmq_v_rx);
     receiver_impl4->_set_rxMessage(qpid_rx);
+    receiver_impl4->_set_rxVectorMessage(qpid_v_rx);
 
 
     int i = 600;
@@ -113,7 +123,9 @@ int main(int argc, char** argv){
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         sender_impl3->periodic_event();
+        sender_impl4->periodic_event();
         sender_impl3->periodic_event_v();
+        sender_impl4->periodic_event_v();
         std::cout << std::endl;
 
         //sender_impl2->periodic_event();

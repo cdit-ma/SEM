@@ -6,15 +6,11 @@
 //Include the templated OutEventPort Implementation for qpid
 #include "qpid/outeventport.hpp"
 
-qpid::TxVectorMessage::TxVectorMessage(txVectorMessageInt* component, std::string end_point){
+qpid::TxVectorMessage::TxVectorMessage(txVectorMessageInt* component, std::string broker, std::string topic){
     this->component_ = component;
-    
-    //Construct a vector of the end_points this port should connect to.
-    std::vector<std::string> v;
-    v.push_back(end_point);
 
     //Construct a concrete qpid InEventPort linked to callback into this.
-    this->event_port_ = new qpid::OutEventPort<::VectorMessage, cdit::VectorMessage>(this, v);
+    this->event_port_ = new qpid::OutEventPort<::VectorMessage, cdit::VectorMessage>(this, broker, topic);
 }
 
 void qpid::TxVectorMessage::txVectorMessage(::VectorMessage* message){

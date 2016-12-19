@@ -2,8 +2,9 @@
 #define QPIDTXMESSAGE_H
 
 #include "../interfaces.h"
-#include "../proto/messageconvert.h"
-
+namespace proto{
+    class Message;
+}
 namespace qpid{
     template <class T, class S> class OutEventPort;
     class TxMessage: public txMessageInt{

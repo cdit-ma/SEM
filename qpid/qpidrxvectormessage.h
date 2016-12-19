@@ -14,12 +14,12 @@ namespace qpid{
 
     class RxVectorMessage: public rxVectorMessageInt{
         public:
-            EXPORT_FUNC RxVectorMessage(rxVectorMessageInt* component, std::string end_point);
+            EXPORT_FUNC RxVectorMessage(rxVectorMessageInt* component, std::string broker, std::string topic);
             void rxVectorMessage(::VectorMessage* message);
             void rx_(::VectorMessage* message);
         private:
             //This is the concrete event_port
-            InEventPort<::VectorMessage, cdit::VectorMessage> * event_port_;
+            qpid::InEventPort<::VectorMessage, cdit::VectorMessage> * event_port_;
 
             //This is the Component this port should call into
             rxVectorMessageInt* component_;        

@@ -1,4 +1,5 @@
 #include "qpidtxmessage.h"
+#include "../proto/message/messageconvert.h"
 #include "qpid/outeventport.hpp"
 
 qpid::TxMessage::TxMessage(txMessageInt* component, std::string broker, std::string topic){

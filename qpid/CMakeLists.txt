@@ -17,16 +17,15 @@ find_package(Qpid REQUIRED)
 include_directories(${PROJ_NAME} ${Qpid_INCLUDE_DIRS})
 
 set(SOURCE
-	${PROTO_SRCS}
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidtxmessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxmessage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxvectormessage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/qpidtxvectormessage.cpp
 	)
 
 set(HEADERS
-	${PROTO_HDRS}
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidtxmessage.h
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxmessage.h
-	${CMAKE_CURRENT_SOURCE_DIR}/../proto/messageconvert.h
 	)
 
 #Set symbols in dynamic library to be default hidden
@@ -36,4 +35,5 @@ add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${Qpid_LIBRARIES})
 target_link_libraries(${PROJ_NAME} pthread)
-target_link_libraries(${PROJ_NAME} proto_library)
+target_link_libraries(${PROJ_NAME} proto_message_library)
+target_link_libraries(${PROJ_NAME} proto_vectormessage_library)
