@@ -47,7 +47,7 @@ private:
     void clear();
 
     SearchItemWidget* constructSearchItem(ViewItem* item);
-    void constructKeyButton(QString key, QString text = "", bool checked = false);
+    void constructKeyButton(QString key, QString text = "", bool checked = false, bool addToGroup = true);
 
     QLabel* queryLabel;
     QLabel* searchLabel;
@@ -65,7 +65,10 @@ private:
     QToolBar* keysToolbar;
     QToolBar* buttonsToolbar;
     QVBoxLayout* keysLayout;
+
     QActionGroup* keysActionGroup;
+    QActionGroup* staticKeysActionGroup;
+    QActionGroup* dynamicKeysActionGroup;
 
     QVBoxLayout* resultsLayout;
     QHash<int, SearchItemWidget*> searchItems;

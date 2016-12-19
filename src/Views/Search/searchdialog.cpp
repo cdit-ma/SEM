@@ -4,7 +4,7 @@
 #include <QDateTime>
 #include <QDebug>
 
-#define DEFAULT_KEY_WIDTH 120
+#define DEFAULT_KEY_WIDTH 150
 #define DEFAULT_DISPLAY_WIDTH 200
 
 /**
@@ -34,7 +34,7 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
     // clear previous key actions and search result items
     clear();
-    constructKeyButton("All", "All (" + QString::number(results.count()) + ")", true);
+    //constructKeyButton("All", "All (" + QString::number(results.count()) + ")", true);
 
     if (results.isEmpty()) {
         infoLabel->show();
@@ -77,6 +77,18 @@ void SearchDialog::themeChanged()
 
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
     buttonsToolbar->setStyleSheet(theme->getToolBarStyleSheet());
+    keysToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
+                               "QToolBar::separator {"
+                               "margin: 2px 0px;"
+                               "height: 4px;"
+                               "background:" + theme->getDisabledBackgroundColorHex() + ";"
+                               "}"
+                               "QToolButton {"
+                               "padding: 5px;"
+                               "border-radius:" + theme->getSharpCornerRadius() + ";"
+                               "}");
+
+    /*
     keysToolbar->setStyleSheet("QToolBar {"
                                "padding: 0px;"
                                "background:" + theme->getBackgroundColorHex() + ";"
@@ -240,6 +252,19 @@ void SearchDialog::setupLayout()
     keysToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
     keysToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
+    staticKeysActionGroup = new QActionGroup(this);
+    dynamicKeysActionGroup = new QActionGroup(this);
+    keysActionGroup = new QActionGroup(this);
+    keysActionGroup->setExclusive(true);
+
+    constructKeyButton("All", "All", true, false);
+    keysToolbar->addSeparator();
+    constructKeyButton("Interfaces", "Interfaces", false, false);
+    constructKeyButton("Behaviour", "Behaviour", false, false);
+    constructKeyButton("Assembly", "Assembly", false, false);
+    constructKeyButton("Hardware", "Hardware", false, false);
+    keysToolbar->addSeparator();
+
     QScrollArea* keysArea = new QScrollArea(this);
     keysArea->setWidget(keysToolbar);
     keysArea->setWidgetResizable(true);
@@ -299,9 +324,6 @@ void SearchDialog::setupLayout()
     //setMinimumSize(mainLayout->sizeHint().width() + 50, MIN_HEIGHT);
     setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
-    keysActionGroup = new QActionGroup(this);
-    keysActionGroup->setExclusive(true);
-
     connect(centerOnButton, SIGNAL(clicked(bool)), this, SLOT(centerOnSelectedItem()));
     connect(popupButton, SIGNAL(clicked(bool)), this, SLOT(popupSelectedItem()));
 }
@@ -309,14 +331,14 @@ void SearchDialog::setupLayout()
 
 /**
  * @brief SearchDialog::clear
- * Remove all the actions from the keys action group and the keys toolbar and clear search result items.
+ * Remove all the dynamic key actions from its action group and the toolbar and the clear search result items.
  */
 void SearchDialog::clear()
 {
-    QList<QAction*> actions = keysActionGroup->actions();
+    QList<QAction*> actions = dynamicKeysActionGroup->actions();
     while (!actions.isEmpty()) {
         QAction* action = actions.takeFirst();
-        keysActionGroup->removeAction(action);
+        dynamicKeysActionGroup->removeAction(action);
         keysToolbar->removeAction(action);
         delete action;
     }
@@ -368,7 +390,7 @@ SearchItemWidget* SearchDialog::constructSearchItem(ViewItem *item)
  * @param text
  * @param checked
  */
-void SearchDialog::constructKeyButton(QString key, QString text, bool checked)
+void SearchDialog::constructKeyButton(QString key, QString text, bool checked, bool addToGroup)
 {
     QToolButton* button = new QToolButton(this);
     button->setText(text);
@@ -380,7 +402,13 @@ void SearchDialog::constructKeyButton(QString key, QString text, bool checked)
     action->setProperty("key", key);
     action->setCheckable(true);
     action->setChecked(checked);
-    keysActionGroup->addAction(action);
+    //keysActionGroup->addAction(action);
+
+    if (addToGroup) {
+        dynamicKeysActionGroup->addAction(action);
+    } else {
+        staticKeysActionGroup->addAction(action);
+    }
 
     connect(button, SIGNAL(clicked(bool)), action, SLOT(toggle()));
     connect(action, SIGNAL(toggled(bool)), this, SLOT(keyButtonChecked(bool)));

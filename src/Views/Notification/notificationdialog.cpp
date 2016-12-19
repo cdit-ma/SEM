@@ -754,8 +754,8 @@ void NotificationDialog::setupLayout()
     // setup and populate the filters menu
     filtersMenu = new QMenu(this);
     filtersMenu->addAction("Severity")->setProperty(ROLE, IR_SEVERITY);
-    filtersMenu->addAction("Source")->setProperty(ROLE, IR_TYPE);
     filtersMenu->addAction("Category")->setProperty(ROLE, IR_CATEGORY);
+    filtersMenu->addAction("Source")->setProperty(ROLE, IR_TYPE);
     connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
 
     // initially check all of the filter groups in the menu
@@ -867,6 +867,11 @@ void NotificationDialog::setupLayout()
         constructFilterButtonAction(IR_SEVERITY, severity, manager->getSeverityString(severity), "Actions", iconName);
         severityCheckedStates[severity] = false;
     }
+    foreach (NOTIFICATION_CATEGORY category, manager->getNotificationCategories()) {
+        //constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Data", "severity");
+        constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Actions", "Splitter");
+        categoryCheckedStates[category] = false;
+    }
     foreach (NOTIFICATION_TYPE2 type, manager->getNotificationTypes()) {
         QString iconName;
         if (type == NT_MODEL) {
@@ -876,10 +881,6 @@ void NotificationDialog::setupLayout()
         }
         constructFilterButtonAction(IR_TYPE, type, manager->getTypeString(type), "Actions", iconName);
         typeCheckedStates[type] = false;
-    }
-    foreach (NOTIFICATION_CATEGORY category, manager->getNotificationCategories()) {
-        constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category));
-        categoryCheckedStates[category] = false;
     }
 
     /*
