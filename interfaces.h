@@ -41,15 +41,18 @@ class rxVectorMessageInt : public InEventPort<::VectorMessage>{
 /*
     Concrete Component Interfaces
 */
-
-
-class SenderInt: public txMessageInt, public txVectorMessageInt{
+class SenderInt: public Component, public txMessageInt, public txVectorMessageInt{
     protected:
         //Implement our 
         void txMessage(Message* message);
         void txVectorMessage(VectorMessage* message);
 
     public:
+        SenderInt(std::string name);
+        //Component Instantiation
+        void activate();
+        void passivate();
+        
         //Attributes
         std::string instName();
         std::string message();
@@ -66,13 +69,18 @@ class SenderInt: public txMessageInt, public txVectorMessageInt{
 };
 
 
-class ReceiverInt: public rxMessageInt, public rxVectorMessageInt{
+class ReceiverInt: public Component, public rxMessageInt, public rxVectorMessageInt{
     protected:
         //Pure virtualize our Compositions
         virtual void rxMessage(Message* message) = 0;
         virtual void rxVectorMessage(VectorMessage* message) = 0;
         
     public:
+        ReceiverInt(std::string name);
+        //Component Instantiation
+        void activate();
+        void passivate();
+        
         //Attributes
         std::string instName();
         void set_instName(const std::string val);
