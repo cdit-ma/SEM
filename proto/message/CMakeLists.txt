@@ -19,6 +19,8 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS message.proto)
 set(SOURCE
 	${PROTO_SRCS}
 	${CMAKE_CURRENT_SOURCE_DIR}/messageconvert.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../message.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/../../basemessage.cpp
 	)
 
 set(HEADERS
