@@ -9,6 +9,23 @@
 template <class T> class InEventPort{
     public:
         virtual void rx_(T*) = 0;
+        void activate();
+        void passivate();
+        const bool is_active();
+    private:
+        bool active_ = false;
+};
+
+void InEventPort::activate(){
+    active_ = true;
+};
+
+void InEventPort::passivate(){
+    active_ = false;
+};
+
+const bool InEventPort::is_active(){
+    return active_;
 };
 
 //Interface for a standard Out Event Port
