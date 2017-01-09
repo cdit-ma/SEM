@@ -1,6 +1,8 @@
 #include "receiverimpl.h"
 #include <iostream>
 
+ReceiverImpl::ReceiverImpl(std::string name) : ReceiverInt(name){};
+
 void ReceiverImpl::rxMessage(Message* message){
     std::cout << instName() << " Got Message: "  << message->content() << " From: " << message->instName() << std::endl; 
 }

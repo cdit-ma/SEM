@@ -30,15 +30,15 @@
 
 int main(int argc, char** argv){
     
-    SenderImpl* sender_impl = new SenderImpl();
-    SenderImpl* sender_impl2 = new SenderImpl();
-    SenderImpl* sender_impl3 = new SenderImpl();
-    SenderImpl* sender_impl4 = new SenderImpl();
+    SenderImpl* sender_impl = new SenderImpl("sender_impl");
+    SenderImpl* sender_impl2 = new SenderImpl("sender_impl2");
+    SenderImpl* sender_impl3 = new SenderImpl("sender_impl3");
+    SenderImpl* sender_impl4 = new SenderImpl("sender_impl4");
 
-    ReceiverImpl* receiver_impl = new ReceiverImpl();
-    ReceiverImpl* receiver_impl2 = new ReceiverImpl();
-    ReceiverImpl* receiver_impl3 = new ReceiverImpl();
-    ReceiverImpl* receiver_impl4 = new ReceiverImpl();
+    ReceiverImpl* receiver_impl = new ReceiverImpl("receiver_impl");
+    ReceiverImpl* receiver_impl2 = new ReceiverImpl("receiver_impl2");
+    ReceiverImpl* receiver_impl3 = new ReceiverImpl("receiver_impl3");
+    ReceiverImpl* receiver_impl4 = new ReceiverImpl("receiver_impl4");
 
 
     sender_impl->set_instName("RTI_SENDER");

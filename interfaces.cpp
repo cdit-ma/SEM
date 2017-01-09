@@ -1,5 +1,5 @@
 #include "interfaces.h"
-
+#include <iostream>
 std::string SenderInt::instName(){
     return instName_;
 };
@@ -14,6 +14,29 @@ std::string SenderInt::message(){
 
 void SenderInt::set_message(const std::string val){
     this->message_ = val;
+};
+
+SenderInt::SenderInt(std::string name): Component(name){
+};
+
+ReceiverInt::ReceiverInt(std::string name): Component(name){
+};
+
+void SenderInt::activate(){
+    std::cout << "Activate Sender " << get_name() << std::endl;
+
+    if(txVectorMessageInt_){}
+        //Activate
+    if(txMessageInt_){}
+        //Activate
+};
+
+void SenderInt::passivate(){
+    std::cout << "Passivate Sender " << get_name() << std::endl;
+    if(txVectorMessageInt_){}
+        //Activate
+    if(txMessageInt_){}
+        //Activate
 };
 
 void SenderInt::_set_txMessage(txMessageInt* port){
@@ -54,3 +77,20 @@ void ReceiverInt::_set_rxVectorMessage(rxVectorMessageInt* port){
     this->rxVectorMessageInt_ = port;
 };
 
+
+void ReceiverInt::activate(){
+    std::cout << "Activate Sender " << get_name() << std::endl;
+
+    if(rxVectorMessageInt_){}
+        //Activate
+    if(rxMessageInt_){}
+        //Activate
+};
+
+void ReceiverInt::passivate(){
+    std::cout << "Passivate Sender " << get_name() << std::endl;
+    if(rxVectorMessageInt_){}
+        //Activate
+    if(rxMessageInt_){}
+        //Activate
+};

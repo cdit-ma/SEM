@@ -5,6 +5,7 @@
 
 class ReceiverImpl: public ReceiverInt{
     public:
+        ReceiverImpl(std::string name);
         void rxMessage(Message* message);
         void rxVectorMessage(VectorMessage* message);
 };

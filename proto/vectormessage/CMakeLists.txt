@@ -21,7 +21,6 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/vectormessageconvert.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../../vectormessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/../../basemessage.cpp
-
 	)
 
 set(HEADERS
