@@ -21,3 +21,4 @@ void zmq::TxMessage::txMessage(Message* message){
     //Call into the port
     event_port_->tx_(message);
 }
+

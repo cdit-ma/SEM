@@ -118,8 +118,22 @@ int main(int argc, char** argv){
     receiver_impl4->_set_rxVectorMessage(qpid_v_rx);
 
 
-    int i = 600;
-    while(i > 0){
+    int i = 601;
+    while(i-- > 0){
+        if( i % 10 == 0){
+            std::cout << "Passivating recievers!" << std::endl;
+            receiver_impl->passivate();
+            receiver_impl2->passivate();
+            receiver_impl3->passivate();
+            receiver_impl4->passivate();
+            //Passivate
+        }else if(i % 5 == 0){
+            std::cout << "Activating recievers!" << std::endl;
+            receiver_impl->activate();
+            receiver_impl2->activate();
+            receiver_impl3->activate();
+            receiver_impl4->activate();
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         sender_impl3->periodic_event();

@@ -1,32 +1,29 @@
 #ifndef GLOBALINTERFACES_H
 #define GLOBALINTERFACES_H
 
+#include <iostream>
 #include <deque>
 
 #define EXPORT_FUNC __attribute__((visibility("default")))
 
 //Interface for a standard In Event Port
 template <class T> class InEventPort{
-    public:
-        virtual void rx_(T*) = 0;
-        void activate();
-        void passivate();
-        const bool is_active();
     private:
         bool active_ = false;
+    public:
+        virtual void rx_(T*) = 0;
+        virtual void activate(){
+            this->active_ = true;
+        };
+        virtual void passivate(){
+            this->active_ = false;
+        };
+        virtual bool is_active(){
+            return this->active_;
+        }
 };
 
-void InEventPort::activate(){
-    active_ = true;
-};
 
-void InEventPort::passivate(){
-    active_ = false;
-};
-
-const bool InEventPort::is_active(){
-    return active_;
-};
 
 //Interface for a standard Out Event Port
 template <class T> class OutEventPort{

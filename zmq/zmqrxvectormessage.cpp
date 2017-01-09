@@ -27,3 +27,14 @@ void zmq::RxVectorMessage::rx_(::VectorMessage* message){
     //Call back into the component.
     rxVectorMessage(message);
 }
+
+
+void zmq::RxVectorMessage::activate(){
+    event_port_->activate();
+}
+void zmq::RxVectorMessage::passivate(){
+    event_port_->passivate();
+}
+bool zmq::RxVectorMessage::is_active(){
+    return event_port_->is_active();
+}

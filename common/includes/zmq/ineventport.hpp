@@ -36,8 +36,11 @@ namespace zmq{
 
 template <class T, class S>
 void zmq::InEventPort<T, S>::rx_(T* message){
-    if(port_){
+    if(port_ && this->is_active()){
         port_->rx_(message);
+    }else{
+        std::cout << "Ignoring Message?" << std::endl;
+        delete message;
     }
 };
 
