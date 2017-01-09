@@ -93,11 +93,11 @@ int main(int argc, char** argv){
     zmq_v_tx = new zmq::TxVectorMessage(sender_impl3, std::string("tcp://*:6001"));
     zmq_v_rx = new zmq::RxVectorMessage(receiver_impl3, std::string("tcp://localhost:6001"));
     //QPID
-    qpid_tx = new qpid::TxMessage(sender_impl4, "localhost:5672", "a");
-    qpid_rx = new qpid::RxMessage(receiver_impl4, "localhost:5672",  "a");
+    //qpid_tx = new qpid::TxMessage(sender_impl4, "localhost:5672", "a");
+    //qpid_rx = new qpid::RxMessage(receiver_impl4, "localhost:5672",  "a");
     
-    qpid_v_tx = new qpid::TxVectorMessage(sender_impl4, "localhost:5672", "b");
-    qpid_v_rx = new qpid::RxVectorMessage(receiver_impl4, "localhost:5672",  "b");
+    //qpid_v_tx = new qpid::TxVectorMessage(sender_impl4, "localhost:5672", "b");
+    //qpid_v_rx = new qpid::RxVectorMessage(receiver_impl4, "localhost:5672",  "b");
 
     
     //Attach Ports
