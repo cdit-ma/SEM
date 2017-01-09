@@ -3,7 +3,7 @@
 
 #include "message.h"
 #include "vectormessage.h"
-#include "globalinterfaces.h"
+#include "globalinterfaces.hpp"
 
 /*
     Concrete Port Interfaces

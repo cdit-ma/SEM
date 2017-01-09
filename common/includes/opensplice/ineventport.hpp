@@ -1,7 +1,7 @@
 #ifndef OSPL_INEVENTPORT_H
 #define OSPL_INEVENTPORT_H
 
-#include "../globalinterfaces.h"
+#include "../globalinterfaces.hpp"
 
 #include <string>
 #include <thread>

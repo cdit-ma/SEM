@@ -1,7 +1,7 @@
 #ifndef RTI_OUTEVENTPORT_H
 #define RTI_OUTEVENTPORT_H
 
-#include "../globalinterfaces.h"
+#include "../globalinterfaces.hpp"
 
 #include <string>
 

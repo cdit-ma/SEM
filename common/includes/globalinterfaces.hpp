@@ -41,34 +41,34 @@ class NodeContainer{
 };
 
 
-Component::Component(std::string inst_name){
+inline Component::Component(std::string inst_name){
     inst_name_ = inst_name;
 };
 
-const std::string Component::get_name(){
-    return inst_name;
+inline const std::string Component::get_name(){
+    return inst_name_;
 };
 
-void NodeContainer::activate(){
+inline void NodeContainer::activate(){
     for(auto c : components_){
         c->activate();
     }
 };
 
-void NodeContainer::passivate(){
+inline void NodeContainer::passivate(){
     for(auto c : components_){
         c->passivate();
     }
 };
 
-void NodeContainer::teardown(){
+inline void NodeContainer::teardown(){
     while(!components_.empty()){
         delete components_.back();
         components_.pop_back();
     }
 };
 
-void NodeContainer::add_component(Component* component){
+inline void NodeContainer::add_component(Component* component){
     components_.push_front(component);
 };
 

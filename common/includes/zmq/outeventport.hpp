@@ -1,7 +1,7 @@
 #ifndef ZMQ_OUTEVENTPORT_H
 #define ZMQ_OUTEVENTPORT_H
 
-#include "../globalinterfaces.h"
+#include "../globalinterfaces.hpp"
 #include <vector>
 #include <iostream>
 #include <string>

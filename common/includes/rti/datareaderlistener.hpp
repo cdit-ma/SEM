@@ -1,7 +1,7 @@
 #ifndef RTI_DATAREADERLISTENER_H
 #define RTI_DATAREADERLISTENER_H
 
-#include "../globalinterfaces.h"
+#include "../globalinterfaces.hpp"
 
 #include <rti/rti.hpp>
 

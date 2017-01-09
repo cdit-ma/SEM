@@ -1,7 +1,7 @@
 #ifndef OSPL_OUTEVENTPORT_H
 #define OSPL_OUTEVENTPORT_H
 
-#include "../globalinterfaces.h"
+#include "../globalinterfaces.hpp"
 
 #include <string>
 

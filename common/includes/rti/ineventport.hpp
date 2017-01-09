@@ -1,7 +1,7 @@
 #ifndef RTI_INEVENTPORT_H
 #define RTI_INEVENTPORT_H
 
-#include "../globalinterfaces.h"
+#include "../globalinterfaces.hpp"
 
 #include <string>
 #include <thread>

@@ -1,7 +1,7 @@
 #ifndef OSPL_DATAREADERLISTENER_H
 #define OSPL_DATAREADERLISTENER_H
 
-#include "../globalinterfaces.h"
+#include "../globalinterfaces.hpp"
 
 #include <dds/dds.hpp>
 
