@@ -1,7 +1,11 @@
 #include "sqlcontroller.h"
 #include <iostream>
 
-SQLController::SQLController(){
+SQLController::SQLController(std::string ip_addr, std::string port, std::string file){
+
+    port_ = port;
+    ip_addr_ = ip_addr;
+
     //Setup ZMQ context
     context_ = new zmq::context_t(1);
     
@@ -10,7 +14,7 @@ SQLController::SQLController(){
 	term_socket_->bind("inproc://term_signal");
     
     //Construct our log database
-    log_database_ = new LogDatabase("test.sql");
+    log_database_ = new LogDatabase(file);
     
     //Setup our threads
     reciever_thread_ = new std::thread(&SQLController::RecieverThread, this);
@@ -61,11 +65,8 @@ void SQLController::RecieverThread(){
     socket.connect("inproc://term_signal");
 
     //Connect to all nodes on our network
-    int port = 5555;
-	std::string address_str("tcp://192.168.111.");
-	
 	for (int address = 1; address < 255; address++){
-		std::string connect_addr = address_str + std::to_string(address) + ":" + std::to_string(port);
+		std::string connect_addr = ip_addr_ + std::to_string(address) + ":" + port_;
 		socket.connect(connect_addr.c_str());
 	}
 	

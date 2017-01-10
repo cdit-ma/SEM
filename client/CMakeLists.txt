@@ -41,4 +41,3 @@ target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${SIGAR_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
-
