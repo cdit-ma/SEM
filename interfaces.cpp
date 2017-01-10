@@ -22,34 +22,18 @@ SenderInt::SenderInt(std::string name): Component(name){
 ReceiverInt::ReceiverInt(std::string name): Component(name){
 };
 
-void SenderInt::activate(){
-    std::cout << "Activate Sender " << get_name() << std::endl;
-
-    if(txVectorMessageInt_){
-        //txVectorMessageInt_->activate();
-    }
-        //Activate
-    if(txMessageInt_){
-        //txMessageInt_->activate();
-    }
-
-        //Activate
-};
-
-void SenderInt::passivate(){
-    std::cout << "Passivate Sender " << get_name() << std::endl;
-    if(txVectorMessageInt_){}
-        //Activate
-    if(txMessageInt_){}
-        //Activate
-};
-
 void SenderInt::_set_txMessage(txMessageInt* port){
     this->txMessageInt_ = port;
+    if(port){
+        add_event_port(port);
+    }
 };
 
 void SenderInt::_set_txVectorMessage(txVectorMessageInt* port){
     this->txVectorMessageInt_ = port;
+    if(port){
+        add_event_port(port);
+    }
 };
 
 void SenderInt::txMessage(::Message* message){
@@ -76,30 +60,14 @@ void ReceiverInt::set_instName(const std::string val){
 
 void ReceiverInt::_set_rxMessage(rxMessageInt* port){
     this->rxMessageInt_ = port;
+    if(port){
+        add_event_port(port);
+    }
 };
 
 void ReceiverInt::_set_rxVectorMessage(rxVectorMessageInt* port){
     this->rxVectorMessageInt_ = port;
-};
-
-
-void ReceiverInt::activate(){
-    std::cout << "Activate Sender " << get_name() << std::endl;
-
-    if(rxVectorMessageInt_){
-        rxVectorMessageInt_->activate();
-    }
-    if(rxMessageInt_){
-        rxMessageInt_->activate();
-    }
-};
-
-void ReceiverInt::passivate(){
-    std::cout << "Passivate Sender " << get_name() << std::endl;
-      if(rxVectorMessageInt_){
-        rxVectorMessageInt_->passivate();
-    }
-    if(rxMessageInt_){
-        rxMessageInt_->passivate();
+    if(port){
+        add_event_port(port);
     }
 };

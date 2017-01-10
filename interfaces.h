@@ -49,9 +49,6 @@ class SenderInt: public Component, public txMessageInt, public txVectorMessageIn
 
     public:
         SenderInt(std::string name);
-        //Component Instantiation
-        void activate();
-        void passivate();
         
         //Attributes
         std::string instName();
@@ -77,9 +74,7 @@ class ReceiverInt: public Component, public rxMessageInt, public rxVectorMessage
         
     public:
         ReceiverInt(std::string name);
-        //Component Instantiation
-        void activate();
-        void passivate();
+       
         
         //Attributes
         std::string instName();

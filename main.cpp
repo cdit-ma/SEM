@@ -28,124 +28,132 @@
 #include "qpid/qpidrxvectormessage.h"
 #include "qpid/qpidtxvectormessage.h"
 
+
+
+class NodeContainerInstance: public NodeContainer{
+    public:
+    void startup(){
+        SenderImpl* sender_impl = new SenderImpl("sender_impl");
+        SenderImpl* sender_impl2 = new SenderImpl("sender_impl2");
+        SenderImpl* sender_impl3 = new SenderImpl("sender_impl3");
+        SenderImpl* sender_impl4 = new SenderImpl("sender_impl4");
+
+        ReceiverImpl* receiver_impl = new ReceiverImpl("receiver_impl");
+        ReceiverImpl* receiver_impl2 = new ReceiverImpl("receiver_impl2");
+        ReceiverImpl* receiver_impl3 = new ReceiverImpl("receiver_impl3");
+        ReceiverImpl* receiver_impl4 = new ReceiverImpl("receiver_impl4");
+
+
+        //sender_impl->activate();
+
+
+        sender_impl->set_instName("RTI_SENDER");
+        sender_impl2->set_instName("OSPL_SENDER");
+        sender_impl3->set_instName("ZMQ_SENDER");
+        sender_impl4->set_instName("QPID_SENDER");
+        
+        sender_impl->set_message("RTI");
+        sender_impl2->set_message("OSPL");
+        sender_impl3->set_message("ZMQ");
+        sender_impl4->set_message("QPID");
+        
+        receiver_impl->set_instName("RTI_Receiver");
+        receiver_impl2->set_instName("OSPL_Receiver");
+        receiver_impl3->set_instName("ZMQ_Receiver");
+        receiver_impl4->set_instName("QPID_Receiver");
+        
+        std::string topic_name("Topic1");
+        std::string topic_name2("Topic2");
+
+        std::string pub_name("pub");
+        std::string sub_name("sub");
+        std::string writer_name("writer");
+        std::string reader_name("reader");
+
+        txMessageInt* rti_tx  = 0;
+        rxMessageInt* rti_rx  = 0;
+        txMessageInt* ospl_tx = 0;
+        rxMessageInt* ospl_rx = 0;
+        txMessageInt* qpid_tx = 0;
+        rxMessageInt* qpid_rx = 0;
+        txMessageInt* zmq_tx = 0;
+        rxMessageInt* zmq_rx = 0;
+
+        txVectorMessageInt* zmq_v_tx = 0;
+        rxVectorMessageInt* zmq_v_rx = 0;
+
+        txVectorMessageInt* qpid_v_tx = 0;
+        rxVectorMessageInt* qpid_v_rx = 0;
+
+        //RTI DDS
+        //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, topic_name);
+        //rti_rx = new rti::RxMessage(receiver_impl, 0, sub_name, topic_name);
+
+        //OpenSplice DDS
+        //ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, topic_name);
+        //ospl_rx = new ospl::RxMessage(receiver_impl2, 0, sub_name, topic_name);
+
+        //ZMQ
+        zmq_tx = new zmq::TxMessage(sender_impl3, std::string("tcp://*:6000"));
+        zmq_rx = new zmq::RxMessage(receiver_impl3, std::string("tcp://localhost:6000"));
+        zmq_v_tx = new zmq::TxVectorMessage(sender_impl3, std::string("tcp://*:6001"));
+        zmq_v_rx = new zmq::RxVectorMessage(receiver_impl3, std::string("tcp://localhost:6001"));
+        //QPID
+        //qpid_tx = new qpid::TxMessage(sender_impl4, "localhost:5672", "a");
+        //qpid_rx = new qpid::RxMessage(receiver_impl4, "localhost:5672",  "a");
+        
+        //qpid_v_tx = new qpid::TxVectorMessage(sender_impl4, "localhost:5672", "b");
+        //qpid_v_rx = new qpid::RxVectorMessage(receiver_impl4, "localhost:5672",  "b");
+
+        
+        //Attach Ports
+        sender_impl->_set_txMessage(rti_tx);
+        sender_impl2->_set_txMessage(ospl_tx);
+        sender_impl3->_set_txMessage(zmq_tx);
+        sender_impl3->_set_txVectorMessage(zmq_v_tx);
+
+        
+        sender_impl4->_set_txMessage(qpid_tx);
+        sender_impl4->_set_txVectorMessage(qpid_v_tx);
+
+        receiver_impl->_set_rxMessage(rti_rx);
+        receiver_impl2->_set_rxMessage(ospl_rx);
+        receiver_impl3->_set_rxMessage(zmq_rx);
+        receiver_impl3->_set_rxVectorMessage(zmq_v_rx);
+        receiver_impl4->_set_rxMessage(qpid_rx);
+        receiver_impl4->_set_rxVectorMessage(qpid_v_rx);
+        add_component(sender_impl);
+        add_component(sender_impl2);
+        add_component(sender_impl3);
+        add_component(sender_impl4);
+        add_component(receiver_impl);
+        add_component(receiver_impl2);
+        add_component(receiver_impl3);
+        add_component(receiver_impl4);
+    };
+};
+
 int main(int argc, char** argv){
-    
-    SenderImpl* sender_impl = new SenderImpl("sender_impl");
-    SenderImpl* sender_impl2 = new SenderImpl("sender_impl2");
-    SenderImpl* sender_impl3 = new SenderImpl("sender_impl3");
-    SenderImpl* sender_impl4 = new SenderImpl("sender_impl4");
+    NodeContainerInstance* instance = new NodeContainerInstance();
+    instance->startup();
 
-    ReceiverImpl* receiver_impl = new ReceiverImpl("receiver_impl");
-    ReceiverImpl* receiver_impl2 = new ReceiverImpl("receiver_impl2");
-    ReceiverImpl* receiver_impl3 = new ReceiverImpl("receiver_impl3");
-    ReceiverImpl* receiver_impl4 = new ReceiverImpl("receiver_impl4");
+    bool running = true;
 
-
-    sender_impl->set_instName("RTI_SENDER");
-    sender_impl2->set_instName("OSPL_SENDER");
-    sender_impl3->set_instName("ZMQ_SENDER");
-    sender_impl4->set_instName("QPID_SENDER");
-    
-    sender_impl->set_message("RTI");
-    sender_impl2->set_message("OSPL");
-    sender_impl3->set_message("ZMQ");
-    sender_impl4->set_message("QPID");
-    
-    receiver_impl->set_instName("RTI_Receiver");
-    receiver_impl2->set_instName("OSPL_Receiver");
-    receiver_impl3->set_instName("ZMQ_Receiver");
-    receiver_impl4->set_instName("QPID_Receiver");
-    
-    std::string topic_name("Topic1");
-    std::string topic_name2("Topic2");
-
-    std::string pub_name("pub");
-    std::string sub_name("sub");
-    std::string writer_name("writer");
-    std::string reader_name("reader");
-
-    txMessageInt* rti_tx  = 0;
-    rxMessageInt* rti_rx  = 0;
-    txMessageInt* ospl_tx = 0;
-    rxMessageInt* ospl_rx = 0;
-    txMessageInt* qpid_tx = 0;
-    rxMessageInt* qpid_rx = 0;
-    txMessageInt* zmq_tx = 0;
-    rxMessageInt* zmq_rx = 0;
-
-    txVectorMessageInt* zmq_v_tx = 0;
-    rxVectorMessageInt* zmq_v_rx = 0;
-
-    txVectorMessageInt* qpid_v_tx = 0;
-    rxVectorMessageInt* qpid_v_rx = 0;
-
-    //RTI DDS
-    //rti_tx = new rti::TxMessage(sender_impl, 0, pub_name, topic_name);
-    //rti_rx = new rti::RxMessage(receiver_impl, 0, sub_name, topic_name);
-
-    //OpenSplice DDS
-    //ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, topic_name);
-    //ospl_rx = new ospl::RxMessage(receiver_impl2, 0, sub_name, topic_name);
-
-    //ZMQ
-    zmq_tx = new zmq::TxMessage(sender_impl3, std::string("tcp://*:6000"));
-    zmq_rx = new zmq::RxMessage(receiver_impl3, std::string("tcp://localhost:6000"));
-    zmq_v_tx = new zmq::TxVectorMessage(sender_impl3, std::string("tcp://*:6001"));
-    zmq_v_rx = new zmq::RxVectorMessage(receiver_impl3, std::string("tcp://localhost:6001"));
-    //QPID
-    //qpid_tx = new qpid::TxMessage(sender_impl4, "localhost:5672", "a");
-    //qpid_rx = new qpid::RxMessage(receiver_impl4, "localhost:5672",  "a");
-    
-    //qpid_v_tx = new qpid::TxVectorMessage(sender_impl4, "localhost:5672", "b");
-    //qpid_v_rx = new qpid::RxVectorMessage(receiver_impl4, "localhost:5672",  "b");
-
-    
-    //Attach Ports
-    sender_impl->_set_txMessage(rti_tx);
-    sender_impl2->_set_txMessage(ospl_tx);
-    sender_impl3->_set_txMessage(zmq_tx);
-    sender_impl3->_set_txVectorMessage(zmq_v_tx);
-
-    
-    sender_impl4->_set_txMessage(qpid_tx);
-    sender_impl4->_set_txVectorMessage(qpid_v_tx);
-
-    receiver_impl->_set_rxMessage(rti_rx);
-    receiver_impl2->_set_rxMessage(ospl_rx);
-    receiver_impl3->_set_rxMessage(zmq_rx);
-    receiver_impl3->_set_rxVectorMessage(zmq_v_rx);
-    receiver_impl4->_set_rxMessage(qpid_rx);
-    receiver_impl4->_set_rxVectorMessage(qpid_v_rx);
-
-
-    int i = 601;
-    while(i-- > 0){
-        if( i % 10 == 0){
-            std::cout << "Passivating recievers!" << std::endl;
-            receiver_impl->passivate();
-            receiver_impl2->passivate();
-            receiver_impl3->passivate();
-            receiver_impl4->passivate();
-            //Passivate
-        }else if(i % 5 == 0){
-            std::cout << "Activating recievers!" << std::endl;
-            receiver_impl->activate();
-            receiver_impl2->activate();
-            receiver_impl3->activate();
-            receiver_impl4->activate();
+    while(running){
+        std::cout << "Enter Instruction: ";
+        std::string command;
+        std::getline(std::cin, command);
+        
+        if(command == "activate"){
+            instance->activate();
+        }else if(command == "passivate"){
+            instance->passivate();
+        }else if(command == "quit"){
+            running = false;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        sender_impl3->periodic_event();
-        sender_impl4->periodic_event();
-        sender_impl3->periodic_event_v();
-        sender_impl4->periodic_event_v();
-        std::cout << std::endl;
-
-        //sender_impl2->periodic_event();
-        //sender_impl3->periodic_event();
-        //sender_impl4->periodic_event();
     }
-
-    return -1;
+    instance->passivate();
+    instance->teardown();
+    delete instance;
+     
 }
