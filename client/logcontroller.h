@@ -12,7 +12,7 @@
 
 class LogController{
     public:
-        LogController(double frequency, std::vector<std::string> processes, bool cached = false);
+        LogController(int port, double frequency, std::vector<std::string> processes, bool cached = false);
         ~LogController();
 
         void Terminate();

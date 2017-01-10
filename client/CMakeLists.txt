@@ -19,6 +19,9 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 find_package(SIGAR REQUIRED)
 include_directories(${PROJ_NAME} ${SIGAR_INCLUDE_DIRS})
 
+find_package(Boost 1.36.0 COMPONENTS program_options REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
 #Generate our Protobuf source/headers
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../common/systemstatus.proto)
 
@@ -37,5 +40,5 @@ endif()
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${SIGAR_LIBRARIES})
-
+target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 

@@ -3,19 +3,21 @@
 #include <chrono>
 #include <thread>
 #include <list>
+#include <string>
 
 #include "sigarsysteminfo.h"
 #include "cachedzmqmessagewriter.h"
 
-LogController::LogController(double frequency, std::vector<std::string> processes, bool cached){
+LogController::LogController(int port, double frequency, std::vector<std::string> processes, bool cached){
     if(cached){
         writer_ = new CachedZMQMessageWriter();
     }else{
         writer_ = new ZMQMessageWriter();
     }
 
-    //TODO: take port # as constructor arg
-    writer_->BindPublisherSocket("tcp://*:5555");
+    std::string port_string = "tcp://*:" + std::to_string(port);
+
+    writer_->BindPublisherSocket(port_string);
     //writer_->BindPublisherSocket("tcp://192.168.111.247:5555");
 
     //Construct our SystemInfo class
