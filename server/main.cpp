@@ -29,15 +29,13 @@ int main(int ac, char** av)
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 
-	//TODO: take command line args
-
-	//Parse command line options
 	std::string port;
 	std::string ip_addr;
 	std::string file_name;
 
+	//Parse command line options
 	boost::program_options::options_description desc("Options");
-	desc.add_options()("ip,i",boost::program_options::value<std::string>(&ip_addr)->default_value(DEFAULT_IP), "ip addr");
+	desc.add_options()("ip,I", boost::program_options::value<std::vector<std::string> >()->multitoken(), "IP addresses to connect to");
 	desc.add_options()("port,p",boost::program_options::value<std::string>(&port)->default_value(DEFAULT_PORT), "Port number");
 	desc.add_options()("out-file,o",boost::program_options::value<std::string>(&file_name)->default_value(DEFAULT_FILE), "Output file name");
 	desc.add_options()("help,h", "Display help");

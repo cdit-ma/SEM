@@ -3,7 +3,7 @@
 #include "zmqmessagewriter.h"
 
 #include <queue>
-
+#include <boost/filesystem.hpp>
 
 class CachedZMQMessageWriter : public ZMQMessageWriter{
     public:
@@ -20,6 +20,7 @@ class CachedZMQMessageWriter : public ZMQMessageWriter{
         bool WriteDelimitedTo(const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* rawOutput);
         bool ReadDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput, google::protobuf::MessageLite* message);
 
+        std::string temp_file_path_;
         int count_ = 0;
         int write_count_ = 0;
         std::queue<google::protobuf::MessageLite*> write_queue_;        
