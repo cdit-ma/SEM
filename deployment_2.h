@@ -1,0 +1,22 @@
+#ifndef DEPLOYMENT_2_H
+#define DEPLOYMENT_2_H
+
+#include "common/includes/globalinterfaces.hpp"
+class Deployment_2: public NodeContainer{
+    public:
+        void startup();
+};
+
+extern "C" NodeContainer* create_object()
+{
+  return new Deployment_2();
+};
+
+extern "C" void destroy_object(NodeContainer* object)
+{ 
+    Deployment_2* instance = static_cast<Deployment_2*>(object);
+    if(instance){
+        delete instance;
+    }
+};
+#endif
