@@ -22,7 +22,5 @@ void SenderImpl::periodic_event_v(){
         msg->data_ptr().push_back(sentCount_ * i);
     }
 
-    //msg->data(v);
-
     txVectorMessage(msg);
 }

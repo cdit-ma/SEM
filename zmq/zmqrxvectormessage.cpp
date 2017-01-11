@@ -29,11 +29,11 @@ void zmq::RxVectorMessage::rx_(::VectorMessage* message){
 }
 
 
-void zmq::RxVectorMessage::activate(){
-    event_port_->activate();
+bool zmq::RxVectorMessage::activate(){
+    return event_port_->activate();
 }
-void zmq::RxVectorMessage::passivate(){
-    event_port_->passivate();
+bool zmq::RxVectorMessage::passivate(){
+    return event_port_->passivate();
 }
 bool zmq::RxVectorMessage::is_active(){
     return event_port_->is_active();

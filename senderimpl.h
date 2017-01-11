@@ -11,7 +11,7 @@ class SenderImpl: public SenderInt{
         void periodic_event_v();
     private:
         //Variable
-        int sentCount_;
+        int sentCount_ = 0;
 };
 
 #endif //SENDERIMPL_H

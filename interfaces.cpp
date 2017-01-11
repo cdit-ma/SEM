@@ -43,7 +43,7 @@ void SenderInt::txMessage(::Message* message){
 };
 
 void SenderInt::txVectorMessage(::VectorMessage* message){
-    if(txMessageInt_){
+    if(txVectorMessageInt_){
         txVectorMessageInt_->txVectorMessage(message);
     }
 };

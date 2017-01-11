@@ -50,15 +50,29 @@ int main(int argc, char **argv)
         std::getline(std::cin, command);
         
         if(command == "activate"){
-            instance->activate();
+            std::string name;
+            std::cout << "Enter Component Name or *: ";
+            std::getline(std::cin, name);
+            if(name == "*"){
+                instance->activate_all();
+            }else{
+                instance->activate(name);
+            }
         }else if(command == "passivate"){
-            instance->passivate();
+            std::string name;
+            std::cout << "Enter Component Name or *: ";
+            std::getline(std::cin, name);
+            if(name == "*"){
+                instance->passivate_all();
+            }else{
+                instance->passivate(name);
+            }
         }else if(command == "quit"){
             running = false;
         }
     }
   
-    instance->passivate();
+    instance->passivate_all();
     instance->teardown();
 
     destroy(instance);

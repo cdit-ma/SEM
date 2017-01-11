@@ -17,8 +17,8 @@ namespace zmq{
             EXPORT_FUNC RxMessage(rxMessageInt* component, std::string end_point);
             void rxMessage(::Message* message);
             void rx_(::Message* message);
-            void activate();
-            void passivate();
+            bool activate();
+            bool passivate();
             bool is_active();
         private:
             //This is the concrete event_port

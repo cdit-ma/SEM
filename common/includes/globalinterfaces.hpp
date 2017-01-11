@@ -6,6 +6,7 @@
 #include <thread>
 
 #include <deque>
+#include <unordered_map>
 
 #define EXPORT_FUNC __attribute__((visibility("default")))
 
@@ -13,12 +14,14 @@ class ActivateInt{
     private:
         bool active_ = false;
     public:
-        virtual void activate(){
+        virtual bool activate(){
             this->active_ = true;
+            return true;          
         };
 
-        virtual void passivate(){
+        virtual bool passivate(){
             this->active_ = false;
+            return true;
         };
 
         bool is_active(){
@@ -38,21 +41,23 @@ class PeriodicEvent: public EventPort{
             callback_thread_ = 0;
             this->callback_ = callback;
         }
-        void activate(){
+        bool activate(){
             if(!is_active()){
                 terminate = false;
                 callback_thread_ = new std::thread(&PeriodicEvent::loop, this);
-                ActivateInt::activate();
+                return ActivateInt::activate();
             }
+            return true;
         };
-        void passivate(){
+        bool passivate(){
             if(is_active()){
                 terminate = true;
                 callback_thread_->join();
                 delete callback_thread_;
                 callback_thread_ = 0;
-                ActivateInt::passivate();
+                return ActivateInt::passivate();
             }
+            return true;
         };
 
     private:
@@ -89,8 +94,8 @@ class Component: public ActivateInt{
 
         const std::string get_name();
 
-        void activate();
-        void passivate();
+        bool activate();
+        bool passivate();
 
         void add_event_port(EventPort* event_port);
         void remove_event_port(EventPort* event_port);
@@ -100,17 +105,22 @@ class Component: public ActivateInt{
 };
 
 
-class NodeContainer: public ActivateInt{
+class NodeContainer{
     public:
-        void activate();
-        void passivate();
+        bool activate(std::string component_name);
+        bool passivate(std::string component_name);
+        
+        bool activate_all();
+        bool passivate_all();
+
         virtual void startup() = 0;
         void teardown();
 
-        void add_component(Component* component);
+        bool add_component(Component* component);
+        Component* get_component(std::string component_name);
 
     private:
-        std::deque<Component*> components_;
+        std::unordered_map<std::string, Component*> components_;
 };
 
 inline void Component::add_event_port(EventPort* event_port){
@@ -121,19 +131,20 @@ inline void Component::remove_event_port(EventPort* event_port){
     //eventports_.push_back(event_port);
 };
 
-inline void Component::activate(){
+inline bool Component::activate(){
     for(auto e : eventports_){
-        e->activate();
+           e->activate();
     }
     ActivateInt::activate();
+    return true;
 };
 
-
-inline void Component::passivate(){
+inline bool Component::passivate(){
     for(auto e : eventports_){
         e->passivate();
     }
     ActivateInt::passivate();
+    return true;
 };
 
 
@@ -146,32 +157,74 @@ inline const std::string Component::get_name(){
     return inst_name_;
 };
 
-inline void NodeContainer::activate(){
+inline bool NodeContainer::activate_all(){
     for(auto c : components_){
-        std::cout << "Activating: " << c << std::endl;
-        c->activate();
+        std::cout << "Activating: " << c.second << std::endl;
+        c.second->activate();
     }
-    ActivateInt::activate();
+    return true;
 };
 
-inline void NodeContainer::passivate(){
-    for(auto c : components_){
-        std::cout << "Passivating: " << c << std::endl;
-        c->passivate();
+inline bool NodeContainer::activate(std::string component_name){
+    Component* component = get_component(component_name);
+    if(component){
+        return component->activate();
     }
-    ActivateInt::passivate();
+    return false;
+};
+
+inline bool NodeContainer::passivate(std::string component_name){
+    Component* component = get_component(component_name);
+    if(component){
+        return component->passivate();
+    }
+    return false;
+};
+
+inline bool NodeContainer::passivate_all(){
+    for(auto c : components_){
+        std::cout << "Passivating: " << c.second << std::endl;
+        c.second->passivate();
+    }
+    return true;
 };
 
 inline void NodeContainer::teardown(){
-    while(!components_.empty()){
-        delete components_.back();
-        components_.pop_back();
+
+    for (auto c : components_) {
+        components_.erase(c.first);
     }
 };
 
-inline void NodeContainer::add_component(Component* component){
-    components_.push_front(component);
+inline bool NodeContainer::add_component(Component* component){
+    std::string component_name = component->get_name();
+
+    //Search pub_lookup_ for key
+    auto search = components_.find(component_name);
+    
+    if(search == components_.end()){
+        std::pair<std::string, Component*> insert_pair(component_name, component);
+        //Insert into hash
+        components_.insert(insert_pair);
+        return true;
+    }else{
+        std::cout << " NOT A UNIQUE NAME!" << std::endl;
+        return false;
+    }
 };
+
+inline Component* NodeContainer::get_component(std::string component_name){
+    //Search pub_lookup_ for key
+    auto search = components_.find(component_name);
+    
+    if(search == components_.end()){
+        return 0;
+    }else{
+        return search->second;
+    }
+};
+
+
 
 
 #endif //GLOBALINTERFACES_H
