@@ -660,18 +660,28 @@ void NotificationDialog::backgroundProcess(bool inProgress, BACKGROUND_PROCESS p
         qWarning() << "NotificationDialog::backgroundProcess - Background process has not been setup.";
         return;
     }
-    if (inProgress != processItem->isVisible()) {
-        processItem->setVisible(inProgress);
-        if (inProgress) {
+    /*
+    if (inProgress) {
+        if (!processItem->isVisible()) {
             visibleProcessCount++;
-        } else {
-            visibleProcessCount--;
+            processItem->show();
+            if (!displayedSeparatorFrame->isVisible()) {
+                displayedSeparatorFrame->show();
+            }
         }
-        bool showSeparator = visibleProcessCount > 0;
-        if (showSeparator != displayedSeparatorFrame->isVisible()) {
-            displayedSeparatorFrame->setVisible(showSeparator);
-        }
+    } else {
+        visibleProcessCount--;
+        processItem->hide();
+        displayedSeparatorFrame->setVisible(visibleProcessCount > 0);
     }
+    */
+    if (inProgress) {
+        visibleProcessCount++;
+    } else {
+        visibleProcessCount--;
+    }
+    processItem->setVisible(inProgress);
+    displayedSeparatorFrame->setVisible(visibleProcessCount > 0);
 }
 
 
