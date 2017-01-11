@@ -82,6 +82,7 @@ private slots:
     void intervalTimeout();
 
 private:
+    void test();
     void setupLayout();
     void setupBackgroundProcessItems();
 

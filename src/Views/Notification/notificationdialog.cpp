@@ -10,6 +10,7 @@
 #include <QMovie>
 #include <QStringBuilder>
 #include <QApplication>
+#include <QGroupBox>
 
 #define ROLE "ITEM_ROLE"
 #define ROLE_VAL "ITEM_ROLE_VALUE"
@@ -46,6 +47,8 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     themeChanged();
     initialiseDialog();
     updateSelectionBasedButtons();
+
+    //test();
 }
 
 
@@ -722,6 +725,38 @@ void NotificationDialog::intervalTimeout()
     }
 }
 
+void NotificationDialog::test()
+{
+    /*
+     * Just leaving this here for a reminder
+     */
+    QGroupBox* box = new QGroupBox("TEST BOX", this);
+    box->setCheckable(true);
+    box->setStyleSheet("QGroupBox{ margin-top: 6px; border: none; border-top: 2px solid red; }"
+                       "QGroupBox::title{ subcontrol-origin: margin; subcontrol-position: top center; padding: 0 3px; }"
+                       "QGroupBox::indicator{ width: 13px; height: 13px; subcontrol-position: right; }"
+                       "QGroupBox::indicator:checked{ image: url(:/Actions/Arrow_Up); }"
+                       "QGroupBox::indicator:unchecked{ image: url(:/Actions/Arrow_Down); }");
+
+    QPushButton* b = new QPushButton("Button1", this);
+    b->setCheckable(true);
+    b->setChecked(true);
+    b->setStyleSheet("QPushButton:checked{background: red;}QPushButton{ background:yellow; }");
+    QPushButton* b2 = new QPushButton("Button2", this);
+    b2->setCheckable(true);
+
+    QVBoxLayout* bl = new QVBoxLayout(box);
+    bl->addWidget(b);
+    bl->addWidget(b2);
+    connect(box, SIGNAL(toggled(bool)), b, SLOT(setVisible(bool)));
+    connect(box, SIGNAL(toggled(bool)), b2, SLOT(setVisible(bool)));
+
+    QDialog* dialog = new QDialog(this);
+    QVBoxLayout* vl = new QVBoxLayout(dialog);
+    vl->addWidget(box);
+    dialog->exec();
+}
+
 
 /**
  * @brief NotificationDialog::updateSeverityActions
@@ -755,7 +790,7 @@ void NotificationDialog::setupLayout()
     filtersMenu = new QMenu(this);
     filtersMenu->addAction("Severity")->setProperty(ROLE, IR_SEVERITY);
     filtersMenu->addAction("Category")->setProperty(ROLE, IR_CATEGORY);
-    filtersMenu->addAction("Source")->setProperty(ROLE, IR_TYPE);
+    filtersMenu->addAction("Scope")->setProperty(ROLE, IR_TYPE);
     connect(filtersMenu, &QMenu::triggered, this, &NotificationDialog::filterMenuTriggered);
 
     // initially check all of the filter groups in the menu

@@ -15,6 +15,7 @@
 #include "../../Controllers/ViewController/viewitem.h"
 #include "searchitemwidget.h"
 
+
 class SearchDialog : public QDialog
 {
     Q_OBJECT
