@@ -29,7 +29,8 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/proto/vectormessage")
 #add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 
-add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
+#add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode

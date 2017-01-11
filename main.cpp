@@ -28,8 +28,6 @@
 #include "qpid/qpidrxvectormessage.h"
 #include "qpid/qpidtxvectormessage.h"
 
-
-
 class NodeContainerInstance: public NodeContainer{
     public:
     void startup(){
@@ -122,6 +120,7 @@ class NodeContainerInstance: public NodeContainer{
         receiver_impl3->_set_rxVectorMessage(zmq_v_rx);
         receiver_impl4->_set_rxMessage(qpid_rx);
         receiver_impl4->_set_rxVectorMessage(qpid_v_rx);
+        
         add_component(sender_impl);
         add_component(sender_impl2);
         add_component(sender_impl3);
@@ -132,6 +131,18 @@ class NodeContainerInstance: public NodeContainer{
         add_component(receiver_impl4);
     };
 };
+
+
+extern "C" NodeContainer* create_object()
+{
+  return new NodeContainerInstance();
+}
+
+extern "C" void destroy_object( NodeContainer* object )
+{
+  delete object;
+}
+/*
 
 int main(int argc, char** argv){
     NodeContainerInstance* instance = new NodeContainerInstance();
@@ -156,4 +167,4 @@ int main(int argc, char** argv){
     instance->teardown();
     delete instance;
      
-}
+}*/
