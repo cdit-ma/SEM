@@ -41,10 +41,6 @@ class NodeContainerInstance: public NodeContainer{
         ReceiverImpl* receiver_impl3 = new ReceiverImpl("receiver_impl3");
         ReceiverImpl* receiver_impl4 = new ReceiverImpl("receiver_impl4");
 
-
-        //sender_impl->activate();
-
-
         sender_impl->set_instName("RTI_SENDER");
         sender_impl2->set_instName("OSPL_SENDER");
         sender_impl3->set_instName("ZMQ_SENDER");
