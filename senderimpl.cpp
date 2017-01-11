@@ -2,8 +2,7 @@
 #include <iostream>
 
 SenderImpl::SenderImpl(std::string name) : SenderInt(name){
-    //Add Periodic Event
-    add_event_port(new PeriodicEvent(std::function<void(void)>(std::bind(&SenderImpl::periodic_event, this)), 1000));
+    
 };
 
 void SenderImpl::periodic_event(){

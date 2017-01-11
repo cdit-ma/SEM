@@ -41,6 +41,12 @@ class NodeContainerInstance: public NodeContainer{
         ReceiverImpl* receiver_impl3 = new ReceiverImpl("receiver_impl3");
         ReceiverImpl* receiver_impl4 = new ReceiverImpl("receiver_impl4");
 
+
+        //Add Periodic Event
+        PeriodicEvent* pe = new PeriodicEvent(std::function<void(void)>(std::bind(&SenderImpl::periodic_event, sender_impl3)), 1000);
+        sender_impl3->add_event_port(pe);
+        
+        
         sender_impl->set_instName("RTI_SENDER");
         sender_impl2->set_instName("OSPL_SENDER");
         sender_impl3->set_instName("ZMQ_SENDER");
@@ -134,33 +140,11 @@ extern "C" NodeContainer* create_object()
   return new NodeContainerInstance();
 }
 
-extern "C" void destroy_object( NodeContainer* object )
-{
-  delete object;
-}
-/*
-
-int main(int argc, char** argv){
-    NodeContainerInstance* instance = new NodeContainerInstance();
-    instance->startup();
-
-    bool running = true;
-
-    while(running){
-        std::cout << "Enter Instruction: ";
-        std::string command;
-        std::getline(std::cin, command);
-        
-        if(command == "activate"){
-            instance->activate();
-        }else if(command == "passivate"){
-            instance->passivate();
-        }else if(command == "quit"){
-            running = false;
-        }
+extern "C" void destroy_object(NodeContainer* object)
+{ 
+    NodeContainerInstance* instance = static_cast<NodeContainerInstance*>(object);
+    if(instance){
+        std::cout << "Deleting Instance: " << object << std::endl;
+        delete instance;
     }
-    instance->passivate();
-    instance->teardown();
-    delete instance;
-     
-}*/
+}
