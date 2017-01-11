@@ -32,10 +32,11 @@ int main(int ac, char** av)
 	std::string port;
 	std::string ip_addr;
 	std::string file_name;
+	std::vector<std::string> addresses;
 
 	//Parse command line options
 	boost::program_options::options_description desc("Options");
-	desc.add_options()("ip,I", boost::program_options::value<std::vector<std::string> >()->multitoken(), "IP addresses to connect to");
+	desc.add_options()("ip,I", boost::program_options::value<std::vector<std::string> >(&addresses)->multitoken(), "IP addresses to connect to");
 	desc.add_options()("port,p",boost::program_options::value<std::string>(&port)->default_value(DEFAULT_PORT), "Port number");
 	desc.add_options()("out-file,o",boost::program_options::value<std::string>(&file_name)->default_value(DEFAULT_FILE), "Output file name");
 	desc.add_options()("help,h", "Display help");
@@ -50,11 +51,15 @@ int main(int ac, char** av)
 	}
 
 	std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
-	std::cout << "* Listening on: " << ip_addr << "*:" << port << std::endl;
 	std::cout << "* Output file: " << file_name << std::endl;
+	std::cout << "* Listening on port: " << port << std::endl;
+	std::cout << "* Listening to: " << std::endl;
+	for(auto s : addresses){
+		std::cout << "** " << s << std::endl;
+	}
 	std::cout << "---------------------------------" << std::endl;
 
-	SQLController* sql_controller = new SQLController(ip_addr, port, file_name);
+	SQLController* sql_controller = new SQLController(addresses, port, file_name);
 
 	{ 			
 		std::unique_lock<std::mutex> lock(mutex_);

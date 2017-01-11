@@ -47,6 +47,10 @@ int main(int ac, char** av){
 		return 0;
 	}
 
+	for(auto s : processes){
+		std::cout << s << std::endl;
+	}
+
 	cached = vm.count("cached");
 
 	std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;

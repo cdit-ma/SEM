@@ -64,14 +64,12 @@ bool CachedZMQMessageWriter::Terminate(){
     }
     std::cout << "Written: " << count << std::endl;
 
-    std::cout << "deleting file" << std::endl;
     std::remove(temp_file_path_.c_str());
 
     return true;
 }
 
 bool CachedZMQMessageWriter::WriteQueue(){
-    std::cout << "writeQueue" << std::endl;
     //open a fstream
     std::fstream file(temp_file_path_, std::ios::out | std::ios::app | std::ios::binary);
     if (!file){
