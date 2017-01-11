@@ -27,6 +27,8 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/proto/vectormessage")
 #add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 
+add_subdirectory("${PROJECT_SOURCE_DIR}/common/nodemanager")
+
 
 set(SOURCE_1
 	${CMAKE_CURRENT_SOURCE_DIR}/deployment_1.cpp
@@ -40,11 +42,8 @@ set(SOURCE_2
 	${SOURCE}
 	)
 
-
 add_library(deployment_1 MODULE ${SOURCE_1} ${HEADERS})
 add_library(deployment_2 MODULE ${SOURCE_2} ${HEADERS})
-
-add_executable(test_launcher nodelauncher.cpp)
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
@@ -59,7 +58,6 @@ target_link_libraries(deployment_1 zmq_library)
 target_link_libraries(deployment_2 proto_vectormessage_library)
 target_link_libraries(deployment_2 proto_message_library)
 target_link_libraries(deployment_2 zmq_library)
-
 
 #target_link_libraries(${PROJ_NAME} ospl_library)
 #target_link_libraries(${PROJ_NAME} qpid_library)

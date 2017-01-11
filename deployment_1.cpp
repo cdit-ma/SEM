@@ -32,7 +32,6 @@ SenderImpl* construct_sender_impl(NodeContainer* c, std::string name){
 
 void Deployment_1::startup(){
     //Construct the Component Impls
-    
     SenderImpl* sender_impl = construct_sender_impl(this, "ComponentAssembly::Sender1");
     SenderImpl* sender_impl2 = construct_sender_impl(this, "ComponentAssembly::Sender2");
 
@@ -47,12 +46,11 @@ void Deployment_1::startup(){
     txMessageInt* zmq_tx = new zmq::TxMessage(sender_impl, std::string("tcp://*:6000"));
     txVectorMessageInt* zmq_v_tx = new zmq::TxVectorMessage(sender_impl2, std::string("tcp://*:6001"));
 
-    //Attach the ports
+    //Attach the ports?
     sender_impl->_set_txMessage(zmq_tx);
     sender_impl2->_set_txMessage(0);
     sender_impl->_set_txVectorMessage(0);
     sender_impl2->_set_txVectorMessage(zmq_v_tx);
-
 };
 
 

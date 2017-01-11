@@ -7,12 +7,12 @@ class Deployment_2: public NodeContainer{
         void startup();
 };
 
-extern "C" NodeContainer* create_object()
+extern "C" NodeContainer* create_deployment()
 {
   return new Deployment_2();
 };
 
-extern "C" void destroy_object(NodeContainer* object)
+extern "C" void destroy_deployment(NodeContainer* object)
 { 
     Deployment_2* instance = static_cast<Deployment_2*>(object);
     if(instance){
