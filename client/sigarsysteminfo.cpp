@@ -25,6 +25,10 @@ bool SigarSystemInfo::open_sigar(){
 }
 
 bool SigarSystemInfo::close_sigar(){
+    auto itr = processes_.begin();
+    for(itr; itr!=processes_.end(); itr++){
+        delete itr->second;
+    }
     if(sigar_close(sigar_) == SIGAR_OK){
         return true;
     }else{

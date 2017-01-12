@@ -47,10 +47,6 @@ int main(int ac, char** av){
 		return 0;
 	}
 
-	for(auto s : processes){
-		std::cout << s << std::endl;
-	}
-
 	cached = vm.count("cached");
 
 	std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
@@ -61,6 +57,12 @@ int main(int ac, char** av){
 		std::cout << "* Live Logging: Off" << std::endl;
 	} else {
 		std::cout << "* Live Logging: On" << std::endl;
+	}
+
+	std::cout << "* Monitoring Processes:" << std::endl;
+
+	for(auto s : processes){
+		std::cout <<"\t** " << s << std::endl;
 	}
 
 	std::cout << "---------------------------------" << std::endl;
