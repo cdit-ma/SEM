@@ -24,3 +24,7 @@ if (MSVC)
 endif()
 
 target_link_libraries(${PROJ_NAME} re_core)
+if(UNIX)
+	message("adsfadfasdfsadfasdfsafdsaf")
+	target_link_libraries(${PROJ_NAME} dl)
+endif(UNIX)

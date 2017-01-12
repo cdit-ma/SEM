@@ -35,3 +35,7 @@ if (MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 endif()
 
+if(UNIX)
+	target_link_libraries(${PROJ_NAME} pthread)
+endif(UNIX)
+
