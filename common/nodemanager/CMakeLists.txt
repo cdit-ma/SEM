@@ -13,7 +13,7 @@ set(CDITMA_RUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../")
 include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
 
 set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/nodelauncher.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/nodemanager.cpp
 	)
 
 add_executable(${PROJ_NAME} ${SOURCE})
