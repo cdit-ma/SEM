@@ -30,13 +30,12 @@ int main(int ac, char** av){
 	bool cached;
     std::vector<std::string> processes;
 	double frequency;
-	std::string file_path;
 
 	boost::program_options::options_description desc("Options");
 	desc.add_options()("port,p",boost::program_options::value<int>(&port)->default_value(5555), "Port number");
 	desc.add_options()("cached,c", "Cached mode");
 	desc.add_options()("frequency,f", boost::program_options::value<double>(&frequency)->default_value(10.0), "Recording frequency");
-	desc.add_options()("process", boost::program_options::value<std::vector<std::string> >(&processes), "Interested processes");
+	desc.add_options()("process,P", boost::program_options::value<std::vector<std::string> >(&processes)->multitoken(), "Interested processes");
 	desc.add_options()("help,h", "Display help");
 
 	boost::program_options::variables_map vm;
@@ -56,9 +55,14 @@ int main(int ac, char** av){
 
 	if(cached){
 		std::cout << "* Live Logging: Off" << std::endl;
-		std::cout << "* Temp file path: " << file_path << std::endl;
 	} else {
 		std::cout << "* Live Logging: On" << std::endl;
+	}
+
+	std::cout << "* Monitoring Processes:" << std::endl;
+
+	for(auto s : processes){
+		std::cout <<"\t** " << s << std::endl;
 	}
 
 	std::cout << "---------------------------------" << std::endl;

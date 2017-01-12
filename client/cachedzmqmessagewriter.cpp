@@ -5,12 +5,17 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdio>
+
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
 
 CachedZMQMessageWriter::CachedZMQMessageWriter() : ZMQMessageWriter(){
+    auto temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+    temp_file_path_ = temp.native();
+    std::cout << temp_file_path_ << std::endl;
 }   
 
 CachedZMQMessageWriter::~CachedZMQMessageWriter(){
@@ -35,8 +40,9 @@ bool CachedZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message)
 bool CachedZMQMessageWriter::Terminate(){
 
     //read in all messages
-    //writeQueue();
     std::cout << "TERMINATING: " << count_ << " write Count: " << write_count_ << std::endl;
+
+    //Send messages in temp file
     std::queue<google::protobuf::MessageLite*> messages = ReadFromFile();
     int count = 0;
     while(!messages.empty()){
@@ -47,6 +53,8 @@ bool CachedZMQMessageWriter::Terminate(){
         messages.pop();
         
     }
+
+    //Send messages in write queue
     while(!write_queue_.empty()){
         if(!ZMQMessageWriter::PushMessage(write_queue_.front())){
             std::cerr << "FAILED:!" << std::endl;
@@ -55,13 +63,15 @@ bool CachedZMQMessageWriter::Terminate(){
         write_queue_.pop();
     }
     std::cout << "Written: " << count << std::endl;
+
+    std::remove(temp_file_path_.c_str());
+
     return true;
 }
 
 bool CachedZMQMessageWriter::WriteQueue(){
-    std::cout << "writeQueue" << std::endl;
     //open a fstream
-    std::fstream file("test.out", std::ios::out | std::ios::app | std::ios::binary);
+    std::fstream file(temp_file_path_, std::ios::out | std::ios::app | std::ios::binary);
     if (!file){
         std::cerr << "Failed to open file!" << std::endl;
         return false;
@@ -94,7 +104,7 @@ std::queue<google::protobuf::MessageLite*> CachedZMQMessageWriter::ReadFromFile(
     std::queue<google::protobuf::MessageLite*> queue;
 
     //open a fstream
-    std::fstream file("test.out", std::ios::in | std::ios::binary);
+    std::fstream file(temp_file_path_, std::ios::in | std::ios::binary);
     if (!file){
         std::cerr << "Failed to open file!" << std::endl;
         return queue;

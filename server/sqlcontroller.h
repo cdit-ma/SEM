@@ -13,7 +13,7 @@
 
 class SQLController{
     public:
-        SQLController(std::string ip_addr, std::string port, std::string file);
+        SQLController(std::vector<std::string> addrs, std::string port, std::string file);
         ~SQLController();
 
         void TerminateReceiver();
@@ -22,7 +22,7 @@ class SQLController{
         void RecieverThread();
         void SQLThread();
         
-        std::string ip_addr_;
+        std::vector<std::string> addresses_;
         std::string port_;
 
         std::thread* reciever_thread_;
