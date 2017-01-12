@@ -1,7 +1,8 @@
 #ifndef DEPLOYMENT_2_H
 #define DEPLOYMENT_2_H
 
-#include "common/includes/globalinterfaces.hpp"
+#include "common/includes/core/nodecontainer.h"
+
 class Deployment_2: public NodeContainer{
     public:
         void startup();

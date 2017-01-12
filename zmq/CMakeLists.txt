@@ -11,7 +11,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CDITMA_RUNTIME_ROOT}/cmake/modules
 set(PROJ_NAME zmq_library)
 project (${PROJ_NAME})
 
-include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
+#Find our core library
+find_library(RE_CORE_LIBRARIES re_core "${CDITMA_RUNTIME_ROOT}/lib")
 
 find_package(ZeroMQ REQUIRED)
 include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
@@ -34,6 +35,7 @@ set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
+target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} pthread)
 target_link_libraries(${PROJ_NAME} proto_message_library)

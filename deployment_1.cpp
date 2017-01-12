@@ -1,5 +1,8 @@
 #include "deployment_1.h"
 
+#include <iostream>
+
+#include "common/includes/core/periodiceventport.h"
 //Interfaces for the Components
 #include "interfaces.h"
 
@@ -14,12 +17,11 @@ SenderImpl* construct_sender_impl(NodeContainer* c, std::string name){
     SenderImpl* s = new SenderImpl(name);
     if(c->add_component(s)){
         //Do specifics
-
-        PeriodicEvent* pe = new PeriodicEvent(std::function<void(void)>(std::bind(&SenderImpl::periodic_event, s)), 1000);
-        PeriodicEvent* pe2 = new PeriodicEvent(std::function<void(void)>(std::bind(&SenderImpl::periodic_event_v, s)), 1000);
+        //PeriodicEventPort* pe = new PeriodicEventPort(std::function<void(void)>(std::bind(&SenderImpl::periodic_event, s)), 1000);
+        PeriodicEventPort* pe2 = new PeriodicEventPort(std::function<void(void)>(std::bind(&SenderImpl::periodic_event_v, s)), 1000);
     
         //Attach the Periodic Events
-        s->add_event_port(pe);
+       // s->add_event_port(pe);
         s->add_event_port(pe2);
 
     }else{
@@ -32,8 +34,8 @@ SenderImpl* construct_sender_impl(NodeContainer* c, std::string name){
 
 void Deployment_1::startup(){
     //Construct the Component Impls
-    SenderImpl* sender_impl = construct_sender_impl(this, "ComponentAssembly::Sender1");
-    SenderImpl* sender_impl2 = construct_sender_impl(this, "ComponentAssembly::Sender2");
+    SenderImpl* sender_impl = construct_sender_impl(this, "1");
+    SenderImpl* sender_impl2 = construct_sender_impl(this, "2");
 
     //Set the Attributes
     sender_impl->set_instName("ZMQ_Sender");

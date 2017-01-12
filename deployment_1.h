@@ -1,7 +1,7 @@
 #ifndef DEPLOYMENT_1_H
 #define DEPLOYMENT_1_H
 
-#include "common/includes/globalinterfaces.hpp"
+#include "common/includes/core/nodecontainer.h"
 
 
 class Deployment_1: public NodeContainer{

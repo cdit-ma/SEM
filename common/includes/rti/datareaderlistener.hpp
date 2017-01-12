@@ -1,7 +1,7 @@
 #ifndef RTI_DATAREADERLISTENER_H
 #define RTI_DATAREADERLISTENER_H
 
-#include "../globalinterfaces.hpp"
+#include "../core/eventports/ineventport.hpp"
 
 #include <rti/rti.hpp>
 

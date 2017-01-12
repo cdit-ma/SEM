@@ -3,7 +3,11 @@
 
 #include "message.h"
 #include "vectormessage.h"
-#include "globalinterfaces.hpp"
+
+#include "common/includes/core/globalinterfaces.hpp"
+#include "common/includes/core/eventports/ineventport.hpp"
+#include "common/includes/core/eventports/outeventport.hpp"
+#include "common/includes/core/component.h"
 
 /*
     Concrete Port Interfaces

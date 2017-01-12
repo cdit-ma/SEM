@@ -1,7 +1,9 @@
 #ifndef QPID_OUTEVENTPORT_H
 #define QPID_OUTEVENTPORT_H
 
-#include "../globalinterfaces.hpp"
+#include "../core/eventports/outeventport.hpp"
+
+
 #include <vector>
 #include <iostream>
 #include <string>

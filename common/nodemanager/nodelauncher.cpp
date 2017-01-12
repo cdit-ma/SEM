@@ -1,7 +1,8 @@
 #include <dlfcn.h>
 #include <iostream>
 #include <string>
-#include "../includes/globalinterfaces.hpp"
+
+#include "../includes/core/nodecontainer.h"
 
 int main(int argc, char **argv)
 {

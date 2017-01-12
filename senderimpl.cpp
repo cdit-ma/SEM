@@ -1,9 +1,7 @@
 #include "senderimpl.h"
 #include <iostream>
 
-SenderImpl::SenderImpl(std::string name) : SenderInt(name){
-    
-};
+SenderImpl::SenderImpl(std::string name) : SenderInt(name){};
 
 void SenderImpl::periodic_event(){
     Message* msg = new Message();
