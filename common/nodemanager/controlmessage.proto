@@ -1,0 +1,65 @@
+syntax="proto3";
+
+message ControlMessage{
+    enum Type{
+        STARTUP = 0;
+        TEARDOWN = 1;
+        ACTIVATE = 2;
+        PASSIVATE = 3;
+        SET_ATTRIBUTE = 4;
+    }
+
+    Type type = 1;
+    double time_stamp = 2;
+    Node node = 3;
+    
+}
+
+message Node{
+    string name = 1;
+    repeated Component components = 2;
+}
+
+message Component{
+    string name = 1;
+    string id = 2;
+
+    repeated EventPort ports = 3;
+    repeated Attribute attributes = 4;
+}
+
+message EventPort{
+    enum Type{
+        IN = 0;
+        OUT = 1;
+        PERIODIC = 2;
+    }
+
+    enum Middleware{
+        NONE = 0;
+        ZMQ = 1;
+        RTI_DDS = 2;
+        OSPL_DDS = 3;
+        QPID = 4;
+    }
+
+    Type type = 1;
+    string name = 2;
+    Middleware middleware = 3;
+    repeated Attribute attributes = 4;
+}
+
+message Attribute{
+    enum Type{
+        STRING = 0;
+        INTEGER = 1;
+        BOOLEAN = 2;
+        DECIMAL = 3;
+    }
+
+    Type type = 1;
+    string name = 2;
+    string s = 3;
+    uint64 i = 4;
+    double d = 5;
+}
