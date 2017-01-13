@@ -34,15 +34,39 @@ void ZMQSlave::registration_loop(){
             socket.send(data, ZMQ_NOBLOCK);
             socket.recv(d2);
             
-            std::string msg_str(static_cast<char *>(d2->data()), d2->size());
-
             
 
-            std::cout << "Connected to Serverino: " << msg_str << std::endl;
+
+            master_server_address_ = std::string(static_cast<char *>(d2->data()), d2->size());
+            std::cout << "Connected to Serverino: " << master_server_address_ << std::endl;
             break;
         }catch(...){
             //std::cout << "NO RECIEVIER: " << std::endl;
-            
         }
     }
+    std::cout << "WAITING FOR READER" << std::endl;
+    reader_thread_ = new std::thread(&ZMQSlave::reader_loop, this);
+}
+
+void ZMQSlave::reader_loop(){
+    std::string name = host_name_ + "*";
+    auto socket = zmq::socket_t(*context_, ZMQ_SUB);
+    socket.connect(master_server_address_.c_str());
+    socket.setsockopt(ZMQ_SUBSCRIBE, "*", 1);
+    socket.setsockopt(ZMQ_SUBSCRIBE, name.c_str(), name.size());
+    
+    
+
+    zmq::message_t *topic = new zmq::message_t();
+    zmq::message_t *data = new zmq::message_t();
+
+    while(true){
+        socket.recv(topic);
+        socket.recv(data);
+
+        std::string topic_str(static_cast<char *>(topic->data()), topic->size());
+        std::string data_str(static_cast<char *>(data->data()), data->size());
+        std::cout << "Action For:" << topic_str <<" A:" << data_str <<std::endl;
+    }
+    std::cout << "action_loop thread Finished." << std::endl;
 }

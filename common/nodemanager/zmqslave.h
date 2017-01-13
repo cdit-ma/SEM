@@ -14,10 +14,14 @@ class ZMQSlave{
         ~ZMQSlave();
     private:
         void registration_loop();
+        void reader_loop();
+
+        std::string master_server_address_;
         std::string host_name_;
         std::string port_;
     private:
         std::thread* registration_thread_;
+        std::thread* reader_thread_;
         zmq::context_t* context_;
 };
 
