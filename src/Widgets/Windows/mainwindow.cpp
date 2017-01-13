@@ -312,6 +312,7 @@ void MainWindow::popupSearch()
     moveWidget(searchPopup);
     searchPopup->show();
     searchBar->setFocus();
+    searchBar->selectAll();
 }
 
 

@@ -715,7 +715,7 @@ void ActionController::setupActions()
     view_fitAllViews->setShortcutContext(Qt::ApplicationShortcut);
     view_fitAllViews->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Space));
 
-    view_centerOn = createRootAction("View", "Center Selection", "", "Actions", "Crosshair");
+    view_centerOn = createRootAction("View", "Center On Selection", "", "Actions", "Crosshair");
 
     edit_expand = createRootAction("Toolbar", "Expand Selection", "", "Actions", "Expand");
     edit_contract = createRootAction("Toolbar", "Contract Selection", "", "Actions", "Contract");
@@ -903,13 +903,10 @@ void ActionController::setupMainMenu()
     menu_view->addAction(view_centerOnDefn);
     menu_view->addAction(view_centerOnImpl);
     menu_view->addSeparator();
+    menu_view->addAction(view_viewInNewWindow);
     menu_view->addAction(view_viewDefnInNewWindow);
     menu_view->addAction(view_viewImplInNewWindow);
-
-
-
     menu_view->addAction(view_viewConnections);
-    menu_view->addAction(view_viewInNewWindow);
 
     // Model Menu
     menu_model->addAction(model_selectModel);

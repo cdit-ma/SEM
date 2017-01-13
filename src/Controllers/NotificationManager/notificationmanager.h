@@ -67,7 +67,7 @@ signals:
     void clearNotifications(NOTIFICATION_FILTER filter = NF_NOFILTER, int filterVal = -1);
 
 public slots:
-    void notificationReceived(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int entityID);
+    void notificationReceived(NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID);
     void deleteNotification(int ID);
 
     void setLastNotificationItem(int ID);

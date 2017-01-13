@@ -306,25 +306,10 @@ QPair<QString, QString> NotificationManager::getSeverityIcon(NOTIFICATION_SEVERI
  * @param iconName
  * @param entityID
  */
-void NotificationManager::notificationReceived(NOTIFICATION_TYPE type, QString title, QString description, QString iconPath, QString iconName, int entityID)
+void NotificationManager::notificationReceived(NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID)
 {
-    // TODO - This can be removed when we delete the NOTIFICATION_TYPE enum from enumerations
-    NOTIFICATION_SEVERITY s = NS_INFO;
-    if (type != NT_INFO) {
-        switch(type) {
-        case NT_WARNING:
-            s = NS_WARNING;
-            break;
-        case NT_ERROR:
-            s = NS_ERROR;
-            break;
-        default:
-             break;
-        }
-    }
-
     // construct notification item
-    NotificationObject* item = new NotificationObject(title, description, iconPath, iconName, entityID, s, NT_MODEL, NC_NOCATEGORY, this);
+    NotificationObject* item = new NotificationObject(title, description, iconPath, iconName, entityID, severity, NT_MODEL, NC_NOCATEGORY, this);
     notificationObjects[item->ID()] = item;
     lastNotificationObject = item;
 

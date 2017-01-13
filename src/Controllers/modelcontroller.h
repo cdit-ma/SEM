@@ -346,7 +346,8 @@ signals:
     void controller_AskQuestion(QString title, QString message, int ID=-1);
     void controller_GotQuestionAnswer();
 
-    void controller_showNotification(NOTIFICATION_TYPE type, QString title, QString message, QString iconPath="", QString iconName="", int centerID =-1);
+    //void controller_showNotification(NOTIFICATION_TYPE type, QString title, QString message, QString iconPath="", QString iconName="", int centerID =-1);
+    void controller_showNotification(NOTIFICATION_SEVERITY severity, QString title, QString message, QString iconPath="", QString iconName="", int centerID =-1);
 
     void controller_SavedProject(QString filePath, QString dat);
 

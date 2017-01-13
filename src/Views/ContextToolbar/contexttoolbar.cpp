@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QProxyStyle>
+#include <QShortcut>
 
 /**
  * @brief The MenuStyle class
@@ -406,6 +407,14 @@ void ContextToolbar::setupSplitMenus()
     QMenu* menu = constructTopMenu(definitionAction, false);
     menu->addAction(actionController->view_centerOnDefn);
     menu->addAction(actionController->view_viewDefnInNewWindow);
+
+    /*
+    QAction* cdAction = menu->addAction(actionController->view_centerOnDefn->constructSubAction());
+    QAction* pdAction = menu->addAction(actionController->view_viewDefnInNewWindow);
+
+    QShortcut* s = new QShortcut( Qt::CTRL + Qt::Key_Q, this );
+    connect( s, SIGNAL( activated()), a, SLOT( trigger() ) );
+    */
 
     QMenu* menu2 = constructTopMenu(implementationAction, false);
     menu2->addAction(actionController->view_centerOnImpl);
