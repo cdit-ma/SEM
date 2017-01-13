@@ -86,8 +86,13 @@ void ZMQMaster::registration_loop(){
         if(i++ % 5 == 0){
             send_action("*", "FOR ALL");
         }else{
-            send_action("client1*", "FOR CLIENT 1");
-            send_action("client2*", "FOR CLIENT 2");
+            if(i % 2 == 0){
+                send_action("client2*", "FOR CLIENT 2");
+                send_action("client4*", "FOR CLIENT 4");
+            }else{
+                send_action("client1*", "FOR CLIENT 1");
+                send_action("client3*", "FOR CLIENT 3");
+            }
         }      
     }
 }

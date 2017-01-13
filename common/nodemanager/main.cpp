@@ -35,8 +35,8 @@ int main(int argc, char **argv)
         std::vector<std::string> slaves;
         slaves.push_back("tcp://192.168.111.187:7001");
         slaves.push_back("tcp://192.168.111.187:7002");
-       // slaves.push_back("tcp://192.168.111.84:7001");
-       // slaves.push_back("tcp://192.168.111.84:7002");
+        slaves.push_back("tcp://192.168.111.84:7001");
+        slaves.push_back("tcp://192.168.111.84:7002");
         ZMQMaster* master = new ZMQMaster(host_name, my_ip + ":" + port, slaves);
     }else{
         ZMQSlave* slave = new ZMQSlave(host_name, my_ip + ":" + port);
