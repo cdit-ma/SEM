@@ -42,20 +42,20 @@ std::vector<std::string> GraphmlParser::find_edges(std::string kind){
 
 std::string GraphmlParser::get_attribute(std::string id, std::string attribute_name){
     std::string search = ".//*[@id='" + id + "']";
-    std::cout << search << std::endl;
-    auto out = doc.select_node(search.c_str());
-    return out.node().attribute(attribute_name.c_str()).value();
-    
+    std::string out;
+    try{
+        auto res = doc.select_node(search.c_str());
+        out = res.node().attribute(attribute_name.c_str()).value();
+    } catch(...){}
+    return out;
 }
 
 std::string GraphmlParser::get_data_value(std::string id, std::string key_name){
     std::string search = ".//*[@id='" + id + "']/data[@key='" + attribute_map_[key_name] + "']";
-    std::cout << search << std::endl;
     std::string out;
     try{
         auto res = doc.select_node(search.c_str());
         out = res.node().child_value();
-    } catch(...){
-        out = "";
-    }
+    } catch(...){}
+    return out;
 }
