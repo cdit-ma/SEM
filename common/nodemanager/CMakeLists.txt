@@ -9,7 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(PROJ_NAME re_node_manager)
 project (${PROJ_NAME})
 
-
+set(PUGIXML_ROOT "/home/dig/Downloads/pugixml-1.8/")
 
 
 set(CDITMA_RUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../")
@@ -25,6 +25,14 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 find_package(Protobuf REQUIRED)
 include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
+find_package(Boost 1.36.0)
+include_directories(${Boost_INCLUDE_DIRS})
+
+find_library(PUGIXML_LIBRARIES pugixml ${PUGIXML_ROOT}/build)
+include_directories(${PUGIXML_ROOT}/src/)
+
+message(${PUGIXML_LIBRARIES})
+
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
@@ -35,6 +43,10 @@ set(SOURCE
 	)
 
 add_executable(${PROJ_NAME} ${SOURCE})
+
+set(TESTSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/parsemain.cpp)
+add_executable("parsetest" ${TESTSOURCE})
+target_link_libraries(parsetest ${PUGIXML_LIBRARIES})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
@@ -49,5 +61,7 @@ endif(UNIX)
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${Boost_PROPERTY_TREE_LIBRARY})
 
 target_link_libraries(${PROJ_NAME} pthread)
+target_link_libraries(${PROJ_NAME} ${PUGIXML_LIBRARIES})
