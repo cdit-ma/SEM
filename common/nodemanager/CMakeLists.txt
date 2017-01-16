@@ -31,18 +31,17 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_library(PUGIXML_LIBRARIES pugixml ${PUGIXML_ROOT}/build)
 include_directories(${PUGIXML_ROOT}/src/)
 
-message(${PUGIXML_LIBRARIES})
-
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/controlmessage.proto)
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqmaster.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqslave.cpp
-
+	${PROTO_SRCS}
 	)
 
-add_executable(${PROJ_NAME} ${SOURCE})
+add_executable(${PROJ_NAME} ${SOURCE} ${PROTO_HDRS})
 
 set(TESTSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/parsemain.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp)
@@ -67,3 +66,6 @@ target_link_libraries(${PROJ_NAME} ${Boost_PROPERTY_TREE_LIBRARY})
 
 target_link_libraries(${PROJ_NAME} pthread)
 target_link_libraries(${PROJ_NAME} ${PUGIXML_LIBRARIES})
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
+target_link_libraries(${PROJ_NAME} pthread)

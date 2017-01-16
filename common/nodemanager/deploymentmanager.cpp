@@ -2,6 +2,8 @@
 #include <dlfcn.h>
 #include <iostream>
 
+#include "controlmessage.pb.h"
+
 DeploymentManager::DeploymentManager(std::string library_path){
     library_path_ = library_path;
     
@@ -43,6 +45,32 @@ DeploymentManager::~DeploymentManager(){
         dlclose(library_handle_);
     }
 }
+
+void DeploymentManager::process_action(std::string node_name, std::string action){
+    std::cout << "DM PA: " << action << std::endl;
+    auto cm = new NodeManager::ControlMessage();
+
+    if(cm->ParseFromString(action) && deployment_){
+        std::cout << cm->DebugString() << std::endl;
+    
+        switch(cm->type()){
+            case NodeManager::ControlMessage::STARTUP:
+                std::cout << "STARTING UP!" << std::endl;
+                deployment_->startup();
+                break;
+            case NodeManager::ControlMessage::ACTIVATE:
+                std::cout << "ACTIVATE!" << std::endl;
+                deployment_->activate_all();
+                break;
+            case NodeManager::ControlMessage::PASSIVATE:
+                std::cout << "PASSIVATE" << std::endl;
+                deployment_->passivate_all();
+            default:
+                break;
+        }
+    }
+}
+
 
 bool DeploymentManager::is_library_loaded(){
     return library_handle_ && create_deployment_ && destroy_deployment_;
