@@ -45,7 +45,6 @@ bool PeriodicEventPort::wait_for_tick(){
 
 void PeriodicEventPort::loop(){
     while(true){
-        std::cout << "TICK!" << std::endl;
         if(callback_ != nullptr){
             callback_();
         }
