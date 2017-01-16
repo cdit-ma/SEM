@@ -44,7 +44,9 @@ set(SOURCE
 
 add_executable(${PROJ_NAME} ${SOURCE})
 
-set(TESTSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/parsemain.cpp)
+set(TESTSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/parsemain.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp)
+
 add_executable("parsetest" ${TESTSOURCE})
 target_link_libraries(parsetest ${PUGIXML_LIBRARIES})
 
