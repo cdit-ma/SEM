@@ -25,6 +25,8 @@ class ZMQMaster{
         void registration_loop();
         void writer_loop();
 
+        bool terminating = false;
+
         std::string host_name;
         std::string port_;
         std::vector<std::string> slaves_;
@@ -34,9 +36,9 @@ class ZMQMaster{
         std::queue<std::pair<std::string, std::string> > message_queue_;
     
     private:
-        std::thread* registration_thread_;
-        std::thread* writer_thread_;
-        zmq::context_t* context_;
+        std::thread* registration_thread_ = 0;
+        std::thread* writer_thread_ = 0;
+        zmq::context_t* context_ = 0;
 };
 
 #endif //ZMQMASTER_H

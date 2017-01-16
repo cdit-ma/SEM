@@ -1,18 +1,46 @@
 #include "zmqmaster.h"
 #include <iostream>
 
+template<typename T>
+inline void remove(std::vector<T> & v, const T & item)
+{
+    v.erase(std::remove(v.begin(), v.end(), item), v.end());
+}
+
 ZMQMaster::ZMQMaster(std::string host_name, std::string port, std::vector<std::string> slaves){
     context_ = new zmq::context_t(1);
     port_ = port;
-    
     slaves_ = slaves;
-    //action_socket_ = new zmq::socket_t(*context_, ZMQ_PUB);
+
+    //Start the registration thread
     registration_thread_ = new std::thread(&ZMQMaster::registration_loop, this);
-    //
 }
 
 ZMQMaster::~ZMQMaster(){
+    {
+        //Unblock our mutex condition guarding
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        terminating = true;
+        queue_lock_condition_.notify_all();
+    }
 
+    //Deleting the context will interupt any blocking ZMQ calls
+    if(context_){
+        std::cout << "Deleting Context" << std::endl;
+        delete context_;    
+    }
+
+    if(registration_thread_){
+        std::cout << "Deleting registration_thread_" << std::endl;
+        registration_thread_->join();
+        delete registration_thread_;
+    }
+
+    if(writer_thread_){
+        std::cout << "Deleting writer_thread_" << std::endl;
+        writer_thread_->join();
+        delete writer_thread_;
+    }
 }
 
 bool ZMQMaster::connected_to_slaves(){
@@ -33,103 +61,97 @@ void ZMQMaster::send_action(std::string node_name, std::string action){
 }
 
 void ZMQMaster::registration_loop(){
-    {
-        auto socket = zmq::socket_t(*context_, ZMQ_REP);
-        //socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
-
-        //Connect registration socket to all slaves addressess.
-        for(auto s : slaves_){
-            std::cout << "Master Connecting: " << s << std::endl;
-            socket.connect(s.c_str()); 
-        }
-        int slave_count = slaves_.size();
-        int count = 0;
-        bool got_all_slaves = false;
-        zmq::message_t *data = new zmq::message_t();
-        zmq::message_t *reply = new zmq::message_t();
-
-        while(true){
-            std::cout << "Slaves: " << count << "/" << slave_count << std::endl;
-            //Wait for next message
-            socket.recv(data);
-
-            //If we have a valid message
-            if(data->size() > 0){
-                //Construct a string out of the zmq data
-                std::string msg_str(static_cast<char *>(data->data()), data->size());
-            
-                //Check the hostname
-                std::cout << "Got Slave: " << msg_str << std::endl;
-
-                zmq::message_t rep(port_.c_str(), port_.size());
-                socket.send(rep);
-
-                count++;         
-                
-                if(count == slave_count){
-                    std::cout << " Got Slaves: " << count << std::endl;
-                    break;
-                }
-            }
-        }
-    }
-
-    std::cout << "Got Clients, Starting Writer Loop!" << std::endl;
-    writer_thread_ = new std::thread(&ZMQMaster::writer_loop, this);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    auto socket = zmq::socket_t(*context_, ZMQ_REP);
     
-    int i = 0;
-    while(true){
-        //Send happiness
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        if(i++ % 5 == 0){
-            send_action("*", "FOR ALL");
-        }else{
-            if(i % 2 == 0){
-                send_action("client2*", "FOR CLIENT 2");
-                send_action("client4*", "FOR CLIENT 4");
-            }else{
-                send_action("client1*", "FOR CLIENT 1");
-                send_action("client3*", "FOR CLIENT 3");
-            }
-        }      
+    auto unregistered_slaves = slaves_;
+    //Connect registration socket to all slaves addressess.
+    for(auto s : unregistered_slaves){
+        std::cout << "Master Connecting to Slave: " << s << std::endl;
+        socket.connect(s.c_str()); 
     }
+
+    //Wait for a period of time before recieving
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    
+    zmq::message_t slave_addr;
+    zmq::message_t server_addr(port_.c_str(), port_.size());
+
+    while(!unregistered_slaves.empty()){
+        try{
+            //Wait for Slave to send a message
+            socket.recv(&slave_addr);
+
+            //Construct a string out of the zmq data
+            std::string slave_addr_str(static_cast<char *>(slave_addr.data()), slave_addr.size());
+
+            //Remove the slave which has just registered from the vector of unregistered slaves
+            remove(unregistered_slaves, slave_addr_str);
+
+            //Send the server address for the publisher
+            socket.send(server_addr);
+        }catch(const zmq::error_t& exception){
+            if(exception.num() == ETERM){
+                std::cout << "Terminating Registration Thread!" << std::endl;
+            }
+            return;
+        }
+    }
+
+    //Start up the writer thread
+    writer_thread_ = new std::thread(&ZMQMaster::writer_loop, this);
 }
 
 void ZMQMaster::writer_loop(){
     auto socket = zmq::socket_t(*context_, ZMQ_PUB);
     socket.bind(port_.c_str());
-    while(true){
 
+    //Wait for a period of time before trying to send
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    while(true){
+        bool terminated = false;
         std::queue<std::pair<std::string, std::string> > replace_queue;
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
             //Wait for notify
             queue_lock_condition_.wait(lock);
-            //Swap our queues
-            if(!message_queue_.empty()){
-                message_queue_.swap(replace_queue);
+            
+            //Get the termating flag.
+            terminated = terminating;
+            
+            if(!terminated){
+                //Swap our queues, only if we aren't meant to terminate
+                if(!message_queue_.empty()){
+                    message_queue_.swap(replace_queue);
+                }
             }
         }
 
         //Empty our write queue
         while(!replace_queue.empty()){
             auto p = replace_queue.front();
-            //std::string str;
-            //if(message->SerializeToString(&str)){
-            //    zmq::message_t data(str.c_str(), str.size());
-            //    return socket_->send(data);
-            //}
-            std::cout << "Sending to:" << p.first << " ACTION: " << p.second << std::endl;
+
             zmq::message_t topic(p.first.c_str(), p.first.size());
             zmq::message_t data(p.second.c_str(), p.second.size());
-            //Send node name
-            socket.send(topic, ZMQ_SNDMORE );
-            //Send Data
-            socket.send(data);
+            try{
+                //Send node name
+                socket.send(topic, ZMQ_SNDMORE);
+                //Send Data
+                socket.send(data);
+            }catch(const zmq::error_t& exception){
+                if(exception.num() == ETERM){
+                    std::cout << "Terminating Writer Thread!" << std::endl;
+                }
+                terminated = true;
+                break;
+            }
             replace_queue.pop();
+        }
+
+        if(terminated){
+            //Got a terminate flag from the destructor or a ETERM in the queue_loop
+            break;
         }
     }
     std::cout << "action_loop thread Finished." << std::endl;
