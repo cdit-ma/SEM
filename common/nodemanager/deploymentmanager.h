@@ -11,6 +11,9 @@ class DeploymentManager{
         DeploymentManager(std::string library_path);
         ~DeploymentManager();
 
+
+        void process_action(std::string node_name, std::string action);
+
         bool is_library_loaded();
         
         NodeContainer* get_deployment();

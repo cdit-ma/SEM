@@ -1,18 +1,20 @@
 syntax="proto3";
 
+package NodeManager;
 message ControlMessage{
     enum Type{
-        STARTUP = 0;
-        TEARDOWN = 1;
-        ACTIVATE = 2;
-        PASSIVATE = 3;
-        SET_ATTRIBUTE = 4;
+        NO_TYPE = 0;
+        STARTUP = 1;        //Construct the NodeContainer; Setup all ports and topics for ALL Components/Eventports
+        TEARDOWN = 2;       //Destruct the NodeContainer; Implicitly tears down all components and Eventports.
+        ACTIVATE = 3;       //Start executing a Component, Requires Startup first
+        PASSIVATE = 4;      //Stop executing a Component, Requires Startup and Passivate
+        TERMINATE = 5;      //Terminate Node Manager on Slaves, Death to the infidels
+        SET_ATTRIBUTE = 6;  //Set the Attribute of Components, requires Startup
     }
 
     Type type = 1;
     double time_stamp = 2;
     Node node = 3;
-    
 }
 
 message Node{
@@ -30,13 +32,14 @@ message Component{
 
 message EventPort{
     enum Type{
-        IN = 0;
-        OUT = 1;
-        PERIODIC = 2;
+        NO_EVENT_PORT = 0;
+        IN = 1;
+        OUT = 2;
+        PERIODIC = 3;
     }
 
     enum Middleware{
-        NONE = 0;
+        UNKNOWN = 0;
         ZMQ = 1;
         RTI_DDS = 2;
         OSPL_DDS = 3;

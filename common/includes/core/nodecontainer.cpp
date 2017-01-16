@@ -49,7 +49,7 @@ bool NodeContainer::add_component(Component* component){
         components_.insert(insert_pair);
         return true;
     }else{
-        std::cout << " NOT A UNIQUE NAME!" << std::endl;
+        std::cout << "'" << component_name << "' NOT A UNIQUE NAME!" << std::endl;
         return false;
     }
 }

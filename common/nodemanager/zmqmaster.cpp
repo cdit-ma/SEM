@@ -90,7 +90,7 @@ void ZMQMaster::registration_loop(){
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     
     zmq::message_t slave_addr;
-    zmq::message_t server_addr(port_.c_str(), port_.size());
+    
 
     while(!unregistered_slaves.empty()){
         try{
@@ -102,7 +102,8 @@ void ZMQMaster::registration_loop(){
 
             //Remove the slave which has just registered from the vector of unregistered slaves
             remove(unregistered_slaves, slave_addr_str);
-
+            
+            zmq::message_t server_addr(port_.c_str(), port_.size());
             //Send the server address for the publisher
             socket.send(server_addr);
         }catch(const zmq::error_t& exception){
@@ -115,6 +116,8 @@ void ZMQMaster::registration_loop(){
 
     //Start up the writer thread
     writer_thread_ = new std::thread(&ZMQMaster::writer_loop, this);
+
+    //Wait for 
 }
 
 void ZMQMaster::writer_loop(){

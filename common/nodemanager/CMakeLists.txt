@@ -25,16 +25,17 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 find_package(Protobuf REQUIRED)
 include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/controlmessage.proto)
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqmaster.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqslave.cpp
-
+	${PROTO_SRCS}
 	)
 
-add_executable(${PROJ_NAME} ${SOURCE})
+add_executable(${PROJ_NAME} ${SOURCE} ${PROTO_HDRS})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
@@ -49,5 +50,7 @@ endif(UNIX)
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
+
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(${PROJ_NAME} pthread)

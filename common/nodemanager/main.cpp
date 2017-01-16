@@ -6,6 +6,8 @@
 #include "zmqmaster.h"
 #include "zmqslave.h"
 
+#include "controlmessage.pb.h"
+#include <google/protobuf/message_lite.h>
 
 int main(int argc, char **argv)
 {
@@ -39,12 +41,12 @@ int main(int argc, char **argv)
         std::cout << "Is Server" << std::endl;
         std::vector<std::string> slaves;
         slaves.push_back("tcp://192.168.111.187:7001");
-        //slaves.push_back("tcp://192.168.111.187:7002");
+        slaves.push_back("tcp://192.168.111.187:7002");
         //slaves.push_back("tcp://192.168.111.84:7001");
         //slaves.push_back("tcp://192.168.111.84:7002");
         m = new ZMQMaster(host_name, my_ip + ":" + port, slaves);
     }else{
-        s = new ZMQSlave(host_name, my_ip + ":" + port);
+        s = new ZMQSlave(manager, host_name, my_ip + ":" + port);
     }
 
     //Construct an instance of the Deployment
@@ -56,7 +58,7 @@ int main(int argc, char **argv)
         //exit(1);
     }else{
         //Start deployment instance
-        instance->startup();
+        //instance->startup();
     }
     
     //Wait for a period of time before trying to send
@@ -99,13 +101,20 @@ int main(int argc, char **argv)
             running = false;
         }else if(command == "send" && m){
             std::string host;
-            std::string message;
+            std::string action;
             std::cout << "Enter Component Name or *: ";
             std::getline(std::cin, host);
-            std::cout << "Enter Message : ";
-            std::getline(std::cin, message);
+            std::cout << "Enter Action : ";
+            std::getline(std::cin, action);
 
-            m->send_action(host, message);
+            NodeManager::ControlMessage_Type* t = new NodeManager::ControlMessage_Type();
+            bool success = NodeManager::ControlMessage_Type_Parse(action, t);
+
+            NodeManager::ControlMessage* cm = new NodeManager::ControlMessage();
+            //cm->set_type(NodeManager::ControlMessage::STARTUP);
+            cm->set_type(*t);
+            cm->mutable_node()->set_name(host);
+            m->send_action(host, cm);
         }
     }
   

@@ -2,9 +2,8 @@
 #include <iostream>
 #include <chrono>
 
-
-
-ZMQSlave::ZMQSlave(std::string host_name, std::string port){
+ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string host_name, std::string port){
+    deployment_manager_ = manager;
     context_ = new zmq::context_t(1);
     host_name_ = host_name;
     port_ = port;
@@ -14,6 +13,13 @@ ZMQSlave::ZMQSlave(std::string host_name, std::string port){
 }
 
 ZMQSlave::~ZMQSlave(){
+    {
+        //Unblock our mutex condition guarding
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        terminating = true;
+        queue_lock_condition_.notify_all();
+    }
+
     //Deleting the context will interupt any blocking ZMQ calls
     if(context_){
         delete context_;    
@@ -24,9 +30,9 @@ ZMQSlave::~ZMQSlave(){
         delete registration_thread_;
     }
 
-    if(reader_thread_){
-        reader_thread_->join();
-        delete reader_thread_;
+    if(action_thread_){
+        action_thread_->join();
+        delete action_thread_;
     }
 }
 
@@ -44,6 +50,7 @@ void ZMQSlave::registration_loop(){
     try{
         //Send our address to the server, blocks until reply
         socket.send(slave_addr);
+
         //Get the tcp address for the action publisher.
         socket.recv(&server_addr);
 
@@ -54,6 +61,8 @@ void ZMQSlave::registration_loop(){
 
         //Start the action subscriber loop
         reader_thread_ = new std::thread(&ZMQSlave::action_subscriber_loop, this);
+        //Start the action loop
+        action_thread_ = new std::thread(&ZMQSlave::action_queue_loop, this);
     }catch(const zmq::error_t& exception){
         if(exception.num() == ETERM){
             std::cout << "Terminating!" << std::endl;
@@ -94,13 +103,61 @@ void ZMQSlave::action_subscriber_loop(){
             //Get the messages as strings
             std::string node_str(static_cast<char *>(node.data()), node.size());
             std::string action_str(static_cast<char *>(action.data()), action.size());
-            std::cout << "Action For:" << node_str <<" A:" << action_str <<std::endl;
+           
+            std::pair<std::string, std::string> p;
+            p.first = node_str;
+            p.second = action_str;
+
+            //Lock the Queue, and notify the action queue.
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            message_queue_.push(p);
+            queue_lock_condition_.notify_all();
         }catch(const zmq::error_t& exception){
             if(exception.num() == ETERM){
                 std::cout << "Terminating!" << std::endl;
                 //Caught exception
                 break;
             }
+        }
+    }
+}
+
+void ZMQSlave::action_queue_loop(){
+    while(true){
+        bool terminated = false;
+        std::queue<std::pair<std::string, std::string> > replace_queue;
+        {
+            //Obtain lock for the queue
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            //Wait for notify
+            queue_lock_condition_.wait(lock);
+            
+            //Get the termating flag.
+            terminated = terminating;
+            
+            if(!terminated){
+                //Swap our queues, only if we aren't meant to terminate
+                if(!message_queue_.empty()){
+                    message_queue_.swap(replace_queue);
+                }
+            }
+        }
+
+        //Empty our write queue
+        while(!replace_queue.empty()){
+            auto p = replace_queue.front();
+            if(deployment_manager_){
+                
+                deployment_manager_->process_action(p.first, p.second);
+            }
+            
+            //Convert to Proto
+            replace_queue.pop();
+        }
+
+        if(terminated){
+            //Got a terminate flag from the destructor or a ETERM in the queue_loop
+            break;
         }
     }
 }
