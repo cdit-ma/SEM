@@ -10,7 +10,7 @@
 class GraphmlParser{
 
     public:
-        void load(const std::string &filename);
+        GraphmlParser(const std::string filename);
         std::vector<std::string> find_nodes(std::string kind, std::string parent_id = "");
         std::vector<std::string> find_edges(std::string kind);
 

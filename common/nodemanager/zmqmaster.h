@@ -3,6 +3,7 @@
 
 #include <google/protobuf/message_lite.h>
 #include "zmq.hpp"
+#include "graphmlparser.h"
 
 #include <vector>
 #include <thread>
@@ -13,7 +14,7 @@
 
 class ZMQMaster{
     public:
-        ZMQMaster(std::string host_name, std::string port, std::vector<std::string> slaves);
+        ZMQMaster(std::string host_name, std::string port, std::vector<std::string> slaves, std::string graphml_path);
         ~ZMQMaster();
 
         void send_action(std::string node_name, google::protobuf::MessageLite* message);
@@ -39,6 +40,8 @@ class ZMQMaster{
         std::thread* registration_thread_ = 0;
         std::thread* writer_thread_ = 0;
         zmq::context_t* context_ = 0;
+
+        GraphmlParser* graphml_;
 };
 
 #endif //ZMQMASTER_H

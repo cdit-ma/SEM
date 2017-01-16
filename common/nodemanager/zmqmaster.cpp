@@ -7,10 +7,13 @@ inline void remove(std::vector<T> & v, const T & item)
     v.erase(std::remove(v.begin(), v.end(), item), v.end());
 }
 
-ZMQMaster::ZMQMaster(std::string host_name, std::string port, std::vector<std::string> slaves){
+ZMQMaster::ZMQMaster(std::string host_name, std::string port, std::vector<std::string> slaves, std::string graphml_path){
     context_ = new zmq::context_t(1);
     port_ = port;
     slaves_ = slaves;
+
+    graphml_ = new GraphmlParser(graphml_path);
+
 
     //Start the registration thread
     registration_thread_ = new std::thread(&ZMQMaster::registration_loop, this);

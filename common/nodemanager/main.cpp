@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     ZMQMaster* m = 0;
     ZMQSlave* s = 0;
 
-    std::string my_ip = "tcp://192.168.111.187";
+    std::string my_ip = "tcp://192.168.111.84";
     if(is_server){
         std::cout << "Is Server" << std::endl;
         std::vector<std::string> slaves;
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
         slaves.push_back("tcp://192.168.111.187:7002");
         //slaves.push_back("tcp://192.168.111.84:7001");
         //slaves.push_back("tcp://192.168.111.84:7002");
-        m = new ZMQMaster(host_name, my_ip + ":" + port, slaves);
+        m = new ZMQMaster(host_name, my_ip + ":" + port, slaves, "/home/dig/HelloWorld.graphml");
     }else{
         s = new ZMQSlave(manager, host_name, my_ip + ":" + port);
     }

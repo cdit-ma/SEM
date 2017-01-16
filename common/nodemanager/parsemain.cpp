@@ -1,5 +1,5 @@
 #include "graphmlparser.h"
-
+#include "executionmanager.h"
 
 #include <string>
 #include <iostream>
@@ -71,19 +71,6 @@ void graphml::load(const std::string &filename){
 
 int main(int argc, char** argv){
 
-    GraphmlParser g;
     std::cout << argv[1] << std::endl;
-    g.load(argv[1]);
-
-    for(auto i : g.find_nodes("ComponentInstance")){
-        std::cout << i << std::endl;
-    }
-
-    for(auto i : g.find_edges("Edge_Deployment")){
-        std::cout << i << std::endl;
-    }
-
-    std::cout << g.get_attribute(g.find_edges("Edge_Deployment")[0], "source") << std::endl;;
-    std::cout << g.get_data_value(g.find_edges("Edge_Deployment")[0], "kind") << std::endl;;
-
+    ExecutionManager* manager = new ExecutionManager(0, argv[1]);
 }

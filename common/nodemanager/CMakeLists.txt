@@ -38,16 +38,27 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqmaster.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqslave.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
 	${PROTO_SRCS}
 	)
+
+
 
 add_executable(${PROJ_NAME} ${SOURCE} ${PROTO_HDRS})
 
 set(TESTSOURCE ${CMAKE_CURRENT_SOURCE_DIR}/parsemain.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp)
+				${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/zmqmaster.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
+			${PROTO_SRCS}
+				)
 
 add_executable("parsetest" ${TESTSOURCE})
 target_link_libraries(parsetest ${PUGIXML_LIBRARIES})
+target_link_libraries(parsetest ${PROTOBUF_LIBRARIES})
+target_link_libraries(parsetest ${ZeroMQ_LIBRARIES})
+target_include_directories(parsetest PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
