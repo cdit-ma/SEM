@@ -16,16 +16,17 @@ class ZMQMaster{
         ZMQMaster(std::string host_name, std::string port, std::vector<std::string> slaves);
         ~ZMQMaster();
 
-        bool send_action(std::string node_name, google::protobuf::MessageLite* message){return true;};
-        
+        void send_action(std::string node_name, google::protobuf::MessageLite* message);
         void send_action(std::string node_name, std::string action);
-        bool connected_to_slaves();
+        
+        bool action_writer_active();
 
     private:
         void registration_loop();
         void writer_loop();
 
         bool terminating = false;
+        bool writer_active = false;
 
         std::string host_name;
         std::string port_;
@@ -34,8 +35,7 @@ class ZMQMaster{
         std::mutex queue_mutex_;
         std::condition_variable queue_lock_condition_;
         std::queue<std::pair<std::string, std::string> > message_queue_;
-    
-    private:
+        
         std::thread* registration_thread_ = 0;
         std::thread* writer_thread_ = 0;
         zmq::context_t* context_ = 0;

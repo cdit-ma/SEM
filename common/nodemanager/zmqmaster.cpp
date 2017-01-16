@@ -43,12 +43,28 @@ ZMQMaster::~ZMQMaster(){
     }
 }
 
-bool ZMQMaster::connected_to_slaves(){
-
-    return true;
+bool ZMQMaster::action_writer_active(){
+    return writer_active;
 }
 
 void ZMQMaster::send_action(std::string node_name, std::string action){
+    std::pair<std::string, std::string> p;
+    p.first = node_name;
+    p.second = action;
+    
+    //Lock the Queue, and notify the writer queue.
+    std::unique_lock<std::mutex> lock(queue_mutex_);
+    message_queue_.push(p);
+    queue_lock_condition_.notify_all();
+}
+
+void ZMQMaster::send_action(std::string node_name, google::protobuf::MessageLite* message){
+    std::string action;
+
+    if(!message->SerializeToString(&action)){
+        std::cout << "Serialization failed!" << std::endl;
+        return;
+    }
 
     std::pair<std::string, std::string> p;
     p.first = node_name;
@@ -107,6 +123,8 @@ void ZMQMaster::writer_loop(){
 
     //Wait for a period of time before trying to send
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    writer_active = true;
 
     while(true){
         bool terminated = false;
