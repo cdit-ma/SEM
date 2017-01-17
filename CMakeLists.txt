@@ -44,8 +44,23 @@ set(SOURCE_2
 	${SOURCE}
 	)
 
+set(SOURCE_2
+	${CMAKE_CURRENT_SOURCE_DIR}/deployment_3.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
+	${SOURCE}
+	)
+
+set(SOURCE_4
+	${CMAKE_CURRENT_SOURCE_DIR}/deployment_4.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/receiverimpl.cpp
+	${SOURCE}
+	)
+
 add_library(deployment_1 MODULE ${SOURCE_1} ${HEADERS})
 add_library(deployment_2 MODULE ${SOURCE_2} ${HEADERS})
+
+#add_library(deployment_3 MODULE ${SOURCE_3} ${HEADERS})
+#add_library(deployment_4 MODULE ${SOURCE_4} ${HEADERS})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
@@ -61,6 +76,15 @@ target_link_libraries(deployment_1 zmq_library)
 target_link_libraries(deployment_2 proto_vectormessage_library)
 target_link_libraries(deployment_2 proto_message_library)
 target_link_libraries(deployment_2 zmq_library)
+
+
+#target_link_libraries(deployment_3 proto_vectormessage_library)
+#target_link_libraries(deployment_3 proto_message_library)
+#target_link_libraries(deployment_3 qpid_library)
+
+#target_link_libraries(deployment_4 proto_vectormessage_library)
+#target_link_libraries(deployment_4 proto_message_library)
+#target_link_libraries(deployment_4 qpid_library)
 
 #target_link_libraries(${PROJ_NAME} ospl_library)
 #target_link_libraries(${PROJ_NAME} qpid_library)

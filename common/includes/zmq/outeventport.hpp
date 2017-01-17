@@ -21,7 +21,6 @@ namespace zmq{
 
 template <class T, class S>
 void zmq::OutEventPort<T, S>::tx(T* message){
-    std::cout << "GOT MESSAGE: " << std::endl;
     std::string str = proto::encode(message);
     if(socket_){
         zmq::message_t data(str.c_str(), str.size());
