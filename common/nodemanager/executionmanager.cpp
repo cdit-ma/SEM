@@ -51,7 +51,6 @@ void ExecutionManager::execution_loop(){
             }
         }
         std::string node_name = graphml_parser_->get_data_value(hardware_id, "label");
-        std::string node_ip = graphml_parser_->get_data_value(hardware_id, "ip_address");
                 
         if(deployment_map.count(hardware_id)){
             auto ele = deployment_map[hardware_id]->mutable_node();
@@ -59,15 +58,10 @@ void ExecutionManager::execution_loop(){
             NodeManager::Component* component = ele->add_components();
             component->set_id(c);
             component->set_name(label);
-            NodeManager::Attribute* ip_address = component->add_attributes();
-            ip_address->set_name("ip_address");
-            ip_address->set_type(NodeManager::Attribute::STRING);
-            ip_address->set_s(node_ip);
-            auto attribute_instances = graphml_parser_->find_nodes("AttributeInstance", c);
 
             //get component attribute instances
+            auto attribute_instances = graphml_parser_->find_nodes("AttributeInstance", c);
             for(auto attri : attribute_instances){
-                std::cout << "Attribute ID: " << attri << std::endl;
                 NodeManager::Attribute* a = component->add_attributes();
                 a->set_name(graphml_parser_->get_data_value(attri, "label"));
 
@@ -84,16 +78,49 @@ void ExecutionManager::execution_loop(){
                     a->set_type(NodeManager::Attribute::INTEGER);
                     a->set_i(std::stoi(value_string));
                 }
+            }
 
+            //get component ports
+            auto port_instances = graphml_parser_->find_nodes("OutEventPortInstance", c);
+            auto in_port_instances = graphml_parser_->find_nodes("InEventPortInstance", c);
+            
+            port_instances.insert(port_instances.end(), in_port_instances.begin(), in_port_instances.end());
+
+            for(auto port: port_instances){
+                NodeManager::EventPort* p = component->add_ports();
+                p->set_name(graphml_parser_->get_data_value(port, "label"));
+                std::string port_kind = graphml_parser_->get_data_value(port, "kind");
+
+                if(port_kind == "OutEventPortInstance"){
+                    p->set_type(NodeManager::EventPort::OUT);
+                } else if(port_kind == "InEventPortInstance"){
+                    p->set_type(NodeManager::EventPort::IN);                    
+                }
+
+                std::string port_middleware = graphml_parser_->get_data_value(port, "middleware");
+                if(port_middleware == "RTI_DDS"){
+                    p->set_middleware(NodeManager::EventPort::RTI_DDS);
+                }else if(port_middleware == "QPID"){
+                    p->set_middleware(NodeManager::EventPort::QPID);
+                }else if(port_middleware == "ZMQ"){
+                    p->set_middleware(NodeManager::EventPort::ZMQ);
+                }else if(port_middleware == "OSPL_DDS"){
+                    p->set_middleware(NodeManager::EventPort::OSPL_DDS);
+                }else{
+                    p->set_middleware(NodeManager::EventPort::UNKNOWN);
+                }
+
+                std::string node_ip = graphml_parser_->get_data_value(hardware_id, "ip_address");
+                
+                NodeManager::Attribute* ip_address = p->add_attributes();
+                ip_address->set_name("ip_address");
+                ip_address->set_type(NodeManager::Attribute::STRING);
+                ip_address->set_s(node_ip);
             }
         }
     }
 
-
-
-
     for(auto a: deployment_map){
         std::cout << a.second->DebugString() << std::endl;
     }
-
 }

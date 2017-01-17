@@ -6,8 +6,6 @@
 GraphmlParser::GraphmlParser(const std::string filename){
     auto result = doc.load_file(filename.c_str());
 
-    std::cout << result.description() << std::endl;
-
     auto keys = doc.select_nodes("/graphml/key");
     for(auto key : keys){
         std::string name = key.node().attribute("attr.name").value();
