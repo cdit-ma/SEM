@@ -6,7 +6,7 @@
 //Include the templated OutEventPort Implementation for ZMQ
 #include "zmq/outeventport.hpp"
 
-::OutEventPort<::VectorMessage>* zmq::construct_TxVectorMessage(Component* component, std::string endpoint){
+EXPORT_FUNC ::OutEventPort<::VectorMessage>* zmq::construct_TxVectorMessage(Component* component, std::string endpoint){
     //Construct a vector of the end_points this port should connect to.
     std::vector<std::string> v;
     v.push_back(endpoint);

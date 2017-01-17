@@ -9,7 +9,7 @@
 #include "../message.h"
 
 namespace zmq{
-     ::OutEventPort<::Message>* EXPORT_FUNC construct_TxMessage(Component* component, std::string endpoint);
+     ::OutEventPort<::Message>* construct_TxMessage(Component* component, std::string endpoint);
 };
 
 #endif //ZMQTXMESSAGE_H
