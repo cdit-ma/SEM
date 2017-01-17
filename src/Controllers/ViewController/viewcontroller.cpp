@@ -54,7 +54,6 @@ ViewController::ViewController(){
     toolbar = new ContextToolbar(this);
 
     connect(this, &ViewController::vc_showToolbar, toolbar, &ContextToolbar::showToolbar);
-    connect(FileHandler::getFileHandler(), &FileHandler::notification, this, &ViewController::vc_showNotification);
 }
 
 ViewController::~ViewController()

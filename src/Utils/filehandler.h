@@ -22,15 +22,11 @@ public:
     static QString getTempFileName(QString suffix);
     static QString sanitizeFilePath(QString filePath);
 
-signals:
-    //void notification(NOTIFICATION_TYPE type, QString notificationTitle, QString notificationText, QString iconPath, QString iconName, int ID=1);
-    void notification(NOTIFICATION_SEVERITY severity, QString notificationTitle, QString notificationText, QString iconPath, QString iconName, int ID=1);
-
 public:
     static FileHandler* getFileHandler();
 private:
 
-    static void _notification(NOTIFICATION_SEVERITY severity, QString notificationTitle, QString notificationText, QString iconPath, QString iconName);
+    static void _notification(NOTIFICATION_SEVERITY severity, QString notificationText, QString iconPath, QString iconName);
 
     static bool ensureDirectory(QString path);
 

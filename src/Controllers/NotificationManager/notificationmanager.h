@@ -42,9 +42,9 @@ public:
     void tearDown();
 
     void displayNotification(QString description,
-                             QString iconPath,
-                             QString iconName,
-                             int entityID,
+                             QString iconPath = "",
+                             QString iconName = "",
+                             int entityID = -1,
                              NOTIFICATION_SEVERITY s = NS_INFO,
                              NOTIFICATION_TYPE2 t = NT_MODEL,
                              NOTIFICATION_CATEGORY c = NC_NOCATEGORY);
@@ -67,7 +67,6 @@ signals:
     void clearNotifications(NOTIFICATION_FILTER filter = NF_NOFILTER, int filterVal = -1);
 
 public slots:
-    void notificationReceived(NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID);
     void deleteNotification(int ID);
 
     void setLastNotificationItem(int ID);

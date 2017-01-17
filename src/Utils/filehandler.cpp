@@ -73,10 +73,10 @@ QString FileHandler::readTextFile(QString filePath)
             fileData = fileStream.readAll();
             file.close();
         }else{
-            _notification(NS_ERROR, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
+            _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
         }
     }else{
-        _notification(NS_ERROR, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
+        _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
     }
     return fileData;
 }
@@ -110,13 +110,13 @@ bool FileHandler::writeTextFile(QString filePath, QString fileData)
             out << fileData;
             file.close();
         }else{
-            _notification(NS_ERROR, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Actions", "Save");
+            _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Actions", "Save");
             return false;
         }
     }else{
         return false;
     }
-    _notification(NS_ERROR, "File Handler", "File: '" % fileInfo.absoluteFilePath() % "' written!", "Actions", "Save");
+    _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Actions", "Save");
     return true;
 }
 
@@ -127,9 +127,9 @@ bool FileHandler::ensureDirectory(QString path)
     QDir dir = fileInfo.dir();
     if (!dir.exists()) {
         if(dir.mkpath(".")){
-            _notification(NS_INFO, "File Handler", "Dir: '" % dir.absolutePath() % "' constructed!", "Actions", "Open");
+            _notification(NS_INFO, "Dir: '" % dir.absolutePath() % "' constructed!", "Actions", "Open");
         }else{
-            _notification(NS_ERROR, "File Handler", "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Actions", "Open");
+            _notification(NS_ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Actions", "Open");
             return false;
         }
     }
@@ -171,7 +171,7 @@ FileHandler *FileHandler::getFileHandler()
     return handler;
 }
 
-void FileHandler::_notification(NOTIFICATION_SEVERITY severity, QString notificationTitle, QString notificationText, QString iconPath, QString iconName)
+void FileHandler::_notification(NOTIFICATION_SEVERITY severity, QString notificationText, QString iconPath, QString iconName)
 {
-    emit getFileHandler()->notification(severity, notificationTitle, notificationText, iconPath, iconName, -1);
+    NotificationManager::manager()->displayNotification(notificationText, iconPath, iconName, -1, severity, NT_MODEL, NC_FILE);
 }

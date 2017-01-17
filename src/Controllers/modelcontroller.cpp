@@ -340,17 +340,7 @@ void ModelController::connectViewController(ViewController *view)
 
     connect(view, &ViewController::vc_importSnippet, this, &ModelController::importSnippet);
 
-
-    connect(this, &ModelController::controller_showNotification, view, &ViewController::vc_showNotification);
-
-
     connect(view, &ViewController::vc_importSnippet, this, &ModelController::importSnippet);
-
-
-
-
-
-
 
     view->setController(this);
 }
@@ -442,13 +432,13 @@ void ModelController::loadWorkerDefinitions()
 
                 if(!success){
                     QString message = "Cannot import worker definition '" + file +"'";
-                    emit controller_showNotification(NS_WARNING, "Worker Definition Error", message);
+                    NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
                 }else{
                     //qCritical() << "Loaded Worker Definition: " << file;
                 }
             }else{
                 QString message = "Cannot read worker definition '" + file +"'";
-                emit controller_showNotification(NS_WARNING, "Worker Definition Error", message);
+                NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
             }
         }
 
@@ -461,7 +451,7 @@ void ModelController::loadWorkerDefinitions()
                     workerProcesses[longName] = process;
                 }else{
                     QString message = "2 Worker Operations with the same name, Using only the first.";
-                    emit controller_showNotification(NS_WARNING, "Worker Definition Error", message);
+                    NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
                 }
             }
         }
@@ -1025,12 +1015,12 @@ void ModelController::constructConnectedNode(int parentID, QString nodeKind, int
                     }
                 }else{
                     QString message = "Cannot construct edge; Cycle detected.";
-                    emit controller_showNotification(NS_ERROR, "Construct Connected Node", message,"","", parentID);
+                    NotificationManager::manager()->displayNotification(message, "", "", parentID, NS_ERROR);
                 }
             }else{
                 delete testNode;
                 QString message = "Parent cannot adopt entity '" + nodeKind +"'";
-                emit controller_showNotification(NS_ERROR, "Construct Connected Node", message,"","", parentID);
+                NotificationManager::manager()->displayNotification(message, "", "", parentID, NS_ERROR);
             }
 
         }
@@ -1207,8 +1197,7 @@ void ModelController::setReadOnly(QList<int> IDs, bool readOnly)
         if(item->isSnippetReadOnly() || item->gotData("readOnlyDefinition")){
             if(displayWarning){
                 displayWarning = false;
-
-                emit controller_showNotification(NS_WARNING, "Read-Only", "Entity in selection is a read-only snippet. Cannot modify read-only state.", "", "", item->getID());
+                NotificationManager::manager()->displayNotification("Entity in selection is a read-only snippet. Cannot modify read-only state.", "", "", item->getID(), NS_WARNING);
             }
             continue;
         }
@@ -1306,7 +1295,7 @@ bool ModelController::_paste(int ID, QString xmlData, bool addAction)
 
     Node* parentNode = getNodeFromID(ID);
     if(!parentNode){
-        emit controller_showNotification(NS_INFO, "Paste", "No entity selected to paste into.");
+        NotificationManager::manager()->displayNotification("No entity selected to paste into.");
         success = false;
     }else{
         if(isGraphMLValid(xmlData) && xmlData != ""){
@@ -1370,7 +1359,7 @@ bool ModelController::_copy(QList<int> IDs)
 
         success = true;
     } else {
-        emit controller_showNotification(NS_INFO, "Copy", "Cannot copy selection.");
+        NotificationManager::manager()->displayNotification("Cannot copy selection.");
     }
     return success;
 }
@@ -1510,7 +1499,7 @@ bool ModelController::_importProjects(QStringList xmlDataList, bool addAction)
             //bool result = _importGraphMLXML(xmlData, getModel());
             bool result = _newImportGraphML(xmlData, getModel());
             if(!result){
-                emit controller_showNotification(NS_ERROR, "Import Project", "Cannot Import Project");
+                NotificationManager::manager()->displayNotification("Cannot import project.", "", "", -1, NS_ERROR);
                 success = false;
             }
         }
@@ -3400,7 +3389,7 @@ bool ModelController::destructEdge(Edge *edge)
     case Edge::EC_DEPLOYMENT:{
         if(isUserAction()){
             QString message = "Disconnected '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
-            emit controller_showNotification(NS_INFO, "Deployment Changed", message, "Actions", "Clear", src->getID());
+            NotificationManager::manager()->displayNotification(message, "Actions", "Clear", src->getID());
         }
     }
     default:
@@ -4691,7 +4680,7 @@ void ModelController::constructEdgeGUI(Edge *edge)
     case Edge::EC_DEPLOYMENT:{
         if(isUserAction()){
             QString message = "Deployed '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
-            emit controller_showNotification(NS_INFO, "Deployment Changed", message, "Actions", "ConnectTo", src->getID());
+            NotificationManager::manager()->displayNotification(message, "Actions", "ConnectTo", src->getID());
         }
         break;
     }
@@ -5017,7 +5006,7 @@ void ModelController::enableDebugLogging(bool logMode, QString applicationPath)
 
         if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
             QString message = "Cannot open log file: '" % filePath % "'. Logging disabled.";
-            emit controller_showNotification(NS_WARNING, "Log Error", message);
+            NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
             USE_LOGGING = false;
         }else{
             USE_LOGGING = true;
@@ -5042,8 +5031,10 @@ void ModelController::enableDebugLogging(bool logMode, QString applicationPath)
  */
 void ModelController::displayMessage(QString title, QString message, int ID)
 {
+    Q_UNUSED(title)
+
     //Emit a signal to the view.
-    emit controller_showNotification(NS_INFO, title, message, "", "", ID);
+    NotificationManager::manager()->displayNotification(message, "", "", ID);
 }
 
 /**
@@ -5180,14 +5171,14 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
     if(parent->isInstance() || parent->isImpl()){
         if(!(UNDOING || REDOING)){
             QString message =  "Cannot import/paste into an Instance.";
-            emit controller_showNotification(NS_WARNING, "Import Error", message);
+            NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
             return false;
         }
     }
 
     if(!isGraphMLValid(document)){
         QString message =  "Invalid GraphML Project";
-        emit controller_showNotification(NS_WARNING, "Import Error", message);
+        NotificationManager::manager()->displayNotification(message, "", "", -1, NS_WARNING);
         return false;
     }
 
@@ -5472,7 +5463,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
 
                     if(!newNode){
                         QString message = "Cannot create Node '" % entity->getKind() % "' from document at line #" % QString::number(entity->getLineNumber()) % ".";
-                        emit  controller_showNotification(NS_WARNING, "Import Error", message, "", "", parentNode->getID());
+                        NotificationManager::manager()->displayNotification(message, "", "", parentNode->getID(), NS_WARNING);
                         entity->setIgnoreConstruction();
                         continue;
                     }
@@ -5561,13 +5552,13 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
 					edgesMap.insertMulti(entity->getEdgeKind(), entity);
                 }else{
                     QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".";
-                    emit  controller_showNotification(NS_ERROR, "Import Error", message);
+                    NotificationManager::manager()->displayNotification(message, "", "", -1, NS_ERROR);
                 }
             }else{
                 //Don't construct if we have an error.
 				entity->setIgnoreConstruction();
                 QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".";
-                emit  controller_showNotification(NS_ERROR, "Import Error", message);
+                NotificationManager::manager()->displayNotification(message, "", "", -1, NS_ERROR);
 			}
         }
     }
@@ -5662,7 +5653,7 @@ bool ModelController::_newImportGraphML(QString document, Node *parent)
 
                 //This entity has no more edge kinds to try, therefore can never be constructed.
                 QString message = "Cannot create edge from document at line #" + QString::number(entity->getLineNumber()) + ".";
-                emit  controller_showNotification(NS_ERROR, "Import Error", message);
+                NotificationManager::manager()->displayNotification(message, "", "", -1, NS_ERROR);
             }
         }
     }

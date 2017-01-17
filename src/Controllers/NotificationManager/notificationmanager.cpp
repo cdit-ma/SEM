@@ -298,33 +298,6 @@ QPair<QString, QString> NotificationManager::getSeverityIcon(NOTIFICATION_SEVERI
 
 
 /**
- * @brief NotificationManager::notificationReceived
- * @param type
- * @param title
- * @param description
- * @param iconPath
- * @param iconName
- * @param entityID
- */
-void NotificationManager::notificationReceived(NOTIFICATION_SEVERITY severity, QString title, QString description, QString iconPath, QString iconName, int entityID)
-{
-    // construct notification item
-    NotificationObject* item = new NotificationObject(title, description, iconPath, iconName, entityID, severity, NT_MODEL, NC_NOCATEGORY, this);
-    notificationObjects[item->ID()] = item;
-    lastNotificationObject = item;
-
-    // send signal to the notifications widget; highlight showMostRecentNotification button
-    emit notificationAlert();
-
-    // send signal to the notification dialog; add notification item
-    emit notificationItemAdded(item);
-
-    // send signal to main window; display notification toast
-    emit notificationAdded(iconPath, iconName, description);
-}
-
-
-/**
  * @brief NotificationManager::showLastNotification
  * Send a signal to the main window to show the last notification (last item in the dialog's list).
  */
