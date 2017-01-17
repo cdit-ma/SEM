@@ -15,8 +15,6 @@ void ExecutionManager::execution_loop(){
     auto deployment_edges = graphml_parser_->find_edges("Edge_Deployment");
     auto hardware_nodes = graphml_parser_->find_nodes("HardwareNode");
 
-    //std::set<std::string> deployed_hardware;
-
     std::map<std::string, NodeManager::ControlMessage*> deployment_map;
 
     //Get the Deployed nodes.
@@ -43,6 +41,7 @@ void ExecutionManager::execution_loop(){
         std::string label = graphml_parser_->get_data_value(c, "label");
         std::string hardware_id;
 
+        //find deployment location of component
         for(auto e : deployment_edges){
             std::string source = graphml_parser_->get_attribute(e, "source");
             if(source == c){
@@ -51,7 +50,8 @@ void ExecutionManager::execution_loop(){
             }
         }
         std::string node_name = graphml_parser_->get_data_value(hardware_id, "label");
-                
+
+        //create control message for node
         if(deployment_map.count(hardware_id)){
             auto ele = deployment_map[hardware_id]->mutable_node();
 
@@ -83,7 +83,8 @@ void ExecutionManager::execution_loop(){
             //get component ports
             auto port_instances = graphml_parser_->find_nodes("OutEventPortInstance", c);
             auto in_port_instances = graphml_parser_->find_nodes("InEventPortInstance", c);
-            
+
+            //Combine into one list to reduce code duplication            
             port_instances.insert(port_instances.end(), in_port_instances.begin(), in_port_instances.end());
 
             for(auto port: port_instances){
@@ -97,6 +98,7 @@ void ExecutionManager::execution_loop(){
                     p->set_type(NodeManager::EventPort::IN);                    
                 }
 
+                //parse middleware
                 std::string port_middleware = graphml_parser_->get_data_value(port, "middleware");
                 if(port_middleware == "RTI_DDS"){
                     p->set_middleware(NodeManager::EventPort::RTI_DDS);
@@ -110,12 +112,21 @@ void ExecutionManager::execution_loop(){
                     p->set_middleware(NodeManager::EventPort::UNKNOWN);
                 }
 
-                std::string node_ip = graphml_parser_->get_data_value(hardware_id, "ip_address");
-                
+                //Set port ip addr
                 NodeManager::Attribute* ip_address = p->add_attributes();
+                std::string node_ip = graphml_parser_->get_data_value(hardware_id, "ip_address");
                 ip_address->set_name("ip_address");
                 ip_address->set_type(NodeManager::Attribute::STRING);
                 ip_address->set_s(node_ip);
+
+                //Set port port number
+                NodeManager::Attribute* port_port = p->add_attributes();
+                std::string port_port_s = graphml_parser_->get_data_value(hardware_id, "ip_address");
+                port_port->set_name("port_number");
+                port_port->set_type(NodeManager::Attribute::STRING);
+                
+                //TODO: actually set unique port number.
+                port_port->set_s("60000");
             }
         }
     }
