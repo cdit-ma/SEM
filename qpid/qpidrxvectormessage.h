@@ -1,29 +1,15 @@
 #ifndef QPIDRXVECTORMESSAGE_H
 #define QPIDRXVECTORMESSAGE_H
 
-//Include the concrete port interfaces
-#include "../interfaces.h"
+//Include the core Elements
+#include "core/globalinterfaces.hpp"
+#include "core/eventports/ineventport.hpp"
 
-namespace cdit{
-    class VectorMessage;
-};
+//Include the concrete message object
+#include "../vectormessage.h"
 
 namespace qpid{
-    //Forward declare the Middleware specific EventPort
-    template <class T, class S> class InEventPort;
-
-    class RxVectorMessage: public rxVectorMessageInt{
-        public:
-            EXPORT_FUNC RxVectorMessage(rxVectorMessageInt* component, std::string broker, std::string topic);
-            void rxVectorMessage(::VectorMessage* message);
-            void rx_(::VectorMessage* message);
-        private:
-            //This is the concrete event_port
-            qpid::InEventPort<::VectorMessage, cdit::VectorMessage> * event_port_;
-
-            //This is the Component this port should call into
-            rxVectorMessageInt* component_;        
-    };
+     ::InEventPort<::VectorMessage>* construct_RxVectorMessage(Component* component, std::function<void (::VectorMessage*)> callback_function, std::string broker, std::string topic);
 };
 
 #endif //QPIDRXVECTORMESSAGE_H

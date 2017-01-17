@@ -2,22 +2,7 @@
 #include "../proto/message/messageconvert.h"
 #include "qpid/ineventport.hpp"
 
-
-
-qpid::RxMessage::RxMessage(rxMessageInt* component, std::string broker, std::string topic){
-    //Store the component this port belongs too
-    this->component_ = component;
-
-    //Construct a concrete ZMQ InEventPort linked to callback into this.
-    this->event_port_ = new qpid::InEventPort<::Message, proto::Message>(this, broker, topic);
-}
-
-void qpid::RxMessage::rxMessage(Message* message){
-    //Call back into the component.
-    component_->rxMessage(message);
-}
-
-void qpid::RxMessage::rx_(::Message* message){
-    //Call back into the component.
-    rxMessage(message);
+EXPORT_FUNC ::InEventPort<::Message>* qpid::construct_RxMessage(Component* component, std::function<void (::Message*)> callback_function, std::string broker, std::string topic){
+    auto p = new qpid::InEventPort<::Message, proto::Message>(component, callback_function, broker, topic);
+    return p;
 }

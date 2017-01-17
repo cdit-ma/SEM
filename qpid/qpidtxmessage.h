@@ -1,22 +1,15 @@
 #ifndef QPIDTXMESSAGE_H
 #define QPIDTXMESSAGE_H
 
-#include "../interfaces.h"
-namespace proto{
-    class Message;
-}
-namespace qpid{
-    template <class T, class S> class OutEventPort;
-    class TxMessage: public txMessageInt{
-        public:
-            EXPORT_FUNC TxMessage(txMessageInt* component, std::string broker, std::string topic);
-            void txMessage(::Message* message);
-            void tx_(::Message* message){};
-        private:
-            qpid::OutEventPort<::Message, proto::Message> * event_port_;
+//Include the core Elements
+#include "core/globalinterfaces.hpp"
+#include "core/eventports/outeventport.hpp"
 
-            txMessageInt* component_;
-    };
+//Include the concrete message object
+#include "../message.h"
+
+namespace qpid{
+    ::OutEventPort<::Message>* construct_TxMessage(Component* component, std::string broker, std::string topic);
 };
 
 #endif //QPIDTXMESSAGE_H
