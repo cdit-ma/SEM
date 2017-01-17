@@ -11,6 +11,6 @@ EXPORT_FUNC ::OutEventPort<::Message>* rti::construct_TxMessage(Component* compo
                                                     std::string subscriber_name, 
                                                     std::string topic_name){
 
-    auto p = new rti::OutEventPort<::Message, proto::Message>(component, domain_id,subscriber_name,topic_name);
+    auto p = new rti::OutEventPort<::Message, cdit::Message>(component, domain_id,subscriber_name,topic_name);
     return p;
 }

@@ -14,7 +14,7 @@ EXPORT_FUNC ::InEventPort<::Message>* rti::construct_RxMessage(Component* compon
                                                         std::string subscriber_name, 
                                                         std::string topic_name){
 
-    auto p = new rti::InEventPort<::Message, proto::Message>(component, callback_function, 
+    auto p = new rti::InEventPort<::Message, cdit::Message>(component, callback_function, 
                                                             domian_id, 
                                                             subscriber_name, 
                                                             topic_name);
