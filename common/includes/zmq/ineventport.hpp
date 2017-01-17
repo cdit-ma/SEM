@@ -62,7 +62,7 @@ void zmq::InEventPort<T, S>::zmq_loop(){
     auto socket = helper->get_subscriber_socket();
 
     for(auto end_point: end_points_){
-        std::cout << "Binding To: " << end_point << std::endl;
+        std::cout << "Connecting To: " << end_point << std::endl;
         //Connect to the publisher
         socket->connect(end_point.c_str());   
     }
@@ -94,7 +94,8 @@ void zmq::InEventPort<T, S>::zmq_loop(){
 };
 
 template <class T, class S>
-zmq::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points) : ::InEventPort<T>(component, callback_function){
+zmq::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points)
+: ::InEventPort<T>(component, callback_function){
     this->end_points_ = end_points;
 
     zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
