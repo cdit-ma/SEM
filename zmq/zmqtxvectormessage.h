@@ -1,29 +1,15 @@
 #ifndef ZMQTXVECTORMESSAGE_H
 #define ZMQTXVECTORMESSAGE_H
 
-//Include the concrete port interfaces
-#include "../interfaces.h"
+//Include the core Elements
+#include "core/globalinterfaces.hpp"
+#include "core/eventports/outeventport.hpp"
 
-namespace cdit{
-    class VectorMessage;
-}
+//Include the concrete message object
+#include "../vectormessage.h"
 
 namespace zmq{
-    //Forward declare the Middleware specific EventPort
-    template <class T, class S> class OutEventPort;
-
-    class TxVectorMessage: public txVectorMessageInt{
-        public:
-            EXPORT_FUNC TxVectorMessage(txVectorMessageInt* component, std::string endpoint);
-            void txVectorMessage(::VectorMessage* message);
-            void tx_(::VectorMessage* message){};
-        private:
-            //This is the concrete event port
-            zmq::OutEventPort<::VectorMessage, cdit::VectorMessage> * event_port_;
-
-            //This is the Component this port should call into
-            txVectorMessageInt* component_;        
-    };
+     ::OutEventPort<::VectorMessage>* EXPORT_FUNC construct_TxVectorMessage(Component* component, std::string endpoint);
 };
 
 #endif //ZMQTXVECTORMESSAGE_H

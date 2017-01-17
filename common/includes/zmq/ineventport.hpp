@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <thread>
+#include <functional>
 #include <mutex>
 #include <condition_variable>
 #include <queue>
@@ -14,8 +15,7 @@
 namespace zmq{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(::InEventPort<T>* port, std::vector<std::string> end_points);
-            void rx_(T* message);
+            InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points);
         private:
             void receive_loop();
             void zmq_loop();
@@ -24,24 +24,12 @@ namespace zmq{
             std::thread* zmq_thread_;
             std::thread* rec_thread_;
 
-            ::InEventPort<T>* port_;
-
             std::vector<std::string> end_points_;
 
             std::mutex notify_mutex_;
             std::condition_variable notify_lock_condition_;
             std::queue<std::string> message_queue_;
     }; 
-};
-
-template <class T, class S>
-void zmq::InEventPort<T, S>::rx_(T* message){
-    if(port_ && this->is_active()){
-        port_->rx_(message);
-    }else{
-        std::cout << "Ignoring Message?" << std::endl;
-        delete message;
-    }
 };
 
 template <class T, class S>
@@ -62,7 +50,7 @@ void zmq::InEventPort<T, S>::receive_loop(){
             //auto s = new S();
             auto m = proto::decode<S>(str);
             //delete s;
-            rx_(m);
+            this->rx(m);
             queue_.pop();
         }
     }
@@ -106,11 +94,8 @@ void zmq::InEventPort<T, S>::zmq_loop(){
 };
 
 template <class T, class S>
-zmq::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, std::vector<std::string> end_points){
-    this->port_ = port;
+zmq::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points) : ::InEventPort<T>(component, callback_function){
     this->end_points_ = end_points;
-
-    auto helper = ZmqHelper::get_zmq_helper();
 
     zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
     rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);

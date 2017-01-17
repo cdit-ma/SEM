@@ -10,18 +10,18 @@
 namespace zmq{
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
-            OutEventPort(::OutEventPort<T>* port, std::vector<std::string> end_points);
-            void tx_(T* message);
+            OutEventPort(Component* component, std::vector<std::string> end_points);
+            void tx(T* message);
         private:
 
             zmq::socket_t* socket_;
-            ::OutEventPort<T>* port_;
             std::vector<std::string> end_points_;
     }; 
 };
 
 template <class T, class S>
-void zmq::OutEventPort<T, S>::tx_(T* message){
+void zmq::OutEventPort<T, S>::tx(T* message){
+    std::cout << "GOT MESSAGE: " << std::endl;
     std::string str = proto::encode(message);
     if(socket_){
         zmq::message_t data(str.c_str(), str.size());
@@ -30,8 +30,7 @@ void zmq::OutEventPort<T, S>::tx_(T* message){
 };
 
 template <class T, class S>
-zmq::OutEventPort<T, S>::OutEventPort(::OutEventPort<T>* port, std::vector<std::string> end_points){
-    this->port_ = port;
+zmq::OutEventPort<T, S>::OutEventPort(Component* component, std::vector<std::string> end_points): ::OutEventPort<T>(component){
     this->end_points_ = end_points;
 
     auto helper = ZmqHelper::get_zmq_helper();

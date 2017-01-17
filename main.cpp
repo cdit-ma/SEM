@@ -93,11 +93,16 @@ class NodeContainerInstance: public NodeContainer{
         //ospl_tx = new ospl::TxMessage(sender_impl2, 0, pub_name, topic_name);
         //ospl_rx = new ospl::RxMessage(receiver_impl2, 0, sub_name, topic_name);
 
+        auto tx_test = zmq::construct_TxMessage(sender_impl3, std::string("tcp://*:6000"));
+
+        sender_impl3->_set_txMessage2(tx_test);
+
         //ZMQ
-        zmq_tx = new zmq::TxMessage(sender_impl3, std::string("tcp://*:6000"));
+        //zmq_tx = zmq::create_txMessageInt(sender_impl3, std::string("tcp://*:6000"));
+        //zmq_tx = new zmq::TxMessage(sender_impl3, std::string("tcp://*:6000"));
         zmq_rx = new zmq::RxMessage(receiver_impl3, std::string("tcp://localhost:6000"));
-        zmq_v_tx = new zmq::TxVectorMessage(sender_impl3, std::string("tcp://*:6001"));
-        zmq_v_rx = new zmq::RxVectorMessage(receiver_impl3, std::string("tcp://localhost:6001"));
+        //zmq_v_tx = new zmq::TxVectorMessage(sender_impl3, std::string("tcp://*:6001"));
+        //zmq_v_rx = new zmq::RxVectorMessage(receiver_impl3, std::string("tcp://localhost:6001"));
         //QPID
         //qpid_tx = new qpid::TxMessage(sender_impl4, "localhost:5672", "a");
         //qpid_rx = new qpid::RxMessage(receiver_impl4, "localhost:5672",  "a");
@@ -109,6 +114,7 @@ class NodeContainerInstance: public NodeContainer{
         //Attach Ports
         sender_impl->_set_txMessage(rti_tx);
         sender_impl2->_set_txMessage(ospl_tx);
+        
         sender_impl3->_set_txMessage(zmq_tx);
         sender_impl3->_set_txVectorMessage(zmq_v_tx);
 

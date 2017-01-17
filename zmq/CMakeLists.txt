@@ -8,6 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CDITMA_RUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../common")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CDITMA_RUNTIME_ROOT}/cmake/modules")
 
+include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
+
 set(PROJ_NAME zmq_library)
 project (${PROJ_NAME})
 

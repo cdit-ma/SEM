@@ -1,5 +1,8 @@
 #include "interfaces.h"
 #include <iostream>
+
+
+//ATTRIBUTE STUFF
 std::string SenderInt::instName(){
     return instName_;
 };
@@ -19,35 +22,35 @@ void SenderInt::set_message(const std::string val){
 SenderInt::SenderInt(std::string name): Component(name){
 };
 
-ReceiverInt::ReceiverInt(std::string name): Component(name){
-};
-
-void SenderInt::_set_txMessage(txMessageInt* port){
-    this->txMessageInt_ = port;
-    if(port){
-        add_event_port(port);
+void SenderInt::_set_txMessage(::OutEventPort<::Message>* tx){
+    if(tx){
+        txMessage_ = tx;    
     }
-};
+}
 
-void SenderInt::_set_txVectorMessage(txVectorMessageInt* port){
-    this->txVectorMessageInt_ = port;
-    if(port){
-        add_event_port(port);
+void SenderInt::_set_txVectorMessage(::OutEventPort<::VectorMessage>* tx){
+    if(tx){
+        txVectorMessage_ = tx;    
     }
-};
+}
+
+
 
 void SenderInt::txMessage(::Message* message){
-    if(txMessageInt_){
-        txMessageInt_->txMessage(message);
+    if(txMessage_){
+        txMessage_->tx(message);
     }
 };
 
 void SenderInt::txVectorMessage(::VectorMessage* message){
-    if(txVectorMessageInt_){
-        txVectorMessageInt_->txVectorMessage(message);
+    if(txVectorMessage_){
+        txVectorMessage_->tx(message);
     }
 };
 
+
+
+ReceiverInt::ReceiverInt(std::string name): Component(name){};
 
 std::string ReceiverInt::instName(){
     return instName_;
@@ -58,16 +61,17 @@ void ReceiverInt::set_instName(const std::string val){
 };
 
 
-void ReceiverInt::_set_rxMessage(rxMessageInt* port){
-    this->rxMessageInt_ = port;
-    if(port){
-        add_event_port(port);
+void ReceiverInt::_set_rxMessage(::InEventPort<::Message>* rx){
+    if(rx){
+        rxMessage_ = rx;    
     }
 };
 
-void ReceiverInt::_set_rxVectorMessage(rxVectorMessageInt* port){
-    this->rxVectorMessageInt_ = port;
-    if(port){
-        add_event_port(port);
+void ReceiverInt::_set_rxVectorMessage(::InEventPort<::VectorMessage>* rx){
+    if(rx){
+        rxVectorMessage_ = rx;    
     }
 };
+
+
+

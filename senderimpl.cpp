@@ -4,11 +4,12 @@
 SenderImpl::SenderImpl(std::string name) : SenderInt(name){};
 
 void SenderImpl::periodic_event(){
+    std::cout << "PERIODIC EVENT" << std::endl;
     Message* msg = new Message();
     msg->set_time(this->sentCount_ ++);
     msg->set_instName(this->instName());
     msg->set_content(this->message());
-    txMessage(msg);
+    SenderInt::txMessage(msg);
 }
 
 void SenderImpl::periodic_event_v(){

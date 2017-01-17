@@ -20,7 +20,7 @@ namespace qpid{
     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
             OutEventPort(::OutEventPort<T>* port, std::string broker, std::string topic);
-            void tx_(T* message);
+            void tx(T* message);
         private:
             qpid::messaging::Connection connection_;
             qpid::messaging::Session session_;
@@ -33,7 +33,7 @@ namespace qpid{
 };
 
 template <class T, class S>
-void qpid::OutEventPort<T, S>::tx_(T* message){
+void qpid::OutEventPort<T, S>::tx(T* message){
     std::string str = proto::encode(message);
 
     qpid::messaging::Message m;
