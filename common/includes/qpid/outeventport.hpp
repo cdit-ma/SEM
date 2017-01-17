@@ -19,16 +19,12 @@
 namespace qpid{
     template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
-            OutEventPort(::OutEventPort<T>* port, std::string broker, std::string topic);
+            OutEventPort(Component* component, std::string broker, std::string topic);
             void tx(T* message);
         private:
             qpid::messaging::Connection connection_;
             qpid::messaging::Session session_;
             qpid::messaging::Sender sender_;
-
-            ::OutEventPort<T>* port_;
-
-            
     };
 };
 
@@ -42,19 +38,14 @@ void qpid::OutEventPort<T, S>::tx(T* message){
     sender_.send(m);
 }
 
-
 template <class T, class S>
-qpid::OutEventPort<T, S>::OutEventPort(::OutEventPort<T>* port, std::string broker, std::string topic){
-    this->port_ = port;
-
-    //auto helper = QpidHelper::get_qpid_helper();
-
+qpid::OutEventPort<T, S>::OutEventPort(Component* component, std::string broker, std::string topic):
+::OutEventPort<T>(component){
     connection_ = qpid::messaging::Connection(broker);
     connection_.open();
     session_ = connection_.createSession();
     std::string tn = "amq.topic/" + topic;
     sender_ = session_.createSender(tn);
-
 }
 
 #endif //QPID_OUTEVENTPORT_H
