@@ -14,9 +14,8 @@
 namespace rti{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string topic_name);
+            InEventPort(Component* component, std::function<void (T*) > callback_function, int domain_id, std::string subscriber_name, std::string topic_name);
             void notify();
-            void rx_(T* message);
         private:
             void receive_loop();
             
@@ -26,16 +25,7 @@ namespace rti{
             
             rti::DataReaderListener<T,S>* listener_;
             dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
-            ::InEventPort<T>* port_;
     }; 
-};
-
-template <class T, class S>
-void rti::InEventPort<T, S>::rx_(T* message){
-    //Call back into our port's rx_ function, so that it can call into the Component
-    if(port_){
-        port_->rx_(message);
-    }
 };
 
 template <class T, class S>
@@ -47,9 +37,8 @@ void rti::InEventPort<T, S>::notify(){
 
 
 template <class T, class S>
-rti::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string topic_name){
-    this->port_ = port;
-    
+rti::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function,, int domain_id, std::string subscriber_name, std::string topic_name):
+: ::InEventPort<T>(component, callback_function){
     //Construct a DDS Participant, Subscriber, Topic and Reader
     auto helper = DdsHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id);
@@ -82,7 +71,7 @@ void rti::InEventPort<T, S>::receive_loop(){
             //Translate and callback into the component for each valid message we receive
             if(sample->info().valid()){
                 auto m = translate(&sample->data());
-                rx_(m);
+                this->rx(m);
             }
         }
     }
