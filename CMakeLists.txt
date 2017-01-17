@@ -16,10 +16,7 @@ set(SOURCE
 
 	${CMAKE_CURRENT_SOURCE_DIR}/basemessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/interfaces.cpp
-
 	)
-
-
 
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/proto/message")
@@ -44,7 +41,7 @@ set(SOURCE_2
 	${SOURCE}
 	)
 
-set(SOURCE_2
+set(SOURCE_3
 	${CMAKE_CURRENT_SOURCE_DIR}/deployment_3.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
 	${SOURCE}
