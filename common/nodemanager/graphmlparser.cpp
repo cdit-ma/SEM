@@ -17,9 +17,14 @@ GraphmlParser::GraphmlParser(const std::string filename){
     }
 }
 
-std::vector<std::string> GraphmlParser::find_nodes(std::string kind, std::string value){
-    std::string search = ".//node[data[@key='" + 
-                            attribute_map_["kind"] + "' and .='" + kind +"']]";
+std::vector<std::string> GraphmlParser::find_nodes(std::string kind, std::string parent_id){
+
+    std::string search = ".//node";
+
+    if(parent_id.length() > 0){
+        search += "[@id='"+ parent_id + "']/";
+    }
+    search += "/data[@key='" + attribute_map_["kind"] + "' and .='" + kind +"']/..";
     std::vector<std::string> out;
 
     for(auto n : doc.select_nodes(search.c_str())){

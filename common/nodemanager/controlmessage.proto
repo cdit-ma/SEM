@@ -57,7 +57,7 @@ message Attribute{
         STRING = 0;
         INTEGER = 1;
         BOOLEAN = 2;
-        DECIMAL = 3;
+        DOUBLE = 3;
     }
 
     Type type = 1;
