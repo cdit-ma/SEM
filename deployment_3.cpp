@@ -30,7 +30,7 @@ SenderImpl* construct_sender_impl(NodeContainer* c, std::string name){
     return s;
 }
 
-void Deployment_1::startup(){
+void Deployment_3::startup(){
     //Construct the Component Impls
     SenderImpl* sender_impl = construct_sender_impl(this, "1");
     SenderImpl* sender_impl2 = construct_sender_impl(this, "2");
@@ -42,8 +42,8 @@ void Deployment_1::startup(){
     sender_impl->set_message("ZMQ1");
     sender_impl2->set_message("ZMQ2");
 
-    auto txMessage = qpid::construct_TxMessage(sender_impl, std::string("tcp://*:6000"));
-    auto txVectorMessage = qpid::construct_TxVectorMessage(sender_impl2, std::string("tcp://*:6001"));
+    auto txMessage = qpid::construct_TxMessage(sender_impl, "localhost:5672", "a");
+    auto txVectorMessage = qpid::construct_TxVectorMessage(sender_impl2, "localhost:5672", "b");
     sender_impl->_set_txMessage(txMessage);
     sender_impl2->_set_txVectorMessage(txVectorMessage);
 };
