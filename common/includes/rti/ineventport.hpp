@@ -37,8 +37,8 @@ void rti::InEventPort<T, S>::notify(){
 
 
 template <class T, class S>
-rti::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function,, int domain_id, std::string subscriber_name, std::string topic_name):
-: ::InEventPort<T>(component, callback_function){
+rti::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, int domain_id, std::string subscriber_name, std::string topic_name):
+::InEventPort<T>(component, callback_function){
     //Construct a DDS Participant, Subscriber, Topic and Reader
     auto helper = DdsHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id);

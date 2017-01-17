@@ -5,7 +5,7 @@
 
 namespace cdit{
     class Message;
-}
+};
 namespace rti{
     cdit::Message* translate(::Message *m);
     ::Message* translate(const cdit::Message *m);

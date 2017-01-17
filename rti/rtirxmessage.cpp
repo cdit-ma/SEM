@@ -2,10 +2,12 @@
 
 #include "message.hpp"
 
+#include "messageconvert.h"
+
 //Include the templated OutEventPort Implementation for OSPL
 #include "rti/ineventport.hpp"
 
-#include "messageconvert.h"
+
 
 
 EXPORT_FUNC ::InEventPort<::Message>* rti::construct_RxMessage(Component* component, 
@@ -15,7 +17,7 @@ EXPORT_FUNC ::InEventPort<::Message>* rti::construct_RxMessage(Component* compon
                                                         std::string topic_name){
 
     auto p = new rti::InEventPort<::Message, cdit::Message>(component, callback_function, 
-                                                            domian_id, 
+                                                            domain_id, 
                                                             subscriber_name, 
                                                             topic_name);
     return p;

@@ -2,8 +2,10 @@
 
 #include "message.hpp"
 
-#include "rti/outeventport.hpp"
 #include "messageconvert.h"
+
+#include "rti/outeventport.hpp"
+
 
 
 EXPORT_FUNC ::OutEventPort<::Message>* rti::construct_TxMessage(Component* component, 

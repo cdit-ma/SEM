@@ -30,7 +30,8 @@ void rti::OutEventPort<T, S>::tx(T* message){
 };
 
 template <class T, class S>
-rti::OutEventPort<T, S>::OutEventPort(Component* component, int domain_id, std::string publisher_name, std::string topic_name){
+rti::OutEventPort<T, S>::OutEventPort(Component* component, int domain_id, std::string publisher_name, std::string topic_name):
+::OutEventPort<T>(component){
     //Construct a DDS Participant, Publisher, Topic and Writer
     auto helper = DdsHelper::get_dds_helper();   
     auto participant = helper->get_participant(domain_id);
