@@ -179,7 +179,7 @@ void MainWindow::showProgressBar(bool show, QString description)
 
     if (show) {
         Qt::Alignment alignment = welcomeScreenOn ? Qt::AlignBottom : Qt::AlignCenter;
-        moveWidget(progressPopup, this, alignment);
+        moveWidget(progressPopup, innerWindow, alignment);
     } else {
         progressBar->reset();
     }
