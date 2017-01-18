@@ -16,9 +16,13 @@ namespace zmq{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
             InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points);
+
+            void startup(std::map<std::string, ::Attribute*> attributes);
+            void teardown();
         private:
             void receive_loop();
             void zmq_loop();
+            
             
 
             std::thread* zmq_thread_;
@@ -96,10 +100,38 @@ void zmq::InEventPort<T, S>::zmq_loop(){
 template <class T, class S>
 zmq::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points)
 : ::InEventPort<T>(component, callback_function){
-    this->end_points_ = end_points;
+    //this->end_points_ = end_points;
 
-    zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
-    rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);
+    //zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
+    //rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);
 };
+
+
+template <class T, class S>
+void zmq::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+    
+    this->end_points_.clear();
+    if(attributes.count("sender_addresses")){
+        auto attr = attributes["sender_addresses"];
+        if(attr->type == AT_STRINGLIST){
+            for(auto s : attr->s){
+                std::cout << "ZMQ:INEVENTPORT Got: " << s << std::endl;
+                end_points_.push_back(s);
+            }   
+        }
+    }
+
+    if(!end_points_.empty()){
+        zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
+        rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);    
+    }else{
+        std::cout << "NO RECIEVERS!" << std::endl;
+    }
+};
+
+template <class T, class S>
+void zmq::InEventPort<T, S>::teardown(){
+};
+
 
 #endif //ZMQ_INEVENTPORT_H

@@ -21,9 +21,9 @@ set(SOURCE
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/proto/message")
 add_subdirectory("${PROJECT_SOURCE_DIR}/proto/vectormessage")
-add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
-add_subdirectory("${PROJECT_SOURCE_DIR}/qpid")
-add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/qpid")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 
 #add_subdirectory("${PROJECT_SOURCE_DIR}/common")
@@ -41,6 +41,7 @@ set(SOURCE_2
 	${SOURCE}
 	)
 
+if(false)
 set(SOURCE_3
 	${CMAKE_CURRENT_SOURCE_DIR}/deployment_3.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
@@ -90,10 +91,12 @@ set(SOURCE_10
 	${SOURCE}
 	)
 
+endif(false)
 
 add_library(deployment_1 MODULE ${SOURCE_1} ${HEADERS})
 add_library(deployment_2 MODULE ${SOURCE_2} ${HEADERS})
 
+if(false)
 add_library(deployment_3 MODULE ${SOURCE_3} ${HEADERS})
 add_library(deployment_4 MODULE ${SOURCE_4} ${HEADERS})
 
@@ -105,23 +108,28 @@ add_library(deployment_8 MODULE ${SOURCE_8} ${HEADERS})
 
 add_library(deployment_9 MODULE ${SOURCE_9} ${HEADERS})
 add_library(deployment_10 MODULE ${SOURCE_10} ${HEADERS})
+endif(false)
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 endif()
 
+find_library(RE_PROTO_CONTROL_LIBRARIES re_proto_control "${CDITMA_RUNTIME_ROOT}/lib")
 
+
+target_link_libraries(deployment_1 ${RE_PROTO_CONTROL_LIBRARIES})
 target_link_libraries(deployment_1 proto_vectormessage_library)
 target_link_libraries(deployment_1 proto_message_library)
 target_link_libraries(deployment_1 zmq_library)
 
 
+target_link_libraries(deployment_2 ${RE_PROTO_CONTROL_LIBRARIES})
 target_link_libraries(deployment_2 proto_vectormessage_library)
 target_link_libraries(deployment_2 proto_message_library)
 target_link_libraries(deployment_2 zmq_library)
 
-
+if(false)
 target_link_libraries(deployment_3 proto_vectormessage_library)
 target_link_libraries(deployment_3 proto_message_library)
 target_link_libraries(deployment_3 qpid_library)
@@ -155,4 +163,4 @@ target_link_libraries(deployment_10 zmq_library)
 #target_link_libraries(${PROJ_NAME} ospl_library)
 #target_link_libraries(${PROJ_NAME} qpid_library)
 #target_link_libraries(${PROJ_NAME} rti_library)
-
+endif(false)

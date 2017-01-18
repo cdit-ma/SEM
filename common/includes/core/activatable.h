@@ -18,6 +18,8 @@ struct Attribute{
 
 class Activatable{  
     public:
+        const std::string get_name();
+        void set_name(std::string name);
         virtual bool activate();            //Start Component (Start Middleware etc)
         virtual bool passivate();           //Stop Component 
         //virtual bool startup(std::map<std::string, Attribute> attributes); //Configure Component
@@ -28,6 +30,7 @@ class Activatable{
         //const bool is_started();
    private:
         bool active_ = false;
+        std::string name_;
         //bool started_ = false;
 };
 

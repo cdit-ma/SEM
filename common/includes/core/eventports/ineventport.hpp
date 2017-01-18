@@ -17,7 +17,7 @@ template <class T> class InEventPort: public EventPort{
             }
         };
         void rx(T* t){
-            if(callback_function_){
+            if(this->is_active() && callback_function_){
                 callback_function_(t);
             }
         };

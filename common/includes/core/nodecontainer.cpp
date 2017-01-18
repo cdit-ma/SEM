@@ -1,6 +1,8 @@
 #include "nodecontainer.h"
 #include <iostream>
 
+#include "controlmessage.pb.h"
+
 bool NodeContainer::activate(std::string component_name){
     Component* component = get_component(component_name);
     if(component){
@@ -14,6 +16,18 @@ bool NodeContainer::passivate(std::string component_name){
         return component->passivate();
     }
     return false;
+}
+
+void NodeContainer::configure(NodeManager::ControlMessage* message){
+
+    auto n = message->mutable_node();
+
+    std::cout << "WINRAR: " << message->DebugString() << std::endl;
+    for(auto c : n->components()){
+        std::cout << c.name() << std::endl;
+        
+    }
+    
 }
 
 bool NodeContainer::activate_all(){

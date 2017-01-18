@@ -54,3 +54,11 @@ void PeriodicEventPort::loop(){
         }
     }
 }
+
+
+void PeriodicEventPort::startup(std::map<std::string, ::Attribute*> attributes){
+    
+};
+
+void PeriodicEventPort::teardown(){
+};

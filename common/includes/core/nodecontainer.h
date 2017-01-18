@@ -5,6 +5,10 @@
 
 #include "component.h"
 
+namespace NodeManager{
+    class ControlMessage;
+};
+
 class NodeContainer{ 
     public:
         bool activate(std::string component_name);
@@ -13,6 +17,8 @@ class NodeContainer{
         bool activate_all();
         bool passivate_all();
 
+        void configure(NodeManager::ControlMessage* message);
+        
         virtual void startup() = 0;
         void teardown();
 

@@ -18,6 +18,7 @@ include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
 
 #Find our core library
 find_library(RE_CORE_LIBRARIES re_core "${CDITMA_RUNTIME_ROOT}/lib")
+find_library(RE_PROTO_CONTROL_LIBRARIES re_proto_control "${CDITMA_RUNTIME_ROOT}/lib")
 
 find_package(ZeroMQ REQUIRED)
 include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
@@ -25,17 +26,15 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 find_package(Protobuf REQUIRED)
 include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/controlmessage.proto)
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqmaster.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/zmqslave.cpp
-	${PROTO_SRCS}
 	)
 
-add_executable(${PROJ_NAME} ${SOURCE} ${PROTO_HDRS})
+add_executable(${PROJ_NAME} ${SOURCE})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
@@ -48,6 +47,7 @@ endif(UNIX)
 
 
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${RE_PROTO_CONTROL_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 

@@ -16,6 +16,9 @@ class PeriodicEventPort: public EventPort{
         bool activate();
         bool passivate();
 
+        void startup(std::map<std::string, ::Attribute*> attributes);
+        void teardown();
+
     private:
         bool wait_for_tick();
         void loop();
