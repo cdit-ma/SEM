@@ -5,11 +5,8 @@
 #include "core/globalinterfaces.hpp"
 #include "core/eventports/ineventport.hpp"
 
-
 //Include the concrete message object
 #include "../message.h"
-
-//Includes the ::Message and rti::Message
 
 namespace rti{
     ::InEventPort<::Message>* construct_RxMessage(Component* component, 
