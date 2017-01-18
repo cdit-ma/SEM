@@ -41,8 +41,8 @@ void NotificationToolbar::themeChanged()
                   "QToolBar::separator{ width: 3px; background:" + theme->getBackgroundColorHex() + ";}"
                   "QToolButton{ padding: 2px; }"
                   "QToolButton#LEFT_ACTION{" + borderRadiusLeft + "}"
-                  "QToolButton#RIGHT_ACTION{" + borderRadiusRight + "}"
-                  "QLabel{ background: rgba(0,0,0,0); }");
+                  "QToolButton#RIGHT_ACTION{" + borderRadiusRight + "}");
+                  //"QLabel{ background: rgba(0,0,0,0); }");
 
     //defaultIcon = theme->getIcon("Actions", "Exclamation");
     //notificationIcon = theme->getIcon(lastNotification.iconPath, lastNotification.iconName);
@@ -142,6 +142,7 @@ void NotificationToolbar::updateSeverityCount(NOTIFICATION_SEVERITY severity, in
     QLabel* countLabel = severityCount.value(severity, 0);
     if (countLabel) {
         countLabel->setText(QString::number(count));
+        //setMinimumWidth(sizeHint().width());
     }
 }
 
@@ -175,7 +176,7 @@ void NotificationToolbar::setupLayout()
             label->setMinimumWidth(labelWidth);
             label->setAlignment(Qt::AlignCenter);
             label->setToolTip(NotificationManager::getSeverityString(s) + " Count");
-            label->setStyleSheet("QLabel{ padding: 0px 5px; color:" + NotificationManager::getSeverityColorStr(s) + ";}");
+            label->setStyleSheet("QLabel{ background: rgba(0,0,0,0); padding: 0px 5px; color:" + NotificationManager::getSeverityColorStr(s) + ";}");
             addWidget(label);
             addSeparator();
 

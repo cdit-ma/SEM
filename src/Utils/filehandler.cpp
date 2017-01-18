@@ -116,7 +116,7 @@ bool FileHandler::writeTextFile(QString filePath, QString fileData)
     }else{
         return false;
     }
-    _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Actions", "Save");
+    _notification(NS_INFO, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Actions", "Save");
     return true;
 }
 

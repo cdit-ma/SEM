@@ -57,14 +57,16 @@ signals:
     void notificationItemAdded(NotificationObject* obj);
     void notificationDeleted(int ID);
 
-    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BP_UNKNOWN);
-
     void lastNotificationDeleted();
     void req_lastNotificationID();
 
+    void clearNotifications(NOTIFICATION_FILTER filter = NF_NOFILTER, int filterVal = -1);
+
+    void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BP_UNKNOWN);
+
     void showNotificationDialog(bool show = true);
 
-    void clearNotifications(NOTIFICATION_FILTER filter = NF_NOFILTER, int filterVal = -1);
+    void updateNotificationToolbarSize();
 
 public slots:
     void deleteNotification(int ID);

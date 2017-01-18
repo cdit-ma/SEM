@@ -56,6 +56,8 @@ public slots:
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);
 
+    void updateMenuCornerWidget();
+
     void resetToolDockWidgets();
 
 private slots:

@@ -599,7 +599,7 @@ void NotificationDialog::clearSelection()
  */
 void NotificationDialog::initialiseDialog()
 {
-    resetDialog();
+    //resetDialog();
 
     QList<NotificationObject*> notifications = NotificationManager::getNotificationItems();
     if (!notifications.isEmpty()) {

@@ -46,6 +46,7 @@ void NotificationManager::resetManager()
             modelNotifications.append(obj);
         }
     }
+    // remove model notifications from the hash and the notification dialog
     foreach (NotificationObject* m_obj, modelNotifications) {
         deleteNotification(m_obj->ID());
     }
@@ -325,6 +326,7 @@ void NotificationManager::modelValidated(QStringList report)
             addNotification(description, "", "", eID.toInt(), NS_WARNING, NT_MODEL, NC_VALIDATION, false);
         }
         emit showNotificationDialog();
+        emit updateNotificationToolbarSize();
     }
     addNotification("Model Validation " + status, "Actions", "Validate", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
 }
