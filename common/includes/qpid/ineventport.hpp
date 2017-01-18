@@ -9,6 +9,7 @@
 #include <condition_variable>
 #include <queue>
 #include <string>
+#include <functional>
 
 #include <qpid/messaging/Address.h>
 #include <qpid/messaging/Connection.h>
@@ -20,9 +21,7 @@
 namespace qpid{
     template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(::InEventPort<T>* port, std::string broker, std::string topic);
-            void notify();
-            void rx_(T* message);
+            InEventPort(Component* component, std::function<void (T*) > callback_function, std::string broker, std::string topic);
 
         private:
             void receive_loop();
@@ -38,22 +37,12 @@ namespace qpid{
             std::condition_variable notify_lock_condition_;
 
             std::queue<std::string> message_queue_;
-
-            ::InEventPort<T>* port_;
     };
 };
 
-
 template <class T, class S>
-void qpid::InEventPort<T, S>::rx_(T* message){
-    if(port_){
-        port_->rx_(message);
-    }
-};
-
-template <class T, class S>
-qpid::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, std::string broker, std::string topic){
-    this->port_ = port;
+qpid::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, std::string broker, std::string topic)
+: ::InEventPort<T>(component, callback_function){
 
     connection_ = qpid::messaging::Connection(broker);
     connection_.open();
@@ -93,10 +82,9 @@ void qpid::InEventPort<T, S>::receive_loop(){
         }
         while(!queue_.empty()){
             auto message = proto::decode<S>(queue_.front());
-            rx_(message);
+            this->rx(message);
             queue_.pop();
         }
     }
 };
-
 #endif

@@ -1,32 +1,15 @@
 #ifndef ZMQRXVECTORMESSAGE_H
 #define ZMQRXVECTORMESSAGE_H
 
-//Include the concrete port interfaces
-#include "../interfaces.h"
+//Include the core Elements
+#include "core/globalinterfaces.hpp"
+#include "core/eventports/ineventport.hpp"
 
-namespace cdit{
-    class VectorMessage;
-};
+//Include the concrete message object
+#include "../vectormessage.h"
 
 namespace zmq{
-    //Forward declare the Middleware specific EventPort
-    template <class T, class S> class InEventPort;
-
-    class RxVectorMessage: public rxVectorMessageInt{
-        public:
-            EXPORT_FUNC RxVectorMessage(rxVectorMessageInt* component, std::string end_point);
-            void rxVectorMessage(::VectorMessage* message);
-            void rx_(::VectorMessage* message);
-            bool activate();
-            bool passivate();
-            bool is_active();
-        private:
-            //This is the concrete event_port
-            zmq::InEventPort<::VectorMessage, cdit::VectorMessage> * event_port_;
-
-            //This is the Component this port should call into
-            rxVectorMessageInt* component_;        
-    };
+     ::InEventPort<::VectorMessage>* construct_RxVectorMessage(Component* component, std::function<void (::VectorMessage*)> callback_function, std::string endpoint);
 };
 
 #endif //ZMQRXVECTORMESSAGE_H

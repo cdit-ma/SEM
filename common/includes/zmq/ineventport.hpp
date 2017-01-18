@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <thread>
+#include <functional>
 #include <mutex>
 #include <condition_variable>
 #include <queue>
@@ -14,17 +15,18 @@
 namespace zmq{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(::InEventPort<T>* port, std::vector<std::string> end_points);
-            void rx_(T* message);
+            InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points);
+
+            void startup(std::map<std::string, ::Attribute*> attributes);
+            void teardown();
         private:
             void receive_loop();
             void zmq_loop();
             
+            
 
             std::thread* zmq_thread_;
             std::thread* rec_thread_;
-
-            ::InEventPort<T>* port_;
 
             std::vector<std::string> end_points_;
 
@@ -32,16 +34,6 @@ namespace zmq{
             std::condition_variable notify_lock_condition_;
             std::queue<std::string> message_queue_;
     }; 
-};
-
-template <class T, class S>
-void zmq::InEventPort<T, S>::rx_(T* message){
-    if(port_ && this->is_active()){
-        port_->rx_(message);
-    }else{
-        std::cout << "Ignoring Message?" << std::endl;
-        delete message;
-    }
 };
 
 template <class T, class S>
@@ -62,7 +54,7 @@ void zmq::InEventPort<T, S>::receive_loop(){
             //auto s = new S();
             auto m = proto::decode<S>(str);
             //delete s;
-            rx_(m);
+            this->rx(m);
             queue_.pop();
         }
     }
@@ -74,7 +66,7 @@ void zmq::InEventPort<T, S>::zmq_loop(){
     auto socket = helper->get_subscriber_socket();
 
     for(auto end_point: end_points_){
-        std::cout << "Binding To: " << end_point << std::endl;
+        std::cout << "Connecting To: " << end_point << std::endl;
         //Connect to the publisher
         socket->connect(end_point.c_str());   
     }
@@ -106,14 +98,40 @@ void zmq::InEventPort<T, S>::zmq_loop(){
 };
 
 template <class T, class S>
-zmq::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, std::vector<std::string> end_points){
-    this->port_ = port;
-    this->end_points_ = end_points;
+zmq::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points)
+: ::InEventPort<T>(component, callback_function){
+    //this->end_points_ = end_points;
 
-    auto helper = ZmqHelper::get_zmq_helper();
-
-    zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
-    rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);
+    //zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
+    //rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);
 };
+
+
+template <class T, class S>
+void zmq::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+    
+    this->end_points_.clear();
+    if(attributes.count("sender_addresses")){
+        auto attr = attributes["sender_addresses"];
+        if(attr->type == AT_STRINGLIST){
+            for(auto s : attr->s){
+                std::cout << "ZMQ:INEVENTPORT Got: " << s << std::endl;
+                end_points_.push_back(s);
+            }   
+        }
+    }
+
+    if(!end_points_.empty()){
+        zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
+        rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);    
+    }else{
+        std::cout << "NO RECIEVERS!" << std::endl;
+    }
+};
+
+template <class T, class S>
+void zmq::InEventPort<T, S>::teardown(){
+};
+
 
 #endif //ZMQ_INEVENTPORT_H

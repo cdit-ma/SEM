@@ -6,35 +6,11 @@
 //Include the templated InEventPort Implementation for ZMQ
 #include "zmq/ineventport.hpp"
 
-zmq::RxMessage::RxMessage(rxMessageInt* component, std::string end_point){
-    //Store the component this port belongs too
-    this->component_ = component;
-
+EXPORT_FUNC ::InEventPort<::Message>* zmq::construct_RxMessage(Component* component, std::function<void (::Message*)> callback_function, std::string endpoint){
     //Construct a vector of the end_points this port should connect to.
     std::vector<std::string> v;
-    v.push_back(end_point);
+    v.push_back(endpoint);
 
-    //Construct a concrete ZMQ InEventPort linked to callback into this.
-    this->event_port_ = new zmq::InEventPort<::Message, proto::Message>(this, v);
-}
-
-void zmq::RxMessage::rxMessage(Message* message){
-    //Call back into the component.
-    component_->rxMessage(message);
-}
-
-void zmq::RxMessage::rx_(::Message* message){
-    //Call back into the component.
-    rxMessage(message);
-}
-
-
-bool zmq::RxMessage::activate(){
-    return event_port_->activate();
-}
-bool zmq::RxMessage::passivate(){
-    return event_port_->passivate();
-}
-bool zmq::RxMessage::is_active(){
-    return event_port_->is_active();
+    auto p = new zmq::InEventPort<::Message, proto::Message>(component, callback_function, v);
+    return p;
 }

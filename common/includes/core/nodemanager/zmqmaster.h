@@ -3,7 +3,7 @@
 
 #include <google/protobuf/message_lite.h>
 #include "zmq.hpp"
-#include "graphmlparser.h"
+#include "executionmanager.h"
 
 #include <vector>
 #include <thread>
@@ -41,7 +41,7 @@ class ZMQMaster{
         std::thread* writer_thread_ = 0;
         zmq::context_t* context_ = 0;
 
-        GraphmlParser* graphml_;
+        ExecutionManager* execution_manager_;
 };
 
 #endif //ZMQMASTER_H

@@ -2,11 +2,16 @@
 #include <iostream>
 #include <map>
 #include "controlmessage.pb.h"
+#include "zmqmaster.h"
 
 ExecutionManager::ExecutionManager(ZMQMaster* zmq, std::string graphml_path){
     zmq_master_ = zmq;
     graphml_parser_ = new GraphmlParser(graphml_path);
-    execution_loop();
+    //execution_loop();
+}
+
+void set_attr_string(NodeManager::Attribute* attr, std::string val){
+    attr->add_s(val);
 }
 
 void ExecutionManager::execution_loop(){
@@ -73,7 +78,7 @@ void ExecutionManager::execution_loop(){
                     a->set_d(std::stod(value_string));
                 } else if(type_string.find("String")!=std::string::npos){
                     a->set_type(NodeManager::Attribute::STRING);
-                    a->set_s(value_string);
+                    set_attr_string(a, value_string);
                 } else {
                     a->set_type(NodeManager::Attribute::INTEGER);
                     a->set_i(std::stoi(value_string));
@@ -117,7 +122,7 @@ void ExecutionManager::execution_loop(){
                 std::string node_ip = graphml_parser_->get_data_value(hardware_id, "ip_address");
                 ip_address->set_name("ip_address");
                 ip_address->set_type(NodeManager::Attribute::STRING);
-                ip_address->set_s(node_ip);
+                set_attr_string(ip_address, node_ip);
 
                 //Set port port number
                 NodeManager::Attribute* port_port = p->add_attributes();
@@ -126,7 +131,7 @@ void ExecutionManager::execution_loop(){
                 port_port->set_type(NodeManager::Attribute::STRING);
                 
                 //TODO: actually set unique port number.
-                port_port->set_s("60000");
+                set_attr_string(port_port, "6000");
 
                 //Set port port number
                 NodeManager::Attribute* topic_attr = p->add_attributes();
@@ -134,13 +139,14 @@ void ExecutionManager::execution_loop(){
                 topic_attr->set_type(NodeManager::Attribute::STRING);
                 
                 //TODO: actually set unique port number.
-                topic_attr->set_s("a");
+                set_attr_string(topic_attr, "a");
 
             }
         }
     }
 
     for(auto a: deployment_map){
-        std::cout << a.second->DebugString() << std::endl;
+        zmq_master_->send_action("*", a.second);
+        //std::cout << a.second->DebugString() << std::endl;
     }
 }

@@ -10,16 +10,15 @@
 namespace rti{
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
-            OutEventPort(::OutEventPort<T>* port, int domain_id, std::string publisher_name, std::string topic_name);
-            void tx_(T* message);
+            OutEventPort(Component* component, int domain_id, std::string publisher_name, std::string topic_name);
+            void tx(T* message);
         private:
             dds::pub::DataWriter<S> writer_ = dds::pub::DataWriter<S>(dds::core::null);
-            ::OutEventPort<T>* port_;
     }; 
 };
 
 template <class T, class S>
-void rti::OutEventPort<T, S>::tx_(T* message){
+void rti::OutEventPort<T, S>::tx(T* message){
     if(writer_ != dds::core::null){
         auto m = translate(message);
         //De-reference the message and send
@@ -31,9 +30,8 @@ void rti::OutEventPort<T, S>::tx_(T* message){
 };
 
 template <class T, class S>
-rti::OutEventPort<T, S>::OutEventPort(::OutEventPort<T>* port, int domain_id, std::string publisher_name, std::string topic_name){
-    this->port_ = port;
-    
+rti::OutEventPort<T, S>::OutEventPort(Component* component, int domain_id, std::string publisher_name, std::string topic_name):
+::OutEventPort<T>(component){
     //Construct a DDS Participant, Publisher, Topic and Writer
     auto helper = DdsHelper::get_dds_helper();   
     auto participant = helper->get_participant(domain_id);

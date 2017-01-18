@@ -12,8 +12,7 @@ ZMQMaster::ZMQMaster(std::string host_name, std::string port, std::vector<std::s
     port_ = port;
     slaves_ = slaves;
 
-    graphml_ = new GraphmlParser(graphml_path);
-
+    execution_manager_ = new ExecutionManager(this, graphml_path);
 
     //Start the registration thread
     registration_thread_ = new std::thread(&ZMQMaster::registration_loop, this);
@@ -121,6 +120,10 @@ void ZMQMaster::registration_loop(){
     writer_thread_ = new std::thread(&ZMQMaster::writer_loop, this);
 
     //Wait for 
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    std::cout << "SENDING EXECUTION INSTRUCTIONS" << std::endl;
+    execution_manager_->execution_loop();
+    std::cout << "SENT EXECUTION INSTRUCTIONS" << std::endl;
 }
 
 void ZMQMaster::writer_loop(){

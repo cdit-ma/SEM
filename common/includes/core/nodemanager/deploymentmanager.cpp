@@ -1,6 +1,7 @@
 #include "deploymentmanager.h"
 #include <dlfcn.h>
 #include <iostream>
+#include "../translate.h"
 
 #include "controlmessage.pb.h"
 
@@ -54,10 +55,14 @@ void DeploymentManager::process_action(std::string node_name, std::string action
         std::cout << cm->DebugString() << std::endl;
     
         switch(cm->type()){
-            case NodeManager::ControlMessage::STARTUP:
+            case NodeManager::ControlMessage::STARTUP:{
+                std::cout << "CONFIGURING!" << std::endl;
+                deployment_->configure(cm);
+            
                 std::cout << "STARTING UP!" << std::endl;
                 deployment_->startup();
-                break;
+            break;
+            }
             case NodeManager::ControlMessage::ACTIVATE:
                 std::cout << "ACTIVATE!" << std::endl;
                 deployment_->activate_all();

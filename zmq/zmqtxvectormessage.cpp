@@ -6,18 +6,11 @@
 //Include the templated OutEventPort Implementation for ZMQ
 #include "zmq/outeventport.hpp"
 
-zmq::TxVectorMessage::TxVectorMessage(txVectorMessageInt* component, std::string end_point){
-    this->component_ = component;
-    
+EXPORT_FUNC ::OutEventPort<::VectorMessage>* zmq::construct_TxVectorMessage(Component* component, std::string endpoint){
     //Construct a vector of the end_points this port should connect to.
     std::vector<std::string> v;
-    v.push_back(end_point);
+    v.push_back(endpoint);
 
-    //Construct a concrete ZMQ InEventPort linked to callback into this.
-    this->event_port_ = new zmq::OutEventPort<::VectorMessage, cdit::VectorMessage>(this, v);
-}
-
-void zmq::TxVectorMessage::txVectorMessage(::VectorMessage* message){
-    //Call into the port
-    event_port_->tx_(message);
+    auto p = new zmq::OutEventPort<::VectorMessage, cdit::VectorMessage>(component, v);
+    return p;
 }

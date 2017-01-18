@@ -1,17 +1,18 @@
 #ifndef EXECUTIONMANAGER_H
 #define EXECUTIONMANAGER_H
 
-#include "zmqmaster.h"
+
 #include <thread>
 #include <string>
-
+#include "graphmlparser.h"
+class ZMQMaster;
 class ExecutionManager{
     public:
         ExecutionManager(ZMQMaster *zmqmaster, std::string graphml_path);
 
-
-    private:
         void execution_loop();
+    private:
+        
         std::thread* execution_thread_;
         ZMQMaster* zmq_master_;
         GraphmlParser* graphml_parser_;

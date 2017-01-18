@@ -14,8 +14,7 @@
 namespace ospl{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string topic_name);
-            void rx_(T* message);
+            InEventPort(Component* component, std::function<void (T*) > callback_function, int domain_id, std::string subscriber_name, std::string topic_name);
             void notify();
         private:
             void receive_loop();
@@ -26,17 +25,9 @@ namespace ospl{
             
             ospl::DataReaderListener<T,S>* listener_;
             dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
-            ::InEventPort<T>* port_;
     }; 
 };
 
-template <class T, class S>
-void ospl::InEventPort<T, S>::rx_(T* message){
-    //Call back into our port's rx_ function, so that it can call into the Component
-    if(port_){
-        port_->rx_(message);
-    }
-};
 
 template <class T, class S>
 void ospl::InEventPort<T, S>::notify(){
@@ -47,9 +38,8 @@ void ospl::InEventPort<T, S>::notify(){
 
 
 template <class T, class S>
-ospl::InEventPort<T, S>::InEventPort(::InEventPort<T>* port, int domain_id, std::string subscriber_name, std::string topic_name){
-    this->port_ = port;
-    
+ospl::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, int domain_id, std::string subscriber_name, std::string topic_name):
+::InEventPort<T>(component, callback_function){
     //Construct a DDS Participant, Subscriber, Topic and Reader
     auto helper = DdsHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id);
@@ -82,7 +72,7 @@ void ospl::InEventPort<T, S>::receive_loop(){
             //Translate and callback into the component for each valid message we receive
             if(sample->info().valid()){
                 auto m = translate(&sample->data());
-                rx_(m);
+                this->rx(m);
             }
         }
     }

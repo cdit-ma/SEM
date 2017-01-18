@@ -1,24 +1,17 @@
 #include "zmqtxmessage.h"
 
+
 //Includes the ::Message and proto::Message
 #include "../proto/message/messageconvert.h"
 
 //Include the templated OutEventPort Implementation for ZMQ
 #include "zmq/outeventport.hpp"
 
-zmq::TxMessage::TxMessage(txMessageInt* component, std::string end_point){
-    this->component_ = component;
-    
+EXPORT_FUNC ::OutEventPort<::Message>* zmq::construct_TxMessage(Component* component, std::string endpoint){
     //Construct a vector of the end_points this port should connect to.
     std::vector<std::string> v;
-    v.push_back(end_point);
+    v.push_back(endpoint);
 
-    //Construct a concrete ZMQ InEventPort linked to callback into this.
-    this->event_port_ = new zmq::OutEventPort<::Message, proto::Message>(this, v);
+    auto p = new zmq::OutEventPort<::Message, proto::Message>(component, v);
+    return p;
 }
-
-void zmq::TxMessage::txMessage(Message* message){
-    //Call into the port
-    event_port_->tx_(message);
-}
-

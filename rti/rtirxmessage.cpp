@@ -2,22 +2,23 @@
 
 #include "message.hpp"
 
+#include "messageconvert.h"
+
 //Include the templated OutEventPort Implementation for OSPL
 #include "rti/ineventport.hpp"
 
-rti::RxMessage::RxMessage(rxMessageInt* component, int domain_id, std::string subscriber_name, std::string topic_name){
-    this->component_ = component;
 
-     //Construct a concrete Ospl InEventPort linked to callback into this.
-    this->event_port_ = new rti::InEventPort<::Message, cdit::Message>(this, domain_id, subscriber_name, topic_name);
-}
 
-void rti::RxMessage::rxMessage(::Message* message){
-    //Call back into the component.
-    component_->rxMessage(message);
-}
 
-void rti::RxMessage::rx_(::Message* message){
-    //Call back into the component.
-    rxMessage(message);
+EXPORT_FUNC ::InEventPort<::Message>* rti::construct_RxMessage(Component* component, 
+                                                        std::function<void (::Message*)> callback_function, 
+                                                        int domain_id, 
+                                                        std::string subscriber_name, 
+                                                        std::string topic_name){
+
+    auto p = new rti::InEventPort<::Message, cdit::Message>(component, callback_function, 
+                                                            domain_id, 
+                                                            subscriber_name, 
+                                                            topic_name);
+    return p;
 }
