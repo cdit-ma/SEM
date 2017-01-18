@@ -127,6 +127,15 @@ void ExecutionManager::execution_loop(){
                 
                 //TODO: actually set unique port number.
                 port_port->set_s("60000");
+
+                //Set port port number
+                NodeManager::Attribute* topic_attr = p->add_attributes();
+                topic_attr->set_name("topic");
+                topic_attr->set_type(NodeManager::Attribute::STRING);
+                
+                //TODO: actually set unique port number.
+                topic_attr->set_s("a");
+
             }
         }
     }
