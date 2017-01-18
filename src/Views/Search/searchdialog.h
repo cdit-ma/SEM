@@ -1,7 +1,6 @@
 #ifndef SEARCHDIALOG_H
 #define SEARCHDIALOG_H
 
-#include <QDialog>
 #include <QScrollArea>
 #include <QLabel>
 #include <QLineEdit>
@@ -15,8 +14,7 @@
 #include "../../Controllers/ViewController/viewitem.h"
 #include "searchitemwidget.h"
 
-
-class SearchDialog : public QDialog
+class SearchDialog : public QWidget
 {
     Q_OBJECT
 public:
@@ -41,7 +39,7 @@ public slots:
     void centerOnSelectedItem();
     void popupSelectedItem();
 
-    void resetDialog();
+    void resetPanel();
 
 private:
     void setupLayout();

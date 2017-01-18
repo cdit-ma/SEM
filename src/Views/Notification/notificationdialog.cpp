@@ -28,27 +28,23 @@
  * @param parent
  */
 NotificationDialog::NotificationDialog(QWidget *parent)
-    : QDialog(parent)
+    : QWidget(parent)
 {
     setupLayout();
     setupBackgroundProcessItems();
-    setWindowTitle("Notifications");
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(NotificationManager::manager(), &NotificationManager::showNotificationDialog, this, &NotificationDialog::showDialog);
+    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &NotificationDialog::showPanel);
     connect(NotificationManager::manager(), &NotificationManager::req_lastNotificationID, this, &NotificationDialog::getLastNotificationID);
     connect(NotificationManager::manager(), &NotificationManager::backgroundProcess, this, &NotificationDialog::backgroundProcess);
-    //connect(NotificationManager::manager(), &NotificationManager::clearNotifications, this, &NotificationDialog::clearNotifications);
     connect(NotificationManager::manager(), &NotificationManager::notificationItemAdded, this, &NotificationDialog::notificationAdded);
     connect(NotificationManager::manager(), &NotificationManager::notificationDeleted, this, &NotificationDialog::notificationDeleted);
     connect(this, &NotificationDialog::deleteNotification, NotificationManager::manager(), &NotificationManager::deleteNotification);
     connect(this, &NotificationDialog::lastNotificationID, NotificationManager::manager(), &NotificationManager::setLastNotificationItem);
 
     themeChanged();
-    initialiseDialog();
+    initialisePanel();
     updateSelectionBasedButtons();
-
-    //test();
 }
 
 
@@ -346,44 +342,20 @@ void NotificationDialog::updateSelection(NotificationItem* item, bool selected, 
 
 
 /**
- * @brief NotificationDialog::toggleVisibility
- * Toggle this dialog's visibility.
- * TODO - If already visible, find a way to keep dialog visible and raise it to the top.
- */
-void NotificationDialog::toggleVisibility()
-{
-    showDialog(!isVisible());
-}
-
-
-/**
- * @brief NotificationDialog::showDialog
+ * @brief NotificationDialog::showPanel
  * @param visible
  */
-void NotificationDialog::showDialog(bool visible)
+void NotificationDialog::showPanel(bool visible)
 {
-    if (visible) {
-
-        show();
-        raise();
-
-        // if the dialog was just made visible, send this signal to mark new notifications as seen
-        if (isVisible()) {
-            emit mouseEntered();
-        }
-
-    } else {
-        hide();
-    }
+    // TODO - Make sure the dock widget containing this panel is visible
 }
 
 
 /**
- * @brief NotificationDialog::resetDialog
+ * @brief NotificationDialog::resetPanel
  */
-void NotificationDialog::resetDialog()
+void NotificationDialog::resetPanel()
 {
-    hide();
     clearAll();
 }
 
@@ -593,11 +565,11 @@ void NotificationDialog::clearSelection()
 
 
 /**
- * @brief NotificationDialog::initialiseDialog
+ * @brief NotificationDialog::initialisePanel
  * Construct items for notifications that were received before this dialog was constructed.
  * Show highlight alert and toast for the last notification item in the list.
  */
-void NotificationDialog::initialiseDialog()
+void NotificationDialog::initialisePanel()
 {
     //resetDialog();
 
@@ -641,7 +613,7 @@ NOTIFICATION_FILTER NotificationDialog::getNotificationFilter(NotificationDialog
  */
 void NotificationDialog::enterEvent(QEvent* event)
 {
-    QDialog::enterEvent(event);
+    QWidget::enterEvent(event);
     if (QApplication::activeWindow() == this) {
         emit mouseEntered();
     }

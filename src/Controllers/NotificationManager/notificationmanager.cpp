@@ -54,7 +54,7 @@ void NotificationManager::resetManager()
     projectRunTime->restart();
 
     //emit notificationSeen();
-    emit showNotificationDialog(false);
+    emit showNotificationPanel(false);
 }
 
 
@@ -325,7 +325,7 @@ void NotificationManager::modelValidated(QStringList report)
             QString eID = message.split('[').last().split(']').first();
             addNotification(description, "", "", eID.toInt(), NS_WARNING, NT_MODEL, NC_VALIDATION, false);
         }
-        emit showNotificationDialog();
+        emit showNotificationPanel();
         emit updateNotificationToolbarSize();
     }
     addNotification("Model Validation " + status, "Actions", "Validate", -1, NS_INFO, NT_MODEL, NC_VALIDATION);

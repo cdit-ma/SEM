@@ -11,12 +11,12 @@
  * @brief SearchDialog::SearchDialog
  * @param parent
  */
-SearchDialog::SearchDialog(QWidget *parent) : QDialog(parent)
+SearchDialog::SearchDialog(QWidget *parent)
+    : QWidget(parent)
 {
-    setupLayout();
-    setWindowTitle("Search Results");
-
     selectedSearchItemID = -1;
+
+    setupLayout();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
     themeChanged();
@@ -34,7 +34,6 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
     // clear previous key actions and search result items
     clear();
-    //constructKeyButton("All", "All (" + QString::number(results.count()) + ")", true);
 
     if (results.isEmpty()) {
         infoLabel->show();
@@ -87,28 +86,6 @@ void SearchDialog::themeChanged()
                                "padding: 5px;"
                                "border-radius:" + theme->getSharpCornerRadius() + ";"
                                "}");
-
-    /*
-    keysToolbar->setStyleSheet("QToolBar {"
-                               "padding: 0px;"
-                               "background:" + theme->getBackgroundColorHex() + ";"
-                               "}"
-                               "QToolButton {"
-                               //"padding: 5px 10px;"
-                               "padding: 5px;"
-                               "border-radius:" + theme->getSharpCornerRadius() + ";"
-                               "}"
-                               );/*
-                               "color:" + theme->getTextColorHex() + ";"
-                               "}"
-                               "QToolButton::checked {"
-                               "background:" + theme->getPressedColorHex() + ";"
-                               "color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
-                               "}"
-                               "QToolButton:hover {"
-                               "background:" + theme->getHighlightColorHex() + ";"
-                               "color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";"
-                               "}");*/
 
     //searchButton->setIcon(theme->getIcon("Actions", "Search"));
     centerOnButton->setIcon(theme->getIcon("Actions", "Crosshair"));
@@ -187,11 +164,10 @@ void SearchDialog::popupSelectedItem()
 
 
 /**
- * @brief SearchDialog::resetDialog
+ * @brief SearchDialog::resetPanel
  */
-void SearchDialog::resetDialog()
+void SearchDialog::resetPanel()
 {
-    hide();
     clear();
 }
 

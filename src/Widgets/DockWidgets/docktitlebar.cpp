@@ -1,14 +1,16 @@
 #include "docktitlebar.h"
-#include <QDebug>
 #include "theme.h"
+
+#include <QDebug>
+#include <QBitmap>
 
 DockTitleBar::DockTitleBar(QWidget* parent) : QToolBar(parent)
 {
     _isActive = false;
+
     //This sets to the parent that everything is okay.
     setFocusPolicy(Qt::ClickFocus);
     setContentsMargins(0,0,0,0);
-
 
     //Setting as Custom Context Menu so the parent can catch this signal.
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -113,7 +115,15 @@ void DockTitleBar::themeChanged()
     if(hideAction){
         hideAction->setIcon(theme->getIcon("Actions", "Visible"));
     }
-
+    /*
+     * TODO - Change the icon colour based on theme
+    if (iconAction->isVisible() && iconLabel->pixmap()) {
+        QPixmap newPixmap(iconLabel->pixmap()->size());
+        newPixmap.fill(theme->getMenuIconColor());
+        newPixmap.setMask(iconLabel->pixmap()->createMaskFromColor(Qt::transparent));
+        iconLabel->setPixmap(newPixmap);
+    }
+    */
 }
 
 void DockTitleBar::updateActiveStyle()
@@ -139,7 +149,6 @@ void DockTitleBar::setupToolBar()
     popOutAction->setVisible(false);
     popOutAction->setShortcutContext(Qt::WindowShortcut);
     popOutAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_T));
-
 
     maximizeAction = addAction("Maximise/Minimise");
     //actions.append(maximizeAction);

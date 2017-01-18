@@ -525,7 +525,6 @@ void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
     invisAcceptButton->setFixedSize(1,1);
     invisAcceptButton->setDefault(true);
 
-
     QVBoxLayout* vlayout = new QVBoxLayout(widget);
     QHBoxLayout* topLayout = new QHBoxLayout();
     vlayout->addLayout(topLayout);
@@ -539,7 +538,6 @@ void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
     topLayout->addWidget(topToolbar);
 
     QAction* cancelAction = topToolbar->addAction(theme->getIcon("Actions", "Close"), "Cancel");
-
 
     QWidget* toolbarContainer = new QWidget(widget);
     toolbarContainer->setMaximumWidth(1220);
@@ -586,7 +584,6 @@ void WindowManager::showPopOutDialog(BaseDockWidget *dockWidget)
     connect(windowActionMapper, static_cast<void(QSignalMapper::*)(int)>(&QSignalMapper::mapped), this, &WindowManager::reparentDockWidgetAction);
 
     popupDialog->setWidget(widget);
-
 
     popupDialog->setStyleSheet(theme->getPopupWidgetStyleSheet());
     topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + " QToolButton::!hover{background:rgba(0,0,0,0);border:none;}");

@@ -19,7 +19,7 @@
 #include "notificationobject.h"
 
 class NotificationItem;
-class NotificationDialog : public QDialog
+class NotificationDialog : public QWidget
 {
     enum ITEM_ROLES{
         IR_ID = Qt::UserRole + 1,
@@ -54,11 +54,10 @@ signals:
     void categoryFiltersChanged(QHash<NOTIFICATION_CATEGORY, bool> states);
 
 public slots:
-    void initialiseDialog();
-    void resetDialog();
-    void showDialog(bool visible);
+    void initialisePanel();
+    void resetPanel();
+    void showPanel(bool visible);
 
-    void toggleVisibility();
     void getLastNotificationID();
 
 private slots:

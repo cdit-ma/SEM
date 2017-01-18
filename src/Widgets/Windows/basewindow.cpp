@@ -18,7 +18,9 @@ BaseWindow::BaseWindow(QWidget *parent, BaseWindow::WindowType type):QMainWindow
     ID = ++_WindowID;
     windowType = type;
 
-    setDockNestingEnabled(false);
+    // Why was this set to false?
+    //setDockNestingEnabled(false);
+    setDockNestingEnabled(true);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setFocusPolicy(Qt::ClickFocus);
 

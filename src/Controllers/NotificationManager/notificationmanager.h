@@ -64,7 +64,7 @@ signals:
 
     void backgroundProcess(bool inProgress, BACKGROUND_PROCESS process = BP_UNKNOWN);
 
-    void showNotificationDialog(bool show = true);
+    void showNotificationPanel(bool show = true);
 
     void updateNotificationToolbarSize();
 

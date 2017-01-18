@@ -88,9 +88,10 @@ private:
     void setupDock();
     void setupDataTable();
     void setupMinimap();
-    void setupViewManager();
     void setupMenuCornerWidget();
+    void setupDockablePanels();
 
+    void setupViewManager();
     void setupJenkinsManager();
     void setupCUTSManager();
     void setupXMIImporter();
