@@ -1003,9 +1003,9 @@ void EntityItem::updateZValue(bool childSelected, bool childActive)
 
     if(z == 0 && raise){
         z = 1;
+        z *= raise ? 2: -2;
     }
 
-    z *= raise ? 1: -1;
     z *= childActive ? 2 : 1;
 
     setZValue(z);

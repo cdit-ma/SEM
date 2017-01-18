@@ -7,13 +7,17 @@ CONFIG -= debug_and_release debug_and_release_target
 HEADERS += \
     modelcontrollertests.h \
     viewcontrollertests.h \
-    modelelementtests.h
+    modelelementtests.h \
+    AdoptionTests/modeladoptiontest.h \
+    AdoptionTests/interfacedefinitionsadoptiontest.h
 
 SOURCES += \
     main.cpp \
     modelcontrollertests.cpp \
     viewcontrollertests.cpp \
-    modelelementtests.cpp
+    modelelementtests.cpp \
+    AdoptionTests/modeladoptiontest.cpp \
+    AdoptionTests/interfacedefinitionsadoptiontest.cpp
 
 #Link against the MEDEA_lib
 LIBS += -L../src
@@ -31,3 +35,7 @@ PRE_TARGETDEPS += $$REL_LIB_PATH
 
 RESOURCES += \
     resources.qrc
+
+DISTFILES += \
+    Resources/Models/HelloWorld (copy).graphml \
+    Resources/Models/HelloWorld (copy).graphml
