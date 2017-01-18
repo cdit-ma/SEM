@@ -1,7 +1,7 @@
 #include "ospltxmessage.h"
 
 #include "message_DCPS.hpp"
-
+#include "messageconvert.h"
 #include "opensplice/outeventport.hpp"
 
 

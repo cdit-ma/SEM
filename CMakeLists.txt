@@ -21,7 +21,7 @@ set(SOURCE
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/proto/message")
 add_subdirectory("${PROJECT_SOURCE_DIR}/proto/vectormessage")
-#add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
+add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
 add_subdirectory("${PROJECT_SOURCE_DIR}/qpid")
 add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
@@ -65,6 +65,32 @@ set(SOURCE_6
 	${SOURCE}
 	)
 
+
+set(SOURCE_7
+	${CMAKE_CURRENT_SOURCE_DIR}/deployment_7.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
+	${SOURCE}
+	)
+
+set(SOURCE_8
+	${CMAKE_CURRENT_SOURCE_DIR}/deployment_8.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/receiverimpl.cpp
+	${SOURCE}
+	)
+
+set(SOURCE_9
+	${CMAKE_CURRENT_SOURCE_DIR}/deployment_9.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
+	${SOURCE}
+	)
+
+set(SOURCE_10
+	${CMAKE_CURRENT_SOURCE_DIR}/deployment_10.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/receiverimpl.cpp
+	${SOURCE}
+	)
+
+
 add_library(deployment_1 MODULE ${SOURCE_1} ${HEADERS})
 add_library(deployment_2 MODULE ${SOURCE_2} ${HEADERS})
 
@@ -73,6 +99,12 @@ add_library(deployment_4 MODULE ${SOURCE_4} ${HEADERS})
 
 add_library(deployment_5 MODULE ${SOURCE_5} ${HEADERS})
 add_library(deployment_6 MODULE ${SOURCE_6} ${HEADERS})
+
+add_library(deployment_7 MODULE ${SOURCE_7} ${HEADERS})
+add_library(deployment_8 MODULE ${SOURCE_8} ${HEADERS})
+
+add_library(deployment_9 MODULE ${SOURCE_9} ${HEADERS})
+add_library(deployment_10 MODULE ${SOURCE_10} ${HEADERS})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
@@ -101,6 +133,24 @@ target_link_libraries(deployment_4 qpid_library)
 
 target_link_libraries(deployment_5 rti_library)
 target_link_libraries(deployment_6 rti_library)
+
+target_link_libraries(deployment_7 ospl_library)
+target_link_libraries(deployment_8 ospl_library)
+
+target_link_libraries(deployment_9 ospl_library)
+target_link_libraries(deployment_10 ospl_library)
+
+target_link_libraries(deployment_9 rti_library)
+target_link_libraries(deployment_10 rti_library)
+
+target_link_libraries(deployment_9 proto_message_library)
+target_link_libraries(deployment_10 proto_message_library)
+
+target_link_libraries(deployment_9 qpid_library)
+target_link_libraries(deployment_10 qpid_library)
+
+target_link_libraries(deployment_9 zmq_library)
+target_link_libraries(deployment_10 zmq_library)
 
 #target_link_libraries(${PROJ_NAME} ospl_library)
 #target_link_libraries(${PROJ_NAME} qpid_library)

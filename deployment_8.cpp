@@ -5,7 +5,7 @@
 
 
 //RTI Implementation of the event ports
-#include "ospl/osplrxmessage.h"
+#include "opensplice/osplrxmessage.h"
 
 void Deployment_8::startup(){
         //Construct the Component Impls

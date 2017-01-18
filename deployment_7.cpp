@@ -8,7 +8,7 @@
 #include "senderimpl.h"
 
 //RTI Implementation of the event ports
-#include "ospl/ospltxmessage.h"
+#include "opensplice/ospltxmessage.h"
 
 SenderImpl* construct_sender_impl(NodeContainer* c, std::string name){
     SenderImpl* s = new SenderImpl(name);

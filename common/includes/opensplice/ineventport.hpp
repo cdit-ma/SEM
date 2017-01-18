@@ -14,7 +14,7 @@
 namespace ospl{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(Component* component, int domain_id, std::string subscriber_name, std::string topic_name);
+            InEventPort(Component* component, std::function<void (T*) > callback_function, int domain_id, std::string subscriber_name, std::string topic_name);
             void notify();
         private:
             void receive_loop();
@@ -38,7 +38,8 @@ void ospl::InEventPort<T, S>::notify(){
 
 
 template <class T, class S>
-ospl::InEventPort<T, S>::InEventPort(Component* component, int domain_id, std::string subscriber_name, std::string topic_name){
+ospl::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, int domain_id, std::string subscriber_name, std::string topic_name):
+::InEventPort<T>(component, callback_function){
     //Construct a DDS Participant, Subscriber, Topic and Reader
     auto helper = DdsHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id);

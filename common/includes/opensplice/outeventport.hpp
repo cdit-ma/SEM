@@ -14,13 +14,13 @@ namespace ospl{
             void tx(T* message);
         private:
             dds::pub::DataWriter<S> writer_ = dds::pub::DataWriter<S>(dds::core::null);
-    }; 
+    };
 };
 
 template <class T, class S>
 void ospl::OutEventPort<T, S>::tx(T* message){
     if(writer_ != dds::core::null){
-        auto m = translate(message);
+        auto m = ospl::translate(message);
         //De-reference the message and send
         writer_.write(*m);
         delete m;
@@ -30,7 +30,9 @@ void ospl::OutEventPort<T, S>::tx(T* message){
 };
 
 template <class T, class S>
-ospl::OutEventPort<T, S>::OutEventPort(Component* component, int domain_id, std::string publisher_name, std::string topic_name){
+ospl::OutEventPort<T, S>::OutEventPort(Component* component, int domain_id, std::string publisher_name, std::string topic_name):
+::OutEventPort<T>(component)
+{
     //Construct a DDS Participant, Publisher, Topic and Writer
     auto helper = DdsHelper::get_dds_helper();   
     auto participant = helper->get_participant(domain_id);
