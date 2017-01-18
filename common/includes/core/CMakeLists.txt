@@ -13,7 +13,13 @@ set(PROJ2_NAME re_proto_control)
 set(PROJ3_NAME re_node_manager)
 project (${PROJ_NAME})
 
-set(PUGIXML_ROOT "/home/dig/Downloads/pugixml-1.8/")
+
+if(APPLE)
+    set(PUGIXML_ROOT "/Users/dan/pugixml-1.8/")
+else(APPLE)
+    set(PUGIXML_ROOT "/home/dig/Downloads/pugixml-1.8/")
+endif(APPLE)
+
 set(CDITMA_RUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../common")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CDITMA_RUNTIME_ROOT}/cmake/modules")
 include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
