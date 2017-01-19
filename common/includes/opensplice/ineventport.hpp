@@ -14,17 +14,30 @@
 namespace ospl{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(Component* component, std::function<void (T*) > callback_function, int domain_id, std::string subscriber_name, std::string topic_name);
+            InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
             void notify();
+
+            void startup(std::map<std::string, ::Attribute*> attributes);
+            void teardown();
+
+            bool activate();
+            bool passivate();
         private:
             void receive_loop();
             
-            std::thread* rec_thread_;
+            std::thread* rec_thread_ = 0;
+
             std::mutex notify_mutex_;
+            std::mutex control_mutex_;
+
             std::condition_variable notify_lock_condition_;
+
+            std::string topic_name_;
+            int domain_id_ = 0;
+            std::string subscriber_name_;
             
-            ospl::DataReaderListener<T,S>* listener_;
-            dds::sub::DataReader<S> reader_ = dds::sub::DataReader<S>(dds::core::null);
+            bool passivate_ = false;
+            bool configured_ = false;
     }; 
 };
 
@@ -36,34 +49,102 @@ void ospl::InEventPort<T, S>::notify(){
     notify_lock_condition_.notify_all();
 };
 
+template <class T, class S>
+void ospl::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+
+    if(attributes.count("topic_name")){
+        topic_name_ = attributes["topic_name"]->get_string();
+    }
+
+    if(attributes.count("subscriber_name")){
+        subscriber_name_ = attributes["subscriber_name"]->get_string();
+    }else{
+        subscriber_name_ = "In_" + this->get_name();
+    }
+
+    if(attributes.count("domain_id")){
+        domain_id_ = attributes["domain_id"]->i;
+    }
+
+    std::cout <<"TN: " << topic_name_ << std::endl;
+    std::cout <<"SN: "<< subscriber_name_ << std::endl;
+    std::cout <<"DI: "<< domain_id_ << std::endl;
+
+
+    if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
+        configured_ = true;
+    }else{
+        std::cout << "ospl::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
+    }
+};
+
+template <class T, class S>
+bool ospl::InEventPort<T, S>::activate(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    passivate_ = false;
+    if(configured_){
+        rec_thread_ = new std::thread(&ospl::InEventPort<T, S>::receive_loop, this);
+    }
+    return ::InEventPort<T>::activate();
+};
+
+template <class T, class S>
+bool ospl::InEventPort<T, S>::passivate(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    passivate_ = true;
+    if(rec_thread_){
+        //Unlock the rec thread
+        notify();
+
+        //Join our zmq_thread
+        rec_thread_->join();
+        delete rec_thread_;
+        rec_thread_ = 0;
+    }
+    
+    return ::InEventPort<T>::passivate();
+};
+
+
+template <class T, class S>
+void ospl::InEventPort<T, S>::teardown(){
+    passivate();
+
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    configured_ = false;
+};
+
 
 template <class T, class S>
 ospl::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, int domain_id, std::string subscriber_name, std::string topic_name):
 ::InEventPort<T>(component, callback_function){
+};
+
+template <class T, class S>
+void ospl::InEventPort<T, S>::receive_loop(){
     //Construct a DDS Participant, Subscriber, Topic and Reader
     auto helper = DdsHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id);
     auto subscriber = helper->get_subscriber(participant, subscriber_name);
     auto topic = helper->get_topic<S>(participant, topic_name);
-    reader_ = helper->get_data_reader<S>(subscriber, topic);
+    auto reader_ = helper->get_data_reader<S>(subscriber, topic);
 
     //Construct a DDS Listener, designed to call back into the receive thread
-    listener_ = new ospl::DataReaderListener<T, S>(this);
+    auto listener_ = new ospl::DataReaderListener<T, S>(this);
 
     //Attach listener to only respond to data_available()
     reader_.listener(listener_, dds::core::status::StatusMask::data_available());
 
-    //Setup a receiver thread, so that we don't tie up the middlewares callback thread
-    rec_thread_ = new std::thread(&ospl::InEventPort<T, S>::receive_loop, this);
-};
-
-template <class T, class S>
-void ospl::InEventPort<T, S>::receive_loop(){  
     while(true){
         {
             //Wait for next message
             std::unique_lock<std::mutex> lock(notify_mutex_);
             notify_lock_condition_.wait(lock);
+
+            if(passivate_){
+                break;
+            }
         }
 
         ///Read all our samples

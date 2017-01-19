@@ -8,10 +8,7 @@
 //Include the concrete message object
 #include "../message.h"
 namespace ospl{
-     ::OutEventPort<::Message>* construct_TxMessage(Component* component, 
-                                                    int domain_id, 
-                                                    std::string subscriber_name, 
-                                                    std::string topic_name);
+    ::OutEventPort<::Message>* construct_TxMessage(Component* component, std::string name);
 };
 
 #endif //OSPLTXMESSAGE_H

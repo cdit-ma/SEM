@@ -26,6 +26,7 @@ namespace rti{
         private:
             void receive_loop();
             
+            
             std::thread* rec_thread_ = 0;
 
             std::mutex notify_mutex_;
@@ -37,6 +38,7 @@ namespace rti{
             int domain_id_ = 0;
             std::string subscriber_name_;
 
+            bool passivate_ = false;
             bool configured_ = false;
     }; 
 };
@@ -75,6 +77,7 @@ void rti::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attribu
 template <class T, class S>
 bool rti::InEventPort<T, S>::activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
+    passivate_ = false;
     if(configured_){
         rec_thread_ = new std::thread(&rti::InEventPort<T, S>::receive_loop, this);
     }
@@ -84,6 +87,7 @@ bool rti::InEventPort<T, S>::activate(){
 template <class T, class S>
 bool rti::InEventPort<T, S>::passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
+    passivate_ = true;
     if(rec_thread_){
         //Unlock the rec thread
         notify();
@@ -140,6 +144,10 @@ void rti::InEventPort<T, S>::receive_loop(){
             //Wait for next message
             std::unique_lock<std::mutex> lock(notify_mutex_);
             notify_lock_condition_.wait(lock);
+
+            if(passivate_){
+                break;
+            }
         }
 
         ///Read all our samples
