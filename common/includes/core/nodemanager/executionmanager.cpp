@@ -308,7 +308,7 @@ void ExecutionManager::execution_loop(){
                     topic_pb->set_name("topic_name");
                     topic_pb->set_type(NodeManager::Attribute::STRING);
                     //TODO: actually set Topic Name port number.
-                    set_attr_string(topic_pb, "a"); 
+                    set_attr_string(topic_pb, "test"); 
                     
                     
                     auto domain_id = port_pb->add_attributes();
@@ -334,7 +334,7 @@ void ExecutionManager::execution_loop(){
                             auto publisher_pb = port_pb->add_attributes();
                             publisher_pb->set_name("publisher_name");
                             publisher_pb->set_type(NodeManager::Attribute::STRING);
-                            set_attr_string(publisher_pb, component->name + "_" + event_port->name);
+                            set_attr_string(publisher_pb, component->name + event_port->name);
 
                         }
                     }else if(port_pb->type() == NodeManager::EventPort::IN){
@@ -357,7 +357,7 @@ void ExecutionManager::execution_loop(){
                         auto subscriber_pb = port_pb->add_attributes();
                         subscriber_pb->set_name("subscriber_name");
                         subscriber_pb->set_type(NodeManager::Attribute::STRING);
-                        set_attr_string(subscriber_pb, component->name + "_" + event_port->name);
+                        set_attr_string(subscriber_pb, component->name + event_port->name);
                     }
                 }
             }

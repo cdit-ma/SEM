@@ -9,6 +9,24 @@
 #include "common/includes/core/eventports/outeventport.hpp"
 #include "common/includes/core/component.h"
 
+
+class ProxyInt: public Component{
+    protected:
+        //Implement our 
+        void txMessage(::Message* message);
+        virtual void rxMessage(::Message* message) = 0;
+    public:
+        ProxyInt(std::string name);
+
+        //Setters for our Ports
+        void _set_txMessage(::OutEventPort<::Message>* tx);
+        void _set_rxMessage(::InEventPort<::Message>* rx);
+    private:
+        //Define our Ports
+        ::InEventPort<::Message>* txMessage_ = 0;
+        ::OutEventPort<::Message>* rxMessage_ = 0;
+};
+
 /*
     Concrete Component Interfaces
 */

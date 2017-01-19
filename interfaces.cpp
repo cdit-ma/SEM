@@ -2,6 +2,31 @@
 #include <iostream>
 
 
+
+ProxyInt::ProxyInt(std::string name): Component(name){
+};
+
+
+
+void ProxyInt::txMessage(::Message* message){
+    if(txMessage_){
+        txMessage_->tx(message);
+    }
+};
+
+void ProxyInt::_set_txMessage(::OutEventPort<::Message>* tx){
+    if(tx){
+        txMessage_ = tx;    
+    }
+}
+
+void ProxyInt::_set_rxMessage(::InEventPort<::Message>* rx){
+    if(rx){
+        rxMessage_ = rx;    
+    }
+}
+
+
 //ATTRIBUTE STUFF
 std::string SenderInt::instName(){
     std::string str;
