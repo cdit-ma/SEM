@@ -56,7 +56,6 @@ signals:
 public slots:
     void initialisePanel();
     void resetPanel();
-    void showPanel(bool visible);
 
     void getLastNotificationID();
 

@@ -138,7 +138,7 @@ void MainWindow::searchEntered()
         if (!searchDockWidget->isVisible()) {
             searchDockWidget->req_Visible(searchDockWidget->getID(), true);
         }
-        //searchDockWidget->setActive(true);
+        // TODO - Make the search dock widget active
         searchDockWidget->activateWindow();
     }
 }
@@ -167,6 +167,26 @@ void MainWindow::popupNotification(QString iconPath, QString iconName, QString d
         notificationPopup->show();
         notificationPopup->raise();
         notificationTimer->start(5000);
+    }
+}
+
+
+/**
+ * @brief MainWindow::toggleNotificationPanel
+ * This toggles the visibility of the notification panel dock widget.
+ * If it's already visible but its parent window is not active, activate the window instead of hiding it.
+ */
+void MainWindow::toggleNotificationPanel()
+{
+    if (notificationDockWidget->isVisible()) {
+        if (notificationDockWidget->isActiveWindow()) {
+            notificationDockWidget->req_Visible(notificationDockWidget->getID(), false);
+        } else {
+            notificationDockWidget->activateWindow();
+        }
+    } else {
+        notificationDockWidget->req_Visible(notificationDockWidget->getID(), true);
+        notificationDockWidget->activateWindow();
     }
 }
 
@@ -913,6 +933,8 @@ void MainWindow::setupDockablePanels()
     if (notificationToolbar) {
         connect(notificationPanel, &NotificationDialog::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
         connect(notificationPanel, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
+        connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
+        connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::toggleNotificationPanel);
     }
 }
 

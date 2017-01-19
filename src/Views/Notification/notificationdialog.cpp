@@ -34,7 +34,6 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     setupBackgroundProcessItems();
 
     connect(Theme::theme(), SIGNAL(theme_Changed()), this, SLOT(themeChanged()));
-    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &NotificationDialog::showPanel);
     connect(NotificationManager::manager(), &NotificationManager::req_lastNotificationID, this, &NotificationDialog::getLastNotificationID);
     connect(NotificationManager::manager(), &NotificationManager::backgroundProcess, this, &NotificationDialog::backgroundProcess);
     connect(NotificationManager::manager(), &NotificationManager::notificationItemAdded, this, &NotificationDialog::notificationAdded);
@@ -338,16 +337,6 @@ void NotificationDialog::updateSelection(NotificationItem* item, bool selected, 
     blinkInfoLabel(false);
     item->setSelected(selectItem);
     updateSelectionBasedButtons();
-}
-
-
-/**
- * @brief NotificationDialog::showPanel
- * @param visible
- */
-void NotificationDialog::showPanel(bool visible)
-{
-    // TODO - Make sure the dock widget containing this panel is visible
 }
 
 

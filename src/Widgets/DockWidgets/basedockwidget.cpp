@@ -174,7 +174,6 @@ QString BaseDockWidget::getTitle()
 
 void BaseDockWidget::setActive(bool active)
 {
-
     if (_isActive != active) {
         _isActive = active;
         titleBar->setActive(active);

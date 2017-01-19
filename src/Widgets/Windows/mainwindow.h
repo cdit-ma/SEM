@@ -52,6 +52,7 @@ public slots:
     void setModelTitle(QString modelTitle="");
 
     void popupNotification(QString iconPath, QString iconName, QString description);
+    void toggleNotificationPanel();
 
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);
