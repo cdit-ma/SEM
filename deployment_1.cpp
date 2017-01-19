@@ -24,7 +24,7 @@
 void Deployment_1::startup(){
     //Construct the Component Impls
     SenderImpl* sender_impl = new SenderImpl("Sender");
-    ProxyImpl* proxy_impl = new ProxyImpl("Receiver");
+    ProxyImpl* proxy_impl = new ProxyImpl("Proxy");
 
     PeriodicEventPort* pe = new PeriodicEventPort(sender_impl, "PeriodicEvent", std::function<void(void)>(std::bind(&SenderImpl::periodic_event, sender_impl)), 1000);
 

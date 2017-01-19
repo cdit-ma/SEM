@@ -20,7 +20,7 @@ void Deployment_2::startup(){
 
 
     //Construct our TX MEssage
-    auto rxMessage = zmq::construct_RxMessage(proxy_impl, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl, std::placeholders::_1)));
+    auto rxMessage = zmq::construct_RxMessage(receiver_impl, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl, std::placeholders::_1)));
 
     receiver_impl->_set_rxMessage(rxMessage);
 
