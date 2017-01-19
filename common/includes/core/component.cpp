@@ -35,9 +35,27 @@ void Component::remove_event_port(EventPort* event_port){
     //TODO:
 }
 
+void Component::add_attribute(Attribute* attribute){
+    if(attribute){
+        if(eventports_.count(attribute->name) == 0){
+            std::cout << "Component: " << get_name() << " Added Attribute: " << attribute->name << std::endl;
+            attributes_[attribute->name] = attribute;
+        }
+    }
+}
+
+Attribute* Component::get_attribute(std::string name){
+    Attribute* attribute = 0;
+
+    if(attributes_.count(name)){
+        attribute = attributes_[name];
+    }
+    return attribute;
+}
+
 EventPort* Component::get_event_port(std::string name){
     EventPort* port = 0;
-    if(eventports_.count(name) == 1){
+    if(eventports_.count(name)){
         port = eventports_[name];
     }
     return port;

@@ -5,6 +5,7 @@
 #include <map>
 
 #include "activatable.h"
+#include "attribute.h"
 #include "eventport.h"
 
 class Component: public Activatable{
@@ -18,8 +19,11 @@ class Component: public Activatable{
         void remove_event_port(EventPort* event_port);
         EventPort* get_event_port(std::string name);
 
+        void add_attribute(Attribute* attribute);
+        Attribute* get_attribute(std::string name);
     private:
-        std::map<std::string, EventPort*> eventports_;    
+        std::map<std::string, EventPort*> eventports_;
+        std::map<std::string, Attribute*> attributes_;    
         std::string inst_name_;
 };
 

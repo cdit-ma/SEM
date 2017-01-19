@@ -35,10 +35,6 @@ class SenderInt: public Component{
         //Define our Ports
         ::OutEventPort<::Message>* txMessage_ = 0;
         ::OutEventPort<::VectorMessage>* txVectorMessage_ = 0;
-
-        //Define our Attributes
-        std::string instName_;
-        std::string message_;
 };
 
 class ReceiverInt: public Component{

@@ -4,22 +4,51 @@
 
 //ATTRIBUTE STUFF
 std::string SenderInt::instName(){
-    return instName_;
+    std::string str;
+    auto a = get_attribute("instName");
+    if(a){
+        str = a->get_string();
+    }
+    return str;
 };
 
 void SenderInt::set_instName(const std::string val){
-    this->instName_ = val;
+    auto a = get_attribute("instName");
+    if(a){
+        a->set_string(val);
+    }
 };
 
 std::string SenderInt::message(){
-    return message_;
+    std::string str;
+    auto a = get_attribute("message");
+    if(a){
+        str = a->get_string();
+    }
+    return str;
 };
 
 void SenderInt::set_message(const std::string val){
-    this->message_ = val;
+    auto a = get_attribute("message");
+    if(a){
+        a->set_string(val);
+    }
 };
 
 SenderInt::SenderInt(std::string name): Component(name){
+    //Add attributes
+    {
+        Attribute* att = new Attribute();
+        att->name = "instName";
+        att->type = AT_STRING;
+        add_attribute(att);
+    }
+    {
+        Attribute* att = new Attribute();
+        att->name = "message";
+        att->type = AT_STRING;
+        add_attribute(att);
+    }
 };
 
 void SenderInt::_set_txMessage(::OutEventPort<::Message>* tx){

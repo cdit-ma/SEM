@@ -13,9 +13,6 @@ enum ATTRIBUTE_TYPE{
     AT_STRINGLIST = 4
 };
 
-namespace{
-    class Attribute;
-}
 
 struct Attribute{
     ATTRIBUTE_TYPE type;
@@ -31,6 +28,20 @@ struct Attribute{
         }
         return std::string();
     };
+    void set_string(std::string string){
+        if(type == AT_STRING && s.size() == 0){
+            s.push_back(string);
+        }
+        s[0] = string;
+    }
 };
+
+/*
+Attribute* construct_attribute(std::string name, ATTRIBUTE_TYPE type){
+    Attribute* attr = new Attribute();
+    attr->name = name;
+    attr->type = type;
+    return attr;
+};*/
 
 #endif //ACTIVATABLE_H
