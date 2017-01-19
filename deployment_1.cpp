@@ -16,7 +16,7 @@
 
 void Deployment_1::startup(){
     //Construct the Component Impls
-    SenderImpl* sender_impl = new SenderImpl("HelloSender_Inst");
+    SenderImpl* sender_impl = new SenderImpl("Sender2");
     ReceiverImpl* receiver_impl = new ReceiverImpl("Receiver");
     ReceiverImpl* receiver_impl2 = new ReceiverImpl("Receiver2");
 

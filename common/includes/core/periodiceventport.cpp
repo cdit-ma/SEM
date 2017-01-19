@@ -21,10 +21,8 @@ bool PeriodicEventPort::activate(){
         
         //Construct a thread
         callback_thread_ = new std::thread(&PeriodicEventPort::loop, this);
-        std::cout << this << "Call Back Thread Constructed:" << callback_thread_ << std::endl;
-        Activatable::activate();
     }
-    return true;
+    return Activatable::activate();
 }
 
 bool PeriodicEventPort::passivate(){
@@ -33,15 +31,13 @@ bool PeriodicEventPort::passivate(){
             //Gain mutex lock and Terminate, this will interupt the loop after sleep
             std::unique_lock<std::mutex> lock(mutex_);
             terminate = true;
-            std::cout << "TERMINATING!" << std::endl;
             lock_condition_.notify_all();
         }
         callback_thread_->join();
         delete callback_thread_;
         callback_thread_ = 0;
-        Activatable::passivate();
     }
-    return true;
+    return Activatable::passivate();
 }
 
 bool PeriodicEventPort::wait_for_tick(){
@@ -55,7 +51,6 @@ void PeriodicEventPort::loop(){
             callback_();
         }
         if(!wait_for_tick()){
-            std::cout << "TERMINATING out of loop!" << std::endl;
             break;
         }
     }

@@ -97,7 +97,6 @@ int main(int argc, char **argv)
             }else if(s){
                 delete s;
             }
-            
             running = false;
         }else if(command == "send" && m){
             std::string host;

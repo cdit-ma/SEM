@@ -58,10 +58,7 @@ void DeploymentManager::process_action(std::string node_name, std::string action
                 deployment_->startup();
 
                 std::cout << "CONFIGURING!" << std::endl;
-                std::cout << cm->DebugString() << std::endl;
                 deployment_->configure(cm);
-            
-                
                 
             break;
             }
@@ -72,6 +69,9 @@ void DeploymentManager::process_action(std::string node_name, std::string action
             case NodeManager::ControlMessage::PASSIVATE:
                 std::cout << "PASSIVATE" << std::endl;
                 deployment_->passivate_all();
+            case NodeManager::ControlMessage::TERMINATE:
+                std::cout << "TERMINATE" << std::endl;
+                deployment_->teardown();
             default:
                 break;
         }

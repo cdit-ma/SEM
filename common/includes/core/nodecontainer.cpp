@@ -35,8 +35,6 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
             for(auto p : c.ports()){
                 auto port = component->get_event_port(p.name());
                 if(port){
-                    std::cout << "NodeContainer::configure:" << component->get_name() << "::" << p.name() << std::endl;
-                    
                     std::map<std::string, ::Attribute*> attributes_;
 
                     for(auto a: p.attributes()){
@@ -56,7 +54,7 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
 
 bool NodeContainer::activate_all(){
     for(auto c : components_){
-        std::cout << "Activating: " << c.second << std::endl;
+        std::cout << "NodeContainer::activate_all() Component:" << c.second << std::endl;
         c.second->activate();
     }
     return true;
@@ -64,14 +62,17 @@ bool NodeContainer::activate_all(){
 
 bool NodeContainer::passivate_all(){
     for(auto c : components_){
-        std::cout << "Passivating: " << c.second << std::endl;
+        std::cout << "NodeContainer::passivate_all() Component:" << c.second << std::endl;
         c.second->passivate();
     }
     return true;
 }
 void NodeContainer::teardown(){
-    for (auto c : components_) {
-        components_.erase(c.first);
+
+    passivate_all();
+    for(auto it=components_.begin(); it!=components_.end();){
+        delete it->second;
+        it = components_.erase(it);
     }
 }
 

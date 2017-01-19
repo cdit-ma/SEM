@@ -5,6 +5,11 @@ Component::Component(std::string inst_name){
     set_name(inst_name);
 }
 
+Component::~Component(){
+
+    std::cout <<get_name() << "Destructor" << std::endl;
+}
+
 bool Component::activate(){
     for(auto e : eventports_){
         e.second->activate();

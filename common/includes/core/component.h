@@ -11,6 +11,7 @@
 class Component: public Activatable{
     public:
         Component(std::string inst_name);
+        ~Component();
 
         bool activate();
         bool passivate();
