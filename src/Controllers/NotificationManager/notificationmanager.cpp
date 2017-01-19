@@ -52,9 +52,6 @@ void NotificationManager::resetManager()
     }
 
     projectRunTime->restart();
-
-    //emit notificationSeen();
-    emit showNotificationPanel(false);
 }
 
 

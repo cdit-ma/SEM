@@ -102,6 +102,8 @@ private:
     ViewController* viewController;
 
     BaseWindow* innerWindow;
+    BaseDockWidget* searchDockWidget;
+    BaseDockWidget* notificationDockWidget;
 
     JenkinsManager* jenkinsManager;
     CUTSManager* cutsManager;
@@ -120,7 +122,7 @@ private:
     QToolButton* searchButton;
     QCompleter* searchCompleter;
     QStringListModel* searchCompleterModel;
-    SearchDialog* searchDialog;
+    SearchDialog* searchPanel;
 
     PopupWidget* progressPopup;
     QProgressBar* progressBar;
@@ -131,9 +133,8 @@ private:
     QLabel* notificationIconLabel;
     QLabel* notificationLabel;
     QTimer* notificationTimer;
-
     NotificationToolbar* notificationToolbar;
-    NotificationDialog* notificationDialog;
+    NotificationDialog* notificationPanel;
 
     QToolButton* restoreToolsButton;
     QAction* restoreToolsAction;

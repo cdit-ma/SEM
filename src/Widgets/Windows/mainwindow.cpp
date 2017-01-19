@@ -130,10 +130,16 @@ void MainWindow::searchEntered()
     QString query = searchBar->text();
     if (!query.isEmpty()) {
         qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        searchDialog->searchResults(query, viewController->getSearchResults(query));
+        searchPanel->searchResults(query, viewController->getSearchResults(query));
         qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        searchDialog->show();
         qCritical() << "searchEntered in: " <<  timeFinish - timeStart << "MS";
+
+        // make sure that the search panel dock widget is visible and that its window is raised
+        if (!searchDockWidget->isVisible()) {
+            searchDockWidget->req_Visible(searchDockWidget->getID(), true);
+        }
+        //searchDockWidget->setActive(true);
+        searchDockWidget->activateWindow();
     }
 }
 
@@ -374,7 +380,7 @@ void MainWindow::setModelTitle(QString modelTitle)
     QString title = "MEDEA " % modelTitle % "[*]";
     setWindowTitle(title);
 
-    searchDialog->searchResults("ment", viewController->getSearchResults("ment"));
+    searchPanel->searchResults("ment", viewController->getSearchResults("ment"));
 }
 
 
@@ -466,7 +472,7 @@ void MainWindow::setupTools()
     searchToolbar = 0;
     searchBar = 0;
     searchButton = 0;
-    searchDialog = 0;
+    searchPanel = 0;
     searchCompleter = 0;
     searchCompleterModel = 0;
 
@@ -480,7 +486,7 @@ void MainWindow::setupTools()
     notificationLabel = 0;
     notificationTimer = 0;
     notificationToolbar = 0;
-    notificationDialog = 0;
+    notificationPanel = 0;
 
     restoreToolsButton = 0;
     restoreToolsAction = 0;
@@ -571,16 +577,6 @@ void MainWindow::setupInnerWindow()
     innerWindow->setDockWidgetVisibility(dwAssemblies,   s->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwHardware,     s->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwQOSBrowser,  s->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
-
-    /*
-    BaseDockWidget* searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
-    searchDockWidget->setWidget(searchDialog);
-    searchDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    searchDockWidget->setDockWidgetArea(Qt::TopDockWidgetArea);
-    searchDockWidget->setProtected(true);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
-    innerWindow->setDockWidgetVisibility(searchDockWidget, true);
-    */
 
     // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
     // application if it's called before the dock widgets are added above
@@ -882,41 +878,41 @@ void MainWindow::setupMenuCornerWidget()
  */
 void MainWindow::setupDockablePanels()
 {
-    searchDialog = new SearchDialog(this);
-    notificationDialog = new NotificationDialog(this);
+    searchPanel = new SearchDialog(this);
+    notificationPanel = new NotificationDialog(this);
 
-    BaseDockWidget* searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
-    searchDockWidget->setWidget(searchDialog);
+    searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
+    searchDockWidget->setWidget(searchPanel);
     searchDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     searchDockWidget->setDockWidgetArea(Qt::TopDockWidgetArea);
-    searchDockWidget->setIcon("Actions", "Search");
+    searchDockWidget->setIcon("Actions", "Search_Icon");
     searchDockWidget->setIconVisible(true);
     searchDockWidget->setProtected(true);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
     innerWindow->setDockWidgetVisibility(searchDockWidget, true);
 
-    BaseDockWidget* notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
-    notificationDockWidget->setWidget(notificationDialog);
+    notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
+    notificationDockWidget->setWidget(notificationPanel);
     notificationDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     notificationDockWidget->setDockWidgetArea(Qt::BottomDockWidgetArea);
-    notificationDockWidget->setIcon("Actions", "Notes");
+    notificationDockWidget->setIcon("Actions", "Notification");
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, notificationDockWidget);
     innerWindow->setDockWidgetVisibility(notificationDockWidget, true);
 
     if (viewController) {
-        connect(viewController, &ViewController::vc_setupModel, searchDialog, &SearchDialog::resetPanel);
-        connect(searchDialog, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
-        connect(searchDialog, SIGNAL(popupViewItem(int)), viewController, SLOT(popupItem(int)));
-        connect(searchDialog, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
-        connect(searchDialog, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
-        connect(notificationDialog, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
-        connect(notificationDialog, &NotificationDialog::popup, viewController, &ViewController::popupItem);
+        connect(viewController, &ViewController::vc_setupModel, searchPanel, &SearchDialog::resetPanel);
+        connect(searchPanel, SIGNAL(centerOnViewItem(int)), viewController, SLOT(centerOnID(int)));
+        connect(searchPanel, SIGNAL(popupViewItem(int)), viewController, SLOT(popupItem(int)));
+        connect(searchPanel, SIGNAL(itemHoverEnter(int)), viewController->getToolbarController(), SLOT(actionHoverEnter(int)));
+        connect(searchPanel, SIGNAL(itemHoverLeave(int)), viewController->getToolbarController(), SLOT(actionHoverLeave(int)));
+        connect(notificationPanel, &NotificationDialog::centerOn, viewController, &ViewController::centerOnID);
+        connect(notificationPanel, &NotificationDialog::popup, viewController, &ViewController::popupItem);
     }
     if (notificationToolbar) {
-        connect(notificationDialog, &NotificationDialog::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
-        connect(notificationDialog, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
+        connect(notificationPanel, &NotificationDialog::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
+        connect(notificationPanel, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
     }
 }
 

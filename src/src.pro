@@ -360,5 +360,9 @@ SOURCES += \
 RESOURCES += \
 	resources.qrc
 
+DISTFILES += \
+    Resources/Images/Actions/Notification.png \
+    Resources/Images/Actions/Search_Icon.png
+
 
 

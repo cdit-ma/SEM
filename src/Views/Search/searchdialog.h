@@ -39,6 +39,7 @@ public slots:
     void centerOnSelectedItem();
     void popupSelectedItem();
 
+    //void showPanel();
     void resetPanel();
 
 private:

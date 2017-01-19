@@ -219,6 +219,8 @@
         <file>Resources/Images/Actions/Cage.jpg</file>
         <file alias="Disconnect">Resources/Images/Actions/Disconnect.png</file>
         <file alias="Java">Resources/Images/Actions/java.jpg</file>
+        <file alias="Notification">Resources/Images/Actions/Notification.png</file>
+        <file alias="Search_Icon">Resources/Images/Actions/Search_Icon.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>
