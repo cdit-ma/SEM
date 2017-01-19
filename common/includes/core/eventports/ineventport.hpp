@@ -8,7 +8,8 @@
 //Interface for a standard templated InEventPort
 template <class T> class InEventPort: public EventPort{
     public:
-        InEventPort(Component* component, std::function<void (T*) > callback_function){
+        InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function){
+            set_name(name);
             if(component){
                 //Set our Component and attach this port
                 component_ = component;

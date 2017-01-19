@@ -6,11 +6,7 @@
 //Include the templated OutEventPort Implementation for ZMQ
 #include "zmq/ineventport.hpp"
 
-EXPORT_FUNC ::InEventPort<::VectorMessage>* zmq::construct_RxVectorMessage(Component* component, std::function<void (::VectorMessage*)> callback_function, std::string endpoint){
-    //Construct a vector of the end_points this port should connect to.
-    std::vector<std::string> v;
-    v.push_back(endpoint);
-
-    auto p = new zmq::InEventPort<::VectorMessage, cdit::VectorMessage>(component, callback_function, v);
+EXPORT_FUNC ::InEventPort<::VectorMessage>* zmq::construct_RxVectorMessage(Component* component, std::string name, std::function<void (::VectorMessage*)> callback_function){
+    auto p = new zmq::InEventPort<::VectorMessage, cdit::VectorMessage>(component, name, callback_function);
     return p;
 }

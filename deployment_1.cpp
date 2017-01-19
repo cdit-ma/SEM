@@ -6,36 +6,19 @@
 
 //Implementations for the components
 #include "senderimpl.h"
+#include "receiverimpl.h"
 
 //ZMQ Implementation of the event ports
 #include "zmq/zmqtxmessage.h"
-#include "zmq/zmqtxvectormessage.h"
+#include "zmq/zmqrxmessage.h"
 
-SenderImpl* construct_sender_impl(NodeContainer* c, std::string name){
-    SenderImpl* s = new SenderImpl(name);
-    if(c->add_component(s)){
-        //Do specifics
-        PeriodicEventPort* pe = new PeriodicEventPort(std::function<void(void)>(std::bind(&SenderImpl::periodic_event, s)), 1000);
-        PeriodicEventPort* pe2 = new PeriodicEventPort(std::function<void(void)>(std::bind(&SenderImpl::periodic_event_v, s)), 1000);
-        
-        pe->set_name("PERIODIC_EVENT1");
-        pe2->set_name("PERIODIC_EVENT2");
-        //Attach the Periodic Events
-        s->add_event_port(pe);
-        s->add_event_port(pe2);
-
-    }else{
-        std::cout << "CAN'T ADDED!!!!"  <<std::endl;
-        delete s;
-        s = 0;
-    }
-    return s;
-}
+#include <iostream>
 
 void Deployment_1::startup(){
+    std::cout << " Deployment_1::startup()" << std::endl;
     //Construct the Component Impls
-    SenderImpl* sender_impl = construct_sender_impl(this, "Sender");
-    //SenderImpl* sender_impl2 = construct_sender_impl(this, "2");
+    SenderImpl* sender_impl = new SenderImpl("HelloSender_Inst");
+    ReceiverImpl* receiver_impl = new ReceiverImpl("Receiver");
 
     //Set the Attributes
     sender_impl->set_instName("ZMQ_Sender");
@@ -44,13 +27,16 @@ void Deployment_1::startup(){
     sender_impl->set_message("ZMQ1");
     //sender_impl2->set_message("ZMQ2");
 
-    auto txMessage = zmq::construct_TxMessage(sender_impl, std::string("tcp://*:6000"));
-    //auto txVectorMessage = zmq::construct_TxVectorMessage(sender_impl2, std::string("tcp://*:6001"));
+    auto txMessage = zmq::construct_TxMessage(sender_impl, "greeting");
+    auto rxMessage = zmq::construct_RxMessage(receiver_impl, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl, std::placeholders::_1)));
 
-    txMessage->set_name("greeting");
 
     sender_impl->_set_txMessage(txMessage);
-    //sender_impl2->_set_txVectorMessage(txVectorMessage);
+    receiver_impl->_set_rxMessage(rxMessage);
+
+    add_component(sender_impl);
+    add_component(receiver_impl);
+    std::cout << "~Deployment_1::startup()" << std::endl;
 };
 
 

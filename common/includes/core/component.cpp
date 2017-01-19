@@ -25,6 +25,7 @@ void Component::add_event_port(EventPort* event_port){
     if(event_port){
         std::string name = event_port->get_name();
         if(eventports_.count(name) == 0){
+            std::cout << "Component: " << get_name() << " Added Port: " << name << std::endl;
             eventports_[name] = event_port;
         }
     }

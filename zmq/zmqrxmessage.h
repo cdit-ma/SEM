@@ -10,7 +10,7 @@
 #include "../message.h"
 
 namespace zmq{
-     ::InEventPort<::Message>* construct_RxMessage(Component* component, std::function<void (::Message*)> callback_function, std::string endpoint);
+     ::InEventPort<::Message>* construct_RxMessage(Component* component, std::string name, std::function<void (::Message*)> callback_function);
 };
 
 #endif //ZMQRXMESSAGE_H

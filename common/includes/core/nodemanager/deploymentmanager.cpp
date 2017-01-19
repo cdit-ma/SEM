@@ -48,19 +48,20 @@ DeploymentManager::~DeploymentManager(){
 }
 
 void DeploymentManager::process_action(std::string node_name, std::string action){
-    std::cout << "DM PA: " << action << std::endl;
+    //std::cout << "DM PA: " << action << std::endl;
     auto cm = new NodeManager::ControlMessage();
 
     if(cm->ParseFromString(action) && deployment_){
-        std::cout << cm->DebugString() << std::endl;
-    
         switch(cm->type()){
             case NodeManager::ControlMessage::STARTUP:{
+                std::cout << "STARTING UP!" << std::endl;
+                deployment_->startup();
+
                 std::cout << "CONFIGURING!" << std::endl;
                 deployment_->configure(cm);
             
-                std::cout << "STARTING UP!" << std::endl;
-                deployment_->startup();
+                
+                
             break;
             }
             case NodeManager::ControlMessage::ACTIVATE:

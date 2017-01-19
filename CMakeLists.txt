@@ -32,6 +32,7 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 set(SOURCE_1
 	${CMAKE_CURRENT_SOURCE_DIR}/deployment_1.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/receiverimpl.cpp
 	${SOURCE}
 	)
 
@@ -125,7 +126,7 @@ target_link_libraries(deployment_1 zmq_library)
 
 
 target_link_libraries(deployment_2 ${RE_PROTO_CONTROL_LIBRARIES})
-target_link_libraries(deployment_2 proto_vectormessage_library)
+#target_link_libraries(deployment_2 proto_vectormessage_library)
 target_link_libraries(deployment_2 proto_message_library)
 target_link_libraries(deployment_2 zmq_library)
 

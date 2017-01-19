@@ -1,10 +1,16 @@
 #include "periodiceventport.h"
 
+#include "component.h"
 #include <iostream>
 
-PeriodicEventPort::PeriodicEventPort(std::function<void(void)> callback, int milliseconds){
+PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std::function<void(void)> callback, int milliseconds){
     this->callback_ = callback;
     this->duration_ = std::chrono::milliseconds(milliseconds);
+    if(component){
+        set_name(name);
+        component_ = component;
+        component->add_event_port(this);
+    }
 }
 
 bool PeriodicEventPort::activate(){

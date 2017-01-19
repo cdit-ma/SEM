@@ -15,7 +15,7 @@
 namespace zmq{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
-            InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points);
+            InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
 
             void startup(std::map<std::string, ::Attribute*> attributes);
             void teardown();
@@ -98,26 +98,18 @@ void zmq::InEventPort<T, S>::zmq_loop(){
 };
 
 template <class T, class S>
-zmq::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, std::vector<std::string> end_points)
-: ::InEventPort<T>(component, callback_function){
-    //this->end_points_ = end_points;
-
-    //zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
-    //rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);
+zmq::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function)
+: ::InEventPort<T>(component, name, callback_function){
 };
 
 
 template <class T, class S>
 void zmq::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
-    
-    this->end_points_.clear();
-    if(attributes.count("sender_addresses")){
-        auto attr = attributes["sender_addresses"];
-        if(attr->type == AT_STRINGLIST){
-            for(auto s : attr->s){
-                std::cout << "ZMQ:INEVENTPORT Got: " << s << std::endl;
-                end_points_.push_back(s);
-            }   
+    end_points_.clear();
+
+    if(attributes.count("publisher_address")){
+        for(auto s : attributes["publisher_address"]->s){
+            end_points_.push_back(s);
         }
     }
 

@@ -1,6 +1,6 @@
 #include "nodecontainer.h"
 #include <iostream>
-
+#include "translate.h"
 #include "controlmessage.pb.h"
 
 bool NodeContainer::activate(std::string component_name){
@@ -19,15 +19,33 @@ bool NodeContainer::passivate(std::string component_name){
 }
 
 void NodeContainer::configure(NodeManager::ControlMessage* message){
-
     auto n = message->mutable_node();
-
-    std::cout << "WINRAR: " << message->DebugString() << std::endl;
     for(auto c : n->components()){
-        std::cout << c.name() << std::endl;
-        
+        auto component = get_component(c.name());
+        if(component){
+            std::cout << "NodeContainer::configure:" << component->get_name() << std::endl;
+            for(auto p : c.ports()){
+                auto port = component->get_event_port(p.name());
+                if(port){
+                    std::cout << "NodeContainer::configure:" << component->get_name() << "::" << p.name() << std::endl;
+                    
+                    std::map<std::string, ::Attribute*> attributes_;
+
+                    for(auto a: p.attributes()){
+                        auto att = get_attribute_from_pb(&a);
+                        if(att){
+                            attributes_[att->name] = att;
+                        }
+                    }
+
+                    port->startup(attributes_);
+                    
+                    
+                    
+                }
+            }
+        }
     }
-    
 }
 
 bool NodeContainer::activate_all(){
@@ -73,6 +91,7 @@ Component* NodeContainer::get_component(std::string component_name){
     auto search = components_.find(component_name);
     
     if(search == components_.end()){
+        std::cout << "NOT MATCH" << std::endl;
         return 0;
     }else{
         return search->second;

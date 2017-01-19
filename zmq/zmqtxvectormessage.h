@@ -9,7 +9,7 @@
 #include "../vectormessage.h"
 
 namespace zmq{
-     ::OutEventPort<::VectorMessage>* construct_TxVectorMessage(Component* component, std::string endpoint);
+     ::OutEventPort<::VectorMessage>* construct_TxVectorMessage(Component* component, std::string name);
 };
 
 #endif //ZMQTXVECTORMESSAGE_H

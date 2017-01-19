@@ -9,7 +9,7 @@
 #include "../vectormessage.h"
 
 namespace zmq{
-     ::InEventPort<::VectorMessage>* construct_RxVectorMessage(Component* component, std::function<void (::VectorMessage*)> callback_function, std::string endpoint);
+    ::InEventPort<::VectorMessage>* construct_RxVectorMessage(Component* component, std::string name, std::function<void (::VectorMessage*)> callback_function);
 };
 
 #endif //ZMQRXVECTORMESSAGE_H

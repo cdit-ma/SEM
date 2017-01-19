@@ -689,7 +689,7 @@
                                             <data key="10">60</data>
                                             <data key="280">Linux</data>
                                             <data key="286">true</data>
-                                            <data key="282">192.168.111.143</data>
+                                            <data key="282">192.168.111.187</data>
                                             <data key="8">true</data>
                                             <data key="4199">1484615637</data>
                                             <data key="7">0</data>
@@ -702,14 +702,14 @@
                                             <data key="4198">/mnt/Jenkins</data>
                                             <data key="4195">/mnt/Jenkins/share/</data>
                                             <data key="9">20</data>
-                                            <data key="3">feta13</data>
+                                            <data key="3">DAN</data>
                                         </node>
                                         <node id ="4270">
                                             <data key="283">amd64</data>
                                             <data key="10">60</data>
                                             <data key="280">Linux</data>
                                             <data key="286">true</data>
-                                            <data key="282">192.168.111.144</data>
+                                            <data key="282">192.168.111.84</data>
                                             <data key="8">true</data>
                                             <data key="4199">1484615637</data>
                                             <data key="7">1</data>
@@ -722,7 +722,7 @@
                                             <data key="4198">/mnt/Jenkins</data>
                                             <data key="4195">/mnt/Jenkins/share/</data>
                                             <data key="9">160</data>
-                                            <data key="3">feta14</data>
+                                            <data key="3">MITCH</data>
                                         </node>
                                     </graph>
                                 </node>

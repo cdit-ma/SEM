@@ -7,12 +7,14 @@
 #include <mutex>
 #include <condition_variable>
 
+
 #include "eventport.h"
 
+class Component;
 class PeriodicEventPort: public EventPort{
     
     public:
-        PeriodicEventPort(std::function<void(void)> callback, int milliseconds);
+        PeriodicEventPort(Component* component, std::string name, std::function<void(void)> callback, int milliseconds);
         bool activate();
         bool passivate();
 
@@ -30,5 +32,6 @@ class PeriodicEventPort: public EventPort{
         std::function<void(void)> callback_ ;
         std::thread * callback_thread_ = 0;
         std::chrono::milliseconds duration_;    
+        Component* component_;
 };
 #endif //PERIODICEVENTPORT_H

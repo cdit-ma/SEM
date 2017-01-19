@@ -10,7 +10,7 @@
 namespace zmq{
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
-            OutEventPort(Component* component, std::vector<std::string> end_points);
+            OutEventPort(Component* component, std::string name);
             void tx(T* message);
 
             void startup(std::map<std::string, ::Attribute*> attributes);
@@ -33,44 +33,34 @@ void zmq::OutEventPort<T, S>::tx(T* message){
 };
 
 template <class T, class S>
-zmq::OutEventPort<T, S>::OutEventPort(Component* component, std::vector<std::string> end_points): ::OutEventPort<T>(component){
-    /*this->end_points_ = end_points;
-
-    auto helper = ZmqHelper::get_zmq_helper();
-    this->socket_ = helper->get_publisher_socket();
-    
-    for(auto end_point: end_points_){
-        std::cout << "Binding To: " << end_point << std::endl;
-        //Connect to the publisher
-        this->socket_->bind(end_point.c_str());   
-    }*/
+zmq::OutEventPort<T, S>::OutEventPort(Component* component, std::string name): ::OutEventPort<T>(component, name){
 };
+
 
 template <class T, class S>
 void zmq::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
-    
-    this->end_points_.clear();
-    if(attributes.count("sender_addresses")){
-        auto attr = attributes["sender_addresses"];
-        if(attr->type == AT_STRINGLIST){
-            for(auto s : attr->s){
-                std::cout << "ZMQ:INEVENTPORT Got: " << s << std::endl;
-                end_points_.push_back(s);
-            }
-        }   
+    end_points_.clear();
+
+    if(attributes.count("publisher_address")){
+        for(auto s : attributes["publisher_address"]->s){
+            end_points_.push_back(s);
+        }
     }
 
     if(!end_points_.empty()){
         auto helper = ZmqHelper::get_zmq_helper();
         this->socket_ = helper->get_publisher_socket();
     
-        for(auto end_point: end_points_){
-            std::cout << "Binding To: " << end_point << std::endl;
-            //Connect to the publisher
-            this->socket_->bind(end_point.c_str());   
+        
+        for(auto e: end_points_){
+            std::cout << "ZMQ::OutEventPort::" << this->get_name() <<  " Bind: " << e << std::endl;
+            try{
+                //Bind the addresses provided
+                this->socket_->bind(e.c_str());   
+            }catch(zmq::error_t){
+                std::cout << "Couldn't Bind!" << std::endl;
+            }
         }
-    }else{
-        std::cout << "NO RECIEVERS!" << std::endl;
     }
 };
 

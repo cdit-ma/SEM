@@ -120,7 +120,7 @@ void ZMQMaster::registration_loop(){
     writer_thread_ = new std::thread(&ZMQMaster::writer_loop, this);
 
     //Wait for 
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
     std::cout << "SENDING EXECUTION INSTRUCTIONS" << std::endl;
     execution_manager_->execution_loop();
     std::cout << "SENT EXECUTION INSTRUCTIONS" << std::endl;
