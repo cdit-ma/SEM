@@ -9,11 +9,7 @@
 #include "../message.h"
 
 namespace rti{
-    ::InEventPort<::Message>* construct_RxMessage(Component* component, 
-                                                    std::function<void (::Message*)> callback_function, 
-                                                    int domain_id, 
-                                                    std::string subscriber_name, 
-                                                    std::string topic_name);
+    ::InEventPort<::Message>* construct_RxMessage(Component* component, std::string name, std::function<void (::Message*)> callback_function);
 };
 
 #endif //RTI_RXMESSAGE_H

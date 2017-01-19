@@ -170,6 +170,7 @@ bool zmq::InEventPort<T, S>::passivate(){
 
         //Join our zmq_thread
         zmq_thread_->join();
+        delete zmq_thread_;
         zmq_thread_ = 0;
         delete term_socket;
     }

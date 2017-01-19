@@ -23,7 +23,7 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/proto/message")
 add_subdirectory("${PROJECT_SOURCE_DIR}/proto/vectormessage")
 #add_subdirectory("${PROJECT_SOURCE_DIR}/opensplice")
 #add_subdirectory("${PROJECT_SOURCE_DIR}/qpid")
-#add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
+add_subdirectory("${PROJECT_SOURCE_DIR}/rti")
 add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 
 #add_subdirectory("${PROJECT_SOURCE_DIR}/common")
@@ -124,7 +124,7 @@ target_link_libraries(deployment_1 ${RE_PROTO_CONTROL_LIBRARIES})
 target_link_libraries(deployment_1 proto_vectormessage_library)
 target_link_libraries(deployment_1 proto_message_library)
 target_link_libraries(deployment_1 zmq_library)
-
+target_link_libraries(deployment_1 zmq_library)
 
 target_link_libraries(deployment_2 ${RE_PROTO_CONTROL_LIBRARIES})
 target_link_libraries(deployment_2 proto_vectormessage_library)
