@@ -23,8 +23,8 @@
 
 void Deployment_1::startup(){
     //Construct the Component Impls
-    SenderImpl* sender_impl = new SenderImpl("Sender2");
-    ProxyImpl* receiver_impl = new ProxyImpl("Receiver");
+    SenderImpl* sender_impl = new SenderImpl("Sender");
+    ProxyImpl* proxy_impl = new ProxyImpl("Receiver");
 
     PeriodicEventPort* pe = new PeriodicEventPort(sender_impl, "PeriodicEvent", std::function<void(void)>(std::bind(&SenderImpl::periodic_event, sender_impl)), 1000);
 
@@ -33,16 +33,16 @@ void Deployment_1::startup(){
     //auto rxMessage2 = zmq::construct_RxMessage(receiver_impl2, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl2, std::placeholders::_1)));
 
     auto txMessage = ospl::construct_TxMessage(sender_impl, "greeting");
-    auto rxMessage = rti::construct_RxMessage(receiver_impl, "greeting", (std::bind(&ProxyImpl::rxMessage, receiver_impl, std::placeholders::_1)));
-    auto txMessage2 = zmq::construct_TxMessage(receiver_impl, "greeting");
+    auto rxMessage = rti::construct_RxMessage(proxy_impl, "greeting", (std::bind(&ProxyImpl::rxMessage, proxy_impl, std::placeholders::_1)));
+    auto txMessage2 = zmq::construct_TxMessage(proxy_impl, "greeting");
 
     sender_impl->_set_txMessage(txMessage);
-    receiver_impl->_set_txMessage(txMessage2);
-    receiver_impl->_set_rxMessage(rxMessage);
+    proxy_impl->_set_txMessage(txMessage2);
+    proxy_impl->_set_rxMessage(rxMessage);
 //    receiver_impl2->_set_rxMessage(rxMessage2);
 
     add_component(sender_impl);
-    add_component(receiver_impl);
+    add_component(proxy_impl);
   //  add_component(receiver_impl2);
 };
 

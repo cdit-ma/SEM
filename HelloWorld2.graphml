@@ -1,52 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<graphml 
-	xmlns="http://graphml.graphdrawing.org/xmlns" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
-	<key attr.name="x" attr.type="double" for="all" id="9"/>
-	<key attr.name="kind" attr.type="string" for="all" id="2"/>
-	<key attr.name="sortOrder" attr.type="int" for="all" id="7"/>
-	<key attr.name="projectUUID" attr.type="string" for="all" id="12"/>
-	<key attr.name="y" attr.type="double" for="all" id="10"/>
-	<key attr.name="middleware" attr.type="string" for="all" id="11"/>
-	<key attr.name="label" attr.type="string" for="all" id="3"/>
-	<key attr.name="isExpanded" attr.type="boolean" for="all" id="8"/>
-	<key attr.name="type" attr.type="string" for="all" id="4"/>
-	<key attr.name="key" attr.type="boolean" for="all" id="2891"/>
-	<key attr.name="value" attr.type="string" for="all" id="332"/>
-	<key attr.name="async" attr.type="boolean" for="all" id="2893"/>
-	<key attr.name="frequency" attr.type="double" for="all" id="182"/>
-	<key attr.name="folder" attr.type="string" for="all" id="327"/>
-	<key attr.name="worker" attr.type="string" for="all" id="325"/>
-	<key attr.name="file" attr.type="string" for="all" id="328"/>
-	<key attr.name="dataProtected" attr.type="boolean" for="all" id="2901"/>
-	<key attr.name="actionOn" attr.type="string" for="all" id="324"/>
-	<key attr.name="workerID" attr.type="string" for="all" id="337"/>
-	<key attr.name="description" attr.type="string" for="all" id="284"/>
-	<key attr.name="operation" attr.type="string" for="all" id="329"/>
-	<key attr.name="topic_name" attr.type="string" for="all" id="186"/>
-	<key attr.name="sql_batch_size" attr.type="int" for="all" id="185"/>
-	<key attr.name="domain" attr.type="int" for="all" id="187"/>
-	<key attr.name="processes_to_log" attr.type="string" for="all" id="184"/>
-	<key attr.name="cached_logging" attr.type="boolean" for="all" id="183"/>
-	<key attr.name="replicate_count" attr.type="int" for="all" id="2908"/>
-	<key attr.name="topicName" attr.type="string" for="all" id="2909"/>
-	<key attr.name="readOnly" attr.type="boolean" for="all" id="286"/>
-	<key attr.name="ip_address" attr.type="string" for="all" id="282"/>
-	<key attr.name="architecture" attr.type="string" for="all" id="283"/>
-	<key attr.name="localhost" attr.type="boolean" for="all" id="285"/>
-	<key attr.name="os_version" attr.type="string" for="all" id="281"/>
-	<key attr.name="os" attr.type="string" for="all" id="280"/>
-	<key attr.name="width" attr.type="double" for="all" id="5"/>
-	<key attr.name="url" attr.type="string" for="all" id="335"/>
-	<key attr.name="user_name" attr.type="string" for="all" id="4201"/>
-	<key attr.name="height" attr.type="double" for="all" id="6"/>
-	<key attr.name="load_time" attr.type="string" for="all" id="4199"/>
-	<key attr.name="is_online" attr.type="boolean" for="all" id="4200"/>
-	<key attr.name="shared_directory" attr.type="string" for="all" id="4195"/>
-	<key attr.name="hostname" attr.type="string" for="all" id="4202"/>
-	<key attr.name="root_path" attr.type="string" for="all" id="4198"/>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
+		<key attr.name="x" attr.type="double" for="all" id="9"/>
+		<key attr.name="kind" attr.type="string" for="all" id="2"/>
+		<key attr.name="sortOrder" attr.type="int" for="all" id="7"/>
+		<key attr.name="projectUUID" attr.type="string" for="all" id="12"/>
+		<key attr.name="y" attr.type="double" for="all" id="10"/>
+		<key attr.name="middleware" attr.type="string" for="all" id="11"/>
+		<key attr.name="label" attr.type="string" for="all" id="3"/>
+		<key attr.name="isExpanded" attr.type="boolean" for="all" id="8"/>
+		<key attr.name="type" attr.type="string" for="all" id="4"/>
+		<key attr.name="key" attr.type="boolean" for="all" id="2891"/>
+		<key attr.name="value" attr.type="string" for="all" id="332"/>
+		<key attr.name="async" attr.type="boolean" for="all" id="2893"/>
+		<key attr.name="frequency" attr.type="double" for="all" id="182"/>
+		<key attr.name="folder" attr.type="string" for="all" id="327"/>
+		<key attr.name="worker" attr.type="string" for="all" id="325"/>
+		<key attr.name="file" attr.type="string" for="all" id="328"/>
+		<key attr.name="dataProtected" attr.type="boolean" for="all" id="2901"/>
+		<key attr.name="actionOn" attr.type="string" for="all" id="324"/>
+		<key attr.name="workerID" attr.type="string" for="all" id="337"/>
+		<key attr.name="description" attr.type="string" for="all" id="284"/>
+		<key attr.name="operation" attr.type="string" for="all" id="329"/>
+		<key attr.name="topic_name" attr.type="string" for="all" id="186"/>
+		<key attr.name="sql_batch_size" attr.type="int" for="all" id="185"/>
+		<key attr.name="domain" attr.type="int" for="all" id="187"/>
+		<key attr.name="processes_to_log" attr.type="string" for="all" id="184"/>
+		<key attr.name="cached_logging" attr.type="boolean" for="all" id="183"/>
+		<key attr.name="replicate_count" attr.type="int" for="all" id="2908"/>
+		<key attr.name="topicName" attr.type="string" for="all" id="2909"/>
+		<key attr.name="readOnly" attr.type="boolean" for="all" id="286"/>
+		<key attr.name="ip_address" attr.type="string" for="all" id="282"/>
+		<key attr.name="architecture" attr.type="string" for="all" id="283"/>
+		<key attr.name="localhost" attr.type="boolean" for="all" id="285"/>
+		<key attr.name="os_version" attr.type="string" for="all" id="281"/>
+		<key attr.name="os" attr.type="string" for="all" id="280"/>
+		<key attr.name="width" attr.type="double" for="all" id="5"/>
+		<key attr.name="url" attr.type="string" for="all" id="335"/>
+		<key attr.name="user_name" attr.type="string" for="all" id="4201"/>
+		<key attr.name="height" attr.type="double" for="all" id="6"/>
+		<key attr.name="load_time" attr.type="string" for="all" id="4199"/>
+		<key attr.name="is_online" attr.type="boolean" for="all" id="4200"/>
+		<key attr.name="shared_directory" attr.type="string" for="all" id="4195"/>
+		<key attr.name="hostname" attr.type="string" for="all" id="4202"/>
+		<key attr.name="root_path" attr.type="string" for="all" id="4198"/>
+
 	<graph edgedefault="directed" id="parentGraph0">
-		<node id ="1">
+				<node id ="1">
 			<data key="7">-1</data>
 			<data key="9">-1</data>
 			<data key="12">2016-09-16 10:33:18</data>
@@ -55,7 +54,7 @@
 			<data key="11">tao</data>
 			<data key="10">-1</data>
 			<graph id ="g1">
-				<node id ="44">
+								<node id ="44">
 					<data key="7">0</data>
 					<data key="9">-1</data>
 					<data key="3">Interfaces</data>
@@ -63,7 +62,7 @@
 					<data key="8">true</data>
 					<data key="10">-1</data>
 					<graph id ="g44">
-						<node id ="2937">
+												<node id ="2937">
 							<data key="7">0</data>
 							<data key="9">-110</data>
 							<data key="3">HelloWorld</data>
@@ -71,7 +70,7 @@
 							<data key="8">true</data>
 							<data key="10">-20</data>
 							<graph id ="g2937">
-								<node id ="2953">
+																<node id ="2953">
 									<data key="7">0</data>
 									<data key="9">20</data>
 									<data key="3">Message</data>
@@ -79,7 +78,7 @@
 									<data key="8">true</data>
 									<data key="10">60</data>
 									<graph id ="g2953">
-										<node id ="2969">
+																				<node id ="2969">
 											<data key="7">0</data>
 											<data key="2891">true</data>
 											<data key="9">0</data>
@@ -89,7 +88,7 @@
 											<data key="8">false</data>
 											<data key="10">0</data>
 										</node>
-										<node id ="2988">
+																				<node id ="2988">
 											<data key="7">1</data>
 											<data key="2891">false</data>
 											<data key="9">0</data>
@@ -99,7 +98,7 @@
 											<data key="8">false</data>
 											<data key="10">0</data>
 										</node>
-										<node id ="3007">
+																				<node id ="3007">
 											<data key="7">2</data>
 											<data key="2891">false</data>
 											<data key="9">0</data>
@@ -113,15 +112,15 @@
 								</node>
 							</graph>
 						</node>
-						<node id ="3026">
+												<node id ="3026">
 							<data key="7">1</data>
-							<data key="9">20</data>
+							<data key="9">-150</data>
 							<data key="3">HelloWorld_Components</data>
 							<data key="2">IDL</data>
 							<data key="8">true</data>
-							<data key="10">-20</data>
+							<data key="10">0</data>
 							<graph id ="g3026">
-								<node id ="3042">
+																<node id ="3042">
 									<data key="7">0</data>
 									<data key="9">220</data>
 									<data key="3">HelloSender</data>
@@ -129,7 +128,7 @@
 									<data key="8">true</data>
 									<data key="10">80</data>
 									<graph id ="g3042">
-										<node id ="3058">
+																				<node id ="3058">
 											<data key="7">0</data>
 											<data key="9">20</data>
 											<data key="3">instName</data>
@@ -138,7 +137,7 @@
 											<data key="8">false</data>
 											<data key="10">60</data>
 										</node>
-										<node id ="3075">
+																				<node id ="3075">
 											<data key="7">1</data>
 											<data key="9">110</data>
 											<data key="3">message</data>
@@ -147,7 +146,7 @@
 											<data key="8">false</data>
 											<data key="10">60</data>
 										</node>
-										<node id ="3092">
+																				<node id ="3092">
 											<data key="7">2</data>
 											<data key="9">110</data>
 											<data key="3">greeting</data>
@@ -156,7 +155,7 @@
 											<data key="8">false</data>
 											<data key="10">110</data>
 											<graph id ="g3092">
-												<node id ="3109">
+																								<node id ="3109">
 													<data key="7">0</data>
 													<data key="9">-1</data>
 													<data key="3">Message</data>
@@ -165,7 +164,7 @@
 													<data key="8">false</data>
 													<data key="10">-1</data>
 													<graph id ="g3109">
-														<node id ="3126">
+																												<node id ="3126">
 															<data key="7">0</data>
 															<data key="2891">true</data>
 															<data key="9">-1</data>
@@ -176,7 +175,7 @@
 															<data key="8">false</data>
 															<data key="10">-1</data>
 														</node>
-														<node id ="3147">
+																												<node id ="3147">
 															<data key="7">1</data>
 															<data key="2891">false</data>
 															<data key="9">-1</data>
@@ -187,7 +186,7 @@
 															<data key="8">false</data>
 															<data key="10">-1</data>
 														</node>
-														<node id ="3168">
+																												<node id ="3168">
 															<data key="7">2</data>
 															<data key="2891">false</data>
 															<data key="9">-1</data>
@@ -204,15 +203,15 @@
 										</node>
 									</graph>
 								</node>
-								<node id ="3189">
+																<node id ="3189">
 									<data key="7">1</data>
 									<data key="9">20</data>
 									<data key="3">HelloReceiver</data>
 									<data key="2">Component</data>
 									<data key="8">true</data>
-									<data key="10">60</data>
+									<data key="10">100</data>
 									<graph id ="g3189">
-										<node id ="3205">
+																				<node id ="3205">
 											<data key="7">0</data>
 											<data key="9">24.147106997520837</data>
 											<data key="2893">true</data>
@@ -222,7 +221,7 @@
 											<data key="8">true</data>
 											<data key="10">28.592227868768276</data>
 											<graph id ="g3205">
-												<node id ="3224">
+																								<node id ="3224">
 													<data key="7">0</data>
 													<data key="9">-1</data>
 													<data key="3">Message</data>
@@ -231,7 +230,7 @@
 													<data key="8">true</data>
 													<data key="10">-1</data>
 													<graph id ="g3224">
-														<node id ="3241">
+																												<node id ="3241">
 															<data key="7">0</data>
 															<data key="2891">true</data>
 															<data key="9">-1</data>
@@ -242,7 +241,7 @@
 															<data key="8">false</data>
 															<data key="10">-1</data>
 														</node>
-														<node id ="3262">
+																												<node id ="3262">
 															<data key="7">1</data>
 															<data key="2891">false</data>
 															<data key="9">-1</data>
@@ -253,7 +252,128 @@
 															<data key="8">false</data>
 															<data key="10">-1</data>
 														</node>
-														<node id ="3283">
+																												<node id ="3283">
+															<data key="7">2</data>
+															<data key="2891">false</data>
+															<data key="9">-1</data>
+															<data key="3">content</data>
+															<data key="2">MemberInstance</data>
+															<data key="332"></data>
+															<data key="4">String</data>
+															<data key="8">false</data>
+															<data key="10">-1</data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+																<node id ="14860">
+									<data key="7">2</data>
+									<data key="9">200</data>
+									<data key="3">HelloProxy</data>
+									<data key="2">Component</data>
+									<data key="8">true</data>
+									<data key="10">270</data>
+									<graph id ="g14860">
+																				<node id ="15065">
+											<data key="7">0</data>
+											<data key="9">130</data>
+											<data key="3">OutEventPort</data>
+											<data key="2">OutEventPort</data>
+											<data key="4">Message</data>
+											<data key="8">false</data>
+											<data key="10">60</data>
+											<graph id ="g15065">
+																								<node id ="15097">
+													<data key="7">0</data>
+													<data key="9">-1</data>
+													<data key="3">Message</data>
+													<data key="2">AggregateInstance</data>
+													<data key="4">Message</data>
+													<data key="8">false</data>
+													<data key="10">-1</data>
+													<graph id ="g15097">
+																												<node id ="15131">
+															<data key="7">0</data>
+															<data key="2891">true</data>
+															<data key="9">-1</data>
+															<data key="3">instName</data>
+															<data key="2">MemberInstance</data>
+															<data key="332"></data>
+															<data key="4">String</data>
+															<data key="8">false</data>
+															<data key="10">-1</data>
+														</node>
+																												<node id ="15170">
+															<data key="7">1</data>
+															<data key="2891">false</data>
+															<data key="9">-1</data>
+															<data key="3">messageID</data>
+															<data key="2">MemberInstance</data>
+															<data key="332"></data>
+															<data key="4">LongInteger</data>
+															<data key="8">false</data>
+															<data key="10">-1</data>
+														</node>
+																												<node id ="15209">
+															<data key="7">2</data>
+															<data key="2891">false</data>
+															<data key="9">-1</data>
+															<data key="3">content</data>
+															<data key="2">MemberInstance</data>
+															<data key="332"></data>
+															<data key="4">String</data>
+															<data key="8">false</data>
+															<data key="10">-1</data>
+														</node>
+													</graph>
+												</node>
+											</graph>
+										</node>
+																				<node id ="15483">
+											<data key="7">1</data>
+											<data key="9">0</data>
+											<data key="2893">true</data>
+											<data key="3">InEventPort</data>
+											<data key="2">InEventPort</data>
+											<data key="4">Message</data>
+											<data key="8">false</data>
+											<data key="10">0</data>
+											<graph id ="g15483">
+																								<node id ="15517">
+													<data key="7">0</data>
+													<data key="9">-1</data>
+													<data key="3">Message</data>
+													<data key="2">AggregateInstance</data>
+													<data key="4">Message</data>
+													<data key="8">false</data>
+													<data key="10">-1</data>
+													<graph id ="g15517">
+																												<node id ="15551">
+															<data key="7">0</data>
+															<data key="2891">true</data>
+															<data key="9">-1</data>
+															<data key="3">instName</data>
+															<data key="2">MemberInstance</data>
+															<data key="332"></data>
+															<data key="4">String</data>
+															<data key="8">false</data>
+															<data key="10">-1</data>
+														</node>
+																												<node id ="15590">
+															<data key="7">1</data>
+															<data key="2891">false</data>
+															<data key="9">-1</data>
+															<data key="3">messageID</data>
+															<data key="2">MemberInstance</data>
+															<data key="332"></data>
+															<data key="4">LongInteger</data>
+															<data key="8">false</data>
+															<data key="10">-1</data>
+														</node>
+																												<node id ="15629">
 															<data key="7">2</data>
 															<data key="2891">false</data>
 															<data key="9">-1</data>
@@ -274,7 +394,7 @@
 						</node>
 					</graph>
 				</node>
-				<node id ="68">
+								<node id ="68">
 					<data key="7">1</data>
 					<data key="9">-1</data>
 					<data key="3">Behaviour</data>
@@ -282,7 +402,7 @@
 					<data key="8">true</data>
 					<data key="10">-1</data>
 					<graph id ="g68">
-						<node id ="3314">
+												<node id ="3314">
 							<data key="7">0</data>
 							<data key="9">-70</data>
 							<data key="3">HelloSender</data>
@@ -291,7 +411,7 @@
 							<data key="8">true</data>
 							<data key="10">0</data>
 							<graph id ="g3314">
-								<node id ="3331">
+																<node id ="3331">
 									<data key="7">0</data>
 									<data key="9">20</data>
 									<data key="3">instName</data>
@@ -300,7 +420,7 @@
 									<data key="8">false</data>
 									<data key="10">160</data>
 								</node>
-								<node id ="3348">
+																<node id ="3348">
 									<data key="7">1</data>
 									<data key="9">20</data>
 									<data key="3">message</data>
@@ -309,7 +429,7 @@
 									<data key="8">false</data>
 									<data key="10">260</data>
 								</node>
-								<node id ="3365">
+																<node id ="3365">
 									<data key="7">2</data>
 									<data key="9">150</data>
 									<data key="3">greeting</data>
@@ -318,7 +438,7 @@
 									<data key="8">true</data>
 									<data key="10">60</data>
 									<graph id ="g3365">
-										<node id ="3382">
+																				<node id ="3382">
 											<data key="7">0</data>
 											<data key="9">-1</data>
 											<data key="3">Message</data>
@@ -327,7 +447,7 @@
 											<data key="8">true</data>
 											<data key="10">-1</data>
 											<graph id ="g3382">
-												<node id ="3399">
+																								<node id ="3399">
 													<data key="7">0</data>
 													<data key="2891">true</data>
 													<data key="9">-1</data>
@@ -338,7 +458,7 @@
 													<data key="8">false</data>
 													<data key="10">-1</data>
 												</node>
-												<node id ="3420">
+																								<node id ="3420">
 													<data key="7">1</data>
 													<data key="2891">false</data>
 													<data key="9">-1</data>
@@ -349,7 +469,7 @@
 													<data key="8">false</data>
 													<data key="10">-1</data>
 												</node>
-												<node id ="3441">
+																								<node id ="3441">
 													<data key="7">2</data>
 													<data key="2891">false</data>
 													<data key="9">-1</data>
@@ -364,7 +484,7 @@
 										</node>
 									</graph>
 								</node>
-								<node id ="3462">
+																<node id ="3462">
 									<data key="7">3</data>
 									<data key="9">20</data>
 									<data key="182">1</data>
@@ -374,7 +494,7 @@
 									<data key="8">false</data>
 									<data key="10">60</data>
 								</node>
-								<node id ="3481">
+																<node id ="3481">
 									<data key="7">4</data>
 									<data key="9">20</data>
 									<data key="3">count</data>
@@ -386,7 +506,7 @@
 								</node>
 							</graph>
 						</node>
-						<node id ="3500">
+												<node id ="3500">
 							<data key="7">1</data>
 							<data key="9">210</data>
 							<data key="3">HelloReceiver</data>
@@ -395,7 +515,7 @@
 							<data key="8">true</data>
 							<data key="10">0</data>
 							<graph id ="g3500">
-								<node id ="3517">
+																<node id ="3517">
 									<data key="7">0</data>
 									<data key="9">20</data>
 									<data key="3">greeting</data>
@@ -404,7 +524,7 @@
 									<data key="8">true</data>
 									<data key="10">60</data>
 									<graph id ="g3517">
-										<node id ="3534">
+																				<node id ="3534">
 											<data key="7">0</data>
 											<data key="9">-1</data>
 											<data key="3">Message</data>
@@ -413,7 +533,7 @@
 											<data key="8">true</data>
 											<data key="10">-1</data>
 											<graph id ="g3534">
-												<node id ="3551">
+																								<node id ="3551">
 													<data key="7">0</data>
 													<data key="2891">true</data>
 													<data key="9">-1</data>
@@ -424,7 +544,7 @@
 													<data key="8">false</data>
 													<data key="10">-1</data>
 												</node>
-												<node id ="3572">
+																								<node id ="3572">
 													<data key="7">1</data>
 													<data key="2891">false</data>
 													<data key="9">-1</data>
@@ -435,7 +555,7 @@
 													<data key="8">false</data>
 													<data key="10">-1</data>
 												</node>
-												<node id ="3593">
+																								<node id ="3593">
 													<data key="7">2</data>
 													<data key="2891">false</data>
 													<data key="9">-1</data>
@@ -450,7 +570,7 @@
 										</node>
 									</graph>
 								</node>
-								<node id ="3614">
+																<node id ="3614">
 									<data key="7">1</data>
 									<data key="9">270</data>
 									<data key="3">Workload</data>
@@ -458,7 +578,7 @@
 									<data key="8">true</data>
 									<data key="10">60</data>
 									<graph id ="g3614">
-										<node id ="3630">
+																				<node id ="3630">
 											<data key="7">0</data>
 											<data key="324">Mainprocess</data>
 											<data key="9">20.343825746051664</data>
@@ -474,7 +594,7 @@
 											<data key="10">47.863340807685404</data>
 											<data key="2901">true</data>
 											<graph id ="g3630">
-												<node id ="3655">
+																								<node id ="3655">
 													<data key="7">0</data>
 													<data key="9">-1</data>
 													<data key="3">format</data>
@@ -485,7 +605,7 @@
 													<data key="8">false</data>
 													<data key="10">-1</data>
 												</node>
-												<node id ="3675">
+																								<node id ="3675">
 													<data key="7">1</data>
 													<data key="9">-1</data>
 													<data key="3">parameter</data>
@@ -496,7 +616,7 @@
 													<data key="8">false</data>
 													<data key="10">-1</data>
 												</node>
-												<node id ="3695">
+																								<node id ="3695">
 													<data key="7">2</data>
 													<data key="9">75.53339232138319</data>
 													<data key="3">parameter_0</data>
@@ -513,16 +633,137 @@
 								</node>
 							</graph>
 						</node>
+												<node id ="15950">
+							<data key="7">2</data>
+							<data key="9">40</data>
+							<data key="3">HelloProxy</data>
+							<data key="2">ComponentImpl</data>
+							<data key="4">HelloProxy</data>
+							<data key="8">true</data>
+							<data key="10">350</data>
+							<graph id ="g15950">
+																<node id ="15982">
+									<data key="7">0</data>
+									<data key="9">-1</data>
+									<data key="3">OutEventPort</data>
+									<data key="2">OutEventPortImpl</data>
+									<data key="4">Message</data>
+									<data key="8">false</data>
+									<data key="10">-1</data>
+									<graph id ="g15982">
+																				<node id ="16014">
+											<data key="7">0</data>
+											<data key="9">-1</data>
+											<data key="3">Message</data>
+											<data key="2">AggregateInstance</data>
+											<data key="4">Message</data>
+											<data key="8">false</data>
+											<data key="10">-1</data>
+											<graph id ="g16014">
+																								<node id ="16048">
+													<data key="7">0</data>
+													<data key="2891">true</data>
+													<data key="9">-1</data>
+													<data key="3">instName</data>
+													<data key="2">MemberInstance</data>
+													<data key="332"></data>
+													<data key="4">String</data>
+													<data key="8">false</data>
+													<data key="10">-1</data>
+												</node>
+																								<node id ="16087">
+													<data key="7">1</data>
+													<data key="2891">false</data>
+													<data key="9">-1</data>
+													<data key="3">messageID</data>
+													<data key="2">MemberInstance</data>
+													<data key="332"></data>
+													<data key="4">LongInteger</data>
+													<data key="8">false</data>
+													<data key="10">-1</data>
+												</node>
+																								<node id ="16126">
+													<data key="7">2</data>
+													<data key="2891">false</data>
+													<data key="9">-1</data>
+													<data key="3">content</data>
+													<data key="2">MemberInstance</data>
+													<data key="332"></data>
+													<data key="4">String</data>
+													<data key="8">false</data>
+													<data key="10">-1</data>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+																<node id ="16165">
+									<data key="7">1</data>
+									<data key="9">180</data>
+									<data key="3">InEventPort</data>
+									<data key="2">InEventPortImpl</data>
+									<data key="4">Message</data>
+									<data key="8">false</data>
+									<data key="10">70</data>
+									<graph id ="g16165">
+																				<node id ="16197">
+											<data key="7">0</data>
+											<data key="9">-1</data>
+											<data key="3">Message</data>
+											<data key="2">AggregateInstance</data>
+											<data key="4">Message</data>
+											<data key="8">false</data>
+											<data key="10">-1</data>
+											<graph id ="g16197">
+																								<node id ="16231">
+													<data key="7">0</data>
+													<data key="2891">true</data>
+													<data key="9">-1</data>
+													<data key="3">instName</data>
+													<data key="2">MemberInstance</data>
+													<data key="332"></data>
+													<data key="4">String</data>
+													<data key="8">false</data>
+													<data key="10">-1</data>
+												</node>
+																								<node id ="16270">
+													<data key="7">1</data>
+													<data key="2891">false</data>
+													<data key="9">-1</data>
+													<data key="3">messageID</data>
+													<data key="2">MemberInstance</data>
+													<data key="332"></data>
+													<data key="4">LongInteger</data>
+													<data key="8">false</data>
+													<data key="10">-1</data>
+												</node>
+																								<node id ="16309">
+													<data key="7">2</data>
+													<data key="2891">false</data>
+													<data key="9">-1</data>
+													<data key="3">content</data>
+													<data key="2">MemberInstance</data>
+													<data key="332"></data>
+													<data key="4">String</data>
+													<data key="8">false</data>
+													<data key="10">-1</data>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
+							</graph>
+						</node>
 					</graph>
 				</node>
-				<node id ="92">
+								<node id ="92">
 					<data key="7">2</data>
 					<data key="9">-1</data>
 					<data key="3">DeploymentDefinitions</data>
 					<data key="2">DeploymentDefinitions</data>
 					<data key="10">-1</data>
 					<graph id ="g92">
-						<node id ="116">
+												<node id ="116">
 							<data key="7">0</data>
 							<data key="9">-1</data>
 							<data key="3">Assemblies</data>
@@ -530,7 +771,7 @@
 							<data key="8">true</data>
 							<data key="10">-1</data>
 							<graph id ="g116">
-								<node id ="197">
+																<node id ="197">
 									<data key="7">0</data>
 									<data key="9">-1</data>
 									<data key="3">DANCE_EXECUTION_MANAGER</data>
@@ -539,7 +780,7 @@
 									<data key="8">false</data>
 									<data key="10">-1</data>
 								</node>
-								<node id ="214">
+																<node id ="214">
 									<data key="7">1</data>
 									<data key="9">300</data>
 									<data key="3">DANCE_PLAN_LAUNCHER</data>
@@ -548,7 +789,7 @@
 									<data key="8">false</data>
 									<data key="10">0</data>
 								</node>
-								<node id ="231">
+																<node id ="231">
 									<data key="7">2</data>
 									<data key="185">1000</data>
 									<data key="184">dance_node_manager,dance_execution_manager,dig-sls,dig-slc</data>
@@ -563,7 +804,7 @@
 									<data key="8">false</data>
 									<data key="10">0</data>
 								</node>
-								<node id ="254">
+																<node id ="254">
 									<data key="7">3</data>
 									<data key="9">100</data>
 									<data key="3">QPID_BROKER</data>
@@ -572,7 +813,7 @@
 									<data key="8">false</data>
 									<data key="10">0</data>
 								</node>
-								<node id ="3770">
+																<node id ="3770">
 									<data key="7">4</data>
 									<data key="9">0</data>
 									<data key="3">HelloWorld_asm</data>
@@ -581,7 +822,7 @@
 									<data key="2908">1</data>
 									<data key="10">50</data>
 									<graph id ="g3770">
-										<node id ="3788">
+																				<node id ="3788">
 											<data key="7">0</data>
 											<data key="9">20</data>
 											<data key="3">Sender</data>
@@ -590,7 +831,7 @@
 											<data key="8">true</data>
 											<data key="10">60</data>
 											<graph id ="g3788">
-												<node id ="3805">
+																								<node id ="3805">
 													<data key="7">0</data>
 													<data key="9">-1</data>
 													<data key="3">instName</data>
@@ -600,7 +841,7 @@
 													<data key="8">false</data>
 													<data key="10">-1</data>
 												</node>
-												<node id ="3824">
+																								<node id ="3824">
 													<data key="7">1</data>
 													<data key="9">20</data>
 													<data key="3">message</data>
@@ -610,7 +851,7 @@
 													<data key="8">false</data>
 													<data key="10">110</data>
 												</node>
-												<node id ="3843">
+																								<node id ="3843">
 													<data key="7">2</data>
 													<data key="9">110</data>
 													<data key="2909"></data>
@@ -622,16 +863,16 @@
 												</node>
 											</graph>
 										</node>
-										<node id ="3862">
+																				<node id ="3862">
 											<data key="7">1</data>
-											<data key="9">450</data>
+											<data key="9">440</data>
 											<data key="3">Receiver</data>
 											<data key="2">ComponentInstance</data>
 											<data key="4">HelloReceiver</data>
 											<data key="8">true</data>
-											<data key="10">70</data>
+											<data key="10">60</data>
 											<graph id ="g3862">
-												<node id ="3879">
+																								<node id ="3879">
 													<data key="7">0</data>
 													<data key="9">-1</data>
 													<data key="2909"></data>
@@ -643,65 +884,34 @@
 												</node>
 											</graph>
 										</node>
-										<node id ="6139">
+																				<node id ="16631">
 											<data key="7">2</data>
-											<data key="9">20</data>
-											<data key="3">Sender2</data>
+											<data key="9">230</data>
+											<data key="3">Proxy</data>
 											<data key="2">ComponentInstance</data>
-											<data key="4">HelloSender</data>
+											<data key="4">HelloProxy</data>
 											<data key="8">true</data>
-											<data key="10">220</data>
-											<graph id ="g6139">
-												<node id ="6172">
+											<data key="10">60</data>
+											<graph id ="g16631">
+																								<node id ="16664">
 													<data key="7">0</data>
-													<data key="9">-1</data>
-													<data key="3">instName</data>
-													<data key="2">AttributeInstance</data>
-													<data key="332">sender2</data>
-													<data key="4">String</data>
-													<data key="8">false</data>
-													<data key="10">-1</data>
-												</node>
-												<node id ="6208">
-													<data key="7">1</data>
-													<data key="9">20</data>
-													<data key="3">message</data>
-													<data key="2">AttributeInstance</data>
-													<data key="332">hello from the other side</data>
-													<data key="4">String</data>
-													<data key="8">false</data>
-													<data key="10">110</data>
-												</node>
-												<node id ="6244">
-													<data key="7">2</data>
 													<data key="9">110</data>
 													<data key="2909"></data>
-													<data key="3">greeting</data>
+													<data key="3">OutEventPort</data>
 													<data key="2">OutEventPortInstance</data>
 													<data key="4">Message</data>
 													<data key="8">false</data>
 													<data key="10">60</data>
 												</node>
-											</graph>
-										</node>
-										<node id ="11928">
-											<data key="7">3</data>
-											<data key="9">470</data>
-											<data key="3">Receiver2</data>
-											<data key="2">ComponentInstance</data>
-											<data key="4">HelloReceiver</data>
-											<data key="8">true</data>
-											<data key="10">270</data>
-											<graph id ="g11928">
-												<node id ="11961">
-													<data key="7">0</data>
-													<data key="9">-1</data>
+																								<node id ="16726">
+													<data key="7">1</data>
+													<data key="9">20</data>
 													<data key="2909"></data>
-													<data key="3">greeting</data>
+													<data key="3">InEventPort</data>
 													<data key="2">InEventPortInstance</data>
 													<data key="4">Message</data>
 													<data key="8">false</data>
-													<data key="10">-1</data>
+													<data key="10">60</data>
 												</node>
 											</graph>
 										</node>
@@ -709,14 +919,14 @@
 								</node>
 							</graph>
 						</node>
-						<node id ="140">
+												<node id ="140">
 							<data key="7">1</data>
 							<data key="9">-1</data>
 							<data key="3">HardwareDefinitions</data>
 							<data key="2">HardwareDefinitions</data>
 							<data key="10">-1</data>
 							<graph id ="g140">
-								<node id ="287">
+																<node id ="287">
 									<data key="7">0</data>
 									<data key="9">-160</data>
 									<data key="285">true</data>
@@ -731,7 +941,7 @@
 									<data key="282">127.0.0.1</data>
 									<data key="10">-140</data>
 								</node>
-								<node id ="4216">
+																<node id ="4216">
 									<data key="7">1</data>
 									<data key="6">200</data>
 									<data key="9">-10</data>
@@ -746,7 +956,7 @@
 									<data key="282">192.168.111.181</data>
 									<data key="10">-10</data>
 									<graph id ="g4216">
-										<node id ="4237">
+																				<node id ="4237">
 											<data key="283">amd64</data>
 											<data key="10">60</data>
 											<data key="280">Linux</data>
@@ -766,7 +976,7 @@
 											<data key="9">20</data>
 											<data key="3">Dan</data>
 										</node>
-										<node id ="4270">
+																				<node id ="4270">
 											<data key="283">amd64</data>
 											<data key="10">60</data>
 											<data key="280">Linux</data>
@@ -794,6 +1004,14 @@
 				</node>
 			</graph>
 		</node>
+		<edge id="15534" source="15517" target ="2953">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="15114" source="15097" target ="2953">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
 		<edge id="3928" source="3224" target ="2953">
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
@@ -810,12 +1028,28 @@
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
+		<edge id="15152" source="15131" target ="2969">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="15572" source="15551" target ="2969">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
 		<edge id="3949" source="3262" target ="2988">
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
 		<edge id="3956" source="3147" target ="2988">
 			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="15191" source="15170" target ="2988">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="15611" source="15590" target ="2988">
+			<data key="3">Definition_Edge</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
 		<edge id="3963" source="3283" target ="3007">
@@ -826,7 +1060,67 @@
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
-		<edge id="11945" source="11928" target ="3189">
+		<edge id="15230" source="15209" target ="3007">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="15650" source="15629" target ="3007">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16648" source="16631" target ="14860">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="15967" source="15950" target ="14860">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16031" source="16014" target ="15097">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16069" source="16048" target ="15131">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16108" source="16087" target ="15170">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16147" source="16126" target ="15209">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="15999" source="15982" target ="15065">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16683" source="16664" target ="15065">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16214" source="16197" target ="15517">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16252" source="16231" target ="15551">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16291" source="16270" target ="15590">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16330" source="16309" target ="15629">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16182" source="16165" target ="15483">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="16745" source="16726" target ="15483">
 			<data key="3">Definition_Edge</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
@@ -862,14 +1156,6 @@
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
-		<edge id="11980" source="11961" target ="3205">
-			<data key="3">Definition_Edge</data>
-			<data key="2">Edge_Definition</data>
-		</edge>
-		<edge id="6156" source="6139" target ="3042">
-			<data key="3">Definition_Edge</data>
-			<data key="2">Edge_Definition</data>
-		</edge>
 		<edge id="4040" source="3788" target ="3042">
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
@@ -886,20 +1172,12 @@
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
-		<edge id="6191" source="6172" target ="3058">
-			<data key="3">Definition_Edge</data>
-			<data key="2">Edge_Definition</data>
-		</edge>
 		<edge id="4061" source="3824" target ="3075">
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
 		<edge id="4068" source="3348" target ="3075">
 			<data key="3">Is_dependant_on</data>
-			<data key="2">Edge_Definition</data>
-		</edge>
-		<edge id="6227" source="6208" target ="3075">
-			<data key="3">Definition_Edge</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
 		<edge id="4075" source="3382" target ="3109">
@@ -926,9 +1204,13 @@
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
-		<edge id="6263" source="6244" target ="3092">
-			<data key="3">Definition_Edge</data>
-			<data key="2">Edge_Definition</data>
+		<edge id="15502" source="15483" target ="2953">
+			<data key="3">Uses_aggregate</data>
+			<data key="2">Edge_Aggregate</data>
+		</edge>
+		<edge id="15082" source="15065" target ="2953">
+			<data key="3">Uses_aggregate</data>
+			<data key="2">Edge_Aggregate</data>
 		</edge>
 		<edge id="4124" source="3205" target ="2953">
 			<data key="3">Uses_aggregate</data>
@@ -946,19 +1228,12 @@
 			<data key="3">Workflow_Edge</data>
 			<data key="2">Edge_Workflow</data>
 		</edge>
-		<edge id="4143" source="3843" target ="3879">
+		<edge id="17544" source="3843" target ="16726">
 			<data key="3">Connected_To</data>
 			<data key="2">Edge_Assembly</data>
 			<data key="284">Connected To</data>
 		</edge>
-		<edge id="7215" source="6244" target ="3879">
-			<data key="9">330</data>
-			<data key="3">Connected_To</data>
-			<data key="2">Edge_Assembly</data>
-			<data key="284">Connected To</data>
-			<data key="10">210</data>
-		</edge>
-		<edge id="12637" source="6244" target ="11961">
+		<edge id="17653" source="16664" target ="3879">
 			<data key="3">Connected_To</data>
 			<data key="2">Edge_Assembly</data>
 			<data key="284">Connected To</data>
@@ -979,22 +1254,15 @@
 			<data key="3">Data_linked</data>
 			<data key="2">Edge_Data</data>
 		</edge>
-		<edge id="4713" source="3788" target ="4237">
+		<edge id="18074" source="3788" target ="4270">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
-			<data key="286">false</data>
 		</edge>
-		<edge id="4872" source="3862" target ="4270">
+		<edge id="17915" source="3862" target ="4237">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
-			<data key="286">false</data>
 		</edge>
-		<edge id="8191" source="6139" target ="4270">
-			<data key="3">Is_deployed_on</data>
-			<data key="2">Edge_Deployment</data>
-			<data key="286">false</data>
-		</edge>
-		<edge id="13723" source="11928" target ="4270">
+		<edge id="18233" source="16631" target ="4270">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
 		</edge>
