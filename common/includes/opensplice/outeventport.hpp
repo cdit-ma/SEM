@@ -9,9 +9,10 @@
 #include "helper.hpp"
 
 namespace ospl{
+     
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{
         public:
-            OutEventPort(Component* component, int domain_id, std::string publisher_name, std::string topic_name);
+            OutEventPort(Component* component, std::string name);
             void tx(T* message);
 
             void startup(std::map<std::string, ::Attribute*> attributes);
@@ -45,7 +46,7 @@ void ospl::OutEventPort<T, S>::tx(T* message){
 
 template <class T, class S>
 ospl::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
-::OutEventPort<T>(component)
+::OutEventPort<T>(component, name)
 {};
 
 
@@ -94,7 +95,7 @@ bool ospl::OutEventPort<T, S>::passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(writer_ != dds::core::null){
-        writer_ = dds::core::null;
+        writer_ = dds::pub::DataWriter<S>(dds::core::null);
     }
 
     return ::OutEventPort<T>::passivate();

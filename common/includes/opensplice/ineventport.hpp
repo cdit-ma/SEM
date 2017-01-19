@@ -117,17 +117,17 @@ void ospl::InEventPort<T, S>::teardown(){
 
 
 template <class T, class S>
-ospl::InEventPort<T, S>::InEventPort(Component* component, std::function<void (T*) > callback_function, int domain_id, std::string subscriber_name, std::string topic_name):
-::InEventPort<T>(component, callback_function){
+ospl::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
+::InEventPort<T>(component, name, callback_function){
 };
 
 template <class T, class S>
 void ospl::InEventPort<T, S>::receive_loop(){
     //Construct a DDS Participant, Subscriber, Topic and Reader
     auto helper = DdsHelper::get_dds_helper();    
-    auto participant = helper->get_participant(domain_id);
-    auto subscriber = helper->get_subscriber(participant, subscriber_name);
-    auto topic = helper->get_topic<S>(participant, topic_name);
+    auto participant = helper->get_participant(domain_id_);
+    auto subscriber = helper->get_subscriber(participant, subscriber_name_);
+    auto topic = helper->get_topic<S>(participant, topic_name_);
     auto reader_ = helper->get_data_reader<S>(subscriber, topic);
 
     //Construct a DDS Listener, designed to call back into the receive thread
