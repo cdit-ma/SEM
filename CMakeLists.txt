@@ -32,13 +32,12 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/zmq")
 set(SOURCE_1
 	${CMAKE_CURRENT_SOURCE_DIR}/deployment_1.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/receiverimpl.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/proxyimpl.cpp
 	${SOURCE}
 	)
 
 set(SOURCE_2
 	${CMAKE_CURRENT_SOURCE_DIR}/deployment_2.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/senderimpl.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/receiverimpl.cpp
 	${SOURCE}
 	)
