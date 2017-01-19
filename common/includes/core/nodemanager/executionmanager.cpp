@@ -341,7 +341,9 @@ void ExecutionManager::execution_loop(){
     }
 
     for(auto a: deployment_map){
+        std::string filter_name = a.second->mutable_node()->name() + "*";
+        std::cout << "SENDING ACTION TO : " << filter_name << std::endl;
         //std::cout << a.second->DebugString() << std::endl;
-        zmq_master_->send_action("*", a.second);
+        zmq_master_->send_action(filter_name, a.second);
     }
 }

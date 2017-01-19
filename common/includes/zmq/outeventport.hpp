@@ -29,6 +29,8 @@ void zmq::OutEventPort<T, S>::tx(T* message){
             zmq::message_t data(str.c_str(), str.size());
             socket_->send(data);
         }
+    }else{
+        std::cout << "NOT ACTIVE?" << std::endl;
     }
 };
 

@@ -1,29 +1,45 @@
 #include "translate.h"
 #include "controlmessage.pb.h"
 #include <iostream>
-::Attribute* get_attribute_from_pb(NodeManager::Attribute* attr){
-    ::Attribute* a = new ::Attribute();
 
-    a->name = attr->name();
+
+::Attribute* set_attribute_from_pb(NodeManager::Attribute* attr, ::Attribute* a){
+    bool set_type = a == 0;
+    if(a == 0){
+        //Construct!
+        a = ::new Attribute();
+        a->name = attr->name();
+
+    }
+
+    
 
     switch(attr->type()){
         case NodeManager::Attribute::INTEGER:{
-            a->type = AT_INTEGER;
+            if(set_type){
+                a->type = AT_INTEGER;
+            }
             a->i = attr->i();
             break;
         }
         case NodeManager::Attribute::BOOLEAN:{
-            a->type = AT_BOOLEAN;
+            if(set_type){
+                a->type = AT_BOOLEAN;
+            }
             a->i = (bool) attr->i();
             break;
         }
         case NodeManager::Attribute::DOUBLE:{
-            a->type = AT_DOUBLE;
+            if(set_type){
+                a->type = AT_DOUBLE;
+            }
             a->d = attr->d();
             break;
         }
         case NodeManager::Attribute::STRING:{
-            a->type = AT_STRING;
+            if(set_type){
+                a->type = AT_STRING;
+            }
             for(auto s: attr->s()){
                 a->s.push_back(s);
                 break;
@@ -31,7 +47,9 @@
             break;
         }
         case NodeManager::Attribute::STRINGLIST:{
-            a->type = AT_STRINGLIST;
+            if(set_type){
+                a->type = AT_STRINGLIST;
+            }
             for(auto s: attr->s()){
                 a->s.push_back(s);
             }

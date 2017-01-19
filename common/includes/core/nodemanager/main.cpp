@@ -42,9 +42,9 @@ int main(int argc, char **argv)
         std::vector<std::string> slaves;
         slaves.push_back("tcp://192.168.111.187:7001");
         //slaves.push_back("tcp://192.168.111.187:7002");
-        slaves.push_back("tcp://192.168.111.84:7001");
+        //slaves.push_back("tcp://192.168.111.84:7001");
         //slaves.push_back("tcp://192.168.111.84:7002");
-        m = new ZMQMaster(host_name, my_ip + ":" + port, slaves, "../../HelloWorld.graphml");
+        m = new ZMQMaster(host_name, my_ip + ":" + port, slaves, "../../HelloWorld2.graphml");
     }else{
         s = new ZMQSlave(manager, host_name, my_ip + ":" + port);
     }

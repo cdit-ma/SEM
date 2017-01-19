@@ -24,6 +24,14 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
         auto component = get_component(c.name());
         if(component){
             std::cout << "NodeContainer::configure:" << component->get_name() << std::endl;
+
+            for(auto a: c.attributes()){
+                auto attribute = component->get_attribute(a.name());
+                if(attribute){
+                    std::cout << "Setting Attribute:" << a.name() << " Value: " << a.DebugString() <<  std::endl;
+                    set_attribute_from_pb(&a, attribute);
+                }
+            }
             for(auto p : c.ports()){
                 auto port = component->get_event_port(p.name());
                 if(port){
@@ -32,18 +40,16 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
                     std::map<std::string, ::Attribute*> attributes_;
 
                     for(auto a: p.attributes()){
-                        auto att = get_attribute_from_pb(&a);
+                        auto att = set_attribute_from_pb(&a);
                         if(att){
                             attributes_[att->name] = att;
                         }
                     }
 
                     port->startup(attributes_);
-                    
-                    
-                    
                 }
             }
+            
         }
     }
 }
@@ -91,7 +97,7 @@ Component* NodeContainer::get_component(std::string component_name){
     auto search = components_.find(component_name);
     
     if(search == components_.end()){
-        std::cout << "NOT MATCH" << std::endl;
+        std::cout << "Can't Find Component: " << component_name  << std::endl;
         return 0;
     }else{
         return search->second;
