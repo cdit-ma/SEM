@@ -15,6 +15,8 @@
 #include "rti/rtitxmessage.h"
 #include "rti/rtirxmessage.h"
 
+#include "opensplice/ospltxmessage.h"
+#include "opensplice/osplrxmessage.h"
 #include <iostream>
 
 void Deployment_1::startup(){
@@ -28,7 +30,7 @@ void Deployment_1::startup(){
     //auto rxMessage = zmq::construct_RxMessage(receiver_impl, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl, std::placeholders::_1)));
     //auto rxMessage2 = zmq::construct_RxMessage(receiver_impl2, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl2, std::placeholders::_1)));
 
-    auto txMessage = rti::construct_TxMessage(sender_impl, "greeting");
+    auto txMessage = ospl::construct_TxMessage(sender_impl, "greeting");
     auto rxMessage = rti::construct_RxMessage(receiver_impl, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl, std::placeholders::_1)));
 
     sender_impl->_set_txMessage(txMessage);
