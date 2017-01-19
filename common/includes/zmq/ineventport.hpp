@@ -32,7 +32,6 @@ namespace zmq{
             std::thread* zmq_thread_ = 0;
             std::thread* rec_thread_ = 0;
 
-            zmq::socket_t* socket_ = 0;
 
             std::vector<std::string> end_points_;
 
@@ -72,12 +71,14 @@ void zmq::InEventPort<T, S>::receive_loop(){
 template <class T, class S>
 void zmq::InEventPort<T, S>::zmq_loop(){
     auto helper = ZmqHelper::get_zmq_helper();
-    socket_ = helper->get_subscriber_socket();
+    auto socket = helper->get_subscriber_socket();
 
+    
+    socket->connect("inproc://term_signal");
     for(auto end_point: end_points_){
         std::cout << "Connecting To: " << end_point << std::endl;
         //Connect to the publisher
-        socket_->connect(end_point.c_str());   
+        socket->connect(end_point.c_str());   
     }
 
     //Construct a new ZMQ Message to store the resulting message in.
@@ -86,24 +87,36 @@ void zmq::InEventPort<T, S>::zmq_loop(){
     while(true){
 		try{
             //Wait for next message
-            socket_->recv(data);
+            socket->recv(data);
             
             //If we have a valid message
             if(data->size() > 0){
-                //Construct a string out of the zmq data
                 std::string msg_str(static_cast<char *>(data->data()), data->size());
+                if(data->size() == 1){
+                    std::cout << msg_str << std::endl;
+                    break;
+                }
+                //Construct a string out of the zmq data
+                
                 {
                     //Gain mutex lock and append message
                     std::unique_lock<std::mutex> lock(notify_mutex_);
                     message_queue_.push(msg_str);
                     notify_lock_condition_.notify_all();
                 }
+            }else{
+                std::cout << "TERMINATED?!" << std::endl;
+                break;
             }
         }catch(zmq::error_t ex){
             //Do nothing with an error.
+            std::cout << ex.num() << std::endl;
 			continue;
         }
     }
+
+    std::cout << this << "ZMQ THREAD DED" << std::endl;
+    delete socket;
 };
 
 template <class T, class S>
@@ -157,11 +170,20 @@ bool zmq::InEventPort<T, S>::passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(zmq_thread_){
         //Delete socket - gracefully kills zmq
-        delete socket_;
+        auto helper = ZmqHelper::get_zmq_helper();
+        //Construct our terminate socket
+        auto term_socket = helper->get_publisher_socket();
+	    term_socket->bind("inproc://term_signal");
+
+        //Make set_attr_string
+        term_socket->send(zmq::message_t("1", 1));
 
         zmq_thread_->join();
         zmq_thread_ = 0;
+
+        delete term_socket;
     }
+    
     return ::InEventPort<T>::passivate();
 };
 

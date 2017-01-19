@@ -624,12 +624,12 @@
 										</node>
 										<node id ="3862">
 											<data key="7">1</data>
-											<data key="9">440</data>
+											<data key="9">450</data>
 											<data key="3">Receiver</data>
 											<data key="2">ComponentInstance</data>
 											<data key="4">HelloReceiver</data>
 											<data key="8">true</data>
-											<data key="10">60</data>
+											<data key="10">70</data>
 											<graph id ="g3862">
 												<node id ="3879">
 													<data key="7">0</data>
@@ -646,7 +646,7 @@
 										<node id ="6139">
 											<data key="7">2</data>
 											<data key="9">20</data>
-											<data key="3">HelloSender_Inst</data>
+											<data key="3">Sender2</data>
 											<data key="2">ComponentInstance</data>
 											<data key="4">HelloSender</data>
 											<data key="8">true</data>
@@ -670,7 +670,7 @@
 													<data key="332">hello from the other side</data>
 													<data key="4">String</data>
 													<data key="8">false</data>
-													<data key="10">120</data>
+													<data key="10">110</data>
 												</node>
 												<node id ="6244">
 													<data key="7">2</data>
@@ -680,7 +680,28 @@
 													<data key="2">OutEventPortInstance</data>
 													<data key="4">Message</data>
 													<data key="8">false</data>
-													<data key="10">90</data>
+													<data key="10">60</data>
+												</node>
+											</graph>
+										</node>
+										<node id ="11928">
+											<data key="7">3</data>
+											<data key="9">470</data>
+											<data key="3">Receiver2</data>
+											<data key="2">ComponentInstance</data>
+											<data key="4">HelloReceiver</data>
+											<data key="8">true</data>
+											<data key="10">270</data>
+											<graph id ="g11928">
+												<node id ="11961">
+													<data key="7">0</data>
+													<data key="9">-1</data>
+													<data key="2909"></data>
+													<data key="3">greeting</data>
+													<data key="2">InEventPortInstance</data>
+													<data key="4">Message</data>
+													<data key="8">false</data>
+													<data key="10">-1</data>
 												</node>
 											</graph>
 										</node>
@@ -729,7 +750,7 @@
 											<data key="283">amd64</data>
 											<data key="10">60</data>
 											<data key="280">Linux</data>
-											<data key="286">true</data>
+											<data key="286">false</data>
 											<data key="282">192.168.111.187</data>
 											<data key="8">true</data>
 											<data key="4199">1484615637</data>
@@ -749,7 +770,7 @@
 											<data key="283">amd64</data>
 											<data key="10">60</data>
 											<data key="280">Linux</data>
-											<data key="286">true</data>
+											<data key="286">false</data>
 											<data key="282">192.168.111.84</data>
 											<data key="8">true</data>
 											<data key="4199">1484615637</data>
@@ -805,6 +826,10 @@
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
+		<edge id="11945" source="11928" target ="3189">
+			<data key="3">Definition_Edge</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
 		<edge id="3984" source="3862" target ="3189">
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
@@ -835,6 +860,10 @@
 		</edge>
 		<edge id="4026" source="3517" target ="3205">
 			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="11980" source="11961" target ="3205">
+			<data key="3">Definition_Edge</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
 		<edge id="6156" source="6139" target ="3042">
@@ -923,6 +952,13 @@
 			<data key="284">Connected To</data>
 		</edge>
 		<edge id="7215" source="6244" target ="3879">
+			<data key="9">330</data>
+			<data key="3">Connected_To</data>
+			<data key="2">Edge_Assembly</data>
+			<data key="284">Connected To</data>
+			<data key="10">210</data>
+		</edge>
+		<edge id="12637" source="6244" target ="11961">
 			<data key="3">Connected_To</data>
 			<data key="2">Edge_Assembly</data>
 			<data key="284">Connected To</data>
@@ -946,17 +982,21 @@
 		<edge id="4713" source="3788" target ="4237">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
-			<data key="286">true</data>
+			<data key="286">false</data>
 		</edge>
 		<edge id="4872" source="3862" target ="4270">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
-			<data key="286">true</data>
+			<data key="286">false</data>
 		</edge>
 		<edge id="8191" source="6139" target ="4270">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
-			<data key="286">true</data>
+			<data key="286">false</data>
+		</edge>
+		<edge id="13723" source="11928" target ="4270">
+			<data key="3">Is_deployed_on</data>
+			<data key="2">Edge_Deployment</data>
 		</edge>
 	</graph>
 </graphml>

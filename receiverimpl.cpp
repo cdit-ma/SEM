@@ -4,7 +4,7 @@
 ReceiverImpl::ReceiverImpl(std::string name) : ReceiverInt(name){};
 
 void ReceiverImpl::rxMessage(::Message* message){
-    std::cout << instName() << " Got Message: "  << message->content() << " From: " << message->instName() << std::endl; 
+    std::cout << get_name() << " Got Message: "  << message->content() << " From: " << message->instName() << std::endl; 
 }
 
 
