@@ -23,8 +23,8 @@ class ProxyInt: public Component{
         void _set_rxMessage(::InEventPort<::Message>* rx);
     private:
         //Define our Ports
-        ::InEventPort<::Message>* txMessage_ = 0;
-        ::OutEventPort<::Message>* rxMessage_ = 0;
+        ::InEventPort<::Message>* rxMessage_ = 0;
+        ::OutEventPort<::Message>* txMessage_ = 0;
 };
 
 /*
