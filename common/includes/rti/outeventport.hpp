@@ -4,6 +4,8 @@
 #include "../core/eventports/outeventport.hpp"
 
 #include <string>
+#include <mutex>
+
 
 #include "helper.hpp"
 
@@ -53,15 +55,15 @@ void rti::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("publisher_name")){
-        publisher_name_ = attributes["publisher_name"]->s;
+        publisher_name_ = attributes["publisher_name"]->get_string();
         configured_ = true;
     }
     if(attributes.count("topic_name")){
-        topic_name_ = attributes["topic_name"]->s;
+        topic_name_ = attributes["topic_name"]->get_string();
         configured_ = true && configured_;
     }
     if(attributes.count("domain_id")){
-        domain_id_ = attributes["domain_id"]->s;
+        domain_id_ = attributes["domain_id"]->i;
         configured_ = true && configured_;                
     }
 };
@@ -92,11 +94,11 @@ template <class T, class S>
 bool rti::OutEventPort<T, S>::passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
-    if(writer_){
-        delete this->writer_;
+    if(writer_ != dds::core::null){
+        writer_ = dds::core::null;
     }
 
-    return ::OutEventPort<T>passivate();
+    return ::OutEventPort<T>::passivate();
 };
 
 #endif //RTI_OUTEVENTPORT_H

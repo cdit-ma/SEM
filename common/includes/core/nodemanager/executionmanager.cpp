@@ -157,6 +157,7 @@ bool ExecutionManager::scrape_document(){
                         //Construct a TCP Address
                         port->port_address = "tcp://" + node->ip_address + ":" + std::to_string(port->port_number);
                     }
+
                 }
 
                 if(event_ports_.count(p_id) == 0){
@@ -301,6 +302,20 @@ void ExecutionManager::execution_loop(){
                     }
                     port_pb->set_middleware(mw);
 
+
+                    //Set port port number
+                    auto topic_pb = port_pb->add_attributes();
+                    topic_pb->set_name("topic");
+                    topic_pb->set_type(NodeManager::Attribute::STRING);
+                    //TODO: actually set Topic Name port number.
+                    set_attr_string(topic_pb, "a");
+                    
+                    auto domain_id = port_pb->add_attributes();
+                    domain_id->set_name("domain_id");
+                    domain_id->set_type(NodeManager::Attribute::INTEGER);
+                    domain_id->set_i(0);
+                            
+
                     if(port_pb->type() == NodeManager::EventPort::OUT){
                         HardwareNode* node = get_hardware_node(component->node_id);
                         if(node){
@@ -312,12 +327,14 @@ void ExecutionManager::execution_loop(){
                                 set_attr_string(publisher_addr_pb, event_port->port_address);
                             }
 
+                           
+
                             //Set port port number
-                            auto topic_pb = port_pb->add_attributes();
-                            topic_pb->set_name("topic");
-                            topic_pb->set_type(NodeManager::Attribute::STRING);
-                            //TODO: actually set Topic Name port number.
-                            set_attr_string(topic_pb, "a");
+                            auto publisher_pb = port_pb->add_attributes();
+                            publisher_pb->set_name("publisher_name");
+                            publisher_pb->set_type(NodeManager::Attribute::STRING);
+                            set_attr_string(publisher_pb, component->name + "_" + event_port->name);
+
                         }
                     }else if(port_pb->type() == NodeManager::EventPort::IN){
                         auto publisher_addr_pb = port_pb->add_attributes();
@@ -334,6 +351,12 @@ void ExecutionManager::execution_loop(){
                                 set_attr_string(publisher_addr_pb, s->port_address);
                             }
                         }
+
+                        //Set port port number
+                        auto subscriber_pb = port_pb->add_attributes();
+                        subscriber_pb->set_name("subscriber_name");
+                        subscriber_pb->set_type(NodeManager::Attribute::STRING);
+                        set_attr_string(subscriber_pb, component->name + "_" + event_port->name);
                     }
                 }
             }

@@ -44,7 +44,6 @@ namespace rti{
 template <class T, class S>
 void rti::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    end_points_.clear();
 
     if(attributes.count("topic_name")){
         topic_name_ = attributes["topic_name"]->get_string();
@@ -53,7 +52,7 @@ void rti::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attribu
     if(attributes.count("subscriber_name")){
         subscriber_name_ = attributes["subscriber_name"]->get_string();
     }else{
-        subscriber_name_ = "In_" << this->get_name();
+        subscriber_name_ = "In_" + this->get_name();
     }
 
     if(attributes.count("domain_id")){
@@ -61,7 +60,7 @@ void rti::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attribu
     }
 
     if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
-        configured = true;
+        configured_ = true;
     }else{
         std::cout << "rti::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
     }
@@ -86,7 +85,7 @@ bool rti::InEventPort<T, S>::passivate(){
 
         //Join our zmq_thread
         rec_thread_->join();
-        delete rec_thread;
+        delete rec_thread_;
         rec_thread_ = 0;
     }
     
