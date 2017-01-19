@@ -33,8 +33,8 @@ void Deployment_1::startup(){
     //auto rxMessage2 = zmq::construct_RxMessage(receiver_impl2, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl2, std::placeholders::_1)));
 
     auto txMessage = ospl::construct_TxMessage(sender_impl, "greeting");
-    auto rxMessage = rti::construct_RxMessage(proxy_impl, "greeting", (std::bind(&ProxyImpl::rxMessage, proxy_impl, std::placeholders::_1)));
-    auto txMessage2 = zmq::construct_TxMessage(proxy_impl, "greeting");
+    auto rxMessage = rti::construct_RxMessage(proxy_impl, "ProxyIn", (std::bind(&ProxyImpl::rxMessage, proxy_impl, std::placeholders::_1)));
+    auto txMessage2 = zmq::construct_TxMessage(proxy_impl, "ProxyOut");
 
     sender_impl->_set_txMessage(txMessage);
     proxy_impl->_set_txMessage(txMessage2);
