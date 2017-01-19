@@ -59,6 +59,11 @@ void rti::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attribu
         domain_id_ = attributes["domain_id"]->i;
     }
 
+    std::cout <<"TN: " << topic_name_ << std::endl;
+    std::cout <<"SN: "<< subscriber_name_ << std::endl;
+    std::cout <<"DI: "<< domain_id_ << std::endl;
+
+
     if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
         configured_ = true;
     }else{

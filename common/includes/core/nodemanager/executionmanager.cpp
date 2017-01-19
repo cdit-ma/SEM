@@ -305,10 +305,11 @@ void ExecutionManager::execution_loop(){
 
                     //Set port port number
                     auto topic_pb = port_pb->add_attributes();
-                    topic_pb->set_name("topic");
+                    topic_pb->set_name("topic_name");
                     topic_pb->set_type(NodeManager::Attribute::STRING);
                     //TODO: actually set Topic Name port number.
-                    set_attr_string(topic_pb, "a");
+                    set_attr_string(topic_pb, "a"); 
+                    
                     
                     auto domain_id = port_pb->add_attributes();
                     domain_id->set_name("domain_id");
