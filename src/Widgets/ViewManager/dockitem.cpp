@@ -1,7 +1,7 @@
 #include "dockitem.h"
 #include "../../theme.h"
 
-// TESTING2
+// TESTING3
 DockItem::DockItem(ViewManagerWidget *manager, BaseDockWidget *dockWidget)
 {
     this->manager = manager;
