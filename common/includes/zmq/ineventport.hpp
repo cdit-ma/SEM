@@ -19,20 +19,29 @@ namespace zmq{
 
             void startup(std::map<std::string, ::Attribute*> attributes);
             void teardown();
+
+            bool activate();
+            bool passivate();
+
         private:
             void receive_loop();
             void zmq_loop();
             
             
 
-            std::thread* zmq_thread_;
-            std::thread* rec_thread_;
+            std::thread* zmq_thread_ = 0;
+            std::thread* rec_thread_ = 0;
+
+            zmq::socket_t* socket_ = 0;
 
             std::vector<std::string> end_points_;
 
             std::mutex notify_mutex_;
+            std::mutex control_mutex_;
             std::condition_variable notify_lock_condition_;
             std::queue<std::string> message_queue_;
+
+            bool configured_ = false;
     }; 
 };
 
@@ -63,12 +72,12 @@ void zmq::InEventPort<T, S>::receive_loop(){
 template <class T, class S>
 void zmq::InEventPort<T, S>::zmq_loop(){
     auto helper = ZmqHelper::get_zmq_helper();
-    auto socket = helper->get_subscriber_socket();
+    socket_ = helper->get_subscriber_socket();
 
     for(auto end_point: end_points_){
         std::cout << "Connecting To: " << end_point << std::endl;
         //Connect to the publisher
-        socket->connect(end_point.c_str());   
+        socket_->connect(end_point.c_str());   
     }
 
     //Construct a new ZMQ Message to store the resulting message in.
@@ -77,7 +86,7 @@ void zmq::InEventPort<T, S>::zmq_loop(){
     while(true){
 		try{
             //Wait for next message
-            socket->recv(data);
+            socket_->recv(data);
             
             //If we have a valid message
             if(data->size() > 0){
@@ -100,11 +109,14 @@ void zmq::InEventPort<T, S>::zmq_loop(){
 template <class T, class S>
 zmq::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function)
 : ::InEventPort<T>(component, name, callback_function){
+    configured_ = false;
 };
 
 
 template <class T, class S>
 void zmq::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+
+    std::lock_guard<std::mutex> lock(control_mutex_);
     end_points_.clear();
 
     if(attributes.count("publisher_address")){
@@ -114,16 +126,43 @@ void zmq::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attribu
     }
 
     if(!end_points_.empty()){
-        zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
-        rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);    
+        rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);
+        configured_=true;
     }else{
         std::cout << "NO RECIEVERS!" << std::endl;
     }
+
 };
 
 template <class T, class S>
 void zmq::InEventPort<T, S>::teardown(){
+
+    passivate();
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    configured_ = false;
 };
 
+template <class T, class S>
+bool zmq::InEventPort<T, S>::activate(){
+
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    if(configured_){
+        zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
+    }
+    return ::InEventPort<T>::activate();
+};
+
+template <class T, class S>
+bool zmq::InEventPort<T, S>::passivate(){
+    std::lock_guard<std::mutex> lock(control_mutex_);
+    if(zmq_thread_){
+        //Delete socket - gracefully kills zmq
+        delete socket_;
+
+        zmq_thread_->join();
+        zmq_thread_ = 0;
+    }
+    return ::InEventPort<T>::passivate();
+};
 
 #endif //ZMQ_INEVENTPORT_H
