@@ -824,12 +824,12 @@
 									<graph id ="g20541">
 																				<node id ="20695">
 											<data key="7">0</data>
-											<data key="9">720</data>
+											<data key="9">750</data>
 											<data key="3">Sender</data>
 											<data key="2">ComponentInstance</data>
 											<data key="4">HelloSender</data>
 											<data key="8">true</data>
-											<data key="10">210</data>
+											<data key="10">240</data>
 											<graph id ="g20695">
 																								<node id ="20720">
 													<data key="7">0</data>
@@ -865,7 +865,7 @@
 										</node>
 																				<node id ="20644">
 											<data key="7">1</data>
-											<data key="9">730</data>
+											<data key="9">740</data>
 											<data key="3">Receiver</data>
 											<data key="2">ComponentInstance</data>
 											<data key="4">HelloReceiver</data>
@@ -886,7 +886,7 @@
 										</node>
 																				<node id ="20566">
 											<data key="7">2</data>
-											<data key="9">150</data>
+											<data key="9">130</data>
 											<data key="3">Proxy</data>
 											<data key="2">ComponentInstance</data>
 											<data key="4">HelloProxy</data>
@@ -895,44 +895,44 @@
 											<graph id ="g20566">
 																								<node id ="20591">
 													<data key="7">0</data>
-													<data key="9">110</data>
+													<data key="9">120</data>
+													<data key="2909"></data>
+													<data key="3">ProxyOut</data>
+													<data key="2">OutEventPortInstance</data>
+													<data key="4">Message</data>
+													<data key="8">false</data>
+													<data key="10">140.00000000000003</data>
+												</node>
+																								<node id ="20618">
+													<data key="7">1</data>
+													<data key="9">150</data>
+													<data key="2909"></data>
+													<data key="3">ProxyIn</data>
+													<data key="2">InEventPortInstance</data>
+													<data key="4">Message</data>
+													<data key="8">false</data>
+													<data key="10">60</data>
+												</node>
+											</graph>
+										</node>
+																				<node id ="21005">
+											<data key="7">3</data>
+											<data key="9">450</data>
+											<data key="3">LoopProxy</data>
+											<data key="2">ComponentInstance</data>
+											<data key="4">HelloProxy</data>
+											<data key="8">true</data>
+											<data key="10">330</data>
+											<graph id ="g21005">
+																								<node id ="21038">
+													<data key="7">0</data>
+													<data key="9">100</data>
 													<data key="2909"></data>
 													<data key="3">ProxyOut</data>
 													<data key="2">OutEventPortInstance</data>
 													<data key="4">Message</data>
 													<data key="8">false</data>
 													<data key="10">60</data>
-												</node>
-																								<node id ="20618">
-													<data key="7">1</data>
-													<data key="9">20</data>
-													<data key="2909"></data>
-													<data key="3">ProxyIn</data>
-													<data key="2">InEventPortInstance</data>
-													<data key="4">Message</data>
-													<data key="8">false</data>
-													<data key="10">100</data>
-												</node>
-											</graph>
-										</node>
-																				<node id ="21005">
-											<data key="7">3</data>
-											<data key="9">150</data>
-											<data key="3">LoopProxy</data>
-											<data key="2">ComponentInstance</data>
-											<data key="4">HelloProxy</data>
-											<data key="8">true</data>
-											<data key="10">280</data>
-											<graph id ="g21005">
-																								<node id ="21038">
-													<data key="7">0</data>
-													<data key="9">20</data>
-													<data key="2909"></data>
-													<data key="3">ProxyOut</data>
-													<data key="2">OutEventPortInstance</data>
-													<data key="4">Message</data>
-													<data key="8">false</data>
-													<data key="10">110</data>
 												</node>
 																								<node id ="21100">
 													<data key="7">1</data>
@@ -942,7 +942,7 @@
 													<data key="2">InEventPortInstance</data>
 													<data key="4">Message</data>
 													<data key="8">false</data>
-													<data key="10">60</data>
+													<data key="10">150</data>
 												</node>
 											</graph>
 										</node>
@@ -1276,24 +1276,20 @@
 			<data key="2">Edge_Assembly</data>
 			<data key="284">Connected To</data>
 		</edge>
-		<edge id="20877" source="20591" target ="20669">
+		<edge id="23706" source="21038" target ="20669">
 			<data key="3">Connected_To</data>
 			<data key="2">Edge_Assembly</data>
 			<data key="284">Connected To</data>
 		</edge>
 		<edge id="21772" source="21038" target ="20618">
-			<data key="9">620</data>
 			<data key="3">Connected_To</data>
 			<data key="2">Edge_Assembly</data>
 			<data key="284">Connected To</data>
-			<data key="10">370</data>
 		</edge>
 		<edge id="21561" source="20591" target ="21100">
-			<data key="9">520</data>
 			<data key="3">Connected_To</data>
 			<data key="2">Edge_Assembly</data>
 			<data key="284">Connected To</data>
-			<data key="10">200</data>
 		</edge>
 		<edge id="4150" source="3348" target ="3441">
 			<data key="3">Data_linked</data>

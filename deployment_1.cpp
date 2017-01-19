@@ -23,26 +23,37 @@
 
 void Deployment_1::startup(){
     //Construct the Component Impls
-    SenderImpl* sender_impl = new SenderImpl("Sender");
     ProxyImpl* proxy_impl = new ProxyImpl("Proxy");
+    ProxyImpl* proxy_impl_loop = new ProxyImpl("LoopProxy");
 
-    PeriodicEventPort* pe = new PeriodicEventPort(sender_impl, "PeriodicEvent", std::function<void(void)>(std::bind(&SenderImpl::periodic_event, sender_impl)), 1000);
+    //PeriodicEventPort* pe = new PeriodicEventPort(sender_impl, "PeriodicEvent", std::function<void(void)>(std::bind(&SenderImpl::periodic_event, sender_impl)), 1000);
 
     
     //auto rxMessage = zmq::construct_RxMessage(receiver_impl, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl, std::placeholders::_1)));
     //auto rxMessage2 = zmq::construct_RxMessage(receiver_impl2, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl2, std::placeholders::_1)));
 
-    auto txMessage = ospl::construct_TxMessage(sender_impl, "greeting");
-    auto rxMessage = rti::construct_RxMessage(proxy_impl, "ProxyIn", (std::bind(&ProxyImpl::rxMessage, proxy_impl, std::placeholders::_1)));
-    auto txMessage2 = zmq::construct_TxMessage(proxy_impl, "ProxyOut");
 
-    sender_impl->_set_txMessage(txMessage);
-    proxy_impl->_set_txMessage(txMessage2);
+    auto rxMessage = zmq::construct_RxMessage(proxy_impl, "ProxyIn", (std::bind(&ProxyImpl::rxMessage, proxy_impl, std::placeholders::_1)));
+    auto txMessage = rti::construct_TxMessage(proxy_impl, "ProxyOut");
+    
+
+    auto rxMessageLoop = ospl::construct_RxMessage(proxy_impl, "ProxyIn", (std::bind(&ProxyImpl::rxMessage, proxy_impl, std::placeholders::_1)));
+    auto txMessageLoop = zmq::construct_TxMessage(proxy_impl, "ProxyOut");
+
+
+
+    proxy_impl->_set_txMessage(txMessage);
     proxy_impl->_set_rxMessage(rxMessage);
+
+    proxy_impl_loop->_set_txMessage(txMessageLoop);
+    proxy_impl_loop->_set_rxMessage(rxMessageLoop);
+
+
+
 //    receiver_impl2->_set_rxMessage(rxMessage2);
 
-    add_component(sender_impl);
     add_component(proxy_impl);
+    add_component(proxy_impl_loop);
   //  add_component(receiver_impl2);
 };
 
