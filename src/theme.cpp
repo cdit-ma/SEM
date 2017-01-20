@@ -761,6 +761,7 @@ QString Theme::getToolBarStyleSheet()
            "border: 0px;"
            "padding: 1px;"
            "margin: 0px;"
+           //"background:" % getBackgroundColorHex() % ";"
            "background: rgba(0,0,0,0);"
            "}"
            "QToolBar::separator {"

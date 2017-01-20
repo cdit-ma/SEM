@@ -29,6 +29,10 @@ QOSBrowser::QOSBrowser(ViewController* vc, QWidget *parent) : QWidget(parent)
 void QOSBrowser::themeChanged()
 {
     Theme* theme = Theme::theme();
+
+    mainWidget->setStyleSheet("background:" + theme->getBackgroundColorHex() + ";");
+    toolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px; }");
+
     horizontalSplitter->setStyleSheet(theme->getSplitterStyleSheet());
     profileView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
     elementView->setStyleSheet(theme->getAbstractItemViewStyleSheet());
@@ -80,16 +84,14 @@ void QOSBrowser::removeSelectedProfile()
 
 void QOSBrowser::setupLayout()
 {
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    layout->setSpacing(5);
-    layout->setMargin(0);
-
     horizontalSplitter = new QSplitter(this);
     profileView = new QListView(this);
     elementView = new QTreeView(this);
     tableView = new DataTableView(this);
-    QToolBar* toolbar = new QToolBar(this);
+
+    toolbar = new QToolBar(this);
     toolbar->setIconSize(QSize(20,20));
+    toolbar->setContentsMargins(0,0,0,4);
 
     //profileView->setFocusPolicy(Qt::NoFocus);
     //elementView->setFocusPolicy(Qt::NoFocus);
@@ -154,7 +156,16 @@ void QOSBrowser::setupLayout()
     horizontalSplitter->addWidget(attributeWidget);
     //horizontalSplitter->addWidget(elementView);
     //horizontalSplitter->addWidget(tableView);
-    layout->addWidget(horizontalSplitter);
+
+    mainWidget = new QWidget(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
+    mainLayout->setMargin(1);
+    mainLayout->setSpacing(DIALOG_SPACING);
+    mainLayout->addWidget(horizontalSplitter);
+
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setMargin(0);
+    layout->addWidget(mainWidget);
 
     profileView->setModel(qosModel);
     elementView->setModel(0);

@@ -39,7 +39,6 @@ public slots:
     void centerOnSelectedItem();
     void popupSelectedItem();
 
-    //void showPanel();
     void resetPanel();
 
 private:
@@ -49,6 +48,8 @@ private:
     SearchItemWidget* constructSearchItem(ViewItem* item);
     void constructKeyButton(QString key, QString text = "", bool checked = false, bool addToGroup = true);
 
+    QWidget* mainWidget;
+
     QLabel* queryLabel;
     QLabel* searchLabel;
     QLabel* scopeLabel;
@@ -57,13 +58,12 @@ private:
 
     QToolButton* centerOnButton;
     QToolButton* popupButton;
-
-    QLineEdit* searchLineEdit;
     QToolButton* searchButton;
-    QComboBox* scopeComboBox;
+    QToolButton* refreshButton;
 
     QToolBar* keysToolbar;
-    QToolBar* buttonsToolbar;
+    QToolBar* topToolbar;
+    QToolBar* bottomToolbar;
     QVBoxLayout* keysLayout;
 
     QActionGroup* keysActionGroup;

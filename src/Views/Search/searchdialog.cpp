@@ -4,8 +4,8 @@
 #include <QDateTime>
 #include <QDebug>
 
-#define DEFAULT_KEY_WIDTH 150
-#define DEFAULT_DISPLAY_WIDTH 200
+#define DEFAULT_KEY_WIDTH 138
+#define DEFAULT_DISPLAY_WIDTH 212
 
 /**
  * @brief SearchDialog::SearchDialog
@@ -74,8 +74,11 @@ void SearchDialog::themeChanged()
                   + theme->getDialogStyleSheet()
                   + theme->getComboBoxStyleSheet());
 
+    mainWidget->setStyleSheet("background:" + theme->getBackgroundColorHex() + ";");
+
+    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px; }");
+    bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px; }");
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
-    buttonsToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     keysToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
                                "QToolBar::separator {"
                                "margin: 2px 0px;"
@@ -87,13 +90,13 @@ void SearchDialog::themeChanged()
                                "border-radius:" + theme->getSharpCornerRadius() + ";"
                                "}");
 
-    //searchButton->setIcon(theme->getIcon("Actions", "Search"));
     centerOnButton->setIcon(theme->getIcon("Actions", "Crosshair"));
     popupButton->setIcon(theme->getIcon("Actions", "Popup"));
+    searchButton->setIcon(theme->getIcon("Actions", "Search"));
+    refreshButton->setIcon(theme->getIcon("Actions", "Refresh"));
 
     infoLabel->setStyleSheet(labelStyle);
     searchLabel->setStyleSheet(labelStyle);
-    //scopeLabel->setStyleSheet(labelStyle);
     queryLabel->setStyleSheet("color:" + theme->getHighlightColorHex() + ";");
 }
 
@@ -178,37 +181,15 @@ void SearchDialog::resetPanel()
 void SearchDialog::setupLayout()
 {
     searchLabel = new QLabel("Search: ", this);
-    //scopeLabel = new QLabel("Scope:", this);
     queryLabel = new QLabel("Searched string Searched string Searched string", this);
 
     QFont labelFont(font().family(), 9);
     searchLabel->setFont(labelFont);
-    //scopeLabel->setFont(labelFont);
     labelFont.setPointSize(10);
     queryLabel->setFont(labelFont);
     queryLabel->setWordWrap(true);
 
     int fieldHeight = 32;
-
-    /*
-    searchLineEdit = new QLineEdit(this);
-    searchLineEdit->setFont(QFont(font().family(), 13));
-    searchLineEdit->setPlaceholderText("Search Here...");
-    searchLineEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    searchLineEdit->setCompleter(searchCompleter);
-    */
-
-    /*
-     * This is going to be used for filtering via view aspects.
-     *
-    scopeComboBox = new QComboBox(this);
-    scopeComboBox->setFixedHeight(fieldHeight);
-    scopeComboBox->addItem("Entire Model");
-    scopeComboBox->addItem("Interfaces");
-    scopeComboBox->addItem("Behaviour");
-    scopeComboBox->addItem("Assemblies");
-    scopeComboBox->addItem("Hardware");
-    */
 
     centerOnButton = new QToolButton(this);
     centerOnButton->setFixedSize(QSize(fieldHeight, fieldHeight));
@@ -218,10 +199,24 @@ void SearchDialog::setupLayout()
     popupButton->setFixedSize(QSize(fieldHeight, fieldHeight));
     popupButton->setToolTip("View Selected Item In New Window");
 
-    buttonsToolbar = new QToolBar(this);
-    buttonsToolbar->setIconSize(QSize(20, 20));
-    buttonsToolbar->addWidget(centerOnButton);
-    buttonsToolbar->addWidget(popupButton);
+    topToolbar = new QToolBar(this);
+    topToolbar->setIconSize(QSize(20, 20));
+    topToolbar->addWidget(centerOnButton);
+    topToolbar->addWidget(popupButton);
+
+    searchButton = new QToolButton(this);
+    searchButton->setFixedSize(QSize(fieldHeight, fieldHeight));
+    searchButton->setToolTip("Search Again");
+
+    refreshButton = new QToolButton(this);
+    refreshButton->setFixedSize(QSize(fieldHeight, fieldHeight));
+    refreshButton->setToolTip("Refresh Search Results");
+
+    bottomToolbar = new QToolBar(this);
+    bottomToolbar->setIconSize(QSize(20, 20));
+    bottomToolbar->setContentsMargins(2,0,2,0);
+    bottomToolbar->addWidget(searchButton);
+    bottomToolbar->addWidget(refreshButton);
 
     keysToolbar = new QToolBar(this);
     keysToolbar->setOrientation(Qt::Vertical);
@@ -274,30 +269,35 @@ void SearchDialog::setupLayout()
     labelLayout->addWidget(searchLabel);
     labelLayout->addWidget(queryLabel, 1);
 
+    QHBoxLayout* topHLayout = new QHBoxLayout();
+    topHLayout->setMargin(0);
+    topHLayout->setSpacing(5);
+    topHLayout->setContentsMargins(4,0,4,0);
+    topHLayout->addLayout(labelLayout, 1);
+    topHLayout->addSpacerItem(new QSpacerItem(30, 0));
+    topHLayout->addWidget(topToolbar);
+
     /*
-    QHBoxLayout* labelLayout2 = new QHBoxLayout();
-    labelLayout2->setMargin(0);
-    labelLayout2->setSpacing(2);
-    labelLayout2->addWidget(scopeLabel);
-    labelLayout2->addWidget(scopeComboBox);
+    QHBoxLayout* bottomHLayout = new QHBoxLayout();
+    bottomHLayout->setMargin(0);
+    bottomHLayout->setContentsMargins(4,0,4,0);
+    bottomHLayout->addWidget(bottomToolbar, 1, Qt::AlignRight);
     */
 
-    QHBoxLayout* hLayout = new QHBoxLayout();
-    hLayout->setMargin(0);
-    hLayout->setSpacing(5);
-    hLayout->addLayout(labelLayout, 1);
-    hLayout->addSpacerItem(new QSpacerItem(30, 0));
-    //hLayout->addLayout(labelLayout2);
-    hLayout->addWidget(buttonsToolbar);
-
-    QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setMargin(DIALOG_MARGIN);
-    mainLayout->setSpacing(DIALOG_MARGIN);
-    //mainLayout->setSpacing(DIALOG_SPACING);
-    mainLayout->addLayout(hLayout);
+    mainWidget = new QWidget(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
+    mainLayout->setMargin(0);
+    mainLayout->setSpacing(DIALOG_SPACING);
+    mainLayout->setContentsMargins(1, DIALOG_SPACING, 1, DIALOG_SPACING);
+    mainLayout->addLayout(topHLayout);
     mainLayout->addWidget(displaySplitter, 1);
+    mainLayout->addWidget(bottomToolbar, 0, Qt::AlignRight);
+    //mainLayout->addLayout(bottomHLayout);
 
-    //setMinimumSize(mainLayout->sizeHint().width() + 50, MIN_HEIGHT);
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setMargin(0);
+    layout->addWidget(mainWidget);
+
     setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
     connect(centerOnButton, SIGNAL(clicked(bool)), this, SLOT(centerOnSelectedItem()));

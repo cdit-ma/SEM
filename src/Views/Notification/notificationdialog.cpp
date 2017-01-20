@@ -271,8 +271,10 @@ void NotificationDialog::themeChanged()
                     "}"
                   + "QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex()+ ";}");
 
-    topToolbar->setStyleSheet(theme->getToolBarStyleSheet());
-    bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet());
+    mainWidget->setStyleSheet("background:" + theme->getBackgroundColorHex() + ";");
+
+    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; }");
+    bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; }");
     filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
                                   "QToolBar::separator {"
                                   "margin: 2px 0px;"
@@ -940,18 +942,24 @@ void NotificationDialog::setupLayout()
     displaySplitter->addWidget(displayArea);
     displaySplitter->setStretchFactor(0, 0);
     displaySplitter->setStretchFactor(1, 1);
-    displaySplitter->setSizes(QList<int>() << 150 << 200);
+    displaySplitter->setSizes(QList<int>() << 138 << 212);
 
-    QVBoxLayout* vLayout = new QVBoxLayout(this);
-    vLayout->setMargin(DIALOG_MARGIN);
-    vLayout->setSpacing(DIALOG_SPACING);
-    vLayout->addWidget(topToolbar);
-    vLayout->addWidget(displaySplitter, 1);
-    vLayout->addWidget(bottomToolbar);
+    mainWidget = new QWidget(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
+    mainLayout->setMargin(0);
+    mainLayout->setSpacing(1);
+    mainLayout->setContentsMargins(1, 1, 1, 1);
+    mainLayout->addWidget(topToolbar);
+    mainLayout->addWidget(displaySplitter, 1);
+    mainLayout->addWidget(bottomToolbar);
+
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setMargin(0);
+    layout->addWidget(mainWidget);
 
     setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
 
-    // initially hide the category filters
+    // initially hide the source filters
     filtersMenu->actions().last()->trigger();
 }
 

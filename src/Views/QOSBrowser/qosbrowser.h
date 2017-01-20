@@ -28,12 +28,13 @@ private slots:
 private:
     void setupLayout();
 
+    QWidget* mainWidget;
+
     QListView* profileView;
     QTreeView* elementView;
-    //QListView* profileView;
-    //QListView* elementView;
     QSplitter* horizontalSplitter;
     QAction* removeSelection;
+    QToolBar* toolbar;
 
     QPushButton* profileLabelButton;
     QPushButton* policyLabelButton;

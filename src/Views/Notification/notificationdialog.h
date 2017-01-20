@@ -103,6 +103,8 @@ private:
 
     NOTIFICATION_FILTER getNotificationFilter(ITEM_ROLES role);
 
+    QWidget* mainWidget;
+
     QToolButton* filtersButton;
     QMenu* filtersMenu;
     QToolBar* filtersToolbar;

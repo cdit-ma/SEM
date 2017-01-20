@@ -556,13 +556,6 @@ void MainWindow::setupInnerWindow()
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
-    //Set initial area
-    dwInterfaces->setDockWidgetArea(Qt::TopDockWidgetArea);
-    dwBehaviour->setDockWidgetArea(Qt::TopDockWidgetArea);
-    dwAssemblies->setDockWidgetArea(Qt::BottomDockWidgetArea);
-    dwHardware->setDockWidgetArea(Qt::BottomDockWidgetArea);
-    dwQOSBrowser->setDockWidgetArea(Qt::TopDockWidgetArea);
-
     //Set Icons
     dwInterfaces->setIcon("Items", "InterfaceDefinitions");
     dwBehaviour->setIcon("Items", "BehaviourDefinitions");
@@ -586,6 +579,7 @@ void MainWindow::setupInnerWindow()
 
     SettingsController* s = SettingsController::settings();
 
+    //Set initial area
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwInterfaces);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
@@ -899,22 +893,19 @@ void MainWindow::setupMenuCornerWidget()
 void MainWindow::setupDockablePanels()
 {
     searchPanel = new SearchDialog(this);
-    notificationPanel = new NotificationDialog(this);
-
     searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
     searchDockWidget->setWidget(searchPanel);
     searchDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    searchDockWidget->setDockWidgetArea(Qt::TopDockWidgetArea);
     searchDockWidget->setIcon("Actions", "Search_Icon");
     searchDockWidget->setIconVisible(true);
     searchDockWidget->setProtected(true);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
     innerWindow->setDockWidgetVisibility(searchDockWidget, true);
 
+    notificationPanel = new NotificationDialog(this);
     notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
     notificationDockWidget->setWidget(notificationPanel);
     notificationDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    notificationDockWidget->setDockWidgetArea(Qt::BottomDockWidgetArea);
     notificationDockWidget->setIcon("Actions", "Notification");
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
@@ -934,8 +925,8 @@ void MainWindow::setupDockablePanels()
         connect(notificationPanel, &NotificationDialog::updateSeverityCount, notificationToolbar, &NotificationToolbar::updateSeverityCount);
         connect(notificationPanel, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
         connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
-        connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::toggleNotificationPanel);
     }
+    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::toggleNotificationPanel);
 }
 
 
