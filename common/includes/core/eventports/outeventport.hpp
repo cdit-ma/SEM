@@ -17,6 +17,7 @@ template <class T> class OutEventPort: public EventPort{
                 component_->add_event_port(this);
             }
         }
+        virtual ~OutEventPort(){};
         virtual void tx(T*) = 0;
     private:
         Component* component_;

@@ -1,7 +1,7 @@
-#ifndef MESSAGE_H
-#define MESSAGE_H
+#ifndef PORTS_MESSAGE_H
+#define PORTS_MESSAGE_H
 
-#include "basemessage.h"
+#include "core/basemessage.h"
 #include <string>
 
 class Message : public BaseMessage{            
@@ -22,4 +22,4 @@ private:
     std::string content_;
 };
 
-#endif //MESSAGE_H
+#endif //PORTS_MESSAGE_H

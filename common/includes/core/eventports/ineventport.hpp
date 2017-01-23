@@ -17,6 +17,7 @@ template <class T> class InEventPort: public EventPort{
                 component_->add_event_port(this);
             }
         };
+        virtual ~InEventPort(){};
         void rx(T* t){
             if(this->is_active() && callback_function_){
                 callback_function_(t);

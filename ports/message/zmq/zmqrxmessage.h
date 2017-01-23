@@ -2,8 +2,8 @@
 #define ZMQRXMESSAGE_H
 
 //Include the core Elements
-#include "core/globalinterfaces.hpp"
-#include "core/eventports/ineventport.hpp"
+#include <core/globalinterfaces.hpp>
+#include <core/eventports/ineventport.hpp>
 
 
 //Include the concrete message object
