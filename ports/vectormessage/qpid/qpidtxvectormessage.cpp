@@ -6,7 +6,7 @@
 //Include the templated OutEventPort Implementation for qpid
 #include "qpid/outeventport.hpp"
 
-EXPORT_FUNC ::OutEventPort<::VectorMessage>* qpid::construct_TxVectorMessage(Component* component, std::string broker, std::string topic){
-    auto p = new qpid::OutEventPort<::VectorMessage, cdit::VectorMessage>(component, broker, topic);
+EXPORT_FUNC ::OutEventPort<::VectorMessage>* qpid::construct_TxVectorMessage(Component* component, std::string name){
+    auto p = new qpid::OutEventPort<::VectorMessage, cdit::VectorMessage>(component, name);
     return p;
 }

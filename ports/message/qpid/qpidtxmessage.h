@@ -9,7 +9,7 @@
 #include "../message.h"
 
 namespace qpid{
-    ::OutEventPort<::Message>* construct_TxMessage(Component* component, std::string broker, std::string topic);
+    ::OutEventPort<::Message>* construct_TxMessage(Component* component, std::string name);
 };
 
 #endif //QPIDTXMESSAGE_H
