@@ -14,6 +14,10 @@ project (${PROJ_NAME})
 include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
 
 find_package(RTIDDS REQUIRED)
+
+execute_process(COMMAND rtiddsgen message.idl -language C++11 -namespace WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+message(${CMAKE_CURRENT_SOURCE_DIR})
+
 include_directories(${PROJ_NAME} ${DDS_INCLUDE_DIRS})
 
 set(SOURCE
