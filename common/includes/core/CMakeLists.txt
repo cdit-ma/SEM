@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
 
-set(CMAKE_MACOSX_RPATH 1)
+#set(CMAKE_INSTALL_RPATH "$ORIGIN")
+#set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE) # only if you want copy from the build tree
+
+#SET( CMAKE_SHARED_LINKER_FLAGS  "-rpath='$ORIGIN/../lib'" )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../lib")
@@ -37,7 +40,7 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 find_library(PUGIXML_LIBRARIES pugixml ${PUGIXML_ROOT}/build)
 include_directories(${PUGIXML_ROOT}/src/)
 
-
+ 
 set(CORE_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/activatable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
@@ -95,11 +98,18 @@ if(UNIX)
     target_link_libraries(${PROJ3_NAME} dl)
 endif(UNIX)
 
+set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /home/dig/re/common/lib)
 
-target_link_libraries(${PROJ3_NAME} ${PROJ2_NAME})
-target_link_libraries(${PROJ3_NAME} ${PROJ_NAME})
+find_library(RE_CORE_LIBRARIES re_core PATHS /home/dig/re/common/lib)
+find_library(RE_PROTO_CONTROL_LIBRARIES re_proto_control PATHS /home/dig/re/common/lib)
+message(${RE_CORE_LIBRARIES})
+
+
+#target_link_libraries(${PROJ3_NAME} ${PROJ2_NAME})
+#target_link_libraries(${PROJ3_NAME} ${PROJ_NAME})
 target_link_libraries(${PROJ3_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ3_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ3_NAME} ${PUGIXML_LIBRARIES})
-target_link_libraries(${PROJ3_NAME} re_core)
+target_link_libraries(${PROJ3_NAME} ${RE_CORE_LIBRARIES})
+target_link_libraries(${PROJ3_NAME} ${RE_PROTO_CONTROL_LIBRARIES})
 
