@@ -1,8 +1,8 @@
-#ifndef PROTO_MESSAGE_CONVERT_H
-#define PROTO_MESSAGE_CONVERT_H
+#ifndef PORTS_MESSAGE_PROTO_MESSAGE_CONVERT_H
+#define PORTS_MESSAGE_PROTO_MESSAGE_CONVERT_H
 
 
-#include "../../message.h"
+#include "../message.h"
 
 namespace proto{
     class Message;
@@ -18,4 +18,4 @@ namespace proto{
     template <> ::Message* decode <proto::Message>(std::string message);
 };
 
-#endif //PROTO_MESSAGE_CONVERT_H
+#endif //PORTS_MESSAGE_PROTO_MESSAGE_CONVERT_H
