@@ -8,7 +8,7 @@
 #include "../message.h"
 
 namespace qpid{
-    ::InEventPort<::Message>* construct_RxMessage(Component* component, std::function<void (::Message*)> callback_function, std::string broker, std::string topic);
+    ::InEventPort<::Message>* construct_RxMessage(Component* component, std::string name, std::function<void (::Message*)> callback_function);
 };
 
 #endif //QPIDRXMESSAGE_H

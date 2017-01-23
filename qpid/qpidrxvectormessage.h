@@ -9,7 +9,7 @@
 #include "../vectormessage.h"
 
 namespace qpid{
-     ::InEventPort<::VectorMessage>* construct_RxVectorMessage(Component* component, std::function<void (::VectorMessage*)> callback_function, std::string broker, std::string topic);
+     ::InEventPort<::VectorMessage>* construct_RxVectorMessage(Component* component, std::string name, std::function<void (::VectorMessage*)> callback_function);
 };
 
 #endif //QPIDRXVECTORMESSAGE_H

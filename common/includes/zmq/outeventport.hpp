@@ -57,18 +57,14 @@ void zmq::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
         }
         configured_ = true;
     }
-
-    
 };
 
 template <class T, class S>
 void zmq::OutEventPort<T, S>::teardown(){
-
     passivate();
 
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
-
 };
 
 template <class T, class S>
