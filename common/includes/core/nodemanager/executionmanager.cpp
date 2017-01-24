@@ -101,11 +101,8 @@ bool ExecutionManager::scrape_document(){
                 }
             }
 
-            std::cout << "Got HardwareNode: " << node->id << " " << node->name << std::endl;
-            
             if(hardware_nodes_.count(n_id) == 0){
                 hardware_nodes_[n_id] = node;
-                std::cout << hardware_nodes_.size() << std::endl;
             }else{
                 std::cout << "Got Duplicate Nodes: " << n_id << std::endl;
             }
@@ -116,8 +113,6 @@ bool ExecutionManager::scrape_document(){
             //Set the Node information
             component->id = c_id;
             component->name = get_data_value(c_id, "label");
-
-            std::cout << "Got Component: " << component->id << " " << component->name << std::endl;
 
             HardwareNode* node = 0;
             if(deployed_instance_map_.count(c_id)){
@@ -132,8 +127,6 @@ bool ExecutionManager::scrape_document(){
                 attribute->id = a_id;
                 attribute->component_id = c_id;
                 attribute->name = get_data_value(a_id, "label");
-
-                std::cout << "**Got Attribute: " << attribute->id << " " << attribute->name << std::endl;
 
                 if(attributes_.count(a_id) == 0){
                     attributes_[a_id] = attribute;
@@ -160,13 +153,10 @@ bool ExecutionManager::scrape_document(){
                 port->component_id = c_id;
                 port->name = get_data_value(p_id, "label");
                 port->topic_name = get_data_value(p_id, "topicName");
-                std::cout << "GOT TOPIC: " << port->topic_name << std::endl;
                 port->kind = get_data_value(p_id, "kind");
                 port->middleware = get_data_value(p_id, "middleware");
                 //TODO: OVERRIDDEN
                 port->middleware = "ZMQ";
-
-                std::cout << "**Got EventPort: " << port->id << " " << port->name << std::endl;
 
                 //Register Only OutEventPortInstances
                 if(port->kind == "OutEventPortInstance"){
@@ -226,14 +216,11 @@ void ExecutionManager::execution_loop(){
     for(auto n : hardware_nodes_){
         HardwareNode* node = n.second;
 
-        std::cout << "Got Node: " << node->name << std::endl;
         if(node && !node->component_ids.empty()){
             auto cm = new NodeManager::ControlMessage();
             cm->mutable_node()->set_name(node->name);
             //Fake STARTUP Message
             cm->set_type(NodeManager::ControlMessage::STARTUP);
-            
-            std::cout << "Construct PB: " << node->name << std::endl;
             deployment_map[node->id] = cm;
         }
     }
@@ -250,11 +237,9 @@ void ExecutionManager::execution_loop(){
 
         auto component = get_component(c_id);
         auto hardware_node = get_hardware_node(h_id);
-        
-        std::cout << "component: " << component << std::endl;
-        std::cout << "hardware_node: " << hardware_node << std::endl;
 
         if(hardware_node && component && node_pb){
+            std::cout << "Node: " << hardware_node->name << " Deploys: " << component->name << std::endl;
             
             NodeManager::Component* component_pb = node_pb->add_components();
             
@@ -391,7 +376,7 @@ void ExecutionManager::execution_loop(){
 
     for(auto a: deployment_map){
         std::string filter_name = a.second->mutable_node()->name() + "*";
-        std::cout << "SENDING ACTION TO : " << filter_name << std::endl;
+        std::cout << "Master sending Action to: " << filter_name << std::endl;
         //std::cout << a.second->DebugString() << std::endl;
         zmq_master_->send_action(filter_name, a.second);
     }

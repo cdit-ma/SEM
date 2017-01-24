@@ -2,10 +2,9 @@
 #include <iostream>
 #include <chrono>
 
-ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string host_name, std::string endpoint){
+ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string endpoint){
     deployment_manager_ = manager;
     context_ = new zmq::context_t(1);
-    host_name_ = host_name;
     endpoint_ = endpoint;
 
     //Start the registration thread

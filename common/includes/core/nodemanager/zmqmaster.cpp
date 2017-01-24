@@ -7,12 +7,11 @@ inline void remove(std::vector<T> & v, const T & item)
     v.erase(std::remove(v.begin(), v.end(), item), v.end());
 }
 
-ZMQMaster::ZMQMaster(std::string host_name, std::string endpoint, std::string graphml_path){
+ZMQMaster::ZMQMaster(std::string endpoint, std::string graphml_path){
     context_ = new zmq::context_t(1);
+
     endpoint_ = endpoint;
-
     execution_manager_ = new ExecutionManager(this, graphml_path);
-
     slaves_ = execution_manager_->get_slave_endpoints();
 
     //Start the registration thread
@@ -125,11 +124,10 @@ void ZMQMaster::registration_loop(){
     //Start up the writer thread
     writer_thread_ = new std::thread(&ZMQMaster::writer_loop, this);
 
-    //Wait for 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-    std::cout << "SENDING EXECUTION INSTRUCTIONS" << std::endl;
+    //Send 
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     execution_manager_->execution_loop();
-    std::cout << "SENT EXECUTION INSTRUCTIONS" << std::endl;
+    std::cout << "Sent Startup Instructions" << std::endl;
 }
 
 void ZMQMaster::writer_loop(){

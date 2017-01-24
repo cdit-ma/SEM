@@ -12,50 +12,56 @@
 int main(int argc, char **argv)
 {
     //Get the library path from the argument variables
-    std::string lib_path;
-    std::string host_name;
-    std::string addr;
+    std::string dll_path;
+    std::string tcp_endpoint;
+    std::string graphml_path;
+    
     bool is_server = false;
-    if(argc >= 4){
-        host_name = argv[1];
-        lib_path = argv[2];
-        addr = argv[3];
-        if(argc == 5){
+    if(argc >= 2){
+        tcp_endpoint = argv[1];
+        dll_path = argv[2];
+        if(argc == 4){
+            graphml_path = argv[3];
             is_server = true;
         }
     }
 
-    if(lib_path.empty()){
+    if(dll_path.empty()){
         std::cerr << "DLL Error: No DLL path provided" << std::endl;
         exit(1);
     }
 
-    DeploymentManager* manager = new DeploymentManager(lib_path);
+    ZMQMaster* master = 0;
+    ZMQSlave* slave = 0;
+    NodeContainer* node_container = 0;
+    DeploymentManager* deployment_manager = 0;
 
-    ZMQMaster* m = 0;
-    ZMQSlave* s = 0;
+    if(!dll_path.empty()){
+        //Construct a Deployment Manager to handle the Deployment
+        deployment_manager = new DeploymentManager(dll_path);
+        //Get the NodeContainer from the DLL
+        node_container = deployment_manager->get_deployment();
 
-    if(is_server){
-        std::cout << "Is Server" << std::endl;
-        m = new ZMQMaster(host_name, addr, "../../HelloWorld.graphml");
-    }else{
-        s = new ZMQSlave(manager, host_name, addr);
+        if(!node_container){
+            std::cerr << "Cannot construct Deployment" << std::endl;
+        }
     }
 
-    //Construct an instance of the Deployment
-    NodeContainer* instance = manager->get_deployment();
-
-    if(!instance){
-        std::cerr << "Cannot construct Deployment" << std::endl;
-
-        //exit(1);
+    //Start the Master/Slave
+    if(is_server){
+        std::cout << "Starting MASTER on " << tcp_endpoint << std::endl;
+        master = new ZMQMaster(tcp_endpoint, graphml_path);
     }else{
-        //Start deployment instance
-        //instance->startup();
+        if(deployment_manager){
+            std::cout << "Starting SLAVE on " << tcp_endpoint << std::endl;
+            slave = new ZMQSlave(deployment_manager, tcp_endpoint);
+        }
     }
     
+    
+    
     //Wait for a period of time before trying to send
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     
     bool running = true;
 
@@ -69,57 +75,80 @@ int main(int argc, char **argv)
             std::cout << "Enter Component Name or *: ";
             std::getline(std::cin, name);
             if(name == "*"){
-                instance->activate_all();
+                node_container->activate_all();
             }else{
-                instance->activate(name);
+                node_container->activate(name);
             }
         }else if(command == "passivate"){
             std::string name;
             std::cout << "Enter Component Name or *: ";
             std::getline(std::cin, name);
             if(name == "*"){
-                instance->passivate_all();
+                node_container->passivate_all();
             }else{
-                instance->passivate(name);
+                node_container->passivate(name);
             }
         }else if(command == "startup"){
-            instance->startup();
-        }else if(command == "quit"){
+            node_container->startup();
+        }else if(command == "quit" || command == "terminate"){
             running = false;
-        }else if(command == "terminate"){
-            if(m){
-                delete m;
-            }else if(s){
-                delete s;
-            }
-            running = false;
-        }else if(command == "send" && m){
+        }else if(command == "send" && master){
             std::string host;
             std::string action;
-            std::cout << "Enter Component Name or *: ";
+            std::cout << "Enter Node Name or *: ";
             std::getline(std::cin, host);
-            std::cout << "Enter Action : ";
+
+            std::cout << "Enter Action: ";
             std::getline(std::cin, action);
 
-            NodeManager::ControlMessage_Type* t = new NodeManager::ControlMessage_Type();
-            bool success = NodeManager::ControlMessage_Type_Parse(action, t);
+            NodeManager::ControlMessage_Type t;
+            bool success = NodeManager::ControlMessage_Type_Parse(action, &t);
 
-            NodeManager::ControlMessage* cm = new NodeManager::ControlMessage();
-            //cm->set_type(NodeManager::ControlMessage::STARTUP);
-            cm->set_type(*t);
-            cm->mutable_node()->set_name(host);
-            m->send_action(host, cm);
+            if(success){
+                NodeManager::ControlMessage* cm = new NodeManager::ControlMessage();
+                cm->mutable_node()->set_name(host);
+                cm->set_type(t);
+
+                if(t == NodeManager::ControlMessage::SET_ATTRIBUTE){
+                    std::string attribute_component;
+                    std::string attribute_name;
+                    std::string attribute_value;
+                    
+                    std::cout << "Set Component Name: ";
+                    std::getline(std::cin, attribute_component);
+                    std::cout << "Set Attribute Name: ";
+                    std::getline(std::cin, attribute_name);
+                    std::cout << "Set Attribute Value: ";
+                    std::getline(std::cin, attribute_value);
+
+                    auto component = cm->mutable_node()->add_components();
+                    component->set_name(attribute_component);
+                    auto attr = component->add_attributes();
+                    attr->set_name(attribute_name);
+                    attr->set_type(NodeManager::Attribute_Type::Attribute_Type_STRING);
+                    attr->add_s(attribute_value);
+                }
+
+                master->send_action(host, cm);
+            }
         }
     }
+
+    if(master){
+        delete master;
+    }
+    if(slave){
+        delete slave;
+    }
   
-    if(instance){
+    if(node_container){
         //Teardown deployment instance
-        instance->passivate_all();
-        instance->teardown();
+        node_container->passivate_all();
+        node_container->teardown();
     }
 
     //Free Memory
-    delete manager;
+    delete deployment_manager;
     
     return 0;
 }

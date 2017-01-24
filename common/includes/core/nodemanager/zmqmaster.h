@@ -14,7 +14,7 @@
 
 class ZMQMaster{
     public:
-        ZMQMaster(std::string host_name, std::string endpoint, std::string graphml_path);
+        ZMQMaster(std::string endpoint, std::string graphml_path);
         ~ZMQMaster();
 
         void send_action(std::string node_name, google::protobuf::MessageLite* message);

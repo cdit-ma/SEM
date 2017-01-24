@@ -48,31 +48,27 @@ DeploymentManager::~DeploymentManager(){
 }
 
 void DeploymentManager::process_action(std::string node_name, std::string action){
-    //std::cout << "DM PA: " << action << std::endl;
     auto cm = new NodeManager::ControlMessage();
-
+    
     if(cm->ParseFromString(action) && deployment_){
+        std::cout << "Process Action: " << node_name << " ACTION: " << NodeManager::ControlMessage_Type_Name(cm->type()) << std::endl;
         switch(cm->type()){
             case NodeManager::ControlMessage::STARTUP:{
-                std::cout << "STARTING UP!" << std::endl;
                 deployment_->startup();
-
-                std::cout << "CONFIGURING!" << std::endl;
                 deployment_->configure(cm);
-                
-            break;
+                break;
             }
             case NodeManager::ControlMessage::ACTIVATE:
-                std::cout << "ACTIVATE!" << std::endl;
                 deployment_->activate_all();
                 break;
             case NodeManager::ControlMessage::PASSIVATE:
-                std::cout << "PASSIVATE" << std::endl;
                 deployment_->passivate_all();
                 break;
             case NodeManager::ControlMessage::TERMINATE:
-                std::cout << "TERMINATE" << std::endl;
                 deployment_->teardown();
+                break;
+            case NodeManager::ControlMessage::SET_ATTRIBUTE:
+                deployment_->configure(cm);
                 break;
             default:
                 break;
