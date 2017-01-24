@@ -1,7 +1,7 @@
 #ifndef PORTS_MESSAGE_H
 #define PORTS_MESSAGE_H
 
-#include "core/basemessage.h"
+#include <core/basemessage.h>
 #include <string>
 
 class Message : public BaseMessage{            

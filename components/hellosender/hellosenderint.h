@@ -5,9 +5,9 @@
 #include "../../ports/message/message.h"
 
 //Add the include folder of re to CMAKEINCLUDE directory
-#include "core/globalinterfaces.hpp"
-#include "core/component.h"
-#include "core/eventports/outeventport.hpp"
+#include <core/globalinterfaces.hpp>
+#include <core/component.h>
+#include <core/eventports/outeventport.hpp>
 
 class HelloSenderInt: public Component{
     public:

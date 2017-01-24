@@ -24,12 +24,12 @@ set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/convert.h
 	)
 
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-
+include_directories(${RE_PATH}/includes)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
-include_directories(${RE_PATH}/include)
 #include the current binary directory to enable linking of pb.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})

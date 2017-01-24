@@ -1,7 +1,7 @@
 #ifndef DEPLOYMENT_2_H
 #define DEPLOYMENT_2_H
 
-#include "common/includes/core/nodecontainer.h"
+#include <core/nodecontainer.h>
 
 class Deployment_2: public NodeContainer{
     public:
