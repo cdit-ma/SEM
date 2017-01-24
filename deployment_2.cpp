@@ -3,7 +3,7 @@
 #include <iostream>
 #include "common/includes/core/portconfigure.h"
 
-#include "common/includes/core/periodiceventport.h"
+#include <core/periodiceventport.h>
 
 //Implementations for the components
 #include "components/hellosender/hellosenderimpl.h"
