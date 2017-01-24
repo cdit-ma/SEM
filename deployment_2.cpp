@@ -15,7 +15,7 @@
 
 void Deployment_2::startup(){
     //Construct the Component Impls
-    HelloReceiverImpl* receiver_impl = new HelloReceiverImpl("Receiver");
+    HelloReceiverImpl* receiver_impl = new HelloReceiverImpl("reciever");
 
     auto rxMessage = zmq::construct_RxMessage(receiver_impl, "rxMessage", (std::bind(&HelloReceiverImpl::rxMessage, receiver_impl, std::placeholders::_1)));
 
