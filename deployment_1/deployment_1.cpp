@@ -6,8 +6,8 @@
 #include <core/periodiceventport.h>
 
 //Implementations for the components
-#include "components/hellosender/hellosenderimpl.h"
-#include "components/helloreceiver/helloreceiverimpl.h"
+#include "../components/hellosender/hellosenderimpl.h"
+#include "../components/helloreceiver/helloreceiverimpl.h"
 
 //ZMQ Implementation of the event ports
 #include "ports/message/zmq/zmqtxmessage.h"
