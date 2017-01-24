@@ -13,17 +13,13 @@ set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../lib")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 
-#Add all bits for Deployment
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/zmq")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/proto")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components/hellosender")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components/helloreceiver")
 
+SET(PROJ_NAME deployment_1)
+PROJECT(${PROJ_NAME})
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/deployment_1.cpp
@@ -35,7 +31,7 @@ set(HEADERS
 message(${RE_PATH})
 include_directories("${RE_PATH}/includes")
 
-add_library(deployment_1 MODULE ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
@@ -45,8 +41,8 @@ endif()
 find_library(RE_CORE_LIBRARIES re_core PATHS "${RE_PATH}/lib")
 find_library(RE_PROTO_CONTROL_LIBRARIES re_proto_control PATHS "${RE_PATH}/lib")
 
-target_link_libraries(deployment_1 ${RE_CORE_LIBRARIES})
-target_link_libraries(deployment_1 ${RE_PROTO_CONTROL_LIBRARIES})
-target_link_libraries(deployment_1 components_hellosender)
-target_link_libraries(deployment_1 components_helloreceiver)
-target_link_libraries(deployment_1 ports_message_zmq)
+target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${RE_PROTO_CONTROL_LIBRARIES})
+target_link_libraries(${PROJ_NAME} components_hellosender)
+target_link_libraries(${PROJ_NAME} components_helloreceiver)
+target_link_libraries(${PROJ_NAME} ports_message_zmq)

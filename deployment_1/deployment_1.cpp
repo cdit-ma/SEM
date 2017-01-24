@@ -1,7 +1,5 @@
 #include "deployment_1.h"
-
 #include <iostream>
-#include "common/includes/core/portconfigure.h"
 
 #include <core/periodiceventport.h>
 
@@ -10,8 +8,8 @@
 #include "../components/helloreceiver/helloreceiverimpl.h"
 
 //ZMQ Implementation of the event ports
-#include "ports/message/zmq/zmqtxmessage.h"
-#include "ports/message/zmq/zmqrxmessage.h"
+#include "../ports/message/zmq/zmqtxmessage.h"
+#include "../ports/message/zmq/zmqrxmessage.h"
 
 #include <iostream>
 

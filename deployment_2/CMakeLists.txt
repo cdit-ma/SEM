@@ -17,12 +17,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 
-#Add all bits for Deployment
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message" ${CMAKE_CURRENT_BINARY_DIR})
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/zmq" ${CMAKE_CURRENT_BINARY_DIR})
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/proto" ${CMAKE_CURRENT_BINARY_DIR})
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components/hellosender" ${CMAKE_CURRENT_BINARY_DIR})
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components/helloreceiver" ${CMAKE_CURRENT_BINARY_DIR})
 
 SET(PROJ_NAME deployment_2)
 PROJECT(${PROJ_NAME})
