@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <mutex>
+#include <condition_variable>
 
 //Include RTI DDS Headers
 #include <rti/rti.hpp>
@@ -20,12 +22,17 @@ namespace rti{
             template<class M> dds::pub::DataWriter<M> get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri = "", std::string qos_profile = "");
         private:
             dds::core::QosProvider get_qos_provider(std::string qos_uri);
+            std::mutex mutex_;
     };
+
+    static std::mutex global_mutex_;
+    static rti::DdsHelper* singleton_ = 0;
+    rti::DdsHelper* get_dds_helper();
 };
 
-inline rti::DdsHelper* rti::DdsHelper::get_dds_helper(){
-    //Magic static allocation, only in the scope of this function.
-    static rti::DdsHelper* singleton_ = 0;
+inline rti::DdsHelper* rti::get_dds_helper(){
+    std::lock_guard<std::mutex> lock(global_mutex_);
+
     if(singleton_ == 0){
         singleton_ = new DdsHelper();
     }
@@ -49,6 +56,7 @@ inline dds::core::QosProvider rti::DdsHelper::get_qos_provider(std::string qos_u
 };
 
 inline dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain){
+    std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the domain participant for the domain
     dds::domain::DomainParticipant participant = dds::domain::find(domain);
     if(participant == dds::core::null){
@@ -65,6 +73,7 @@ inline dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain
 };
 
 inline dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
+    std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the publisher on that domain
     dds::pub::Publisher pub = rti::pub::find_publisher(participant, publisher_name);
     if(pub == dds::core::null){
@@ -80,6 +89,7 @@ inline dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainPart
 };
 
 inline dds::sub::Subscriber rti::DdsHelper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
+    std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the subscriber on that domain
     dds::sub::Subscriber sub = rti::sub::find_subscriber(participant, subscriber_name);
     if(sub == dds::core::null){
@@ -95,6 +105,7 @@ inline dds::sub::Subscriber rti::DdsHelper::get_subscriber(dds::domain::DomainPa
 };
 
 template<class M> dds::topic::Topic<M> rti::DdsHelper::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
+    std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the topic
     auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
     if(topic == dds::core::null){
@@ -106,6 +117,7 @@ template<class M> dds::topic::Topic<M> rti::DdsHelper::get_topic(dds::domain::Do
 };
 
 template<class M> dds::pub::DataWriter<M> rti::DdsHelper::get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
+    std::lock_guard<std::mutex> lock(mutex_);
     dds::pub::DataWriter<M> writer = dds::core::null;
 
     //Construct a writer, using the publisher and topic  
@@ -118,6 +130,7 @@ template<class M> dds::pub::DataWriter<M> rti::DdsHelper::get_data_writer(dds::p
 };
 
 template<class M> dds::sub::DataReader<M> rti::DdsHelper::get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
+    std::lock_guard<std::mutex> lock(mutex_);
     dds::sub::DataReader<M> reader = dds::core::null;
     
     //Construct a reader, using the subscriber and topic

@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include <core/periodiceventport.h>
+#include <core/portconfigure.h>
 
 //Implementations for the components
 #include "../components/hellosender/hellosenderimpl.h"
@@ -36,8 +37,8 @@ void Deployment_1::startup(){
     HelloSenderImpl* rti_sender_impl = construct_sender("rti_sender");
     HelloSenderImpl* ospl_sender_impl = construct_sender("ospl_sender");
 
-    HelloReceiverImpl* qpid_receiver_impl = construct_receiver("ospl_receiver");
-    HelloReceiverImpl* rti_receiver_impl = construct_receiver("ospl_receiver");
+    HelloReceiverImpl* qpid_receiver_impl = construct_receiver("qpid_receiver");
+    HelloReceiverImpl* rti_receiver_impl = construct_receiver("rti_receiver");
     HelloReceiverImpl* ospl_receiver_impl = construct_receiver("ospl_receiver");
     
 

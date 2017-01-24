@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <mutex>
+#include <condition_variable>
 
 //Include OpenSplice DDS Headers
 #include <dds/dds.hpp>
@@ -11,7 +13,7 @@
 namespace ospl{
     class DdsHelper{
         public:
-            static DdsHelper* get_dds_helper();
+            
             dds::domain::DomainParticipant get_participant(int domain);
             dds::pub::Publisher get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name);
             dds::sub::Subscriber get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name);
@@ -23,19 +25,27 @@ namespace ospl{
             //Lookups for OpenSplice
             std::unordered_map<std::string, dds::pub::Publisher> publisher_lookup_;
             std::unordered_map<std::string, dds::sub::Subscriber> subscriber_lookup_;
+            std::mutex mutex_;
     };
+    
+    //Define a global mutex 
+    static std::mutex global_mutex_;
+    static ospl::DdsHelper* singleton_ = 0;
+    ospl::DdsHelper* get_dds_helper();
 };
 
-inline ospl::DdsHelper* ospl::DdsHelper::get_dds_helper(){
-    //Magic static allocation, only in the scope of this function.
-    static ospl::DdsHelper* singleton_ = 0;
+inline ospl::DdsHelper* ospl::get_dds_helper(){
+    std::lock_guard<std::mutex> lock(global_mutex_);
+
     if(singleton_ == 0){
         singleton_ = new DdsHelper();
     }
     return singleton_;
 };
 
+
 inline dds::domain::DomainParticipant ospl::DdsHelper::get_participant(int domain){
+    std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the domain participant for the domain
     dds::domain::DomainParticipant participant = dds::domain::find(domain);
     if(participant == dds::core::null){
@@ -49,6 +59,7 @@ inline dds::domain::DomainParticipant ospl::DdsHelper::get_participant(int domai
 };
 
 inline dds::pub::Publisher ospl::DdsHelper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
+    std::lock_guard<std::mutex> lock(mutex_);
     //Construct hash key (Domain|publisher_name)
     std::string key = std::to_string(participant.domain_id()) + "|" + publisher_name;
 
@@ -76,6 +87,7 @@ inline dds::pub::Publisher ospl::DdsHelper::get_publisher(dds::domain::DomainPar
 };
 
 inline dds::sub::Subscriber ospl::DdsHelper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
+    std::lock_guard<std::mutex> lock(mutex_);
     //Construct hash key (Domain|subscriber_name)
     std::string key = std::to_string(participant.domain_id()) + "|" + subscriber_name;
 
@@ -103,6 +115,7 @@ inline dds::sub::Subscriber ospl::DdsHelper::get_subscriber(dds::domain::DomainP
 };
 
 template<class M> dds::topic::Topic<M> ospl::DdsHelper::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
+    std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the topic
     auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
     if(topic == dds::core::null){
@@ -114,6 +127,7 @@ template<class M> dds::topic::Topic<M> ospl::DdsHelper::get_topic(dds::domain::D
 };
 
 template<class M> dds::pub::DataWriter<M> ospl::DdsHelper::get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
+    std::lock_guard<std::mutex> lock(mutex_);
     dds::pub::DataWriter<M> writer = dds::core::null;
     
     if(publisher != dds::core::null && topic != dds::core::null){
@@ -125,6 +139,7 @@ template<class M> dds::pub::DataWriter<M> ospl::DdsHelper::get_data_writer(dds::
 };
 
 template<class M> dds::sub::DataReader<M> ospl::DdsHelper::get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
+    std::lock_guard<std::mutex> lock(mutex_);
     //Construct an empty/null reader
     dds::sub::DataReader<M> reader(dds::core::null);
     

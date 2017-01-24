@@ -67,9 +67,10 @@ void ospl::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
         domain_id_ = attributes["domain_id"]->i;
     }
 
-    std::cout <<"TN: " << topic_name_ << std::endl;
-    std::cout <<"SN: "<< subscriber_name_ << std::endl;
-    std::cout <<"DI: "<< domain_id_ << std::endl;
+    std::cout << "ospl::InEventPort" << std::endl;
+    std::cout << "**domain_id_: "<< domain_id_ << std::endl;
+    std::cout << "**subscriber_name: "<< subscriber_name_ << std::endl;
+    std::cout << "**topic_name_: "<< topic_name_ << std::endl << std::endl;
 
 
     if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
@@ -124,7 +125,7 @@ ospl::InEventPort<T, S>::InEventPort(Component* component, std::string name, std
 template <class T, class S>
 void ospl::InEventPort<T, S>::receive_loop(){
     //Construct a DDS Participant, Subscriber, Topic and Reader
-    auto helper = DdsHelper::get_dds_helper();    
+    auto helper = ospl::get_dds_helper();    
     auto participant = helper->get_participant(domain_id_);
     auto subscriber = helper->get_subscriber(participant, subscriber_name_);
     auto topic = helper->get_topic<S>(participant, topic_name_);

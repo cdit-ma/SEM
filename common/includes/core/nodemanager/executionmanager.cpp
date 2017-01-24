@@ -133,7 +133,7 @@ bool ExecutionManager::scrape_document(){
                 attribute->component_id = c_id;
                 attribute->name = get_data_value(a_id, "label");
 
-                std::cout << "\tGot Attribute: " << attribute->id << " " << attribute->name << std::endl;
+                std::cout << "**Got Attribute: " << attribute->id << " " << attribute->name << std::endl;
 
                 if(attributes_.count(a_id) == 0){
                     attributes_[a_id] = attribute;
@@ -166,7 +166,7 @@ bool ExecutionManager::scrape_document(){
                 //TODO: OVERRIDDEN
                 port->middleware = "ZMQ";
 
-                std::cout << "\tGot EventPort: " << port->id << " " << port->name << std::endl;
+                std::cout << "**Got EventPort: " << port->id << " " << port->name << std::endl;
 
                 //Register Only OutEventPortInstances
                 if(port->kind == "OutEventPortInstance"){
