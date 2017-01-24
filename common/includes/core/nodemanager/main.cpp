@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
     if(is_server){
         std::cout << "Is Server" << std::endl;
-        m = new ZMQMaster(host_name, addr, "../../HelloWorld2.graphml");
+        m = new ZMQMaster(host_name, addr, "../../HelloWorld.graphml");
     }else{
         s = new ZMQSlave(manager, host_name, addr);
     }
