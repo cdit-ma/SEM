@@ -61,7 +61,7 @@ template <class T, class S>
 void qpid::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
-    if(attributes.count("broker") && attributes.count("topic")){
+    if(attributes.count("broker") && attributes.count("topic_name")){
         broker_ = attributes["broker"]->get_string();
         topic_ = attributes["topic_name"]->get_string();
         configured_ = true;

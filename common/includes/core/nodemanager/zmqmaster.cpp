@@ -7,12 +7,13 @@ inline void remove(std::vector<T> & v, const T & item)
     v.erase(std::remove(v.begin(), v.end(), item), v.end());
 }
 
-ZMQMaster::ZMQMaster(std::string host_name, std::string port, std::vector<std::string> slaves, std::string graphml_path){
+ZMQMaster::ZMQMaster(std::string host_name, std::string endpoint, std::string graphml_path){
     context_ = new zmq::context_t(1);
-    port_ = port;
-    slaves_ = slaves;
+    endpoint_ = endpoint;
 
     execution_manager_ = new ExecutionManager(this, graphml_path);
+
+    slaves_ = execution_manager_->get_slave_endpoints();
 
     //Start the registration thread
     registration_thread_ = new std::thread(&ZMQMaster::registration_loop, this);
@@ -99,15 +100,20 @@ void ZMQMaster::registration_loop(){
             //Wait for Slave to send a message
             socket.recv(&slave_addr);
 
+
             //Construct a string out of the zmq data
             std::string slave_addr_str(static_cast<char *>(slave_addr.data()), slave_addr.size());
+            std::string host_name = execution_manager_->get_host_name_from_address(slave_addr_str);
 
             //Remove the slave which has just registered from the vector of unregistered slaves
             remove(unregistered_slaves, slave_addr_str);
             
-            zmq::message_t server_addr(port_.c_str(), port_.size());
+            zmq::message_t server_addr(endpoint_.c_str(), endpoint_.size());
+            zmq::message_t slave_hostname(host_name.c_str(), host_name.size());
             //Send the server address for the publisher
-            socket.send(server_addr);
+            socket.send(server_addr, ZMQ_SNDMORE);
+            //Send the slave hostname
+            socket.send(slave_hostname);
         }catch(const zmq::error_t& exception){
             if(exception.num() == ETERM){
                 std::cout << "Terminating Registration Thread!" << std::endl;
@@ -128,7 +134,7 @@ void ZMQMaster::registration_loop(){
 
 void ZMQMaster::writer_loop(){
     auto socket = zmq::socket_t(*context_, ZMQ_PUB);
-    socket.bind(port_.c_str());
+    socket.bind(endpoint_.c_str());
 
     //Wait for a period of time before trying to send
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));

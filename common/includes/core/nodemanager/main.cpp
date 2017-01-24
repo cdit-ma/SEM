@@ -14,12 +14,12 @@ int main(int argc, char **argv)
     //Get the library path from the argument variables
     std::string lib_path;
     std::string host_name;
-    std::string port;
+    std::string addr;
     bool is_server = false;
     if(argc >= 4){
         host_name = argv[1];
         lib_path = argv[2];
-        port = argv[3];
+        addr = argv[3];
         if(argc == 5){
             is_server = true;
         }
@@ -32,22 +32,14 @@ int main(int argc, char **argv)
 
     DeploymentManager* manager = new DeploymentManager(lib_path);
 
-
     ZMQMaster* m = 0;
     ZMQSlave* s = 0;
 
-    
-    std::string my_ip = "tcp://192.168.111.84";
     if(is_server){
         std::cout << "Is Server" << std::endl;
-        std::vector<std::string> slaves;
-        slaves.push_back("tcp://192.168.111.187:7001");
-        //slaves.push_back("tcp://192.168.111.187:7002");
-       // slaves.push_back("tcp://192.168.111.84:7001");
-        //slaves.push_back("tcp://192.168.111.84:7002");
-        m = new ZMQMaster(host_name, my_ip + ":" + port, slaves, "../../HelloWorld2.graphml");
+        m = new ZMQMaster(host_name, addr, "../../HelloWorld2.graphml");
     }else{
-        s = new ZMQSlave(manager, host_name, my_ip + ":" + port);
+        s = new ZMQSlave(manager, host_name, addr);
     }
 
     //Construct an instance of the Deployment
@@ -90,6 +82,8 @@ int main(int argc, char **argv)
             }else{
                 instance->passivate(name);
             }
+        }else if(command == "startup"){
+            instance->startup();
         }else if(command == "quit"){
             running = false;
         }else if(command == "terminate"){

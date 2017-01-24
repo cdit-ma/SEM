@@ -47,6 +47,7 @@ set(CORE_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/periodiceventport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/portconfigure.cpp
 	)
 
 set(CORE_HDRS
@@ -56,6 +57,7 @@ set(CORE_HDRS
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/periodiceventport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/portconfigure.h    
 	)
 
 set(NMGR_SRC

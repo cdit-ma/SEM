@@ -2,11 +2,11 @@
 #include <iostream>
 #include <chrono>
 
-ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string host_name, std::string port){
+ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string host_name, std::string endpoint){
     deployment_manager_ = manager;
     context_ = new zmq::context_t(1);
     host_name_ = host_name;
-    port_ = port;
+    endpoint_ = endpoint;
 
     //Start the registration thread
     registration_thread_ = new std::thread(&ZMQSlave::registration_loop, this);
@@ -38,14 +38,15 @@ ZMQSlave::~ZMQSlave(){
 
 void ZMQSlave::registration_loop(){
     auto socket = zmq::socket_t(*context_, ZMQ_REQ);
-    socket.bind(port_.c_str());
+    socket.bind(endpoint_.c_str());
 
     //Wait for a period of time before trying to send
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     //Construct a message to send to the server
-    zmq::message_t slave_addr(port_.c_str(), port_.size());
+    zmq::message_t slave_addr(endpoint_.c_str(), endpoint_.size());
     zmq::message_t server_addr;
+    zmq::message_t slave_name;
 
     try{
         //Send our address to the server, blocks until reply
@@ -54,10 +55,16 @@ void ZMQSlave::registration_loop(){
         //Get the tcp address for the action publisher.
         socket.recv(&server_addr);
 
+        //Get the tcp address for the action publisher.
+        socket.recv(&slave_name);
+
+
         //Cast the ZMQ response to a std::string
         master_server_address_ = std::string(static_cast<char *>(server_addr.data()), server_addr.size());
+        host_name_ = std::string(static_cast<char *>(slave_name.data()), slave_name.size());
         
         std::cout << "Got Action Publisher End-Point: " << master_server_address_ << std::endl;
+        std::cout << "Got Slave hostname: " << host_name_ << std::endl;
 
         //Start the action subscriber loop
         reader_thread_ = new std::thread(&ZMQSlave::action_subscriber_loop, this);

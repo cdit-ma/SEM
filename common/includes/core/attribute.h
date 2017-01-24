@@ -21,6 +21,12 @@ struct Attribute{
     std::vector<std::string> s;
     int i;
     double d;
+
+    Attribute(){};
+    Attribute(ATTRIBUTE_TYPE type_i, std::string name_i){
+        this->type = type_i;
+        this->name = name_i;
+    }
     
     std::string get_string(){
         if(type == AT_STRING && s.size() == 1){
@@ -29,10 +35,13 @@ struct Attribute{
         return std::string();
     };
     void set_string(std::string string){
-        if(type == AT_STRING && s.size() == 0){
-            s.push_back(string);
+        if(type == AT_STRING){
+            if(s.size() == 0){
+                s.push_back(string);
+            }else{
+                s[0] = string;
+            }
         }
-        s[0] = string;
     }
 };
 

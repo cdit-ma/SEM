@@ -66,7 +66,7 @@ void qpid::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
     }
 
     if(attributes.count("topic_name")){
-        std::string topic = attributes["topic"]->get_string();
+        std::string topic = attributes["topic_name"]->get_string();
         std::string tn = "amq.topic/" + topic;
         //TODO: fix this to use actual topic name
         receiver_ = session_.createReceiver(tn);

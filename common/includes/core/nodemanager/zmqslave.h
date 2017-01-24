@@ -15,7 +15,7 @@
 
 class ZMQSlave{
     public:
-        ZMQSlave(DeploymentManager* manager, std::string host_name, std::string port);
+        ZMQSlave(DeploymentManager* manager, std::string host_name, std::string endpoint);
         ~ZMQSlave();
     private:
         void registration_loop();
@@ -24,7 +24,7 @@ class ZMQSlave{
 
         std::string master_server_address_;
         std::string host_name_;
-        std::string port_;
+        std::string endpoint_;
 
         bool terminating = false;
 

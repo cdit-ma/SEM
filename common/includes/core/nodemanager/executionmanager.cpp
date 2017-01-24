@@ -16,6 +16,26 @@ ExecutionManager::ExecutionManager(ZMQMaster* zmq, std::string graphml_path){
     }
 }
 
+std::vector<std::string> ExecutionManager::get_slave_endpoints(){
+    std::vector<std::string> out;
+    for(auto hardware : hardware_nodes_){
+        if(hardware.second->component_ids.size() != 0){
+            std::string ip = "tcp://" + hardware.second->ip_address + ":" + std::to_string(hardware.second->node_manager_port);
+            out.push_back(ip);
+        }
+    }
+    return out;
+}
+
+std::string ExecutionManager::get_host_name_from_address(std::string address){
+    for(auto hardware : hardware_nodes_){
+        if(address.find(hardware.second->ip_address) != std::string::npos){
+            return hardware.second->name;
+        }
+    }
+    return "";
+}
+
 ExecutionManager::HardwareNode* ExecutionManager::get_hardware_node(std::string id){
     ExecutionManager::HardwareNode* node = 0;
 

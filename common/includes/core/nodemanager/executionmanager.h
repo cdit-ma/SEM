@@ -16,7 +16,7 @@ class ExecutionManager{
         std::string name;
         std::string ip_address;
         int port_count = 6000;
-
+        int node_manager_port = 7001;
         std::vector<std::string> component_ids;
     };
 
@@ -50,6 +50,9 @@ class ExecutionManager{
 
     public:
         ExecutionManager(ZMQMaster *zmqmaster, std::string graphml_path);
+
+        std::vector<std::string> get_slave_endpoints();
+        std::string get_host_name_from_address(std::string address);
 
         void execution_loop();
     private:

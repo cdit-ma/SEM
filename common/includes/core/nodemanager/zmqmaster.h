@@ -14,7 +14,7 @@
 
 class ZMQMaster{
     public:
-        ZMQMaster(std::string host_name, std::string port, std::vector<std::string> slaves, std::string graphml_path);
+        ZMQMaster(std::string host_name, std::string endpoint, std::string graphml_path);
         ~ZMQMaster();
 
         void send_action(std::string node_name, google::protobuf::MessageLite* message);
@@ -30,7 +30,7 @@ class ZMQMaster{
         bool writer_active = false;
 
         std::string host_name;
-        std::string port_;
+        std::string endpoint_;
         std::vector<std::string> slaves_;
 
         std::mutex queue_mutex_;

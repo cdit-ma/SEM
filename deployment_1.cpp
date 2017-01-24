@@ -17,6 +17,8 @@
 #include "rti/rtitxmessage.h"
 #include "rti/rtirxmessage.h"
 
+#include <portconfigure.h>
+
 #include "opensplice/ospltxmessage.h"
 #include "opensplice/osplrxmessage.h"
 #include <iostream>
@@ -31,11 +33,13 @@ void Deployment_1::startup(){
     //auto rxMessage = zmq::construct_RxMessage(receiver_impl, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl, std::placeholders::_1)));
     //auto rxMessage2 = zmq::construct_RxMessage(receiver_impl2, "greeting", (std::bind(&ReceiverImpl::rxMessage, receiver_impl2, std::placeholders::_1)));
 
-    auto rxMessage = zmq::construct_RxMessage(proxy_impl, "ProxyIn", (std::bind(&ProxyImpl::rxMessage, proxy_impl, std::placeholders::_1)));
-    auto txMessage = rti::construct_TxMessage(proxy_impl, "ProxyOut");
+    auto rxMessage = qpid::construct_RxMessage(proxy_impl, "ProxyIn", (std::bind(&ProxyImpl::rxMessage, proxy_impl, std::placeholders::_1)));
+    auto txMessage = qpid::construct_TxMessage(proxy_impl, "ProxyOut");
 
     auto rxMessageLoop = ospl::construct_RxMessage(proxy_impl, "ProxyIn", (std::bind(&ProxyImpl::rxMessage, proxy_impl, std::placeholders::_1)));
     auto txMessageLoop = zmq::construct_TxMessage(proxy_impl, "ProxyOut");
+    zmq::configure_out_event_port(txMessage, "localhost:5672", "a");
+    zmq::configure_in_event_port(rxMessage, "localhost:5672", "a");
 
     proxy_impl->_set_txMessage(txMessage);
     proxy_impl->_set_rxMessage(rxMessage);
@@ -43,8 +47,12 @@ void Deployment_1::startup(){
     proxy_impl_loop->_set_txMessage(txMessageLoop);
     proxy_impl_loop->_set_rxMessage(rxMessageLoop);
 
+
     add_component(proxy_impl);
     add_component(proxy_impl_loop);
+
+    activate_all();
+
 };
 
 
