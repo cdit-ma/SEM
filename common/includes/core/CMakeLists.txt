@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
 
-#set(CMAKE_INSTALL_RPATH "$ORIGIN")
-#set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE) # only if you want copy from the build tree
+set(CMAKE_MACOSX_RPATH 1)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_INSTALL_RPATH "@executable_path;@executable_path/../lib;$ORIGIN;$ORIGIN/../lib")
 
-#SET( CMAKE_SHARED_LINKER_FLAGS  "-rpath='$ORIGIN/../lib'" )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../lib")
@@ -98,15 +98,11 @@ if(UNIX)
     target_link_libraries(${PROJ3_NAME} dl)
 endif(UNIX)
 
-set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /home/dig/re/common/lib)
+find_library(RE_CORE_LIBRARIES re_core ${CDITMA_RUNTIME_ROOT}/lib)
+find_library(RE_PROTO_CONTROL_LIBRARIES re_proto_control ${CDITMA_RUNTIME_ROOT}/lib)
 
-find_library(RE_CORE_LIBRARIES re_core PATHS /home/dig/re/common/lib)
-find_library(RE_PROTO_CONTROL_LIBRARIES re_proto_control PATHS /home/dig/re/common/lib)
-message(${RE_CORE_LIBRARIES})
-
-
-#target_link_libraries(${PROJ3_NAME} ${PROJ2_NAME})
-#target_link_libraries(${PROJ3_NAME} ${PROJ_NAME})
+target_link_libraries(${PROJ3_NAME} ${PROJ2_NAME})
+target_link_libraries(${PROJ3_NAME} ${PROJ_NAME})
 target_link_libraries(${PROJ3_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ3_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ3_NAME} ${PUGIXML_LIBRARIES})
