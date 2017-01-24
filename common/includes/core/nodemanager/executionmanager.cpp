@@ -159,7 +159,8 @@ bool ExecutionManager::scrape_document(){
                 port->id = p_id;
                 port->component_id = c_id;
                 port->name = get_data_value(p_id, "label");
-                port->topic_name = get_data_value(p_id, "topic_name");
+                port->topic_name = get_data_value(p_id, "topicName");
+                std::cout << "GOT TOPIC: " << port->topic_name << std::endl;
                 port->kind = get_data_value(p_id, "kind");
                 port->middleware = get_data_value(p_id, "middleware");
                 //TODO: OVERRIDDEN
@@ -328,14 +329,18 @@ void ExecutionManager::execution_loop(){
                     topic_pb->set_name("topic_name");
                     topic_pb->set_type(NodeManager::Attribute::STRING);
                     //TODO: actually set Topic Name port number.
-                    set_attr_string(topic_pb, "test"); 
+                    set_attr_string(topic_pb, event_port->topic_name); 
                     
                     
                     auto domain_id = port_pb->add_attributes();
                     domain_id->set_name("domain_id");
                     domain_id->set_type(NodeManager::Attribute::INTEGER);
                     domain_id->set_i(0);
-                            
+
+                    auto broker = port_pb->add_attributes();
+                    broker->set_name("broker");
+                    broker->set_type(NodeManager::Attribute::STRING);
+                    set_attr_string(broker, "localhost:5672"); 
 
                     if(port_pb->type() == NodeManager::EventPort::OUT){
                         HardwareNode* node = get_hardware_node(component->node_id);
