@@ -5,6 +5,11 @@ set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH "@executable_path;@loader_path;$ORIGIN;")
 
+
+set(RE_PATH "$ENV{RE_PATH}")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
+include_directories(${PROJ_NAME} "${RE_PATH}/includes")
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
@@ -15,8 +20,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CDITMA_RUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/common")
 include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
-
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/common")
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/zmq")

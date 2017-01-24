@@ -1,26 +1,19 @@
-cmake_minimum_required (VERSION 2.6)
+#Get the RE_PATH
+set(RE_PATH "$ENV{RE_PATH}")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-#Set our module path
-set(CDITMA_RUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../common")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CDITMA_RUNTIME_ROOT}/cmake/modules")
-
-set(PROJ_NAME qpid_library)
+set(PROJ_NAME ports_message_qpid)
 project (${PROJ_NAME})
 
-include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
+#Find re_core library
+find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 
+#Find Qpid
 find_package(Qpid REQUIRED)
-include_directories(${PROJ_NAME} ${Qpid_INCLUDE_DIRS})
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidtxmessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxmessage.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxvectormessage.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/qpidtxvectormessage.cpp
 	)
 
 set(HEADERS
@@ -28,12 +21,18 @@ set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/qpidrxmessage.h
 	)
 
+include_directories("${RE_PATH}/includes")
+include_directories(${ZeroMQ_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../proto)
+
 #Set symbols in dynamic library to be default hidden
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
+target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Qpid_LIBRARIES})
+
 target_link_libraries(${PROJ_NAME} pthread)
-target_link_libraries(${PROJ_NAME} proto_message_library)
-target_link_libraries(${PROJ_NAME} proto_vectormessage_library)
+target_link_libraries(${PROJ_NAME} ports_message)
+target_link_libraries(${PROJ_NAME} ports_message_proto)

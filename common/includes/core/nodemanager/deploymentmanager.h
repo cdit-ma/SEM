@@ -4,7 +4,7 @@
 #include <functional>
 #include <string>
 
-#include "core/nodecontainer.h"
+#include "../nodecontainer.h"
 
 class DeploymentManager{
     public:

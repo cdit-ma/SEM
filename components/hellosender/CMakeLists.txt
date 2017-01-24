@@ -1,25 +1,11 @@
-cmake_minimum_required (VERSION 2.6)
-
-#set(CMAKE_MACOSX_RPATH 1)
-#set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-#set(CMAKE_INSTALL_RPATH "@executable_path;@loader_path;$ORIGIN;")
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-#Set our module path
-set(CDITMA_RUNTIME_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../../common/)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CDITMA_RUNTIME_ROOT}/cmake/modules")
-
-include_directories(${PROJ_NAME} "${CDITMA_RUNTIME_ROOT}/includes")
+#Get the RE_PATH
+set(RE_PATH "$ENV{RE_PATH}")
 
 set(PROJ_NAME components_hellosender)
 project (${PROJ_NAME})
 
 #Find re_core library
-find_library(RE_CORE_LIBRARIES re_core "${CDITMA_RUNTIME_ROOT}/lib")
-#find_library(RE_CORE_LIBRARIES re_core "${CDITMA_RUNTIME_ROOT}/lib")
+find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/hellosenderimpl.cpp
@@ -30,6 +16,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/hellosenderimpl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/hellosenderint.h
 	)
+
+#Add RE_PATH to include directories
+include_directories("${RE_PATH}/includes")
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
