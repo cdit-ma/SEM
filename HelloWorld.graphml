@@ -273,7 +273,7 @@
 									<data key="7">1</data>
 									<data key="9">220</data>
 									<data key="6">218.286</data>
-									<data key="3">HelloReciever</data>
+									<data key="3">HelloReceiver</data>
 									<data key="2">Component</data>
 									<data key="286">false</data>
 									<graph id ="g3261">
@@ -369,9 +369,9 @@
 							<data key="8">true</data>
 							<data key="7">0</data>
 							<data key="9">-530</data>
-							<data key="4">HelloReciever</data>
+							<data key="4">HelloReceiver</data>
 							<data key="6">326</data>
-							<data key="3">HelloReciever</data>
+							<data key="3">HelloReceiver</data>
 							<data key="2">ComponentImpl</data>
 							<graph id ="g3405">
 																<node id ="3424">
@@ -746,12 +746,12 @@
 									<data key="2">ManagementComponent</data>
 								</node>
 																<node id ="3984">
-									<data key="10">40</data>
+									<data key="10">90</data>
 									<data key="5">345</data>
 									<data key="8">true</data>
 									<data key="7">4</data>
 									<data key="2911">1</data>
-									<data key="9">0</data>
+									<data key="9">40</data>
 									<data key="6">205</data>
 									<data key="3">mainAssembly</data>
 									<data key="2">ComponentAssembly</data>
@@ -762,9 +762,9 @@
 											<data key="8">true</data>
 											<data key="7">0</data>
 											<data key="9">250</data>
-											<data key="4">HelloReciever</data>
+											<data key="4">HelloReceiver</data>
 											<data key="6">104</data>
-											<data key="3">reciever</data>
+											<data key="3">zmq_receiver</data>
 											<data key="2">ComponentInstance</data>
 											<graph id ="g4004">
 																								<node id ="4023">
@@ -789,7 +789,7 @@
 											<data key="9">20</data>
 											<data key="4">HelloSender</data>
 											<data key="6">140</data>
-											<data key="3">sender</data>
+											<data key="3">zmq_sender</data>
 											<data key="2">ComponentInstance</data>
 											<graph id ="g4044">
 																								<node id ="4063">
@@ -797,7 +797,7 @@
 													<data key="5">72</data>
 													<data key="8">false</data>
 													<data key="7">0</data>
-													<data key="332">Sender</data>
+													<data key="332">zmq_sender</data>
 													<data key="9">20</data>
 													<data key="4">String</data>
 													<data key="6">72</data>
@@ -809,7 +809,7 @@
 													<data key="5">72</data>
 													<data key="8">false</data>
 													<data key="7">1</data>
-													<data key="332">Message</data>
+													<data key="332">zmq</data>
 													<data key="9">20</data>
 													<data key="4">String</data>
 													<data key="6">72</data>
@@ -1274,6 +1274,241 @@
 										</node>
 									</graph>
 								</node>
+																<node id ="8930">
+									<data key="10">80</data>
+									<data key="5">345</data>
+									<data key="8">true</data>
+									<data key="7">7</data>
+									<data key="2911">1</data>
+									<data key="9">440</data>
+									<data key="6">205</data>
+									<data key="3">mainAssembly_0</data>
+									<data key="2">ComponentAssembly</data>
+									<graph id ="g8930">
+																				<node id ="8950">
+											<data key="10">250</data>
+											<data key="5">96</data>
+											<data key="8">true</data>
+											<data key="7">0</data>
+											<data key="9">250</data>
+											<data key="4">HelloReceiver</data>
+											<data key="6">104</data>
+											<data key="3">ospl_receiver</data>
+											<data key="2">ComponentInstance</data>
+											<graph id ="g8950">
+																								<node id ="8969">
+													<data key="10">60</data>
+													<data key="5">72</data>
+													<data key="2912">rti_1</data>
+													<data key="8">true</data>
+													<data key="7">0</data>
+													<data key="9">20</data>
+													<data key="4">Message</data>
+													<data key="6">72</data>
+													<data key="3">rxMessage</data>
+													<data key="2">InEventPortInstance</data>
+												</node>
+											</graph>
+										</node>
+																				<node id ="8990">
+											<data key="10">250</data>
+											<data key="5">172</data>
+											<data key="8">true</data>
+											<data key="7">1</data>
+											<data key="9">20</data>
+											<data key="4">HelloSender</data>
+											<data key="6">140</data>
+											<data key="3">rti_sender</data>
+											<data key="2">ComponentInstance</data>
+											<graph id ="g8990">
+																								<node id ="9009">
+													<data key="10">110</data>
+													<data key="5">72</data>
+													<data key="8">false</data>
+													<data key="7">0</data>
+													<data key="332">rti_sender</data>
+													<data key="9">20</data>
+													<data key="4">String</data>
+													<data key="6">72</data>
+													<data key="3">instName</data>
+													<data key="2">AttributeInstance</data>
+												</node>
+																								<node id ="9030">
+													<data key="10">60</data>
+													<data key="5">72</data>
+													<data key="8">false</data>
+													<data key="7">1</data>
+													<data key="332">rti</data>
+													<data key="9">20</data>
+													<data key="4">String</data>
+													<data key="6">72</data>
+													<data key="3">message</data>
+													<data key="2">AttributeInstance</data>
+												</node>
+																								<node id ="9051">
+													<data key="10">60</data>
+													<data key="5">72</data>
+													<data key="2912">rti_1</data>
+													<data key="8">false</data>
+													<data key="7">2</data>
+													<data key="9">110</data>
+													<data key="4">Message</data>
+													<data key="6">72</data>
+													<data key="3">txMessage</data>
+													<data key="2">OutEventPortInstance</data>
+												</node>
+											</graph>
+										</node>
+																				<node id ="10131">
+											<data key="10">-1</data>
+											<data key="5">172</data>
+											<data key="8">true</data>
+											<data key="7">2</data>
+											<data key="9">-1</data>
+											<data key="4">HelloSender</data>
+											<data key="6">140</data>
+											<data key="3">ospl_sender</data>
+											<data key="2">ComponentInstance</data>
+											<graph id ="g10131">
+																								<node id ="10150">
+													<data key="10">110</data>
+													<data key="5">72</data>
+													<data key="8">false</data>
+													<data key="7">0</data>
+													<data key="332">ospl_sender</data>
+													<data key="9">20</data>
+													<data key="4">String</data>
+													<data key="6">72</data>
+													<data key="3">instName</data>
+													<data key="2">AttributeInstance</data>
+												</node>
+																								<node id ="10171">
+													<data key="10">60</data>
+													<data key="5">72</data>
+													<data key="8">false</data>
+													<data key="7">1</data>
+													<data key="332">Ospl</data>
+													<data key="9">20</data>
+													<data key="4">String</data>
+													<data key="6">72</data>
+													<data key="3">message</data>
+													<data key="2">AttributeInstance</data>
+												</node>
+																								<node id ="10192">
+													<data key="10">60</data>
+													<data key="5">72</data>
+													<data key="2912">ospl_1</data>
+													<data key="8">false</data>
+													<data key="7">2</data>
+													<data key="9">110</data>
+													<data key="4">Message</data>
+													<data key="6">72</data>
+													<data key="3">txMessage</data>
+													<data key="2">OutEventPortInstance</data>
+												</node>
+											</graph>
+										</node>
+																				<node id ="10213">
+											<data key="10">90</data>
+											<data key="5">96</data>
+											<data key="8">true</data>
+											<data key="7">3</data>
+											<data key="9">260</data>
+											<data key="4">HelloReceiver</data>
+											<data key="6">104</data>
+											<data key="3">rti_receiver</data>
+											<data key="2">ComponentInstance</data>
+											<graph id ="g10213">
+																								<node id ="10232">
+													<data key="10">60</data>
+													<data key="5">72</data>
+													<data key="2912">ospl_1</data>
+													<data key="8">true</data>
+													<data key="7">0</data>
+													<data key="9">20</data>
+													<data key="4">Message</data>
+													<data key="6">72</data>
+													<data key="3">rxMessage</data>
+													<data key="2">InEventPortInstance</data>
+												</node>
+											</graph>
+										</node>
+																				<node id ="11141">
+											<data key="10">300</data>
+											<data key="5">96</data>
+											<data key="8">true</data>
+											<data key="7">4</data>
+											<data key="9">650</data>
+											<data key="4">HelloReceiver</data>
+											<data key="6">104</data>
+											<data key="3">qpid_receiver</data>
+											<data key="2">ComponentInstance</data>
+											<graph id ="g11141">
+																								<node id ="11160">
+													<data key="10">60</data>
+													<data key="5">72</data>
+													<data key="2912">rti_1</data>
+													<data key="8">true</data>
+													<data key="7">0</data>
+													<data key="9">20</data>
+													<data key="4">Message</data>
+													<data key="6">72</data>
+													<data key="3">rxMessage</data>
+													<data key="2">InEventPortInstance</data>
+												</node>
+											</graph>
+										</node>
+																				<node id ="11181">
+											<data key="10">290</data>
+											<data key="5">172</data>
+											<data key="8">true</data>
+											<data key="7">5</data>
+											<data key="9">410</data>
+											<data key="4">HelloSender</data>
+											<data key="6">140</data>
+											<data key="3">qpid_sender</data>
+											<data key="2">ComponentInstance</data>
+											<graph id ="g11181">
+																								<node id ="11200">
+													<data key="10">110</data>
+													<data key="5">72</data>
+													<data key="8">false</data>
+													<data key="7">0</data>
+													<data key="332">qpid_sender</data>
+													<data key="9">20</data>
+													<data key="4">String</data>
+													<data key="6">72</data>
+													<data key="3">instName</data>
+													<data key="2">AttributeInstance</data>
+												</node>
+																								<node id ="11221">
+													<data key="10">60</data>
+													<data key="5">72</data>
+													<data key="8">false</data>
+													<data key="7">1</data>
+													<data key="332">qpid</data>
+													<data key="9">20</data>
+													<data key="4">String</data>
+													<data key="6">72</data>
+													<data key="3">message</data>
+													<data key="2">AttributeInstance</data>
+												</node>
+																								<node id ="11242">
+													<data key="10">60</data>
+													<data key="5">72</data>
+													<data key="2912">rti_1</data>
+													<data key="8">false</data>
+													<data key="7">2</data>
+													<data key="9">110</data>
+													<data key="4">Message</data>
+													<data key="6">72</data>
+													<data key="3">txMessage</data>
+													<data key="2">OutEventPortInstance</data>
+												</node>
+											</graph>
+										</node>
+									</graph>
+								</node>
 							</graph>
 						</node>
 												<node id ="140">
@@ -1395,6 +1630,18 @@
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
+		<edge id="11270" source="11141" target ="3261">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="10288" source="10213" target ="3261">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="9100" source="8950" target ="3261">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
 		<edge id="5482" source="4004" target ="3261">
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
@@ -1427,6 +1674,30 @@
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
+		<edge id="9107" source="8969" target ="3280">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="10281" source="10232" target ="3280">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="11263" source="11160" target ="3280">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="11298" source="11181" target ="3090">
+			<data key="3">Is_Instance_Of</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="10274" source="10131" target ="3090">
+			<data key="3">Is_Instance_Of</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="9072" source="8990" target ="3090">
+			<data key="3">Is_Instance_Of</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
 		<edge id="5538" source="4044" target ="3090">
 			<data key="3">Is_Instance_Of</data>
 			<data key="2">Edge_Definition</data>
@@ -1443,11 +1714,35 @@
 			<data key="3">Is_Instance_Of</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
+		<edge id="9079" source="9009" target ="3109">
+			<data key="3">Is_Instance_Of</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="10267" source="10150" target ="3109">
+			<data key="3">Is_Instance_Of</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="11291" source="11200" target ="3109">
+			<data key="3">Is_Instance_Of</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
 		<edge id="5559" source="3679" target ="3129">
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
 		<edge id="5566" source="4084" target ="3129">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="9086" source="9030" target ="3129">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="10260" source="10171" target ="3129">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="11284" source="11221" target ="3129">
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
@@ -1475,6 +1770,18 @@
 			<data key="3">Is_dependant_on</data>
 			<data key="2">Edge_Definition</data>
 		</edge>
+		<edge id="9093" source="9051" target ="3149">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="10253" source="10192" target ="3149">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
+		<edge id="11277" source="11242" target ="3149">
+			<data key="3">Is_dependant_on</data>
+			<data key="2">Edge_Definition</data>
+		</edge>
 		<edge id="5622" source="3280" target ="2990">
 			<data key="3">Uses_Aggregate</data>
 			<data key="2">Edge_Aggregate</data>
@@ -1494,6 +1801,21 @@
 		<edge id="5635" source="3698" target ="3826">
 			<data key="3">Workflow_Edge</data>
 			<data key="2">Edge_Workflow</data>
+		</edge>
+		<edge id="9114" source="9051" target ="8969">
+			<data key="284">Connected To</data>
+			<data key="3">Connected_To</data>
+			<data key="2">Edge_Assembly</data>
+		</edge>
+		<edge id="10295" source="10192" target ="10232">
+			<data key="284">Connected To</data>
+			<data key="3">Connected_To</data>
+			<data key="2">Edge_Assembly</data>
+		</edge>
+		<edge id="11305" source="11242" target ="11160">
+			<data key="284">Connected To</data>
+			<data key="3">Connected_To</data>
+			<data key="2">Edge_Assembly</data>
 		</edge>
 		<edge id="5647" source="4105" target ="4023">
 			<data key="284">Connected To</data>
@@ -1520,16 +1842,44 @@
 			<data key="3">Data_Edge</data>
 			<data key="2">Edge_Data</data>
 		</edge>
+		<edge id="9133" source="8930" target ="5320">
+			<data key="3">Is_deployed_on</data>
+			<data key="2">Edge_Deployment</data>
+		</edge>
+		<edge id="11885" source="8950" target ="5320">
+			<data key="3">Is_deployed_on</data>
+			<data key="2">Edge_Deployment</data>
+		</edge>
+		<edge id="11891" source="8990" target ="5320">
+			<data key="3">Is_deployed_on</data>
+			<data key="2">Edge_Deployment</data>
+		</edge>
+		<edge id="11909" source="10131" target ="5320">
+			<data key="3">Is_deployed_on</data>
+			<data key="2">Edge_Deployment</data>
+		</edge>
+		<edge id="11897" source="10213" target ="5320">
+			<data key="3">Is_deployed_on</data>
+			<data key="2">Edge_Deployment</data>
+		</edge>
+		<edge id="11903" source="11141" target ="5320">
+			<data key="3">Is_deployed_on</data>
+			<data key="2">Edge_Deployment</data>
+		</edge>
+		<edge id="11915" source="11181" target ="5320">
+			<data key="3">Is_deployed_on</data>
+			<data key="2">Edge_Deployment</data>
+		</edge>
 		<edge id="5684" source="3984" target ="5320">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
 			<data key="286">false</data>
 		</edge>
-		<edge id="8402" source="4004" target ="5320">
+		<edge id="13049" source="4004" target ="5353">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
 		</edge>
-		<edge id="8243" source="4044" target ="5353">
+		<edge id="12890" source="4044" target ="5320">
 			<data key="3">Is_deployed_on</data>
 			<data key="2">Edge_Deployment</data>
 		</edge>
