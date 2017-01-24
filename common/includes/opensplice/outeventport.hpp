@@ -66,6 +66,11 @@ void ospl::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attri
         domain_id_ = attributes["domain_id"]->i;
         configured_ = true && configured_;                
     }
+    std::cout << "ospl::OutEventPort" << std::endl;
+    std::cout << "**domain_id_: "<< domain_id_ << std::endl;
+    std::cout << "**publisher_name_: "<< publisher_name_ << std::endl;
+    std::cout << "**topic_name_: "<< topic_name_ << std::endl << std::endl;
+    
 };
 
 template <class T, class S>
@@ -81,7 +86,7 @@ bool ospl::OutEventPort<T, S>::activate(){
 
 
     //Construct a DDS Participant, Publisher, Topic and Writer
-    auto helper = DdsHelper::get_dds_helper();   
+    auto helper = ospl::get_dds_helper();
     auto participant = helper->get_participant(domain_id_);
     auto publisher = helper->get_publisher(participant, publisher_name_);
     auto topic = helper->get_topic<S>(participant, topic_name_);

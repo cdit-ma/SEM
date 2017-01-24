@@ -23,12 +23,10 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
     for(auto c : n->components()){
         auto component = get_component(c.name());
         if(component){
-            std::cout << "NodeContainer::configure:" << component->get_name() << std::endl;
-
             for(auto a: c.attributes()){
                 auto attribute = component->get_attribute(a.name());
                 if(attribute){
-                    std::cout << "Setting Attribute:" << a.name() << " Value: " << a.DebugString() <<  std::endl;
+                    std::cout << c.name() << " Setting Attribute: " << a.name() <<  std::endl;
                     set_attribute_from_pb(&a, attribute);
                 }
             }
@@ -54,7 +52,7 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
 
 bool NodeContainer::activate_all(){
     for(auto c : components_){
-        std::cout << "NodeContainer::activate_all() Component:" << c.second << std::endl;
+        std::cout << "NodeContainer::activate_all() Component:" << c.second->get_name() << std::endl;
         c.second->activate();
     }
     return true;

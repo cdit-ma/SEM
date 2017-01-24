@@ -16,6 +16,8 @@ class Component: public Activatable{
         bool activate();
         bool passivate();
 
+        
+
         void add_event_port(EventPort* event_port);
         void remove_event_port(EventPort* event_port);
         EventPort* get_event_port(std::string name);

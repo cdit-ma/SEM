@@ -58,23 +58,31 @@ template <class T, class S>
 void qpid::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
+    std::string broker;
+    std::string topic_name;
+
     if(attributes.count("broker")){
-        std::string broker = attributes["broker"]->get_string();
+        broker = attributes["broker"]->get_string();
+    }
+    if(attributes.count("topic_name")){
+        topic_name = attributes["topic_name"]->get_string();
+    }
+
+    std::cout << "qpid::InEventPort" << std::endl;
+    std::cout << "**broker: "<< broker << std::endl;
+    std::cout << "**topic_name: "<< topic_name << std::endl << std::endl;
+
+
+    if(broker.length() > 0 && topic_name.length() > 0){
         connection_ = qpid::messaging::Connection(broker);
         connection_.open();
         session_ = connection_.createSession();
-    }
-
-    if(attributes.count("topic_name")){
-        std::string topic = attributes["topic_name"]->get_string();
-        std::string tn = "amq.topic/" + topic;
         //TODO: fix this to use actual topic name
-        receiver_ = session_.createReceiver(tn);
+        receiver_ = session_.createReceiver( "amq.topic/"  + topic_name);
+        
+        receive_thread_ = new std::thread(&qpid::InEventPort<T,S>::receive_loop, this);
+        configured_ = true; 
     }
-
-
-    receive_thread_ = new std::thread(&qpid::InEventPort<T,S>::receive_loop, this);
-    configured_ = true;
 };
 
 template <class T, class S>

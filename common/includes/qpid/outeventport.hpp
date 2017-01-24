@@ -64,6 +64,12 @@ void qpid::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attri
     if(attributes.count("broker") && attributes.count("topic_name")){
         broker_ = attributes["broker"]->get_string();
         topic_ = attributes["topic_name"]->get_string();
+
+        std::cout << "qpid::OutEventPort" << std::endl;
+        std::cout << "**broker: "<< broker_ << std::endl;
+        std::cout << "**topic_name: "<< topic_ << std::endl << std::endl;
+
+    
         configured_ = true;
     }
 
