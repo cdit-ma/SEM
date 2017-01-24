@@ -1,5 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 
+#set(CMAKE_MACOSX_RPATH 1)
+#set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+#set(CMAKE_INSTALL_RPATH "@executable_path;@loader_path;$ORIGIN;")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

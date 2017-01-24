@@ -1,13 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
 
+#Set the projects RPATH to look in the executable directory
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-
-SET(UBUNTU_TEST "/home/dig/re/common/lib")
-SET(MAC_TEST "/Users/dan/Desktop/re/common/lib")
-
-set(CMAKE_INSTALL_RPATH "@executable_path;@loader_path;${MAC_TEST};$ORIGIN;")
-
+set(CMAKE_INSTALL_RPATH "@executable_path;@loader_path;$ORIGIN;")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
