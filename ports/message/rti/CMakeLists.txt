@@ -34,7 +34,7 @@ set(DDS_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.cxx
 )
 
-include_directories(${RE_PATH}/include)
+include_directories(${RE_PATH}/includes)
 include_directories(${DDS_INCLUDE_DIRS})
 
 #Set symbols in dynamic library to be default hidden
