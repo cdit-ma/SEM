@@ -31,6 +31,7 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
                 }
             }
             for(auto p : c.ports()){
+                std::cout << p.name() << std::endl;
                 auto port = component->get_event_port(p.name());
                 if(port){
                     std::map<std::string, ::Attribute*> attributes_;

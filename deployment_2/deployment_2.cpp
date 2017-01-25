@@ -34,7 +34,7 @@ void Deployment_2::startup(){
     auto txMessage = zmq::construct_TxMessage(sender_impl, "txMessage");
 
     //receiver_impl->_set_rxMessage(rxMessage);
-    sender_impl->_set_txMessage(txMessage);
+    //sender_impl->_set_txMessage(txMessage);
 
     add_component(receiver_impl);
     add_component(sender_impl);

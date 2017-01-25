@@ -55,15 +55,13 @@ void HelloSenderInt::set_message(const std::string val){
     }
 }
 
-void HelloSenderInt::_set_txMessage(::OutEventPort<::Message>* tx){
-    if(tx){
-        txMessage_ = tx;    
-    }
-}
-
 void HelloSenderInt::txMessage(::Message* message){
-    if(txMessage_){
-        txMessage_->tx(message);
+
+    auto a = get_event_port("txMessage");
+
+    auto b = static_cast<::OutEventPort<Message> *>(a);
+    if(b){
+        b->tx(message);
     }
     delete message;
 }

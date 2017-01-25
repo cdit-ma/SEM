@@ -48,6 +48,7 @@ bool PeriodicEventPort::wait_for_tick(){
 void PeriodicEventPort::loop(){
     while(true){
         if(callback_ != nullptr){
+            std::cout << "LOOP!" << std::endl;
             //Construct a callback object
             callback_(new BaseMessage());
         }
@@ -60,9 +61,9 @@ void PeriodicEventPort::loop(){
 
 void PeriodicEventPort::startup(std::map<std::string, ::Attribute*> attributes){
     if(attributes.count("duration")){
-        std::cout << "Setting Duration: " << attributes["duration"]->i << " MS" << std::endl;
-        duration_ = std::chrono::milliseconds(attributes["publisher_address"]->i);
-    }
+        std::cout << "Periodic Event: " << get_name() << " set duration: " << attributes["duration"]->i << " MS" << std::endl;
+        duration_ = std::chrono::milliseconds(attributes["duration"]->i);
+    }   
 };
 
 void PeriodicEventPort::teardown(){
