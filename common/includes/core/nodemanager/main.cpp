@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+    //If we have graphml input, we are a server
     bool is_server = false;
     if(!graphml_path.empty()){
         is_server = true;
@@ -54,7 +55,7 @@ int main(int argc, char **argv)
         }
     }
     
-    if(dll_library.empty()){
+    if(dll_path.empty()){
         std::cerr << "DLL Error: No DLL path provided" << std::endl;
         exit(1);
     }
