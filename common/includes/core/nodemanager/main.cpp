@@ -86,11 +86,6 @@ int main(int argc, char **argv)
         }
     }
     
-    
-    
-    //Wait for a period of time before trying to send
-    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    
     bool running = true;
 
     while(running){
@@ -153,7 +148,7 @@ int main(int argc, char **argv)
                     component->set_name(attribute_component);
                     auto attr = component->add_attributes();
                     attr->set_name(attribute_name);
-                    attr->set_type(NodeManager::Attribute_Type::Attribute_Type_STRING);
+                    attr->set_type(NodeManager::Attribute::STRING);
                     attr->add_s(attribute_value);
                 }
 
