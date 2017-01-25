@@ -3,7 +3,7 @@
 #include "component.h"
 #include <iostream>
 
-PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std::function<void(void)> callback, int milliseconds){
+PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds){
     this->callback_ = callback;
     this->duration_ = std::chrono::milliseconds(milliseconds);
     if(component){
@@ -48,7 +48,8 @@ bool PeriodicEventPort::wait_for_tick(){
 void PeriodicEventPort::loop(){
     while(true){
         if(callback_ != nullptr){
-            callback_();
+            //Construct a callback object
+            callback_(new BaseMessage());
         }
         if(!wait_for_tick()){
             break;
@@ -58,7 +59,10 @@ void PeriodicEventPort::loop(){
 
 
 void PeriodicEventPort::startup(std::map<std::string, ::Attribute*> attributes){
-    
+    if(attributes.count("duration")){
+        std::cout << "Setting Duration: " << attributes["duration"]->i << " MS" << std::endl;
+        duration_ = std::chrono::milliseconds(attributes["publisher_address"]->i);
+    }
 };
 
 void PeriodicEventPort::teardown(){

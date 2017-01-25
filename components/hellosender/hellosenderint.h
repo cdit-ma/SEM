@@ -23,8 +23,10 @@ class HelloSenderInt: public Component{
 
         //setter function for the txMessage
         void _set_txMessage(::OutEventPort<::Message>* tx);
-    protected:
         void txMessage(::Message* message);
+
+        void _periodic_event_(BaseMessage* message);
+        virtual void periodic_event() = 0;
     private:
         ::OutEventPort<::Message>* txMessage_ = 0;
 };

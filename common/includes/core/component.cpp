@@ -58,6 +58,23 @@ Attribute* Component::get_attribute(std::string name){
     return attribute;
 }
 
+
+std::function<void (::BaseMessage*)> Component::get_callback(std::string port_name){
+    std::function<void (::BaseMessage*)> f;
+    if(callback_functions_.count(port_name)){
+        f = callback_functions_[port_name];
+    }
+    return f;
+}
+
+void Component::add_callback(std::string port_name, std::function<void (::BaseMessage*)> function){
+    if(callback_functions_.count(port_name) == 0){
+        std::cout << "Component: " << get_name() << " Added Callback function for: " << port_name << std::endl;
+        callback_functions_[port_name] = function;
+    }
+}
+
+
 EventPort* Component::get_event_port(std::string name){
     EventPort* port = 0;
     if(eventports_.count(name)){

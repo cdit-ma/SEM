@@ -6,7 +6,7 @@
 class HelloReceiverImpl: public HelloReceiverInt{
     public:
         HelloReceiverImpl(std::string name);
-        void rxMessage(::Message* message);
+        void rxMessage(Message* message);
 };
 
 #endif //COMPONENTS_HELLORECEIVER_HELLORECEIVERIMPL_H

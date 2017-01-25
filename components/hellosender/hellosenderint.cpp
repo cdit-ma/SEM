@@ -13,6 +13,14 @@ HelloSenderInt::HelloSenderInt(std::string name): Component(name){
         att->type = AT_STRING;
         add_attribute(att);
     }
+
+    //Add to call back
+    add_callback("periodic_event", std::bind(&HelloSenderInt::_periodic_event_, this, std::placeholders::_1));
+}
+
+void HelloSenderInt::_periodic_event_(BaseMessage* message){
+    delete message;
+    this->periodic_event();
 }
 
 std::string HelloSenderInt::instName(){
@@ -57,4 +65,5 @@ void HelloSenderInt::txMessage(::Message* message){
     if(txMessage_){
         txMessage_->tx(message);
     }
+    delete message;
 }
