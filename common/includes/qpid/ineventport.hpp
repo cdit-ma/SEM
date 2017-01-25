@@ -104,15 +104,14 @@ bool qpid::InEventPort<T, S>::activate(){
 template <class T, class S>
 bool qpid::InEventPort<T, S>::passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
-    if(qpid_thread_){
+    if(qpid_thread_ && connection_.isOpen()){
         //do passivation things here
-        connection_.close();
+        receiver_.close();
 
         qpid_thread_->join();
         delete qpid_thread_;
         qpid_thread_ = 0;
-        connection_ = 0;
-
+        connection_.close();
     }
     return ::InEventPort<T>::passivate();
 };
@@ -121,16 +120,23 @@ bool qpid::InEventPort<T, S>::passivate(){
 template <class T, class S>
 void qpid::InEventPort<T, S>::qpid_loop(){
     while(true){
-        auto sample = receiver_.fetch();
-        if(receiver_.isClosed()){
-            break;
-        }
-        std::string str = sample.getContent();
-        {
-            //Gain mutex lock and append message
-            std::unique_lock<std::mutex> lock(notify_mutex_);
-            message_queue_.push(str);
-            notify_lock_condition_.notify_all();
+        try{
+
+            auto sample = receiver_.fetch();
+            if(receiver_.isClosed()){
+                break;
+            }
+            std::string str = sample.getContent();
+            {
+                //Gain mutex lock and append message
+                std::unique_lock<std::mutex> lock(notify_mutex_);
+                message_queue_.push(str);
+                notify_lock_condition_.notify_all();
+            }
+        } catch (...){
+            if(receiver_.isClosed()){
+                break;
+            }
         }
     }
 };

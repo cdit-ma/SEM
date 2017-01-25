@@ -9,23 +9,52 @@
 #include "controlmessage.pb.h"
 #include <google/protobuf/message_lite.h>
 
+#include "boost/program_options.hpp"
+
+std::string VERSION_NAME = "re_node_manager";
+std::string VERSION_NUMBER = "1.0";
+
+
 int main(int argc, char **argv)
 {
     //Get the library path from the argument variables
     std::string dll_path;
-    std::string tcp_endpoint;
     std::string graphml_path;
-    
+    std::string slave_endpoint;
+    std::string master_endpoint;
+
+    boost::program_options::options_description options("Node manager options");
+    options.add_options()("library,l", boost::program_options::value<std::string>(&dll_path), "Library path");
+    options.add_options()("deployment,d", boost::program_options::value<std::string>(&graphml_path), "Deployment graphml file path");
+    options.add_options()("slave,s", boost::program_options::value<std::string>(&slave_endpoint), "Slave endpoint, including port");
+    options.add_options()("master,m", boost::program_options::value<std::string>(&master_endpoint),"Master endpoint, including port");
+    options.add_options()("help,h", "Display help");
+
+    boost::program_options::variables_map options_map;
+	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), options_map);
+	boost::program_options::notify(options_map);
+
+    //display help
+    if(options_map.count("help")){
+		std::cout << options << std::endl;
+		return 0;
+	}
+
+    //If we have graphml input, we are a server
     bool is_server = false;
-    if(argc >= 2){
-        tcp_endpoint = argv[1];
-        dll_path = argv[2];
-        if(argc == 4){
-            graphml_path = argv[3];
-            is_server = true;
+    if(!graphml_path.empty()){
+        is_server = true;
+        if(master_endpoint.empty()){
+            std::cerr << "Endpoint errer: Deployment graphml specified but no master endpoint given." << std::endl;
+            exit(1);        
+        }
+    } else {
+        if(slave_endpoint.empty()){
+            std::cerr << "Endpoint errer: No slave endpoint found" << std::endl;
+            exit(1);            
         }
     }
-
+    
     if(dll_path.empty()){
         std::cerr << "DLL Error: No DLL path provided" << std::endl;
         exit(1);
@@ -49,14 +78,15 @@ int main(int argc, char **argv)
 
     //Start the Master/Slave
     if(is_server){
-        std::cout << "Starting MASTER on " << tcp_endpoint << std::endl;
-        master = new ZMQMaster(tcp_endpoint, graphml_path);
-    }else{
-        if(deployment_manager){
-            std::cout << "Starting SLAVE on " << tcp_endpoint << std::endl;
-            slave = new ZMQSlave(deployment_manager, tcp_endpoint);
-        }
+        std::cout << "Starting MASTER on " << master_endpoint << std::endl;
+        master = new ZMQMaster(master_endpoint, graphml_path);
     }
+    
+    if(deployment_manager){
+        std::cout << "Starting SLAVE on " << slave_endpoint << std::endl;
+        slave = new ZMQSlave(deployment_manager, slave_endpoint);
+    }
+    
     
     bool running = true;
 
