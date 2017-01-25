@@ -22,7 +22,7 @@
 
 HelloSenderImpl* construct_sender(std::string name){
     auto sender = new HelloSenderImpl(name);
-    auto pe = new PeriodicEventPort(sender, "PeriodicEvent", std::function<void(void)>(std::bind(&HelloSenderImpl::periodic_event, sender)), 1000);
+    auto pe = new PeriodicEventPort(sender, "tick", std::function<void(void)>(std::bind(&HelloSenderImpl::periodic_event, sender)), 1000);
     return sender;
 }
 

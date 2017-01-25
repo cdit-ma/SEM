@@ -58,7 +58,13 @@ void PeriodicEventPort::loop(){
 
 
 void PeriodicEventPort::startup(std::map<std::string, ::Attribute*> attributes){
-    
+    if(attributes.count("frequency")){
+        auto frequency = attributes["frequency"]->d;
+        if(frequency >0){
+            int ms = 1000.0/frequency;
+            duration_ = std::chrono::milliseconds(ms);
+        }
+    }
 };
 
 void PeriodicEventPort::teardown(){

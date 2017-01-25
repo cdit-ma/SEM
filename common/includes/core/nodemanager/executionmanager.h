@@ -22,6 +22,9 @@ class ExecutionManager{
 
     struct ComponentInstance{
         std::string node_id;
+
+        std::string definition_id;
+        std::string implementation_id;
         
         std::string id;
         std::string name;
@@ -36,6 +39,8 @@ class ExecutionManager{
         std::string name;
         std::string kind;
         std::string middleware;
+
+        std::string frequency;
 
         int port_number = -1;
         std::string port_address;

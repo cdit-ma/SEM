@@ -114,6 +114,47 @@ bool ExecutionManager::scrape_document(){
             component->id = c_id;
             component->name = get_data_value(c_id, "label");
 
+            //Find periodic events
+            //Get implementation id
+            for(auto e_id : graphml_parser_->find_edges("Edge_Definition")){
+                if(get_attribute(e_id, "source") == c_id){
+                    component->definition_id = get_attribute(e_id, "target");
+                    break;
+                }
+            }
+
+            for(auto e_id : graphml_parser_->find_edges("Edge_Definition")){
+                auto target = get_attribute(e_id, "target");
+                auto source = get_attribute(e_id, "source");
+
+                if(target == component->definition_id && source != c_id){
+                    component->implementation_id = source;
+                }
+            }
+
+            if(!component->implementation_id.empty()){
+                for(auto p_id : graphml_parser_->find_nodes("PeriodicEvent", component->implementation_id)){
+                    auto port = new EventPort();
+
+                    //setup the port
+                    port->id = p_id;
+                    port->component_id = c_id;
+                    port->name = get_data_value(p_id, "label");
+                    port->kind = get_data_value(p_id, "kind");
+                    port->frequency = get_data_value(p_id, "frequency");
+
+                    if(event_ports_.count(p_id) == 0){
+                        event_ports_[p_id] = port;
+                    }else{
+                        std::cout << "Got Duplicate EventPort: " << p_id << std::endl;
+                    }
+
+                    //Add the Attribute to the Component
+                    component->event_port_ids.push_back(p_id);
+                }
+            }
+
+
             HardwareNode* node = 0;
             if(deployed_instance_map_.count(c_id)){
                 //Get the Node ID
@@ -270,29 +311,7 @@ void ExecutionManager::execution_loop(){
                 }
             }
 
-            //Get Component Instance EventPorts
-            auto port_ids = graphml_parser_->find_nodes("OutEventPortInstance", c_id);
-            {
-                auto in_port_ids = graphml_parser_->find_nodes("InEventPortInstance", c_id);
-                //Combine into one list to reduce code duplication            
-                port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
-            }
-            
-            
-            {
-                //Add Periodic event port
-                //TODO: Scrape GraphmL to determine values and location
-                auto port_pb = component_pb->add_ports();
-                port_pb->set_name("periodic_event");
-                port_pb->set_type(NodeManager::EventPort::PERIODIC);
-
-                auto duration = port_pb->add_attributes();
-                duration->set_name("duration");
-                duration->set_type(NodeManager::Attribute::INTEGER);
-                duration->set_i(500);
-            }
-
-            for(auto p_id: port_ids){
+            for(auto p_id: component->event_port_ids){
                 auto event_port = get_event_port(p_id);
                 
                 if(event_port){
@@ -309,79 +328,93 @@ void ExecutionManager::execution_loop(){
                         port_pb->set_type(NodeManager::EventPort::OUT);
                     } else if(event_port->kind == "InEventPortInstance"){
                         port_pb->set_type(NodeManager::EventPort::IN);                    
+                    } else if(event_port->kind == "PeriodicEvent"){
+                        port_pb->set_type(NodeManager::EventPort::PERIODIC);
                     }
 
-                    std::string port_middleware = event_port->middleware;
-                    NodeManager::EventPort::Middleware mw;
-                    
-                    //Parse the middleware
-                    if(!NodeManager::EventPort_Middleware_Parse(port_middleware, &mw)){
-                        std::cout << "Cannot Parse Middleware: " << port_middleware << std::endl;
-                        //mw = NodeManager::EventPort::UNKNOWN;
-                        mw = NodeManager::EventPort::ZMQ;
-                    }
-                    port_pb->set_middleware(mw);
+                    if(port_pb->type() != NodeManager::EventPort::PERIODIC){
 
 
-                    //Set port port number
-                    auto topic_pb = port_pb->add_attributes();
-                    topic_pb->set_name("topic_name");
-                    topic_pb->set_type(NodeManager::Attribute::STRING);
-                    //TODO: actually set Topic Name port number.
-                    set_attr_string(topic_pb, event_port->topic_name); 
-                    
-                    
-                    auto domain_id = port_pb->add_attributes();
-                    domain_id->set_name("domain_id");
-                    domain_id->set_type(NodeManager::Attribute::INTEGER);
-                    domain_id->set_i(0);
-
-                    auto broker = port_pb->add_attributes();
-                    broker->set_name("broker");
-                    broker->set_type(NodeManager::Attribute::STRING);
-                    set_attr_string(broker, "localhost:5672"); 
-
-                    if(port_pb->type() == NodeManager::EventPort::OUT){
-                        HardwareNode* node = get_hardware_node(component->node_id);
-                        if(node){
-                            if(event_port->port_number > 0){
-                                //Set Publisher TCP Address
-                                auto publisher_addr_pb = port_pb->add_attributes();
-                                publisher_addr_pb->set_name("publisher_address");
-                                publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);
-                                set_attr_string(publisher_addr_pb, event_port->port_address);
-                            }
-
-                           
-
-                            //Set port port number
-                            auto publisher_pb = port_pb->add_attributes();
-                            publisher_pb->set_name("publisher_name");
-                            publisher_pb->set_type(NodeManager::Attribute::STRING);
-                            set_attr_string(publisher_pb, component->name + event_port->name);
-
+                        std::string port_middleware = event_port->middleware;
+                        NodeManager::EventPort::Middleware mw;
+                        
+                        //Parse the middleware
+                        if(!NodeManager::EventPort_Middleware_Parse(port_middleware, &mw)){
+                            std::cout << "Cannot Parse Middleware: " << port_middleware << std::endl;
+                            //mw = NodeManager::EventPort::UNKNOWN;
+                            mw = NodeManager::EventPort::ZMQ;
                         }
-                    }else if(port_pb->type() == NodeManager::EventPort::IN){
-                        auto publisher_addr_pb = port_pb->add_attributes();
-                        publisher_addr_pb->set_name("publisher_address");
-                        publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);
+                        port_pb->set_middleware(mw);
 
-                        //FIND END POINTS
-                        for(auto e_id : assembly_edge_ids_){
-                            auto s_id = graphml_parser_->get_attribute(e_id, "source");
-                            auto t_id = graphml_parser_->get_attribute(e_id, "target");
-                            EventPort* s = get_event_port(s_id);
-                            EventPort* t = get_event_port(t_id);
-                            if(t == event_port && s->port_number > 0){
-                                set_attr_string(publisher_addr_pb, s->port_address);
-                            }
-                        }
 
                         //Set port port number
-                        auto subscriber_pb = port_pb->add_attributes();
-                        subscriber_pb->set_name("subscriber_name");
-                        subscriber_pb->set_type(NodeManager::Attribute::STRING);
-                        set_attr_string(subscriber_pb, component->name + event_port->name);
+                        auto topic_pb = port_pb->add_attributes();
+                        topic_pb->set_name("topic_name");
+                        topic_pb->set_type(NodeManager::Attribute::STRING);
+                        //TODO: actually set Topic Name port number.
+                        set_attr_string(topic_pb, event_port->topic_name); 
+                        
+                        
+                        auto domain_id = port_pb->add_attributes();
+                        domain_id->set_name("domain_id");
+                        domain_id->set_type(NodeManager::Attribute::INTEGER);
+                        domain_id->set_i(0);
+
+                        auto broker = port_pb->add_attributes();
+                        broker->set_name("broker");
+                        broker->set_type(NodeManager::Attribute::STRING);
+                        set_attr_string(broker, "localhost:5672"); 
+
+                        if(port_pb->type() == NodeManager::EventPort::OUT){
+                            HardwareNode* node = get_hardware_node(component->node_id);
+                            if(node){
+                                if(event_port->port_number > 0){
+                                    //Set Publisher TCP Address
+                                    auto publisher_addr_pb = port_pb->add_attributes();
+                                    publisher_addr_pb->set_name("publisher_address");
+                                    publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);
+                                    set_attr_string(publisher_addr_pb, event_port->port_address);
+                                }
+
+                            
+
+                                //Set port port number
+                                auto publisher_pb = port_pb->add_attributes();
+                                publisher_pb->set_name("publisher_name");
+                                publisher_pb->set_type(NodeManager::Attribute::STRING);
+                                set_attr_string(publisher_pb, component->name + event_port->name);
+
+                            }
+                        }else if(port_pb->type() == NodeManager::EventPort::IN){
+                            auto publisher_addr_pb = port_pb->add_attributes();
+                            publisher_addr_pb->set_name("publisher_address");
+                            publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);
+
+                            //FIND END POINTS
+                            for(auto e_id : assembly_edge_ids_){
+                                auto s_id = graphml_parser_->get_attribute(e_id, "source");
+                                auto t_id = graphml_parser_->get_attribute(e_id, "target");
+                                EventPort* s = get_event_port(s_id);
+                                EventPort* t = get_event_port(t_id);
+                                if(t == event_port && s->port_number > 0){
+                                    set_attr_string(publisher_addr_pb, s->port_address);
+                                }
+                            }
+
+                            //Set port port number
+                            auto subscriber_pb = port_pb->add_attributes();
+                            subscriber_pb->set_name("subscriber_name");
+                            subscriber_pb->set_type(NodeManager::Attribute::STRING);
+                            set_attr_string(subscriber_pb, component->name + event_port->name);
+                        }
+                    } else {
+                        try{
+                            double temp = std::stod(event_port->frequency);
+                            auto frequency_pb = port_pb->add_attributes();
+                            frequency_pb->set_name("frequency");
+                            frequency_pb->set_type(NodeManager::Attribute::DOUBLE);
+                            frequency_pb->set_d(temp);
+                        } catch (...){}
                     }
                 }
             }
