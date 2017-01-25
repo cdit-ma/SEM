@@ -7,6 +7,9 @@ find_package(Protobuf REQUIRED)
 #Find ZeroMQ
 find_package(ZeroMQ REQUIRED)
 
+find_package(Boost 1.36.0 COMPONENTS program_options filesystem system REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
 #Find PUGIXML Library
 set(PUGIXML_ROOT $ENV{PUGIXML_ROOT})
 find_library(PUGIXML_LIBRARIES pugixml ${PUGIXML_ROOT}/build)
@@ -42,7 +45,9 @@ endif(UNIX)
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PUGIXML_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} re_proto_control)
+
 
 
