@@ -41,7 +41,7 @@
                 a->type = AT_STRING;
             }
             for(auto s: attr->s()){
-                a->s.push_back(s);
+                a->set_string(s);
                 break;
             }
             break;

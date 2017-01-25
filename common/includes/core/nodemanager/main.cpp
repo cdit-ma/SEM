@@ -125,7 +125,7 @@ int main(int argc, char **argv)
                     component->set_name(attribute_component);
                     auto attr = component->add_attributes();
                     attr->set_name(attribute_name);
-                    attr->set_type(NodeManager::Attribute_Type::Attribute_Type_STRING);
+                    attr->set_type(NodeManager::Attribute::STRING);
                     attr->add_s(attribute_value);
                 }
 
