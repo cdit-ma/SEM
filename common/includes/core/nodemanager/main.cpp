@@ -80,12 +80,13 @@ int main(int argc, char **argv)
     if(is_server){
         std::cout << "Starting MASTER on " << master_endpoint << std::endl;
         master = new ZMQMaster(master_endpoint, graphml_path);
-    }else{
-        if(deployment_manager){
-            std::cout << "Starting SLAVE on " << slave_endpoint << std::endl;
-            slave = new ZMQSlave(deployment_manager, slave_endpoint);
-        }
     }
+    
+    if(deployment_manager){
+        std::cout << "Starting SLAVE on " << slave_endpoint << std::endl;
+        slave = new ZMQSlave(deployment_manager, slave_endpoint);
+    }
+    
     
     bool running = true;
 
