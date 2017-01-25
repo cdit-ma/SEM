@@ -58,11 +58,6 @@ int main(int argc, char **argv)
         }
     }
     
-    
-    
-    //Wait for a period of time before trying to send
-    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    
     bool running = true;
 
     while(running){
