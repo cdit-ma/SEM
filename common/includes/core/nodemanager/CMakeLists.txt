@@ -7,7 +7,7 @@ find_package(Protobuf REQUIRED)
 #Find ZeroMQ
 find_package(ZeroMQ REQUIRED)
 
-find_package(Boost 1.36.0 COMPONENTS program_options filesystem system REQUIRED)
+find_package(Boost 1.36.0 COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 #Find PUGIXML Library
