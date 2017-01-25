@@ -278,6 +278,20 @@ void ExecutionManager::execution_loop(){
                 port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
             }
             
+            
+            {
+                //Add Periodic event port
+                //TODO: Scrape GraphmL to determine values and location
+                auto port_pb = component_pb->add_ports();
+                port_pb->set_name("periodic_event");
+                port_pb->set_type(NodeManager::EventPort::PERIODIC);
+
+                auto duration = port_pb->add_attributes();
+                duration->set_name("duration");
+                duration->set_type(NodeManager::Attribute::INTEGER);
+                duration->set_i(500);
+            }
+
             for(auto p_id: port_ids){
                 auto event_port = get_event_port(p_id);
                 
