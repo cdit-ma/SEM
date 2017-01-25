@@ -3,7 +3,6 @@
 #include "zmqmessagewriter.h"
 
 #include <queue>
-#include <boost/filesystem.hpp>
 
 class CachedZMQMessageWriter : public ZMQMessageWriter{
     public:
