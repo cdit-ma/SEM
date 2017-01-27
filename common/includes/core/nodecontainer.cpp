@@ -1,6 +1,7 @@
 #include "nodecontainer.h"
 #include <iostream>
 #include "translate.h"
+#include "periodiceventport.h"
 #include "controlmessage.pb.h"
 
 bool NodeContainer::activate(std::string component_name){
@@ -18,10 +19,22 @@ bool NodeContainer::passivate(std::string component_name){
     return false;
 }
 
+
+::EventPort* NodeContainer::construct_periodic_event(Component* component, std::string port_name){
+    return new PeriodicEventPort(component, port_name, component->get_callback(port_name), 1000);
+}
+
 void NodeContainer::configure(NodeManager::ControlMessage* message){
     auto n = message->mutable_node();
     for(auto c : n->components()){
         auto component = get_component(c.name());
+
+        if(!component){
+            //std::cout << "Can't find Component: '" << c.name() << "' Constructing!" << std::endl;
+            //Construct Component
+            component = construct_component(c.type(), c.name());
+        }
+
         if(component){
             for(auto a: c.attributes()){
                 auto attribute = component->get_attribute(a.name());
@@ -32,6 +45,27 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
             }
             for(auto p : c.ports()){
                 auto port = component->get_event_port(p.name());
+
+                if(!port){
+                    //std::cout << "Can't find EventPort: '" << p.name() << "' Constructing!" << std::endl;
+                    std::string middleware = "zmq";
+                    switch(p.type()){
+                        case NodeManager::EventPort::IN:{
+                            port = construct_rx(middleware, p.message_type(), component, p.name());
+                            break;
+                        }
+                        case NodeManager::EventPort::OUT:{
+                            port = construct_tx(middleware, p.message_type(), component, p.name());
+                            break;
+                        }
+                        case NodeManager::EventPort::PERIODIC:{
+                            port = construct_periodic_event(component, p.name());
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
                 if(port){
                     std::map<std::string, ::Attribute*> attributes_;
 
@@ -63,6 +97,7 @@ bool NodeContainer::passivate_all(){
         std::cout << "NodeContainer::passivate_all() Component:" << c.second << std::endl;
         c.second->passivate();
     }
+
     return true;
 }
 void NodeContainer::teardown(){
@@ -96,7 +131,7 @@ Component* NodeContainer::get_component(std::string component_name){
     auto search = components_.find(component_name);
     
     if(search == components_.end()){
-        std::cout << "Can't Find Component: " << component_name  << std::endl;
+        //std::cout << "Can't Find Component: " << component_name  << std::endl;
         return 0;
     }else{
         return search->second;

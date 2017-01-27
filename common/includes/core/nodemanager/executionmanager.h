@@ -28,6 +28,7 @@ class ExecutionManager{
         
         std::string id;
         std::string name;
+        std::string type_name;
         
         std::vector<std::string> event_port_ids;
         std::vector<std::string> attribute_ids;
@@ -39,6 +40,8 @@ class ExecutionManager{
         std::string name;
         std::string kind;
         std::string middleware;
+
+        std::string message_type;
 
         std::string frequency;
 

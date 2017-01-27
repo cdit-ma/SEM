@@ -70,8 +70,10 @@ ExecutionManager::Attribute* ExecutionManager::get_attribute(std::string id){
 }
 
 bool ExecutionManager::scrape_document(){
+    std::cout << "SCRAPING DOCUMENT" << std::endl;
     if(graphml_parser_){
         deployment_edge_ids_ = graphml_parser_->find_edges("Edge_Deployment");
+        auto defintion_edge_ids_ = graphml_parser_->find_edges("Edge_Definition");
         assembly_edge_ids_ = graphml_parser_->find_edges("Edge_Assembly");
         
         for(auto e_id: deployment_edge_ids_){
@@ -116,39 +118,53 @@ bool ExecutionManager::scrape_document(){
 
             //Find periodic events
             //Get implementation id
-            for(auto e_id : graphml_parser_->find_edges("Edge_Definition")){
-                if(get_attribute(e_id, "source") == c_id){
+
+            auto edges = graphml_parser_->find_edges("Edge_Definition");
+            
+            //Get our Component Definition            
+            for(auto e_id : defintion_edge_ids_){
+                auto target = get_attribute(e_id, "target");
+                auto source = get_attribute(e_id, "source");
+                auto target_kind = get_data_value(source, "kind");
+
+                if(source == c_id && target_kind == "Component"){
                     component->definition_id = get_attribute(e_id, "target");
                     break;
                 }
             }
 
-            for(auto e_id : graphml_parser_->find_edges("Edge_Definition")){
+            //Get our Component Implementation
+            for(auto e_id : defintion_edge_ids_){
                 auto target = get_attribute(e_id, "target");
                 auto source = get_attribute(e_id, "source");
+                auto source_kind = get_data_value(source, "kind");
 
-                if(target == component->definition_id && source != c_id){
+                if(target == component->definition_id && source_kind == "ComponentImpl" && source != c_id){
                     component->implementation_id = source;
+                    break;
                 }
             }
+            
+            //Set the type_name, this is the Instance's Defintions Component Type
+            component->type_name = get_data_value(component->definition_id, "label");
 
             if(!component->implementation_id.empty()){
                 for(auto p_id : graphml_parser_->find_nodes("PeriodicEvent", component->implementation_id)){
-                    auto port = new EventPort();
-
-                    //setup the port
-                    port->id = p_id;
-                    port->component_id = c_id;
-                    port->name = get_data_value(p_id, "label");
-                    port->kind = get_data_value(p_id, "kind");
-                    port->frequency = get_data_value(p_id, "frequency");
-
                     if(event_ports_.count(p_id) == 0){
+                        auto port = new EventPort();
+
+                        //setup the port
+                        port->id = p_id;
+                        port->component_id = c_id;
+                        port->name = get_data_value(p_id, "label");
+                        port->kind = get_data_value(p_id, "kind");
+                        port->frequency = get_data_value(p_id, "frequency");
+
+                        std::cout << "Got PeriodicEventPort " << p_id << std::endl;
                         event_ports_[p_id] = port;
-                    }else{
-                        std::cout << "Got Duplicate EventPort: " << p_id << std::endl;
                     }
 
+                    std::cout << component->name << " Got PeriodicEventPort " << p_id << std::endl;
                     //Add the Attribute to the Component
                     component->event_port_ids.push_back(p_id);
                 }
@@ -196,6 +212,7 @@ bool ExecutionManager::scrape_document(){
                 port->topic_name = get_data_value(p_id, "topicName");
                 port->kind = get_data_value(p_id, "kind");
                 port->middleware = get_data_value(p_id, "middleware");
+                port->message_type = get_data_value(p_id, "type");
                 //TODO: OVERRIDDEN
                 port->middleware = "ZMQ";
 
@@ -286,6 +303,7 @@ void ExecutionManager::execution_loop(){
             
             component_pb->set_id(component->id);
             component_pb->set_name(component->name);
+            component_pb->set_type(component->type_name);
 
             //Get the Component Attributes
             for(auto a_id : component->attribute_ids){
@@ -320,6 +338,7 @@ void ExecutionManager::execution_loop(){
 
                     //Get the Port Name
                     port_pb->set_name(event_port->name);
+                    port_pb->set_message_type(event_port->message_type);
                     //p->set_id(p_id)
 
                     std::string kind = get_data_value(p_id, "kind");

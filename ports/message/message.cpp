@@ -1,6 +1,6 @@
 #include "message.h"
 
- Message::Message() : BaseMessage(0){
+ Message::Message() : BaseMessage(){
      //Construct a BaseMessage
  }
 

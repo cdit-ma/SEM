@@ -3,7 +3,7 @@
 #include "component.h"
 #include <iostream>
 
-PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std::function<void(void)> callback, int milliseconds){
+PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds){
     this->callback_ = callback;
     this->duration_ = std::chrono::milliseconds(milliseconds);
     if(component){
@@ -14,6 +14,7 @@ PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std
 }
 
 bool PeriodicEventPort::activate(){
+    std::cout << "PeriodicEventPort::activate()" << std::endl;
     if(!is_active()){
         //Gain mutex lock and Set the terminate_tick flag
         std::unique_lock<std::mutex> lock(mutex_);
@@ -48,7 +49,8 @@ bool PeriodicEventPort::wait_for_tick(){
 void PeriodicEventPort::loop(){
     while(true){
         if(callback_ != nullptr){
-            callback_();
+            //Construct a callback object
+            callback_(new BaseMessage());
         }
         if(!wait_for_tick()){
             break;
@@ -58,10 +60,13 @@ void PeriodicEventPort::loop(){
 
 
 void PeriodicEventPort::startup(std::map<std::string, ::Attribute*> attributes){
+    std::cout << component_->get_name() << "::PeriodicEventPort: " << get_name() << " Setting Frequency" << std::endl;
+
     if(attributes.count("frequency")){
         auto frequency = attributes["frequency"]->d;
-        if(frequency >0){
+        if(frequency > 0){
             int ms = 1000.0/frequency;
+            std::cout << component_->get_name() << "::PeriodicEventPort: " << get_name() << " Setting Frequency: " << ms << "MS"<< std::endl;
             duration_ = std::chrono::milliseconds(ms);
         }
     }

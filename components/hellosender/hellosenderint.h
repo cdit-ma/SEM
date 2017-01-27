@@ -21,12 +21,11 @@ class HelloSenderInt: public Component{
         std::string message();
         void set_message(const std::string val);
 
-        //setter function for the txMessage
-        void _set_txMessage(::OutEventPort<::Message>* tx);
-    protected:
         void txMessage(::Message* message);
+
+        void _periodic_event_(BaseMessage* message);
+        virtual void periodic_event() = 0;
     private:
-        ::OutEventPort<::Message>* txMessage_ = 0;
 };
 
 #endif //COMPONENTS_HELLOSENDER_HELLOSENDERINT_H

@@ -1,8 +1,7 @@
 #include "basemessage.h"
 
 
-BaseMessage::BaseMessage(int type){
-    this->type_ = type;
+BaseMessage::BaseMessage(){
     this->id_ = counter_++;
 }
 

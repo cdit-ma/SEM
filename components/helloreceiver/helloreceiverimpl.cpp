@@ -3,7 +3,7 @@
 
 HelloReceiverImpl::HelloReceiverImpl(std::string name) : HelloReceiverInt(name){};
 
-void HelloReceiverImpl::rxMessage(::Message* message){
+void HelloReceiverImpl::rxMessage(Message* message){
     std::cout << get_name() << " Got Message: "  << message->content() << " From: " << message->instName() << std::endl; 
 }
 

@@ -8,6 +8,9 @@ HelloReceiverInt::HelloReceiverInt(std::string name): Component(name){
         att->type = AT_STRING;
         add_attribute(att);
     }
+
+    //Add callback
+    add_callback("rxMessage", std::bind(&HelloReceiverInt::_rxMessage_, this, std::placeholders::_1));
 }
 
 std::string HelloReceiverInt::instName(){
@@ -26,9 +29,10 @@ void HelloReceiverInt::set_instName(const std::string val){
     }
 }
 
-void HelloReceiverInt::_set_rxMessage(::InEventPort<::Message>* rx){
-    if(rx){
-        rxMessage_ = rx;    
+void HelloReceiverInt::_rxMessage_(BaseMessage* m){
+    if(m){
+        //HARD CAST
+        rxMessage((::Message*) m);
     }
-}
+};
 

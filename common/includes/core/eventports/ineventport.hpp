@@ -4,7 +4,7 @@
 #include <functional>
 #include "../component.h"
 #include "../eventport.h"
-
+#include <iostream>
 //Interface for a standard templated InEventPort
 template <class T> class InEventPort: public EventPort{
     public:
@@ -13,7 +13,12 @@ template <class T> class InEventPort: public EventPort{
             if(component){
                 //Set our Component and attach this port
                 component_ = component;
-                callback_function_ = callback_function;
+                if(callback_function){
+                    callback_function_ = callback_function;
+                }else{
+                    std::cout << "InEventPort: " << name << " has a NULL Callback Function!" << std::endl;
+                }
+                
                 component_->add_event_port(this);
             }
         };

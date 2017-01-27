@@ -13,6 +13,15 @@ HelloSenderInt::HelloSenderInt(std::string name): Component(name){
         att->type = AT_STRING;
         add_attribute(att);
     }
+
+    //Add to call back
+    add_callback("tick", std::bind(&HelloSenderInt::_periodic_event_, this, std::placeholders::_1));
+}
+
+void HelloSenderInt::_periodic_event_(BaseMessage* message){
+    
+    this->periodic_event();
+    delete message;
 }
 
 std::string HelloSenderInt::instName(){
@@ -47,14 +56,13 @@ void HelloSenderInt::set_message(const std::string val){
     }
 }
 
-void HelloSenderInt::_set_txMessage(::OutEventPort<::Message>* tx){
-    if(tx){
-        txMessage_ = tx;    
-    }
-}
-
 void HelloSenderInt::txMessage(::Message* message){
-    if(txMessage_){
-        txMessage_->tx(message);
+    auto a = get_event_port("txMessage");
+    if(a){
+        auto b = static_cast<::OutEventPort<Message> *>(a);
+        if(b){
+            b->tx(message);
+        }
     }
+    delete message;
 }

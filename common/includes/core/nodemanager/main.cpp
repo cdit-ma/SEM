@@ -54,11 +54,6 @@ int main(int argc, char **argv)
             exit(1);            
         }
     }
-    
-    if(dll_path.empty()){
-        std::cerr << "DLL Error: No DLL path provided" << std::endl;
-        exit(1);
-    }
 
     ZMQMaster* master = 0;
     ZMQSlave* slave = 0;

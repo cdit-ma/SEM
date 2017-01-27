@@ -23,4 +23,4 @@ include_directories("${RE_PATH}/includes")
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ports_message)
+target_link_libraries(${PROJ_NAME} datatypes_message)

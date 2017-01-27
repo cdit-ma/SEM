@@ -5,7 +5,11 @@
 
 class Deployment_2: public NodeContainer{
     public:
+        Deployment_2();
         void startup();
+        ::EventPort* construct_rx(std::string middleware, std::string datatype, Component* component, std::string port_name);
+        ::EventPort* construct_tx(std::string middleware, std::string datatype, Component* component, std::string port_name);
+        ::Component* construct_component(std::string componentType, std::string component_name);
 };
 
 extern "C" NodeContainer* create_deployment()

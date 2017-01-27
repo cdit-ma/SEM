@@ -17,14 +17,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 #Add all bits for Deployment
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/proto")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/zmq")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/qpid")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/rti")
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ports/message/ospl")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components/hellosender")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components/helloreceiver")
-
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/deployment_1")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/deployment_2")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/datatypes")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/deployments")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware")

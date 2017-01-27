@@ -30,7 +30,6 @@ void Component::add_event_port(EventPort* event_port){
     if(event_port){
         std::string name = event_port->get_name();
         if(eventports_.count(name) == 0){
-            std::cout << "Component: " << get_name() << " Added Port: " << name << std::endl;
             eventports_[name] = event_port;
         }
     }
@@ -43,7 +42,6 @@ void Component::remove_event_port(EventPort* event_port){
 void Component::add_attribute(Attribute* attribute){
     if(attribute){
         if(eventports_.count(attribute->name) == 0){
-            std::cout << "Component: " << get_name() << " Added Attribute: " << attribute->name << std::endl;
             attributes_[attribute->name] = attribute;
         }
     }
@@ -57,6 +55,25 @@ Attribute* Component::get_attribute(std::string name){
     }
     return attribute;
 }
+
+
+std::function<void (::BaseMessage*)> Component::get_callback(std::string port_name){
+    std::function<void (::BaseMessage*)> f = NULL;
+    if(callback_functions_.count(port_name)){
+        f = callback_functions_[port_name];
+    }else{
+        std::cout << "No Callbacks for: " << port_name << " !" << std::endl;
+    }
+    return f;
+}
+
+void Component::add_callback(std::string port_name, std::function<void (::BaseMessage*)> function){
+    if(callback_functions_.count(port_name) == 0){
+        std::cout << "Component: " << get_name() << " Added Callback function for: " << port_name << std::endl;
+        callback_functions_[port_name] = function;
+    }
+}
+
 
 EventPort* Component::get_event_port(std::string name){
     EventPort* port = 0;

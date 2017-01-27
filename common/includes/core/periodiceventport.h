@@ -9,12 +9,13 @@
 
 
 #include "eventport.h"
-
+#include "basemessage.h"
 class Component;
+
 class PeriodicEventPort: public EventPort{
     
     public:
-        PeriodicEventPort(Component* component, std::string name, std::function<void(void)> callback, int milliseconds);
+        PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds);
         bool activate();
         bool passivate();
 
@@ -29,7 +30,7 @@ class PeriodicEventPort: public EventPort{
         std::condition_variable lock_condition_;
         bool terminate = false;
 
-        std::function<void(void)> callback_ ;
+        std::function<void(BaseMessage*)> callback_ ;
         std::thread * callback_thread_ = 0;
         std::chrono::milliseconds duration_;    
         Component* component_;
