@@ -111,27 +111,26 @@ bool ExecutionManager::scrape_document(){
         }
 
         for(auto c_id : graphml_parser_->find_nodes("ComponentInstance")){
+            
             auto component = new ComponentInstance();
             //Set the Node information
             component->id = c_id;
             component->name = get_data_value(c_id, "label");
-
-            //Find periodic events
-            //Get implementation id
-
-            auto edges = graphml_parser_->find_edges("Edge_Definition");
+            //std::cout << "Found Components: " << component->name << std::endl;
             
             //Get our Component Definition            
             for(auto e_id : defintion_edge_ids_){
                 auto target = get_attribute(e_id, "target");
                 auto source = get_attribute(e_id, "source");
-                auto target_kind = get_data_value(source, "kind");
+                auto target_kind = get_data_value(target, "kind");
 
                 if(source == c_id && target_kind == "Component"){
                     component->definition_id = get_attribute(e_id, "target");
                     break;
                 }
             }
+
+            
 
             //Get our Component Implementation
             for(auto e_id : defintion_edge_ids_){
@@ -144,6 +143,8 @@ bool ExecutionManager::scrape_document(){
                     break;
                 }
             }
+            //std::cout << "Component: " << component->name << " Definition: " << component->definition_id << std::endl;
+            //std::cout << "Component: " << component->name << " Implementation: " << component->implementation_id << std::endl;
             
             //Set the type_name, this is the Instance's Defintions Component Type
             component->type_name = get_data_value(component->definition_id, "label");
@@ -160,11 +161,11 @@ bool ExecutionManager::scrape_document(){
                         port->kind = get_data_value(p_id, "kind");
                         port->frequency = get_data_value(p_id, "frequency");
 
-                        std::cout << "Got PeriodicEventPort " << p_id << std::endl;
+                        //std::cout << "Got PeriodicEventPort " << p_id << std::endl;
                         event_ports_[p_id] = port;
                     }
 
-                    std::cout << component->name << " Got PeriodicEventPort " << p_id << std::endl;
+                    //std::cout << component->name << " Got PeriodicEventPort " << p_id << std::endl;
                     //Add the Attribute to the Component
                     component->event_port_ids.push_back(p_id);
                 }
