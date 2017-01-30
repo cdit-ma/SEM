@@ -2,7 +2,7 @@
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
-set(PROJ_NAME ports_message_rti)
+set(PROJ_NAME rti_message)
 project (${PROJ_NAME})
 
 #Find rtidds library
@@ -40,7 +40,7 @@ include_directories(${DDS_INCLUDE_DIRS})
 #Set symbols in dynamic library to be default hidden
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
 
 #Need this to make sure headers are using the correct function calls.
 target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
@@ -49,4 +49,4 @@ target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
 
 target_link_libraries(${PROJ_NAME} pthread)
-target_link_libraries(${PROJ_NAME} ports_message)
+target_link_libraries(${PROJ_NAME} datatypes_message)
