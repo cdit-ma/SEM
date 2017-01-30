@@ -214,13 +214,11 @@ bool ExecutionManager::scrape_document(){
                 port->kind = get_data_value(p_id, "kind");
                 port->middleware = get_data_value(p_id, "middleware");
                 port->message_type = get_data_value(p_id, "type");
-                //TODO: OVERRIDDEN
-                port->middleware = "ZMQ";
 
                 //Register Only OutEventPortInstances
                 if(port->kind == "OutEventPortInstance"){
                     //Setup Port number
-                    if(node && port->middleware == "ZMQ"){
+                    if(node && port->middleware == "zmq"){
                         //Set Port Number only for ZMQ
                         node->port_count ++;
                         port->port_number = node->port_count;
