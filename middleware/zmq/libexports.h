@@ -1,5 +1,5 @@
-#ifndef ZMQ_LIBEXPORT_H
-#define ZMQ_LIBEXPORT_H
+#ifndef ZMQ_LIBEXPORTS_H
+#define ZMQ_LIBEXPORTS_H
 
 #include "factory.h"
 extern "C" EventPort* construct_rx(std::string port, Component* component, std::string name)
@@ -16,4 +16,4 @@ extern "C" std::string get_middleware(){
     return "zmp";
 }
 
-#endif //ZMQ_LIBEXPORT_H
+#endif //ZMQ_LIBEXPORTS_H

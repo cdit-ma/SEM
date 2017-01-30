@@ -11,7 +11,7 @@ cdit::Message* rti::translate(::Message *m){
         return message;
 }
 
-::Message* rti::translate(cdit::Message *m){
+::Message* rti::translate(const cdit::Message *m){
         auto message = new ::Message();
         int t = m->time();
         message->set_time(t);

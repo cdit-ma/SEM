@@ -1,5 +1,5 @@
-#ifndef RTI_LIBEXPORT_H
-#define RTI_LIBEXPORT_H
+#ifndef RTI_LIBEXPORTS_H
+#define RTI_LIBEXPORTS_H
 
 #include "factory.h"
 extern "C" EventPort* construct_rx(std::string port, Component* component, std::string name)
@@ -16,4 +16,4 @@ extern "C" std::string get_middleware(){
     return "rti";
 }
 
-#endif //rti_LIBEXPORT_H
+#endif //RTI_LIBEXPORTS_H

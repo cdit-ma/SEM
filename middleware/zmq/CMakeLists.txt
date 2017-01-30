@@ -9,18 +9,19 @@ set(CMAKE_INSTALL_RPATH "@executable_path;@loader_path;$ORIGIN;")
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
-set(PROJ_NAME zmq_ports)
+set(PROJ_NAME ports_zmq)
 project (${PROJ_NAME})
 
 #Find re_core library
 find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 
 set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/test.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/factory.cpp
 	)
 
 set(HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/test.h
+	${CMAKE_CURRENT_SOURCE_DIR}/factory.h
+	${CMAKE_CURRENT_SOURCE_DIR}/libexports.h
 	)
 
 include_directories("${RE_PATH}/includes")

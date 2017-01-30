@@ -1,5 +1,5 @@
-#ifndef QPID_LIBEXPORT_H
-#define QPID_LIBEXPORT_H
+#ifndef QPID_LIBEXPORTS_H
+#define QPID_LIBEXPORTS_H
 
 #include "factory.h"
 extern "C" EventPort* construct_rx(std::string port, Component* component, std::string name)
@@ -16,4 +16,4 @@ extern "C" std::string get_middleware(){
     return "qpid";
 }
 
-#endif //QPID_LIBEXPORT_H
+#endif //QPID_LIBEXPORTS_H

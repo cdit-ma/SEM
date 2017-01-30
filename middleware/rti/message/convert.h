@@ -9,7 +9,7 @@ namespace cdit{
 
 namespace rti{
     cdit::Message* translate(::Message *m);
-    ::Message* translate(cdit::Message *m);
+    ::Message* translate(const cdit::Message *m);
 };
 
 #endif //RTI_MESSAGE_CONVERT_H

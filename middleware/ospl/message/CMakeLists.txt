@@ -2,7 +2,7 @@
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
-set(PROJ_NAME ports_message_ospl)
+set(PROJ_NAME ospl_message)
 project (${PROJ_NAME})
 
 #Find ospl library
@@ -32,7 +32,7 @@ set(DDS_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/messageSplDcps.h
     ${CMAKE_CURRENT_SOURCE_DIR}/message_DCPS.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps_impl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageconvert.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
 )
 
 set(DDS_SOURCE
@@ -42,13 +42,15 @@ set(DDS_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps_impl.cpp
 )
 
+message(${CMAKE_CURRENT_SOURCE_DIR})
+
 include_directories(${RE_PATH}/includes)
 include_directories(${OpenSplice_INCLUDE_DIRS})
 
 #Set symbols in dynamic library to be default hidden
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})

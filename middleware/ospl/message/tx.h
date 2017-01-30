@@ -1,5 +1,5 @@
 #ifndef OSPL_MESSAGE_TX_H
-#define OSPL_MESSAGE_RX_H
+#define OSPL_MESSAGE_TX_H
 
 //Include the core Elements
 #include <core/globalinterfaces.hpp>

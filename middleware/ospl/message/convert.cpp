@@ -12,7 +12,7 @@ cdit::Message* ospl::translate(::Message *m){
         return message;
 }
 
-::Message* ospl::translate(cdit::Message *m){
+::Message* ospl::translate(const cdit::Message *m){
         auto message = new ::Message();
         int t = m->time();
         message->set_time(t);

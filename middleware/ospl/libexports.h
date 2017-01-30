@@ -1,5 +1,5 @@
-#ifndef OSPL_LIBEXPORT_H
-#define OSPL_LIBEXPORT_H
+#ifndef OSPL_LIBEXPORTS_H
+#define OSPL_LIBEXPORTS_H
 
 #include "factory.h"
 extern "C" EventPort* construct_rx(std::string port, Component* component, std::string name)
@@ -16,4 +16,4 @@ extern "C" std::string get_middleware(){
     return "ospl";
 }
 
-#endif //OSPL_LIBEXPORT_H
+#endif //OSPL_LIBEXPORTS_H

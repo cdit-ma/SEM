@@ -2,7 +2,7 @@
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
-set(PROJ_NAME ports_message_qpid)
+set(PROJ_NAME qpid_message)
 project (${PROJ_NAME})
 
 #Find re_core library
@@ -34,5 +34,5 @@ target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Qpid_LIBRARIES})
 
 target_link_libraries(${PROJ_NAME} pthread)
-target_link_libraries(${PROJ_NAME} ports_message)
-target_link_libraries(${PROJ_NAME} ports_message_proto)
+target_link_libraries(${PROJ_NAME} proto_message)
+target_link_libraries(${PROJ_NAME} datatypes_message)
