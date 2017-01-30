@@ -78,6 +78,7 @@ add_library(${CORE_NAME} SHARED ${CORE_SOURCE} ${CORE_HEADERS})
 
 if(UNIX)
 	target_link_libraries(${CORE_NAME} pthread)
+	target_link_libraries(${CORE_NAME} dl)
 endif(UNIX)
 
 #Link re_proto_control against protobuf
