@@ -35,6 +35,8 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
     // clear previous key actions and search result items
     clear();
 
+    constructKeyButton("All", "All (" + QString::number(results.count()) + ")");
+
     if (results.isEmpty()) {
         infoLabel->show();
     } else {
@@ -74,10 +76,10 @@ void SearchDialog::themeChanged()
                   + theme->getDialogStyleSheet()
                   + theme->getComboBoxStyleSheet());
 
-    mainWidget->setStyleSheet("background:" + theme->getBackgroundColorHex() + ";");
+    mainWidget->setStyleSheet("SD_MAINWIDGET{ background:" + theme->getBackgroundColorHex() + ";}");
 
-    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px; }");
-    bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px; }");
+    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; }");
+    bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; background:" + theme->getBackgroundColorHex() + ";}");
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
     keysToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
                                "QToolBar::separator {"
@@ -181,7 +183,7 @@ void SearchDialog::resetPanel()
 void SearchDialog::setupLayout()
 {
     searchLabel = new QLabel("Search: ", this);
-    queryLabel = new QLabel("Searched string Searched string Searched string", this);
+    queryLabel = new QLabel("", this);
 
     QFont labelFont(font().family(), 9);
     searchLabel->setFont(labelFont);
@@ -201,6 +203,7 @@ void SearchDialog::setupLayout()
 
     topToolbar = new QToolBar(this);
     topToolbar->setIconSize(QSize(20, 20));
+
     topToolbar->addWidget(centerOnButton);
     topToolbar->addWidget(popupButton);
 
@@ -214,7 +217,13 @@ void SearchDialog::setupLayout()
 
     bottomToolbar = new QToolBar(this);
     bottomToolbar->setIconSize(QSize(20, 20));
-    bottomToolbar->setContentsMargins(2,0,2,0);
+    //bottomToolbar->setContentsMargins(2,0,2,0);
+
+    QWidget* stretchWidget2 = new QWidget(this);
+    stretchWidget2->setStyleSheet("background: rgba(0,0,0,0);");
+    stretchWidget2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    bottomToolbar->addWidget(stretchWidget2);
     bottomToolbar->addWidget(searchButton);
     bottomToolbar->addWidget(refreshButton);
 
@@ -228,13 +237,17 @@ void SearchDialog::setupLayout()
     keysActionGroup = new QActionGroup(this);
     keysActionGroup->setExclusive(true);
 
+    /*
+     * TODO - Add this back when filtering by aspects is added
+     *
     constructKeyButton("All", "All", true, false);
     keysToolbar->addSeparator();
     constructKeyButton("Interfaces", "Interfaces", false, false);
     constructKeyButton("Behaviour", "Behaviour", false, false);
     constructKeyButton("Assembly", "Assembly", false, false);
     constructKeyButton("Hardware", "Hardware", false, false);
-    keysToolbar->addSeparator();
+    kesToolbar->addSeparator();
+    */
 
     QScrollArea* keysArea = new QScrollArea(this);
     keysArea->setWidget(keysToolbar);
@@ -272,27 +285,21 @@ void SearchDialog::setupLayout()
     QHBoxLayout* topHLayout = new QHBoxLayout();
     topHLayout->setMargin(0);
     topHLayout->setSpacing(5);
-    topHLayout->setContentsMargins(4,0,4,0);
+    topHLayout->setContentsMargins(1,0,1,0);
     topHLayout->addLayout(labelLayout, 1);
     topHLayout->addSpacerItem(new QSpacerItem(30, 0));
     topHLayout->addWidget(topToolbar);
 
-    /*
-    QHBoxLayout* bottomHLayout = new QHBoxLayout();
-    bottomHLayout->setMargin(0);
-    bottomHLayout->setContentsMargins(4,0,4,0);
-    bottomHLayout->addWidget(bottomToolbar, 1, Qt::AlignRight);
-    */
-
     mainWidget = new QWidget(this);
+    mainWidget->setObjectName("SD_MAINWIDGET");
+
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->setMargin(0);
-    mainLayout->setSpacing(DIALOG_SPACING);
-    mainLayout->setContentsMargins(1, DIALOG_SPACING, 1, DIALOG_SPACING);
+    mainLayout->setSpacing(1);
+    mainLayout->setContentsMargins(1, 1, 1, 1);
     mainLayout->addLayout(topHLayout);
     mainLayout->addWidget(displaySplitter, 1);
-    mainLayout->addWidget(bottomToolbar, 0, Qt::AlignRight);
-    //mainLayout->addLayout(bottomHLayout);
+    mainLayout->addWidget(bottomToolbar);
 
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setMargin(0);
@@ -302,6 +309,8 @@ void SearchDialog::setupLayout()
 
     connect(centerOnButton, SIGNAL(clicked(bool)), this, SLOT(centerOnSelectedItem()));
     connect(popupButton, SIGNAL(clicked(bool)), this, SLOT(popupSelectedItem()));
+    connect(searchButton, &QToolButton::clicked, this, &SearchDialog::searchButtonClicked);
+    connect(refreshButton, &QToolButton::clicked, this, &SearchDialog::refreshButtonClicked);
 }
 
 

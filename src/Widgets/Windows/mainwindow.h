@@ -88,11 +88,11 @@ private:
     void setupNotificationBar();
     void setupDock();
     void setupDataTable();
+    void setupViewManager();
     void setupMinimap();
     void setupMenuCornerWidget();
     void setupDockablePanels();
 
-    void setupViewManager();
     void setupJenkinsManager();
     void setupCUTSManager();
     void setupXMIImporter();

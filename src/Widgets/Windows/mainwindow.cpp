@@ -135,10 +135,10 @@ void MainWindow::searchEntered()
         qCritical() << "searchEntered in: " <<  timeFinish - timeStart << "MS";
 
         // make sure that the search panel dock widget is visible and that its window is raised
+        // TODO - Make the search dock widget active
         if (!searchDockWidget->isVisible()) {
             searchDockWidget->req_Visible(searchDockWidget->getID(), true);
         }
-        // TODO - Make the search dock widget active
         searchDockWidget->activateWindow();
     }
 }
@@ -399,8 +399,6 @@ void MainWindow::setModelTitle(QString modelTitle)
     }
     QString title = "MEDEA " % modelTitle % "[*]";
     setWindowTitle(title);
-
-    searchPanel->searchResults("ment", viewController->getSearchResults("ment"));
 }
 
 
@@ -900,7 +898,6 @@ void MainWindow::setupDockablePanels()
     searchDockWidget->setIconVisible(true);
     searchDockWidget->setProtected(true);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
-    innerWindow->setDockWidgetVisibility(searchDockWidget, true);
 
     notificationPanel = new NotificationDialog(this);
     notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
@@ -910,7 +907,10 @@ void MainWindow::setupDockablePanels()
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, notificationDockWidget);
-    innerWindow->setDockWidgetVisibility(notificationDockWidget, true);
+
+    // initially hide tool dock widgets
+    innerWindow->setDockWidgetVisibility(searchDockWidget, false);
+    innerWindow->setDockWidgetVisibility(notificationDockWidget, false);
 
     if (viewController) {
         connect(viewController, &ViewController::vc_setupModel, searchPanel, &SearchDialog::resetPanel);
@@ -926,6 +926,8 @@ void MainWindow::setupDockablePanels()
         connect(notificationPanel, &NotificationDialog::mouseEntered, notificationToolbar, &NotificationToolbar::notificationsSeen);
         connect(notificationToolbar, &NotificationToolbar::toggleDialog, this, &MainWindow::toggleNotificationPanel);
     }
+    connect(searchPanel, &SearchDialog::searchButtonClicked, this, &MainWindow::popupSearch);
+    connect(searchPanel, &SearchDialog::refreshButtonClicked, this, &MainWindow::searchEntered);
     connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::toggleNotificationPanel);
 }
 
@@ -1022,7 +1024,13 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
     QWidget* cw = parentWidget;
     QPointF widgetPos;
     if (cw == 0) {
-        cw = WindowManager::manager()->getActiveWindow();
+        cw = QApplication::activeWindow();
+        if (!cw->isWindowType()) {
+            cw = WindowManager::manager()->getActiveWindow();
+            qDebug() << "Current widget is not a window!";
+        } else {
+            qDebug() << "HERE - " << cw;
+        }
         widgetPos.ry() -= widget->height()/2 + 8;
     }
     if (cw == innerWindow) {

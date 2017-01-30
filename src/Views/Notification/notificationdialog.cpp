@@ -262,19 +262,18 @@ void NotificationDialog::viewSelection()
 void NotificationDialog::themeChanged()
 {
     Theme* theme = Theme::theme();
-    setStyleSheet("QListWidget{ border: 1px solid " + theme->getDisabledBackgroundColorHex() + "; }"
+    setStyleSheet("QScrollArea {"
+                  "background:" + theme->getBackgroundColorHex() + ";"
+                  "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
+                  "}"
+                  "QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex()+ ";}"
                   + theme->getAltAbstractItemViewStyleSheet()
-                  + theme->getDialogStyleSheet()
-                  + "QScrollArea {"
-                    "background:" + theme->getBackgroundColorHex() + ";"
-                    "border: 1px solid " + theme->getDisabledBackgroundColorHex() + ";"
-                    "}"
-                  + "QLabel{ background: rgba(0,0,0,0); color:" + theme->getTextColorHex()+ ";}");
+                  + theme->getDialogStyleSheet());
 
     mainWidget->setStyleSheet("background:" + theme->getBackgroundColorHex() + ";");
 
-    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; }");
-    bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; }");
+    topToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
+    bottomToolbar->setStyleSheet(theme->getToolBarStyleSheet() + "QToolBar{ padding: 0px 4px; } QToolButton{ padding: 4px; }");
     filtersToolbar->setStyleSheet(theme->getToolBarStyleSheet() +
                                   "QToolBar::separator {"
                                   "margin: 2px 0px;"
@@ -1101,7 +1100,8 @@ void NotificationDialog::setActionButtonChecked(QAction* action, bool checked)
 void NotificationDialog::updateSelectionBasedButtons()
 {
     bool enable = !selectedItems.isEmpty();
-    centerOnAction->setEnabled(enable);
-    popupAction->setEnabled(enable);
+    // TODO - Commented this out to match search centerOn and popup buttons
+    //centerOnAction->setEnabled(enable);
+    //popupAction->setEnabled(enable);
     clearSelectedAction->setEnabled(enable);
 }
