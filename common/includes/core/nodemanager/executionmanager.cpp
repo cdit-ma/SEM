@@ -362,6 +362,7 @@ void ExecutionManager::execution_loop(){
                             //mw = NodeManager::EventPort::UNKNOWN;
                             mw = NodeManager::EventPort::ZMQ;
                         }
+                        std::cout << mw << std::endl;
                         port_pb->set_middleware(mw);
 
 

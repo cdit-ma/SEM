@@ -20,7 +20,7 @@ void DeploymentManager::process_action(std::string node_name, std::string action
 
     auto cm = new NodeManager::ControlMessage();
     
-    if(cm->ParseFromString(action) && deployment_){
+    if(cm->ParseFromString(action)){
         std::cout << "Process Action: " << node_name << " ACTION: " << NodeManager::ControlMessage_Type_Name(cm->type()) << std::endl;
         switch(cm->type()){
             case NodeManager::ControlMessage::STARTUP:{

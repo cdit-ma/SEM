@@ -51,6 +51,7 @@ EventPort* NodeContainer::construct_periodic_event(Component* component, std::st
 }
 
 void NodeContainer::configure(NodeManager::ControlMessage* message){
+    std::cout << "CONFIGURE" << std::endl;
     auto n = message->mutable_node();
     for(auto c : n->components()){
         auto component = get_component(c.name());
@@ -72,6 +73,7 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
                 auto port = component->get_event_port(p.name());
 
                 std::string middleware;
+                std::cout << p.name() << " MW: " << NodeManager::EventPort_Middleware_Name(p.middleware()) << std::endl;
                 switch(p.middleware()){
                     case NodeManager::EventPort_Middleware_ZMQ:{
                         middleware = "zmq";
