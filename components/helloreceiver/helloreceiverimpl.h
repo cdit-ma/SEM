@@ -13,6 +13,8 @@ class HelloReceiverImpl: public HelloReceiverInt{
         void rxMessage(Message* message);
 };
 
+//TODO:Move to own header file
+
 extern "C" Component* construct_component(std::string name)
 {
     return new HelloReceiverImpl(name);
