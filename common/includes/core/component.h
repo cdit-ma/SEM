@@ -12,10 +12,11 @@
 
 
 class Component: public Activatable{
-    public:
+
+    protected:
         Component(std::string inst_name);
         ~Component();
-
+    public:
         bool activate();
         bool passivate();
 

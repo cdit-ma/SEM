@@ -19,5 +19,5 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 #Add all bits for Deployment
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/datatypes")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/components")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/deployments")
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/deployments")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/middleware")

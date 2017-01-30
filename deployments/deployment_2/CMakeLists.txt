@@ -39,6 +39,5 @@ target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${RE_PROTO_CONTROL_LIBRARIES})
 target_link_libraries(${PROJ_NAME} components_hellosender)
 target_link_libraries(${PROJ_NAME} components_helloreceiver)
-#target_link_libraries(${PROJ_NAME} zmq_message)
 target_link_libraries(${PROJ_NAME} zmq_ports)
 

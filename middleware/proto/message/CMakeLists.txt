@@ -28,7 +28,7 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 #include the current binary directory to enable linking of pb.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})

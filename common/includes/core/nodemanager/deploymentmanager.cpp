@@ -38,6 +38,7 @@ DeploymentManager::DeploymentManager(std::string library_path){
         }
         std::cout << "Successfully Loaded Library:" << library_path_ << std::endl;
     }
+
 }
 
 DeploymentManager::~DeploymentManager(){
@@ -82,8 +83,13 @@ bool DeploymentManager::is_library_loaded(){
 }
 
 NodeContainer* DeploymentManager::get_deployment(){
-    if(is_library_loaded() && !deployment_){
-        deployment_ = create_deployment_();
+    if(!deployment_){
+        deployment_ = new NodeContainer();    
+        deployment_->set_library_path(library_path_);
     }
+    //deployment_ = ne
+    //if(is_library_loaded() && !deployment_){
+    //    deployment_ = create_deployment_();
+    //}
     return deployment_;
 }
