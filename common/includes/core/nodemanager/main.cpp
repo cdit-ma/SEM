@@ -108,8 +108,6 @@ int main(int argc, char **argv)
             }else{
                 node_container->passivate(name);
             }
-        }else if(command == "startup"){
-            node_container->startup();
         }else if(command == "quit" || command == "terminate"){
             running = false;
         }else if(command == "send" && master){

@@ -3,29 +3,26 @@
 
 #include <functional>
 #include <string>
+#include <mutex>
 
 #include "../nodecontainer.h"
+
 
 class DeploymentManager{
     public:
         DeploymentManager(std::string library_path);
         ~DeploymentManager();
 
-
         void process_action(std::string node_name, std::string action);
 
-        bool is_library_loaded();
-        
         NodeContainer* get_deployment();
 
     private:
         std::string library_path_;
-        void* library_handle_ = 0;
+        std::mutex mutex_;
+        
 
         NodeContainer* deployment_ = 0;
-
-        std::function<NodeContainer* ()> create_deployment_ = 0;
-        std::function<void (NodeContainer*)> destroy_deployment_ = 0;
 };
 
 #endif //DEPLOYMENTMANAGER_H
