@@ -2,7 +2,7 @@
 #define COMPONENTS_HELLOSENDER_HELLOSENDERINT_H
 
 //Add the Port folders to CMAKEINCLUDE directory
-#include "../../ports/message/message.h"
+#include "../../datatypes/message/message.h"
 
 //Add the include folder of re to CMAKEINCLUDE directory
 #include <core/globalinterfaces.hpp>
