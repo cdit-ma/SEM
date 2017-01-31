@@ -28,7 +28,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../proto)
 #Set symbols in dynamic library to be default hidden
 #set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Qpid_LIBRARIES})

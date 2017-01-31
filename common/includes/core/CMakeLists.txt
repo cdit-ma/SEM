@@ -4,11 +4,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-#Set the RPATH for Projects
-set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_INSTALL_RPATH "@executable_path;@executable_path/../lib;$ORIGIN;$ORIGIN/../lib")
-
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")

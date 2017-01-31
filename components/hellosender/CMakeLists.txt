@@ -1,11 +1,6 @@
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
 
-#Set the projects RPATH to look in the executable directory
-set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_INSTALL_RPATH "@executable_path;@loader_path;$ORIGIN;")
-
 set(PROJ_NAME components_hellosender)
 project (${PROJ_NAME})
 

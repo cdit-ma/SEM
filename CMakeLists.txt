@@ -8,9 +8,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #Set the projects RPATH to look in the executable directory
+
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_INSTALL_RPATH "@executable_path;@loader_path;$ORIGIN;")
+set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN")
 
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")

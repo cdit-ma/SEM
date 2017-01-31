@@ -174,7 +174,7 @@ void* NodeContainer::load_library(std::string library_path){
     //If we haven't seen the library_path before, try and load it.
     if(!loaded_libraries_.count(library_path)){
         //Get a handle to the dynamically linked library
-        void* lib_handle = dlopen(library_path.c_str(), RTLD_LAZY);
+        void* lib_handle = dlopen(library_path.c_str(), /*RTLD_LAZY*/ RTLD_NOW | RTLD_GLOBAL);
         
         //Check for errors
         char* error = dlerror();
@@ -218,7 +218,7 @@ void* NodeContainer::get_library_function(void* lib_handle, std::string function
 
 EventPort* NodeContainer::construct_tx(std::string middleware, std::string datatype, Component* component, std::string port_name){
     if(!tx_constructors_.count(middleware)){
-        auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + ".so";
+        auto lib_path = library_path_ + "/./libports_" + to_lower(middleware) + ".so";
 
         //Get the function
         void* function = get_library_function(lib_path, "construct_tx");
@@ -238,7 +238,7 @@ EventPort* NodeContainer::construct_tx(std::string middleware, std::string datat
 
 EventPort* NodeContainer::construct_rx(std::string middleware, std::string datatype, Component* component, std::string port_name){
     if(!rx_constructors_.count(middleware)){
-        auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + ".so";
+        auto lib_path = library_path_ + "/./libports_" + to_lower(middleware) + ".so";
 
         //Get the function
         void* function = get_library_function(lib_path, "construct_rx");

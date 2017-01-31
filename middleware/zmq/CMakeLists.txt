@@ -1,9 +1,7 @@
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/message")
 
 #Set the projects RPATH to look in the executable directory
-set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_INSTALL_RPATH "@executable_path;@loader_path;$ORIGIN;")
+
 
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
