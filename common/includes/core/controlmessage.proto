@@ -46,10 +46,10 @@ message EventPort{
     }
 
     enum Middleware{
-        UNKNOWN = 0;
+        NO_MIDDLEWARE = 0;
         ZMQ = 1;
-        RTI_DDS = 2;
-        OSPL_DDS = 3;
+        RTI = 2;
+        OSPL = 3;
         QPID = 4;
     }
 

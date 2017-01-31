@@ -10,10 +10,12 @@ void set_attr_string(NodeManager::Attribute* attr, std::string val){
 
 ExecutionManager::ExecutionManager(ZMQMaster* zmq, std::string graphml_path){
     zmq_master_ = zmq;
+    
     graphml_parser_ = new GraphmlParser(graphml_path);
-    if(scrape_document()){
-        std::cout << "Got valid GraphML" << std::endl;
-    }
+    auto start = std::chrono::system_clock::now();
+    bool success = scrape_document();
+    auto end = std::chrono::system_clock::now();
+    std::cout << "Parsing Document Took: " << (end - start).count() << " μs" << std::endl;
 }
 
 std::vector<std::string> ExecutionManager::get_slave_endpoints(){
@@ -69,108 +71,123 @@ ExecutionManager::Attribute* ExecutionManager::get_attribute(std::string id){
     return node;
 }
 
+
+std::string ExecutionManager::get_definition_id(std::string id){
+    if(definition_ids_.count(id)){
+        return definition_ids_[id];
+    }
+    std::string def_id;
+    auto kind = get_data_value(id, "kind");
+    auto definition_kind = kind;
+
+    std::vector<std::string> strings = {"Instance", "Impl"};
+    
+    //Find and remove instance
+    for(auto str: strings){
+        auto pos = definition_kind.find(str);
+        if(pos != std::string::npos){
+            definition_kind.erase(pos, str.length());
+        }
+    }
+
+    //Get the Definition ID of the 
+    for(auto e_id : definition_edge_ids_){
+        auto target = get_attribute(e_id, "target");
+        auto source = get_attribute(e_id, "source");
+        auto target_kind = get_data_value(target, "kind");
+
+        if(source == id && target_kind == definition_kind){
+            def_id = target;
+            break;
+        }
+    }
+    if(!def_id.empty()){
+        definition_ids_[id] = def_id;
+    }
+    return def_id;
+}
+
+std::string ExecutionManager::get_impl_id(std::string id){
+    std::string impl_id;
+    //Check for a definition first.
+    std::string def_id = get_definition_id(id);
+    if(def_id == ""){
+        def_id = id;
+    }
+
+    //Get the kind of Impl
+    auto impl_kind = get_data_value(def_id, "kind") + "Impl";
+
+    //Get the Definition ID of the 
+    for(auto e_id : definition_edge_ids_){
+        auto source = get_attribute(e_id, "source");
+        auto target = get_attribute(e_id, "target");
+        auto source_kind = get_data_value(source, "kind");
+
+        if(target == def_id && source_kind == impl_kind){
+            impl_id = source;
+            break;
+        }
+    }
+    return impl_id;
+
+}
+
 bool ExecutionManager::scrape_document(){
-    std::cout << "SCRAPING DOCUMENT" << std::endl;
     if(graphml_parser_){
-        deployment_edge_ids_ = graphml_parser_->find_edges("Edge_Deployment");
-        auto defintion_edge_ids_ = graphml_parser_->find_edges("Edge_Definition");
-        assembly_edge_ids_ = graphml_parser_->find_edges("Edge_Assembly");
         
+        deployment_edge_ids_ = graphml_parser_->find_edges("Edge_Deployment");
+        assembly_edge_ids_ = graphml_parser_->find_edges("Edge_Assembly");
+        definition_edge_ids_ = graphml_parser_->find_edges("Edge_Definition");
+        
+        //Construct a Deployment Map which points ComponentInstance - > HardwareNodes
         for(auto e_id: deployment_edge_ids_){
             auto source_id = get_attribute(e_id, "source");
             auto target_id = get_attribute(e_id, "target");
-            //Component->Node
             deployed_instance_map_[source_id] = target_id;
         }
 
-        //Parse Hardware Node
+        //Parse HardwareNodes
         for(auto n_id : graphml_parser_->find_nodes("HardwareNode")){
-            auto node = new HardwareNode();
             //Set the Node information
+            auto node = new HardwareNode();
             node->id = n_id;
             node->name = get_data_value(n_id, "label");
             node->ip_address = get_data_value(n_id, "ip_address");        
 
+            //std::cout << "Parsed: HardwareNode[" << n_id << "]: " << node->name << std::endl;
+
+            //Get the ID's of the ComponentInstances deployed to this Node
             for(auto e_id : deployment_edge_ids_){
                 auto target_id = get_attribute(e_id, "target");
 
                 if(n_id == target_id){
                     auto source_id = get_attribute(e_id, "source");
                     auto source_kind = get_data_value(source_id, "kind");
+                    
                     if(source_kind == "ComponentInstance"){
                         node->component_ids.push_back(source_id);
                     }
                 }
             }
 
-            if(hardware_nodes_.count(n_id) == 0){
+            if(!hardware_nodes_.count(n_id)){
+                //Add the HardwareNode to the map if we haven't seen it
                 hardware_nodes_[n_id] = node;
             }else{
+                //We found a duplicate node, so destroy
                 std::cout << "Got Duplicate Nodes: " << n_id << std::endl;
+                delete node;
             }
         }
 
+        //Parse ComponentInstances
         for(auto c_id : graphml_parser_->find_nodes("ComponentInstance")){
-            
             auto component = new ComponentInstance();
-            //Set the Node information
             component->id = c_id;
             component->name = get_data_value(c_id, "label");
-            //std::cout << "Found Components: " << component->name << std::endl;
-            
-            //Get our Component Definition            
-            for(auto e_id : defintion_edge_ids_){
-                auto target = get_attribute(e_id, "target");
-                auto source = get_attribute(e_id, "source");
-                auto target_kind = get_data_value(target, "kind");
 
-                if(source == c_id && target_kind == "Component"){
-                    component->definition_id = get_attribute(e_id, "target");
-                    break;
-                }
-            }
-
-            
-
-            //Get our Component Implementation
-            for(auto e_id : defintion_edge_ids_){
-                auto target = get_attribute(e_id, "target");
-                auto source = get_attribute(e_id, "source");
-                auto source_kind = get_data_value(source, "kind");
-
-                if(target == component->definition_id && source_kind == "ComponentImpl" && source != c_id){
-                    component->implementation_id = source;
-                    break;
-                }
-            }
-            //std::cout << "Component: " << component->name << " Definition: " << component->definition_id << std::endl;
-            //std::cout << "Component: " << component->name << " Implementation: " << component->implementation_id << std::endl;
-            
-            //Set the type_name, this is the Instance's Defintions Component Type
-            component->type_name = get_data_value(component->definition_id, "label");
-
-            if(!component->implementation_id.empty()){
-                for(auto p_id : graphml_parser_->find_nodes("PeriodicEvent", component->implementation_id)){
-                    if(event_ports_.count(p_id) == 0){
-                        auto port = new EventPort();
-
-                        //setup the port
-                        port->id = p_id;
-                        port->component_id = c_id;
-                        port->name = get_data_value(p_id, "label");
-                        port->kind = get_data_value(p_id, "kind");
-                        port->frequency = get_data_value(p_id, "frequency");
-
-                        //std::cout << "Got PeriodicEventPort " << p_id << std::endl;
-                        event_ports_[p_id] = port;
-                    }
-
-                    //std::cout << component->name << " Got PeriodicEventPort " << p_id << std::endl;
-                    //Add the Attribute to the Component
-                    component->event_port_ids.push_back(p_id);
-                }
-            }
-
+            //std::cout << "Parsed: ComponentInstance[" << c_id << "]: " << component->name << std::endl;
 
             HardwareNode* node = 0;
             if(deployed_instance_map_.count(c_id)){
@@ -179,18 +196,20 @@ bool ExecutionManager::scrape_document(){
                 node = get_hardware_node(component->node_id);
             }
             
-            //Get Attributes
+            //Parse Attributes
             for(auto a_id : graphml_parser_->find_nodes("AttributeInstance", c_id)){
                 auto attribute = new Attribute();
                 attribute->id = a_id;
                 attribute->component_id = c_id;
                 attribute->name = get_data_value(a_id, "label");
 
-                if(attributes_.count(a_id) == 0){
+                if(!attributes_.count(a_id)){
                     attributes_[a_id] = attribute;
                 }else{
                     std::cout << "Got Duplicate Attribute: " << a_id << std::endl;
+                    delete attribute;
                 }
+
                 //Add the Attribute to the Component
                 component->attribute_ids.push_back(a_id);
             }
@@ -203,10 +222,9 @@ bool ExecutionManager::scrape_document(){
                 port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
             }
 
+            //Parse In/OutEventPortInstance
             for(auto p_id: port_ids){
                 auto port = new EventPort();
-
-                //setup the port
                 port->id = p_id;
                 port->component_id = c_id;
                 port->name = get_data_value(p_id, "label");
@@ -216,32 +234,91 @@ bool ExecutionManager::scrape_document(){
                 port->message_type = get_data_value(p_id, "type");
 
                 //Register Only OutEventPortInstances
-                if(port->kind == "OutEventPortInstance"){
-                    //Setup Port number
-                    if(node && port->middleware == "zmq"){
-                        //Set Port Number only for ZMQ
-                        node->port_count ++;
-                        port->port_number = node->port_count;
-                        //Construct a TCP Address
-                        port->port_address = "tcp://" + node->ip_address + ":" + std::to_string(port->port_number);
-                    }
-
+                if(port->kind == "OutEventPortInstance" && node && port->middleware == "ZMQ"){
+                    //Set Port Number only for ZMQ
+                    port->port_number = ++node->port_count;
+                    
+                    //Construct a TCP Address
+                    port->port_address = "tcp://" + node->ip_address + ":" + std::to_string(port->port_number);
                 }
 
-                if(event_ports_.count(p_id) == 0){
+                if(!event_ports_.count(p_id)){
                     event_ports_[p_id] = port;
                 }else{
                     std::cout << "Got Duplicate EventPort: " << p_id << std::endl;
+                    delete port;
                 }
 
                 //Add the Attribute to the Component
                 component->event_port_ids.push_back(p_id);
             }
 
-            if(component_instances_.count(c_id) == 0){
+            if(!component_instances_.count(c_id)){
                 component_instances_[c_id] = component;
             }else{
-                std::cout << "Got Duplicate Component: " << c_id << std::endl;
+                std::cout << "Got Duplicate ComponentInstance: " << c_id << std::endl;
+                delete component;
+            }
+        }
+
+        //Parse ComponentImpl
+        for(auto c_id : graphml_parser_->find_nodes("ComponentImpl")){
+            //Set the ComponentInstance information
+            auto component = new ComponentImpl();
+            component->id = c_id;
+            component->name = get_data_value(c_id, "label");
+            component->definition_id = get_definition_id(c_id);
+
+            //std::cout << "Parsed: ComponentImpl[" << c_id << "]: " << component->name << std::endl;
+            
+            //Parse Periodic_Events
+            for(auto p_id : graphml_parser_->find_nodes("PeriodicEvent", c_id)){
+                auto port = new EventPort();
+
+                //setup the port
+                port->id = p_id;
+                port->component_id = c_id;
+                port->name = get_data_value(p_id, "label");
+                port->kind = get_data_value(p_id, "kind");
+                port->frequency = get_data_value(p_id, "frequency");
+                
+                //std::cout << "Parsed: PeriodicEvent[" << p_id << "]: " << port->name << std::endl;
+
+                //Add it to the ComponentImpl
+                component->periodic_eventports_ids.push_back(p_id);
+                
+                if(!event_ports_.count(p_id)){
+                    event_ports_[p_id] = port;
+                }else{
+                    std::cout << "Got Duplicate PeriodicEvent: " << p_id << std::endl;
+                    delete port;
+                }
+            }
+
+            //Look through the Definition edges to find all instances of the Component Definition
+            for(auto e_id : definition_edge_ids_){
+                auto source = get_attribute(e_id, "source");
+                auto target = get_attribute(e_id, "target");
+                auto source_kind = get_data_value(source, "kind");
+
+                if(target == component->definition_id && source_kind == "ComponentInstance"){
+                    component->instance_ids.push_back(source);
+                    //Add a back link
+                    if(component_instances_.count(source)){
+                        auto c = component_instances_[source];
+                        c->implementation_id = c_id;
+                        c->definition_id = component->definition_id;
+                        //Append the PeriodicEvents ID from the Impl to the Instances EventPorts
+                        c->event_port_ids.insert(c->event_port_ids.end(), component->periodic_eventports_ids.begin(), component->periodic_eventports_ids.end());
+                    }
+                }
+            }
+
+            if(!component_impls_.count(c_id)){
+                component_impls_[c_id] = component;
+            }else{
+                std::cout << "Got Duplicate PeriodicEvent: " << c_id << std::endl;
+                delete component;
             }
         }
     }
@@ -359,10 +436,8 @@ void ExecutionManager::execution_loop(){
                         //Parse the middleware
                         if(!NodeManager::EventPort_Middleware_Parse(port_middleware, &mw)){
                             std::cout << "Cannot Parse Middleware: " << port_middleware << std::endl;
-                            //mw = NodeManager::EventPort::UNKNOWN;
-                            mw = NodeManager::EventPort::ZMQ;
                         }
-                        std::cout << mw << std::endl;
+
                         port_pb->set_middleware(mw);
 
 

@@ -34,6 +34,17 @@ class ExecutionManager{
         std::vector<std::string> attribute_ids;
     };
 
+
+    struct ComponentImpl{
+        std::string id;
+        std::string name;
+
+        std::string definition_id;
+
+        std::vector<std::string> periodic_eventports_ids;
+        std::vector<std::string> instance_ids;
+    };
+
     struct EventPort{
         std::string component_id;
         std::string id;
@@ -67,6 +78,9 @@ class ExecutionManager{
         std::string get_attribute(std::string id, std::string attr_name);
         std::string get_data_value(std::string id, std::string key_name);
         
+        std::string get_definition_id(std::string id);
+        std::string get_impl_id(std::string id);
+        
 
         ExecutionManager::HardwareNode* get_hardware_node(std::string id);
         ExecutionManager::ComponentInstance* get_component(std::string id);
@@ -84,11 +98,19 @@ class ExecutionManager{
         std::map<std::string, ComponentInstance*> component_instances_;
         std::map<std::string, EventPort*> event_ports_;
         std::map<std::string, Attribute*> attributes_;
+        
+        std::map<std::string, ComponentImpl*> component_impls_;
+
+        
 
         std::vector<std::string> deployment_edge_ids_;
         std::vector<std::string> assembly_edge_ids_;
+        std::vector<std::string> definition_edge_ids_;
+        
 
         std::map<std::string, std::string> deployed_instance_map_;
+
+        std::map<std::string, std::string> definition_ids_;
         
 };
 

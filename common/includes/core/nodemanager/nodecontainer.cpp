@@ -75,30 +75,9 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
             for(auto p : c.ports()){
                 auto port = component->get_event_port(p.name());
 
-                std::string middleware;
-                std::cout << p.name() << " MW: " << NodeManager::EventPort_Middleware_Name(p.middleware()) << std::endl;
-                switch(p.middleware()){
-                    case NodeManager::EventPort_Middleware_ZMQ:{
-                        middleware = "zmq";
-                        break;
-                    }
-                    case NodeManager::EventPort_Middleware_RTI_DDS:{
-                        middleware = "rti";
-                        break;
-                    }
-                    case NodeManager::EventPort_Middleware_OSPL_DDS:{
-                        middleware = "ospl";
-                        break;
-                    }
-                    case NodeManager::EventPort_Middleware_QPID:{
-                        middleware = "qpid";
-                        break;
-                    }
-                    default:
-                        std::cout << "NO MIDDLEWARE!" << std::endl;
-                        break;
-                }
-
+                //Get the middleware
+                std::string middleware = NodeManager::EventPort_Middleware_Name(p.middleware());
+                std::cout << "Middleware: " << middleware << std::endl;
 
                 if(!port){
                     switch(p.type()){
