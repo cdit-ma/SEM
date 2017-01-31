@@ -17,6 +17,7 @@ DeploymentManager::~DeploymentManager(){
 
 void DeploymentManager::process_action(std::string node_name, std::string action){
     std::lock_guard<std::mutex> lock(mutex_);
+    std::cout << "Processing Action: " << node_name << std::endl;
 
     auto cm = new NodeManager::ControlMessage();
     
