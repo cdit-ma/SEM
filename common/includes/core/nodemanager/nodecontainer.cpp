@@ -257,6 +257,7 @@ EventPort* NodeContainer::construct_rx(std::string middleware, std::string datat
 }
 
 Component* NodeContainer::construct_component(std::string component_type, std::string component_name){
+    Component* c = 0;
     if(!component_constructors_.count(component_type)){
         auto lib_path = library_path_ + "/libcomponents_" + to_lower(component_type) + ".so";
 
@@ -267,13 +268,18 @@ Component* NodeContainer::construct_component(std::string component_type, std::s
             auto typed_function = (Component* (*) (std::string)) function;
             //Add to the lookup
             component_constructors_[component_type] = typed_function;
+        
         }
     }
 
     if(component_constructors_.count(component_type)){
-        return component_constructors_[component_type](component_name);
+        c = component_constructors_[component_type](component_name);
+        if(c){
+            //Add the Component to the NodeContainer
+            add_component(c);
+        }
     }
-    return 0;
+    return c;
 }
 
 void NodeContainer::add_tx_constructor(std::string middleware, TxConstructor constructor){

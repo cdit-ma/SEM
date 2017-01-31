@@ -187,7 +187,7 @@ bool ExecutionManager::scrape_document(){
             component->id = c_id;
             component->name = get_data_value(c_id, "label");
 
-            //std::cout << "Parsed: ComponentInstance[" << c_id << "]: " << component->name << std::endl;
+            std::cout << "Parsed: ComponentInstance[" << c_id << "]: " << component->name << std::endl;
 
             HardwareNode* node = 0;
             if(deployed_instance_map_.count(c_id)){
@@ -269,6 +269,7 @@ bool ExecutionManager::scrape_document(){
             component->name = get_data_value(c_id, "label");
             component->definition_id = get_definition_id(c_id);
 
+
             //std::cout << "Parsed: ComponentImpl[" << c_id << "]: " << component->name << std::endl;
             
             //Parse Periodic_Events
@@ -308,6 +309,7 @@ bool ExecutionManager::scrape_document(){
                         auto c = component_instances_[source];
                         c->implementation_id = c_id;
                         c->definition_id = component->definition_id;
+                        c->type_name = component->name;
                         //Append the PeriodicEvents ID from the Impl to the Instances EventPorts
                         c->event_port_ids.insert(c->event_port_ids.end(), component->periodic_eventports_ids.begin(), component->periodic_eventports_ids.end());
                     }
