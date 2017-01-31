@@ -174,6 +174,7 @@ void SearchDialog::popupSelectedItem()
 void SearchDialog::resetPanel()
 {
     clear();
+    searchResults("", QMap<QString, ViewItem*>());
 }
 
 
@@ -217,7 +218,6 @@ void SearchDialog::setupLayout()
 
     bottomToolbar = new QToolBar(this);
     bottomToolbar->setIconSize(QSize(20, 20));
-    //bottomToolbar->setContentsMargins(2,0,2,0);
 
     QWidget* stretchWidget2 = new QWidget(this);
     stretchWidget2->setStyleSheet("background: rgba(0,0,0,0);");
@@ -246,7 +246,7 @@ void SearchDialog::setupLayout()
     constructKeyButton("Behaviour", "Behaviour", false, false);
     constructKeyButton("Assembly", "Assembly", false, false);
     constructKeyButton("Hardware", "Hardware", false, false);
-    kesToolbar->addSeparator();
+    keysToolbar->addSeparator();
     */
 
     QScrollArea* keysArea = new QScrollArea(this);
@@ -255,6 +255,7 @@ void SearchDialog::setupLayout()
 
     QFrame* displayWidget = new QFrame(this);
     displayWidget->setStyleSheet("QFrame{ background: rgba(0,0,0,0); }");
+
     resultsLayout = new QVBoxLayout(displayWidget);
     resultsLayout->setMargin(0);
     resultsLayout->setSpacing(0);
@@ -285,17 +286,17 @@ void SearchDialog::setupLayout()
     QHBoxLayout* topHLayout = new QHBoxLayout();
     topHLayout->setMargin(0);
     topHLayout->setSpacing(5);
-    topHLayout->setContentsMargins(1,0,1,0);
     topHLayout->addLayout(labelLayout, 1);
     topHLayout->addSpacerItem(new QSpacerItem(30, 0));
     topHLayout->addWidget(topToolbar);
 
     mainWidget = new QWidget(this);
     mainWidget->setObjectName("SD_MAINWIDGET");
+    setFocusProxy(mainWidget);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->setMargin(0);
-    mainLayout->setSpacing(1);
+    mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(1, 1, 1, 1);
     mainLayout->addLayout(topHLayout);
     mainLayout->addWidget(displaySplitter, 1);

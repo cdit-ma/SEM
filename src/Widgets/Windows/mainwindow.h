@@ -53,6 +53,7 @@ public slots:
 
     void popupNotification(QString iconPath, QString iconName, QString description);
     void toggleNotificationPanel();
+    void ensureNotificationPanelVisible();
 
     void showProgressBar(bool show, QString description = "");
     void updateProgressBar(int value);

@@ -185,6 +185,17 @@ void MainWindow::toggleNotificationPanel()
             notificationDockWidget->activateWindow();
         }
     } else {
+        ensureNotificationPanelVisible();
+    }
+}
+
+
+/**
+ * @brief MainWindow::ensureNotificationPanelVisible
+ */
+void MainWindow::ensureNotificationPanelVisible()
+{
+    if (!notificationDockWidget->isVisible()) {
         notificationDockWidget->req_Visible(notificationDockWidget->getID(), true);
         notificationDockWidget->activateWindow();
     }
@@ -232,6 +243,7 @@ void MainWindow::updateProgressBar(int value)
 
 /**
  * @brief MainWindow::updateMenuBarSize
+ * This is called when the displayed notification count is updated in the menu corner widget.
  */
 void MainWindow::updateMenuBarSize()
 {
@@ -906,7 +918,7 @@ void MainWindow::setupDockablePanels()
     notificationDockWidget->setIcon("Actions", "Notification");
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
-    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, notificationDockWidget);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, notificationDockWidget);
 
     // initially hide tool dock widgets
     innerWindow->setDockWidgetVisibility(searchDockWidget, false);
@@ -928,7 +940,7 @@ void MainWindow::setupDockablePanels()
     }
     connect(searchPanel, &SearchDialog::searchButtonClicked, this, &MainWindow::popupSearch);
     connect(searchPanel, &SearchDialog::refreshButtonClicked, this, &MainWindow::searchEntered);
-    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::toggleNotificationPanel);
+    connect(NotificationManager::manager(), &NotificationManager::showNotificationPanel, this, &MainWindow::ensureNotificationPanelVisible);
 }
 
 
@@ -1027,9 +1039,6 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
         cw = QApplication::activeWindow();
         if (!cw->isWindowType()) {
             cw = WindowManager::manager()->getActiveWindow();
-            qDebug() << "Current widget is not a window!";
-        } else {
-            qDebug() << "HERE - " << cw;
         }
         widgetPos.ry() -= widget->height()/2 + 8;
     }

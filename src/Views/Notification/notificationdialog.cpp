@@ -946,7 +946,7 @@ void NotificationDialog::setupLayout()
     mainWidget = new QWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->setMargin(0);
-    mainLayout->setSpacing(1);
+    mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(1, 1, 1, 1);
     mainLayout->addWidget(topToolbar);
     mainLayout->addWidget(displaySplitter, 1);
