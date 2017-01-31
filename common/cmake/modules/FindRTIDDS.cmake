@@ -23,13 +23,53 @@
 # DDS_VERSION_PATCH - The revision version of DDS found.
 # DDS_VERSION_CAN - The candidate version of DDS found.
 
+
+
+function(RTI_GENERATE_CPP SRCS HDRS)
+    if(NOT ARGN)
+        message(SEND_ERROR "Error: RTI_GENERATE_CPP() called without any idl files")
+        return()
+    endif()
+
+    set(${SRCS})
+    set(${HDRS})
+    foreach(FIL ${ARGN})
+        get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
+        get_filename_component(FIL_WE ${FIL} NAME_WE)
+
+        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.cxx")
+        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.cxx")
+        list(APPEND ${SRCS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.cxx")
+        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.hpp")
+        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.h")
+        list(APPEND ${HDRS} "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.h")
+
+        add_custom_command(
+        OUTPUT  "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.cxx"
+                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.cxx"
+                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.cxx"
+                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.hpp"
+                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.h"
+                "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.h"
+        COMMAND  ${RTIDDS_GEN_EXECUTABLE}
+        ARGS -language C++11 -namespace -d ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FIL}
+        DEPENDS ${ABS_FIL} ${RTIDDS_GEN_EXECUTABLE} 
+        COMMENT "Running C++ rtiddsgen on ${FIL}"
+        VERBATIM )
+    endforeach()
+
+    set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
+    set(${SRCS} ${${SRCS}} PARENT_SCOPE)
+    set(${HDRS} ${${HDRS}} PARENT_SCOPE)
+
+endfunction()
+
 find_path(DDS_INCLUDE_DIR ndds/ndds_cpp.h
     HINTS ${DDS_ROOT}/include $ENV{DDS_ROOT}/include
     $ENV{NDDSHOME}/include)
 
-MESSAGE(${DDS_INCLUDE_DIR})
-
 if(NOT DDS_HOST)
+#TODO: Env var this!!
     set(DDS_HOST "x64Linux3gcc4.8.2")
     #set(DDS_HOST "x64Darwin15clang7.0")
 endif(NOT DDS_HOST)
@@ -47,6 +87,12 @@ find_library(DDS_CPP2_LIBRARY nddscpp2
 find_library(DDS_CORE_LIBRARY nddscore
     HINTS ${DDS_ROOT}/lib $ENV{DDS_ROOT}/lib $ENV{NDDSHOME}/lib
     PATH_SUFFIXES ${DDS_HOST})
+
+find_program(RTIDDS_GEN_EXECUTABLE
+        NAMES rtiddsgen
+        DOC "The RTIDDS idl compiler"
+        PATHS
+        $ENV{NDDSHOME}/bin)
 
 if(WIN32)
     set(DDS_EXTRA_LIBRARIES netapi32 advapi32 user32 ws2_32)

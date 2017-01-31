@@ -9,7 +9,10 @@ project (${PROJ_NAME})
 find_package(RTIDDS REQUIRED)
 
 #Autogen rtiddsgen
-execute_process(COMMAND rtiddsgen message.idl -language C++11 -namespace WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+#execute_process(COMMAND rtiddsgen message.idl -language C++11 -namespace WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+RTI_GENERATE_CPP(DDS_SOURCE DDS_HEADERS message.idl)
+
+message("${DDS_SOURCE}")
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tx.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rx.cpp
@@ -22,17 +25,17 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/convert.h
 )
 
-set(DDS_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/message.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageImpl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.h
-)
+#set(DDS_HEADERS
+ #   ${CMAKE_CURRENT_SOURCE_DIR}/message.hpp
+ #   ${CMAKE_CURRENT_SOURCE_DIR}/messageImpl.h
+ #   ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.h
+#)
 
-set(DDS_SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/message.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageImpl.cxx
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.cxx
-)
+#set(DDS_SOURCE
+#    ${CMAKE_CURRENT_SOURCE_DIR}/message.cxx
+#    ${CMAKE_CURRENT_SOURCE_DIR}/messageImpl.cxx
+#    ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.cxx
+#)
 
 include_directories(${RE_PATH}/includes)
 include_directories(${DDS_INCLUDE_DIRS})

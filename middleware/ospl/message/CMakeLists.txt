@@ -9,10 +9,11 @@ project (${PROJ_NAME})
 find_package(OpenSplice REQUIRED)
 
 #Autogen idl generation
-execute_process(COMMAND idlpp message.idl -l isocpp -S WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+#execute_process(COMMAND idlpp message.idl -l isocpp -S WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package(OpenSplice REQUIRED)
 
+OSPL_GENERATE_CPP(DDS_SOURCE DDS_HEADERS message.idl)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/tx.cpp
@@ -26,21 +27,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/convert.h
 )
 
-set(DDS_HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/message.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageSplDcps.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/message_DCPS.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps_impl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
-)
-
-set(DDS_SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/message.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageSplDcps.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/messageDcps_impl.cpp
-)
 
 message(${CMAKE_CURRENT_SOURCE_DIR})
 
