@@ -10,7 +10,7 @@ EventPort* construct_rx(std::string port_type, std::string port_name, Component*
         auto fn = component->get_callback(port_name);    
         if(fn){
             if(port_type == "Message"){
-                p = ospl::Message::construct_rx(component, port_name, fn);
+                p = rti::Message::construct_rx(component, port_name, fn);
             }
         }
     }
@@ -21,7 +21,7 @@ EventPort* construct_tx(std::string port_type, std::string port_name, Component*
     EventPort* p = 0;
     if(component){
         if(port_type == "Message"){
-            p = ospl::Message::construct_tx(component, port_name);
+            p = rti::Message::construct_tx(component, port_name);
         }
     }
     return p;
