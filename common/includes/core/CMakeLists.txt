@@ -36,7 +36,6 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/controlm
 set(CORE_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/activatable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/component.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/periodiceventport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/portconfigure.cpp
@@ -46,7 +45,6 @@ set(CORE_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/activatable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/component.h
     ${CMAKE_CURRENT_SOURCE_DIR}/eventport.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/periodiceventport.h
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/portconfigure.h    
@@ -78,7 +76,6 @@ add_library(${CORE_NAME} SHARED ${CORE_SOURCE} ${CORE_HEADERS})
 
 if(UNIX)
 	target_link_libraries(${CORE_NAME} pthread)
-	target_link_libraries(${CORE_NAME} dl)
 endif(UNIX)
 
 #Link re_proto_control against protobuf

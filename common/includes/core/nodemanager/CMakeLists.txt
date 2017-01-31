@@ -21,6 +21,8 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
+
 	)
 
 set(HEADERS
@@ -29,6 +31,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
 	)
 
 include_directories(${PUGIXML_ROOT}/src/)

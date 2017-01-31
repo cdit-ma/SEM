@@ -5,7 +5,7 @@
 #include <string>
 #include <mutex>
 
-#include "../nodecontainer.h"
+#include "nodecontainer.h"
 
 
 class DeploymentManager{

@@ -16,12 +16,10 @@ project (${PROJ_NAME})
 find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 
 set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/factory.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/libexports.cpp
 	)
 
 set(HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/factory.h
-	${CMAKE_CURRENT_SOURCE_DIR}/libexports.h
 	)
 
 include_directories("${RE_PATH}/includes")

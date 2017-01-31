@@ -2,11 +2,14 @@
 #include <iostream>
 #include <algorithm>
 #include <string>
-#include "translate.h"
-#include "periodiceventport.h"
-#include "controlmessage.pb.h"
 
 #include <dlfcn.h>
+
+#include "../translate.h"
+#include "../periodiceventport.h"
+#include "controlmessage.pb.h"
+
+
 
 //Converts std::string to lower
 std::string to_lower(std::string str){
@@ -222,6 +225,7 @@ void* NodeContainer::get_library_function(void* lib_handle, std::string function
         char* error = dlerror();
         void* function = dlsym(lib_handle, function_name.c_str());
         error = dlerror();
+        std::cout << function << std::endl;
         if(function && !error){
             return function;
         }else{
@@ -240,15 +244,15 @@ EventPort* NodeContainer::construct_tx(std::string middleware, std::string datat
         //Get the function
         void* function = get_library_function(lib_path, "construct_tx");
         if(function){
-            //Cast as EventPort* construct_tx(std::string, Component*, std::string)
-            auto typed_function = (EventPort* (*) (std::string, Component*, std::string)) function;
+            //Cast as EventPort* construct_tx(std::string, std::string, Component*)
+            auto typed_function = (EventPort* (*) (std::string, std::string, Component*)) function;
             //Add to the lookup
             tx_constructors_[middleware] = typed_function;
         }
     }
 
     if(tx_constructors_.count(middleware)){
-        return tx_constructors_[middleware](datatype, component, port_name);
+        return tx_constructors_[middleware](datatype, port_name, component);
     }
     return 0;
 }
@@ -260,15 +264,15 @@ EventPort* NodeContainer::construct_rx(std::string middleware, std::string datat
         //Get the function
         void* function = get_library_function(lib_path, "construct_rx");
         if(function){
-            //Cast as EventPort* construct_rx(std::string, Component*, std::string)
-            auto typed_function = (EventPort* (*) (std::string, Component*, std::string)) function;
+            //Cast as EventPort* construct_rx(std::string, std::string, Component*)
+            auto typed_function = (EventPort* (*) (std::string, std::string, Component*)) function;
             //Add to the lookup
             rx_constructors_[middleware] = typed_function;
         }
     }
 
     if(rx_constructors_.count(middleware)){
-        return rx_constructors_[middleware](datatype, component, port_name);
+        return rx_constructors_[middleware](datatype, port_name, component);
     }
     return 0;
 }

@@ -1,17 +1,17 @@
-#ifndef NODECONTAINER_H
-#define NODECONTAINER_H
+#ifndef CORE_NODEMANAGER_NODECONTAINER_H
+#define CORE_NODEMANAGER_NODECONTAINER_H
 
 #include <unordered_map>
 #include <functional>
 
-#include "component.h"
+#include "../component.h"
 
 namespace NodeManager{
     class ControlMessage;
 };
 
-typedef std::function<EventPort* (std::string, Component*, std::string)> TxConstructor;
-typedef std::function<EventPort* (std::string, Component*, std::string)> RxConstructor;
+typedef std::function<EventPort* (std::string, std::string, Component*)> TxConstructor;
+typedef std::function<EventPort* (std::string, std::string, Component*)> RxConstructor;
 typedef std::function<Component* (std::string)> ComponentConstructor;
 
 class NodeContainer{ 
@@ -68,4 +68,4 @@ class NodeContainer{
 };
       
 
-#endif //NODECONTAINER_H
+#endif //CORE_NODEMANAGER_NODECONTAINER_H
