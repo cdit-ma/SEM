@@ -1,5 +1,5 @@
-#ifndef CORE_LIBEXPORTS_H
-#define CORE_LIBEXPORTS_H
+#ifndef CORE_LIBPORTEXPORTS_H
+#define CORE_LIBPORTEXPORTS_H
 
 #include "eventport.h"
 #include "component.h"
@@ -11,4 +11,4 @@ extern "C"{
     void destruct_eventport(EventPort* port);
 }
 
-#endif //CORE_LIBEXPORTS_H
+#endif //CORE_LIBPORTEXPORTS_H

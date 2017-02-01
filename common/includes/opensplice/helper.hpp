@@ -39,6 +39,7 @@ inline ospl::DdsHelper* ospl::get_dds_helper(){
 
     if(singleton_ == 0){
         singleton_ = new DdsHelper();
+        std::cout << "------------------OSPL SINGLETON------------------" << singleton_ << std::endl;
     }
     return singleton_;
 };

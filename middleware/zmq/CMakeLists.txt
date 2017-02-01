@@ -14,7 +14,7 @@ project (${PROJ_NAME})
 find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 
 set(SOURCE
-	${CMAKE_CURRENT_SOURCE_DIR}/libexports.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/libportexports.cpp
 	)
 
 set(HEADERS
