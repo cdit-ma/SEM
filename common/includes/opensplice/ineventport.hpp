@@ -78,6 +78,7 @@ void ospl::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
     }else{
         std::cout << "ospl::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
     }
+    
 };
 
 template <class T, class S>

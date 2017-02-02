@@ -2,14 +2,14 @@
 
 #include <iostream>
 
-rti::DdsHelperS* rti::DdsHelperS::singleton_ = 0;
-std::mutex rti::DdsHelperS::global_mutex_;
+rti::DdsHelper* rti::DdsHelper::singleton_ = 0;
+std::mutex rti::DdsHelper::global_mutex_;
 
-rti::DdsHelperS* rti::DdsHelperS::get_dds_helper(){
+rti::DdsHelper* rti::DdsHelper::get_dds_helper(){
     std::lock_guard<std::mutex> lock(global_mutex_);
 
     if(singleton_ == 0){
-        singleton_ = new DdsHelperS();
+        singleton_ = new DdsHelper();
         std::cout << "Constructed DDS Helper: " << singleton_ << std::endl;
     }
     std::cout << "Got DDS Helper: " << singleton_ << std::endl;
@@ -17,8 +17,8 @@ rti::DdsHelperS* rti::DdsHelperS::get_dds_helper(){
 };
 
 
-dds::domain::DomainParticipant rti::DdsHelperS::get_participant(int domain){
-    std::lock_guard<std::mutex> lock(mutex_);
+dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain){
+    std::lock_guard<std::mutex> lock(mutex);
     //Use the dds find functionality to look for the domain participant for the domain
     dds::domain::DomainParticipant participant = dds::domain::find(domain);
     if(participant == dds::core::null){
@@ -34,8 +34,8 @@ dds::domain::DomainParticipant rti::DdsHelperS::get_participant(int domain){
     return participant;
 };
 
-dds::pub::Publisher rti::DdsHelperS::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
-    std::lock_guard<std::mutex> lock(mutex_);
+dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
+    std::lock_guard<std::mutex> lock(mutex);
     //Use the dds find functionality to look for the publisher on that domain
     dds::pub::Publisher pub = rti::pub::find_publisher(participant, publisher_name);
     if(pub == dds::core::null){
@@ -50,8 +50,8 @@ dds::pub::Publisher rti::DdsHelperS::get_publisher(dds::domain::DomainParticipan
     return pub;
 };
 
-dds::sub::Subscriber rti::DdsHelperS::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
-    std::lock_guard<std::mutex> lock(mutex_);
+dds::sub::Subscriber rti::DdsHelper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
+    std::lock_guard<std::mutex> lock(mutex);
     //Use the dds find functionality to look for the subscriber on that domain
     dds::sub::Subscriber sub = rti::sub::find_subscriber(participant, subscriber_name);
     if(sub == dds::core::null){

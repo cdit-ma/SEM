@@ -71,6 +71,7 @@ void ospl::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attri
     std::cout << "**publisher_name_: "<< publisher_name_ << std::endl;
     std::cout << "**topic_name_: "<< topic_name_ << std::endl << std::endl;
     
+    
 };
 
 template <class T, class S>

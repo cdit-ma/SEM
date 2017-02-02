@@ -70,8 +70,8 @@ find_path(DDS_INCLUDE_DIR ndds/ndds_cpp.h
 
 if(NOT DDS_HOST)
 #TODO: Env var this!!
-    set(DDS_HOST "x64Linux3gcc4.8.2")
-    #set(DDS_HOST "x64Darwin15clang7.0")
+    #set(DDS_HOST "x64Linux3gcc4.8.2")
+    set(DDS_HOST "x64Darwin15clang7.0")
 endif(NOT DDS_HOST)
 find_library(DDS_C_LIBRARY nddsc
     HINTS ${DDS_ROOT}/lib $ENV{DDS_ROOT}/lib $ENV{NDDSHOME}/lib
