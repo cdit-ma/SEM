@@ -128,11 +128,11 @@ rti::InEventPort<T, S>::InEventPort(Component* component, std::string name, std:
 template <class T, class S>
 void rti::InEventPort<T, S>::receive_loop(){ 
     //Construct a DDS Participant, Subscriber, Topic and Reader
-    auto helper = rti::get_dds_helper();    
+    auto helper = DdsHelperS::get_dds_helper();    
     auto participant = helper->get_participant(domain_id_);
     auto subscriber = helper->get_subscriber(participant, subscriber_name_);
-    auto topic = helper->get_topic<S>(participant, topic_name_);
-    auto reader_ = helper->get_data_reader<S>(subscriber, topic);
+    auto topic = get_topic<S>(participant, topic_name_);
+    auto reader_ = get_data_reader<S>(subscriber, topic);
 
     //Construct a DDS Listener, designed to call back into the receive thread
     auto listener_ = new rti::DataReaderListener<T, S>(this);

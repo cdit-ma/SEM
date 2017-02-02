@@ -9,53 +9,33 @@
 //Include RTI DDS Headers
 #include <rti/rti.hpp>
 
-namespace rti{
-    class DdsHelper{
-        public:
-            static DdsHelper* get_dds_helper();
-            dds::domain::DomainParticipant get_participant(int domain);
-            dds::pub::Publisher get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name);
-            dds::sub::Subscriber get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name);
-        
-            template<class M> dds::topic::Topic<M> get_topic(dds::domain::DomainParticipant participant, std::string topic_name);
-            template<class M> dds::sub::DataReader<M> get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri = "", std::string qos_profile = "");
-            template<class M> dds::pub::DataWriter<M> get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri = "", std::string qos_profile = "");
-        private:
-            dds::core::QosProvider get_qos_provider(std::string qos_uri);
-            std::mutex mutex_;
-    };
+#include "ddshelper.h"
 
-    static std::mutex global_mutex_;
-    static rti::DdsHelper* singleton_ = 0;
-    rti::DdsHelper* get_dds_helper();
+namespace rti
+{
+    template<class M> dds::topic::Topic<M> get_topic(dds::domain::DomainParticipant participant, std::string topic_name);
+    template<class M> dds::sub::DataReader<M> get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri = "", std::string qos_profile = "");
+    template<class M> dds::pub::DataWriter<M> get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri = "", std::string qos_profile = "");
 };
-
-inline rti::DdsHelper* rti::get_dds_helper(){
-    std::lock_guard<std::mutex> lock(global_mutex_);
-
-    if(singleton_ == 0){
-        singleton_ = new DdsHelper();
-    }
-    return singleton_;
-};
-
-inline dds::core::QosProvider rti::DdsHelper::get_qos_provider(std::string qos_uri){
+/*
+inline dds::core::QosProvider rti::get_qos_provider(std::string qos_uri){
     //Construct a new QosProvider using the QOS XML file URI provided
     //TODO: Potentially cache these.
     auto q = dds::core::QosProvider(qos_uri);
 
-    /* //HOW TO LOAD QOS FROM A PROFILE
+    //HOW TO LOAD QOS FROM A PROFILE
     try{
         qos = q.participant_qos("LIBRARY:PROFILE");
     }catch(dds::core::Error e){
         std::cerr << "RTI DDS Participant: Domain #" << domain << " Couldn't load Profile: '" << qos_profile << "' From: '" << qos_uri << "'" << std::endl;
-    }*/
+    }
 
     q->load_profiles();
     return q;
-};
+};*/
 
-inline dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain){
+/*
+inline dds::domain::DomainParticipant rti::get_participant(int domain){
     std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the domain participant for the domain
     dds::domain::DomainParticipant participant = dds::domain::find(domain);
@@ -72,7 +52,7 @@ inline dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain
     return participant;
 };
 
-inline dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
+inline dds::pub::Publisher rti::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
     std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the publisher on that domain
     dds::pub::Publisher pub = rti::pub::find_publisher(participant, publisher_name);
@@ -88,7 +68,7 @@ inline dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainPart
     return pub;
 };
 
-inline dds::sub::Subscriber rti::DdsHelper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
+inline dds::sub::Subscriber rti::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
     std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the subscriber on that domain
     dds::sub::Subscriber sub = rti::sub::find_subscriber(participant, subscriber_name);
@@ -102,10 +82,10 @@ inline dds::sub::Subscriber rti::DdsHelper::get_subscriber(dds::domain::DomainPa
         sub.retain();
     }
     return sub;
-};
+};*/
 
-template<class M> dds::topic::Topic<M> rti::DdsHelper::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
-    std::lock_guard<std::mutex> lock(mutex_);
+template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
+    //std::lock_guard<std::mutex> lock(mutex_);
     //Use the dds find functionality to look for the topic
     auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
     if(topic == dds::core::null){
@@ -116,8 +96,8 @@ template<class M> dds::topic::Topic<M> rti::DdsHelper::get_topic(dds::domain::Do
     return topic;
 };
 
-template<class M> dds::pub::DataWriter<M> rti::DdsHelper::get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    std::lock_guard<std::mutex> lock(mutex_);
+template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
+    //std::lock_guard<std::mutex> lock(mutex_);
     dds::pub::DataWriter<M> writer = dds::core::null;
 
     //Construct a writer, using the publisher and topic  
@@ -129,8 +109,8 @@ template<class M> dds::pub::DataWriter<M> rti::DdsHelper::get_data_writer(dds::p
     return writer;
 };
 
-template<class M> dds::sub::DataReader<M> rti::DdsHelper::get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    std::lock_guard<std::mutex> lock(mutex_);
+template<class M> dds::sub::DataReader<M> rti::get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
+    //std::lock_guard<std::mutex> lock(mutex_);
     dds::sub::DataReader<M> reader = dds::core::null;
     
     //Construct a reader, using the subscriber and topic

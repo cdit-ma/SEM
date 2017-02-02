@@ -173,8 +173,11 @@ Component* NodeContainer::get_component(std::string component_name){
 void* NodeContainer::load_library(std::string library_path){
     //If we haven't seen the library_path before, try and load it.
     if(!loaded_libraries_.count(library_path)){
+        auto start = std::chrono::system_clock::now();
         //Get a handle to the dynamically linked library
-        void* lib_handle = dlopen(library_path.c_str(), /*RTLD_LAZY*/ RTLD_NOW | RTLD_GLOBAL);
+        void* lib_handle = dlopen(library_path.c_str(), RTLD_LAZY);
+        auto end = std::chrono::system_clock::now();
+        std::cout << "dlopen: " << library_path_ << (end - start).count() << " μs" << std::endl;
         
         //Check for errors
         char* error = dlerror();
@@ -202,7 +205,12 @@ void* NodeContainer::get_library_function(std::string library_path, std::string 
 void* NodeContainer::get_library_function(void* lib_handle, std::string function_name){
     if(lib_handle){
         char* error = dlerror();
+        auto start = std::chrono::system_clock::now();
         void* function = dlsym(lib_handle, function_name.c_str());
+        auto end = std::chrono::system_clock::now();
+        
+        std::cout << "dlsym: " << function_name << (end - start).count() << " μs" << std::endl;
+        
         error = dlerror();
         std::cout << function << std::endl;
         if(function && !error){
