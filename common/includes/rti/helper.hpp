@@ -86,7 +86,7 @@ inline dds::sub::Subscriber rti::get_subscriber(dds::domain::DomainParticipant p
 
 template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
     std::lock_guard<std::mutex> lock(DdsHelperS::get_dds_helper()->mutex_);
-    std::cout << "rti::get_topic" << std::endl;
+    std::cout << "rti::get_topic: " << topic_name << std::endl;
     //Use the dds find functionality to look for the topic
     auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
     if(topic == dds::core::null){
