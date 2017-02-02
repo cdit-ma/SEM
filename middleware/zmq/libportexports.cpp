@@ -1,4 +1,4 @@
-#include <core/libexports.h>
+#include <core/libportexports.h>
 
 #include "message/tx.h"
 #include "message/rx.h"
