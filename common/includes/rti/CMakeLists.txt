@@ -19,6 +19,7 @@ set(SOURCE
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.h
     )
+#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})

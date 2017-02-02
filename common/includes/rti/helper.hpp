@@ -10,8 +10,9 @@
 #include <rti/rti.hpp>
 #include <thread>
 
+#include <rti/domain/DomainParticipantImpl.hpp>
 #include "ddshelper.h"
-
+static std::mutex g_mutex_;
 namespace rti
 {
     template<class M> dds::topic::Topic<M> get_topic(dds::domain::DomainParticipant participant, std::string topic_name);
@@ -20,24 +21,33 @@ namespace rti
 };
 
 template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
-    std::lock_guard<std::mutex> lock(DdsHelper::get_dds_helper()->mutex);
+    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
 
-    //Use the dds find functionality to look for the topic
+    auto type_name = dds::topic::topic_type_name<M>::value() + "%" + topic_name;
+    std::cout << "rti::get_topic: start " << std::this_thread::get_id() << " Topic: " << topic_name << " Type: " << type_name << std::endl;
+
     auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
-    if(topic == dds::core::null){
-        auto type_name = dds::topic::topic_type_name<M>::value();
-        std::cout << "Constructing Topic: " << topic_name << " TYPE NAME: " << type_name<< std::endl;
-        //No Topic found, so create one.
-        topic = dds::topic::Topic<M>(participant, topic_name, type_name + "_" + topic_name);
-        topic.retain();
-        std::cout << "Constructed Topic: " << topic_name << std::endl;
+    if(topic == nullptr){
+        topic = dds::topic::Topic<M>(participant, topic_name, type_name);
+        if(participant->is_type_registered(type_name)){
+            std::cout << "Topic Type: " << type_name << " has been previously registered!" << std::endl;
+        }
+
+        if(topic != nullptr){
+            topic.retain();
+            std::cout << "Constructed Topic: " << topic_name << std::endl;
+        }else{
+            std::cout << "Can't construct Topic: " << topic_name << std::endl;
+
+        }
     }
+        
     return topic;
 };
 
 template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    std::lock_guard<std::mutex> lock(DdsHelper::get_dds_helper()->mutex);
-    //std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
+
     dds::pub::DataWriter<M> writer = dds::core::null;
 
     //Construct a writer, using the publisher and topic  
@@ -46,12 +56,11 @@ template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publish
         writer.retain();
         std::cout << "Constructed DataWriter: " << std::endl;
     }
-
     return writer;
 };
 
 template<class M> dds::sub::DataReader<M> rti::get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    std::lock_guard<std::mutex> lock(DdsHelper::get_dds_helper()->mutex);
+    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
     //std::lock_guard<std::mutex> lock(mutex_);
     dds::sub::DataReader<M> reader = dds::core::null;
     

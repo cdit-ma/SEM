@@ -11,6 +11,8 @@
 #include "helper.hpp"
 #include "datareaderlistener.hpp"
 
+
+
 namespace rti{
      template <class T, class S> class InEventPort: public ::InEventPort<T>{
         public:
@@ -132,20 +134,16 @@ rti::InEventPort<T, S>::InEventPort(Component* component, std::string name, std:
 template <class T, class S>
 void rti::InEventPort<T, S>::receive_loop(){ 
     //Construct a DDS Participant, Subscriber, Topic and Reader
+    
     auto helper = DdsHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id_);
-    //auto type_name = dds::topic::topic_type_name<S>::value();
-        std::string type_name = "";
-
     auto topic = get_topic<S>(participant, topic_name_);
 
     auto subscriber = helper->get_subscriber(participant, subscriber_name_);
-    
     auto reader_ = get_data_reader<S>(subscriber, topic);
-
+    
     //Construct a DDS Listener, designed to call back into the receive thread
     auto listener_ = new rti::DataReaderListener<T, S>(this);
-
     //Attach listener to only respond to data_available()
     reader_.listener(listener_, dds::core::status::StatusMask::data_available());
 
@@ -159,16 +157,20 @@ void rti::InEventPort<T, S>::receive_loop(){
                 break;
             }
         }
-
         ///Read all our samples
-        auto samples = reader_.take();
-        for(auto sample : samples){
-            //Translate and callback into the component for each valid message we receive
-            if(sample->info().valid()){
-                auto m = translate(&sample->data());
-                this->rx(m);
+        try{
+            auto samples = reader_.take();
+            for(auto sample : samples){
+                //Translate and callback into the component for each valid message we receive
+                if(sample->info().valid()){
+                    auto m = translate(&sample->data());
+                    this->rx(m);
+                }
             }
+        }catch(dds::core::PreconditionNotMetError e){
+            std::cout << "ERROR" << std::endl;
         }
+        
     }
 };
 

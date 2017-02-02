@@ -1,6 +1,7 @@
 #include "ddshelper.h"
-
 #include <iostream>
+#include <thread>
+#include "ndds/ndds_cpp.h"
 
 rti::DdsHelper* rti::DdsHelper::singleton_ = 0;
 std::mutex rti::DdsHelper::global_mutex_;
@@ -10,9 +11,10 @@ rti::DdsHelper* rti::DdsHelper::get_dds_helper(){
 
     if(singleton_ == 0){
         singleton_ = new DdsHelper();
+        NDDSConfigLogger::get_instance()->set_verbosity(NDDS_CONFIG_LOG_VERBOSITY_SILENT );
+
         std::cout << "Constructed DDS Helper: " << singleton_ << std::endl;
     }
-    std::cout << "Got DDS Helper: " << singleton_ << std::endl;
     return singleton_;
 };
 
@@ -29,6 +31,7 @@ dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain){
         //Forces RTI to not use Shared Memory
         qos->transport_builtin.mask(rti::core::policy::TransportBuiltinMask::udpv4());
         participant = dds::domain::DomainParticipant(domain, qos);
+        participant.enable();
         participant.retain();
     }
     return participant;
