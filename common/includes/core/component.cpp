@@ -10,6 +10,7 @@ Component::~Component(){
 
     for(auto it = eventports_.begin(); it != eventports_.end();){
         auto p = it->second;
+        std::cout << "DESTROYING PORT: " << p->get_name() << std::endl;
         delete p;
         it = eventports_.erase(it);
     }
@@ -18,6 +19,8 @@ Component::~Component(){
 bool Component::activate(){
     for(auto e : eventports_){
         e.second->activate();
+        std::cout << "ACTIVATING: " << e.second->get_name() << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
     Activatable::activate();
     return true;
