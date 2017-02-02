@@ -17,13 +17,14 @@ namespace rti{
             dds::pub::Publisher get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name);
             dds::sub::Subscriber get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name);
             std::mutex mutex_;
+            static std::mutex global_mutex_;
         private:
             //Lookups for OpenSplice
             std::unordered_map<std::string, dds::pub::Publisher> publisher_lookup_;
             std::unordered_map<std::string, dds::sub::Subscriber> subscriber_lookup_;
 
             
-            static std::mutex global_mutex_;
+            
             static DdsHelperS* singleton_;
     };
 };

@@ -85,7 +85,7 @@ inline dds::sub::Subscriber rti::get_subscriber(dds::domain::DomainParticipant p
 };*/
 
 template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
-    std::lock_guard<std::mutex> lock(DdsHelperS::get_dds_helper()->mutex_);
+    std::lock_guard<std::mutex> lock(DdsHelperS::global_mutex_);
     std::cout << "rti::get_topic: " << topic_name << std::endl;
     //Use the dds find functionality to look for the topic
     auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
@@ -100,7 +100,7 @@ template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainPartici
 };
 
 template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    std::lock_guard<std::mutex> lock(DdsHelperS::get_dds_helper()->mutex_);
+    std::lock_guard<std::mutex> lock(DdsHelperS::global_mutex_);
     std::cout << "rti::get_data_writer" << std::endl;
     //std::lock_guard<std::mutex> lock(mutex_);
     dds::pub::DataWriter<M> writer = dds::core::null;
@@ -117,7 +117,7 @@ template<class M> dds::pub::DataWriter<M> rti::get_data_writer(dds::pub::Publish
 };
 
 template<class M> dds::sub::DataReader<M> rti::get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    std::lock_guard<std::mutex> lock(DdsHelperS::get_dds_helper()->mutex_);
+    std::lock_guard<std::mutex> lock(DdsHelperS::global_mutex_);
     std::cout << "rti::get_data_reader" << std::endl;
     //std::lock_guard<std::mutex> lock(mutex_);
     dds::sub::DataReader<M> reader = dds::core::null;

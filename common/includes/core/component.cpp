@@ -1,6 +1,6 @@
 #include "component.h"
 #include <iostream>
-
+#include <thread>
 Component::Component(std::string inst_name){
     set_name(inst_name);
 }
