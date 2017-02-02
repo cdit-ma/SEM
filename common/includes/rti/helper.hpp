@@ -28,7 +28,7 @@ template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainPartici
     //if(topic == dds::core::null){
         std::cout << "Constructing Topic: " << topic_name << std::endl;
         //No Topic found, so create one.
-        topic = dds::topic::Topic<M>(participant, topic_name);
+        auto topic = dds::topic::Topic<M>(participant, topic_name);
         topic.retain();
     //    std::cout << "Constructed Topic: " << topic_name << std::endl;
     //}
