@@ -75,12 +75,12 @@ void rti::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
 
 
     if(configured_){
-        auto helper = DdsHelperS::get_dds_helper();   
-        auto participant = helper->get_participant(domain_id_);
-        auto topic = get_topic<S>(participant, topic_name_);
+       // auto helper = DdsHelperS::get_dds_helper();   
+       // auto participant = helper->get_participant(domain_id_);
+       // auto topic = get_topic<S>(participant, topic_name_);
     }
 }
-    activate();
+    //activate();
 };
 
 template <class T, class S>
