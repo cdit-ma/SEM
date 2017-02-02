@@ -7,6 +7,12 @@ Component::Component(std::string inst_name){
 
 Component::~Component(){
     std::cout << get_name() << "Destructor" << std::endl;
+
+    for(auto it = eventports_.begin(); it != eventports_.end();){
+        auto p = it->second;
+        delete p;
+        it = eventports_.erase(it);
+    }
 }
 
 bool Component::activate(){
