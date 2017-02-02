@@ -25,6 +25,9 @@ dds::domain::DomainParticipant rti::DdsHelperS::get_participant(int domain){
         //No Domain Participant found, so create one.
         //Get Default QOS
         dds::domain::qos::DomainParticipantQos qos;
+
+        //Forces RTI to not use Shared Memory
+        qos->transport_builtin.mask(rti::core::policy::TransportBuiltinMask::udpv4());
         participant = dds::domain::DomainParticipant(domain, qos);
         participant.retain();
     }
@@ -33,56 +36,32 @@ dds::domain::DomainParticipant rti::DdsHelperS::get_participant(int domain){
 
 dds::pub::Publisher rti::DdsHelperS::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
     std::lock_guard<std::mutex> lock(mutex_);
-    //Construct hash key (Domain|publisher_name)
-    std::string key = std::to_string(participant.domain_id()) + "|" + publisher_name;
-
-    //Construct an empty/null publisher
-    dds::pub::Publisher publisher(dds::core::null);
-
-    //Search pub_lookup_ for key
-    auto search = publisher_lookup_.find(key);
-    
-    if(search == publisher_lookup_.end()){
-        //None-found, so construct one, and keep it alive
+    //Use the dds find functionality to look for the publisher on that domain
+    dds::pub::Publisher pub = rti::pub::find_publisher(participant, publisher_name);
+    if(pub == dds::core::null){
+        //No Publisher found, so create one.
+        //Get Default QOS
         dds::pub::qos::PublisherQos qos;
-        publisher = dds::pub::Publisher(participant, qos);
-        publisher.retain();
-
-        //construct a pair to insert
-        std::pair<std::string, dds::pub::Publisher> insert_pair(key, publisher);
-        //Insert into hash
-        publisher_lookup_.insert(insert_pair);
-    }else{
-        //Use the stored publisher
-        publisher = search->second;
+        //Set the publisher name
+        qos << rti::core::policy::EntityName(publisher_name);
+        pub = dds::pub::Publisher(participant, qos);
+        pub.retain();
     }
-    return publisher;
+    return pub;
 };
 
 dds::sub::Subscriber rti::DdsHelperS::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
     std::lock_guard<std::mutex> lock(mutex_);
-    //Construct hash key (Domain|subscriber_name)
-    std::string key = std::to_string(participant.domain_id()) + "|" + subscriber_name;
-
-    //Construct an empty/null subscriber
-    dds::sub::Subscriber subscriber(dds::core::null);
-
-    //Search subscriber_lookup_ for key
-    auto search = subscriber_lookup_.find(key);
-    
-    if(search == subscriber_lookup_.end()){
-        //None-found, so construct one, and keep it alive
+    //Use the dds find functionality to look for the subscriber on that domain
+    dds::sub::Subscriber sub = rti::sub::find_subscriber(participant, subscriber_name);
+    if(sub == dds::core::null){
+        //No Subscriber found, so create one.
+        //Get Default QOS
         dds::sub::qos::SubscriberQos qos;
-        subscriber = dds::sub::Subscriber(participant, qos);
-        subscriber.retain();
-
-        //construct a pair to insert
-        std::pair<std::string, dds::sub::Subscriber> insert_pair(key, subscriber);
-        //Insert into hash
-        subscriber_lookup_.insert(insert_pair);
-    }else{
-        //Use the stored subscriber
-        subscriber = search->second;
+        //Set the subscriber name
+        qos << rti::core::policy::EntityName(subscriber_name);
+        sub = dds::sub::Subscriber(participant,qos);
+        sub.retain();
     }
-    return subscriber;
+    return sub;
 };
