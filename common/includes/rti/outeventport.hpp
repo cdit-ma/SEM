@@ -98,6 +98,8 @@ bool rti::OutEventPort<T, S>::activate(){
     //Construct a DDS Participant, Publisher, Topic and Writer
     auto helper = DdsHelperS::get_dds_helper();   
     auto participant = helper->get_participant(domain_id_);
+    //auto type_name = dds::topic::topic_type_name<S>::value();
+    std::string type_name = "";
     auto topic = get_topic<S>(participant, topic_name_);
     auto publisher = helper->get_publisher(participant, publisher_name_);
     

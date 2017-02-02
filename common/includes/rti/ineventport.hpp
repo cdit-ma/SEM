@@ -134,6 +134,9 @@ void rti::InEventPort<T, S>::receive_loop(){
     //Construct a DDS Participant, Subscriber, Topic and Reader
     auto helper = DdsHelperS::get_dds_helper();    
     auto participant = helper->get_participant(domain_id_);
+    //auto type_name = dds::topic::topic_type_name<S>::value();
+        std::string type_name = "";
+
     auto topic = get_topic<S>(participant, topic_name_);
 
     auto subscriber = helper->get_subscriber(participant, subscriber_name_);
