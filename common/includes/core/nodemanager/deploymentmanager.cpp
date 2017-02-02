@@ -28,6 +28,7 @@ void DeploymentManager::process_action(std::string node_name, std::string action
                 if(!deployment_){
                     deployment_ = new NodeContainer(library_path_);    
                     deployment_->configure(cm);
+                    deployment_->activate_all();
                 }
                 break;
             }

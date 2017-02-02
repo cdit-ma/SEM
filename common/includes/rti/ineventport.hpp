@@ -167,7 +167,7 @@ void rti::InEventPort<T, S>::receive_loop(){
                     this->rx(m);
                 }
             }
-        }catch(dds::core::PreconditionNotMetError e){
+        }catch(...){//dds::core::PreconditionNotMetError e){
             std::cout << "ERROR" << std::endl;
         }
         
