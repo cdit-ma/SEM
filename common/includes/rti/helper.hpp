@@ -24,15 +24,15 @@ template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainPartici
 
     std::cout << "rti::get_topic: " << topic_name << " ID: " << std::this_thread::get_id() << std::endl;
     //Use the dds find functionality to look for the topic
-    auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
-    if(topic == dds::core::null){
+    //auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
+    //if(topic == dds::core::null){
         std::cout << "Constructing Topic: " << topic_name << std::endl;
         //No Topic found, so create one.
         topic = dds::topic::Topic<M>(participant, topic_name);
         topic.retain();
-        std::cout << "Constructed Topic: " << topic_name << std::endl;
-    }
-    std::cout << "Got Topic: " << topic_name << std::endl;
+    //    std::cout << "Constructed Topic: " << topic_name << std::endl;
+    //}
+    //std::cout << "Got Topic: " << topic_name << std::endl;
     return topic;
 };
 
