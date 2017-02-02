@@ -52,7 +52,7 @@ rti::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
 
 template <class T, class S>
 void rti::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
-    std::lock_guard<std::mutex> lock(control_mutex_);
+    {std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("publisher_name")){
         publisher_name_ = attributes["publisher_name"]->get_string();
@@ -79,6 +79,8 @@ void rti::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
         auto participant = helper->get_participant(domain_id_);
         auto topic = get_topic<S>(participant, topic_name_);
     }
+}
+    activate();
 };
 
 template <class T, class S>

@@ -45,7 +45,7 @@ namespace rti{
 
 template <class T, class S>
 void rti::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
-    std::lock_guard<std::mutex> lock(control_mutex_);
+    {std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("topic_name")){
         topic_name_ = attributes["topic_name"]->get_string();
@@ -75,7 +75,7 @@ void rti::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attribu
     }else{
         std::cout << "rti::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
     }
-    
+    }activate();
 };
 
 
