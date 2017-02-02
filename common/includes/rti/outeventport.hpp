@@ -66,10 +66,19 @@ void rti::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
         domain_id_ = attributes["domain_id"]->i;
         configured_ = true && configured_;                
     }
+
+    
     std::cout << "rti::OutEventPort" << std::endl;
     std::cout << "**domain_id_: "<< domain_id_ << std::endl;
     std::cout << "**publisher_name_: "<< publisher_name_ << std::endl;
     std::cout << "**topic_name_: "<< topic_name_ << std::endl << std::endl;
+
+
+    if(configured_){
+        auto helper = DdsHelperS::get_dds_helper();   
+        auto participant = helper->get_participant(domain_id_);
+        auto topic = get_topic<S>(participant, topic_name_);
+    }
 };
 
 template <class T, class S>
@@ -87,8 +96,9 @@ bool rti::OutEventPort<T, S>::activate(){
     //Construct a DDS Participant, Publisher, Topic and Writer
     auto helper = DdsHelperS::get_dds_helper();   
     auto participant = helper->get_participant(domain_id_);
-    auto publisher = helper->get_publisher(participant, publisher_name_);
     auto topic = get_topic<S>(participant, topic_name_);
+    auto publisher = helper->get_publisher(participant, publisher_name_);
+    
     writer_ = get_data_writer<S>(publisher, topic);
 
     return ::OutEventPort<T>::activate();

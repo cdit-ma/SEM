@@ -68,10 +68,14 @@ void rti::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attribu
 
 
     if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
+        auto helper = DdsHelperS::get_dds_helper();   
+        auto participant = helper->get_participant(domain_id_);
+        auto topic = get_topic<S>(participant, topic_name_);
         configured_ = true;
     }else{
         std::cout << "rti::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
     }
+    
 };
 
 
@@ -130,8 +134,10 @@ void rti::InEventPort<T, S>::receive_loop(){
     //Construct a DDS Participant, Subscriber, Topic and Reader
     auto helper = DdsHelperS::get_dds_helper();    
     auto participant = helper->get_participant(domain_id_);
-    auto subscriber = helper->get_subscriber(participant, subscriber_name_);
     auto topic = get_topic<S>(participant, topic_name_);
+
+    auto subscriber = helper->get_subscriber(participant, subscriber_name_);
+    
     auto reader_ = get_data_reader<S>(subscriber, topic);
 
     //Construct a DDS Listener, designed to call back into the receive thread

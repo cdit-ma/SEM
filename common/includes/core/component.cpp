@@ -20,7 +20,7 @@ bool Component::activate(){
     for(auto e : eventports_){
         e.second->activate();
         std::cout << "ACTIVATING: " << e.second->get_name() << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     Activatable::activate();
     return true;
