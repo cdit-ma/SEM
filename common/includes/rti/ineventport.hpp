@@ -68,9 +68,9 @@ void rti::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attribu
 
 
     if(topic_name_.length() > 0 && subscriber_name_.length() > 0){
-        auto helper = DdsHelperS::get_dds_helper();   
-        auto participant = helper->get_participant(domain_id_);
-        auto topic = get_topic<S>(participant, topic_name_);
+        //auto helper = DdsHelperS::get_dds_helper();   
+        //auto participant = helper->get_participant(domain_id_);
+        //auto topic = get_topic<S>(participant, topic_name_);
         configured_ = true;
     }else{
         std::cout << "rti::InEventPort<T, S>::startup: No Valid Topic_name + subscriber_names" << std::endl;
