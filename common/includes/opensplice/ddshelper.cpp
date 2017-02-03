@@ -15,7 +15,7 @@ ospl::DdsHelper* ospl::DdsHelper::get_dds_helper(){
 };
 
 
-dds::domain::DomainParticipant ospl::DdsHelperS::get_participant(int domain){
+dds::domain::DomainParticipant ospl::DdsHelper::get_participant(int domain){
     //Acquire the Lock
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -32,7 +32,7 @@ dds::domain::DomainParticipant ospl::DdsHelperS::get_participant(int domain){
     return participant;
 };
 
-dds::pub::Publisher ospl::DdsHelperS::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
+dds::pub::Publisher ospl::DdsHelper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
     //Acquire the Lock
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -57,7 +57,7 @@ dds::pub::Publisher ospl::DdsHelperS::get_publisher(dds::domain::DomainParticipa
     return publisher;
 };
 
-dds::sub::Subscriber ospl::DdsHelperS::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
+dds::sub::Subscriber ospl::DdsHelper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
     //Acquire the Lock
     std::lock_guard<std::mutex> lock(mutex);
 
