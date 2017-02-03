@@ -48,11 +48,13 @@ dds::pub::Publisher ospl::DdsHelper::get_publisher(dds::domain::DomainParticipan
         publisher = dds::pub::Publisher(participant, qos);
         publisher.retain();
 
-        //Put it in the hash
-        //publisher_lookup_[key] = publisher;
+        //construct a pair to insert
+        std::pair<std::string, dds::pub::Publisher> insert_pair(key, publisher);
+        //Insert into hash
+        publisher_lookup_.insert(insert_pair);
     }else{
         //Get the stored publisher
-        //publisher = publisher_lookup_[key];
+        publisher = publisher_lookup_[key];
     }
     return publisher;
 };
