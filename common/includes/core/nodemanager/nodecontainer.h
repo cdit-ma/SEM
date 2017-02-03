@@ -10,8 +10,8 @@ namespace NodeManager{
     class ControlMessage;
 };
 
-typedef std::function<EventPort* (std::string, std::string, Component*)> TxConstructor;
-typedef std::function<EventPort* (std::string, std::string, Component*)> RxConstructor;
+typedef std::function<EventPort* (std::string, Component*)> TxConstructor;
+typedef std::function<EventPort* (std::string, Component*)> RxConstructor;
 typedef std::function<Component* (std::string)> ComponentConstructor;
 
 class NodeContainer{ 

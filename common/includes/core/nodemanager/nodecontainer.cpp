@@ -177,7 +177,7 @@ void* NodeContainer::load_library(std::string library_path){
         //Get a handle to the dynamically linked library
         void* lib_handle = dlopen(library_path.c_str(), RTLD_LAZY);
         auto end = std::chrono::system_clock::now();
-        std::cout << "dlopen: " << library_path_ << (end - start).count() << " μs" << std::endl;
+        std::cout << "dlopen: " << library_path <<  " " << (end - start).count() << " μs" << std::endl;
         
         //Check for errors
         char* error = dlerror();
@@ -212,7 +212,6 @@ void* NodeContainer::get_library_function(void* lib_handle, std::string function
         std::cout << "dlsym: " << function_name << (end - start).count() << " μs" << std::endl;
         
         error = dlerror();
-        std::cout << function << std::endl;
         if(function && !error){
             return function;
         }else{
@@ -225,41 +224,47 @@ void* NodeContainer::get_library_function(void* lib_handle, std::string function
 
 
 EventPort* NodeContainer::construct_tx(std::string middleware, std::string datatype, Component* component, std::string port_name){
-    if(!tx_constructors_.count(middleware)){
-        auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + ".so";
+    auto p = to_lower(middleware + "_" + datatype);
+    std::cout << p << std::endl;
+    if(!tx_constructors_.count(p)){
+        //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + ".so";
+        auto lib_path = library_path_ + "/lib" + p + ".so";
 
         //Get the function
         void* function = get_library_function(lib_path, "construct_tx");
         if(function){
-            //Cast as EventPort* construct_tx(std::string, std::string, Component*)
-            auto typed_function = (EventPort* (*) (std::string, std::string, Component*)) function;
+            //Cast as EventPort* construct_rx(std::string, std::string, Component*)
+            auto typed_function = (EventPort* (*) (std::string, Component*)) function;
             //Add to the lookup
-            tx_constructors_[middleware] = typed_function;
+            tx_constructors_[p] = typed_function;
         }
     }
 
-    if(tx_constructors_.count(middleware)){
-        return tx_constructors_[middleware](datatype, port_name, component);
+    if(tx_constructors_.count(p)){
+        return tx_constructors_[p](port_name, component);
     }
     return 0;
 }
 
 EventPort* NodeContainer::construct_rx(std::string middleware, std::string datatype, Component* component, std::string port_name){
-    if(!rx_constructors_.count(middleware)){
-        auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + ".so";
+    auto p = to_lower(middleware + "_" + datatype);
+    std::cout << p << std::endl;
+    if(!rx_constructors_.count(p)){
+        //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + ".so";
+        auto lib_path = library_path_ + "/lib" + p + ".so";
 
         //Get the function
         void* function = get_library_function(lib_path, "construct_rx");
         if(function){
             //Cast as EventPort* construct_rx(std::string, std::string, Component*)
-            auto typed_function = (EventPort* (*) (std::string, std::string, Component*)) function;
+            auto typed_function = (EventPort* (*) (std::string, Component*)) function;
             //Add to the lookup
-            rx_constructors_[middleware] = typed_function;
+            rx_constructors_[p] = typed_function;
         }
     }
 
-    if(rx_constructors_.count(middleware)){
-        return rx_constructors_[middleware](datatype, port_name, component);
+    if(rx_constructors_.count(p)){
+        return rx_constructors_[p](port_name, component);
     }
     return 0;
 }

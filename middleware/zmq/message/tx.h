@@ -2,7 +2,6 @@
 #define ZMQ_MESSAGE_TX_H
 
 //Include the core Elements
-#include <core/globalinterfaces.hpp>
 #include <core/eventports/outeventport.hpp>
 
 #include "../../proto/message/convert.h"

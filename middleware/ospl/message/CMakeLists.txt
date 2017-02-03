@@ -36,7 +36,7 @@ include_directories(${OpenSplice_INCLUDE_DIRS})
 #Set symbols in dynamic library to be default hidden
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
+add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
 
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})

@@ -9,7 +9,6 @@ project (${PROJ_NAME})
 find_package(RTIDDS REQUIRED)
 
 #Autogen rtiddsgen
-#execute_process(COMMAND rtiddsgen message.idl -language C++11 -namespace WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 RTI_GENERATE_CPP(DDS_SOURCE DDS_HEADERS message.idl)
 
 #Find re_core library
@@ -17,7 +16,9 @@ find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 find_library(RTI_HELPER_LIBRARIES rti_helper "${RE_PATH}/lib")
 
 message("${DDS_SOURCE}")
+
 set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/libportexports.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/tx.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/rx.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
@@ -29,26 +30,14 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/convert.h
 )
 
-#set(DDS_HEADERS
- #   ${CMAKE_CURRENT_SOURCE_DIR}/message.hpp
- #   ${CMAKE_CURRENT_SOURCE_DIR}/messageImpl.h
- #   ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.h
-#)
-
-#set(DDS_SOURCE
-#    ${CMAKE_CURRENT_SOURCE_DIR}/message.cxx
-#    ${CMAKE_CURRENT_SOURCE_DIR}/messageImpl.cxx
-#    ${CMAKE_CURRENT_SOURCE_DIR}/messageImplPlugin.cxx
-#)
-
 include_directories(${RE_PATH}/includes)
 include_directories(${DDS_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #Set symbols in dynamic library to be default hidden
-#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
+add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
 
 #Need this to make sure headers are using the correct function calls.
 target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)

@@ -2,9 +2,7 @@
 #define RTI_MESSAGE_RX_H
 
 //Include the core Elements
-#include <core/globalinterfaces.hpp>
 #include <core/eventports/ineventport.hpp>
-
 #include "convert.h"
 
 namespace rti{
