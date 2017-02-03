@@ -23,12 +23,20 @@ namespace rti
 template<class M> dds::topic::Topic<M> rti::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
     std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
 
-    auto type_name = dds::topic::topic_type_name<M>::value() + "%" + topic_name;
+    auto type_name = dds::topic::topic_type_name<M>::value() + "_" + topic_name;
     std::cout << "rti::get_topic: start " << std::this_thread::get_id() << " Topic: " << topic_name << " Type: " << type_name << std::endl;
 
-    auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
+    dds::topic::Topic<M> topic = nullptr;
+    
+    try{
+        topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
+    }catch(dds::core::InvalidDowncastError	e){
+        std::cout << "Error: " << e.what() << std::endl;
+    }
+
+    
     if(topic == nullptr){
-        topic = dds::topic::Topic<M>(participant, topic_name, type_name);
+        topic = dds::topic::Topic<M>(participant, topic_name);//, type_name);
         if(participant->is_type_registered(type_name)){
             std::cout << "Topic Type: " << type_name << " has been previously registered!" << std::endl;
         }

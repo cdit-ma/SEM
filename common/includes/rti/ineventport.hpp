@@ -134,7 +134,6 @@ rti::InEventPort<T, S>::InEventPort(Component* component, std::string name, std:
 template <class T, class S>
 void rti::InEventPort<T, S>::receive_loop(){ 
     //Construct a DDS Participant, Subscriber, Topic and Reader
-    
     auto helper = DdsHelper::get_dds_helper();    
     auto participant = helper->get_participant(domain_id_);
     auto topic = get_topic<S>(participant, topic_name_);

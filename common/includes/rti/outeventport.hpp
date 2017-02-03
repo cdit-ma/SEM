@@ -98,6 +98,8 @@ bool rti::OutEventPort<T, S>::activate(){
     auto helper = DdsHelper::get_dds_helper();   
     auto participant = helper->get_participant(domain_id_);
     auto topic = get_topic<S>(participant, topic_name_);
+    
+    //std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     auto publisher = helper->get_publisher(participant, publisher_name_);
     writer_ = get_data_writer<S>(publisher, topic);
     return ::OutEventPort<T>::activate();

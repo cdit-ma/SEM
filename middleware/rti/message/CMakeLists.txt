@@ -46,9 +46,9 @@ include_directories(${DDS_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #Set symbols in dynamic library to be default hidden
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
+#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})
 
 #Need this to make sure headers are using the correct function calls.
 target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
