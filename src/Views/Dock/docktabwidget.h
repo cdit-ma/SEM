@@ -30,8 +30,9 @@ public slots:
 
 private:
     void setupLayout();
-    void setupDocks();
     void setupConnections();
+    void setupDocks();
+    void initialiseDocks();
 
     void openRequiredDock(DockWidget* dockWidget);
     void populateDock(DockWidget* dockWidget, QList<NodeViewItemAction*> actions, bool groupByParent = false);

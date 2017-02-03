@@ -281,7 +281,7 @@ void NotificationDialog::themeChanged()
                                   "background:" + theme->getDisabledBackgroundColorHex() + ";"
                                   "}"
                                   "QToolButton {"
-                                  "padding: 5px;"
+                                  "padding: 5px 10px 5px 3px;"
                                   "border-radius:" + theme->getSharpCornerRadius() + ";"
                                   "}");
 
@@ -858,7 +858,8 @@ void NotificationDialog::setupLayout()
     filtersToolbar->setOrientation(Qt::Vertical);
     filtersToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     filtersToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    filtersToolbar->setIconSize(QSize(20,20));
+    filtersToolbar->setIconSize(QSize(18,18));
+    //filtersToolbar->setIconSize(QSize(20,20));
 
     QScrollArea* filtersArea = new QScrollArea(this);
     filtersArea->setWidget(filtersToolbar);
@@ -941,7 +942,7 @@ void NotificationDialog::setupLayout()
     displaySplitter->addWidget(displayArea);
     displaySplitter->setStretchFactor(0, 0);
     displaySplitter->setStretchFactor(1, 1);
-    displaySplitter->setSizes(QList<int>() << 138 << 212);
+    displaySplitter->setSizes(QList<int>() << 135 << 215);
 
     mainWidget = new QWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
@@ -956,7 +957,11 @@ void NotificationDialog::setupLayout()
     layout->setMargin(0);
     layout->addWidget(mainWidget);
 
-    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
+    //setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
+
+    int minWidth = qMax(topToolbar->sizeHint().width(), bottomToolbar->sizeHint().width());
+    int minHeight = topToolbar->sizeHint().height() + bottomToolbar->sizeHint().height() + 75;
+    setMinimumSize(minWidth, minHeight);
 
     // initially hide the source filters
     filtersMenu->actions().last()->trigger();

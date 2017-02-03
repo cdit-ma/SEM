@@ -46,6 +46,7 @@ public slots:
     void resetPanel();
 
 private:
+    void updateKeyButtonIcons();
     void setupLayout();
     void clear();
 
@@ -70,7 +71,6 @@ private:
     QToolBar* bottomToolbar;
     QVBoxLayout* keysLayout;
 
-    QActionGroup* keysActionGroup;
     QActionGroup* staticKeysActionGroup;
     QActionGroup* dynamicKeysActionGroup;
 

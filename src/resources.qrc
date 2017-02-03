@@ -221,6 +221,7 @@
         <file alias="Java">Resources/Images/Actions/java.jpg</file>
         <file alias="Notification">Resources/Images/Actions/Notification.png</file>
         <file alias="Search_Icon">Resources/Images/Actions/Search_Icon.png</file>
+        <file alias="Transparent_Square">Resources/Images/Actions/Transparent_Square.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address">Resources/Images/Data/ip_address.png</file>

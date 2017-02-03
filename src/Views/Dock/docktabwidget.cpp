@@ -257,6 +257,16 @@ void DockTabWidget::setupDocks()
     functionsDock->updateInfoLabel("No worker definitions have been imported");
     hardwareDock->updateInfoLabel("There are no available hardware nodes");
 
+    initialiseDocks();
+}
+
+
+/**
+ * @brief DockTabWidget::initialiseDocks
+ * This populates both the parts and functions docks.
+ */
+void DockTabWidget::initialiseDocks()
+{
     // populate the parts dock
     adoptableKindAction = toolActionController->getAdoptableKindsAction(false);
     foreach (QAction* action, toolActionController->getAdoptableKindsActions(true)) {
@@ -267,6 +277,10 @@ void DockTabWidget::setupDocks()
         }
         partsDock->addItem(dockItem);
     }
+
+    // get functions list from controller then populate the functions dock
+    QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
+    populateDock(functionsDock, actions, true);
 }
 
 
@@ -322,19 +336,19 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
             showInfoLabel = dockWidget->isEmpty();
             break;
         }
-        case ToolbarController::FUNCTIONS:{
+        case ToolbarController::FUNCTIONS:
+        {
             // update header text; update entity kind to construct
             dockWidget->updateHeaderText(triggeredAdoptableKind);
-            // get functions list from controller
-            QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
-            populateDock(dockWidget, actions, true);
             showInfoLabel = dockWidget->isEmpty();
             break;
         }
         case ToolbarController::HARDWARE:
+        {
             showInfoLabel = dockWidget->isEmpty();
             refreshDock(hardwareDock);
             break;
+        }
         default:
             break;
         }

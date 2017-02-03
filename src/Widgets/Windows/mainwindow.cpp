@@ -192,13 +192,14 @@ void MainWindow::toggleNotificationPanel()
 
 /**
  * @brief MainWindow::ensureNotificationPanelVisible
+ * This ensures that the notification dock widget is visible and activated/raised.
  */
 void MainWindow::ensureNotificationPanelVisible()
 {
     if (!notificationDockWidget->isVisible()) {
         notificationDockWidget->req_Visible(notificationDockWidget->getID(), true);
-        notificationDockWidget->activateWindow();
     }
+    notificationDockWidget->activateWindow();
 }
 
 
@@ -918,7 +919,7 @@ void MainWindow::setupDockablePanels()
     notificationDockWidget->setIcon("Actions", "Notification");
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, notificationDockWidget);
+    innerWindow->addDockWidget(Qt::BottomDockWidgetArea, notificationDockWidget);
 
     // initially hide tool dock widgets
     innerWindow->setDockWidgetVisibility(searchDockWidget, false);
@@ -1039,11 +1040,13 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
         cw = QApplication::activeWindow();
         if (!cw->isWindowType()) {
             cw = WindowManager::manager()->getActiveWindow();
+            qDebug() << "NOT A WINDOW - " << cw;
         }
-        widgetPos.ry() -= widget->height()/2 + 8;
     }
     if (cw == innerWindow) {
-        widgetPos = pos() - QPointF(0, 8);
+        widgetPos = pos() - QPointF(0,8);
+    } else {
+        widgetPos.ry() -= widget->height()/2 + 8;
     }
     if (cw && widget) {
         widgetPos += cw->geometry().center();

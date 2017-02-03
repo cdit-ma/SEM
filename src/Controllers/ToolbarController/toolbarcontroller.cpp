@@ -114,9 +114,12 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
                 actions[ID] = action;
                 actionGroup->addAction(action);
 
-                if(node->getNodeKind() == Node::NK_HARDWARE_NODE || node->getNodeKind() == Node::NK_HARDWARE_CLUSTER){
+                if (node->getNodeKind() == Node::NK_HARDWARE_NODE || node->getNodeKind() == Node::NK_HARDWARE_CLUSTER){
                     hardwareIDs.append(ID);
                     emit hardwareCreated(ID);
+                } else if ((node->getNodeKind() == Node::NK_WORKER_PROCESS) || (node->getNodeKind() == Node::NK_WORKER_DEFINITIONS)) {
+                    workerProcessIDs.append(ID);
+                    emit workerProcessCreated(ID);
                 }
             }
         }
@@ -125,9 +128,13 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
 
 void ToolbarController::viewItem_Destructed(int ID, ViewItem *)
 {
-    if(actions.contains(ID)){
-        if(hardwareIDs.contains(ID)){
+    if (actions.contains(ID)){
+
+        // TODO - Shouldn't the ID be removed from the list?
+        if (hardwareIDs.contains(ID)){
             emit hardwareDestructed(ID);
+        } else if (workerProcessIDs.contains(ID)) {
+            emit workerProcessDestructed(ID);
         }
 
         NodeViewItemAction* action = actions[ID];

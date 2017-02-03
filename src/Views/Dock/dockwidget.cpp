@@ -275,6 +275,25 @@ void DockWidget::viewItemConstructed(int ID)
         dockItem->setProperty("ID", ID);
         addItem(dockItem);
     }
+
+    /*
+    // TODO - Do the grouping by parent view item actions here
+    switch (dockType) {
+    case ToolbarController::DEFINITIONS:
+    case ToolbarController::FUNCTIONS:
+
+        QAction
+
+        DockWidgetParentActionItem* parentItem = parentActionItemIDHash.value(ID, 0);
+        if (!parentItem) {
+            parentItem =
+        }
+
+        break;
+    default:
+        break;
+    }
+    */
 }
 
 

@@ -4,8 +4,8 @@
 #include <QDateTime>
 #include <QDebug>
 
-#define DEFAULT_KEY_WIDTH 138
-#define DEFAULT_DISPLAY_WIDTH 212
+#define DEFAULT_KEY_WIDTH 135
+#define DEFAULT_DISPLAY_WIDTH 215
 
 /**
  * @brief SearchDialog::SearchDialog
@@ -53,6 +53,7 @@ void SearchDialog::searchResults(QString query, QMap<QString, ViewItem*> results
 
     // update the keys toolbar/buttons's size
     keysToolbar->setMinimumHeight(keysToolbar->sizeHint().height() + 10);
+    updateKeyButtonIcons();
 }
 
 
@@ -88,7 +89,7 @@ void SearchDialog::themeChanged()
                                "background:" + theme->getDisabledBackgroundColorHex() + ";"
                                "}"
                                "QToolButton {"
-                               "padding: 5px;"
+                               "padding: 5px 0px 5px 2px;"
                                "border-radius:" + theme->getSharpCornerRadius() + ";"
                                "}");
 
@@ -179,6 +180,26 @@ void SearchDialog::resetPanel()
 
 
 /**
+ * @brief SearchDialog::updateKeyButtonIcons
+ */
+void SearchDialog::updateKeyButtonIcons()
+{
+    //QIcon icon = Theme::theme()->getIcon("Actions", "Transparent_Square");
+    QPixmap pixmap = Theme::theme()->getImage("Actions", "Transparent_Square", QSize(1,1));
+
+    // added an tiny icon to left-align the tool button's text
+    foreach (QAction* action, staticKeysActionGroup->actions()) {
+        QToolButton* button = (QToolButton*) keysToolbar->widgetForAction(action);
+        button->setIcon(pixmap);
+    }
+    foreach (QAction* action, dynamicKeysActionGroup->actions()) {
+        QToolButton* button = (QToolButton*) keysToolbar->widgetForAction(action);
+        button->setIcon(pixmap);
+    }
+}
+
+
+/**
  * @brief SearchDialog::setupLayout
  */
 void SearchDialog::setupLayout()
@@ -228,14 +249,13 @@ void SearchDialog::setupLayout()
     bottomToolbar->addWidget(refreshButton);
 
     keysToolbar = new QToolBar(this);
+    keysToolbar->setIconSize(QSize(18,18));
     keysToolbar->setOrientation(Qt::Vertical);
     keysToolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
     keysToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     staticKeysActionGroup = new QActionGroup(this);
     dynamicKeysActionGroup = new QActionGroup(this);
-    keysActionGroup = new QActionGroup(this);
-    keysActionGroup->setExclusive(true);
 
     /*
      * TODO - Add this back when filtering by aspects is added
@@ -264,6 +284,7 @@ void SearchDialog::setupLayout()
 
     infoLabel = new QLabel("No Results", this);
     infoLabel->setFont(QFont(font().family(), 10));
+    infoLabel->setFixedHeight(topToolbar->sizeHint().height());
     resultsLayout->addWidget(infoLabel);
 
     QScrollArea* displayArea = new QScrollArea(this);
@@ -287,7 +308,7 @@ void SearchDialog::setupLayout()
     topHLayout->setMargin(0);
     topHLayout->setSpacing(5);
     topHLayout->addLayout(labelLayout, 1);
-    topHLayout->addSpacerItem(new QSpacerItem(30, 0));
+    topHLayout->addSpacerItem(new QSpacerItem(20, 0));
     topHLayout->addWidget(topToolbar);
 
     mainWidget = new QWidget(this);
@@ -306,7 +327,11 @@ void SearchDialog::setupLayout()
     layout->setMargin(0);
     layout->addWidget(mainWidget);
 
-    setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
+    //setMinimumSize(DIALOG_MIN_WIDTH, DIALOG_MIN_HEIGHT);
+
+    int minWidth = qMax(topHLayout->sizeHint().width(), bottomToolbar->sizeHint().width()) + 20;
+    int minHeight = topHLayout->sizeHint().height() + bottomToolbar->sizeHint().height() + 75;
+    setMinimumSize(minWidth, minHeight);
 
     connect(centerOnButton, SIGNAL(clicked(bool)), this, SLOT(centerOnSelectedItem()));
     connect(popupButton, SIGNAL(clicked(bool)), this, SLOT(popupSelectedItem()));
@@ -383,12 +408,12 @@ void SearchDialog::constructKeyButton(QString key, QString text, bool checked, b
     button->setCheckable(true);
     button->setChecked(checked);
     button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     QAction* action = keysToolbar->addWidget(button);
     action->setProperty("key", key);
     action->setCheckable(true);
     action->setChecked(checked);
-    //keysActionGroup->addAction(action);
 
     if (addToGroup) {
         dynamicKeysActionGroup->addAction(action);
