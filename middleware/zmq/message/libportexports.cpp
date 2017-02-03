@@ -11,8 +11,8 @@ EventPort* construct_rx(std::string port_name, Component* component){
         if(fn){
             p = zmq::Message::construct_rx(component, port_name, fn);
         }
-        return p;
     }
+    return p;
 };
 
 void destruct_eventport(EventPort* port){

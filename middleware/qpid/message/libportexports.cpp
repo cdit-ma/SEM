@@ -3,7 +3,7 @@
 #include "tx.h"
 #include "rx.h"
 
-EventPort* construct_rx(std::string port_type, std::string port_name, Component* component){
+EventPort* construct_rx(std::string port_name, Component* component){
     EventPort* p = 0;
     if(component){
         //Get the callback function
@@ -15,13 +15,8 @@ EventPort* construct_rx(std::string port_type, std::string port_name, Component*
     return p;
 }
 
-EventPort* construct_tx(std::string port_type, std::string port_name, Component* component){
-    EventPort* p = 0;
-    if(component){
-        if(port_type == "Message"){
-            p = qpid::Message::construct_tx(component, port_name);
-        }
-    }
+EventPort* construct_tx(std::string port_name, Component* component){
+    EventPort* p = qpid::Message::construct_tx(component, port_name);
     return p;
 };
 
