@@ -21,7 +21,7 @@ dds::domain::DomainParticipant ospl::DdsHelperS::get_participant(int domain){
 
     //Use the dds find functionality to look for the domain participant for the domain
     auto participant = dds::domain::find(domain);
-    if(participant == nullptr){
+    if(participant == dds::core::null){
         //No Domain Participant found, so create one.
         //Get Default QOS
         dds::domain::qos::DomainParticipantQos qos;
@@ -40,7 +40,7 @@ dds::pub::Publisher ospl::DdsHelperS::get_publisher(dds::domain::DomainParticipa
     std::string key = std::to_string(participant.domain_id()) + "|" + publisher_name;
 
     //Construct an empty/null publisher
-    dds::pub::Publisher publisher = nullptr;
+    dds::pub::Publisher publisher(dds::core::null);
 
     if(!publisher_lookup_.count(key)){
         //None-found, so construct one, and keep it alive
@@ -65,7 +65,7 @@ dds::sub::Subscriber ospl::DdsHelperS::get_subscriber(dds::domain::DomainPartici
     std::string key = std::to_string(participant.domain_id()) + "|" + subscriber_name;
 
     //Construct an empty/null subscriber
-    dds::sub::Subscriber subscriber = nullptr;
+    dds::sub::Subscriber subscriber(dds::core::null);
 
     if(!subscriber_lookup_.count(key)){
         //None-found, so construct one, and keep it alive
