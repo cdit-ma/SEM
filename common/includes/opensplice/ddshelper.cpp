@@ -42,7 +42,10 @@ dds::pub::Publisher ospl::DdsHelper::get_publisher(dds::domain::DomainParticipan
     //Construct an empty/null publisher
     dds::pub::Publisher publisher(dds::core::null);
 
-    if(!publisher_lookup_.count(key)){
+    //Search pub_lookup_ for key
+    auto search = publisher_lookup_.find(key);
+
+    if(search == publisher_lookup_.end()){
         //None-found, so construct one, and keep it alive
         dds::pub::qos::PublisherQos qos;
         publisher = dds::pub::Publisher(participant, qos);
@@ -54,7 +57,7 @@ dds::pub::Publisher ospl::DdsHelper::get_publisher(dds::domain::DomainParticipan
         publisher_lookup_.insert(insert_pair);
     }else{
         //Get the stored publisher
-        publisher = publisher_lookup_[key];
+        publisher = search->second;
     }
     return publisher;
 };
@@ -68,18 +71,23 @@ dds::sub::Subscriber ospl::DdsHelper::get_subscriber(dds::domain::DomainParticip
 
     //Construct an empty/null subscriber
     dds::sub::Subscriber subscriber(dds::core::null);
+    
+    //Search pub_lookup_ for key
+    auto search = subscriber_lookup_.find(key);
 
-    if(!subscriber_lookup_.count(key)){
+    if(search == subscriber_lookup_.end()){
         //None-found, so construct one, and keep it alive
         dds::sub::qos::SubscriberQos qos;
         subscriber = dds::sub::Subscriber(participant, qos);
         subscriber.retain();
 
-        //Put it in the hash
-        //subscriber_lookup_[key] = subscriber;
+        //construct a pair to insert
+        std::pair<std::string, dds::sub::Subscriber> insert_pair(key, subscriber);
+        //Insert into hash
+        subscriber_lookup_.insert(insert_pair);
     }else{
         //Get the stored subscriber
-        //subscriber = subscriber_lookup_[key];
+        subscriber = search->second;
     }
     return subscriber;
 };
