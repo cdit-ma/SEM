@@ -27,8 +27,9 @@ zmq::socket_t* zmq::ZmqHelper::get_publisher_socket(){
     //Acquire the Lock
     std::lock_guard<std::mutex> lock(mutex);
     zmq::socket_t* s = 0;
-    if(context_){
-        s = new zmq::socket_t(*context_, ZMQ_PUB);
+    zmq::context_t* c = get_context();
+    if(c){
+        s = new zmq::socket_t(*c, ZMQ_PUB);
     }
     return s;
 };
@@ -37,8 +38,9 @@ zmq::socket_t* zmq::ZmqHelper::get_subscriber_socket(){
     //Acquire the Lock
     std::lock_guard<std::mutex> lock(mutex);
     zmq::socket_t* s = 0;
-    if(context_){
-        s = new zmq::socket_t(*context_, ZMQ_SUB);
+    zmq::context_t* c = get_context();
+    if(c){
+        s = new zmq::socket_t(*c, ZMQ_SUB);
         s->setsockopt(ZMQ_SUBSCRIBE, "", 0);
     }
     return s;
