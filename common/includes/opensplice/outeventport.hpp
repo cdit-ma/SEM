@@ -87,11 +87,11 @@ bool ospl::OutEventPort<T, S>::activate(){
 
 
     //Construct a DDS Participant, Publisher, Topic and Writer
-    auto helper = ospl::get_dds_helper();
+    auto helper = ospl::DdsHelper::get_dds_helper();
     auto participant = helper->get_participant(domain_id_);
     auto publisher = helper->get_publisher(participant, publisher_name_);
-    auto topic = helper->get_topic<S>(participant, topic_name_);
-    writer_ = helper->get_data_writer<S>(publisher, topic);
+    auto topic = get_topic<S>(participant, topic_name_);
+    writer_ = get_data_writer<S>(publisher, topic);
 
     return ::OutEventPort<T>::activate();
 };
