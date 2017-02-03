@@ -9,7 +9,7 @@
 #include <dds/dds.hpp>
 
 namespace ospl{
-    class DdsHelpers{
+    class DdsHelper{
         public:
             //Static getter functions
             static DdsHelper* get_dds_helper();
