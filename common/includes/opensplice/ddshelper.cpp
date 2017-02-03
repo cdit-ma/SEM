@@ -74,9 +74,9 @@ dds::sub::Subscriber ospl::DdsHelperS::get_subscriber(dds::domain::DomainPartici
         subscriber.retain();
 
         //Put it in the hash
-        subscriber[key] = publisher;
+        subscriber_lookup_[key] = subscriber;
     }else{
-        //Get the stored publisher
+        //Get the stored subscriber
         subscriber = subscriber_lookup_[key];
     }
     return subscriber;
