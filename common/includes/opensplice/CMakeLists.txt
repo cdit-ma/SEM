@@ -6,11 +6,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
-#Find rti library
-find_package(RTIDDS REQUIRED)
+#Find ospl library
+find_package(OpenSplice REQUIRED)
 
-set(PROJ_NAME rti_helper)
+set(PROJ_NAME ospl_helper)
 project (${PROJ_NAME})
+
+#Find re_core library
+find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp
@@ -23,10 +26,7 @@ set(HEADERS
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 include_directories("${RE_PATH}/includes")
-include_directories(${DDS_INCLUDE_DIRS})
+include_directories(${OpenSplice_INCLUDE_DIRS})
 
-# Need this to make sure headers are using the correct function calls.
-target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
-
-target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})
 

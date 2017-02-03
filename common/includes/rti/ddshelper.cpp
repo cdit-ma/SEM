@@ -1,7 +1,5 @@
 #include "ddshelper.h"
 #include <iostream>
-#include <thread>
-#include "ndds/ndds_cpp.h"
 
 rti::DdsHelper* rti::DdsHelper::singleton_ = 0;
 std::mutex rti::DdsHelper::global_mutex_;
@@ -11,19 +9,19 @@ rti::DdsHelper* rti::DdsHelper::get_dds_helper(){
 
     if(singleton_ == 0){
         singleton_ = new DdsHelper();
-        NDDSConfigLogger::get_instance()->set_verbosity(NDDS_CONFIG_LOG_VERBOSITY_SILENT );
-
-        std::cout << "Constructed DDS Helper: " << singleton_ << std::endl;
+        std::cout << "Constructed RTI DDS Helper: " << singleton_ << std::endl;
     }
     return singleton_;
 };
 
 
 dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain){
+    //Acquire the Lock
     std::lock_guard<std::mutex> lock(mutex);
+
     //Use the dds find functionality to look for the domain participant for the domain
-    dds::domain::DomainParticipant participant = dds::domain::find(domain);
-    if(participant == dds::core::null){
+    auto participant = dds::domain::find(domain);
+    if(participant == nullptr){
         //No Domain Participant found, so create one.
         //Get Default QOS
         dds::domain::qos::DomainParticipantQos qos;
@@ -31,17 +29,18 @@ dds::domain::DomainParticipant rti::DdsHelper::get_participant(int domain){
         //Forces RTI to not use Shared Memory
         qos->transport_builtin.mask(rti::core::policy::TransportBuiltinMask::udpv4());
         participant = dds::domain::DomainParticipant(domain, qos);
-        participant.enable();
         participant.retain();
     }
     return participant;
 };
 
 dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainParticipant participant, std::string publisher_name){
+    //Acquire the Lock
     std::lock_guard<std::mutex> lock(mutex);
+    
     //Use the dds find functionality to look for the publisher on that domain
-    dds::pub::Publisher pub = rti::pub::find_publisher(participant, publisher_name);
-    if(pub == dds::core::null){
+    auto pub = rti::pub::find_publisher(participant, publisher_name);
+    if(pub == nullptr){
         //No Publisher found, so create one.
         //Get Default QOS
         dds::pub::qos::PublisherQos qos;
@@ -54,10 +53,12 @@ dds::pub::Publisher rti::DdsHelper::get_publisher(dds::domain::DomainParticipant
 };
 
 dds::sub::Subscriber rti::DdsHelper::get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name){
+    //Acquire the Lock
     std::lock_guard<std::mutex> lock(mutex);
+    
     //Use the dds find functionality to look for the subscriber on that domain
-    dds::sub::Subscriber sub = rti::sub::find_subscriber(participant, subscriber_name);
-    if(sub == dds::core::null){
+    auto sub = rti::sub::find_subscriber(participant, subscriber_name);
+    if(sub == nullptr){
         //No Subscriber found, so create one.
         //Get Default QOS
         dds::sub::qos::SubscriberQos qos;

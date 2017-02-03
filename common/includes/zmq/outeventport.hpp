@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <mutex>
-#include "helper.hpp"
+#include "zmqhelper.h"
 
 namespace zmq{
      template <class T, class S> class OutEventPort: public ::OutEventPort<T>{

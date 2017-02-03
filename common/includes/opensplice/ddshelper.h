@@ -1,14 +1,15 @@
-#ifndef RTI_DDSHELPER_H
-#define RTI_DDSHELPER_H
+#ifndef OSPL_DDSHELPER_H
+#define OSPL_DDSHELPER_H
 
+#include <unordered_map>
 #include <string>
 #include <mutex>
 
-//Include RTI DDS Headers
-#include <rti/rti.hpp>
+//Include OpenSplice DDS Headers
+#include <dds/dds.hpp>
 
-namespace rti{
-    class DdsHelper{
+namespace ospl{
+    class DdsHelpers{
         public:
             //Static getter functions
             static DdsHelper* get_dds_helper();
@@ -20,9 +21,11 @@ namespace rti{
             dds::sub::Subscriber get_subscriber(dds::domain::DomainParticipant participant, std::string subscriber_name);
             std::mutex mutex;
         private:
+            //Lookups for OpenSplice
+            std::unordered_map<std::string, dds::pub::Publisher> publisher_lookup_;
+            std::unordered_map<std::string, dds::sub::Subscriber> subscriber_lookup_;
             static DdsHelper* singleton_;
-            
     };
 };
 
-#endif //RTI_DDSHELPER_H
+#endif //OSPL_DDSHELPER_H

@@ -7,5 +7,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/includes/core")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/includes/opensplice")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/includes/zmq")
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/includes/opensplice")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/includes/rti")

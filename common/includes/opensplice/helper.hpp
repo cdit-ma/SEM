@@ -3,12 +3,12 @@
 
 #include <iostream>
 #include <string>
-#include <unordered_map>
 #include <mutex>
-#include <condition_variable>
 
 //Include OpenSplice DDS Headers
 #include <dds/dds.hpp>
+
+#include "ddshelper.h"
 
 namespace ospl{
     template<class M> dds::topic::Topic<M> get_topic(dds::domain::DomainParticipant participant, std::string topic_name);
@@ -17,47 +17,52 @@ namespace ospl{
 };
 
 template<class M> dds::topic::Topic<M> ospl::DdsHelper::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
-    std::lock_guard<std::mutex> lock(DdsHelper::get_dds_helper()->mutex);
+    //Acquire the Lock from the DDS Helper
+    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
 
-    //Use the dds find functionality to look for the topic
-    auto topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
-    if(topic == dds::core::null){
-        auto type_name = dds::topic::topic_type_name<M>::value();
-        std::cout << "Constructing Topic: " << topic_name << " TYPE NAME: " << type_name<< std::endl;
-        //No Topic found, so create one.
-        topic = dds::topic::Topic<M>(participant, topic_name, type_name + "_" + topic_name);
+    dds::topic::Topic<M> topic = nullptr;
+    try{
+        //Try use the Middleware's find function to find the topic
+        topic = dds::topic::find<dds::topic::Topic<M> >(participant, topic_name);
+    }catch(dds::core::InvalidDowncastError	e){
+        std::cout << "ospl::get_topic: Error: " << e.what() << std::endl;
+    }
+
+    if(topic == nullptr){
+        //If we can't find the topic, we should construct it
+        topic = dds::topic::Topic<M>(participant, topic_name);
         topic.retain();
-        std::cout << "Constructed Topic: " << topic_name << std::endl;
+        std::cout << "ospl::get_topic: Constructed Topic: " << topic_name << std::endl;
     }
     return topic;
 };
 
 template<class M> dds::pub::DataWriter<M> ospl::DdsHelper::get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    std::lock_guard<std::mutex> lock(DdsHelper::get_dds_helper()->mutex);
-    //std::lock_guard<std::mutex> lock(mutex_);
-    dds::pub::DataWriter<M> writer = dds::core::null;
+    //Acquire the Lock from the DDS Helper
+    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
 
-    //Construct a writer, using the publisher and topic  
-    if(publisher != dds::core::null && topic != dds::core::null){
+    dds::pub::DataWriter<M> writer = nullptr;
+
+    //If we have the publisher and the topic, construct the writer.
+    if(publisher != nullptr && topic != nullptr){
         writer = dds::pub::DataWriter<M>(publisher, topic);
         writer.retain();
-        std::cout << "Constructed DataWriter: " << std::endl;
+        std::cout << "ospl::get_data_writer: Constructed DataWriter" << std::endl;
     }
-
     return writer;
 };
 
 template<class M> dds::sub::DataReader<M> ospl::DdsHelper::get_data_reader(dds::sub::Subscriber subscriber, dds::topic::Topic<M> topic, std::string qos_uri, std::string qos_profile){
-    std::lock_guard<std::mutex> lock(DdsHelper::get_dds_helper()->mutex);
-    //std::lock_guard<std::mutex> lock(mutex_);
-    dds::sub::DataReader<M> reader = dds::core::null;
+    //Acquire the Lock from the DDS Helper
+    std::lock_guard<std::mutex> guard(DdsHelper::get_dds_helper()->mutex);
     
-    //Construct a reader, using the subscriber and topic
-    if(subscriber != dds::core::null && topic != dds::core::null){
+    dds::sub::DataReader<M> reader = nullptr;
+    
+    //If we have the subscriber and the topic, construct the writer.
+    if(subscriber != nullptr && topic != nullptr){
         reader = dds::sub::DataReader<M>(subscriber, topic);
         reader.retain();
-        std::cout << "Constructed DataReader: " << std::endl;
-        
+        std::cout << "ospl::get_data_reader: Constructed DataReader" << std::endl;
     }
     return reader;
 };
