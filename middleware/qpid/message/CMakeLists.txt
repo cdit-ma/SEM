@@ -27,7 +27,7 @@ include_directories(${ZeroMQ_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../proto)
 
 #Set symbols in dynamic library to be default hidden
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
+#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} " -fvisibility=hidden")
 
 add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
 
