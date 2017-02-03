@@ -49,10 +49,10 @@ dds::pub::Publisher ospl::DdsHelper::get_publisher(dds::domain::DomainParticipan
         publisher.retain();
 
         //Put it in the hash
-        publisher_lookup_[key] = publisher;
+        //publisher_lookup_[key] = publisher;
     }else{
         //Get the stored publisher
-        publisher = publisher_lookup_[key];
+        //publisher = publisher_lookup_[key];
     }
     return publisher;
 };
@@ -74,10 +74,10 @@ dds::sub::Subscriber ospl::DdsHelper::get_subscriber(dds::domain::DomainParticip
         subscriber.retain();
 
         //Put it in the hash
-        subscriber_lookup_[key] = subscriber;
+        //subscriber_lookup_[key] = subscriber;
     }else{
         //Get the stored subscriber
-        subscriber = subscriber_lookup_[key];
+        //subscriber = subscriber_lookup_[key];
     }
     return subscriber;
 };
