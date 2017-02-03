@@ -9,7 +9,7 @@ EventPort* construct_rx(std::string port_name, Component* component){
         //Get the callback function
         auto fn = component->get_callback(port_name);    
         if(fn){
-            p = rti::Message::construct_rx(component, port_name, fn);
+            p = zmq::Message::construct_rx(component, port_name, fn);
         }
         return p;
     }
@@ -22,5 +22,5 @@ void destruct_eventport(EventPort* port){
 };
 
 EventPort* construct_tx(std::string port_name, Component* component){
-    return rti::Message::construct_tx(component, port_name);
+    return zmq::Message::construct_tx(component, port_name);
 };

@@ -16,32 +16,6 @@ namespace ospl{
     template<class M> dds::pub::DataWriter<M> get_data_writer(dds::pub::Publisher publisher, dds::topic::Topic<M> topic, std::string qos_uri = "", std::string qos_profile = "");
 };
 
-inline ospl::DdsHelper* ospl::get_dds_helper(){
-    std::lock_guard<std::mutex> lock(global_mutex_);
-
-    if(singleton_ == 0){
-        singleton_ = new DdsHelper();
-        std::cout << "------------------OSPL SINGLETON------------------" << singleton_ << std::endl;
-    }
-    return singleton_;
-};
-
-
-inline dds::domain::DomainParticipant ospl::DdsHelper::get_participant(int domain){
-    std::lock_guard<std::mutex> lock(mutex_);
-    //Use the dds find functionality to look for the domain participant for the domain
-    dds::domain::DomainParticipant participant = dds::domain::find(domain);
-    if(participant == dds::core::null){
-        //No Domain Participant found, so create one.
-        //Get Default QOS
-        dds::domain::qos::DomainParticipantQos qos;
-        participant = dds::domain::DomainParticipant(domain, qos);
-        participant.retain();
-    }
-    return participant;
-};
-
-
 template<class M> dds::topic::Topic<M> ospl::DdsHelper::get_topic(dds::domain::DomainParticipant participant, std::string topic_name){
     std::lock_guard<std::mutex> lock(DdsHelper::get_dds_helper()->mutex);
 
