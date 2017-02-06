@@ -25,8 +25,6 @@ bool ZMQMessageWriter::BindPublisherSocket(std::string endpoint){
 
 bool ZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
     std::string str;
-
-    
     if(message->SerializeToString(&str)){
         zmq::message_t data(str.c_str(), str.size());
         return socket_->send(data);

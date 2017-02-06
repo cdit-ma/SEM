@@ -1,5 +1,5 @@
 #include "cachedzmqmessagewriter.h"
-#define WRITE_QUEUE 50
+#define WRITE_QUEUE_MAX 50
 
 #include "systemstatus.pb.h"
 
@@ -18,6 +18,8 @@ CachedZMQMessageWriter::CachedZMQMessageWriter() : ZMQMessageWriter(){
     auto temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
     temp_file_path_ = temp.native();
     std::cout << temp_file_path_ << std::endl;
+
+    writer_thread_ = new std::thread(&CachedZMQMessageWriter::WriteQueue, this);
 }   
 
 CachedZMQMessageWriter::~CachedZMQMessageWriter(){
@@ -26,20 +28,24 @@ CachedZMQMessageWriter::~CachedZMQMessageWriter(){
 }
 
 bool CachedZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
+    std::unique_lock<std::mutex> lock(queue_mutex_);
     write_queue_.push(message);
     count_++;
-    //Check size of Queue
-    if(write_queue_.size() >= WRITE_QUEUE){
-        //Write stuff bruh
-        std::cout << "Writing Messages" << std::endl;
-        WriteQueue();
-    }
+    queue_lock_condition_.notify_all();
 
-    //Try Read
     return true;
 }
 
 bool CachedZMQMessageWriter::Terminate(){
+
+    {
+        //Gain the lock so we can notify and set our terminate flag.
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        writer_terminate_ = true;
+        queue_lock_condition_.notify_all();
+    }
+
+    writer_thread_->join();
 
     //read in all messages
     std::cout << "TERMINATING: " << count_ << " write Count: " << write_count_ << std::endl;
@@ -71,35 +77,47 @@ bool CachedZMQMessageWriter::Terminate(){
     return true;
 }
 
-bool CachedZMQMessageWriter::WriteQueue(){
-    //open a fstream
-    std::fstream file(temp_file_path_, std::ios::out | std::ios::app | std::ios::binary);
-    if (!file){
-        std::cerr << "Failed to open file!" << std::endl;
-        return false;
-    }
+void CachedZMQMessageWriter::WriteQueue(){
+    while(!writer_terminate_){
+        std::queue<google::protobuf::MessageLite*> replace_queue;
 
-    //Make an output stream
-    ::google::protobuf::io::ZeroCopyOutputStream *raw_out = new ::google::protobuf::io::OstreamOutputStream(&file);
-
-    //Write the messages bro!
-    while(!write_queue_.empty()){
-        google::protobuf::MessageLite* message = write_queue_.front();
-
-        if(WriteDelimitedTo(*message, raw_out)){
-            write_count_++;
-            
-            write_queue_.pop();
-        }else{
-            std::cout << "FAILED WRITING?!" << std::endl;
-            return false;
+        {
+            //Obtain lock for the queue
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            //Wait for notify
+            queue_lock_condition_.wait(lock, [this](){return (write_queue_.size() >= WRITE_QUEUE_MAX) || writer_terminate_;});
+            if(!write_queue_.empty()){
+                write_queue_.swap(replace_queue);
+            }
         }
-        //Clean up memory!
-        delete message;
+        //open a fstream
+        //TODO: lookup file in temp file map.
+        std::fstream file(temp_file_path_, std::ios::out | std::ios::app | std::ios::binary);
+        if (!file){
+            std::cerr << "Failed to open file!" << std::endl;
+        }
+
+        //Make an output stream
+        ::google::protobuf::io::ZeroCopyOutputStream *raw_out = new ::google::protobuf::io::OstreamOutputStream(&file);
+
+        //Write the messages bro!
+        while(!replace_queue.empty()){
+            google::protobuf::MessageLite* message = replace_queue.front();
+
+            if(WriteDelimitedTo(*message, raw_out)){
+                write_count_++;
+                replace_queue.pop();
+            }else{
+                std::cout << "FAILED WRITING?!" << std::endl;
+            }
+            //Clean up memory!
+            delete message;
+        }
+        delete raw_out;
+        file.close();
     }
-    delete raw_out;
-    file.close();
-    return true;
+
+    std::cout << "Terminating cached writer thread" << std::endl;
 }
 
 std::queue<google::protobuf::MessageLite*> CachedZMQMessageWriter::ReadFromFile(){

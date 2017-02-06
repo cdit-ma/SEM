@@ -27,7 +27,23 @@ include_directories(${Boost_INCLUDE_DIRS})
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../common/systemstatus.proto)
 
 #Link our Logger against all the Cpps
-add_executable(${PROJ_NAME} main.cpp cachedzmqmessagewriter.cpp systemstatus.pb.cc sigarsysteminfo.cpp logcontroller.cpp zmqmessagewriter.cpp ${PROTO_SRCS})
+
+set(CLIENT_SOURCE
+	main.cpp 
+	cachedzmqmessagewriter.cpp
+	sigarsysteminfo.cpp
+	logcontroller.cpp
+	zmqmessagewriter.cpp
+)
+
+set(CLIENT_HEADERS
+	cachedzmqmessagewriter.h
+	sigarsysteminfo.h
+	logcontroller.h
+	zmqmessagewriter.h
+)
+
+add_executable(${PROJ_NAME} ${CLIENT_SOURCE} ${CLIENT_HEADERS} ${PROTO_SRCS} ${PROTO_HDRS})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
