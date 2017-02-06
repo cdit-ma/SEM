@@ -6,9 +6,9 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "systemstatus.pb.h"
+#include "messagewriter/systemstatus.pb.h"
 #include "systeminfo.h"
-#include "zmqmessagewriter.h"
+#include "messagewriter/zmqmessagewriter.h"
 
 class LogController{
     public:
