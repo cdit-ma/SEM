@@ -18,5 +18,5 @@ set(HEADERS
 #Add RE_PATH to include directories
 include_directories("${RE_PATH}/includes")
 
-add_library(${PROJ_NAME} STATIC ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})

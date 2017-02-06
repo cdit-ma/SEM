@@ -19,14 +19,10 @@ message("${DDS_SOURCE}")
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/libportexports.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/tx.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/rx.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/tx.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/rx.h
     ${CMAKE_CURRENT_SOURCE_DIR}/convert.h
 )
 

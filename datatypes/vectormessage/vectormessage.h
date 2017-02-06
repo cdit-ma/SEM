@@ -1,7 +1,7 @@
 #ifndef VECTORMESSAGE_H
 #define VECTORMESSAGE_H
 
-#include "basemessage.h"
+#include <core/basemessage.h>
 #include <string>
 #include <vector>
 
