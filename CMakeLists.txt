@@ -4,6 +4,8 @@ cmake_minimum_required (VERSION 2.6)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
 project(logan)
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 #Add Options for building projects, default to build everything
 option(BUILD_SERVER "Build logan_server" ON)
 option(BUILD_CLIENT "Build logan_client" ON)

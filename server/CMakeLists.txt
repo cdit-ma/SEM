@@ -16,11 +16,24 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 find_package(Boost 1.36.0 COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
-#Generate our Protobuf source/headers
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../common/systemstatus.proto)
+
+set(SOURCE
+	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sqlcontroller.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/logdatabase.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/sqlite3.c
+)
+
+set(HEADERS
+	${CMAKE_CURRENT_SOURCE_DIR}/sqlcontroller.h
+	${CMAKE_CURRENT_SOURCE_DIR}/logdatabase.h
+	${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.h
+	${CMAKE_CURRENT_SOURCE_DIR}/sqlite3.h
+)
 
 #Link our Server against all the Cpps
-add_executable(${PROJ_NAME} main.cpp sqlcontroller.cpp systemstatus.pb.cc logdatabase.cpp sqlitedatabase.cpp sqlite3.c)
+add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
 
 if (MSVC)
@@ -31,6 +44,12 @@ else()
 	target_link_libraries(${PROJ_NAME} pthread dl)
 endif()
 
+#Link against our Protobuf source/headers
+target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
+target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
+
+#include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})

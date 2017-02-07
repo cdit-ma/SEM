@@ -8,7 +8,7 @@
 
 #include "systemstatus.pb.h"
 #include "systeminfo.h"
-#include "re_common/zmqprotowriter/zmqmessagewriter.h"
+#include "../re_common/zmqprotowriter/zmqmessagewriter.h"
 
 class LogController{
     public:

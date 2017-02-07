@@ -33,9 +33,6 @@ set(CLIENT_HEADERS
 	logcontroller.h
 )
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
-
-
 add_executable(${PROJ_NAME} ${CLIENT_SOURCE} ${CLIENT_HEADERS} ${PROTO_SRCS} ${PROTO_HDRS})
 
 if (MSVC)

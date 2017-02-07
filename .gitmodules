@@ -1,0 +1,3 @@
+[submodule "re_common"]
+	path = re_common
+	url = https://github.com/cdit-ma/re_common.git
