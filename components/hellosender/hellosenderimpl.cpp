@@ -12,6 +12,5 @@ void HelloSenderImpl::tick(){
         msg->set_instName(this->instName());
         msg->set_content(this->message());
         txMessage(msg);
-        delete msg;
     }
 }
