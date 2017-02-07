@@ -1,8 +1,0 @@
-module cdit{
-    struct Message{
-        long time;
-        string instName; //@key
-        string content;
-    };
-    #pragma keylist Message instName
-};
