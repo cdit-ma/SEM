@@ -4,23 +4,23 @@
 #include "eventport.h"
 
 namespace qpid{
-    void configure_in_event_port(EventPort* port, std::string broker, std::string topic);
-    void configure_out_event_port(EventPort* port, std::string broker, std::string topic);
+    void ConfigureInEventPort(EventPort* port, std::string broker, std::string topic);
+    void ConfigureOutEventPort(EventPort* port, std::string broker, std::string topic);
 }
 
 namespace rti{
-    void configure_in_event_port(EventPort* port, int domain, std::string subscriber_name, std::string topic_name);
-    void configure_out_event_port(EventPort* port, int domain, std::string subscriber_name, std::string topic_name);
+    void ConfigureInEventPort(EventPort* port, int domain, std::string subscriber_name, std::string topic_name);
+    void ConfigureOutEventPort(EventPort* port, int domain, std::string subscriber_name, std::string topic_name);
 }
 
 namespace ospl{
-    void configure_in_event_port(EventPort* port, int domain, std::string subscriber_name, std::string topic_name);
-    void configure_out_event_port(EventPort* port, int domain, std::string subscriber_name, std::string topic_name);
+    void ConfigureInEventPort(EventPort* port, int domain, std::string subscriber_name, std::string topic_name);
+    void ConfigureOutEventPort(EventPort* port, int domain, std::string subscriber_name, std::string topic_name);
 }
 
 namespace zmq{
-    void configure_in_event_port(EventPort* port, std::vector<std::string> end_points);
-    void configure_out_event_port(EventPort* port, std::string end_point);
+    void ConfigureInEventPort(EventPort* port, std::vector<std::string> end_points);
+    void ConfigureOutEventPort(EventPort* port, std::string end_point);
 }
 
 #endif //CORE_PORTCONFIGURE_H

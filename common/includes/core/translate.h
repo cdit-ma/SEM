@@ -7,6 +7,6 @@ namespace NodeManager{
     class Attribute;
 };
 
-::Attribute* set_attribute_from_pb(NodeManager::Attribute* attr, ::Attribute* a = 0);
+::Attribute* SetAttributeFromPb(NodeManager::Attribute* attr, ::Attribute* a = 0);
 
 #endif //ACTIVATABLE_H

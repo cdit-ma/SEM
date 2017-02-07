@@ -12,10 +12,10 @@ ZMQMaster::ZMQMaster(std::string endpoint, std::string graphml_path){
 
     endpoint_ = endpoint;
     execution_manager_ = new ExecutionManager(this, graphml_path);
-    slaves_ = execution_manager_->get_slave_endpoints();
+    slaves_ = execution_manager_->GetSlaveEndpoints();
 
     //Start the registration thread
-    registration_thread_ = new std::thread(&ZMQMaster::registration_loop, this);
+    registration_thread_ = new std::thread(&ZMQMaster::RegistrationLoop, this);
 }
 
 ZMQMaster::~ZMQMaster(){
@@ -45,11 +45,11 @@ ZMQMaster::~ZMQMaster(){
     }
 }
 
-bool ZMQMaster::action_writer_active(){
+bool ZMQMaster::ActionWriterActivate(){
     return writer_active;
 }
 
-void ZMQMaster::send_action(std::string node_name, std::string action){
+void ZMQMaster::SendAction(std::string node_name, std::string action){
     std::pair<std::string, std::string> p;
     p.first = node_name;
     p.second = action;
@@ -60,7 +60,7 @@ void ZMQMaster::send_action(std::string node_name, std::string action){
     queue_lock_condition_.notify_all();
 }
 
-void ZMQMaster::send_action(std::string node_name, google::protobuf::MessageLite* message){
+void ZMQMaster::SendAction(std::string node_name, google::protobuf::MessageLite* message){
     std::string action;
 
     if(!message->SerializeToString(&action)){
@@ -78,7 +78,7 @@ void ZMQMaster::send_action(std::string node_name, google::protobuf::MessageLite
     queue_lock_condition_.notify_all();
 }
 
-void ZMQMaster::registration_loop(){
+void ZMQMaster::RegistrationLoop(){
     auto socket = zmq::socket_t(*context_, ZMQ_REP);
     
     auto unregistered_slaves = slaves_;
@@ -102,7 +102,7 @@ void ZMQMaster::registration_loop(){
 
             //Construct a string out of the zmq data
             std::string slave_addr_str(static_cast<char *>(slave_addr.data()), slave_addr.size());
-            std::string host_name = execution_manager_->get_host_name_from_address(slave_addr_str);
+            std::string host_name = execution_manager_->GetHostNameFromAddress(slave_addr_str);
 
             //Remove the slave which has just registered from the vector of unregistered slaves
             remove(unregistered_slaves, slave_addr_str);
@@ -122,15 +122,15 @@ void ZMQMaster::registration_loop(){
     }
 
     //Start up the writer thread
-    writer_thread_ = new std::thread(&ZMQMaster::writer_loop, this);
+    writer_thread_ = new std::thread(&ZMQMaster::WriterLoop, this);
 
     //Send 
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    execution_manager_->execution_loop();
+    execution_manager_->ExecutionLoop();
     std::cout << "Sent Startup Instructions" << std::endl;
 }
 
-void ZMQMaster::writer_loop(){
+void ZMQMaster::WriterLoop(){
     auto socket = zmq::socket_t(*context_, ZMQ_PUB);
     socket.bind(endpoint_.c_str());
 

@@ -10,8 +10,8 @@
 class EventPort: public Activatable{
     public:
         virtual ~EventPort(){};
-        virtual void startup(std::map<std::string, ::Attribute*> attributes) = 0;
-        virtual void teardown() = 0;
+        virtual void Startup(std::map<std::string, ::Attribute*> attributes) = 0;
+        virtual void Teardown() = 0;
 };
 
 #endif //EVENTPORT_H

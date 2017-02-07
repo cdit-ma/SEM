@@ -14,8 +14,4 @@ void HelloSenderImpl::tick(){
         txMessage(msg);
         delete msg;
     }
-
-
-
-
 }

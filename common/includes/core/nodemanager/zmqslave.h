@@ -18,9 +18,9 @@ class ZMQSlave{
         ZMQSlave(DeploymentManager* manager, std::string endpoint);
         ~ZMQSlave();
     private:
-        void registration_loop();
-        void action_subscriber_loop();
-        void action_queue_loop();
+        void RegistrationLoop();
+        void ActionSubscriberLoop();
+        void ActionQueueLoop();
 
         std::string master_server_address_;
         std::string host_name_;

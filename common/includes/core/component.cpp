@@ -16,24 +16,24 @@ Component::~Component(){
     }
 }
 
-bool Component::activate(){
+bool Component::Activate(){
     for(auto e : eventports_){
-        e.second->activate();
+        e.second->Activate();
         std::cout << "ACTIVATING: " << e.second->get_name() << std::endl;
     }
-    Activatable::activate();
+    Activatable::Activate();
     return true;
 }
 
-bool Component::passivate(){
+bool Component::Passivate(){
     for(auto e : eventports_){
-        e.second->passivate();
+        e.second->Passivate();
     }
-    Activatable::passivate();
+    Activatable::Passivate();
     return true;
 }
 
-void Component::add_event_port(EventPort* event_port){
+void Component::AddEventPort(EventPort* event_port){
     if(event_port){
         std::string name = event_port->get_name();
         if(eventports_.count(name) == 0){
@@ -42,11 +42,11 @@ void Component::add_event_port(EventPort* event_port){
     }
 }
 
-void Component::remove_event_port(EventPort* event_port){
+void Component::RemoveEventPort(EventPort* event_port){
     //TODO:
 }
 
-void Component::add_attribute(Attribute* attribute){
+void Component::AddAttribute(Attribute* attribute){
     if(attribute){
         if(eventports_.count(attribute->name) == 0){
             attributes_[attribute->name] = attribute;
@@ -54,7 +54,7 @@ void Component::add_attribute(Attribute* attribute){
     }
 }
 
-Attribute* Component::get_attribute(std::string name){
+Attribute* Component::GetAttribute(std::string name){
     Attribute* attribute = 0;
 
     if(attributes_.count(name)){
@@ -64,7 +64,7 @@ Attribute* Component::get_attribute(std::string name){
 }
 
 
-std::function<void (::BaseMessage*)> Component::get_callback(std::string port_name){
+std::function<void (::BaseMessage*)> Component::GetCallback(std::string port_name){
     std::function<void (::BaseMessage*)> f = NULL;
     if(callback_functions_.count(port_name)){
         f = callback_functions_[port_name];
@@ -74,7 +74,7 @@ std::function<void (::BaseMessage*)> Component::get_callback(std::string port_na
     return f;
 }
 
-void Component::add_callback(std::string port_name, std::function<void (::BaseMessage*)> function){
+void Component::AddCallback(std::string port_name, std::function<void (::BaseMessage*)> function){
     if(callback_functions_.count(port_name) == 0){
         std::cout << "Component: " << get_name() << " Added Callback function for: " << port_name << std::endl;
         callback_functions_[port_name] = function;
@@ -82,7 +82,7 @@ void Component::add_callback(std::string port_name, std::function<void (::BaseMe
 }
 
 
-EventPort* Component::get_event_port(std::string name){
+EventPort* Component::GetEventPort(std::string name){
     EventPort* port = 0;
     if(eventports_.count(name)){
         port = eventports_[name];

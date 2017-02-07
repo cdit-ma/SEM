@@ -15,7 +15,7 @@ DeploymentManager::~DeploymentManager(){
     }
 }
 
-void DeploymentManager::process_action(std::string node_name, std::string action){
+void DeploymentManager::ProcessAction(std::string node_name, std::string action){
     std::lock_guard<std::mutex> lock(mutex_);
     std::cout << "Processing Action: " << node_name << std::endl;
 
@@ -27,31 +27,31 @@ void DeploymentManager::process_action(std::string node_name, std::string action
             case NodeManager::ControlMessage::STARTUP:{
                 if(!deployment_){
                     deployment_ = new NodeContainer(library_path_);    
-                    deployment_->configure(cm);
-                    deployment_->activate_all();
+                    deployment_->Configure(cm);
+                    deployment_->ActivateAll();
                 }
                 break;
             }
             case NodeManager::ControlMessage::ACTIVATE:
                 if(deployment_){
-                    deployment_->activate_all();
+                    deployment_->ActivateAll();
                 }
                 break;
             case NodeManager::ControlMessage::PASSIVATE:
                 if(deployment_){
-                    deployment_->passivate_all();
+                    deployment_->PassivateAll();
                 }
                 break;
             case NodeManager::ControlMessage::TERMINATE:
                 if(deployment_){
-                    deployment_->teardown();
+                    deployment_->Teardown();
                     delete deployment_;
                     deployment_ = 0;
                 }
                 break;
             case NodeManager::ControlMessage::SET_ATTRIBUTE:
                 if(deployment_){
-                    deployment_->configure(cm);
+                    deployment_->Configure(cm);
                 }
                 break;
             default:

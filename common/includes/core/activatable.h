@@ -20,10 +20,10 @@ class Activatable{
     public:
         const std::string get_name();
         void set_name(std::string name);
-        virtual bool activate();            //Start Component (Start Middleware etc)
-        virtual bool passivate();           //Stop Component 
-        //virtual bool startup(std::map<std::string, Attribute> attributes); //Configure Component
-        //virtual bool teardown();
+        virtual bool Activate();            //Start Component (Start Middleware etc)
+        virtual bool Passivate();           //Stop Component 
+        //virtual bool Startup(std::map<std::string, Attribute> attributes); //Configure Component
+        //virtual bool Teardown();
 
 
         const bool is_active();

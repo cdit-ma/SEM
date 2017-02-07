@@ -9,24 +9,24 @@ PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std
     if(component){
         set_name(name);
         component_ = component;
-        component->add_event_port(this);
+        component->AddEventPort(this);
     }
 }
 
-bool PeriodicEventPort::activate(){
-    std::cout << "PeriodicEventPort::activate()" << std::endl;
+bool PeriodicEventPort::Activate(){
+    std::cout << "PeriodicEventPort::Activate()" << std::endl;
     if(!is_active()){
         //Gain mutex lock and Set the terminate_tick flag
         std::unique_lock<std::mutex> lock(mutex_);
         terminate = false;
         
         //Construct a thread
-        callback_thread_ = new std::thread(&PeriodicEventPort::loop, this);
+        callback_thread_ = new std::thread(&PeriodicEventPort::Loop, this);
     }
-    return Activatable::activate();
+    return Activatable::Activate();
 }
 
-bool PeriodicEventPort::passivate(){
+bool PeriodicEventPort::Passivate(){
     if(is_active()){
         {
             //Gain mutex lock and Terminate, this will interupt the loop after sleep
@@ -38,28 +38,28 @@ bool PeriodicEventPort::passivate(){
         delete callback_thread_;
         callback_thread_ = 0;
     }
-    return Activatable::passivate();
+    return Activatable::Passivate();
 }
 
-bool PeriodicEventPort::wait_for_tick(){
+bool PeriodicEventPort::WaitForTick(){
     std::unique_lock<std::mutex> lock(mutex_);
     return !lock_condition_.wait_for(lock, duration_, [&]{return terminate;});
 }
 
-void PeriodicEventPort::loop(){
+void PeriodicEventPort::Loop(){
     while(true){
         if(callback_ != nullptr){
             //Construct a callback object
             callback_(new BaseMessage());
         }
-        if(!wait_for_tick()){
+        if(!WaitForTick()){
             break;
         }
     }
 }
 
 
-void PeriodicEventPort::startup(std::map<std::string, ::Attribute*> attributes){
+void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*> attributes){
     std::cout << component_->get_name() << "::PeriodicEventPort: " << get_name() << " Setting Frequency" << std::endl;
 
     if(attributes.count("frequency")){
@@ -72,5 +72,5 @@ void PeriodicEventPort::startup(std::map<std::string, ::Attribute*> attributes){
     }
 };
 
-void PeriodicEventPort::teardown(){
+void PeriodicEventPort::Teardown(){
 };

@@ -17,14 +17,14 @@ class ZMQMaster{
         ZMQMaster(std::string endpoint, std::string graphml_path);
         ~ZMQMaster();
 
-        void send_action(std::string node_name, google::protobuf::MessageLite* message);
-        void send_action(std::string node_name, std::string action);
+        void SendAction(std::string node_name, google::protobuf::MessageLite* message);
+        void SendAction(std::string node_name, std::string action);
         
-        bool action_writer_active();
+        bool ActionWriterActivate();
 
     private:
-        void registration_loop();
-        void writer_loop();
+        void RegistrationLoop();
+        void WriterLoop();
 
         bool terminating = false;
         bool writer_active = false;

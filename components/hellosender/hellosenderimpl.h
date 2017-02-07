@@ -5,7 +5,7 @@
 class HelloSenderImpl: public HelloSenderInt{
     public:
         HelloSenderImpl(std::string name);
-        void periodic_event();
+        void tick();
     private:
         //Variable
         int sentCount_ = 0;

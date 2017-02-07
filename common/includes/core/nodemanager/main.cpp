@@ -95,18 +95,18 @@ int main(int argc, char **argv)
             std::cout << "Enter Component Name or *: ";
             std::getline(std::cin, name);
             if(name == "*"){
-                node_container->activate_all();
+                node_container->ActivateAll();
             }else{
-                node_container->activate(name);
+                node_container->Activate(name);
             }
         }else if(command == "passivate"){
             std::string name;
             std::cout << "Enter Component Name or *: ";
             std::getline(std::cin, name);
             if(name == "*"){
-                node_container->passivate_all();
+                node_container->PassivateAll();
             }else{
-                node_container->passivate(name);
+                node_container->Passivate(name);
             }
         }else if(command == "quit" || command == "terminate"){
             running = false;
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
                     attr->add_s(attribute_value);
                 }
 
-                master->send_action(host, cm);
+                master->SendAction(host, cm);
             }
         }
     }
@@ -161,8 +161,8 @@ int main(int argc, char **argv)
   
     if(node_container){
         //Teardown deployment instance
-        node_container->passivate_all();
-        node_container->teardown();
+        node_container->PassivateAll();
+        node_container->Teardown();
     }
 
     //Free Memory

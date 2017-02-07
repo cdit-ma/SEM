@@ -6,8 +6,8 @@
 #include <string>
 
 extern "C"{
-    EventPort* construct_rx(std::string port_name, Component* component);
-    EventPort* construct_tx(std::string port_name, Component* component);
+    EventPort* ConstructRx(std::string port_name, Component* component);
+    EventPort* ConstructTx(std::string port_name, Component* component);
 }
 
 #endif //CORE_LIBPORTEXPORTS_H

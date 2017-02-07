@@ -23,7 +23,7 @@ NodeContainer::NodeContainer(std::string library_path){
 }
 
 NodeContainer::~NodeContainer(){
-    teardown();
+    Teardown();
 
     for(auto it=loaded_libraries_.begin(); it!=loaded_libraries_.end();){
         auto lib_handle = it->second;
@@ -34,46 +34,46 @@ NodeContainer::~NodeContainer(){
     }
 }
 
-bool NodeContainer::activate(std::string component_name){
-    Component* component = get_component(component_name);
+bool NodeContainer::Activate(std::string component_name){
+    Component* component = GetComponent(component_name);
     if(component){
-        return component->activate();
+        return component->Activate();
     }
     return false;
 }
-bool NodeContainer::passivate(std::string component_name){
-    Component* component = get_component(component_name);
+bool NodeContainer::Passivate(std::string component_name){
+    Component* component = GetComponent(component_name);
     if(component){
-        return component->passivate();
+        return component->Passivate();
     }
     return false;
 }
 
-EventPort* NodeContainer::construct_periodic_event(Component* component, std::string port_name){
-    return new PeriodicEventPort(component, port_name, component->get_callback(port_name), 1000);
+EventPort* NodeContainer::ConstructPeriodicEvent(Component* component, std::string port_name){
+    return new PeriodicEventPort(component, port_name, component->GetCallback(port_name), 1000);
 }
 
-void NodeContainer::configure(NodeManager::ControlMessage* message){
+void NodeContainer::Configure(NodeManager::ControlMessage* message){
     std::cout << "CONFIGURE" << std::endl;
     auto n = message->mutable_node();
     for(auto c : n->components()){
-        auto component = get_component(c.name());
+        auto component = GetComponent(c.name());
 
         if(!component){
             //Construct Component
-            component = construct_component(c.type(), c.name());
+            component = ConstructComponent(c.type(), c.name());
         }
 
         if(component){
             for(auto a: c.attributes()){
-                auto attribute = component->get_attribute(a.name());
+                auto attribute = component->GetAttribute(a.name());
                 if(attribute){
                     std::cout << c.name() << " Setting Attribute: " << a.name() <<  std::endl;
-                    set_attribute_from_pb(&a, attribute);
+                    SetAttributeFromPb(&a, attribute);
                 }
             }
             for(auto p : c.ports()){
-                auto port = component->get_event_port(p.name());
+                auto port = component->GetEventPort(p.name());
 
                 //Get the middleware
                 std::string middleware = NodeManager::EventPort_Middleware_Name(p.middleware());
@@ -82,15 +82,15 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
                 if(!port){
                     switch(p.type()){
                         case NodeManager::EventPort::IN:{
-                            port = construct_rx(middleware, p.message_type(), component, p.name());
+                            port = ConstructRx(middleware, p.message_type(), component, p.name());
                             break;
                         }
                         case NodeManager::EventPort::OUT:{
-                            port = construct_tx(middleware, p.message_type(), component, p.name());
+                            port = ConstructTx(middleware, p.message_type(), component, p.name());
                             break;
                         }
                         case NodeManager::EventPort::PERIODIC:{
-                            port = construct_periodic_event(component, p.name());
+                            port = ConstructPeriodicEvent(component, p.name());
                             break;
                         }
                         default:
@@ -103,37 +103,37 @@ void NodeContainer::configure(NodeManager::ControlMessage* message){
                     std::map<std::string, ::Attribute*> attributes_;
 
                     for(auto a: p.attributes()){
-                        auto att = set_attribute_from_pb(&a);
+                        auto att = SetAttributeFromPb(&a);
                         if(att){
                             attributes_[att->name] = att;
                         }
                     }
                     //Configure the port
-                    port->startup(attributes_);
+                    port->Startup(attributes_);
                 }
             }
         }
     }
 }
 
-bool NodeContainer::activate_all(){
+bool NodeContainer::ActivateAll(){
     for(auto c : components_){
-        std::cout << "NodeContainer::activate_all() Component:" << c.second->get_name() << std::endl;
-        c.second->activate();
+        std::cout << "NodeContainer::ActivateAll() Component:" << c.second->get_name() << std::endl;
+        c.second->Activate();
     }
     return true;
 }
 
-bool NodeContainer::passivate_all(){
+bool NodeContainer::PassivateAll(){
     for(auto c : components_){
-        std::cout << "NodeContainer::passivate_all() Component:" << c.second << std::endl;
-        c.second->passivate();
+        std::cout << "NodeContainer::PassivateAll() Component:" << c.second << std::endl;
+        c.second->Passivate();
     }
 
     return true;
 }
-void NodeContainer::teardown(){
-    passivate_all();
+void NodeContainer::Teardown(){
+    PassivateAll();
     for(auto it=components_.begin(); it!=components_.end();){
         auto c = it->second;
         delete c;
@@ -141,7 +141,7 @@ void NodeContainer::teardown(){
     }
 }
 
-bool NodeContainer::add_component(Component* component){
+bool NodeContainer::AddComponent(Component* component){
     std::string component_name = component->get_name();
 
     //Search pub_lookup_ for key
@@ -158,7 +158,7 @@ bool NodeContainer::add_component(Component* component){
     }
 }
 
-Component* NodeContainer::get_component(std::string component_name){
+Component* NodeContainer::GetComponent(std::string component_name){
     //Search pub_lookup_ for key
     auto search = components_.find(component_name);
     
@@ -170,14 +170,15 @@ Component* NodeContainer::get_component(std::string component_name){
     }
 }
 
-void* NodeContainer::load_library(std::string library_path){
+void* NodeContainer::LoadLibrary(std::string library_path){
     //If we haven't seen the library_path before, try and load it.
     if(!loaded_libraries_.count(library_path)){
         auto start = std::chrono::system_clock::now();
         //Get a handle to the dynamically linked library
         void* lib_handle = dlopen(library_path.c_str(), RTLD_LAZY);
         auto end = std::chrono::system_clock::now();
-        std::cout << "dlopen: " << library_path <<  " " << (end - start).count() << " μs" << std::endl;
+        std::chrono::duration<double> diff = end-start;
+        std::cout << "dlopen: " << library_path <<  " " << (diff).count() << " μs" << std::endl;
         
         //Check for errors
         char* error = dlerror();
@@ -197,12 +198,12 @@ void* NodeContainer::load_library(std::string library_path){
     return 0;
 }
 
-void* NodeContainer::get_library_function(std::string library_path, std::string function_name){
-    void* lib_handle = load_library(library_path);
-    return get_library_function(lib_handle, function_name);
+void* NodeContainer::GetLibraryFunction(std::string library_path, std::string function_name){
+    void* lib_handle = LoadLibrary(library_path);
+    return GetLibraryFunction(lib_handle, function_name);
 }
 
-void* NodeContainer::get_library_function(void* lib_handle, std::string function_name){
+void* NodeContainer::GetLibraryFunction(void* lib_handle, std::string function_name){
     if(lib_handle){
         char* error = dlerror();
         auto start = std::chrono::system_clock::now();
@@ -223,7 +224,7 @@ void* NodeContainer::get_library_function(void* lib_handle, std::string function
 
 
 
-EventPort* NodeContainer::construct_tx(std::string middleware, std::string datatype, Component* component, std::string port_name){
+EventPort* NodeContainer::ConstructTx(std::string middleware, std::string datatype, Component* component, std::string port_name){
     auto p = to_lower(middleware + "_" + datatype);
     std::cout << p << std::endl;
     if(!tx_constructors_.count(p)){
@@ -231,9 +232,9 @@ EventPort* NodeContainer::construct_tx(std::string middleware, std::string datat
         auto lib_path = library_path_ + "/lib" + p + ".so";
 
         //Get the function
-        void* function = get_library_function(lib_path, "construct_tx");
+        void* function = GetLibraryFunction(lib_path, "ConstructTx");
         if(function){
-            //Cast as EventPort* construct_rx(std::string, std::string, Component*)
+            //Cast as EventPort* ConstructRx(std::string, std::string, Component*)
             auto typed_function = (EventPort* (*) (std::string, Component*)) function;
             //Add to the lookup
             tx_constructors_[p] = typed_function;
@@ -246,7 +247,7 @@ EventPort* NodeContainer::construct_tx(std::string middleware, std::string datat
     return 0;
 }
 
-EventPort* NodeContainer::construct_rx(std::string middleware, std::string datatype, Component* component, std::string port_name){
+EventPort* NodeContainer::ConstructRx(std::string middleware, std::string datatype, Component* component, std::string port_name){
     auto p = to_lower(middleware + "_" + datatype);
     std::cout << p << std::endl;
     if(!rx_constructors_.count(p)){
@@ -254,9 +255,9 @@ EventPort* NodeContainer::construct_rx(std::string middleware, std::string datat
         auto lib_path = library_path_ + "/lib" + p + ".so";
 
         //Get the function
-        void* function = get_library_function(lib_path, "construct_rx");
+        void* function = GetLibraryFunction(lib_path, "ConstructRx");
         if(function){
-            //Cast as EventPort* construct_rx(std::string, std::string, Component*)
+            //Cast as EventPort* ConstructRx(std::string, std::string, Component*)
             auto typed_function = (EventPort* (*) (std::string, Component*)) function;
             //Add to the lookup
             rx_constructors_[p] = typed_function;
@@ -269,15 +270,15 @@ EventPort* NodeContainer::construct_rx(std::string middleware, std::string datat
     return 0;
 }
 
-Component* NodeContainer::construct_component(std::string component_type, std::string component_name){
+Component* NodeContainer::ConstructComponent(std::string component_type, std::string component_name){
     Component* c = 0;
     if(!component_constructors_.count(component_type)){
         auto lib_path = library_path_ + "/libcomponents_" + to_lower(component_type) + ".so";
 
         //Get the function
-        void* function = get_library_function(lib_path, "construct_component");
+        void* function = GetLibraryFunction(lib_path, "ConstructComponent");
         if(function){
-            //Cast as Component* construct_component(std::string)
+            //Cast as Component* ConstructComponent(std::string)
             auto typed_function = (Component* (*) (std::string)) function;
             //Add to the lookup
             component_constructors_[component_type] = typed_function;
@@ -289,24 +290,24 @@ Component* NodeContainer::construct_component(std::string component_type, std::s
         c = component_constructors_[component_type](component_name);
         if(c){
             //Add the Component to the NodeContainer
-            add_component(c);
+            AddComponent(c);
         }
     }
     return c;
 }
 
-void NodeContainer::add_tx_constructor(std::string middleware, TxConstructor constructor){
+void NodeContainer::AddTxConstructor(std::string middleware, TxConstructor constructor){
     if(!tx_constructors_.count(middleware)){
         tx_constructors_[middleware] = constructor;
     }
 }
-void NodeContainer::add_rx_constructor(std::string middleware, TxConstructor constructor){
+void NodeContainer::AddRxConstructor(std::string middleware, TxConstructor constructor){
     if(!rx_constructors_.count(middleware)){
         rx_constructors_[middleware] = constructor;
     }
 }
 
-void NodeContainer:: add_component_constructor(std::string component_type, ComponentConstructor constructor){
+void NodeContainer:: AddComponentConstructor(std::string component_type, ComponentConstructor constructor){
     if(!component_constructors_.count(component_type)){
         component_constructors_[component_type] = constructor;
     }

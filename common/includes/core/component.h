@@ -15,20 +15,20 @@ class Component: public Activatable{
     public:
         Component(std::string inst_name);
         virtual ~Component();
-        bool activate();
-        bool passivate();
+        bool Activate();
+        bool Passivate();
 
         
 
-        void add_event_port(EventPort* event_port);
-        void remove_event_port(EventPort* event_port);
-        EventPort* get_event_port(std::string name);
+        void AddEventPort(EventPort* event_port);
+        void RemoveEventPort(EventPort* event_port);
+        EventPort* GetEventPort(std::string name);
 
-        void add_attribute(Attribute* attribute);
-        Attribute* get_attribute(std::string name);
+        void AddAttribute(Attribute* attribute);
+        Attribute* GetAttribute(std::string name);
 
-        void add_callback(std::string port_name, std::function<void (::BaseMessage*)> function);
-        std::function<void (::BaseMessage*)> get_callback(std::string port_name);
+        void AddCallback(std::string port_name, std::function<void (::BaseMessage*)> function);
+        std::function<void (::BaseMessage*)> GetCallback(std::string port_name);
     private:
         std::map<std::string, EventPort*> eventports_;
         std::map<std::string, Attribute*> attributes_;    

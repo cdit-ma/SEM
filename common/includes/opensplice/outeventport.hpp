@@ -15,11 +15,11 @@ namespace ospl{
             OutEventPort(Component* component, std::string name);
             void tx(T* message);
 
-            void startup(std::map<std::string, ::Attribute*> attributes);
-            void teardown();
+            void Startup(std::map<std::string, ::Attribute*> attributes);
+            void Teardown();
 
-            bool activate();
-            bool passivate();
+            bool Activate();
+            bool Passivate();
         private:
             std::mutex control_mutex_;
 
@@ -51,7 +51,7 @@ ospl::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
 
 
 template <class T, class S>
-void ospl::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+void ospl::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("publisher_name")){
@@ -75,36 +75,36 @@ void ospl::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attri
 };
 
 template <class T, class S>
-void ospl::OutEventPort<T, S>::teardown(){
-    passivate();
+void ospl::OutEventPort<T, S>::Teardown(){
+    Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
 };
 
 template <class T, class S>
-bool ospl::OutEventPort<T, S>::activate(){
+bool ospl::OutEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
 
     //Construct a DDS Participant, Publisher, Topic and Writer
-    auto helper = ospl::get_dds_helper();
+    auto helper = ospl::DdsHelper::get_dds_helper();
     auto participant = helper->get_participant(domain_id_);
     auto publisher = helper->get_publisher(participant, publisher_name_);
-    auto topic = helper->get_topic<S>(participant, topic_name_);
-    writer_ = helper->get_data_writer<S>(publisher, topic);
+    auto topic = get_topic<S>(participant, topic_name_);
+    writer_ = get_data_writer<S>(publisher, topic);
 
-    return ::OutEventPort<T>::activate();
+    return ::OutEventPort<T>::Activate();
 };
 
 template <class T, class S>
-bool ospl::OutEventPort<T, S>::passivate(){
+bool ospl::OutEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(writer_ != dds::core::null){
         writer_ = dds::pub::DataWriter<S>(dds::core::null);
     }
 
-    return ::OutEventPort<T>::passivate();
+    return ::OutEventPort<T>::Passivate();
 };
 
 #endif //OSPL_OUTEVENTPORT_H

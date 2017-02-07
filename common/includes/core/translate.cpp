@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-::Attribute* set_attribute_from_pb(NodeManager::Attribute* attr, ::Attribute* a){
+::Attribute* SetAttributeFromPb(NodeManager::Attribute* attr, ::Attribute* a){
     bool set_type = a == 0;
     if(a == 0){
         //Construct!
