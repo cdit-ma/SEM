@@ -2,7 +2,7 @@
 #include <core/component.h>
 #include "hellosenderimpl.h"
 
-Component* construct_component(std::string name)
+Component* ConstructComponent(std::string name)
 {
     return new HelloSenderImpl(name);
 };

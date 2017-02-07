@@ -5,7 +5,7 @@
 #include <string>
 
 extern "C"{
-    Component* construct_component(std::string component_name);
+    Component* ConstructComponent(std::string component_name);
 }
 
 #endif //CORE_LIBPORTEXPORTS_H
