@@ -16,7 +16,7 @@ HelloSenderInt::HelloSenderInt(std::string name): Component(name){
         AddAttribute(att);
     }
 
-    AddCallback("tick", [this](BaseMessage* m) {tick();delete m;});
+    AddCallback("tick", [this](BaseMessage* m) {tick(); delete m;});
 }
 
 std::string HelloSenderInt::instName(){

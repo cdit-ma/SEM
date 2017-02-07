@@ -10,7 +10,7 @@ HelloReceiverInt::HelloReceiverInt(std::string name): Component(name){
     }
 
     //Add callback to callback into the rxMessage function
-    AddCallback("rxMessage", [this](BaseMessage* m) {rxMessage((::Message*) m);delete m;});
+    AddCallback("rxMessage", [this](BaseMessage* m) {rxMessage((::Message*) m);});
 }
 
 std::string HelloReceiverInt::instName(){
