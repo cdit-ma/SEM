@@ -1,0 +1,51 @@
+syntax="proto3";
+
+enum ActionType{
+    STARTED = 0;
+    ACTIVATED = 1;
+    PASSIVATED = 2;
+    TERMINATED = 3;
+}
+
+message WorkloadEvent{
+    enum Type{
+        FLAG = 0;
+        MESSAGE = 1;
+        STARTED = 2;
+        FINISHED = 3;
+        ERROR = 4;
+    }
+    string id = 1;
+    string name = 2;
+    Type type = 3;
+    string description = 4;
+}
+
+message ComponentEvent{
+    string id = 1;
+    string name = 2;
+    ActionType action_type = 3;
+}
+
+message PortEvent{
+    enum PortType{
+        TX = 0;
+        RX = 1;
+    }
+
+    string id = 1;
+    string name = 2;
+    PortType type = 3;
+    ActionType action_type = 4;
+}
+
+message ModelEvent{
+    string hostname = 1;
+    string component_name = 2;
+    double timestamp = 3;
+
+    //Events
+    repeated ComponentEvent component_event = 4;
+    repeated PortEvent port_event = 5;
+    repeated WorkloadEvent workload_event = 6;
+}
