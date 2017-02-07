@@ -6,18 +6,7 @@
 class HelloReceiverImpl: public HelloReceiverInt{
     public:
         HelloReceiverImpl(std::string name);
-        
-        static Component* constructor_fn(std::string name);
-        static void destructor_fn(Component* c);
-
         void rxMessage(Message* message);
-};
-
-//TODO:Move to own header file
-
-extern "C" Component* construct_component(std::string name)
-{
-    return new HelloReceiverImpl(name);
 };
 
 #endif //COMPONENTS_HELLORECEIVER_HELLORECEIVERIMPL_H

@@ -10,6 +10,7 @@ find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/helloreceiverimpl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helloreceiverint.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libcomponentexports.cpp
 	)
 
 set(HEADERS

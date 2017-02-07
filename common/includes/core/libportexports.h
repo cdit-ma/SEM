@@ -8,11 +8,6 @@
 extern "C"{
     EventPort* construct_rx(std::string port_name, Component* component);
     EventPort* construct_tx(std::string port_name, Component* component);
-    void destruct_eventport(EventPort* port){
-        if(port){
-            delete port;
-        }
-    }
 }
 
 #endif //CORE_LIBPORTEXPORTS_H

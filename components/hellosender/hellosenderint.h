@@ -1,13 +1,11 @@
 #ifndef COMPONENTS_HELLOSENDER_HELLOSENDERINT_H
 #define COMPONENTS_HELLOSENDER_HELLOSENDERINT_H
 
+//Add the include folder of re to CMAKEINCLUDE directory
+#include <core/component.h>
+
 //Add the Port folders to CMAKEINCLUDE directory
 #include "../../datatypes/message/message.h"
-
-//Add the include folder of re to CMAKEINCLUDE directory
-#include <core/globalinterfaces.hpp>
-#include <core/component.h>
-#include <core/eventports/outeventport.hpp>
 
 class HelloSenderInt: public Component{
     public:
@@ -23,8 +21,7 @@ class HelloSenderInt: public Component{
 
         void txMessage(::Message* message);
 
-        void _periodic_event_(BaseMessage* message);
-        virtual void periodic_event() = 0;
+        virtual void tick() = 0;
     private:
 };
 

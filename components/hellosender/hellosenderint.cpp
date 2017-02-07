@@ -1,4 +1,6 @@
 #include "hellosenderint.h"
+#include <core/eventports/outeventport.hpp>
+
 
 HelloSenderInt::HelloSenderInt(std::string name): Component(name){
     {
@@ -14,14 +16,7 @@ HelloSenderInt::HelloSenderInt(std::string name): Component(name){
         add_attribute(att);
     }
 
-    //Add to call back
-    add_callback("tick", std::bind(&HelloSenderInt::_periodic_event_, this, std::placeholders::_1));
-}
-
-void HelloSenderInt::_periodic_event_(BaseMessage* message){
-    
-    this->periodic_event();
-    delete message;
+    add_callback("tick", [this](BaseMessage* m) {tick();delete m;});
 }
 
 std::string HelloSenderInt::instName(){
@@ -59,7 +54,7 @@ void HelloSenderInt::set_message(const std::string val){
 void HelloSenderInt::txMessage(::Message* message){
     auto a = get_event_port("txMessage");
     if(a){
-        auto b = static_cast<::OutEventPort<Message> *>(a);
+        auto b = (::OutEventPort<Message> *)(a);
         if(b){
             b->tx(message);
         }
