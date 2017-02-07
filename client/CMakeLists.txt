@@ -13,9 +13,6 @@ project (${PROJ_NAME})
 find_package(Protobuf REQUIRED)
 include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
-find_package(ZeroMQ REQUIRED)
-include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
-
 find_package(SIGAR REQUIRED)
 include_directories(${PROJ_NAME} ${SIGAR_INCLUDE_DIRS})
 
@@ -27,7 +24,22 @@ include_directories(${Boost_INCLUDE_DIRS})
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../common/systemstatus.proto)
 
 #Link our Logger against all the Cpps
-add_executable(${PROJ_NAME} main.cpp cachedzmqmessagewriter.cpp systemstatus.pb.cc sigarsysteminfo.cpp logcontroller.cpp zmqmessagewriter.cpp ${PROTO_SRCS})
+
+set(CLIENT_SOURCE
+	main.cpp 
+	sigarsysteminfo.cpp
+	logcontroller.cpp
+)
+
+set(CLIENT_HEADERS
+	sigarsysteminfo.h
+	logcontroller.h
+)
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/messagewriter")
+
+
+add_executable(${PROJ_NAME} ${CLIENT_SOURCE} ${CLIENT_HEADERS} ${PROTO_SRCS} ${PROTO_HDRS})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
@@ -37,9 +49,10 @@ else()
 	target_link_libraries(${PROJ_NAME} pthread dl)
 endif()
 
+target_link_libraries(${PROJ_NAME} message_writer)
+
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${SIGAR_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${Boost_FILESYSTEM_LIBRARY})

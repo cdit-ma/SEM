@@ -15,8 +15,10 @@ message PortEvent{
     Direction direction = 2;
 
     enum Middleware{
-        DDS = 1;
-        
+        RTI = 1;
+        OSPL = 2;
+        QPID = 3;
+        ZMQ = 4;
     }
 
     Middleware middleware = 3;

@@ -6,7 +6,7 @@
 #include <string>
 
 #include "sigarsysteminfo.h"
-#include "cachedzmqmessagewriter.h"
+#include "messagewriter/cachedzmqmessagewriter.h"
 
 LogController::LogController(int port, double frequency, std::vector<std::string> processes, bool cached){
     if(cached){
