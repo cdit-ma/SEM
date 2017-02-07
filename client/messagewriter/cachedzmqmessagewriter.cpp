@@ -31,8 +31,9 @@ bool CachedZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message)
     std::unique_lock<std::mutex> lock(queue_mutex_);
     write_queue_.push(message);
     count_++;
-    queue_lock_condition_.notify_all();
-
+    if(write_queue_.size() >= WRITE_QUEUE_MAX){
+        queue_lock_condition_.notify_all();
+    }
     return true;
 }
 
@@ -47,30 +48,42 @@ bool CachedZMQMessageWriter::Terminate(){
 
     writer_thread_->join();
 
-    //read in all messages
     std::cout << "TERMINATING: " << count_ << " write Count: " << write_count_ << std::endl;
-
+    
+    int message_count = 0;
     //Send messages in temp file
-    std::queue<google::protobuf::MessageLite*> messages = ReadFromFile();
+    
+    auto messages = ReadFromFile();
     int count = 0;
+
     while(!messages.empty()){
-        if(!ZMQMessageWriter::PushMessage(messages.front())){
-            std::cerr << "FAILED:!" << std::endl;
-        }
-        count++;
+        auto s = messages.front();
         messages.pop();
-        
+        if(s){
+            if(ZMQMessageWriter::PushString(s)){
+                message_count++;
+            }else{
+                std::cerr << "FAILED:!" << std::endl;
+            }
+            //Free Memory after writing
+            delete s;
+        }
     }
 
     //Send messages in write queue
     while(!write_queue_.empty()){
-        if(!ZMQMessageWriter::PushMessage(write_queue_.front())){
-            std::cerr << "FAILED:!" << std::endl;
-        }
-        count++;
+        auto m = write_queue_.front();
         write_queue_.pop();
+        if(m){
+            if(ZMQMessageWriter::PushMessage(m)){
+                message_count ++;
+            }else{
+                std::cerr << "FAILED:!" << std::endl;
+            }
+        }
     }
-    std::cout << "Written: " << count << std::endl;
+
+    std::cout << "Written: " << message_count << "/" << count_ << std::endl;
 
     std::remove(temp_file_path_.c_str());
 
@@ -85,11 +98,20 @@ void CachedZMQMessageWriter::WriteQueue(){
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
             //Wait for notify
-            queue_lock_condition_.wait(lock, [this](){return (write_queue_.size() >= WRITE_QUEUE_MAX) || writer_terminate_;});
-            if(!write_queue_.empty()){
-                write_queue_.swap(replace_queue);
+            queue_lock_condition_.wait(lock);
+            
+            if(writer_terminate_){
+                break;
             }
+
+            write_queue_.swap(replace_queue);
         }
+
+        if(replace_queue.empty()){
+            //Ignore empty stuffs
+            continue;
+        }
+
         //open a fstream
         //TODO: lookup file in temp file map.
         std::fstream file(temp_file_path_, std::ios::out | std::ios::app | std::ios::binary);
@@ -108,7 +130,7 @@ void CachedZMQMessageWriter::WriteQueue(){
                 write_count_++;
                 replace_queue.pop();
             }else{
-                std::cout << "FAILED WRITING?!" << std::endl;
+                std::cout << "Error writing message to file!" << std::endl;
             }
             //Clean up memory!
             delete message;
@@ -120,8 +142,8 @@ void CachedZMQMessageWriter::WriteQueue(){
     std::cout << "Terminating cached writer thread" << std::endl;
 }
 
-std::queue<google::protobuf::MessageLite*> CachedZMQMessageWriter::ReadFromFile(){
-    std::queue<google::protobuf::MessageLite*> queue;
+std::queue<std::string*> CachedZMQMessageWriter::ReadFromFile(){
+    std::queue<std::string*> queue;
 
     //open a fstream
     std::fstream file(temp_file_path_, std::ios::in | std::ios::binary);
@@ -133,19 +155,19 @@ std::queue<google::protobuf::MessageLite*> CachedZMQMessageWriter::ReadFromFile(
     //Make an output stream
     ::google::protobuf::io::ZeroCopyInputStream *raw_in = new ::google::protobuf::io::IstreamInputStream(&file);
     while(true){
-        google::protobuf::MessageLite* message = new SystemStatus();
-        
-        if(ReadDelimitedFrom(raw_in, message)){
-            queue.push(message);
+        //Allocate a new string to store the read data
+        std::string *message_str = new std::string();
+
+        //Read the proto encoded string into our message and queue if succesful
+        if(ReadDelimited2Str(raw_in, message_str)){
+            queue.push(message_str);
         }else{
-            //Free the memory
-            delete message;
+            //On Error, free memory and check for EOF
+            delete message_str;
             
-            if (file.eof()){
+            if(file.eof()){
+                std::cout << "EOF" << std::endl;
                 break;
-            }else{
-                std::cout << " LOST A MESSAGE!" << std::endl;
-                continue;
             }
         }
     }
@@ -155,8 +177,6 @@ std::queue<google::protobuf::MessageLite*> CachedZMQMessageWriter::ReadFromFile(
     file.close();
     return queue;
 }
-
-
 
 bool CachedZMQMessageWriter::WriteDelimitedTo(
     const google::protobuf::MessageLite& message,
@@ -208,4 +228,24 @@ bool CachedZMQMessageWriter::ReadDelimitedFrom(
   input.PopLimit(limit);
 
   return true;
+}
+
+bool CachedZMQMessageWriter::ReadDelimited2Str(
+    google::protobuf::io::ZeroCopyInputStream* rawInput, std::string* message) {
+    
+    google::protobuf::io::CodedInputStream input(rawInput);
+
+    // Read the size.
+    uint32_t size;
+    if(!input.ReadVarint32(&size)){
+        return false;
+    }
+
+    // Parse the message.
+    if(!input.ReadString(message, size)){
+        std::cout << "Stream Error @ " << input.CurrentPosition() << " Reading " << size << std::endl;
+        std::cout << "ERROR!" << std::endl;
+        return false;
+    }
+    return true;
 }

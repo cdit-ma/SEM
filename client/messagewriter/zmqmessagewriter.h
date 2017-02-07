@@ -12,6 +12,7 @@ class ZMQMessageWriter{
         bool BindPublisherSocket(std::string endpoint);
 
         virtual bool PushMessage(google::protobuf::MessageLite* message);
+        virtual bool PushString(std::string* message);
         virtual bool Terminate();
     private:
         zmq::socket_t* socket_;

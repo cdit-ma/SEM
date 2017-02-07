@@ -17,17 +17,17 @@ class CachedZMQMessageWriter : public ZMQMessageWriter{
         bool Terminate();
     private:
         void WriteQueue();
-        std::queue<google::protobuf::MessageLite*> ReadFromFile();
+        std::queue<std::string*> ReadFromFile();
 
 
         bool WriteDelimitedTo(const google::protobuf::MessageLite& message, google::protobuf::io::ZeroCopyOutputStream* rawOutput);
         bool ReadDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput, google::protobuf::MessageLite* message);
+        bool ReadDelimited2Str(google::protobuf::io::ZeroCopyInputStream* rawInput, std::string * message);
 
         std::string temp_file_path_;
 
         std::thread* writer_thread_;
 
-        std::map<std::string, std::string> temp_file_paths_;
 
         int count_ = 0;
         int write_count_ = 0;
