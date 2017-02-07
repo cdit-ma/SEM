@@ -1,7 +1,7 @@
 #ifndef OSPL_OUTEVENTPORT_H
 #define OSPL_OUTEVENTPORT_H
 
-#include "../core/eventports/outeventport.hpp"
+#include "../../core/eventports/outeventport.hpp"
 
 #include <string>
 #include <mutex>

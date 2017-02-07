@@ -1,7 +1,7 @@
 #ifndef RTI_OUTEVENTPORT_H
 #define RTI_OUTEVENTPORT_H
 
-#include "../core/eventports/outeventport.hpp"
+#include "../../core/eventports/outeventport.hpp"
 
 #include <string>
 #include <mutex>

@@ -1,7 +1,7 @@
 #ifndef ZMQ_INEVENTPORT_H
 #define ZMQ_INEVENTPORT_H
 
-#include "../core/eventports/ineventport.hpp"
+#include "../../core/eventports/ineventport.hpp"
 #include <vector>
 #include <iostream>
 #include <thread>

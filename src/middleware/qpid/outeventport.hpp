@@ -1,7 +1,7 @@
 #ifndef QPID_OUTEVENTPORT_H
 #define QPID_OUTEVENTPORT_H
 
-#include "../core/eventports/outeventport.hpp"
+#include "../../core/eventports/outeventport.hpp"
 
 
 #include <vector>

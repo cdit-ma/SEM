@@ -1,15 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-#Get the RE_PATH
-set(RE_PATH "$ENV{RE_PATH}")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
-
-
-
 #Set our project names
 set(CORE_NAME re_core)
 set(PROTO_CONTROL_NAME re_proto_control)
