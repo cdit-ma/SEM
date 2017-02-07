@@ -20,9 +20,6 @@ include_directories(${PROJ_NAME} ${SIGAR_INCLUDE_DIRS})
 find_package(Boost 1.36.0 COMPONENTS program_options filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
-#Generate our Protobuf source/headers
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../common/systemstatus.proto)
-
 #Link our Logger against all the Cpps
 
 set(CLIENT_SOURCE
@@ -36,7 +33,7 @@ set(CLIENT_HEADERS
 	logcontroller.h
 )
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/messagewriter")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 
 
 add_executable(${PROJ_NAME} ${CLIENT_SOURCE} ${CLIENT_HEADERS} ${PROTO_SRCS} ${PROTO_HDRS})
@@ -49,7 +46,11 @@ else()
 	target_link_libraries(${PROJ_NAME} pthread dl)
 endif()
 
-target_link_libraries(${PROJ_NAME} message_writer)
+target_link_libraries(${PROJ_NAME} zmqprotowriter)
+target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
+
+#include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
