@@ -3,8 +3,8 @@
 #include "convert.h"
 #include "message_DCPS.hpp"
 
-#include <ospl/ineventport.hpp>
-#include <ospl/outeventport.hpp>
+#include <opensplice/ineventport.hpp>
+#include <opensplice/outeventport.hpp>
 
 EventPort* ConstructRx(std::string port_name, Component* component){
     EventPort* p = 0;
