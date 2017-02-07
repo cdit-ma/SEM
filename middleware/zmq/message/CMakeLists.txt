@@ -14,13 +14,6 @@ find_package(ZeroMQ REQUIRED)
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/libportexports.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/tx.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/rx.cpp
-	)
-
-set(HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/tx.h
-	${CMAKE_CURRENT_SOURCE_DIR}/rx.h
 	)
 
 include_directories("${RE_PATH}/includes")

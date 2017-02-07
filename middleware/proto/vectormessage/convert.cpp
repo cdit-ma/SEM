@@ -1,7 +1,7 @@
-#include "vectormessageconvert.h"
+#include "convert.h"
 #include "vectormessage.pb.h"
 
-cdit::VectorMessage* proto::translate(const ::VectorMessage* message){
+cdit::VectorMessage* proto::translate(::VectorMessage* message){
         auto out = new cdit::VectorMessage();
         out->set_dataname(message->dataName());
 
@@ -12,7 +12,7 @@ cdit::VectorMessage* proto::translate(const ::VectorMessage* message){
         return out;
 }
 
-::VectorMessage* proto::translate(const cdit::VectorMessage* message){
+::VectorMessage* proto::translate(cdit::VectorMessage* message){
         auto out = new ::VectorMessage();
         out->dataName(message->dataname());
 
@@ -32,7 +32,7 @@ template <>
         return m;
 }
 
-std::string proto::encode(const ::VectorMessage* message){
+std::string proto::encode(::VectorMessage* message){
         std::string str;
         auto pb = translate(message);
         pb->SerializeToString(&str);

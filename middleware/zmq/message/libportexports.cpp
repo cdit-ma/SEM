@@ -1,7 +1,9 @@
 #include <core/libportexports.h>
 
-#include "tx.h"
-#include "rx.h"
+#include "../../proto/message/convert.h"
+
+#include <zmq/ineventport.hpp>
+#include <zmq/outeventport.hpp>
 
 EventPort* ConstructRx(std::string port_name, Component* component){
     EventPort* p = 0;
@@ -9,18 +11,12 @@ EventPort* ConstructRx(std::string port_name, Component* component){
         //Get the callback function
         auto fn = component->GetCallback(port_name);    
         if(fn){
-            p = zmq::Message::ConstructRx(component, port_name, fn);
+            p = new zmq::InEventPort<::Message, proto::Message>(component, port_name, fn);
         }
     }
     return p;
 };
 
-void DestructEventport(EventPort* port){
-    if(port){
-        delete port;
-    }
-};
-
 EventPort* ConstructTx(std::string port_name, Component* component){
-    return zmq::Message::ConstructTx(component, port_name);
+    return new zmq::OutEventPort<::Message, proto::Message>(component, port_name);
 };

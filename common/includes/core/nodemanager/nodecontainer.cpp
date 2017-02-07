@@ -232,7 +232,7 @@ EventPort* NodeContainer::ConstructTx(std::string middleware, std::string dataty
         auto lib_path = library_path_ + "/lib" + p + ".so";
 
         //Get the function
-        void* function = GetLibraryFunction(lib_path, "construct_tx");
+        void* function = GetLibraryFunction(lib_path, "ConstructTx");
         if(function){
             //Cast as EventPort* ConstructRx(std::string, std::string, Component*)
             auto typed_function = (EventPort* (*) (std::string, Component*)) function;
@@ -255,7 +255,7 @@ EventPort* NodeContainer::ConstructRx(std::string middleware, std::string dataty
         auto lib_path = library_path_ + "/lib" + p + ".so";
 
         //Get the function
-        void* function = GetLibraryFunction(lib_path, "construct_rx");
+        void* function = GetLibraryFunction(lib_path, "ConstructRx");
         if(function){
             //Cast as EventPort* ConstructRx(std::string, std::string, Component*)
             auto typed_function = (EventPort* (*) (std::string, Component*)) function;
@@ -276,7 +276,7 @@ Component* NodeContainer::ConstructComponent(std::string component_type, std::st
         auto lib_path = library_path_ + "/libcomponents_" + to_lower(component_type) + ".so";
 
         //Get the function
-        void* function = GetLibraryFunction(lib_path, "construct_component");
+        void* function = GetLibraryFunction(lib_path, "ConstructComponent");
         if(function){
             //Cast as Component* ConstructComponent(std::string)
             auto typed_function = (Component* (*) (std::string)) function;

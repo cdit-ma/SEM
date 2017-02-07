@@ -1,7 +1,0 @@
-module cdit{
-    struct Vector_Message{
-        sequence<long> vector;
-        string dataName; //@key
-    };
-    #pragma keylist Vector_Message dataName
-};

@@ -1,33 +1,38 @@
-cmake_minimum_required (VERSION 2.6)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+#Get the RE_PATH
+set(RE_PATH "$ENV{RE_PATH}")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
-#Set our module path
-set(CDITMA_RUNTIME_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../common")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CDITMA_RUNTIME_ROOT}/cmake/modules")
-
-set(PROJ_NAME proto_vectormessage_library)
+set(PROJ_NAME proto_vectormessage)
 project (${PROJ_NAME})
 
+#Find re_core library
+find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
+
+#Find protobuf
 find_package(Protobuf REQUIRED)
-include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS vectormessage.proto)
 
 set(SOURCE
 	${PROTO_SRCS}
-	${CMAKE_CURRENT_SOURCE_DIR}/vectormessageconvert.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../../vectormessage.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/../../basemessage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp
 	)
 
 set(HEADERS
 	${PROTO_HDRS}
-	${CMAKE_CURRENT_SOURCE_DIR}/vectormessageconvert.h
+	${CMAKE_CURRENT_SOURCE_DIR}/convert.h
 	)
 
+include_directories(${RE_PATH}/includes)
+include_directories(${PROTOBUF_INCLUDE_DIRS})
+#include the current binary directory to enable linking of pb.h
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
+target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
+target_link_libraries(${PROJ_NAME} datatypes_vectormessage)
+
+

@@ -1,6 +1,6 @@
 #include "vectormessage.h"
 
- VectorMessage::VectorMessage() : BaseMessage(0){
+ VectorMessage::VectorMessage() : BaseMessage(){
      //Construct a BaseMessage
  }
 

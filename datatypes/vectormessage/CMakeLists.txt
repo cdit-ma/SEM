@@ -1,18 +1,18 @@
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
 
-set(PROJ_NAME datatypes_message)
+set(PROJ_NAME datatypes_vectormessage)
 project (${PROJ_NAME})
 
 #Find re_core library
 find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/message.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/vectormessage.cpp
 	)
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/message.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/vectormessage.h
 	)
 
 #Add RE_PATH to include directories

@@ -1,7 +1,9 @@
 #include <core/libportexports.h>
 
-#include "tx.h"
-#include "rx.h"
+#include "../../proto/message/convert.h"
+
+#include <qpid/ineventport.hpp>
+#include <qpid/outeventport.hpp>
 
 EventPort* ConstructRx(std::string port_name, Component* component){
     EventPort* p = 0;
@@ -9,19 +11,12 @@ EventPort* ConstructRx(std::string port_name, Component* component){
         //Get the callback function
         auto fn = component->GetCallback(port_name);    
         if(fn){
-            p = qpid::Message::ConstructRx(component, port_name, fn);
+            p = new qpid::InEventPort<::Message, proto::Message>(component, port_name, fn);
         }
     }
     return p;
-}
-
-EventPort* ConstructTx(std::string port_name, Component* component){
-    EventPort* p = qpid::Message::ConstructTx(component, port_name);
-    return p;
 };
 
-void DestructEventport(EventPort* port){
-    if(port){
-        delete port;
-    }
+EventPort* ConstructTx(std::string port_name, Component* component){
+    return new qpid::OutEventPort<::Message, proto::Message>(component, port_name);
 };
