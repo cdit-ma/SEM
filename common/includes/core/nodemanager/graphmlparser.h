@@ -11,11 +11,11 @@ class GraphmlParser{
 
     public:
         GraphmlParser(const std::string filename);
-        std::vector<std::string> find_nodes(std::string kind, std::string parent_id = "");
-        std::vector<std::string> find_edges(std::string kind);
+        std::vector<std::string> FindNodes(std::string kind, std::string parent_id = "");
+        std::vector<std::string> FindEdges(std::string kind);
 
-        std::string get_attribute(std::string id, std::string attribute_name);
-        std::string get_data_value(std::string id, std::string key_name);
+        std::string GetAttribute(std::string id, std::string attribute_name);
+        std::string GetDataValue(std::string id, std::string key_name);
 
     private:
         std::map<std::string, std::string> attribute_map_;

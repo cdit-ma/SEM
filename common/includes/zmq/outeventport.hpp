@@ -14,11 +14,11 @@ namespace zmq{
             OutEventPort(Component* component, std::string name);
             void tx(T* message);
 
-            void startup(std::map<std::string, ::Attribute*> attributes);
-            void teardown();
+            void Startup(std::map<std::string, ::Attribute*> attributes);
+            void Teardown();
 
-            bool activate();
-            bool passivate();
+            bool Activate();
+            bool Passivate();
         private:
             std::mutex control_mutex_;
 
@@ -46,7 +46,7 @@ zmq::OutEventPort<T, S>::OutEventPort(Component* component, std::string name): :
 
 
 template <class T, class S>
-void zmq::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+void zmq::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     end_points_.clear();
@@ -60,15 +60,15 @@ void zmq::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
 };
 
 template <class T, class S>
-void zmq::OutEventPort<T, S>::teardown(){
-    passivate();
+void zmq::OutEventPort<T, S>::Teardown(){
+    Passivate();
 
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
 };
 
 template <class T, class S>
-bool zmq::OutEventPort<T, S>::activate(){
+bool zmq::OutEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     auto helper = ZmqHelper::get_zmq_helper();
@@ -84,18 +84,18 @@ bool zmq::OutEventPort<T, S>::activate(){
             }
         }
     }
-    return ::OutEventPort<T>::activate();
+    return ::OutEventPort<T>::Activate();
 };
 
 template <class T, class S>
-bool zmq::OutEventPort<T, S>::passivate(){
+bool zmq::OutEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(socket_){
         delete socket_;
         socket_ = 0;
     }
-    return ::OutEventPort<T>::passivate();
+    return ::OutEventPort<T>::Passivate();
 };
 
 #endif //ZMQ_INEVENTPORT_H

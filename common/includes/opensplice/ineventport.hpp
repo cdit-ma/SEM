@@ -17,11 +17,11 @@ namespace ospl{
             InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
             void notify();
 
-            void startup(std::map<std::string, ::Attribute*> attributes);
-            void teardown();
+            void Startup(std::map<std::string, ::Attribute*> attributes);
+            void Teardown();
 
-            bool activate();
-            bool passivate();
+            bool Activate();
+            bool Passivate();
         private:
             void receive_loop();
             
@@ -50,7 +50,7 @@ void ospl::InEventPort<T, S>::notify(){
 };
 
 template <class T, class S>
-void ospl::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+void ospl::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("topic_name")){
@@ -82,17 +82,17 @@ void ospl::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
 };
 
 template <class T, class S>
-bool ospl::InEventPort<T, S>::activate(){
+bool ospl::InEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     passivate_ = false;
     if(configured_){
         rec_thread_ = new std::thread(&ospl::InEventPort<T, S>::receive_loop, this);
     }
-    return ::InEventPort<T>::activate();
+    return ::InEventPort<T>::Activate();
 };
 
 template <class T, class S>
-bool ospl::InEventPort<T, S>::passivate(){
+bool ospl::InEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     passivate_ = true;
     if(rec_thread_){
@@ -105,13 +105,13 @@ bool ospl::InEventPort<T, S>::passivate(){
         rec_thread_ = 0;
     }
     
-    return ::InEventPort<T>::passivate();
+    return ::InEventPort<T>::Passivate();
 };
 
 
 template <class T, class S>
-void ospl::InEventPort<T, S>::teardown(){
-    passivate();
+void ospl::InEventPort<T, S>::Teardown(){
+    Passivate();
 
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;

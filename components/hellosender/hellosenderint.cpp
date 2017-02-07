@@ -5,17 +5,17 @@ HelloSenderInt::HelloSenderInt(std::string name): Component(name){
         auto att = new Attribute();
         att->name = "instName";
         att->type = AT_STRING;
-        add_attribute(att);
+        AddAttribute(att);
     }
     {
         auto att = new Attribute();
         att->name = "message";
         att->type = AT_STRING;
-        add_attribute(att);
+        AddAttribute(att);
     }
 
     //Add to call back
-    add_callback("tick", std::bind(&HelloSenderInt::_periodic_event_, this, std::placeholders::_1));
+    AddCallback("tick", std::bind(&HelloSenderInt::_periodic_event_, this, std::placeholders::_1));
 }
 
 void HelloSenderInt::_periodic_event_(BaseMessage* message){
@@ -26,7 +26,7 @@ void HelloSenderInt::_periodic_event_(BaseMessage* message){
 
 std::string HelloSenderInt::instName(){
     std::string str;
-    auto a = get_attribute("instName");
+    auto a = GetAttribute("instName");
     if(a){
         str = a->get_string();
     }
@@ -34,7 +34,7 @@ std::string HelloSenderInt::instName(){
 }
 
 void HelloSenderInt::set_instName(const std::string val){
-    auto a = get_attribute("instName");
+    auto a = GetAttribute("instName");
     if(a){
         a->set_string(val);
     }
@@ -42,7 +42,7 @@ void HelloSenderInt::set_instName(const std::string val){
 
 std::string HelloSenderInt::message(){
     std::string str;
-    auto a = get_attribute("message");
+    auto a = GetAttribute("message");
     if(a){
         str = a->get_string();
     }
@@ -50,14 +50,14 @@ std::string HelloSenderInt::message(){
 }
 
 void HelloSenderInt::set_message(const std::string val){
-    auto a = get_attribute("message");
+    auto a = GetAttribute("message");
     if(a){
         a->set_string(val);
     }
 }
 
 void HelloSenderInt::txMessage(::Message* message){
-    auto a = get_event_port("txMessage");
+    auto a = GetEventPort("txMessage");
     if(a){
         auto b = static_cast<::OutEventPort<Message> *>(a);
         if(b){

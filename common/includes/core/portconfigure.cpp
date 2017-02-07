@@ -1,6 +1,6 @@
 #include "portconfigure.h"
 
-void qpid::configure_in_event_port(EventPort* port, std::string broker, std::string topic){
+void qpid::ConfigureInEventPort(EventPort* port, std::string broker, std::string topic){
     if(!port){
         return;
     }
@@ -15,10 +15,10 @@ void qpid::configure_in_event_port(EventPort* port, std::string broker, std::str
     topic_attr->set_string(topic);
     attrs["topic_name"] = topic_attr;
 
-    port->startup(attrs);
+    port->Startup(attrs);
 }
 
-void qpid::configure_out_event_port(EventPort* port, std::string broker, std::string topic){
+void qpid::ConfigureOutEventPort(EventPort* port, std::string broker, std::string topic){
     if(!port){
         return;
     }
@@ -33,10 +33,10 @@ void qpid::configure_out_event_port(EventPort* port, std::string broker, std::st
     topic_attr->set_string(topic);
     attrs["topic_name"] = topic_attr;
     
-    port->startup(attrs);
+    port->Startup(attrs);
 }
 
-void rti::configure_in_event_port(EventPort* port, int domain, std::string subscriber_name, std::string topic_name){
+void rti::ConfigureInEventPort(EventPort* port, int domain, std::string subscriber_name, std::string topic_name){
     if(!port){
         return;
     }
@@ -55,11 +55,11 @@ void rti::configure_in_event_port(EventPort* port, int domain, std::string subsc
     domain_attr->i = domain;
     attrs["domain_id"] = domain_attr;
     
-    port->startup(attrs);
+    port->Startup(attrs);
 }
 
 
-void rti::configure_out_event_port(EventPort* port, int domain, std::string publisher_name, std::string topic_name){
+void rti::ConfigureOutEventPort(EventPort* port, int domain, std::string publisher_name, std::string topic_name){
     if(!port){
         return;
     }
@@ -78,10 +78,10 @@ void rti::configure_out_event_port(EventPort* port, int domain, std::string publ
     domain_attr->i = domain;
     attrs["domain_id"] = domain_attr;
     
-    port->startup(attrs);
+    port->Startup(attrs);
 }
 
-void ospl::configure_in_event_port(EventPort* port, int domain, std::string subscriber_name, std::string topic_name){
+void ospl::ConfigureInEventPort(EventPort* port, int domain, std::string subscriber_name, std::string topic_name){
     if(!port){
         return;
     }
@@ -100,11 +100,11 @@ void ospl::configure_in_event_port(EventPort* port, int domain, std::string subs
     domain_attr->i = domain;
     attrs["domain_id"] = domain_attr;
     
-    port->startup(attrs);
+    port->Startup(attrs);
 }
 
 
-void ospl::configure_out_event_port(EventPort* port, int domain, std::string publisher_name, std::string topic_name){
+void ospl::ConfigureOutEventPort(EventPort* port, int domain, std::string publisher_name, std::string topic_name){
     if(!port){
         return;
     }
@@ -123,10 +123,10 @@ void ospl::configure_out_event_port(EventPort* port, int domain, std::string pub
     domain_attr->i = domain;
     attrs["domain_id"] = domain_attr;
     
-    port->startup(attrs);
+    port->Startup(attrs);
 }
 
-void zmq::configure_in_event_port(EventPort* port, std::vector<std::string> end_points){
+void zmq::ConfigureInEventPort(EventPort* port, std::vector<std::string> end_points){
     if(!port){
         return;
     }
@@ -139,10 +139,10 @@ void zmq::configure_in_event_port(EventPort* port, std::vector<std::string> end_
     }
 
     attrs["publisher_address"] = pub_attr;
-    port->startup(attrs);
+    port->Startup(attrs);
 }
 
-void zmq::configure_out_event_port(EventPort* port, std::string end_point){
+void zmq::ConfigureOutEventPort(EventPort* port, std::string end_point){
     if(!port){
         return;
     }
@@ -152,5 +152,5 @@ void zmq::configure_out_event_port(EventPort* port, std::string end_point){
     attr->set_string(end_point);
 
     attrs["publisher_address"] = attr;
-    port->startup(attrs);
+    port->Startup(attrs);
 }

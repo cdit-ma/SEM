@@ -24,11 +24,11 @@ namespace qpid{
         public:
             InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
 
-            void startup(std::map<std::string, ::Attribute*> attributes);
-            void teardown();
+            void Startup(std::map<std::string, ::Attribute*> attributes);
+            void Teardown();
 
-            bool activate();
-            bool passivate();
+            bool Activate();
+            bool Passivate();
         private:
             void receive_loop();
             void qpid_loop();
@@ -55,7 +55,7 @@ qpid::InEventPort<T, S>::InEventPort(Component* component, std::string name, std
 };
 
 template <class T, class S>
-void qpid::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+void qpid::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     std::string broker;
@@ -86,23 +86,23 @@ void qpid::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
 };
 
 template <class T, class S>
-void qpid::InEventPort<T, S>::teardown(){
-    passivate();
+void qpid::InEventPort<T, S>::Teardown(){
+    Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
 };
 
 template <class T, class S>
-bool qpid::InEventPort<T, S>::activate(){
+bool qpid::InEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(configured_){
         qpid_thread_ = new std::thread(&qpid::InEventPort<T,S>::qpid_loop, this);
     }
-    return ::InEventPort<T>::activate();
+    return ::InEventPort<T>::Activate();
 };
 
 template <class T, class S>
-bool qpid::InEventPort<T, S>::passivate(){
+bool qpid::InEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(qpid_thread_ && connection_.isOpen()){
         //do passivation things here
@@ -113,7 +113,7 @@ bool qpid::InEventPort<T, S>::passivate(){
         qpid_thread_ = 0;
         connection_.close();
     }
-    return ::InEventPort<T>::passivate();
+    return ::InEventPort<T>::Passivate();
 };
 
 

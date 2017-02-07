@@ -8,7 +8,7 @@ ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string endpoint){
     endpoint_ = endpoint;
 
     //Start the registration thread
-    registration_thread_ = new std::thread(&ZMQSlave::registration_loop, this);
+    registration_thread_ = new std::thread(&ZMQSlave::RegistrationLoop, this);
 }
 
 ZMQSlave::~ZMQSlave(){
@@ -35,7 +35,7 @@ ZMQSlave::~ZMQSlave(){
     }
 }
 
-void ZMQSlave::registration_loop(){
+void ZMQSlave::RegistrationLoop(){
     auto socket = zmq::socket_t(*context_, ZMQ_REQ);
     socket.bind(endpoint_.c_str());
 
@@ -66,9 +66,9 @@ void ZMQSlave::registration_loop(){
         std::cout << "Got Slave hostname: " << host_name_ << std::endl;
 
         //Start the action subscriber loop
-        reader_thread_ = new std::thread(&ZMQSlave::action_subscriber_loop, this);
+        reader_thread_ = new std::thread(&ZMQSlave::ActionSubscriberLoop, this);
         //Start the action loop
-        action_thread_ = new std::thread(&ZMQSlave::action_queue_loop, this);
+        action_thread_ = new std::thread(&ZMQSlave::ActionQueueLoop, this);
     }catch(const zmq::error_t& exception){
         if(exception.num() == ETERM){
             std::cout << "Terminating!" << std::endl;
@@ -76,7 +76,7 @@ void ZMQSlave::registration_loop(){
     }
 }
 
-void ZMQSlave::action_subscriber_loop(){
+void ZMQSlave::ActionSubscriberLoop(){
 
     //Construct a filter for this hostname
     //Add a * char so we don't get messages for other similar hosts.
@@ -128,7 +128,7 @@ void ZMQSlave::action_subscriber_loop(){
     }
 }
 
-void ZMQSlave::action_queue_loop(){
+void ZMQSlave::ActionQueueLoop(){
     while(true){
         bool terminated = false;
         std::queue<std::pair<std::string, std::string> > replace_queue;
@@ -154,7 +154,7 @@ void ZMQSlave::action_queue_loop(){
             auto p = replace_queue.front();
             if(deployment_manager_){
                 
-                deployment_manager_->process_action(p.first, p.second);
+                deployment_manager_->ProcessAction(p.first, p.second);
             }
             
             //Convert to Proto

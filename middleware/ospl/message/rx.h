@@ -9,7 +9,7 @@
 
 namespace ospl{
     namespace Message{
-        ::InEventPort<::Message>* construct_rx(Component* component, std::string name, std::function<void (::Message*)> callback_function);
+        ::InEventPort<::Message>* ConstructRx(Component* component, std::string name, std::function<void (::Message*)> callback_function);
     };
 };
 

@@ -13,12 +13,12 @@ ExecutionManager::ExecutionManager(ZMQMaster* zmq, std::string graphml_path){
     
     graphml_parser_ = new GraphmlParser(graphml_path);
     auto start = std::chrono::system_clock::now();
-    bool success = scrape_document();
+    bool success = ScrapeDocument();
     auto end = std::chrono::system_clock::now();
     std::cout << "Parsing Document Took: " << (end - start).count() << " μs" << std::endl;
 }
 
-std::vector<std::string> ExecutionManager::get_slave_endpoints(){
+std::vector<std::string> ExecutionManager::GetSlaveEndpoints(){
     std::vector<std::string> out;
     for(auto hardware : hardware_nodes_){
         if(hardware.second->component_ids.size() != 0){
@@ -29,7 +29,7 @@ std::vector<std::string> ExecutionManager::get_slave_endpoints(){
     return out;
 }
 
-std::string ExecutionManager::get_host_name_from_address(std::string address){
+std::string ExecutionManager::GetHostNameFromAddress(std::string address){
     for(auto hardware : hardware_nodes_){
         if(address.find(hardware.second->ip_address) != std::string::npos){
             return hardware.second->name;
@@ -38,7 +38,7 @@ std::string ExecutionManager::get_host_name_from_address(std::string address){
     return "";
 }
 
-ExecutionManager::HardwareNode* ExecutionManager::get_hardware_node(std::string id){
+ExecutionManager::HardwareNode* ExecutionManager::GetHardwareNode(std::string id){
     ExecutionManager::HardwareNode* node = 0;
 
     if(hardware_nodes_.count(id)){
@@ -46,7 +46,7 @@ ExecutionManager::HardwareNode* ExecutionManager::get_hardware_node(std::string 
     }
     return node;
 }
-ExecutionManager::ComponentInstance* ExecutionManager::get_component(std::string id){
+ExecutionManager::ComponentInstance* ExecutionManager::GetComponent(std::string id){
     ExecutionManager::ComponentInstance* node = 0;
 
     if(component_instances_.count(id)){
@@ -54,7 +54,7 @@ ExecutionManager::ComponentInstance* ExecutionManager::get_component(std::string
     }
     return node;
 }
-ExecutionManager::EventPort* ExecutionManager::get_event_port(std::string id){
+ExecutionManager::EventPort* ExecutionManager::GetEventPort(std::string id){
     ExecutionManager::EventPort* node = 0;
 
     if(event_ports_.count(id)){
@@ -62,7 +62,7 @@ ExecutionManager::EventPort* ExecutionManager::get_event_port(std::string id){
     }
     return node;
 }
-ExecutionManager::Attribute* ExecutionManager::get_attribute(std::string id){
+ExecutionManager::Attribute* ExecutionManager::GetAttribute(std::string id){
     ExecutionManager::Attribute* node = 0;
 
     if(attributes_.count(id)){
@@ -72,12 +72,12 @@ ExecutionManager::Attribute* ExecutionManager::get_attribute(std::string id){
 }
 
 
-std::string ExecutionManager::get_definition_id(std::string id){
+std::string ExecutionManager::GetDefinitionId(std::string id){
     if(definition_ids_.count(id)){
         return definition_ids_[id];
     }
     std::string def_id;
-    auto kind = get_data_value(id, "kind");
+    auto kind = GetDataValue(id, "kind");
     auto definition_kind = kind;
 
     std::vector<std::string> strings = {"Instance", "Impl"};
@@ -92,9 +92,9 @@ std::string ExecutionManager::get_definition_id(std::string id){
 
     //Get the Definition ID of the 
     for(auto e_id : definition_edge_ids_){
-        auto target = get_attribute(e_id, "target");
-        auto source = get_attribute(e_id, "source");
-        auto target_kind = get_data_value(target, "kind");
+        auto target = GetAttribute(e_id, "target");
+        auto source = GetAttribute(e_id, "source");
+        auto target_kind = GetDataValue(target, "kind");
 
         if(source == id && target_kind == definition_kind){
             def_id = target;
@@ -107,22 +107,22 @@ std::string ExecutionManager::get_definition_id(std::string id){
     return def_id;
 }
 
-std::string ExecutionManager::get_impl_id(std::string id){
+std::string ExecutionManager::GetImplId(std::string id){
     std::string impl_id;
     //Check for a definition first.
-    std::string def_id = get_definition_id(id);
+    std::string def_id = GetDefinitionId(id);
     if(def_id == ""){
         def_id = id;
     }
 
     //Get the kind of Impl
-    auto impl_kind = get_data_value(def_id, "kind") + "Impl";
+    auto impl_kind = GetDataValue(def_id, "kind") + "Impl";
 
     //Get the Definition ID of the 
     for(auto e_id : definition_edge_ids_){
-        auto source = get_attribute(e_id, "source");
-        auto target = get_attribute(e_id, "target");
-        auto source_kind = get_data_value(source, "kind");
+        auto source = GetAttribute(e_id, "source");
+        auto target = GetAttribute(e_id, "target");
+        auto source_kind = GetDataValue(source, "kind");
 
         if(target == def_id && source_kind == impl_kind){
             impl_id = source;
@@ -133,37 +133,37 @@ std::string ExecutionManager::get_impl_id(std::string id){
 
 }
 
-bool ExecutionManager::scrape_document(){
+bool ExecutionManager::ScrapeDocument(){
     if(graphml_parser_){
         
-        deployment_edge_ids_ = graphml_parser_->find_edges("Edge_Deployment");
-        assembly_edge_ids_ = graphml_parser_->find_edges("Edge_Assembly");
-        definition_edge_ids_ = graphml_parser_->find_edges("Edge_Definition");
+        deployment_edge_ids_ = graphml_parser_->FindEdges("Edge_Deployment");
+        assembly_edge_ids_ = graphml_parser_->FindEdges("Edge_Assembly");
+        definition_edge_ids_ = graphml_parser_->FindEdges("Edge_Definition");
         
         //Construct a Deployment Map which points ComponentInstance - > HardwareNodes
         for(auto e_id: deployment_edge_ids_){
-            auto source_id = get_attribute(e_id, "source");
-            auto target_id = get_attribute(e_id, "target");
+            auto source_id = GetAttribute(e_id, "source");
+            auto target_id = GetAttribute(e_id, "target");
             deployed_instance_map_[source_id] = target_id;
         }
 
         //Parse HardwareNodes
-        for(auto n_id : graphml_parser_->find_nodes("HardwareNode")){
+        for(auto n_id : graphml_parser_->FindNodes("HardwareNode")){
             //Set the Node information
             auto node = new HardwareNode();
             node->id = n_id;
-            node->name = get_data_value(n_id, "label");
-            node->ip_address = get_data_value(n_id, "ip_address");        
+            node->name = GetDataValue(n_id, "label");
+            node->ip_address = GetDataValue(n_id, "ip_address");        
 
             //std::cout << "Parsed: HardwareNode[" << n_id << "]: " << node->name << std::endl;
 
             //Get the ID's of the ComponentInstances deployed to this Node
             for(auto e_id : deployment_edge_ids_){
-                auto target_id = get_attribute(e_id, "target");
+                auto target_id = GetAttribute(e_id, "target");
 
                 if(n_id == target_id){
-                    auto source_id = get_attribute(e_id, "source");
-                    auto source_kind = get_data_value(source_id, "kind");
+                    auto source_id = GetAttribute(e_id, "source");
+                    auto source_kind = GetDataValue(source_id, "kind");
                     
                     if(source_kind == "ComponentInstance"){
                         node->component_ids.push_back(source_id);
@@ -182,10 +182,10 @@ bool ExecutionManager::scrape_document(){
         }
 
         //Parse ComponentInstances
-        for(auto c_id : graphml_parser_->find_nodes("ComponentInstance")){
+        for(auto c_id : graphml_parser_->FindNodes("ComponentInstance")){
             auto component = new ComponentInstance();
             component->id = c_id;
-            component->name = get_data_value(c_id, "label");
+            component->name = GetDataValue(c_id, "label");
 
             std::cout << "Parsed: ComponentInstance[" << c_id << "]: " << component->name << std::endl;
 
@@ -193,15 +193,15 @@ bool ExecutionManager::scrape_document(){
             if(deployed_instance_map_.count(c_id)){
                 //Get the Node ID
                 component->node_id = deployed_instance_map_[c_id];
-                node = get_hardware_node(component->node_id);
+                node = GetHardwareNode(component->node_id);
             }
             
             //Parse Attributes
-            for(auto a_id : graphml_parser_->find_nodes("AttributeInstance", c_id)){
+            for(auto a_id : graphml_parser_->FindNodes("AttributeInstance", c_id)){
                 auto attribute = new Attribute();
                 attribute->id = a_id;
                 attribute->component_id = c_id;
-                attribute->name = get_data_value(a_id, "label");
+                attribute->name = GetDataValue(a_id, "label");
 
                 if(!attributes_.count(a_id)){
                     attributes_[a_id] = attribute;
@@ -215,9 +215,9 @@ bool ExecutionManager::scrape_document(){
             }
 
             //Get the Event ports
-            auto port_ids = graphml_parser_->find_nodes("OutEventPortInstance", c_id);
+            auto port_ids = graphml_parser_->FindNodes("OutEventPortInstance", c_id);
             {
-                auto in_port_ids = graphml_parser_->find_nodes("InEventPortInstance", c_id);
+                auto in_port_ids = graphml_parser_->FindNodes("InEventPortInstance", c_id);
                 //Combine into one list to reduce code duplication            
                 port_ids.insert(port_ids.end(), in_port_ids.begin(), in_port_ids.end());
             }
@@ -227,11 +227,11 @@ bool ExecutionManager::scrape_document(){
                 auto port = new EventPort();
                 port->id = p_id;
                 port->component_id = c_id;
-                port->name = get_data_value(p_id, "label");
-                port->topic_name = get_data_value(p_id, "topicName");
-                port->kind = get_data_value(p_id, "kind");
-                port->middleware = get_data_value(p_id, "middleware");
-                port->message_type = get_data_value(p_id, "type");
+                port->name = GetDataValue(p_id, "label");
+                port->topic_name = GetDataValue(p_id, "topicName");
+                port->kind = GetDataValue(p_id, "kind");
+                port->middleware = GetDataValue(p_id, "middleware");
+                port->message_type = GetDataValue(p_id, "type");
 
                 //Register Only OutEventPortInstances
                 if(port->kind == "OutEventPortInstance" && node && port->middleware == "ZMQ"){
@@ -262,26 +262,26 @@ bool ExecutionManager::scrape_document(){
         }
 
         //Parse ComponentImpl
-        for(auto c_id : graphml_parser_->find_nodes("ComponentImpl")){
+        for(auto c_id : graphml_parser_->FindNodes("ComponentImpl")){
             //Set the ComponentInstance information
             auto component = new ComponentImpl();
             component->id = c_id;
-            component->name = get_data_value(c_id, "label");
-            component->definition_id = get_definition_id(c_id);
+            component->name = GetDataValue(c_id, "label");
+            component->definition_id = GetDefinitionId(c_id);
 
 
             //std::cout << "Parsed: ComponentImpl[" << c_id << "]: " << component->name << std::endl;
             
             //Parse Periodic_Events
-            for(auto p_id : graphml_parser_->find_nodes("PeriodicEvent", c_id)){
+            for(auto p_id : graphml_parser_->FindNodes("PeriodicEvent", c_id)){
                 auto port = new EventPort();
 
                 //setup the port
                 port->id = p_id;
                 port->component_id = c_id;
-                port->name = get_data_value(p_id, "label");
-                port->kind = get_data_value(p_id, "kind");
-                port->frequency = get_data_value(p_id, "frequency");
+                port->name = GetDataValue(p_id, "label");
+                port->kind = GetDataValue(p_id, "kind");
+                port->frequency = GetDataValue(p_id, "frequency");
                 
                 //std::cout << "Parsed: PeriodicEvent[" << p_id << "]: " << port->name << std::endl;
 
@@ -298,9 +298,9 @@ bool ExecutionManager::scrape_document(){
 
             //Look through the Definition edges to find all instances of the Component Definition
             for(auto e_id : definition_edge_ids_){
-                auto source = get_attribute(e_id, "source");
-                auto target = get_attribute(e_id, "target");
-                auto source_kind = get_data_value(source, "kind");
+                auto source = GetAttribute(e_id, "source");
+                auto target = GetAttribute(e_id, "target");
+                auto source_kind = GetDataValue(source, "kind");
 
                 if(target == component->definition_id && source_kind == "ComponentInstance"){
                     component->instance_ids.push_back(source);
@@ -332,20 +332,20 @@ bool ExecutionManager::scrape_document(){
     return false;
 }
 
-std::string ExecutionManager::get_attribute(std::string id, std::string attr_name){
+std::string ExecutionManager::GetAttribute(std::string id, std::string attr_name){
     if(graphml_parser_){
-        return graphml_parser_->get_attribute(id, attr_name);
+        return graphml_parser_->GetAttribute(id, attr_name);
     }
     return "";
 }
-std::string ExecutionManager::get_data_value(std::string id, std::string key_name){
+std::string ExecutionManager::GetDataValue(std::string id, std::string key_name){
     if(graphml_parser_){
-        return graphml_parser_->get_data_value(id, key_name);
+        return graphml_parser_->GetDataValue(id, key_name);
     }
     return "";
 }
 
-void ExecutionManager::execution_loop(){
+void ExecutionManager::ExecutionLoop(){
     std::map<std::string, NodeManager::ControlMessage*> deployment_map;
 
     //Get the Deployed Hardware nodes. Construct STARTUP messages
@@ -371,8 +371,8 @@ void ExecutionManager::execution_loop(){
             node_pb = deployment_map[h_id]->mutable_node();
         }
 
-        auto component = get_component(c_id);
-        auto hardware_node = get_hardware_node(h_id);
+        auto component = GetComponent(c_id);
+        auto hardware_node = GetHardwareNode(h_id);
 
         if(hardware_node && component && node_pb){
             std::cout << "Node: " << hardware_node->name << " Deploys: " << component->name << std::endl;
@@ -385,14 +385,14 @@ void ExecutionManager::execution_loop(){
 
             //Get the Component Attributes
             for(auto a_id : component->attribute_ids){
-                auto attribute = get_attribute(a_id);
+                auto attribute = GetAttribute(a_id);
                 if(attribute){
                     auto attr_pb = component_pb->add_attributes();
 
-                    attr_pb->set_name(get_data_value(a_id, "label"));
+                    attr_pb->set_name(GetDataValue(a_id, "label"));
 
-                    auto type = get_data_value(a_id, "type");
-                    auto value = get_data_value(a_id, "value");
+                    auto type = GetDataValue(a_id, "type");
+                    auto value = GetDataValue(a_id, "value");
 
                     if(type == "DoubleNumber" || type == "Float"){
                         attr_pb->set_type(NodeManager::Attribute::DOUBLE);
@@ -408,7 +408,7 @@ void ExecutionManager::execution_loop(){
             }
 
             for(auto p_id: component->event_port_ids){
-                auto event_port = get_event_port(p_id);
+                auto event_port = GetEventPort(p_id);
                 
                 if(event_port){
                     //Add a Port the the Component
@@ -419,7 +419,7 @@ void ExecutionManager::execution_loop(){
                     port_pb->set_message_type(event_port->message_type);
                     //p->set_id(p_id)
 
-                    std::string kind = get_data_value(p_id, "kind");
+                    std::string kind = GetDataValue(p_id, "kind");
 
                     if(event_port->kind == "OutEventPortInstance"){
                         port_pb->set_type(NodeManager::EventPort::OUT);
@@ -462,7 +462,7 @@ void ExecutionManager::execution_loop(){
                         set_attr_string(broker, "localhost:5672"); 
 
                         if(port_pb->type() == NodeManager::EventPort::OUT){
-                            HardwareNode* node = get_hardware_node(component->node_id);
+                            HardwareNode* node = GetHardwareNode(component->node_id);
                             if(node){
                                 if(event_port->port_number > 0){
                                     //Set Publisher TCP Address
@@ -488,10 +488,10 @@ void ExecutionManager::execution_loop(){
 
                             //FIND END POINTS
                             for(auto e_id : assembly_edge_ids_){
-                                auto s_id = graphml_parser_->get_attribute(e_id, "source");
-                                auto t_id = graphml_parser_->get_attribute(e_id, "target");
-                                EventPort* s = get_event_port(s_id);
-                                EventPort* t = get_event_port(t_id);
+                                auto s_id = graphml_parser_->GetAttribute(e_id, "source");
+                                auto t_id = graphml_parser_->GetAttribute(e_id, "target");
+                                EventPort* s = GetEventPort(s_id);
+                                EventPort* t = GetEventPort(t_id);
                                 if(t == event_port && s->port_number > 0){
                                     set_attr_string(publisher_addr_pb, s->port_address);
                                 }
@@ -521,6 +521,6 @@ void ExecutionManager::execution_loop(){
         std::string filter_name = a.second->mutable_node()->name() + "*";
         std::cout << "Master sending Action to: " << filter_name << std::endl;
         //std::cout << a.second->DebugString() << std::endl;
-        zmq_master_->send_action(filter_name, a.second);
+        zmq_master_->SendAction(filter_name, a.second);
     }
 }

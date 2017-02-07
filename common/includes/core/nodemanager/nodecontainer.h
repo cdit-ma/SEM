@@ -19,36 +19,36 @@ class NodeContainer{
         NodeContainer(std::string library_path);
         ~NodeContainer();
         
-        bool activate(std::string component_name);
-        bool passivate(std::string component_name);
+        bool Activate(std::string component_name);
+        bool Passivate(std::string component_name);
 
-        bool activate_all();
-        bool passivate_all();
+        bool ActivateAll();
+        bool PassivateAll();
 
-        void configure(NodeManager::ControlMessage* message);
+        void Configure(NodeManager::ControlMessage* message);
         
-        void teardown();
+        void Teardown();
 
-        bool add_component(Component* component);
-        Component* get_component(std::string component_name);
+        bool AddComponent(Component* component);
+        Component* GetComponent(std::string component_name);
 
     private:
         //DLL functions
-        void* load_library(std::string dll_path);
-        void* get_library_function(std::string dll_path, std::string function_name);
-        void* get_library_function(void* lib_handle, std::string function_name);
+        void* LoadLibrary(std::string dll_path);
+        void* GetLibraryFunction(std::string dll_path, std::string function_name);
+        void* GetLibraryFunction(void* lib_handle, std::string function_name);
 
-        void add_tx_constructor(std::string middleware, TxConstructor constructor);
-        void add_rx_constructor(std::string middleware, TxConstructor constructor);
-        void add_component_constructor(std::string component_type, ComponentConstructor constructor);
+        void AddTxConstructor(std::string middleware, TxConstructor constructor);
+        void AddRxConstructor(std::string middleware, TxConstructor constructor);
+        void AddComponentConstructor(std::string component_type, ComponentConstructor constructor);
     
     public:
         //Constructor functions
-        EventPort* construct_periodic_event(Component* component, std::string port_name);
-        EventPort* construct_tx(std::string middleware, std::string datatype, Component* component, std::string port_name);
-        EventPort* construct_rx(std::string middleware, std::string datatype, Component* component, std::string port_name);
+        EventPort* ConstructPeriodicEvent(Component* component, std::string port_name);
+        EventPort* ConstructTx(std::string middleware, std::string datatype, Component* component, std::string port_name);
+        EventPort* ConstructRx(std::string middleware, std::string datatype, Component* component, std::string port_name);
 
-        Component* construct_component(std::string component_type, std::string component_name);
+        Component* ConstructComponent(std::string component_type, std::string component_name);
 
      private:
         std::string library_path_;

@@ -23,11 +23,11 @@ namespace qpid{
             OutEventPort(Component* component, std::string name);
             void tx(T* message);
 
-            void startup(std::map<std::string, ::Attribute*> attributes);
-            void teardown();
+            void Startup(std::map<std::string, ::Attribute*> attributes);
+            void Teardown();
 
-            bool activate();
-            bool passivate();
+            bool Activate();
+            bool Passivate();
         private:
             std::mutex control_mutex_;
             bool configured_ = false;
@@ -58,7 +58,7 @@ qpid::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
 ::OutEventPort<T>(component, name){};
 
 template <class T, class S>
-void qpid::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+void qpid::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("broker") && attributes.count("topic_name")){
@@ -76,14 +76,14 @@ void qpid::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attri
 };
 
 template <class T, class S>
-void qpid::OutEventPort<T, S>::teardown(){
-    passivate();
+void qpid::OutEventPort<T, S>::Teardown(){
+    Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
 };
 
 template <class T, class S>
-bool qpid::OutEventPort<T, S>::activate(){
+bool qpid::OutEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(configured_){
         connection_ = qpid::messaging::Connection(broker_);
@@ -92,18 +92,18 @@ bool qpid::OutEventPort<T, S>::activate(){
         std::string tn = "amq.topic/" + topic_;
         sender_ = session_.createSender(tn);
     }
-    return ::OutEventPort<T>::activate();    
+    return ::OutEventPort<T>::Activate();    
 };
 
 template <class T, class S>
-bool qpid::OutEventPort<T, S>::passivate(){
+bool qpid::OutEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(connection_.isOpen()){
         connection_.close();
         connection_ = 0;
     }
-    return ::OutEventPort<T>::passivate();
+    return ::OutEventPort<T>::Passivate();
  
 };
 

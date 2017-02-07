@@ -70,24 +70,24 @@ class ExecutionManager{
     public:
         ExecutionManager(ZMQMaster *zmqmaster, std::string graphml_path);
 
-        std::vector<std::string> get_slave_endpoints();
-        std::string get_host_name_from_address(std::string address);
+        std::vector<std::string> GetSlaveEndpoints();
+        std::string GetHostNameFromAddress(std::string address);
 
-        void execution_loop();
+        void ExecutionLoop();
     private:
-        std::string get_attribute(std::string id, std::string attr_name);
-        std::string get_data_value(std::string id, std::string key_name);
+        std::string GetAttribute(std::string id, std::string attr_name);
+        std::string GetDataValue(std::string id, std::string key_name);
         
-        std::string get_definition_id(std::string id);
-        std::string get_impl_id(std::string id);
+        std::string GetDefinitionId(std::string id);
+        std::string GetImplId(std::string id);
         
 
-        ExecutionManager::HardwareNode* get_hardware_node(std::string id);
-        ExecutionManager::ComponentInstance* get_component(std::string id);
-        ExecutionManager::EventPort* get_event_port(std::string id);
-        ExecutionManager::Attribute* get_attribute(std::string id);
+        ExecutionManager::HardwareNode* GetHardwareNode(std::string id);
+        ExecutionManager::ComponentInstance* GetComponent(std::string id);
+        ExecutionManager::EventPort* GetEventPort(std::string id);
+        ExecutionManager::Attribute* GetAttribute(std::string id);
 
-        bool scrape_document();
+        bool ScrapeDocument();
 
         
         std::thread* execution_thread_;

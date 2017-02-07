@@ -13,7 +13,7 @@ class DeploymentManager{
         DeploymentManager(std::string library_path);
         ~DeploymentManager();
 
-        void process_action(std::string node_name, std::string action);
+        void ProcessAction(std::string node_name, std::string action);
 
         NodeContainer* get_deployment();
 

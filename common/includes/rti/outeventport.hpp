@@ -15,11 +15,11 @@ namespace rti{
             OutEventPort(Component* component, std::string name);
             void tx(T* message);
 
-            void startup(std::map<std::string, ::Attribute*> attributes);
-            void teardown();
+            void Startup(std::map<std::string, ::Attribute*> attributes);
+            void Teardown();
 
-            bool activate();
-            bool passivate();
+            bool Activate();
+            bool Passivate();
         private:
             std::mutex control_mutex_;
 
@@ -51,7 +51,7 @@ rti::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
 ::OutEventPort<T>(component, name){};
 
 template <class T, class S>
-void rti::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
     {std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("publisher_name")){
@@ -80,18 +80,18 @@ void rti::OutEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attrib
        // auto topic = get_topic<S>(participant, topic_name_);
     }
 }
-    //activate();
+    //Activate();
 };
 
 template <class T, class S>
-void rti::OutEventPort<T, S>::teardown(){
-    passivate();
+void rti::OutEventPort<T, S>::Teardown(){
+    Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
 };
 
 template <class T, class S>
-bool rti::OutEventPort<T, S>::activate(){
+bool rti::OutEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     //Construct a DDS Participant, Publisher, Topic and Writer
@@ -102,18 +102,18 @@ bool rti::OutEventPort<T, S>::activate(){
     //std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     auto publisher = helper->get_publisher(participant, publisher_name_);
     writer_ = get_data_writer<S>(publisher, topic);
-    return ::OutEventPort<T>::activate();
+    return ::OutEventPort<T>::Activate();
 };
 
 template <class T, class S>
-bool rti::OutEventPort<T, S>::passivate(){
+bool rti::OutEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(writer_ != dds::core::null){
         writer_ = dds::core::null;
     }
 
-    return ::OutEventPort<T>::passivate();
+    return ::OutEventPort<T>::Passivate();
 };
 
 #endif //RTI_OUTEVENTPORT_H

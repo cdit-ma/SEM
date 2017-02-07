@@ -19,7 +19,7 @@ template <class T> class InEventPort: public EventPort{
                     std::cout << "InEventPort: " << name << " has a NULL Callback Function!" << std::endl;
                 }
                 
-                component_->add_event_port(this);
+                component_->AddEventPort(this);
             }
         };
         virtual ~InEventPort(){};

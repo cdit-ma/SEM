@@ -8,7 +8,7 @@
 
 namespace zmq{
     namespace Message{
-        ::OutEventPort<::Message>* construct_tx(Component* component, std::string name);
+        ::OutEventPort<::Message>* ConstructTx(Component* component, std::string name);
     }
 };
 

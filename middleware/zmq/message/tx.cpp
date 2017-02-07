@@ -3,7 +3,7 @@
 #include <core/libportexports.h>
 
 
-::OutEventPort<::Message>* zmq::Message::construct_tx(Component* component, std::string name){
+::OutEventPort<::Message>* zmq::Message::ConstructTx(Component* component, std::string name){
     return new zmq::OutEventPort<::Message, proto::Message>(component, name);
 }
 

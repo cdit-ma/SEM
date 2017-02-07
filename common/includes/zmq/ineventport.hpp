@@ -18,11 +18,11 @@ namespace zmq{
             InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
             ~InEventPort();
 
-            void startup(std::map<std::string, ::Attribute*> attributes);
-            void teardown();
+            void Startup(std::map<std::string, ::Attribute*> attributes);
+            void Teardown();
 
-            bool activate();
-            bool passivate();
+            bool Activate();
+            bool Passivate();
 
         private:
             void receive_loop();
@@ -122,7 +122,7 @@ zmq::InEventPort<T, S>::InEventPort(Component* component, std::string name, std:
 
 
 template <class T, class S>
-void zmq::InEventPort<T, S>::startup(std::map<std::string, ::Attribute*> attributes){
+void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
 
     std::lock_guard<std::mutex> lock(control_mutex_);
     end_points_.clear();
@@ -151,23 +151,23 @@ zmq::InEventPort<T, S>::~InEventPort(){
 
 
 template <class T, class S>
-void zmq::InEventPort<T, S>::teardown(){
-    passivate();
+void zmq::InEventPort<T, S>::Teardown(){
+    Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
 };
 
 template <class T, class S>
-bool zmq::InEventPort<T, S>::activate(){
+bool zmq::InEventPort<T, S>::Activate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(configured_){
         zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
     }
-    return ::InEventPort<T>::activate();
+    return ::InEventPort<T>::Activate();
 };
 
 template <class T, class S>
-bool zmq::InEventPort<T, S>::passivate(){
+bool zmq::InEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(zmq_thread_){
         //Construct our terminate socket
@@ -185,7 +185,7 @@ bool zmq::InEventPort<T, S>::passivate(){
         delete term_socket;
     }
     
-    return ::InEventPort<T>::passivate();
+    return ::InEventPort<T>::Passivate();
 };
 
 #endif //ZMQ_INEVENTPORT_H

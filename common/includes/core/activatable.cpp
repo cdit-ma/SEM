@@ -8,12 +8,12 @@ const std::string Activatable::get_name(){
 void Activatable::set_name(std::string name){
     name_ = name;
 }
-bool Activatable::activate(){
+bool Activatable::Activate(){
     active_ = true;
     return true;
 }
 
-bool Activatable::passivate(){
+bool Activatable::Passivate(){
     active_ = false;
     return true;
 }

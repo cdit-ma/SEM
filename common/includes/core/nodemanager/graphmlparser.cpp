@@ -15,7 +15,7 @@ GraphmlParser::GraphmlParser(const std::string filename){
     }
 }
 
-std::vector<std::string> GraphmlParser::find_nodes(std::string kind, std::string parent_id){
+std::vector<std::string> GraphmlParser::FindNodes(std::string kind, std::string parent_id){
 
     std::string search = ".//node";
 
@@ -31,7 +31,7 @@ std::vector<std::string> GraphmlParser::find_nodes(std::string kind, std::string
     return out;
 }
 
-std::vector<std::string> GraphmlParser::find_edges(std::string kind){
+std::vector<std::string> GraphmlParser::FindEdges(std::string kind){
     std::string search = ".//edge[data[@key='" + 
                             attribute_map_["kind"] + "' and .='" + kind +"']]";
 
@@ -43,7 +43,7 @@ std::vector<std::string> GraphmlParser::find_edges(std::string kind){
     return out;
 }
 
-std::string GraphmlParser::get_attribute(std::string id, std::string attribute_name){
+std::string GraphmlParser::GetAttribute(std::string id, std::string attribute_name){
     std::string search = ".//*[@id='" + id + "']";
     std::string out;
     try{
@@ -53,7 +53,7 @@ std::string GraphmlParser::get_attribute(std::string id, std::string attribute_n
     return out;
 }
 
-std::string GraphmlParser::get_data_value(std::string id, std::string key_name){
+std::string GraphmlParser::GetDataValue(std::string id, std::string key_name){
     std::string search = ".//*[@id='" + id + "']/data[@key='" + attribute_map_[key_name] + "']";
     std::string out;
     try{

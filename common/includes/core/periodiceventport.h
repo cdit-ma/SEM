@@ -16,15 +16,15 @@ class PeriodicEventPort: public EventPort{
     
     public:
         PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds);
-        bool activate();
-        bool passivate();
+        bool Activate();
+        bool Passivate();
 
-        void startup(std::map<std::string, ::Attribute*> attributes);
-        void teardown();
+        void Startup(std::map<std::string, ::Attribute*> attributes);
+        void Teardown();
 
     private:
-        bool wait_for_tick();
-        void loop();
+        bool WaitForTick();
+        void Loop();
         
         std::mutex mutex_;
         std::condition_variable lock_condition_;

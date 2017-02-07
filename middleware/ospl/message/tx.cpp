@@ -4,6 +4,6 @@
 #include "message_DCPS.hpp"
 
 
-::OutEventPort<::Message>* ospl::Message::construct_tx(Component* component, std::string name){
+::OutEventPort<::Message>* ospl::Message::ConstructTx(Component* component, std::string name){
     return new ospl::OutEventPort<::Message, cdit::Message>(component, name);
 }
