@@ -23,7 +23,7 @@ message WorkloadEvent{
 
 message ComponentEvent{
     string id = 1;
-    string name = 2;
+    string type = 2;
     ActionType action_type = 3;
 }
 
@@ -31,12 +31,14 @@ message PortEvent{
     enum PortType{
         TX = 0;
         RX = 1;
+        PE = 2;
     }
 
     string id = 1;
     string name = 2;
-    PortType type = 3;
-    ActionType action_type = 4;
+    ActionType action_type = 3;
+    string message_type = 4;
+    PortType type = 5;
 }
 
 message ModelEvent{
@@ -45,7 +47,7 @@ message ModelEvent{
     double timestamp = 3;
 
     //Events
-    repeated ComponentEvent component_event = 4;
-    repeated PortEvent port_event = 5;
-    repeated WorkloadEvent workload_event = 6;
+    ComponentEvent component_event = 4;
+    PortEvent port_event = 5;
+    WorkloadEvent workload_event = 6;
 }
