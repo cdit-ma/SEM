@@ -17,6 +17,7 @@ class ModelLogger{
         };
         //Static getter functions
         static ModelLogger* get_model_logger();
+        static void shutdown_logger();
         
     protected:
         ModelLogger(bool cached);

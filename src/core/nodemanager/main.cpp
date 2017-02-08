@@ -13,10 +13,11 @@
 
 std::string VERSION_NAME = "re_node_manager";
 std::string VERSION_NUMBER = "1.0";
-
+#include "../modellogger.h"
 
 int main(int argc, char **argv)
 {
+  
     //Get the library path from the argument variables
     std::string dll_path;
     std::string graphml_path;
@@ -75,6 +76,8 @@ int main(int argc, char **argv)
     if(is_server){
         std::cout << "Starting MASTER on " << master_endpoint << std::endl;
         master = new ZMQMaster(master_endpoint, graphml_path);
+    }else{
+        ModelLogger::get_model_logger();
     }
     
     if(deployment_manager){
@@ -165,8 +168,13 @@ int main(int argc, char **argv)
         node_container->Teardown();
     }
 
+    
+
     //Free Memory
     delete deployment_manager;
+    
+    std::cout << "PASSIVATING LOGGER" << std::endl;
+    ModelLogger::shutdown_logger();
     
     return 0;
 }

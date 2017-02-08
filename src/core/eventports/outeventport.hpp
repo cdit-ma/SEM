@@ -8,7 +8,7 @@
 template <class T> class OutEventPort: public EventPort{
     public:
         OutEventPort(Component* component, std::string name):
-        EventPort(component, name, EventPort::Type::TX)){}
+        EventPort(component, name, EventPort::Type::TX){}
         virtual ~OutEventPort(){};
         virtual void tx(T*) = 0;
 };

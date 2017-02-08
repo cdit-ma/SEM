@@ -8,7 +8,6 @@
 //Forward declare
 class Component;
 
-
 //Interface for a standard EventPort
 class EventPort: public Activatable{
     public:
@@ -22,6 +21,9 @@ class EventPort: public Activatable{
         virtual ~EventPort(){};
         virtual void Startup(std::map<std::string, ::Attribute*> attributes) = 0;
         virtual void Teardown() = 0;
+
+        virtual bool Activate();
+        virtual bool Passivate();
 
         const bool IsOutEventPort();
         const bool IsInEventPort();

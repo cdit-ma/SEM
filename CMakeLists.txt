@@ -10,7 +10,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 #Set the projects RPATH to look in the executable directory
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN")
+set(CMAKE_INSTALL_RPATH "@loader_path;$ORIGIN;@loader_path/../lib/;$ORIGIN/../lib/")
+
+
 
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")

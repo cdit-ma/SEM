@@ -1,5 +1,5 @@
 #include "activatable.h"
-
+#include "modellogger.h"
 
 const std::string Activatable::get_name(){
     return name_;
@@ -21,3 +21,7 @@ bool Activatable::Passivate(){
 const bool Activatable::is_active(){
     return active_;
 }
+
+ModelLogger* Activatable::logger(){
+    return ModelLogger::get_model_logger();
+};

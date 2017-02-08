@@ -3,18 +3,8 @@
 
 #include <string>
 #include <map>
-/*
-struct Attribute{
-    enum ATTRIBUTE_TYPE{
-        AT_STRING = 0,
-        AT_INTEGER = 1,
-        AT_BOOLEAN = 2,
-        AT_DOUBLE = 3
-    };
-    ATTRIBUTE_TYPE type;
-    std::string name;
-    std::string value;
-};*/
+
+class ModelLogger;
 
 class Activatable{  
     public:
@@ -25,7 +15,7 @@ class Activatable{
         //virtual bool Startup(std::map<std::string, Attribute> attributes); //Configure Component
         //virtual bool Teardown();
 
-
+        ModelLogger* logger();
         const bool is_active();
         //const bool is_started();
    private:
