@@ -43,6 +43,12 @@ message LifecycleEvent{
     Port port = 4;
 }
 
+message MessageEvent{
+    Info info = 1;
+    Component component = 2;
+    Port port = 3;
+}
+
 message WorkloadEvent{
     enum Type{
         STARTED = 0;
