@@ -91,6 +91,7 @@ void SQLController::RecieverThread(){
 
             //If we have a valid message
             if(type->size() > 0 && data->size() > 0){
+                std::cout << "Got message" << std::endl;
                 //Construct a string out of the zmq data
                 std::string type_str(static_cast<char *>(type->data()), type->size());
                 std::string msg_str(static_cast<char *>(data->data()), data->size());
@@ -133,8 +134,8 @@ void SQLController::SQLThread(){
 
         //TODO: switch on message type (event/systemstatus)
         //Construct a Protobuf object
-        SystemStatus* message = new SystemStatus();
-        ModelEvent* event = new ModelEvent();
+        auto system_status = new SystemStatus();
+        auto lifecycle_event = new re_common::LifecycleEvent();
 
         //Empty the queue
         while(!replace_queue.empty()){
@@ -143,14 +144,15 @@ void SQLController::SQLThread(){
             std::string type = replace_queue.front().first;
             std::string msg = replace_queue.front().second;
 
-            if(type == message->GetTypeName()){
-                message->ParseFromString(msg);                
+            if(type == system_status->GetTypeName()){
+                system_status->ParseFromString(msg);                
                 //dump to the contents to sql statements
-                log_database_->ProcessSystemStatus(message);
+                log_database_->ProcessSystemStatus(system_status);
             }
-            else if(type == event->GetTypeName()){
-                event->ParseFromString(msg);
-                log_database_->ProcessEvent(event);
+            else if(type == lifecycle_event->GetTypeName()){
+                lifecycle_event->ParseFromString(msg);
+                std::cout << "Parsing model event" << std::endl;
+                log_database_->ProcessLifecycleEvent(lifecycle_event);
             }
             else{
                 std::cout << "Cannot process message: " <<  replace_queue.front().first << std::endl;
@@ -159,11 +161,11 @@ void SQLController::SQLThread(){
             replace_queue.pop();
             
             //clear our message
-            message->Clear();
-            event->Clear();
+            system_status->Clear();
+            lifecycle_event->Clear();
         }
         //Free the memory
-        delete message;
-        delete event;
+        delete system_status;
+        delete lifecycle_event;
     }
 }

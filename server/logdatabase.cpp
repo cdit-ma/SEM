@@ -258,55 +258,51 @@ std::string LogDatabase::get_process_info_insert_query() const{
             ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
 }
 
-std::string LogDatabase::get_component_lifecycle_table_string() const{
-    return  "CREATE TABLE IF NOT EXISTS ComponentLifecycle ("
-            "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "hostname VARCHAR,"                             //1
-            "component_name VARCHAR,"                       //2
-            "timeofday DECIMAL,"                            //3
-            "id VARCHAR,"                                   //4
-            "type VARCHAR,"                                 //5
-            "action VARCHAR"                                //6
-            ");";
-}
-
-std::string LogDatabase::get_component_lifecycle_insert_query() const{
-    return  "INSERT INTO ComponentLifecycle (" 
-            "hostname,"                                     //1
-            "component_name,"                               //2
-            "timeofday,"                                    //3
-            "id,"                                           //4
-            "type,"                                         //5
-            "action"                                        //6 
-            ") VALUES (?1, ?2, ?3, ?4, ?5, ?6);";
-}
-
 std::string LogDatabase::get_port_lifecycle_table_string() const{
-    return  "CREATE TABLE IF NOT EXISTS PortLifecycle ("
+    return  "CREATE TABLE IF NOT EXISTS Lifecycle_Port ("
             "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "hostname VARCHAR,"                             //1
-            "component_name VARCHAR,"                       //2
-            "timeofday DECIMAL,"                            //3
-            "id VARCHAR,"                                   //4
-            "name VARCHAR,"                                 //5
-            "action VARCHAR,"                               //6
-            "message_type VARCHAR,"                         //7
-            "port_type VARCHAR"                            //8
+            "timeofday DECIMAL,"                            //1
+            "hostname VARCHAR,"                             //2
+            "component_name VARCHAR,"                       //3
+            "component_id VARCHAR,"                         //4
+            "port_name VARCHAR,"                            //5
+            "port_id VARCHAR,"                              //6
+            "event VARCHAR"                                 //7
             ");";
 }
 
 std::string LogDatabase::get_port_lifecycle_insert_query() const{
-    return  "INSERT INTO PortLifecycle (" 
-            "hostname,"                                     //1
-            "component_name,"                               //2
-            "timeofday,"                                    //3
-            "id,"                                           //4
-            "type,"                                         //5
-            "action,"                                       //6
-            "message_type,"                                 //7
-            "port_type"                                     //8
-            ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);";
+    return  "INSERT INTO Lifecycle_Port (" 
+            "timeofday,"                                    //1
+            "hostname,"                                     //2
+            "component_name,"                               //3
+            "component_id,"                                 //4
+            "port_name,"                                    //5
+            "port_id,"                                      //6
+            "event"                                         //7
+            ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
 }
+std::string LogDatabase::get_component_lifecycle_table_string() const{
+    return  "CREATE TABLE IF NOT EXISTS Lifecycle_Component ("
+            "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "timeofday DECIMAL,"                            //1
+            "hostname VARCHAR,"                             //2
+            "component_name VARCHAR,"                       //3
+            "component_id VARCHAR,"                         //4
+            "event VARCHAR"                                 //5
+            ");";
+}
+
+std::string LogDatabase::get_component_lifecycle_insert_query() const{
+    return  "INSERT INTO Lifecycle_Component (" 
+            "timeofday,"                                    //1
+            "hostname,"                                     //2
+            "component_name,"                               //3
+            "component_id,"                                 //4
+            "event"                                         //5
+            ") VALUES (?1, ?2, ?3, ?4, ?5);";
+}
+
 
 int LogDatabase::bind_string(sqlite3_stmt* stmnt, int pos, std::string str){
     return sqlite3_bind_text(stmnt, pos, str.c_str(), str.size(), SQLITE_TRANSIENT);
@@ -451,33 +447,31 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
 
 }
 
-void LogDatabase::ProcessEvent(ModelEvent* event){
-    if(event->has_component_event()){
+void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
+    if(event->has_port() && event->has_component()){
+        //Process port event
+        std::cout << "process port called" << std::endl;        
+        sqlite3_stmt* port_statement = GetSqlStatement(get_port_lifecycle_insert_query());
+        sqlite3_bind_double(port_statement, 1, event->info().timestamp());
+        bind_string(port_statement, 2, event->info().hostname());
+        bind_string(port_statement, 3, event->component().name());
+        bind_string(port_statement, 4, event->component().id());
+        bind_string(port_statement, 5, event->port().name());
+        bind_string(port_statement, 6, event->port().id());
+        bind_string(port_statement, 7, re_common::LifecycleEvent::Type_Name(event->type()));
+        QueueSqlStatement(port_statement);
+    }
+
+    else if(event->has_component()){
         std::cout << "process event called" << std::endl;
         //Process component event
         sqlite3_stmt* component_statement = GetSqlStatement(get_component_lifecycle_insert_query());
-        bind_string(component_statement, 1, event->hostname());
-        bind_string(component_statement, 2, event->component_name());
-        sqlite3_bind_double(component_statement, 3, event->timestamp());
-        bind_string(component_statement, 4, event->component_event().id());
-        bind_string(component_statement, 5, event->component_event().type());
-        bind_string(component_statement, 6,
-            ActionType_Name(event->component_event().action_type()));
+        sqlite3_bind_double(component_statement, 1, event->info().timestamp());
+        bind_string(component_statement, 1, event->info().hostname());
+        bind_string(component_statement, 2, event->component().name());
+        bind_string(component_statement, 3, event->component().id());
+        bind_string(component_statement, 4, re_common::LifecycleEvent::Type_Name(event->type()));
         QueueSqlStatement(component_statement);
-    }
-
-    if(event->has_port_event() != 0){
-        //Process port event
-        sqlite3_stmt* port_statement = GetSqlStatement(get_port_lifecycle_insert_query());
-        bind_string(port_statement, 1, event->hostname());
-        bind_string(port_statement, 2, event->component_name());
-        sqlite3_bind_double(port_statement, 3, event->timestamp());
-        bind_string(port_statement, 4, event->port_event().id());
-        bind_string(port_statement, 4, event->port_event().name());
-        bind_string(port_statement, 4, ActionType_Name(event->port_event().action_type()));
-        bind_string(port_statement, 4, event->port_event().message_type());
-        bind_string(port_statement, 4, PortEvent::PortType_Name(event->port_event().type()));
-        QueueSqlStatement(port_statement);
     }
 }
 

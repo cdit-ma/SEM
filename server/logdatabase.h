@@ -15,7 +15,7 @@ class LogDatabase : public SQLiteDatabase{
 
         void ProcessSystemStatus(SystemStatus* status);
 
-        void ProcessEvent(ModelEvent* event);
+        void ProcessLifecycleEvent(re_common::LifecycleEvent* event);
 
 
     private:
