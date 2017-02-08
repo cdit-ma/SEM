@@ -117,7 +117,7 @@ void CachedZMQMessageWriter::WriteQueue(){
             auto message = replace_queue.front();
             replace_queue.pop();
 
-            if(!message || WriteDelimitedTo(message, raw_output)){
+            if(!message || !WriteDelimitedTo(message, raw_output)){
                 std::cout << message << std::endl;
                 std::cerr << "Error writing message to temp file '" << temp_file_path_ << "'" << std::endl;
             }
