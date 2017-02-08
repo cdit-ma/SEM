@@ -9,7 +9,6 @@
 
 #include "zmq.hpp"
 #include "logdatabase.h"
-#include "systemstatus.pb.h"
 
 class SQLController{
     public:
@@ -36,7 +35,7 @@ class SQLController{
              
         std::condition_variable queue_lock_condition_;
         std::mutex queue_mutex_;
-        std::queue<std::string> rx_message_queue_; 
+        std::queue<std::pair<std::string, std::string> > rx_message_queue_; 
         
         bool terminate_reciever_ = false;
         bool terminate_sql_ = false;

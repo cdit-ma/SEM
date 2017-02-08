@@ -73,21 +73,31 @@ void SQLController::RecieverThread(){
 		socket.connect(a.c_str());
 	}
 	
+    zmq::message_t *type = new zmq::message_t();
     zmq::message_t *data = new zmq::message_t();
     
     while(!terminate_reciever_){
 		try{
             //Wait for next message
+            socket.recv(type);
+            if(terminate_reciever_){
+                break;
+            }
 			socket.recv(data);
+            if(terminate_reciever_){
+                break;
+            }
+
 
             //If we have a valid message
-            if(data->size() > 0){
+            if(type->size() > 0 && data->size() > 0){
                 //Construct a string out of the zmq data
+                std::string type_str(static_cast<char *>(type->data()), type->size());
                 std::string msg_str(static_cast<char *>(data->data()), data->size());
-             
+            
                 //Gain the lock so we can push this message onto our queue
                 std::unique_lock<std::mutex> lock(queue_mutex_);
-                rx_message_queue_.push(msg_str);
+                rx_message_queue_.push(std::make_pair(type_str, msg_str));
 
                 //Notify the condition when we have > 20 messages to process
                 if(rx_message_queue_.size() > 20){
@@ -107,7 +117,7 @@ void SQLController::RecieverThread(){
 void SQLController::SQLThread(){
     //Update loop.
     while(!terminate_sql_){
-        std::queue<std::string> replace_queue;
+        std::queue<std::pair<std::string, std::string> > replace_queue;
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -120,25 +130,40 @@ void SQLController::SQLThread(){
             }
         }
 
+
+        //TODO: switch on message type (event/systemstatus)
         //Construct a Protobuf object
         SystemStatus* message = new SystemStatus();
+        ModelEvent* event = new ModelEvent();
 
         //Empty the queue
         while(!replace_queue.empty()){
             //Fill our pb status message with the contents from the string
-            if (message->ParseFromString(replace_queue.front())){
+
+            std::string type = replace_queue.front().first;
+            std::string msg = replace_queue.front().second;
+
+            if(type == message->GetTypeName()){
+                message->ParseFromString(msg);                
                 //dump to the contents to sql statements
-                log_database_->process_status(message);
-            }else{
-                std::cout << "Cannot process message: " <<  replace_queue.front() << std::endl;
+                log_database_->ProcessSystemStatus(message);
+            }
+            else if(type == event->GetTypeName()){
+                event->ParseFromString(msg);
+                log_database_->ProcessEvent(event);
+            }
+            else{
+                std::cout << "Cannot process message: " <<  replace_queue.front().first << std::endl;
             }
             
             replace_queue.pop();
             
             //clear our message
             message->Clear();
+            event->Clear();
         }
         //Free the memory
         delete message;
+        delete event;
     }
 }

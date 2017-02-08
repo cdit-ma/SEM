@@ -12,7 +12,8 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     QueueSqlStatement(GetSqlStatement(get_interface_info_table_string()));
     QueueSqlStatement(GetSqlStatement(get_process_table_string()));
     QueueSqlStatement(GetSqlStatement(get_process_info_table_string()));
-    
+    QueueSqlStatement(GetSqlStatement(get_component_lifecycle_table_string()));
+    QueueSqlStatement(GetSqlStatement(get_port_lifecycle_table_string()));
     //Force the tables to be constructed
     Flush();
 }
@@ -257,11 +258,61 @@ std::string LogDatabase::get_process_info_insert_query() const{
             ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
 }
 
+std::string LogDatabase::get_component_lifecycle_table_string() const{
+    return  "CREATE TABLE IF NOT EXISTS ComponentLifecycle ("
+            "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "hostname VARCHAR,"                             //1
+            "component_name VARCHAR,"                       //2
+            "timeofday DECIMAL,"                            //3
+            "id VARCHAR,"                                   //4
+            "type VARCHAR,"                                 //5
+            "action VARCHAR"                                //6
+            ");";
+}
+
+std::string LogDatabase::get_component_lifecycle_insert_query() const{
+    return  "INSERT INTO ComponentLifecycle (" 
+            "hostname,"                                     //1
+            "component_name,"                               //2
+            "timeofday,"                                    //3
+            "id,"                                           //4
+            "type,"                                         //5
+            "action"                                        //6 
+            ") VALUES (?1, ?2, ?3, ?4, ?5, ?6);";
+}
+
+std::string LogDatabase::get_port_lifecycle_table_string() const{
+    return  "CREATE TABLE IF NOT EXISTS PortLifecycle ("
+            "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "hostname VARCHAR,"                             //1
+            "component_name VARCHAR,"                       //2
+            "timeofday DECIMAL,"                            //3
+            "id VARCHAR,"                                   //4
+            "name VARCHAR,"                                 //5
+            "action VARCHAR,"                               //6
+            "message_type VARCHAR,"                         //7
+            "port_type VARCHAR"                            //8
+            ");";
+}
+
+std::string LogDatabase::get_port_lifecycle_insert_query() const{
+    return  "INSERT INTO PortLifecycle (" 
+            "hostname,"                                     //1
+            "component_name,"                               //2
+            "timeofday,"                                    //3
+            "id,"                                           //4
+            "type,"                                         //5
+            "action,"                                       //6
+            "message_type,"                                 //7
+            "port_type"                                     //8
+            ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);";
+}
+
 int LogDatabase::bind_string(sqlite3_stmt* stmnt, int pos, std::string str){
     return sqlite3_bind_text(stmnt, pos, str.c_str(), str.size(), SQLITE_TRANSIENT);
 }
 
-void LogDatabase::process_status(SystemStatus* status){
+void LogDatabase::ProcessSystemStatus(SystemStatus* status){
     sqlite3_stmt *stmt = GetSqlStatement(get_system_status_insert_query());
 
     std::string hostname = status->hostname().c_str();
@@ -400,6 +451,36 @@ void LogDatabase::process_status(SystemStatus* status){
 
 }
 
+void LogDatabase::ProcessEvent(ModelEvent* event){
+    if(event->has_component_event()){
+        std::cout << "process event called" << std::endl;
+        //Process component event
+        sqlite3_stmt* component_statement = GetSqlStatement(get_component_lifecycle_insert_query());
+        bind_string(component_statement, 1, event->hostname());
+        bind_string(component_statement, 2, event->component_name());
+        sqlite3_bind_double(component_statement, 3, event->timestamp());
+        bind_string(component_statement, 4, event->component_event().id());
+        bind_string(component_statement, 5, event->component_event().type());
+        bind_string(component_statement, 6,
+            ActionType_Name(event->component_event().action_type()));
+        QueueSqlStatement(component_statement);
+    }
+
+    if(event->has_port_event() != 0){
+        //Process port event
+        sqlite3_stmt* port_statement = GetSqlStatement(get_port_lifecycle_insert_query());
+        bind_string(port_statement, 1, event->hostname());
+        bind_string(port_statement, 2, event->component_name());
+        sqlite3_bind_double(port_statement, 3, event->timestamp());
+        bind_string(port_statement, 4, event->port_event().id());
+        bind_string(port_statement, 4, event->port_event().name());
+        bind_string(port_statement, 4, ActionType_Name(event->port_event().action_type()));
+        bind_string(port_statement, 4, event->port_event().message_type());
+        bind_string(port_statement, 4, PortEvent::PortType_Name(event->port_event().type()));
+        QueueSqlStatement(port_statement);
+    }
+}
+
 std::string LogDatabase::process_state_to_string(const ProcessStatus::State state) const{
     switch(state){
         case ProcessStatus::PROC_ERROR:
@@ -439,3 +520,33 @@ std::string LogDatabase::fs_type_to_string(const FileSystemStatus::FileSystemInf
             return "";
     }
 }
+/*
+std::string LogDatabase::action_type_to_string(const ModelEvent::ActionType type) const{
+    switch(type){
+        case ModelEvent::ActionType::STARTED:
+            return "STARTED";
+        case ModelEvent::ActionType::ACTIVATED:
+            return "ACTIVATED";
+        case ModelEvent::ActionType::PASSIVATED:
+            return "PASSIVATED";
+        case ModelEvent::ActionType::TERMINATED:
+            return "TERMINATED";
+        default:
+            return "";
+    }
+}
+
+std::string LogDatabase::port_type_to_string(const ModelEvent::PortEvent::PortType type) const{
+    switch(type){
+        case  ModelEvent::PortEvent::PortType::TX:
+            return "TX";
+        case  ModelEvent::PortEvent::PortType::RX:
+            return "RX";
+        case  ModelEvent::PortEvent::PortType::PE:
+            return "PE";
+        default:
+            return "";
+    }
+}
+
+*/

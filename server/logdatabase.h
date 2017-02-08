@@ -3,7 +3,9 @@
 
 #include <string>
 
-#include "systemstatus.pb.h"
+#include "../re_common/proto/systemstatus/systemstatus.pb.h"
+
+#include "../re_common/proto/modelevent/modelevent.pb.h"
 #include "sqlitedatabase.h"
 
 
@@ -11,7 +13,9 @@ class LogDatabase : public SQLiteDatabase{
     public:
         LogDatabase(std::string databaseFilepath);
 
-        void process_status(SystemStatus* status);
+        void ProcessSystemStatus(SystemStatus* status);
+
+        void ProcessEvent(ModelEvent* event);
 
 
     private:
@@ -47,8 +51,20 @@ class LogDatabase : public SQLiteDatabase{
         std::string get_process_info_table_string() const;
         std::string get_process_info_insert_query() const;
 
+
+        //Event table
+        std::string get_component_lifecycle_table_string() const;
+        std::string get_component_lifecycle_insert_query() const;
+
+        std::string get_port_lifecycle_table_string() const;
+        std::string get_port_lifecycle_insert_query() const;
+
+
+        //Enum converters
         std::string process_state_to_string(const ProcessStatus::State state) const;
         std::string fs_type_to_string(const FileSystemStatus::FileSystemInfo::Type type) const;
+        //std::string action_type_to_string(const ModelEvent::ActionType type) const;
+        //std::string port_type_to_string(const ModelEvent::PortEvent::PortType type) const;
 
         int bind_string(sqlite3_stmt* stmnt, int pos, std::string str);
 

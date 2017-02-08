@@ -6,7 +6,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "systemstatus.pb.h"
+#include "../re_common/proto/systemstatus/systemstatus.pb.h"
 #include "systeminfo.h"
 #include "../re_common/zmqprotowriter/zmqmessagewriter.h"
 
