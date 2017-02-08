@@ -467,10 +467,10 @@ void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
         //Process component event
         sqlite3_stmt* component_statement = GetSqlStatement(get_component_lifecycle_insert_query());
         sqlite3_bind_double(component_statement, 1, event->info().timestamp());
-        bind_string(component_statement, 1, event->info().hostname());
-        bind_string(component_statement, 2, event->component().name());
-        bind_string(component_statement, 3, event->component().id());
-        bind_string(component_statement, 4, re_common::LifecycleEvent::Type_Name(event->type()));
+        bind_string(component_statement, 2, event->info().hostname());
+        bind_string(component_statement, 3, event->component().name());
+        bind_string(component_statement, 4, event->component().id());
+        bind_string(component_statement, 5, re_common::LifecycleEvent::Type_Name(event->type()));
         QueueSqlStatement(component_statement);
     }
 }
