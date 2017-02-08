@@ -16,17 +16,22 @@ class ModelLogger{
             TERMINATED = 3,
         };
         //Static getter functions
+        static void setup_model_logger(std::string host_name, std::string endpoint, bool cached);
         static ModelLogger* get_model_logger();
         static void shutdown_logger();
         
     protected:
-        ModelLogger(bool cached);
+        ModelLogger(std::string host_name, std::string endpoint, bool cached);
         ~ModelLogger();
     public:
         void LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event);
         void LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event);
+        const  std::string get_hostname();
     private:
+
         ZMQMessageWriter* writer_;
+        std::string host_name_;
+        std::string endpoint_;
         
         static ModelLogger* singleton_;
         static std::mutex global_mutex_;

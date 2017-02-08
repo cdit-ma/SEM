@@ -25,6 +25,7 @@ class ZMQSlave{
         std::string master_server_address_;
         std::string host_name_;
         std::string endpoint_;
+        std::string logger_endpoint_;
 
         bool terminating = false;
 

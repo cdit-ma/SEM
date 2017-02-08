@@ -1,5 +1,6 @@
 #include "modellogger.h"
 
+#include <ctime>
 #include <iostream>
 
 #include "../re_common/zmqprotowriter/cachedzmqmessagewriter.h"
@@ -9,12 +10,20 @@ ModelLogger* ModelLogger::singleton_ = 0;
 std::mutex ModelLogger::global_mutex_;
 
 
+void ModelLogger::setup_model_logger(std::string host_name, std::string endpoint, bool cached){
+    std::lock_guard<std::mutex> lock(global_mutex_);
+    
+    if(singleton_ == 0){
+        singleton_ = new ModelLogger(host_name, endpoint, cached);
+        std::cerr << "Model Logger Constructed!" << std::endl;
+    }
+}
+
 ModelLogger* ModelLogger::get_model_logger(){
     std::lock_guard<std::mutex> lock(global_mutex_);
-
+    
     if(singleton_ == 0){
-        singleton_ = new ModelLogger(true);
-        std::cout << "Constructed ModelLogger: " << singleton_ << std::endl;
+        std::cerr << "Model Logger hasn't been setup!" << std::endl;
     }
     return singleton_;
 }
@@ -29,12 +38,17 @@ void ModelLogger::shutdown_logger(){
 }
 int count = 0;
 
-ModelLogger::ModelLogger(bool cached){
-    writer_ = new CachedZMQMessageWriter(5);
-   // }else{
-       // writer_ = new ZMQMessageWriter();
-   // }
-    writer_->BindPublisherSocket("tcp://192.168.111.187:8000");
+ModelLogger::ModelLogger(std::string host_name, std::string endpoint, bool cached){
+    this->host_name_ = host_name;
+    this->endpoint_ = endpoint;
+    
+    if(cached){
+        writer_ = new CachedZMQMessageWriter();
+    }else{
+        writer_ = new ZMQMessageWriter();
+    }
+    
+    writer_->BindPublisherSocket(endpoint_);
 }
 
 ModelLogger::~ModelLogger(){
@@ -42,11 +56,20 @@ ModelLogger::~ModelLogger(){
     //Flushes writer
     delete writer_;
 }
+const std::string ModelLogger::get_hostname(){
+    return host_name_;
+}
+
+
+std::chrono::milliseconds get_current_time(){
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+}
+
 
 void fill_info(re_common::Info* info){
     if(info){
-        info->set_hostname("HOSTNAME");
-        info->set_timestamp(count ++);
+        info->set_hostname(ModelLogger::get_model_logger()->get_hostname());
+        info->set_timestamp(get_current_time().count() / 1000.0);
         info->set_uid(12);
     }
 }

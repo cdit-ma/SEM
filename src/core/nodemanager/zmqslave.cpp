@@ -1,11 +1,13 @@
 #include "zmqslave.h"
 #include <iostream>
 #include <chrono>
-
+#include "../modellogger.h"
 ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string endpoint){
     deployment_manager_ = manager;
     context_ = new zmq::context_t(1);
     endpoint_ = endpoint;
+
+    logger_endpoint_ = "tcp://192.168.111.187:8000";
 
     //Start the registration thread
     registration_thread_ = new std::thread(&ZMQSlave::RegistrationLoop, this);
@@ -77,7 +79,8 @@ void ZMQSlave::RegistrationLoop(){
 }
 
 void ZMQSlave::ActionSubscriberLoop(){
-
+    //Run Logger stuff!
+    ModelLogger::setup_model_logger(host_name_, logger_endpoint_, true);
     //Construct a filter for this hostname
     //Add a * char so we don't get messages for other similar hosts.
     //gouda1 would match gouda11 but gouda1* doesn't match gouda11*

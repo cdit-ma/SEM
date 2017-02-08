@@ -77,7 +77,9 @@ int main(int argc, char **argv)
         std::cout << "Starting MASTER on " << master_endpoint << std::endl;
         master = new ZMQMaster(master_endpoint, graphml_path);
     }else{
-        ModelLogger::get_model_logger();
+
+        
+        //ModelLogger::get_model_logger();
     }
     
     if(deployment_manager){
