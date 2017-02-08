@@ -136,6 +136,7 @@ void SQLController::SQLThread(){
         //Construct a Protobuf object
         auto system_status = new SystemStatus();
         auto lifecycle_event = new re_common::LifecycleEvent();
+        auto message_event = new re_common::MessageEvent();
 
         //Empty the queue
         while(!replace_queue.empty()){
@@ -147,12 +148,18 @@ void SQLController::SQLThread(){
             if(type == system_status->GetTypeName()){
                 system_status->ParseFromString(msg);                
                 //dump to the contents to sql statements
+                std::cout << "Parsing: SystemStatus()" << std::endl;
                 log_database_->ProcessSystemStatus(system_status);
             }
             else if(type == lifecycle_event->GetTypeName()){
                 lifecycle_event->ParseFromString(msg);
-                std::cout << "Parsing model event" << std::endl;
+                std::cout << "Parsing: re_common::LifecycleEvent()" << std::endl;
                 log_database_->ProcessLifecycleEvent(lifecycle_event);
+            }
+            else if(type == message_event->GetTypeName()){
+                message_event->ParseFromString(msg);
+                std::cout << "Parsing: re_common::MessageEvent()" << std::endl;
+                log_database_->ProcessMessageEvent(message_event);
             }
             else{
                 std::cout << "Cannot process message: " <<  replace_queue.front().first << std::endl;

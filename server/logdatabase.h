@@ -16,6 +16,7 @@ class LogDatabase : public SQLiteDatabase{
         void ProcessSystemStatus(SystemStatus* status);
 
         void ProcessLifecycleEvent(re_common::LifecycleEvent* event);
+        void ProcessMessageEvent(re_common::MessageEvent* event);
 
 
     private:
@@ -52,12 +53,16 @@ class LogDatabase : public SQLiteDatabase{
         std::string get_process_info_insert_query() const;
 
 
-        //Event table
+        //Lifecycle event table
         std::string get_component_lifecycle_table_string() const;
         std::string get_component_lifecycle_insert_query() const;
 
         std::string get_port_lifecycle_table_string() const;
         std::string get_port_lifecycle_insert_query() const;
+
+        //
+        std::string get_port_event_table_string() const;
+        std::string get_port_event_insert_query() const;
 
 
         //Enum converters

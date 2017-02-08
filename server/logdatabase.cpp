@@ -14,6 +14,8 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     QueueSqlStatement(GetSqlStatement(get_process_info_table_string()));
     QueueSqlStatement(GetSqlStatement(get_component_lifecycle_table_string()));
     QueueSqlStatement(GetSqlStatement(get_port_lifecycle_table_string()));
+
+    QueueSqlStatement(GetSqlStatement(get_port_event_table_string()));
     //Force the tables to be constructed
     Flush();
 }
@@ -303,6 +305,31 @@ std::string LogDatabase::get_component_lifecycle_insert_query() const{
             ") VALUES (?1, ?2, ?3, ?4, ?5);";
 }
 
+std::string LogDatabase::get_port_event_table_string() const{
+    return  "CREATE TABLE IF NOT EXISTS Events_Port ("
+            "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "timeofday DECIMAL,"                            //1
+            "hostname VARCHAR,"                             //2
+            "component_name VARCHAR,"                       //3
+            "component_id VARCHAR,"                         //4
+            "port_name VARCHAR,"                            //5
+            "port_id VARCHAR,"                              //6
+            "port_type VARCHAR"                             //7
+            ");";
+}
+std::string LogDatabase::get_port_event_insert_query() const{
+    return  "INSERT INTO Events_Port (" 
+            "timeofday,"                                    //1
+            "hostname,"                                     //2
+            "component_name,"                               //3
+            "component_id,"                                 //4
+            "port_name,"                                    //5
+            "port_id,"                                      //6
+            "port_type"                                     //7
+            ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
+}
+
+
 
 int LogDatabase::bind_string(sqlite3_stmt* stmnt, int pos, std::string str){
     return sqlite3_bind_text(stmnt, pos, str.c_str(), str.size(), SQLITE_TRANSIENT);
@@ -472,6 +499,22 @@ void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
         bind_string(component_statement, 4, event->component().id());
         bind_string(component_statement, 5, re_common::LifecycleEvent::Type_Name(event->type()));
         QueueSqlStatement(component_statement);
+    }
+}
+
+void LogDatabase::ProcessMessageEvent(re_common::MessageEvent* event){
+    if(event->has_port() && event->has_component()){
+        //Process port event
+        std::cout << "process ProcessMessageEvent" << std::endl;        
+        sqlite3_stmt* port_statement = GetSqlStatement(get_port_event_insert_query());
+        sqlite3_bind_double(port_statement, 1, event->info().timestamp());
+        bind_string(port_statement, 2, event->info().hostname());
+        bind_string(port_statement, 3, event->component().name());
+        bind_string(port_statement, 4, event->component().id());
+        bind_string(port_statement, 5, event->port().name());
+        bind_string(port_statement, 6, event->port().id());
+        bind_string(port_statement, 7, re_common::Port::PortKind_Name(event->port().kind()));
+        QueueSqlStatement(port_statement);
     }
 }
 
