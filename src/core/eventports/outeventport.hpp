@@ -7,18 +7,10 @@
 //Interface for a standard templated OutEventPort
 template <class T> class OutEventPort: public EventPort{
     public:
-        OutEventPort(Component* component, std::string name){
-            set_name(name);
-            if(component){
-                //Set our Component and attach this port
-                component_ = component;
-                component_->AddEventPort(this);
-            }
-        }
+        OutEventPort(Component* component, std::string name):
+        EventPort(component, name, EventPort::Type::TX)){}
         virtual ~OutEventPort(){};
         virtual void tx(T*) = 0;
-    private:
-        Component* component_;
 };
 
 #endif //OUTEVENTPORT_HPP

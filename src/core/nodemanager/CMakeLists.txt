@@ -39,6 +39,8 @@ include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
 if(UNIX)
 	target_link_libraries(${PROJ_NAME} pthread)
     target_link_libraries(${PROJ_NAME} dl)

@@ -33,6 +33,5 @@ class PeriodicEventPort: public EventPort{
         std::function<void(BaseMessage*)> callback_ ;
         std::thread * callback_thread_ = 0;
         std::chrono::milliseconds duration_;    
-        Component* component_;
 };
 #endif //PERIODICEVENTPORT_H

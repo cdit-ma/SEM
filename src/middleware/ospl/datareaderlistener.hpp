@@ -1,7 +1,7 @@
 #ifndef OSPL_DATAREADERLISTENER_H
 #define OSPL_DATAREADERLISTENER_H
 
-#include "../core/eventports/ineventport.hpp"
+#include "../../core/eventports/ineventport.hpp"
 
 #include <dds/dds.hpp>
 
