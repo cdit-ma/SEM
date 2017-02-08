@@ -78,7 +78,7 @@ void CachedZMQMessageWriter::Terminate(){
     std::cout << "Successfully Written: " << sent_count << "/" << log_count_ << std::endl;
 
     //Remove the temp file
-    //std::remove(temp_file_path_.c_str());
+    std::remove(temp_file_path_.c_str());
 }
 
 void CachedZMQMessageWriter::WriteQueue(){
@@ -153,11 +153,8 @@ std::queue<Message_Struct*> CachedZMQMessageWriter::ReadMessagesFromFile(std::st
 
         //Read the proto encoded string into our message and queue if successful
         if(ReadDelimitedToStr(raw_input, m->type, m->data)){
-            std::cout << m->type << std::endl;
             queue.push(m);
         }else{
-            std::cout << "TYPE: " << *(m->type) << std::endl;
-            std::cout << "DATA: " << *(m->data) << std::endl;
             //If we have an error, free memory
             delete m;
             
