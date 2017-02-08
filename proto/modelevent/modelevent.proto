@@ -1,53 +1,63 @@
 syntax="proto3";
 
-enum ActionType{
-    STARTED = 0;
-    ACTIVATED = 1;
-    PASSIVATED = 2;
-    TERMINATED = 3;
+
+message Info{
+    string hostname = 1;
+    double timestamp = 2;
+    uint64 uid = 3;
+    Info info = 4;
 }
 
-message WorkloadEvent{
-    enum Type{
-        FLAG = 0;
-        MESSAGE = 1;
-        STARTED = 2;
-        FINISHED = 3;
-        ERROR = 4;
-    }
-    string id = 1;
-    string name = 2;
-    Type type = 3;
-    string description = 4;
+
+message Component{
+    string id = 1;          //Id of instance
+    string name = 2;        //Name of instance
+    string type = 3;        //Name of component definition
 }
 
-message ComponentEvent{
-    string id = 1;
-    string type = 2;
-    ActionType action_type = 3;
-}
-
-message PortEvent{
-    enum PortType{
+message Port{
+    enum PortKind{
         TX = 0;
         RX = 1;
         PE = 2;
     }
 
-    string id = 1;
-    string name = 2;
-    ActionType action_type = 3;
-    string message_type = 4;
-    PortType type = 5;
+    string id = 1;          //Id of instance
+    string name = 2;        //Name of port instance
+    string type = 3;        //Name of port's data type
+    PortKind kind = 4;      //direction of port/periodic event
 }
 
-message ModelEvent{
-    string hostname = 1;
-    string component_name = 2;
-    double timestamp = 3;
+message LifecycleEvent{
+    enum Type{
+        STARTED = 0;
+        ACTIVATED = 1;
+        PASSIVATED = 2;
+        TERMINATED = 3;
+    }
+    Info info = 1;
+    Type type = 2;
 
-    //Events
-    ComponentEvent component_event = 4;
-    PortEvent port_event = 5;
-    WorkloadEvent workload_event = 6;
+    Component component = 3;
+    Port port = 4;
+}
+
+message WorkloadEvent{
+    enum Type{
+        STARTED = 0;
+        FINISHED = 1;
+        MESSAGE = 2;
+    }
+    Info info = 1;
+    string id = 2;              //Implementation's workload id
+    string name = 3;            //Function name
+    string type = 4;            //Function's library
+    Component component = 5;    //Instance id of component impl
+    string description = 6;
+}
+
+message UserEvent{
+    Info info = 1;
+    Component component = 2;
+    Port port = 3;
 }
