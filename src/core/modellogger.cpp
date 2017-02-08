@@ -27,9 +27,10 @@ void ModelLogger::shutdown_logger(){
         singleton_ = 0;
     }
 }
+int count = 0;
 
 ModelLogger::ModelLogger(bool cached){
-    writer_ = new CachedZMQMessageWriter(1);
+    writer_ = new CachedZMQMessageWriter(5);
    // }else{
        // writer_ = new ZMQMessageWriter();
    // }
@@ -42,21 +43,51 @@ ModelLogger::~ModelLogger(){
     delete writer_;
 }
 
-int count = 0;
-void ModelLogger::LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event){
-    std::cout << "ModelLogger::LogLifecycleEvent()" << std::endl;
-    ModelEvent* e = new ModelEvent();
-    e->set_hostname("Test Hostname");
-    e->set_component_name(component->get_name());
-    e->set_timestamp(count ++);
+void fill_info(re_common::Info* info){
+    if(info){
+        info->set_hostname("HOSTNAME");
+        info->set_timestamp(count ++);
+        info->set_uid(12);
+    }
+}
 
-    auto c_e  = e->mutable_component_event();
-    c_e->set_id("ID");
-    c_e->set_type("TYPE");
-    c_e->set_action_type((ActionType)(int)event);
+void fill_component(re_common::Component* c, Component* component){
+    if(c && component){
+        c->set_name(component->get_name());
+        c->set_id("C_ID");
+        c->set_type("C_TYPE");
+    }
+}
+
+void fill_port(re_common::Port* p, EventPort* eventport){
+    if(p && eventport){
+        p->set_name(eventport->get_name());
+        p->set_id("P_ID");
+        p->set_type("P_TYPE");
+        p->set_kind((re_common::Port::PortKind)((int)eventport->get_type()));
+    }
+}
+void ModelLogger::LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event){
+    std::cout << "ModelLogger::LogLifecycleEvent()::Component" << std::endl;
+    auto e = new re_common::LifecycleEvent();
+    fill_info(e->mutable_info());
+    fill_component(e->mutable_component(), component);
+    
+    e->set_type((re_common::LifecycleEvent::Type)(int)event);
+    
     writer_->PushMessage(e);
 }
 
 void ModelLogger::LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event){
     //Do Nothing
+    auto e = new re_common::LifecycleEvent();
+    auto component = eventport->get_component();
+    //Set info
+
+    fill_info(e->mutable_info());
+    fill_component(e->mutable_component(), component);
+    fill_port(e->mutable_port(), eventport);
+    e->set_type((re_common::LifecycleEvent::Type)(int)event);
+
+    writer_->PushMessage(e);
 }

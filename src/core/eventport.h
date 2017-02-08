@@ -12,9 +12,9 @@ class Component;
 class EventPort: public Activatable{
     public:
         enum class Type{
-            TX = 1,
-            RX = 2,
-            PE = 3
+            TX = 0,
+            RX = 1,
+            PE = 2
         };
 
         EventPort(Component* component, std::string name, EventPort::Type type);
@@ -28,6 +28,7 @@ class EventPort: public Activatable{
         const bool IsOutEventPort();
         const bool IsInEventPort();
         const bool IsPeriodicEvent();
+        const EventPort::Type get_type();
 
         Component* get_component();
     private:

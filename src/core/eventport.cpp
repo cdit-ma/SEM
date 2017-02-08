@@ -29,6 +29,9 @@ Component* EventPort::get_component(){
     return component_;
 };
 
+const EventPort::Type EventPort::get_type(){
+    return type_;
+}
 
 bool EventPort::Activate(){
     Activatable::Activate();
