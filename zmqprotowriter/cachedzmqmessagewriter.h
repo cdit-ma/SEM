@@ -8,6 +8,19 @@
 #include <mutex>
 #include <condition_variable>
 
+struct Message_Struct{
+    Message_Struct(){
+        type = new std::string();
+        data = new std::string();
+    };
+    ~Message_Struct(){
+        delete type;
+        delete data;
+    };
+    std::string* type;
+    std::string* data;
+};
+
 class CachedZMQMessageWriter : public ZMQMessageWriter{
     public:
         CachedZMQMessageWriter(int cache_count = 50);
@@ -15,13 +28,15 @@ class CachedZMQMessageWriter : public ZMQMessageWriter{
         
         void PushMessage(google::protobuf::MessageLite* message);
     private:
+        
+
         void Terminate();
         void WriteQueue();
 
-        std::queue<std::string*> ReadMessagesFromFile(std::string file_path);
+        std::queue<Message_Struct*> ReadMessagesFromFile(std::string file_path);
 
         bool WriteDelimitedTo(google::protobuf::MessageLite* message, google::protobuf::io::ZeroCopyOutputStream* raw_output);
-        bool ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* message);
+        bool ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* type, std::string* message);
 
         std::string temp_file_path_;
 
