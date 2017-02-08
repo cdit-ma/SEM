@@ -10,7 +10,11 @@ ZMQMessageWriter::ZMQMessageWriter(){
 }
 
 ZMQMessageWriter::~ZMQMessageWriter(){
+    //Gain the lock
+    std::unique_lock<std::mutex> lock(mutex_);
+
     Terminate();
+
     if(socket_){
         delete socket_;
     }
@@ -21,11 +25,19 @@ ZMQMessageWriter::~ZMQMessageWriter(){
 }
 
 bool ZMQMessageWriter::BindPublisherSocket(std::string endpoint){
-    socket_->bind(endpoint.c_str());
-    return true;
+    //Gain the lock
+    std::unique_lock<std::mutex> lock(mutex_);
+    if(socket_){
+        socket_->bind(endpoint.c_str());    
+        return true;
+    }
+    return false;
 }
 
 void ZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
+    //Gain the lock
+    std::unique_lock<std::mutex> lock(mutex_);
+    
     std::string type_name;
     std::string str;
     if(message && message->SerializeToString(&str)){
