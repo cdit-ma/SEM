@@ -2,9 +2,10 @@
 #define OSPL_OUTEVENTPORT_H
 
 #include "../../core/eventports/outeventport.hpp"
-
+#include "../../core/modellogger.h"
 #include <string>
 #include <mutex>
+
 
 #include "helper.hpp"
 
@@ -39,8 +40,7 @@ void ospl::OutEventPort<T, S>::tx(T* message){
         //De-reference the message and send
         writer_.write(*m);
         delete m;
-    }else{
-        //No writer
+        ::OutEventPort<T>::tx(message);
     }
 };
 

@@ -50,6 +50,8 @@ void qpid::OutEventPort<T, S>::tx(T* message){
         m.setContentObject(str);
 
         sender_.send(m);
+        
+        ::OutEventPort<T>::tx(message);
     }
 };
 

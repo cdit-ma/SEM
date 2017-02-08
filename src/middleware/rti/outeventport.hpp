@@ -2,7 +2,7 @@
 #define RTI_OUTEVENTPORT_H
 
 #include "../../core/eventports/outeventport.hpp"
-
+#include "../../core/modellogger.h"
 #include <string>
 #include <mutex>
 
@@ -41,8 +41,7 @@ void rti::OutEventPort<T, S>::tx(T* message){
         //De-reference the message and send
         writer_.write(*m);
         delete m;
-    }else{
-        //No writer
+        ::OutEventPort<T>::tx(message);
     }
 };
 

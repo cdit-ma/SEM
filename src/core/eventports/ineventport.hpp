@@ -20,6 +20,7 @@ template <class T> class InEventPort: public EventPort{
         virtual ~InEventPort(){};
         void rx(T* t){
             if(this->is_active() && callback_function_){
+                logger()->LogMessageEvent(this);
                 callback_function_(t);
             }
         };

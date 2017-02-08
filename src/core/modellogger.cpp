@@ -114,3 +114,15 @@ void ModelLogger::LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycle
 
     writer_->PushMessage(e);
 }
+
+void ModelLogger::LogMessageEvent(EventPort* eventport){
+    //Do Nothing
+    auto e = new re_common::MessageEvent();
+    auto component = eventport->get_component();
+    //Set info
+
+    fill_info(e->mutable_info());
+    fill_component(e->mutable_component(), component);
+    fill_port(e->mutable_port(), eventport);
+    writer_->PushMessage(e);
+}

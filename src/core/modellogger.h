@@ -26,6 +26,7 @@ class ModelLogger{
     public:
         void LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event);
         void LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event);
+        void LogMessageEvent(EventPort* eventport);
         const  std::string get_hostname();
     private:
 

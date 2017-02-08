@@ -1,5 +1,5 @@
 #include "periodiceventport.h"
-
+#include "modellogger.h"
 #include "component.h"
 #include <iostream>
 
@@ -45,6 +45,7 @@ bool PeriodicEventPort::WaitForTick(){
 void PeriodicEventPort::Loop(){
     while(true){
         if(callback_ != nullptr){
+            logger()->LogMessageEvent(this);
             //Construct a callback object
             callback_(new BaseMessage());
         }

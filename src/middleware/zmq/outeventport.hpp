@@ -2,6 +2,7 @@
 #define ZMQ_OUTEVENTPORT_H
 
 #include "../../core/eventports/outeventport.hpp"
+#include "../../core/modellogger.h"
 #include <vector>
 #include <iostream>
 #include <string>
@@ -31,12 +32,11 @@ namespace zmq{
 
 template <class T, class S>
 void zmq::OutEventPort<T, S>::tx(T* message){
-    if(this->is_active()){
+    if(this->is_active() && socket_){
         std::string str = proto::encode(message);
-        if(socket_){
-            zmq::message_t data(str.c_str(), str.size());
-            socket_->send(data);
-        }
+        zmq::message_t data(str.c_str(), str.size());
+        socket_->send(data);
+        ::OutEventPort<T>::tx(message);
     }
 };
 
