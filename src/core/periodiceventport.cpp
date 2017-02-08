@@ -45,7 +45,7 @@ bool PeriodicEventPort::WaitForTick(){
 void PeriodicEventPort::Loop(){
     while(true){
         if(callback_ != nullptr){
-            logger()->LogMessageEvent(this);
+            //logger()->LogMessageEvent(this);
             //Construct a callback object
             callback_(new BaseMessage());
         }
