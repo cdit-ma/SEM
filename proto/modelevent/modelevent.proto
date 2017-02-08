@@ -1,5 +1,6 @@
 syntax="proto3";
 
+package re_common;
 
 message Info{
     string hostname = 1;
