@@ -58,7 +58,7 @@ void CachedZMQMessageWriter::Terminate(){
         auto s = messages.front();
         messages.pop();
         if(s){
-            ZMQMessageWriter::PushString(s);
+            ZMQMessageWriter::PushString(s->type, s->data);
             sent_count ++;
             delete s;
         }
@@ -132,9 +132,9 @@ void CachedZMQMessageWriter::WriteQueue(){
     std::cout << "Cached Writer Thread finished!" << std::endl;
 }
 
-std::queue<std::string*> CachedZMQMessageWriter::ReadMessagesFromFile(std::string file_path){
+std::queue<Message_Struct*> CachedZMQMessageWriter::ReadMessagesFromFile(std::string file_path){
     //Construct a return queue
-    std::queue<std::string*> queue;
+    std::queue<Message_Struct*> queue;
 
     //Open temp file for reading binary data
     std::fstream file(file_path, std::ios::in | std::ios::binary);
@@ -148,14 +148,14 @@ std::queue<std::string*> CachedZMQMessageWriter::ReadMessagesFromFile(std::strin
     
     while(true){
         //Allocate a new string to store the read data
-        std::string* message = new std::string();
+        Message_Struct *m = new Message_Struct();
 
         //Read the proto encoded string into our message and queue if successful
-        if(ReadDelimitedToStr(raw_input, message)){
-            queue.push(message);
+        if(ReadDelimitedToStr(raw_input, m->type, m->data)){
+            queue.push(m);
         }else{
             //If we have an error, free memory
-            delete message;
+            delete m;
             
             //Check for end of file
             if(file.eof()){
@@ -177,7 +177,15 @@ bool CachedZMQMessageWriter::WriteDelimitedTo(google::protobuf::MessageLite* mes
     //Construct a coded output stream from the raw_output
     google::protobuf::io::CodedOutputStream out(raw_output);
 
-    // Write the size.
+    std::string type_name = message->GetTypeName();
+    const int type_size = type_name.size();
+
+    //Write the type size first
+    out.WriteVarint32(type_size);
+    //Write the type string
+    out.WriteString(type_name);
+
+    // Write the serialized size.
     const int size = message->ByteSize();
     out.WriteVarint32(size);
 
@@ -196,9 +204,23 @@ bool CachedZMQMessageWriter::WriteDelimitedTo(google::protobuf::MessageLite* mes
 }
 
 
-bool CachedZMQMessageWriter::ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* message){
+bool CachedZMQMessageWriter::ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* type, std::string* message){
     //Construct a coded input stream from the rawInput
     google::protobuf::io::CodedInputStream in(raw_input);
+
+    //Read the type_size from the in.
+    uint32_t type_size;
+    if(!in.ReadVarint32(&type_size)){
+        //No size, so return
+        return false;
+    }
+
+    //Read the number of bytes as a string
+    if(!in.ReadString(type, type_size)){
+        std::cout << "Stream Error @ " << in.CurrentPosition() << " Reading " << type_size << std::endl;
+        std::cout << "ERROR!" << std::endl;
+        return false;
+    }
 
     //Read the size from the in.
     uint32_t size;

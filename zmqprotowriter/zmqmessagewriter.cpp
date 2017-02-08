@@ -26,18 +26,23 @@ bool ZMQMessageWriter::BindPublisherSocket(std::string endpoint){
 }
 
 void ZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
+    std::string type_name;
     std::string str;
     if(message && message->SerializeToString(&str)){
-        PushString(&str);
+        type_name = message->GetTypeName();
+        PushString(&type_name, &str);
     }
 }
 
-void ZMQMessageWriter::PushString(std::string *message){
+void ZMQMessageWriter::PushString(std::string * type, std::string *message){
     if(message){
-        //Construct a zmq message
-        zmq::message_t data(message->c_str(), message->size());
-        //Send the zmq message
-        socket_->send(data);
+        //Construct a zmq message for both the type and message data
+        zmq::message_t type_data(type->c_str(), type->size());
+        zmq::message_t message_data(message->c_str(), message->size());
+        
+        //Send Type then Data
+        socket_->send(type_data, ZMQ_SNDMORE);
+        socket_->send(message_data);
     }
 }
 
