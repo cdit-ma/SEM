@@ -7,6 +7,7 @@
 
 #include "../re_common/proto/modelevent/modelevent.pb.h"
 #include "sqlitedatabase.h"
+#include "table.h"
 
 
 class LogDatabase : public SQLiteDatabase{
@@ -16,49 +17,25 @@ class LogDatabase : public SQLiteDatabase{
         void ProcessSystemStatus(SystemStatus* status);
 
         void ProcessLifecycleEvent(re_common::LifecycleEvent* event);
+        void test(re_common::LifecycleEvent* event);
 
 
     private:
-        //System status and info tables
-        std::string get_system_status_table_string() const;
-        std::string get_system_status_insert_query() const;
 
-        std::string get_system_info_table_string() const;
-        std::string get_system_info_insert_query() const;
+        std::map<std::string, Table*> table_map_;
 
-        //CPU core table
-        std::string get_cpu_table_string() const;
-        std::string get_cpu_insert_query() const;
+        void SystemStatusTable();
+        void SystemInfoTable();
 
-        //FS tables
-        std::string get_fs_table_string() const;
-        std::string get_fs_insert_query() const;
-
-        std::string get_fs_info_table_string() const;
-        std::string get_fs_info_insert_query() const;
-
-        //Network interface tables
-        std::string get_interface_table_string() const;
-        std::string get_interface_insert_query() const;
-
-        std::string get_interface_info_table_string() const;
-        std::string get_interface_info_insert_query() const;
-
-        //Process table
-        std::string get_process_table_string() const;
-        std::string get_process_insert_query() const;
-
-        std::string get_process_info_table_string() const;
-        std::string get_process_info_insert_query() const;
-
-
-        //Event table
-        std::string get_component_lifecycle_table_string() const;
-        std::string get_component_lifecycle_insert_query() const;
-
-        std::string get_port_lifecycle_table_string() const;
-        std::string get_port_lifecycle_insert_query() const;
-
+        void CpuTable();
+        void FileSystemTable();
+        void FileSystemInfoTable();
+        void InterfaceTable();
+        void InterfaceInfoTable();
+        void ProcessTable();
+        void ProcessInfoTable();
+        void PortEventTable();
+        void ComponentEventTable();
 
         //Enum converters
         std::string process_state_to_string(const ProcessStatus::State state) const;

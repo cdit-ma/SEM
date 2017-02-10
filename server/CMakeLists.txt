@@ -22,6 +22,8 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlcontroller.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/logdatabase.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/table.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/tableinsert.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlite3.c
 )
 
@@ -29,6 +31,8 @@ set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlcontroller.h
 	${CMAKE_CURRENT_SOURCE_DIR}/logdatabase.h
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.h
+	${CMAKE_CURRENT_SOURCE_DIR}/table.h
+	${CMAKE_CURRENT_SOURCE_DIR}/tableinsert.h
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlite3.h
 )
 

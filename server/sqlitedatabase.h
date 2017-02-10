@@ -17,9 +17,10 @@ class SQLiteDatabase{
         void Flush();
         
         sqlite3_stmt* GetSqlStatement(std::string query);
+    protected:
+        sqlite3 *database_ = 0;
     private:
         void ProcessQueue();
-        sqlite3 *database_ = 0;
 
         std::thread* writer_thread_;
 
