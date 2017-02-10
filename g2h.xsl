@@ -37,7 +37,7 @@
             <xsl:result-document href="{concat('datatypes/', $l_label, '/', 'CMakeLists.txt')}">
                 <!-- set RE_PATH -->
                 <xsl:value-of select="concat('#Get the RE_PATH', o:nl())" />
-                <xsl:value-of select="concat('set(RE_PATH ', o:local_include('$ENV{RE_PATH}'), ')', o:nl())" />
+                <xsl:value-of select="concat('set(RE_PATH ', o:dblquote_wrap('$ENV{RE_PATH}'), ')', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
                 <!-- Set PROJ_NAME -->
@@ -47,7 +47,7 @@
                 <!-- Find re_core -->
                 <xsl:value-of select="o:nl()" />
                 <xsl:value-of select="concat('#Find re_core library', o:nl())" />
-                <xsl:value-of select="concat('find_library(RE_CORE_LIBRARIES re_core ', o:local_include('${RE_PATH}/lib'), ')', o:nl())" />
+                <xsl:value-of select="concat('find_library(RE_CORE_LIBRARIES re_core ', o:dblquote_wrap('${RE_PATH}/lib'), ')', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
                 <!-- SOURCE -->
@@ -64,7 +64,7 @@
 
                 <!-- Include RE_PATH/src -->
                 <xsl:value-of select="concat('#Add RE_PATH to include directories', o:nl())" />
-                <xsl:value-of select="concat('include_directories(', o:local_include('${RE_PATH}/src'), ')', o:nl())" />
+                <xsl:value-of select="concat('include_directories(', o:dblquote_wrap('${RE_PATH}/src'), ')', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
                 <!-- add library/link -->
