@@ -192,6 +192,31 @@ void LogDatabase::ComponentEventTable(){
     table_map_[name] = t;
 }
 
+std::string LogDatabase::get_port_event_table_string() const{
+    return  "CREATE TABLE IF NOT EXISTS Events_Port ("
+            "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "timeofday DECIMAL,"                            //1
+            "hostname VARCHAR,"                             //2
+            "component_name VARCHAR,"                       //3
+            "component_id VARCHAR,"                         //4
+            "port_name VARCHAR,"                            //5
+            "port_id VARCHAR,"                              //6
+            "port_type VARCHAR"                             //7
+            ");";
+}
+std::string LogDatabase::get_port_event_insert_query() const{
+    return  "INSERT INTO Events_Port (" 
+            "timeofday,"                                    //1
+            "hostname,"                                     //2
+            "component_name,"                               //3
+            "component_id,"                                 //4
+            "port_name,"                                    //5
+            "port_id,"                                      //6
+            "port_type"                                     //7
+            ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
+}
+
+
 
 int LogDatabase::bind_string(sqlite3_stmt* stmnt, int pos, std::string str){
     return sqlite3_bind_text(stmnt, pos, str.c_str(), str.size(), SQLITE_TRANSIENT);
@@ -360,8 +385,6 @@ void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
     }
 }
 
-
-//TODO:: remove these in favour of using inbuilt proto function
 std::string LogDatabase::process_state_to_string(const ProcessStatus::State state) const{
     switch(state){
         case ProcessStatus::PROC_ERROR:
