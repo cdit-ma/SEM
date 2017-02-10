@@ -30,9 +30,10 @@ class Table{
         sqlite3_stmt* get_table_construct_statement();
         sqlite3_stmt* get_table_insert_statement();
 
-        std::string table_insert_;
     private:
         std::string table_name_;
+        int size_;
+        std::string table_insert_;
 
         sqlite3* database_;
 

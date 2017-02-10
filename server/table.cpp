@@ -25,72 +25,11 @@ TableInsert* Table::get_insert_statement(){
 }
 
 int Table::get_field_id(std::string field){
-
-    auto j = 100000;
-    auto t1 = std::chrono::system_clock::now();
-
-    for(int f = 0; f < j; f++){
-        for(int i = 0; i < columns_.size(); i++){
-            if(field == columns_.at(i)->column_name_){
-                //return columns_.at(i)->column_number_;
-            }
-        }
-    }
-    auto t2 = std::chrono::system_clock::now();
-    for(int f = 0; f < j; f++){
-        for(int i = 0; i < columns_.size(); i++){
-            if(field == columns_[i]->column_name_){
-                //return columns_[i]->column_number_;
-            }
-        }
-    }
-
-    auto t3 = std::chrono::system_clock::now();
-    for(int f = 0; f < j; f++){
-        for(auto c: columns_){
-        if(field == c->column_name_){
-
-            }
-        }
-    }
-    auto t4 = std::chrono::system_clock::now();
-
-    int size = columns_.size();
-    for(int f = 0; f < j; f++){
-        for(int i = 0; i < size; i++){
-            if(field == columns_[i]->column_name_){
-                //return columns_[i]->column_number_;
-            }
-        }
-    }
-    auto t5 = std::chrono::system_clock::now();
-
-
-    auto t_1 = (t2 - t1);
-    auto t_2 = (t3 - t2);
-    auto t_3 = (t4 - t3);
-    auto t_4 = (t5 - t4);
-
-
-    std::cout << "\t FOR AT:" << t_1.count()/j << " μs" << std::endl;
-    std::cout << "\t FOR []:" << t_2.count()/j << " μs" << std::endl;
-    std::cout << "\t FOREACH:" << t_3.count()/j << " μs" << std::endl;
-    std::cout << "\t FOR [] CACHED SIZE:" << t_4.count()/j << " μs" << std::endl;
-    
-
-
-
-    for(int i = 0; i < columns_.size(); i++){
+    for(int i = 0; i < size_; i++){
         if(field == columns_[i]->column_name_){
             return columns_[i]->column_number_;
         }
     }
-
-
-
-
-
-
     std::cerr << "Can't find field '" << field << "' in table: '" << table_name_ << std::endl;
     return -1;
 }
@@ -137,6 +76,7 @@ void Table::InsertTableStatement(){
 }
 
 sqlite3_stmt* Table::get_table_construct_statement(){
+    size_ = columns_.size();
     if(table_create_.empty()){
         ConstructTableStatement();
     }
