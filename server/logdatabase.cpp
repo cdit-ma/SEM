@@ -351,7 +351,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
         InterfaceStatus ifstat = status->interfaces(i);
 
         if(ifstat.has_info()){
-            auto ifinfo = table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE]->get_insert_statement();        
+            auto ifinfo = table_map_[LOGAN_INTERFACE_INFO_TABLE]->get_insert_statement();        
             
             ifinfo->BindString(LOGAN_HOSTNAME, hostname);
             ifinfo->BindInt(LOGAN_MESSAGE_ID, message_id);
