@@ -66,5 +66,10 @@ message WorkloadEvent{
 message UserEvent{
     Info info = 1;
     Component component = 2;
-    Port port = 3;
+    string message = 3;
+    enum Type{
+        MESSAGE = 0;
+        FLAG = 1;
+    }
+    Type type = 4;
 }
