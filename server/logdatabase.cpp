@@ -12,9 +12,24 @@
 #define LOGAN_COMPONENT_ID "component_id"
 #define LOGAN_PORT_NAME "port_name"
 #define LOGAN_PORT_ID "port_id"
+#define LOGAN_PORT_KIND "port_kind"
 #define LOGAN_EVENT "event"
 #define LOGAN_MESSAGE_ID "id"
 #define LOGAN_NAME "name"
+
+
+#define LOGAN_SYSTEM_STATUS_TABLE "Hardware_SystemStatus"
+#define LOGAN_SYSTEM_INFO_TABLE "Hardware_SystemInfo"
+#define LOGAN_CPU_TABLE "Hardware_SystemCPUCoreStatus"
+#define LOGAN_FILE_SYSTEM_TABLE "Hardware_FileSystemStatus"
+#define LOGAN_FILE_SYSTEM_INFO_TABLE "Hardware_FileSystemInfo"
+#define LOGAN_INTERFACE_STATUS_TABLE "Hardware_InterfaceStatus"
+#define LOGAN_INTERFACE_INFO_TABLE "Hardware_InterfaceInfo"
+#define LOGAN_PROCESS_STATUS_TABLE "Hardware_ProcessStatus"
+#define LOGAN_PROCESS_INFO_TABLE "Hardware_ProcessInfo"
+#define LOGAN_PORT_EVENT_TABLE "Model_PortEvent"
+#define LOGAN_COMPONENT_EVENT_TABLE "Model_ComponentEvent"
+#define LOGAN_MESSAGE_EVENT_TABLE "Model_MessageEvent"
 
 LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFilepath){
     //Construct all of our tables
@@ -30,29 +45,32 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     ProcessInfoTable();
     PortEventTable();
     ComponentEventTable();
-
-    for(auto pair : table_map_){
-        auto t = pair.second;
-        QueueSqlStatement(t->get_table_construct_statement());
-    }
-
+    MessageEventTable();
     Flush();
 }
 
 void LogDatabase::SystemStatusTable(){
-    std::string name = "Hardware_SystemStatus";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_SYSTEM_STATUS_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_SYSTEM_STATUS_TABLE);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn("cpu_utilization", LOGAN_DECIMAL);
     t->AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
-    table_map_[name] = t;
+
+    table_map_[LOGAN_SYSTEM_STATUS_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void LogDatabase::SystemInfoTable(){
-    std::string name = "Hardware_SystemInfo";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_SYSTEM_INFO_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_SYSTEM_INFO_TABLE);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
@@ -66,46 +84,66 @@ void LogDatabase::SystemInfoTable(){
     t->AddColumn("cpu_vendor", LOGAN_VARCHAR);
     t->AddColumn("cpu_frequency", LOGAN_INT);
     t->AddColumn("physical_memory", LOGAN_INT);
-    table_map_[name] = t;
+
+    table_map_[LOGAN_SYSTEM_INFO_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void LogDatabase::CpuTable(){
-    std::string name = "Hardware_SystemCPUCoreStatus";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_CPU_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_CPU_TABLE);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn("core_id", LOGAN_INT);
     t->AddColumn("core_utilization", LOGAN_DECIMAL);
-    table_map_[name] = t;
+
+    table_map_[LOGAN_CPU_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::FileSystemTable(){
-    std::string name = "Hardware_FileSystemStatus";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_FILE_SYSTEM_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_FILE_SYSTEM_TABLE);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn("utilization", LOGAN_DECIMAL);
-    table_map_[name] = t;
+
+    table_map_[LOGAN_FILE_SYSTEM_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::FileSystemInfoTable(){
-    std::string name = "Hardware_FileSystemInfo";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_FILE_SYSTEM_INFO_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_FILE_SYSTEM_INFO_TABLE);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn("type", LOGAN_VARCHAR);
     t->AddColumn("size", LOGAN_INT);
-    table_map_[name] = t;
+
+    table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::InterfaceTable(){
-    std::string name = "Hardware_InterfaceStatus";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_INTERFACE_STATUS_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_INTERFACE_STATUS_TABLE);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
@@ -114,12 +152,17 @@ void LogDatabase::InterfaceTable(){
     t->AddColumn("rx_bytes", LOGAN_INT);
     t->AddColumn("tx_packets", LOGAN_INT);
     t->AddColumn("tx_bytes", LOGAN_INT);
-    table_map_[name] = t;
+
+    table_map_[LOGAN_INTERFACE_STATUS_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::InterfaceInfoTable(){
-    std::string name = "Hardware_InterfaceInfo";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_INTERFACE_INFO_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_INTERFACE_INFO_TABLE);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
@@ -130,12 +173,17 @@ void LogDatabase::InterfaceInfoTable(){
     t->AddColumn("ipv6_addr", LOGAN_VARCHAR);
     t->AddColumn("mac_addr", LOGAN_VARCHAR);
     t->AddColumn("speed", LOGAN_INT);
-    table_map_[name] = t;
+
+    table_map_[LOGAN_INTERFACE_INFO_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::ProcessTable(){
-    std::string name = "Hardware_ProcessStatus";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_PROCESS_STATUS_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_PROCESS_STATUS_TABLE);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
@@ -148,13 +196,17 @@ void LogDatabase::ProcessTable(){
     t->AddColumn("disk_written", LOGAN_INT);
     t->AddColumn("disk_total", LOGAN_INT);
     t->AddColumn("state", LOGAN_VARCHAR);
-    
-    table_map_[name] = t;
+
+    table_map_[LOGAN_PROCESS_STATUS_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::ProcessInfoTable(){
-    std::string name = "Hardware_ProcessInfo";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_PROCESS_INFO_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_PROCESS_INFO_TABLE);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
@@ -163,12 +215,16 @@ void LogDatabase::ProcessInfoTable(){
     t->AddColumn("args", LOGAN_VARCHAR);
     t->AddColumn("start_time", LOGAN_INT);
     
-    table_map_[name] = t;
+    table_map_[LOGAN_PROCESS_INFO_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::PortEventTable(){
-    std::string name = "Lifecycle_PortEvent";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_PORT_EVENT_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_PORT_EVENT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
@@ -177,53 +233,45 @@ void LogDatabase::PortEventTable(){
     t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
     
-    table_map_[name] = t;
+    table_map_[LOGAN_PORT_EVENT_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::ComponentEventTable(){
-    std::string name = "Lifecycle_ComponentEvent";
-    Table* t = new Table(database_, name);
+    if(table_map_.count(LOGAN_COMPONENT_EVENT_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_COMPONENT_EVENT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
     
-    table_map_[name] = t;
+    table_map_[LOGAN_COMPONENT_EVENT_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-std::string LogDatabase::get_port_event_table_string() const{
-    return  "CREATE TABLE IF NOT EXISTS Events_Port ("
-            "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "timeofday DECIMAL,"                            //1
-            "hostname VARCHAR,"                             //2
-            "component_name VARCHAR,"                       //3
-            "component_id VARCHAR,"                         //4
-            "port_name VARCHAR,"                            //5
-            "port_id VARCHAR,"                              //6
-            "port_type VARCHAR"                             //7
-            ");";
-}
-std::string LogDatabase::get_port_event_insert_query() const{
-    return  "INSERT INTO Events_Port (" 
-            "timeofday,"                                    //1
-            "hostname,"                                     //2
-            "component_name,"                               //3
-            "component_id,"                                 //4
-            "port_name,"                                    //5
-            "port_id,"                                      //6
-            "port_type"                                     //7
-            ") VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7);";
-}
-
-
-
-int LogDatabase::bind_string(sqlite3_stmt* stmnt, int pos, std::string str){
-    return sqlite3_bind_text(stmnt, pos, str.c_str(), str.size(), SQLITE_TRANSIENT);
+void LogDatabase::MessageEventTable(){
+    if(table_map_.count(LOGAN_MESSAGE_EVENT_TABLE)){
+        return;
+    }
+    Table* t = new Table(database_, LOGAN_MESSAGE_EVENT_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
+    
+    table_map_[LOGAN_MESSAGE_EVENT_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::ProcessSystemStatus(SystemStatus* status){
-    auto stmt = table_map_["Hardware_SystemStatus"]->get_insert_statement();
+    auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
     std::string hostname = status->hostname().c_str();
     int message_id = status->message_id();
@@ -238,7 +286,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
 
 
     if(status->has_info() != 0){
-        auto infostmt = table_map_["Hardware_SystemInfo"]->get_insert_statement();
+        auto infostmt = table_map_[LOGAN_SYSTEM_INFO_TABLE]->get_insert_statement();
         infostmt->BindString(LOGAN_HOSTNAME, hostname);
         infostmt->BindInt(LOGAN_MESSAGE_ID, message_id);
         infostmt->BindDouble(LOGAN_TIMEOFDAY, timestamp);
@@ -259,7 +307,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
 
 
     for(int i = 0; i < status->cpu_core_utilization_size(); i++){
-        auto cpustmt = table_map_["Hardware_SystemCPUCoreStatus"]->get_insert_statement();        
+        auto cpustmt = table_map_[LOGAN_CPU_TABLE]->get_insert_statement();        
         cpustmt->BindString(LOGAN_HOSTNAME, hostname);
         cpustmt->BindInt(LOGAN_MESSAGE_ID, message_id);
         cpustmt->BindDouble(LOGAN_TIMEOFDAY, timestamp);
@@ -269,11 +317,11 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
     }
 
     for(int i = 0; i < status->processes_size(); i++){
-        auto procstmt = table_map_["Hardware_ProcessStatus"]->get_insert_statement();
+        auto procstmt = table_map_[LOGAN_PROCESS_STATUS_TABLE]->get_insert_statement();
         ProcessStatus proc = status->processes(i);
 
         if(proc.has_info()){
-            auto procinfo = table_map_["Hardware_ProcessInfo"]->get_insert_statement();
+            auto procinfo = table_map_[LOGAN_PROCESS_INFO_TABLE]->get_insert_statement();
             procinfo->BindString(LOGAN_HOSTNAME, hostname);
             procinfo->BindInt(LOGAN_MESSAGE_ID, message_id);
             procinfo->BindDouble(LOGAN_TIMEOFDAY, timestamp);
@@ -299,11 +347,11 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
     }
 
     for(int i = 0; i < status->interfaces_size(); i++){
-        auto ifstatement = table_map_["Hardware_InterfaceStatus"]->get_insert_statement();        
+        auto ifstatement = table_map_[LOGAN_INTERFACE_STATUS_TABLE]->get_insert_statement();        
         InterfaceStatus ifstat = status->interfaces(i);
 
         if(ifstat.has_info()){
-            auto ifinfo = table_map_["Hardware_InterfaceInfo"]->get_insert_statement();        
+            auto ifinfo = table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE]->get_insert_statement();        
             
             ifinfo->BindString(LOGAN_HOSTNAME, hostname);
             ifinfo->BindInt(LOGAN_MESSAGE_ID, message_id);
@@ -332,11 +380,11 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
     }
 
     for(int i = 0; i < status->file_systems_size(); i++){
-        auto fsstatement = table_map_["Hardware_FileSystemStatus"]->get_insert_statement();                
+        auto fsstatement = table_map_[LOGAN_FILE_SYSTEM_TABLE]->get_insert_statement();                
         FileSystemStatus fss = status->file_systems(i);
 
         if(fss.has_info()){
-            auto fsinfo = table_map_["Hardware_FileSystemInfo"]->get_insert_statement();
+            auto fsinfo = table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE]->get_insert_statement();
 
             fsinfo->BindString(LOGAN_HOSTNAME, hostname);
             fsinfo->BindInt(LOGAN_MESSAGE_ID, message_id);
@@ -362,7 +410,7 @@ void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
         //Process port event
         std::cout << "process port called" << std::endl;
         //Insert test Statements
-        auto ins = table_map_["Lifecycle_PortEvent"]->get_insert_statement();
+        auto ins = table_map_[LOGAN_PORT_EVENT_TABLE]->get_insert_statement();
         ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
         ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
         ins->BindString(LOGAN_COMPONENT_NAME, event->component().name());
@@ -376,7 +424,7 @@ void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
 
     else if(event->has_component()){
         std::cout << "process event called" << std::endl;
-            auto ins = table_map_["Lifecycle_ComponentEvent"]->get_insert_statement();
+            auto ins = table_map_[LOGAN_COMPONENT_EVENT_TABLE]->get_insert_statement();
             ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
             ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
             ins->BindString(LOGAN_COMPONENT_NAME, event->component().name());
@@ -385,42 +433,19 @@ void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
     }
 }
 
-std::string LogDatabase::process_state_to_string(const ProcessStatus::State state) const{
-    switch(state){
-        case ProcessStatus::PROC_ERROR:
-            return "ERROR";
-        case ProcessStatus::PROC_RUNNING:
-            return "RUNNING";
-        case ProcessStatus::PROC_SLEEPING:
-            return "SLEEPING";
-        case ProcessStatus::PROC_DISK_SLEEP:
-            return "DISK SLEEP";
-        case ProcessStatus::PROC_STOPPED:
-            return "STOPPED";
-        case ProcessStatus::PROC_ZOMBIE:
-            return "ZOMBIE";
-        case ProcessStatus::PROC_DEAD:
-            return "DEAD";
-        default:
-            return "ERROR";
-    }
-}
+void LogDatabase::ProcessMessageEvent(re_common::MessageEvent* event){
+    if(event->has_port() && event->has_component()){
+        //Process port event
+        std::cout << "process ProcessMessageEvent" << std::endl;
+        auto ins = table_map_[LOGAN_MESSAGE_EVENT_TABLE]->get_insert_statement();
+        ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
+        ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
+        ins->BindString(LOGAN_COMPONENT_NAME, event->component().name());
+        ins->BindString(LOGAN_COMPONENT_ID, event->component().id());
+        ins->BindString(LOGAN_PORT_NAME, event->port().name());
+        ins->BindString(LOGAN_PORT_ID, event->port().id());
+        ins->BindString(LOGAN_PORT_KIND, re_common::Port::PortKind_Name(event->port().kind()));
 
-std::string LogDatabase::fs_type_to_string(const FileSystemStatus::FileSystemInfo::Type type) const{
-    switch(type){
-        case FileSystemStatus::FileSystemInfo::FS_UNKNOWN:
-            return "UNKNOWN";
-        case FileSystemStatus::FileSystemInfo::FS_LOCAL_DISK:
-            return "LOCAL_DISK";
-        case FileSystemStatus::FileSystemInfo::FS_NETWORK:
-            return "NETWORK";
-        case FileSystemStatus::FileSystemInfo::FS_RAM_DISK:
-            return "RAM_DISK";
-        case FileSystemStatus::FileSystemInfo::FS_CDROM:
-            return "CDROM";
-        case FileSystemStatus::FileSystemInfo::FS_SWAP:
-            return "SWAP";
-        default:
-            return "";
+        QueueSqlStatement(ins->get_statement());
     }
 }

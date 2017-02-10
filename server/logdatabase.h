@@ -34,6 +34,7 @@ class LogDatabase : public SQLiteDatabase{
         void ProcessInfoTable();
         void PortEventTable();
         void ComponentEventTable();
+        void MessageEventTable();
 
 };
 
