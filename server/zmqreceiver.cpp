@@ -1,7 +1,8 @@
 #include "sqlcontroller.h"
 #include <iostream>
 
-SQLController::SQLController(std::vector<std::string> addrs, std::string port, std::string file){
+
+ZMQReceiver::ZMQReceiver(std::vector<std::string> addrs, std::string port, std::string file){
 
     port_ = port;
 
@@ -17,15 +18,28 @@ SQLController::SQLController(std::vector<std::string> addrs, std::string port, s
     term_socket_ = new zmq::socket_t(*context_, ZMQ_PUB);
 	term_socket_->bind("inproc://term_signal");
     
-    //Construct our log database
-    log_database_ = new LogDatabase(file);
-    
-    //Setup our threads
-    reciever_thread_ = new std::thread(&SQLController::RecieverThread, this);
-    sql_thread_ = new std::thread(&SQLController::SQLThread, this);
+
+    RegisterNewProto(new SystemStatus());
+    RegisterNewProto(new re_common::UserEvent());
+    RegisterNewProto(new re_common::MessageEvent());
+    RegisterNewProto(new re_common::LifecycleEvent());
 }
 
-void SQLController::TerminateReceiver(){
+void ZMQReceiver::SetProtoHandler(LogDatabase* log_database){
+    log_database_ = log_database;
+}
+
+void ZMQReceiver::Start(){
+    if(!proto_handler_){
+        std::cout << "Can't start ZMQReceiver: No ProtoHandler." << std::endl;
+    }
+
+    reciever_thread_ = new std::thread(&ZMQReceiver::RecieverThread, this);
+    proto_convert_thread_ = new std::thread(&ZMQReceiver::ProtoConvertThread, this);
+}
+
+
+void ZMQReceiver::TerminateReceiver(){
     //Set our terminate
     terminate_reciever_ = true;
 
@@ -39,11 +53,11 @@ void SQLController::TerminateReceiver(){
     delete context_;
 }
 
-SQLController::~SQLController(){
+ZMQReceiver::~ZMQReceiver(){
     {
         //Gain the lock so we can notify and set our terminate flag.
         std::unique_lock<std::mutex> lock(queue_mutex_);
-        terminate_sql_ = true;
+        terminate_proto_convert_thread_ = true;
         queue_lock_condition_.notify_all();
     }
 
@@ -51,14 +65,19 @@ SQLController::~SQLController(){
     delete reciever_thread_;
 
     //Wait for the sql_thread to terminate
-    sql_thread_->join();
-    delete sql_thread_;
+    proto_convert_thread_->join();
+    delete proto_convert_thread_;
     
     //Teardown database
     delete log_database_;
+
+    while(!types_.empty()){
+        delete types_.front();
+        types_.pop();
+    }
 }
 
-void SQLController::RecieverThread(){
+void ZMQReceiver::RecieverThread(){
     //Setup our Subscriber socket
     zmq::socket_t socket(*context_, ZMQ_SUB);
 	
@@ -115,9 +134,40 @@ void SQLController::RecieverThread(){
 }
 
 
-void SQLController::SQLThread(){
+void ZMQReceiver::RegisterNewProto(google::protobuf::MessageLite* ml){
+    std::string type = ml->GetTypeName();
+    //Function pointer winraring
+    //auto fn = std::bind(&google::protobuf::MessageLite::New, ml);
+    auto fn = [ml](){return ml->New();};
+    proto_lookup_[type] = fn;
+    types_.push(ml);
+    //Remember to destroy elements in types_ in destructor
+}
+
+google::protobuf::MessageLite* ZMQReceiver::ConstructMessage(std::string type, std::string data){
+    if(proto_lookup_.count(type)){
+        auto a = proto_lookup_[type]();
+        a->ParseFromString(data);
+        return a;
+    }
+    return 0;
+}
+
+// while(!replace_queue.empty()){
+//     std::string type = replace_queue.front().first;
+//     std::string msg = replace_queue.front().second;
+    
+//     auto message = construct_message(type, msg);
+//     if(message){
+//         log_database_->Process(type, message);
+//     }
+// }
+
+
+
+void ZMQReceiver::ProtoConvertThread(){
     //Update loop.
-    while(!terminate_sql_){
+    while(!terminate_proto_convert_thread_){
         std::queue<std::pair<std::string, std::string> > replace_queue;
         {
             //Obtain lock for the queue
@@ -139,6 +189,17 @@ void SQLController::SQLThread(){
         auto message_event = new re_common::MessageEvent();
         auto user_event = new re_common::UserEvent();
 
+        while(!replace_queue.empty()){
+            std::string type = replace_queue.front().first;
+            std::string msg = replace_queue.front().second;
+
+            auto message = ConstructMessage(type, msg);
+            if(message){
+                std::cout << ((google::protobuf::Message*)message) << std::endl;
+            }
+            replace_queue.pop();
+        }
+
         //Empty the queue
         while(!replace_queue.empty()){
             //Fill our pb status message with the contents from the string
@@ -148,7 +209,6 @@ void SQLController::SQLThread(){
 
             if(type == system_status->GetTypeName()){
                 system_status->ParseFromString(msg);                
-                //dump to the contents to sql statements
                 std::cout << "Parsing: SystemStatus()" << std::endl;
                 log_database_->ProcessSystemStatus(system_status);
                 system_status->Clear();                

@@ -10,9 +10,10 @@
 #include "table.h"
 
 
-class LogDatabase : public SQLiteDatabase{
+class LogDatabase{
     public:
         LogDatabase(std::string databaseFilepath);
+        SetDatabase(SQLiteDatabase* database);
 
         void ProcessSystemStatus(SystemStatus* status);
         void ProcessLifecycleEvent(re_common::LifecycleEvent* event);
@@ -21,6 +22,7 @@ class LogDatabase : public SQLiteDatabase{
 
 
     private:
+        SQLiteDatabase* database_;
 
         std::map<std::string, Table*> table_map_;
 

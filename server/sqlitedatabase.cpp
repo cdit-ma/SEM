@@ -116,12 +116,3 @@ void SQLiteDatabase::ProcessQueue(){
 	}
 }
 
-
-sqlite3_stmt* SQLiteDatabase::GetSqlStatement(std::string query){
-    sqlite3_stmt *statement;
-    int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
-    if(result == SQLITE_OK){
-        return statement;
-    }
-    return 0;
-}

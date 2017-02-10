@@ -15,8 +15,6 @@ class SQLiteDatabase{
         
         void QueueSqlStatement(sqlite3_stmt * statement);
         void Flush();
-        
-        sqlite3_stmt* GetSqlStatement(std::string query);
     protected:
         sqlite3 *database_ = 0;
     private:

@@ -48,7 +48,13 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     ComponentEventTable();
     MessageEventTable();
     UserEventTable();
-    Flush();
+    database_->Flush();
+}
+
+void LogDatabase::SetDatabase(SQLiteDatabase* database){
+    if(!database_){
+        database_ = database;
+    }
 }
 
 void LogDatabase::SystemStatusTable(){
@@ -64,7 +70,7 @@ void LogDatabase::SystemStatusTable(){
     t->AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
 
     table_map_[LOGAN_SYSTEM_STATUS_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());
+    database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void LogDatabase::SystemInfoTable(){
@@ -88,7 +94,7 @@ void LogDatabase::SystemInfoTable(){
     t->AddColumn("physical_memory", LOGAN_INT);
 
     table_map_[LOGAN_SYSTEM_INFO_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());
+    database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void LogDatabase::CpuTable(){
@@ -104,7 +110,7 @@ void LogDatabase::CpuTable(){
     t->AddColumn("core_utilization", LOGAN_DECIMAL);
 
     table_map_[LOGAN_CPU_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::FileSystemTable(){
@@ -120,7 +126,7 @@ void LogDatabase::FileSystemTable(){
     t->AddColumn("utilization", LOGAN_DECIMAL);
 
     table_map_[LOGAN_FILE_SYSTEM_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::FileSystemInfoTable(){
@@ -137,7 +143,7 @@ void LogDatabase::FileSystemInfoTable(){
     t->AddColumn("size", LOGAN_INT);
 
     table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::InterfaceTable(){
@@ -156,7 +162,7 @@ void LogDatabase::InterfaceTable(){
     t->AddColumn("tx_bytes", LOGAN_INT);
 
     table_map_[LOGAN_INTERFACE_STATUS_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::InterfaceInfoTable(){
@@ -177,7 +183,7 @@ void LogDatabase::InterfaceInfoTable(){
     t->AddColumn("speed", LOGAN_INT);
 
     table_map_[LOGAN_INTERFACE_INFO_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::ProcessTable(){
@@ -200,7 +206,7 @@ void LogDatabase::ProcessTable(){
     t->AddColumn("state", LOGAN_VARCHAR);
 
     table_map_[LOGAN_PROCESS_STATUS_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::ProcessInfoTable(){
@@ -218,7 +224,7 @@ void LogDatabase::ProcessInfoTable(){
     t->AddColumn("start_time", LOGAN_INT);
     
     table_map_[LOGAN_PROCESS_INFO_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::PortEventTable(){
@@ -236,7 +242,7 @@ void LogDatabase::PortEventTable(){
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
     
     table_map_[LOGAN_PORT_EVENT_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::ComponentEventTable(){
@@ -252,7 +258,7 @@ void LogDatabase::ComponentEventTable(){
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
     
     table_map_[LOGAN_COMPONENT_EVENT_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::MessageEventTable(){
@@ -269,7 +275,7 @@ void LogDatabase::MessageEventTable(){
     t->AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
     
     table_map_[LOGAN_MESSAGE_EVENT_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::UserEventTable(){
@@ -285,7 +291,7 @@ void LogDatabase::UserEventTable(){
     t->AddColumn("type", LOGAN_VARCHAR);
     
     table_map_[LOGAN_USER_EVENT_TABLE] = t;
-    QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogDatabase::ProcessSystemStatus(SystemStatus* status){
@@ -300,7 +306,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
     stmt->BindDouble(LOGAN_TIMEOFDAY, timestamp);
     stmt->BindDouble("cpu_utilization", status->cpu_utilization());
     stmt->BindDouble("phys_mem_utilization", status->phys_mem_utilization());
-    QueueSqlStatement(stmt->get_statement());
+    database_->QueueSqlStatement(stmt->get_statement());
 
 
     if(status->has_info() != 0){
@@ -320,7 +326,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
         infostmt->BindString("cpu_vendor", info.cpu_vendor());
         infostmt->BindInt("cpu_frequency", info.cpu_frequency());
         infostmt->BindInt("physical_memory", info.physical_memory());
-        QueueSqlStatement(infostmt->get_statement());
+        database_->QueueSqlStatement(infostmt->get_statement());
     }
 
 
@@ -331,7 +337,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
         cpustmt->BindDouble(LOGAN_TIMEOFDAY, timestamp);
         cpustmt->BindInt("core_id", i);
         cpustmt->BindDouble("core_utilization", status->cpu_core_utilization(i));
-        QueueSqlStatement(cpustmt->get_statement());
+        database_->QueueSqlStatement(cpustmt->get_statement());
     }
 
     for(int i = 0; i < status->processes_size(); i++){
@@ -347,7 +353,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
             procinfo->BindString(LOGAN_NAME, proc.info().name());
             procinfo->BindString("args", proc.info().args());
             procinfo->BindInt("start_time", proc.info().start_time());
-            QueueSqlStatement(procinfo->get_statement());
+            database_->QueueSqlStatement(procinfo->get_statement());
         }
         procstmt->BindString(LOGAN_HOSTNAME, hostname);
         procstmt->BindInt(LOGAN_MESSAGE_ID, message_id);
@@ -361,7 +367,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
         procstmt->BindInt("disk_written", proc.disk_written());
         procstmt->BindInt("disk_total", proc.disk_total());
         procstmt->BindString("state", ProcessStatus::State_Name(proc.state()));
-        QueueSqlStatement(procstmt->get_statement());
+        database_->QueueSqlStatement(procstmt->get_statement());
     }
 
     for(int i = 0; i < status->interfaces_size(); i++){
@@ -383,7 +389,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
             ifinfo->BindString("mac_addr", ifstat.info().mac_addr());
             ifinfo->BindInt("speed", ifstat.info().speed());
 
-            QueueSqlStatement(ifinfo->get_statement());
+            database_->QueueSqlStatement(ifinfo->get_statement());
         }
 
         ifstatement->BindString(LOGAN_HOSTNAME, hostname);
@@ -394,7 +400,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
         ifstatement->BindInt("rx_bytes", ifstat.rx_bytes());
         ifstatement->BindInt("tx_packets", ifstat.tx_packets());
         ifstatement->BindInt("tx_bytes", ifstat.tx_bytes());
-        QueueSqlStatement(ifstatement->get_statement());
+        database_->QueueSqlStatement(ifstatement->get_statement());
     }
 
     for(int i = 0; i < status->file_systems_size(); i++){
@@ -410,7 +416,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
             fsinfo->BindString(LOGAN_NAME, fss.name());
             fsinfo->BindString("type", FileSystemStatus::FileSystemInfo::Type_Name(fss.info().type()));
             fsinfo->BindInt("size", fss.info().size());
-            QueueSqlStatement(fsinfo->get_statement());
+            database_->QueueSqlStatement(fsinfo->get_statement());
         }
 
         fsstatement->BindString(LOGAN_HOSTNAME, hostname);
@@ -418,9 +424,8 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
         fsstatement->BindDouble(LOGAN_TIMEOFDAY, timestamp);
         fsstatement->BindString(LOGAN_NAME, fss.name());
         fsstatement->BindDouble("utilization", fss.utilization());
-        QueueSqlStatement(fsstatement->get_statement());
+        database_->QueueSqlStatement(fsstatement->get_statement());
     }
-
 }
 
 void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
@@ -437,7 +442,7 @@ void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
         ins->BindString(LOGAN_PORT_ID, event->port().id());
         ins->BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event->type()));
 
-        QueueSqlStatement(ins->get_statement());
+        database_->QueueSqlStatement(ins->get_statement());
     }
 
     else if(event->has_component()){
@@ -447,7 +452,7 @@ void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
             ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
             ins->BindString(LOGAN_COMPONENT_NAME, event->component().name());
             ins->BindString(LOGAN_COMPONENT_ID, event->component().id());
-            QueueSqlStatement(ins->get_statement());
+            database_->QueueSqlStatement(ins->get_statement());
     }
 }
 
@@ -464,7 +469,7 @@ void LogDatabase::ProcessMessageEvent(re_common::MessageEvent* event){
         ins->BindString(LOGAN_PORT_ID, event->port().id());
         ins->BindString(LOGAN_PORT_KIND, re_common::Port::PortKind_Name(event->port().kind()));
 
-        QueueSqlStatement(ins->get_statement());
+        database_->QueueSqlStatement(ins->get_statement());
     }
 }
 
@@ -478,4 +483,6 @@ void LogDatabase::ProcessUserEvent(re_common::UserEvent* event){
     ins->BindString(LOGAN_COMPONENT_ID, event->component().id());
     ins->BindString("message", event->message());
     ins->BindString("type", re_common::UserEvent::Type_Name(event->type()));
+    database_->QueueSqlStatement(ins->get_statement());
+    
 }
