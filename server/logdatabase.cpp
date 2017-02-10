@@ -30,6 +30,7 @@
 #define LOGAN_PORT_EVENT_TABLE "Model_PortEvent"
 #define LOGAN_COMPONENT_EVENT_TABLE "Model_ComponentEvent"
 #define LOGAN_MESSAGE_EVENT_TABLE "Model_MessageEvent"
+#define LOGAN_USER_EVENT_TABLE "Model_UserEvent"
 
 LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFilepath){
     //Construct all of our tables
@@ -46,6 +47,7 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     PortEventTable();
     ComponentEventTable();
     MessageEventTable();
+    UserEventTable();
     Flush();
 }
 
@@ -270,6 +272,22 @@ void LogDatabase::MessageEventTable(){
     QueueSqlStatement(t->get_table_construct_statement());    
 }
 
+void LogDatabase::UserEventTable(){
+    if(table_map_.count(LOGAN_USER_EVENT_TABLE)){
+        return;
+    }
+    Table* t = new Table(database_, LOGAN_USER_EVENT_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
+    t->AddColumn("message", LOGAN_VARCHAR);
+    t->AddColumn("type", LOGAN_VARCHAR);
+    
+    table_map_[LOGAN_USER_EVENT_TABLE] = t;
+    QueueSqlStatement(t->get_table_construct_statement());    
+}
+
 void LogDatabase::ProcessSystemStatus(SystemStatus* status){
     auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
@@ -448,4 +466,16 @@ void LogDatabase::ProcessMessageEvent(re_common::MessageEvent* event){
 
         QueueSqlStatement(ins->get_statement());
     }
+}
+
+void LogDatabase::ProcessUserEvent(re_common::UserEvent* event){
+    std::cout << "ProcessUserEvent" << std::endl;
+
+    auto ins = table_map_[LOGAN_USER_EVENT_TABLE]->get_insert_statement();
+    ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
+    ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
+    ins->BindString(LOGAN_COMPONENT_NAME, event->component().name());
+    ins->BindString(LOGAN_COMPONENT_ID, event->component().id());
+    ins->BindString("message", event->message());
+    ins->BindString("type", re_common::UserEvent::Type_Name(event->type()));
 }

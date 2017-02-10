@@ -17,6 +17,7 @@ class LogDatabase : public SQLiteDatabase{
         void ProcessSystemStatus(SystemStatus* status);
         void ProcessLifecycleEvent(re_common::LifecycleEvent* event);
         void ProcessMessageEvent(re_common::MessageEvent* event);
+        void ProcessUserEvent(re_common::UserEvent* event);
 
 
     private:
@@ -35,6 +36,7 @@ class LogDatabase : public SQLiteDatabase{
         void PortEventTable();
         void ComponentEventTable();
         void MessageEventTable();
+        void UserEventTable();
 
 };
 
