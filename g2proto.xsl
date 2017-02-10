@@ -190,7 +190,9 @@
                 <xsl:value-of select="o:nl()" />
                 <xsl:value-of select="concat('#Find protobuf', o:nl())" />
                 <xsl:value-of select="concat('find_package(Protobuf REQUIRED)', o:nl())" />
-                <xsl:value-of select="concat('protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ', $aggregate_label_lc, '.proto', o:nl())" />
+                
+                <!-- Generate PB files -->
+                <xsl:value-of select="concat('protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ', $aggregate_label_lc, '.proto)', o:nl())" />
                 <xsl:value-of select="o:nl()" />
                 
                 <!-- SOURCE -->
