@@ -137,6 +137,7 @@ void SQLController::SQLThread(){
         auto system_status = new SystemStatus();
         auto lifecycle_event = new re_common::LifecycleEvent();
         auto message_event = new re_common::MessageEvent();
+        auto user_event = new re_common::UserEvent();
 
         //Empty the queue
         while(!replace_queue.empty()){
@@ -150,16 +151,25 @@ void SQLController::SQLThread(){
                 //dump to the contents to sql statements
                 std::cout << "Parsing: SystemStatus()" << std::endl;
                 log_database_->ProcessSystemStatus(system_status);
+                system_status->Clear();                
             }
             else if(type == lifecycle_event->GetTypeName()){
                 lifecycle_event->ParseFromString(msg);
                 std::cout << "Parsing: re_common::LifecycleEvent()" << std::endl;
                 log_database_->ProcessLifecycleEvent(lifecycle_event);
+                lifecycle_event->Clear();                
             }
             else if(type == message_event->GetTypeName()){
                 message_event->ParseFromString(msg);
                 std::cout << "Parsing: re_common::MessageEvent()" << std::endl;
                 log_database_->ProcessMessageEvent(message_event);
+                message_event->Clear();            
+            }
+            else if(type == user_event->GetTypeName()){
+                user_event->ParseFromString(msg);
+                std::cout << "Parsing: re_common::UserEvent()" << std::endl;
+                log_database_->ProcessUserEvent(user_event);
+                user_event->Clear();            
             }
             else{
                 std::cout << "Cannot process message: " <<  replace_queue.front().first << std::endl;
@@ -168,11 +178,11 @@ void SQLController::SQLThread(){
             replace_queue.pop();
             
             //clear our message
-            system_status->Clear();
-            lifecycle_event->Clear();
         }
         //Free the memory
         delete system_status;
         delete lifecycle_event;
+        delete message_event;
+        delete user_event;
     }
 }
