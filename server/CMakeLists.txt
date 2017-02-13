@@ -10,16 +10,12 @@ project (${PROJ_NAME})
 find_package(Protobuf REQUIRED)
 include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
-find_package(ZeroMQ REQUIRED)
-include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
-
 find_package(Boost 1.36.0 COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/zmqreceiver.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/logprotohandler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/table.cpp
@@ -28,7 +24,6 @@ set(SOURCE
 )
 
 set(HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/zmqreceiver.h
 	${CMAKE_CURRENT_SOURCE_DIR}/logprotohandler.h
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.h
 	${CMAKE_CURRENT_SOURCE_DIR}/table.h
@@ -49,6 +44,7 @@ else()
 endif()
 
 #Link against our Protobuf source/headers
+target_link_libraries(${PROJ_NAME} zmqprotoreceiver)
 target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
 

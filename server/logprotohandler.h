@@ -6,8 +6,8 @@
 #include "../re_common/proto/systemstatus/systemstatus.pb.h"
 
 #include "../re_common/proto/modelevent/modelevent.pb.h"
+#include "../re_common/zmqprotoreceiver/zmqreceiver.h"
 #include "sqlitedatabase.h"
-#include "zmqreceiver.h"
 
 class Table;
 

@@ -4,7 +4,7 @@
 #include <iostream>
 #include "boost/program_options.hpp"
 
-#include "zmqreceiver.h"
+#include "../re_common/zmqprotoreceiver/zmqreceiver.h"
 #include "logprotohandler.h"
 #include "sqlitedatabase.h"
 
