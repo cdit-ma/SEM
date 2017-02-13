@@ -7,20 +7,21 @@
 #include <condition_variable>
 #include <string>
 #include <functional>
+#include <map>
 
 #include "zmq.hpp"
-#include "logdatabase.h"
 
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/message.h>
 
 class ZMQReceiver{
     public:
-        ZMQReceiver(std::vector<std::string> addrs, std::string port, std::string file);
+        ZMQReceiver(std::vector<std::string> addrs, std::string port, int batch_size = 20);
         ~ZMQReceiver();
 
         void TerminateReceiver();
-        void SetProtoHandler(LogDatabase* log_database);
+        void SetProtoHandlerCallback(std::function<void(google::protobuf::MessageLite*)>);
+        
         void Start();
         
         void RegisterNewProto(google::protobuf::MessageLite* ml);
@@ -29,6 +30,8 @@ class ZMQReceiver{
         google::protobuf::MessageLite* ConstructMessage(std::string type, std::string data);
         void RecieverThread();
         void ProtoConvertThread();
+
+        int batch_size_;
         
         std::vector<std::string> addresses_;
         std::string port_;
@@ -39,7 +42,7 @@ class ZMQReceiver{
         zmq::context_t *context_;
         zmq::socket_t *term_socket_;
 
-        LogDatabase* log_database_;
+        std::function<void(google::protobuf::MessageLite*)> process_callback_ = nullptr;
 
         std::map<std::string, std::function< google::protobuf::MessageLite* ()> > proto_lookup_;
         std::queue<google::protobuf::MessageLite*> types_;

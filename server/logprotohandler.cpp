@@ -1,6 +1,9 @@
-#include "logdatabase.h"
+#include "logprotohandler.h"
 #include "tableinsert.h"
-#include <iostream>
+#include "sqlitedatabase.h"
+#include <functional>
+#include "table.h"
+
 
 #define LOGAN_DECIMAL "DECIMAL"
 #define LOGAN_VARCHAR "VARCHAR"
@@ -32,7 +35,19 @@
 #define LOGAN_MESSAGE_EVENT_TABLE "Model_MessageEvent"
 #define LOGAN_USER_EVENT_TABLE "Model_UserEvent"
 
-LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFilepath){
+LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database){
+    database_ = database;
+    receiver_ = receiver;
+
+    receiver_->RegisterNewProto(new SystemStatus());
+    receiver_->RegisterNewProto(new re_common::UserEvent());
+    receiver_->RegisterNewProto(new re_common::MessageEvent());
+    receiver_->RegisterNewProto(new re_common::LifecycleEvent());
+
+    //Set zmqreceiver's callback function
+    auto receive_callback = std::bind(&LogProtoHandler::Process, this, std::placeholders::_1);
+    receiver_->SetProtoHandlerCallback(receive_callback);
+
     //Construct all of our tables
 
     SystemStatusTable();
@@ -51,13 +66,13 @@ LogDatabase::LogDatabase(std::string databaseFilepath):SQLiteDatabase(databaseFi
     database_->Flush();
 }
 
-void LogDatabase::SetDatabase(SQLiteDatabase* database){
+void LogProtoHandler::SetDatabase(SQLiteDatabase* database){
     if(!database_){
         database_ = database;
     }
 }
 
-void LogDatabase::SystemStatusTable(){
+void LogProtoHandler::SystemStatusTable(){
     if(table_map_.count(LOGAN_SYSTEM_STATUS_TABLE)){
         return;
     }
@@ -73,7 +88,7 @@ void LogDatabase::SystemStatusTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
-void LogDatabase::SystemInfoTable(){
+void LogProtoHandler::SystemInfoTable(){
     if(table_map_.count(LOGAN_SYSTEM_INFO_TABLE)){
         return;
     }
@@ -97,7 +112,7 @@ void LogDatabase::SystemInfoTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
-void LogDatabase::CpuTable(){
+void LogProtoHandler::CpuTable(){
     if(table_map_.count(LOGAN_CPU_TABLE)){
         return;
     }
@@ -113,7 +128,7 @@ void LogDatabase::CpuTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::FileSystemTable(){
+void LogProtoHandler::FileSystemTable(){
     if(table_map_.count(LOGAN_FILE_SYSTEM_TABLE)){
         return;
     }
@@ -129,7 +144,7 @@ void LogDatabase::FileSystemTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::FileSystemInfoTable(){
+void LogProtoHandler::FileSystemInfoTable(){
     if(table_map_.count(LOGAN_FILE_SYSTEM_INFO_TABLE)){
         return;
     }
@@ -146,7 +161,7 @@ void LogDatabase::FileSystemInfoTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::InterfaceTable(){
+void LogProtoHandler::InterfaceTable(){
     if(table_map_.count(LOGAN_INTERFACE_STATUS_TABLE)){
         return;
     }
@@ -165,7 +180,7 @@ void LogDatabase::InterfaceTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::InterfaceInfoTable(){
+void LogProtoHandler::InterfaceInfoTable(){
     if(table_map_.count(LOGAN_INTERFACE_INFO_TABLE)){
         return;
     }
@@ -186,7 +201,7 @@ void LogDatabase::InterfaceInfoTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::ProcessTable(){
+void LogProtoHandler::ProcessTable(){
     if(table_map_.count(LOGAN_PROCESS_STATUS_TABLE)){
         return;
     }
@@ -209,7 +224,7 @@ void LogDatabase::ProcessTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::ProcessInfoTable(){
+void LogProtoHandler::ProcessInfoTable(){
     if(table_map_.count(LOGAN_PROCESS_INFO_TABLE)){
         return;
     }
@@ -227,7 +242,7 @@ void LogDatabase::ProcessInfoTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::PortEventTable(){
+void LogProtoHandler::PortEventTable(){
     if(table_map_.count(LOGAN_PORT_EVENT_TABLE)){
         return;
     }
@@ -245,7 +260,7 @@ void LogDatabase::PortEventTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::ComponentEventTable(){
+void LogProtoHandler::ComponentEventTable(){
     if(table_map_.count(LOGAN_COMPONENT_EVENT_TABLE)){
         return;
     }
@@ -261,7 +276,7 @@ void LogDatabase::ComponentEventTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::MessageEventTable(){
+void LogProtoHandler::MessageEventTable(){
     if(table_map_.count(LOGAN_MESSAGE_EVENT_TABLE)){
         return;
     }
@@ -278,7 +293,7 @@ void LogDatabase::MessageEventTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::UserEventTable(){
+void LogProtoHandler::UserEventTable(){
     if(table_map_.count(LOGAN_USER_EVENT_TABLE)){
         return;
     }
@@ -294,7 +309,16 @@ void LogDatabase::UserEventTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogDatabase::ProcessSystemStatus(SystemStatus* status){
+
+void LogProtoHandler::Process(google::protobuf::MessageLite* message){
+    std::string type = ((google::protobuf::Message*)message)->GetTypeName();
+    if(type == "SystemStatus"){
+        ProcessSystemStatus((SystemStatus*)message);
+    }
+}
+
+void LogProtoHandler::ProcessSystemStatus(SystemStatus* status){
+    std::cout << "LogProtoHandler::ProcessSystemStatus" << std::endl;
     auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
     std::string hostname = status->hostname().c_str();
@@ -428,7 +452,7 @@ void LogDatabase::ProcessSystemStatus(SystemStatus* status){
     }
 }
 
-void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
+void LogProtoHandler::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
     if(event->has_port() && event->has_component()){
         //Process port event
         std::cout << "process port called" << std::endl;
@@ -456,7 +480,7 @@ void LogDatabase::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
     }
 }
 
-void LogDatabase::ProcessMessageEvent(re_common::MessageEvent* event){
+void LogProtoHandler::ProcessMessageEvent(re_common::MessageEvent* event){
     if(event->has_port() && event->has_component()){
         //Process port event
         std::cout << "process ProcessMessageEvent" << std::endl;
@@ -473,7 +497,7 @@ void LogDatabase::ProcessMessageEvent(re_common::MessageEvent* event){
     }
 }
 
-void LogDatabase::ProcessUserEvent(re_common::UserEvent* event){
+void LogProtoHandler::ProcessUserEvent(re_common::UserEvent* event){
     std::cout << "ProcessUserEvent" << std::endl;
 
     auto ins = table_map_[LOGAN_USER_EVENT_TABLE]->get_insert_statement();

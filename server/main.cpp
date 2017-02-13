@@ -4,7 +4,9 @@
 #include <iostream>
 #include "boost/program_options.hpp"
 
-#include "sqlcontroller.h"
+#include "zmqreceiver.h"
+#include "logprotohandler.h"
+#include "sqlitedatabase.h"
 
 std::condition_variable lock_condition_;
 std::mutex mutex_;
@@ -59,7 +61,14 @@ int main(int ac, char** av)
 	}
 	std::cout << "---------------------------------" << std::endl;
 
-	SQLController* sql_controller = new SQLController(addresses, port, file_name);
+
+
+
+
+	ZMQReceiver* receiver = new ZMQReceiver(addresses, port);
+	SQLiteDatabase* sql_database = new SQLiteDatabase(file_name);
+	LogProtoHandler* proto_handler = new LogProtoHandler(receiver, sql_database);
+	receiver->Start();
 
 	{ 			
 		std::unique_lock<std::mutex> lock(mutex_);
@@ -68,9 +77,9 @@ int main(int ac, char** av)
 	}
 
 	//Terminate the reciever and reciever thread
-	sql_controller->TerminateReceiver();
+	receiver->TerminateReceiver();
 
     //Teardown the SQL Controller which will write the remaining queued messages
-	delete sql_controller;
+	delete receiver;
     return 0;
 }

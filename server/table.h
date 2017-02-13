@@ -21,7 +21,7 @@ struct TableColumn{
 
 class Table{
     public:
-        Table(sqlite3* database, std::string name);
+        Table(SQLiteDatabase* database, std::string name);
         void AddColumn(std::string name, std::string type);
         TableInsert* get_insert_statement();
 
@@ -35,7 +35,7 @@ class Table{
         int size_;
         std::string table_insert_;
 
-        sqlite3* database_;
+        SQLiteDatabase* database_;
 
         std::vector<TableColumn*> columns_;
         std::string table_create_;

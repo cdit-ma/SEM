@@ -1,13 +1,11 @@
 #include "table.h"
 #include "tableinsert.h"
 
-#include "sqlitedatabase.h"
-
 #define CREATE_TABLE_PREFIX "CREATE TABLE IF NOT EXISTS"
 #define INSERT_TABLE_PREFIX "INSERT INTO"
 #define LID_INSERT "lid INTEGER PRIMARY KEY AUTOINCREMENT,"
 
-Table::Table(sqlite3* database, std::string name){
+Table::Table(SQLiteDatabase* database, std::string name){
     table_name_ = name;
     database_ = database;
     AddColumn("lid", "INTEGER");
@@ -91,10 +89,5 @@ sqlite3_stmt* Table::get_table_insert_statement(){
 }
 
 sqlite3_stmt* Table::GetSqlStatement(std::string query){
-    sqlite3_stmt *statement;
-    int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
-    if(result == SQLITE_OK){
-        return statement;
-    }
-    return 0;
+    return database_->GetSqlStatement(query);
 }

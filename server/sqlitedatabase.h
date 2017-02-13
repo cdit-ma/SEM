@@ -12,12 +12,11 @@ class SQLiteDatabase{
     public:
         SQLiteDatabase(std::string databaseFilepath);
         virtual ~SQLiteDatabase();
-        
+        sqlite3_stmt* GetSqlStatement(std::string query);
         void QueueSqlStatement(sqlite3_stmt * statement);
         void Flush();
-    protected:
-        sqlite3 *database_ = 0;
     private:
+        sqlite3* database_ = 0;
         void ProcessQueue();
 
         std::thread* writer_thread_;

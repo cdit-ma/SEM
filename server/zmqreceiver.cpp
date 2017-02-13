@@ -1,10 +1,10 @@
-#include "sqlcontroller.h"
+#include "zmqreceiver.h"
 #include <iostream>
 
 
-ZMQReceiver::ZMQReceiver(std::vector<std::string> addrs, std::string port, std::string file){
-
+ZMQReceiver::ZMQReceiver(std::vector<std::string> addrs, std::string port, int batch_size){
     port_ = port;
+    batch_size_ = batch_size;
 
     for(auto addr : addrs){
         std::string temp = "tcp://" + addr + ":" + port;
@@ -17,20 +17,10 @@ ZMQReceiver::ZMQReceiver(std::vector<std::string> addrs, std::string port, std::
     //Construct our terminate socket
     term_socket_ = new zmq::socket_t(*context_, ZMQ_PUB);
 	term_socket_->bind("inproc://term_signal");
-    
-
-    RegisterNewProto(new SystemStatus());
-    RegisterNewProto(new re_common::UserEvent());
-    RegisterNewProto(new re_common::MessageEvent());
-    RegisterNewProto(new re_common::LifecycleEvent());
-}
-
-void ZMQReceiver::SetProtoHandler(LogDatabase* log_database){
-    log_database_ = log_database;
 }
 
 void ZMQReceiver::Start(){
-    if(!proto_handler_){
+    if(!process_callback_){
         std::cout << "Can't start ZMQReceiver: No ProtoHandler." << std::endl;
     }
 
@@ -68,13 +58,14 @@ ZMQReceiver::~ZMQReceiver(){
     proto_convert_thread_->join();
     delete proto_convert_thread_;
     
-    //Teardown database
-    delete log_database_;
-
     while(!types_.empty()){
         delete types_.front();
         types_.pop();
     }
+}
+
+void ZMQReceiver::SetProtoHandlerCallback(std::function<void(google::protobuf::MessageLite*)> fn){
+    process_callback_ = fn;
 }
 
 void ZMQReceiver::RecieverThread(){
@@ -120,7 +111,7 @@ void ZMQReceiver::RecieverThread(){
                 rx_message_queue_.push(std::make_pair(type_str, msg_str));
 
                 //Notify the condition when we have > 20 messages to process
-                if(rx_message_queue_.size() > 20){
+                if(rx_message_queue_.size() > batch_size_){
                     queue_lock_condition_.notify_all();
                 }
             }
@@ -184,22 +175,24 @@ void ZMQReceiver::ProtoConvertThread(){
 
         //TODO: switch on message type (event/systemstatus)
         //Construct a Protobuf object
-        auto system_status = new SystemStatus();
+      /*  auto system_status = new SystemStatus();
         auto lifecycle_event = new re_common::LifecycleEvent();
         auto message_event = new re_common::MessageEvent();
         auto user_event = new re_common::UserEvent();
-
+*/
         while(!replace_queue.empty()){
             std::string type = replace_queue.front().first;
             std::string msg = replace_queue.front().second;
 
-            auto message = ConstructMessage(type, msg);
-            if(message){
-                std::cout << ((google::protobuf::Message*)message) << std::endl;
+            if(process_callback_){
+                auto message = ConstructMessage(type, msg);
+                if(message){
+                    process_callback_(message);
+                }
             }
             replace_queue.pop();
         }
-
+/*
         //Empty the queue
         while(!replace_queue.empty()){
             //Fill our pb status message with the contents from the string
@@ -239,10 +232,13 @@ void ZMQReceiver::ProtoConvertThread(){
             
             //clear our message
         }
+
+        
         //Free the memory
         delete system_status;
         delete lifecycle_event;
         delete message_event;
         delete user_event;
+        */
     }
 }

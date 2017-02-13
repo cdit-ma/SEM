@@ -36,6 +36,15 @@ SQLiteDatabase::~SQLiteDatabase(){
     }
 }
 
+sqlite3_stmt* SQLiteDatabase::GetSqlStatement(std::string query){
+    sqlite3_stmt *statement;
+    int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
+    if(result == SQLITE_OK){
+        return statement;
+    }
+    return 0;
+}
+
 void SQLiteDatabase::QueueSqlStatement(sqlite3_stmt *sql){
     //Gain the conditional lock
     std::unique_lock<std::mutex> lock(queue_mutex_);

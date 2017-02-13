@@ -1,5 +1,5 @@
-#ifndef LOGDATABASE_H
-#define LOGDATABASE_H
+#ifndef LOGAN_SERVER_LOGPROTOHANDLER_H
+#define LOGAN_SERVER_LOGPROTOHANDLER_H
 
 #include <string>
 
@@ -7,13 +7,16 @@
 
 #include "../re_common/proto/modelevent/modelevent.pb.h"
 #include "sqlitedatabase.h"
-#include "table.h"
+#include "zmqreceiver.h"
 
+class Table;
 
-class LogDatabase{
+class LogProtoHandler{
     public:
-        LogDatabase(std::string databaseFilepath);
-        SetDatabase(SQLiteDatabase* database);
+        LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database);
+        void SetDatabase(SQLiteDatabase* database);
+
+        void Process(google::protobuf::MessageLite* message);
 
         void ProcessSystemStatus(SystemStatus* status);
         void ProcessLifecycleEvent(re_common::LifecycleEvent* event);
@@ -22,6 +25,7 @@ class LogDatabase{
 
 
     private:
+        ZMQReceiver* receiver_;
         SQLiteDatabase* database_;
 
         std::map<std::string, Table*> table_map_;
@@ -43,4 +47,4 @@ class LogDatabase{
 };
 
 
-#endif //LOGDATABASE_H
+#endif //LOGAN_SERVER_LOGPROTOHANDLER_H
