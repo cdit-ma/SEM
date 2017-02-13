@@ -54,6 +54,8 @@ public:
 signals:
     void hardwareCreated(int ID);
     void hardwareDestructed(int ID);
+    void workerProcessCreated(int ID);
+    void workerProcessDestructed(int ID);
 
 public slots:
     void actionHoverEnter(int ID);
@@ -80,8 +82,10 @@ private:
     QHash<Edge::EDGE_KIND, RootAction*> connectEdgeKindActions;
     QHash<Edge::EDGE_KIND, RootAction*> disconnectEdgeKindActions;
 
-    QHash<int, NodeViewItemAction*> actions;
     QList<int> hardwareIDs;
+    QList<int> workerProcessIDs;
+
+    QHash<int, NodeViewItemAction*> actions;
     QHash<QString, QString> infoActionKeyHash;
 
 public:

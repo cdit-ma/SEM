@@ -306,6 +306,8 @@ void DockTabWidget::setupConnections()
 
     connect(toolActionController, SIGNAL(hardwareCreated(int)), hardwareDock, SLOT(viewItemConstructed(int)));
     connect(toolActionController, SIGNAL(hardwareDestructed(int)), hardwareDock, SLOT(viewItemDestructed(int)));
+    //connect(toolActionController, SIGNAL(workerProcessCreated(int)), functionsDock, SLOT(viewItemConstructed(int)));
+    //connect(toolActionController, SIGNAL(workerProcessDestructed(int)), functionsDock, SLOT(viewItemDestructed(int)));
 }
 
 

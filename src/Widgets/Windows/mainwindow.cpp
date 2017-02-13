@@ -11,6 +11,8 @@
 
 #include "../../theme.h"
 
+#include "../../Utils/filtergroup.h"
+
 #include <QDebug>
 #include <QHeaderView>
 #include <QPushButton>
@@ -66,6 +68,27 @@ MainWindow::MainWindow(ViewController *vc, QWidget* parent):BaseWindow(parent, B
     }
 
     toggleWelcomeScreen(true);
+
+    QToolButton* tb1 = new QToolButton(this);
+    QToolButton* tb2 = new QToolButton(this);
+    QToolButton* tb3 = new QToolButton(this);
+    tb1->setText("ONE");
+    tb2->setText("TWO");
+    tb3->setText("THREE");
+
+    FilterGroup* fg = new FilterGroup("TEST", this);
+    fg->addToFilterGroup("one", tb1);
+    fg->addToFilterGroup("two", tb2);
+    fg->addToFilterGroup("", tb3, true);
+    //fg->setExclusive(true);
+
+    QToolBar* tb = new QToolBar();
+    tb->addWidget(tb1);
+    tb->addWidget(tb2);
+    tb->addWidget(tb3);
+    tb->setMinimumWidth(300);
+    tb->show();
+    tb->raise();
 }
 
 
