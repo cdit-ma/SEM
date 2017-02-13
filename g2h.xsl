@@ -36,35 +36,34 @@
             <!-- OPEN CMakeLists.txt -->
             <xsl:result-document href="{concat('datatypes/', $l_label, '/', 'CMakeLists.txt')}">
                 <!-- set RE_PATH -->
-                <xsl:value-of select="concat('#Get the RE_PATH', o:nl())" />
-                <xsl:value-of select="concat('set(RE_PATH ', o:dblquote_wrap('$ENV{RE_PATH}'), ')', o:nl())" />
+                <xsl:value-of select="o:cmake_comment('Get the RE_PATH')" />
+                <xsl:value-of select="o:cmake_set_env('RE_PATH', '$ENV{RE_PATH}')" />
                 <xsl:value-of select="o:nl()" />
 
                 <!-- Set PROJ_NAME -->
-                <xsl:value-of select="concat('set(PROJ_NAME datatypes_', $l_label, ')', o:nl())" />
-                <xsl:value-of select="concat('project(${PROJ_NAME})', o:nl())" />
+                <xsl:variable name="proj_name" select="concat('datatype_', $l_label)" />
+                <xsl:value-of select="o:cmake_set_proj_name($proj_name)" />
 
                 <!-- Find re_core -->
                 <xsl:value-of select="o:nl()" />
-                <xsl:value-of select="concat('#Find re_core library', o:nl())" />
-                <xsl:value-of select="concat('find_library(RE_CORE_LIBRARIES re_core ', o:dblquote_wrap('${RE_PATH}/lib'), ')', o:nl())" />
+                <xsl:value-of select="o:cmake_find_library('re_core', 'RE_CORE_LIBRARIES', '${RE_PATH}/lib')" />
                 <xsl:value-of select="o:nl()" />
 
-                <!-- SOURCE -->
+                <!-- Set Source files -->
                 <xsl:value-of select="concat('set(SOURCE', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $l_label, '.cpp', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
-                <!-- HEADERS -->
+                <!-- Set Headers files -->
                 <xsl:value-of select="concat('set(HEADERS', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $l_label, '.h', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
-                <!-- Include RE_PATH/src -->
-                <xsl:value-of select="concat('#Add RE_PATH to include directories', o:nl())" />
-                <xsl:value-of select="concat('include_directories(', o:dblquote_wrap('${RE_PATH}/src'), ')', o:nl())" />
+                <!-- Include directories -->
+                <xsl:value-of select="o:cmake_comment('Include the RE_PATH directory')" />
+                <xsl:value-of select="o:cmake_include_dir('${RE_PATH}/src')" />
                 <xsl:value-of select="o:nl()" />
 
                 <!-- add library/link -->
@@ -75,18 +74,20 @@
             <!-- OPEN FILE *.h -->
             <xsl:result-document href="{concat('datatypes/', $l_label, '/', $l_label, '.h')}">
 
+            <xsl:variable name="class_name" select="o:camel_case($aggregate_label)" />
             <xsl:variable name="define_guard" select="upper-case(concat('PORTS_', $aggregate_label, '_H'))" />
 
-            <xsl:value-of select="concat('#ifndef ', $define_guard, o:nl())" />
-            <xsl:value-of select="concat('#define ', $define_guard, o:nl())" />
+            <!-- Define Guard -->
+            <xsl:value-of select="o:define_guard($define_guard)" />
 
+            <!-- Include Functions -->
+            <xsl:value-of select="o:cpp_comment('Include Statements')" />
+            <xsl:value-of select="o:lib_include('core/basemessage.h')" />
+            <xsl:value-of select="o:lib_include('string')" />
+            <xsl:value-of select="o:nl()" />
 
-            <xsl:value-of select="concat(o:nl(), '//Include Statements', o:nl())" />
-            <xsl:value-of select="concat('#include ', o:lib_include('core/basemessage.h'), o:nl())" />
-            <xsl:value-of select="concat('#include ', o:lib_include('string'), o:nl())" />
-
-
-            <xsl:value-of select="concat(o:nl(), 'class ', o:camel_case($aggregate_label), ' : public BaseMessage{', o:nl())" />
+            <!-- Define the class, Inherits from BaseMessage -->
+            <xsl:value-of select="concat('class ', $class_name, ' : public BaseMessage{', o:nl())" />
             
             <!-- Public Functions -->
             <xsl:for-each select="$members">
@@ -95,22 +96,26 @@
 
                 <xsl:variable name="member_cpp_type" select="cdit:get_cpp_type($member_type)" />
 
-                <xsl:value-of select="concat(o:nl(), o:t(1), '//Basic Member: ', $member_label, '[', $member_type, ']', o:nl())" />
+                <xsl:value-of select="concat(o:nl(), o:t(1))" />
+                <xsl:value-of select="o:cpp_comment(concat('Basic Member: ', $member_label, ' [', $member_type, ']'))" />
+
+                <!-- Public Declarations -->
                 <xsl:value-of select="concat(o:t(1), 'public:', o:nl())" />
-                <!-- SETTER -->
-                <xsl:value-of select="concat(o:t(2), 'void set_', $member_label, '(const ', $member_cpp_type, ' val);', o:nl())" />
+                <!-- Setter -->
+                <xsl:value-of select="o:cpp_func_decl('void', concat('set_', $member_label), concat('const ', $member_cpp_type, ' val'))" />
                 <!-- Copy Getter -->
-                <xsl:value-of select="concat(o:t(2), $member_cpp_type, ' get_', $member_label, '();', o:nl())" />
+                <xsl:value-of select="o:cpp_func_decl($member_cpp_type, concat('get_', $member_label), '')" />
                 <!-- Inplace Getter -->
-                <xsl:value-of select="concat(o:t(2), $member_cpp_type, '* ', $member_label, '();', o:nl())" />
-                
+                <xsl:value-of select="o:cpp_func_decl(concat($member_cpp_type, '*'), $member_label, '')" />
+
+                <!-- Private Declarations -->
                 <xsl:value-of select="concat(o:t(1), 'private:', o:nl())" />
-                <!-- GETTER -->
-                <xsl:value-of select="concat(o:t(2), $member_cpp_type, ' ', $member_label, '_;', o:nl())" />
+                <!-- Variable -->
+                <xsl:value-of select="o:cpp_var_decl($member_cpp_type, concat($member_label,'_'))" />
             </xsl:for-each>
 
             <xsl:value-of select="concat('};', o:nl())" />
-            <xsl:value-of select="concat(o:nl(), '#endif //', $define_guard, o:nl())" />
+            <xsl:value-of select="o:define_guard_end($define_guard)" />
 
              </xsl:result-document>
         </xsl:for-each>
