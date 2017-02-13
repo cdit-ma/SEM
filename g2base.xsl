@@ -30,6 +30,7 @@
             <xsl:variable name="members" as="element()*" select="cdit:get_entities_of_kind(., 'Member')" />
             <xsl:variable name="vectors" as="element()*" select="cdit:get_entities_of_kind(., 'VectorInstance')" />
             <xsl:variable name="aggregates" as="element()*" select="cdit:get_entities_of_kind(., 'AggregateInstance')" />
+            <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates)" />
 
             <!-- Precalculate aggregate names -->
             <xsl:variable name="aggregate_name" select="cdit:get_key_value(., 'label')" />
@@ -72,6 +73,11 @@
                 <!-- add library/link -->
                 <xsl:value-of select="concat('add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})', o:nl())" />
                 <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})', o:nl())" />
+
+                <xsl:for-each-group select="$required_datatypes" group-by=".">
+                    <xsl:variable name="datatype" select="lower-case(.)" />
+                    <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} datatype_', $datatype, ')', o:nl())" />
+                </xsl:for-each-group>
             </xsl:result-document>
 
             <!-- Write *.h -->
@@ -85,10 +91,24 @@
                 <xsl:value-of select="o:lib_include('core/basemessage.h')" />
                 <xsl:value-of select="o:lib_include('string')" />
 
+                <xsl:variable name="rel_dir" select="'../'" />
+
                 <!-- Include Vectors if we need -->
                 <xsl:if test ="count($vectors) > 0">
                     <xsl:value-of select="o:lib_include('vector')" />
                 </xsl:if>
+
+                <!-- Handle Aggregates -->
+                <xsl:if test ="count($vectors) > 0">
+                    <xsl:value-of select="o:nl()" />
+                    
+                    <xsl:value-of select="o:cpp_comment('Include required datatypes')" />
+                    <xsl:for-each-group select="$required_datatypes" group-by=".">
+                        <xsl:variable name="datatype" select="lower-case(.)" />
+                        <xsl:value-of select="o:local_include(concat($rel_dir, $datatype, '/', $datatype, '.h'))" />
+                    </xsl:for-each-group>
+                </xsl:if>
+                
 
                 <xsl:value-of select="o:nl()" />
 
@@ -141,7 +161,7 @@
 
              </xsl:result-document>
 
-            <!-- Write *.h -->
+            <!-- Write *.cpp -->
             <xsl:result-document href="{concat('datatypes/', $aggregate_name_lc, '/', $aggregate_name_lc, '.cpp')}">
                 <xsl:value-of select="o:local_include(concat($aggregate_name_lc, '.h'))" />
                 <xsl:value-of select="o:nl()" />

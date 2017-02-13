@@ -111,11 +111,14 @@
         <xsl:value-of select="concat('// ', $text, o:nl())" />
     </xsl:function>
 
-    <xsl:function name="o:cpp_func_decl">
+
+    <xsl:function name="o:cpp_func_def">
         <xsl:param name="return_type" as="xs:string"  />
+        <xsl:param name="namespace" as="xs:string"  />
         <xsl:param name="name" as="xs:string"  />
         <xsl:param name="params" as="xs:string"  />
-        <xsl:value-of select="concat(o:t(2), $return_type, ' ', $name, '(', $params, ');', o:nl())" />
+
+        <xsl:value-of select="concat($return_type, ' ', if($namespace !='') then concat($namespace, '::') else '', $name, '(', $params, ')')" />
     </xsl:function>
 
     <xsl:function name="o:cpp_var_decl">
@@ -221,6 +224,72 @@
             <xsl:value-of select="concat('};', o:nl())" />
         </xsl:if>
     </xsl:function>
+
+
+    <xsl:function name="o:declare_variable_functions">
+        <xsl:param name="variable_name" as="xs:string" />
+        <xsl:param name="variable_type" as="xs:string" />
+
+        <xsl:variable name="variable_ptr_type" select="concat($variable_type, o:and())" />
+
+        
+        <!-- Public Declarations -->
+        <xsl:value-of select="concat(o:t(1), 'public:', o:nl())" />
+        <!-- Copy Setter -->
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat('const ', $variable_type, ' val')), ';', o:nl())" />
+        <!-- Pointer Setter -->
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat('const ', $variable_type, '* val')), ';', o:nl())" />
+        
+        <!-- Copy Getter -->
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ';', o:nl())" />
+        <!-- Inplace Getter -->
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_ptr_type, '', $variable_name, ''), ';', o:nl())" />
+        
+        <!-- Private Declarations -->
+        <xsl:value-of select="concat(o:t(1), 'private:', o:nl())" />
+        <!-- Variable -->
+        <xsl:value-of select="o:cpp_var_decl($variable_type, concat($variable_name, '_'))" />
+    </xsl:function>
+
+    <xsl:function name="o:define_variable_functions">
+        <xsl:param name="variable_name" as="xs:string" />
+        <xsl:param name="variable_type" as="xs:string" />
+        <xsl:param name="class_name" as="xs:string" />
+
+        <xsl:variable name="variable_var" select="concat($variable_name, '_')" />
+        <xsl:variable name="variable_ptr_type" select="concat($variable_type, o:and())" />
+
+        <!-- Copy Setter -->
+        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat('const ', $variable_type, ' val'))" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'this', o:fp(), $variable_var, ' = val;', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Pointer Setter -->
+        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat('const ', $variable_type, '* val'))" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'if(val){', o:nl())" />
+        <xsl:value-of select="concat(o:t(2), 'this', o:fp(), $variable_var, ' = *val;', o:nl())" />
+        <xsl:value-of select="concat(o:t(1),'}', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Copy Getter -->
+        <xsl:value-of select="o:cpp_func_def($variable_type, $class_name, o:cpp_base_get_func($variable_name), '')" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'return this', o:fp(), $variable_var, ';', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Inplace Getter -->
+        <xsl:value-of select="o:cpp_func_def($variable_ptr_type, $class_name, $variable_name, '')" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'return this', o:fp(), $variable_name, '_;', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+    </xsl:function>
+   
                 
 
 
@@ -245,7 +314,7 @@
             </xsl:when>
             
             <xsl:otherwise>
-                <xsl:value-of select="concat('//Unknown Type: ', o:quote_wrap($type))" />
+                <xsl:value-of select="concat('/*Unknown Type: ', o:quote_wrap($type), ' */')" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>	
@@ -265,7 +334,7 @@
             </xsl:when>
 
             <xsl:otherwise>
-                <xsl:value-of select="concat('//Unknown Type: ', o:quote_wrap($type))" />
+                <xsl:value-of select="concat('/*Unknown Type: ', o:quote_wrap($type), ' */')" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>	
@@ -289,6 +358,8 @@
         </xsl:for-each>
     </xsl:function>
 
+    
+
      <xsl:function name="cdit:get_entities_of_kind" as="element()*">
         <xsl:param name="root" />
         <xsl:param name="kind" as="xs:string" />
@@ -296,6 +367,24 @@
         <xsl:for-each select="$root">
             <xsl:variable name="kind_id" select="cdit:get_key_id(., 'kind')" />        
             <xsl:sequence select="$root//gml:data[@key=$kind_id and text() = $kind]/.." />
+        </xsl:for-each>
+    </xsl:function>
+
+
+    <xsl:function name="cdit:get_required_datatypes">
+        <xsl:param name="vectors" as="element()*"/>
+        <xsl:param name="aggregates" as="element()*"/>
+
+        <xsl:for-each select="$aggregates">
+            <xsl:variable name="aggregate_type" select="lower-case(cdit:get_key_value(., 'type'))" />
+        
+            <xsl:value-of select="$aggregate_type" />
+        </xsl:for-each>
+
+        <xsl:for-each select="$aggregates">
+            <xsl:variable name="aggregate_type" select="lower-case(cdit:get_key_value(., 'type'))" />
+        
+            <xsl:value-of select="$aggregate_type" />
         </xsl:for-each>
     </xsl:function>
 
