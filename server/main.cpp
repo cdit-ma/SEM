@@ -61,10 +61,6 @@ int main(int ac, char** av)
 	}
 	std::cout << "---------------------------------" << std::endl;
 
-
-
-
-
 	ZMQReceiver* receiver = new ZMQReceiver(addresses, port);
 	SQLiteDatabase* sql_database = new SQLiteDatabase(file_name);
 	LogProtoHandler* proto_handler = new LogProtoHandler(receiver, sql_database);
@@ -81,5 +77,7 @@ int main(int ac, char** av)
 
     //Teardown the SQL Controller which will write the remaining queued messages
 	delete receiver;
+	delete sql_database;
+	delete proto_handler;
     return 0;
 }

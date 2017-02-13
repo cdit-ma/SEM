@@ -66,12 +66,6 @@ LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database
     database_->Flush();
 }
 
-void LogProtoHandler::SetDatabase(SQLiteDatabase* database){
-    if(!database_){
-        database_ = database;
-    }
-}
-
 void LogProtoHandler::SystemStatusTable(){
     if(table_map_.count(LOGAN_SYSTEM_STATUS_TABLE)){
         return;
@@ -315,10 +309,18 @@ void LogProtoHandler::Process(google::protobuf::MessageLite* message){
     if(type == "SystemStatus"){
         ProcessSystemStatus((SystemStatus*)message);
     }
+    if(type == "LifecycleEvent"){
+        ProcessLifecycleEvent((re_common::LifecycleEvent*)message);
+    }
+    if(type == "UserEvent"){
+        ProcessUserEvent((re_common::UserEvent*)message);
+    }
+    if(type == "MessageEvent"){
+        ProcessMessageEvent((re_common::MessageEvent*)message);
+    }
 }
 
 void LogProtoHandler::ProcessSystemStatus(SystemStatus* status){
-    std::cout << "LogProtoHandler::ProcessSystemStatus" << std::endl;
     auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
     std::string hostname = status->hostname().c_str();
@@ -455,7 +457,6 @@ void LogProtoHandler::ProcessSystemStatus(SystemStatus* status){
 void LogProtoHandler::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
     if(event->has_port() && event->has_component()){
         //Process port event
-        std::cout << "process port called" << std::endl;
         //Insert test Statements
         auto ins = table_map_[LOGAN_PORT_EVENT_TABLE]->get_insert_statement();
         ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
@@ -470,7 +471,6 @@ void LogProtoHandler::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
     }
 
     else if(event->has_component()){
-        std::cout << "process event called" << std::endl;
             auto ins = table_map_[LOGAN_COMPONENT_EVENT_TABLE]->get_insert_statement();
             ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
             ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
@@ -483,7 +483,6 @@ void LogProtoHandler::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
 void LogProtoHandler::ProcessMessageEvent(re_common::MessageEvent* event){
     if(event->has_port() && event->has_component()){
         //Process port event
-        std::cout << "process ProcessMessageEvent" << std::endl;
         auto ins = table_map_[LOGAN_MESSAGE_EVENT_TABLE]->get_insert_statement();
         ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
         ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
@@ -498,7 +497,6 @@ void LogProtoHandler::ProcessMessageEvent(re_common::MessageEvent* event){
 }
 
 void LogProtoHandler::ProcessUserEvent(re_common::UserEvent* event){
-    std::cout << "ProcessUserEvent" << std::endl;
 
     auto ins = table_map_[LOGAN_USER_EVENT_TABLE]->get_insert_statement();
     ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());

@@ -14,10 +14,8 @@ class Table;
 class LogProtoHandler{
     public:
         LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database);
-        void SetDatabase(SQLiteDatabase* database);
 
         void Process(google::protobuf::MessageLite* message);
-
         void ProcessSystemStatus(SystemStatus* status);
         void ProcessLifecycleEvent(re_common::LifecycleEvent* event);
         void ProcessMessageEvent(re_common::MessageEvent* event);

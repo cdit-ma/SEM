@@ -101,7 +101,6 @@ void ZMQReceiver::RecieverThread(){
 
             //If we have a valid message
             if(type->size() > 0 && data->size() > 0){
-                std::cout << "Got message" << std::endl;
                 //Construct a string out of the zmq data
                 std::string type_str(static_cast<char *>(type->data()), type->size());
                 std::string msg_str(static_cast<char *>(data->data()), data->size());
@@ -128,7 +127,6 @@ void ZMQReceiver::RecieverThread(){
 void ZMQReceiver::RegisterNewProto(google::protobuf::MessageLite* ml){
     std::string type = ml->GetTypeName();
     //Function pointer winraring
-    //auto fn = std::bind(&google::protobuf::MessageLite::New, ml);
     auto fn = [ml](){return ml->New();};
     proto_lookup_[type] = fn;
     types_.push(ml);
@@ -143,17 +141,6 @@ google::protobuf::MessageLite* ZMQReceiver::ConstructMessage(std::string type, s
     }
     return 0;
 }
-
-// while(!replace_queue.empty()){
-//     std::string type = replace_queue.front().first;
-//     std::string msg = replace_queue.front().second;
-    
-//     auto message = construct_message(type, msg);
-//     if(message){
-//         log_database_->Process(type, message);
-//     }
-// }
-
 
 
 void ZMQReceiver::ProtoConvertThread(){
@@ -172,14 +159,6 @@ void ZMQReceiver::ProtoConvertThread(){
             }
         }
 
-
-        //TODO: switch on message type (event/systemstatus)
-        //Construct a Protobuf object
-      /*  auto system_status = new SystemStatus();
-        auto lifecycle_event = new re_common::LifecycleEvent();
-        auto message_event = new re_common::MessageEvent();
-        auto user_event = new re_common::UserEvent();
-*/
         while(!replace_queue.empty()){
             std::string type = replace_queue.front().first;
             std::string msg = replace_queue.front().second;
@@ -192,53 +171,5 @@ void ZMQReceiver::ProtoConvertThread(){
             }
             replace_queue.pop();
         }
-/*
-        //Empty the queue
-        while(!replace_queue.empty()){
-            //Fill our pb status message with the contents from the string
-
-            std::string type = replace_queue.front().first;
-            std::string msg = replace_queue.front().second;
-
-            if(type == system_status->GetTypeName()){
-                system_status->ParseFromString(msg);                
-                std::cout << "Parsing: SystemStatus()" << std::endl;
-                log_database_->ProcessSystemStatus(system_status);
-                system_status->Clear();                
-            }
-            else if(type == lifecycle_event->GetTypeName()){
-                lifecycle_event->ParseFromString(msg);
-                std::cout << "Parsing: re_common::LifecycleEvent()" << std::endl;
-                log_database_->ProcessLifecycleEvent(lifecycle_event);
-                lifecycle_event->Clear();                
-            }
-            else if(type == message_event->GetTypeName()){
-                message_event->ParseFromString(msg);
-                std::cout << "Parsing: re_common::MessageEvent()" << std::endl;
-                log_database_->ProcessMessageEvent(message_event);
-                message_event->Clear();            
-            }
-            else if(type == user_event->GetTypeName()){
-                user_event->ParseFromString(msg);
-                std::cout << "Parsing: re_common::UserEvent()" << std::endl;
-                log_database_->ProcessUserEvent(user_event);
-                user_event->Clear();            
-            }
-            else{
-                std::cout << "Cannot process message: " <<  replace_queue.front().first << std::endl;
-            }
-            
-            replace_queue.pop();
-            
-            //clear our message
-        }
-
-        
-        //Free the memory
-        delete system_status;
-        delete lifecycle_event;
-        delete message_event;
-        delete user_event;
-        */
     }
 }
