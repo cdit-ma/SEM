@@ -120,6 +120,7 @@ void ZMQReceiver::RecieverThread(){
         }
     }
     //Free our memory
+    delete type;
     delete data;
 }
 
