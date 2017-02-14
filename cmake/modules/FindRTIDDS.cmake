@@ -26,14 +26,14 @@
 
 
 function(RTI_GENERATE_CPP SRCS HDRS)
-    if(NOT ARGN)
-        message(SEND_ERROR "Error: RTI_GENERATE_CPP() called without any idl files")
-        return()
-    endif()
+    #Copy the values from SRCS and HDRS into src,hdrs
+    set(${SRCS} ${${SRCS}})
+    set(${HDRS} ${${HDRS}})
 
-    set(${SRCS})
-    set(${HDRS})
     foreach(FIL ${ARGN})
+        # Copy IDL into binary directory
+        configure_file(${FIL} ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+        
         get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
         get_filename_component(FIL_WE ${FIL} NAME_WE)
 
@@ -61,7 +61,6 @@ function(RTI_GENERATE_CPP SRCS HDRS)
     set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)
     set(${SRCS} ${${SRCS}} PARENT_SCOPE)
     set(${HDRS} ${${HDRS}} PARENT_SCOPE)
-
 endfunction()
 
 find_path(DDS_INCLUDE_DIR ndds/ndds_cpp.h
@@ -70,8 +69,8 @@ find_path(DDS_INCLUDE_DIR ndds/ndds_cpp.h
 
 if(NOT DDS_HOST)
 #TODO: Env var this!!
-    set(DDS_HOST "x64Linux3gcc4.8.2")
-    #set(DDS_HOST "x64Darwin15clang7.0")
+    #set(DDS_HOST "x64Linux3gcc4.8.2")
+    set(DDS_HOST "x64Darwin15clang7.0")
 endif(NOT DDS_HOST)
 find_library(DDS_C_LIBRARY nddsc
     HINTS ${DDS_ROOT}/lib $ENV{DDS_ROOT}/lib $ENV{NDDSHOME}/lib

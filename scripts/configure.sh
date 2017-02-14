@@ -3,8 +3,8 @@ echo "<<< CDIT-MA re Configure >>>"
 
 #Get the location of the script.
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-RE_PATH=$SCRIPT_DIR/..
-RE_LIB_PATH=$RE_PATH/lib
+RE_PATH=$SCRIPT_DIR/../
+RE_LIB_PATH=$RE_PATH/lib/
 
 if [ "$(uname)" == "Darwin" ]; then
     PUGIXML_ROOT="/Users/dan/pugixml-1.8/"

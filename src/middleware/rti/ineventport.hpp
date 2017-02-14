@@ -162,7 +162,7 @@ void rti::InEventPort<T, S>::receive_loop(){
             for(auto sample : samples){
                 //Translate and callback into the component for each valid message we receive
                 if(sample->info().valid()){
-                    auto m = translate(&sample->data());
+                    auto m = rti::translate(&sample->data());
                     this->rx(m);
                 }
             }

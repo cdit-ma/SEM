@@ -17,7 +17,6 @@ std::string VERSION_NUMBER = "1.0";
 
 int main(int argc, char **argv)
 {
-  
     //Get the library path from the argument variables
     std::string dll_path;
     std::string graphml_path;

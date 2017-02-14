@@ -37,7 +37,7 @@ namespace rti{
 template <class T, class S>
 void rti::OutEventPort<T, S>::tx(T* message){
     if(this->is_active() && writer_ != dds::core::null){
-        auto m = translate(message);
+        auto m = rti::translate(message);
         //De-reference the message and send
         writer_.write(*m);
         delete m;
