@@ -108,7 +108,14 @@
 
     <xsl:function name="o:cpp_comment">
         <xsl:param name="text" as="xs:string"  />
-        <xsl:value-of select="concat('// ', $text, o:nl())" />
+
+        <xsl:value-of select="o:tabbed_cpp_comment($text, 0)" />
+    </xsl:function>
+
+    <xsl:function name="o:tabbed_cpp_comment">
+        <xsl:param name="text" as="xs:string"  />
+        <xsl:param name="tab" as="xs:integer"  />
+        <xsl:value-of select="concat(o:t($tab), '// ', $text, o:nl())" />
     </xsl:function>
 
 
@@ -193,10 +200,43 @@
         <xsl:value-of select="lower-case(concat('set_', $var_name))" />
     </xsl:function>
 
+    <xsl:function name="o:cpp_proto_set_complex_func">
+        <xsl:param name="var_name" as="xs:string" />
+        <!-- Setter has set_ but uses lower-case -->
+        <xsl:value-of select="lower-case(concat('set_allocated_', $var_name))" />
+    </xsl:function>
+
+    <xsl:function name="o:cpp_proto_release_complex_func">
+        <xsl:param name="var_name" as="xs:string" />
+        <!-- Setter has set_ but uses lower-case -->
+        <xsl:value-of select="lower-case(concat('release_', $var_name))" />
+    </xsl:function>
+
+    <xsl:function name="o:cpp_proto_add_vector">
+        <xsl:param name="var_name" as="xs:string" />
+        <xsl:param name="value" as="xs:string" />
+        <xsl:value-of select="(concat('add_', lower-case($var_name), '(', $value, ')'))" />
+    </xsl:function>
+
+    <xsl:function name="o:cpp_base_add_vector">
+        <xsl:param name="var_name" as="xs:string" />
+        <xsl:param name="value" as="xs:string" />
+        <xsl:value-of select="concat($var_name, '().push_back(', $value, ')')" />
+    </xsl:function>
+    
+
+    
+
     <xsl:function name="o:cpp_base_get_func">
         <xsl:param name="var_name" as="xs:string" />
         <!-- Getter has get_ and same case -->
         <xsl:value-of select="concat('get_', $var_name)" />
+    </xsl:function>
+
+    <xsl:function name="o:cpp_base_get_ptr_func">
+        <xsl:param name="var_name" as="xs:string" />
+        <!-- Getter has get_ and same case -->
+        <xsl:value-of select="$var_name" />
     </xsl:function>
 
     <xsl:function name="o:cpp_base_set_func">
@@ -236,9 +276,9 @@
         <!-- Public Declarations -->
         <xsl:value-of select="concat(o:t(1), 'public:', o:nl())" />
         <!-- Copy Setter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat('const ', $variable_type, ' val')), ';', o:nl())" />
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, ' val')), ';', o:nl())" />
         <!-- Pointer Setter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat('const ', $variable_type, '* val')), ';', o:nl())" />
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, '* val')), ';', o:nl())" />
         
         <!-- Copy Getter -->
         <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ';', o:nl())" />
@@ -260,14 +300,14 @@
         <xsl:variable name="variable_ptr_type" select="concat($variable_type, o:and())" />
 
         <!-- Copy Setter -->
-        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat('const ', $variable_type, ' val'))" />
+        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat($variable_type, ' val'))" />
         <xsl:value-of select="concat('{', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'this', o:fp(), $variable_var, ' = val;', o:nl())" />
         <xsl:value-of select="concat('};', o:nl())" />
         <xsl:value-of select="o:nl()" />
 
         <!-- Pointer Setter -->
-        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat('const ', $variable_type, '* val'))" />
+        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat($variable_type, '* val'))" />
         <xsl:value-of select="concat('{', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'if(val){', o:nl())" />
         <xsl:value-of select="concat(o:t(2), 'this', o:fp(), $variable_var, ' = *val;', o:nl())" />
@@ -360,7 +400,17 @@
 
     
 
-     <xsl:function name="cdit:get_entities_of_kind" as="element()*">
+     <xsl:function name="cdit:get_child_entities_of_kind" as="element()*">
+        <xsl:param name="root" />
+        <xsl:param name="kind" as="xs:string" />
+
+        <xsl:for-each select="$root">
+            <xsl:variable name="kind_id" select="cdit:get_key_id(., 'kind')" />        
+            <xsl:sequence select="$root/gml:graph/gml:node/gml:data[@key=$kind_id and text() = $kind]/.." />
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_entities_of_kind" as="element()*">
         <xsl:param name="root" />
         <xsl:param name="kind" as="xs:string" />
 
@@ -387,6 +437,56 @@
             <xsl:value-of select="$aggregate_type" />
         </xsl:for-each>
     </xsl:function>
+
+    <xsl:function name="cdit:is_vector_complex" as="xs:boolean">
+        <xsl:param name="vector" as="element()*"/>
+
+        <xsl:variable name="first_child" select="$vector/gml:graph[1]/gml:node[1]" />
+        <!-- Get the kind of the first child in the Vector Type -->
+        <xsl:variable name="vector_child_kind" select="cdit:get_key_value($first_child, 'kind')" />
+        
+        <!-- Get the type of the vector -->
+        <xsl:variable name="is_aggregate" select="$vector_child_kind = 'AggregateInstance' or $vector_child_kind = 'Aggregate'" />
+        <xsl:value-of select="$is_aggregate" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_vector_type">
+        <xsl:param name="vector" as="element()*"/>
+
+        <xsl:variable name="first_child" select="$vector/gml:graph[1]/gml:node[1]" />
+        <xsl:variable name="vector_label" select="cdit:get_key_value($vector, 'label')" />
+
+        <!-- Get the Vector Type -->
+        <xsl:variable name="vector_child_kind" select="cdit:get_key_value($first_child, 'kind')" />
+        <xsl:variable name="vector_child_type" select="cdit:get_key_value($first_child, 'type')" />
+        
+        <xsl:choose>
+            <xsl:when test="cdit:is_vector_complex($vector)">
+                <xsl:value-of select="$vector_child_type"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cdit:get_cpp_type($vector_child_type)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+
+    <xsl:function name="cdit:get_aggregate_index">
+        <xsl:param name="node" as="element()*"/>
+
+        <xsl:variable name="index" select="count($node/preceding-sibling::gml:node) + 1" />
+        <xsl:value-of select="$index" />
+    </xsl:function>
+
+
+    <xsl:function name="cdit:get_namespace">
+        <xsl:param name="node" as="element()*"/>
+
+        <!-- Follow Definition Edges -->
+        <xsl:value-of select="'HelloWorld'" />
+    </xsl:function>
+
+    
 
 
     

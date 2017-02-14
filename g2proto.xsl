@@ -29,29 +29,76 @@
             <!-- Camel Case the Namespace -->
             <xsl:variable name="namespace" select="o:camel_case($idl_name)" />
 
-            <!-- Get the Members -->
-            <xsl:variable name="members" as="element()*" select="cdit:get_entities_of_kind(.,'Member')" />
+            <!-- Get all the children Members, VectorInstance, AggregateInstance -->
+            <xsl:variable name="members" as="element()*" select="cdit:get_child_entities_of_kind(., 'Member')" />
+            <xsl:variable name="vectors" as="element()*" select="cdit:get_child_entities_of_kind(., 'VectorInstance')" />
+            <xsl:variable name="aggregates" as="element()*" select="cdit:get_child_entities_of_kind(., 'AggregateInstance')" />
+            <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates)" />
+
             <xsl:variable name="aggregate_label" select ="cdit:get_key_value(.,'label')" />
             <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
             <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
 
-
             <!-- OPEN middleware/proto/label/label.proto -->
-            <xsl:result-document href="{concat('middleware/proto/', $aggregate_label_lc, '/', $aggregate_label_lc, '.proto')}">
+            <xsl:result-document href="{concat('middleware/proto/', $aggregate_label_lc, '.proto')}">
+                <xsl:message select="concat('middleware/proto/', $aggregate_label_lc, '/', $aggregate_label_lc, '.proto')" />
                 <!-- set RE_PATH -->
                 <xsl:value-of select="concat('syntax = ', o:dblquote_wrap('proto3'), ';', o:nl())" />
                 <xsl:value-of select="concat('package ', $namespace, ';', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
+                 <xsl:for-each-group select="$required_datatypes" group-by=".">
+                    <xsl:variable name="datatype" select="lower-case(.)" />
+                    <xsl:variable name="proto_path" select="concat($datatype, '.proto')" />
+
+                    <xsl:value-of select="concat('import ', o:dblquote_wrap($proto_path), ';', o:nl())" />
+                </xsl:for-each-group>
+
                 <xsl:value-of select="concat('message ', $aggregate_label_cc, ' {', o:nl())" />
 
                 <xsl:for-each select="$members">
+                    <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
+                    
                     <xsl:variable name="member_label" select="cdit:get_key_value(.,'label')" />
                     <xsl:variable name="member_type" select="cdit:get_key_value(.,'type')" />
                     <xsl:variable name="member_cpp_type" select="cdit:get_cpp_type($member_type)" />
                     <xsl:variable name="member_proto_type" select="cdit:get_cpp2proto_type($member_cpp_type)" />
                     
-                    <xsl:value-of select="concat(o:t(1), $member_proto_type, ' ', $member_label, ' = ', position(), ';', o:nl())" />
+                    <xsl:value-of select="concat(o:t(1), $member_proto_type, ' ', $member_label, ' = ', $sort_order, ';', o:nl())" />
+                </xsl:for-each>
+
+                <xsl:for-each select="$vectors">
+                    <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
+                    
+                    <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="vector_cpp_type" select="cdit:get_vector_type(.)" />
+                    <xsl:variable name="vector_proto_type" select="cdit:get_cpp2proto_type($vector_cpp_type)" />
+                    
+                    <xsl:variable name="is_vector_complex" select="cdit:is_vector_complex(.)" />
+                    
+                    <xsl:choose>
+                        <xsl:when test="$is_vector_complex">
+                            <!-- Complex types -->
+                            <xsl:variable name="aggregate_namespace" select="cdit:get_namespace(.)" />
+                            <xsl:value-of select="concat(o:t(1), 'repeated ', $aggregate_namespace, '.', $vector_cpp_type, ' ', $vector_label, ' = ', $sort_order, ';', o:nl())" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- Primitive types -->
+                            <xsl:value-of select="concat(o:t(1), 'repeated ', $vector_proto_type, ' ', $vector_label, ' = ', $sort_order, ';', o:nl())" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+
+                <xsl:for-each select="$aggregates">
+                    <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
+                    
+                    <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="aggregate_type" select="cdit:get_key_value(.,'type')" />
+
+                    <!-- Get the Namespace -->
+                    <xsl:variable name="aggregate_namespace" select="cdit:get_namespace(.)" />
+                    
+                    <xsl:value-of select="concat(o:t(1), $aggregate_namespace, '.', $aggregate_type, ' ', $aggregate_label, ' = ', $sort_order, ';', o:nl())" />
                 </xsl:for-each>
                 
                 <xsl:value-of select="concat('}', o:nl())" />
@@ -68,14 +115,14 @@
                 <xsl:value-of select="o:define_guard($define_guard)" />
 
                 <!-- Include the base message type -->
-                <xsl:value-of select="concat('//Include the base type', o:nl())" />
+                <xsl:value-of select="o:cpp_comment('Include the base type')" />
                 <!-- path back to root -->
                 <xsl:variable name="rel_path" select="'../../../'" />
                 <xsl:value-of select="o:local_include(concat($rel_path, 'datatypes/', $aggregate_label_lc, '/', $aggregate_label_lc, '.h'))" />
                 <xsl:value-of select="o:nl()" />
 
                 <!-- Forward declare the new type -->
-                <xsl:value-of select="concat('//Forward declare the concrete type', o:nl())" />
+                <xsl:value-of select="o:cpp_comment('Forward declare the concrete type')" />
                 <xsl:value-of select="o:forward_declare_class($namespace, $aggregate_label_cc)" />
 
                 <!-- Declare convert functions -->
@@ -84,19 +131,19 @@
 
                 
                 <!-- translate functions -->
-                <xsl:value-of select="concat(o:t(1), '//Translate Functions', o:nl())" />
+                <xsl:value-of select="o:cpp_comment('Translate Functions')" />
                 <xsl:value-of select="concat(o:t(1), $mw_type, '* translate(', $base_type ,'* val);', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), $base_type, '* translate(', $mw_type ,'* val);', o:nl())" />
 
                 <!-- Helper functions -->
                 <xsl:value-of select="o:nl()" />
-                <xsl:value-of select="concat(o:t(1), '//Helper Functions', o:nl())" />
+                <xsl:value-of select="o:cpp_comment('Helper Functions')" />
                 <xsl:value-of select="concat(o:t(1), 'template ', o:angle_wrap('class T'), ' ', $base_type, '* decode(std::string val);', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), 'std::string ', 'encode(', $base_type, '* val);', o:nl())" />
                 
                 <!-- Forward declared template function -->
                 <xsl:value-of select="o:nl()" />
-                <xsl:value-of select="concat(o:t(1), '//Forward declare the decode function with concrete type', o:nl())" />
+                <xsl:value-of select="o:cpp_comment('Forward declare the decode function with concrete type')" />
                 <xsl:value-of select="concat(o:t(1), 'template ', o:angle_wrap(''), ' ', $base_type, '* decode', o:angle_wrap($mw_type), '(std::string val);', o:nl())" />
                 
                 <xsl:value-of select="concat('};', o:nl())" />
@@ -116,6 +163,13 @@
                 <xsl:value-of select="o:local_include(concat($aggregate_label_lc, '.pb.h'))" />
                 <xsl:value-of select="o:nl()" />
 
+                <!-- Link against other proto libraries which this message contains -->
+                <xsl:for-each-group select="$required_datatypes" group-by=".">
+                    <xsl:variable name="datatype" select="lower-case(.)" />
+                    <xsl:value-of select="o:local_include(concat('../', $datatype, '/convert.h'))" />
+                </xsl:for-each-group>
+
+
                 <!-- Translate function base->mw -->
                 <xsl:value-of select="concat($mw_type, '* proto::translate(', $base_type ,'* val){', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), 'auto out_ = new ', $mw_type, '();', o:nl())" />
@@ -127,6 +181,53 @@
 
                     <xsl:value-of select="concat(o:t(1), 'out_', o:fp(), o:cpp_proto_set_func($member_label) , '(val', o:fp(), o:cpp_base_get_func($member_label) ,'());', o:nl())" />
                 </xsl:for-each>
+
+                <xsl:for-each select="$vectors">
+                    <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="vector_type" select="cdit:get_key_value(., 'type')" />
+                    <xsl:variable name="is_vector_complex" select="cdit:is_vector_complex(.)" />
+                    <xsl:variable name="vector_cpp_type" select="cdit:get_vector_type(.)" />
+                    
+                    <xsl:value-of select="concat(o:t(1), '{', o:nl())" />
+                    <xsl:value-of select="o:tabbed_cpp_comment(concat('Step through all the vector elements inside ', o:dblquote_wrap($vector_label)), 2)" />
+                    <xsl:value-of select="concat(o:t(2), 'for(int i = 0; i ', o:lt(), ' val', o:fp(), o:cpp_base_get_ptr_func($vector_label), '().size(); i++){', o:nl())" />
+                    <xsl:value-of select="concat(o:t(3), 'auto e_ = val', o:fp(), o:cpp_base_get_ptr_func($vector_label), '()[i];', o:nl())" />
+
+                    <xsl:choose>
+                        <xsl:when test="$is_vector_complex">
+                            <!-- Complex types -->
+                            <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:dblquote_wrap($vector_type)), 3)" />
+                            <xsl:value-of select="concat(o:t(3), 'auto ei_ = proto::translate(', o:and(), 'e_);', o:nl())" />
+                            <xsl:value-of select="concat(o:t(3), 'if(ei_){', o:nl())" />
+                            <xsl:value-of select="concat(o:t(4), 'auto cp_ = out_', o:fp(), 'mutable_', lower-case($vector_label), '(i);', o:nl())" />
+                            <xsl:value-of select="concat(o:t(4), 'cp_ = ei_;', o:nl())" />
+                            <xsl:value-of select="concat(o:t(3), '}', o:nl())" />
+                            <xsl:value-of select="concat(o:t(3), 'delete ei_;', o:nl())" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- Primitive types -->
+                            <xsl:value-of select="concat(o:t(3), 'out_', o:fp(), o:cpp_proto_add_vector($vector_label, 'e_'), ';', o:nl())" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:value-of select="concat(o:t(2), '}', o:nl())" />
+                    <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
+                </xsl:for-each>
+
+                <xsl:for-each select="$aggregates">
+                    <xsl:variable name="member_label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
+
+                    <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
+                    <xsl:variable name="var_name" select="concat($member_label, '_')" />
+                    
+                    <xsl:value-of select="concat(o:t(1), '{', o:nl())" />
+                    <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:dblquote_wrap($member_type)), 2)" />
+                    <xsl:value-of select="concat(o:t(2), 'auto ', $var_name, ' = val', o:fp(), o:cpp_base_get_func($member_label), '();', o:nl())" />
+                    <xsl:value-of select="concat(o:t(2), 'out_', o:fp(), o:cpp_proto_set_complex_func($member_label) , '(proto::translate(', o:and(), $var_name, '));', o:nl())" />
+                    <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
+                </xsl:for-each>
+
+                
 
                 <xsl:value-of select="concat(o:t(1), 'return out_;', o:nl())" />
 
@@ -143,6 +244,52 @@
                     <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
 
                     <xsl:value-of select="concat(o:t(1), 'out_', o:fp(), o:cpp_base_set_func($member_label) , '(val', o:fp(), o:cpp_proto_get_func($member_label) ,'());', o:nl())" />
+                </xsl:for-each>
+
+                <xsl:for-each select="$vectors">
+                    <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="vector_type" select="cdit:get_vector_type(.)" />
+                    <xsl:variable name="is_vector_complex" select="cdit:is_vector_complex(.)" />
+
+                    <xsl:value-of select="concat(o:t(1), '{', o:nl())" />
+                    <xsl:value-of select="o:tabbed_cpp_comment(concat('Step through all the vector elements inside ', o:dblquote_wrap($vector_label)), 2)" />
+                    
+                    
+                    <xsl:value-of select="concat(o:t(2), 'for(auto e_: val', o:fp(), o:cpp_proto_get_func($vector_label), '()){', o:nl())" />
+
+                    <xsl:choose>
+                        <xsl:when test="$is_vector_complex">
+                            <!-- Complex types -->
+                            <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:dblquote_wrap($vector_type)), 3)" />
+                            <xsl:value-of select="concat(o:t(3), 'auto ei_ = proto::translate(', o:and(), 'e_);', o:nl())" />
+                            <xsl:value-of select="concat(o:t(3), 'if(ei_){', o:nl())" />
+                            
+                            <xsl:value-of select="concat(o:t(4), 'out_', o:fp(), o:cpp_base_add_vector($vector_label, '*ei_'), ';', o:nl())" />
+                            <xsl:value-of select="concat(o:t(3), '}', o:nl())" />
+                            <xsl:value-of select="concat(o:t(3), 'delete ei_;', o:nl())" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <!-- Primitive types -->
+                            <xsl:value-of select="concat(o:t(3), 'out_', o:fp(), o:cpp_base_add_vector($vector_label, 'e_'), ';', o:nl())" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                    <xsl:value-of select="concat(o:t(2), '}', o:nl())" />
+                    <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
+                </xsl:for-each>
+
+                <xsl:for-each select="$aggregates">
+                    <xsl:variable name="member_label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
+
+                    <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
+                    <xsl:variable name="var_name" select="concat($member_label, '_')" />
+                    
+                    <xsl:value-of select="concat(o:t(1), '{', o:nl())" />
+                    <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:dblquote_wrap($member_type)), 2)" />
+                    <xsl:value-of select="concat(o:t(2), 'auto ', $var_name, ' = val', o:fp(), o:cpp_proto_get_func($member_label), '();', o:nl())" />
+                    <xsl:value-of select="concat(o:t(2), 'out_', o:fp(), o:cpp_base_set_func($member_label) , '(proto::translate(', o:and(), $var_name, '));', o:nl())" />
+                    <xsl:value-of select="concat(o:t(2), 'delete ', $var_name, ';', o:nl())" />
+                    <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
                 </xsl:for-each>
 
                 <xsl:value-of select="concat(o:t(1), 'return out_;', o:nl())" />
@@ -192,7 +339,7 @@
                 <xsl:value-of select="o:nl()" />
                 
                 <!-- Generate PB files -->
-                <xsl:value-of select="concat('protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ', $aggregate_label_lc, '.proto)', o:nl())" />
+                <xsl:value-of select="concat('protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../', $aggregate_label_lc, '.proto)', o:nl())" />
                 <xsl:value-of select="o:nl()" />
                 
                 <!-- Set Source files -->
@@ -222,11 +369,31 @@
                 <xsl:value-of select="o:cmake_include_dir('${CMAKE_CURRENT_BINARY_DIR}')" />
                 <xsl:value-of select="o:nl()" />
 
-                <!-- add library/link -->
+                <!-- Include the binary directory which contains the generated pb.h files for other proto libraries which this message contains -->
+                <xsl:value-of select="o:cmake_comment('Include the proto binary directory for types required by this type')" />
+                <xsl:for-each-group select="$required_datatypes" group-by=".">
+                    <xsl:variable name="datatype" select="lower-case(.)" />
+                    <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}', '/../', $datatype))" />
+                </xsl:for-each-group>
+                <xsl:value-of select="o:nl()" />
+
+                <!-- Link against Core Libraries -->
                 <xsl:value-of select="concat('add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})', o:nl())" />
                 <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})', o:nl())" />
                 <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})', o:nl())" />
+                <xsl:value-of select="o:nl()" />
+
+                <!-- Link against base datatype libraries -->
+                <xsl:value-of select="o:cmake_comment('Include the base datatype library which represents this type')" />
                 <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} datatype_', $aggregate_label_lc, ')', o:nl())" />
+                <xsl:value-of select="o:nl()" />
+
+                <!-- Link against other proto libraries which this message contains -->
+                <xsl:value-of select="o:cmake_comment('Include the proto libraries which are required by this type')" />
+                <xsl:for-each-group select="$required_datatypes" group-by=".">
+                    <xsl:variable name="datatype" select="lower-case(.)" />
+                    <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} proto_', $datatype, ')', o:nl())" />
+                </xsl:for-each-group>
             </xsl:result-document>
 
 

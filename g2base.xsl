@@ -128,20 +128,26 @@
 
                 <!-- Handle Vectors -->
                 <xsl:for-each select="$vectors">
-                    <xsl:variable name="first_child" select="./gml:graph[1]/gml:node[1]" />
                     <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
+                    <xsl:variable name="vector_type" select="cdit:get_vector_type(.)" />
+                    <xsl:variable name="is_vector_complex" select="cdit:is_vector_complex(.)" />
 
-                    <!-- Get the Vector Type -->
-                    <xsl:variable name="vector_child_kind" select="cdit:get_key_value($first_child, 'kind')" />
-                    <xsl:variable name="vector_child_type" select="cdit:get_key_value($first_child, 'type')" />
-                    
-                    <!-- Get the type of the vector -->
-                    <xsl:variable name="vector_type" select="if($vector_child_kind = 'AggregateInstance') then concat('::', $vector_child_type) else cdit:get_cpp_type($vector_child_type)" />
+                    <xsl:variable name="vector_type_cpp">
+                        <xsl:choose>
+                            <xsl:when test="$is_vector_complex">
+                                <xsl:value-of select="concat('::', $vector_type)" />
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:value-of select="$vector_type"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
 
-                    <xsl:variable name="vector_cpp_type" select="concat('std::vector', o:angle_wrap($vector_type))" />
+                    <xsl:variable name="vector_cpp_type" select="concat('std::vector', o:angle_wrap($vector_type_cpp))" />
+
 
                     <xsl:value-of select="concat(o:nl(), o:t(1))" />
-                    <xsl:value-of select="o:cpp_comment(concat('Vector Member: ', $vector_label, o:angle_wrap($vector_child_type)))" />
+                    <xsl:value-of select="o:cpp_comment(concat('Vector Member: ', $vector_label))" />
                     <xsl:value-of select="o:declare_variable_functions($vector_label, $vector_cpp_type)" />
                 </xsl:for-each>
 
@@ -149,7 +155,7 @@
                 <xsl:for-each select="$aggregates">
                     <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
                     <xsl:variable name="aggregate_type" select="cdit:get_key_value(., 'type')" />
-                    <xsl:variable name="aggregate_cpp_type" select="$aggregate_type" />
+                    <xsl:variable name="aggregate_cpp_type" select="concat('::', $aggregate_type)" />
 
                     <xsl:value-of select="concat(o:nl(), o:t(1))" />
                     <xsl:value-of select="o:cpp_comment(concat('Aggregate Member: ', $aggregate_label, o:angle_wrap($aggregate_type)))" />
@@ -196,7 +202,7 @@
                 <xsl:for-each select="$aggregates">
                     <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
                     <xsl:variable name="aggregate_type" select="cdit:get_key_value(., 'type')" />
-                    <xsl:variable name="aggregate_cpp_type" select="$aggregate_type" />
+                    <xsl:variable name="aggregate_cpp_type" select="concat('::', $aggregate_type)" />
 
                     <xsl:value-of select="o:define_variable_functions($aggregate_label, $aggregate_cpp_type, $class_name)" />
                 </xsl:for-each>
