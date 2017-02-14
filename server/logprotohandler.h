@@ -28,19 +28,20 @@ class LogProtoHandler{
 
         std::map<std::string, Table*> table_map_;
 
-        void SystemStatusTable();
-        void SystemInfoTable();
-        void CpuTable();
-        void FileSystemTable();
-        void FileSystemInfoTable();
-        void InterfaceTable();
-        void InterfaceInfoTable();
-        void ProcessTable();
-        void ProcessInfoTable();
-        void PortEventTable();
-        void ComponentEventTable();
-        void MessageEventTable();
-        void UserEventTable();
+        void CreateSystemStatusTable();
+        void CreateSystemInfoTable();
+        void CreateCpuTable();
+        void CreateFileSystemTable();
+        void CreateFileSystemInfoTable();
+        void CreateInterfaceTable();
+        void CreateInterfaceInfoTable();
+        void CreateProcessTable();
+        void CreateProcessInfoTable();
+        void CreatePortEventTable();
+        void CreateComponentEventTable();
+        void CreateMessageEventTable();
+        void CreateUserEventTable();
+        void CreateWorkloadEventTable();
 
 };
 

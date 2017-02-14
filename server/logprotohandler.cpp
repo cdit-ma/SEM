@@ -34,6 +34,7 @@
 #define LOGAN_COMPONENT_EVENT_TABLE "Model_ComponentEvent"
 #define LOGAN_MESSAGE_EVENT_TABLE "Model_MessageEvent"
 #define LOGAN_USER_EVENT_TABLE "Model_UserEvent"
+#define LOGAN_WORKLOAD_EVENT_TABLE "Model_WorkloadEvent"
 
 LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database){
     database_ = database;
@@ -50,23 +51,24 @@ LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database
 
     //Construct all of our tables
 
-    SystemStatusTable();
-    SystemInfoTable();
-    CpuTable();
-    FileSystemTable();
-    FileSystemInfoTable();
-    InterfaceTable();
-    InterfaceInfoTable();
-    ProcessTable();
-    ProcessInfoTable();
-    PortEventTable();
-    ComponentEventTable();
-    MessageEventTable();
-    UserEventTable();
+    CreateSystemStatusTable();
+    CreateSystemInfoTable();
+    CreateCpuTable();
+    CreateFileSystemTable();
+    CreateFileSystemInfoTable();
+    CreateInterfaceTable();
+    CreateInterfaceInfoTable();
+    CreateProcessTable();
+    CreateProcessInfoTable();
+    CreatePortEventTable();
+    CreateComponentEventTable();
+    CreateMessageEventTable();
+    CreateUserEventTable();
+    CreateWorkloadEventTable();
     database_->Flush();
 }
 
-void LogProtoHandler::SystemStatusTable(){
+void LogProtoHandler::CreateSystemStatusTable(){
     if(table_map_.count(LOGAN_SYSTEM_STATUS_TABLE)){
         return;
     }
@@ -82,7 +84,7 @@ void LogProtoHandler::SystemStatusTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
-void LogProtoHandler::SystemInfoTable(){
+void LogProtoHandler::CreateSystemInfoTable(){
     if(table_map_.count(LOGAN_SYSTEM_INFO_TABLE)){
         return;
     }
@@ -106,7 +108,7 @@ void LogProtoHandler::SystemInfoTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
-void LogProtoHandler::CpuTable(){
+void LogProtoHandler::CreateCpuTable(){
     if(table_map_.count(LOGAN_CPU_TABLE)){
         return;
     }
@@ -122,7 +124,7 @@ void LogProtoHandler::CpuTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::FileSystemTable(){
+void LogProtoHandler::CreateFileSystemTable(){
     if(table_map_.count(LOGAN_FILE_SYSTEM_TABLE)){
         return;
     }
@@ -138,7 +140,7 @@ void LogProtoHandler::FileSystemTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::FileSystemInfoTable(){
+void LogProtoHandler::CreateFileSystemInfoTable(){
     if(table_map_.count(LOGAN_FILE_SYSTEM_INFO_TABLE)){
         return;
     }
@@ -155,7 +157,7 @@ void LogProtoHandler::FileSystemInfoTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::InterfaceTable(){
+void LogProtoHandler::CreateInterfaceTable(){
     if(table_map_.count(LOGAN_INTERFACE_STATUS_TABLE)){
         return;
     }
@@ -174,7 +176,7 @@ void LogProtoHandler::InterfaceTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::InterfaceInfoTable(){
+void LogProtoHandler::CreateInterfaceInfoTable(){
     if(table_map_.count(LOGAN_INTERFACE_INFO_TABLE)){
         return;
     }
@@ -195,7 +197,7 @@ void LogProtoHandler::InterfaceInfoTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::ProcessTable(){
+void LogProtoHandler::CreateProcessTable(){
     if(table_map_.count(LOGAN_PROCESS_STATUS_TABLE)){
         return;
     }
@@ -218,7 +220,7 @@ void LogProtoHandler::ProcessTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::ProcessInfoTable(){
+void LogProtoHandler::CreateProcessInfoTable(){
     if(table_map_.count(LOGAN_PROCESS_INFO_TABLE)){
         return;
     }
@@ -236,7 +238,7 @@ void LogProtoHandler::ProcessInfoTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::PortEventTable(){
+void LogProtoHandler::CreatePortEventTable(){
     if(table_map_.count(LOGAN_PORT_EVENT_TABLE)){
         return;
     }
@@ -254,7 +256,7 @@ void LogProtoHandler::PortEventTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::ComponentEventTable(){
+void LogProtoHandler::CreateComponentEventTable(){
     if(table_map_.count(LOGAN_COMPONENT_EVENT_TABLE)){
         return;
     }
@@ -270,7 +272,7 @@ void LogProtoHandler::ComponentEventTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::MessageEventTable(){
+void LogProtoHandler::CreateMessageEventTable(){
     if(table_map_.count(LOGAN_MESSAGE_EVENT_TABLE)){
         return;
     }
@@ -287,7 +289,7 @@ void LogProtoHandler::MessageEventTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
-void LogProtoHandler::UserEventTable(){
+void LogProtoHandler::CreateUserEventTable(){
     if(table_map_.count(LOGAN_USER_EVENT_TABLE)){
         return;
     }
@@ -300,9 +302,30 @@ void LogProtoHandler::UserEventTable(){
     t->AddColumn("type", LOGAN_VARCHAR);
     
     table_map_[LOGAN_USER_EVENT_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());    
+    database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
+void LogProtoHandler::CreateWorkloadEventTable(){
+    if(table_map_.count(LOGAN_WORKLOAD_EVENT_TABLE)){
+        return;
+    }
+    Table* t = new Table(database_, LOGAN_WORKLOAD_EVENT_TABLE);
+    //Info
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
+    t->AddColumn("event_type", LOGAN_VARCHAR);
+    t->AddColumn("workload_implementation_id", LOGAN_VARCHAR);
+    t->AddColumn("function_name", LOGAN_VARCHAR);
+    t->AddColumn("function_library", LOGAN_VARCHAR);
+
+    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
+    t->AddColumn("type", LOGAN_VARCHAR);
+
+    t->AddColumn("description", LOGAN_VARCHAR);
+    table_map_[LOGAN_USER_EVENT_TABLE] = t;
+    database_->QueueSqlStatement(t->get_table_construct_statement());
+}
 
 void LogProtoHandler::Process(google::protobuf::MessageLite* message){
     //Ordered by frequency
