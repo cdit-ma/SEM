@@ -256,28 +256,32 @@
 
                 <!-- Set PROJ_NAME -->
                 <xsl:variable name="proj_name" select="concat($middleware, '_', $aggregate_label_lc)" />
+                <xsl:variable name="lib_name" select="concat($middleware, '_', $aggregate_label_lc, '_lib')" />
+                
+                <xsl:value-of select="o:cmake_set_env('SHARED_LIB_NAME', $lib_name)" />
                 <xsl:value-of select="o:cmake_set_proj_name($proj_name)" />
-
+                
+                
                   <!-- Find re_core -->
                 <xsl:value-of select="o:nl()" />
                 <xsl:value-of select="o:cmake_find_package('RTIDDS')" />
                 <xsl:value-of select="o:nl()" />
 
-                <xsl:value-of select="o:cmake_comment(concat('Generate the middleware code for ', $aggregate_label_lc, '.idl'))" />
-                <xsl:value-of select="concat('RTI_GENERATE_CPP(DDS_SOURCE DDS_HEADERS ', $aggregate_label_lc, '.idl)')" />
+                <xsl:value-of select="o:cmake_comment(concat('Generate the middleware files for ', $aggregate_label_lc, '.idl'))" />
+                <xsl:value-of select="concat('RTI_GENERATE_CPP(DDS_SOURCE DDS_HEADERS ', $aggregate_label_lc, '.idl)', o:nl())" />
                 <xsl:value-of select="o:nl()" />
                 
-                <!-- Link against other proto libraries which this message contains -->
-                <xsl:for-each-group select="$required_datatypes" group-by=".">
-                    <xsl:variable name="datatype" select="lower-case(.)" />
-                    <xsl:value-of select="o:cmake_comment(concat('Generate the middleware code for the required', $datatype, '.idl'))" />
-                    <xsl:value-of select="concat('RTI_GENERATE_CPP(DDS_SOURCE DDS_HEADERS ../', $datatype, '/', $datatype, '.idl)')" />
+                <!-- Copy the other .IDL files required -->
+                <xsl:if test="count($required_datatypes)">
+                    <xsl:value-of select="o:cmake_comment('Copy required IDLs into the binary directory so the dds generation can succeed')" />
+                    <xsl:for-each-group select="$required_datatypes" group-by=".">
+                        <xsl:variable name="datatype" select="lower-case(.)" />
+                        <xsl:value-of select="concat('configure_file(../', $datatype, '/', $datatype, '.idl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)', o:nl())" />
+                    </xsl:for-each-group>
                     <xsl:value-of select="o:nl()" />
-                </xsl:for-each-group>
-
+                </xsl:if>
 
                 <!-- Find re_core -->
-                <xsl:value-of select="o:nl()" />
                 <xsl:value-of select="o:cmake_find_library('re_core', 'RE_CORE_LIBRARIES', '${RE_PATH}/lib')" />
                 <xsl:value-of select="o:nl()" />
 
@@ -288,7 +292,6 @@
 
                 <!-- Set Source files -->
                 <xsl:value-of select="concat('set(SOURCE', o:nl())" />
-                <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/libportexports.cpp', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/convert.cpp', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
                 <xsl:value-of select="o:nl()" />
@@ -312,31 +315,55 @@
                 <xsl:value-of select="o:cmake_include_dir('${CMAKE_CURRENT_BINARY_DIR}')" />
                 <xsl:value-of select="o:nl()" />
 
+                <!-- Link against other proto libraries which this message contains -->
+                <xsl:if test="count($required_datatypes)">
+                    <xsl:value-of select="o:cmake_comment(concat('Include the directories the required ', $middleware, ' shared libraries are built into'))" />
+                    <xsl:for-each-group select="$required_datatypes" group-by=".">
+                        <xsl:variable name="datatype" select="lower-case(.)" />
+                        <xsl:value-of select="o:cmake_include_dir(concat('${CMAKE_CURRENT_BINARY_DIR}/../', $datatype, '/'))" />
+                    </xsl:for-each-group>
+                    <xsl:value-of select="o:nl()" />
+                </xsl:if>
+
                 <!-- Build Module Library -->
-                <xsl:value-of select="concat('add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})', o:nl())" />
+                <xsl:value-of select="o:cmake_comment('Build the actual Module library that will be dynamically loaded.')" />
+                <xsl:value-of select="concat('add_library(${PROJ_NAME} MODULE ${CMAKE_CURRENT_SOURCE_DIR}/libportexports.cpp)', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
-                <xsl:value-of select="o:cmake_comment('#Need this to make sure headers are using the correct function calls.')" />
+                <!-- Build Module Library -->
+                <xsl:value-of select="o:cmake_comment('Build the shared library that will be loaded at compile time.')" />
+                <xsl:value-of select="concat('add_library(${SHARED_LIB_NAME} SHARED ${SOURCE} ${HEADERS} ${DDS_SOURCE} ${DDS_HEADERS})', o:nl())" />
+                <xsl:value-of select="o:nl()" />
+
+                <xsl:value-of select="o:cmake_comment('This ensures DDS uses the correct types')" />
                 <xsl:value-of select="concat('target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)', o:nl())" />
+                <xsl:value-of select="concat('target_compile_definitions(${SHARED_LIB_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
                 <!-- Link against Core Libraries -->
-                <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})', o:nl())" />
-                <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})', o:nl())" />
-                <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${', $mw_helper_libs, '})', o:nl())" />
+                <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ${RE_CORE_LIBRARIES})', o:nl())" />
+                <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ${DDS_LIBRARIES})', o:nl())" />
+                <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ${', $mw_helper_libs, '})', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
                 <!-- Link against base datatype libraries -->
-                <xsl:value-of select="o:cmake_comment('Include the base datatype library which represents this type')" />
-                <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} datatype_', $aggregate_label_lc, ')', o:nl())" />
+                <xsl:value-of select="o:cmake_comment('Link the BASE datatype library which represents this type')" />
+                <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} datatype_', $aggregate_label_lc, ')', o:nl())" />
                 <xsl:value-of select="o:nl()" />
 
-                 <!-- Link against other proto libraries which this message contains -->
-                <xsl:value-of select="o:cmake_comment(concat('Include the ', $middleware, ' libraries which are required by this type'))" />
-                <xsl:for-each-group select="$required_datatypes" group-by=".">
-                    <xsl:variable name="datatype" select="lower-case(.)" />
-                    <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ', $middleware, '_', $datatype, ')', o:nl())" />
-                </xsl:for-each-group>
+                <!-- Link against other proto libraries which this message contains -->
+                <xsl:if test="count($required_datatypes)">
+                    <xsl:value-of select="o:cmake_comment(concat('Link the ', $middleware, ' shared libraries which are used in this type'))" />
+                    <xsl:for-each-group select="$required_datatypes" group-by=".">
+                        <xsl:variable name="datatype" select="lower-case(.)" />
+                        <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ', $middleware, '_', $datatype, '_lib)', o:nl())" />
+                    </xsl:for-each-group>
+                    <xsl:value-of select="o:nl()" />
+                </xsl:if>
+
+                <!-- Link the module against the shared library -->
+                <xsl:value-of select="o:cmake_comment('Link the Module against the Shared library')" />
+                <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${SHARED_LIB_NAME})', o:nl())" />
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
