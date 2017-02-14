@@ -131,19 +131,19 @@
 
                 
                 <!-- translate functions -->
-                <xsl:value-of select="o:cpp_comment('Translate Functions')" />
+                <xsl:value-of select="o:tabbed_cpp_comment('Translate Functions', 1)" />
                 <xsl:value-of select="concat(o:t(1), $mw_type, '* translate(', $base_type ,'* val);', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), $base_type, '* translate(', $mw_type ,'* val);', o:nl())" />
 
                 <!-- Helper functions -->
                 <xsl:value-of select="o:nl()" />
-                <xsl:value-of select="o:cpp_comment('Helper Functions')" />
+                <xsl:value-of select="o:tabbed_cpp_comment('Helper Functions', 1)" />
                 <xsl:value-of select="concat(o:t(1), 'template ', o:angle_wrap('class T'), ' ', $base_type, '* decode(std::string val);', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), 'std::string ', 'encode(', $base_type, '* val);', o:nl())" />
                 
                 <!-- Forward declared template function -->
                 <xsl:value-of select="o:nl()" />
-                <xsl:value-of select="o:cpp_comment('Forward declare the decode function with concrete type')" />
+                <xsl:value-of select="o:tabbed_cpp_comment('Forward declare the decode function with concrete type', 1)" />
                 <xsl:value-of select="concat(o:t(1), 'template ', o:angle_wrap(''), ' ', $base_type, '* decode', o:angle_wrap($mw_type), '(std::string val);', o:nl())" />
                 
                 <xsl:value-of select="concat('};', o:nl())" />
@@ -199,8 +199,8 @@
                             <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:dblquote_wrap($vector_type)), 3)" />
                             <xsl:value-of select="concat(o:t(3), 'auto ei_ = proto::translate(', o:and(), 'e_);', o:nl())" />
                             <xsl:value-of select="concat(o:t(3), 'if(ei_){', o:nl())" />
-                            <xsl:value-of select="concat(o:t(4), 'auto cp_ = out_', o:fp(), 'mutable_', lower-case($vector_label), '(i);', o:nl())" />
-                            <xsl:value-of select="concat(o:t(4), 'cp_ = ei_;', o:nl())" />
+                            <xsl:value-of select="concat(o:t(4), 'auto cp_ = out_', o:fp(), o:cpp_proto_add_vector($vector_label, ''), ';', o:nl())" />
+                            <xsl:value-of select="concat(o:t(4), 'cp_', o:fp(), 'Swap(ei_);', o:nl())" />
                             <xsl:value-of select="concat(o:t(3), '}', o:nl())" />
                             <xsl:value-of select="concat(o:t(3), 'delete ei_;', o:nl())" />
                         </xsl:when>
@@ -288,7 +288,7 @@
                     <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:dblquote_wrap($member_type)), 2)" />
                     <xsl:value-of select="concat(o:t(2), 'auto ', $var_name, ' = val', o:fp(), o:cpp_proto_get_func($member_label), '();', o:nl())" />
                     <xsl:value-of select="concat(o:t(2), 'out_', o:fp(), o:cpp_base_set_func($member_label) , '(proto::translate(', o:and(), $var_name, '));', o:nl())" />
-                    <xsl:value-of select="concat(o:t(2), 'delete ', $var_name, ';', o:nl())" />
+                    <!--<xsl:value-of select="concat(o:t(2), 'delete ', $var_name, ';', o:nl())" />-->
                     <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
                 </xsl:for-each>
 
