@@ -672,17 +672,16 @@ bool SigarSystemInfo::update_processes(){
         int pid = process_list.data[i];
         current_pids_.insert(pid);
 
-        bool seenPIDBefore = processes_.count(pid); 
+        bool seenPIDBefore = processes_.count(pid);
+        bool get_info = !seenPIDBefore;
         
         if(seenPIDBefore){
             process = processes_[pid];
+
+            auto difference = std::chrono::duration_cast<std::chrono::seconds>(t - process->lastUpdated_);
+            get_info = difference.count() >= 0.8;
         }else{
             process = new Process();
-        }
-
-        //Require State
-        if(sigar_proc_state_get(sigar_, pid, &(process->state)) != SIGAR_OK){
-            continue;
         }
         
         std::string slash = "/";
@@ -701,31 +700,25 @@ bool SigarSystemInfo::update_processes(){
             std::string procName = std::string(process->exe.name);
 			procName = procName.substr(procName.find_last_of(slash) + 1, std::string::npos);
             process->proc_name = procName;
-        }
 
-        if(force_process_name_check_){
+            //Check if this process name is in the list of things to track
             for(std::string query: tracked_process_names_){
                 if(stringInString(process->proc_name, query)){
-                    //Monitor the process
                     monitor_process(pid);
                     break;
                 }
             }
         }
 
-        //If we care about tracking this PID
-        if(tracked_pids_.count(pid)){
-            auto difference = std::chrono::duration_cast<std::chrono::seconds>(t - process->lastUpdated_);
-            
-            //If we have this pid already and more than 1 second has elapsed
-            if(difference.count() >= 1){
-                sigar_proc_cpu_get(sigar_, pid, &process->cpu);
-                sigar_proc_mem_get(sigar_, pid, &process->mem);
-                sigar_proc_disk_io_get(sigar_, pid, &process->disk);
-                process->lastUpdated_ = t;
-            }
+        //If we care about tracking this PID, get it's state cpu mem and disk
+        if(tracked_pids_.count(pid) && get_info){
+            sigar_proc_state_get(sigar_, pid, &(process->state));
+            sigar_proc_cpu_get(sigar_, pid, &process->cpu);
+            sigar_proc_mem_get(sigar_, pid, &process->mem);
+            sigar_proc_disk_io_get(sigar_, pid, &process->disk);
+            process->lastUpdated_ = t;
         }
-
+        //Store the process in the map
         processes_[pid] = process;
     }
 
@@ -735,8 +728,9 @@ bool SigarSystemInfo::update_processes(){
             //Free up the memory
             Process* p = (*it).second;
             it = processes_.erase(it);
+            
             //Remove the pid from the tracked list
-            tracked_pids_.erase(pid);
+            ignore_process(pid);
             delete p;
         }else{
             it++;
