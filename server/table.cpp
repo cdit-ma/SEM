@@ -17,9 +17,9 @@ void Table::AddColumn(std::string name, std::string type){
     columns_.push_back(t);
 }
 
-TableInsert* Table::get_insert_statement(){
+TableInsert Table::get_insert_statement(){
     //Prepare an object which allows setting and bind of values.
-    return new TableInsert(this);
+    return TableInsert(this);
 }
 
 int Table::get_field_id(std::string field){

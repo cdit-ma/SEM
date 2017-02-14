@@ -34,7 +34,7 @@ int main(int ac, char** av){
 	boost::program_options::options_description desc("Options");
 	desc.add_options()("port,p",boost::program_options::value<int>(&port)->default_value(5555), "Port number");
 	desc.add_options()("cached,c", "Cached mode");
-	desc.add_options()("frequency,f", boost::program_options::value<double>(&frequency)->default_value(10.0), "Recording frequency");
+	desc.add_options()("frequency,f", boost::program_options::value<double>(&frequency)->default_value(1.0), "Recording frequency");
 	desc.add_options()("process,P", boost::program_options::value<std::vector<std::string> >(&processes)->multitoken(), "Interested processes");
 	desc.add_options()("help,h", "Display help");
 

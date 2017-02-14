@@ -23,7 +23,7 @@ class Table{
     public:
         Table(SQLiteDatabase* database, std::string name);
         void AddColumn(std::string name, std::string type);
-        TableInsert* get_insert_statement();
+        TableInsert get_insert_statement();
 
         //OPTIMIZE PRIME FOR MITCH
         int get_field_id(std::string field);

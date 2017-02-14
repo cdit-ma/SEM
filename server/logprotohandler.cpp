@@ -305,18 +305,26 @@ void LogProtoHandler::UserEventTable(){
 
 
 void LogProtoHandler::Process(google::protobuf::MessageLite* message){
-    std::string type = ((google::protobuf::Message*)message)->GetTypeName();
-    if(type == "SystemStatus"){
+    //Ordered by frequency
+    if(static_cast<SystemStatus*>(message)){
         ProcessSystemStatus((SystemStatus*)message);
     }
-    if(type == "LifecycleEvent"){
+    else if(static_cast<re_common::LifecycleEvent*>(message)){
         ProcessLifecycleEvent((re_common::LifecycleEvent*)message);
     }
-    if(type == "UserEvent"){
+    else if(static_cast<re_common::MessageEvent*>(message)){
+        ProcessMessageEvent((re_common::MessageEvent*)message);
+    }
+    else if(static_cast<re_common::UserEvent*>(message)){
         ProcessUserEvent((re_common::UserEvent*)message);
     }
-    if(type == "MessageEvent"){
-        ProcessMessageEvent((re_common::MessageEvent*)message);
+    else{
+        std::cerr << "Cannot Process Message of Type: '" << ((google::protobuf::Message*)message)->GetTypeName() << "'" << std::endl;
+    }
+
+    if(message){
+        //Free Memory1
+        delete message;
     }
 }
 
@@ -327,43 +335,43 @@ void LogProtoHandler::ProcessSystemStatus(SystemStatus* status){
     int message_id = status->message_id();
     double timestamp = status->timestamp();
     
-    stmt->BindString(LOGAN_HOSTNAME, hostname);
-    stmt->BindInt(LOGAN_MESSAGE_ID, message_id);
-    stmt->BindDouble(LOGAN_TIMEOFDAY, timestamp);
-    stmt->BindDouble("cpu_utilization", status->cpu_utilization());
-    stmt->BindDouble("phys_mem_utilization", status->phys_mem_utilization());
-    database_->QueueSqlStatement(stmt->get_statement());
+    stmt.BindString(LOGAN_HOSTNAME, hostname);
+    stmt.BindInt(LOGAN_MESSAGE_ID, message_id);
+    stmt.BindDouble(LOGAN_TIMEOFDAY, timestamp);
+    stmt.BindDouble("cpu_utilization", status->cpu_utilization());
+    stmt.BindDouble("phys_mem_utilization", status->phys_mem_utilization());
+    database_->QueueSqlStatement(stmt.get_statement());
 
 
     if(status->has_info() != 0){
         auto infostmt = table_map_[LOGAN_SYSTEM_INFO_TABLE]->get_insert_statement();
-        infostmt->BindString(LOGAN_HOSTNAME, hostname);
-        infostmt->BindInt(LOGAN_MESSAGE_ID, message_id);
-        infostmt->BindDouble(LOGAN_TIMEOFDAY, timestamp);
+        infostmt.BindString(LOGAN_HOSTNAME, hostname);
+        infostmt.BindInt(LOGAN_MESSAGE_ID, message_id);
+        infostmt.BindDouble(LOGAN_TIMEOFDAY, timestamp);
         
         SystemStatus::SystemInfo info = status->info();
-        infostmt->BindString("os_name", info.os_name());
-        infostmt->BindString("os_arch", info.os_arch());
-        infostmt->BindString("os_description", info.os_description());
-        infostmt->BindString("os_version", info.os_version());
-        infostmt->BindString("os_vendor", info.os_vendor());
-        infostmt->BindString("os_vendor_name", info.os_vendor_name());
-        infostmt->BindString("cpu_model", info.cpu_model());
-        infostmt->BindString("cpu_vendor", info.cpu_vendor());
-        infostmt->BindInt("cpu_frequency", info.cpu_frequency());
-        infostmt->BindInt("physical_memory", info.physical_memory());
-        database_->QueueSqlStatement(infostmt->get_statement());
+        infostmt.BindString("os_name", info.os_name());
+        infostmt.BindString("os_arch", info.os_arch());
+        infostmt.BindString("os_description", info.os_description());
+        infostmt.BindString("os_version", info.os_version());
+        infostmt.BindString("os_vendor", info.os_vendor());
+        infostmt.BindString("os_vendor_name", info.os_vendor_name());
+        infostmt.BindString("cpu_model", info.cpu_model());
+        infostmt.BindString("cpu_vendor", info.cpu_vendor());
+        infostmt.BindInt("cpu_frequency", info.cpu_frequency());
+        infostmt.BindInt("physical_memory", info.physical_memory());
+        database_->QueueSqlStatement(infostmt.get_statement());
     }
 
 
     for(int i = 0; i < status->cpu_core_utilization_size(); i++){
         auto cpustmt = table_map_[LOGAN_CPU_TABLE]->get_insert_statement();        
-        cpustmt->BindString(LOGAN_HOSTNAME, hostname);
-        cpustmt->BindInt(LOGAN_MESSAGE_ID, message_id);
-        cpustmt->BindDouble(LOGAN_TIMEOFDAY, timestamp);
-        cpustmt->BindInt("core_id", i);
-        cpustmt->BindDouble("core_utilization", status->cpu_core_utilization(i));
-        database_->QueueSqlStatement(cpustmt->get_statement());
+        cpustmt.BindString(LOGAN_HOSTNAME, hostname);
+        cpustmt.BindInt(LOGAN_MESSAGE_ID, message_id);
+        cpustmt.BindDouble(LOGAN_TIMEOFDAY, timestamp);
+        cpustmt.BindInt("core_id", i);
+        cpustmt.BindDouble("core_utilization", status->cpu_core_utilization(i));
+        database_->QueueSqlStatement(cpustmt.get_statement());
     }
 
     for(int i = 0; i < status->processes_size(); i++){
@@ -372,28 +380,28 @@ void LogProtoHandler::ProcessSystemStatus(SystemStatus* status){
 
         if(proc.has_info()){
             auto procinfo = table_map_[LOGAN_PROCESS_INFO_TABLE]->get_insert_statement();
-            procinfo->BindString(LOGAN_HOSTNAME, hostname);
-            procinfo->BindInt(LOGAN_MESSAGE_ID, message_id);
-            procinfo->BindDouble(LOGAN_TIMEOFDAY, timestamp);
-            procinfo->BindInt("pid", proc.pid());
-            procinfo->BindString(LOGAN_NAME, proc.info().name());
-            procinfo->BindString("args", proc.info().args());
-            procinfo->BindInt("start_time", proc.info().start_time());
-            database_->QueueSqlStatement(procinfo->get_statement());
+            procinfo.BindString(LOGAN_HOSTNAME, hostname);
+            procinfo.BindInt(LOGAN_MESSAGE_ID, message_id);
+            procinfo.BindDouble(LOGAN_TIMEOFDAY, timestamp);
+            procinfo.BindInt("pid", proc.pid());
+            procinfo.BindString(LOGAN_NAME, proc.info().name());
+            procinfo.BindString("args", proc.info().args());
+            procinfo.BindInt("start_time", proc.info().start_time());
+            database_->QueueSqlStatement(procinfo.get_statement());
         }
-        procstmt->BindString(LOGAN_HOSTNAME, hostname);
-        procstmt->BindInt(LOGAN_MESSAGE_ID, message_id);
-        procstmt->BindDouble(LOGAN_TIMEOFDAY, timestamp);
-        procstmt->BindInt("pid", proc.pid());
-        procstmt->BindInt("core_id", proc.cpu_core_id());
-        procstmt->BindDouble("cpu_utilization", proc.cpu_utilization());
-        procstmt->BindDouble("phys_mem_utilization", proc.phys_mem_utilization());
-        procstmt->BindInt("thread_count", proc.thread_count());
-        procstmt->BindInt("disk_read", proc.disk_read());
-        procstmt->BindInt("disk_written", proc.disk_written());
-        procstmt->BindInt("disk_total", proc.disk_total());
-        procstmt->BindString("state", ProcessStatus::State_Name(proc.state()));
-        database_->QueueSqlStatement(procstmt->get_statement());
+        procstmt.BindString(LOGAN_HOSTNAME, hostname);
+        procstmt.BindInt(LOGAN_MESSAGE_ID, message_id);
+        procstmt.BindDouble(LOGAN_TIMEOFDAY, timestamp);
+        procstmt.BindInt("pid", proc.pid());
+        procstmt.BindInt("core_id", proc.cpu_core_id());
+        procstmt.BindDouble("cpu_utilization", proc.cpu_utilization());
+        procstmt.BindDouble("phys_mem_utilization", proc.phys_mem_utilization());
+        procstmt.BindInt("thread_count", proc.thread_count());
+        procstmt.BindInt("disk_read", proc.disk_read());
+        procstmt.BindInt("disk_written", proc.disk_written());
+        procstmt.BindInt("disk_total", proc.disk_total());
+        procstmt.BindString("state", ProcessStatus::State_Name(proc.state()));
+        database_->QueueSqlStatement(procstmt.get_statement());
     }
 
     for(int i = 0; i < status->interfaces_size(); i++){
@@ -403,30 +411,30 @@ void LogProtoHandler::ProcessSystemStatus(SystemStatus* status){
         if(ifstat.has_info()){
             auto ifinfo = table_map_[LOGAN_INTERFACE_INFO_TABLE]->get_insert_statement();        
             
-            ifinfo->BindString(LOGAN_HOSTNAME, hostname);
-            ifinfo->BindInt(LOGAN_MESSAGE_ID, message_id);
-            ifinfo->BindDouble(LOGAN_TIMEOFDAY, timestamp);
+            ifinfo.BindString(LOGAN_HOSTNAME, hostname);
+            ifinfo.BindInt(LOGAN_MESSAGE_ID, message_id);
+            ifinfo.BindDouble(LOGAN_TIMEOFDAY, timestamp);
 
-            ifinfo->BindString(LOGAN_NAME, ifstat.name());
-            ifinfo->BindString("type", ifstat.info().type());
-            ifinfo->BindString("description", ifstat.info().description());
-            ifinfo->BindString("ipv4_addr", ifstat.info().ipv4_addr());
-            ifinfo->BindString("ipv6_addr", ifstat.info().ipv6_addr());
-            ifinfo->BindString("mac_addr", ifstat.info().mac_addr());
-            ifinfo->BindInt("speed", ifstat.info().speed());
+            ifinfo.BindString(LOGAN_NAME, ifstat.name());
+            ifinfo.BindString("type", ifstat.info().type());
+            ifinfo.BindString("description", ifstat.info().description());
+            ifinfo.BindString("ipv4_addr", ifstat.info().ipv4_addr());
+            ifinfo.BindString("ipv6_addr", ifstat.info().ipv6_addr());
+            ifinfo.BindString("mac_addr", ifstat.info().mac_addr());
+            ifinfo.BindInt("speed", ifstat.info().speed());
 
-            database_->QueueSqlStatement(ifinfo->get_statement());
+            database_->QueueSqlStatement(ifinfo.get_statement());
         }
 
-        ifstatement->BindString(LOGAN_HOSTNAME, hostname);
-        ifstatement->BindInt(LOGAN_MESSAGE_ID, message_id);
-        ifstatement->BindDouble(LOGAN_TIMEOFDAY, timestamp);
-        ifstatement->BindString(LOGAN_NAME, ifstat.name());
-        ifstatement->BindInt("rx_packets", ifstat.rx_packets());
-        ifstatement->BindInt("rx_bytes", ifstat.rx_bytes());
-        ifstatement->BindInt("tx_packets", ifstat.tx_packets());
-        ifstatement->BindInt("tx_bytes", ifstat.tx_bytes());
-        database_->QueueSqlStatement(ifstatement->get_statement());
+        ifstatement.BindString(LOGAN_HOSTNAME, hostname);
+        ifstatement.BindInt(LOGAN_MESSAGE_ID, message_id);
+        ifstatement.BindDouble(LOGAN_TIMEOFDAY, timestamp);
+        ifstatement.BindString(LOGAN_NAME, ifstat.name());
+        ifstatement.BindInt("rx_packets", ifstat.rx_packets());
+        ifstatement.BindInt("rx_bytes", ifstat.rx_bytes());
+        ifstatement.BindInt("tx_packets", ifstat.tx_packets());
+        ifstatement.BindInt("tx_bytes", ifstat.tx_bytes());
+        database_->QueueSqlStatement(ifstatement.get_statement());
     }
 
     for(int i = 0; i < status->file_systems_size(); i++){
@@ -436,21 +444,21 @@ void LogProtoHandler::ProcessSystemStatus(SystemStatus* status){
         if(fss.has_info()){
             auto fsinfo = table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE]->get_insert_statement();
 
-            fsinfo->BindString(LOGAN_HOSTNAME, hostname);
-            fsinfo->BindInt(LOGAN_MESSAGE_ID, message_id);
-            fsinfo->BindDouble(LOGAN_TIMEOFDAY, timestamp);                        
-            fsinfo->BindString(LOGAN_NAME, fss.name());
-            fsinfo->BindString("type", FileSystemStatus::FileSystemInfo::Type_Name(fss.info().type()));
-            fsinfo->BindInt("size", fss.info().size());
-            database_->QueueSqlStatement(fsinfo->get_statement());
+            fsinfo.BindString(LOGAN_HOSTNAME, hostname);
+            fsinfo.BindInt(LOGAN_MESSAGE_ID, message_id);
+            fsinfo.BindDouble(LOGAN_TIMEOFDAY, timestamp);                        
+            fsinfo.BindString(LOGAN_NAME, fss.name());
+            fsinfo.BindString("type", FileSystemStatus::FileSystemInfo::Type_Name(fss.info().type()));
+            fsinfo.BindInt("size", fss.info().size());
+            database_->QueueSqlStatement(fsinfo.get_statement());
         }
 
-        fsstatement->BindString(LOGAN_HOSTNAME, hostname);
-        fsstatement->BindInt(LOGAN_MESSAGE_ID, message_id);
-        fsstatement->BindDouble(LOGAN_TIMEOFDAY, timestamp);
-        fsstatement->BindString(LOGAN_NAME, fss.name());
-        fsstatement->BindDouble("utilization", fss.utilization());
-        database_->QueueSqlStatement(fsstatement->get_statement());
+        fsstatement.BindString(LOGAN_HOSTNAME, hostname);
+        fsstatement.BindInt(LOGAN_MESSAGE_ID, message_id);
+        fsstatement.BindDouble(LOGAN_TIMEOFDAY, timestamp);
+        fsstatement.BindString(LOGAN_NAME, fss.name());
+        fsstatement.BindDouble("utilization", fss.utilization());
+        database_->QueueSqlStatement(fsstatement.get_statement());
     }
 }
 
@@ -459,24 +467,24 @@ void LogProtoHandler::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
         //Process port event
         //Insert test Statements
         auto ins = table_map_[LOGAN_PORT_EVENT_TABLE]->get_insert_statement();
-        ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
-        ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
-        ins->BindString(LOGAN_COMPONENT_NAME, event->component().name());
-        ins->BindString(LOGAN_COMPONENT_ID, event->component().id());
-        ins->BindString(LOGAN_PORT_NAME, event->port().name());
-        ins->BindString(LOGAN_PORT_ID, event->port().id());
-        ins->BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event->type()));
+        ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
+        ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
+        ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
+        ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+        ins.BindString(LOGAN_PORT_NAME, event->port().name());
+        ins.BindString(LOGAN_PORT_ID, event->port().id());
+        ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event->type()));
 
-        database_->QueueSqlStatement(ins->get_statement());
+        database_->QueueSqlStatement(ins.get_statement());
     }
 
     else if(event->has_component()){
             auto ins = table_map_[LOGAN_COMPONENT_EVENT_TABLE]->get_insert_statement();
-            ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
-            ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
-            ins->BindString(LOGAN_COMPONENT_NAME, event->component().name());
-            ins->BindString(LOGAN_COMPONENT_ID, event->component().id());
-            database_->QueueSqlStatement(ins->get_statement());
+            ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
+            ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
+            ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
+            ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+            database_->QueueSqlStatement(ins.get_statement());
     }
 }
 
@@ -484,27 +492,27 @@ void LogProtoHandler::ProcessMessageEvent(re_common::MessageEvent* event){
     if(event->has_port() && event->has_component()){
         //Process port event
         auto ins = table_map_[LOGAN_MESSAGE_EVENT_TABLE]->get_insert_statement();
-        ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
-        ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
-        ins->BindString(LOGAN_COMPONENT_NAME, event->component().name());
-        ins->BindString(LOGAN_COMPONENT_ID, event->component().id());
-        ins->BindString(LOGAN_PORT_NAME, event->port().name());
-        ins->BindString(LOGAN_PORT_ID, event->port().id());
-        ins->BindString(LOGAN_PORT_KIND, re_common::Port::PortKind_Name(event->port().kind()));
+        ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
+        ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
+        ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
+        ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+        ins.BindString(LOGAN_PORT_NAME, event->port().name());
+        ins.BindString(LOGAN_PORT_ID, event->port().id());
+        ins.BindString(LOGAN_PORT_KIND, re_common::Port::PortKind_Name(event->port().kind()));
 
-        database_->QueueSqlStatement(ins->get_statement());
+        database_->QueueSqlStatement(ins.get_statement());
     }
 }
 
 void LogProtoHandler::ProcessUserEvent(re_common::UserEvent* event){
 
     auto ins = table_map_[LOGAN_USER_EVENT_TABLE]->get_insert_statement();
-    ins->BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
-    ins->BindString(LOGAN_HOSTNAME, event->info().hostname());
-    ins->BindString(LOGAN_COMPONENT_NAME, event->component().name());
-    ins->BindString(LOGAN_COMPONENT_ID, event->component().id());
-    ins->BindString("message", event->message());
-    ins->BindString("type", re_common::UserEvent::Type_Name(event->type()));
-    database_->QueueSqlStatement(ins->get_statement());
+    ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
+    ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
+    ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
+    ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+    ins.BindString("message", event->message());
+    ins.BindString("type", re_common::UserEvent::Type_Name(event->type()));
+    database_->QueueSqlStatement(ins.get_statement());
     
 }
