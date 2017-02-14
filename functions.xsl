@@ -200,6 +200,18 @@
         <xsl:value-of select="lower-case(concat('set_', $var_name))" />
     </xsl:function>
 
+    <xsl:function name="o:cpp_dds_set_func">
+        <xsl:param name="var_name" as="xs:string" />
+        <!-- Setter has no set prefix, and is in camel-case -->
+        <xsl:value-of select="$var_name" />
+    </xsl:function>
+
+    <xsl:function name="o:cpp_dds_get_func">
+        <xsl:param name="var_name" as="xs:string" />
+        <!-- Setter has no get prefix, and is in camel-case -->
+        <xsl:value-of select="$var_name" />
+    </xsl:function>
+
     <xsl:function name="o:cpp_proto_set_complex_func">
         <xsl:param name="var_name" as="xs:string" />
         <!-- Setter has set_ but uses lower-case -->
