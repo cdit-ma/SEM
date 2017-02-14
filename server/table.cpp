@@ -11,6 +11,12 @@ Table::Table(SQLiteDatabase* database, std::string name){
     AddColumn("lid", "INTEGER");
 }
 
+Table::~Table(){
+    for(auto i : columns_){
+        delete i;
+    }
+}
+
 void Table::AddColumn(std::string name, std::string type){
     int pos = columns_.size();
     auto t = new TableColumn(pos, name, type);

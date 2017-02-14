@@ -68,6 +68,14 @@ LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database
     database_->Flush();
 }
 
+LogProtoHandler::~LogProtoHandler(){
+    auto itr = table_map_.begin();
+    while(itr != table_map_.end()){
+        delete itr->second;
+        itr = table_map_.erase(itr);
+    }
+}
+
 void LogProtoHandler::CreateSystemStatusTable(){
     if(table_map_.count(LOGAN_SYSTEM_STATUS_TABLE)){
         return;
@@ -323,7 +331,7 @@ void LogProtoHandler::CreateWorkloadEventTable(){
     t->AddColumn("type", LOGAN_VARCHAR);
 
     t->AddColumn("description", LOGAN_VARCHAR);
-    table_map_[LOGAN_USER_EVENT_TABLE] = t;
+    table_map_[LOGAN_WORKLOAD_EVENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
@@ -338,6 +346,9 @@ void LogProtoHandler::Process(google::protobuf::MessageLite* message){
     else if(static_cast<re_common::MessageEvent*>(message)){
         ProcessMessageEvent((re_common::MessageEvent*)message);
     }
+    else if(static_cast<re_common::WorkloadEvent*>(message)){
+        ProcessWorkloadEvent((re_common::WorkloadEvent*)message);
+    }
     else if(static_cast<re_common::UserEvent*>(message)){
         ProcessUserEvent((re_common::UserEvent*)message);
     }
@@ -346,7 +357,7 @@ void LogProtoHandler::Process(google::protobuf::MessageLite* message){
     }
 
     if(message){
-        //Free Memory1
+        //Free Memory
         delete message;
     }
 }
@@ -538,4 +549,20 @@ void LogProtoHandler::ProcessUserEvent(re_common::UserEvent* event){
     ins.BindString("type", re_common::UserEvent::Type_Name(event->type()));
     database_->QueueSqlStatement(ins.get_statement());
     
+}
+
+void LogProtoHandler::ProcessWorkloadEvent(re_common::WorkloadEvent* event){
+    auto ins = table_map_[LOGAN_WORKLOAD_EVENT_TABLE]->get_insert_statement();
+    ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
+    ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
+    ins.BindString("event_type", re_common::WorkloadEvent::Type_Name(event->event_type()));
+    ins.BindString("workload_implementation_id", event->id());
+    ins.BindString("function_name", event->name());
+    ins.BindString("function_library", event->type());
+    
+    ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
+    ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+    ins.BindString("type", event->component().type());
+    ins.BindString("description", event->description());
+
 }

@@ -14,12 +14,14 @@ class Table;
 class LogProtoHandler{
     public:
         LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database);
+        ~LogProtoHandler();
 
         void Process(google::protobuf::MessageLite* message);
         void ProcessSystemStatus(SystemStatus* status);
         void ProcessLifecycleEvent(re_common::LifecycleEvent* event);
         void ProcessMessageEvent(re_common::MessageEvent* event);
         void ProcessUserEvent(re_common::UserEvent* event);
+        void ProcessWorkloadEvent(re_common::WorkloadEvent* event);
 
 
     private:

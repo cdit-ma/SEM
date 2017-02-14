@@ -22,6 +22,7 @@ struct TableColumn{
 class Table{
     public:
         Table(SQLiteDatabase* database, std::string name);
+        ~Table();
         void AddColumn(std::string name, std::string type);
         TableInsert get_insert_statement();
 
