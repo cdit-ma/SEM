@@ -6,7 +6,6 @@ message Info{
     string hostname = 1;
     double timestamp = 2;
     uint64 uid = 3;
-    Info info = 4;
 }
 
 
@@ -57,15 +56,21 @@ message WorkloadEvent{
         MESSAGE = 2;
     }
     Info info = 1;
-    string id = 2;              //Implementation's workload id
-    string name = 3;            //Function name
-    string type = 4;            //Function's library
-    Component component = 5;    //Instance id of component impl
-    string description = 6;
+    Type event_type = 2;
+    string id = 3;              //Implementation's workload id
+    string name = 4;            //Function name
+    string type = 5;            //Function's library
+    Component component = 6;    //Instance id of component impl
+    string description = 7;
 }
 
 message UserEvent{
     Info info = 1;
     Component component = 2;
-    Port port = 3;
+    string message = 3;
+    enum Type{
+        MESSAGE = 0;
+        FLAG = 1;
+    }
+    Type type = 4;
 }
