@@ -118,7 +118,11 @@ void LogController::WriteThread(){
 
         //Empty our write queue
         while(!replace_queue.empty()){
-            writer_->PushMessage(replace_queue.front());
+            auto m = replace_queue.front();
+            if(m){
+                writer_->PushMessage(m);
+                delete m;
+            }
             
             replace_queue.pop();
         }
