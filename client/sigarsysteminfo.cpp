@@ -563,15 +563,15 @@ std::string SigarSystemInfo::get_process_arguments(const int pid) const{
 SystemInfo::ProcessState SigarSystemInfo::get_process_state(const int pid) const{
     if(processes_.count(pid)){
         switch(processes_.at(pid)->state.state){
-            case 'D':
-                return SystemInfo::ProcessState::DISK_SLEEP;
-            case 'R':
+            case SIGAR_PROC_STATE_IDLE:
+                return SystemInfo::ProcessState::IDLE;
+            case SIGAR_PROC_STATE_RUN:
                 return SystemInfo::ProcessState::RUNNING;
-            case 'S':
+            case SIGAR_PROC_STATE_SLEEP:
                 return SystemInfo::ProcessState::SLEEPING;
-            case 'T':
+            case SIGAR_PROC_STATE_STOP:
                 return SystemInfo::ProcessState::STOPPED;
-            case 'Z':
+            case SIGAR_PROC_STATE_ZOMBIE:
                 return SystemInfo::ProcessState::ZOMBIE;
             default:
                 break;  
@@ -713,7 +713,7 @@ bool SigarSystemInfo::update_processes(){
 
         //If we care about tracking this PID, get it's state cpu mem and disk
         if(tracked_pids_.count(pid) && get_info){
-            sigar_proc_state_get(sigar_, pid, &(process->state));
+            sigar_proc_state_get(sigar_, pid, &process->state);
             sigar_proc_cpu_get(sigar_, pid, &process->cpu);
             sigar_proc_mem_get(sigar_, pid, &process->mem);
             sigar_proc_disk_io_get(sigar_, pid, &process->disk);

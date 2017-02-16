@@ -11,7 +11,7 @@ class SystemInfo{
     ERROR = 0,
     RUNNING = 1,
     SLEEPING = 2,
-    DISK_SLEEP = 3,
+    IDLE = 3,
     STOPPED = 4,
     ZOMBIE = 5,
     DEAD = 6
