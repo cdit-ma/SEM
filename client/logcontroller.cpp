@@ -121,7 +121,6 @@ void LogController::WriteThread(){
             auto m = replace_queue.front();
             if(m){
                 writer_->PushMessage(m);
-                delete m;
             }
             
             replace_queue.pop();
