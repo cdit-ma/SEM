@@ -40,7 +40,7 @@ class CachedZMQMessageWriter : public ZMQMessageWriter{
 
         std::string temp_file_path_;
 
-        std::thread* writer_thread_;
+        std::thread* writer_thread_ = 0;
 
 
         int log_count_ = 0;
