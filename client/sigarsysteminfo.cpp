@@ -416,7 +416,8 @@ std::string SigarSystemInfo::get_interface_ipv6(const int interface_index) const
 std::string SigarSystemInfo::get_interface_mac(const int interface_index) const{
     if(interface_index < get_interface_count()){
         //00:00:00:00:00:00
-        char addr_str[17];
+        //Max length: 17 + 1
+        char addr_str[18];
         sigar_net_address_t  adt = interfaces_[interface_index].config.hwaddr;
         if(sigar_net_address_to_string(sigar_, &adt , addr_str) == SIGAR_OK){
             return std::string(addr_str);
