@@ -22,7 +22,7 @@ message ProcessStatus{
 		PROC_ERROR = 0;
 		PROC_RUNNING = 1;
 		PROC_SLEEPING = 2;
-		PROC_DISK_SLEEP = 3;
+		PROC_IDLE = 3;
 		PROC_STOPPED = 4;
 		PROC_ZOMBIE = 5;
 		PROC_DEAD = 6;
