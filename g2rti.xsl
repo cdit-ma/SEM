@@ -40,7 +40,10 @@
             <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
             <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
 
+            
             <xsl:variable name="middleware" select="'rti'" />
+            <xsl:variable name="mw" select="$middleware" />
+            <xsl:variable name="base_mw" select="'base'" />
 
             
             <xsl:variable name="base_type" select="concat('::', $aggregate_label_cc)" />
@@ -48,6 +51,7 @@
             
             <!-- OPEN middleware/proto/label/label.idl -->
             <xsl:result-document href="{concat('middleware/', $middleware, '/', $aggregate_label_lc, '.idl')}">
+                <!-- Import other IDLs -->
                 <xsl:for-each-group select="$required_datatypes" group-by=".">
                     <xsl:variable name="datatype" select="lower-case(.)" />
                     <xsl:variable name="idl_path" select="concat($datatype, '.idl')" />
@@ -55,11 +59,13 @@
                     <xsl:value-of select="o:lib_include($idl_path)" />
                 </xsl:for-each-group>
                 
+                <!-- Module Name -->
                 <xsl:value-of select="concat('module ', $idl_name, '{', o:nl())" />
                  
-
+                <!-- Struct Name -->
                 <xsl:value-of select="concat(o:t(1), 'struct ', $aggregate_label_cc, ' {', o:nl())" />
 
+                <!-- Process Members -->
                 <xsl:for-each select="$members">
                     <!-- TODO: Need to handle members/vectors/aggregates out of order -->
                     <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
@@ -79,6 +85,7 @@
                     <xsl:value-of select="o:nl()" />
                 </xsl:for-each>
 
+                <!-- Process Vectors -->
                 <xsl:for-each select="$vectors">
                     <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
                     
@@ -101,6 +108,7 @@
                     </xsl:choose>
                 </xsl:for-each>
 
+                <!-- Process Aggregates -->
                 <xsl:for-each select="$aggregates">
                     <xsl:variable name="sort_order" select="number(cdit:get_key_value(., 'sortOrder')) + 1" />
                     
@@ -156,7 +164,7 @@
 
                 <!-- translate functions -->
                 <xsl:value-of select="o:tabbed_cpp_comment('Translate Functions', 1)" />
-                <xsl:value-of select="concat(o:t(1), $mw_type, '* translate(', $base_type ,'* val);', o:nl())" />
+                <xsl:value-of select="concat(o:t(1), $mw_type, '* translate(const ', $base_type ,'* val);', o:nl())" />
                 <xsl:value-of select="concat(o:t(1), $base_type, '* translate(const ', $mw_type ,'* val);', o:nl())" />
                 <xsl:value-of select="concat('};', o:nl())" />
 
@@ -166,84 +174,27 @@
 
             <!-- OPEN middleware/rti/label/convert.cpp -->
             <xsl:result-document href="{concat('middleware/', $middleware, '/', $aggregate_label_lc, '/convert.cpp')}">
+                <xsl:variable name="in_var" select="'val'" />
+                <xsl:variable name="out_var" select="'out_'" />
+
                 <!-- Include the header -->
                 <xsl:value-of select="o:local_include('convert.h')" />
                 <!-- Include the generated header -->
                 <xsl:value-of select="o:local_include(concat($aggregate_label_lc, '.hpp'))" />
                 <xsl:value-of select="o:nl()" />
 
-                <!-- Link against other proto libraries which this message contains -->
+                <!-- Link against the base libraries which this message contains -->
                 <xsl:for-each-group select="$required_datatypes" group-by=".">
                     <xsl:variable name="datatype" select="lower-case(.)" />
                     <xsl:value-of select="o:local_include(concat('../', $datatype, '/convert.h'))" />
                 </xsl:for-each-group>
 
-<!-- Translate Function from BASE to MIDDLEWARE-->
-                <xsl:value-of select="concat($mw_type, '* ', $middleware, '::translate(', $base_type ,'* val){', o:nl())" />
-                <xsl:value-of select="concat(o:t(1), 'auto out_ = new ', $mw_type, '();', o:nl())" />
-                
-                <!-- Handle Members -->
-                <xsl:for-each select="$members">
-                    <xsl:variable name="member_label" select="cdit:get_key_value(., 'label')" />
-                    <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
-                    <xsl:value-of select="concat(o:t(1), 'out_', o:fp(), o:cpp_dds_set_func($member_label) , '(val', o:fp(), o:cpp_base_get_func($member_label) ,'());', o:nl())" />
-                </xsl:for-each>
+                <!-- Translate Function from BASE to MIDDLEWARE-->
+                <xsl:value-of select="o:cpp_comment('Translate from Base -> Middleware')" />
+                <xsl:value-of select="o:get_translate_cpp($members, $vectors, $aggregates, $base_type, $mw_type, $base_mw, $mw, $middleware)" />
 
-                <!-- Process Vectors -->
-                <xsl:for-each select="$vectors">
-                    <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
-                    <xsl:variable name="vector_type" select="cdit:get_key_value(., 'type')" />
-                    <xsl:variable name="is_vector_complex" select="cdit:is_vector_complex(.)" />
-                    <xsl:variable name="vector_cpp_type" select="cdit:get_vector_type(.)" />
-                    
-                    <xsl:value-of select="concat(o:t(1), '{', o:nl())" />
-                    <xsl:value-of select="o:tabbed_cpp_comment('Resize the DDS Vector', 2)" />
-                    <xsl:value-of select="concat(o:t(2), 'auto size_ = val', o:fp(), o:cpp_dds_get_func($vector_label), '().size();', o:nl())" />
-                    <xsl:value-of select="concat(o:t(2), 'out_', o:fp(), o:cpp_dds_get_func($vector_label), '().resize(size_);', o:nl())" />
-                    <xsl:value-of select="o:nl()" />
-
-
-                    <xsl:value-of select="o:tabbed_cpp_comment(concat('Step through all the vector elements inside ', o:dblquote_wrap($vector_label)), 2)" />
-                    <xsl:value-of select="concat(o:t(2), 'for(int i = 0; i ', o:lt(), ' size_; i++){', o:nl())" />
-                    <xsl:value-of select="concat(o:t(3), 'auto e_ = val', o:fp(), o:cpp_base_get_ptr_func($vector_label), '()[i];', o:nl())" />
-
-                    <xsl:choose>
-                        <xsl:when test="$is_vector_complex">
-                            <!-- Complex types -->
-                            <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:dblquote_wrap($vector_type)), 3)" />
-                            <xsl:value-of select="concat(o:t(3), 'auto ei_ = ', $middleware, '::translate(', o:and(), 'e_);', o:nl())" />
-                            <xsl:value-of select="concat(o:t(3), 'if(ei_){', o:nl())" />
-                            <xsl:value-of select="concat(o:t(4), 'out_', o:fp(), o:cpp_dds_get_func($vector_label), '()[i] = ', '*ei_', ';', o:nl())" />
-                            <xsl:value-of select="concat(o:t(3), '}', o:nl())" />
-                            <xsl:value-of select="concat(o:t(3), 'delete ei_;', o:nl())" />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <!-- Primitive types -->
-                            <xsl:value-of select="concat(o:t(3), 'out_', o:fp(), o:cpp_dds_get_func($vector_label), '()[i] = e_', ';', o:nl())" />
-                        </xsl:otherwise>
-                    </xsl:choose>
-                    <xsl:value-of select="concat(o:t(2), '}', o:nl())" />
-                    <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
-                </xsl:for-each>
-
-                <xsl:value-of select="concat(o:t(1), 'return out_;', o:nl())" />
-                <xsl:value-of select="concat('};', o:nl())" />
-                <xsl:value-of select="o:nl()" />
-
-                <!-- Translate function mw->base -->
-                <xsl:value-of select="concat($base_type, '* ', $middleware, '::translate(const ', $mw_type ,'* val){', o:nl())" />
-                <xsl:value-of select="concat(o:t(1), 'auto out_ = new ', $base_type, '();', o:nl())" />
-                
-                <xsl:for-each select="$members">
-                    <xsl:variable name="member_label" select="cdit:get_key_value(., 'label')" />
-                    <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
-
-                    <xsl:value-of select="concat(o:t(1), 'out_', o:fp(), o:cpp_base_set_func($member_label) , '(val', o:fp(), o:cpp_dds_get_func($member_label) ,'());', o:nl())" />
-                </xsl:for-each>
-
-                <xsl:value-of select="concat(o:t(1), 'return out_;', o:nl())" />
-                <xsl:value-of select="concat('};', o:nl())" />
-                <xsl:value-of select="o:nl()" />
+                <xsl:value-of select="o:cpp_comment('Translate from Middleware -> Base')" />
+                <xsl:value-of select="o:get_translate_cpp($members, $vectors, $aggregates, $mw_type, $base_type, $mw, $base_mw, $middleware)" />
             </xsl:result-document>
 
             <!-- Output middleware/rti/label/CMakeLists.txt -->

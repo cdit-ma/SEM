@@ -86,6 +86,11 @@
         <xsl:value-of select="concat(o:lt(), $str, o:gt())" />
     </xsl:function>	
 
+     <xsl:function name="o:bracket_wrap">
+        <xsl:param name="str" as="xs:string" />
+        <xsl:value-of select="concat('(', $str, ')')" />
+    </xsl:function>	
+
     <xsl:function name="o:dblquote_wrap">
         <xsl:param name="str" as="xs:string" />
         <xsl:value-of select="concat(o:dblquote(), $str, o:dblquote())" />
@@ -200,6 +205,318 @@
         <xsl:value-of select="lower-case(concat('set_', $var_name))" />
     </xsl:function>
 
+    <xsl:function name="o:cpp_mw_func">
+        <xsl:param name="var_name" as="xs:string" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
+                <!-- DDS uses exact case -->
+                <xsl:value-of select="$var_name" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'base'">
+                <!-- Base uses exact case -->
+                <xsl:value-of select="$var_name" />
+            </xsl:when>
+            <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                <!-- Protobuf uses lowercase -->
+                <xsl:value-of select="lower-case($var_name)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="o:cpp_comment(concat('Middleware ', $middleware, ' not implemented'))" />
+            </xsl:otherwise>
+        </xsl:choose>
+        
+    </xsl:function>
+
+    
+
+    <xsl:function name="o:cpp_mw_set_func">
+        <xsl:param name="var_name" as="xs:string" />
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="value" as="xs:string" />
+
+        <xsl:variable name="mw_name" select="o:cpp_mw_func($var_name, $middleware)" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
+                <!-- DDS doesn't use get/set functions and return references -->
+                <!-- ie val() = val -->
+                <xsl:value-of select="concat($mw_name, o:bracket_wrap($value))" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'base'">
+                <!-- Base uses get/set functions -->
+                <!-- ie set_val(val) -->
+                <xsl:value-of select="concat($mw_name, o:bracket_wrap(''), ' = ', $value)" />
+            </xsl:when>
+            <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                <!-- Base uses get/set functions -->
+                <xsl:value-of select="concat('set_', $mw_name, o:bracket_wrap($value))" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="o:cpp_comment(concat('Middleware ', $middleware, ' not implemented'))" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="o:cpp_mw_get_vector_func">
+        <xsl:param name="var_name" as="xs:string" />
+        <xsl:param name="middleware" as="xs:string" />
+        <xsl:param name="index" as="xs:string" />
+
+        <xsl:variable name="mw_name" select="o:cpp_mw_func($var_name, $middleware)" />
+
+        <xsl:choose>
+             <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                <!-- Protobuf uses $var_name($index) -->
+                <!-- ie val(i) -->
+                <xsl:value-of select="concat($mw_name, o:bracket_wrap($index))" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'rti' or $middleware = 'ospl' or $middleware = 'base'">
+                <!-- DDS/Base uses $var_name()[$index] -->
+                <!-- ie val()[i] -->
+                <xsl:value-of select="concat($mw_name, o:bracket_wrap(''), '[', $index, ']')" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="o:cpp_comment(concat('Middleware ', $middleware, ' not implemented'))" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+
+    <xsl:function name="o:process_member">
+        <xsl:param name="member_root" />
+
+        <xsl:param name="in_var" as="xs:string" />
+        <xsl:param name="out_var" as="xs:string" />
+        <xsl:param name="src_mw" as="xs:string" />
+        <xsl:param name="dst_mw" as="xs:string" />
+        <xsl:param name="namespace" as="xs:string" />
+
+        
+
+        <xsl:variable name="member_label" select="cdit:get_key_value($member_root, 'label')" />
+        <xsl:variable name="member_type" select="cdit:get_key_value($member_root, 'type')" />
+        <!-- Get the value; Using the base middlewares getter -->
+        <xsl:variable name="value" select="concat($in_var, o:fp(), o:cpp_mw_get_func($member_label, $src_mw))" />
+        <!-- Set the value; using the appropriate middlewares setter -->
+        <xsl:value-of select="concat(o:t(1), $out_var, o:fp(), o:cpp_mw_set_func($member_label, $dst_mw, $value), ';', o:nl())" />
+    </xsl:function>
+
+    <xsl:function name="o:process_aggregate">
+        <xsl:param name="aggregate_root" />
+
+        <xsl:param name="in_var" as="xs:string" />
+        <xsl:param name="out_var" as="xs:string" />
+        <xsl:param name="src_mw" as="xs:string" />
+        <xsl:param name="dst_mw" as="xs:string" />
+        <xsl:param name="namespace" as="xs:string" />
+
+        <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
+        <xsl:variable name="aggregate_type" select="cdit:get_key_value($aggregate_root, 'type')" />
+
+        <xsl:variable name="src_var" select="concat('src_', lower-case($aggregate_label), '_')" />
+        <xsl:variable name="dst_var" select="concat('dst_', lower-case($aggregate_label), '_')" />
+
+        <xsl:variable name="get_value" select="concat($in_var, o:fp(), o:cpp_mw_get_func($aggregate_label, $src_mw))" />
+        
+        <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:angle_wrap($aggregate_type)), 1)" />
+        <xsl:value-of select="concat(o:t(1), 'auto ', $src_var, ' = ', $get_value, ';', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto ', $dst_var, ' = ', $namespace, '::translate(',o:and(), $src_var, ');', o:nl())" />
+                
+        <xsl:value-of select="concat(o:t(1), 'if(', $dst_var, '){', o:nl())" />
+            <xsl:choose>
+                <xsl:when test="o:middleware_uses_protobuf($dst_mw)">
+                    <!-- Protobuf have to use a swap function from the newly added element -->
+                    <xsl:value-of select="concat(o:t(2), $out_var, o:fp(), 'set_allocated_', o:cpp_mw_func($aggregate_label, $dst_mw), '(', $dst_var, ');', o:nl())" />
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- Complex vectors in other middlewares use indexed insertion using a dereferenced pointer -->
+                    <xsl:value-of select="concat(o:t(2), $out_var, o:fp(), o:cpp_mw_set_func($aggregate_label, $dst_mw, concat('*', $dst_var)), ';', o:nl())" />
+                </xsl:otherwise>
+            </xsl:choose>
+            <!-- Free Memory From Translate -->
+            <xsl:value-of select="concat(o:t(2), 'delete ', $dst_var, ';', o:nl())" />
+            <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
+    </xsl:function>
+
+    <xsl:function name="o:get_translate_cpp">
+        <xsl:param name="members" />
+        <xsl:param name="vectors" />
+        <xsl:param name="aggregates" />
+        <xsl:param name="src_type" as="xs:string" />
+        <xsl:param name="dst_type" as="xs:string" />
+        <xsl:param name="src_mw" as="xs:string" />
+        <xsl:param name="dst_mw" as="xs:string" />
+        <xsl:param name="namespace" as="xs:string" />
+
+        <xsl:variable name="in_var" select="'src'" />
+        <xsl:variable name="out_var" select="'dst_'" />
+
+        <xsl:value-of select="concat($dst_type, '* ', $namespace, '::translate(const ', $src_type , ' *', $in_var, '){', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto ', $out_var, ' = new ', $dst_type, '();', o:nl())" />
+        
+        <xsl:for-each select="$members">
+            <xsl:value-of select="o:process_member(., $in_var, $out_var, $src_mw, $dst_mw, $namespace)" />
+        </xsl:for-each>
+
+        <xsl:for-each select="$vectors">
+            <xsl:value-of select="o:process_vector(., $in_var, $out_var, $src_mw, $dst_mw, $namespace)" />
+        </xsl:for-each>
+
+        <xsl:for-each select="$aggregates">
+            <xsl:value-of select="o:process_aggregate(., $in_var, $out_var, $src_mw, $dst_mw, $namespace)" />
+        </xsl:for-each>
+
+        <!-- Return the Translated object -->
+        <xsl:value-of select="concat(o:t(1), 'return ', $out_var, ';', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+    </xsl:function>
+
+    <xsl:function name="o:process_vector">
+        <xsl:param name="vector_root" />
+
+        <xsl:param name="in_var" as="xs:string" />
+        <xsl:param name="out_var" as="xs:string" />
+        <xsl:param name="src_mw" as="xs:string" />
+        <xsl:param name="dst_mw" as="xs:string" />
+        <xsl:param name="namespace" as="xs:string" />
+
+        <!-- Get the Middleware which is used for the namespace functions -->
+        <xsl:variable name="translate_mw" select="if(lower-case($src_mw) = 'base') then $dst_mw else $src_mw" />
+
+        <!-- Get the appropriate fields from the vector -->
+        <xsl:variable name="vector_label" select="cdit:get_key_value($vector_root, 'label')" />
+        <xsl:variable name="vector_type" select="cdit:get_key_value($vector_root, 'type')" />
+        <xsl:variable name="vector_cpp_type" select="cdit:get_vector_type($vector_root)" />
+        <xsl:variable name="is_vector_complex" select="cdit:is_vector_complex($vector_root)" />
+        <!-- lower-case($vector_label) -->
+        <xsl:variable name="src_var" select="concat('src_', lower-case($vector_label), '_i_')" />
+        <xsl:variable name="dst_var" select="concat('dst_', lower-case($vector_label), '_i_')" />
+
+        <xsl:variable name="src_mw_uses_pb" select=" o:middleware_uses_protobuf($src_mw)" />
+        <xsl:variable name="dst_mw_uses_pb" select=" o:middleware_uses_protobuf($dst_mw)" />
+
+        <!-- Opening Brace -->
+        <xsl:value-of select="concat(o:t(1), '{', o:nl())" />
+        <xsl:value-of select="o:tabbed_cpp_comment(concat('o:process_vector() ', $vector_label, o:angle_wrap($vector_cpp_type)), 2)" />
+
+        <!-- Get a copy of the vector-->
+        <xsl:value-of select="o:tabbed_cpp_comment('Copy Vector', 2)" />
+        <xsl:variable name="vector_copy" select="concat($vector_label, '_')" />
+        <xsl:value-of select="concat(o:t(2), 'auto ', $vector_copy, ' = ', $in_var, o:fp(), o:cpp_mw_get_func($vector_label, $src_mw), ';', o:nl())" />
+
+        <!-- Get the source vector size -->
+        <xsl:value-of select="o:tabbed_cpp_comment('Get the size of the source vector', 2)" />
+        <xsl:value-of select="concat(o:t(2), 'auto size_ = ', $vector_copy, '.size();', o:nl())" />
+
+        <xsl:if test="$dst_mw_uses_pb = false()">
+            <!-- For non protobuf vectors, resize the target vector -->
+            <xsl:value-of select="o:tabbed_cpp_comment('Resize the destination vector', 2)" />
+            <xsl:value-of select="concat(o:t(2), $out_var, o:fp(), o:cpp_mw_func($vector_label, $dst_mw), '().resize(size_);', o:nl())" />
+        </xsl:if>
+
+        <!-- Define for loop -->
+        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="o:tabbed_cpp_comment('Itterate through source vector', 2)" />
+        <xsl:value-of select="concat(o:t(2), 'for(int i = 0; i ', o:lt(), ' size_; i++){', o:nl())" />
+
+        
+
+        <xsl:variable name="get_src_val" select="concat($vector_copy, '[i]')" />
+        
+        <!-- Set the target vector element -->
+        <xsl:choose>
+            <xsl:when test="$is_vector_complex">
+                <!-- Complex types -->
+                <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:angle_wrap($vector_cpp_type)), 3)" />
+                <xsl:value-of select="concat(o:t(3), 'auto ', $dst_var, ' = ', $namespace, '::translate(',o:and(),  o:bracket_wrap($get_src_val), ');', o:nl())" />
+                
+                <xsl:value-of select="concat(o:t(3), 'if(', $dst_var, '){', o:nl())" />
+                <xsl:choose>
+                    <xsl:when test="o:middleware_uses_protobuf($dst_mw)">
+                        <xsl:variable name="new_element" select="concat($dst_var, 'pb_')" />
+                        <xsl:value-of select="o:tabbed_cpp_comment('Add element to the destination vector', 4)" />
+                        <xsl:value-of select="concat(o:t(4), 'auto ', $new_element, ' = ', $out_var, o:fp(), o:cpp_mw_func(concat('add_', $vector_label), $dst_mw),'();', o:nl())" />
+                        <xsl:value-of select="o:tabbed_cpp_comment('Swap the contents into the destination vector', 4)" />
+                        <!-- Complex vectors in protobuf have to use a swap function from the newly added element -->
+                        <xsl:value-of select="concat(o:t(4), $new_element, o:fp(), 'Swap(', $dst_var, ');', o:nl())" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- Complex vectors in other middlewares use indexed insertion using a dereferenced pointer -->
+                        <xsl:value-of select="concat(o:t(4), $out_var, o:fp(), o:cpp_mw_func($vector_label, $dst_mw), '()[i] = *', $dst_var, ';', o:nl())" />
+                    </xsl:otherwise>
+                </xsl:choose>
+                <!-- Free Memory From Translate -->
+                <xsl:value-of select="concat(o:t(4), 'delete ', $dst_var, ';', o:nl())" />
+                <xsl:value-of select="concat(o:t(3), '}', o:nl())" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:choose>
+                    <xsl:when test="o:middleware_uses_protobuf($dst_mw)">
+                        <!-- Primitive vectors in protobuf use an add_ function with value as a parameter -->
+                        <xsl:value-of select="concat(o:t(3), $out_var, o:fp(), o:cpp_mw_func(concat('add_', $vector_label), $src_mw),'(', $get_src_val, ');', o:nl())" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!-- Primitive vectors in other middlewares simply use indexed insertion -->
+                        <xsl:value-of select="concat(o:t(3), $out_var, o:fp(), o:cpp_mw_func($vector_label, $dst_mw), '()[i] = ', $get_src_val, ';', o:nl())" />
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:value-of select="concat(o:t(2), '}', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
+    </xsl:function>
+
+ 
+    <xsl:function name="o:cpp_mw_get_func">
+        <xsl:param name="var_name" as="xs:string" />
+        <xsl:param name="middleware" as="xs:string" />
+
+        <xsl:variable name="mw_name" select="o:cpp_mw_func($var_name, $middleware)" />
+
+        <xsl:choose>
+            <xsl:when test="$middleware = 'rti' or $middleware = 'ospl'">
+                <!-- DDS doesn't use get/set functions -->
+                <xsl:value-of select="concat($mw_name, o:bracket_wrap(''))" />
+            </xsl:when>
+            <xsl:when test="$middleware = 'base'">
+                <!-- Base uses get/set functions-->
+                <xsl:value-of select="concat('get_', $mw_name, o:bracket_wrap(''))" />
+            </xsl:when>
+            <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
+                <xsl:value-of select="concat($mw_name, o:bracket_wrap(''))" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="o:cpp_comment(concat('Middleware ', $middleware, ' not implemented'))" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+
+    <xsl:function name="o:cpp_set_translated_val">
+        <xsl:param name="target" as="xs:string" />
+        <xsl:param name="var_name" as="xs:string" />
+        <xsl:param name="var_type" as="xs:string" />
+        <xsl:param name="mw" as="xs:string" />
+        <xsl:param name="tab" as="xs:integer" />
+
+        <xsl:variable name="mw_var_name" select="concat($var_name, $mw, '_')" />
+
+        <xsl:value-of select="o:tabbed_cpp_comment(concat('Translate the Complex type ', o:angle_wrap($var_type)), $tab)" />
+        <xsl:value-of select="concat(o:t($tab), '{', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab+1), 'auto ', $mw_var_name, ' = ', $mw, '::translate(', o:and(), $var_name ,');', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab+1), 'if(', $mw_var_name, '){', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab+2), 'out_', o:fp(), o:cpp_mw_get_func($var_name, $mw), '()[i] = ', '*', $mw_var_name, ';', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab+2), 'delete ', $mw_var_name, ';', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab+1), '}', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab), '}', o:nl())" />
+        
+    </xsl:function>
+
+
     <xsl:function name="o:cpp_dds_set_func">
         <xsl:param name="var_name" as="xs:string" />
         <!-- Setter has no set prefix, and is in camel-case -->
@@ -271,7 +588,7 @@
     <xsl:function name="cdit:middleware_uses_protobuf" as="xs:boolean">
         <xsl:param name="middleware" as="xs:string" />
 
-        <xsl:value-of select="$middleware='qpid' or $middleware='zmq'" />
+        <xsl:value-of select="$middleware='qpid' or $middleware='zmq' or $middleware='proto'" />
     </xsl:function>
 
 
@@ -400,7 +717,7 @@
         <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, '* val')), ';', o:nl())" />
         
         <!-- Copy Getter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ';', o:nl())" />
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ' const;', o:nl())" />
         <!-- Inplace Getter -->
         <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_ptr_type, '', $variable_name, ''), ';', o:nl())" />
         
@@ -436,7 +753,7 @@
 
         <!-- Copy Getter -->
         <xsl:value-of select="o:cpp_func_def($variable_type, $class_name, o:cpp_base_get_func($variable_name), '')" />
-        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(' const {', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'return this', o:fp(), $variable_var, ';', o:nl())" />
         <xsl:value-of select="concat('};', o:nl())" />
         <xsl:value-of select="o:nl()" />
@@ -565,7 +882,6 @@
             <xsl:sequence select="$root//gml:data[@key=$kind_id and text() = $kind]/.." />
         </xsl:for-each>
     </xsl:function>
-
 
     <xsl:function name="cdit:get_required_datatypes">
         <xsl:param name="vectors" as="element()*"/>

@@ -122,7 +122,7 @@
                     <xsl:variable name="member_cpp_type" select="cdit:get_cpp_type($member_type)" />
 
                     <xsl:value-of select="concat(o:nl(), o:t(1))" />
-                    <xsl:value-of select="o:cpp_comment(concat('Basic Member: ', $member_label, o:angle_wrap($member_type)))" />
+                    <xsl:value-of select="o:cpp_comment(concat('Basic Member: ', $member_label, ' ', o:angle_wrap($member_type)))" />
                     <xsl:value-of select="o:declare_variable_functions($member_label, $member_cpp_type)" />
                 </xsl:for-each>
 
@@ -147,7 +147,7 @@
 
 
                     <xsl:value-of select="concat(o:nl(), o:t(1))" />
-                    <xsl:value-of select="o:cpp_comment(concat('Vector Member: ', $vector_label))" />
+                    <xsl:value-of select="o:cpp_comment(concat('Vector Member: ', $vector_label, ' ',$vector_cpp_type))" />
                     <xsl:value-of select="o:declare_variable_functions($vector_label, $vector_cpp_type)" />
                 </xsl:for-each>
 
@@ -158,7 +158,7 @@
                     <xsl:variable name="aggregate_cpp_type" select="concat('::', $aggregate_type)" />
 
                     <xsl:value-of select="concat(o:nl(), o:t(1))" />
-                    <xsl:value-of select="o:cpp_comment(concat('Aggregate Member: ', $aggregate_label, o:angle_wrap($aggregate_type)))" />
+                    <xsl:value-of select="o:cpp_comment(concat('Aggregate Member: ', $aggregate_label, ' ', o:angle_wrap($aggregate_type)))" />
                     <xsl:value-of select="o:declare_variable_functions($aggregate_label, $aggregate_cpp_type)" />
                 </xsl:for-each>
 
