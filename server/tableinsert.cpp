@@ -20,7 +20,7 @@ int TableInsert::BindInt(std::string field, int val){
 int TableInsert::BindDouble(std::string field, double val){
     if(isnan(val)){
         //avoid NULL in database
-        val = 0;
+        val = 0.0;
     }
     auto id = table_->get_field_id(field);
     return sqlite3_bind_double(stmt_, id, val);

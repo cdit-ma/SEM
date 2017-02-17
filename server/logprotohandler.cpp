@@ -69,7 +69,10 @@ LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database
     CreateMessageEventTable();
     CreateUserEventTable();
     CreateWorkloadEventTable();
-    database_->Flush();
+    std::cout << "# Constructing #" << table_map_.size() << " Tables." << std::endl;
+    database_->BlockingFlush();
+    std::cout << "# Constructed." << std::endl;
+    
 }
 
 LogProtoHandler::~LogProtoHandler(){
@@ -93,6 +96,7 @@ void LogProtoHandler::CreateSystemStatusTable(){
     t->AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
 
     table_map_[LOGAN_SYSTEM_STATUS_TABLE] = t;
+    t->Finalize();
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
@@ -115,6 +119,7 @@ void LogProtoHandler::CreateSystemInfoTable(){
     t->AddColumn("cpu_vendor", LOGAN_VARCHAR);
     t->AddColumn("cpu_frequency", LOGAN_INT);
     t->AddColumn("physical_memory", LOGAN_INT);
+    t->Finalize();
 
     table_map_[LOGAN_SYSTEM_INFO_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());
@@ -131,6 +136,7 @@ void LogProtoHandler::CreateCpuTable(){
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn("core_id", LOGAN_INT);
     t->AddColumn("core_utilization", LOGAN_DECIMAL);
+    t->Finalize();
 
     table_map_[LOGAN_CPU_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -147,6 +153,7 @@ void LogProtoHandler::CreateFileSystemTable(){
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn("utilization", LOGAN_DECIMAL);
+    t->Finalize();
 
     table_map_[LOGAN_FILE_SYSTEM_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -164,6 +171,7 @@ void LogProtoHandler::CreateFileSystemInfoTable(){
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn("type", LOGAN_VARCHAR);
     t->AddColumn("size", LOGAN_INT);
+    t->Finalize();
 
     table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -183,6 +191,7 @@ void LogProtoHandler::CreateInterfaceTable(){
     t->AddColumn("rx_bytes", LOGAN_INT);
     t->AddColumn("tx_packets", LOGAN_INT);
     t->AddColumn("tx_bytes", LOGAN_INT);
+    t->Finalize();
 
     table_map_[LOGAN_INTERFACE_STATUS_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -204,6 +213,7 @@ void LogProtoHandler::CreateInterfaceInfoTable(){
     t->AddColumn("ipv6_addr", LOGAN_VARCHAR);
     t->AddColumn("mac_addr", LOGAN_VARCHAR);
     t->AddColumn("speed", LOGAN_INT);
+    t->Finalize();
 
     table_map_[LOGAN_INTERFACE_INFO_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -227,6 +237,7 @@ void LogProtoHandler::CreateProcessTable(){
     t->AddColumn("disk_written", LOGAN_INT);
     t->AddColumn("disk_total", LOGAN_INT);
     t->AddColumn("state", LOGAN_VARCHAR);
+    t->Finalize();
 
     table_map_[LOGAN_PROCESS_STATUS_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -245,6 +256,7 @@ void LogProtoHandler::CreateProcessInfoTable(){
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn("args", LOGAN_VARCHAR);
     t->AddColumn("start_time", LOGAN_INT);
+    t->Finalize();
     
     table_map_[LOGAN_PROCESS_INFO_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -263,6 +275,7 @@ void LogProtoHandler::CreatePortEventTable(){
     t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
+    t->Finalize();
     
     table_map_[LOGAN_PORT_EVENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -279,6 +292,7 @@ void LogProtoHandler::CreateComponentEventTable(){
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
+    t->Finalize();
     
     table_map_[LOGAN_COMPONENT_EVENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -296,6 +310,7 @@ void LogProtoHandler::CreateMessageEventTable(){
     t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
+    t->Finalize();
     
     table_map_[LOGAN_MESSAGE_EVENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
@@ -312,6 +327,7 @@ void LogProtoHandler::CreateUserEventTable(){
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn("message", LOGAN_VARCHAR);
     t->AddColumn("type", LOGAN_VARCHAR);
+    t->Finalize();
     
     table_map_[LOGAN_USER_EVENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());
@@ -335,6 +351,7 @@ void LogProtoHandler::CreateWorkloadEventTable(){
     t->AddColumn("type", LOGAN_VARCHAR);
 
     t->AddColumn("description", LOGAN_VARCHAR);
+    t->Finalize();
     table_map_[LOGAN_WORKLOAD_EVENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
@@ -353,7 +370,6 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
     stmt.BindDouble("cpu_utilization", status->cpu_utilization());
     stmt.BindDouble("phys_mem_utilization", status->phys_mem_utilization());
     database_->QueueSqlStatement(stmt.get_statement());
-
 
     if(status->has_info() != 0){
         auto infostmt = table_map_[LOGAN_SYSTEM_INFO_TABLE]->get_insert_statement();

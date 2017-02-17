@@ -17,10 +17,14 @@ Table::~Table(){
     }
 }
 
-void Table::AddColumn(std::string name, std::string type){
-    int pos = columns_.size();
-    auto t = new TableColumn(pos, name, type);
-    columns_.push_back(t);
+bool Table::AddColumn(std::string name, std::string type){
+    if(!finalized_){
+        int pos = columns_.size();
+        auto t = new TableColumn(pos, name, type);
+        columns_.push_back(t);
+        return true;
+    }
+    return false;
 }
 
 TableInsert Table::get_insert_statement(){
@@ -57,8 +61,33 @@ void Table::ConstructTableStatement(){
     }
 }
 
-void Table::InsertTableStatement(){
-    if(table_insert_.empty()){
+sqlite3_stmt* Table::get_table_construct_statement(){
+    size_ = columns_.size();
+    if(table_create_.empty()){
+        ConstructTableStatement();
+    }
+    return GetSqlStatement(table_create_);
+}
+
+sqlite3_stmt* Table::get_table_insert_statement(){
+    auto s =GetSqlStatement(table_insert_);
+    if(!s){
+        if(!database_){
+            std::cout << "NULL DATABSE?!: " << database_ << std::endl;    
+        }
+        std::cout << "NULL TABLE: " << table_insert_ << std::endl;
+    }
+    return s;
+}
+
+sqlite3_stmt* Table::GetSqlStatement(std::string query){
+    return database_->GetSqlStatement(query);
+}
+
+void Table::Finalize(){
+    if(!finalized_){
+        finalized_ = true;
+        if(table_insert_.empty()){
         std::stringstream top_ss;
         std::stringstream bottom_ss;
         //Create table
@@ -76,24 +105,6 @@ void Table::InsertTableStatement(){
         top_ss << ") ";
         bottom_ss << ");";
         table_insert_ = top_ss.str() + bottom_ss.str();
+        }
     }
-}
-
-sqlite3_stmt* Table::get_table_construct_statement(){
-    size_ = columns_.size();
-    if(table_create_.empty()){
-        ConstructTableStatement();
-    }
-    return GetSqlStatement(table_create_);
-}
-
-sqlite3_stmt* Table::get_table_insert_statement(){
-    if(table_insert_.empty()){
-        InsertTableStatement();
-    }
-    return GetSqlStatement(table_insert_);
-}
-
-sqlite3_stmt* Table::GetSqlStatement(std::string query){
-    return database_->GetSqlStatement(query);
 }

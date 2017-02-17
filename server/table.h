@@ -23,15 +23,17 @@ class Table{
     public:
         Table(SQLiteDatabase* database, std::string name);
         ~Table();
-        void AddColumn(std::string name, std::string type);
+        bool AddColumn(std::string name, std::string type);
         TableInsert get_insert_statement();
 
-        //OPTIMIZE PRIME FOR MITCH
         int get_field_id(std::string field);
         sqlite3_stmt* get_table_construct_statement();
         sqlite3_stmt* get_table_insert_statement();
 
+        void Finalize();
     private:
+
+        bool finalized_ = false;
         std::string table_name_;
         int size_;
         std::string table_insert_;
@@ -42,7 +44,6 @@ class Table{
         std::string table_create_;
         std::stringstream insert_ss;
         void ConstructTableStatement();
-        void InsertTableStatement();
         sqlite3_stmt* GetSqlStatement(std::string query);
 
 
