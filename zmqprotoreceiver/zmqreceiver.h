@@ -20,11 +20,10 @@ class ZMQReceiver{
         ~ZMQReceiver();
 
         void TerminateReceiver();
-        void SetProtoHandlerCallback(std::function<void(google::protobuf::MessageLite*)>);
         
         void Start();
         
-        void RegisterNewProto(google::protobuf::MessageLite* ml);
+        void RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn);
     private:
 
         google::protobuf::MessageLite* ConstructMessage(std::string type, std::string data);
@@ -42,10 +41,8 @@ class ZMQReceiver{
         zmq::context_t *context_;
         zmq::socket_t *term_socket_;
 
-        std::function<void(google::protobuf::MessageLite*)> process_callback_ = nullptr;
-
+        std::map<std::string, std::function<void(google::protobuf::MessageLite*)> > callback_lookup_;
         std::map<std::string, std::function< google::protobuf::MessageLite* ()> > proto_lookup_;
-        std::queue<google::protobuf::MessageLite*> types_;
 
         std::condition_variable queue_lock_condition_;
         std::mutex queue_mutex_;

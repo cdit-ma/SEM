@@ -20,7 +20,7 @@ ZMQReceiver::ZMQReceiver(std::vector<std::string> addrs, std::string port, int b
 }
 
 void ZMQReceiver::Start(){
-    if(!process_callback_){
+    if(callback_lookup_.empty()){
         std::cout << "Can't start ZMQReceiver: No ProtoHandler." << std::endl;
     }
 
@@ -58,14 +58,6 @@ ZMQReceiver::~ZMQReceiver(){
     proto_convert_thread_->join();
     delete proto_convert_thread_;
     
-    while(!types_.empty()){
-        delete types_.front();
-        types_.pop();
-    }
-}
-
-void ZMQReceiver::SetProtoHandlerCallback(std::function<void(google::protobuf::MessageLite*)> fn){
-    process_callback_ = fn;
 }
 
 void ZMQReceiver::RecieverThread(){
@@ -125,13 +117,13 @@ void ZMQReceiver::RecieverThread(){
 }
 
 
-void ZMQReceiver::RegisterNewProto(google::protobuf::MessageLite* ml){
-    std::string type = ml->GetTypeName();
+void ZMQReceiver::RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn){
+    std::string type = ml.GetTypeName();
     //Function pointer winraring
-    auto fn = [ml](){return ml->New();};
-    proto_lookup_[type] = fn;
-    types_.push(ml);
-    //Remember to destroy elements in types_ in destructor
+    callback_lookup_[type] = fn;
+
+    auto construct_fn = [&ml](){return ml.New();};
+    proto_lookup_[type] = construct_fn;
 }
 
 google::protobuf::MessageLite* ZMQReceiver::ConstructMessage(std::string type, std::string data){
@@ -164,10 +156,10 @@ void ZMQReceiver::ProtoConvertThread(){
             std::string type = replace_queue.front().first;
             std::string msg = replace_queue.front().second;
 
-            if(process_callback_){
+            if(callback_lookup_.count(type)){
                 auto message = ConstructMessage(type, msg);
                 if(message){
-                    process_callback_(message);
+                    callback_lookup_[type](message);
                 }
             }
             replace_queue.pop();
