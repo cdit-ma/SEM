@@ -50,7 +50,7 @@
             <xsl:variable name="mw_type" select="concat($namespace, '::', $aggregate_label_cc)" />
             
             <!-- OPEN middleware/proto/label/label.idl -->
-            <xsl:result-document href="{concat('middleware/', $middleware, '/', $aggregate_label_lc, '.idl')}">
+            <xsl:result-document href="{concat('middleware/', $middleware, '/', $aggregate_label_lc,'/', $aggregate_label_lc, '.idl')}">
                 <!-- Import other IDLs -->
                 <xsl:for-each-group select="$required_datatypes" group-by=".">
                     <xsl:variable name="datatype" select="lower-case(.)" />
@@ -219,7 +219,7 @@
                 <xsl:value-of select="o:nl()" />
 
                 <xsl:value-of select="o:cmake_comment(concat('Generate the middleware files for ', $aggregate_label_lc, '.idl'))" />
-                <xsl:value-of select="concat('RTI_GENERATE_CPP(DDS_SOURCE DDS_HEADERS ../', $aggregate_label_lc, '.idl)', o:nl())" />
+                <xsl:value-of select="concat('RTI_GENERATE_CPP(DDS_SOURCE DDS_HEADERS ', $aggregate_label_lc, '.idl)', o:nl())" />
                 <xsl:value-of select="o:nl()" />
                 
                 <!-- Copy the other .IDL files required -->
