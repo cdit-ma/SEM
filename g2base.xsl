@@ -8,9 +8,10 @@
     xmlns:cdit="http://whatever"
     xmlns:o="http://whatever"
     exclude-result-prefixes="gml exsl xalan">
-		
-    
+
+    <!-- Import functions -->	
     <xsl:import href="functions.xsl"/>
+    
     <xsl:output method="text" 
         omit-xml-declaration="yes"
         indent="yes" 
@@ -18,10 +19,7 @@
 		xalan:indent-amount="4"/>
 	<xsl:strip-space elements="*" />
 	
-    <xsl:variable name="doc_root">
-        <xsl:value-of select="/"/>
-    </xsl:variable>
-
+    <!-- Get the Aggregates -->
     <xsl:variable name="aggregates" as="element()*" select="cdit:get_entities_of_kind(., 'Aggregate')" />
 
     <xsl:template match="/">
@@ -37,50 +35,7 @@
             <xsl:variable name="aggregate_name_lc" select="lower-case($aggregate_name)" />
             <xsl:variable name="class_name" select="o:camel_case($aggregate_name)" />
 
-            <!-- Write CMakeLists.txt -->
-            <xsl:result-document href="{concat('datatypes/', $aggregate_name_lc, '/', 'CMakeLists.txt')}">
-                <!-- set RE_PATH -->
-                <xsl:value-of select="o:cmake_comment('Get the RE_PATH')" />
-                <xsl:value-of select="o:cmake_set_env('RE_PATH', '$ENV{RE_PATH}')" />
-                <xsl:value-of select="o:nl()" />
-
-                <!-- Set PROJ_NAME -->
-                <xsl:variable name="proj_name" select="concat('datatype_', $aggregate_name_lc)" />
-                <xsl:value-of select="o:cmake_set_proj_name($proj_name)" />
-
-                <!-- Find re_core -->
-                <xsl:value-of select="o:nl()" />
-                <xsl:value-of select="o:cmake_find_library('re_core', 'RE_CORE_LIBRARIES', '${RE_PATH}/lib')" />
-                <xsl:value-of select="o:nl()" />
-
-                <!-- Set Source files -->
-                <xsl:value-of select="concat('set(SOURCE', o:nl())" />
-                <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $aggregate_name_lc, '.cpp', o:nl())" />
-                <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
-                <xsl:value-of select="o:nl()" />
-
-                <!-- Set Headers files -->
-                <xsl:value-of select="concat('set(HEADERS', o:nl())" />
-                <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $aggregate_name_lc, '.h', o:nl())" />
-                <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
-                <xsl:value-of select="o:nl()" />
-
-                <!-- Include directories -->
-                <xsl:value-of select="o:cmake_comment('Include the RE_PATH directory')" />
-                <xsl:value-of select="o:cmake_include_dir('${RE_PATH}/src')" />
-                <xsl:value-of select="o:nl()" />
-
-                <!-- add library/link -->
-                <xsl:value-of select="concat('add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})', o:nl())" />
-                <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})', o:nl())" />
-
-                <xsl:for-each-group select="$required_datatypes" group-by=".">
-                    <xsl:variable name="datatype" select="lower-case(.)" />
-                    <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} datatype_', $datatype, ')', o:nl())" />
-                </xsl:for-each-group>
-            </xsl:result-document>
-
-            <!-- Write *.h -->
+            <!-- Write Header File -->
             <xsl:result-document href="{concat('datatypes/', $aggregate_name_lc, '/', $aggregate_name_lc, '.h')}">
                 <!-- Define Guard -->
                 <xsl:variable name="define_guard" select="upper-case(concat('PORTS_', $aggregate_name, '_H'))" />
@@ -93,24 +48,21 @@
 
                 <xsl:variable name="rel_dir" select="'../'" />
 
-                <!-- Include Vectors if we need -->
+                <!-- Include std vector if we need -->
                 <xsl:if test ="count($vectors) > 0">
                     <xsl:value-of select="o:lib_include('vector')" />
+                    <xsl:value-of select="o:nl()" />
                 </xsl:if>
 
-                <!-- Handle Aggregates -->
-                <xsl:if test ="count($vectors) > 0">
-                    <xsl:value-of select="o:nl()" />
-                    
+                <!-- Include required base types -->
+                <xsl:if test ="count($required_datatypes) > 0">
                     <xsl:value-of select="o:cpp_comment('Include required datatypes')" />
                     <xsl:for-each-group select="$required_datatypes" group-by=".">
                         <xsl:variable name="datatype" select="lower-case(.)" />
                         <xsl:value-of select="o:local_include(concat($rel_dir, $datatype, '/', $datatype, '.h'))" />
                     </xsl:for-each-group>
+                    <xsl:value-of select="o:nl()" />
                 </xsl:if>
-                
-
-                <xsl:value-of select="o:nl()" />
 
                 <!-- Define the class, Inherits from BaseMessage -->
                 <xsl:value-of select="concat('class ', $class_name, ' : public BaseMessage{', o:nl())" />
@@ -206,6 +158,48 @@
 
                     <xsl:value-of select="o:define_variable_functions($aggregate_label, $aggregate_cpp_type, $class_name)" />
                 </xsl:for-each>
+            </xsl:result-document>
+            <!-- Write CMakeLists.txt -->
+            <xsl:result-document href="{concat('datatypes/', $aggregate_name_lc, '/', 'CMakeLists.txt')}">
+                <!-- set RE_PATH -->
+                <xsl:value-of select="o:cmake_comment('Get the RE_PATH')" />
+                <xsl:value-of select="o:cmake_set_env('RE_PATH', '$ENV{RE_PATH}')" />
+                <xsl:value-of select="o:nl()" />
+
+                <!-- Set PROJ_NAME -->
+                <xsl:variable name="proj_name" select="concat('datatype_', $aggregate_name_lc)" />
+                <xsl:value-of select="o:cmake_set_proj_name($proj_name)" />
+
+                <!-- Find re_core -->
+                <xsl:value-of select="o:nl()" />
+                <xsl:value-of select="o:cmake_find_library('re_core', 'RE_CORE_LIBRARIES', '${RE_PATH}/lib')" />
+                <xsl:value-of select="o:nl()" />
+
+                <!-- Set Source files -->
+                <xsl:value-of select="concat('set(SOURCE', o:nl())" />
+                <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $aggregate_name_lc, '.cpp', o:nl())" />
+                <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
+                <xsl:value-of select="o:nl()" />
+
+                <!-- Set Headers files -->
+                <xsl:value-of select="concat('set(HEADERS', o:nl())" />
+                <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $aggregate_name_lc, '.h', o:nl())" />
+                <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
+                <xsl:value-of select="o:nl()" />
+
+                <!-- Include directories -->
+                <xsl:value-of select="o:cmake_comment('Include the RE_PATH directory')" />
+                <xsl:value-of select="o:cmake_include_dir('${RE_PATH}/src')" />
+                <xsl:value-of select="o:nl()" />
+
+                <!-- add library/link -->
+                <xsl:value-of select="concat('add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})', o:nl())" />
+                <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})', o:nl())" />
+
+                <xsl:for-each-group select="$required_datatypes" group-by=".">
+                    <xsl:variable name="datatype" select="lower-case(.)" />
+                    <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} datatype_', $datatype, ')', o:nl())" />
+                </xsl:for-each-group>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>

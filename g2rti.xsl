@@ -219,7 +219,7 @@
                 <xsl:value-of select="o:nl()" />
 
                 <xsl:value-of select="o:cmake_comment(concat('Generate the middleware files for ', $aggregate_label_lc, '.idl'))" />
-                <xsl:value-of select="concat('RTI_GENERATE_CPP(DDS_SOURCE DDS_HEADERS ', $aggregate_label_lc, '.idl)', o:nl())" />
+                <xsl:value-of select="concat('RTI_GENERATE_CPP(DDS_SOURCE DDS_HEADERS ../', $aggregate_label_lc, '.idl)', o:nl())" />
                 <xsl:value-of select="o:nl()" />
                 
                 <!-- Copy the other .IDL files required -->

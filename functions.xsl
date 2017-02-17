@@ -600,6 +600,9 @@
             <xsl:when test="$middleware = 'rti'">
                 <xsl:value-of select="concat($aggregate, '.hpp')" />
             </xsl:when>
+            <xsl:when test="$middleware = 'ospl'">
+                <xsl:value-of select="concat($aggregate, '_DCPS.hpp')" />
+            </xsl:when>
             <xsl:when test="cdit:middleware_uses_protobuf($middleware)">
                 <xsl:value-of select="''" />
             </xsl:when>
