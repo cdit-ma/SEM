@@ -16,15 +16,13 @@ class LogProtoHandler{
         LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database);
         ~LogProtoHandler();
 
-        void Process(google::protobuf::MessageLite* message);
-        void ProcessSystemStatus(SystemStatus* status);
-        void ProcessLifecycleEvent(re_common::LifecycleEvent* event);
-        void ProcessMessageEvent(re_common::MessageEvent* event);
-        void ProcessUserEvent(re_common::UserEvent* event);
-        void ProcessWorkloadEvent(re_common::WorkloadEvent* event);
-
-
     private:
+        void ProcessSystemStatus(google::protobuf::MessageLite* status);
+        void ProcessLifecycleEvent(google::protobuf::MessageLite* message);
+        void ProcessMessageEvent(google::protobuf::MessageLite* message);
+        void ProcessUserEvent(google::protobuf::MessageLite* message);
+        void ProcessWorkloadEvent(google::protobuf::MessageLite* message);
+
         ZMQReceiver* receiver_;
         SQLiteDatabase* database_;
 

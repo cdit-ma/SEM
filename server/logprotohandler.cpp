@@ -40,14 +40,18 @@ LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database
     database_ = database;
     receiver_ = receiver;
 
-    receiver_->RegisterNewProto(new SystemStatus());
-    receiver_->RegisterNewProto(new re_common::UserEvent());
-    receiver_->RegisterNewProto(new re_common::MessageEvent());
-    receiver_->RegisterNewProto(new re_common::LifecycleEvent());
+    //Register call back functions and type with zmqreceiver
+    auto ss_callback = std::bind(&LogProtoHandler::ProcessSystemStatus, this, std::placeholders::_1);
+    receiver_->RegisterNewProto(SystemStatus::default_instance(), ss_callback);
 
-    //Set zmqreceiver's callback function
-    auto receive_callback = std::bind(&LogProtoHandler::Process, this, std::placeholders::_1);
-    receiver_->SetProtoHandlerCallback(receive_callback);
+    auto ue_callback = std::bind(&LogProtoHandler::ProcessUserEvent, this, std::placeholders::_1);
+    receiver_->RegisterNewProto(re_common::UserEvent::default_instance(), ue_callback);
+
+    auto me_callback = std::bind(&LogProtoHandler::ProcessMessageEvent, this, std::placeholders::_1);
+    receiver_->RegisterNewProto(re_common::MessageEvent::default_instance(), me_callback);
+
+    auto le_callback = std::bind(&LogProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1);
+    receiver_->RegisterNewProto(re_common::LifecycleEvent::default_instance(), le_callback);
 
     //Construct all of our tables
 
@@ -335,34 +339,8 @@ void LogProtoHandler::CreateWorkloadEventTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
-void LogProtoHandler::Process(google::protobuf::MessageLite* message){
-    //Ordered by frequency
-    if(static_cast<SystemStatus*>(message)){
-        ProcessSystemStatus((SystemStatus*)message);
-    }
-    else if(static_cast<re_common::LifecycleEvent*>(message)){
-        ProcessLifecycleEvent((re_common::LifecycleEvent*)message);
-    }
-    else if(static_cast<re_common::MessageEvent*>(message)){
-        ProcessMessageEvent((re_common::MessageEvent*)message);
-    }
-    else if(static_cast<re_common::WorkloadEvent*>(message)){
-        ProcessWorkloadEvent((re_common::WorkloadEvent*)message);
-    }
-    else if(static_cast<re_common::UserEvent*>(message)){
-        ProcessUserEvent((re_common::UserEvent*)message);
-    }
-    else{
-        std::cerr << "Cannot Process Message of Type: '" << ((google::protobuf::Message*)message)->GetTypeName() << "'" << std::endl;
-    }
-
-    if(message){
-        //Free Memory
-        delete message;
-    }
-}
-
-void LogProtoHandler::ProcessSystemStatus(SystemStatus* status){
+void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
+    SystemStatus* status = (SystemStatus*)ml;
     auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
     std::string hostname = status->hostname().c_str();
@@ -496,7 +474,8 @@ void LogProtoHandler::ProcessSystemStatus(SystemStatus* status){
     }
 }
 
-void LogProtoHandler::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
+void LogProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* message){
+    re_common::LifecycleEvent* event = (re_common::LifecycleEvent*)message;
     if(event->has_port() && event->has_component()){
         //Process port event
         //Insert test Statements
@@ -522,7 +501,8 @@ void LogProtoHandler::ProcessLifecycleEvent(re_common::LifecycleEvent* event){
     }
 }
 
-void LogProtoHandler::ProcessMessageEvent(re_common::MessageEvent* event){
+void LogProtoHandler::ProcessMessageEvent(google::protobuf::MessageLite* message){
+    re_common::MessageEvent* event = (re_common::MessageEvent*)message;
     if(event->has_port() && event->has_component()){
         //Process port event
         auto ins = table_map_[LOGAN_MESSAGE_EVENT_TABLE]->get_insert_statement();
@@ -538,8 +518,9 @@ void LogProtoHandler::ProcessMessageEvent(re_common::MessageEvent* event){
     }
 }
 
-void LogProtoHandler::ProcessUserEvent(re_common::UserEvent* event){
+void LogProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){
 
+    re_common::UserEvent* event = (re_common::UserEvent*)message;
     auto ins = table_map_[LOGAN_USER_EVENT_TABLE]->get_insert_statement();
     ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
     ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
@@ -551,7 +532,9 @@ void LogProtoHandler::ProcessUserEvent(re_common::UserEvent* event){
     
 }
 
-void LogProtoHandler::ProcessWorkloadEvent(re_common::WorkloadEvent* event){
+void LogProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* message){
+
+    re_common::WorkloadEvent* event = (re_common::WorkloadEvent*)message;
     auto ins = table_map_[LOGAN_WORKLOAD_EVENT_TABLE]->get_insert_statement();
     ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
     ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
