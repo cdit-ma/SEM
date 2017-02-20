@@ -26,6 +26,9 @@ function(OSPL_GENERATE_CPP SRCS HDRS)
     set(${SRCS})
     set(${HDRS})
     foreach(FIL ${ARGN})
+        # Copy IDL into binary directory
+        configure_file(${FIL} ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+
         get_filename_component(ABS_FIL ${FIL} ABSOLUTE)
         get_filename_component(FIL_WE ${FIL} NAME_WE)
 
@@ -52,7 +55,7 @@ function(OSPL_GENERATE_CPP SRCS HDRS)
         COMMAND  ${OSPL_GEN_EXECUTABLE}
         ARGS -l isocpp -S ${ABS_FIL} -d ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS ${ABS_FIL} ${OSPL_GEN_EXECUTABLE}
-        COMMENT "Running C++ rtiddsgen on ${FIL}"
+        COMMENT "Running C++ idlpp on ${FIL}"
         VERBATIM )
     endforeach()
 

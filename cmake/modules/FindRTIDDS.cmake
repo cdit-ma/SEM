@@ -52,7 +52,7 @@ function(RTI_GENERATE_CPP SRCS HDRS)
                 "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.h"
                 "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.h"
         COMMAND  ${RTIDDS_GEN_EXECUTABLE}
-        ARGS -language C++11 -namespace -d ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FIL}
+        ARGS -language C++11 -namespace -update typefiles -d ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FIL}
         DEPENDS ${ABS_FIL} ${RTIDDS_GEN_EXECUTABLE} 
         COMMENT "Running C++ rtiddsgen on ${FIL}"
         VERBATIM )
@@ -112,8 +112,8 @@ else(WIN32)
     set(DDS_DEFINITIONS -DRTI_UNIX -m64)
 endif(WIN32)
 
-set(DDS_INCLUDE_DIRS ${DDS_INCLUDE_DIR} ${DDS_INCLUDE_DIR}/ndds ${DDS_INCLUDE_DIR}/ndds/hpp)
-set(DDS_LIBRARIES ${DDS_C_LIBRARY} ${DDS_CPP_LIBRARY} ${DDS_CORE_LIBRARY}
+set(RTIDDS_INCLUDE_DIRS ${DDS_INCLUDE_DIR} ${DDS_INCLUDE_DIR}/ndds ${DDS_INCLUDE_DIR}/ndds/hpp)
+set(RTIDDS_LIBRARIES ${DDS_C_LIBRARY} ${DDS_CPP_LIBRARY} ${DDS_CORE_LIBRARY}
     ${DDS_EXTRA_LIBRARIES} ${DDS_CPP2_LIBRARY})
 
 file(GLOB DDS_VERSION_FILE ${DDS_ROOT}/rev_target_rtidds.*
