@@ -283,6 +283,12 @@
         </xsl:choose>
     </xsl:function>
 
+    <!-- Function to determine if a cast is needed to avoid ambiguous call to setter functions-->
+    <xsl:function name="o:member_requires_cast">
+        <xsl:param name="member_type" as="xs:string" />
+        <xsl:variable name="member_cpp_type" select="cdit:get_cpp_type($member_type)" />
+        <xsl:value-of select="contains(lower-case($member_type), 'integer') = true()" />
+    </xsl:function>
 
     <xsl:function name="o:process_member">
         <xsl:param name="member_root" />
@@ -293,12 +299,15 @@
         <xsl:param name="dst_mw" as="xs:string" />
         <xsl:param name="namespace" as="xs:string" />
 
-        
-
         <xsl:variable name="member_label" select="cdit:get_key_value($member_root, 'label')" />
         <xsl:variable name="member_type" select="cdit:get_key_value($member_root, 'type')" />
+        
+        <!-- Check if we need to cast this value -->
+        <xsl:variable name="cast" select="if(o:member_requires_cast($member_type) = true()) then o:bracket_wrap(cdit:get_cpp_type($member_type)) else ''" />
+        
         <!-- Get the value; Using the base middlewares getter -->
-        <xsl:variable name="value" select="concat($in_var, o:fp(), o:cpp_mw_get_func($member_label, $src_mw))" />
+        <xsl:variable name="value" select="concat($cast, $in_var, o:fp(), o:cpp_mw_get_func($member_label, $src_mw))" />
+
         <!-- Set the value; using the appropriate middlewares setter -->
         <xsl:value-of select="concat(o:t(1), $out_var, o:fp(), o:cpp_mw_set_func($member_label, $dst_mw, $value), ';', o:nl())" />
     </xsl:function>
