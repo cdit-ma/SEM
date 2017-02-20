@@ -6,39 +6,6 @@
     xmlns:o="http://whatever"
     >
 
-    <!-- find the key for specific attribute,  -->
-    <xsl:template name="find_key">
-        <xsl:param name="key_name" />
-        <xsl:param name="default_id" />
-
-        <xsl:variable name="found" select="/gml:graphml/gml:key[@attr.name=$key_name]" />
-        
-        <xsl:choose>
-            <xsl:when test="not($found)">
-                <xsl:value-of select="$default_id"/>
-            </xsl:when>
-        <xsl:otherwise>
-            <xsl:value-of select="$found/@id"/>
-        </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>	
-
-
-    <!-- find the key for specific attribute, -->
-    <xsl:template name="get_key_value">
-        <xsl:param name="key_name" />
-        <xsl:param name="default_id" />
-        
-        <xsl:variable name="key_id">
-            <xsl:call-template name="find_key">
-                <xsl:with-param name="key_name" select="$key_name" />
-                <xsl:with-param name="default_id" select="$key_name" />
-            </xsl:call-template>	
-        </xsl:variable>
-        
-        <xsl:value-of select="./gml:data[@key=$key_id]"/>
-    </xsl:template>	
-
     <xsl:function name="o:nl">
         <xsl:text>&#xa;</xsl:text>
     </xsl:function>	
@@ -84,6 +51,11 @@
     <xsl:function name="o:angle_wrap">
         <xsl:param name="str" as="xs:string" />
         <xsl:value-of select="concat(o:lt(), $str, o:gt())" />
+    </xsl:function>	
+
+    <xsl:function name="o:square_wrap">
+        <xsl:param name="str" as="xs:string" />
+        <xsl:value-of select="concat('[', $str, ']')" />
     </xsl:function>	
 
      <xsl:function name="o:bracket_wrap">
@@ -1563,6 +1535,22 @@
         </xsl:if>
     </xsl:function>
 
+    <xsl:function name="o:declare_attribute_functions">
+        <xsl:param name="variable_name" as="xs:string" />
+        <xsl:param name="variable_type" as="xs:string" />
+        <xsl:variable name="variable_ptr_type" select="concat($variable_type, o:and())" />
+
+        <!-- Copy Setter -->
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, ' val')), ';', o:nl())" />
+        <!-- Pointer Setter -->
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, '* val')), ';', o:nl())" />
+        
+        <!-- Copy Getter -->
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ' const;', o:nl())" />
+        <!-- Inplace Getter -->
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_ptr_type, '', $variable_name, ''), ';', o:nl())" />
+    </xsl:function>
+
 
     <xsl:function name="o:declare_variable_functions">
         <xsl:param name="variable_name" as="xs:string" />
@@ -1697,6 +1685,29 @@
         </xsl:choose>
     </xsl:function>	
 
+    <xsl:function name="cdit:get_edge_target_ids">
+        <xsl:param name="root" />
+        <xsl:param name="edge_kind" as="xs:string" />
+        <xsl:param name="edge_source" as="xs:string" />
+
+        <xsl:variable name="kind_key" select="cdit:get_key_id($root, 'kind')" />
+
+        <xsl:variable name="doc_root" select="cdit:get_doc_root($root)" />
+        
+        <xsl:sequence select="$doc_root//gml:edge[@source = $edge_source]/gml:data[@key=$kind_key and text()=$edge_kind]/../@target" />
+    </xsl:function>
+    <xsl:function name="cdit:get_edge_source_ids">
+        <xsl:param name="root" />
+        <xsl:param name="edge_kind" as="xs:string" />
+        <xsl:param name="edge_target" as="xs:string" />
+
+        <xsl:variable name="kind_key" select="cdit:get_key_id($root, 'kind')" />
+
+        <xsl:variable name="doc_root" select="cdit:get_doc_root($root)" />
+        
+        <xsl:sequence select="$doc_root//gml:edge[@target = $edge_target]/gml:data[@key=$kind_key and text()=$edge_kind]/../@source" />
+    </xsl:function>
+
     <xsl:function name="cdit:get_key_id" as="xs:string">
         <xsl:param name="root"/>
         <xsl:param name="key_name" as="xs:string"/>
@@ -1739,10 +1750,8 @@
         <xsl:param name="root" />
         <xsl:param name="kind" as="xs:string" />
 
-        <xsl:for-each select="$root">
-            <xsl:variable name="kind_id" select="cdit:get_key_id(., 'kind')" />        
-            <xsl:sequence select="$root//gml:data[@key=$kind_id and text() = $kind]/.." />
-        </xsl:for-each>
+        <xsl:variable name="kind_id" select="cdit:get_key_id($root, 'kind')" />        
+        <xsl:sequence select="$root//gml:data[@key=$kind_id and text() = $kind]/.." />
     </xsl:function>
 
     <xsl:function name="cdit:get_required_datatypes">
@@ -1760,6 +1769,30 @@
         
             <xsl:value-of select="$aggregate_type" />
         </xsl:for-each>
+    </xsl:function>
+
+   
+
+
+
+    <xsl:function name="cdit:get_node_id" as="xs:string">
+        <xsl:param name="root" />
+        <xsl:value-of select="$root/@id" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_doc_root">
+        <xsl:param name="root" />
+        <!-- There should only be one-->
+        <xsl:sequence select="$root/ancestor::gml:graph" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_node_by_id">
+        <xsl:param name="root" />
+        <xsl:param name="id"  as="xs:string"/>
+
+        <xsl:variable name="doc_root" select="cdit:get_doc_root($root)" />        
+
+        <xsl:sequence select="$doc_root//gml:node[@id = $id]" />
     </xsl:function>
 
     <xsl:function name="cdit:is_vector_complex" as="xs:boolean">

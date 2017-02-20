@@ -10,7 +10,7 @@
     exclude-result-prefixes="gml exsl xalan">
 
     <!-- Load in Functions -->
-    <xsl:import href="functions.xsl"/>
+    <xsl:import href="component_functions.xsl"/>
     
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
 	
@@ -41,6 +41,7 @@
             
             <!-- Write File: components/{COMPONENT_LABEL}/{COMPONENT_LABEL}int.h -->
             <xsl:result-document href="{o:xsl_wrap_file($component_int_h)}">
+                <xsl:value-of select="cdit:get_component_int_h(.)" />
             </xsl:result-document>
 
             <!-- Write File: components/{COMPONENT_LABEL}/{COMPONENT_LABEL}int.cpp -->
