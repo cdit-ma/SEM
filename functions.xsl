@@ -443,6 +443,23 @@
         <xsl:value-of select="o:nl()" />
     </xsl:function>
 
+     <xsl:function name="o:cmake_find_re_core_library">
+        <!-- Find re_core -->
+        <xsl:value-of select="o:cmake_find_library('re_core', 'RE_CORE_LIBRARIES', '${RE_PATH}/lib')" />
+        <xsl:value-of select="o:nl()" />
+    </xsl:function>
+
+    <xsl:function name="o:cmake_include_re_core">
+        <!-- Include directories -->
+        <xsl:value-of select="o:cmake_comment('Include the RE_PATH directory')" />
+        <xsl:value-of select="o:cmake_include_dir('${RE_PATH}/src')" />
+        <xsl:value-of select="o:nl()" />
+    </xsl:function>
+
+    
+
+    
+
     <xsl:function name="o:cmake_get_mw_package_name">
         <xsl:param name="mw" />
         <xsl:variable name="mw_lc" select="lower-case($mw)" />
@@ -561,6 +578,210 @@
         </xsl:choose>
     </xsl:function>
 
+
+    <xsl:function name="o:get_base_data_type_h">
+        <xsl:param name="aggregate_root" />
+        <xsl:param name="members"/>
+        <xsl:param name="vectors"/>
+        <xsl:param name="aggregates"/>
+
+        <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates)" />
+
+        <!-- Get the label of the Aggregate -->
+        <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
+        <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
+        <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
+
+        <!-- Define Guard -->
+        <xsl:variable name="define_guard" select="upper-case(concat('PORTS_', $aggregate_label, '_H'))" />
+        <xsl:value-of select="o:define_guard($define_guard)" />
+
+        <!-- Include Base Types -->
+        <xsl:value-of select="o:cpp_comment('Include Statements')" />
+        <xsl:value-of select="o:lib_include('core/basemessage.h')" />
+        <xsl:value-of select="o:lib_include('string')" />
+
+        <xsl:variable name="rel_dir" select="'../'" />
+
+        <!-- Include std vector if we need -->
+        <xsl:if test="count($vectors) > 0">
+            <xsl:value-of select="o:lib_include('vector')" />
+            <xsl:value-of select="o:nl()" />
+        </xsl:if>
+
+        <!-- Include other required base types -->
+        <xsl:if test="count($required_datatypes) > 0">
+            <xsl:value-of select="o:cpp_comment('Include required datatypes')" />
+            <xsl:for-each-group select="$required_datatypes" group-by=".">
+                <xsl:variable name="datatype" select="lower-case(.)" />
+                <xsl:value-of select="o:local_include(concat($rel_dir, $datatype, '/', $datatype, '.h'))" />
+            </xsl:for-each-group>
+            <xsl:value-of select="o:nl()" />
+        </xsl:if>
+
+        <!-- Define the class, Inherits from BaseMessage -->
+        <xsl:value-of select="concat('class ', $aggregate_label_cc, ' : public BaseMessage{', o:nl())" />
+        <!-- Handle Members -->
+        <xsl:for-each select="$members">
+            <xsl:variable name="member_label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
+            <xsl:variable name="member_cpp_type" select="cdit:get_cpp_type($member_type)" />
+
+            <xsl:value-of select="concat(o:nl(), o:t(1))" />
+            <xsl:value-of select="o:cpp_comment(concat('Basic Member: ', $member_label, ' ', o:angle_wrap($member_type)))" />
+            <xsl:value-of select="o:declare_variable_functions($member_label, $member_cpp_type)" />
+        </xsl:for-each>
+
+        <!-- Handle Vectors -->
+        <xsl:for-each select="$vectors">
+            <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="vector_type" select="cdit:get_vector_type(.)" />
+            <xsl:variable name="is_vector_complex" select="cdit:is_vector_complex(.)" />
+
+            <xsl:variable name="vector_type_cpp">
+                <xsl:choose>
+                    <xsl:when test="$is_vector_complex">
+                        <xsl:value-of select="concat('::', $vector_type)" />
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="$vector_type"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+
+            <xsl:variable name="vector_cpp_type" select="concat('std::vector', o:angle_wrap($vector_type_cpp))" />
+
+            <xsl:value-of select="concat(o:nl(), o:t(1))" />
+            <xsl:value-of select="o:cpp_comment(concat('Vector Member: ', $vector_label, ' ',$vector_cpp_type))" />
+            <xsl:value-of select="o:declare_variable_functions($vector_label, $vector_cpp_type)" />
+        </xsl:for-each>
+
+        <!-- Handle Aggregates -->
+        <xsl:for-each select="$aggregates">
+            <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="aggregate_type" select="cdit:get_key_value(., 'type')" />
+            <xsl:variable name="aggregate_cpp_type" select="concat('::', $aggregate_type)" />
+
+            <xsl:value-of select="concat(o:nl(), o:t(1))" />
+            <xsl:value-of select="o:cpp_comment(concat('Aggregate Member: ', $aggregate_label, ' ', o:angle_wrap($aggregate_type)))" />
+            <xsl:value-of select="o:declare_variable_functions($aggregate_label, $aggregate_cpp_type)" />
+        </xsl:for-each>
+
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:define_guard_end($define_guard)" />
+    </xsl:function>
+
+    <xsl:function name="o:get_base_data_type_cpp">
+        <xsl:param name="aggregate_root" />
+        <xsl:param name="members"/>
+        <xsl:param name="vectors"/>
+        <xsl:param name="aggregates"/>
+
+        <!-- Get the label of the Aggregate -->
+        <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
+        <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
+        <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
+
+        <xsl:variable name="class_name" select="$aggregate_label_cc" />
+
+        <xsl:value-of select="o:local_include(concat($aggregate_label_lc, '.h'))" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Handle Members -->
+        <xsl:for-each select="$members">
+            <xsl:variable name="member_label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
+            <xsl:variable name="member_cpp_type" select="cdit:get_cpp_type($member_type)" />
+
+            <xsl:value-of select="o:define_variable_functions($member_label, $member_cpp_type, $class_name)" />
+        </xsl:for-each>
+
+        <!-- Handle Vectors -->
+        <xsl:for-each select="$vectors">
+            <xsl:variable name="first_child" select="./gml:graph[1]/gml:node[1]" />
+            <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
+
+            <!-- Get the Vector Type -->
+            <xsl:variable name="vector_child_kind" select="cdit:get_key_value($first_child, 'kind')" />
+            <xsl:variable name="vector_child_type" select="cdit:get_key_value($first_child, 'type')" />
+            
+            <!-- Get the type of the vector -->
+            <xsl:variable name="vector_type" select="if($vector_child_kind = 'AggregateInstance') then concat('::', $vector_child_type) else cdit:get_cpp_type($vector_child_type)" />
+
+            <xsl:variable name="vector_cpp_type" select="concat('std::vector', o:angle_wrap($vector_type))" />
+
+            <xsl:value-of select="o:define_variable_functions($vector_label, $vector_cpp_type, $class_name)" />
+        </xsl:for-each>
+
+        <!-- Handle Aggregates -->
+        <xsl:for-each select="$aggregates">
+            <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="aggregate_type" select="cdit:get_key_value(., 'type')" />
+            <xsl:variable name="aggregate_cpp_type" select="concat('::', $aggregate_type)" />
+
+            <xsl:value-of select="o:define_variable_functions($aggregate_label, $aggregate_cpp_type, $class_name)" />
+        </xsl:for-each>
+    </xsl:function>
+
+     <xsl:function name="o:get_base_data_type_cmake">
+        <xsl:param name="aggregate_root" />
+        <xsl:param name="members"/>
+        <xsl:param name="vectors"/>
+        <xsl:param name="aggregates"/>
+
+        <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates)" />
+
+        <!-- Get the label of the Aggregate -->
+        <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
+        <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
+        <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
+
+        <xsl:value-of select="o:cmake_set_re_path()" />
+        
+
+        <!-- Set PROJ_NAME -->
+        <xsl:variable name="proj_name" select="concat('datatype_', $aggregate_label_lc)" />
+        <xsl:variable name="PROJ_NAME" select="o:cmake_var_wrap('PROJ_NAME')" />
+        <xsl:value-of select="o:cmake_set_proj_name($proj_name)" />
+
+        <xsl:value-of select="o:cmake_find_re_core_library()" />
+
+        <!-- Set Source files -->
+        <xsl:value-of select="concat('set(SOURCE', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $aggregate_label_lc, '.cpp', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Set Headers files -->
+        <xsl:value-of select="concat('set(HEADERS', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $aggregate_label_lc, '.h', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <xsl:value-of select="o:cmake_include_re_core()" />
+
+        <!-- add library/link -->
+        <xsl:value-of select="concat('add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})', o:nl())" />
+
+        <xsl:value-of select="o:cmake_link_re_core($PROJ_NAME)" />
+
+
+        <xsl:for-each-group select="$required_datatypes" group-by=".">
+            <xsl:variable name="datatype" select="concat('datatype_', lower-case(.))" />
+            <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $datatype)" />
+        </xsl:for-each-group>
+    </xsl:function>
+
+    <xsl:function name="o:cmake_target_link_libraries">
+        <xsl:param name="proj_name" />
+        <xsl:param name="library"/>
+        <xsl:value-of select="concat('target_link_libraries(', $proj_name, ' ', $library, ')', o:nl())" />
+    </xsl:function>
+
+    <xsl:function name="o:cmake_link_re_core">
+        <xsl:param name="proj_name" />
+        <xsl:value-of select="o:cmake_target_link_libraries($proj_name, o:cmake_var_wrap('RE_CORE_LIBRARIES'))" />
+    </xsl:function>
     
 
     <xsl:function name="o:get_mw_type_cmake">
@@ -620,10 +841,7 @@
             <xsl:value-of select="o:nl()" />
         </xsl:if>
         
-
-        <!-- Find re_core -->
-        <xsl:value-of select="o:cmake_find_library('re_core', 'RE_CORE_LIBRARIES', '${RE_PATH}/lib')" />
-        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="o:cmake_find_re_core_library()" />
 
         <xsl:variable name="mw_helper_libs" select="concat(upper-case($mw), '_HELPER_LIBRARIES')" />
 
@@ -650,9 +868,7 @@
         </xsl:if>
 
          <!-- Include directories -->
-        <xsl:value-of select="o:cmake_comment('Include the RE_PATH directory')" />
-        <xsl:value-of select="o:cmake_include_dir('${RE_PATH}/src')" />
-        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="o:cmake_include_re_core()" />
 
         <xsl:variable name="mw_package" select="o:cmake_get_mw_package_name($mw)" />
         <xsl:if test="$mw_package != ''">
@@ -760,12 +976,9 @@
             <xsl:value-of select="concat('target_compile_definitions(${SHARED_LIB_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)', o:nl())" />
             <xsl:value-of select="o:nl()" />
         </xsl:if>
-        
-        
-
-        
-
     </xsl:function>
+
+
 
     
     <xsl:function name="o:get_idl">

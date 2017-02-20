@@ -10,14 +10,15 @@
     xmlns:o="http://whatever"
     exclude-result-prefixes="gml exsl xalan">
 		
+    <!-- Load in Functions -->
     <xsl:import href="functions.xsl"/>
+    
     <xsl:output method="text" omit-xml-declaration="yes" indent="yes" standalone="no" />
 
-
+    <!-- Middleware Input Parameter-->
     <xsl:param name="middlewares"></xsl:param>
-
-   
-
+    
+    <!-- Get all of the Aggregates -->
     <xsl:variable name="aggregates" as="element()*" select="cdit:get_entities_of_kind(., 'Aggregate')" />
 
     <xsl:template match="/">
@@ -25,7 +26,6 @@
             <xsl:variable name="middleware" select="." />
             <xsl:message>Parsing Middleware: <xsl:value-of select="$middleware" /> </xsl:message>
             <xsl:for-each select="$aggregates">
-
                 <!-- Get the name of the IDL this aggregate belongs to -->
                 <xsl:variable name="idl_name" select="cdit:get_key_value(../..,'label')" />
 
@@ -36,8 +36,6 @@
                 <xsl:variable name="members" as="element()*" select="cdit:get_child_entities_of_kind(., 'Member')" />
                 <xsl:variable name="vectors" as="element()*" select="cdit:get_child_entities_of_kind(., 'VectorInstance')" />
                 <xsl:variable name="aggregates" as="element()*" select="cdit:get_child_entities_of_kind(., 'AggregateInstance')" />
-                
-                <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates)" />
 
                 <!-- Get the label of the Aggregate -->
                 <xsl:variable name="aggregate_label" select="cdit:get_key_value(.,'label')" />
@@ -52,9 +50,11 @@
                 <xsl:variable name="base_type" select="concat('::', $aggregate_label_cc)" />
                 <xsl:variable name="mw_type" select="concat($namespace, '::', $aggregate_label_cc)" />
 
+                <!--Check whether this middleware builds a module/shared library-->
                 <xsl:variable name="builds_module" select="o:cmake_mw_builds_module($mw) = true()" />
                 <xsl:variable name="builds_library" select="o:cmake_mw_builds_shared_library($mw) = true()" />
                 
+                <!-- Protobuf requires a .proto file-->
                 <xsl:if test="$mw = 'proto'">
                     <!-- Write File: middleware/{MIDDLEWARE}/{AGGREGATE_LABEL}/{AGGREGATE_LABEL}.proto -->
                     <xsl:variable name="proto_file" select="concat('middleware/', $mw, '/', $aggregate_label_lc, '/', $aggregate_label_lc, '.proto')" />
@@ -64,6 +64,7 @@
                     </xsl:result-document>
                 </xsl:if>
 
+                <!-- DDS Implementations require a .idl file-->
                 <xsl:if test="$mw = 'rti' or $mw = 'ospl'">
                     <!-- Write File: middleware/{MIDDLEWARE}/{AGGREGATE_LABEL}/{AGGREGATE_LABEL}.idl -->
                     <xsl:variable name="idl_file" select="concat('middleware/', $mw, '/', $aggregate_label_lc, '/', $aggregate_label_lc, '.idl')" />
@@ -73,6 +74,7 @@
                     </xsl:result-document>
                 </xsl:if>
                 
+                <!-- If building a shared library, we required a convert class to translate between the middleware specific class and the base class-->
                 <xsl:if test="$builds_library">
                     <!-- Write File: middleware/{MIDDLEWARE}/{AGGREGATE_LABEL}/convert.h -->
                     <!-- Write File: middleware/{MIDDLEWARE}/{AGGREGATE_LABEL}/convert.cpp -->
@@ -88,6 +90,7 @@
                     </xsl:result-document>
                 </xsl:if>
 
+                <!-- If building a module, we required an interface class so that ports can be constructed via a dynamic loading of the module-->
                 <xsl:if test="$builds_module">
                     <!-- Write File: middleware/{MIDDLEWARE}/{AGGREGATE_LABEL}/libportexports.cpp -->
                     <xsl:variable name="libportexport_cpp_file" select="concat('middleware/', $mw, '/', $aggregate_label_lc, '/', 'libportexports.cpp')" />
@@ -97,6 +100,7 @@
                     </xsl:result-document>
                 </xsl:if>
 
+                <!-- Using CMake for make file construction-->
                 <!-- Write File: middleware/{MIDDLEWARE}/{AGGREGATE_LABEL}/CMakeLists.txt -->
                 <xsl:result-document href="{concat('middleware/', $mw, '/', $aggregate_label_lc, '/CMakeLists.txt')}">
                     <xsl:value-of select="o:get_mw_type_cmake(., $members, $vectors, $aggregates, $mw)" />
