@@ -3,8 +3,8 @@
 # Once done this will define:
 #
 #  OpenSplice_FOUND - system has OpenSplice.
-#  OSPL_INCLUDE_DIRS - the OpenSplice include directory.
-#  OSPL_LIBRARIES - Link these to use OpenSplice.
+#  OPENSPLICE_INCLUDE_DIRS - the OpenSplice include directory.
+#  OPENSPLICE_LIBRARIES - Link these to use OpenSplice.
 #  OpenSplice_IDLGEN_BINARY - Binary for the IDL compiler.
 #
 # You need the environment variable $OSPL_HOME to be set to your OpenSplice
@@ -83,7 +83,7 @@ $ENV{OSPL_HOME}/include/dcps/C++/isocpp
 #$ENV{OSPL_HOME}/etc/idl/
 )
 
-SET(OSPL_INCLUDE_DIRS
+SET(OPENSPLICE_INCLUDE_DIRS
 $ENV{OSPL_HOME}/include/sys
 $ENV{OSPL_HOME}/include/dcps/C++/isocpp
 $ENV{OSPL_HOME}/include/dcps/C++/SACPP
@@ -104,7 +104,7 @@ PATHS
 $ENV{OSPL_HOME}/lib/${SPLICE_TARGET}
 )
 
-SET(OSPL_LIBRARIES
+SET(OPENSPLICE_LIBRARIES
 ${DCPSISOCPP}
 ${DDSKERNEL}
 dl
@@ -121,17 +121,17 @@ find_program(OSPL_GEN_EXECUTABLE
 # Binary for the IDL compiler
 # SET (OpenSplice_IDLGEN_BINARY $ENV{OSPL_HOME}/exec/${SPLICE_TARGET}/idlpp -I $ENV{OSPL_HOME}/etc/idl/)
 
-IF (OSPL_INCLUDE_DIRS AND OSPL_LIBRARIES)
+IF (OPENSPLICE_INCLUDE_DIRS AND OPENSPLICE_LIBRARIES)
 SET(OpenSplice_FOUND TRUE)
-ENDIF (OSPL_INCLUDE_DIRS AND OSPL_LIBRARIES)
+ENDIF (OPENSPLICE_INCLUDE_DIRS AND OPENSPLICE_LIBRARIES)
 
 IF (OpenSplice_FOUND)
-MESSAGE(STATUS "Found OpenSplice DDS libraries: ${OSPL_LIBRARIES}")
+MESSAGE(STATUS "Found OpenSplice DDS libraries: ${OPENSPLICE_LIBRARIES}")
 ELSE (OpenSplice_FOUND)
 IF (OpenSplice_FIND_REQUIRED)
 MESSAGE(FATAL_ERROR "Could not find OpenSplice DDS")
 ENDIF (OpenSplice_FIND_REQUIRED)
 ENDIF (OpenSplice_FOUND)
 
-#MARK_AS_ADVANCED(OSPL_INCLUDE_DIRS OSPL_LIBRARIES OpenSplice_IDLGEN_BINARY)
+#MARK_AS_ADVANCED(OPENSPLICE_INCLUDE_DIRS OPENSPLICE_LIBRARIES OpenSplice_IDLGEN_BINARY)
 INCLUDE (MacroOpenSplice)
