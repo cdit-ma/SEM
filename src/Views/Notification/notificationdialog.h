@@ -59,6 +59,8 @@ public slots:
 
     void getLastNotificationID();
 
+    void testSlot(QStringList checkedList);
+
 private slots:
     void themeChanged();
 

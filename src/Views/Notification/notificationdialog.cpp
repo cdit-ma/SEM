@@ -1,6 +1,7 @@
 #include "notificationdialog.h"
 #include "notificationitem.h"
 #include "../../theme.h"
+#include "../../Utils/filtergroup.h"
 
 #include <QVBoxLayout>
 #include <QLabel>
@@ -44,6 +45,8 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     themeChanged();
     initialisePanel();
     updateSelectionBasedButtons();
+
+    //test();
 }
 
 
@@ -367,6 +370,12 @@ void NotificationDialog::getLastNotificationID()
         }
     }
     emit lastNotificationID(-1);
+}
+
+
+void NotificationDialog::testSlot(QStringList checkedList)
+{
+    qDebug() << "List: " << checkedList;
 }
 
 
@@ -697,36 +706,34 @@ void NotificationDialog::intervalTimeout()
     }
 }
 
+
 void NotificationDialog::test()
 {
-    /*
-     * Just leaving this here for a reminder
-     */
-    QGroupBox* box = new QGroupBox("TEST BOX", this);
-    box->setCheckable(true);
-    box->setStyleSheet("QGroupBox{ margin-top: 6px; border: none; border-top: 2px solid red; }"
-                       "QGroupBox::title{ subcontrol-origin: margin; subcontrol-position: top center; padding: 0 3px; }"
-                       "QGroupBox::indicator{ width: 13px; height: 13px; subcontrol-position: right; }"
-                       "QGroupBox::indicator:checked{ image: url(:/Actions/Arrow_Up); }"
-                       "QGroupBox::indicator:unchecked{ image: url(:/Actions/Arrow_Down); }");
+    FilterGroup* fg = new FilterGroup("TEST GROUP", this);
+    fg->setExclusive(true);
 
-    QPushButton* b = new QPushButton("Button1", this);
-    b->setCheckable(true);
-    b->setChecked(true);
-    b->setStyleSheet("QPushButton:checked{background: red;}QPushButton{ background:yellow; }");
-    QPushButton* b2 = new QPushButton("Button2", this);
-    b2->setCheckable(true);
+    foreach (QToolButton* button, filterButtonHash.values()) {
 
-    QVBoxLayout* bl = new QVBoxLayout(box);
-    bl->addWidget(b);
-    bl->addWidget(b2);
-    connect(box, SIGNAL(toggled(bool)), b, SLOT(setVisible(bool)));
-    connect(box, SIGNAL(toggled(bool)), b2, SLOT(setVisible(bool)));
+        QString buttonText = button->text();
+        if (buttonText.toLower() == "all") {
+            fg->addToFilterGroup(buttonText, button, true);
+        } else {
+            fg->addToFilterGroup(buttonText, button);
+        }
+    }
 
-    QDialog* dialog = new QDialog(this);
-    QVBoxLayout* vl = new QVBoxLayout(dialog);
-    vl->addWidget(box);
-    dialog->exec();
+    connect(fg, &FilterGroup::filtersChanged, this, &NotificationDialog::testSlot);
+
+    QDialog* d = new QDialog(this);
+    QVBoxLayout* layout = new QVBoxLayout(d);
+    QGroupBox* box = fg->constructFilterGroupBox();
+    if (box) {
+        layout->addWidget(box);
+    } else {
+        qDebug() << "NULL groupbox!";
+    }
+    layout->addStretch();
+    d->exec();
 }
 
 
@@ -1025,6 +1032,18 @@ void NotificationDialog::setupBackgroundProcessItems()
  */
 QAction* NotificationDialog::constructFilterButtonAction(NotificationDialog::ITEM_ROLES role, int roleVal, QString label, QString iconPath, QString iconName, bool addToGroup)
 {
+    QToolButton* button = new QToolButton(this);
+    button->setText(label);
+    button->setProperty("iconPath", iconPath);
+    button->setProperty("iconName", iconName);
+    button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    button->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    button->setCheckable(true);
+    button->setChecked(false);
+    filterButtonHash[new QAction(this)] = button;
+    return 0;
+
+    /*
     ActionGroup* group = 0;
 
     if (addToGroup) {
@@ -1079,7 +1098,7 @@ QAction* NotificationDialog::constructFilterButtonAction(NotificationDialog::ITE
     connect(action, SIGNAL(triggered(bool)), this, SLOT(filterToggled(bool)));
     connect(action, SIGNAL(triggered(bool)), button, SLOT(setChecked(bool)));
 
-    return action;
+    return action;*/
 }
 
 

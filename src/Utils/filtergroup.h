@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QAbstractButton>
+#include <QGroupBox>
+#include <QLayout>
 
 class FilterGroup : public QObject
 {
@@ -11,6 +13,8 @@ public:
     explicit FilterGroup(QString group, QObject *parent = 0);
 
     QString getFilterGroup();
+    QGroupBox* constructFilterGroupBox(Qt::Orientation orientation = Qt::Vertical);
+
     void setExclusive(bool exclusive);
     void addToFilterGroup(QString key, QAbstractButton* filterButton, bool resetFilterButton = false);
 
@@ -19,6 +23,7 @@ signals:
     void resetFilterGroup();
 
 public slots:
+    void themeChanged();
     void filterTriggered();
 
 private:
@@ -26,6 +31,7 @@ private:
 
     QHash<QString, QAbstractButton*> filters;
     QAbstractButton* resetFilterButton;
+    QGroupBox* filterGroupBox;
 
     QStringList checkedKeys;
     QString filterGroup;
