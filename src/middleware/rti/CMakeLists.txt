@@ -23,10 +23,10 @@ set(HEADERS
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 include_directories("${RE_PATH}/includes")
-include_directories(${DDS_INCLUDE_DIRS})
+include_directories(${RTIDDS_INCLUDE_DIRS})
 
 # Need this to make sure headers are using the correct function calls.
 target_compile_definitions(${PROJ_NAME} PRIVATE -DRTI_UNIX -DRTI_64BIT)
 
-target_link_libraries(${PROJ_NAME} ${DDS_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${RTIDDS_LIBRARIES})
 
