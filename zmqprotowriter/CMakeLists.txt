@@ -37,4 +37,4 @@ add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${Boost_FILESYSTEM_LIBRARY})
+target_link_libraries(${PROJ_NAME} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
