@@ -10,7 +10,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/nodemanager")
 #Find protobuf
 find_package(Protobuf REQUIRED)
 #Find ZMQ
-find_package(ZeroMQ REQUIRED)
+find_package(ZMQ REQUIRED)
 
 #Generate out protobuf for control
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/controlmessage.proto)
@@ -46,7 +46,7 @@ set(PROTO_CONTROL_HEADERS
 	)
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})
-include_directories(${ZeroMQ_INCLUDE_DIRS})
+include_directories(${ZMQ_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if (MSVC)
