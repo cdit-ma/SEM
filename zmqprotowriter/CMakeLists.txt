@@ -19,7 +19,7 @@ find_package(ZMQ REQUIRED)
 include_directories(${PROJ_NAME} ${ZMQ_INCLUDE_DIRS})
 
 #Need boost system and filesystem for crossplatform temp file creation.
-find_package(Boost 1.36.0 COMPONENTS filesystem REQUIRED)
+find_package(Boost 1.36.0 COMPONENTS filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(SOURCE
