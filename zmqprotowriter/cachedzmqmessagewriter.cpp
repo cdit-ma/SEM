@@ -7,11 +7,13 @@
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
+#include <boost/filesystem.hpp>
 
 CachedZMQMessageWriter::CachedZMQMessageWriter(int cache_count) : ZMQMessageWriter(){
     cache_count_ = cache_count;
     //Get a temporary file location for our cached files
-    temp_file_path_ = std::tmpnam(nullptr);
+    auto temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+    temp_file_path_ = temp.native();
     std::cout << "Temporary file path: " << temp_file_path_ << std::endl;
 
     //Start the writer thread
@@ -23,6 +25,7 @@ CachedZMQMessageWriter::~CachedZMQMessageWriter(){
     Terminate();
 }
 
+//Takes ownership of message
 void CachedZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
     //Gain the lock
     std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -71,7 +74,6 @@ void CachedZMQMessageWriter::Terminate(){
         if(m){
             ZMQMessageWriter::PushMessage(m);
             sent_count ++;
-            delete m;
         }
     }
 
@@ -118,7 +120,6 @@ void CachedZMQMessageWriter::WriteQueue(){
             replace_queue.pop();
 
             if(!message || !WriteDelimitedTo(message, raw_output)){
-                std::cout << message << std::endl;
                 std::cerr << "Error writing message to temp file '" << temp_file_path_ << "'" << std::endl;
             }
 

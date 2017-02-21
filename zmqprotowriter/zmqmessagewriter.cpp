@@ -40,9 +40,12 @@ void ZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
     
     std::string type_name;
     std::string str;
-    if(message && message->SerializeToString(&str)){
-        type_name = message->GetTypeName();
-        PushString(&type_name, &str);
+    if(message){
+        if(message->SerializeToString(&str)){
+            type_name = message->GetTypeName();
+            PushString(&type_name, &str);
+        }
+        delete message;
     }
 }
 

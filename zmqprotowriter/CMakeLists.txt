@@ -18,6 +18,10 @@ include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 find_package(ZMQ REQUIRED)
 include_directories(${PROJ_NAME} ${ZMQ_INCLUDE_DIRS})
 
+#Need boost system and filesystem for crossplatform temp file creation.
+find_package(Boost 1.36.0 COMPONENTS filesystem REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/cachedzmqmessagewriter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqmessagewriter.cpp
@@ -33,3 +37,4 @@ add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${Boost_FILESYSTEM_LIBRARY})
