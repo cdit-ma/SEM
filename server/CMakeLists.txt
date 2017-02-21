@@ -7,6 +7,12 @@ set(PROJ_NAME logan_server)
 
 project (${PROJ_NAME})
 
+find_program(iwyu_path NAMES include-what-you-use iwyu PATHS /home/dig/iwyu/build/)
+
+if(NOT iwyu_path)
+	message("Can't find iwyu path")
+endif()
+
 find_package(Protobuf REQUIRED)
 include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
@@ -33,7 +39,7 @@ set(HEADERS
 
 #Link our Server against all the Cpps
 add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
-
+#set_property(TARGET ${PROJ_NAME} PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode

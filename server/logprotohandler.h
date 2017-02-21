@@ -2,14 +2,12 @@
 #define LOGAN_SERVER_LOGPROTOHANDLER_H
 
 #include <string>
-
-#include "../re_common/proto/systemstatus/systemstatus.pb.h"
-
-#include "../re_common/proto/modelevent/modelevent.pb.h"
-#include "../re_common/zmqprotoreceiver/zmqreceiver.h"
-#include "sqlitedatabase.h"
+#include <map>
 
 class Table;
+class ZMQReceiver;
+class SQLiteDatabase;
+namespace google { namespace protobuf { class MessageLite; } }
 
 class LogProtoHandler{
     public:
@@ -42,8 +40,5 @@ class LogProtoHandler{
         void CreateMessageEventTable();
         void CreateUserEventTable();
         void CreateWorkloadEventTable();
-
 };
-
-
 #endif //LOGAN_SERVER_LOGPROTOHANDLER_H

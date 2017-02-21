@@ -1,11 +1,11 @@
 #include "logcontroller.h"
-#include <iostream>
+
 #include <chrono>
-#include <thread>
-#include <list>
-#include <string>
+#include <iostream>
 
 #include "sigarsysteminfo.h"
+#include "systeminfo.h"
+#include "../re_common/proto/systemstatus/systemstatus.pb.h"
 #include "../re_common/zmqprotowriter/cachedzmqmessagewriter.h"
 
 LogController::LogController(int port, double frequency, std::vector<std::string> processes, bool cached){
@@ -18,7 +18,6 @@ LogController::LogController(int port, double frequency, std::vector<std::string
     std::string port_string = "tcp://*:" + std::to_string(port);
 
     writer_->BindPublisherSocket(port_string);
-    //writer_->BindPublisherSocket("tcp://192.168.111.247:5555");
 
     //Construct our SystemInfo class
     system_info_ = new SigarSystemInfo();
@@ -86,7 +85,7 @@ void LogController::LogThread(){
 
         if(system_info_->update()){
             //Get a new filled protobuf message
-            SystemStatus* status = GetSystemStatus(system_info_);
+            SystemStatus* status = GetSystemStatus();
             
             //Lock the Queue, and notify the writer queue.
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -129,9 +128,11 @@ void LogController::WriteThread(){
     std::cout << "Writer thread terminated." << std::endl;
 }
 
-SystemStatus* LogController::GetSystemStatus(SystemInfo* info){
+SystemStatus* LogController::GetSystemStatus(){
     //Construct a protobuf message to fill with information
     SystemStatus* status = new SystemStatus();
+
+    auto info = system_info_;
 
     status->set_hostname(info->get_hostname());
     status->set_timestamp(info->get_update_timestamp());
@@ -214,20 +215,17 @@ SystemStatus* LogController::GetSystemStatus(SystemInfo* info){
 
     int fs_count = info->get_fs_count();
     for(int i = 0; i < fs_count; i++){
-        //if(info->get_fs_name(i) != ""){
-
-            FileSystemStatus* fss = status->add_file_systems();
-            
-            if(!seen_fs_.count(info->get_fs_name(i))){
-                //send onetime info
-                fss->mutable_info()->set_type((FileSystemStatus::FileSystemInfo::Type)info->get_fs_type(i));
-                fss->mutable_info()->set_size(info->get_fs_size(i));
-                seen_fs_.insert(info->get_fs_name(i));
-            }
-            
-            fss->set_name(info->get_fs_name(i));
-            fss->set_utilization(info->get_fs_utilization(i));
-        //}
+        FileSystemStatus* fss = status->add_file_systems();
+        
+        if(!seen_fs_.count(info->get_fs_name(i))){
+            //send onetime info
+            fss->mutable_info()->set_type((FileSystemStatus::FileSystemInfo::Type)info->get_fs_type(i));
+            fss->mutable_info()->set_size(info->get_fs_size(i));
+            seen_fs_.insert(info->get_fs_name(i));
+        }
+        
+        fss->set_name(info->get_fs_name(i));
+        fss->set_utilization(info->get_fs_utilization(i));
     }
 
     int interface_count = info->get_interface_count();

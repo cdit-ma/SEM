@@ -1,4 +1,5 @@
 #include "table.h"
+
 #include "tableinsert.h"
 
 #define CREATE_TABLE_PREFIX "CREATE TABLE IF NOT EXISTS"

@@ -1,9 +1,11 @@
 #include "sigarsysteminfo.h"
-#include "systeminfo.h"
+
+#include <sigar.h>
+#include <sigar_format.h>
 #include <ctime>
 #include <iostream>
-#include <set>
 #include <algorithm>
+
 
 SigarSystemInfo::SigarSystemInfo(){
     open_sigar();
@@ -25,8 +27,7 @@ bool SigarSystemInfo::open_sigar(){
 }
 
 bool SigarSystemInfo::close_sigar(){
-    auto itr = processes_.begin();
-    for(itr; itr!=processes_.end(); itr++){
+    for(auto itr = processes_.begin(); itr!=processes_.end(); itr++){
         delete itr->second;
     }
     if(sigar_close(sigar_) == SIGAR_OK){
@@ -131,7 +132,6 @@ bool SigarSystemInfo::update_cpu(){
     sigar_cpu_list_t cpu_list = sigar_cpu_list_t();
 
     if(!update_cpu_list(&cpu_list)){
-        std::cout << "1" << std::endl;
         //Failed to Update
         return false;
     }
@@ -142,13 +142,11 @@ bool SigarSystemInfo::update_cpu(){
 
         //Get the info only once
         if(!update_cpu_info_list(&cpu_info_list)){
-            std::cout << "2" << std::endl;
             return false;
         }
 
         //Different number of info
         if(cpu_info_list.number != cpu_list.number){
-            std::cout << "3" << std::endl;
             return false;
         }
         
@@ -244,7 +242,7 @@ bool SigarSystemInfo::update_filesystems(){
             case SIGAR_FSTYPE_RAM_DISK:
             case SIGAR_FSTYPE_CDROM:
             case SIGAR_FSTYPE_SWAP:
-                break;                
+                break;
             default:
                 //Ignore
                 continue;
@@ -801,5 +799,5 @@ bool SigarSystemInfo::stringInString(const std::string haystack, const std::stri
         #endif
         }
     );
-    return (match != haystack.end() );   
+    return (match != haystack.end() );
 }

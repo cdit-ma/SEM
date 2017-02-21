@@ -1,5 +1,9 @@
 #include "tableinsert.h"
+
 #include <math.h>
+
+#include "table.h"
+#include "sqlitedatabase.h"
 
 TableInsert::TableInsert(Table* table){
     table_ = table;

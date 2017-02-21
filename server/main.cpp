@@ -65,8 +65,13 @@ int main(int ac, char** av)
 	SQLiteDatabase* sql_database = new SQLiteDatabase(file_name);
 	LogProtoHandler* proto_handler = new LogProtoHandler(receiver, sql_database);
 	receiver->Start();
+	for(auto s : addresses){
+		std::this_thread::sleep_for(std::chrono::seconds(5));
+		std::cout << "** Connecting" << s << std::endl;
+		receiver->Connect(s);
+	}
 
-	{ 			
+	{
 		std::unique_lock<std::mutex> lock(mutex_);
 		//Wait for the signal_handler to notify for exit
 		lock_condition_.wait(lock);

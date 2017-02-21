@@ -1,9 +1,14 @@
 #include "logprotohandler.h"
-#include "tableinsert.h"
-#include "sqlitedatabase.h"
-#include <functional>
-#include "table.h"
 
+#include <functional>
+
+#include "sqlitedatabase.h"
+#include "table.h"
+#include "tableinsert.h"
+
+#include "../re_common/proto/modelevent/modelevent.pb.h"
+#include "../re_common/proto/systemstatus/systemstatus.pb.h"
+#include "../re_common/zmqprotoreceiver/zmqreceiver.h"
 
 #define LOGAN_DECIMAL "DECIMAL"
 #define LOGAN_VARCHAR "VARCHAR"
@@ -19,7 +24,6 @@
 #define LOGAN_EVENT "event"
 #define LOGAN_MESSAGE_ID "id"
 #define LOGAN_NAME "name"
-
 
 #define LOGAN_SYSTEM_STATUS_TABLE "Hardware_SystemStatus"
 #define LOGAN_SYSTEM_INFO_TABLE "Hardware_SystemInfo"
@@ -302,6 +306,7 @@ void LogProtoHandler::CreateMessageEventTable(){
     if(table_map_.count(LOGAN_MESSAGE_EVENT_TABLE)){
         return;
     }
+
     Table* t = new Table(database_, LOGAN_MESSAGE_EVENT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
@@ -320,6 +325,7 @@ void LogProtoHandler::CreateUserEventTable(){
     if(table_map_.count(LOGAN_USER_EVENT_TABLE)){
         return;
     }
+
     Table* t = new Table(database_, LOGAN_USER_EVENT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
@@ -337,6 +343,7 @@ void LogProtoHandler::CreateWorkloadEventTable(){
     if(table_map_.count(LOGAN_WORKLOAD_EVENT_TABLE)){
         return;
     }
+
     Table* t = new Table(database_, LOGAN_WORKLOAD_EVENT_TABLE);
     //Info
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
@@ -361,6 +368,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
     auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
     std::string hostname = status->hostname().c_str();
+    std::cout << "got message: "<<hostname << std::endl;
     int message_id = status->message_id();
     double timestamp = status->timestamp();
     
@@ -391,7 +399,6 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
         database_->QueueSqlStatement(infostmt.get_statement());
     }
 
-
     for(int i = 0; i < status->cpu_core_utilization_size(); i++){
         auto cpustmt = table_map_[LOGAN_CPU_TABLE]->get_insert_statement();        
         cpustmt.BindString(LOGAN_HOSTNAME, hostname);
@@ -417,6 +424,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
             procinfo.BindInt("start_time", proc.info().start_time());
             database_->QueueSqlStatement(procinfo.get_statement());
         }
+
         procstmt.BindString(LOGAN_HOSTNAME, hostname);
         procstmt.BindInt(LOGAN_MESSAGE_ID, message_id);
         procstmt.BindDouble(LOGAN_TIMEOFDAY, timestamp);
@@ -545,7 +553,6 @@ void LogProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){
     ins.BindString("message", event->message());
     ins.BindString("type", re_common::UserEvent::Type_Name(event->type()));
     database_->QueueSqlStatement(ins.get_statement());
-    
 }
 
 void LogProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* message){
@@ -563,5 +570,4 @@ void LogProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* messag
     ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
     ins.BindString("type", event->component().type());
     ins.BindString("description", event->description());
-
 }

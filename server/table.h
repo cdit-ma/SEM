@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <string>
 #include "sqlitedatabase.h"
 
 class TableInsert;
@@ -32,22 +33,19 @@ class Table{
 
         void Finalize();
     private:
-
-        bool finalized_ = false;
-        std::string table_name_;
-        int size_;
-        std::string table_insert_;
-
         SQLiteDatabase* database_;
+
+        int size_;
+        bool finalized_ = false;
+
+        std::string table_name_;
+        std::string table_insert_;
 
         std::vector<TableColumn*> columns_;
         std::string table_create_;
         std::stringstream insert_ss;
+        
         void ConstructTableStatement();
         sqlite3_stmt* GetSqlStatement(std::string query);
-
-
-
 };
-
 #endif //LOGAN_TABLE_H

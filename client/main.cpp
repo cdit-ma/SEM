@@ -1,10 +1,10 @@
-#include <chrono>
-#include <iostream>
 #include <signal.h>
-#include <thread>
+#include <condition_variable>
+#include <mutex>
+#include <string>
 #include "boost/program_options.hpp"
+#include <iostream>
 
-#include "sigarsysteminfo.h"
 #include "logcontroller.h"
 
 std::condition_variable lock_condition_;
@@ -26,10 +26,10 @@ int main(int ac, char** av){
 	signal(SIGTERM, signal_handler);
 
 	//Parse command line options
-	int port;
-	bool cached;
+	int port = 8888;
+	bool cached = false;
     std::vector<std::string> processes;
-	double frequency;
+	double frequency = 1;
 
 	boost::program_options::options_description desc("Options");
 	desc.add_options()("port,p",boost::program_options::value<int>(&port)->default_value(5555), "Port number");
@@ -66,7 +66,6 @@ int main(int ac, char** av){
 	}
 
 	std::cout << "---------------------------------" << std::endl;
-
 
 	//Initialise log controller
     LogController* log_controller = new LogController(port, frequency, processes, cached);

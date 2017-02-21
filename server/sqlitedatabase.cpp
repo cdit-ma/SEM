@@ -1,6 +1,7 @@
 #include "sqlitedatabase.h"
-#include <stdexcept>
+
 #include <iostream>
+#include <stdexcept>
 #include <stdio.h>
 
 #define SQL_BATCH_SIZE 100
@@ -145,4 +146,3 @@ void SQLiteDatabase::ProcessQueue(){
         }
 	}
 }
-

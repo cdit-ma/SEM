@@ -30,4 +30,4 @@ class SQLiteDatabase{
         bool terminate_ = false;
         bool flush_ = false;
 };
-#endif
+#endif //SQLITEDATABASE_H

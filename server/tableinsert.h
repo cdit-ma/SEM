@@ -1,8 +1,10 @@
 #ifndef LOGAN_TABLEINSERT_H
 #define LOGAN_TABLEINSERT_H
 
-#include "table.h"
-#include "sqlitedatabase.h"
+#include <string>
+
+class Table;
+class sqlite3_stmt;
 
 class TableInsert{
     public:   
@@ -17,5 +19,4 @@ class TableInsert{
         sqlite3_stmt* stmt_;
         Table* table_;        
 };
-
 #endif //LOGAN_TABLEINSERT_H
