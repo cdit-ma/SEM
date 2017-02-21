@@ -15,8 +15,8 @@ project (${PROJ_NAME})
 find_package(Protobuf REQUIRED)
 include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
-find_package(ZeroMQ REQUIRED)
-include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
+find_package(ZMQ REQUIRED)
+include_directories(${PROJ_NAME} ${ZMQ_INCLUDE_DIRS})
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/cachedzmqmessagewriter.cpp
@@ -32,4 +32,4 @@ add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
