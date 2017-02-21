@@ -8,7 +8,7 @@
 
     <xsl:import href="functions.xsl"/>
 
-
+    
     <xsl:function name="cdit:get_component_int_h">
         <xsl:param name="component_root"/>
 
@@ -54,9 +54,8 @@
         <xsl:value-of select="concat('class ', $class_name, ' : public Component{', o:nl())" />
         <xsl:value-of select="concat(o:t(1), 'public:', o:nl())" />
         
-        <!-- Define Constructor-->
+        <!-- Declare Constructor-->
         <xsl:value-of select="concat(o:t(2), $class_name, '(std::string name);', o:nl())" />
-
         
         <!-- PeriodicEvents are declared as pure virtual, and are defined in the Impl-->
         <xsl:for-each select="$periodicevents">
@@ -78,7 +77,7 @@
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 2)" />
-            <xsl:value-of select="concat(o:t(2), 'virtual void In_', $label, '(', $cpp_type, '* m) = 0;', o:nl())" />
+            <xsl:value-of select="concat(o:t(2), 'virtual void In_', $label, '(', $cpp_type, ' m) = 0;', o:nl())" />
         </xsl:for-each>
 
         <!-- OutEventPorts are declared and defined in the interface -->
@@ -91,7 +90,7 @@
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('OutEventPort ', o:square_wrap($id), ': ', $label), 2)" />
-            <xsl:value-of select="concat(o:t(2), 'void Out_', $label, '(', $cpp_type, '* m);', o:nl())" />
+            <xsl:value-of select="concat(o:t(2), 'void Out_', $label, '(', $cpp_type, ' m);', o:nl())" />
         </xsl:for-each>
 
         <!-- Process Attributes -->
@@ -110,12 +109,122 @@
         <xsl:value-of select="o:define_guard_end($define_guard)" />
     </xsl:function>	
 
+
+    <xsl:function name="cdit:get_component_int_cpp">
+        <xsl:param name="component_root"/>
+
+        <xsl:variable name="component_id" select="cdit:get_node_id($component_root)" />
+        <xsl:variable name="component_label" select="cdit:get_key_value($component_root, 'label')" />
+        <xsl:variable name="component_label_cc" select="o:camel_case($component_label)" />
+        <xsl:variable name="component_label_lc" select="lower-case($component_label)" />
+        <xsl:variable name="component_label_uc" select="upper-case($component_label)" />
+
+        <!-- Get the required datatypes used by this ComponentImpl-->
+        <xsl:variable name="required_datatypes" select="cdit:get_component_impls_required_datatypes($component_root)" />
+        <xsl:variable name="rel_path" select="'../../'" />
+        <xsl:variable name="class_name" select="concat($component_label_cc, 'Int')" />
+        <xsl:variable name="header_path" select="concat(lower-case($class_name), '.h')" />
+        <xsl:variable name="namespace" select="concat($class_name, '::')" />
+
+        <!-- Include Base Types -->
+        <xsl:value-of select="o:local_include($header_path)" />
+
+        <xsl:variable name="attributes" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'AttributeImpl')" />
+        <xsl:variable name="periodicevents" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'PeriodicEvent')" />
+        <xsl:variable name="outeventports" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'OutEventPortImpl')" />
+        <xsl:variable name="ineventports" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'InEventPortImpl')" />
+
+        <xsl:if test="count($outeventports) > 0">
+            <xsl:value-of select="o:lib_include('core/eventports/outeventport.hpp')" />
+        </xsl:if>
+
+        <xsl:if test="count($ineventports) > 0">
+            <xsl:value-of select="o:lib_include('core/eventports/ineventport.hpp')" />
+        </xsl:if>
+        
+        <xsl:value-of select="o:nl()" />
+        <!-- Define Constructor-->
+        <xsl:value-of select="concat($namespace, $class_name, '(std::string name): Component(name){', o:nl())" />
+
+        <!-- Construct Attributes -->
+        <xsl:for-each select="$attributes">
+            <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
+            <xsl:variable name="attr_type" select="cdit:get_attr_enum_type($type)" />
+
+            <xsl:value-of select="o:nl()" />
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('Attribute ', o:square_wrap($id), ': ', $label), 1)" />
+            <xsl:value-of select="concat(o:t(1), 'AddAttribute(new Attribute(',$attr_type, ', ', o:dblquote_wrap($label),'));' ,o:nl())" />
+        </xsl:for-each>
+
+        <!-- Construct Attributes -->
+        <xsl:for-each select="$periodicevents">
+            <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
+
+            <xsl:value-of select="o:nl()" />
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('PeriodicEvent ', o:square_wrap($id), ': ', $label), 1)" />
+            <xsl:value-of select="concat(o:t(1), 'AddCallback(', o:dblquote_wrap($label), ', [this](BaseMessage* m) {PE_', $label, '(); delete m;});' ,o:nl())" />
+        </xsl:for-each>
+
+        <!-- Construct InEventPorts -->
+        <xsl:for-each select="$ineventports">
+            <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
+            <xsl:variable name="cpp_type" select="concat('::', $type)" />
+
+            <xsl:value-of select="o:nl()" />
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 1)" />
+            <xsl:value-of select="concat(o:t(1), 'AddCallback(', o:dblquote_wrap($label), ', [this](BaseMessage* m) {auto t = ', o:bracket_wrap(concat($cpp_type, '*')), 'm; In_', $label,'(*t); delete m;});' ,o:nl())" />
+        </xsl:for-each>
+        <xsl:value-of select="concat('};', o:nl())" />
+
+        <!-- OutEventPorts -->
+        <xsl:for-each select="$outeventports">
+            <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
+            
+            <xsl:variable name="cpp_type" select="concat('::', $type)" />
+
+            <xsl:value-of select="o:nl()" />
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('OutEventPort ', o:square_wrap($id), ': ', $label), 0)" />
+            
+            <!--Define Function-->
+            <xsl:value-of select="concat('void ', $namespace, 'Out_', $label, '(', $cpp_type, ' m){', o:nl())" />
+            
+            <xsl:value-of select="concat(o:t(1), 'auto p = GetEventPort(', o:dblquote_wrap($label), ');', o:nl())" />
+            <xsl:value-of select="concat(o:t(1), 'if(p){', o:nl())" />
+            <xsl:value-of select="concat(o:t(2), 'auto typed_p = (::OutEventPort', o:angle_wrap($cpp_type), ' *) p;', o:nl())" />
+            <xsl:value-of select="concat(o:t(2), 'if(typed_p){', o:nl())" />
+            <xsl:value-of select="concat(o:t(3), 'typed_p', o:fp(), 'tx(', o:and(), 'm);', o:nl())" />
+            <xsl:value-of select="concat(o:t(2), '}', o:nl())" />
+            <xsl:value-of select="concat(o:t(1), '}', o:nl())" />
+            
+            <xsl:value-of select="concat('};', o:nl())" />
+        </xsl:for-each>
+
+
+        <!-- Getters/Setters Attributes -->
+        <xsl:for-each select="$attributes">
+            <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
+            
+
+            <xsl:value-of select="o:nl()" />
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('Attribute ', o:square_wrap($id), ': ', $label), 1)" />
+            <xsl:value-of select="o:define_attribute_functions($label, $type, $class_name)" />
+        </xsl:for-each>
+    </xsl:function>	
+
      <xsl:function name="cdit:get_components_definition">
         <xsl:param name="component_impl_root" />
         <xsl:variable name="id" select="cdit:get_node_id($component_impl_root)" />
         <xsl:variable name="target_ids" select="cdit:get_edge_target_ids($component_impl_root, 'Edge_Definition', $id)" />
-
-        <xsl:message><xsl:value-of select="concat('Edges: ', count($target_ids))" /></xsl:message>
 
         <xsl:for-each select="$target_ids">
             <xsl:variable name="target_id" select="." />

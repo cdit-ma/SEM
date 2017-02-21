@@ -441,13 +441,13 @@
                 <xsl:value-of select="'RTIDDS'" />
             </xsl:when>
             <xsl:when test="$mw_lc = 'ospl'">
-                <xsl:value-of select="'OpenSplice'" />
+                <xsl:value-of select="'OSPL'" />
             </xsl:when>
             <xsl:when test="$mw_lc = 'qpid'">
-                <xsl:value-of select="'Qpid'" />
+                <xsl:value-of select="'QPID'" />
             </xsl:when>
             <xsl:when test="$mw_lc = 'zmq'">
-                <xsl:value-of select="'ZeroMQ'" />
+                <xsl:value-of select="'ZMQ'" />
             </xsl:when>
             <xsl:when test="$mw_lc = 'proto'">
                 <xsl:value-of select="'Protobuf'" />
@@ -843,9 +843,10 @@
         <xsl:value-of select="o:cmake_include_re_core()" />
 
         <xsl:variable name="mw_package" select="o:cmake_get_mw_package_name($mw)" />
-        <xsl:if test="$mw_package != ''">
+        <xsl:variable name="mw_package_uc" select="upper-case($mw_package)" />
+        <xsl:if test="$mw_package_uc != ''">
             <xsl:value-of select="o:cmake_comment(concat('Include the ', $mw_package, ' directory'))" />
-            <xsl:value-of select="o:cmake_include_dir(concat('${', upper-case($mw_package), '_INCLUDE_DIRS}'))" />
+            <xsl:value-of select="o:cmake_include_dir(concat('${', $mw_package_uc, '_INCLUDE_DIRS}'))" />
             <xsl:value-of select="o:nl()" />
         </xsl:if>
 
@@ -882,8 +883,8 @@
             <xsl:value-of select="o:cmake_comment('Link the shared library.')" />
             <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ${RE_CORE_LIBRARIES})', o:nl())" />
             
-            <xsl:if test="$mw_package != ''">
-                <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ${', upper-case($mw_package), '_LIBRARIES})', o:nl())" />
+            <xsl:if test="$mw_package_uc != ''">
+                <xsl:value-of select="concat('target_link_libraries(${SHARED_LIB_NAME} ${', $mw_package_uc, '_LIBRARIES})', o:nl())" />
             </xsl:if>
 
             <xsl:if test="$build_module">
@@ -919,8 +920,8 @@
             <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${RE_CORE_LIBRARIES})', o:nl())" />
             <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${', $mw_helper_libs, '})', o:nl())" />
 
-            <xsl:if test="$mw_package != ''">
-                <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${', upper-case($mw_package), '_LIBRARIES})', o:nl())" />
+            <xsl:if test="$mw_package_uc != ''">
+                <xsl:value-of select="concat('target_link_libraries(${PROJ_NAME} ${', $mw_package_uc, '_LIBRARIES})', o:nl())" />
             </xsl:if>
 
             <!-- Link against base datatype libraries -->
@@ -1546,9 +1547,61 @@
         <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, '* val')), ';', o:nl())" />
         
         <!-- Copy Getter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ' const;', o:nl())" />
+        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ';', o:nl())" />
         <!-- Inplace Getter -->
         <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_ptr_type, '', $variable_name, ''), ';', o:nl())" />
+    </xsl:function>
+
+    <xsl:function name="o:define_attribute_functions">
+        <xsl:param name="variable_name" as="xs:string" />
+        <xsl:param name="variable_type" as="xs:string" />
+        <xsl:param name="class_name" as="xs:string" />
+
+        <xsl:variable name="cpp_type" select="cdit:get_cpp_type($variable_type)" />
+
+        <xsl:variable name="attr_type" select="cdit:get_attr_type($variable_type)" />
+
+        <xsl:variable name="variable_var" select="concat($variable_name, '_')" />
+        <xsl:variable name="variable_ptr_type" select="concat($cpp_type, o:and())" />
+
+        <!-- Copy Setter -->
+        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat($cpp_type, ' val'))" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto a = GetAttribute(', o:dblquote_wrap($variable_name), ');', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'if(a){', o:nl())" />
+        <xsl:value-of select="concat(o:t(2), 'a', o:fp(), 'set_', $attr_type, '(val);', o:nl())" />
+        <xsl:value-of select="concat(o:t(1),'}', o:nl())" />
+        <xsl:value-of select="concat('}', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Pointer Setter -->
+        <xsl:value-of select="o:cpp_func_def('void', $class_name, o:cpp_base_set_func($variable_name), concat($cpp_type, '* val'))" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'if(val){', o:nl())" />
+        <xsl:value-of select="concat(o:t(2), o:cpp_base_set_func($variable_name), '(*val);', o:nl())" />
+        <xsl:value-of select="concat(o:t(1),'}', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Copy Getter -->
+        <xsl:value-of select="o:cpp_func_def($cpp_type, $class_name, o:cpp_base_get_func($variable_name), '')" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), $cpp_type, ' val;', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto a = GetAttribute(', o:dblquote_wrap($variable_name), ');', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'if(a){', o:nl())" />
+        <xsl:value-of select="concat(o:t(2), 'val = a', o:fp(), 'get_', $attr_type, '();', o:nl())" />
+        <xsl:value-of select="concat(o:t(1),'}', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'return val;', o:nl())" />
+        <xsl:value-of select="concat('}', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Inplace Getter -->
+        <xsl:value-of select="o:cpp_func_def($variable_ptr_type, $class_name, $variable_name, '')" />
+        <xsl:value-of select="concat('{', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'auto a = GetAttribute(', o:dblquote_wrap($variable_name), ');', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'return a', o:fp(), $attr_type, '();', o:nl())" />
+        <xsl:value-of select="concat('}', o:nl())" />
+        <xsl:value-of select="o:nl()" />
     </xsl:function>
 
 
@@ -1617,6 +1670,33 @@
     </xsl:function>
    
                 
+    <xsl:function name="cdit:get_attr_type" as="xs:string">
+        <xsl:param name="type" as="xs:string"  />
+
+        <xsl:choose>
+            <xsl:when test="$type = 'String'">
+                <xsl:value-of select="'String'" />
+            </xsl:when>
+            <xsl:when test="$type = 'Boolean'">
+                <xsl:value-of select="'Boolean'" />
+            </xsl:when>
+            <xsl:when test="$type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber'">
+                <xsl:value-of select="'Double'" />
+            </xsl:when>
+            <xsl:when test="$type = 'LongInteger'">
+                <xsl:value-of select="'Integer'" />
+            </xsl:when>
+            
+            <xsl:otherwise>
+                <xsl:value-of select="concat('/*Unknown Type: ', o:quote_wrap($type), ' */')" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>	
+    
+    <xsl:function name="cdit:get_attr_enum_type" as="xs:string">
+        <xsl:param name="type" as="xs:string"  />
+        <xsl:value-of select="concat('ATTRIBUTE_TYPE::', upper-case(o:get_attr_type($type)))" />
+    </xsl:function>	
 
 
     <xsl:function name="cdit:get_cpp_type" as="xs:string">
