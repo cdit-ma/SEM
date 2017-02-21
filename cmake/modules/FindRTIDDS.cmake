@@ -52,7 +52,7 @@ function(RTI_GENERATE_CPP SRCS HDRS)
                 "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}Impl.h"
                 "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}ImplPlugin.h"
         COMMAND  ${RTIDDS_GEN_EXECUTABLE}
-        ARGS -language C++11 -namespace -update typefiles -d ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FIL}
+        ARGS -language C++11 -unboundedSupport -namespace -update typefiles -d ${CMAKE_CURRENT_BINARY_DIR} ${ABS_FIL}
         DEPENDS ${ABS_FIL} ${RTIDDS_GEN_EXECUTABLE} 
         COMMENT "Running C++ rtiddsgen on ${FIL}"
         VERBATIM )

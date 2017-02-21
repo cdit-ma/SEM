@@ -34,6 +34,13 @@ struct Attribute{
         }
         return std::string();
     };
+
+    std::string& string(){
+        if(type == AT_STRING && s.size() == 1){
+            return s[0];
+        }
+        return value;
+    };
     void set_string(std::string string){
         if(type == AT_STRING){
             if(s.size() == 0){
