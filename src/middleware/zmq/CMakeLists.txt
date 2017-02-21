@@ -7,7 +7,7 @@ set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
 #Find ZeroMQ
-find_package(ZeroMQ REQUIRED)
+find_package(ZMQ REQUIRED)
 
 set(PROJ_NAME zmq_helper)
 project (${PROJ_NAME})
@@ -23,7 +23,7 @@ set(HEADERS
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 include_directories("${RE_PATH}/includes")
-include_directories(${ZeroMQ_INCLUDE_DIRS})
+include_directories(${ZMQ_INCLUDE_DIRS})
 
-target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
 
