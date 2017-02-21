@@ -60,7 +60,7 @@ void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*> attributes){
     std::cout << get_component()->get_name() << "::PeriodicEventPort: " << get_name() << " Setting Frequency" << std::endl;
 
     if(attributes.count("frequency")){
-        auto frequency = attributes["frequency"]->d;
+        auto frequency = attributes["frequency"]->get_Double();
         if(frequency > 0){
             int ms = 1000.0/frequency;
             std::cout << get_component()->get_name() << "::PeriodicEventPort: " << get_name() << " Setting Frequency: " << ms << "MS"<< std::endl;

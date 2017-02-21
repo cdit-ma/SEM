@@ -54,15 +54,16 @@ void Component::RemoveEventPort(EventPort* event_port){
 
 void Component::AddAttribute(Attribute* attribute){
     if(attribute){
-        if(eventports_.count(attribute->name) == 0){
-            attributes_[attribute->name] = attribute;
+        auto name = attribute->get_name();
+        if(eventports_.count(name) == 0){
+            attributes_[name] = attribute;
         }
     }
 }
 
 Attribute* Component::GetAttribute(std::string name){
     Attribute* attribute = 0;
-
+    
     if(attributes_.count(name)){
         attribute = attributes_[name];
     }

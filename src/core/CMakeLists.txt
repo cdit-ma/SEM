@@ -23,6 +23,7 @@ set(CORE_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/portconfigure.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/eventport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.cpp
+    
 
 	)
 
@@ -34,15 +35,17 @@ set(CORE_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/basemessage.h
     ${CMAKE_CURRENT_SOURCE_DIR}/portconfigure.h   
     ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.h   
-     
+    
 	)
 
 set(PROTO_CONTROL_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/translate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
     )
 
 set(PROTO_CONTROL_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/translate.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
 	)
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})
@@ -69,6 +72,7 @@ target_link_libraries(${PROTO_CONTROL_NAME} ${PROTOBUF_LIBRARIES})
 
 #Link re_core against re_proto_control
 target_link_libraries(${CORE_NAME} ${PROTO_CONTROL_NAME})
+
 target_link_libraries(${CORE_NAME} zmqprotowriter)
 target_link_libraries(${CORE_NAME} re_common_proto_modelevent)
 

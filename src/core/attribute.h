@@ -5,59 +5,50 @@
 #include <vector>
 #include <map>
 
-enum ATTRIBUTE_TYPE{
-    AT_STRING = 0,
-    AT_INTEGER = 1,
-    AT_BOOLEAN = 2,
-    AT_DOUBLE = 3,
-    AT_STRINGLIST = 4
+enum class ATTRIBUTE_TYPE{
+    UNKNOWN = 0,
+    STRING = 1,
+    INTEGER = 2,
+    BOOLEAN = 3,
+    DOUBLE = 4,
+    STRINGLIST = 5
 };
 
+class Attribute{
+    public:
+        Attribute(ATTRIBUTE_TYPE type, std::string name);
 
-struct Attribute{
-    ATTRIBUTE_TYPE type;
-    std::string name;
-    std::string value;
-    std::vector<std::string> s;
-    int i;
-    double d;
+        ATTRIBUTE_TYPE get_type() const;
+        std::string get_name() const;
 
-    Attribute(){};
-    Attribute(ATTRIBUTE_TYPE type_i, std::string name_i){
-        this->type = type_i;
-        this->name = name_i;
-    }
-    
-    std::string get_string(){
-        if(type == AT_STRING && s.size() == 1){
-            return s[0];
-        }
-        return std::string();
-    };
+        void set_String(std::string val);
+        std::string get_String() const;
+        std::string& String();
+        
+        void set_Integer(int val);
+        int get_Integer() const;
+        int& Integer();
 
-    std::string& string(){
-        if(type == AT_STRING && s.size() == 1){
-            return s[0];
-        }
-        return value;
-    };
-    void set_string(std::string string){
-        if(type == AT_STRING){
-            if(s.size() == 0){
-                s.push_back(string);
-            }else{
-                s[0] = string;
-            }
-        }
-    }
+        void set_Double(double val);
+        double get_Double() const;
+        double& Double();
+
+        void set_Boolean(bool val);
+        bool get_Boolean() const;
+        bool& Boolean();
+
+        void set_StringList(std::vector<std::string> val);
+        std::vector<std::string> get_StringList() const;
+        std::vector<std::string>& StringList();
+    private:
+        std::string name_;
+        ATTRIBUTE_TYPE type_;
+        std::string string_;
+        int integer_;
+        double double_;
+        bool boolean_;
+        std::vector<std::string> stringlist_;
 };
 
-/*
-Attribute* construct_attribute(std::string name, ATTRIBUTE_TYPE type){
-    Attribute* attr = new Attribute();
-    attr->name = name;
-    attr->type = type;
-    return attr;
-};*/
 
 #endif //ACTIVATABLE_H

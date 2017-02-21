@@ -105,7 +105,7 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
                     for(auto a: p.attributes()){
                         auto att = SetAttributeFromPb(&a);
                         if(att){
-                            attributes_[att->name] = att;
+                            attributes_[att->get_name()] = att;
                         }
                     }
                     //Configure the port
