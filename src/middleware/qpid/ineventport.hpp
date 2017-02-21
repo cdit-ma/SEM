@@ -62,10 +62,10 @@ void qpid::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
     std::string topic_name;
 
     if(attributes.count("broker")){
-        broker = attributes["broker"]->get_string();
+        broker = attributes["broker"]->get_String();
     }
     if(attributes.count("topic_name")){
-        topic_name = attributes["topic_name"]->get_string();
+        topic_name = attributes["topic_name"]->get_String();
     }
 
     std::cout << "qpid::InEventPort" << std::endl;

@@ -64,8 +64,8 @@ void qpid::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attri
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("broker") && attributes.count("topic_name")){
-        broker_ = attributes["broker"]->get_string();
-        topic_ = attributes["topic_name"]->get_string();
+        broker_ = attributes["broker"]->get_String();
+        topic_ = attributes["topic_name"]->get_String();
 
         std::cout << "qpid::OutEventPort" << std::endl;
         std::cout << "**broker: "<< broker_ << std::endl;

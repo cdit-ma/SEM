@@ -54,17 +54,17 @@ void ospl::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
     std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("topic_name")){
-        topic_name_ = attributes["topic_name"]->get_string();
+        topic_name_ = attributes["topic_name"]->get_String();
     }
 
     if(attributes.count("subscriber_name")){
-        subscriber_name_ = attributes["subscriber_name"]->get_string();
+        subscriber_name_ = attributes["subscriber_name"]->get_String();
     }else{
         subscriber_name_ = "In_" + this->get_name();
     }
 
     if(attributes.count("domain_id")){
-        domain_id_ = attributes["domain_id"]->i;
+        domain_id_ = attributes["domain_id"]->get_Integer();
     }
 
     std::cout << "ospl::InEventPort" << std::endl;

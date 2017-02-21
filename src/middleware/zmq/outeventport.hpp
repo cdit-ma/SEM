@@ -52,7 +52,7 @@ void zmq::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
     end_points_.clear();
 
     if(attributes.count("publisher_address")){
-        for(auto s : attributes["publisher_address"]->s){
+        for(auto s : attributes["publisher_address"]->StringList()){
             end_points_.push_back(s);
         }
         configured_ = true;

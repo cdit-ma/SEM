@@ -23,7 +23,7 @@ set(CORE_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/portconfigure.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/eventport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.cpp
-    
+    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
 
 	)
 

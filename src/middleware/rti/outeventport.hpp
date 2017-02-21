@@ -54,15 +54,15 @@ void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
     {std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("publisher_name")){
-        publisher_name_ = attributes["publisher_name"]->get_string();
+        publisher_name_ = attributes["publisher_name"]->get_String();
         configured_ = true;
     }
     if(attributes.count("topic_name")){
-        topic_name_ = attributes["topic_name"]->get_string();
+        topic_name_ = attributes["topic_name"]->get_String();
         configured_ = true && configured_;
     }
     if(attributes.count("domain_id")){
-        domain_id_ = attributes["domain_id"]->i;
+        domain_id_ = attributes["domain_id"]->get_Integer();
         configured_ = true && configured_;                
     }
 
