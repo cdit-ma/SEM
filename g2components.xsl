@@ -49,14 +49,20 @@
                 <xsl:value-of select="cdit:get_component_int_cpp(.)" />
             </xsl:result-document>
 
-            <xsl:if test="false()">
-                <!-- Write File: components/{COMPONENT_LABEL}/{COMPONENT_LABEL}impl.h -->
-                <xsl:result-document href="{o:xsl_wrap_file($component_impl_h)}">
-                </xsl:result-document>
+            <!-- Write File: components/{COMPONENT_LABEL}/{COMPONENT_LABEL}impl.h -->
+            <xsl:result-document href="{o:xsl_wrap_file($component_impl_h)}">
+                <xsl:value-of select="cdit:get_component_impl_h(.)" />
+            </xsl:result-document>
+            
+            <!-- Write File: components/{COMPONENT_LABEL}/{COMPONENT_LABEL}impl.cpp -->
+            <xsl:result-document href="{o:xsl_wrap_file($component_impl_cpp)}">
+                <xsl:value-of select="cdit:get_component_impl_cpp(.)" />
+            </xsl:result-document>
 
-                <!-- Write File: components/{COMPONENT_LABEL}/{COMPONENT_LABEL}impl.cpp -->
-                <xsl:result-document href="{o:xsl_wrap_file($component_impl_cpp)}">
-                </xsl:result-document>
+            <xsl:if test="false()">
+                
+
+                
 
                 <!-- Write File: components/{COMPONENT_LABEL}/libcomponentexports.cpp -->
                 <xsl:result-document href="{o:xsl_wrap_file($component_export_cpp)}">
