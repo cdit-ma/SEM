@@ -406,6 +406,11 @@
         </xsl:if>
     </xsl:function>
 
+    <xsl:function name="o:cmake_add_subdirectory">
+        <xsl:param name="dir" />
+        <!-- set RE_PATH -->
+        <xsl:value-of select="concat('add_subdirectory(', o:dblquote_wrap($dir), ')',o:nl())" />
+    </xsl:function>
 
     <xsl:function name="o:cmake_set_re_path">
         <!-- set RE_PATH -->
@@ -1923,8 +1928,23 @@
         <xsl:value-of select="'HelloWorld'" />
     </xsl:function>
 
-    
+    <xsl:function name="cdit:get_subfolder_cmake">
+        <xsl:param name="elements" />
 
+        <xsl:for-each select="$elements">
+            <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/', lower-case($label))" />
+            <xsl:value-of select="o:cmake_add_subdirectory($path)" />
+        </xsl:for-each>
+    </xsl:function>
 
-    
+    <xsl:function name="cdit:get_subfolder_cmake_from_list">
+        <xsl:param name="string_list" />
+
+        <xsl:for-each select="tokenize(normalize-space($string_list), ',')"> 
+            <xsl:variable name="label" select="." />
+            <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/', lower-case($label))" />
+            <xsl:value-of select="o:cmake_add_subdirectory($path)" />
+        </xsl:for-each>
+    </xsl:function>
 </xsl:stylesheet>

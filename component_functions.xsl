@@ -791,4 +791,82 @@
             <xsl:value-of select="$type" />
         </xsl:for-each>
     </xsl:function>
+
+    <xsl:function name="cdit:get_libcomponent_export_cpp">
+        <xsl:param name="component_impl_root" />
+
+        <xsl:variable name="label" select ="cdit:get_key_value($component_impl_root, 'label')" />
+        <xsl:variable name="class_name" select ="concat(o:camel_case($label), 'Impl')" />
+        <xsl:variable name="header" select ="concat(lower-case($class_name), '.h')" />
+
+        <!-- Include core headers -->            
+        <xsl:value-of select="o:lib_include('core/libcomponentexports.h')" />
+        <xsl:value-of select="o:lib_include('core/component.h')" />
+        <xsl:value-of select="o:nl()" />
+
+        <xsl:value-of select="o:local_include($header)" />
+        <xsl:value-of select="o:nl()" />
+
+        <xsl:value-of select="concat('Component* ConstructComponent(std::string name){', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), 'return new ', $class_name, o:bracket_wrap('name'),';', o:nl())" />
+        <xsl:value-of select="concat('};', o:nl())" />
+    </xsl:function>
+
+    <xsl:function name="cdit:get_component_cmake">
+        <xsl:param name="component_impl_root" />
+
+        
+
+        <xsl:variable name="label" select ="cdit:get_key_value($component_impl_root, 'label')" />
+        <xsl:variable name="proj_name" select ="lower-case(concat('components_', $label))" />
+        <xsl:variable name="class_name" select ="o:camel_case($label)" />
+        <xsl:variable name="class_name_lc" select ="lower-case($class_name)" />
+
+        <xsl:variable name="required_datatypes" select="cdit:get_component_impls_required_datatypes($component_impl_root)" />
+
+
+        <xsl:value-of select="o:cmake_set_re_path()" />
+
+        <xsl:variable name="PROJ_NAME" select="o:cmake_var_wrap('PROJ_NAME')" />
+        <xsl:value-of select="o:cmake_set_proj_name($proj_name)" />
+        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="o:cmake_find_re_core_library()" />
+
+        <!-- Set Source files -->
+        <xsl:value-of select="concat('set(SOURCE', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $class_name_lc, 'int.cpp', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $class_name_lc, 'impl.cpp', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <!-- Set Headers files -->
+        <xsl:value-of select="concat('set(HEADERS', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $class_name_lc, 'int.h', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), '${CMAKE_CURRENT_SOURCE_DIR}/', $class_name_lc, 'impl.h', o:nl())" />
+        <xsl:value-of select="concat(o:t(1), ')', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+
+        <xsl:value-of select="o:cmake_include_re_core()" />
+
+        <!-- add library/link -->
+        <xsl:value-of select="concat('add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})', o:nl())" />
+        <xsl:value-of select="o:nl()" />
+        <xsl:value-of select="o:cmake_link_re_core($PROJ_NAME)" />
+        <xsl:value-of select="o:nl()" />
+        
+        <xsl:for-each-group select="$required_datatypes" group-by=".">
+            <xsl:variable name="datatype" select="concat('datatype_', lower-case(.))" />
+            <xsl:value-of select="o:cmake_target_link_libraries($PROJ_NAME, $datatype)" />
+        </xsl:for-each-group>
+    </xsl:function>
+
+
+    
+
+    
+
+
+    
+
+    
 </xsl:stylesheet>
