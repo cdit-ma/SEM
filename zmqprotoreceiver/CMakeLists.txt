@@ -26,6 +26,11 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqreceiver.h
     )
 
+if (MSVC)
+	#Visual studio needs to be told to build in Multithreaded Static mode
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+endif()
+
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 #Link against our required libraries

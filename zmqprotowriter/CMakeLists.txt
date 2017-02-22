@@ -19,7 +19,7 @@ find_package(ZeroMQ REQUIRED)
 include_directories(${PROJ_NAME} ${ZeroMQ_INCLUDE_DIRS})
 
 #Need boost system and filesystem for crossplatform temp file creation.
-find_package(Boost 1.36.0 COMPONENTS filesystem REQUIRED)
+find_package(Boost 1.36.0 COMPONENTS filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(SOURCE
@@ -32,9 +32,16 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqmessagewriter.h
     )
 
+if (MSVC)
+	#Visual studio needs to be told to build in Multithreaded Static mode
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+endif()
+
+
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZeroMQ_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${Boost_SYSTEM_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${Boost_FILESYSTEM_LIBRARY})

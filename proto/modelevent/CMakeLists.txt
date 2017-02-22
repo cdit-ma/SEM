@@ -18,6 +18,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(${PROJ_NAME} SHARED ${PROTO_SRCS} ${PROTO_HDRS})
 
+if (MSVC)
+	#Visual studio needs to be told to build in Multithreaded Static mode
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+endif()
+
+
 #Link against protobuf
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 
