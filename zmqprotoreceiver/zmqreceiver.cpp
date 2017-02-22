@@ -62,17 +62,17 @@ ZMQReceiver::~ZMQReceiver(){
 
 void ZMQReceiver::RecieverThread(){
     //Setup our Subscriber socket
-    zmq::socket_t socket(*context_, ZMQ_SUB);
+    socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
 	
     //Subscribe to everything
-    socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+    socket_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
     //Connect to our terminate inprocess socket
-    socket.connect("inproc://term_signal");
+    socket_->connect("inproc://term_signal");
 
     //Connect to all nodes on our network
 	for (auto a : addresses_){
-		socket.connect(a.c_str());
+	//	socket.connect(a.c_str());
 	}
 	
     zmq::message_t *type = new zmq::message_t();
@@ -81,15 +81,15 @@ void ZMQReceiver::RecieverThread(){
     while(!terminate_reciever_){
 		try{
             //Wait for next message
-            socket.recv(type);
+            socket_->recv(type);
             if(terminate_reciever_){
                 break;
             }
-			socket.recv(data);
+			socket_->recv(data);
             if(terminate_reciever_){
                 break;
             }
-
+            std::cout << "got message   " << std::endl;
 
             //If we have a valid message
             if(type->size() > 0 && data->size() > 0){
@@ -114,6 +114,8 @@ void ZMQReceiver::RecieverThread(){
     //Free our memory
     delete type;
     delete data;
+    delete socket_;
+    socket_ = 0;
 }
 
 
@@ -164,5 +166,17 @@ void ZMQReceiver::ProtoConvertThread(){
             }
             replace_queue.pop();
         }
+    }
+}
+
+void ZMQReceiver::Connect(std::string address){
+    try{
+    if(socket_){
+	    socket_->connect(address.c_str());
+    }
+
+    }
+    catch(zmq::error_t ex){
+        std::cout << zmq_strerror(ex.num()) << std::endl;
     }
 }
