@@ -34,7 +34,7 @@ set(HEADERS
 
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif()
 
 
