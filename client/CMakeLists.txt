@@ -38,7 +38,7 @@ add_executable(${PROJ_NAME} ${CLIENT_SOURCE} ${CLIENT_HEADERS} ${PROTO_SRCS} ${P
 #set_property(TARGET ${PROJ_NAME} PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 if (MSVC)
 	#Visual studio needs to be told to build in Multithreaded Static mode
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 else()
 	#Unix needs to include pthread
 	target_link_libraries(${PROJ_NAME} pthread dl)
