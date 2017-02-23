@@ -9,14 +9,18 @@
 #include <functional>
 #include <map>
 
-#include "zmq.hpp"
+namespace zmq{
+	class socket_t;
+	class context_t;
+}
+
 
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/message.h>
 
 class ZMQReceiver{
     public:
-        ZMQReceiver(std::vector<std::string> addrs, std::string port, int batch_size = 20);
+        ZMQReceiver(int batch_size = 20);
         ~ZMQReceiver();
 
         void TerminateReceiver();
@@ -36,7 +40,6 @@ class ZMQReceiver{
         int batch_size_;
         
         std::vector<std::string> addresses_;
-        std::string port_;
 
         std::thread* reciever_thread_;
         std::thread* proto_convert_thread_;
@@ -50,6 +53,8 @@ class ZMQReceiver{
         std::condition_variable queue_lock_condition_;
         std::mutex queue_mutex_;
         std::queue<std::pair<std::string, std::string> > rx_message_queue_; 
+
+        std::mutex address_mutex_;
         
         bool terminate_reciever_ = false;
         bool terminate_proto_convert_thread_ = false;
