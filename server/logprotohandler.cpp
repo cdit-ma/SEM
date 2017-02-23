@@ -367,8 +367,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
     SystemStatus* status = (SystemStatus*)ml;
     auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
-    std::string hostname = status->hostname().c_str();
-    std::cout << "got message: "<<hostname << std::endl;
+    std::string hostname = status->hostname();
     int message_id = status->message_id();
     double timestamp = status->timestamp();
     
@@ -556,7 +555,6 @@ void LogProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){
 }
 
 void LogProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* message){
-
     re_common::WorkloadEvent* event = (re_common::WorkloadEvent*)message;
     auto ins = table_map_[LOGAN_WORKLOAD_EVENT_TABLE]->get_insert_statement();
     ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());

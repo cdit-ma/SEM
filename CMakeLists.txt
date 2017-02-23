@@ -1,9 +1,17 @@
 cmake_minimum_required (VERSION 2.6)
 
 #Set output directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+
+
 
 project(logan)
+
+add_definitions(-DBOOST_ALL_DYN_LINK)
+add_definitions(-DPROTOBUF_USE_DLLS)
+
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/re_common")
 #Add Options for building projects, default to build everything
@@ -12,10 +20,10 @@ option(BUILD_CLIENT "Build logan_client" ON)
 
 if(BUILD_CLIENT)
 	message(STATUS "Building logan_client")
-	add_subdirectory(client)
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/client")
 endif(BUILD_CLIENT)
 
 if(BUILD_SERVER)
 	message(STATUS "Building logan_server")
-	add_subdirectory(server)
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/server")
 endif(BUILD_SERVER)

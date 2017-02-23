@@ -178,8 +178,6 @@ bool SigarSystemInfo::update_cpu(){
 
     //Free the memory
     sigar_cpu_list_destroy(sigar_, &cpu_list);
-	
-
     return true;
 }
 
@@ -239,9 +237,8 @@ bool SigarSystemInfo::update_filesystems(){
         switch(fs.system.type){
             case SIGAR_FSTYPE_LOCAL_DISK:
             case SIGAR_FSTYPE_NETWORK:
-            case SIGAR_FSTYPE_RAM_DISK:
-            case SIGAR_FSTYPE_CDROM:
             case SIGAR_FSTYPE_SWAP:
+                //Only allow the above types
                 break;
             default:
                 //Ignore

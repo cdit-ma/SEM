@@ -2,9 +2,8 @@
 #define LOGAN_TABLEINSERT_H
 
 #include <string>
-
+#include "sqlite3.h"
 class Table;
-class sqlite3_stmt;
 
 class TableInsert{
     public:   

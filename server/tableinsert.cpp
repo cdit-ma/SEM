@@ -2,6 +2,7 @@
 
 #include <math.h>
 
+#include "sqlite3.h"
 #include "table.h"
 #include "sqlitedatabase.h"
 

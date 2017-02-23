@@ -33,7 +33,7 @@ LogController::LogController(int port, double frequency, std::vector<std::string
     }
     
     //Convert frequency to period
-    sleep_time_ = (1 / frequency) * 1000;
+    sleep_time_ = (int)((1 / frequency) * 1000);
     processes_ = processes;
 }
 
@@ -82,8 +82,8 @@ void LogController::LogThread(){
     while(!logger_terminate_){
         auto before_time = 
             s_c::duration_cast<s_c::milliseconds>(s_c::system_clock::now().time_since_epoch());
-
         if(system_info_->update()){
+	
             //Get a new filled protobuf message
             SystemStatus* status = GetSystemStatus();
             
@@ -144,6 +144,10 @@ SystemStatus* LogController::GetSystemStatus(){
     if(!seen_hostnames_.count(info->get_hostname())){
         SystemStatus::SystemInfo* sys_info = status->mutable_info();
 
+        if(status->has_info()){
+            
+        }
+
         //Send OS Info
         sys_info->set_os_name(info->get_os_name());
         sys_info->set_os_arch(info->get_os_arch());
@@ -171,7 +175,7 @@ SystemStatus* LogController::GetSystemStatus(){
     
     
     std::vector<int> pids = info->get_monitored_pids();
-    for(int i = 0; i < pids.size(); i++){
+    for(size_t i = 0; i < pids.size(); i++){
         int pid = pids[i];
 
         double last_updated_time = info->get_monitored_process_update_time(pid);

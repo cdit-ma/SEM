@@ -3,7 +3,8 @@
 
 #include <string>
 #include <map>
-
+#include "sqlite3.h"
+#include <google/protobuf/message_lite.h>
 class Table;
 class ZMQReceiver;
 class SQLiteDatabase;

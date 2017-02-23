@@ -2,7 +2,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <string>
-#include "boost/program_options.hpp"
+#include <boost/program_options.hpp>
 #include <iostream>
 
 #include "logcontroller.h"
@@ -26,28 +26,35 @@ int main(int ac, char** av){
 	signal(SIGTERM, signal_handler);
 
 	//Parse command line options
-	int port = 8888;
+	int port = 5555;
 	bool cached = false;
     std::vector<std::string> processes;
-	double frequency = 1;
+	double frequency = 1.0;
 
 	boost::program_options::options_description desc("Options");
-	desc.add_options()("port,p",boost::program_options::value<int>(&port)->default_value(5555), "Port number");
+	desc.add_options()("port,p",boost::program_options::value<int>(&port)->default_value(port), "Port number");
 	desc.add_options()("cached,c", "Cached mode");
-	desc.add_options()("frequency,f", boost::program_options::value<double>(&frequency)->default_value(1.0), "Recording frequency");
+	desc.add_options()("frequency,f", boost::program_options::value<double>(&frequency)->default_value(frequency), "Recording frequency");
 	desc.add_options()("process,P", boost::program_options::value<std::vector<std::string> >(&processes)->multitoken(), "Interested processes");
 	desc.add_options()("help,h", "Display help");
 
 	boost::program_options::variables_map vm;
-	boost::program_options::store(boost::program_options::parse_command_line(ac, av, desc), vm);
-	boost::program_options::notify(vm);
+	//Catch invalid options
+	try{
+		boost::program_options::store(boost::program_options::parse_command_line(ac, av, desc), vm);
+		boost::program_options::notify(vm);
+	}catch(boost::program_options::error& e) {
+        std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
+		std::cout << desc << std::endl;
+        return 1;
+    }
 
 	if(vm.count("help")){
 		std::cout << desc << std::endl;
 		return 0;
 	}
 
-	cached = vm.count("cached");
+	cached = vm.count("cached") > 0;
 
 	std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
 	std::cout << "* ZMQ Port: " << port << std::endl;
@@ -67,10 +74,9 @@ int main(int ac, char** av){
 
 	std::cout << "---------------------------------" << std::endl;
 
-	//Initialise log controller
+	//Initialise log 	troller
     LogController* log_controller = new LogController(port, frequency, processes, cached);
 	std::cout << "# Starting Logging." << std::endl;
-
 	{
 		std::unique_lock<std::mutex> lock(mutex_);
 		//Wait for the signal_handler to notify for exit
