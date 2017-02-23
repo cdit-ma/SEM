@@ -1,6 +1,6 @@
 #include "zmqmessagewriter.h"
 #include <iostream>
-
+#include <zmq.hpp>
 ZMQMessageWriter::ZMQMessageWriter(){
     context_ = new zmq::context_t();
     socket_ = new zmq::socket_t(*context_, ZMQ_PUB);
@@ -37,7 +37,7 @@ bool ZMQMessageWriter::BindPublisherSocket(std::string endpoint){
 void ZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
     //Gain the lock
     std::unique_lock<std::mutex> lock(mutex_);
-    
+
     std::string type_name;
     std::string str;
     if(message){
