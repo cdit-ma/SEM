@@ -580,9 +580,6 @@ void MainWindow::setupInnerWindow()
     NodeViewDockWidget* dwAssemblies = viewController->constructNodeViewDockWidget("Assemblies");
     NodeViewDockWidget* dwHardware = viewController->constructNodeViewDockWidget("Hardware");
 
-    BaseDockWidget *dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
-    dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
-
     //Set each NodeView with there contained aspects
     dwInterfaces->getNodeView()->setContainedViewAspect(VA_INTERFACES);
     dwBehaviour->getNodeView()->setContainedViewAspect(VA_BEHAVIOUR);
@@ -594,28 +591,24 @@ void MainWindow::setupInnerWindow()
     dwBehaviour->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwAssemblies->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     //Set Icons
     dwInterfaces->setIcon("Items", "InterfaceDefinitions");
     dwBehaviour->setIcon("Items", "BehaviourDefinitions");
     dwAssemblies->setIcon("Items", "AssemblyDefinitions");
     dwHardware->setIcon("Items", "HardwareDefinitions");
-    dwQOSBrowser->setIcon("Items", "QOSProfile");
 
     //Set Icon Visibility
     dwInterfaces->setIconVisible(false);
     dwBehaviour->setIconVisible(false);
     dwAssemblies->setIconVisible(false);
     dwHardware->setIconVisible(false);
-    dwQOSBrowser->setIconVisible(true);
 
     //Protected from deletion
     dwInterfaces->setProtected(true);
     dwBehaviour->setProtected(true);
     dwAssemblies->setProtected(true);
     dwHardware->setProtected(true);
-    dwQOSBrowser->setProtected(true);
 
     SettingsController* s = SettingsController::settings();
 
@@ -624,13 +617,11 @@ void MainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwBehaviour);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
 
     innerWindow->setDockWidgetVisibility(dwInterfaces,   s->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwBehaviour,    s->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwAssemblies,   s->getSetting(SK_WINDOW_ASSEMBLIES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwHardware,     s->getSetting(SK_WINDOW_HARDWARE_VISIBLE).toBool());
-    innerWindow->setDockWidgetVisibility(dwQOSBrowser,  s->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
 
     // NOTE: Apparently calling innerWindow's createPopupMenu crashes the
     // application if it's called before the dock widgets are added above
@@ -932,27 +923,67 @@ void MainWindow::setupMenuCornerWidget()
  */
 void MainWindow::setupDockablePanels()
 {
+    dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
+    dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
+    //dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    dwQOSBrowser->setIcon("Items", "QOSProfile");
+    dwQOSBrowser->setIconVisible(true);
+    dwQOSBrowser->setProtected(true);
+
     searchPanel = new SearchDialog(this);
     searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
     searchDockWidget->setWidget(searchPanel);
-    searchDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    //searchDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     searchDockWidget->setIcon("Actions", "Search_Icon");
     searchDockWidget->setIconVisible(true);
     searchDockWidget->setProtected(true);
-    innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
 
     notificationPanel = new NotificationDialog(this);
     notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
     notificationDockWidget->setWidget(notificationPanel);
-    notificationDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    //notificationDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     notificationDockWidget->setIcon("Actions", "Notification");
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
+
+    dwQOSBrowser->widget()->setMinimumSize(searchDockWidget->widget()->minimumSize());
+
+    // add tool dock widgets to the inner window
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, notificationDockWidget);
 
     // initially hide tool dock widgets
+    innerWindow->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(searchDockWidget, false);
     innerWindow->setDockWidgetVisibility(notificationDockWidget, false);
+    innerWindow->tabifyDockWidget(searchDockWidget, notificationDockWidget);
+
+    /**
+     * Initially have the search and notification panels and the QoS browser in a separate window
+     * NOTE: Need to add the dock widget to the inner window first before reparenting it so that it's protected from deletion
+     */
+    /*
+    BaseWindow* bw = WindowManager::constructSubWindow("Tool Dock Widgets");
+    bw->setWindowTitle("Sub Window #" + QString::number(bw->getID() - 2));
+
+    // remove tool dock widgets from the inner window
+    innerWindow->removeDockWidget(dwQOSBrowser);
+    innerWindow->removeDockWidget(searchDockWidget);
+    innerWindow->removeDockWidget(notificationDockWidget);
+
+    // reparent dock widgets
+    bw->addDockWidget(Qt::LeftDockWidgetArea, searchDockWidget);
+    bw->addDockWidget(Qt::LeftDockWidgetArea, notificationDockWidget);
+    bw->tabifyDockWidget(searchDockWidget, notificationDockWidget);
+    bw->addDockWidget(Qt::RightDockWidgetArea, dwQOSBrowser);
+
+    bw->setDockWidgetVisibility(dwQOSBrowser, SettingsController::settings()->getSetting(SK_WINDOW_QOS_VISIBLE).toBool());
+    bw->setDockWidgetVisibility(searchDockWidget, true);
+    bw->setDockWidgetVisibility(notificationDockWidget, true);
+
+    bw->show();
+    */
 
     if (viewController) {
         connect(viewController, &ViewController::vc_setupModel, searchPanel, &SearchDialog::resetPanel);
