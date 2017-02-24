@@ -368,7 +368,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
     auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
     std::string hostname = status->hostname();
-    int message_id = status->message_id();
+    int message_id = (int)(status->message_id());
     double timestamp = status->timestamp();
     
     stmt.BindString(LOGAN_HOSTNAME, hostname);
@@ -420,7 +420,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
             procinfo.BindInt("pid", proc.pid());
             procinfo.BindString(LOGAN_NAME, proc.info().name());
             procinfo.BindString("args", proc.info().args());
-            procinfo.BindInt("start_time", proc.info().start_time());
+            procinfo.BindDouble("start_time", proc.info().start_time());
             database_->QueueSqlStatement(procinfo.get_statement());
         }
 
@@ -432,9 +432,9 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
         procstmt.BindDouble("cpu_utilization", proc.cpu_utilization());
         procstmt.BindDouble("phys_mem_utilization", proc.phys_mem_utilization());
         procstmt.BindInt("thread_count", proc.thread_count());
-        procstmt.BindInt("disk_read", proc.disk_read());
-        procstmt.BindInt("disk_written", proc.disk_written());
-        procstmt.BindInt("disk_total", proc.disk_total());
+        procstmt.BindInt("disk_read", (int)(proc.disk_read()));
+        procstmt.BindInt("disk_written", (int)(proc.disk_written()));
+        procstmt.BindInt("disk_total", (int)(proc.disk_total()));
         procstmt.BindString("state", ProcessStatus::State_Name(proc.state()));
         database_->QueueSqlStatement(procstmt.get_statement());
     }
@@ -456,7 +456,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
             ifinfo.BindString("ipv4_addr", ifstat.info().ipv4_addr());
             ifinfo.BindString("ipv6_addr", ifstat.info().ipv6_addr());
             ifinfo.BindString("mac_addr", ifstat.info().mac_addr());
-            ifinfo.BindInt("speed", ifstat.info().speed());
+            ifinfo.BindInt("speed", (int)(ifstat.info().speed()));
 
             database_->QueueSqlStatement(ifinfo.get_statement());
         }
@@ -465,10 +465,10 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
         ifstatement.BindInt(LOGAN_MESSAGE_ID, message_id);
         ifstatement.BindDouble(LOGAN_TIMEOFDAY, timestamp);
         ifstatement.BindString(LOGAN_NAME, ifstat.name());
-        ifstatement.BindInt("rx_packets", ifstat.rx_packets());
-        ifstatement.BindInt("rx_bytes", ifstat.rx_bytes());
-        ifstatement.BindInt("tx_packets", ifstat.tx_packets());
-        ifstatement.BindInt("tx_bytes", ifstat.tx_bytes());
+        ifstatement.BindInt("rx_packets", (int)(ifstat.rx_packets()));
+        ifstatement.BindInt("rx_bytes", (int)(ifstat.rx_bytes()));
+        ifstatement.BindInt("tx_packets", (int)(ifstat.tx_packets()));
+        ifstatement.BindInt("tx_bytes", (int)(ifstat.tx_bytes()));
         database_->QueueSqlStatement(ifstatement.get_statement());
     }
 
@@ -484,7 +484,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
             fsinfo.BindDouble(LOGAN_TIMEOFDAY, timestamp);                        
             fsinfo.BindString(LOGAN_NAME, fss.name());
             fsinfo.BindString("type", FileSystemStatus::FileSystemInfo::Type_Name(fss.info().type()));
-            fsinfo.BindInt("size", fss.info().size());
+            fsinfo.BindInt("size", (int)(fss.info().size()));
             database_->QueueSqlStatement(fsinfo.get_statement());
         }
 

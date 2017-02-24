@@ -100,15 +100,15 @@ double SigarSystemInfo::get_cpu_overall_utilization() const{
 
 
 int SigarSystemInfo::get_phys_mem() const{
-    return phys_mem_.total / (1024 * 1024);
+    return (int)(phys_mem_.total / (1024 * 1024));
 }
 
 int SigarSystemInfo::get_phys_mem_reserved() const{
-    return phys_mem_.actual_used / (1024 * 1024);
+    return (int)(phys_mem_.actual_used / (1024 * 1024));
 }
 
 int SigarSystemInfo::get_phys_mem_free() const{
-    return phys_mem_.free / (1024 * 1024);
+    return (int)(phys_mem_.free / (1024 * 1024));
 }
 
 double SigarSystemInfo::get_phys_mem_utilization() const{
@@ -152,7 +152,7 @@ bool SigarSystemInfo::update_cpu(){
         
         //Fill the CPU Vector
         cpus_.resize(cpu_list.number);
-        for(int i = 0; i < cpu_list.number; i++){
+        for(size_t i = 0; i < cpu_list.number; i++){
             //Fill in the data
             cpus_[i].cpu = cpu_list.data[i];
             cpus_[i].info = cpu_info_list.data[i];
@@ -163,7 +163,7 @@ bool SigarSystemInfo::update_cpu(){
     }
 
     CPU cpu;
-    for(int i = 0; i < cpu_list.number; i++){
+    for(size_t i = 0; i < cpu_list.number; i++){
         cpu = cpus_[i];
         
         sigar_cpu_t current_cpu = cpu_list.data[i];
@@ -231,7 +231,7 @@ bool SigarSystemInfo::update_filesystems(){
     int validCount = 0;
 
     FileSystem fs;
-    for(int i = 0; i < fs_list.number; i++){
+    for(size_t i = 0; i < fs_list.number; i++){
         fs.system = fs_list.data[i];
 
         switch(fs.system.type){
@@ -276,7 +276,7 @@ bool SigarSystemInfo::update_interfaces(){
 
 
     Interface interface;
-    for(int i = 0; i < interface_list.number; i++){
+    for(size_t i = 0; i < interface_list.number; i++){
         interface.name = interface_list.data[i];
 
         //Get the latest stats
@@ -316,17 +316,17 @@ std::string SigarSystemInfo::get_interface_type(const int interface_index) const
 
 bool SigarSystemInfo::get_interface_state(const int interface_index, SystemInfo::InterfaceState state) const{
     if(interface_index < get_interface_count()){
-        int interfaceFlags = interfaces_[interface_index].config.flags;
+        int interfaceFlags = (int)(interfaces_[interface_index].config.flags);
 
         switch(state){
             case SystemInfo::InterfaceState::LOOPBACK:{
-                return interfaceFlags & SIGAR_IFF_LOOPBACK;
+                return (interfaceFlags & SIGAR_IFF_LOOPBACK);
             }
             case SystemInfo::InterfaceState::UP:{
-                return interfaceFlags & SIGAR_IFF_UP;
+                return (interfaceFlags & SIGAR_IFF_UP);
             }
             case SystemInfo::InterfaceState::RUNNING:{
-                return interfaceFlags & SIGAR_IFF_RUNNING;
+                return (interfaceFlags & SIGAR_IFF_RUNNING);
             }
             default:{
                 break;
@@ -491,28 +491,28 @@ SystemInfo::FileSystemType SigarSystemInfo::get_fs_type(const int fs_index) cons
         
 int SigarSystemInfo::get_fs_size(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        return filesystems_[fs_index].usage.total / 1024;
+        return (int)(filesystems_[fs_index].usage.total / 1024);
     }
     return -1;
 }
 int SigarSystemInfo::get_fs_free(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        return filesystems_[fs_index].usage.avail / 1024;
+        return (int)(filesystems_[fs_index].usage.avail / 1024);
     }
     return -1;
 }
 
 int SigarSystemInfo::get_fs_used(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        return filesystems_[fs_index].usage.used / 1024;
+        return (int)(filesystems_[fs_index].usage.used / 1024);
     }
     return -1;
 }
 
 double SigarSystemInfo::get_fs_utilization(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        double used = filesystems_[fs_index].usage.used;
-        double total = filesystems_[fs_index].usage.total;
+        double used = (double)(filesystems_[fs_index].usage.used);
+        double total = (double)(filesystems_[fs_index].usage.total);
         if(total > 0){
             return used / total;
         }
@@ -592,7 +592,7 @@ double SigarSystemInfo::get_monitored_process_cpu_utilization(const int pid) con
 
 int SigarSystemInfo::get_monitored_process_phys_mem_used(const int pid) const{
     if(processes_.count(pid)){
-        return processes_.at(pid)->mem.resident;
+        return (int)(processes_.at(pid)->mem.resident);
     }
     return -1;
 }
@@ -610,7 +610,7 @@ double SigarSystemInfo::get_monitored_process_phys_mem_utilization(const int pid
 
 int SigarSystemInfo::get_monitored_process_thread_count(const int pid) const{
     if(processes_.count(pid)){
-        return processes_.at(pid)->state.threads;
+        return (int)(processes_.at(pid)->state.threads);
     }
     return -1;
 }
@@ -665,10 +665,10 @@ bool SigarSystemInfo::update_processes(){
 
     std::chrono::milliseconds t = get_current_time();
     for(size_t i = 0; i < process_list.number; i++){
-        int pid = process_list.data[i];
+        int pid = (int)(process_list.data[i]);
         current_pids_.insert(pid);
 
-        bool seenPIDBefore = processes_.count(pid);
+        bool seenPIDBefore = (bool)(processes_.count(pid));
         bool get_info = !seenPIDBefore;
         
         if(seenPIDBefore){
