@@ -7,11 +7,7 @@ ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string endpoint){
     context_ = new zmq::context_t(1);
     endpoint_ = endpoint;
 
-<<<<<<< HEAD
     logger_endpoint_ = "tcp://192.168.111.86:8000";
-=======
-    logger_endpoint_ = "tcp://192.168.111.87:8000";
->>>>>>> 39f8fdb152f8782fca2c30272ba577013c167af2
 
     //Start the registration thread
     registration_thread_ = new std::thread(&ZMQSlave::RegistrationLoop, this);
