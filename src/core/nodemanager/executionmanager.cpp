@@ -1,7 +1,7 @@
 #include "executionmanager.h"
 #include <iostream>
 #include <map>
-#include "controlmessage.pb.h"
+#include "../controlmessage/controlmessage.pb.h"
 #include "zmqmaster.h"
 
 void set_attr_string(NodeManager::Attribute* attr, std::string val){
@@ -422,14 +422,14 @@ void ExecutionManager::ExecutionLoop(){
                     std::string kind = GetDataValue(p_id, "kind");
 
                     if(event_port->kind == "OutEventPortInstance"){
-                        port_pb->set_type(NodeManager::EventPort::OUT);
+                        port_pb->set_type(NodeManager::EventPort::OUT_PORT);
                     } else if(event_port->kind == "InEventPortInstance"){
-                        port_pb->set_type(NodeManager::EventPort::IN);                    
+                        port_pb->set_type(NodeManager::EventPort::IN_PORT);                    
                     } else if(event_port->kind == "PeriodicEvent"){
-                        port_pb->set_type(NodeManager::EventPort::PERIODIC);
+                        port_pb->set_type(NodeManager::EventPort::PERIODIC_PORT);
                     }
 
-                    if(port_pb->type() != NodeManager::EventPort::PERIODIC){
+                    if(port_pb->type() != NodeManager::EventPort::PERIODIC_PORT){
 
 
                         std::string port_middleware = event_port->middleware;
@@ -461,7 +461,7 @@ void ExecutionManager::ExecutionLoop(){
                         broker->set_type(NodeManager::Attribute::STRING);
                         set_attr_string(broker, "localhost:5672"); 
 
-                        if(port_pb->type() == NodeManager::EventPort::OUT){
+                        if(port_pb->type() == NodeManager::EventPort::OUT_PORT){
                             HardwareNode* node = GetHardwareNode(component->node_id);
                             if(node){
                                 if(event_port->port_number > 0){
@@ -481,7 +481,7 @@ void ExecutionManager::ExecutionLoop(){
                                 set_attr_string(publisher_pb, component->name + event_port->name);
 
                             }
-                        }else if(port_pb->type() == NodeManager::EventPort::IN){
+                        }else if(port_pb->type() == NodeManager::EventPort::IN_PORT){
                             auto publisher_addr_pb = port_pb->add_attributes();
                             publisher_addr_pb->set_name("publisher_address");
                             publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);

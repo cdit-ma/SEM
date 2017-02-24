@@ -1,19 +1,20 @@
 #include <iostream>
 #include <vector>
 #include <string>
+
+#include "../controlmessage/controlmessage.pb.h"
+#include "../modellogger.h"
+
 #include "deploymentmanager.h"
 
 #include "zmqmaster.h"
 #include "zmqslave.h"
 
-#include "controlmessage.pb.h"
-#include <google/protobuf/message_lite.h>
-
-#include "boost/program_options.hpp"
+#include <boost/program_options.hpp>
 
 std::string VERSION_NAME = "re_node_manager";
 std::string VERSION_NUMBER = "1.0";
-#include "../modellogger.h"
+
 
 int main(int argc, char **argv)
 {
@@ -76,9 +77,8 @@ int main(int argc, char **argv)
         std::cout << "Starting MASTER on " << master_endpoint << std::endl;
         master = new ZMQMaster(master_endpoint, graphml_path);
     }else{
-
-        
-        //ModelLogger::get_model_logger();
+        //Construct the model logger
+        ModelLogger::get_model_logger();
     }
     
     if(deployment_manager){
@@ -122,9 +122,9 @@ int main(int argc, char **argv)
 
             std::cout << "Enter Action: ";
             std::getline(std::cin, action);
-
-            NodeManager::ControlMessage_Type t;
-            bool success = NodeManager::ControlMessage_Type_Parse(action, &t);
+            
+            NodeManager::ControlMessage::Type t;
+            bool success = NodeManager::ControlMessage::Type_Parse(action, &t);
 
             if(success){
                 NodeManager::ControlMessage* cm = new NodeManager::ControlMessage();
@@ -153,6 +153,8 @@ int main(int argc, char **argv)
 
                 master->SendAction(host, cm);
             }
+            
+            
         }
     }
 
@@ -175,7 +177,7 @@ int main(int argc, char **argv)
     delete deployment_manager;
     
     std::cout << "PASSIVATING LOGGER" << std::endl;
-    ModelLogger::shutdown_logger();
+    //ModelLogger::shutdown_logger();
     
     return 0;
 }

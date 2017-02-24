@@ -3,11 +3,19 @@
 #include <algorithm>
 #include <string>
 
-#include <dlfcn.h>
 
-#include "../translate.h"
+#ifdef _WIN32
+    #include <windows.h>
+    #include <stdio.h>
+#else
+    #include <dlfcn.h>
+#endif
+
+
 #include "../periodiceventport.h"
-#include "controlmessage.pb.h"
+
+#include "../controlmessage/controlmessage.pb.h"
+#include "../controlmessage/translate.h"
 
 
 
@@ -27,7 +35,7 @@ NodeContainer::~NodeContainer(){
 
     for(auto it=loaded_libraries_.begin(); it!=loaded_libraries_.end();){
         auto lib_handle = it->second;
-        if(dlclose(lib_handle)){
+        if(CloseLibrary_(lib_handle)){
             std::cout << "DLL Closed: " << it->first << std::endl;
         }
         it = loaded_libraries_.erase(it);
@@ -81,15 +89,15 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
 
                 if(!port){
                     switch(p.type()){
-                        case NodeManager::EventPort::IN:{
+                        case NodeManager::EventPort::IN_PORT:{
                             port = ConstructRx(middleware, p.message_type(), component, p.name());
                             break;
                         }
-                        case NodeManager::EventPort::OUT:{
+                        case NodeManager::EventPort::OUT_PORT:{
                             port = ConstructTx(middleware, p.message_type(), component, p.name());
                             break;
                         }
-                        case NodeManager::EventPort::PERIODIC:{
+                        case NodeManager::EventPort::PERIODIC_PORT:{
                             port = ConstructPeriodicEvent(component, p.name());
                             break;
                         }
@@ -170,19 +178,26 @@ Component* NodeContainer::GetComponent(std::string component_name){
     }
 }
 
-void* NodeContainer::LoadLibrary(std::string library_path){
+void* NodeContainer::LoadLibrary_(std::string library_path){
     //If we haven't seen the library_path before, try and load it.
     if(!loaded_libraries_.count(library_path)){
         auto start = std::chrono::system_clock::now();
-        //Get a handle to the dynamically linked library
-        void* lib_handle = dlopen(library_path.c_str(), RTLD_LAZY);
+
+        void* lib_handle = 0;
+        #ifdef _WIN32
+            lib_handle = LoadLibrary(library_path.c_str());
+        #else
+            //Get a handle to the dynamically linked library
+            lib_handle = dlopen(library_path.c_str(), RTLD_LAZY);
+        #endif
+
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> diff = end-start;
-        std::cout << "dlopen: " << library_path <<  " " << (diff).count() << " μs" << std::endl;
+        std::cout << "Load Library: " << library_path <<  " " << (diff).count() << " μs" << std::endl;
         
         //Check for errors
-        char* error = dlerror();
-        if(error){
+        std::string error = GetLibraryError();
+        if(!error.empty()){
             std::cerr << "DLL Error: " << error << std::endl;
         }else{
             //Add it to the map of loaded libraries
@@ -198,22 +213,64 @@ void* NodeContainer::LoadLibrary(std::string library_path){
     return 0;
 }
 
-void* NodeContainer::GetLibraryFunction(std::string library_path, std::string function_name){
-    void* lib_handle = LoadLibrary(library_path);
-    return GetLibraryFunction(lib_handle, function_name);
+bool NodeContainer::CloseLibrary_(void* lib){
+    //If we haven't seen the library_path before, try and load it.
+    bool closed = false;
+    if(lib){
+        #ifdef _WIN32
+            closed = FreeLibrary((HMODULE)lib);
+        #else
+            closed = dlclose(lib);
+        #endif
+    }
+    return closed;
+}
+std::string NodeContainer::GetLibraryError(){
+    std::string message;
+    #ifdef _WIN32
+        DWORD error_id = ::GetLastError();
+        if(!error_id){
+            return message;
+        }
+        LPSTR buffer = nullptr;
+        //Fill the buffer and get the size.
+        size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, error_id, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&buffer, 0, NULL);
+        //Copy into our return parameter
+        message = std::string(buffer, size);
+
+        //Free the buffer.
+        LocalFree(buffer);
+    #elif
+        char* error = dlerror();
+        message = std::string(error);
+    #endif
+    return message;
 }
 
-void* NodeContainer::GetLibraryFunction(void* lib_handle, std::string function_name){
+void* NodeContainer::GetLibraryFunction_(std::string library_path, std::string function_name){
+    void* lib_handle = LoadLibrary_(library_path);
+    return GetLibraryFunction_(lib_handle, function_name);
+}
+
+void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_name){
     if(lib_handle){
-        char* error = dlerror();
+        //Clear the library error
+        GetLibraryError();
+        
         auto start = std::chrono::system_clock::now();
-        void* function = dlsym(lib_handle, function_name.c_str());
+        void* function = 0;
+        #ifdef _WIN32
+            function = (void*)GetProcAddress((HMODULE)lib_handle, function_name.c_str());
+        #elif
+            function = dlsym(lib_handle, function_name.c_str());
+        #endif
+        
         auto end = std::chrono::system_clock::now();
         
         std::cout << "dlsym: " << function_name << (end - start).count() << " μs" << std::endl;
         
-        error = dlerror();
-        if(function && !error){
+        auto error = GetLibraryError();
+        if(function && !error.empty()){
             return function;
         }else{
             std::cerr << "DLL Error Linking '" + function_name + "': " << error << std::endl;
@@ -232,7 +289,7 @@ EventPort* NodeContainer::ConstructTx(std::string middleware, std::string dataty
         auto lib_path = library_path_ + "/lib" + p + ".so";
 
         //Get the function
-        void* function = GetLibraryFunction(lib_path, "ConstructTx");
+        void* function = GetLibraryFunction_(lib_path, "ConstructTx");
         if(function){
             //Cast as EventPort* ConstructRx(std::string, std::string, Component*)
             auto typed_function = (EventPort* (*) (std::string, Component*)) function;
@@ -255,7 +312,7 @@ EventPort* NodeContainer::ConstructRx(std::string middleware, std::string dataty
         auto lib_path = library_path_ + "/lib" + p + ".so";
 
         //Get the function
-        void* function = GetLibraryFunction(lib_path, "ConstructRx");
+        void* function = GetLibraryFunction_(lib_path, "ConstructRx");
         if(function){
             //Cast as EventPort* ConstructRx(std::string, std::string, Component*)
             auto typed_function = (EventPort* (*) (std::string, Component*)) function;
@@ -276,7 +333,7 @@ Component* NodeContainer::ConstructComponent(std::string component_type, std::st
         auto lib_path = library_path_ + "/libcomponents_" + to_lower(component_type) + ".so";
 
         //Get the function
-        void* function = GetLibraryFunction(lib_path, "ConstructComponent");
+        void* function = GetLibraryFunction_(lib_path, "ConstructComponent");
         if(function){
             //Cast as Component* ConstructComponent(std::string)
             auto typed_function = (Component* (*) (std::string)) function;

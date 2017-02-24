@@ -34,9 +34,13 @@ class NodeContainer{
 
     private:
         //DLL functions
-        void* LoadLibrary(std::string dll_path);
-        void* GetLibraryFunction(std::string dll_path, std::string function_name);
-        void* GetLibraryFunction(void* lib_handle, std::string function_name);
+        void* LoadLibrary_(std::string dll_path);
+        bool CloseLibrary_(void* lib);
+
+        std::string GetLibraryError();
+        
+        void* GetLibraryFunction_(std::string dll_path, std::string function_name);
+        void* GetLibraryFunction_(void* lib_handle, std::string function_name);
 
         void AddTxConstructor(std::string middleware, TxConstructor constructor);
         void AddRxConstructor(std::string middleware, TxConstructor constructor);

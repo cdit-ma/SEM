@@ -1,9 +1,11 @@
 #include "deploymentmanager.h"
-#include <dlfcn.h>
-#include <iostream>
-#include "../translate.h"
 
-#include "controlmessage.pb.h"
+
+#include <iostream>
+
+
+#include "../controlmessage/controlmessage.pb.h"
+#include "../controlmessage/translate.h"
 
 DeploymentManager::DeploymentManager(std::string library_path){
     library_path_ = library_path;

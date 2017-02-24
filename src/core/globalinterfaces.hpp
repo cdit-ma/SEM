@@ -1,6 +1,10 @@
 #ifndef GLOBALINTERFACES_H
 #define GLOBALINTERFACES_H
 
-#define EXPORT_FUNC __attribute__((visibility("default")))
+#if defined(_WIN32) || defined(__WIN32__)
+	#define EXPORT_FUNC __declspec(dllexport)
+#elif
+	#define EXPORT_FUNC __attribute__((visibility("default")))
+#endif
 
 #endif //GLOBALINTERFACES_H
