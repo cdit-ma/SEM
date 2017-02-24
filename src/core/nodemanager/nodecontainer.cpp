@@ -272,7 +272,7 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
         std::cout << "dlsym: " << function_name << (end - start).count() << " μs" << std::endl;
         
         auto error = GetLibraryError();
-        if(function && !error.empty()){
+        if(function && error.empty()){
             return function;
         }else{
             std::cerr << "DLL Error Linking '" + function_name + "': " << error << std::endl;
