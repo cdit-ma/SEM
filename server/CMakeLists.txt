@@ -13,7 +13,8 @@ project (${PROJ_NAME})
 find_package(Protobuf REQUIRED)
 include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
 
-set(Boost_USE_STATIC_LIBS ON)
+#Link against boost dynamically
+add_definitions(-DBOOST_ALL_DYN_LINK)
 #Need boost > 1.30.0 system and filesystem for crossplatform temp file creation.
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})

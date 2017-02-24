@@ -17,7 +17,8 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 find_package(SIGAR REQUIRED)
 include_directories(${SIGAR_INCLUDE_DIRS})
 
-set(Boost_USE_STATIC_LIBS ON)
+#Link against boost dynamically
+add_definitions(-DBOOST_ALL_DYN_LINK)
 #Need boost > 1.30.0 system and filesystem for crossplatform temp file creation.
 find_package(Boost 1.30.0 COMPONENTS program_options filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
