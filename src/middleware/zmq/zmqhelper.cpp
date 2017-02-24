@@ -1,5 +1,7 @@
 #include "zmqhelper.h"
 #include <iostream>
+//Include ZMQ Headers
+#include <zmq.hpp>
 
 zmq::ZmqHelper* zmq::ZmqHelper::singleton_ = 0;
 std::mutex zmq::ZmqHelper::global_mutex_;

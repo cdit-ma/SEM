@@ -5,7 +5,8 @@
 #include "component.h"
 #include "eventport.h"
 
-#include "../re_common/zmqprotowriter/zmqmessagewriter.h"
+class ZMQMessageWriter;
+
 
 class ModelLogger{
     public:

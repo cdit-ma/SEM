@@ -3,6 +3,7 @@
 #include <ctime>
 #include <iostream>
 
+#include "../re_common/zmqprotowriter/zmqmessagewriter.h"
 #include "../re_common/zmqprotowriter/cachedzmqmessagewriter.h"
 #include "../re_common/proto/modelevent/modelevent.pb.h"
 
