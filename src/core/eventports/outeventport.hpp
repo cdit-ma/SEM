@@ -12,7 +12,7 @@ template <class T> class OutEventPort: public EventPort{
         EventPort(component, name, EventPort::Type::TX){}
         virtual ~OutEventPort(){};
         virtual void tx(T*){
-            if(is_active()){
+            if(is_active() && logger()){
                 logger()->LogMessageEvent(this);
             }
         }
