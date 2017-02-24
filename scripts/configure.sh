@@ -9,7 +9,7 @@ RE_LIB_PATH=$RE_PATH/lib/
 if [ "$(uname)" == "Darwin" ]; then
     PUGIXML_ROOT="/Users/dan/pugixml-1.8/"
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    PUGIXML_ROOT="/home/dig/Downloads/pugixml-1.8/"
+    PUGIXML_ROOT="/opt/pugixml-1.8/"
 fi
 
 echo "Library Path: $RE_LIB_PATH"

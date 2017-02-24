@@ -45,6 +45,7 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 include_directories(${ZMQ_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+add_library(${PROJ_NAME} SHARED ${CORE_SOURCE} ${CORE_HEADERS})
 if (MSVC)
 	#Windows requires protobuf in DLLs
     add_definitions(-DPROTOBUF_USE_DLLS)
@@ -54,7 +55,6 @@ elseif(UNIX)
 	target_link_libraries(${PROJ_NAME} pthread)
 endif(MSVC)
 
-add_library(${PROJ_NAME} SHARED ${CORE_SOURCE} ${CORE_HEADERS})
 
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
