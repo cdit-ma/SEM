@@ -240,7 +240,7 @@ std::string NodeContainer::GetLibraryError(){
 
         //Free the buffer.
         LocalFree(buffer);
-    #elif
+    #else
         char* error = dlerror();
         message = std::string(error);
     #endif
@@ -261,7 +261,7 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
         void* function = 0;
         #ifdef _WIN32
             function = (void*)GetProcAddress((HMODULE)lib_handle, function_name.c_str());
-        #elif
+        #else
             function = dlsym(lib_handle, function_name.c_str());
         #endif
         
