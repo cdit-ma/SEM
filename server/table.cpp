@@ -49,7 +49,7 @@ void Table::ConstructTableStatement(){
         //Create table
         ss << CREATE_TABLE_PREFIX << " " << table_name_ << " (";
         ss << LID_INSERT << " ";
-        for(int i = 1; i < columns_.size(); i++){
+        for(size_t i = 1; i < columns_.size(); i++){
             auto c = columns_[i];
             ss << c->column_name_ << " " << c->column_type_;
 
@@ -94,7 +94,7 @@ void Table::Finalize(){
         //Create table
         top_ss << INSERT_TABLE_PREFIX << " " << table_name_ << " (";
         bottom_ss << " VALUES (";
-        for(int i = 1; i < columns_.size(); i++){
+        for(size_t i = 1; i < columns_.size(); i++){
             auto c = columns_[i];
             top_ss << c->column_name_;
             bottom_ss << "?" << std::to_string(i);
