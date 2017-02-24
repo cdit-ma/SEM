@@ -19,6 +19,7 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 find_package(ZMQ REQUIRED)
 include_directories(${ZMQ_INCLUDE_DIRS})
 
+set(Boost_USE_STATIC_LIBS ON)
 #Need boost > 1.30.0 system and filesystem for crossplatform temp file creation.
 find_package(Boost 1.30.0 COMPONENTS filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -32,6 +33,8 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/cachedzmqmessagewriter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqmessagewriter.h
     )
+
+
 
 if (MSVC)
     #Windows requires protobuf in DLLs
