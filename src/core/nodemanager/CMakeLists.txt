@@ -17,7 +17,7 @@ find_package(Protobuf REQUIRED)
 find_package(ZMQ REQUIRED)
 
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.36.0 COMPONENTS program_options REQUIRED)
+find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 
 #Find PUGIXML Library
