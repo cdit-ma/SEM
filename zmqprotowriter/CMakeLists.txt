@@ -34,14 +34,10 @@ set(HEADERS
     )
 
 if (MSVC)
-<<<<<<< HEAD
-	#Visual studio needs to be told to build in Multithreaded Static mode
-=======
-	#Windows requires protobuf in DLLs
+    #Windows requires protobuf in DLLs
     add_definitions(-DPROTOBUF_USE_DLLS)
-	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
->>>>>>> test
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+    #Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif()
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
