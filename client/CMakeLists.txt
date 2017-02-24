@@ -12,11 +12,12 @@ set(PROJ_NAME logan_client)
 project (${PROJ_NAME})
 
 find_package(Protobuf REQUIRED)
-include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 find_package(SIGAR REQUIRED)
-include_directories(${PROJ_NAME} ${SIGAR_INCLUDE_DIRS})
+include_directories(${SIGAR_INCLUDE_DIRS})
 
+set(Boost_USE_STATIC_LIBS ON)
 #Need boost > 1.30.0 system and filesystem for crossplatform temp file creation.
 find_package(Boost 1.30.0 COMPONENTS program_options filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
