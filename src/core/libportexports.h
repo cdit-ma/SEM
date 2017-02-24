@@ -5,9 +5,16 @@
 #include "component.h"
 #include <string>
 
+#ifdef _WIN32
+    #define WIN_DLL_EXPORT __declspec(dllexport)
+#else
+    #define WIN_DLL_EXPORT
+#endif
+
+
 extern "C"{
-    EventPort* ConstructRx(std::string port_name, Component* component);
-    EventPort* ConstructTx(std::string port_name, Component* component);
+    WIN_DLL_EXPORT EventPort* ConstructRx(std::string port_name, Component* component);
+    WIN_DLL_EXPORT EventPort* ConstructTx(std::string port_name, Component* component);
 }
 
 #endif //CORE_LIBPORTEXPORTS_H
