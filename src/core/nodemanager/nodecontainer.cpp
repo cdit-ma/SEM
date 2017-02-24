@@ -242,7 +242,9 @@ std::string NodeContainer::GetLibraryError(){
         LocalFree(buffer);
     #else
         char* error = dlerror();
-        message = std::string(error);
+        if(error){
+            message = std::string(error);
+        }
     #endif
     return message;
 }
@@ -285,8 +287,8 @@ EventPort* NodeContainer::ConstructTx(std::string middleware, std::string dataty
     auto p = to_lower(middleware + "_" + datatype);
     std::cout << p << std::endl;
     if(!tx_constructors_.count(p)){
-        //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + ".so";
-        auto lib_path = library_path_ + "/lib" + p + ".so";
+        //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + GetLibraryExtension();
+        auto lib_path = library_path_ + "/lib" + p + GetLibraryExtension();
 
         //Get the function
         void* function = GetLibraryFunction_(lib_path, "ConstructTx");
@@ -308,8 +310,8 @@ EventPort* NodeContainer::ConstructRx(std::string middleware, std::string dataty
     auto p = to_lower(middleware + "_" + datatype);
     std::cout << p << std::endl;
     if(!rx_constructors_.count(p)){
-        //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + ".so";
-        auto lib_path = library_path_ + "/lib" + p + ".so";
+        //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + GetLibraryExtension();
+        auto lib_path = library_path_ + "/lib" + p + GetLibraryExtension();
 
         //Get the function
         void* function = GetLibraryFunction_(lib_path, "ConstructRx");
@@ -327,10 +329,18 @@ EventPort* NodeContainer::ConstructRx(std::string middleware, std::string dataty
     return 0;
 }
 
+std::string NodeContainer::GetLibraryExtension() const{
+     #ifdef _WIN32
+        return ".dll";
+    #else
+        return ".so";
+    #endif
+}
+
 Component* NodeContainer::ConstructComponent(std::string component_type, std::string component_name){
     Component* c = 0;
     if(!component_constructors_.count(component_type)){
-        auto lib_path = library_path_ + "/libcomponents_" + to_lower(component_type) + ".so";
+        auto lib_path = library_path_ + "/libcomponents_" + to_lower(component_type) + GetLibraryExtension();
 
         //Get the function
         void* function = GetLibraryFunction_(lib_path, "ConstructComponent");

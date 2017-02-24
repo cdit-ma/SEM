@@ -80,7 +80,7 @@ void ZMQSlave::RegistrationLoop(){
 
 void ZMQSlave::ActionSubscriberLoop(){
     //Run Logger stuff!
-    ModelLogger::setup_model_logger(host_name_, logger_endpoint_, true);
+    //ModelLogger::setup_model_logger(host_name_, logger_endpoint_, true);
     //Construct a filter for this hostname
     //Add a * char so we don't get messages for other similar hosts.
     //gouda1 would match gouda11 but gouda1* doesn't match gouda11*
@@ -88,6 +88,8 @@ void ZMQSlave::ActionSubscriberLoop(){
 
     //Construct a Subscriber socket and connect
     auto socket = zmq::socket_t(*context_, ZMQ_SUB);
+
+    std::cout << "Connecting to: " << master_server_address_ << std::endl;
     socket.connect(master_server_address_.c_str());
 
     //Filter the global messages
