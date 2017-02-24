@@ -25,7 +25,9 @@ bool Component::Activate(){
         std::cout << "ACTIVATING: " << e.second->get_name() << std::endl;
     }
     Activatable::Activate();
-    logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::ACTIVATED);
+    if(logger()){
+        logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::ACTIVATED);
+    }
     return true;
 }
 
@@ -34,8 +36,9 @@ bool Component::Passivate(){
         e.second->Passivate();
     }
     Activatable::Passivate();
-
-    logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
+    if(logger()){
+        logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
+    }
     return true;
 }
 
