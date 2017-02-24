@@ -1,6 +1,7 @@
 #include "zmqmessagewriter.h"
 #include <iostream>
 #include <zmq.hpp>
+#include <google/protobuf/message_lite.h>
 ZMQMessageWriter::ZMQMessageWriter(){
     context_ = new zmq::context_t();
     socket_ = new zmq::socket_t(*context_, ZMQ_PUB);
