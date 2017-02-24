@@ -16,7 +16,8 @@ find_package(Protobuf REQUIRED)
 #Find ZeroMQ
 find_package(ZMQ REQUIRED)
 
-set(Boost_USE_STATIC_LIBS ON)
+#Link against boost dynamically
+add_definitions(-DBOOST_ALL_DYN_LINK)
 find_package(Boost 1.30.0 COMPONENTS program_options REQUIRED)
 
 
