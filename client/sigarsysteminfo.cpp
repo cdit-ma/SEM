@@ -320,13 +320,13 @@ bool SigarSystemInfo::get_interface_state(const int interface_index, SystemInfo:
 
         switch(state){
             case SystemInfo::InterfaceState::LOOPBACK:{
-                return (interfaceFlags & SIGAR_IFF_LOOPBACK);
+                return (interfaceFlags & SIGAR_IFF_LOOPBACK) != 0;
             }
             case SystemInfo::InterfaceState::UP:{
-                return (interfaceFlags & SIGAR_IFF_UP);
+                return (interfaceFlags & SIGAR_IFF_UP) != 0;
             }
             case SystemInfo::InterfaceState::RUNNING:{
-                return (interfaceFlags & SIGAR_IFF_RUNNING);
+                return (interfaceFlags & SIGAR_IFF_RUNNING) != 0;
             }
             default:{
                 break;
@@ -668,7 +668,7 @@ bool SigarSystemInfo::update_processes(){
         int pid = (int)(process_list.data[i]);
         current_pids_.insert(pid);
 
-        bool seenPIDBefore = (bool)(processes_.count(pid));
+        bool seenPIDBefore = processes_.count(pid) > 0;
         bool get_info = !seenPIDBefore;
         
         if(seenPIDBefore){
