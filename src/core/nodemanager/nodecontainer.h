@@ -37,7 +37,8 @@ class NodeContainer{
         void* LoadLibrary_(std::string dll_path);
         bool CloseLibrary_(void* lib);
 
-        std::string GetLibraryExtension() const;
+        std::string GetLibraryPrefix() const;
+        std::string GetLibrarySuffix() const;
 
         std::string GetLibraryError();
         

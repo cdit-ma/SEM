@@ -288,7 +288,7 @@ EventPort* NodeContainer::ConstructTx(std::string middleware, std::string dataty
     std::cout << p << std::endl;
     if(!tx_constructors_.count(p)){
         //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + GetLibraryExtension();
-        auto lib_path = library_path_ + "/lib" + p + GetLibraryExtension();
+        auto lib_path = library_path_ + "/" + GetLibraryPrefix() + p + GetLibrarySuffix();
 
         //Get the function
         void* function = GetLibraryFunction_(lib_path, "ConstructTx");
@@ -310,8 +310,7 @@ EventPort* NodeContainer::ConstructRx(std::string middleware, std::string dataty
     auto p = to_lower(middleware + "_" + datatype);
     std::cout << p << std::endl;
     if(!rx_constructors_.count(p)){
-        //auto lib_path = library_path_ + "/libports_" + to_lower(middleware) + GetLibraryExtension();
-        auto lib_path = library_path_ + "/lib" + p + GetLibraryExtension();
+        auto lib_path = library_path_ + "/" + GetLibraryPrefix() + p + GetLibrarySuffix();
 
         //Get the function
         void* function = GetLibraryFunction_(lib_path, "ConstructRx");
@@ -329,7 +328,7 @@ EventPort* NodeContainer::ConstructRx(std::string middleware, std::string dataty
     return 0;
 }
 
-std::string NodeContainer::GetLibraryExtension() const{
+std::string NodeContainer::GetLibrarySuffix() const{
      #ifdef _WIN32
         return ".dll";
     #else
@@ -337,10 +336,18 @@ std::string NodeContainer::GetLibraryExtension() const{
     #endif
 }
 
+std::string NodeContainer::GetLibraryPrefix() const{
+     #ifdef _WIN32
+        return "";
+    #else
+        return "lib";
+    #endif
+}
+
 Component* NodeContainer::ConstructComponent(std::string component_type, std::string component_name){
     Component* c = 0;
     if(!component_constructors_.count(component_type)){
-        auto lib_path = library_path_ + "/libcomponents_" + to_lower(component_type) + GetLibraryExtension();
+        auto lib_path = library_path_ + "/" + GetLibraryPrefix() + "components_" + to_lower(component_type) + GetLibrarySuffix();
 
         //Get the function
         void* function = GetLibraryFunction_(lib_path, "ConstructComponent");
