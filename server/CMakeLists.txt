@@ -54,7 +54,8 @@ target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 #Link against our Protobuf source/headers
 target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
-target_link_libraries(${PROJ_NAME} zmqprotoreceiver)
+target_link_libraries(${PROJ_NAME} zmq_protoreceiver)
+target_link_libraries(${PROJ_NAME} zmq_registrant)
 
 
 #Link against our required libraries

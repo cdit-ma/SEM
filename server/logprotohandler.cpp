@@ -8,7 +8,7 @@
 
 #include "../re_common/proto/modelevent/modelevent.pb.h"
 #include "../re_common/proto/systemstatus/systemstatus.pb.h"
-#include "../re_common/zmqprotoreceiver/zmqreceiver.h"
+#include "../re_common/zmq/protoreceiver/zmqreceiver.h"
 
 #define LOGAN_DECIMAL "DECIMAL"
 #define LOGAN_VARCHAR "VARCHAR"
@@ -85,6 +85,10 @@ LogProtoHandler::~LogProtoHandler(){
         delete itr->second;
         itr = table_map_.erase(itr);
     }
+}
+
+void LogProtoHandler::ClientConnected(std::string client_endpoint){
+    std::cout << "LogProtoHandler::ClientConnected: " << client_endpoint << std::endl;
 }
 
 void LogProtoHandler::CreateSystemStatusTable(){

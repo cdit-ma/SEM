@@ -50,9 +50,9 @@ endif()
 #include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-target_link_libraries(${PROJ_NAME} zmqprotowriter)
+target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
-
+target_link_libraries(${PROJ_NAME} zmq_registrar)
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${SIGAR_LIBRARIES})

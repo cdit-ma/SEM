@@ -1,10 +1,12 @@
 #include <condition_variable>
 #include <mutex>
 #include <signal.h>
+#include <functional>
 #include <iostream>
 #include <boost/program_options.hpp>
 
-#include "../re_common/zmqprotoreceiver/zmqreceiver.h"
+#include "../re_common/zmq/protoreceiver/zmqreceiver.h"
+#include "../re_common/zmq/registrant/registrant.h"
 #include "logprotohandler.h"
 #include "sqlitedatabase.h"
 
@@ -26,6 +28,7 @@ void signal_handler (int signal_value)
 	lock_condition_.notify_all();
 }
 
+
 int main(int ac, char** av)
 {
 	//Handle the SIGINT/SIGTERM signal
@@ -34,12 +37,14 @@ int main(int ac, char** av)
 
 	std::string port;
 	std::string ip_addr;
+	
 	std::string file_name;
 	std::vector<std::string> addresses;
 
 	//Parse command line options
 	boost::program_options::options_description desc("Options");
 	desc.add_options()("ip,I", boost::program_options::value<std::vector<std::string> >(&addresses)->multitoken(), "IP addresses to connect to");
+	desc.add_options()("register,r", boost::program_options::value<std::string>(&ip_addr)->default_value(DEFAULT_PORT), "IP REGISTRAR number");
 	desc.add_options()("port,p", boost::program_options::value<std::string>(&port)->default_value(DEFAULT_PORT), "Port number");
 	desc.add_options()("out-file,o", boost::program_options::value<std::string>(&file_name)->default_value(DEFAULT_FILE), "Output file name");
 	desc.add_options()("help,h", "Display help");
@@ -61,23 +66,39 @@ int main(int ac, char** av)
 		return 0;
 	}
 
-	std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
+	std::cout << "-------[" + VERSION_NAME + " v" + VERSION_NUMBER + "]-------" << std::endl;
 	std::cout << "* Output file: " << file_name << std::endl;
 	std::cout << "* Listening on port: " << port << std::endl;
 	std::cout << "* Listening to: " << std::endl;
 	for(auto s : addresses){		
+		
 		std::cout << "** " << s << std::endl;
 	}
 	std::cout << "---------------------------------" << std::endl;
-
+	
+	std::cout << "CONNECTING TO : " << ip_addr << std::endl;
+	
+	//LOGAN SERVER = Registrant (one who registers)
+	//START A REGISTRANT
+	auto registrant = new zmq::Registrant(ip_addr);
+	
 	ZMQReceiver* receiver = new ZMQReceiver();
+	receiver->Start();
+
 	SQLiteDatabase* sql_database = new SQLiteDatabase(file_name);
 	LogProtoHandler* proto_handler = new LogProtoHandler(receiver, sql_database);
+
+	//Register a callback into into the proto hanler class to register a new client
+	auto callback = [proto_handler, receiver](std::string endpoint, std::string) {proto_handler->ClientConnected(endpoint);receiver->Connect(endpoint);};
+	registrant->RegisterNotify(callback);
+
 	//Connect to our senders
 	for(auto s : addresses){
-		receiver->Connect(s);
+		std::cout << "CONNECTING: " << s << std::endl;
+		registrant->AddEndpoint(s);
 	}
-	receiver->Start();
+	
+	registrant->Start();
 
 	{
 		std::unique_lock<std::mutex> lock(mutex_);

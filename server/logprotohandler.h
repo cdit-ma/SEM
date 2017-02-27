@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include "sqlite3.h"
+
 #include <google/protobuf/message_lite.h>
 class Table;
 class ZMQReceiver;
@@ -14,7 +15,7 @@ class LogProtoHandler{
     public:
         LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database);
         ~LogProtoHandler();
-
+        void ClientConnected(std::string client_endpoint);
     private:
         void ProcessSystemStatus(google::protobuf::MessageLite* status);
         void ProcessLifecycleEvent(google::protobuf::MessageLite* message);
