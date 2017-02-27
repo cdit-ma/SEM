@@ -65,4 +65,3 @@ void ZMQMessageWriter::PushString(std::string * type, std::string *message){
 void ZMQMessageWriter::Terminate(){
     //Do nothing
 }
-    
