@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
-set(PROJ_NAME zmqprotowriter)
+set(PROJ_NAME zmq_protowriter)
 
 project (${PROJ_NAME})
 
