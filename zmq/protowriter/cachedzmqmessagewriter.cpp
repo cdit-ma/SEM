@@ -13,7 +13,7 @@ CachedZMQMessageWriter::CachedZMQMessageWriter(int cache_count) : ZMQMessageWrit
     cache_count_ = cache_count;
     //Get a temporary file location for our cached files
     auto temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
-    temp_file_path_ = temp.native();
+    temp_file_path_ = temp.string();
     std::cout << "Temporary file path: " << temp_file_path_ << std::endl;
 
     //Start the writer thread
@@ -32,8 +32,6 @@ void CachedZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message)
     //Push the message onto the queue
     write_queue_.push(message);
     log_count_ ++;
-
-    
     if(write_queue_.size() >= cache_count_){
         //Notify the writer_thread to flush the queue if we have hit our write limit
         queue_lock_condition_.notify_all();
@@ -98,6 +96,7 @@ void CachedZMQMessageWriter::WriteQueue(){
             //Swap the queue
             write_queue_.swap(replace_queue);
         }
+        
 
         if(replace_queue.empty()){
             //Ignore empty queue

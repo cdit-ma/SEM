@@ -3,8 +3,12 @@
 
 #include <mutex>
 #include <google/protobuf/message_lite.h>
-#include "zmq.hpp"
 
+
+namespace zmq{
+	class socket_t;
+	class context_t;
+}
 class ZMQMessageWriter{
     public:
         ZMQMessageWriter();

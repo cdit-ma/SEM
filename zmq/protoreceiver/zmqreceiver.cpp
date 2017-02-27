@@ -1,16 +1,10 @@
 #include "zmqreceiver.h"
 #include <iostream>
+#include <zmq.hpp>
 
-
-ZMQReceiver::ZMQReceiver(std::vector<std::string> addrs, std::string port, int batch_size){
-    port_ = port;
+ZMQReceiver::ZMQReceiver(int batch_size){
     batch_size_ = batch_size;
-
-    for(auto addr : addrs){
-        std::string temp = "tcp://" + addr + ":" + port;
-        addresses_.push_back(temp);
-    }
-
+    
     //Setup ZMQ context
     context_ = new zmq::context_t(1);
     
@@ -61,20 +55,27 @@ ZMQReceiver::~ZMQReceiver(){
 }
 
 void ZMQReceiver::RecieverThread(){
-    //Setup our Subscriber socket
-    socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
-	
-    //Subscribe to everything
-    socket_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
+    //Gain mutex lock to ensure we are the only thing working at this point.
+    {
+        std::unique_lock<std::mutex> lock(address_mutex_);
+        //Setup our Subscriber socket
+        socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
+        
+        //Subscribe to everything
+        socket_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
-    //Connect to our terminate inprocess socket
-    socket_->connect("inproc://term_signal");
 
-    //Connect to all nodes on our network
-	for (auto a : addresses_){
-	//	socket.connect(a.c_str());
-	}
-	
+        
+        //Connect to our terminate inprocess socket
+        socket_->connect("inproc://term_signal");
+
+        
+        //Connect to all nodes on our network
+        for (auto a : addresses_){
+            socket_->connect(a.c_str());
+        }
+    }
+
     zmq::message_t *type = new zmq::message_t();
     zmq::message_t *data = new zmq::message_t();
     
@@ -89,7 +90,6 @@ void ZMQReceiver::RecieverThread(){
             if(terminate_reciever_){
                 break;
             }
-            std::cout << "got message   " << std::endl;
 
             //If we have a valid message
             if(type->size() > 0 && data->size() > 0){
@@ -170,13 +170,21 @@ void ZMQReceiver::ProtoConvertThread(){
 }
 
 void ZMQReceiver::Connect(std::string address){
-    try{
-    if(socket_){
-	    socket_->connect(address.c_str());
-    }
+    //Obtain lock for the queue
+    std::unique_lock<std::mutex> lock(address_mutex_);
 
-    }
-    catch(zmq::error_t ex){
-        std::cout << zmq_strerror(ex.num()) << std::endl;
+    if(!reciever_thread_){
+        //Append to addresses.
+        addresses_.push_back(address);        
+    }else{
+        //If we have a reciever_thread_ active we can directly interact
+        try{
+            if(socket_){
+                socket_->connect(address.c_str());
+            }
+        }
+        catch(zmq::error_t ex){
+            std::cout << zmq_strerror(ex.num()) << std::endl;
+        }    
     }
 }
