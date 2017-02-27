@@ -86,9 +86,16 @@ void LogController::LogThread(){
 	
             //Get a new filled protobuf message
             SystemStatus* status = GetSystemStatus();
+
+            std::unique_lock<std::mutex> lock(queue_mutex_);
+            if(!one_time_info_){
+                std::cout << "Populating one time info" << std::endl;                
+                one_time_info_ = GetOneTimeInfo();
+                message_queue_.push(new OneTimeSystemInfo(*one_time_info_));
+                std::cout << "Populated one time info" << std::endl;
+            }
             
             //Lock the Queue, and notify the writer queue.
-            std::unique_lock<std::mutex> lock(queue_mutex_);
             message_queue_.push(status);
             queue_lock_condition_.notify_all();
         }
@@ -103,7 +110,7 @@ void LogController::LogThread(){
 
 void LogController::WriteThread(){
     while(!writer_terminate_){
-        std::queue<SystemStatus*> replace_queue;
+        std::queue<google::protobuf::MessageLite*> replace_queue;
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -128,6 +135,61 @@ void LogController::WriteThread(){
     std::cout << "Writer thread terminated." << std::endl;
 }
 
+OneTimeSystemInfo* LogController::GetOneTimeInfo(){
+    OneTimeSystemInfo* onetime_system_info = new OneTimeSystemInfo();
+
+    auto info = system_info_;
+
+    onetime_system_info->set_hostname(info->get_hostname());
+    onetime_system_info->set_timestamp(info->get_update_timestamp());
+
+    //Send OS Info
+    onetime_system_info->set_os_name(info->get_os_name());
+    onetime_system_info->set_os_arch(info->get_os_arch());
+    onetime_system_info->set_os_description(info->get_os_description());
+    onetime_system_info->set_os_version(info->get_os_version());
+    onetime_system_info->set_os_vendor(info->get_os_vendor());
+    onetime_system_info->set_os_vendor_name(info->get_os_vendor_name());
+
+    //Send Hardware Info
+    onetime_system_info->set_cpu_model(info->get_cpu_model());
+    onetime_system_info->set_cpu_vendor(info->get_cpu_vendor());
+    onetime_system_info->set_cpu_frequency(info->get_cpu_frequency());
+    onetime_system_info->set_physical_memory(info->get_phys_mem());
+
+    int fs_count = info->get_fs_count();
+    for(int i = 0; i < fs_count; i++){
+        FileSystemInfo* fss = onetime_system_info->add_file_system_info();    
+        //send onetime info
+        fss->set_name(info->get_fs_name(i));
+        fss->set_type((FileSystemInfo::Type)info->get_fs_type(i));
+        fss->set_size(info->get_fs_size(i));
+    }
+
+    int interface_count = info->get_interface_count();
+    for(int i = 0; i < interface_count; i++){ 
+        if(info->get_interface_state(i, SystemInfo::InterfaceState::UP)){
+            InterfaceInfo* is = onetime_system_info->add_interface_info();
+            //get onetime info
+            is->set_name(info->get_interface_name(i));            
+            is->set_type(info->get_interface_type(i));
+            is->set_description(info->get_interface_description(i));
+            is->set_ipv4_addr(info->get_interface_ipv4(i));
+            is->set_ipv6_addr(info->get_interface_ipv6(i));
+            is->set_mac_addr(info->get_interface_mac(i));
+            is->set_speed(info->get_interface_speed(i));
+        }
+    }
+
+/*
+    ps->set_name(info->get_process_name(pid));
+    ps->set_args(info->get_process_arguments(pid));
+    ps->set_start_time(info->get_monitored_process_start_time(pid));
+*/
+    return onetime_system_info;
+
+}
+
 SystemStatus* LogController::GetSystemStatus(){
     //Construct a protobuf message to fill with information
     SystemStatus* status = new SystemStatus();
@@ -139,32 +201,6 @@ SystemStatus* LogController::GetSystemStatus(){
     
     //Increment the message_id
     status->set_message_id(++message_id_);
-
-    //Send the SystemInfo once
-    if(!seen_hostnames_.count(info->get_hostname())){
-        SystemStatus::SystemInfo* sys_info = status->mutable_info();
-
-        if(status->has_info()){
-            
-        }
-
-        //Send OS Info
-        sys_info->set_os_name(info->get_os_name());
-        sys_info->set_os_arch(info->get_os_arch());
-        sys_info->set_os_description(info->get_os_description());
-        sys_info->set_os_version(info->get_os_version());
-        sys_info->set_os_vendor(info->get_os_vendor());
-        sys_info->set_os_vendor_name(info->get_os_vendor_name());
-
-        //Send Hardware Info
-        sys_info->set_cpu_model(info->get_cpu_model());
-        sys_info->set_cpu_vendor(info->get_cpu_vendor());
-        sys_info->set_cpu_frequency(info->get_cpu_frequency());
-        sys_info->set_physical_memory(info->get_phys_mem());
-
-        //Store the hostname
-        seen_hostnames_.insert(info->get_hostname());
-    }
     
 
     for(int i = 0; i < info->get_cpu_count(); i++){
@@ -198,12 +234,6 @@ SystemStatus* LogController::GetSystemStatus(){
 
             ps->set_state((ProcessStatus::State)info->get_process_state(pid));
 
-            if(!seen_pid){
-                //send onetime info
-                ps->mutable_info()->set_name(info->get_process_name(pid));
-                ps->mutable_info()->set_args(info->get_process_arguments(pid));
-                ps->mutable_info()->set_start_time(info->get_monitored_process_start_time(pid));
-            }
             ps->set_cpu_core_id(info->get_monitored_process_cpu(pid));
             ps->set_cpu_utilization(info->get_monitored_process_cpu_utilization(pid));
             ps->set_phys_mem_utilization(info->get_monitored_process_phys_mem_utilization(pid));
@@ -220,14 +250,6 @@ SystemStatus* LogController::GetSystemStatus(){
     int fs_count = info->get_fs_count();
     for(int i = 0; i < fs_count; i++){
         FileSystemStatus* fss = status->add_file_systems();
-        
-        if(!seen_fs_.count(info->get_fs_name(i))){
-            //send onetime info
-            fss->mutable_info()->set_type((FileSystemStatus::FileSystemInfo::Type)info->get_fs_type(i));
-            fss->mutable_info()->set_size(info->get_fs_size(i));
-            seen_fs_.insert(info->get_fs_name(i));
-        }
-        
         fss->set_name(info->get_fs_name(i));
         fss->set_utilization(info->get_fs_utilization(i));
     }
@@ -236,18 +258,6 @@ SystemStatus* LogController::GetSystemStatus(){
     for(int i = 0; i < interface_count; i++){ 
         if(info->get_interface_state(i, SystemInfo::InterfaceState::UP)){
             InterfaceStatus* is = status->add_interfaces();
-            
-            if(!seen_if_.count(info->get_interface_name(i))){
-                //get onetime info
-                is->mutable_info()->set_type(info->get_interface_type(i));
-                is->mutable_info()->set_description(info->get_interface_description(i));
-                is->mutable_info()->set_ipv4_addr(info->get_interface_ipv4(i));
-                is->mutable_info()->set_ipv6_addr(info->get_interface_ipv6(i));
-                is->mutable_info()->set_mac_addr(info->get_interface_mac(i));
-                is->mutable_info()->set_speed(info->get_interface_speed(i));
-                seen_if_.insert(info->get_interface_name(i));
-            }
-
             is->set_name(info->get_interface_name(i));
             is->set_rx_bytes(info->get_interface_rx_bytes(i));
             is->set_rx_packets(info->get_interface_rx_packets(i));

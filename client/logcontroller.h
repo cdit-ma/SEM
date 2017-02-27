@@ -11,7 +11,9 @@
 //Forward declare
 class SystemInfo;
 class SystemStatus;
+class OneTimeSystemInfo;
 class ZMQMessageWriter;
+namespace google{namespace protobuf{class MessageLite;};};
 
 class LogController{
     public:
@@ -26,6 +28,8 @@ class LogController{
         void TerminateWriter();
 
         SystemStatus* GetSystemStatus();
+        OneTimeSystemInfo* GetOneTimeInfo();
+        OneTimeSystemInfo* one_time_info_ = 0;
 
         ZMQMessageWriter* writer_;
         SystemInfo* system_info_;
@@ -35,7 +39,8 @@ class LogController{
 
         std::condition_variable queue_lock_condition_;
         std::mutex queue_mutex_;
-        std::queue<SystemStatus*> message_queue_;
+        std::queue<google::protobuf::MessageLite*> message_queue_;
+
 
         int sleep_time_ = 0;
 
