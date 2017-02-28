@@ -1,6 +1,7 @@
 #include "logprotohandler.h"
 
 #include <functional>
+#include <chrono>
 
 #include "sqlitedatabase.h"
 #include "table.h"
@@ -385,7 +386,6 @@ void LogProtoHandler::CreateClientTable(){
 
     Table* t = new Table(database_, LOGAN_CLIENT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn("endpoint", LOGAN_VARCHAR);
     t->Finalize();
     table_map_[LOGAN_CLIENT_TABLE] = t;
@@ -584,7 +584,8 @@ void LogProtoHandler::ProcessMessageEvent(google::protobuf::MessageLite* message
 
 void LogProtoHandler::ProcessClientEvent(std::string client_endpoint){
     auto ins = table_map_[LOGAN_CLIENT_TABLE]->get_insert_statement();
-    ins.BindDouble(LOGAN_TIMEOFDAY, 123.456);
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    ins.BindDouble(LOGAN_TIMEOFDAY, time.count()/1000.0);
     ins.BindString("endpoint", client_endpoint);
     database_->QueueSqlStatement(ins.get_statement());
 }
