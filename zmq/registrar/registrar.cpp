@@ -44,6 +44,10 @@ zmq::Registrar::~Registrar(){
     }
 };
 
+void zmq::Registrar::RegisterNotify(std::function<void(std::string)> fn){
+    callback_ = fn;
+}
+
 void zmq::Registrar::NotifyThread(){
     while(true){
         std::queue<std::string> replace_queue;
@@ -67,6 +71,7 @@ void zmq::Registrar::NotifyThread(){
         while(!replace_queue.empty()){
             std::cout << "Registrar: Got: " << replace_queue.front() << std::endl;
             if(callback_){
+                std::cout << "CALLING IN TO CALLBACK!" << std::endl;
                 callback_(replace_queue.front());
             }
             replace_queue.pop();
