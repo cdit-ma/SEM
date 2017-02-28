@@ -39,7 +39,6 @@ LogController::LogController(std::string endpoint, double frequency, std::vector
 }
 
 void LogController::GotNewServer(std::string endpoint){
-    std::cout << "GotNewServer, Sending once off data to: " << endpoint << std::endl;
     //Queue magic data brew
     QueueOneTimeInfo(endpoint);
 }
@@ -128,7 +127,6 @@ void LogController::WriteThread(){
         while(!replace_queue.empty()){
             auto m = replace_queue.front();
             if(m.second){
-                std::cout << "TOPIC: " << m.first << std::endl;
                 writer_->PushMessage(&(m.first), m.second);
             }
             
@@ -195,9 +193,7 @@ OneTimeSystemInfo* LogController::GetOneTimeInfo(){
 
 void LogController::QueueOneTimeInfo(std::string topic){
     if(!one_time_info_){
-        std::cout << "Populating one time info" << std::endl;                
         one_time_info_ = GetOneTimeInfo();
-        std::cout << "Populated one time info" << std::endl;
     }
     message_queue_.push(std::make_pair(topic, new OneTimeSystemInfo(*one_time_info_)));
 }
