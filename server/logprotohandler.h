@@ -13,7 +13,7 @@ namespace google { namespace protobuf { class MessageLite; } }
 
 class LogProtoHandler{
     public:
-        LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database);
+        LogProtoHandler(std::string database_file);
         ~LogProtoHandler();
         void ClientConnected(std::string topic_filter, std::string client_endpoint);
     private:
