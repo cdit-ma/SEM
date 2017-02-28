@@ -75,10 +75,8 @@ int main(int ac, char** av)
 	LogProtoHandler* proto_handler = new LogProtoHandler(receiver, sql_database);
 	//Connect to our senders
 	for(auto s : addresses){
-		std::cout << s << std::endl;
 		receiver->Connect(s);
 	}
-	std::cout << "Starting receiver" << std::endl;
 	receiver->Start();
 
 	{

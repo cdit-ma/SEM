@@ -39,7 +39,7 @@ class LogController{
 
         std::condition_variable queue_lock_condition_;
         std::mutex queue_mutex_;
-        std::queue<google::protobuf::MessageLite*> message_queue_;
+        std::queue<std::pair<std::string, google::protobuf::MessageLite*> > message_queue_;
 
 
         int sleep_time_ = 0;

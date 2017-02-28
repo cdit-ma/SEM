@@ -91,12 +91,12 @@ void LogController::LogThread(){
             if(!one_time_info_){
                 std::cout << "Populating one time info" << std::endl;                
                 one_time_info_ = GetOneTimeInfo();
-                message_queue_.push(new OneTimeSystemInfo(*one_time_info_));
+                message_queue_.push(std::make_pair("DESTINATION HERE", new OneTimeSystemInfo(*one_time_info_)));
                 std::cout << "Populated one time info" << std::endl;
             }
             
             //Lock the Queue, and notify the writer queue.
-            message_queue_.push(status);
+            message_queue_.push(std::make_pair("*", status));
             queue_lock_condition_.notify_all();
         }
         auto after_time = 
@@ -110,7 +110,7 @@ void LogController::LogThread(){
 
 void LogController::WriteThread(){
     while(!writer_terminate_){
-        std::queue<google::protobuf::MessageLite*> replace_queue;
+        std::queue<std::pair<std::string, google::protobuf::MessageLite*> > replace_queue;
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -125,8 +125,8 @@ void LogController::WriteThread(){
         //Empty our write queue
         while(!replace_queue.empty()){
             auto m = replace_queue.front();
-            if(m){
-                writer_->PushMessage(m);
+            if(m.second){
+                writer_->PushMessage(&(m.first), m.second);
             }
             
             replace_queue.pop();
