@@ -117,7 +117,7 @@ void zmq::Registrar::RegistrationThread(){
 
             //Gain the lock so we can push this message onto our queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            registered_endpoints_.push(registrant_id_str);
+            registered_endpoints_.push(topic_name_str);
             //Call into notify thread
             queue_lock_condition_.notify_all();
         }catch(const zmq::error_t& exception){

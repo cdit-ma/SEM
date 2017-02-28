@@ -47,7 +47,7 @@ class ZMQReceiver{
         std::thread* proto_convert_thread_ = 0;
 
         zmq::context_t *context_ = 0;
-        zmq::socket_t *term_socket_ = 0;
+        //zmq::socket_t *term_socket_ = 0;
 
         std::map<std::string, std::function<void(google::protobuf::MessageLite*)> > callback_lookup_;
         std::map<std::string, std::function< google::protobuf::MessageLite* ()> > proto_lookup_;
