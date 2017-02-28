@@ -89,22 +89,22 @@ int main(int ac, char** av)
 	LogProtoHandler* proto_handler = new LogProtoHandler(receiver, sql_database);
 
 	//Register a callback into into the proto hanler class to register a new client
-	auto callback = [proto_handler, receiver](std::string endpoint, std::string) {proto_handler->ClientConnected(endpoint);receiver->Connect(endpoint);};
+	auto callback = [proto_handler, receiver](std::string endpoint, std::string topic) {proto_handler->ClientConnected(endpoint);receiver->Connect(endpoint); std::cout << topic << std::endl;};
 	registrant->RegisterNotify(callback);
 
 	//Connect to our senders
 	for(auto s : addresses){
-		std::cout << "CONNECTING: " << s << std::endl;
 		registrant->AddEndpoint(s);
 	}
 	
 	registrant->Start();
-
 	{
 		std::unique_lock<std::mutex> lock(mutex_);
 		//Wait for the signal_handler to notify for exit
 		lock_condition_.wait(lock);
 	}
+
+	delete registrant;
 
 	//Terminate the reciever and reciever thread
 	receiver->TerminateReceiver();

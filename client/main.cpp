@@ -94,10 +94,13 @@ int main(int ac, char** av){
 		lock_condition_.wait(lock);
 	}
 
+	delete registrar;
+
     //Blocking terminate call.
     //Will wait for logging and writing threads to complete
     log_controller->Terminate();
 
     delete log_controller;
+	
     return 0;
 }
