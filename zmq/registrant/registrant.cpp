@@ -24,6 +24,7 @@ void zmq::Registrant::Start(){
         for(std::string endpoint: endpoints_){
             auto t = new std::thread(&zmq::Registrant::RegistrationThread, this, endpoint);
             thread_queue_.push(t);
+            std::cout << "STARTED THREAD: " << t << " # " << thread_queue_.size() << std::endl;
         }
     }
 }
@@ -36,14 +37,15 @@ void zmq::Registrant::AddEndpoint(std::string endpoint){
 }
 
 zmq::Registrant::~Registrant(){
-    std::unique_lock<std::mutex> lock(mutex_);
-    
     //Deleting context will interupt the socket's blocked send/recv
+    std::cout << "DELETING CONTEXT_" << std::endl;
     delete context_;
-    
+    std::cout << "DELETED CONTEXT_" << std::endl;
     //Clean up all threads
     while(!thread_queue_.empty()){
+        std::cout << "WAITING FOR THREADS!" << std::endl;
         auto t = thread_queue_.front();
+        std::cout << "WAITING ON THREAD: " << t << " # " << thread_queue_.size() << std::endl;
         if(t){
             t->join();
             delete t;
@@ -61,9 +63,7 @@ void zmq::Registrant::RegistrationThread(std::string endpoint){
     auto socket = new zmq::socket_t(*context_, ZMQ_REQ);
     //Set Linger to 0
     int linger = 0;
-    socket->setsockopt (ZMQ_LINGER, &linger, sizeof (linger));
-
-
+    socket->setsockopt(ZMQ_LINGER, &linger, sizeof (linger));
 
     try{
         socket->connect(endpoint);
@@ -75,24 +75,24 @@ void zmq::Registrant::RegistrationThread(std::string endpoint){
 
     while(true){
         try{
-            zmq::message_t request_message(request_message_.c_str(), request_message_.size());
-            zmq::message_t registrar_endpoint;
-            zmq::message_t registrar_response;
+            zmq::message_t registrant_id(request_message_.c_str(), request_message_.size());
+            zmq::message_t registrant_topic_name;
+            zmq::message_t registrar_message;
             
             //Send the request_message
-            socket->send(request_message);
+            socket->send(registrant_id);
 
             //Wait for the Registrar to reply with it's endpoint, then Response
-            socket->recv(&registrar_endpoint);
-            socket->recv(&registrar_response);
+            socket->recv(&registrant_topic_name);
+            socket->recv(&registrar_message);
 
             //Convert the recieved messages to strings
-            std::string registrar_endpoint_str(static_cast<char *>(registrar_endpoint.data()), registrar_endpoint.size());
-            std::string registrar_response_str(static_cast<char *>(registrar_response.data()), registrar_response.size());
+            std::string registrant_topic_name_str(static_cast<char *>(registrant_topic_name.data()), registrant_topic_name.size());
+            std::string registrar_message_str(static_cast<char *>(registrar_message.data()), registrar_message.size());
             
             if(callback_){
-                //Call into the callback function with the endpoint and response
-                callback_(registrar_endpoint_str, registrar_response_str);
+                //Call into the callback function with the topic_name and response
+                callback_(registrant_topic_name_str, registrar_message_str);
             }
             //We've done
             break;
@@ -106,4 +106,5 @@ void zmq::Registrant::RegistrationThread(std::string endpoint){
         }
     }
     delete socket;
+    std::cout << "THREAD FINISHED" << std::endl;
 }

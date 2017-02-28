@@ -27,9 +27,11 @@ class ZMQReceiver{
         
         void Start();
         
-        void Connect(std::string address);
+        void Connect(std::string address, std::string topic_filter);
         void RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn);
     private:
+        void Connect_(std::string address);
+        void Filter_(std::string topic_filter);
 
         zmq::socket_t* socket_ = 0;
 
@@ -39,13 +41,13 @@ class ZMQReceiver{
 
         int batch_size_;
         
-        std::vector<std::string> addresses_;
+        std::vector<std::pair<std::string, std::string> > addresses_;
 
         std::thread* reciever_thread_ = 0;
         std::thread* proto_convert_thread_ = 0;
 
         zmq::context_t *context_ = 0;
-        zmq::socket_t *term_socket_ = 0;
+        //zmq::socket_t *term_socket_ = 0;
 
         std::map<std::string, std::function<void(google::protobuf::MessageLite*)> > callback_lookup_;
         std::map<std::string, std::function< google::protobuf::MessageLite* ()> > proto_lookup_;

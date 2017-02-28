@@ -69,14 +69,19 @@ void zmq::Registrar::NotifyThread(){
         }
         //Process the queue
         while(!replace_queue.empty()){
-            std::cout << "Registrar: Got: " << replace_queue.front() << std::endl;
+            auto f = replace_queue.front();
+            std::cout << "Registrar: Got: " << f << std::endl;
             if(callback_){
                 std::cout << "CALLING IN TO CALLBACK!" << std::endl;
-                callback_(replace_queue.front());
+                callback_(f);
             }
             replace_queue.pop();
         }
     }
+}
+
+std::string zmq::Registrar::GetTopicFilter(std::string unique_id){
+    return unique_id + "*";
 }
 
 void zmq::Registrar::RegistrationThread(){
@@ -94,24 +99,25 @@ void zmq::Registrar::RegistrationThread(){
     //Message object to fill
     while(true){
         try{
-            zmq::message_t registrant_addr;
-            //Send the Registrant the Registrar endpoint, then reply message
-            zmq::message_t addr(endpoint_.c_str(), endpoint_.size());
-            zmq::message_t message(reply_message_.c_str(), reply_message_.size());
+            zmq::message_t registrant_id;
+            
             
             //Wait for Registrant to request
-            socket.recv(&registrant_addr);
+            socket.recv(&registrant_id);
+            std::string registrant_id_str(static_cast<char *>(registrant_id.data()), registrant_id.size());
+            std::string topic_name_str = GetTopicFilter(registrant_id_str);
 
+            //Send the Registrant the Registrar endpoint, then reply message
+            zmq::message_t topic_name(topic_name_str.c_str(), topic_name_str.size());
+            zmq::message_t message(reply_message_.c_str(), reply_message_.size());
             
-            socket.send(addr, ZMQ_SNDMORE);
+            socket.send(topic_name, ZMQ_SNDMORE);
             socket.send(message);
 
-            std::string registrant_addr_str(static_cast<char *>(registrant_addr.data()), registrant_addr.size());
 
             //Gain the lock so we can push this message onto our queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            std::cout << registrant_addr_str << std::endl;
-            registered_endpoints_.push(registrant_addr_str);
+            registered_endpoints_.push(topic_name_str);
             //Call into notify thread
             queue_lock_condition_.notify_all();
         }catch(const zmq::error_t& exception){
