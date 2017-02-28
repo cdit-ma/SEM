@@ -2,6 +2,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <string>
+#include <functional>
 #include <boost/program_options.hpp>
 #include <iostream>
 
@@ -83,10 +84,18 @@ int main(int ac, char** av){
 	std::cout << "Registrar PORT: " << ip_addr << std::endl;
 	//LOGAN CLIENT = REGISTRAR
 	auto registrar = new zmq::Registrar(ip_addr, "TEST HLELLO");
-	registrar->Start();
+	
+
+	
+
 
 	//Initialise log 	troller
     LogController* log_controller = new LogController(port, frequency, processes, cached);
+
+	auto  fn = std::bind(&LogController::GotNewServer, log_controller, std::placeholders::_1);
+	registrar->RegisterNotify(fn);
+
+	registrar->Start();
 	std::cout << "# Starting Logging." << std::endl;
 	{
 		std::unique_lock<std::mutex> lock(mutex_);

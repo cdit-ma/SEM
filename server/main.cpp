@@ -94,19 +94,11 @@ int main(int ac, char** av)
 
 	//Connect to our senders
 	for(auto s : addresses){
-<<<<<<< HEAD
 		registrant->AddEndpoint(s);
 	}
-	
 	registrant->Start();
-=======
-		std::cout << s << std::endl;
-		receiver->Connect(s);
-	}
-	std::cout << "Starting receiver" << std::endl;
 	receiver->Start();
 
->>>>>>> 3f24ecd61982b6212245c5717133b971a26c5f85
 	{
 		std::unique_lock<std::mutex> lock(mutex_);
 		//Wait for the signal_handler to notify for exit

@@ -7,20 +7,26 @@
 #include <thread>
 #include <set>
 #include <map>
+#include <google/protobuf/message_lite.h>
 
 //Forward declare
 class SystemInfo;
 class SystemStatus;
 class OneTimeSystemInfo;
 class ZMQMessageWriter;
-namespace google{namespace protobuf{class MessageLite;};};
+/*
+namespace google{
+    namespace protobuf{
+        class MessageLite;
+        };
+        };*/
 
 class LogController{
     public:
         LogController(int port, double frequency, std::vector<std::string> processes, bool cached = false);
         ~LogController();
         void Terminate();
-        
+        void GotNewServer(std::string endpoint);
     private:
         void LogThread();
         void WriteThread();
@@ -29,6 +35,7 @@ class LogController{
 
         SystemStatus* GetSystemStatus();
         OneTimeSystemInfo* GetOneTimeInfo();
+        void QueueOneTimeInfo(std::string topic);
         OneTimeSystemInfo* one_time_info_ = 0;
 
         ZMQMessageWriter* writer_;
@@ -39,7 +46,7 @@ class LogController{
 
         std::condition_variable queue_lock_condition_;
         std::mutex queue_mutex_;
-        std::queue<google::protobuf::MessageLite*> message_queue_;
+        std::queue<std::pair<std::string, google::protobuf::MessageLite*> > message_queue_;
 
 
         int sleep_time_ = 0;

@@ -37,6 +37,12 @@ LogController::LogController(int port, double frequency, std::vector<std::string
     processes_ = processes;
 }
 
+void LogController::GotNewServer(std::string endpoint){
+    std::cout << "GotNewServer, Sending once off data to: " << endpoint << std::endl;
+    //Queue magic data brew
+    QueueOneTimeInfo(endpoint);
+}
+
 void LogController::Terminate(){
     TerminateLogger();
     TerminateWriter();
@@ -88,15 +94,10 @@ void LogController::LogThread(){
             SystemStatus* status = GetSystemStatus();
 
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            if(!one_time_info_){
-                std::cout << "Populating one time info" << std::endl;                
-                one_time_info_ = GetOneTimeInfo();
-                message_queue_.push(new OneTimeSystemInfo(*one_time_info_));
-                std::cout << "Populated one time info" << std::endl;
-            }
+            
             
             //Lock the Queue, and notify the writer queue.
-            message_queue_.push(status);
+            message_queue_.push(std::make_pair("*", status));
             queue_lock_condition_.notify_all();
         }
         auto after_time = 
@@ -110,7 +111,7 @@ void LogController::LogThread(){
 
 void LogController::WriteThread(){
     while(!writer_terminate_){
-        std::queue<google::protobuf::MessageLite*> replace_queue;
+        std::queue<std::pair<std::string, google::protobuf::MessageLite*> > replace_queue;
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -125,8 +126,8 @@ void LogController::WriteThread(){
         //Empty our write queue
         while(!replace_queue.empty()){
             auto m = replace_queue.front();
-            if(m){
-                writer_->PushMessage(m);
+            if(m.second){
+                writer_->PushMessage(&(m.first), m.second);
             }
             
             replace_queue.pop();
@@ -190,6 +191,15 @@ OneTimeSystemInfo* LogController::GetOneTimeInfo(){
 
 }
 
+void LogController::QueueOneTimeInfo(std::string topic){
+    if(!one_time_info_){
+        std::cout << "Populating one time info" << std::endl;                
+        one_time_info_ = GetOneTimeInfo();
+        std::cout << "Populated one time info" << std::endl;
+    }
+        message_queue_.push(std::make_pair(topic, new OneTimeSystemInfo(*one_time_info_)));
+}
+
 SystemStatus* LogController::GetSystemStatus(){
     //Construct a protobuf message to fill with information
     SystemStatus* status = new SystemStatus();
@@ -234,6 +244,12 @@ SystemStatus* LogController::GetSystemStatus(){
 
             ps->set_state((ProcessStatus::State)info->get_process_state(pid));
 
+            /*if(!seen_pid){
+                //send onetime info
+                ps->mutable_info()->set_name(info->get_process_name(pid));
+                ps->mutable_info()->set_args(info->get_process_arguments(pid));
+                ps->mutable_info()->set_start_time(info->get_monitored_process_start_time(pid));
+            }*/
             ps->set_cpu_core_id(info->get_monitored_process_cpu(pid));
             ps->set_cpu_utilization(info->get_monitored_process_cpu_utilization(pid));
             ps->set_phys_mem_utilization(info->get_monitored_process_phys_mem_utilization(pid));
