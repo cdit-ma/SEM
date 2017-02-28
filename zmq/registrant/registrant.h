@@ -6,6 +6,7 @@
 #include <queue>
 #include <functional>
 #include <vector>
+#include <mutex>
 
 namespace zmq{
 	class socket_t;
