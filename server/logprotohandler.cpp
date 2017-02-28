@@ -77,6 +77,7 @@ LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database
     CreateMessageEventTable();
     CreateUserEventTable();
     CreateWorkloadEventTable();
+    CreateClientTable();
     std::cout << "# Constructing #" << table_map_.size() << " Tables." << std::endl;
     database_->BlockingFlush();
     std::cout << "# Constructed." << std::endl;

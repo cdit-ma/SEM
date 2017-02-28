@@ -44,5 +44,6 @@ class LogProtoHandler{
         void CreateMessageEventTable();
         void CreateUserEventTable();
         void CreateWorkloadEventTable();
+        void CreateClientTable();
 };
 #endif //LOGAN_SERVER_LOGPROTOHANDLER_H
