@@ -24,7 +24,6 @@ void zmq::Registrant::Start(){
         for(std::string endpoint: endpoints_){
             auto t = new std::thread(&zmq::Registrant::RegistrationThread, this, endpoint);
             thread_queue_.push(t);
-            std::cout << "STARTED THREAD: " << t << " # " << thread_queue_.size() << std::endl;
         }
     }
 }
@@ -38,14 +37,10 @@ void zmq::Registrant::AddEndpoint(std::string endpoint){
 
 zmq::Registrant::~Registrant(){
     //Deleting context will interupt the socket's blocked send/recv
-    std::cout << "DELETING CONTEXT_" << std::endl;
     delete context_;
-    std::cout << "DELETED CONTEXT_" << std::endl;
     //Clean up all threads
     while(!thread_queue_.empty()){
-        std::cout << "WAITING FOR THREADS!" << std::endl;
         auto t = thread_queue_.front();
-        std::cout << "WAITING ON THREAD: " << t << " # " << thread_queue_.size() << std::endl;
         if(t){
             t->join();
             delete t;
@@ -106,5 +101,4 @@ void zmq::Registrant::RegistrationThread(std::string endpoint){
         }
     }
     delete socket;
-    std::cout << "THREAD FINISHED" << std::endl;
 }

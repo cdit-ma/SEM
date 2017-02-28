@@ -25,15 +25,13 @@ namespace zmq{
             
             std::function<void(std::string, std::string)> callback_ = nullptr;
             
-            
-            
             std::string request_message_;
             
 
             std::mutex mutex_;
             std::vector<std::string> endpoints_;
-            std::queue<std::thread*> thread_queue_;
             
+            std::queue<std::thread*> thread_queue_;
 
             std::thread* register_thread_ = 0;
             zmq::context_t* context_ = 0;

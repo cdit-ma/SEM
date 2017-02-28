@@ -7,7 +7,6 @@ ZMQReceiver::ZMQReceiver(int batch_size){
     
     //Setup ZMQ context
     context_ = new zmq::context_t(1);
-    
 }
 
 void ZMQReceiver::Start(){
@@ -19,22 +18,6 @@ void ZMQReceiver::Start(){
     proto_convert_thread_ = new std::thread(&ZMQReceiver::ProtoConvertThread, this);
 }
 
-
-void ZMQReceiver::TerminateReceiver(){
-    //Set our terminate
-    //terminate_reciever_ = true;
-
-    //std::cout << "TERMINATING CONTEST" << std::endl;
-    //delete context_;
-    //std::cout << "TERMINATED CONTEST" << std::endl;
-    //Send a blank message
-    //term_socket_->send(zmq::message_t());
-
-    //Wait for the reciever_thread_ to finish
-    //reciever_thread_->join();
-    //delete reciever_thread_;
-}
-
 ZMQReceiver::~ZMQReceiver(){
     {
         //Gain the lock so we can notify and set our terminate flag.
@@ -43,35 +26,30 @@ ZMQReceiver::~ZMQReceiver(){
         queue_lock_condition_.notify_all();
     }
 
-    std::cout << "Waiting for Proto Thread to die " << std::endl;
-    //Wait for the sql_thread to terminate
-    proto_convert_thread_->join();
-    delete proto_convert_thread_;
+    //Terminate the proto thread
+    if(proto_convert_thread_){
+        proto_convert_thread_->join();
+        delete proto_convert_thread_;
+    }
 
-    std::cout << "Deleting Context" << std::endl;
     delete context_;
-    
 
-    std::cout << "Waiting for reciever_thread_ to die " << std::endl;
-    //The reciever_thread_ should have finished (terminate_reciever is called prior to sql controller)
-    reciever_thread_->join();
-    delete reciever_thread_;
-
+    //Terminate the receiver thread
+    if(reciever_thread_){
+        reciever_thread_->join();
+        delete reciever_thread_;
+    }
 }
 
 void ZMQReceiver::RecieverThread(){
-    std::cout << "RecieverThread " << std::endl;
     //Gain mutex lock to ensure we are the only thing working at this point.
     {
         std::unique_lock<std::mutex> lock(address_mutex_);
         //Setup our Subscriber socket
         socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
         
-        Connect_("inproc://term_signal");
+        //Filter against *
         Filter_("*");
-
-        int linger = 0;
-        socket_->setsockopt(ZMQ_LINGER, &linger, sizeof (linger));
         
         //Connect to all nodes on our network
         for (auto a_p : addresses_){
@@ -99,8 +77,6 @@ void ZMQReceiver::RecieverThread(){
                 std::string type_str(static_cast<char *>(type->data()), type->size());
                 std::string msg_str(static_cast<char *>(data->data()), data->size());
 
-                std::cout << "Got Message: Topic: " << topic_str << " Type: " << type_str << std::endl;
-            
                 //Gain the lock so we can push this message onto our queue
                 std::unique_lock<std::mutex> lock(queue_mutex_);
                 rx_message_queue_.push(std::make_pair(type_str, msg_str));
@@ -111,8 +87,9 @@ void ZMQReceiver::RecieverThread(){
                 }
             }
         }catch(zmq::error_t &ex){
-            std::cerr << "CAUGHT EXCEPTION!" << ex.what() << std::endl;
-            //Do nothing with an error.
+            if(ex.num() != ETERM){
+                std::cerr << "ZMQ::Registrant::RegistrationThread: " << ex.what() << std::endl;
+            }
 			break;
         }
     }
@@ -122,7 +99,6 @@ void ZMQReceiver::RecieverThread(){
     delete data;
     delete socket_;
     socket_ = 0;
-    std::cout << "Finished Receiver thread" << std::endl;
 }
 
 
@@ -180,7 +156,6 @@ void ZMQReceiver::Connect_(std::string address){
     //If we have a reciever_thread_ active we can directly interact
     try{
         if(socket_){
-            std::cout << "Connecting to: " << address << std::endl;
             socket_->connect(address.c_str());
         }
     }
@@ -193,7 +168,6 @@ void ZMQReceiver::Filter_(std::string topic_filter){
     //If we have a reciever_thread_ active we can directly interact
     try{
         if(socket_){
-            std::cout << "Filtering to: " << topic_filter << std::endl;
             //Subscribe to specific topic
             socket_->setsockopt(ZMQ_SUBSCRIBE, topic_filter.c_str(), topic_filter.size());
         }

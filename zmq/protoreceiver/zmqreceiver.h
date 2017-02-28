@@ -23,21 +23,18 @@ class ZMQReceiver{
         ZMQReceiver(int batch_size = 20);
         ~ZMQReceiver();
 
-        void TerminateReceiver();
-        
         void Start();
         
         void Connect(std::string address, std::string topic_filter);
         void RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn);
     private:
+        google::protobuf::MessageLite* ConstructMessage(std::string type, std::string data);
         void Connect_(std::string address);
         void Filter_(std::string topic_filter);
-
-        zmq::socket_t* socket_ = 0;
-
-        google::protobuf::MessageLite* ConstructMessage(std::string type, std::string data);
         void RecieverThread();
         void ProtoConvertThread();
+
+        zmq::socket_t* socket_ = 0;
 
         int batch_size_;
         
