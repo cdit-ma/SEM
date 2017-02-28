@@ -97,7 +97,6 @@ int main(int ac, char** av)
 		registrant->AddEndpoint(s);
 	}
 	registrant->Start();
-	receiver->Start();
 
 	{
 		std::unique_lock<std::mutex> lock(mutex_);
@@ -105,14 +104,20 @@ int main(int ac, char** av)
 		lock_condition_.wait(lock);
 	}
 
-
+	std::cout << "Terminating Receiver" << std::endl;
 	//Terminate the reciever and reciever thread
-	receiver->TerminateReceiver();
-	delete registrant;
+	//receiver->TerminateReceiver();
+	std::cout << "Terminated Receiver" << std::endl;
+	
 
     //Teardown the SQL Controller which will write the remaining queued messages
+	std::cout << "Terminating receiver" << std::endl;
 	delete receiver;
+	std::cout << "Terminating sql_database" << std::endl;
 	delete sql_database;
+	std::cout << "Terminating proto_handler" << std::endl;
 	delete proto_handler;
+	std::cout << "Terminating registrant" << std::endl;
+	delete registrant;
     return 0;
 }

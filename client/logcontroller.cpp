@@ -8,16 +8,17 @@
 #include "../re_common/proto/systemstatus/systemstatus.pb.h"
 #include "../re_common/zmq/protowriter/cachedzmqmessagewriter.h"
 
-LogController::LogController(int port, double frequency, std::vector<std::string> processes, bool cached){
+LogController::LogController(std::string endpoint, double frequency, std::vector<std::string> processes, bool cached){
     if(cached){
         writer_ = new CachedZMQMessageWriter();
     }else{
         writer_ = new ZMQMessageWriter();
     }
 
-    std::string port_string = "tcp://*:" + std::to_string(port);
+    //std::string port_string = "tcp://*:" + std::to_string(port);
 
-    writer_->BindPublisherSocket(port_string);
+    std::cout << "Publishing on: " << endpoint << std::endl;
+    writer_->BindPublisherSocket(endpoint);
 
     //Construct our SystemInfo class
     system_info_ = new SigarSystemInfo();
@@ -127,6 +128,7 @@ void LogController::WriteThread(){
         while(!replace_queue.empty()){
             auto m = replace_queue.front();
             if(m.second){
+                std::cout << "TOPIC: " << m.first << std::endl;
                 writer_->PushMessage(&(m.first), m.second);
             }
             
@@ -197,7 +199,7 @@ void LogController::QueueOneTimeInfo(std::string topic){
         one_time_info_ = GetOneTimeInfo();
         std::cout << "Populated one time info" << std::endl;
     }
-        message_queue_.push(std::make_pair(topic, new OneTimeSystemInfo(*one_time_info_)));
+    message_queue_.push(std::make_pair(topic, new OneTimeSystemInfo(*one_time_info_)));
 }
 
 SystemStatus* LogController::GetSystemStatus(){

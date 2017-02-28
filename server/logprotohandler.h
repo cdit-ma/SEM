@@ -24,6 +24,7 @@ class LogProtoHandler{
         void ProcessMessageEvent(google::protobuf::MessageLite* message);
         void ProcessUserEvent(google::protobuf::MessageLite* message);
         void ProcessWorkloadEvent(google::protobuf::MessageLite* message);
+        void ProcessClientEvent(std::string client_endpoint);
 
         ZMQReceiver* receiver_;
         SQLiteDatabase* database_;

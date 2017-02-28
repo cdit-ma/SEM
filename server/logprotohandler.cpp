@@ -94,9 +94,12 @@ LogProtoHandler::~LogProtoHandler(){
 
 void LogProtoHandler::ClientConnected(std::string topic_filter, std::string client_endpoint){
     if(receiver_){
+        std::cout << "Connecting Reciever to: " << client_endpoint << std::endl;
+        std::cout << "Topic Filter: " << topic_filter << std::endl;
         receiver_->Connect(client_endpoint, topic_filter);
+
     }
-    std::cout << "LogProtoHandler::ClientConnected: " << topic_filter << client_endpoint << std::endl;
+    ProcessClientEvent(client_endpoint);
 }
 
 void LogProtoHandler::CreateSystemStatusTable(){
@@ -577,6 +580,13 @@ void LogProtoHandler::ProcessMessageEvent(google::protobuf::MessageLite* message
 
         database_->QueueSqlStatement(ins.get_statement());
     }
+}
+
+void LogProtoHandler::ProcessClientEvent(std::string client_endpoint){
+    auto ins = table_map_[LOGAN_CLIENT_TABLE]->get_insert_statement();
+    ins.BindDouble(LOGAN_TIMEOFDAY, 123.456);
+    ins.BindString("endpoint", client_endpoint);
+    database_->QueueSqlStatement(ins.get_statement());
 }
 
 void LogProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){

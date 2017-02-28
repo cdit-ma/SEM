@@ -23,7 +23,7 @@ namespace google{
 
 class LogController{
     public:
-        LogController(int port, double frequency, std::vector<std::string> processes, bool cached = false);
+        LogController(std::string endpoint, double frequency, std::vector<std::string> processes, bool cached = false);
         ~LogController();
         void Terminate();
         void GotNewServer(std::string endpoint);

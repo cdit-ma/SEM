@@ -90,7 +90,7 @@ int main(int ac, char** av){
 	
 
 	//Initialise log 	troller
-    LogController* log_controller = new LogController(port, frequency, processes, cached);
+    LogController* log_controller = new LogController(publisher_ip, frequency, processes, cached);
 
 	auto fn = std::bind(&LogController::GotNewServer, log_controller, std::placeholders::_1);
 	registrar->RegisterNotify(fn);
@@ -103,13 +103,14 @@ int main(int ac, char** av){
 		lock_condition_.wait(lock);
 	}
 
-	delete registrar;
+	
 
     //Blocking terminate call.
     //Will wait for logging and writing threads to complete
     log_controller->Terminate();
 
     delete log_controller;
+	//delete registrar;
 	
     return 0;
 }
