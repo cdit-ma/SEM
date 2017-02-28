@@ -221,6 +221,23 @@ SystemStatus* LogController::GetSystemStatus(){
     
     
     std::vector<int> pids = info->get_monitored_pids();
+    //prune update time map based on currently alive processes
+    for(auto it = pid_updated_times_.begin(); it != pid_updated_times_.end();){
+        bool delete_flag = true;
+
+        for(auto pid : pids){
+            if(pid == it->first){
+                delete_flag = false;
+            }
+        }
+        if(delete_flag){
+            pid_updated_times_.erase(it);
+        }
+        else{
+            ++it;
+        }
+    }
+
     for(size_t i = 0; i < pids.size(); i++){
         int pid = pids[i];
 
