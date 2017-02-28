@@ -23,7 +23,7 @@ namespace zmq{
         private:
             void RegistrationThread();
             void NotifyThread();
-
+            std::string GetTopicFilter(std::string unique_id);
             std::string endpoint_;
             std::string reply_message_;
 

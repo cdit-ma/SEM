@@ -61,18 +61,15 @@ void ZMQReceiver::RecieverThread(){
         //Setup our Subscriber socket
         socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
         
-        //Subscribe to everything
-        socket_->setsockopt(ZMQ_SUBSCRIBE, "", 0);
-
-
-        
-        //Connect to our terminate inprocess socket
-        socket_->connect("inproc://term_signal");
-
+        Connect_("inproc://term_signal");
+        Filter_("");
         
         //Connect to all nodes on our network
-        for (auto a : addresses_){
-            socket_->connect(a.c_str());
+        for (auto a_p : addresses_){
+            auto a = a_p.first;
+            auto f = a_p.second;
+            Connect_(a);
+            Filter_(f);
         }
     }
     zmq::message_t *topic = new zmq::message_t();
@@ -175,22 +172,41 @@ void ZMQReceiver::ProtoConvertThread(){
     }
 }
 
-void ZMQReceiver::Connect(std::string address){
+void ZMQReceiver::Connect_(std::string address){
+    //If we have a reciever_thread_ active we can directly interact
+    try{
+        if(socket_){
+            socket_->connect(address.c_str());
+        }
+    }
+    catch(zmq::error_t ex){
+        std::cout << zmq_strerror(ex.num()) << std::endl;
+    }    
+}
+
+void ZMQReceiver::Filter_(std::string topic_filter){
+    //If we have a reciever_thread_ active we can directly interact
+    try{
+        if(socket_){
+            //Subscribe to specific topic
+            socket_->setsockopt(ZMQ_SUBSCRIBE, topic_filter.c_str(), topic_filter.size());
+        }
+    }
+    catch(zmq::error_t ex){
+        std::cout << zmq_strerror(ex.num()) << std::endl;
+    }    
+}
+
+void ZMQReceiver::Connect(std::string address, std::string topic_filter){
+    auto p = std::pair<std::string, std::string>(address, topic_filter);
     //Obtain lock for the queue
     std::unique_lock<std::mutex> lock(address_mutex_);
 
     if(!reciever_thread_){
         //Append to addresses.
-        addresses_.push_back(address);        
+        addresses_.push_back(p);        
     }else{
-        //If we have a reciever_thread_ active we can directly interact
-        try{
-            if(socket_){
-                socket_->connect(address.c_str());
-            }
-        }
-        catch(zmq::error_t ex){
-            std::cout << zmq_strerror(ex.num()) << std::endl;
-        }    
+        Connect_(address);
+        Filter_(topic_filter);
     }
 }
