@@ -18,6 +18,8 @@ class LogProtoHandler{
         void ClientConnected(std::string client_endpoint);
     private:
         void ProcessSystemStatus(google::protobuf::MessageLite* status);
+        void ProcessOneTimeSystemInfo(google::protobuf::MessageLite* info);
+
         void ProcessLifecycleEvent(google::protobuf::MessageLite* message);
         void ProcessMessageEvent(google::protobuf::MessageLite* message);
         void ProcessUserEvent(google::protobuf::MessageLite* message);
