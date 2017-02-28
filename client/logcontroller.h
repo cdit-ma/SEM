@@ -29,6 +29,7 @@ class LogController{
 
         SystemStatus* GetSystemStatus();
         OneTimeSystemInfo* GetOneTimeInfo();
+        void QueueOneTimeInfo(std::string topic);
         OneTimeSystemInfo* one_time_info_ = 0;
 
         ZMQMessageWriter* writer_;
