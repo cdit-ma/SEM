@@ -73,16 +73,20 @@ void ZMQReceiver::RecieverThread(){
         //Connect to all nodes on our network
         for (auto a : addresses_){
             socket_->connect(a.c_str());
-            std::cout << a << std::endl;
         }
     }
-
+    zmq::message_t *topic = new zmq::message_t();
     zmq::message_t *type = new zmq::message_t();
     zmq::message_t *data = new zmq::message_t();
     
     while(!terminate_reciever_){
 		try{
             //Wait for next message
+            socket_->recv(topic);
+            if(terminate_reciever_){
+                break;
+            }
+             //Wait for next message
             socket_->recv(type);
             if(terminate_reciever_){
                 break;
@@ -95,7 +99,6 @@ void ZMQReceiver::RecieverThread(){
 
             //If we have a valid message
             if(type->size() > 0 && data->size() > 0){
-                
                 //Construct a string out of the zmq data
                 std::string type_str(static_cast<char *>(type->data()), type->size());
                 std::string msg_str(static_cast<char *>(data->data()), data->size());
@@ -173,7 +176,6 @@ void ZMQReceiver::ProtoConvertThread(){
 }
 
 void ZMQReceiver::Connect(std::string address){
-        std::cout << address << std::endl;
     //Obtain lock for the queue
     std::unique_lock<std::mutex> lock(address_mutex_);
 

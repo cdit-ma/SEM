@@ -26,7 +26,7 @@ class CachedZMQMessageWriter : public ZMQMessageWriter{
         CachedZMQMessageWriter(int cache_count = 50);
         ~CachedZMQMessageWriter();
         
-        void PushMessage(google::protobuf::MessageLite* message);
+        void PushMessage(std::string* topic, google::protobuf::MessageLite* message);
     private:
         
 
