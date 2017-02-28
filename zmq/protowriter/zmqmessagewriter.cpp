@@ -35,7 +35,7 @@ bool ZMQMessageWriter::BindPublisherSocket(std::string endpoint){
     return false;
 }
 
-void ZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
+void ZMQMessageWriter::PushMessage(std::string* topic, google::protobuf::MessageLite* message){
     //Gain the lock
     std::unique_lock<std::mutex> lock(mutex_);
 
@@ -44,19 +44,21 @@ void ZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
     if(message){
         if(message->SerializeToString(&str)){
             type_name = message->GetTypeName();
-            PushString(&type_name, &str);
+            PushString(topic, &type_name, &str);
         }
         delete message;
     }
 }
 
-void ZMQMessageWriter::PushString(std::string * type, std::string *message){
+void ZMQMessageWriter::PushString(std::string* topic, std::string* type, std::string* message){
     if(message){
         //Construct a zmq message for both the type and message data
+        zmq::message_t topic_data(topic->c_str(), topic->size());
         zmq::message_t type_data(type->c_str(), type->size());
         zmq::message_t message_data(message->c_str(), message->size());
         
         //Send Type then Data
+        socket_->send(topic_data, ZMQ_SNDMORE);
         socket_->send(type_data, ZMQ_SNDMORE);
         socket_->send(message_data);
     }
@@ -65,4 +67,3 @@ void ZMQMessageWriter::PushString(std::string * type, std::string *message){
 void ZMQMessageWriter::Terminate(){
     //Do nothing
 }
-    

@@ -26,7 +26,7 @@ CachedZMQMessageWriter::~CachedZMQMessageWriter(){
 }
 
 //Takes ownership of message
-void CachedZMQMessageWriter::PushMessage(google::protobuf::MessageLite* message){
+void CachedZMQMessageWriter::PushMessage(std::string* topic, google::protobuf::MessageLite* message){
     //Gain the lock
     std::unique_lock<std::mutex> lock(queue_mutex_);
     //Push the message onto the queue
@@ -59,7 +59,8 @@ void CachedZMQMessageWriter::Terminate(){
         auto s = messages.front();
         messages.pop();
         if(s){
-            ZMQMessageWriter::PushString(s->type, s->data);
+            std::string* topic = new std::string("INSERT TOPIC HERE");
+            ZMQMessageWriter::PushString(topic, s->type, s->data);
             sent_count ++;
             delete s;
         }
@@ -70,7 +71,8 @@ void CachedZMQMessageWriter::Terminate(){
         auto m = write_queue_.front();
         write_queue_.pop();
         if(m){
-            ZMQMessageWriter::PushMessage(m);
+            std::string* topic = new std::string("INSERT TOPIC HERE");
+            ZMQMessageWriter::PushMessage(topic, m);
             sent_count ++;
         }
     }

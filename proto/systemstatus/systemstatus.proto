@@ -2,21 +2,13 @@ syntax="proto3";
 
 message ProcessStatus{
 	uint32 pid = 1;
-
-	message ProcessInfo{
-		string name = 1;
-		string args = 2;
-		double start_time = 3;
-	}
-	ProcessInfo info = 2;
-
-	uint32 cpu_core_id = 3;
-	double cpu_utilization = 4;
-	double phys_mem_utilization = 5;
-	uint32 thread_count = 6;
-	uint64 disk_read = 7;
-	uint64 disk_written = 8;
-	uint64 disk_total = 9;
+	uint32 cpu_core_id = 2;
+	double cpu_utilization = 3;
+	double phys_mem_utilization = 4;
+	uint32 thread_count = 5;
+	uint64 disk_read = 6;
+	uint64 disk_written = 7;
+	uint64 disk_total = 8;
 
 	enum State{
 		PROC_ERROR = 0;
@@ -30,76 +22,86 @@ message ProcessStatus{
 	State state = 10;
 }
 
+message ProcessInfo{
+	uint32 pid = 1;
+	string name = 2;
+	string args = 3;
+	double start_time = 4;
+}
+
 
 message FileSystemStatus{
 	string name = 1;
-
-	message FileSystemInfo{
-		enum Type{
-			FS_UNKNOWN = 0;
-			FS_LOCAL_DISK = 1;
-			FS_NETWORK = 2;
-			FS_RAM_DISK = 3;
-			FS_CDROM = 4;
-			FS_SWAP = 5;
-		}
-		Type type = 1;
-		uint64 size = 2;
-	}
-	FileSystemInfo info = 2;
 	double utilization = 3;
+}
+
+message FileSystemInfo{
+	enum Type{
+		FS_UNKNOWN = 0;
+		FS_LOCAL_DISK = 1;
+		FS_NETWORK = 2;
+		FS_RAM_DISK = 3;
+		FS_CDROM = 4;
+		FS_SWAP = 5;
+	}
+	string name = 1;
+	Type type = 2;
+	uint64 size = 3;
 }
 
 message InterfaceStatus{
 	string name = 1;
-
-	message InterfaceInfo{
-		string type = 1;
-		string description = 2;
-		string ipv4_addr = 3;
-		string ipv6_addr = 4;
-		string mac_addr = 5;
-		uint64 speed = 6;
-	}
-	InterfaceInfo info = 2;
-
 	uint64 rx_packets = 3;
 	uint64 rx_bytes = 4;
 	uint64 tx_packets = 5;
 	uint64 tx_bytes = 6;
 }
 
+message InterfaceInfo{
+	string name = 1;
+	string type = 2;
+	string description = 3;
+	string ipv4_addr = 4;
+	string ipv6_addr = 5;
+	string mac_addr = 6;
+	uint64 speed = 7;
+}
 
 message SystemStatus{
 	string hostname = 1;
 	double timestamp = 2;
 	int64 message_id = 3;
 
-	message SystemInfo{
-		//OS
-		string os_name = 1;
-		string os_arch = 2;
-		string os_description = 3;
-		string os_version = 4;
-		string os_vendor = 5;
-		string os_vendor_name = 6;
-
-		//CPU
-		string cpu_model = 7;
-		string cpu_vendor = 8;
-		int32 cpu_frequency = 9;
-
-		//RAM
-		int32 physical_memory = 10;
-	}
-	SystemInfo info = 4;
-
-	repeated double cpu_core_utilization = 5;
-	double cpu_utilization = 6;
-	double phys_mem_utilization = 7;
+	repeated double cpu_core_utilization = 4;
+	double cpu_utilization = 5;
+	double phys_mem_utilization = 6;
 
 	repeated ProcessStatus processes = 8;
 	repeated InterfaceStatus interfaces = 9;
 	repeated FileSystemStatus file_systems = 10;
 }
 
+message OneTimeSystemInfo{
+	string hostname = 1;
+	double timestamp = 2;
+	int64 message_id = 3;
+	//OS
+	string os_name = 4;
+	string os_arch = 5;
+	string os_description = 6;
+	string os_version = 7;
+	string os_vendor = 8;
+	string os_vendor_name = 9;
+
+	//CPU
+	string cpu_model = 10;
+	string cpu_vendor = 11;
+	int32 cpu_frequency = 12;
+
+	//RAM
+	int32 physical_memory = 13;
+
+	repeated ProcessInfo process_info = 14;
+	repeated FileSystemInfo file_system_info = 15;
+	repeated InterfaceInfo interface_info = 16;
+}

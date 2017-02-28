@@ -41,8 +41,8 @@ class ZMQReceiver{
         
         std::vector<std::string> addresses_;
 
-        std::thread* reciever_thread_;
-        std::thread* proto_convert_thread_;
+        std::thread* reciever_thread_ = 0;
+        std::thread* proto_convert_thread_ = 0;
 
         zmq::context_t *context_ = 0;
         zmq::socket_t *term_socket_ = 0;

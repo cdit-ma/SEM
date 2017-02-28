@@ -75,17 +75,23 @@ void ZMQReceiver::RecieverThread(){
             socket_->connect(a.c_str());
         }
     }
-
+    zmq::message_t *topic = new zmq::message_t();
     zmq::message_t *type = new zmq::message_t();
     zmq::message_t *data = new zmq::message_t();
     
     while(!terminate_reciever_){
 		try{
             //Wait for next message
+            socket_->recv(topic);
+            if(terminate_reciever_){
+                break;
+            }
+             //Wait for next message
             socket_->recv(type);
             if(terminate_reciever_){
                 break;
             }
+            
 			socket_->recv(data);
             if(terminate_reciever_){
                 break;
