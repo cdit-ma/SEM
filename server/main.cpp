@@ -19,6 +19,7 @@ std::string VERSION_NUMBER = "1.0";
 
 std::string DEFAULT_IP = "tcp://192.168.111.";
 std::string DEFAULT_PORT = "5555";
+std::string DEFAULT_ID = "logan_server";
 std::string DEFAULT_FILE = "out.sql";
 
 void signal_handler (int signal_value)
@@ -36,7 +37,7 @@ int main(int ac, char** av)
 	signal(SIGTERM, signal_handler);
 
 	std::string port;
-	std::string ip_addr;
+	std::string server_id;
 	
 	std::string file_name;
 	std::vector<std::string> addresses;
@@ -44,7 +45,7 @@ int main(int ac, char** av)
 	//Parse command line options
 	boost::program_options::options_description desc("Options");
 	desc.add_options()("ip,I", boost::program_options::value<std::vector<std::string> >(&addresses)->multitoken(), "IP addresses to connect to");
-	desc.add_options()("register,r", boost::program_options::value<std::string>(&ip_addr)->default_value(DEFAULT_PORT), "IP REGISTRAR number");
+	desc.add_options()("id,i", boost::program_options::value<std::string>(&server_id)->default_value(DEFAULT_ID), "Unique ID for this server");
 	desc.add_options()("port,p", boost::program_options::value<std::string>(&port)->default_value(DEFAULT_PORT), "Port number");
 	desc.add_options()("out-file,o", boost::program_options::value<std::string>(&file_name)->default_value(DEFAULT_FILE), "Output file name");
 	desc.add_options()("help,h", "Display help");
@@ -76,11 +77,10 @@ int main(int ac, char** av)
 	}
 	std::cout << "---------------------------------" << std::endl;
 	
-	std::cout << "CONNECTING TO : " << ip_addr << std::endl;
 	
 	//LOGAN SERVER = Registrant (one who registers)
 	//START A REGISTRANT
-	auto registrant = new zmq::Registrant(ip_addr);
+	auto registrant = new zmq::Registrant(server_id);
 	
 	ZMQReceiver* receiver = new ZMQReceiver();
 	receiver->Start();
@@ -88,9 +88,9 @@ int main(int ac, char** av)
 	SQLiteDatabase* sql_database = new SQLiteDatabase(file_name);
 	LogProtoHandler* proto_handler = new LogProtoHandler(receiver, sql_database);
 
-	//Register a callback into into the proto hanler class to register a new client
-	auto callback = [proto_handler, receiver](std::string endpoint, std::string topic) {proto_handler->ClientConnected(endpoint);receiver->Connect(endpoint); std::cout << topic << std::endl;};
-	registrant->RegisterNotify(callback);
+
+	auto fn = std::bind(&LogProtoHandler::ClientConnected, proto_handler, std::placeholders::_1, std::placeholders::_2);
+	registrant->RegisterNotify(fn);
 
 	//Connect to our senders
 	for(auto s : addresses){
@@ -105,10 +105,10 @@ int main(int ac, char** av)
 		lock_condition_.wait(lock);
 	}
 
-	delete registrant;
 
 	//Terminate the reciever and reciever thread
 	receiver->TerminateReceiver();
+	delete registrant;
 
     //Teardown the SQL Controller which will write the remaining queued messages
 	delete receiver;

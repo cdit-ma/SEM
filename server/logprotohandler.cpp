@@ -90,8 +90,11 @@ LogProtoHandler::~LogProtoHandler(){
     }
 }
 
-void LogProtoHandler::ClientConnected(std::string client_endpoint){
-    std::cout << "LogProtoHandler::ClientConnected: " << client_endpoint << std::endl;
+void LogProtoHandler::ClientConnected(std::string topic_filter, std::string client_endpoint){
+    if(receiver_){
+        receiver_->Connect(client_endpoint, topic_filter);
+    }
+    std::cout << "LogProtoHandler::ClientConnected: " << topic_filter << client_endpoint << std::endl;
 }
 
 void LogProtoHandler::CreateSystemStatusTable(){

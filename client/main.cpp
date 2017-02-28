@@ -33,11 +33,12 @@ int main(int ac, char** av){
 	bool cached = false;
     std::vector<std::string> processes;
 	double frequency = 1.0;
-	std::string ip_addr;
+	std::string registrar_ip;
+	std::string publisher_ip;
 
 	boost::program_options::options_description desc("Options");
-	desc.add_options()("port,p",boost::program_options::value<int>(&port)->default_value(port), "Port number");
-	desc.add_options()("register,r", boost::program_options::value<std::string>(&ip_addr)->default_value(""), "IP REGISTRAR number");
+	desc.add_options()("ip,I", boost::program_options::value<std::string>(&publisher_ip)->default_value(""), "Publishing IP Address");
+	desc.add_options()("r_ip,r", boost::program_options::value<std::string>(&registrar_ip)->default_value(""), "Registration IP Address");
 	desc.add_options()("cached,c", "Cached mode");
 	desc.add_options()("frequency,f", boost::program_options::value<double>(&frequency)->default_value(frequency), "Recording frequency");
 	desc.add_options()("process,P", boost::program_options::value<std::vector<std::string> >(&processes)->multitoken(), "Interested processes");
@@ -62,8 +63,10 @@ int main(int ac, char** av){
 	cached = vm.count("cached") > 0;
 
 	std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
-	std::cout << "* ZMQ Port: " << port << std::endl;
 	std::cout << "* Frequency: " << frequency << std::endl;
+
+	std::cout << "* Registrar ZMQ endpoint: " << registrar_ip << std::endl;
+	std::cout << "* Publisher ZMQ endpoint: " << publisher_ip << std::endl;
 
 	if(cached){
 		std::cout << "* Live Logging: Off" << std::endl;
@@ -81,18 +84,15 @@ int main(int ac, char** av){
 	std::cout << "---------------------------------" << std::endl;
 
 	std::string r_port_string = "tcp://*:" + std::to_string(port+1);
-	std::cout << "Registrar PORT: " << ip_addr << std::endl;
+	
 	//LOGAN CLIENT = REGISTRAR
-	auto registrar = new zmq::Registrar(ip_addr, "TEST HLELLO");
+	auto registrar = new zmq::Registrar(registrar_ip, publisher_ip);
 	
-
-	
-
 
 	//Initialise log 	troller
     LogController* log_controller = new LogController(port, frequency, processes, cached);
 
-	auto  fn = std::bind(&LogController::GotNewServer, log_controller, std::placeholders::_1);
+	auto fn = std::bind(&LogController::GotNewServer, log_controller, std::placeholders::_1);
 	registrar->RegisterNotify(fn);
 
 	registrar->Start();

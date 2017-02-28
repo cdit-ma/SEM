@@ -15,7 +15,7 @@ class LogProtoHandler{
     public:
         LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database);
         ~LogProtoHandler();
-        void ClientConnected(std::string client_endpoint);
+        void ClientConnected(std::string topic_filter, std::string client_endpoint);
     private:
         void ProcessSystemStatus(google::protobuf::MessageLite* status);
         void ProcessOneTimeSystemInfo(google::protobuf::MessageLite* info);
