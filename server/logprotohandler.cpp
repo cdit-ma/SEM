@@ -39,6 +39,7 @@
 #define LOGAN_MESSAGE_EVENT_TABLE "Model_MessageEvent"
 #define LOGAN_USER_EVENT_TABLE "Model_UserEvent"
 #define LOGAN_WORKLOAD_EVENT_TABLE "Model_WorkloadEvent"
+#define LOGAN_CLIENT_TABLE "Clients"
 
 LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database){
     database_ = database;
@@ -367,6 +368,20 @@ void LogProtoHandler::CreateWorkloadEventTable(){
     t->AddColumn("description", LOGAN_VARCHAR);
     t->Finalize();
     table_map_[LOGAN_WORKLOAD_EVENT_TABLE] = t;
+    database_->QueueSqlStatement(t->get_table_construct_statement());
+}
+
+void LogProtoHandler::CreateClientTable(){
+    if(table_map_.count(LOGAN_CLIENT_TABLE)){
+        return;
+    }
+
+    Table* t = new Table(database_, LOGAN_CLIENT_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
+    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
+    t->AddColumn("endpoint", LOGAN_VARCHAR);
+    t->Finalize();
+    table_map_[LOGAN_CLIENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
