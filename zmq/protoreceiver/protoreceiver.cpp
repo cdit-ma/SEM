@@ -56,9 +56,6 @@ void zmq::ProtoReceiver::RecieverThread(){
         //Setup our Subscriber socket
         socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
 
-        //Filter against *
-        Filter_("*");
-        
         //Connect to all nodes on our network
         for (auto a_p : addresses_){
             auto a = a_p.first;

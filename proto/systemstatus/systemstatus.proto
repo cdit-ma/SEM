@@ -83,7 +83,7 @@ message SystemStatus{
 	repeated FileSystemStatus file_systems = 11;
 }
 
-message OneTimeSystemInfo{
+message SystemInfo{
 	string hostname = 1;
 	double timestamp = 2;
 	int64 message_id = 3;
