@@ -45,7 +45,7 @@ bool zmq::ProtoWriter::BindPublisherSocket(std::string endpoint){
     return false;
 }
 
-void zmq::ProtoWriter::PushMessage(std::string* topic, google::protobuf::MessageLite* message){
+void zmq::ProtoWriter::PushMessage(std::string topic, google::protobuf::MessageLite* message){
     //Gain the lock
     std::unique_lock<std::mutex> lock(mutex_);
 
@@ -54,7 +54,7 @@ void zmq::ProtoWriter::PushMessage(std::string* topic, google::protobuf::Message
     if(message){
         if(message->SerializeToString(&str)){
             type_name = message->GetTypeName();
-            PushString(topic, &type_name, &str);
+            PushString(&topic, &type_name, &str);
         }
         delete message;
     }
