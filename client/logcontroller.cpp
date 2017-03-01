@@ -137,7 +137,7 @@ void LogController::WriteThread(){
         while(!replace_queue.empty()){
             auto m = replace_queue.front();
             if(m.second){
-                writer_->PushMessage(&(m.first), m.second);
+                writer_->PushMessage(m.first, m.second);
             }
             
             replace_queue.pop();
