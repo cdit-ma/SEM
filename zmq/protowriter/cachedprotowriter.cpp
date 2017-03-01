@@ -1,4 +1,4 @@
-#include "cachedzmqmessagewriter.h"
+#include "cachedprotowriter.h"
 
 #include <cstdio>
 #include <iostream>
@@ -9,7 +9,7 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <boost/filesystem.hpp>
 
-CachedZMQMessageWriter::CachedZMQMessageWriter(int cache_count) : ZMQMessageWriter(){
+zmq::CachedProtoWriter::CachedProtoWriter(int cache_count) : zmq::ProtoWriter(){
     cache_count_ = cache_count;
     //Get a temporary file location for our cached files
     auto temp = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
@@ -17,16 +17,16 @@ CachedZMQMessageWriter::CachedZMQMessageWriter(int cache_count) : ZMQMessageWrit
     std::cout << "Temporary file path: " << temp_file_path_ << std::endl;
 
     //Start the writer thread
-    writer_thread_ = new std::thread(&CachedZMQMessageWriter::WriteQueue, this);
+    writer_thread_ = new std::thread(&zmq::CachedProtoWriter::WriteQueue, this);
 }   
 
-CachedZMQMessageWriter::~CachedZMQMessageWriter(){
+zmq::CachedProtoWriter::~CachedProtoWriter(){
     //Terminate
     Terminate();
 }
 
 //Takes ownership of message
-void CachedZMQMessageWriter::PushMessage(std::string* topic, google::protobuf::MessageLite* message){
+void zmq::CachedProtoWriter::PushMessage(std::string* topic, google::protobuf::MessageLite* message){
     //Gain the lock
     std::unique_lock<std::mutex> lock(queue_mutex_);
     //Push the message onto the queue
@@ -38,7 +38,7 @@ void CachedZMQMessageWriter::PushMessage(std::string* topic, google::protobuf::M
     }
 }
 
-void CachedZMQMessageWriter::Terminate(){
+void zmq::CachedProtoWriter::Terminate(){
     {
         //Gain the lock so we can notify and set our terminate flag.
         std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -60,7 +60,7 @@ void CachedZMQMessageWriter::Terminate(){
         messages.pop();
         if(s){
             std::string* topic = new std::string("INSERT TOPIC HERE");
-            ZMQMessageWriter::PushString(topic, s->type, s->data);
+            zmq::ProtoWriter::PushString(topic, s->type, s->data);
             sent_count ++;
             delete s;
         }
@@ -72,7 +72,7 @@ void CachedZMQMessageWriter::Terminate(){
         write_queue_.pop();
         if(m){
             std::string* topic = new std::string("INSERT TOPIC HERE");
-            ZMQMessageWriter::PushMessage(topic, m);
+            zmq::ProtoWriter::PushMessage(topic, m);
             sent_count ++;
         }
     }
@@ -83,7 +83,7 @@ void CachedZMQMessageWriter::Terminate(){
     std::remove(temp_file_path_.c_str());
 }
 
-void CachedZMQMessageWriter::WriteQueue(){
+void zmq::CachedProtoWriter::WriteQueue(){
     while(!writer_terminate_){
         std::queue<google::protobuf::MessageLite*> replace_queue;
         {
@@ -135,7 +135,7 @@ void CachedZMQMessageWriter::WriteQueue(){
     std::cout << "Cached Writer Thread finished!" << std::endl;
 }
 
-std::queue<Message_Struct*> CachedZMQMessageWriter::ReadMessagesFromFile(std::string file_path){
+std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::string file_path){
     //Construct a return queue
     std::queue<Message_Struct*> queue;
 
@@ -176,7 +176,7 @@ std::queue<Message_Struct*> CachedZMQMessageWriter::ReadMessagesFromFile(std::st
     return queue;
 }
 
-bool CachedZMQMessageWriter::WriteDelimitedTo(google::protobuf::MessageLite* message, google::protobuf::io::ZeroCopyOutputStream* raw_output){
+bool zmq::CachedProtoWriter::WriteDelimitedTo(google::protobuf::MessageLite* message, google::protobuf::io::ZeroCopyOutputStream* raw_output){
     //Construct a coded output stream from the raw_output
     google::protobuf::io::CodedOutputStream out(raw_output);
 
@@ -207,7 +207,7 @@ bool CachedZMQMessageWriter::WriteDelimitedTo(google::protobuf::MessageLite* mes
 }
 
 
-bool CachedZMQMessageWriter::ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* type, std::string* message){
+bool zmq::CachedProtoWriter::ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* type, std::string* message){
     //Construct a coded input stream from the rawInput
     google::protobuf::io::CodedInputStream in(raw_input);
 

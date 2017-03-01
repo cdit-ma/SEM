@@ -26,13 +26,13 @@ find_package(Boost 1.30.0 COMPONENTS filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/cachedzmqmessagewriter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmqmessagewriter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/protowriter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cachedprotowriter.cpp
 )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/cachedzmqmessagewriter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmqmessagewriter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/protowriter.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/cachedprotowriter.h
     )
 
 
@@ -51,3 +51,4 @@ target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_SYSTEM_LIBRARY})
 target_link_libraries(${PROJ_NAME} ${Boost_FILESYSTEM_LIBRARY})
+target_link_libraries(${PROJ_NAME} zmq_monitor)

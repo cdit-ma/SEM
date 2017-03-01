@@ -1,8 +1,11 @@
-#include "zmqmessagewriter.h"
+#include "protowriter.h"
 #include <iostream>
 #include <zmq.hpp>
 #include <google/protobuf/message_lite.h>
-ZMQMessageWriter::ZMQMessageWriter(){
+#include <thread>
+#include "../monitor/monitor.h"
+
+zmq::ProtoWriter::ProtoWriter(){
     context_ = new zmq::context_t();
     socket_ = new zmq::socket_t(*context_, ZMQ_PUB);
     
@@ -10,7 +13,7 @@ ZMQMessageWriter::ZMQMessageWriter(){
     socket_->setsockopt(ZMQ_SNDHWM, 10000);
 }
 
-ZMQMessageWriter::~ZMQMessageWriter(){
+zmq::ProtoWriter::~ProtoWriter(){
     //Gain the lock
     std::unique_lock<std::mutex> lock(mutex_);
 
@@ -25,7 +28,14 @@ ZMQMessageWriter::~ZMQMessageWriter(){
     }
 }
 
-bool ZMQMessageWriter::BindPublisherSocket(std::string endpoint){
+void zmq::ProtoWriter::AttachMonitor(zmq::Monitor* monitor, int event_type){
+    if(monitor && socket_){
+        //Attach monitor; using a new address
+        monitor->MonitorSocket(socket_, GetNewMonitorAddress(), event_type);
+    }
+}
+
+bool zmq::ProtoWriter::BindPublisherSocket(std::string endpoint){
     //Gain the lock
     std::unique_lock<std::mutex> lock(mutex_);
     if(socket_){
@@ -35,7 +45,7 @@ bool ZMQMessageWriter::BindPublisherSocket(std::string endpoint){
     return false;
 }
 
-void ZMQMessageWriter::PushMessage(std::string* topic, google::protobuf::MessageLite* message){
+void zmq::ProtoWriter::PushMessage(std::string* topic, google::protobuf::MessageLite* message){
     //Gain the lock
     std::unique_lock<std::mutex> lock(mutex_);
 
@@ -50,7 +60,7 @@ void ZMQMessageWriter::PushMessage(std::string* topic, google::protobuf::Message
     }
 }
 
-void ZMQMessageWriter::PushString(std::string* topic, std::string* type, std::string* message){
+void zmq::ProtoWriter::PushString(std::string* topic, std::string* type, std::string* message){
     if(message){
         //Construct a zmq message for both the type and message data
         zmq::message_t topic_data(topic->c_str(), topic->size());
@@ -64,6 +74,6 @@ void ZMQMessageWriter::PushString(std::string* topic, std::string* type, std::st
     }
 }
 
-void ZMQMessageWriter::Terminate(){
+void zmq::ProtoWriter::Terminate(){
     //Do nothing
 }

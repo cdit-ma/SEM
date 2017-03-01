@@ -1,24 +1,24 @@
-#include "zmqreceiver.h"
+#include "protoreceiver.h"
 #include <iostream>
-#include <zmq.hpp>
+#include "../monitor/monitor.h"
 
-ZMQReceiver::ZMQReceiver(int batch_size){
+zmq::ProtoReceiver::ProtoReceiver(int batch_size){
     batch_size_ = batch_size;
     
     //Setup ZMQ context
     context_ = new zmq::context_t(1);
 }
 
-void ZMQReceiver::Start(){
+void zmq::ProtoReceiver::Start(){
     if(callback_lookup_.empty()){
-        std::cout << "Can't start ZMQReceiver: No ProtoHandler." << std::endl;
+        std::cout << "Can't start zmq::ProtoReceiver: No ProtoHandler." << std::endl;
     }
 
-    reciever_thread_ = new std::thread(&ZMQReceiver::RecieverThread, this);
-    proto_convert_thread_ = new std::thread(&ZMQReceiver::ProtoConvertThread, this);
+    reciever_thread_ = new std::thread(&zmq::ProtoReceiver::RecieverThread, this);
+    proto_convert_thread_ = new std::thread(&zmq::ProtoReceiver::ProtoConvertThread, this);
 }
 
-ZMQReceiver::~ZMQReceiver(){
+zmq::ProtoReceiver::~ProtoReceiver(){
     {
         //Gain the lock so we can notify and set our terminate flag.
         std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -41,13 +41,21 @@ ZMQReceiver::~ZMQReceiver(){
     }
 }
 
-void ZMQReceiver::RecieverThread(){
+void zmq::ProtoReceiver::AttachMonitor(zmq::Monitor* monitor, int event_type){
+    std::unique_lock<std::mutex> lock(address_mutex_);
+    if(monitor && socket_){
+        //Attach monitor; using a new address
+        monitor->MonitorSocket(socket_, GetNewMonitorAddress(), event_type);
+    }
+}
+
+void zmq::ProtoReceiver::RecieverThread(){
     //Gain mutex lock to ensure we are the only thing working at this point.
     {
         std::unique_lock<std::mutex> lock(address_mutex_);
         //Setup our Subscriber socket
         socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
-        
+
         //Filter against *
         Filter_("*");
         
@@ -102,7 +110,7 @@ void ZMQReceiver::RecieverThread(){
 }
 
 
-void ZMQReceiver::RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn){
+void zmq::ProtoReceiver::RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn){
     std::string type = ml.GetTypeName();
     //Function pointer winraring
     callback_lookup_[type] = fn;
@@ -111,7 +119,7 @@ void ZMQReceiver::RegisterNewProto(const google::protobuf::MessageLite &ml, std:
     proto_lookup_[type] = construct_fn;
 }
 
-google::protobuf::MessageLite* ZMQReceiver::ConstructMessage(std::string type, std::string data){
+google::protobuf::MessageLite* zmq::ProtoReceiver::ConstructMessage(std::string type, std::string data){
     if(proto_lookup_.count(type)){
         auto a = proto_lookup_[type]();
         a->ParseFromString(data);
@@ -121,7 +129,7 @@ google::protobuf::MessageLite* ZMQReceiver::ConstructMessage(std::string type, s
 }
 
 
-void ZMQReceiver::ProtoConvertThread(){
+void zmq::ProtoReceiver::ProtoConvertThread(){
     //Update loop.
     while(!terminate_proto_convert_thread_){
         std::queue<std::pair<std::string, std::string> > replace_queue;
@@ -152,7 +160,7 @@ void ZMQReceiver::ProtoConvertThread(){
     }
 }
 
-void ZMQReceiver::Connect_(std::string address){
+void zmq::ProtoReceiver::Connect_(std::string address){
     //If we have a reciever_thread_ active we can directly interact
     try{
         if(socket_){
@@ -164,7 +172,7 @@ void ZMQReceiver::Connect_(std::string address){
     }    
 }
 
-void ZMQReceiver::Filter_(std::string topic_filter){
+void zmq::ProtoReceiver::Filter_(std::string topic_filter){
     //If we have a reciever_thread_ active we can directly interact
     try{
         if(socket_){
@@ -177,7 +185,7 @@ void ZMQReceiver::Filter_(std::string topic_filter){
     }    
 }
 
-void ZMQReceiver::Connect(std::string address, std::string topic_filter){
+void zmq::ProtoReceiver::Connect(std::string address, std::string topic_filter){
     auto p = std::pair<std::string, std::string>(address, topic_filter);
     //Obtain lock for the queue
     std::unique_lock<std::mutex> lock(address_mutex_);

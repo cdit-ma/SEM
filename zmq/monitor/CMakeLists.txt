@@ -9,22 +9,21 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
-set(PROJ_NAME zmq_protoreceiver)
+set(PROJ_NAME zmq_monitor)
 
 project (${PROJ_NAME})
-
-find_package(Protobuf REQUIRED)
-include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 find_package(ZMQ REQUIRED)
 include_directories(${ZMQ_INCLUDE_DIRS})
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/protoreceiver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/monitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/monitorable.cpp
 	)
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/protoreceiver.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/monitor.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/monitorable.h
     )
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
@@ -37,6 +36,4 @@ if (MSVC)
 endif()
 
 #Link against our required libraries
-target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${ZMQ_LIBRARIES})
-target_link_libraries(${PROJ_NAME} zmq_monitor)
