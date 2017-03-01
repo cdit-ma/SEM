@@ -5,17 +5,23 @@
 
 #include "sigarsysteminfo.h"
 #include "systeminfo.h"
+
 #include "../re_common/proto/systemstatus/systemstatus.pb.h"
-#include "../re_common/zmq/protowriter/cachedzmqmessagewriter.h"
+#include "../re_common/zmq/protowriter/cachedprotowriter.h"
+#include "../re_common/zmq/monitor/monitor.h"
+#include <zmq.hpp>
 
 LogController::LogController(std::string endpoint, double frequency, std::vector<std::string> processes, bool cached){
     if(cached){
-        writer_ = new CachedZMQMessageWriter();
+        writer_ = new zmq::CachedProtoWriter();
     }else{
-        writer_ = new ZMQMessageWriter();
+        writer_ = new zmq::ProtoWriter();
     }
 
-    //std::string port_string = "tcp://*:" + std::to_string(port);
+    //Monitor
+    monitor_ = new zmq::Monitor();
+    monitor_->RegisterEventCallback(std::bind(&LogController::GotNewConnection, this, std::placeholders::_1, std::placeholders::_2));
+    writer_->AttachMonitor(monitor_, ZMQ_EVENT_ACCEPTED);
 
     std::cout << "Publishing on: " << endpoint << std::endl;
     writer_->BindPublisherSocket(endpoint);
@@ -38,9 +44,10 @@ LogController::LogController(std::string endpoint, double frequency, std::vector
     processes_ = processes;
 }
 
-void LogController::GotNewServer(std::string endpoint){
-    //Queue magic data brew
-    QueueOneTimeInfo(endpoint);
+void LogController::GotNewConnection(int, std::string){
+    std::cout << "Got new connection!" << std::endl;
+    
+    QueueOneTimeInfo("TEST");
 }
 
 void LogController::Terminate(){

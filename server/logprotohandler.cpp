@@ -9,7 +9,7 @@
 
 #include "../re_common/proto/modelevent/modelevent.pb.h"
 #include "../re_common/proto/systemstatus/systemstatus.pb.h"
-#include "../re_common/zmq/protoreceiver/zmqreceiver.h"
+#include "../re_common/zmq/protoreceiver/protoreceiver.h"
 
 #define LOGAN_DECIMAL "DECIMAL"
 #define LOGAN_VARCHAR "VARCHAR"
@@ -42,9 +42,9 @@
 #define LOGAN_WORKLOAD_EVENT_TABLE "Model_WorkloadEvent"
 #define LOGAN_CLIENT_TABLE "Clients"
 
-LogProtoHandler::LogProtoHandler(std::string database_file){
+LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::string> client_addresses){
     //Construct a Receiver to connect to the clients
-	receiver_ = new ZMQReceiver();
+	receiver_ = new zmq::ProtoReceiver();
 	//Construct a SQLite database responsible for writing the received messages to the 
 	database_ = new SQLiteDatabase(database_file);
 
@@ -64,6 +64,10 @@ LogProtoHandler::LogProtoHandler(std::string database_file){
     auto le_callback = std::bind(&LogProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1);
     receiver_->RegisterNewProto(re_common::LifecycleEvent::default_instance(), le_callback);
 
+    for(auto c : client_addresses){
+        receiver_->Connect(c);
+    }
+    
     //Now that we have registered our callbacks we should start.
     receiver_->Start();
 
@@ -100,13 +104,6 @@ LogProtoHandler::~LogProtoHandler(){
         delete itr->second;
         itr = table_map_.erase(itr);
     }
-}
-
-void LogProtoHandler::ClientConnected(std::string topic_filter, std::string client_endpoint){
-    if(receiver_){
-        receiver_->Connect(client_endpoint, topic_filter);
-    }
-    ProcessClientEvent(client_endpoint);
 }
 
 void LogProtoHandler::CreateSystemStatusTable(){

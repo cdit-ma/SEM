@@ -2,6 +2,7 @@
 #define LOGAN_SERVER_LOGPROTOHANDLER_H
 
 #include <string>
+#include <vector>
 #include <map>
 #include "sqlite3.h"
 
@@ -10,12 +11,13 @@ class Table;
 class ZMQReceiver;
 class SQLiteDatabase;
 namespace google { namespace protobuf { class MessageLite; } }
-
+namespace zmq{
+    class ProtoReceiver;
+}
 class LogProtoHandler{
     public:
-        LogProtoHandler(std::string database_file);
+        LogProtoHandler(std::string database_file, std::vector<std::string> addresses);
         ~LogProtoHandler();
-        void ClientConnected(std::string topic_filter, std::string client_endpoint);
     private:
         void ProcessSystemStatus(google::protobuf::MessageLite* status);
         void ProcessOneTimeSystemInfo(google::protobuf::MessageLite* info);
@@ -26,7 +28,7 @@ class LogProtoHandler{
         void ProcessWorkloadEvent(google::protobuf::MessageLite* message);
         void ProcessClientEvent(std::string client_endpoint);
 
-        ZMQReceiver* receiver_;
+        zmq::ProtoReceiver* receiver_;
         SQLiteDatabase* database_;
 
         std::map<std::string, Table*> table_map_;
