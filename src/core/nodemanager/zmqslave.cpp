@@ -9,6 +9,8 @@ ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string endpoint){
     //Construct context
     context_ = new zmq::context_t(1);
 
+
+    
     //Start the registration thread
     registration_thread_ = new std::thread(&ZMQSlave::RegistrationLoop, this, endpoint);
 }
@@ -27,8 +29,10 @@ ZMQSlave::~ZMQSlave(){
 
 void ZMQSlave::RegistrationLoop(std::string endpoint){
     //Start a request socket, and bind endpoint
-    auto socket = zmq::socket_t(*context_, ZMQ_REQ);
+    auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
     socket.bind(endpoint.c_str());
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     //Construct a message to send to the server
     zmq::message_t slave_addr(endpoint.c_str(), endpoint.size());
@@ -79,9 +83,16 @@ void ZMQSlave::RegistrationLoop(std::string endpoint){
         zmq::message_t slave_response(reply_message.c_str(), reply_message.size());
         //Send our setup response to the server, blocks until reply
         socket.send(slave_response);
+
+        zmq::message_t master_response;
+
+         //Get the tcp endpoint for ModelLogger
+        socket.recv(&master_response);
+
     }catch(const zmq::error_t& exception){
         if(exception.num() == ETERM){
             std::cout << "Terminating!" << std::endl;
         }
+        std::cout << "EXCEPTION!" << exception.what() << std::endl;
     }
 }

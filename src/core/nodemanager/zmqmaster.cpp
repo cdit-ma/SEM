@@ -14,8 +14,10 @@ ZMQMaster::ZMQMaster(std::string endpoint, std::string graphml_path){
     execution_manager_ = new ExecutionManager(this, graphml_path);
     slaves_ = execution_manager_->GetSlaveEndpoints();
 
-    //Start the registration thread
-    registration_thread_ = new std::thread(&ZMQMaster::RegistrationLoop, this);
+
+    for(auto s : slaves_){
+        auto t = new std::thread(&ZMQMaster::RegistrationLoop, this, s);
+    }
 }
 
 ZMQMaster::~ZMQMaster(){
@@ -32,10 +34,13 @@ ZMQMaster::~ZMQMaster(){
         delete context_;    
     }
 
-    if(registration_thread_){
-        std::cout << "Deleting registration_thread_" << std::endl;
-        registration_thread_->join();
-        delete registration_thread_;
+    while(!registration_threads_.empty()){
+        auto t = registration_threads_.back();
+        if(t){
+            t->join();
+            delete t;
+        }
+        registration_threads_.pop_back();
     }
 
     if(writer_thread_){
@@ -78,42 +83,37 @@ void ZMQMaster::SendAction(std::string node_name, google::protobuf::MessageLite*
     queue_lock_condition_.notify_all();
 }
 
-void ZMQMaster::RegistrationLoop(){
-    auto socket = zmq::socket_t(*context_, ZMQ_REP);
-    
-    auto unregistered_slaves = slaves_;
-    //Connect registration socket to all slaves addressess.
-    for(auto s : unregistered_slaves){
-        std::cout << "Master Connecting to Slave: " << s << std::endl;
-        socket.connect(s.c_str()); 
+void ZMQMaster::RegistrationLoop(std::string endpoint){
+    //Construct a socket (Using Pair)
+    auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
+
+    try{
+        //Connect to the socket
+        socket.connect(endpoint.c_str()); 
+    }catch(zmq::error_t &ex){
+        std::cout << "ZMQMaster::RegistrationLoop():Connect(" << endpoint << "): " << ex.what() << std::endl;
     }
 
-    //Wait for a period of time before recieving
-    //std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    
+    //Messages from the slave
     zmq::message_t slave_addr;
     zmq::message_t slave_response;
-    
 
-
-    while(!unregistered_slaves.empty()){
+    while(true){
         try{
-            //Wait for Slave to send a message
+            //Wait for Slave to send its endpoint
             socket.recv(&slave_addr);
 
-            //Construct a string out of the zmq data
             std::string slave_addr_str(static_cast<char *>(slave_addr.data()), slave_addr.size());
             
             //Get the matching hostname from the execution manager
             std::string host_name = execution_manager_->GetHostNameFromAddress(slave_addr_str);
             std::string slave_logger_pub_addr_str = "";
 
-            //Remove the slave which has just registered from the vector of unregistered slaves
-            //remove(unregistered_slaves, slave_addr_str);
-            
+            //Construct our reply messages
             zmq::message_t master_control_pub_addr(endpoint_.c_str(), endpoint_.size());
             zmq::message_t slave_name(host_name.c_str(), host_name.size());
             zmq::message_t slave_logging_pub_addr(slave_logger_pub_addr_str.c_str(), slave_logger_pub_addr_str.size());
+            
             //Send the server address for the publisher
             socket.send(master_control_pub_addr, ZMQ_SNDMORE);
             //Send the slave hostname
@@ -123,25 +123,14 @@ void ZMQMaster::RegistrationLoop(){
 
             //Wait for Slave to send a message
             socket.recv(&slave_response);
-
             std::string slave_response_str(static_cast<char *>(slave_response.data()), slave_response.size());
-
-            std::cout << "SHOULD NOTIFY BRUH: " <<  slave_response_str<< std::endl;
         }catch(const zmq::error_t& exception){
-            if(exception.num() == ETERM){
-                std::cout << "Terminating Registration Thread!" << std::endl;
+            if(exception.num() != ETERM){
+                std::cout << "ZMQMaster::RegistrationLoop(): " << exception.what() << std::endl;
             }
-            return;
+            break;
         }
     }
-
-    //Start up the writer thread
-    writer_thread_ = new std::thread(&ZMQMaster::WriterLoop, this);
-
-    //Send 
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    execution_manager_->ExecutionLoop();
-    std::cout << "Sent Startup Instructions" << std::endl;
 }
 
 void ZMQMaster::WriterLoop(){

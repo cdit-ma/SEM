@@ -23,7 +23,7 @@ class ZMQMaster{
         bool ActionWriterActivate();
 
     private:
-        void RegistrationLoop();
+        void RegistrationLoop(std::string endpoint);
         void WriterLoop();
 
         bool terminating = false;
@@ -36,8 +36,9 @@ class ZMQMaster{
         std::mutex queue_mutex_;
         std::condition_variable queue_lock_condition_;
         std::queue<std::pair<std::string, std::string> > message_queue_;
+
+        std::vector<std::thread*> registration_threads_;
         
-        std::thread* registration_thread_ = 0;
         std::thread* writer_thread_ = 0;
         zmq::context_t* context_ = 0;
 
