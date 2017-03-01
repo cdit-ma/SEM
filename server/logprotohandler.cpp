@@ -50,10 +50,10 @@ LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::str
 
     //Register call back functions and type with zmqreceiver
     auto ss_callback = std::bind(&LogProtoHandler::ProcessSystemStatus, this, std::placeholders::_1);
-    receiver_->RegisterNewProto(SystemStatus::default_instance(), ss_callback);
+    receiver_->RegisterNewProto(re_common::SystemStatus::default_instance(), ss_callback);
 
     auto si_callback = std::bind(&LogProtoHandler::ProcessOneTimeSystemInfo, this, std::placeholders::_1);
-    receiver_->RegisterNewProto(OneTimeSystemInfo::default_instance(), si_callback);
+    receiver_->RegisterNewProto(re_common::SystemInfo::default_instance(), si_callback);
 
     auto ue_callback = std::bind(&LogProtoHandler::ProcessUserEvent, this, std::placeholders::_1);
     receiver_->RegisterNewProto(re_common::UserEvent::default_instance(), ue_callback);
@@ -396,7 +396,7 @@ void LogProtoHandler::CreateClientTable(){
 }
 
 void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
-    SystemStatus* status = (SystemStatus*)ml;
+    re_common::SystemStatus* status = (re_common::SystemStatus*)ml;
     auto stmt = table_map_[LOGAN_SYSTEM_STATUS_TABLE]->get_insert_statement();
 
     std::string hostname = status->hostname();
@@ -423,7 +423,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
 
     for(int i = 0; i < status->processes_size(); i++){
         auto procstmt = table_map_[LOGAN_PROCESS_STATUS_TABLE]->get_insert_statement();
-        ProcessStatus proc = status->processes(i);
+        re_common::ProcessStatus proc = status->processes(i);
 
         procstmt.BindString(LOGAN_HOSTNAME, hostname);
         procstmt.BindInt(LOGAN_MESSAGE_ID, message_id);
@@ -436,13 +436,13 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
         procstmt.BindInt("disk_read", (int)(proc.disk_read()));
         procstmt.BindInt("disk_written", (int)(proc.disk_written()));
         procstmt.BindInt("disk_total", (int)(proc.disk_total()));
-        procstmt.BindString("state", ProcessStatus::State_Name(proc.state()));
+        procstmt.BindString("state", re_common::ProcessStatus::State_Name(proc.state()));
         database_->QueueSqlStatement(procstmt.get_statement());
     }
 
     for(int i = 0; i < status->interfaces_size(); i++){
         auto ifstatement = table_map_[LOGAN_INTERFACE_STATUS_TABLE]->get_insert_statement();        
-        InterfaceStatus ifstat = status->interfaces(i);
+        re_common::InterfaceStatus ifstat = status->interfaces(i);
 
         ifstatement.BindString(LOGAN_HOSTNAME, hostname);
         ifstatement.BindInt(LOGAN_MESSAGE_ID, message_id);
@@ -457,7 +457,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
 
     for(int i = 0; i < status->file_systems_size(); i++){
         auto fsstatement = table_map_[LOGAN_FILE_SYSTEM_TABLE]->get_insert_statement();                
-        FileSystemStatus fss = status->file_systems(i);
+        re_common::FileSystemStatus fss = status->file_systems(i);
 
         fsstatement.BindString(LOGAN_HOSTNAME, hostname);
         fsstatement.BindInt(LOGAN_MESSAGE_ID, message_id);
@@ -483,7 +483,7 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
 }
 
 void LogProtoHandler::ProcessOneTimeSystemInfo(google::protobuf::MessageLite* message){
-    OneTimeSystemInfo* info = (OneTimeSystemInfo*)message;
+    re_common::SystemInfo* info = (re_common::SystemInfo*)message;
 
     std::string hostname = info->hostname();
     //Check if we have this node info already
@@ -521,20 +521,20 @@ void LogProtoHandler::ProcessOneTimeSystemInfo(google::protobuf::MessageLite* me
     database_->QueueSqlStatement(infostmt.get_statement());
 
     for(int i = 0; i < info->file_system_info_size(); i++){
-        FileSystemInfo fsi = info->file_system_info(i);
+        re_common::FileSystemInfo fsi = info->file_system_info(i);
 
         auto fsinfo = table_map_[LOGAN_FILE_SYSTEM_INFO_TABLE]->get_insert_statement();
         fsinfo.BindString(LOGAN_HOSTNAME, hostname);
         fsinfo.BindInt(LOGAN_MESSAGE_ID, message_id);
         fsinfo.BindDouble(LOGAN_TIMEOFDAY, timestamp);                        
         fsinfo.BindString(LOGAN_NAME, fsi.name());
-        fsinfo.BindString("type", FileSystemInfo::Type_Name(fsi.type()));
+        fsinfo.BindString("type", re_common::FileSystemInfo::Type_Name(fsi.type()));
         fsinfo.BindInt("size", (int)(fsi.size()));
         database_->QueueSqlStatement(fsinfo.get_statement());
     }
 
     for(int i = 0; i < info->interface_info_size(); i++){
-        InterfaceInfo if_info = info->interface_info(i);
+        re_common::InterfaceInfo if_info = info->interface_info(i);
         
         auto if_insert = table_map_[LOGAN_INTERFACE_INFO_TABLE]->get_insert_statement();        
             

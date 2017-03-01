@@ -102,7 +102,7 @@ void LogController::LogThread(){
         if(system_info_->update()){
 	
             //Get a new filled protobuf message
-            SystemStatus* status = GetSystemStatus();
+            re_common::SystemStatus* status = GetSystemStatus();
 
             std::unique_lock<std::mutex> lock(queue_mutex_);
             
@@ -146,8 +146,8 @@ void LogController::WriteThread(){
     std::cout << "Writer thread terminated." << std::endl;
 }
 
-OneTimeSystemInfo* LogController::GetOneTimeInfo(){
-    OneTimeSystemInfo* onetime_system_info = new OneTimeSystemInfo();
+re_common::SystemInfo* LogController::GetOneTimeInfo(){
+    re_common::SystemInfo* onetime_system_info = new re_common::SystemInfo();
 
     auto info = system_info_;
 
@@ -170,17 +170,17 @@ OneTimeSystemInfo* LogController::GetOneTimeInfo(){
 
     int fs_count = info->get_fs_count();
     for(int i = 0; i < fs_count; i++){
-        FileSystemInfo* fss = onetime_system_info->add_file_system_info();    
+        re_common::FileSystemInfo* fss = onetime_system_info->add_file_system_info();    
         //send onetime info
         fss->set_name(info->get_fs_name(i));
-        fss->set_type((FileSystemInfo::Type)info->get_fs_type(i));
+        fss->set_type((re_common::FileSystemInfo::Type)info->get_fs_type(i));
         fss->set_size(info->get_fs_size(i));
     }
 
     int interface_count = info->get_interface_count();
     for(int i = 0; i < interface_count; i++){ 
         if(info->get_interface_state(i, SystemInfo::InterfaceState::UP)){
-            InterfaceInfo* is = onetime_system_info->add_interface_info();
+            re_common::InterfaceInfo* is = onetime_system_info->add_interface_info();
             //get onetime info
             is->set_name(info->get_interface_name(i));            
             is->set_type(info->get_interface_type(i));
@@ -204,12 +204,12 @@ OneTimeSystemInfo* LogController::GetOneTimeInfo(){
 void LogController::QueueOneTimeInfo(){
     //Get Lock
     std::unique_lock<std::mutex> lock(queue_mutex_);
-    message_queue_.push(std::make_pair("SystemInfo*", new OneTimeSystemInfo(*one_time_info_)));
+    message_queue_.push(std::make_pair("SystemInfo*", new re_common::SystemInfo(*one_time_info_)));
 }
 
-SystemStatus* LogController::GetSystemStatus(){
+re_common::SystemStatus* LogController::GetSystemStatus(){
     //Construct a protobuf message to fill with information
-    SystemStatus* status = new SystemStatus();
+   re_common:: SystemStatus* status = new re_common::SystemStatus();
 
     auto info = system_info_;
 
@@ -263,10 +263,10 @@ SystemStatus* LogController::GetSystemStatus(){
         }
         
         if(send_pid_update){
-            ProcessStatus* ps = status->add_processes();
+            re_common::ProcessStatus* ps = status->add_processes();
             ps->set_pid(pid);
 
-            ps->set_state((ProcessStatus::State)info->get_process_state(pid));
+            ps->set_state((re_common::ProcessStatus::State)info->get_process_state(pid));
 
             /*if(!seen_pid){
                 //send onetime info
@@ -289,7 +289,7 @@ SystemStatus* LogController::GetSystemStatus(){
 
     int fs_count = info->get_fs_count();
     for(int i = 0; i < fs_count; i++){
-        FileSystemStatus* fss = status->add_file_systems();
+        re_common::FileSystemStatus* fss = status->add_file_systems();
         fss->set_name(info->get_fs_name(i));
         fss->set_utilization(info->get_fs_utilization(i));
     }
@@ -297,7 +297,7 @@ SystemStatus* LogController::GetSystemStatus(){
     int interface_count = info->get_interface_count();
     for(int i = 0; i < interface_count; i++){ 
         if(info->get_interface_state(i, SystemInfo::InterfaceState::UP)){
-            InterfaceStatus* is = status->add_interfaces();
+            re_common::InterfaceStatus* is = status->add_interfaces();
             is->set_name(info->get_interface_name(i));
             is->set_rx_bytes(info->get_interface_rx_bytes(i));
             is->set_rx_packets(info->get_interface_rx_packets(i));

@@ -12,8 +12,10 @@
 
 //Forward declare
 class SystemInfo;
-class SystemStatus;
-class OneTimeSystemInfo;
+namespace re_common{
+    class SystemInfo;
+    class SystemStatus;
+};
 
 namespace zmq{
     class Monitor;
@@ -33,10 +35,10 @@ class LogController{
         void TerminateLogger();
         void TerminateWriter();
 
-        SystemStatus* GetSystemStatus();
-        OneTimeSystemInfo* GetOneTimeInfo();
+        re_common::SystemStatus* GetSystemStatus();
+        re_common::SystemInfo* GetOneTimeInfo();
         void QueueOneTimeInfo();
-        OneTimeSystemInfo* one_time_info_ = 0;
+        re_common::SystemInfo* one_time_info_ = 0;
 
 
         zmq::Monitor* monitor_;
