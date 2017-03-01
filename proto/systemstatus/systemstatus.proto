@@ -76,9 +76,10 @@ message SystemStatus{
 	double cpu_utilization = 5;
 	double phys_mem_utilization = 6;
 
-	repeated ProcessStatus processes = 8;
-	repeated InterfaceStatus interfaces = 9;
-	repeated FileSystemStatus file_systems = 10;
+	repeated ProcessInfo process_info = 8;
+	repeated ProcessStatus processes = 9;
+	repeated InterfaceStatus interfaces = 10;
+	repeated FileSystemStatus file_systems = 11;
 }
 
 message OneTimeSystemInfo{
@@ -101,7 +102,6 @@ message OneTimeSystemInfo{
 	//RAM
 	int32 physical_memory = 13;
 
-	repeated ProcessInfo process_info = 14;
-	repeated FileSystemInfo file_system_info = 15;
-	repeated InterfaceInfo interface_info = 16;
+	repeated FileSystemInfo file_system_info = 14;
+	repeated InterfaceInfo interface_info = 15;
 }
