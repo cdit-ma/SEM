@@ -10,13 +10,16 @@
 
 struct Message_Struct{
     Message_Struct(){
+        topic = new std::string();
         type = new std::string();
         data = new std::string();
     };
     ~Message_Struct(){
+        delete topic;
         delete type;
         delete data;
     };
+    std::string* topic;
     std::string* type;
     std::string* data;
 };
@@ -27,7 +30,7 @@ namespace zmq{
             CachedProtoWriter(int cache_count = 50);
             ~CachedProtoWriter();
             
-            void PushMessage(std::string* topic, google::protobuf::MessageLite* message);
+            void PushMessage(std::string topic, google::protobuf::MessageLite* message);
         private:
             
 
@@ -36,8 +39,8 @@ namespace zmq{
 
             std::queue<Message_Struct*> ReadMessagesFromFile(std::string file_path);
 
-            bool WriteDelimitedTo(google::protobuf::MessageLite* message, google::protobuf::io::ZeroCopyOutputStream* raw_output);
-            bool ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* type, std::string* message);
+            bool WriteDelimitedTo(std::string topic, google::protobuf::MessageLite* message, google::protobuf::io::ZeroCopyOutputStream* raw_output);
+            bool ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* topic, std::string* type, std::string* message);
 
             std::string temp_file_path_;
 

@@ -26,7 +26,7 @@ zmq::CachedProtoWriter::~CachedProtoWriter(){
 }
 
 //Takes ownership of message
-void zmq::CachedProtoWriter::PushMessage(std::string* topic, google::protobuf::MessageLite* message){
+void zmq::CachedProtoWriter::PushMessage(std::string topic, google::protobuf::MessageLite* message){
     //Gain the lock
     std::unique_lock<std::mutex> lock(queue_mutex_);
     //Push the message onto the queue
@@ -59,8 +59,7 @@ void zmq::CachedProtoWriter::Terminate(){
         auto s = messages.front();
         messages.pop();
         if(s){
-            std::string* topic = new std::string("INSERT TOPIC HERE");
-            zmq::ProtoWriter::PushString(topic, s->type, s->data);
+            zmq::ProtoWriter::PushString(s->topic, s->type, s->data);
             sent_count ++;
             delete s;
         }
@@ -71,8 +70,7 @@ void zmq::CachedProtoWriter::Terminate(){
         auto m = write_queue_.front();
         write_queue_.pop();
         if(m){
-            std::string* topic = new std::string("INSERT TOPIC HERE");
-            zmq::ProtoWriter::PushMessage(topic, m);
+            zmq::ProtoWriter::PushMessage("", m);
             sent_count ++;
         }
     }
@@ -120,7 +118,7 @@ void zmq::CachedProtoWriter::WriteQueue(){
             auto message = replace_queue.front();
             replace_queue.pop();
 
-            if(!message || !WriteDelimitedTo(message, raw_output)){
+            if(!message || !WriteDelimitedTo("", message, raw_output)){
                 std::cerr << "Error writing message to temp file '" << temp_file_path_ << "'" << std::endl;
             }
 
@@ -154,7 +152,7 @@ std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::st
         Message_Struct *m = new Message_Struct();
 
         //Read the proto encoded string into our message and queue if successful
-        if(ReadDelimitedToStr(raw_input, m->type, m->data)){
+        if(ReadDelimitedToStr(raw_input, m->topic, m->type, m->data)){
             queue.push(m);
         }else{
             //If we have an error, free memory
@@ -176,12 +174,17 @@ std::queue<Message_Struct*> zmq::CachedProtoWriter::ReadMessagesFromFile(std::st
     return queue;
 }
 
-bool zmq::CachedProtoWriter::WriteDelimitedTo(google::protobuf::MessageLite* message, google::protobuf::io::ZeroCopyOutputStream* raw_output){
+bool zmq::CachedProtoWriter::WriteDelimitedTo(std::string topic, google::protobuf::MessageLite* message, google::protobuf::io::ZeroCopyOutputStream* raw_output){
     //Construct a coded output stream from the raw_output
     google::protobuf::io::CodedOutputStream out(raw_output);
 
     std::string type_name = message->GetTypeName();
     const int type_size = type_name.size();
+
+    const int topic_size = topic.size();
+
+    out.WriteVarint32(topic_size);
+    out.WriteString(topic);
 
     //Write the type size first
     out.WriteVarint32(type_size);
@@ -207,9 +210,22 @@ bool zmq::CachedProtoWriter::WriteDelimitedTo(google::protobuf::MessageLite* mes
 }
 
 
-bool zmq::CachedProtoWriter::ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* type, std::string* message){
+bool zmq::CachedProtoWriter::ReadDelimitedToStr(google::protobuf::io::ZeroCopyInputStream* raw_input, std::string* topic, std::string* type, std::string* message){
     //Construct a coded input stream from the rawInput
     google::protobuf::io::CodedInputStream in(raw_input);
+
+    //Read topic size
+    uint32_t topic_size;
+    if(!in.ReadVarint32(&topic_size)){
+        //No size, so return
+        return false;
+    }
+    //Read the number of bytes as a string
+    if(!in.ReadString(topic, topic_size)){
+        std::cout << "Stream Error @ " << in.CurrentPosition() << " Reading " << topic_size << std::endl;
+        std::cout << "ERROR!" << std::endl;
+        return false;
+    }
 
     //Read the type_size from the in.
     uint32_t type_size;

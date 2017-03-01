@@ -17,7 +17,7 @@ namespace zmq{
             void AttachMonitor(zmq::Monitor* monitor, int event_type);
 
             bool BindPublisherSocket(std::string endpoint);
-            virtual void PushMessage(std::string* topic, google::protobuf::MessageLite* message);
+            virtual void PushMessage(std::string topic, google::protobuf::MessageLite* message);
             virtual void Terminate();
         protected:
             void PushString(std::string* topic, std::string* message_type, std::string* message);
