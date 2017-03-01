@@ -5,7 +5,9 @@
 #include "component.h"
 #include "eventport.h"
 
-class ZMQMessageWriter;
+namespace zmq{
+    class ProtoWriter;
+};
 
 
 class ModelLogger{
@@ -30,10 +32,10 @@ class ModelLogger{
         void LogMessageEvent(EventPort* eventport);
         void LogUserMessageEvent(Component* component, std::string message);
         void LogUserFlagEvent(Component* component, std::string message);
-        const  std::string get_hostname();
+        const std::string get_hostname();
     private:
 
-        ZMQMessageWriter* writer_;
+        zmq::ProtoWriter* writer_;
         std::string host_name_;
         std::string endpoint_;
         
