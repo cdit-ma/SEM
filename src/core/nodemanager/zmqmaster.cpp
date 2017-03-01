@@ -89,19 +89,20 @@ void ZMQMaster::RegistrationLoop(){
     }
 
     //Wait for a period of time before recieving
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    //std::this_thread::sleep_for(std::chrono::milliseconds(500));
     
     zmq::message_t slave_addr;
     
+
 
     while(!unregistered_slaves.empty()){
         try{
             //Wait for Slave to send a message
             socket.recv(&slave_addr);
 
-
             //Construct a string out of the zmq data
             std::string slave_addr_str(static_cast<char *>(slave_addr.data()), slave_addr.size());
+            //Get the matching hostname from the execution manager
             std::string host_name = execution_manager_->GetHostNameFromAddress(slave_addr_str);
 
             //Remove the slave which has just registered from the vector of unregistered slaves
@@ -113,6 +114,7 @@ void ZMQMaster::RegistrationLoop(){
             socket.send(server_addr, ZMQ_SNDMORE);
             //Send the slave hostname
             socket.send(slave_hostname);
+            //Startup 
         }catch(const zmq::error_t& exception){
             if(exception.num() == ETERM){
                 std::cout << "Terminating Registration Thread!" << std::endl;

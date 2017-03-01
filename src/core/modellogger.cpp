@@ -1,23 +1,32 @@
 #include "modellogger.h"
-
 #include <ctime>
 #include <iostream>
 
-#include "../re_common/zmqprotowriter/zmqmessagewriter.h"
-#include "../re_common/zmqprotowriter/cachedzmqmessagewriter.h"
+#include "../re_common/zmq/protowriter/cachedprotowriter.h"
 #include "../re_common/proto/modelevent/modelevent.pb.h"
 
 ModelLogger* ModelLogger::singleton_ = 0;
 std::mutex ModelLogger::global_mutex_;
 
 
-void ModelLogger::setup_model_logger(std::string host_name, std::string endpoint, bool cached){
+bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint, bool cached){
     std::lock_guard<std::mutex> lock(global_mutex_);
     
+    bool success = true;
     if(singleton_ == 0){
-        singleton_ = new ModelLogger(host_name, endpoint, cached);
+        //Setup our singleton
+        singleton_ = new ModelLogger(host_name, cached);
         std::cerr << "Model Logger Constructed!" << std::endl;
+
+        //Bind the endpoint
+        success = singleton_->writer_->BindPublisherSocket(endpoint);
     }
+
+    if(!singleton_){
+        return false;
+    }
+
+    return success;
 }
 
 ModelLogger* ModelLogger::get_model_logger(){
@@ -39,17 +48,14 @@ void ModelLogger::shutdown_logger(){
 }
 int count = 0;
 
-ModelLogger::ModelLogger(std::string host_name, std::string endpoint, bool cached){
+ModelLogger::ModelLogger(std::string host_name, bool cached){
     this->host_name_ = host_name;
-    this->endpoint_ = endpoint;
     
     if(cached){
-        writer_ = new CachedZMQMessageWriter();
+        writer_ = new zmq::CachedProtoWriter();
     }else{
-        writer_ = new ZMQMessageWriter();
+        writer_ = new zmq::ProtoWriter();
     }
-    
-    writer_->BindPublisherSocket(endpoint_);
 }
 
 ModelLogger::~ModelLogger(){
@@ -99,7 +105,13 @@ void ModelLogger::LogLifecycleEvent(Component* component, ModelLogger::LifeCycle
     
     e->set_type((re_common::LifecycleEvent::Type)(int)event);
     
-    writer_->PushMessage(e);
+    PushMessage(e);
+}
+
+void ModelLogger::PushMessage(google::protobuf::MessageLite* message){
+    if(writer_ && message){
+        writer_->PushMessage("ModelEvent*", message);
+    }
 }
 
 void ModelLogger::LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event){
@@ -113,7 +125,7 @@ void ModelLogger::LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycle
     fill_port(e->mutable_port(), eventport);
     e->set_type((re_common::LifecycleEvent::Type)(int)event);
 
-    writer_->PushMessage(e);
+    PushMessage(e);
 }
 
 void ModelLogger::LogMessageEvent(EventPort* eventport){
@@ -125,7 +137,7 @@ void ModelLogger::LogMessageEvent(EventPort* eventport){
     fill_info(e->mutable_info());
     fill_component(e->mutable_component(), component);
     fill_port(e->mutable_port(), eventport);
-    writer_->PushMessage(e);
+    PushMessage(e);
 }
 
 void ModelLogger::LogUserMessageEvent(Component* component, std::string message){
@@ -135,7 +147,7 @@ void ModelLogger::LogUserMessageEvent(Component* component, std::string message)
     
     e->set_type(re_common::UserEvent::MESSAGE);
     e->set_message(message);
-    writer_->PushMessage(e);
+    PushMessage(e);
 }
 
 void ModelLogger::LogUserFlagEvent(Component* component, std::string message){
@@ -145,5 +157,5 @@ void ModelLogger::LogUserFlagEvent(Component* component, std::string message){
 
     e->set_type(re_common::UserEvent::FLAG);
     e->set_message(message);
-    writer_->PushMessage(e);
+    PushMessage(e);
 }

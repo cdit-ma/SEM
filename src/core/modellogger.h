@@ -5,8 +5,11 @@
 #include "component.h"
 #include "eventport.h"
 
-class ZMQMessageWriter;
 
+namespace zmq{
+    class ProtoWriter;
+};
+namespace google{namespace protobuf{class MessageLite;}};
 
 class ModelLogger{
     public:
@@ -17,12 +20,13 @@ class ModelLogger{
             TERMINATED = 3,
         };
         //Static getter functions
-        static void setup_model_logger(std::string host_name, std::string endpoint, bool cached);
+        static bool setup_model_logger(std::string host_name, std::string endpoint, bool cached);
         static ModelLogger* get_model_logger();
         static void shutdown_logger();
         
     protected:
-        ModelLogger(std::string host_name, std::string endpoint, bool cached);
+        ModelLogger(std::string host_name, bool cached);
+        zmq::ProtoWriter* writer_;
         ~ModelLogger();
     public:
         void LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event);
@@ -30,10 +34,11 @@ class ModelLogger{
         void LogMessageEvent(EventPort* eventport);
         void LogUserMessageEvent(Component* component, std::string message);
         void LogUserFlagEvent(Component* component, std::string message);
-        const  std::string get_hostname();
+        const std::string get_hostname();
     private:
+        void PushMessage(google::protobuf::MessageLite* message);
 
-        ZMQMessageWriter* writer_;
+        
         std::string host_name_;
         std::string endpoint_;
         

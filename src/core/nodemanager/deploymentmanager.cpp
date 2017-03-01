@@ -9,12 +9,37 @@
 
 DeploymentManager::DeploymentManager(std::string library_path){
     library_path_ = library_path;
+
+    //Construct a live receiever
+    subscriber_ = new zmq::ProtoReceiver(1);
+    //Get all Main messages
+    subscriber_->Filter("*");
+    //Subscribe to NodeManager::ControlMessage Types
+    auto cm_callback = std::bind(&DeploymentManager::ProcessControlMessage, this, std::placeholders::_1);
+    subscriber_->RegisterNewProto(NodeManager::ControlMessage::default_instance(), cm_callback);
 }
 
 DeploymentManager::~DeploymentManager(){
     if(deployment_){
         delete deployment_;
     }
+}
+
+bool DeploymentManager::SetupControlMessageReceiver(std::string pub_endpoint, std::string host_name){
+    if(subscriber_){
+        subscriber_->Connect(pub_endpoint);
+        subscriber_->Filter("*");
+        return true;
+    }
+    return false;
+}
+bool DeploymentManager::SetupModelLogger(std::string pub_endpoint, std::string host_name){
+    return ModelLogger::setup_model_logger(host_name, endpoint, false);
+}
+
+void DeploymentManager::ProcessControlMessage(google::protobuf::MessageLite* ml){
+    NodeManager::ControlMessage* control_message = (NodeManager::ControlMessage*)ml;
+    std::cout << "Got control message!" << std::endl;
 }
 
 void DeploymentManager::ProcessAction(std::string node_name, std::string action){

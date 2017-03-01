@@ -7,17 +7,26 @@
 
 #include "nodecontainer.h"
 
+namespace google{namespace protobuf{class MessageLite;}};
+
 
 class DeploymentManager{
     public:
         DeploymentManager(std::string library_path);
         ~DeploymentManager();
 
+        bool SetupControlMessageReceiver(std::string pub_endpoint, std::string host_name);
+        bool SetupModelLogger(std::string pub_endpoint, std::string host_name);
+
+        void ProcessControlMessage(google::protobuf::MessageLite* ml);
         void ProcessAction(std::string node_name, std::string action);
 
         NodeContainer* get_deployment();
 
     private:
+        zmq::ZMQReceiver* subscriber_ = 0;
+
+
         std::string library_path_;
         std::mutex mutex_;
         
