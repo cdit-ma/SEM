@@ -9,7 +9,7 @@
 
 #include "../re_common/proto/modelevent/modelevent.pb.h"
 #include "../re_common/proto/systemstatus/systemstatus.pb.h"
-#include "../re_common/zmq/protoreceiver/zmqreceiver.h"
+#include "../re_common/zmq/protoreceiver/protoreceiver.h"
 
 #define LOGAN_DECIMAL "DECIMAL"
 #define LOGAN_VARCHAR "VARCHAR"
@@ -42,9 +42,11 @@
 #define LOGAN_WORKLOAD_EVENT_TABLE "Model_WorkloadEvent"
 #define LOGAN_CLIENT_TABLE "Clients"
 
-LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database){
-    database_ = database;
-    receiver_ = receiver;
+LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::string> client_addresses){
+    //Construct a Receiver to connect to the clients
+	receiver_ = new zmq::ProtoReceiver();
+	//Construct a SQLite database responsible for writing the received messages to the 
+	database_ = new SQLiteDatabase(database_file);
 
     //Register call back functions and type with zmqreceiver
     auto ss_callback = std::bind(&LogProtoHandler::ProcessSystemStatus, this, std::placeholders::_1);
@@ -61,6 +63,13 @@ LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database
 
     auto le_callback = std::bind(&LogProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1);
     receiver_->RegisterNewProto(re_common::LifecycleEvent::default_instance(), le_callback);
+
+    for(auto c : client_addresses){
+        receiver_->Connect(c);
+    }
+    
+    //Now that we have registered our callbacks we should start.
+    receiver_->Start();
 
     //Construct all of our tables
 
@@ -86,21 +95,15 @@ LogProtoHandler::LogProtoHandler(ZMQReceiver* receiver, SQLiteDatabase* database
 }
 
 LogProtoHandler::~LogProtoHandler(){
+    //Destroy the receiver and database
+    delete receiver_;
+    delete database_;
+
     auto itr = table_map_.begin();
     while(itr != table_map_.end()){
         delete itr->second;
         itr = table_map_.erase(itr);
     }
-}
-
-void LogProtoHandler::ClientConnected(std::string topic_filter, std::string client_endpoint){
-    if(receiver_){
-        std::cout << "Connecting Reciever to: " << client_endpoint << std::endl;
-        std::cout << "Topic Filter: " << topic_filter << std::endl;
-        receiver_->Connect(client_endpoint, topic_filter);
-
-    }
-    ProcessClientEvent(client_endpoint);
 }
 
 void LogProtoHandler::CreateSystemStatusTable(){
