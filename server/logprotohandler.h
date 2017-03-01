@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <set>
 #include "sqlite3.h"
 
 #include <google/protobuf/message_lite.h>
@@ -30,6 +31,8 @@ class LogProtoHandler{
         SQLiteDatabase* database_;
 
         std::map<std::string, Table*> table_map_;
+
+        std::set<std::string> registered_nodes_;
 
         void CreateSystemStatusTable();
         void CreateSystemInfoTable();

@@ -463,13 +463,40 @@ void LogProtoHandler::ProcessSystemStatus(google::protobuf::MessageLite* ml){
         fsstatement.BindDouble("utilization", fss.utilization());
         database_->QueueSqlStatement(fsstatement.get_statement());
     }
+
+    /*for(int i = 0; i < info->process_info_size(); i++){
+        ProcessInfo proc_info = info->process_info(i);
+
+        auto proc_insert = table_map_[LOGAN_PROCESS_INFO_TABLE]->get_insert_statement();
+        proc_insert.BindString(LOGAN_HOSTNAME, hostname);
+        proc_insert.BindInt(LOGAN_MESSAGE_ID, message_id);
+        proc_insert.BindDouble(LOGAN_TIMEOFDAY, timestamp);
+        proc_insert.BindInt("pid", proc_info.pid());
+        proc_insert.BindString(LOGAN_NAME, proc_info.name());
+        proc_insert.BindString("args", proc_info.args());
+        proc_insert.BindDouble("start_time", proc_info.start_time());
+        database_->QueueSqlStatement(proc_insert.get_statement());
+    }*/
 }
 
 void LogProtoHandler::ProcessOneTimeSystemInfo(google::protobuf::MessageLite* message){
-
     OneTimeSystemInfo* info = (OneTimeSystemInfo*)message;
 
     std::string hostname = info->hostname();
+    //Check if we have this node info already
+    if(registered_nodes_.find(hostname) != registered_nodes_.end()){
+        return;
+    }
+    else{
+        //Haven't seen this node before, add to set and record in db
+        registered_nodes_.insert(hostname);
+        auto ins = table_map_[LOGAN_CLIENT_TABLE]->get_insert_statement();
+        auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+        ins.BindDouble(LOGAN_TIMEOFDAY, time.count()/1000.0);
+        ins.BindString("endpoint", hostname);
+        database_->QueueSqlStatement(ins.get_statement());
+    }
+
     int message_id = (int)(info->message_id());
     double timestamp = info->timestamp();
 
@@ -522,20 +549,6 @@ void LogProtoHandler::ProcessOneTimeSystemInfo(google::protobuf::MessageLite* me
 
         database_->QueueSqlStatement(if_insert.get_statement());
     }
-
-    for(int i = 0; i < info->process_info_size(); i++){
-        ProcessInfo proc_info = info->process_info(i);
-
-        auto proc_insert = table_map_[LOGAN_PROCESS_INFO_TABLE]->get_insert_statement();
-        proc_insert.BindString(LOGAN_HOSTNAME, hostname);
-        proc_insert.BindInt(LOGAN_MESSAGE_ID, message_id);
-        proc_insert.BindDouble(LOGAN_TIMEOFDAY, timestamp);
-        proc_insert.BindInt("pid", proc_info.pid());
-        proc_insert.BindString(LOGAN_NAME, proc_info.name());
-        proc_insert.BindString("args", proc_info.args());
-        proc_insert.BindDouble("start_time", proc_info.start_time());
-        database_->QueueSqlStatement(proc_insert.get_statement());
-    }
 }
 
 void LogProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* message){
@@ -583,11 +596,12 @@ void LogProtoHandler::ProcessMessageEvent(google::protobuf::MessageLite* message
 }
 
 void LogProtoHandler::ProcessClientEvent(std::string client_endpoint){
-    auto ins = table_map_[LOGAN_CLIENT_TABLE]->get_insert_statement();
+    /*auto ins = table_map_[LOGAN_CLIENT_TABLE]->get_insert_statement();
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     ins.BindDouble(LOGAN_TIMEOFDAY, time.count()/1000.0);
     ins.BindString("endpoint", client_endpoint);
     database_->QueueSqlStatement(ins.get_statement());
+    */
 }
 
 void LogProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){
