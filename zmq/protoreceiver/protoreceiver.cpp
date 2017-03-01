@@ -2,9 +2,7 @@
 #include <iostream>
 #include "../monitor/monitor.h"
 
-zmq::ProtoReceiver::ProtoReceiver(int batch_size){
-    batch_size_ = batch_size;
-    
+zmq::ProtoReceiver::ProtoReceiver(){
     //Setup ZMQ context
     context_ = new zmq::context_t(1);
 }
@@ -16,6 +14,14 @@ void zmq::ProtoReceiver::Start(){
 
     reciever_thread_ = new std::thread(&zmq::ProtoReceiver::RecieverThread, this);
     proto_convert_thread_ = new std::thread(&zmq::ProtoReceiver::ProtoConvertThread, this);
+}
+
+void zmq::ProtoReceiver::SetBatchMode(bool on, int size){
+    batch_size_ = on ? size : 0;
+
+    if(batch_size_ < 0){
+        batch_size_ = 0;
+    }
 }
 
 zmq::ProtoReceiver::~ProtoReceiver(){
@@ -57,10 +63,10 @@ void zmq::ProtoReceiver::RecieverThread(){
         socket_ = new zmq::socket_t(*context_, ZMQ_SUB);
 
         //Connect to all nodes on our network
-        for (auto a_p : addresses_){
-            auto a = a_p.first;
-            auto f = a_p.second;
+        for (auto a : addresses_){
             Connect_(a);
+        }
+        for (auto f : filters_){
             Filter_(f);
         }
     }
@@ -180,18 +186,26 @@ void zmq::ProtoReceiver::Filter_(std::string topic_filter){
     catch(zmq::error_t ex){
         std::cout << zmq_strerror(ex.num()) << std::endl;
     }    
-}
 
-void zmq::ProtoReceiver::Connect(std::string address, std::string topic_filter){
-    auto p = std::pair<std::string, std::string>(address, topic_filter);
-    //Obtain lock for the queue
+}
+void zmq::ProtoReceiver::Filter(std::string filter){
     std::unique_lock<std::mutex> lock(address_mutex_);
 
     if(!reciever_thread_){
         //Append to addresses.
-        addresses_.push_back(p);        
+        filters_.push_back(filter);        
+    }else{
+        Filter_(filter);
+    }
+}
+
+void zmq::ProtoReceiver::Connect(std::string address){
+    std::unique_lock<std::mutex> lock(address_mutex_);
+
+    if(!reciever_thread_){
+        //Append to addresses.
+        addresses_.push_back(address);        
     }else{
         Connect_(address);
-        Filter_(topic_filter);
     }
 }

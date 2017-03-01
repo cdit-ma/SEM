@@ -17,13 +17,14 @@
 namespace zmq{
     class ProtoReceiver: public zmq::Monitorable{
         public:
-            ProtoReceiver(int batch_size = 20);
+            ProtoReceiver();
             ~ProtoReceiver();
-
+            void SetBatchMode(bool on, int size);
             void AttachMonitor(zmq::Monitor* monitor, int event_type);
             void Start();
             
-            void Connect(std::string address, std::string topic_filter="");
+            void Connect(std::string address);
+            void Filter(std::string topic_filter);
             void RegisterNewProto(const google::protobuf::MessageLite &ml, std::function<void(google::protobuf::MessageLite*)> fn);
         private:
             google::protobuf::MessageLite* ConstructMessage(std::string type, std::string data);
@@ -35,9 +36,10 @@ namespace zmq{
 
             zmq::socket_t* socket_ = 0;
 
-            int batch_size_;
+            int batch_size_ = 0;
             
-            std::vector<std::pair<std::string, std::string> > addresses_;
+            std::vector<std::string> addresses_;
+            std::vector<std::string> filters_;
 
             std::thread* reciever_thread_ = 0;
             std::thread* proto_convert_thread_ = 0;

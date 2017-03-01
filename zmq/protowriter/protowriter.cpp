@@ -39,7 +39,12 @@ bool zmq::ProtoWriter::BindPublisherSocket(std::string endpoint){
     //Gain the lock
     std::unique_lock<std::mutex> lock(mutex_);
     if(socket_){
-        socket_->bind(endpoint.c_str());    
+        try{
+            socket_->bind(endpoint.c_str());    
+        }catch(zmq::error_t &ex){
+            std::cerr << "zmq::ProtoWriter::BindPublisherSocket(" << endpoint << "): " << ex.what() << std::endl;
+            return false;
+        }
         return true;
     }
     return false;
