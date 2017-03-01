@@ -35,7 +35,7 @@ class LogController{
 
         SystemStatus* GetSystemStatus();
         OneTimeSystemInfo* GetOneTimeInfo();
-        void QueueOneTimeInfo(std::string topic);
+        void QueueOneTimeInfo();
         OneTimeSystemInfo* one_time_info_ = 0;
 
 

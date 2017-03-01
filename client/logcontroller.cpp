@@ -11,8 +11,8 @@
 #include "../re_common/zmq/monitor/monitor.h"
 #include <zmq.hpp>
 
-LogController::LogController(std::string endpoint, double frequency, std::vector<std::string> processes, bool cached){
-    if(cached){
+LogController::LogController(std::string endpoint, double frequency, std::vector<std::string> processes, bool live_mode){
+    if(!live_mode){
         writer_ = new zmq::CachedProtoWriter();
     }else{
         writer_ = new zmq::ProtoWriter();
@@ -28,8 +28,10 @@ LogController::LogController(std::string endpoint, double frequency, std::vector
 
     //Construct our SystemInfo class
     system_info_ = new SigarSystemInfo();
-	
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //Populate live info
+    if(!one_time_info_){
+        one_time_info_ = GetOneTimeInfo();
+    }
     
     writer_thread_ = new std::thread(&LogController::WriteThread, this);
     logging_thread_ = new std::thread(&LogController::LogThread, this);
@@ -42,12 +44,12 @@ LogController::LogController(std::string endpoint, double frequency, std::vector
     //Convert frequency to period
     sleep_time_ = (int)((1 / frequency) * 1000);
     processes_ = processes;
+
+    
 }
 
 void LogController::GotNewConnection(int, std::string){
-    std::cout << "Got new connection!" << std::endl;
-    
-    QueueOneTimeInfo("TEST");
+    QueueOneTimeInfo();
 }
 
 void LogController::Terminate(){
@@ -83,13 +85,15 @@ LogController::~LogController(){
 }
 
 void LogController::LogThread(){
-
     //Subscribe to our desired process names
     for(std::string process_name : processes_){
         system_info_->monitor_processes(process_name);
     }
 
     namespace s_c = std::chrono;
+
+    //Don't get our first log reading for 1 second
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     //Update loop.
     while(!logger_terminate_){
@@ -102,9 +106,8 @@ void LogController::LogThread(){
 
             std::unique_lock<std::mutex> lock(queue_mutex_);
             
-            
             //Lock the Queue, and notify the writer queue.
-            message_queue_.push(std::make_pair("*", status));
+            message_queue_.push(std::make_pair("SystemStatus*", status));
             queue_lock_condition_.notify_all();
         }
         auto after_time = 
@@ -198,11 +201,10 @@ OneTimeSystemInfo* LogController::GetOneTimeInfo(){
 
 }
 
-void LogController::QueueOneTimeInfo(std::string topic){
-    if(!one_time_info_){
-        one_time_info_ = GetOneTimeInfo();
-    }
-    message_queue_.push(std::make_pair(topic, new OneTimeSystemInfo(*one_time_info_)));
+void LogController::QueueOneTimeInfo(){
+    //Get Lock
+    std::unique_lock<std::mutex> lock(queue_mutex_);
+    message_queue_.push(std::make_pair("SystemInfo*", new OneTimeSystemInfo(*one_time_info_)));
 }
 
 SystemStatus* LogController::GetSystemStatus(){
