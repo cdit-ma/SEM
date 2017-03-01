@@ -92,6 +92,7 @@ void ZMQMaster::RegistrationLoop(){
     //std::this_thread::sleep_for(std::chrono::milliseconds(500));
     
     zmq::message_t slave_addr;
+    zmq::message_t slave_response;
     
 
 
@@ -102,19 +103,30 @@ void ZMQMaster::RegistrationLoop(){
 
             //Construct a string out of the zmq data
             std::string slave_addr_str(static_cast<char *>(slave_addr.data()), slave_addr.size());
+            
             //Get the matching hostname from the execution manager
             std::string host_name = execution_manager_->GetHostNameFromAddress(slave_addr_str);
+            std::string slave_logger_pub_addr_str = "";
 
             //Remove the slave which has just registered from the vector of unregistered slaves
-            remove(unregistered_slaves, slave_addr_str);
+            //remove(unregistered_slaves, slave_addr_str);
             
-            zmq::message_t server_addr(endpoint_.c_str(), endpoint_.size());
-            zmq::message_t slave_hostname(host_name.c_str(), host_name.size());
+            zmq::message_t master_control_pub_addr(endpoint_.c_str(), endpoint_.size());
+            zmq::message_t slave_name(host_name.c_str(), host_name.size());
+            zmq::message_t slave_logging_pub_addr(slave_logger_pub_addr_str.c_str(), slave_logger_pub_addr_str.size());
             //Send the server address for the publisher
-            socket.send(server_addr, ZMQ_SNDMORE);
+            socket.send(master_control_pub_addr, ZMQ_SNDMORE);
             //Send the slave hostname
-            socket.send(slave_hostname);
-            //Startup 
+            socket.send(slave_name, ZMQ_SNDMORE);
+            //Send the slave hostname
+            socket.send(slave_logging_pub_addr);
+
+            //Wait for Slave to send a message
+            socket.recv(&slave_response);
+
+            std::string slave_response_str(static_cast<char *>(slave_response.data()), slave_response.size());
+
+            std::cout << "SHOULD NOTIFY BRUH: " <<  slave_response_str<< std::endl;
         }catch(const zmq::error_t& exception){
             if(exception.num() == ETERM){
                 std::cout << "Terminating Registration Thread!" << std::endl;

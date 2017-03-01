@@ -7,6 +7,7 @@
 
 #include "nodecontainer.h"
 
+namespace zmq{class ProtoReceiver;};
 namespace google{namespace protobuf{class MessageLite;}};
 
 
@@ -24,7 +25,7 @@ class DeploymentManager{
         NodeContainer* get_deployment();
 
     private:
-        zmq::ZMQReceiver* subscriber_ = 0;
+        zmq::ProtoReceiver* subscriber_ = 0;
 
 
         std::string library_path_;

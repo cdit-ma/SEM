@@ -75,6 +75,8 @@ target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${PUGIXML_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${Boost_PROGRAM_OPTIONS_LIBRARY})
 target_link_libraries(${PROJ_NAME} re_core)
+target_link_libraries(${PROJ_NAME} zmq_protoreceiver)
+target_link_libraries(${PROJ_NAME} zmq_protowriter)
 
 
 

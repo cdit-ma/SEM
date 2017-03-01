@@ -59,7 +59,7 @@ endif(MSVC)
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 #Link re_core against re_proto_control
-target_link_libraries(${PROJ_NAME} zmqprotowriter)
+target_link_libraries(${PROJ_NAME} zmq_protowriter)
 target_link_libraries(${PROJ_NAME} re_common_proto_modelevent)
 target_link_libraries(${PROJ_NAME} re_proto_control)
 

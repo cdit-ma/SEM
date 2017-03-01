@@ -5,7 +5,6 @@
 #include "component.h"
 #include "eventport.h"
 
-
 namespace zmq{
     class ProtoWriter;
 };
@@ -38,9 +37,7 @@ class ModelLogger{
     private:
         void PushMessage(google::protobuf::MessageLite* message);
 
-        
         std::string host_name_;
-        std::string endpoint_;
         
         static ModelLogger* singleton_;
         static std::mutex global_mutex_;

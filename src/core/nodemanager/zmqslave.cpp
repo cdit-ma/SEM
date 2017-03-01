@@ -1,4 +1,5 @@
 #include "zmqslave.h"
+#include <zmq.hpp>
 #include <iostream>
 #include <chrono>
 
@@ -30,7 +31,7 @@ void ZMQSlave::RegistrationLoop(std::string endpoint){
     socket.bind(endpoint.c_str());
 
     //Construct a message to send to the server
-    zmq::message_t slave_addr(endpoint_.c_str(), endpoint_.size());
+    zmq::message_t slave_addr(endpoint.c_str(), endpoint.size());
     zmq::message_t slave_logging_pub_addr;
     zmq::message_t master_control_pub_addr;
     zmq::message_t slave_name;
@@ -81,101 +82,6 @@ void ZMQSlave::RegistrationLoop(std::string endpoint){
     }catch(const zmq::error_t& exception){
         if(exception.num() == ETERM){
             std::cout << "Terminating!" << std::endl;
-        }
-    }
-}
-
-void ZMQSlave::ActionSubscriberLoop(){
-    //Run Logger stuff!
-    ModelLogger::setup_model_logger(host_name_, logger_endpoint_, true);
-    //Construct a filter for this hostname
-    //Add a * char so we don't get messages for other similar hosts.
-    //gouda1 would match gouda11 but gouda1* doesn't match gouda11*
-    std::string name = host_name_ + "*";
-
-    //Construct a Subscriber socket and connect
-    auto socket = zmq::socket_t(*context_, ZMQ_SUB);
-
-    std::cout << "Connecting to: " << master_server_address_ << std::endl;
-    socket.connect(master_server_address_.c_str());
-
-    //Filter the global messages
-    socket.setsockopt(ZMQ_SUBSCRIBE, "*", 1);
-
-    //Filter the specific messages for this node
-    socket.setsockopt(ZMQ_SUBSCRIBE, name.c_str(), name.size());
-
-    //Wait for a period of time before recieving
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    
-    zmq::message_t node;
-    zmq::message_t action;
-
-    while(true){
-        try{
-            //Recieve the action's target node first
-            socket.recv(&node);
-            //Recieve the action second
-            socket.recv(&action);
-
-            //Get the messages as strings
-            std::string node_str(static_cast<char *>(node.data()), node.size());
-            std::string action_str(static_cast<char *>(action.data()), action.size());
-           
-            std::pair<std::string, std::string> p;
-            p.first = node_str;
-            p.second = action_str;
-
-            //Lock the Queue, and notify the action queue.
-            std::unique_lock<std::mutex> lock(queue_mutex_);
-            message_queue_.push(p);
-            queue_lock_condition_.notify_all();
-        }catch(const zmq::error_t& exception){
-            if(exception.num() == ETERM){
-                std::cout << "Terminating!" << std::endl;
-                //Caught exception
-                break;
-            }
-        }
-    }
-}
-
-void ZMQSlave::ActionQueueLoop(){
-    while(true){
-        bool terminated = false;
-        std::queue<std::pair<std::string, std::string> > replace_queue;
-        {
-            //Obtain lock for the queue
-            std::unique_lock<std::mutex> lock(queue_mutex_);
-            //Wait for notify
-            queue_lock_condition_.wait(lock);
-            
-            //Get the termating flag.
-            terminated = terminating;
-            
-            if(!terminated){
-                //Swap our queues, only if we aren't meant to terminate
-                if(!message_queue_.empty()){
-                    message_queue_.swap(replace_queue);
-                }
-            }
-        }
-
-        //Empty our write queue
-        while(!replace_queue.empty()){
-            auto p = replace_queue.front();
-            if(deployment_manager_){
-                
-                deployment_manager_->ProcessAction(p.first, p.second);
-            }
-            
-            //Convert to Proto
-            replace_queue.pop();
-        }
-
-        if(terminated){
-            //Got a terminate flag from the destructor or a ETERM in the queue_loop
-            break;
         }
     }
 }

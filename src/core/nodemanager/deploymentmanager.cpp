@@ -3,15 +3,16 @@
 
 #include <iostream>
 
-
+#include "../../re_common/zmq/protoreceiver/protoreceiver.h"
 #include "../controlmessage/controlmessage.pb.h"
 #include "../controlmessage/translate.h"
+#include "../modellogger.h"
 
 DeploymentManager::DeploymentManager(std::string library_path){
     library_path_ = library_path;
 
     //Construct a live receiever
-    subscriber_ = new zmq::ProtoReceiver(1);
+    subscriber_ = new zmq::ProtoReceiver();
     //Get all Main messages
     subscriber_->Filter("*");
     //Subscribe to NodeManager::ControlMessage Types
@@ -34,7 +35,7 @@ bool DeploymentManager::SetupControlMessageReceiver(std::string pub_endpoint, st
     return false;
 }
 bool DeploymentManager::SetupModelLogger(std::string pub_endpoint, std::string host_name){
-    return ModelLogger::setup_model_logger(host_name, endpoint, false);
+    return ModelLogger::setup_model_logger(host_name, pub_endpoint, false);
 }
 
 void DeploymentManager::ProcessControlMessage(google::protobuf::MessageLite* ml){

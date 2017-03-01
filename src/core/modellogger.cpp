@@ -137,6 +137,7 @@ void ModelLogger::LogMessageEvent(EventPort* eventport){
     fill_info(e->mutable_info());
     fill_component(e->mutable_component(), component);
     fill_port(e->mutable_port(), eventport);
+
     PushMessage(e);
 }
 
@@ -147,6 +148,7 @@ void ModelLogger::LogUserMessageEvent(Component* component, std::string message)
     
     e->set_type(re_common::UserEvent::MESSAGE);
     e->set_message(message);
+
     PushMessage(e);
 }
 
@@ -157,5 +159,6 @@ void ModelLogger::LogUserFlagEvent(Component* component, std::string message){
 
     e->set_type(re_common::UserEvent::FLAG);
     e->set_message(message);
+
     PushMessage(e);
 }

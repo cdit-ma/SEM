@@ -1,15 +1,12 @@
 #ifndef ZMQSLAVE_H
 #define ZMQSLAVE_H
 
-#include <vector>
-#include <thread>
 #include <string>
-#include <mutex>
-#include <condition_variable>
-#include <queue>
+#include <thread>
 
-#include <zmq.hpp>
 #include "deploymentmanager.h"
+
+namespace zmq{class context_t;};
 
 class ZMQSlave{
     public:
@@ -19,7 +16,6 @@ class ZMQSlave{
         void RegistrationLoop(std::string endpoint);
 
         DeploymentManager* deployment_manager_ = 0;
-
         std::thread* registration_thread_ = 0;
         zmq::context_t* context_ = 0;
 };
