@@ -1,5 +1,7 @@
 syntax="proto3";
 
+package re_common;
+
 message ProcessStatus{
 	uint32 pid = 1;
 	uint32 cpu_core_id = 2;
@@ -28,7 +30,6 @@ message ProcessInfo{
 	string args = 3;
 	double start_time = 4;
 }
-
 
 message FileSystemStatus{
 	string name = 1;
