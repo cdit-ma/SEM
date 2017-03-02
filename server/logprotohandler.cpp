@@ -67,6 +67,8 @@ LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::str
     for(auto c : client_addresses){
         receiver_->Connect(c);
     }
+    //Get all messages
+    receiver_->Filter("");
     
     //Now that we have registered our callbacks we should start.
     receiver_->Start();
@@ -577,6 +579,7 @@ void LogProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* messa
             ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
             ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
             ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+            ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event->type()));
             database_->QueueSqlStatement(ins.get_statement());
     }
 }
