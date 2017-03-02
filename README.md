@@ -1,5 +1,5 @@
 # logan
-logan is a lightweight, high performance, cross-platform, distributed hardware logging system. It is designed to aggregate system hardware performance metrics to enable analysis.
+logan is a lightweight, high performance, cross-platform, distributed hardware logging system. It is designed to aggregate system hardware performance metrics to facilitate analysis.
 
 ##Supported Operating Systems:
 * Windows 7 (> Visual Studio 2015)
