@@ -10,6 +10,7 @@ logan is a lightweight, high performance, cross-platform, distributed hardware l
 * https://github.com/google/protobuf
 * https://github.com/zeromq/libzmq
 * https://github.com/hyperic/sigar
+* https://github.com/cdit-ma/re_common
 * https://sqlite.org/
 
 ##Build Tools:
