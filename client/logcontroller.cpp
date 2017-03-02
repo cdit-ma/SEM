@@ -28,10 +28,6 @@ LogController::LogController(std::string endpoint, double frequency, std::vector
 
     //Construct our SystemInfo class
     system_info_ = new SigarSystemInfo();
-    //Populate live info
-    if(!one_time_info_){
-        one_time_info_ = GetOneTimeInfo();
-    }
     
     writer_thread_ = new std::thread(&LogController::WriteThread, this);
     logging_thread_ = new std::thread(&LogController::LogThread, this);
@@ -94,6 +90,7 @@ void LogController::LogThread(){
 
     //Don't get our first log reading for 1 second
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    re_common::SystemInfo* one_time_info = 0;
 
     //Update loop.
     while(!logger_terminate_){
@@ -103,11 +100,19 @@ void LogController::LogThread(){
 	
             //Get a new filled protobuf message
             re_common::SystemStatus* status = GetSystemStatus();
+            if(!one_time_info){
+                one_time_info = GetOneTimeInfo();
+            }
 
+            //Lock the Queue, and notify the writer queue.
             std::unique_lock<std::mutex> lock(queue_mutex_);
             
-            //Lock the Queue, and notify the writer queue.
+            if(one_time_flag_){
+                message_queue_.push(std::make_pair("SystemInfo*", new re_common::SystemInfo(*one_time_info)));
+                one_time_flag_ = false;
+            }
             message_queue_.push(std::make_pair("SystemStatus*", status));
+
             queue_lock_condition_.notify_all();
         }
         auto after_time = 
@@ -147,6 +152,7 @@ void LogController::WriteThread(){
 }
 
 re_common::SystemInfo* LogController::GetOneTimeInfo(){
+    
     re_common::SystemInfo* onetime_system_info = new re_common::SystemInfo();
 
     auto info = system_info_;
@@ -204,12 +210,12 @@ re_common::SystemInfo* LogController::GetOneTimeInfo(){
 void LogController::QueueOneTimeInfo(){
     //Get Lock
     std::unique_lock<std::mutex> lock(queue_mutex_);
-    message_queue_.push(std::make_pair("SystemInfo*", new re_common::SystemInfo(*one_time_info_)));
+    one_time_flag_ = true;
 }
 
 re_common::SystemStatus* LogController::GetSystemStatus(){
     //Construct a protobuf message to fill with information
-   re_common:: SystemStatus* status = new re_common::SystemStatus();
+    re_common:: SystemStatus* status = new re_common::SystemStatus();
 
     auto info = system_info_;
 

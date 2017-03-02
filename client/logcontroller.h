@@ -38,12 +38,12 @@ class LogController{
         re_common::SystemStatus* GetSystemStatus();
         re_common::SystemInfo* GetOneTimeInfo();
         void QueueOneTimeInfo();
-        re_common::SystemInfo* one_time_info_ = 0;
 
+        SystemInfo* system_info_;
+        bool one_time_flag_ = false;
 
         zmq::Monitor* monitor_;
         zmq::ProtoWriter* writer_;
-        SystemInfo* system_info_;
 
         std::thread* logging_thread_;
         std::thread* writer_thread_;
