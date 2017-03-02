@@ -10,5 +10,4 @@ Contains generic ZeroMQ readers and writers for use with protobuf objects.
 
 ##Known Projects:
 * https://github.com/cdit-ma/re
-* https://github.com/cdit-ma/re_gen
 * https://github.com/cdit-ma/logan
