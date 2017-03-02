@@ -18,11 +18,11 @@ logan is a lightweight, high performance, cross-platform, distributed hardware l
 
 ##Installation:
 * Build and install all required libraries
-* ``cmake . -DBUILD_SERVER=ON -DBUILD_CLIENT=ON``
+* ``git clone https://github.com/cdit-ma/logan``
+* ``cd logan``
+* ``mkdir build``
+* ``cd build``
+* ``cmake .. -DBUILD_SERVER=ON -DBUILD_CLIENT=ON``
 * **Unix -** ``make``
 * **Windows -** ``msbuild logan.sln /p:Configuration=Release``
-
-
-
-
-
+* Executables will be placed in logan/bin
