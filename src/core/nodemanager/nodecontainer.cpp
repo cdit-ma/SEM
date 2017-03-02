@@ -62,8 +62,8 @@ EventPort* NodeContainer::ConstructPeriodicEvent(Component* component, std::stri
 }
 
 void NodeContainer::Configure(NodeManager::ControlMessage* message){
-    std::cout << "CONFIGURE" << std::endl;
     auto n = message->mutable_node();
+
     for(auto c : n->components()){
         auto component = GetComponent(c.name());
 
@@ -76,7 +76,7 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
             for(auto a: c.attributes()){
                 auto attribute = component->GetAttribute(a.name());
                 if(attribute){
-                    std::cout << c.name() << " Setting Attribute: " << a.name() <<  std::endl;
+                    std::cout << "Component: '" << c.name() << "' Setting Attribute: '" << a.name() << "'" <<  std::endl;
                     SetAttributeFromPb(&a, attribute);
                 }
             }
@@ -85,7 +85,6 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
 
                 //Get the middleware
                 std::string middleware = NodeManager::EventPort_Middleware_Name(p.middleware());
-                std::cout << "Middleware: " << middleware << std::endl;
 
                 if(!port){
                     switch(p.type()){
@@ -126,7 +125,6 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
 
 bool NodeContainer::ActivateAll(){
     for(auto c : components_){
-        std::cout << "NodeContainer::ActivateAll() Component:" << c.second->get_name() << std::endl;
         c.second->Activate();
     }
     return true;
@@ -134,7 +132,6 @@ bool NodeContainer::ActivateAll(){
 
 bool NodeContainer::PassivateAll(){
     for(auto c : components_){
-        std::cout << "NodeContainer::PassivateAll() Component:" << c.second << std::endl;
         c.second->Passivate();
     }
 
@@ -181,7 +178,7 @@ Component* NodeContainer::GetComponent(std::string component_name){
 void* NodeContainer::LoadLibrary_(std::string library_path){
     //If we haven't seen the library_path before, try and load it.
     if(!loaded_libraries_.count(library_path)){
-        auto start = std::chrono::system_clock::now();
+        auto start = std::chrono::steady_clock::now();
 
         void* lib_handle = 0;
         #ifdef _WIN32
@@ -191,10 +188,10 @@ void* NodeContainer::LoadLibrary_(std::string library_path){
             lib_handle = dlopen(library_path.c_str(), RTLD_LAZY);
         #endif
 
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> diff = end-start;
-        std::cout << "Load Library: " << library_path <<  " " << (diff).count() << " μs" << std::endl;
-        
+        auto end = std::chrono::steady_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout << "Loaded DLL: '" << library_path <<  "' In: " << ms.count() << " ms" << std::endl;
+
         //Check for errors
         std::string error = GetLibraryError();
         if(!error.empty()){
@@ -259,7 +256,7 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
         //Clear the library error
         GetLibraryError();
         
-        auto start = std::chrono::system_clock::now();
+        auto start = std::chrono::steady_clock::now();
         void* function = 0;
         #ifdef _WIN32
             function = (void*)GetProcAddress((HMODULE)lib_handle, function_name.c_str());
@@ -267,9 +264,9 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
             function = dlsym(lib_handle, function_name.c_str());
         #endif
         
-        auto end = std::chrono::system_clock::now();
-        
-        std::cout << "dlsym: " << function_name << (end - start).count() << " μs" << std::endl;
+        auto end = std::chrono::steady_clock::now();
+        auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout << "Loaded DLL Function: '" << function_name <<  "' In: " << ms.count() << " ms" << std::endl;
         
         auto error = GetLibraryError();
         if(function && error.empty()){
@@ -308,7 +305,7 @@ EventPort* NodeContainer::ConstructTx(std::string middleware, std::string dataty
 
 EventPort* NodeContainer::ConstructRx(std::string middleware, std::string datatype, Component* component, std::string port_name){
     auto p = to_lower(middleware + "_" + datatype);
-    std::cout << p << std::endl;
+    
     if(!rx_constructors_.count(p)){
         auto lib_path = library_path_ + "/" + GetLibraryPrefix() + p + GetLibrarySuffix();
 

@@ -18,10 +18,11 @@ ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_pat
     //Setup the parser
     graphml_parser_ = new GraphmlParser(graphml_path);
 
-    auto start = std::chrono::system_clock::now();
+    auto start = std::chrono::steady_clock::now();
     bool success = ScrapeDocument();
-    auto end = std::chrono::system_clock::now();
-    std::cout << "* Deployment Parsed In: " << (end - start).count() << " μs" << std::endl;
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "* Deployment Parsed In: " << ms.count() << " ms" << std::endl;
     std::cout << std::endl;
 }
 

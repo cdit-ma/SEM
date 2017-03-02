@@ -77,12 +77,12 @@ void zmq::InEventPort<T, S>::zmq_loop(){
     try{
         socket->connect(terminate_endpoint_.c_str());    
         for(auto end_point: end_points_){
-            std::cout << "zmq::InEventPort<T, S>::zmq_loop(): " << this->get_name() << " Connecting To: " << end_point << std::endl;
+            //std::cout << "zmq::InEventPort<T, S>::zmq_loop(): " << this->get_name() << " Connecting To: " << end_point << std::endl;
             //Connect to the publisher
             socket->connect(end_point.c_str());   
         }
     }catch(zmq::error_t ex){
-        std::cout << "zmq::InEventPort<T, S>::zmq_loop(): Couldn't connect to endpoints!" << std::endl;
+        std::cerr << "zmq::InEventPort<T, S>::zmq_loop(): Couldn't connect to endpoints!" << std::endl;
     }    
 
     //Construct a new ZMQ Message to store the resulting message in.
@@ -106,7 +106,7 @@ void zmq::InEventPort<T, S>::zmq_loop(){
             }
         }catch(zmq::error_t ex){
             //Do nothing with an error.
-            std::cout << "zmq::InEventPort<T, S>::zmq_loop(): ZMQ_Error: " << ex.num() << std::endl;
+            std::cerr << "zmq::InEventPort<T, S>::zmq_loop(): ZMQ_Error: " << ex.num() << std::endl;
 			break;
         }
     }
@@ -117,7 +117,6 @@ template <class T, class S>
 zmq::InEventPort<T, S>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function):
 ::InEventPort<T>(component, name, callback_function){
     terminate_endpoint_ = "inproc://term*" + component->get_name() + "*" + name + "*";
-    std::cout << "zmq::InEventPort<T, S>::InEventPort: Terminate Endpoint: " << terminate_endpoint_ << std::endl;
 };
 
 
@@ -137,7 +136,7 @@ void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
         rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);
         configured_=true;
     }else{
-        std::cout << "zmq::InEventPort<T, S>::startup: No Valid Reciever Endpoints" << std::endl;
+        std::cerr << "zmq::InEventPort<T, S>::startup: No Valid Reciever Endpoints" << std::endl;
     }
 };
 
@@ -146,7 +145,7 @@ void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
 
 template <class T, class S>
 zmq::InEventPort<T, S>::~InEventPort(){
-    std::cout << "zmq::InEventPort<T, S>::~InEventPort()" << std::endl;
+    //std::cout << "zmq::InEventPort<T, S>::~InEventPort()" << std::endl;
 };
 
 

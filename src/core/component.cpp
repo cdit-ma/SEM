@@ -22,7 +22,6 @@ Component::~Component(){
 bool Component::Activate(){
     for(auto e : eventports_){
         e.second->Activate();
-        std::cout << "ACTIVATING: " << e.second->get_name() << std::endl;
     }
     Activatable::Activate();
     if(logger()){
@@ -86,7 +85,7 @@ std::function<void (::BaseMessage*)> Component::GetCallback(std::string port_nam
 
 void Component::AddCallback(std::string port_name, std::function<void (::BaseMessage*)> function){
     if(callback_functions_.count(port_name) == 0){
-        std::cout << "Component: " << get_name() << " Added Callback function for: " << port_name << std::endl;
+        //std::cout << "Component: " << get_name() << " Added Callback function for: " << port_name << std::endl;
         callback_functions_[port_name] = function;
     }
 }

@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     options.add_options()("library,l", boost::program_options::value<std::string>(&dll_path), "Library path");
     options.add_options()("deployment,d", boost::program_options::value<std::string>(&graphml_path), "Deployment graphml file path");
     options.add_options()("slave,s", boost::program_options::value<std::string>(&slave_endpoint), "Slave endpoint, including port");
-    options.add_options()("master,m", boost::program_options::value<std::string>(&master_endpoint),"Master endpoint, including port");
+    options.add_options()("master,m", boost::program_options::value<std::string>(&master_endpoint), "Master endpoint, including port");
     options.add_options()("help,h", "Display help");
 
     boost::program_options::variables_map options_map;

@@ -15,11 +15,12 @@ DeploymentManager::DeploymentManager(std::string library_path){
     subscriber_ = new zmq::ProtoReceiver();
     //Get all Main messages
     subscriber_->Filter("*");
-    subscriber_->Start();
     
     //Subscribe to NodeManager::ControlMessage Types
-    auto cm_callback = std::bind(&DeploymentManager::ProcessControlMessage, this, std::placeholders::_1);
+    auto cm_callback = std::bind(&DeploymentManager::GotControlMessage, this, std::placeholders::_1);
     subscriber_->RegisterNewProto(NodeManager::ControlMessage::default_instance(), cm_callback);
+
+    subscriber_->Start();
 }
 
 DeploymentManager::~DeploymentManager(){
@@ -41,55 +42,50 @@ bool DeploymentManager::SetupModelLogger(std::string pub_endpoint, std::string h
     return ModelLogger::setup_model_logger(host_name, pub_endpoint, false);
 }
 
-void DeploymentManager::ProcessControlMessage(google::protobuf::MessageLite* ml){
+void DeploymentManager::GotControlMessage(google::protobuf::MessageLite* ml){
     NodeManager::ControlMessage* control_message = (NodeManager::ControlMessage*)ml;
-    std::cout << "Got control message!" << std::endl;
+    if(control_message){
+        ProcessControlMessage(control_message);
+    }
 }
 
-void DeploymentManager::ProcessAction(std::string node_name, std::string action){
+void DeploymentManager::ProcessControlMessage(NodeManager::ControlMessage* cm){
     std::lock_guard<std::mutex> lock(mutex_);
-    std::cout << "Processing Action: " << node_name << std::endl;
 
-    auto cm = new NodeManager::ControlMessage();
-    
-    if(cm->ParseFromString(action)){
-        std::cout << "Process Action: " << node_name << " ACTION: " << NodeManager::ControlMessage_Type_Name(cm->type()) << std::endl;
-        switch(cm->type()){
-            case NodeManager::ControlMessage::STARTUP:{
-                if(!deployment_){
-                    deployment_ = new NodeContainer(library_path_);    
-                    deployment_->Configure(cm);
-                    deployment_->ActivateAll();
-                }
-                break;
+    std::cout << "Got ControlMessage from Master: " << NodeManager::ControlMessage_Type_Name(cm->type()) << std::endl;
+    switch(cm->type()){
+        case NodeManager::ControlMessage::STARTUP:{
+            if(!deployment_){
+                deployment_ = new NodeContainer(library_path_);    
+                deployment_->Configure(cm);
             }
-            case NodeManager::ControlMessage::ACTIVATE:
-                if(deployment_){
-                    deployment_->ActivateAll();
-                }
-                break;
-            case NodeManager::ControlMessage::PASSIVATE:
-                if(deployment_){
-                    deployment_->PassivateAll();
-                }
-                break;
-            case NodeManager::ControlMessage::TERMINATE:
-                if(deployment_){
-                    deployment_->Teardown();
-                    delete deployment_;
-                    deployment_ = 0;
-                }
-                break;
-            case NodeManager::ControlMessage::SET_ATTRIBUTE:
-                if(deployment_){
-                    deployment_->Configure(cm);
-                }
-                break;
-            default:
-                break;
+            break;
         }
+        case NodeManager::ControlMessage::ACTIVATE:
+            if(deployment_){
+                deployment_->ActivateAll();
+            }
+            break;
+        case NodeManager::ControlMessage::PASSIVATE:
+            if(deployment_){
+                deployment_->PassivateAll();
+            }
+            break;
+        case NodeManager::ControlMessage::TERMINATE:
+            if(deployment_){
+                deployment_->Teardown();
+                delete deployment_;
+                deployment_ = 0;
+            }
+            break;
+        case NodeManager::ControlMessage::SET_ATTRIBUTE:
+            if(deployment_){
+                deployment_->Configure(cm);
+            }
+            break;
+        default:
+            break;
     }
-
 }
 
 NodeContainer* DeploymentManager::get_deployment(){

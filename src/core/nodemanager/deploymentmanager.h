@@ -9,7 +9,7 @@
 
 namespace zmq{class ProtoReceiver;};
 namespace google{namespace protobuf{class MessageLite;}};
-
+namespace NodeManager{class ControlMessage;};
 
 class DeploymentManager{
     public:
@@ -19,12 +19,10 @@ class DeploymentManager{
         bool SetupControlMessageReceiver(std::string pub_endpoint, std::string host_name);
         bool SetupModelLogger(std::string pub_endpoint, std::string host_name);
 
-        void ProcessControlMessage(google::protobuf::MessageLite* ml);
-        void ProcessAction(std::string node_name, std::string action);
-
+        void GotControlMessage(google::protobuf::MessageLite* ml);
         NodeContainer* get_deployment();
-
     private:
+        void ProcessControlMessage(NodeManager::ControlMessage* message);
         zmq::ProtoReceiver* subscriber_ = 0;
 
 

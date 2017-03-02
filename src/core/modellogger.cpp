@@ -99,7 +99,7 @@ void fill_port(re_common::Port* p, EventPort* eventport){
     }
 }
 void ModelLogger::LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event){
-    std::cout << "ModelLogger::LogLifecycleEvent()::Component" << std::endl;
+    //std::cout << "ModelLogger::LogLifecycleEvent()::Component" << std::endl;
     auto e = new re_common::LifecycleEvent();
     fill_info(e->mutable_info());
     fill_component(e->mutable_component(), component);
