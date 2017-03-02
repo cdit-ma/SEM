@@ -5,7 +5,7 @@ Contains generic ZeroMQ readers and writers for use with protobuf objects.
 * https://github.com/google/protobuf
 * https://github.com/zeromq/libzmq
 
-##Build Tools:
+##Build Tool:
 * https://github.com/Kitware/CMake
 
 ##Known Projects:
