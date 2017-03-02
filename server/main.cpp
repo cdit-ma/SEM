@@ -1,22 +1,20 @@
+#include <signal.h>
 #include <condition_variable>
 #include <mutex>
-#include <signal.h>
 #include <iostream>
-#include "boost/program_options.hpp"
+#include <vector>
+#include <boost/program_options.hpp>
 
-#include "sqlcontroller.h"
+#include "logprotohandler.h"
 
-std::condition_variable lock_condition_;
 std::mutex mutex_;
+std::condition_variable lock_condition_;
 
 std::string VERSION_NAME = "LOGAN_SERVER";
-std::string VERSION_NUMBER = "1.0";
-
-std::string DEFAULT_IP = "tcp://192.168.111.";
-std::string DEFAULT_PORT = "5555";
+std::string VERSION_NUMBER = "1.1";
 std::string DEFAULT_FILE = "out.sql";
 
-void signal_handler (int signal_value)
+void signal_handler(int sig)
 {
 	//Gain the lock so we can notify to terminate
 	std::unique_lock<std::mutex> lock(mutex_);
@@ -25,52 +23,58 @@ void signal_handler (int signal_value)
 
 int main(int ac, char** av)
 {
-	//Handle the SIGINT/SIGTERM signal
+	//Connect the SIGINT/SIGTERM signals to our handler.
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);
 
-	std::string port;
-	std::string ip_addr;
-	std::string file_name;
-	std::vector<std::string> addresses;
+	//Variables to store the input parameters
+	std::string database_path;	
+	std::vector<std::string> client_addresses;
 
 	//Parse command line options
 	boost::program_options::options_description desc("Options");
-	desc.add_options()("ip,I", boost::program_options::value<std::vector<std::string> >(&addresses)->multitoken(), "IP addresses to connect to");
-	desc.add_options()("port,p",boost::program_options::value<std::string>(&port)->default_value(DEFAULT_PORT), "Port number");
-	desc.add_options()("out-file,o",boost::program_options::value<std::string>(&file_name)->default_value(DEFAULT_FILE), "Output file name");
+	desc.add_options()("clients,c", boost::program_options::value<std::vector<std::string> >(&client_addresses)->multitoken()->required(), "logan_client endpoints to register against (ie tcp://192.168.1.1:5555)");
+	desc.add_options()("database,d", boost::program_options::value<std::string>(&database_path)->default_value(DEFAULT_FILE), "Output SQLite Database file path.");
 	desc.add_options()("help,h", "Display help");
 
+	//Construct a variable_map
 	boost::program_options::variables_map vm;
-	boost::program_options::store(boost::program_options::parse_command_line(ac, av, desc), vm);
-	boost::program_options::notify(vm);
-
+	
+	try{
+		//Parse Argument variables
+		boost::program_options::store(boost::program_options::parse_command_line(ac, av, desc), vm);
+		boost::program_options::notify(vm);
+	}catch(boost::program_options::error& e) {
+        std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
+		std::cout << desc << std::endl;
+        return 1;
+    }
+	
+	//Print the help output
 	if(vm.count("help")){
 		std::cout << desc << std::endl;
 		return 0;
 	}
-
+	
+	//Print output
 	std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
-	std::cout << "* Output file: " << file_name << std::endl;
-	std::cout << "* Listening on port: " << port << std::endl;
-	std::cout << "* Listening to: " << std::endl;
-	for(auto s : addresses){
-		std::cout << "** " << s << std::endl;
+	std::cout << "* Database: " << database_path << std::endl;
+	for(int i = 0; i < client_addresses.size(); i++){
+		if(i == 0){
+			std::cout << "* Clients:" << std::endl;
+		}
+		std::cout <<"** " << client_addresses[i] << std::endl;
 	}
 	std::cout << "---------------------------------" << std::endl;
 
-	SQLController* sql_controller = new SQLController(addresses, port, file_name);
+	//Construct a Handler to interface between our ZMQ messaging infrastructure and SQLite
+	auto handler = new LogProtoHandler(database_path, client_addresses);
 
-	{ 			
-		std::unique_lock<std::mutex> lock(mutex_);
-		//Wait for the signal_handler to notify for exit
-		lock_condition_.wait(lock);
-	}
+	//Wait for the signal_handler to notify for exit
+	std::unique_lock<std::mutex> lock(mutex_);
+	lock_condition_.wait(lock);
 
-	//Terminate the reciever and reciever thread
-	sql_controller->TerminateReceiver();
-
-    //Teardown the SQL Controller which will write the remaining queued messages
-	delete sql_controller;
+	//Free up memory	
+	delete handler;
     return 0;
 }

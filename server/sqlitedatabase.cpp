@@ -1,6 +1,7 @@
 #include "sqlitedatabase.h"
-#include <stdexcept>
+
 #include <iostream>
+#include <stdexcept>
 #include <stdio.h>
 
 #define SQL_BATCH_SIZE 100
@@ -36,7 +37,21 @@ SQLiteDatabase::~SQLiteDatabase(){
     }
 }
 
+sqlite3_stmt* SQLiteDatabase::GetSqlStatement(std::string query){
+    sqlite3_stmt *statement;
+    int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
+    if(result == SQLITE_OK){
+        return statement;
+    }
+    return 0;
+}
+
 void SQLiteDatabase::QueueSqlStatement(sqlite3_stmt *sql){
+    if(!sql){
+        std::cerr << "Sqlite encountered NULL statement." << std::endl;
+        return;
+    }
+
     //Gain the conditional lock
     std::unique_lock<std::mutex> lock(queue_mutex_);
     //Add statement to the queue to process.
@@ -48,20 +63,35 @@ void SQLiteDatabase::QueueSqlStatement(sqlite3_stmt *sql){
     }
 }
 
+void SQLiteDatabase::BlockingFlush(){
+    Flush();
+    
+    //Wait for return
+    std::unique_lock<std::mutex> lock(flush_mutex_);
+    flush_lock_condition_.wait(lock);
+}
+
 void SQLiteDatabase::Flush(){
     //Gain the conditional lock
-    std::unique_lock<std::mutex> lock(queue_mutex_);
-    //Notify the sql thread
-    queue_lock_condition_.notify_all();
+    {
+        std::unique_lock<std::mutex> lock(queue_mutex_);
+        flush_ = true;
+        //Notify the sql thread
+        queue_lock_condition_.notify_all();
+    }
 }
 
 void SQLiteDatabase::ProcessQueue(){
     while(!terminate_){
+        bool force_flush = false;
         std::queue<sqlite3_stmt*> sQueue;
         {
             //Wait for condition, if we don't have any SQL Statements.
             std::unique_lock<std::mutex> lock(queue_mutex_);
             queue_lock_condition_.wait(lock);
+            force_flush = flush_;
+            //Unset the flush value
+            flush_ = false;
             
             if(!sql_queue_.empty()){
                 //Swap our queues, and release our lock
@@ -77,32 +107,27 @@ void SQLiteDatabase::ProcessQueue(){
         int result = sqlite3_exec(database_, "BEGIN TRANSACTION", NULL, NULL, NULL);
         
         if(result != SQLITE_OK){
-            throw std::runtime_error("SQLite Failed to BEGIN TRANSACTION");
+            std::cerr << "SQLite Failed to BEGIN TRANSACTION. ERROR: " << result << std::endl;            
         }
 
 		//Execute Statements
 		while(!sQueue.empty()){
             sqlite3_stmt* statement = sQueue.front();
-            //Attempt to run the statement
-            result = sqlite3_step(statement);
+            if(statement){
+                //Attempt to run the statement
+                result = sqlite3_step(statement);
 
-            
-            if(result != SQLITE_DONE){
-                std::cout << sqlite3_sql(statement) << std::endl;
-                std::cout << "ERROR NO: " << result << std::endl;
-                char  error[100];
-                sprintf(error, "SQLite Failed to step statement %d\n", result);
-                
-                throw std::runtime_error(error);
+                if(result != SQLITE_DONE){
+                    std::cerr << "SQLite Failed to step statement. ERROR: " << result << std::endl;
+                }
+
+                //Finalize deletes the statement object
+                result = sqlite3_finalize(statement);
+
+                if(result != SQLITE_OK){
+                    std::cerr << "SQLite Failed to finalize statement. ERROR: " << result << std::endl;
+                }
             }
-
-            //Finalize deletes the statement object
-            result = sqlite3_finalize(statement);
-
-            if(result != SQLITE_OK){
-                throw std::runtime_error("SQLite Failed to finalize statement");
-            }
-
 			sQueue.pop();
 		}
 
@@ -111,17 +136,13 @@ void SQLiteDatabase::ProcessQueue(){
         result = sqlite3_exec(database_, "END TRANSACTION", NULL, NULL, NULL);
 
         if(result != SQLITE_OK){
-            throw std::runtime_error("SQLite Failed to END TRANSACTION");
+            std::cerr << "SQLite Failed to END TRANSACTION. ERROR: " << result << std::endl;
+        }
+
+        //Notify the Flush Function
+        if(force_flush){
+            std::unique_lock<std::mutex> lock(flush_mutex_);
+            flush_lock_condition_.notify_all();
         }
 	}
-}
-
-
-sqlite3_stmt* SQLiteDatabase::GetSqlStatement(std::string query){
-    sqlite3_stmt *statement;
-    int result = sqlite3_prepare_v2(database_, query.c_str(), -1, &statement, NULL);
-    if(result == SQLITE_OK){
-        return statement;
-    }
-    return 0;
 }

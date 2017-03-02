@@ -1,12 +1,15 @@
 #ifndef SIGARSYSTEMINFO_H
 #define SIGARSYSTEMINFO_H
 
-#include "systeminfo.h"
+#include <stdint.h>
+#include <time.h>
 #include <chrono>
-
-#include <vector>
-#include <set>
 #include <map>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "systeminfo.h"
 
 extern "C"{ 
     #include "sigar.h"

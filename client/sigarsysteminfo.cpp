@@ -1,9 +1,11 @@
 #include "sigarsysteminfo.h"
-#include "systeminfo.h"
+
+#include <sigar.h>
+#include <sigar_format.h>
 #include <ctime>
 #include <iostream>
-#include <set>
 #include <algorithm>
+
 
 SigarSystemInfo::SigarSystemInfo(){
     open_sigar();
@@ -25,8 +27,7 @@ bool SigarSystemInfo::open_sigar(){
 }
 
 bool SigarSystemInfo::close_sigar(){
-    auto itr = processes_.begin();
-    for(itr; itr!=processes_.end(); itr++){
+    for(auto itr = processes_.begin(); itr!=processes_.end(); itr++){
         delete itr->second;
     }
     if(sigar_close(sigar_) == SIGAR_OK){
@@ -99,15 +100,15 @@ double SigarSystemInfo::get_cpu_overall_utilization() const{
 
 
 int SigarSystemInfo::get_phys_mem() const{
-    return phys_mem_.total / (1024 * 1024);
+    return (int)(phys_mem_.total / (1024 * 1024));
 }
 
 int SigarSystemInfo::get_phys_mem_reserved() const{
-    return phys_mem_.actual_used / (1024 * 1024);
+    return (int)(phys_mem_.actual_used / (1024 * 1024));
 }
 
 int SigarSystemInfo::get_phys_mem_free() const{
-    return phys_mem_.free / (1024 * 1024);
+    return (int)(phys_mem_.free / (1024 * 1024));
 }
 
 double SigarSystemInfo::get_phys_mem_utilization() const{
@@ -131,7 +132,6 @@ bool SigarSystemInfo::update_cpu(){
     sigar_cpu_list_t cpu_list = sigar_cpu_list_t();
 
     if(!update_cpu_list(&cpu_list)){
-        std::cout << "1" << std::endl;
         //Failed to Update
         return false;
     }
@@ -142,19 +142,17 @@ bool SigarSystemInfo::update_cpu(){
 
         //Get the info only once
         if(!update_cpu_info_list(&cpu_info_list)){
-            std::cout << "2" << std::endl;
             return false;
         }
 
         //Different number of info
         if(cpu_info_list.number != cpu_list.number){
-            std::cout << "3" << std::endl;
             return false;
         }
         
         //Fill the CPU Vector
         cpus_.resize(cpu_list.number);
-        for(int i = 0; i < cpu_list.number; i++){
+        for(size_t i = 0; i < cpu_list.number; i++){
             //Fill in the data
             cpus_[i].cpu = cpu_list.data[i];
             cpus_[i].info = cpu_info_list.data[i];
@@ -165,7 +163,7 @@ bool SigarSystemInfo::update_cpu(){
     }
 
     CPU cpu;
-    for(int i = 0; i < cpu_list.number; i++){
+    for(size_t i = 0; i < cpu_list.number; i++){
         cpu = cpus_[i];
         
         sigar_cpu_t current_cpu = cpu_list.data[i];
@@ -180,8 +178,6 @@ bool SigarSystemInfo::update_cpu(){
 
     //Free the memory
     sigar_cpu_list_destroy(sigar_, &cpu_list);
-	
-
     return true;
 }
 
@@ -235,16 +231,15 @@ bool SigarSystemInfo::update_filesystems(){
     int validCount = 0;
 
     FileSystem fs;
-    for(int i = 0; i < fs_list.number; i++){
+    for(size_t i = 0; i < fs_list.number; i++){
         fs.system = fs_list.data[i];
 
         switch(fs.system.type){
             case SIGAR_FSTYPE_LOCAL_DISK:
             case SIGAR_FSTYPE_NETWORK:
-            case SIGAR_FSTYPE_RAM_DISK:
-            case SIGAR_FSTYPE_CDROM:
             case SIGAR_FSTYPE_SWAP:
-                break;                
+                //Only allow the above types
+                break;
             default:
                 //Ignore
                 continue;
@@ -281,7 +276,7 @@ bool SigarSystemInfo::update_interfaces(){
 
 
     Interface interface;
-    for(int i = 0; i < interface_list.number; i++){
+    for(size_t i = 0; i < interface_list.number; i++){
         interface.name = interface_list.data[i];
 
         //Get the latest stats
@@ -321,17 +316,17 @@ std::string SigarSystemInfo::get_interface_type(const int interface_index) const
 
 bool SigarSystemInfo::get_interface_state(const int interface_index, SystemInfo::InterfaceState state) const{
     if(interface_index < get_interface_count()){
-        int interfaceFlags = interfaces_[interface_index].config.flags;
+        int interfaceFlags = (int)(interfaces_[interface_index].config.flags);
 
         switch(state){
             case SystemInfo::InterfaceState::LOOPBACK:{
-                return interfaceFlags & SIGAR_IFF_LOOPBACK;
+                return (interfaceFlags & SIGAR_IFF_LOOPBACK) != 0;
             }
             case SystemInfo::InterfaceState::UP:{
-                return interfaceFlags & SIGAR_IFF_UP;
+                return (interfaceFlags & SIGAR_IFF_UP) != 0;
             }
             case SystemInfo::InterfaceState::RUNNING:{
-                return interfaceFlags & SIGAR_IFF_RUNNING;
+                return (interfaceFlags & SIGAR_IFF_RUNNING) != 0;
             }
             default:{
                 break;
@@ -416,7 +411,8 @@ std::string SigarSystemInfo::get_interface_ipv6(const int interface_index) const
 std::string SigarSystemInfo::get_interface_mac(const int interface_index) const{
     if(interface_index < get_interface_count()){
         //00:00:00:00:00:00
-        char addr_str[16];
+        //Max length: 17 + 1
+        char addr_str[18];
         sigar_net_address_t  adt = interfaces_[interface_index].config.hwaddr;
         if(sigar_net_address_to_string(sigar_, &adt , addr_str) == SIGAR_OK){
             return std::string(addr_str);
@@ -495,28 +491,28 @@ SystemInfo::FileSystemType SigarSystemInfo::get_fs_type(const int fs_index) cons
         
 int SigarSystemInfo::get_fs_size(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        return filesystems_[fs_index].usage.total / 1024;
+        return (int)(filesystems_[fs_index].usage.total / 1024);
     }
     return -1;
 }
 int SigarSystemInfo::get_fs_free(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        return filesystems_[fs_index].usage.avail / 1024;
+        return (int)(filesystems_[fs_index].usage.avail / 1024);
     }
     return -1;
 }
 
 int SigarSystemInfo::get_fs_used(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        return filesystems_[fs_index].usage.used / 1024;
+        return (int)(filesystems_[fs_index].usage.used / 1024);
     }
     return -1;
 }
 
 double SigarSystemInfo::get_fs_utilization(const int fs_index) const{
     if(fs_index < get_fs_count()){
-        double used = filesystems_[fs_index].usage.used;
-        double total = filesystems_[fs_index].usage.total;
+        double used = (double)(filesystems_[fs_index].usage.used);
+        double total = (double)(filesystems_[fs_index].usage.total);
         if(total > 0){
             return used / total;
         }
@@ -562,15 +558,15 @@ std::string SigarSystemInfo::get_process_arguments(const int pid) const{
 SystemInfo::ProcessState SigarSystemInfo::get_process_state(const int pid) const{
     if(processes_.count(pid)){
         switch(processes_.at(pid)->state.state){
-            case 'D':
-                return SystemInfo::ProcessState::DISK_SLEEP;
-            case 'R':
+            case SIGAR_PROC_STATE_IDLE:
+                return SystemInfo::ProcessState::IDLE;
+            case SIGAR_PROC_STATE_RUN:
                 return SystemInfo::ProcessState::RUNNING;
-            case 'S':
+            case SIGAR_PROC_STATE_SLEEP:
                 return SystemInfo::ProcessState::SLEEPING;
-            case 'T':
+            case SIGAR_PROC_STATE_STOP:
                 return SystemInfo::ProcessState::STOPPED;
-            case 'Z':
+            case SIGAR_PROC_STATE_ZOMBIE:
                 return SystemInfo::ProcessState::ZOMBIE;
             default:
                 break;  
@@ -596,7 +592,7 @@ double SigarSystemInfo::get_monitored_process_cpu_utilization(const int pid) con
 
 int SigarSystemInfo::get_monitored_process_phys_mem_used(const int pid) const{
     if(processes_.count(pid)){
-        return processes_.at(pid)->mem.resident;
+        return (int)(processes_.at(pid)->mem.resident);
     }
     return -1;
 }
@@ -614,7 +610,7 @@ double SigarSystemInfo::get_monitored_process_phys_mem_utilization(const int pid
 
 int SigarSystemInfo::get_monitored_process_thread_count(const int pid) const{
     if(processes_.count(pid)){
-        return processes_.at(pid)->state.threads;
+        return (int)(processes_.at(pid)->state.threads);
     }
     return -1;
 }
@@ -669,20 +665,19 @@ bool SigarSystemInfo::update_processes(){
 
     std::chrono::milliseconds t = get_current_time();
     for(size_t i = 0; i < process_list.number; i++){
-        int pid = process_list.data[i];
+        int pid = (int)(process_list.data[i]);
         current_pids_.insert(pid);
 
-        bool seenPIDBefore = processes_.count(pid); 
+        bool seenPIDBefore = processes_.count(pid) > 0;
+        bool get_info = !seenPIDBefore;
         
         if(seenPIDBefore){
             process = processes_[pid];
+
+            auto difference = std::chrono::duration_cast<std::chrono::seconds>(t - process->lastUpdated_);
+            get_info = difference.count() >= 0.8;
         }else{
             process = new Process();
-        }
-
-        //Require State
-        if(sigar_proc_state_get(sigar_, pid, &(process->state)) != SIGAR_OK){
-            continue;
         }
         
         std::string slash = "/";
@@ -701,31 +696,25 @@ bool SigarSystemInfo::update_processes(){
             std::string procName = std::string(process->exe.name);
 			procName = procName.substr(procName.find_last_of(slash) + 1, std::string::npos);
             process->proc_name = procName;
-        }
 
-        if(force_process_name_check_){
+            //Check if this process name is in the list of things to track
             for(std::string query: tracked_process_names_){
                 if(stringInString(process->proc_name, query)){
-                    //Monitor the process
                     monitor_process(pid);
                     break;
                 }
             }
         }
 
-        //If we care about tracking this PID
-        if(tracked_pids_.count(pid)){
-            auto difference = std::chrono::duration_cast<std::chrono::seconds>(t - process->lastUpdated_);
-            
-            //If we have this pid already and more than 1 second has elapsed
-            if(difference.count() >= 1){
-                sigar_proc_cpu_get(sigar_, pid, &process->cpu);
-                sigar_proc_mem_get(sigar_, pid, &process->mem);
-                sigar_proc_disk_io_get(sigar_, pid, &process->disk);
-                process->lastUpdated_ = t;
-            }
+        //If we care about tracking this PID, get it's state cpu mem and disk
+        if(tracked_pids_.count(pid) && get_info){
+            sigar_proc_state_get(sigar_, pid, &process->state);
+            sigar_proc_cpu_get(sigar_, pid, &process->cpu);
+            sigar_proc_mem_get(sigar_, pid, &process->mem);
+            sigar_proc_disk_io_get(sigar_, pid, &process->disk);
+            process->lastUpdated_ = t;
         }
-
+        //Store the process in the map
         processes_[pid] = process;
     }
 
@@ -735,8 +724,9 @@ bool SigarSystemInfo::update_processes(){
             //Free up the memory
             Process* p = (*it).second;
             it = processes_.erase(it);
+            
             //Remove the pid from the tracked list
-            tracked_pids_.erase(pid);
+            ignore_process(pid);
             delete p;
         }else{
             it++;
@@ -806,5 +796,5 @@ bool SigarSystemInfo::stringInString(const std::string haystack, const std::stri
         #endif
         }
     );
-    return (match != haystack.end() );   
+    return (match != haystack.end() );
 }

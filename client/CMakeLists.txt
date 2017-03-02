@@ -6,51 +6,52 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/")
 
+
 set(PROJ_NAME logan_client)
 
 project (${PROJ_NAME})
 
 find_package(Protobuf REQUIRED)
-include_directories(${PROJ_NAME} ${PROTOBUF_INCLUDE_DIRS})
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 find_package(SIGAR REQUIRED)
-include_directories(${PROJ_NAME} ${SIGAR_INCLUDE_DIRS})
+include_directories(${SIGAR_INCLUDE_DIRS})
 
-#Need boost system and filesystem for crossplatform temp file creation.
-find_package(Boost 1.36.0 COMPONENTS program_options filesystem system REQUIRED)
+#Link against boost dynamically
+add_definitions(-DBOOST_ALL_DYN_LINK)
+#Need boost > 1.30.0 system and filesystem for crossplatform temp file creation.
+find_package(Boost 1.30.0 COMPONENTS program_options filesystem system REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
-#Generate our Protobuf source/headers
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ../common/systemstatus.proto)
-
 #Link our Logger against all the Cpps
-
 set(CLIENT_SOURCE
-	main.cpp 
-	sigarsysteminfo.cpp
-	logcontroller.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/sigarsysteminfo.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/logcontroller.cpp
 )
 
 set(CLIENT_HEADERS
-	sigarsysteminfo.h
-	logcontroller.h
+	${CMAKE_CURRENT_SOURCE_DIR}/sigarsysteminfo.h
+	${CMAKE_CURRENT_SOURCE_DIR}/logcontroller.h
 )
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/messagewriter")
+add_executable(${PROJ_NAME} ${CLIENT_SOURCE} ${CLIENT_HEADERS})
 
-
-add_executable(${PROJ_NAME} ${CLIENT_SOURCE} ${CLIENT_HEADERS} ${PROTO_SRCS} ${PROTO_HDRS})
+#set_property(TARGET ${PROJ_NAME} PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 
 if (MSVC)
-	#Visual studio needs to be told to build in Multithreaded Static mode
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+	#Windows requires protobuf in DLLs
+    add_definitions(-DPROTOBUF_USE_DLLS)
 else()
 	#Unix needs to include pthread
 	target_link_libraries(${PROJ_NAME} pthread dl)
 endif()
 
-target_link_libraries(${PROJ_NAME} message_writer)
+#include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
+target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
+target_link_libraries(${PROJ_NAME} zmq_protowriter)
+target_link_libraries(${PROJ_NAME} re_common_proto_systemstatus)
 #Link against our required libraries
 target_link_libraries(${PROJ_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJ_NAME} ${SIGAR_LIBRARIES})
