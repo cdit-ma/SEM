@@ -57,7 +57,8 @@ void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, s
 
         if(slave_host_name == host_name){
             std::cout << "Sending Startup Instructions: " << host_name << std::endl;
-            proto_writer_->PushMessage(host_name + "*", a.second);
+            auto copy = new NodeManager::ControlMessage(*(a.second));
+            proto_writer_->PushMessage(host_name + "*", copy);
         }   
     }
 }
