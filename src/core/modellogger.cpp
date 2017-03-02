@@ -18,6 +18,7 @@ bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint
         singleton_ = new ModelLogger(host_name, cached);
         std::cerr << "Model Logger Constructed!" << std::endl;
 
+        
         //Bind the endpoint
         success = singleton_->writer_->BindPublisherSocket(endpoint);
     }

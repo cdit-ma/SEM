@@ -2,20 +2,31 @@
 #include <iostream>
 #include <map>
 #include "../controlmessage/controlmessage.pb.h"
-#include "zmqmaster.h"
+
+#include "../../re_common/zmq/protowriter/protowriter.h"
 
 void set_attr_string(NodeManager::Attribute* attr, std::string val){
     attr->add_s(val);
 }
 
-ExecutionManager::ExecutionManager(ZMQMaster* zmq, std::string graphml_path){
-    zmq_master_ = zmq;
+ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_path){
     
+    //Setup writer
+    proto_writer_ = new zmq::ProtoWriter();
+    proto_writer_->BindPublisherSocket(endpoint);
+
+    //Setup the parser
     graphml_parser_ = new GraphmlParser(graphml_path);
+
     auto start = std::chrono::system_clock::now();
     bool success = ScrapeDocument();
     auto end = std::chrono::system_clock::now();
-    std::cout << "Parsing Document Took: " << (end - start).count() << " μs" << std::endl;
+    std::cout << "* Deployment Parsed In: " << (end - start).count() << " μs" << std::endl;
+    std::cout << std::endl;
+}
+
+void ExecutionManager::PushMessage(std::string topic, google::protobuf::MessageLite* message){
+    proto_writer_->PushMessage(topic, message);
 }
 
 std::vector<std::string> ExecutionManager::GetSlaveEndpoints(){
@@ -29,6 +40,27 @@ std::vector<std::string> ExecutionManager::GetSlaveEndpoints(){
     return out;
 }
 
+void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, std::string slave_host_name){
+    if(response != "OKAY"){
+        std::cerr << "Slave: '" << slave_host_name << "' @ " << endpoint << " Error!" << std::endl;
+        std::cerr << response << std::endl;
+        return;
+    }
+    std::cout << "Slave: '" << slave_host_name << "' @ " << endpoint << " Online!" << std::endl;
+    std::unique_lock<std::mutex>(mutex_);
+
+    //Look through the deployment map for instructions to send the newly online slave
+    for(auto a: deployment_map_){
+        //Match the host_name 
+        std::string host_name = a.second->mutable_node()->name();
+
+        if(slave_host_name == host_name){
+            std::cout << "Sending Startup Instructions: " << host_name << std::endl;
+            proto_writer_->PushMessage(host_name + "*", a.second);
+        }   
+    }
+}
+
 std::string ExecutionManager::GetHostNameFromAddress(std::string address){
     for(auto hardware : hardware_nodes_){
         if(address.find(hardware.second->ip_address) != std::string::npos){
@@ -36,6 +68,19 @@ std::string ExecutionManager::GetHostNameFromAddress(std::string address){
         }
     }
     return "";
+}
+
+std::string ExecutionManager::GetLoggerAddressFromHostName(std::string host_name){
+    std::string addr;
+    for(auto h : hardware_nodes_){
+        auto id = h.first;
+        auto hardware = h.second;
+        if(host_name == hardware->name){
+            addr = GetTCPAddress(hardware->ip_address, hardware->logger_port_number);       
+            break;
+        }
+    }
+    return addr;
 }
 
 ExecutionManager::HardwareNode* ExecutionManager::GetHardwareNode(std::string id){
@@ -133,9 +178,17 @@ std::string ExecutionManager::GetImplId(std::string id){
 
 }
 
+std::string ExecutionManager::GetTCPAddress(const std::string ip, const unsigned int port_number){
+    std::string addr;
+    if(!ip.empty()){
+        addr += "tcp://" + ip + ":" + std::to_string(port_number);
+    }
+    return addr;
+}
 bool ExecutionManager::ScrapeDocument(){
+    std::unique_lock<std::mutex>(mutex_);
     if(graphml_parser_){
-        
+        //Get the ID's of the edges
         deployment_edge_ids_ = graphml_parser_->FindEdges("Edge_Deployment");
         assembly_edge_ids_ = graphml_parser_->FindEdges("Edge_Assembly");
         definition_edge_ids_ = graphml_parser_->FindEdges("Edge_Definition");
@@ -153,9 +206,10 @@ bool ExecutionManager::ScrapeDocument(){
             auto node = new HardwareNode();
             node->id = n_id;
             node->name = GetDataValue(n_id, "label");
-            node->ip_address = GetDataValue(n_id, "ip_address");        
-
-            //std::cout << "Parsed: HardwareNode[" << n_id << "]: " << node->name << std::endl;
+            node->ip_address = GetDataValue(n_id, "ip_address"); 
+            //Set Port Number for ZMQ Logger
+            node->logger_port_number = ++node->port_count;
+            
 
             //Get the ID's of the ComponentInstances deployed to this Node
             for(auto e_id : deployment_edge_ids_){
@@ -187,7 +241,7 @@ bool ExecutionManager::ScrapeDocument(){
             component->id = c_id;
             component->name = GetDataValue(c_id, "label");
 
-            std::cout << "Parsed: ComponentInstance[" << c_id << "]: " << component->name << std::endl;
+            //std::cout << "Parsed: ComponentInstance[" << c_id << "]: " << component->name << std::endl;
 
             HardwareNode* node = 0;
             if(deployed_instance_map_.count(c_id)){
@@ -239,7 +293,7 @@ bool ExecutionManager::ScrapeDocument(){
                     port->port_number = ++node->port_count;
                     
                     //Construct a TCP Address
-                    port->port_address = "tcp://" + node->ip_address + ":" + std::to_string(port->port_number);
+                    port->port_address = GetTCPAddress(node->ip_address, port->port_number);
                 }
 
                 if(!event_ports_.count(p_id)){
@@ -269,9 +323,6 @@ bool ExecutionManager::ScrapeDocument(){
             component->name = GetDataValue(c_id, "label");
             component->definition_id = GetDefinitionId(c_id);
 
-
-            //std::cout << "Parsed: ComponentImpl[" << c_id << "]: " << component->name << std::endl;
-            
             //Parse Periodic_Events
             for(auto p_id : graphml_parser_->FindNodes("PeriodicEvent", c_id)){
                 auto port = new EventPort();
@@ -325,39 +376,20 @@ bool ExecutionManager::ScrapeDocument(){
         }
     }
 
-    if(deployment_edge_ids_.size() > 0){
-        //TODO: Add fail cases
-        return true;
-    } 
-    return false;
-}
-
-std::string ExecutionManager::GetAttribute(std::string id, std::string attr_name){
-    if(graphml_parser_){
-        return graphml_parser_->GetAttribute(id, attr_name);
-    }
-    return "";
-}
-std::string ExecutionManager::GetDataValue(std::string id, std::string key_name){
-    if(graphml_parser_){
-        return graphml_parser_->GetDataValue(id, key_name);
-    }
-    return "";
-}
-
-void ExecutionManager::ExecutionLoop(){
-    std::map<std::string, NodeManager::ControlMessage*> deployment_map;
+    //Construct the Protobuf messages
 
     //Get the Deployed Hardware nodes. Construct STARTUP messages
     for(auto n : hardware_nodes_){
-        HardwareNode* node = n.second;
+        auto node = n.second;
 
         if(node && !node->component_ids.empty()){
             auto cm = new NodeManager::ControlMessage();
+
+            // Set the node name of the protobuf message
             cm->mutable_node()->set_name(node->name);
-            //Fake STARTUP Message
+            // Set the configure messages
             cm->set_type(NodeManager::ControlMessage::STARTUP);
-            deployment_map[node->id] = cm;
+            deployment_map_[node->id] = cm;
         }
     }
 
@@ -367,15 +399,15 @@ void ExecutionManager::ExecutionLoop(){
         std::string h_id = d.second;
 
         NodeManager::Node* node_pb = 0;
-        if(deployment_map.count(h_id)){
-            node_pb = deployment_map[h_id]->mutable_node();
+        if(deployment_map_.count(h_id)){
+            node_pb = deployment_map_[h_id]->mutable_node();
         }
 
         auto component = GetComponent(c_id);
         auto hardware_node = GetHardwareNode(h_id);
 
         if(hardware_node && component && node_pb){
-            std::cout << "Node: " << hardware_node->name << " Deploys: " << component->name << std::endl;
+        
             
             NodeManager::Component* component_pb = node_pb->add_components();
             
@@ -406,7 +438,7 @@ void ExecutionManager::ExecutionLoop(){
                     }
                 }
             }
-
+            //Get the ComponentInstance Ports
             for(auto p_id: component->event_port_ids){
                 auto event_port = GetEventPort(p_id);
                 
@@ -429,9 +461,8 @@ void ExecutionManager::ExecutionLoop(){
                         port_pb->set_type(NodeManager::EventPort::PERIODIC_PORT);
                     }
 
+                    //Get the Middleware for the ports
                     if(port_pb->type() != NodeManager::EventPort::PERIODIC_PORT){
-
-
                         std::string port_middleware = event_port->middleware;
                         NodeManager::EventPort::Middleware mw;
                         
@@ -441,86 +472,124 @@ void ExecutionManager::ExecutionLoop(){
                         }
 
                         port_pb->set_middleware(mw);
-
-
-                        //Set port port number
+                        
+                        //Set the topic_name
                         auto topic_pb = port_pb->add_attributes();
                         topic_pb->set_name("topic_name");
                         topic_pb->set_type(NodeManager::Attribute::STRING);
-                        //TODO: actually set Topic Name port number.
                         set_attr_string(topic_pb, event_port->topic_name); 
                         
-                        
+                        //Set the domain_id
+                        //TODO: Need this in graphml
                         auto domain_id = port_pb->add_attributes();
                         domain_id->set_name("domain_id");
                         domain_id->set_type(NodeManager::Attribute::INTEGER);
                         domain_id->set_i(0);
 
+                        //Set the broker address
+                        //TODO: Need this in graphml
                         auto broker = port_pb->add_attributes();
                         broker->set_name("broker");
                         broker->set_type(NodeManager::Attribute::STRING);
                         set_attr_string(broker, "localhost:5672"); 
 
+                        //
                         if(port_pb->type() == NodeManager::EventPort::OUT_PORT){
-                            HardwareNode* node = GetHardwareNode(component->node_id);
-                            if(node){
-                                if(event_port->port_number > 0){
-                                    //Set Publisher TCP Address
-                                    auto publisher_addr_pb = port_pb->add_attributes();
-                                    publisher_addr_pb->set_name("publisher_address");
-                                    publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);
-                                    set_attr_string(publisher_addr_pb, event_port->port_address);
-                                }
-
-                            
-
-                                //Set port port number
-                                auto publisher_pb = port_pb->add_attributes();
-                                publisher_pb->set_name("publisher_name");
-                                publisher_pb->set_type(NodeManager::Attribute::STRING);
-                                set_attr_string(publisher_pb, component->name + event_port->name);
-
+                            if(event_port->port_number > 0){
+                                //Set Publisher TCP Address (ZMQ Only)
+                                auto publisher_addr_pb = port_pb->add_attributes();
+                                publisher_addr_pb->set_name("publisher_address");
+                                publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);
+                                set_attr_string(publisher_addr_pb, event_port->port_address);
                             }
+                            //Set publisher name
+                            //TODO: Allow modelling of this
+                            auto publisher_name_pb = port_pb->add_attributes();
+                            publisher_name_pb->set_name("publisher_name");
+                            publisher_name_pb->set_type(NodeManager::Attribute::STRING);
+                            set_attr_string(publisher_name_pb, component->name + event_port->name);
+
                         }else if(port_pb->type() == NodeManager::EventPort::IN_PORT){
+                            //Construct a publisher_address list
                             auto publisher_addr_pb = port_pb->add_attributes();
                             publisher_addr_pb->set_name("publisher_address");
                             publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);
 
-                            //FIND END POINTS
+                            //Find the end points and push them back onto the publisher_address list
                             for(auto e_id : assembly_edge_ids_){
                                 auto s_id = graphml_parser_->GetAttribute(e_id, "source");
                                 auto t_id = graphml_parser_->GetAttribute(e_id, "target");
                                 EventPort* s = GetEventPort(s_id);
                                 EventPort* t = GetEventPort(t_id);
                                 if(t == event_port && s->port_number > 0){
+                                    //Append the publisher TCP Address (ZMQ Only)
                                     set_attr_string(publisher_addr_pb, s->port_address);
                                 }
                             }
 
-                            //Set port port number
+                            //Set subscriber name
+                            //TODO: Allow modelling of this
                             auto subscriber_pb = port_pb->add_attributes();
                             subscriber_pb->set_name("subscriber_name");
                             subscriber_pb->set_type(NodeManager::Attribute::STRING);
                             set_attr_string(subscriber_pb, component->name + event_port->name);
                         }
-                    } else {
+                    }else{
+                        //Periodic Events
                         try{
+                            //Set the frequency of the periodic event
                             double temp = std::stod(event_port->frequency);
                             auto frequency_pb = port_pb->add_attributes();
                             frequency_pb->set_name("frequency");
                             frequency_pb->set_type(NodeManager::Attribute::DOUBLE);
                             frequency_pb->set_d(temp);
-                        } catch (...){}
+                        }catch (...){}
                     }
                 }
             }
         }
     }
 
-    for(auto a: deployment_map){
-        std::string filter_name = a.second->mutable_node()->name() + "*";
-        std::cout << "Master sending Action to: " << filter_name << std::endl;
-        //std::cout << a.second->DebugString() << std::endl;
-        zmq_master_->SendAction(filter_name, a.second);
+    std::cout << "------[ Deployment Info ]------";
+
+    for(auto n : hardware_nodes_){
+        auto node = n.second;
+
+        if(node && !node->component_ids.empty()){
+            std::cout << std::endl << "* Node: '" << node->name << "' Deploys:" << std::endl;
+
+            for(auto c_id: node->component_ids){
+                auto component = GetComponent(c_id);
+                if(component){
+                    std::cout << "** " << component->name << " [" << component->type_name << "]" << std::endl;
+                }
+            }
+        }
     }
+    std::cout << "------------------------------" << std::endl;
+
+    
+            
+
+    if(deployment_edge_ids_.size() > 0){
+        //TODO: Add fail cases
+        return true;
+    } 
+    return false;
+}
+
+std::string ExecutionManager::GetAttribute(std::string id, std::string attr_name){
+    if(graphml_parser_){
+        return graphml_parser_->GetAttribute(id, attr_name);
+    }
+    return "";
+}
+std::string ExecutionManager::GetDataValue(std::string id, std::string key_name){
+    if(graphml_parser_){
+        return graphml_parser_->GetDataValue(id, key_name);
+    }
+    return "";
+}
+
+void ExecutionManager::ExecutionLoop(){
 }

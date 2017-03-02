@@ -27,22 +27,23 @@ find_library(PUGIXML_LIBRARIES pugixml ${PUGIXML_ROOT}/lib)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmqslave.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmqmaster.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.cpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.cpp
 	)
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmqslave.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/zmqmaster.h
     ${CMAKE_CURRENT_SOURCE_DIR}/graphmlparser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/executionmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/deploymentmanager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/nodecontainer.h
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrant.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/zmq/registrar.h
 	)
 
 include_directories(${Boost_INCLUDE_DIRS})

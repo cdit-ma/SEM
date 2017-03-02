@@ -1,9 +1,10 @@
-#include "zmqslave.h"
+#include "registrant.h"
+
 #include <zmq.hpp>
 #include <iostream>
 #include <chrono>
 
-ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string endpoint){
+zmq::Registrant::Registrant(DeploymentManager* manager, std::string endpoint){
     deployment_manager_ = manager;
     
     //Construct context
@@ -12,10 +13,10 @@ ZMQSlave::ZMQSlave(DeploymentManager* manager, std::string endpoint){
 
     
     //Start the registration thread
-    registration_thread_ = new std::thread(&ZMQSlave::RegistrationLoop, this, endpoint);
+    registration_thread_ = new std::thread(&zmq::Registrant::RegistrationLoop, this, endpoint);
 }
 
-ZMQSlave::~ZMQSlave(){
+zmq::Registrant::~Registrant(){
     //Deleting the context will interupt any blocking ZMQ calls
     if(context_){
         delete context_;    
@@ -27,7 +28,7 @@ ZMQSlave::~ZMQSlave(){
     }
 }
 
-void ZMQSlave::RegistrationLoop(std::string endpoint){
+void zmq::Registrant::RegistrationLoop(std::string endpoint){
     //Start a request socket, and bind endpoint
     auto socket = zmq::socket_t(*context_, ZMQ_PAIR);
     socket.bind(endpoint.c_str());
@@ -80,14 +81,17 @@ void ZMQSlave::RegistrationLoop(std::string endpoint){
             reply_message = "OKAY";
         }
 
+        //Wait until we can guarantee messages
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
         zmq::message_t slave_response(reply_message.c_str(), reply_message.size());
         //Send our setup response to the server, blocks until reply
         socket.send(slave_response);
 
-        zmq::message_t master_response;
+        //zmq::message_t master_response;
 
          //Get the tcp endpoint for ModelLogger
-        socket.recv(&master_response);
+       // socket.recv(&master_response);
 
     }catch(const zmq::error_t& exception){
         if(exception.num() == ETERM){

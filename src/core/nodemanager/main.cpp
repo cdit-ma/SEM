@@ -1,20 +1,18 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <boost/program_options.hpp>
 
 #include "../controlmessage/controlmessage.pb.h"
-#include "../modellogger.h"
 
 #include "deploymentmanager.h"
+#include "executionmanager.h"
 
-#include "zmqmaster.h"
-#include "zmqslave.h"
-
-#include <boost/program_options.hpp>
+#include "zmq/registrant.h"
+#include "zmq/registrar.h"
 
 std::string VERSION_NAME = "re_node_manager";
 std::string VERSION_NUMBER = "1.0";
-
 
 int main(int argc, char **argv)
 {
@@ -56,9 +54,11 @@ int main(int argc, char **argv)
         }
     }
 
-    ZMQMaster* master = 0;
-    ZMQSlave* slave = 0;
+    zmq::Registrar* master = 0;
+    zmq::Registrant* slave = 0;
+    
     NodeContainer* node_container = 0;
+    ExecutionManager* execution_manager = 0;
     DeploymentManager* deployment_manager = 0;
 
     if(!dll_path.empty()){
@@ -66,24 +66,16 @@ int main(int argc, char **argv)
         deployment_manager = new DeploymentManager(dll_path);
         //Get the NodeContainer from the DLL
         node_container = deployment_manager->get_deployment();
-
-        if(!node_container){
-            std::cerr << "Cannot construct Deployment" << std::endl;
-        }
     }
 
     //Start the Master/Slave
     if(is_server){
-        std::cout << "Starting MASTER on " << master_endpoint << std::endl;
-        master = new ZMQMaster(master_endpoint, graphml_path);
-    }else{
-        //Construct the model logger
-        ModelLogger::get_model_logger();
+        execution_manager = new ExecutionManager(master_endpoint, graphml_path);
+        master = new zmq::Registrar(execution_manager, master_endpoint);
     }
     
     if(deployment_manager){
-        std::cout << "Starting SLAVE on " << slave_endpoint << std::endl;
-        slave = new ZMQSlave(deployment_manager, slave_endpoint);
+        slave = new zmq::Registrant(deployment_manager, slave_endpoint);
     }
     
     
@@ -151,7 +143,7 @@ int main(int argc, char **argv)
                     attr->add_s(attribute_value);
                 }
 
-                master->SendAction(host, cm);
+                execution_manager->PushMessage(host, cm);
             }
             
             

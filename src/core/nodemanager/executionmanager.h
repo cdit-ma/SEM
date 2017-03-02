@@ -1,7 +1,7 @@
 #ifndef EXECUTIONMANAGER_H
 #define EXECUTIONMANAGER_H
 
-
+#include <mutex>
 #include <thread>
 #include <string>
 #include "graphmlparser.h"
@@ -9,7 +9,18 @@
 #include <map>
 #include <vector>
 
-class ZMQMaster;
+namespace google{
+    namespace protobuf{
+        class MessageLite;
+    };
+};
+
+namespace NodeManager{
+    class ControlMessage;
+};
+
+namespace zmq{class ProtoWriter;};
+
 class ExecutionManager{
     struct HardwareNode{
         std::string id;
@@ -17,6 +28,7 @@ class ExecutionManager{
         std::string ip_address;
         int port_count = 6000;
         int node_manager_port = 7001;
+        int logger_port_number = 6000;
         std::vector<std::string> component_ids;
     };
 
@@ -68,16 +80,20 @@ class ExecutionManager{
     };
 
     public:
-        ExecutionManager(ZMQMaster *zmqmaster, std::string graphml_path);
+        ExecutionManager(std::string endpoint, std::string graphml_path);
 
         std::vector<std::string> GetSlaveEndpoints();
         std::string GetHostNameFromAddress(std::string address);
+        std::string GetLoggerAddressFromHostName(std::string host_name);
 
         void ExecutionLoop();
+
+        void PushMessage(std::string topic, google::protobuf::MessageLite* message);
+        void SlaveOnline(std::string response, std::string endpoint, std::string host_name);
     private:
         std::string GetAttribute(std::string id, std::string attr_name);
         std::string GetDataValue(std::string id, std::string key_name);
-        
+        std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
         std::string GetDefinitionId(std::string id);
         std::string GetImplId(std::string id);
         
@@ -89,11 +105,16 @@ class ExecutionManager{
 
         bool ScrapeDocument();
 
-        
+        std::mutex mutex_;
+        std::map<std::string, NodeManager::ControlMessage*> deployment_map_;
+
+
         std::thread* execution_thread_;
-        ZMQMaster* zmq_master_;
+
+        zmq::ProtoWriter* proto_writer_;
         GraphmlParser* graphml_parser_;
 
+        //IDs to Entities
         std::map<std::string, HardwareNode*> hardware_nodes_;
         std::map<std::string, ComponentInstance*> component_instances_;
         std::map<std::string, EventPort*> event_ports_;

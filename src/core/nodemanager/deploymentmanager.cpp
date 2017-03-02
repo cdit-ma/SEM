@@ -15,6 +15,8 @@ DeploymentManager::DeploymentManager(std::string library_path){
     subscriber_ = new zmq::ProtoReceiver();
     //Get all Main messages
     subscriber_->Filter("*");
+    subscriber_->Start();
+    
     //Subscribe to NodeManager::ControlMessage Types
     auto cm_callback = std::bind(&DeploymentManager::ProcessControlMessage, this, std::placeholders::_1);
     subscriber_->RegisterNewProto(NodeManager::ControlMessage::default_instance(), cm_callback);
@@ -28,8 +30,9 @@ DeploymentManager::~DeploymentManager(){
 
 bool DeploymentManager::SetupControlMessageReceiver(std::string pub_endpoint, std::string host_name){
     if(subscriber_){
+        std::cout << "Subscribing to: " << pub_endpoint << " Filter: " << host_name << "*" << std::endl;
         subscriber_->Connect(pub_endpoint);
-        subscriber_->Filter("*");
+        subscriber_->Filter(host_name + "*");
         return true;
     }
     return false;
