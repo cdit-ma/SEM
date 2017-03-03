@@ -80,13 +80,16 @@ class ExecutionManager{
     };
 
     public:
-        ExecutionManager(std::string endpoint, std::string graphml_path);
+        ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration);
 
-        std::vector<std::string> GetSlaveEndpoints();
+        std::vector<std::string> GetRequiredSlaveEndpoints();
         std::string GetHostNameFromAddress(std::string address);
         std::string GetLoggerAddressFromHostName(std::string host_name);
 
-        void ExecutionLoop();
+        void ExecutionLoop(double duration_sec);
+
+        void ActivateExecution();
+        void TerminateExecution();
 
         void PushMessage(std::string topic, google::protobuf::MessageLite* message);
         void SlaveOnline(std::string response, std::string endpoint, std::string host_name);
@@ -96,6 +99,8 @@ class ExecutionManager{
         std::string GetTCPAddress(const std::string ip, const unsigned int port_number);
         std::string GetDefinitionId(std::string id);
         std::string GetImplId(std::string id);
+
+        void HandleSlaveOnline(std::string endpoint);
         
 
         ExecutionManager::HardwareNode* GetHardwareNode(std::string id);
@@ -108,8 +113,18 @@ class ExecutionManager{
         std::mutex mutex_;
         std::map<std::string, NodeManager::ControlMessage*> deployment_map_;
 
+        std::vector<std::string> required_slaves_;
+        std::vector<std::string> inactive_slaves_;
+        std::thread* execution_thread_ = 0;
 
-        std::thread* execution_thread_;
+
+        std::mutex activate_mutex_;
+        std::condition_variable activate_lock_condition_;
+
+        std::mutex terminate_mutex_;
+        std::condition_variable terminate_lock_condition_;
+        
+        
 
         zmq::ProtoWriter* proto_writer_;
         GraphmlParser* graphml_parser_;

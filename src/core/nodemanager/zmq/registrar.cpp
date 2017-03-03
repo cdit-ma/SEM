@@ -14,7 +14,7 @@ zmq::Registrar::Registrar(ExecutionManager* manager, std::string publisher_endpo
     execution_manager_ = manager;
 
     //Construct a new thread for each slave
-    for(auto s : execution_manager_->GetSlaveEndpoints()){
+    for(auto s : execution_manager_->GetRequiredSlaveEndpoints()){
         auto t = new std::thread(&zmq::Registrar::RegistrationLoop, this, s);
     }
 }

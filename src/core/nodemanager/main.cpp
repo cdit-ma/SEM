@@ -21,10 +21,12 @@ int main(int argc, char **argv)
     std::string graphml_path;
     std::string slave_endpoint;
     std::string master_endpoint;
+    double execution_duration = 60.0;
 
     boost::program_options::options_description options("Node manager options");
     options.add_options()("library,l", boost::program_options::value<std::string>(&dll_path), "Library path");
     options.add_options()("deployment,d", boost::program_options::value<std::string>(&graphml_path), "Deployment graphml file path");
+    options.add_options()("time,t", boost::program_options::value<double>(&execution_duration)->default_value(execution_duration), "Deployment Duration (In Seconds)");
     options.add_options()("slave,s", boost::program_options::value<std::string>(&slave_endpoint), "Slave endpoint, including port");
     options.add_options()("master,m", boost::program_options::value<std::string>(&master_endpoint), "Master endpoint, including port");
     options.add_options()("help,h", "Display help");
@@ -70,7 +72,7 @@ int main(int argc, char **argv)
 
     //Start the Master/Slave
     if(is_server){
-        execution_manager = new ExecutionManager(master_endpoint, graphml_path);
+        execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration);
         master = new zmq::Registrar(execution_manager, master_endpoint);
     }
     
@@ -86,7 +88,14 @@ int main(int argc, char **argv)
         std::string command;
         std::getline(std::cin, command);
         
-        if(command == "activate"){
+
+        if(command == "ACTIVATE"){
+            execution_manager->ActivateExecution();
+        }else if(command == "TERMINATE"){
+            execution_manager->TerminateExecution();
+
+
+        }else if(command == "activate"){
             std::string name;
             std::cout << "Enter Component Name or *: ";
             std::getline(std::cin, name);

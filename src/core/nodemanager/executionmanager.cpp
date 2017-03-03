@@ -1,5 +1,7 @@
 #include "executionmanager.h"
 #include <iostream>
+#include <chrono>
+#include <algorithm>
 #include <map>
 #include "../controlmessage/controlmessage.pb.h"
 
@@ -9,8 +11,7 @@ void set_attr_string(NodeManager::Attribute* attr, std::string val){
     attr->add_s(val);
 }
 
-ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_path){
-    
+ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration){
     //Setup writer
     proto_writer_ = new zmq::ProtoWriter();
     proto_writer_->BindPublisherSocket(endpoint);
@@ -24,42 +25,55 @@ ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_pat
     auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cout << "* Deployment Parsed In: " << ms.count() << " ms" << std::endl;
     std::cout << std::endl;
+
+    //Start Execution thread for 60!
+    execution_thread_ = new std::thread(&ExecutionManager::ExecutionLoop, this, execution_duration);
 }
 
 void ExecutionManager::PushMessage(std::string topic, google::protobuf::MessageLite* message){
     proto_writer_->PushMessage(topic, message);
 }
 
-std::vector<std::string> ExecutionManager::GetSlaveEndpoints(){
-    std::vector<std::string> out;
-    for(auto hardware : hardware_nodes_){
-        if(hardware.second->component_ids.size() != 0){
-            std::string ip = "tcp://" + hardware.second->ip_address + ":" + std::to_string(hardware.second->node_manager_port);
-            out.push_back(ip);
-        }
-    }
-    return out;
+std::vector<std::string> ExecutionManager::GetRequiredSlaveEndpoints(){
+    return required_slaves_;
 }
 
 void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, std::string slave_host_name){
-    if(response != "OKAY"){
+    bool slave_online = response == "OKAY";
+
+    if(slave_online){
+        std::cout << "Slave: '" << slave_host_name << "' @ " << endpoint << " Online!" << std::endl;
+        std::unique_lock<std::mutex>(mutex_);
+
+        //Look through the deployment map for instructions to send the newly online slave
+        for(auto a: deployment_map_){
+            //Match the host_name 
+            std::string host_name = a.second->mutable_node()->name();
+
+            if(slave_host_name == host_name){
+                std::cout << "Sending Startup Instructions: " << host_name << std::endl;
+                auto copy = new NodeManager::ControlMessage(*(a.second));
+                proto_writer_->PushMessage(host_name + "*", copy);
+            }   
+        }
+    }else{
         std::cerr << "Slave: '" << slave_host_name << "' @ " << endpoint << " Error!" << std::endl;
         std::cerr << response << std::endl;
-        return;
     }
-    std::cout << "Slave: '" << slave_host_name << "' @ " << endpoint << " Online!" << std::endl;
-    std::unique_lock<std::mutex>(mutex_);
 
-    //Look through the deployment map for instructions to send the newly online slave
-    for(auto a: deployment_map_){
-        //Match the host_name 
-        std::string host_name = a.second->mutable_node()->name();
+    if(slave_online){
+        HandleSlaveOnline(endpoint);
+    }
+}
 
-        if(slave_host_name == host_name){
-            std::cout << "Sending Startup Instructions: " << host_name << std::endl;
-            auto copy = new NodeManager::ControlMessage(*(a.second));
-            proto_writer_->PushMessage(host_name + "*", copy);
-        }   
+void ExecutionManager::HandleSlaveOnline(std::string endpoint){
+    //Get the initial size
+    int initial_size = inactive_slaves_.size();
+    //Find the itterator position of the element
+    inactive_slaves_.erase(std::remove(inactive_slaves_.begin(), inactive_slaves_.end(), endpoint), inactive_slaves_.end());
+    
+    if(initial_size > 0 && inactive_slaves_.empty()){
+        ActivateExecution();
     }
 }
 
@@ -559,6 +573,8 @@ bool ExecutionManager::ScrapeDocument(){
 
         if(node && !node->component_ids.empty()){
             std::cout << std::endl << "* Node: '" << node->name << "' Deploys:" << std::endl;
+            //Push this node onto the required slaves list
+            required_slaves_.push_back(GetTCPAddress(node->ip_address, node->node_manager_port));
 
             for(auto c_id: node->component_ids){
                 auto component = GetComponent(c_id);
@@ -568,6 +584,8 @@ bool ExecutionManager::ScrapeDocument(){
             }
         }
     }
+
+    inactive_slaves_ = required_slaves_;
     std::cout << "------------------------------" << std::endl;
 
     
@@ -593,5 +611,45 @@ std::string ExecutionManager::GetDataValue(std::string id, std::string key_name)
     return "";
 }
 
-void ExecutionManager::ExecutionLoop(){
+void ExecutionManager::ActivateExecution(){
+    //Obtain lock
+    std::unique_lock<std::mutex> lock(activate_mutex_);
+    //Notify
+    activate_lock_condition_.notify_all();
+}
+void ExecutionManager::TerminateExecution(){
+    //Obtain lock
+    std::unique_lock<std::mutex> lock(terminate_mutex_);
+    //Notify
+    terminate_lock_condition_.notify_all();
+}
+
+void ExecutionManager::ExecutionLoop(double duration_sec){
+
+    auto execution_duration = std::chrono::duration<double>(duration_sec);
+    {
+        //Obtain lock
+        std::unique_lock<std::mutex> lock(activate_mutex_);
+        //Wait for notify
+        activate_lock_condition_.wait(lock);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    std::cout << "Sending Activate" << std::endl;
+    //Send Activate function
+    auto activate = new NodeManager::ControlMessage();
+    activate->set_type(NodeManager::ControlMessage::ACTIVATE);
+    PushMessage("*", activate);
+
+    {
+        //Obtain lock
+        std::unique_lock<std::mutex> lock(terminate_mutex_);
+        //Wait for notify
+        terminate_lock_condition_.wait_for(lock, execution_duration);
+    }
+
+    std::cout << "Sending Terminate" << std::endl;
+    //Send Terminate Function
+    auto terminate = new NodeManager::ControlMessage();
+    terminate->set_type(NodeManager::ControlMessage::TERMINATE);
+    PushMessage("*", terminate);
 }
