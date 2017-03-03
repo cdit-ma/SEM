@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <thread>
+#include <condition_variable>
 #include <string>
 #include "graphmlparser.h"
 
