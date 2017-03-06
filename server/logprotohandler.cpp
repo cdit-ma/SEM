@@ -84,6 +84,9 @@ LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::str
     auto le_callback = std::bind(&LogProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1);
     receiver_->RegisterNewProto(re_common::LifecycleEvent::default_instance(), le_callback);
 
+    auto we_callback = std::bind(&LogProtoHandler::ProcessWorkloadEvent, this, std::placeholders::_1);
+    receiver_->RegisterNewProto(re_common::WorkloadEvent::default_instance(), we_callback);
+
     for(auto c : client_addresses){
         receiver_->Connect(c);
     }
@@ -654,15 +657,16 @@ void LogProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* messag
     ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
 
     //Component
-    ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
     ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+    ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
     ins.BindString("component_type", event->component().type());
     
     //Workload
-    ins.BindString("event_type", re_common::WorkloadEvent::Type_Name(event->event_type()));
-    ins.BindInt("workload_id", event->id());
     ins.BindString("name", event->name());
+    ins.BindInt("workload_id", event->id());
     ins.BindString("type", event->type());
     ins.BindString("function", event->function());
+    ins.BindString("event_type", re_common::WorkloadEvent::Type_Name(event->event_type()));
     ins.BindString("args", event->args());
+    database_->QueueSqlStatement(ins.get_statement());    
 }
