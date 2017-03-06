@@ -1,12 +1,14 @@
 #ifndef WE_CPU_H
 #define WE_CPU_H
 
+#include <core/worker.h>
+
 // Forward decl.
 class WE_CPU_Impl;
 
-class WE_CPU{
+class WE_CPU : public Worker{
     public:
-        WE_CPU();
+        WE_CPU(Component* component, std::string inst_name);
         ~WE_CPU();
 
         int IntOp(double loops);

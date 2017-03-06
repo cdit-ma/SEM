@@ -27,7 +27,7 @@ set(CORE_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/eventport.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/attribute.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/worker.cpp
 	)
 
 set(CORE_HEADERS
@@ -39,6 +39,7 @@ set(CORE_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/portconfigure.h   
     ${CMAKE_CURRENT_SOURCE_DIR}/modellogger.h   
     ${CMAKE_CURRENT_SOURCE_DIR}/attribute.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/worker.h
 	)
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})

@@ -2,16 +2,14 @@
 #include "WE_CPU.h"
 #include <chrono>
 #include <thread>
+#include <core/component.h>
 
 int main(){
 
     std::cout << "TESTY TEST" << std::endl;
+    Component* c = new Component("Tets");
 
-    auto cpu = new WE_CPU();
-
-    std::thread threada(&WE_CPU::IntOp, cpu, 36000000000000);
-
-    threada.join();
-
+    auto cpu = new WE_CPU(c, "WE_CPU");
+    cpu->IntOp(100.0);
     return 0;
 }

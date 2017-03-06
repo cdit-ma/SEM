@@ -10,23 +10,14 @@ std::mutex ModelLogger::global_mutex_;
 
 
 bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint, bool cached){
-    std::lock_guard<std::mutex> lock(global_mutex_);
-    
-    bool success = true;
-    if(singleton_ == 0){
-        //Setup our singleton
-        singleton_ = new ModelLogger(host_name, cached);
-        std::cerr << "Model Logger Constructed!" << std::endl;
-
-        
-        //Bind the endpoint
-        success = singleton_->writer_->BindPublisherSocket(endpoint);
+    auto s = get_model_logger();
+    bool success = false;
+    {
+        std::lock_guard<std::mutex> lock(global_mutex_);
+        if(!s->is_setup()){
+            success = s->setup_logger(cached, endpoint);
+        }
     }
-
-    if(!singleton_){
-        return false;
-    }
-
     return success;
 }
 
@@ -34,7 +25,8 @@ ModelLogger* ModelLogger::get_model_logger(){
     std::lock_guard<std::mutex> lock(global_mutex_);
     
     if(singleton_ == 0){
-        std::cerr << "Model Logger hasn't been setup!" << std::endl;
+        std::cerr << "Model Logger Constructed! But not setup!" << std::endl;
+        singleton_ = new ModelLogger();
     }
     return singleton_;
 }
@@ -49,14 +41,28 @@ void ModelLogger::shutdown_logger(){
 }
 int count = 0;
 
-ModelLogger::ModelLogger(std::string host_name, bool cached){
+ModelLogger::ModelLogger(){
+    writer_ = 0;
+}
+
+bool ModelLogger::is_setup(){
+    return writer_;
+}
+
+void ModelLogger::set_hostname(std::string host_name){
     this->host_name_ = host_name;
-    
-    if(cached){
-        writer_ = new zmq::CachedProtoWriter();
-    }else{
-        writer_ = new zmq::ProtoWriter();
+}
+
+bool ModelLogger::setup_logger(bool cached, std::string endpoint){
+    if(!writer_){
+        if(cached){
+            writer_ = new zmq::CachedProtoWriter();
+        }else{
+            writer_ = new zmq::ProtoWriter();
+        }
+        return writer_->BindPublisherSocket(endpoint);
     }
+    return false;
 }
 
 ModelLogger::~ModelLogger(){
@@ -125,6 +131,40 @@ void ModelLogger::LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycle
     fill_component(e->mutable_component(), component);
     fill_port(e->mutable_port(), eventport);
     e->set_type((re_common::LifecycleEvent::Type)(int)event);
+
+    PushMessage(e);
+}
+
+void ModelLogger::LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::LifeCycleEvent event, int work_id, std::string args){
+    auto e = new re_common::WorkloadEvent();
+
+    fill_info(e->mutable_info());
+    
+    if(worker){
+        auto component = worker->get_component();
+        if(component){
+            fill_component(e->mutable_component(), component);
+        }
+        //Set Type, Name
+        e->set_type(worker->get_worker_name());
+        e->set_name(worker->get_name());
+        
+    }
+
+    //Set ID
+    if(work_id >= 0){
+        e->set_id(work_id);
+    }
+
+    if(!function_name.empty()){
+        e->set_function(function_name);
+    }
+
+    //Set Arg
+    if(!args.empty()){
+        e->set_args(args);
+    }
+    
 
     PushMessage(e);
 }

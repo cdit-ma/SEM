@@ -4,6 +4,7 @@
 #include <mutex>
 #include "component.h"
 #include "eventport.h"
+#include "worker.h"
 
 namespace zmq{
     class ProtoWriter;
@@ -24,10 +25,17 @@ class ModelLogger{
         static void shutdown_logger();
         
     protected:
-        ModelLogger(std::string host_name, bool cached);
+        ModelLogger();
+        
+        bool setup_logger(bool cached, std::string endpoint);
+        bool is_setup();
+        void set_hostname(std::string host_name);
+        
         zmq::ProtoWriter* writer_;
         ~ModelLogger();
     public:
+        void LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::LifeCycleEvent event, int work_id = -1, std::string args = "");
+
         void LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event);
         void LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event);
         void LogMessageEvent(EventPort* eventport);
