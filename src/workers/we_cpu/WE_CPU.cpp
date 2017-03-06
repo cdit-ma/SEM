@@ -18,13 +18,13 @@ WE_CPU::~WE_CPU(){
 int WE_CPU::IntOp(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
-    auto args = get_arg_string("WE_CPU::IntOp(%lf)\n", loop);
+    auto args = get_arg_string("loop = %lf", loop);
     
-    logger()->LogWorkerEvent(this, fun, ModelLogger::LifeCycleEvent::ACTIVATED, work_id, args);
+    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
     //Log Before
     int result = impl_->IntOp(loop);
     //LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::LifeCycleEvent event, int work_id = -1, std::string args = "");
-    logger()->LogWorkerEvent(this, fun, ModelLogger::LifeCycleEvent::PASSIVATED, work_id);
+    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     //Log After
     return result;
 }
@@ -42,7 +42,17 @@ int WE_CPU::Dhrystone(double loop){
 }
 
 int WE_CPU::MWIP(double loop){
-    return impl_->MWIP(loop);
+    auto work_id = get_new_work_id();
+    auto fun = std::string(__func__);
+    auto args = get_arg_string("loop = %lf", loop);
+    
+    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    //Log Before
+    int result = impl_->MWIP(loop);
+    //LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::LifeCycleEvent event, int work_id = -1, std::string args = "");
+    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+    //Log After
+    return result;
 }
 
 int WE_CPU::DMIP(double loop){

@@ -538,6 +538,7 @@ bool ExecutionManager::ScrapeDocument(){
                                 EventPort* s = GetEventPort(s_id);
                                 EventPort* t = GetEventPort(t_id);
                                 if(t == event_port && s->port_number > 0){
+                                    std::cout << "IN PORT: " << s->port_address << std::endl;
                                     //Append the publisher TCP Address (ZMQ Only)
                                     set_attr_string(publisher_addr_pb, s->port_address);
                                 }

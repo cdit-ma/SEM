@@ -16,6 +16,7 @@ bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint
         std::lock_guard<std::mutex> lock(global_mutex_);
         if(!s->is_setup()){
             success = s->setup_logger(cached, endpoint);
+            s->set_hostname(host_name);
         }
     }
     return success;
@@ -135,7 +136,7 @@ void ModelLogger::LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycle
     PushMessage(e);
 }
 
-void ModelLogger::LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::LifeCycleEvent event, int work_id, std::string args){
+void ModelLogger::LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args){
     auto e = new re_common::WorkloadEvent();
 
     fill_info(e->mutable_info());
@@ -148,7 +149,7 @@ void ModelLogger::LogWorkerEvent(Worker* worker, std::string function_name, Mode
         //Set Type, Name
         e->set_type(worker->get_worker_name());
         e->set_name(worker->get_name());
-        
+        e->set_event_type((re_common::WorkloadEvent::Type)(int)event);
     }
 
     //Set ID
