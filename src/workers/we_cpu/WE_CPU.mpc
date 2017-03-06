@@ -1,0 +1,12 @@
+// $Id: WE_CPU.mpc 3040 2014-11-06 21:17:53Z marianne.rieckmann $
+
+project (WE_CPU) : boost_base, cuts_utils, cuts_lib, cutslib {
+  sharedname    = WE_CPU
+  dynamicflags += WE_CPU_BUILD_DLL
+
+  Source_Files {
+    WE_CPU.cpp
+    WE_CPU_Impl.cpp
+    dhry_1.cpp
+  }
+}
