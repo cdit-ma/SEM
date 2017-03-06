@@ -57,11 +57,14 @@ message WorkloadEvent{
     }
     Info info = 1;
     Type event_type = 2;
-    string id = 3;              //Implementation's workload id
-    string name = 4;            //Function name
-    string type = 5;            //Function's library
-    Component component = 6;    //Instance id of component impl
-    string description = 7;
+
+    uint64 id = 3;              //Implementation's work id
+    string name = 4;             //Worker's Instance name
+    string type = 5;             //Workers Class Name
+    string function = 6;         //Workers Function Name
+    
+    Component component = 7;            //Instance id of component impl
+    string args = 8;
 }
 
 message UserEvent{
