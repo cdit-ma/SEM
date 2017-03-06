@@ -389,16 +389,19 @@ void LogProtoHandler::CreateWorkloadEventTable(){
     //Info
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn("event_type", LOGAN_VARCHAR);
-    t->AddColumn("workload_implementation_id", LOGAN_VARCHAR);
-    t->AddColumn("function_name", LOGAN_VARCHAR);
-    t->AddColumn("function_library", LOGAN_VARCHAR);
-
+    //Component specific
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn("type", LOGAN_VARCHAR);
+    t->AddColumn("component_type", LOGAN_VARCHAR);
 
-    t->AddColumn("description", LOGAN_VARCHAR);
+    //Workload specific info
+    t->AddColumn("name", LOGAN_VARCHAR);
+    t->AddColumn("workload_id", LOGAN_INT);
+    t->AddColumn("type", LOGAN_VARCHAR);
+    t->AddColumn("function", LOGAN_VARCHAR);
+    t->AddColumn("event_type", LOGAN_VARCHAR);
+    t->AddColumn("args", LOGAN_VARCHAR);
+
     t->Finalize();
     table_map_[LOGAN_WORKLOAD_EVENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());
@@ -646,15 +649,20 @@ void LogProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){
 void LogProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* message){
     re_common::WorkloadEvent* event = (re_common::WorkloadEvent*)message;
     auto ins = table_map_[LOGAN_WORKLOAD_EVENT_TABLE]->get_insert_statement();
+    //Info
     ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
     ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
-    ins.BindString("event_type", re_common::WorkloadEvent::Type_Name(event->event_type()));
-    ins.BindString("workload_implementation_id", event->id());
-    ins.BindString("function_name", event->name());
-    ins.BindString("function_library", event->type());
-    
+
+    //Component
     ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
     ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
-    ins.BindString("type", event->component().type());
-    ins.BindString("description", event->description());
+    ins.BindString("component_type", event->component().type());
+    
+    //Workload
+    ins.BindString("event_type", re_common::WorkloadEvent::Type_Name(event->event_type()));
+    ins.BindInt("workload_id", event->id());
+    ins.BindString("name", event->name());
+    ins.BindString("type", event->type());
+    ins.BindString("function", event->function());
+    ins.BindString("args", event->args());
 }
