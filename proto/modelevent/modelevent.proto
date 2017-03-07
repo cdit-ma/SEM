@@ -105,8 +105,10 @@ message ComponentUtilizationEvent{
 
     uint64 port_event_id = 4;
     enum Type{
-        STARTED = 0;
-        FINISHED = 1;
+        SENT = 0;
+        RECEIVED = 1;
+        STARTED_FUNC = 2;
+        FINISHED_FUNC = 3;
     }
     Type type = 5;
 }

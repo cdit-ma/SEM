@@ -154,11 +154,14 @@ google::protobuf::MessageLite* zmq::ProtoReceiver::ConstructMessage(std::string 
 
 void zmq::ProtoReceiver::ProtoConvertThread(){
     //Update loop.
-    while(!terminate_proto_convert_thread_){
+    while(true){
         std::queue<std::pair<std::string, std::string> > replace_queue;
         {
             //Obtain lock for the queue
             std::unique_lock<std::mutex> lock(queue_mutex_);
+            if(terminate_proto_convert_thread_){
+                return;
+            }
             //Wait for the condition to be notified
             queue_lock_condition_.wait(lock);
             
