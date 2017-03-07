@@ -109,6 +109,7 @@ message ComponentUtilizationEvent{
         RECEIVED = 1;
         STARTED_FUNC = 2;
         FINISHED_FUNC = 3;
+        IGNORED = 4;
     }
     Type type = 5;
 }
