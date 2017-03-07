@@ -97,3 +97,16 @@ message UserEvent{
     }
     Type type = 4;
 }
+
+message ComponentUtilizationEvent{
+    Info info = 1;
+    Component component = 2;
+    Port port = 3;
+
+    uint64 port_event_id = 4;
+    enum Type{
+        STARTED = 0;
+        FINISHED = 1;
+    }
+    Type type = 5;
+}
