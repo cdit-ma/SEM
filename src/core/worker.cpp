@@ -1,6 +1,7 @@
 #include "worker.h"
 #include <stdio.h>
 #include <iostream>
+#include <stdarg.h>
 
 Worker::Worker(Component* component, std::string worker_name, std::string inst_name){
     set_name(inst_name);
