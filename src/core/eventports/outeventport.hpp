@@ -11,9 +11,9 @@ template <class T> class OutEventPort: public EventPort{
         OutEventPort(Component* component, std::string name):
         EventPort(component, name, EventPort::Type::TX){}
         virtual ~OutEventPort(){};
-        virtual void tx(T*){
+        virtual void tx(T* t){
             if(is_active() && logger()){
-                logger()->LogMessageEvent(this);
+                logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::SENT);
             }
         }
 };
