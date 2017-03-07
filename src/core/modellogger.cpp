@@ -173,34 +173,20 @@ void ModelLogger::LogWorkerEvent(Worker* worker, std::string function_name, Mode
 }
 
 void ModelLogger::LogComponentEvent(EventPort* eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event){
-    //if(message && eventport){
+    if(message && eventport){
+        auto component = eventport->get_component();
         int ID = message->get_base_message_id();
+        auto e = new re_common::ComponentUtilizationEvent();
 
-        std::string str;
-        switch(event){
-        case ComponentEvent::SENT:{
-            str = "SENT";
-            break;
-        }
-        case ComponentEvent::RECEIVED:{
-            str = "RECEIVED";
-            break;
-        }
-        case ComponentEvent::STARTED_FUNC:{
-            str = "STARTED_FUNC";
-            break;
-        }
-        case ComponentEvent::FINISHED_FUNC:{
-            str = "FINISHED_FUNC";
-            break;
-        }case ComponentEvent::IGNORED:{
-            str = "IGNORED";
-            break;
-        }
-        }        
-      //  auto component = eventport->get_component();
-        std::cout << ID << " " << str << std::endl;
-    
+        fill_info(e->mutable_info());
+        fill_component(e->mutable_component(), component);
+        fill_port(e->mutable_port(), eventport);
+
+         //Set Type, Name
+        e->set_port_event_id(ID);
+        e->set_type((re_common::ComponentUtilizationEvent::Type)(int)event);
+        PushMessage(e);
+    }
 }
 
 void ModelLogger::LogMessageEvent(EventPort* eventport){
@@ -234,6 +220,8 @@ void ModelLogger::LogUserFlagEvent(Component* component, std::string message){
 
     e->set_type(re_common::UserEvent::FLAG);
     e->set_message(message);
+
+    
 
     PushMessage(e);
 }
