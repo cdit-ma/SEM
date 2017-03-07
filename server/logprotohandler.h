@@ -48,6 +48,7 @@ class LogProtoHandler{
         void ProcessUserEvent(google::protobuf::MessageLite* message);
         void ProcessWorkloadEvent(google::protobuf::MessageLite* message);
         void ProcessClientEvent(std::string client_endpoint);
+        void ProcessComponentUtilizationEvent(google::protobuf::MessageLite* message);
 
         zmq::ProtoReceiver* receiver_;
         SQLiteDatabase* database_;
@@ -71,5 +72,6 @@ class LogProtoHandler{
         void CreateUserEventTable();
         void CreateWorkloadEventTable();
         void CreateClientTable();
+        void CreateComponentUtilizationTable();
 };
 #endif //LOGAN_SERVER_LOGPROTOHANDLER_H
