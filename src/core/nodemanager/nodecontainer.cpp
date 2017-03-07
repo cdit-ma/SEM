@@ -33,10 +33,13 @@ NodeContainer::NodeContainer(std::string library_path){
 NodeContainer::~NodeContainer(){
     Teardown();
 
+
     for(auto it=loaded_libraries_.begin(); it!=loaded_libraries_.end();){
         auto lib_handle = it->second;
         if(CloseLibrary_(lib_handle)){
             std::cout << "DLL Closed: " << it->first << std::endl;
+        }else{
+            std::cout << "DLL Error: "  << it->first << ": " << GetLibraryError() << std::endl;
         }
         it = loaded_libraries_.erase(it);
     }
@@ -138,12 +141,15 @@ bool NodeContainer::PassivateAll(){
     return true;
 }
 void NodeContainer::Teardown(){
+
+    std::cout << "Teardown" << std::endl;
     PassivateAll();
     for(auto it=components_.begin(); it!=components_.end();){
         auto c = it->second;
         delete c;
         it = components_.erase(it);
     }
+    std::cout << "~Teardown" << std::endl;
 }
 
 bool NodeContainer::AddComponent(Component* component){
@@ -217,7 +223,7 @@ bool NodeContainer::CloseLibrary_(void* lib){
         #ifdef _WIN32
             closed = FreeLibrary((HMODULE)lib);
         #else
-            closed = dlclose(lib);
+            closed = dlclose(lib) == 0;
         #endif
     }
     return closed;

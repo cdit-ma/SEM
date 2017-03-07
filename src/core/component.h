@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <map>
+#include <mutex>
 
 #include "activatable.h"
 #include "attribute.h"
@@ -30,6 +31,7 @@ class Component: public Activatable{
         void AddCallback(std::string port_name, std::function<void (::BaseMessage*)> function);
         std::function<void (::BaseMessage*)> GetCallback(std::string port_name);
     private:
+        std::mutex mutex_;
         std::map<std::string, EventPort*> eventports_;
         std::map<std::string, Attribute*> attributes_;    
         std::map<std::string, std::function<void (::BaseMessage*)> > callback_functions_;
