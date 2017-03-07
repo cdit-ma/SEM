@@ -13,11 +13,17 @@ namespace google{namespace protobuf{class MessageLite;}};
 
 class ModelLogger{
     public:
-        enum LifeCycleEvent{
+        enum class LifeCycleEvent{
             STARTED = 0,
             ACTIVATED = 1,
             PASSIVATED = 2,
             TERMINATED = 3,
+        };
+
+        enum class WorkloadEvent{
+            STARTED = 0,
+            FINISHED = 1,
+            MESSAGE = 2,
         };
         //Static getter functions
         static bool setup_model_logger(std::string host_name, std::string endpoint, bool cached);
@@ -34,7 +40,7 @@ class ModelLogger{
         zmq::ProtoWriter* writer_;
         ~ModelLogger();
     public:
-        void LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::LifeCycleEvent event, int work_id = -1, std::string args = "");
+        void LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
 
         void LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event);
         void LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event);

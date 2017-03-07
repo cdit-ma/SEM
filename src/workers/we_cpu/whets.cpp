@@ -301,11 +301,11 @@ if(!bSilent)
    if (xmod > 0)
       whetstones(xmod,x10,calibrate,bSilent);
    mwip=(float)(num) ;  
-//if(!bSilent)
-//{    
+if(!bSilent)
+{    
    printf("\n     MWIP   xtra   xmod     ");
    printf("\n%9.3f %d %d\n",mwip,xtra,xmod);
-//}// end bSilent
+}// end bSilent
 
 }
 
