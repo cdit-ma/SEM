@@ -94,20 +94,6 @@ void Component::AddCallback(std::string port_name, std::function<void (::BaseMes
     std::lock_guard<std::mutex> lock(mutex_);
     
     if(callback_functions_.count(port_name) == 0){
-        
-        //Wrap the provided callback function; Facilitates logging and memory allocation
-       /* auto logged_callback_ = [this, function, port](BaseMessage* m){
-            if(function){
-                //Log Start
-                logger()->LogUtilizationEvent(port, m, ModelLogger::WorkloadEvent::STARTED);
-                //Run call back
-                function(m);
-                //Log Finish
-                logger()->LogUtilizationEvent(port, m, ModelLogger::WorkloadEvent::FINISHED);
-            }
-            //Free Memory
-            delete m;
-        };*/
         //Store the callback
         callback_functions_[port_name] = function;
     }
