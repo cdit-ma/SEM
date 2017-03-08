@@ -22,6 +22,8 @@ bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint
     return success;
 }
 
+
+
 ModelLogger* ModelLogger::get_model_logger(){
     std::lock_guard<std::mutex> lock(global_mutex_);
     
@@ -170,6 +172,23 @@ void ModelLogger::LogWorkerEvent(Worker* worker, std::string function_name, Mode
     PushMessage(e);
 }
 
+void ModelLogger::LogComponentEvent(EventPort* eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event){
+    if(message && eventport){
+        auto component = eventport->get_component();
+        int ID = message->get_base_message_id();
+        auto e = new re_common::ComponentUtilizationEvent();
+
+        fill_info(e->mutable_info());
+        fill_component(e->mutable_component(), component);
+        fill_port(e->mutable_port(), eventport);
+
+         //Set Type, Name
+        e->set_port_event_id(ID);
+        e->set_type((re_common::ComponentUtilizationEvent::Type)(int)event);
+        PushMessage(e);
+    }
+}
+
 void ModelLogger::LogMessageEvent(EventPort* eventport){
     //Do Nothing
     auto e = new re_common::MessageEvent();
@@ -201,6 +220,8 @@ void ModelLogger::LogUserFlagEvent(Component* component, std::string message){
 
     e->set_type(re_common::UserEvent::FLAG);
     e->set_message(message);
+
+    
 
     PushMessage(e);
 }

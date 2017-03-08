@@ -23,50 +23,16 @@ namespace zmq{
 
             bool Activate();
             bool Passivate();
-
         private:
-            void receive_loop();
             void zmq_loop();
-            
-            
 
             std::thread* zmq_thread_ = 0;
-            std::thread* rec_thread_ = 0;
             std::string terminate_endpoint_;
-
             std::vector<std::string> end_points_;
 
-            std::mutex notify_mutex_;
             std::mutex control_mutex_;
-            std::condition_variable notify_lock_condition_;
-            std::queue<std::string> message_queue_;
-
             bool configured_ = false;
     }; 
-};
-
-template <class T, class S>
-void zmq::InEventPort<T, S>::receive_loop(){
-    std::queue<std::string> queue_;
-
-    while(true){
-        {
-            //Wait for next message
-            std::unique_lock<std::mutex> lock(notify_mutex_);
-            notify_lock_condition_.wait(lock);
-            //Swap out the queue's and release the mutex
-            message_queue_.swap(queue_);
-        }
-
-        while(!queue_.empty()){
-            std::string str = queue_.front();
-            //auto s = new S();
-            auto m = proto::decode<S>(str);
-            //delete s;
-            this->rx(m);
-            queue_.pop();
-        }
-    }
 };
 
 template <class T, class S>
@@ -96,10 +62,8 @@ void zmq::InEventPort<T, S>::zmq_loop(){
             //If we have a valid message
             if(data->size() > 0){
                 std::string msg_str(static_cast<char *>(data->data()), data->size());
-                //Gain mutex lock and append message
-                std::unique_lock<std::mutex> lock(notify_mutex_);
-                message_queue_.push(msg_str);
-                notify_lock_condition_.notify_all();
+                auto m = proto::decode<S>(msg_str);
+                this->EnqueueMessage(m);
             }else{
                 //Got Terminate message, length 0
                 break;
@@ -122,7 +86,6 @@ zmq::InEventPort<T, S>::InEventPort(Component* component, std::string name, std:
 
 template <class T, class S>
 void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
-
     std::lock_guard<std::mutex> lock(control_mutex_);
     end_points_.clear();
 
@@ -133,7 +96,6 @@ void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
     }
 
     if(!end_points_.empty()){
-        rec_thread_ = new std::thread(&zmq::InEventPort<T, S>::receive_loop, this);
         configured_ = true;
     }else{
         std::cerr << "zmq::InEventPort<T, S>::startup: No Valid Recieasdasdver Endpoints" << std::endl;
@@ -169,6 +131,7 @@ template <class T, class S>
 bool zmq::InEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(zmq_thread_){
+        std::cout << "Joining zmq_thread_ " << std::endl;
         //Construct our terminate socket
         auto helper = ZmqHelper::get_zmq_helper();
         auto term_socket = helper->get_publisher_socket();
@@ -182,9 +145,11 @@ bool zmq::InEventPort<T, S>::Passivate(){
         delete zmq_thread_;
         zmq_thread_ = 0;
         delete term_socket;
+        std::cout << "Joined zmq_thread_" << std::endl;
     }
-    
+
     return ::InEventPort<T>::Passivate();
+    
 };
 
 #endif //ZMQ_INEVENTPORT_H

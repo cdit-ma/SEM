@@ -25,6 +25,14 @@ class ModelLogger{
             FINISHED = 1,
             MESSAGE = 2,
         };
+
+        enum class ComponentEvent{
+            SENT = 0,
+            RECEIVED = 1,
+            STARTED_FUNC = 2,
+            FINISHED_FUNC = 3,
+            IGNORED = 4,
+        };
         //Static getter functions
         static bool setup_model_logger(std::string host_name, std::string endpoint, bool cached);
         static ModelLogger* get_model_logger();
@@ -44,6 +52,9 @@ class ModelLogger{
 
         void LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event);
         void LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event);
+
+        void LogComponentEvent(EventPort* eventport, ::BaseMessage* message, ModelLogger::ComponentEvent event);
+
         void LogMessageEvent(EventPort* eventport);
         void LogUserMessageEvent(Component* component, std::string message);
         void LogUserFlagEvent(Component* component, std::string message);
