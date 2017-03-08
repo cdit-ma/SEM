@@ -78,8 +78,6 @@ int main(int argc, char **argv){
     std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
     std::cout << "* Library path: " << dll_path << std::endl << std::endl;
     std::cout << "* Constructed Deployment Manager" << std::endl;
-	
-
 
     //Start the Master/Slave
     if(is_server){
