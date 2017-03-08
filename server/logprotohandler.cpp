@@ -48,6 +48,7 @@
 #define LOGAN_NAME "name"
 #define LOGAN_TYPE "type"
 
+//Hardware table names
 #define LOGAN_SYSTEM_STATUS_TABLE "Hardware_SystemStatus"
 #define LOGAN_SYSTEM_INFO_TABLE "Hardware_SystemInfo"
 #define LOGAN_CPU_TABLE "Hardware_SystemCPUCoreStatus"
@@ -57,13 +58,14 @@
 #define LOGAN_INTERFACE_INFO_TABLE "Hardware_InterfaceInfo"
 #define LOGAN_PROCESS_STATUS_TABLE "Hardware_ProcessStatus"
 #define LOGAN_PROCESS_INFO_TABLE "Hardware_ProcessInfo"
-#define LOGAN_PORT_EVENT_TABLE "Model_PortEvent"
-#define LOGAN_COMPONENT_EVENT_TABLE "Model_ComponentEvent"
-#define LOGAN_MESSAGE_EVENT_TABLE "Model_MessageEvent"
-#define LOGAN_USER_EVENT_TABLE "Model_UserEvent"
-#define LOGAN_WORKLOAD_EVENT_TABLE "Model_WorkloadEvent"
+
+//Model Table names
+#define LOGAN_LIFECYCLE_PORT_TABLE "Model_Lifecycle_EventPort"
+#define LOGAN_LIFECYCLE_COMPONENT_TABLE "Model_Lifecycle_Component"
+#define LOGAN_EVENT_USER_TABLE "Model_Event_User"
+#define LOGAN_EVENT_WORKLOAD_TABLE "Model_Event_Workload"
+#define LOGAN_EVENT_COMPONENT_TABLE "Model_Event_Component"
 #define LOGAN_CLIENT_TABLE "Clients"
-#define LOGAN_COMPONENT_UTILIZATION_TABLE "Model_ComponentUtilization"
 
 LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::string> client_addresses){
     //Construct a Receiver to connect to the clients
@@ -80,9 +82,6 @@ LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::str
 
     auto ue_callback = std::bind(&LogProtoHandler::ProcessUserEvent, this, std::placeholders::_1);
     receiver_->RegisterNewProto(re_common::UserEvent::default_instance(), ue_callback);
-
-    auto me_callback = std::bind(&LogProtoHandler::ProcessMessageEvent, this, std::placeholders::_1);
-    receiver_->RegisterNewProto(re_common::MessageEvent::default_instance(), me_callback);
 
     auto le_callback = std::bind(&LogProtoHandler::ProcessLifecycleEvent, this, std::placeholders::_1);
     receiver_->RegisterNewProto(re_common::LifecycleEvent::default_instance(), le_callback);
@@ -115,7 +114,6 @@ LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::str
     CreateProcessInfoTable();
     CreatePortEventTable();
     CreateComponentEventTable();
-    CreateMessageEventTable();
     CreateUserEventTable();
     CreateWorkloadEventTable();
     CreateClientTable();
@@ -144,9 +142,9 @@ void LogProtoHandler::CreateSystemStatusTable(){
     }
 
     Table* t = new Table(database_, LOGAN_SYSTEM_STATUS_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn("cpu_utilization", LOGAN_DECIMAL);
     t->AddColumn("phys_mem_utilization", LOGAN_DECIMAL);
 
@@ -161,9 +159,9 @@ void LogProtoHandler::CreateSystemInfoTable(){
     }
 
     Table* t = new Table(database_, LOGAN_SYSTEM_INFO_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn("os_name", LOGAN_VARCHAR);
     t->AddColumn("os_arch", LOGAN_VARCHAR);
     t->AddColumn("os_description", LOGAN_VARCHAR);
@@ -186,9 +184,9 @@ void LogProtoHandler::CreateCpuTable(){
     }
 
     Table* t = new Table(database_, LOGAN_CPU_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn("core_id", LOGAN_INT);
     t->AddColumn("core_utilization", LOGAN_DECIMAL);
     t->Finalize();
@@ -203,9 +201,9 @@ void LogProtoHandler::CreateFileSystemTable(){
     }
 
     Table* t = new Table(database_, LOGAN_FILE_SYSTEM_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn("utilization", LOGAN_DECIMAL);
     t->Finalize();
@@ -220,9 +218,9 @@ void LogProtoHandler::CreateFileSystemInfoTable(){
     }
 
     Table* t = new Table(database_, LOGAN_FILE_SYSTEM_INFO_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
     t->AddColumn("size", LOGAN_INT);
@@ -238,9 +236,9 @@ void LogProtoHandler::CreateInterfaceTable(){
     }
 
     Table* t = new Table(database_, LOGAN_INTERFACE_STATUS_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn("rx_packets", LOGAN_INT);
     t->AddColumn("rx_bytes", LOGAN_INT);
@@ -258,9 +256,9 @@ void LogProtoHandler::CreateInterfaceInfoTable(){
     }
 
     Table* t = new Table(database_, LOGAN_INTERFACE_INFO_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
     t->AddColumn("description", LOGAN_VARCHAR);
@@ -280,9 +278,9 @@ void LogProtoHandler::CreateProcessTable(){
     }
 
     Table* t = new Table(database_, LOGAN_PROCESS_STATUS_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn("pid", LOGAN_INT);
     t->AddColumn("core_id", LOGAN_INT);
     t->AddColumn("cpu_utilization", LOGAN_DECIMAL);
@@ -304,9 +302,9 @@ void LogProtoHandler::CreateProcessInfoTable(){
     }
 
     Table* t = new Table(database_, LOGAN_PROCESS_INFO_TABLE);
+    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_MESSAGE_ID, LOGAN_INT);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn("pid", LOGAN_INT);
     t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn("args", LOGAN_VARCHAR);
@@ -318,84 +316,65 @@ void LogProtoHandler::CreateProcessInfoTable(){
 }
 
 void LogProtoHandler::CreatePortEventTable(){
-    if(table_map_.count(LOGAN_PORT_EVENT_TABLE)){
+    if(table_map_.count(LOGAN_LIFECYCLE_PORT_TABLE)){
         return;
     }
 
-    Table* t = new Table(database_, LOGAN_PORT_EVENT_TABLE);
+    Table* t = new Table(database_, LOGAN_LIFECYCLE_PORT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
     t->Finalize();
     
-    table_map_[LOGAN_PORT_EVENT_TABLE] = t;
+    table_map_[LOGAN_LIFECYCLE_PORT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogProtoHandler::CreateComponentEventTable(){
-    if(table_map_.count(LOGAN_COMPONENT_EVENT_TABLE)){
+    if(table_map_.count(LOGAN_LIFECYCLE_COMPONENT_TABLE)){
         return;
     }
 
-    Table* t = new Table(database_, LOGAN_COMPONENT_EVENT_TABLE);
+    Table* t = new Table(database_, LOGAN_LIFECYCLE_COMPONENT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
     t->Finalize();
     
-    table_map_[LOGAN_COMPONENT_EVENT_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());    
-}
-
-void LogProtoHandler::CreateMessageEventTable(){
-    if(table_map_.count(LOGAN_MESSAGE_EVENT_TABLE)){
-        return;
-    }
-
-    Table* t = new Table(database_, LOGAN_MESSAGE_EVENT_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
-    t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
-    t->Finalize();
-    
-    table_map_[LOGAN_MESSAGE_EVENT_TABLE] = t;
+    table_map_[LOGAN_LIFECYCLE_COMPONENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());    
 }
 
 void LogProtoHandler::CreateUserEventTable(){
-    if(table_map_.count(LOGAN_USER_EVENT_TABLE)){
+    if(table_map_.count(LOGAN_EVENT_USER_TABLE)){
         return;
     }
 
-    Table* t = new Table(database_, LOGAN_USER_EVENT_TABLE);
+    Table* t = new Table(database_, LOGAN_EVENT_USER_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
     t->AddColumn("message", LOGAN_VARCHAR);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
     t->Finalize();
     
-    table_map_[LOGAN_USER_EVENT_TABLE] = t;
+    table_map_[LOGAN_EVENT_USER_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
 void LogProtoHandler::CreateWorkloadEventTable(){
-    if(table_map_.count(LOGAN_WORKLOAD_EVENT_TABLE)){
+    if(table_map_.count(LOGAN_EVENT_WORKLOAD_TABLE)){
         return;
     }
 
-    Table* t = new Table(database_, LOGAN_WORKLOAD_EVENT_TABLE);
+    Table* t = new Table(database_, LOGAN_EVENT_WORKLOAD_TABLE);
     //Info
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
@@ -405,15 +384,15 @@ void LogProtoHandler::CreateWorkloadEventTable(){
     t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
 
     //Workload specific info
-    t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn("workload_id", LOGAN_INT);
+    t->AddColumn(LOGAN_NAME, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
     t->AddColumn("function", LOGAN_VARCHAR);
     t->AddColumn("event_type", LOGAN_VARCHAR);
     t->AddColumn("args", LOGAN_VARCHAR);
 
     t->Finalize();
-    table_map_[LOGAN_WORKLOAD_EVENT_TABLE] = t;
+    table_map_[LOGAN_EVENT_WORKLOAD_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
@@ -431,11 +410,11 @@ void LogProtoHandler::CreateClientTable(){
 }
 
 void LogProtoHandler::CreateComponentUtilizationTable(){
-    if(table_map_.count(LOGAN_COMPONENT_UTILIZATION_TABLE)){
+    if(table_map_.count(LOGAN_EVENT_COMPONENT_TABLE)){
         return;
     }
 
-    Table* t = new Table(database_, LOGAN_COMPONENT_UTILIZATION_TABLE);
+    Table* t = new Table(database_, LOGAN_EVENT_COMPONENT_TABLE);
     //Info
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
@@ -449,7 +428,7 @@ void LogProtoHandler::CreateComponentUtilizationTable(){
     t->AddColumn("port_event_id", LOGAN_INT);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
     t->Finalize();
-    table_map_[LOGAN_COMPONENT_UTILIZATION_TABLE] = t;
+    table_map_[LOGAN_EVENT_COMPONENT_TABLE] = t;
     database_->QueueSqlStatement(t->get_table_construct_statement());
 
 }
@@ -618,7 +597,7 @@ void LogProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* messa
     if(event->has_port() && event->has_component()){
         //Process port event
         //Insert test Statements
-        auto ins = table_map_[LOGAN_PORT_EVENT_TABLE]->get_insert_statement();
+        auto ins = table_map_[LOGAN_LIFECYCLE_PORT_TABLE]->get_insert_statement();
         ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
         ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
         ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
@@ -631,30 +610,13 @@ void LogProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* messa
     }
 
     else if(event->has_component()){
-            auto ins = table_map_[LOGAN_COMPONENT_EVENT_TABLE]->get_insert_statement();
+            auto ins = table_map_[LOGAN_LIFECYCLE_COMPONENT_TABLE]->get_insert_statement();
             ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
             ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
             ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
             ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
             ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event->type()));
             database_->QueueSqlStatement(ins.get_statement());
-    }
-}
-
-void LogProtoHandler::ProcessMessageEvent(google::protobuf::MessageLite* message){
-    re_common::MessageEvent* event = (re_common::MessageEvent*)message;
-    if(event->has_port() && event->has_component()){
-        //Process port event
-        auto ins = table_map_[LOGAN_MESSAGE_EVENT_TABLE]->get_insert_statement();
-        ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
-        ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
-        ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
-        ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
-        ins.BindString(LOGAN_PORT_NAME, event->port().name());
-        ins.BindString(LOGAN_PORT_ID, event->port().id());
-        ins.BindString(LOGAN_PORT_KIND, re_common::Port::PortKind_Name(event->port().kind()));
-
-        database_->QueueSqlStatement(ins.get_statement());
     }
 }
 
@@ -670,7 +632,7 @@ void LogProtoHandler::ProcessClientEvent(std::string client_endpoint){
 void LogProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){
 
     re_common::UserEvent* event = (re_common::UserEvent*)message;
-    auto ins = table_map_[LOGAN_USER_EVENT_TABLE]->get_insert_statement();
+    auto ins = table_map_[LOGAN_EVENT_USER_TABLE]->get_insert_statement();
     ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
     ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
     ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
@@ -682,7 +644,7 @@ void LogProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){
 
 void LogProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* message){
     re_common::WorkloadEvent* event = (re_common::WorkloadEvent*)message;
-    auto ins = table_map_[LOGAN_WORKLOAD_EVENT_TABLE]->get_insert_statement();
+    auto ins = table_map_[LOGAN_EVENT_WORKLOAD_TABLE]->get_insert_statement();
     //Info
     ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
     ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
@@ -704,7 +666,7 @@ void LogProtoHandler::ProcessWorkloadEvent(google::protobuf::MessageLite* messag
 
 void LogProtoHandler::ProcessComponentUtilizationEvent(google::protobuf::MessageLite* message){
     re_common::ComponentUtilizationEvent* event = (re_common::ComponentUtilizationEvent*)message;
-    auto ins = table_map_[LOGAN_COMPONENT_UTILIZATION_TABLE]->get_insert_statement();
+    auto ins = table_map_[LOGAN_EVENT_COMPONENT_TABLE]->get_insert_statement();
 
     //Info
     ins.BindDouble(LOGAN_TIMEOFDAY, event->info().timestamp());
