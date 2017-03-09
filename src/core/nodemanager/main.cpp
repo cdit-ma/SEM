@@ -31,72 +31,100 @@ int main(int argc, char **argv){
     options.add_options()("master,m", boost::program_options::value<std::string>(&master_endpoint), "Master endpoint, including port");
     options.add_options()("help,h", "Display help");
 
-    boost::program_options::variables_map options_map;
-	boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), options_map);
-	boost::program_options::notify(options_map);
+
+    //Construct a variable_map
+	boost::program_options::variables_map vm;
+	
+	try{
+		//Parse Argument variables
+		boost::program_options::store(boost::program_options::parse_command_line(argc, argv, options), vm);
+		boost::program_options::notify(vm);
+	}catch(boost::program_options::error& e) {
+        std::cerr << "Arg Error: " << e.what() << std::endl << std::endl;
+		std::cout << options << std::endl;
+        return 1;
+    }
 
     //display help
-    if(options_map.count("help")){
+    if(vm.count("help")){
 		std::cout << options << std::endl;
 		return 0;
 	}
 
-    //If we have graphml input, we are a server
-    bool is_server = false;
-    if(!graphml_path.empty()){
-        is_server = true;
+    bool valid_args = true;
+
+    bool is_master = !master_endpoint.empty() || !graphml_path.empty();
+    bool is_slave = !slave_endpoint.empty() || !dll_path.empty();
+
+    if(is_master){
         if(master_endpoint.empty()){
-            std::cerr << "Endpoint Error: Deployment graphml specified but no master endpoint given." << std::endl;
-            std::cout << options << std::endl;
-            return 1;
+            std::cerr << "Arg Error: re_node_manager[Master] requires a valid endpoint." << std::endl;
+            valid_args = false;
         }
-    }else{
+        if(graphml_path.empty()){
+            std::cerr << "Arg Error: re_node_manager[Master] requires a graphml deployment to execute." << std::endl;
+            valid_args = false;
+        }
+    }
+    if(is_slave){
         if(slave_endpoint.empty()){
-            std::cerr << "Endpoint Error: No slave endpoint found" << std::endl;
-            std::cout << options << std::endl;
-            return 1;
+            std::cerr << "Arg Error: re_node_manager[Slave] requires a valid endpoint." << std::endl;
+            valid_args = false;
+        }
+        if(dll_path.empty()){
+            std::cerr << "Arg Error: re_node_manager[Slave] requires a library path to execute." << std::endl;
+            valid_args = false;
         }
     }
 
+    if(!is_master && !is_slave){
+        std::cerr << "Arg Error: re_node_manager needs to be run in slave or master mode." << std::endl;
+        valid_args = false;
+    }
+
+    if(!valid_args){
+        std::cout << options << std::endl;
+		return 1;
+    }
+
+    std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
+    if(is_master){
+        std::cout << "* Master:" << std::endl;    
+        std::cout << "** Endpoint: " << master_endpoint << std::endl;    
+        std::cout << "** Deployment Graphml: " << graphml_path << std::endl;    
+    }
+    if(is_slave){
+        std::cout << "* Slave:" << std::endl;    
+        std::cout << "** Endpoint: " << slave_endpoint << std::endl;    
+        std::cout << "** Library Path: " << dll_path << std::endl;    
+        
+    }
+    
+
     zmq::Registrar* master = 0;
     zmq::Registrant* slave = 0;
-    
     NodeContainer* node_container = 0;
     ExecutionManager* execution_manager = 0;
     DeploymentManager* deployment_manager = 0;
 
-    if(!dll_path.empty()){
+    if(is_slave){
         //Construct a Deployment Manager to handle the Deployment
         deployment_manager = new DeploymentManager(dll_path);
         //Get the NodeContainer from the DLL
         node_container = deployment_manager->get_deployment();
-    }else{
-        std::cerr << "DLL Error: No library path given." << std::endl;
-        std::cout << options << std::endl;
-    }
-
-    std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
-    std::cout << "* Library path: " << dll_path << std::endl << std::endl;
-    std::cout << "* Constructed Deployment Manager" << std::endl;
-
-    //Start the Master/Slave
-    if(is_server){
-        execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration);
-        std::cout << "* Started ExecutionManager" << std::endl;
-        master = new zmq::Registrar(execution_manager, master_endpoint);
-        std::cout << "* Started Registrar" << std::endl;        
-    }
-    
-    if(deployment_manager){
         slave = new zmq::Registrant(deployment_manager, slave_endpoint);
-        std::cout << "* Started Registrant" << std::endl;        
     }
-	std::cout << "---------------------------------" << std::endl;
-    
+
+    if(is_master){
+        execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration);
+        master = new zmq::Registrar(execution_manager, master_endpoint);
+    }
+
+
     bool running = true;
 
     while(running){
-        std::cout << "Enter Instruction: ";
+        //std::cout << "Enter Instruction: ";
         std::string command;
         std::getline(std::cin, command);
         
@@ -168,26 +196,16 @@ int main(int argc, char **argv){
                 execution_manager->PushMessage(host, cm);
             }
         }
+        std::cout << "\nEnter Instruction: ";
     }
 
-    if(master){
-        delete master;
-    }
-    if(slave){
+    if(is_slave){
         delete slave;
     }
-  
-    if(node_container){
-        //Teardown deployment instance
-        node_container->PassivateAll();
-        node_container->Teardown();
-    }
 
-    //Free Memory
-    delete deployment_manager;
-    
-    std::cout << "PASSIVATING LOGGER" << std::endl;
-    //ModelLogger::shutdown_logger();
-    
+    if(is_master){
+        delete master;
+    }
+   
     return 0;
 }

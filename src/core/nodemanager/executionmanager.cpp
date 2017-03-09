@@ -24,9 +24,9 @@ ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_pat
     auto start = std::chrono::steady_clock::now();
     bool success = ScrapeDocument();
     auto end = std::chrono::steady_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << "* Deployment Parsed In: " << ms.count() << " ms" << std::endl;
-    std::cout << std::endl;
+    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "* Deployment Parsed In: " << ms.count() << " us" << std::endl;
+    std::cout << "--------[Slave Registration]--------" << std::endl;
 
     //Start Execution thread for 60!
     execution_thread_ = new std::thread(&ExecutionManager::ExecutionLoop, this, execution_duration);
@@ -44,7 +44,7 @@ void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, s
     bool slave_online = response == "OKAY";
 
     if(slave_online){
-        std::cout << "Slave: '" << slave_host_name << "' @ " << endpoint << " Online!" << std::endl;
+        std::cout << "* Slave: '" << slave_host_name << "' @ " << endpoint << " Online!" << std::endl;
         std::unique_lock<std::mutex>(mutex_);
 
         //Look through the deployment map for instructions to send the newly online slave
@@ -53,7 +53,7 @@ void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, s
             std::string host_name = a.second->mutable_node()->mutable_info()->name();
 
             if(slave_host_name == host_name){
-                std::cout << "Sending Startup Instructions: " << host_name << std::endl;
+                //std::cout << "Sending Startup Instructions: " << host_name << std::endl;
                 auto copy = new NodeManager::ControlMessage(*(a.second));
                 proto_writer_->PushMessage(host_name + "*", copy);
             }   
@@ -584,27 +584,26 @@ bool ExecutionManager::ScrapeDocument(){
         }
     }
 
-    std::cout << "    ------[ Deployment Info ]------";
-
+    std::cout << "------------[Deployment]------------";
     for(auto n : hardware_nodes_){
         auto node = n.second;
 
         if(node && !node->component_ids.empty()){
-            std::cout << std::endl << "    * Node: '" << node->name << "' Deploys:" << std::endl;
+            std::cout << std::endl << "* Node: '" << node->name << "' Deploys:" << std::endl;
             //Push this node onto the required slaves list
             required_slaves_.push_back(GetTCPAddress(node->ip_address, node->node_manager_port));
 
             for(auto c_id: node->component_ids){
                 auto component = GetComponent(c_id);
                 if(component){
-                    std::cout << "    ** " << component->name << " [" << component->type_name << "]" << std::endl;
+                    std::cout << "** " << component->name << " [" << component->type_name << "]" << std::endl;
                 }
             }
         }
     }
 
     inactive_slaves_ = required_slaves_;
-    std::cout << "    ------------------------------" << std::endl;
+    
 
     
             
@@ -651,6 +650,7 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
         //Wait for notify
         activate_lock_condition_.wait(lock);
     }
+    std::cout << "-------------[Execution]------------" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     std::cout << "* Sending ACTIVATE" << std::endl;
     //Send Activate function

@@ -28,19 +28,20 @@ ModelLogger* ModelLogger::get_model_logger(){
     std::lock_guard<std::mutex> lock(global_mutex_);
     
     if(singleton_ == 0){
-        std::cerr << "Model Logger Constructed! But not setup!" << std::endl;
         singleton_ = new ModelLogger();
     }
     return singleton_;
 }
 
-void ModelLogger::shutdown_logger(){
+bool ModelLogger::shutdown_logger(){
     std::lock_guard<std::mutex> lock(global_mutex_);
 
     if(singleton_){
         delete singleton_;
         singleton_ = 0;
+        return true;
     }
+    return false;
 }
 int count = 0;
 

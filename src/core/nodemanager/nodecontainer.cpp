@@ -210,7 +210,7 @@ void* NodeContainer::LoadLibrary_(std::string library_path){
 
         auto end = std::chrono::steady_clock::now();
         auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "Loaded DLL: '" << library_path <<  "' In: " << ms.count() << " ms" << std::endl;
+        std::cout << "* Loaded DLL: '" << library_path <<  "' In: " << ms.count() << " us" << std::endl;
 
         //Check for errors
         std::string error = GetLibraryError();
@@ -286,7 +286,7 @@ void* NodeContainer::GetLibraryFunction_(void* lib_handle, std::string function_
         
         auto end = std::chrono::steady_clock::now();
         auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "Loaded DLL Function: '" << function_name <<  "' In: " << ms.count() << " ms" << std::endl;
+        std::cout << "* Loaded DLL Function: '" << function_name <<  "' In: " << ms.count() << " us" << std::endl;
         
         auto error = GetLibraryError();
         if(function && error.empty()){

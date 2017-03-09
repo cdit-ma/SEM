@@ -56,8 +56,6 @@ void PeriodicEventPort::Loop(){
 
 
 void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*> attributes){
-    std::cout << get_component()->get_name() << "::PeriodicEventPort: " << get_name() << " Setting Frequency" << std::endl;
-
     if(attributes.count("frequency")){
         auto frequency = attributes["frequency"]->get_Double();
         if(frequency > 0){

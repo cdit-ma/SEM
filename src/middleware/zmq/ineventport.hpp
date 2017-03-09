@@ -89,8 +89,6 @@ void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
     std::lock_guard<std::mutex> lock(control_mutex_);
     end_points_.clear();
 
-    std::cout << "ZMQ::InEventPort::Startup" << this->get_name() << std::endl;
-
     if(attributes.count("publisher_address") > 0 ){
         for(auto s : attributes["publisher_address"]->StringList()){
             std::cout << "ZMQ::InEventPort::" << this->get_name() <<  " Bind: " << s << std::endl;

@@ -42,6 +42,10 @@ bool DeploymentManager::SetupModelLogger(std::string pub_endpoint, std::string h
     return ModelLogger::setup_model_logger(host_name, pub_endpoint, false);
 }
 
+bool DeploymentManager::TeardownModelLogger(){
+    return ModelLogger::shutdown_logger();
+}
+
 void DeploymentManager::GotControlMessage(google::protobuf::MessageLite* ml){
     NodeManager::ControlMessage* control_message = (NodeManager::ControlMessage*)ml;
     if(control_message){
@@ -52,7 +56,6 @@ void DeploymentManager::GotControlMessage(google::protobuf::MessageLite* ml){
 void DeploymentManager::ProcessControlMessage(NodeManager::ControlMessage* cm){
     std::lock_guard<std::mutex> lock(mutex_);
 
-    std::cout << "Got ControlMessage from Master: " << NodeManager::ControlMessage_Type_Name(cm->type()) << std::endl;
     switch(cm->type()){
         case NodeManager::ControlMessage::STARTUP:{
             if(!deployment_){

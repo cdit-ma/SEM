@@ -26,6 +26,11 @@ zmq::Registrant::~Registrant(){
         registration_thread_->join();
         delete registration_thread_;
     }
+
+    if(deployment_manager_){
+        deployment_manager_->TeardownModelLogger();
+        delete deployment_manager_;
+    }
 }
 
 void zmq::Registrant::RegistrationLoop(std::string endpoint){
@@ -58,9 +63,11 @@ void zmq::Registrant::RegistrationLoop(std::string endpoint){
         std::string slave_logging_pub_addr_str(static_cast<char *>(slave_logging_pub_addr.data()), slave_logging_pub_addr.size());
         std::string slave_name_str(static_cast<char *>(slave_name.data()), slave_name.size());
 
-        std::cout << "Got Control Publisher End-Point: " << master_control_pub_addr_str << std::endl;
-        std::cout << "Got Logger Publisher End-Point: " << slave_logging_pub_addr_str << std::endl;
-        std::cout << "Got Slave hostname: " << slave_name_str << std::endl;
+        std::cout << "------------[Slave Info]------------" << std::endl;
+        std::cout << "* Master Endpoint: " << master_control_pub_addr_str << std::endl;
+        std::cout << "* Logger Endpoint: " << slave_logging_pub_addr_str << std::endl;
+        std::cout << "* Slave Hostname: " << slave_name_str << std::endl;
+        std::cout << "------------------------------------" << std::endl;
 
         bool success = false;
         std::string reply_message;

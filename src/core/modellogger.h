@@ -36,7 +36,7 @@ class ModelLogger{
         //Static getter functions
         static bool setup_model_logger(std::string host_name, std::string endpoint, bool cached);
         static ModelLogger* get_model_logger();
-        static void shutdown_logger();
+        static bool shutdown_logger();
         
     protected:
         ModelLogger();
