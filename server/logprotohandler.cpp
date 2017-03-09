@@ -679,7 +679,7 @@ void LogProtoHandler::ProcessComponentUtilizationEvent(google::protobuf::Message
 
     //Port
     ins.BindString(LOGAN_PORT_NAME, event->port().name());
-    ins.BindString(LOGAN_PORT_KIND, re_common::Port::PortKind_Name(event->port().kind()));
+    ins.BindString(LOGAN_PORT_KIND, re_common::Port::Kind_Name(event->port().kind()));
 
     ins.BindInt("port_event_id", event->port_event_id());
     ins.BindString(LOGAN_TYPE, re_common::ComponentUtilizationEvent::Type_Name(event->type()));
