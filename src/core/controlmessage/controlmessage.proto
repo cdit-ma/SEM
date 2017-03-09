@@ -23,54 +23,54 @@ message ControlMessage{
     Node node = 3;
 }
 
-message Node{
+message Info{
     string name = 1;
+    string id = 2;
+    string type = 3;
+}
+
+message Node{
+    Info info = 1;
     repeated Component components = 2;
 }
 
 message Component{
-    string type = 1;
-    string name = 2;
-    string id = 3;
-
-    repeated EventPort ports = 4;
-    repeated Attribute attributes = 5;
+    Info info = 1;
+    repeated EventPort ports = 2;
+    repeated Attribute attributes = 3;
 }
 
 message EventPort{
-    enum Type{
-        NO_EVENT_PORT = 0;
-        IN_PORT = 1;
-        OUT_PORT = 2;
-        PERIODIC_PORT = 3;
+    enum Kind{
+        IN_PORT = 0;
+        OUT_PORT = 1;
+        PERIODIC_PORT = 2;
     }
 
     enum Middleware{
-        NO_MIDDLEWARE = 0;
+        NONE = 0;
         ZMQ = 1;
         RTI = 2;
         OSPL = 3;
         QPID = 4;
     }
 
-    Type type = 1;
-    string name = 2;
-    string message_type = 3;
-    Middleware middleware = 4;
-    repeated Attribute attributes = 5;
+    Info info = 1;
+    Kind kind = 2;
+    Middleware middleware = 3;
+    repeated Attribute attributes = 4;
 }
 
 message Attribute{
-    enum Type{
+    enum Kind{
         STRING = 0;
         INTEGER = 1;
         BOOLEAN = 2;
         DOUBLE = 3;
         STRINGLIST = 4;
     }
-
-    Type type = 1;
-    string name = 2;
+    Info info = 1;
+    Kind kind = 2;
     repeated string s = 3;
     uint64 i = 4;
     double d = 5;

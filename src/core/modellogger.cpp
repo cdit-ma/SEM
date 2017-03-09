@@ -94,17 +94,17 @@ void fill_info(re_common::Info* info){
 void fill_component(re_common::Component* c, Component* component){
     if(c && component){
         c->set_name(component->get_name());
-        c->set_id("C_ID");
-        c->set_type("C_TYPE");
+        c->set_id(component->get_id());
+        c->set_type(component->get_type());
     }
 }
 
 void fill_port(re_common::Port* p, EventPort* eventport){
     if(p && eventport){
         p->set_name(eventport->get_name());
-        p->set_id("P_ID");
-        p->set_type("P_TYPE");
-        p->set_kind((re_common::Port::PortKind)((int)eventport->get_type()));
+        p->set_id(eventport->get_id());
+        p->set_type(eventport->get_type());
+        p->set_kind((re_common::Port::Kind)((int)eventport->get_kind()));
     }
 }
 void ModelLogger::LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event){

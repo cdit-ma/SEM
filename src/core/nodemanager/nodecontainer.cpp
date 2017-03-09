@@ -68,39 +68,46 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
     auto n = message->mutable_node();
 
     for(auto c : n->components()){
-        auto component = GetComponent(c.name());
+        auto c_info = c.mutable_info();
+        auto component = GetComponent(c_info->name());
 
         if(!component){
             //Construct Component
-            component = ConstructComponent(c.type(), c.name());
+            component = ConstructComponent(c_info->type(), c_info->name());
+
+            //Set features on component
+            component->set_id(c_info->id());
+            component->set_type(c_info->type());
         }
 
         if(component){
             for(auto a: c.attributes()){
-                auto attribute = component->GetAttribute(a.name());
+                auto a_info = a.mutable_info();
+                auto attribute = component->GetAttribute(a_info->name());
                 if(attribute){
-                    std::cout << "Component: '" << c.name() << "' Setting Attribute: '" << a.name() << "'" <<  std::endl;
+                    std::cout << "Component: '" << a_info->name() << "' Setting Attribute: '" << a_info->name() << "'" <<  std::endl;
                     SetAttributeFromPb(&a, attribute);
                 }
             }
             for(auto p : c.ports()){
-                auto port = component->GetEventPort(p.name());
+                auto p_info = p.mutable_info();
+                auto port = component->GetEventPort(p_info->name());
 
                 //Get the middleware
                 std::string middleware = NodeManager::EventPort_Middleware_Name(p.middleware());
 
                 if(!port){
-                    switch(p.type()){
+                    switch(p.kind()){
                         case NodeManager::EventPort::IN_PORT:{
-                            port = ConstructRx(middleware, p.message_type(), component, p.name());
+                            port = ConstructRx(middleware, p_info->type(), component, p_info->name());
                             break;
                         }
                         case NodeManager::EventPort::OUT_PORT:{
-                            port = ConstructTx(middleware, p.message_type(), component, p.name());
+                            port = ConstructTx(middleware,p_info->type(), component, p_info->name());
                             break;
                         }
                         case NodeManager::EventPort::PERIODIC_PORT:{
-                            port = ConstructPeriodicEvent(component, p.name());
+                            port = ConstructPeriodicEvent(component, p_info->name());
                             break;
                         }
                         default:
@@ -110,6 +117,9 @@ void NodeContainer::Configure(NodeManager::ControlMessage* message){
 
                 //Configure the port
                 if(port){
+                    port->set_id(p_info->id());
+                    port->set_type(p_info->type());
+
                     std::map<std::string, ::Attribute*> attributes_;
 
                     for(auto a: p.attributes()){
@@ -134,22 +144,26 @@ bool NodeContainer::ActivateAll(){
 }
 
 bool NodeContainer::PassivateAll(){
+    //Passivate
     for(auto c : components_){
         c.second->Passivate();
+    }
+
+    //Clean up 
+    for(auto c : components_){
+        c.second->Teardown();
     }
 
     return true;
 }
 void NodeContainer::Teardown(){
-
-    std::cout << "Teardown" << std::endl;
     PassivateAll();
+    
     for(auto it=components_.begin(); it!=components_.end();){
         auto c = it->second;
         delete c;
         it = components_.erase(it);
     }
-    std::cout << "~Teardown" << std::endl;
 }
 
 bool NodeContainer::AddComponent(Component* component){

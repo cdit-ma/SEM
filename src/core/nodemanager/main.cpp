@@ -129,7 +129,9 @@ int main(int argc, char **argv)
 
             if(success){
                 NodeManager::ControlMessage* cm = new NodeManager::ControlMessage();
-                cm->mutable_node()->set_name(host);
+                auto node = cm->mutable_node();
+                auto node_info = cm->mutable_node()->mutable_info();
+                node_info->set_name(host);
                 cm->set_type(t);
 
                 if(t == NodeManager::ControlMessage::SET_ATTRIBUTE){
@@ -144,11 +146,13 @@ int main(int argc, char **argv)
                     std::cout << "Set Attribute Value: ";
                     std::getline(std::cin, attribute_value);
 
-                    auto component = cm->mutable_node()->add_components();
-                    component->set_name(attribute_component);
+                    auto component = node->add_components();
+                    auto component_info = component->mutable_info();
+                    component_info->set_name(attribute_component);
                     auto attr = component->add_attributes();
-                    attr->set_name(attribute_name);
-                    attr->set_type(NodeManager::Attribute::STRING);
+                    auto attr_info = attr->mutable_info();
+                    attr_info->set_name(attribute_name);
+                    attr->set_kind(NodeManager::Attribute::STRING);
                     attr->add_s(attribute_value);
                 }
 

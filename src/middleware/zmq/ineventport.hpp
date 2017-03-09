@@ -19,7 +19,7 @@ namespace zmq{
             ~InEventPort();
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
-            void Teardown();
+            bool Teardown();
 
             bool Activate();
             bool Passivate();
@@ -89,8 +89,11 @@ void zmq::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attribu
     std::lock_guard<std::mutex> lock(control_mutex_);
     end_points_.clear();
 
+    std::cout << "ZMQ::InEventPort::Startup" << this->get_name() << std::endl;
+
     if(attributes.count("publisher_address") > 0 ){
         for(auto s : attributes["publisher_address"]->StringList()){
+            std::cout << "ZMQ::InEventPort::" << this->get_name() <<  " Bind: " << s << std::endl;
             end_points_.push_back(s);
         }
     }
@@ -112,26 +115,33 @@ zmq::InEventPort<T, S>::~InEventPort(){
 
 
 template <class T, class S>
-void zmq::InEventPort<T, S>::Teardown(){
-    Passivate();
+bool zmq::InEventPort<T, S>::Teardown(){
     std::lock_guard<std::mutex> lock(control_mutex_);
+
+    if(zmq_thread_){
+        //Join our zmq_thread
+        zmq_thread_->join();
+        delete zmq_thread_;
+        zmq_thread_ = 0;
+    }
     configured_ = false;
+    return true;
 };
 
 template <class T, class S>
 bool zmq::InEventPort<T, S>::Activate(){
+    bool base_activate = ::InEventPort<T>::Activate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(configured_){
         zmq_thread_ = new std::thread(&zmq::InEventPort<T, S>::zmq_loop, this);
     }
-    return ::InEventPort<T>::Activate();
+    return base_activate;
 };
 
 template <class T, class S>
 bool zmq::InEventPort<T, S>::Passivate(){
     std::lock_guard<std::mutex> lock(control_mutex_);
     if(zmq_thread_){
-        std::cout << "Joining zmq_thread_ " << std::endl;
         //Construct our terminate socket
         auto helper = ZmqHelper::get_zmq_helper();
         auto term_socket = helper->get_publisher_socket();
@@ -139,17 +149,16 @@ bool zmq::InEventPort<T, S>::Passivate(){
 
         //Send a blank message to interupt the recv loop
         term_socket->send(zmq::message_t());
-
-        //Join our zmq_thread
-        zmq_thread_->join();
-        delete zmq_thread_;
-        zmq_thread_ = 0;
         delete term_socket;
-        std::cout << "Joined zmq_thread_" << std::endl;
     }
 
+        
     return ::InEventPort<T>::Passivate();
     
 };
+
+
+
+
 
 #endif //ZMQ_INEVENTPORT_H

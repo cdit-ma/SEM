@@ -1,8 +1,31 @@
 #include "component.h"
 #include <iostream>
 #include <thread>
+#include <algorithm>
 
 #include "modellogger.h"
+
+int get_eventport_order(const EventPort* a){
+    //Required Order:
+    //1. InEventPorts
+    //2. OutEventPorts
+    //3. PeriodicEventPorts
+    switch(a->get_kind()){
+        case EventPort::Kind::TX:
+            return 1;
+        case EventPort::Kind::RX:
+            return 0;
+        case EventPort::Kind::PE:
+            return 2;
+        default:
+            return 3;
+    }
+}
+
+bool compare_eventport(const EventPort* a, const EventPort* b){
+    return get_eventport_order(a) < get_eventport_order(b);
+}
+
 
 Component::Component(std::string inst_name){
     set_name(inst_name);
@@ -20,25 +43,38 @@ Component::~Component(){
 }
 
 bool Component::Activate(){
-    std::lock_guard<std::mutex> lock(mutex_);
-    for(auto e : eventports_){
-        e.second->Activate();
+    {
+        auto ports = GetSortedPorts(true);
+        std::lock_guard<std::mutex> lock(mutex_);
+        for(auto e : ports){
+            e->Activate();
+        }
+        Activatable::Activate();
     }
-    Activatable::Activate();
-    if(logger()){
-        logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::ACTIVATED);
-    }
+    logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::ACTIVATED);
     return true;
 }
 
 bool Component::Passivate(){
-    std::lock_guard<std::mutex> lock(mutex_);
-    for(auto e : eventports_){
-        e.second->Passivate();
+    {
+        auto ports = GetSortedPorts(false);
+        std::lock_guard<std::mutex> lock(mutex_);
+        for(auto e : ports){
+            e->Passivate();
+        }
+        Activatable::Passivate();
     }
-    Activatable::Passivate();
-    if(logger()){
-        logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
+    logger()->LogLifecycleEvent(this, ModelLogger::LifeCycleEvent::PASSIVATED);
+
+    return true;
+}
+
+bool Component::Teardown(){
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for(auto e : eventports_){
+            e.second->Teardown();
+        }
     }
     return true;
 }
@@ -50,7 +86,28 @@ void Component::AddEventPort(EventPort* event_port){
         if(eventports_.count(name) == 0){
             eventports_[name] = event_port;
         }
+
     }
+}
+
+std::vector<EventPort*> Component::GetSortedPorts(bool forward){
+    std::vector<EventPort*> eventports;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        
+        for(auto e : eventports_){
+            eventports.push_back(e.second);
+        }
+    }
+
+    //Sort forward or backward
+    if(forward){
+        std::sort(eventports.begin(), eventports.end(), compare_eventport);
+    }else{
+        std::sort(eventports.rbegin(), eventports.rend(), compare_eventport);
+    }
+
+    return eventports;
 }
 
 void Component::RemoveEventPort(EventPort* event_port){
@@ -98,7 +155,6 @@ void Component::AddCallback(std::string port_name, std::function<void (::BaseMes
         callback_functions_[port_name] = function;
     }
 }
-
 
 EventPort* Component::GetEventPort(std::string name){
     std::lock_guard<std::mutex> lock(mutex_);

@@ -6,12 +6,11 @@
 #include <map>
 
 enum class ATTRIBUTE_TYPE{
-    UNKNOWN = 0,
-    STRING = 1,
-    INTEGER = 2,
-    BOOLEAN = 3,
-    DOUBLE = 4,
-    STRINGLIST = 5
+    STRING = 0,
+    INTEGER = 1,
+    BOOLEAN = 2,
+    DOUBLE = 3,
+    STRINGLIST = 4
 };
 
 class Attribute{

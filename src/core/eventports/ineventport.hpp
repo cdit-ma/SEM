@@ -19,6 +19,7 @@ template <class T> class InEventPort: public EventPort{
         virtual ~InEventPort();
         bool Activate();
         bool Passivate();
+        bool Teardown();
     protected:
         void EnqueueMessage(T* t);
     private:
@@ -38,7 +39,7 @@ template <class T> class InEventPort: public EventPort{
 };
 
 template <class T>
-InEventPort<T>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function) : EventPort(component, name, EventPort::Type::RX){
+InEventPort<T>::InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function) : EventPort(component, name, EventPort::Kind::RX){
     if(callback_function){
         callback_function_ = callback_function;
     }else{
@@ -67,19 +68,22 @@ bool InEventPort<T>::Passivate(){
     std::unique_lock<std::mutex> lock(thread_mutex_);
     
     if(queue_thread_){
-        std::cout << "Joining queue_thread_" << std::endl;
-        {
-            std::unique_lock<std::mutex> lock(notify_mutex_);
-            terminate_ = true;
-            notify_lock_condition_.notify_all();
-        }
-        
+        std::unique_lock<std::mutex> lock(notify_mutex_);
+        terminate_ = true;
+        notify_lock_condition_.notify_all();
+    }
+    return passivated;
+};
+
+template <class T>
+bool InEventPort<T>::Teardown(){
+    std::unique_lock<std::mutex> lock(thread_mutex_);
+    if(queue_thread_){
         queue_thread_->join();
         delete queue_thread_;
         queue_thread_ = 0;
-        std::cout << "Joined queue_thread_" << std::endl;
     }
-    return passivated;
+    return true;
 };
 
 template <class T>

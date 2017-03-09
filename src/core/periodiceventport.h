@@ -20,7 +20,7 @@ class PeriodicEventPort: public EventPort{
         bool Passivate();
 
         void Startup(std::map<std::string, ::Attribute*> attributes);
-        void Teardown();
+        bool Teardown();
 
     private:
         bool WaitForTick();

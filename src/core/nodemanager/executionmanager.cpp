@@ -11,6 +11,8 @@ void set_attr_string(NodeManager::Attribute* attr, std::string val){
     attr->add_s(val);
 }
 
+
+
 ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_path, double execution_duration){
     //Setup writer
     proto_writer_ = new zmq::ProtoWriter();
@@ -48,7 +50,7 @@ void ExecutionManager::SlaveOnline(std::string response, std::string endpoint, s
         //Look through the deployment map for instructions to send the newly online slave
         for(auto a: deployment_map_){
             //Match the host_name 
-            std::string host_name = a.second->mutable_node()->name();
+            std::string host_name = a.second->mutable_node()->mutable_info()->name();
 
             if(slave_host_name == host_name){
                 std::cout << "Sending Startup Instructions: " << host_name << std::endl;
@@ -402,7 +404,7 @@ bool ExecutionManager::ScrapeDocument(){
             auto cm = new NodeManager::ControlMessage();
 
             // Set the node name of the protobuf message
-            cm->mutable_node()->set_name(node->name);
+            cm->mutable_node()->mutable_info()->set_name(node->name);
             // Set the configure messages
             cm->set_type(NodeManager::ControlMessage::STARTUP);
             deployment_map_[node->id] = cm;
@@ -423,33 +425,34 @@ bool ExecutionManager::ScrapeDocument(){
         auto hardware_node = GetHardwareNode(h_id);
 
         if(hardware_node && component && node_pb){
-        
+            auto component_pb = node_pb->add_components();
+            auto component_info_pb = component_pb->mutable_info();
             
-            NodeManager::Component* component_pb = node_pb->add_components();
-            
-            component_pb->set_id(component->id);
-            component_pb->set_name(component->name);
-            component_pb->set_type(component->type_name);
+            component_info_pb->set_id(component->id);
+            component_info_pb->set_name(component->name);
+            component_info_pb->set_type(component->type_name);
 
             //Get the Component Attributes
             for(auto a_id : component->attribute_ids){
                 auto attribute = GetAttribute(a_id);
                 if(attribute){
                     auto attr_pb = component_pb->add_attributes();
+                    auto attr_info_pb = attr_pb->mutable_info();
 
-                    attr_pb->set_name(GetDataValue(a_id, "label"));
+                    attr_info_pb->set_id(a_id);
+                    attr_info_pb->set_name(GetDataValue(a_id, "label"));
 
                     auto type = GetDataValue(a_id, "type");
                     auto value = GetDataValue(a_id, "value");
 
                     if(type == "DoubleNumber" || type == "Float"){
-                        attr_pb->set_type(NodeManager::Attribute::DOUBLE);
+                        attr_pb->set_kind(NodeManager::Attribute::DOUBLE);
                         attr_pb->set_d(std::stod(value));
                     } else if(type.find("String") != std::string::npos){
-                        attr_pb->set_type(NodeManager::Attribute::STRING);
+                        attr_pb->set_kind(NodeManager::Attribute::STRING);
                         set_attr_string(attr_pb, value);
                     } else {
-                        attr_pb->set_type(NodeManager::Attribute::INTEGER);
+                        attr_pb->set_kind(NodeManager::Attribute::INTEGER);
                         attr_pb->set_i(std::stoi(value));
                     }
                 }
@@ -461,24 +464,28 @@ bool ExecutionManager::ScrapeDocument(){
                 if(event_port){
                     //Add a Port the the Component
                     auto port_pb = component_pb->add_ports();
+                    auto port_info_pb = port_pb->mutable_info();
 
                     //Get the Port Name
-                    port_pb->set_name(event_port->name);
-                    port_pb->set_message_type(event_port->message_type);
-                    //p->set_id(p_id)
+                    port_info_pb->set_id(p_id);
+                    port_info_pb->set_name(event_port->name);
+                    port_info_pb->set_type(event_port->message_type);
+
 
                     std::string kind = GetDataValue(p_id, "kind");
 
+                    NodeManager::EventPort::Kind k;
                     if(event_port->kind == "OutEventPortInstance"){
-                        port_pb->set_type(NodeManager::EventPort::OUT_PORT);
+                        k = NodeManager::EventPort::OUT_PORT;
                     } else if(event_port->kind == "InEventPortInstance"){
-                        port_pb->set_type(NodeManager::EventPort::IN_PORT);                    
+                        k = NodeManager::EventPort::IN_PORT;
                     } else if(event_port->kind == "PeriodicEvent"){
-                        port_pb->set_type(NodeManager::EventPort::PERIODIC_PORT);
+                        k = NodeManager::EventPort::PERIODIC_PORT;
                     }
+                    port_pb->set_kind(k);
 
                     //Get the Middleware for the ports
-                    if(port_pb->type() != NodeManager::EventPort::PERIODIC_PORT){
+                    if(k != NodeManager::EventPort::PERIODIC_PORT){
                         std::string port_middleware = event_port->middleware;
                         NodeManager::EventPort::Middleware mw;
                         
@@ -491,45 +498,52 @@ bool ExecutionManager::ScrapeDocument(){
                         
                         //Set the topic_name
                         auto topic_pb = port_pb->add_attributes();
-                        topic_pb->set_name("topic_name");
-                        topic_pb->set_type(NodeManager::Attribute::STRING);
+                        auto topic_info_pb = topic_pb->mutable_info();
+                        topic_info_pb->set_name("topic_name");
+                        topic_pb->set_kind(NodeManager::Attribute::STRING);
                         set_attr_string(topic_pb, event_port->topic_name); 
                         
                         //Set the domain_id
                         //TODO: Need this in graphml
-                        auto domain_id = port_pb->add_attributes();
-                        domain_id->set_name("domain_id");
-                        domain_id->set_type(NodeManager::Attribute::INTEGER);
-                        domain_id->set_i(0);
+                        auto domain_pb = port_pb->add_attributes();
+                        auto domain_info_pb = domain_pb->mutable_info();
+                        domain_info_pb->set_name("domain_id");
+                        domain_pb->set_kind(NodeManager::Attribute::INTEGER);
+                        domain_pb->set_i(0);
 
                         //Set the broker address
                         //TODO: Need this in graphml
-                        auto broker = port_pb->add_attributes();
-                        broker->set_name("broker");
-                        broker->set_type(NodeManager::Attribute::STRING);
-                        set_attr_string(broker, "localhost:5672"); 
+                        auto broker_pb = port_pb->add_attributes();
+                        auto broker_info_pb = broker_pb->mutable_info();
+                        broker_info_pb->set_name("broker");
+                        broker_pb->set_kind(NodeManager::Attribute::STRING);
+                        set_attr_string(broker_pb, "localhost:5672"); 
 
-                        //
-                        if(port_pb->type() == NodeManager::EventPort::OUT_PORT){
+
+                        if(k == NodeManager::EventPort::OUT_PORT){
                             if(event_port->port_number > 0){
                                 //Set Publisher TCP Address (ZMQ Only)
-                                auto publisher_addr_pb = port_pb->add_attributes();
-                                publisher_addr_pb->set_name("publisher_address");
-                                publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);
-                                set_attr_string(publisher_addr_pb, event_port->port_address);
+                                auto pub_addr_pb = port_pb->add_attributes();
+                                auto pub_addr_info_pb = pub_addr_pb->mutable_info();
+                                pub_addr_info_pb->set_name("publisher_address");
+                                pub_addr_pb->set_kind(NodeManager::Attribute::STRINGLIST);
+                                set_attr_string(pub_addr_pb, event_port->port_address);
                             }
+
                             //Set publisher name
                             //TODO: Allow modelling of this
-                            auto publisher_name_pb = port_pb->add_attributes();
-                            publisher_name_pb->set_name("publisher_name");
-                            publisher_name_pb->set_type(NodeManager::Attribute::STRING);
-                            set_attr_string(publisher_name_pb, component->name + event_port->name);
+                            auto pub_name_pb = port_pb->add_attributes();
+                            auto pub_name_info_pb = pub_name_pb->mutable_info();
+                            pub_name_info_pb->set_name("publisher_name");
+                            pub_name_pb->set_kind(NodeManager::Attribute::STRING);
+                            set_attr_string(pub_name_pb, component->name + event_port->name);
 
-                        }else if(port_pb->type() == NodeManager::EventPort::IN_PORT){
+                        }else if(k == NodeManager::EventPort::IN_PORT){
                             //Construct a publisher_address list
-                            auto publisher_addr_pb = port_pb->add_attributes();
-                            publisher_addr_pb->set_name("publisher_address");
-                            publisher_addr_pb->set_type(NodeManager::Attribute::STRINGLIST);
+                            auto pub_addr_pb = port_pb->add_attributes();
+                            auto pub_addr_info_pb = pub_addr_pb->mutable_info();
+                            pub_addr_info_pb->set_name("publisher_address");
+                            pub_addr_pb->set_kind(NodeManager::Attribute::STRINGLIST);
 
                             //Find the end points and push them back onto the publisher_address list
                             for(auto e_id : assembly_edge_ids_){
@@ -538,28 +552,31 @@ bool ExecutionManager::ScrapeDocument(){
                                 EventPort* s = GetEventPort(s_id);
                                 EventPort* t = GetEventPort(t_id);
                                 if(t == event_port && s->port_number > 0){
-                                    std::cout << "IN PORT: " << s->port_address << std::endl;
                                     //Append the publisher TCP Address (ZMQ Only)
-                                    set_attr_string(publisher_addr_pb, s->port_address);
+                                    set_attr_string(pub_addr_pb, s->port_address);
                                 }
                             }
 
                             //Set subscriber name
                             //TODO: Allow modelling of this
-                            auto subscriber_pb = port_pb->add_attributes();
-                            subscriber_pb->set_name("subscriber_name");
-                            subscriber_pb->set_type(NodeManager::Attribute::STRING);
-                            set_attr_string(subscriber_pb, component->name + event_port->name);
+                            auto sub_name_pb = port_pb->add_attributes();
+                            auto sub_name_info_pb = sub_name_pb->mutable_info();
+                            sub_name_info_pb->set_name("subscriber_name");
+                            sub_name_pb->set_kind(NodeManager::Attribute::STRING);
+                            set_attr_string(sub_name_pb, component->name + event_port->name);
                         }
                     }else{
                         //Periodic Events
                         try{
                             //Set the frequency of the periodic event
                             double temp = std::stod(event_port->frequency);
-                            auto frequency_pb = port_pb->add_attributes();
-                            frequency_pb->set_name("frequency");
-                            frequency_pb->set_type(NodeManager::Attribute::DOUBLE);
-                            frequency_pb->set_d(temp);
+                            
+                            auto freq_pb = port_pb->add_attributes();
+                            auto freq_info_pb = freq_pb->mutable_info();
+
+                            freq_info_pb->set_name("frequency");
+                            freq_pb->set_kind(NodeManager::Attribute::DOUBLE);
+                            freq_pb->set_d(temp);
                         }catch (...){}
                     }
                 }
@@ -635,7 +652,7 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
         activate_lock_condition_.wait(lock);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    std::cout << "Sending Activate" << std::endl;
+    std::cout << "* Sending ACTIVATE" << std::endl;
     //Send Activate function
     auto activate = new NodeManager::ControlMessage();
     activate->set_type(NodeManager::ControlMessage::ACTIVATE);
@@ -648,7 +665,13 @@ void ExecutionManager::ExecutionLoop(double duration_sec){
         terminate_lock_condition_.wait_for(lock, execution_duration);
     }
 
-    std::cout << "Sending Terminate" << std::endl;
+    std::cout << "* Sending PASSIVATE" << std::endl;
+    //Send Terminate Function
+    auto passivate = new NodeManager::ControlMessage();
+    passivate->set_type(NodeManager::ControlMessage::PASSIVATE);
+    PushMessage("*", passivate);
+
+    std::cout << "* Sending TERMINATE" << std::endl;
     //Send Terminate Function
     auto terminate = new NodeManager::ControlMessage();
     terminate->set_type(NodeManager::ControlMessage::TERMINATE);

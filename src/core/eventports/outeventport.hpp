@@ -9,7 +9,7 @@
 template <class T> class OutEventPort: public EventPort{
     public:
         OutEventPort(Component* component, std::string name):
-        EventPort(component, name, EventPort::Type::TX){}
+        EventPort(component, name, EventPort::Kind::TX){}
         virtual ~OutEventPort(){};
         virtual void tx(T* t){
             if(is_active() && logger()){

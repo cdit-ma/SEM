@@ -5,7 +5,7 @@
 
 ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
     if(attr){
-        switch(attr->type()){
+        switch(attr->kind()){
             case NodeManager::Attribute::INTEGER:
                 return ATTRIBUTE_TYPE::INTEGER;
             case NodeManager::Attribute::BOOLEAN:
@@ -20,7 +20,7 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
                 break;
         }
     }
-    return ATTRIBUTE_TYPE::UNKNOWN;
+    return ATTRIBUTE_TYPE::STRING;
 }
 
 ::Attribute* SetAttributeFromPb(NodeManager::Attribute* attr, ::Attribute* a){
@@ -29,7 +29,7 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
     
     bool set_type = a == 0;
     if(a == 0){
-        a = ::new Attribute(type, attr->name());
+        a = ::new Attribute(type, attr->mutable_info()->name());
     }
     switch(type){
         case ATTRIBUTE_TYPE::INTEGER:
@@ -68,7 +68,7 @@ ATTRIBUTE_TYPE GetAttributeTypeFromPb(NodeManager::Attribute* attr){
             break;
         }
         default:
-            std::cout << "Cannot cast Type: " << NodeManager::Attribute_Type_Name(attr->type()) << std::endl;
+            std::cout << "Cannot cast Type: " << NodeManager::Attribute_Kind_Name(attr->kind()) << std::endl;
             break; 
     }
     return a;

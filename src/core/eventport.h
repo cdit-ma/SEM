@@ -11,28 +11,29 @@ class Component;
 //Interface for a standard EventPort
 class EventPort: public Activatable{
     public:
-        enum class Type{
+        enum class Kind{
             TX = 0,
             RX = 1,
             PE = 2
         };
 
-        EventPort(Component* component, std::string name, EventPort::Type type);
+        EventPort(Component* component, std::string name, EventPort::Kind kind);
         virtual ~EventPort(){};
         virtual void Startup(std::map<std::string, ::Attribute*> attributes) = 0;
-        virtual void Teardown() = 0;
-
+        
         virtual bool Activate();
         virtual bool Passivate();
+        virtual bool Teardown() = 0;
 
-        const bool IsOutEventPort();
-        const bool IsInEventPort();
-        const bool IsPeriodicEvent();
-        const EventPort::Type get_type();
+        bool IsOutEventPort() const;
+        bool IsInEventPort() const;
+        bool IsPeriodicEvent() const;
+        EventPort::Kind get_kind() const;
 
         Component* get_component();
     private:
-        EventPort::Type type_;
+        
+        EventPort::Kind kind_;
         Component* component_;
 };
 

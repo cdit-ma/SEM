@@ -4,13 +4,12 @@
 #include <iostream>
 
 PeriodicEventPort::PeriodicEventPort(Component* component, std::string name, std::function<void(BaseMessage*)> callback, int milliseconds):
-EventPort(component, name, EventPort::Type::PE){
+EventPort(component, name, EventPort::Kind::PE){
     this->callback_ = callback;
     this->duration_ = std::chrono::milliseconds(milliseconds);
 }
 
 bool PeriodicEventPort::Activate(){
-    std::cout << "PeriodicEventPort::Activate()" << std::endl;
     if(!is_active()){
         //Gain mutex lock and Set the terminate_tick flag
         std::unique_lock<std::mutex> lock(mutex_);
@@ -69,5 +68,6 @@ void PeriodicEventPort::Startup(std::map<std::string, ::Attribute*> attributes){
     }
 };
 
-void PeriodicEventPort::Teardown(){
+bool PeriodicEventPort::Teardown(){
+    return true;
 };

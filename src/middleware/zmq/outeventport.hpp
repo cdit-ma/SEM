@@ -16,7 +16,7 @@ namespace zmq{
             void tx(T* message);
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
-            void Teardown();
+            bool Teardown();
 
             bool Activate();
             bool Passivate();
@@ -60,11 +60,12 @@ void zmq::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
 };
 
 template <class T, class S>
-void zmq::OutEventPort<T, S>::Teardown(){
+bool zmq::OutEventPort<T, S>::Teardown(){
     Passivate();
 
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
+    return true;
 };
 
 template <class T, class S>

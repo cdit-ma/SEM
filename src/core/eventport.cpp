@@ -2,10 +2,10 @@
 #include "component.h"
 #include "modellogger.h"
 
-EventPort::EventPort(Component* component, std::string name, EventPort::Type type){
+EventPort::EventPort(Component* component, std::string name, EventPort::Kind kind){
     set_name(name);
     component_ = component;
-    type_ = type;
+    kind_ = kind;
 
     if(component_){
         component_->AddEventPort(this);
@@ -13,24 +13,24 @@ EventPort::EventPort(Component* component, std::string name, EventPort::Type typ
 };
 
 
-const bool EventPort::IsOutEventPort(){
-    return type_ == EventPort::Type::TX;
+bool EventPort::IsOutEventPort() const {
+    return kind_ == EventPort::Kind::TX;
 };
 
-const bool EventPort::IsInEventPort(){
-    return type_ == EventPort::Type::RX;
+bool EventPort::IsInEventPort() const {
+    return kind_ == EventPort::Kind::RX;
 };
 
-const bool EventPort::IsPeriodicEvent(){
-    return type_ == EventPort::Type::PE;
+bool EventPort::IsPeriodicEvent() const {
+    return kind_ == EventPort::Kind::PE;
 };
 
 Component* EventPort::get_component(){
     return component_;
 };
 
-const EventPort::Type EventPort::get_type(){
-    return type_;
+EventPort::Kind EventPort::get_kind() const{
+    return kind_;
 }
 
 bool EventPort::Activate(){
