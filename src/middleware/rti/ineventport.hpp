@@ -163,7 +163,7 @@ void rti::InEventPort<T, S>::receive_loop(){
                 //Translate and callback into the component for each valid message we receive
                 if(sample->info().valid()){
                     auto m = rti::translate(&sample->data());
-                    this->rx(m);
+                    this->EnqueueMessage(m);
                 }
             }
         }catch(...){//dds::core::PreconditionNotMetError e){

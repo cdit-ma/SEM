@@ -24,7 +24,7 @@ ExecutionManager::ExecutionManager(std::string endpoint, std::string graphml_pat
     auto start = std::chrono::steady_clock::now();
     bool success = ScrapeDocument();
     auto end = std::chrono::steady_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "* Deployment Parsed In: " << ms.count() << " ms" << std::endl;
     std::cout << std::endl;
 
@@ -584,27 +584,27 @@ bool ExecutionManager::ScrapeDocument(){
         }
     }
 
-    std::cout << "------[ Deployment Info ]------";
+    std::cout << "    ------[ Deployment Info ]------";
 
     for(auto n : hardware_nodes_){
         auto node = n.second;
 
         if(node && !node->component_ids.empty()){
-            std::cout << std::endl << "* Node: '" << node->name << "' Deploys:" << std::endl;
+            std::cout << std::endl << "    * Node: '" << node->name << "' Deploys:" << std::endl;
             //Push this node onto the required slaves list
             required_slaves_.push_back(GetTCPAddress(node->ip_address, node->node_manager_port));
 
             for(auto c_id: node->component_ids){
                 auto component = GetComponent(c_id);
                 if(component){
-                    std::cout << "** " << component->name << " [" << component->type_name << "]" << std::endl;
+                    std::cout << "    ** " << component->name << " [" << component->type_name << "]" << std::endl;
                 }
             }
         }
     }
 
     inactive_slaves_ = required_slaves_;
-    std::cout << "------------------------------" << std::endl;
+    std::cout << "    ------------------------------" << std::endl;
 
     
             

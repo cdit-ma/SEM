@@ -14,8 +14,8 @@
 std::string VERSION_NAME = "re_node_manager";
 std::string VERSION_NUMBER = "1.0";
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
+
     //Get the library path from the argument variables
     std::string dll_path;
     std::string graphml_path;
@@ -46,13 +46,15 @@ int main(int argc, char **argv)
     if(!graphml_path.empty()){
         is_server = true;
         if(master_endpoint.empty()){
-            std::cerr << "Endpoint errer: Deployment graphml specified but no master endpoint given." << std::endl;
-            exit(1);        
+            std::cerr << "Endpoint Error: Deployment graphml specified but no master endpoint given." << std::endl;
+            std::cout << options << std::endl;
+            return 1;
         }
-    } else {
+    }else{
         if(slave_endpoint.empty()){
-            std::cerr << "Endpoint errer: No slave endpoint found" << std::endl;
-            exit(1);            
+            std::cerr << "Endpoint Error: No slave endpoint found" << std::endl;
+            std::cout << options << std::endl;
+            return 1;
         }
     }
 
@@ -68,18 +70,28 @@ int main(int argc, char **argv)
         deployment_manager = new DeploymentManager(dll_path);
         //Get the NodeContainer from the DLL
         node_container = deployment_manager->get_deployment();
+    }else{
+        std::cerr << "DLL Error: No library path given." << std::endl;
+        std::cout << options << std::endl;
     }
+
+    std::cout << "-------[" + VERSION_NAME +" v" + VERSION_NUMBER + "]-------" << std::endl;
+    std::cout << "* Library path: " << dll_path << std::endl << std::endl;
+    std::cout << "* Constructed Deployment Manager" << std::endl;
 
     //Start the Master/Slave
     if(is_server){
         execution_manager = new ExecutionManager(master_endpoint, graphml_path, execution_duration);
+        std::cout << "* Started ExecutionManager" << std::endl;
         master = new zmq::Registrar(execution_manager, master_endpoint);
+        std::cout << "* Started Registrar" << std::endl;        
     }
     
     if(deployment_manager){
         slave = new zmq::Registrant(deployment_manager, slave_endpoint);
+        std::cout << "* Started Registrant" << std::endl;        
     }
-    
+	std::cout << "---------------------------------" << std::endl;
     
     bool running = true;
 
@@ -88,13 +100,10 @@ int main(int argc, char **argv)
         std::string command;
         std::getline(std::cin, command);
         
-
         if(command == "ACTIVATE"){
             execution_manager->ActivateExecution();
         }else if(command == "TERMINATE"){
             execution_manager->TerminateExecution();
-
-
         }else if(command == "activate"){
             std::string name;
             std::cout << "Enter Component Name or *: ";
@@ -158,8 +167,6 @@ int main(int argc, char **argv)
 
                 execution_manager->PushMessage(host, cm);
             }
-            
-            
         }
     }
 
@@ -175,8 +182,6 @@ int main(int argc, char **argv)
         node_container->PassivateAll();
         node_container->Teardown();
     }
-
-    
 
     //Free Memory
     delete deployment_manager;

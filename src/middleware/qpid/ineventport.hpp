@@ -30,7 +30,6 @@ namespace qpid{
             bool Activate();
             bool Passivate();
         private:
-            void receive_loop();
             void qpid_loop();
 
             qpid::messaging::Connection connection_;
@@ -80,7 +79,6 @@ void qpid::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
         //TODO: fix this to use actual topic name
         receiver_ = session_.createReceiver( "amq.topic/"  + topic_name);
         
-        receive_thread_ = new std::thread(&qpid::InEventPort<T,S>::receive_loop, this);
         configured_ = true; 
     }
 };
@@ -127,12 +125,7 @@ void qpid::InEventPort<T, S>::qpid_loop(){
                 break;
             }
             std::string str = sample.getContent();
-            {
-                //Gain mutex lock and append message
-                std::unique_lock<std::mutex> lock(notify_mutex_);
-                message_queue_.push(str);
-                notify_lock_condition_.notify_all();
-            }
+            this->EnqueueMessage(str);
         } catch (...){
             if(receiver_.isClosed()){
                 break;
@@ -141,22 +134,4 @@ void qpid::InEventPort<T, S>::qpid_loop(){
     }
 };
 
-template <class T, class S>
-void qpid::InEventPort<T, S>::receive_loop(){
-    std::queue<std::string> queue_;
-    while(true){
-        {
-            //Wait for next message
-            std::unique_lock<std::mutex> lock(notify_mutex_);
-            notify_lock_condition_.wait(lock);
-            //Swap out the queue's and release the mutex
-            message_queue_.swap(queue_);
-        }
-        while(!queue_.empty()){
-            auto message = proto::decode<S>(queue_.front());
-            this->rx(message);
-            queue_.pop();
-        }
-    }
-};
 #endif //QPID_INEVENTPORT_H
