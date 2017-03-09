@@ -79,7 +79,6 @@ int WE_CPU::MWIP(double loop){
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
     //Log Before
     int result = impl_->MWIP(loop);
-    //LogWorkerEvent(Worker* worker, std::string function_name, ModelLogger::LifeCycleEvent event, int work_id = -1, std::string args = "");
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     //Log After
     return result;

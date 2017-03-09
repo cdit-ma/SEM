@@ -22,10 +22,10 @@ zmq::Registrar::Registrar(ExecutionManager* manager, std::string publisher_endpo
 zmq::Registrar::~Registrar(){
     //Deleting the context will interupt any blocking ZMQ calls
     if(context_){
-        std::cout << "Deleting Context" << std::endl;
         delete context_;    
     }
 
+    //Join all registration threads
     while(!registration_threads_.empty()){
         auto t = registration_threads_.back();
         if(t){
