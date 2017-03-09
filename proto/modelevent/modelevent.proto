@@ -36,7 +36,7 @@ message Component{
 }
 
 message Port{
-    enum PortKind{
+    enum Kind{
         TX = 0;
         RX = 1;
         PE = 2;
@@ -45,7 +45,7 @@ message Port{
     string id = 1;          //Id of instance
     string name = 2;        //Name of port instance
     string type = 3;        //Name of port's data type
-    PortKind kind = 4;      //direction of port/periodic event
+    Kind kind = 4;          //direction of port/periodic event
     string middleware = 5;  //middleware of port
 }
 
