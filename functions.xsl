@@ -1133,7 +1133,13 @@
         <xsl:message>Created File: <xsl:value-of select="$file_path" /></xsl:message>
         <xsl:value-of select="$file_path" />
     </xsl:function>
+
     
+    <xsl:function name="o:inplace_getter_function">
+        <xsl:param name="label" />
+
+        <xsl:value-of select="concat($label, '()')" />
+    </xsl:function>
 
     <xsl:function name="o:process_aggregate">
         <xsl:param name="aggregate_root" />
@@ -1819,7 +1825,15 @@
         <xsl:value-of select="lower-case(cdit:get_key_value($root, $key_name)) = 'true'" />
     </xsl:function>
 
-    
+    <xsl:function name="cdit:get_descendant_entities_of_kind" as="element()*">
+        <xsl:param name="root" />
+        <xsl:param name="kind" as="xs:string" />
+
+        <xsl:for-each select="$root">
+            <xsl:variable name="kind_id" select="cdit:get_key_id(., 'kind')" />        
+            <xsl:sequence select="$root//gml:node/gml:data[@key=$kind_id and text() = $kind]/.." />
+        </xsl:for-each>
+    </xsl:function>
 
      <xsl:function name="cdit:get_child_entities_of_kind" as="element()*">
         <xsl:param name="root" />
@@ -1933,16 +1947,6 @@
 
         <xsl:for-each select="$elements">
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
-            <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/', lower-case($label))" />
-            <xsl:value-of select="o:cmake_add_subdirectory($path)" />
-        </xsl:for-each>
-    </xsl:function>
-
-    <xsl:function name="cdit:get_subfolder_cmake_from_list">
-        <xsl:param name="string_list" />
-
-        <xsl:for-each select="tokenize(normalize-space($string_list), ',')"> 
-            <xsl:variable name="label" select="." />
             <xsl:variable name="path" select="concat(o:cmake_var_wrap('CMAKE_CURRENT_SOURCE_DIR'),'/', lower-case($label))" />
             <xsl:value-of select="o:cmake_add_subdirectory($path)" />
         </xsl:for-each>

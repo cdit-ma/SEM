@@ -124,10 +124,5 @@
                 <xsl:value-of select="cdit:get_subfolder_cmake($aggregates)" />
             </xsl:result-document>
         </xsl:for-each>
-        <xsl:variable name="middleware_cmake" select="concat($middleware_path, 'CMakeLists.txt')" />
-            <!-- Write File: middleware/CMakeLists.txt -->
-            <xsl:result-document href="{o:xsl_wrap_file($middleware_cmake)}">
-                <xsl:value-of select="cdit:get_subfolder_cmake_from_list($middlewares)" />
-            </xsl:result-document>
     </xsl:template>
 </xsl:stylesheet>

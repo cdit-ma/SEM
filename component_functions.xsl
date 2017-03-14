@@ -107,21 +107,345 @@
         </xsl:for-each>
     </xsl:function>
 
-    <xsl:function name="cdit:generate_Process">
+
+    <xsl:function name="cdit:get_process_return_var">
+        <xsl:param name="root"/>
+        <xsl:variable name="return_parameters" select="cdit:get_child_entities_of_kind($root, 'ReturnParameter')" />
+        <!-- Can only have one -->
+
+        <xsl:for-each select="$return_parameters">
+            <xsl:if test="position() = 1">
+                <xsl:value-of select="cdit:get_var_name(.)" />
+            </xsl:if>
+        </xsl:for-each>
+
+    </xsl:function>
+
+    <xsl:function name="cdit:set_cpp_attributevariable">
+        <xsl:param name="root"/>
+        <xsl:param name="tab"/>
+        <xsl:param name="value"/>
+
+        <xsl:variable name="id" select="cdit:get_node_id($root)" />
+        <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
+        <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
+        <xsl:variable name="parent" select="cdit:get_parent_node($root)" />
+        <xsl:variable name="parent_kind" select="cdit:get_key_value($parent, 'kind')" />
+
+        <xsl:choose>
+            <xsl:when test="$kind = 'Variable'">
+                <xsl:value-of select="concat(o:t($tab), $label, '_ = ', $value, ';', o:nl())" />
+            </xsl:when>
+            <xsl:when test="$kind = 'AttributeImpl'">
+                <!-- Setter Function -->
+                <xsl:value-of select="concat(o:t($tab), 'set_', $label,'(', $value, ');', o:nl())" />
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- Setter Function -->
+                <xsl:value-of select="o:tabbed_cpp_comment($kind, $tab)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:generate_ReturnParameter">
+        <xsl:param name="root"/>
+        <xsl:param name="tab"/>
+
+        <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
+        <xsl:variable name="id" select="cdit:get_node_id($root)" />
+        <xsl:variable name="parent_id" select="cdit:get_node_id($parent_node)" />
+        <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
+
+        <xsl:variable name="var_name" select="cdit:get_var_name($root)" />
+
+        <!-- Check for Edge_Data's into this -->
+        <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_ReturnParameter: [', $parent_id, ' => ', $id, '] = ', $label), $tab)" />
+
+        <!-- Get the Source ID's which data link to this element -->
+        <xsl:variable name="target_ids" select="cdit:get_edge_target_ids($root, 'Edge_Data', $id)" />
+
+        <!-- Use Data Edges first -->
+        <xsl:if test="count($target_ids) > 0">
+            <xsl:for-each select="$target_ids">
+                <xsl:variable name="target_id" select="." />
+                <xsl:variable name="target" select="o:get_node_by_id($root, $target_id)" />
+
+                <!-- Calculate the depth to the ComponentImpl, and then back down 2 elements to get the top-most entity in the Impl-->
+                <xsl:variable name="depth" select="cdit:get_depth_to_ancestor_node_of_kind($target, 'ComponentImpl') - 2" />
+                <xsl:variable name="parent_id" select="cdit:get_nth_ancestor_node_id($target, $depth)" />
+                <xsl:variable name="parent" select="cdit:get_node_by_id($target, $parent_id)" />
+
+                <xsl:if test="$parent">
+                    <xsl:variable name="parent_label" select="cdit:get_key_value($parent, 'label')" />
+                    <xsl:value-of select="o:tabbed_cpp_comment(concat('Parent: @ ', $depth, ' = ', $parent_id, ' = ', $parent_label, o:nl()), $tab)" />
+                    <xsl:value-of select="cdit:set_cpp_attributevariable($target, $tab, $var_name)" />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_depth_of_node" as="xs:integer">
+        <xsl:param name="root"/>
+        <xsl:value-of select="$root/count(ancestor::*)" />
+    </xsl:function>
+    
+
+    <xsl:function name="cdit:get_nth_ancestor_node_id">
+        <xsl:param name="root"/>
+        <xsl:param name="n" as="xs:integer" />
+        <xsl:choose>
+            <xsl:when test="$n > 0"><xsl:value-of select="cdit:get_node_id(reverse($root/ancestor::*)[$n])" /></xsl:when>
+            <xsl:when test="$n = 0"><xsl:value-of select="cdit:get_node_id($root)" /></xsl:when>
+            <xsl:otherwise><xsl:value-of select="-1" /></xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <!-- Find the child of the ancestor of kind 'kind' -->
+    <xsl:function name="cdit:get_depth_to_ancestor_node_of_kind" as="xs:integer" >
+        <xsl:param name="root"/>
+        <xsl:param name="ancestor_kind"/>
+
+        <xsl:variable name="current_depth" select="cdit:get_depth_of_node($root)" />    
+
+        <xsl:variable name="parent_depth">
+            <!-- Step up -->
+            <xsl:for-each select="reverse($root/ancestor::gml:node)">
+                <xsl:variable name="id" select="cdit:get_node_id(.)" />    
+                <xsl:variable name="kind" select="cdit:get_key_value(., 'kind')" />    
+
+                <xsl:if test="$kind = $ancestor_kind">
+                    <xsl:value-of select="cdit:get_depth_of_node(.)" />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:variable>
+
+        <xsl:choose>
+            <xsl:when test="$parent_depth != '' and $parent_depth > 0">
+                <xsl:value-of select="$current_depth - $parent_depth" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="-1" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+
+    <xsl:function name="cdit:get_mutable_aggregate_path">
+        <xsl:param name="root" />
+
+        <xsl:variable name="id" select="cdit:get_node_id($root)" />
+        <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
+        <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
+
+        <!-- Topmost parent is ComponentImpl - 2 -->
+        <xsl:variable name="depth" select="cdit:get_depth_to_ancestor_node_of_kind($root, 'ComponentImpl') - 2" />
+
+        <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
+        <xsl:variable name="parent_kind" select="cdit:get_key_value($parent_node, 'kind')" />
+
+        <xsl:variable name="get_function">
+            <xsl:choose>
+                <xsl:when test="$kind='Variable'">
+                    <xsl:value-of select="cdit:get_var_name($root)" />
+                </xsl:when>
+                <xsl:when test="$kind='AggregateInstance'">
+                    <xsl:choose>
+                        <xsl:when test="$parent_kind='InEventPortImpl'">
+                            <xsl:value-of select="'m'" />
+                        </xsl:when>
+                        <xsl:when test="$parent_kind!='Variable'">
+                            <xsl:value-of select="o:inplace_getter_function($label)" />
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:when>
+                <xsl:when test="$kind='VectorInstance' and $parent_kind != 'Variable'">
+                    <!-- Use Implace getters -->
+                    <xsl:value-of select="cdit:inplace_getter_function($label)" />
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+        
+
+        <xsl:if test="$depth >= 0">
+            <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
+            <xsl:variable name="parent_var" select="if($depth > 0) then cdit:get_mutable_aggregate_path($parent_node) else ''" />
+
+            <xsl:value-of select="concat($parent_var, if($depth > 0 and $parent_var != '' and $get_function != '') then '.' else '', $get_function)" />
+        </xsl:if>
+    </xsl:function>
+
+    <xsl:function name="cdit:get_mutable_vector_path">
+        <xsl:param name="root" />
+
+        <xsl:variable name="id" select="cdit:get_node_id($root)" />
+        <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($root, 'Edge_Data', $id)" />
+
+        <xsl:for-each select="$source_ids">
+            <xsl:variable name="source" select="cdit:get_node_by_id($root, .)" />
+            <xsl:variable name="parent" select="cdit:get_parent_node($source)" />
+            <xsl:variable name="parent_kind" select="cdit:get_key_value($parent, 'kind')" />
+            <xsl:choose>
+                <xsl:when test="$parent_kind != ''">
+                    <!-- A Vector directly inside a vector is referenced by its Variable name-->
+                    <xsl:value-of select="cdit:get_mutable_aggregate_path($source)" />
+                    <!--<xsl:value-of select="cdit:get_var_name($parent)" />-->
+                </xsl:when>
+                <xsl:when test="$parent_kind = 'AggregateInstance'">
+                    <xsl:value-of select="cdit:get_mutable_aggregate_path($source)" />
+                </xsl:when>
+                <xsl:otherwise>
+                    
+                    <!-- Need to implement Inside Aggegates! -->
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="cdit:generate_VectorProcess">
         <xsl:param name="root"/>
         <xsl:param name="tab"/>
 
         <xsl:variable name="id" select="cdit:get_node_id($root)" />
-        <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
-        <xsl:variable name="type" select="cdit:get_key_value($root, 'type')" />
-        <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
+        <xsl:variable name="operation" select="cdit:get_key_value($root, 'operation')" />
+
         <xsl:variable name="var_name" select="cdit:get_var_name($root)" />
+        <xsl:variable name="return_var_name" select="cdit:get_process_return_var($root)" />
 
-        <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_Process: [', $id, '] = ', $label), $tab)" />
+        <!-- Insert Tab -->
+        <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_VectorProcess (', $operation, ') [', $id, ']'), $tab)" />
 
-       
+        <xsl:variable name="input_parameters" select="cdit:get_child_entities_of_kind($root, 'InputParameter')" />
+        <xsl:variable name="return_parameters" select="cdit:get_child_entities_of_kind($root, 'ReturnParameter')" />
+
+        <xsl:variable name="vector" select="$input_parameters[1]" />
+
+        <xsl:variable name="vector_var" select="cdit:get_mutable_vector_path($vector)" />
+        
+        <xsl:choose>
+            <xsl:when test="$operation = 'set'">
+                <xsl:value-of select="concat(o:t($tab), $vector_var, '.insert(0, test);', o:nl())" />
+            </xsl:when>
+            <xsl:when test="$operation = 'get' or $operation = 'remove'">
+            </xsl:when>
+            <xsl:when test="$operation = 'length'">
+            </xsl:when>
+            <xsl:when test="$operation = 'clear'">
+                <xsl:value-of select="concat(o:t($tab), $vector_var, '.clear();', o:nl())" />
+            </xsl:when>
+        </xsl:choose>
+
+
+        
+        <!-- Generate Code for Child InputParameters-->
+        <xsl:for-each select="$input_parameters">
+        </xsl:for-each>
+
+        <!-- Generate Code for Child ReturnParameters-->
+        <xsl:for-each select="$return_parameters">
+            <xsl:value-of select="cdit:generate_ReturnParameter(., $tab)" />
+        </xsl:for-each>
     </xsl:function>
 
+    <xsl:function name="cdit:generate_WorkerProcess">
+        <xsl:param name="root"/>
+        <xsl:param name="tab"/>
+
+        <xsl:variable name="operation" select="cdit:get_key_value($root, 'operation')" />
+
+        <xsl:variable name="var_name" select="cdit:get_var_name($root)" />
+        <xsl:variable name="return_var_name" select="cdit:get_process_return_var($root)" />
+
+        <!-- Insert Tab -->
+        <xsl:value-of select="o:t($tab)" />
+        <!-- Store value -->
+        <xsl:if test="$return_var_name != ''">
+            <xsl:value-of select="concat('auto ', $return_var_name, ' = ')" />
+        </xsl:if>
+        <!-- Run function -->
+        <xsl:value-of select="concat($var_name, '.', $operation, '(')" />
+
+        <xsl:variable name="input_parameters" select="cdit:get_child_entities_of_kind($root, 'InputParameter')" />
+        <xsl:variable name="return_parameters" select="cdit:get_child_entities_of_kind($root, 'ReturnParameter')" />
+
+        <!-- Generate Code for Child InputParameters-->
+        <xsl:for-each select="$input_parameters">
+            <xsl:value-of select="cdit:generate_InputParameter(., $tab)" />
+
+            <xsl:if test="position() != last()">
+                <xsl:value-of select="', '" />
+            </xsl:if>
+        </xsl:for-each>
+
+        <xsl:value-of select="concat(');', o:nl())" />
+
+        <!-- Generate Code for Child ReturnParameters-->
+        <xsl:for-each select="$return_parameters">
+            <xsl:value-of select="cdit:generate_ReturnParameter(., $tab)" />
+        </xsl:for-each>
+    </xsl:function>
+
+    <xsl:function name="cdit:generate_Process">
+        <xsl:param name="root"/>
+        <xsl:param name="tab"/>
+
+        <xsl:variable name="worker" select="cdit:get_key_value($root, 'worker')" />
+
+        <xsl:choose>
+            <!-- Use Data Edges first -->
+            <xsl:when test="$worker = 'VectorOperation'">
+                <xsl:value-of select="cdit:generate_VectorProcess($root, $tab)" />
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="cdit:generate_WorkerProcess($root, $tab)" />
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
+    <xsl:function name="cdit:generate_InputParameter">
+        <xsl:param name="root"/>
+        <xsl:param name="tab"/>
+
+        <xsl:variable name="parent_node" select="cdit:get_parent_node($root)" />
+        
+        <xsl:variable name="id" select="cdit:get_node_id($root)" />
+        <xsl:variable name="parent_id" select="cdit:get_node_id($parent_node)" />
+
+        <xsl:variable name="type" select="cdit:get_key_value($root, 'type')" />
+        <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
+        <xsl:variable name="value" select="cdit:get_key_value($root, 'value')" />
+
+        <!-- Check for Edge_Data's into this -->
+        <!--<xsl:value-of select="o:tabbed_cpp_comment(concat('generate_InputParameter: [', $parent_id, ' => ', $id, '] = ', $label), $tab)" />-->
+
+        <!-- Get the Source ID's which data link to this element -->
+        <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($root, 'Edge_Data', $id)" />
+
+        <xsl:variable name="data_value">
+            <xsl:choose>
+                <!-- Use Data Edges first -->
+                <xsl:when test="count($source_ids) > 0">
+                    <xsl:for-each select="$source_ids">
+                        <xsl:variable name="source_id" select="." />
+                        <xsl:variable name="source" select="o:get_node_by_id($root, $source_id)" />
+
+                        <xsl:value-of select="cdit:get_mutable_aggregate_path($source)" />
+                        
+                        <!--
+                        <xsl:variable name="target_value" select="cdit:get_dataedge_value($source)" />
+
+                        <xsl:value-of select="$target_value" />
+                        -->    
+                    </xsl:for-each>
+                </xsl:when>
+                <!-- Use Value second -->
+                <xsl:when test="$value != ''">
+                    <xsl:value-of select="$value" />
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+
+        <xsl:value-of select="if($data_value != '') then $data_value else 'NULL'" />
+    </xsl:function>
     
 
     
@@ -191,7 +515,7 @@
                 <xsl:value-of select="concat(o:t($tab), $statement, '(', $value, '){', o:nl())" />
                 <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_Condition: [', $id, '] = ', $label), $tab + 1)" />
                 <!-- Call into the code generation -->
-                <xsl:value-of select="cdit:generate_workload_cpp($target, $root, $tab + 1)" />
+                <xsl:value-of select="cdit:translate_workload($target, $root, $tab + 1)" />
                 <xsl:value-of select="concat(o:t($tab), '}', o:nl())" />
             </xsl:for-each>
         </xsl:if>
@@ -214,7 +538,9 @@
         </xsl:choose>
     </xsl:function>
 
-    <xsl:function name="cdit:generate_MemberInstance">
+
+
+    <xsl:function name="cdit:generate_SettableElement">
         <xsl:param name="root"/>
         <xsl:param name="tab"/>
 
@@ -230,7 +556,7 @@
         
 
         <!-- Check for Edge_Data's into this -->
-        <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_MemberInstance: [', $parent_id, ' => ', $id, '] = ', $label), $tab)" />
+        <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_SettableElement: [', $parent_id, ' => ', $id, '] = ', $label), $tab)" />
 
         <!-- Construct the setter functions -->        
         <xsl:variable name="set_function" select="concat($parent_var_name, '.set_', $label)" />
@@ -248,8 +574,11 @@
                     <xsl:variable name="target_value" select="cdit:get_dataedge_value($source)" />
 
                     <xsl:if test="$target_value != ''">
+                    
                         <xsl:value-of select="concat(o:t($tab), $set_function, '(', $target_value, ');', o:nl())" />
                     </xsl:if>
+                    
+                    <xsl:value-of select="concat(o:t($tab), $set_function, '(', $target_value, ');', o:nl())" />
                 </xsl:for-each>
             </xsl:when>
             <!-- Use Value second -->
@@ -293,6 +622,12 @@
             <xsl:when test="$class_member = true()">
                 <xsl:value-of select="concat($label, '_')" />
             </xsl:when>
+            <xsl:when test="$kind = 'Process'">
+                <!-- Get the workerID -->
+                <xsl:variable name="worker_id" select="cdit:get_key_value($root, 'workerID')" />
+
+                <xsl:value-of select="concat($worker_id, '_')" />
+            </xsl:when>
             <!--
             <xsl:when test="$kind = 'InEventPortImpl'">
                 <xsl:value-of select="'m'" />
@@ -313,6 +648,7 @@
         <xsl:param name="root"/>
         <xsl:param name="previous_root"/>
         <xsl:param name="tab"/>
+        
 
         <xsl:variable name="id" select="cdit:get_node_id($root)" />
         <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
@@ -327,7 +663,10 @@
                 <xsl:value-of select="cdit:generate_AggregateInstance($root, $tab)" />
             </xsl:when>
             <xsl:when test="$kind = 'MemberInstance'">
-                <xsl:value-of select="cdit:generate_MemberInstance($root, $tab)" />
+                <xsl:value-of select="cdit:generate_SettableElement($root, $tab)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'VectorInstance'">
+                <xsl:value-of select="cdit:generate_SettableElement($root, $tab)" />
             </xsl:when>
             <xsl:when test="$kind = 'BranchState'">
                 <xsl:value-of select="cdit:generate_Branch($root, $tab)" />
@@ -356,7 +695,7 @@
 
             
             <xsl:otherwise>
-                <xsl:value-of select="o:tabbed_cpp_comment(concat($kind, ' Not Implemented!'), $tab)" />
+                <xsl:value-of select="o:tabbed_cpp_comment(concat('generate_workload_cpp(', $kind, ') Not Implemented!'), $tab)" />
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -400,6 +739,10 @@
 
         <xsl:variable name="define_guard" select="concat('COMPONENTS_', $component_label_uc, '_', $component_label_uc, 'IMPL_H')" />
 
+        <xsl:variable name="periodicevents" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'PeriodicEvent')" />
+        <xsl:variable name="ineventports" as="element()*" select="cdit:get_child_entities_of_kind($component_def_root, 'InEventPort')" />
+        <xsl:variable name="processes" as="element()*" select="cdit:get_descendant_entities_of_kind($component_root, 'Process')" />
+        
         <!-- Define Guard -->
         <xsl:value-of select="o:define_guard($define_guard)" />
 
@@ -408,10 +751,26 @@
         <xsl:value-of select="o:local_include(concat(lower-case($interface_name), '.h'))" />
         <xsl:value-of select="o:nl()" />
 
-        <xsl:variable name="periodicevents" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'PeriodicEvent')" />
-        <xsl:variable name="ineventports" as="element()*" select="cdit:get_child_entities_of_kind($component_def_root, 'InEventPort')" />
+        <!-- Include datatypes -->
+        <xsl:if test="count($processes) > 0">
+            <xsl:value-of select="o:cpp_comment('Worker Include Statements')" />
+
+            <!-- Include the workers-->
+            <xsl:for-each select="$processes">
+                <xsl:variable name="id" select="cdit:get_node_id(.)" />
+                <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+                <xsl:variable name="folder" select="cdit:get_key_value(., 'folder')" />
+                <xsl:variable name="file" select="cdit:get_key_value(., 'file')" />
+                <xsl:variable name="worker_include" select="concat($folder, '/', lower-case($file), '.h')" />
+
+                <xsl:value-of select="o:local_include($worker_include)" />
+                <xsl:value-of select="o:nl()" />
+            </xsl:for-each>
+        </xsl:if>
+        
         
         <xsl:variable name="variables" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'Variable')" />
+
 
         <xsl:value-of select="o:tabbed_cpp_comment(concat('ComponentImpl ', o:square_wrap($component_id), ': ', $class_name), 0)" />
 
@@ -455,6 +814,19 @@
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('Variable ', o:square_wrap($id), ': ', $label), 2)" />
             <xsl:value-of select="concat(o:t(2), $cpp_type, ' ', $var_name, ';', o:nl())" />
+        </xsl:for-each>
+
+        <!-- Processes are private variables, and are declared in the Impl-->
+        <xsl:for-each select="$processes">
+            <xsl:variable name="id" select="cdit:get_node_id(.)" />
+            <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+            <xsl:variable name="worker" select="cdit:get_key_value(., 'worker')" />
+            <xsl:variable name="var_name" select="cdit:get_var_name(.)" />
+            <xsl:value-of select="o:nl()" />
+
+
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('Process ', o:square_wrap($id), ': ', $label), 2)" />
+            <xsl:value-of select="concat(o:t(2), $worker, ' ', $var_name, ';', o:nl())" />
         </xsl:for-each>
 
         
@@ -708,7 +1080,7 @@
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('PeriodicEvent ', o:square_wrap($id), ': ', $label), 1)" />
-            <xsl:value-of select="concat(o:t(1), 'AddCallback(', o:dblquote_wrap($label), ', [this](BaseMessage* m) {PE_', $label, '(); delete m;});' ,o:nl())" />
+            <xsl:value-of select="concat(o:t(1), 'AddCallback(', o:dblquote_wrap($label), ', [this](BaseMessage* m) {PE_', $label, '();});' ,o:nl())" />
         </xsl:for-each>
 
         <!-- Construct InEventPorts -->
@@ -720,7 +1092,7 @@
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 1)" />
-            <xsl:value-of select="concat(o:t(1), 'AddCallback(', o:dblquote_wrap($label), ', [this](BaseMessage* m) {auto t = ', o:bracket_wrap(concat($cpp_type, '*')), 'm; In_', $label,'(*t); delete m;});' ,o:nl())" />
+            <xsl:value-of select="concat(o:t(1), 'AddCallback(', o:dblquote_wrap($label), ', [this](BaseMessage* m) {auto t = ', o:bracket_wrap(concat($cpp_type, '*')), 'm; In_', $label,'(*t);});' ,o:nl())" />
         </xsl:for-each>
         <xsl:value-of select="concat('};', o:nl())" />
 
