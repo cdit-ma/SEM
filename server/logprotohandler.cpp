@@ -43,6 +43,8 @@
 #define LOGAN_PORT_NAME "port_name"
 #define LOGAN_PORT_ID "port_id"
 #define LOGAN_PORT_KIND "port_kind"
+#define LOGAN_PORT_TYPE "port_type"
+#define LOGAN_PORT_MIDDLEWARE "port_middleware"
 #define LOGAN_EVENT "event"
 #define LOGAN_MESSAGE_ID "id"
 #define LOGAN_NAME "name"
@@ -323,10 +325,14 @@ void LogProtoHandler::CreatePortEventTable(){
     Table* t = new Table(database_, LOGAN_LIFECYCLE_PORT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_TYPE, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_MIDDLEWARE, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
     t->Finalize();
     
@@ -342,8 +348,9 @@ void LogProtoHandler::CreateComponentEventTable(){
     Table* t = new Table(database_, LOGAN_LIFECYCLE_COMPONENT_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_EVENT, LOGAN_VARCHAR);
     t->Finalize();
     
@@ -359,8 +366,9 @@ void LogProtoHandler::CreateUserEventTable(){
     Table* t = new Table(database_, LOGAN_EVENT_USER_TABLE);
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);    
     t->AddColumn("message", LOGAN_VARCHAR);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
     t->Finalize();
@@ -379,8 +387,8 @@ void LogProtoHandler::CreateWorkloadEventTable(){
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     //Component specific
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
 
     //Workload specific info
@@ -419,12 +427,15 @@ void LogProtoHandler::CreateComponentUtilizationTable(){
     t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
     t->AddColumn(LOGAN_HOSTNAME, LOGAN_VARCHAR);
     //Component specific
-    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_COMPONENT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_COMPONENT_TYPE, LOGAN_VARCHAR);
     //Port specific
     t->AddColumn(LOGAN_PORT_NAME, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_TYPE, LOGAN_VARCHAR);
+
     t->AddColumn("port_event_id", LOGAN_INT);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
     t->Finalize();
@@ -602,8 +613,10 @@ void LogProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* messa
         ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
         ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
         ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+        ins.BindString(LOGAN_COMPONENT_TYPE, event->component().type());
         ins.BindString(LOGAN_PORT_NAME, event->port().name());
         ins.BindString(LOGAN_PORT_ID, event->port().id());
+        ins.BindString(LOGAN_PORT_TYPE, event->port().type());
         ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event->type()));
 
         database_->QueueSqlStatement(ins.get_statement());
@@ -615,6 +628,7 @@ void LogProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* messa
             ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
             ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
             ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+            ins.BindString(LOGAN_COMPONENT_TYPE, event->component().type());
             ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event->type()));
             database_->QueueSqlStatement(ins.get_statement());
     }
@@ -637,6 +651,7 @@ void LogProtoHandler::ProcessUserEvent(google::protobuf::MessageLite* message){
     ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
     ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
     ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
+    ins.BindString(LOGAN_COMPONENT_TYPE, event->component().type());
     ins.BindString("message", event->message());
     ins.BindString(LOGAN_TYPE, re_common::UserEvent::Type_Name(event->type()));
     database_->QueueSqlStatement(ins.get_statement());
@@ -673,13 +688,16 @@ void LogProtoHandler::ProcessComponentUtilizationEvent(google::protobuf::Message
     ins.BindString(LOGAN_HOSTNAME, event->info().hostname());
 
     //Component
-    ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
     ins.BindString(LOGAN_COMPONENT_NAME, event->component().name());
+    ins.BindString(LOGAN_COMPONENT_ID, event->component().id());
     ins.BindString(LOGAN_COMPONENT_TYPE, event->component().type());
 
     //Port
     ins.BindString(LOGAN_PORT_NAME, event->port().name());
+    ins.BindString(LOGAN_PORT_ID, event->port().id());
     ins.BindString(LOGAN_PORT_KIND, re_common::Port::Kind_Name(event->port().kind()));
+    ins.BindString(LOGAN_PORT_TYPE, event->port().type());
+    
 
     ins.BindInt("port_event_id", event->port_event_id());
     ins.BindString(LOGAN_TYPE, re_common::ComponentUtilizationEvent::Type_Name(event->type()));
