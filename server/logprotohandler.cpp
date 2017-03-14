@@ -435,6 +435,7 @@ void LogProtoHandler::CreateComponentUtilizationTable(){
     t->AddColumn(LOGAN_PORT_ID, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_PORT_KIND, LOGAN_VARCHAR);
     t->AddColumn(LOGAN_PORT_TYPE, LOGAN_VARCHAR);
+    t->AddColumn(LOGAN_PORT_MIDDLEWARE, LOGAN_VARCHAR);    
 
     t->AddColumn("port_event_id", LOGAN_INT);
     t->AddColumn(LOGAN_TYPE, LOGAN_VARCHAR);
@@ -617,6 +618,7 @@ void LogProtoHandler::ProcessLifecycleEvent(google::protobuf::MessageLite* messa
         ins.BindString(LOGAN_PORT_NAME, event->port().name());
         ins.BindString(LOGAN_PORT_ID, event->port().id());
         ins.BindString(LOGAN_PORT_TYPE, event->port().type());
+        ins.BindString(LOGAN_PORT_MIDDLEWARE, event->port().middleware());
         ins.BindString(LOGAN_EVENT, re_common::LifecycleEvent::Type_Name(event->type()));
 
         database_->QueueSqlStatement(ins.get_statement());
@@ -697,8 +699,8 @@ void LogProtoHandler::ProcessComponentUtilizationEvent(google::protobuf::Message
     ins.BindString(LOGAN_PORT_ID, event->port().id());
     ins.BindString(LOGAN_PORT_KIND, re_common::Port::Kind_Name(event->port().kind()));
     ins.BindString(LOGAN_PORT_TYPE, event->port().type());
+    ins.BindString(LOGAN_PORT_MIDDLEWARE, event->port().middleware());
     
-
     ins.BindInt("port_event_id", event->port_event_id());
     ins.BindString(LOGAN_TYPE, re_common::ComponentUtilizationEvent::Type_Name(event->type()));
 
