@@ -250,15 +250,19 @@
                 </xsl:when>
                 <xsl:when test="$kind='AggregateInstance'">
                     <xsl:choose>
-                        <xsl:when test="$parent_kind='InEventPortImpl'">
+                        <xsl:when test="$parent_kind = 'InEventPortImpl'">
                             <xsl:value-of select="'m'" />
                         </xsl:when>
-                        <xsl:when test="$parent_kind!='Variable'">
+                        <xsl:when test="$parent_kind != 'Variable'">
                             <xsl:value-of select="o:inplace_getter_function($label)" />
                         </xsl:when>
                     </xsl:choose>
                 </xsl:when>
                 <xsl:when test="$kind='VectorInstance' and $parent_kind != 'Variable'">
+                    <!-- Use Implace getters -->
+                    <xsl:value-of select="cdit:inplace_getter_function($label)" />
+                </xsl:when>
+                <xsl:when test="$kind='MemberInstance' and $parent_kind != 'Variable'">
                     <!-- Use Implace getters -->
                     <xsl:value-of select="cdit:inplace_getter_function($label)" />
                 </xsl:when>
@@ -574,11 +578,8 @@
                     <xsl:variable name="target_value" select="cdit:get_dataedge_value($source)" />
 
                     <xsl:if test="$target_value != ''">
-                    
                         <xsl:value-of select="concat(o:t($tab), $set_function, '(', $target_value, ');', o:nl())" />
                     </xsl:if>
-                    
-                    <xsl:value-of select="concat(o:t($tab), $set_function, '(', $target_value, ');', o:nl())" />
                 </xsl:for-each>
             </xsl:when>
             <!-- Use Value second -->
