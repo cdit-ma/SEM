@@ -42,11 +42,11 @@ include_directories("${CLFFT_ROOT}/include")
 include_directories("${OPENCL_ROOT}/include")
 
 #Use this in production
-#add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
+add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
 
 #Use this for enable_testing
-add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(WE_GPU_Test WE_GPU_Test.cpp)
+#add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+#add_executable(WE_GPU_Test WE_GPU_Test.cpp)
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
