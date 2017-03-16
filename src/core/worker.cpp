@@ -26,14 +26,10 @@ Component* Worker::get_component(){
     return component_;
 };
 
-std::string Worker::get_arg_string(std::string str_format, ...){
-    va_list args;
-    va_start (args, str_format);
-
+std::string Worker::get_arg_string(const std::string str_format, va_list args){
     auto fmt = str_format.c_str();
     int len = snprintf(NULL, 0, fmt, args) + 1;
     char buffer[len];
     vsprintf(buffer, fmt, args);
-    va_end (args);
     return std::string(buffer);
 };
