@@ -11,8 +11,10 @@ SET(CMAKE_CXX_FLAGS "-O0")
 SET(CMAKE_C_FLAGS "-O0")
 
 set(PROJ_NAME cpu_worker)
+set(TESTER_NAME ${PROJ_NAME}_tester)
 
 project(${PROJ_NAME})
+
 
 
 set(SOURCE
@@ -28,12 +30,9 @@ set(SOURCE
 #Add RE_PATH to include directories
 include_directories("${RE_PATH}/src")
 
-#Use this in production
-#add_library(${PROJ_NAME} MODULE ${SOURCE} ${HEADERS})
-
 #Use this for enable_testing
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(test main.cpp)
+add_executable(${TESTER_NAME} main.cpp)
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
@@ -44,4 +43,4 @@ endif(MSVC)
 
 target_link_libraries(${PROJ_NAME} re_core)
 
-target_link_libraries(test ${PROJ_NAME})
+target_link_libraries(${TESTER_NAME} ${PROJ_NAME})

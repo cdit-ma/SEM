@@ -78,8 +78,3 @@ std::vector<char> WE_UTE_Impl::ProcessVarList(const char* complexity){
     std::vector<char> vec(temp.begin(), temp.end());
     return vec;
 }
-
-void WE_UTE_Impl::DebugMessage(const char* fmtstr, va_list args){
-
-    std::cout << buffer << std::endl;
-}

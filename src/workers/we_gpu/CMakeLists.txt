@@ -8,6 +8,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(RE_PATH "$ENV{RE_PATH}")
 
 set(PROJ_NAME gpu_worker)
+set(TESTER_NAME ${PROJ_NAME}_tester)
 
 set(CLFFT_ROOT /opt/clfft/clFFT-2.10.2-Linux-x64)
 set(AMDSDKPATH /opt/AMDAPPSDK-3.0)
@@ -47,7 +48,7 @@ include_directories("${OPENCL_ROOT}/include")
 
 #Use this for enable_testing
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(WE_GPU_Test WE_GPU_Test.cpp)
+add_executable(${TESTER_NAME} WE_GPU_Test.cpp)
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
@@ -65,6 +66,6 @@ target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
 message(${CLFFT_LIB})
 message(OPENCL_LIB: ${OPENCL_LIB})
 
-target_link_libraries(WE_GPU_Test ${PROJ_NAME})
-target_link_libraries(WE_GPU_Test ${OPENCL_LIB})
-target_link_libraries(WE_GPU_Test ${CLFFT_LIB})
+target_link_libraries(${TESTER_NAME} ${PROJ_NAME})
+target_link_libraries(${TESTER_NAME} ${OPENCL_LIB})
+target_link_libraries(${TESTER_NAME} ${CLFFT_LIB})

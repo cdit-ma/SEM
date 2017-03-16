@@ -10,7 +10,6 @@ class WE_UTE_Impl{
         double TimeOfDay();
         std::string TimeOfDayString();
         double EvaluateComplexity(const char* complexity, va_list args);
-        void DebugMessage(const char* fmtstr, va_list args);
     
     private:
         std::vector<char> ProcessVarList(const char* complexity);
