@@ -10,7 +10,7 @@ set(RE_PATH "$ENV{RE_PATH}")
 SET(CMAKE_CXX_FLAGS "-O0")
 SET(CMAKE_C_FLAGS "-O0")
 
-set(PROJ_NAME cpu_worker)
+set(PROJ_NAME worker_we_cpu)
 set(TESTER_NAME ${PROJ_NAME}_tester)
 
 project(${PROJ_NAME})

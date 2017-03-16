@@ -7,7 +7,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
 
-set(PROJ_NAME ute_worker)
+set(PROJ_NAME worker_we_ute)
 
 project(${PROJ_NAME})
 

@@ -7,7 +7,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
 
-set(PROJ_NAME gpu_worker)
+set(PROJ_NAME worker_we_gpu)
 set(TESTER_NAME ${PROJ_NAME}_tester)
 
 set(CLFFT_ROOT /opt/clfft/clFFT-2.10.2-Linux-x64)
