@@ -33,3 +33,11 @@ std::string Worker::get_arg_string(const std::string str_format, va_list args){
     vsprintf(buffer, fmt, args);
     return std::string(buffer);
 };
+
+std::string Worker::get_arg_string(const std::string str_format, ...){
+    va_list args;
+    va_start(args, str_format);
+    auto str = get_arg_string(str_format, args);
+    va_end(args);
+    return str;
+};
