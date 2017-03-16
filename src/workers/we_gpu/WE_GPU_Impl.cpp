@@ -527,7 +527,7 @@ void WE_GPU_Impl::matrixMult(unsigned int n, unsigned int gpuNum) {
 }
 
 bool WE_GPU_Impl::matrixMult(unsigned int lenA, unsigned int lenB, unsigned int lenC,
-							 void* dataA, void* dataB, void* dataOut,
+							 const void* dataA, const void* dataB, void* dataOut,
 							 int gpuNum) {
 	cl_int error;
 
@@ -577,32 +577,33 @@ bool WE_GPU_Impl::matrixMult(unsigned int lenA, unsigned int lenB, unsigned int 
 	unsigned int globalHeight = 0;
 	while (globalHeight < N || globalHeight < K) globalHeight += blockLength;
 	
-	//this->matrixLock_.acquire();
-
-	// Set the parameters for the ma trix multiplication
-	error = matrixKernel->setArg(0, matA);
-	clPrintErrorAndReturn(error, "setting argument 0 of matrix multiplication kernel");
-	error = matrixKernel->setArg(1, matB);
-	clPrintErrorAndReturn(error, "setting argument 1 of matrix multiplication kernel");
-	error = matrixKernel->setArg(2, matC);
-	clPrintErrorAndReturn(error, "setting argument 2 of matrix multiplication kernel");
-	error = matrixKernel->setArg(3, M);
-	clPrintErrorAndReturn(error, "setting argument 3 of matrix multiplication kernel");
-	error = matrixKernel->setArg(4, K);
-	clPrintErrorAndReturn(error, "setting argument 4 of matrix multiplication kernel");
-	error = matrixKernel->setArg(5, N);
-	clPrintErrorAndReturn(error, "setting argument 5 of matrix multiplication kernel");
-	error = matrixKernel->setArg(6, cl::__local(blockLength*blockLength*sizeof(cl_float)));
-	clPrintErrorAndReturn(error, "setting argument 6 of matrix multiplication kernel");
-	error = matrixKernel->setArg(7, cl::__local(blockLength*blockLength*sizeof(cl_float)));
-	clPrintErrorAndReturn(error, "setting argument 7 of matrix multiplication kernel");
-	
-	// Execute the kernel
 	std::vector<cl::Event> executeEvents(1);
-	error = queues[gpuNum]->enqueueNDRangeKernel(*matrixKernel, cl::NullRange, cl::NDRange(globalWidth, globalHeight), cl::NDRange(blockLength,blockLength), &copyEvents, &(executeEvents[0]));
-	clPrintErrorAndReturn(error, "executing a multiplication kernel");
+	{
+		//Lock so we don't get conflicting kernel args set
+		std::lock_guard<std::mutex> lock(matrixLock_);
 
-	//sthis->matrixLock_.release();
+		// Set the parameters for the ma trix multiplication
+		error = matrixKernel->setArg(0, matA);
+		clPrintErrorAndReturn(error, "setting argument 0 of matrix multiplication kernel");
+		error = matrixKernel->setArg(1, matB);
+		clPrintErrorAndReturn(error, "setting argument 1 of matrix multiplication kernel");
+		error = matrixKernel->setArg(2, matC);
+		clPrintErrorAndReturn(error, "setting argument 2 of matrix multiplication kernel");
+		error = matrixKernel->setArg(3, M);
+		clPrintErrorAndReturn(error, "setting argument 3 of matrix multiplication kernel");
+		error = matrixKernel->setArg(4, K);
+		clPrintErrorAndReturn(error, "setting argument 4 of matrix multiplication kernel");
+		error = matrixKernel->setArg(5, N);
+		clPrintErrorAndReturn(error, "setting argument 5 of matrix multiplication kernel");
+		error = matrixKernel->setArg(6, cl::__local(blockLength*blockLength*sizeof(cl_float)));
+		clPrintErrorAndReturn(error, "setting argument 6 of matrix multiplication kernel");
+		error = matrixKernel->setArg(7, cl::__local(blockLength*blockLength*sizeof(cl_float)));
+		clPrintErrorAndReturn(error, "setting argument 7 of matrix multiplication kernel");
+		
+		// Execute the kernel
+		error = queues[gpuNum]->enqueueNDRangeKernel(*matrixKernel, cl::NullRange, cl::NDRange(globalWidth, globalHeight), cl::NDRange(blockLength,blockLength), &copyEvents, &(executeEvents[0]));
+		clPrintErrorAndReturn(error, "executing a multiplication kernel");
+	}
 
 	// Forcibly flush and wait, this combo is kinda overkill but was found to have a better chance
 	// of forcing the nvidia drivers to schedule properly

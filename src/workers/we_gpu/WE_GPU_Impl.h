@@ -7,6 +7,7 @@
 #include "BufferHashtable.h"
 #include <string>
 #include <clFFT.h>
+#include <mutex>
 
 class WE_GPU_Impl {
 public:
@@ -55,7 +56,7 @@ public:
 	// Multiply two matrices using memory from dataA and dataB
 	// with the product placed into dataC, returns whether or not operation suceeded
 	bool matrixMult(unsigned int widthA, unsigned int heightA, unsigned int widthB,
-					void* dataA, void* dataB, void* dataOut,
+					const void* dataA, const void* dataB, void* dataOut,
 					int gpuNum=0);
 
 
@@ -74,6 +75,7 @@ private:
 	cl::Kernel* matrixKernel;
 
 	//ACE_Thread_Mutex matrixLock_;
+	std::mutex matrixLock_;
 
 	// Blank buffers for allowing kernels to work on data
 	cl::Buffer* blankBuffer;

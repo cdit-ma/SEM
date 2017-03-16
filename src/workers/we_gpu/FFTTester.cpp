@@ -4,7 +4,6 @@
 #include <boost/math/special_functions/round.hpp>
 #include <iostream>
 #include <stdlib.h>
-#include <ace/OS_NS_sys_time.h>
 
 #define FFT_EPS 1e-5
 
@@ -21,7 +20,9 @@ FFTTester::FFTTester(DebugLevel dLevel) : Tester(dLevel) {
 	worker = new WE_GPU();
 
 	verbosity = dLevel;
-	ACE_Time_Value startTime = ACE_OS::gettimeofday();
+	//ACE_Time_Value startTime = ACE_OS::gettimeofday();
+
+
 	testEmpty();
 
 	testConstant(0);
@@ -50,8 +51,8 @@ FFTTester::FFTTester(DebugLevel dLevel) : Tester(dLevel) {
 
 	testSingleAlignedFrequency(31, 1.0, 0);
 
- 	ACE_Time_Value endTime = ACE_OS::gettimeofday();
-        cout << "Tests Took: " << (endTime.get_msec() - startTime.get_msec())*1e-3 << " seconds" << endl;
+ 	//ACE_Time_Value endTime = ACE_OS::gettimeofday();
+    //    cout << "Tests Took: " << (endTime.get_msec() - startTime.get_msec())*1e-3 << " seconds" << endl;
 
 	/*testSingleMisalignedFrequency(1.0, 1.0, 0.0);
 	testSingleMisalignedFrequency(1.5, 1.0, 0.0);*/
@@ -64,26 +65,27 @@ FFTTester::~FFTTester() {
 	delete worker;
 }
 
-void FFTTester::newThreadFFT(WE_UTE_Vector vec) {
+void FFTTester::newThreadFFT(std::vector<float> vec) {
 	worker->FFT(vec);
 }
 
 void FFTTester::testEmpty() {
 	Result res = UNKNOWN;
 
-	float* data = new float[0];
-	WE_UTE_Vector emptyVec(data, 0);
+	std::vector<float> data;
 
-	boost::thread emptyThread(&FFTTester::newThreadFFT, this, emptyVec);
+	worker->FFT(data);
 
-	if (emptyThread.timed_join(boost::posix_time::seconds(1))) {
-		res = PASS;
-	}
-	else {
-		res = FAIL; 
-	}
+	
 
-	delete data;
+	// boost::thread emptyThread(&FFTTester::newThreadFFT, this, data);
+
+	// if (emptyThread.timed_join(boost::posix_time::seconds(1))) {
+	// 	res = PASS;
+	// }
+	// else {
+	// 	res = FAIL; 
+	// }
 
 	recordTest(res, "Performing FFT on zero length vector");
 }
@@ -92,13 +94,12 @@ void FFTTester::testConstant(float amplitude) {
 	Result res = UNKNOWN;
 	unsigned int length = 8;
 
-	float* data = new float[length];
+	std::vector<float> data(8);
 	for (unsigned int i=0; i< length; i++) {
 		data[i] = amplitude;
 	}
-	WE_UTE_Vector constVec(data, length);
 
-	worker->FFT(constVec);
+	worker->FFT(data);
 
 	if (!CHECK_FLOAT(data[0], amplitude*length, FFT_EPS)){
 		res = FAIL;
@@ -116,21 +117,18 @@ void FFTTester::testConstant(float amplitude) {
 	}
 
 	recordTest(res, "Performing FFT on zeroed vector of length 8");
-
-	delete data;
 }
 
 void FFTTester::testImpulse(float amplitude, unsigned int impulseIndex) {
 	Result res = UNKNOWN;
 
 	unsigned int length = 8;
-	float* data = new float[length];
+	std::vector<float> data(8);
 	for (unsigned int i=0; i<length; i++) {
 		data[i] = (float) ((i==impulseIndex)? amplitude : 0.0);
 	}
-	WE_UTE_Vector impulseVec(data, length);
 
-	worker->FFT(impulseVec);
+	worker->FFT(data);
 
 	for (unsigned int i=0; i<length; i+=2) {
 		if (!CHECK_FLOAT(sqrt(data[i]*data[i] + data[i+1]*data[i+1]), abs(amplitude), EPS))  {
@@ -144,13 +142,11 @@ void FFTTester::testImpulse(float amplitude, unsigned int impulseIndex) {
 	}
 
 	recordTest(res, "Performing FFT on impulse vector of length 8 with amplitude " + test::to_string(amplitude));
-
-	delete data;
 }
 
-void addFrequency(unsigned int length, float* data, float frequency, float amplitude, float phaseShift) {
-	for (unsigned int i=0; i<length; i++) {
-		data[i] += amplitude * (float)(cos((float)frequency*((float)i/length)*2*PI + phaseShift));
+void addFrequency(std::vector<float> &data, float frequency, float amplitude, float phaseShift) {
+	for (unsigned int i=0; i<data.size(); i++) {
+		data[i] += amplitude * (float)(cos((float)frequency*((float)i/data.size())*2*PI + phaseShift));
 	}
 }
 
@@ -164,12 +160,11 @@ void FFTTester::testSingleAlignedFrequency(unsigned int frequency, float amplitu
 		return;
 	}
 
-	float* data = new float[length];
+	std::vector<float> data(length);
 	
-	WE_UTE_Vector waveVec(data, length);
 	for (unsigned int i=0; i<length; i++) data[i]=0;
-	addFrequency(length, data, (float)frequency, amplitude, phaseShift);
-	worker->FFT(waveVec);
+	addFrequency(data, (float)frequency, amplitude, phaseShift);
+	worker->FFT(data);
 
 	// Verify that the intended frequency bin has the right magnitude, while all others are 0
 	for (unsigned int i=0; i<length; i+=2) {
@@ -200,8 +195,6 @@ void FFTTester::testSingleAlignedFrequency(unsigned int frequency, float amplitu
 	}
 
 	recordTest(res, "Performing FFT on aligned " + test::to_string(frequency) + "Hz wave, " +test::to_string(length) + " samples, amplitude of " + test::to_string(amplitude));
-
-	delete data;
 }
 
 /*

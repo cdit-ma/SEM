@@ -9,7 +9,7 @@ public:
 	FFTTester(test::DebugLevel dLevel= test::NORMAL);
 	~FFTTester();
 
-	void newThreadFFT(WE_UTE_Vector vec);
+	void newThreadFFT(std::vector<float> vec);
 
 	void testEmpty();
 	void testConstant(float amplitude);

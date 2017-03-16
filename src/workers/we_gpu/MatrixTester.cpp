@@ -11,7 +11,7 @@ using namespace std;
 using namespace test;
 
 MatrixTester::MatrixTester(DebugLevel dLevel) : Tester(dLevel) {
-	worker = new WE_GPU_Impl();
+	worker = new WE_GPU();
 	worker->initialise(false);
 	//ACE_Time_Value startTime = ACE_OS::gettimeofday();
 
@@ -21,6 +21,7 @@ MatrixTester::MatrixTester(DebugLevel dLevel) : Tester(dLevel) {
 	niceSquareMult(2);
 	cout << "   Square 4x4..." << endl;
 	niceSquareMult(4);
+
 	cout << "   Square 32x32..." << endl;
 	niceSquareMult(32, false);
 	cout << "   Square 37x37..." << endl;
@@ -71,7 +72,6 @@ MatrixTester::MatrixTester(DebugLevel dLevel) : Tester(dLevel) {
 	cout << "   Rect 1x2, 3x4..." << endl;
 	rectMult(1,2,3,4);
 
-
 	//ACE_Time_Value endTime = ACE_OS::gettimeofday();
 	//cout << "Tests Took: " << (endTime.get_msec() - startTime.get_msec())*1e-3 << " seconds" << endl;
 	//cout << "   Too big..." << endl;
@@ -88,20 +88,20 @@ void MatrixTester::niceSquareMult(unsigned int length, bool verbose) {
 	bool passed = true;
 	unsigned int elements = length*length;
 
-	float* matA = new float[elements];
-	float* matB = new float[elements];
-	float* matC = new float[elements];
+	std::vector<float> matA(elements);
+	std::vector<float> matB(elements);
+	std::vector<float> matC(elements);
 
 	for (unsigned int index=0; index<elements; index++) matA[index]=0.0;
 	for (unsigned int index=0; index<elements; index++) matB[index]=0.0;
 	for (unsigned int index=0; index<elements; index++) matC[index]=-1.0;
 
-	worker->matrixMult(elements, elements, elements, matA, matB, matC);
+	
 
-	if (matC == NULL) {
+	if (!worker->matrixMult(matA, matB, matC)) {
 		res = FAIL;
 	} else {
-		res = checkMultiplication(matA, matB, matC, length, length, length);
+		res = checkMultiplication(matA.data(), matB.data(), matC.data(), length, length, length);
 	}
 	recordTest(res, "Multiplication of zeroed square matrix of size " + test::to_string(length) + "x" + test::to_string(length));
 
@@ -109,12 +109,10 @@ void MatrixTester::niceSquareMult(unsigned int length, bool verbose) {
 	for (unsigned int index=0; index<elements; index++) matB[index]=(float)index;
 	for (unsigned int index=0; index<elements; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
-	worker->matrixMult(elements, elements, elements, matA, matB, matC);
-	//outVec = worker->matrixMult(WE_UTE_Vector(matA, elements), WE_UTE_Vector(matB, elements), WE_UTE_Vector(matC, elements));
-	if (matC == NULL) {
+	if (!worker->matrixMult(matA, matB, matC)) {
 		res = FAIL;
 	} else {
-		res = checkMultiplication(matA, matB, matC, length, length, length);
+		res = checkMultiplication(matA.data(), matB.data(), matC.data(), length, length, length);
 	}
 	recordTest(res, "Multiplication of elemnt-wise-incremental square matrix of size " + test::to_string(length) + "x" + test::to_string(length));
 
@@ -123,18 +121,13 @@ void MatrixTester::niceSquareMult(unsigned int length, bool verbose) {
 	for (unsigned int index=0; index<elements; index++) matB[index]=(float)(rand()%1000000000)/100 - 1000000;
 	for (unsigned int index=0; index<elements; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
-	worker->matrixMult(elements, elements, elements, matA, matB, matC);
-	//outVec = worker->matrixMult(WE_UTE_Vector(matA, elements), WE_UTE_Vector(matB, elements), WE_UTE_Vector(matC, elements));
-	if (matC == NULL) {
+	if (!worker->matrixMult(matA, matB, matC)) {
 		res = FAIL;
 	} else {
-		res = checkMultiplication(matA, matB, matC, length, length, length);
+		res = checkMultiplication(matA.data(), matB.data(), matC.data(), length, length, length);
 	}
 	recordTest(res, "Multiplication of pseudo-randomized square matrix of size " + test::to_string(length) + "x" + test::to_string(length));
 
-	delete[] matA;
-	delete[] matB;
-	delete[] matC;
 }
 
 
@@ -145,25 +138,26 @@ void MatrixTester::rectMult(unsigned int rowsA, unsigned int colsA, unsigned int
 	unsigned int lenB = rowsB*colsB;
 	unsigned int lenC = rowsA*colsB;
 
-	float* matA = new float[lenA];
-	float* matB = new float[lenB];
-	float* matC = new float[lenC];
+	std::vector<float> matA(lenA);
+	std::vector<float> matB(lenB);
+	std::vector<float> matC(lenC);
+
 
 	for (unsigned int index=0; index<lenA; index++) matA[index]=0.0;
 	for (unsigned int index=0; index<lenB; index++) matB[index]=0.0;
 	//for (unsigned int index=0; index<lenC; index++) matC[index]=-1.0;
 	for (unsigned int index=0; index<lenC; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
-	worker->matrixMult(lenA, lenB, lenC, matA, matB, matC);
+	
 	//WE_UTE_Vector outVec = worker->matrixMult(WE_UTE_Vector(matA, lenA), WE_UTE_Vector(matB, lenB), WE_UTE_Vector(matC, lenC));
-	if (matC == NULL) {
+	if (!worker->matrixMult(matA, matB, matC)) {
 		if (colsA != rowsB) {
 			res = PASS;
 		} else {
 			res = FAIL;
 		}
 	} else {
-		res = checkMultiplication(matA, matB, matC, rowsA, colsA, colsB);
+		res = checkMultiplication(matA.data(), matB.data(), matC.data(), rowsA, colsA, colsB);
 	}
 	recordTest(res, "Multiplication of zeroed matrix of size " + test::to_string(rowsA) + "x" + test::to_string(colsA) + " by " + test::to_string(rowsB) + "x" + test::to_string(colsB));
 
@@ -172,15 +166,14 @@ void MatrixTester::rectMult(unsigned int rowsA, unsigned int colsA, unsigned int
 	for (unsigned int index=0; index<lenB; index++) matB[index]=(float)index;
 	for (unsigned int index=0; index<lenC; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
-	worker->matrixMult(lenA, lenB, lenC, matA, matB, matC);
-	if (matC == NULL) {
+	if (!worker->matrixMult(matA, matB, matC)) {
 		if (colsA != rowsB) {
 			res = PASS;
 		} else {
 			res = FAIL;
 		}
 	} else {
-		res = checkMultiplication(matA, matB, matC, rowsA, colsA, colsB);
+		res = checkMultiplication(matA.data(), matB.data(), matC.data(), rowsA, colsA, colsB);
 	}
 	recordTest(res, "Multiplication of element-wise-incrementing matrix of size " + test::to_string(rowsA) + "x" + test::to_string(colsA) + " by " + test::to_string(rowsB) + "x" + test::to_string(colsB));
 
@@ -190,23 +183,19 @@ void MatrixTester::rectMult(unsigned int rowsA, unsigned int colsA, unsigned int
 	for (unsigned int index=0; index<lenB; index++) matB[index]=(float)(rand()%1000000000)/100 - 1000000;
 	for (unsigned int index=0; index<lenC; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
-	worker->matrixMult(lenA, lenB, lenC, matA, matB, matC);
-	if (matC == NULL) {
+	if (!worker->matrixMult(matA, matB, matC)) {
 		if (colsA != rowsB) {
 			res = PASS;
 		} else {
 			res = FAIL;
 		}
 	} else {
-		res = checkMultiplication(matA, matB, matC, rowsA, colsA, colsB);
+		res = checkMultiplication(matA.data(), matB.data(), matC.data(), rowsA, colsA, colsB);
 	}
 	recordTest(res, "Multiplication of pseudo-random matrix of size " + test::to_string(rowsA) + "x" + test::to_string(colsA) + " by " + test::to_string(rowsB) + "x" + test::to_string(colsB));
 
-	delete[] matA;
-	delete[] matB;
-	delete[] matC;
 }
-
+/*
 void MatrixTester::tooBig(bool verbose) {
 	Result res;
 	size_t gpuMem = worker->memCapacity();
@@ -224,7 +213,7 @@ void MatrixTester::tooBig(bool verbose) {
 			//WE_UTE_Vector outVec = WE_UTE_Vector(outMat, 64*64);
 
 
-			worker->matrixMult(elements, elements, elements, bigMat, bigMat, outMat);
+			worker->matrixMult(bigMat, bigMat, outMat);
 			if (outMat == NULL) {
 				res = PASS;
 			} else {
@@ -236,7 +225,7 @@ void MatrixTester::tooBig(bool verbose) {
 	}
 	recordTest(res, "Reports that matrices are too large for GPU");
 }
-
+*/
 
 Result MatrixTester::checkMultiplication(float* matA, float* matB, float* matC, unsigned int m, unsigned int k, unsigned int n, bool verbose) {
 	Result res = UNKNOWN;

@@ -58,29 +58,21 @@ void WE_GPU::runParallel(double numThreads, double opsPerThread, unsigned int gp
 	this->impl_->runParallel((unsigned int)numThreads, (unsigned int)opsPerThread, gpuNum);
 }
 
-// void WE_GPU::FFT(WE_UTE_Vector data, unsigned int gpuNum) {
-// 	this->impl_->performFFT_SP(data.memory, data.realSize*data.elementSize, gpuNum);
-//}
+void WE_GPU::FFT(std::vector<float> &data, unsigned int gpuNum) {
+	this->impl_->performFFT_SP(data.data(), data.size()*sizeof(float), gpuNum);
+}
 
 void WE_GPU::matrixMultLazy(unsigned int n, unsigned int gpuNum) {
 	this->impl_->matrixMult(n, gpuNum);
 }
 
-// WE_UTE_Vector WE_GPU::matrixMult(WE_UTE_Vector matrixA,
-// 							WE_UTE_Vector matrixB,
-// 							WE_UTE_Vector matrixC,
-// 							unsigned int gpuNum) {
-// 	bool success = this->impl_->matrixMult(matrixA.realSize, matrixB.realSize, matrixC.realSize,
-// 		matrixA.memory, matrixB.memory , matrixC.memory,
-// 							gpuNum);
-// 	if (!success) {
-// 		matrixC.memory = NULL;
-// 		matrixC.boundedSize = 0;
-// 		matrixC.elementSize = 0;
-// 		matrixC.realSize = 0;
-// 	}
-// 	return matrixC;
-// }
+bool WE_GPU::matrixMult(const std::vector<float> &matrixA,
+								const std::vector<float> &matrixB,
+								std::vector<float> &matrixC,
+								unsigned int gpuNum) {
+	return this->impl_->matrixMult(matrixA.size(), matrixB.size(), matrixC.size(),
+									matrixA.data(), matrixB.data() , matrixC.data(), gpuNum);
+}
 
 /*
 double WE_GPU::evalComplexity(std::string complexity, va_list* argList) {

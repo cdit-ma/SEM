@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "MatrixTester.h"
-//#include "FFTTester.h"
+#include "FFTTester.h"
 
 using namespace std;
 using namespace test;
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 	cout << "Tests skipped: " << mTester->getTestsSkipped() << endl;
 	delete mTester;
 
-	// FFTTester* fftTester = new FFTTester(verbosity);
+	FFTTester* fftTester = new FFTTester(verbosity);
 	// testsFailed += fftTester->getTestsFailed();
 	// cout << "FFT tests passed: " << fftTester->getTestsPassed() << '/' << fftTester->getTestsRun() << endl;
 	// cout << "Tests skipped: " << fftTester->getTestsSkipped() << endl;

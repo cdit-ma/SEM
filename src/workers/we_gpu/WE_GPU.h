@@ -4,6 +4,7 @@
 #define _WE_GPU_H_
 
 #include <string>
+#include <vector>
 
 // Requires vector wrapper from the utility worker
 #include "../we_ute/WE_UTE.h"
@@ -132,7 +133,7 @@ public:
 	 * @param data An array of floats whose length is combination of powers of 2, 3 and 5
 	 * @param gpuNum The index of the target GPU/device (starting from 0)
 	 */
-	//void FFT(WE_UTE_Vector data, unsigned int gpuNum=0);
+	void FFT(std::vector<float> &data, unsigned int gpuNum=0);
 	//void FFT_singlePrecision(size_t totalBytes, unsigned int gpuNum=0);
 	//template<CORBA::ULong S>
 	//void FFT(TAO::bounded_value_sequence<CORBA::Float, S> data, unsigned int gpuNum=0);
@@ -149,10 +150,10 @@ public:
 	 * @result Simply returns a shallow copy of the vector provided for matrixC (used to assist
 	 *         MEDEAs representation).
 	 */
-	// WE_UTE_Vector matrixMult(WE_UTE_Vector matrixA,
-	// 						WE_UTE_Vector matrixB,
-	// 						WE_UTE_Vector matrixC,
-	// 						unsigned int gpuNum=0);
+	bool matrixMult(const std::vector<float> &matrixA,
+					const std::vector<float> &matrixB,
+					std::vector<float> &matrixC,
+					unsigned int gpuNum=0);
 	//template<class T, CORBA::ULong S>
 	//template<CORBA::ULong S, CORBA::ULong T, CORBA::ULong U>
 	//void matrixMult(TAO::bounded_value_sequence<CORBA::Float, S> matrixA,
