@@ -33,7 +33,7 @@ double WE_UTE::EvaluateComplexity(const std::string complexity, ...){
 
 void WE_UTE::DebugMessage(const std::string format_str, ...){
     va_list args;
-    va_start(args, fmtstr);
+    va_start(args, format_str);
     std::cout << get_arg_string(format_str, args) << std::endl;
     va_end(args);
 }
