@@ -17,6 +17,7 @@ class Worker: public Activatable{
     protected:
         int get_new_work_id();
         std::string get_arg_string(const std::string str_format, va_list args);
+        std::string get_arg_string(const std::string str_format, ...);
     private:
         Component* component_ = 0;
         std::mutex mutex_;
