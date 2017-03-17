@@ -31,9 +31,15 @@ double UtilityWorker::EvaluateComplexity(const std::string complexity, ...){
     return out;
 }
 
-void UtilityWorker::DebugMessage(const std::string str_format, ...){
+void UtilityWorker::Log(const std::string str_format, bool print, ...){
     va_list args;
-    va_start(args, str_format);
-    std::cout << get_arg_string(str_format, args) << std::endl;
+    va_start(args, print);
+    std::string arg_string = get_arg_string(str_format, args);
     va_end(args);
+
+    if(print){
+        std::cout << arg_string << std::endl;
+    }
+
+    //TODO: log string here
 }

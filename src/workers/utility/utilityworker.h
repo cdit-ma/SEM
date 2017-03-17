@@ -12,7 +12,7 @@ class UtilityWorker: public Worker{
         ~UtilityWorker();
 
 
-        void DebugMessage(const std::string format_str, ...);
+        void Log(const std::string format_str, bool print, ...);
         double EvaluateComplexity(const std::string complexity, ...);
         
         std::string TimeOfDayString();
