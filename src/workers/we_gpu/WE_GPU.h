@@ -1,7 +1,7 @@
 // WE_GPU.mpc  2015-08-17  Jackson Michael 
 
-#ifndef _WE_GPU_H_
-#define _WE_GPU_H_
+#ifndef WE_GPU_H
+#define WE_GPU_H
 
 #include <string>
 #include <vector>
@@ -36,7 +36,7 @@ public:
 	 * @TODO provide a method for preventing the worker from being stuck using only the CPU
 	 *       due to being locked to one platform (eg grabs intel plaform with no Xeon Phi).
 	 */
-	WE_GPU (void);
+	WE_GPU(void);
 
 	/**
 	 * Delete the GPU worker and release any of its GPU related resources.
@@ -49,22 +49,17 @@ public:
 	 *
 	 * @param forceGPU Indicates whether or not the worker should ignore any OpenCL capable devices that arent GPUs
 	 */
-	void initialise(bool forceGPU=true);
+	void Initialise(bool forceGPU=true);
 
 	/**
 	 * Release any GPU related resources.
 	 */
-	void release();
-
-	/**
-	 * Quick print-test to stdout for whether or not the worker is alive
-	 */
-	void sayGreeting();
+	void Release();
 	
 	/**
 	 * Returns the number of devices the worker is currently aware of
 	 */
-	unsigned int numDevices();
+	unsigned int NumDevices();
 
 	/**
 	 * Get the device name reported to OpenCL by a given device
@@ -73,7 +68,7 @@ public:
 	 * 
 	 * @return The name of the device, or "INVALID WORKER"/"INVALID DEVICE"
 	 */
-	std::string deviceName(unsigned int gpuNum=0);
+	std::string DeviceName(unsigned int gpuNum=0);
 
 	/**
 	 * Get the amount of global memory that a device reports itself as having to OpenCL.
@@ -83,7 +78,7 @@ public:
 	 * 
 	 * @return The amount of memory in bytes, or 0 if the size couldn't be determined
 	 */
-	size_t memCapacity(unsigned int gpuNum=0);
+	size_t MemCapacity(unsigned int gpuNum=0);
   
 	/**
 	 * Buffer a given amount of data, optionally copying that across to the GPU by default
@@ -95,7 +90,7 @@ public:
 	 * 
 	 * @return Whether or not the allocation (and copy if specified) successfully completed
 	 */
-	bool bufferData(size_t bytes, bool forceCopy=true, bool blocking=false, unsigned int gpuNum=0);
+	bool BufferData(size_t bytes, bool forceCopy=true, bool blocking=false, unsigned int gpuNum=0);
 
 	/**
 	 * Deallocate a buffer of a given size, if one exists
@@ -107,7 +102,7 @@ public:
 	 *
 	 * @return Whether or not the deallocation (and read if specified) successfully completed
 	 */
-	bool releaseData(size_t bytes, bool forceCopy=false, bool blocking=true, unsigned int gpuNum=0);
+	bool ReleaseData(size_t bytes, bool forceCopy=false, bool blocking=true, unsigned int gpuNum=0);
 
 	/**
 	 * Launch a kernel to run on a GPU, executing as many of the specified number of threads
@@ -120,7 +115,7 @@ public:
 	 * @param opsPerThread The amount of work that should be done by each thread
 	 * @param gpuNum The index of the target GPU/device (starting from 0)
 	 */
-	void runParallel(double numThreads, double opsPerThread, unsigned int gpuNum=0);
+	void RunParallel(double numThreads, double opsPerThread, unsigned int gpuNum=0);
 
 	/**
 	 * Run an FFT usign the given data, with the result overwriting the input array. The input
@@ -134,9 +129,6 @@ public:
 	 * @param gpuNum The index of the target GPU/device (starting from 0)
 	 */
 	void FFT(std::vector<float> &data, unsigned int gpuNum=0);
-	//void FFT_singlePrecision(size_t totalBytes, unsigned int gpuNum=0);
-	//template<CORBA::ULong S>
-	//void FFT(TAO::bounded_value_sequence<CORBA::Float, S> data, unsigned int gpuNum=0);
 
 	/**
 	 * Multiply matrix A (of size NxK) by B (of size KxM) to produce C (of size NxM).
@@ -150,16 +142,10 @@ public:
 	 * @result Simply returns a shallow copy of the vector provided for matrixC (used to assist
 	 *         MEDEAs representation).
 	 */
-	bool matrixMult(const std::vector<float> &matrixA,
+	bool MatrixMult(const std::vector<float> &matrixA,
 					const std::vector<float> &matrixB,
 					std::vector<float> &matrixC,
 					unsigned int gpuNum=0);
-	//template<class T, CORBA::ULong S>
-	//template<CORBA::ULong S, CORBA::ULong T, CORBA::ULong U>
-	//void matrixMult(TAO::bounded_value_sequence<CORBA::Float, S> matrixA,
-	//				TAO::bounded_value_sequence<CORBA::Float, T> matrixB,
-	//				TAO::bounded_value_sequence<CORBA::Float, U> matrixC,
-	//				unsigned int gpuNum=0);
 
 	/**
 	 * Lightweight matrix multiplaction that doesn't require user to manually specify matrices,
@@ -167,74 +153,13 @@ public:
 	 * 
 	 * @param n The number of rows and number of columns of each matrix
 	 */
-	void matrixMultLazy(unsigned int n, unsigned int gpuNum=0);
+	void MatrixMultLazy(unsigned int n, unsigned int gpuNum=0);
 
 private:
 	/**
 	 * A reference to the class containing the actual worker implementation.
 	 */
-	WE_GPU_Impl * impl_;
-	
-	// Called by a variadic function that has been given a complexity and an arbitrary number of
-	// parameters, evaluating the expression. All parameters should be passed in as doubles/floats.
-	//double evalComplexity(std::string complexity, va_list* argList);
-
-	/*
-	template<class T, CORBA::ULong S>
-	size_t getByteSize(TAO::bounded_value_sequence<T, S> seq);
-
-	template<class T>
-	size_t getByteSize(T obj);
-
-	template<class T, CORBA::ULong S>
-	void* getAllocedMem(TAO::bounded_value_sequence<T, S> seq);
-	*/
+	WE_GPU_Impl* impl_;
 }; 
 
-
-
-
-// Template implementations
-/*template<class T, CORBA::ULong S>
-void WE_GPU::FFT_singlePrecision(TAO::bounded_value_sequence<T, S> data, unsigned int gpuNum) {
-	switch (getByteSize(T)) {
-	case 4:
-		this->impl_->performFFT_SP(getAllocedMem(data), gpuNum);
-		break;
-	default:
-		BOOST_STATIC_ASSERT(sizeof(T)==0);	// Get out if unexpected size
-	}
-}
-template<CORBA::ULong S>
-void WE_GPU::FFT(TAO::bounded_value_sequence<CORBA::Float, S> data, unsigned int gpuNum) {
-	this->impl_->performFFT_SP(data.get_buffer(), S*sizeof(float), gpuNum);
-}
-
-//template<class T, CORBA::ULong S>
-template<CORBA::ULong S, CORBA::ULong T, CORBA::ULong U>
-void WE_GPU::matrixMult(TAO::bounded_value_sequence<CORBA::Float, S> matrixA,
-					TAO::bounded_value_sequence<CORBA::Float, T> matrixB, 
-					TAO::bounded_value_sequence<CORBA::Float, U> matrixC,
-					unsigned int gpuNum) {
-
-	this->impl_->matrixMult(S, T, U,
-							matrixA.get_buffer(), matrixB.get_buffer(), matrixC.get_buffer(),
-							gpuNum);
-}
-
-template<class T, CORBA::ULong S>
-size_t WE_GPU::getByteSize(TAO::bounded_value_sequence<T, S> seq) {
-	return (getByteSize(seq[0]) * S);
-}
-
-template<class T>
-size_t WE_GPU::getByteSize(T obj) {
-	return sizeof(obj);
-}
-
-template<class T, CORBA::ULong S>
-void* WE_GPU::getAllocedMem(TAO::bounded_value_sequence<T, S> seq) {
-	return seq.get_buffer();
-}
-*/
-#endif
+#endif //WE_GPU_H
