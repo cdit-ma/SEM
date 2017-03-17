@@ -1,10 +1,10 @@
-#include "WE_UTE.h"
+#include "utilityworker.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
 int main(){
 
-    WE_UTE ute;
+    UtilityWorker ute;
 
     std::cout << ute.TimeOfDayString() << std::endl;
     std::cout << ute.TimeOfDay() << std::endl;

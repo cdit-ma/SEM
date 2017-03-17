@@ -1,21 +1,21 @@
-#include "WE_CPU.h"
-#include "WE_CPU_Impl.h"
+#include "cpuworker.h"
+#include "cpuworker_impl.h"
 #include <iostream>
 #include <core/component.h>
 #include <core/modellogger.h>
 
-WE_CPU::WE_CPU(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
-    impl_ = new WE_CPU_Impl();
+CpuWorker::CpuWorker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+    impl_ = new CpuWorker_Impl();
 }
 
-WE_CPU::~WE_CPU(){
+CpuWorker::~CpuWorker(){
     if(impl_){
         delete impl_;
         impl_ = 0;
     }
 }
 
-int WE_CPU::IntOp(double loop){
+int CpuWorker::IntOp(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
     auto args = get_arg_string_variadic("loop = %lf", loop);
@@ -29,7 +29,7 @@ int WE_CPU::IntOp(double loop){
     return result;
 }
 
-int WE_CPU::FloatOp(double loop){
+int CpuWorker::FloatOp(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
     auto args = get_arg_string_variadic("loop = %lf", loop);
@@ -43,7 +43,7 @@ int WE_CPU::FloatOp(double loop){
     return result;
 }
 
-int WE_CPU::Whetstone(double loop){
+int CpuWorker::Whetstone(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
     auto args = get_arg_string_variadic("loop = %lf", loop);
@@ -57,7 +57,7 @@ int WE_CPU::Whetstone(double loop){
     return result;
 }
 
-int WE_CPU::Dhrystone(double loop){
+int CpuWorker::Dhrystone(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
     auto args = get_arg_string_variadic("loop = %lf", loop);
@@ -71,7 +71,7 @@ int WE_CPU::Dhrystone(double loop){
     return result;
 }
 
-int WE_CPU::MWIP(double loop){
+int CpuWorker::MWIP(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
     auto args = get_arg_string_variadic("loop = %lf", loop);
@@ -84,7 +84,7 @@ int WE_CPU::MWIP(double loop){
     return result;
 }
 
-int WE_CPU::DMIP(double loop){
+int CpuWorker::DMIP(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
     auto args = get_arg_string_variadic("loop = %lf", loop);
@@ -98,12 +98,12 @@ int WE_CPU::DMIP(double loop){
     return result;
 }
 
-int WE_CPU::MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
+int CpuWorker::MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
                         std::vector<float> &matrixC){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
-    auto args = get_arg_string("matrixA size = %lf; matrixB size = %lf; matrixC size = %lf", 
-                                matrixA.size(), matrixB.size(), matrixC.size());
+    auto args = get_arg_string_variadic("matrixA size = %lf; matrixB size = %lf; matrixC size = %lf", 
+                                        matrixA.size(), matrixB.size(), matrixC.size());
 
     //Log Before
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);

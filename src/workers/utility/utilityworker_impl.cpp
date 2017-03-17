@@ -1,4 +1,4 @@
-#include "WE_UTE_Impl.h"
+#include "utilityworker_impl.h"
 
 #include <iostream>
 #include <chrono>
@@ -7,16 +7,16 @@
 #include <cstring>
 #include "exprtk.hpp"
 
-std::string WE_UTE_Impl::TimeOfDayString(){
+std::string UtilityWorker_Impl::TimeOfDayString(){
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     return std::to_string(time.count() / 1000.0);
 }
 
-double WE_UTE_Impl::TimeOfDay(){
+double UtilityWorker_Impl::TimeOfDay(){
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() / 1000.0;
 }
 
-double WE_UTE_Impl::EvaluateComplexity(const char* complexity, va_list args){
+double UtilityWorker_Impl::EvaluateComplexity(const char* complexity, va_list args){
     char varlist[50];
 
     //Pull variables from expression
@@ -43,7 +43,7 @@ double WE_UTE_Impl::EvaluateComplexity(const char* complexity, va_list args){
     return expression.value();
 }
 
-std::vector<char> WE_UTE_Impl::ProcessVarList(const char* complexity){
+std::vector<char> UtilityWorker_Impl::ProcessVarList(const char* complexity){
     char * cptr;
     char varlist[50];
     char mathchar[] = "()-+*/^0123456789";

@@ -1,8 +1,7 @@
 // WE_GPU.mpc  2015-08-17  Jackson Michael 
 
-#include "WE_GPU_Impl.h" 
-#include "WE_GPU.h"
-#include "atmsp.h"
+#include "gpuworker_impl.h" 
+#include "gpuworker.h"
 #include <iostream>
 #include <sstream>
 
@@ -12,56 +11,56 @@
  * implementation.
  */
 
-WE_GPU::WE_GPU (void) : impl_(new WE_GPU_Impl ()){
-	Initialise(false);
+GpuWorker::GpuWorker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+    impl_ = new GpuWorker_Impl();
 }
 
-WE_GPU::~WE_GPU (void) {
+GpuWorker::~GpuWorker(void){
 	delete impl_;
 }
 
-void WE_GPU::Release(){
+void GpuWorker::Release(){
 	impl_->Release();
 }
 
-void WE_GPU::Initialise(bool forceGPU){
+void GpuWorker::Initialise(bool forceGPU){
 	impl_->Initialise(forceGPU);
 }
 
-unsigned int WE_GPU::NumDevices(){
+unsigned int GpuWorker::NumDevices(){
 	return impl_->NumDevices();
 }
 
-std::string WE_GPU::DeviceName(unsigned int gpuNum){
+std::string GpuWorker::DeviceName(unsigned int gpuNum){
 	return impl_->DeviceName();
 }
 
-size_t WE_GPU::MemCapacity(unsigned int gpuNum){
+size_t GpuWorker::MemCapacity(unsigned int gpuNum){
 	return impl_->MemCapacity();
 }
 
-bool WE_GPU::BufferData(size_t bytes, bool forcedCopy, bool blocking, unsigned int gpuNum){
+bool GpuWorker::BufferData(size_t bytes, bool forcedCopy, bool blocking, unsigned int gpuNum){
 	return impl_->BufferData(bytes, forcedCopy, blocking, gpuNum);
 }
 
-bool WE_GPU::ReleaseData(size_t bytes, bool forceCopy, bool blocking, unsigned int gpuNum){
+bool GpuWorker::ReleaseData(size_t bytes, bool forceCopy, bool blocking, unsigned int gpuNum){
 	return impl_->ReleaseData(bytes, forceCopy, blocking, gpuNum);
 }
 
-void WE_GPU::RunParallel(double numThreads, double opsPerThread, unsigned int gpuNum){
+void GpuWorker::RunParallel(double numThreads, double opsPerThread, unsigned int gpuNum){
 
 	this->impl_->RunParallel((unsigned int)numThreads, (unsigned int)opsPerThread, gpuNum);
 }
 
-void WE_GPU::FFT(std::vector<float> &data, unsigned int gpuNum){
+void GpuWorker::FFT(std::vector<float> &data, unsigned int gpuNum){
 	this->impl_->PerformFFT_SP(data.data(), data.size()*sizeof(float), gpuNum);
 }
 
-void WE_GPU::MatrixMultLazy(unsigned int n, unsigned int gpuNum){
+void GpuWorker::MatrixMultLazy(unsigned int n, unsigned int gpuNum){
 	this->impl_->MatrixMult(n, gpuNum);
 }
 
-bool WE_GPU::MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
+bool GpuWorker::MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
 						std::vector<float> &matrixC, unsigned int gpuNum){
 	return this->impl_->MatrixMult(matrixA.size(), matrixB.size(), matrixC.size(),
 								   matrixA.data(), matrixB.data(), matrixC.data(), gpuNum);

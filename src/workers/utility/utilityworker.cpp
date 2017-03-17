@@ -1,29 +1,29 @@
-#include "WE_UTE.h"
-#include "WE_UTE_Impl.h"
+#include "utilityworker.h"
+#include "utilityworker_impl.h"
 #include <sstream>
 #include <iostream>
 #include <stdarg.h>
 
-WE_UTE::WE_UTE(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
-    impl_ = new WE_UTE_Impl();
+UtilityWorker::UtilityWorker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+    impl_ = new UtilityWorker_Impl();
 }
 
-WE_UTE::~WE_UTE(){
+UtilityWorker::~UtilityWorker(){
     if(impl_){
         delete impl_;
         impl_ = 0;
     }
 }
 
-double WE_UTE::TimeOfDay(){
+double UtilityWorker::TimeOfDay(){
     return impl_->TimeOfDay();
 }
 
-std::string WE_UTE::TimeOfDayString(){
+std::string UtilityWorker::TimeOfDayString(){
     return impl_->TimeOfDayString();
 }
 
-double WE_UTE::EvaluateComplexity(const std::string complexity, ...){
+double UtilityWorker::EvaluateComplexity(const std::string complexity, ...){
     va_list args;
     va_start(args, complexity);
     auto out = impl_->EvaluateComplexity(complexity.c_str(), args);
@@ -31,7 +31,7 @@ double WE_UTE::EvaluateComplexity(const std::string complexity, ...){
     return out;
 }
 
-void WE_UTE::DebugMessage(const std::string str_format, ...){
+void UtilityWorker::DebugMessage(const std::string str_format, ...){
     va_list args;
     va_start(args, str_format);
     std::cout << get_arg_string(str_format, args) << std::endl;

@@ -1,15 +1,16 @@
 // WE_GPU.mpc  2015-08-17  Jackson Michael 
 
-#ifndef WE_GPU_H
-#define WE_GPU_H
+#ifndef WORKERS_GPU_GPUWORKER_H
+#define WORKERS_GPU_GPUWORKER_H
 
 #include <string>
 #include <vector>
+#include <core/worker.h>
 
 // Requires vector wrapper from the utility worker
-#include "../we_ute/WE_UTE.h"
+#include "../utility/utilityworker.h"
 
-class WE_GPU_Impl;
+class GpuWorker_Impl;
 
 /** \brief A CUTS worker that provides GPGPU functionality 
  * 
@@ -28,7 +29,7 @@ class WE_GPU_Impl;
  * this is desired then it could be achieved by either extending this worker or creating an
  * alternate one to provide the specific functionality reqiured.
  */
-class WE_GPU { 
+class GpuWorker : public Worker{ 
 public:
 	/**
 	 * Creates a GPU worker and initialises it so that it will consider all OpenCL devices
@@ -36,12 +37,12 @@ public:
 	 * @TODO provide a method for preventing the worker from being stuck using only the CPU
 	 *       due to being locked to one platform (eg grabs intel plaform with no Xeon Phi).
 	 */
-	WE_GPU(void);
+	GpuWorker(Component* component, std::string inst_name);
 
 	/**
 	 * Delete the GPU worker and release any of its GPU related resources.
 	 */
-	~WE_GPU(void);
+	~GpuWorker();
 
 	/**
 	 * Initialise the GPU worker so that it is valid for further use, optionally specifying whether or not
@@ -159,7 +160,7 @@ private:
 	/**
 	 * A reference to the class containing the actual worker implementation.
 	 */
-	WE_GPU_Impl* impl_;
+	GpuWorker_Impl* impl_;
 }; 
 
-#endif //WE_GPU_H
+#endif //WORKERS_GPU_GPUWORKER_H

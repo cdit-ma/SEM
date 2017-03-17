@@ -1,11 +1,11 @@
-#ifndef WE_UTE_IMPL_H
-#define WE_UTE_IMPL_H
+#ifndef WORKERS_UTILITY_UTILITYWORKER_IMPL_H
+#define WORKERS_UTILITY_UTILITYWORKER_IMPL_H
 
 #include <mutex>
 #include <string>
 #include <vector>
 
-class WE_UTE_Impl{
+class UtilityWorker_Impl{
     public:
         double TimeOfDay();
         std::string TimeOfDayString();
@@ -16,4 +16,4 @@ class WE_UTE_Impl{
         std::mutex lock_;
 };
 
-#endif  //WE_UTE_IMPL_H
+#endif  //WORKERS_UTILITY_UTILITYWORKER_IMPL_H

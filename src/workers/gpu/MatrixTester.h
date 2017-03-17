@@ -2,7 +2,7 @@
 #define MATRIXTESTER_H
 
 #include "Tester.h"
-#include "WE_GPU.h"
+#include "gpuworker.h"
 
 class MatrixTester : public test::Tester {
 public:
@@ -14,7 +14,7 @@ public:
 	test::Result checkMultiplication(float* matA, float* matB, float* matC, unsigned int m, unsigned int k, unsigned int n, bool verbose = true);
 	
 private:
-	WE_GPU *worker;
+	GpuWorker *worker;
 };
 
 #endif

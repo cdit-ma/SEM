@@ -1,15 +1,15 @@
-#ifndef WE_CPU_H
-#define WE_CPU_H
+#ifndef WORKERS_CPU_CPUWORKER_H
+#define WORKERS_CPU_CPUWORKER_H
 
 #include <core/worker.h>
 
 // Forward decl.
-class WE_CPU_Impl;
+class CpuWorker_Impl;
 
-class WE_CPU : public Worker{
+class CpuWorker : public Worker{
     public:
-        WE_CPU(Component* component, std::string inst_name);
-        ~WE_CPU();
+        CpuWorker(Component* component, std::string inst_name);
+        ~CpuWorker();
 
         int IntOp(double loops);
         int FloatOp(double loops);
@@ -21,7 +21,7 @@ class WE_CPU : public Worker{
                         std::vector<float> &matrixC);
 
     private:
-        WE_CPU_Impl * impl_;
+        CpuWorker_Impl * impl_;
 };
 
-#endif  //WE_CPU_H
+#endif  //WORKERS_CPU_CPUWORKER_H

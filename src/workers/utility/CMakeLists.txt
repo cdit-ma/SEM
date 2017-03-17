@@ -7,32 +7,21 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
 
-SET(CMAKE_CXX_FLAGS "-O0")
-SET(CMAKE_C_FLAGS "-O0")
-
-set(PROJ_NAME worker_we_cpu)
-set(TESTER_NAME ${PROJ_NAME}_tester)
+set(PROJ_NAME utility_worker)
 
 project(${PROJ_NAME})
 
 
-
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/WE_CPU.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/WE_CPU_Impl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/intop.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/floatop.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dhry_1.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/whets.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/dhry.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilityworker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilityworker_impl.cpp
     )
 
 #Add RE_PATH to include directories
 include_directories("${RE_PATH}/src")
 
-#Use this for enable_testing
+#Use this in production
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(${TESTER_NAME} main.cpp)
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
@@ -42,5 +31,3 @@ elseif(UNIX)
 endif(MSVC)
 
 target_link_libraries(${PROJ_NAME} re_core)
-
-target_link_libraries(${TESTER_NAME} ${PROJ_NAME})

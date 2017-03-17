@@ -1,9 +1,9 @@
-#ifndef WE_CPU_IMPL_H
-#define WE_CPU_IMPL_H
+#ifndef WORKERS_CPU_CPUWORKER_IMPL_H
+#define WORKERS_CPU_CPUWORKER_IMPL_H
 
 #include <mutex>
 
-class WE_CPU_Impl{
+class CpuWorker_Impl{
     public:
 
         /**
@@ -24,4 +24,4 @@ class WE_CPU_Impl{
         std::mutex lock_;
 };
 
-#endif  //WE_CPU_IMPL_H
+#endif  //WORKERS_CPU_CPUWORKER_IMPL_H

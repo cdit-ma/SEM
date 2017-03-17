@@ -2,7 +2,7 @@
 #define FFTTESTER_H
 
 #include "Tester.h"
-#include "WE_GPU.h"
+#include "gpuworker.h"
 
 class FFTTester : public test::Tester {
 public:
@@ -19,7 +19,7 @@ public:
 	//void testMultipleFrequencies(float* frequencies, float* amplitude, float* phaseShifts);
 	
 private:
-	WE_GPU *worker;
+	GpuWorker *worker;
 };
 
 #endif

@@ -1,7 +1,7 @@
 // WE_GPU.mpc  2015-08-17  Jackson Michael
 
-#ifndef WE_GPU_IMPL_H
-#define WE_GPU_IMPL_H
+#ifndef WORKERS_GPU_GPUWORKER_IMPL_H
+#define WORKERS_GPU_GPUWORKER_IMPL_H
 
 #include "cl.hpp"
 #include "BufferHashtable.h"
@@ -9,10 +9,10 @@
 #include <clFFT.h>
 #include <mutex>
 
-class WE_GPU_Impl {
+class GpuWorker_Impl {
 public:
-	WE_GPU_Impl();
-	~WE_GPU_Impl();
+	GpuWorker_Impl();
+	~GpuWorker_Impl();
 
 	// Set up the OpenCL environment as well as creating kernels and buffers neccessary for
 	// running kernels of arbitrary workitem sizes at a later point
@@ -96,4 +96,4 @@ private:
 	void CleanupCLFFT();
 };
 
-#endif //WE_GPU_IMPL_H
+#endif //WORKERS_GPU_GPUWORKER_IMPL_H
