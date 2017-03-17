@@ -17,6 +17,8 @@ class WE_CPU : public Worker{
         int Dhrystone(double loops);
         int MWIP(double loops);
         int DMIP(double loops);
+        int MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
+                        std::vector<float> &matrixC);
 
     private:
         WE_CPU_Impl * impl_;

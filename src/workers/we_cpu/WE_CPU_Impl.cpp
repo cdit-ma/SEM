@@ -138,3 +138,27 @@ int WE_CPU_Impl::DMIP(double loops){
     }
     return -1;
 }
+
+int WE_CPU_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned int lenC,
+					                    const float* dataA, const float* dataB, float* dataC) {
+                                            
+    unsigned long Ksquared = ((unsigned long)lenA*(unsigned long)lenB)/lenC;
+	unsigned int k = (unsigned int)sqrt((double)Ksquared);
+	unsigned int m = lenA/k;
+	unsigned int n = lenB/k;
+	if ((unsigned long)k*k != Ksquared || (unsigned long)m*k != lenA || (unsigned long)n*k != lenB) {
+		std::cerr << "Error during matrix multiplication; sizes of matrices don't match, skipping calculation" << std::endl;
+		return -1;
+	}
+
+    for (unsigned int col=0; col<n; col++) {
+		for (unsigned int row=0; row<m; row++) {
+			
+			float accum = 0;
+			for (unsigned int t=0; t<k; t++) {
+				dataC[col + row*n] += dataA[t + row*k]*dataB[col + t*n];
+			}
+		}
+	}
+    return 0;
+}
