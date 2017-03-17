@@ -9,10 +9,10 @@
 #include <clFFT.h>
 #include <mutex>
 
-class GpuWorker_Impl {
+class Gpu_Worker_Impl {
 public:
-	GpuWorker_Impl();
-	~GpuWorker_Impl();
+	Gpu_Worker_Impl();
+	~Gpu_Worker_Impl();
 
 	// Set up the OpenCL environment as well as creating kernels and buffers neccessary for
 	// running kernels of arbitrary workitem sizes at a later point

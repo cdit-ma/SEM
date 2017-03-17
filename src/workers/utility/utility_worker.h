@@ -4,12 +4,12 @@
 #include <string>
 #include <core/worker.h>
 
-class UtilityWorker_Impl;
+class Utility_Worker_Impl;
 
-class UtilityWorker: public Worker{
+class Utility_Worker: public Worker{
     public:
-        UtilityWorker(Component* component, std::string inst_name);
-        ~UtilityWorker();
+        Utility_Worker(Component* component, std::string inst_name);
+        ~Utility_Worker();
 
 
         void Log(const std::string format_str, bool print, ...);
@@ -18,7 +18,7 @@ class UtilityWorker: public Worker{
         std::string TimeOfDayString();
         double TimeOfDay();
     private:
-        UtilityWorker_Impl* impl_ = 0;
+        Utility_Worker_Impl* impl_ = 0;
 };
 
 #endif  //WORKERS_UTILITY_UTILITYWORKER_H

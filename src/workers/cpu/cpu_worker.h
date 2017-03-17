@@ -4,12 +4,12 @@
 #include <core/worker.h>
 
 // Forward decl.
-class CpuWorker_Impl;
+class Cpu_Worker_Impl;
 
-class CpuWorker : public Worker{
+class Cpu_Worker : public Worker{
     public:
-        CpuWorker(Component* component, std::string inst_name);
-        ~CpuWorker();
+        Cpu_Worker(Component* component, std::string inst_name);
+        ~Cpu_Worker();
 
         int IntOp(double loops);
         int FloatOp(double loops);
@@ -21,7 +21,7 @@ class CpuWorker : public Worker{
                         std::vector<float> &matrixC);
 
     private:
-        CpuWorker_Impl * impl_;
+        Cpu_Worker_Impl * impl_;
 };
 
 #endif  //WORKERS_CPU_CPUWORKER_H

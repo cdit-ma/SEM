@@ -1,29 +1,29 @@
-#include "utilityworker.h"
-#include "utilityworker_impl.h"
+#include "utility_worker.h"
+#include "utility_worker_impl.h"
 #include <sstream>
 #include <iostream>
 #include <stdarg.h>
 
-UtilityWorker::UtilityWorker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
-    impl_ = new UtilityWorker_Impl();
+Utility_Worker::Utility_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
+    impl_ = new Utility_Worker_Impl();
 }
 
-UtilityWorker::~UtilityWorker(){
+Utility_Worker::~Utility_Worker(){
     if(impl_){
         delete impl_;
         impl_ = 0;
     }
 }
 
-double UtilityWorker::TimeOfDay(){
+double Utility_Worker::TimeOfDay(){
     return impl_->TimeOfDay();
 }
 
-std::string UtilityWorker::TimeOfDayString(){
+std::string Utility_Worker::TimeOfDayString(){
     return impl_->TimeOfDayString();
 }
 
-double UtilityWorker::EvaluateComplexity(const std::string complexity, ...){
+double Utility_Worker::EvaluateComplexity(const std::string complexity, ...){
     va_list args;
     va_start(args, complexity);
     auto out = impl_->EvaluateComplexity(complexity.c_str(), args);
@@ -31,7 +31,7 @@ double UtilityWorker::EvaluateComplexity(const std::string complexity, ...){
     return out;
 }
 
-void UtilityWorker::Log(const std::string str_format, bool print, ...){
+void Utility_Worker::Log(const std::string str_format, bool print, ...){
     va_list args;
     va_start(args, print);
     std::string arg_string = get_arg_string(str_format, args);

@@ -3,7 +3,7 @@
 
 #include <mutex>
 
-class CpuWorker_Impl{
+class Cpu_Worker_Impl{
     public:
 
         /**

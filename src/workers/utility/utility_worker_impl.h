@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-class UtilityWorker_Impl{
+class Utility_Worker_Impl{
     public:
         double TimeOfDay();
         std::string TimeOfDayString();

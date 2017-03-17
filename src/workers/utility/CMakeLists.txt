@@ -13,8 +13,8 @@ project(${PROJ_NAME})
 
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilityworker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilityworker_impl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utility_worker_impl.cpp
     )
 
 #Add RE_PATH to include directories

@@ -1,4 +1,4 @@
-#include "cpuworker_impl.h"
+#include "cpu_worker_impl.h"
 
 #include <iostream>
 #include <cmath>      // Math. functions needed for whets.cpp?
@@ -8,7 +8,7 @@
 #include "whets.cpp"
 #include "dhry_1.cpp"
 
-int CpuWorker_Impl::IntOp(double loops) {
+int Cpu_Worker_Impl::IntOp(double loops) {
     try{
         // This guard will ensure only one CPU Workload Execution is occurring at any given time
         //  i.e. for this worker in this component.
@@ -30,7 +30,7 @@ int CpuWorker_Impl::IntOp(double loops) {
     return -1;
 }
 
-int CpuWorker_Impl::FloatOp(double loops){
+int Cpu_Worker_Impl::FloatOp(double loops){
     try{
         // This guard will ensure only one CPU Workload Execution is occurring at any given time
         //  i.e. for this worker in this component.
@@ -52,7 +52,7 @@ int CpuWorker_Impl::FloatOp(double loops){
     return -1;
 }
 
-int CpuWorker_Impl::Whetstone(double loops){
+int Cpu_Worker_Impl::Whetstone(double loops){
     try{
         // This guard will ensure only one CPU Workload Execution is occurring at any given time
         //  i.e. for this worker in this component.
@@ -74,7 +74,7 @@ int CpuWorker_Impl::Whetstone(double loops){
     return -1;
 }
 
-int CpuWorker_Impl::Dhrystone(double loops){
+int Cpu_Worker_Impl::Dhrystone(double loops){
     try{
         // This guard will ensure only one CPU Workload Execution is occurring at any given time
         //  i.e. for this worker in this component.
@@ -96,7 +96,7 @@ int CpuWorker_Impl::Dhrystone(double loops){
     return -1;
 }
 
-int CpuWorker_Impl::MWIP(double loops){
+int Cpu_Worker_Impl::MWIP(double loops){
     try{
         // This guard will ensure only one CPU Workload Execution is occurring at any given time
         //  i.e. for this worker in this component.
@@ -117,7 +117,7 @@ int CpuWorker_Impl::MWIP(double loops){
     return -1;
 }
 
-int CpuWorker_Impl::DMIP(double loops){
+int Cpu_Worker_Impl::DMIP(double loops){
     try{
         // This guard will ensure only one CPU Workload Execution is occurring at any given time
         //  i.e. for this worker in this component.
@@ -139,7 +139,7 @@ int CpuWorker_Impl::DMIP(double loops){
     return -1;
 }
 
-int CpuWorker_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned int lenC,
+int Cpu_Worker_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned int lenC,
 					                    const float* dataA, const float* dataB, float* dataC) {
                                             
     unsigned long Ksquared = ((unsigned long)lenA*(unsigned long)lenB)/lenC;

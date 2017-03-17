@@ -18,8 +18,8 @@ project(${PROJ_NAME})
 
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpuworker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/cpuworker_impl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpu_worker_impl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/intop.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/floatop.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/dhry_1.cpp

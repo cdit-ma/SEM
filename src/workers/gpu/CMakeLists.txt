@@ -22,8 +22,8 @@ find_library(OPENCL_LIB OpenCL ${OPENCL_LIB_ROOT})
 find_library(CLFFT_LIB clFFT ${CLFFT_ROOT}/lib64)
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/gpuworker.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/gpuworker_impl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gpu_worker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gpu_worker_impl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BufferHashtable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MatrixTester.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FFTTester.cpp
@@ -31,8 +31,8 @@ set(SOURCE
     )
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/gpuworker.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/gpuworker_impl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gpu_worker.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gpu_worker_impl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/BufferHashtable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/BufferItem.h
     ${CMAKE_CURRENT_SOURCE_DIR}/clErrorPrinter.h
@@ -48,7 +48,7 @@ include_directories("${OPENCL_ROOT}/include")
 
 #Use this for enable_testing
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
-add_executable(${TESTER_NAME} gpuworker_test.cpp)
+add_executable(${TESTER_NAME} gpu_worker_test.cpp)
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode

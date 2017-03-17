@@ -11,7 +11,7 @@ using namespace std;
 using namespace test;
 
 MatrixTester::MatrixTester(DebugLevel dLevel) : Tester(dLevel) {
-	worker = new GpuWorker(0, "");
+	worker = new Gpu_Worker(0, "");
 	worker->Initialise(false);
 	//ACE_Time_Value startTime = ACE_OS::gettimeofday();
 

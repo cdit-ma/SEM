@@ -8,9 +8,9 @@
 #include <core/worker.h>
 
 // Requires vector wrapper from the utility worker
-#include "../utility/utilityworker.h"
+//#include "../utility/utilityworker.h"
 
-class GpuWorker_Impl;
+class Gpu_Worker_Impl;
 
 /** \brief A CUTS worker that provides GPGPU functionality 
  * 
@@ -29,7 +29,7 @@ class GpuWorker_Impl;
  * this is desired then it could be achieved by either extending this worker or creating an
  * alternate one to provide the specific functionality reqiured.
  */
-class GpuWorker : public Worker{ 
+class Gpu_Worker : public Worker{ 
 public:
 	/**
 	 * Creates a GPU worker and initialises it so that it will consider all OpenCL devices
@@ -37,12 +37,12 @@ public:
 	 * @TODO provide a method for preventing the worker from being stuck using only the CPU
 	 *       due to being locked to one platform (eg grabs intel plaform with no Xeon Phi).
 	 */
-	GpuWorker(Component* component, std::string inst_name);
+	Gpu_Worker(Component* component, std::string inst_name);
 
 	/**
 	 * Delete the GPU worker and release any of its GPU related resources.
 	 */
-	~GpuWorker();
+	~Gpu_Worker();
 
 	/**
 	 * Initialise the GPU worker so that it is valid for further use, optionally specifying whether or not
@@ -160,7 +160,7 @@ private:
 	/**
 	 * A reference to the class containing the actual worker implementation.
 	 */
-	GpuWorker_Impl* impl_;
+	Gpu_Worker_Impl* impl_;
 }; 
 
 #endif //WORKERS_GPU_GPUWORKER_H
