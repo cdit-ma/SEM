@@ -3,7 +3,7 @@
 
 #include <mutex>
 #include <string>
-
+#include <stdarg.h>
 #include "component.h"
 #include "activatable.h"
 
@@ -14,10 +14,14 @@ class Worker: public Activatable{
 
         Component* get_component();
         std::string get_worker_name();
+        
+        std::string get_arg_string(const std::string str_format, va_list args);
+        std::string get_arg_string_variadic(const std::string str_format, ...);
+
     protected:
         int get_new_work_id();
-        std::string get_arg_string(const std::string str_format, va_list args);
-        std::string get_arg_string(const std::string str_format, ...);
+
+        
     private:
         Component* component_ = 0;
         std::mutex mutex_;
