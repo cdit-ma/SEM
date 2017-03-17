@@ -19,12 +19,12 @@ string clKernels =
 
 // Callback for when a buffer has completed copying across some arbitrarily allocated memory
 // that must be freed once the operation has finished
-void CL_CALLBACK postReadCopyTeardown(cl_event event, cl_int blah, void* memory) {
+void CL_CALLBACK postReadCopyTeardown(cl_event event, cl_int blah, void* memory){
 	delete[] (char*)memory;
 }
 
 
-WE_GPU_Impl::WE_GPU_Impl() {
+WE_GPU_Impl::WE_GPU_Impl(){
 	// GPUworker isn't valid until it has been properly initialised
 	valid = false;
 
@@ -49,12 +49,12 @@ WE_GPU_Impl::WE_GPU_Impl() {
 }
 
 WE_GPU_Impl::~WE_GPU_Impl() {
-	release();
+	Release();
 }
 
 
 // Set up the OpenCL environment so that subsequent calls have minimal overhead when executing workload
-void WE_GPU_Impl::initialise(bool forceGPU) {
+void WE_GPU_Impl::Initialise(bool forceGPU){
 	if (valid) {
 		cout << "Attempting to reinitialise an already valid GPU worker" << endl;
 		return;
@@ -233,13 +233,13 @@ void WE_GPU_Impl::initialise(bool forceGPU) {
 	hashtable = new BufferHashtable(context);
 
 	// Perform required single-run setup for clFFT
-	initCLFFT();
+	InitCLFFT();
 
 	// Mark that the GPUWorker is now good to go
 	valid = true;
 }
 
-void WE_GPU_Impl::release() {
+void WE_GPU_Impl::Release(){
 	// Currently avoids deletion if GPUWorker is not in entirely valid state,
 	// should instead check validity of each OpenCL component and release accordingly
 	if (!valid) {
@@ -248,7 +248,7 @@ void WE_GPU_Impl::release() {
 
 	valid = false;
 
-	cleanupCLFFT();
+	CleanupCLFFT();
 
 	delete blankBuffer;
 	delete blankBuffer2;
@@ -268,24 +268,15 @@ void WE_GPU_Impl::release() {
 	delete context;
 }
 
-bool WE_GPU_Impl::isValid() {
+bool WE_GPU_Impl::IsValid() {
 	return valid;
 }
 
-void WE_GPU_Impl::sayGreeting () {
-	if (!valid) {
-		cerr << "Unable to say greeting, GPU worker is invalid!" << endl;
-		return;
-	}
-
-  std::cout << "GPU WORKER SAYS HI" << std::endl;   
-}
-
-unsigned int WE_GPU_Impl::numDevices() {
+unsigned int WE_GPU_Impl::NumDevices() {
 	return devices.size();
 }
 
-string WE_GPU_Impl::deviceName(unsigned int gpuNum) {
+string WE_GPU_Impl::DeviceName(unsigned int gpuNum) {
 	if (!valid) {
 		cerr << "Unable to retrieve device name, GPU worker is invalid!" << endl;
 		return "INVALID WORKER";
@@ -302,7 +293,7 @@ string WE_GPU_Impl::deviceName(unsigned int gpuNum) {
 }
 
 
-size_t WE_GPU_Impl::memCapacity(unsigned int gpuNum) {
+size_t WE_GPU_Impl::MemCapacity(unsigned int gpuNum) {
 	if (!valid) {
 		cerr << "Unable to retrieve device memory capacity, GPU worker is invalid!" << endl;
 		return 0;
@@ -319,7 +310,7 @@ size_t WE_GPU_Impl::memCapacity(unsigned int gpuNum) {
 	return memSize;
 }
 
-bool WE_GPU_Impl::bufferData(size_t bytes, bool forceCopy, bool blocking, unsigned int gpuNum) {
+bool WE_GPU_Impl::BufferData(size_t bytes, bool forceCopy, bool blocking, unsigned int gpuNum) {
 	if (!valid) {
 		cerr << "Unable to buffer data, GPU worker is invalid!" << endl;
 		return false;
@@ -356,7 +347,7 @@ bool WE_GPU_Impl::bufferData(size_t bytes, bool forceCopy, bool blocking, unsign
 
 // Note: deleting a clBuffer has an underlying call to clReleaseMemObject, which promises to only delete
 // after all queued commands related to an object are finished, making it safe for non-blocking usage
-bool WE_GPU_Impl::releaseData(size_t bytes, bool forceCopy, bool blocking, unsigned int gpuNum) {
+bool WE_GPU_Impl::ReleaseData(size_t bytes, bool forceCopy, bool blocking, unsigned int gpuNum) {
 	if (!valid) {
 		cerr << "Unable to release buffered data, GPU worker is invalid!" << endl;
 		return false;
@@ -396,7 +387,7 @@ bool WE_GPU_Impl::releaseData(size_t bytes, bool forceCopy, bool blocking, unsig
 	return true;
 }
 
-void WE_GPU_Impl::runParallel(unsigned int numThreads, unsigned int opsPerThread, unsigned int gpuNum) {
+void WE_GPU_Impl::RunParallel(unsigned int numThreads, unsigned int opsPerThread, unsigned int gpuNum) {
 	if (!valid) {
 		cerr << "Unable to begin parallel task, GPU worker is invalid!" << endl;
 		return;
@@ -432,26 +423,26 @@ void WE_GPU_Impl::runParallel(unsigned int numThreads, unsigned int opsPerThread
 }
 
 
-void WE_GPU_Impl::initCLFFT() {
+void WE_GPU_Impl::InitCLFFT() {
 	clfftStatus err;
 	err = clfftInitSetupData(&fftSetup);
     err = clfftSetup(&fftSetup);
 }
 
-void WE_GPU_Impl::cleanupCLFFT() {
+void WE_GPU_Impl::CleanupCLFFT() {
 	clfftStatus err;
 	err = clfftTeardown();
 }
 
 
-void WE_GPU_Impl::performFFT_SP(size_t dataBytes, unsigned int gpuNum) {
+void WE_GPU_Impl::PerformFFT_SP(size_t dataBytes, unsigned int gpuNum) {
 	
     float *tempData = (float *)malloc(dataBytes);
-	performFFT_SP(tempData, dataBytes, gpuNum);
+	PerformFFT_SP(tempData, dataBytes, gpuNum);
 	free(tempData);
 }
 
-void WE_GPU_Impl::performFFT_SP(void* dataIn, size_t dataBytes, unsigned int gpuNum) {
+void WE_GPU_Impl::PerformFFT_SP(void* dataIn, size_t dataBytes, unsigned int gpuNum) {
 	if (!valid) {
 		cerr << "Unable to perform FFT calculations, GPU worker is invalid!" << endl;
 		return;
@@ -513,7 +504,7 @@ void WE_GPU_Impl::performFFT_SP(void* dataIn, size_t dataBytes, unsigned int gpu
 	
 }
 
-void WE_GPU_Impl::matrixMult(unsigned int n, unsigned int gpuNum) {
+void WE_GPU_Impl::MatrixMult(unsigned int n, unsigned int gpuNum) {
 	// Single NxN matrix on the host side
 	unsigned int matSize = n*n;
 	cl_float* matData = new cl_float[matSize];
@@ -521,12 +512,12 @@ void WE_GPU_Impl::matrixMult(unsigned int n, unsigned int gpuNum) {
 	// Can pass matData as all 3 params because data has to be buffered to GPU,
 	// so no possibility of overwriting input data with output data during calculation
 	// going by current implementation.
-	matrixMult(matSize, matSize, matSize, matData, matData, matData, gpuNum);
+	MatrixMult(matSize, matSize, matSize, matData, matData, matData, gpuNum);
 
 	delete[] matData;
 }
 
-bool WE_GPU_Impl::matrixMult(unsigned int lenA, unsigned int lenB, unsigned int lenC,
+bool WE_GPU_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned int lenC,
 							 const void* dataA, const void* dataB, void* dataOut,
 							 int gpuNum) {
 	cl_int error;

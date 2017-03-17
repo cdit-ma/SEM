@@ -12,7 +12,7 @@ using namespace test;
 
 MatrixTester::MatrixTester(DebugLevel dLevel) : Tester(dLevel) {
 	worker = new WE_GPU();
-	worker->initialise(false);
+	worker->Initialise(false);
 	//ACE_Time_Value startTime = ACE_OS::gettimeofday();
 
 	cout << "   Square 1x1..." << endl;
@@ -98,7 +98,7 @@ void MatrixTester::niceSquareMult(unsigned int length, bool verbose) {
 
 	
 
-	if (!worker->matrixMult(matA, matB, matC)) {
+	if (!worker->MatrixMult(matA, matB, matC)) {
 		res = FAIL;
 	} else {
 		res = checkMultiplication(matA.data(), matB.data(), matC.data(), length, length, length);
@@ -109,7 +109,7 @@ void MatrixTester::niceSquareMult(unsigned int length, bool verbose) {
 	for (unsigned int index=0; index<elements; index++) matB[index]=(float)index;
 	for (unsigned int index=0; index<elements; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
-	if (!worker->matrixMult(matA, matB, matC)) {
+	if (!worker->MatrixMult(matA, matB, matC)) {
 		res = FAIL;
 	} else {
 		res = checkMultiplication(matA.data(), matB.data(), matC.data(), length, length, length);
@@ -121,7 +121,7 @@ void MatrixTester::niceSquareMult(unsigned int length, bool verbose) {
 	for (unsigned int index=0; index<elements; index++) matB[index]=(float)(rand()%1000000000)/100 - 1000000;
 	for (unsigned int index=0; index<elements; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
-	if (!worker->matrixMult(matA, matB, matC)) {
+	if (!worker->MatrixMult(matA, matB, matC)) {
 		res = FAIL;
 	} else {
 		res = checkMultiplication(matA.data(), matB.data(), matC.data(), length, length, length);
@@ -149,8 +149,8 @@ void MatrixTester::rectMult(unsigned int rowsA, unsigned int colsA, unsigned int
 	for (unsigned int index=0; index<lenC; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
 	
-	//WE_UTE_Vector outVec = worker->matrixMult(WE_UTE_Vector(matA, lenA), WE_UTE_Vector(matB, lenB), WE_UTE_Vector(matC, lenC));
-	if (!worker->matrixMult(matA, matB, matC)) {
+	//WE_UTE_Vector outVec = worker->MatrixMult(WE_UTE_Vector(matA, lenA), WE_UTE_Vector(matB, lenB), WE_UTE_Vector(matC, lenC));
+	if (!worker->MatrixMult(matA, matB, matC)) {
 		if (colsA != rowsB) {
 			res = PASS;
 		} else {
@@ -166,7 +166,7 @@ void MatrixTester::rectMult(unsigned int rowsA, unsigned int colsA, unsigned int
 	for (unsigned int index=0; index<lenB; index++) matB[index]=(float)index;
 	for (unsigned int index=0; index<lenC; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
-	if (!worker->matrixMult(matA, matB, matC)) {
+	if (!worker->MatrixMult(matA, matB, matC)) {
 		if (colsA != rowsB) {
 			res = PASS;
 		} else {
@@ -183,7 +183,7 @@ void MatrixTester::rectMult(unsigned int rowsA, unsigned int colsA, unsigned int
 	for (unsigned int index=0; index<lenB; index++) matB[index]=(float)(rand()%1000000000)/100 - 1000000;
 	for (unsigned int index=0; index<lenC; index++) matC[index]= numeric_limits<float>::signaling_NaN();
 
-	if (!worker->matrixMult(matA, matB, matC)) {
+	if (!worker->MatrixMult(matA, matB, matC)) {
 		if (colsA != rowsB) {
 			res = PASS;
 		} else {
@@ -213,7 +213,7 @@ void MatrixTester::tooBig(bool verbose) {
 			//WE_UTE_Vector outVec = WE_UTE_Vector(outMat, 64*64);
 
 
-			worker->matrixMult(bigMat, bigMat, outMat);
+			worker->MatrixMult(bigMat, bigMat, outMat);
 			if (outMat == NULL) {
 				res = PASS;
 			} else {
