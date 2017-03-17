@@ -18,7 +18,7 @@ WE_CPU::~WE_CPU(){
 int WE_CPU::IntOp(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
-    auto args = get_arg_string("loop = %lf", loop);
+    auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
@@ -32,7 +32,7 @@ int WE_CPU::IntOp(double loop){
 int WE_CPU::FloatOp(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
-    auto args = get_arg_string("loop = %lf", loop);
+    auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
@@ -46,7 +46,7 @@ int WE_CPU::FloatOp(double loop){
 int WE_CPU::Whetstone(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
-    auto args = get_arg_string("loop = %lf", loop);
+    auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
@@ -60,7 +60,7 @@ int WE_CPU::Whetstone(double loop){
 int WE_CPU::Dhrystone(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
-    auto args = get_arg_string("loop = %lf", loop);
+    auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
@@ -74,7 +74,7 @@ int WE_CPU::Dhrystone(double loop){
 int WE_CPU::MWIP(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
-    auto args = get_arg_string("loop = %lf", loop);
+    auto args = get_arg_string_variadic("loop = %lf", loop);
 
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
     //Log Before
@@ -87,7 +87,7 @@ int WE_CPU::MWIP(double loop){
 int WE_CPU::DMIP(double loop){
     auto work_id = get_new_work_id();
     auto fun = std::string(__func__);
-    auto args = get_arg_string("loop = %lf", loop);
+    auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);

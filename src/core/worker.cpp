@@ -27,14 +27,26 @@ Component* Worker::get_component(){
 };
 
 std::string Worker::get_arg_string(const std::string str_format, va_list args){
-    auto fmt = str_format.c_str();
-    int len = snprintf(NULL, 0, fmt, args) + 1;
-    char buffer[len];
-    vsprintf(buffer, fmt, args);
-    return std::string(buffer);
+    //We need to make a copy of the arg list before we unwind it.
+    va_list arg_copy;
+    va_copy(arg_copy, args);
+    //Include space for NULL character at end of string
+    size_t size = vsnprintf(NULL, 0, str_format.c_str(), arg_copy) + 1;
+    //Free memory of our copy
+    va_end(arg_copy);
+    
+    //Dynamically allocate memory for buffer to write into
+    char * buffer = new char[size];
+    //Write into our buffer using our args list
+    vsprintf (buffer, str_format.c_str(), args);
+    //Construct a string to return
+    std::string str(buffer);
+    //Free memory we allocated on the heap
+    delete[] buffer;
+    return str;
 };
 
-std::string Worker::get_arg_string(const std::string str_format, ...){
+std::string Worker::get_arg_string_variadic(const std::string str_format, ...){
     va_list args;
     va_start(args, str_format);
     auto str = get_arg_string(str_format, args);
