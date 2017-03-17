@@ -1262,8 +1262,10 @@ void Theme::calculateImageColor(QString resourceName)
 
 QString Theme::getResourceName(QString prefix, QString alias) const
 {
-    //UNCOMMENT FOR TROLLS
-    //return ":/Actions/Cage.jpg";
+    //Uncomment for Lols
+    //return "Actions/Cage";
+    //Uncomment for bounding rects
+    //return "Actions/Square";
     return prefix % slash % alias;
 }
 
@@ -1415,6 +1417,7 @@ void Theme::teardownTheme()
     delete themeSingleton;
     themeSingleton = 0;
 }
+
 
 
 

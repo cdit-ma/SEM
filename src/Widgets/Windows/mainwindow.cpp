@@ -579,6 +579,7 @@ void MainWindow::setupInnerWindow()
     NodeViewDockWidget* dwBehaviour = viewController->constructNodeViewDockWidget("Behaviour");
     NodeViewDockWidget* dwAssemblies = viewController->constructNodeViewDockWidget("Assemblies");
     NodeViewDockWidget* dwHardware = viewController->constructNodeViewDockWidget("Hardware");
+    NodeViewDockWidget* dwWorkers = viewController->constructNodeViewDockWidget("Workers");
 
     BaseDockWidget *dwQOSBrowser = WindowManager::constructViewDockWidget("QOS Browser");
     dwQOSBrowser->setWidget(new QOSBrowser(viewController, dwQOSBrowser));
@@ -588,6 +589,7 @@ void MainWindow::setupInnerWindow()
     dwBehaviour->getNodeView()->setContainedViewAspect(VA_BEHAVIOUR);
     dwAssemblies->getNodeView()->setContainedViewAspect(VA_ASSEMBLIES);
     dwHardware->getNodeView()->setContainedViewAspect(VA_HARDWARE);
+    dwWorkers->getNodeView()->setContainedViewAspect(VA_WORKERS);
 
     //Set allowed areas
     dwInterfaces->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
@@ -595,6 +597,7 @@ void MainWindow::setupInnerWindow()
     dwAssemblies->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwHardware->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
     dwQOSBrowser->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+    dwWorkers->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     //Set Icons
     dwInterfaces->setIcon("Items", "InterfaceDefinitions");
@@ -616,6 +619,7 @@ void MainWindow::setupInnerWindow()
     dwAssemblies->setProtected(true);
     dwHardware->setProtected(true);
     dwQOSBrowser->setProtected(true);
+    dwWorkers->setProtected(true);
 
     SettingsController* s = SettingsController::settings();
 
@@ -625,6 +629,7 @@ void MainWindow::setupInnerWindow()
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwAssemblies);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, dwHardware);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwQOSBrowser);
+    innerWindow->addDockWidget(Qt::TopDockWidgetArea, dwWorkers);
 
     innerWindow->setDockWidgetVisibility(dwInterfaces,   s->getSetting(SK_WINDOW_INTERFACES_VISIBLE).toBool());
     innerWindow->setDockWidgetVisibility(dwBehaviour,    s->getSetting(SK_WINDOW_BEHAVIOUR_VISIBLE).toBool());

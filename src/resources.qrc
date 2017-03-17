@@ -216,7 +216,7 @@
         <file alias="Project">Resources/Images/Actions/Project.png</file>
         <file alias="Selection">Resources/Images/Actions/Selection.png</file>
         <file alias="View">Resources/Images/Actions/View.png</file>
-        <file>Resources/Images/Actions/Cage.jpg</file>
+        <file alias="Cage">Resources/Images/Actions/Cage.jpg</file>
         <file alias="Disconnect">Resources/Images/Actions/Disconnect.png</file>
         <file alias="Java">Resources/Images/Actions/java.jpg</file>
         <file alias="Notification">Resources/Images/Actions/Notification.png</file>
@@ -257,6 +257,7 @@
         <file alias="kilobytes">Resources/Images/Data/kilobytes.png</file>
         <file alias="max_size">Resources/Images/Data/max_size.png</file>
         <file alias="opsPerThread">Resources/Images/Data/opsPerThread.png</file>
+        <file alias="Time">Resources/Images/Data/Time.png</file>
     </qresource>
     <qresource prefix="/Functions">
         <file alias="WE_GPU">Resources/Images/Functions/WE_GPU.png</file>
@@ -265,15 +266,15 @@
         <file alias="DIG_LogMessage_Worker">Resources/Images/Functions/DIG_LogMessage_Worker.png</file>
         <file alias="WE_CPU">Resources/Images/Functions/WE_CPU.png</file>
         <file alias="WE_RAM">Resources/Images/Functions/WE_RAM.png</file>
-        <file alias="WE_UTE">Resources/Images/Functions/WE_UTE.png</file>
+        <file alias="Utility_Worker">Resources/Images/Functions/WE_UTE.png</file>
         <file alias="VariableOperation">Resources/Images/Functions/VariableOperation.png</file>
         <file alias="cppCode">Resources/Images/Functions/cppCode.png</file>
-        <file alias="debugMessage">Resources/Images/Functions/debugMessage.png</file>
+        <file alias="Print">Resources/Images/Functions/debugMessage.png</file>
         <file alias="cppHeader">Resources/Images/Functions/cppHeader.png</file>
-        <file alias="evaluateComplexity">Resources/Images/Functions/evaluateComplexity.png</file>
+        <file alias="EvaluateComplexity">Resources/Images/Functions/evaluateComplexity.png</file>
         <file alias="connect">Resources/Images/Functions/connect.png</file>
         <file alias="disconnect">Resources/Images/Functions/disconnect.png</file>
-        <file alias="log">Resources/Images/Functions/log.png</file>
+        <file alias="Log">Resources/Images/Functions/log.png</file>
         <file alias="switch_topic">Resources/Images/Functions/switch_topic.png</file>
         <file alias="allocate">Resources/Images/Functions/allocate.png</file>
         <file alias="bufferData">Resources/Images/Functions/bufferData.png</file>
@@ -289,15 +290,13 @@
         <file alias="length">Resources/Images/Functions/length.png</file>
         <file alias="remove">Resources/Images/Functions/remove.png</file>
         <file alias="set">Resources/Images/Functions/set.png</file>
+        <file alias="GetTimeOfDay">Resources/Images/Functions/Clock.png</file>
     </qresource>
     <qresource prefix="/WorkerDefinitions">
-        <file alias="CUTS_Client_Logger.worker.graphml">Resources/WorkerDefinitions/CUTS_Client_Logger.worker.graphml</file>
-        <file alias="DIG_LogMessage_Worker.worker.graphml">Resources/WorkerDefinitions/DIG_LogMessage_Worker.worker.graphml</file>
-        <file alias="VectorOperation.worker.graphml">Resources/WorkerDefinitions/VectorOperation.worker.graphml</file>
-        <file alias="WE_CPU.worker.graphml">Resources/WorkerDefinitions/WE_CPU.worker.graphml</file>
-        <file alias="WE_GPU.worker.graphml">Resources/WorkerDefinitions/WE_GPU.worker.graphml</file>
-        <file alias="WE_RAM.worker.graphml">Resources/WorkerDefinitions/WE_RAM.worker.graphml</file>
-        <file alias="WE_UTE.worker.graphml">Resources/WorkerDefinitions/WE_UTE.worker.graphml</file>
-        <file alias="VariableOperation.worker.graphml">Resources/WorkerDefinitions/VariableOperation.worker.graphml</file>
+        <file alias="cpu.worker.graphml">Resources/WorkerDefinitions/cpu.worker.graphml</file>
+        <file alias="gpu.worker.graphml">Resources/WorkerDefinitions/gpu.worker.graphml</file>
+        <file alias="memory.worker.graphml">Resources/WorkerDefinitions/memory.worker.graphml</file>
+        <file alias="utility.worker.graphml">Resources/WorkerDefinitions/utility.worker.graphml</file>
+        <file alias="vector.worker.graphml">Resources/WorkerDefinitions/vector.worker.graphml</file>
     </qresource>
 </RCC>

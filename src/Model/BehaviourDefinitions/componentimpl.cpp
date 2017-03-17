@@ -16,6 +16,8 @@ bool ComponentImpl::canAdoptChild(Node *child)
         case Node::NK_TERMINATION:
         case Node::NK_VARIABLE:
         case Node::NK_WORKLOAD:
+        case Node::NK_PROCESS:
+        case Node::NK_WORKER_PROCESS:
         case Node::NK_WHILELOOP:
             break;
     default:

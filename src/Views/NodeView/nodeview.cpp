@@ -733,11 +733,13 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_AGGREGATE:
                 nodeItem = new StackNodeItem(item, parentNode);
                 break;
+            case Node::NK_WORKER_PROCESS:
             case Node::NK_PROCESS:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setIconOverlay("Functions", item->getData("operation").toString());
                 nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
 
                 break;
             case Node::NK_MEMBER_INSTANCE:

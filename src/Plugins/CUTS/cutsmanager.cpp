@@ -257,6 +257,8 @@ void CUTSManager::getCPPForComponent(QString graphmlPath, QString component)
     QPair<int, QPair<QString, QString> > cppCode = runLocalTransform(graphmlPath, "graphml2cpp.xsl", cppArgs);
     QPair<int, QPair<QString, QString> > hCode = runLocalTransform(graphmlPath, "graphml2h.xsl", hArgs);
 
+    qCritical() << "GOT CODE";
+
     if(cppCode.first == 0 && hCode.first == 0){
         emit gotCodeForComponent(component + "Impl.cpp", cppCode.second.first);
         emit gotCodeForComponent(component + "Impl.h", hCode.second.first);
@@ -603,6 +605,8 @@ QPair<int, QPair<QString, QString> > CUTSManager::runLocalTransform(QString grap
         arguments << "-param";
         arguments.append(params);
     }
+
+    qCritical() << arguments;
 
     //Construct a wait loop to make sure this transform happens first.
     QEventLoop waitLoop;

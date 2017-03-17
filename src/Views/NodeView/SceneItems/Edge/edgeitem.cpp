@@ -1,6 +1,7 @@
 #include "edgeitem.h"
 #include "../Node/nodeitem.h"
 #include <QDebug>
+#include <math.h>
 
 #define ARROW_SIZE 4
 EdgeItem::EdgeItem(EdgeViewItem *edgeViewItem, NodeItem *parent, NodeItem *source, NodeItem *destination):EntityItem(edgeViewItem, parent, EDGE)

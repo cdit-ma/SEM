@@ -413,11 +413,6 @@ void ModelController::loadWorkerDefinitions()
         foreach(QDir directory, workerDirectories){
             //Foreach *.worker.graphml file in the workerDefPath, load the graphml.
             foreach(QString fileName, directory.entryList(fileExtension)){
-                if(fileName == "VariableOperation.worker.graphml"){
-                    //Ignore VariableOperation
-                    continue;
-                }
-
                 QString importFileName = directory.absolutePath() + "/" + fileName;
                 filesToLoad << importFileName;
             }
@@ -832,7 +827,7 @@ void ModelController::constructNode(int parentID, QString kind, QPointF centerPo
             foreach(Node* child, inputParameters){
                 QString label = child->getDataValue("label").toString();
                 QString type = child->getDataValue("type").toString();
-                if(label == "parameter" && type == "WE_UTE_VariableArguments"){
+                if(type == "WE_UTE_VariableArguments"){
                     //Clone the data.
                     matchingParameter = child;
                     break;
@@ -2063,8 +2058,8 @@ Key *ModelController::constructKey(QString name, QVariant::Type type)
     if(name == "middleware"){
         QStringList validValues;
         QStringList keysValues;
-        keysValues << "Model";
-        validValues << "tao" << "rtidds" << "opensplice" << "coredx" << "tcpip" << "qpidpb" ;
+        keysValues << "Model" << "InEventPortInstance" << "OutEventPortInstance";
+        validValues << "ZMQ" << "RTI" << "OSPL" << "QPID";
         newKey->addValidValues(validValues, keysValues);
     }
 
@@ -2798,9 +2793,12 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
     if(nodeKind == "OutEventPortInstance" || nodeKind == "InEventPortInstance"){
         Key* topicKey = constructKey("topicName",QVariant::String);
         data.append(new Data(topicKey));
+
+        Key* middlewareKey = constructKey("middleware", QVariant::String);
+        data.append(new Data(middlewareKey));
     }
 
-    if(nodeKind.endsWith("Instance") ||nodeKind.endsWith("Impl")){
+    if(nodeKind.endsWith("Instance") || nodeKind.endsWith("Impl")){
         data.append(new Data(typeKey));
     }
 
