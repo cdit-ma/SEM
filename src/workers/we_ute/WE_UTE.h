@@ -6,18 +6,19 @@
 
 class WE_UTE_Impl;
 
-class WE_UTE : public Worker{
+class WE_UTE: public Worker{
     public:
         WE_UTE(Component* component, std::string inst_name);
         ~WE_UTE();
 
+
+        void DebugMessage(const std::string format_str, ...);
         double EvaluateComplexity(const std::string complexity, ...);
+        
         std::string TimeOfDayString();
         double TimeOfDay();
-        void DebugMessage(const std::string format_str, ...);
-
     private:
-        WE_UTE_Impl* impl_;
+        WE_UTE_Impl* impl_ = 0;
 };
 
 #endif  //WE_UTE_H

@@ -8,10 +8,10 @@ WE_UTE::WE_UTE(Component* component, std::string inst_name) : Worker(component, 
     impl_ = new WE_UTE_Impl();
 }
 
-WE_UTE::~WE_UTE(void){
-    if (0 != this->impl_){
-        delete this->impl_;
-        this->impl_ = 0;
+WE_UTE::~WE_UTE(){
+    if(impl_){
+        delete impl_;
+        impl_ = 0;
     }
 }
 
@@ -37,5 +37,3 @@ void WE_UTE::DebugMessage(const std::string str_format, ...){
     std::cout << get_arg_string(str_format, args) << std::endl;
     va_end(args);
 }
-
-

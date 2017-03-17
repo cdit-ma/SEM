@@ -19,8 +19,6 @@ double WE_UTE_Impl::TimeOfDay(){
 double WE_UTE_Impl::EvaluateComplexity(const char* complexity, va_list args){
     char varlist[50];
 
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
-
     //Pull variables from expression
     std::vector<char> variable_list = ProcessVarList(complexity);
 
@@ -54,7 +52,7 @@ std::vector<char> WE_UTE_Impl::ProcessVarList(const char* complexity){
                             "floor", "round", "min", "max", "sig", "log2", "epsilon", "pi", "infinity" };
     //remove all math functions from complexity algorithm
     strcpy(varlist, complexity);
-    for(unsigned int i = 0; i < 23; ++i){
+    for(unsigned int i = 0; i < 24; ++i){
         cptr = varlist;
         while ((cptr=strstr(cptr,mathfunc[i])) != NULL)
         memmove(cptr, cptr+strlen(mathfunc[i]), strlen(cptr+strlen(mathfunc[i]))+1);
