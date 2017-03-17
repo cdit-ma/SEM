@@ -97,3 +97,20 @@ int WE_CPU::DMIP(double loop){
     logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     return result;
 }
+
+int WE_CPU::MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
+                        std::vector<float> &matrixC){
+    auto work_id = get_new_work_id();
+    auto fun = std::string(__func__);
+    auto args = get_arg_string("matrixA size = %lf; matrixB size = %lf; matrixC size = %lf", 
+                                matrixA.size(), matrixB.size(), matrixC.size());
+
+    //Log Before
+    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+
+    int result = impl_->MatrixMult(matrixA.size(), matrixB.size(), matrixC.size(), 
+                                   matrixA.data(), matrixB.data(), matrixC.data());
+    //Log After
+    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+    return result;
+}

@@ -17,6 +17,8 @@ class WE_CPU_Impl{
         int Dhrystone(double loops);
         int MWIP(double loops);
         int DMIP(double loops);
+        int MatrixMult(unsigned int lenA, unsigned int lenB, unsigned int lenC,
+					   const float* dataA, const float* dataB, float* dataC);
     
     private:
         std::mutex lock_;
