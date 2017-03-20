@@ -517,7 +517,17 @@
                         <xsl:variable name="source" select="o:get_node_by_id($root, $source_id)" />
                         <xsl:variable name="source_type" select="o:get_key_value($source, 'type')" />
 
-                        <xsl:value-of select="concat(cdit:get_mutable_aggregate_path($source), if($source_type ='String') then '.c_str()' else '')" />
+                        <xsl:variable name="source_type" select="o:get_key_value($source, 'type')" />
+                        <xsl:choose>
+                            <xsl:when test="$source_type = 'String'">
+                                <xsl:value-of select="concat(cdit:get_mutable_aggregate_path($source), '.c_str()')" />
+                            </xsl:when>
+                            <xsl:when test="$source_type = 'Double' or $source_type = 'Integer'">
+                                <xsl:value-of select="concat('(double)', cdit:get_mutable_aggregate_path($source))" />
+                            </xsl:when>
+                        </xsl:choose>
+
+                        <!--<xsl:value-of select="concat(cdit:get_mutable_aggregate_path($source), if($source_type ='String') then '.c_str()' else '')" />-->
                         
                         <!--
                         <xsl:variable name="target_value" select="cdit:get_dataedge_value($source)" />
@@ -1021,7 +1031,7 @@
 
         <xsl:variable name="periodicevents" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'PeriodicEvent')" />
         <xsl:variable name="ineventports" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'InEventPortImpl')" />
-        <xsl:variable name="worker_constructors" select="cdit:get_required_worker_constructors($component_root)" />
+        <xsl:variable name="worker_constructors" select="distinct-values(cdit:get_required_worker_constructors($component_root))" />
 
         <xsl:value-of select="o:tabbed_cpp_comment(concat('ComponentImpl ', o:square_wrap($component_id), ': ', $class_name), 0)" />
 
