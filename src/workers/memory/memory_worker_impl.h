@@ -9,7 +9,7 @@ class Memory_Worker_Impl{
         ~Memory_Worker_Impl();
         bool Allocate(double kilobytes);
         bool Deallocate(double kilobytes);
-        double get_count();
+        double GetAllocatedCount();
 
     private:
         bool Allocate_(unsigned long long kilobytes);

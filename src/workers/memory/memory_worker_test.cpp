@@ -10,19 +10,19 @@ int main(){
     std::cout << "ALLOCATING" << std::endl;
     worker->Allocate(1024*1024);
     std::cout << "ALLOCATED" << std::endl;
-    std::cout << worker->get_count() << std::endl;
+    std::cout << worker->GetAllocatedCount() << std::endl;
     std::cin >> in;
 
     std::cout << "DEALLOCATING" << std::endl;
     worker->Deallocate(1024*1024);
     std::cout << "DEALLOCATED" << std::endl;
-    std::cout << worker->get_count() << std::endl;
+    std::cout << worker->GetAllocatedCount() << std::endl;
     std::cin >> in;
     
     std::cout << "ALLOCATING" << std::endl;
     worker->Allocate(1024*1024/2);
     std::cout << "ALLOCATED" << std::endl;
-    std::cout << worker->get_count() << std::endl;
+    std::cout << worker->GetAllocatedCount() << std::endl;
     std::cin >> in;
 
 

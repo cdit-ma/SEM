@@ -11,7 +11,7 @@ class Memory_Worker : public Worker{
         ~Memory_Worker();
         void Allocate(double kilobytes);
         void Deallocate(double kilobytes);
-        long get_count() const;
+        long GetAllocatedCount() const;
 
     private:
         Memory_Worker_Impl* impl_;

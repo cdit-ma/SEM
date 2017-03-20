@@ -72,7 +72,7 @@ bool Memory_Worker_Impl::Deallocate_(unsigned long long kilobytes){
     return result;
 }
 
-double Memory_Worker_Impl::get_count(){
+double Memory_Worker_Impl::GetAllocatedCount(){
     std::lock_guard<std::mutex> guard(lock_);
     return memory_.size();
 }

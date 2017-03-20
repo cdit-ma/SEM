@@ -49,6 +49,6 @@ void Memory_Worker::Deallocate(double kilobytes){
     Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id, args);
 }
 
-long Memory_Worker::get_count() const{
-    return impl_->get_count();
+long Memory_Worker::GetAllocatedCount() const{
+    return impl_->GetAllocatedCount();
 }
