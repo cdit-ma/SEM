@@ -47,7 +47,6 @@ class LogProtoHandler{
         void ProcessMessageEvent(google::protobuf::MessageLite* message);
         void ProcessUserEvent(google::protobuf::MessageLite* message);
         void ProcessWorkloadEvent(google::protobuf::MessageLite* message);
-        void ProcessClientEvent(std::string client_endpoint);
         void ProcessComponentUtilizationEvent(google::protobuf::MessageLite* message);
 
         zmq::ProtoReceiver* receiver_;
