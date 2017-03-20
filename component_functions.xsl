@@ -1017,6 +1017,8 @@
 
         <xsl:value-of select="o:nl()" />
 
+        <xsl:variable name="variables" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'Variable')" />
+
         <xsl:variable name="periodicevents" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'PeriodicEvent')" />
         <xsl:variable name="ineventports" as="element()*" select="cdit:get_child_entities_of_kind($component_root, 'InEventPortImpl')" />
         <xsl:variable name="worker_constructors" select="cdit:get_required_worker_constructors($component_root)" />
@@ -1025,8 +1027,22 @@
 
         <!-- Define Constructor -->
         <xsl:value-of select="concat($class_name, '::', $class_name,'(std::string name): ', $interface_name, '(name){', o:nl())" />
+        
+        <!-- Initialize Variables-->
+        <xsl:if test="count($variables) > 0">
+            <xsl:value-of select="o:tabbed_cpp_comment('Initialise Variables', 1)" />
+            <!-- Include the workers-->
+            <xsl:for-each select="$variables">
+                <xsl:variable name="var_name" select="cdit:get_var_name(.)" />
+                <xsl:variable name="value" select="cdit:get_key_value(., 'value')" />
+                <xsl:if test="count($variables) > 0">
+                    <xsl:value-of select="concat(o:t(1), $var_name, ' = ', $value, ';' , o:nl())" />
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+        
         <!-- Put Constructors for workers in here -->
-          <!-- Include Workers -->
+        <!-- Include Workers -->
         <xsl:if test="count($worker_constructors) > 0">
             <xsl:value-of select="o:tabbed_cpp_comment('Worker Constructors', 1)" />
             <!-- Include the workers-->
