@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include "component.h"
 #include "activatable.h"
+#include "modellogger.h"
 
 class Worker: public Activatable{
     public:
@@ -20,7 +21,7 @@ class Worker: public Activatable{
 
     protected:
         int get_new_work_id();
-
+        void Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id = -1, std::string args = "");
         
     private:
         Component* component_ = 0;

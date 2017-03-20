@@ -4,7 +4,8 @@
 #include <mutex>
 #include "component.h"
 #include "eventport.h"
-#include "worker.h"
+
+class Worker;
 
 namespace zmq{
     class ProtoWriter;

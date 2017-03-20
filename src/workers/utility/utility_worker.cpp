@@ -34,12 +34,16 @@ double Utility_Worker::EvaluateComplexity(const std::string complexity, ...){
 void Utility_Worker::Log(const std::string str_format, bool print, ...){
     va_list args;
     va_start(args, print);
-    std::string arg_string = get_arg_string(str_format, args);
+    std::string message = get_arg_string(str_format, args);
     va_end(args);
 
-    if(print){
-        std::cout << arg_string << std::endl;
-    }
+    Worker::Log("LogMessage", ModelLogger::WorkloadEvent::MESSAGE, get_new_work_id(), message);
 
-    //TODO: log string here
+    if(print){
+        auto c = get_component();
+        if(c){
+            std::cout << c->get_name() << "<" << c->get_type() << ">: ";
+        }
+        std::cout << message << std::endl;
+    }
 }

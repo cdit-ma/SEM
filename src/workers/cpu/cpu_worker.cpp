@@ -21,11 +21,11 @@ int Cpu_Worker::IntOp(double loop){
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
     //Run work
     int result = impl_->IntOp(loop);
     //Log After
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     return result;
 }
 
@@ -35,11 +35,11 @@ int Cpu_Worker::FloatOp(double loop){
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
     //Run work
     int result = impl_->FloatOp(loop);
     //Log After
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     return result;
 }
 
@@ -49,11 +49,11 @@ int Cpu_Worker::Whetstone(double loop){
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
     //Run work
     int result = impl_->Whetstone(loop);
     //Log After
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     return result;
 }
 
@@ -63,11 +63,11 @@ int Cpu_Worker::Dhrystone(double loop){
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
     //Run work
     int result = impl_->Dhrystone(loop);
     //Log After
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     return result;
 }
 
@@ -76,10 +76,10 @@ int Cpu_Worker::MWIP(double loop){
     auto fun = std::string(__func__);
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
     //Log Before
     int result = impl_->MWIP(loop);
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     //Log After
     return result;
 }
@@ -90,11 +90,11 @@ int Cpu_Worker::DMIP(double loop){
     auto args = get_arg_string_variadic("loop = %lf", loop);
 
     //Log Before
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
     //Run work
     int result = impl_->DMIP(loop);
     //Log After
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     return result;
 }
 
@@ -106,11 +106,11 @@ int Cpu_Worker::MatrixMult(const std::vector<float> &matrixA, const std::vector<
                                         matrixA.size(), matrixB.size(), matrixC.size());
 
     //Log Before
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
 
     int result = impl_->MatrixMult(matrixA.size(), matrixB.size(), matrixC.size(), 
                                    matrixA.data(), matrixB.data(), matrixC.data());
     //Log After
-    logger()->LogWorkerEvent(this, fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
     return result;
 }

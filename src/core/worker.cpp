@@ -53,3 +53,9 @@ std::string Worker::get_arg_string_variadic(const std::string str_format, ...){
     va_end(args);
     return str;
 };
+
+void Worker::Log(std::string function_name, ModelLogger::WorkloadEvent event, int work_id, std::string args){
+    if(logger()){
+        logger()->LogWorkerEvent(this, function_name, event, work_id, args);
+    }
+}

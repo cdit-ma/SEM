@@ -5,6 +5,8 @@
 #include "../re_common/zmq/protowriter/cachedprotowriter.h"
 #include "../re_common/proto/modelevent/modelevent.pb.h"
 
+#include "worker.h"
+
 ModelLogger* ModelLogger::singleton_ = 0;
 std::mutex ModelLogger::global_mutex_;
 
