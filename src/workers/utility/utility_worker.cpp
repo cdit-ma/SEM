@@ -15,11 +15,11 @@ Utility_Worker::~Utility_Worker(){
     }
 }
 
-double Utility_Worker::TimeOfDay(){
+double Utility_Worker::GetTimeOfDay(){
     return impl_->TimeOfDay();
 }
 
-std::string Utility_Worker::TimeOfDayString(){
+std::string Utility_Worker::GetTimeOfDayString(){
     return impl_->TimeOfDayString();
 }
 
