@@ -35,14 +35,14 @@ class ModelLogger{
             IGNORED = 4,
         };
         //Static getter functions
-        static bool setup_model_logger(std::string host_name, std::string endpoint, bool cached);
+        static bool setup_model_logger(std::string host_name, std::string endpoint, bool cached, bool active = true);
         static ModelLogger* get_model_logger();
         static bool shutdown_logger();
         
     protected:
         ModelLogger();
         
-        bool setup_logger(bool cached, std::string endpoint);
+        bool setup_logger(bool cached, std::string endpoint, bool active = true);
         bool is_setup();
         void set_hostname(std::string host_name);
         
@@ -62,6 +62,8 @@ class ModelLogger{
         const std::string get_hostname();
     private:
         void PushMessage(google::protobuf::MessageLite* message);
+
+        bool active_;
 
         std::string host_name_;
         

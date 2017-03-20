@@ -11,20 +11,18 @@ ModelLogger* ModelLogger::singleton_ = 0;
 std::mutex ModelLogger::global_mutex_;
 
 
-bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint, bool cached){
+bool ModelLogger::setup_model_logger(std::string host_name, std::string endpoint, bool cached, bool active){
     auto s = get_model_logger();
     bool success = false;
     {
         std::lock_guard<std::mutex> lock(global_mutex_);
         if(!s->is_setup()){
-            success = s->setup_logger(cached, endpoint);
+            success = s->setup_logger(cached, endpoint, active);
             s->set_hostname(host_name);
         }
     }
     return success;
 }
-
-
 
 ModelLogger* ModelLogger::get_model_logger(){
     std::lock_guard<std::mutex> lock(global_mutex_);
@@ -59,7 +57,8 @@ void ModelLogger::set_hostname(std::string host_name){
     this->host_name_ = host_name;
 }
 
-bool ModelLogger::setup_logger(bool cached, std::string endpoint){
+bool ModelLogger::setup_logger(bool cached, std::string endpoint, bool active){
+    active_ = active;
     if(!writer_){
         if(cached){
             writer_ = new zmq::CachedProtoWriter();
@@ -111,7 +110,6 @@ void fill_port(re_common::Port* p, EventPort* eventport){
     }
 }
 void ModelLogger::LogLifecycleEvent(Component* component, ModelLogger::LifeCycleEvent event){
-    //std::cout << "ModelLogger::LogLifecycleEvent()::Component" << std::endl;
     auto e = new re_common::LifecycleEvent();
     fill_info(e->mutable_info());
     fill_component(e->mutable_component(), component);
@@ -122,13 +120,14 @@ void ModelLogger::LogLifecycleEvent(Component* component, ModelLogger::LifeCycle
 }
 
 void ModelLogger::PushMessage(google::protobuf::MessageLite* message){
-    if(writer_ && message){
+    if(active_ && writer_ && message){
         writer_->PushMessage("ModelEvent*", message);
+    }else{
+        delete message;
     }
 }
 
 void ModelLogger::LogLifecycleEvent(EventPort* eventport, ModelLogger::LifeCycleEvent event){
-    //Do Nothing
     auto e = new re_common::LifecycleEvent();
     auto component = eventport->get_component();
     //Set info
