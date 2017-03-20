@@ -1730,13 +1730,13 @@
             <xsl:when test="$type = 'Boolean'">
                 <xsl:value-of select="'bool'" />
             </xsl:when>
-            <xsl:when test="$type = 'FloatNumber'">
+            <xsl:when test="$type = 'FloatNumber' or $type = 'Float'">
                 <xsl:value-of select="'float'" />
             </xsl:when>
-            <xsl:when test="$type = 'DoubleNumber' or $type = 'LongDoubleNumber'">
+            <xsl:when test="$type = 'DoubleNumber' or $type = 'LongDoubleNumber' or $type = 'Double'">
                 <xsl:value-of select="'double'" />
             </xsl:when>
-            <xsl:when test="$type = 'LongInteger'">
+            <xsl:when test="$type = 'LongInteger' or $type = 'Integer'">
                 <xsl:value-of select="'int'" />
             </xsl:when>
             <xsl:when test="$type = 'UnsignedLongInteger'">
