@@ -48,20 +48,19 @@ bool Gpu_Worker::ReleaseData(size_t bytes, bool forceCopy, bool blocking, unsign
 }
 
 void Gpu_Worker::RunParallel(double numThreads, double opsPerThread, unsigned int gpuNum){
-
-	this->impl_->RunParallel((unsigned int)numThreads, (unsigned int)opsPerThread, gpuNum);
+	impl_->RunParallel((unsigned int)numThreads, (unsigned int)opsPerThread, gpuNum);
 }
 
 void Gpu_Worker::FFT(std::vector<float> &data, unsigned int gpuNum){
-	this->impl_->PerformFFT_SP(data.data(), data.size()*sizeof(float), gpuNum);
+	impl_->PerformFFT_SP(data.data(), data.size()*sizeof(float), gpuNum);
 }
 
 void Gpu_Worker::MatrixMultLazy(unsigned int n, unsigned int gpuNum){
-	this->impl_->MatrixMult(n, gpuNum);
+	impl_->MatrixMult(n, gpuNum);
 }
 
 bool Gpu_Worker::MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
 						std::vector<float> &matrixC, unsigned int gpuNum){
-	return this->impl_->MatrixMult(matrixA.size(), matrixB.size(), matrixC.size(),
+	return impl_->MatrixMult(matrixA.size(), matrixB.size(), matrixC.size(),
 								   matrixA.data(), matrixB.data(), matrixC.data(), gpuNum);
 }
