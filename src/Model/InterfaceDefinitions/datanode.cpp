@@ -40,6 +40,11 @@ DataNode *DataNode::getOutputData()
     return 0;
 }
 
+void DataNode::setMultipleDataReceiver(bool receiver)
+{
+    _isMultipleDataReceiver = receiver;
+}
+
 void DataNode::setDataProducer(bool producer)
 {
     _isProducer = producer;
@@ -60,19 +65,17 @@ bool DataNode::isDataReciever() const
     return _isReciever;
 }
 
+bool DataNode::isMultipleDataReceiver() const
+{
+    return _isMultipleDataReceiver;
+}
+
 bool DataNode::comparableTypes(DataNode *node)
 {
     QStringList numberTypes;
-    numberTypes << "ShortInteger" << "LongInteger" << "LongLongInteger";
-    numberTypes << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger";
-    numberTypes << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber";
-    numberTypes << "Boolean" << "Byte";
-
-    QStringList stringTypes;
-    stringTypes << "String" << "WideString";
+    numberTypes << "Float" << "Double" << "Integer" << "Boolean";
 
     if(node){
-
         //Types
         QString type1 = getDataValue("type").toString();
         QString type2 = node->getDataValue("type").toString();
@@ -85,22 +88,18 @@ bool DataNode::comparableTypes(DataNode *node)
             //Allow matches of numbers
             return true;
         }
-        if(stringTypes.contains(type1) && stringTypes.contains(type2)){
-            //Allow matches of Strings
-            return true;
-        }
-        if(type2 == "WE_UTE_Vector"){
-            //Allow Vector Connections to WE_UTE_Vector types
-            VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(this);
-            if(vectorInstance){
-                return true;
+
+
+        if(type2 == "Vector"){
+            auto kind = getNodeKind();
+            if(kind == NK_VECTOR || kind == NK_VECTOR_INSTANCE){
+               return true;
             }
         }
-        if(type1 == "WE_UTE_Vector"){
-            //Allow Vector Connections from WE_UTE_Vector types to Vectors.
-            VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(node);
-            if(vectorInstance){
-                return true;
+        if(type1 == "Vector"){
+            auto kind = node->getNodeKind();
+            if(kind == NK_VECTOR || kind == NK_VECTOR_INSTANCE){
+               return true;
             }
         }
 
@@ -137,7 +136,7 @@ bool DataNode::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
             return false;
         }
 
-        if(dataNode->hasInputData()){
+        if(!dataNode->isMultipleDataReceiver() && dataNode->hasInputData()){
             //qCritical() << "Cannot have multiple input datas";
             //Cannot have multiple input datas.
             return false;

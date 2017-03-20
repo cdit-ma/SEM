@@ -4,6 +4,7 @@ Variable::Variable():DataNode(NK_VARIABLE)
 {
     setDataProducer(true);
     setDataReciever(true);
+    setMultipleDataReceiver(true);
 }
 
 bool Variable::canAdoptChild(Node* child)

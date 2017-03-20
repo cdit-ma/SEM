@@ -807,7 +807,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case Node::NK_VECTOR:
                 nodeItem = new StackNodeItem(item, parentNode);
-                nodeItem->setSecondaryTextKey("max_size");
+                nodeItem->setSecondaryTextKey("type");
                 break;
             case Node::NK_VECTOR_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);

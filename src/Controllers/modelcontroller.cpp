@@ -2045,7 +2045,15 @@ Key *ModelController::constructKey(QString name, QVariant::Type type)
         QStringList validValues;
         QStringList keysValues;
         keysValues << "Attribute" << "Member" << "Variable";
-        validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger" << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber" << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
+
+        validValues << "Boolean" << "String" << "Character" << "Integer" << "Double" << "Float";
+
+        /*
+        validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger"
+        << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger"
+        << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber"
+        << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
+        */
         newKey->addValidValues(validValues, keysValues);
         newKey->setAllowAllValues("Variable");
 
@@ -2680,6 +2688,12 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         }
     }
 
+    if(nodeKind == "Vector"){
+        Data* typeData = new Data(typeKey);
+        typeData->setProtected(true);
+        data.append(typeData);
+    }
+
     QStringList editableTypeKinds;
     editableTypeKinds << "Variable" << "Member" << "Attribute";
 
@@ -2774,15 +2788,12 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         data.append(new Data(replicationKey, "1"));
     }
 
-    if(nodeKind == "Vector"){
-        Key* sizeKey = constructKey("max_size", QVariant::Int);
-        data.append(new Data(sizeKey, "0"));
-    }
-
     if(nodeKind == "AttributeInstance"){
         Key* valueKey = constructKey("value", QVariant::String);
         data.append(new Data(valueKey));
     }
+
+
 
 
 

@@ -387,6 +387,7 @@ bool Node::addChild(Node *child)
     if(child && !containsChild(child) && canAdoptChild(child)){
         children << child;
         child->setParentNode(this, childCount++);
+        emit childCountChanged();
         return true;
     }
     return false;
@@ -494,7 +495,11 @@ QList<Edge *> Node::getEdges(int depth, Edge::EDGE_KIND edgeKind) const
 
 Node *Node::getFirstChild()
 {
-    return getOrderedChildNodes().first();
+    auto list = getOrderedChildNodes();
+    if(list.length() > 0){
+        return list.first();
+    }
+    return 0;
 }
 
 
@@ -572,11 +577,19 @@ bool Node::hasEdges()
 }
 
 
-void Node::removeChild(Node *child)
+bool Node::removeChild(Node *child)
 {
+    int removeCount = 0;
+
     if(child){
-        children.removeAll(child);
+        removeCount = children.removeAll(child);
     }
+
+    if(removeCount > 0){
+        emit childCountChanged();
+        return true;
+    }
+    return false;
 }
 
 
@@ -839,6 +852,8 @@ void Node::removeImplementation(Node *impl)
     }
 
 }
+
+
 
 
 void Node::addEdge(Edge *edge)

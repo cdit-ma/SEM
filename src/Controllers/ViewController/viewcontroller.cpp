@@ -70,7 +70,7 @@ QStringList ViewController::getNodeKinds()
     nodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
     nodeKinds << "AggregateInstance";
     nodeKinds << "ComponentImpl";
-    nodeKinds << "Vector" << "VectorInstance";
+    //nodeKinds << "Vector" << "VectorInstance";
     nodeKinds << "HardwareCluster";
     nodeKinds << "WorkerDefinitions";
 
@@ -80,11 +80,12 @@ QStringList ViewController::getNodeKinds()
     nodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
     nodeKinds << "AggregateInstance";
     nodeKinds << "ComponentImpl";
+    nodeKinds << "Vector";
 
-    nodeKinds << "Vector" << "VectorInstance";
+    //nodeKinds << "Vector" << "VectorInstance";
 
     nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
-    nodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
+    nodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "WorkerProcess";
 
     //Append Kinds which can't be constructed by the GUI.
     nodeKinds << "MemberInstance" << "AttributeImpl";

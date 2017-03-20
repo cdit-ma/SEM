@@ -15,6 +15,8 @@ bool InterfaceDefinitions::canAdoptChild(Node *child)
     switch(child->getNodeKind()){
     case NK_IDL:
         break;
+    case NK_AGGREGATE:
+        break;
     default:
         return false;
     }

@@ -38,9 +38,6 @@ bool VectorInstance::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
         if(!(dst->getNodeKind() == NK_VECTOR_INSTANCE || dst->getNodeKind() == NK_VECTOR)){
             return false;
         }
-        if(!dst->hasChildren()){
-            return false;
-        }
         break;
     }
     case Edge::EC_DATA:{

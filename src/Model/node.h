@@ -161,7 +161,7 @@ public:
     bool hasEdges();
 
     //Remove a child Node from this Node
-    void removeChild(Node *child);
+    bool removeChild(Node *child);
 
     bool isAncestorOf(GraphML* item);
     bool isDescendantOf(Node *node);
@@ -198,6 +198,9 @@ public:
 
     bool compareData(Node* node, QString keyName);
     bool compareData(Node* node, QStringList keys);
+
+signals:
+    void childCountChanged();
 private:
     void setViewAspect(VIEW_ASPECT aspect);
     void setParentNode(Node* parent, int index);

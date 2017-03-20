@@ -20,6 +20,8 @@ bool Aggregate::canAdoptChild(Node *child)
         break;
     case NK_MEMBER:
         break;
+    case NK_VECTOR:
+        break;
     case NK_VECTOR_INSTANCE:{
         Node* vector = child->getDefinition();
         if(vector && vector->hasChildren()){

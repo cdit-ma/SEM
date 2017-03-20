@@ -8,6 +8,7 @@ AttributeImpl::AttributeImpl():DataNode(Node::NK_ATTRIBUTE_IMPL)
 
     setDataProducer(true);
     setDataReciever(true);
+    setMultipleDataReceiver(true);
 }
 
 bool AttributeImpl::canAdoptChild(Node*)
