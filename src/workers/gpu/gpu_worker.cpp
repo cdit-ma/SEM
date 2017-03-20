@@ -48,19 +48,51 @@ bool Gpu_Worker::ReleaseData(size_t bytes, bool forceCopy, bool blocking, unsign
 }
 
 void Gpu_Worker::RunParallel(double numThreads, double opsPerThread, unsigned int gpuNum){
+	auto work_id = get_new_work_id();
+    auto fun = std::string(__func__);
+    auto args = get_arg_string_variadic("numThreads = %d, opsPerThread = %d, on gpu = %d", numThreads, opsPerThread, gpuNum);
+
+    //Log Before
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
 	impl_->RunParallel((unsigned int)numThreads, (unsigned int)opsPerThread, gpuNum);
+	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
 }
 
 void Gpu_Worker::FFT(std::vector<float> &data, unsigned int gpuNum){
+	auto work_id = get_new_work_id();
+    auto fun = std::string(__func__);
+    auto args = get_arg_string_variadic("FFT size = %d on gpu = %d", data.size(), gpuNum);
+
+    //Log Before
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
 	impl_->PerformFFT_SP(data.data(), data.size()*sizeof(float), gpuNum);
+    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);	
 }
 
 void Gpu_Worker::MatrixMultLazy(unsigned int n, unsigned int gpuNum){
+	auto work_id = get_new_work_id();
+    auto fun = std::string(__func__);
+    auto args = get_arg_string_variadic("matrix dimensions = %d on gpu = %d", n, gpuNum);
+
+    //Log Before
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
 	impl_->MatrixMult(n, gpuNum);
+	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
 }
 
 bool Gpu_Worker::MatrixMult(const std::vector<float> &matrixA, const std::vector<float> &matrixB,
 						std::vector<float> &matrixC, unsigned int gpuNum){
-	return impl_->MatrixMult(matrixA.size(), matrixB.size(), matrixC.size(),
-								   matrixA.data(), matrixB.data(), matrixC.data(), gpuNum);
+
+	auto work_id = get_new_work_id();
+    auto fun = std::string(__func__);
+    auto args = get_arg_string_variadic("matAsize = %d, matBsize = %d, matCsize = %d, on gpu = %d",
+										 matrixA.size(), matrixB.size(), matrixC.size(), gpuNum);
+
+    //Log Before
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+	auto res = impl_->MatrixMult(matrixA.size(), matrixB.size(), matrixC.size(),
+	  							matrixA.data(), matrixB.data(), matrixC.data(), gpuNum);
+	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+	return res;
+	
 }
