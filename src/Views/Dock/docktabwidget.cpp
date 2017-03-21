@@ -342,7 +342,13 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
         {
             // update header text; update entity kind to construct
             dockWidget->updateHeaderText(triggeredAdoptableKind);
-            showInfoLabel = dockWidget->isEmpty();
+            bool dockEmpty = dockWidget->isEmpty();
+            showInfoLabel = dockEmpty;
+            if (dockEmpty) {
+                // get functions list from controller then populate the functions dock
+                QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
+                populateDock(dockWidget, actions, true);
+            }
             break;
         }
         case ToolbarController::HARDWARE:
