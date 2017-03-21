@@ -526,6 +526,9 @@
                             <xsl:when test="$source_type = 'Double' or $source_type = 'Integer' or $source_type = 'Float'">
                                 <xsl:value-of select="concat('(double)', cdit:get_mutable_aggregate_path($source))" />
                             </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:value-of select="cdit:get_mutable_aggregate_path($source)" />
+                            </xsl:otherwise>
                         </xsl:choose>
                     </xsl:for-each>
                 </xsl:when>

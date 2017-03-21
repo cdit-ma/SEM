@@ -593,7 +593,7 @@
 									<data key="305">Gets the length of a std::vector.</data>
 									<data key="2">WorkerProcess</data>
 									<data key="346">Length</data>
-									<data key="10">200</data>
+									<data key="10">210</data>
 									<data key="342">Vector_Operations</data>
 									<data key="7">2</data>
 									<data key="8">true</data>
@@ -777,7 +777,7 @@
 									<data key="343">${RE_PATH}/src/workers/gpu</data>
 									<data key="2">WorkerProcess</data>
 									<data key="346">FFT</data>
-									<data key="10">220</data>
+									<data key="10">260</data>
 									<data key="347">gpu_worker</data>
 									<data key="342">Gpu_Worker</data>
 									<data key="344">gpu_worker</data>
@@ -1230,6 +1230,8 @@
 		</edge>
 		<edge id="5809" source="2852" target ="5331">
 			<data key="2">Edge_Data</data>
+			<data key="10">200</data>
+			<data key="11">300</data>
 			<data key="3">Data_Edge</data>
 		</edge>
 		<edge id="3884" source="2852" target ="3064">
