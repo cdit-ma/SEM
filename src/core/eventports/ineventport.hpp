@@ -17,9 +17,9 @@ template <class T> class InEventPort: public EventPort{
     public:
         InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
         virtual ~InEventPort();
-        bool Activate();
-        bool Passivate();
-        bool Teardown();
+        virtual bool Activate();
+        virtual bool Passivate();
+        virtual bool Teardown();
     protected:
         void EnqueueMessage(T* t);
     private:

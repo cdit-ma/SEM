@@ -123,7 +123,8 @@ bool zmq::InEventPort<T, S>::Teardown(){
         zmq_thread_ = 0;
     }
     configured_ = false;
-    return true;
+
+    return ::InEventPort<T>::Teardown();
 };
 
 template <class T, class S>
@@ -149,10 +150,7 @@ bool zmq::InEventPort<T, S>::Passivate(){
         term_socket->send(zmq::message_t());
         delete term_socket;
     }
-
-        
     return ::InEventPort<T>::Passivate();
-    
 };
 
 

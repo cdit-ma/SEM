@@ -24,7 +24,7 @@ namespace qpid{
             void tx(T* message);
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
-            void Teardown();
+            bool Teardown();
 
             bool Activate();
             bool Passivate();
@@ -78,10 +78,11 @@ void qpid::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attri
 };
 
 template <class T, class S>
-void qpid::OutEventPort<T, S>::Teardown(){
+bool qpid::OutEventPort<T, S>::Teardown(){
     Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
+    return ::OutEventPort<T>::Teardown();
 };
 
 template <class T, class S>
@@ -106,7 +107,6 @@ bool qpid::OutEventPort<T, S>::Passivate(){
         connection_ = 0;
     }
     return ::OutEventPort<T>::Passivate();
- 
 };
 
 #endif //QPID_OUTEVENTPORT_H

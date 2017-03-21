@@ -15,8 +15,8 @@ class Utility_Worker: public Worker{
         void Log(const std::string format_str, bool print, ...);
         double EvaluateComplexity(const std::string complexity, ...);
         
-        std::string TimeOfDayString();
-        double TimeOfDay();
+        std::string GetTimeOfDayString();
+        double GetTimeOfDay();
     private:
         Utility_Worker_Impl* impl_ = 0;
 };

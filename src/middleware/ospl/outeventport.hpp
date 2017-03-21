@@ -17,7 +17,7 @@ namespace ospl{
             void tx(T* message);
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
-            void Teardown();
+            bool Teardown();
 
             bool Activate();
             bool Passivate();
@@ -75,10 +75,11 @@ void ospl::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attri
 };
 
 template <class T, class S>
-void ospl::OutEventPort<T, S>::Teardown(){
+bool ospl::OutEventPort<T, S>::Teardown(){
     Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
+    return ::OutEventPort<T>::Teardown();
 };
 
 template <class T, class S>

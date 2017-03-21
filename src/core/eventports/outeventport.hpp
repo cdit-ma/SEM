@@ -16,6 +16,9 @@ template <class T> class OutEventPort: public EventPort{
                 logger()->LogComponentEvent(this, t, ModelLogger::ComponentEvent::SENT);
             }
         }
+        virtual bool Teardown(){
+            return true;
+        }
 };
 
 #endif //OUTEVENTPORT_HPP
