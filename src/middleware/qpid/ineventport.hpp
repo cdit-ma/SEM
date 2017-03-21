@@ -25,7 +25,7 @@ namespace qpid{
             InEventPort(Component* component, std::string name, std::function<void (T*) > callback_function);
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
-            void Teardown();
+            bool Teardown();
 
             bool Activate();
             bool Passivate();
@@ -84,10 +84,11 @@ void qpid::InEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
 };
 
 template <class T, class S>
-void qpid::InEventPort<T, S>::Teardown(){
+bool qpid::InEventPort<T, S>::Teardown(){
     Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
+    return ::InEventPort<T>::Teardown();
 };
 
 template <class T, class S>

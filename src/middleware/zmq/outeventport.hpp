@@ -65,7 +65,7 @@ bool zmq::OutEventPort<T, S>::Teardown(){
 
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
-    return true;
+    return ::OutEventPort<T>::Teardown();
 };
 
 template <class T, class S>

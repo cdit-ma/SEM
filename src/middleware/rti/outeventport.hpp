@@ -16,7 +16,7 @@ namespace rti{
             void tx(T* message);
 
             void Startup(std::map<std::string, ::Attribute*> attributes);
-            void Teardown();
+            bool Teardown();
 
             bool Activate();
             bool Passivate();
@@ -51,7 +51,7 @@ rti::OutEventPort<T, S>::OutEventPort(Component* component, std::string name):
 
 template <class T, class S>
 void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attributes){
-    {std::lock_guard<std::mutex> lock(control_mutex_);
+    std::lock_guard<std::mutex> lock(control_mutex_);
 
     if(attributes.count("publisher_name")){
         publisher_name_ = attributes["publisher_name"]->get_String();
@@ -71,22 +71,14 @@ void rti::OutEventPort<T, S>::Startup(std::map<std::string, ::Attribute*> attrib
     std::cout << "**domain_id_: "<< domain_id_ << std::endl;
     std::cout << "**publisher_name_: "<< publisher_name_ << std::endl;
     std::cout << "**topic_name_: "<< topic_name_ << std::endl << std::endl;
-
-
-    if(configured_){
-       // auto helper = DdsHelperS::get_dds_helper();   
-       // auto participant = helper->get_participant(domain_id_);
-       // auto topic = get_topic<S>(participant, topic_name_);
-    }
-}
-    //Activate();
 };
 
 template <class T, class S>
-void rti::OutEventPort<T, S>::Teardown(){
+bool rti::OutEventPort<T, S>::Teardown(){
     Passivate();
     std::lock_guard<std::mutex> lock(control_mutex_);
     configured_ = false;
+    return ::OutEventPort<T>::Teardown();
 };
 
 template <class T, class S>
