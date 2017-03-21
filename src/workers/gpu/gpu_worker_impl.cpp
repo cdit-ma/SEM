@@ -19,7 +19,7 @@ string clKernels =
 
 // Callback for when a buffer has completed copying across some arbitrarily allocated memory
 // that must be freed once the operation has finished
-void CL_CALLBACK postReadCopyTeardown(cl_event event, cl_int blah, void* memory){
+void CL_CALLBACK postReadCopyTeardown(cl_event, cl_int, void* memory){
 	delete[] (char*)memory;
 }
 
@@ -71,7 +71,7 @@ void Gpu_Worker_Impl::Initialise(bool forceGPU){
 		cerr << "Couldn't find OpenCL platforms, OpenCL error code: " << clGetErrorName(error) << endl;
 		return;
 	}
-
+	
 	// Make sure that there is at least one implementation available
 	if (platforms.size() > 1) {
 		string platformName;

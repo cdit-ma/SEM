@@ -55,9 +55,9 @@ int main(int argc, char** argv) {
 	delete mTester;
 
 	FFTTester* fftTester = new FFTTester(verbosity);
-	// testsFailed += fftTester->getTestsFailed();
-	// cout << "FFT tests passed: " << fftTester->getTestsPassed() << '/' << fftTester->getTestsRun() << endl;
-	// cout << "Tests skipped: " << fftTester->getTestsSkipped() << endl;
-	// delete fftTester;
+	testsFailed += fftTester->getTestsFailed();
+	cout << "FFT tests passed: " << fftTester->getTestsPassed() << '/' << fftTester->getTestsRun() << endl;
+	cout << "Tests skipped: " << fftTester->getTestsSkipped() << endl;
+	delete fftTester;
 	return testsFailed;
 }
