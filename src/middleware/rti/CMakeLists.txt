@@ -12,7 +12,7 @@ find_package(RTIDDS REQUIRED)
 set(PROJ_NAME rti_helper)
 project (${PROJ_NAME})
 
-if(NOT RTIDDS)
+if(NOT RTIDDS_FOUND)
     message(" ------ RTI DDS NOT FOUND - NOT BUILDING RTI MIDDLEWARE LIBRARY ------ ")
     return()
 endif()

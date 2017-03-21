@@ -7,13 +7,13 @@ set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
 #Find ospl library
-find_package(OpenSplice REQUIRED)
+find_package(OSPL REQUIRED)
 
 set(PROJ_NAME ospl_helper)
 project (${PROJ_NAME})
 
-if(NOT OpenSplice)
-    message(" ------ OpenSplice NOT FOUND - NOT BUILDING OpenSplice MIDDLEWARE LIBRARY ------ ")
+if(NOT OSPL_FOUND)
+    message(" ------ OSPL NOT FOUND - NOT BUILDING OSPL MIDDLEWARE LIBRARY ------ ")
     return()
 endif()
 
@@ -31,7 +31,8 @@ set(HEADERS
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 include_directories("${RE_PATH}/includes")
-include_directories(${OpenSplice_INCLUDE_DIRS})
+include_directories(${OSPL_INCLUDE_DIRS})
 
-target_link_libraries(${PROJ_NAME} ${OpenSplice_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${OSPL_LIBRARIES})
 
+message("END MESSAGE")

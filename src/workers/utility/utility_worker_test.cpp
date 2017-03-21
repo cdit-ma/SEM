@@ -6,8 +6,8 @@ int main(){
 
     Utility_Worker ute(0, "ute");
 
-    std::cout << ute.TimeOfDayString() << std::endl;
-    std::cout << ute.TimeOfDay() << std::endl;
+    std::cout << ute.GetTimeOfDayString() << std::endl;
+    std::cout << ute.GetTimeOfDay() << std::endl;
 
     double i = 1;
     double n = 10;

@@ -15,7 +15,7 @@ find_package(ZMQ REQUIRED)
 set(PROJ_NAME zmq_helper)
 project (${PROJ_NAME})
 
-if(NOT ZMQ)
+if(NOT ZMQ_FOUND)
     message(" ------ ZMQ NOT FOUND - NOT BUILDING ZMQ MIDDLEWARE LIBRARY ------ ")
     return()
 endif()
