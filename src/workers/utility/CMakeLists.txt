@@ -8,6 +8,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(RE_PATH "$ENV{RE_PATH}")
 
 set(PROJ_NAME utility_worker)
+set(TESTER_NAME ${PROJ_NAME}_tester)
 
 project(${PROJ_NAME})
 
@@ -22,6 +23,8 @@ include_directories("${RE_PATH}/src")
 
 #Use this in production
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
+add_executable(${TESTER_NAME} utility_worker_test.cpp)
+
 
 if (MSVC)
  	#Visual studio needs to be told to build in Multithreaded Dynamically Linked mode
@@ -31,3 +34,4 @@ elseif(UNIX)
 endif(MSVC)
 
 target_link_libraries(${PROJ_NAME} re_core)
+target_link_libraries(${TESTER_NAME} ${PROJ_NAME})

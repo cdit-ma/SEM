@@ -17,9 +17,18 @@ set(OPENCL_LIB_ROOT ${OPENCL_ROOT}/lib/x86_64/sdk)
 
 project(${PROJ_NAME})
 
-message(${OPENCL_ROOT})
 find_library(OPENCL_LIB OpenCL ${OPENCL_LIB_ROOT})
 find_library(CLFFT_LIB clFFT ${CLFFT_ROOT}/lib64)
+
+if(NOT OPENCL_LIB)
+    message(" ------ OPENCL_LIB NOT FOUND - NOT BUILDING GPU WORKER ------ ")
+    return()
+endif()
+
+if(NOT CLFFT_LIB)
+    message(" ------ CLFFT_LIB NOT FOUND - NOT BUILDING GPU WORKER ------ ")
+    return()
+endif(NOT CLFFT_LIB)
 
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/gpu_worker.cpp
@@ -61,10 +70,6 @@ endif(MSVC)
 target_link_libraries(${PROJ_NAME} re_core)
 target_link_libraries(${PROJ_NAME} ${OPENCL_LIB})
 target_link_libraries(${PROJ_NAME} ${CLFFT_LIB})
-
-
-message(${CLFFT_LIB})
-message(OPENCL_LIB: ${OPENCL_LIB})
 
 target_link_libraries(${TESTER_NAME} ${PROJ_NAME})
 target_link_libraries(${TESTER_NAME} ${OPENCL_LIB})

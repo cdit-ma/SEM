@@ -15,6 +15,11 @@ find_package(ZMQ REQUIRED)
 set(PROJ_NAME zmq_helper)
 project (${PROJ_NAME})
 
+if(NOT ZMQ)
+    message(" ------ ZMQ NOT FOUND - NOT BUILDING ZMQ MIDDLEWARE LIBRARY ------ ")
+    return()
+endif()
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/zmqhelper.cpp
 	)

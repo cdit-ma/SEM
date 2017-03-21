@@ -58,9 +58,6 @@ add_executable(${PROJ_NAME} ${SOURCE} ${HEADERS})
 
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-message(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-
-
 if (MSVC)
 	#Windows requires protobuf in DLLs
     add_definitions(-DPROTOBUF_USE_DLLS)

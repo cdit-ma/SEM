@@ -12,6 +12,11 @@ find_package(RTIDDS REQUIRED)
 set(PROJ_NAME rti_helper)
 project (${PROJ_NAME})
 
+if(NOT RTIDDS)
+    message(" ------ RTI DDS NOT FOUND - NOT BUILDING RTI MIDDLEWARE LIBRARY ------ ")
+    return()
+endif()
+
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp
 	)

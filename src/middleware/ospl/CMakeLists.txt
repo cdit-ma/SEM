@@ -12,6 +12,11 @@ find_package(OpenSplice REQUIRED)
 set(PROJ_NAME ospl_helper)
 project (${PROJ_NAME})
 
+if(NOT OpenSplice)
+    message(" ------ OpenSplice NOT FOUND - NOT BUILDING OpenSplice MIDDLEWARE LIBRARY ------ ")
+    return()
+endif()
+
 #Find re_core library
 find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 
