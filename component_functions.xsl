@@ -390,6 +390,13 @@
 
                         <xsl:value-of select="concat($vector_var, '.at(', $index_var, ') = ', $value_var, ';')" />
                     </xsl:when>
+                    <xsl:when test="$operation = 'Resize'">
+                        <xsl:variable name="index" select="$input_parameters[2]" />
+                        <xsl:variable name="value" select="$input_parameters[3]" />
+                        <xsl:variable name="index_var" select="cdit:get_mutable_vector_path($index)" />
+                        <xsl:variable name="value_var" select="cdit:get_mutable_vector_path($value)" />
+                        <xsl:value-of select="concat($vector_var, '.resize(', $index_var, if($value_var != '') then ', ' else '',  $value_var, ');')" />
+                    </xsl:when>
                     <xsl:when test="$operation = 'Insert'">
                         <xsl:variable name="index" select="$input_parameters[2]" />
                         <xsl:variable name="value" select="$input_parameters[3]" />
@@ -415,6 +422,11 @@
                     </xsl:when>
                     <xsl:when test="$operation = 'Clear'">
                         <xsl:value-of select="concat($vector_var, '.clear();', o:nl())" />
+                    </xsl:when>
+                    <xsl:when test="$operation = 'Swap'">
+                        <xsl:variable name="vector" select="$input_parameters[2]" />
+                        <xsl:variable name="vector_var" select="cdit:get_mutable_vector_path($vector)" />
+                        <xsl:value-of select="concat($vector_var, '.swap(', $vector_var, ');')" />
                     </xsl:when>
                 </xsl:choose>
             </xsl:variable>
