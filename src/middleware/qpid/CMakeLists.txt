@@ -7,13 +7,13 @@ set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
 #Find ospl library
-find_package(OSPL REQUIRED)
+find_package(QPID REQUIRED)
 
-set(PROJ_NAME ospl_helper)
+set(PROJ_NAME qpid_helper)
 project (${PROJ_NAME})
 
-if(NOT OSPL_FOUND)
-    message(" ------ OSPL NOT FOUND - NOT BUILDING OSPL MIDDLEWARE LIBRARY ------ ")
+if(NOT QPID_FOUND)
+    message(" ------ QPID NOT FOUND - NOT BUILDING QPID MIDDLEWARE LIBRARY ------ ")
     return()
 endif()
 
@@ -21,16 +21,16 @@ endif()
 find_library(RE_CORE_LIBRARIES re_core "${RE_PATH}/lib")
 
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/qpidhelper.cpp
 	)
 
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/ddshelper.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/qpidhelper.h
     )
 
 add_library(${PROJ_NAME} SHARED ${SOURCE} ${HEADERS})
 
 include_directories("${RE_PATH}/includes")
-include_directories(${OSPL_INCLUDE_DIRS})
+include_directories(${QPID_INCLUDE_DIRS})
 
-target_link_libraries(${PROJ_NAME} ${OSPL_LIBRARIES})
+target_link_libraries(${PROJ_NAME} ${QPID_LIBRARIES})

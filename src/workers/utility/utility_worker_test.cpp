@@ -15,7 +15,7 @@ int main(){
 
     std::cout << __func__ << std::endl;
 
-    std::cout << ute.EvaluateComplexity("((n/i)*n*i*n*n)+c", n, i, 10) << std::endl;
+    std::cout << ute.EvaluateComplexity("cos(13*i*(2*pi)/L)", 1.0, 64.0) << std::endl;
 
     return 0;
 }
