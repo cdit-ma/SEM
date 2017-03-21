@@ -7,7 +7,7 @@ set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
 #Find rti library
-find_package(RTIDDS REQUIRED)
+find_package(RTIDDS)
 
 set(PROJ_NAME rti_helper)
 project (${PROJ_NAME})

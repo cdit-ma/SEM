@@ -7,7 +7,7 @@ set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
 #Find ospl library
-find_package(OSPL REQUIRED)
+find_package(OSPL)
 
 set(PROJ_NAME ospl_helper)
 project (${PROJ_NAME})

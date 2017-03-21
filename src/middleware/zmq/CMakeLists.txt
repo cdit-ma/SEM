@@ -10,7 +10,7 @@ set(RE_PATH "$ENV{RE_PATH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${RE_PATH}/cmake/modules")
 
 #Find ZeroMQ
-find_package(ZMQ REQUIRED)
+find_package(ZMQ)
 
 set(PROJ_NAME zmq_helper)
 project (${PROJ_NAME})
