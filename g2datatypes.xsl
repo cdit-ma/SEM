@@ -20,10 +20,13 @@
     <xsl:template match="/">
         <xsl:for-each select="$aggregates">
             <!-- Get all the children Members, VectorInstance, AggregateInstance -->
-            <xsl:variable name="members" as="element()*" select="cdit:get_entities_of_kind(., 'Member')" />
-            <xsl:variable name="vectors" as="element()*" select="cdit:get_entities_of_kind(., 'VectorInstance')" />
-            <xsl:variable name="aggregates" as="element()*" select="cdit:get_entities_of_kind(., 'AggregateInstance')" />
+            <xsl:variable name="members" as="element()*" select="cdit:get_child_entities_of_kind(., 'Member')" />
+            <xsl:variable name="vectors_inst" as="element()*" select="cdit:get_child_entities_of_kind(., 'VectorInstance')" />
+            <xsl:variable name="vectors_def" as="element()*" select="cdit:get_child_entities_of_kind(., 'Vector')" />
+            <xsl:variable name="vectors" as="element()*" select="$vectors_inst, $vectors_def" />
+            <xsl:variable name="aggregates" as="element()*" select="cdit:get_child_entities_of_kind(., 'AggregateInstance')" />
             
+
             <!-- Get the label of the Aggregate -->
             <xsl:variable name="aggregate_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />

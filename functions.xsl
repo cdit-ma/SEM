@@ -113,7 +113,7 @@
     <xsl:function name="o:cpp_var_decl">
         <xsl:param name="type" as="xs:string"  />
         <xsl:param name="name" as="xs:string"  />
-        <xsl:value-of select="concat(o:t(2), $type, ' ', $name, ';', o:nl())" />
+        <xsl:value-of select="concat($type, ' ', $name)" />
     </xsl:function>
 
     <xsl:function name="o:cmake_find_library">
@@ -316,7 +316,7 @@
 
         <!-- Forward declare the new type -->
         <xsl:value-of select="o:cpp_comment('Forward declare the concrete type')" />
-        <xsl:value-of select="o:forward_declare_class($idl_name, $aggregate_label_cc)" />
+        <xsl:value-of select="o:forward_declare_class($namespace, $aggregate_label_cc)" />
 
         <xsl:value-of select="o:nl()" />
         <xsl:value-of select="o:namespace($namespace)" />
@@ -411,6 +411,8 @@
         <!-- set RE_PATH -->
         <xsl:value-of select="concat('add_subdirectory(', o:dblquote_wrap($dir), ')',o:nl())" />
     </xsl:function>
+
+    
 
     <xsl:function name="o:cmake_set_re_path">
         <!-- set RE_PATH -->
@@ -564,6 +566,7 @@
         <xsl:variable name="vector_type_cpp">
             <xsl:choose>
                 <xsl:when test="$is_vector_complex">
+                    
                     <xsl:value-of select="concat('::', $vector_type)" />
                 </xsl:when>
                 <xsl:otherwise>
@@ -577,8 +580,9 @@
     <xsl:function name="cdit:get_aggregate_cpp_type">
         <xsl:param name="aggregate" />
 
+        <xsl:variable name="namespace" select="cdit:get_namespace($aggregate)" />
         <xsl:variable name="aggregate_type" select="cdit:get_key_value($aggregate, 'type')" />
-        <xsl:value-of select="concat('::', $aggregate_type)" />
+        <xsl:value-of select="concat($namespace, '::', $aggregate_type)" />
     </xsl:function>
 
     <xsl:function name="o:get_base_data_type_h">
@@ -588,6 +592,9 @@
         <xsl:param name="aggregates"/>
 
         <xsl:variable name="required_datatypes" select="cdit:get_required_datatypes($vectors, $aggregates)" />
+        <xsl:variable name="namespace" select="cdit:get_namespace($aggregate_root)" />
+
+        
 
         <!-- Get the label of the Aggregate -->
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
@@ -622,16 +629,18 @@
         </xsl:if>
 
         <!-- Define the class, Inherits from BaseMessage -->
-        <xsl:value-of select="concat('class ', $aggregate_label_cc, ' : public BaseMessage{', o:nl())" />
+        <xsl:if test="$namespace != ''">
+            <xsl:value-of select="concat('namespace ', $namespace, '{', o:nl())" />
+        </xsl:if>
+        <xsl:value-of select="concat(o:t(1), 'class ', $aggregate_label_cc, ' : public ::BaseMessage{', o:nl())" />
         <!-- Handle Members -->
         <xsl:for-each select="$members">
             <xsl:variable name="member_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="member_type" select="cdit:get_key_value(., 'type')" />
             <xsl:variable name="member_cpp_type" select="cdit:get_cpp_type($member_type)" />
 
-            <xsl:value-of select="concat(o:nl(), o:t(1))" />
-            <xsl:value-of select="o:cpp_comment(concat('Basic Member: ', $member_label, ' ', o:angle_wrap($member_type)))" />
-            <xsl:value-of select="o:declare_variable_functions($member_label, $member_cpp_type)" />
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('Basic Member: ', $member_label, ' ', o:angle_wrap($member_type)), 2)" />
+            <xsl:value-of select="o:declare_variable_functions($member_label, $member_cpp_type, 2)" />
         </xsl:for-each>
 
         <!-- Handle Vectors -->
@@ -639,9 +648,8 @@
             <xsl:variable name="vector_label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="vector_cpp_type" select="cdit:get_vector_cpp_type(.)" />
 
-            <xsl:value-of select="concat(o:nl(), o:t(1))" />
-            <xsl:value-of select="o:cpp_comment(concat('Vector Member: ', $vector_label, ' ',$vector_cpp_type))" />
-            <xsl:value-of select="o:declare_variable_functions($vector_label, $vector_cpp_type)" />
+            <xsl:value-of select="o:tabbed_cpp_comment(concat('Vector Member: ', $vector_label, ' ',$vector_cpp_type), 2)" />
+            <xsl:value-of select="o:declare_variable_functions($vector_label, $vector_cpp_type, 2)" />
         </xsl:for-each>
 
         <!-- Handle Aggregates -->
@@ -651,9 +659,13 @@
 
             <xsl:value-of select="concat(o:nl(), o:t(1))" />
             <xsl:value-of select="o:cpp_comment(concat('Aggregate Member: ', $aggregate_label, ' ', o:angle_wrap($aggregate_cpp_type)))" />
-            <xsl:value-of select="o:declare_variable_functions($aggregate_label, $aggregate_cpp_type)" />
+            <xsl:value-of select="o:declare_variable_functions($aggregate_label, $aggregate_cpp_type, 2)" />
         </xsl:for-each>
 
+        <xsl:if test="$namespace != ''">
+            <xsl:value-of select="concat(o:t(1), '};', o:nl())" />
+        </xsl:if>
+        
         <xsl:value-of select="concat('};', o:nl())" />
         <xsl:value-of select="o:define_guard_end($define_guard)" />
     </xsl:function>
@@ -664,12 +676,14 @@
         <xsl:param name="vectors"/>
         <xsl:param name="aggregates"/>
 
+        <xsl:variable name="namespace" select="cdit:get_namespace($aggregate_root)" />
+
         <!-- Get the label of the Aggregate -->
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
         <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
 
-        <xsl:variable name="class_name" select="$aggregate_label_cc" />
+        <xsl:variable name="class_name" select="concat(if($namespace != '') then concat($namespace, '::') else '', $aggregate_label_cc)" />
 
         <xsl:value-of select="o:local_include(concat($aggregate_label_lc, '.h'))" />
         <xsl:value-of select="o:nl()" />
@@ -1077,10 +1091,10 @@
         <xsl:variable name="aggregate_label" select="cdit:get_key_value($aggregate_root, 'label')" />
         <xsl:variable name="aggregate_label_cc" select="o:camel_case($aggregate_label)" />
         <xsl:variable name="aggregate_label_lc" select="lower-case($aggregate_label)" />
-        <xsl:variable name="idl_name" select="cdit:get_key_value($aggregate_root/../..,'label')" />
+        <xsl:variable name="namespace" select="'proto'" />
 
         <xsl:value-of select="concat('syntax = ', o:dblquote_wrap('proto3'), ';', o:nl())" />
-        <xsl:value-of select="concat('package ', $idl_name, ';', o:nl())" />
+        <xsl:value-of select="concat('package ', $namespace, ';', o:nl())" />
         <xsl:value-of select="o:nl()" />
 
         <xsl:for-each-group select="$required_datatypes" group-by=".">
@@ -1304,7 +1318,7 @@
                 <xsl:choose>
                     <xsl:when test="o:middleware_uses_protobuf($dst_mw)">
                         <!-- Primitive vectors in protobuf use an add_ function with value as a parameter -->
-                        <xsl:value-of select="concat(o:t(3), $out_var, o:fp(), o:cpp_mw_func(concat('add_', $vector_label), $src_mw),'(', $get_src_val, ');', o:nl())" />
+                        <xsl:value-of select="concat(o:t(3), $out_var, o:fp(), o:cpp_mw_func(concat('add_', lower-case($vector_label)), $src_mw),'(', $get_src_val, ');', o:nl())" />
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- Primitive vectors in other middlewares simply use indexed insertion -->
@@ -1629,26 +1643,27 @@
     <xsl:function name="o:declare_variable_functions">
         <xsl:param name="variable_name" as="xs:string" />
         <xsl:param name="variable_type" as="xs:string" />
+        <xsl:param name="tab" />
 
         <xsl:variable name="variable_ptr_type" select="concat($variable_type, o:and())" />
 
         
         <!-- Public Declarations -->
-        <xsl:value-of select="concat(o:t(1), 'public:', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab), 'public:', o:nl())" />
         <!-- Copy Setter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, ' val')), ';', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, ' val')), ';', o:nl())" />
         <!-- Pointer Setter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, '* val')), ';', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_func_def('void', '', o:cpp_base_set_func($variable_name), concat($variable_type, '* val')), ';', o:nl())" />
         
         <!-- Copy Getter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ' const;', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_func_def($variable_type, '', o:cpp_base_get_func($variable_name), ''), ' const;', o:nl())" />
         <!-- Inplace Getter -->
-        <xsl:value-of select="concat(o:t(2), o:cpp_func_def($variable_ptr_type, '', $variable_name, ''), ';', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_func_def($variable_ptr_type, '', $variable_name, ''), ';', o:nl())" />
         
         <!-- Private Declarations -->
-        <xsl:value-of select="concat(o:t(1), 'private:', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab), 'private:', o:nl())" />
         <!-- Variable -->
-        <xsl:value-of select="o:cpp_var_decl($variable_type, concat($variable_name, '_'))" />
+        <xsl:value-of select="concat(o:t($tab + 1), o:cpp_var_decl($variable_type, concat($variable_name, '_')), ';', o:nl())" />
     </xsl:function>
 
     <xsl:function name="o:define_variable_functions">
@@ -1974,7 +1989,7 @@
         <xsl:param name="node" as="element()*"/>
 
         <!-- Follow Definition Edges -->
-        <xsl:value-of select="'HelloWorld'" />
+        <xsl:value-of select="'Base'" />
     </xsl:function>
 
     <xsl:function name="cdit:get_subfolder_cmake">

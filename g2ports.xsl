@@ -36,12 +36,15 @@
                 <!-- Get the name of the IDL this aggregate belongs to -->
                 <xsl:variable name="idl_name" select="cdit:get_key_value(../..,'label')" />
 
-                <!-- Get the namespace for the Aggregate (camel-cased idl_name) -->
-                <xsl:variable name="namespace" select="o:camel_case($idl_name)" />
+                <!-- Get the namespace for the Aggregate (camel-cased idl_name) ,o:camel_case($idl_name) -->
+                <xsl:variable name="base_namespace" select="cdit:get_namespace(.)" />
+                <xsl:variable name="middleware_namespace" select="if(cdit:middleware_uses_protobuf($middleware) = true()) then 'proto' else $middleware" />
 
                 <!-- Get the Aggregate's child Member, VectorInstance, AggregateInstance -->
                 <xsl:variable name="members" as="element()*" select="cdit:get_child_entities_of_kind(., 'Member')" />
-                <xsl:variable name="vectors" as="element()*" select="cdit:get_child_entities_of_kind(., 'VectorInstance')" />
+                <xsl:variable name="vector_def" as="element()*" select="cdit:get_child_entities_of_kind(., 'Vector')" />
+                <xsl:variable name="vector_inst" as="element()*" select="cdit:get_child_entities_of_kind(., 'VectorInstance')" />
+                <xsl:variable name="vectors" as="element()*" select="$vector_def, $vector_inst" />
                 <xsl:variable name="aggregates" as="element()*" select="cdit:get_child_entities_of_kind(., 'AggregateInstance')" />
 
                 <!-- Get the label of the Aggregate -->
@@ -58,8 +61,8 @@
                 <xsl:variable name="base_mw" select="'base'" />
 
                 <!-- Setup the base type and middleware type-->            
-                <xsl:variable name="base_type" select="concat('::', $aggregate_label_cc)" />
-                <xsl:variable name="mw_type" select="concat($namespace, '::', $aggregate_label_cc)" />
+                <xsl:variable name="base_type" select="concat($base_namespace, '::', $aggregate_label_cc)" />
+                <xsl:variable name="mw_type" select="concat($middleware_namespace, '::', $aggregate_label_cc)" />
 
                 <!--Check whether this middleware builds a module/shared library-->
                 <xsl:variable name="builds_module" select="o:cmake_mw_builds_module($mw) = true()" />

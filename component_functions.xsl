@@ -39,6 +39,7 @@
         <xsl:param name="root"/>
         <xsl:param name="tab"/>
 
+        <xsl:variable name="namespace" select="cdit:get_namespace($root)" />
         <xsl:variable name="id" select="cdit:get_node_id($root)" />
         <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
         <xsl:variable name="type" select="cdit:get_key_value($root, 'type')" />
@@ -49,7 +50,7 @@
 
         <!-- Construct Object -->
         
-        <xsl:value-of select="concat(o:t($tab), '::', $type, ' ', $var_name, ';', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab), $namespace, '::', $type, ' ', $var_name, ';', o:nl())" />
         
         <!-- Get the Source ID's which data link to this element -->
         <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($root, 'Edge_Data', $id)" />
@@ -381,7 +382,7 @@
         <xsl:if test="$vector_var != ''">
             <xsl:variable name="vector_operation">
                 <xsl:choose>
-                    <xsl:when test="$operation = 'set'">
+                    <xsl:when test="$operation = 'Set'">
                         <xsl:variable name="index" select="$input_parameters[2]" />
                         <xsl:variable name="value" select="$input_parameters[3]" />
                         <xsl:variable name="index_var" select="cdit:get_mutable_vector_path($index)" />
@@ -389,30 +390,30 @@
 
                         <xsl:value-of select="concat($vector_var, '.at(', $index_var, ') = ', $value_var, ';')" />
                     </xsl:when>
-                    <xsl:when test="$operation = 'insert'">
+                    <xsl:when test="$operation = 'Insert'">
                         <xsl:variable name="index" select="$input_parameters[2]" />
                         <xsl:variable name="value" select="$input_parameters[3]" />
                         <xsl:variable name="index_var" select="cdit:get_mutable_vector_path($index)" />
                         <xsl:variable name="value_var" select="cdit:get_mutable_vector_path($value)" />
 
-                        <xsl:value-of select="concat($vector_var, '.insert(', $vector_var, '.begin() + ', $index_var, ', ', $value_var, ';')" />
+                        <xsl:value-of select="concat($vector_var, '.insert(', $vector_var, '.begin() + ', $index_var, ', ', $value_var, ');')" />
                     </xsl:when>
-                    <xsl:when test="$operation = 'get'">
+                    <xsl:when test="$operation = 'Get'">
                         <xsl:variable name="index" select="$input_parameters[2]" />
                         <xsl:variable name="index_var" select="cdit:get_mutable_vector_path($index)" />
 
                         <xsl:value-of select="concat($vector_var, '.at(', $index_var, ');')" />
                     </xsl:when>
-                    <xsl:when test="$operation = 'remove'">
+                    <xsl:when test="$operation = 'Remove'">
                         <xsl:variable name="index" select="$input_parameters[2]" />
                         <xsl:variable name="index_var" select="cdit:get_mutable_vector_path($index)" />
                         <!-- Get the value first, then Erase the element -->
                         <xsl:value-of select="concat($vector_var, '.get(', $index_var, ');', o:nl(), o:t($tab), $vector_var, '.erase(', $vector_var, '.begin() + ', $index_var, ');')" />
                     </xsl:when>
-                    <xsl:when test="$operation = 'length'">
+                    <xsl:when test="$operation = 'Length'">
                         <xsl:value-of select="concat($vector_var, '.size();', o:nl())" />
                     </xsl:when>
-                    <xsl:when test="$operation = 'clear'">
+                    <xsl:when test="$operation = 'Clear'">
                         <xsl:value-of select="concat($vector_var, '.clear();', o:nl())" />
                     </xsl:when>
                 </xsl:choose>
@@ -477,7 +478,7 @@
 
         <xsl:choose>
             <!-- Use Data Edges first -->
-            <xsl:when test="$worker = 'VectorOperation'">
+            <xsl:when test="$worker = 'Vector_Operations'">
                 <xsl:value-of select="cdit:generate_VectorProcess($root, $tab)" />
             </xsl:when>
             <xsl:when test="$worker = 'WE_UTE' and $operation = 'cppCode'">
@@ -522,18 +523,10 @@
                             <xsl:when test="$source_type = 'String'">
                                 <xsl:value-of select="concat(cdit:get_mutable_aggregate_path($source), '.c_str()')" />
                             </xsl:when>
-                            <xsl:when test="$source_type = 'Double' or $source_type = 'Integer'">
+                            <xsl:when test="$source_type = 'Double' or $source_type = 'Integer' or $source_type = 'Float'">
                                 <xsl:value-of select="concat('(double)', cdit:get_mutable_aggregate_path($source))" />
                             </xsl:when>
                         </xsl:choose>
-
-                        <!--<xsl:value-of select="concat(cdit:get_mutable_aggregate_path($source), if($source_type ='String') then '.c_str()' else '')" />-->
-                        
-                        <!--
-                        <xsl:variable name="target_value" select="cdit:get_dataedge_value($source)" />
-
-                        <xsl:value-of select="$target_value" />
-                        -->    
                     </xsl:for-each>
                 </xsl:when>
                 <!-- Use Value second -->
@@ -956,8 +949,8 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="'::'" />
-            <xsl:variable name="cpp_type" select="concat($namespace, $type)" />
+            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
+            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 2)" />
             <xsl:value-of select="concat(o:t(2), 'void In_', $label, '(', $cpp_type, ' m);', o:nl())" />
@@ -967,6 +960,7 @@
         <xsl:for-each select="$variables">
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
+
             <xsl:variable name="variable_type" select="cdit:get_variable_type(.)" />
             <xsl:variable name="var_name" select="cdit:get_var_name(.)" />
             <!-- Get the Variables child-->
@@ -1045,7 +1039,7 @@
             <xsl:for-each select="$variables">
                 <xsl:variable name="var_name" select="cdit:get_var_name(.)" />
                 <xsl:variable name="value" select="cdit:get_key_value(., 'value')" />
-                <xsl:if test="count($variables) > 0">
+                <xsl:if test="$value != ''">
                     <xsl:value-of select="concat(o:t(1), $var_name, ' = ', $value, ';' , o:nl())" />
                 </xsl:if>
             </xsl:for-each>
@@ -1081,8 +1075,8 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="'::'" />
-            <xsl:variable name="cpp_type" select="concat($namespace, $type)" />
+            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
+            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
             <xsl:variable name="function_name" select="cdit:get_ineventport_name(.)" />
 
             <xsl:value-of select="o:nl()" />
@@ -1176,8 +1170,8 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="'::'" />
-            <xsl:variable name="cpp_type" select="concat($namespace, $type)" />
+            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
+            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
             <xsl:variable name="function_name" select="cdit:get_ineventport_name(.)" />
 
             <xsl:value-of select="o:nl()" />
@@ -1190,8 +1184,8 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="namespace" select="'::'" />
-            <xsl:variable name="cpp_type" select="concat($namespace, $type)" />
+            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
+            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
             <xsl:variable name="function_name" select="cdit:get_outeventport_name(.)" />
 
 
@@ -1234,7 +1228,7 @@
         <xsl:variable name="rel_path" select="'../../'" />
         <xsl:variable name="class_name" select="concat($component_label_cc, 'Int')" />
         <xsl:variable name="header_path" select="concat(lower-case($class_name), '.h')" />
-        <xsl:variable name="namespace" select="concat($class_name, '::')" />
+        <xsl:variable name="component_namespace" select="$class_name" />
 
         <!-- Include Base Types -->
         <xsl:value-of select="o:local_include($header_path)" />
@@ -1254,7 +1248,7 @@
         
         <xsl:value-of select="o:nl()" />
         <!-- Define Constructor-->
-        <xsl:value-of select="concat($namespace, $class_name, '(std::string name): Component(name){', o:nl())" />
+        <xsl:value-of select="concat($class_name, '::', $class_name, '(std::string name): Component(name){', o:nl())" />
 
         <!-- Construct Attributes -->
         <xsl:for-each select="$attributes">
@@ -1284,7 +1278,8 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            <xsl:variable name="cpp_type" select="concat('::', $type)" />
+            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
+            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('InEventPort ', o:square_wrap($id), ': ', $label), 1)" />
@@ -1297,14 +1292,14 @@
             <xsl:variable name="id" select="cdit:get_node_id(.)" />
             <xsl:variable name="label" select="cdit:get_key_value(., 'label')" />
             <xsl:variable name="type" select="cdit:get_key_value(., 'type')" />
-            
-            <xsl:variable name="cpp_type" select="concat('::', $type)" />
+            <xsl:variable name="namespace" select="cdit:get_namespace(.)" />
+            <xsl:variable name="cpp_type" select="concat($namespace, '::', $type)" />
 
             <xsl:value-of select="o:nl()" />
             <xsl:value-of select="o:tabbed_cpp_comment(concat('OutEventPort ', o:square_wrap($id), ': ', $label), 0)" />
             
             <!--Define Function-->
-            <xsl:value-of select="concat('void ', $namespace, 'Out_', $label, '(', $cpp_type, ' m){', o:nl())" />
+            <xsl:value-of select="concat('void ', $class_name, '::', 'Out_', $label, '(', $cpp_type, ' m){', o:nl())" />
             
             <xsl:value-of select="concat(o:t(1), 'auto p = GetEventPort(', o:dblquote_wrap($label), ');', o:nl())" />
             <xsl:value-of select="concat(o:t(1), 'if(p){', o:nl())" />
