@@ -42,12 +42,15 @@
 #include "../Model/BehaviourDefinitions/workload.h"
 #include "../Model/BehaviourDefinitions/whileloop.h"
 #include "../Model/BehaviourDefinitions/workerprocess.h"
+#include "../Model/BehaviourDefinitions/header.h"
+#include "../Model/BehaviourDefinitions/code.h"
 
 
 
 
 #include "../Model/BehaviourDefinitions/inputparameter.h"
 #include "../Model/BehaviourDefinitions/returnparameter.h"
+#include "../Model/BehaviourDefinitions/variadicparameter.h"
 
 #include "../Model/BehaviourDefinitions/periodicevent.h"
 
@@ -228,7 +231,8 @@ ModelController::ModelController() :QObject(0)
 
 
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
-    behaviourNodeKinds << "WhileLoop" << "InputParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
+    behaviourNodeKinds << "WhileLoop" << "InputParameter" << "VariadicParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
+    behaviourNodeKinds << "Code" << "Header";
 
 
     //Append Kinds which can't be constructed by the GUI.
@@ -248,6 +252,7 @@ ModelController::ModelController() :QObject(0)
     constructableNodeKinds << "ManagementComponent";
 
     constructableNodeKinds << "InputParameter";
+    constructableNodeKinds << "VariadicParameter";
 
     constructableNodeKinds.removeDuplicates();
 
@@ -698,28 +703,30 @@ void ModelController::_setData(Entity *parent, QString keyName, QVariant dataVal
  */
 void ModelController::attachData(Entity *parent, Data *data, bool addAction)
 {
-    if(!parent || !data){
+    if(parent && data){
+        QString key_name = data->getKeyName();
+
+        //Construct an Action to reverse the action
+        EventAction action = getEventAction();
+        action.ID = data->getID();
+        action.parentID = parent->getID();
+        action.Action.type = CONSTRUCTED;
+        action.Action.kind = GraphML::GK_DATA;
+        action.Data.keyName = key_name;
+        action.Data.oldValue = data->getValue();
+
+        //Attach the Data to the parent
+        parent->addData(data);
+
+        //Set the New value of the undo action
+        action.Data.newValue = parent->getDataValue(key_name);
+
+
+        //Add an action to the stack.
+        addActionToStack(action, addAction);
+    }else{
         qCritical() << "attachData() parent or data is NULL!";
-        return;
     }
-
-    //Construct an Action to reverse the update
-    EventAction action = getEventAction();
-    action.ID = data->getID();
-    action.parentID = parent->getID();
-    action.Action.type = CONSTRUCTED;
-    action.Action.kind = GraphML::GK_DATA;
-    action.Data.keyName = data->getKeyName();
-    action.Data.oldValue = data->getValue();
-
-    //Attach the Data to the parent
-    parent->addData(data);
-
-    action.Data.newValue = parent->getDataValue(action.Data.keyName);
-
-
-    //Add an action to the stack.
-    addActionToStack(action, addAction);
 }
 
 /**
@@ -817,44 +824,13 @@ void ModelController::constructNode(int parentID, QString kind, QPointF centerPo
 
         QList<Data*> data;
         //Only allow construction of
-        if(kind == "InputParameter"){
-            Node* matchingParameter = 0;
-
-            QList<Node*> inputParameters = parentNode->getChildrenOfKind("InputParameter", 0);
-
-
-            //Look for matching variables.
-            foreach(Node* child, inputParameters){
-                QString label = child->getDataValue("label").toString();
-                QString type = child->getDataValue("type").toString();
-                if(type == "WE_UTE_VariableArguments"){
-                    //Clone the data.
-                    matchingParameter = child;
-                    break;
-                }
-            }
-            if(matchingParameter){
-                data = cloneNodesData(matchingParameter);
-                data.append(constructPositionDataVector(centerPoint));
-                foreach(Data* d, data){
-                    if(d->getKeyName() == "value"){
-                        d->setValue("");
-                        break;
-                    }
-                }
-            }else{
-                //If we don't have a matching parameter.
-                ignore = true;
-            }
-        }else if(kind == "Process"){
-            data = constructDataVector(kind, centerPoint);
-
-        }else if(kind == "DDS_QOSProfile"){
-            ignore = true;
+        if(kind == "DDS_QOSProfile"){
             constructDDSQOSProfile(parentID, centerPoint);
+            ignore = true;
         }else{
             data = constructDataVector(kind, centerPoint);
         }
+
         if(!ignore){
             triggerAction("Constructing Child Node");
             setData(parentID, "isExpanded", true);
@@ -935,12 +911,6 @@ void ModelController::constructWorkerProcess(int parentID, int workerProcessID, 
         if(processFunction){
             processFunction->setDataValue("x", pos.x());
             processFunction->setDataValue("y", pos.y());
-
-            QString label = processFunction->getDataValue("label").toString();
-            if(!(label == "cppCode" || label == "cppHeader")){
-                Key* protectedKey = constructKey("dataProtected", QVariant::Bool);
-                attachData(processFunction, new Data(protectedKey, true));
-            }
             success = true;
         }
     }
@@ -2578,9 +2548,6 @@ QList<Data *> ModelController::cloneNodesData(Node *original, bool ignoreVisuals
     foreach(Data* data, original->getData()){
         if(!ignoredKeys.contains(data->getKeyName())){
             Data* newData = Data::clone(data);
-            if(newData->getKeyName() == "kind" && data->getValue() == "WorkerProcess"){
-                newData->setValue("Process");
-            }
             clonedData << newData;
         }
     }
@@ -2610,6 +2577,7 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
     Key* heightKey = constructKey("height", QVariant::Double);
     Key* sortKey = constructKey("sortOrder", QVariant::Int);
     Key* expandedKey = constructKey("isExpanded", QVariant::Bool);
+    Key* valueKey = constructKey("value", QVariant::String);
 
     QList<Data*> data;
 
@@ -2625,10 +2593,6 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         labelString = "Untitled";
     }
 
-    if(nodeKind.endsWith("Parameter")){
-        labelString = "";
-    }
-
     data.append(new Data(kindKey, nodeKind));
 
     if(nodeKind.contains("Edge")){
@@ -2637,7 +2601,7 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
     }
 
     QStringList protectedLabels;
-    protectedLabels << "Parameter" << "ManagementComponent";
+    protectedLabels << "InputParameter"<< "ReturnParameter" << "ManagementComponent";
     protectedLabels.append(dds_QosNodeKinds);
 
     bool protectLabel = protectedLabels.contains(nodeKind);
@@ -2646,13 +2610,7 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
     labelData->setValue(labelString);
     labelData->setProtected(protectLabel);
 
-
-
     data.append(new Data(sortKey, -1));
-
-
-    //Attach Node Specific Data.
-
 
     if(nodeKind != "Model" && !nodeKind.endsWith("Definitions")){
         data.append(new Data(expandedKey, false));
@@ -2688,8 +2646,14 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         }
     }
 
-    if(nodeKind == "Vector"){
+    if(nodeKind == "AttributeInstance"){
         Data* typeData = new Data(typeKey);
+        typeData->setProtected(true);
+        data.append(typeData);
+    }
+
+    if(nodeKind == "Vector"){
+        Data* typeData = new Data(typeKey, "Vector");
         typeData->setProtected(true);
         data.append(typeData);
     }
@@ -2700,6 +2664,15 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
     if(editableTypeKinds.contains(nodeKind)){
         Data* typeData = new Data(typeKey, "String");
         typeData->setProtected(false);
+        data.append(typeData);
+    }
+
+    if(nodeKind == "Aggregate"){
+        Key* namespaceKey = constructKey("namespace", QVariant::String);
+        data.append(new Data(namespaceKey, "Base"));
+
+        Data* typeData = new Data(typeKey);
+        typeData->setProtected(true);
         data.append(typeData);
     }
 
@@ -2723,32 +2696,6 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
 
         freqData->setValue(1.0);
         data.append(freqData);
-    }
-    if(nodeKind == "Process"){
-        Key* actionOnKey = constructKey("actionOn", QVariant::String);
-
-        if(isUserAction() && !CONSTRUCTING_WORKERFUNCTION){
-            //If this is a user action, this is a blank process
-            Key* fileKey = constructKey("file", QVariant::String);
-            Key* folderKey = constructKey("folder", QVariant::String);
-            Key* operationKey = constructKey("operation", QVariant::String);
-
-            Key* parametersKey = constructKey("parameters", QVariant::String);
-            Key* codeKey = constructKey("code", QVariant::String);
-
-            Key* workerKey = constructKey("worker", QVariant::String);
-            Key* workerIDKey = constructKey("workerID", QVariant::String);
-
-            data.append(new Data(fileKey, "File"));
-            data.append(new Data(folderKey, "Folder"));
-            data.append(new Data(operationKey, "Operation"));
-            data.append(new Data(workerKey, "Worker"));
-            data.append(new Data(parametersKey, "/*USED FOR BLANK FUNCTIONS*/"));
-            data.append(new Data(codeKey, ""));
-            data.append(new Data(workerIDKey, "workerID"));
-        }
-
-        data.append(new Data(actionOnKey, "Mainprocess"));
     }
     if(nodeKind == "Condition"){
         Key* valueKey = constructKey("value", QVariant::String);
@@ -2789,16 +2736,9 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
     }
 
     if(nodeKind == "AttributeInstance"){
-        Key* valueKey = constructKey("value", QVariant::String);
         data.append(new Data(valueKey));
     }
-
-
-
-
-
     if(nodeKind == "Variable"){
-        Key* valueKey = constructKey("value", QVariant::String);
         data.append(new Data(valueKey));
     }
     if(nodeKind == "OutEventPortInstance" || nodeKind == "InEventPortInstance"){
@@ -2807,6 +2747,16 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
 
         Key* middlewareKey = constructKey("middleware", QVariant::String);
         data.append(new Data(middlewareKey));
+    }
+    if(nodeKind == "Header"){
+        auto path = constructKey("include_path", QVariant::String);
+        auto header = constructKey("header_name", QVariant::String);
+        data.append(new Data(path));
+        data.append(new Data(header));
+    }
+    if(nodeKind == "Code"){
+        auto code = constructKey("code", QVariant::String);
+        data.append(new Data(code));
     }
 
     if(nodeKind.endsWith("Instance") || nodeKind.endsWith("Impl")){
@@ -2825,14 +2775,18 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         data.append(new Data(asyncKey, true));
     }
 
-    if(nodeKind.endsWith("Parameter")){
+    if(nodeKind == "ReturnParameter"){
         data.append(new Data(typeKey));
+    }
+    if(nodeKind == "InputParameter"){
+        Data* typeData = new Data(typeKey);
+        typeData->setProtected(true);
+        data.append(typeData);
+        data.append(new Data(valueKey));
+    }
 
-        if(nodeKind == "InputParameter"){
-            Key* valueKey = constructKey("value", QVariant::String);
-            data.append(new Data(valueKey));
-        }
-
+    if(nodeKind == "VariadicParameter"){
+        data.append(new Data(valueKey));
     }
 
     if(dds_QosNodeKinds.contains(nodeKind)){
@@ -3477,54 +3431,44 @@ bool ModelController::reverseAction(EventAction action)
     }
     return success;
 }
+
+//Attachs a list of data
 bool ModelController::_attachData(Entity *item, QList<Data *> dataList, bool addAction)
 {
+    if(item){
+        foreach(Data* new_data, dataList){
+            Key* key = new_data->getKey();
+            Data* current_data = item->getData(key);
 
-    if(!item){
+            if(current_data){
+                //Set the new_data value onto the old value
+                _setData(item, key->getName(), new_data->getValue(), addAction);
+
+                //Protect the current_data if the new_data is protected.
+                if(new_data->isProtected() && !current_data->isProtected()){
+                    current_data->setProtected(true);
+                }
+            }else{
+                //Atach our new data
+                attachData(item, new_data, addAction);
+            }
+        }
+        return true;
+    }else{
         return false;
     }
-
-    bool isParameter = item->isNode() && ((Node*)item)->isNodeOfType(Node::NT_PARAMETER);
-
-    foreach(Data* data, dataList){
-        QString keyName = data->getKeyName();
-        //Check if the item has a Data already.
-        if(item->getData(keyName)){
-            if((keyName == "x" || keyName == "y") && (data->getValue() == "" || data->getValue() == "-1")){
-            }
-            _setData(item, keyName, data->getValue(), addAction);
-        }else{
-            attachData(item, data, addAction);
-        }
-
-        Data* updateData = item->getData(keyName);
-        if(updateData && data->isProtected()){
-            updateData->setProtected(true);
-        }
-
-        if(isParameter){
-            bool protect = keyName != "value";
-            updateData->setProtected(protect);
-        }
-    }
-    return true;
 }
 
 bool ModelController::_attachData(Entity *item, QString keyName, QVariant value, bool addAction)
 {
     Key* key = getKeyFromName(keyName);
-    if(!key){
-        return false;
+    if(key){
+        Data* data = new Data(key, value);
+        if(data){
+            return _attachData(item, data, addAction);
+        }
     }
-
-    Data* data = new Data(key);
-    if(!data){
-        return false;
-    }
-
-    data->setValue(value);
-
-    return _attachData(item, data, addAction);
+    return false;
 }
 
 
@@ -3945,8 +3889,14 @@ Node *ModelController::constructTypedNode(QString nodeKind, bool isTemporary, QS
         return new VectorInstance();
     }else if(nodeKind == "InputParameter"){
         return new InputParameter();
+    }else if(nodeKind == "VariadicParameter"){
+        return new VariadicParameter();
     }else if(nodeKind == "ReturnParameter"){
         return new ReturnParameter();
+    }else if(nodeKind == "Code"){
+        return new Code();
+    }else if(nodeKind == "Header"){
+        return new Header();
     }else if(nodeKind == "DDS_QOSProfile"){
         return new DDS_QOSProfile();
     }else if(nodeKind == "DDS_DeadlineQosPolicy"){
@@ -4445,35 +4395,46 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
     //Bind special stuffs.
     Node* inputParent = input->getParentNode();
     if(inputParent){
-        if(inputParent->getNodeKind() == Node::NK_PROCESS){
+        if(inputParent->getNodeKind() == Node::NK_WORKER_PROCESS){
             QString workerName = inputParent->getDataValue("worker").toString();
-            QString operationName = inputParent->getDataValue("operation").toString();
             QString parameterLabel = input->getDataValue("label").toString();
 
-            if(workerName == "VectorOperation" && parameterLabel == "vector"){
-                QStringList bindableFunctionTypes;
-                bindableFunctionTypes << "get" << "set" << "remove";
+            if(workerName == "Vector_Operations"){
+                if(parameterLabel == "Vector" || parameterLabel == "VectorA"){
+                    Node* vector = output;
+                    Node* vector_child = 0;
 
-                Node* bindNode = output;
-                if(output->childrenCount() == 1){
-                    //If this is a complex Vector Bind the child.
-                    bindNode = output->getChildren(0)[0];
-                }
+                    //If Vector has children
+                    if(vector->childrenCount() == 1){
+                        vector_child = vector->getChildren(0)[0];
+                    }
 
-                Data* vectorType = bindNode->getData("type");
+                    //Check the siblings of the input
+                    foreach(Node* child, input->getSiblings()){
 
-
-                if(bindableFunctionTypes.contains(operationName)){
-                    foreach(Node* child, inputParent->getChildren(0)){
-                        if(child->isNodeOfType(Node::NT_PARAMETER)){
+                        if(child && child->isNodeOfType(Node::NT_PARAMETER)){
                             Parameter* parameter = (Parameter*) child;
-                            if(parameter && parameter->getDataValue("label") == "value"){
-                                Data* parameterType = parameter->getData("type");
+                            QString parameter_label = parameter->getDataValue("label").toString();
+
+                            Data* parameter_type = parameter->getData("type");
+                            Data* bind_type = 0;
+
+                            if(parameter_label == "Value" || parameter_label == "Default_Value"){
+                                //Bind the Type of the child in the Vector
+                                bind_type = vector_child->getData("type");
+                            }else if(parameter_label == "VectorB"){
+                                //Bind the Type of the actual vector.
+                                bind_type = vector->getData("type");
+                            }
+
+                            if(parameter_type){
                                 if(setup){
-                                    parameterType->setParentData(vectorType);
+                                    if(bind_type){
+                                        parameter_type->setParentData(bind_type);
+                                    }
                                 }else{
-                                    parameterType->unsetParentData();
-                                    parameterType->clearValue();
+                                    parameter_type->unsetParentData();
+                                    parameter_type->clearValue();
                                 }
                             }
                         }
@@ -4485,87 +4446,6 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
     return true;
 }
 
-
-
-bool ModelController::setupParameterRelationship(Parameter *parameter, Node *data)
-{
-    //Get Process
-    Node* parameterParent = parameter->getParentNode();
-
-
-    Process* process = dynamic_cast<Process*>(parameterParent);
-
-    if(parameter->isInputParameter()){
-        Data* value = parameter->getData("value");
-
-        QString dataKind = data->getNodeKindStr();
-        Node* dataParent = data->getParentNode();
-        if(dataKind == "VectorInstance"){
-            if(dataParent->getNodeKindStr() == "Variable"){
-                //Bind the label of the variable to the parameter.
-                Data* label = dataParent->getData("label");
-                value->setParentData(label);
-            }
-        }
-
-        if(dataKind == "Variable"){
-            //Bind the label of the variable to the parameter.
-            Data* label = data->getData("label");
-            Data* type = data->getData("type");
-            value->setParentData(label);
-
-            //Protect the type so that people can't change it once it's connected.
-            type->setProtected(true);
-        }
-
-        if(process){
-            QString workerName = process->getDataValue("worker").toString();
-            QString operationName = process->getDataValue("operation").toString();
-            if(workerName == "VectorOperation" && parameter->getDataValue("label") == "vector"){
-                Data* bindData = data->getData("type");
-                if(dataKind == "VectorInstance"){
-                    if(data->childrenCount() == 1){
-                        bindData = data->getChildren(0)[0]->getData("type");
-                    }
-                }
-
-                QStringList bindValueParameterType;
-                bindValueParameterType << "get" << "set" << "remove";
-                if(bindValueParameterType.contains(operationName)){
-                    //Find return Parameter;
-                    foreach(Node* child, process->getChildren(0)){
-                        Parameter* parameter = dynamic_cast<Parameter*>(child);
-                        if(parameter && parameter->getDataValue("label") == "value"){
-                            Data* returnType = parameter->getData("type");
-                            returnType->setParentData(bindData);
-                        }
-                    }
-                }
-            }
-
-        }
-    }
-    return true;
-}
-
-bool ModelController::teardownParameterRelationship(Parameter *parameter, Node *data)
-{
-    if(parameter->isInputParameter()){
-        QString dataKind = data->getNodeKindStr();
-        Node* dataParent = data->getParentNode();
-        if(dataKind == "VectorInstance"){
-            if(dataParent->getNodeKindStr() == "Variable"){
-                //Bind the label of the variable to the parameter.
-                Data* label = dataParent->getData("label");
-                label->unsetParentData();
-                label->clearValue();
-            }
-        }
-    }
-
-    return false;
-
-}
 
 /**
  * @brief NewController::teardownDefinitionRelationship
@@ -5867,8 +5747,13 @@ bool ModelController::canRemove(QList<Entity *> selection)
                         }
                         break;
                     }
-                    case Node::NK_INPUTPARAMETER:
-                    case Node::NK_RETURNPARAMETER:{
+                    case Node::NK_INPUT_PARAMETER:{
+                        if(!node->getDataValue("is_variadic").toBool()){
+                            return false;
+                        }
+                        break;
+                    }
+                    case Node::NK_RETURN_PARAMETER:{
                         return false;
                         break;
                     }

@@ -81,8 +81,9 @@ QStringList ViewController::getNodeKinds()
     nodeKinds << "AggregateInstance";
     nodeKinds << "ComponentImpl";
     nodeKinds << "Vector";
+    nodeKinds << "VariadicParameter";
 
-    //nodeKinds << "Vector" << "VectorInstance";
+    nodeKinds << "Code" << "Header";
 
     nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
     nodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "WorkerProcess";
@@ -98,6 +99,7 @@ QStringList ViewController::getNodeKinds()
     nodeKinds << "OutEventPortImpl" << "InEventPortImpl";
     nodeKinds.removeDuplicates();
 
+    nodeKinds.sort();
     return nodeKinds;
 }
 
@@ -317,8 +319,9 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     break;
                 }
 
-                case Node::NK_INPUTPARAMETER:
-                case Node::NK_RETURNPARAMETER:{
+                case Node::NK_INPUT_PARAMETER:
+                case Node::NK_VARIADIC_PARAMETER:
+                case Node::NK_RETURN_PARAMETER:{
                         QString type = nodeViewItem->getData("type").toString();
                         if(type == "WE_UTE_Vector" || type == "WE_UTE_VariableArguments"){
                             alias = "Data";

@@ -10,18 +10,14 @@ Vector::Vector(): Node(Node::NK_VECTOR)
 
 QString Vector::getVectorType()
 {
-    QString vectorType = "vector";
+    QString vectorType = "Vector";
     QString childType;
     Node* child = getFirstChild();
     if(child){
         //Check Type
         switch(child->getNodeKind()){
-        case NK_MEMBER:{
-            childType = child->getDataValue("type").toString();
-            break;
-        }
+        case NK_MEMBER:
         case NK_AGGREGATE_INSTANCE:{
-            vectorType = "complex_vector";
             childType = child->getDataValue("type").toString();
             break;
         }
@@ -30,7 +26,7 @@ QString Vector::getVectorType()
         }
     }
     if(childType != ""){
-        childType = "<" + childType + ">";
+        childType = "::" + childType;
     }
     return vectorType + childType;
 }

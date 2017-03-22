@@ -19,6 +19,8 @@ bool ComponentImpl::canAdoptChild(Node *child)
         case Node::NK_PROCESS:
         case Node::NK_WORKER_PROCESS:
         case Node::NK_WHILELOOP:
+        case Node::NK_CODE:
+        case Node::NK_HEADER:
             break;
     default:
         return false;

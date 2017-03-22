@@ -7,10 +7,11 @@ class Vector : public Node
     Q_OBJECT
 public:
     Vector();
-    QString getVectorType();
 
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+private:
+    QString getVectorType();
 private slots:
     void updateType();
     void childrenChanged();

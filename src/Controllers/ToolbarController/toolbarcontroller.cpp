@@ -118,8 +118,10 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
                     hardwareIDs.append(ID);
                     emit hardwareCreated(ID);
                 } else if ((node->getNodeKind() == Node::NK_WORKER_PROCESS) || (node->getNodeKind() == Node::NK_WORKER_DEFINITIONS)) {
-                    workerProcessIDs.append(ID);
-                    emit workerProcessCreated(ID);
+                    if(node->getViewAspect() == Node::NK_WORKER_DEFINITIONS){
+                        workerProcessIDs.append(ID);
+                        emit workerProcessCreated(ID);
+                    }
                 }
             }
         }

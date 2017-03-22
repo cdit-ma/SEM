@@ -17,22 +17,24 @@
     <graph id="G">
         <node id="n0">
             <data key="kind">Workload</data>
-            <data key="worker">memory_worker</data>
+            <data key="worker">Memory_Worker</data>
             <data key="label">Memory Worker</data>
             <data key="description">Provides memory (RAM) functionality.</data>
             <graph id="n0:">
                 <node id="n0::n0">
                     <data key="kind">WorkerProcess</data>
                     <data key="label">Allocate</data>
-                    <data key="worker">memory_worker</data>
+                    <data key="worker">Memory_Worker</data>
                     <data key="operation">Allocate</data>
+                    <data key="folder">${RE_PATH}/src/workers/memory</data>
+                    <data key="file">memory_worker</data>
                     <data key="description">Allocates n bytes of memory.</data>
                     <data key="workerID">memory_worker</data>
                     <graph id="n0::n0:">
                         <node id="n0::n0::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Kilobytes</data>
-                            <data key="type">UnsignedLongInteger</data>
+                            <data key="type">Double</data>
                             <data key="description">The number of bytes to allocate.</data>
                         </node>
                     </graph>
@@ -40,7 +42,9 @@
                 <node id="n0::n1">
                     <data key="kind">WorkerProcess</data>
                     <data key="label">Deallocate</data>
-                    <data key="worker">memory_worker</data>
+                    <data key="worker">Memory_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/memory</data>
+                    <data key="file">memory_worker</data>
                     <data key="operation">Deallocate</data>
                     <data key="description">Deallocates n kilobytes of memory.</data>
                     <data key="workerID">memory_worker</data>
@@ -48,7 +52,7 @@
                         <node id="n0::n1::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Kilobytes</data>
-                            <data key="type">DoubleNumber</data>
+                            <data key="type">Double</data>
                             <data key="description">The number of kilobytes to deallocate.</data>
                         </node>
                     </graph>
@@ -56,14 +60,17 @@
                 <node id="n0::n2">
                     <data key="kind">WorkerProcess</data>
                     <data key="label">GetAllocatedCount</data>
-                    <data key="worker">vector_operations</data>
+                    <data key="worker">Memory_Worker</data>
+                    <data key="folder">${RE_PATH}/src/workers/memory</data>
+                    <data key="file">memory_worker</data>
                     <data key="operation">GetAllocatedCount</data>
                     <data key="description">Returns the number of kilobytes of memory currently allocated..</data>
+                    <data key="workerID">memory_worker</data>
                     <graph id="n0::n2:">
                         <node id="n0::n2::n0">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Kilobytes</data>
-                            <data key="type">DoubleNumber</data>
+                            <data key="type">Double</data>
                             <data key="description">The number of kilobytes of allocated memory.</data>
                         </node>
                     </graph>

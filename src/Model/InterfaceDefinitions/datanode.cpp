@@ -76,6 +76,10 @@ bool DataNode::comparableTypes(DataNode *node)
     numberTypes << "Float" << "Double" << "Integer" << "Boolean";
 
     if(node){
+        if(node->getNodeKind() == NK_VARIADIC_PARAMETER){
+           return true;
+        }
+
         //Types
         QString type1 = getDataValue("type").toString();
         QString type2 = node->getDataValue("type").toString();
@@ -84,6 +88,7 @@ bool DataNode::comparableTypes(DataNode *node)
             //Allow direct matches.
             return true;
         }
+
         if(numberTypes.contains(type1) && numberTypes.contains(type2)){
             //Allow matches of numbers
             return true;

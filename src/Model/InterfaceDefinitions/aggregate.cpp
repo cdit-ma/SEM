@@ -1,10 +1,32 @@
 #include "aggregate.h"
+#include "../data.h"
 
 Aggregate::Aggregate(): Node(Node::NK_AGGREGATE)
 {
     setNodeType(Node::NT_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_AGGREGATE);
+
+    connect(this, &Node::dataChanged, this, &Aggregate::updateType);
+}
+
+
+QString Aggregate::getType()
+{
+    QString agg_namespace = getDataValue("namespace").toString();
+    QString agg_label = getDataValue("label").toString();
+    return agg_namespace + "::" + agg_label;
+}
+
+void Aggregate::updateType(int ID, QString keyName)
+{
+    if(keyName == "label" || keyName == "namespace"){
+        //Get Data
+        Data* d = getData("type");
+        if(d){
+            d->setValue(getType());
+        }
+    }
 }
 
 bool Aggregate::canAdoptChild(Node *child)

@@ -16,9 +16,11 @@ public:
     void setProtected(bool protect);
     bool isProtected() const;
 
+
+
     bool setValue(QVariant value);
 
-    void setParentData(Data* parentData, bool protect = true);
+    void setParentData(Data* parentData);
     Data* getParentData();
     void unsetParentData();
 
@@ -43,6 +45,7 @@ signals:
 private slots:
     void parentDataChanged(int ID, QString keyName, QVariant data);
 private:
+    void updateProtected();
     void updateChildren(bool changed = true);
     Entity* _parent;
     Key* _key;
@@ -51,6 +54,7 @@ private:
     QString _keyName;
 
     bool _isProtected;
+    bool _isDataLinked;
     QVariant _value;
     QHash<int, Data*> _childData;
 

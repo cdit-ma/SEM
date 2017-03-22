@@ -2,7 +2,7 @@
 #include "parameter.h"
 #include "variable.h"
 
-ReturnParameter:: ReturnParameter(): Parameter(NK_RETURNPARAMETER)
+ReturnParameter:: ReturnParameter(): Parameter(NK_RETURN_PARAMETER)
 {
     setDataProducer(true);
     setDataReciever(false);

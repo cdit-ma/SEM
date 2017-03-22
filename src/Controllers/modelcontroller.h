@@ -545,9 +545,6 @@ private:
 
     bool setupDataEdgeRelationship(DataNode *outputNode, DataNode *inputNode, bool setup = true);
 
-    bool setupParameterRelationship(Parameter* parameter, Node* data);
-    bool teardownParameterRelationship(Parameter* parameter, Node* data);
-
     //Checks to see if the provided GraphML document is Valid XML.
     bool isGraphMLValid(QString inputGraphML);
 

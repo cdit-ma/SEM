@@ -9,12 +9,17 @@ Parameter::Parameter(Node::NODE_KIND kind):DataNode(kind)
 
 bool Parameter::isInputParameter() const
 {
-    return getNodeKind() == NK_INPUTPARAMETER;
+    return getNodeKind() == NK_INPUT_PARAMETER;
+}
+
+bool Parameter::isVariadicParameter() const
+{
+    return getNodeKind() == NK_VARIADIC_PARAMETER;
 }
 
 bool Parameter::isReturnParameter() const
 {
-    return getNodeKind() == NK_RETURNPARAMETER;
+    return getNodeKind() == NK_RETURN_PARAMETER;
 }
 
 bool Parameter::canAdoptChild(Node*)
@@ -32,10 +37,16 @@ bool Parameter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     case Edge::EC_DATA:{
         if(dst->isNodeOfType(NT_PARAMETER)){
             Parameter* parameter = (Parameter*) dst;
+            //Allow connection to things in the same component
             if(getDepthFromCommonAncestor(dst) == 1){
                 return false;
             }
-            if(isInputParameter() == parameter->isInputParameter()){
+            if(!isReturnParameter()){
+                //Only allow connections from Return Parameters
+                return false;
+            }
+            if(!(parameter->isInputParameter() || parameter->isVariadicParameter())){
+                //Allow connection to Input Parameters or VariadicParameter
                 return false;
             }
         }

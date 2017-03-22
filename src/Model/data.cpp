@@ -75,6 +75,10 @@ Entity *Data::getParent()
 void Data::setProtected(bool protect)
 {
     _isProtected = protect;
+    updateProtected();
+}
+
+void Data::updateProtected(){
     if(getParent()){
         _parent->_dataProtected(this);
     }
@@ -82,7 +86,7 @@ void Data::setProtected(bool protect)
 
 bool Data::isProtected() const
 {
-    return _isProtected;
+    return _isDataLinked || _isProtected;
 }
 
 
@@ -104,7 +108,7 @@ bool Data::setValue(QVariant value)
     return _dataChanged;
 }
 
-void Data::setParentData(Data *parentData, bool protect)
+void Data::setParentData(Data *parentData)
 {
     unsetParentData();
 
@@ -112,7 +116,8 @@ void Data::setParentData(Data *parentData, bool protect)
         parentData->addChildData(this);
         _parentData = parentData;
         _parentDataID = parentData->getID();
-        setProtected(protect);
+        _isDataLinked = true;
+        updateProtected();
     }
 }
 
@@ -127,8 +132,9 @@ void Data::unsetParentData()
         _parentData->removeChildData(this);
         _parentData = 0;
         _parentDataID = -1;
+        _isDataLinked = false;
         //Update to use the parents protected status.
-        setProtected(_key->isProtected());
+        updateProtected();
     }
 }
 

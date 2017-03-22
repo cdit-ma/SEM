@@ -11,33 +11,34 @@
     <key attr.name="folder" attr.type="string" for="all" id="folder"/>
     <key attr.name="file" attr.type="string" for="all" id="file"/>
     <key attr.name="icon" attr.type="string" for="all" id="icon"/>
+
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
 
     <graph id="G">
         <node id="n0">
             <data key="kind">Workload</data>
-            <data key="worker">vector_operations</data>
+            <data key="worker">Vector_Operations</data>
             <data key="label">Vector Operations</data>
             <data key="description">Provides Vector handling functionality.</data>
             <graph id="n0:">
                 <node id="n0::n0">
                     <data key="kind">WorkerProcess</data>
                     <data key="label">Get</data>
-                    <data key="worker">vector_operations</data>
+                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Get</data>
                     <data key="description">Returns an element from a std::vector at an index.</data>
                     <graph id="n0::n0:">
                         <node id="n0::n0::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">vector</data>
+                            <data key="type">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n0::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
-                            <data key="type">UnsignedLongInteger</data>
+                            <data key="type">Integer</data>
                             <data key="description">The Index.</data>
                         </node>
                         <node id="n0::n0::n2">
@@ -50,20 +51,20 @@
                 <node id="n0::n1">
                     <data key="kind">WorkerProcess</data>
                     <data key="label">Remove</data>
-                    <data key="worker">vector_operations</data>
+                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Get</data>
                     <data key="description">Returns and then removes an element from a std::vector at an index.</data>
                     <graph id="n0::n1:">
                         <node id="n0::n1::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">vector</data>
+                            <data key="type">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n1::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
-                            <data key="type">UnsignedLongInteger</data>
+                            <data key="type">Integer</data>
                             <data key="description">The Index.</data>
                         </node>
                         <node id="n0::n1::n2">
@@ -76,20 +77,20 @@
                 <node id="n0::n3">
                     <data key="kind">WorkerProcess</data>
                     <data key="label">Insert</data>
-                    <data key="worker">vector_operations</data>
+                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Insert</data>
                     <data key="description">Inserts an element into a std::vector at an index (Will change length)</data>
                     <graph id="n0::n3:">
                         <node id="n0::n3::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">vector</data>
+                            <data key="type">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n3::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
-                            <data key="type">UnsignedLongInteger</data>
+                            <data key="type">Integer</data>
                             <data key="description">The Index.</data>
                         </node>
                         <node id="n0::n3::n2">
@@ -101,21 +102,21 @@
                 </node>
                 <node id="n0::n4">
                     <data key="kind">WorkerProcess</data>
-                    <data key="label">Replace</data>
-                    <data key="worker">vector_operations</data>
-                    <data key="operation">Insert</data>
+                    <data key="label">Set</data>
+                    <data key="worker">Vector_Operations</data>
+                    <data key="operation">Set</data>
                     <data key="description">Replaces an element into a std::vector at an index</data>
                     <graph id="n0::n4:">
                         <node id="n0::n4::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">vector</data>
+                            <data key="type">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n4::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
-                            <data key="type">UnsignedLongInteger</data>
+                            <data key="type">Integer</data>
                             <data key="description">The Index.</data>
                         </node>
                         <node id="n0::n4::n2">
@@ -128,20 +129,20 @@
                 <node id="n0::n5">
                     <data key="kind">WorkerProcess</data>
                     <data key="label">Length</data>
-                    <data key="worker">vector_operations</data>
+                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Length</data>
                     <data key="description">Gets the length of a std::vector.</data>
                     <graph id="n0::n5:">
                         <node id="n0::n5::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">vector</data>
+                            <data key="type">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n5::n1">
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Length</data>
-                            <data key="type">UnsignedLongInteger</data>
+                            <data key="type">Integer</data>
                             <data key="description">The number of elements in the vector.</data>
                         </node>
                     </graph>
@@ -149,14 +150,61 @@
                 <node id="n0::n6">
                     <data key="kind">WorkerProcess</data>
                     <data key="label">Clear</data>
-                    <data key="worker">vector_operations</data>
+                    <data key="worker">Vector_Operations</data>
                     <data key="operation">Clear</data>
                     <data key="description">Empties the std::vector.</data>
                     <graph id="n0::n6:">
                         <node id="n0::n6::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
-                            <data key="type">vector</data>
+                            <data key="type">Vector</data>
+                            <data key="description">The vector.</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n7">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">Resize</data>
+                    <data key="worker">Vector_Operations</data>
+                    <data key="operation">Resize</data>
+                    <data key="description">Resize an element from a std::vector at an index.</data>
+                    <graph id="n0::n7:">
+                        <node id="n0::n7::n0">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Vector</data>
+                            <data key="type">Vector</data>
+                            <data key="description">The vector.</data>
+                        </node>
+                        <node id="n0::n7::n1">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">Size</data>
+                            <data key="type">Integer</data>
+                            <data key="description">The size to set the vector.</data>
+                        </node>
+                        <node id="n0::n7::n2">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">DefaultValue</data>
+                            <data key="description">The value to fill the Vector with.</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n8">
+                    <data key="kind">WorkerProcess</data>
+                    <data key="label">Swap</data>
+                    <data key="worker">Vector_Operations</data>
+                    <data key="operation">Swap</data>
+                    <data key="description">Swaps two std::vectors.</data>
+                    <graph id="n0::n8:">
+                        <node id="n0::n8::n0">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">VectorA</data>
+                            <data key="type">Vector</data>
+                            <data key="description">The vector.</data>
+                        </node>
+                        <node id="n0::n8::n1">
+                            <data key="kind">InputParameter</data>
+                            <data key="label">VectorB</data>
+                            <data key="type">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                     </graph>

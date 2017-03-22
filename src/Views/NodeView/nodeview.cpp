@@ -732,6 +732,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 break;
             case Node::NK_AGGREGATE:
                 nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("type");
                 break;
             case Node::NK_WORKER_PROCESS:
             case Node::NK_PROCESS:
@@ -776,8 +777,17 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 break;
-            case Node::NK_INPUTPARAMETER:
-            case Node::NK_RETURNPARAMETER:
+            case Node::NK_INPUT_PARAMETER:
+            case Node::NK_VARIADIC_PARAMETER:
+                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setExpandEnabled(false);
+                nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                nodeItem->setTertiaryIcon("Items", nodeKindStr);
+                nodeItem->setTertiaryIconVisible(true);
+                nodeItem->setSecondaryTextKey("value");
+                break;
+
+            case Node::NK_RETURN_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_DATA);
@@ -801,6 +811,8 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
+            case Node::NK_CODE:
+            case Node::NK_HEADER:
             case Node::NK_WORKLOAD:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);

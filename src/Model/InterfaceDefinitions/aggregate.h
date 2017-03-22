@@ -9,6 +9,10 @@ public:
     Aggregate();
     bool canAdoptChild(Node* child);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+private:
+    QString getType();
+private slots:
+    void updateType(int ID, QString keyName);
 };
 
 

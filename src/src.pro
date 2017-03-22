@@ -182,7 +182,10 @@ HEADERS += \
     Model/nodefactory.h \
     Model/edgefactory.h \
     Views/Notification/notificationitem.h \
-    Utils/filtergroup.h
+    Utils/filtergroup.h \
+    Model/BehaviourDefinitions/variadicparameter.h \
+    Model/BehaviourDefinitions/code.h \
+    Model/BehaviourDefinitions/header.h
 
 
 SOURCES += \
@@ -357,7 +360,10 @@ SOURCES += \
     Model/nodefactory.cpp \
     Model/edgefactory.cpp \
     Views/Notification/notificationitem.cpp \
-    Utils/filtergroup.cpp
+    Utils/filtergroup.cpp \
+    Model/BehaviourDefinitions/variadicparameter.cpp \
+    Model/BehaviourDefinitions/code.cpp \
+    Model/BehaviourDefinitions/header.cpp
 
 RESOURCES += \
 	resources.qrc

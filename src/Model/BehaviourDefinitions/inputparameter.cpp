@@ -1,6 +1,6 @@
 #include "inputparameter.h"
 
-InputParameter::InputParameter(): Parameter(NK_INPUTPARAMETER)
+InputParameter::InputParameter(): Parameter(NK_INPUT_PARAMETER)
 {
     setDataReciever(true);
     setDataProducer(false);

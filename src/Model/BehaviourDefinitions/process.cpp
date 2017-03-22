@@ -1,6 +1,6 @@
 #include "process.h"
 #include "parameter.h"
-
+#include "../data.h"
 Process::Process(NODE_KIND kind):BehaviourNode(kind){
     setWorkflowReciever(true);
     setWorkflowProducer(true);
@@ -17,10 +17,19 @@ bool Process::canAdoptChild(Node* node)
     Parameter* parameter = (Parameter*)node;
 
     if(parameter->isReturnParameter()){
-        if(!getChildrenOfKind(NK_RETURNPARAMETER, 0).isEmpty()){
+        if(!getChildrenOfKind(NK_RETURN_PARAMETER, 0).isEmpty()){
             return false;
         }
     }
+    if(parameter->isVariadicParameter()){
+        //Check to see if worker function is variadic
+        auto d = getData("is_variadic");
+        if(d && !d->getValue().toBool()){
+            //If we are variadic
+            return false;
+        }
+    }
+
     return BehaviourNode::canAdoptChild(node);
 }
 

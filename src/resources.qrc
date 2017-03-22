@@ -61,6 +61,8 @@
         <file alias="Edge_Aggregate">Resources/Images/Items/Edge_Aggregate.png</file>
         <file alias="Edge_Data">Resources/Images/Items/Edge_Data.png</file>
         <file alias="Edge_Workflow">Resources/Images/Items/Edge_Workflow.png</file>
+        <file alias="Code">Resources/Images/Items/Code.png</file>
+        <file alias="Header">Resources/Images/Items/Header.png</file>
     </qresource>
     <qresource prefix="/">
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>

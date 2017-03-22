@@ -9,6 +9,7 @@ public:
     Parameter(NODE_KIND kind);
 
     bool isInputParameter() const;
+    bool isVariadicParameter() const;
     bool isReturnParameter() const;
 
 
