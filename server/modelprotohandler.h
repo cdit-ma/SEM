@@ -17,59 +17,46 @@
  * License along with this library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
- 
-#ifndef LOGAN_SERVER_LOGPROTOHANDLER_H
-#define LOGAN_SERVER_LOGPROTOHANDLER_H
 
-#include <string>
-#include <vector>
+#ifndef LOGAN_SERVER_MODELPROTOHANDLER_H
+#define LOGAN_SERVER_MODELPROTOHANDLER_H
+
+#include "protohandler.h"
+
 #include <map>
 #include <set>
-#include "sqlite3.h"
-
 #include <google/protobuf/message_lite.h>
+
 class Table;
-class ZMQReceiver;
-class SQLiteDatabase;
-namespace google { namespace protobuf { class MessageLite; } }
-namespace zmq{
-    class ProtoReceiver;
-}
-class LogProtoHandler{
+
+class ModelProtoHandler : public ProtoHandler{
     public:
-        LogProtoHandler(std::string database_file, std::vector<std::string> addresses);
-        ~LogProtoHandler();
+        ModelProtoHandler();
+        ~ModelProtoHandler();
+
+        void ConstructTables(SQLiteDatabase* database);
+        void BindCallbacks(zmq::ProtoReceiver* receiver);
+        
     private:
-        void ProcessSystemStatus(google::protobuf::MessageLite* status);
-        void ProcessOneTimeSystemInfo(google::protobuf::MessageLite* info);
-
-        void ProcessLifecycleEvent(google::protobuf::MessageLite* message);
-        void ProcessMessageEvent(google::protobuf::MessageLite* message);
-        void ProcessUserEvent(google::protobuf::MessageLite* message);
-        void ProcessWorkloadEvent(google::protobuf::MessageLite* message);
-        void ProcessComponentUtilizationEvent(google::protobuf::MessageLite* message);
-
-        zmq::ProtoReceiver* receiver_;
-        SQLiteDatabase* database_;
-
-        std::map<std::string, Table*> table_map_;
-
-        std::set<std::string> registered_nodes_;
-
-        void CreateSystemStatusTable();
-        void CreateSystemInfoTable();
-        void CreateCpuTable();
-        void CreateFileSystemTable();
-        void CreateFileSystemInfoTable();
-        void CreateInterfaceTable();
-        void CreateInterfaceInfoTable();
-        void CreateProcessTable();
-        void CreateProcessInfoTable();
+        //Table creation
         void CreatePortEventTable();
         void CreateComponentEventTable();
         void CreateMessageEventTable();
         void CreateUserEventTable();
         void CreateWorkloadEventTable();
         void CreateComponentUtilizationTable();
+
+        //Callback functions
+        void ProcessLifecycleEvent(google::protobuf::MessageLite* message);
+        void ProcessMessageEvent(google::protobuf::MessageLite* message);
+        void ProcessUserEvent(google::protobuf::MessageLite* message);
+        void ProcessWorkloadEvent(google::protobuf::MessageLite* message);
+        void ProcessComponentUtilizationEvent(google::protobuf::MessageLite* message);
+
+        //Members
+        SQLiteDatabase* database_;
+        std::map<std::string, Table*> table_map_;
+        std::set<std::string> registered_nodes_;
 };
-#endif //LOGAN_SERVER_LOGPROTOHANDLER_H
+
+#endif //LOGAN_SERVER_MODELPROTOHANDLER_H

@@ -22,7 +22,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/logprotohandler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/server.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/modelprotohandler.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/hardwareprotohandler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/table.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/tableinsert.cpp
@@ -30,7 +32,7 @@ set(SOURCE
 )
 
 set(HEADERS
-	${CMAKE_CURRENT_SOURCE_DIR}/logprotohandler.h
+	${CMAKE_CURRENT_SOURCE_DIR}/protohandler.h
 	${CMAKE_CURRENT_SOURCE_DIR}/sqlitedatabase.h
 	${CMAKE_CURRENT_SOURCE_DIR}/table.h
 	${CMAKE_CURRENT_SOURCE_DIR}/tableinsert.h

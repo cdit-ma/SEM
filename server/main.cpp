@@ -25,7 +25,9 @@
 #include <vector>
 #include <boost/program_options.hpp>
 
-#include "logprotohandler.h"
+#include "server.h"
+#include "modelprotohandler.h"
+#include "hardwareprotohandler.h"
 
 std::mutex mutex_;
 std::condition_variable lock_condition_;
@@ -87,14 +89,21 @@ int main(int ac, char** av)
 	}
 	std::cout << "---------------------------------" << std::endl;
 
-	//Construct a Handler to interface between our ZMQ messaging infrastructure and SQLite
-	auto handler = new LogProtoHandler(database_path, client_addresses);
+	//Construct a Server to interface between our ZMQ messaging infrastructure and SQLite
+	auto server = new Server(database_path, client_addresses);
+
+	auto hardware_handler = new HardwareProtoHandler();
+	auto model_handler = new ModelProtoHandler();
+
+	server->AddProtoHandler(hardware_handler);
+	server->AddProtoHandler(model_handler);
+	server->Start();
 
 	//Wait for the signal_handler to notify for exit
 	std::unique_lock<std::mutex> lock(mutex_);
 	lock_condition_.wait(lock);
 
 	//Free up memory	
-	delete handler;
+	delete server;
     return 0;
 }
