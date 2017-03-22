@@ -69,7 +69,6 @@
 #define LOGAN_EVENT_USER_TABLE "Model_Event_User"
 #define LOGAN_EVENT_WORKLOAD_TABLE "Model_Event_Workload"
 #define LOGAN_EVENT_COMPONENT_TABLE "Model_Event_Component"
-#define LOGAN_CLIENT_TABLE "Clients"
 
 LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::string> client_addresses){
     //Construct a Receiver to connect to the clients
@@ -120,7 +119,6 @@ LogProtoHandler::LogProtoHandler(std::string database_file, std::vector<std::str
     CreateComponentEventTable();
     CreateUserEventTable();
     CreateWorkloadEventTable();
-    CreateClientTable();
     CreateComponentUtilizationTable();
     std::cout << "# Constructing #" << table_map_.size() << " Tables." << std::endl;
     database_->BlockingFlush();
@@ -406,19 +404,6 @@ void LogProtoHandler::CreateWorkloadEventTable(){
     database_->QueueSqlStatement(t->get_table_construct_statement());
 }
 
-void LogProtoHandler::CreateClientTable(){
-    if(table_map_.count(LOGAN_CLIENT_TABLE)){
-        return;
-    }
-
-    Table* t = new Table(database_, LOGAN_CLIENT_TABLE);
-    t->AddColumn(LOGAN_TIMEOFDAY, LOGAN_DECIMAL);
-    t->AddColumn("endpoint", LOGAN_VARCHAR);
-    t->Finalize();
-    table_map_[LOGAN_CLIENT_TABLE] = t;
-    database_->QueueSqlStatement(t->get_table_construct_statement());
-}
-
 void LogProtoHandler::CreateComponentUtilizationTable(){
     if(table_map_.count(LOGAN_EVENT_COMPONENT_TABLE)){
         return;
@@ -541,15 +526,6 @@ void LogProtoHandler::ProcessOneTimeSystemInfo(google::protobuf::MessageLite* me
     //Check if we have this node info already
     if(registered_nodes_.find(hostname) != registered_nodes_.end()){
         return;
-    }
-    else{
-        //Haven't seen this node before, add to set and record in db
-        registered_nodes_.insert(hostname);
-        auto ins = table_map_[LOGAN_CLIENT_TABLE]->get_insert_statement();
-        auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-        ins.BindDouble(LOGAN_TIMEOFDAY, time.count()/1000.0);
-        ins.BindString("endpoint", hostname);
-        database_->QueueSqlStatement(ins.get_statement());
     }
 
     int message_id = (int)(info->message_id());

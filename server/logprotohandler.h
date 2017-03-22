@@ -70,7 +70,6 @@ class LogProtoHandler{
         void CreateMessageEventTable();
         void CreateUserEventTable();
         void CreateWorkloadEventTable();
-        void CreateClientTable();
         void CreateComponentUtilizationTable();
 };
 #endif //LOGAN_SERVER_LOGPROTOHANDLER_H
