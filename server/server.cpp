@@ -20,16 +20,14 @@ Server::Server(std::string database_path, std::vector<std::string> addresses){
 
 Server::~Server(){
     delete receiver_;
-    delete database_;
     for(auto handler : handler_list_){
         delete handler;
     }
+    delete database_;
 }
 
 void Server::AddProtoHandler(ProtoHandler* handler){
     if(!started_){
-        handler->ConstructTables(database_);
-        handler->BindCallbacks(receiver_);
         handler_list_.push_back(handler);
     }else{
         std::cerr << "Could not add proto handler, receiver started." << std::endl;
@@ -37,6 +35,16 @@ void Server::AddProtoHandler(ProtoHandler* handler){
 }
 
 void Server::Start(){
-    started_ = true;
-    receiver_->Start();
+    if(!started_){
+        for(auto handler : handler_list_){
+            handler->ConstructTables(database_);
+            handler->BindCallbacks(receiver_);
+        }
+        database_->BlockingFlush();
+        started_ = true;
+        receiver_->Start();
+    }else{
+        std::cerr << "Could not start server, already started." << std::endl;
+    }
+
 }
