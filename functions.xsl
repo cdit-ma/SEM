@@ -580,9 +580,8 @@
     <xsl:function name="cdit:get_aggregate_cpp_type">
         <xsl:param name="aggregate" />
 
-        <xsl:variable name="namespace" select="cdit:get_namespace($aggregate)" />
         <xsl:variable name="aggregate_type" select="cdit:get_key_value($aggregate, 'type')" />
-        <xsl:value-of select="concat($namespace, '::', $aggregate_type)" />
+        <xsl:value-of select="$aggregate_type" />
     </xsl:function>
 
     <xsl:function name="o:get_base_data_type_h">
@@ -1719,7 +1718,7 @@
             <xsl:when test="$type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber'">
                 <xsl:value-of select="'Double'" />
             </xsl:when>
-            <xsl:when test="$type = 'LongInteger' or $type ='UnsignedLongInteger'">
+            <xsl:when test="$type = 'LongInteger' or $type ='UnsignedLongInteger' or $type = 'Integer'">
                 <xsl:value-of select="'Integer'" />
             </xsl:when>
             

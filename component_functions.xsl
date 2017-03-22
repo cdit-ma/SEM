@@ -50,7 +50,7 @@
 
         <!-- Construct Object -->
         
-        <xsl:value-of select="concat(o:t($tab), $namespace, '::', $type, ' ', $var_name, ';', o:nl())" />
+        <xsl:value-of select="concat(o:t($tab), $type, ' ', $var_name, ';', o:nl())" />
         
         <!-- Get the Source ID's which data link to this element -->
         <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($root, 'Edge_Data', $id)" />
@@ -983,7 +983,7 @@
             <xsl:value-of select="o:tabbed_cpp_comment(concat('Variable ', o:square_wrap($id), ': ', $label,' ', o:angle_wrap($variable_type)), 2)" />
 
             <xsl:choose>
-                <xsl:when test="$variable_type = 'VectorInstance'">
+                <xsl:when test="$variable_type = 'VectorInstance' or $variable_type = 'Vector'">
                     <xsl:variable name="vector_cpp_type" select="cdit:get_vector_cpp_type($complex_child)" />
                     <xsl:value-of select="concat(o:t(2), $vector_cpp_type, ' ', $var_name, ';', o:nl())" />
                 </xsl:when>
@@ -1352,6 +1352,23 @@
         </xsl:for-each>
     </xsl:function>
 
+     <xsl:function name="cdit:get_aggregate_definition">
+        <xsl:param name="aggregate_root" />
+
+        <xsl:variable name="id" select="cdit:get_node_id($aggregate_root)" />
+        <xsl:variable name="source_ids" select="cdit:get_edge_source_ids($aggregate_root, 'Edge_Definition', $id)" />
+
+        
+        <xsl:for-each select="$source_ids">
+            <xsl:variable name="source_id" select="." />
+            <xsl:variable name="source" select="cdit:get_node_by_id($aggregate_root, $source_id)" />
+            <xsl:sequence select="cdit:get_aggregate_definition($source)" />
+        </xsl:for-each>
+        <xsl:if test="count($source_ids) = 0">
+            <xsl:sequence select="$aggregate_root" />
+        </xsl:if>
+    </xsl:function>
+
     <xsl:function name="cdit:get_component_impls_required_datatypes">
         <xsl:param name="component_impl_root" />
 
@@ -1360,12 +1377,9 @@
         <xsl:variable name="def_aggregates" as="element()*" select="cdit:get_entities_of_kind($component_def, 'AggregateInstance')" />
         <xsl:variable name="impl_instances" as="element()*" select="cdit:get_entities_of_kind($component_impl_root, 'AggregateInstance')" />
 
-        <xsl:for-each select="$def_aggregates">
-            <xsl:variable name="type" select="lower-case(cdit:get_key_value(., 'type'))" />
-            <xsl:value-of select="$type" />
-        </xsl:for-each>
-        <xsl:for-each select="$impl_instances">
-            <xsl:variable name="type" select="lower-case(cdit:get_key_value(., 'type'))" />
+        <xsl:for-each select="$def_aggregates, $impl_instances">
+            <xsl:variable name="definition" select="cdit:get_aggregate_definition(.)" />
+            <xsl:variable name="type" select="lower-case(cdit:get_key_value($definition, 'label'))" />
             <xsl:value-of select="$type" />
         </xsl:for-each>
     </xsl:function>
