@@ -1,8 +1,12 @@
 #include "vector.h"
 #include <QDebug>
 #include "../data.h"
-Vector::Vector(): Node(Node::NK_VECTOR)
+Vector::Vector(): DataNode(Node::NK_VECTOR)
 {
+    //Can be both an input/output for data.
+    setDataProducer(true);
+    setDataReciever(true);
+
     setNodeType(NT_DEFINITION);
     setAcceptsEdgeKind(Edge::EC_DEFINITION);
     connect(this, &Node::childCountChanged, this, &Vector::childrenChanged);
@@ -65,7 +69,7 @@ bool Vector::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
     default:
         break;
     }
-    return Node::canAcceptEdge(edgeKind, dst);
+    return DataNode::canAcceptEdge(edgeKind, dst);
 }
 
 void Vector::updateType()

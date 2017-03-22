@@ -820,6 +820,9 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_VECTOR:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
+                if(item->getViewAspect() == VA_BEHAVIOUR){
+                    nodeItem->setVisualEdgeKind(Edge::EC_DATA);
+                }
                 break;
             case Node::NK_VECTOR_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);

@@ -2779,10 +2779,12 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         data.append(new Data(typeKey));
     }
     if(nodeKind == "InputParameter"){
-        Data* typeData = new Data(typeKey);
-        typeData->setProtected(true);
-        data.append(typeData);
-        data.append(new Data(valueKey));
+        Data* type_data = new Data(typeKey);
+        Data* value_data = new Data(valueKey);
+        type_data->setProtected(true);
+        value_data->setProtected(false);
+        data.append(type_data);
+        data.append(value_data);
     }
 
     if(nodeKind == "VariadicParameter"){
@@ -4419,7 +4421,7 @@ bool ModelController::setupDataEdgeRelationship(DataNode *output, DataNode *inpu
                             Data* parameter_type = parameter->getData("type");
                             Data* bind_type = 0;
 
-                            if(parameter_label == "Value" || parameter_label == "Default_Value"){
+                            if(parameter_label == "Value" || parameter_label == "DefaultValue"){
                                 //Bind the Type of the child in the Vector
                                 bind_type = vector_child->getData("type");
                             }else if(parameter_label == "VectorB"){

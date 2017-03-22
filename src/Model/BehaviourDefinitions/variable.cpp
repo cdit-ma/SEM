@@ -11,7 +11,7 @@ bool Variable::canAdoptChild(Node* child)
 {
     switch(child->getNodeKind()){
     case NK_AGGREGATE_INSTANCE:
-    case NK_VECTOR_INSTANCE:
+    case NK_VECTOR:
         break;
     default:
         return false;

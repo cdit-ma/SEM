@@ -1,8 +1,8 @@
 #ifndef VECTOR_H
 #define VECTOR_H
-#include "../node.h"
+#include "datanode.h"
 
-class Vector : public Node
+class Vector : public DataNode
 {
     Q_OBJECT
 public:

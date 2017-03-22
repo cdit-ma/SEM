@@ -8,6 +8,7 @@ Data::Data(Key *key, QVariant value, bool protect):GraphML(GK_DATA)
     _parentData = 0;
     _key = key;
     _isProtected = false;
+    _isDataLinked = false;
     if(key){
         _keyName = key->getName();
         setProtected(key->isProtected());
