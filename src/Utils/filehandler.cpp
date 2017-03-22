@@ -103,7 +103,6 @@ bool FileHandler::writeTextFile(QString filePath, QString fileData)
     QFile file(filePath);
     QFileInfo fileInfo(file);
     if(ensureDirectory(filePath)){
-
         if(file.open(QFile::WriteOnly | QFile::Text)){
             //Create stream to write the data.
             QTextStream out(&file);

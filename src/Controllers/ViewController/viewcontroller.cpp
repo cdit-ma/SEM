@@ -985,6 +985,7 @@ bool ViewController::_saveProject()
             return _saveAsProject();
         }else{
             QString data = controller->getProjectAsGraphML();
+
             if(FileHandler::writeTextFile(filePath, data)){
                 emit vc_projectSaved(filePath);
                 emit vc_addProjectToRecentProjects(filePath);

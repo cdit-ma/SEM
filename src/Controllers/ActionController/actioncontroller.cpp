@@ -216,7 +216,6 @@ void ActionController::updateRecentProjects(QString filePath)
     while(files.size() > 8){
         files.removeLast();
     }
-
     SettingsController::settings()->setSetting(SK_GENERAL_RECENT_PROJECTS, files);
 }
 
