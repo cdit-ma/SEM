@@ -82,9 +82,9 @@
 
         <!-- Recurse Codegen into Child Conditions (If we have any) -->
         <xsl:if test="count($children) > 0">
-            <xsl:for-each select="$root/gml:graph/*">
+            <xsl:for-each select="$children">
                 <xsl:variable name="child_kind" select="cdit:get_key_value(., 'kind')" />
-                <xsl:if test="$child_kind = 'Condition'">
+                <xsl:if test="contains($child_kind, 'Condition')">
                     <xsl:value-of select="cdit:translate_workload(., $root, $tab)" />
                 </xsl:if>
             </xsl:for-each>
@@ -275,6 +275,10 @@
                 <xsl:when test="$kind='ReturnParameter'">
                     <!-- Use stored_var -->
                     <xsl:value-of select="cdit:get_var_name($root)" />
+                </xsl:when>
+                <xsl:when test="$kind='VariableParameter'">
+                    <!-- Use stored_var -->
+                    <xsl:value-of select="$label" />
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- Do Nothing -->
@@ -551,7 +555,8 @@
             </xsl:choose>
         </xsl:variable>
 
-        <xsl:value-of select="if($data_value != '') then $data_value else 'NULL'" />
+        <!--<xsl:value-of select="if($data_value != '') then $data_value else '/*NULL*/'" />-->
+        <xsl:value-of select="$data_value" />
     </xsl:function>
     
 
@@ -563,17 +568,23 @@
         <xsl:variable name="parent" select="cdit:get_parent_node($root)" />
         <xsl:variable name="parent_kind" select="cdit:get_key_value($parent, 'kind')" />
 
+        <xsl:variable name="kind" select="cdit:get_key_value($root, 'kind')" />
         <xsl:variable name="label" select="cdit:get_key_value($root, 'label')" />
         <xsl:variable name="sort_order" select="cdit:get_key_value($root, 'sortOrder')" />
         <xsl:variable name="value" select="cdit:get_key_value($root, 'value')" />
+
+        <xsl:variable name="children" select="$root/gml:graph/*" />
 
         <xsl:variable name="statement">
             <xsl:choose>
                 <xsl:when test="$parent_kind = 'BranchState'">
                     <xsl:value-of select="if(number($sort_order) = 0) then 'if' else 'else if'" />
                 </xsl:when>
-                <xsl:when test="$parent_kind = 'WhileLoop'">
+                <xsl:when test="$parent_kind = 'WhileLoop' and $kind = 'Condition'">
                     <xsl:value-of select="'while'" />
+                </xsl:when>
+                <xsl:when test="$parent_kind = 'WhileLoop' and $kind = 'ForCondition'">
+                    <xsl:value-of select="'for'" />
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="''" />
@@ -585,6 +596,39 @@
             <xsl:value-of select="o:tabbed_cpp_comment(concat('Conditions parent ', $parent_kind, ' has not been implemented!'), $tab)" />
         </xsl:if>
 
+        <xsl:variable name="condition">
+            <xsl:choose>
+                <xsl:when test="$kind = 'ForCondition'">
+                    <xsl:variable name="index" select="$children[1]" />
+                    <xsl:variable name="index_label" select="o:get_key_value($index, 'label')" />
+                    <xsl:variable name="index_type" select="o:get_key_value($index, 'type')" />
+                    <xsl:variable name="index_cpp_type" select="o:get_cpp_type($index_type)" />
+
+                    <xsl:value-of select="concat($index_cpp_type, ' ', $index_label)" />
+                    <xsl:for-each select="$children">
+                        <xsl:variable name="child" select="." />
+                        <xsl:variable name="child_kind" select="o:get_key_value($child, 'kind')" />
+
+                        <xsl:if test="$child_kind != 'ReturnParameter'">
+                            <xsl:variable name="value" select="cdit:generate_InputParameter(., $tab)" />
+
+                            <xsl:if test="position() = 1 and $value != ''">
+                                <xsl:value-of select="' = '" />
+                            </xsl:if>
+                            <xsl:value-of select="$value" />
+
+                            <xsl:if test="position() != last()">
+                                <xsl:value-of select="'; '" />
+                            </xsl:if>
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="$value" />
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+
         <!-- Get the target ids -->
         <xsl:variable name="target_ids" select="cdit:get_edge_target_ids($root, 'Edge_Workflow', $id)" />
 
@@ -594,7 +638,7 @@
                 <xsl:variable name="target" select="o:get_node_by_id($root, $target_id)" />
 
                 <!-- Open Bracket with statement -->
-                <xsl:value-of select="concat(o:t($tab), $statement, '(', $value, '){', o:nl())" />
+                <xsl:value-of select="concat(o:t($tab), $statement, '(', $condition, '){', o:nl())" />
                 <!-- Call into the code generation -->
                 <xsl:value-of select="cdit:translate_workload($target, $root, $tab + 1)" />
                 <!-- Closing Bracket -->
@@ -602,6 +646,8 @@
             </xsl:for-each>
         </xsl:if>
     </xsl:function>
+
+    
 
   
     <xsl:function name="cdit:get_dataedge_value">
@@ -760,6 +806,9 @@
             <xsl:when test="$kind = 'Condition'">
                 <xsl:value-of select="cdit:generate_Condition($root, $tab)" />
             </xsl:when>
+            <xsl:when test="$kind = 'ForCondition'">
+                <xsl:value-of select="cdit:generate_Condition($root, $tab)" />
+            </xsl:when>
             <xsl:when test="$kind = 'Workload'">
                 <xsl:value-of select="cdit:generate_Workload($root, $tab)" />
             </xsl:when>
@@ -886,6 +935,7 @@
             <xsl:variable name="var_name" select="cdit:get_var_name(.)" />
             <xsl:if test="$worker != '' and $var_name != ''">
                 <xsl:value-of select="concat($var_name, ' = new ', $worker, '(this, ', o:dblquote_wrap($worker_id),');')" />
+                <xsl:value-of select="concat('AddWorker(', $var_name, ');')" />
             </xsl:if>
         </xsl:for-each>
     </xsl:function>
