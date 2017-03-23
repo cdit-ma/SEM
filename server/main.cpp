@@ -26,8 +26,14 @@
 #include <boost/program_options.hpp>
 
 #include "server.h"
-#include "modelprotohandler.h"
-#include "hardwareprotohandler.h"
+
+#ifndef DISABLE_HARDWARE_HANDLER
+#include "hardwareprotohandler/hardwareprotohandler.h"
+#endif
+
+#ifndef DISABLE_MODEL_HANDLER
+#include "modelprotohandler/modelprotohandler.h"
+#endif
 
 std::mutex mutex_;
 std::condition_variable lock_condition_;
@@ -93,8 +99,18 @@ int main(int ac, char** av)
 	Server server(database_path, client_addresses);
 
 	//Add our proto handlers and start the server
-	server.AddProtoHandler(new HardwareProtoHandler());
-	server.AddProtoHandler(new ModelProtoHandler());
+	#ifndef DISABLE_HARDWARE_HANDLER
+	{
+		server.AddProtoHandler(new HardwareProtoHandler());
+	}
+	#endif
+
+	#ifndef DISABLE_MODEL_HANDLER
+	{
+		server.AddProtoHandler(new ModelProtoHandler());
+	}
+	#endif
+
 	server.Start();
 
 	//Wait for the signal_handler to notify for exit

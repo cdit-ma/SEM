@@ -23,12 +23,12 @@
 #include <functional>
 #include <chrono>
 
-#include "sqlitedatabase.h"
-#include "table.h"
-#include "tableinsert.h"
+#include "../sqlitedatabase.h"
+#include "../table.h"
+#include "../tableinsert.h"
 
-#include "../re_common/proto/systemstatus/systemstatus.pb.h"
-#include "../re_common/zmq/protoreceiver/protoreceiver.h"
+#include "../../re_common/proto/systemstatus/systemstatus.pb.h"
+#include "../../re_common/zmq/protoreceiver/protoreceiver.h"
 
 //Type names
 #define LOGAN_DECIMAL "DECIMAL"
@@ -67,9 +67,6 @@ void HardwareProtoHandler::ConstructTables(SQLiteDatabase* database){
     CreateInterfaceInfoTable();
     CreateProcessTable();
     CreateProcessInfoTable();
-    std::cout << "# Constructing # " << table_map_.size() << " Hardware Tables." << std::endl;
-    database_->BlockingFlush();
-    std::cout << "# Constructed." << std::endl;
 }
 
 void HardwareProtoHandler::BindCallbacks(zmq::ProtoReceiver* receiver){

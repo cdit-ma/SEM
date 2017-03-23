@@ -44,3 +44,19 @@ cmake_install.cmake
 
 #SQL
 *.sql
+
+#Generated protobuf files
+*.pb.*
+
+#Generates cmake files
+Makefile
+CMakeCache.txt
+CMakeFiles
+
+#Generated binarys
+LogServer
+*.out
+
+#VS Code generated files
+.vscode
+build

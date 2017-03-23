@@ -21,7 +21,7 @@
 #ifndef LOGAN_SERVER_HARDWAREPROTOHANDLER_H
 #define LOGAN_SERVER_HARDWAREPROTOHANDLER_H
 
-#include "protohandler.h"
+#include "../protohandler.h"
 
 #include <map>
 #include <set>
@@ -36,7 +36,7 @@ class HardwareProtoHandler : public ProtoHandler{
 
         void ConstructTables(SQLiteDatabase* database);
         void BindCallbacks(zmq::ProtoReceiver* receiver);
-        
+
     private:
         //Table creation
         void CreateSystemStatusTable();

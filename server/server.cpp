@@ -36,13 +36,16 @@ void Server::AddProtoHandler(ProtoHandler* handler){
 
 void Server::Start(){
     if(!started_){
+        std::cout << "# Constructing tables" << std::endl;
         for(auto handler : handler_list_){
             handler->ConstructTables(database_);
             handler->BindCallbacks(receiver_);
         }
         database_->BlockingFlush();
+        std::cout << "# Constructed tables" << std::endl;
         started_ = true;
         receiver_->Start();
+        std::cout << "# Started receiver" << std::endl;        
     }else{
         std::cerr << "Could not start server, already started." << std::endl;
     }

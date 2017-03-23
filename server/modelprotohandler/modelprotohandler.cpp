@@ -23,12 +23,12 @@
 #include <functional>
 #include <chrono>
 
-#include "sqlitedatabase.h"
-#include "table.h"
-#include "tableinsert.h"
+#include "../sqlitedatabase.h"
+#include "../table.h"
+#include "../tableinsert.h"
 
-#include "../re_common/proto/modelevent/modelevent.pb.h"
-#include "../re_common/zmq/protoreceiver/protoreceiver.h"
+#include "../../re_common/proto/modelevent/modelevent.pb.h"
+#include "../../re_common/zmq/protoreceiver/protoreceiver.h"
 
 //Types
 #define LOGAN_DECIMAL "DECIMAL"
@@ -70,9 +70,6 @@ void ModelProtoHandler::ConstructTables(SQLiteDatabase* database){
     CreateUserEventTable();
     CreateWorkloadEventTable();
     CreateComponentUtilizationTable();
-    std::cout << "# Constructing #" << table_map_.size() << " Model Tables." << std::endl;
-    database_->BlockingFlush();
-    std::cout << "# Constructed." << std::endl;
 }
 
 void ModelProtoHandler::BindCallbacks(zmq::ProtoReceiver* receiver){

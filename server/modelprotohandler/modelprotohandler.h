@@ -21,7 +21,7 @@
 #ifndef LOGAN_SERVER_MODELPROTOHANDLER_H
 #define LOGAN_SERVER_MODELPROTOHANDLER_H
 
-#include "protohandler.h"
+#include "../protohandler.h"
 
 #include <map>
 #include <set>
