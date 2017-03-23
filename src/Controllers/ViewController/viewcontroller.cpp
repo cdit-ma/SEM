@@ -82,8 +82,10 @@ QStringList ViewController::getNodeKinds()
     nodeKinds << "ComponentImpl";
     nodeKinds << "Vector";
     nodeKinds << "VariadicParameter";
+    nodeKinds << "VariableParameter";
 
     nodeKinds << "Code" << "Header";
+    nodeKinds << "ForCondition" << "VectorItterator" << "Setter";
 
     nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
     nodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "WorkerProcess";

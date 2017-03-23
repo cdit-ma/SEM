@@ -9,14 +9,14 @@ class Condition: public BehaviourNode
 {
     Q_OBJECT
 public:
-    Condition();
+    Condition(Node::NODE_KIND kind = NK_CONDITION);
 
     Branch* getBranch();
     Termination* getRequiredTermination();
     bool gotTermination();
 
-    bool canAdoptChild(Node*);
-    bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
+    virtual bool canAdoptChild(Node*);
+    virtual bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
 };
 
 #endif // CONDITION_H

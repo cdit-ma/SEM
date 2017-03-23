@@ -148,7 +148,7 @@ bool BehaviourNode::canAcceptEdge(Edge::EDGE_KIND edgeClass, Node *dst)
             BehaviourNode* initialProducer = getInitialProducer();
 
             if(branch){
-                if(initialProducer->getNodeKind() == NK_CONDITION){
+                if(initialProducer->isNodeOfType(NT_CONDITION)){
                     Condition* condition = (Condition*) initialProducer;
                     if(condition->gotTermination()){
                         return false;

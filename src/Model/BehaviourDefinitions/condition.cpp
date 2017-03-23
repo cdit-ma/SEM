@@ -2,7 +2,8 @@
 #include "termination.h"
 #include "branch.h"
 
-Condition::Condition():BehaviourNode(NK_CONDITION){
+Condition::Condition(NODE_KIND kind):BehaviourNode(kind){
+    setNodeType(NT_CONDITION);
     setWorkflowProducer(true);
     setWorkflowReciever(false);
 }

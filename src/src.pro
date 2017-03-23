@@ -185,7 +185,11 @@ HEADERS += \
     Utils/filtergroup.h \
     Model/BehaviourDefinitions/variadicparameter.h \
     Model/BehaviourDefinitions/code.h \
-    Model/BehaviourDefinitions/header.h
+    Model/BehaviourDefinitions/header.h \
+    Model/BehaviourDefinitions/forcondition.h \
+    Model/BehaviourDefinitions/setvariable.h \
+    Model/BehaviourDefinitions/setter.h \
+    Model/BehaviourDefinitions/variableparameter.h
 
 
 SOURCES += \
@@ -363,7 +367,10 @@ SOURCES += \
     Utils/filtergroup.cpp \
     Model/BehaviourDefinitions/variadicparameter.cpp \
     Model/BehaviourDefinitions/code.cpp \
-    Model/BehaviourDefinitions/header.cpp
+    Model/BehaviourDefinitions/header.cpp \
+    Model/BehaviourDefinitions/forcondition.cpp \
+    Model/BehaviourDefinitions/setter.cpp \
+    Model/BehaviourDefinitions/variableparameter.cpp
 
 RESOURCES += \
 	resources.qrc

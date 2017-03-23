@@ -57,6 +57,7 @@ public:
         NK_OUTEVENTPORT_IMPL,
         NK_INPUT_PARAMETER,
         NK_RETURN_PARAMETER,
+        NK_VARIABLE_PARAMETER,
         NK_VARIADIC_PARAMETER,
         NK_PERIODICEVENT,
         NK_PROCESS,
@@ -68,6 +69,9 @@ public:
         NK_CONDITION,
         NK_CODE,
         NK_HEADER,
+        NK_FOR_CONDITION,
+        NK_VECTOR_ITTERATOR_CONDITION,
+        NK_SETTER,
 
         NK_QOS_DDS_PROFILE,
         NK_QOS_DDS_POLICY_DEADLINE,
@@ -95,20 +99,21 @@ public:
     };
     //Enum for Node Types
     enum NODE_TYPE{
-        NT_DEFINITION           = 1 << 0,   //bin. 0000 0000 0000 0001
-        NT_INSTANCE             = 1 << 1,   //bin. 0000 0000 0000 0010
-        NT_IMPLEMENTATION       = 1 << 2,   //bin. 0000 0000 0000 0100
-        NT_ASPECT               = 1 << 3,   //bin. 0000 0000 0000 1000
-        NT_BEHAVIOUR            = 1 << 4,   //bin. 0000 0000 0001 0000
-        NT_DATA                 = 1 << 5,   //bin. 0000 0000 0010 0000
-        NT_EVENTPORT            = 1 << 6,   //bin. 0000 0000 0100 0000
-        NT_EVENTPORT_ASSEMBLY   = 1 << 7,   //bin. 0000 0000 1000 0000
-        NT_HARDWARE             = 1 << 8,   //bin. 0000 0001 0000 0000
-        NT_QOS                  = 1 << 9,   //bin. 0000 0010 0000 0000
-        NT_QOS_PROFILE          = 1 << 10,  //bin. 0000 0100 0000 0000
-        NT_DDS                  = 1 << 11,  //bin. 0000 1000 0000 0000
-        NT_BRANCH               = 1 << 12,  //bin. 0001 0000 0000 0000
-        NT_PARAMETER            = 1 << 13,  //bin. 0010 0000 0000 0000
+        NT_DEFINITION           = 1 << 0,   //bin. 0000 0000 0000 0000 0000 0000 0000 0001
+        NT_INSTANCE             = 1 << 1,   //bin. 0000 0000 0000 0000 0000 0000 0000 0010
+        NT_IMPLEMENTATION       = 1 << 2,   //bin. 0000 0000 0000 0000 0000 0000 0000 0100
+        NT_ASPECT               = 1 << 3,   //bin. 0000 0000 0000 0000 0000 0000 0000 1000
+        NT_BEHAVIOUR            = 1 << 4,   //bin. 0000 0000 0000 0000 0000 0000 0001 0000
+        NT_DATA                 = 1 << 5,   //bin. 0000 0000 0000 0000 0000 0000 0010 0000
+        NT_EVENTPORT            = 1 << 6,   //bin. 0000 0000 0000 0000 0000 0000 0100 0000
+        NT_EVENTPORT_ASSEMBLY   = 1 << 7,   //bin. 0000 0000 0000 0000 0000 0000 1000 0000
+        NT_HARDWARE             = 1 << 8,   //bin. 0000 0000 0000 0000 0000 0001 0000 0000
+        NT_QOS                  = 1 << 9,   //bin. 0000 0000 0000 0000 0000 0010 0000 0000
+        NT_QOS_PROFILE          = 1 << 10,  //bin. 0000 0000 0000 0000 0000 0100 0000 0000
+        NT_DDS                  = 1 << 11,  //bin. 0000 0000 0000 0000 0000 1000 0000 0000
+        NT_BRANCH               = 1 << 12,  //bin. 0000 0000 0000 0000 0001 0000 0000 0000
+        NT_PARAMETER            = 1 << 13,  //bin. 0000 0000 0000 0000 0010 0000 0000 0000
+        NT_CONDITION            = 1 << 14,  //bin. 0000 0000 0000 0000 0100 0000 0000 0000
     };
 
     //Constuctor

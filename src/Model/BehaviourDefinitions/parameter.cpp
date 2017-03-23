@@ -22,6 +22,11 @@ bool Parameter::isReturnParameter() const
     return getNodeKind() == NK_RETURN_PARAMETER;
 }
 
+bool Parameter::isVariableParameter() const
+{
+    return getNodeKind() == NK_VARIABLE_PARAMETER;
+}
+
 bool Parameter::canAdoptChild(Node*)
 {
     return false;
@@ -41,14 +46,15 @@ bool Parameter::canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst)
             if(getDepthFromCommonAncestor(dst) == 1){
                 return false;
             }
+            /*
             if(!isReturnParameter()){
                 //Only allow connections from Return Parameters
                 return false;
             }
-            if(!(parameter->isInputParameter() || parameter->isVariadicParameter())){
+            if(!(parameter->isInputParameter() || parameter->isVariadicParameter() || parameter)){
                 //Allow connection to Input Parameters or VariadicParameter
                 return false;
-            }
+            }*/
         }
         break;
     }

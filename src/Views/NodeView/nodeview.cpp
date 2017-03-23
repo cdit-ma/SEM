@@ -718,6 +718,10 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setVisualEdgeKind(Edge::EC_ASSEMBLY);
                 break;
+            case Node::NK_FOR_CONDITION:
+                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                break;
             case Node::NK_CONDITION:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
@@ -741,7 +745,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setIconOverlayVisible(true);
                 nodeItem->setSecondaryTextKey("worker");
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
-
                 break;
             case Node::NK_MEMBER_INSTANCE:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -777,6 +780,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem->setSecondaryTextKey("type");
                 nodeItem->setExpandEnabled(false);
                 break;
+            case Node::NK_VARIABLE_PARAMETER:
             case Node::NK_INPUT_PARAMETER:
             case Node::NK_VARIADIC_PARAMETER:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -814,9 +818,12 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_CODE:
             case Node::NK_HEADER:
             case Node::NK_WORKLOAD:
+            case Node::NK_SETTER:
+
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;
+
             case Node::NK_VECTOR:
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");

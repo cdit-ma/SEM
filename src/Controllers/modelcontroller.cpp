@@ -197,6 +197,7 @@ ModelController::ModelController() :QObject(0)
     definitionNodeKinds << "ComponentImpl";
 
     definitionNodeKinds << "Vector" << "VectorInstance";
+    definitionNodeKinds << "Setter" << "VariableParameter";
 
 
     definitionNodeKinds << "DDS_QOSProfile";
@@ -232,7 +233,7 @@ ModelController::ModelController() :QObject(0)
 
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
     behaviourNodeKinds << "WhileLoop" << "InputParameter" << "VariadicParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
-    behaviourNodeKinds << "Code" << "Header";
+    behaviourNodeKinds << "Code" << "Header" << "ForCondition" << "VectorItterator";
 
 
     //Append Kinds which can't be constructed by the GUI.
@@ -827,6 +828,9 @@ void ModelController::constructNode(int parentID, QString kind, QPointF centerPo
         if(kind == "DDS_QOSProfile"){
             constructDDSQOSProfile(parentID, centerPoint);
             ignore = true;
+        }else if(kind == "ForCondition"){
+            constructForCondition(parentID, centerPoint);
+            ignore = true;
         }else{
             data = constructDataVector(kind, centerPoint);
         }
@@ -932,6 +936,24 @@ void ModelController::constructDDSQOSProfile(int parentID, QPointF position)
             }
         }
     }
+}
+
+void ModelController::constructForCondition(int parentID, QPointF position)
+{
+    Node* parentNode = getNodeFromID(parentID);
+
+    if(parentNode){
+        triggerAction("Constructing For Condition");
+
+        Node* for_condition = constructChildNode(parentNode, constructDataVector("ForCondition", position));
+        if(for_condition){
+            //Construct an Input Parameter
+            constructChildNode(for_condition, constructDataVector("VariableParameter", QPointF(-1, -1), "Integer", "i"));
+            constructChildNode(for_condition, constructDataVector("InputParameter", QPointF(-1, -1), "String", "Condition"));
+            constructChildNode(for_condition, constructDataVector("InputParameter", QPointF(-1, -1), "String", "Itteration"));
+        }
+    }
+
 }
 
 
@@ -2014,7 +2036,7 @@ Key *ModelController::constructKey(QString name, QVariant::Type type)
     if(name == "type"){
         QStringList validValues;
         QStringList keysValues;
-        keysValues << "Attribute" << "Member" << "Variable";
+        keysValues << "Attribute" << "Member" << "Variable" << "VariableParameter";
 
         validValues << "Boolean" << "String" << "Character" << "Integer" << "Double" << "Float";
 
@@ -2595,6 +2617,7 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
 
     data.append(new Data(kindKey, nodeKind));
 
+
     if(nodeKind.contains("Edge")){
         data.append(new Data(widthKey, -1));
         data.append(new Data(heightKey, -1));
@@ -2662,7 +2685,13 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
     editableTypeKinds << "Variable" << "Member" << "Attribute";
 
     if(editableTypeKinds.contains(nodeKind)){
-        Data* typeData = new Data(typeKey, "String");
+        QString type_value = nodeType;
+
+        if(type_value == ""){
+            type_value = "String";
+        }
+
+        Data* typeData = new Data(typeKey, type_value);
         typeData->setProtected(false);
         data.append(typeData);
     }
@@ -2776,10 +2805,18 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
     }
 
     if(nodeKind == "ReturnParameter"){
-        data.append(new Data(typeKey));
+        Data* type_data = new Data(typeKey, nodeType);
+        data.append(type_data);
+    }
+
+    if(nodeKind == "VariableParameter"){
+        Data* type_data = new Data(typeKey, nodeType);
+        Data* value_data = new Data(valueKey);
+        data.append(type_data);
+        data.append(value_data);
     }
     if(nodeKind == "InputParameter"){
-        Data* type_data = new Data(typeKey);
+        Data* type_data = new Data(typeKey, nodeType);
         Data* value_data = new Data(valueKey);
         type_data->setProtected(true);
         value_data->setProtected(false);
@@ -3895,10 +3932,16 @@ Node *ModelController::constructTypedNode(QString nodeKind, bool isTemporary, QS
         return new VariadicParameter();
     }else if(nodeKind == "ReturnParameter"){
         return new ReturnParameter();
+    }else if(nodeKind == "VariableParameter"){
+        return new VariableParameter();
     }else if(nodeKind == "Code"){
         return new Code();
     }else if(nodeKind == "Header"){
         return new Header();
+    }else if(nodeKind =="ForCondition"){
+        return new ForCondition();
+    }else if(nodeKind =="Setter"){
+        return new Setter();
     }else if(nodeKind == "DDS_QOSProfile"){
         return new DDS_QOSProfile();
     }else if(nodeKind == "DDS_DeadlineQosPolicy"){
