@@ -7,7 +7,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 #Get the RE_PATH
 set(RE_PATH "$ENV{RE_PATH}")
 
-set(PROJ_NAME worker_we_gpu)
+set(PROJ_NAME gpu_worker)
 set(TESTER_NAME ${PROJ_NAME}_tester)
 
 set(CLFFT_ROOT /opt/clfft/clFFT-2.10.2-Linux-x64)
@@ -19,6 +19,10 @@ project(${PROJ_NAME})
 
 find_library(OPENCL_LIB OpenCL ${OPENCL_LIB_ROOT})
 find_library(CLFFT_LIB clFFT ${CLFFT_ROOT}/lib64)
+
+link_directories(${CLFFT_ROOT}/lib64)
+
+message(${CLFFT_LIB})
 
 if(NOT OPENCL_LIB)
     message(" ------ OPENCL_LIB NOT FOUND - NOT BUILDING GPU WORKER ------ ")

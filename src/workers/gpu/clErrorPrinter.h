@@ -74,6 +74,7 @@ static std::string errorNames[] = {
 };
 
 static std::string clGetErrorName(cl_int errorCode) {
+	if(-errorCode > 60) return "Error code out of range of printer";
 	return errorNames[-errorCode];
 }
 

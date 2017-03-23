@@ -4,6 +4,8 @@
 #include "gpu_worker.h"
 #include <iostream>
 #include <sstream>
+#include <core/component.h>
+#include <core/modellogger.h>
 
 /**
  * The WE_GPU class acts is a wrapper for WE_GPU_Impl, allowing projects to be compiled
@@ -13,6 +15,7 @@
 
 Gpu_Worker::Gpu_Worker(Component* component, std::string inst_name) : Worker(component, __func__, inst_name){
     impl_ = new Gpu_Worker_Impl();
+	impl_->Initialise(false);
 }
 
 Gpu_Worker::~Gpu_Worker(void){
