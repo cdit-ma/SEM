@@ -99,7 +99,7 @@
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Insert</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">plus</data>
+                    <data key="icon">circlePlus</data>
                     <data key="description">Inserts an element into a std::vector at an index (Will change length)</data>
                     <graph id="n0::n3:">
                         <node id="n0::n3::n0">
