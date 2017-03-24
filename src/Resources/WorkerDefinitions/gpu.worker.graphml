@@ -198,7 +198,7 @@
                     <data key="file">gpu_worker</data>
                     <data key="operation">MatrixMult</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">grid</data>
+                    <data key="icon">grid3x3</data>
                     <data key="description">Multiply matrix A (of size NxK) by B (of size KxM) to produce C (of size NxM).</data>
                     <data key="workerID">gpu_worker</data>
                     <graph id="n0::n5:">
@@ -206,16 +206,16 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix A</data>
                             <data key="type">Vector::Float</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">grid</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">Vector_Member</data>
                             <data key="description">The first of the two matrix operands.</data>
                         </node>
                         <node id="n0::n5::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix B</data>
                             <data key="type">Vector::Float</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">grid</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">Vector_Member</data>
                             <data key="description">The second of the two matrix operands.</data>
                         </node>
                         <node id="n0::n5::n2">
@@ -223,7 +223,7 @@
                             <data key="label">Matrix C</data>
                             <data key="type">Vector::Float</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">grid</data>
+                            <data key="icon">arrowRight</data>
                             <data key="description">The matrix to be filled with the result of the multiplication.</data>
                         </node>
                         <node id="n0::n5::n3">

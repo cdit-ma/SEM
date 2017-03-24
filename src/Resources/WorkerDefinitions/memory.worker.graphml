@@ -83,7 +83,7 @@
                             <data key="label">Kilobytes</data>
                             <data key="type">Double</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">arrowUpDown</data>
+                            <data key="icon">memoryCard</data>
                             <data key="description">The number of kilobytes of allocated memory.</data>
                         </node>
                     </graph>

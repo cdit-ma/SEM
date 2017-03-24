@@ -37,7 +37,7 @@
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">vector</data>
+                            <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n0::n1">
@@ -71,7 +71,7 @@
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">vector</data>
+                            <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n1::n1">
@@ -105,7 +105,7 @@
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">vector</data>
+                            <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n3::n1">
@@ -173,7 +173,7 @@
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">vector</data>
+                            <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n5::n1">
@@ -200,7 +200,7 @@
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">vector</data>
+                            <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                     </graph>
@@ -219,7 +219,7 @@
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">vector</data>
+                            <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n7::n1">
@@ -253,7 +253,7 @@
                             <data key="label">VectorA</data>
                             <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">vector</data>
+                            <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n8::n1">
@@ -261,7 +261,7 @@
                             <data key="label">VectorB</data>
                             <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">vector</data>
+                            <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                     </graph>
