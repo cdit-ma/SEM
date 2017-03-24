@@ -287,6 +287,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 
         QString kind = viewItem->getData("kind").toString();
         QString label = viewItem->getData("label").toString();
+        QString icon = viewItem->getData("icon").toString();
 
 
         QString alias = "Items";
@@ -316,7 +317,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     if(!nodeViewItem->isInModel()){
                         //Workload from a Workload Definition.
                         alias = "Functions";
-                        image = label;
+                        image = icon;
                     }
                     break;
                 }
