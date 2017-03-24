@@ -11,6 +11,7 @@ public:
     bool isInputParameter() const;
     bool isVariadicParameter() const;
     bool isReturnParameter() const;
+    bool isVariableParameter() const;
 
 
     virtual bool canAdoptChild(Node *node);

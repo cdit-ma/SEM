@@ -5,6 +5,7 @@ WhileLoop::WhileLoop():Branch(NK_WHILELOOP){
 
 bool WhileLoop::canAdoptChild(Node *node)
 {
+    //Only allow one type.
     if(hasChildren()){
         return false;
     }

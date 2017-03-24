@@ -49,8 +49,9 @@
 #include "../Model/BehaviourDefinitions/workload.h"
 #include "../Model/BehaviourDefinitions/whileloop.h"
 #include "../Model/BehaviourDefinitions/workerprocess.h"
-
-
+#include "../Model/BehaviourDefinitions/forcondition.h"
+#include "../Model/BehaviourDefinitions/variableparameter.h"
+#include "../Model/BehaviourDefinitions/setter.h"
 
 
 #include "../Model/BehaviourDefinitions/inputparameter.h"
@@ -404,6 +405,7 @@ private slots:
     void destructEdges(QList<int> srcIDs, int dstID,Edge::EDGE_KIND edgeClass = Edge::EC_UNDEFINED);
 
     void constructDDSQOSProfile(int parentID, QPointF position);
+    void constructForCondition(int parentID, QPointF position);
     void constructWorkerProcess(int parentID, int workerProcessID, QPointF pos);
 
 

@@ -20,10 +20,7 @@ Termination *Branch::getTermination()
 
 bool Branch::canAdoptChild(Node *child)
 {
-    switch(child->getNodeKind()){
-    case NK_CONDITION:
-        break;
-    default:
+    if(!child->isNodeOfType(NT_CONDITION)){
         return false;
     }
     return BehaviourNode::canAdoptChild(child);
