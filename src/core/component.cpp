@@ -33,12 +33,21 @@ Component::Component(std::string inst_name){
 
 Component::~Component(){
     std::lock_guard<std::mutex> lock(mutex_);
+    //Destory Ports
     for(auto it = eventports_.begin(); it != eventports_.end();){
         auto p = it->second;
         if(p){
             delete p;
         }
         it = eventports_.erase(it);
+    }
+    //Destory Workers
+    for(auto it = workers_.begin(); it != workers_.end();){
+        auto p = it->second;
+        if(p){
+            delete p;
+        }
+        it = workers_.erase(it);
     }
 }
 
@@ -88,6 +97,26 @@ void Component::AddEventPort(EventPort* event_port){
         }
 
     }
+}
+
+void Component::AddWorker(Worker* worker){
+    std::lock_guard<std::mutex> lock(mutex_);
+    if(worker){
+        std::string name = worker->get_name();
+        if(workers_.count(name) == 0){
+            workers_[name] = worker;
+        }
+    }
+}
+
+Worker* Component::GetWorker(std::string name){
+    std::lock_guard<std::mutex> lock(mutex_);
+    Worker* worker = 0;
+    
+    if(workers_.count(name)){
+        worker = workers_[name];
+    }
+    return worker;
 }
 
 std::vector<EventPort*> Component::GetSortedPorts(bool forward){

@@ -11,7 +11,7 @@
 #include "attribute.h"
 #include "eventport.h"
 #include "basemessage.h"
-
+#include "worker.h"
 
 class Component: public Activatable{
     public:
@@ -21,7 +21,8 @@ class Component: public Activatable{
         bool Passivate();
         bool Teardown();
 
-        
+        void AddWorker(Worker* worker);
+        Worker* GetWorker(std::string name);
 
         void AddEventPort(EventPort* event_port);
         void RemoveEventPort(EventPort* event_port);
@@ -37,6 +38,7 @@ class Component: public Activatable{
         std::mutex mutex_;
 
         
+        std::map<std::string, Worker*> workers_;
         std::map<std::string, EventPort*> eventports_;
         std::map<std::string, Attribute*> attributes_;    
         std::map<std::string, std::function<void (::BaseMessage*)> > callback_functions_;
