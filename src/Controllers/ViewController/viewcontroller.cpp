@@ -312,8 +312,8 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 case Node::NK_WORKLOAD:{
                     if(!nodeViewItem->isInModel()){
                         //Workload from a Workload Definition.
-                        alias = "Functions";
-                        image = label;
+                        alias = icon_prefix;
+                        image = icon;
                     }
                     break;
                 }
