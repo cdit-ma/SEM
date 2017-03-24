@@ -21,6 +21,8 @@
             <data key="kind">Workload</data>
             <data key="worker">Vector_Operations</data>
             <data key="label">Vector Operations</data>
+            <data key="icon_prefix">EntityIcons</data>
+            <data key="icon">Vector</data>
             <data key="description">Provides Vector handling functionality.</data>
             <graph id="n0:">
                 <node id="n0::n0">

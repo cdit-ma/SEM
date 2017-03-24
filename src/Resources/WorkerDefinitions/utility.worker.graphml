@@ -22,6 +22,8 @@
             <data key="worker">Utility_Worker</data>
             <data key="label">Utility Worker</data>
             <data key="description">A Worker that provides utility functions for use in workload.</data>
+            <data key="icon_prefix">Icons</data>
+            <data key="icon">spanner</data>
             <graph id="n0:">
                 <node id="n0::n0">
                     <data key="kind">WorkerProcess</data>

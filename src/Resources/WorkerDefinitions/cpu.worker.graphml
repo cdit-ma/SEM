@@ -21,6 +21,8 @@
             <data key="worker">Cpu_Worker</data>
             <data key="label">CPU Worker</data>
             <data key="description">Provides CPU workload functionality.</data>
+            <data key="icon_prefix">Icons</data>
+            <data key="icon">cpu</data>
             <graph id="n0:">
                 <node id="n0::n0">
                     <data key="kind">WorkerProcess</data>
