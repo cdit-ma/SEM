@@ -947,10 +947,20 @@ void ModelController::constructForCondition(int parentID, QPointF position)
 
         Node* for_condition = constructChildNode(parentNode, constructDataVector("ForCondition", position));
         if(for_condition){
+            auto iconKey = constructKey("icon", QVariant::String);
+            auto iconPrefixKey = constructKey("icon_prefix", QVariant::String);
+
             //Construct an Input Parameter
+            auto condition_data = constructDataVector("InputParameter", QPointF(-1, -1), "String", "Condition");
+            auto itteration_data = constructDataVector("InputParameter", QPointF(-1, -1), "String", "Itteration");
+            condition_data.append(new Data(iconKey, "Condition"));
+            condition_data.append(new Data(iconPrefixKey, "EntityIcons"));
+            itteration_data.append(new Data(iconKey, "reload"));
+            itteration_data.append(new Data(iconPrefixKey, "Icons"));
+
             constructChildNode(for_condition, constructDataVector("VariableParameter", QPointF(-1, -1), "Integer", "i"));
-            constructChildNode(for_condition, constructDataVector("InputParameter", QPointF(-1, -1), "String", "Condition"));
-            constructChildNode(for_condition, constructDataVector("InputParameter", QPointF(-1, -1), "String", "Itteration"));
+            constructChildNode(for_condition, condition_data);
+            constructChildNode(for_condition, itteration_data);
         }
     }
 

@@ -319,12 +319,23 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 }
                 case Node::NK_VARIADIC_PARAMETER:{
                     alias = "Icons";
-                    image = "tag";
+                    image = "label";
                     break;
                 }
+            case Node::NK_VARIABLE_PARAMETER:{
+                alias = "EntityIcons";
+                image = "Variable";
+                break;
+            }
+            case Node::NK_FOR_CONDITION:{
+                alias = "EntityIcons";
+                image = "Condition";
+                break;
+            }
+
                 case Node::NK_WORKER_PROCESS:
                 case Node::NK_INPUT_PARAMETER:
-                case Node::NK_VARIABLE_PARAMETER:
+
                 case Node::NK_RETURN_PARAMETER:{
                     alias = icon_prefix;
                     image = icon;
