@@ -159,7 +159,7 @@ void DockWidgetActionItem::actionChanged()
  */
 void DockWidgetActionItem::themeChanged()
 {
-    arrowLabel->setPixmap(theme->getImage("Icons", "arrowRight", QSize(16,16), theme->getTextColor()));
+    arrowLabel->setPixmap(theme->getImage("Icons", "arrowHeadRight", QSize(16,16), theme->getTextColor()));
     updateStyleSheet();
 }
 
@@ -183,7 +183,7 @@ void DockWidgetActionItem::enterEvent(QEvent* event)
 
     if (theme) {
         textLabel->setStyleSheet("color:" + theme->getTextColorHex(theme->CR_SELECTED) + ";");
-        arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(ARROW_WIDTH, ARROW_WIDTH), theme->getTextColor(theme->CR_SELECTED)));
+        arrowLabel->setPixmap(theme->getImage("Icons", "arrowHeadRight", QSize(ARROW_WIDTH, ARROW_WIDTH), theme->getTextColor(theme->CR_SELECTED)));
     }
     emit hoverEnter(dockActionID);
     QToolButton::enterEvent(event);
@@ -198,7 +198,7 @@ void DockWidgetActionItem::leaveEvent(QEvent* event)
 {
     if (theme) {
         textLabel->setStyleSheet("color:" + colorHex + ";");
-        arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(ARROW_WIDTH,ARROW_WIDTH), theme->getTextColor()));
+        arrowLabel->setPixmap(theme->getImage("Icons", "arrowHeadRight", QSize(ARROW_WIDTH,ARROW_WIDTH), theme->getTextColor()));
     }
     emit hoverLeave(dockActionID);
     QToolButton::leaveEvent(event);
@@ -260,4 +260,5 @@ void DockWidgetActionItem::updateStyleSheet()
     }
     setStyleSheet("QToolButton:!hover{ background:" + backgroundColorHex + "; border:" + borderStr + ";}");
     textLabel->setStyleSheet("color:" + colorHex + ";");
+
 }

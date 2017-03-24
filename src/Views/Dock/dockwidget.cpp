@@ -54,6 +54,7 @@ void DockWidget::addItem(DockWidgetItem* item)
         childrenItems.append(item);
     }
 
+
     if (isActionItem) {
         DockWidgetActionItem* actionItem = (DockWidgetActionItem*)item;
         actionItem->setProperty("kind", actionItem->getAction()->text());

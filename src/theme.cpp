@@ -24,8 +24,10 @@ Theme::Theme():QObject(0)
 
     selectedItemBorderColor = Qt::blue;
 
+    setupToggledIcons();
+    //preloadImages();
     updateValid();
-    setupIcons();
+
 
 
     preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
@@ -249,6 +251,8 @@ void Theme::setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color)
     }
 }
 
+
+
 QColor Theme::getAspectBackgroundColor(VIEW_ASPECT aspect)
 {
     if(aspectColor.contains(aspect)){
@@ -263,11 +267,12 @@ QString Theme::getAspectBackgroundColorHex(VIEW_ASPECT aspect)
     return Theme::QColorToHex(color);
 }
 
-void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName)
-{
+void Theme::setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias){
     QString name = prefix % slash % alias;
-    QString toggledName = toggledAlias  % slash %  toggledImageName;
-    iconToggledLookup[name] = toggledName;
+
+    QString toggled_on = toggledOnPrefix  % slash %  toggledOnAlias;
+    QString toggled_off = toggledOffPrefix  % slash %  toggleOffAlias;
+    iconToggledLookup[name] = QPair<QString, QString>(toggled_on, toggled_off);
 }
 
 QColor Theme::getDefaultImageTintColor()
@@ -367,9 +372,26 @@ QIcon Theme::getIcon(QString prefix, QString alias)
     if(iconLookup.contains(lookupName)){
         return iconLookup[lookupName];
     }else{
+        QPair<QString, QString> toggledPaths;
+        bool gotToggle = false;
+        //Check if we have a toggled Icon
+        if(iconToggledLookup.contains(lookupName)){
+            toggledPaths = iconToggledLookup[lookupName];
+            qCritical() << toggledPaths;
+            gotToggle = true;
+        }
+
+        //Try get the Icon
         if(!imageLookup.contains(lookupName)){
             //If we haven't loaded the original image we can't tell if it needs tinting!
             getImage(prefix, alias);
+        }
+
+        if(gotToggle && !gotImage(prefix, alias)){
+            //Load in the first path.
+            QPair<QString, QString> toggledOnIcon = splitImagePath(toggledPaths.first);
+            prefix = toggledOnIcon.first;
+            alias = toggledOnIcon.second;
         }
 
 
@@ -385,28 +407,22 @@ QIcon Theme::getIcon(QString prefix, QString alias)
             icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::Off);
         }
 
-        if(iconToggledLookup.contains(lookupName)){
-            QString toggledName = iconToggledLookup[lookupName];
-            int midSlash = toggledName.lastIndexOf("/");
+        if(gotToggle){
+            QPair<QString, QString> toggledOffIcon = splitImagePath(toggledPaths.second);
+            QString toggledPrefixName = toggledOffIcon.first;
+            QString toggledAliasName = toggledOffIcon.second;
 
-            if(midSlash > 0){
-                QString toggledPrefixName = toggledName.mid(0, midSlash);
-                QString toggledAliasName = toggledName.mid(midSlash + 1);
+            bool isToggledTinted = tintIcon(toggledPrefixName, toggledAliasName);
 
-                bool isToggledTinted = tintIcon(toggledPrefixName, toggledAliasName);
-
-                //Set the toggled states.
-                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::On);
-                if(isToggledTinted){
-                    icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
-                    icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
-                }
+            //Set the toggled states.
+            icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::On);
+            if(isToggledTinted){
+                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::On);
+                icon.addPixmap(getImage(toggledPrefixName, toggledAliasName, QSize(), getMenuIconColor(CR_DISABLED)), QIcon::Disabled, QIcon::On);
             }
         }
 
         iconLookup[lookupName] = icon;
-        //qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();
-        //qCritical() <<  lookupName << " HARD TIME: " <<  timeFinish-timeStart;
         return icon;
     }
 }
@@ -554,7 +570,7 @@ QString Theme::getWindowStyleSheet()
     return "QMainWindow {"
            "background: " % getBackgroundColorHex() % ";"
            "color: " % getTextColorHex() % ";"
-           "background-image: url(:/MEDEA_Watermark); background-position: center; background-repeat: no-repeat;"
+           "background-image: url(:/Icons/medeaLogoTransparent); background-position: center; background-repeat: no-repeat;"
             "}";
 }
 
@@ -1274,16 +1290,16 @@ QString Theme::getResourceName(QPair<QString, QString> icon) const
     return getResourceName(icon.first, icon.second);
 }
 
-void Theme::setupIcons()
+void Theme::setupToggledIcons()
 {
-    setIconToggledImage("Actions", "Grid_On", "Actions", "Grid_Off");
-    setIconToggledImage("Actions", "Fullscreen", "Actions", "Error");
-    setIconToggledImage("Actions", "Minimap", "Actions", "Invisible");
-    setIconToggledImage("Actions", "Arrow_Down", "Actions", "Arrow_Up");
-    setIconToggledImage("Actions", "SearchOptions", "Actions", "Arrow_Down");
-    setIconToggledImage("Actions", "Maximize", "Actions", "Minimize");
-    setIconToggledImage("Actions", "Lock_Open", "Actions", "Lock_Closed");
-    setIconToggledImage("Actions", "Visible", "Actions", "Invisible");
+    setIconToggledImage("Icons", "gridToggle", "Icons", "grid", "Icons", "gridStriked");
+    setIconToggledImage("Icons", "fullscreenToggle", "Icons", "fullscreen", "Icons", "cross");
+    setIconToggledImage("Icons", "arrowHeadVerticalToggle", "Icons", "arrowHeadDown", "Icons", "arrowHeadUp");
+    setIconToggledImage("Icons", "minimapToggle", "Icons", "map", "Icons", "eyeStriked");
+    setIconToggledImage("Icons", "searchOptionToggle", "Icons", "zoom", "Icons", "arrowHeadDown");
+    setIconToggledImage("Icons", "maximizeToggle", "Icons", "maximize", "Icons", "minimize");
+    setIconToggledImage("Icons", "lockToggle", "Icons", "lockOpened", "Icons", "lockClosed");
+    setIconToggledImage("Icons", "visibleToggle", "Icons", "eye", "Icons", "eyeStriked");
 }
 
 
@@ -1372,6 +1388,18 @@ void Theme::updateValid()
 
     valid = gotAllColors;
     themeChanged = true;
+}
+
+QPair<QString, QString> Theme::splitImagePath(QString path)
+{
+    int midSlash = path.lastIndexOf("/");
+
+    QPair<QString, QString> pair;
+    if(midSlash > 0){
+        pair.first = path.mid(0, midSlash);
+        pair.second = path.mid(midSlash + 1);
+    }
+    return pair;
 }
 
 bool Theme::tintIcon(QString prefix, QString alias)

@@ -104,16 +104,16 @@ void DockTitleBar::themeChanged()
         closeAction->setIcon(theme->getIcon("Icons", "cross"));
     }
     if(maximizeAction){
-        maximizeAction->setIcon(theme->getIcon("Icons", "maximize"));
+        maximizeAction->setIcon(theme->getIcon("Icons", "maximizeToggle"));
     }
     if(popOutAction){
         popOutAction->setIcon(theme->getIcon("Icons", "popOut"));
     }
     if(protectAction){
-        protectAction->setIcon(theme->getIcon("Icons", "lockOpened"));
+        protectAction->setIcon(theme->getIcon("Icons", "lockToggle"));
     }
     if(hideAction){
-        hideAction->setIcon(theme->getIcon("Icons", "eye"));
+        hideAction->setIcon(theme->getIcon("Icons", "visibleToggle"));
     }
     /*
      * TODO - Change the icon colour based on theme

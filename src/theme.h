@@ -93,7 +93,7 @@ public:
     void setTextColor(COLOR_ROLE role, QColor color);
     void setMenuIconColor(COLOR_ROLE role, QColor color);
     void setAspectBackgroundColor(VIEW_ASPECT aspect, QColor color);
-    void setIconToggledImage(QString prefix, QString alias, QString toggledAlias, QString toggledImageName);
+    void setIconToggledImage(QString prefix, QString alias, QString toggledOnPrefix, QString toggledOnAlias, QString toggledOffPrefix, QString toggleOffAlias);
     void setDefaultImageTintColor(QColor color);
     void setDefaultImageTintColor(QString prefix, QString alias, QColor color);
 
@@ -151,8 +151,10 @@ private:
     QString getResourceName(QPair<QString, QString> icon) const;
     void resetTheme(VIEW_THEME themePreset);
     void resetAspectTheme(bool colorBlind);
-    void setupIcons();
+    void setupToggledIcons();
     void updateValid();
+
+    QPair<QString, QString> splitImagePath(QString path);
 
     bool tintIcon(QString prefix, QString alias);
     bool tintIcon(QSize size);
@@ -161,7 +163,10 @@ private:
     QHash<QString, QSize> pixmapSizeLookup;
     QHash<QString, QIcon> iconLookup;
     QHash<QString, QColor> pixmapTintLookup;
-    QHash<QString, QString> iconToggledLookup;
+
+
+
+    QHash<QString, QPair<QString, QString> > iconToggledLookup;
     QHash<QString, QImage> imageLookup;
     QHash<QString, QColor> pixmapMainColorLookup;
 

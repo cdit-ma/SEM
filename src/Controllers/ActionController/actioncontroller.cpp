@@ -543,6 +543,7 @@ void ActionController::recentProjectsChanged()
 void ActionController::updateIcon(RootAction *action, Theme *theme)
 {
     if(theme && action){
+
         action->setIcon(theme->getIcon(action->getIconPair()));
     }
 }
@@ -778,7 +779,7 @@ void ActionController::setupActions()
     jenkins_importNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
 
 
-    jenkins_executeJob = createRootAction("Model", "Launch: Jenkins Job", "Icons", "jobBuild");
+    jenkins_executeJob = createRootAction("Model", "Launch: Jenkins Job", "", "Icons", "jobBuild");
     jenkins_executeJob->setToolTip("Executes the current project on the Jenkins Server.");
     jenkins_executeJob->setShortcutContext(Qt::ApplicationShortcut);
     jenkins_executeJob->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B));

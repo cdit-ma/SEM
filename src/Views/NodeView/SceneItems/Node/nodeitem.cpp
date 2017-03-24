@@ -971,7 +971,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             painter->drawRect(getElementRect(ER_CONNECT));
 
             if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
-                paintPixmap(painter, lod, ER_EDGE_KIND_ICON, "Items", visualEdgeIcon);
+                paintPixmap(painter, lod, ER_EDGE_KIND_ICON, "EntityIcons", visualEdgeIcon);
             }
             painter->restore();
         }
