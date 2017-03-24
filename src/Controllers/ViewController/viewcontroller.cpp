@@ -288,6 +288,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
         QString kind = viewItem->getData("kind").toString();
         QString label = viewItem->getData("label").toString();
         QString icon = viewItem->getData("icon").toString();
+        QString icon_prefix = viewItem->getData("icon_prefix").toString();
 
 
         QString alias = "EntityIcons";
@@ -308,11 +309,6 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     }
                     break;
                 }
-                case Node::NK_WORKER_PROCESS:{
-                    alias = "Functions";
-                    image = label;
-                    break;
-                }
                 case Node::NK_WORKLOAD:{
                     if(!nodeViewItem->isInModel()){
                         //Workload from a Workload Definition.
@@ -321,21 +317,18 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     }
                     break;
                 }
-
+                case Node::NK_VARIADIC_PARAMETER:{
+                    alias = "Icons";
+                    image = "tag";
+                    break;
+                }
+                case Node::NK_WORKER_PROCESS:
                 case Node::NK_INPUT_PARAMETER:
-                case Node::NK_VARIADIC_PARAMETER:
+                case Node::NK_VARIABLE_PARAMETER:
                 case Node::NK_RETURN_PARAMETER:{
-                        QString type = nodeViewItem->getData("type").toString();
-                        alias = "Icons";
-
-                        if(type == "WE_UTE_Vector" || type == "WE_UTE_VariableArguments"){
-                            alias = "Data";
-                            image = type;
-                        }else{
-                            alias = "Data";
-                            image = label;
-                        }
-                        break;
+                    alias = icon_prefix;
+                    image = icon;
+                    break;
                 }
                 case Node::NK_VECTOR:
                 case Node::NK_VECTOR_INSTANCE:
