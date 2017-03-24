@@ -11,6 +11,7 @@
     <key attr.name="folder" attr.type="string" for="all" id="folder"/>
     <key attr.name="file" attr.type="string" for="all" id="file"/>
     <key attr.name="icon" attr.type="string" for="all" id="icon"/>
+    <key attr.name="icon_prefix" attr.type="string" for="all" id="icon"/>
     <key attr.name="operation" attr.type="string" for="all" id="operation"/>
     <key attr.name="workerID" attr.type="string" for="all" id="workerID"/>
 
