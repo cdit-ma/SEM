@@ -84,7 +84,7 @@ void DataTableDelegate::themeChanged()
 {
 
     Theme* t = Theme::theme();
-    dialog->setWindowIcon(t->getIcon("Actions", "Popup"));
+    dialog->setWindowIcon(t->getIcon("Icons", "popOut"));
     dialog->setStyleSheet(t->getDialogStyleSheet() % t->getPushButtonStyleSheet() );
 }
 

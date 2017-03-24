@@ -141,7 +141,7 @@ void DockWidgetParentActionItem::themeChanged()
     Theme* theme = Theme::theme();
     QColor altColor = theme->getAltBackgroundColor().darker(110);
 
-    setIcon(theme->getIcon("Actions", "Arrow_Down"));
+    setIcon(theme->getIcon("Icons", "arrowHeadDown"));
     setStyleSheet("QToolButton {"
                   "border-color:" + theme->getDisabledBackgroundColorHex() + ";"
                   "padding: 2px 0px 2px 7px;"

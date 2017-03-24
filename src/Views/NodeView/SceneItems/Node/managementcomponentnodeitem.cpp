@@ -48,7 +48,7 @@ void ManagementComponentNodeItem::paint(QPainter *painter, const QStyleOptionGra
         painter->setBrush(getBodyColor().darker(120));
         painter->drawPolygon(getLeftPoly());
 
-        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Actions", getData("type").toString());
+        paintPixmap(painter, lod, ER_SECONDARY_ICON, "Icons", getData("type").toString());
         painter->restore();
     }
 

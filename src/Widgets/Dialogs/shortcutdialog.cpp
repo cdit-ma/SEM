@@ -19,7 +19,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
 {
     setWindowTitle("App Shortcuts");
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    setWindowIcon(Theme::theme()->getImage("Actions", "Keyboard"));
+    setWindowIcon(Theme::theme()->getImage("Icons", "keyboard"));
     setModal(false);
 
     setupLayout();

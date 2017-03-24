@@ -34,7 +34,7 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
     requestedConsoleOutput = false;
 
     setWindowTitle("Jenkins Job Monitor");
-    setWindowIcon(Theme::theme()->getIcon("Actions", "Job_Build"));
+    setWindowIcon(Theme::theme()->getIcon("Icons", "jobBuild"));
 
 
     setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
@@ -108,12 +108,12 @@ void JenkinsJobMonitorWidget::setupLayout()
     //Set up a QLabel for the Building Icon
 
     jobIcon = new QLabel();
-    jobIcon->setPixmap(Theme::theme()->getImage("Actions", "Job_Build"));
+    jobIcon->setPixmap(Theme::theme()->getImage("Actions", "jobBuild"));
     jobIcon->setFixedSize(48,48);
 
     //Setup a QPushButton to stop the job.
     stopButton = new QPushButton("");
-    stopButton->setIcon(Theme::theme()->getImage("Actions", "Job_Stop"));
+    stopButton->setIcon(Theme::theme()->getImage("Actions", "jenkinsStop"));
     stopButton->setStyleSheet("border: 0px solid black;");
     stopButton->setFixedSize(QSize(24,24));
     stopButton->setToolTip("Stop the Job.");

@@ -93,10 +93,10 @@ void SearchDialog::themeChanged()
                                "border-radius:" + theme->getSharpCornerRadius() + ";"
                                "}");
 
-    centerOnButton->setIcon(theme->getIcon("Actions", "Crosshair"));
-    popupButton->setIcon(theme->getIcon("Actions", "Popup"));
-    searchButton->setIcon(theme->getIcon("Actions", "Search"));
-    refreshButton->setIcon(theme->getIcon("Actions", "Refresh"));
+    centerOnButton->setIcon(theme->getIcon("Icons", "crosshair"));
+    popupButton->setIcon(theme->getIcon("Icons", "popOut"));
+    searchButton->setIcon(theme->getIcon("Icons", "zoom"));
+    refreshButton->setIcon(theme->getIcon("Icons", "refresh"));
 
     infoLabel->setStyleSheet(labelStyle);
     searchLabel->setStyleSheet(labelStyle);
@@ -185,7 +185,7 @@ void SearchDialog::resetPanel()
 void SearchDialog::updateKeyButtonIcons()
 {
     //QIcon icon = Theme::theme()->getIcon("Actions", "Transparent_Square");
-    QPixmap pixmap = Theme::theme()->getImage("Actions", "Transparent_Square", QSize(1,1));
+    QPixmap pixmap = Theme::theme()->getImage("Actions", "blank", QSize(1,1));
 
     // added an tiny icon to left-align the tool button's text
     foreach (QAction* action, staticKeysActionGroup->actions()) {

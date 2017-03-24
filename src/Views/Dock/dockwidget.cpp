@@ -218,7 +218,7 @@ void DockWidget::themeChanged()
                              "}");
 */
     if (backButton) {
-        backButton->setIcon(theme->getIcon("Actions", "Arrow_Back"));
+        backButton->setIcon(theme->getIcon("Icons", "arrowLeft"));
         backButton->setStyleSheet(theme->getToolBarStyleSheet() +
                                   "QToolButton {"
                                   "background:" + theme->getAltBackgroundColorHex() + ";"

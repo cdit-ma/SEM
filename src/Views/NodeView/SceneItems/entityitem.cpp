@@ -414,10 +414,6 @@ QPixmap EntityItem::getPixmap(QString imageAlias, QString imageName, QSize requi
 {
     Theme* theme = Theme::theme();
     QPixmap image = theme->getImage(imageAlias, imageName, requiredSize, tintColor);
-//    if(image.isNull()){
-        //Return a default ? Icon
-//        image = theme->getImage("Actions", "Help", requiredSize, tintColor);
-//    }
     return image;
 }
 
@@ -872,7 +868,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, lod, ER_TERTIARY_ICON, tertiaryIconPath);
         }
         if(isReadOnly()){
-            paintPixmap(painter, lod, ER_LOCKED_STATE, "Actions", "Lock_Closed");
+            paintPixmap(painter, lod, ER_LOCKED_STATE, "Icons", "lockClosed");
         }
     }
 }

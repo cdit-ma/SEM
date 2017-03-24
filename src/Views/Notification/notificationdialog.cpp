@@ -294,12 +294,12 @@ void NotificationDialog::themeChanged()
                                  "QToolButton:pressed{ background:" + theme->getPressedColorHex() + ";}"
                                  "QToolButton::menu-indicator{ subcontrol-position: right center; }");
 
-    sortTimeAction->setIcon(theme->getIcon("Actions", "Clock"));
-    sortSeverityAction->setIcon(theme->getIcon("Actions", "Sort"));
-    centerOnAction->setIcon(theme->getIcon("Actions", "Crosshair"));
-    popupAction->setIcon(theme->getIcon("Actions", "Popup"));
-    clearSelectedAction->setIcon(theme->getIcon("Actions", "Delete"));
-    clearVisibleAction->setIcon(theme->getIcon("Actions", "Clear"));
+    sortTimeAction->setIcon(theme->getIcon("Icons", "clock"));
+    sortSeverityAction->setIcon(theme->getIcon("Icons", "letterAZ"));
+    centerOnAction->setIcon(theme->getIcon("Icons", "crosshair"));
+    popupAction->setIcon(theme->getIcon("Icons", "popOut"));
+    clearSelectedAction->setIcon(theme->getIcon("Icons", "bin"));
+    clearVisibleAction->setIcon(theme->getIcon("Icons", "cross"));
 
     displaySplitter->setStyleSheet(theme->getSplitterStyleSheet());
     displaySeparator->setStyleSheet("color:" + theme->getDisabledBackgroundColorHex() + ";");
@@ -872,29 +872,29 @@ void NotificationDialog::setupLayout()
     filtersArea->setWidget(filtersToolbar);
     filtersArea->setWidgetResizable(true);
 
-    allAction = constructFilterButtonAction((ITEM_ROLES)-1, -1, "All", "Actions", "Menu", false);
+    allAction = constructFilterButtonAction((ITEM_ROLES)-1, -1, "All", "icons", "Menu", false);
     setActionButtonChecked(allAction, true);
 
     // setup the SEVERITY, TYPE, and CATEGORY filter actions/buttons in that order
     NotificationManager* manager = NotificationManager::manager();
     foreach (NOTIFICATION_SEVERITY severity, manager->getNotificationSeverities()) {
-        QString iconName = manager->getSeverityString(severity);
-        constructFilterButtonAction(IR_SEVERITY, severity, manager->getSeverityString(severity), "Actions", iconName);
+        QString iconName = manager->getSeverityIcon2(severity);
+        constructFilterButtonAction(IR_SEVERITY, severity, manager->getSeverityString(severity), "Icons", iconName);
         severityCheckedStates[severity] = false;
     }
     foreach (NOTIFICATION_CATEGORY category, manager->getNotificationCategories()) {
         //constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Data", "severity");
-        constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Actions", "Splitter");
+        constructFilterButtonAction(IR_CATEGORY, category, manager->getCategoryString(category), "Icons", "circleRadio");
         categoryCheckedStates[category] = false;
     }
     foreach (NOTIFICATION_TYPE2 type, manager->getNotificationTypes()) {
         QString iconName;
         if (type == NT_MODEL) {
-            iconName = "Model";
+            iconName = "dotsInRectangle";
         } else if (type == NT_APPLICATION) {
-            iconName = "Rename";
+            iconName = "pencil";
         }
-        constructFilterButtonAction(IR_TYPE, type, manager->getTypeString(type), "Actions", iconName);
+        constructFilterButtonAction(IR_TYPE, type, manager->getTypeString(type), "Icons", iconName);
         typeCheckedStates[type] = false;
     }
 

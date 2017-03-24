@@ -232,20 +232,20 @@ void ToolbarController::actionHoverLeave(int ID)
 
 void ToolbarController::setupToolActions()
 {
-    createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Actions", "Computer");
-    createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Actions", "Computer_Cross");
+    createRootAction("EC_DEPLOYMENT_CONNECT", "Deploy Selection", "Icons", "screen");
+    createRootAction("EC_DEPLOYMENT_DISCONNECT", "Remove selection deployment", "Icons", "screenStriked");
 
     // setup menu info actions here
-    createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no available hardware nodes", "Actions", "Information");
-    createRootAction("INFO_NO_UNIMPLEMENTED_COMPONENTS", "There are no IDL files containing unimplemented Component entities", "Actions", "Information");
-    createRootAction("INFO_NO_COMPONENTS", "There are no IDL files containing Component entities", "Actions", "Information");
-    createRootAction("INFO_NO_BLACKBOXES", "There are no IDL files containing BlackBox entities", "Actions", "Information");
-    createRootAction("INFO_NO_AGGREGATES", "There are no IDL files containing Aggregate entities", "Actions", "Information");
-    createRootAction("INFO_NO_VECTORS", "There are no IDL files containing initialised Vector entities", "Actions", "Information");
-    createRootAction("INFO_NO_FUNCTIONS", "There are no available functions", "Actions", "Information");
-    createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities", "Actions", "Information");
-    createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to", "Actions", "Information");
-    createRootAction("INFO_NO_EDGE_TO_DISCONNECT", "There are no edges to disconnect", "Actions", "Information");
+    createRootAction("INFO_NO_VALID_DEPLOYMENT_NODES", "There are no available hardware nodes", "Icons", "circleInfo");
+    createRootAction("INFO_NO_UNIMPLEMENTED_COMPONENTS", "There are no IDL files containing unimplemented Component entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_COMPONENTS", "There are no IDL files containing Component entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_BLACKBOXES", "There are no IDL files containing BlackBox entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_AGGREGATES", "There are no IDL files containing Aggregate entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_VECTORS", "There are no IDL files containing initialised Vector entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_FUNCTIONS", "There are no available functions", "Icons", "circleInfo");
+    createRootAction("INFO_NO_OUTEVENTPORTS", "The selected entity's definition does not contain any OutEventPort entities", "Icons", "circleInfo");
+    createRootAction("INFO_NO_VALID_EDGE", "There are no entities with the required kind to connect to", "Icons", "circleInfo");
+    createRootAction("INFO_NO_EDGE_TO_DISCONNECT", "There are no edges to disconnect", "Icons", "circleInfo");
 }
 
 QList<NodeViewItemAction *> ToolbarController::getEdgeActionsOfKind(Edge::EDGE_KIND kind)
@@ -358,7 +358,7 @@ void ToolbarController::setupNodeActions()
 {
     foreach(QString kind, viewController->getNodeKinds()){
         RootAction* action = new RootAction("Node", kind);
-        action->setIconPath("Items", kind);
+        action->setIconPath("EntityIcons", kind);
         nodeKindActions[kind]= action;
         adoptableKindsGroup->addAction(action);
     }
@@ -370,8 +370,8 @@ void ToolbarController::setupEdgeActions()
         QString edgeKind = EdgeFactory::getEdgeKindString(kind);
         RootAction* connectAction = new RootAction("Edge", edgeKind);
         RootAction* disconnectAction = new RootAction("Edge", edgeKind);
-        connectAction->setIconPath("Items", edgeKind);
-        disconnectAction->setIconPath("Items", edgeKind);
+        connectAction->setIconPath("EntityIcons", edgeKind);
+        disconnectAction->setIconPath("EntityIcons", edgeKind);
         connectEdgeKindActions[kind] = connectAction;
         disconnectEdgeKindActions[kind] = disconnectAction;
     }

@@ -143,7 +143,7 @@ void DockWidgetActionItem::actionChanged()
         if (!iconPixmap.isNull()) {
             iconLabel->setPixmap(iconPixmap);
         } else {
-            iconLabel->setPixmap(theme->getImage("Actions", "Help", QSize(ICON_SIZE, ICON_SIZE)));
+            iconLabel->setPixmap(theme->getImage("Icons", "circleQuestion", QSize(ICON_SIZE, ICON_SIZE)));
         }
         QString actionText = dockAction->text();
         if (actionText != getText()) {
@@ -159,7 +159,7 @@ void DockWidgetActionItem::actionChanged()
  */
 void DockWidgetActionItem::themeChanged()
 {
-    arrowLabel->setPixmap(theme->getImage("Actions", "Arrow_Right", QSize(16,16), theme->getTextColor()));
+    arrowLabel->setPixmap(theme->getImage("Icons", "arrowRight", QSize(16,16), theme->getTextColor()));
     updateStyleSheet();
 }
 

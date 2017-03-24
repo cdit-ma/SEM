@@ -16,14 +16,13 @@
 #include "../Model/node.h"
 #include "../Model/key.h"
 #include "../Model/data.h"
-#include "../Model/workerdefinitions.h"
 
+#include "../Model/workerdefinitions.h"
 #include "../Model/InterfaceDefinitions/eventport.h"
 #include "../Model/InterfaceDefinitions/aggregate.h"
 #include "../Model/BehaviourDefinitions/parameter.h"
 #include "../Model/BehaviourDefinitions/process.h"
 #include "../Model/DeploymentDefinitions/managementcomponent.h"
-
 #include "../Model/Edges/definitionedge.h"
 #include "../Model/Edges/workflowedge.h"
 #include "../Model/Edges/dataedge.h"
@@ -31,15 +30,11 @@
 #include "../Model/Edges/aggregateedge.h"
 #include "../Model/Edges/deploymentedge.h"
 #include "../Model/Edges/qosedge.h"
-
-
-
 #include "../Model/BehaviourDefinitions/behaviourdefinitions.h"
 #include "../Model/BehaviourDefinitions/componentimpl.h"
 #include "../Model/BehaviourDefinitions/ineventportimpl.h"
 #include "../Model/BehaviourDefinitions/outeventportimpl.h"
 #include "../Model/BehaviourDefinitions/attributeimpl.h"
-
 #include "../Model/BehaviourDefinitions/branchstate.h"
 #include "../Model/BehaviourDefinitions/condition.h"
 #include "../Model/BehaviourDefinitions/periodicevent.h"
@@ -52,35 +47,25 @@
 #include "../Model/BehaviourDefinitions/forcondition.h"
 #include "../Model/BehaviourDefinitions/variableparameter.h"
 #include "../Model/BehaviourDefinitions/setter.h"
-
-
 #include "../Model/BehaviourDefinitions/inputparameter.h"
 #include "../Model/BehaviourDefinitions/returnparameter.h"
-
 #include "../Model/BehaviourDefinitions/periodicevent.h"
-
 #include "../Model/DeploymentDefinitions/deploymentdefinitions.h"
 #include "../Model/DeploymentDefinitions/hardwaredefinitions.h"
 #include "../Model/DeploymentDefinitions/assemblydefinitions.h"
 #include "../Model/DeploymentDefinitions/deploymentdefinitions.h"
-
-
 #include "../Model/DeploymentDefinitions/componentassembly.h"
-
 #include "../Model/DeploymentDefinitions/attributeinstance.h"
 #include "../Model/DeploymentDefinitions/componentinstance.h"
 #include "../Model/DeploymentDefinitions/ineventportinstance.h"
 #include "../Model/DeploymentDefinitions/outeventportinstance.h"
-
 #include "../Model/DeploymentDefinitions/hardwarecluster.h"
 #include "../Model/DeploymentDefinitions/hardwarenode.h"
 #include "../Model/DeploymentDefinitions/managementcomponent.h"
 #include "../Model/DeploymentDefinitions/ineventportdelegate.h"
 #include "../Model/DeploymentDefinitions/outeventportdelegate.h"
-
 #include "../Model/InterfaceDefinitions/interfacedefinitions.h"
 #include "../Model/InterfaceDefinitions/aggregateinstance.h"
-
 #include "../Model/InterfaceDefinitions/memberinstance.h"
 #include "../Model/InterfaceDefinitions/attribute.h"
 #include "../Model/InterfaceDefinitions/component.h"
@@ -91,10 +76,8 @@
 #include "../Model/InterfaceDefinitions/member.h"
 #include "../Model/InterfaceDefinitions/vector.h"
 #include "../Model/InterfaceDefinitions/vectorinstance.h"
-
 #include "../Model/InterfaceDefinitions/blackbox.h"
 #include "../Model/DeploymentDefinitions/blackboxinstance.h"
-
 #include "../Model/DeploymentDefinitions/QOS/DDS/dds_qosprofile.h"
 #include "../Model/DeploymentDefinitions/QOS/DDS/dds_deadlineqospolicy.h"
 #include "../Model/DeploymentDefinitions/QOS/DDS/dds_destinationorderqospolicy.h"
@@ -646,14 +629,7 @@ private:
     QHash<int, int> reverseReadOnlyLookup;
 
     DoubleHash<ReadOnlyState, int> readOnlyHash;
-
-    //QHash<ReadOnlyState, int> readOnlyStateLookup;
-    //QHash<ReadOnlyState, int> readOnlyStateLookup;
-
     DoubleHash<QString, int> treeHash;
-
-    //QHash<QString, int> treeLookup;
-    //QHash<int, QString> reverseTreeLookup;
 
 
     QString getProcessName(Process* process);

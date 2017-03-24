@@ -181,7 +181,7 @@ void ActionController::showShortcutDialog()
         keyOrders << "Project" << "Edit" << "Selection" << "View" << "Model" << "Help";
 
         foreach(QString title, keyOrders){
-            shortcutDialog->addTitle(title, "Actions", title);
+            shortcutDialog->addTitle(title, "Icons", title);
 
             //Go Through backwards.
             QList<RootAction*> actions = actionCategoryMap.values(title);
@@ -370,7 +370,7 @@ void ActionController::themeChanged()
     }
 
 
-    menu_file_recentProjects->setIcon(theme->getIcon("Actions", "Timer"));
+    menu_file_recentProjects->setIcon(theme->getIcon("Icons", "clock"));
 }
 
 void ActionController::updateJenkinsActions()
@@ -484,7 +484,7 @@ void ActionController::createRecentProjectAction(QString fileName)
 {
     if(!recentProjectActions.contains(fileName)){
         RootAction* action = new RootAction("Project", fileName, this);
-        action->setIconPath("Actions", "New");
+        action->setIconPath("Icons", "file");
         updateIcon(action);
         recentProjectActions.insert(fileName, action);
         connect(action, &QAction::triggered, recentProjectMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
@@ -580,167 +580,166 @@ QList<QAction *> ActionController::getNodeViewActions()
 
 void ActionController::setupActions()
 {
-    file_newProject = createRootAction("Project", "New Project", "", "Actions", "New");
+    file_newProject = createRootAction("Project", "New Project", "", "Icons", "file");
     file_newProject->setToolTip("Construct a new project.");
     file_newProject->setShortcutContext(Qt::ApplicationShortcut);
     file_newProject->setShortcut(QKeySequence::New);
 
-    file_openProject = createRootAction("Project", "Open Project", "", "Actions", "Open");
+    file_openProject = createRootAction("Project", "Open Project", "", "Icons", "folder");
     file_openProject->setToolTip("Open an existing project.");
     file_openProject->setShortcutContext(Qt::ApplicationShortcut);
     file_openProject->setShortcut(QKeySequence::Open);
 
-    file_recentProjects_clearHistory = createRootAction("Misc", "Clear History", "", "Actions", "Clear");
+    file_recentProjects_clearHistory = createRootAction("Misc", "Clear History", "", "Icons", "cross");
 
-    file_saveProject = createRootAction("Project", "Save Project", "", "Actions", "Save");
+    file_saveProject = createRootAction("Project", "Save Project", "", "Icons", "floppyDisk");
     file_saveProject->setToolTip("Save current project.");
     file_saveProject->setShortcutContext(Qt::ApplicationShortcut);
     file_saveProject->setShortcut(QKeySequence::Save);
 
 
-    file_saveAsProject = createRootAction("Project", "Save Project As", "", "Actions", "Save");
+    file_saveAsProject = createRootAction("Project", "Save Project As", "", "Icons", "floppyDisk");
     file_saveAsProject->setToolTip("Save current project into a different file.");
     file_saveAsProject->setShortcutContext(Qt::ApplicationShortcut);
     file_saveAsProject->setShortcut(QKeySequence::SaveAs);
 
-    file_closeProject = createRootAction("Project", "Close Project", "", "Actions", "Close");
+    file_closeProject = createRootAction("Project", "Close Project", "", "Icons", "cross");
     file_closeProject->setToolTip("Close current project.");
     file_closeProject->setShortcutContext(Qt::ApplicationShortcut);
     file_closeProject->setShortcut(QKeySequence::Close);
 
 
-    file_importGraphML = createRootAction("Project", "Import Project", "", "Actions", "Import");
+    file_importGraphML = createRootAction("Project", "Import Project", "", "Icons", "clipboardDown");
     file_importGraphML->setToolTip("Import Project into current project.");
     file_importGraphML->setShortcutContext(Qt::ApplicationShortcut);
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
 
 
-    file_importXME = createRootAction("Project", "Import XME Project", "", "Actions", "ImportXME");
+    file_importXME = createRootAction("Project", "Import XME Project", "", "Icons", "gme");
     file_importXME->setToolTip("Import XME Project into current project.");
-    file_importXMI = createRootAction("Project", "Import UML XMI Project", "", "Actions", "ImportXMI");
+    file_importXMI = createRootAction("Project", "Import UML XMI Project", "", "Icons", "uml");
     file_importXMI->setToolTip("Import XMI Project into current project.");
-    file_importSnippet = createRootAction("Project", "Import Snippet", "", "Actions", "ImportSnippet");
+    file_importSnippet = createRootAction("Project", "Import Snippet", "", "Icons", "fileDown");
     file_importSnippet->setToolTip("Import Snippet into selection.");
-    file_exportSnippet = createRootAction("Project", "Export Snippet", "", "Actions", "ExportSnippet");
+    file_exportSnippet = createRootAction("Project", "Export Snippet", "", "Icons", "fileUp");
     file_exportSnippet->setToolTip("Export Snippet of selection.");
 
-    edit_undo = createRootAction("Edit", "Undo", "", "Actions", "Undo");
+    edit_undo = createRootAction("Edit", "Undo", "", "Icons", "arrowUndo");
     edit_undo->setToolTip("Undo last model change.");
     edit_undo->setShortcutContext(Qt::ApplicationShortcut);
     edit_undo->setShortcut(QKeySequence::Undo);
 
-    edit_redo = createRootAction("Edit", "Redo", "", "Actions", "Redo");
+    edit_redo = createRootAction("Edit", "Redo", "", "Icons", "arrowRedo");
     edit_redo->setToolTip("Redo last undo.");
     edit_redo->setShortcutContext(Qt::ApplicationShortcut);
     edit_redo->setShortcut(QKeySequence::Redo);
 
 
-    edit_cut = createRootAction("Edit", "Cut", "", "Actions", "Cut");
+    edit_cut = createRootAction("Edit", "Cut", "", "Icons", "scissors");
     edit_cut->setToolTip("Cut selection.");
     edit_cut->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_cut->setShortcut(QKeySequence::Cut);
 
-    edit_copy = createRootAction("Edit", "Copy", "", "Actions", "Copy");
+    edit_copy = createRootAction("Edit", "Copy", "", "Icons", "copy");
     edit_copy->setToolTip("Copy selection.");
     edit_copy->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_copy->setShortcut(QKeySequence::Copy);
 
-    edit_paste = createRootAction("Edit", "Paste", "", "Actions", "Paste");
+    edit_paste = createRootAction("Edit", "Paste", "", "Icons", "clipboard");
     edit_paste->setToolTip("Paste clipboard into selected entity.");
     edit_paste->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_paste->setShortcut(QKeySequence::Paste);
 
-    edit_replicate = createRootAction("Edit", "Replicate", "", "Actions", "Replicate");
+    edit_replicate = createRootAction("Edit", "Replicate", "", "Icons", "copyList");
     edit_replicate->setToolTip("Replicate the selected entities.");
     edit_replicate->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     edit_replicate->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
 
-    edit_delete = createRootAction("Edit", "Delete", "Delete", "Actions", "Delete");
+    edit_delete = createRootAction("Edit", "Delete", "Delete", "Icons", "bin");
     edit_delete->setToolTip("Delete the selected entities.");
     edit_delete->setShortcut(QKeySequence::Delete);
     edit_delete->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
-    edit_renameActiveSelection = createRootAction("Edit", "Rename", "Rename", "Actions", "Rename");
+    edit_renameActiveSelection = createRootAction("Edit", "Rename", "Rename", "Icons", "letterA");
     edit_renameActiveSelection->setToolTip("Rename the selected entity.");
     edit_renameActiveSelection->setShortcut(QKeySequence(Qt::Key_F2));
     edit_renameActiveSelection->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
 
 
-    edit_search = createRootAction("Edit", "Search", "Root_Search", "Actions", "Search");
+    edit_search = createRootAction("Edit", "Search", "Root_Search", "Icons", "zoom");
     edit_search->setToolTip("Search model.");
     edit_search->setShortcutContext(Qt::ApplicationShortcut);
     edit_search->setShortcut(QKeySequence::Find);
 
 
 
-    edit_sort = createRootAction("Edit", "Sort", "", "Actions", "Sort");
+    edit_sort = createRootAction("Edit", "Sort", "", "Icons", "letterAZ");
     edit_sort->setToolTip("Sort selection.");
 
-    edit_alignVertical = createRootAction("Edit", "Align Vertically", "", "Actions", "Align_Vertical");
+    edit_alignVertical = createRootAction("Edit", "Align Vertically", "", "Icons", "alignVertical");
     edit_alignVertical->setToolTip("Align selection vertically.");
 
-    edit_alignHorizontal = createRootAction("Edit", "Align Horizontally", "", "Actions", "Align_Horizontal");
+    edit_alignHorizontal = createRootAction("Edit", "Align Horizontally", "", "Icons", "alignHorizontal");
     edit_alignHorizontal->setToolTip("Align selection horizontally.");
 
 
-    edit_CycleActiveSelectionForward = createRootAction("Selection", "Cycle Next Selected Item", "", "Actions", "Arrow_Right");
+    edit_CycleActiveSelectionForward = createRootAction("Selection", "Cycle Next Selected Item", "", "Icons", "arrowHeadRight");
     edit_CycleActiveSelectionForward->setToolTip("Cycle between active selected entities.");
     edit_CycleActiveSelectionForward->setShortcutContext(Qt::ApplicationShortcut);
     edit_CycleActiveSelectionForward->setShortcut(QKeySequence::NextChild);
 
-    edit_CycleActiveSelectionBackward = createRootAction("Selection", "Cycle Prev Selected Item", "", "Actions", "Arrow_Left");
+    edit_CycleActiveSelectionBackward = createRootAction("Selection", "Cycle Prev Selected Item", "", "Icons", "arrowHeadLeft");
     edit_CycleActiveSelectionBackward->setToolTip("Cycle(Back) between active selected entities.");
     edit_CycleActiveSelectionBackward->setShortcut(QKeySequence::PreviousChild);
     edit_CycleActiveSelectionBackward->setShortcutContext(Qt::ApplicationShortcut);
 
-    edit_selectAll = createRootAction("Selection", "Select All", "", "Actions", "SelectAll");
+    edit_selectAll = createRootAction("Selection", "Select All", "", "Icons", "gridSelect");
     edit_selectAll->setToolTip("Select all child entities of selection.");
     edit_selectAll->setShortcut(QKeySequence::SelectAll);
     edit_selectAll->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
-    edit_clearSelection = createRootAction("Selection", "Clear Selection", "", "Actions", "Clear");
+    edit_clearSelection = createRootAction("Selection", "Clear Selection", "", "Icons", "cross");
     edit_clearSelection->setToolTip("Clear selection.");
     edit_clearSelection->setShortcut(QKeySequence(Qt::Key_Escape));
     edit_clearSelection->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
-    view_fitView = createRootAction("View", "Fit View", "", "Actions", "FitToScreen");
+    view_fitView = createRootAction("View", "Fit View", "", "Icons", "screenResize");
     view_fitView->setToolTip("Center all entities in active view.");
     view_fitView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_fitView->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
 
-    view_fitAllViews = createRootAction("View", "Fit All Views", "", "Actions", "FitToScreen");
+    view_fitAllViews = createRootAction("View", "Fit All Views", "", "Icons", "screenResize");
     view_fitAllViews->setToolTip("Center all entities in all views.");
     view_fitAllViews->setShortcutContext(Qt::ApplicationShortcut);
     view_fitAllViews->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Space));
 
-    view_centerOn = createRootAction("View", "Center On Selection", "", "Actions", "Crosshair");
+    view_centerOn = createRootAction("View", "Center On Selection", "", "Icons", "crosshair");
 
-    edit_expand = createRootAction("Toolbar", "Expand Selection", "", "Actions", "Expand");
-    edit_contract = createRootAction("Toolbar", "Contract Selection", "", "Actions", "Contract");
+    edit_expand = createRootAction("Toolbar", "Expand Selection", "", "Icons", "triangleSouthEast");
+    edit_contract = createRootAction("Toolbar", "Contract Selection", "", "Icons", "triangleNorthWest");
 
-    view_centerOnDefn = createRootAction("View", "Center On Definition", "", "Actions", "Definition");
+    view_centerOnDefn = createRootAction("View", "Center On Definition", "", "Icons", "bracketsCurly");
     view_centerOnDefn->setToolTip("Center selected entity's Definition.");
     view_centerOnDefn->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_centerOnDefn->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
 
-    view_centerOnImpl = createRootAction("View", "Center On Implementation", "", "Actions", "Implementation");
+    view_centerOnImpl = createRootAction("View", "Center On Implementation", "", "Icons", "gears");
     view_centerOnImpl->setToolTip("Center selected entity's Implementation.");
     view_centerOnImpl->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_centerOnImpl->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
 
-    view_viewDefnInNewWindow = createRootAction("View", "Show Definition in New Window", "", "Actions", "Definition");
+    view_viewDefnInNewWindow = createRootAction("View", "Show Definition in New Window", "", "Icons", "bracketsCurly");
     view_viewDefnInNewWindow->setToolTip("Popout selected entity's Definition.");
     view_viewDefnInNewWindow->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewDefnInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
 
-    view_viewImplInNewWindow = createRootAction("View", "Show Implementation in New Window", "", "Actions", "Implementation");
+    view_viewImplInNewWindow = createRootAction("View", "Show Implementation in New Window", "", "Icons", "gears");
     view_viewImplInNewWindow->setToolTip("Popout selected entity's Implementation.");
     view_viewImplInNewWindow->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewImplInNewWindow->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
-    //window_showNotifications = createRootAction("View", "Show Notifications", "", "Actions", "Exclamation");
-    window_showNotifications = createRootAction("View", "Show Notifications", "", "Actions", "Popup");
+    window_showNotifications = createRootAction("View", "Show Notifications", "", "Icons", "popOut");
     window_showNotifications->setToolTip("Show Notifications Panel");
     window_showNotifications->setShortcutContext(Qt::ApplicationShortcut);
     window_showNotifications->setShortcut(QKeySequence(Qt::Key_F11));
@@ -748,56 +747,56 @@ void ActionController::setupActions()
     //window_showNotifications->setChecked(false);
 
 
-    view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Actions", "Connections");
+    view_viewConnections = createRootAction("View", "Select and Center Items Connections", "", "Icons", "connectFork");
     view_viewConnections->setToolTip("Center selected entity's connected entities.");
     view_viewConnections->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     view_viewConnections->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_E));
 
 
-    view_viewInNewWindow = createRootAction("View", "View In New Window", "", "Actions", "Popup");
+    view_viewInNewWindow = createRootAction("View", "View In New Window", "", "Icons", "popOut");
     view_viewInNewWindow->setToolTip("Popout selected entity.");
 
-    model_selectModel= createRootAction("Selection", "Select Model", "", "Actions", "MEDEA");
+    model_selectModel= createRootAction("Selection", "Select Model", "", "Icons", "medeaLogo");
     model_selectModel->setToolTip("Select the Model entity.");
     model_selectModel->setShortcutContext(Qt::ApplicationShortcut);
     model_selectModel->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_M));
 
-    model_validateModel = createRootAction("Model", "Validate Model", "", "Actions", "Validate");
+    model_validateModel = createRootAction("Model", "Validate Model", "", "Icons", "shieldTick");
     model_validateModel->setToolTip("Validate the current project.");
     model_validateModel->setShortcutContext(Qt::ApplicationShortcut);
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
 
-    model_getCodeForComponent = createRootAction("Model", "Get Code for Component", "", "Actions", "getCPP");
+    model_getCodeForComponent = createRootAction("Model", "Get Code for Component", "", "Icons", "getCPP");
 
-    model_executeLocalJob = createRootAction("Model", "Launch: Local Deployment", "", "Actions", "Job_Build");
+    model_executeLocalJob = createRootAction("Model", "Launch: Local Deployment", "", "Icons", "jobBuild");
     model_executeLocalJob->setToolTip("Executes the current project on the local machine.");
 
 
-    jenkins_importNodes = createRootAction("Model", "Import Jenkins Nodes", "", "Items", "HardwareNode");
+    jenkins_importNodes = createRootAction("Model", "Import Jenkins Nodes", "", "EntityIcons", "HardwareNode");
     jenkins_importNodes->setToolTip("Imports the nodes from the Jenkins Server.");
     jenkins_importNodes->setShortcutContext(Qt::ApplicationShortcut);
     jenkins_importNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
 
 
-    jenkins_executeJob = createRootAction("Model", "Launch: Jenkins Job", "Actions", "Job_Build");
+    jenkins_executeJob = createRootAction("Model", "Launch: Jenkins Job", "Icons", "jobBuild");
     jenkins_executeJob->setToolTip("Executes the current project on the Jenkins Server.");
     jenkins_executeJob->setShortcutContext(Qt::ApplicationShortcut);
     jenkins_executeJob->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_B));
 
-    help_shortcuts = createRootAction("Help", "App Shortcuts", "", "Actions", "Keyboard");
+    help_shortcuts = createRootAction("Help", "App Shortcuts", "", "Icons", "keyboard");
 
-    help_reportBug = createRootAction("Help", "Report Bug", "", "Actions", "BugReport");
+    help_reportBug = createRootAction("Help", "Report Bug", "", "Icons", "bug");
 
-    help_wiki = createRootAction("Help", "Wiki", "", "Actions", "Wiki");
+    help_wiki = createRootAction("Help", "Wiki", "", "Icons", "book");
     help_wiki->setToolTip("Show the help wiki.");
     help_wiki->setShortcutContext(Qt::ApplicationShortcut);
     help_wiki->setShortcut(QKeySequence::HelpContents);
 
 
-    help_aboutMedea = createRootAction("Help", "About MEDEA", "", "Actions", "Information");
-    help_aboutQt = createRootAction("Help", "About Qt", "", "Actions", "Qt");
+    help_aboutMedea = createRootAction("Help", "About MEDEA", "", "Icons", "circleInfo");
+    help_aboutQt = createRootAction("Help", "About Qt", "", "Icons", "qt");
 
-    options_settings = createRootAction("Help", "Settings", "", "Actions", "Settings");
+    options_settings = createRootAction("Help", "Settings", "", "Icons", "gear");
     options_settings->setToolTip("Show application settings.");
     options_settings->setShortcutContext(Qt::ApplicationShortcut);
     options_settings->setShortcut(QKeySequence(Qt::Key_F10));
@@ -805,19 +804,16 @@ void ActionController::setupActions()
 
 
 
-    file_exit = createRootAction("Project", "Exit", "", "Actions", "Power");
+    file_exit = createRootAction("Project", "Exit", "", "Icons", "arrowIntoBox");
 
-    toolbar_contextToolbar = createRootAction("Toolbar", "Show Context Toolbar", "", "Actions", "Toolbar");
+    toolbar_contextToolbar = createRootAction("Toolbar", "Show Context Toolbar", "", "Icons", "gearDark");
 
-    toolbar_addChild = createRootAction("Toolbar", "Add Child Entity", "", "Actions", "Plus");
-    toolbar_connect = createRootAction("Toolbar", "Connect Selection", "", "Actions", "Connect");
-    toolbar_hardware = createRootAction("Toolbar", "Deploy Selection", "", "Actions", "Computer");
-    toolbar_disconnectHardware = createRootAction("Toolbar", "Disconnect Selection From Its Current Deployment", "", "Actions", "Computer_Cross");
-    toolbar_popOutDefn = createRootAction("Toolbar", "Popout Definition", "", "Actions", "Popup");
-    toolbar_popOutImpl = createRootAction("Toolbar", "Popout Implementation", "", "Actions", "Popup");
-    //toolbar_popOutInst = createRootAction("View Selection's Instance", "", "Actions", "Popup");
-    toolbar_setReadOnly = createRootAction("Toolbar", "Set Selection To Read Only", "", "Actions", "Lock_Closed");
-    toolbar_unsetReadOnly = createRootAction("Toolbar", "Unset Selection From Read Only", "", "Actions", "Lock_Open");
+    toolbar_addChild = createRootAction("Toolbar", "Add Child Entity", "", "Icons", "plus");
+    toolbar_connect = createRootAction("Toolbar", "Connect Selection", "", "Icons", "connect");
+    toolbar_popOutDefn = createRootAction("Toolbar", "Popout Definition", "", "Icons", "popOut");
+    toolbar_popOutImpl = createRootAction("Toolbar", "Popout Implementation", "", "Icons", "popOut");
+    toolbar_setReadOnly = createRootAction("Toolbar", "Set Selection To Read Only", "", "Icons", "lockClosed");
+    toolbar_unsetReadOnly = createRootAction("Toolbar", "Unset Selection From Read Only", "", "Icons", "lockOpened");
 
 
     readOnlyMapper = new QSignalMapper(this);
@@ -830,14 +826,14 @@ void ActionController::setupActions()
     readOnlyMapper->setMapping(toolbar_unsetReadOnly, 0);
 
 
-    toolbar_wiki = createRootAction("Toolbar", "View Wiki Page For Selected Entity", "", "Actions", "Wiki");
-    toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Count", "", "Actions", "Replicate_Count");
-    toolbar_displayedChildrenOption = createRootAction("Toolbar", "Change Displayed Nodes Settings", "", "Actions", "Menu_Vertical");
+    toolbar_wiki = createRootAction("Toolbar", "View Wiki Page For Selected Entity", "", "Icons", "book");
+    toolbar_replicateCount = createRootAction("Toolbar", "Change Replicate Count", "", "Icons", "copyX");
+    toolbar_displayedChildrenOption = createRootAction("Toolbar", "Change Displayed Nodes Settings", "", "Icons", "dotsVertical");
 
-    toolbar_addDDSQOSProfile = createRootAction("Toolbar", "Add Profile", "", "Actions", "Plus");
-    toolbar_removeDDSQOSProfile = createRootAction("Toolbar", "Remove Profile", "", "Actions", "Delete");
+    toolbar_addDDSQOSProfile = createRootAction("Toolbar", "Add Profile", "", "Icons", "plus");
+    toolbar_removeDDSQOSProfile = createRootAction("Toolbar", "Remove Profile", "", "Icons", "bin");
 
-    toggleDock = createRootAction("Misc", "Show/Hide Dock", "", "Actions", "Menu_Vertical");
+    toggleDock = createRootAction("Misc", "Show/Hide Dock", "", "Icons", "dotsVertical");
 }
 
 void ActionController::setupMainMenu()
@@ -942,7 +938,7 @@ void ActionController::setupApplicationToolbar()
     /*
     toggleDock->setCheckable(true);
     toggleDock->setChecked(true);
-    //toggleDock->icon().addPixmap(Theme::theme()->getImage("Actions", "Menu_Vertical", QSize(), Qt::red), QIcon::Normal, QIcon::On);
+    //toggleDock->icon().addPixmap(Theme::theme()->getImage("Icons", "Menu_Vertical", QSize(), Qt::red), QIcon::Normal, QIcon::On);
 
     applicationToolbar->addAction(toggleDock);
     applicationToolbar->addSeperator();
@@ -983,8 +979,8 @@ void ActionController::setupContextToolbar()
 
     contextToolbar->addAction(toolbar_addChild);
     contextToolbar->addAction(edit_delete->constructSubAction());
-    contextToolbar->addAction(toolbar_hardware);
-    contextToolbar->addAction(toolbar_disconnectHardware);
+    //contextToolbar->addAction(toolbar_hardware);
+    //contextToolbar->addAction(toolbar_disconnectHardware);
     contextToolbar->addSeperator();
     contextToolbar->addAction(file_importSnippet->constructSubAction());
     contextToolbar->addAction(file_exportSnippet->constructSubAction());

@@ -28,7 +28,7 @@ JenkinsStartJobWidget::JenkinsStartJobWidget(QWidget *parent, JenkinsManager *je
     loadingWidget = 0;
 
     setWindowTitle("Launch Jenkins Job");
-    setWindowIcon(Theme::theme()->getImage("Actions", "Job_Build"));
+    setWindowIcon(Theme::theme()->getImage("Icons", "jobBuild"));
 
     setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
 
@@ -190,7 +190,7 @@ void JenkinsStartJobWidget::setupLayout(QString jobName)
     //Set up a QLabel for the name of the Jenkins Job
     QLabel* jobLabel = new QLabel(jobName);
     QLabel* iconLabel = new QLabel();
-    iconLabel->setPixmap(Theme::theme()->getImage("Actions", "Job_Build"));
+    iconLabel->setPixmap(Theme::theme()->getImage("Icons", "jobBuild"));
 
     jobLabel->setStyleSheet("font-family: Helvetica, Arial, sans-serif; font-size: 18px;  font-weight: bold;");
 

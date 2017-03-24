@@ -29,12 +29,12 @@ SOURCES += main.cpp
 #Setup Icons
 win32{
     #Used for Icon in windows.
-    RC_ICONS += ../src/Resources/Images/MedeaIcon.ico
+    RC_ICONS += ../src/Resources/medea.ico
     #Sets Icon for GraphML Documents.
-    RC_ICONS += ../src/Resources/Images/Graphml.ico
+    RC_ICONS += ../src/Resources/graphml.ico
     LIBS += -lpsapi
 }macx{
-    macx:ICON = ../src/Resources/Images/MedeaIcon.icns
+    macx:ICON = ../src/Resources/medea.icns
 }
 
 DISTFILES += \

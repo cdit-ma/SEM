@@ -158,8 +158,6 @@ public:
 
     RootAction* toolbar_addChild;
     RootAction* toolbar_connect;
-    RootAction* toolbar_hardware;
-    RootAction* toolbar_disconnectHardware;
     RootAction* toolbar_popOutDefn;
     RootAction* toolbar_popOutImpl;
     RootAction* toolbar_setReadOnly;

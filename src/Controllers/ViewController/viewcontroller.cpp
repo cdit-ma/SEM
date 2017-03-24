@@ -290,7 +290,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
         QString icon = viewItem->getData("icon").toString();
 
 
-        QString alias = "Items";
+        QString alias = "EntityIcons";
         QString image = kind;
 
         if(isNode){
@@ -317,7 +317,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     if(!nodeViewItem->isInModel()){
                         //Workload from a Workload Definition.
                         alias = "Functions";
-                        image = icon;
+                        image = label;
                     }
                     break;
                 }
@@ -326,6 +326,8 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 case Node::NK_VARIADIC_PARAMETER:
                 case Node::NK_RETURN_PARAMETER:{
                         QString type = nodeViewItem->getData("type").toString();
+                        alias = "Icons";
+
                         if(type == "WE_UTE_Vector" || type == "WE_UTE_VariableArguments"){
                             alias = "Data";
                             image = type;
@@ -347,8 +349,8 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                     }
                     break;
                 case Node::NK_MODEL:
-                    alias = "Actions";
-                    image = "MEDEA";
+                    alias = "Icons";
+                    image = "medeaLogo";
                     break;
                 default:
                     break;
@@ -358,7 +360,7 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
         if(Theme::theme()->gotImage(alias, image)){
             viewItem->setDefaultIcon(alias, image);
         }else{
-            viewItem->setDefaultIcon("Actions", "Help");
+            viewItem->setDefaultIcon("Icons", "circleQuestion");
         }
     }
 }
@@ -415,7 +417,7 @@ void ViewController::askQuestion(QString title, QString message, int ID)
     }
 
     QMessageBox msgBox(QMessageBox::Question, title, message, QMessageBox::Yes | QMessageBox::No, WindowManager::manager()->getMainWindow());
-    msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Help", QSize(50,50), Theme::theme()->getMenuIconColor()));
+    msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "circleQuestion", QSize(50,50), Theme::theme()->getMenuIconColor()));
     int reply = msgBox.exec();
     emit vc_answerQuestion(reply == QMessageBox::Yes);
 }
@@ -486,14 +488,14 @@ void ViewController::jenkinsManager_SettingsValidated(bool success, QString erro
     emit vc_JenkinsReady(success);
     QString message = success ? "Settings validated successfully" : errorString;
     NOTIFICATION_SEVERITY severity = success ? NS_INFO : NS_ERROR;
-    NotificationManager::manager()->displayNotification(message, "Actions", "Jenkins_Icon", -1, severity, NT_APPLICATION, NC_JENKINS);
+    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, NT_APPLICATION, NC_JENKINS);
 }
 
 void ViewController::jenkinsManager_GotJava(bool java, QString javaVersion)
 {
     NOTIFICATION_SEVERITY severity = java ? NS_INFO : NS_ERROR;
     QString message = java ? "Got Java: '" + javaVersion + "'": "Can't find java";
-    NotificationManager::manager()->displayNotification(message, "Actions", "Java", -1, severity, NT_APPLICATION);
+    NotificationManager::manager()->displayNotification(message, "Icons", "java", -1, severity, NT_APPLICATION);
 }
 
 void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
@@ -514,7 +516,7 @@ void ViewController::jenkinsManager_GotJenkinsNodesList(QString graphmlData)
     emit vc_backgroundProcess(false, BP_IMPORT_JENKINS);
 
     // MODEL or APPLICATION type?
-    NotificationManager::manager()->displayNotification(message, "Actions", "Jenkins_Icon", -1, severity, NT_MODEL, NC_JENKINS);
+    NotificationManager::manager()->displayNotification(message, "Icons", "jenkins", -1, severity, NT_MODEL, NC_JENKINS);
 }
 
 void ViewController::getCodeForComponent()
@@ -1026,7 +1028,7 @@ bool ViewController::_closeProject(bool showWelcome)
                                "Do you want to save the changes made to '" + filePath + "' ?",
                                QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                                WindowManager::manager()->getMainWindow());
-            msgBox.setIconPixmap(Theme::theme()->getImage("Actions", "Save", QSize(50,50), Theme::theme()->getMenuIconColor()));
+            msgBox.setIconPixmap(Theme::theme()->getImage("Icons", "floppyDisk", QSize(50,50), Theme::theme()->getMenuIconColor()));
             msgBox.setButtonText(QMessageBox::Yes, "Save");
             msgBox.setButtonText(QMessageBox::No, "Ignore Changes");
 

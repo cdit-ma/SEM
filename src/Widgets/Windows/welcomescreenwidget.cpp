@@ -19,7 +19,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
     medeaLabel->setStyleSheet("font-size: 32pt; color: white; text-align: center;");
     medeaVersionLabel->setStyleSheet("font-size: 12pt; color: gray; text-align: center;");
 
-    QPixmap pixMap = Theme::theme()->getImage("Actions", "MEDEA");
+    QPixmap pixMap = Theme::theme()->getImage("Icons", "medeaLogo");
     pixMap = pixMap.scaled(QSize(150,150), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     medeaIcon->setPixmap(pixMap);
 
@@ -35,7 +35,7 @@ WelcomeScreenWidget::WelcomeScreenWidget(ActionController* ac, QWidget *parent) 
     recentProjectsLabel = new QToolButton(this);
     recentProjectsLabel->setText("Recent Projects");
     recentProjectsLabel->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    recentProjectsLabel->setIcon(Theme::theme()->getIcon("Welcome", "Timer"));
+    recentProjectsLabel->setIcon(Theme::theme()->getIcon("Icons", "clock"));
     recentProjectsLabel->setIconSize(iconSize);
     recentProjectsLabel->setEnabled(false);
 
@@ -109,7 +109,7 @@ void WelcomeScreenWidget::themeChanged()
     setStyleSheet("QWidget#WELCOME_WIDGET{ background:" + theme->getBackgroundColorHex() + ";}"
                   "QToolButton:!hover{ border: 0px; background: rgba(0,0,0,0); }");
 
-    recentProjectsLabel->setIcon(theme->getIcon("Actions", "Timer"));
+    recentProjectsLabel->setIcon(theme->getIcon("Icons", "clock"));
     recentProjectsToolbar->setStyleSheet("QToolBar {"
                                          "background:" +theme->getAltBackgroundColorHex() + ";"
                                          "spacing: 0px;"

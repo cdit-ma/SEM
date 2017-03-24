@@ -58,12 +58,12 @@ void DockTabWidget::themeChanged()
                   "QStackedWidget{ border: 0px; background:" + theme->getBackgroundColorHex() + ";}");
 
     QIcon partIcon;
-    partIcon.addPixmap(theme->getImage("Actions", "Plus", QSize(), theme->getMenuIconColor()));
-    partIcon.addPixmap(theme->getImage("Actions", "Plus", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
+    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor()));
+    partIcon.addPixmap(theme->getImage("Icons", "plus", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
 
     QIcon hardwareIcon;
-    hardwareIcon.addPixmap(theme->getImage("Actions", "Computer", QSize(), theme->getMenuIconColor()));
-    hardwareIcon.addPixmap(theme->getImage("Actions", "Computer", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
+    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor()));
+    hardwareIcon.addPixmap(theme->getImage("Icons", "screen", QSize(), theme->getMenuIconColor(Theme::CR_SELECTED)), QIcon::Active);
 
     partsButton->setIcon(partIcon);
     hardwareButton->setIcon(hardwareIcon);

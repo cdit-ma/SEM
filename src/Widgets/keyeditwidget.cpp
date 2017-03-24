@@ -209,9 +209,9 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
             pickerButton->setFlat(true);
 
             if(isFilePath){
-                pickerButton->setIcon(Theme::theme()->getImage("Actions", "New"));
+                pickerButton->setIcon(Theme::theme()->getImage("Icons", "file"));
             }else{
-                pickerButton->setIcon(Theme::theme()->getImage("Actions", "Open"));
+                pickerButton->setIcon(Theme::theme()->getImage("Icons", "folder"));
             }
             connect(pickerButton, SIGNAL(pressed()), this, SLOT(pickPath()));
             hLayout->addWidget(pickerButton);

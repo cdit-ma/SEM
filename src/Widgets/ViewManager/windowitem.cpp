@@ -32,7 +32,7 @@ void WindowItem::themeChanged()
                                  "#WINDOW_TOOLBAR{ border: 1px solid " + Theme::theme()->getAltBackgroundColorHex() + "; background:" + Theme::theme()->getDisabledBackgroundColorHex() + "; }"
                                  "#WINDOW_TOOLBAR QToolButton::!hover{ background: rgba(0,0,0,0); }");
 
-    closeAction->setIcon(Theme::theme()->getIcon("Actions", "Close"));
+    closeAction->setIcon(Theme::theme()->getIcon("Icons", "cross"));
 
 }
 

@@ -767,7 +767,7 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setExpandEnabled(false);
                 nodeItem->setSecondaryTextKey("type");
-                nodeItem->setIconOverlay("Actions", "Key");
+                nodeItem->setIconOverlay("Icons", "key");
                 break;
             case Node::NK_INEVENTPORT_IMPL:
             case Node::NK_OUTEVENTPORT_IMPL:

@@ -414,7 +414,7 @@ void ModelController::loadWorkerDefinitions()
 
 
         QStringList filesToLoad;
-        QStringList fileExtension("*.worker.graphml");
+        QStringList fileExtension("*.worker");
 
         foreach(QDir directory, workerDirectories){
             //Foreach *.worker.graphml file in the workerDefPath, load the graphml.
@@ -3391,7 +3391,7 @@ bool ModelController::destructEdge(Edge *edge)
     case Edge::EC_DEPLOYMENT:{
         if(isUserAction()){
             QString message = "Disconnected '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
-            NotificationManager::manager()->displayNotification(message, "Actions", "Clear", src->getID());
+            NotificationManager::manager()->displayNotification(message, "Icons", "cross", src->getID());
         }
     }
     default:
@@ -4614,7 +4614,7 @@ void ModelController::constructEdgeGUI(Edge *edge)
     case Edge::EC_DEPLOYMENT:{
         if(isUserAction()){
             QString message = "Deployed '" % src->getDataValue("label").toString() % "' from '" % dst->getDataValue("label").toString() % "'";
-            NotificationManager::manager()->displayNotification(message, "Actions", "ConnectTo", src->getID());
+            NotificationManager::manager()->displayNotification(message, "Icons", "connect", src->getID());
         }
         break;
     }

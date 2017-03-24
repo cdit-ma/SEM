@@ -188,7 +188,7 @@ void MainWindow::popupNotification(QString iconPath, QString iconName, QString d
         notificationLabel->setText(description);
         QPixmap pixmap = Theme::theme()->getIcon(iconPath, iconName).pixmap(QSize(32,32));
         if (pixmap.isNull()) {
-            pixmap = Theme::theme()->getIcon("Actions", "Information").pixmap(QSize(32,32));
+            pixmap = Theme::theme()->getIcon("Icons", "circleInfo").pixmap(QSize(32,32));
         }
         notificationIconLabel->setPixmap(pixmap);
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
@@ -317,7 +317,7 @@ void MainWindow::themeChanged()
     searchPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
     searchToolbar->setStyleSheet(theme->getToolBarStyleSheet());
     searchBar->setStyleSheet(theme->getLineEditStyleSheet());
-    searchButton->setIcon(theme->getIcon("Actions", "Search"));
+    searchButton->setIcon(theme->getIcon("Icons", "zoom"));
 
     progressPopup->setStyleSheet(theme->getPopupWidgetStyleSheet());
     progressBar->setStyleSheet(theme->getProgressBarStyleSheet());
@@ -326,8 +326,8 @@ void MainWindow::themeChanged()
     notificationPopup->setStyleSheet(theme->getPopupWidgetStyleSheet() + "QLabel{ background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + "; }");
     //notificationLabel->setStyleSheet("background: rgba(0,0,0,0); border: 0px; color:" + theme->getTextColorHex() + ";");
 
-    restoreToolsButton->setIcon(theme->getIcon("Actions", "Build"));
-    restoreToolsAction->setIcon(theme->getIcon("Actions", "Refresh"));
+    restoreToolsButton->setIcon(theme->getIcon("Icons", "spanner"));
+    restoreToolsAction->setIcon(theme->getIcon("Icons", "refresh"));
 
     minimap->setStyleSheet(theme->getNodeViewStyleSheet());
 }
@@ -459,7 +459,7 @@ void MainWindow::initializeApplication()
     QApplication::setApplicationVersion(APP_VERSION);
     QApplication::setOrganizationName("CDIT-MA");
     QApplication::setOrganizationDomain("https://github.com/cdit-ma/");
-    QApplication::setWindowIcon(Theme::theme()->getIcon("Actions", "MEDEA"));
+    QApplication::setWindowIcon(Theme::theme()->getIcon("Icons", "medeaLogo"));
 
     QFont font("Verdana");
     font.setStyleStrategy(QFont::PreferAntialias);
@@ -600,11 +600,11 @@ void MainWindow::setupInnerWindow()
     dwWorkers->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
 
     //Set Icons
-    dwInterfaces->setIcon("Items", "InterfaceDefinitions");
-    dwBehaviour->setIcon("Items", "BehaviourDefinitions");
-    dwAssemblies->setIcon("Items", "AssemblyDefinitions");
-    dwHardware->setIcon("Items", "HardwareDefinitions");
-    dwQOSBrowser->setIcon("Items", "QOSProfile");
+    dwInterfaces->setIcon("EntityIcons", "InterfaceDefinitions");
+    dwBehaviour->setIcon("EntityIcons", "BehaviourDefinitions");
+    dwAssemblies->setIcon("EntityIcons", "AssemblyDefinitions");
+    dwHardware->setIcon("EntityIcons", "HardwareDefinitions");
+    dwQOSBrowser->setIcon("EntityIcons", "QOSProfile");
 
     //Set Icon Visibility
     dwInterfaces->setIconVisible(false);
@@ -941,7 +941,7 @@ void MainWindow::setupDockablePanels()
     searchDockWidget = WindowManager::constructViewDockWidget("Search Results");
     searchDockWidget->setWidget(searchPanel);
     searchDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    searchDockWidget->setIcon("Actions", "Search_Icon");
+    searchDockWidget->setIcon("Icons", "zoom");
     searchDockWidget->setIconVisible(true);
     searchDockWidget->setProtected(true);
     innerWindow->addDockWidget(Qt::TopDockWidgetArea, searchDockWidget);
@@ -950,7 +950,7 @@ void MainWindow::setupDockablePanels()
     notificationDockWidget = WindowManager::constructViewDockWidget("Notifications");
     notificationDockWidget->setWidget(notificationPanel);
     notificationDockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-    notificationDockWidget->setIcon("Actions", "Notification");
+    notificationDockWidget->setIcon("Icons", "exclamation");
     notificationDockWidget->setIconVisible(true);
     notificationDockWidget->setProtected(true);
     innerWindow->addDockWidget(Qt::BottomDockWidgetArea, notificationDockWidget);

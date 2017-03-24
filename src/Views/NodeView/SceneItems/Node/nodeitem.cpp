@@ -940,23 +940,23 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(state > RS_MINIMAL){
         if(isSelected() && getVisualEdgeKind() != Edge::EC_NONE){
-            paintPixmap(painter, lod, ER_CONNECT_ICON, "Actions", "ConnectTo");
+            paintPixmap(painter, lod, ER_CONNECT_ICON, "Icons", "connect");
         }
 
         if(getNodeViewItem()->gotEdge(Edge::EC_DEPLOYMENT)){
-            paintPixmap(painter, lod, ER_DEPLOYED, "Actions", "HardwareNode");
+            paintPixmap(painter, lod, ER_DEPLOYED, "Icons", "screen");
         }
 
         if(getNodeViewItem()->gotEdge(Edge::EC_QOS)){
-            paintPixmap(painter, lod, ER_QOS, "Actions", "QOS");
+            paintPixmap(painter, lod, ER_QOS, "Icons", "speedGauge");
         }
 
         if(isExpandEnabled() && hasChildNodes()){
-            paintPixmap(painter, lod, ER_EXPANDED_STATE, "Actions", isExpanded() ? "Contract" : "Expand");
+            paintPixmap(painter, lod, ER_EXPANDED_STATE, "Icons", isExpanded() ? "triangleNorthWest" : "triangleSouthEast");
         }
 
         if(gotSecondaryTextKey()){
-            paintPixmap(painter, lod, ER_SECONDARY_ICON, "Data", getSecondaryTextKey());
+            paintPixmap(painter, lod, ER_SECONDARY_ICON, "Icons", getSecondaryTextKey());
         }
     }
 
@@ -1010,7 +1010,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 painter->translate(-arrowRect.center());
 
                 //Paint the resize section
-                paintPixmap(painter, lod, ER_RESIZE_ARROW, "Actions", "Resize");
+                paintPixmap(painter, lod, ER_RESIZE_ARROW, "Icons", "triangleSouth");
                 painter->restore();
             }
         }

@@ -75,12 +75,9 @@ void ContextToolbar::themeChanged()
 
     mainFrame->setStyleSheet("background:" + mainBackgroundColor + "; border-radius: 6px;");
     shadowFrame->setStyleSheet("background:" + shadowColorStr + "; border-radius: 8px;");
-    addChildAction->setIcon(theme->getIcon("Actions", "Plus"));
-    connectAction->setIcon(theme->getIcon("Actions", "ConnectTo"));
-    disconnectAction->setIcon(theme->getIcon("Actions", "Disconnect"));
-    //hardwareAction->setIcon(theme->getIcon("Actions", "Computer"));
-    //instancesAction->setIcon(theme->getIcon("Actions", "Instance"));
-    connectionsAction->setIcon(theme->getIcon("Actions", "Connections"));
+    addChildAction->setIcon(theme->getIcon("Icons", "plus"));
+    connectAction->setIcon(theme->getIcon("Icons", "connect"));
+    disconnectAction->setIcon(theme->getIcon("Icons", "connectStriked"));
 
     //applyReplicateCountButton->setIcon(theme->getIcon("Actions", "Tick"));
     //applyReplicateCountButton->setStyleSheet("QToolButton{ background:" + theme->getTextColorHex(Theme::CR_SELECTED) + ";}"
@@ -353,7 +350,7 @@ void ContextToolbar::setupActions()
     mainGroup->addAction(actionController->toolbar_setReadOnly->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_unsetReadOnly->constructSubAction(true));
     mainGroup->addSeperator();
-    connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
+    //connectionsAction = mainGroup->addAction(actionController->view_viewConnections->constructSubAction(true));
     mainGroup->addAction(actionController->model_getCodeForComponent->constructSubAction(true));
     mainGroup->addAction(actionController->view_viewInNewWindow->constructSubAction(true));
     mainGroup->addAction(actionController->toolbar_wiki->constructSubAction(true));

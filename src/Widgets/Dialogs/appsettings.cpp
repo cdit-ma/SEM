@@ -79,7 +79,7 @@ void AppSettings::themeChanged()
     toolbar->setStyleSheet(theme->getToolBarStyleSheet());
     warningLabel->setStyleSheet("color: " + theme->getHighlightColorHex() + "; font-weight:bold;");
 
-    setWindowIcon(theme->getImage("Actions", "Settings"));
+    setWindowIcon(theme->getImage("Icons", "gear"));
     setStyleSheet(theme->getWidgetStyleSheet("AppSettings") % theme->getGroupBoxStyleSheet() % theme->getScrollBarStyleSheet() %
                   "#BACKGROUND_WIDGET {background: " % theme->getBackgroundColorHex() % ";}"
                   );

@@ -73,10 +73,10 @@ QString FileHandler::readTextFile(QString filePath)
             fileData = fileStream.readAll();
             file.close();
         }else{
-            _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
+            _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file");
         }
     }else{
-        _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Actions", "File");
+        _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be read!", "Icons", "file");
     }
     return fileData;
 }
@@ -109,13 +109,13 @@ bool FileHandler::writeTextFile(QString filePath, QString fileData)
             out << fileData;
             file.close();
         }else{
-            _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Actions", "Save");
+            _notification(NS_ERROR, "File: '" % fileInfo.absoluteFilePath() % "' cannot be written! Permission denied.", "Icons", "floppyDisk");
             return false;
         }
     }else{
         return false;
     }
-    _notification(NS_INFO, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Actions", "Save");
+    _notification(NS_INFO, "File: '" % fileInfo.absoluteFilePath() % "' written!", "Icons", "floppyDisk");
     return true;
 }
 
@@ -126,9 +126,9 @@ bool FileHandler::ensureDirectory(QString path)
     QDir dir = fileInfo.dir();
     if (!dir.exists()) {
         if(dir.mkpath(".")){
-            _notification(NS_INFO, "Dir: '" % dir.absolutePath() % "' constructed!", "Actions", "Open");
+            _notification(NS_INFO, "Dir: '" % dir.absolutePath() % "' constructed!", "Icons", "folder");
         }else{
-            _notification(NS_ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Actions", "Open");
+            _notification(NS_ERROR, "Dir: '" % dir.absolutePath() % "' cannot be constructed!", "Icons", "folder");
             return false;
         }
     }

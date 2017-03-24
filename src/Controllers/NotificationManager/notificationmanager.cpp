@@ -225,6 +225,21 @@ QString NotificationManager::getSeverityString(NOTIFICATION_SEVERITY severity)
     }
 }
 
+QString NotificationManager::getSeverityIcon2(NOTIFICATION_SEVERITY severity)
+{
+    switch (severity) {
+    case NS_INFO:
+        return "circleInfo";
+    case NS_WARNING:
+        return "triangleCritical";
+    case NS_ERROR:
+        return "circleCritical";
+    default:
+        return "Unknown Severity";
+    }
+
+}
+
 
 /**
  * @brief NotificationManager::getSeverityColor
@@ -274,20 +289,20 @@ QString NotificationManager::getSeverityColorStr(NOTIFICATION_SEVERITY severity)
 QPair<QString, QString> NotificationManager::getSeverityIcon(NOTIFICATION_SEVERITY severity)
 {
     QPair<QString, QString> iconPath;
-    iconPath.first = "Actions";
+    iconPath.first = "Icons";
 
     switch (severity) {
     case NS_INFO:
-        iconPath.second = "Information";
+        iconPath.second = "circleInfo";
         break;
     case NS_WARNING:
-        iconPath.second = "Warning";
+        iconPath.second = "triangleCritical";
         break;
     case NS_ERROR:
-        iconPath.second = "Error";
+        iconPath.second = "circleCritical";
         break;
     default:
-        iconPath.second = "Help";
+        iconPath.second = "circleQuestion";
         break;
     }
 
@@ -325,7 +340,7 @@ void NotificationManager::modelValidated(QStringList report)
         emit showNotificationPanel();
         emit updateNotificationToolbarSize();
     }
-    addNotification("Model Validation " + status, "Actions", "Validate", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
+    addNotification("Model Validation " + status, "Icons", "shieldTick", -1, NS_INFO, NT_MODEL, NC_VALIDATION);
 }
 
 

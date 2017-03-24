@@ -178,7 +178,7 @@ QVariant QOSProfileModel::headerData(int, Qt::Orientation orientation, int role)
         return "Policies";
     }
     if(role == Qt::DecorationRole){
-        return Theme::theme()->getImage("Actions", "Policies", QSize(16,16), Theme::theme()->getMenuIconColorHex());
+        return Theme::theme()->getImage("Icons", "buildingColumns", QSize(16,16), Theme::theme()->getMenuIconColorHex());
     }
     return QVariant();
 }

@@ -46,9 +46,9 @@ void QOSBrowser::themeChanged()
     policyLabelButton->setStyleSheet("text-align: left; border-radius: 0px; background:" + theme->getAltBackgroundColorHex() + ";");
     attributeLabelButton->setStyleSheet("text-align: left; border-radius: 0px; background:" + theme->getAltBackgroundColorHex() + ";");
 
-    profileLabelButton->setIcon(theme->getImage("Actions", "QOS", QSize(16,16), theme->getMenuIconColorHex()));
-    policyLabelButton->setIcon(theme->getImage("Actions", "Policies", QSize(16,16), theme->getMenuIconColorHex()));
-    attributeLabelButton->setIcon(theme->getImage("Actions", "Edit", QSize(16,16), theme->getMenuIconColorHex()));
+    profileLabelButton->setIcon(theme->getImage("Icons", "speedGauge", QSize(16,16), theme->getMenuIconColorHex()));
+    policyLabelButton->setIcon(theme->getImage("Icons", "buildingColumned", QSize(16,16), theme->getMenuIconColorHex()));
+    attributeLabelButton->setIcon(theme->getImage("Icons", "tag", QSize(16,16), theme->getMenuIconColorHex()));
 }
 
 void QOSBrowser::profileSelected(QModelIndex index1, QModelIndex)

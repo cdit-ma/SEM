@@ -187,7 +187,6 @@ HEADERS += \
     Model/BehaviourDefinitions/code.h \
     Model/BehaviourDefinitions/header.h \
     Model/BehaviourDefinitions/forcondition.h \
-    Model/BehaviourDefinitions/setvariable.h \
     Model/BehaviourDefinitions/setter.h \
     Model/BehaviourDefinitions/variableparameter.h
 
@@ -374,10 +373,6 @@ SOURCES += \
 
 RESOURCES += \
 	resources.qrc
-
-DISTFILES += \
-    Resources/Images/Actions/Notification.png \
-    Resources/Images/Actions/Search_Icon.png
 
 
 

@@ -470,7 +470,7 @@ QPixmap Theme::_getImage(QString resourceName, QSize size, QColor tintColor)
         }
 
         if(image.isNull()){
-            //qCritical() << "Cannot find image: " << resourceName;
+            qCritical() << "Cannot find image: " << resourceName;
             pixmapLookup[lookupName] = QPixmap();
             return pixmapLookup[lookupName];
         }
@@ -1084,7 +1084,7 @@ void Theme::preloadImages()
         preloadedImages = true;
         qint64 timeStart = QDateTime::currentDateTime().toMSecsSinceEpoch();
         QStringList dirs;
-        dirs << "Actions" << "Data" << "Functions" << "Items" << "Welcome";
+        dirs << "Icons" << "EntityIcons";
         int count = 0;
         QStringList imageList;
         foreach(QString dir, dirs){

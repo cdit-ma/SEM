@@ -127,11 +127,11 @@ void DataEditWidget::themeChanged()
         //QString style = "border:1px solid " + theme->getAltBackgroundColorHex() + ";";
         switch(type){
         case ST_FILE:{
-            button->setIcon(Theme::theme()->getIcon("Actions", "New"));
+            button->setIcon(Theme::theme()->getIcon("Icons", "file"));
             break;
         }
         case ST_PATH:{
-            button->setIcon(Theme::theme()->getIcon("Actions", "Open"));
+            button->setIcon(Theme::theme()->getIcon("Icons", "folder"));
             break;
         }
         case ST_COLOR:{
