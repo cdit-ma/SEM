@@ -170,16 +170,16 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix A</data>
                             <data key="type">Vector::Float</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">grid</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">Vector_Member</data>
                             <data key="description">The first of the two matrix operands.</data>
                         </node>
                         <node id="n0::n6::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix B</data>
                             <data key="type">Vector::Float</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">grid</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">Vector_Member</data>
                             <data key="description">The second of the two matrix operands.</data>
                         </node>
                         <node id="n0::n6::n2">

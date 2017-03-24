@@ -45,7 +45,7 @@
                             <data key="label">Index</data>
                             <data key="type">Integer</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">list</data>
+                            <data key="icon">listNumbered</data>
                             <data key="description">The Index.</data>
                         </node>
                         <node id="n0::n0::n2">
@@ -79,7 +79,7 @@
                             <data key="label">Index</data>
                             <data key="type">Integer</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">list</data>
+                            <data key="icon">listNumbered</data>
                             <data key="description">The Index.</data>
                         </node>
                         <node id="n0::n1::n2">
@@ -97,7 +97,7 @@
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Insert</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">grid</data>
+                    <data key="icon">plus</data>
                     <data key="description">Inserts an element into a std::vector at an index (Will change length)</data>
                     <graph id="n0::n3:">
                         <node id="n0::n3::n0">
@@ -112,8 +112,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
                             <data key="type">Integer</data>
-                            <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">list</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">listNumbered</data>
                             <data key="description">The Index.</data>
                         </node>
                         <node id="n0::n3::n2">
@@ -131,7 +131,7 @@
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Set</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">grid</data>
+                    <data key="icon">pencil</data>
                     <data key="description">Replaces an element into a std::vector at an index</data>
                     <graph id="n0::n4:">
                         <node id="n0::n4::n0">
@@ -139,7 +139,7 @@
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
                             <data key="icon_prefix">EntityIcons</data>
-                            <data key="icon">grid</data>
+                            <data key="icon">Vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n4::n1">
@@ -147,14 +147,14 @@
                             <data key="label">Index</data>
                             <data key="type">Integer</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">grid</data>
+                            <data key="icon">listNumbered</data>
                             <data key="description">The Index.</data>
                         </node>
                         <node id="n0::n4::n2">
                             <data key="kind">InputParameter</data>
                             <data key="label">Value</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">grid</data>
+                            <data key="icon">pencil</data>
                             <data key="description">The Value to set</data>
                         </node>
                     </graph>
