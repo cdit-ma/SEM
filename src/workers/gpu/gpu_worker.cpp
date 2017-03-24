@@ -1,6 +1,6 @@
-// WE_GPU.mpc  2015-08-17  Jackson Michael 
+// WE_GPU.mpc  2015-08-17  Jackson Michael
 
-#include "gpu_worker_impl.h" 
+#include "gpu_worker_impl.h"
 #include "gpu_worker.h"
 #include <iostream>
 #include <sstream>
@@ -27,7 +27,20 @@ void Gpu_Worker::Release(){
 }
 
 void Gpu_Worker::Initialise(bool forceGPU){
+	auto work_id = get_new_work_id();
+    auto fun = std::string(__func__);
+    auto args = get_arg_string_variadic("forceGPU = %d", forceGPU);
+
+    //Log Before
+    Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
+
 	impl_->Initialise(forceGPU);
+
+	std::string gpu_details = std::string("Initialised gpu worker with # ") + std::to_string(NumDevices()) + std::string(" devices");
+
+	Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id, gpu_details);
+	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
+
 }
 
 unsigned int Gpu_Worker::NumDevices(){
@@ -69,7 +82,7 @@ void Gpu_Worker::FFT(std::vector<float> &data, unsigned int gpuNum){
     //Log Before
     Log(fun, ModelLogger::WorkloadEvent::STARTED, work_id, args);
 	impl_->PerformFFT_SP(data.data(), data.size()*sizeof(float), gpuNum);
-    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);	
+    Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
 }
 
 void Gpu_Worker::MatrixMultLazy(unsigned int n, unsigned int gpuNum){
@@ -97,5 +110,5 @@ bool Gpu_Worker::MatrixMult(const std::vector<float> &matrixA, const std::vector
 	  							matrixA.data(), matrixB.data(), matrixC.data(), gpuNum);
 	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
 	return res;
-	
+
 }
