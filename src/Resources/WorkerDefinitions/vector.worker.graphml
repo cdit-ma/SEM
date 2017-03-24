@@ -29,7 +29,6 @@
                     <data key="worker">Vector_Operations</data>
                     <data key="operation">Get</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon_prefix">Icons</data>
                     <data key="icon">circleInfo</data>
                     <data key="description">Returns an element from a std::vector at an index.</data>
                     <graph id="n0::n0:">
@@ -37,8 +36,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">medeaVector</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n0::n1">
@@ -71,8 +70,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">medeaVector</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n1::n1">
@@ -105,15 +104,15 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">medeaVector</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n3::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">Index</data>
                             <data key="type">Integer</data>
-                            <data key="icon_prefix">Icons</data>
+                            <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">list</data>
                             <data key="description">The Index.</data>
                         </node>
@@ -139,7 +138,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
+                            <data key="icon_prefix">EntityIcons</data>
                             <data key="icon">grid</data>
                             <data key="description">The vector.</data>
                         </node>
@@ -173,8 +172,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">medeaVector</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n5::n1">
@@ -200,8 +199,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">medeaVector</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">vector</data>
                             <data key="description">The vector.</data>
                         </node>
                     </graph>
@@ -219,8 +218,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Vector</data>
                             <data key="type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">medeaVector</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n7::n1">
@@ -253,16 +252,16 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">VectorA</data>
                             <data key="type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">medeaVector</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">vector</data>
                             <data key="description">The vector.</data>
                         </node>
                         <node id="n0::n8::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">VectorB</data>
                             <data key="type">Vector</data>
-                            <data key="icon_prefix">Icons</data>
-                            <data key="icon">medeaVector</data>
+                            <data key="icon_prefix">EntityIcons</data>
+                            <data key="icon">vector</data>
                             <data key="description">The vector.</data>
                         </node>
                     </graph>
