@@ -455,7 +455,7 @@ void ViewController::showCodeViewer(QString tabName, QString content)
         codeViewer->setCloseVisible(false);
         CodeBrowser* codeBrowser = new CodeBrowser(codeViewer);
         codeViewer->setWidget(codeBrowser);
-        codeViewer->setIcon("Functions", "cppCode");
+        codeViewer->setIcon("Icons", "cppCode");
         codeViewer->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
         BaseWindow* window = WindowManager::manager()->getActiveWindow();
         if(window){
