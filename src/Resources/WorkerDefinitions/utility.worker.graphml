@@ -81,7 +81,7 @@
                             <data key="type">Boolean</data>
                             <data key="value">true</data>
                             <data key="icon_prefix">Icons</data>
-                            <data key="icon">print</data>
+                            <data key="icon">printer</data>
                             <data key="description">Print the message to standard output.</data>
                         </node>
                     </graph>

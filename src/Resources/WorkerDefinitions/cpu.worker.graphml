@@ -119,7 +119,7 @@
                     <data key="operation">Dhrystone</data>
                     <data key="description">Execute requested number of loops through the Dhrystone benchmark. For one Dhrystone Millions of Instructions Performed (DMIP) it takes 1757 loops through this benchmark.This uses modified code taken from Dhrystone Benchmark in C/C++</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon"></data>
+                    <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="n0::n4:">
                         <node id="n0::n4::n0">
@@ -163,7 +163,7 @@
                     <data key="operation">MatrixMult</data>
                     <data key="description">Multiply matrix A (of size NxK) by B (of size KxM) to produce C (of size NxM).</data>
                     <data key="icon_prefix">Icons</data>
-                    <data key="icon">cpu</data>
+                    <data key="icon">grid3x3</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="n0::n6:">
                         <node id="n0::n6::n0">
