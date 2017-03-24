@@ -29,14 +29,16 @@
                     <data key="file">gpu_worker</data>
                     <data key="operation">BufferData</data>
                     <data key="description">Buffer a given amount of data, optionally copying that across to the GPU by default</data>
-                    <data key="icon">Icons/circlePlus</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circlePlus</data>
                     <data key="workerID">gpu_worker</data>
                     <graph id="n0::n0:">
                         <node id="n0::n0::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Bytes</data>
                             <data key="type">Integer</data>
-                            <data key="icon">Icons/memoryCard</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">memoryCard</data>
                             <data key="description">The amount of bytes that the buffer should be able to hold.</data>
                         </node>
                         <node id="n0::n0::n1">
@@ -44,7 +46,8 @@
                             <data key="label">Force Copy</data>
                             <data key="type">Boolean</data>
                             <data key="value">true</data>
-                            <data key="icon">Icons/copy</data>                            
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">copy</data>                            
                             <data key="description">Whether or not the specified amount of data should be immediately copied to the GPU.</data>
                         </node>
                         <node id="n0::n0::n2">
@@ -52,7 +55,8 @@
                             <data key="label">Blocking</data>
                             <data key="type">Boolean</data>
                             <data key="value">false</data>
-                            <data key="icon">Icons/cancel</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">cancel</data>
                             <data key="description">Whether to pause until the copy operation has finished (if a copy occurs).</data>
                         </node>
                         <node id="n0::n0::n3">
@@ -60,7 +64,8 @@
                             <data key="label">GPU Number</data>
                             <data key="type">Integer</data>
                             <data key="value">0</data>
-                            <data key="icon">Icons/numberOne</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">numberOne</data>
                             <data key="description">The index of the target GPU/device (starting from 0).</data>
                         </node>
                     </graph>
@@ -72,7 +77,8 @@
                     <data key="folder">${RE_PATH}/src/workers/gpu</data>
                     <data key="file">gpu_worker</data>
                     <data key="operation">ReleaseData</data>
-                    <data key="icon">Icons/circleMinus</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circleMinus</data>
                     <data key="description">Buffer a given amount of data, optionally copying that across to the GPU by default</data>
                     <data key="workerID">gpu_worker</data>
                     <graph id="n0::n1:">
@@ -80,7 +86,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Bytes</data>
                             <data key="type">Integer</data>
-                            <data key="icon">Icons/memoryCard</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">memoryCard</data>
                             <data key="description">The number of bytes in the buffer to be deallocated.</data>
                         </node>
                         <node id="n0::n1::n1">
@@ -88,7 +95,8 @@
                             <data key="label">Force Copy</data>
                             <data key="type">Boolean</data>
                             <data key="value">true</data>
-                            <data key="icon">Icons/copy</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">copy</data>
                             <data key="description">Whether or not to read the buffer data back from a GPU before deleting.</data>
                         </node>
                         <node id="n0::n1::n2">
@@ -96,7 +104,8 @@
                             <data key="label">Blocking</data>
                             <data key="type">Boolean</data>
                             <data key="value">false</data>
-                            <data key="icon">Icons/cancel</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">cancel</data>
                             <data key="description">Whether to pause until the read is complete.</data>
                         </node>
                         <node id="n0::n1::n3">
@@ -104,7 +113,8 @@
                             <data key="label">GPU Number</data>
                             <data key="type">Integer</data>
                             <data key="value">0</data>
-                            <data key="icon">Icons/numberOne</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">numberOne</data>
                             <data key="description">The index of the target GPU/device (starting from 0).</data>
                         </node>
                     </graph>
@@ -116,7 +126,8 @@
                     <data key="folder">${RE_PATH}/src/workers/gpu</data>
                     <data key="file">gpu_worker</data>
                     <data key="operation">RunParallel</data>
-                    <data key="icon">Icons/arrowFork</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">arrowFork</data>
                     <data key="description">Launch a kernel to run on a GPU, executing as many of the specified number of threads as is possible at once.</data>
                     <data key="workerID">gpu_worker</data>
                     <graph id="n0::n3:">
@@ -124,14 +135,16 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Thread Count</data>
                             <data key="type">Double</data>
-                            <data key="icon">Icons/listNumbered</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">listNumbered</data>
                             <data key="description">The amount of work-items to be spawned.</data>
                         </node>
                         <node id="n0::n3::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations per Thread</data>
                             <data key="type">Double</data>
-                            <data key="icon">Icons/clockCycle</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">clockCycle</data>
                             <data key="description">The amount of work that should be done by each thread.</data>
                         </node>
                         <node id="n0::n3::n2">
@@ -139,7 +152,8 @@
                             <data key="label">GPU Number</data>
                             <data key="type">Integer</data>
                             <data key="value">0</data>
-                            <data key="icon">Icons/numberOne</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">numberOne</data>
                             <data key="description">The index of the target GPU/device (starting from 0).</data>
                         </node>
                     </graph>
@@ -151,7 +165,8 @@
                     <data key="folder">${RE_PATH}/src/workers/gpu</data>
                     <data key="file">gpu_worker</data>
                     <data key="operation">FFT</data>
-                    <data key="icon">Icons/wave</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">wave</data>
                     <data key="description">Run an FFT usign the given data, with the result overwriting the input array.</data>
                     <data key="workerID">gpu_worker</data>
                     <graph id="n0::n4:">
@@ -159,7 +174,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Data</data>
                             <data key="type">Vector::Float</data>
-                            <data key="icon">Icons/memoryCard</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">memoryCard</data>
                             <data key="description">An array of floats whose length is combination of powers of 2, 3 and 5.</data>
                         </node>
                         <node id="n0::n4::n1">
@@ -167,7 +183,8 @@
                             <data key="label">GPU Number</data>
                             <data key="type">Integer</data>
                             <data key="value">0</data>
-                            <data key="icon">Icons/numberOne</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">numberOne</data>
                             <data key="description">The index of the target GPU/device (starting from 0).</data>
                         </node>
                     </graph>
@@ -179,7 +196,8 @@
                     <data key="folder">${RE_PATH}/src/workers/gpu</data>
                     <data key="file">gpu_worker</data>
                     <data key="operation">MatrixMult</data>
-                    <data key="icon">Icons/grid</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">grid</data>
                     <data key="description">Multiply matrix A (of size NxK) by B (of size KxM) to produce C (of size NxM).</data>
                     <data key="workerID">gpu_worker</data>
                     <graph id="n0::n5:">
@@ -187,21 +205,24 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix A</data>
                             <data key="type">Vector::Float</data>
-                            <data key="icon">Icons/grid</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">grid</data>
                             <data key="description">The first of the two matrix operands.</data>
                         </node>
                         <node id="n0::n5::n1">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix B</data>
                             <data key="type">Vector::Float</data>
-                            <data key="icon">Icons/grid</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">grid</data>
                             <data key="description">The second of the two matrix operands.</data>
                         </node>
                         <node id="n0::n5::n2">
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix C</data>
                             <data key="type">Vector::Float</data>
-                            <data key="icon">Icons/grid</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">grid</data>
                             <data key="description">The matrix to be filled with the result of the multiplication.</data>
                         </node>
                         <node id="n0::n5::n3">
@@ -209,7 +230,8 @@
                             <data key="label">GPU Number</data>
                             <data key="type">Integer</data>
                             <data key="value">0</data>
-                            <data key="icon">Icons/numberOne</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">numberOne</data>
                             <data key="description">The index of the target GPU/device (starting from 0).</data>
                         </node>
                     </graph>

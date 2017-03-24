@@ -28,7 +28,8 @@
                     <data key="operation">Allocate</data>
                     <data key="folder">${RE_PATH}/src/workers/memory</data>
                     <data key="file">memory_worker</data>
-                    <data key="icon">Icons/circlePlus</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circlePlus</data>
                     <data key="description">Allocates n bytes of memory.</data>
                     <data key="workerID">memory_worker</data>
                     <graph id="n0::n0:">
@@ -36,7 +37,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Kilobytes</data>
                             <data key="type">Double</data>
-                            <data key="icon">Icons/memoryCard</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">memoryCard</data>
                             <data key="description">The number of bytes to allocate.</data>
                         </node>
                     </graph>
@@ -48,7 +50,8 @@
                     <data key="folder">${RE_PATH}/src/workers/memory</data>
                     <data key="file">memory_worker</data>
                     <data key="operation">Deallocate</data>
-                    <data key="icon">Icons/circleMinus</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">circleMinus</data>
                     <data key="description">Deallocates n kilobytes of memory.</data>
                     <data key="workerID">memory_worker</data>
                     <graph id="n0::n1:">
@@ -56,7 +59,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Kilobytes</data>
                             <data key="type">Double</data>
-                            <data key="icon">Icons/memoryCard</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">memoryCard</data>
                             <data key="description">The number of kilobytes to deallocate.</data>
                         </node>
                     </graph>
@@ -68,7 +72,8 @@
                     <data key="folder">${RE_PATH}/src/workers/memory</data>
                     <data key="file">memory_worker</data>
                     <data key="operation">GetAllocatedCount</data>
-                    <data key="icon">Icons/listNumbered</data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">listNumbered</data>
                     <data key="description">Returns the number of kilobytes of memory currently allocated..</data>
                     <data key="workerID">memory_worker</data>
                     <graph id="n0::n2:">
@@ -76,7 +81,8 @@
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Kilobytes</data>
                             <data key="type">Double</data>
-                            <data key="icon">Icons/arrowUpDown</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">arrowUpDown</data>
                             <data key="description">The number of kilobytes of allocated memory.</data>
                         </node>
                     </graph>
