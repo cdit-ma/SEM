@@ -29,6 +29,7 @@
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
                     <data key="operation">EvaluateComplexity</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon">sigma</data>
                     <data key="description">Evaluate the complexity function given, may use one or more value parameters (eg n, m, x, y etc).</data>
                     <data key="workerID">utility_worker</data>
@@ -38,6 +39,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Complexity Function</data>
                             <data key="type">String</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">sigma</data>
                             <data key="description">Mathematical expression for the complexity of an algorithm that will be simulated using a workload execution worker.</data>
                         </node>
@@ -45,6 +47,7 @@
                             <data key="kind">ReturnParameter</data>
                             <data key="label">Operations</data>
                             <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">Number of operations, or size of memory to be used in workload execution</data>
                         </node>
@@ -57,6 +60,7 @@
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
                     <data key="operation">Log</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon">book</data>
                     <data key="description">Logs a message to the database.</data>
                     <data key="workerID">utility_worker</data>
@@ -66,6 +70,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Message Format</data>
                             <data key="type">String</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">format</data>
                             <data key="description">Message to Log.</data>
                         </node>
@@ -74,6 +79,7 @@
                             <data key="label">Print</data>
                             <data key="type">Boolean</data>
                             <data key="value">true</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">print</data>
                             <data key="description">Print the message to standard output.</data>
                         </node>
@@ -86,6 +92,7 @@
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
                     <data key="operation">GetTimeOfDayString</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon">clock</data>
                     <data key="description">Get the time of day in a string.</data>
                     <data key="workerID">utility_worker</data>
@@ -95,6 +102,7 @@
                             <data key="label">Time</data>
                             <data key="sortOrder">0</data>
                             <data key="type">String</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">format</data>
                             <data key="description">Current Time of Day</data>
                         </node>
@@ -108,6 +116,7 @@
                     <data key="folder">${RE_PATH}/src/workers/utility</data>
                     <data key="file">utility_worker</data>
                     <data key="operation">GetTimeOfDay</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon">clock</data>
                     <data key="description">Get the time of day as a double.</data>
                     <data key="workerID">utility_worker</data>
@@ -117,6 +126,7 @@
                             <data key="label">Time</data>
                             <data key="sortOrder">0</data>
                             <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">numberOne</data>
                             <data key="description">Current Time of Day</data>
                         </node>

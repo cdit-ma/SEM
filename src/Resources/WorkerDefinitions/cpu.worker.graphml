@@ -29,6 +29,7 @@
                     <data key="file">cpu_worker</data>
                     <data key="operation">IntOp</data>
                     <data key="description">Execute requested number of Integer Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="n0::n0:">
@@ -36,6 +37,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
                         </node>
@@ -49,6 +51,7 @@
                     <data key="file">cpu_worker</data>
                     <data key="operation">FloatOp</data>
                     <data key="description">Execute requested number of Floating Point Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="n0::n1:">
@@ -56,6 +59,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
                         </node>
@@ -69,6 +73,7 @@
                     <data key="file">cpu_worker</data>
                     <data key="operation">Whetstone</data>
                     <data key="description">Execute requested number of loops through the Whetstone benchmark. It is estimated that ten loops is equivalent to one Million Whetstone Instructions Performed (MWIP). This uses modified code taken from Whetstone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="n0::n2:">
@@ -76,6 +81,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
                         </node>
@@ -89,14 +95,16 @@
                     <data key="file">cpu_worker</data>
                     <data key="operation">MWIP</data>
                     <data key="description">Execute requested number of Million Whetstone Instructions Performed (MWIP). This uses modified code taken from Whetstone Benchmark in C/C++</data>
-                    <data key="icon"></data>
+                    <data key="icon_prefix">Icons</data>
+                    <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="n0::n3:">
                         <node id="n0::n3::n0">
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="type">Double</data>
-                            <data key="icon"></data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
                         </node>
                     </graph>
@@ -109,6 +117,7 @@
                     <data key="file">cpu_worker</data>
                     <data key="operation">Dhrystone</data>
                     <data key="description">Execute requested number of loops through the Dhrystone benchmark. For one Dhrystone Millions of Instructions Performed (DMIP) it takes 1757 loops through this benchmark.This uses modified code taken from Dhrystone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon"></data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="n0::n4:">
@@ -116,6 +125,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
                         </node>
@@ -129,6 +139,7 @@
                     <data key="file">cpu_worker</data>
                     <data key="operation">DMIP</data>
                     <data key="description">Execute requested number of Dhrystone Millions of Instructions Performed (DMIP). This uses modified code taken from Dhrystone Benchmark in C/C++</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="n0::n5:">
@@ -136,6 +147,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Operations</data>
                             <data key="type">Double</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">clockCycle</data>
                             <data key="description">The number of operations to execute.</data>
                         </node>
@@ -149,6 +161,7 @@
                     <data key="file">cpu_worker</data>
                     <data key="operation">MatrixMult</data>
                     <data key="description">Multiply matrix A (of size NxK) by B (of size KxM) to produce C (of size NxM).</data>
+                    <data key="icon_prefix">Icons</data>
                     <data key="icon">cpu</data>
                     <data key="workerID">cpu_worker</data>
                     <graph id="n0::n6:">
@@ -156,6 +169,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix A</data>
                             <data key="type">Vector::Float</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">grid</data>
                             <data key="description">The first of the two matrix operands.</data>
                         </node>
@@ -163,6 +177,7 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix B</data>
                             <data key="type">Vector::Float</data>
+                            <data key="icon_prefix">Icons</data>
                             <data key="icon">grid</data>
                             <data key="description">The second of the two matrix operands.</data>
                         </node>
@@ -170,7 +185,8 @@
                             <data key="kind">InputParameter</data>
                             <data key="label">Matrix C</data>
                             <data key="type">Vector::Float</data>
-                            <data key="icon">grid</data>
+                            <data key="icon_prefix">Icons</data>
+                            <data key="icon">arrowRight</data>
                             <data key="description">The matrix to be filled with the result of the multiplication.</data>
                         </node>
                     </graph>
