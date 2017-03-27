@@ -46,7 +46,7 @@ NotificationDialog::NotificationDialog(QWidget *parent)
     initialisePanel();
     updateSelectionBasedButtons();
 
-    //test();
+    test();
 }
 
 
@@ -710,10 +710,9 @@ void NotificationDialog::intervalTimeout()
 void NotificationDialog::test()
 {
     FilterGroup* fg = new FilterGroup("TEST GROUP", this);
-    fg->setExclusive(true);
+    fg->setExclusive(false);
 
     foreach (QToolButton* button, filterButtonHash.values()) {
-
         QString buttonText = button->text();
         if (buttonText.toLower() == "all") {
             fg->addToFilterGroup(buttonText, button, true);

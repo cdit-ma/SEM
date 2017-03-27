@@ -377,6 +377,7 @@ QIcon Theme::getIcon(QString prefix, QString alias)
 
         QIcon icon;
 
+        ///*
         //Set the default states.
         icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
         icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Normal, QIcon::On);
@@ -403,6 +404,12 @@ QIcon Theme::getIcon(QString prefix, QString alias)
                 }
             }
         }
+        //*/
+
+        //icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Normal, QIcon::Off);
+        //icon.addPixmap(getImage(prefix, alias, QSize(), QColor(255,0,0)), QIcon::Selected, QIcon::Off);
+        //icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_SELECTED)), QIcon::Active, QIcon::Off);
+        //icon.addPixmap(getImage(prefix, alias, QSize(), getMenuIconColor(CR_NORMAL)), QIcon::Active, QIcon::On);
 
         iconLookup[lookupName] = icon;
         //qint64 timeFinish = QDateTime::currentDateTime().toMSecsSinceEpoch();

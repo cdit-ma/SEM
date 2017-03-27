@@ -2,6 +2,8 @@
 #include "theme.h"
 
 #include <QDebug>
+#include <QToolBar>
+#include <QToolButton>
 
 #define FILTER_KEY "filterKey"
 #define FILTER_GROUP "filterGroup"
@@ -47,6 +49,24 @@ QGroupBox* FilterGroup::constructFilterGroupBox(Qt::Orientation orientation)
     filterGroupBox->setCheckable(true);
     filterGroupBox->setChecked(initialCheckedState);
 
+    QToolBar* toolbar = new QToolBar();
+    toolbar->setOrientation(orientation);
+    toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+    //toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    foreach (QAbstractButton* button, filters.values()) {
+        QToolButton* tb = qobject_cast<QToolButton*>(button);
+        if (tb) {
+            QAction* action = toolbar->addWidget(tb);
+            action->setVisible(initialCheckedState);
+            connect(filterGroupBox, SIGNAL(toggled(bool)), action, SLOT(setVisible(bool)));
+        }
+    }
+
+    QLayout* layout = new QVBoxLayout(filterGroupBox);
+    layout->addWidget(toolbar);
+
+    /*
     QLayout* layout = 0;
     if (orientation == Qt::Vertical) {
         layout = new QVBoxLayout(filterGroupBox);
@@ -61,6 +81,7 @@ QGroupBox* FilterGroup::constructFilterGroupBox(Qt::Orientation orientation)
             layout->addWidget(button);
         }
     }
+    */
 
     connect(Theme::theme(), &Theme::theme_Changed, this, &FilterGroup::themeChanged);
     themeChanged();
@@ -130,16 +151,16 @@ void FilterGroup::addToFilterGroup(QString key, QAbstractButton* filterButton, b
  */
 void FilterGroup::themeChanged()
 {
+    Theme* theme = Theme::theme();
     if (filterGroupBox) {
-        Theme* theme = Theme::theme();
         filterGroupBox->setStyleSheet("QGroupBox{ color:" + theme->getTextColorHex() + "; margin-top: 6px; border: none; border-top: 2px solid" + theme->getAltBackgroundColorHex() + ";}"
                                       "QGroupBox::title{ subcontrol-origin: margin; subcontrol-position: top center; padding: 0px 3px 0px 3px; }"
-                                      "QGroupBox::title::hover{ color:" + theme->getHighlightColorHex() + ";}");
-                                      //"QGroupBox::indicator{ width: 0px; height: 0px; }"); //subcontrol-position: center; }");
-                                      /*
+                                      "QGroupBox::title::hover{ color:" + theme->getHighlightColorHex() + ";}"
+                                      ///*
                                       "QGroupBox::indicator:checked{ image: url(:/Actions/Arrow_Down); }"
-                                      "QGroupBox::indicator:unchecked{ image: url(:/Actions/Arrow_Up); }");
-                                      */
+                                      "QGroupBox::indicator:unchecked{ image: url(:/Actions/Arrow_Up); }"
+                                      //*/
+                                      "QToolButton{ border-radius:" + theme->getSharpCornerRadius() + ";}");
     }
 }
 
