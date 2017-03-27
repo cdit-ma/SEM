@@ -889,7 +889,7 @@
         <xsl:variable name="target_ids" select="cdit:get_edge_target_ids($root, 'Edge_Workflow', $id)" />
 
         <!-- Conditions self generate code and shouldn't be recursed-->
-        <xsl:variable name="is_condition" as="xs:boolean" select="$kind = 'Condition'" />
+        <xsl:variable name="is_condition" as="xs:boolean" select="contains($kind, 'Condition')" />
         <!-- Terminations should only be recursed when the previous element is a Branch Type-->
         <xsl:variable name="condition_termination" as="xs:boolean" select="$kind = 'Termination' and cdit:kind_uses_branch($previous_kind) = false()" />
         
