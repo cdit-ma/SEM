@@ -60,8 +60,6 @@ LogController::LogController(std::string endpoint, double frequency, std::vector
     //Convert frequency to period
     sleep_time_ = (int)((1 / frequency) * 1000);
     processes_ = processes;
-
-    
 }
 
 void LogController::GotNewConnection(int, std::string){
@@ -294,12 +292,12 @@ re_common::SystemStatus* LogController::GetSystemStatus(){
 
             ps->set_state((re_common::ProcessStatus::State)info->get_process_state(pid));
 
-            /*if(!seen_pid){
+            if(!seen_pid){
                 //send onetime info
                 ps->mutable_info()->set_name(info->get_process_name(pid));
                 ps->mutable_info()->set_args(info->get_process_arguments(pid));
                 ps->mutable_info()->set_start_time(info->get_monitored_process_start_time(pid));
-            }*/
+            }
             ps->set_cpu_core_id(info->get_monitored_process_cpu(pid));
             ps->set_cpu_utilization(info->get_monitored_process_cpu_utilization(pid));
             ps->set_phys_mem_utilization(info->get_monitored_process_phys_mem_utilization(pid));

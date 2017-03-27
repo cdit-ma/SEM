@@ -7,8 +7,10 @@
 #include "../re_common/zmq/protoreceiver/protoreceiver.h"
 
 Server::Server(std::string database_path, std::vector<std::string> addresses){
+    //Construct database
 	database_ = new SQLiteDatabase(database_path);
 
+    //Construct receiver
 	receiver_ = new zmq::ProtoReceiver();
     for(auto c : addresses){
         receiver_->Connect(c);

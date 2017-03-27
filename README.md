@@ -29,6 +29,7 @@ logan client utilises the sigar system monitoring interface to collect system me
 * ``mkdir build``
 * ``cd build``
 * ``cmake .. -DBUILD_SERVER=ON -DBUILD_CLIENT=ON``
+* To disable re-model or hardware logging, ``-DDISABLE_MODEL_LOGGING`` or ``-DDISABLE_HARDWARE_LOGGING`` can be in the above cmake command.
 * **Unix -** ``make``
 * **Windows -** ``msbuild logan.sln /p:Configuration=Release``
 * Executables will be placed in logan/bin

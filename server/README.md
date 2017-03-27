@@ -1,21 +1,13 @@
-# DIG-SLS
-DIG System Logging Server
+# logan server
+logan server connects to one or many logan clients and stores all received metrics in a SQLite3 database.
 
 ## Building
 **Requires:**
-* CUTS
-* ACE
-* SQLite3
-* Boost
+* https://github.com/google/protobuf
+* https://github.com/zeromq/libzmq
+* https://github.com/hyperic/sigar
+* https://github.com/cdit-ma/re_common
+* https://sqlite.org/
 
-### Unix
-```
-$ACE_ROOT/bin/mwc.pl -type gnuace -feature_file $CUTS_ROOT/default.features DIG-SLS.mwc
-make `cat $CUTS_ROOT/default.features`
-```
-### Windows
-```
-%ACE_ROOT%/bin/mwc.pl -type vc9 -feature_file %CUTS_ROOT%/default.features DIG-SLS.mwc
-msbuild DIG_SLS.sln /p:Configuration=Release
-copy Release/DIG-SLS.exe DIG-SLS.exe
-```
+**Installation:**
+See logan root for build instructions.

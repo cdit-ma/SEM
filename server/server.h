@@ -25,7 +25,6 @@
 #include <vector>
 #include <map>
 #include <set>
-#include <google/protobuf/message_lite.h>
 
 class SQLiteDatabase;
 namespace zmq{ class ProtoReceiver; }

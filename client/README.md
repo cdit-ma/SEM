@@ -1,21 +1,12 @@
-# DIG-SLC
-DIG System Logging Client
+# logan client
+logan client utilises the sigar system monitoring interface to collect system metrics and ZeroMQ to communicate with one or many logan servers. Logging can be run in live or cached mode to optimise for either network traffic or disk I/O. Logging frequency can also be specified to control data point granularity.
 
 ## Building
 **Requires:**
-* CUTS
-* ACE
-* Sigar
-* Boost
+* https://github.com/google/protobuf
+* https://github.com/zeromq/libzmq
+* https://github.com/hyperic/sigar
+* https://github.com/cdit-ma/re_common
 
-### Unix
-```
-$ACE_ROOT/bin/mwc.pl -type gnuace -feature_file $CUTS_ROOT/default.features DIG-SLC.mwc
-make `cat $CUTS_ROOT/default.features`
-```
-### Windows
-```
-%ACE_ROOT%/bin/mwc.pl -type vc9 -feature_file %CUTS_ROOT%/default.features DIG-SLC.mwc
-msbuild DIG_SLC.sln /p:Configuration=Release
-copy Release/DIG-SLC.exe DIG-SLC.exe
-```
+**Installation:**
+See logan root for build instructions.

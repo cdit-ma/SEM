@@ -47,7 +47,7 @@ else()
     target_link_libraries(${PROJ_NAME} pthread dl)
 endif()
 
-#include the current binary directory to re_node_manager as it requires the .h file from the pb generated files
+#include the current binary directory to server as it requires the .h file from the pb generated files
 target_include_directories(${PROJ_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 #Link against our Protobuf source/headers

@@ -27,8 +27,8 @@
 #include "../table.h"
 #include "../tableinsert.h"
 
-#include "../../re_common/proto/systemstatus/systemstatus.pb.h"
 #include "../../re_common/zmq/protoreceiver/protoreceiver.h"
+#include "../../re_common/proto/systemstatus/systemstatus.pb.h"
 
 //Type names
 #define LOGAN_DECIMAL "DECIMAL"
