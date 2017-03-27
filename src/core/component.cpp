@@ -4,6 +4,9 @@
 #include <algorithm>
 
 #include "modellogger.h"
+#include "attribute.h"
+#include "eventport.h"
+#include "worker.h"
 
 int get_eventport_order(const EventPort* a){
     //Required Order:

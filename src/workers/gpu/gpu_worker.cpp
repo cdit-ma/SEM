@@ -36,11 +36,16 @@ void Gpu_Worker::Initialise(bool forceGPU){
 
 	impl_->Initialise(forceGPU);
 
-	std::string gpu_details = std::string("Initialised gpu worker with # ") + std::to_string(NumDevices()) + std::string(" devices");
+	std::string gpu_details = std::string("Initialised gpu worker on platform: ") + PlatformName() +
+							  std::string(" with # ") + std::to_string(NumDevices()) + std::string(" devices");
 
 	Log(fun, ModelLogger::WorkloadEvent::MESSAGE, work_id, gpu_details);
 	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
 
+}
+
+std::string Gpu_Worker::PlatformName() {
+	return impl_->PlatformName();
 }
 
 unsigned int Gpu_Worker::NumDevices(){

@@ -56,6 +56,11 @@ public:
 	 * Release any GPU related resources.
 	 */
 	void Release();
+
+	/**
+	 * Returns the name of the first valid openCL platform
+	 */
+	std::string PlatformName();
 	
 	/**
 	 * Returns the number of devices the worker is currently aware of

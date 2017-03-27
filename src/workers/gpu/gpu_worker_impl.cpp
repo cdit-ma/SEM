@@ -98,6 +98,7 @@ void Gpu_Worker_Impl::Initialise(bool forceGPU){
 		} else {
 			// Display the list of devices found to the user
 			cout << "Found devices for an openCL platform (" << platformName << "):" << endl;
+			platform_name_ = platformName;
 			for (unsigned int j=0; j< devices.size(); j++) {
 				string deviceName;
 				devices[j].getInfo(CL_DEVICE_NAME, &deviceName);
@@ -270,6 +271,10 @@ void Gpu_Worker_Impl::Release(){
 
 bool Gpu_Worker_Impl::IsValid() {
 	return valid;
+}
+
+std::string Gpu_Worker_Impl::PlatformName() {
+	return platform_name_;
 }
 
 unsigned int Gpu_Worker_Impl::NumDevices() {

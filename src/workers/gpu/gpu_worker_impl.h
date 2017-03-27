@@ -25,6 +25,9 @@ public:
 	// Returns whether or not the worker can currently perform meaningful GPU work
 	bool IsValid();
 	
+	// Returns the first found valid openCL platforms name
+	std::string PlatformName();
+
 	// Returns the name the device reports to openCL
 	unsigned int NumDevices();
 
@@ -63,6 +66,7 @@ private:
 	// OpenCL data structures
 	std::vector<cl::Platform> platforms;
 	std::vector<cl::Device> devices;
+	std::string platform_name_;
 
 	cl::Context* context;
 	std::vector<cl::CommandQueue*> queues;

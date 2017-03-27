@@ -8,10 +8,11 @@
 #include <vector>
 
 #include "activatable.h"
-#include "attribute.h"
-#include "eventport.h"
 #include "basemessage.h"
-#include "worker.h"
+
+class Worker;
+class Attribute;
+class EventPort;
 
 class Component: public Activatable{
     public:
