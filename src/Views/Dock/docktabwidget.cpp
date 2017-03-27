@@ -338,7 +338,6 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
             // get definitions list from controller
             QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(triggeredAdoptableKind);
             populateDock(dockWidget, actions, true);
-            //showInfoLabel = dockWidget->isEmpty();
             break;
         }
         case ToolbarController::FUNCTIONS:
@@ -350,12 +349,10 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
                 QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
                 populateDock(dockWidget, actions, true);
             }
-            //showInfoLabel = dockWidget->isEmpty();
             break;
         }
         case ToolbarController::HARDWARE:
         {
-            //showInfoLabel = dockWidget->isEmpty();
             refreshDock(hardwareDock);
             break;
         }
