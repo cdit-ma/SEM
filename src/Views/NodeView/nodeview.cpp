@@ -738,6 +738,11 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setSecondaryTextKey("type");
                 break;
+            case Node::NK_SETTER:
+                nodeItem = new StackNodeItem(item, parentNode);
+                nodeItem->setSecondaryTextKey("operator");
+                nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
+                break;
             case Node::NK_WORKER_PROCESS:
             case Node::NK_PROCESS:
                 nodeItem = new StackNodeItem(item, parentNode);
@@ -818,8 +823,6 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
             case Node::NK_CODE:
             case Node::NK_HEADER:
             case Node::NK_WORKLOAD:
-            case Node::NK_SETTER:
-
                 nodeItem = new StackNodeItem(item, parentNode);
                 nodeItem->setVisualEdgeKind(Edge::EC_WORKFLOW);
                 break;

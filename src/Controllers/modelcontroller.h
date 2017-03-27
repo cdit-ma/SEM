@@ -390,6 +390,7 @@ private slots:
     void constructDDSQOSProfile(int parentID, QPointF position);
     void constructForCondition(int parentID, QPointF position);
     void constructWorkerProcess(int parentID, int workerProcessID, QPointF pos);
+    void constructSetter(int parentID, QPointF position);
 
 
 

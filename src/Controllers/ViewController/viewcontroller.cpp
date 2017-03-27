@@ -87,7 +87,7 @@ QStringList ViewController::getNodeKinds()
     nodeKinds << "Code" << "Header";
     nodeKinds << "ForCondition" << "VectorItterator" << "Setter";
 
-    nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
+    nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "OutEventPortImpl";
     nodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "WorkerProcess";
 
     //Append Kinds which can't be constructed by the GUI.
@@ -325,6 +325,11 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
             case Node::NK_VARIABLE_PARAMETER:{
                 alias = "EntityIcons";
                 image = "Variable";
+                break;
+            }
+            case Node::NK_SETTER:{
+                alias = "Icons";
+                image = "pencil";
                 break;
             }
             case Node::NK_FOR_CONDITION:{

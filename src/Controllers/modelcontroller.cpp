@@ -831,6 +831,9 @@ void ModelController::constructNode(int parentID, QString kind, QPointF centerPo
         }else if(kind == "ForCondition"){
             constructForCondition(parentID, centerPoint);
             ignore = true;
+        }else if(kind == "Setter"){
+            constructSetter(parentID, centerPoint);
+            ignore = true;
         }else{
             data = constructDataVector(kind, centerPoint);
         }
@@ -923,6 +926,40 @@ void ModelController::constructWorkerProcess(int parentID, int workerProcessID, 
     emit controller_ActionFinished(success, "Worker Process Couldn't be constructed!");
 }
 
+void ModelController::constructSetter(int parentID, QPointF position)
+{
+    Node* parentNode = getNodeFromID(parentID);
+
+    if(parentNode){
+        triggerAction("Constructing Setter");
+
+        auto operator_key = constructKey("operator", QVariant::String);
+        auto setter_data = constructDataVector("Setter", position);
+        setter_data.append(new Data(operator_key, "="));
+        auto setter = constructChildNode(parentNode, setter_data);
+
+        if(setter){
+            auto iconKey = constructKey("icon", QVariant::String);
+            auto iconPrefixKey = constructKey("icon_prefix", QVariant::String);
+
+            auto variable_data = constructDataVector("InputParameter", QPointF(-1, -1), "", "Variable");
+            auto value_data = constructDataVector("VariadicParameter", QPointF(-1, -1), "", "Value");
+
+            variable_data.append(new Data(iconPrefixKey, "EntityIcons"));
+            variable_data.append(new Data(iconKey, "Variable"));
+
+            //value_data.append(new Data(iconPrefixKey, "Icons"));
+            //value_data.append(new Data(iconKey, "label"));
+
+
+
+            constructChildNode(setter, variable_data);
+            constructChildNode(setter, value_data);
+        }
+    }
+
+}
+
 void ModelController::constructDDSQOSProfile(int parentID, QPointF position)
 {
     Node* parentNode = getNodeFromID(parentID);
@@ -947,18 +984,23 @@ void ModelController::constructForCondition(int parentID, QPointF position)
 
         Node* for_condition = constructChildNode(parentNode, constructDataVector("ForCondition", position));
         if(for_condition){
+            auto valueKey = constructKey("value", QVariant::String);
             auto iconKey = constructKey("icon", QVariant::String);
             auto iconPrefixKey = constructKey("icon_prefix", QVariant::String);
 
             //Construct an Input Parameter
+            auto variable_data = constructDataVector("VariableParameter", QPointF(-1, -1), "Integer", "i");
             auto condition_data = constructDataVector("InputParameter", QPointF(-1, -1), "String", "Condition");
             auto itteration_data = constructDataVector("InputParameter", QPointF(-1, -1), "String", "Itteration");
+
+
+            variable_data.append(new Data(valueKey, 0));
             condition_data.append(new Data(iconKey, "Condition"));
             condition_data.append(new Data(iconPrefixKey, "EntityIcons"));
             itteration_data.append(new Data(iconKey, "reload"));
             itteration_data.append(new Data(iconPrefixKey, "Icons"));
 
-            constructChildNode(for_condition, constructDataVector("VariableParameter", QPointF(-1, -1), "Integer", "i"));
+            constructChildNode(for_condition, variable_data);
             constructChildNode(for_condition, condition_data);
             constructChildNode(for_condition, itteration_data);
         }
@@ -2063,6 +2105,13 @@ Key *ModelController::constructKey(QString name, QVariant::Type type)
         validValues.clear();
         keysValues << "PeriodicEvent";
         validValues << "Constant" << "Exponential";
+        newKey->addValidValues(validValues, keysValues);
+    }
+    if(name == "operator"){
+        QStringList validValues;
+        QStringList keysValues;
+        keysValues << "Setter";
+        validValues << "=" << "+=" << "-=" << "*=" << "/=";
         newKey->addValidValues(validValues, keysValues);
     }
     if(name == "middleware"){
