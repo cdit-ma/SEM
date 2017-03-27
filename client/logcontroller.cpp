@@ -292,11 +292,13 @@ re_common::SystemStatus* LogController::GetSystemStatus(){
 
             ps->set_state((re_common::ProcessStatus::State)info->get_process_state(pid));
 
+            re_common::ProcessInfo* pi = status->add_process_info();
             if(!seen_pid){
                 //send onetime info
-                ps->mutable_info()->set_name(info->get_process_name(pid));
-                ps->mutable_info()->set_args(info->get_process_arguments(pid));
-                ps->mutable_info()->set_start_time(info->get_monitored_process_start_time(pid));
+                pi->set_pid(pid);
+                pi->set_name(info->get_process_name(pid));
+                pi->set_args(info->get_process_arguments(pid));
+                pi->set_start_time(info->get_monitored_process_start_time(pid));
             }
             ps->set_cpu_core_id(info->get_monitored_process_cpu(pid));
             ps->set_cpu_utilization(info->get_monitored_process_cpu_utilization(pid));
