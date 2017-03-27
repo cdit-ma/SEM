@@ -58,10 +58,21 @@ public:
 	bool MatrixMult(unsigned int widthA, unsigned int heightA, unsigned int widthB,
 					const void* dataA, const void* dataB, void* dataOut,
 					int gpuNum=0);
+	struct PlatformInfo{
+		int platform_number;
+		int device_number;
+		std::string platform_name;
+		std::string device_name;
+	};
 
+	std::vector<PlatformInfo> GetPlatformInfo();
 
 private:
+
+
 	bool valid;
+
+	std::vector<PlatformInfo> platform_info_;
 
 	// OpenCL data structures
 	std::vector<cl::Platform> platforms;

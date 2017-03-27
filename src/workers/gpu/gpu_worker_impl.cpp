@@ -103,6 +103,12 @@ void Gpu_Worker_Impl::Initialise(bool forceGPU){
 				string deviceName;
 				devices[j].getInfo(CL_DEVICE_NAME, &deviceName);
 				cout << "    " << j << ": " << deviceName << endl;
+				PlatformInfo temp;
+				temp.platform_number = i;
+				temp.device_number = j;
+				temp.platform_name = platformName;
+				temp.device_name = deviceName;
+				platform_info_.push_back(temp);
 			}
 
 			// If there are other platofrms but we've already found devices in another, notify the user and skip
@@ -611,4 +617,8 @@ bool Gpu_Worker_Impl::MatrixMult(unsigned int lenA, unsigned int lenB, unsigned 
 	clPrintErrorAndReturn(error, "Error when reading answer after matrix multiplication: ");
 
 	return true;
+}
+
+std::vector<Gpu_Worker_Impl::PlatformInfo> Gpu_Worker_Impl::GetPlatformInfo(){
+	return platform_info_;
 }
