@@ -39,8 +39,7 @@ bool DeploymentManager::SetupControlMessageReceiver(std::string pub_endpoint, st
     return false;
 }
 bool DeploymentManager::SetupModelLogger(std::string pub_endpoint, std::string host_name){
-    //return ModelLogger::setup_model_logger(host_name, pub_endpoint, true, true);
-    return true;
+    return ModelLogger::setup_model_logger(host_name, pub_endpoint, true, true);
 }
 
 bool DeploymentManager::TeardownModelLogger(){
