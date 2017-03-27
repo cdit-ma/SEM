@@ -559,6 +559,28 @@
         <xsl:value-of select="$data_value" />
     </xsl:function>
     
+    <xsl:function name="cdit:generate_Setter">
+        <xsl:param name="root"/>
+        <xsl:param name="tab"/>
+
+        <xsl:variable name="operator" select="cdit:get_key_value($root, 'operator')" />
+
+        <xsl:variable name="input_parameter" select="cdit:get_child_entities_of_kind($root, 'InputParameter')[1]" />
+        <xsl:variable name="variadic_parameter" select="cdit:get_child_entities_of_kind($root, 'VariadicParameter')[1]" />
+
+        <xsl:variable name="var_setter">    
+            <xsl:value-of select="cdit:get_mutable_vector_path($input_parameter)" />
+        </xsl:variable>
+
+        <xsl:variable name="value">    
+            <xsl:value-of select="cdit:get_mutable_vector_path($variadic_parameter)" />
+        </xsl:variable>
+
+        <xsl:if test="$var_setter and $value">
+            <xsl:value-of select="concat(o:t($tab), $var_setter, ' ', $operator, ' ', $value, ';', o:nl())" />
+        </xsl:if>
+    </xsl:function>
+    
 
     <xsl:function name="cdit:generate_Condition">
         <xsl:param name="root"/>
@@ -820,6 +842,9 @@
             </xsl:when>
             <xsl:when test="$kind = 'Header'">
                 <xsl:value-of select="cdit:generate_HCode($root, $tab)" />
+            </xsl:when>
+            <xsl:when test="$kind = 'Setter'">
+                <xsl:value-of select="cdit:generate_Setter($root, $tab)" />
             </xsl:when>
             
             
