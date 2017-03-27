@@ -278,9 +278,12 @@ void DockTabWidget::initialiseDocks()
         partsDock->addItem(dockItem);
     }
 
-    // get functions list from controller then populate the functions dock
+    // populate the functions dock - get functions list from controller
     QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
-    populateDock(functionsDock, actions, true);
+    if (!actions.isEmpty()) {
+        functionsDock->displayInfoLabel(false);
+        populateDock(functionsDock, actions, true);
+    }
 }
 
 
@@ -335,30 +338,33 @@ void DockTabWidget::openRequiredDock(DockWidget* dockWidget)
             // get definitions list from controller
             QList<NodeViewItemAction*> actions = toolActionController->getDefinitionNodeActions(triggeredAdoptableKind);
             populateDock(dockWidget, actions, true);
-            showInfoLabel = dockWidget->isEmpty();
+            //showInfoLabel = dockWidget->isEmpty();
             break;
         }
         case ToolbarController::FUNCTIONS:
         {
             // update header text; update entity kind to construct
             dockWidget->updateHeaderText(triggeredAdoptableKind);
-            bool dockEmpty = dockWidget->isEmpty();
-            showInfoLabel = dockEmpty;
-            if (dockEmpty) {
+            if (dockWidget->isEmpty()) {
                 // get functions list from controller then populate the functions dock
                 QList<NodeViewItemAction*> actions = toolActionController->getWorkerFunctions();
                 populateDock(dockWidget, actions, true);
             }
+            //showInfoLabel = dockWidget->isEmpty();
             break;
         }
         case ToolbarController::HARDWARE:
         {
-            showInfoLabel = dockWidget->isEmpty();
+            //showInfoLabel = dockWidget->isEmpty();
             refreshDock(hardwareDock);
             break;
         }
         default:
             break;
+        }
+
+        if (dockType != ToolbarController::PARTS) {
+            showInfoLabel = dockWidget->isEmpty();
         }
 
         // if the dock is empty, show its information label
