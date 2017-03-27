@@ -158,7 +158,7 @@
 											</graph>
 										</node>
 																				<node id ="2595">
-											<data key="4">Float</data>
+											<data key="4">Integer</data>
 											<data key="10">20</data>
 											<data key="11">110</data>
 											<data key="7">1</data>
@@ -447,7 +447,7 @@
 																				<node id ="3088">
 											<data key="4">Float</data>
 											<data key="10">-1</data>
-											<data key="9">0</data>
+											<data key="9"></data>
 											<data key="346">Icons</data>
 											<data key="11">-1</data>
 											<data key="7">2</data>
@@ -576,7 +576,7 @@
 									</graph>
 								</node>
 																<node id ="3303">
-									<data key="4">Float</data>
+									<data key="4">Integer</data>
 									<data key="10">20</data>
 									<data key="11">160</data>
 									<data key="7">8</data>
@@ -1026,7 +1026,7 @@
 													<data key="2">OutEventPortInstance</data>
 												</node>
 																								<node id ="4035">
-													<data key="4">Float</data>
+													<data key="4">Integer</data>
 													<data key="10">20</data>
 													<data key="9">64</data>
 													<data key="11">110</data>

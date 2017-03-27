@@ -1715,7 +1715,7 @@
             <xsl:when test="$type = 'Boolean'">
                 <xsl:value-of select="'Boolean'" />
             </xsl:when>
-            <xsl:when test="$type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber'">
+            <xsl:when test="$type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber' or $type = 'Float' or $type = 'Double'">
                 <xsl:value-of select="'Double'" />
             </xsl:when>
             <xsl:when test="$type = 'LongInteger' or $type ='UnsignedLongInteger' or $type = 'Integer'">
