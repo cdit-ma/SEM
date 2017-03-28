@@ -104,6 +104,7 @@ private:
     ViewController* viewController;
 
     BaseWindow* innerWindow;
+    BaseDockWidget *dwQOSBrowser;
     BaseDockWidget* searchDockWidget;
     BaseDockWidget* notificationDockWidget;
 
