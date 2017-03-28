@@ -181,7 +181,9 @@ void MainWindow::searchEntered()
  */
 void MainWindow::popupNotification(QString iconPath, QString iconName, QString description)
 {
+    qCritical() << "Icon Path: " << iconPath << " Icon Name: " << iconName << " Description: " << description;
     notificationPopup->hide();
+
     notificationTimer->stop();
 
     if (!welcomeScreenOn) {
@@ -193,6 +195,7 @@ void MainWindow::popupNotification(QString iconPath, QString iconName, QString d
         notificationIconLabel->setPixmap(pixmap);
         notificationPopup->setSize(notificationWidget->sizeHint().width() + 15, notificationWidget->sizeHint().height() + 10);
         moveWidget(notificationPopup, 0, Qt::AlignBottom);
+
         notificationPopup->show();
         notificationPopup->raise();
         notificationTimer->start(5000);
@@ -225,6 +228,7 @@ void MainWindow::toggleNotificationPanel()
  */
 void MainWindow::ensureNotificationPanelVisible()
 {
+    qCritical() << "YO ";
     if (!notificationDockWidget->isVisible()) {
         notificationDockWidget->req_Visible(notificationDockWidget->getID(), true);
     }
@@ -1105,8 +1109,10 @@ void MainWindow::moveWidget(QWidget* widget, QWidget* parentWidget, Qt::Alignmen
     QWidget* cw = parentWidget;
     QPointF widgetPos;
     if (cw == 0) {
+        //Check for active Window
         cw = QApplication::activeWindow();
-        if (!cw->isWindowType()) {
+        //Check
+        if (!cw || !cw->isWindowType()) {
             cw = WindowManager::manager()->getActiveWindow();
             qDebug() << "NOT A WINDOW - " << cw;
         }
