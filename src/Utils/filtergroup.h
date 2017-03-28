@@ -28,6 +28,7 @@ public slots:
 
 private:
     void clearFilters();
+    void updateFilterCheckedCount(QString key);
 
     QHash<QString, QAbstractButton*> filters;
     QAbstractButton* resetFilterButton;

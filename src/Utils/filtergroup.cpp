@@ -173,6 +173,7 @@ void FilterGroup::filterTriggered()
     QAbstractButton* button = qobject_cast<QAbstractButton*>(sender());
     if (button) {
 
+        QStringList prevCheckedKeys = checkedKeys;
         QString key = button->property(FILTER_KEY).toString();
         bool sendUpdateSignal = false;
 
@@ -205,6 +206,7 @@ void FilterGroup::filterTriggered()
                         checkedKeys.removeAll(key);
                         checkedKeys.append(FILTER_RESET_KEY);
                         resetFilterButton->setChecked(true);
+                        key = FILTER_RESET_KEY;
                     }
                 }
             } else {
@@ -212,7 +214,10 @@ void FilterGroup::filterTriggered()
             }
         }
 
-        emit filtersChanged(checkedKeys);
+        if (prevCheckedKeys != checkedKeys) {
+            updateFilterCheckedCount(key);
+            emit filtersChanged(checkedKeys);
+        }
     }
 }
 
@@ -230,4 +235,29 @@ void FilterGroup::clearFilters()
         }
     }
     checkedKeys.clear();
+}
+
+
+/**
+ * @brief FilterGroup::updateFilterCheckedCount
+ * This is called whenever the filters checked list is changed.
+ * It updates the checked filters count in the group box title.
+ */
+void FilterGroup::updateFilterCheckedCount()
+{
+    if (filterGroupBox) {
+        int checkedKeysCount = checkedKeys.count();
+        if (checkedKeysCount == 0) {
+            filterGroupBox->setTitle(filterGroup);
+        } else {
+            filterGroupBox->setTitle(filterGroup + " (" + QString::number(checkedKeysCount) + ")");
+        }
+        /*
+        if (key == FILTER_RESET_KEY) {
+            filterGroupBox->setTitle(filterGroup);
+        } else {
+            filterGroupBox->setTitle(filterGroup + " (" + QString::number(checkedKeys.count()) + ")");
+        }
+        */
+    }
 }
