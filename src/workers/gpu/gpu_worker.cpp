@@ -49,7 +49,6 @@ void Gpu_Worker::Initialise(bool forceGPU){
 	}
 
 	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
-
 }
 
 std::string Gpu_Worker::PlatformName() {
@@ -123,5 +122,4 @@ bool Gpu_Worker::MatrixMult(const std::vector<float> &matrixA, const std::vector
 	  							matrixA.data(), matrixB.data(), matrixC.data(), gpuNum);
 	Log(fun, ModelLogger::WorkloadEvent::FINISHED, work_id);
 	return res;
-
 }
