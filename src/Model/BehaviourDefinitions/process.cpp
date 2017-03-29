@@ -24,6 +24,9 @@ bool Process::canAdoptChild(Node* node)
     if(parameter->isVariadicParameter()){
         //Check to see if worker function is variadic
         auto d = getData("is_variadic");
+        if(!d){
+            return false;
+        }
         if(d && !d->getValue().toBool()){
             //If we are variadic
             return false;

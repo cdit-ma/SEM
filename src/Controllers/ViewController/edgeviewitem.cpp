@@ -22,6 +22,11 @@ EdgeViewItem::EdgeViewItem(ViewController *controller, int ID, NodeViewItem *src
     }
 }
 
+EdgeViewItem::EdgeViewItem(ViewController *controller, Edge::EDGE_KIND kind): ViewItem(controller)
+{
+    edgeKind = kind;
+}
+
 EdgeViewItem::~EdgeViewItem()
 {
     disconnectEdge();

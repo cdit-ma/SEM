@@ -12,6 +12,14 @@ NodeViewItem::NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entit
     }
 }
 
+NodeViewItem::NodeViewItem(ViewController *controller, Node::NODE_KIND kind, QString label):ViewItem(controller)
+{
+    nodeKind = kind;
+    changeData("kind", NodeFactory::getNodeKindString(kind));
+    changeData("label", label);
+
+}
+
 
 Node::NODE_KIND NodeViewItem::getNodeKind() const
 {

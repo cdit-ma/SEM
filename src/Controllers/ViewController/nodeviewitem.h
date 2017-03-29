@@ -12,6 +12,7 @@ class NodeViewItem: public ViewItem
     Q_OBJECT
 public:
     NodeViewItem(ViewController* controller, int ID, ENTITY_KIND entityKind, QString kind, QHash<QString, QVariant> data, QHash<QString, QVariant> _properties);
+    NodeViewItem(ViewController* controller, Node::NODE_KIND kind, QString label);
 
 
     Node::NODE_KIND getNodeKind() const;

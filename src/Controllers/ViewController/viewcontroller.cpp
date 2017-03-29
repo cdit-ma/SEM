@@ -44,6 +44,9 @@ ViewController::ViewController(){
 
     rootItem = new ViewItem(this);
 
+    //Setup nodes
+    setupEntityKindItems();
+
     //Initialize Settings
     SettingsController::initializeSettings();
 
@@ -251,6 +254,27 @@ QStringList ViewController::getAdoptableNodeKinds()
     return QStringList();
 }
 
+QList<Node::NODE_KIND> ViewController::getAdoptableNodeKinds2()
+{
+    QList<Node::NODE_KIND> kinds;
+
+    if(selectionController && controller && selectionController->getSelectionCount() == 1){
+        int ID = selectionController->getFirstSelectedItem()->getID();
+        kinds = controller->getAdoptableNodeKinds2(ID);
+    }
+    return kinds;
+}
+
+QList<NodeViewItem *> ViewController::getNodeKindItems()
+{
+    return nodeKindItems;
+}
+
+QList<EdgeViewItem *> ViewController::getEdgeKindItems()
+{
+    return edgeKindItems;
+}
+
 QList<Edge::EDGE_KIND> ViewController::getValidEdgeKindsForSelection()
 {
     QList<Edge::EDGE_KIND> edgeKinds;
@@ -283,13 +307,14 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 {
     if(viewItem){
         bool isNode = viewItem->isNode();
+        int ID = viewItem->getID();
+
         NodeViewItem* nodeViewItem = (NodeViewItem*)viewItem;
 
         QString kind = viewItem->getData("kind").toString();
         QString label = viewItem->getData("label").toString();
         QString icon = viewItem->getData("icon").toString();
         QString icon_prefix = viewItem->getData("icon_prefix").toString();
-
 
         QString alias = "EntityIcons";
         QString image = kind;
@@ -338,14 +363,15 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
                 break;
             }
 
-                case Node::NK_WORKER_PROCESS:
-                case Node::NK_INPUT_PARAMETER:
-
-                case Node::NK_RETURN_PARAMETER:{
+            case Node::NK_WORKER_PROCESS:
+            case Node::NK_INPUT_PARAMETER:
+            case Node::NK_RETURN_PARAMETER:{
+                if(icon_prefix.length() > 0 && icon.length() > 0){
                     alias = icon_prefix;
                     image = icon;
-                    break;
                 }
+                break;
+            }
                 case Node::NK_VECTOR:
                 case Node::NK_VECTOR_INSTANCE:
                     foreach(ViewItem* child, viewItem->getDirectChildren()){
@@ -366,11 +392,10 @@ void ViewController::setDefaultIcon(ViewItem *viewItem)
 
                 }
         }
-        if(Theme::theme()->gotImage(alias, image)){
-            viewItem->setDefaultIcon(alias, image);
-        }else{
-            viewItem->setDefaultIcon("Icons", "circleQuestion");
-        }
+
+        //Load image
+        Theme::theme()->getImage(alias, image);
+        viewItem->setDefaultIcon(alias, image);
     }
 }
 
@@ -581,6 +606,43 @@ void ViewController::table_dataChanged(int ID, QString key, QVariant data)
 {
     emit vc_triggerAction("Table Changed");
     emit vc_setData(ID, key, data);
+}
+
+void ViewController::setupEntityKindItems()
+{
+    //Prune out the kinds we don't need.
+    auto constructableNodes = NodeFactory::getNodeKinds();
+    constructableNodes.removeAll(Node::NK_AGGREGATE_INSTANCE);
+    constructableNodes.removeAll(Node::NK_ATTRIBUTE_IMPL);
+    constructableNodes.removeAll(Node::NK_ASSEMBLY_DEFINITIONS);
+    constructableNodes.removeAll(Node::NK_DEPLOYMENT_DEFINITIONS);
+    constructableNodes.removeAll(Node::NK_HARDWARE_DEFINITIONS);
+    constructableNodes.removeAll(Node::NK_HARDWARE_CLUSTER);
+    constructableNodes.removeAll(Node::NK_HARDWARE_NODE);
+    constructableNodes.removeAll(Node::NK_INEVENTPORT_IMPL);
+    constructableNodes.removeAll(Node::NK_INTERFACE_DEFINITIONS);
+    constructableNodes.removeAll(Node::NK_MANAGEMENT_COMPONENT);
+    constructableNodes.removeAll(Node::NK_OUTEVENTPORT_INSTANCE);
+    constructableNodes.removeAll(Node::NK_PROCESS);
+    constructableNodes.removeAll(Node::NK_RETURN_PARAMETER);
+    constructableNodes.removeAll(Node::NK_INPUT_PARAMETER);
+    constructableNodes.removeAll(Node::NK_WORKLOAD_DEFINITIONS);
+    constructableNodes.removeAll(Node::NK_WORKLOAD);
+    constructableNodes.removeAll(Node::NK_VECTOR_INSTANCE);
+    constructableNodes.removeAll(Node::NK_VARIABLE_PARAMETER);
+
+    for(auto kind : constructableNodes){
+        QString label = NodeFactory::getNodeKindString(kind);
+        auto item = new NodeViewItem(this, kind, label);
+        setDefaultIcon(item);
+        nodeKindItems.append(item);
+    }
+
+    for(auto kind : EdgeFactory::getEdgeKinds()){
+        auto item = new EdgeViewItem(this, kind);
+        setDefaultIcon(item);
+        edgeKindItems.append(item);
+    }
 }
 
 void ViewController::welcomeActionFinished()

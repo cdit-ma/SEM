@@ -15,6 +15,11 @@ bool Setter::canAdoptChild(Node* child)
     default:
         return false;
     }
+
+    if(!getChildrenOfKind(child->getNodeKind(), 0).isEmpty()){
+        return false;
+    }
+
     return BehaviourNode::canAdoptChild(child);
 }
 

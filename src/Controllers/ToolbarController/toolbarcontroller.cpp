@@ -89,8 +89,6 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
 
         NodeViewItem* node = (NodeViewItem*)viewItem;
 
-        //VIEW_ASPECT aspect = node->getViewAspect();
-
         if(!actions.contains(ID)){
             NodeViewItemAction* action = new NodeViewItemAction(node);
 
@@ -117,12 +115,17 @@ void ToolbarController::viewItem_Constructed(ViewItem *viewItem)
                 if (node->getNodeKind() == Node::NK_HARDWARE_NODE || node->getNodeKind() == Node::NK_HARDWARE_CLUSTER){
                     hardwareIDs.append(ID);
                     emit hardwareCreated(ID);
-                } else if ((node->getNodeKind() == Node::NK_WORKER_PROCESS) || (node->getNodeKind() == Node::NK_WORKER_DEFINITIONS)) {
-                    if(node->getViewAspect() == VA_WORKERS){
-                        workerProcessIDs.append(ID);
-                        emit workerProcessCreated(ID);
-                    }
+                }else if(node->getViewAspect() == VA_WORKERS && (node->getNodeKind() == Node::NK_WORKER_PROCESS || node->getNodeKind() == Node::NK_WORKLOAD)){
+                    workerProcessIDs.append(ID);
+                    emit workerProcessCreated(ID);
                 }
+                /*
+                else if ((node->getNodeKind() == Node::NK_WORKER_PROCESS) || (node->getNodeKind() == Node::NK_WORKER_DEFINITIONS)) {
+                                   if(node->getViewAspect() == VA_WORKERS){
+                                       workerProcessIDs.append(ID);
+                                       emit workerProcessCreated(ID);
+                                   }
+                               }*/
             }
         }
     }
@@ -148,23 +151,23 @@ void ToolbarController::viewItem_Destructed(int ID, ViewItem *)
 
 void ToolbarController::selectionChanged(int selected)
 {
-    QStringList validActions;
-
-    if(selected == 1){
-        validActions = viewController->getAdoptableNodeKinds();
-    }
-
-    foreach(QAction* action, adoptableKindsGroup->actions()){
-        action->setEnabled(validActions.contains(action->text()));
-    }
-
+    //Get the valid list of things to enable disable
+    QList<Node::NODE_KIND> validNodes = viewController->getAdoptableNodeKinds2();
     QList<Edge::EDGE_KIND> validEdges = viewController->getValidEdgeKindsForSelection();
     QList<Edge::EDGE_KIND> existingEdges = viewController->getExistingEdgeKindsForSelection();
+
+    //Disable the
+    foreach(RootAction* action, adoptableKindsGroup->getRootActions()){
+        NodeViewItemAction* nodeAction = (NodeViewItemAction*) action;
+        auto kind = nodeAction->getNodeKind();
+        action->setEnabled(validNodes.contains(kind));
+    }
 
     foreach(Edge::EDGE_KIND edgeKind, connectEdgeKindActions.keys()){
         RootAction* action = connectEdgeKindActions[edgeKind];
         action->setEnabled(validEdges.contains(edgeKind));
     }
+
     foreach(Edge::EDGE_KIND edgeKind, disconnectEdgeKindActions.keys()){
         RootAction* action = disconnectEdgeKindActions[edgeKind];
         action->setEnabled(existingEdges.contains(edgeKind));
@@ -218,6 +221,11 @@ void ToolbarController::addWorkerProcess(int processID, QPointF position)
     if(ID != -1){
         emit viewController->vc_constructWorkerProcess(ID, processID, position);
     }
+}
+
+bool ToolbarController::requiresSubAction(Node::NODE_KIND kind)
+{
+
 }
 
 void ToolbarController::actionHoverEnter(int ID)
@@ -356,10 +364,10 @@ QStringList ToolbarController::getKindsRequiringSubActions()
  */
 void ToolbarController::setupNodeActions()
 {
-    foreach(QString kind, viewController->getNodeKinds()){
-        RootAction* action = new RootAction("Node", kind);
-        action->setIconPath("EntityIcons", kind);
-        nodeKindActions[kind]= action;
+    foreach(auto node, viewController->getNodeKindItems()){
+        auto nodeKind = node->getNodeKind();
+        NodeViewItemAction* action = new NodeViewItemAction(node);
+        nodeKindActions[nodeKind]= action;
         adoptableKindsGroup->addAction(action);
     }
 }

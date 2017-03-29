@@ -51,6 +51,7 @@ public:
     void addConnectedChildNode(int dstID, QString kind, QPointF position);
     void addWorkerProcess(int processID, QPointF position);
 
+    bool requiresSubAction(Node::NODE_KIND kind);
 signals:
     void hardwareCreated(int ID);
     void hardwareDestructed(int ID);
@@ -78,7 +79,7 @@ private:
     RootAction* createRootAction(QString hashKey, QString actionName, QString iconPath="", QString aliasPath="");
 
     QHash<QString, RootAction*> toolActions;
-    QHash<QString, RootAction*> nodeKindActions;
+    QHash<Node::NODE_KIND, RootAction*> nodeKindActions;
     QHash<Edge::EDGE_KIND, RootAction*> connectEdgeKindActions;
     QHash<Edge::EDGE_KIND, RootAction*> disconnectEdgeKindActions;
 

@@ -38,6 +38,9 @@ public:
     NodeViewDockWidget* constructNodeViewDockWidget(QString label="");
 
     QStringList getAdoptableNodeKinds();
+    QList<Node::NODE_KIND> getAdoptableNodeKinds2();
+    QList<NodeViewItem*> getNodeKindItems();
+    QList<EdgeViewItem*> getEdgeKindItems();
 
     QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection();
 
@@ -248,6 +251,7 @@ private slots:
     void table_dataChanged(int ID, QString key, QVariant data);
 
 private:
+    void setupEntityKindItems();
     void welcomeActionFinished();
     void _showGitHubPage(QString relURL="");
     void _showWebpage(QString URL);
@@ -286,6 +290,9 @@ private:
     QList<ViewItem*> getItemsOfKind(Edge::EDGE_KIND kind);
     bool _modelReady;
 
+
+    QList<NodeViewItem*> nodeKindItems;
+    QList<EdgeViewItem*> edgeKindItems;
 
     bool _controllerReady;
 

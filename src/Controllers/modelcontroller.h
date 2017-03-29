@@ -239,6 +239,7 @@ public:
     QList<Edge::EDGE_KIND> getValidEdgeKindsForSelection(QList<int> IDs);
     QList<Edge::EDGE_KIND> getExistingEdgeKindsForSelection(QList<int> IDs);
 
+    QList<Node::NODE_KIND> getAdoptableNodeKinds2(int ID);
     QStringList getAdoptableNodeKinds(int ID);
     QStringList getValidKeyValues(int ID, QString keyName);
     QList<int> getConnectableNodeIDs(QList<int> srcs, Edge::EDGE_KIND edgeKind);

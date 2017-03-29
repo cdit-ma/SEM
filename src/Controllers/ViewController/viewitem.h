@@ -71,7 +71,7 @@ signals:
     void propertyRemoved(QString propertyName);
 
     void destructing(int ID);
-private:
+protected:
     QStringList getProtectedKeys() const;
     void changeData(QString keyName, QVariant data);
     void removeData(QString keyName);

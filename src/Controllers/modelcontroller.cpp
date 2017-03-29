@@ -4900,6 +4900,32 @@ QList<Edge::EDGE_KIND> ModelController::getExistingEdgeKindsForSelection(QList<i
 
 }
 
+QList<Node::NODE_KIND> ModelController::getAdoptableNodeKinds2(int ID)
+{
+    QList<Node::NODE_KIND> kinds;
+
+    lock.lockForRead();
+
+    Node* parent = getNodeFromID(ID);
+
+    //Ignore all children for read only kind.
+    if(parent && !parent->isReadOnly()){
+
+        foreach(Node::NODE_KIND nodeKind, NodeFactory::getNodeKinds()){
+            auto node = NodeFactory::createNode(nodeKind);
+            if(node){
+                if(parent->canAdoptChild(node)){
+                    kinds.append(nodeKind);
+                }
+                //Clean up memory.
+                delete node;
+            }
+        }
+    }
+    lock.unlock();
+    return kinds;
+}
+
 QStringList ModelController::getVisualKeys()
 {
     QStringList visualKeys;

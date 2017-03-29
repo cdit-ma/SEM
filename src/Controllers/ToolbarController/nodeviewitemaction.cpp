@@ -52,6 +52,14 @@ QString NodeViewItemAction::getKind()
     return "";
 }
 
+Node::NODE_KIND NodeViewItemAction::getNodeKind()
+{
+    if(nodeViewItem){
+        return nodeViewItem->getNodeKind();
+    }
+    return Node::NK_NONE;
+}
+
 QString NodeViewItemAction::getLabel()
 {
     if (nodeViewItem) {

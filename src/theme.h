@@ -103,7 +103,6 @@ public:
     bool gotImage(QPair<QString, QString> icon) const;
     bool gotImage(QString, QString) const;
 
-
     QString getBorderWidth();
     QString getCornerRadius();
     QString getSharpCornerRadius();
