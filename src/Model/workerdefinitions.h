@@ -7,7 +7,6 @@ class WorkerDefinitions : public Node
     Q_OBJECT
 public:
     WorkerDefinitions();
-
     VIEW_ASPECT getViewAspect() const;
 
     bool canAdoptChild(Node *node);

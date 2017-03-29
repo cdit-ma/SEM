@@ -188,7 +188,8 @@ HEADERS += \
     Model/BehaviourDefinitions/header.h \
     Model/BehaviourDefinitions/forcondition.h \
     Model/BehaviourDefinitions/setter.h \
-    Model/BehaviourDefinitions/variableparameter.h
+    Model/BehaviourDefinitions/variableparameter.h \
+    Model/root.h
 
 
 SOURCES += \
@@ -369,7 +370,8 @@ SOURCES += \
     Model/BehaviourDefinitions/header.cpp \
     Model/BehaviourDefinitions/forcondition.cpp \
     Model/BehaviourDefinitions/setter.cpp \
-    Model/BehaviourDefinitions/variableparameter.cpp
+    Model/BehaviourDefinitions/variableparameter.cpp \
+    Model/root.cpp
 
 RESOURCES += \
 	resources.qrc

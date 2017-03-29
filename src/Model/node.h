@@ -129,6 +129,8 @@ public:
 
     NODE_KIND getNodeKind() const;
 
+    bool isAttached() const;
+
 
     int getDepthFromAspect();
     int getDepthFromCommonAncestor(Node* dst);
@@ -144,6 +146,7 @@ public:
     virtual bool canAdoptChild(Node *node);
     //Adds the Node provided to the list of children.
     bool addChild(Node *child);
+    bool setAsRoot(int root_index);
     QString getNodeKindStr();
 
     bool indirectlyConnectedTo(Node* node);

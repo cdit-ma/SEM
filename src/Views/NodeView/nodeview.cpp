@@ -166,6 +166,11 @@ void NodeView::setContainedNodeViewItem(NodeViewItem *item)
     clearSelection();
 }
 
+ViewItem *NodeView::getContainedViewItem()
+{
+    return containedNodeViewItem;
+}
+
 QColor NodeView::getBackgroundColor()
 {
     return backgroundColor;
@@ -341,6 +346,22 @@ void NodeView::node_ConnectMode(NodeItem *item)
     if(selectionHandler && selectionHandler->getSelectionCount() == 1){
         if(item->getViewItem() == selectionHandler->getActiveSelectedItem()){
             emit trans_InActive2Connecting();
+        }
+    }
+}
+
+void NodeView::node_PopOutRelatedNode(NodeViewItem *item, Node::NODE_KIND kind)
+{
+    //Get the edge
+    for(auto edge: item->getEdges()){
+        auto src = edge->getSource();
+        auto dst = edge->getDestination();
+        if(src->getNodeKind() == kind){
+            viewController->popupItem(src->getID());
+            return;
+        }else if(dst->getNodeKind() == kind){
+            viewController->popupItem(dst->getID());
+            return;
         }
     }
 }
@@ -583,11 +604,8 @@ void NodeView::setupConnections(EntityItem *item)
         connect(node, &NodeItem::req_Resize, this, &NodeView::item_Resize);
         connect(node, &NodeItem::req_FinishResize, this, &NodeView::trans_Resizing2InActive);
 
-        //connect(node, &NodeItemNew::req_adjustSize, this, &NodeViewNew::item_Resize);
-        //connect(node, &NodeItemNew::req_adjustSizeFinished, this, &NodeViewNew::item_ResizeFinished);
         connect(node, &NodeItem::req_connectMode, this, &NodeView::node_ConnectMode);
-
-
+        connect(node, &NodeItem::req_popOutRelatedNode, this, &NodeView::node_PopOutRelatedNode);
     }
 }
 
@@ -692,11 +710,21 @@ void NodeView::nodeViewItem_Constructed(NodeViewItem *item)
                 nodeItem = new ManagementComponentNodeItem(item, parentNode);
                 break;
             case Node::NK_IDL:
+                break;
             case Node::NK_COMPONENT:
-            case Node::NK_COMPONENT_ASSEMBLY:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setVisualNodeKind(Node::NK_COMPONENT_IMPL);
+                break;
             case Node::NK_COMPONENT_INSTANCE:
-            case Node::NK_BLACKBOX:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setVisualNodeKind(Node::NK_COMPONENT);
+                break;
             case Node::NK_COMPONENT_IMPL:
+                nodeItem = new DefaultNodeItem(item, parentNode);
+                nodeItem->setVisualNodeKind(Node::NK_COMPONENT);
+                break;
+            case Node::NK_COMPONENT_ASSEMBLY:
+            case Node::NK_BLACKBOX:
             case Node::NK_BLACKBOX_INSTANCE:
                 nodeItem = new DefaultNodeItem(item, parentNode);
                 break;

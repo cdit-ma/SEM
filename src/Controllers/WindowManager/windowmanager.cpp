@@ -296,6 +296,20 @@ QList<NodeViewDockWidget *> WindowManager::getNodeViewDockWidgets()
     return views;
 }
 
+NodeViewDockWidget *WindowManager::getNodeViewDockWidget(ViewItem *item)
+{
+    foreach(ViewDockWidget* dock, getViewDockWidgets()){
+        if(dock->isNodeViewDock()){
+            auto viewDock = (NodeViewDockWidget*) dock;
+
+            if(viewDock->getNodeView()->getContainedViewItem() == item){
+                return viewDock;
+            }
+        }
+    }
+    return 0;
+}
+
 void WindowManager::reparentDockWidget(BaseDockWidget *dockWidget)
 {
     showPopOutDialog(dockWidget);

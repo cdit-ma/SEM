@@ -43,6 +43,11 @@ Node::NODE_KIND Node::getNodeKind() const
     return nodeKind;
 }
 
+bool Node::isAttached() const
+{
+    return treeIndex.length() > 0;
+}
+
 
 Node::~Node()
 {
@@ -388,6 +393,15 @@ bool Node::addChild(Node *child)
         children << child;
         child->setParentNode(this, childCount++);
         emit childCountChanged();
+        return true;
+    }
+    return false;
+}
+
+bool Node::setAsRoot(int root_index)
+{
+    if(!parentNode && treeIndex.length() == 0){
+        setTop(root_index);
         return true;
     }
     return false;

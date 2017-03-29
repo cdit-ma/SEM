@@ -25,10 +25,7 @@ Theme::Theme():QObject(0)
     selectedItemBorderColor = Qt::blue;
 
     setupToggledIcons();
-    //preloadImages();
     updateValid();
-
-
 
     preloadThread = QtConcurrent::run(QThreadPool::globalInstance(), this, &Theme::preloadImages);
 }

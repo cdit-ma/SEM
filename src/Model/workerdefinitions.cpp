@@ -3,8 +3,8 @@
 
 WorkerDefinitions::WorkerDefinitions(): Node(NK_WORKER_DEFINITIONS)
 {
-    setTop(1);
 }
+
 
 VIEW_ASPECT WorkerDefinitions::getViewAspect() const
 {

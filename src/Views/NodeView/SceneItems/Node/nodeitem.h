@@ -134,7 +134,13 @@ public:
     void setSecondaryTextKey(QString key);
 
     void setVisualEdgeKind(Edge::EDGE_KIND kind);
+    void setVisualNodeKind(Node::NODE_KIND kind);
     Edge::EDGE_KIND getVisualEdgeKind() const;
+    Node::NODE_KIND getVisualNodeKind() const;
+
+    bool gotVisualNodeKind() const;
+    bool gotVisualEdgeKind() const;
+    bool gotVisualButton() const;
 
     QString getPrimaryTextKey() const;
     QString getSecondaryTextKey() const;
@@ -153,6 +159,7 @@ public:
 signals:
     //Request changes
     void req_connectMode(NodeItem* item);
+    void req_popOutRelatedNode(NodeViewItem* item, Node::NODE_KIND kind);
 
     void req_StartResize();
     void req_Resize(NodeItem* item, QSizeF delta, RECT_VERTEX vert);
@@ -182,8 +189,9 @@ private:
     NodeViewItem* nodeViewItem;
     KIND nodeItemKind;
 
-    Edge::EDGE_KIND visualEdgeKind;
-    QString visualEdgeIcon;
+    Node::NODE_KIND visualNodeKind = Node::NK_NONE;
+    Edge::EDGE_KIND visualEdgeKind = Edge::EC_NONE;
+    QString visualEntityIcon;
 
     NODE_READ_STATE readState;
 

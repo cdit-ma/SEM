@@ -13,6 +13,7 @@ class NodeViewDockWidget;
 class BaseWindow;
 class ViewController;
 class ViewManagerWidget;
+class ViewItem;
 
 class WindowManager : public QObject
 {
@@ -54,6 +55,7 @@ public:
     void setActiveDockWidget(int ID);
     QList<ViewDockWidget*> getViewDockWidgets();
     QList<NodeViewDockWidget*> getNodeViewDockWidgets();
+    NodeViewDockWidget* getNodeViewDockWidget(ViewItem* item);
 
     void reparentDockWidget(BaseDockWidget *dockWidget);
 private slots:

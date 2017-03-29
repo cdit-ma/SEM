@@ -12,6 +12,7 @@
 #include <QRegularExpression>
 
 #include "../Model/edgefactory.h"
+#include "../Model/nodefactory.h"
 
 #include "../Model/tempentity.h"
 
@@ -182,93 +183,7 @@ ModelController::ModelController() :QObject(0)
 
     visualKeyNames << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly" << "dataProtected";
 
-
-    containerNodeKinds << "Model";
-    containerNodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
-    containerNodeKinds << "HardwareDefinitions" << "AssemblyDefinitions" << "ManagementComponent";
-    containerNodeKinds << "HardwareCluster";
-
-
-    definitionNodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" << "BlackBox" << "BlackBoxInstance";
-    definitionNodeKinds << "Member" << "Aggregate";
-    definitionNodeKinds << "InEventPort"  << "OutEventPort";
-    definitionNodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
-    definitionNodeKinds << "AggregateInstance";
-    definitionNodeKinds << "ComponentImpl";
-
-    definitionNodeKinds << "Vector" << "VectorInstance";
-    definitionNodeKinds << "Setter" << "VariableParameter";
-
-
-    definitionNodeKinds << "DDS_QOSProfile";
-
-    dds_QosNodeKinds << "DDS_DeadlineQosPolicy";
-    dds_QosNodeKinds << "DDS_DestinationOrderQosPolicy";
-    dds_QosNodeKinds << "DDS_DurabilityQosPolicy";
-    dds_QosNodeKinds << "DDS_DurabilityServiceQosPolicy";
-    dds_QosNodeKinds << "DDS_EntityFactoryQosPolicy";
-    dds_QosNodeKinds << "DDS_GroupDataQosPolicy";
-    dds_QosNodeKinds << "DDS_HistoryQosPolicy";
-    dds_QosNodeKinds << "DDS_LatencyBudgetQosPolicy";
-    dds_QosNodeKinds << "DDS_LifespanQosPolicy";
-    dds_QosNodeKinds << "DDS_LivelinessQosPolicy";
-    dds_QosNodeKinds << "DDS_OwnershipQosPolicy";
-    dds_QosNodeKinds << "DDS_OwnershipStrengthQosPolicy";
-    dds_QosNodeKinds << "DDS_PartitionQosPolicy";
-    dds_QosNodeKinds << "DDS_PresentationQosPolicy";
-    dds_QosNodeKinds << "DDS_ReaderDataLifecycleQosPolicy";
-    dds_QosNodeKinds << "DDS_ReliabilityQosPolicy";
-    dds_QosNodeKinds << "DDS_ResourceLimitsQosPolicy";
-    dds_QosNodeKinds << "DDS_TimeBasedFilterQosPolicy";
-    dds_QosNodeKinds << "DDS_TopicDataQosPolicy";
-    dds_QosNodeKinds << "DDS_TransportPriorityQosPolicy";
-    dds_QosNodeKinds << "DDS_UserDataQosPolicy";
-    dds_QosNodeKinds << "DDS_WriterDataLifecycleQosPolicy";
-
-
-
-
-
-
-
-    behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
-    behaviourNodeKinds << "WhileLoop" << "InputParameter" << "VariadicParameter" << "AggregateInstance" << "VectorInstance" << "WorkerProcess";
-    behaviourNodeKinds << "Code" << "Header" << "ForCondition" << "VectorItterator";
-
-
-    //Append Kinds which can't be constructed by the GUI.
-    constructableNodeKinds << "MemberInstance" << "AttributeImpl";
-    constructableNodeKinds << "OutEventPortInstance" << "MemberInstance" << "AggregateInstance";
-    constructableNodeKinds << "AttributeInstance" << "AttributeImpl";
-    constructableNodeKinds << "InEventPortInstance" << "InEventPortImpl";
-    constructableNodeKinds << "OutEventPortInstance" << "OutEventPortImpl" << "HardwareNode";
-    constructableNodeKinds << "QOSProfile";
-
-    snippetableParentKinds << Node::NK_COMPONENT_IMPL << Node::NK_INTERFACE_DEFINITIONS;
     nonSnippetableKinds << Node::NK_OUTEVENTPORT_IMPL << Node::NK_INEVENTPORT_IMPL;
-
-    constructableNodeKinds.append(definitionNodeKinds);
-    constructableNodeKinds.append(behaviourNodeKinds);
-    constructableNodeKinds.append(dds_QosNodeKinds);
-    constructableNodeKinds << "ManagementComponent";
-
-    constructableNodeKinds << "InputParameter";
-    constructableNodeKinds << "VariadicParameter";
-
-    constructableNodeKinds.removeDuplicates();
-
-    guiConstructableNodeKinds.append(definitionNodeKinds);
-    guiConstructableNodeKinds.append(behaviourNodeKinds);
-
-    guiConstructableNodeKinds.append(dds_QosNodeKinds);
-
-    guiConstructableNodeKinds.removeDuplicates();
-    guiConstructableNodeKinds.sort();
-
-
-
-
-
 }
 void ModelController::connectViewController(ViewController *view)
 {
@@ -968,8 +883,11 @@ void ModelController::constructDDSQOSProfile(int parentID, QPointF position)
         triggerAction("Constructing DDS QOS Profile");
         Node* profile = constructChildNode(parentNode, constructDataVector("DDS_QOSProfile", position));
         if(profile){
-            foreach(QString kind, dds_QosNodeKinds){
-                constructChildNode(profile, constructDataVector(kind));
+            //Itterate through QOS
+            for(int k = Node::NK_QOS_DDS_POLICY_DEADLINE; k <= Node::NK_QOS_DDS_POLICY_WRITERDATALIFECYCLE; k++){
+                auto kind = (Node::NODE_KIND) k;
+                QString kind_str = NodeFactory::getNodeKindString(kind);
+                constructChildNode(profile, constructDataVector(kind_str));
             }
         }
     }
@@ -1775,11 +1693,12 @@ QStringList ModelController::getAdoptableNodeKinds(int ID)
 
     //Ignore all children for read only kind.
     if(parent && !parent->isReadOnly()){
-        foreach(QString nodeKind, guiConstructableNodeKinds){
-            Node* node = constructTypedNode(nodeKind, true);
+
+        foreach(Node::NODE_KIND nodeKind, NodeFactory::getNodeKinds()){
+            auto node = NodeFactory::createNode(nodeKind);
             if(node){
                 if(parent->canAdoptChild(node)){
-                    adoptableNodeKinds.append(nodeKind);
+                    adoptableNodeKinds.append(NodeFactory::getNodeKindString(nodeKind));
                 }
                 //Clean up memory.
                 delete node;
@@ -2556,6 +2475,10 @@ Node *ModelController::_constructNode(QList<Data *> nodeData)
         }
     }
 
+    //Construct a new Node
+    //Node* node = NodeFactory::createNode(childNodeKind);
+
+    //Construct the node.
     Node* node = constructTypedNode(childNodeKind, false, childNodeType, childUniqueID);
 
     //Enforce Default Data!
@@ -2684,7 +2607,7 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
 
     QStringList protectedLabels;
     protectedLabels << "InputParameter"<< "ReturnParameter" << "ManagementComponent";
-    protectedLabels.append(dds_QosNodeKinds);
+    //protectedLabels.append(dds_QosNodeKinds);
 
     bool protectLabel = protectedLabels.contains(nodeKind);
 
@@ -2887,7 +2810,7 @@ QList<Data *> ModelController::constructDataVector(QString nodeKind, QPointF rel
         data.append(new Data(valueKey));
     }
 
-    if(dds_QosNodeKinds.contains(nodeKind)){
+    if(nodeKind.startsWith("DDS_")){
         Key* duration_key = constructKey("qos_dds_duration", QVariant::Double);
         Key* kind_key = constructKey("qos_dds_kind", QVariant::String);
         Key* int_value_key = constructKey("qos_dds_int_value", QVariant::Int);
@@ -3483,10 +3406,6 @@ bool ModelController::destructEntity(Entity *item)
 }
 
 
-bool ModelController::isNodeKindImplemented(QString nodeKind)
-{
-    return containerNodeKinds.contains(nodeKind) || constructableNodeKinds.contains(nodeKind);
-}
 
 bool ModelController::reverseAction(EventAction action)
 {
@@ -3852,6 +3771,9 @@ QString ModelController::_copy(QList<Entity *> selection)
 Node *ModelController::constructTypedNode(QString nodeKind, bool isTemporary, QString nodeType, QString nodeLabel)
 {
 
+
+
+
     bool storeNode = !isTemporary;
     if(nodeKind == "Model"){
         if(model){
@@ -4089,10 +4011,12 @@ void ModelController::constructNodeGUI(Node *node)
 void ModelController::setupModel()
 {
     model = (Model*) (constructTypedNode("Model"));
+    model->setAsRoot(0);
     _attachData(model, constructDataVector("Model"));
     constructNodeGUI(model);
 
     workerDefinitions = constructTypedNode("WorkerDefinitions");
+    workerDefinitions->setAsRoot(1);
     _attachData(workerDefinitions, constructDataVector("WorkerDefinitions"));
     constructNodeGUI(workerDefinitions);
 

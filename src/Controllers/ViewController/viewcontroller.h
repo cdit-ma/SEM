@@ -253,7 +253,7 @@ private:
     void _showWebpage(QString URL);
     void _showWiki(ViewItem* item=0);
     QString getTempFileForModel();
-    void spawnSubView(ViewItem *item );
+    void spawnSubView(ViewItem *item);
     bool destructViewItem(ViewItem* item);
     QList<ViewItem*> getViewItems(QList<int> IDs);
     ViewItem* getActiveSelectedItem() const;

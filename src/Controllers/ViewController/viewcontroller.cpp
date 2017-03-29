@@ -639,21 +639,28 @@ QString ViewController::getTempFileForModel()
 void ViewController::spawnSubView(ViewItem * item)
 {
     if(item && item->isNode()){
-        NodeViewDockWidget* dockWidget = constructNodeViewDockWidget();
+        auto dockWidget = WindowManager::manager()->getNodeViewDockWidget(item);
+        if(dockWidget){
+            dockWidget->setVisible(true);
+        }else{
+            //Construct a dockWidget
+            dockWidget = constructNodeViewDockWidget();
+            //Setup Dock Widget
+            dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
+            dockWidget->setIcon(item->getIcon());
+            dockWidget->setTitle(item->getData("label").toString());
 
-        //Setup Dock Widget
-        dockWidget->setAllowedAreas(Qt::TopDockWidgetArea | Qt::BottomDockWidgetArea);
-        dockWidget->setIcon(item->getIcon());
-        dockWidget->setTitle(item->getData("label").toString());
+            //Set the NodeView to be contained on this NodeViewItem
+            dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
 
-        //Set the NodeView to be contained on this NodeViewItem
-        dockWidget->getNodeView()->setContainedNodeViewItem((NodeViewItem*)item);
+            //Show the reparent DockWidget Widget
+            WindowManager::manager()->reparentDockWidget(dockWidget);
 
-        //Show the reparent DockWidget Widget
-        WindowManager::manager()->reparentDockWidget(dockWidget);
+            //Fit the contents of the dockwidget to screen
+            dockWidget->getNodeView()->fitToScreen();
+        }
 
-        //Fit the contents of the dockwidget to screen
-        dockWidget->getNodeView()->fitToScreen();
+
     }
 }
 

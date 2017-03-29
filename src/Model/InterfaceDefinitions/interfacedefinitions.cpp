@@ -18,6 +18,7 @@ bool InterfaceDefinitions::canAdoptChild(Node *child)
     case NK_AGGREGATE:
         break;
     case NK_COMPONENT:
+    case NK_COMPONENT_IMPL:
         break;
     default:
         return false;

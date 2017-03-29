@@ -544,9 +544,6 @@ private:
 
 
 
-    //Returns true if a nodeKind has been Implemented in the Model.
-    bool isNodeKindImplemented(QString nodeKind);
-
     //Used by Undo/Redo to reverse an ActionItem from the Stacks.
     bool reverseAction(EventAction action);
 
@@ -563,6 +560,8 @@ private:
 
     QPair<bool, QString> readFile(QString filePath);
     Node* constructTypedNode(QString nodeKind, bool isTemporary = false, QString nodeType="", QString nodeLabel="");
+
+    Node* constructTypedNode(Node::NODE_KIND nodeKind, QString nodeType="", QString nodeLabel="");
 
     //Attach Data('s) to the GraphML item.
     bool _attachData(Entity* item, Data* data, bool addAction = true);
@@ -635,18 +634,8 @@ private:
 
     QString getProcessName(Process* process);
 
-    //A list of Node's which are considered Containers, and aren't part of constructable Nodes.
-    QStringList containerNodeKinds;
-    //A List of Node's which are elements in the Model, can be constructed.
-    QStringList constructableNodeKinds;
-    QStringList guiConstructableNodeKinds;
-
     QList<Node::NODE_KIND> snippetableParentKinds;
     QList<Node::NODE_KIND> nonSnippetableKinds;
-
-    QStringList behaviourNodeKinds;
-    QStringList definitionNodeKinds;
-    QStringList dds_QosNodeKinds;
 
     //A list of View Aspects present in the model.
     QStringList viewAspects;

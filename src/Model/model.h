@@ -10,6 +10,5 @@ public:
     Model();
     bool canAdoptChild(Node*);
     bool canAcceptEdge(Edge::EDGE_KIND edgeKind, Node *dst);
-
 };
 #endif // MODEL_H

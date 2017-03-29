@@ -1,14 +1,22 @@
 #ifndef EDGEFACTORY_H
 #define EDGEFACTORY_H
 
-#include <QMap>
+#include <QHash>
+#include <functional>
 
 #include "node.h"
 #include "edge.h"
 
 
+
 class EdgeFactory
 {
+private:
+    struct EdgeLookupStruct{
+        Edge::EDGE_KIND kind;
+        QString kind_str;
+        std::function<Edge* (Node*, Node*)> constructor;
+    };
 public:
     static Edge* createEdge(Node* source, Node* destination, Edge::EDGE_KIND edgeKind);
     static Edge* createEdge(Node* source, Node* destination, QString kind);
@@ -19,10 +27,15 @@ public:
 
 protected:
     EdgeFactory();
+    ~EdgeFactory();
     static EdgeFactory* getFactory();
-    QMap<Edge::EDGE_KIND, QString> edgeLookup;
+
+    QHash<Edge::EDGE_KIND, EdgeLookupStruct*> edgeLookup;
+    QHash<QString, Edge::EDGE_KIND> edgeKindLookup;
+
     Edge* _createEdge(Node* source, Node* destination, Edge::EDGE_KIND edgeKind);
 private:
+    void addKind(Edge::EDGE_KIND kind, QString kind_str, std::function<Edge* (Node*, Node*)> constructor);
     static EdgeFactory* factory;
 };
 
